@@ -1,0 +1,208 @@
+<!doctype html>
+<html lang="pt-BR">
+  <head>
+    <meta charset="UTF-8" />
+    <title>Admin - Popular Rodadas</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link rel="stylesheet" href="style.css" />
+    <style>
+      .btn-voltar {
+        background-color: #34495e;
+        color: white;
+        border: none;
+        padding: 8px 16px;
+        border-radius: 5px;
+        cursor: pointer;
+        margin-bottom: 20px;
+      }
+      .admin-container {
+        max-width: 600px;
+        margin: 40px auto;
+        background: white;
+        padding: 30px;
+        border-radius: 10px;
+        box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+        text-align: center;
+      }
+      .admin-container h2 {
+        margin-bottom: 20px;
+      }
+      .admin-container input {
+        width: 80px;
+        padding: 8px;
+        margin: 5px;
+        border: 1px solid #ccc;
+        border-radius: 4px;
+        text-align: center;
+      }
+      .admin-container button {
+        background-color: #3498db;
+        color: white;
+        border: none;
+        padding: 10px 20px;
+        border-radius: 5px;
+        cursor: pointer;
+        margin-top: 20px;
+      }
+      .admin-container button:disabled {
+        background-color: #95a5a6;
+        cursor: not-allowed;
+      }
+      .status-msg {
+        margin-top: 20px;
+        font-weight: bold;
+      }
+      .loading-spinner {
+        display: inline-block;
+        width: 20px;
+        height: 20px;
+        border: 3px solid rgba(0, 0, 0, 0.1);
+        border-radius: 50%;
+        border-top-color: #3498db;
+        animation: spin 1s ease-in-out infinite;
+        margin-right: 10px;
+        vertical-align: middle;
+      }
+      @keyframes spin {
+        to {
+          transform: rotate(360deg);
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="admin-container">
+      <h2>⚙️ Popular Rodadas no MongoDB</h2>
+      <button
+        onclick="window.location.href='gerenciar.html'"
+        class="btn-voltar"
+      >
+        ⬅ Voltar
+      </button>
+      <p>ID da Liga: <strong id="ligaIdDisplay">Carregando...</strong></p>
+
+      <div>
+        <label for="inicio">Rodada Início:</label>
+        <input type="number" id="inicio" min="1" max="38" placeholder="1" />
+        <label for="fim">Rodada Fim:</label>
+        <input type="number" id="fim" min="1" max="38" placeholder="38" />
+      </div>
+      <div>
+        <input type="checkbox" id="repopular" />
+        <label for="repopular"
+          >Repopular rodadas (sobrescrever as existentes)</label
+        >
+      </div>
+      <button id="popularBtn" onclick="popularRodadas()">
+        🔄 Popular Rodadas
+      </button>
+
+      <div class="status-msg" id="statusMsg"></div>
+    </div>
+
+    <script>
+      const urlParams = new URLSearchParams(window.location.search);
+      const ligaId = urlParams.get("id");
+      document.getElementById("ligaIdDisplay").textContent =
+        ligaId || "Não informado";
+
+      // Variável para controlar o timeout da requisição
+      let requestTimeout;
+      // Variável para controlar se uma requisição está em andamento
+      let isRequestInProgress = false;
+
+      async function popularRodadas() {
+        // Evita múltiplas requisições simultâneas
+        if (isRequestInProgress) {
+          return;
+        }
+
+        const inicio = parseInt(document.getElementById("inicio").value);
+        const fim = parseInt(document.getElementById("fim").value);
+        const statusMsg = document.getElementById("statusMsg");
+        const popularBtn = document.getElementById("popularBtn");
+        const repopular = document.getElementById("repopular").checked;
+        console.log("Repopular:", repopular);
+
+        if (!ligaId || isNaN(inicio) || isNaN(fim) || inicio > fim) {
+          statusMsg.style.color = "red";
+          statusMsg.textContent = "Preencha todos os campos corretamente.";
+          return;
+        }
+
+        // Marca que uma requisição está em andamento
+        isRequestInProgress = true;
+
+        // Desabilita o botão durante a requisição
+        popularBtn.disabled = true;
+
+        // Mostra mensagem de carregamento com spinner
+        statusMsg.style.color = "#000";
+        statusMsg.innerHTML = `<span class="loading-spinner"></span> Populando rodadas ${inicio} até ${fim}... Aguarde, isso pode levar alguns minutos.`;
+
+        // Define um timeout para a requisição (3 minutos)
+        requestTimeout = setTimeout(() => {
+          statusMsg.style.color = "orange";
+          statusMsg.innerHTML =
+            "A operação está demorando mais que o esperado, mas continua em andamento. Por favor, aguarde...";
+        }, 60000); // 1 minuto
+
+        try {
+          const controller = new AbortController();
+          const timeoutId = setTimeout(() => controller.abort(), 300000); // 5 minutos de timeout
+
+          const res = await fetch(`/api/ligas/${ligaId}/rodadas`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ inicio, fim, repopular }),
+            signal: controller.signal,
+          });
+
+          clearTimeout(timeoutId);
+
+          if (!res.ok) {
+            const errorData = await res.json().catch(() => ({}));
+            throw new Error(
+              errorData.error || `Erro ${res.status}: ${res.statusText}`,
+            );
+          }
+
+          const data = await res.json();
+          statusMsg.style.color = "green";
+          statusMsg.textContent = data.message;
+        } catch (err) {
+          statusMsg.style.color = "red";
+
+          if (err.name === "AbortError") {
+            statusMsg.textContent =
+              "A operação excedeu o tempo limite. Tente novamente com um intervalo menor de rodadas.";
+          } else if (
+            err.message.includes("Failed to fetch") ||
+            err.message.includes("NetworkError")
+          ) {
+            statusMsg.textContent =
+              "Erro de conexão com o servidor. Verifique sua internet e tente novamente.";
+          } else {
+            statusMsg.textContent = `Erro: ${err.message}`;
+          }
+
+          console.error("Erro detalhado:", err);
+        } finally {
+          // Limpa o timeout
+          clearTimeout(requestTimeout);
+
+          // Reabilita o botão
+          popularBtn.disabled = false;
+
+          // Marca que a requisição terminou
+          isRequestInProgress = false;
+        }
+      }
+
+      // Limpa recursos ao fechar/recarregar a página
+      window.addEventListener("beforeunload", () => {
+        clearTimeout(requestTimeout);
+      });
+    </script>
+  </body>
+</html>

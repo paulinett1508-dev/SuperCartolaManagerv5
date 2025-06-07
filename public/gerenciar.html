@@ -1,0 +1,168 @@
+<!doctype html>
+<html lang="pt-BR">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Gerenciar Ligas Criadas</title>
+    <link rel="stylesheet" href="style.css" />
+    <style>
+      h2 {
+        text-align: center;
+        color: #2c3e50;
+        margin-top: 20px;
+      }
+      .btn-voltar {
+        background: #34495e;
+        color: white;
+        padding: 8px 16px;
+        border: none;
+        border-radius: 4px;
+        cursor: pointer;
+        display: block;
+        margin: 10px auto 20px;
+        font-size: 14px;
+      }
+      .search-container {
+        text-align: center;
+        margin-bottom: 20px;
+      }
+      .search-container input {
+        padding: 8px;
+        width: 300px;
+        border: 1px solid #ccc;
+        border-radius: 4px;
+        font-size: 14px;
+      }
+      .liga-card {
+        border: 1px solid #ccc;
+        border-radius: 8px;
+        padding: 16px;
+        margin: 10px auto;
+        max-width: 600px;
+        background-color: #f9f9f9;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+      }
+      .liga-info {
+        flex: 1;
+      }
+      .liga-info h3 {
+        margin: 0;
+        color: #2c3e50;
+        font-size: 18px;
+      }
+      .liga-info p {
+        margin: 5px 0;
+        color: #7f8c8d;
+        font-size: 14px;
+      }
+      .liga-actions {
+        display: flex;
+        flex-direction: column;
+        gap: 6px;
+      }
+      .btn {
+        padding: 6px 12px;
+        border: none;
+        border-radius: 4px;
+        cursor: pointer;
+        color: white;
+        font-size: 12px;
+        text-align: center;
+      }
+      .btn-details {
+        background-color: #3498db;
+      }
+      .btn-edit {
+        background-color: #2ecc71;
+      }
+      .btn-delete {
+        background-color: #e74c3c;
+      }
+      .btn-popular {
+        background-color: #f39c12;
+      }
+      .error-message {
+        color: red;
+        text-align: center;
+        margin: 10px 0;
+      }
+    </style>
+  </head>
+  <body>
+    <h2>Gerenciar Ligas Criadas</h2>
+    <button
+      class="btn btn-voltar"
+      onclick="window.location.href='index.html'"
+      aria-label="Voltar ao menu principal"
+    >
+      ⬅ Voltar ao Menu Principal
+    </button>
+
+    <div class="search-container">
+      <input
+        type="text"
+        id="searchInput"
+        placeholder="Buscar por nome da liga..."
+        oninput="filtrarLigas()"
+      />
+    </div>
+
+    <div id="errorMessage" class="error-message" style="display: none"></div>
+    <div id="ligasContainer"></div>
+
+    <script type="module">
+      import { carregarLigas, deletarLiga } from "./js/gerenciar-ligas.js";
+
+      document.addEventListener("DOMContentLoaded", async () => {
+        const ligas = await carregarLigas();
+        const container = document.getElementById("ligasContainer");
+        container.innerHTML = "";
+
+        ligas.forEach((liga) => {
+          const card = document.createElement("div");
+          card.className = "liga-card";
+          card.innerHTML = `
+            <div class="liga-info">
+              <h3>${liga.nome}</h3>
+              <p>ID: ${liga._id}</p>
+              <p>Times: ${liga.times.length}</p>
+            </div>
+            <div class="liga-actions">
+              <button class="btn btn-details" onclick="window.location.href='detalhe-liga.html?id=${liga._id}'">🔎 Ver Detalhes</button>
+              <button class="btn btn-edit" onclick="window.location.href='editar-liga.html?id=${liga._id}'">✏️ Editar Liga</button>
+              <button class="btn btn-popular" onclick="window.location.href='admin.html?id=${liga._id}'">🛠 Popular Rodadas</button>
+              <button class="btn btn-delete" onclick="deletarLiga('${liga._id}')">🗑 Excluir</button>
+            </div>
+          `;
+          container.appendChild(card);
+        });
+      });
+
+      window.filtrarLigas = function () {
+        const searchTerm = document
+          .getElementById("searchInput")
+          .value.toLowerCase();
+        const ligas = document.querySelectorAll(".liga-card");
+
+        ligas.forEach((liga) => {
+          const nomeLiga = liga.querySelector("h3").textContent.toLowerCase();
+          liga.style.display = nomeLiga.includes(searchTerm) ? "flex" : "none";
+        });
+      };
+
+      window.deletarLiga = async function (id) {
+        if (!confirm("Tem certeza que deseja excluir esta liga?")) return;
+        try {
+          await deletarLiga(id);
+          location.reload();
+        } catch (err) {
+          const errorDiv = document.getElementById("errorMessage");
+          errorDiv.textContent = `Erro ao excluir a liga: ${err.message}`;
+          errorDiv.style.display = "block";
+        }
+      };
+    </script>
+  </body>
+</html>

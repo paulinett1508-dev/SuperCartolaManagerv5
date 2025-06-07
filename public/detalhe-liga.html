@@ -1,0 +1,312 @@
+<!doctype html>
+<html lang="pt-BR">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Detalhes da Liga</title>
+    <link rel="stylesheet" href="style.css" />
+    <!-- Adiciona html2canvas para exportação de imagem -->
+    <script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
+    <style>
+      .mito-highlight {
+        background-color: #cceeff !important; /* Azul claro */
+        font-weight: bold;
+      }
+      .mico-highlight {
+        background-color: #ffdddd !important; /* Rosa claro */
+        font-style: italic;
+      }
+
+      /* Estilos para a tabela de artilheiros foram movidos para artilheiro-campeao.css */
+    </style>
+  </head>
+  <body>
+    <div class="container">
+      <h2 id="nomeLiga">🏆 Carregando...</h2>
+      <p id="quantidadeTimes" style="text-align: center; color: #7f8c8d"></p>
+      <button
+        class="btn-voltar"
+        onclick="window.history.back()"
+        aria-label="Voltar para a página anterior"
+      >
+        ⬅ Voltar
+      </button>
+
+      <div class="tabs">
+        <button class="tab active" data-tab="participantes">
+          Participantes
+        </button>
+        <button class="tab" data-tab="rodadas">Rodadas</button>
+        <button class="tab" data-tab="mata-mata">Disputas Mata-Mata</button>
+        <button class="tab" data-tab="ranking-geral">Ranking Geral</button>
+        <button class="tab" data-tab="pontos-corridos">
+          Liga Pontos Corridos
+        </button>
+        <button class="tab" data-tab="melhor-mes">Melhor do Mês</button>
+        <button class="tab" data-tab="top-10">Top 10</button>
+        <button class="tab" data-tab="fluxo-financeiro">
+          Fluxo Financeiro
+        </button>
+        <button class="tab" data-tab="artilheiro-campeao">
+          Artilheiro Campeão
+        </button>
+        <button class="tab" data-tab="luva-de-ouro">Luva de Ouro</button>
+      </div>
+
+      <div id="errorMessage" class="error-message" style="display: none"></div>
+
+      <div class="tab-contents">
+        <div id="participantes" class="tab-content active">
+          <button class="toggle-participants" type="button">
+            Exibir Participantes
+          </button>
+          <div id="timesContainer" class="times-container"></div>
+        </div>
+
+        <div id="rodadas" class="tab-content">
+          <div class="rodadas-header">
+            <div class="rodadas-actions">
+              <select id="rodadaSelect" class="rodadas-select">
+                <option value="">Escolha uma rodada</option>
+              </select>
+              <button class="refresh-btn" id="refreshApiBtn">
+                Atualizar dados da API
+              </button>
+              <button id="parciaisBtn" class="parciais-btn" type="button">
+                Parciais
+              </button>
+            </div>
+          </div>
+          <div id="rodadasExportBtnContainer"></div>
+          <div id="loading" style="display: none">Carregando...</div>
+          <table id="rankingTable" class="ranking-table">
+            <thead>
+              <tr>
+                <th style="width: 36px; text-align: center">Pos</th>
+                <th style="width: 40px; text-align: center">❤️</th>
+                <th style="min-width: 110px; text-align: left">Cartoleiro</th>
+                <th style="min-width: 110px; text-align: left">
+                  Time Cartoleiro
+                </th>
+                <th style="width: 48px; text-align: center">Pts</th>
+                <th style="width: 60px; text-align: center">Banco</th>
+              </tr>
+            </thead>
+            <tbody id="rankingBody"></tbody>
+          </table>
+        </div>
+
+        <div id="mata-mata" class="tab-content">
+          <!-- O conteúdo será inserido pelo JS -->
+        </div>
+
+        <div id="ranking-geral" class="tab-content">
+          <!-- Conteúdo da aba Ranking Geral -->
+        </div>
+
+        <div id="pontos-corridos" class="tab-content">
+          <div id="pontosCorridosSelect"></div>
+          <div id="pontosCorridosRodada"></div>
+        </div>
+
+        <div id="melhor-mes" class="tab-content">
+          <div id="melhorMesSelect"></div>
+          <div id="melhorMesTabela"></div>
+        </div>
+
+        <div id="top-10" class="tab-content">
+          <!-- Conteúdo da aba Top 10 -->
+          <div
+            id="top10MitosExportBtnContainer"
+            style="text-align: right; margin-bottom: 8px"
+          ></div>
+          <!-- Container para botão Exportar Mitos -->
+          <div id="top10MitosTable"></div>
+          <!-- Container para Mitos -->
+          <div style="height: 20px"></div>
+          <!-- Espaçador -->
+          <div
+            id="top10MicosExportBtnContainer"
+            style="text-align: right; margin-bottom: 8px"
+          ></div>
+          <!-- Container para botão Exportar Micos -->
+          <div id="top10MicosTable"></div>
+          <!-- Container para Micos -->
+        </div>
+
+        <div id="fluxo-financeiro" class="tab-content">
+          <!-- Conteúdo da aba Fluxo Financeiro -->
+          <div
+            id="fluxoFinanceiroButtons"
+            class="participantes-buttons-container"
+          ></div>
+          <!-- Container para botões -->
+          <div
+            id="fluxoFinanceiroExportBtnContainer"
+            style="text-align: right; margin-bottom: 8px"
+          ></div>
+          <!-- Container para botão Exportar -->
+          <div id="fluxoFinanceiroContent"></div>
+          <!-- Container para o extrato -->
+        </div>
+
+        <div id="artilheiro-campeao" class="tab-content">
+          <!-- O conteúdo será carregado dinamicamente pelo módulo artilheiro-campeao.js -->
+        </div>
+
+        <div id="luva-de-ouro" class="tab-content">
+          <!-- Conteúdo da aba Luva de Ouro -->
+          <div
+            id="luvaDeOuroExportBtnContainer"
+            style="text-align: right; margin-bottom: 8px"
+          ></div>
+          <div id="luvaDeOuroContent"></div>
+        </div>
+      </div>
+    </div>
+
+    <script type="module">
+      import {
+        carregarDetalhesLiga,
+        toggleParticipants,
+      } from "./js/participantes.js";
+      import { carregarRodadas } from "./js/rodadas.js";
+      import { carregarMataMata } from "./js/mata-mata.js";
+      import { carregarRankingGeral } from "./js/ranking.js";
+      import { inicializarMelhorMes } from "./js/melhor-mes.js";
+      import { inicializarPontosCorridos } from "./js/pontos-corridos.js";
+      import { inicializarTop10 } from "./js/top10.js"; // <-- Adicionado
+      import { inicializarFluxoFinanceiro } from "./js/fluxo-financeiro.js"; // <-- Adicionado
+      import { inicializarArtilheiroCampeao } from "./js/artilheiro-campeao.js";
+      import { inicializarLuvaDeOuro } from "./js/luva-de-ouro.js";
+
+      document.addEventListener("DOMContentLoaded", () => {
+        console.log("DOM totalmente carregado");
+
+        carregarDetalhesLiga();
+
+        // Personalização para liga especial
+        const params = new URLSearchParams(window.location.search);
+        const ligaId = params.get("id");
+
+        // Seletores das abas
+        const tabMataMata = document.querySelector(
+          '.tab[data-tab="mata-mata"]',
+        );
+        const tabPontosCorridos = document.querySelector(
+          '.tab[data-tab="pontos-corridos"]',
+        );
+        const tabArtilheiro = document.querySelector(
+          '.tab[data-tab="artilheiro-campeao"]',
+        );
+        const tabLuva = document.querySelector('.tab[data-tab="luva-de-ouro"]');
+
+        // Por padrão, oculta as abas extras
+        if (tabArtilheiro) tabArtilheiro.style.display = "none";
+        if (tabLuva) tabLuva.style.display = "none";
+
+        // Se for a liga especial, ajusta a visibilidade das abas
+        if (ligaId === "6818c6125b30e1ad70847192") {
+          if (tabMataMata) tabMataMata.style.display = "none";
+          if (tabPontosCorridos) tabPontosCorridos.style.display = "none";
+          if (tabArtilheiro) tabArtilheiro.style.display = "";
+          if (tabLuva) tabLuva.style.display = "";
+          console.log("Personalização aplicada para liga especial:", ligaId);
+        }
+
+        if (
+          document.getElementById("melhor-mes")?.classList.contains("active")
+        ) {
+          inicializarMelhorMes();
+        }
+
+        const tabs = document.querySelectorAll(".tab");
+        const tabContents = document.querySelectorAll(".tab-content");
+
+        console.log("Tabs encontradas:", tabs.length);
+
+        tabs.forEach((tab) => {
+          tab.addEventListener("click", () => {
+            console.log("Tab clicada:", tab.getAttribute("data-tab"));
+
+            tabs.forEach((t) => t.classList.remove("active"));
+            tabContents.forEach((content) =>
+              content.classList.remove("active"),
+            );
+            tab.classList.add("active");
+
+            const tabId = tab.getAttribute("data-tab");
+            const tabContent = document.getElementById(tabId);
+
+            if (tabContent) {
+              tabContent.classList.add("active");
+              console.log("Tab ativada:", tabId);
+            } else {
+              console.log("TabContent não encontrado para:", tabId);
+            }
+
+            if (tabId === "rodadas") {
+              carregarRodadas();
+            }
+            if (tabId === "mata-mata") {
+              carregarMataMata();
+            }
+            if (tabId === "ranking-geral") {
+              carregarRankingGeral();
+            }
+            if (tabId === "melhor-mes") {
+              inicializarMelhorMes();
+            }
+            if (tabId === "pontos-corridos") {
+              console.log("Chamando inicializarPontosCorridos()");
+              inicializarPontosCorridos();
+            }
+            // Adiciona chamadas para as novas abas
+            if (tabId === "top-10") {
+              console.log("Chamando inicializarTop10()");
+              inicializarTop10();
+            }
+            if (tabId === "fluxo-financeiro") {
+              console.log("Chamando inicializarFluxoFinanceiro()");
+              inicializarFluxoFinanceiro();
+            }
+            if (tabId === "artilheiro-campeao") {
+              console.log("Chamando inicializarArtilheiroCampeao()");
+              inicializarArtilheiroCampeao();
+            }
+            if (tabId === "luva-de-ouro") {
+              console.log("Chamando inicializarLuvaDeOuro()");
+              inicializarLuvaDeOuro();
+            }
+          });
+        });
+
+        document.querySelector(".toggle-participants").onclick =
+          toggleParticipants;
+        document.getElementById("refreshApiBtn").onclick = () =>
+          carregarRodadas(true);
+        document.getElementById("parciaisBtn").onclick = async () => {
+          const liga = await carregarDetalhesLiga();
+          const res = await fetch("/api/cartola/mercado/status");
+          const { rodada_atual } = await res.json();
+          const rankings = await calcularPontosParciais(liga, rodada_atual);
+          exibirRanking(rankings, rodada_atual);
+        };
+
+        if (document.getElementById("rodadas")?.classList.contains("active")) {
+          carregarRodadas();
+        }
+        if (
+          document.getElementById("mata-mata")?.classList.contains("active")
+        ) {
+          carregarMataMata();
+        }
+        if (
+          document.getElementById("ranking-geral")?.classList.contains("active")
+        ) {
+          carregarRankingGeral();
+        }
+      });
+    </script>
+  </body>
+</html>

@@ -1,0 +1,185 @@
+<!doctype html>
+<html lang="pt-BR">
+  <head>
+    <meta charset="UTF-8" />
+    <title>Liga Pontos Corridos - Rodada</title>
+    <style>
+      body {
+        font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+        color: #222;
+        margin: 20px;
+        max-width: 900px;
+        margin-left: auto;
+        margin-right: auto;
+      }
+      h3 {
+        text-align: center;
+        font-size: 1.3rem;
+        margin-bottom: 12px;
+      }
+      h3 span {
+        font-size: 1rem;
+        color: #666;
+      }
+      table {
+        width: 100%;
+        border-collapse: collapse;
+        font-size: 1rem;
+        border: 1px solid #ccc;
+      }
+      thead tr {
+        background: #f0f0f0;
+        border-bottom: 2px solid #bbb;
+      }
+      th,
+      td {
+        padding: 10px;
+        text-align: left;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+      }
+      th.center,
+      td.center {
+        text-align: center;
+      }
+      tbody tr:nth-child(even) {
+        background: #f9f9f9;
+      }
+      .escudo {
+        width: 24px;
+        height: 24px;
+        border-radius: 50%;
+        border: 1px solid #eee;
+        background: #fff;
+        vertical-align: middle;
+        margin-right: 8px;
+      }
+      .time-cell {
+        display: flex;
+        align-items: center;
+      }
+    </style>
+  </head>
+  <body>
+    <h3>
+      {{rodada_num}}ª Rodada da Liga Pontos Corridos<br />
+      <span>Rodada {{rodada_cartola}}ª do Brasileirão</span>
+    </h3>
+    <!-- Container para o botão de exportar da rodada -->
+    <div
+      id="exportPontosCorridosRodadaBtnContainer"
+      style="text-align: right; margin-bottom: 5px"
+    ></div>
+    <!-- **AJUSTE:** Adiciona estilos CSS para compactar e destacar -->
+    <style>
+      .pontos-corridos-table {
+        width: 100%;
+        border-collapse: collapse;
+        font-size: 0.9rem; /* Compacta fonte */
+        border: 1px solid #ddd;
+        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+        border-radius: 4px;
+        overflow: hidden;
+      }
+      .pontos-corridos-table thead tr {
+        background: #f8f9fa;
+        border-bottom: 2px solid #dee2e6;
+      }
+      .pontos-corridos-table th,
+      .pontos-corridos-table td {
+        padding: 6px 8px; /* Compacta padding */
+        text-align: left;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        vertical-align: middle;
+      }
+      .pontos-corridos-table th.center,
+      .pontos-corridos-table td.center {
+        text-align: center;
+      }
+      .pontos-corridos-table tbody tr:nth-child(even) {
+        background: #fdfdfd;
+      }
+      .pontos-corridos-table tbody tr:hover {
+        background: #f1f3f5;
+      }
+      .pontos-corridos-table .escudo {
+        width: 20px; /* Compacta escudo */
+        height: 20px;
+        border-radius: 50%;
+        border: 1px solid #eee;
+        background: #fff;
+        vertical-align: middle;
+        margin-right: 6px;
+      }
+      .pontos-corridos-table .time-cell {
+        display: flex;
+        align-items: center;
+      }
+      /* **NOVO:** Estilos para vencedor/perdedor */
+      .pontos-corridos-table .vencedor {
+        background-color: transparent; /* Removido o destaque de fundo */
+      }
+      .pontos-corridos-table .perdedor {
+        background-color: transparent; /* Removido o destaque de fundo */
+      }
+      .pontos-corridos-table .pts-vencedor {
+        font-weight: bold;
+        color: #2e7d32;
+      }
+      .pontos-corridos-table .pts-perdedor {
+        color: #c62828;
+      }
+      .pontos-corridos-table .dif-cell {
+        font-weight: 500;
+        color: #455a64;
+      }
+      /* **NOVO:** Estilos para goleada */
+      .pontos-corridos-table .goleada {
+        position: relative;
+        background-color: #fff3e0 !important; /* Destaque apenas para goleada */
+      }
+      .pontos-corridos-table .goleada::after {
+        content: "⭐";
+        position: absolute;
+        top: -5px;
+        right: -5px;
+        font-size: 12px;
+        color: #f57c00;
+      }
+      .pontos-corridos-table .financeiro-goleada {
+        font-weight: bold;
+        background-color: #fff3e0 !important; /* Laranja muito suave */
+        border-left: 3px solid #ff9800;
+      }
+      /* Estilo para valores financeiros discretos */
+      .pontos-corridos-table .financeiro-cell {
+        font-size: 11px;
+        color: #666;
+      }
+    </style>
+    <!-- **AJUSTE:** Adiciona classe CSS à tabela -->
+    <table class="pontos-corridos-table">
+      <thead>
+        <tr>
+          <th class="center" style="width: 35px">Jogo</th>
+          <th style="width: 160px">Time Cartoleiro 1</th>
+          <th style="width: 120px">Cartoleiro 1</th>
+          <th class="center" style="width: 55px">Pts</th>
+          <th class="center" style="width: 30px">X</th>
+          <th class="center" style="width: 55px">Pts</th>
+          <th style="width: 160px">Time Cartoleiro 2</th>
+          <th style="width: 120px">Cartoleiro 2</th>
+          <th class="center" style="width: 50px">Dif.</th>
+          <th class="center" style="width: 50px">PG</th>
+          <th class="center" style="width: 80px">R$</th>
+        </tr>
+      </thead>
+      <tbody id="jogos-tbody">
+        <!-- Linhas serão inseridas via JS -->
+      </tbody>
+    </table>
+  </body>
+</html>

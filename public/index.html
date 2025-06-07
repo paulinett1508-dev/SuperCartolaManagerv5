@@ -1,0 +1,251 @@
+<!doctype html>
+<html lang="pt-br">
+  <head>
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta charset="UTF-8" />
+    <title>Super Cartola Manager</title>
+    <style>
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+      }
+      body {
+        display: flex;
+        height: 100vh;
+        font-family: "Roboto", sans-serif;
+        color: #fff;
+      }
+      .sidebar {
+        width: 250px;
+        background: linear-gradient(180deg, #1a2a44 0%, #0d1a2d 100%);
+        color: white;
+        padding: 30px 20px;
+        display: flex;
+        flex-direction: column;
+        justify-content: space-between;
+        box-shadow: 2px 0 10px rgba(0, 0, 0, 0.5);
+      }
+      .sidebar h2 {
+        font-size: 24px;
+        margin-bottom: 30px;
+        text-align: center;
+        letter-spacing: 1px;
+        text-transform: uppercase;
+      }
+      .nav-button {
+        background: transparent;
+        color: white;
+        border: none;
+        text-align: left;
+        padding: 12px 15px;
+        font-size: 16px;
+        cursor: pointer;
+        border-radius: 5px;
+        transition: background 0.3s ease;
+        margin-bottom: 10px;
+      }
+      .nav-button:hover {
+        background: rgba(255, 255, 255, 0.2);
+      }
+      .main {
+        flex: 1;
+        background: url("https://img.freepik.com/vetores-gratis/fundo-de-futebol-gradiente-dinamico_23-2149007789.jpg?t=st=1743959714~exp=1743963314~hmac=9046a621d4fda08048f9498e5fbe6c6e8ce90c91b3cbf41adde8613261989b08&w=1060")
+          no-repeat center center/cover;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        position: relative;
+        overflow: hidden;
+      }
+      .main::before {
+        content: "";
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: rgba(0, 0, 0, 0.6);
+        z-index: 1;
+      }
+      .main h1 {
+        font-size: 48px;
+        text-shadow: 0 2px 4px rgba(0, 0, 0, 0.7);
+        background: rgba(255, 255, 255, 0.1);
+        padding: 20px 40px;
+        border-radius: 10px;
+        z-index: 2;
+        letter-spacing: 2px;
+        text-transform: uppercase;
+        border: 1px solid rgba(255, 255, 255, 0.3);
+      }
+      .football-elements {
+        position: absolute;
+        width: 100%;
+        height: 100%;
+        z-index: 2;
+        pointer-events: none;
+      }
+      .football-ball {
+        position: absolute;
+        top: 20%;
+        left: 10%;
+        width: 50px;
+        height: 50px;
+        background: radial-gradient(circle, #fff 40%, #000 45%, #fff 50%);
+        border-radius: 50%;
+        opacity: 0.3;
+        transform: rotate(45deg);
+      }
+      .football-field {
+        position: absolute;
+        bottom: 10%;
+        left: 50%;
+        transform: translateX(-50%);
+        width: 300px;
+        height: 150px;
+        border: 2px solid rgba(255, 255, 255, 0.2);
+        border-radius: 10px;
+        background: repeating-linear-gradient(
+          90deg,
+          transparent,
+          transparent 20px,
+          rgba(255, 255, 255, 0.1) 20px,
+          rgba(255, 255, 255, 0.1) 40px
+        );
+        opacity: 0.2;
+      }
+      .football-trophy {
+        position: absolute;
+        top: 15%;
+        right: 10%;
+        width: 40px;
+        height: 60px;
+        background: linear-gradient(180deg, #ffd700 60%, #d4af37 100%);
+        clip-path: polygon(20% 0%, 80% 0%, 100% 60%, 50% 100%, 0% 60%);
+        opacity: 0.3;
+      }
+      .footer {
+        font-size: 12px;
+        text-align: center;
+        padding-top: 10px;
+        opacity: 0.7;
+      }
+      /* Ajustes para responsividade */
+      @media (max-width: 768px) {
+        .sidebar {
+          width: 100%;
+          height: auto;
+          padding: 20px;
+        }
+        .sidebar h2 {
+          font-size: 24px;
+          margin-bottom: 20px;
+        }
+        .nav-button {
+          font-size: 18px;
+          padding: 15px 20px;
+          margin-bottom: 10px;
+        }
+        .main h1 {
+          font-size: 32px;
+          padding: 15px 30px;
+        }
+        .football-ball,
+        .football-trophy {
+          width: 40px;
+          height: 40px;
+        }
+        .football-field {
+          width: 200px;
+          height: 100px;
+        }
+        .footer {
+          font-size: 10px;
+        }
+      }
+      @media (max-width: 480px) {
+        .sidebar {
+          padding: 15px;
+        }
+        .sidebar h2 {
+          font-size: 20px;
+          margin-bottom: 15px;
+        }
+        .nav-button {
+          font-size: 16px;
+          padding: 12px 18px;
+          margin-bottom: 8px;
+        }
+        .main h1 {
+          font-size: 24px;
+          padding: 10px 20px;
+        }
+        .football-ball,
+        .football-trophy {
+          width: 30px;
+          height: 30px;
+        }
+        .football-field {
+          width: 150px;
+          height: 75px;
+        }
+        .footer {
+          font-size: 8px;
+        }
+      }
+    </style>
+    <link
+      href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&display=swap"
+      rel="stylesheet"
+    />
+    <script src="https://html2canvas.hertzen.com/dist/html2canvas.min.js"></script>
+  </head>
+  <body>
+    <div class="sidebar">
+      <div>
+        <h2>🏆 Menu</h2>
+        <button
+          class="nav-button"
+          onclick="location.href='preencher-liga.html'"
+        >
+          ➕ Criar Ligas
+        </button>
+        <button class="nav-button" onclick="location.href='gerenciar.html'">
+          📋 Gerenciar Ligas
+        </button>
+      </div>
+      <div class="footer">
+        © 2025 Super Cartola | Versão <span id="appVersion">1.0.0</span>
+      </div>
+    </div>
+
+    <div class="main">
+      <h1>Super Cartola Manager</h1>
+      <div class="football-elements">
+        <div class="football-ball"></div>
+        <div class="football-field"></div>
+        <div class="football-trophy"></div>
+      </div>
+    </div>
+
+    <script>
+      // Carrega a versão do backend
+      fetch("/api/version")
+        .then((response) => {
+          if (!response.ok) {
+            throw new Error("Não foi possível carregar a versão");
+          }
+          return response.json();
+        })
+        .then((data) => {
+          document.getElementById("appVersion").textContent = data.version;
+        })
+        .catch((err) => {
+          console.error("Erro ao carregar a versão:", err.message);
+          document.getElementById("appVersion").textContent = "N/A";
+        });
+    </script>
+  </body>
+</html>
