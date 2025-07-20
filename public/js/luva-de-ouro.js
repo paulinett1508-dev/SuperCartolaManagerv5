@@ -216,84 +216,99 @@ function criarTabelaRanking(dados) {
 
   const { ranking: rankingData, rodadaInicio, rodadaFim, totalParticipantes } = dados;
 
+  // Mapeamento correto dos participantes com seus escudos
+  const participantesEscudos = {
+    1926323: 262,   // Daniel Barbosa - Flamengo
+    13935277: 276,  // Paulinett Miranda - São Paulo
+    14747183: 266,  // Carlos Henrique - Fluminense
+    49149009: 275,  // Matheus Coutinho - Palmeiras
+    49149388: 344,  // Junior Brasilino - Red Bull Bragantino
+    50180257: 283   // Hivisson - Corinthians
+  };
+
   let html = `
-    <div class="luva-ranking-header" style="margin: 20px 0; text-align: center;">
-      <h3 style="color: #2c3e50; margin-bottom: 10px;">
+    <div class="luva-ranking-header" style="margin: 15px 0; text-align: center;">
+      <h3 style="color: #2c3e50; margin-bottom: 8px; font-size: 20px;">
         🥅 Ranking Luva de Ouro - Rodadas ${rodadaInicio} a ${rodadaFim}
       </h3>
-      <p style="color: #7f8c8d; margin: 0;">
+      <p style="color: #7f8c8d; margin: 0; font-size: 14px;">
         ${totalParticipantes} participantes • Ordenado por pontos totais
       </p>
     </div>
 
-    <div style="overflow-x: auto;">
-      <table class="ranking-table" style="width: 100%; border-collapse: collapse; background: white; border-radius: 8px; overflow: hidden; box-shadow: 0 2px 8px rgba(0,0,0,0.1); font-size: 12px;">
+    <div style="overflow-x: auto; margin: 0 -10px;">
+      <table class="luva-ranking-table" style="width: 100%; min-width: 700px; border-collapse: collapse; background: white; border-radius: 10px; overflow: hidden; box-shadow: 0 4px 12px rgba(0,0,0,0.1); font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;">
         <thead>
-          <tr style="background: linear-gradient(135deg, #3498db, #2980b9); color: white;">
-            <th style="padding: 8px 6px; text-align: center; width: 50px; font-size: 11px;">Pos</th>
-            <th style="padding: 8px 6px; text-align: center; width: 40px; font-size: 11px;">❤️</th>
-            <th style="padding: 8px 10px; text-align: left; min-width: 140px; font-size: 11px;">Cartoleiro</th>
-            <th style="padding: 8px 6px; text-align: center; width: 70px; font-size: 11px;">Total</th>
-            <th style="padding: 8px 6px; text-align: center; width: 60px; font-size: 11px;">Jogos</th>
-            <th style="padding: 8px 10px; text-align: left; min-width: 130px; font-size: 11px;">Último Goleiro</th>
-            <th style="padding: 8px 6px; text-align: center; width: 65px; font-size: 11px;">Última</th>
-            <th style="width: 70px; text-align: center; font-size: 11px;">Ações</th>
+          <tr style="background: linear-gradient(135deg, #2E8B57, #228B22); color: white; height: 45px;">
+            <th style="padding: 12px 8px; text-align: center; width: 60px; font-size: 12px; font-weight: 600;">Pos</th>
+            <th style="padding: 12px 8px; text-align: center; width: 50px; font-size: 12px; font-weight: 600;">❤️</th>
+            <th style="padding: 12px 12px; text-align: left; min-width: 160px; font-size: 12px; font-weight: 600;">Cartoleiro</th>
+            <th style="padding: 12px 8px; text-align: center; width: 80px; font-size: 12px; font-weight: 600;">Total</th>
+            <th style="padding: 12px 8px; text-align: center; width: 120px; font-size: 12px; font-weight: 600;">Somatório até R${rodadaFim}</th>
+            <th style="padding: 12px 12px; text-align: left; min-width: 140px; font-size: 12px; font-weight: 600;">Goleiro da última rodada</th>
+            <th style="padding: 12px 8px; text-align: center; width: 120px; font-size: 12px; font-weight: 600;">Pontuação do goleiro da última rodada</th>
+            <th style="width: 80px; text-align: center; font-size: 12px; font-weight: 600;">Ações</th>
           </tr>
         </thead>
         <tbody>
   `;
 
   rankingData.forEach((item, index) => {
-    const posicaoIcon =
-      index === 0
-        ? "🏆"
-        : index === 1
-          ? "🥈"
-          : index === 2
-            ? "🥉"
-            : `${item.posicao}º`;
-    const rowBg =
-      index === 0
-        ? "background: #e7f3ff;"
-        : index % 2 === 0
-          ? "background: #f8f9fa;"
-          : "";
+    const posicao = index + 1;
+    const posicaoTexto = `${posicao}º`;
+    const posicaoIcon = 
+      posicao === 1 ? "🏆" :
+      posicao === 2 ? "🥈" :
+      posicao === 3 ? "🥉" : "";
+
+    const rowBg = posicao === 1 ? 
+      "background: linear-gradient(135deg, #e8f5e9, #f1f8e9);" :
+      posicao % 2 === 0 ? "background: #fafbfc;" : "background: white;";
+
+    const escudoId = participantesEscudos[item.participanteId] || "default";
 
     html += `
-      <tr class="ranking-row" style="border-bottom: 1px solid #ecf0f1; transition: background 0.2s; ${rowBg}" 
-          onmouseover="this.style.background='#f0f8ff'" 
-          onmouseout="this.style.background='${rowBg || ""}'">
-        <td style="padding: 6px 4px; text-align: center; font-weight: bold; vertical-align: middle;">
-          ${posicaoIcon}
+      <tr class="ranking-row" style="border-bottom: 1px solid #e9ecef; transition: all 0.2s ease; ${rowBg} height: 55px;" 
+          onmouseover="this.style.background='#f8f9fa'; this.style.transform='scale(1.01)'" 
+          onmouseout="this.style.background='${rowBg.split(':')[1].split(';')[0]}'; this.style.transform='scale(1)'">
+        <td style="padding: 12px 8px; text-align: center; font-weight: 600; vertical-align: middle; font-size: 13px;">
+          <div style="display: flex; align-items: center; justify-content: center; gap: 4px;">
+            <span>${posicaoTexto}</span>
+            ${posicaoIcon ? `<span style="font-size: 16px;">${posicaoIcon}</span>` : ""}
+          </div>
         </td>
-        <td style="padding: 6px 4px; text-align: center; vertical-align: middle;">
-          <img src="/escudos/${item.clubeId || "default"}.png" alt="Escudo" 
-               style="width: 18px; height: 18px; border-radius: 50%; border: 1px solid #ddd; background: #fff;"
-               onerror="this.style.display='none'; this.nextElementSibling.style.display='inline';">
-          <span style="display: none; color: #999;">—</span>
+        <td style="padding: 12px 8px; text-align: center; vertical-align: middle;">
+          <img src="/escudos/${escudoId}.png" alt="Escudo" 
+               style="width: 24px; height: 24px; border-radius: 50%; border: 2px solid #fff; box-shadow: 0 2px 4px rgba(0,0,0,0.1); background: #fff;"
+               onerror="this.src='/escudos/default.png';">
         </td>
-        <td style="padding: 6px 8px; vertical-align: middle;">
-          <div style="font-weight: bold; color: #2c3e50; font-size: 12px; line-height: 1.2;">${item.participanteNome}</div>
-          <div style="font-size: 10px; color: #7f8c8d; line-height: 1.1;">ID: ${item.participanteId}</div>
+        <td style="padding: 12px 12px; vertical-align: middle;">
+          <div style="font-weight: 600; color: #2c3e50; font-size: 13px; line-height: 1.3; margin-bottom: 2px;">${item.participanteNome}</div>
+          <div style="font-size: 11px; color: #6c757d; line-height: 1.2;">ID: ${item.participanteId}</div>
         </td>
-        <td style="padding: 6px 4px; text-align: center; vertical-align: middle;">
-          <span style="background: #27ae60; color: white; padding: 3px 6px; border-radius: 3px; font-weight: bold; font-size: 11px;">
+        <td style="padding: 12px 8px; text-align: center; vertical-align: middle;">
+          <span style="background: linear-gradient(135deg, #27ae60, #2ecc71); color: white; padding: 6px 10px; border-radius: 6px; font-weight: 600; font-size: 12px; box-shadow: 0 2px 4px rgba(39, 174, 96, 0.3);">
             ${Math.floor(item.pontosTotais * 100) / 100}
           </span>
         </td>
-        <td style="padding: 6px 4px; text-align: center; color: #7f8c8d; vertical-align: middle; font-size: 11px;">
+        <td style="padding: 12px 8px; text-align: center; color: #495057; vertical-align: middle; font-size: 12px; font-weight: 500;">
           ${item.rodadasJogadas || item.totalJogos || 0}
         </td>
-        <td style="padding: 6px 8px; vertical-align: middle;">
-          <div style="font-weight: bold; color: #2c3e50; font-size: 11px; line-height: 1.2;">${item.ultimaRodada?.goleiroNome || "Sem goleiro"}</div>
-          ${item.ultimaRodada?.goleiroClube ? `<div style="font-size: 9px; color: #7f8c8d; line-height: 1.1;">${item.ultimaRodada.goleiroClube}</div>` : ""}
+        <td style="padding: 12px 12px; vertical-align: middle;">
+          <div style="font-weight: 600; color: #2c3e50; font-size: 12px; line-height: 1.3; margin-bottom: 2px;">${item.ultimaRodada?.goleiroNome || "Sem goleiro"}</div>
+          ${item.ultimaRodada?.goleiroClube ? `<div style="font-size: 10px; color: #6c757d; line-height: 1.2;">${item.ultimaRodada.goleiroClube}</div>` : ""}
         </td>
-        <td style="padding: 6px 4px; text-align: center; vertical-align: middle;">
-          <div style="font-weight: bold; color: #e74c3c; font-size: 11px; line-height: 1.2;">${Math.floor((item.ultimaRodada?.pontos || 0) * 100) / 100}</div>
-          <div style="font-size: 9px; color: #7f8c8d; line-height: 1.1;">R${item.ultimaRodada?.rodada || "-"}</div>
+        <td style="padding: 12px 8px; text-align: center; vertical-align: middle;">
+          <div style="font-weight: 600; color: #e74c3c; font-size: 12px; line-height: 1.3; margin-bottom: 2px;">${Math.floor((item.ultimaRodada?.pontos || 0) * 100) / 100} pts</div>
+          <div style="font-size: 10px; color: #6c757d; line-height: 1.2;">R${item.ultimaRodada?.rodada || "-"}</div>
         </td>
-        <td style="padding: 6px 4px; text-align: center; vertical-align: middle;">
-          <button class="btn-detalhes" onclick="mostrarDetalhesParticipante(${item.participanteId}, '${item.participanteNome}')" style="background: #3498db; color: white; border: none; padding: 4px 8px; border-radius: 3px; cursor: pointer; font-size: 10px;">Detalhes</button>
+        <td style="padding: 12px 8px; text-align: center; vertical-align: middle;">
+          <button class="btn-detalhes" onclick="mostrarDetalhesParticipante(${item.participanteId}, '${item.participanteNome.replace(/'/g, "\\'")}')}" 
+                  style="background: linear-gradient(135deg, #3498db, #2980b9); color: white; border: none; padding: 6px 12px; border-radius: 5px; cursor: pointer; font-size: 11px; font-weight: 500; transition: all 0.2s ease; box-shadow: 0 2px 4px rgba(52, 152, 219, 0.3);"
+                  onmouseover="this.style.transform='translateY(-1px)'; this.style.boxShadow='0 4px 8px rgba(52, 152, 219, 0.4)'"
+                  onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='0 2px 4px rgba(52, 152, 219, 0.3)'">
+            Detalhes
+          </button>
         </td>
       </tr>
     `;
@@ -304,22 +319,22 @@ function criarTabelaRanking(dados) {
       </table>
     </div>
 
-    <!-- ESTATÍSTICAS SEM MÉDIA -->
-    <div class="luva-estatisticas" style="margin-top: 20px; display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px;">
-      <div style="background: #27ae60; color: white; padding: 15px; border-radius: 8px; text-align: center;">
-        <div style="font-size: 24px; font-weight: bold;">${rankingData[0]?.pontosTotais || 0}</div>
-        <div style="opacity: 0.9;">🏆 Melhor Pontuação</div>
-        <div style="font-size: 12px; opacity: 0.8;">${rankingData[0]?.participanteNome || "-"}</div>
+    <!-- ESTATÍSTICAS MODERNIZADAS -->
+    <div class="luva-estatisticas" style="margin-top: 25px; display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px;">
+      <div style="background: linear-gradient(135deg, #27ae60, #2ecc71); color: white; padding: 20px; border-radius: 12px; text-align: center; box-shadow: 0 4px 12px rgba(39, 174, 96, 0.3);">
+        <div style="font-size: 28px; font-weight: 700; margin-bottom: 5px;">${Math.floor((rankingData[0]?.pontosTotais || 0) * 100) / 100}</div>
+        <div style="opacity: 0.95; font-size: 14px; font-weight: 600;">🏆 Melhor Pontuação</div>
+        <div style="font-size: 12px; opacity: 0.8; margin-top: 3px;">${rankingData[0]?.participanteNome || "-"}</div>
       </div>
-      <div style="background: #3498db; color: white; padding: 15px; border-radius: 8px; text-align: center;">
-        <div style="font-size: 24px; font-weight: bold;">${totalParticipantes}</div>
-        <div style="opacity: 0.9;">👥 Participantes</div>
-        <div style="font-size: 12px; opacity: 0.8;">Liga ativa</div>
+      <div style="background: linear-gradient(135deg, #3498db, #2980b9); color: white; padding: 20px; border-radius: 12px; text-align: center; box-shadow: 0 4px 12px rgba(52, 152, 219, 0.3);">
+        <div style="font-size: 28px; font-weight: 700; margin-bottom: 5px;">${totalParticipantes}</div>
+        <div style="opacity: 0.95; font-size: 14px; font-weight: 600;">👥 Participantes</div>
+        <div style="font-size: 12px; opacity: 0.8; margin-top: 3px;">Liga ativa</div>
       </div>
-      <div style="background: #e74c3c; color: white; padding: 15px; border-radius: 8px; text-align: center;">
-        <div style="font-size: 24px; font-weight: bold;">${Math.max(...rankingData.map((r) => r.ultimaRodada?.pontos || 0))}</div>
-        <div style="opacity: 0.9;">📊 Melhor Rodada</div>
-        <div style="font-size: 12px; opacity: 0.8;">Individual</div>
+      <div style="background: linear-gradient(135deg, #e74c3c, #c0392b); color: white; padding: 20px; border-radius: 12px; text-align: center; box-shadow: 0 4px 12px rgba(231, 76, 60, 0.3);">
+        <div style="font-size: 28px; font-weight: 700; margin-bottom: 5px;">${Math.floor(Math.max(...rankingData.map((r) => r.ultimaRodada?.pontos || 0)) * 100) / 100}</div>
+        <div style="opacity: 0.95; font-size: 14px; font-weight: 600;">🎯 Melhor Rodada</div>
+        <div style="font-size: 12px; opacity: 0.8; margin-top: 3px;">Individual</div>
       </div>
     </div>
   `;
@@ -1010,6 +1025,52 @@ if (!document.getElementById("luva-ouro-styles")) {
       0% { transform: rotate(0deg); }
       100% { transform: rotate(360deg); }
     }
+
+    .luva-ranking-table {
+      font-size: 12px !important;
+    }
+
+    .luva-ranking-table th {
+      white-space: nowrap;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+
+    .luva-ranking-table td {
+      white-space: nowrap;
+    }
+
+    .luva-ranking-table td:nth-child(3),
+    .luva-ranking-table td:nth-child(6) {
+      white-space: normal;
+      word-wrap: break-word;
+    }
+
+    @media (max-width: 768px) {
+      .luva-ranking-table {
+        font-size: 10px !important;
+      }
+      
+      .luva-ranking-table th,
+      .luva-ranking-table td {
+        padding: 8px 4px !important;
+      }
+      
+      .luva-ranking-table th:nth-child(5),
+      .luva-ranking-table th:nth-child(7) {
+        font-size: 10px !important;
+      }
+    }
+
+    @media (max-width: 480px) {
+      .luva-ranking-table th:nth-child(5),
+      .luva-ranking-table td:nth-child(5),
+      .luva-ranking-table th:nth-child(7),
+      .luva-ranking-table td:nth-child(7) {
+        display: none;
+      }
+    }
   `;
   document.head.appendChild(styleElement);
 }
@@ -1019,14 +1080,19 @@ console.log("🥅 [LUVA-DE-OURO] Módulo pronto para uso");
 console.log("🆘 Em caso de erro: window.forcarLuvaDeOuroAgora()");
 console.log("🧪 Para testar manualmente: window.testarLuvaDeOuro()");
 
+// ===== EXPORTAÇÃO GLOBAL PARA COMPATIBILIDADE COM HTML =====
+window.mostrarDetalhesParticipante = mostrarDetalhesParticipante;
+window.inicializarLuvaDeOuro = inicializarLuvaDeOuro;
+
 // ===== VERIFICAÇÃO DE EXPORTAÇÕES =====
 console.log("🥅 [LUVA-DE-OURO] Verificando exportações...");
 console.log("🔍 inicializarLuvaDeOuro definida:", typeof inicializarLuvaDeOuro);
+console.log("🔍 mostrarDetalhesParticipante definida:", typeof mostrarDetalhesParticipante);
 
 // ===== EXPORTAÇÃO ES6 PARA COMPATIBILIDADE =====
-export { inicializarLuvaDeOuro };
+export { inicializarLuvaDeOuro, mostrarDetalhesParticipante };
 export default inicializarLuvaDeOuro;
 console.log(
   "📤 [LUVA-DE-OURO] Exportações ES6 adicionadas para compatibilidade",
 );
-console.log("🔍 Exportações disponíveis:", { inicializarLuvaDeOuro });
+console.log("🔍 Exportações disponíveis:", { inicializarLuvaDeOuro, mostrarDetalhesParticipante });
