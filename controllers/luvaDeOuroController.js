@@ -197,6 +197,108 @@ class LuvaDeOuroController {
         success: true,
         data: resultado,
         timestamp: new Date().toISOString(),
+
+
+  // GET /api/luva-de-ouro/:ligaId/diagnostico
+  static async diagnostico(req, res) {
+    try {
+      const { ligaId } = req.params;
+
+      console.log(`🔍 [LUVA-OURO] Executando diagnóstico - Liga: ${ligaId}`);
+
+      // Validar liga
+      if (ligaId !== "684d821cf1a7ae16d1f89572") {
+        return res.status(400).json({
+          success: false,
+          error: "Liga não suportada para Luva de Ouro",
+        });
+      }
+
+      const Goleiros = (await import("../models/Goleiros.js")).default;
+
+      // Buscar dados no MongoDB
+      const totalRegistros = await Goleiros.countDocuments({ ligaId });
+      const registrosComGoleiro = await Goleiros.countDocuments({ 
+        ligaId, 
+        goleiroNome: { $ne: null, $ne: "Sem goleiro" } 
+      });
+      const registrosComPontos = await Goleiros.countDocuments({ 
+        ligaId, 
+        pontos: { $gt: 0 } 
+      });
+      
+      const rodadasDisponiveis = await Goleiros.distinct("rodada", { ligaId });
+      const participantes = await Goleiros.distinct("participanteId", { ligaId });
+
+      // Buscar alguns exemplos
+      const exemplos = await Goleiros.find({ ligaId })
+        .limit(5)
+        .sort({ rodada: -1 })
+        .select("participanteNome rodada goleiroNome pontos dataColeta");
+
+      const diagnostico = {
+        ligaId,
+        mongodb: {
+          totalRegistros,
+          registrosComGoleiro,
+          registrosComPontos,
+          rodadasDisponiveis: rodadasDisponiveis.sort(),
+          totalParticipantes: participantes.length,
+          participantes,
+          exemplos: exemplos.map(e => ({
+            participante: e.participanteNome,
+            rodada: e.rodada,
+            goleiro: e.goleiroNome || "N/D",
+            pontos: e.pontos || 0,
+            dataColeta: e.dataColeta
+          }))
+        },
+        api: {
+          status: "Testando...",
+          ultimaRodada: null,
+          erro: null
+        },
+        recomendacoes: []
+      };
+
+      // Testar API
+      try {
+        const deteccao = await (await import("../services/goleirosService.js"))
+          .detectarUltimaRodadaConcluida();
+        diagnostico.api.status = "OK";
+        diagnostico.api.ultimaRodada = deteccao.recomendacao;
+      } catch (apiError) {
+        diagnostico.api.status = "ERRO";
+        diagnostico.api.erro = apiError.message;
+      }
+
+      // Gerar recomendações
+      if (totalRegistros === 0) {
+        diagnostico.recomendacoes.push("Executar coleta inicial de dados");
+      }
+      if (registrosComPontos < totalRegistros * 0.1) {
+        diagnostico.recomendacoes.push("Verificar estrutura da API - poucos registros com pontuação");
+      }
+      if (rodadasDisponiveis.length < 5) {
+        diagnostico.recomendacoes.push("Coletar mais rodadas para análise completa");
+      }
+
+      res.json({
+        success: true,
+        data: diagnostico,
+        timestamp: new Date().toISOString(),
+      });
+    } catch (error) {
+      console.error("❌ [LUVA-OURO] Erro no diagnóstico:", error);
+      res.status(500).json({
+        success: false,
+        error: "Erro interno do servidor",
+        message: error.message,
+        timestamp: new Date().toISOString(),
+      });
+    }
+  }
+
       });
     } catch (error) {
       console.error("❌ [LUVA-OURO] Erro na coleta:", error);
