@@ -1,7 +1,7 @@
 // ✅ CORREÇÃO COMPLETA - services/goleirosService.js
 // Fix baseado na estrutura REAL da API do Cartola FC 2025
 
-import { Goleiros } from "../models/Goleiros.js";
+import Goleiros from "../models/Goleiros.js";
 import fetch from "node-fetch";
 
 console.log(
