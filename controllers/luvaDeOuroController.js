@@ -197,7 +197,17 @@ class LuvaDeOuroController {
         success: true,
         data: resultado,
         timestamp: new Date().toISOString(),
-
+      });
+    } catch (error) {
+      console.error("❌ [LUVA-OURO] Erro na coleta:", error);
+      res.status(500).json({
+        success: false,
+        error: "Erro interno do servidor",
+        message: error.message,
+        timestamp: new Date().toISOString(),
+      });
+    }
+  }
 
   // GET /api/luva-de-ouro/:ligaId/diagnostico
   static async diagnostico(req, res) {
@@ -226,7 +236,7 @@ class LuvaDeOuroController {
         ligaId, 
         pontos: { $gt: 0 } 
       });
-      
+
       const rodadasDisponiveis = await Goleiros.distinct("rodada", { ligaId });
       const participantes = await Goleiros.distinct("participanteId", { ligaId });
 
@@ -290,18 +300,6 @@ class LuvaDeOuroController {
       });
     } catch (error) {
       console.error("❌ [LUVA-OURO] Erro no diagnóstico:", error);
-      res.status(500).json({
-        success: false,
-        error: "Erro interno do servidor",
-        message: error.message,
-        timestamp: new Date().toISOString(),
-      });
-    }
-  }
-
-      });
-    } catch (error) {
-      console.error("❌ [LUVA-OURO] Erro na coleta:", error);
       res.status(500).json({
         success: false,
         error: "Erro interno do servidor",
