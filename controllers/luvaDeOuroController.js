@@ -1,5 +1,9 @@
 // controllers/luvaDeOuroController.js
-import GoleirosService from "../services/goleirosService.js";
+import { 
+  coletarDadosGoleiros, 
+  obterRankingGoleiros, 
+  detectarUltimaRodadaConcluida 
+} from "../services/goleirosService.js";
 
 class LuvaDeOuroController {
   // GET /api/luva-de-ouro/:ligaId/ranking
@@ -49,14 +53,13 @@ class LuvaDeOuroController {
         try {
           const fimColeta =
             rodadaFim ||
-            (await GoleirosService.detectarUltimaRodada(ligaId).then(
+            (await detectarUltimaRodadaConcluida().then(
               (r) => r.recomendacao,
             ));
-          await GoleirosService.coletarMultiplasRodadas(
+          await coletarDadosGoleiros(
             ligaId,
             rodadaInicio,
             fimColeta,
-            true,
           );
         } catch (coletaError) {
           console.error("❌ Erro na coleta forçada:", coletaError);
@@ -65,7 +68,7 @@ class LuvaDeOuroController {
       }
 
       // Obter ranking
-      const resultado = await GoleirosService.obterRanking(
+      const resultado = await obterRankingGoleiros(
         ligaId,
         rodadaInicio,
         rodadaFim,
@@ -111,7 +114,7 @@ class LuvaDeOuroController {
         });
       }
 
-      const deteccao = await GoleirosService.detectarUltimaRodada(ligaId);
+      const deteccao = await detectarUltimaRodadaConcluida();
 
       console.log(`✅ Rodada detectada:`, deteccao);
 
@@ -159,10 +162,10 @@ class LuvaDeOuroController {
           });
         }
 
-        resultado = await GoleirosService.coletarRodada(
+        resultado = await coletarDadosGoleiros(
           ligaId,
           numeroRodada,
-          forcar === "true",
+          numeroRodada,
         );
       } else if (inicio && fim) {
         // Coletar múltiplas rodadas
@@ -176,11 +179,10 @@ class LuvaDeOuroController {
           });
         }
 
-        resultado = await GoleirosService.coletarMultiplasRodadas(
+        resultado = await coletarDadosGoleiros(
           ligaId,
           rodadaInicio,
           rodadaFim,
-          forcar === "true",
         );
       } else {
         return res.status(400).json({
@@ -222,7 +224,12 @@ class LuvaDeOuroController {
         });
       }
 
-      const estatisticas = await GoleirosService.obterEstatisticas(ligaId);
+      // For now, return basic statistics
+      const estatisticas = {
+        message: "Estatísticas não implementadas ainda",
+        ligaId,
+        timestamp: new Date().toISOString()
+      };
 
       console.log(`✅ Estatísticas obtidas:`, estatisticas);
 
@@ -257,7 +264,15 @@ class LuvaDeOuroController {
         });
       }
 
-      const participantes = GoleirosService.PARTICIPANTES_SOBRAL;
+      // Hardcoded participantes for Liga Sobral
+      const participantes = [
+        { timeId: 1926323, nome: "Daniel Barbosa" },
+        { timeId: 13935277, nome: "Paulinett Miranda" },
+        { timeId: 14747183, nome: "Carlos Henrique" },
+        { timeId: 49149009, nome: "Matheus Coutinho" },
+        { timeId: 49149388, nome: "Junior Brasilino" },
+        { timeId: 50180257, nome: "Hivisson" },
+      ];
 
       res.json({
         success: true,
