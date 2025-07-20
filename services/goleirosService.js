@@ -71,7 +71,7 @@ async function buscarDadosTimeRodada(participanteId, rodada) {
         if (atleta.posicao_id === 1) {
           // Posição 1 = Goleiro
           const pontosGoleiro = parseFloat(atleta.pontos_num) || 0;
-          
+
           goleiro = {
             id: atleta.atleta_id,
             nome: atleta.apelido || atleta.nome || 'Goleiro',
@@ -80,7 +80,7 @@ async function buscarDadosTimeRodada(participanteId, rodada) {
             status: getStatusName(atleta.status_id),
             clubeId: atleta.clube_id,
           };
-          
+
           console.log(`🥅 [API-CARTOLA] Goleiro encontrado:`, {
             nome: goleiro.nome,
             pontos: goleiro.pontos,
@@ -277,13 +277,13 @@ async function obterParticipantesLiga(ligaId) {
     return participantes;
   } catch (error) {
     console.error(`❌ [PARTICIPANTES] Erro:`, error);
-    
+
     // ✅ Última tentativa: usar dados hardcoded
     if (participantesHardcoded[ligaId]) {
       console.log(`🔄 [PARTICIPANTES] Usando dados hardcoded como último recurso`);
       return participantesHardcoded[ligaId];
     }
-    
+
     throw error;
   }
 }
@@ -526,7 +526,7 @@ async function gerarRankingGoleiros(ligaId, rodadaInicio, rodadaFim) {
         participante.totalJogos++;
 
         const pontosRodada = registro.pontos || 0;
-        
+
         if (pontosRodada > participante.melhorRodada) {
           participante.melhorRodada = pontosRodada;
         }
@@ -638,8 +638,56 @@ export async function obterRankingGoleiros(
       await coletarDadosGoleiros(ligaId, rodadaInicio, rodadaFim);
     }
 
+    // Mapear participantes hardcoded com escudos
+    const participantesMap = {
+      1926323: { nome: "Daniel Barbosa", clubeId: 262 },      // Flamengo
+      13935277: { nome: "Paulinett Miranda", clubeId: 276 },  // São Paulo
+      14747183: { nome: "Carlos Henrique", clubeId: 266 },    // Fluminense
+      49149009: { nome: "Matheus Coutinho", clubeId: 275 },   // Palmeiras
+      49149388: { nome: "Junior Brasilino", clubeId: 344 },   // Red Bull Bragantino
+      50180257: { nome: "Hivisson", clubeId: 283 }            // Corinthians
+    };
+
     // Gerar ranking
-    const ranking = await gerarRankingGoleiros(ligaId, rodadaInicio, rodadaFim);
+    const ranking = [];
+
+    for (const participanteId of Object.keys(participantesMap)) {
+      const timeId = parseInt(participanteId);
+      const participanteInfo = participantesMap[participanteId];
+      const nome = participanteInfo.nome;
+      const clubeId = participanteInfo.clubeId;
+
+      // Buscar dados do participante
+      const dadosParticipante = await Goleiros.find({
+        ligaId,
+        participanteId: timeId,
+        rodada: { $gte: rodadaInicio, $lte: rodadaFim }
+      }).sort({ rodada: 1 });
+
+      // Calcular estatísticas
+      const pontosTotais = dadosParticipante.reduce((acc, item) => acc + (item.pontos || 0), 0);
+      const rodadasJogadas = dadosParticipante.length;
+      const ultimaRodada = dadosParticipante[dadosParticipante.length - 1];
+
+      ranking.push({
+        participanteId: timeId,
+        participanteNome: nome,
+        clubeId: clubeId,
+        pontosTotais: parseFloat(pontosTotais.toFixed(2)),
+        rodadasJogadas,
+        totalJogos: rodadasJogadas,
+        ultimaRodada: ultimaRodada ? {
+          rodada: ultimaRodada.rodada,
+          goleiroNome: ultimaRodada.goleiroNome,
+          goleiroClube: ultimaRodada.goleiroClube,
+          pontos: parseFloat((ultimaRodada.pontos || 0).toFixed(2))
+        } : null
+      });
+
+      console.log(`✅ Processado ${nome}: ${pontosTotais.toFixed(2)} pontos em ${rodadasJogadas} rodadas`);
+    }
+
+    ranking.sort((a, b) => b.pontosTotais - a.pontosTotais);
 
     const resultado = {
       ranking,

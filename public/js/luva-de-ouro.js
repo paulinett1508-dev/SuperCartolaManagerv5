@@ -227,17 +227,17 @@ function criarTabelaRanking(dados) {
     </div>
 
     <div style="overflow-x: auto;">
-      <table class="ranking-table" style="width: 100%; border-collapse: collapse; background: white; border-radius: 8px; overflow: hidden; box-shadow: 0 2px 8px rgba(0,0,0,0.1); font-size: 13px;">
+      <table class="ranking-table" style="width: 100%; border-collapse: collapse; background: white; border-radius: 8px; overflow: hidden; box-shadow: 0 2px 8px rgba(0,0,0,0.1); font-size: 12px;">
         <thead>
           <tr style="background: linear-gradient(135deg, #3498db, #2980b9); color: white;">
-            <th style="padding: 10px 8px; text-align: center; width: 60px;">Pos</th>
-            <th style="padding: 10px 8px; text-align: center; width: 50px;">❤️</th>
-            <th style="padding: 10px 12px; text-align: left; min-width: 160px;">Cartoleiro / Time</th>
-            <th style="padding: 10px 8px; text-align: center; width: 90px;">Total</th>
-            <th style="padding: 10px 8px; text-align: center; width: 70px;">Jogos</th>
-            <th style="padding: 10px 12px; text-align: left; min-width: 160px;">Último Goleiro</th>
-            <th style="padding: 10px 8px; text-align: center; width: 80px;">Última</th>
-            <th style="width: 80px; text-align: center;">Ações</th>
+            <th style="padding: 8px 6px; text-align: center; width: 50px; font-size: 11px;">Pos</th>
+            <th style="padding: 8px 6px; text-align: center; width: 40px; font-size: 11px;">❤️</th>
+            <th style="padding: 8px 10px; text-align: left; min-width: 140px; font-size: 11px;">Cartoleiro</th>
+            <th style="padding: 8px 6px; text-align: center; width: 70px; font-size: 11px;">Total</th>
+            <th style="padding: 8px 6px; text-align: center; width: 60px; font-size: 11px;">Jogos</th>
+            <th style="padding: 8px 10px; text-align: left; min-width: 130px; font-size: 11px;">Último Goleiro</th>
+            <th style="padding: 8px 6px; text-align: center; width: 65px; font-size: 11px;">Última</th>
+            <th style="width: 70px; text-align: center; font-size: 11px;">Ações</th>
           </tr>
         </thead>
         <tbody>
@@ -263,37 +263,37 @@ function criarTabelaRanking(dados) {
       <tr class="ranking-row" style="border-bottom: 1px solid #ecf0f1; transition: background 0.2s; ${rowBg}" 
           onmouseover="this.style.background='#f0f8ff'" 
           onmouseout="this.style.background='${rowBg || ""}'">
-        <td style="padding: 10px 8px; text-align: center; font-weight: bold; vertical-align: middle;">
+        <td style="padding: 6px 4px; text-align: center; font-weight: bold; vertical-align: middle;">
           ${posicaoIcon}
         </td>
-        <td style="padding: 10px 8px; text-align: center; vertical-align: middle;">
+        <td style="padding: 6px 4px; text-align: center; vertical-align: middle;">
           <img src="/escudos/${item.clubeId || "default"}.png" alt="Escudo" 
-               style="width: 22px; height: 22px; border-radius: 50%; border: 1px solid #ddd; background: #fff;"
+               style="width: 18px; height: 18px; border-radius: 50%; border: 1px solid #ddd; background: #fff;"
                onerror="this.style.display='none'; this.nextElementSibling.style.display='inline';">
           <span style="display: none; color: #999;">—</span>
         </td>
-        <td style="padding: 10px 12px; vertical-align: middle;">
-          <div style="font-weight: bold; color: #2c3e50; font-size: 13px;">${item.participanteNome}</div>
-          <div style="font-size: 11px; color: #7f8c8d;">ID: ${item.participanteId}</div>
+        <td style="padding: 6px 8px; vertical-align: middle;">
+          <div style="font-weight: bold; color: #2c3e50; font-size: 12px; line-height: 1.2;">${item.participanteNome}</div>
+          <div style="font-size: 10px; color: #7f8c8d; line-height: 1.1;">ID: ${item.participanteId}</div>
         </td>
-        <td style="padding: 10px 8px; text-align: center; vertical-align: middle;">
-          <span style="background: #27ae60; color: white; padding: 4px 8px; border-radius: 4px; font-weight: bold; font-size: 12px;">
-            ${item.pontosTotais}
+        <td style="padding: 6px 4px; text-align: center; vertical-align: middle;">
+          <span style="background: #27ae60; color: white; padding: 3px 6px; border-radius: 3px; font-weight: bold; font-size: 11px;">
+            ${Math.floor(item.pontosTotais * 100) / 100}
           </span>
         </td>
-        <td style="padding: 10px 8px; text-align: center; color: #7f8c8d; vertical-align: middle;">
+        <td style="padding: 6px 4px; text-align: center; color: #7f8c8d; vertical-align: middle; font-size: 11px;">
           ${item.rodadasJogadas || item.totalJogos || 0}
         </td>
-        <td style="padding: 10px 12px; vertical-align: middle;">
-          <div style="font-weight: bold; color: #2c3e50; font-size: 12px;">${item.ultimaRodada?.goleiroNome || "Sem goleiro"}</div>
-          ${item.ultimaRodada?.goleiroClube ? `<div style="font-size: 10px; color: #7f8c8d;">${item.ultimaRodada.goleiroClube}</div>` : ""}
+        <td style="padding: 6px 8px; vertical-align: middle;">
+          <div style="font-weight: bold; color: #2c3e50; font-size: 11px; line-height: 1.2;">${item.ultimaRodada?.goleiroNome || "Sem goleiro"}</div>
+          ${item.ultimaRodada?.goleiroClube ? `<div style="font-size: 9px; color: #7f8c8d; line-height: 1.1;">${item.ultimaRodada.goleiroClube}</div>` : ""}
         </td>
-        <td style="padding: 10px 8px; text-align: center; vertical-align: middle;">
-          <div style="font-weight: bold; color: #e74c3c; font-size: 12px;">${item.ultimaRodada?.pontos || "0.00"}</div>
-          <div style="font-size: 10px; color: #7f8c8d;">R${item.ultimaRodada?.rodada || "-"}</div>
+        <td style="padding: 6px 4px; text-align: center; vertical-align: middle;">
+          <div style="font-weight: bold; color: #e74c3c; font-size: 11px; line-height: 1.2;">${Math.floor((item.ultimaRodada?.pontos || 0) * 100) / 100}</div>
+          <div style="font-size: 9px; color: #7f8c8d; line-height: 1.1;">R${item.ultimaRodada?.rodada || "-"}</div>
         </td>
-        <td style="padding: 10px 8px; text-align: center; vertical-align: middle;">
-          <button class="btn-detalhes" style="background: #3498db; color: white; border: none; padding: 6px 10px; border-radius: 4px; cursor: pointer; font-size: 12px;">Detalhes</button>
+        <td style="padding: 6px 4px; text-align: center; vertical-align: middle;">
+          <button class="btn-detalhes" onclick="mostrarDetalhesParticipante(${item.participanteId}, '${item.participanteNome}')" style="background: #3498db; color: white; border: none; padding: 4px 8px; border-radius: 3px; cursor: pointer; font-size: 10px;">Detalhes</button>
         </td>
       </tr>
     `;
@@ -312,9 +312,9 @@ function criarTabelaRanking(dados) {
         <div style="font-size: 12px; opacity: 0.8;">${rankingData[0]?.participanteNome || "-"}</div>
       </div>
       <div style="background: #3498db; color: white; padding: 15px; border-radius: 8px; text-align: center;">
-        <div style="font-size: 24px; font-weight: bold;">${rankingData.reduce((acc, r) => acc + (r.rodadasJogadas || r.totalJogos || 0), 0)}</div>
-        <div style="opacity: 0.9;">🎯 Total de Jogos</div>
-        <div style="font-size: 12px; opacity: 0.8;">Todos os participantes</div>
+        <div style="font-size: 24px; font-weight: bold;">${totalParticipantes}</div>
+        <div style="opacity: 0.9;">👥 Participantes</div>
+        <div style="font-size: 12px; opacity: 0.8;">Liga ativa</div>
       </div>
       <div style="background: #e74c3c; color: white; padding: 15px; border-radius: 8px; text-align: center;">
         <div style="font-size: 24px; font-weight: bold;">${Math.max(...rankingData.map((r) => r.ultimaRodada?.pontos || 0))}</div>
@@ -675,6 +675,139 @@ function mostrarErro(container, erro, detalhes = null) {
       </button>
     </div>
   `;
+}
+
+// ===== FUNÇÕES DE DETALHES =====
+
+async function mostrarDetalhesParticipante(participanteId, participanteNome) {
+  console.log(`🔍 Carregando detalhes de ${participanteNome} (${participanteId})`);
+  
+  try {
+    // Obter parâmetros de rodada
+    const inicio = parseInt(document.getElementById("luvaRodadaInicio")?.value) || 1;
+    const fim = parseInt(document.getElementById("luvaRodadaFim")?.value) || 14;
+    
+    // Buscar detalhes na API
+    const response = await fetch(
+      `${API_BASE}/${LIGA_SOBRAL_ID}/participante/${participanteId}/detalhes?inicio=${inicio}&fim=${fim}`
+    );
+    
+    if (!response.ok) {
+      throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+    }
+    
+    const data = await response.json();
+    
+    if (!data.success) {
+      throw new Error(data.error || "Erro ao buscar detalhes");
+    }
+    
+    // Criar modal com detalhes
+    criarModalDetalhes(data.data);
+    
+  } catch (error) {
+    console.error("❌ Erro ao buscar detalhes:", error);
+    alert(`Erro ao carregar detalhes de ${participanteNome}: ${error.message}`);
+  }
+}
+
+function criarModalDetalhes(dados) {
+  // Remover modal existente se houver
+  const modalExistente = document.getElementById("modalDetalhesParticipante");
+  if (modalExistente) {
+    modalExistente.remove();
+  }
+  
+  // Criar modal
+  const modal = document.createElement("div");
+  modal.id = "modalDetalhesParticipante";
+  modal.style.cssText = `
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.5);
+    z-index: 1000;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  `;
+  
+  modal.innerHTML = `
+    <div style="background: white; border-radius: 12px; padding: 24px; width: 90%; max-width: 700px; max-height: 80vh; overflow-y: auto; box-shadow: 0 8px 32px rgba(0,0,0,0.2);">
+      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; border-bottom: 1px solid #eee; padding-bottom: 15px;">
+        <div>
+          <h3 style="margin: 0; color: #2c3e50;">${dados.participanteNome}</h3>
+          <p style="margin: 5px 0 0 0; color: #7f8c8d; font-size: 14px;">Rodadas ${dados.rodadaInicio} a ${dados.rodadaFim}</p>
+        </div>
+        <button onclick="fecharModalDetalhes()" style="background: #e74c3c; color: white; border: none; border-radius: 50%; width: 32px; height: 32px; cursor: pointer; font-size: 16px;">×</button>
+      </div>
+      
+      <!-- Estatísticas Resumo -->
+      <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 12px; margin-bottom: 20px;">
+        <div style="background: #27ae60; color: white; padding: 12px; border-radius: 8px; text-align: center;">
+          <div style="font-size: 20px; font-weight: bold;">${Math.floor(dados.totalPontos * 100) / 100}</div>
+          <div style="font-size: 12px; opacity: 0.9;">Total de Pontos</div>
+        </div>
+        <div style="background: #3498db; color: white; padding: 12px; border-radius: 8px; text-align: center;">
+          <div style="font-size: 20px; font-weight: bold;">${dados.totalRodadas}</div>
+          <div style="font-size: 12px; opacity: 0.9;">Rodadas Jogadas</div>
+        </div>
+        <div style="background: #f39c12; color: white; padding: 12px; border-radius: 8px; text-align: center;">
+          <div style="font-size: 20px; font-weight: bold;">${Math.floor(dados.estatisticas.melhorRodada * 100) / 100}</div>
+          <div style="font-size: 12px; opacity: 0.9;">Melhor Rodada</div>
+        </div>
+        <div style="background: #e74c3c; color: white; padding: 12px; border-radius: 8px; text-align: center;">
+          <div style="font-size: 20px; font-weight: bold;">${Math.floor(dados.estatisticas.mediaPontos * 100) / 100}</div>
+          <div style="font-size: 12px; opacity: 0.9;">Média por Rodada</div>
+        </div>
+      </div>
+      
+      <!-- Histórico Detalhado -->
+      <h4 style="margin: 0 0 15px 0; color: #2c3e50;">📊 Histórico por Rodada</h4>
+      <div style="max-height: 300px; overflow-y: auto; border: 1px solid #eee; border-radius: 8px;">
+        <table style="width: 100%; border-collapse: collapse; font-size: 13px;">
+          <thead style="background: #f8f9fa; position: sticky; top: 0;">
+            <tr>
+              <th style="padding: 8px; text-align: center; border-bottom: 1px solid #ddd;">R</th>
+              <th style="padding: 8px; text-align: left; border-bottom: 1px solid #ddd;">Goleiro</th>
+              <th style="padding: 8px; text-align: left; border-bottom: 1px solid #ddd;">Clube</th>
+              <th style="padding: 8px; text-align: center; border-bottom: 1px solid #ddd;">Pontos</th>
+            </tr>
+          </thead>
+          <tbody>
+            ${dados.rodadas.map(rodada => `
+              <tr style="border-bottom: 1px solid #f0f0f0;">
+                <td style="padding: 8px; text-align: center; font-weight: bold;">${rodada.rodada}</td>
+                <td style="padding: 8px; text-align: left;">${rodada.goleiroNome || 'Sem goleiro'}</td>
+                <td style="padding: 8px; text-align: left; font-size: 12px; color: #666;">${rodada.goleiroClube || '-'}</td>
+                <td style="padding: 8px; text-align: center; font-weight: bold; color: ${rodada.pontos > 5 ? '#27ae60' : rodada.pontos < 0 ? '#e74c3c' : '#f39c12'};">
+                  ${Math.floor(rodada.pontos * 100) / 100}
+                </td>
+              </tr>
+            `).join('')}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  `;
+  
+  document.body.appendChild(modal);
+  
+  // Fechar ao clicar fora
+  modal.onclick = (e) => {
+    if (e.target === modal) {
+      fecharModalDetalhes();
+    }
+  };
+}
+
+function fecharModalDetalhes() {
+  const modal = document.getElementById("modalDetalhesParticipante");
+  if (modal) {
+    modal.remove();
+  }
 }
 
 // ===== FUNÇÕES PRINCIPAIS =====
