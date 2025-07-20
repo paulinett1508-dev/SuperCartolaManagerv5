@@ -393,6 +393,126 @@ class LuvaDeOuroController {
       });
     }
   }
+
+  // GET /api/luva-de-ouro/:ligaId/participante/:participanteId/detalhes
+  static async obterDetalhesParticipante(req, res) {
+    try {
+      const { ligaId, participanteId } = req.params;
+      const { inicio = 1, fim = 14 } = req.query;
+
+      console.log(`🥅 [LUVA-OURO] Detalhes do participante ${participanteId} - Liga: ${ligaId}`);
+      console.log(`📊 Parâmetros: início=${inicio}, fim=${fim}`);
+
+      // Validar liga
+      if (ligaId !== "684d821cf1a7ae16d1f89572") {
+        return res.status(400).json({
+          success: false,
+          error: "Liga não suportada para Luva de Ouro",
+        });
+      }
+
+      const rodadaInicio = parseInt(inicio);
+      const rodadaFim = parseInt(fim);
+      const timeId = parseInt(participanteId);
+
+      // Validar parâmetros
+      if (rodadaInicio < 1 || rodadaInicio > 38 || rodadaFim < 1 || rodadaFim > 38 || rodadaInicio > rodadaFim) {
+        return res.status(400).json({
+          success: false,
+          error: "Parâmetros de rodada inválidos",
+        });
+      }
+
+      if (isNaN(timeId)) {
+        return res.status(400).json({
+          success: false,
+          error: "ID do participante inválido",
+        });
+      }
+
+      const Goleiros = (await import("../models/Goleiros.js")).default;
+
+      // Buscar dados do participante
+      const dadosParticipante = await Goleiros.find({
+        ligaId,
+        participanteId: timeId,
+        rodada: { $gte: rodadaInicio, $lte: rodadaFim }
+      })
+      .sort({ rodada: 1 })
+      .exec();
+
+      if (dadosParticipante.length === 0) {
+        return res.json({
+          success: true,
+          data: {
+            participanteId: timeId,
+            ligaId,
+            rodadaInicio,
+            rodadaFim,
+            totalPontos: 0,
+            totalRodadas: 0,
+            rodadas: [],
+            estatisticas: {
+              melhorRodada: 0,
+              piorRodada: 0,
+              mediaPontos: 0,
+              rodadasComGoleiro: 0
+            }
+          },
+          timestamp: new Date().toISOString(),
+        });
+      }
+
+      // Processar dados
+      const rodadas = dadosParticipante.map(item => ({
+        rodada: item.rodada,
+        goleiroNome: item.goleiroNome,
+        goleiroClube: item.goleiroClube,
+        pontos: item.pontos || 0,
+        status: item.status,
+        dataColeta: item.dataColeta
+      }));
+
+      const totalPontos = rodadas.reduce((acc, r) => acc + r.pontos, 0);
+      const rodadasComGoleiro = rodadas.filter(r => r.goleiroNome && r.goleiroNome !== 'Sem goleiro').length;
+      const pontosValidos = rodadas.filter(r => r.pontos > 0).map(r => r.pontos);
+      
+      const estatisticas = {
+        melhorRodada: pontosValidos.length > 0 ? Math.max(...pontosValidos) : 0,
+        piorRodada: pontosValidos.length > 0 ? Math.min(...pontosValidos) : 0,
+        mediaPontos: rodadas.length > 0 ? totalPontos / rodadas.length : 0,
+        rodadasComGoleiro
+      };
+
+      const resultado = {
+        participanteId: timeId,
+        participanteNome: dadosParticipante[0].participanteNome,
+        ligaId,
+        rodadaInicio,
+        rodadaFim,
+        totalPontos,
+        totalRodadas: rodadas.length,
+        rodadas,
+        estatisticas
+      };
+
+      console.log(`✅ Detalhes obtidos: ${rodadas.length} rodadas, ${totalPontos.toFixed(1)} pontos totais`);
+
+      res.json({
+        success: true,
+        data: resultado,
+        timestamp: new Date().toISOString(),
+      });
+    } catch (error) {
+      console.error("❌ [LUVA-OURO] Erro ao obter detalhes do participante:", error);
+      res.status(500).json({
+        success: false,
+        error: "Erro interno do servidor",
+        message: error.message,
+        timestamp: new Date().toISOString(),
+      });
+    }
+  }
 }
 
 export default LuvaDeOuroController;

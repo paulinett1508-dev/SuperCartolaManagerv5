@@ -237,6 +237,7 @@ function criarTabelaRanking(dados) {
             <th style="padding: 10px 8px; text-align: center; width: 70px;">Jogos</th>
             <th style="padding: 10px 12px; text-align: left; min-width: 160px;">Último Goleiro</th>
             <th style="padding: 10px 8px; text-align: center; width: 80px;">Última</th>
+            <th style="width: 80px; text-align: center;">Ações</th>
           </tr>
         </thead>
         <tbody>
@@ -290,6 +291,9 @@ function criarTabelaRanking(dados) {
         <td style="padding: 10px 8px; text-align: center; vertical-align: middle;">
           <div style="font-weight: bold; color: #e74c3c; font-size: 12px;">${item.ultimaRodada?.pontos || "0.00"}</div>
           <div style="font-size: 10px; color: #7f8c8d;">R${item.ultimaRodada?.rodada || "-"}</div>
+        </td>
+        <td style="padding: 10px 8px; text-align: center; vertical-align: middle;">
+          <button class="btn-detalhes" style="background: #3498db; color: white; border: none; padding: 6px 10px; border-radius: 4px; cursor: pointer; font-size: 12px;">Detalhes</button>
         </td>
       </tr>
     `;
@@ -558,7 +562,7 @@ function criarLayoutExportacao(dados) {
 function exportarCSV(dados) {
   if (!dados || !dados.ranking) {
     alert("Nenhum dado para exportar");
-    return;
+        return;
   }
 
   const { ranking, rodadaInicio, rodadaFim } = dados;
