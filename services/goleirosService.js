@@ -638,14 +638,14 @@ export async function obterRankingGoleiros(
       await coletarDadosGoleiros(ligaId, rodadaInicio, rodadaFim);
     }
 
-    // Mapear participantes hardcoded com escudos
+    // Mapear participantes hardcoded com escudos corretos (baseado em participantes.js)
     const participantesMap = {
       1926323: { nome: "Daniel Barbosa", clubeId: 262 },      // Flamengo
-      13935277: { nome: "Paulinett Miranda", clubeId: 276 },  // São Paulo
-      14747183: { nome: "Carlos Henrique", clubeId: 266 },    // Fluminense
-      49149009: { nome: "Matheus Coutinho", clubeId: 275 },   // Palmeiras
-      49149388: { nome: "Junior Brasilino", clubeId: 344 },   // Red Bull Bragantino
-      50180257: { nome: "Hivisson", clubeId: 283 }            // Corinthians
+      13935277: { nome: "Paulinett Miranda", clubeId: 263 },  // Botafogo
+      14747183: { nome: "Carlos Henrique", clubeId: 264 },    // Corinthians
+      49149009: { nome: "Matheus Coutinho", clubeId: 266 },   // Fluminense
+      49149388: { nome: "Junior Brasilino", clubeId: 267 },   // Vasco
+      50180257: { nome: "Hivisson", clubeId: 275 }            // Palmeiras
     };
 
     // Gerar ranking
