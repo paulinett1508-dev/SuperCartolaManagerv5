@@ -1,0 +1,19 @@
+{
+  "version": "2025.07.03.1120",
+  "timestamp": "2025-07-03T11:20:02.665Z",
+  "projectHash": "938e431074bc293176c008185af17cc4",
+  "stats": {
+    "totalFiles": 101,
+    "jsFiles": 68,
+    "pyFiles": 1,
+    "htmlFiles": 19,
+    "totalLines": 251491,
+    "totalRoutes": 82,
+    "totalFunctions": 285,
+    "totalClasses": 2,
+    "totalModels": 6
+  },
+  "generatedBy": "generate-full-docs.cjs",
+  "nodeVersion": "v20.18.1",
+  "platform": "linux"
+}

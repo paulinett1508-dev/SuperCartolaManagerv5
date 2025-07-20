@@ -3,10 +3,35 @@ import {
   buscarStatusMercado as getMercadoStatus,
   getLigaId,
 } from "./pontos-corridos-utils.js"; // Corrigido: busca do arquivo e nome corretos
-import {
-  criarBotaoExportacaoRodada,
-  exportarTop10ComoImagem,
-} from "./export.utils.js"; // <-- Corrigido nome da função
+// CORREÇÃO: Removida importação estática que causava dependência circular
+// import {
+//   criarBotaoExportacaoRodada,
+//   exportarTop10ComoImagem,
+// } from "./exports/export-exports.js";
+
+// ==============================
+// VARIÁVEIS PARA EXPORTS DINÂMICOS
+// ==============================
+let criarBotaoExportacaoRodada = null;
+let exportarTop10ComoImagem = null;
+let exportsCarregados = false;
+
+// ==============================
+// FUNÇÃO PARA CARREGAR EXPORTS DINAMICAMENTE
+// ==============================
+async function carregarExports() {
+  if (exportsCarregados) return;
+
+  try {
+    const exportModule = await import("./exports/export-exports.js");
+    criarBotaoExportacaoRodada = exportModule.criarBotaoExportacaoRodada;
+    exportarTop10ComoImagem = exportModule.exportarTop10ComoImagem;
+    exportsCarregados = true;
+    console.log("[TOP10] ✅ Exports carregados com sucesso");
+  } catch (error) {
+    console.warn("[TOP10] ⚠️ Erro ao carregar exports:", error);
+  }
+}
 
 // Valores de Bônus/Ônus padrão
 const valoresBonusOnusPadrao = {
@@ -127,7 +152,7 @@ async function carregarDadosTop10() {
   }
 }
 
-function renderizarTabelasTop10() {
+async function renderizarTabelasTop10() {
   const containerMitos = document.getElementById("top10MitosTable");
   const containerMicos = document.getElementById("top10MicosTable");
   const btnContainerMitos = document.getElementById(
@@ -149,7 +174,7 @@ function renderizarTabelasTop10() {
 
   // Obtém o ID da liga atual
   const ligaId = getLigaId();
-  const isLigaCartoleirosSobral = ligaId === "6818c6125b30e1ad70847192";
+  const isLigaCartoleirosSobral = ligaId === "684d821cf1a7ae16d1f89572";
 
   // Seleciona os valores de bônus/ônus com base na liga
   const valoresBonusOnus = isLigaCartoleirosSobral
@@ -175,31 +200,41 @@ function renderizarTabelasTop10() {
     valoresBonusOnus.micos,
   );
 
+  // CORREÇÃO: Carregar exports antes de usar
+  await carregarExports();
+
   // Adiciona botão de exportação para Mitos
-  btnContainerMitos.innerHTML = `<button class="export-button" id="exportTop10MitosBtn">Exportar Mitos</button>`;
-  document
-    .getElementById("exportTop10MitosBtn")
-    .addEventListener("click", () => {
-      exportarTop10ComoImagem(
-        todosOsMitos.slice(0, 10),
-        "mitos",
-        valoresBonusOnus.mitos,
-      ); // <-- Corrigido: Usa a função e parâmetros corretos
-    });
+  if (exportarTop10ComoImagem) {
+    btnContainerMitos.innerHTML = `<button class="export-button" id="exportTop10MitosBtn">Exportar Mitos</button>`;
+    document
+      .getElementById("exportTop10MitosBtn")
+      .addEventListener("click", () => {
+        exportarTop10ComoImagem(
+          todosOsMitos.slice(0, 10),
+          "mitos",
+          valoresBonusOnus.mitos,
+        ); // <-- Corrigido: Usa a função e parâmetros corretos
+      });
 
-  // Adiciona botão de exportação para Micos
-  btnContainerMicos.innerHTML = `<button class="export-button" id="exportTop10MicosBtn">Exportar Micos</button>`;
-  document
-    .getElementById("exportTop10MicosBtn")
-    .addEventListener("click", () => {
-      exportarTop10ComoImagem(
-        todosOsMicos.slice(0, 10),
-        "micos",
-        valoresBonusOnus.micos,
-      ); // <-- Corrigido: Usa a função e parâmetros corretos
-    });
+    // Adiciona botão de exportação para Micos
+    btnContainerMicos.innerHTML = `<button class="export-button" id="exportTop10MicosBtn">Exportar Micos</button>`;
+    document
+      .getElementById("exportTop10MicosBtn")
+      .addEventListener("click", () => {
+        exportarTop10ComoImagem(
+          todosOsMicos.slice(0, 10),
+          "micos",
+          valoresBonusOnus.micos,
+        ); // <-- Corrigido: Usa a função e parâmetros corretos
+      });
 
-  console.log("Tabelas e botões de exportação Top 10 renderizados.");
+    console.log("Tabelas e botões de exportação Top 10 renderizados.");
+  } else {
+    console.warn("[TOP10] ⚠️ Função de exportação não disponível");
+    // Renderiza botões desabilitados ou remove eles
+    btnContainerMitos.innerHTML = "";
+    btnContainerMicos.innerHTML = "";
+  }
 }
 
 // Modificado: Adiciona parâmetros colunaExtraNome e valoresExtra

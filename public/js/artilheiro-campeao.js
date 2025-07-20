@@ -1,1129 +1,1192 @@
-// public/js/artilheiro-campeao.js
+console.log("🏆 [ARTILHEIRO-CAMPEAO] Versão com controle manual de rodadas...");
 
-// Constantes
-const LIGA_SOBRAL_ID = "6818c6125b30e1ad70847192";
-const TOTAL_RODADAS = 38; // Total de rodadas do campeonato
+// ===== CONFIGURAÇÕES =====
+const CONFIG = {
+    ligaId: "684d821cf1a7ae16d1f89572",
+    endpoints: {
+        dadosAcumulados: "/api/artilheiro-campeao/{ligaId}/acumulado",
+        participantes: "/api/ligas/{ligaId}/times",
+        configuracao: "/api/configuracao/rodada-atual",
+    },
+};
 
-// Variáveis globais
-let dadosAtuais = [];
-let ligaAtual = null;
-let participantesReais = [];
-let rodadaAtualDinamica = 1; // Inicializa com 1, será atualizado pela API
+// ===== ESTADO =====
+let estado = {
+    dados: [],
+    rodadaInicio: 1,
+    rodadaFim: 14, // Padrão: até rodada 14 (considerando que 15 está em andamento)
+    rodadaAtual: 15, // Rodada em andamento
+    loading: false,
+    participantes: [],
+    processando: false,
+};
 
-// Importar funções de exportação
-import {
-  criarBotaoExportacaoRodada,
-  criarDivExportacao,
-  gerarCanvasDownload,
-} from "./export.utils.js";
+// ===== INTERFACE DE CONTROLE =====
+function renderizarControles() {
+    return `
+        <div style="background: #f8f9fa; padding: 20px; border-radius: 8px; margin-bottom: 20px; border-left: 4px solid #007bff;">
+            <h4 style="margin: 0 0 15px 0; color: #2c3e50; display: flex; align-items: center; gap: 8px;">
+                <span>⚙️</span> Controle de Processamento
+            </h4>
 
-// Inicialização do módulo
-export async function inicializarArtilheiroCampeao() {
-  console.log("🏆 Inicializando Artilheiro Campeão...");
+            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px; margin-bottom: 15px;">
+                <!-- Rodada Atual -->
+                <div>
+                    <label style="display: block; font-weight: 500; margin-bottom: 5px; color: #495057;">📅 Rodada Atual (em andamento):</label>
+                    <input type="number" id="rodadaAtualInput" min="1" max="38" value="${estado.rodadaAtual}" 
+                           style="width: 100%; padding: 8px; border: 1px solid #ced4da; border-radius: 4px;" 
+                           onchange="atualizarRodadaAtual(this.value)">
+                    <small style="color: #6c757d;">Rodada que está acontecendo agora</small>
+                </div>
 
-  const container = document.getElementById("artilheiro-campeao");
-  if (!container) {
-    console.warn("Container da aba Artilheiro Campeão não encontrado.");
-    return;
-  }
+                <!-- Rodada de Início -->
+                <div>
+                    <label style="display: block; font-weight: 500; margin-bottom: 5px; color: #495057;">🏁 Processar desde a rodada:</label>
+                    <input type="number" id="rodadaInicioInput" min="1" max="38" value="${estado.rodadaInicio}" 
+                           style="width: 100%; padding: 8px; border: 1px solid #ced4da; border-radius: 4px;" 
+                           onchange="atualizarRodadaInicio(this.value)">
+                    <small style="color: #6c757d;">Primeira rodada a ser processada</small>
+                </div>
 
-  // Verificar se é a liga correta
-  const urlParams = new URLSearchParams(window.location.search);
-  const ligaId = urlParams.get("id");
+                <!-- Rodada Final -->
+                <div>
+                    <label style="display: block; font-weight: 500; margin-bottom: 5px; color: #495057;">🏁 Processar até a rodada:</label>
+                    <input type="number" id="rodadaFimInput" min="1" max="38" value="${estado.rodadaFim}" 
+                           style="width: 100%; padding: 8px; border: 1px solid #ced4da; border-radius: 4px;" 
+                           onchange="atualizarRodadaFim(this.value)">
+                    <small style="color: #6c757d;">Última rodada <strong>liquidada</strong> (${estado.rodadaAtual - 1})</small>
+                </div>
+            </div>
 
-  if (ligaId !== LIGA_SOBRAL_ID) {
-    container.innerHTML = `
-      <div style="text-align: center; padding: 40px; background: #fff3cd; border: 1px solid #ffeaa7; border-radius: 8px; color: #856404;">
-        <h3>⚠️ Funcionalidade Restrita</h3>
-        <p>O Artilheiro Campeão está disponível apenas para a liga <strong>Cartoleiros Sobral 2025</strong>.</p>
-      </div>
+            <!-- Botões de Ação -->
+            <div style="display: flex; gap: 10px; flex-wrap: wrap;">
+                <button onclick="popularGols()" ${estado.processando ? "disabled" : ""} 
+                        style="padding: 10px 20px; background: ${estado.processando ? "#6c757d" : "#28a745"}; color: white; border: none; border-radius: 4px; cursor: ${estado.processando ? "not-allowed" : "pointer"}; font-weight: 500; display: flex; align-items: center; gap: 8px;">
+                    <span>${estado.processando ? "⏳" : "🚀"}</span>
+                    ${estado.processando ? "Processando..." : "Popular Gols"}
+                </button>
+
+                <button onclick="definirRodadasRapido('atual')" style="padding: 10px 20px; background: #007bff; color: white; border: none; border-radius: 4px; cursor: pointer; font-weight: 500;">
+                    📊 Até Rodada Atual-1
+                </button>
+
+                <button onclick="definirRodadasRapido('completa')" style="padding: 10px 20px; background: #6f42c1; color: white; border: none; border-radius: 4px; cursor: pointer; font-weight: 500;">
+                    🏆 Temporada Completa
+                </button>
+
+                <button onclick="limparDados()" style="padding: 10px 20px; background: #dc3545; color: white; border: none; border-radius: 4px; cursor: pointer; font-weight: 500;">
+                    🗑️ Limpar
+                </button>
+            </div>
+
+            <!-- Informações Úteis -->
+            <div style="margin-top: 15px; padding: 12px; background: #fff3cd; border-radius: 4px; border-left: 3px solid #ffc107;">
+                <div style="font-size: 0.9rem; color: #856404;">
+                    <strong>💡 Dicas:</strong><br>
+                    • <strong>Rodada Atual:</strong> A rodada que está acontecendo agora (dados parciais)<br>
+                    • <strong>Rodadas Liquidadas:</strong> Rodadas 1 até ${estado.rodadaAtual - 1} (dados completos)<br>
+                    • <strong>Recomendado:</strong> Processar da rodada 1 até ${estado.rodadaAtual - 1} para dados precisos
+                </div>
+            </div>
+        </div>
     `;
-    return;
-  }
-
-  // Renderizar loading inicial e começar carregamento automático
-  renderizarLoadingInicial();
-  await carregarDadosAutomaticamente();
 }
 
-// Renderizar tela de loading inicial
-function renderizarLoadingInicial() {
-  const container = document.getElementById("artilheiro-campeao");
+// ===== FUNÇÕES DE CONTROLE =====
+function atualizarRodadaAtual(valor) {
+    estado.rodadaAtual = parseInt(valor) || 15;
 
-  container.innerHTML = `
-    <div id="loading-screen" style="text-align: center; padding: 60px 20px;">
-      <div style="width: 80px; height: 80px; border: 4px solid #f3f3f3; border-top: 4px solid #007bff; border-radius: 50%; animation: spin 1s linear infinite; margin: 0 auto 20px;"></div>
-        <style>
-          @keyframes spin {
-            0% { transform: rotate(0deg); }
-            100% { transform: rotate(360deg); }
-          }
-        </style>
-      </div>
+    // Ajustar automaticamente a rodada fim para (atual - 1)
+    estado.rodadaFim = Math.max(1, estado.rodadaAtual - 1);
+    document.getElementById("rodadaFimInput").value = estado.rodadaFim;
 
-      <h3 style="color: #007bff; margin-bottom: 15px;">🏆 Carregando Artilheiro Campeão</h3>
-
-      <div id="loading-steps" style="max-width: 500px; margin: 0 auto; text-align: left;">
-        <div class="loading-step" id="step-1">
-          <span style="color: #007bff;">⏳</span> Buscando participantes reais da liga...
-        </div>
-        <div class="loading-step" id="step-2" style="color: #999; margin-top: 8px;">
-          <span>⏳</span> Validando dados dos times...
-        </div>
-        <div class="loading-step" id="step-3" style="color: #999; margin-top: 8px;">
-          <span>⏳</span> Tentando buscar via backend API...
-        </div>
-        <div class="loading-step" id="step-4" style="color: #999; margin-top: 8px;">
-          <span>⏳</span> Processando ranking...
-        </div>
-      </div>
-
-      <div id="progress-info" style="margin-top: 20px; color: #6c757d; font-size: 0.9em;">
-        <p>Carregando participantes da liga...</p>
-      </div>
-    </div>
-  `;
+    atualizarInterface();
+    console.log(`📅 Rodada atual atualizada: ${estado.rodadaAtual}`);
 }
 
-// Atualizar step do loading
-function atualizarLoadingStep(stepNumber, status = "loading") {
-  const step = document.getElementById(`step-${stepNumber}`);
-  if (!step) return;
-
-  const icons = {
-    loading: "⏳",
-    success: "✅",
-    error: "❌",
-  };
-
-  const colors = {
-    loading: "#007bff",
-    success: "#28a745",
-    error: "#dc3545",
-  };
-
-  step.style.color = colors[status];
-  step.querySelector("span").textContent = icons[status];
+function atualizarRodadaInicio(valor) {
+    estado.rodadaInicio = parseInt(valor) || 1;
+    console.log(`🏁 Rodada início atualizada: ${estado.rodadaInicio}`);
 }
 
-// Atualizar informações de progresso
-function atualizarProgressoInfo(texto) {
-  const progressInfo = document.getElementById("progress-info");
-  if (progressInfo) {
-    progressInfo.innerHTML = `<p>${texto}</p>`;
-  }
-}
+function atualizarRodadaFim(valor) {
+    const novaRodadaFim = parseInt(valor) || estado.rodadaAtual - 1;
 
-// Simular delay para melhor UX
-function delay(ms) {
-  return new Promise((resolve) => setTimeout(resolve, ms));
-}
-
-// Carregar dados automaticamente
-async function carregarDadosAutomaticamente() {
-  try {
-    // Step 1: Buscar participantes reais da liga
-    atualizarLoadingStep(1, "loading");
-    atualizarProgressoInfo("Buscando dados dos participantes cadastrados...");
-
-    participantesReais = await buscarParticipantesReais();
-
-    if (participantesReais.length === 0) {
-      throw new Error("Nenhum participante encontrado na liga");
+    // Validar se não é maior que rodada atual - 1
+    if (novaRodadaFim >= estado.rodadaAtual) {
+        alert(
+            `⚠️ Rodada fim não pode ser ${novaRodadaFim} pois a rodada ${estado.rodadaAtual} está em andamento.\nUse no máximo a rodada ${estado.rodadaAtual - 1}.`,
+        );
+        document.getElementById("rodadaFimInput").value =
+            estado.rodadaAtual - 1;
+        estado.rodadaFim = estado.rodadaAtual - 1;
+        return;
     }
 
-    atualizarLoadingStep(1, "success");
-    atualizarProgressoInfo(
-      `${participantesReais.length} participantes encontrados`,
-    );
-
-    // Step 2: Validar dados
-    atualizarLoadingStep(2, "loading");
-    await delay(300);
-    atualizarLoadingStep(2, "success");
-
-    // Step 3: Tentar buscar via backend
-    atualizarLoadingStep(3, "loading");
-    atualizarProgressoInfo("Conectando com API do backend...");
-
-    const dadosBackend = await tentarBackendComParticipantesReais();
-
-    if (dadosBackend && dadosBackend.length > 0) {
-      atualizarLoadingStep(3, "success");
-      atualizarLoadingStep(4, "loading");
-
-      await delay(300);
-      atualizarLoadingStep(4, "success");
-
-      // A rodada atual virá do backend
-      rodadaAtualDinamica = dadosBackend[0].rodadaAtual || 1; // Assumindo que o primeiro item tem a rodada atual
-      renderizarTabelaFinal(dadosBackend, rodadaAtualDinamica);
-      return;
-    }
-
-    // Se backend não funcionou, usar dados baseados nos participantes reais
-    atualizarLoadingStep(3, "error");
-    atualizarLoadingStep(4, "loading");
-    atualizarProgressoInfo(
-      "Backend indisponível. Buscando dados de todas as rodadas disponíveis...",
-    );
-
-    // Nova lógica: Buscar dados de todas as rodadas disponíveis
-    const dadosAcumulados = await buscarDadosTodasRodadas();
-
-    if (dadosAcumulados && dadosAcumulados.length > 0) {
-      atualizarLoadingStep(4, "success");
-      // A rodada atual virá do backend
-      rodadaAtualDinamica = dadosAcumulados[0].rodadaAtual || 1; // Assumindo que o primeiro item tem a rodada atual
-      renderizarTabelaFinal(dadosAcumulados, rodadaAtualDinamica);
-      return;
-    }
-
-    // Fallback para dados simulados se não conseguir dados reais
-    atualizarProgressoInfo(
-      "Não foi possível obter dados reais. Simulando dados baseados nos participantes...",
-    );
-    await delay(500);
-
-    const dadosSimulados = gerarDadosBaseadosEmParticipantesReais();
-    atualizarLoadingStep(4, "success");
-
-    // A rodada atual virá do backend
-    rodadaAtualDinamica = dadosSimulados[0].rodadaAtual || 1; // Assumindo que o primeiro item tem a rodada atual
-    renderizarTabelaFinal(dadosSimulados, rodadaAtualDinamica);
-  } catch (error) {
-    console.error("Erro ao carregar dados automaticamente:", error);
-    renderizarErro(error.message);
-  }
+    estado.rodadaFim = novaRodadaFim;
+    console.log(`🏁 Rodada fim atualizada: ${estado.rodadaFim}`);
 }
 
-// Função auxiliar para fazer requisições HTTP com tratamento de erro
-async function fazerRequisicao(url, options = {}) {
-  try {
-    console.log(`🔗 Fazendo requisição para: ${url}`);
-
-    const response = await fetch(url, {
-      ...options,
-      headers: {
-        "Content-Type": "application/json",
-        ...options.headers,
-      },
-    });
-
-    if (!response.ok) {
-      console.warn(
-        `⚠️ Requisição falhou: ${response.status} ${response.statusText} para ${url}`,
-      );
-      return {
-        ok: false,
-        status: response.status,
-        statusText: response.statusText,
-      };
+function definirRodadasRapido(tipo) {
+    switch (tipo) {
+        case "atual":
+            estado.rodadaInicio = 1;
+            estado.rodadaFim = estado.rodadaAtual - 1;
+            break;
+        case "completa":
+            estado.rodadaInicio = 1;
+            estado.rodadaFim = 38;
+            break;
     }
 
-    const data = await response.json();
-    console.log(`✅ Requisição bem-sucedida para: ${url}`);
-    return { ok: true, data };
-  } catch (error) {
-    console.error(`❌ Erro na requisição para ${url}:`, error.message);
-    return { ok: false, error: error.message };
-  }
-}
+    document.getElementById("rodadaInicioInput").value = estado.rodadaInicio;
+    document.getElementById("rodadaFimInput").value = estado.rodadaFim;
 
-// Buscar participantes reais da liga
-async function buscarParticipantesReais() {
-  console.log("🔍 Buscando participantes reais da liga...");
-
-  try {
-    // Estratégias corretas baseadas nos endpoints disponíveis
-    const strategies = [
-      // Estratégia 1: Buscar times da liga específica
-      async () => {
-        const url = `/api/ligas/${LIGA_SOBRAL_ID}/times`;
-        const result = await fazerRequisicao(url);
-
-        if (result.ok && result.data) {
-          return { ok: true, json: () => Promise.resolve(result.data) };
-        }
-        return { ok: false };
-      },
-
-      // Estratégia 2: Buscar dados da liga
-      async () => {
-        const url = `/api/ligas/${LIGA_SOBRAL_ID}`;
-        const result = await fazerRequisicao(url);
-
-        if (result.ok && result.data) {
-          const data = result.data;
-          if (data.times && Array.isArray(data.times)) {
-            // Se a liga tem array de IDs, buscar detalhes dos times
-            const timesDetalhados = [];
-            for (const timeId of data.times.slice(0, 10)) {
-              // Limitar para não sobrecarregar
-              try {
-                const timeUrl = `/api/times/${timeId}`;
-                const timeResult = await fazerRequisicao(timeUrl);
-
-                if (timeResult.ok && timeResult.data) {
-                  timesDetalhados.push(timeResult.data);
-                }
-              } catch (e) {
-                console.log(`Erro ao buscar time ${timeId}:`, e.message);
-              }
-            }
-            return { ok: true, json: () => Promise.resolve(timesDetalhados) };
-          }
-        }
-        return { ok: false };
-      },
-
-      // Estratégia 3: Buscar todos os times
-      async () => {
-        const url = `/api/times`;
-        const result = await fazerRequisicao(url);
-
-        if (result.ok && result.data) {
-          return { ok: true, json: () => Promise.resolve(result.data) };
-        }
-        return { ok: false };
-      },
-
-      // Estratégia 4: Extrair da aba participantes
-      () => buscarViaParticipantesTab(),
-    ];
-
-    for (let i = 0; i < strategies.length; i++) {
-      try {
-        console.log(`Tentativa ${i + 1}: Buscando participantes...`);
-
-        const response = await strategies[i]();
-
-        if (response && response.ok) {
-          const data = await response.json();
-          console.log("📊 Resposta da API:", data);
-
-          let participantes = [];
-
-          // Processar diferentes formatos de resposta
-          if (Array.isArray(data)) {
-            participantes = data;
-          } else if (data.times && Array.isArray(data.times)) {
-            participantes = data.times;
-          } else if (data.data && Array.isArray(data.data)) {
-            participantes = data.data;
-          }
-
-          // Validar e formatar participantes
-          const participantesFormatados = participantes
-            .filter((p) => p && (p.id || p.time_id || p.timeId))
-            .map((p) => ({
-              id: p.id || p.time_id || p.timeId,
-              nome_cartola:
-                p.nome_cartoleiro ||
-                p.nome_cartola ||
-                p.cartoleiro ||
-                `Cartoleiro ${p.id}`,
-              nome_time: p.nome_time || p.nome || p.time || `Time ${p.id}`,
-              url_escudo_png: p.url_escudo_png || p.escudo || "",
-              clube_id: p.clube_id || null, // Adicionado para suportar escudos de coração
-            }));
-
-          if (participantesFormatados.length > 0) {
-            console.log(
-              `✅ Encontrados ${participantesFormatados.length} participantes:`,
-              participantesFormatados,
-            );
-            return participantesFormatados;
-          }
-        }
-      } catch (error) {
-        console.log(`❌ Estratégia ${i + 1} falhou:`, error.message);
-      }
-    }
-
-    // Se todas falharam, criar participantes baseados nos nomes vistos
     console.log(
-      "⚠️ Todas as estratégias falharam, usando participantes manuais",
+        `⚡ Definição rápida: ${tipo} - Rodadas ${estado.rodadaInicio} a ${estado.rodadaFim}`,
     );
-    return [
-      {
-        id: 1,
-        nome_cartola: "Paulinelli Miranda",
-        nome_time: "Ukulele City F.C.",
-      },
-      { id: 2, nome_cartola: "Carlos Henrique", nome_time: "CHG FC" },
-      { id: 3, nome_cartola: "Daniel Barbosa", nome_time: "Democrata United" },
-      { id: 4, nome_cartola: "Junior Brasilino", nome_time: "JBrandNoxXad FC" },
-      { id: 5, nome_cartola: "Dhienes", nome_time: "Santarém Da Peneiraide" },
-      { id: 6, nome_cartola: "Matheus Coutinho", nome_time: "RG Tomou SK" },
-    ];
-  } catch (error) {
-    console.error("Erro geral ao buscar participantes:", error);
-    return [];
-  }
 }
 
-// Buscar via aba participantes (analisar DOM)
-async function buscarViaParticipantesTab() {
-  console.log("🔍 Tentando extrair dados da aba Participantes...");
-
-  try {
-    // Simular clique na aba participantes para carregar dados
-    const tabParticipantes = document.querySelector(
-      '[data-tab="participantes"]',
-    );
-    if (tabParticipantes) {
-      tabParticipantes.click();
-      await delay(1000); // Aguardar carregamento
-    }
-
-    // Tentar extrair dados da tabela de participantes
-    const tabelaParticipantes = document.querySelector(
-      ".tabela-participantes tbody",
-    );
-    if (tabelaParticipantes) {
-      const linhas = tabelaParticipantes.querySelectorAll("tr");
-      const participantes = [];
-
-      linhas.forEach((linha) => {
-        const colunas = linha.querySelectorAll("td");
-        if (colunas.length >= 5) {
-          // Agora temos 5 colunas incluindo escudos
-          const id = colunas[0]?.textContent?.trim();
-          const nome_cartola = colunas[1]?.textContent?.trim();
-          const nome_time = colunas[2]?.textContent?.trim();
-
-          // Tentar extrair clube_id da imagem na coluna 4 (❤️)
-          let clube_id = null;
-          const escudoImg = colunas[4]?.querySelector("img");
-          if (escudoImg) {
-            const srcMatch = escudoImg.src.match(/\/escudos\/(\d+)\.png/);
-            if (srcMatch && srcMatch[1]) {
-              clube_id = parseInt(srcMatch[1]);
-            }
-          }
-
-          // Tentar extrair url_escudo_png da imagem na coluna 3 (Brasão)
-          let url_escudo_png = "";
-          const brasaoImg = colunas[3]?.querySelector("img");
-          if (brasaoImg) {
-            url_escudo_png = brasaoImg.src;
-          }
-
-          if (nome_cartola && nome_time) {
-            participantes.push({
-              id: id || participantes.length + 1,
-              nome_cartola,
-              nome_time,
-              url_escudo_png,
-              clube_id,
-            });
-          }
-        }
-      });
-
-      if (participantes.length > 0) {
-        console.log("✅ Participantes extraídos da tabela:", participantes);
-        return { ok: true, json: () => Promise.resolve(participantes) };
-      }
-    }
-
-    return { ok: false };
-  } catch (error) {
-    console.log("❌ Erro ao extrair da aba participantes:", error.message);
-    return { ok: false };
-  }
-}
-
-// NOVA FUNÇÃO: Buscar dados de todas as rodadas disponíveis
-async function buscarDadosTodasRodadas() {
-  console.log("🔄 Buscando dados de todas as rodadas disponíveis...");
-
-  try {
-    // Primeiro, verificar quais rodadas estão disponíveis
-    const rodadasUrl = `/api/artilheiro-campeao/${LIGA_SOBRAL_ID}/rodadas`;
-    const rodadasResult = await fazerRequisicao(rodadasUrl);
-
-    let rodadasDisponiveis = [];
-    let rodadaAtualBackend = 1; // Default
-
+function limparDados() {
     if (
-      rodadasResult.ok &&
-      rodadasResult.data &&
-      rodadasResult.data.success &&
-      rodadasResult.data.rodadas &&
-      rodadasResult.data.rodadas.length > 0
+        confirm(
+            "🗑️ Tem certeza que deseja limpar todos os dados do artilheiro campeão?",
+        )
     ) {
-      // Se o backend retornou rodadas disponíveis, usar essas
-      rodadasDisponiveis = rodadasResult.data.rodadas;
-      rodadaAtualBackend = rodadasResult.data.rodadaAtual; // Obter rodada atual do backend
-      console.log(
-        `✅ Rodadas disponíveis no backend: ${rodadasDisponiveis.join(", ")}`,
-      );
-    } else {
-      // Fallback para rodadas padrão se o backend não retornar
-      for (let i = 1; i <= rodadaAtualDinamica; i++) {
-        // Usar rodadaAtualDinamica global
-        rodadasDisponiveis.push(i);
-      }
-      console.log(`⚠️ Usando rodadas padrão: ${rodadasDisponiveis.join(", ")}`);
+        estado.dados = [];
+        atualizarInterface();
+        console.log("🗑️ Dados limpos");
+    }
+}
+
+// ===== PROCESSAMENTO PRINCIPAL =====
+async function popularGols() {
+    if (estado.processando) {
+        console.warn("⚠️ Processamento já em andamento");
+        return;
     }
 
-    // Atualizar a variável global rodadaAtualDinamica
-    rodadaAtualDinamica = rodadaAtualBackend;
+    // Validações
+    if (estado.rodadaInicio > estado.rodadaFim) {
+        alert("❌ Rodada início não pode ser maior que rodada fim!");
+        return;
+    }
 
-    // Mapa para acumular dados de todas as rodadas por participante
-    const dadosAcumuladosPorParticipante = new Map();
+    if (estado.rodadaFim >= estado.rodadaAtual) {
+        alert(
+            `❌ Rodada fim (${estado.rodadaFim}) deve ser menor que a rodada atual (${estado.rodadaAtual}) pois ela está em andamento!`,
+        );
+        return;
+    }
 
-    // Contador de rodadas processadas com sucesso
-    let rodadasProcessadas = 0;
+    try {
+        estado.processando = true;
+        atualizarInterface();
 
-    // Buscar dados de cada rodada
-    for (const rodada of rodadasDisponiveis) {
-      atualizarProgressoInfo(`Processando rodada ${rodada}...`);
-
-      const dadosUrl = `/api/artilheiro-campeao/${LIGA_SOBRAL_ID}/${rodada}`;
-      const dadosResult = await fazerRequisicao(dadosUrl);
-
-      if (
-        dadosResult.ok &&
-        dadosResult.data &&
-        dadosResult.data.success &&
-        dadosResult.data.dados &&
-        dadosResult.data.dados.length > 0
-      ) {
         console.log(
-          `✅ Dados obtidos para rodada ${rodada}: ${dadosResult.data.dados.length} participantes`,
+            `🚀 Iniciando processamento: rodadas ${estado.rodadaInicio} a ${estado.rodadaFim}`,
         );
-        rodadasProcessadas++;
 
-        // Processar dados desta rodada
-        dadosResult.data.dados.forEach((item) => {
-          const id = item.id || item.timeId;
-          if (!id) return; // Pular se não tiver ID
+        mostrarProgresso(0, 0, "Iniciando processamento...");
 
-          // Se já temos este participante, acumular dados
-          if (dadosAcumuladosPorParticipante.has(id)) {
-            const participanteExistente =
-              dadosAcumuladosPorParticipante.get(id);
-            participanteExistente.golsPro += item.golsPro || 0;
-            participanteExistente.golsContra += item.golsContra || 0;
-            participanteExistente.saldoGols =
-              participanteExistente.golsPro - participanteExistente.golsContra;
+        // 1. Buscar participantes
+        mostrarProgresso(1, 4, "Buscando participantes da liga...");
+        estado.participantes = await buscarParticipantes();
+        console.log(
+            `👥 ${estado.participantes.length} participantes encontrados`,
+        );
 
-            // Armazenar dados por rodada
-            participanteExistente.golsPorRodada =
-              participanteExistente.golsPorRodada || [];
-            participanteExistente.golsPorRodada[rodada - 1] = {
-              rodada: rodada,
-              golsPro: item.golsPro || 0,
-              golsContra: item.golsContra || 0,
-              saldo: (item.golsPro || 0) - (item.golsContra || 0),
-              ocorreu: true,
-            };
+        // 2. Processar dados
+        mostrarProgresso(2, 4, "Processando dados dos participantes...");
+        estado.dados = await processarParticipantes();
 
-            // Atualizar jogadores que marcaram gols
-            if (item.jogadores && item.jogadores.length > 0) {
-              item.jogadores.forEach((jogador) => {
-                const jogadorExistente = participanteExistente.jogadores.find(
-                  (j) => j.nome === jogador.nome,
-                );
-                if (jogadorExistente) {
-                  jogadorExistente.gols += jogador.gols;
-                } else {
-                  participanteExistente.jogadores.push({ ...jogador });
+        // 3. Calcular ranking
+        mostrarProgresso(3, 4, "Calculando ranking final...");
+        estado.dados = calcularRanking(estado.dados);
+
+        // 4. Renderizar interface
+        mostrarProgresso(4, 4, "Finalizando...");
+        atualizarInterface();
+
+        console.log(
+            `✅ Processamento concluído: ${estado.dados.length} participantes`,
+        );
+    } catch (error) {
+        console.error("❌ Erro no processamento:", error);
+        mostrarErro("Erro ao processar dados dos gols", error.message);
+    } finally {
+        estado.processando = false;
+        atualizarInterface();
+    }
+}
+
+// ===== BUSCAR PARTICIPANTES =====
+async function buscarParticipantes() {
+    const estrategias = [
+        `/api/ligas/${CONFIG.ligaId}/times`,
+        `/api/ligas/${CONFIG.ligaId}/participantes`,
+        `/api/ligas/${CONFIG.ligaId}`,
+    ];
+
+    for (const url of estrategias) {
+        try {
+            const response = await fetch(url);
+            if (response.ok) {
+                const data = await response.json();
+                let participantes = Array.isArray(data)
+                    ? data
+                    : data.times || data.participantes || [];
+
+                if (participantes.length > 0) {
+                    return participantes.map((p) => ({
+                        timeId: p.time_id || p.timeId || p.id,
+                        nome:
+                            p.nome_cartoleiro ||
+                            p.nome_cartola ||
+                            p.nome ||
+                            `Participante ${p.id}`,
+                        nomeTime: p.nome_time || p.time || `Time ${p.id}`,
+                        escudo: p.url_escudo_png || p.escudo || null,
+                    }));
                 }
-              });
             }
-          } else {
-            // Criar novo participante
-            const novoParticipante = {
-              timeId: id,
-              nomeCartoleiro: item.nomeCartoleiro || "Cartoleiro Desconhecido",
-              nomeTime: item.nomeTime || "Time Desconhecido",
-              escudo: item.escudo || "",
-              golsPro: item.golsPro || 0,
-              golsContra: item.golsContra || 0,
-              saldoGols: (item.golsPro || 0) - (item.golsContra || 0),
-              pontosRodada: item.pontosRodada || 0,
-              pontosRankingGeral: item.pontosRankingGeral || 0,
-              posicaoRanking: item.posicaoRanking || 999,
-              jogadores: item.jogadores ? [...item.jogadores] : [],
-              golsPorRodada: Array(TOTAL_RODADAS)
-                .fill(null)
-                .map((_, i) => {
-                  if (i + 1 === rodada) {
-                    return {
-                      rodada: rodada,
-                      golsPro: item.golsPro || 0,
-                      golsContra: item.golsContra || 0,
-                      saldo: (item.golsPro || 0) - (item.golsContra || 0),
-                      ocorreu: true,
-                    };
-                  } else if (i + 1 <= rodadaAtualBackend) {
-                    // Usar rodadaAtualBackend
-                    return {
-                      rodada: i + 1,
-                      golsPro: 0,
-                      golsContra: 0,
-                      saldo: 0,
-                      ocorreu: true,
-                    };
-                  } else {
-                    return {
-                      rodada: i + 1,
-                      golsPro: 0,
-                      golsContra: 0,
-                      saldo: 0,
-                      ocorreu: false,
-                    };
-                  }
-                }),
-            };
-            dadosAcumuladosPorParticipante.set(id, novoParticipante);
-          }
-        });
-      } else {
-        console.warn(
-          `⚠️ Nenhum dado válido para rodada ${rodada} do backend. Status: ${dadosResult.status} ${dadosResult.statusText}`,
-        );
-      }
-    }
-
-    if (rodadasProcessadas === 0) {
-      console.warn("❌ Nenhuma rodada processada com sucesso.");
-      return [];
-    }
-
-    // Converter o mapa para array e ordenar
-    let dadosFinais = Array.from(dadosAcumuladosPorParticipante.values());
-
-    // Ordenar por: 1) Saldo de gols (desc), 2) Gols pró (desc), 3) Pontos ranking geral (desc)
-    dadosFinais.sort((a, b) => {
-      if (b.saldoGols !== a.saldoGols) {
-        return b.saldoGols - a.saldoGols;
-      }
-      if (b.golsPro !== a.golsPro) {
-        return b.golsPro - a.golsPro;
-      }
-      return b.pontosRankingGeral - a.pontosRankingGeral;
-    });
-
-    // Atribuir posições
-    dadosFinais.forEach((item, index) => {
-      item.posicao = index + 1;
-    });
-
-    console.log(
-      `✅ Dados acumulados de todas as rodadas: ${dadosFinais.length} participantes`,
-    );
-    return dadosFinais;
-  } catch (error) {
-    console.error("Erro ao buscar dados de todas as rodadas:", error);
-    return [];
-  }
-}
-
-// Tentar buscar dados do backend com participantes reais
-async function tentarBackendComParticipantesReais() {
-  console.log("🚀 Tentando buscar dados acumulados via backend...");
-  const url = `/api/artilheiro-campeao/${LIGA_SOBRAL_ID}/acumulado`;
-  const result = await fazerRequisicao(url);
-
-  if (result.ok && result.data && result.data.success) {
-    console.log("✅ Backend retornou dados acumulados.", result.data.dados);
-    rodadaAtualDinamica = result.data.rodadaAtual; // Atualiza a rodada atual global
-    return result.data.dados;
-  } else {
-    console.warn(
-      "Backend não retornou dados acumulados, tentando buscar rodada por rodada",
-    );
-    return null;
-  }
-}
-
-// Função para gerar dados simulados baseados nos participantes reais
-function gerarDadosBaseadosEmParticipantesReais() {
-  console.log("🔄 Gerando dados simulados baseados nos participantes reais");
-
-  // Para simulação, vamos definir a rodada atual como 11
-  rodadaAtualDinamica = 11;
-
-  return participantesReais
-    .map((participante, index) => {
-      // Gerar dados aleatórios para cada rodada
-      const golsPorRodada = [];
-      let totalGolsPro = 0;
-      let totalGolsContra = 0;
-
-      for (let i = 1; i <= TOTAL_RODADAS; i++) {
-        const ocorreu = i <= rodadaAtualDinamica;
-        if (ocorreu) {
-          // Gerar dados aleatórios para rodadas que já ocorreram
-          const golsPro = Math.floor(Math.random() * 3); // 0-2 gols por rodada
-          const golsContra = Math.floor(Math.random() * 2); // 0-1 gols contra por rodada
-
-          totalGolsPro += golsPro;
-          totalGolsContra += golsContra;
-
-          golsPorRodada.push({
-            rodada: i,
-            golsPro,
-            golsContra,
-            saldo: golsPro - golsContra,
-            ocorreu: true,
-          });
-        } else {
-          // Rodadas futuras
-          golsPorRodada.push({
-            rodada: i,
-            golsPro: 0,
-            golsContra: 0,
-            saldo: 0,
-            ocorreu: false,
-          });
+        } catch (error) {
+            console.warn(`⚠️ Estratégia ${url} falhou:`, error);
         }
-      }
+    }
 
-      return {
-        posicao: index + 1,
-        timeId: participante.id,
-        nomeCartoleiro: participante.nome_cartola,
-        nomeTime: participante.nome_time,
-        escudo: participante.url_escudo_png,
+    throw new Error("Nenhum participante encontrado na liga");
+}
+
+// ===== PROCESSAR PARTICIPANTES =====
+async function processarParticipantes() {
+    const resultados = [];
+
+    for (let i = 0; i < estado.participantes.length; i++) {
+        const participante = estado.participantes[i];
+
+        mostrarProgresso(
+            i + 1,
+            estado.participantes.length,
+            `Processando ${participante.nome}... (${i + 1}/${estado.participantes.length})`,
+        );
+
+        try {
+            const dadosParticipante = await processarParticipante(participante);
+            resultados.push(dadosParticipante);
+
+            console.log(
+                `✅ ${participante.nome}: ${dadosParticipante.golsPro} gols pró, ${dadosParticipante.golsContra} gols contra`,
+            );
+        } catch (error) {
+            console.error(`❌ Erro ao processar ${participante.nome}:`, error);
+
+            // Adicionar com dados zerados em caso de erro
+            resultados.push({
+                timeId: participante.timeId,
+                nomeCartoleiro: participante.nome,
+                nomeTime: participante.nomeTime,
+                escudo: participante.escudo,
+                golsPro: 0,
+                golsContra: 0,
+                saldoGols: 0,
+                mediaGols: "0.00",
+                jogadores: [],
+                totalJogos: 0,
+                erro: error.message,
+            });
+        }
+
+        // Delay entre participantes para não sobrecarregar
+        await new Promise((resolve) => setTimeout(resolve, 100));
+    }
+
+    return resultados;
+}
+
+// ===== PROCESSAR PARTICIPANTE INDIVIDUAL =====
+async function processarParticipante(participante) {
+    console.log(
+        `🔄 Processando participante: ${participante.nome} (ID: ${participante.timeId})`,
+    );
+
+    try {
+        // ESTRATÉGIA 1: Tentar buscar dados agregados do backend primeiro
+        const urlAgregado = `/api/artilheiro-campeao/${CONFIG.ligaId}/gols/${participante.timeId}/agregado?inicio=${estado.rodadaInicio}&fim=${estado.rodadaFim}`;
+
+        console.log(`📡 Tentando dados agregados: ${urlAgregado}`);
+        const respostaAgregado = await fetch(urlAgregado);
+
+        if (respostaAgregado.ok) {
+            const dadosAgregados = await respostaAgregado.json();
+            if (dadosAgregados.success && dadosAgregados.data) {
+                console.log(
+                    `✅ Dados agregados obtidos para ${participante.nome}`,
+                );
+                return formatarDadosParticipante(
+                    participante,
+                    dadosAgregados.data,
+                );
+            }
+        }
+
+        console.log(
+            `⚠️ Dados agregados não disponíveis para ${participante.nome}, tentando rodada por rodada...`,
+        );
+
+        // ESTRATÉGIA 2: Buscar rodada por rodada
+        let totalGolsPro = 0;
+        let totalGolsContra = 0;
+        const detalhePorRodada = [];
+        const jogadoresMap = new Map();
+        let endpointsBackendFalharam = 0; // Contador de falhas
+
+        for (
+            let rodada = estado.rodadaInicio;
+            rodada <= estado.rodadaFim;
+            rodada++
+        ) {
+            const urlRodada = `/api/artilheiro-campeao/${CONFIG.ligaId}/gols/${participante.timeId}/${rodada}`;
+
+            try {
+                console.log(
+                    `📊 Buscando rodada ${rodada} para ${participante.nome}: ${urlRodada}`,
+                );
+                const respostaRodada = await fetch(urlRodada);
+
+                if (respostaRodada.ok) {
+                    const dadosRodada = await respostaRodada.json();
+
+                    if (dadosRodada.success && dadosRodada.data) {
+                        const golsPro = dadosRodada.data.golsPro || 0;
+                        const golsContra = dadosRodada.data.golsContra || 0;
+
+                        totalGolsPro += golsPro;
+                        totalGolsContra += golsContra;
+
+                        detalhePorRodada.push({
+                            rodada,
+                            golsPro,
+                            golsContra,
+                            saldo: golsPro - golsContra,
+                            jogadores: dadosRodada.data.jogadores || [],
+                        });
+
+                        // Agregar jogadores
+                        if (
+                            dadosRodada.data.jogadores &&
+                            Array.isArray(dadosRodada.data.jogadores)
+                        ) {
+                            dadosRodada.data.jogadores.forEach((jogador) => {
+                                const chave =
+                                    jogador.nome ||
+                                    jogador.apelido ||
+                                    "Jogador";
+                                if (jogadoresMap.has(chave)) {
+                                    jogadoresMap.get(chave).gols +=
+                                        jogador.gols || 0;
+                                } else {
+                                    jogadoresMap.set(chave, {
+                                        nome: chave,
+                                        gols: jogador.gols || 0,
+                                    });
+                                }
+                            });
+                        }
+
+                        console.log(
+                            `✅ Rodada ${rodada}: ${golsPro} gols pró, ${golsContra} gols contra`,
+                        );
+                    } else {
+                        console.warn(
+                            `⚠️ Resposta inválida para rodada ${rodada}: ${JSON.stringify(dadosRodada)}`,
+                        );
+                        endpointsBackendFalharam++;
+                    }
+                } else {
+                    console.warn(
+                        `⚠️ Erro HTTP ${respostaRodada.status} para rodada ${rodada}`,
+                    );
+                    endpointsBackendFalharam++;
+                }
+            } catch (errorRodada) {
+                console.warn(
+                    `⚠️ Erro na rodada ${rodada}:`,
+                    errorRodada.message,
+                );
+                endpointsBackendFalharam++;
+            }
+
+            // Se as primeiras 3 rodadas falharam, ir direto para API Cartola
+            if (
+                rodada <= estado.rodadaInicio + 2 &&
+                endpointsBackendFalharam >= 3
+            ) {
+                console.log(
+                    `🚨 Backend completamente indisponível para ${participante.nome}, mudando para API Cartola...`,
+                );
+                return await processarParticipanteViaCartola(participante);
+            }
+
+            // Delay entre rodadas
+            await new Promise((resolve) => setTimeout(resolve, 50));
+        }
+
+        // Formatar resultado
+        const saldoGols = totalGolsPro - totalGolsContra;
+        const numRodadas = estado.rodadaFim - estado.rodadaInicio + 1;
+        const mediaGols =
+            numRodadas > 0 ? (totalGolsPro / numRodadas).toFixed(2) : "0.00";
+
+        // Converter jogadores map para array ordenado
+        const jogadores = Array.from(jogadoresMap.values())
+            .filter((j) => j.gols > 0)
+            .sort((a, b) => b.gols - a.gols);
+
+        const resultado = {
+            timeId: participante.timeId,
+            nomeCartoleiro: participante.nome,
+            nomeTime: participante.nomeTime,
+            escudo: participante.escudo,
+            golsPro: totalGolsPro,
+            golsContra: totalGolsContra,
+            saldoGols: saldoGols,
+            mediaGols: mediaGols,
+            jogadores: jogadores,
+            totalJogos: numRodadas,
+            rodadasProcessadas: `${estado.rodadaInicio}-${estado.rodadaFim}`,
+            detalhePorRodada: detalhePorRodada,
+        };
+
+        console.log(
+            `✅ Processamento concluído para ${participante.nome}: ${totalGolsPro} gols pró, ${totalGolsContra} gols contra`,
+        );
+        return resultado;
+    } catch (error) {
+        console.error(`❌ Erro ao processar ${participante.nome}:`, error);
+
+        // ESTRATÉGIA 3: Fallback com dados da API Cartola direta
+        console.log(
+            `🔄 Tentando fallback via API Cartola para ${participante.nome}...`,
+        );
+        return await processarParticipanteViaCartola(participante);
+    }
+}
+
+// ===== FALLBACK VIA API CARTOLA =====
+async function processarParticipanteViaCartola(participante) {
+    let totalGolsPro = 0;
+    let totalGolsContra = 0;
+    const detalhePorRodada = [];
+    const jogadoresMap = new Map();
+
+    for (
+        let rodada = estado.rodadaInicio;
+        rodada <= estado.rodadaFim;
+        rodada++
+    ) {
+        try {
+            const urlCartola = `https://api.cartola.globo.com/time/id/${participante.timeId}/${rodada}`;
+            console.log(`📡 Tentando API Cartola: ${urlCartola}`);
+
+            const response = await fetch(urlCartola);
+            if (response.ok) {
+                const data = await response.json();
+
+                let golsPro = 0;
+                let golsContra = 0;
+                const jogadoresRodada = [];
+
+                if (data.atletas && Array.isArray(data.atletas)) {
+                    data.atletas.forEach((atleta) => {
+                        if (atleta.scout) {
+                            // Gols marcados
+                            const gols = parseInt(atleta.scout.G) || 0;
+                            if (gols > 0) {
+                                golsPro += gols;
+                                const nomeJogador =
+                                    atleta.apelido || atleta.nome || "Jogador";
+                                jogadoresRodada.push({
+                                    nome: nomeJogador,
+                                    gols: gols,
+                                });
+
+                                // Agregar no map geral
+                                if (jogadoresMap.has(nomeJogador)) {
+                                    jogadoresMap.get(nomeJogador).gols += gols;
+                                } else {
+                                    jogadoresMap.set(nomeJogador, {
+                                        nome: nomeJogador,
+                                        gols: gols,
+                                    });
+                                }
+                            }
+
+                            // Gols contra (só goleiros)
+                            if (atleta.posicao_id === 1) {
+                                const gc = parseInt(atleta.scout.GC) || 0;
+                                golsContra += gc;
+                            }
+                        }
+                    });
+                }
+
+                totalGolsPro += golsPro;
+                totalGolsContra += golsContra;
+
+                detalhePorRodada.push({
+                    rodada,
+                    golsPro,
+                    golsContra,
+                    saldo: golsPro - golsContra,
+                    jogadores: jogadoresRodada,
+                });
+
+                console.log(
+                    `✅ API Cartola - Rodada ${rodada}: ${golsPro} gols pró, ${golsContra} gols contra`,
+                );
+            }
+        } catch (error) {
+            console.warn(
+                `⚠️ Erro na API Cartola, rodada ${rodada}:`,
+                error.message,
+            );
+        }
+
+        // Delay entre requests
+        await new Promise((resolve) => setTimeout(resolve, 200));
+    }
+
+    const saldoGols = totalGolsPro - totalGolsContra;
+    const numRodadas = estado.rodadaFim - estado.rodadaInicio + 1;
+    const mediaGols =
+        numRodadas > 0 ? (totalGolsPro / numRodadas).toFixed(2) : "0.00";
+
+    const jogadores = Array.from(jogadoresMap.values())
+        .filter((j) => j.gols > 0)
+        .sort((a, b) => b.gols - a.gols);
+
+    return {
+        timeId: participante.timeId,
+        nomeCartoleiro: participante.nome,
+        nomeTime: participante.nomeTime,
+        escudo: participante.escudo,
         golsPro: totalGolsPro,
         golsContra: totalGolsContra,
-        saldoGols: totalGolsPro - totalGolsContra,
-        pontosRankingGeral: Math.floor(Math.random() * 500) + 100, // 100-599 pontos
-        posicaoRanking: index + 1,
-        golsPorRodada: golsPorRodada,
-        jogadores: [
-          { nome: "Jogador 1", gols: Math.floor(Math.random() * 5) + 1 },
-          { nome: "Jogador 2", gols: Math.floor(Math.random() * 3) },
-        ],
-      };
-    })
-    .sort((a, b) => {
-      // Ordenar por saldo de gols
-      if (b.saldoGols !== a.saldoGols) {
-        return b.saldoGols - a.saldoGols;
-      }
-      // Desempate por gols pró
-      if (b.golsPro !== a.golsPro) {
-        return b.golsPro - a.golsPro;
-      }
-      // Desempate final por pontos do ranking geral
-      return b.pontosRankingGeral - a.pontosRankingGeral;
-    })
-    .map((item, index) => {
-      // Atualizar posições após ordenação
-      item.posicao = index + 1;
-      return item;
-    });
+        saldoGols: saldoGols,
+        mediaGols: mediaGols,
+        jogadores: jogadores,
+        totalJogos: numRodadas,
+        rodadasProcessadas: `${estado.rodadaInicio}-${estado.rodadaFim}`,
+        detalhePorRodada: detalhePorRodada,
+        fonte: "api_cartola",
+    };
 }
 
-// Função para exportar dados do Artilheiro Campeão (apenas últimas 5 rodadas)
-async function exportarArtilheiroCampeao(dados, rodadaAtual) {
-  try {
-    // Calcular quais são as últimas 5 rodadas (ou menos se não houver 5 rodadas)
-    const ultimasRodadas = [];
-    for (let i = rodadaAtual; i > 0 && ultimasRodadas.length < 5; i--) {
-      ultimasRodadas.push(i);
+// ===== FORMATAR DADOS DO PARTICIPANTE =====
+function formatarDadosParticipante(participante, dados) {
+    const numRodadas = estado.rodadaFim - estado.rodadaInicio + 1;
+    const mediaGols =
+        numRodadas > 0 ? (dados.golsPro / numRodadas).toFixed(2) : "0.00";
+
+    return {
+        timeId: participante.timeId,
+        nomeCartoleiro: participante.nome,
+        nomeTime: participante.nomeTime,
+        escudo: participante.escudo,
+        golsPro: dados.golsPro || 0,
+        golsContra: dados.golsContra || 0,
+        saldoGols: (dados.golsPro || 0) - (dados.golsContra || 0),
+        mediaGols: mediaGols,
+        jogadores: dados.jogadores || [],
+        totalJogos: numRodadas,
+        rodadasProcessadas: `${estado.rodadaInicio}-${estado.rodadaFim}`,
+        detalhePorRodada: dados.detalhePorRodada || [],
+        fonte: "backend",
+    };
+}
+
+// ===== CALCULAR RANKING =====
+function calcularRanking(dados) {
+    return dados
+        .sort((a, b) => {
+            // 1º critério: saldo de gols
+            if (b.saldoGols !== a.saldoGols) return b.saldoGols - a.saldoGols;
+            // 2º critério: gols pró
+            if (b.golsPro !== a.golsPro) return b.golsPro - a.golsPro;
+            // 3º critério: alfabético
+            return a.nomeCartoleiro.localeCompare(b.nomeCartoleiro);
+        })
+        .map((item, index) => ({ ...item, posicao: index + 1 }));
+}
+
+// ===== INTERFACE =====
+function mostrarProgresso(atual, total, mensagem) {
+    const container = obterContainer();
+    if (!container) return;
+
+    const porcentagem = total > 0 ? Math.round((atual / total) * 100) : 0;
+
+    container.innerHTML = `
+        ${renderizarControles()}
+
+        <div style="background: white; padding: 30px; border-radius: 8px; text-align: center; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">
+            <div style="width: 60px; height: 60px; border: 4px solid #f3f3f3; border-top: 4px solid #007bff; border-radius: 50%; animation: spin 1s linear infinite; margin: 0 auto 20px;"></div>
+            <style>@keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }</style>
+
+            <h3 style="color: #007bff; margin-bottom: 10px;">🏆 Processando Artilheiro Campeão</h3>
+            <p style="color: #6c757d; margin-bottom: 20px;">Rodadas ${estado.rodadaInicio} a ${estado.rodadaFim}</p>
+
+            <div style="max-width: 400px; margin: 0 auto 15px;">
+                <div style="background: #e9ecef; border-radius: 20px; height: 24px; overflow: hidden;">
+                    <div style="background: linear-gradient(90deg, #007bff, #0056b3); height: 100%; width: ${porcentagem}%; transition: width 0.3s ease; border-radius: 20px; display: flex; align-items: center; justify-content: center; color: white; font-weight: bold; font-size: 0.8rem;">
+                        ${porcentagem}%
+                    </div>
+                </div>
+            </div>
+
+            <p style="color: #495057; font-weight: 500; margin-bottom: 5px;">${mensagem}</p>
+            <p style="color: #6c757d; font-size: 0.9rem;">${atual} de ${total} processados</p>
+        </div>
+    `;
+}
+
+function mostrarErro(mensagem, detalhes = "") {
+    const container = obterContainer();
+    if (!container) return;
+
+    container.innerHTML = `
+        ${renderizarControles()}
+
+        <div style="text-align: center; padding: 40px; background: #f8d7da; border-radius: 8px; color: #721c24; margin-top: 20px;">
+            <h3>❌ Erro no Processamento</h3>
+            <p style="margin-bottom: 15px;">${mensagem}</p>
+            ${detalhes ? `<details style="margin-bottom: 15px;"><summary>Detalhes</summary><pre style="text-align: left; background: #fff; padding: 10px; border-radius: 4px; margin-top: 10px;">${detalhes}</pre></details>` : ""}
+            <button onclick="atualizarInterface()" style="padding: 10px 20px; background: #dc3545; color: white; border: none; border-radius: 4px; cursor: pointer;">
+                🔄 Voltar aos Controles
+            </button>
+        </div>
+    `;
+}
+
+function renderizarTabela() {
+    if (!estado.dados || estado.dados.length === 0) {
+        return `
+            <div style="text-align: center; padding: 40px; background: #fff3cd; border-radius: 8px; color: #856404; margin-top: 20px;">
+                <h3>📊 Nenhum Dado Processado</h3>
+                <p>Use os controles acima para processar os dados do artilheiro campeão.</p>
+                <p><strong>Recomendação:</strong> Processar da rodada 1 até ${estado.rodadaAtual - 1}</p>
+            </div>
+        `;
     }
-    ultimasRodadas.sort((a, b) => a - b); // Ordenar em ordem crescente
 
-    const titulo = `Artilheiro Campeão - Liga Cartoleiros Sobral 2025`;
-    const subtitulo = `Dados acumulados até a Rodada ${rodadaAtual}`;
+    const totalGolsPro = estado.dados.reduce((s, p) => s + p.golsPro, 0);
+    const totalGolsContra = estado.dados.reduce((s, p) => s + p.golsContra, 0);
+    const totalSaldo = totalGolsPro - totalGolsContra;
 
-    // Criar div de exportação
-    const exportDiv = criarDivExportacao(titulo, subtitulo, "900px");
+    return `
+        <!-- ESTATÍSTICAS -->
+        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 15px; margin: 20px 0;">
+            <div style="background: linear-gradient(135deg, #e8f5e8, #c8e6c9); padding: 15px; border-radius: 8px; text-align: center;">
+                <div style="font-size: 1.5rem; font-weight: bold; color: #2e7d32;">${totalGolsPro}</div>
+                <div style="font-size: 0.9rem; color: #424242;">⚽ Total Gols Pró</div>
+            </div>
+            <div style="background: linear-gradient(135deg, #ffebee, #ffcdd2); padding: 15px; border-radius: 8px; text-align: center;">
+                <div style="font-size: 1.5rem; font-weight: bold; color: #d32f2f;">${totalGolsContra}</div>
+                <div style="font-size: 0.9rem; color: #424242;">🔴 Total Gols Contra</div>
+            </div>
+            <div style="background: linear-gradient(135deg, #e3f2fd, #bbdefb); padding: 15px; border-radius: 8px; text-align: center;">
+                <div style="font-size: 1.5rem; font-weight: bold; color: ${totalSaldo >= 0 ? "#1976d2" : "#d32f2f"};">
+                    ${totalSaldo >= 0 ? "+" : ""}${totalSaldo}
+                </div>
+                <div style="font-size: 0.9rem; color: #424242;">📊 Saldo Total</div>
+            </div>
+            <div style="background: linear-gradient(135deg, #fff3e0, #ffcc80); padding: 15px; border-radius: 8px; text-align: center;">
+                <div style="font-size: 1.5rem; font-weight: bold; color: #f57c00;">${estado.dados.length}</div>
+                <div style="font-size: 0.9rem; color: #424242;">👥 Participantes</div>
+            </div>
+        </div>
 
-    // Criar cabeçalhos para as últimas 5 rodadas
-    const cabecalhosRodadas = ultimasRodadas
-      .map((rodada) => {
-        const rodadaFormatada = rodada.toString().padStart(2, "0");
-        return `<th style="width: 60px; text-align: center; padding: 8px 5px; border-bottom: 2px solid #dee2e6;">R${rodadaFormatada}</th>`;
-      })
-      .join("");
+        <!-- TABELA -->
+        <div style="background: white; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); overflow: hidden;">
+            <table style="width: 100%; border-collapse: collapse;">
+                <thead style="background: #343a40; color: white;">
+                    <tr>
+                        <th style="padding: 12px 8px; text-align: center;">Pos</th>
+                        <th style="padding: 12px 8px; text-align: left;">Cartoleiro / Time</th>
+                        <th style="padding: 12px 8px; text-align: center;">⚽ GP</th>
+                        <th style="padding: 12px 8px; text-align: center;">🔴 GC</th>
+                        <th style="padding: 12px 8px; text-align: center;">📊 SG</th>
+                        <th style="padding: 12px 8px; text-align: center;">📈 Média</th>
+                        <th style="padding: 12px 8px; text-align: center;">🎯 Rodadas</th>
+                        <th style="padding: 12px 8px; text-align: center;">👁️</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    ${estado.dados
+                        .map(
+                            (p, i) => `
+                        <tr style="border-bottom: 1px solid #eee; ${i === 0 ? "background: linear-gradient(135deg, #fff3e0, #ffe0b2); font-weight: 600;" : i === estado.dados.length - 1 ? "background: linear-gradient(135deg, #ffebee, #ffcdd2);" : ""}" onmouseover="this.style.backgroundColor='#f5f5f5'" onmouseout="this.style.backgroundColor='${i === 0 ? "#fff3e0" : i === estado.dados.length - 1 ? "#ffebee" : "white"}'">
+                            <td style="padding: 10px 8px; text-align: center;">
+                                ${
+                                    i === 0
+                                        ? '<span style="background: #ffd700; color: #333; padding: 2px 8px; border-radius: 12px; font-size: 0.8rem;">🏆 ARTILHEIRO</span>'
+                                        : i === estado.dados.length - 1
+                                          ? '<span style="background: #dc3545; color: white; padding: 2px 8px; border-radius: 12px; font-size: 0.8rem;">📉 ÚLTIMO</span>'
+                                          : `${i + 1}º`
+                                }
+                            </td>
+                            <td style="padding: 10px 8px;">
+                                <div style="display: flex; align-items: center; gap: 8px;">
+                                    ${p.escudo ? `<img src="${p.escudo}" alt="Escudo" style="width: 20px; height: 20px; border-radius: 50%;" onerror="this.style.display='none'">` : ""}
+                                    <div>
+                                        <div style="font-weight: 500; color: #2c3e50;">${p.nomeCartoleiro}</div>
+                                        <div style="font-size: 0.8rem; color: #6c757d;">${p.nomeTime}</div>
+                                        ${p.fonte ? `<div style="font-size: 0.7rem; color: #007bff;">📡 ${p.fonte === "api_cartola" ? "API Cartola" : "Backend"}</div>` : ""}
+                                    </div>
+                                </div>
+                            </td>
+                            <td style="padding: 10px 8px; text-align: center;">
+                                <span style="font-weight: 600; color: #28a745; background: #e8f5e8; padding: 4px 8px; border-radius: 12px; font-size: 0.9rem;">${p.golsPro}</span>
+                            </td>
+                            <td style="padding: 10px 8px; text-align: center;">
+                                <span style="font-weight: 600; color: #dc3545; background: #ffebee; padding: 4px 8px; border-radius: 12px; font-size: 0.9rem;">${p.golsContra}</span>
+                            </td>
+                            <td style="padding: 10px 8px; text-align: center;">
+                                <span style="font-weight: 600; color: ${p.saldoGols >= 0 ? "#28a745" : "#dc3545"}; background: ${p.saldoGols >= 0 ? "#e8f5e8" : "#ffebee"}; padding: 4px 8px; border-radius: 12px; font-size: 0.9rem;">
+                                    ${p.saldoGols >= 0 ? "+" : ""}${p.saldoGols}
+                                </span>
+                            </td>
+                            <td style="padding: 10px 8px; text-align: center; color: #6c757d; font-weight: 500;">${p.mediaGols}</td>
+                            <td style="padding: 10px 8px; text-align: center; color: #6c757d; font-size: 0.9rem;">${p.rodadasProcessadas || `${estado.rodadaInicio}-${estado.rodadaFim}`}</td>
+                            <td style="padding: 10px 8px; text-align: center;">
+                                <button onclick="mostrarDetalhes(${i})" style="padding: 4px 8px; background: #007bff; color: white; border: none; border-radius: 4px; cursor: pointer; font-size: 0.8rem;">Detalhes</button>
+                            </td>
+                        </tr>
+                    `,
+                        )
+                        .join("")}
+                </tbody>
+            </table>
+        </div>
 
-    // Criar tabela HTML
-    const tabelaHtml = `
-      <table style="width:100%; border-collapse:collapse; font-size:0.95rem; margin-top: 15px;">
-        <thead>
-          <tr style="background: #f8f9fa; color: #495057;">
-            <th style="width: 40px; text-align: center; padding: 8px 5px; border-bottom: 2px solid #dee2e6;">Pos</th>
-            <th style="text-align: left; padding: 8px 5px; border-bottom: 2px solid #dee2e6;">Time</th>
-            <th style="width: 40px; text-align: center; padding: 8px 5px; border-bottom: 2px solid #dee2e6;">Escudo</th>
-            <th style="width: 60px; text-align: center; padding: 8px 5px; border-bottom: 2px solid #dee2e6;">GP</th>
-            <th style="width: 60px; text-align: center; padding: 8px 5px; border-bottom: 2px solid #dee2e6;">GC</th>
-            <th style="width: 60px; text-align: center; padding: 8px 5px; border-bottom: 2px solid #dee2e6;">Saldo</th>
-            <th style="width: 80px; text-align: center; padding: 8px 5px; border-bottom: 2px solid #dee2e6;">Pts RG</th>
-            ${cabecalhosRodadas}
-          </tr>
-        </thead>
-        <tbody>
-          ${dados
-            .map((item, index) => {
-              // Criar células para as últimas 5 rodadas
-              const celulasPorRodada = ultimasRodadas
-                .map((rodada) => {
-                  const rodadaData = item.golsPorRodada
-                    ? item.golsPorRodada.find((r) => r.rodada === rodada)
-                    : null;
+        <!-- FOOTER -->
+        <div style="margin-top: 20px; padding: 15px; background: #e8f5e8; border-radius: 8px; border-left: 4px solid #28a745;">
+            <div style="display: flex; align-items: center; justify-content: center; gap: 15px; flex-wrap: wrap; font-size: 0.9rem; color: #155724;">
+                <span><strong>📊 Rodadas processadas: ${estado.rodadaInicio} a ${estado.rodadaFim}</strong></span>
+                <span>•</span>
+                <span>🔄 Processado em: ${new Date().toLocaleString("pt-BR")}</span>
+                <span>•</span>
+                <span>🏆 Liga Sobral 2025</span>
+            </div>
+        </div>
+    `;
+}
 
-                  if (
-                    rodadaData &&
-                    (rodadaData.golsPro > 0 || rodadaData.golsContra > 0)
-                  ) {
-                    return `
-                  <td style="text-align: center; padding: 7px 5px;">
-                    <span style="color: #198754; font-weight: 600;">${rodadaData.golsPro}</span>
-                    ${
-                      rodadaData.golsContra > 0
-                        ? `<span style="color: #dc3545;">(-${rodadaData.golsContra})</span>`
-                        : ""
-                    }
-                  </td>
-                `;
-                  } else {
-                    return `<td style="text-align: center; padding: 7px 5px;">0</td>`;
-                  }
-                })
-                .join("");
+// ===== FUNÇÃO AUXILIAR PARA OBTER CONTAINER =====
+function obterContainer() {
+    const containers = ["artilheiro-container", "artilheiro-campeao-content"];
 
-              return `
-              <tr style="border-bottom: 1px solid #eee;">
-                <td style="text-align: center; padding: 7px 5px; font-weight: 600;">${item.posicao}</td>
-                <td style="text-align: left; padding: 7px 5px;">
-                  <div style="font-weight: 500;">${item.nomeTime || "N/D"}</div>
-                  <div style="font-size: 0.8em; color: #777;">${item.nomeCartoleiro || "N/D"}</div>
-                </td>
-                <td style="text-align: center; padding: 7px 5px;">
-                  ${
-                    item.escudo
-                      ? `<img src="${item.escudo}" alt="" style="width:25px; height:25px; border-radius:50%; background:#fff; border:1px solid #eee;" onerror="this.style.display='none'"/>`
-                      : "—"
-                  }
-                </td>
-                <td style="text-align: center; padding: 7px 5px; color: #198754; font-weight: 600;">${item.golsPro}</td>
-                <td style="text-align: center; padding: 7px 5px; color: #dc3545;">${item.golsContra}</td>
-                <td style="text-align: center; padding: 7px 5px; font-weight: 600;">${item.saldoGols}</td>
-                <td style="text-align: center; padding: 7px 5px; font-weight: 600;">${item.pontosRankingGeral.toFixed(2)}</td>
-                ${celulasPorRodada}
-              </tr>
-            `;
-            })
-            .join("")}
-        </tbody>
-      </table>
+    for (const containerId of containers) {
+        const container = document.getElementById(containerId);
+        if (container) {
+            return container;
+        }
+    }
 
-      <div style="margin-top: 15px; font-size: 0.9em; color: #6c757d;">
-        <p>Legenda: GP = Gols Pró, GC = Gols Contra, Pts RG = Pontos Ranking Geral, R## = Rodada</p>
-        <p>Formato das células de rodada: GP(-GC)</p>
-      </div>
+    console.error("❌ Nenhum container encontrado para artilheiro");
+    return null;
+}
+
+function atualizarInterface() {
+    const container = obterContainer();
+    if (!container) return;
+
+    container.style.display = "block";
+
+    container.innerHTML = `
+        <!-- HEADER -->
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; flex-wrap: wrap;">
+            <div>
+                <h2 style="margin: 0; color: #2c3e50; display: flex; align-items: center; gap: 10px;">
+                    🏆 Artilheiro Campeão
+                    <span style="background: #28a745; color: white; padding: 2px 8px; border-radius: 12px; font-size: 0.7rem;">DADOS REAIS</span>
+                </h2>
+                <p style="margin: 5px 0 0 0; color: #6c757d;">Liga Sobral 2025 - Processamento Inteligente de Rodadas</p>
+            </div>
+            <div style="display: flex; gap: 10px;">
+                <button onclick="exportarDados()" style="padding: 8px 16px; background: #007bff; color: white; border: none; border-radius: 4px; cursor: pointer;">📤 Exportar</button>
+                <button onclick="atualizarInterface()" style="padding: 8px 16px; background: #6c757d; color: white; border: none; border-radius: 4px; cursor: pointer;">🔄 Atualizar</button>
+            </div>
+        </div>
+
+        <!-- CONTROLES -->
+        ${renderizarControles()}
+
+        <!-- TABELA OU MENSAGEM -->
+        ${renderizarTabela()}
     `;
 
-    exportDiv.innerHTML += tabelaHtml;
-    document.body.appendChild(exportDiv);
-
-    // Gerar canvas e download
-    await gerarCanvasDownload(
-      exportDiv,
-      `artilheiro_campeao_rodada_${rodadaAtual}.png`,
-    );
-
-    return true;
-  } catch (error) {
-    console.error("Erro ao exportar Artilheiro Campeão:", error);
-    return false;
-  }
+    console.log("✅ Interface atualizada");
 }
 
-// Renderizar a tabela final
-function renderizarTabelaFinal(dados, rodadaAtual) {
-  dadosAtuais = dados; // Armazenar dados para uso posterior (exportação)
+// ===== DETALHES DO PARTICIPANTE =====
+function mostrarDetalhes(index) {
+    const p = estado.dados[index];
+    if (!p) return;
 
-  const container = document.getElementById("artilheiro-campeao");
-  container.innerHTML = ""; // Limpar conteúdo anterior
+    const modal = document.createElement("div");
+    modal.style.cssText =
+        "position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 1000; display: flex; justify-content: center; align-items: center; overflow-y: auto; padding: 20px;";
 
-  const titulo = document.createElement("h3");
-  titulo.className = "text-center mb-4";
-  titulo.innerHTML = `🏆 Artilheiro Campeão - Liga Cartoleiros Sobral 2025`;
-  container.appendChild(titulo);
+    const rodadasHtml =
+        p.detalhePorRodada && p.detalhePorRodada.length > 0
+            ? p.detalhePorRodada
+                  .map((r) => {
+                      const corFundo =
+                          r.saldo > 0
+                              ? "#d4edda"
+                              : r.saldo < 0
+                                ? "#f8d7da"
+                                : "#e2e3e5";
+                      return `<div style="display: inline-block; margin: 3px; padding: 6px 10px; background: ${corFundo}; border-radius: 6px; font-size: 0.85rem;"><strong>R${r.rodada}:</strong> ${r.golsPro}${r.golsContra > 0 ? ` (-${r.golsContra})` : ""} = ${r.saldo >= 0 ? "+" : ""}${r.saldo}</div>`;
+                  })
+                  .join("")
+            : '<p style="color: #6c757d; margin: 0;">Dados de rodada não disponíveis</p>';
 
-  const infoRodada = document.createElement("p");
-  infoRodada.className = "text-center text-muted mb-4";
-  infoRodada.textContent = `Dados acumulados até a Rodada ${rodadaAtual} de ${TOTAL_RODADAS}`;
-  container.appendChild(infoRodada);
+    modal.innerHTML = `
+        <div style="background: white; border-radius: 8px; max-width: 600px; width: 100%; max-height: 90vh; overflow-y: auto;">
+            <div style="display: flex; justify-content: space-between; align-items: center; padding: 20px; border-bottom: 2px solid #f8f9fa; background: linear-gradient(135deg, #28a745, #20c997); color: white;">
+                <h3 style="margin: 0;">🏆 ${p.nomeCartoleiro}</h3>
+                <button onclick="this.closest('div').parentElement.remove()" style="background: rgba(255,255,255,0.2); color: white; border: none; border-radius: 50%; width: 35px; height: 35px; cursor: pointer; font-size: 1.2rem;">×</button>
+            </div>
 
-  const botoesAcoes = document.createElement("div");
-  botoesAcoes.className = "d-flex justify-content-center mb-4";
-  botoesAcoes.innerHTML = `
-    <button id="btnLimparCache" class="btn btn-secondary me-2">Limpar Cache</button>
-    <button id="btnForcarAtualizacao" class="btn btn-primary me-2">Forçar Atualização</button>
-    <div id="btnExportarContainer" class="ms-2"></div>
-  `;
-  container.appendChild(botoesAcoes);
+            <div style="padding: 20px;">
+                <div style="display: flex; align-items: center; gap: 15px; margin-bottom: 20px; padding: 15px; background: #f8f9fa; border-radius: 8px;">
+                    ${p.escudo ? `<img src="${p.escudo}" alt="Escudo" style="width: 50px; height: 50px; border-radius: 50%;">` : `<div style="width: 50px; height: 50px; border-radius: 50%; background: #ddd; display: flex; align-items: center; justify-content: center; font-size: 1.5rem;">👤</div>`}
+                    <div>
+                        <div style="font-weight: 600; font-size: 1.2rem; color: #2c3e50;">${p.nomeCartoleiro}</div>
+                        <div style="color: #6c757d;">${p.nomeTime}</div>
+                        <div style="font-size: 0.9rem; color: #28a745;"><strong>Posição:</strong> ${p.posicao}º lugar</div>
+                        <div style="font-size: 0.9rem; color: #007bff;"><strong>Rodadas:</strong> ${p.rodadasProcessadas || `${estado.rodadaInicio}-${estado.rodadaFim}`}</div>
+                        ${p.fonte ? `<div style="font-size: 0.8rem; color: #6c757d;"><strong>Fonte:</strong> ${p.fonte === "api_cartola" ? "API Cartola FC" : "Backend"}</div>` : ""}
+                    </div>
+                </div>
 
-  // Adicionar event listeners para os botões
-  document
-    .getElementById("btnLimparCache")
-    .addEventListener("click", async () => {
-      if (confirm("Tem certeza que deseja limpar o cache?")) {
-        await fazerRequisicao(
-          `/api/artilheiro-campeao/${LIGA_SOBRAL_ID}/limpar-cache`,
-          { method: "DELETE" },
-        );
-        alert("Cache limpo! Recarregando dados...");
-        window.location.reload();
-      }
+                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(120px, 1fr)); gap: 15px; margin-bottom: 20px;">
+                    <div style="text-align: center; padding: 15px; background: #e8f5e8; border-radius: 8px;">
+                        <div style="font-size: 1.5rem; font-weight: bold; color: #28a745;">${p.golsPro}</div>
+                        <div style="font-size: 0.8rem;">⚽ Gols Pró</div>
+                    </div>
+                    <div style="text-align: center; padding: 15px; background: #f8e8e8; border-radius: 8px;">
+                        <div style="font-size: 1.5rem; font-weight: bold; color: #dc3545;">${p.golsContra}</div>
+                        <div style="font-size: 0.8rem;">🔴 Gols Contra</div>
+                    </div>
+                    <div style="text-align: center; padding: 15px; background: #e3f2fd; border-radius: 8px;">
+                        <div style="font-size: 1.5rem; font-weight: bold; color: ${p.saldoGols >= 0 ? "#1976d2" : "#d32f2f"};">${p.saldoGols >= 0 ? "+" : ""}${p.saldoGols}</div>
+                        <div style="font-size: 0.8rem;">📊 Saldo</div>
+                    </div>
+                    <div style="text-align: center; padding: 15px; background: #fff3e0; border-radius: 8px;">
+                        <div style="font-size: 1.5rem; font-weight: bold; color: #f57c00;">${p.mediaGols}</div>
+                        <div style="font-size: 0.8rem;">📈 Média</div>
+                    </div>
+                </div>
+
+                <div style="margin-bottom: 20px;">
+                    <h4 style="margin-bottom: 15px; color: #2c3e50;">📅 Desempenho por Rodada:</h4>
+                    <div style="max-height: 200px; overflow-y: auto; border: 1px solid #ddd; padding: 15px; border-radius: 8px; background: #fafafa;">
+                        ${rodadasHtml}
+                    </div>
+                </div>
+
+                ${
+                    p.jogadores && p.jogadores.length > 0
+                        ? `
+                    <div>
+                        <h4 style="margin-bottom: 15px; color: #2c3e50;">⚽ Top Artilheiros do Time:</h4>
+                        <div style="border: 1px solid #ddd; border-radius: 8px; background: white;">
+                            <div style="padding: 15px;">
+                                ${p.jogadores
+                                    .map(
+                                        (j, idx) => `
+                                    <div style="display: flex; justify-content: space-between; align-items: center; padding: 8px 0; border-bottom: 1px solid #eee; ${idx === 0 ? "font-weight: 600; background: #fff3e0; margin: -8px -15px 8px -15px; padding: 12px 15px;" : ""}">
+                                        <div style="display: flex; align-items: center; gap: 8px;">
+                                            ${idx === 0 ? '<span style="background: #ffd700; color: #333; padding: 2px 6px; border-radius: 10px; font-size: 0.7rem;">👑</span>' : `<span style="color: #6c757d;">${idx + 1}º</span>`}
+                                            <span>${j.nome}</span>
+                                        </div>
+                                        <span style="font-weight: bold; color: #28a745; background: #e8f5e8; padding: 4px 8px; border-radius: 12px; font-size: 0.85rem;">
+                                            ${j.gols} gol${j.gols !== 1 ? "s" : ""}
+                                        </span>
+                                    </div>
+                                `,
+                                    )
+                                    .join("")}
+                            </div>
+                        </div>
+                    </div>
+                `
+                        : ""
+                }
+
+                ${
+                    p.erro
+                        ? `
+                    <div style="margin-top: 15px; padding: 12px; background: #f8d7da; border-radius: 4px; border-left: 3px solid #dc3545; color: #721c24;">
+                        <strong>⚠️ Erro no processamento:</strong> ${p.erro}
+                    </div>
+                `
+                        : ""
+                }
+            </div>
+
+            <div style="padding: 15px 20px; background: #f8f9fa; border-top: 1px solid #dee2e6; text-align: center;">
+                <button onclick="this.closest('div').parentElement.remove()" style="padding: 10px 30px; background: #6c757d; color: white; border: none; border-radius: 4px; cursor: pointer;">Fechar</button>
+            </div>
+        </div>
+    `;
+
+    document.body.appendChild(modal);
+    modal.addEventListener("click", (e) => {
+        if (e.target === modal) modal.remove();
     });
+}
 
-  document
-    .getElementById("btnForcarAtualizacao")
-    .addEventListener("click", async () => {
-      if (
-        confirm(
-          "Forçar atualização pode demorar. Deseja continuar? (Isso limpará o cache)",
-        )
-      ) {
-        await fazerRequisicao(
-          `/api/artilheiro-campeao/${LIGA_SOBRAL_ID}/acumulado/force-update`,
-          { method: "GET" },
+// ===== EXPORTAÇÃO =====
+function exportarDados() {
+    if (!estado.dados || estado.dados.length === 0) {
+        alert(
+            "📊 Nenhum dado para exportar! Use o botão 'Popular Gols' primeiro.",
         );
-        alert("Atualização forçada! Recarregando dados...");
-        window.location.reload();
-      }
-    });
+        return;
+    }
 
-  // Adicionar botão de exportação
-  criarBotaoExportacaoRodada({
-    containerId: "btnExportarContainer",
-    rodada: rodadaAtual,
-    rankings: dados,
-    customExport: (rankings) =>
-      exportarArtilheiroCampeao(rankings, rodadaAtual),
-  });
+    const csvContent = [
+        [
+            "Posição",
+            "Cartoleiro",
+            "Time",
+            "Gols Pró",
+            "Gols Contra",
+            "Saldo",
+            "Média",
+            "Rodadas Processadas",
+            "Fonte",
+        ],
+        ...estado.dados.map((p) => [
+            p.posicao,
+            p.nomeCartoleiro,
+            p.nomeTime,
+            p.golsPro,
+            p.golsContra,
+            p.saldoGols,
+            p.mediaGols,
+            p.rodadasProcessadas ||
+                `${estado.rodadaInicio}-${estado.rodadaFim}`,
+            p.fonte || "backend",
+        ]),
+    ]
+        .map((row) => row.join(","))
+        .join("\n");
 
-  // Criar container para a tabela com rolagem horizontal
-  const tabelaContainer = document.createElement("div");
-  tabelaContainer.className = "table-responsive";
-  tabelaContainer.style.maxHeight = "800px"; // Altura máxima para rolagem vertical
-  tabelaContainer.style.overflowY = "auto";
-  tabelaContainer.style.overflowX = "auto";
-  tabelaContainer.style.position = "relative";
-  container.appendChild(tabelaContainer);
+    const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
+    const url = window.URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = `artilheiro_campeao_r${estado.rodadaInicio}-${estado.rodadaFim}_${new Date().toISOString().slice(0, 10)}.csv`;
+    a.click();
+    window.URL.revokeObjectURL(url);
 
-  // Criar cabeçalhos para todas as rodadas
-  const cabecalhosRodadas = [];
-  for (let i = 1; i <= TOTAL_RODADAS; i++) {
-    const rodadaFormatada = i.toString().padStart(2, "0");
-    cabecalhosRodadas.push(
-      `<th class="rodada-col ${i > rodadaAtual ? "text-muted" : ""}" title="Rodada ${i}">R${rodadaFormatada}</th>`,
-    );
-  }
+    console.log("✅ Exportação concluída!");
+}
 
-  // Criar a tabela com estilo moderno
-  const tabela = document.createElement("table");
-  tabela.className = "table table-striped table-hover";
-  tabela.style.position = "relative";
+// ===== INICIALIZAÇÃO =====
+async function inicializar() {
+    console.log("🚀 Inicializando sistema com controle manual...");
 
-  // Adicionar CSS para fixar cabeçalhos
-  const style = document.createElement("style");
-  style.textContent = `
-    .sticky-header {
-      position: sticky;
-      top: 0;
-      background-color: #f8f9fa;
-      z-index: 10;
-      box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-    }
-    .sticky-col {
-      position: sticky;
-      left: 0;
-      background-color: #fff;
-      z-index: 5;
-      box-shadow: 2px 0 4px rgba(0,0,0,0.1);
-    }
-    .rodada-col {
-      min-width: 60px;
-      text-align: center;
-    }
-    .info-col {
-      min-width: 80px;
-    }
-    .nome-col {
-      min-width: 150px;
-    }
-    .gol-positivo {
-      color: #198754;
-      font-weight: 600;
-    }
-    .gol-negativo {
-      color: #dc3545;
-    }
-    .rodada-futura {
-      color: #adb5bd;
-      font-style: italic;
-    }
-    .tooltip-custom {
-      position: absolute;
-      background-color: rgba(0,0,0,0.8);
-      color: white;
-      padding: 5px 10px;
-      border-radius: 4px;
-      font-size: 12px;
-      z-index: 100;
-      pointer-events: none;
-      display: none;
-    }
-  `;
-  document.head.appendChild(style);
-
-  // Criar tooltip personalizado
-  const tooltip = document.createElement("div");
-  tooltip.className = "tooltip-custom";
-  tabelaContainer.appendChild(tooltip);
-
-  // Criar cabeçalho da tabela
-  tabela.innerHTML = `
-    <thead>
-      <tr class="sticky-header">
-        <th class="sticky-col" style="z-index: 15;">Pos</th>
-        <th class="sticky-col" style="left: 50px; z-index: 15;">Time</th>
-        <th class="info-col">Escudo</th>
-        <th class="info-col">GP</th>
-        <th class="info-col">GC</th>
-        <th class="info-col">Saldo</th>
-        <th class="info-col">Pts RG</th>
-        ${cabecalhosRodadas.join("")}
-      </tr>
-    </thead>
-    <tbody>
-      ${dados
-        .map((item) => {
-          // Criar células para cada rodada
-          const celulasPorRodada = [];
-          for (let i = 1; i <= TOTAL_RODADAS; i++) {
-            const rodadaData = item.golsPorRodada
-              ? item.golsPorRodada.find((r) => r.rodada === i)
-              : null;
-
-            if (rodadaData) {
-              if (i > rodadaAtual) {
-                // Rodada futura
-                celulasPorRodada.push(
-                  `<td class="rodada-col rodada-futura" data-rodada="${i}" data-time="${item.nomeTime}">-</td>`,
-                );
-              } else if (rodadaData.golsPro > 0 || rodadaData.golsContra > 0) {
-                // Rodada com gols
-                celulasPorRodada.push(`
-                <td class="rodada-col" data-rodada="${i}" data-time="${item.nomeTime}" 
-                    data-gp="${rodadaData.golsPro}" data-gc="${rodadaData.golsContra}">
-                  <span class="gol-positivo">${rodadaData.golsPro}</span>
-                  ${rodadaData.golsContra > 0 ? `<span class="gol-negativo">(-${rodadaData.golsContra})</span>` : ""}
-                </td>
-              `);
-              } else {
-                // Rodada sem gols
-                celulasPorRodada.push(
-                  `<td class="rodada-col" data-rodada="${i}" data-time="${item.nomeTime}">0</td>`,
-                );
-              }
-            } else {
-              // Sem dados para esta rodada
-              celulasPorRodada.push(
-                `<td class="rodada-col" data-rodada="${i}" data-time="${item.nomeTime}">-</td>`,
-              );
+    // Tentar obter rodada atual do sistema
+    try {
+        const response = await fetch("/api/configuracao/rodada-atual");
+        if (response.ok) {
+            const data = await response.json();
+            if (data.rodadaAtual) {
+                estado.rodadaAtual = data.rodadaAtual;
+                estado.rodadaFim = Math.max(1, estado.rodadaAtual - 1);
             }
-          }
+        }
+    } catch (error) {
+        console.warn(
+            "⚠️ Não foi possível obter rodada atual do sistema:",
+            error,
+        );
+    }
 
-          return `
-          <tr>
-            <td class="sticky-col" style="z-index: 5;">${item.posicao}</td>
-            <td class="sticky-col nome-col" style="left: 50px; z-index: 5;" title="${item.nomeCartoleiro}">${item.nomeTime}</td>
-            <td>
-              ${
-                item.escudo
-                  ? `<img src="${item.escudo}" alt="Escudo do Time" style="width: 30px; height: 30px; border-radius: 50%; object-fit: cover;">`
-                  : "N/A"
-              }
-            </td>
-            <td class="gol-positivo">${item.golsPro}</td>
-            <td class="gol-negativo">${item.golsContra}</td>
-            <td><strong>${item.saldoGols}</strong></td>
-            <td><strong>${item.pontosRankingGeral.toFixed(2)}</strong></td>
-            ${celulasPorRodada.join("")}
-          </tr>
-        `;
-        })
-        .join("")}
-    </tbody>
-  `;
+    atualizarInterface();
+}
 
-  tabelaContainer.appendChild(tabela);
+// ===== FUNÇÃO PRINCIPAL =====
+async function inicializarArtilheiroCampeao() {
+    console.log("🚀 [ARTILHEIRO-CAMPEAO] Inicializando com dados reais...");
 
-  // Adicionar interatividade para tooltip
-  const celulasRodada = tabelaContainer.querySelectorAll("td.rodada-col");
-  celulasRodada.forEach((celula) => {
-    celula.addEventListener("mouseenter", (e) => {
-      const rodada = e.target.getAttribute("data-rodada");
-      const time = e.target.getAttribute("data-time");
-      const gp = e.target.getAttribute("data-gp");
-      const gc = e.target.getAttribute("data-gc");
+    const container = obterContainer();
+    if (!container) {
+        console.error("❌ Container não encontrado!");
+        return;
+    }
 
-      if (rodada && time) {
-        let tooltipText = `${time} - Rodada ${rodada}`;
-        if (gp && gc) {
-          tooltipText += `<br>Gols Pró: ${gp} | Gols Contra: ${gc}`;
-        } else if (parseInt(rodada) > rodadaAtual) {
-          tooltipText += `<br>Rodada futura`;
-        } else {
-          tooltipText += `<br>Sem gols`;
+    // Esconder loading anterior
+    const loadingContainer = document.getElementById("artilheiro-loading");
+    if (loadingContainer) {
+        loadingContainer.style.display = "none";
+    }
+
+    await inicializar();
+
+    console.log(
+        "✅ [ARTILHEIRO-CAMPEAO] Sistema com dados reais inicializado!",
+    );
+}
+
+// ===== DISPONIBILIZAR GLOBALMENTE =====
+if (typeof window !== "undefined") {
+    window.inicializarArtilheiroCampeao = inicializarArtilheiroCampeao;
+    window.popularGols = popularGols;
+    window.atualizarRodadaAtual = atualizarRodadaAtual;
+    window.atualizarRodadaInicio = atualizarRodadaInicio;
+    window.atualizarRodadaFim = atualizarRodadaFim;
+    window.definirRodadasRapido = definirRodadasRapido;
+    window.limparDados = limparDados;
+    window.mostrarDetalhes = mostrarDetalhes;
+    window.exportarDados = exportarDados;
+    window.atualizarInterface = atualizarInterface;
+}
+
+console.log(
+    "✅ [ARTILHEIRO-CAMPEAO] Sistema com extração de dados reais carregado!",
+);
+
+// ========================================
+// SISTEMA DE REGISTRO COMPATÍVEL
+// ========================================
+
+(function registroCompativel() {
+    console.log(
+        "🔧 [ARTILHEIRO-CAMPEAO] Sistema de registro compatível iniciado...",
+    );
+
+    // Função principal sempre disponível globalmente
+    window.inicializarArtilheiroCampeao = inicializarArtilheiroCampeao;
+    window.ativarArtilheiroCampeao = inicializarArtilheiroCampeao;
+    window.forcarInicializacaoArtilheiro = inicializarArtilheiroCampeao;
+
+    // Registra no sistema de módulos se existir
+    function tentarRegistrarModulo() {
+        if (window.modulosCarregados) {
+            window.modulosCarregados["artilheiro-campeao"] = {
+                inicializarArtilheiroCampeao: inicializarArtilheiroCampeao,
+            };
+            console.log(
+                "✅ [ARTILHEIRO-CAMPEAO] Registrado em window.modulosCarregados",
+            );
+            return true;
+        }
+        return false;
+    }
+
+    // Tenta registrar imediatamente
+    tentarRegistrarModulo();
+
+    // Tenta novamente a cada 500ms por até 5 segundos
+    let tentativas = 0;
+    const maxTentativas = 10;
+
+    const intervalId = setInterval(() => {
+        tentativas++;
+
+        if (tentarRegistrarModulo() || tentativas >= maxTentativas) {
+            clearInterval(intervalId);
+
+            if (tentativas >= maxTentativas) {
+                console.warn(
+                    "⚠️ [ARTILHEIRO-CAMPEAO] Sistema de módulos não encontrado",
+                );
+            }
+        }
+    }, 500);
+
+    // Função de emergência que verifica o container correto
+    window.forcarArtilheiroCampeaoAgora = function () {
+        console.log("🚨 [ARTILHEIRO-CAMPEAO] Forçando inicialização...");
+
+        // Tenta diferentes containers possíveis
+        const containers = [
+            "artilheiro-campeao-content",
+            "artilheiro-container",
+            "artilheiro-campeao",
+        ];
+
+        let containerEncontrado = null;
+
+        for (const containerId of containers) {
+            const container = document.getElementById(containerId);
+            if (container) {
+                containerEncontrado = container;
+                console.log(`✅ Container encontrado: ${containerId}`);
+                break;
+            }
         }
 
-        tooltip.innerHTML = tooltipText;
-        tooltip.style.display = "block";
-        tooltip.style.left = `${e.pageX - tabelaContainer.offsetLeft + 10}px`;
-        tooltip.style.top = `${e.pageY - tabelaContainer.offsetTop - 30}px`;
-      }
-    });
+        if (!containerEncontrado) {
+            console.error("❌ Nenhum container encontrado");
 
-    celula.addEventListener("mouseleave", () => {
-      tooltip.style.display = "none";
-    });
+            // Tenta criar um container se estiver na aba certa
+            const tabContent = document.getElementById("artilheiro-campeao");
+            if (tabContent) {
+                const novoContainer = document.createElement("div");
+                novoContainer.id = "artilheiro-campeao-content";
+                tabContent.innerHTML = "";
+                tabContent.appendChild(novoContainer);
+                containerEncontrado = novoContainer;
+                console.log("✅ Container criado: artilheiro-campeao-content");
 
-    celula.addEventListener("mousemove", (e) => {
-      tooltip.style.left = `${e.pageX - tabelaContainer.offsetLeft + 10}px`;
-      tooltip.style.top = `${e.pageY - tabelaContainer.offsetTop - 30}px`;
-    });
-  });
+                // Agora cria o container que o código espera
+                const artilheiroContainer = document.createElement("div");
+                artilheiroContainer.id = "artilheiro-container";
+                novoContainer.appendChild(artilheiroContainer);
+                console.log("✅ Container artilheiro-container criado também");
+            }
+        }
 
-  // Adicionar legenda
-  const legenda = document.createElement("div");
-  legenda.className = "mt-4";
-  legenda.innerHTML = `
-    <h5>Legenda:</h5>
-    <ul class="list-unstyled d-flex flex-wrap">
-      <li class="me-4"><strong>Pos</strong>: Posição</li>
-      <li class="me-4"><strong>GP</strong>: Gols Pró</li>
-      <li class="me-4"><strong>GC</strong>: Gols Contra</li>
-      <li class="me-4"><strong>Pts RG</strong>: Pontos no Ranking Geral</li>
-      <li class="me-4"><strong>R01-R38</strong>: Gols por rodada (formato: GP(-GC))</li>
-    </ul>
-    <p class="text-muted small">Passe o mouse sobre as células para ver detalhes. Role horizontalmente para ver todas as rodadas.</p>
-  `;
-  container.appendChild(legenda);
-}
+        if (containerEncontrado) {
+            try {
+                // Limpa loading se existir
+                const loading = document.getElementById("artilheiro-loading");
+                if (loading) {
+                    loading.style.display = "none";
+                }
 
-// Renderizar mensagem de erro
-function renderizarErro(mensagem) {
-  const container = document.getElementById("artilheiro-campeao");
-  container.innerHTML = `
-    <div style="text-align: center; padding: 40px; background: #f8d7da; border: 1px solid #f5c6cb; border-radius: 8px; color: #721c24;">
-      <h3>❌ Erro ao carregar Artilheiro Campeão</h3>
-      <p>${mensagem || "Ocorreu um erro inesperado."}</p>
-      <button class="btn btn-danger mt-3" onclick="window.location.reload();">Tentar Novamente</button>
-    </div>
-  `;
-}
+                inicializarArtilheiroCampeao();
+                console.log(
+                    "✅ [ARTILHEIRO-CAMPEAO] Inicialização forçada bem-sucedida",
+                );
+                return true;
+            } catch (error) {
+                console.error("❌ Erro na inicialização:", error);
+                return false;
+            }
+        }
+
+        return false;
+    };
+
+    console.log("✅ [ARTILHEIRO-CAMPEAO] Sistema de registro compatível ativo");
+    console.log("🆘 Para forçar: window.forcarArtilheiroCampeaoAgora()");
+})();
+
+console.log("🆘 Em caso de erro: window.forcarArtilheiroCampeaoAgora()");
+
+export { inicializarArtilheiroCampeao };
+
+// Também disponibiliza via export default
+export default inicializarArtilheiroCampeao;
+
+console.log("📤 [ARTILHEIRO-CAMPEAO] Exportações ES6 adicionadas para compatibilidade");

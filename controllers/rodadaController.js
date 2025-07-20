@@ -40,6 +40,9 @@ export async function buscarRodadas(req, res) {
 
     const rodadas = await Rodada.find(queryMongo).lean();
 
+    // Log para depuração: verificar se o campo 'rodada' está presente
+    console.log("Rodadas encontradas:", rodadas);
+
     return res.status(200).json(rodadas);
   } catch (err) {
     console.error("Erro ao buscar rodadas:", err.message);
@@ -83,21 +86,29 @@ export async function popularRodadas(req, res) {
   );
 
   try {
+    console.log(
+      `[popularRodadas] Iniciando populacao para ligaId: ${ligaId}, inicio: ${inicio}, fim: ${fim}, repopular: ${repopularBool}`,
+    );
     const inicioNum = parseInt(inicio);
     const fimNum = parseInt(fim);
 
     if (isNaN(inicioNum) || isNaN(fimNum)) {
+      console.error("[popularRodadas] Parametros inicio ou fim invalidos.");
       return res
         .status(400)
         .json({ error: "Parâmetros inicio e fim devem ser números válidos" });
     }
 
     const liga = await Liga.findById(ligaId).lean();
-    if (!liga) return res.status(404).json({ error: "Liga não encontrada" });
+    if (!liga) {
+      console.error(`[popularRodadas] Liga ${ligaId} nao encontrada.`);
+      return res.status(404).json({ error: "Liga não encontrada" });
+    }
+    console.log(`[popularRodadas] Liga encontrada: ${liga.nome}`);
 
     // Verificar se todos os times da liga existem na coleção Time
     console.log(
-      `Liga ${ligaId} tem ${liga.times.length} times cadastrados:`,
+      `[popularRodadas] Liga ${ligaId} tem ${liga.times.length} times cadastrados:`,
       liga.times,
     );
 

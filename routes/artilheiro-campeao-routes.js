@@ -1,139 +1,176 @@
+// routes/artilheiro-campeao-routes.js - VERSÃO CORRIGIDA PARA CONTROLLER V2.0
 import express from "express";
 import {
-  getArtilheiroCampeao,
-  getRodadasDisponiveis,
-  limparCacheArtilheiro,
-  getArtilheiroCampeaoAcumulado,
-  testeConectividade,
+    getGolsAgregados,
+    getGolsRodada,
+    detectarRodada,
+    getRankingLiga,
+    getEstatisticas,
+    forcarColeta,
+    limparCache,
 } from "../controllers/artilheiroCampeaoController.js";
 
 const router = express.Router();
 
-console.log("[ROUTES] artilheiro-campeao-routes.js carregado");
+console.log("🚀 [ROUTES] Carregando rotas do Artilheiro Campeão v2.0...");
+
+// ========================================
+// ENDPOINTS PRINCIPAIS (V2.0 - SISTEMA INTELIGENTE)
+// ========================================
+
+/**
+ * ENDPOINT: Dados agregados de um participante (múltiplas rodadas)
+ * GET /api/artilheiro-campeao/:ligaId/gols/:timeId/agregado?inicio=X&fim=Y
+ *
+ * Exemplo: /api/artilheiro-campeao/684d821cf1a7ae16d1f89572/gols/1926323/agregado?inicio=1&fim=14
+ */
+router.get("/:ligaId/gols/:timeId/agregado", getGolsAgregados);
+
+/**
+ * ENDPOINT: Dados de uma rodada específica
+ * GET /api/artilheiro-campeao/:ligaId/gols/:timeId/:rodada
+ *
+ * Exemplo: /api/artilheiro-campeao/684d821cf1a7ae16d1f89572/gols/1926323/14
+ */
+router.get("/:ligaId/gols/:timeId/:rodada", getGolsRodada);
+
+/**
+ * ENDPOINT: Ranking completo da liga
+ * GET /api/artilheiro-campeao/:ligaId/ranking?inicio=X&fim=Y
+ *
+ * Exemplo: /api/artilheiro-campeao/684d821cf1a7ae16d1f89572/ranking?inicio=1&fim=14
+ */
+router.get("/:ligaId/ranking", getRankingLiga);
+
+/**
+ * ENDPOINT: Detectar rodada atual do Cartola FC
+ * GET /api/artilheiro-campeao/:ligaId/detectar-rodada
+ */
+router.get("/:ligaId/detectar-rodada", detectarRodada);
+
+/**
+ * ENDPOINT: Estatísticas da liga e do sistema
+ * GET /api/artilheiro-campeao/:ligaId/estatisticas
+ */
+router.get("/:ligaId/estatisticas", getEstatisticas);
+
+// ========================================
+// ENDPOINTS DE ADMINISTRAÇÃO
+// ========================================
+
+/**
+ * ENDPOINT: Forçar coleta de uma rodada específica
+ * POST /api/artilheiro-campeao/:ligaId/coletar/:timeId/:rodada
+ */
+router.post("/:ligaId/coletar/:timeId/:rodada", forcarColeta);
+
+/**
+ * ENDPOINT: Limpar cache do sistema
+ * DELETE /api/artilheiro-campeao/limpar-cache
+ */
+router.delete("/limpar-cache", limparCache);
+
+// ========================================
+// ENDPOINTS DE COMPATIBILIDADE (V1.X)
+// ========================================
+
+/**
+ * COMPATIBILIDADE: Endpoint legado para dados acumulados
+ * GET /api/artilheiro-campeao/:ligaId/acumulado
+ *
+ * Redireciona para o novo endpoint de ranking
+ */
+router.get("/:ligaId/acumulado", async (req, res) => {
+    const { ligaId } = req.params;
+    const { inicio = 1, fim = 14 } = req.query;
+
+    console.log(`🔄 [COMPATIBILIDADE] Redirecionando /acumulado para /ranking`);
+
+    // Redirecionar para o novo endpoint
+    req.url = `/${ligaId}/ranking?inicio=${inicio}&fim=${fim}`;
+    return getRankingLiga(req, res);
+});
+
+/**
+ * COMPATIBILIDADE: Endpoint legado para rodadas disponíveis
+ * GET /api/artilheiro-campeao/:ligaId/rodadas
+ */
+router.get("/:ligaId/rodadas", async (req, res) => {
+    const { ligaId } = req.params;
+
+    console.log(
+        `🔄 [COMPATIBILIDADE] Redirecionando /rodadas para /estatisticas`,
+    );
+
+    try {
+        // Buscar estatísticas e extrair rodadas
+        req.url = `/${ligaId}/estatisticas`;
+
+        // Criar um response wrapper para capturar o resultado
+        const originalJson = res.json;
+        res.json = function (data) {
+            if (data.success && data.data.mongodb.rodadasDisponiveis) {
+                // Converter para formato legado
+                const rodadasLegacy = data.data.mongodb.rodadasDisponiveis.map(
+                    (r) => ({
+                        rodada: r,
+                        disponivel: true,
+                    }),
+                );
+
+                return originalJson.call(this, {
+                    success: true,
+                    rodadas: rodadasLegacy,
+                    total: rodadasLegacy.length,
+                });
+            }
+            return originalJson.call(this, data);
+        };
+
+        return getEstatisticas(req, res);
+    } catch (error) {
+        console.error(`❌ [COMPATIBILIDADE] Erro em /rodadas:`, error);
+        res.status(500).json({
+            success: false,
+            message: "Erro ao buscar rodadas disponíveis",
+            error: error.message,
+        });
+    }
+});
+
+// ========================================
+// MIDDLEWARE DE LOG
+// ========================================
 
 router.use((req, res, next) => {
-  console.log(`[ROUTES MIDDLEWARE] ${req.method} ${req.originalUrl}`);
-  next();
+    console.log(
+        `📝 [ROUTES] ${req.method} ${req.originalUrl} - ${new Date().toISOString()}`,
+    );
+    next();
 });
 
-router.get("/artilheiro-campeao/teste", testeConectividade);
+// ========================================
+// ENDPOINT DE TESTE
+// ========================================
 
-// Rotas para dados acumulados (devem vir antes das rotas de rodada específica)
-router.get(
-  "/artilheiro-campeao/:ligaId/acumulado",
-  getArtilheiroCampeaoAcumulado,
-);
-
-router.get("/artilheiro-campeao/:ligaId/acumulado/force-update", (req, res) => {
-  req.query.forceUpdate = "true"; // Adiciona o parâmetro para forçar a atualização
-  getArtilheiroCampeaoAcumulado(req, res);
-});
-
-// Rotas para rodadas específicas
-router.get("/artilheiro-campeao/:ligaId/rodadas", getRodadasDisponiveis);
-router.get("/artilheiro-campeao/:ligaId/:rodada(\\d+)", getArtilheiroCampeao);
-
-// Rotas de limpeza de cache
-router.delete(
-  "/artilheiro-campeao/:ligaId/limpar-cache",
-  limparCacheArtilheiro,
-);
-router.delete("/artilheiro-campeao/limpar-cache", limparCacheArtilheiro);
-
-// Rota de debug
-router.get("/artilheiro-campeao/:ligaId/debug/:timeId", async (req, res) => {
-  try {
-    const { ligaId, timeId } = req.params;
-
-    console.log(`[DEBUG] Analisando time ${timeId} em todas as rodadas`);
-
-    const resultados = [];
-    let totalGolsPro = 0;
-    let totalGolsContra = 0;
-
-    // Buscar dados de todas as rodadas para o time específico
-    for (let rodada = 1; rodada <= 11; rodada++) {
-      try {
-        const url = `https://api.cartola.globo.com/time/id/${timeId}/${rodada}`;
-        const response = await fetch(url);
-
-        if (response.ok) {
-          const data = await response.json();
-
-          let golsPro = 0;
-          let golsContra = 0;
-          const jogadoresComGols = [];
-
-          if (data.atletas && Array.isArray(data.atletas)) {
-            data.atletas.forEach((atleta) => {
-              if (atleta.scout) {
-                const gols = parseInt(atleta.scout.G) || 0;
-                if (gols > 0) {
-                  golsPro += gols;
-                  jogadoresComGols.push({
-                    nome: atleta.apelido,
-                    gols: gols,
-                  });
-                }
-
-                if (atleta.posicao_id === 1) {
-                  const gc = parseInt(atleta.scout.GC) || 0;
-                  golsContra += gc;
-                }
-              }
-            });
-          }
-
-          totalGolsPro += golsPro;
-          totalGolsContra += golsContra;
-
-          resultados.push({
-            rodada,
-            golsPro,
-            golsContra,
-            saldo: golsPro - golsContra,
-            jogadores: jogadoresComGols,
-            pontos: data.pontos || 0,
-          });
-        } else {
-          resultados.push({
-            rodada,
-            erro: `HTTP ${response.status}`,
-            golsPro: 0,
-            golsContra: 0,
-            saldo: 0,
-          });
-        }
-
-        // Delay para não sobrecarregar
-        await new Promise((resolve) => setTimeout(resolve, 100));
-      } catch (error) {
-        resultados.push({
-          rodada,
-          erro: error.message,
-          golsPro: 0,
-          golsContra: 0,
-          saldo: 0,
-        });
-      }
-    }
-
+/**
+ * ENDPOINT: Verificar se o sistema está funcionando
+ * GET /api/artilheiro-campeao/health
+ */
+router.get("/health", (req, res) => {
     res.json({
-      success: true,
-      timeId: parseInt(timeId),
-      totalGolsPro,
-      totalGolsContra,
-      saldoTotal: totalGolsPro - totalGolsContra,
-      rodadas: resultados,
+        success: true,
+        message: "Sistema Artilheiro Campeão v2.0 funcionando",
+        timestamp: new Date().toISOString(),
+        versao: "2.0_inteligente",
+        funcionalidades: [
+            "coleta_inteligente_mongodb",
+            "proxy_api_cartolafc",
+            "cache_sistema",
+            "endpoints_v2",
+            "compatibilidade_v1",
+        ],
     });
-  } catch (error) {
-    console.error("[DEBUG] Erro:", error);
-    res.status(500).json({
-      success: false,
-      message: "Erro no debug",
-      error: error.message,
-    });
-  }
 });
 
 export default router;

@@ -37,6 +37,53 @@ export function calcularResultadoConfronto(pontosA, pontosB) {
   return { resultado: "empate", pontosA: 1, pontosB: 1 };
 }
 
+// ✅ NOVA FUNÇÃO CENTRALIZADA - LÓGICA CORRIGIDA DOS EMPATES
+export function calcularFinanceiroConfronto(pontosA, pontosB) {
+  let financeiroA = 0;
+  let financeiroB = 0;
+  let pontosGoleadaA = 0;
+  let pontosGoleadaB = 0;
+
+  if (pontosA === null || pontosB === null) {
+    return {
+      financeiroA: 0,
+      financeiroB: 0,
+      pontosGoleadaA: 0,
+      pontosGoleadaB: 0,
+    };
+  }
+
+  const diferenca = Math.abs(pontosA - pontosB);
+
+  // ✅ CORREÇÃO: Empate quando diferença <= 0.3 (consistente com calcularResultadoConfronto)
+  if (diferenca <= 0.3) {
+    financeiroA = 3.0; // ✅ R$ 3,00 para cada no empate
+    financeiroB = 3.0; // ✅ R$ 3,00 para cada no empate
+  } else if (diferenca >= 50) {
+    // GOLEADA (≥50 pts diferença)
+    if (pontosA > pontosB) {
+      financeiroA = 7.0;
+      financeiroB = -7.0;
+      pontosGoleadaA = 1;
+    } else {
+      financeiroA = -7.0;
+      financeiroB = 7.0;
+      pontosGoleadaB = 1;
+    }
+  } else {
+    // VITÓRIA SIMPLES
+    if (pontosA > pontosB) {
+      financeiroA = 5.0;
+      financeiroB = -5.0;
+    } else {
+      financeiroA = -5.0;
+      financeiroB = 5.0;
+    }
+  }
+
+  return { financeiroA, financeiroB, pontosGoleadaA, pontosGoleadaB };
+}
+
 // Busca status do mercado e rodada atual
 export async function buscarStatusMercado() {
   try {
@@ -169,35 +216,6 @@ export async function getConfrontosLigaPontosCorridos() {
     return [];
   }
 }
-
-// Função auxiliar para obter o ID da liga (pode já existir em utils.js)
-// Se não existir, descomente e adapte ou mova para utils.js
-/*
-function getLigaId() {
-  const urlParams = new URLSearchParams(window.location.search);
-  return urlParams.get("id");
-}
-*/
-
-// Função auxiliar para buscar ranking de rodada específica (deve vir de rodadas.js)
-// Se não for importada, precisa ser definida ou importada corretamente.
-/*
-async function getRankingRodadaEspecifica(rodadaNum) {
-    const ligaId = getLigaId();
-    if (!ligaId) return null;
-    try {
-        const response = await fetch(`/api/ligas/${ligaId}/rodadas?inicio=${rodadaNum}&fim=${rodadaNum}`);
-        if (!response.ok) throw new Error(`Erro HTTP: ${response.status}`);
-        const data = await response.json();
-        // Ordena por pontos para consistência (opcional, mas bom)
-        data.sort((a, b) => b.pontos - a.pontos);
-        return data;
-    } catch (error) {
-        console.error(`Erro ao buscar ranking da rodada ${rodadaNum}:`, error);
-        return null;
-    }
-}
-*/
 
 // Função auxiliar para obter o ID da liga (extraído da URL)
 export function getLigaId() {

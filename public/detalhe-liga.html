@@ -1,6 +1,7 @@
 <!doctype html>
 <html lang="pt-BR">
   <head>
+    <link rel="icon" type="image/png" href="/favicon.png" />
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Detalhes da Liga</title>
@@ -9,18 +10,178 @@
     <script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
     <style>
       .mito-highlight {
-        background-color: #cceeff !important; /* Azul claro */
+        background-color: #cceeff !important;
         font-weight: bold;
       }
       .mico-highlight {
-        background-color: #ffdddd !important; /* Rosa claro */
+        background-color: #ffdddd !important;
         font-style: italic;
       }
 
-      /* Estilos para a tabela de artilheiros foram movidos para artilheiro-campeao.css */
+      #tabela-artilheiro-rodada table.ranking-table th,
+      #tabela-artilheiro-rodada table.ranking-table td {
+        padding: 2px 3px !important;
+        font-size: 9px !important;
+      }
+
+      #tabela-artilheiro-rodada table.ranking-table th:nth-child(3),
+      #tabela-artilheiro-rodada table.ranking-table td:nth-child(3) {
+        max-width: 50px !important;
+        width: 50px !important;
+        padding: 2px 2px !important;
+      }
+
+      #tabela-artilheiro-rodada table.ranking-table th:nth-child(4),
+      #tabela-artilheiro-rodada table.ranking-table td:nth-child(4) {
+        max-width: 50px !important;
+        width: 50px !important;
+        padding: 2px 2px !important;
+      }
+
+      #tabela-artilheiro-rodada table.ranking-table th:nth-child(1),
+      #tabela-artilheiro-rodada table.ranking-table td:nth-child(1) {
+        width: 20px !important;
+        padding: 2px 1px !important;
+      }
+
+      #tabela-artilheiro-rodada table.ranking-table th:nth-child(2),
+      #tabela-artilheiro-rodada table.ranking-table td:nth-child(2) {
+        width: 20px !important;
+        padding: 2px 1px !important;
+      }
+
+      #tabela-artilheiro-rodada table.ranking-table th:nth-child(5),
+      #tabela-artilheiro-rodada table.ranking-table td:nth-child(5),
+      #tabela-artilheiro-rodada table.ranking-table th:nth-child(6),
+      #tabela-artilheiro-rodada table.ranking-table td:nth-child(6),
+      #tabela-artilheiro-rodada table.ranking-table th:nth-child(7),
+      #tabela-artilheiro-rodada table.ranking-table td:nth-child(7) {
+        width: 25px !important;
+        padding: 2px 1px !important;
+      }
+
+      #tabela-artilheiro-rodada img {
+        width: 12px !important;
+        height: 12px !important;
+      }
+
+      #tabela-artilheiro-rodada table.ranking-table {
+        font-size: 9px !important;
+        width: auto !important;
+        max-width: 400px !important;
+      }
+
+      @keyframes spin {
+        0% {
+          transform: rotate(0deg);
+        }
+        100% {
+          transform: rotate(360deg);
+        }
+      }
+
+      .alert {
+        padding: 12px;
+        border-radius: 6px;
+        margin: 10px 0;
+      }
+      .alert-success {
+        background-color: #d4edda;
+        border: 1px solid #c3e6cb;
+        color: #155724;
+      }
+      .alert-warning {
+        background-color: #fff3cd;
+        border: 1px solid #ffeaa7;
+        color: #856404;
+      }
+      .alert-error {
+        background-color: #f8d7da;
+        border: 1px solid #f5c6cb;
+        color: #721c24;
+      }
+      .alert-info {
+        background-color: #d1ecf1;
+        border: 1px solid #bee5eb;
+        color: #0c5460;
+      }
+
+      .loading-spinner {
+        display: inline-block;
+        width: 40px;
+        height: 40px;
+        border: 4px solid #f3f3f3;
+        border-top: 4px solid #3498db;
+        border-radius: 50%;
+        animation: spin 1s linear infinite;
+      }
+
+      .loading-container {
+        text-align: center;
+        padding: 40px 20px;
+        color: #666;
+      }
+
+      .error-message {
+        background-color: #f8d7da;
+        border: 1px solid #f5c6cb;
+        color: #721c24;
+        padding: 15px;
+        border-radius: 6px;
+        margin: 15px 0;
+        text-align: center;
+      }
+
+      /* Debug panel */
+      #debug-panel {
+        position: fixed;
+        top: 10px;
+        right: 10px;
+        background: rgba(0, 0, 0, 0.8);
+        color: white;
+        padding: 10px;
+        border-radius: 5px;
+        font-family: monospace;
+        font-size: 12px;
+        max-width: 300px;
+        z-index: 1000;
+      }
+
+      /* Estilos para a aba de participantes */
+      .participantes-inicial {
+        text-align: center;
+        padding: 40px 20px;
+        color: #666;
+      }
+
+      .carregar-participantes-btn {
+        background: #3498db;
+        color: white;
+        border: none;
+        padding: 12px 24px;
+        border-radius: 6px;
+        font-size: 16px;
+        cursor: pointer;
+        transition: background 0.3s;
+        margin-bottom: 20px;
+      }
+
+      .carregar-participantes-btn:hover {
+        background: #2980b9;
+      }
+
+      .carregar-participantes-btn:disabled {
+        background: #bdc3c7;
+        cursor: not-allowed;
+      }
     </style>
   </head>
   <body>
+    <div id="debug-panel" style="display: none">
+      <strong>Status dos Módulos:</strong>
+      <div id="debug-content"></div>
+    </div>
+
     <div class="container">
       <h2 id="nomeLiga">🏆 Carregando...</h2>
       <p id="quantidadeTimes" style="text-align: center; color: #7f8c8d"></p>
@@ -57,10 +218,41 @@
 
       <div class="tab-contents">
         <div id="participantes" class="tab-content active">
-          <button class="toggle-participants" type="button">
+          <div id="participantes-inicial" class="participantes-inicial">
+            <h3>👥 Participantes da Liga</h3>
+            <p>
+              Clique no botão abaixo para carregar e visualizar os participantes
+              da liga.
+            </p>
+            <button
+              id="carregarParticipantesBtn"
+              class="carregar-participantes-btn"
+            >
+              📥 Carregar Participantes
+            </button>
+          </div>
+          <div
+            id="participantes-loading"
+            class="loading-container"
+            style="display: none"
+          >
+            <div class="loading-spinner"></div>
+            <p>Carregando participantes...</p>
+          </div>
+          <button
+            class="toggle-participants"
+            type="button"
+            style="display: none"
+          >
             Exibir Participantes
           </button>
-          <div id="timesContainer" class="times-container"></div>
+          <div
+            id="timesContainer"
+            class="times-container"
+            style="display: none"
+          >
+            <div class="times-grid"></div>
+          </div>
         </div>
 
         <div id="rodadas" class="tab-content">
@@ -97,11 +289,17 @@
         </div>
 
         <div id="mata-mata" class="tab-content">
-          <!-- O conteúdo será inserido pelo JS -->
+          <div class="loading-container">
+            <div class="loading-spinner"></div>
+            <p>Carregando disputas mata-mata...</p>
+          </div>
         </div>
 
         <div id="ranking-geral" class="tab-content">
-          <!-- Conteúdo da aba Ranking Geral -->
+          <div class="loading-container">
+            <div class="loading-spinner"></div>
+            <p>Calculando ranking geral...</p>
+          </div>
         </div>
 
         <div id="pontos-corridos" class="tab-content">
@@ -115,47 +313,40 @@
         </div>
 
         <div id="top-10" class="tab-content">
-          <!-- Conteúdo da aba Top 10 -->
           <div
             id="top10MitosExportBtnContainer"
             style="text-align: right; margin-bottom: 8px"
           ></div>
-          <!-- Container para botão Exportar Mitos -->
           <div id="top10MitosTable"></div>
-          <!-- Container para Mitos -->
           <div style="height: 20px"></div>
-          <!-- Espaçador -->
           <div
             id="top10MicosExportBtnContainer"
             style="text-align: right; margin-bottom: 8px"
           ></div>
-          <!-- Container para botão Exportar Micos -->
           <div id="top10MicosTable"></div>
-          <!-- Container para Micos -->
         </div>
 
         <div id="fluxo-financeiro" class="tab-content">
-          <!-- Conteúdo da aba Fluxo Financeiro -->
           <div
             id="fluxoFinanceiroButtons"
             class="participantes-buttons-container"
           ></div>
-          <!-- Container para botões -->
           <div
             id="fluxoFinanceiroExportBtnContainer"
             style="text-align: right; margin-bottom: 8px"
           ></div>
-          <!-- Container para botão Exportar -->
           <div id="fluxoFinanceiroContent"></div>
-          <!-- Container para o extrato -->
         </div>
 
         <div id="artilheiro-campeao" class="tab-content">
-          <!-- O conteúdo será carregado dinamicamente pelo módulo artilheiro-campeao.js -->
+          <div id="artilheiro-loading" class="loading-container">
+            <div class="loading-spinner"></div>
+            <p>Carregando dados do artilheiro campeão...</p>
+          </div>
+          <div id="artilheiro-container" style="display: none"></div>
         </div>
 
         <div id="luva-de-ouro" class="tab-content">
-          <!-- Conteúdo da aba Luva de Ouro -->
           <div
             id="luvaDeOuroExportBtnContainer"
             style="text-align: right; margin-bottom: 8px"
@@ -166,145 +357,470 @@
     </div>
 
     <script type="module">
-      import {
-        carregarDetalhesLiga,
-        toggleParticipants,
-      } from "./js/participantes.js";
-      import { carregarRodadas } from "./js/rodadas.js";
-      import { carregarMataMata } from "./js/mata-mata.js";
-      import { carregarRankingGeral } from "./js/ranking.js";
-      import { inicializarMelhorMes } from "./js/melhor-mes.js";
-      import { inicializarPontosCorridos } from "./js/pontos-corridos.js";
-      import { inicializarTop10 } from "./js/top10.js"; // <-- Adicionado
-      import { inicializarFluxoFinanceiro } from "./js/fluxo-financeiro.js"; // <-- Adicionado
-      import { inicializarArtilheiroCampeao } from "./js/artilheiro-campeao.js";
-      import { inicializarLuvaDeOuro } from "./js/luva-de-ouro.js";
+      console.log("🚀 Iniciando carregamento da aplicação...");
 
-      document.addEventListener("DOMContentLoaded", () => {
-        console.log("DOM totalmente carregado");
+      // Debug panel
+      const debugPanel = document.getElementById("debug-panel");
+      const debugContent = document.getElementById("debug-content");
+      let debugMode = localStorage.getItem("debug-mode") === "true";
 
-        carregarDetalhesLiga();
+      function toggleDebug() {
+        debugMode = !debugMode;
+        localStorage.setItem("debug-mode", debugMode.toString());
+        debugPanel.style.display = debugMode ? "block" : "none";
+      }
 
-        // Personalização para liga especial
-        const params = new URLSearchParams(window.location.search);
-        const ligaId = params.get("id");
-
-        // Seletores das abas
-        const tabMataMata = document.querySelector(
-          '.tab[data-tab="mata-mata"]',
-        );
-        const tabPontosCorridos = document.querySelector(
-          '.tab[data-tab="pontos-corridos"]',
-        );
-        const tabArtilheiro = document.querySelector(
-          '.tab[data-tab="artilheiro-campeao"]',
-        );
-        const tabLuva = document.querySelector('.tab[data-tab="luva-de-ouro"]');
-
-        // Por padrão, oculta as abas extras
-        if (tabArtilheiro) tabArtilheiro.style.display = "none";
-        if (tabLuva) tabLuva.style.display = "none";
-
-        // Se for a liga especial, ajusta a visibilidade das abas
-        if (ligaId === "6818c6125b30e1ad70847192") {
-          if (tabMataMata) tabMataMata.style.display = "none";
-          if (tabPontosCorridos) tabPontosCorridos.style.display = "none";
-          if (tabArtilheiro) tabArtilheiro.style.display = "";
-          if (tabLuva) tabLuva.style.display = "";
-          console.log("Personalização aplicada para liga especial:", ligaId);
+      // Ctrl+D para ativar debug
+      document.addEventListener("keydown", (e) => {
+        if (e.ctrlKey && e.key === "d") {
+          e.preventDefault();
+          toggleDebug();
         }
+      });
 
-        if (
-          document.getElementById("melhor-mes")?.classList.contains("active")
-        ) {
-          inicializarMelhorMes();
+      function updateDebug(modulo, status, erro = null) {
+        if (!debugMode) return;
+        const statusIcon =
+          status === "ok" ? "✅" : status === "loading" ? "⏳" : "❌";
+        const errorText = erro ? ` (${erro})` : "";
+        debugContent.innerHTML += `<div>${statusIcon} ${modulo}${errorText}</div>`;
+      }
+
+      // Função para mostrar erro global
+      function mostrarErroGlobal(mensagem, erro = null) {
+        console.error("❌ Erro global:", mensagem, erro);
+        const errorDiv = document.getElementById("errorMessage");
+        if (errorDiv) {
+          errorDiv.innerHTML = `
+            <strong>Erro:</strong> ${mensagem}
+            ${erro ? `<br><small>${erro.message}</small>` : ""}
+            <br><small>Pressione Ctrl+D para ver detalhes do debug</small>
+          `;
+          errorDiv.style.display = "block";
         }
+      }
 
-        const tabs = document.querySelectorAll(".tab");
-        const tabContents = document.querySelectorAll(".tab-content");
-
-        console.log("Tabs encontradas:", tabs.length);
-
-        tabs.forEach((tab) => {
-          tab.addEventListener("click", () => {
-            console.log("Tab clicada:", tab.getAttribute("data-tab"));
-
-            tabs.forEach((t) => t.classList.remove("active"));
-            tabContents.forEach((content) =>
-              content.classList.remove("active"),
-            );
-            tab.classList.add("active");
-
-            const tabId = tab.getAttribute("data-tab");
-            const tabContent = document.getElementById(tabId);
-
-            if (tabContent) {
-              tabContent.classList.add("active");
-              console.log("Tab ativada:", tabId);
-            } else {
-              console.log("TabContent não encontrado para:", tabId);
+      // Funções globais para uso em caso de falha dos módulos
+      const fallbackFunctions = {
+        carregarDetalhesLigaBasico: async () => {
+          console.log("🔄 Usando fallback para carregarDetalhesLigaBasico");
+          try {
+            // MODIFICAÇÃO: Tenta usar a nova função primeiro
+            if (modulosCarregados.participantes?.carregarDadosBasicos) {
+              await modulosCarregados.participantes.carregarDadosBasicos();
+              return;
             }
 
-            if (tabId === "rodadas") {
-              carregarRodadas();
-            }
-            if (tabId === "mata-mata") {
-              carregarMataMata();
-            }
-            if (tabId === "ranking-geral") {
-              carregarRankingGeral();
-            }
-            if (tabId === "melhor-mes") {
-              inicializarMelhorMes();
-            }
-            if (tabId === "pontos-corridos") {
-              console.log("Chamando inicializarPontosCorridos()");
-              inicializarPontosCorridos();
-            }
-            // Adiciona chamadas para as novas abas
-            if (tabId === "top-10") {
-              console.log("Chamando inicializarTop10()");
-              inicializarTop10();
-            }
-            if (tabId === "fluxo-financeiro") {
-              console.log("Chamando inicializarFluxoFinanceiro()");
-              inicializarFluxoFinanceiro();
-            }
-            if (tabId === "artilheiro-campeao") {
-              console.log("Chamando inicializarArtilheiroCampeao()");
-              inicializarArtilheiroCampeao();
-            }
-            if (tabId === "luva-de-ouro") {
-              console.log("Chamando inicializarLuvaDeOuro()");
-              inicializarLuvaDeOuro();
-            }
-          });
+            // Fallback original mantido igual
+            const params = new URLSearchParams(window.location.search);
+            const ligaId = params.get("id");
+            const response = await fetch(`/api/ligas/${ligaId}`);
+            const liga = await response.json();
+            document.getElementById("nomeLiga").textContent =
+              liga.nome || "Liga";
+            document.getElementById("quantidadeTimes").textContent =
+              `${liga.participantes?.length || 0} participantes`;
+            return liga;
+          } catch (error) {
+            console.error("❌ Fallback falhou:", error);
+            mostrarErroGlobal("Erro ao carregar dados básicos da liga", error);
+          }
+        },
+      };
+
+      // Módulos para carregar
+      const modulosConfig = [
+        {
+          nome: "participantes",
+          arquivo: "./js/participantes.js",
+          funcoes: [
+            "carregarDetalhesLiga",
+            "toggleParticipants",
+            "carregarDadosBasicos",
+          ], // MODIFICAÇÃO: Adiciona nova função
+          critico: true,
+        },
+        {
+          nome: "rodadas",
+          arquivo: "./js/rodadas.js",
+          funcoes: ["carregarRodadas"],
+          critico: false,
+        },
+        {
+          nome: "mata-mata",
+          arquivo: "./js/mata-mata.js",
+          funcoes: ["carregarMataMata"],
+          critico: false,
+        },
+        {
+          nome: "ranking",
+          arquivo: "./js/ranking.js",
+          funcoes: ["carregarRankingGeral"],
+          critico: false,
+        },
+        {
+          nome: "melhor-mes",
+          arquivo: "./js/melhor-mes.js",
+          funcoes: ["inicializarMelhorMes"],
+          critico: false,
+        },
+        {
+          nome: "pontos-corridos",
+          arquivo: "./js/pontos-corridos.js",
+          funcoes: ["inicializarPontosCorridos"],
+          critico: false,
+        },
+        {
+          nome: "top10",
+          arquivo: "./js/top10.js",
+          funcoes: ["inicializarTop10"],
+          critico: false,
+        },
+        {
+          nome: "fluxo-financeiro",
+          arquivo: "./js/fluxo-financeiro.js",
+          funcoes: ["inicializarFluxoFinanceiro"],
+          critico: false,
+        },
+        {
+          nome: "artilheiro-campeao",
+          arquivo: "./js/artilheiro-campeao.js",
+          funcoes: ["inicializarArtilheiroCampeao"],
+          critico: false,
+        },
+        {
+          nome: "luva-de-ouro",
+          arquivo: "./js/luva-de-ouro.js",
+          funcoes: ["inicializarLuvaDeOuro"],
+          critico: false,
+        },
+      ];
+
+      const modulosCarregados = {};
+      let modulo_participantes_ok = false;
+      let participantesCarregados = false;
+
+      // Carregar módulo individual com timeout
+      async function carregarModulo(config) {
+        updateDebug(config.nome, "loading");
+
+        return new Promise((resolve) => {
+          const timeout = setTimeout(() => {
+            console.warn(`⚠️ Timeout ao carregar ${config.nome}`);
+            updateDebug(config.nome, "error", "timeout");
+            resolve(false);
+          }, 10000); // 10 segundos timeout
+
+          import(config.arquivo)
+            .then((modulo) => {
+              clearTimeout(timeout);
+
+              const funcoesDisponiveis = {};
+              let funcoesEncontradas = 0;
+
+              config.funcoes.forEach((funcao) => {
+                if (modulo[funcao]) {
+                  funcoesDisponiveis[funcao] = modulo[funcao];
+                  funcoesEncontradas++;
+                } else {
+                  console.warn(
+                    `⚠️ Função ${funcao} não encontrada em ${config.nome}`,
+                  );
+                }
+              });
+
+              if (funcoesEncontradas > 0) {
+                modulosCarregados[config.nome] = funcoesDisponiveis;
+                console.log(
+                  `✅ Módulo ${config.nome} carregado (${funcoesEncontradas}/${config.funcoes.length} funções)`,
+                );
+                updateDebug(config.nome, "ok");
+
+                if (config.nome === "participantes") {
+                  modulo_participantes_ok = true;
+                }
+
+                resolve(true);
+              } else {
+                console.error(
+                  `❌ Nenhuma função válida encontrada em ${config.nome}`,
+                );
+                updateDebug(config.nome, "error", "no functions");
+                resolve(false);
+              }
+            })
+            .catch((error) => {
+              clearTimeout(timeout);
+              console.error(`❌ Erro ao carregar ${config.nome}:`, error);
+              updateDebug(config.nome, "error", error.message);
+              resolve(false);
+            });
         });
+      }
 
-        document.querySelector(".toggle-participants").onclick =
-          toggleParticipants;
-        document.getElementById("refreshApiBtn").onclick = () =>
-          carregarRodadas(true);
-        document.getElementById("parciaisBtn").onclick = async () => {
-          const liga = await carregarDetalhesLiga();
-          const res = await fetch("/api/cartola/mercado/status");
-          const { rodada_atual } = await res.json();
-          const rankings = await calcularPontosParciais(liga, rodada_atual);
-          exibirRanking(rankings, rodada_atual);
-        };
+      // Função para carregar participantes quando solicitado
+      async function carregarParticipantes() {
+        if (participantesCarregados) return;
 
-        if (document.getElementById("rodadas")?.classList.contains("active")) {
-          carregarRodadas();
+        const btnCarregar = document.getElementById("carregarParticipantesBtn");
+        const inicial = document.getElementById("participantes-inicial");
+        const loading = document.getElementById("participantes-loading");
+
+        try {
+          console.log("🔄 Iniciando carregamento dos participantes...");
+
+          // Desabilita botão e mostra loading
+          btnCarregar.disabled = true;
+          btnCarregar.textContent = "Carregando...";
+          inicial.style.display = "none";
+          loading.style.display = "block";
+
+          // Carrega os dados dos participantes
+          if (
+            modulo_participantes_ok &&
+            modulosCarregados.participantes?.carregarDetalhesLiga
+          ) {
+            await modulosCarregados.participantes.carregarDetalhesLiga();
+          } else {
+            await fallbackFunctions.carregarDetalhesLigaBasico();
+          }
+
+          // Mostra a interface dos participantes
+          loading.style.display = "none";
+          document.querySelector(".toggle-participants").style.display =
+            "block";
+          document.getElementById("timesContainer").style.display = "block";
+
+          participantesCarregados = true;
+          console.log("✅ Participantes carregados com sucesso!");
+        } catch (error) {
+          console.error("❌ Erro ao carregar participantes:", error);
+          loading.style.display = "none";
+          inicial.style.display = "block";
+          btnCarregar.disabled = false;
+          btnCarregar.textContent = "📥 Carregar Participantes";
+          mostrarErroGlobal("Erro ao carregar participantes", error);
         }
-        if (
-          document.getElementById("mata-mata")?.classList.contains("active")
-        ) {
-          carregarMataMata();
+      }
+
+      // Função para executar ação da aba
+      async function executarAcaoAba(tabId) {
+        console.log(`🎯 Executando ação da aba: ${tabId}`);
+
+        try {
+          switch (tabId) {
+            case "participantes":
+              // Para a aba participantes, apenas mostra a interface atual
+              // O carregamento é feito pelo botão específico
+              break;
+            case "rodadas":
+              if (modulosCarregados.rodadas?.carregarRodadas) {
+                await modulosCarregados.rodadas.carregarRodadas();
+              } else {
+                console.warn("⚠️ Módulo rodadas não disponível");
+              }
+              break;
+            case "mata-mata":
+              if (modulosCarregados["mata-mata"]?.carregarMataMata) {
+                await modulosCarregados["mata-mata"].carregarMataMata();
+              } else {
+                console.warn("⚠️ Módulo mata-mata não disponível");
+              }
+              break;
+            case "ranking-geral":
+              if (modulosCarregados.ranking?.carregarRankingGeral) {
+                await modulosCarregados.ranking.carregarRankingGeral();
+              } else {
+                console.warn("⚠️ Módulo ranking não disponível");
+              }
+              break;
+            case "melhor-mes":
+              if (modulosCarregados["melhor-mes"]?.inicializarMelhorMes) {
+                await modulosCarregados["melhor-mes"].inicializarMelhorMes();
+              } else {
+                console.warn("⚠️ Módulo melhor-mes não disponível");
+              }
+              break;
+            case "pontos-corridos":
+              if (
+                modulosCarregados["pontos-corridos"]?.inicializarPontosCorridos
+              ) {
+                await modulosCarregados[
+                  "pontos-corridos"
+                ].inicializarPontosCorridos();
+              } else {
+                console.warn("⚠️ Módulo pontos-corridos não disponível");
+              }
+              break;
+            case "top-10":
+              if (modulosCarregados.top10?.inicializarTop10) {
+                await modulosCarregados.top10.inicializarTop10();
+              } else {
+                console.warn("⚠️ Módulo top10 não disponível");
+              }
+              break;
+            case "fluxo-financeiro":
+              if (
+                modulosCarregados["fluxo-financeiro"]
+                  ?.inicializarFluxoFinanceiro
+              ) {
+                await modulosCarregados[
+                  "fluxo-financeiro"
+                ].inicializarFluxoFinanceiro();
+              } else {
+                console.warn("⚠️ Módulo fluxo-financeiro não disponível");
+              }
+              break;
+            case "artilheiro-campeao":
+              if (
+                modulosCarregados["artilheiro-campeao"]
+                  ?.inicializarArtilheiroCampeao
+              ) {
+                await modulosCarregados[
+                  "artilheiro-campeao"
+                ].inicializarArtilheiroCampeao();
+              } else {
+                console.warn("⚠️ Módulo artilheiro-campeao não disponível");
+              }
+              break;
+            case "luva-de-ouro":
+              if (modulosCarregados["luva-de-ouro"]?.inicializarLuvaDeOuro) {
+                await modulosCarregados["luva-de-ouro"].inicializarLuvaDeOuro();
+              } else {
+                console.warn("⚠️ Módulo luva-de-ouro não disponível");
+              }
+              break;
+          }
+        } catch (error) {
+          console.error(`❌ Erro ao executar ação da aba ${tabId}:`, error);
+          mostrarErroGlobal(`Erro na aba ${tabId}`, error);
         }
-        if (
-          document.getElementById("ranking-geral")?.classList.contains("active")
-        ) {
-          carregarRankingGeral();
+      }
+
+      // Inicialização
+      document.addEventListener("DOMContentLoaded", async () => {
+        console.log("🎯 DOM carregado, iniciando aplicação...");
+
+        if (debugMode) {
+          debugPanel.style.display = "block";
+          debugContent.innerHTML =
+            "<div><strong>Iniciando debug...</strong></div>";
+        }
+
+        try {
+          // MODIFICAÇÃO: Carregar dados básicos automaticamente
+          console.log("📦 Carregando dados básicos da liga...");
+          await fallbackFunctions.carregarDetalhesLigaBasico();
+
+          // Carregar módulos críticos
+          console.log("📦 Carregando módulos críticos...");
+          const criticos = modulosConfig.filter((m) => m.critico);
+          for (const modulo of criticos) {
+            await carregarModulo(modulo);
+          }
+
+          // Carregar módulos não-críticos
+          console.log("📦 Carregando módulos não-críticos...");
+          const naoCriticos = modulosConfig.filter((m) => !m.critico);
+          const promises = naoCriticos.map(carregarModulo);
+          await Promise.allSettled(promises);
+
+          console.log("🎛️ Configurando interface...");
+
+          // Configurar personalização da liga
+          const params = new URLSearchParams(window.location.search);
+          const ligaId = params.get("id");
+
+          const tabMataMata = document.querySelector(
+            '.tab[data-tab="mata-mata"]',
+          );
+          const tabPontosCorridos = document.querySelector(
+            '.tab[data-tab="pontos-corridos"]',
+          );
+          const tabArtilheiro = document.querySelector(
+            '.tab[data-tab="artilheiro-campeao"]',
+          );
+          const tabLuva = document.querySelector(
+            '.tab[data-tab="luva-de-ouro"]',
+          );
+
+          if (tabArtilheiro) tabArtilheiro.style.display = "none";
+          if (tabLuva) tabLuva.style.display = "none";
+
+          if (ligaId === "684d821cf1a7ae16d1f89572") {
+            if (tabMataMata) tabMataMata.style.display = "none";
+            if (tabPontosCorridos) tabPontosCorridos.style.display = "none";
+            if (tabArtilheiro) tabArtilheiro.style.display = "";
+            if (tabLuva) tabLuva.style.display = "";
+          }
+
+          // Configurar event listeners das abas
+          const tabs = document.querySelectorAll(".tab");
+          const tabContents = document.querySelectorAll(".tab-content");
+
+          tabs.forEach((tab) => {
+            tab.addEventListener("click", async () => {
+              const tabId = tab.getAttribute("data-tab");
+
+              tabs.forEach((t) => t.classList.remove("active"));
+              tabContents.forEach((content) =>
+                content.classList.remove("active"),
+              );
+              tab.classList.add("active");
+
+              const tabContent = document.getElementById(tabId);
+              if (tabContent) {
+                tabContent.classList.add("active");
+                await executarAcaoAba(tabId);
+              }
+            });
+          });
+
+          // Configurar botão de carregar participantes
+          const btnCarregarParticipantes = document.getElementById(
+            "carregarParticipantesBtn",
+          );
+          if (btnCarregarParticipantes) {
+            btnCarregarParticipantes.addEventListener(
+              "click",
+              carregarParticipantes,
+            );
+          }
+
+          // Configurar botão toggle (só funciona depois de carregar)
+          const toggleButton = document.querySelector(".toggle-participants");
+          if (toggleButton) {
+            if (modulosCarregados.participantes?.toggleParticipants) {
+              toggleButton.onclick =
+                modulosCarregados.participantes.toggleParticipants;
+            } else {
+              toggleButton.onclick = () => {
+                const container = document.getElementById("timesContainer");
+                container.style.display =
+                  container.style.display === "none" ? "block" : "none";
+              };
+            }
+          }
+
+          const refreshButton = document.getElementById("refreshApiBtn");
+          if (refreshButton && modulosCarregados.rodadas?.carregarRodadas) {
+            refreshButton.onclick = () =>
+              modulosCarregados.rodadas.carregarRodadas(true);
+          }
+
+          console.log("🎉 Aplicação inicializada!");
+          console.log("📊 Módulos carregados:", Object.keys(modulosCarregados));
+
+          if (debugMode) {
+            updateDebug(
+              "SISTEMA",
+              "ok",
+              `${Object.keys(modulosCarregados).length} módulos ativos`,
+            );
+          }
+        } catch (error) {
+          console.error("❌ Erro crítico:", error);
+          mostrarErroGlobal("Erro crítico na inicialização", error);
         }
       });
     </script>

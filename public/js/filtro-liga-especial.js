@@ -1,11 +1,11 @@
-// Correção para filtrar times na liga Cartoleiros Sobral (ID 6818c6125b30e1ad70847192)
+// Correção para filtrar times na liga Cartoleiros Sobral (ID 684d821cf1a7ae16d1f89572)
 
 // Função para obter os IDs dos times participantes da liga especial
 async function obterTimesLigaEspecial(ligaId) {
   console.log(`[filtro-liga-especial.js] Verificando se é a liga especial: ${ligaId}`);
 
   // Verifica se é a liga especial
-  if (ligaId !== "6818c6125b30e1ad70847192") {
+  if (ligaId !== "684d821cf1a7ae16d1f89572") {
     console.log("[filtro-liga-especial.js] Não é a liga especial, retornando null");
     return null;
   }
@@ -75,7 +75,7 @@ async function aplicarFiltroLigaEspecial() {
   const ligaId = urlParams.get("id");
 
   // Verifica se é a liga especial
-  if (ligaId !== "6818c6125b30e1ad70847192") {
+  if (ligaId !== "684d821cf1a7ae16d1f89572") {
     console.log("[filtro-liga-especial.js] Não é a liga especial, nenhum filtro será aplicado");
     return;
   }

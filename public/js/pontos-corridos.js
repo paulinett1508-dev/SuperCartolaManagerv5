@@ -3,13 +3,43 @@ import {
   calcularResultadoConfronto,
   buscarStatusMercado,
   buscarTimesLiga,
+  calcularFinanceiroConfronto, // ✅ IMPORTAR da função centralizada corrigida
 } from "./pontos-corridos-utils.js";
-import {
-  criarBotaoExportacaoRodada,
-  exportarPontosCorridosRodadaComoImagem,
-  exportarClassificacaoPontosCorridosComoImagem,
-} from "./export.utils.js";
+// CORREÇÃO: Removida importação estática que causava dependência circular
+// import {
+//   criarBotaoExportacaoRodada,
+//   exportarPontosCorridosRodadaComoImagem,
+//   exportarPontosCorridosClassificacaoComoImagem,
+// } from "./exports/export-exports.js";
 import { getRankingRodadaEspecifica } from "./rodadas.js";
+
+// ==============================
+// VARIÁVEIS PARA EXPORTS DINÂMICOS
+// ==============================
+let criarBotaoExportacaoRodada = null;
+let exportarPontosCorridosRodadaComoImagem = null;
+let exportarPontosCorridosClassificacaoComoImagem = null;
+let exportsCarregados = false;
+
+// ==============================
+// FUNÇÃO PARA CARREGAR EXPORTS DINAMICAMENTE
+// ==============================
+async function carregarExports() {
+  if (exportsCarregados) return;
+
+  try {
+    const exportModule = await import("./exports/export-exports.js");
+    criarBotaoExportacaoRodada = exportModule.criarBotaoExportacaoRodada;
+    exportarPontosCorridosRodadaComoImagem =
+      exportModule.exportarPontosCorridosRodadaComoImagem;
+    exportarPontosCorridosClassificacaoComoImagem =
+      exportModule.exportarPontosCorridosClassificacaoComoImagem;
+    exportsCarregados = true;
+    console.log("[PONTOS-CORRIDOS] ✅ Exports carregados com sucesso");
+  } catch (error) {
+    console.warn("[PONTOS-CORRIDOS] ⚠️ Erro ao carregar exports:", error);
+  }
+}
 
 const urlParams = new URLSearchParams(window.location.search);
 const ligaId = urlParams.get("id");
@@ -19,48 +49,8 @@ let times = [];
 let confrontos = [];
 let rodadaAtualBrasileirao = 1;
 
-// Função de cálculo financeiro dos confrontos
-export function calcularFinanceiroConfronto(pontosA, pontosB) {
-  let financeiroA = 0;
-  let financeiroB = 0;
-  let pontosGoleadaA = 0;
-  let pontosGoleadaB = 0;
-
-  if (pontosA === null || pontosB === null) {
-    return {
-      financeiroA: 0,
-      financeiroB: 0,
-      pontosGoleadaA: 0,
-      pontosGoleadaB: 0,
-    };
-  }
-
-  const diferenca = Math.abs(pontosA - pontosB);
-
-  if (pontosA === pontosB) {
-    financeiroA = 0;
-    financeiroB = 0;
-  } else if (diferenca >= 50) {
-    if (pontosA > pontosB) {
-      financeiroA = 7.0;
-      financeiroB = -7.0;
-      pontosGoleadaA = 1; // Marca 1 ponto de goleada para A
-    } else {
-      financeiroA = -7.0;
-      financeiroB = 7.0;
-      pontosGoleadaB = 1; // Marca 1 ponto de goleada para B
-    }
-  } else {
-    if (pontosA > pontosB) {
-      financeiroA = 5.0;
-      financeiroB = -5.0;
-    } else {
-      financeiroA = -5.0;
-      financeiroB = 5.0;
-    }
-  }
-  return { financeiroA, financeiroB, pontosGoleadaA, pontosGoleadaB };
-}
+// ✅ FUNÇÃO REMOVIDA - Agora usa a importada de pontos-corridos-utils.js
+// A função calcularFinanceiroConfronto foi removida daqui pois agora é importada
 
 // --- Função Auxiliar para Formatar Moeda --- (Adicionada)
 function formatarMoeda(valor) {
@@ -240,7 +230,7 @@ export async function renderRodadaComTemplate(idxRodada) {
 
         if (isRodadaPassada && pontosA !== null && pontosB !== null) {
           dif = Math.abs(pontosA - pontosB);
-          financeiro = calcularFinanceiroConfronto(pontosA, pontosB);
+          financeiro = calcularFinanceiroConfronto(pontosA, pontosB); // ✅ Usa função importada corrigida
 
           if (pontosA > pontosB) {
             classA = "vencedor";
@@ -361,7 +351,7 @@ export async function renderRodadaComTemplate(idxRodada) {
       const idB = jogo.timeB.id;
       const pontosA = pontuacoesMap[idA] ?? null;
       const pontosB = pontuacoesMap[idB] ?? null;
-      const financeiro = calcularFinanceiroConfronto(pontosA, pontosB);
+      const financeiro = calcularFinanceiroConfronto(pontosA, pontosB); // ✅ Usa função importada corrigida
       return {
         timeA: {
           nome_time: jogo.timeA.nome_time || jogo.timeA.nome || "N/D",
@@ -388,15 +378,26 @@ export async function renderRodadaComTemplate(idxRodada) {
       };
     });
 
+    // CORREÇÃO: Carregar exports antes de usar
+    await carregarExports();
+
     const exportContainerIdRodada = "exportPontosCorridosRodadaBtnContainer";
     const exportContainerElRodada = container.querySelector(
       `#${exportContainerIdRodada}`,
     );
-    if (exportContainerElRodada) {
+    if (
+      exportContainerElRodada &&
+      criarBotaoExportacaoRodada &&
+      exportarPontosCorridosRodadaComoImagem
+    ) {
       exportContainerElRodada.innerHTML = "";
       criarBotaoExportacaoRodada({
         containerId: exportContainerIdRodada,
+        jogos: jogosNormalizados,
+        rodadaLiga: idxRodada + 1,
+        rodadaCartola: rodadaCartola,
         rodada: rodadaCartola,
+        times: times,
         rankings: jogosNormalizados,
         tipo: "pontos-corridos-rodada", // Tipo específico para esta exportação
         customExport: () =>
@@ -408,9 +409,19 @@ export async function renderRodadaComTemplate(idxRodada) {
           ),
       });
     } else {
-      console.warn(
-        `Container #${exportContainerIdRodada} não encontrado no template para o botão de exportação da rodada.`,
-      );
+      if (
+        !criarBotaoExportacaoRodada ||
+        !exportarPontosCorridosRodadaComoImagem
+      ) {
+        console.warn(
+          "[PONTOS-CORRIDOS] ⚠️ Funções de exportação da rodada não disponíveis",
+        );
+      }
+      if (!exportContainerElRodada) {
+        console.warn(
+          `Container #${exportContainerIdRodada} não encontrado no template para o botão de exportação da rodada.`,
+        );
+      }
     }
   } catch (error) {
     console.error("Erro durante a renderização da rodada:", error);
@@ -554,7 +565,7 @@ export async function renderClassificacao() {
       }
 
       const res = calcularResultadoConfronto(pontosA, pontosB);
-      const financeiro = calcularFinanceiroConfronto(pontosA, pontosB);
+      const financeiro = calcularFinanceiroConfronto(pontosA, pontosB); // ✅ Usa função importada corrigida
 
       // Atualiza estatísticas
       tabela[idA].pontos += res.pontosA;
@@ -708,12 +719,19 @@ export async function renderClassificacao() {
     </div>
   `;
 
+  // CORREÇÃO: Carregar exports antes de usar
+  await carregarExports();
+
   const exportContainerIdClassificacao =
     "exportClassificacaoPontosCorridosBtnContainer";
   const exportContainerElClassificacao = container.querySelector(
     `#${exportContainerIdClassificacao}`,
   );
-  if (exportContainerElClassificacao) {
+  if (
+    exportContainerElClassificacao &&
+    criarBotaoExportacaoRodada &&
+    exportarPontosCorridosClassificacaoComoImagem
+  ) {
     exportContainerElClassificacao.innerHTML = ""; // Limpa botão anterior
     // Mapeia os dados para exportação, incluindo financeiro
     const classificacaoParaExportar = classificacao.map((item) => ({
@@ -738,20 +756,25 @@ export async function renderClassificacao() {
 
     criarBotaoExportacaoRodada({
       containerId: exportContainerIdClassificacao,
-      rodada: null, // Não é uma rodada específica
-      rankings: classificacaoParaExportar,
-      tipo: "pontos-corridos-classificacao", // Tipo específico
-      customExport: () =>
-        exportarClassificacaoPontosCorridosComoImagem(
-          classificacaoParaExportar,
-          times, // Passa a lista de times completa
-          ultimaRodadaLigaComDados, // Passa a última rodada com dados
-        ),
+      times: classificacaoParaExportar, // ← CORRIGIDO
+      rodadaLiga: ultimaRodadaLigaComDados, // ← CORRIGIDO
+      rodadaCartola: RODADA_INICIAL + ultimaRodadaLigaComDados - 1, // ← CORRIGIDO
+      tipo: "pontos-corridos-classificacao",
     });
   } else {
-    console.warn(
-      `Container #${exportContainerIdClassificacao} não encontrado para o botão de exportação da classificação.`,
-    );
+    if (
+      !criarBotaoExportacaoRodada ||
+      !exportarPontosCorridosClassificacaoComoImagem
+    ) {
+      console.warn(
+        "[PONTOS-CORRIDOS] ⚠️ Funções de exportação da classificação não disponíveis",
+      );
+    }
+    if (!exportContainerElClassificacao) {
+      console.warn(
+        `Container #${exportContainerIdClassificacao} não encontrado para o botão de exportação da classificação.`,
+      );
+    }
   }
 
   const btnVoltar = container.querySelector("#btnVoltarPontosCorridos");

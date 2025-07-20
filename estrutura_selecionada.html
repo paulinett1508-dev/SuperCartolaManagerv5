@@ -1,0 +1,273 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <title>Conteúdo Selecionado do Projeto</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <style>
+        :root {
+            --bg: #181c20;
+            --fg: #e6e6e6;
+            --folder: #6ec1e4;
+            --file: #b3b3b3;
+            --important: #ffe066;
+            --error: #ff6b6b;
+            --section: #22272e;
+            --border: #23272f;
+            --size: #888;
+        }
+        html, body {
+            background: var(--bg);
+            color: var(--fg);
+            font-family: 'Inter', 'Segoe UI', Arial, sans-serif;
+            font-size: 15px;
+            margin: 0;
+            padding: 0;
+        }
+        body {
+            max-width: 700px;
+            margin: 32px auto;
+            border-radius: 12px;
+            box-shadow: 0 2px 16px #0002;
+            background: var(--section);
+            padding: 32px 18px 24px 18px;
+        }
+        h2 {
+            font-weight: 600;
+            font-size: 1.5em;
+            margin-bottom: 0.2em;
+        }
+        .section-title {
+            margin-top: 1.5em;
+            margin-bottom: 0.3em;
+            font-weight: 500;
+            color: var(--folder);
+            font-size: 1.08em;
+            letter-spacing: 0.01em;
+        }
+        .item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin-bottom: 2px;
+            border-left: 2px solid transparent;
+            padding: 2px 0 2px 0;
+            transition: background 0.2s;
+            border-radius: 4px;
+        }
+        .item.folder {
+            color: var(--folder);
+            font-weight: 500;
+        }
+        .item.file {
+            color: var(--file);
+        }
+        .item.file span:first-child {
+            font-weight: 400;
+        }
+        .item.file span.important {
+            color: var(--important);
+            font-weight: 600;
+        }
+        .item.error {
+            color: var(--error);
+            font-style: italic;
+            margin-left: 16px;
+        }
+        .size {
+            margin-left: auto;
+            color: var(--size);
+            font-size: 0.92em;
+            font-family: monospace;
+        }
+        @media (max-width: 600px) {
+            body {
+                max-width: 98vw;
+                padding: 10px 2vw 20px 2vw;
+            }
+        }
+        .copy-btn {
+            background: var(--folder);
+            color: #222;
+            border: none;
+            border-radius: 6px;
+            padding: 6px 16px;
+            font-size: 1em;
+            font-weight: 500;
+            cursor: pointer;
+            margin-bottom: 18px;
+            margin-top: 8px;
+            transition: background 0.2s;
+        }
+        .copy-btn:hover {
+            background: #4fa3d1;
+        }
+        .footer {
+            margin-top: 2.5em;
+            color: #666;
+            font-size: 0.95em;
+            text-align: right;
+        }
+    </style>
+</head>
+<body>
+<h2>📂 Estrutura do Projeto</h2>
+<p style="color:#aaa;font-size:0.98em;">Gerado em: 11/07/2025 19:29:33</p>
+<button class="copy-btn" onclick="copyTree()">Copiar estrutura</button>
+<div id="tree">
+<div class='section-title'>Arquivos na raiz do projeto</div>
+<div class='item file' style='padding-left:16px'>⚙️ <span>.env</span> <span class='size'>143.0 B</span></div>
+<div class='item file' style='padding-left:16px'>⚙️ <span>.replit</span> <span class='size'>201.0 B</span></div>
+<div class='item file' style='padding-left:16px'>📄 <span>HANDOVER.md</span> <span class='size'>2.7 KB</span></div>
+<div class='item file' style='padding-left:16px'>📄 <span>README.md</span> <span class='size'>360.0 B</span></div>
+<div class='item file' style='padding-left:16px'>📄 <span>backupJson.js</span> <span class='size'>942.0 B</span></div>
+<div class='item file' style='padding-left:16px'>📄 <span>backupScheduler.js</span> <span class='size'>1.3 KB</span></div>
+<div class='item file' style='padding-left:16px'>📄 <span>chat-status-monitor.html</span> <span class='size'>24.8 KB</span></div>
+<div class='item file' style='padding-left:16px'>📄 <span>credentials.json</span> <span class='size'>2.3 KB</span></div>
+<div class='item file' style='padding-left:16px'>📄 <span>doc-version.json</span> <span class='size'>444.0 B</span></div>
+<div class='item file' style='padding-left:16px'>📄 <span>estrutura_selecionada.html</span> <span class='size'>18.6 KB</span></div>
+<div class='item file' style='padding-left:16px'>📄 <span>generate-full-docs.cjs</span> <span class='size'>39.9 KB</span></div>
+<div class='item file' style='padding-left:16px'>📄 <span>generated-icon.png</span> <span class='size'>13.9 KB</span></div>
+<div class='item file' style='padding-left:16px'>📄 <span>handover.js</span> <span class='size'>12.1 KB</span></div>
+<div class='item file' style='padding-left:16px'>📄 <span>index.js</span> <span class='size'>9.1 KB</span></div>
+<div class='item file' style='padding-left:16px'>📄 <span>listar_estrutura.py</span> <span class='size'>7.3 KB</span></div>
+<div class='item file' style='padding-left:16px'>📄 <span>package-lock.json</span> <span class='size'>399.5 KB</span></div>
+<div class='item file' style='padding-left:16px'>⚙️ <span>package.json</span> <span class='size'>1.7 KB</span></div>
+<div class='item file' style='padding-left:16px'>📄 <span>replit.nix</span> <span class='size'>44.0 B</span></div>
+<div class='item file' style='padding-left:16px'>📄 <span>test-artilheiro.js</span> <span class='size'>2.7 KB</span></div>
+<div class='item file' style='padding-left:16px'>📄 <span>test-funcionalidade.js</span> <span class='size'>2.3 KB</span></div>
+<div class='item file' style='padding-left:16px'>📄 <span>testarLigas.js</span> <span class='size'>898.0 B</span></div>
+<div class='item file' style='padding-left:16px'>📄 <span>uploadToDrive.js</span> <span class='size'>1.9 KB</span></div>
+<div class='section-title'>📁 backups/</div>
+<div class='item file' style='padding-left:16px'>📄 <span>gols.json</span> <span class='size'>2.1 MB</span></div>
+<div class='item file' style='padding-left:16px'>📄 <span>ligas.json</span> <span class='size'>700.0 B</span></div>
+<div class='item file' style='padding-left:16px'>📄 <span>rodadas.json</span> <span class='size'>240.0 KB</span></div>
+<div class='item file' style='padding-left:16px'>📄 <span>times.json</span> <span class='size'>14.4 KB</span></div>
+<div class='section-title'>📁 config/</div>
+<div class='item file' style='padding-left:16px'>📄 <span>database.js</span> <span class='size'>1.2 KB</span></div>
+<div class='section-title'>📁 controllers/</div>
+<div class='item file' style='padding-left:16px'>📄 <span>artilheiroCampeaoController.js</span> <span class='size'>27.8 KB</span></div>
+<div class='item file' style='padding-left:16px'>📄 <span>cartolaController.js</span> <span class='size'>4.5 KB</span></div>
+<div class='item file' style='padding-left:16px'>📄 <span>golsController.js</span> <span class='size'>11.4 KB</span></div>
+<div class='item file' style='padding-left:16px'>📄 <span>ligaController.js</span> <span class='size'>16.9 KB</span></div>
+<div class='item file' style='padding-left:16px'>📄 <span>rodadaController.js</span> <span class='size'>7.9 KB</span></div>
+<div class='item file' style='padding-left:16px'>📄 <span>timeController.js</span> <span class='size'>2.7 KB</span></div>
+<div class='section-title'>📁 models/</div>
+<div class='item file' style='padding-left:16px'>📄 <span>ArtilheiroCampeao.js</span> <span class='size'>1.2 KB</span></div>
+<div class='item file' style='padding-left:16px'>📄 <span>Gols.js</span> <span class='size'>10.2 KB</span></div>
+<div class='item file' style='padding-left:16px'>📄 <span>Liga.js</span> <span class='size'>287.0 B</span></div>
+<div class='item file' style='padding-left:16px'>📄 <span>Rodada.js</span> <span class='size'>684.0 B</span></div>
+<div class='item file' style='padding-left:16px'>📄 <span>Time.js</span> <span class='size'>472.0 B</span></div>
+<div class='section-title'>📁 public/</div>
+<div class='item file' style='padding-left:16px'>📄 <span>admin.html</span> <span class='size'>6.5 KB</span></div>
+<div class='item file' style='padding-left:16px'>📄 <span>criar-liga.html</span> <span class='size'>1.5 KB</span></div>
+<div class='item file' style='padding-left:16px'>📄 <span>criar-liga.js</span> <span class='size'>2.2 KB</span></div>
+<div class='item file' style='padding-left:16px'>📄 <span>criar.html</span> <span class='size'>1.7 KB</span></div>
+<div class='item file' style='padding-left:16px'>📄 <span>detalhe-liga.html</span> <span class='size'>27.9 KB</span></div>
+<div class='item file' style='padding-left:16px'>📄 <span>editar-liga.html</span> <span class='size'>18.7 KB</span></div>
+<div class='item folder' style='padding-left:16px'>📁 <span>escudos/</span></div>
+<div class='item file' style='padding-left:32px'>📄 <span>262.png</span> <span class='size'>1.0 KB</span></div>
+<div class='item file' style='padding-left:32px'>📄 <span>263.png</span> <span class='size'>855.0 B</span></div>
+<div class='item file' style='padding-left:32px'>📄 <span>264.png</span> <span class='size'>897.0 B</span></div>
+<div class='item file' style='padding-left:32px'>📄 <span>266.png</span> <span class='size'>1.4 KB</span></div>
+<div class='item file' style='padding-left:32px'>📄 <span>267.png</span> <span class='size'>816.0 B</span></div>
+<div class='item file' style='padding-left:32px'>📄 <span>275.png</span> <span class='size'>1.3 KB</span></div>
+<div class='item file' style='padding-left:32px'>📄 <span>276.png</span> <span class='size'>853.0 B</span></div>
+<div class='item file' style='padding-left:32px'>📄 <span>277.png</span> <span class='size'>913.0 B</span></div>
+<div class='item file' style='padding-left:32px'>📄 <span>283.png</span> <span class='size'>1.2 KB</span></div>
+<div class='item file' style='padding-left:32px'>📄 <span>292.png</span> <span class='size'>1.1 KB</span></div>
+<div class='item file' style='padding-left:32px'>📄 <span>344.png</span> <span class='size'>1.6 KB</span></div>
+<div class='item file' style='padding-left:32px'>📄 <span>placeholder.png</span> <span class='size'>33.3 KB</span></div>
+<div class='item file' style='padding-left:16px'>📄 <span>favicon.png</span> <span class='size'>33.3 KB</span></div>
+<div class='item file' style='padding-left:16px'>📄 <span>gerenciar.html</span> <span class='size'>4.7 KB</span></div>
+<div class='item file' style='padding-left:16px'>📄 <span>gols.js</span> <span class='size'>383.0 B</span></div>
+<div class='item folder' style='padding-left:16px'>📁 <span>img/</span></div>
+<div class='item file' style='padding-left:32px'>📄 <span>logo-cartoleirossobral.png</span> <span class='size'>85.4 KB</span></div>
+<div class='item file' style='padding-left:32px'>📄 <span>logo-supercartola.png</span> <span class='size'>33.3 KB</span></div>
+<div class='item file' style='padding-left:16px'>📄 <span>index.html</span> <span class='size'>6.5 KB</span></div>
+<div class='item folder' style='padding-left:16px'>📁 <span>js/</span></div>
+<div class='item file' style='padding-left:32px'>📄 <span>artilheiro-campeao.js</span> <span class='size'>50.7 KB</span></div>
+<div class='item folder' style='padding-left:32px'>📁 <span>exports/</span></div>
+<div class='item file' style='padding-left:48px'>📄 <span>export-artilheiro-campeao.js</span> <span class='size'>16.0 KB</span></div>
+<div class='item file' style='padding-left:48px'>📄 <span>export-base.js</span> <span class='size'>16.6 KB</span></div>
+<div class='item file' style='padding-left:48px'>📄 <span>export-exports.js</span> <span class='size'>15.5 KB</span></div>
+<div class='item file' style='padding-left:48px'>📄 <span>export-extrato-financeiro.js</span> <span class='size'>20.1 KB</span></div>
+<div class='item file' style='padding-left:48px'>📄 <span>export-mata-mata.js</span> <span class='size'>21.6 KB</span></div>
+<div class='item file' style='padding-left:48px'>📄 <span>export-melhor-mes.js</span> <span class='size'>21.4 KB</span></div>
+<div class='item file' style='padding-left:48px'>📄 <span>export-pontos-corridos.js</span> <span class='size'>46.4 KB</span></div>
+<div class='item file' style='padding-left:48px'>📄 <span>export-ranking-geral.js</span> <span class='size'>18.9 KB</span></div>
+<div class='item file' style='padding-left:48px'>📄 <span>export-top10.js</span> <span class='size'>22.3 KB</span></div>
+<div class='item file' style='padding-left:32px'>📄 <span>filtro-liga-especial.js</span> <span class='size'>3.6 KB</span></div>
+<div class='item file' style='padding-left:32px'>📄 <span>fluxo-financeiro.js</span> <span class='size'>57.9 KB</span></div>
+<div class='item file' style='padding-left:32px'>📄 <span>gerenciar-ligas.js</span> <span class='size'>820.0 B</span></div>
+<div class='item file' style='padding-left:32px'>📄 <span>gols-por-rodada.js</span> <span class='size'>2.2 KB</span></div>
+<div class='item file' style='padding-left:32px'>📄 <span>gols.js</span> <span class='size'>703.0 B</span></div>
+<div class='item file' style='padding-left:32px'>📄 <span>liga-modificacoes.js</span> <span class='size'>16.4 KB</span></div>
+<div class='item file' style='padding-left:32px'>📄 <span>luva-de-ouro.js</span> <span class='size'>873.0 B</span></div>
+<div class='item file' style='padding-left:32px'>📄 <span>mata-mata.js</span> <span class='size'>42.2 KB</span></div>
+<div class='item file' style='padding-left:32px'>📄 <span>melhor-mes.js</span> <span class='size'>16.7 KB</span></div>
+<div class='item file' style='padding-left:32px'>📄 <span>navigation.js</span> <span class='size'>3.2 KB</span></div>
+<div class='item file' style='padding-left:32px'>📄 <span>participantes.js</span> <span class='size'>4.5 KB</span></div>
+<div class='item file' style='padding-left:32px'>📄 <span>pontos-corridos-utils.js</span> <span class='size'>6.7 KB</span></div>
+<div class='item file' style='padding-left:32px'>📄 <span>pontos-corridos.js</span> <span class='size'>32.8 KB</span></div>
+<div class='item file' style='padding-left:32px'>📄 <span>ranking.js</span> <span class='size'>9.2 KB</span></div>
+<div class='item file' style='padding-left:32px'>📄 <span>rodadas.js</span> <span class='size'>23.4 KB</span></div>
+<div class='item file' style='padding-left:32px'>📄 <span>seletor-ligas.js</span> <span class='size'>4.0 KB</span></div>
+<div class='item file' style='padding-left:32px'>📄 <span>top10.js</span> <span class='size'>10.4 KB</span></div>
+<div class='item file' style='padding-left:32px'>📄 <span>utils.js</span> <span class='size'>6.7 KB</span></div>
+<div class='item file' style='padding-left:16px'>📄 <span>parciais.html</span> <span class='size'>11.2 KB</span></div>
+<div class='item file' style='padding-left:16px'>📄 <span>preencher-liga.html</span> <span class='size'>4.8 KB</span></div>
+<div class='item file' style='padding-left:16px'>📄 <span>script.js</span> <span class='size'>3.5 KB</span></div>
+<div class='item file' style='padding-left:16px'>📄 <span>style.css</span> <span class='size'>25.2 KB</span></div>
+<div class='item folder' style='padding-left:16px'>📁 <span>templates/</span></div>
+<div class='item file' style='padding-left:32px'>📄 <span>artilheiro-campeao-tabela.html</span> <span class='size'>23.2 KB</span></div>
+<div class='item file' style='padding-left:32px'>📄 <span>artilheiros.html</span> <span class='size'>6.9 KB</span></div>
+<div class='item file' style='padding-left:32px'>📄 <span>extrairGols.html</span> <span class='size'>1.1 KB</span></div>
+<div class='item file' style='padding-left:32px'>📄 <span>fluxo-financeiro-tabela.html</span> <span class='size'>4.7 KB</span></div>
+<div class='item file' style='padding-left:32px'>📄 <span>luva-de-ouro-tabela.html</span> <span class='size'>645.0 B</span></div>
+<div class='item file' style='padding-left:32px'>📄 <span>mata-mata-tabela.html</span> <span class='size'>2.8 KB</span></div>
+<div class='item file' style='padding-left:32px'>📄 <span>pontos-corridos-tabela.html</span> <span class='size'>5.2 KB</span></div>
+<div class='item file' style='padding-left:32px'>📄 <span>rankingSG.html</span> <span class='size'>1.1 KB</span></div>
+<div class='section-title'>📁 routes/</div>
+<div class='item file' style='padding-left:16px'>📄 <span>artilheiro-campeao-routes.js</span> <span class='size'>3.7 KB</span></div>
+<div class='item file' style='padding-left:16px'>📄 <span>cartola-proxy.js</span> <span class='size'>3.0 KB</span></div>
+<div class='item file' style='padding-left:16px'>📄 <span>cartola.js</span> <span class='size'>638.0 B</span></div>
+<div class='item file' style='padding-left:16px'>📄 <span>configuracao-routes.js</span> <span class='size'>5.0 KB</span></div>
+<div class='item file' style='padding-left:16px'>📄 <span>gols.js</span> <span class='size'>1.7 KB</span></div>
+<div class='item file' style='padding-left:16px'>📄 <span>ligas.js</span> <span class='size'>1.3 KB</span></div>
+<div class='item file' style='padding-left:16px'>📄 <span>rodadas-routes.js</span> <span class='size'>303.0 B</span></div>
+<div class='item file' style='padding-left:16px'>📄 <span>times.js</span> <span class='size'>561.0 B</span></div>
+<div class='section-title'>📁 scripts/</div>
+<div class='item file' style='padding-left:16px'>📄 <span>baixar-escudos.cjs</span> <span class='size'>1.5 KB</span></div>
+<div class='item file' style='padding-left:16px'>📄 <span>exportar-escudos-unicos.js</span> <span class='size'>1.3 KB</span></div>
+<div class='item file' style='padding-left:16px'>📄 <span>limpartimes.js</span> <span class='size'>724.0 B</span></div>
+<div class='item file' style='padding-left:16px'>📄 <span>populateRodadas.js</span> <span class='size'>2.2 KB</span></div>
+<div class='item file' style='padding-left:16px'>📄 <span>replace-ids.js</span> <span class='size'>1.3 KB</span></div>
+<div class='item file' style='padding-left:16px'>📄 <span>times-da-liga.json</span> <span class='size'>1.7 KB</span></div>
+<div class='section-title'>📁 services/</div>
+<div class='item file' style='padding-left:16px'>📄 <span>cartolaApiService.js</span> <span class='size'>21.4 KB</span></div>
+<div class='item file' style='padding-left:16px'>📄 <span>cartolaService.js</span> <span class='size'>4.9 KB</span></div>
+<div class='section-title'>📁 test/</div>
+<div class='item file' style='padding-left:16px'>📄 <span>artilheiro.test.js</span> <span class='size'>9.7 KB</span></div>
+<div class='section-title'>📁 utils/</div>
+<div class='item file' style='padding-left:16px'>📄 <span>validators.js</span> <span class='size'>8.9 KB</span></div>
+</div>
+<div class="footer">
+    <span>Gerado automaticamente • UX Clean</span>
+</div>
+<script>
+function copyTree() {
+    let el = document.getElementById('tree');
+    let temp = document.createElement('textarea');
+    temp.value = el.innerText;
+    document.body.appendChild(temp);
+    temp.select();
+    document.execCommand('copy');
+    document.body.removeChild(temp);
+    let btn = document.querySelector('.copy-btn');
+    btn.innerText = 'Copiado!';
+    setTimeout(() => btn.innerText = 'Copiar estrutura', 1500);
+}
+</script>
+</body>
+</html>

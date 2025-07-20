@@ -1,9 +1,36 @@
-import {
-  criarBotaoExportacaoRodada,
-  exportarRankingGeralComoImagem,
-} from "./export.utils.js";
+// CORREÇÃO: Removida importação estática que causava dependência circular
+// import {
+//   criarBotaoExportacaoRodada,
+//   exportarRankingGeralComoImagem,
+// } from "./exports/export-exports.js";
+
 // **MODIFICADO:** Importa a função para buscar ranking de UMA rodada específica
 import { getRankingRodadaEspecifica } from "./rodadas.js";
+
+// ==============================
+// VARIÁVEIS PARA EXPORTS DINÂMICOS
+// ==============================
+let criarBotaoExportacaoRodada = null;
+let exportarRankingGeralComoImagem = null;
+let exportsCarregados = false;
+
+// ==============================
+// FUNÇÃO PARA CARREGAR EXPORTS DINAMICAMENTE
+// ==============================
+async function carregarExports() {
+  if (exportsCarregados) return;
+
+  try {
+    const exportModule = await import("./exports/export-exports.js");
+    criarBotaoExportacaoRodada = exportModule.criarBotaoExportacaoRodada;
+    exportarRankingGeralComoImagem =
+      exportModule.exportarRankingGeralComoImagem;
+    exportsCarregados = true;
+    console.log("[RANKING] ✅ Exports carregados com sucesso");
+  } catch (error) {
+    console.warn("[RANKING] ⚠️ Erro ao carregar exports:", error);
+  }
+}
 
 const urlParams = new URLSearchParams(window.location.search);
 const ligaId = urlParams.get("id");
@@ -170,15 +197,22 @@ async function carregarRankingGeral() {
 
     rankingContainer.innerHTML = tableHTML;
 
+    // CORREÇÃO: Carregar exports antes de usar
+    await carregarExports();
+
     // 5. Adicionar botão de exportação (mesma lógica de antes)
-    criarBotaoExportacaoRodada({
-      containerId: "rankingGeralExportBtnContainer",
-      rodada: ultimaRodadaCompleta,
-      rankings: ranking,
-      isParciais: false,
-      isRankingGeral: true,
-      customExport: exportarRankingGeralComoImagem,
-    });
+    if (criarBotaoExportacaoRodada && exportarRankingGeralComoImagem) {
+      criarBotaoExportacaoRodada({
+        containerId: "rankingGeralExportBtnContainer",
+        rodada: ultimaRodadaCompleta,
+        rankings: ranking,
+        isParciais: false,
+        isRankingGeral: true,
+        customExport: exportarRankingGeralComoImagem,
+      });
+    } else {
+      console.warn("[RANKING] ⚠️ Funções de exportação não disponíveis");
+    }
   } catch (error) {
     console.error("Erro ao carregar ranking geral:", error);
     rankingContainer.innerHTML = `
@@ -205,7 +239,7 @@ function getPosicaoClass(index) {
 
 // **MODIFICADO:** Remove o ícone de bronze para a liga Sobral
 function getPosicaoLabel(index) {
-  const isLigaCartoleirosSobral = ligaId === "6818c6125b30e1ad70847192";
+  const isLigaCartoleirosSobral = ligaId === "684d821cf1a7ae16d1f89572";
 
   switch (index) {
     case 0:

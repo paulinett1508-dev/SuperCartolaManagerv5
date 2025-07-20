@@ -2,7 +2,7 @@
 
 const BASE_URL =
   "https://e1034b6e-dfb9-401a-8e7f-80ffa6030f79-00-2dc692elmitoe.spock.replit.dev";
-const LIGA_ID = "6818c6125b30e1ad70847192";
+const LIGA_ID = "684d821cf1a7ae16d1f89572";
 
 async function testarArtilheiro() {
   console.log("🧪 Testando API do Artilheiro Campeão...\n");

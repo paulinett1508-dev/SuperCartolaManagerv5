@@ -6,27 +6,28 @@
     <title>Editar Times da Liga</title>
     <link rel="stylesheet" href="style.css" />
     <style>
+      /* Seu CSS permanece o mesmo */
       h2 {
         text-align: center;
         color: #2c3e50;
         margin-top: 20px;
       }
       table {
-        width: 100%;
+        width: 800px;
+        margin: 20px auto;
         border-collapse: collapse;
-        margin-top: 20px;
       }
       th,
       td {
         border: 1px solid #ccc;
-        padding: 6px;
+        padding: 4px 6px;
         text-align: center;
-        font-size: 14px;
+        font-size: 12px;
       }
       th {
         background-color: #2c3e50;
         color: white;
-        padding: 8px;
+        padding: 6px 8px;
       }
       input[type="text"] {
         width: 90%;
@@ -39,8 +40,8 @@
         font-size: 14px;
       }
       img {
-        max-height: 30px;
-        max-width: 30px;
+        max-height: 24px;
+        max-width: 24px;
         object-fit: contain;
       }
       .btn {
@@ -86,11 +87,11 @@
         font-weight: bold;
       }
       .index-column {
-        width: 40px;
+        width: 30px;
         font-weight: bold;
       }
       .id-column {
-        width: 80px;
+        width: 60px;
       }
       .error-message {
         color: red;
@@ -120,8 +121,8 @@
     <table>
       <thead>
         <tr>
-          <th>#</th>
-          <th>ID</th>
+          <th class="index-column">#</th>
+          <th class="id-column">ID</th>
           <th>Cartoleiro</th>
           <th>Brasão do Time</th>
           <th>Time do Coração</th>
@@ -144,26 +145,21 @@
 
       async function carregarClubes() {
         try {
-          const res = await fetch("/api/cartola/clubes"); // Ajustado para a rota correta
-          if (!res.ok) {
+          const res = await fetch("/api/cartola/clubes");
+          if (!res.ok)
             throw new Error(`Erro ao buscar clubes: ${res.statusText}`);
-          }
           const data = await res.json();
-          if (!data || typeof data !== "object")
-            throw new Error("Dados de clubes inválidos");
           clubes = Object.keys(data).map((id) => ({
             id: parseInt(id),
             nome: data[id].nome,
             escudo_url: data[id].escudos["30x30"] || "",
           }));
-          console.log("Clubes carregados:", clubes);
           return true;
         } catch (err) {
-          console.error("Erro ao carregar clubes:", err.message);
           document.getElementById("errorMessage").textContent =
             `Erro ao carregar clubes: ${err.message}`;
           document.getElementById("errorMessage").style.display = "block";
-          clubes = []; // Garante que clubes seja um array vazio em caso de erro
+          clubes = [];
           return false;
         }
       }
@@ -177,18 +173,20 @@
         }
         try {
           const res = await fetch(`/api/cartola/time/${id}`);
-          if (!res.ok) {
+          if (!res.ok)
             throw new Error(`Erro ao buscar time ${id}: ${res.statusText}`);
-          }
           const data = await res.json();
           span.textContent = data.nome_cartoleiro || "N/D";
           span.className = data.nome_cartoleiro ? "status ok" : "status error";
-          nomeCell.innerHTML = data.url_escudo_png
-            ? `<img src="${data.url_escudo_png}" alt="Brasão do Time" title="Brasão do Time" style="max-height: 30px;" />`
-            : "N/D";
+
+          if (data.clube_id) {
+            nomeCell.innerHTML = `<img src="${data.url_escudo_png}" alt="Brasão do Time" title="Brasão do Time" style="max-height: 30px;" />`;
+          } else {
+            nomeCell.innerHTML = "N/D";
+          }
+
           return data;
         } catch (err) {
-          console.error(`Erro ao buscar dados do time ${id}:`, err.message);
           span.textContent = "❌ Não encontrado";
           nomeCell.innerHTML = "N/D";
           span.className = "status error";
@@ -207,7 +205,6 @@
           if (!ligaId) {
             throw new Error("ID da liga não fornecido na URL");
           }
-          console.log(`Buscando liga com ID: ${ligaId}`);
           const res = await fetch(`/api/ligas/${ligaId}`);
           if (!res.ok) {
             throw new Error(`Erro ao buscar liga: ${res.statusText}`);
@@ -218,6 +215,9 @@
             throw new Error("Liga não encontrada ou dados inválidos");
           }
 
+          console.log("Liga atual:", ligaAtual);
+          console.log("Times da liga:", ligaAtual.times);
+
           document.getElementById("tituloLiga").textContent =
             `🛠 Editar Times da Liga: ${ligaAtual.nome}`;
           const tabela = document.getElementById("tabelaTimes");
@@ -225,7 +225,6 @@
 
           const timesIds = ligaAtual.times || [];
           if (!Array.isArray(timesIds)) {
-            console.error("Times não é um array:", timesIds);
             errorMessage.textContent = "Erro: Dados dos times inválidos.";
             errorMessage.style.display = "block";
             adicionarLinhaNova();
@@ -234,7 +233,6 @@
 
           const timesComNomes = await Promise.all(
             timesIds.map(async (timeId, index) => {
-              const row = document.createElement("tr");
               const span = document.createElement("span");
               const nomeCell = document.createElement("span");
               const timeData = await buscarDadosCartola(timeId, span, nomeCell);
@@ -243,9 +241,11 @@
               return {
                 id: timeId,
                 nome_cartoleiro: span.textContent,
-                brasao: nomeCell.innerHTML,
+                brasao: timeData
+                  ? `<img src="${timeData.url_escudo_png}" alt="Brasão do Time" title="Brasão do Time" style="max-height: 30px;" />`
+                  : "N/D",
                 clube_id: clubeId,
-                timeDoCoracao: clube ? clube.escudo_url : "",
+                timeDoCoracao: clube ? `/escudos/${clube.id}.png` : "",
                 timeDoCoracaoNome: clube ? clube.nome : "N/D",
                 index: index,
               };
@@ -257,22 +257,29 @@
           );
           ligaAtual.times = timesComNomes.map((t) => t.id);
 
+          const tabelaTimes = document.getElementById("tabelaTimes");
+          tabelaTimes.innerHTML = "";
+
           timesComNomes.forEach((time) => {
             const row = document.createElement("tr");
+
             const options =
               clubes.length > 0
                 ? clubes
                     .map(
                       (clube) =>
-                        `<option value="${clube.id}" data-escudo="${clube.escudo_url}" data-nome="${clube.nome}" ${time.clube_id === clube.id ? "selected" : ""}>${clube.id} - ${clube.nome}</option>`,
+                        `<option value="${clube.id}" data-escudo="/escudos/${clube.id}.png" data-nome="${clube.nome}" ${
+                          time.clube_id === clube.id ? "selected" : ""
+                        }>${clube.id} - ${clube.nome}</option>`,
                     )
                     .join("")
                 : `<option value="">Nenhum clube disponível</option>`;
+
             row.innerHTML = `
               <td class="index-column">${time.index + 1}</td>
               <td class="id-column"><input type="text" value="${time.id}" onchange="atualizarCartoleiro(this, ${time.index})" style="width: 60px;" /></td>
-              <td><span class="cartoleiro">${time.nome_cartoleiro}</span></td>
-              <td><span class="nome-time">${time.brasao}</span></td>
+              <td><span class="cartoleiro"></span></td>
+              <td>${time.brasao}</td>
               <td>
                 <select onchange="atualizarClube(this, ${time.index})">
                   <option value="">Selecione um clube</option>
@@ -281,7 +288,7 @@
               </td>
               <td>
                 <span class="time-coracao-result">
-                  <img id="timeCoracaoResult_${time.index}" src="${time.timeDoCoracao || ""}" alt="Escudo do Time do Coração (30x30)" title="Escudo do Time do Coração" style="max-height: 30px; display: ${time.timeDoCoracao ? "block" : "none"};" />
+                  <img id="timeCoracaoResult_${time.index}" src="${time.timeDoCoracao || ""}" alt="Escudo do Time do Coração (30x30)" title="Escudo do Time do Coração" style="max-height: 30px; display: ${time.timeDoCoracao ? "block" : "none"};" onerror="this.src='/escudos/placeholder.png';" />
                 </span>
               </td>
               <td>
@@ -290,12 +297,15 @@
                 <button class="btn btn-danger" onclick="removerTime(${time.index})">Excluir</button>
               </td>
             `;
-            tabela.appendChild(row);
+
+            // Atualiza o nome do cartoleiro separadamente para evitar problemas de HTML
+            row.querySelector(".cartoleiro").textContent = time.nome_cartoleiro;
+
+            tabelaTimes.appendChild(row);
           });
 
           adicionarLinhaNova();
         } catch (err) {
-          console.error("Erro ao carregar times:", err.message);
           document.getElementById("errorMessage").textContent =
             `Erro ao carregar a liga: ${err.message}`;
           document.getElementById("errorMessage").style.display = "block";
@@ -312,7 +322,7 @@
             ? clubes
                 .map(
                   (clube) =>
-                    `<option value="${clube.id}" data-escudo="${clube.escudo_url}" data-nome="${clube.nome}">${clube.id} - ${clube.nome}</option>`,
+                    `<option value="${clube.id}" data-escudo="/escudos/${clube.id}.png" data-nome="${clube.nome}">${clube.id} - ${clube.nome}</option>`,
                 )
                 .join("")
             : `<option value="">Nenhum clube disponível</option>`;
@@ -348,76 +358,164 @@
         });
       }
 
-      async function atualizarTime(index) {
-        const row = document.getElementById("tabelaTimes").rows[index];
-        const id = row.cells[1].querySelector("input").value.trim();
+      async function adicionarNovoTime() {
+        const idInput = document.getElementById("novoId");
+        const id = idInput.value.trim();
 
-        if (ligaAtual.times.some((t, i) => t === id && i !== index)) {
-          alert("❌ Este ID já foi adicionado!");
+        if (!id) {
+          alert("Informe o ID do time.");
           return;
         }
-        ligaAtual.times[index] = parseInt(id);
+
+        if (ligaAtual.times.some((t) => t.toString() === id)) {
+          alert("❌ Este ID já está na lista!");
+          return;
+        }
+
+        ligaAtual.times.push(isNaN(Number(id)) ? id : Number(id));
+
         try {
           const res = await fetch(`/api/ligas/${ligaId}/times`, {
             method: "PUT",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({ times: ligaAtual.times }),
           });
-          if (!res.ok) throw new Error("Erro ao atualizar o time na liga");
-          await carregarTimes();
-        } catch (err) {
-          console.error("Erro ao atualizar time:", err.message);
-          document.getElementById("errorMessage").textContent =
-            `Erro ao atualizar time: ${err.message}`;
-          document.getElementById("errorMessage").style.display = "block";
-        }
-      }
 
-      async function adicionarNovoTime() {
-        const id = document.getElementById("novoId").value.trim();
+          if (!res.ok) {
+            throw new Error(
+              `Erro ao adicionar o time à liga: ${res.statusText}`,
+            );
+          }
 
-        if (!id) return alert("Informe o ID do time.");
-        if (
-          ligaAtual &&
-          ligaAtual.times &&
-          ligaAtual.times.includes(parseInt(id))
-        ) {
-          alert("❌ Este ID já está na lista!");
-          return;
-        }
-
-        try {
-          const newTimes = [...(ligaAtual.times || []), parseInt(id)];
-          const res = await fetch(`/api/ligas/${ligaId}/times`, {
-            method: "PUT",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ times: newTimes }),
-          });
-
-          if (!res.ok) throw new Error("Erro ao adicionar o time à liga");
           alert("Time adicionado com sucesso!");
-          ligaAtual.times = newTimes;
           await carregarTimes();
+          limparCampos();
         } catch (err) {
-          console.error("Erro ao adicionar time:", err.message);
           document.getElementById("errorMessage").textContent =
             `Erro ao adicionar time: ${err.message}`;
           document.getElementById("errorMessage").style.display = "block";
         }
       }
 
-      function limparCampos() {
-        document.getElementById("novoId").value = "";
-        document.getElementById("novoCartoleiro").textContent = "";
-        document.getElementById("novoNomeTime").textContent = "N/D";
-        document.getElementById("novoClube").value = "";
-        const resultImg = document.getElementById("novoTimeCoracaoResult");
+      async function atualizarTime(index) {
+        const tabela = document.getElementById("tabelaTimes");
+        const row = tabela.rows[index];
+        if (!row) {
+          console.error(`Linha com índice ${index} não encontrada.`);
+          return;
+        }
+        const idInput = row.cells[1].querySelector("input");
+        const id = idInput.value.trim();
+
+        if (!id) {
+          alert("Informe o ID do time.");
+          return;
+        }
+
+        if (
+          ligaAtual.times.some((t, i) => t.toString() === id && i !== index)
+        ) {
+          alert("❌ Este ID já foi adicionado!");
+          return;
+        }
+
+        ligaAtual.times[index] = isNaN(Number(id)) ? id : Number(id);
+
+        try {
+          const res = await fetch(`/api/ligas/${ligaId}/times`, {
+            method: "PUT",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ times: ligaAtual.times }),
+          });
+
+          if (!res.ok) {
+            throw new Error(
+              `Erro ao atualizar o time na liga: ${res.statusText}`,
+            );
+          }
+
+          await carregarTimes();
+        } catch (err) {
+          document.getElementById("errorMessage").textContent =
+            `Erro ao atualizar time: ${err.message}`;
+          document.getElementById("errorMessage").style.display = "block";
+        }
+      }
+
+      function limparLinha(index) {
+        const tabela = document.getElementById("tabelaTimes");
+        const row = tabela.rows[index];
+        if (!row) {
+          console.error(`Linha com índice ${index} não encontrada.`);
+          return;
+        }
+        row.cells[1].querySelector("input").value = "";
+        row.cells[2].querySelector("span").innerHTML = "";
+        row.cells[3].innerHTML = "N/D";
+        row.cells[4].querySelector("select").value = "";
+        const resultImg = row.cells[5].querySelector("img");
         resultImg.src = "";
         resultImg.style.display = "none";
       }
 
-      function excluirNovoTime() {
-        limparCampos();
+      async function removerTime(index) {
+        if (!confirm("Tem certeza que deseja excluir este time da liga?"))
+          return;
+        const tabela = document.getElementById("tabelaTimes");
+        const row = tabela.rows[index];
+        if (!row) {
+          console.error(`Linha com índice ${index} não encontrada.`);
+          return;
+        }
+        const timeId = ligaAtual.times[index];
+        try {
+          const res = await fetch(`/api/ligas/${ligaId}/times/${timeId}`, {
+            method: "DELETE",
+          });
+          if (!res.ok) throw new Error("Erro ao remover o time da liga");
+          ligaAtual.times.splice(index, 1);
+          await carregarTimes();
+        } catch (err) {
+          document.getElementById("errorMessage").textContent =
+            `Erro ao remover time: ${err.message}`;
+          document.getElementById("errorMessage").style.display = "block";
+        }
+      }
+
+      function atualizarCartoleiro(input, index) {
+        const tabela = document.getElementById("tabelaTimes");
+        const row = tabela.rows[index];
+        if (!row) {
+          console.error(`Linha com índice ${index} não encontrada.`);
+          return;
+        }
+        const span = row.cells[2].querySelector("span");
+        const nomeCell = row.cells[3];
+        buscarDadosCartola(input.value.trim(), span, nomeCell);
+      }
+
+      function atualizarClube(select, index) {
+        const tabela = document.getElementById("tabelaTimes");
+        const row = tabela.rows[index];
+        if (!row) {
+          console.error(`Linha com índice ${index} não encontrada.`);
+          return;
+        }
+        const resultImg = row.cells[5].querySelector("img");
+        const selectedOption = select.options[select.selectedIndex];
+        const escudoUrl =
+          selectedOption.getAttribute("data-escudo") ||
+          "/escudos/placeholder.png";
+        resultImg.src = escudoUrl;
+        resultImg.style.display = escudoUrl ? "block" : "none";
+      }
+
+      function atualizarNovoEscudo(select) {
+        const selectedOption = select.options[select.selectedIndex];
+        const escudoUrl = selectedOption.getAttribute("data-escudo") || "";
+        const resultImg = document.getElementById("novoTimeCoracaoResult");
+        resultImg.src = escudoUrl;
+        resultImg.style.display = escudoUrl ? "block" : "none";
       }
 
       async function salvarTudo() {
@@ -438,60 +536,21 @@
         }
       }
 
-      async function removerTime(index) {
-        if (!confirm("Tem certeza que deseja excluir este time da liga?"))
-          return;
-        const timeId = ligaAtual.times[index];
-        try {
-          const res = await fetch(`/api/ligas/${ligaId}/times/${timeId}`, {
-            method: "DELETE",
-          });
-          if (!res.ok) throw new Error("Erro ao remover o time da liga");
-          ligaAtual.times.splice(index, 1);
-          await carregarTimes();
-        } catch (err) {
-          console.error("Erro ao remover time:", err.message);
-          document.getElementById("errorMessage").textContent =
-            `Erro ao remover time: ${err.message}`;
-          document.getElementById("errorMessage").style.display = "block";
-        }
-      }
-
-      function limparLinha(index) {
-        const row = document.getElementById("tabelaTimes").rows[index];
-        row.cells[1].querySelector("input").value = "";
-        row.cells[2].querySelector("span").innerHTML = "";
-        row.cells[3].querySelector("span").innerHTML = "N/D";
-        row.cells[4].querySelector("select").value = "";
-        const resultImg = row.cells[5].querySelector("img");
+      function limparCampos() {
+        document.getElementById("novoId").value = "";
+        document.getElementById("novoCartoleiro").textContent = "";
+        document.getElementById("novoNomeTime").textContent = "N/D";
+        document.getElementById("novoClube").value = "";
+        const resultImg = document.getElementById("novoTimeCoracaoResult");
         resultImg.src = "";
         resultImg.style.display = "none";
       }
 
-      function atualizarCartoleiro(input, index) {
-        const row = document.getElementById("tabelaTimes").rows[index];
-        const span = row.cells[2].querySelector("span");
-        const nomeCell = row.cells[3].querySelector("span");
-        buscarDadosCartola(input.value.trim(), span, nomeCell);
+      function excluirNovoTime() {
+        limparCampos();
       }
 
-      function atualizarClube(select, index) {
-        const row = document.getElementById("tabelaTimes").rows[index];
-        const resultImg = row.cells[5].querySelector("img");
-        const selectedOption = select.options[select.selectedIndex];
-        const escudoUrl = selectedOption.getAttribute("data-escudo") || "";
-        resultImg.src = escudoUrl;
-        resultImg.style.display = escudoUrl ? "block" : "none";
-      }
-
-      function atualizarNovoEscudo(select) {
-        const selectedOption = select.options[select.selectedIndex];
-        const escudoUrl = selectedOption.getAttribute("data-escudo") || "";
-        const resultImg = document.getElementById("novoTimeCoracaoResult");
-        resultImg.src = escudoUrl;
-        resultImg.style.display = escudoUrl ? "block" : "none";
-      }
-
+      // Inicializa carregando clubes e depois os times
       carregarClubes().then(() => carregarTimes());
     </script>
   </body>

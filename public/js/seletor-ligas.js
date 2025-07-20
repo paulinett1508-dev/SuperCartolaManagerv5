@@ -18,8 +18,8 @@
 
     // Ligas conhecidas para fallback (evita erro 404)
     const ligasConhecidas = [
-      { liga_id: "67f02282465c9749496b59e2", nome: "Super Cartola 2025" },
-      { liga_id: "6818c6125b30e1ad70847192", nome: "Cartoleiros Sobral 2025" },
+      { liga_id: "684cb1c8af923da7c7df51de", nome: "Super Cartola 2025" },
+      { liga_id: "684d821cf1a7ae16d1f89572", nome: "Cartoleiros Sobral 2025" },
     ];
 
     // Verificar se a liga atual está entre as conhecidas

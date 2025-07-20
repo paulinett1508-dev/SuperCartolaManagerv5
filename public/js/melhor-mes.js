@@ -1,9 +1,34 @@
 import { getRankingRodadaEspecifica } from "./rodadas.js"; // <-- Importa a função para buscar rodada específica
-import {
-  criarBotaoExportacaoRodada,
-  exportarMelhorMesComoImagem,
-} from "./export.utils.js";
+// CORREÇÃO: Removida importação estática que causava dependência circular
+// import {
+//   criarBotaoExportacaoRodada,
+//   exportarMelhorMesComoImagem,
+// } from "./exports/export-exports.js";
 import { getLigaId } from "./pontos-corridos-utils.js"; // <-- Importa para obter o ID da liga
+
+// ==============================
+// VARIÁVEIS PARA EXPORTS DINÂMICOS
+// ==============================
+let criarBotaoExportacaoMelhorMes = null;
+let exportarMelhorMesComoImagem = null;
+let exportsCarregados = false;
+
+// ==============================
+// FUNÇÃO PARA CARREGAR EXPORTS DINAMICAMENTE
+// ==============================
+async function carregarExports() {
+  if (exportsCarregados) return;
+
+  try {
+    const exportModule = await import("./exports/export-melhor-mes.js");
+    criarBotaoExportacaoMelhorMes = exportModule.criarBotaoExportacaoMelhorMes;
+    exportarMelhorMesComoImagem = exportModule.exportarMelhorMesComoImagem;
+    exportsCarregados = true;
+    console.log("[MELHOR-MES] ✅ Exports carregados com sucesso");
+  } catch (error) {
+    console.warn("[MELHOR-MES] ⚠️ Erro ao carregar exports:", error);
+  }
+}
 
 // Elemento de espera global
 function mostrarElementoEspera(containerId, mensagem = "Carregando...") {
@@ -184,7 +209,7 @@ function renderTabelaRankingEdicao(ranking, edicao, edicaoNaoAconteceu) {
 
   // Verifica se é a liga Cartoleiros Sobral 2025
   const ligaId = getLigaId();
-  const isLigaCartoleirosSobral = ligaId === "6818c6125b30e1ad70847192";
+  const isLigaCartoleirosSobral = ligaId === "684d821cf1a7ae16d1f89572";
 
   // Título elegante
   const titulo = `<span style="font-size:1.25rem; font-weight:700; color:#2d3436; letter-spacing:0.5px;">
@@ -276,25 +301,29 @@ function renderTabelaRankingEdicao(ranking, edicao, edicaoNaoAconteceu) {
     </div>
   `;
 
-  // Botão de exportação (só adiciona se houver ranking)
-  if (ranking && ranking.length > 0) {
-    criarBotaoExportacaoRodada({
-      containerId: "melhorMesExportBtnContainer",
-      rodada: `${edicao.inicio}-${edicao.fim}`,
-      rankings: ranking,
-      isParciais: false,
-      isRankingGeral: false,
-      customExport: (rankings) => exportarMelhorMesComoImagem(rankings, edicao),
-      tabelaId: "melhorMesTable",
-      titulo: `Ranking Melhor do Mês - ${edicao.nome} (Rodadas ${edicao.inicio} a ${edicao.fim})`,
-    });
-  } else {
-    // Limpa o container do botão se não houver ranking
-    const exportContainer = document.getElementById(
-      "melhorMesExportBtnContainer",
-    );
-    if (exportContainer) exportContainer.innerHTML = "";
-  }
+  // CORREÇÃO: Carregar exports antes de usar
+  carregarExports().then(() => {
+    // Botão de exportação (só adiciona se houver ranking)
+    if (ranking && ranking.length > 0 && criarBotaoExportacaoMelhorMes) {
+      criarBotaoExportacaoMelhorMes({
+        containerId: "melhorMesExportBtnContainer",
+        rodada: `${edicao.inicio}-${edicao.fim}`,
+        rankings: ranking,
+        isParciais: false,
+        isRankingGeral: false,
+        customExport: (rankings) =>
+          exportarMelhorMesComoImagem(rankings, edicao),
+        tabelaId: "melhorMesTable",
+        titulo: `Ranking Melhor do Mês - ${edicao.nome} (Rodadas ${edicao.inicio} a ${edicao.fim})`,
+      });
+    } else {
+      // Limpa o container do botão se não houver ranking
+      const exportContainer = document.getElementById(
+        "melhorMesExportBtnContainer",
+      );
+      if (exportContainer) exportContainer.innerHTML = "";
+    }
+  });
 }
 
 // Nova função para retornar os vencedores de cada edição do Melhor do Mês
@@ -311,6 +340,7 @@ export async function getResultadosMelhorMes() {
     }
     const { rodada_atual } = await resMercado.json();
     const ultimaRodadaCompleta = rodada_atual > 0 ? rodada_atual - 1 : 0;
+    window.rodadaAtual = rodada_atual;
 
     // --- CORREÇÃO: Busca rankings individualmente ---
     // Busca todas as rodadas completas necessárias para todas as edições

@@ -829,3 +829,491 @@ tr:last-child td { border-bottom: none; }
     color: var(--btn-color-active);
 }
 
+
+/* Estilos para o menu Participantes - Visual compacto e clean */
+.times-container {
+  display: none;
+  max-width: 1000px;
+  margin: 20px auto;
+  padding: 20px;
+  background: var(--card-bg);
+  border-radius: 12px;
+  box-shadow: var(--shadow-light);
+  border: 1px solid var(--border-color);
+}
+
+.times-container.visible {
+  display: block;
+}
+
+.times-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 16px;
+  margin-top: 16px;
+}
+
+.time-card {
+  background: var(--card-bg);
+  border: 1px solid #e8e9ea;
+  border-radius: 10px;
+  padding: 16px;
+  text-align: center;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+}
+
+.time-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+  border-color: var(--info-color);
+}
+
+.time-card img {
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  margin-bottom: 12px;
+  border: 2px solid #f0f0f0;
+  object-fit: cover;
+}
+
+.time-card h4 {
+  margin: 8px 0 6px 0;
+  color: var(--primary-color);
+  font-size: 16px;
+  font-weight: 600;
+  line-height: 1.3;
+}
+
+.time-card p {
+  margin: 0;
+  color: var(--muted-text);
+  font-size: 14px;
+  font-weight: 500;
+}
+
+.toggle-participants {
+  background: var(--info-color);
+  color: white;
+  border: none;
+  padding: 12px 24px;
+  border-radius: 8px;
+  font-weight: 600;
+  font-size: 14px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  box-shadow: 0 2px 4px rgba(52, 152, 219, 0.2);
+  margin: 0 auto;
+  display: block;
+}
+
+.toggle-participants:hover {
+  background: #2980b9;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 8px rgba(52, 152, 219, 0.3);
+}
+
+.toggle-participants:active {
+  transform: translateY(0);
+}
+
+/* Responsividade para dispositivos móveis */
+@media (max-width: 768px) {
+  .times-container {
+    margin: 16px;
+    padding: 16px;
+  }
+
+  .times-grid {
+    grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+    gap: 12px;
+  }
+
+  .time-card {
+    padding: 12px;
+  }
+
+  .time-card img {
+    width: 40px;
+    height: 40px;
+  }
+
+  .time-card h4 {
+    font-size: 14px;
+  }
+
+  .time-card p {
+    font-size: 12px;
+  }
+}
+
+@media (max-width: 480px) {
+  .times-grid {
+    grid-template-columns: 1fr;
+    gap: 10px;
+  }
+
+  .time-card {
+    padding: 10px;
+  }
+
+  .time-card img {
+    width: 36px;
+    height: 36px;
+  }
+}
+
+/* ===== ARTILHEIRO CAMPEÃO - ESTILOS ===== */
+
+/* Spinner de carregamento */
+.loading-spinner-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  margin: 30px 0;
+  padding: 20px;
+}
+
+.loading-spinner {
+  border: 4px solid #e9ecef;
+  border-top: 4px solid #007bff;
+  border-radius: 50%;
+  width: 36px;
+  height: 36px;
+  animation: spin 1s linear infinite;
+  margin-bottom: 10px;
+}
+
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+/* Alertas customizados */
+.alert {
+  padding: 12px;
+  border-radius: 6px;
+  margin: 10px 0;
+  font-size: 15px;
+  line-height: 1.4;
+}
+
+.alert-info {
+  background-color: #d1ecf1;
+  border: 1px solid #bee5eb;
+  color: #0c5460;
+}
+
+.alert-success {
+  background-color: #d4edda;
+  border: 1px solid #c3e6cb;
+  color: #155724;
+}
+
+.alert-error {
+  background-color: #f8d7da;
+  border: 1px solid #f5c6cb;
+  color: #721c24;
+}
+
+.alert-warning {
+  background-color: #fff3cd;
+  border: 1px solid #ffeaa7;
+  color: #856404;
+}
+
+/* Botões customizados */
+.btn {
+  padding: 10px 20px;
+  border-radius: 4px;
+  font-weight: 500;
+  cursor: pointer;
+  border: none;
+  transition: all 0.2s ease;
+  text-decoration: none;
+  display: inline-block;
+  text-align: center;
+  font-size: 14px;
+}
+
+.btn:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+.btn-primary {
+  background: #007bff;
+  color: #fff;
+}
+
+.btn-primary:hover {
+  background: #0056b3;
+}
+
+.btn-primary:disabled {
+  background: #6c757d;
+  cursor: not-allowed;
+  transform: none;
+  box-shadow: none;
+}
+
+.btn-secondary {
+  background: #6c757d;
+  color: #fff;
+}
+
+.btn-secondary:hover {
+  background: #545b62;
+}
+
+.btn-success {
+  background: #28a745;
+  color: #fff;
+}
+
+.btn-success:hover {
+  background: #1e7e34;
+}
+
+.btn-danger {
+  background: #dc3545;
+  color: #fff;
+}
+
+.btn-danger:hover {
+  background: #c82333;
+}
+
+/* Seção para popular gols */
+.popular-gols-section {
+  margin-bottom: 20px;
+  padding: 15px;
+  border: 1px solid #e0e0e0;
+  border-radius: 8px;
+  background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+}
+
+.popular-gols-section h4 {
+  margin-top: 0;
+  color: #495057;
+  font-size: 18px;
+}
+
+.popular-gols-section p {
+  margin-bottom: 15px;
+  color: #6c757d;
+}
+
+/* Info box */
+.info-box {
+  background: #fff;
+  padding: 10px;
+  border-radius: 4px;
+  border-left: 4px solid #007bff;
+  margin-top: 10px;
+  font-size: 14px;
+}
+
+/* Container do artilheiro campeão */
+#artilheiro-campeao {
+  margin: 20px 0;
+}
+
+/* Tabela de artilheiros */
+.artilheiros-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 14px;
+  background: white;
+  border-radius: 8px;
+  overflow: hidden;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+}
+
+.artilheiros-table thead {
+  background: #f8f9fa;
+}
+
+.artilheiros-table th {
+  padding: 12px 8px;
+  text-align: left;
+  border-bottom: 2px solid #dee2e6;
+  font-weight: 600;
+  color: #495057;
+}
+
+.artilheiros-table td {
+  padding: 10px 8px;
+  border-bottom: 1px solid #dee2e6;
+}
+
+.artilheiros-table tbody tr:nth-child(even) {
+  background: #f8f9fa;
+}
+
+.artilheiros-table tbody tr:hover {
+  background: #e9ecef;
+}
+
+/* Navegação de rodadas */
+.rodada-navegacao {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20px;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.rodada-navegacao h3 {
+  margin: 0;
+  color: #2c3e50;
+  font-size: 20px;
+}
+
+.rodada-controles {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+}
+
+.rodada-atual {
+  padding: 8px 12px;
+  background: #e9ecef;
+  border-radius: 4px;
+  font-weight: bold;
+  color: #495057;
+}
+
+/* Escudos dos times */
+.escudo-time {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 1px solid #dee2e6;
+}
+
+.escudo-placeholder {
+  width: 32px;
+  height: 32px;
+  background: #e9ecef;
+  border-radius: 50%;
+  display: inline-block;
+}
+
+/* Estatísticas de gols */
+.gols-pro {
+  color: #28a745;
+  font-weight: bold;
+}
+
+.gols-contra {
+  color: #dc3545;
+  font-weight: bold;
+}
+
+.saldo-positivo {
+  color: #28a745;
+  font-weight: bold;
+}
+
+.saldo-negativo {
+  color: #dc3545;
+  font-weight: bold;
+}
+
+.saldo-neutro {
+  color: #6c757d;
+}
+
+/* Responsividade */
+@media (max-width: 768px) {
+  .rodada-navegacao {
+    flex-direction: column;
+    text-align: center;
+  }
+
+  .rodada-controles {
+    flex-wrap: wrap;
+    justify-content: center;
+  }
+
+  .popular-gols-section {
+    padding: 10px;
+  }
+
+  .btn {
+    padding: 8px 16px;
+    font-size: 13px;
+  }
+
+  .artilheiros-table {
+    font-size: 12px;
+  }
+
+  .artilheiros-table th,
+  .artilheiros-table td {
+    padding: 8px 4px;
+  }
+}
+
+@media (max-width: 480px) {
+  .escudo-time,
+  .escudo-placeholder {
+    width: 24px;
+    height: 24px;
+  }
+
+  .artilheiros-table {
+    font-size: 11px;
+  }
+
+  .btn {
+    padding: 6px 12px;
+    font-size: 12px;
+  }
+}
+
+/* Animações */
+.fade-in {
+  animation: fadeIn 0.3s ease-in;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+/* Estados de loading */
+.loading-text {
+  color: #6c757d;
+  font-style: italic;
+}
+
+/* Mensagens de status */
+.status-message {
+  padding: 10px;
+  border-radius: 4px;
+  margin: 10px 0;
+}
+
+.status-success {
+  background: #d4edda;
+  color: #155724;
+  border: 1px solid #c3e6cb;
+}
+
+.status-error {
+  background: #f8d7da;
+  color: #721c24;
+  border: 1px solid #f5c6cb;
+}
+
+.status-info {
+  background: #d1ecf1;
+  color: #0c5460;
+  border: 1px solid #bee5eb;
+}

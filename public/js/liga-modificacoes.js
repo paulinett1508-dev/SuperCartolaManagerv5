@@ -4,7 +4,7 @@ function modificarTabelaClassificacao() {
   const ligaId = urlParams.get("id");
 
   // Aplicar apenas para a liga específica
-  if (ligaId === "67f02282465c9749496b59e2") {
+  if (ligaId === "684cb1c8af923da7c7df51de") {
     // Observar mudanças no DOM para capturar quando a tabela for renderizada
     const observer = new MutationObserver((mutations) => {
       mutations.forEach((mutation) => {
@@ -144,7 +144,7 @@ function ajustarMenuPorLiga() {
   const urlParams = new URLSearchParams(window.location.search);
   const ligaId = urlParams.get("id");
 
-  if (ligaId === "6818c6125b30e1ad70847192") {
+  if (ligaId === "684d821cf1a7ae16d1f89572") {
     // Remover abas não desejadas
     const mataMataTab = document.querySelector('.tab[data-tab="mata-mata"]');
     if (mataMataTab) mataMataTab.style.display = "none";

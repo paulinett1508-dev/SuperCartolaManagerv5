@@ -1,99 +1,292 @@
-// index.js
+// index.js - Super Cartola Manager
 import { readFileSync } from "fs";
-const pkg = JSON.parse(readFileSync("./package.json", "utf8"));
 import express from "express";
 import mongoose from "mongoose";
 import dotenv from "dotenv";
 import cors from "cors";
 import path from "path";
+
+// Importar package.json para versão
+const pkg = JSON.parse(readFileSync("./package.json", "utf8"));
+
+// Importar rotas do sistema
 import ligaRoutes from "./routes/ligas.js";
 import cartolaRoutes from "./routes/cartola.js";
 import timesRoutes from "./routes/times.js";
 import rodadasRoutes from "./routes/rodadas-routes.js";
 import golsRoutes from "./routes/gols.js";
-import { getClubes } from "./controllers/cartolaController.js";
 import artilheiroCampeaoRoutes from "./routes/artilheiro-campeao-routes.js";
+import luvaDeOuroRoutes from "./routes/luva-de-ouro-routes.js";
+import configuracaoRoutes from "./routes/configuracao-routes.js";
 
+// Importar controllers específicos
+import { getClubes } from "./controllers/cartolaController.js";
+
+// Configurar variáveis de ambiente
 dotenv.config();
 
+// Validação das variáveis de ambiente obrigatórias
 if (!process.env.MONGODB_URI) {
   console.error(
-    "Erro: A variável de ambiente MONGODB_URI não está definida. Verifique o arquivo .env.",
+    "❌ Erro: A variável de ambiente MONGODB_URI não está definida. Verifique o arquivo .env.",
   );
   process.exit(1);
 }
 
+// Criar aplicação Express
 const app = express();
-app.use(cors());
-app.use(express.json());
+
+// Configuração de middlewares globais
+app.use(
+  cors({
+    origin: process.env.CORS_ORIGIN || "*",
+    methods: ["GET", "POST", "PUT", "DELETE", "PATCH"],
+    allowedHeaders: ["Content-Type", "Authorization"],
+  }),
+);
+
+app.use(express.json({ limit: "10mb" }));
+app.use(express.urlencoded({ extended: true, limit: "10mb" }));
+
+// Servir arquivos estáticos da pasta public
 app.use(express.static(path.join(process.cwd(), "public")));
 
-// Middleware para logar o caminho da requisição
+// Middleware para logging de requisições
 app.use((req, res, next) => {
-  console.log(`[REQUEST] ${req.method} ${req.originalUrl}`);
+  const timestamp = new Date().toISOString();
+  console.log(`[${timestamp}] ${req.method} ${req.originalUrl}`);
   next();
 });
 
-// Middleware para definir o charset UTF-8 em todas as respostas
+// Middleware para definir charset UTF-8 apenas em respostas JSON
 app.use((req, res, next) => {
-  // Verifica se é uma resposta JSON e define o charset UTF-8
-  res.setHeader("Content-Type", "application/json; charset=utf-8");
+  const originalJson = res.json;
+  res.json = function (obj) {
+    res.setHeader("Content-Type", "application/json; charset=utf-8");
+    return originalJson.call(this, obj);
+  };
   next();
 });
 
 // Rota específica para clubes no nível raiz da API
 app.get("/api/clubes", getClubes);
-console.log("[INDEX] Registrando rota /api/clubes");
+console.log("✅ [ROUTES] Registrada: GET /api/clubes");
 
 // Rotas principais da API
 app.use("/api/cartola", cartolaRoutes);
-console.log("[INDEX] Registrando rota /api/cartola");
-app.use("/api/times", timesRoutes);
-console.log("[INDEX] Registrando rota /api/times");
-app.use("/api/time", timesRoutes); // ADICIONADO para funcionar com o frontend
-console.log("[INDEX] Registrando rota /api/time");
-app.use("/api/ligas", ligaRoutes);
-console.log("[INDEX] Registrando rota /api/ligas");
-app.use("/api/rodadas", rodadasRoutes);
-console.log("[INDEX] Registrando rota /api/rodadas");
-app.use("/api/gols", golsRoutes);
-console.log("[INDEX] Registrando rota /api/gols");
-app.use("/api", artilheiroCampeaoRoutes);
-console.log("[INDEX] Registrando rota /api para artilheiroCampeaoRoutes");
+console.log("✅ [ROUTES] Registrada: /api/cartola/*");
 
-// Versão da API
+app.use("/api/times", timesRoutes);
+console.log("✅ [ROUTES] Registrada: /api/times/*");
+
+// Rotas adicionais para compatibilidade com frontend
+app.use("/api/time", timesRoutes);
+console.log("✅ [ROUTES] Registrada: /api/time/* (compatibilidade)");
+
+app.use("/api/cartola/time", timesRoutes);
+console.log("✅ [ROUTES] Registrada: /api/cartola/time/* (compatibilidade)");
+
+app.use("/api/ligas", ligaRoutes);
+console.log("✅ [ROUTES] Registrada: /api/ligas/*");
+
+app.use("/api/rodadas", rodadasRoutes);
+console.log("✅ [ROUTES] Registrada: /api/rodadas/*");
+
+app.use("/api/gols", golsRoutes);
+console.log("✅ [ROUTES] Registrada: /api/gols/*");
+
+app.use("/api/artilheiro-campeao", artilheiroCampeaoRoutes);
+console.log("✅ [ROUTES] Registrada: /api/artilheiro-campeao/*");
+
+app.use("/api/luva-de-ouro", luvaDeOuroRoutes);
+console.log("✅ [ROUTES] Registrada: /api/luva-de-ouro/*");
+
+app.use("/api/configuracao", configuracaoRoutes);
+console.log("✅ [ROUTES] Registrada: /api/configuracao/*");
+
+// Rota para informações da API e versão
 app.get("/api/version", (req, res) => {
-  res.json({ version: pkg.version });
+  res.json({
+    name: "Super Cartola Manager API",
+    version: pkg.version,
+    description: "Sistema de gerenciamento de ligas internas do Cartola FC",
+    author: pkg.author || "Super Cartola Team",
+    environment: process.env.NODE_ENV || "development",
+    features: [
+      "Gerenciamento de Ligas",
+      "Sistema de Pontos Corridos",
+      "Mata-Mata",
+      "Artilheiro e Campeão",
+      "Luva de Ouro",
+      "Fluxo Financeiro",
+      "Exportação de Relatórios (Frontend)",
+      "Integração com API do Cartola FC",
+    ],
+    endpoints: {
+      clubes: "/api/clubes",
+      cartola: "/api/cartola",
+      times: "/api/times",
+      ligas: "/api/ligas",
+      rodadas: "/api/rodadas",
+      gols: "/api/gols",
+      artilheiro: "/api/artilheiro-campeao",
+      luvaDeOuro: "/api/luva-de-ouro",
+      configuracao: "/api/configuracao",
+      version: "/api/version",
+    },
+  });
 });
-console.log("[INDEX] Registrando rota /api/version");
+console.log("✅ [ROUTES] Registrada: GET /api/version");
+
+// Rota raiz - redireciona para a aplicação
+app.get("/", (req, res) => {
+  res.redirect("/index.html");
+});
+console.log("✅ [ROUTES] Registrada: GET / (redirect)");
 
 // Middleware para rotas não encontradas
 app.use((req, res, next) => {
-  console.log(`Rota não encontrada: ${req.method} ${req.url}`);
-  res.status(404).json({ erro: "Rota não encontrada" });
-});
-console.log("[INDEX] Registrando middleware para rotas não encontradas");
+  const isApiRoute = req.url.startsWith("/api/");
 
-// Middleware de tratamento de erros
-app.use((err, req, res, next) => {
-  console.error(`Erro no servidor: ${err.message}`);
-  res.status(500).json({ erro: "Erro interno no servidor: " + err.message });
-});
-console.log("[INDEX] Registrando middleware de tratamento de erros");
-
-mongoose
-  .connect(process.env.MONGODB_URI, {
-    useNewUrlParser: true,
-    useUnifiedTopology: true,
-  })
-  .then(() => {
-    console.log("Conectado ao MongoDB com sucesso!");
-    const PORT = process.env.PORT || 5000;
-    app.listen(PORT, () => {
-      console.log(`Servidor rodando na porta ${PORT}`);
+  if (isApiRoute) {
+    console.log(
+      `❌ [404] Rota de API não encontrada: ${req.method} ${req.url}`,
+    );
+    res.status(404).json({
+      erro: "Rota de API não encontrada",
+      message: `O endpoint ${req.method} ${req.url} não existe`,
+      available_endpoints: [
+        "GET /api/version",
+        "GET /api/clubes",
+        "GET /api/cartola/*",
+        "GET /api/times/*",
+        "GET /api/ligas/*",
+        "GET /api/rodadas/*",
+        "GET /api/gols/*",
+        "GET /api/artilheiro-campeao/*",
+        "GET /api/luva-de-ouro/*",
+        "GET /api/configuracao/*",
+      ],
     });
-  })
-  .catch((err) => {
-    console.error("Erro ao conectar ao MongoDB:", err.message);
-    process.exit(1);
+  } else {
+    console.log(`❌ [404] Arquivo não encontrado: ${req.method} ${req.url}`);
+    res.status(404).send(`
+      <html>
+        <head>
+          <title>404 - Página não encontrada</title>
+          <style>
+            body { font-family: Arial, sans-serif; margin: 50px; }
+            .container { max-width: 600px; margin: 0 auto; text-align: center; }
+            .error-code { font-size: 4em; color: #dc3545; margin: 0; }
+            .error-message { font-size: 1.2em; color: #6c757d; margin: 20px 0; }
+            .back-link { color: #007bff; text-decoration: none; font-size: 1.1em; }
+            .back-link:hover { text-decoration: underline; }
+          </style>
+        </head>
+        <body>
+          <div class="container">
+            <h1 class="error-code">404</h1>
+            <p class="error-message">A página <strong>${req.url}</strong> não foi encontrada.</p>
+            <a href="/" class="back-link">← Voltar para o Super Cartola Manager</a>
+          </div>
+        </body>
+      </html>
+    `);
+  }
+});
+
+// Middleware de tratamento de erros globais
+app.use((err, req, res, next) => {
+  const timestamp = new Date().toISOString();
+  console.error(`🚨 [${timestamp}] Erro no servidor:`, err.message);
+
+  // Log do stack trace apenas em desenvolvimento
+  if (process.env.NODE_ENV !== "production") {
+    console.error("Stack trace:", err.stack);
+  }
+
+  // Resposta de erro padronizada
+  const isDevelopment = process.env.NODE_ENV !== "production";
+  res.status(err.status || 500).json({
+    erro: "Erro interno no servidor",
+    message: isDevelopment ? err.message : "Algo deu errado",
+    timestamp: timestamp,
+    ...(isDevelopment && { stack: err.stack }),
   });
+});
+
+// Função para conectar ao MongoDB e iniciar servidor
+async function iniciarServidor() {
+  try {
+    console.log("🔄 Conectando ao MongoDB...");
+
+    await mongoose.connect(process.env.MONGODB_URI, {
+      useNewUrlParser: true,
+      useUnifiedTopology: true,
+    });
+
+    console.log("✅ Conectado ao MongoDB com sucesso!");
+
+    const PORT = process.env.PORT || 5000;
+
+    app.listen(PORT, () => {
+      console.log("\n" + "=".repeat(60));
+      console.log("🚀 SUPER CARTOLA MANAGER INICIADO COM SUCESSO!");
+      console.log("=".repeat(60));
+      console.log(`📡 Servidor rodando na porta: ${PORT}`);
+      console.log(`🌐 URL Local: http://localhost:${PORT}`);
+      console.log(`📊 API Info: http://localhost:${PORT}/api/version`);
+      console.log(`🏠 Aplicação: http://localhost:${PORT}/index.html`);
+      console.log(`⚙️  Ambiente: ${process.env.NODE_ENV || "development"}`);
+      console.log(`📦 Versão: ${pkg.version}`);
+      console.log(`💾 MongoDB: Conectado`);
+      console.log("✨ Módulos de export funcionando no frontend");
+      console.log("🥅 Sistema Luva de Ouro integrado");
+      console.log("=".repeat(60) + "\n");
+
+      // Log adicional para desenvolvimento
+      if (process.env.NODE_ENV !== "production") {
+        console.log("🛠️  Modo de desenvolvimento ativo");
+        console.log("📝 Logs detalhados habilitados");
+      }
+    });
+  } catch (err) {
+    console.error("❌ Erro ao conectar ao MongoDB:", err.message);
+    console.error(
+      "🔧 Verifique se o MongoDB está rodando e se a string de conexão está correta",
+    );
+    process.exit(1);
+  }
+}
+
+// Tratamento gracioso de sinais do sistema
+process.on("SIGTERM", () => {
+  console.log("\n🔄 SIGTERM recebido. Encerrando servidor graciosamente...");
+  mongoose.connection.close();
+  process.exit(0);
+});
+
+process.on("SIGINT", () => {
+  console.log("\n🔄 SIGINT recebido. Encerrando servidor graciosamente...");
+  mongoose.connection.close();
+  process.exit(0);
+});
+
+// Tratamento de erros não capturados
+process.on("uncaughtException", (error) => {
+  console.error("🚨 Erro não capturado:", error);
+  process.exit(1);
+});
+
+process.on("unhandledRejection", (reason, promise) => {
+  console.error("🚨 Promise rejeitada não tratada:", reason);
+  console.error("Promise:", promise);
+  process.exit(1);
+});
+
+// Iniciar o servidor
+iniciarServidor();
+
+// ⚠️  NOTA: Módulos de export (export-*.js) são isolados no frontend
+// Eles são carregados através de <script type="module"> nos arquivos HTML
+// e não devem ser importados no backend Node.js
