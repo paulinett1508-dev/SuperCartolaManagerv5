@@ -19,4 +19,10 @@ router.get("/:ligaId/estatisticas", LuvaDeOuroController.obterEstatisticas);
 // Rota para listar participantes válidos
 router.get("/:ligaId/participantes", LuvaDeOuroController.listarParticipantes);
 
+// GET /api/luva-de-ouro/:ligaId/diagnostico - Diagnóstico do sistema
+router.get("/:ligaId/diagnostico", LuvaDeOuroController.diagnostico);
+
+// GET /api/luva-de-ouro/:ligaId/participante/:participanteId/detalhes
+router.get("/:ligaId/participante/:participanteId/detalhes", LuvaDeOuroController.obterDetalhesParticipante);
+
 export default router;

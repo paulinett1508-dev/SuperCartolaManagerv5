@@ -41,10 +41,25 @@ async function buscarRankingGoleiros(
     const data = await response.json();
 
     if (!data.success) {
-      throw new Error(data.error || "Erro desconhecido da API");
+      console.error("❌ Erro na API:", data);
+      throw new Error(data.message || data.error || "Erro ao buscar ranking");
     }
 
-    console.log(`✅ Ranking obtido: ${data.data.ranking.length} participantes`);
+    console.log("✅ Ranking obtido:", data.data.ranking.length, "participantes");
+
+    // ✅ Log detalhado para debug
+    if (data.data.ranking.length > 0) {
+      const lider = data.data.ranking[0];
+      console.log(`🏆 Líder: ${lider.participanteNome} com ${lider.pontosTotais} pontos`);
+      console.log(`📊 Dados do ranking:`, {
+        totalParticipantes: data.data.ranking.length,
+        rodadaInicio: data.data.rodadaInicio,
+        rodadaFim: data.data.rodadaFim
+      });
+    } else {
+      console.warn("⚠️ Nenhum participante no ranking");
+    }
+
     return data.data;
   } catch (error) {
     console.error("❌ Erro ao buscar ranking:", error);
@@ -144,16 +159,62 @@ function criarControlesLuvaDeOuro() {
 }
 
 function criarTabelaRanking(dados) {
-  if (!dados || !dados.ranking || dados.ranking.length === 0) {
-    return `
-      <div style="text-align: center; padding: 40px; color: #666;">
-        <h4>📊 Nenhum dado encontrado</h4>
-        <p>Execute uma coleta ou verifique os parâmetros</p>
+  const container = document.getElementById("luvaDeOuroContent");
+  if (!dados || !dados.ranking) {
+      container.innerHTML = `
+          <div style="text-align: center; padding: 40px; color: #666;">
+              <h4>📊 Erro ao carregar dados</h4>
+              <p>Tente novamente mais tarde.</p>
+          </div>
+      `;
+      return;
+  }
+  const ranking = dados.ranking;
+
+  if (!ranking || !Array.isArray(ranking) || ranking.length === 0) {
+    container.innerHTML = `
+      <div style="text-align: center; padding: 40px 20px; color: #888;">
+        <h3>📊 Nenhum dado encontrado</h3>
+        <p>Não há dados de goleiros para o período selecionado.</p>
+        <p style="font-size: 0.9em; color: #666; margin: 15px 0;">
+          Isso pode acontecer se:<br>
+          • As rodadas ainda não foram coletadas<br>
+          • Houve erro na API do Cartola FC<br>
+          • Os dados ainda estão sendo processados
+        </p>
+        <div style="margin-top: 20px;">
+          <button onclick="carregarRankingGoleiros(1, null, true)" style="margin: 5px; padding: 8px 16px; background: #007bff; color: white; border: none; border-radius: 4px; cursor: pointer;">
+            🔄 Forçar Coleta
+          </button>
+          <button onclick="carregarRankingGoleiros(1, null, false)" style="margin: 5px; padding: 8px 16px; background: #28a745; color: white; border: none; border-radius: 4px; cursor: pointer;">
+            📊 Recarregar
+          </button>
+        </div>
       </div>
     `;
+    return;
   }
 
-  const { ranking, rodadaInicio, rodadaFim, totalParticipantes } = dados;
+  // ✅ Verificar se há dados válidos
+  const participantesComDados = ranking.filter(p => p.pontosTotais > 0 || p.totalJogos > 0);
+  if (participantesComDados.length === 0) {
+    container.innerHTML = `
+      <div style="text-align: center; padding: 40px 20px; color: #f39c12;">
+        <h3>⚠️ Dados Incompletos</h3>
+        <p>Os participantes foram encontrados, mas não há pontuações de goleiros registradas.</p>
+        <p style="font-size: 0.9em; color: #666; margin: 15px 0;">
+          Total de participantes: ${ranking.length}<br>
+          Participantes com dados: ${participantesComDados.length}
+        </p>
+        <button onclick="carregarRankingGoleiros(1, null, true)" style="margin-top: 15px; padding: 8px 16px; background: #f39c12; color: white; border: none; border-radius: 4px; cursor: pointer;">
+          🚀 Forçar Coleta Completa
+        </button>
+      </div>
+    `;
+    return;
+  }
+
+  const { ranking: rankingData, rodadaInicio, rodadaFim, totalParticipantes } = dados;
 
   let html = `
     <div class="luva-ranking-header" style="margin: 20px 0; text-align: center;">
@@ -176,12 +237,13 @@ function criarTabelaRanking(dados) {
             <th style="padding: 10px 8px; text-align: center; width: 70px;">Jogos</th>
             <th style="padding: 10px 12px; text-align: left; min-width: 160px;">Último Goleiro</th>
             <th style="padding: 10px 8px; text-align: center; width: 80px;">Última</th>
+            <th style="width: 80px; text-align: center;">Ações</th>
           </tr>
         </thead>
         <tbody>
   `;
 
-  ranking.forEach((item, index) => {
+  rankingData.forEach((item, index) => {
     const posicaoIcon =
       index === 0
         ? "🏆"
@@ -230,6 +292,9 @@ function criarTabelaRanking(dados) {
           <div style="font-weight: bold; color: #e74c3c; font-size: 12px;">${item.ultimaRodada?.pontos || "0.00"}</div>
           <div style="font-size: 10px; color: #7f8c8d;">R${item.ultimaRodada?.rodada || "-"}</div>
         </td>
+        <td style="padding: 10px 8px; text-align: center; vertical-align: middle;">
+          <button class="btn-detalhes" style="background: #3498db; color: white; border: none; padding: 6px 10px; border-radius: 4px; cursor: pointer; font-size: 12px;">Detalhes</button>
+        </td>
       </tr>
     `;
   });
@@ -242,17 +307,17 @@ function criarTabelaRanking(dados) {
     <!-- ESTATÍSTICAS SEM MÉDIA -->
     <div class="luva-estatisticas" style="margin-top: 20px; display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px;">
       <div style="background: #27ae60; color: white; padding: 15px; border-radius: 8px; text-align: center;">
-        <div style="font-size: 24px; font-weight: bold;">${ranking[0]?.pontosTotais || 0}</div>
+        <div style="font-size: 24px; font-weight: bold;">${rankingData[0]?.pontosTotais || 0}</div>
         <div style="opacity: 0.9;">🏆 Melhor Pontuação</div>
-        <div style="font-size: 12px; opacity: 0.8;">${ranking[0]?.participanteNome || "-"}</div>
+        <div style="font-size: 12px; opacity: 0.8;">${rankingData[0]?.participanteNome || "-"}</div>
       </div>
       <div style="background: #3498db; color: white; padding: 15px; border-radius: 8px; text-align: center;">
-        <div style="font-size: 24px; font-weight: bold;">${ranking.reduce((acc, r) => acc + (r.rodadasJogadas || r.totalJogos || 0), 0)}</div>
+        <div style="font-size: 24px; font-weight: bold;">${rankingData.reduce((acc, r) => acc + (r.rodadasJogadas || r.totalJogos || 0), 0)}</div>
         <div style="opacity: 0.9;">🎯 Total de Jogos</div>
         <div style="font-size: 12px; opacity: 0.8;">Todos os participantes</div>
       </div>
       <div style="background: #e74c3c; color: white; padding: 15px; border-radius: 8px; text-align: center;">
-        <div style="font-size: 24px; font-weight: bold;">${Math.max(...ranking.map((r) => r.ultimaRodada?.pontos || 0))}</div>
+        <div style="font-size: 24px; font-weight: bold;">${Math.max(...rankingData.map((r) => r.ultimaRodada?.pontos || 0))}</div>
         <div style="opacity: 0.9;">📊 Melhor Rodada</div>
         <div style="font-size: 12px; opacity: 0.8;">Individual</div>
       </div>
@@ -497,7 +562,7 @@ function criarLayoutExportacao(dados) {
 function exportarCSV(dados) {
   if (!dados || !dados.ranking) {
     alert("Nenhum dado para exportar");
-    return;
+        return;
   }
 
   const { ranking, rodadaInicio, rodadaFim } = dados;
