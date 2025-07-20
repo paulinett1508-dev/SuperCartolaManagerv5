@@ -364,14 +364,14 @@ class LuvaDeOuroController {
         });
       }
 
-      // Hardcoded participantes for Liga Sobral
+      // Hardcoded participantes for Liga Sobral com escudos corretos
       const participantes = [
-        { timeId: 1926323, nome: "Daniel Barbosa" },
-        { timeId: 13935277, nome: "Paulinett Miranda" },
-        { timeId: 14747183, nome: "Carlos Henrique" },
-        { timeId: 49149009, nome: "Matheus Coutinho" },
-        { timeId: 49149388, nome: "Junior Brasilino" },
-        { timeId: 50180257, nome: "Hivisson" },
+        { timeId: 1926323, nome: "Daniel Barbosa", clubeId: 262 },      // Flamengo
+        { timeId: 13935277, nome: "Paulinett Miranda", clubeId: 276 },  // São Paulo
+        { timeId: 14747183, nome: "Carlos Henrique", clubeId: 266 },    // Fluminense
+        { timeId: 49149009, nome: "Matheus Coutinho", clubeId: 275 },   // Palmeiras
+        { timeId: 49149388, nome: "Junior Brasilino", clubeId: 344 },   // Red Bull Bragantino
+        { timeId: 50180257, nome: "Hivisson", clubeId: 283 },           // Corinthians
       ];
 
       res.json({
