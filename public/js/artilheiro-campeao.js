@@ -1190,3 +1190,8 @@ export { inicializarArtilheiroCampeao };
 export default inicializarArtilheiroCampeao;
 
 console.log("📤 [ARTILHEIRO-CAMPEAO] Exportações ES6 adicionadas para compatibilidade");
+
+// Verificar se sistema de módulos está disponível
+  if (typeof window.modulosCarregados === 'undefined') {
+    console.info("ℹ️ [ARTILHEIRO-CAMPEAO] Sistema de módulos carregando...");
+  }
