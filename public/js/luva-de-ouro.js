@@ -606,7 +606,7 @@ function exportarCSV(dados) {
   const url = URL.createObjectURL(blob);
   link.setAttribute("href", url);
   link.setAttribute(
-    "download",
+    download",
     `luva_de_ouro_r${rodadaInicio}_a_r${rodadaFim}_${new Date().toISOString().split("T")[0]}.csv`,
   );
   link.style.visibility = "hidden";
@@ -692,30 +692,30 @@ function mostrarErro(container, erro, detalhes = null) {
 
 async function mostrarDetalhesParticipante(participanteId, participanteNome) {
   console.log(`🔍 Carregando detalhes de ${participanteNome} (${participanteId})`);
-  
+
   try {
     // Obter parâmetros de rodada
     const inicio = parseInt(document.getElementById("luvaRodadaInicio")?.value) || 1;
     const fim = parseInt(document.getElementById("luvaRodadaFim")?.value) || 14;
-    
+
     // Buscar detalhes na API
     const response = await fetch(
       `${API_BASE}/${LIGA_SOBRAL_ID}/participante/${participanteId}/detalhes?inicio=${inicio}&fim=${fim}`
     );
-    
+
     if (!response.ok) {
       throw new Error(`HTTP ${response.status}: ${response.statusText}`);
     }
-    
+
     const data = await response.json();
-    
+
     if (!data.success) {
       throw new Error(data.error || "Erro ao buscar detalhes");
     }
-    
+
     // Criar modal com detalhes
     criarModalDetalhes(data.data);
-    
+
   } catch (error) {
     console.error("❌ Erro ao buscar detalhes:", error);
     alert(`Erro ao carregar detalhes de ${participanteNome}: ${error.message}`);
@@ -728,7 +728,7 @@ function criarModalDetalhes(dados) {
   if (modalExistente) {
     modalExistente.remove();
   }
-  
+
   // Criar modal
   const modal = document.createElement("div");
   modal.id = "modalDetalhesParticipante";
@@ -744,7 +744,7 @@ function criarModalDetalhes(dados) {
     align-items: center;
     justify-content: center;
   `;
-  
+
   modal.innerHTML = `
     <div style="background: white; border-radius: 12px; padding: 24px; width: 90%; max-width: 700px; max-height: 80vh; overflow-y: auto; box-shadow: 0 8px 32px rgba(0,0,0,0.2);">
       <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; border-bottom: 1px solid #eee; padding-bottom: 15px;">
@@ -754,7 +754,7 @@ function criarModalDetalhes(dados) {
         </div>
         <button onclick="fecharModalDetalhes()" style="background: #e74c3c; color: white; border: none; border-radius: 50%; width: 32px; height: 32px; cursor: pointer; font-size: 16px;">×</button>
       </div>
-      
+
       <!-- Estatísticas Resumo -->
       <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 12px; margin-bottom: 20px;">
         <div style="background: #27ae60; color: white; padding: 12px; border-radius: 8px; text-align: center;">
@@ -774,7 +774,7 @@ function criarModalDetalhes(dados) {
           <div style="font-size: 12px; opacity: 0.9;">Média por Rodada</div>
         </div>
       </div>
-      
+
       <!-- Histórico Detalhado -->
       <h4 style="margin: 0 0 15px 0; color: #2c3e50;">📊 Histórico por Rodada</h4>
       <div style="max-height: 300px; overflow-y: auto; border: 1px solid #eee; border-radius: 8px;">
@@ -803,9 +803,9 @@ function criarModalDetalhes(dados) {
       </div>
     </div>
   `;
-  
+
   document.body.appendChild(modal);
-  
+
   // Fechar ao clicar fora
   modal.onclick = (e) => {
     if (e.target === modal) {
@@ -826,7 +826,7 @@ function fecharModalDetalhes() {
 async function carregarRankingLuvaDeOuro(forcarColeta = false) {
   const container = document.getElementById("luvaDeOuroContent");
   const exportContainer = document.getElementById(
-    "luvaDeOuroExportBtnContainer",
+    luvaDeOuroExportBtnContainer",
   );
 
   if (!container) {
@@ -937,7 +937,7 @@ async function inicializarLuvaDeOuro() {
   try {
     const container = document.getElementById("luvaDeOuroContent");
     const exportContainer = document.getElementById(
-      "luvaDeOuroExportBtnContainer",
+      luvaDeOuroExportBtnContainer",
     );
 
     if (!container) {
@@ -1047,12 +1047,12 @@ if (!document.getElementById("luva-ouro-styles")) {
       .luva-ranking-table {
         font-size: 10px !important;
       }
-      
+
       .luva-ranking-table th,
       .luva-ranking-table td {
         padding: 6px 3px !important;
       }
-      
+
       .luva-ranking-table th {
         font-size: 9px !important;
       }
@@ -1070,7 +1070,7 @@ if (!document.getElementById("luva-ouro-styles")) {
       .luva-ranking-table td:nth-child(5) {
         display: none;
       }
-      
+
       .luva-ranking-table th,
       .luva-ranking-table td {
         padding: 4px 2px !important;
