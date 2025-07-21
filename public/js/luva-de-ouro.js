@@ -606,8 +606,8 @@ function exportarCSV(dados) {
   const url = URL.createObjectURL(blob);
   link.setAttribute("href", url);
   link.setAttribute(
-    download",
-    `luva_de_ouro_r${rodadaInicio}_a_r${rodadaFim}_${new Date().toISOString().split("T")[0]}.csv`,
+    "download",
+    `luva_de_ouro_r${rodadaInicio}_a_r${rodadaFim}_${new Date().toISOString().split("T")[0]}.csv`
   );
   link.style.visibility = "hidden";
   document.body.appendChild(link);
@@ -826,7 +826,7 @@ function fecharModalDetalhes() {
 async function carregarRankingLuvaDeOuro(forcarColeta = false) {
   const container = document.getElementById("luvaDeOuroContent");
   const exportContainer = document.getElementById(
-    luvaDeOuroExportBtnContainer",
+    "luvaDeOuroExportBtnContainer"
   );
 
   if (!container) {
@@ -937,7 +937,7 @@ async function inicializarLuvaDeOuro() {
   try {
     const container = document.getElementById("luvaDeOuroContent");
     const exportContainer = document.getElementById(
-      luvaDeOuroExportBtnContainer",
+      "luvaDeOuroExportBtnContainer"
     );
 
     if (!container) {

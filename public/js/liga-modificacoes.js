@@ -204,7 +204,7 @@ function ajustarMenuPorLiga() {
         luvaContent.className = "tab-content";
         luvaContent.innerHTML = `
           <div id="luvaDeOuroExportBtnContainer" style="text-align: right; margin-bottom: 8px;"></div>
-          <div id="luvaDeOuroTabela"></div>
+          <div id="luvaDeOuroContent"></div>
         `;
         tabContents.appendChild(luvaContent);
 
