@@ -747,4 +747,75 @@ export async function detectarUltimaRodadaConcluida() {
   }
 }
 
+/**
+     * Obter detalhes completos de um participante específico
+     */
+async function obterDetalhesParticipante(ligaId, participanteId, rodadaInicio = 1, rodadaFim = null) {
+    console.log(`🔍 [GOLEIROS-SERVICE] Detalhes participante ${participanteId} rodadas ${rodadaInicio}-${rodadaFim || 'atual'}`);
+
+    try {
+      
+
+        // Detectar rodada fim se não especificada
+        if (!rodadaFim) {
+            const statusRodada = await verificarStatusRodada(999);
+            rodadaFim = statusRodada.concluida ? statusRodada.rodadaAtual : Math.max(1, statusRodada.rodadaAtual - 1);
+        }
+
+        // Buscar dados do participante
+        const dadosParticipante = await Goleiros.find({
+            ligaId: ligaId,
+            participanteId: participanteId,
+            rodada: { $gte: rodadaInicio, $lte: rodadaFim },
+            rodadaConcluida: true
+        }).sort({ rodada: 1 });
+
+        if (dadosParticipante.length === 0) {
+            throw new Error(`Nenhum dado encontrado para o participante ${participanteId}`);
+        }
+
+        // Processar dados
+        let totalPontos = 0;
+        let melhorRodada = 0;
+        let piorRodada = Infinity;
+        const rodadas = [];
+
+        dadosParticipante.forEach(item => {
+            const pontos = item.pontos || 0;
+            totalPontos += pontos;
+            melhorRodada = Math.max(melhorRodada, pontos);
+            piorRodada = Math.min(piorRodada, pontos);
+
+            rodadas.push({
+                rodada: item.rodada,
+                goleiroNome: item.goleiroNome || 'Sem goleiro',
+                goleiroClube: item.goleiroClube || 'N/A',
+                pontos: Math.floor(pontos * 100) / 100
+            });
+        });
+
+        const totalRodadas = dadosParticipante.length;
+        const mediaPontos = totalRodadas > 0 ? totalPontos / totalRodadas : 0;
+
+        return {
+            participanteId,
+            participanteNome: dadosParticipante[0].participanteNome || `Participante ${participanteId}`,
+            rodadaInicio,
+            rodadaFim,
+            totalPontos: Math.floor(totalPontos * 100) / 100,
+            totalRodadas,
+            rodadas,
+            estatisticas: {
+                melhorRodada: Math.floor(melhorRodada * 100) / 100,
+                piorRodada: piorRodada === Infinity ? 0 : Math.floor(piorRodada * 100) / 100,
+                mediaPontos: Math.floor(mediaPontos * 100) / 100
+            }
+        };
+
+    } catch (error) {
+        console.error(`❌ [GOLEIROS-SERVICE] Erro ao obter detalhes do participante:`, error);
+        throw error;
+    }
+}
+
 console.log("[GOLEIROS-SERVICE] ✅ Serviço corrigido carregado com sucesso");

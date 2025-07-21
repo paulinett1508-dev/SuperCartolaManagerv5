@@ -476,7 +476,7 @@ class LuvaDeOuroController {
       const totalPontos = rodadas.reduce((acc, r) => acc + r.pontos, 0);
       const rodadasComGoleiro = rodadas.filter(r => r.goleiroNome && r.goleiroNome !== 'Sem goleiro').length;
       const pontosValidos = rodadas.filter(r => r.pontos > 0).map(r => r.pontos);
-      
+
       const estatisticas = {
         melhorRodada: pontosValidos.length > 0 ? Math.max(...pontosValidos) : 0,
         piorRodada: pontosValidos.length > 0 ? Math.min(...pontosValidos) : 0,

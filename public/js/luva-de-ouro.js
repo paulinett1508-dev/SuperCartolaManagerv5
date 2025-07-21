@@ -295,7 +295,7 @@ function criarTabelaRanking(dados) {
           ${item.ultimaRodada?.goleiroClube ? `<div style="font-size: 9px; color: #6c757d; line-height: 1.2;">${item.ultimaRodada.goleiroClube}</div>` : ""}
         </td>
         <td style="padding: 8px 6px; text-align: center; vertical-align: middle;">
-          <div style="font-weight: 600; color: #e74c3c; font-size: 11px; line-height: 1.3;">${Math.floor((item.ultimaRodada?.pontos || 0) * 100) / 100}</div>
+          <div style="font-weight: 600; color: ${(item.ultimaRodada?.pontos || 0) >= 0 ? '#27ae60' : '#e74c3c'}; font-size: 11px; line-height: 1.3;">${Math.floor((item.ultimaRodada?.pontos || 0) * 100) / 100}</div>
           <div style="font-size: 9px; color: #6c757d; line-height: 1.2;">R${item.ultimaRodada?.rodada || "-"}</div>
         </td>
         <td style="padding: 8px 6px; text-align: center; vertical-align: middle;">
@@ -793,7 +793,7 @@ function criarModalDetalhes(dados) {
                 <td style="padding: 8px; text-align: center; font-weight: bold;">${rodada.rodada}</td>
                 <td style="padding: 8px; text-align: left;">${rodada.goleiroNome || 'Sem goleiro'}</td>
                 <td style="padding: 8px; text-align: left; font-size: 12px; color: #666;">${rodada.goleiroClube || '-'}</td>
-                <td style="padding: 8px; text-align: center; font-weight: bold; color: ${rodada.pontos > 5 ? '#27ae60' : rodada.pontos < 0 ? '#e74c3c' : '#f39c12'};">
+                <td style="padding: 8px; text-align: center; font-weight: bold; color: ${rodada.pontos >= 0 ? '#27ae60' : '#e74c3c'};">
                   ${Math.floor(rodada.pontos * 100) / 100}
                 </td>
               </tr>
