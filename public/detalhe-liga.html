@@ -8,7 +8,6 @@
     <link rel="stylesheet" href="style.css" />
     <!-- Adiciona html2canvas para exportação de imagem -->
     <script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
-</head>
     <style>
       .mito-highlight {
         background-color: #cceeff !important;
@@ -176,7 +175,7 @@
         cursor: not-allowed;
       }
     </style>
-  </head>
+</head>
   <body>
     <div id="debug-panel" style="display: none">
       <strong>Status dos Módulos:</strong>
@@ -497,7 +496,9 @@
         },
       ];
 
-      const modulosCarregados = {};
+      // Tornar modulosCarregados disponível globalmente
+      window.modulosCarregados = {};
+      const modulosCarregados = window.modulosCarregados;
       let modulo_participantes_ok = false;
       let participantesCarregados = false;
 
