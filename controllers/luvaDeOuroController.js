@@ -364,14 +364,14 @@ class LuvaDeOuroController {
         });
       }
 
-      // Hardcoded participantes for Liga Sobral com escudos corretos
+      // Hardcoded participantes for Liga Sobral com escudos corretos (baseado em participantes.js)
       const participantes = [
         { timeId: 1926323, nome: "Daniel Barbosa", clubeId: 262 },      // Flamengo
-        { timeId: 13935277, nome: "Paulinett Miranda", clubeId: 276 },  // São Paulo
-        { timeId: 14747183, nome: "Carlos Henrique", clubeId: 266 },    // Fluminense
-        { timeId: 49149009, nome: "Matheus Coutinho", clubeId: 275 },   // Palmeiras
-        { timeId: 49149388, nome: "Junior Brasilino", clubeId: 344 },   // Red Bull Bragantino
-        { timeId: 50180257, nome: "Hivisson", clubeId: 283 },           // Corinthians
+        { timeId: 13935277, nome: "Paulinett Miranda", clubeId: 263 },  // Botafogo
+        { timeId: 14747183, nome: "Carlos Henrique", clubeId: 264 },    // Corinthians
+        { timeId: 49149009, nome: "Matheus Coutinho", clubeId: 266 },   // Fluminense
+        { timeId: 49149388, nome: "Junior Brasilino", clubeId: 267 },   // Vasco
+        { timeId: 50180257, nome: "Hivisson", clubeId: 275 },           // Palmeiras
       ];
 
       res.json({
@@ -476,7 +476,7 @@ class LuvaDeOuroController {
       const totalPontos = rodadas.reduce((acc, r) => acc + r.pontos, 0);
       const rodadasComGoleiro = rodadas.filter(r => r.goleiroNome && r.goleiroNome !== 'Sem goleiro').length;
       const pontosValidos = rodadas.filter(r => r.pontos > 0).map(r => r.pontos);
-      
+
       const estatisticas = {
         melhorRodada: pontosValidos.length > 0 ? Math.max(...pontosValidos) : 0,
         piorRodada: pontosValidos.length > 0 ? Math.min(...pontosValidos) : 0,

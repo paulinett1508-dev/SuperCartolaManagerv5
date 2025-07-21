@@ -216,14 +216,14 @@ function criarTabelaRanking(dados) {
 
   const { ranking: rankingData, rodadaInicio, rodadaFim, totalParticipantes } = dados;
 
-  // Mapeamento correto dos participantes com seus escudos
+  // Mapeamento correto dos participantes com seus escudos (baseado em participantes.js)
   const participantesEscudos = {
     1926323: 262,   // Daniel Barbosa - Flamengo
-    13935277: 276,  // Paulinett Miranda - São Paulo
-    14747183: 266,  // Carlos Henrique - Fluminense
-    49149009: 275,  // Matheus Coutinho - Palmeiras
-    49149388: 344,  // Junior Brasilino - Red Bull Bragantino
-    50180257: 283   // Hivisson - Corinthians
+    13935277: 263,  // Paulinett Miranda - Botafogo
+    14747183: 264,  // Carlos Henrique - Corinthians
+    49149009: 266,  // Matheus Coutinho - Fluminense
+    49149388: 267,  // Junior Brasilino - Vasco
+    50180257: 275   // Hivisson - Palmeiras
   };
 
   let html = `
@@ -239,15 +239,14 @@ function criarTabelaRanking(dados) {
     <div style="overflow-x: auto; margin: 0 -10px;">
       <table class="luva-ranking-table" style="width: 100%; min-width: 700px; border-collapse: collapse; background: white; border-radius: 10px; overflow: hidden; box-shadow: 0 4px 12px rgba(0,0,0,0.1); font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;">
         <thead>
-          <tr style="background: linear-gradient(135deg, #2E8B57, #228B22); color: white; height: 45px;">
-            <th style="padding: 12px 8px; text-align: center; width: 60px; font-size: 12px; font-weight: 600;">Pos</th>
-            <th style="padding: 12px 8px; text-align: center; width: 50px; font-size: 12px; font-weight: 600;">❤️</th>
-            <th style="padding: 12px 12px; text-align: left; min-width: 160px; font-size: 12px; font-weight: 600;">Cartoleiro</th>
-            <th style="padding: 12px 8px; text-align: center; width: 80px; font-size: 12px; font-weight: 600;">Total</th>
-            <th style="padding: 12px 8px; text-align: center; width: 120px; font-size: 12px; font-weight: 600;">Somatório até R${rodadaFim}</th>
-            <th style="padding: 12px 12px; text-align: left; min-width: 140px; font-size: 12px; font-weight: 600;">Goleiro da última rodada</th>
-            <th style="padding: 12px 8px; text-align: center; width: 120px; font-size: 12px; font-weight: 600;">Pontuação do goleiro da última rodada</th>
-            <th style="width: 80px; text-align: center; font-size: 12px; font-weight: 600;">Ações</th>
+          <tr style="background: linear-gradient(135deg, #2E8B57, #228B22); color: white; height: 40px;">
+            <th style="padding: 8px 6px; text-align: center; width: 50px; font-size: 11px; font-weight: 600;">Pos</th>
+            <th style="padding: 8px 6px; text-align: center; width: 40px; font-size: 11px; font-weight: 600;">❤️</th>
+            <th style="padding: 8px 8px; text-align: left; min-width: 120px; font-size: 11px; font-weight: 600;">Cartoleiro</th>
+            <th style="padding: 8px 6px; text-align: center; width: 70px; font-size: 11px; font-weight: 600;">Total</th>
+            <th style="padding: 8px 8px; text-align: left; min-width: 130px; font-size: 11px; font-weight: 600;">Goleiro da última rodada</th>
+            <th style="padding: 8px 6px; text-align: center; width: 90px; font-size: 11px; font-weight: 600;">Pontos R${rodadaFim}</th>
+            <th style="padding: 8px 6px; text-align: center; width: 70px; font-size: 11px; font-weight: 600;">Ações</th>
           </tr>
         </thead>
         <tbody>
@@ -268,45 +267,42 @@ function criarTabelaRanking(dados) {
     const escudoId = participantesEscudos[item.participanteId] || "default";
 
     html += `
-      <tr class="ranking-row" style="border-bottom: 1px solid #e9ecef; transition: all 0.2s ease; ${rowBg} height: 55px;" 
-          onmouseover="this.style.background='#f8f9fa'; this.style.transform='scale(1.01)'" 
+      <tr class="ranking-row" style="border-bottom: 1px solid #e9ecef; transition: all 0.2s ease; ${rowBg} height: 48px;" 
+          onmouseover="this.style.background='#f8f9fa'; this.style.transform='scale(1.005)'" 
           onmouseout="this.style.background='${rowBg.split(':')[1].split(';')[0]}'; this.style.transform='scale(1)'">
-        <td style="padding: 12px 8px; text-align: center; font-weight: 600; vertical-align: middle; font-size: 13px;">
-          <div style="display: flex; align-items: center; justify-content: center; gap: 4px;">
+        <td style="padding: 8px 6px; text-align: center; font-weight: 600; vertical-align: middle; font-size: 12px;">
+          <div style="display: flex; align-items: center; justify-content: center; gap: 3px;">
             <span>${posicaoTexto}</span>
-            ${posicaoIcon ? `<span style="font-size: 16px;">${posicaoIcon}</span>` : ""}
+            ${posicaoIcon ? `<span style="font-size: 14px;">${posicaoIcon}</span>` : ""}
           </div>
         </td>
-        <td style="padding: 12px 8px; text-align: center; vertical-align: middle;">
+        <td style="padding: 8px 6px; text-align: center; vertical-align: middle;">
           <img src="/escudos/${escudoId}.png" alt="Escudo" 
-               style="width: 24px; height: 24px; border-radius: 50%; border: 2px solid #fff; box-shadow: 0 2px 4px rgba(0,0,0,0.1); background: #fff;"
+               style="width: 22px; height: 22px; border-radius: 50%; border: 1px solid #ddd; box-shadow: 0 1px 3px rgba(0,0,0,0.1); background: #fff;"
                onerror="this.src='/escudos/default.png';">
         </td>
-        <td style="padding: 12px 12px; vertical-align: middle;">
-          <div style="font-weight: 600; color: #2c3e50; font-size: 13px; line-height: 1.3; margin-bottom: 2px;">${item.participanteNome}</div>
-          <div style="font-size: 11px; color: #6c757d; line-height: 1.2;">ID: ${item.participanteId}</div>
+        <td style="padding: 8px 8px; vertical-align: middle;">
+          <div style="font-weight: 600; color: #2c3e50; font-size: 12px; line-height: 1.3; margin-bottom: 1px;">${item.participanteNome}</div>
+          <div style="font-size: 10px; color: #6c757d; line-height: 1.2;">ID: ${item.participanteId}</div>
         </td>
-        <td style="padding: 12px 8px; text-align: center; vertical-align: middle;">
-          <span style="background: linear-gradient(135deg, #27ae60, #2ecc71); color: white; padding: 6px 10px; border-radius: 6px; font-weight: 600; font-size: 12px; box-shadow: 0 2px 4px rgba(39, 174, 96, 0.3);">
+        <td style="padding: 8px 6px; text-align: center; vertical-align: middle;">
+          <span style="background: linear-gradient(135deg, #27ae60, #2ecc71); color: white; padding: 4px 8px; border-radius: 4px; font-weight: 600; font-size: 11px; box-shadow: 0 1px 3px rgba(39, 174, 96, 0.3);">
             ${Math.floor(item.pontosTotais * 100) / 100}
           </span>
         </td>
-        <td style="padding: 12px 8px; text-align: center; color: #495057; vertical-align: middle; font-size: 12px; font-weight: 500;">
-          ${item.rodadasJogadas || item.totalJogos || 0}
+        <td style="padding: 8px 8px; vertical-align: middle;">
+          <div style="font-weight: 600; color: #2c3e50; font-size: 11px; line-height: 1.3; margin-bottom: 1px;">${item.ultimaRodada?.goleiroNome || "Sem goleiro"}</div>
+          ${item.ultimaRodada?.goleiroClube ? `<div style="font-size: 9px; color: #6c757d; line-height: 1.2;">${item.ultimaRodada.goleiroClube}</div>` : ""}
         </td>
-        <td style="padding: 12px 12px; vertical-align: middle;">
-          <div style="font-weight: 600; color: #2c3e50; font-size: 12px; line-height: 1.3; margin-bottom: 2px;">${item.ultimaRodada?.goleiroNome || "Sem goleiro"}</div>
-          ${item.ultimaRodada?.goleiroClube ? `<div style="font-size: 10px; color: #6c757d; line-height: 1.2;">${item.ultimaRodada.goleiroClube}</div>` : ""}
+        <td style="padding: 8px 6px; text-align: center; vertical-align: middle;">
+          <div style="font-weight: 600; color: ${(item.ultimaRodada?.pontos || 0) >= 0 ? '#27ae60' : '#e74c3c'}; font-size: 11px; line-height: 1.3;">${Math.floor((item.ultimaRodada?.pontos || 0) * 100) / 100}</div>
+          <div style="font-size: 9px; color: #6c757d; line-height: 1.2;">R${item.ultimaRodada?.rodada || "-"}</div>
         </td>
-        <td style="padding: 12px 8px; text-align: center; vertical-align: middle;">
-          <div style="font-weight: 600; color: #e74c3c; font-size: 12px; line-height: 1.3; margin-bottom: 2px;">${Math.floor((item.ultimaRodada?.pontos || 0) * 100) / 100} pts</div>
-          <div style="font-size: 10px; color: #6c757d; line-height: 1.2;">R${item.ultimaRodada?.rodada || "-"}</div>
-        </td>
-        <td style="padding: 12px 8px; text-align: center; vertical-align: middle;">
-          <button class="btn-detalhes" onclick="mostrarDetalhesParticipante(${item.participanteId}, '${item.participanteNome.replace(/'/g, "\\'")}')}" 
-                  style="background: linear-gradient(135deg, #3498db, #2980b9); color: white; border: none; padding: 6px 12px; border-radius: 5px; cursor: pointer; font-size: 11px; font-weight: 500; transition: all 0.2s ease; box-shadow: 0 2px 4px rgba(52, 152, 219, 0.3);"
-                  onmouseover="this.style.transform='translateY(-1px)'; this.style.boxShadow='0 4px 8px rgba(52, 152, 219, 0.4)'"
-                  onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='0 2px 4px rgba(52, 152, 219, 0.3)'">
+        <td style="padding: 8px 6px; text-align: center; vertical-align: middle;">
+          <button class="btn-detalhes" onclick="mostrarDetalhesParticipante(${item.participanteId}, '${item.participanteNome.replace(/'/g, "\\'")}'))" 
+                  style="background: linear-gradient(135deg, #3498db, #2980b9); color: white; border: none; padding: 4px 8px; border-radius: 4px; cursor: pointer; font-size: 10px; font-weight: 500; transition: all 0.2s ease; box-shadow: 0 1px 3px rgba(52, 152, 219, 0.3);"
+                  onmouseover="this.style.transform='translateY(-1px)'; this.style.boxShadow='0 2px 6px rgba(52, 152, 219, 0.4)'"
+                  onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='0 1px 3px rgba(52, 152, 219, 0.3)'">
             Detalhes
           </button>
         </td>
@@ -611,7 +607,7 @@ function exportarCSV(dados) {
   link.setAttribute("href", url);
   link.setAttribute(
     "download",
-    `luva_de_ouro_r${rodadaInicio}_a_r${rodadaFim}_${new Date().toISOString().split("T")[0]}.csv`,
+    `luva_de_ouro_r${rodadaInicio}_a_r${rodadaFim}_${new Date().toISOString().split("T")[0]}.csv`
   );
   link.style.visibility = "hidden";
   document.body.appendChild(link);
@@ -696,30 +692,30 @@ function mostrarErro(container, erro, detalhes = null) {
 
 async function mostrarDetalhesParticipante(participanteId, participanteNome) {
   console.log(`🔍 Carregando detalhes de ${participanteNome} (${participanteId})`);
-  
+
   try {
     // Obter parâmetros de rodada
     const inicio = parseInt(document.getElementById("luvaRodadaInicio")?.value) || 1;
     const fim = parseInt(document.getElementById("luvaRodadaFim")?.value) || 14;
-    
+
     // Buscar detalhes na API
     const response = await fetch(
       `${API_BASE}/${LIGA_SOBRAL_ID}/participante/${participanteId}/detalhes?inicio=${inicio}&fim=${fim}`
     );
-    
+
     if (!response.ok) {
       throw new Error(`HTTP ${response.status}: ${response.statusText}`);
     }
-    
+
     const data = await response.json();
-    
+
     if (!data.success) {
       throw new Error(data.error || "Erro ao buscar detalhes");
     }
-    
+
     // Criar modal com detalhes
     criarModalDetalhes(data.data);
-    
+
   } catch (error) {
     console.error("❌ Erro ao buscar detalhes:", error);
     alert(`Erro ao carregar detalhes de ${participanteNome}: ${error.message}`);
@@ -732,7 +728,7 @@ function criarModalDetalhes(dados) {
   if (modalExistente) {
     modalExistente.remove();
   }
-  
+
   // Criar modal
   const modal = document.createElement("div");
   modal.id = "modalDetalhesParticipante";
@@ -748,7 +744,7 @@ function criarModalDetalhes(dados) {
     align-items: center;
     justify-content: center;
   `;
-  
+
   modal.innerHTML = `
     <div style="background: white; border-radius: 12px; padding: 24px; width: 90%; max-width: 700px; max-height: 80vh; overflow-y: auto; box-shadow: 0 8px 32px rgba(0,0,0,0.2);">
       <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; border-bottom: 1px solid #eee; padding-bottom: 15px;">
@@ -758,7 +754,7 @@ function criarModalDetalhes(dados) {
         </div>
         <button onclick="fecharModalDetalhes()" style="background: #e74c3c; color: white; border: none; border-radius: 50%; width: 32px; height: 32px; cursor: pointer; font-size: 16px;">×</button>
       </div>
-      
+
       <!-- Estatísticas Resumo -->
       <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 12px; margin-bottom: 20px;">
         <div style="background: #27ae60; color: white; padding: 12px; border-radius: 8px; text-align: center;">
@@ -778,7 +774,7 @@ function criarModalDetalhes(dados) {
           <div style="font-size: 12px; opacity: 0.9;">Média por Rodada</div>
         </div>
       </div>
-      
+
       <!-- Histórico Detalhado -->
       <h4 style="margin: 0 0 15px 0; color: #2c3e50;">📊 Histórico por Rodada</h4>
       <div style="max-height: 300px; overflow-y: auto; border: 1px solid #eee; border-radius: 8px;">
@@ -797,7 +793,7 @@ function criarModalDetalhes(dados) {
                 <td style="padding: 8px; text-align: center; font-weight: bold;">${rodada.rodada}</td>
                 <td style="padding: 8px; text-align: left;">${rodada.goleiroNome || 'Sem goleiro'}</td>
                 <td style="padding: 8px; text-align: left; font-size: 12px; color: #666;">${rodada.goleiroClube || '-'}</td>
-                <td style="padding: 8px; text-align: center; font-weight: bold; color: ${rodada.pontos > 5 ? '#27ae60' : rodada.pontos < 0 ? '#e74c3c' : '#f39c12'};">
+                <td style="padding: 8px; text-align: center; font-weight: bold; color: ${rodada.pontos >= 0 ? '#27ae60' : '#e74c3c'};">
                   ${Math.floor(rodada.pontos * 100) / 100}
                 </td>
               </tr>
@@ -807,9 +803,9 @@ function criarModalDetalhes(dados) {
       </div>
     </div>
   `;
-  
+
   document.body.appendChild(modal);
-  
+
   // Fechar ao clicar fora
   modal.onclick = (e) => {
     if (e.target === modal) {
@@ -830,7 +826,7 @@ function fecharModalDetalhes() {
 async function carregarRankingLuvaDeOuro(forcarColeta = false) {
   const container = document.getElementById("luvaDeOuroContent");
   const exportContainer = document.getElementById(
-    "luvaDeOuroExportBtnContainer",
+    "luvaDeOuroExportBtnContainer"
   );
 
   if (!container) {
@@ -941,7 +937,7 @@ async function inicializarLuvaDeOuro() {
   try {
     const container = document.getElementById("luvaDeOuroContent");
     const exportContainer = document.getElementById(
-      "luvaDeOuroExportBtnContainer",
+      "luvaDeOuroExportBtnContainer"
     );
 
     if (!container) {
@@ -1027,14 +1023,14 @@ if (!document.getElementById("luva-ouro-styles")) {
     }
 
     .luva-ranking-table {
-      font-size: 12px !important;
+      font-size: 11px !important;
     }
 
     .luva-ranking-table th {
       white-space: nowrap;
       font-weight: 600;
       text-transform: uppercase;
-      letter-spacing: 0.5px;
+      letter-spacing: 0.3px;
     }
 
     .luva-ranking-table td {
@@ -1042,7 +1038,7 @@ if (!document.getElementById("luva-ouro-styles")) {
     }
 
     .luva-ranking-table td:nth-child(3),
-    .luva-ranking-table td:nth-child(6) {
+    .luva-ranking-table td:nth-child(5) {
       white-space: normal;
       word-wrap: break-word;
     }
@@ -1051,24 +1047,33 @@ if (!document.getElementById("luva-ouro-styles")) {
       .luva-ranking-table {
         font-size: 10px !important;
       }
-      
+
       .luva-ranking-table th,
       .luva-ranking-table td {
-        padding: 8px 4px !important;
+        padding: 6px 3px !important;
       }
-      
-      .luva-ranking-table th:nth-child(5),
-      .luva-ranking-table th:nth-child(7) {
-        font-size: 10px !important;
+
+      .luva-ranking-table th {
+        font-size: 9px !important;
+      }
+    }
+
+    @media (max-width: 600px) {
+      .luva-ranking-table th:nth-child(6),
+      .luva-ranking-table td:nth-child(6) {
+        display: none;
       }
     }
 
     @media (max-width: 480px) {
       .luva-ranking-table th:nth-child(5),
-      .luva-ranking-table td:nth-child(5),
-      .luva-ranking-table th:nth-child(7),
-      .luva-ranking-table td:nth-child(7) {
+      .luva-ranking-table td:nth-child(5) {
         display: none;
+      }
+
+      .luva-ranking-table th,
+      .luva-ranking-table td {
+        padding: 4px 2px !important;
       }
     }
   `;
