@@ -426,6 +426,111 @@ class GolsService {
             chaves: Array.from(this.cache.keys()),
         };
     }
+
+    /**
+     * Obter participantes únicos de uma liga
+     */
+    async obterParticipantesUnicos(ligaId) {
+        try {
+            console.log(`🔍 [GOLS-SERVICE] Buscando participantes únicos da liga ${ligaId}`);
+
+            const pipeline = [
+                { $match: { ligaId: new mongoose.Types.ObjectId(ligaId) } },
+                {
+                    $group: {
+                        _id: "$timeId",
+                        nomeCartoleiro: { $first: "$nomeCartoleiro" },
+                        nomeTime: { $first: "$nomeTime" },
+                        timeId: { $first: "$timeId" },
+                        clubeId: { $first: "$clubeId" },
+                        totalGolsPro: { $sum: "$golsPro" },
+                        totalGolsContra: { $sum: "$golsContra" },
+                    },
+                },
+                {
+                    $addFields: {
+                        saldoGols: { $subtract: ["$totalGolsPro", "$totalGolsContra"] },
+                    },
+                },
+                { $sort: { saldoGols: -1, totalGolsPro: -1 } },
+            ];
+
+            const participantes = await Gols.aggregate(pipeline);
+
+            console.log(`✅ [GOLS-SERVICE] ${participantes.length} participantes únicos encontrados`);
+
+            return {
+                success: true,
+                data: participantes,
+            };
+        } catch (error) {
+            console.error("❌ [GOLS-SERVICE] Erro ao buscar participantes únicos:", error);
+            return {
+                success: false,
+                message: "Erro ao buscar participantes únicos",
+                error: error.message,
+            };
+        }
+    }
+
+    /**
+     * Obter ranking de uma rodada específica
+     */
+    async obterRankingPorRodada(ligaId, rodada) {
+        try {
+            console.log(`📊 [GOLS-SERVICE] Buscando ranking da rodada ${rodada} para liga ${ligaId}`);
+
+            const pipeline = [
+                { 
+                    $match: { 
+                        ligaId: new mongoose.Types.ObjectId(ligaId),
+                        rodada: parseInt(rodada)
+                    } 
+                },
+                {
+                    $group: {
+                        _id: "$timeId",
+                        nomeCartoleiro: { $first: "$nomeCartoleiro" },
+                        nomeTime: { $first: "$nomeTime" },
+                        timeId: { $first: "$timeId" },
+                        clubeId: { $first: "$clubeId" },
+                        rodada: { $first: "$rodada" },
+                        golsPro: { $sum: "$golsPro" },
+                        golsContra: { $sum: "$golsContra" },
+                        pontos: { $sum: "$pontos" },
+                    },
+                },
+                {
+                    $addFields: {
+                        saldo: { $subtract: ["$golsPro", "$golsContra"] },
+                    },
+                },
+                { 
+                    $sort: { 
+                        saldo: -1, 
+                        golsPro: -1,
+                        golsContra: 1
+                    } 
+                },
+            ];
+
+            const ranking = await Gols.aggregate(pipeline);
+
+            console.log(`✅ [GOLS-SERVICE] Ranking da rodada ${rodada}: ${ranking.length} participantes`);
+
+            return {
+                success: true,
+                data: ranking,
+            };
+        } catch (error) {
+            console.error(`❌ [GOLS-SERVICE] Erro ao buscar ranking da rodada ${rodada}:`, error);
+            return {
+                success: false,
+                message: `Erro ao buscar ranking da rodada ${rodada}`,
+                error: error.message,
+            };
+        }
+    }
 }
 
 // Instância singleton

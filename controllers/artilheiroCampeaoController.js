@@ -92,7 +92,7 @@ class ArtilheiroCampeaoController {
      */
     async detectarRodada(req, res) {
         try {
-            console.log(`🔍 [CONTROLLER] Detectando rodada atual...`);
+            console.log(`🔍 [CONTROLLER] Detectando rodada atual`);
 
             const rodadaAtual = await golsService.detectarRodadaAtual();
 
@@ -107,6 +107,60 @@ class ArtilheiroCampeaoController {
             res.status(500).json({
                 success: false,
                 message: "Erro ao detectar rodada atual",
+                error: error.message,
+            });
+        }
+    }
+
+    /**
+     * ENDPOINT: Buscar ranking de uma rodada específica
+     * GET /api/artilheiro-campeao/:ligaId/ranking/rodada/:rodada
+     */
+    async obterRankingRodada(req, res) {
+        try {
+            const { ligaId, rodada } = req.params;
+
+            console.log(`📊 [CONTROLLER] Buscando ranking da rodada ${rodada} para liga ${ligaId}`);
+
+            // Validar parâmetros
+            if (!ligaId || !rodada) {
+                return res.status(400).json({
+                    success: false,
+                    message: "Liga ID e rodada são obrigatórios",
+                });
+            }
+
+            const rodadaNum = parseInt(rodada);
+            if (isNaN(rodadaNum) || rodadaNum < 1) {
+                return res.status(400).json({
+                    success: false,
+                    message: "Rodada deve ser um número válido maior que 0",
+                });
+            }
+
+            // Buscar dados da rodada
+            const resultado = await golsService.obterRankingPorRodada(
+                ligaId,
+                rodadaNum
+            );
+
+            if (!resultado.success) {
+                return res.status(404).json({
+                    success: false,
+                    message: `Dados não encontrados para a rodada ${rodada}`,
+                });
+            }
+
+            res.json({
+                success: true,
+                data: resultado.data,
+            });
+
+        } catch (error) {
+            console.error(`❌ [CONTROLLER] Erro no ranking da rodada:`, error);
+            res.status(500).json({
+                success: false,
+                message: "Erro ao buscar ranking da rodada",
                 error: error.message,
             });
         }
@@ -357,6 +411,7 @@ const controller = new ArtilheiroCampeaoController();
 export const getGolsAgregados = controller.getGolsAgregados.bind(controller);
 export const getGolsRodada = controller.getGolsRodada.bind(controller);
 export const detectarRodada = controller.detectarRodada.bind(controller);
+export const obterRankingRodada = controller.obterRankingRodada.bind(controller);
 export const getRankingLiga = controller.getRankingLiga.bind(controller);
 export const getEstatisticas = controller.getEstatisticas.bind(controller);
 export const forcarColeta = controller.forcarColeta.bind(controller);
