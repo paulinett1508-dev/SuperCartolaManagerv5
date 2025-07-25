@@ -1,4 +1,3 @@
-
 // ✅ FLUXO-FINANCEIRO-UI.JS - Interface para Fluxo Financeiro
 console.log("💰 [FLUXO-FINANCEIRO-UI] Módulo de interface carregando...");
 
@@ -73,17 +72,17 @@ class FluxoFinanceiroUI {
      */
     async renderizarInterface() {
         console.log("[FLUXO-FINANCEIRO-UI] 🎨 Renderizando interface...");
-        
+
         // Importar módulos necessários dinamicamente
         const { FluxoFinanceiroCache } = await import("./fluxo-financeiro-cache.js");
-        
+
         if (!window.fluxoFinanceiroCache) {
             console.error("[FLUXO-FINANCEIRO-UI] Cache não inicializado");
             return;
         }
 
         const participantes = window.fluxoFinanceiroCache.getParticipantes();
-        
+
         if (!participantes || participantes.length === 0) {
             this.mostrarErro("Nenhum participante encontrado para gerar o fluxo financeiro.");
             return;
@@ -91,7 +90,7 @@ class FluxoFinanceiroUI {
 
         // Renderizar botões dos participantes
         this.renderizarBotoesParticipantes(participantes);
-        
+
         // Renderizar mensagem inicial
         this.renderizarMensagemInicial();
     }
@@ -151,7 +150,7 @@ class FluxoFinanceiroUI {
      */
     renderizarExtratoFinanceiro(extrato, participante, callback) {
         console.log("[FLUXO-FINANCEIRO-UI] 📊 Renderizando extrato financeiro...");
-        
+
         const container = document.getElementById("fluxoFinanceiroContent");
         if (container) {
             container.innerHTML = `
@@ -280,6 +279,39 @@ class FluxoFinanceiroUI {
             })
             .join("");
     }
+
+    // Renderizar dados do participante
+  renderizarDadosParticipante(participante, dadosFinanceiros) {
+    console.log("🎨 [FLUXO-UI] Renderizando dados do participante:", participante);
+    console.log("🎨 [FLUXO-UI] Dados financeiros:", dadosFinanceiros);
+
+    const container = document.getElementById('fluxoFinanceiroContent');
+    if (!container) {
+      console.error("❌ [FLUXO-UI] Container não encontrado");
+      return;
+    }
+
+    if (!participante) {
+      container.innerHTML = `
+        <div class="alert alert-warning">
+          <h4>⚠️ Participante não encontrado</h4>
+          <p>Não foi possível carregar os dados deste participante.</p>
+        </div>
+      `;
+      return;
+    }
+
+    // Garantir que temos os campos necessários
+    const dadosParticipante = {
+      nome_cartoleiro: participante.nome_cartoleiro || participante.nome_cartola || 'Nome não disponível',
+      nome_time: participante.nome_time || participante.nome || 'Time não disponível',
+      time_id: participante.time_id || participante.id || 'ID não disponível',
+      clube_id: participante.clube_id || null,
+      url_escudo_png: participante.url_escudo_png || participante.escudo_url || ''
+    };
+
+    console.log("🎨 [FLUXO-UI] Dados formatados para renderização:", dadosParticipante);
+}
 }
 
 // ===== DISPONIBILIZAR GLOBALMENTE =====
