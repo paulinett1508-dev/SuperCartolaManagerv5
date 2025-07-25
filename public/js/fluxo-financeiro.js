@@ -10,6 +10,38 @@ let isDataLoading = false;
 let isDataLoaded = false;
 
 // ==============================
+// FUNÇÃO UTILITÁRIA PARA OBTER LIGA ID
+// ==============================
+function obterLigaId() {
+    // Tentar obter da URL primeiro
+    const pathParts = window.location.pathname.split('/');
+    const ligaIdFromPath = pathParts[pathParts.length - 1];
+    
+    if (ligaIdFromPath && ligaIdFromPath !== 'detalhe-liga.html') {
+        console.log(`📋 [FLUXO-FINANCEIRO] Liga ID da URL: ${ligaIdFromPath}`);
+        return ligaIdFromPath;
+    }
+
+    // Tentar obter dos parâmetros da URL
+    const urlParams = new URLSearchParams(window.location.search);
+    const ligaIdFromParams = urlParams.get('id');
+    
+    if (ligaIdFromParams) {
+        console.log(`📋 [FLUXO-FINANCEIRO] Liga ID dos parâmetros: ${ligaIdFromParams}`);
+        return ligaIdFromParams;
+    }
+
+    // Tentar obter de uma variável global se existir
+    if (typeof window.currentLigaId !== 'undefined') {
+        console.log(`📋 [FLUXO-FINANCEIRO] Liga ID global: ${window.currentLigaId}`);
+        return window.currentLigaId;
+    }
+
+    console.error("❌ [FLUXO-FINANCEIRO] Liga ID não encontrado");
+    return null;
+}
+
+// ==============================
 // VARIÁVEIS PARA EXPORTS DINÂMICOS
 // ==============================
 let exportarExtratoFinanceiroComoImagem = null;
@@ -98,6 +130,25 @@ export async function inicializarFluxoFinanceiro() {
   console.log("🔄 [FLUXO-FINANCEIRO] Inicializando módulo...");
 
   try {
+    // Carregar módulos primeiro
+    await carregarModulos();
+
+    // Criar instâncias dos módulos
+    if (!fluxoFinanceiroCore && FluxoFinanceiroCore) {
+      // Primeiro precisamos criar um cache básico
+      const { FluxoFinanceiroCache } = await import("./fluxo-financeiro/fluxo-financeiro-cache.js");
+      fluxoFinanceiroCache = new FluxoFinanceiroCache();
+      fluxoFinanceiroCore = new FluxoFinanceiroCore(fluxoFinanceiroCache);
+    }
+
+    if (!fluxoFinanceiroUI && FluxoFinanceiroUI) {
+      fluxoFinanceiroUI = new FluxoFinanceiroUI();
+    }
+
+    if (!fluxoFinanceiroUtils && FluxoFinanceiroUtils) {
+      fluxoFinanceiroUtils = new FluxoFinanceiroUtils();
+    }
+
     // Verificar se a aba está ativa
     const fluxoTab = document.getElementById("fluxo-financeiro");
     if (!fluxoTab || !fluxoTab.classList.contains("active")) {
@@ -131,28 +182,34 @@ export async function inicializarFluxoFinanceiro() {
       `;
     }
 
-    // Inicializar núcleo com cache
-    await FluxoFinanceiroCore.inicializar(ligaId);
+    // Inicializar cache com a liga
+    await fluxoFinanceiroCache.inicializar(ligaId);
 
-    // Carregar participantes
-    const participantes = await FluxoFinanceiroCore.carregarParticipantes();
+    // Carregar participantes usando a API diretamente
+    const response = await fetch(`/api/ligas/${ligaId}`);
+    if (!response.ok) {
+      throw new Error(`Erro ao carregar liga: ${response.status}`);
+    }
 
-    if (!participantes || participantes.length === 0) {
+    const dadosLiga = await response.json();
+    const timesIds = dadosLiga.times || [];
+
+    if (timesIds.length === 0) {
       mostrarErro("Nenhum participante encontrado para esta liga");
       return;
     }
 
+    // Carregar dados dos participantes
+    const participantes = await carregarDadosParticipantes(timesIds);
+
     console.log(`✅ [FLUXO-FINANCEIRO] ${participantes.length} participantes carregados`);
 
-    // Renderizar interface
-    FluxoFinanceiroUI.criarBotoesParticipantes(participantes);
+    // Armazenar participantes no cache
+    fluxoFinanceiroCache.setParticipantes(participantes);
 
-    // Selecionar primeiro participante automaticamente
-    if (participantes.length > 0) {
-      const primeiroParticipante = participantes[0];
-      console.log(`🎯 [FLUXO-FINANCEIRO] Selecionando primeiro participante:`, primeiroParticipante);
-      await selecionarParticipante(primeiroParticipante.time_id || primeiroParticipante.id);
-    }
+    // Renderizar interface
+    fluxoFinanceiroUI.renderizarBotoesParticipantes(participantes);
+    fluxoFinanceiroUI.renderizarMensagemInicial();
 
   } catch (error) {
     console.error("❌ [FLUXO-FINANCEIRO] Erro na inicialização:", error);
@@ -650,5 +707,8 @@ export async function selecionarParticipante(timeId) {
   }
 }
 
-// ✅ CORREÇÃO: Disponibilizar função globalmente
+// ✅ DISPONIBILIZAR FUNÇÕES GLOBALMENTE
 window.calcularEExibirExtrato = calcularEExibirExtrato;
+window.inicializarFluxoFinanceiro = inicializarFluxoFinanceiro;
+window.selecionarParticipante = selecionarParticipante;
+window.obterLigaId = obterLigaId;
