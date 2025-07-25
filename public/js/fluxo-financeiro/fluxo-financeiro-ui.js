@@ -8,52 +8,116 @@ const FLUXO_UI_CONFIG = {
         table: "fluxo-table",
         header: "table-header-bg",
     },
-
     spacing: {
         tablePadding: "8px 6px",
         headerPadding: "10px 6px",
     },
 };
 
-// ===== INTERFACE DO FLUXO FINANCEIRO =====
-const FluxoFinanceiroUI = {
-    version: "1.0.0",
+// ===== CLASSE FLUXO FINANCEIRO UI =====
+class FluxoFinanceiroUI {
+    constructor() {
+        this.version = "1.0.0";
+        console.log("[FLUXO-FINANCEIRO-UI] ✅ Instância criada");
+    }
 
-    // Renderizar interface do fluxo financeiro
-    renderizarInterface(dados) {
-        const container = document.getElementById("fluxo-financeiro-container");
-        if (!container) {
-            console.error(
-                "Container #fluxo-financeiro-container não encontrado",
-            );
-            return;
-        }
+    /**
+     * Renderiza loading com progresso
+     */
+    renderizarLoadingComProgresso(titulo, subtitulo) {
+        const container = document.getElementById("fluxoFinanceiroContent");
+        if (!container) return;
 
-        const html = `
-            <div class="fluxo-financeiro-content">
-                <h2 style="margin-bottom: 15px; color: #2c3e50;">💰 Fluxo Financeiro</h2>
-
-                ${this._renderizarResumo(dados)}
-                ${this._renderizarTabela(dados)}
+        container.innerHTML = `
+            <div class="loading-container" style="text-align: center; padding: 60px 20px; background: white; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); margin: 20px auto; max-width: 800px;">
+                <div class="loading-spinner" style="margin: 0 auto 20px; width: 50px; height: 50px; border: 4px solid #f3f3f3; border-top: 4px solid #3498db; border-radius: 50%; animation: spin 1s linear infinite;"></div>
+                <h3 style="margin: 0 0 10px 0; color: #2c3e50; font-size: 24px;">${titulo}</h3>
+                <p style="margin: 0 0 30px 0; color: #7f8c8d; font-size: 16px;">${subtitulo}</p>
+                <div style="width: 100%; background: #ecf0f1; border-radius: 10px; overflow: hidden; margin-bottom: 15px;">
+                    <div id="loading-progress-bar" style="width: 0%; height: 20px; background: linear-gradient(90deg, #3498db, #2ecc71); transition: width 0.3s ease;"></div>
+                </div>
+                <p style="margin: 0; color: #95a5a6; font-size: 14px;">Isso pode levar alguns instantes...</p>
             </div>
         `;
+    }
 
-        container.innerHTML = html;
-        console.log("✅ [FLUXO-FINANCEIRO-UI] Interface renderizada");
-    },
+    /**
+     * Renderiza loading simples
+     */
+    renderizarLoading(mensagem = "Carregando...") {
+        const container = document.getElementById("fluxoFinanceiroContent");
+        if (!container) return;
 
-    // Mostrar loading
-    mostrarLoading(mensagem = "Carregando fluxo financeiro...") {
-        const container = document.getElementById("fluxo-financeiro-container");
+        container.innerHTML = `
+            <div class="loading-container" style="text-align: center; padding: 40px 20px; color: #666;">
+                <div class="loading-spinner" style="margin: 0 auto 15px; width: 40px; height: 40px; border: 4px solid #f3f3f3; border-top: 4px solid #3498db; border-radius: 50%; animation: spin 1s linear infinite;"></div>
+                <p style="margin: 0; font-size: 16px;">${mensagem}</p>
+            </div>
+        `;
+    }
+
+    /**
+     * Limpa containers
+     */
+    limparContainers() {
+        const containers = ["fluxoFinanceiroButtons", "fluxoFinanceiroExportBtnContainer"];
+        containers.forEach(id => {
+            const element = document.getElementById(id);
+            if (element) element.innerHTML = "";
+        });
+    }
+
+    /**
+     * Renderiza interface principal
+     */
+    async renderizarInterface() {
+        console.log("[FLUXO-FINANCEIRO-UI] 🎨 Renderizando interface...");
+        
+        // Aqui seria implementada a lógica de renderização da interface
+        // Por enquanto, vamos apenas mostrar uma mensagem
+        const container = document.getElementById("fluxoFinanceiroContent");
         if (container) {
             container.innerHTML = `
-                <div class="loading-container" style="text-align: center; padding: 40px;">
-                    <div class="loading-spinner"></div>
-                    <p style="margin-top: 15px; color: #666;">${mensagem}</p>
+                <div style="text-align: center; padding: 40px 20px;">
+                    <h3>💰 Fluxo Financeiro</h3>
+                    <p>Interface em desenvolvimento...</p>
                 </div>
             `;
         }
-    },
+    }
+
+    /**
+     * Renderiza extrato financeiro
+     */
+    renderizarExtratoFinanceiro(extrato, participante, callback) {
+        console.log("[FLUXO-FINANCEIRO-UI] 📊 Renderizando extrato financeiro...");
+        
+        const container = document.getElementById("fluxoFinanceiroContent");
+        if (container) {
+            container.innerHTML = `
+                <div style="padding: 20px;">
+                    <h3>💰 Extrato Financeiro - ${participante.nome_cartola}</h3>
+                    <p>Saldo Final: R$ ${extrato.resumo.saldo.toFixed(2)}</p>
+                    <p>Total de rodadas processadas: ${extrato.rodadas.length}</p>
+                </div>
+            `;
+        }
+    }
+
+    /**
+     * Renderiza botão de exportação
+     */
+    renderizarBotaoExportacao(callback) {
+        const container = document.getElementById("fluxoFinanceiroExportBtnContainer");
+        if (container) {
+            container.innerHTML = `
+                <button onclick="(${callback.toString()})()" style="background: #3498db; color: white; border: none; padding: 8px 16px; border-radius: 4px; cursor: pointer;">
+                    📥 Exportar Extrato
+                </button>
+            `;
+        }
+    }
+}
 
     // Mostrar erro
     mostrarErro(mensagem) {
@@ -151,14 +215,12 @@ const FluxoFinanceiroUI = {
     },
 };
 
-// ===== DISPONIBILIZAR GLOBALMENTE =====
+// // ===== DISPONIBILIZAR GLOBALMENTE =====
 if (typeof window !== "undefined") {
     window.FluxoFinanceiroUI = FluxoFinanceiroUI;
 }
 
-console.log(
-    "✅ [FLUXO-FINANCEIRO-UI] Interface do fluxo financeiro carregada!",
-);
+console.log("✅ [FLUXO-FINANCEIRO-UI] Interface do fluxo financeiro carregada!");
 
-export { FluxoFinanceiroUI };
+export { FluxoFinanceiroUI };roUI };
 export default FluxoFinanceiroUI;
