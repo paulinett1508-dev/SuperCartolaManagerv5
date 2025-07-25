@@ -147,21 +147,371 @@ class FluxoFinanceiroUI {
     }
 
     /**
-     * Renderiza extrato financeiro
+     * Renderiza extrato financeiro completo
      */
     renderizarExtratoFinanceiro(extrato, participante, callback) {
-        console.log("[FLUXO-FINANCEIRO-UI] 📊 Renderizando extrato financeiro...");
+        console.log("[FLUXO-FINANCEIRO-UI] 📊 Renderizando extrato financeiro completo...");
+        console.log("[FLUXO-FINANCEIRO-UI] Dados do extrato:", extrato);
+        console.log("[FLUXO-FINANCEIRO-UI] Dados do participante:", participante);
 
         const container = document.getElementById("fluxoFinanceiroContent");
-        if (container) {
-            container.innerHTML = `
-                <div style="padding: 20px;">
-                    <h3>💰 Extrato Financeiro - ${participante.nome_cartola}</h3>
-                    <p>Saldo Final: R$ ${extrato.resumo.saldo.toFixed(2)}</p>
-                    <p>Total de rodadas processadas: ${extrato.rodadas.length}</p>
-                </div>
-            `;
+        if (!container) {
+            console.error("[FLUXO-FINANCEIRO-UI] Container não encontrado");
+            return;
         }
+
+        // Formatação de moeda
+        const formatarMoeda = (valor) => {
+            const valorNum = typeof valor === 'number' ? valor : 0;
+            const sinal = valorNum >= 0 ? '+' : '';
+            return `${sinal}R$ ${Math.abs(valorNum).toFixed(2).replace('.', ',')}`;
+        };
+
+        // Determinar se é SuperCartola (tem pontos corridos)
+        const isSuperCartola = extrato.resumo.pontosCorridos !== undefined && extrato.resumo.pontosCorridos !== 0;
+
+        container.innerHTML = `
+            <div style="max-width: 1200px; margin: 0 auto; padding: 20px;">
+                <!-- CABEÇALHO -->
+                <div style="
+                    background: linear-gradient(135deg, #2E8B57 0%, #228B22 100%);
+                    color: white;
+                    padding: 24px;
+                    border-radius: 12px;
+                    margin-bottom: 24px;
+                    text-align: center;
+                    box-shadow: 0 4px 16px rgba(0,0,0,0.1);
+                ">
+                    <h2 style="margin: 0 0 8px 0; font-size: 28px; font-weight: 700;">
+                        💰 Extrato Financeiro
+                    </h2>
+                    <h3 style="margin: 0 0 12px 0; font-size: 20px; opacity: 0.9;">
+                        ${participante.nome_cartola || participante.nome_cartoleiro || 'Participante'}
+                    </h3>
+                    <p style="margin: 0; font-size: 14px; opacity: 0.8;">
+                        ${participante.nome_time || 'Time'} • ${extrato.rodadas.length} rodadas processadas
+                    </p>
+                </div>
+
+                <!-- SALDO FINAL DESTACADO -->
+                <div style="
+                    background: ${extrato.resumo.saldo >= 0 ? 'linear-gradient(135deg, #27ae60, #2ecc71)' : 'linear-gradient(135deg, #e74c3c, #c0392b)'};
+                    color: white;
+                    padding: 24px;
+                    border-radius: 12px;
+                    margin-bottom: 24px;
+                    text-align: center;
+                    box-shadow: 0 4px 16px rgba(0,0,0,0.1);
+                ">
+                    <h3 style="margin: 0 0 8px 0; font-size: 18px; opacity: 0.9;">Saldo Final</h3>
+                    <div style="font-size: 48px; font-weight: 800; margin: 0;">
+                        ${formatarMoeda(extrato.resumo.saldo)}
+                    </div>
+                </div>
+
+                <!-- RESUMO FINANCEIRO -->
+                <div style="
+                    background: white;
+                    border-radius: 12px;
+                    padding: 24px;
+                    margin-bottom: 24px;
+                    box-shadow: 0 4px 16px rgba(0,0,0,0.06);
+                    border: 1px solid #e0e0e0;
+                ">
+                    <h3 style="margin: 0 0 20px 0; text-align: center; color: #2E8B57; font-size: 20px;">
+                        📊 Resumo por Categoria
+                    </h3>
+
+                    <div style="
+                        display: grid;
+                        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+                        gap: 16px;
+                        margin-bottom: 20px;
+                    ">
+                        <!-- Bônus -->
+                        <div style="
+                            background: linear-gradient(135deg, #d4edda 0%, #c3e6cb 100%);
+                            color: #155724;
+                            padding: 20px;
+                            border-radius: 8px;
+                            text-align: center;
+                            border: 1px solid #c3e6cb;
+                        ">
+                            <h4 style="margin: 0 0 8px 0; font-size: 14px; font-weight: 600; text-transform: uppercase;">
+                                💎 Bônus Total
+                            </h4>
+                            <p style="margin: 0; font-size: 20px; font-weight: 700;">
+                                ${formatarMoeda(extrato.resumo.bonus)}
+                            </p>
+                        </div>
+
+                        <!-- Ônus -->
+                        <div style="
+                            background: linear-gradient(135deg, #f8d7da 0%, #f5c6cb 100%);
+                            color: #721c24;
+                            padding: 20px;
+                            border-radius: 8px;
+                            text-align: center;
+                            border: 1px solid #f5c6cb;
+                        ">
+                            <h4 style="margin: 0 0 8px 0; font-size: 14px; font-weight: 600; text-transform: uppercase;">
+                                💸 Ônus Total
+                            </h4>
+                            <p style="margin: 0; font-size: 20px; font-weight: 700;">
+                                ${formatarMoeda(extrato.resumo.onus)}
+                            </p>
+                        </div>
+
+                        ${isSuperCartola ? `
+                        <!-- Pontos Corridos -->
+                        <div style="
+                            background: linear-gradient(135deg, #e3f2fd 0%, #bbdefb 100%);
+                            color: #0d47a1;
+                            padding: 20px;
+                            border-radius: 8px;
+                            text-align: center;
+                            border: 1px solid #bbdefb;
+                        ">
+                            <h4 style="margin: 0 0 8px 0; font-size: 14px; font-weight: 600; text-transform: uppercase;">
+                                ⚽ Pontos Corridos
+                            </h4>
+                            <p style="margin: 0; font-size: 20px; font-weight: 700;">
+                                ${formatarMoeda(extrato.resumo.pontosCorridos)}
+                            </p>
+                        </div>
+
+                        <!-- Mata-Mata -->
+                        <div style="
+                            background: linear-gradient(135deg, #fff3e0 0%, #ffe0b2 100%);
+                            color: #e65100;
+                            padding: 20px;
+                            border-radius: 8px;
+                            text-align: center;
+                            border: 1px solid #ffb74d;
+                        ">
+                            <h4 style="margin: 0 0 8px 0; font-size: 14px; font-weight: 600; text-transform: uppercase;">
+                                🏆 Mata-Mata
+                            </h4>
+                            <p style="margin: 0; font-size: 20px; font-weight: 700;">
+                                ${formatarMoeda(extrato.resumo.mataMata)}
+                            </p>
+                        </div>
+                        ` : ''}
+
+                        <!-- Estatísticas -->
+                        <div style="
+                            background: linear-gradient(135deg, #e8f5e9 0%, #c8e6c9 100%);
+                            color: #2e7d32;
+                            padding: 20px;
+                            border-radius: 8px;
+                            text-align: center;
+                            border: 1px solid #81c784;
+                        ">
+                            <h4 style="margin: 0 0 8px 0; font-size: 14px; font-weight: 600; text-transform: uppercase;">
+                                🔥 Vezes MITO
+                            </h4>
+                            <p style="margin: 0; font-size: 20px; font-weight: 700;">
+                                ${extrato.resumo.vezesMito || 0}
+                            </p>
+                        </div>
+
+                        <div style="
+                            background: linear-gradient(135deg, #ffebee 0%, #ffcdd2 100%);
+                            color: #c62828;
+                            padding: 20px;
+                            border-radius: 8px;
+                            text-align: center;
+                            border: 1px solid #ef5350;
+                        ">
+                            <h4 style="margin: 0 0 8px 0; font-size: 14px; font-weight: 600; text-transform: uppercase;">
+                                💔 Vezes MICO
+                            </h4>
+                            <p style="margin: 0; font-size: 20px; font-weight: 700;">
+                                ${extrato.resumo.vezesMico || 0}
+                            </p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- DETALHAMENTO POR RODADA -->
+                <div style="
+                    background: white;
+                    border-radius: 12px;
+                    padding: 24px;
+                    box-shadow: 0 4px 16px rgba(0,0,0,0.06);
+                    border: 1px solid #e0e0e0;
+                ">
+                    <h3 style="margin: 0 0 20px 0; text-align: center; color: #2E8B57; font-size: 20px;">
+                        📋 Detalhamento por Rodada
+                    </h3>
+
+                    <div style="overflow-x: auto;">
+                        <table style="
+                            width: 100%;
+                            border-collapse: collapse;
+                            font-size: 13px;
+                            min-width: 800px;
+                        ">
+                            <thead>
+                                <tr style="background: linear-gradient(135deg, #495057 0%, #343a40 100%); color: white;">
+                                    <th style="padding: 14px 10px; text-align: center; font-weight: 600;">Rodada</th>
+                                    <th style="padding: 14px 10px; text-align: center; font-weight: 600;">Posição</th>
+                                    <th style="padding: 14px 10px; text-align: center; font-weight: 600;">Bônus/Ônus</th>
+                                    ${isSuperCartola ? `
+                                    <th style="padding: 14px 10px; text-align: center; font-weight: 600;">Pontos Corridos</th>
+                                    <th style="padding: 14px 10px; text-align: center; font-weight: 600;">Mata-Mata</th>
+                                    ` : ''}
+                                    <th style="padding: 14px 10px; text-align: center; font-weight: 600;">Saldo Acumulado</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                ${extrato.rodadas.length === 0 ? `
+                                <tr>
+                                    <td colspan="${isSuperCartola ? '6' : '4'}" style="
+                                        text-align: center;
+                                        padding: 40px 20px;
+                                        color: #666;
+                                        font-style: italic;
+                                    ">
+                                        Nenhuma rodada processada ainda
+                                    </td>
+                                </tr>
+                                ` : extrato.rodadas.map((rodada, index) => {
+                                    const posicaoStyle = this._obterEstiloPosicao(rodada);
+                                    return `
+                                    <tr style="
+                                        border-bottom: 1px solid #e0e0e0;
+                                        ${index % 2 === 0 ? 'background: #f8f9fa;' : ''}
+                                    ">
+                                        <td style="
+                                            text-align: center;
+                                            padding: 12px 10px;
+                                            font-weight: 600;
+                                            background-color: #f8f9fa;
+                                        ">
+                                            R${rodada.rodada}
+                                        </td>
+                                        <td style="
+                                            text-align: center;
+                                            padding: 12px 10px;
+                                            ${posicaoStyle.css}
+                                        ">
+                                            ${posicaoStyle.texto}
+                                        </td>
+                                        <td style="
+                                            text-align: center;
+                                            padding: 12px 10px;
+                                            font-weight: 600;
+                                            color: ${this._obterCorValor(rodada.bonusOnus)};
+                                        ">
+                                            ${this._formatarValorTabela(rodada.bonusOnus)}
+                                        </td>
+                                        ${isSuperCartola ? `
+                                        <td style="
+                                            text-align: center;
+                                            padding: 12px 10px;
+                                            font-weight: 600;
+                                            color: ${this._obterCorValor(rodada.pontosCorridos)};
+                                        ">
+                                            ${this._formatarValorTabela(rodada.pontosCorridos)}
+                                        </td>
+                                        <td style="
+                                            text-align: center;
+                                            padding: 12px 10px;
+                                            font-weight: 600;
+                                            color: ${this._obterCorValor(rodada.mataMata)};
+                                        ">
+                                            ${this._formatarValorTabela(rodada.mataMata)}
+                                        </td>
+                                        ` : ''}
+                                        <td style="
+                                            text-align: center;
+                                            padding: 12px 10px;
+                                            font-weight: 700;
+                                            color: ${this._obterCorValor(rodada.saldo)};
+                                            background-color: #f8f9fa;
+                                            border-left: 3px solid #007bff;
+                                        ">
+                                            ${formatarMoeda(rodada.saldo)}
+                                        </td>
+                                    </tr>
+                                    `;
+                                }).join('')}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        `;
+
+        console.log("[FLUXO-FINANCEIRO-UI] ✅ Extrato renderizado com sucesso");
+    }
+
+    /**
+     * Obter estilo da posição
+     */
+    _obterEstiloPosicao(rodada) {
+        if (rodada.isMito) {
+            return {
+                texto: "MITO",
+                css: "font-weight: 800; background: linear-gradient(135deg, #28a745 0%, #20c997 100%); color: #fff; border-radius: 6px; letter-spacing: 1px; text-shadow: 0 1px 2px rgba(0,0,0,0.3);"
+            };
+        }
+
+        if (rodada.isMico) {
+            return {
+                texto: "MICO", 
+                css: "font-weight: 800; background: linear-gradient(135deg, #dc3545 0%, #c82333 100%); color: #fff; border-radius: 6px; letter-spacing: 1px; text-shadow: 0 1px 2px rgba(0,0,0,0.3);"
+            };
+        }
+
+        if (rodada.posicao) {
+            const isTop11 = rodada.posicao >= 1 && rodada.posicao <= 11;
+            const isZ22_32 = rodada.posicao >= 22 && rodada.posicao <= 32;
+
+            if (isTop11) {
+                return {
+                    texto: `${rodada.posicao}°`,
+                    css: "font-weight: 700; background: linear-gradient(135deg, #d4edda 0%, #c3e6cb 100%); color: #155724; border-radius: 6px;"
+                };
+            }
+
+            if (isZ22_32) {
+                return {
+                    texto: `${rodada.posicao}°`,
+                    css: "font-weight: 700; background: linear-gradient(135deg, #f8d7da 0%, #f5c6cb 100%); color: #721c24; border-radius: 6px;"
+                };
+            }
+
+            return {
+                texto: `${rodada.posicao}°`,
+                css: "font-weight: 500; color: #495057;"
+            };
+        }
+
+        return {
+            texto: "-",
+            css: "font-weight: 500; color: #6c757d;"
+        };
+    }
+
+    /**
+     * Obter cor do valor
+     */
+    _obterCorValor(valor) {
+        if (typeof valor !== 'number') return '#6c757d';
+        if (valor > 0) return '#28a745';
+        if (valor < 0) return '#dc3545';
+        return '#6c757d';
+    }
+
+    /**
+     * Formatar valor da tabela
+     */
+    _formatarValorTabela(valor) {
+        if (typeof valor !== 'number' || valor === 0) return '-';
+        const valorFormatado = `R$ ${Math.abs(valor).toFixed(2).replace('.', ',')}`;
+        return valor >= 0 ? `+${valorFormatado}` : `-${valorFormatado}`;
     }
 
     /**
