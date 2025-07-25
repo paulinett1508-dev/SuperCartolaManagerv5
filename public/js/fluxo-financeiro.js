@@ -134,6 +134,17 @@ export async function inicializarFluxoFinanceiro() {
     console.log(`[FLUXO-FINANCEIRO] ✅ ${participantes.length} participantes carregados`);
 
     // Renderizar interface
+    // Carregar os módulos necessários
+    await carregarModulos();
+
+    // Inicializar instâncias dos módulos
+    if (FluxoFinanceiroCore && FluxoFinanceiroUI && FluxoFinanceiroUtils && FluxoFinanceiroCache) {
+      fluxoFinanceiroCore = new FluxoFinanceiroCore();
+      fluxoFinanceiroUI = new FluxoFinanceiroUI();
+      fluxoFinanceiroUtils = new FluxoFinanceiroUtils();
+      fluxoFinanceiroCache = new FluxoFinanceiroCache();
+    }
+
     await renderizarFluxoFinanceiro(participantes, ligaId);
 
     console.log("[FLUXO-FINANCEIRO] ✅ Módulo inicializado com sucesso");
@@ -504,3 +515,37 @@ window.testarLogicaEmpates = function () {
         "🎯 Função calcularFinanceiroConfronto() importada e aplicada com sucesso!",
     );
 };
+
+async function renderizarFluxoFinanceiro(participantes, ligaId) {
+  console.log(`[FLUXO-FINANCEIRO] ✅ ${participantes.length} participantes carregados`);
+
+  const container = document.getElementById("fluxoFinanceiroContent");
+    if (container) {
+        container.innerHTML = `
+            <div class="participantes-tabela" style="text-align:center; padding:20px; background:#fff; border-radius:8px; box-shadow:0 2px 4px rgba(0,0,0,0.05); margin:20px auto; max-width:800px;">
+                <h2 style="color:#3949ab; margin-bottom:20px;">Fluxo Financeiro dos Participantes</h2>
+                <table style="width:100%; border-collapse: collapse; margin-bottom:20px;">
+                    <thead>
+                        <tr style="background:#f2f2f2;">
+                            <th style="padding:10px; border:1px solid #ddd; text-align:left;">Participante</th>
+                            <th style="padding:10px; border:1px solid #ddd; text-align:left;">Time</th>
+                            <th style="padding:10px; border:1px solid #ddd; text-align:left;">Ações</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        ${participantes.map(participante => `
+                            <tr>
+                                <td style="padding:10px; border:1px solid #ddd;">${participante.nome}</td>
+                                <td style="padding:10px; border:1px solid #ddd;">${participante.time}</td>
+                                <td style="padding:10px; border:1px solid #ddd;">
+                                    <button onclick="calcularEExibirExtrato('${participante.id}')" style="background:#3949ab; color:white; border:none; padding:5px 10px; border-radius:4px; cursor:pointer;">Ver Extrato</button>
+                                </td>
+                            </tr>
+                        `).join('')}
+                    </tbody>
+                </table>
+                <p style="font-size:14px; color:#666;">Clique em "Ver Extrato" para calcular e exibir o extrato financeiro de cada participante.</p>
+            </div>
+        `;
+    }
+}
