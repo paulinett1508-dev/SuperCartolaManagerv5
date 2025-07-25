@@ -39,7 +39,7 @@ export class FluxoFinanceiroCore {
         if (window.fluxoFinanceiroCore) {
             return await window.fluxoFinanceiroCore.buscarParticipante(timeId);
         }
-        
+
         console.warn('[FLUXO-CORE] Instância global não encontrada');
         return null;
     }
