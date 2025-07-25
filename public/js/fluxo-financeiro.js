@@ -92,6 +92,23 @@ export async function inicializarFluxoFinanceiro() {
       return;
     }
 
+    // Carregar os módulos necessários PRIMEIRO
+    await carregarModulos();
+
+    // Inicializar instâncias dos módulos
+    if (FluxoFinanceiroCore && FluxoFinanceiroUI && FluxoFinanceiroUtils && FluxoFinanceiroCache) {
+      fluxoFinanceiroCore = new FluxoFinanceiroCore();
+      fluxoFinanceiroUI = new FluxoFinanceiroUI();
+      fluxoFinanceiroUtils = new FluxoFinanceiroUtils();
+      fluxoFinanceiroCache = new FluxoFinanceiroCache();
+      
+      console.log("[FLUXO-FINANCEIRO] ✅ Módulos instanciados com sucesso");
+    } else {
+      console.error("[FLUXO-FINANCEIRO] ❌ Erro ao carregar módulos necessários");
+      mostrarErro("Erro ao carregar módulos do sistema financeiro");
+      return;
+    }
+
     const params = new URLSearchParams(window.location.search);
     const ligaId = params.get("id");
 
@@ -132,18 +149,6 @@ export async function inicializarFluxoFinanceiro() {
     }
 
     console.log(`[FLUXO-FINANCEIRO] ✅ ${participantes.length} participantes carregados`);
-
-    // Renderizar interface
-    // Carregar os módulos necessários
-    await carregarModulos();
-
-    // Inicializar instâncias dos módulos
-    if (FluxoFinanceiroCore && FluxoFinanceiroUI && FluxoFinanceiroUtils && FluxoFinanceiroCache) {
-      fluxoFinanceiroCore = new FluxoFinanceiroCore();
-      fluxoFinanceiroUI = new FluxoFinanceiroUI();
-      fluxoFinanceiroUtils = new FluxoFinanceiroUtils();
-      fluxoFinanceiroCache = new FluxoFinanceiroCache();
-    }
 
     await renderizarFluxoFinanceiro(participantes, ligaId);
 
@@ -250,7 +255,25 @@ function mostrarErro(mensagem) {
  * @param {string} timeId - ID do time
  */
 async function calcularEExibirExtrato(timeId) {
+    // Verificar se os módulos estão inicializados
+    if (!fluxoFinanceiroUI) {
+        console.error("[FLUXO-FINANCEIRO] ❌ UI não inicializada. Tentando inicializar...");
+        await inicializarFluxoFinanceiro();
+        
+        if (!fluxoFinanceiroUI) {
+            console.error("[FLUXO-FINANCEIRO] ❌ Falha ao inicializar UI");
+            mostrarErro("Sistema financeiro não está disponível. Tente recarregar a página.");
+            return;
+        }
+    }
+
     fluxoFinanceiroUI.renderizarLoading("Calculando extrato financeiro...");
+
+    if (!fluxoFinanceiroCache) {
+        console.error("[FLUXO-FINANCEIRO] ❌ Cache não inicializado");
+        mostrarErro("Sistema de cache não disponível. Tente recarregar a página.");
+        return;
+    }
 
     const participante = fluxoFinanceiroCache
         .getParticipantes()
@@ -549,3 +572,6 @@ async function renderizarFluxoFinanceiro(participantes, ligaId) {
         `;
     }
 }
+
+// ✅ CORREÇÃO: Disponibilizar função globalmente
+window.calcularEExibirExtrato = calcularEExibirExtrato;
