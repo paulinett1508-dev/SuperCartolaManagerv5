@@ -21,6 +21,30 @@ export class FluxoFinanceiroCore {
     }
 
     /**
+     * Método estático para criar instância
+     * @param {FluxoFinanceiroCache} cache - Instância do cache
+     * @returns {FluxoFinanceiroCore} - Nova instância
+     */
+    static criarInstancia(cache) {
+        return new FluxoFinanceiroCore(cache);
+    }
+
+    /**
+     * Método estático para buscar participante
+     * @param {string} timeId - ID do time
+     * @returns {Promise<Object|null>} - Participante ou null
+     */
+    static async buscarParticipante(timeId) {
+        // Tentar buscar da instância global se disponível
+        if (window.fluxoFinanceiroCore) {
+            return await window.fluxoFinanceiroCore.buscarParticipante(timeId);
+        }
+        
+        console.warn('[FLUXO-CORE] Instância global não encontrada');
+        return null;
+    }
+
+    /**
      * Calcula extrato financeiro completo para um time
      * ✅ CORREÇÃO: Inclui TODAS as funcionalidades (melhor mês, etc.)
      * @param {string} timeId - ID do time
@@ -386,6 +410,29 @@ export class FluxoFinanceiroCore {
             resumo.campo3 +
             resumo.campo4
         );
+    }
+
+    /**
+     * Carrega participantes da liga
+     * @returns {Promise<Array>} - Array de participantes
+     */
+    async carregarParticipantes() {
+        return await this.cache.carregarParticipantes();
+    }
+
+    /**
+     * Carrega dados financeiros de um participante
+     * @param {string} timeId - ID do time
+     * @returns {Promise<Object>} - Dados financeiros
+     */
+    async carregarDadosFinanceiros(timeId) {
+        // Por enquanto retorna um objeto básico
+        // Pode ser expandido conforme necessário
+        return {
+            timeId: timeId,
+            carregado: true,
+            timestamp: Date.now()
+        };
     }
 
     // Buscar participante específico
