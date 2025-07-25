@@ -1,3 +1,4 @@
+
 // ✅ FLUXO-FINANCEIRO-UI.JS - Interface para Fluxo Financeiro
 console.log("💰 [FLUXO-FINANCEIRO-UI] Módulo de interface carregando...");
 
@@ -117,11 +118,12 @@ class FluxoFinanceiroUI {
             `;
         }
     }
-}
 
-    // Mostrar erro
+    /**
+     * Mostrar erro
+     */
     mostrarErro(mensagem) {
-        const container = document.getElementById("fluxo-financeiro-container");
+        const container = document.getElementById("fluxoFinanceiroContent");
         if (container) {
             container.innerHTML = `
                 <div class="error-message" style="text-align: center; padding: 40px;">
@@ -131,9 +133,11 @@ class FluxoFinanceiroUI {
                 </div>
             `;
         }
-    },
+    }
 
-    // Renderizar resumo financeiro
+    /**
+     * Renderizar resumo financeiro
+     */
     _renderizarResumo(dados) {
         const totalEntradas = dados.reduce(
             (acc, item) => acc + (item.entrada || 0),
@@ -163,9 +167,11 @@ class FluxoFinanceiroUI {
                 </div>
             </div>
         `;
-    },
+    }
 
-    // Renderizar tabela de movimentações
+    /**
+     * Renderizar tabela de movimentações
+     */
     _renderizarTabela(dados) {
         return `
             <div style="background: white; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); overflow: hidden;">
@@ -185,9 +191,11 @@ class FluxoFinanceiroUI {
                 </table>
             </div>
         `;
-    },
+    }
 
-    // Renderizar linhas da tabela
+    /**
+     * Renderizar linhas da tabela
+     */
     _renderizarLinhasTabela(dados) {
         let saldoAcumulado = 0;
 
@@ -212,15 +220,15 @@ class FluxoFinanceiroUI {
             `;
             })
             .join("");
-    },
-};
+    }
+}
 
-// // ===== DISPONIBILIZAR GLOBALMENTE =====
+// ===== DISPONIBILIZAR GLOBALMENTE =====
 if (typeof window !== "undefined") {
     window.FluxoFinanceiroUI = FluxoFinanceiroUI;
 }
 
 console.log("✅ [FLUXO-FINANCEIRO-UI] Interface do fluxo financeiro carregada!");
 
-export { FluxoFinanceiroUI };roUI };
+export { FluxoFinanceiroUI };
 export default FluxoFinanceiroUI;
