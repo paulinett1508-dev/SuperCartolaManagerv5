@@ -549,3 +549,6 @@ async function renderizarFluxoFinanceiro(participantes, ligaId) {
         `;
     }
 }
+
+// ✅ CORREÇÃO: Disponibilizar função globalmente
+window.calcularEExibirExtrato = calcularEExibirExtrato;
