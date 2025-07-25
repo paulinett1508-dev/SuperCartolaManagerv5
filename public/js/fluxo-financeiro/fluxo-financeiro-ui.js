@@ -105,11 +105,12 @@ class FluxoFinanceiroUI {
         const botoesHtml = participantes
             .map(participante => `
                 <button 
-                    class="participant-btn" 
-                    onclick="window.calcularEExibirExtrato && window.calcularEExibirExtrato('${participante.time_id}')"
+                    class="participant-btn participante-btn" 
+                    data-time-id="${participante.time_id || participante.id}"
+                    onclick="window.calcularEExibirExtrato && window.calcularEExibirExtrato('${participante.time_id || participante.id}')"
                     style="margin: 4px; padding: 8px 12px; background: #3498db; color: white; border: none; border-radius: 4px; cursor: pointer; font-size: 14px;"
                 >
-                    ${participante.nome_cartola}
+                    ${participante.nome_cartola || participante.nome_cartoleiro || participante.nome}
                 </button>
             `)
             .join("");

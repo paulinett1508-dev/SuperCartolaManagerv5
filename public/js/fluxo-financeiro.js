@@ -134,10 +134,11 @@ export async function inicializarFluxoFinanceiro() {
     await carregarModulos();
 
     // Criar instâncias dos módulos
-    if (!fluxoFinanceiroCore && FluxoFinanceiroCore) {
-      // Primeiro precisamos criar um cache básico
-      const { FluxoFinanceiroCache } = await import("./fluxo-financeiro/fluxo-financeiro-cache.js");
+    if (!fluxoFinanceiroCache && FluxoFinanceiroCache) {
       fluxoFinanceiroCache = new FluxoFinanceiroCache();
+    }
+
+    if (!fluxoFinanceiroCore && FluxoFinanceiroCore) {
       fluxoFinanceiroCore = new FluxoFinanceiroCore(fluxoFinanceiroCache);
     }
 
@@ -148,6 +149,9 @@ export async function inicializarFluxoFinanceiro() {
     if (!fluxoFinanceiroUtils && FluxoFinanceiroUtils) {
       fluxoFinanceiroUtils = new FluxoFinanceiroUtils();
     }
+
+    // Disponibilizar cache globalmente para compatibilidade
+    window.fluxoFinanceiroCache = fluxoFinanceiroCache;
 
     // Verificar se a aba está ativa
     const fluxoTab = document.getElementById("fluxo-financeiro");
@@ -199,13 +203,10 @@ export async function inicializarFluxoFinanceiro() {
       return;
     }
 
-    // Carregar dados dos participantes
-    const participantes = await carregarDadosParticipantes(timesIds);
+    // Carregar dados dos participantes usando o método do cache
+    const participantes = await fluxoFinanceiroCache.carregarParticipantes();
 
     console.log(`✅ [FLUXO-FINANCEIRO] ${participantes.length} participantes carregados`);
-
-    // Armazenar participantes no cache
-    fluxoFinanceiroCache.setParticipantes(participantes);
 
     // Renderizar interface
     fluxoFinanceiroUI.renderizarBotoesParticipantes(participantes);

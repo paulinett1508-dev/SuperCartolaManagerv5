@@ -30,6 +30,42 @@ export class FluxoFinanceiroCache {
         this.cacheFrontosPontosCorridos = [];
         this.timesLiga = [];
         this.participantes = [];
+        this.ligaId = null;
+    }
+
+    /**
+     * Inicializa o cache com uma liga específica
+     * @param {string} ligaId - ID da liga
+     */
+    async inicializar(ligaId) {
+        console.log(`🔄 [FLUXO-CACHE] Inicializando cache para liga: ${ligaId}`);
+        
+        this.ligaId = ligaId;
+        
+        try {
+            // Carregar participantes primeiro
+            await this.carregarParticipantes();
+            
+            // Carregar dados dos pontos corridos
+            await this.carregarDadosPontosCorridos();
+            
+            // Carregar dados externos
+            await this.carregarDadosExternos();
+            
+            console.log(`✅ [FLUXO-CACHE] Cache inicializado com sucesso`);
+        } catch (error) {
+            console.error(`❌ [FLUXO-CACHE] Erro na inicialização:`, error);
+            throw error;
+        }
+    }
+
+    /**
+     * Define participantes no cache
+     * @param {Array} participantes - Array de participantes
+     */
+    setParticipantes(participantes) {
+        this.participantes = participantes || [];
+        console.log(`📋 [FLUXO-CACHE] ${this.participantes.length} participantes definidos no cache`);
     }
 
     /**
@@ -37,7 +73,7 @@ export class FluxoFinanceiroCache {
      * @returns {Promise<Array>} - Array de participantes
      */
     async carregarParticipantes() {
-        const ligaId = getLigaId();
+        const ligaId = this.ligaId || getLigaId();
         if (!ligaId) {
             this.participantes = [];
             return [];
@@ -100,7 +136,7 @@ export class FluxoFinanceiroCache {
      * @param {HTMLElement} container - Container para atualizar progresso
      */
     async carregarCacheRankingsEmLotes(ultimaRodadaCompleta, container) {
-        const ligaId = getLigaId();
+        const ligaId = this.ligaId || getLigaId();
         if (!ligaId) {
             this.cacheRankings = {};
             return;
@@ -145,7 +181,7 @@ export class FluxoFinanceiroCache {
      * @private
      */
     async _carregarRankingRodada(rodada) {
-        const ligaId = getLigaId();
+        const ligaId = this.ligaId || getLigaId();
 
         try {
             const ranking = await getRankingRodadaEspecifica(ligaId, rodada);
@@ -220,7 +256,7 @@ export class FluxoFinanceiroCache {
      * Carrega dados dos confrontos de pontos corridos
      */
     async carregarDadosPontosCorridos() {
-        const ligaId = getLigaId();
+        const ligaId = this.ligaId || getLigaId();
         if (ligaId === ID_SUPERCARTOLA_2025) {
             try {
                 this.timesLiga = await buscarTimesLiga(ligaId);
