@@ -272,3 +272,62 @@ export function throttle(func, limit = 100) {
         }
     };
 }
+
+// ==============================
+// CLASSE FLUXO FINANCEIRO UTILS
+// ==============================
+
+/**
+ * Classe principal para utilitários do fluxo financeiro
+ */
+export class FluxoFinanceiroUtils {
+    constructor() {
+        this.version = "1.0.0";
+        console.log("🔧 [FLUXO-FINANCEIRO-UTILS] Classe inicializada v" + this.version);
+    }
+
+    // Métodos estáticos que encapsulam as funções utilitárias
+    static formatarMoeda = formatarMoeda;
+    static calcularSaldoAcumulado = calcularSaldoAcumulado;
+    static gerarRankingSimulado = gerarRankingSimulado;
+    static normalizarTimeId = normalizarTimeId;
+    static isRodadaValida = isRodadaValida;
+    static numeroParaOrdinal = numeroParaOrdinal;
+    static calcularDiferencaPontos = calcularDiferencaPontos;
+    static isEmpateTecnico = isEmpateTecnico;
+    static isGoleada = isGoleada;
+    static formatarNomeParticipante = formatarNomeParticipante;
+    static gerarCorPosicao = gerarCorPosicao;
+    static isNumerico = isNumerico;
+    static paraNumero = paraNumero;
+    static truncarTexto = truncarTexto;
+    static gerarIdUnico = gerarIdUnico;
+    static debounce = debounce;
+    static throttle = throttle;
+
+    // Métodos de instância
+    formatarMoeda = formatarMoeda;
+    calcularSaldoAcumulado = calcularSaldoAcumulado;
+    gerarRankingSimulado = gerarRankingSimulado;
+    normalizarTimeId = normalizarTimeId;
+    isRodadaValida = isRodadaValida;
+    numeroParaOrdinal = numeroParaOrdinal;
+    calcularDiferencaPontos = calcularDiferencaPontos;
+    isEmpateTecnico = isEmpateTecnico;
+    isGoleada = isGoleada;
+    formatarNomeParticipante = formatarNomeParticipante;
+    gerarCorPosicao = gerarCorPosicao;
+    isNumerico = isNumerico;
+    paraNumero = paraNumero;
+    truncarTexto = truncarTexto;
+    gerarIdUnico = gerarIdUnico;
+    debounce = debounce;
+    throttle = throttle;
+}
+
+// ===== DISPONIBILIZAR GLOBALMENTE =====
+if (typeof window !== "undefined") {
+    window.FluxoFinanceiroUtils = FluxoFinanceiroUtils;
+}
+
+console.log("✅ [FLUXO-FINANCEIRO-UTILS] Módulo carregado com sucesso!");
