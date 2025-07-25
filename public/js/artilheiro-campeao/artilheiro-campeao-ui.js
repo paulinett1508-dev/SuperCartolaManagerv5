@@ -628,6 +628,276 @@ export const ArtilheiroUI = {
             ? texto.substring(0, maxLength - 3) + "..."
             : texto;
     },
+
+    // ✅ RENDERIZAR LISTA DE PARTICIPANTES
+    renderizarParticipantes(participantes, containerSelector = "#artilheiro-participantes") {
+        const container = document.querySelector(containerSelector);
+        if (!container) {
+            console.warn(`Container ${containerSelector} não encontrado`);
+            return;
+        }
+
+        if (!participantes || participantes.length === 0) {
+            container.innerHTML = `
+                <div class="alert alert-info">
+                    <i class="fas fa-info-circle"></i>
+                    Nenhum participante encontrado
+                </div>`;
+            return;
+        }
+
+        // Ordenar e formatar participantes
+        const participantesOrdenados = ArtilheiroUtils.ordenarPorSaldoGols(participantes);
+        const participantesFormatados = participantesOrdenados.map((p, index) => 
+            ArtilheiroUtils.formatarParticipante(p, index)
+        ).filter(p => p !== null);
+
+        // Gerar HTML
+        const html = `
+            <div class="artilheiro-lista">
+                ${participantesFormatados.map(p => this._gerarCardParticipante(p)).join('')}
+            </div>
+        `;
+
+        container.innerHTML = html;
+        console.log(`✅ [ARTILHEIRO-UI] ${participantesFormatados.length} participantes renderizados`);
+    },
+
+    // ✅ RENDERIZAR DETALHAMENTO POR RODADA
+    async renderizarDetalhamentoPorRodada(timeId, nomeTime = "Time", containerSelector = "#detalhamento-rodadas") {
+        const container = document.querySelector(containerSelector);
+        if (!container) {
+            console.warn(`Container ${containerSelector} não encontrado`);
+            return;
+        }
+
+        try {
+            // Mostrar loading
+            container.innerHTML = `
+                <div class="text-center p-4">
+                    <div class="spinner-border text-primary" role="status">
+                        <span class="visually-hidden">Carregando...</span>
+                    </div>
+                    <p class="mt-2">Carregando detalhamento por rodada...</p>
+                </div>
+            `;
+
+            // Buscar detalhamento
+            const detalhamento = await ArtilheiroCore.obterDetalhamentePorRodada(timeId);
+
+            if (!detalhamento || detalhamento.length === 0) {
+                container.innerHTML = `
+                    <div class="alert alert-warning">
+                        <i class="fas fa-exclamation-triangle"></i>
+                        Nenhum dado encontrado para este time
+                    </div>
+                `;
+                return;
+            }
+
+            // Gerar HTML da tabela
+            const html = `
+                <div class="detalhamento-rodadas">
+                    <div class="card">
+                        <div class="card-header">
+                            <h5 class="mb-0">
+                                <i class="fas fa-chart-line"></i>
+                                Detalhamento por Rodada - ${nomeTime}
+                            </h5>
+                        </div>
+                        <div class="card-body p-0">
+                            <div class="table-responsive">
+                                <table class="table table-hover mb-0">
+                                    <thead class="table-dark">
+                                        <tr>
+                                            <th class="text-center">Rodada</th>
+                                            <th class="text-center">Posição</th>
+                                            <th class="text-center">Gols Pró</th>
+                                            <th class="text-center">Gols Contra</th>
+                                            <th class="text-center">Saldo</th>
+                                            <th class="text-center">Saldo Acumulado</th>
+                                            <th class="text-center">Bônus/Ônus</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        ${detalhamento.map(rodada => this._gerarLinhaDetalhamento(rodada)).join('')}
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            `;
+
+            container.innerHTML = html;
+            console.log(`✅ [ARTILHEIRO-UI] Detalhamento renderizado para ${detalhamento.length} rodadas`);
+
+        } catch (error) {
+            console.error("❌ [ARTILHEIRO-UI] Erro ao renderizar detalhamento:", error);
+            container.innerHTML = `
+                <div class="alert alert-danger">
+                    <i class="fas fa-exclamation-circle"></i>
+                    Erro ao carregar detalhamento: ${error.message}
+                </div>
+            `;
+        }
+    },
+
+    // ✅ GERAR LINHA DO DETALHAMENTO
+    _gerarLinhaDetalhamento(rodada) {
+        const semDados = rodada.semDados || rodada.erro;
+        const saldoClass = rodada.saldo > 0 ? 'text-success' : rodada.saldo < 0 ? 'text-danger' : 'text-muted';
+        const saldoAcumuladoClass = rodada.saldoAcumulado > 0 ? 'text-success' : rodada.saldoAcumulado < 0 ? 'text-danger' : 'text-muted';
+        const bonusClass = rodada.bonusOnus > 0 ? 'text-success' : rodada.bonusOnus < 0 ? 'text-danger' : 'text-muted';
+        const posicaoClass = this._getClassePosicao(rodada.posicao);
+
+        return `
+            <tr class="${semDados ? 'table-secondary opacity-50' : ''}">
+                <td class="text-center fw-bold">${rodada.rodada}</td>
+                <td class="text-center">
+                    ${rodada.posicao > 0 ? `<span class="${posicaoClass}">${rodada.posicao}º</span>` : '-'}
+                </td>
+                <td class="text-center">${semDados ? '-' : rodada.golsPro}</td>
+                <td class="text-center">${semDados ? '-' : rodada.golsContra}</td>
+                <td class="text-center">
+                    <span class="${saldoClass} fw-bold">
+                        ${semDados ? '-' : ArtilheiroUtils.formatarSaldo(rodada.saldo)}
+                    </span>
+                </td>
+                <td class="text-center">
+                    <span class="${saldoAcumuladoClass} fw-bold">
+                        ${ArtilheiroUtils.formatarSaldo(rodada.saldoAcumulado)}
+                    </span>
+                </td>
+                <td class="text-center">
+                    <span class="${bonusClass}">
+                        ${semDados ? '-' : ArtilheiroUtils.formatarSaldo(rodada.bonusOnus)}
+                    </span>
+                </td>
+            </tr>
+        `;
+    },
+
+    // ✅ OBTER CLASSE CSS PARA POSIÇÃO
+    _getClassePosicao(posicao) {
+        if (posicao <= 0) return 'text-muted';
+        if (posicao === 1) return 'text-warning fw-bold'; // Ouro
+        if (posicao <= 3) return 'text-info fw-bold';     // Top 3
+        if (posicao <= 5) return 'text-success';          // Top 5
+        if (posicao <= 10) return 'text-primary';         // Top 10
+        return 'text-muted';                              // Demais
+    },
+
+    // ✅ GERAR CARD DE PARTICIPANTE
+    _gerarCardParticipante(participante) {
+        const saldoClass = participante.saldoGols > 0 ? 'text-success' : 
+                          participante.saldoGols < 0 ? 'text-danger' : 'text-muted';
+
+        const posicaoClass = participante.posicao === 1 ? 'badge-warning' :
+                            participante.posicao <= 3 ? 'badge-info' :
+                            participante.posicao <= 5 ? 'badge-success' : 'badge-secondary';
+
+        const escudoUrl = participante.clubeId ? 
+            `/escudos/${participante.clubeId}.png` : '/escudos/default.png';
+
+        return `
+            <div class="artilheiro-card mb-3">
+                <div class="card">
+                    <div class="card-body">
+                        <div class="row align-items-center">
+                            <div class="col-auto">
+                                <span class="badge ${posicaoClass} fs-6">${participante.posicao}º</span>
+                            </div>
+                            <div class="col-auto">
+                                <img src="${escudoUrl}" alt="Escudo" class="escudo-participante" 
+                                     style="width: 30px; height: 30px; border-radius: 50%;" 
+                                     onerror="this.src='/escudos/default.png'">
+                            </div>
+                            <div class="col">
+                                <h6 class="mb-1">${participante.nomeCartoleiro}</h6>
+                                <small class="text-muted">${participante.nomeTime}</small>
+                            </div>
+                            <div class="col-auto text-end">
+                                <div class="row">
+                                    <div class="col-12">
+                                        <small class="text-muted">Gols Pró:</small> 
+                                        <strong class="text-success">${participante.golsPro}</strong>
+                                    </div>
+                                    <div class="col-12">
+                                        <small class="text-muted">Gols Contra:</small> 
+                                        <strong class="text-danger">${participante.golsContra}</strong>
+                                    </div>
+                                    <div class="col-12">
+                                        <small class="text-muted">Saldo:</small> 
+                                        <strong class="${saldoClass}">${ArtilheiroUtils.formatarSaldo(participante.saldoGols)}</strong>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-auto">
+                                <button class="btn btn-sm btn-outline-primary" 
+                                        onclick="ArtilheiroUI.mostrarDetalhamentoPorRodada(${participante.timeId}, '${participante.nomeTime}')">
+                                    <i class="fas fa-chart-line"></i>
+                                    Detalhes
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        `;
+    },
+
+    // ✅ MOSTRAR DETALHAMENTO EM MODAL
+    async mostrarDetalhamentoPorRodada(timeId, nomeTime) {
+        try {
+            // Criar modal se não existir
+            let modal = document.getElementById('detalhamentoModal');
+            if (!modal) {
+                modal = this._criarModalDetalhamento();
+                document.body.appendChild(modal);
+            }
+
+            // Atualizar título do modal
+            const modalTitle = modal.querySelector('.modal-title');
+            modalTitle.innerHTML = `<i class="fas fa-chart-line"></i> Detalhamento por Rodada - ${nomeTime}`;
+
+            // Renderizar detalhamento no corpo do modal
+            const modalBody = modal.querySelector('.modal-body');
+            await this.renderizarDetalhamentoPorRodada(timeId, nomeTime, '.modal-body');
+
+            // Mostrar modal
+            const bootstrapModal = new bootstrap.Modal(modal);
+            bootstrapModal.show();
+
+        } catch (error) {
+            console.error("❌ [ARTILHEIRO-UI] Erro ao mostrar detalhamento:", error);
+            alert(`Erro ao carregar detalhamento: ${error.message}`);
+        }
+    },
+
+    // ✅ CRIAR MODAL PARA DETALHAMENTO
+    _criarModalDetalhamento() {
+        const modal = document.createElement('div');
+        modal.id = 'detalhamentoModal';
+        modal.className = 'modal fade';
+        modal.innerHTML = `
+            <div class="modal-dialog modal-xl">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title">Detalhamento por Rodada</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                    </div>
+                    <div class="modal-body">
+                        <!-- Conteúdo será inserido aqui -->
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Fechar</button>
+                    </div>
+                </div>
+            </div>
+        `;
+        return modal;
+    },
 };
 
 console.log("✅ [ARTILHEIRO-UI] Interface otimizada carregada sem conflitos!");

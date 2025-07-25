@@ -15,6 +15,7 @@ const CACHE_CONFIG = {
     dados_completos: 5 * 60 * 1000, // 5 minutos
     configuracao: 15 * 60 * 1000, // 15 minutos
     deteccao_rodada: 2 * 60 * 1000, // 2 minutos
+    detalhamento_rodada: 10 * 60 * 1000, // 10 minutos
   },
 
   // Limites de tamanho

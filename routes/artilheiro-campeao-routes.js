@@ -173,4 +173,10 @@ router.get("/health", (req, res) => {
     });
 });
 
+// Detectar rodada atual
+router.get("/:ligaId/detectar-rodada", detectarRodada);
+
+// Buscar ranking de uma rodada específica
+router.get("/:ligaId/ranking/rodada/:rodada", getRankingLiga);
+
 export default router;
