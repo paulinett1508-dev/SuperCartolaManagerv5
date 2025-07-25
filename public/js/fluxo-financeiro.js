@@ -83,86 +83,150 @@ async function carregarModulos() {
 }
 
 export async function inicializarFluxoFinanceiro() {
-  console.log("[fluxo-financeiro.js] Inicializando fluxo financeiro...");
+  console.log("[FLUXO-FINANCEIRO] 🚀 Inicializando módulo...");
 
   try {
-    // Carregar módulos dinamicamente
-    await carregarModulos();
-
-    // Inicializar cache primeiro
-    if (!fluxoFinanceiroCache && FluxoFinanceiroCache) {
-      fluxoFinanceiroCache = new FluxoFinanceiroCache();
-      window.fluxoFinanceiroCache = fluxoFinanceiroCache; // Expor globalmente
-    }
-
-    // Inicializar core com o cache
-    if (!fluxoFinanceiroCore && FluxoFinanceiroCore && fluxoFinanceiroCache) {
-      fluxoFinanceiroCore = new FluxoFinanceiroCore(fluxoFinanceiroCache);
-    }
-
-    // Inicializar UI
-    if (!fluxoFinanceiroUI && FluxoFinanceiroUI) {
-      fluxoFinanceiroUI = new FluxoFinanceiroUI();
-    }
-
-    // Inicializar utils
-    if (!fluxoFinanceiroUtils && FluxoFinanceiroUtils) {
-      fluxoFinanceiroUtils = new FluxoFinanceiroUtils();
-    }
-
-    // Verificar se os módulos foram carregados com sucesso
-    if (!fluxoFinanceiroCore || !fluxoFinanceiroUI || !fluxoFinanceiroCache) {
-      console.error("[fluxo-financeiro.js] ❌ Módulos essenciais não puderam ser carregados");
-
-      // Fallback: mostrar mensagem de erro na interface
-      const container = document.getElementById("fluxoFinanceiroContent");
-      if (container) {
-        container.innerHTML = `
-          <div style="text-align: center; padding: 40px 20px; color: #721c24; background: #f8d7da; border: 1px solid #f5c6cb; border-radius: 8px; margin: 20px 0;">
-            <h4 style="margin: 0 0 10px 0;">❌ Erro ao Carregar Fluxo Financeiro</h4>
-            <p style="margin: 0 0 15px 0;">Não foi possível carregar os módulos necessários.</p>
-            <button onclick="window.location.reload()" style="background: #dc3545; color: white; border: none; padding: 8px 16px; border-radius: 4px; cursor: pointer;">
-              🔄 Recarregar Página
-            </button>
-          </div>
-        `;
-      }
+    // Verificar se já foi inicializado
+    if (document.querySelector("#fluxoFinanceiroContent .participantes-tabela")) {
+      console.log("[FLUXO-FINANCEIRO] ✅ Já inicializado");
       return;
     }
 
-    // Renderizar loading inicial
-    fluxoFinanceiroUI.renderizarLoadingComProgresso(
-        "Carregando dados financeiros...",
-        "Isso pode levar alguns instantes",
-    );
-    fluxoFinanceiroUI.limparContainers();
+    const params = new URLSearchParams(window.location.search);
+    const ligaId = params.get("id");
 
-    // Carregar dados no cache
-    await fluxoFinanceiroCache.carregarDadosExternos();
+    if (!ligaId) {
+      mostrarErro("ID da liga não encontrado");
+      return;
+    }
+
+    // Buscar dados da liga
+    console.log("[FLUXO-FINANCEIRO] 📊 Carregando dados da liga...");
+    const response = await fetch(`/api/ligas/${ligaId}`);
+
+    if (!response.ok) {
+      throw new Error(`Erro ao carregar liga: ${response.status}`);
+    }
+
+    const liga = await response.json();
+    console.log("[FLUXO-FINANCEIRO] Liga recebida:", liga);
+
+    // Verificar se há participantes (times ou participantes)
+    const timesIds = liga.times || liga.participantes || [];
+
+    if (!timesIds || timesIds.length === 0) {
+      console.warn("[FLUXO-FINANCEIRO] Nenhum time encontrado na liga");
+      mostrarErro("Nenhum participante encontrado para gerar o fluxo financeiro.");
+      return;
+    }
+
+    console.log(`[FLUXO-FINANCEIRO] ✅ Liga carregada: ${liga.nome} com ${timesIds.length} times`);
+
+    // Carregar dados dos times
+    const participantes = await carregarDadosParticipantes(timesIds);
+
+    if (!participantes || participantes.length === 0) {
+      console.warn("[FLUXO-FINANCEIRO] Erro ao carregar dados dos participantes");
+      mostrarErro("Erro ao carregar dados dos participantes.");
+      return;
+    }
+
+    console.log(`[FLUXO-FINANCEIRO] ✅ ${participantes.length} participantes carregados`);
 
     // Renderizar interface
-    await fluxoFinanceiroUI.renderizarInterface();
+    await renderizarFluxoFinanceiro(participantes, ligaId);
 
-    // Expor função globalmente para uso pelos botões
-    window.calcularEExibirExtrato = calcularEExibirExtrato;
+    console.log("[FLUXO-FINANCEIRO] ✅ Módulo inicializado com sucesso");
 
-    console.log("[fluxo-financeiro.js] ✅ Fluxo financeiro inicializado com sucesso");
   } catch (error) {
-    console.error("[fluxo-financeiro.js] ❌ Erro ao inicializar fluxo financeiro:", error);
+    console.error("[FLUXO-FINANCEIRO] ❌ Erro na inicialização:", error);
+    mostrarErro(`Erro ao inicializar: ${error.message}`);
+  }
+}
 
-    // Mostrar erro na interface
-    const container = document.getElementById("fluxo-financeiro");
-    if (container) {
-      container.innerHTML = `
-        <div style="text-align: center; padding: 40px 20px; color: #721c24; background: #f8d7da; border: 1px solid #f5c6cb; border-radius: 8px; margin: 20px 0;">
-          <h4 style="margin: 0 0 10px 0;">❌ Erro ao Inicializar Fluxo Financeiro</h4>
-          <p style="margin: 0 0 10px 0;"><strong>Erro:</strong> ${error.message}</p>
-          <button onclick="window.location.reload()" style="background: #dc3545; color: white; border: none; padding: 8px 16px; border-radius: 4px; cursor: pointer;">
-            🔄 Recarregar Página
+async function carregarDadosParticipantes(timesIds) {
+  console.log("[FLUXO-FINANCEIRO] 📥 Carregando dados dos participantes...");
+  console.log("[FLUXO-FINANCEIRO] IDs dos times:", timesIds);
+
+  const participantes = [];
+
+  for (const timeId of timesIds) {
+    try {
+      console.log(`[FLUXO-FINANCEIRO] Carregando time ${timeId}...`);
+      const response = await fetch(`/api/time/${timeId}`);
+
+      if (response.ok) {
+        const dados = await response.json();
+        console.log(`[FLUXO-FINANCEIRO] Dados do time ${timeId}:`, dados);
+
+        participantes.push({
+          id: timeId,
+          nome: dados.nome_cartoleiro || dados.nome_cartola || "N/D",
+          time: dados.nome_time || "Time N/D",
+          escudo: dados.url_escudo_png || "",
+          clube_id: dados.clube_id || null
+        });
+      } else {
+        console.warn(`[FLUXO-FINANCEIRO] Erro ao carregar time ${timeId}: ${response.status}`);
+        // Adiciona participante com dados básicos mesmo com erro
+        participantes.push({
+          id: timeId,
+          nome: "Participante não encontrado",
+          time: `Time ${timeId}`,
+          escudo: "",
+          clube_id: null
+        });
+      }
+    } catch (error) {
+      console.error(`[FLUXO-FINANCEIRO] Erro ao carregar time ${timeId}:`, error);
+      // Adiciona participante com dados básicos mesmo com erro
+      participantes.push({
+        id: timeId,
+        nome: "Erro ao carregar",
+        time: `Time ${timeId}`,
+        escudo: "",
+        clube_id: null
+      });
+    }
+  }
+
+  console.log(`[FLUXO-FINANCEIRO] ✅ ${participantes.length} participantes processados`);
+  return participantes;
+}
+
+function mostrarErro(mensagem) {
+  console.error("[FLUXO-FINANCEIRO] ❌ Erro:", mensagem);
+
+  const container = document.getElementById("fluxoFinanceiroContent");
+  if (container) {
+    container.innerHTML = `
+      <div style="
+        background-color: #f8d7da;
+        border: 1px solid #f5c6cb;
+        color: #721c24;
+        padding: 20px;
+        border-radius: 8px;
+        margin: 20px 0;
+        text-align: center;
+      ">
+        <div style="font-size: 48px; margin-bottom: 16px;">❌</div>
+        <h3 style="margin: 0 0 12px 0; font-size: 18px;">Erro no Fluxo Financeiro</h3>
+        <p style="margin: 0; font-size: 14px;">${mensagem}</p>
+        <div style="margin-top: 16px;">
+          <button onclick="location.reload()" style="
+            background: #dc3545;
+            color: white;
+            border: none;
+            padding: 8px 16px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 14px;
+          ">
+            🔄 Tentar Novamente
           </button>
         </div>
-      `;
-    }
+      </div>
+    `;
   }
 }
 
