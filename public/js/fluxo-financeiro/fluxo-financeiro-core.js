@@ -387,4 +387,68 @@ export class FluxoFinanceiroCore {
             resumo.campo4
         );
     }
+
+    // Buscar participante específico
+  async buscarParticipante(timeId) {
+    const chaveCache = `participante_${timeId}`;
+
+    return await this.cache.obterComCache(chaveCache, async () => {
+      console.log(`🔍 [FLUXO-CORE] Buscando participante ${timeId}...`);
+
+      // Primeiro, tentar buscar da lista de participantes da liga
+      const participantes = await this.carregarParticipantes();
+      console.log(`🔍 [FLUXO-CORE] Verificando ${participantes.length} participantes...`);
+
+      const participante = participantes.find(p => {
+        const match = String(p.time_id) === String(timeId) || 
+                     String(p.id) === String(timeId) ||
+                     String(p.timeId) === String(timeId);
+
+        if (match) {
+          console.log(`✅ [FLUXO-CORE] Match encontrado:`, p);
+        }
+
+        return match;
+      });
+
+      if (participante) {
+        console.log(`✅ [FLUXO-CORE] Participante ${timeId} encontrado na lista`);
+        return {
+          ...participante,
+          time_id: participante.time_id || participante.id || timeId,
+          id: participante.id || participante.time_id || timeId
+        };
+      }
+
+      // Se não encontrou, buscar diretamente da API
+      console.log(`🔍 [FLUXO-CORE] Buscando participante ${timeId} na API...`);
+
+      try {
+        const response = await fetch(`/api/time/${timeId}`);
+        if (!response.ok) {
+          console.warn(`⚠️ [FLUXO-CORE] API retornou ${response.status} para time ${timeId}`);
+          return null;
+        }
+
+        const dados = await response.json();
+        console.log(`✅ [FLUXO-CORE] Dados da API para ${timeId}:`, dados);
+
+        const participanteFormatado = {
+          time_id: timeId,
+          id: timeId,
+          nome_cartoleiro: dados.nome_cartoleiro || dados.nome_cartola || 'N/D',
+          nome_time: dados.nome_time || dados.nome || 'N/D',
+          url_escudo_png: dados.url_escudo_png || dados.escudo_url || '',
+          clube_id: dados.clube_id || null
+        };
+
+        console.log(`✅ [FLUXO-CORE] Participante formatado:`, participanteFormatado);
+        return participanteFormatado;
+
+      } catch (error) {
+        console.error(`❌ [FLUXO-CORE] Erro ao buscar participante ${timeId}:`, error);
+        return null;
+      }
+    }, 5 * 60 * 1000); // Cache por 5 minutos
+  }
 }

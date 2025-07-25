@@ -46,7 +46,7 @@ let fluxoFinanceiroCache = null;
 // Função para carregar módulos dinamicamente
 async function carregarModulos() {
   console.log("[FLUXO-FINANCEIRO] 📦 Carregando módulos...");
-  
+
   const modulosParaCarregar = [
     {
       nome: "FluxoFinanceiroCore",
@@ -89,104 +89,73 @@ async function carregarModulos() {
       console.log(`[FLUXO-FINANCEIRO] ♻️ ${moduloInfo.nome} já carregado`);
     }
   }
-  
+
   console.log("[FLUXO-FINANCEIRO] ✅ Todos os módulos carregados com sucesso");
 }
 
+// ✅ FUNÇÃO PRINCIPAL: Inicializar módulo
 export async function inicializarFluxoFinanceiro() {
-  console.log("[FLUXO-FINANCEIRO] 🚀 Inicializando módulo...");
+  console.log("🔄 [FLUXO-FINANCEIRO] Inicializando módulo...");
 
   try {
-    // Verificar se já foi inicializado
-    if (document.querySelector("#fluxoFinanceiroContent .participantes-tabela")) {
-      console.log("[FLUXO-FINANCEIRO] ✅ Já inicializado");
+    // Verificar se a aba está ativa
+    const fluxoTab = document.getElementById("fluxo-financeiro");
+    if (!fluxoTab || !fluxoTab.classList.contains("active")) {
+      console.log("⏸️ [FLUXO-FINANCEIRO] Aba não está ativa - aguardando");
       return;
     }
 
-    // Carregar os módulos necessários PRIMEIRO
-    await carregarModulos();
-
-    // Verificar se os módulos foram carregados
-    console.log("[FLUXO-FINANCEIRO] 🔍 Verificando módulos carregados:", {
-      FluxoFinanceiroCore: !!FluxoFinanceiroCore,
-      FluxoFinanceiroUI: !!FluxoFinanceiroUI,
-      FluxoFinanceiroUtils: !!FluxoFinanceiroUtils,
-      FluxoFinanceiroCache: !!FluxoFinanceiroCache
-    });
-
-    // Inicializar instâncias dos módulos
-    if (FluxoFinanceiroCore && FluxoFinanceiroUI && FluxoFinanceiroUtils && FluxoFinanceiroCache) {
-      try {
-        fluxoFinanceiroCore = new FluxoFinanceiroCore();
-        fluxoFinanceiroUI = new FluxoFinanceiroUI();
-        fluxoFinanceiroUtils = new FluxoFinanceiroUtils();
-        fluxoFinanceiroCache = new FluxoFinanceiroCache();
-        
-        console.log("[FLUXO-FINANCEIRO] ✅ Módulos instanciados com sucesso");
-      } catch (error) {
-        console.error("[FLUXO-FINANCEIRO] ❌ Erro ao instanciar módulos:", error);
-        mostrarErro(`Erro ao instanciar módulos: ${error.message}`);
-        return;
-      }
-    } else {
-      const modulosFaltantes = [];
-      if (!FluxoFinanceiroCore) modulosFaltantes.push("FluxoFinanceiroCore");
-      if (!FluxoFinanceiroUI) modulosFaltantes.push("FluxoFinanceiroUI");
-      if (!FluxoFinanceiroUtils) modulosFaltantes.push("FluxoFinanceiroUtils");
-      if (!FluxoFinanceiroCache) modulosFaltantes.push("FluxoFinanceiroCache");
-      
-      console.error("[FLUXO-FINANCEIRO] ❌ Módulos não carregados:", modulosFaltantes);
-      mostrarErro(`Módulos não carregados: ${modulosFaltantes.join(", ")}`);
-      return;
-    }
-
-    const params = new URLSearchParams(window.location.search);
-    const ligaId = params.get("id");
-
+    // Obter ID da liga
+    const ligaId = obterLigaId();
     if (!ligaId) {
-      mostrarErro("ID da liga não encontrado");
+      mostrarErro("ID da liga não encontrado na URL");
       return;
     }
 
-    // Buscar dados da liga
-    console.log("[FLUXO-FINANCEIRO] 📊 Carregando dados da liga...");
-    const response = await fetch(`/api/ligas/${ligaId}`);
+    console.log(`🎯 [FLUXO-FINANCEIRO] Inicializando para liga: ${ligaId}`);
 
-    if (!response.ok) {
-      throw new Error(`Erro ao carregar liga: ${response.status}`);
+    // Limpar conteúdo anterior
+    const contentContainer = document.getElementById("fluxoFinanceiroContent");
+    const buttonsContainer = document.getElementById("fluxoFinanceiroButtons");
+
+    if (contentContainer) contentContainer.innerHTML = "";
+    if (buttonsContainer) buttonsContainer.innerHTML = "";
+
+    // Mostrar loading
+    if (contentContainer) {
+      contentContainer.innerHTML = `
+        <div style="text-align: center; padding: 40px 20px; color: #666;">
+          <div style="display: inline-block; width: 40px; height: 40px; border: 4px solid #f3f3f3; border-top: 4px solid #3498db; border-radius: 50%; animation: spin 1s linear infinite;"></div>
+          <p>Carregando dados financeiros...</p>
+        </div>
+      `;
     }
 
-    const liga = await response.json();
-    console.log("[FLUXO-FINANCEIRO] Liga recebida:", liga);
+    // Inicializar núcleo com cache
+    await FluxoFinanceiroCore.inicializar(ligaId);
 
-    // Verificar se há participantes (times ou participantes)
-    const timesIds = liga.times || liga.participantes || [];
-
-    if (!timesIds || timesIds.length === 0) {
-      console.warn("[FLUXO-FINANCEIRO] Nenhum time encontrado na liga");
-      mostrarErro("Nenhum participante encontrado para gerar o fluxo financeiro.");
-      return;
-    }
-
-    console.log(`[FLUXO-FINANCEIRO] ✅ Liga carregada: ${liga.nome} com ${timesIds.length} times`);
-
-    // Carregar dados dos times
-    const participantes = await carregarDadosParticipantes(timesIds);
+    // Carregar participantes
+    const participantes = await FluxoFinanceiroCore.carregarParticipantes();
 
     if (!participantes || participantes.length === 0) {
-      console.warn("[FLUXO-FINANCEIRO] Erro ao carregar dados dos participantes");
-      mostrarErro("Erro ao carregar dados dos participantes.");
+      mostrarErro("Nenhum participante encontrado para esta liga");
       return;
     }
 
-    console.log(`[FLUXO-FINANCEIRO] ✅ ${participantes.length} participantes carregados`);
+    console.log(`✅ [FLUXO-FINANCEIRO] ${participantes.length} participantes carregados`);
 
-    await renderizarFluxoFinanceiro(participantes, ligaId);
+    // Renderizar interface
+    FluxoFinanceiroUI.criarBotoesParticipantes(participantes);
 
-    console.log("[FLUXO-FINANCEIRO] ✅ Módulo inicializado com sucesso");
+    // Selecionar primeiro participante automaticamente
+    if (participantes.length > 0) {
+      const primeiroParticipante = participantes[0];
+      console.log(`🎯 [FLUXO-FINANCEIRO] Selecionando primeiro participante:`, primeiroParticipante);
+      await selecionarParticipante(primeiroParticipante.time_id || primeiroParticipante.id);
+    }
 
   } catch (error) {
-    console.error("[FLUXO-FINANCEIRO] ❌ Erro na inicialização:", error);
+    console.error("❌ [FLUXO-FINANCEIRO] Erro na inicialização:", error);
     mostrarErro(`Erro ao inicializar: ${error.message}`);
   }
 }
@@ -290,7 +259,7 @@ async function calcularEExibirExtrato(timeId) {
     if (!fluxoFinanceiroUI) {
         console.error("[FLUXO-FINANCEIRO] ❌ UI não inicializada. Tentando inicializar...");
         await inicializarFluxoFinanceiro();
-        
+
         if (!fluxoFinanceiroUI) {
             console.error("[FLUXO-FINANCEIRO] ❌ Falha ao inicializar UI");
             mostrarErro("Sistema financeiro não está disponível. Tente recarregar a página.");
@@ -602,6 +571,83 @@ async function renderizarFluxoFinanceiro(participantes, ligaId) {
             </div>
         `;
     }
+}
+
+// ✅ FUNÇÃO: Selecionar participante específico
+export async function selecionarParticipante(timeId) {
+  console.log(`🎯 [FLUXO-FINANCEIRO] Selecionando participante: ${timeId}`);
+
+  try {
+    // Mostrar loading
+    const container = document.getElementById('fluxoFinanceiroContent');
+    if (container) {
+      container.innerHTML = `
+        <div style="text-align: center; padding: 40px 20px; color: #666;">
+          <div style="display: inline-block; width: 40px; height: 40px; border: 4px solid #f3f3f3; border-top: 4px solid #3498db; border-radius: 50%; animation: spin 1s linear infinite;"></div>
+          <p>Carregando dados financeiros...</p>
+        </div>
+      `;
+    }
+
+    // Atualizar botões (visual)
+    document.querySelectorAll('.participante-btn').forEach(btn => {
+      btn.classList.remove('active');
+      if (btn.dataset.timeId === String(timeId)) {
+        btn.classList.add('active');
+      }
+    });
+
+    // Buscar dados do participante
+    let participante = await FluxoFinanceiroCore.buscarParticipante(timeId);
+
+    // Se não encontrou, tentar buscar diretamente da lista de participantes
+    if (!participante) {
+      console.log(`⚠️ [FLUXO-FINANCEIRO] Participante ${timeId} não encontrado no cache, buscando na lista...`);
+      const todosParticipantes = await FluxoFinanceiroCore.carregarParticipantes();
+      participante = todosParticipantes.find(p => 
+        String(p.time_id) === String(timeId) || 
+        String(p.id) === String(timeId)
+      );
+    }
+
+    // Se ainda não encontrou, buscar diretamente da API
+    if (!participante) {
+      console.log(`⚠️ [FLUXO-FINANCEIRO] Buscando participante ${timeId} diretamente da API...`);
+      try {
+        const response = await fetch(`/api/time/${timeId}`);
+        if (response.ok) {
+          const dados = await response.json();
+          participante = {
+            time_id: timeId,
+            id: timeId,
+            nome_cartoleiro: dados.nome_cartoleiro || 'N/D',
+            nome_time: dados.nome_time || 'N/D',
+            url_escudo_png: dados.url_escudo_png || '',
+            clube_id: dados.clube_id || null
+          };
+        }
+      } catch (apiError) {
+        console.error(`❌ [FLUXO-FINANCEIRO] Erro ao buscar da API:`, apiError);
+      }
+    }
+
+    if (!participante) {
+      mostrarErro(`Participante ${timeId} não encontrado`);
+      return;
+    }
+
+    console.log(`✅ [FLUXO-FINANCEIRO] Participante encontrado:`, participante);
+
+    // Carregar dados financeiros
+    const dadosFinanceiros = await FluxoFinanceiroCore.carregarDadosFinanceiros(timeId);
+
+    // Renderizar dados
+    FluxoFinanceiroUI.renderizarDadosParticipante(participante, dadosFinanceiros);
+
+  } catch (error) {
+    console.error(`❌ [FLUXO-FINANCEIRO] Erro ao selecionar participante ${timeId}:`, error);
+    mostrarErro(`Erro ao carregar dados: ${error.message}`);
+  }
 }
 
 // ✅ CORREÇÃO: Disponibilizar função globalmente
