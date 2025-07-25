@@ -215,12 +215,12 @@ class FluxoFinanceiroUI {
     },
 };
 
-// // ===== DISPONIBILIZAR GLOBALMENTE =====
+// ===== DISPONIBILIZAR GLOBALMENTE =====
 if (typeof window !== "undefined") {
     window.FluxoFinanceiroUI = FluxoFinanceiroUI;
 }
 
 console.log("✅ [FLUXO-FINANCEIRO-UI] Interface do fluxo financeiro carregada!");
 
-export { FluxoFinanceiroUI };roUI };
+export { FluxoFinanceiroUI };
 export default FluxoFinanceiroUI;
