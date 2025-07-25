@@ -1,15 +1,9 @@
 import { buscarStatusMercado as getMercadoStatus } from "./pontos-corridos-utils.js";
-import { FluxoFinanceiroCache } from "./fluxo-financeiro/fluxo-financeiro-cache.js";
-import { FluxoFinanceiroCore } from "./fluxo-financeiro/fluxo-financeiro-core.js";
-import { FluxoFinanceiroUI } from "./fluxo-financeiro/fluxo-financeiro-ui.js";
 import { FluxoFinanceiroCampos } from "./fluxo-financeiro/fluxo-financeiro-campos.js";
 
 // ==============================
 // VARIÁVEIS GLOBAIS
 // ==============================
-let cache = null;
-let core = null;
-let ui = null;
 let rodadaAtual = 0;
 let ultimaRodadaCompleta = 0;
 let isDataLoading = false;
@@ -38,105 +32,126 @@ async function carregarExports() {
     }
 }
 
-// ==============================
-// FUNÇÃO PRINCIPAL DE INICIALIZAÇÃO
-// ==============================
+// Carregamento dinâmico dos módulos
+let FluxoFinanceiroCore = null;
+let FluxoFinanceiroUI = null;
+let FluxoFinanceiroUtils = null;
+let FluxoFinanceiroCache = null;
 
-/**
- * Inicializa o fluxo financeiro
- * ✅ COORDENAÇÃO: Função principal que orquestra todos os módulos
- */
-export async function inicializarFluxoFinanceiro() {
-    // Verificar se dados já estão carregados
-    if (isDataLoaded) {
-        ui.renderizarBotoesParticipantes(
-            cache.getParticipantes(),
-            calcularEExibirExtrato,
-        );
-        const firstButton = document.querySelector(".participante-card");
-        if (firstButton) {
-            const timeId = firstButton.dataset.timeId;
-            await calcularEExibirExtrato(timeId);
-            firstButton.classList.add("active");
-        }
-        return;
-    }
+let fluxoFinanceiroCore = null;
+let fluxoFinanceiroUI = null;
+let fluxoFinanceiroUtils = null;
+let fluxoFinanceiroCache = null;
 
-    // Verificar se carregamento já está em andamento
-    if (isDataLoading) {
-        return;
-    }
-
-    // Inicializar módulos
-    cache = new FluxoFinanceiroCache();
-    ui = new FluxoFinanceiroUI();
-    core = new FluxoFinanceiroCore(cache);
-
-    isDataLoading = true;
-
+// Função para carregar módulos dinamicamente
+async function carregarModulos() {
+  if (!FluxoFinanceiroCore) {
     try {
+      const coreModule = await import("./fluxo-financeiro/fluxo-financeiro-core.js");
+      FluxoFinanceiroCore = coreModule.FluxoFinanceiroCore;
+    } catch (error) {
+      console.warn("[fluxo-financeiro.js] ⚠️ Erro ao carregar FluxoFinanceiroCore:", error);
+    }
+  }
+
+  if (!FluxoFinanceiroUI) {
+    try {
+      const uiModule = await import("./fluxo-financeiro/fluxo-financeiro-ui.js");
+      FluxoFinanceiroUI = uiModule.FluxoFinanceiroUI;
+    } catch (error) {
+      console.warn("[fluxo-financeiro.js] ⚠️ Erro ao carregar FluxoFinanceiroUI:", error);
+    }
+  }
+
+  if (!FluxoFinanceiroUtils) {
+    try {
+      const utilsModule = await import("./fluxo-financeiro/fluxo-financeiro-utils.js");
+      FluxoFinanceiroUtils = utilsModule.FluxoFinanceiroUtils;
+    } catch (error) {
+      console.warn("[fluxo-financeiro.js] ⚠️ Erro ao carregar FluxoFinanceiroUtils:", error);
+    }
+  }
+
+  if (!FluxoFinanceiroCache) {
+    try {
+      const cacheModule = await import("./fluxo-financeiro/fluxo-financeiro-cache.js");
+      FluxoFinanceiroCache = cacheModule.FluxoFinanceiroCache;
+    } catch (error) {
+      console.warn("[fluxo-financeiro.js] ⚠️ Erro ao carregar FluxoFinanceiroCache:", error);
+    }
+  }
+}
+
+export async function inicializarFluxoFinanceiro() {
+  console.log("[fluxo-financeiro.js] Inicializando fluxo financeiro...");
+
+  try {
+    // Carregar módulos dinamicamente
+    await carregarModulos();
+
+    // Inicializar os módulos se ainda não foram inicializados
+    if (!fluxoFinanceiroCore && FluxoFinanceiroCore) {
+      fluxoFinanceiroCore = new FluxoFinanceiroCore();
+    }
+    if (!fluxoFinanceiroUI && FluxoFinanceiroUI) {
+      fluxoFinanceiroUI = new FluxoFinanceiroUI();
+    }
+    if (!fluxoFinanceiroUtils && FluxoFinanceiroUtils) {
+      fluxoFinanceiroUtils = new FluxoFinanceiroUtils();
+    }
+    if (!fluxoFinanceiroCache && FluxoFinanceiroCache) {
+      fluxoFinanceiroCache = new FluxoFinanceiroCache();
+    }
+
+    // Verificar se os módulos foram carregados com sucesso
+    if (!fluxoFinanceiroCore || !fluxoFinanceiroUI) {
+      console.error("[fluxo-financeiro.js] ❌ Módulos essenciais não puderam ser carregados");
+
+      // Fallback: mostrar mensagem de erro na interface
+      const container = document.getElementById("fluxo-financeiro");
+      if (container) {
+        container.innerHTML = `
+          <div style="text-align: center; padding: 40px 20px; color: #721c24; background: #f8d7da; border: 1px solid #f5c6cb; border-radius: 8px; margin: 20px 0;">
+            <h4 style="margin: 0 0 10px 0;">❌ Erro ao Carregar Fluxo Financeiro</h4>
+            <p style="margin: 0 0 15px 0;">Não foi possível carregar os módulos necessários.</p>
+            <button onclick="window.location.reload()" style="background: #dc3545; color: white; border: none; padding: 8px 16px; border-radius: 4px; cursor: pointer;">
+              🔄 Recarregar Página
+            </button>
+          </div>
+        `;
+      }
+      return;
+    }
+
         // 1. Renderizar loading inicial
-        ui.renderizarLoadingComProgresso(
+        fluxoFinanceiroUI.renderizarLoadingComProgresso(
             "Carregando dados financeiros...",
             "Isso pode levar alguns instantes",
         );
-        ui.limparContainers();
+        fluxoFinanceiroUI.limparContainers();
 
-        // 2. Carregar dados básicos
-        const [status, participantesData] = await Promise.all([
-            getMercadoStatus(),
-            cache.carregarParticipantes(),
-        ]);
+    // Carregar dados e renderizar interface
+    await fluxoFinanceiroCore.carregarDados();
+    await fluxoFinanceiroUI.renderizarInterface();
 
-        rodadaAtual = status ? status.rodada_atual : 0;
-        ultimaRodadaCompleta = rodadaAtual > 0 ? rodadaAtual - 1 : 0;
+    console.log("[fluxo-financeiro.js] ✅ Fluxo financeiro inicializado com sucesso");
+  } catch (error) {
+    console.error("[fluxo-financeiro.js] ❌ Erro ao inicializar fluxo financeiro:", error);
 
-        // 3. Renderizar botões dos participantes
-        ui.renderizarBotoesParticipantes(
-            cache.getParticipantes(),
-            calcularEExibirExtrato,
-        );
-
-        // 4. Carregar rankings em lotes
-        ui.renderizarLoadingComProgresso(
-            "Carregando dados das rodadas...",
-            `Processando ${ultimaRodadaCompleta} rodadas`,
-        );
-
-        const container = document.getElementById("fluxoFinanceiroContent");
-        await cache.carregarCacheRankingsEmLotes(
-            ultimaRodadaCompleta,
-            container,
-        );
-
-        // 5. Carregar dados específicos (pontos corridos e externos)
-        await Promise.all([
-            cache.carregarDadosPontosCorridos(),
-            cache.carregarDadosExternos(),
-        ]);
-
-        console.log(
-            "[FluxoFinanceiro] ✅ Todos os dados carregados com sucesso",
-        );
-
-        isDataLoaded = true;
-
-        // 6. Exibir primeiro participante
-        const participantes = cache.getParticipantes();
-        if (participantes.length > 0) {
-            const firstParticipantId = participantes[0].time_id;
-            await calcularEExibirExtrato(firstParticipantId);
-            const firstButton = document.querySelector(".participante-card");
-            if (firstButton) firstButton.classList.add("active");
-        } else {
-            ui.renderizarLoading("Nenhum participante encontrado.", "👥");
-        }
-    } catch (error) {
-        console.error("[FluxoFinanceiro] ❌ Erro na inicialização:", error);
-        _renderizarErro(error);
-    } finally {
-        isDataLoading = false;
+    // Mostrar erro na interface
+    const container = document.getElementById("fluxo-financeiro");
+    if (container) {
+      container.innerHTML = `
+        <div style="text-align: center; padding: 40px 20px; color: #721c24; background: #f8d7da; border: 1px solid #f5c6cb; border-radius: 8px; margin: 20px 0;">
+          <h4 style="margin: 0 0 10px 0;">❌ Erro ao Inicializar Fluxo Financeiro</h4>
+          <p style="margin: 0 0 10px 0;"><strong>Erro:</strong> ${error.message}</p>
+          <button onclick="window.location.reload()" style="background: #dc3545; color: white; border: none; padding: 8px 16px; border-radius: 4px; cursor: pointer;">
+            🔄 Recarregar Página
+          </button>
+        </div>
+      `;
     }
+  }
 }
 
 // ==============================
@@ -148,9 +163,9 @@ export async function inicializarFluxoFinanceiro() {
  * @param {string} timeId - ID do time
  */
 async function calcularEExibirExtrato(timeId) {
-    ui.renderizarLoading("Calculando extrato financeiro...");
+    fluxoFinanceiroUI.renderizarLoading("Calculando extrato financeiro...");
 
-    const participante = cache
+    const participante = fluxoFinanceiroCache
         .getParticipantes()
         .find((p) => p.time_id === timeId);
     if (!participante) {
@@ -160,29 +175,29 @@ async function calcularEExibirExtrato(timeId) {
 
     try {
         // Garantir que o cache está carregado
-        if (Object.keys(cache.cacheRankings).length === 0) {
+        if (Object.keys(fluxoFinanceiroCache.cacheRankings).length === 0) {
             const container = document.getElementById("fluxoFinanceiroContent");
-            await cache.carregarCacheRankingsEmLotes(
+            await fluxoFinanceiroCache.carregarCacheRankingsEmLotes(
                 ultimaRodadaCompleta,
                 container,
             );
         }
 
         // ✅ CORREÇÃO: Usar função corrigida através do core
-        const extrato = core.calcularExtratoFinanceiro(
+        const extrato = fluxoFinanceiroCore.calcularExtratoFinanceiro(
             timeId,
             ultimaRodadaCompleta,
         );
 
         // Renderizar extrato
-        ui.renderizarExtratoFinanceiro(
+        fluxoFinanceiroUI.renderizarExtratoFinanceiro(
             extrato,
             participante,
             calcularEExibirExtrato,
         );
 
         // Renderizar botão de exportação
-        ui.renderizarBotaoExportacao(() =>
+        fluxoFinanceiroUI.renderizarBotaoExportacao(() =>
             _exportarExtrato(extrato, participante, timeId),
         );
     } catch (error) {
@@ -367,7 +382,7 @@ window.testarLogicaEmpates = function () {
 
     console.log("🔬 TESTANDO LÓGICA DE EMPATES...");
 
-    if (!core) {
+    if (!fluxoFinanceiroCore) {
         console.error(
             "❌ Core não inicializado. Execute inicializarFluxoFinanceiro() primeiro.",
         );
