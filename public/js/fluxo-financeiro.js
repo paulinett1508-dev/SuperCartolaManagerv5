@@ -45,41 +45,52 @@ let fluxoFinanceiroCache = null;
 
 // Função para carregar módulos dinamicamente
 async function carregarModulos() {
-  if (!FluxoFinanceiroCore) {
-    try {
-      const coreModule = await import("./fluxo-financeiro/fluxo-financeiro-core.js");
-      FluxoFinanceiroCore = coreModule.FluxoFinanceiroCore;
-    } catch (error) {
-      console.warn("[fluxo-financeiro.js] ⚠️ Erro ao carregar FluxoFinanceiroCore:", error);
+  console.log("[FLUXO-FINANCEIRO] 📦 Carregando módulos...");
+  
+  const modulosParaCarregar = [
+    {
+      nome: "FluxoFinanceiroCore",
+      path: "./fluxo-financeiro/fluxo-financeiro-core.js",
+      variavel: () => FluxoFinanceiroCore,
+      setter: (modulo) => { FluxoFinanceiroCore = modulo.FluxoFinanceiroCore; }
+    },
+    {
+      nome: "FluxoFinanceiroUI", 
+      path: "./fluxo-financeiro/fluxo-financeiro-ui.js",
+      variavel: () => FluxoFinanceiroUI,
+      setter: (modulo) => { FluxoFinanceiroUI = modulo.FluxoFinanceiroUI; }
+    },
+    {
+      nome: "FluxoFinanceiroUtils",
+      path: "./fluxo-financeiro/fluxo-financeiro-utils.js", 
+      variavel: () => FluxoFinanceiroUtils,
+      setter: (modulo) => { FluxoFinanceiroUtils = modulo.FluxoFinanceiroUtils; }
+    },
+    {
+      nome: "FluxoFinanceiroCache",
+      path: "./fluxo-financeiro/fluxo-financeiro-cache.js",
+      variavel: () => FluxoFinanceiroCache,
+      setter: (modulo) => { FluxoFinanceiroCache = modulo.FluxoFinanceiroCache; }
     }
-  }
+  ];
 
-  if (!FluxoFinanceiroUI) {
-    try {
-      const uiModule = await import("./fluxo-financeiro/fluxo-financeiro-ui.js");
-      FluxoFinanceiroUI = uiModule.FluxoFinanceiroUI;
-    } catch (error) {
-      console.warn("[fluxo-financeiro.js] ⚠️ Erro ao carregar FluxoFinanceiroUI:", error);
+  for (const moduloInfo of modulosParaCarregar) {
+    if (!moduloInfo.variavel()) {
+      try {
+        console.log(`[FLUXO-FINANCEIRO] 📥 Carregando ${moduloInfo.nome}...`);
+        const modulo = await import(moduloInfo.path);
+        moduloInfo.setter(modulo);
+        console.log(`[FLUXO-FINANCEIRO] ✅ ${moduloInfo.nome} carregado`);
+      } catch (error) {
+        console.error(`[FLUXO-FINANCEIRO] ❌ Erro ao carregar ${moduloInfo.nome}:`, error);
+        throw new Error(`Falha ao carregar ${moduloInfo.nome}: ${error.message}`);
+      }
+    } else {
+      console.log(`[FLUXO-FINANCEIRO] ♻️ ${moduloInfo.nome} já carregado`);
     }
   }
-
-  if (!FluxoFinanceiroUtils) {
-    try {
-      const utilsModule = await import("./fluxo-financeiro/fluxo-financeiro-utils.js");
-      FluxoFinanceiroUtils = utilsModule.FluxoFinanceiroUtils;
-    } catch (error) {
-      console.warn("[fluxo-financeiro.js] ⚠️ Erro ao carregar FluxoFinanceiroUtils:", error);
-    }
-  }
-
-  if (!FluxoFinanceiroCache) {
-    try {
-      const cacheModule = await import("./fluxo-financeiro/fluxo-financeiro-cache.js");
-      FluxoFinanceiroCache = cacheModule.FluxoFinanceiroCache;
-    } catch (error) {
-      console.warn("[fluxo-financeiro.js] ⚠️ Erro ao carregar FluxoFinanceiroCache:", error);
-    }
-  }
+  
+  console.log("[FLUXO-FINANCEIRO] ✅ Todos os módulos carregados com sucesso");
 }
 
 export async function inicializarFluxoFinanceiro() {
@@ -95,17 +106,37 @@ export async function inicializarFluxoFinanceiro() {
     // Carregar os módulos necessários PRIMEIRO
     await carregarModulos();
 
+    // Verificar se os módulos foram carregados
+    console.log("[FLUXO-FINANCEIRO] 🔍 Verificando módulos carregados:", {
+      FluxoFinanceiroCore: !!FluxoFinanceiroCore,
+      FluxoFinanceiroUI: !!FluxoFinanceiroUI,
+      FluxoFinanceiroUtils: !!FluxoFinanceiroUtils,
+      FluxoFinanceiroCache: !!FluxoFinanceiroCache
+    });
+
     // Inicializar instâncias dos módulos
     if (FluxoFinanceiroCore && FluxoFinanceiroUI && FluxoFinanceiroUtils && FluxoFinanceiroCache) {
-      fluxoFinanceiroCore = new FluxoFinanceiroCore();
-      fluxoFinanceiroUI = new FluxoFinanceiroUI();
-      fluxoFinanceiroUtils = new FluxoFinanceiroUtils();
-      fluxoFinanceiroCache = new FluxoFinanceiroCache();
-      
-      console.log("[FLUXO-FINANCEIRO] ✅ Módulos instanciados com sucesso");
+      try {
+        fluxoFinanceiroCore = new FluxoFinanceiroCore();
+        fluxoFinanceiroUI = new FluxoFinanceiroUI();
+        fluxoFinanceiroUtils = new FluxoFinanceiroUtils();
+        fluxoFinanceiroCache = new FluxoFinanceiroCache();
+        
+        console.log("[FLUXO-FINANCEIRO] ✅ Módulos instanciados com sucesso");
+      } catch (error) {
+        console.error("[FLUXO-FINANCEIRO] ❌ Erro ao instanciar módulos:", error);
+        mostrarErro(`Erro ao instanciar módulos: ${error.message}`);
+        return;
+      }
     } else {
-      console.error("[FLUXO-FINANCEIRO] ❌ Erro ao carregar módulos necessários");
-      mostrarErro("Erro ao carregar módulos do sistema financeiro");
+      const modulosFaltantes = [];
+      if (!FluxoFinanceiroCore) modulosFaltantes.push("FluxoFinanceiroCore");
+      if (!FluxoFinanceiroUI) modulosFaltantes.push("FluxoFinanceiroUI");
+      if (!FluxoFinanceiroUtils) modulosFaltantes.push("FluxoFinanceiroUtils");
+      if (!FluxoFinanceiroCache) modulosFaltantes.push("FluxoFinanceiroCache");
+      
+      console.error("[FLUXO-FINANCEIRO] ❌ Módulos não carregados:", modulosFaltantes);
+      mostrarErro(`Módulos não carregados: ${modulosFaltantes.join(", ")}`);
       return;
     }
 
