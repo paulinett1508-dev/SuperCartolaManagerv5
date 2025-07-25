@@ -551,58 +551,73 @@ export class FluxoFinanceiroCore {
     }, 5 * 60 * 1000); // Cache por 5 minutos
   }
 
-  // Processar detalhamento por rodada
-  processarDetalhamentoPorRodada(dados) {
-    console.log('[FLUXO-CORE] Processando detalhamento por rodada...', dados.length, 'registros');
+  // Obter detalhamento por rodada do cache
+    obterDetalhamentoPorRodada(timeId) {
+        console.log(`📊 [FLUXO-CORE] Buscando detalhamento para time ${timeId}...`);
 
-    const detalhamentoPorRodada = new Map();
+        if (!this.cache || typeof this.cache.getDetalhamentoPorRodada !== 'function') {
+            console.warn('[FLUXO-CORE] Cache não disponível para detalhamento');
+            return [];
+        }
 
-    dados.forEach((item, index) => {
-      console.log(`[FLUXO-CORE] Processando item ${index}:`, {
-        rodada: item.rodada,
-        posicao: item.posicao,
-        bonus: item.bonus,
-        onus: item.onus,
-        timeId: item.timeId
-      });
+        const detalhamento = this.cache.getDetalhamentoPorRodada(timeId);
+        console.log(`📊 [FLUXO-CORE] Detalhamento encontrado: ${detalhamento.length} rodadas`);
 
-      if (!item.rodada || item.rodada === null || item.rodada === undefined) {
-        console.warn(`[FLUXO-CORE] Item ${index} sem rodada válida, ignorando`);
-        return;
-      }
+        return detalhamento;
+    },
 
-      const rodadaKey = String(item.rodada);
+    // Processar detalhamento por rodada
+    processarDetalhamentoPorRodada(dados) {
+        console.log('[FLUXO-CORE] Processando detalhamento por rodada...', dados.length, 'registros');
 
-      if (!detalhamentoPorRodada.has(rodadaKey)) {
-        detalhamentoPorRodada.set(rodadaKey, {
-          rodada: parseInt(item.rodada),
-          posicao: parseInt(item.posicao) || 0,
-          bonusOnus: parseFloat(item.bonus || 0) + parseFloat(item.onus || 0),
-          saldoAcumulado: 0
+        const detalhamentoPorRodada = new Map();
+
+        dados.forEach((item, index) => {
+            console.log(`[FLUXO-CORE] Processando item ${index}:`, {
+                rodada: item.rodada,
+                posicao: item.posicao,
+                bonus: item.bonus,
+                onus: item.onus,
+                timeId: item.timeId
+            });
+
+            if (!item.rodada || item.rodada === null || item.rodada === undefined) {
+                console.warn(`[FLUXO-CORE] Item ${index} sem rodada válida, ignorando`);
+                return;
+            }
+
+            const rodadaKey = String(item.rodada);
+
+            if (!detalhamentoPorRodada.has(rodadaKey)) {
+                detalhamentoPorRodada.set(rodadaKey, {
+                    rodada: parseInt(item.rodada),
+                    posicao: parseInt(item.posicao) || 0,
+                    bonusOnus: parseFloat(item.bonus || 0) + parseFloat(item.onus || 0),
+                    saldoAcumulado: 0
+                });
+            }
+
+            const rodadaData = detalhamentoPorRodada.get(rodadaKey);
+
+            // Atualizar dados da rodada
+            rodadaData.posicao = parseInt(item.posicao) || rodadaData.posicao;
+
+            const bonusValue = parseFloat(item.bonus || 0);
+            const onusValue = parseFloat(item.onus || 0);
+            rodadaData.bonusOnus = bonusValue + onusValue;
         });
-      }
 
-      const rodadaData = detalhamentoPorRodada.get(rodadaKey);
+        const resultado = Array.from(detalhamentoPorRodada.values())
+            .sort((a, b) => a.rodada - b.rodada);
 
-      // Atualizar dados da rodada
-      rodadaData.posicao = parseInt(item.posicao) || rodadaData.posicao;
+        // Calcular saldo acumulado
+        let saldoAcumulado = 0;
+        resultado.forEach(rodada => {
+            saldoAcumulado += rodada.bonusOnus;
+            rodada.saldoAcumulado = saldoAcumulado;
+        });
 
-      const bonusValue = parseFloat(item.bonus || 0);
-      const onusValue = parseFloat(item.onus || 0);
-      rodadaData.bonusOnus = bonusValue + onusValue;
-    });
-
-    const resultado = Array.from(detalhamentoPorRodada.values())
-      .sort((a, b) => a.rodada - b.rodada);
-
-    // Calcular saldo acumulado
-    let saldoAcumulado = 0;
-    resultado.forEach(rodada => {
-      saldoAcumulado += rodada.bonusOnus;
-      rodada.saldoAcumulado = saldoAcumulado;
-    });
-
-    console.log('[FLUXO-CORE] Detalhamento processado:', resultado.length, 'rodadas');
-    return resultado;
-  }
+        console.log('[FLUXO-CORE] Detalhamento processado:', resultado.length, 'rodadas');
+        return resultado;
+    }
 }

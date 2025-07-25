@@ -768,11 +768,11 @@ export async function selecionarParticipante(timeId) {
 
     console.log(`✅ [FLUXO-FINANCEIRO] Participante encontrado:`, participante);
 
-    // Carregar dados financeiros
-    const dadosFinanceiros = await FluxoFinanceiroCore.carregarDadosFinanceiros(timeId);
+    // Carregar dados financeiros usando a instância do core
+    const dadosFinanceiros = await fluxoFinanceiroCore.carregarDadosFinanceiros(timeId);
 
     // Renderizar dados
-    FluxoFinanceiroUI.renderizarDadosParticipante(participante, dadosFinanceiros);
+    fluxoFinanceiroUI.renderizarDadosParticipante(participante, dadosFinanceiros);
 
   } catch (error) {
     console.error(`❌ [FLUXO-FINANCEIRO] Erro ao selecionar participante ${timeId}:`, error);
