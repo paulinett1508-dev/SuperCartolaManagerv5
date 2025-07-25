@@ -58,13 +58,13 @@ export const ArtilheiroCache = {
       agora - cached.timestamp < (ttl || this._getTTLPorTipo(chave))
     ) {
       this._stats.hits++;
-      ArtilheiroUtils.logger.debug(`Cache hit: ${chave}`);
+      console.log(`Cache hit: ${chave}`);
       return cached.data;
     }
 
     // Cache miss - executar função
     this._stats.misses++;
-    ArtilheiroUtils.logger.debug(`Cache miss: ${chave}`);
+    console.log(`Cache miss: ${chave}`);
 
     try {
       const resultado = await funcao();
@@ -75,10 +75,7 @@ export const ArtilheiroCache = {
 
       return resultado;
     } catch (error) {
-      ArtilheiroUtils.logger.error(
-        `Erro ao executar função para cache ${chave}:`,
-        error,
-      );
+      console.error(`Erro ao executar função para cache ${chave}:`, error);
       throw error;
     }
   },
@@ -100,7 +97,7 @@ export const ArtilheiroCache = {
     this._cache.set(chave, entrada);
     this._stats.sets++;
 
-    ArtilheiroUtils.logger.debug(`Cache set: ${chave} (TTL: ${entrada.ttl}ms)`);
+    console.log(`Cache set: ${chave} (TTL: ${entrada.ttl}ms)`);
   },
 
   // Obter valor do cache
@@ -117,7 +114,7 @@ export const ArtilheiroCache = {
     if (agora - cached.timestamp >= cached.ttl) {
       this._cache.delete(chave);
       this._stats.misses++;
-      ArtilheiroUtils.logger.debug(`Cache expired: ${chave}`);
+      console.log(`Cache expired: ${chave}`);
       return null;
     }
 
@@ -135,7 +132,7 @@ export const ArtilheiroCache = {
     const removido = this._cache.delete(chave);
     if (removido) {
       this._stats.deletes++;
-      ArtilheiroUtils.logger.debug(`Cache delete: ${chave}`);
+      console.log(`Cache delete: ${chave}`);
     }
     return removido;
   },
@@ -146,9 +143,7 @@ export const ArtilheiroCache = {
     this._cache.clear();
     this._stats.clears++;
 
-    ArtilheiroUtils.logger.info(
-      `Cache limpo: ${tamanhoAnterior} entradas removidas`,
-    );
+    console.log(`Cache limpo: ${tamanhoAnterior} entradas removidas`);
   },
 
   // Limpar cache por prefixo
@@ -162,7 +157,7 @@ export const ArtilheiroCache = {
       }
     }
 
-    ArtilheiroUtils.logger.info(
+    console.log(
       `Cache limpo por prefixo "${prefixo}": ${removidos} entradas removidas`,
     );
     return removidos;
@@ -181,9 +176,7 @@ export const ArtilheiroCache = {
     }
 
     if (removidos > 0) {
-      ArtilheiroUtils.logger.info(
-        `Cache expirados removidos: ${removidos} entradas`,
-      );
+      console.log(`Cache expirados removidos: ${removidos} entradas`);
     }
 
     return removidos;
@@ -232,7 +225,7 @@ export const ArtilheiroCache = {
 
   // Pré-carregar dados importantes
   async precarregar(ligaId, participantes = []) {
-    ArtilheiroUtils.logger.info("🔄 Pré-carregando cache importante...");
+    console.log("🔄 Pré-carregando cache importante...");
 
     try {
       const promises = [];
@@ -247,9 +240,9 @@ export const ArtilheiroCache = {
 
       await Promise.allSettled(promises);
 
-      ArtilheiroUtils.logger.success("✅ Pré-carregamento concluído");
+      console.log("✅ Pré-carregamento concluído");
     } catch (error) {
-      ArtilheiroUtils.logger.error("❌ Erro no pré-carregamento:", error);
+      console.error("❌ Erro no pré-carregamento:", error);
     }
   },
 
@@ -329,9 +322,7 @@ export const ArtilheiroCache = {
 
     if (chaveAntiga) {
       this._cache.delete(chaveAntiga);
-      ArtilheiroUtils.logger.debug(
-        `Entrada mais antiga removida: ${chaveAntiga}`,
-      );
+      console.log(`Entrada mais antiga removida: ${chaveAntiga}`);
     }
   },
 
@@ -349,7 +340,7 @@ export const ArtilheiroCache = {
       this._cache.delete(chave);
     }
 
-    ArtilheiroUtils.logger.info(
+    console.log(
       `${quantidadeRemover} entradas grandes removidas para liberar memória`,
     );
   },
@@ -387,9 +378,7 @@ export const ArtilheiroCache = {
       this.limparExpirados();
     }, intervalo);
 
-    ArtilheiroUtils.logger.info(
-      `🧹 Limpeza automática iniciada (intervalo: ${intervalo}ms)`,
-    );
+    console.log(`🧹 Limpeza automática iniciada (intervalo: ${intervalo}ms)`);
   },
 };
 

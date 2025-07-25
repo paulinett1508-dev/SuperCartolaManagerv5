@@ -1,241 +1,233 @@
-// ✅ ARTILHEIRO-CAMPEAO-UTILS.JS v1.0
-// Utilitários compartilhados do sistema de artilheiros
+// ✅ ARTILHEIRO-CAMPEAO-UTILS.JS - Utilitários do módulo Artilheiro Campeão
+console.log("🔧 [ARTILHEIRO-UTILS] Módulo de utilitários carregando...");
 
-console.log("🛠️ [ARTILHEIRO-UTILS] Módulo v1.0 carregando...");
+// ===== UTILITÁRIOS PARA ARTILHEIRO CAMPEÃO =====
+const ArtilheiroUtils = {
+    version: "1.0.0",
 
-// ✅ CONFIGURAÇÕES
-const UTILS_CONFIG = {
-  maxRetries: 3,
-  retryDelay: 1000,
-  defaultTimeout: 10000
+    // Formatar saldo de gols
+    formatarSaldo(numero) {
+        if (typeof numero !== "number") return "0";
+        if (numero > 0) return `+${numero}`;
+        if (numero < 0) return `${numero}`;
+        return "0";
+    },
+
+    // Truncar texto para exibição
+    truncarTexto(texto, maxLength = 20) {
+        if (!texto) return "N/D";
+        if (typeof texto !== "string") return String(texto);
+        return texto.length > maxLength
+            ? texto.substring(0, maxLength - 3) + "..."
+            : texto;
+    },
+
+    // Calcular saldo de gols
+    calcularSaldoGols(golsPro, golsContra) {
+        const pro = parseInt(golsPro) || 0;
+        const contra = parseInt(golsContra) || 0;
+        return pro - contra;
+    },
+
+    // Validar dados do participante
+    validarParticipante(participante) {
+        if (!participante) return false;
+        return !!(participante.nomeCartoleiro && participante.timeId);
+    },
+
+    // Ordenar participantes por saldo de gols
+    ordenarPorSaldoGols(participantes) {
+        return [...participantes].sort((a, b) => {
+            // Primeiro por saldo de gols (decrescente)
+            const saldoA = this.calcularSaldoGols(a.golsPro, a.golsContra);
+            const saldoB = this.calcularSaldoGols(b.golsPro, b.golsContra);
+
+            if (saldoB !== saldoA) return saldoB - saldoA;
+
+            // Depois por gols pró (decrescente)
+            if (b.golsPro !== a.golsPro) return b.golsPro - a.golsPro;
+
+            // Por último por gols contra (crescente)
+            return a.golsContra - b.golsContra;
+        });
+    },
+
+    // Calcular estatísticas gerais
+    calcularEstatisticas(participantes) {
+        if (!Array.isArray(participantes) || participantes.length === 0) {
+            return {
+                totalGolsPro: 0,
+                totalGolsContra: 0,
+                participantesAtivos: 0,
+                mediaGolsPro: 0,
+                mediaGolsContra: 0,
+            };
+        }
+
+        const totalGolsPro = participantes.reduce(
+            (acc, p) => acc + (p.golsPro || 0),
+            0,
+        );
+        const totalGolsContra = participantes.reduce(
+            (acc, p) => acc + (p.golsContra || 0),
+            0,
+        );
+        const participantesAtivos = participantes.filter((p) =>
+            this.validarParticipante(p),
+        ).length;
+
+        return {
+            totalGolsPro,
+            totalGolsContra,
+            participantesAtivos,
+            mediaGolsPro:
+                participantesAtivos > 0
+                    ? (totalGolsPro / participantesAtivos).toFixed(1)
+                    : 0,
+            mediaGolsContra:
+                participantesAtivos > 0
+                    ? (totalGolsContra / participantesAtivos).toFixed(1)
+                    : 0,
+        };
+    },
+
+    // Formatar dados do participante para exibição
+    formatarParticipante(participante, posicao) {
+        if (!this.validarParticipante(participante)) {
+            return null;
+        }
+
+        const golsPro = parseInt(participante.golsPro) || 0;
+        const golsContra = parseInt(participante.golsContra) || 0;
+        const saldoGols = this.calcularSaldoGols(golsPro, golsContra);
+
+        return {
+            ...participante,
+            posicao: posicao + 1,
+            golsPro,
+            golsContra,
+            saldoGols,
+            nomeCartoleiro: this.truncarTexto(participante.nomeCartoleiro, 25),
+            nomeTime: this.truncarTexto(participante.nomeTime, 20),
+        };
+    },
+
+    // Filtrar participantes válidos
+    filtrarParticipantesValidos(participantes) {
+        if (!Array.isArray(participantes)) return [];
+        return participantes.filter((p) => this.validarParticipante(p));
+    },
+
+    // Verificar se é o artilheiro (primeiro lugar)
+    ehArtilheiro(participante, todosParticipantes) {
+        if (!participante || !Array.isArray(todosParticipantes)) return false;
+
+        const ordenados = this.ordenarPorSaldoGols(todosParticipantes);
+        return (
+            ordenados.length > 0 && ordenados[0].timeId === participante.timeId
+        );
+    },
+
+    // Gerar resumo textual do participante
+    gerarResumoParticipante(participante) {
+        if (!this.validarParticipante(participante)) {
+            return "Participante inválido";
+        }
+
+        const saldo = this.calcularSaldoGols(
+            participante.golsPro,
+            participante.golsContra,
+        );
+        const saldoTexto = this.formatarSaldo(saldo);
+
+        return `${participante.nomeCartoleiro}: ${participante.golsPro} gols pró, ${participante.golsContra} contra (${saldoTexto})`;
+    },
+
+    // Debugging - log detalhado do participante
+    debugParticipante(participante, index) {
+        console.log(`🔍 [DEBUG] Participante ${index}:`, {
+            nomeCartoleiro: participante.nomeCartoleiro,
+            nomeTime: participante.nomeTime,
+            timeId: participante.timeId,
+            golsPro: participante.golsPro,
+            golsContra: participante.golsContra,
+            saldoCalculado: this.calcularSaldoGols(
+                participante.golsPro,
+                participante.golsContra,
+            ),
+            valido: this.validarParticipante(participante),
+        });
+    },
+
+    // Criar dados de exemplo para testes
+    criarDadosExemplo() {
+        return [
+            {
+                nomeCartoleiro: "João Silva",
+                nomeTime: "Time Exemplo 1",
+                timeId: "123",
+                golsPro: 15,
+                golsContra: 3,
+                clubeId: "1",
+            },
+            {
+                nomeCartoleiro: "Maria Santos",
+                nomeTime: "Time Exemplo 2",
+                timeId: "456",
+                golsPro: 12,
+                golsContra: 5,
+                clubeId: "2",
+            },
+        ];
+    },
+
+    // Validar estrutura dos dados de entrada
+    validarEstruturaDados(dados) {
+        if (!Array.isArray(dados)) {
+            console.warn("⚠️ [ARTILHEIRO-UTILS] Dados não são um array");
+            return false;
+        }
+
+        if (dados.length === 0) {
+            console.warn("⚠️ [ARTILHEIRO-UTILS] Array de dados está vazio");
+            return false;
+        }
+
+        const participantesValidos = dados.filter((p) =>
+            this.validarParticipante(p),
+        );
+        if (participantesValidos.length === 0) {
+            console.warn(
+                "⚠️ [ARTILHEIRO-UTILS] Nenhum participante válido encontrado",
+            );
+            return false;
+        }
+
+        console.log(
+            `✅ [ARTILHEIRO-UTILS] ${participantesValidos.length} participantes válidos de ${dados.length} total`,
+        );
+        return true;
+    },
 };
 
-// ✅ UTILITÁRIOS CORE
-export const ArtilheiroUtils = {
-  version: "1.0.0",
+// ===== FUNÇÕES UTILITÁRIAS GLOBAIS =====
 
-  // Fazer requisição com retry inteligente
-  async fazerRequisicao(url, options = {}) {
-    for (let tentativa = 1; tentativa <= UTILS_CONFIG.maxRetries; tentativa++) {
-      try {
-        console.log(`🔗 [UTILS] Requisição ${tentativa}/${UTILS_CONFIG.maxRetries}: ${url}`);
+// Função global para calcular saldo
+window.calcularSaldoGols = (golsPro, golsContra) => {
+    return ArtilheiroUtils.calcularSaldoGols(golsPro, golsContra);
+};
 
-        const response = await fetch(url, {
-          ...options,
-          timeout: UTILS_CONFIG.defaultTimeout,
-          headers: {
-            'Content-Type': 'application/json',
-            'User-Agent': 'Cartola-League-Manager/3.0',
-            ...options.headers,
-          },
-        });
+// Função global para formatar saldo
+window.formatarSaldoGols = (numero) => {
+    return ArtilheiroUtils.formatarSaldo(numero);
+};
 
-        if (!response.ok) {
-          throw new Error(`HTTP ${response.status}: ${response.statusText}`);
-        }
+// ===== DISPONIBILIZAR GLOBALMENTE =====
+if (typeof window !== "undefined") {
+    window.ArtilheiroUtils = ArtilheiroUtils;
+}
 
-        const data = await response.json();
-        return { success: true, data };
+console.log("✅ [ARTILHEIRO-UTILS] Utilitários carregados com sucesso!");
 
-      } catch (error) {
-        console.warn(`⚠️ [UTILS] Tentativa ${tentativa} falhou:`, error.message);
-
-        if (tentativa === UTILS_CONFIG.maxRetries) {
-          return { success: false, error: error.message };
-        }
-
-        // Delay progressivo entre tentativas
-        await this.delay(UTILS_CONFIG.retryDelay * tentativa);
-      }
-    }
-  },
-
-  // Delay simples
-  delay(ms) {
-    return new Promise(resolve => setTimeout(resolve, ms));
-  },
-
-  // Validar estrutura de dados
-  validarDados(dados, campos = []) {
-    if (!dados) {
-      throw new Error("Dados não fornecidos");
-    }
-
-    campos.forEach(campo => {
-      if (!(campo in dados)) {
-        throw new Error(`Campo obrigatório ausente: ${campo}`);
-      }
-    });
-
-    return true;
-  },
-
-  // Validar se é um array não vazio
-  validarArray(array, nome = "array") {
-    if (!Array.isArray(array)) {
-      throw new Error(`${nome} deve ser um array`);
-    }
-
-    if (array.length === 0) {
-      throw new Error(`${nome} não pode estar vazio`);
-    }
-
-    return true;
-  },
-
-  // Formatar nome para exibição
-  formatarNome(nome, maxLength = 20) {
-    if (!nome) return "N/D";
-    if (typeof nome !== 'string') return String(nome);
-
-    return nome.length > maxLength ? 
-      nome.substring(0, maxLength - 3) + "..." : 
-      nome;
-  },
-
-  // Formatar número com sinal
-  formatarSaldo(numero) {
-    if (typeof numero !== 'number') return "0";
-
-    if (numero > 0) return `+${numero}`;
-    if (numero < 0) return `${numero}`;
-    return "0";
-  },
-
-  // Formatar número com separador de milhares
-  formatarNumero(numero, casasDecimais = 0) {
-    if (typeof numero !== 'number') return "0";
-
-    return numero.toLocaleString('pt-BR', {
-      minimumFractionDigits: casasDecimais,
-      maximumFractionDigits: casasDecimais
-    });
-  },
-
-  // Calcular média
-  calcularMedia(valores, casasDecimais = 2) {
-    if (!Array.isArray(valores) || valores.length === 0) return 0;
-
-    const soma = valores.reduce((acc, val) => acc + (val || 0), 0);
-    const media = soma / valores.length;
-
-    return parseFloat(media.toFixed(casasDecimais));
-  },
-
-  // Calcular porcentagem
-  calcularPorcentagem(parte, total, casasDecimais = 1) {
-    if (!total || total === 0) return 0;
-
-    const porcentagem = (parte / total) * 100;
-    return parseFloat(porcentagem.toFixed(casasDecimais));
-  },
-
-  // Ordenar array por múltiplos critérios
-  ordenarPorCriterios(array, criterios) {
-    return array.sort((a, b) => {
-      for (const criterio of criterios) {
-        const { campo, ordem = 'desc' } = criterio;
-
-        let valorA = a[campo];
-        let valorB = b[campo];
-
-        // Converter para números se possível
-        if (!isNaN(valorA)) valorA = parseFloat(valorA);
-        if (!isNaN(valorB)) valorB = parseFloat(valorB);
-
-        if (valorA !== valorB) {
-          if (ordem === 'desc') {
-            return valorB > valorA ? 1 : -1;
-          } else {
-            return valorA > valorB ? 1 : -1;
-          }
-        }
-      }
-      return 0;
-    });
-  },
-
-  // Debounce para evitar múltiplas chamadas
-  debounce(func, delay) {
-    let timeoutId;
-    return function (...args) {
-      clearTimeout(timeoutId);
-      timeoutId = setTimeout(() => func.apply(this, args), delay);
-    };
-  },
-
-  // Throttle para limitar frequência de chamadas
-  throttle(func, limit) {
-    let inThrottle;
-    return function (...args) {
-      if (!inThrottle) {
-        func.apply(this, args);
-        inThrottle = true;
-        setTimeout(() => inThrottle = false, limit);
-      }
-    };
-  },
-
-  // Gerar ID único
-  gerarId() {
-    return Date.now().toString(36) + Math.random().toString(36).substr(2);
-  },
-
-  // Sanitizar string para uso em HTML
-  sanitizarHTML(str) {
-    if (!str) return '';
-
-    const map = {
-      '&': '&amp;',
-      '<': '&lt;',
-      '>': '&gt;',
-      '"': '&quot;',
-      "'": '&#39;'
-    };
-
-    return str.replace(/[&<>"']/g, (m) => map[m]);
-  },
-
-  // Formatar data
-  formatarData(data, formato = 'completo') {
-    if (!data) return 'N/D';
-
-    const dataObj = data instanceof Date ? data : new Date(data);
-
-    if (isNaN(dataObj.getTime())) return 'Data inválida';
-
-    const opcoes = {
-      'completo': {
-        year: 'numeric',
-        month: 'long',
-        day: 'numeric',
-        hour: '2-digit',
-        minute: '2-digit'
-      },
-      'data': {
-        year: 'numeric',
-        month: '2-digit',
-        day: '2-digit'
-      },
-      'hora': {
-        hour: '2-digit',
-        minute: '2-digit'
-      },
-      'relativo': null // Será tratado separadamente
-    };
-
-    if (formato === 'relativo') {
-      return this.formatarDataRelativa(dataObj);
-    }
-
-    return dataObj.toLocaleDateString('pt-BR', opcoes[formato] || opcoes.completo);
-  },
-
-  // Formatar data relativa (há X minutos, há X horas, etc)
-  formatarDataRelativa(data) {
-    const agora = new Date();
-    const diferenca = agora.getTime() - data.getTime();
-
-    const minutos = Math.floor(diferenca / (1000 * 60));
-    const horas = Math.floor(diferenca / (1000 * 60 * 60));
-    const dias = Math.floor(diferenca / (1000 * 60 *
+export { ArtilheiroUtils };
+export default ArtilheiroUtils;
