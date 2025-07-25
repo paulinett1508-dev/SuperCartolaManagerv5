@@ -337,13 +337,17 @@ async function calcularEExibirExtrato(timeId) {
         .getParticipantes()
         .find((p) => p.time_id === timeId);
     if (!participante) {
+        console.error(`[FLUXO-FINANCEIRO] ❌ Participante ${timeId} não encontrado`);
         _renderizarErroParticipante();
         return;
     }
 
+    console.log(`[FLUXO-FINANCEIRO] ✅ Participante encontrado:`, participante);
+
     try {
         // Garantir que o cache está carregado
         if (Object.keys(fluxoFinanceiroCache.cacheRankings).length === 0) {
+            console.log("[FLUXO-FINANCEIRO] 🔄 Cache vazio, carregando dados...");
             const container = document.getElementById("fluxoFinanceiroContent");
             await fluxoFinanceiroCache.carregarCacheRankingsEmLotes(
                 ultimaRodadaCompleta,
@@ -351,11 +355,18 @@ async function calcularEExibirExtrato(timeId) {
             );
         }
 
+        // Debug do cache antes do cálculo
+        console.log("[FLUXO-FINANCEIRO] 🔍 Verificando estado do cache...");
+        fluxoFinanceiroCache.debugCache();
+
         // ✅ CORREÇÃO: Usar função corrigida através do core
+        console.log(`[FLUXO-FINANCEIRO] 📊 Iniciando cálculo do extrato para time ${timeId}...`);
         const extrato = fluxoFinanceiroCore.calcularExtratoFinanceiro(
             timeId,
             ultimaRodadaCompleta,
         );
+
+        console.log("[FLUXO-FINANCEIRO] 📊 Extrato calculado:", extrato);
 
         // Renderizar extrato
         fluxoFinanceiroUI.renderizarExtratoFinanceiro(
