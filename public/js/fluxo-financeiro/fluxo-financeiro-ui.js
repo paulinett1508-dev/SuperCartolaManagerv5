@@ -663,6 +663,71 @@ class FluxoFinanceiroUI {
 
     console.log("🎨 [FLUXO-UI] Dados formatados para renderização:", dadosParticipante);
 }
+  // Renderizar detalhamento por rodada
+  renderizarDethamentoPorRodada(detalhamentos, container) {
+    console.log('[FLUXO-UI] Renderizando detalhamentos:', detalhamentos?.length || 0, 'rodadas');
+
+    if (!detalhamentos || detalhamentos.length === 0) {
+      container.innerHTML = `
+        <div style="text-align: center; padding: 40px; color: #666;">
+          <h3>📊 Nenhuma rodada processada ainda</h3>
+          <p>Os detalhamentos aparecerão conforme as rodadas forem coletadas.</p>
+          <p style="font-size: 0.9em; color: #999; margin-top: 15px;">
+            Certifique-se de que o participante foi selecionado corretamente.
+          </p>
+        </div>
+      `;
+      return;
+    }
+
+    const tabela = `
+      <div class="detalhamento-header">
+        <h3>📋 Detalhamento por Rodada</h3>
+        <p>${detalhamentos.length} rodada(s) processada(s)</p>
+      </div>
+      <table class="fluxo-detalhamento-table">
+        <thead>
+          <tr>
+            <th style="width: 80px;">Rodada</th>
+            <th style="width: 80px;">Posição</th>
+            <th style="width: 120px;">Bônus/Ônus</th>
+            <th style="width: 120px;">Saldo Acumulado</th>
+          </tr>
+        </thead>
+        <tbody>
+          ${detalhamentos.map((item, index) => {
+            const bonusOnus = parseFloat(item.bonusOnus || 0);
+            const saldoAcumulado = parseFloat(item.saldoAcumulado || 0);
+
+            return `
+              <tr>
+                <td style="text-align: center; font-weight: bold;">${item.rodada}</td>
+                <td style="text-align: center;">${item.posicao}º</td>
+                <td style="text-align: center;" class="${bonusOnus > 0 ? 'positivo' : bonusOnus < 0 ? 'negativo' : 'neutro'}">
+                  ${this.formatarValor(bonusOnus)}
+                </td>
+                <td style="text-align: center;" class="${saldoAcumulado > 0 ? 'positivo' : saldoAcumulado < 0 ? 'negativo' : 'neutro'}">
+                  ${this.formatarValor(saldoAcumulado)}
+                </td>
+              </tr>
+            `;
+          }).join('')}
+        </tbody>
+      </table>
+    `;
+
+    container.innerHTML = tabela;
+    console.log('[FLUXO-UI] Detalhamentos renderizados com sucesso');
+  }
+
+    /**
+     * Formatar valor
+     */
+    formatarValor(valor) {
+        if (typeof valor !== 'number') return '-';
+        const valorFormatado = `R$ ${Math.abs(valor).toFixed(2).replace('.', ',')}`;
+        return valor >= 0 ? `+${valorFormatado}` : `-${valorFormatado}`;
+    }
 }
 
 // ===== DISPONIBILIZAR GLOBALMENTE =====

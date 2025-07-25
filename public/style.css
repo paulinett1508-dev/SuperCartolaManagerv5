@@ -866,8 +866,7 @@ tr:last-child td { border-bottom: none; }
 
 .time-card:hover {
   transform: translateY(-2px);
-  box-shadow: 0 4px 12px rgba(0,0,0,0.1);
-  border-color: var(--info-color);
+  box-shadow: 0 4px 12px rgba(0,0,0,0.1);  border-color: var(--info-color);
 }
 
 .time-card img {
@@ -1316,4 +1315,81 @@ tr:last-child td { border-bottom: none; }
   background: #d1ecf1;
   color: #0c5460;
   border: 1px solid #bee5eb;
+}
+
+/* Estilos para tabelas de ranking */
+.ranking-table {
+  width: 100%;
+  border-collapse: collapse;
+  margin: 20px 0;
+  font-size: 14px;
+  background: white;
+  border-radius: 8px;
+  overflow: hidden;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+}
+
+/* Estilos específicos para tabela de detalhamentos do fluxo financeiro */
+.fluxo-detalhamento-table {
+  width: 100%;
+  border-collapse: collapse;
+  margin: 20px 0;
+  font-size: 14px;
+  background: white;
+  border-radius: 8px;
+  overflow: hidden;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+}
+
+.fluxo-detalhamento-table th {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+  padding: 12px 8px;
+  text-align: center;
+  font-weight: 600;
+  font-size: 13px;
+}
+
+.fluxo-detalhamento-table td {
+  padding: 10px 8px;
+  border-bottom: 1px solid #e1e8ed;
+  vertical-align: middle;
+}
+
+.fluxo-detalhamento-table tbody tr:hover {
+  background-color: #f8f9fa;
+}
+
+.fluxo-detalhamento-table .positivo {
+  color: #28a745;
+  font-weight: bold;
+}
+
+.fluxo-detalhamento-table .negativo {
+  color: #dc3545;
+  font-weight: bold;
+}
+
+.fluxo-detalhamento-table .neutro {
+  color: #6c757d;
+}
+
+.detalhamento-header {
+  text-align: center;
+  margin: 20px 0;
+  padding: 15px;
+  background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+  border-radius: 8px;
+  border-left: 4px solid #667eea;
+}
+
+.detalhamento-header h3 {
+  margin: 0 0 5px 0;
+  color: #495057;
+}
+
+.detalhamento-header p {
+  margin: 0;
+  color: #6c757d;
+  font-size: 14px;
 }
