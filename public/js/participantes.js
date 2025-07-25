@@ -5,29 +5,48 @@ const ligaId = urlParams.get("id");
 // NÃO interfere com a lógica existente de carregarDetalhesLiga()
 export async function carregarDadosBasicos() {
   try {
-    if (!ligaId) return;
+    if (!ligaId) {
+      console.warn("Liga ID não encontrado na URL");
+      return;
+    }
 
     console.log(`Carregando dados básicos da liga: ${ligaId}`);
 
     const res = await fetch(`/api/ligas/${ligaId}`);
-    if (!res.ok) return;
+    if (!res.ok) {
+      console.warn(`Erro ao buscar liga: ${res.status} ${res.statusText}`);
+      return;
+    }
 
     const liga = await res.json();
-    if (!liga || !liga.nome) return;
+    if (!liga) {
+      console.warn("Liga não encontrada");
+      return;
+    }
 
-    // Atualiza apenas os elementos básicos
-    document.getElementById("nomeLiga").textContent = `🏆 ${liga.nome}`;
-    document.getElementById("quantidadeTimes").textContent =
-      liga.times && Array.isArray(liga.times)
-        ? `${liga.times.length} participantes`
-        : "0 participantes";
+    // Atualiza os elementos básicos
+    const nomeElement = document.getElementById("nomeLiga");
+    const quantidadeElement = document.getElementById("quantidadeTimes");
+    
+    if (nomeElement) {
+      nomeElement.textContent = `🏆 ${liga.nome || "Liga"}`;
+    }
+    
+    if (quantidadeElement) {
+      // Verifica se tem participantes ou times
+      const participantes = liga.participantes || liga.times || [];
+      const quantidade = Array.isArray(participantes) ? participantes.length : 0;
+      quantidadeElement.textContent = `${quantidade} participantes`;
+    }
 
     console.log(
-      `✅ Dados básicos carregados: ${liga.nome} - ${liga.times?.length || 0} participantes`,
+      `✅ Dados básicos carregados: ${liga.nome} - ${(liga.participantes || liga.times || []).length} participantes`,
     );
+    
+    return liga;
   } catch (err) {
-    console.log("Info: Dados básicos não carregados automaticamente");
-    // Não exibe erro para não poluir a interface
+    console.error("Erro ao carregar dados básicos:", err);
+    // Não exibe erro para não poluir a interface, mas loga para debug
   }
 }
 
