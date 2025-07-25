@@ -338,13 +338,7 @@ function criarLayoutMataMata({
             font: 600 ${TEMPLATE_CONFIG.fonts.heading} Inter, sans-serif;
             margin: 0 0 2px 0;
             color: #856404;
-          ">Rodada Pendente</h3>
-          <p style="
-            font: ${TEMPLATE_CONFIG.fonts.body} Inter, sans-serif;
-            margin: 0;
-            color: #856404;
-          ">Os resultados serão definidos após o fechamento do mercado.</p>
-        </div>
+          </div>
       `
           : ""
       }

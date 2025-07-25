@@ -1,6 +1,6 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="pt-BR">
-<head>
+  <head>
     <link rel="icon" type="image/png" href="/favicon.png" />
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
@@ -8,7 +8,6 @@
     <link rel="stylesheet" href="style.css" />
     <!-- Adiciona html2canvas para exportação de imagem -->
     <script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
-</head>
     <style>
       .mito-highlight {
         background-color: #cceeff !important;
@@ -181,6 +180,11 @@
     <div id="debug-panel" style="display: none">
       <strong>Status dos Módulos:</strong>
       <div id="debug-content"></div>
+    </div>
+
+    <div id="global-loading" class="loading-container" style="display: none">
+      <div class="loading-spinner"></div>
+      <p>Inicializando aplicação...</p>
     </div>
 
     <div class="container">
@@ -438,7 +442,7 @@
             "carregarDetalhesLiga",
             "toggleParticipants",
             "carregarDadosBasicos",
-          ], // MODIFICAÇÃO: Adiciona nova função
+          ],
           critico: true,
         },
         {
@@ -497,7 +501,9 @@
         },
       ];
 
-      const modulosCarregados = {};
+      // Tornar modulosCarregados disponível globalmente
+      window.modulosCarregados = {};
+      const modulosCarregados = window.modulosCarregados;
       let modulo_participantes_ok = false;
       let participantesCarregados = false;
 
@@ -604,10 +610,9 @@
         }
       }
 
-      // Função para executar ação da aba
+      // ✅ CORREÇÃO: Função unificada executarAcaoAba
       async function executarAcaoAba(tabId) {
         console.log(`🎯 Executando ação da aba: ${tabId}`);
-
         try {
           switch (tabId) {
             case "participantes":
@@ -698,18 +703,12 @@
         }
       }
 
-      // Inicialização
-      document.addEventListener("DOMContentLoaded", async () => {
+      // ✅ CORREÇÃO: Função atualizarPagina unificada
+      async function atualizarPagina() {
         console.log("🎯 DOM carregado, iniciando aplicação...");
 
-        if (debugMode) {
-          debugPanel.style.display = "block";
-          debugContent.innerHTML =
-            "<div><strong>Iniciando debug...</strong></div>";
-        }
-
         try {
-          // MODIFICAÇÃO: Carregar dados básicos automaticamente
+          // Carregar dados básicos automaticamente
           console.log("📦 Carregando dados básicos da liga...");
           await fallbackFunctions.carregarDetalhesLigaBasico();
 
@@ -822,6 +821,21 @@
         } catch (error) {
           console.error("❌ Erro crítico:", error);
           mostrarErroGlobal("Erro crítico na inicialização", error);
+        }
+      }
+
+      // ✅ Event listener para DOMContentLoaded
+      document.addEventListener("DOMContentLoaded", async () => {
+        const globalLoading = document.getElementById("global-loading");
+        globalLoading.style.display = "block"; // Mostra spinner global
+
+        try {
+          await atualizarPagina();
+        } catch (error) {
+          console.error("❌ Erro ao atualizar página:", error);
+          mostrarErroGlobal("Erro ao atualizar a página", error);
+        } finally {
+          globalLoading.style.display = "none"; // Oculta após carregamento
         }
       });
     </script>

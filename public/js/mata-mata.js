@@ -150,7 +150,7 @@ const edicoes = [
     nome: "3ª Edição",
     rodadaInicial: 16,
     rodadaFinal: 21,
-    rodadaDefinicao: 16,
+    rodadaDefinicao: 15,
     ativo: false,
   },
   {
@@ -158,7 +158,7 @@ const edicoes = [
     nome: "4ª Edição",
     rodadaInicial: 23,
     rodadaFinal: 28,
-    rodadaDefinicao: 23,
+    rodadaDefinicao: 22,
     ativo: false,
   },
   {
@@ -166,7 +166,7 @@ const edicoes = [
     nome: "5ª Edição",
     rodadaInicial: 30,
     rodadaFinal: 35,
-    rodadaDefinicao: 30,
+    rodadaDefinicao: 29,
     ativo: false,
   },
 ];
@@ -588,7 +588,7 @@ async function carregarFase(fase, ligaId) {
         "text-align: center; margin-top: 15px; padding: 10px; background: #fff3cd; border: 1px solid #ffeaa7; border-radius: 6px; color: #856404;";
       msgContainer.innerHTML = `
         <strong>⏰ Rodada Pendente</strong><br>
-        A Rodada ${rodadaPontosNum} ainda não ocorreu. Os resultados serão definidos após o fechamento do mercado.
+        A Rodada ${rodadaPontosNum} ainda não ocorreu.
       `;
       contentElement.appendChild(msgContainer);
     }
