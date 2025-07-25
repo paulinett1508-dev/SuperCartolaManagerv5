@@ -92,6 +92,7 @@ export async function inicializarFluxoFinanceiro() {
     // Inicializar cache primeiro
     if (!fluxoFinanceiroCache && FluxoFinanceiroCache) {
       fluxoFinanceiroCache = new FluxoFinanceiroCache();
+      window.fluxoFinanceiroCache = fluxoFinanceiroCache; // Expor globalmente
     }
 
     // Inicializar core com o cache
@@ -141,6 +142,9 @@ export async function inicializarFluxoFinanceiro() {
 
     // Renderizar interface
     await fluxoFinanceiroUI.renderizarInterface();
+
+    // Expor função globalmente para uso pelos botões
+    window.calcularEExibirExtrato = calcularEExibirExtrato;
 
     console.log("[fluxo-financeiro.js] ✅ Fluxo financeiro inicializado com sucesso");
   } catch (error) {
