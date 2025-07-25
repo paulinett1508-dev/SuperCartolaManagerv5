@@ -89,26 +89,32 @@ export async function inicializarFluxoFinanceiro() {
     // Carregar módulos dinamicamente
     await carregarModulos();
 
-    // Inicializar os módulos se ainda não foram inicializados
-    if (!fluxoFinanceiroCore && FluxoFinanceiroCore) {
-      fluxoFinanceiroCore = new FluxoFinanceiroCore();
-    }
-    if (!fluxoFinanceiroUI && FluxoFinanceiroUI) {
-      fluxoFinanceiroUI = new FluxoFinanceiroUI();
-    }
-    if (!fluxoFinanceiroUtils && FluxoFinanceiroUtils) {
-      fluxoFinanceiroUtils = new FluxoFinanceiroUtils();
-    }
+    // Inicializar cache primeiro
     if (!fluxoFinanceiroCache && FluxoFinanceiroCache) {
       fluxoFinanceiroCache = new FluxoFinanceiroCache();
     }
 
+    // Inicializar core com o cache
+    if (!fluxoFinanceiroCore && FluxoFinanceiroCore && fluxoFinanceiroCache) {
+      fluxoFinanceiroCore = new FluxoFinanceiroCore(fluxoFinanceiroCache);
+    }
+
+    // Inicializar UI
+    if (!fluxoFinanceiroUI && FluxoFinanceiroUI) {
+      fluxoFinanceiroUI = new FluxoFinanceiroUI();
+    }
+
+    // Inicializar utils
+    if (!fluxoFinanceiroUtils && FluxoFinanceiroUtils) {
+      fluxoFinanceiroUtils = new FluxoFinanceiroUtils();
+    }
+
     // Verificar se os módulos foram carregados com sucesso
-    if (!fluxoFinanceiroCore || !fluxoFinanceiroUI) {
+    if (!fluxoFinanceiroCore || !fluxoFinanceiroUI || !fluxoFinanceiroCache) {
       console.error("[fluxo-financeiro.js] ❌ Módulos essenciais não puderam ser carregados");
 
       // Fallback: mostrar mensagem de erro na interface
-      const container = document.getElementById("fluxo-financeiro");
+      const container = document.getElementById("fluxoFinanceiroContent");
       if (container) {
         container.innerHTML = `
           <div style="text-align: center; padding: 40px 20px; color: #721c24; background: #f8d7da; border: 1px solid #f5c6cb; border-radius: 8px; margin: 20px 0;">
@@ -123,15 +129,17 @@ export async function inicializarFluxoFinanceiro() {
       return;
     }
 
-        // 1. Renderizar loading inicial
-        fluxoFinanceiroUI.renderizarLoadingComProgresso(
-            "Carregando dados financeiros...",
-            "Isso pode levar alguns instantes",
-        );
-        fluxoFinanceiroUI.limparContainers();
+    // Renderizar loading inicial
+    fluxoFinanceiroUI.renderizarLoadingComProgresso(
+        "Carregando dados financeiros...",
+        "Isso pode levar alguns instantes",
+    );
+    fluxoFinanceiroUI.limparContainers();
 
-    // Carregar dados e renderizar interface
-    await fluxoFinanceiroCore.carregarDados();
+    // Carregar dados no cache
+    await fluxoFinanceiroCache.carregarDadosExternos();
+
+    // Renderizar interface
     await fluxoFinanceiroUI.renderizarInterface();
 
     console.log("[fluxo-financeiro.js] ✅ Fluxo financeiro inicializado com sucesso");
