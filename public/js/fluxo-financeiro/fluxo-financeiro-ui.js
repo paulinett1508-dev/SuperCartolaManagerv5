@@ -74,17 +74,76 @@ class FluxoFinanceiroUI {
     async renderizarInterface() {
         console.log("[FLUXO-FINANCEIRO-UI] 🎨 Renderizando interface...");
         
-        // Aqui seria implementada a lógica de renderização da interface
-        // Por enquanto, vamos apenas mostrar uma mensagem
-        const container = document.getElementById("fluxoFinanceiroContent");
-        if (container) {
-            container.innerHTML = `
-                <div style="text-align: center; padding: 40px 20px;">
-                    <h3>💰 Fluxo Financeiro</h3>
-                    <p>Interface em desenvolvimento...</p>
-                </div>
-            `;
+        // Importar módulos necessários dinamicamente
+        const { FluxoFinanceiroCache } = await import("./fluxo-financeiro-cache.js");
+        
+        if (!window.fluxoFinanceiroCache) {
+            console.error("[FLUXO-FINANCEIRO-UI] Cache não inicializado");
+            return;
         }
+
+        const participantes = window.fluxoFinanceiroCache.getParticipantes();
+        
+        if (!participantes || participantes.length === 0) {
+            this.mostrarErro("Nenhum participante encontrado para gerar o fluxo financeiro.");
+            return;
+        }
+
+        // Renderizar botões dos participantes
+        this.renderizarBotoesParticipantes(participantes);
+        
+        // Renderizar mensagem inicial
+        this.renderizarMensagemInicial();
+    }
+
+    /**
+     * Renderiza botões dos participantes
+     */
+    renderizarBotoesParticipantes(participantes) {
+        const container = document.getElementById("fluxoFinanceiroButtons");
+        if (!container) return;
+
+        const botoesHtml = participantes
+            .map(participante => `
+                <button 
+                    class="participant-btn" 
+                    onclick="window.calcularEExibirExtrato && window.calcularEExibirExtrato('${participante.time_id}')"
+                    style="margin: 4px; padding: 8px 12px; background: #3498db; color: white; border: none; border-radius: 4px; cursor: pointer; font-size: 14px;"
+                >
+                    ${participante.nome_cartola}
+                </button>
+            `)
+            .join("");
+
+        container.innerHTML = `
+            <div style="text-align: center; margin-bottom: 20px;">
+                <h4 style="margin-bottom: 15px;">👥 Selecione um participante para ver o extrato:</h4>
+                <div style="display: flex; flex-wrap: wrap; justify-content: center; gap: 8px;">
+                    ${botoesHtml}
+                </div>
+            </div>
+        `;
+    }
+
+    /**
+     * Renderiza mensagem inicial
+     */
+    renderizarMensagemInicial() {
+        const container = document.getElementById("fluxoFinanceiroContent");
+        if (!container) return;
+
+        container.innerHTML = `
+            <div style="text-align: center; padding: 60px 20px; background: white; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); margin: 20px auto; max-width: 800px;">
+                <div style="font-size: 4rem; margin-bottom: 20px;">💰</div>
+                <h3 style="margin: 0 0 15px 0; color: #2c3e50; font-size: 24px;">Fluxo Financeiro da Liga</h3>
+                <p style="margin: 0 0 20px 0; color: #7f8c8d; font-size: 16px;">
+                    Visualize o extrato financeiro completo de cada participante.
+                </p>
+                <p style="margin: 0; color: #95a5a6; font-size: 14px;">
+                    Clique em um participante acima para ver seu extrato detalhado.
+                </p>
+            </div>
+        `;
     }
 
     /**
