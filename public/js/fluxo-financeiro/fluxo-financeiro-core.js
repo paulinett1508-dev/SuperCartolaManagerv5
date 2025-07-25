@@ -564,7 +564,7 @@ export class FluxoFinanceiroCore {
         console.log(`📊 [FLUXO-CORE] Detalhamento encontrado: ${detalhamento.length} rodadas`);
 
         return detalhamento;
-    },
+    }
 
     // Processar detalhamento por rodada
     processarDetalhamentoPorRodada(dados) {
