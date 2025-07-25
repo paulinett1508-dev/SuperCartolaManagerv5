@@ -148,7 +148,7 @@ const edicoes = [
   {
     id: 3,
     nome: "3ª Edição",
-    rodadaInicial: 16,
+    rodadaInicial: 15,
     rodadaFinal: 21,
     rodadaDefinicao: 15,
     ativo: false,
@@ -156,7 +156,7 @@ const edicoes = [
   {
     id: 4,
     nome: "4ª Edição",
-    rodadaInicial: 23,
+    rodadaInicial: 22,
     rodadaFinal: 28,
     rodadaDefinicao: 22,
     ativo: false,
@@ -164,7 +164,7 @@ const edicoes = [
   {
     id: 5,
     nome: "5ª Edição",
-    rodadaInicial: 30,
+    rodadaInicial: 29,
     rodadaFinal: 35,
     rodadaDefinicao: 29,
     ativo: false,
