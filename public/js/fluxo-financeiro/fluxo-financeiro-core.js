@@ -52,9 +52,14 @@ export class FluxoFinanceiroCore {
      * @returns {Object} - Extrato financeiro completo
      */
     calcularExtratoFinanceiro(timeId, ultimaRodadaCompleta) {
+        console.log(`📊 [FLUXO-CORE] Iniciando cálculo de extrato para time ${timeId} até rodada ${ultimaRodadaCompleta}`);
+        
         const ligaId = getLigaId();
         const isSuperCartola2025 = ligaId === ID_SUPERCARTOLA_2025;
         const isCartoleirosSobral = ligaId === ID_CARTOLEIROS_SOBRAL;
+        
+        console.log(`🏆 [FLUXO-CORE] Liga: ${ligaId} - SuperCartola2025: ${isSuperCartola2025} - CartoleirosSobral: ${isCartoleirosSobral}`);
+        
         const camposEditaveis =
             FluxoFinanceiroCampos.carregarTodosCamposEditaveis(timeId);
 
@@ -65,7 +70,7 @@ export class FluxoFinanceiroCore {
                 onus: 0,
                 pontosCorridos: 0,
                 mataMata: 0,
-                melhorMes: 0, // ✅ CORREÇÃO: Campo que estava faltando
+                melhorMes: 0,
                 campo1: camposEditaveis.campo1.valor,
                 campo2: camposEditaveis.campo2.valor,
                 campo3: camposEditaveis.campo3.valor,
@@ -78,7 +83,10 @@ export class FluxoFinanceiroCore {
             camposEditaveis: camposEditaveis,
         };
 
+        console.log(`🔄 [FLUXO-CORE] Processando ${ultimaRodadaCompleta} rodadas...`);
+
         // Processar cada rodada
+        let rodadasProcessadas = 0;
         for (let rodada = 1; rodada <= ultimaRodadaCompleta; rodada++) {
             const rodadaData = this._processarRodada(
                 timeId,
@@ -100,14 +108,30 @@ export class FluxoFinanceiroCore {
                     rodadaData,
                     isSuperCartola2025,
                 );
+                
+                rodadasProcessadas++;
+            } else {
+                console.warn(`⚠️ [FLUXO-CORE] Rodada ${rodada} não pôde ser processada`);
             }
         }
+
+        console.log(`✅ [FLUXO-CORE] ${rodadasProcessadas} rodadas processadas com sucesso`);
 
         // Calcular saldo acumulado por rodada
         this._calcularSaldoAcumulado(extrato.rodadas);
 
         // Calcular saldo final
         extrato.resumo.saldo = this._calcularSaldoFinal(extrato.resumo);
+
+        console.log(`💰 [FLUXO-CORE] Extrato final:`, {
+            rodadas: extrato.rodadas.length,
+            saldoFinal: extrato.resumo.saldo,
+            bonus: extrato.resumo.bonus,
+            onus: extrato.resumo.onus,
+            pontosCorridos: extrato.resumo.pontosCorridos,
+            mataMata: extrato.resumo.mataMata,
+            melhorMes: extrato.resumo.melhorMes
+        });
 
         return extrato;
     }
@@ -122,17 +146,37 @@ export class FluxoFinanceiroCore {
      * @private
      */
     _processarRodada(timeId, rodada, isSuperCartola2025, isCartoleirosSobral) {
+        console.log(`🔍 [FLUXO-CORE] Processando rodada ${rodada} para time ${timeId}`);
+        
         const ranking = this.cache.getRankingRodada(rodada);
+        console.log(`🔍 [FLUXO-CORE] Ranking rodada ${rodada}:`, ranking?.length ? `${ranking.length} times` : 'vazio');
+        
         if (!ranking || !ranking.length) {
+            console.warn(`⚠️ [FLUXO-CORE] Sem ranking para rodada ${rodada}`);
             return null;
         }
 
         const posicao = ranking.findIndex((r) => {
             const rTimeId = normalizarTimeId(r.timeId || r.time_id || r.id);
-            return rTimeId === normalizarTimeId(timeId);
+            const targetTimeId = normalizarTimeId(timeId);
+            const match = rTimeId === targetTimeId;
+            
+            if (match) {
+                console.log(`✅ [FLUXO-CORE] Time ${timeId} encontrado na posição ${posicao + 1} da rodada ${rodada}`);
+            }
+            
+            return match;
         });
 
         if (posicao === -1) {
+            console.warn(`⚠️ [FLUXO-CORE] Time ${timeId} não encontrado no ranking da rodada ${rodada}`);
+            // Listar alguns times do ranking para debug
+            if (ranking.length > 0) {
+                console.log('🔍 [FLUXO-CORE] Primeiros times do ranking:', ranking.slice(0, 3).map(r => ({
+                    timeId: r.timeId || r.time_id || r.id,
+                    nome: r.nome_cartola || r.nome_cartoleiro
+                })));
+            }
             return null;
         }
 
@@ -141,11 +185,15 @@ export class FluxoFinanceiroCore {
         const isMito = posicaoReal === 1;
         const isMico = posicaoReal === totalTimes;
 
+        console.log(`📊 [FLUXO-CORE] Time ${timeId} - Rodada ${rodada} - Posição: ${posicaoReal}/${totalTimes} - MITO: ${isMito} - MICO: ${isMico}`);
+
         // Calcular bônus/ônus
         const bonusOnus = this._calcularBonusOnus(
             posicaoReal,
             isCartoleirosSobral,
         );
+
+        console.log(`💰 [FLUXO-CORE] Bônus/Ônus calculado: R$ ${bonusOnus}`);
 
         // Calcular pontos corridos (apenas para SuperCartola 2025)
         const pontosCorridos = isSuperCartola2025
@@ -160,17 +208,21 @@ export class FluxoFinanceiroCore {
         // ✅ CORREÇÃO: Calcular melhor mês
         const melhorMes = this._calcularMelhorMes(timeId, rodada);
 
-        return {
+        const rodadaData = {
             rodada,
             posicao: posicaoReal,
             totalTimes,
             bonusOnus,
             pontosCorridos,
             mataMata,
-            melhorMes, // ✅ CORREÇÃO: Campo que estava faltando
+            melhorMes,
             isMito,
             isMico,
         };
+
+        console.log(`✅ [FLUXO-CORE] Rodada ${rodada} processada:`, rodadaData);
+
+        return rodadaData;
     }
 
     /**

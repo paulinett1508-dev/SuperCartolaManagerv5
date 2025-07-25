@@ -39,19 +39,19 @@ export class FluxoFinanceiroCache {
      */
     async inicializar(ligaId) {
         console.log(`🔄 [FLUXO-CACHE] Inicializando cache para liga: ${ligaId}`);
-        
+
         this.ligaId = ligaId;
-        
+
         try {
             // Carregar participantes primeiro
             await this.carregarParticipantes();
-            
+
             // Carregar dados dos pontos corridos
             await this.carregarDadosPontosCorridos();
-            
+
             // Carregar dados externos
             await this.carregarDadosExternos();
-            
+
             console.log(`✅ [FLUXO-CACHE] Cache inicializado com sucesso`);
         } catch (error) {
             console.error(`❌ [FLUXO-CACHE] Erro na inicialização:`, error);
@@ -498,5 +498,51 @@ export class FluxoFinanceiroCache {
             timesLiga: this.timesLiga,
             participantes: this.participantes,
         };
+    }
+
+    // Verificar se há confrontos carregados
+    hasConfrontosPontosCorridos() {
+        return this.confrontosPontosCorridos && this.confrontosPontosCorridos.length > 0;
+    }
+
+    // Obter confrontos dos pontos corridos
+    getConfrontosPontosCorridos() {
+        return this.confrontosPontosCorridos || [];
+    }
+
+    // Método de debug para verificar estado do cache
+    debugCache() {
+        const stats = {
+            participantes: this.participantes?.length || 0,
+            rankingsCarregados: Object.keys(this.cacheRankings).length,
+            confrontosPontosCorridos: this.confrontosPontosCorridos?.length || 0,
+            ultimaRodadaCompleta: this.ultimaRodadaCompleta,
+            rodadasComDados: []
+        };
+
+        // Verificar quais rodadas têm dados
+        for (let rodada = 1; rodada <= (this.ultimaRodadaCompleta || 20); rodada++) {
+            const ranking = this.getRankingRodada(rodada);
+            if (ranking && ranking.length > 0) {
+                stats.rodadasComDados.push(rodada);
+            }
+        }
+
+        console.log('🔍 [FLUXO-CACHE] Estado do cache:', stats);
+
+        // Verificar um ranking específico como exemplo
+        if (stats.rodadasComDados.length > 0) {
+            const primeiraRodada = stats.rodadasComDados[0];
+            const exemploRanking = this.getRankingRodada(primeiraRodada);
+            console.log(`🔍 [FLUXO-CACHE] Exemplo ranking rodada ${primeiraRodada} (${exemploRanking.length} times):`, 
+                exemploRanking.slice(0, 3).map(r => ({
+                    timeId: r.timeId || r.time_id || r.id,
+                    nome: r.nome_cartola || r.nome_cartoleiro,
+                    pontos: r.pontos
+                }))
+            );
+        }
+
+        return stats;
     }
 }
