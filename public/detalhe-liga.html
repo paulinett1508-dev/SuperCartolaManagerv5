@@ -412,19 +412,46 @@
           try {
             // MODIFICAÇÃO: Tenta usar a nova função primeiro
             if (modulosCarregados.participantes?.carregarDadosBasicos) {
-              await modulosCarregados.participantes.carregarDadosBasicos();
-              return;
+              const resultado = await modulosCarregados.participantes.carregarDadosBasicos();
+              if (resultado) return resultado;
             }
 
-            // Fallback original mantido igual
+            // Fallback original melhorado
             const params = new URLSearchParams(window.location.search);
             const ligaId = params.get("id");
+            
+            if (!ligaId) {
+              throw new Error("ID da liga não encontrado na URL");
+            }
+            
+            console.log(`Fallback: Buscando liga ${ligaId}`);
             const response = await fetch(`/api/ligas/${ligaId}`);
+            
+            if (!response.ok) {
+              throw new Error(`Erro HTTP: ${response.status} ${response.statusText}`);
+            }
+            
             const liga = await response.json();
-            document.getElementById("nomeLiga").textContent =
-              liga.nome || "Liga";
-            document.getElementById("quantidadeTimes").textContent =
-              `${liga.participantes?.length || 0} participantes`;
+            
+            if (!liga) {
+              throw new Error("Liga não encontrada");
+            }
+            
+            // Atualiza elementos da interface
+            const nomeElement = document.getElementById("nomeLiga");
+            const quantidadeElement = document.getElementById("quantidadeTimes");
+            
+            if (nomeElement) {
+              nomeElement.textContent = `🏆 ${liga.nome || "Liga"}`;
+            }
+            
+            if (quantidadeElement) {
+              const participantes = liga.participantes || liga.times || [];
+              const quantidade = Array.isArray(participantes) ? participantes.length : 0;
+              quantidadeElement.textContent = `${quantidade} participantes`;
+            }
+            
+            console.log(`✅ Fallback: Liga carregada - ${liga.nome} com ${(liga.participantes || liga.times || []).length} participantes`);
             return liga;
           } catch (error) {
             console.error("❌ Fallback falhou:", error);
