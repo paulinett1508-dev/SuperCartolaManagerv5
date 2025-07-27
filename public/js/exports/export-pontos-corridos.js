@@ -711,6 +711,7 @@ export async function exportarPontosCorridosClassificacaoComoImagem(
     const timesTest = [
       {
         nome_time: "Time Teste 1",
+        ```text
         nome_cartola: "Cartoleiro 1",
         jogos: 5,
         vitorias: 3,
@@ -1132,9 +1133,9 @@ async function gerarCanvasDownload(element, filename) {
 
   try {
     const canvas = await window.html2canvas(element, {
-      backgroundColor: "#ffffff",
-      scale: 2.5,
+      allowTaint: true,
       useCORS: true,
+      scale: 2.5,
       logging: false,
     });
 
