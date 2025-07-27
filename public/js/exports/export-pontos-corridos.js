@@ -66,6 +66,7 @@ export async function criarBotaoExportacaoPontosCorridosRodada(config) {
     rodadaLiga = "",
     rodadaCartola = "",
     times = [],
+    tipo = "pontos-corridos-rodada"
   } = config;
 
   console.log("[EXPORT-PONTOS-CORRIDOS] 🎯 Criando botão exportação rodada:", {
@@ -73,6 +74,7 @@ export async function criarBotaoExportacaoPontosCorridosRodada(config) {
     jogosCount: jogos.length,
     rodadaLiga,
     rodadaCartola,
+    tipo,
   });
 
   if (!containerId) {
@@ -83,7 +85,95 @@ export async function criarBotaoExportacaoPontosCorridosRodada(config) {
   const container = document.getElementById(containerId);
   if (!container) {
     console.error(
-      `[EXPORT-PONTOS-CORRIDOS] Container ${containerId} não encontrado`,
+      `[EXPORT-PONTOS-CORRIDOS] Container ${containerId} não encontrado`
+    );
+    return;
+  }
+
+  // Criar o botão de exportação
+  const btnId = `btn-export-${tipo}-${Date.now()}`;
+  const button = document.createElement("button");
+  button.id = btnId;
+  button.className = "btn btn-sm btn-outline-primary";
+  button.innerHTML = `
+    <i class="fas fa-download"></i> 
+    ${tipo === "pontos-corridos-classificacao" ? "Exportar Classificação" : "Exportar Rodada"}
+  `;
+  button.style.cssText = `
+    font-size: 12px;
+    padding: 4px 8px;
+    margin-left: 8px;
+  `;
+
+  // Adicionar evento de clique
+  button.addEventListener("click", async () => {
+    try {
+      button.disabled = true;
+      button.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Exportando...';
+      
+      if (tipo === "pontos-corridos-classificacao") {
+        await exportarPontosCorridosClassificacaoComoImagem(times, rodadaLiga, rodadaCartola);
+      } else {
+        await exportarPontosCorridosRodadaComoImagem(jogos, rodadaLiga, rodadaCartola, times);
+      }
+    } catch (error) {
+      console.error("[EXPORT-PONTOS-CORRIDOS] Erro na exportação:", error);
+      alert("Erro ao exportar. Verifique o console.");
+    } finally {
+      button.disabled = false;
+      button.innerHTML = `
+        <i class="fas fa-download"></i> 
+        ${tipo === "pontos-corridos-classificacao" ? "Exportar Classificação" : "Exportar Rodada"}
+      `;
+    }
+  });
+
+  // Adicionar botão ao container
+  container.appendChild(button);
+  console.log("[EXPORT-PONTOS-CORRIDOS] ✅ Botão criado com sucesso");
+}
+
+// Função para exportar rodada como imagem
+export async function exportarPontosCorridosRodadaComoImagem(jogos, rodadaLiga, rodadaCartola, times) {
+  console.log("[EXPORT-PONTOS-CORRIDOS] Exportando rodada como imagem...");
+  
+  // Importar funções base de exportação
+  const { exportarComoImagem } = await import("./export-base.js");
+  
+  const ligaInfo = getLigaAtivaInfo();
+  const titulo = `${rodadaLiga}ª Rodada - Liga Pontos Corridos`;
+  const subtitulo = `Rodada ${rodadaCartola}ª do Brasileirão`;
+  
+  await exportarComoImagem({
+    dados: jogos,
+    tipo: "pontos-corridos-rodada",
+    titulo,
+    subtitulo,
+    ligaInfo,
+    nomeArquivo: `pontos-corridos-rodada-${rodadaLiga}-${Date.now()}.png`
+  });
+}
+
+// Função para exportar classificação como imagem
+export async function exportarPontosCorridosClassificacaoComoImagem(classificacao, rodadaLiga, rodadaCartola) {
+  console.log("[EXPORT-PONTOS-CORRIDOS] Exportando classificação como imagem...");
+  
+  // Importar funções base de exportação
+  const { exportarComoImagem } = await import("./export-base.js");
+  
+  const ligaInfo = getLigaAtivaInfo();
+  const titulo = "Classificação - Liga Pontos Corridos";
+  const subtitulo = `Após ${rodadaLiga} rodada${rodadaLiga > 1 ? "s" : ""} da Liga`;
+  
+  await exportarComoImagem({
+    dados: classificacao,
+    tipo: "pontos-corridos-classificacao",
+    titulo,
+    subtitulo,
+    ligaInfo,
+    nomeArquivo: `pontos-corridos-classificacao-${rodadaLiga}-${Date.now()}.png`
+  });
+}trado`,
     );
     return;
   }

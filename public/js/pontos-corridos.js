@@ -28,8 +28,8 @@ async function carregarExports() {
   if (exportsCarregados) return;
 
   try {
-    const exportModule = await import("./exports/export-exports.js");
-    criarBotaoExportacaoRodada = exportModule.criarBotaoExportacaoRodada;
+    const exportModule = await import("./exports/export-pontos-corridos.js");
+    criarBotaoExportacaoRodada = exportModule.criarBotaoExportacaoPontosCorridosRodada;
     exportarPontosCorridosRodadaComoImagem =
       exportModule.exportarPontosCorridosRodadaComoImagem;
     exportarPontosCorridosClassificacaoComoImagem =
@@ -387,8 +387,7 @@ export async function renderRodadaComTemplate(idxRodada) {
     );
     if (
       exportContainerElRodada &&
-      criarBotaoExportacaoRodada &&
-      exportarPontosCorridosRodadaComoImagem
+      criarBotaoExportacaoRodada
     ) {
       exportContainerElRodada.innerHTML = "";
       criarBotaoExportacaoRodada({
@@ -396,25 +395,12 @@ export async function renderRodadaComTemplate(idxRodada) {
         jogos: jogosNormalizados,
         rodadaLiga: idxRodada + 1,
         rodadaCartola: rodadaCartola,
-        rodada: rodadaCartola,
         times: times,
-        rankings: jogosNormalizados,
-        tipo: "pontos-corridos-rodada", // Tipo específico para esta exportação
-        customExport: () =>
-          exportarPontosCorridosRodadaComoImagem(
-            jogosNormalizados,
-            idxRodada + 1,
-            rodadaCartola,
-            times, // Passa a lista de times completa
-          ),
       });
     } else {
-      if (
-        !criarBotaoExportacaoRodada ||
-        !exportarPontosCorridosRodadaComoImagem
-      ) {
+      if (!criarBotaoExportacaoRodada) {
         console.warn(
-          "[PONTOS-CORRIDOS] ⚠️ Funções de exportação da rodada não disponíveis",
+          "[PONTOS-CORRIDOS] ⚠️ Função de exportação da rodada não disponível",
         );
       }
       if (!exportContainerElRodada) {
@@ -729,8 +715,7 @@ export async function renderClassificacao() {
   );
   if (
     exportContainerElClassificacao &&
-    criarBotaoExportacaoRodada &&
-    exportarPontosCorridosClassificacaoComoImagem
+    criarBotaoExportacaoRodada
   ) {
     exportContainerElClassificacao.innerHTML = ""; // Limpa botão anterior
     // Mapeia os dados para exportação, incluindo financeiro
@@ -756,18 +741,15 @@ export async function renderClassificacao() {
 
     criarBotaoExportacaoRodada({
       containerId: exportContainerIdClassificacao,
-      times: classificacaoParaExportar, // ← CORRIGIDO
-      rodadaLiga: ultimaRodadaLigaComDados, // ← CORRIGIDO
-      rodadaCartola: RODADA_INICIAL + ultimaRodadaLigaComDados - 1, // ← CORRIGIDO
+      times: classificacaoParaExportar,
+      rodadaLiga: ultimaRodadaLigaComDados,
+      rodadaCartola: RODADA_INICIAL + ultimaRodadaLigaComDados - 1,
       tipo: "pontos-corridos-classificacao",
     });
   } else {
-    if (
-      !criarBotaoExportacaoRodada ||
-      !exportarPontosCorridosClassificacaoComoImagem
-    ) {
+    if (!criarBotaoExportacaoRodada) {
       console.warn(
-        "[PONTOS-CORRIDOS] ⚠️ Funções de exportação da classificação não disponíveis",
+        "[PONTOS-CORRIDOS] ⚠️ Função de exportação da classificação não disponível",
       );
     }
     if (!exportContainerElClassificacao) {
