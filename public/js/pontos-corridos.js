@@ -389,11 +389,12 @@ export async function renderRodadaComTemplate(idxRodada) {
     console.log("[PONTOS-CORRIDOS] Debug botão rodada:", {
       containerFound: !!exportContainerElRodada,
       functionLoaded: !!criarBotaoExportacaoRodada,
-      containerId: exportContainerIdRodada
+      containerId: exportContainerIdRodada,
+      exportsCarregados,
+      jogosCount: jogosNormalizados.length
     });
 
     if (exportContainerElRodada && criarBotaoExportacaoRodada) {
-      exportContainerElRodada.innerHTML = "";
       try {
         await criarBotaoExportacaoRodada({
           containerId: exportContainerIdRodada,
@@ -403,20 +404,33 @@ export async function renderRodadaComTemplate(idxRodada) {
           times: times,
           tipo: "pontos-corridos-rodada"
         });
-        console.log("[PONTOS-CORRIDOS] ✅ Botão de exportação da rodada criado");
+        console.log("[PONTOS-CORRIDOS] ✅ Botão de exportação da rodada criado com sucesso");
       } catch (error) {
         console.error("[PONTOS-CORRIDOS] ❌ Erro ao criar botão de exportação da rodada:", error);
       }
     } else {
       if (!criarBotaoExportacaoRodada) {
-        console.warn(
-          "[PONTOS-CORRIDOS] ⚠️ Função de exportação da rodada não disponível",
-        );
+        console.warn("[PONTOS-CORRIDOS] ⚠️ Função de exportação da rodada não disponível");
+        console.warn("[PONTOS-CORRIDOS] Tentando recarregar exports...");
+        try {
+          await carregarExports();
+          if (criarBotaoExportacaoRodada) {
+            await criarBotaoExportacaoRodada({
+              containerId: exportContainerIdRodada,
+              jogos: jogosNormalizados,
+              rodadaLiga: idxRodada + 1,
+              rodadaCartola: rodadaCartola,
+              times: times,
+              tipo: "pontos-corridos-rodada"
+            });
+            console.log("[PONTOS-CORRIDOS] ✅ Botão de exportação da rodada criado após reload");
+          }
+        } catch (reloadError) {
+          console.error("[PONTOS-CORRIDOS] ❌ Erro ao recarregar exports:", reloadError);
+        }
       }
       if (!exportContainerElRodada) {
-        console.warn(
-          `Container #${exportContainerIdRodada} não encontrado no template para o botão de exportação da rodada.`,
-        );
+        console.warn(`[PONTOS-CORRIDOS] Container #${exportContainerIdRodada} não encontrado no template`);
       }
     }
   } catch (error) {
@@ -727,11 +741,12 @@ export async function renderClassificacao() {
   console.log("[PONTOS-CORRIDOS] Debug botão classificação:", {
     containerFound: !!exportContainerElClassificacao,
     functionLoaded: !!criarBotaoExportacaoRodada,
-    containerId: exportContainerIdClassificacao
+    containerId: exportContainerIdClassificacao,
+    exportsCarregados,
+    classificacaoCount: classificacao.length
   });
 
   if (exportContainerElClassificacao && criarBotaoExportacaoRodada) {
-    exportContainerElClassificacao.innerHTML = ""; // Limpa botão anterior
     // Mapeia os dados para exportação, incluindo financeiro
     const classificacaoParaExportar = classificacao.map((item) => ({
       nome_time: item.time.nome_time || item.time.nome || "N/D",
@@ -759,20 +774,49 @@ export async function renderClassificacao() {
         rodadaCartola: RODADA_INICIAL + ultimaRodadaLigaComDados - 1,
         tipo: "pontos-corridos-classificacao",
       });
-      console.log("[PONTOS-CORRIDOS] ✅ Botão de exportação da classificação criado");
+      console.log("[PONTOS-CORRIDOS] ✅ Botão de exportação da classificação criado com sucesso");
     } catch (error) {
       console.error("[PONTOS-CORRIDOS] ❌ Erro ao criar botão de exportação da classificação:", error);
     }
   } else {
     if (!criarBotaoExportacaoRodada) {
-      console.warn(
-        "[PONTOS-CORRIDOS] ⚠️ Função de exportação da classificação não disponível",
-      );
+      console.warn("[PONTOS-CORRIDOS] ⚠️ Função de exportação da classificação não disponível");
+      console.warn("[PONTOS-CORRIDOS] Tentando recarregar exports...");
+      try {
+        await carregarExports();
+        if (criarBotaoExportacaoRodada) {
+          const classificacaoParaExportar = classificacao.map((item) => ({
+            nome_time: item.time.nome_time || item.time.nome || "N/D",
+            nome_cartola: item.time.nome_cartola || item.time.nome_cartoleiro || "N/D",
+            clube_id: item.time.clube_id || null,
+            pontos: item.pontos,
+            jogos: item.jogos,
+            vitorias: item.vitorias,
+            empates: item.empates,
+            derrotas: item.derrotas,
+            gols_pro: item.pontosGoleada,
+            pontosGoleada: item.pontosGoleada,
+            financeiroTotal: item.financeiroTotal,
+            pontosPro: item.pontosPro,
+            pontosContra: item.pontosContra,
+            saldoPontos: item.saldoPontos,
+          }));
+          
+          await criarBotaoExportacaoRodada({
+            containerId: exportContainerIdClassificacao,
+            times: classificacaoParaExportar,
+            rodadaLiga: ultimaRodadaLigaComDados,
+            rodadaCartola: RODADA_INICIAL + ultimaRodadaLigaComDados - 1,
+            tipo: "pontos-corridos-classificacao",
+          });
+          console.log("[PONTOS-CORRIDOS] ✅ Botão de exportação da classificação criado após reload");
+        }
+      } catch (reloadError) {
+        console.error("[PONTOS-CORRIDOS] ❌ Erro ao recarregar exports:", reloadError);
+      }
     }
     if (!exportContainerElClassificacao) {
-      console.warn(
-        `Container #${exportContainerIdClassificacao} não encontrado para o botão de exportação da classificação.`,
-      );
+      console.warn(`[PONTOS-CORRIDOS] Container #${exportContainerIdClassificacao} não encontrado`);
     }
   }
 

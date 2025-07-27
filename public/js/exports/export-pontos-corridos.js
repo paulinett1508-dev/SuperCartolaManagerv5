@@ -90,46 +90,93 @@ export async function criarBotaoExportacaoPontosCorridosRodada(config) {
     return;
   }
 
-  // Criar o botão de exportação
-  const btnId = `btn-export-${tipo}-${Date.now()}`;
-  const button = document.createElement("button");
-  button.id = btnId;
-  button.className = "btn btn-sm btn-outline-primary";
-  button.innerHTML = `
-    <i class="fas fa-download"></i> 
+  // Limpar container antes de adicionar novo botão
+  container.innerHTML = "";
+
+  // Criar botão com design profissional
+  const btnContainer = document.createElement("div");
+  btnContainer.style.cssText = "text-align: right; margin: 15px 0;";
+
+  const btn = document.createElement("button");
+  btn.className = `btn-export-${tipo}`;
+  btn.innerHTML = `
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor" style="margin-right: 8px;">
+      <path d="M19 12v7H5v-7H3v7c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2v-7h-2zm-6 .67l2.59-2.58L17 11.5l-5 5-5-5 1.41-1.41L11 12.67V3h2v9.67z"/>
+    </svg>
     ${tipo === "pontos-corridos-classificacao" ? "Exportar Classificação" : "Exportar Rodada"}
   `;
-  button.style.cssText = `
-    font-size: 12px;
-    padding: 4px 8px;
-    margin-left: 8px;
+
+  btn.style.cssText = `
+    background: linear-gradient(135deg, ${TEMPLATE_CONFIG.colors.primary} 0%, ${TEMPLATE_CONFIG.colors.accent} 100%);
+    color: white;
+    border: none;
+    padding: 12px 24px;
+    border-radius: 8px;
+    cursor: pointer;
+    font: 500 14px Inter, sans-serif;
+    display: inline-flex;
+    align-items: center;
+    transition: all 0.3s ease;
+    box-shadow: 0 4px 12px rgba(46, 139, 87, 0.3);
   `;
 
+  // Efeitos hover
+  btn.onmouseover = () => {
+    btn.style.transform = "translateY(-2px)";
+    btn.style.boxShadow = "0 6px 20px rgba(46, 139, 87, 0.4)";
+  };
+
+  btn.onmouseout = () => {
+    btn.style.transform = "translateY(0)";
+    btn.style.boxShadow = "0 4px 12px rgba(46, 139, 87, 0.3)";
+  };
+
   // Adicionar evento de clique
-  button.addEventListener("click", async () => {
+  btn.addEventListener("click", async () => {
+    const textoOriginal = btn.innerHTML;
+    btn.innerHTML = `
+      <div style="width: 16px; height: 16px; margin-right: 8px;">
+        <div style="width: 16px; height: 16px; border: 2px solid transparent; border-top: 2px solid currentColor; border-radius: 50%; animation: spin 1s linear infinite;"></div>
+      </div>
+      Gerando Imagem...
+    `;
+    btn.disabled = true;
+
     try {
-      button.disabled = true;
-      button.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Exportando...';
-      
       if (tipo === "pontos-corridos-classificacao") {
         await exportarPontosCorridosClassificacaoComoImagem(times, rodadaLiga, rodadaCartola);
       } else {
-        await exportarPontosCorridosRodadaComoImagem(jogos, rodadaLiga, rodadaCartola, times);
+        await exportarPontosCorridosRodadaComoImagemProfissional({
+          jogos,
+          rodadaLiga,
+          rodadaCartola,
+          times,
+        });
       }
     } catch (error) {
       console.error("[EXPORT-PONTOS-CORRIDOS] Erro na exportação:", error);
-      alert("Erro ao exportar. Verifique o console.");
+      mostrarNotificacao("Erro ao gerar imagem. Tente novamente.", "error");
     } finally {
-      button.disabled = false;
-      button.innerHTML = `
-        <i class="fas fa-download"></i> 
-        ${tipo === "pontos-corridos-classificacao" ? "Exportar Classificação" : "Exportar Rodada"}
-      `;
+      btn.innerHTML = textoOriginal;
+      btn.disabled = false;
     }
   });
 
-  // Adicionar botão ao container
-  container.appendChild(button);
+  // Adicionar animação CSS se não existir
+  if (!document.querySelector('#spin-animation-style')) {
+    const style = document.createElement("style");
+    style.id = 'spin-animation-style';
+    style.textContent = `
+      @keyframes spin {
+        0% { transform: rotate(0deg); }
+        100% { transform: rotate(360deg); }
+      }
+    `;
+    document.head.appendChild(style);
+  }
+
+  btnContainer.appendChild(btn);
+  container.appendChild(btnContainer);
   console.log("[EXPORT-PONTOS-CORRIDOS] ✅ Botão criado com sucesso");
 }
 
@@ -301,13 +348,8 @@ export async function criarBotaoExportacaoPontosCorridosClassificacao(config) {
     return;
   }
 
-  // Remove botão existente
-  const botaoExistente = container.querySelector(
-    ".btn-export-pontos-corridos-classificacao",
-  );
-  if (botaoExistente) {
-    botaoExistente.remove();
-  }
+  // Limpar container antes de adicionar novo botão
+  container.innerHTML = "";
 
   // Criar botão com design profissional
   const btnContainer = document.createElement("div");
@@ -317,7 +359,7 @@ export async function criarBotaoExportacaoPontosCorridosClassificacao(config) {
   btn.className = "btn-export-pontos-corridos-classificacao";
   btn.innerHTML = `
     <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor" style="margin-right: 8px;">
-      <path d="M19 12v7H5v-7H3v7c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2v-7h-2zm-6 .67l2.59-2.58L17 11.5l-5 5-5-5 1.41-1.41L11 12.67V3h2v9.67z"/>
+      <path d="M19 12v7H5v-7H3v7c0 1.1.9 2 2 2 2h14c1.1 0 2-.9 2-2v-7h-2zm-6 .67l2.59-2.58L17 11.5l-5 5-5-5 1.41-1.41L11 12.67V3h2v9.67z"/>
     </svg>
     Exportar Classificação
   `;
@@ -372,8 +414,22 @@ export async function criarBotaoExportacaoPontosCorridosClassificacao(config) {
     }
   };
 
+  // Adicionar animação CSS se não existir
+  if (!document.querySelector('#spin-animation-style')) {
+    const style = document.createElement("style");
+    style.id = 'spin-animation-style';
+    style.textContent = `
+      @keyframes spin {
+        0% { transform: rotate(0deg); }
+        100% { transform: rotate(360deg); }
+      }
+    `;
+    document.head.appendChild(style);
+  }
+
   btnContainer.appendChild(btn);
-  container.insertBefore(btnContainer, container.firstChild);
+  container.appendChild(btnContainer);
+  console.log("[EXPORT-PONTOS-CORRIDOS] ✅ Botão de classificação criado com sucesso");
 }
 
 // ✅ FUNÇÃO DE EXPORTAÇÃO PROFISSIONAL - RODADA (CONFRONTOS)
