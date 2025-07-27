@@ -385,18 +385,28 @@ export async function renderRodadaComTemplate(idxRodada) {
     const exportContainerElRodada = container.querySelector(
       `#${exportContainerIdRodada}`,
     );
-    if (
-      exportContainerElRodada &&
-      criarBotaoExportacaoRodada
-    ) {
+    
+    console.log("[PONTOS-CORRIDOS] Debug botão rodada:", {
+      containerFound: !!exportContainerElRodada,
+      functionLoaded: !!criarBotaoExportacaoRodada,
+      containerId: exportContainerIdRodada
+    });
+
+    if (exportContainerElRodada && criarBotaoExportacaoRodada) {
       exportContainerElRodada.innerHTML = "";
-      criarBotaoExportacaoRodada({
-        containerId: exportContainerIdRodada,
-        jogos: jogosNormalizados,
-        rodadaLiga: idxRodada + 1,
-        rodadaCartola: rodadaCartola,
-        times: times,
-      });
+      try {
+        await criarBotaoExportacaoRodada({
+          containerId: exportContainerIdRodada,
+          jogos: jogosNormalizados,
+          rodadaLiga: idxRodada + 1,
+          rodadaCartola: rodadaCartola,
+          times: times,
+          tipo: "pontos-corridos-rodada"
+        });
+        console.log("[PONTOS-CORRIDOS] ✅ Botão de exportação da rodada criado");
+      } catch (error) {
+        console.error("[PONTOS-CORRIDOS] ❌ Erro ao criar botão de exportação da rodada:", error);
+      }
     } else {
       if (!criarBotaoExportacaoRodada) {
         console.warn(
@@ -713,10 +723,14 @@ export async function renderClassificacao() {
   const exportContainerElClassificacao = container.querySelector(
     `#${exportContainerIdClassificacao}`,
   );
-  if (
-    exportContainerElClassificacao &&
-    criarBotaoExportacaoRodada
-  ) {
+  
+  console.log("[PONTOS-CORRIDOS] Debug botão classificação:", {
+    containerFound: !!exportContainerElClassificacao,
+    functionLoaded: !!criarBotaoExportacaoRodada,
+    containerId: exportContainerIdClassificacao
+  });
+
+  if (exportContainerElClassificacao && criarBotaoExportacaoRodada) {
     exportContainerElClassificacao.innerHTML = ""; // Limpa botão anterior
     // Mapeia os dados para exportação, incluindo financeiro
     const classificacaoParaExportar = classificacao.map((item) => ({
@@ -730,22 +744,25 @@ export async function renderClassificacao() {
       empates: item.empates,
       derrotas: item.derrotas,
       gols_pro: item.pontosGoleada, // Mapeado como gols_pro na exportação
-      gols_contra: 0, // Não temos um equivalente direto, usar 0 ou remover
-      saldo_gols: item.pontosGoleada, // Mapeado como saldo_gols na exportação
+      pontosGoleada: item.pontosGoleada, // Adiciona campo original
       financeiroTotal: item.financeiroTotal, // Inclui financeiro
-      // Adicionar PP, PC, SP se necessário na exportação
       pontosPro: item.pontosPro,
       pontosContra: item.pontosContra,
       saldoPontos: item.saldoPontos,
     }));
 
-    criarBotaoExportacaoRodada({
-      containerId: exportContainerIdClassificacao,
-      times: classificacaoParaExportar,
-      rodadaLiga: ultimaRodadaLigaComDados,
-      rodadaCartola: RODADA_INICIAL + ultimaRodadaLigaComDados - 1,
-      tipo: "pontos-corridos-classificacao",
-    });
+    try {
+      await criarBotaoExportacaoRodada({
+        containerId: exportContainerIdClassificacao,
+        times: classificacaoParaExportar,
+        rodadaLiga: ultimaRodadaLigaComDados,
+        rodadaCartola: RODADA_INICIAL + ultimaRodadaLigaComDados - 1,
+        tipo: "pontos-corridos-classificacao",
+      });
+      console.log("[PONTOS-CORRIDOS] ✅ Botão de exportação da classificação criado");
+    } catch (error) {
+      console.error("[PONTOS-CORRIDOS] ❌ Erro ao criar botão de exportação da classificação:", error);
+    }
   } else {
     if (!criarBotaoExportacaoRodada) {
       console.warn(
