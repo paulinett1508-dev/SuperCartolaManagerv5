@@ -16,7 +16,7 @@ function obterLigaId() {
     // Tentar obter da URL primeiro
     const pathParts = window.location.pathname.split('/');
     const ligaIdFromPath = pathParts[pathParts.length - 1];
-    
+
     if (ligaIdFromPath && ligaIdFromPath !== 'detalhe-liga.html') {
         console.log(`📋 [FLUXO-FINANCEIRO] Liga ID da URL: ${ligaIdFromPath}`);
         return ligaIdFromPath;
@@ -25,7 +25,7 @@ function obterLigaId() {
     // Tentar obter dos parâmetros da URL
     const urlParams = new URLSearchParams(window.location.search);
     const ligaIdFromParams = urlParams.get('id');
-    
+
     if (ligaIdFromParams) {
         console.log(`📋 [FLUXO-FINANCEIRO] Liga ID dos parâmetros: ${ligaIdFromParams}`);
         return ligaIdFromParams;
@@ -642,6 +642,67 @@ async function renderizarFluxoFinanceiro(participantes, ligaId) {
     }
 }
 
+// Função principal para carregar dados do participante
+  async function carregarDadosParticipante(timeId, nomeParticipante) {
+    try {
+      console.log(`[FLUXO-FINANCEIRO] Carregando dados para ${nomeParticipante} (${timeId})`);
+
+      mostrarLoading(true);
+
+      const response = await fetch(`/api/ligas/${ligaId}/fluxo?timeId=${timeId}`);
+
+      if (!response.ok) {
+        throw new Error(`Erro ${response.status}: ${response.statusText}`);
+      }
+
+      const dados = await response.json();
+      console.log(`[FLUXO-FINANCEIRO] Dados recebidos:`, dados);
+
+      // Verificar se há dados válidos
+      if (!dados || (!Array.isArray(dados) && !dados.movimentacoes)) {
+        console.warn('[FLUXO-FINANCEIRO] Nenhum dado válido encontrado');
+        mostrarSemDados();
+        return;
+      }
+
+      // Normalizar dados (pode vir como array direto ou como objeto com propriedade)
+      const movimentacoes = Array.isArray(dados) ? dados : (dados.movimentacoes || []);
+
+      if (movimentacoes.length === 0) {
+        console.warn('[FLUXO-FINANCEIRO] Array de movimentações vazio');
+        mostrarSemDados();
+        return;
+      }
+
+      console.log(`[FLUXO-FINANCEIRO] ${movimentacoes.length} movimentações encontradas`);
+
+      // Processar e exibir dados
+      await processarEExibirDados(movimentacoes, nomeParticipante);
+
+    } catch (error) {
+      console.error('[FLUXO-FINANCEIRO] Erro ao carregar dados:', error);
+      mostrarErro(`Erro ao carregar dados: ${error.message}`);
+    } finally {
+      mostrarLoading(false);
+    }
+  }
+
+  // Função para mostrar mensagem quando não há dados
+  function mostrarSemDados() {
+    const container = document.getElementById('fluxoFinanceiroContent');
+    if (container) {
+      container.innerHTML = `
+        <div style="text-align: center; padding: 40px; color: #666;">
+          <h3>📊 Nenhum dado encontrado</h3>
+          <p>Este participante ainda não possui movimentações registradas.</p>
+          <p style="font-size: 0.9em; color: #999;">
+            Os dados aparecerão conforme as rodadas sejam processadas.
+          </p>
+        </div>
+      `;
+    }
+  }
+
 // ✅ FUNÇÃO: Selecionar participante específico
 export async function selecionarParticipante(timeId) {
   console.log(`🎯 [FLUXO-FINANCEIRO] Selecionando participante: ${timeId}`);
@@ -707,11 +768,11 @@ export async function selecionarParticipante(timeId) {
 
     console.log(`✅ [FLUXO-FINANCEIRO] Participante encontrado:`, participante);
 
-    // Carregar dados financeiros
-    const dadosFinanceiros = await FluxoFinanceiroCore.carregarDadosFinanceiros(timeId);
+    // Carregar dados financeiros usando a instância do core
+    const dadosFinanceiros = await fluxoFinanceiroCore.carregarDadosFinanceiros(timeId);
 
     // Renderizar dados
-    FluxoFinanceiroUI.renderizarDadosParticipante(participante, dadosFinanceiros);
+    fluxoFinanceiroUI.renderizarDadosParticipante(participante, dadosFinanceiros);
 
   } catch (error) {
     console.error(`❌ [FLUXO-FINANCEIRO] Erro ao selecionar participante ${timeId}:`, error);

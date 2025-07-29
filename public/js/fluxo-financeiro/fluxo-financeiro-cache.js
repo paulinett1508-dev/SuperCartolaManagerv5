@@ -546,3 +546,138 @@ export class FluxoFinanceiroCache {
         return stats;
     }
 }
+
+const CACHE_CONFIG = {
+    ttl: 60 * 60 * 1000,
+    // 1 hora
+    maxItens: 1000,
+    // Tamanho máximo do cache
+    // Prefixos para organização
+    prefixes: {
+        participantes: "part_",
+        gols: "gols_",
+        completo: "comp_",
+        config: "conf_",
+        rodada: "rod_",
+        detalhamento: "det_",
+    },
+};
+
+// Classe para gerenciar o cache
+class CacheManager {
+    constructor(config = CACHE_CONFIG) {
+        this.cache = new Map();
+        this.ttl = config.ttl || CACHE_CONFIG.ttl;
+        this.maxItens = config.maxItens || CACHE_CONFIG.maxItens;
+        this.config = config; // Salvar config
+        this.filaDeExpiracao = [];
+        // Usada para otimizar a limpeza
+        this.iniciarLimpezaAutomatica();
+    }
+
+    // Adicionar um item ao cache
+    set(chave, valor, ttl = this.ttl) {
+        if (this.cache.size >= this.maxItens) {
+            this.limparCache();
+        }
+
+        const tempoDeExpiracao = Date.now() + ttl;
+        this.cache.set(chave, {
+            valor,
+            expiraEm: tempoDeExpiracao,
+        });
+
+        this.adicionarAFilaDeExpiracao(chave, tempoDeExpiracao);
+
+        console.log(`💾 Cache salvo: ${chave} (expira em ${new Date(tempoDeExpiracao).toLocaleString()})`);
+    }
+
+    // Obter um item do cache
+    get(chave) {
+        const item = this.cache.get(chave);
+        if (!item) {
+            return undefined;
+        }
+
+        if (item.expiraEm <= Date.now()) {
+            this.deletar(chave);
+            return undefined;
+        }
+
+        return item.valor;
+    }
+
+    // Deletar um item do cache
+    deletar(chave) {
+        if (this.cache.has(chave)) {
+            this.cache.delete(chave);
+            this.removerDaFilaDeExpiracao(chave);
+            console.log(`🗑️ Cache removido: ${chave}`);
+        }
+    }
+
+    // Limpar todo o cache
+    limparCache() {
+        this.cache.clear();
+        this.filaDeExpiracao = [];
+        console.warn("🧹 Cache limpo manualmente!");
+    }
+
+    // Adicionar chave à fila de expiração
+    adicionarAFilaDeExpiracao(chave, tempoDeExpiracao) {
+        this.filaDeExpiracao.push({
+            chave,
+            tempoDeExpiracao,
+        });
+        this.filaDeExpiracao.sort((a, b) => a.tempoDeExpiracao - b.tempoDeExpiracao);
+    }
+
+    // Remover chave da fila de expiração
+    removerDaFilaDeExpiracao(chave) {
+        this.filaDeExpiracao = this.filaDeExpiracao.filter((item) => item.chave !== chave);
+    }
+
+    // Limpar itens expirados do cache
+    limparExpirados() {
+        const agora = Date.now();
+        let chavesDeletadas = 0;
+
+        while (
+            this.filaDeExpiracao.length > 0 &&
+            this.filaDeExpiracao[0].tempoDeExpiracao <= agora
+        ) {
+            const item = this.filaDeExpiracao.shift();
+            if (this.cache.has(item.chave)) {
+                this.deletar(item.chave);
+                chavesDeletadas++;
+            }
+        }
+
+        if (chavesDeletadas > 0) {
+            console.log(`🧹 Limpeza automática removeu ${chavesDeletadas} itens expirados.`);
+        }
+    }
+
+    // Obter detalhamento por rodada para um participante
+    getDetalhamentoPorRodada(timeId) {
+        const chave = `${CACHE_CONFIG.prefixes.detalhamento}${timeId}`;
+        return this.get(chave) || [];
+    }
+
+    // Definir detalhamento por rodada para um participante
+    setDetalhamentoPorRodada(timeId, detalhamento) {
+        const chave = `${CACHE_CONFIG.prefixes.detalhamento}${timeId}`;
+        this.set(chave, detalhamento);
+        console.log(`📊 Detalhamento salvo para time ${timeId}: ${detalhamento.length} rodadas`);
+    }
+
+    // Inicializar sistema de limpeza automática
+    iniciarLimpezaAutomatica(intervalo = 5 * 60 * 1000) {
+        // 5 minutos
+        setInterval(() => {
+            this.limparExpirados();
+        }, intervalo);
+
+        console.log(`🧹 Limpeza automática iniciada (intervalo: ${intervalo}ms)`);
+    }
+}

@@ -632,37 +632,148 @@ class FluxoFinanceiroUI {
     }
 
     // Renderizar dados do participante
-  renderizarDadosParticipante(participante, dadosFinanceiros) {
-    console.log("🎨 [FLUXO-UI] Renderizando dados do participante:", participante);
-    console.log("🎨 [FLUXO-UI] Dados financeiros:", dadosFinanceiros);
+    renderizarDadosParticipante(participante, dadosFinanceiros) {
+        console.log("🎨 [FLUXO-UI] Renderizando dados do participante:", participante);
+        console.log("🎨 [FLUXO-UI] Dados financeiros:", dadosFinanceiros);
 
-    const container = document.getElementById('fluxoFinanceiroContent');
-    if (!container) {
-      console.error("❌ [FLUXO-UI] Container não encontrado");
-      return;
+        const container = document.getElementById('fluxoFinanceiroContent');
+        if (!container) {
+            console.error("❌ [FLUXO-UI] Container não encontrado");
+            return;
+        }
+
+        if (!participante) {
+            container.innerHTML = `
+                <div class="alert alert-warning">
+                    <h4>⚠️ Participante não encontrado</h4>
+                    <p>Não foi possível carregar os dados deste participante.</p>
+                </div>
+            `;
+            return;
+        }
+
+        // Garantir que temos os campos necessários
+        const dadosParticipante = {
+            nome_cartoleiro: participante.nome_cartoleiro || participante.nome_cartola || 'Nome não disponível',
+            nome_time: participante.nome_time || participante.nome || 'Time não disponível',
+            time_id: participante.time_id || participante.id || 'ID não disponível',
+            clube_id: participante.clube_id || null,
+            url_escudo_png: participante.url_escudo_png || participante.escudo_url || ''
+        };
+
+        console.log("🎨 [FLUXO-UI] Dados formatados para renderização:", dadosParticipante);
+
+        // ✅ RENDERIZAR CABEÇALHO DO PARTICIPANTE
+        container.innerHTML = `            <div style="max-width: 1000px; margin: 0 auto; padding: 20px;">
+                <!-- CABEÇALHO DO PARTICIPANTE -->
+                <div style="
+                    background: linear-gradient(135deg, #2E8B57 0%, #228B22 100%);
+                    color: white;
+                    padding: 24px;
+                    border-radius: 12px;
+                    margin-bottom: 24px;
+                    text-align: center;
+                    box-shadow: 0 4px 16px rgba(0,0,0,0.1);
+                ">
+                    <h2 style="margin: 0 0 8px 0; font-size: 28px; font-weight: 700;">
+                        💰 Detalhamento Financeiro
+                    </h2>
+                    <h3 style="margin: 0 0 12px 0; font-size: 20px; opacity: 0.9;">
+                        ${dadosParticipante.nome_cartoleiro}
+                    </h3>
+                    <p style="margin: 0; font-size: 14px; opacity: 0.8;">
+                        ${dadosParticipante.nome_time}
+                    </p>
+                </div>
+
+                <!-- CONTAINER PARA DETALHAMENTO -->
+                <div id="detalhamento-container">
+                    <!-- Será preenchido pelo detalhamento -->
+                </div>
+            </div>
+        `;
+
+        // ✅ RENDERIZAR DETALHAMENTO POR RODADA
+        const detalhamentoContainer = document.getElementById('detalhamento-container');
+        if (detalhamentoContainer && dadosFinanceiros && dadosFinanceiros.detalhamentoPorRodada) {
+            this.renderizarDethamentoPorRodada(dadosFinanceiros.detalhamentoPorRodada, detalhamentoContainer);
+        } else {
+            console.warn("🎨 [FLUXO-UI] Nenhum detalhamento por rodada encontrado");
+            if (detalhamentoContainer) {
+                detalhamentoContainer.innerHTML = `
+                    <div style="text-align: center; padding: 40px; color: #666;">
+                        <h3>📊 Nenhuma rodada processada ainda</h3>
+                        <p>Os detalhamentos aparecerão conforme as rodadas forem coletadas.</p>
+                    </div>
+                `;
+            }
+        }
     }
+  // Renderizar detalhamento por rodada
+  renderizarDethamentoPorRodada(detalhamentos, container) {
+    console.log('[FLUXO-UI] Renderizando detalhamentos:', detalhamentos?.length || 0, 'rodadas');
 
-    if (!participante) {
+    if (!detalhamentos || detalhamentos.length === 0) {
       container.innerHTML = `
-        <div class="alert alert-warning">
-          <h4>⚠️ Participante não encontrado</h4>
-          <p>Não foi possível carregar os dados deste participante.</p>
+        <div style="text-align: center; padding: 40px; color: #666;">
+          <h3>📊 Nenhuma rodada processada ainda</h3>
+          <p>Os detalhamentos aparecerão conforme as rodadas forem coletadas.</p>
+          <p style="font-size: 0.9em; color: #999; margin-top: 15px;">
+            Certifique-se de que o participante foi selecionado corretamente.
+          </p>
         </div>
       `;
       return;
     }
 
-    // Garantir que temos os campos necessários
-    const dadosParticipante = {
-      nome_cartoleiro: participante.nome_cartoleiro || participante.nome_cartola || 'Nome não disponível',
-      nome_time: participante.nome_time || participante.nome || 'Time não disponível',
-      time_id: participante.time_id || participante.id || 'ID não disponível',
-      clube_id: participante.clube_id || null,
-      url_escudo_png: participante.url_escudo_png || participante.escudo_url || ''
-    };
+    const tabela = `
+      <div class="detalhamento-header">
+        <h3>📋 Detalhamento por Rodada</h3>
+        <p>${detalhamentos.length} rodada(s) processada(s)</p>
+      </div>
+      <table class="fluxo-detalhamento-table">
+        <thead>
+          <tr>
+            <th style="width: 80px;">Rodada</th>
+            <th style="width: 80px;">Posição</th>
+            <th style="width: 120px;">Bônus/Ônus</th>
+            <th style="width: 120px;">Saldo Acumulado</th>
+          </tr>
+        </thead>
+        <tbody>
+          ${detalhamentos.map((item, index) => {
+            const bonusOnus = parseFloat(item.bonusOnus || 0);
+            const saldoAcumulado = parseFloat(item.saldoAcumulado || 0);
 
-    console.log("🎨 [FLUXO-UI] Dados formatados para renderização:", dadosParticipante);
-}
+            return `
+              <tr>
+                <td style="text-align: center; font-weight: bold;">${item.rodada}</td>
+                <td style="text-align: center;">${item.posicao}º</td>
+                <td style="text-align: center;" class="${bonusOnus > 0 ? 'positivo' : bonusOnus < 0 ? 'negativo' : 'neutro'}">
+                  ${this.formatarValor(bonusOnus)}
+                </td>
+                <td style="text-align: center;" class="${saldoAcumulado > 0 ? 'positivo' : saldoAcumulado < 0 ? 'negativo' : 'neutro'}">
+                  ${this.formatarValor(saldoAcumulado)}
+                </td>
+              </tr>
+            `;
+          }).join('')}
+        </tbody>
+      </table>
+    `;
+
+    container.innerHTML = tabela;
+    console.log('[FLUXO-UI] Detalhamentos renderizados com sucesso');
+  }
+
+    /**
+     * Formatar valor
+     */
+    formatarValor(valor) {
+        if (typeof valor !== 'number') return '-';
+        const valorFormatado = `R$ ${Math.abs(valor).toFixed(2).replace('.', ',')}`;
+        return valor >= 0 ? `+${valorFormatado}` : `-${valorFormatado}`;
+    }
 }
 
 // ===== DISPONIBILIZAR GLOBALMENTE =====

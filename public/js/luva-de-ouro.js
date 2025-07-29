@@ -410,14 +410,18 @@ async function exportarLuvaOuroComoImagem(dados) {
     await new Promise((resolve) => requestAnimationFrame(resolve));
 
     // Gerar canvas
-    const canvas = await html2canvas(exportDiv, {
+    const canvas = await window.html2canvas(exportDiv, {
       allowTaint: true,
       useCORS: true,
-      scale: 2,
+      scale: 3, // Aumentado de 2 para 3
       logging: false,
       width: 800,
       height: exportDiv.scrollHeight,
       backgroundColor: "#ffffff",
+      imageTimeout: 15000,
+      removeContainer: true,
+      letterRendering: true,
+      foreignObjectRendering: true,
     });
 
     // Download

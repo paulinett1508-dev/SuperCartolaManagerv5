@@ -53,13 +53,13 @@ export class FluxoFinanceiroCore {
      */
     calcularExtratoFinanceiro(timeId, ultimaRodadaCompleta) {
         console.log(`📊 [FLUXO-CORE] Iniciando cálculo de extrato para time ${timeId} até rodada ${ultimaRodadaCompleta}`);
-        
+
         const ligaId = getLigaId();
         const isSuperCartola2025 = ligaId === ID_SUPERCARTOLA_2025;
         const isCartoleirosSobral = ligaId === ID_CARTOLEIROS_SOBRAL;
-        
+
         console.log(`🏆 [FLUXO-CORE] Liga: ${ligaId} - SuperCartola2025: ${isSuperCartola2025} - CartoleirosSobral: ${isCartoleirosSobral}`);
-        
+
         const camposEditaveis =
             FluxoFinanceiroCampos.carregarTodosCamposEditaveis(timeId);
 
@@ -108,7 +108,7 @@ export class FluxoFinanceiroCore {
                     rodadaData,
                     isSuperCartola2025,
                 );
-                
+
                 rodadasProcessadas++;
             } else {
                 console.warn(`⚠️ [FLUXO-CORE] Rodada ${rodada} não pôde ser processada`);
@@ -147,10 +147,10 @@ export class FluxoFinanceiroCore {
      */
     _processarRodada(timeId, rodada, isSuperCartola2025, isCartoleirosSobral) {
         console.log(`🔍 [FLUXO-CORE] Processando rodada ${rodada} para time ${timeId}`);
-        
+
         const ranking = this.cache.getRankingRodada(rodada);
         console.log(`🔍 [FLUXO-CORE] Ranking rodada ${rodada}:`, ranking?.length ? `${ranking.length} times` : 'vazio');
-        
+
         if (!ranking || !ranking.length) {
             console.warn(`⚠️ [FLUXO-CORE] Sem ranking para rodada ${rodada}`);
             return null;
@@ -160,11 +160,11 @@ export class FluxoFinanceiroCore {
             const rTimeId = normalizarTimeId(r.timeId || r.time_id || r.id);
             const targetTimeId = normalizarTimeId(timeId);
             const match = rTimeId === targetTimeId;
-            
+
             if (match) {
                 console.log(`✅ [FLUXO-CORE] Time ${timeId} encontrado na posição ${posicao + 1} da rodada ${rodada}`);
             }
-            
+
             return match;
         });
 
@@ -550,4 +550,74 @@ export class FluxoFinanceiroCore {
       }
     }, 5 * 60 * 1000); // Cache por 5 minutos
   }
+
+  // Obter detalhamento por rodada do cache
+    obterDetalhamentoPorRodada(timeId) {
+        console.log(`📊 [FLUXO-CORE] Buscando detalhamento para time ${timeId}...`);
+
+        if (!this.cache || typeof this.cache.getDetalhamentoPorRodada !== 'function') {
+            console.warn('[FLUXO-CORE] Cache não disponível para detalhamento');
+            return [];
+        }
+
+        const detalhamento = this.cache.getDetalhamentoPorRodada(timeId);
+        console.log(`📊 [FLUXO-CORE] Detalhamento encontrado: ${detalhamento.length} rodadas`);
+
+        return detalhamento;
+    }
+
+    // Processar detalhamento por rodada
+    processarDetalhamentoPorRodada(dados) {
+        console.log('[FLUXO-CORE] Processando detalhamento por rodada...', dados.length, 'registros');
+
+        const detalhamentoPorRodada = new Map();
+
+        dados.forEach((item, index) => {
+            console.log(`[FLUXO-CORE] Processando item ${index}:`, {
+                rodada: item.rodada,
+                posicao: item.posicao,
+                bonus: item.bonus,
+                onus: item.onus,
+                timeId: item.timeId
+            });
+
+            if (!item.rodada || item.rodada === null || item.rodada === undefined) {
+                console.warn(`[FLUXO-CORE] Item ${index} sem rodada válida, ignorando`);
+                return;
+            }
+
+            const rodadaKey = String(item.rodada);
+
+            if (!detalhamentoPorRodada.has(rodadaKey)) {
+                detalhamentoPorRodada.set(rodadaKey, {
+                    rodada: parseInt(item.rodada),
+                    posicao: parseInt(item.posicao) || 0,
+                    bonusOnus: parseFloat(item.bonus || 0) + parseFloat(item.onus || 0),
+                    saldoAcumulado: 0
+                });
+            }
+
+            const rodadaData = detalhamentoPorRodada.get(rodadaKey);
+
+            // Atualizar dados da rodada
+            rodadaData.posicao = parseInt(item.posicao) || rodadaData.posicao;
+
+            const bonusValue = parseFloat(item.bonus || 0);
+            const onusValue = parseFloat(item.onus || 0);
+            rodadaData.bonusOnus = bonusValue + onusValue;
+        });
+
+        const resultado = Array.from(detalhamentoPorRodada.values())
+            .sort((a, b) => a.rodada - b.rodada);
+
+        // Calcular saldo acumulado
+        let saldoAcumulado = 0;
+        resultado.forEach(rodada => {
+            saldoAcumulado += rodada.bonusOnus;
+            rodada.saldoAcumulado = saldoAcumulado;
+        });
+
+        console.log('[FLUXO-CORE] Detalhamento processado:', resultado.length, 'rodadas');
+        return resultado;
+    }
 }
