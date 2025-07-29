@@ -243,3 +243,382 @@ function criarLayoutRodadaHQ({ rankings, rodada, tipo }) {
 }
 
 console.log("[EXPORT-RODADAS-HQ] ✅ Sistema de exportação em alta qualidade carregado");
+// ✅ MÓDULO DE EXPORTAÇÃO DE ALTA QUALIDADE PARA RODADAS
+// 🚀 VERSÃO v1.0.0 - Sistema de exportação com qualidade máxima
+
+console.log("[EXPORT-RODADAS-HQ] 🎯 Módulo de alta qualidade para rodadas carregado");
+
+import { TEMPLATE_CONFIG, criarCanvasComFundo, aplicarEstilosTexto, adicionarCabecalho, adicionarRodape, exportarCanvas } from "./export-base.js";
+
+// ✅ CONFIGURAÇÃO ESPECÍFICA PARA RODADAS
+const RODADAS_CONFIG = {
+  qualidade: {
+    scale: 4, // 4x resolução para máxima qualidade
+    backgroundColor: '#ffffff',
+    useCORS: true,
+    allowTaint: false,
+    removeContainer: false,
+    logging: false,
+    width: 1200,
+    height: 1600,
+  },
+  estilos: {
+    titulo: {
+      fontSize: '28px',
+      fontWeight: 'bold',
+      color: TEMPLATE_CONFIG.colors.primary,
+      textAlign: 'center',
+      marginBottom: '20px',
+    },
+    subtitulo: {
+      fontSize: '18px',
+      color: TEMPLATE_CONFIG.colors.text,
+      textAlign: 'center',
+      marginBottom: '30px',
+    },
+    tabela: {
+      width: '100%',
+      borderCollapse: 'collapse',
+      fontSize: '14px',
+      lineHeight: '1.4',
+    },
+    celula: {
+      padding: '12px 8px',
+      borderBottom: '1px solid #e0e0e0',
+      textAlign: 'center',
+    },
+    header: {
+      backgroundColor: TEMPLATE_CONFIG.colors.primary,
+      color: 'white',
+      fontWeight: 'bold',
+      fontSize: '16px',
+    }
+  }
+};
+
+// ✅ FUNÇÃO PRINCIPAL DE EXPORTAÇÃO COM ALTA QUALIDADE
+export async function exportarRodadaAltaQualidade(rankings, rodada, tipo = "rodada") {
+  console.log(`[EXPORT-RODADAS-HQ] 🚀 Iniciando exportação de alta qualidade - Rodada ${rodada}`);
+  
+  try {
+    // Verificar se html2canvas está disponível
+    if (typeof html2canvas === 'undefined') {
+      throw new Error('html2canvas não está disponível. Verifique se a biblioteca foi carregada.');
+    }
+
+    if (!rankings || !Array.isArray(rankings) || rankings.length === 0) {
+      throw new Error('Dados de rankings inválidos ou vazios');
+    }
+
+    // Criar container temporário para renderização
+    const container = document.createElement('div');
+    container.id = 'export-rodada-container';
+    container.style.cssText = `
+      position: absolute;
+      top: -9999px;
+      left: -9999px;
+      width: ${RODADAS_CONFIG.qualidade.width}px;
+      min-height: ${RODADAS_CONFIG.qualidade.height}px;
+      background: white;
+      padding: 40px;
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+    `;
+
+    // Adicionar cabeçalho
+    const header = document.createElement('div');
+    header.innerHTML = `
+      <div style="text-align: center; margin-bottom: 40px;">
+        <h1 style="${Object.entries(RODADAS_CONFIG.estilos.titulo).map(([k,v]) => `${k.replace(/([A-Z])/g, '-$1').toLowerCase()}: ${v}`).join('; ')}">
+          🏆 Ranking da Rodada ${rodada}
+        </h1>
+        <p style="${Object.entries(RODADAS_CONFIG.estilos.subtitulo).map(([k,v]) => `${k.replace(/([A-Z])/g, '-$1').toLowerCase()}: ${v}`).join('; ')}">
+          Resultados e classificação da rodada
+        </p>
+      </div>
+    `;
+    container.appendChild(header);
+
+    // Criar tabela com alta qualidade
+    const tabela = criarTabelaRodada(rankings, rodada);
+    container.appendChild(tabela);
+
+    // Adicionar rodapé
+    const footer = document.createElement('div');
+    footer.innerHTML = `
+      <div style="text-align: center; margin-top: 40px; padding-top: 20px; border-top: 2px solid ${TEMPLATE_CONFIG.colors.primary};">
+        <p style="color: ${TEMPLATE_CONFIG.colors.primary}; font-weight: bold; font-size: 16px;">
+          🎯 Sistema de Gestão de Ligas Cartola FC
+        </p>
+        <p style="color: #666; font-size: 12px; margin-top: 8px;">
+          Gerado em ${new Date().toLocaleString('pt-BR')}
+        </p>
+      </div>
+    `;
+    container.appendChild(footer);
+
+    // Adicionar ao DOM temporariamente
+    document.body.appendChild(container);
+
+    // Aguardar renderização
+    await new Promise(resolve => setTimeout(resolve, 500));
+
+    console.log(`[EXPORT-RODADAS-HQ] 📸 Capturando imagem com alta resolução...`);
+
+    // Capturar com html2canvas em alta qualidade
+    const canvas = await html2canvas(container, RODADAS_CONFIG.qualidade);
+
+    // Remover container temporário
+    document.body.removeChild(container);
+
+    // Fazer download da imagem
+    const link = document.createElement('a');
+    link.download = `ranking-rodada-${rodada}-${new Date().toISOString().slice(0, 10)}.png`;
+    link.href = canvas.toDataURL('image/png', 1.0);
+    
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+
+    console.log(`[EXPORT-RODADAS-HQ] ✅ Exportação concluída com sucesso!`);
+    
+    // Mostrar notificação de sucesso
+    mostrarNotificacao(`Ranking da Rodada ${rodada} exportado com alta qualidade!`, 'success');
+
+  } catch (error) {
+    console.error('[EXPORT-RODADAS-HQ] ❌ Erro na exportação:', error);
+    mostrarNotificacao(`Erro ao exportar: ${error.message}`, 'error');
+    throw error;
+  }
+}
+
+// ✅ FUNÇÃO PARA CRIAR TABELA OTIMIZADA
+function criarTabelaRodada(rankings, rodada) {
+  const tabela = document.createElement('table');
+  tabela.style.cssText = `
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 14px;
+    line-height: 1.4;
+    margin: 20px 0;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+    border-radius: 8px;
+    overflow: hidden;
+  `;
+
+  // Cabeçalho
+  const thead = document.createElement('thead');
+  thead.innerHTML = `
+    <tr style="background: ${TEMPLATE_CONFIG.colors.primary}; color: white;">
+      <th style="padding: 16px 8px; text-align: center; font-weight: bold; width: 60px;">Pos</th>
+      <th style="padding: 16px 8px; text-align: center; font-weight: bold; width: 50px;">❤️</th>
+      <th style="padding: 16px 8px; text-align: left; font-weight: bold; min-width: 150px;">Cartoleiro</th>
+      <th style="padding: 16px 8px; text-align: left; font-weight: bold; min-width: 150px;">Time</th>
+      <th style="padding: 16px 8px; text-align: center; font-weight: bold; width: 80px;">Pontos</th>
+      <th style="padding: 16px 8px; text-align: center; font-weight: bold; width: 80px;">Banco</th>
+    </tr>
+  `;
+  tabela.appendChild(thead);
+
+  // Corpo da tabela
+  const tbody = document.createElement('tbody');
+  
+  rankings.forEach((rank, index) => {
+    const tr = document.createElement('tr');
+    tr.style.cssText = `
+      background: ${index % 2 === 0 ? '#f8f9fa' : 'white'};
+      transition: background 0.2s;
+    `;
+
+    const posicao = index + 1;
+    const posLabel = getPosicaoLabel(posicao, rankings.length);
+    const clubeImg = rank.clube_id ? `<img src="/escudos/${rank.clube_id}.png" style="width: 24px; height: 24px; border-radius: 50%; border: 1px solid #ddd;" onerror="this.style.display='none'"/>` : '—';
+    const pontos = rank.pontos != null ? parseFloat(rank.pontos).toFixed(2) : '-';
+    const banco = rank.banco != null ? formatarBanco(rank.banco) : '-';
+
+    tr.innerHTML = `
+      <td style="padding: 12px 8px; text-align: center; border-bottom: 1px solid #e0e0e0;">${posLabel}</td>
+      <td style="padding: 12px 8px; text-align: center; border-bottom: 1px solid #e0e0e0;">${clubeImg}</td>
+      <td style="padding: 12px 8px; text-align: left; border-bottom: 1px solid #e0e0e0; font-weight: 500;">${rank.nome_cartola || 'N/D'}</td>
+      <td style="padding: 12px 8px; text-align: left; border-bottom: 1px solid #e0e0e0;">${rank.nome_time || 'N/D'}</td>
+      <td style="padding: 12px 8px; text-align: center; border-bottom: 1px solid #e0e0e0; font-weight: bold; color: ${pontos > 0 ? TEMPLATE_CONFIG.colors.success : pontos < 0 ? TEMPLATE_CONFIG.colors.danger : '#333'};">${pontos}</td>
+      <td style="padding: 12px 8px; text-align: center; border-bottom: 1px solid #e0e0e0; font-weight: 600; color: ${rank.banco > 0 ? TEMPLATE_CONFIG.colors.success : rank.banco < 0 ? TEMPLATE_CONFIG.colors.danger : '#333'};">${banco}</td>
+    `;
+    
+    tbody.appendChild(tr);
+  });
+
+  tabela.appendChild(tbody);
+  return tabela;
+}
+
+// ✅ FUNÇÃO PARA FORMATAR LABELS DE POSIÇÃO
+function getPosicaoLabel(pos, total) {
+  if (pos === 1) {
+    return `<span style="background: ${TEMPLATE_CONFIG.colors.success}; color: white; padding: 4px 8px; border-radius: 4px; font-weight: bold; font-size: 12px;">MITO</span>`;
+  }
+  
+  if (pos === total && total > 1) {
+    return `<span style="background: ${TEMPLATE_CONFIG.colors.danger}; color: white; padding: 4px 8px; border-radius: 4px; font-weight: bold; font-size: 12px;">MICO</span>`;
+  }
+  
+  if (pos >= 2 && pos <= 10) {
+    return `<span style="background: ${TEMPLATE_CONFIG.colors.primary}; color: white; padding: 2px 6px; border-radius: 3px; font-size: 11px;">G${pos}</span>`;
+  }
+  
+  if (pos >= total - 10 && pos < total) {
+    const zPos = total - pos;
+    return `<span style="background: ${TEMPLATE_CONFIG.colors.warning}; color: white; padding: 2px 6px; border-radius: 3px; font-size: 11px;">${pos}º | Z${zPos}</span>`;
+  }
+  
+  return `${pos}º`;
+}
+
+// ✅ FUNÇÃO PARA FORMATAR VALORES DO BANCO
+function formatarBanco(valor) {
+  const valorNum = parseFloat(valor);
+  if (valorNum >= 0) {
+    return `R$ ${valorNum.toFixed(2)}`;
+  } else {
+    return `-R$ ${Math.abs(valorNum).toFixed(2)}`;
+  }
+}
+
+// ✅ FUNÇÃO PARA CRIAR BOTÃO DE EXPORTAÇÃO
+export function criarBotaoExportacaoRodadaHQ(containerId, rodada, rankings, tipo = "rodada") {
+  const container = document.getElementById(containerId);
+  if (!container) {
+    console.warn(`[EXPORT-RODADAS-HQ] Container ${containerId} não encontrado`);
+    return;
+  }
+
+  // Remover botão existente
+  const existente = container.querySelector('.btn-export-rodada-hq');
+  if (existente) {
+    existente.remove();
+  }
+
+  // Criar novo botão
+  const btn = document.createElement('button');
+  btn.className = 'btn-export-rodada-hq';
+  btn.innerHTML = `
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor" style="margin-right: 8px;">
+      <path d="M19 12v7H5v-7H3v7c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2v-7h-2zm-6 .67l2.59-2.58L17 11.5l-5 5-5-5 1.41-1.41L11 12.67V3h2v9.67z"/>
+    </svg>
+    Exportar Ranking da Rodada
+  `;
+
+  btn.style.cssText = `
+    background: linear-gradient(135deg, ${TEMPLATE_CONFIG.colors.primary} 0%, ${TEMPLATE_CONFIG.colors.accent} 100%);
+    color: white;
+    border: none;
+    padding: 12px 24px;
+    border-radius: 8px;
+    cursor: pointer;
+    font: 500 14px Inter, sans-serif;
+    display: inline-flex;
+    align-items: center;
+    transition: all 0.3s ease;
+    box-shadow: 0 4px 12px rgba(46, 139, 87, 0.3);
+  `;
+
+  // Efeitos hover
+  btn.onmouseover = () => {
+    btn.style.transform = 'translateY(-2px)';
+    btn.style.boxShadow = '0 6px 20px rgba(46, 139, 87, 0.4)';
+  };
+
+  btn.onmouseout = () => {
+    btn.style.transform = 'translateY(0)';
+    btn.style.boxShadow = '0 4px 12px rgba(46, 139, 87, 0.3)';
+  };
+
+  // Event listener
+  btn.onclick = async (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    
+    try {
+      btn.disabled = true;
+      btn.innerHTML = `
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor" style="margin-right: 8px; animation: spin 1s linear infinite;">
+          <path d="M12,4V2A10,10 0 0,0 2,12H4A8,8 0 0,1 12,4Z" />
+        </svg>
+        Exportando...
+      `;
+      
+      await exportarRodadaAltaQualidade(rankings, rodada, tipo);
+    } catch (error) {
+      console.error('[EXPORT-RODADAS-HQ] Erro no botão:', error);
+      mostrarNotificacao('Erro ao exportar. Tente novamente.', 'error');
+    } finally {
+      btn.disabled = false;
+      btn.innerHTML = `
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor" style="margin-right: 8px;">
+          <path d="M19 12v7H5v-7H3v7c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2v-7h-2zm-6 .67l2.59-2.58L17 11.5l-5 5-5-5 1.41-1.41L11 12.67V3h2v9.67z"/>
+        </svg>
+        Exportar Ranking da Rodada
+      `;
+    }
+  };
+
+  container.appendChild(btn);
+  console.log(`[EXPORT-RODADAS-HQ] ✅ Botão de exportação criado para rodada ${rodada}`);
+}
+
+// ✅ FUNÇÃO PARA MOSTRAR NOTIFICAÇÕES
+function mostrarNotificacao(mensagem, tipo = 'info') {
+  const cores = {
+    success: { bg: '#d4edda', border: '#c3e6cb', text: '#155724' },
+    error: { bg: '#f8d7da', border: '#f5c6cb', text: '#721c24' },
+    info: { bg: '#d1ecf1', border: '#bee5eb', text: '#0c5460' },
+  };
+
+  const cor = cores[tipo] || cores.info;
+
+  const notificacao = document.createElement('div');
+  notificacao.style.cssText = `
+    position: fixed;
+    top: 20px;
+    right: 20px;
+    background: ${cor.bg};
+    border: 1px solid ${cor.border};
+    color: ${cor.text};
+    padding: 16px 24px;
+    border-radius: 8px;
+    font: 500 14px Inter, sans-serif;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+    z-index: 10000;
+    transform: translateX(100%);
+    transition: transform 0.3s ease;
+  `;
+
+  notificacao.textContent = mensagem;
+  document.body.appendChild(notificacao);
+
+  // Animação de entrada
+  requestAnimationFrame(() => {
+    notificacao.style.transform = 'translateX(0)';
+  });
+
+  // Remover após 3 segundos
+  setTimeout(() => {
+    notificacao.style.transform = 'translateX(100%)';
+    setTimeout(() => {
+      if (notificacao.parentNode) {
+        document.body.removeChild(notificacao);
+      }
+    }, 300);
+  }, 3000);
+}
+
+// ✅ CSS para animação de loading
+const style = document.createElement('style');
+style.textContent = `
+  @keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+  }
+`;
+document.head.appendChild(style);
+
+console.log("[EXPORT-RODADAS-HQ] ✅ Módulo de alta qualidade para rodadas inicializado");

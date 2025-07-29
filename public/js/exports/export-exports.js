@@ -193,8 +193,15 @@ export async function exportarRankingGeralComoImagem(...args) {
 
 // ✅ FUNÇÃO ESPECÍFICA PARA RODADAS COM ALTA QUALIDADE
 export async function exportarRodadaComoImagem(rankings, rodada, tipo = "rodada") {
-  // ✅ NOVO: Usar função de alta qualidade para rodadas
-  await exportarRodadaAltaQualidade(rankings, rodada, tipo);
+  try {
+    // ✅ NOVO: Usar função de alta qualidade para rodadas
+    const { exportarRodadaAltaQualidade } = await import("./export-rodadas-hq.js");
+    await exportarRodadaAltaQualidade(rankings, rodada, tipo);
+  } catch (error) {
+    console.error("[EXPORT-EXPORTS] ❌ Erro ao carregar módulo de alta qualidade:", error);
+    // Fallback para função básica
+    return executeExportFunction("ranking-geral", "exportarRankingGeralComoImagem", rankings, rodada, tipo);
+  }
 }
 
 // 🔧 FIX CRÍTICO: Função inteligente que detecta o módulo correto baseado no tipo
