@@ -215,15 +215,11 @@ async function exportarExtratoFinanceiroComoImagemProfissional(config) {
     const canvas = await html2canvas(exportContainer, {
       allowTaint: true,
       useCORS: true,
-      scale: 3, // Aumentado de 2 para 3
+      scale: 2,
       logging: false,
       width: TEMPLATE_CONFIG.width,
       height: exportContainer.scrollHeight,
       backgroundColor: TEMPLATE_CONFIG.colors.background,
-      imageTimeout: 15000,
-      removeContainer: true,
-      letterRendering: true,
-      foreignObjectRendering: true,
     });
 
     // Gerar nome do arquivo
@@ -740,8 +736,7 @@ function estruturarDetalhamentoPorRodada(dadosExtrato) {
         rodadaData.posicao = parseInt(posicaoMatch[1]);
         rodadaData.totalTimes = parseInt(posicaoMatch[2]);
         rodadaData.isMito = rodadaData.posicao === 1;
-        rodadaData.isMico =```text
-rodadaData.posicao === rodadaData.totalTimes;
+        rodadaData.isMico = rodadaData.posicao === rodadaData.totalTimes;
       }
 
       // Verificar se é MITO ou MICO na descrição

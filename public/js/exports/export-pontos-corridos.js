@@ -66,7 +66,6 @@ export async function criarBotaoExportacaoPontosCorridosRodada(config) {
     rodadaLiga = "",
     rodadaCartola = "",
     times = [],
-    tipo = "pontos-corridos-rodada"
   } = config;
 
   console.log("[EXPORT-PONTOS-CORRIDOS] 🎯 Criando botão exportação rodada:", {
@@ -74,7 +73,6 @@ export async function criarBotaoExportacaoPontosCorridosRodada(config) {
     jogosCount: jogos.length,
     rodadaLiga,
     rodadaCartola,
-    tipo,
   });
 
   if (!containerId) {
@@ -85,142 +83,7 @@ export async function criarBotaoExportacaoPontosCorridosRodada(config) {
   const container = document.getElementById(containerId);
   if (!container) {
     console.error(
-      `[EXPORT-PONTOS-CORRIDOS] Container ${containerId} não encontrado`
-    );
-    return;
-  }
-
-  // Limpar container antes de adicionar novo botão
-  container.innerHTML = "";
-
-  // Criar botão com design profissional
-  const btnContainer = document.createElement("div");
-  btnContainer.style.cssText = "text-align: right; margin: 15px 0;";
-
-  const btn = document.createElement("button");
-  btn.className = `btn-export-${tipo}`;
-  btn.innerHTML = `
-    <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor" style="margin-right: 8px;">
-      <path d="M19 12v7H5v-7H3v7c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2v-7h-2zm-6 .67l2.59-2.58L17 11.5l-5 5-5-5 1.41-1.41L11 12.67V3h2v9.67z"/>
-    </svg>
-    ${tipo === "pontos-corridos-classificacao" ? "Exportar Classificação" : "Exportar Rodada"}
-  `;
-
-  btn.style.cssText = `
-    background: linear-gradient(135deg, ${TEMPLATE_CONFIG.colors.primary} 0%, ${TEMPLATE_CONFIG.colors.accent} 100%);
-    color: white;
-    border: none;
-    padding: 12px 24px;
-    border-radius: 8px;
-    cursor: pointer;
-    font: 500 14px Inter, sans-serif;
-    display: inline-flex;
-    align-items: center;
-    transition: all 0.3s ease;
-    box-shadow: 0 4px 12px rgba(46, 139, 87, 0.3);
-  `;
-
-  // Efeitos hover
-  btn.onmouseover = () => {
-    btn.style.transform = "translateY(-2px)";
-    btn.style.boxShadow = "0 6px 20px rgba(46, 139, 87, 0.4)";
-  };
-
-  btn.onmouseout = () => {
-    btn.style.transform = "translateY(0)";
-    btn.style.boxShadow = "0 4px 12px rgba(46, 139, 87, 0.3)";
-  };
-
-  // Adicionar evento de clique
-  btn.addEventListener("click", async () => {
-    const textoOriginal = btn.innerHTML;
-    btn.innerHTML = `
-      <div style="width: 16px; height: 16px; margin-right: 8px;">
-        <div style="width: 16px; height: 16px; border: 2px solid transparent; border-top: 2px solid currentColor; border-radius: 50%; animation: spin 1s linear infinite;"></div>
-      </div>
-      Gerando Imagem...
-    `;
-    btn.disabled = true;
-
-    try {
-      if (tipo === "pontos-corridos-classificacao") {
-        await exportarPontosCorridosClassificacaoComoImagem(times, rodadaLiga, rodadaCartola);
-      } else {
-        await exportarPontosCorridosRodadaComoImagemProfissional({
-          jogos,
-          rodadaLiga,
-          rodadaCartola,
-          times,
-        });
-      }
-    } catch (error) {
-      console.error("[EXPORT-PONTOS-CORRIDOS] Erro na exportação:", error);
-      mostrarNotificacao("Erro ao gerar imagem. Tente novamente.", "error");
-    } finally {
-      btn.innerHTML = textoOriginal;
-      btn.disabled = false;
-    }
-  });
-
-  // Adicionar animação CSS se não existir
-  if (!document.querySelector('#spin-animation-style')) {
-    const style = document.createElement("style");
-    style.id = 'spin-animation-style';
-    style.textContent = `
-      @keyframes spin {
-        0% { transform: rotate(0deg); }
-        100% { transform: rotate(360deg); }
-      }
-    `;
-    document.head.appendChild(style);
-  }
-
-  btnContainer.appendChild(btn);
-  container.appendChild(btnContainer);
-  console.log("[EXPORT-PONTOS-CORRIDOS] ✅ Botão criado com sucesso");
-}
-
-// Função para exportar rodada como imagem
-export async function exportarPontosCorridosRodadaComoImagem(jogos, rodadaLiga, rodadaCartola, times) {
-  console.log("[EXPORT-PONTOS-CORRIDOS] Exportando rodada como imagem...");
-  
-  // Importar funções base de exportação
-  const { exportarComoImagem } = await import("./export-base.js");
-  
-  const ligaInfo = getLigaAtivaInfo();
-  const titulo = `${rodadaLiga}ª Rodada - Liga Pontos Corridos`;
-  const subtitulo = `Rodada ${rodadaCartola}ª do Brasileirão`;
-  
-  await exportarComoImagem({
-    dados: jogos,
-    tipo: "pontos-corridos-rodada",
-    titulo,
-    subtitulo,
-    ligaInfo,
-    nomeArquivo: `pontos-corridos-rodada-${rodadaLiga}-${Date.now()}.png`
-  });
-}
-
-// Função para exportar classificação como imagem
-export async function exportarPontosCorridosClassificacaoComoImagem(classificacao, rodadaLiga, rodadaCartola) {
-  console.log("[EXPORT-PONTOS-CORRIDOS] Exportando classificação como imagem...");
-  
-  // Importar funções base de exportação
-  const { exportarComoImagem } = await import("./export-base.js");
-  
-  const ligaInfo = getLigaAtivaInfo();
-  const titulo = "Classificação - Liga Pontos Corridos";
-  const subtitulo = `Após ${rodadaLiga} rodada${rodadaLiga > 1 ? "s" : ""} da Liga`;
-  
-  await exportarComoImagem({
-    dados: classificacao,
-    tipo: "pontos-corridos-classificacao",
-    titulo,
-    subtitulo,
-    ligaInfo,
-    nomeArquivo: `pontos-corridos-classificacao-${rodadaLiga}-${Date.now()}.png`
-  });
-}trado`,
+      `[EXPORT-PONTOS-CORRIDOS] Container ${containerId} não encontrado`,
     );
     return;
   }
@@ -348,8 +211,13 @@ export async function criarBotaoExportacaoPontosCorridosClassificacao(config) {
     return;
   }
 
-  // Limpar container antes de adicionar novo botão
-  container.innerHTML = "";
+  // Remove botão existente
+  const botaoExistente = container.querySelector(
+    ".btn-export-pontos-corridos-classificacao",
+  );
+  if (botaoExistente) {
+    botaoExistente.remove();
+  }
 
   // Criar botão com design profissional
   const btnContainer = document.createElement("div");
@@ -359,7 +227,7 @@ export async function criarBotaoExportacaoPontosCorridosClassificacao(config) {
   btn.className = "btn-export-pontos-corridos-classificacao";
   btn.innerHTML = `
     <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor" style="margin-right: 8px;">
-      <path d="M19 12v7H5v-7H3v7c0 1.1.9 2 2 2 2h14c1.1 0 2-.9 2-2v-7h-2zm-6 .67l2.59-2.58L17 11.5l-5 5-5-5 1.41-1.41L11 12.67V3h2v9.67z"/>
+      <path d="M19 12v7H5v-7H3v7c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2v-7h-2zm-6 .67l2.59-2.58L17 11.5l-5 5-5-5 1.41-1.41L11 12.67V3h2v9.67z"/>
     </svg>
     Exportar Classificação
   `;
@@ -414,22 +282,8 @@ export async function criarBotaoExportacaoPontosCorridosClassificacao(config) {
     }
   };
 
-  // Adicionar animação CSS se não existir
-  if (!document.querySelector('#spin-animation-style')) {
-    const style = document.createElement("style");
-    style.id = 'spin-animation-style';
-    style.textContent = `
-      @keyframes spin {
-        0% { transform: rotate(0deg); }
-        100% { transform: rotate(360deg); }
-      }
-    `;
-    document.head.appendChild(style);
-  }
-
   btnContainer.appendChild(btn);
-  container.appendChild(btnContainer);
-  console.log("[EXPORT-PONTOS-CORRIDOS] ✅ Botão de classificação criado com sucesso");
+  container.insertBefore(btnContainer, container.firstChild);
 }
 
 // ✅ FUNÇÃO DE EXPORTAÇÃO PROFISSIONAL - RODADA (CONFRONTOS)
@@ -857,7 +711,6 @@ export async function exportarPontosCorridosClassificacaoComoImagem(
     const timesTest = [
       {
         nome_time: "Time Teste 1",
-        ```text
         nome_cartola: "Cartoleiro 1",
         jogos: 5,
         vitorias: 3,
@@ -1279,9 +1132,9 @@ async function gerarCanvasDownload(element, filename) {
 
   try {
     const canvas = await window.html2canvas(element, {
-      allowTaint: true,
-      useCORS: true,
+      backgroundColor: "#ffffff",
       scale: 2.5,
+      useCORS: true,
       logging: false,
     });
 

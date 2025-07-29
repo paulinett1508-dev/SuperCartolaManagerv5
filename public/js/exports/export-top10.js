@@ -120,19 +120,15 @@ async function exportarTop10ComoImagemProfissional(config) {
 
     console.log("[EXPORT-TOP10] 📸 Capturando imagem...");
 
-    // Gerar canvas com configurações de alta qualidade
+    // Capturar com html2canvas
     const canvas = await html2canvas(exportContainer, {
       allowTaint: true,
       useCORS: true,
-      scale: 3, // Aumentado de 2 para 3
+      scale: 2,
       logging: false,
       width: TEMPLATE_CONFIG.width,
       height: exportContainer.scrollHeight,
       backgroundColor: TEMPLATE_CONFIG.colors.background,
-      imageTimeout: 15000,
-      removeContainer: true,
-      letterRendering: true,
-      foreignObjectRendering: true,
     });
 
     // Extrair número da rodada

@@ -193,15 +193,11 @@ async function exportarRankingGeralComoImagemProfissional(config) {
     const canvas = await html2canvas(exportContainer, {
       allowTaint: true,
       useCORS: true,
-      scale: 3, // Aumentado de 2 para 3
+      scale: 2,
       logging: false,
       width: TEMPLATE_CONFIG.width,
       height: exportContainer.scrollHeight,
       backgroundColor: TEMPLATE_CONFIG.colors.background,
-      imageTimeout: 15000,
-      removeContainer: true,
-      letterRendering: true,
-      foreignObjectRendering: true,
     });
 
     // Gerar nome do arquivo

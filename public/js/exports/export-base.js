@@ -296,25 +296,21 @@ export async function gerarCanvasDownload(element, filename) {
     // Aguardar um frame para garantir renderização
     await new Promise((resolve) => requestAnimationFrame(resolve));
 
-    // Gerar canvas com configurações de alta qualidade
+    // Gerar canvas com configurações otimizadas
     const canvas = await window.html2canvas(element, {
       allowTaint: true,
       useCORS: true,
-      scale: 3, // Aumentado de 2 para 3
+      scale: 2,
       logging: false,
       width: EXPORT_BASE_CONFIG.width,
       height: element.scrollHeight,
       backgroundColor: EXPORT_BASE_CONFIG.colors.background,
-      imageTimeout: 15000, // Timeout maior para carregamento de imagens
-      removeContainer: true,
-      letterRendering: true, // Melhor renderização de texto
-      foreignObjectRendering: true, // Melhor renderização de elementos
     });
 
-    // Download da imagem com qualidade máxima
+    // Download da imagem
     const link = document.createElement("a");
     link.download = filename;
-    link.href = canvas.toDataURL("image/png", 1.0); // Qualidade máxima
+    link.href = canvas.toDataURL("image/png", 0.95);
     link.click();
 
     console.log(`[EXPORT-BASE] ✅ Imagem exportada: ${filename}`);
