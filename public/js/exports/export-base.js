@@ -3,13 +3,13 @@
 
 console.log("[EXPORT-BASE] 🚀 Carregando utilities otimizadas v2.3.0...");
 
-// ✅ CONFIGURAÇÃO PADRONIZADA PARA TODOS OS EXPORTS
+// ✅ CONFIGURAÇÃO PADRONIZADA PARA TODOS OS EXPORTS - ALTA QUALIDADE
 export const EXPORT_BASE_CONFIG = {
-  width: 800,
-  padding: 24,
-  headerHeight: 85,
-  footerHeight: 40,
-  cardSpacing: 8,
+  width: 1000, // ✅ AUMENTADO: Largura maior para melhor qualidade
+  padding: 30, // ✅ AUMENTADO: Padding proporcional
+  headerHeight: 100, // ✅ AUMENTADO: Header maior
+  footerHeight: 50, // ✅ AUMENTADO: Footer maior
+  cardSpacing: 10, // ✅ AUMENTADO: Espaçamento maior
   colors: {
     primary: "#2E8B57", // Verde da logo SuperCartola
     secondary: "#228B22", // Verde mais escuro
@@ -23,11 +23,11 @@ export const EXPORT_BASE_CONFIG = {
     danger: "#e74c3c",
   },
   fonts: {
-    title: "28px Inter, sans-serif",
-    subtitle: "18px Inter, sans-serif",
-    heading: "16px Inter, sans-serif",
-    body: "13px Inter, sans-serif",
-    caption: "11px Inter, sans-serif",
+    title: "32px Inter, sans-serif", // ✅ AUMENTADO: Fontes maiores para melhor legibilidade
+    subtitle: "20px Inter, sans-serif",
+    heading: "18px Inter, sans-serif", 
+    body: "15px Inter, sans-serif",
+    caption: "13px Inter, sans-serif",
   },
 };
 
@@ -296,21 +296,28 @@ export async function gerarCanvasDownload(element, filename) {
     // Aguardar um frame para garantir renderização
     await new Promise((resolve) => requestAnimationFrame(resolve));
 
-    // Gerar canvas com configurações otimizadas
+    // Gerar canvas com configurações otimizadas para alta qualidade
     const canvas = await window.html2canvas(element, {
       allowTaint: true,
       useCORS: true,
-      scale: 2,
+      scale: 3, // ✅ AUMENTADO: Escala 3x para maior qualidade
       logging: false,
       width: EXPORT_BASE_CONFIG.width,
       height: element.scrollHeight,
       backgroundColor: EXPORT_BASE_CONFIG.colors.background,
+      pixelRatio: window.devicePixelRatio || 1, // ✅ NOVO: Usar pixel ratio do dispositivo
+      removeContainer: true, // ✅ NOVO: Remove container temporário automaticamente
+      imageTimeout: 5000, // ✅ NOVO: Timeout maior para carregamento de imagens
+      ignoreElements: (element) => {
+        // ✅ NOVO: Ignorar elementos que podem afetar a qualidade
+        return element.classList && element.classList.contains('ignore-export');
+      }
     });
 
-    // Download da imagem
+    // Download da imagem com qualidade máxima
     const link = document.createElement("a");
     link.download = filename;
-    link.href = canvas.toDataURL("image/png", 0.95);
+    link.href = canvas.toDataURL("image/png", 1.0); // ✅ MELHORADO: Qualidade máxima (1.0)
     link.click();
 
     console.log(`[EXPORT-BASE] ✅ Imagem exportada: ${filename}`);
@@ -483,6 +490,7 @@ export function criarBotaoExportacaoRodada({
 
     try {
       if (typeof customExport === "function") {
+        console.log(`[EXPORT-BASE] 🎨 Exportando rodada ${rodada} em alta qualidade...`);
         await customExport(rankings, rodada, tipo);
       } else {
         console.log(

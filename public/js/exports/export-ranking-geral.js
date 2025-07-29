@@ -1,9 +1,9 @@
 // ✅ SISTEMA DE EXPORTAÇÃO PROFISSIONAL - RANKING GERAL
 // Padrão UX modular, vertical, compacto e bonito
 
-// ✅ CONFIGURAÇÃO DO TEMPLATE PROFISSIONAL
+// ✅ CONFIGURAÇÃO DO TEMPLATE PROFISSIONAL - ALTA QUALIDADE
 const TEMPLATE_CONFIG = {
-  width: 800,
+  width: 1000, // ✅ LARGURA AUMENTADA para melhor qualidade
   padding: 24,
   headerHeight: 85,
   footerHeight: 40,
@@ -189,15 +189,18 @@ async function exportarRankingGeralComoImagemProfissional(config) {
 
     console.log("[EXPORT-RANKING-GERAL] 📸 Capturando imagem...");
 
-    // Capturar com html2canvas
+    // Capturar com html2canvas em alta qualidade
     const canvas = await html2canvas(exportContainer, {
       allowTaint: true,
       useCORS: true,
-      scale: 2,
+      scale: 3, // ✅ ALTA QUALIDADE: Escala 3x
       logging: false,
       width: TEMPLATE_CONFIG.width,
       height: exportContainer.scrollHeight,
       backgroundColor: TEMPLATE_CONFIG.colors.background,
+      pixelRatio: window.devicePixelRatio || 1, // ✅ NOVO: Pixel ratio do dispositivo
+      removeContainer: true,
+      imageTimeout: 5000,
     });
 
     // Gerar nome do arquivo
@@ -209,10 +212,10 @@ async function exportarRankingGeralComoImagemProfissional(config) {
         ? `ranking-geral-rodada-${rodada}-${timestamp}`
         : `ranking-rodada-${rodada}-${timestamp}`;
 
-    // Download da imagem
+    // Download da imagem em qualidade máxima
     const link = document.createElement("a");
     link.download = `${nomeArquivo}.png`;
-    link.href = canvas.toDataURL("image/png", 0.95);
+    link.href = canvas.toDataURL("image/png", 1.0); // ✅ QUALIDADE MÁXIMA
     link.click();
 
     console.log("[EXPORT-RANKING-GERAL] ✅ Imagem exportada com sucesso");

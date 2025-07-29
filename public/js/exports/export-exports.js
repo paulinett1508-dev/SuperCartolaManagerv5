@@ -191,12 +191,10 @@ export async function exportarRankingGeralComoImagem(...args) {
   );
 }
 
-export async function exportarRodadaComoImagem(...args) {
-  return executeExportFunction(
-    "ranking-geral",
-    "exportarRodadaComoImagem",
-    ...args,
-  );
+// ✅ FUNÇÃO ESPECÍFICA PARA RODADAS COM ALTA QUALIDADE
+export async function exportarRodadaComoImagem(rankings, rodada, tipo = "rodada") {
+  // ✅ NOVO: Usar função de alta qualidade para rodadas
+  await exportarRodadaAltaQualidade(rankings, rodada, tipo);
 }
 
 // 🔧 FIX CRÍTICO: Função inteligente que detecta o módulo correto baseado no tipo
@@ -570,3 +568,12 @@ function mostrarNotificacao(mensagem, tipo = "info") {
 console.log(
   "[EXPORT-EXPORTS] ✅ Centro coordenador CORRIGIDO v2.4.2 - Detecção inteligente implementada",
 );
+// ✅ IMPORTS DE MÓDULOS DE EXPORTAÇÃO
+import { criarBotaoExportacaoRankingGeral } from "./export-ranking-geral.js";
+import { criarBotaoExportacaoTop10 } from "./export-top10.js";
+import { criarBotaoExportacaoMataMata } from "./export-mata-mata.js";
+import { criarBotaoExportacaoFluxoFinanceiro } from "./export-extrato-financeiro.js";
+import { criarBotaoExportacaoArtilheiro } from "./export-artilheiro-campeao.js";
+import { criarBotaoExportacaoMelhorMes } from "./export-melhor-mes.js";
+import { criarBotaoExportacaoPontosCorridos } from "./export-pontos-corridos.js";
+import { exportarRodadaAltaQualidade } from "./export-rodadas-hq.js"; // ✅ NOVO: Alta qualidade para rodadas
