@@ -1,10 +1,12 @@
-// index.js - Super Cartola Manager
+// index.js - Super Cartola Manager OTIMIZADO
 import { readFileSync } from "fs";
 import express from "express";
-import mongoose from "mongoose";
 import dotenv from "dotenv";
 import cors from "cors";
 import path from "path";
+
+// ⚡ USAR CONEXÃO OTIMIZADA
+import connectDB from "./config/database.js";
 
 // Importar package.json para versão
 const pkg = JSON.parse(readFileSync("./package.json", "utf8"));
@@ -51,12 +53,14 @@ app.use(express.urlencoded({ extended: true, limit: "10mb" }));
 // Servir arquivos estáticos da pasta public
 app.use(express.static(path.join(process.cwd(), "public")));
 
-// Middleware para logging de requisições
-app.use((req, res, next) => {
-  const timestamp = new Date().toISOString();
-  console.log(`[${timestamp}] ${req.method} ${req.originalUrl}`);
-  next();
-});
+// ⚡ MIDDLEWARE DE LOGGING OTIMIZADO (só em desenvolvimento)
+if (process.env.NODE_ENV !== "production") {
+  app.use((req, res, next) => {
+    const timestamp = new Date().toISOString();
+    console.log(`[${timestamp}] ${req.method} ${req.originalUrl}`);
+    next();
+  });
+}
 
 // Middleware para definir charset UTF-8 apenas em respostas JSON
 app.use((req, res, next) => {
@@ -70,39 +74,61 @@ app.use((req, res, next) => {
 
 // Rota específica para clubes no nível raiz da API
 app.get("/api/clubes", getClubes);
-console.log("✅ [ROUTES] Registrada: GET /api/clubes");
+if (process.env.NODE_ENV !== "production") {
+  console.log("✅ [ROUTES] Registrada: GET /api/clubes");
+}
 
 // Rotas principais da API
 app.use("/api/cartola", cartolaRoutes);
-console.log("✅ [ROUTES] Registrada: /api/cartola/*");
+if (process.env.NODE_ENV !== "production") {
+  console.log("✅ [ROUTES] Registrada: /api/cartola/*");
+}
 
 app.use("/api/times", timesRoutes);
-console.log("✅ [ROUTES] Registrada: /api/times/*");
+if (process.env.NODE_ENV !== "production") {
+  console.log("✅ [ROUTES] Registrada: /api/times/*");
+}
 
 // Rotas adicionais para compatibilidade com frontend
 app.use("/api/time", timesRoutes);
-console.log("✅ [ROUTES] Registrada: /api/time/* (compatibilidade)");
+if (process.env.NODE_ENV !== "production") {
+  console.log("✅ [ROUTES] Registrada: /api/time/* (compatibilidade)");
+}
 
 app.use("/api/cartola/time", timesRoutes);
-console.log("✅ [ROUTES] Registrada: /api/cartola/time/* (compatibilidade)");
+if (process.env.NODE_ENV !== "production") {
+  console.log("✅ [ROUTES] Registrada: /api/cartola/time/* (compatibilidade)");
+}
 
 app.use("/api/ligas", ligaRoutes);
-console.log("✅ [ROUTES] Registrada: /api/ligas/*");
+if (process.env.NODE_ENV !== "production") {
+  console.log("✅ [ROUTES] Registrada: /api/ligas/*");
+}
 
 app.use("/api/rodadas", rodadasRoutes);
-console.log("✅ [ROUTES] Registrada: /api/rodadas/*");
+if (process.env.NODE_ENV !== "production") {
+  console.log("✅ [ROUTES] Registrada: /api/rodadas/*");
+}
 
 app.use("/api/gols", golsRoutes);
-console.log("✅ [ROUTES] Registrada: /api/gols/*");
+if (process.env.NODE_ENV !== "production") {
+  console.log("✅ [ROUTES] Registrada: /api/gols/*");
+}
 
 app.use("/api/artilheiro-campeao", artilheiroCampeaoRoutes);
-console.log("✅ [ROUTES] Registrada: /api/artilheiro-campeao/*");
+if (process.env.NODE_ENV !== "production") {
+  console.log("✅ [ROUTES] Registrada: /api/artilheiro-campeao/*");
+}
 
 app.use("/api/luva-de-ouro", luvaDeOuroRoutes);
-console.log("✅ [ROUTES] Registrada: /api/luva-de-ouro/*");
+if (process.env.NODE_ENV !== "production") {
+  console.log("✅ [ROUTES] Registrada: /api/luva-de-ouro/*");
+}
 
 app.use("/api/configuracao", configuracaoRoutes);
-console.log("✅ [ROUTES] Registrada: /api/configuracao/*");
+if (process.env.NODE_ENV !== "production") {
+  console.log("✅ [ROUTES] Registrada: /api/configuracao/*");
+}
 
 // Rota para informações da API e versão
 app.get("/api/version", (req, res) => {
@@ -112,6 +138,14 @@ app.get("/api/version", (req, res) => {
     description: "Sistema de gerenciamento de ligas internas do Cartola FC",
     author: pkg.author || "Super Cartola Team",
     environment: process.env.NODE_ENV || "development",
+    performance: {
+      cache: "NodeCache habilitado",
+      database: "Connection pooling ativo",
+      logs:
+        process.env.NODE_ENV === "production"
+          ? "Otimizados para produção"
+          : "Completos para desenvolvimento",
+    },
     features: [
       "Gerenciamento de Ligas",
       "Sistema de Pontos Corridos",
@@ -121,6 +155,8 @@ app.get("/api/version", (req, res) => {
       "Fluxo Financeiro",
       "Exportação de Relatórios (Frontend)",
       "Integração com API do Cartola FC",
+      "Cache inteligente",
+      "Índices otimizados",
     ],
     endpoints: {
       clubes: "/api/clubes",
@@ -136,22 +172,30 @@ app.get("/api/version", (req, res) => {
     },
   });
 });
-console.log("✅ [ROUTES] Registrada: GET /api/version");
+
+if (process.env.NODE_ENV !== "production") {
+  console.log("✅ [ROUTES] Registrada: GET /api/version");
+}
 
 // Rota raiz - redireciona para a aplicação
 app.get("/", (req, res) => {
   res.redirect("/index.html");
 });
-console.log("✅ [ROUTES] Registrada: GET / (redirect)");
+
+if (process.env.NODE_ENV !== "production") {
+  console.log("✅ [ROUTES] Registrada: GET / (redirect)");
+}
 
 // Middleware para rotas não encontradas
 app.use((req, res, next) => {
   const isApiRoute = req.url.startsWith("/api/");
 
   if (isApiRoute) {
-    console.log(
-      `❌ [404] Rota de API não encontrada: ${req.method} ${req.url}`,
-    );
+    if (process.env.NODE_ENV !== "production") {
+      console.log(
+        `❌ [404] Rota de API não encontrada: ${req.method} ${req.url}`,
+      );
+    }
     res.status(404).json({
       erro: "Rota de API não encontrada",
       message: `O endpoint ${req.method} ${req.url} não existe`,
@@ -169,7 +213,9 @@ app.use((req, res, next) => {
       ],
     });
   } else {
-    console.log(`❌ [404] Arquivo não encontrado: ${req.method} ${req.url}`);
+    if (process.env.NODE_ENV !== "production") {
+      console.log(`❌ [404] Arquivo não encontrado: ${req.method} ${req.url}`);
+    }
     res.status(404).send(`
       <html>
         <head>
@@ -215,15 +261,13 @@ app.use((err, req, res, next) => {
   });
 });
 
-// Função para conectar ao MongoDB e iniciar servidor
+// ⚡ FUNÇÃO OTIMIZADA PARA CONECTAR AO MONGODB E INICIAR SERVIDOR
 async function iniciarServidor() {
   try {
     console.log("🔄 Conectando ao MongoDB...");
 
-    await mongoose.connect(process.env.MONGODB_URI, {
-      useNewUrlParser: true,
-      useUnifiedTopology: true,
-    });
+    // ⚡ USAR CONEXÃO OTIMIZADA COM POOLING
+    await connectDB();
 
     console.log("✅ Conectado ao MongoDB com sucesso!");
 
@@ -239,7 +283,9 @@ async function iniciarServidor() {
       console.log(`🏠 Aplicação: http://localhost:${PORT}/index.html`);
       console.log(`⚙️  Ambiente: ${process.env.NODE_ENV || "development"}`);
       console.log(`📦 Versão: ${pkg.version}`);
-      console.log(`💾 MongoDB: Conectado`);
+      console.log(`💾 MongoDB: Conectado com pooling`);
+      console.log(`⚡ Cache: NodeCache ativo`);
+      console.log(`📈 Performance: Otimizada`);
       console.log("✨ Módulos de export funcionando no frontend");
       console.log("🥅 Sistema Luva de Ouro integrado");
       console.log("=".repeat(60) + "\n");
@@ -248,6 +294,11 @@ async function iniciarServidor() {
       if (process.env.NODE_ENV !== "production") {
         console.log("🛠️  Modo de desenvolvimento ativo");
         console.log("📝 Logs detalhados habilitados");
+        console.log("🔍 Cache em modo debug");
+      } else {
+        console.log("🚀 Modo de produção ativo");
+        console.log("⚡ Logs otimizados");
+        console.log("💨 Performance máxima");
       }
     });
   } catch (err) {
@@ -262,13 +313,11 @@ async function iniciarServidor() {
 // Tratamento gracioso de sinais do sistema
 process.on("SIGTERM", () => {
   console.log("\n🔄 SIGTERM recebido. Encerrando servidor graciosamente...");
-  mongoose.connection.close();
   process.exit(0);
 });
 
 process.on("SIGINT", () => {
   console.log("\n🔄 SIGINT recebido. Encerrando servidor graciosamente...");
-  mongoose.connection.close();
   process.exit(0);
 });
 

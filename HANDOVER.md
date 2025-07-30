@@ -1,0 +1,133 @@
+# 🚀 PROJECT HANDOVER
+
+**Data:** 30/07/2025  
+**Ambiente:** Replit
+
+## 📋 RESUMO EXECUTIVO
+
+Projeto Backend/API
+
+## 🛠️ STACK TECNOLÓGICA
+
+- Express.js
+- Static Assets
+
+## 📁 ESTRUTURA DO PROJETO
+
+```
+📄 .env
+📁 .local/
+  📁 share/
+
+📁 .upm/
+  📄 store.json
+📄 DOCUMENTACAO_COMPLETA.html
+📁 attached_assets/
+  📄 Pasted-detalhe-liga-html-id-684cb1c8af923da7c7df51de-365-Iniciando-carregamento-da-aplica-o-detalhe-1753474888781_1753474888786.txt
+  📄 Pasted-detalhe-liga-html-id-684d821cf1a7ae16d1f89572-360-Iniciando-carregamento-da-aplica-o-detalhe-1753050863534_1753050863535.txt
+  📄 Pasted-detalhe-liga-html-id-684d821cf1a7ae16d1f89572-360-Iniciando-carregamento-da-aplica-o-detalhe-1753053291511_1753053291513.txt
+  📄 Pasted-detalhe-liga-html-id-684d821cf1a7ae16d1f89572-361-Iniciando-carregamento-da-aplica-o-detalhe-1753058255155_1753058255155.txt
+  📄 Pasted-rodadas-js-319-DEBUG-Item-28-Object-rodadas-js-319-DEBUG-Item-29-Object-rodadas-js-319-DEBU-1753473829630_1753473829631.txt
+  📄 Pasted-rodadas-js-319-DEBUG-Item-28-Object-rodadas-js-319-DEBUG-Item-29-Object-rodadas-js-319-DEBU-1753473996316_1753473996318.txt
+📄 backupJson.js
+📄 backupScheduler.js
+📁 backups/
+  📄 artilheirocampeaos.json
+  📄 gols.json
+  📄 ligas.json
+  📄 rodadas.json
+  📄 times.json
+📁 config/
+  📄 database.js
+📁 controllers/
+  📄 artilheiroCampeaoController.js
+  📄 cartolaController.js
+  📄 golsController.js
+  📄 ligaController.js
+  📄 luvaDeOuroController.js
+  📄 rodadaController.js
+  📄 timeController.js
+📄 credentials.json
+📄 doc-version.json
+📄 estrutura_selecionada.html
+📄 handover.js
+📄 index.js
+📄 listar_estrutura.py
+📁 models/
+  📄 ArtilheiroCampeao.js
+  📄 Goleiros.js
+  📄 Gols.js
+  📄 Liga.js
+  📄 Rodada.js
+  📄 Time.js
+📄 package-lock.json
+📄 package.json
+📁 public/
+  📄 admin.html
+  📄 criar-liga.html
+  📄 criar-liga.js
+  📄 criar.html
+  📄 detalhe-liga.html
+  📄 editar-liga.html
+  📁 escudos/
+
+  📄 gerenciar.html
+```
+
+## ⚡ COMANDOS ESSENCIAIS
+
+- **start:** `node index.js`
+- **dev:** `nodemon index.js`
+- **test:** `NODE_ENV=test NODE_OPTIONS='--experimental-vm-modules' jest --detectOpenHandles --forceExit`
+- **test:watch:** `NODE_ENV=test NODE_OPTIONS='--experimental-vm-modules' jest --watch --detectOpenHandles`
+- **test:coverage:** `NODE_ENV=test NODE_OPTIONS='--experimental-vm-modules' jest --coverage --detectOpenHandles --forceExit`
+- **test:artilheiro:** `NODE_ENV=test NODE_OPTIONS='--experimental-vm-modules' jest test/artilheiro.test.js --detectOpenHandles --forceExit`
+
+## 🔧 CONFIGURAÇÃO
+
+### Variáveis de Ambiente
+- `MONGODB_URI`
+- `NODE_ENV`
+- `PORT`
+
+### Dependências Principais
+**Frontend:** @babel/parser, @babel/traverse, axios, cors, dotenv, express
+
+
+## 💾 BANCO DE DADOS
+
+- MongoDB
+
+## 🌐 APIs/INTEGRAÇÕES
+
+- `https://api.`
+- `fetch(https://api`
+- `axios.`
+- `.get(/api`
+- `fetch(/api`
+
+## 🚀 COMO INICIAR
+
+1. **Clone/Fork o projeto no Replit**
+2. **Instale dependências:**
+   `npm install`
+3. **Configure variáveis de ambiente**
+4. **Execute o projeto:**
+   `npm run dev`
+
+## 📝 PRÓXIMOS PASSOS
+
+- [ ] Revisar configurações de ambiente
+- [ ] Testar funcionalidades principais  
+- [ ] Verificar integrações externas
+- [ ] Atualizar documentação específica
+
+## 🆘 TROUBLESHOOTING
+
+### Problemas Comuns
+- **Erro de dependências:** Execute `npm install` ou `pip install -r requirements.txt`
+- **Variáveis não definidas:** Verifique arquivo `.env`
+- **Porta ocupada:** Mude a porta no Replit ou no código
+
+---
+*Handover gerado automaticamente em 30/07/2025, 12:10:33*

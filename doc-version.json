@@ -1,19 +1,19 @@
 {
-  "version": "2025.07.03.1120",
-  "timestamp": "2025-07-03T11:20:02.665Z",
-  "projectHash": "938e431074bc293176c008185af17cc4",
+  "version": "2025.07.30.1209",
+  "timestamp": "2025-07-30T12:09:35.027Z",
+  "projectHash": "4ad465a2385beba8638a97cf5cc1c65e",
   "stats": {
-    "totalFiles": 101,
-    "jsFiles": 68,
+    "totalFiles": 112,
+    "jsFiles": 80,
     "pyFiles": 1,
-    "htmlFiles": 19,
-    "totalLines": 251491,
-    "totalRoutes": 82,
-    "totalFunctions": 285,
-    "totalClasses": 2,
-    "totalModels": 6
+    "htmlFiles": 14,
+    "totalLines": 135387,
+    "totalRoutes": 93,
+    "totalFunctions": 349,
+    "totalClasses": 13,
+    "totalModels": 7
   },
   "generatedBy": "generate-full-docs.cjs",
-  "nodeVersion": "v20.18.1",
+  "nodeVersion": "v20.19.3",
   "platform": "linux"
 }

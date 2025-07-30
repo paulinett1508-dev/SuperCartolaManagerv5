@@ -476,22 +476,29 @@ function exibirRanking(rankingsDaRodada, rodadaSelecionada) {
       bancoValores[index + 1] !== undefined ? bancoValores[index + 1] : 0.0,
   }));
 
-  // ✅ CORREÇÃO: Usar função de alta qualidade diretamente
-  try {
-    const { criarBotaoExportacaoRodadaHQ } = await import("./exports/export-rodadas-hq.js");
-    criarBotaoExportacaoRodadaHQ("rodadasExportBtnContainer", rodadaSelecionada, rankingsParaExportar, "rodada");
-  } catch (error) {
-    console.warn("[RODADAS] ⚠️ Erro ao carregar exportação de alta qualidade:", error);
-    // Fallback para sistema antigo
-    if (criarBotaoExportacaoRodada && exportarRodadaComoImagem) {
-      criarBotaoExportacaoRodada({
-        containerId: "rodadasExportBtnContainer",
-        rodada: rodadaSelecionada,
-        rankings: rankingsParaExportar,
-        tipo: "rodada",
-        customExport: exportarRodadaComoImagem,
-      });
-    }
+  // ✅ CORREÇÃO: Usar variáveis carregadas dinamicamente com verificação
+  if (criarBotaoExportacaoRodada && exportarRodadaComoImagem) {
+    criarBotaoExportacaoRodada({
+      containerId: "rodadasExportBtnContainer",
+      rodada: rodadaSelecionada,
+      rankings: rankingsParaExportar,
+      tipo: "rodada",
+      customExport: exportarRodadaComoImagem,
+    });
+  } else {
+    console.warn("[RODADAS] ⚠️ Funções de exportação não disponíveis ainda - aguardando carregamento");
+    // Tentar novamente após um delay
+    setTimeout(() => {
+      if (criarBotaoExportacaoRodada && exportarRodadaComoImagem) {
+        criarBotaoExportacaoRodada({
+          containerId: "rodadasExportBtnContainer",
+          rodada: rodadaSelecionada,
+          rankings: rankingsParaExportar,
+          tipo: "rodada",
+          customExport: exportarRodadaComoImagem,
+        });
+      }
+    }, 1000);
   }
 }
 
@@ -561,22 +568,31 @@ function exibirRankingParciais(rankingsParciais, rodada) {
     banco: null,
   }));
 
-  // ✅ CORREÇÃO: Usar função de alta qualidade diretamente para parciais
-  try {
-    const { criarBotaoExportacaoRodadaHQ } = await import("./exports/export-rodadas-hq.js");
-    criarBotaoExportacaoRodadaHQ("rodadasExportBtnContainer", rodada, rankingsParaExportar, "rodada-parcial");
-  } catch (error) {
-    console.warn("[RODADAS] ⚠️ Erro ao carregar exportação de alta qualidade para parciais:", error);
-    // Fallback para sistema antigo
-    if (criarBotaoExportacaoRodada && exportarRodadaComoImagem) {
-      criarBotaoExportacaoRodada({
-        containerId: "rodadasExportBtnContainer",
-        rodada: rodada,
-        rankings: rankingsParaExportar,
-        tipo: "rodada",
-        customExport: exportarRodadaComoImagem,
-      });
-    }
+  // ✅ CORREÇÃO: Usar variáveis carregadas dinamicamente com verificação
+  if (criarBotaoExportacaoRodada && exportarRodadaComoImagem) {
+    criarBotaoExportacaoRodada({
+      containerId: "rodadasExportBtnContainer",
+      rodada: rodada,
+      rankings: rankingsParaExportar,
+      tipo: "rodada",
+      customExport: exportarRodadaComoImagem,
+    });
+  } else {
+    console.warn(
+      "[RODADAS] ⚠️ Funções de exportação não disponíveis para parciais ainda - aguardando carregamento",
+    );
+    // Tentar novamente após um delay
+    setTimeout(() => {
+      if (criarBotaoExportacaoRodada && exportarRodadaComoImagem) {
+        criarBotaoExportacaoRodada({
+          containerId: "rodadasExportBtnContainer",
+          rodada: rodada,
+          rankings: rankingsParaExportar,
+          tipo: "rodada",
+          customExport: exportarRodadaComoImagem,
+        });
+      }
+    }, 1000);
   }
 }
 
