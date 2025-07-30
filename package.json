@@ -1,12 +1,12 @@
 {
   "name": "super-cartola-manager",
-  "version": "1.0.0",
-  "description": "Gerenciador de Ligas Internas do Cartola FC",
+  "version": "1.0.1",
+  "description": "Gerenciador de Ligas Internas do Cartola FC - Versão Otimizada",
   "main": "index.js",
   "type": "module",
   "scripts": {
-    "start": "node index.js",
-    "dev": "nodemon index.js",
+    "start": "NODE_ENV=production node index.js",
+    "dev": "NODE_ENV=development nodemon index.js",
     "test": "NODE_ENV=test NODE_OPTIONS='--experimental-vm-modules' jest --detectOpenHandles --forceExit",
     "test:watch": "NODE_ENV=test NODE_OPTIONS='--experimental-vm-modules' jest --watch --detectOpenHandles",
     "test:coverage": "NODE_ENV=test NODE_OPTIONS='--experimental-vm-modules' jest --coverage --detectOpenHandles --forceExit",
@@ -19,9 +19,12 @@
     "cartola",
     "manager",
     "fantasy",
-    "futebol"
+    "futebol",
+    "otimizado",
+    "cache",
+    "performance"
   ],
-  "author": "Seu Nome",
+  "author": "Super Cartola Team",
   "license": "MIT",
   "dependencies": {
     "@babel/parser": "^7.27.5",
@@ -58,5 +61,8 @@
       "lcov",
       "html"
     ]
+  },
+  "engines": {
+    "node": ">=16.0.0"
   }
 }
