@@ -130,7 +130,6 @@ export const obterTimePorId = async (req, res) => {
 // ==========================================
 
 // controllers/cartolaController.js - VERSÃO OTIMIZADA
-import fetch from "node-fetch";
 import NodeCache from "node-cache";
 import {
   buscarClubes,
