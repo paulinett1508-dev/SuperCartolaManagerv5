@@ -663,50 +663,46 @@ class FluxoFinanceiroUI {
 
         console.log("🎨 [FLUXO-UI] Dados formatados para renderização:", dadosParticipante);
 
-        // ✅ RENDERIZAR CABEÇALHO DO PARTICIPANTE
-        container.innerHTML = `            <div style="max-width: 1000px; margin: 0 auto; padding: 20px;">
-                <!-- CABEÇALHO DO PARTICIPANTE -->
-                <div style="
-                    background: linear-gradient(135deg, #2E8B57 0%, #228B22 100%);
-                    color: white;
-                    padding: 24px;
-                    border-radius: 12px;
-                    margin-bottom: 24px;
-                    text-align: center;
-                    box-shadow: 0 4px 16px rgba(0,0,0,0.1);
-                ">
-                    <h2 style="margin: 0 0 8px 0; font-size: 28px; font-weight: 700;">
-                        💰 Detalhamento Financeiro
-                    </h2>
-                    <h3 style="margin: 0 0 12px 0; font-size: 20px; opacity: 0.9;">
-                        ${dadosParticipante.nome_cartoleiro}
-                    </h3>
-                    <p style="margin: 0; font-size: 14px; opacity: 0.8;">
-                        ${dadosParticipante.nome_time}
-                    </p>
-                </div>
-
-                <!-- CONTAINER PARA DETALHAMENTO -->
-                <div id="detalhamento-container">
-                    <!-- Será preenchido pelo detalhamento -->
-                </div>
-            </div>
-        `;
-
-        // ✅ RENDERIZAR DETALHAMENTO POR RODADA
-        const detalhamentoContainer = document.getElementById('detalhamento-container');
-        if (detalhamentoContainer && dadosFinanceiros && dadosFinanceiros.detalhamentoPorRodada) {
-            this.renderizarDethamentoPorRodada(dadosFinanceiros.detalhamentoPorRodada, detalhamentoContainer);
+        // Usar o método renderizarExtratoFinanceiro existente que já funciona
+        if (dadosFinanceiros && dadosFinanceiros.extrato) {
+            console.log("🎨 [FLUXO-UI] Usando renderizarExtratoFinanceiro com extrato completo");
+            this.renderizarExtratoFinanceiro(dadosFinanceiros.extrato, participante);
         } else {
-            console.warn("🎨 [FLUXO-UI] Nenhum detalhamento por rodada encontrado");
-            if (detalhamentoContainer) {
-                detalhamentoContainer.innerHTML = `
-                    <div style="text-align: center; padding: 40px; color: #666;">
-                        <h3>📊 Nenhuma rodada processada ainda</h3>
-                        <p>Os detalhamentos aparecerão conforme as rodadas forem coletadas.</p>
+            console.log("🎨 [FLUXO-UI] Sem extrato, renderizando layout básico");
+            
+            // ✅ RENDERIZAR CABEÇALHO DO PARTICIPANTE
+            container.innerHTML = `
+                <div style="max-width: 1000px; margin: 0 auto; padding: 20px;">
+                    <!-- CABEÇALHO DO PARTICIPANTE -->
+                    <div style="
+                        background: linear-gradient(135deg, #2E8B57 0%, #228B22 100%);
+                        color: white;
+                        padding: 24px;
+                        border-radius: 12px;
+                        margin-bottom: 24px;
+                        text-align: center;
+                        box-shadow: 0 4px 16px rgba(0,0,0,0.1);
+                    ">
+                        <h2 style="margin: 0 0 8px 0; font-size: 28px; font-weight: 700;">
+                            💰 Detalhamento Financeiro
+                        </h2>
+                        <h3 style="margin: 0 0 12px 0; font-size: 20px; opacity: 0.9;">
+                            ${dadosParticipante.nome_cartoleiro}
+                        </h3>
+                        <p style="margin: 0; font-size: 14px; opacity: 0.8;">
+                            ${dadosParticipante.nome_time}
+                        </p>
                     </div>
-                `;
-            }
+
+                    <!-- CONTAINER PARA DETALHAMENTO -->
+                    <div id="detalhamento-container">
+                        <div style="text-align: center; padding: 40px; color: #666;">
+                            <h3>📊 Nenhuma rodada processada ainda</h3>
+                            <p>Os detalhamentos aparecerão conforme as rodadas forem coletadas.</p>
+                        </div>
+                    </div>
+                </div>
+            `;
         }
     }
   // Renderizar detalhamento por rodada
