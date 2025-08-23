@@ -87,14 +87,14 @@ async function carregarModulos() {
       setter: (modulo) => { FluxoFinanceiroCore = modulo.FluxoFinanceiroCore; }
     },
     {
-      nome: "FluxoFinanceiroUI", 
+      nome: "FluxoFinanceiroUI",
       path: "./fluxo-financeiro/fluxo-financeiro-ui.js",
       variavel: () => FluxoFinanceiroUI,
       setter: (modulo) => { FluxoFinanceiroUI = modulo.FluxoFinanceiroUI; }
     },
     {
       nome: "FluxoFinanceiroUtils",
-      path: "./fluxo-financeiro/fluxo-financeiro-utils.js", 
+      path: "./fluxo-financeiro/fluxo-financeiro-utils.js",
       variavel: () => FluxoFinanceiroUtils,
       setter: (modulo) => { FluxoFinanceiroUtils = modulo.FluxoFinanceiroUtils; }
     },
@@ -642,51 +642,6 @@ async function renderizarFluxoFinanceiro(participantes, ligaId) {
     }
 }
 
-// Função principal para carregar dados do participante
-  async function carregarDadosParticipante(timeId, nomeParticipante) {
-    try {
-      console.log(`[FLUXO-FINANCEIRO] Carregando dados para ${nomeParticipante} (${timeId})`);
-
-      mostrarLoading(true);
-
-      const response = await fetch(`/api/ligas/${ligaId}/fluxo?timeId=${timeId}`);
-
-      if (!response.ok) {
-        throw new Error(`Erro ${response.status}: ${response.statusText}`);
-      }
-
-      const dados = await response.json();
-      console.log(`[FLUXO-FINANCEIRO] Dados recebidos:`, dados);
-
-      // Verificar se há dados válidos
-      if (!dados || (!Array.isArray(dados) && !dados.movimentacoes)) {
-        console.warn('[FLUXO-FINANCEIRO] Nenhum dado válido encontrado');
-        mostrarSemDados();
-        return;
-      }
-
-      // Normalizar dados (pode vir como array direto ou como objeto com propriedade)
-      const movimentacoes = Array.isArray(dados) ? dados : (dados.movimentacoes || []);
-
-      if (movimentacoes.length === 0) {
-        console.warn('[FLUXO-FINANCEIRO] Array de movimentações vazio');
-        mostrarSemDados();
-        return;
-      }
-
-      console.log(`[FLUXO-FINANCEIRO] ${movimentacoes.length} movimentações encontradas`);
-
-      // Processar e exibir dados
-      await processarEExibirDados(movimentacoes, nomeParticipante);
-
-    } catch (error) {
-      console.error('[FLUXO-FINANCEIRO] Erro ao carregar dados:', error);
-      mostrarErro(`Erro ao carregar dados: ${error.message}`);
-    } finally {
-      mostrarLoading(false);
-    }
-  }
-
   // Função para mostrar mensagem quando não há dados
   function mostrarSemDados() {
     const container = document.getElementById('fluxoFinanceiroContent');
@@ -734,8 +689,8 @@ export async function selecionarParticipante(timeId) {
     if (!participante) {
       console.log(`⚠️ [FLUXO-FINANCEIRO] Participante ${timeId} não encontrado no cache, buscando na lista...`);
       const todosParticipantes = await FluxoFinanceiroCore.carregarParticipantes();
-      participante = todosParticipantes.find(p => 
-        String(p.time_id) === String(timeId) || 
+      participante = todosParticipantes.find(p =>
+        String(p.time_id) === String(timeId) ||
         String(p.id) === String(timeId)
       );
     }
@@ -771,8 +726,15 @@ export async function selecionarParticipante(timeId) {
     // Carregar dados financeiros usando a instância do core
     const dadosFinanceiros = await fluxoFinanceiroCore.carregarDadosFinanceiros(timeId);
 
-    // Renderizar dados
-    fluxoFinanceiroUI.renderizarDadosParticipante(participante, dadosFinanceiros);
+    // ✅ CORREÇÃO: Chamar o método correto da UI para renderizar o extrato
+    console.log("🎨 [FLUXO-FINANCEIRO] Renderizando extrato financeiro para:", participante);
+    console.log("🎨 [FLUXO-FINANCEIRO] Dados financeiros:", dadosFinanceiros);
+
+    const extrato = fluxoFinanceiroCore.calcularExtratoFinanceiro(timeId, ultimaRodadaCompleta);
+    console.log("🎨 [FLUXO-FINANCEIRO] Extrato calculado:", extrato);
+
+    // Renderizar usando o método correto da UI
+    fluxoFinanceiroUI.renderizarExtratoFinanceiro(extrato, participante);
 
   } catch (error) {
     console.error(`❌ [FLUXO-FINANCEIRO] Erro ao selecionar participante ${timeId}:`, error);

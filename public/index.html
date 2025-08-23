@@ -13,18 +13,30 @@
       body {
         display: flex;
         height: 100vh;
-        font-family: "Roboto", sans-serif;
+        font-family: "Inter", sans-serif;
         color: #fff;
       }
       .sidebar {
-        width: 250px;
-        background: linear-gradient(180deg, #1a2a44 0%, #0d1a2d 100%);
+        width: 280px;
+        background: linear-gradient(180deg, #667eea 0%, #764ba2 100%);
         color: white;
-        padding: 30px 20px;
+        padding: 40px 24px;
         display: flex;
         flex-direction: column;
         justify-content: space-between;
-        box-shadow: 2px 0 10px rgba(0, 0, 0, 0.5);
+        box-shadow: 4px 0 20px rgba(0, 0, 0, 0.15);
+        position: relative;
+        overflow: hidden;
+      }
+      .sidebar::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><defs><pattern id="grain" width="100" height="100" patternUnits="userSpaceOnUse"><circle cx="25" cy="25" r="1" fill="%23ffffff" opacity="0.05"/><circle cx="75" cy="75" r="1" fill="%23ffffff" opacity="0.05"/><circle cx="50" cy="50" r="0.5" fill="%23ffffff" opacity="0.1"/></pattern></defs><rect width="100" height="100" fill="url(%23grain)"/></svg>');
+        opacity: 0.3;
       }
       .sidebar h2 {
         font-size: 24px;
@@ -36,17 +48,37 @@
       .nav-button {
         background: transparent;
         color: white;
-        border: none;
+        border: 2px solid rgba(255, 255, 255, 0.2);
         text-align: left;
-        padding: 12px 15px;
+        padding: 16px 20px;
         font-size: 16px;
+        font-weight: 500;
         cursor: pointer;
-        border-radius: 5px;
-        transition: background 0.3s ease;
-        margin-bottom: 10px;
+        border-radius: 12px;
+        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        margin-bottom: 16px;
+        position: relative;
+        overflow: hidden;
+        backdrop-filter: blur(10px);
+      }
+      .nav-button::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: -100%;
+        width: 100%;
+        height: 100%;
+        background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent);
+        transition: left 0.6s;
+      }
+      .nav-button:hover::before {
+        left: 100%;
       }
       .nav-button:hover {
-        background: rgba(255, 255, 255, 0.2);
+        background: rgba(255, 255, 255, 0.15);
+        border-color: rgba(255, 255, 255, 0.4);
+        transform: translateY(-2px);
+        box-shadow: 0 8px 20px rgba(0, 0, 0, 0.2);
       }
       .main {
         flex: 1;
@@ -197,7 +229,7 @@
       }
     </style>
     <link
-      href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&display=swap"
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap"
       rel="stylesheet"
     />
     <script src="https://html2canvas.hertzen.com/dist/html2canvas.min.js"></script>
