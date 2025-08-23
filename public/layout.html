@@ -1,0 +1,633 @@
+<!doctype html>
+<html lang="pt-BR">
+    <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <title>Super Cartola Manager</title>
+        <link rel="stylesheet" href="style.css" />
+        <style>
+            /* === SIDEBAR REESTRUTURADO === */
+            .sidebar {
+                width: 280px;
+                background: linear-gradient(180deg, #0a0a0a 0%, #000000 100%);
+                color: #e0e0e0;
+                border-right: 2px solid rgba(255, 69, 0, 0.3);
+                position: fixed;
+                left: 0;
+                top: 0;
+                bottom: 0;
+                overflow-y: auto;
+                z-index: 1000;
+                font-size: 15px; /* Fonte maior */
+            }
+
+            /* Logo clickável para dashboard */
+            .sidebar-logo {
+                padding: 15px 15px;
+                border-bottom: 2px solid rgba(255, 69, 0, 0.2);
+                text-align: center;
+                cursor: pointer;
+                transition: all 0.3s ease;
+                background: rgba(255, 69, 0, 0.05);
+            }
+
+            .sidebar-logo:hover {
+                background: rgba(255, 69, 0, 0.1);
+                transform: scale(1.02);
+            }
+
+            .logo-container {
+                display: flex;
+                flex-direction: column;
+                align-items: center;
+                gap: 6px;
+            }
+
+            .logo-image {
+                width: 28px;
+                height: 28px;
+                object-fit: contain;
+                filter: drop-shadow(0 0 8px rgba(255, 69, 0, 0.4));
+                transition: all 0.3s ease;
+            }
+
+            #logoFallback {
+                width: 28px;
+                height: 28px;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                font-size: 20px;
+                color: #ff4500;
+                text-shadow: 0 0 8px rgba(255, 69, 0, 0.4);
+                transition: all 0.3s ease;
+            }
+
+            .sidebar-logo:hover .logo-image,
+            .sidebar-logo:hover #logoFallback {
+                filter: drop-shadow(0 0 15px rgba(255, 69, 0, 0.8));
+                text-shadow: 0 0 15px rgba(255, 69, 0, 0.8);
+                transform: scale(1.1);
+            }
+
+            .logo-text {
+                text-align: center;
+            }
+
+            .sidebar-logo h2 {
+                margin: 0;
+                font-size: 13px; /* Muito menor */
+                font-weight: 800;
+                color: #ff4500;
+                text-shadow: 0 0 10px rgba(255, 69, 0, 0.4);
+                line-height: 1.1;
+                letter-spacing: 0.3px;
+            }
+
+            .sidebar-logo p {
+                margin: 2px 0 0 0;
+                font-size: 9px; /* Muito menor */
+                color: #a0a0a0;
+                font-weight: 600;
+                text-transform: uppercase;
+                letter-spacing: 0.5px;
+            }
+
+            /* === RESET DE CORES PARA LINKS === */
+            .liga-item,
+            .liga-item:link,
+            .liga-item:visited,
+            .liga-item:active {
+                color: #e0e0e0 !important;
+                text-decoration: none !important;
+            }
+
+            .liga-item:hover,
+            .liga-item:focus {
+                color: #ffffff !important;
+                text-decoration: none !important;
+            }
+
+            .liga-name,
+            .liga-item .liga-name {
+                color: #ffffff !important;
+            }
+
+            .liga-details,
+            .liga-item .liga-details {
+                color: #a0a0a0 !important;
+            }
+
+            /* Seções do sidebar */
+            .sidebar-section {
+                padding: 0;
+                margin: 0;
+            }
+
+            .sidebar-section-title {
+                padding: 20px 20px 12px 20px;
+                font-size: 13px; /* Fonte maior */
+                font-weight: 700;
+                color: #ff4500;
+                text-transform: uppercase;
+                letter-spacing: 1.2px;
+                border-bottom: 1px solid rgba(255, 69, 0, 0.2);
+                margin: 0;
+            }
+
+            /* Lista de itens */
+            .sidebar-menu {
+                list-style: none;
+                padding: 0;
+                margin: 0;
+            }
+
+            .sidebar-menu li {
+                margin: 0;
+            }
+
+            .sidebar-menu a {
+                display: flex;
+                align-items: center;
+                padding: 14px 20px; /* Padding maior */
+                color: #e0e0e0;
+                text-decoration: none;
+                transition: all 0.3s ease;
+                font-size: 14px; /* Fonte maior */
+                font-weight: 500;
+                border-left: 4px solid transparent;
+            }
+
+            .sidebar-menu a:hover {
+                background: rgba(255, 69, 0, 0.1);
+                border-left-color: #ff4500;
+                color: #ffffff;
+                transform: translateX(4px);
+            }
+
+            .sidebar-menu a.active {
+                background: rgba(255, 69, 0, 0.2);
+                border-left-color: #ff4500;
+                color: #ff4500;
+                font-weight: 600;
+            }
+
+            /* Liga items específicos */
+            .liga-item {
+                display: flex;
+                align-items: center;
+                justify-content: space-between;
+                padding: 12px 20px; /* Padding maior */
+                color: #e0e0e0 !important; /* Forçar cor cinza claro */
+                text-decoration: none !important; /* Remover underline */
+                transition: all 0.3s ease;
+                font-size: 13px; /* Fonte maior */
+                font-weight: 500;
+                border-left: 4px solid transparent;
+            }
+
+            .liga-item:hover {
+                background: rgba(255, 69, 0, 0.1) !important;
+                border-left-color: #ff4500 !important;
+                color: #ffffff !important;
+                transform: translateX(4px);
+            }
+
+            .liga-item:visited {
+                color: #e0e0e0 !important; /* Manter cor após visita */
+            }
+
+            .liga-info {
+                flex: 1;
+            }
+
+            .liga-name {
+                font-weight: 600;
+                margin-bottom: 2px;
+                color: #ffffff !important; /* Branco para nome da liga */
+                font-size: 13px;
+            }
+
+            .liga-details {
+                font-size: 11px; /* Fonte maior */
+                color: #a0a0a0 !important; /* Cinza para detalhes */
+            }
+
+            /* Loading state para ligas */
+            .ligas-loading {
+                padding: 20px;
+                text-align: center;
+                color: #a0a0a0;
+                font-size: 13px; /* Fonte maior */
+            }
+
+            .ligas-empty {
+                padding: 20px;
+                text-align: center;
+                color: #a0a0a0;
+                font-size: 13px; /* Fonte maior */
+                font-style: italic;
+            }
+
+            /* Mobile responsivo */
+            @media (max-width: 768px) {
+                .sidebar {
+                    width: 100%;
+                    position: relative;
+                    height: auto;
+                }
+
+                .logo-image {
+                    width: 24px;
+                    height: 24px;
+                }
+
+                #logoFallback {
+                    width: 24px;
+                    height: 24px;
+                    font-size: 16px;
+                }
+
+                .sidebar-logo h2 {
+                    font-size: 12px;
+                }
+
+                .sidebar-logo p {
+                    font-size: 8px;
+                }
+
+                .sidebar-menu a {
+                    font-size: 13px;
+                    padding: 12px 15px;
+                }
+
+                .liga-item {
+                    font-size: 12px;
+                    padding: 10px 15px;
+                }
+            }
+
+            @media (max-width: 480px) {
+                .logo-image {
+                    width: 22px;
+                    height: 22px;
+                }
+
+                #logoFallback {
+                    width: 22px;
+                    height: 22px;
+                    font-size: 14px;
+                }
+
+                .sidebar-logo h2 {
+                    font-size: 11px;
+                }
+
+                .sidebar-logo p {
+                    font-size: 7px;
+                }
+
+                .sidebar-menu a {
+                    font-size: 12px;
+                    padding: 10px 12px;
+                }
+
+                .liga-item {
+                    font-size: 11px;
+                    padding: 8px 12px;
+                }
+            }
+        </style>
+    </head>
+    <body>
+        <!-- Sidebar -->
+        <nav class="sidebar app-sidebar">
+            <!-- Logo clickável para dashboard -->
+            <div class="sidebar-logo" onclick="goToDashboard()">
+                <div class="logo-container">
+                    <img
+                        id="logoImage"
+                        src="img/logo-supercartola.png"
+                        alt="Super Cartola Logo"
+                        class="logo-image"
+                        onerror="tentarProximoCaminho(this)"
+                        onload="logoCarregada(this)"
+                        style="display: block"
+                    />
+                    <span id="logoFallback" style="display: none">🏆</span>
+                    <div class="logo-text">
+                        <h2>SUPER CARTOLA</h2>
+                        <p>Manager Profissional</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Seção LIGAS (dinâmica) -->
+            <div class="sidebar-section">
+                <div class="sidebar-section-title">⚽ LIGAS</div>
+                <div id="ligasList">
+                    <div class="ligas-loading">Carregando ligas...</div>
+                </div>
+            </div>
+
+            <!-- Seção FERRAMENTAS -->
+            <div class="sidebar-section">
+                <div class="sidebar-section-title">🔧 FERRAMENTAS</div>
+                <ul class="sidebar-menu">
+                    <li><a href="gerenciar.html">⚙️ Gerenciar Ligas</a></li>
+                    <li><a href="preencher-liga.html">➕ Nova Liga</a></li>
+                    <li><a href="buscar-times.html">🔍 Buscar Times</a></li>
+                    <li><a href="admin.html">🛠️ Admin</a></li>
+                    <li><a href="parciais.html">📊 Parciais</a></li>
+                </ul>
+            </div>
+        </nav>
+
+        <!-- Header -->
+        <header class="app-header page-header">
+            <div class="header-content">
+                <button class="menu-toggle" id="menuToggle">
+                    <span></span>
+                    <span></span>
+                    <span></span>
+                </button>
+
+                <div class="header-info">
+                    <h1 id="pageTitle">Super Cartola Manager</h1>
+                    <p id="pageSubtitle">Sistema de Gerenciamento de Ligas</p>
+                </div>
+
+                <div class="header-stats" id="headerStats">
+                    <div class="stat-item">
+                        <div class="stat-number" id="totalLigas">0</div>
+                        <div class="stat-label">Ligas</div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="stat-number" id="totalTimes">0</div>
+                        <div class="stat-label">Times</div>
+                    </div>
+                </div>
+            </div>
+        </header>
+
+        <script>
+            // === CARREGAMENTO DIRETO DAS LIGAS ===
+            async function carregarLigasSimples() {
+                const ligasList = document.getElementById("ligasList");
+                if (!ligasList) return;
+
+                try {
+                    const response = await fetch("/api/ligas");
+                    const ligas = await response.json();
+
+                    if (!Array.isArray(ligas) || ligas.length === 0) {
+                        ligasList.innerHTML = `
+                        <div class="ligas-empty">
+                            📝 Nenhuma liga criada<br>
+                            <small style="color: #606060; font-size: 10px; margin-top: 4px; display: block;">
+                                Clique em "Nova Liga" para começar
+                            </small>
+                        </div>
+                    `;
+                        return;
+                    }
+
+                    // Renderizar ligas
+                    ligasList.innerHTML = ligas
+                        .map(
+                            (liga) => `
+                    <a href="detalhe-liga.html?id=${liga._id || liga.id}" class="liga-item">
+                        <div class="liga-info">
+                            <div class="liga-name">${liga.nome || "Liga sem nome"}</div>
+                            <div class="liga-details">${liga.times?.length || 0} times</div>
+                        </div>
+                    </a>
+                `,
+                        )
+                        .join("");
+                } catch (error) {
+                    ligasList.innerHTML = `
+                    <div class="ligas-empty">
+                        ⚠️ Erro ao carregar<br>
+                        <button onclick="carregarLigasSimples()" style="
+                            margin-top: 8px; 
+                            padding: 6px 10px; 
+                            background: #ff4500; 
+                            color: white; 
+                            border: none; 
+                            border-radius: 4px; 
+                            font-size: 10px; 
+                            cursor: pointer;
+                            font-weight: 600;
+                        ">🔄 Tentar Novamente</button>
+                    </div>
+                `;
+                }
+            }
+
+            // === SISTEMA DE NAVEGAÇÃO SIMPLIFICADO ===
+            class NavigationSystem {
+                constructor() {
+                    this.init();
+                    this.loadLigas();
+                    this.setActiveNavigation();
+                }
+
+                init() {
+                    // Menu toggle para mobile
+                    const menuToggle = document.getElementById("menuToggle");
+                    if (menuToggle) {
+                        menuToggle.addEventListener(
+                            "click",
+                            this.toggleSidebar,
+                        );
+                    }
+
+                    // Set page title baseado na URL
+                    this.updatePageTitle();
+                }
+
+                // Dashboard como home padrão
+                goToDashboard() {
+                    window.location.href = "dashboard.html";
+                }
+
+                // Usar função simplificada
+                async loadLigas() {
+                    await carregarLigasSimples();
+                }
+
+                // Atualizar estatísticas do header
+                updateHeaderStats(ligas) {
+                    const totalLigasEl = document.getElementById("totalLigas");
+                    const totalTimesEl = document.getElementById("totalTimes");
+
+                    if (totalLigasEl && Array.isArray(ligas)) {
+                        totalLigasEl.textContent = ligas.length;
+                    }
+
+                    if (totalTimesEl && Array.isArray(ligas)) {
+                        const totalTimes = ligas.reduce(
+                            (sum, liga) => sum + (liga.times?.length || 0),
+                            0,
+                        );
+                        totalTimesEl.textContent = totalTimes;
+                    }
+                }
+
+                // Atualizar título da página
+                updatePageTitle() {
+                    const pageTitle = document.getElementById("pageTitle");
+                    const pageSubtitle =
+                        document.getElementById("pageSubtitle");
+
+                    if (!pageTitle) return;
+
+                    const currentPage =
+                        window.location.pathname.split("/").pop() ||
+                        "dashboard.html";
+
+                    const titles = {
+                        "dashboard.html": {
+                            title: "📊 Dashboard",
+                            subtitle: "Visão Geral do Sistema",
+                        },
+                        "gerenciar.html": {
+                            title: "⚙️ Gerenciar Ligas",
+                            subtitle: "Controle das Suas Ligas",
+                        },
+                        "preencher-liga.html": {
+                            title: "➕ Nova Liga",
+                            subtitle: "Criar Nova Liga",
+                        },
+                        "buscar-times.html": {
+                            title: "🔍 Buscar Times",
+                            subtitle: "Adicionar Times do Cartola FC",
+                        },
+                        "admin.html": {
+                            title: "🛠️ Admin",
+                            subtitle: "Popular Rodadas",
+                        },
+                        "parciais.html": {
+                            title: "📊 Parciais",
+                            subtitle: "Resultados Parciais",
+                        },
+                        "detalhe-liga.html": {
+                            title: "🏆 Detalhes da Liga",
+                            subtitle: "Visualização Completa",
+                        },
+                        "editar-liga.html": {
+                            title: "✏️ Editar Liga",
+                            subtitle: "Modificar Times da Liga",
+                        },
+                    };
+
+                    const pageInfo = titles[currentPage] || {
+                        title: "Super Cartola Manager",
+                        subtitle: "Sistema de Gerenciamento",
+                    };
+
+                    pageTitle.textContent = pageInfo.title;
+                    if (pageSubtitle) {
+                        pageSubtitle.textContent = pageInfo.subtitle;
+                    }
+                }
+
+                // Destacar navegação ativa
+                setActiveNavigation() {
+                    const currentPage =
+                        window.location.pathname.split("/").pop() ||
+                        "dashboard.html";
+                    const menuLinks = document.querySelectorAll(
+                        ".sidebar-menu a, .liga-item",
+                    );
+
+                    menuLinks.forEach((link) => {
+                        link.classList.remove("active");
+                        const href = link.getAttribute("href");
+                        if (
+                            href &&
+                            (href === currentPage || href.includes(currentPage))
+                        ) {
+                            link.classList.add("active");
+                        }
+                    });
+                }
+
+                // Toggle sidebar mobile
+                toggleSidebar() {
+                    const sidebar = document.querySelector(".sidebar");
+                    if (sidebar) {
+                        sidebar.classList.toggle("sidebar-open");
+                    }
+                }
+            }
+
+            // === FUNÇÕES GLOBAIS ===
+            function goToDashboard() {
+                window.location.href = "dashboard.html";
+            }
+
+            function retryLoadLigas() {
+                carregarLigasSimples();
+            }
+
+            // === GERENCIAMENTO DA LOGO ===
+            let logoTentativas = [
+                "img/logo-supercartola.png",
+                "../public/img/logo-supercartola.png",
+                "./public/img/logo-supercartola.png",
+                "/public/img/logo-supercartola.png",
+                "public/img/logo-supercartola.png",
+            ];
+            let logoIndiceAtual = 0;
+
+            function tentarProximoCaminho(img) {
+                logoIndiceAtual++;
+                if (logoIndiceAtual < logoTentativas.length) {
+                    img.src = logoTentativas[logoIndiceAtual];
+                } else {
+                    // Todas as tentativas falharam, mostrar emoji
+                    mostrarLogoFallback();
+                }
+            }
+
+            function logoCarregada(img) {
+                document.getElementById("logoFallback").style.display = "none";
+                img.style.display = "block";
+            }
+
+            function mostrarLogoFallback() {
+                document.getElementById("logoImage").style.display = "none";
+                document.getElementById("logoFallback").style.display =
+                    "inline-block";
+            }
+
+            // === INICIALIZAÇÃO ===
+            // Carregar imediatamente quando script executar
+            if (document.readyState === "loading") {
+                document.addEventListener("DOMContentLoaded", () => {
+                    setTimeout(() => {
+                        window.navigationSystem = new NavigationSystem();
+                        // Carregar ligas extra após 500ms
+                        setTimeout(carregarLigasSimples, 500);
+                    }, 100);
+                });
+            } else {
+                // DOM já carregado
+                setTimeout(() => {
+                    window.navigationSystem = new NavigationSystem();
+                    // Carregar ligas extra após 500ms
+                    setTimeout(carregarLigasSimples, 500);
+                }, 100);
+            }
+
+            // Recarregar ao voltar para página
+            window.addEventListener("pageshow", (event) => {
+                if (event.persisted) {
+                    setTimeout(carregarLigasSimples, 200);
+                }
+            });
+        </script>
+    </body>
+</html>

@@ -4,20 +4,430 @@
     <link rel="icon" type="image/png" href="/favicon.png" />
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Detalhes da Liga</title>
+    <title>Detalhes da Liga - Super Cartola Manager</title>
     <link rel="stylesheet" href="style.css" />
     <!-- Adiciona html2canvas para exportação de imagem -->
     <script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
     <style>
-      .mito-highlight {
-        background-color: #cceeff !important;
-        font-weight: bold;
-      }
-      .mico-highlight {
-        background-color: #ffdddd !important;
-        font-style: italic;
+      /* === TEMA ESCURO SOBRESCREVENDO INLINE STYLES === */
+      .container {
+        max-width: 1200px;
+        margin: 0 auto;
+        padding: 20px;
+        font-family:
+          "Inter",
+          -apple-system,
+          BlinkMacSystemFont,
+          sans-serif;
+        background: var(--bg-secondary) !important;
+        border-radius: 12px;
+        box-shadow: var(--shadow-lg) !important;
+        border: 1px solid var(--border-primary) !important;
+        color: var(--text-primary) !important;
       }
 
+      /* Headers escuros */
+      h2,
+      h3 {
+        color: var(--text-primary) !important;
+        text-align: center;
+        margin-bottom: 15px;
+      }
+
+      h2 {
+        color: var(--laranja) !important;
+        text-shadow: 0 0 10px rgba(255, 69, 0, 0.3);
+        font-size: 1.8rem;
+      }
+
+      /* Breadcrumb melhorado */
+      .breadcrumb-container {
+        margin: 0 0 20px 0;
+        padding: 12px 0;
+        border-bottom: 2px solid var(--border-primary);
+      }
+
+      .breadcrumb {
+        display: flex;
+        align-items: center;
+        gap: var(--spacing-xs);
+        font-size: 13px;
+        font-weight: 500;
+      }
+
+      .breadcrumb a {
+        color: var(--text-muted);
+        text-decoration: none;
+        padding: 4px 8px;
+        border-radius: 4px;
+        transition: all 0.2s;
+      }
+
+      .breadcrumb a:hover {
+        color: var(--laranja);
+        background: var(--laranja-alpha);
+      }
+
+      .breadcrumb .separator {
+        color: var(--text-dark);
+        margin: 0 4px;
+      }
+
+      .breadcrumb .current {
+        color: var(--laranja);
+        font-weight: 600;
+      }
+
+      /* Botão voltar escuro */
+      .btn-voltar {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        margin-bottom: 20px;
+        padding: 12px 20px;
+        background: var(--gradient-card) !important;
+        color: var(--text-primary) !important;
+        border: 1px solid var(--border-primary) !important;
+        border-radius: 8px;
+        cursor: pointer;
+        font-size: 14px;
+        font-weight: 500;
+        text-decoration: none;
+        transition: all 0.3s ease;
+        box-shadow: var(--shadow-sm);
+      }
+
+      .btn-voltar:hover {
+        background: var(--bg-card-hover) !important;
+        border-color: var(--laranja) !important;
+        transform: translateY(-2px);
+        box-shadow: var(--shadow-md);
+      }
+
+      /* Tabs escuras */
+      .tabs {
+        display: flex;
+        justify-content: center;
+        flex-wrap: wrap;
+        margin: 20px 0;
+        gap: 5px;
+        padding: 8px;
+        background: var(--bg-card) !important;
+        border-radius: 12px;
+        box-shadow: var(--shadow-sm);
+        border: 1px solid var(--border-primary);
+      }
+
+      .tab {
+        padding: 12px 16px !important;
+        border: none !important;
+        background: transparent !important;
+        color: var(--text-muted) !important;
+        cursor: pointer;
+        border-radius: 8px !important;
+        font-size: 13px !important;
+        font-weight: 500 !important;
+        transition: all 0.3s ease !important;
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        text-transform: none;
+        letter-spacing: 0.3px;
+      }
+
+      .tab:hover {
+        background: var(--laranja-alpha) !important;
+        color: var(--laranja) !important;
+        transform: translateY(-1px);
+      }
+
+      .tab.active {
+        background: var(--gradient-primary) !important;
+        color: var(--text-primary) !important;
+        font-weight: 600 !important;
+        box-shadow: var(--shadow-orange) !important;
+      }
+
+      .tab span {
+        font-size: 1.1em;
+      }
+
+      /* Tab content escuro */
+      .tab-content {
+        display: none;
+        padding: 25px !important;
+        border: 1px solid var(--border-primary) !important;
+        border-radius: 12px !important;
+        margin-top: 15px;
+        background: var(--bg-card) !important;
+        box-shadow: var(--shadow-md) !important;
+        color: var(--text-primary) !important;
+      }
+
+      .tab-content.active {
+        display: block;
+        animation: fadeInUp 0.3s ease-out;
+      }
+
+      /* Alertas escuros */
+      .alert {
+        padding: 15px !important;
+        border-radius: 8px !important;
+        margin: 15px 0 !important;
+        font-weight: 500;
+        font-size: 13px;
+        border: 1px solid transparent;
+      }
+
+      .alert-success {
+        background: rgba(34, 197, 94, 0.2) !important;
+        border-color: var(--success) !important;
+        color: var(--success) !important;
+      }
+
+      .alert-warning {
+        background: rgba(255, 69, 0, 0.2) !important;
+        border-color: var(--laranja) !important;
+        color: var(--laranja) !important;
+      }
+
+      .alert-error,
+      .error-message {
+        background: rgba(239, 68, 68, 0.2) !important;
+        border-color: var(--danger) !important;
+        color: var(--danger) !important;
+      }
+
+      .alert-info {
+        background: rgba(59, 130, 246, 0.2) !important;
+        border-color: var(--info) !important;
+        color: var(--info) !important;
+      }
+
+      /* Loading escuro */
+      .loading-spinner {
+        display: inline-block;
+        width: 40px;
+        height: 40px;
+        border: 4px solid var(--laranja-alpha) !important;
+        border-top: 4px solid var(--laranja) !important;
+        border-radius: 50%;
+        animation: spin 1s linear infinite;
+      }
+
+      .loading-container {
+        text-align: center;
+        padding: 40px 20px;
+        color: var(--text-muted) !important;
+        background: var(--bg-card) !important;
+        border-radius: 12px;
+        border: 1px solid var(--border-primary);
+      }
+
+      /* Botões escuros */
+      .carregar-participantes-btn,
+      .toggle-participants,
+      .refresh-btn,
+      .parciais-btn {
+        background: var(--gradient-primary) !important;
+        color: var(--text-primary) !important;
+        border: none !important;
+        padding: 12px 20px !important;
+        border-radius: 8px !important;
+        font-size: 14px !important;
+        font-weight: 600 !important;
+        cursor: pointer !important;
+        transition: all 0.3s ease !important;
+        box-shadow: var(--shadow-orange) !important;
+      }
+
+      .carregar-participantes-btn:hover,
+      .toggle-participants:hover,
+      .refresh-btn:hover,
+      .parciais-btn:hover {
+        transform: translateY(-2px) !important;
+        box-shadow: var(--shadow-lg) !important;
+        filter: brightness(1.1);
+      }
+
+      .carregar-participantes-btn:disabled {
+        background: var(--text-muted) !important;
+        cursor: not-allowed !important;
+        transform: none !important;
+        opacity: 0.6;
+      }
+
+      /* Select escuro */
+      .rodadas-select {
+        padding: 12px 16px !important;
+        border: 1px solid var(--border-primary) !important;
+        border-radius: 8px !important;
+        font-size: 14px !important;
+        min-width: 250px;
+        background: var(--bg-card) !important;
+        color: var(--text-primary) !important;
+        outline: none;
+        transition: all 0.3s ease;
+      }
+
+      .rodadas-select:focus {
+        border-color: var(--laranja) !important;
+        box-shadow: 0 0 0 3px var(--laranja-alpha) !important;
+      }
+
+      /* Actions container */
+      .rodadas-actions {
+        display: flex;
+        gap: 15px !important;
+        margin-bottom: 20px !important;
+        align-items: center;
+        padding: 15px;
+        background: var(--bg-tertiary);
+        border-radius: 8px;
+        border: 1px solid var(--border-primary);
+      }
+
+      /* Participantes inicial escuro */
+      .participantes-inicial {
+        text-align: center !important;
+        padding: 50px 30px !important;
+        color: var(--text-muted) !important;
+        background: var(--bg-card) !important;
+        border-radius: 12px;
+        border: 2px dashed var(--border-primary);
+      }
+
+      .participantes-inicial h3 {
+        color: var(--laranja) !important;
+        margin-bottom: 15px !important;
+      }
+
+      /* Tabelas escuras */
+      .ranking-table {
+        width: 100% !important;
+        border-collapse: collapse !important;
+        margin-top: 20px !important;
+        background: var(--bg-card) !important;
+        border-radius: 8px !important;
+        overflow: hidden !important;
+        box-shadow: var(--shadow-md) !important;
+        border: 1px solid var(--border-primary) !important;
+      }
+
+      .ranking-table th,
+      .ranking-table td {
+        border: 1px solid var(--border-secondary) !important;
+        padding: 10px 8px !important;
+        text-align: left !important;
+        color: var(--text-secondary) !important;
+        font-size: 13px !important;
+      }
+
+      .ranking-table th {
+        background: var(--table-header-bg) !important;
+        color: var(--text-primary) !important;
+        font-weight: 600 !important;
+        text-transform: uppercase !important;
+        font-size: 12px !important;
+        letter-spacing: 0.5px !important;
+      }
+
+      .ranking-table tbody tr:nth-child(even) {
+        background: rgba(255, 255, 255, 0.02) !important;
+      }
+
+      .ranking-table tbody tr:hover {
+        background: var(--table-row-hover) !important;
+      }
+
+      /* Grid de times escuro */
+      .times-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)) !important;
+        gap: 20px !important;
+        margin-top: 20px;
+      }
+
+      .time-card {
+        border: 1px solid var(--border-primary) !important;
+        border-radius: 12px !important;
+        padding: 20px !important;
+        text-align: center !important;
+        background: var(--gradient-card) !important;
+        box-shadow: var(--shadow-md) !important;
+        transition: all 0.3s ease !important;
+        color: var(--text-primary) !important;
+      }
+
+      .time-card:hover {
+        transform: translateY(-5px) !important;
+        box-shadow: var(--shadow-lg) !important;
+        border-color: var(--laranja) !important;
+      }
+
+      .time-card img {
+        width: 60px !important;
+        height: 60px !important;
+        border-radius: 50% !important;
+        margin-bottom: 15px !important;
+        object-fit: cover !important;
+        border: 2px solid var(--border-primary);
+        transition: all 0.3s ease;
+      }
+
+      .time-card:hover img {
+        border-color: var(--laranja);
+        box-shadow: 0 0 15px rgba(255, 69, 0, 0.4);
+      }
+
+      .time-card h4 {
+        margin-bottom: 8px !important;
+        color: var(--text-primary) !important;
+        font-size: 1.1em !important;
+        font-weight: 600;
+      }
+
+      .time-card p {
+        font-size: 0.9em !important;
+        color: var(--text-muted) !important;
+        margin: 0;
+      }
+
+      /* Debug panel escuro */
+      #debug-panel {
+        position: fixed !important;
+        top: 10px !important;
+        right: 10px !important;
+        background: rgba(0, 0, 0, 0.9) !important;
+        color: var(--text-primary) !important;
+        padding: 15px !important;
+        border-radius: 8px !important;
+        font-family: "JetBrains Mono", monospace !important;
+        font-size: 11px !important;
+        max-width: 320px !important;
+        z-index: 1001 !important;
+        border: 1px solid var(--laranja) !important;
+        box-shadow: var(--shadow-orange) !important;
+      }
+
+      /* Highlights escuros */
+      .mito-highlight {
+        background: rgba(34, 197, 94, 0.3) !important;
+        color: var(--success) !important;
+        font-weight: bold !important;
+        border-radius: 4px;
+        padding: 2px 4px;
+      }
+
+      .mico-highlight {
+        background: rgba(239, 68, 68, 0.3) !important;
+        color: var(--danger) !important;
+        font-style: italic !important;
+        border-radius: 4px;
+        padding: 2px 4px;
+      }
+
+      /* Tabela artilheiro (mantém especificidades) */
       #tabela-artilheiro-rodada table.ranking-table th,
       #tabela-artilheiro-rodada table.ranking-table td {
         padding: 2px 3px !important;
@@ -71,6 +481,53 @@
         max-width: 400px !important;
       }
 
+      /* Rodadas específicas */
+      #rodadas table.ranking-table th:nth-child(1),
+      #rodadas table.ranking-table td:nth-child(1) {
+        text-align: center !important;
+      }
+
+      #rodadas table.ranking-table th:nth-child(5),
+      #rodadas table.ranking-table td:nth-child(5) {
+        text-align: center !important;
+      }
+
+      #rodadas table.ranking-table th:nth-child(6),
+      #rodadas table.ranking-table td:nth-child(6) {
+        text-align: center !important;
+      }
+
+      /* Global loading */
+      #global-loading {
+        position: fixed !important;
+        top: 0 !important;
+        left: 0 !important;
+        width: 100% !important;
+        height: 100% !important;
+        background: rgba(10, 10, 10, 0.95) !important;
+        flex-direction: column !important;
+        align-items: center !important;
+        justify-content: center !important;
+        z-index: 9999 !important;
+        color: var(--text-primary) !important;
+      }
+
+      #global-loading.show {
+        display: flex !important;
+      }
+
+      #global-loading.hide {
+        display: none !important;
+      }
+
+      #global-loading .loading-spinner {
+        width: 60px !important;
+        height: 60px !important;
+        border-width: 6px !important;
+        margin-bottom: 20px;
+      }
+
+      /* Animações */
       @keyframes spin {
         0% {
           transform: rotate(0deg);
@@ -80,520 +537,347 @@
         }
       }
 
-      .alert {
-        padding: 12px;
-        border-radius: 6px;
-        margin: 10px 0;
-      }
-      .alert-success {
-        background-color: #d4edda;
-        border: 1px solid #c3e6cb;
-        color: #155724;
-      }
-      .alert-warning {
-        background-color: #fff3cd;
-        border: 1px solid #ffeaa7;
-        color: #856404;
-      }
-      .alert-error {
-        background-color: #f8d7da;
-        border: 1px solid #f5c6cb;
-        color: #721c24;
-      }
-      .alert-info {
-        background-color: #d1ecf1;
-        border: 1px solid #bee5eb;
-        color: #0c5460;
+      @keyframes fadeInUp {
+        from {
+          opacity: 0;
+          transform: translateY(15px);
+        }
+        to {
+          opacity: 1;
+          transform: translateY(0);
+        }
       }
 
-      .loading-spinner {
-        display: inline-block;
-        width: 40px;
-        height: 40px;
-        border: 4px solid #f3f3f3;
-        border-top: 4px solid #3498db;
-        border-radius: 50%;
-        animation: spin 1s linear infinite;
+      /* Responsividade */
+      @media (max-width: 768px) {
+        .container {
+          padding: 15px !important;
+          margin: 10px !important;
+        }
+
+        .tabs {
+          gap: 3px !important;
+          padding: 6px !important;
+        }
+
+        .tab {
+          padding: 10px 12px !important;
+          font-size: 12px !important;
+        }
+
+        .tab-content {
+          padding: 20px 15px !important;
+        }
+
+        .times-grid {
+          grid-template-columns: repeat(
+            auto-fill,
+            minmax(150px, 1fr)
+          ) !important;
+          gap: 15px !important;
+        }
+
+        .rodadas-actions {
+          flex-direction: column !important;
+          gap: 10px !important;
+        }
+
+        .rodadas-select {
+          min-width: 200px !important;
+        }
       }
 
-      .loading-container {
-        text-align: center;
-        padding: 40px 20px;
-        color: #666;
-      }
+      @media (max-width: 480px) {
+        h2 {
+          font-size: 1.5rem !important;
+        }
 
-      .error-message {
-        background-color: #f8d7da;
-        border: 1px solid #f5c6cb;
-        color: #721c24;
-        padding: 15px;
-        border-radius: 6px;
-        margin: 15px 0;
-        text-align: center;
-      }
+        .tab {
+          padding: 8px 10px !important;
+          font-size: 11px !important;
+        }
 
-      /* Debug panel */
-      #debug-panel {
-        position: fixed;
-        top: 10px;
-        right: 10px;
-        background: rgba(0, 0, 0, 0.8);
-        color: white;
-        padding: 10px;
-        border-radius: 5px;
-        font-family: monospace;
-        font-size: 12px;
-        max-width: 300px;
-        z-index: 1000;
-      }
-
-      /* Estilos para a aba de participantes */
-      .participantes-inicial {
-        text-align: center;
-        padding: 40px 20px;
-        color: #666;
-      }
-
-      .carregar-participantes-btn {
-        background: #3498db;
-        color: white;
-        border: none;
-        padding: 12px 24px;
-        border-radius: 6px;
-        font-size: 16px;
-        cursor: pointer;
-        transition: background 0.3s;
-        margin-bottom: 20px;
-      }
-
-      .carregar-participantes-btn:hover {
-        background: #2980b9;
-      }
-
-      .carregar-participantes-btn:disabled {
-        background: #bdc3c7;
-        cursor: not-allowed;
-      }
-
-      /* Estilos para os botões de navegação das abas */
-      .tabs {
-        display: flex;
-        justify-content: center;
-        flex-wrap: wrap;
-        margin-bottom: 20px;
-        gap: 5px;
-      }
-
-      .tab {
-        padding: 10px 15px;
-        border: none;
-        background-color: #ecf0f1;
-        color: #34495e;
-        cursor: pointer;
-        border-radius: 6px;
-        font-size: 14px;
-        transition: background-color 0.3s, color 0.3s;
-        display: flex;
-        align-items: center;
-        gap: 8px;
-        font-weight: bold;
-      }
-
-      .tab:hover {
-        background-color: #bdc3c7;
-      }
-
-      .tab.active {
-        background-color: #3498db;
-        color: white;
-      }
-
-      .tab span {
-        font-size: 1.1em;
-      }
-
-      .tab-content {
-        display: none;
-        padding: 20px;
-        border: 1px solid #e0e0e0;
-        border-radius: 8px;
-        margin-top: 10px;
-        background-color: #fff;
-        box-shadow: 0 2px 5px rgba(0,0,0,0.05);
-      }
-
-      .tab-content.active {
-        display: block;
-      }
-
-      /* Estilos adicionais para o container principal */
-      .container {
-        max-width: 1200px;
-        margin: 20px auto;
-        padding: 20px;
-        font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-        background-color: #fdfdfd;
-        border-radius: 10px;
-        box-shadow: 0 4px 15px rgba(0,0,0,0.1);
-      }
-
-      h2, h3 {
-        color: #2c3e50;
-        text-align: center;
-        margin-bottom: 15px;
-      }
-
-      .btn-voltar {
-        display: inline-block;
-        margin-bottom: 20px;
-        padding: 10px 20px;
-        background-color: #95a5a6;
-        color: white;
-        border: none;
-        border-radius: 6px;
-        cursor: pointer;
-        font-size: 15px;
-        transition: background-color 0.3s;
-      }
-
-      .btn-voltar:hover {
-        background-color: #7f8c8d;
-      }
-
-      /* Estilos para tabelas */
-      .ranking-table {
-        width: 100%;
-        border-collapse: collapse;
-        margin-top: 15px;
-      }
-
-      .ranking-table th,
-      .ranking-table td {
-        border: 1px solid #ddd;
-        padding: 10px 8px;
-        text-align: left;
-      }
-
-      .ranking-table th {
-        background-color: #3498db;
-        color: white;
-        font-weight: bold;
-      }
-
-      .ranking-table tbody tr:nth-child(even) {
-        background-color: #f2f2f2;
-      }
-
-      .ranking-table tbody tr:hover {
-        background-color: #e0e0e0;
-      }
-
-      /* Estilos específicos para colunas da tabela de rodadas */
-      #rodadas table.ranking-table th:nth-child(1),
-      #rodadas table.ranking-table td:nth-child(1) {
-        text-align: center;
-      }
-
-      #rodadas table.ranking-table th:nth-child(5),
-      #rodadas table.ranking-table td:nth-child(5) {
-        text-align: center;
-      }
-
-      #rodadas table.ranking-table th:nth-child(6),
-      #rodadas table.ranking-table td:nth-child(6) {
-        text-align: center;
-      }
-
-      /* Estilos para botões de ação */
-      .rodadas-actions {
-        display: flex;
-        gap: 10px;
-        margin-bottom: 15px;
-        align-items: center;
-      }
-
-      .rodadas-select {
-        padding: 10px 15px;
-        border: 1px solid #ccc;
-        border-radius: 6px;
-        font-size: 14px;
-        min-width: 200px;
-      }
-
-      .refresh-btn,
-      .parciais-btn {
-        padding: 10px 15px;
-        background-color: #3498db;
-        color: white;
-        border: none;
-        border-radius: 6px;
-        cursor: pointer;
-        font-size: 14px;
-        transition: background-color 0.3s;
-      }
-
-      .refresh-btn:hover,
-      .parciais-btn:hover {
-        background-color: #2980b9;
-      }
-
-      .times-grid {
-        display: grid;
-        grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
-        gap: 15px;
-      }
-
-      .time-card {
-        border: 1px solid #e0e0e0;
-        border-radius: 8px;
-        padding: 15px;
-        text-align: center;
-        background-color: #fafafa;
-        box-shadow: 0 1px 3px rgba(0,0,0,0.05);
-        transition: transform 0.2s;
-      }
-
-      .time-card:hover {
-        transform: translateY(-5px);
-      }
-
-      .time-card img {
-        width: 50px;
-        height: 50px;
-        border-radius: 50%;
-        margin-bottom: 10px;
-        object-fit: cover;
-      }
-
-      .time-card h4 {
-        margin-bottom: 5px;
-        color: #34495e;
-        font-size: 1.1em;
-      }
-
-      .time-card p {
-        font-size: 0.9em;
-        color: #7f8c8d;
-      }
-
-      .toggle-participants {
-        display: block;
-        width: fit-content;
-        margin: 20px auto;
-        padding: 10px 20px;
-        background-color: #3498db;
-        color: white;
-        border: none;
-        border-radius: 6px;
-        cursor: pointer;
-        font-size: 15px;
-        transition: background-color 0.3s;
-      }
-
-      .toggle-participants:hover {
-        background-color: #2980b9;
+        .times-grid {
+          grid-template-columns: 1fr !important;
+        }
       }
     </style>
   </head>
   <body>
-    <div id="debug-panel" style="display: none">
-      <strong>Status dos Módulos:</strong>
-      <div id="debug-content"></div>
-    </div>
+    <div class="app-container">
+      <!-- Sidebar será injetado aqui -->
+      <div id="sidebar-placeholder"></div>
 
-    <div id="global-loading" class="loading-container" style="display: none">
-      <div class="loading-spinner"></div>
-      <p>Inicializando aplicação...</p>
-    </div>
+      <!-- Conteúdo principal -->
+      <main class="app-main">
+        <!-- Header será injetado aqui -->
+        <div id="header-placeholder"></div>
 
-    <div class="container">
-      <h2 id="nomeLiga">🏆 Carregando...</h2>
-      <p id="quantidadeTimes" style="text-align: center; color: #7f8c8d"></p>
-      <button
-        class="btn-voltar"
-        onclick="window.history.back()"
-        aria-label="Voltar para a página anterior"
-      >
-        ⬅ Voltar
-      </button>
-
-      <div class="tabs">
-        <button class="tab active" data-tab="participantes">
-          <span>👥 Participantes</span>
-        </button>
-        <button class="tab" data-tab="rodadas">
-          <span>📊 Rodadas</span>
-        </button>
-        <button class="tab" data-tab="mata-mata">
-          <span>⚔️ Disputas Mata-Mata</span>
-        </button>
-        <button class="tab" data-tab="ranking-geral">
-          <span>🏆 Ranking Geral</span>
-        </button>
-        <button class="tab" data-tab="pontos-corridos">
-          <span>📈 Liga Pontos Corridos</span>
-        </button>
-        <button class="tab" data-tab="melhor-mes">
-          <span>⭐ Melhor do Mês</span>
-        </button>
-        <button class="tab" data-tab="top-10">
-          <span>🔥 Top 10</span>
-        </button>
-        <button class="tab" data-tab="fluxo-financeiro">
-          <span>💰 Fluxo Financeiro</span>
-        </button>
-        <button class="tab" data-tab="artilheiro-campeao">
-          <span>⚽ Artilheiro Campeão</span>
-        </button>
-        <button class="tab" data-tab="luva-de-ouro">
-          <span>🥅 Luva de Ouro</span>
-        </button>
-      </div>
-
-      <div id="errorMessage" class="error-message" style="display: none"></div>
-
-      <div class="tab-contents">
-        <div id="participantes" class="tab-content active">
-          <div id="participantes-inicial" class="participantes-inicial">
-            <h3>👥 Participantes da Liga</h3>
-            <p>
-              Clique no botão abaixo para carregar e visualizar os participantes
-              da liga.
-            </p>
-            <button
-              id="carregarParticipantesBtn"
-              class="carregar-participantes-btn"
-            >
-              📥 Carregar Participantes
-            </button>
+        <!-- Conteúdo da página -->
+        <div class="page-content">
+          <div id="debug-panel" style="display: none">
+            <strong>Status dos Módulos:</strong>
+            <div id="debug-content"></div>
           </div>
-          <div
-            id="participantes-loading"
-            class="loading-container"
-            style="display: none"
-          >
+
+          <div id="global-loading" class="hide">
             <div class="loading-spinner"></div>
-            <p>Carregando participantes...</p>
+            <p>Inicializando aplicação...</p>
           </div>
-          <button
-            class="toggle-participants"
-            type="button"
-            style="display: none"
-          >
-            Exibir Participantes
-          </button>
-          <div
-            id="timesContainer"
-            class="times-container"
-            style="display: none"
-          >
-            <div class="times-grid"></div>
-          </div>
-        </div>
 
-        <div id="rodadas" class="tab-content">
-          <div class="rodadas-header">
-            <div class="rodadas-actions">
-              <select id="rodadaSelect" class="rodadas-select">
-                <option value="">Escolha uma rodada</option>
-              </select>
-              <button class="refresh-btn" id="refreshApiBtn">
-                Atualizar dados da API
+          <div class="container">
+            <!-- Breadcrumb melhorado -->
+            <div class="breadcrumb-container">
+              <nav class="breadcrumb">
+                <a href="dashboard.html">🏠 Dashboard</a>
+                <span class="separator">→</span>
+                <a href="gerenciar.html">⚙️ Gerenciar Ligas</a>
+                <span class="separator">→</span>
+                <span class="current" id="breadcrumbLiga">🏆 Liga</span>
+              </nav>
+            </div>
+
+            <!-- Cabeçalho simplificado -->
+            <div class="liga-header-simple">
+              <h2 id="nomeLiga">🏆 Carregando...</h2>
+              <p id="quantidadeTimes"></p>
+            </div>
+
+            <div class="tabs">
+              <button class="tab active" data-tab="participantes">
+                <span>👥</span> Participantes
               </button>
-              <button id="parciaisBtn" class="parciais-btn" type="button">
-                Parciais
+              <button class="tab" data-tab="rodadas">
+                <span>📊</span> Rodadas
+              </button>
+              <button class="tab" data-tab="mata-mata">
+                <span>⚔️</span> Disputas Mata-Mata
+              </button>
+              <button class="tab" data-tab="ranking-geral">
+                <span>🏆</span> Ranking Geral
+              </button>
+              <button class="tab" data-tab="pontos-corridos">
+                <span>📈</span> Liga Pontos Corridos
+              </button>
+              <button class="tab" data-tab="melhor-mes">
+                <span>⭐</span> Melhor do Mês
+              </button>
+              <button class="tab" data-tab="top-10">
+                <span>🔥</span> Top 10
+              </button>
+              <button class="tab" data-tab="fluxo-financeiro">
+                <span>💰</span> Fluxo Financeiro
+              </button>
+              <button class="tab" data-tab="artilheiro-campeao">
+                <span>⚽</span> Artilheiro Campeão
+              </button>
+              <button class="tab" data-tab="luva-de-ouro">
+                <span>🥅</span> Luva de Ouro
               </button>
             </div>
+
+            <div
+              id="errorMessage"
+              class="error-message"
+              style="display: none"
+            ></div>
+
+            <div class="tab-contents">
+              <div id="participantes" class="tab-content active">
+                <div id="participantes-inicial" class="participantes-inicial">
+                  <h3>👥 Participantes da Liga</h3>
+                  <p>
+                    Clique no botão abaixo para carregar e visualizar os
+                    participantes da liga.
+                  </p>
+                  <button
+                    id="carregarParticipantesBtn"
+                    class="carregar-participantes-btn"
+                  >
+                    🔥 Carregar Participantes
+                  </button>
+                </div>
+                <div
+                  id="participantes-loading"
+                  class="loading-container"
+                  style="display: none"
+                >
+                  <div class="loading-spinner"></div>
+                  <p>Carregando participantes...</p>
+                </div>
+                <button
+                  class="toggle-participants"
+                  type="button"
+                  style="display: none"
+                >
+                  Exibir Participantes
+                </button>
+                <div
+                  id="timesContainer"
+                  class="times-container"
+                  style="display: none"
+                >
+                  <div class="times-grid"></div>
+                </div>
+              </div>
+
+              <div id="rodadas" class="tab-content">
+                <div class="rodadas-header">
+                  <div class="rodadas-actions">
+                    <select id="rodadaSelect" class="rodadas-select">
+                      <option value="">Escolha uma rodada</option>
+                    </select>
+                    <button class="refresh-btn" id="refreshApiBtn">
+                      Atualizar dados da API
+                    </button>
+                    <button id="parciaisBtn" class="parciais-btn" type="button">
+                      Parciais
+                    </button>
+                  </div>
+                </div>
+                <div id="rodadasExportBtnContainer"></div>
+                <div id="loading" style="display: none">Carregando...</div>
+                <table id="rankingTable" class="ranking-table">
+                  <thead>
+                    <tr>
+                      <th style="width: 36px; text-align: center">Pos</th>
+                      <th style="width: 40px; text-align: center">❤️</th>
+                      <th style="min-width: 110px; text-align: left">
+                        Cartoleiro
+                      </th>
+                      <th style="min-width: 110px; text-align: left">
+                        Time Cartoleiro
+                      </th>
+                      <th style="width: 48px; text-align: center">Pts</th>
+                      <th style="width: 60px; text-align: center">Banco</th>
+                    </tr>
+                  </thead>
+                  <tbody id="rankingBody"></tbody>
+                </table>
+              </div>
+
+              <div id="mata-mata" class="tab-content">
+                <div class="loading-container">
+                  <div class="loading-spinner"></div>
+                  <p>Carregando disputas mata-mata...</p>
+                </div>
+              </div>
+
+              <div id="ranking-geral" class="tab-content">
+                <div class="loading-container">
+                  <div class="loading-spinner"></div>
+                  <p>Calculando ranking geral...</p>
+                </div>
+              </div>
+
+              <div id="pontos-corridos" class="tab-content">
+                <div id="pontosCorridosSelect"></div>
+                <div id="pontosCorridosRodada"></div>
+              </div>
+
+              <div id="melhor-mes" class="tab-content">
+                <div id="melhorMesSelect"></div>
+                <div id="melhorMesTabela"></div>
+              </div>
+
+              <div id="top-10" class="tab-content">
+                <div
+                  id="top10MitosExportBtnContainer"
+                  style="text-align: right; margin-bottom: 8px"
+                ></div>
+                <div id="top10MitosTable"></div>
+                <div style="height: 20px"></div>
+                <div
+                  id="top10MicosExportBtnContainer"
+                  style="text-align: right; margin-bottom: 8px"
+                ></div>
+                <div id="top10MicosTable"></div>
+              </div>
+
+              <div id="fluxo-financeiro" class="tab-content">
+                <div
+                  id="fluxoFinanceiroButtons"
+                  class="participantes-buttons-container"
+                ></div>
+                <div
+                  id="fluxoFinanceiroExportBtnContainer"
+                  style="text-align: right; margin-bottom: 8px"
+                ></div>
+                <div id="fluxoFinanceiroContent"></div>
+              </div>
+
+              <div id="artilheiro-campeao" class="tab-content">
+                <div id="artilheiro-loading" class="loading-container">
+                  <div class="loading-spinner"></div>
+                  <p>Carregando dados do artilheiro campeão...</p>
+                </div>
+                <div id="artilheiro-container" style="display: none"></div>
+              </div>
+
+              <div id="luva-de-ouro" class="tab-content">
+                <div
+                  id="luvaDeOuroExportBtnContainer"
+                  style="text-align: right; margin-bottom: 8px"
+                ></div>
+                <div id="luvaDeOuroContent"></div>
+              </div>
+            </div>
           </div>
-          <div id="rodadasExportBtnContainer"></div>
-          <div id="loading" style="display: none">Carregando...</div>
-          <table id="rankingTable" class="ranking-table">
-            <thead>
-              <tr>
-                <th style="width: 36px; text-align: center">Pos</th>
-                <th style="width: 40px; text-align: center">❤️</th>
-                <th style="min-width: 110px; text-align: left">Cartoleiro</th>
-                <th style="min-width: 110px; text-align: left">
-                  Time Cartoleiro
-                </th>
-                <th style="width: 48px; text-align: center">Pts</th>
-                <th style="width: 60px; text-align: center">Banco</th>
-              </tr>
-            </thead>
-            <tbody id="rankingBody"></tbody>
-          </table>
         </div>
-
-        <div id="mata-mata" class="tab-content">
-          <div class="loading-container">
-            <div class="loading-spinner"></div>
-            <p>Carregando disputas mata-mata...</p>
-          </div>
-        </div>
-
-        <div id="ranking-geral" class="tab-content">
-          <div class="loading-container">
-            <div class="loading-spinner"></div>
-            <p>Calculando ranking geral...</p>
-          </div>
-        </div>
-
-        <div id="pontos-corridos" class="tab-content">
-          <div id="pontosCorridosSelect"></div>
-          <div id="pontosCorridosRodada"></div>
-        </div>
-
-        <div id="melhor-mes" class="tab-content">
-          <div id="melhorMesSelect"></div>
-          <div id="melhorMesTabela"></div>
-        </div>
-
-        <div id="top-10" class="tab-content">
-          <div
-            id="top10MitosExportBtnContainer"
-            style="text-align: right; margin-bottom: 8px"
-          ></div>
-          <div id="top10MitosTable"></div>
-          <div style="height: 20px"></div>
-          <div
-            id="top10MicosExportBtnContainer"
-            style="text-align: right; margin-bottom: 8px"
-          ></div>
-          <div id="top10MicosTable"></div>
-        </div>
-
-        <div id="fluxo-financeiro" class="tab-content">
-          <div
-            id="fluxoFinanceiroButtons"
-            class="participantes-buttons-container"
-          ></div>
-          <div
-            id="fluxoFinanceiroExportBtnContainer"
-            style="text-align: right; margin-bottom: 8px"
-          ></div>
-          <div id="fluxoFinanceiroContent"></div>
-        </div>
-
-        <div id="artilheiro-campeao" class="tab-content">
-          <div id="artilheiro-loading" class="loading-container">
-            <div class="loading-spinner"></div>
-            <p>Carregando dados do artilheiro campeão...</p>
-          </div>
-          <div id="artilheiro-container" style="display: none"></div>
-        </div>
-
-        <div id="luva-de-ouro" class="tab-content">
-          <div
-            id="luvaDeOuroExportBtnContainer"
-            style="text-align: right; margin-bottom: 8px"
-          ></div>
-          <div id="luvaDeOuroContent"></div>
-        </div>
-      </div>
+      </main>
     </div>
 
     <script type="module">
       console.log("🚀 Iniciando carregamento da aplicação...");
+
+      // === INTEGRAÇÃO COM LAYOUT.HTML ===
+      async function loadLayout() {
+        try {
+          console.log("📦 Carregando layout.html...");
+          const response = await fetch("layout.html");
+          const layoutHtml = await response.text();
+
+          // Parse do HTML
+          const parser = new DOMParser();
+          const doc = parser.parseFromString(layoutHtml, "text/html");
+
+          // Injetar sidebar
+          const sidebar = doc.querySelector(".app-sidebar");
+          if (sidebar) {
+            document.getElementById("sidebar-placeholder").replaceWith(sidebar);
+            console.log("✅ Sidebar injetado");
+          }
+
+          // Injetar header
+          const header = doc.querySelector(".page-header");
+          if (header) {
+            document.getElementById("header-placeholder").replaceWith(header);
+            console.log("✅ Header injetado");
+          }
+
+          // Executar scripts do layout
+          const scripts = doc.querySelectorAll("script");
+          scripts.forEach((script) => {
+            if (script.textContent.trim()) {
+              const newScript = document.createElement("script");
+              newScript.textContent = script.textContent;
+              document.head.appendChild(newScript);
+            }
+          });
+
+          console.log("✅ Layout integrado com sucesso");
+        } catch (error) {
+          console.error("❌ Erro ao carregar layout:", error);
+        }
+      }
+
+      // === ATUALIZAR BREADCRUMB ===
+      function atualizarBreadcrumb(nomeLiga) {
+        const breadcrumbLiga = document.getElementById("breadcrumbLiga");
+        if (breadcrumbLiga && nomeLiga) {
+          breadcrumbLiga.textContent = `🏆 ${nomeLiga}`;
+        }
+      }
 
       // Debug panel
       const debugPanel = document.getElementById("debug-panel");
@@ -639,11 +923,12 @@
       // Funções globais para uso em caso de falha dos módulos
       const fallbackFunctions = {
         carregarDetalhesLigaBasico: async () => {
-          console.log("🔄 Usando fallback para carregarDetalhesLigaBasico");
+          console.log("📄 Usando fallback para carregarDetalhesLigaBasico");
           try {
             // MODIFICAÇÃO: Tenta usar a nova função primeiro
             if (modulosCarregados.participantes?.carregarDadosBasicos) {
-              const resultado = await modulosCarregados.participantes.carregarDadosBasicos();
+              const resultado =
+                await modulosCarregados.participantes.carregarDadosBasicos();
               if (resultado) return resultado;
             }
 
@@ -659,7 +944,9 @@
             const response = await fetch(`/api/ligas/${ligaId}`);
 
             if (!response.ok) {
-              throw new Error(`Erro HTTP: ${response.status} ${response.statusText}`);
+              throw new Error(
+                `Erro HTTP: ${response.status} ${response.statusText}`,
+              );
             }
 
             const liga = await response.json();
@@ -670,19 +957,26 @@
 
             // Atualiza elementos da interface
             const nomeElement = document.getElementById("nomeLiga");
-            const quantidadeElement = document.getElementById("quantidadeTimes");
+            const quantidadeElement =
+              document.getElementById("quantidadeTimes");
 
             if (nomeElement) {
               nomeElement.textContent = `🏆 ${liga.nome || "Liga"}`;
+              // Atualizar breadcrumb
+              atualizarBreadcrumb(liga.nome);
             }
 
             if (quantidadeElement) {
               const participantes = liga.participantes || liga.times || [];
-              const quantidade = Array.isArray(participantes) ? participantes.length : 0;
+              const quantidade = Array.isArray(participantes)
+                ? participantes.length
+                : 0;
               quantidadeElement.textContent = `${quantidade} participantes`;
             }
 
-            console.log(`✅ Fallback: Liga carregada - ${liga.nome} com ${(liga.participantes || liga.times || []).length} participantes`);
+            console.log(
+              `✅ Fallback: Liga carregada - ${liga.nome} com ${(liga.participantes || liga.times || []).length} participantes`,
+            );
             return liga;
           } catch (error) {
             console.error("❌ Fallback falhou:", error);
@@ -832,7 +1126,7 @@
         const loading = document.getElementById("participantes-loading");
 
         try {
-          console.log("🔄 Iniciando carregamento dos participantes...");
+          console.log("📄 Iniciando carregamento dos participantes...");
 
           // Desabilita botão e mostra loading
           btnCarregar.disabled = true;
@@ -863,7 +1157,7 @@
           loading.style.display = "none";
           inicial.style.display = "block";
           btnCarregar.disabled = false;
-          btnCarregar.textContent = "📥 Carregar Participantes";
+          btnCarregar.textContent = "🔥 Carregar Participantes";
           mostrarErroGlobal("Erro ao carregar participantes", error);
         }
       }
@@ -966,6 +1260,9 @@
         console.log("🎯 DOM carregado, iniciando aplicação...");
 
         try {
+          // === INTEGRAÇÃO COM LAYOUT PRIMEIRO ===
+          await loadLayout();
+
           // Carregar dados básicos automaticamente
           console.log("📦 Carregando dados básicos da liga...");
           await fallbackFunctions.carregarDetalhesLigaBasico();
@@ -1085,18 +1382,32 @@
       // ✅ Event listener para DOMContentLoaded
       document.addEventListener("DOMContentLoaded", async () => {
         const globalLoading = document.getElementById("global-loading");
-        globalLoading.style.display = "block"; // Mostra spinner global
+
+        // Mostrar loading usando classe
+        if (globalLoading) {
+          globalLoading.className = "show";
+        }
+
+        // Timeout de segurança - esconde loading após 30 segundos no máximo
+        const safetyTimeout = setTimeout(() => {
+          console.warn("⚠️ Timeout de segurança - escondendo loading");
+          if (globalLoading) {
+            globalLoading.className = "hide";
+          }
+        }, 30000);
 
         try {
           await atualizarPagina();
-          
+
           // Verificar se há uma aba específica na URL
           const urlParams = new URLSearchParams(window.location.search);
-          const tabParam = urlParams.get('tab');
-          
+          const tabParam = urlParams.get("tab");
+
           if (tabParam) {
             // Ativar a aba específica
-            const tabButton = document.querySelector(`[data-tab="${tabParam}"]`);
+            const tabButton = document.querySelector(
+              `[data-tab="${tabParam}"]`,
+            );
             if (tabButton) {
               tabButton.click();
             }
@@ -1105,7 +1416,15 @@
           console.error("❌ Erro ao atualizar página:", error);
           mostrarErroGlobal("Erro ao atualizar a página", error);
         } finally {
-          globalLoading.style.display = "none"; // Oculta após carregamento
+          // Limpar timeout de segurança
+          clearTimeout(safetyTimeout);
+
+          // Esconder loading usando classe
+          if (globalLoading) {
+            globalLoading.className = "hide";
+          }
+
+          console.log("✅ Loading escondido - interface deve estar visível");
         }
       });
     </script>

@@ -1,655 +1,559 @@
-
-<!DOCTYPE html>
+<!doctype html>
 <html lang="pt-BR">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Dashboard - Super Cartola Manager</title>
-    <link rel="stylesheet" href="style.css">
-    <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
-
-        body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background-color: #f5f6fa;
-            color: #2c3e50;
-        }
-
-        .dashboard-container {
-            display: flex;
-            min-height: 100vh;
-        }
-
-        /* Sidebar */
-        .sidebar {
-            width: 280px;
-            background: #1e293b;
-            color: white;
-            padding: 20px 0;
-            overflow-y: auto;
-            box-shadow: 2px 0 10px rgba(0,0,0,0.1);
-        }
-
-        .sidebar-logo {
-            padding: 0 20px 30px;
-            border-bottom: 1px solid rgba(255,255,255,0.2);
-            margin-bottom: 30px;
-        }
-
-        .sidebar-logo h2 {
-            font-size: 18px;
-            font-weight: 600;
-        }
-
-        .sidebar-section {
-            margin-bottom: 30px;
-        }
-
-        .sidebar-section h3 {
-            padding: 0 20px;
-            font-size: 14px;
-            color: rgba(255,255,255,0.8);
-            margin-bottom: 15px;
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
-        }
-
-        .sidebar-menu {
-            list-style: none;
-        }
-
-        .sidebar-menu li {
-            margin-bottom: 5px;
-        }
-
-        .sidebar-menu a {
-            display: flex;
-            align-items: center;
-            padding: 12px 20px;
-            color: rgba(255,255,255,0.9);
-            text-decoration: none;
-            transition: all 0.3s ease;
-            border-left: 3px solid transparent;
-        }
-
-        .sidebar-menu a:hover,
-        .sidebar-menu a.active {
-            background: #334155;
-            border-left-color: #3b82f6;
-            color: white;
-        }
-
-        .sidebar-menu span {
-            margin-right: 10px;
-            font-size: 16px;
-        }
-
-        .liga-item {
-            padding: 15px 20px;
-            margin: 5px 10px;
-            background: rgba(255,255,255,0.1);
-            border-radius: 8px;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            position: relative;
-        }
-
-        .liga-item:hover {
-            background: #334155;
-        }
-
-        .liga-item h4 {
-            font-size: 15px;
-            font-weight: 600;
-            margin-bottom: 8px;
-            color: #ffffff;
-            line-height: 1.3;
-        }
-
-        .liga-item p {
-            font-size: 11px;
-            color: rgba(255,255,255,0.7);
-            margin-bottom: 3px;
-            font-weight: 400;
-        }
-
-        .liga-actions {
-            margin-top: 10px;
-            display: flex;
-            flex-wrap: wrap;
-            gap: 5px;
-        }
-
-        .liga-actions a {
-            background: rgba(255,255,255,0.2);
-            color: white;
-            padding: 5px 10px;
-            border-radius: 4px;
-            text-decoration: none;
-            font-size: 11px;
-            transition: all 0.3s ease;
-            flex: 1;
-            text-align: center;
-            min-width: 60px;
-        }
-
-        .liga-actions a:hover {
-            background: rgba(255,255,255,0.3);
-            transform: translateY(-1px);
-        }
-
-        .liga-actions .detalhes { 
-            background: #1e40af; 
-            cursor: pointer;
-        }
-        .liga-actions .editar { background: #d97706; }
-        .liga-actions .popular { background: #059669; }
-        .liga-actions .excluir { background: #dc2626; }
-
-        /* Sub-menu for details */
-        .liga-submenu {
-            display: none;
-            margin-top: 8px;
-            padding: 8px 0;
-            border-top: 1px solid rgba(255,255,255,0.2);
-        }
-
-        .liga-submenu.active {
-            display: block;
-            animation: slideDown 0.3s ease;
-        }
-
-        @keyframes slideDown {
-            from { opacity: 0; transform: translateY(-10px); }
-            to { opacity: 1; transform: translateY(0); }
-        }
-
-        .liga-submenu a {
-            display: block;
-            padding: 6px 12px;
-            margin: 2px 0;
-            background: rgba(255,255,255,0.1);
-            border-radius: 4px;
-            font-size: 10px;
-            text-align: left;
-        }
-
-        .liga-submenu a:hover {
-            background: rgba(255,255,255,0.2);
-        }
-
-        /* Main Content */
-        .main-content {
-            flex: 1;
-            padding: 30px;
-            overflow-y: auto;
-        }
-
-        .content-header {
-            margin-bottom: 40px;
-        }
-
-        .content-header h1 {
-            font-size: 32px;
-            color: #2c3e50;
-            margin-bottom: 10px;
-        }
-
-        .content-header p {
-            color: #7f8c8d;
-            font-size: 16px;
-        }
-
-        /* Dashboard Stats Cards */
-        .stats-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-            gap: 25px;
-            margin-bottom: 40px;
-        }
-
-        .stat-card {
-            background: white;
-            border-radius: 12px;
-            padding: 25px;
-            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
-            border: 1px solid #e1e8ed;
-            position: relative;
-            overflow: hidden;
-            transition: all 0.3s ease;
-        }
-
-        .stat-card:hover {
-            transform: translateY(-5px);
-            box-shadow: 0 8px 25px rgba(0,0,0,0.15);
-        }
-
-        .stat-card::before {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: 0;
-            right: 0;
-            height: 4px;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-        }
-
-        .stat-card.primary::before {
-            background: linear-gradient(135deg, #1e40af 0%, #3b82f6 100%);
-        }
-
-        .stat-card.success::before {
-            background: linear-gradient(135deg, #059669 0%, #10b981 100%);
-        }
-
-        .stat-card.warning::before {
-            background: linear-gradient(135deg, #d97706 0%, #f59e0b 100%);
-        }
-
-        .stat-card.danger::before {
-            background: linear-gradient(135deg, #dc2626 0%, #ef4444 100%);
-        }
-
-        .stat-icon {
-            font-size: 32px;
-            margin-bottom: 15px;
-            opacity: 0.8;
-        }
-
-        .stat-number {
-            font-size: 36px;
-            font-weight: 700;
-            color: #2c3e50;
-            margin-bottom: 8px;
-            line-height: 1;
-        }
-
-        .stat-label {
-            font-size: 14px;
-            color: #7f8c8d;
-            font-weight: 500;
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
-        }
-
-        .stat-change {
-            position: absolute;
-            top: 20px;
-            right: 20px;
-            font-size: 12px;
-            padding: 4px 8px;
-            border-radius: 12px;
-            font-weight: 600;
-        }
-
-        .stat-change.positive {
-            background: rgba(16, 185, 129, 0.1);
-            color: #059669;
-        }
-
-        .stat-change.negative {
-            background: rgba(239, 68, 68, 0.1);
-            color: #dc2626;
-        }
-
-        /* Quick Actions */
-        .quick-actions {
-            background: white;
-            border-radius: 12px;
-            padding: 25px;
-            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
-            border: 1px solid #e1e8ed;
-            margin-bottom: 30px;
-        }
-
-        .quick-actions h3 {
-            color: #2c3e50;
-            margin-bottom: 20px;
-            font-size: 18px;
-            text-align: left;
-        }
-
-        .actions-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-            gap: 15px;
-        }
-
-        .action-btn {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            padding: 15px 20px;
-            background: #f8fafc;
-            border: 2px solid #e2e8f0;
-            border-radius: 8px;
-            color: #4a5568;
-            text-decoration: none;
-            font-weight: 500;
-            transition: all 0.3s ease;
-        }
-
-        .action-btn:hover {
-            background: #e2e8f0;
-            border-color: #cbd5e0;
-            transform: translateY(-2px);
-        }
-
-        .action-btn .icon {
-            font-size: 20px;
-        }
-
-        /* Recent Activity */
-        .recent-activity {
-            background: white;
-            border-radius: 12px;
-            padding: 25px;
-            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
-            border: 1px solid #e1e8ed;
-        }
-
-        .recent-activity h3 {
-            color: #2c3e50;
-            margin-bottom: 20px;
-            font-size: 18px;
-            text-align: left;
-        }
-
-        .activity-item {
-            display: flex;
-            align-items: center;
-            padding: 12px 0;
-            border-bottom: 1px solid #f1f5f9;
-        }
-
-        .activity-item:last-child {
-            border-bottom: none;
-        }
-
-        .activity-icon {
-            width: 40px;
-            height: 40px;
-            border-radius: 50%;
-            background: #f1f5f9;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            margin-right: 15px;
-            font-size: 16px;
-        }
-
-        .activity-content {
-            flex: 1;
-        }
-
-        .activity-content h4 {
-            font-size: 14px;
-            font-weight: 600;
-            color: #2d3748;
-            margin: 0 0 4px 0;
-            text-align: left;
-        }
-
-        .activity-content p {
-            font-size: 12px;
-            color: #718096;
-            margin: 0;
-        }
-
-        .activity-time {
-            font-size: 11px;
-            color: #a0aec0;
-        }
-
-        .loading {
-            text-align: center;
-            padding: 40px;
-            color: #7f8c8d;
-        }
-
-        @media (max-width: 768px) {
-            .dashboard-container {
-                flex-direction: column;
+    <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <title>Dashboard - Super Cartola Manager</title>
+        <link rel="stylesheet" href="style.css" />
+        <style>
+            /* === TEMA ESCURO PROFISSIONAL === */
+            .page-content {
+                background: #1a1a1a;
+                min-height: calc(100vh - 100px);
             }
-            
-            .sidebar {
-                width: 100%;
-                min-height: auto;
+
+            .dashboard-stats {
+                display: grid;
+                grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+                gap: 25px;
+                margin-bottom: 40px;
             }
-            
-            .stats-grid {
-                grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-                gap: 15px;
+
+            .stat-card {
+                background: linear-gradient(135deg, #2a2a2a 0%, #1e1e1e 100%);
+                border-radius: 16px;
+                padding: 30px;
+                box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
+                border: 1px solid rgba(255, 69, 0, 0.2);
+                position: relative;
+                overflow: hidden;
+                transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
             }
-            
+
+            .stat-card:hover {
+                transform: translateY(-8px) scale(1.02);
+                box-shadow: 0 16px 48px rgba(255, 69, 0, 0.3);
+                border-color: #ff4500;
+                background: linear-gradient(135deg, #333333 0%, #252525 100%);
+            }
+
+            .stat-card::before {
+                content: "";
+                position: absolute;
+                top: 0;
+                left: 0;
+                right: 0;
+                height: 4px;
+                background: linear-gradient(135deg, #ff4500 0%, #e8472b 100%);
+                box-shadow: 0 0 15px rgba(255, 69, 0, 0.6);
+            }
+
+            .stat-card.primary::before {
+                background: linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%);
+                box-shadow: 0 0 15px rgba(59, 130, 246, 0.4);
+            }
+            .stat-card.success::before {
+                background: linear-gradient(135deg, #22c55e 0%, #16a34a 100%);
+                box-shadow: 0 0 15px rgba(34, 197, 94, 0.4);
+            }
+            .stat-card.warning::before {
+                background: linear-gradient(135deg, #ff4500 0%, #e8472b 100%);
+                box-shadow: 0 0 15px rgba(255, 69, 0, 0.6);
+            }
+            .stat-card.danger::before {
+                background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
+                box-shadow: 0 0 15px rgba(239, 68, 68, 0.4);
+            }
+
+            .stat-icon {
+                font-size: 40px;
+                margin-bottom: 18px;
+                opacity: 0.9;
+                text-shadow: 0 0 10px rgba(255, 69, 0, 0.3);
+            }
+
+            .stat-card.primary .stat-icon {
+                color: #3b82f6;
+            }
+            .stat-card.success .stat-icon {
+                color: #22c55e;
+            }
+            .stat-card.warning .stat-icon {
+                color: #ff4500;
+            }
+            .stat-card.danger .stat-icon {
+                color: #ef4444;
+            }
+
+            .stat-number {
+                font-size: 48px;
+                font-weight: 800;
+                color: #ffffff;
+                margin-bottom: 10px;
+                line-height: 1;
+                text-shadow: 0 0 10px rgba(255, 255, 255, 0.3);
+                font-family: "JetBrains Mono", monospace;
+            }
+
+            .stat-label {
+                font-size: 13px;
+                color: #a0a0a0;
+                font-weight: 600;
+                text-transform: uppercase;
+                letter-spacing: 1px;
+            }
+
+            .quick-actions {
+                background: linear-gradient(135deg, #2a2a2a 0%, #1e1e1e 100%);
+                border-radius: 16px;
+                padding: 30px;
+                box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
+                border: 1px solid rgba(255, 69, 0, 0.2);
+                margin-bottom: 30px;
+                position: relative;
+                overflow: hidden;
+            }
+
+            .quick-actions::before {
+                content: "";
+                position: absolute;
+                top: 0;
+                left: 0;
+                right: 0;
+                height: 4px;
+                background: linear-gradient(135deg, #ff4500 0%, #e8472b 100%);
+                box-shadow: 0 0 15px rgba(255, 69, 0, 0.6);
+            }
+
+            .quick-actions h3 {
+                color: #ffffff;
+                margin-bottom: 25px;
+                font-size: 22px;
+                font-weight: 700;
+                text-align: left;
+            }
+
             .actions-grid {
-                grid-template-columns: 1fr;
-            }
-        }
-    </style>
-</head>
-<body>
-    <div class="dashboard-container">
-        <!-- Sidebar -->
-        <aside class="sidebar">
-            <div class="sidebar-logo">
-                <h2>🏆 Super Cartola Manager</h2>
-            </div>
-
-            <div class="sidebar-section">
-                <h3>Gestão</h3>
-                <ul class="sidebar-menu">
-                    <li><a href="criar-liga.html"><span>➕</span>Criar Liga</a></li>
-                    <li><a href="#" data-action="dashboard" class="active"><span>📊</span>Dashboard</a></li>
-                </ul>
-            </div>
-
-            <div class="sidebar-section">
-                <h3>Ligas Disponíveis</h3>
-                <div id="ligasContainer">
-                    <div class="loading">Carregando ligas...</div>
-                </div>
-            </div>
-        </aside>
-
-        <!-- Conteúdo Principal -->
-        <main class="main-content">
-            <div class="content-header">
-                <h1>Dashboard Geral</h1>
-                <p>Visão geral das suas ligas e estatísticas</p>
-            </div>
-
-            <!-- Cards de Estatísticas -->
-            <div class="stats-grid">
-                <div class="stat-card primary">
-                    <div class="stat-icon">🏆</div>
-                    <div class="stat-number" id="totalLigas">0</div>
-                    <div class="stat-label">Total de Ligas</div>
-                    <div class="stat-change positive" id="ligasChange">+0</div>
-                </div>
-
-                <div class="stat-card success">
-                    <div class="stat-icon">👥</div>
-                    <div class="stat-number" id="totalParticipantes">0</div>
-                    <div class="stat-label">Total de Participantes</div>
-                    <div class="stat-change positive" id="participantesChange">+0</div>
-                </div>
-
-                <div class="stat-card warning">
-                    <div class="stat-icon">🎯</div>
-                    <div class="stat-number" id="ligasAtivas">0</div>
-                    <div class="stat-label">Ligas Ativas</div>
-                    <div class="stat-change positive" id="ativasChange">100%</div>
-                </div>
-
-                <div class="stat-card danger">
-                    <div class="stat-icon">📈</div>
-                    <div class="stat-number" id="mediaParticipantes">0</div>
-                    <div class="stat-label">Média de Participantes</div>
-                    <div class="stat-change positive" id="mediaChange">--</div>
-                </div>
-            </div>
-
-            <!-- Ações Rápidas -->
-            <div class="quick-actions">
-                <h3>Ações Rápidas</h3>
-                <div class="actions-grid">
-                    <a href="criar-liga.html" class="action-btn">
-                        <span class="icon">➕</span>
-                        Criar Nova Liga
-                    </a>
-                    <a href="buscar-times.html" class="action-btn">
-                        <span class="icon">🔍</span>
-                        Buscar Times
-                    </a>
-                    <a href="admin.html" class="action-btn">
-                        <span class="icon">🛠️</span>
-                        Administração
-                    </a>
-                    <a href="parciais.html" class="action-btn">
-                        <span class="icon">📊</span>
-                        Resultados Parciais
-                    </a>
-                </div>
-            </div>
-
-            <!-- Atividade Recente -->
-            <div class="recent-activity">
-                <h3>Atividade Recente</h3>
-                <div id="recentActivity">
-                    <div class="loading">Carregando atividades...</div>
-                </div>
-            </div>
-        </main>
-    </div>
-
-    <script type="module">
-        import { carregarLigas, deletarLiga } from "./js/gerenciar-ligas.js";
-
-        // Carregar dados na inicialização
-        document.addEventListener("DOMContentLoaded", async () => {
-            await carregarDashboard();
-        });
-
-        async function carregarDashboard() {
-            try {
-                const ligas = await carregarLigas();
-                renderizarLigasNoSidebar(ligas);
-                atualizarEstatisticas(ligas);
-                renderizarAtividadeRecente(ligas);
-            } catch (error) {
-                console.error("Erro ao carregar dashboard:", error);
-            }
-        }
-
-        function renderizarLigasNoSidebar(ligas) {
-            const container = document.getElementById("ligasContainer");
-            container.innerHTML = "";
-
-            if (ligas.length === 0) {
-                container.innerHTML = '<div class="loading">Nenhuma liga encontrada</div>';
-                return;
+                display: grid;
+                grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+                gap: 18px;
             }
 
-            ligas.forEach((liga) => {
-                const ligaElement = document.createElement("div");
-                ligaElement.className = "liga-item";
-                ligaElement.innerHTML = `
-                    <h4>${liga.nome}</h4>
-                    <p>ID: ${liga._id.substring(0, 8)}...</p>
-                    <p>Times: ${liga.times.length}</p>
-                    <div class="liga-actions">
-                        <div class="detalhes" onclick="toggleSubmenu('${liga._id}')">👁️ Detalhes</div>
-                        <a href="editar-liga.html?id=${liga._id}" class="editar">✏️ Editar</a>
-                        <a href="admin.html?id=${liga._id}" class="popular">🛠️ Popular</a>
-                        <a href="#" onclick="confirmarExclusao('${liga._id}', '${liga.nome}')" class="excluir">🗑️ Excluir</a>
+            .action-btn {
+                display: flex;
+                align-items: center;
+                gap: 12px;
+                padding: 18px 22px;
+                background: rgba(255, 69, 0, 0.05);
+                border: 2px solid rgba(255, 69, 0, 0.2);
+                border-radius: 12px;
+                color: #ffffff;
+                text-decoration: none;
+                font-weight: 600;
+                font-size: 14px;
+                transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+                position: relative;
+                overflow: hidden;
+            }
+
+            .action-btn::before {
+                content: "";
+                position: absolute;
+                top: 0;
+                left: -100%;
+                width: 100%;
+                height: 100%;
+                background: linear-gradient(
+                    90deg,
+                    transparent,
+                    rgba(255, 255, 255, 0.1),
+                    transparent
+                );
+                transition: left 0.5s ease;
+            }
+
+            .action-btn:hover::before {
+                left: 100%;
+            }
+
+            .action-btn:hover {
+                background: rgba(255, 69, 0, 0.15);
+                border-color: #ff4500;
+                transform: translateY(-4px) scale(1.02);
+                box-shadow: 0 8px 25px rgba(255, 69, 0, 0.3);
+                color: #ff4500;
+            }
+
+            .action-btn span {
+                font-size: 18px;
+                opacity: 0.9;
+            }
+
+            .recent-activity {
+                background: linear-gradient(135deg, #2a2a2a 0%, #1e1e1e 100%);
+                border-radius: 16px;
+                padding: 30px;
+                box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
+                border: 1px solid rgba(255, 69, 0, 0.2);
+                position: relative;
+                overflow: hidden;
+            }
+
+            .recent-activity::before {
+                content: "";
+                position: absolute;
+                top: 0;
+                left: 0;
+                right: 0;
+                height: 4px;
+                background: linear-gradient(135deg, #ff4500 0%, #e8472b 100%);
+                box-shadow: 0 0 15px rgba(255, 69, 0, 0.6);
+            }
+
+            .recent-activity h3 {
+                color: #ffffff;
+                margin-bottom: 25px;
+                font-size: 22px;
+                font-weight: 700;
+                text-align: left;
+            }
+
+            .activity-item {
+                display: flex;
+                align-items: center;
+                padding: 15px 0;
+                border-bottom: 1px solid #333333;
+                transition: all 0.3s ease;
+            }
+
+            .activity-item:hover {
+                transform: translateX(8px);
+                background: rgba(255, 69, 0, 0.05);
+                border-radius: 8px;
+                padding-left: 12px;
+            }
+
+            .activity-item:last-child {
+                border-bottom: none;
+            }
+
+            .activity-icon {
+                width: 48px;
+                height: 48px;
+                border-radius: 50%;
+                background: rgba(255, 69, 0, 0.1);
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                margin-right: 18px;
+                font-size: 18px;
+                border: 2px solid rgba(255, 69, 0, 0.3);
+                box-shadow: 0 0 10px rgba(255, 69, 0, 0.2);
+            }
+
+            .activity-content {
+                flex: 1;
+            }
+
+            .activity-content h4 {
+                font-size: 15px;
+                font-weight: 600;
+                color: #ffffff;
+                margin: 0 0 6px 0;
+                text-align: left;
+            }
+
+            .activity-content p {
+                font-size: 13px;
+                color: #a0a0a0;
+                margin: 0;
+            }
+
+            .activity-time {
+                font-size: 12px;
+                color: #606060;
+                font-weight: 500;
+            }
+
+            .loading {
+                text-align: center;
+                padding: 40px;
+                color: #a0a0a0;
+                font-size: 15px;
+            }
+
+            .empty-state {
+                text-align: center;
+                padding: 60px 40px;
+                color: #a0a0a0;
+                font-size: 15px;
+            }
+
+            .empty-state .empty-icon {
+                font-size: 48px;
+                margin-bottom: 15px;
+                opacity: 0.6;
+            }
+
+            /* Responsividade */
+            @media (max-width: 1024px) {
+                .dashboard-stats {
+                    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+                    gap: 20px;
+                }
+
+                .actions-grid {
+                    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+                    gap: 15px;
+                }
+            }
+
+            @media (max-width: 768px) {
+                .dashboard-stats {
+                    grid-template-columns: 1fr;
+                    gap: 15px;
+                }
+
+                .actions-grid {
+                    grid-template-columns: 1fr;
+                    gap: 12px;
+                }
+
+                .stat-card,
+                .quick-actions,
+                .recent-activity {
+                    padding: 25px 20px;
+                }
+
+                .stat-number {
+                    font-size: 36px;
+                }
+
+                .stat-icon {
+                    font-size: 32px;
+                }
+            }
+
+            @media (max-width: 480px) {
+                .stat-card,
+                .quick-actions,
+                .recent-activity {
+                    padding: 20px 15px;
+                }
+
+                .stat-number {
+                    font-size: 32px;
+                }
+            }
+        </style>
+    </head>
+    <body>
+        <div class="app-container">
+            <!-- Sidebar será injetado aqui -->
+            <div id="sidebar-placeholder"></div>
+
+            <!-- Conteúdo principal -->
+            <main class="app-main">
+                <!-- Header será injetado aqui -->
+                <div id="header-placeholder"></div>
+
+                <!-- Conteúdo da página -->
+                <div class="page-content">
+                    <!-- Cards de Estatísticas -->
+                    <div class="dashboard-stats">
+                        <div class="stat-card primary">
+                            <div class="stat-icon">🏆</div>
+                            <div class="stat-number" id="totalLigas">0</div>
+                            <div class="stat-label">Total de Ligas</div>
+                        </div>
+
+                        <div class="stat-card success">
+                            <div class="stat-icon">👥</div>
+                            <div class="stat-number" id="totalParticipantes">
+                                0
+                            </div>
+                            <div class="stat-label">Total de Participantes</div>
+                        </div>
+
+                        <div class="stat-card warning">
+                            <div class="stat-icon">🎯</div>
+                            <div class="stat-number" id="ligasAtivas">0</div>
+                            <div class="stat-label">Ligas Ativas</div>
+                        </div>
+
+                        <div class="stat-card danger">
+                            <div class="stat-icon">📈</div>
+                            <div class="stat-number" id="mediaParticipantes">
+                                0
+                            </div>
+                            <div class="stat-label">Média de Participantes</div>
+                        </div>
                     </div>
-                    <div class="liga-submenu" id="submenu-${liga._id}">
-                        <a href="detalhe-liga.html?id=${liga._id}&tab=participantes">👥 Participantes</a>
-                        <a href="detalhe-liga.html?id=${liga._id}&tab=rodadas">🎯 Rodadas</a>
-                        <a href="detalhe-liga.html?id=${liga._id}&tab=ranking">🏆 Ranking</a>
-                        <a href="detalhe-liga.html?id=${liga._id}&tab=mata-mata">⚔️ Mata-mata</a>
-                        <a href="detalhe-liga.html?id=${liga._id}&tab=pontos-corridos">📊 Pontos Corridos</a>
-                        <a href="detalhe-liga.html?id=${liga._id}&tab=fluxo-financeiro">💰 Fluxo Financeiro</a>
+
+                    <!-- Ações Rápidas -->
+                    <div class="quick-actions">
+                        <h3>🚀 Ações Rápidas</h3>
+                        <div class="actions-grid">
+                            <a href="preencher-liga.html" class="action-btn">
+                                <span>➕</span>
+                                Criar Nova Liga
+                            </a>
+                            <a href="buscar-times.html" class="action-btn">
+                                <span>🔍</span>
+                                Buscar Times
+                            </a>
+                            <a href="admin.html" class="action-btn">
+                                <span>🛠️</span>
+                                Administração
+                            </a>
+                            <a href="parciais.html" class="action-btn">
+                                <span>📊</span>
+                                Resultados Parciais
+                            </a>
+                        </div>
+                    </div>
+
+                    <!-- Atividade Recente -->
+                    <div class="recent-activity">
+                        <h3>📈 Atividade Recente</h3>
+                        <div id="recentActivity">
+                            <div class="loading">Carregando atividades...</div>
+                        </div>
+                    </div>
+                </div>
+            </main>
+        </div>
+
+        <script type="module">
+            import {
+                carregarLigas,
+                deletarLiga,
+            } from "./js/gerenciar-ligas.js";
+
+            // Carregar layout
+            async function loadLayout() {
+                try {
+                    const response = await fetch("layout.html");
+                    const layoutHtml = await response.text();
+
+                    // Parse do HTML
+                    const parser = new DOMParser();
+                    const doc = parser.parseFromString(layoutHtml, "text/html");
+
+                    // Injetar sidebar
+                    const sidebar = doc.querySelector(".app-sidebar");
+                    if (sidebar) {
+                        document
+                            .getElementById("sidebar-placeholder")
+                            .replaceWith(sidebar);
+                    }
+
+                    // Injetar header
+                    const header = doc.querySelector(".page-header");
+                    if (header) {
+                        document
+                            .getElementById("header-placeholder")
+                            .replaceWith(header);
+                    }
+
+                    // Executar scripts do layout
+                    const scripts = doc.querySelectorAll("script");
+                    scripts.forEach((script) => {
+                        if (script.textContent.trim()) {
+                            const newScript = document.createElement("script");
+                            newScript.textContent = script.textContent;
+                            document.head.appendChild(newScript);
+                        }
+                    });
+                } catch (error) {
+                    console.error("Erro ao carregar layout:", error);
+                }
+            }
+
+            // Carregar dados na inicialização
+            document.addEventListener("DOMContentLoaded", async () => {
+                await loadLayout();
+                await carregarDashboard();
+            });
+
+            async function carregarDashboard() {
+                try {
+                    const ligas = await carregarLigas();
+                    atualizarEstatisticas(ligas);
+                    renderizarAtividadeRecente(ligas);
+                } catch (error) {
+                    console.error("Erro ao carregar dashboard:", error);
+                    // Mostrar estado de erro
+                    document.getElementById("recentActivity").innerHTML = `
+                    <div class="empty-state">
+                        <div class="empty-icon">⚠️</div>
+                        <p>Erro ao carregar dados do dashboard</p>
                     </div>
                 `;
-                container.appendChild(ligaElement);
-            });
-        }
-
-        function atualizarEstatisticas(ligas) {
-            const totalLigas = ligas.length;
-            const totalParticipantes = ligas.reduce((total, liga) => total + liga.times.length, 0);
-            const ligasAtivas = totalLigas; // Considerando todas como ativas
-            const mediaParticipantes = totalLigas > 0 ? Math.round(totalParticipantes / totalLigas) : 0;
-
-            document.getElementById('totalLigas').textContent = totalLigas;
-            document.getElementById('totalParticipantes').textContent = totalParticipantes;
-            document.getElementById('ligasAtivas').textContent = ligasAtivas;
-            document.getElementById('mediaParticipantes').textContent = mediaParticipantes;
-
-            // Atualizar indicadores de mudança (simulados)
-            document.getElementById('ligasChange').textContent = '+' + totalLigas;
-            document.getElementById('participantesChange').textContent = '+' + totalParticipantes;
-            document.getElementById('ativasChange').textContent = '100%';
-            document.getElementById('mediaChange').textContent = mediaParticipantes + '/liga';
-        }
-
-        function renderizarAtividadeRecente(ligas) {
-            const container = document.getElementById('recentActivity');
-            
-            if (ligas.length === 0) {
-                container.innerHTML = '<p style="text-align: center; color: #7f8c8d;">Nenhuma atividade recente</p>';
-                return;
+                }
             }
 
-            const atividades = ligas.slice(0, 5).map((liga, index) => {
-                const data = new Date(liga.criadaEm);
-                return `
+            function atualizarEstatisticas(ligas) {
+                const totalLigas = ligas.length;
+                const totalParticipantes = ligas.reduce(
+                    (total, liga) =>
+                        total + (liga.times ? liga.times.length : 0),
+                    0,
+                );
+                const ligasAtivas = totalLigas;
+                const mediaParticipantes =
+                    totalLigas > 0
+                        ? Math.round(totalParticipantes / totalLigas)
+                        : 0;
+
+                document.getElementById("totalLigas").textContent = totalLigas;
+                document.getElementById("totalParticipantes").textContent =
+                    totalParticipantes;
+                document.getElementById("ligasAtivas").textContent =
+                    ligasAtivas;
+                document.getElementById("mediaParticipantes").textContent =
+                    mediaParticipantes;
+            }
+
+            function renderizarAtividadeRecente(ligas) {
+                const container = document.getElementById("recentActivity");
+
+                if (ligas.length === 0) {
+                    container.innerHTML = `
+                    <div class="empty-state">
+                        <div class="empty-icon">📝</div>
+                        <p>Nenhuma atividade recente</p>
+                        <small>Crie sua primeira liga para começar!</small>
+                    </div>
+                `;
+                    return;
+                }
+
+                const atividades = ligas
+                    .slice(0, 5)
+                    .map((liga) => {
+                        const data = liga.criadaEm
+                            ? new Date(liga.criadaEm)
+                            : new Date();
+                        const participantes = liga.times
+                            ? liga.times.length
+                            : 0;
+
+                        return `
                     <div class="activity-item">
                         <div class="activity-icon">🏆</div>
                         <div class="activity-content">
                             <h4>Liga "${liga.nome}" criada</h4>
-                            <p>${liga.times.length} participantes adicionados</p>
+                            <p>${participantes} participantes adicionados</p>
                         </div>
-                        <div class="activity-time">${data.toLocaleDateString('pt-BR')}</div>
+                        <div class="activity-time">${data.toLocaleDateString("pt-BR")}</div>
                     </div>
                 `;
-            }).join('');
+                    })
+                    .join("");
 
-            container.innerHTML = atividades;
-        }
-
-        window.toggleSubmenu = function(ligaId) {
-            // Fechar todos os submenus primeiro
-            document.querySelectorAll('.liga-submenu').forEach(submenu => {
-                if (submenu.id !== `submenu-${ligaId}`) {
-                    submenu.classList.remove('active');
-                }
-            });
-
-            // Toggle do submenu clicado
-            const submenu = document.getElementById(`submenu-${ligaId}`);
-            submenu.classList.toggle('active');
-        };
-
-        window.confirmarExclusao = async function(ligaId, nomeLiga) {
-            if (!confirm(`Tem certeza que deseja excluir a liga "${nomeLiga}"?\nEsta ação não pode ser desfeita.`)) {
-                return;
+                container.innerHTML = atividades;
             }
-
-            try {
-                await deletarLiga(ligaId);
-                alert("Liga excluída com sucesso!");
-                await carregarDashboard();
-            } catch (error) {
-                alert(`Erro ao excluir a liga: ${error.message}`);
-            }
-        };
-    </script>
-</body>
+        </script>
+    </body>
 </html>
