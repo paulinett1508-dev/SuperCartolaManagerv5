@@ -184,51 +184,41 @@
             box-shadow: 0 0 0 3px rgba(102,126,234,0.1);
         }
 
-        .ligas-list {
-            display: flex;
-            flex-direction: column;
-            gap: 20px;
-        }
-
-        .liga-row {
+        /* Liga Cards */
+        .liga-card {
             background: white;
-            border-radius: 12px;
-            padding: 20px;
-            box-shadow: 0 4px 20px rgba(0,0,0,0.08);
-            transition: all 0.3s ease;
+            border-radius: 8px;
+            padding: 25px;
+            margin-bottom: 20px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
             border: 1px solid #e1e8ed;
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
         }
 
-        .liga-row:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 8px 30px rgba(0,0,0,0.12);
+        .liga-header {
+            text-align: center;
+            margin-bottom: 20px;
         }
 
-        .liga-info {
-            flex: 1;
-        }
-
-        .liga-info h3 {
+        .liga-header h3 {
             color: #2c3e50;
-            font-size: 18px;
+            font-size: 20px;
             margin-bottom: 5px;
         }
 
         .liga-meta {
             color: #7f8c8d;
             font-size: 14px;
+            margin-bottom: 15px;
         }
 
-        .liga-row-actions {
+        .liga-card-actions {
             display: flex;
             gap: 10px;
+            justify-content: center;
         }
 
-        .btn {
-            padding: 8px 16px;
+        .action-btn {
+            padding: 10px 20px;
             border: none;
             border-radius: 6px;
             font-size: 14px;
@@ -238,18 +228,19 @@
             align-items: center;
             gap: 5px;
             transition: all 0.3s ease;
+            color: white;
+            font-weight: 500;
         }
 
-        .btn-primary { background: #667eea; color: white; }
-        .btn-secondary { background: #6c757d; color: white; }
-        .btn-success { background: #28a745; color: white; }
-        .btn-warning { background: #ffc107; color: #212529; }
-        .btn-danger { background: #dc3545; color: white; }
-
-        .btn:hover {
-            opacity: 0.9;
-            transform: translateY(-1px);
+        .action-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(0,0,0,0.2);
         }
+
+        .btn-detalhes { background: #3498db; }
+        .btn-editar { background: #f39c12; }
+        .btn-popular { background: #27ae60; }
+        .btn-excluir { background: #e74c3c; }
 
         .loading {
             text-align: center;
@@ -267,15 +258,13 @@
                 min-height: auto;
             }
             
-            .liga-row {
-                flex-direction: column;
-                gap: 15px;
-                align-items: flex-start;
+            .liga-card-actions {
+                flex-wrap: wrap;
             }
             
-            .liga-row-actions {
-                width: 100%;
-                justify-content: space-between;
+            .action-btn {
+                flex: 1;
+                min-width: 120px;
             }
         }
     </style>
@@ -316,7 +305,7 @@
             </div>
 
             <div class="content-body">
-                <div id="ligasList" class="ligas-list">
+                <div id="ligasList">
                     <div class="loading">Carregando ligas...</div>
                 </div>
             </div>
@@ -335,7 +324,7 @@
             try {
                 const ligas = await carregarLigas();
                 renderizarLigasNoSidebar(ligas);
-                renderizarLigasNaLista(ligas);
+                renderizarLigasCards(ligas);
             } catch (error) {
                 console.error("Erro ao carregar ligas:", error);
             }
@@ -358,9 +347,9 @@
                     <p>ID: ${liga._id.substring(0, 8)}...</p>
                     <p>Times: ${liga.times.length}</p>
                     <div class="liga-actions">
-                        <a href="detalhe-liga.html?id=${liga._id}" class="detalhes">👁️ Ver Detalhes</a>
-                        <a href="editar-liga.html?id=${liga._id}" class="editar">✏️ Editar Liga</a>
-                        <a href="admin.html?id=${liga._id}" class="popular">🛠️ Popular Rodadas</a>
+                        <a href="detalhe-liga.html?id=${liga._id}" class="detalhes">👁️ Detalhes</a>
+                        <a href="editar-liga.html?id=${liga._id}" class="editar">✏️ Editar</a>
+                        <a href="admin.html?id=${liga._id}" class="popular">🛠️ Popular</a>
                         <a href="#" onclick="confirmarExclusao('${liga._id}', '${liga.nome}')" class="excluir">🗑️ Excluir</a>
                     </div>
                 `;
@@ -368,7 +357,7 @@
             });
         }
 
-        function renderizarLigasNaLista(ligas) {
+        function renderizarLigasCards(ligas) {
             const lista = document.getElementById("ligasList");
             
             if (ligas.length === 0) {
@@ -377,26 +366,24 @@
             }
 
             lista.innerHTML = ligas.map(liga => `
-                <div class="liga-row">
-                    <div class="liga-info">
+                <div class="liga-card">
+                    <div class="liga-header">
                         <h3>${liga.nome}</h3>
                         <div class="liga-meta">
-                            <span>Times: ${liga.times.length}</span> | 
-                            <span>Criada em: ${new Date(liga.criadaEm).toLocaleDateString('pt-BR')}</span> | 
-                            <span>ID: ${liga._id}</span>
+                            ID: ${liga._id} | Times: ${liga.times.length}
                         </div>
                     </div>
-                    <div class="liga-row-actions">
-                        <a href="detalhe-liga.html?id=${liga._id}" class="btn btn-primary">
+                    <div class="liga-card-actions">
+                        <a href="detalhe-liga.html?id=${liga._id}" class="action-btn btn-detalhes">
                             👁️ Ver Detalhes
                         </a>
-                        <a href="editar-liga.html?id=${liga._id}" class="btn btn-warning">
+                        <a href="editar-liga.html?id=${liga._id}" class="action-btn btn-editar">
                             ✏️ Editar Liga
                         </a>
-                        <a href="admin.html?id=${liga._id}" class="btn btn-success">
+                        <a href="admin.html?id=${liga._id}" class="action-btn btn-popular">
                             🛠️ Popular Rodadas
                         </a>
-                        <button onclick="confirmarExclusao('${liga._id}', '${liga.nome}')" class="btn btn-danger">
+                        <button onclick="confirmarExclusao('${liga._id}', '${liga.nome}')" class="action-btn btn-excluir">
                             🗑️ Excluir
                         </button>
                     </div>
