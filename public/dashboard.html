@@ -142,10 +142,45 @@
             transform: translateY(-1px);
         }
 
-        .liga-actions .detalhes { background: #1e40af; }
+        .liga-actions .detalhes { 
+            background: #1e40af; 
+            cursor: pointer;
+        }
         .liga-actions .editar { background: #d97706; }
         .liga-actions .popular { background: #059669; }
         .liga-actions .excluir { background: #dc2626; }
+
+        /* Sub-menu for details */
+        .liga-submenu {
+            display: none;
+            margin-top: 8px;
+            padding: 8px 0;
+            border-top: 1px solid rgba(255,255,255,0.2);
+        }
+
+        .liga-submenu.active {
+            display: block;
+            animation: slideDown 0.3s ease;
+        }
+
+        @keyframes slideDown {
+            from { opacity: 0; transform: translateY(-10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .liga-submenu a {
+            display: block;
+            padding: 6px 12px;
+            margin: 2px 0;
+            background: rgba(255,255,255,0.1);
+            border-radius: 4px;
+            font-size: 10px;
+            text-align: left;
+        }
+
+        .liga-submenu a:hover {
+            background: rgba(255,255,255,0.2);
+        }
 
         /* Main Content */
         .main-content {
@@ -169,83 +204,206 @@
             font-size: 16px;
         }
 
-        .search-container {
+        /* Dashboard Stats Cards */
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 25px;
+            margin-bottom: 40px;
+        }
+
+        .stat-card {
+            background: white;
+            border-radius: 12px;
+            padding: 25px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+            border: 1px solid #e1e8ed;
+            position: relative;
+            overflow: hidden;
+            transition: all 0.3s ease;
+        }
+
+        .stat-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 8px 25px rgba(0,0,0,0.15);
+        }
+
+        .stat-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 4px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        }
+
+        .stat-card.primary::before {
+            background: linear-gradient(135deg, #1e40af 0%, #3b82f6 100%);
+        }
+
+        .stat-card.success::before {
+            background: linear-gradient(135deg, #059669 0%, #10b981 100%);
+        }
+
+        .stat-card.warning::before {
+            background: linear-gradient(135deg, #d97706 0%, #f59e0b 100%);
+        }
+
+        .stat-card.danger::before {
+            background: linear-gradient(135deg, #dc2626 0%, #ef4444 100%);
+        }
+
+        .stat-icon {
+            font-size: 32px;
+            margin-bottom: 15px;
+            opacity: 0.8;
+        }
+
+        .stat-number {
+            font-size: 36px;
+            font-weight: 700;
+            color: #2c3e50;
+            margin-bottom: 8px;
+            line-height: 1;
+        }
+
+        .stat-label {
+            font-size: 14px;
+            color: #7f8c8d;
+            font-weight: 500;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .stat-change {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            font-size: 12px;
+            padding: 4px 8px;
+            border-radius: 12px;
+            font-weight: 600;
+        }
+
+        .stat-change.positive {
+            background: rgba(16, 185, 129, 0.1);
+            color: #059669;
+        }
+
+        .stat-change.negative {
+            background: rgba(239, 68, 68, 0.1);
+            color: #dc2626;
+        }
+
+        /* Quick Actions */
+        .quick-actions {
+            background: white;
+            border-radius: 12px;
+            padding: 25px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+            border: 1px solid #e1e8ed;
             margin-bottom: 30px;
         }
 
-        .search-input {
-            width: 100%;
-            max-width: 400px;
-            padding: 12px 16px;
-            border: 2px solid #e1e8ed;
-            border-radius: 8px;
-            font-size: 16px;
-            transition: all 0.3s ease;
-        }
-
-        .search-input:focus {
-            outline: none;
-            border-color: #1e40af;
-            box-shadow: 0 0 0 3px rgba(30,64,175,0.1);
-        }
-
-        /* Liga Cards */
-        .liga-card {
-            background: white;
-            border-radius: 8px;
-            padding: 25px;
-            margin-bottom: 20px;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
-            border: 1px solid #e1e8ed;
-        }
-
-        .liga-header {
-            text-align: center;
-            margin-bottom: 20px;
-        }
-
-        .liga-header h3 {
+        .quick-actions h3 {
             color: #2c3e50;
-            font-size: 20px;
-            margin-bottom: 5px;
+            margin-bottom: 20px;
+            font-size: 18px;
+            text-align: left;
         }
 
-        .liga-meta {
-            color: #7f8c8d;
-            font-size: 14px;
-            margin-bottom: 15px;
-        }
-
-        .liga-card-actions {
-            display: flex;
-            gap: 10px;
-            justify-content: center;
+        .actions-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
         }
 
         .action-btn {
-            padding: 10px 20px;
-            border: none;
-            border-radius: 6px;
-            font-size: 14px;
-            cursor: pointer;
-            text-decoration: none;
-            display: inline-flex;
+            display: flex;
             align-items: center;
-            gap: 5px;
-            transition: all 0.3s ease;
-            color: white;
+            gap: 10px;
+            padding: 15px 20px;
+            background: #f8fafc;
+            border: 2px solid #e2e8f0;
+            border-radius: 8px;
+            color: #4a5568;
+            text-decoration: none;
             font-weight: 500;
+            transition: all 0.3s ease;
         }
 
         .action-btn:hover {
+            background: #e2e8f0;
+            border-color: #cbd5e0;
             transform: translateY(-2px);
-            box-shadow: 0 4px 12px rgba(0,0,0,0.2);
         }
 
-        .btn-detalhes { background: #1e40af; }
-        .btn-editar { background: #d97706; }
-        .btn-popular { background: #059669; }
-        .btn-excluir { background: #dc2626; }
+        .action-btn .icon {
+            font-size: 20px;
+        }
+
+        /* Recent Activity */
+        .recent-activity {
+            background: white;
+            border-radius: 12px;
+            padding: 25px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+            border: 1px solid #e1e8ed;
+        }
+
+        .recent-activity h3 {
+            color: #2c3e50;
+            margin-bottom: 20px;
+            font-size: 18px;
+            text-align: left;
+        }
+
+        .activity-item {
+            display: flex;
+            align-items: center;
+            padding: 12px 0;
+            border-bottom: 1px solid #f1f5f9;
+        }
+
+        .activity-item:last-child {
+            border-bottom: none;
+        }
+
+        .activity-icon {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background: #f1f5f9;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-right: 15px;
+            font-size: 16px;
+        }
+
+        .activity-content {
+            flex: 1;
+        }
+
+        .activity-content h4 {
+            font-size: 14px;
+            font-weight: 600;
+            color: #2d3748;
+            margin: 0 0 4px 0;
+            text-align: left;
+        }
+
+        .activity-content p {
+            font-size: 12px;
+            color: #718096;
+            margin: 0;
+        }
+
+        .activity-time {
+            font-size: 11px;
+            color: #a0aec0;
+        }
 
         .loading {
             text-align: center;
@@ -263,13 +421,13 @@
                 min-height: auto;
             }
             
-            .liga-card-actions {
-                flex-wrap: wrap;
+            .stats-grid {
+                grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+                gap: 15px;
             }
             
-            .action-btn {
-                flex: 1;
-                min-width: 120px;
+            .actions-grid {
+                grid-template-columns: 1fr;
             }
         }
     </style>
@@ -286,7 +444,7 @@
                 <h3>Gestão</h3>
                 <ul class="sidebar-menu">
                     <li><a href="criar-liga.html"><span>➕</span>Criar Liga</a></li>
-                    <li><a href="#" data-action="gerenciar" class="active"><span>⚙️</span>Gerenciar Ligas</a></li>
+                    <li><a href="#" data-action="dashboard" class="active"><span>📊</span>Dashboard</a></li>
                 </ul>
             </div>
 
@@ -301,17 +459,69 @@
         <!-- Conteúdo Principal -->
         <main class="main-content">
             <div class="content-header">
-                <h1>Gerenciar Ligas</h1>
-                <p>Visualize e gerencie suas ligas criadas</p>
+                <h1>Dashboard Geral</h1>
+                <p>Visão geral das suas ligas e estatísticas</p>
             </div>
 
-            <div class="search-container">
-                <input type="text" class="search-input" placeholder="Buscar por nome da liga">
+            <!-- Cards de Estatísticas -->
+            <div class="stats-grid">
+                <div class="stat-card primary">
+                    <div class="stat-icon">🏆</div>
+                    <div class="stat-number" id="totalLigas">0</div>
+                    <div class="stat-label">Total de Ligas</div>
+                    <div class="stat-change positive" id="ligasChange">+0</div>
+                </div>
+
+                <div class="stat-card success">
+                    <div class="stat-icon">👥</div>
+                    <div class="stat-number" id="totalParticipantes">0</div>
+                    <div class="stat-label">Total de Participantes</div>
+                    <div class="stat-change positive" id="participantesChange">+0</div>
+                </div>
+
+                <div class="stat-card warning">
+                    <div class="stat-icon">🎯</div>
+                    <div class="stat-number" id="ligasAtivas">0</div>
+                    <div class="stat-label">Ligas Ativas</div>
+                    <div class="stat-change positive" id="ativasChange">100%</div>
+                </div>
+
+                <div class="stat-card danger">
+                    <div class="stat-icon">📈</div>
+                    <div class="stat-number" id="mediaParticipantes">0</div>
+                    <div class="stat-label">Média de Participantes</div>
+                    <div class="stat-change positive" id="mediaChange">--</div>
+                </div>
             </div>
 
-            <div class="content-body">
-                <div id="ligasList">
-                    <div class="loading">Carregando ligas...</div>
+            <!-- Ações Rápidas -->
+            <div class="quick-actions">
+                <h3>Ações Rápidas</h3>
+                <div class="actions-grid">
+                    <a href="criar-liga.html" class="action-btn">
+                        <span class="icon">➕</span>
+                        Criar Nova Liga
+                    </a>
+                    <a href="buscar-times.html" class="action-btn">
+                        <span class="icon">🔍</span>
+                        Buscar Times
+                    </a>
+                    <a href="admin.html" class="action-btn">
+                        <span class="icon">🛠️</span>
+                        Administração
+                    </a>
+                    <a href="parciais.html" class="action-btn">
+                        <span class="icon">📊</span>
+                        Resultados Parciais
+                    </a>
+                </div>
+            </div>
+
+            <!-- Atividade Recente -->
+            <div class="recent-activity">
+                <h3>Atividade Recente</h3>
+                <div id="recentActivity">
+                    <div class="loading">Carregando atividades...</div>
                 </div>
             </div>
         </main>
@@ -320,18 +530,19 @@
     <script type="module">
         import { carregarLigas, deletarLiga } from "./js/gerenciar-ligas.js";
 
-        // Carregar ligas na inicialização
+        // Carregar dados na inicialização
         document.addEventListener("DOMContentLoaded", async () => {
-            await carregarListaLigas();
+            await carregarDashboard();
         });
 
-        async function carregarListaLigas() {
+        async function carregarDashboard() {
             try {
                 const ligas = await carregarLigas();
                 renderizarLigasNoSidebar(ligas);
-                renderizarLigasCards(ligas);
+                atualizarEstatisticas(ligas);
+                renderizarAtividadeRecente(ligas);
             } catch (error) {
-                console.error("Erro ao carregar ligas:", error);
+                console.error("Erro ao carregar dashboard:", error);
             }
         }
 
@@ -352,49 +563,79 @@
                     <p>ID: ${liga._id.substring(0, 8)}...</p>
                     <p>Times: ${liga.times.length}</p>
                     <div class="liga-actions">
-                        <a href="detalhe-liga.html?id=${liga._id}" class="detalhes">👁️ Detalhes</a>
+                        <div class="detalhes" onclick="toggleSubmenu('${liga._id}')">👁️ Detalhes</div>
                         <a href="editar-liga.html?id=${liga._id}" class="editar">✏️ Editar</a>
                         <a href="admin.html?id=${liga._id}" class="popular">🛠️ Popular</a>
                         <a href="#" onclick="confirmarExclusao('${liga._id}', '${liga.nome}')" class="excluir">🗑️ Excluir</a>
+                    </div>
+                    <div class="liga-submenu" id="submenu-${liga._id}">
+                        <a href="detalhe-liga.html?id=${liga._id}&tab=participantes">👥 Participantes</a>
+                        <a href="detalhe-liga.html?id=${liga._id}&tab=rodadas">🎯 Rodadas</a>
+                        <a href="detalhe-liga.html?id=${liga._id}&tab=ranking">🏆 Ranking</a>
+                        <a href="detalhe-liga.html?id=${liga._id}&tab=mata-mata">⚔️ Mata-mata</a>
+                        <a href="detalhe-liga.html?id=${liga._id}&tab=pontos-corridos">📊 Pontos Corridos</a>
+                        <a href="detalhe-liga.html?id=${liga._id}&tab=fluxo-financeiro">💰 Fluxo Financeiro</a>
                     </div>
                 `;
                 container.appendChild(ligaElement);
             });
         }
 
-        function renderizarLigasCards(ligas) {
-            const lista = document.getElementById("ligasList");
+        function atualizarEstatisticas(ligas) {
+            const totalLigas = ligas.length;
+            const totalParticipantes = ligas.reduce((total, liga) => total + liga.times.length, 0);
+            const ligasAtivas = totalLigas; // Considerando todas como ativas
+            const mediaParticipantes = totalLigas > 0 ? Math.round(totalParticipantes / totalLigas) : 0;
+
+            document.getElementById('totalLigas').textContent = totalLigas;
+            document.getElementById('totalParticipantes').textContent = totalParticipantes;
+            document.getElementById('ligasAtivas').textContent = ligasAtivas;
+            document.getElementById('mediaParticipantes').textContent = mediaParticipantes;
+
+            // Atualizar indicadores de mudança (simulados)
+            document.getElementById('ligasChange').textContent = '+' + totalLigas;
+            document.getElementById('participantesChange').textContent = '+' + totalParticipantes;
+            document.getElementById('ativasChange').textContent = '100%';
+            document.getElementById('mediaChange').textContent = mediaParticipantes + '/liga';
+        }
+
+        function renderizarAtividadeRecente(ligas) {
+            const container = document.getElementById('recentActivity');
             
             if (ligas.length === 0) {
-                lista.innerHTML = '<div class="loading">Nenhuma liga encontrada. <a href="criar-liga.html">Criar primeira liga</a></div>';
+                container.innerHTML = '<p style="text-align: center; color: #7f8c8d;">Nenhuma atividade recente</p>';
                 return;
             }
 
-            lista.innerHTML = ligas.map(liga => `
-                <div class="liga-card">
-                    <div class="liga-header">
-                        <h3>${liga.nome}</h3>
-                        <div class="liga-meta">
-                            ID: ${liga._id} | Times: ${liga.times.length}
+            const atividades = ligas.slice(0, 5).map((liga, index) => {
+                const data = new Date(liga.criadaEm);
+                return `
+                    <div class="activity-item">
+                        <div class="activity-icon">🏆</div>
+                        <div class="activity-content">
+                            <h4>Liga "${liga.nome}" criada</h4>
+                            <p>${liga.times.length} participantes adicionados</p>
                         </div>
+                        <div class="activity-time">${data.toLocaleDateString('pt-BR')}</div>
                     </div>
-                    <div class="liga-card-actions">
-                        <a href="detalhe-liga.html?id=${liga._id}" class="action-btn btn-detalhes">
-                            👁️ Ver Detalhes
-                        </a>
-                        <a href="editar-liga.html?id=${liga._id}" class="action-btn btn-editar">
-                            ✏️ Editar Liga
-                        </a>
-                        <a href="admin.html?id=${liga._id}" class="action-btn btn-popular">
-                            🛠️ Popular Rodadas
-                        </a>
-                        <button onclick="confirmarExclusao('${liga._id}', '${liga.nome}')" class="action-btn btn-excluir">
-                            🗑️ Excluir
-                        </button>
-                    </div>
-                </div>
-            `).join("");
+                `;
+            }).join('');
+
+            container.innerHTML = atividades;
         }
+
+        window.toggleSubmenu = function(ligaId) {
+            // Fechar todos os submenus primeiro
+            document.querySelectorAll('.liga-submenu').forEach(submenu => {
+                if (submenu.id !== `submenu-${ligaId}`) {
+                    submenu.classList.remove('active');
+                }
+            });
+
+            // Toggle do submenu clicado
+            const submenu = document.getElementById(`submenu-${ligaId}`);
+            submenu.classList.toggle('active');
+        };
 
         window.confirmarExclusao = async function(ligaId, nomeLiga) {
             if (!confirm(`Tem certeza que deseja excluir a liga "${nomeLiga}"?\nEsta ação não pode ser desfeita.`)) {
@@ -404,7 +645,7 @@
             try {
                 await deletarLiga(ligaId);
                 alert("Liga excluída com sucesso!");
-                await carregarListaLigas();
+                await carregarDashboard();
             } catch (error) {
                 alert(`Erro ao excluir a liga: ${error.message}`);
             }
