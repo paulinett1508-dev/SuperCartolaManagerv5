@@ -4,16 +4,56 @@
     <link rel="icon" type="image/png" href="/favicon.png" />
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Detalhes da Liga - Super Cartola Manager</title>
+    <title>Liga - Super Cartola Manager</title>
+    <link rel="icon" type="image/png" href="/favicon.png" />
     <link rel="stylesheet" href="style.css" />
     <!-- Adiciona html2canvas para exportação de imagem -->
     <script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
+    <!-- 🎯 ÍCONES PROFISSIONAIS: Lucide Icons -->
+    <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.js"></script>
     <style>
+      /* 🎯 VARIÁVEIS CSS - Garantir disponibilidade local */
+      :root {
+        --laranja: #FF4500;
+        --laranja-alpha: rgba(255, 69, 0, 0.15);
+        --laranja-hover: rgba(255, 69, 0, 0.25);
+        --bg-primary: #0a0a0a;
+        --bg-secondary: #1a1a1a;
+        --bg-tertiary: #2a2a2a;
+        --bg-card: #1e1e1e;
+        --bg-card-hover: #252525;
+        --text-primary: #ffffff;
+        --text-secondary: #e0e0e0;
+        --text-muted: #a0a0a0;
+        --success: #22c55e;
+        --danger: #ef4444;
+        --info: #3b82f6;
+        --border-primary: #333333;
+        --border-secondary: #2a2a2a;
+        --shadow-sm: 0 2px 8px rgba(0,0,0,0.3);
+        --shadow-md: 0 4px 16px rgba(0,0,0,0.4);
+        --shadow-lg: 0 8px 32px rgba(0,0,0,0.5);
+        --shadow-orange: 0 4px 20px rgba(255, 69, 0, 0.4);
+        --gradient-primary: linear-gradient(135deg, var(--laranja) 0%, #E8472B 100%);
+        --gradient-card: linear-gradient(135deg, #1e1e1e 0%, #2a2a2a 100%);
+        --table-header-bg: var(--gradient-primary);
+        --table-row-hover: rgba(255, 69, 0, 0.1);
+      }
+
       /* === TEMA ESCURO SOBRESCREVENDO INLINE STYLES === */
+
+      /* 🎯 AJUSTE: App-main sem header */
+      .app-main {
+        margin-left: 280px;
+        background: var(--bg-secondary);
+        min-height: 100vh;
+        padding: 20px; /* Padding direto no main */
+      }
+
       .container {
         max-width: 1200px;
         margin: 0 auto;
-        padding: 20px;
+        padding: 0; /* Remover padding extra */
         font-family:
           "Inter",
           -apple-system,
@@ -40,71 +80,600 @@
         font-size: 1.8rem;
       }
 
-      /* Breadcrumb melhorado */
-      .breadcrumb-container {
-        margin: 0 0 20px 0;
-        padding: 12px 0;
-        border-bottom: 2px solid var(--border-primary);
+      /* === OPÇÃO B: NAVEGAÇÃO HIERÁRQUICA === */
+
+      /* TELA PRINCIPAL - CARDS OVERVIEW */
+      .main-screen {
+        display: block;
+        animation: fadeIn 0.4s ease-out;
       }
 
-      .breadcrumb {
+      .main-screen.hidden {
+        display: none;
+      }
+
+      /* TELA SECUNDÁRIA - NAVEGAÇÃO HIERÁRQUICA */
+      .secondary-screen {
+        display: none;
+        animation: slideInRight 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+      }
+
+      .secondary-screen.active {
+        display: block;
+      }
+
+      .secondary-header {
         display: flex;
         align-items: center;
-        gap: var(--spacing-xs);
-        font-size: 13px;
-        font-weight: 500;
+        gap: 16px;
+        padding: 20px 0;
+        border-bottom: 2px solid var(--border-primary);
+        margin-bottom: 32px;
       }
 
-      .breadcrumb a {
-        color: var(--text-muted);
-        text-decoration: none;
-        padding: 4px 8px;
-        border-radius: 4px;
-        transition: all 0.2s;
-      }
-
-      .breadcrumb a:hover {
-        color: var(--laranja);
-        background: var(--laranja-alpha);
-      }
-
-      .breadcrumb .separator {
-        color: var(--text-dark);
-        margin: 0 4px;
-      }
-
-      .breadcrumb .current {
-        color: var(--laranja);
-        font-weight: 600;
-      }
-
-      /* Botão voltar escuro */
-      .btn-voltar {
-        display: inline-flex;
+      .back-button {
+        display: flex;
         align-items: center;
         gap: 8px;
-        margin-bottom: 20px;
-        padding: 12px 20px;
-        background: var(--gradient-card) !important;
-        color: var(--text-primary) !important;
-        border: 1px solid var(--border-primary) !important;
+        background: var(--bg-tertiary);
+        border: 1px solid var(--border-primary);
+        color: var(--text-secondary);
+        padding: 10px 16px;
         border-radius: 8px;
         cursor: pointer;
+        transition: all 0.3s ease;
+        text-decoration: none;
         font-size: 14px;
         font-weight: 500;
-        text-decoration: none;
+      }
+
+      .back-button:hover {
+        background: var(--laranja-alpha);
+        border-color: var(--laranja);
+        color: var(--laranja);
+        transform: translateX(-2px);
+      }
+
+      .back-icon {
+        width: 16px;
+        height: 16px;
+        stroke: currentColor;
+        stroke-width: 2.5;
+      }
+
+      .module-title {
+        flex: 1;
+        display: flex;
+        align-items: center;
+        gap: 12px;
+      }
+
+      .module-title h1 {
+        font-size: 24px;
+        font-weight: 700;
+        color: var(--text-primary);
+        margin: 0;
+      }
+
+      .module-title .module-icon {
+        width: 32px;
+        height: 32px;
+        stroke: var(--laranja);
+        stroke-width: 2.5;
+      }
+
+      .module-subtitle {
+        font-size: 14px;
+        color: var(--text-muted);
+        margin: 8px 0 0 44px;
+        font-weight: 500;
+      }
+
+      /* SEÇÕES DE SUB-MÓDULOS */
+      .sub-modules-section {
+        margin-bottom: 40px;
+      }
+
+      .section-title {
+        font-size: 16px;
+        font-weight: 700;
+        color: var(--text-primary);
+        margin: 0 0 20px 0;
+        padding-left: 8px;
+        border-left: 4px solid var(--laranja);
+        display: flex;
+        align-items: center;
+        gap: 8px;
+      }
+
+      .section-icon {
+        width: 20px;
+        height: 20px;
+        stroke: var(--laranja);
+        stroke-width: 2.5;
+      }
+
+      .sub-modules-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+        gap: 20px;
+      }
+
+      /* SUB-MÓDULO CARDS */
+      .sub-module-card {
+        background: var(--gradient-card);
+        border: 1px solid var(--border-primary);
+        border-radius: 12px;
+        padding: 20px;
+        cursor: pointer;
+        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        position: relative;
+        overflow: hidden;
+      }
+
+      .sub-module-card::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        height: 3px;
+        background: var(--gradient-primary);
+        opacity: 0;
+        transition: opacity 0.3s ease;
+      }
+
+      .sub-module-card:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 8px 32px rgba(0,0,0,0.4);
+        border-color: rgba(255, 69, 0, 0.3);
+      }
+
+      .sub-module-card:hover::before {
+        opacity: 1;
+      }
+
+      .sub-card-header {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        margin-bottom: 12px;
+      }
+
+      .sub-card-icon {
+        width: 36px;
+        height: 36px;
+        background: rgba(255, 69, 0, 0.1);
+        border-radius: 8px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        border: 1px solid rgba(255, 69, 0, 0.2);
+      }
+
+      .sub-card-icon i {
+        width: 20px;
+        height: 20px;
+        stroke: var(--laranja);
+        stroke-width: 2.5;
+      }
+
+      .sub-card-title {
+        font-size: 16px;
+        font-weight: 600;
+        color: var(--text-primary);
+        margin: 0;
+      }
+
+      .sub-card-description {
+        font-size: 13px;
+        color: var(--text-secondary);
+        line-height: 1.4;
+        margin: 0;
+      }
+
+      .sub-card-meta {
+        margin-top: 12px;
+        padding-top: 12px;
+        border-top: 1px solid var(--border-secondary);
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+      }
+
+      .sub-card-status {
+        font-size: 11px;
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+      }
+
+      .status-ready { color: var(--success); }
+      .status-active { color: var(--laranja); }
+      .status-warning { color: #f59e0b; }
+
+      .sub-card-shortcut {
+        font-size: 11px;
+        color: var(--text-muted);
+        background: var(--bg-tertiary);
+        padding: 4px 8px;
+        border-radius: 4px;
+        border: 1px solid var(--border-secondary);
+      }
+
+      /* ANIMAÇÕES */
+      @keyframes fadeIn {
+        from { opacity: 0; transform: translateY(10px); }
+        to { opacity: 1; transform: translateY(0); }
+      }
+
+      @keyframes slideInRight {
+        from { opacity: 0; transform: translateX(30px); }
+        to { opacity: 1; transform: translateX(0); }
+      }
+
+      @keyframes slideOutLeft {
+        from { opacity: 1; transform: translateX(0); }
+        to { opacity: 0; transform: translateX(-30px); }
+      }
+
+      /* RESPONSIVIDADE HIERÁRQUICA */
+      @media (max-width: 768px) {
+        .secondary-header {
+          padding: 16px 0;
+          margin-bottom: 24px;
+        }
+
+        .module-title h1 {
+          font-size: 20px;
+        }
+
+        .module-subtitle {
+          margin-left: 36px;
+        }
+
+        .sub-modules-grid {
+          grid-template-columns: 1fr;
+          gap: 16px;
+        }
+
+        .sub-module-card {
+          padding: 16px;
+        }
+      }
+
+      @media (max-width: 480px) {
+        .back-button {
+          padding: 8px 12px;
+          font-size: 13px;
+        }
+
+        .module-title h1 {
+          font-size: 18px;
+        }
+
+        .module-title .module-icon {
+          width: 28px;
+          height: 28px;
+        }
+      }
+
+      .modules-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+        gap: 24px;
+        margin: 24px 0;
+        padding: 0;
+      }
+
+      .module-card {
+        background: var(--gradient-card);
+        border: 1px solid var(--border-primary);
+        border-radius: 16px;
+        padding: 24px;
+        position: relative;
+        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        overflow: hidden;
+      }
+
+      .module-card::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        height: 4px;
+        background: var(--gradient-primary);
+        opacity: 0;
+        transition: opacity 0.3s ease;
+      }
+
+      .module-card:hover {
+        transform: translateY(-4px);
+        box-shadow: 0 12px 48px rgba(0,0,0,0.4);
+        border-color: rgba(255, 69, 0, 0.3);
+      }
+
+      .module-card:hover::before {
+        opacity: 1;
+      }
+
+      /* HEADER DO CARTÃO */
+      .card-header {
+        display: flex;
+        align-items: flex-start;
+        justify-content: space-between;
+        margin-bottom: 20px;
+      }
+
+      .card-icon {
+        width: 48px;
+        height: 48px;
+        background: rgba(255, 69, 0, 0.1);
+        border-radius: 12px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        border: 1px solid rgba(255, 69, 0, 0.2);
+      }
+
+      .icon-primary {
+        width: 24px;
+        height: 24px;
+        stroke: var(--laranja);
+        stroke-width: 2.5;
+      }
+
+      .card-status {
+        position: relative;
+      }
+
+      .status-badge {
+        padding: 4px 12px;
+        border-radius: 20px;
+        font-size: 11px;
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+      }
+
+      .status-ready {
+        background: rgba(34, 197, 94, 0.15);
+        color: var(--success);
+        border: 1px solid rgba(34, 197, 94, 0.2);
+      }
+
+      .status-active {
+        background: rgba(255, 69, 0, 0.15);
+        color: var(--laranja);
+        border: 1px solid rgba(255, 69, 0, 0.2);
+      }
+
+      .status-warning {
+        background: rgba(245, 158, 11, 0.15);
+        color: #f59e0b;
+        border: 1px solid rgba(245, 158, 11, 0.2);
+      }
+
+      /* BODY DO CARTÃO */
+      .card-body {
+        margin-bottom: 24px;
+      }
+
+      .card-title {
+        font-size: 18px;
+        font-weight: 700;
+        color: var(--text-primary);
+        margin: 0 0 12px 0;
+        letter-spacing: 0.3px;
+      }
+
+      .card-stats {
+        display: flex;
+        align-items: baseline;
+        gap: 8px;
+        margin-bottom: 12px;
+      }
+
+      .stat-number {
+        font-size: 24px;
+        font-weight: 800;
+        color: var(--laranja);
+        line-height: 1;
+        font-family: 'SF Mono', 'Monaco', 'Inconsolata', 'Roboto Mono', monospace;
+      }
+
+      .stat-label {
+        font-size: 12px;
+        font-weight: 500;
+        color: var(--text-muted);
+        text-transform: lowercase;
+      }
+
+      .card-description {
+        font-size: 13px;
+        color: var(--text-secondary);
+        line-height: 1.4;
+        margin: 0;
+      }
+
+      /* ACTIONS DO CARTÃO */
+      .card-actions {
+        display: flex;
+        gap: 12px;
+        align-items: center;
+      }
+
+      .btn-primary {
+        flex: 1;
+        background: var(--gradient-primary);
+        color: var(--text-primary);
+        border: none;
+        padding: 12px 20px;
+        border-radius: 10px;
+        font-size: 13px;
+        font-weight: 600;
+        cursor: pointer;
         transition: all 0.3s ease;
-        box-shadow: var(--shadow-sm);
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        justify-content: center;
+        box-shadow: 0 4px 16px rgba(255, 69, 0, 0.2);
       }
 
-      .btn-voltar:hover {
-        background: var(--bg-card-hover) !important;
-        border-color: var(--laranja) !important;
+      .btn-primary:hover {
         transform: translateY(-2px);
-        box-shadow: var(--shadow-md);
+        box-shadow: 0 8px 32px rgba(255, 69, 0, 0.4);
+        filter: brightness(1.1);
       }
 
-      /* Tabs escuras */
+      .btn-secondary {
+        width: 44px;
+        height: 44px;
+        background: var(--bg-tertiary);
+        border: 1px solid var(--border-primary);
+        border-radius: 10px;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+      }
+
+      .btn-secondary:hover {
+        background: var(--laranja-alpha);
+        border-color: var(--laranja);
+        transform: translateY(-1px);
+      }
+
+      .btn-icon {
+        width: 16px;
+        height: 16px;
+        stroke: currentColor;
+        stroke-width: 2.5;
+      }
+
+      .btn-secondary .btn-icon {
+        stroke: var(--text-muted);
+      }
+
+      .btn-secondary:hover .btn-icon {
+        stroke: var(--laranja);
+      }
+
+      /* ÁREA DE CONTEÚDO DINÂMICO */
+      .dynamic-content {
+        background: var(--bg-card);
+        border: 1px solid var(--border-primary);
+        border-radius: 16px;
+        min-height: 400px;
+        position: relative;
+        overflow: hidden;
+      }
+
+      .content-header {
+        padding: 24px 24px 0 24px;
+        border-bottom: 1px solid var(--border-primary);
+        margin-bottom: 24px;
+      }
+
+      .content-title {
+        font-size: 20px;
+        font-weight: 700;
+        color: var(--text-primary);
+        margin: 0 0 8px 0;
+        display: flex;
+        align-items: center;
+        gap: 12px;
+      }
+
+      .content-icon {
+        width: 24px;
+        height: 24px;
+        stroke: var(--laranja);
+        stroke-width: 2.5;
+      }
+
+      .content-subtitle {
+        font-size: 14px;
+        color: var(--text-muted);
+        margin: 0 0 24px 0;
+      }
+
+      .content-body {
+        padding: 0 24px 24px 24px;
+      }
+
+      /* LOADING PERSONALIZADO PARA MÓDULOS */
+      .content-body .loading-container {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        min-height: 200px;
+        gap: 20px;
+      }
+
+      .content-body .loading-container .loading-spinner {
+        width: 48px;
+        height: 48px;
+        border: 4px solid var(--laranja-alpha);
+        border-top: 4px solid var(--laranja);
+        border-radius: 50%;
+        animation: spin 1s linear infinite;
+      }
+
+      .content-body .loading-container p {
+        color: var(--text-muted);
+        font-size: 14px;
+        margin: 0;
+      }
+
+      /* RESPONSIVIDADE PARA CARTÕES */
+      @media (max-width: 768px) {
+        .modules-grid {
+          grid-template-columns: 1fr;
+          gap: 16px;
+          margin: 16px 0;
+        }
+
+        .module-card {
+          padding: 20px;
+        }
+
+        .card-title {
+          font-size: 16px;
+        }
+
+        .stat-number {
+          font-size: 20px;
+        }
+
+        .btn-primary {
+          padding: 10px 16px;
+          font-size: 12px;
+        }
+      }
+
+      @media (max-width: 480px) {
+        .modules-grid {
+          gap: 12px;
+        }
+
+        .module-card {
+          padding: 16px;
+        }
+
+        .card-actions {
+          flex-direction: column;
+          gap: 8px;
+        }
+
+        .btn-primary {
+          width: 100%;
+        }
+      }
       .tabs {
         display: flex;
         justify-content: center;
@@ -393,7 +962,7 @@
         margin: 0;
       }
 
-      /* Debug panel escuro */
+      /* Debug panel escuro - ajustado para nova estrutura */
       #debug-panel {
         position: fixed !important;
         top: 10px !important;
@@ -497,7 +1066,7 @@
         text-align: center !important;
       }
 
-      /* Global loading */
+      /* Global loading - ajustado para nova estrutura sem header */
       #global-loading {
         position: fixed !important;
         top: 0 !important;
@@ -550,9 +1119,15 @@
 
       /* Responsividade */
       @media (max-width: 768px) {
+        /* 🎯 AJUSTE: Mobile sem header */
+        .app-main {
+          margin-left: 0;
+          padding: 10px; /* Padding reduzido para mobile */
+        }
+
         .container {
-          padding: 15px !important;
-          margin: 10px !important;
+          padding: 0 !important; /* Container sem padding extra em mobile */
+          margin: 0 !important;
         }
 
         .tabs {
@@ -588,6 +1163,11 @@
       }
 
       @media (max-width: 480px) {
+        /* 🎯 AJUSTE: Telas muito pequenas */
+        .app-main {
+          padding: 5px; /* Padding mínimo */
+        }
+
         h2 {
           font-size: 1.5rem !important;
         }
@@ -610,70 +1190,207 @@
 
       <!-- Conteúdo principal -->
       <main class="app-main">
-        <!-- Header será injetado aqui -->
-        <div id="header-placeholder"></div>
+        <!-- 🎯 INTERFACE LIMPA - Apenas conteúdo essencial -->
 
-        <!-- Conteúdo da página -->
-        <div class="page-content">
-          <div id="debug-panel" style="display: none">
-            <strong>Status dos Módulos:</strong>
-            <div id="debug-content"></div>
-          </div>
+        <div id="debug-panel" style="display: none">
+          <strong>Status dos Módulos:</strong>
+          <div id="debug-content"></div>
+        </div>
 
-          <div id="global-loading" class="hide">
-            <div class="loading-spinner"></div>
-            <p>Inicializando aplicação...</p>
-          </div>
+        <div id="global-loading" class="hide">
+          <div class="loading-spinner"></div>
+          <p>Inicializando aplicação...</p>
+        </div>
 
-          <div class="container">
-            <!-- Breadcrumb melhorado -->
-            <div class="breadcrumb-container">
-              <nav class="breadcrumb">
-                <a href="dashboard.html">🏠 Dashboard</a>
-                <span class="separator">→</span>
-                <a href="gerenciar.html">⚙️ Gerenciar Ligas</a>
-                <span class="separator">→</span>
-                <span class="current" id="breadcrumbLiga">🏆 Liga</span>
-              </nav>
+        <div class="container">
+            <!-- 🎯 SEÇÃO REMOVIDA: Breadcrumb e cabeçalho completos -->
+            <!-- OPÇÃO C: Interface Tipo Cartões Profissionais -->
+
+            <!-- 🎯 GRID DE CARTÕES PRINCIPAIS -->
+            <div class="modules-grid">
+              <div class="module-card" data-module="participantes" data-status="ready">
+                <div class="card-header">
+                  <div class="card-icon">
+                    <i data-lucide="users" class="icon-primary"></i>
+                  </div>
+                  <div class="card-status">
+                    <span class="status-badge status-ready">Ativo</span>
+                  </div>
+                </div>
+                <div class="card-body">
+                  <h3 class="card-title">Participantes</h3>
+                  <div class="card-stats">
+                    <span class="stat-number" id="participantes-count">--</span>
+                    <span class="stat-label">membros ativos</span>
+                  </div>
+                  <p class="card-description">Gestão completa dos times da liga</p>
+                </div>
+                <div class="card-actions">
+                  <button class="btn-primary" data-action="participantes">
+                    <i data-lucide="eye" class="btn-icon"></i>
+                    Visualizar
+                  </button>
+                  <button class="btn-secondary" data-action="participantes-export">
+                    <i data-lucide="download" class="btn-icon"></i>
+                  </button>
+                </div>
+              </div>
+
+              <div class="module-card" data-module="rodadas" data-status="active">
+                <div class="card-header">
+                  <div class="card-icon">
+                    <i data-lucide="bar-chart-3" class="icon-primary"></i>
+                  </div>
+                  <div class="card-status">
+                    <span class="status-badge status-active">R38 Atual</span>
+                  </div>
+                </div>
+                <div class="card-body">
+                  <h3 class="card-title">Rodadas</h3>
+                  <div class="card-stats">
+                    <span class="stat-number" id="rodadas-count">38</span>
+                    <span class="stat-label">rodadas processadas</span>
+                  </div>
+                  <p class="card-description">Análise detalhada por rodada</p>
+                </div>
+                <div class="card-actions">
+                  <button class="btn-primary" data-action="rodadas">
+                    <i data-lucide="trending-up" class="btn-icon"></i>
+                    Analisar
+                  </button>
+                  <button class="btn-secondary" data-action="rodadas-parciais">
+                    <i data-lucide="activity" class="btn-icon"></i>
+                  </button>
+                </div>
+              </div>
+
+              <div class="module-card" data-module="rankings" data-status="ready">
+                <div class="card-header">
+                  <div class="card-icon">
+                    <i data-lucide="trophy" class="icon-primary"></i>
+                  </div>
+                  <div class="card-status">
+                    <span class="status-badge status-ready">5 Formatos</span>
+                  </div>
+                </div>
+                <div class="card-body">
+                  <h3 class="card-title">Rankings</h3>
+                  <div class="card-stats">
+                    <span class="stat-number">TOP</span>
+                    <span class="stat-label">classificações</span>
+                  </div>
+                  <p class="card-description">Ranking Geral • Top 10 • Melhor do Mês</p>
+                </div>
+                <div class="card-actions">
+                  <button class="btn-primary" data-action="ranking-geral">
+                    <i data-lucide="award" class="btn-icon"></i>
+                    Rankings
+                  </button>
+                  <button class="btn-secondary" data-action="top-10">
+                    <i data-lucide="flame" class="btn-icon"></i>
+                  </button>
+                </div>
+              </div>
+
+              <div class="module-card" data-module="competicoes" data-status="active">
+                <div class="card-header">
+                  <div class="card-icon">
+                    <i data-lucide="swords" class="icon-primary"></i>
+                  </div>
+                  <div class="card-status">
+                    <span class="status-badge status-active">Em Disputa</span>
+                  </div>
+                </div>
+                <div class="card-body">
+                  <h3 class="card-title">Competições</h3>
+                  <div class="card-stats">
+                    <span class="stat-number">2</span>
+                    <span class="stat-label">modalidades ativas</span>
+                  </div>
+                  <p class="card-description">Mata-Mata • Pontos Corridos</p>
+                </div>
+                <div class="card-actions">
+                  <button class="btn-primary" data-action="mata-mata">
+                    <i data-lucide="target" class="btn-icon"></i>
+                    Disputas
+                  </button>
+                  <button class="btn-secondary" data-action="pontos-corridos">
+                    <i data-lucide="trending-up" class="btn-icon"></i>
+                  </button>
+                </div>
+              </div>
+
+              <div class="module-card" data-module="financeiro" data-status="warning">
+                <div class="card-header">
+                  <div class="card-icon">
+                    <i data-lucide="dollar-sign" class="icon-primary"></i>
+                  </div>
+                  <div class="card-status">
+                    <span class="status-badge status-warning">R$ 2.8K</span>
+                  </div>
+                </div>
+                <div class="card-body">
+                  <h3 class="card-title">Financeiro</h3>
+                  <div class="card-stats">
+                    <span class="stat-number" id="financeiro-total">R$ --</span>
+                    <span class="stat-label">total movimentado</span>
+                  </div>
+                  <p class="card-description">Controle completo de receitas/despesas</p>
+                </div>
+                <div class="card-actions">
+                  <button class="btn-primary" data-action="fluxo-financeiro">
+                    <i data-lucide="calculator" class="btn-icon"></i>
+                    Fluxo
+                  </button>
+                  <button class="btn-secondary" data-action="financeiro-export">
+                    <i data-lucide="file-text" class="btn-icon"></i>
+                  </button>
+                </div>
+              </div>
+
+              <div class="module-card" data-module="especialistas" data-status="ready">
+                <div class="card-header">
+                  <div class="card-icon">
+                    <i data-lucide="medal" class="icon-primary"></i>
+                  </div>
+                  <div class="card-status">
+                    <span class="status-badge status-ready">Especialistas</span>
+                  </div>
+                </div>
+                <div class="card-body">
+                  <h3 class="card-title">Especialistas</h3>
+                  <div class="card-stats">
+                    <span class="stat-number">2</span>
+                    <span class="stat-label">modalidades ativas</span>
+                  </div>
+                  <p class="card-description">Artilheiro Campeão • Luva de Ouro</p>
+                </div>
+                <div class="card-actions">
+                  <button class="btn-primary" data-action="artilheiro-campeao">
+                    <i data-lucide="zap" class="btn-icon"></i>
+                    Artilheiro
+                  </button>
+                  <button class="btn-secondary" data-action="luva-de-ouro">
+                    <i data-lucide="shield" class="btn-icon"></i>
+                  </button>
+                </div>
+              </div>
             </div>
 
-            <!-- Cabeçalho simplificado -->
-            <div class="liga-header-simple">
-              <h2 id="nomeLiga">🏆 Carregando...</h2>
-              <p id="quantidadeTimes"></p>
-            </div>
+            <!-- 🎯 ÁREA DE CONTEÚDO DINÂMICO -->
 
-            <div class="tabs">
-              <button class="tab active" data-tab="participantes">
-                <span>👥</span> Participantes
-              </button>
-              <button class="tab" data-tab="rodadas">
-                <span>📊</span> Rodadas
-              </button>
-              <button class="tab" data-tab="mata-mata">
-                <span>⚔️</span> Disputas Mata-Mata
-              </button>
-              <button class="tab" data-tab="ranking-geral">
-                <span>🏆</span> Ranking Geral
-              </button>
-              <button class="tab" data-tab="pontos-corridos">
-                <span>📈</span> Liga Pontos Corridos
-              </button>
-              <button class="tab" data-tab="melhor-mes">
-                <span>⭐</span> Melhor do Mês
-              </button>
-              <button class="tab" data-tab="top-10">
-                <span>🔥</span> Top 10
-              </button>
-              <button class="tab" data-tab="fluxo-financeiro">
-                <span>💰</span> Fluxo Financeiro
-              </button>
-              <button class="tab" data-tab="artilheiro-campeao">
-                <span>⚽</span> Artilheiro Campeão
-              </button>
-              <button class="tab" data-tab="luva-de-ouro">
-                <span>🥅</span> Luva de Ouro
-              </button>
+            <!-- 🎯 ÁREA DE CONTEÚDO DINÂMICO -->
+            <div class="dynamic-content" id="dynamic-content" style="display: none;">
+              <div class="content-header">
+                <h2 class="content-title" id="content-title">
+                  <i data-lucide="users" class="content-icon"></i>
+                  Módulo
+                </h2>
+                <p class="content-subtitle" id="content-subtitle">Carregando...</p>
+              </div>
+              <div class="content-body" id="content-body">
+                <!-- Conteúdo será injetado aqui dinamicamente -->
+              </div>
             </div>
 
             <div
@@ -681,6 +1398,8 @@
               class="error-message"
               style="display: none"
             ></div>
+
+            <!-- CONTAINERS ORIGINAIS MANTIDOS PARA COMPATIBILIDADE -->
 
             <div class="tab-contents">
               <div id="participantes" class="tab-content active">
@@ -821,6 +1540,7 @@
                 ></div>
                 <div id="luvaDeOuroContent"></div>
               </div>
+              </div>
             </div>
           </div>
         </div>
@@ -848,11 +1568,75 @@
             console.log("✅ Sidebar injetado");
           }
 
-          // Injetar header
-          const header = doc.querySelector(".page-header");
-          if (header) {
-            document.getElementById("header-placeholder").replaceWith(header);
-            console.log("✅ Header injetado");
+          // ✅ FUNÇÃO DE FALLBACK - Interface básica sem navegação hierárquica
+          function showBasicInterface() {
+            console.log("🔧 Ativando interface básica de fallback...");
+
+            const container = document.querySelector('.container');
+            if (!container) return;
+
+            // Garantir que a grid de módulos seja visível e funcional
+            const modulesGrid = container.querySelector('.modules-grid');
+            if (modulesGrid) {
+              modulesGrid.style.display = 'grid';
+
+              // Event listeners básicos para os cards
+              modulesGrid.addEventListener('click', (e) => {
+                const btn = e.target.closest('[data-navigate]');
+                if (btn) {
+                  const moduleAction = btn.dataset.navigate;
+                  console.log(`🎯 Execução direta do módulo: ${moduleAction}`);
+                  executarAcaoModulo(moduleAction);
+                }
+              });
+
+              console.log("✅ Interface básica ativada com event listeners");
+            }
+          }
+
+          // 🎯 HEADER REMOVIDO - Não injetar header para interface limpa
+          // Remove qualquer elemento de header que possa existir
+          const existingHeaders = document.querySelectorAll('.page-header, .app-header, .header-content');
+          existingHeaders.forEach(header => {
+            console.log("🗑️ Removendo header existente");
+            header.remove();
+          });
+
+          // ✅ FUNÇÕES DE COMPATIBILIDADE DO LAYOUT.HTML
+          // Evitar erros de funções não definidas vindas do layout injetado
+          window.logoCarregada = function(img) {
+            console.log("🎯 Logo carregada com sucesso");
+            if (img) img.style.display = "block";
+            const fallback = document.getElementById("logoFallback");
+            if (fallback) fallback.style.display = "none";
+          };
+
+          window.tentarProximoCaminho = function(img) {
+            console.log("⚠️ Erro ao carregar logo, tentando fallback");
+            if (img) img.style.display = "none";
+            const fallback = document.getElementById("logoFallback");
+            if (fallback) fallback.style.display = "inline-block";
+          };
+
+          window.goToDashboard = function() {
+            window.location.href = "dashboard.html";
+          };
+
+          // Atualizar título da página para refletir a liga específica
+          try {
+            const urlParams = new URLSearchParams(window.location.search);
+            const ligaId = urlParams.get("id");
+            if (ligaId) {
+              const response = await fetch(`/api/ligas/${ligaId}`);
+              if (response.ok) {
+                const liga = await response.json();
+                if (liga?.nome) {
+                  document.title = `${liga.nome} - Super Cartola Manager`;
+                }
+              }
+            }
+          } catch (error) {
+            console.log("ℹ️ Não foi possível atualizar título da página");
           }
 
           // Executar scripts do layout
@@ -865,17 +1649,9 @@
             }
           });
 
-          console.log("✅ Layout integrado com sucesso");
+          console.log("✅ Layout integrado com sucesso - Interface limpa sem header");
         } catch (error) {
           console.error("❌ Erro ao carregar layout:", error);
-        }
-      }
-
-      // === ATUALIZAR BREADCRUMB ===
-      function atualizarBreadcrumb(nomeLiga) {
-        const breadcrumbLiga = document.getElementById("breadcrumbLiga");
-        if (breadcrumbLiga && nomeLiga) {
-          breadcrumbLiga.textContent = `🏆 ${nomeLiga}`;
         }
       }
 
@@ -920,7 +1696,7 @@
         }
       }
 
-      // Funções globais para uso em caso de falha dos módulos
+      // 🎯 FUNÇÕES ADAPTADAS - Fallback sem elementos removidos
       const fallbackFunctions = {
         carregarDetalhesLigaBasico: async () => {
           console.log("📄 Usando fallback para carregarDetalhesLigaBasico");
@@ -932,7 +1708,7 @@
               if (resultado) return resultado;
             }
 
-            // Fallback original melhorado
+            // Fallback original adaptado - SEM referências a elementos removidos
             const params = new URLSearchParams(window.location.search);
             const ligaId = params.get("id");
 
@@ -955,27 +1731,14 @@
               throw new Error("Liga não encontrada");
             }
 
-            // Atualiza elementos da interface
-            const nomeElement = document.getElementById("nomeLiga");
-            const quantidadeElement =
-              document.getElementById("quantidadeTimes");
-
-            if (nomeElement) {
-              nomeElement.textContent = `🏆 ${liga.nome || "Liga"}`;
-              // Atualizar breadcrumb
-              atualizarBreadcrumb(liga.nome);
-            }
-
-            if (quantidadeElement) {
-              const participantes = liga.participantes || liga.times || [];
-              const quantidade = Array.isArray(participantes)
-                ? participantes.length
-                : 0;
-              quantidadeElement.textContent = `${quantidade} participantes`;
-            }
+            // ✅ ADAPTAÇÃO: Apenas log - não atualiza elementos removidos
+            const participantes = liga.participantes || liga.times || [];
+            const quantidade = Array.isArray(participantes)
+              ? participantes.length
+              : 0;
 
             console.log(
-              `✅ Fallback: Liga carregada - ${liga.nome} com ${(liga.participantes || liga.times || []).length} participantes`,
+              `✅ Fallback: Liga carregada - ${liga.nome} com ${quantidade} participantes`,
             );
             return liga;
           } catch (error) {
@@ -1059,7 +1822,7 @@
       let modulo_participantes_ok = false;
       let participantesCarregados = false;
 
-      // Carregar módulo individual com timeout
+      // Carregar módulo individual com timeout (versão mais robusta)
       async function carregarModulo(config) {
         updateDebug(config.nome, "loading");
 
@@ -1068,7 +1831,7 @@
             console.warn(`⚠️ Timeout ao carregar ${config.nome}`);
             updateDebug(config.nome, "error", "timeout");
             resolve(false);
-          }, 10000); // 10 segundos timeout
+          }, 15000); // 15 segundos timeout aumentado
 
           import(config.arquivo)
             .then((modulo) => {
@@ -1077,13 +1840,14 @@
               const funcoesDisponiveis = {};
               let funcoesEncontradas = 0;
 
+              // Verificação mais robusta das funções
               config.funcoes.forEach((funcao) => {
-                if (modulo[funcao]) {
+                if (modulo[funcao] && typeof modulo[funcao] === 'function') {
                   funcoesDisponiveis[funcao] = modulo[funcao];
                   funcoesEncontradas++;
                 } else {
                   console.warn(
-                    `⚠️ Função ${funcao} não encontrada em ${config.nome}`,
+                    `⚠️ Função ${funcao} não encontrada ou não é uma função em ${config.nome}`,
                   );
                 }
               });
@@ -1104,26 +1868,32 @@
                 console.error(
                   `❌ Nenhuma função válida encontrada em ${config.nome}`,
                 );
-                updateDebug(config.nome, "error", "no functions");
+                updateDebug(config.nome, "error", "no valid functions");
                 resolve(false);
               }
             })
             .catch((error) => {
               clearTimeout(timeout);
               console.error(`❌ Erro ao carregar ${config.nome}:`, error);
-              updateDebug(config.nome, "error", error.message);
+              updateDebug(config.nome, "error", error.message || "import failed");
               resolve(false);
             });
         });
       }
 
-      // Função para carregar participantes quando solicitado
+      // Função para carregar participantes quando solicitado (com verificações)
       async function carregarParticipantes() {
         if (participantesCarregados) return;
 
+        // ⚠️ VERIFICAR ELEMENTOS NECESSÁRIOS
         const btnCarregar = document.getElementById("carregarParticipantesBtn");
         const inicial = document.getElementById("participantes-inicial");
         const loading = document.getElementById("participantes-loading");
+
+        if (!btnCarregar || !inicial || !loading) {
+          console.warn("⚠️ Elementos de participantes não encontrados");
+          return;
+        }
 
         try {
           console.log("📄 Iniciando carregamento dos participantes...");
@@ -1146,9 +1916,11 @@
 
           // Mostra a interface dos participantes
           loading.style.display = "none";
-          document.querySelector(".toggle-participants").style.display =
-            "block";
-          document.getElementById("timesContainer").style.display = "block";
+          const toggleBtn = document.querySelector(".toggle-participants");
+          const timesContainer = document.getElementById("timesContainer");
+
+          if (toggleBtn) toggleBtn.style.display = "block";
+          if (timesContainer) timesContainer.style.display = "block";
 
           participantesCarregados = true;
           console.log("✅ Participantes carregados com sucesso!");
@@ -1162,7 +1934,331 @@
         }
       }
 
-      // ✅ CORREÇÃO: Função unificada executarAcaoAba
+      // ✅ ADAPTAÇÃO: Função para executar ações dos módulos (navegação hierárquica)
+      async function executarAcaoModulo(moduleId, targetElement = null) {
+        console.log(`🎯 Executando módulo: ${moduleId}`);
+
+        // Se não especificou elemento alvo, usar container padrão na tela principal
+        if (!targetElement) {
+          // Criar ou encontrar container de conteúdo
+          let contentContainer = document.getElementById('module-execution-area');
+          if (!contentContainer) {
+            contentContainer = document.createElement('div');
+            contentContainer.id = 'module-execution-area';
+            contentContainer.className = 'dynamic-content';
+            contentContainer.style.cssText = `
+              background: var(--bg-card);
+              border: 1px solid var(--border-primary);
+              border-radius: 16px;
+              margin-top: 32px;
+              padding: 24px;
+              min-height: 400px;
+            `;
+
+            // Inserir após grid de módulos ou após tela secundária
+            const insertPoint = document.getElementById('secondary-screen') || document.querySelector('.modules-grid');
+            if (insertPoint && insertPoint.parentNode) {
+              insertPoint.parentNode.insertBefore(contentContainer, insertPoint.nextSibling);
+            }
+          }
+          targetElement = contentContainer;
+        }
+
+        // Mostrar loading
+        targetElement.innerHTML = `
+          <div class="content-body">
+            <div class="loading-container">
+              <div class="loading-spinner"></div>
+              <p>Carregando ${moduleId}...</p>
+            </div>
+          </div>
+        `;
+
+        // Scroll suave para o conteúdo
+        targetElement.scrollIntoView({ behavior: 'smooth', block: 'start' });
+
+        try {
+          // Mapear módulo para o conteúdo correto
+          let targetContainer;
+
+          switch (moduleId) {
+            case "participantes":
+            case "participantes-lista":
+              // Injetar conteúdo de participantes
+              targetContainer = document.getElementById('participantes');
+              if (targetContainer) {
+                targetElement.innerHTML = `
+                  <div class="content-header">
+                    <h2 class="content-title">
+                      <i data-lucide="users" class="content-icon"></i>
+                      Participantes da Liga
+                    </h2>
+                    <p class="content-subtitle">Gestão completa dos times e membros</p>
+                  </div>
+                  <div class="content-body">
+                    ${targetContainer.innerHTML}
+                  </div>
+                `;
+              }
+              break;
+
+            case "rodadas":
+              targetContainer = document.getElementById('rodadas');
+              if (targetContainer) {
+                targetElement.innerHTML = `
+                  <div class="content-header">
+                    <h2 class="content-title">
+                      <i data-lucide="bar-chart-3" class="content-icon"></i>
+                      Análise por Rodadas
+                    </h2>
+                    <p class="content-subtitle">Rankings e estatísticas detalhadas</p>
+                  </div>
+                  <div class="content-body">
+                    ${targetContainer.innerHTML}
+                  </div>
+                `;
+
+                // Executar função específica
+                if (modulosCarregados.rodadas?.carregarRodadas) {
+                  await modulosCarregados.rodadas.carregarRodadas();
+                } else {
+                  console.warn("⚠️ Módulo rodadas não disponível");
+                }
+              }
+              break;
+
+            case "mata-mata":
+              targetContainer = document.getElementById('mata-mata');
+              if (targetContainer) {
+                targetElement.innerHTML = `
+                  <div class="content-header">
+                    <h2 class="content-title">
+                      <i data-lucide="target" class="content-icon"></i>
+                      Disputas Mata-Mata
+                    </h2>
+                    <p class="content-subtitle">Eliminatórias e confrontos diretos</p>
+                  </div>
+                  <div class="content-body">
+                    ${targetContainer.innerHTML}
+                  </div>
+                `;
+
+                if (modulosCarregados["mata-mata"]?.carregarMataMata) {
+                  await modulosCarregados["mata-mata"].carregarMataMata();
+                } else {
+                  console.warn("⚠️ Módulo mata-mata não disponível");
+                }
+              }
+              break;
+
+            case "ranking-geral":
+              targetContainer = document.getElementById('ranking-geral');
+              if (targetContainer) {
+                targetElement.innerHTML = `
+                  <div class="content-header">
+                    <h2 class="content-title">
+                      <i data-lucide="crown" class="content-icon"></i>
+                      Ranking Geral
+                    </h2>
+                    <p class="content-subtitle">Classificação geral da temporada</p>
+                  </div>
+                  <div class="content-body">
+                    ${targetContainer.innerHTML}
+                  </div>
+                `;
+
+                if (modulosCarregados.ranking?.carregarRankingGeral) {
+                  await modulosCarregados.ranking.carregarRankingGeral();
+                } else {
+                  console.warn("⚠️ Módulo ranking não disponível");
+                }
+              }
+              break;
+
+            case "melhor-mes":
+              targetContainer = document.getElementById('melhor-mes');
+              if (targetContainer) {
+                targetElement.innerHTML = `
+                  <div class="content-header">
+                    <h2 class="content-title">
+                      <i data-lucide="star" class="content-icon"></i>
+                      Melhor do Mês
+                    </h2>
+                    <p class="content-subtitle">Champions mensais da liga</p>
+                  </div>
+                  <div class="content-body">
+                    ${targetContainer.innerHTML}
+                  </div>
+                `;
+
+                if (modulosCarregados["melhor-mes"]?.inicializarMelhorMes) {
+                  await modulosCarregados["melhor-mes"].inicializarMelhorMes();
+                } else {
+                  console.warn("⚠️ Módulo melhor-mes não disponível");
+                }
+              }
+              break;
+
+            case "pontos-corridos":
+              targetContainer = document.getElementById('pontos-corridos');
+              if (targetContainer) {
+                targetElement.innerHTML = `
+                  <div class="content-header">
+                    <h2 class="content-title">
+                      <i data-lucide="trending-up" class="content-icon"></i>
+                      Liga Pontos Corridos
+                    </h2>
+                    <p class="content-subtitle">Classificação formato campeonato</p>
+                  </div>
+                  <div class="content-body">
+                    ${targetContainer.innerHTML}
+                  </div>
+                `;
+
+                if (modulosCarregados["pontos-corridos"]?.inicializarPontosCorridos) {
+                  await modulosCarregados["pontos-corridos"].inicializarPontosCorridos();
+                } else {
+                  console.warn("⚠️ Módulo pontos-corridos não disponível");
+                }
+              }
+              break;
+
+            case "top-10":
+              targetContainer = document.getElementById('top-10');
+              if (targetContainer) {
+                targetElement.innerHTML = `
+                  <div class="content-header">
+                    <h2 class="content-title">
+                      <i data-lucide="trending-up" class="content-icon"></i>
+                      Top 10 - Mitos e Micos
+                    </h2>
+                    <p class="content-subtitle">Melhores e piores performances</p>
+                  </div>
+                  <div class="content-body">
+                    ${targetContainer.innerHTML}
+                  </div>
+                `;
+
+                if (modulosCarregados.top10?.inicializarTop10) {
+                  await modulosCarregados.top10.inicializarTop10();
+                } else {
+                  console.warn("⚠️ Módulo top10 não disponível");
+                }
+              }
+              break;
+
+            case "fluxo-financeiro":
+              targetContainer = document.getElementById('fluxo-financeiro');
+              if (targetContainer) {
+                targetElement.innerHTML = `
+                  <div class="content-header">
+                    <h2 class="content-title">
+                      <i data-lucide="dollar-sign" class="content-icon"></i>
+                      Fluxo Financeiro
+                    </h2>
+                    <p class="content-subtitle">Controle de receitas e despesas</p>
+                  </div>
+                  <div class="content-body">
+                    ${targetContainer.innerHTML}
+                  </div>
+                `;
+
+                if (modulosCarregados["fluxo-financeiro"]?.inicializarFluxoFinanceiro) {
+                  await modulosCarregados["fluxo-financeiro"].inicializarFluxoFinanceiro();
+                } else {
+                  console.warn("⚠️ Módulo fluxo-financeiro não disponível");
+                }
+              }
+              break;
+
+            case "artilheiro-campeao":
+              targetContainer = document.getElementById('artilheiro-campeao');
+              if (targetContainer) {
+                targetElement.innerHTML = `
+                  <div class="content-header">
+                    <h2 class="content-title">
+                      <i data-lucide="zap" class="content-icon"></i>
+                      Artilheiro Campeão
+                    </h2>
+                    <p class="content-subtitle">Ranking dos maiores artilheiros</p>
+                  </div>
+                  <div class="content-body">
+                    ${targetContainer.innerHTML}
+                  </div>
+                `;
+
+                if (modulosCarregados["artilheiro-campeao"]?.inicializarArtilheiroCampeao) {
+                  await modulosCarregados["artilheiro-campeao"].inicializarArtilheiroCampeao();
+                } else {
+                  console.warn("⚠️ Módulo artilheiro-campeao não disponível");
+                }
+              }
+              break;
+
+            case "luva-de-ouro":
+              targetContainer = document.getElementById('luva-de-ouro');
+              if (targetContainer) {
+                targetElement.innerHTML = `
+                  <div class="content-header">
+                    <h2 class="content-title">
+                      <i data-lucide="shield" class="content-icon"></i>
+                      Luva de Ouro
+                    </h2>
+                    <p class="content-subtitle">Melhores goleiros da competição</p>
+                  </div>
+                  <div class="content-body">
+                    ${targetContainer.innerHTML}
+                  </div>
+                `;
+
+                if (modulosCarregados["luva-de-ouro"]?.inicializarLuvaDeOuro) {
+                  await modulosCarregados["luva-de-ouro"].inicializarLuvaDeOuro();
+                } else {
+                  console.warn("⚠️ Módulo luva-de-ouro não disponível");
+                }
+              }
+              break;
+
+            case "parciais":
+              // Redirecionar para parciais.html
+              window.location.href = 'parciais.html';
+              return;
+
+            default:
+              targetElement.innerHTML = `
+                <div class="content-header">
+                  <h2 class="content-title">
+                    <i data-lucide="circle" class="content-icon"></i>
+                    Módulo em Desenvolvimento
+                  </h2>
+                  <p class="content-subtitle">${moduleId}</p>
+                </div>
+                <div class="content-body">
+                  <div class="alert alert-info">
+                    <strong>Em breve!</strong><br>
+                    O módulo "${moduleId}" será implementado em uma próxima atualização.
+                  </div>
+                </div>
+              `;
+          }
+
+          // Reinicializar ícones após injeção de conteúdo
+          if (typeof lucide !== 'undefined') {
+            lucide.createIcons();
+          }
+
+        } catch (error) {
+          console.error(`❌ Erro ao executar módulo ${moduleId}:`, error);
+          targetElement.innerHTML = `
+            <div class="content-body">
+              <div class="alert alert-error">
+                <strong>Erro:</strong> Falha ao carregar o módulo ${moduleId}<br>
+                <small>${error.message}</small>
+              </div>
+            </div>
+          `;
+        }
+      }
       async function executarAcaoAba(tabId) {
         console.log(`🎯 Executando ação da aba: ${tabId}`);
         try {
@@ -1263,7 +2359,7 @@
           // === INTEGRAÇÃO COM LAYOUT PRIMEIRO ===
           await loadLayout();
 
-          // Carregar dados básicos automaticamente
+          // Carregar dados básicos automaticamente (adaptado)
           console.log("📦 Carregando dados básicos da liga...");
           await fallbackFunctions.carregarDetalhesLigaBasico();
 
@@ -1281,6 +2377,14 @@
           await Promise.allSettled(promises);
 
           console.log("🎛️ Configurando interface...");
+
+          // ✅ INICIALIZAÇÃO DOS ÍCONES LUCIDE
+          if (typeof lucide !== 'undefined') {
+            lucide.createIcons();
+            console.log("✅ Ícones Lucide carregados");
+          } else {
+            console.warn("⚠️ Lucide não carregado - usando fallback");
+          }
 
           // Configurar personalização da liga
           const params = new URLSearchParams(window.location.search);
@@ -1309,27 +2413,565 @@
             if (tabLuva) tabLuva.style.display = "";
           }
 
-          // Configurar event listeners das abas
-          const tabs = document.querySelectorAll(".tab");
-          const tabContents = document.querySelectorAll(".tab-content");
+          // ✅ CONFIGURAR NAVEGAÇÃO HIERÁRQUICA (com verificação de existência)
+          const mainScreen = document.getElementById('main-screen');
+          const secondaryScreen = document.getElementById('secondary-screen');
+          const backButton = document.getElementById('back-to-main');
+          const currentModuleIcon = document.getElementById('current-module-icon');
+          const currentModuleTitle = document.getElementById('current-module-title');
+          const currentModuleSubtitle = document.getElementById('current-module-subtitle');
+          const secondaryContent = document.getElementById('secondary-content');
 
-          tabs.forEach((tab) => {
-            tab.addEventListener("click", async () => {
-              const tabId = tab.getAttribute("data-tab");
+          // ✅ VERIFICAÇÃO DE ELEMENTOS CRÍTICOS (com debug detalhado)
+          if (!mainScreen || !secondaryScreen) {
+            console.error("❌ CRÍTICO: Elementos de navegação não encontrados!");
+            console.log("🔍 main-screen existe:", !!mainScreen);
+            console.log("🔍 secondary-screen existe:", !!secondaryScreen);
+            console.log("🔍 container existe:", !!document.querySelector('.container'));
 
-              tabs.forEach((t) => t.classList.remove("active"));
-              tabContents.forEach((content) =>
-                content.classList.remove("active"),
-              );
-              tab.classList.add("active");
+            // FALLBACK: Criar elementos se não existirem
+            if (!mainScreen) {
+              console.log("🔧 Criando main-screen dinamicamente...");
+              const container = document.querySelector('.container');
+              if (container) {
+                const modulesGrid = container.querySelector('.modules-grid');
+                if (modulesGrid) {
+                  const newMainScreen = document.createElement('div');
+                  newMainScreen.id = 'main-screen';
+                  newMainScreen.className = 'main-screen';
 
-              const tabContent = document.getElementById(tabId);
-              if (tabContent) {
-                tabContent.classList.add("active");
-                await executarAcaoAba(tabId);
+                  // Mover modules-grid para dentro do main-screen
+                  newMainScreen.appendChild(modulesGrid);
+                  container.appendChild(newMainScreen);
+
+                  console.log("✅ main-screen criado e modules-grid movido");
+                }
+              }
+            }
+
+            if (!secondaryScreen) {
+              console.log("🔧 Criando secondary-screen dinamicamente...");
+              const container = document.querySelector('.container');
+              if (container) {
+                container.insertAdjacentHTML('beforeend', `
+                  <div class="secondary-screen" id="secondary-screen">
+                    <div class="secondary-header">
+                      <button class="back-button" id="back-to-main">
+                        <i data-lucide="arrow-left" class="back-icon"></i>
+                        Voltar
+                      </button>
+                      <div class="module-title">
+                        <i data-lucide="circle" class="module-icon" id="current-module-icon"></i>
+                        <h1 id="current-module-title">Módulo</h1>
+                      </div>
+                    </div>
+                    <div class="module-subtitle" id="current-module-subtitle">
+                      Selecione uma opção abaixo para continuar
+                    </div>
+                    <div id="secondary-content"></div>
+                  </div>
+                `);
+                console.log("✅ secondary-screen criado dinamicamente");
+              }
+            }
+
+            // Reobter elementos após criação
+            const newMainScreen = document.getElementById('main-screen');
+            const newSecondaryScreen = document.getElementById('secondary-screen');
+
+            if (!newMainScreen || !newSecondaryScreen) {
+              console.error("❌ FALHA CRÍTICA: Não foi possível criar elementos de navegação");
+              // Mostrar interface básica como fallback
+              showBasicInterface();
+              return;
+            } else {
+              console.log("✅ Elementos de navegação verificados com sucesso");
+
+            // ✅ GARANTIR QUE NENHUM MÓDULO SEJA PRÉ-ATIVADO
+            console.log("🚫 Verificando pré-ativações automáticas...");
+
+            // Desativar qualquer tab ou content que possa estar ativo
+            const activeTabs = document.querySelectorAll('.tab.active, .tab-content.active');
+            activeTabs.forEach(element => {
+              element.classList.remove('active');
+              console.log("🚫 Removido classe active de:", element);
+            });
+
+            // Garantir que containers de módulos estejam ocultos
+            const hiddenContainers = [
+              '#timesContainer', 
+              '#participantes-loading',
+              '.toggle-participants',
+              '#dynamic-content',
+              '#module-execution-area'
+            ];
+
+            hiddenContainers.forEach(selector => {
+              const element = document.querySelector(selector);
+              if (element) {
+                element.style.display = 'none';
+                console.log("🚫 Ocultado elemento:", selector);
               }
             });
+
+            // Garantir que apenas main-screen esteja visível
+            if (mainScreen) {
+              mainScreen.classList.remove('hidden');
+              mainScreen.style.display = 'block';
+            }
+
+            if (secondaryScreen) {
+              secondaryScreen.classList.remove('active');
+              secondaryScreen.style.display = 'none';
+            }
+
+            console.log("✅ Interface limpa - nenhum módulo pré-selecionado");
+
+          // Templates dos sub-módulos por categoria
+          const moduleTemplates = {
+            participantes: {
+              icon: 'users',
+              title: 'Participantes da Liga',
+              subtitle: 'Gestão completa dos times e membros da liga',
+              sections: [
+                {
+                  title: '🎯 Ações Principais',
+                  icon: 'target',
+                  modules: [
+                    {
+                      id: 'participantes-lista',
+                      icon: 'list',
+                      title: 'Listar Participantes',
+                      description: 'Visualizar todos os times cadastrados',
+                      status: 'ready',
+                      action: 'participantes'
+                    },
+                    {
+                      id: 'participantes-carregar',
+                      icon: 'download-cloud',
+                      title: 'Carregar do Cartola FC',
+                      description: 'Importar times diretamente da API',
+                      status: 'active',
+                      action: 'participantes-import'
+                    }
+                  ]
+                },
+                {
+                  title: '🛠️ Ferramentas',
+                  icon: 'tool',
+                  modules: [
+                    {
+                      id: 'participantes-stats',
+                      icon: 'bar-chart',
+                      title: 'Estatísticas',
+                      description: 'Análises detalhadas dos participantes',
+                      status: 'ready',
+                      action: 'participantes-stats'
+                    },
+                    {
+                      id: 'participantes-export',
+                      icon: 'file-text',
+                      title: 'Exportar Dados',
+                      description: 'Relatórios em PDF/Excel',
+                      status: 'ready',
+                      action: 'participantes-export'
+                    }
+                  ]
+                }
+              ]
+            },
+
+            rodadas: {
+              icon: 'bar-chart-3',
+              title: 'Análise por Rodadas',
+              subtitle: 'Rankings e estatísticas detalhadas de cada rodada',
+              sections: [
+                {
+                  title: '🎯 Análise Principal',
+                  icon: 'activity',
+                  modules: [
+                    {
+                      id: 'rodadas-ranking',
+                      icon: 'list-ordered',
+                      title: 'Ranking por Rodada',
+                      description: 'Classificação detalhada de cada rodada',
+                      status: 'active',
+                      action: 'rodadas'
+                    },
+                    {
+                      id: 'rodadas-parciais',
+                      icon: 'clock',
+                      title: 'Resultados Parciais',
+                      description: 'Acompanhar rodada em andamento',
+                      status: 'ready',
+                      action: 'parciais'
+                    }
+                  ]
+                },
+                {
+                  title: '🛠️ Ferramentas',
+                  icon: 'settings',
+                  modules: [
+                    {
+                      id: 'rodadas-comparar',
+                      icon: 'git-compare',
+                      title: 'Comparar Rodadas',
+                      description: 'Análise comparativa de performance',
+                      status: 'ready',
+                      action: 'rodadas-compare'
+                    },
+                    {
+                      id: 'rodadas-export',
+                      icon: 'download',
+                      title: 'Exportar HQ',
+                      description: 'Relatório visual estilo quadrinhos',
+                      status: 'ready',
+                      action: 'rodadas-export-hq'
+                    }
+                  ]
+                }
+              ]
+            },
+
+            rankings: {
+              icon: 'trophy',
+              title: 'Central de Rankings',
+              subtitle: 'Todos os formatos de classificação disponíveis',
+              sections: [
+                {
+                  title: '🏆 Rankings Principais',
+                  icon: 'award',
+                  modules: [
+                    {
+                      id: 'ranking-geral',
+                      icon: 'crown',
+                      title: 'Ranking Geral',
+                      description: 'Classificação geral de toda temporada',
+                      status: 'ready',
+                      action: 'ranking-geral'
+                    },
+                    {
+                      id: 'top-10-mitos',
+                      icon: 'trending-up',
+                      title: 'Top 10 Mitos',
+                      description: 'Melhores performances da liga',
+                      status: 'ready',
+                      action: 'top-10'
+                    },
+                    {
+                      id: 'top-10-micos',
+                      icon: 'trending-down',
+                      title: 'Top 10 Micos',
+                      description: 'Piores performances da liga',
+                      status: 'ready',
+                      action: 'top-10'
+                    }
+                  ]
+                },
+                {
+                  title: '📅 Por Período',
+                  icon: 'calendar',
+                  modules: [
+                    {
+                      id: 'melhor-mes',
+                      icon: 'star',
+                      title: 'Melhor do Mês',
+                      description: 'Champions mensais da liga',
+                      status: 'ready',
+                      action: 'melhor-mes'
+                    }
+                  ]
+                }
+              ]
+            },
+
+            competicoes: {
+              icon: 'swords',
+              title: 'Competições da Liga',
+              subtitle: 'Mata-mata, pontos corridos e outras disputas',
+              sections: [
+                {
+                  title: '⚔️ Disputas Ativas',
+                  icon: 'zap',
+                  modules: [
+                    {
+                      id: 'mata-mata',
+                      icon: 'target',
+                      title: 'Mata-Mata',
+                      description: 'Eliminatórias e confrontos diretos',
+                      status: 'active',
+                      action: 'mata-mata'
+                    },
+                    {
+                      id: 'pontos-corridos',
+                      icon: 'trending-up',
+                      title: 'Pontos Corridos',
+                      description: 'Liga no formato campeonato',
+                      status: 'active',
+                      action: 'pontos-corridos'
+                    }
+                  ]
+                }
+              ]
+            },
+
+            financeiro: {
+              icon: 'dollar-sign',
+              title: 'Gestão Financeira',
+              subtitle: 'Controle completo de receitas, despesas e premiações',
+              sections: [
+                {
+                  title: '💰 Controle Principal',
+                  icon: 'calculator',
+                  modules: [
+                    {
+                      id: 'fluxo-financeiro',
+                      icon: 'trending-up',
+                      title: 'Fluxo de Caixa',
+                      description: 'Entradas, saídas e saldo atual',
+                      status: 'active',
+                      action: 'fluxo-financeiro'
+                    }
+                  ]
+                },
+                {
+                  title: '📊 Relatórios',
+                  icon: 'file-text',
+                  modules: [
+                    {
+                      id: 'financeiro-export',
+                      icon: 'download',
+                      title: 'Exportar Financeiro',
+                      description: 'Relatórios detalhados em PDF',
+                      status: 'ready',
+                      action: 'financeiro-export'
+                    }
+                  ]
+                }
+              ]
+            },
+
+            especialistas: {
+              icon: 'medal',
+              title: 'Competições Especiais',
+              subtitle: 'Rankings específicos por posição',
+              sections: [
+                {
+                  title: '🏆 Especialistas Ativos',
+                  icon: 'star',
+                  modules: [
+                    {
+                      id: 'artilheiro-campeao',
+                      icon: 'zap',
+                      title: 'Artilheiro Campeão',
+                      description: 'Ranking dos maiores artilheiros',
+                      status: 'ready',
+                      action: 'artilheiro-campeao'
+                    },
+                    {
+                      id: 'luva-de-ouro',
+                      icon: 'shield',
+                      title: 'Luva de Ouro',
+                      description: 'Melhores goleiros da competição',
+                      status: 'ready',
+                      action: 'luva-de-ouro'
+                    }
+                  ]
+                }
+              ]
+            }
+          };
+
+          // Função para navegar para tela secundária (com parâmetros dinâmicos)
+          function navigateToModule(moduleKey, mainScreenEl = null, secondaryScreenEl = null) {
+            const template = moduleTemplates[moduleKey];
+            if (!template) {
+              console.error(`Template para módulo ${moduleKey} não encontrado`);
+              return;
+            }
+
+            // Usar elementos passados ou reobtê-los
+            const currentMainScreen = mainScreenEl || document.getElementById('main-screen');
+            const currentSecondaryScreen = secondaryScreenEl || document.getElementById('secondary-screen');
+            const currentModuleIcon = document.getElementById('current-module-icon');
+            const currentModuleTitle = document.getElementById('current-module-title');
+            const currentModuleSubtitle = document.getElementById('current-module-subtitle');
+            const secondaryContent = document.getElementById('secondary-content');
+
+            // ⚠️ VERIFICAR EXISTÊNCIA DOS ELEMENTOS
+            if (!currentMainScreen || !currentSecondaryScreen || !currentModuleIcon || !currentModuleTitle || !currentModuleSubtitle || !secondaryContent) {
+              console.warn("⚠️ Alguns elementos da navegação não encontrados, executando módulo diretamente");
+              executarAcaoModulo(moduleKey);
+              return;
+            }
+
+            console.log(`📱 Navegando para módulo: ${template.title}`);
+
+            // Atualizar header da tela secundária
+            currentModuleIcon.setAttribute('data-lucide', template.icon);
+            currentModuleTitle.textContent = template.title;
+            currentModuleSubtitle.textContent = template.subtitle;
+
+            // Gerar conteúdo das seções
+            let sectionsHTML = '';
+            template.sections.forEach(section => {
+              sectionsHTML += `
+                <div class="sub-modules-section">
+                  <h3 class="section-title">
+                    <i data-lucide="${section.icon}" class="section-icon"></i>
+                    ${section.title}
+                  </h3>
+                  <div class="sub-modules-grid">
+                    ${section.modules.map(module => `
+                      <div class="sub-module-card" data-action="${module.action}" data-module-id="${module.id}">
+                        <div class="sub-card-header">
+                          <div class="sub-card-icon">
+                            <i data-lucide="${module.icon}"></i>
+                          </div>
+                          <h4 class="sub-card-title">${module.title}</h4>
+                        </div>
+                        <p class="sub-card-description">${module.description}</p>
+                        <div class="sub-card-meta">
+                          <span class="sub-card-status status-${module.status}">
+                            ${module.status === 'ready' ? 'Disponível' : 
+                              module.status === 'active' ? 'Ativo' : 
+                              module.status === 'warning' ? 'Pendente' : 'Status'}
+                          </span>
+                          <span class="sub-card-shortcut">Enter</span>
+                        </div>
+                      </div>
+                    `).join('')}
+                  </div>
+                </div>
+              `;
+            });
+
+            secondaryContent.innerHTML = sectionsHTML;
+
+            // Transição visual
+            currentMainScreen.classList.add('hidden');
+            currentMainScreen.style.display = 'none';
+            currentSecondaryScreen.classList.add('active');  
+            currentSecondaryScreen.style.display = 'block';
+
+            // Reinicializar ícones
+            if (typeof lucide !== 'undefined') {
+              lucide.createIcons();
+            }
+
+            console.log(`✅ Navegação para ${template.title} concluída`);
+          }
+
+          // Função para voltar à tela principal (com parâmetros dinâmicos)
+          function navigateToMain(mainScreenEl = null, secondaryScreenEl = null) {
+            // Usar elementos passados ou reobtê-los
+            const currentMainScreen = mainScreenEl || document.getElementById('main-screen');
+            const currentSecondaryScreen = secondaryScreenEl || document.getElementById('secondary-screen');
+
+            // ⚠️ VERIFICAR EXISTÊNCIA DOS ELEMENTOS
+            if (!currentMainScreen || !currentSecondaryScreen) {
+              console.warn("⚠️ Elementos de navegação não encontrados para voltar");
+              return;
+            }
+
+            console.log('📱 Voltando para tela principal');
+
+            // Transição visual
+            currentMainScreen.classList.remove('hidden');
+            currentMainScreen.style.display = 'block';
+            currentSecondaryScreen.classList.remove('active');
+            currentSecondaryScreen.style.display = 'none';
+
+            console.log('✅ Retorno à tela principal concluído');
+          }
+
+          // Event listeners para navegação (com verificação contínua)
+          document.addEventListener('click', (e) => {
+            // Navegação para módulos (tela secundária)
+            const navigateBtn = e.target.closest('[data-navigate]');
+            if (navigateBtn) {
+              const moduleKey = navigateBtn.dataset.navigate;
+              console.log(`🎯 Clique detectado - navegando para: ${moduleKey}`);
+
+              // Reobtém elementos atuais para garantir que existam
+              const currentMainScreen = document.getElementById('main-screen');
+              const currentSecondaryScreen = document.getElementById('secondary-screen');
+
+              if (currentMainScreen && currentSecondaryScreen) {
+                navigateToModule(moduleKey, currentMainScreen, currentSecondaryScreen);
+              } else {
+                console.error("❌ Elementos de navegação não encontrados no momento do clique");
+                // Fallback: executar módulo diretamente
+                executarAcaoModulo(moduleKey);
+              }
+              return;
+            }
+
+            // Botão voltar (verificação dinâmica) 
+            const backBtn = e.target.closest('#back-to-main');
+            if (backBtn) {
+              console.log("🎯 Clique em voltar detectado");
+              const currentMainScreen = document.getElementById('main-screen');
+              const currentSecondaryScreen = document.getElementById('secondary-screen');
+
+              if (currentMainScreen && currentSecondaryScreen) {
+                navigateToMain(currentMainScreen, currentSecondaryScreen);
+              } else {
+                console.error("❌ Elementos de navegação não encontrados para voltar");
+              }
+              return;
+            }
+
+            // Ações dos sub-módulos (executar função)
+            const actionBtn = e.target.closest('[data-action]');
+            if (actionBtn && actionBtn.closest('#secondary-content')) {
+              const action = actionBtn.dataset.action;
+              console.log(`🎯 Ação de sub-módulo detectada: ${action}`);
+              executeSubModuleAction(action);
+              return;
+            }
           });
+
+          // Tecla ESC para voltar (com verificação dinâmica de contexto)
+          document.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape') {
+              const currentSecondaryScreen = document.getElementById('secondary-screen');
+              if (currentSecondaryScreen && currentSecondaryScreen.classList.contains('active')) {
+                console.log('⌨️ ESC pressionado - voltando à tela principal');
+                const currentMainScreen = document.getElementById('main-screen');
+                navigateToMain(currentMainScreen, currentSecondaryScreen);
+              }
+            }
+          });
+
+          // Função para executar ações dos sub-módulos (com verificações)
+          async function executeSubModuleAction(action) {
+            console.log(`🎯 Executando sub-módulo: ${action}`);
+
+            try {
+              // Voltar para tela principal antes de executar
+              const currentMainScreen = document.getElementById('main-screen');
+              const currentSecondaryScreen = document.getElementById('secondary-screen');
+
+              if (currentMainScreen && currentSecondaryScreen) {
+                navigateToMain(currentMainScreen, currentSecondaryScreen);
+              }
+
+              // Aguardar transição e executar módulo original
+              setTimeout(async () => {
+                await executarAcaoModulo(action, document.body);
+              }, 300);
+            } catch (error) {
+              console.error(`❌ Erro ao executar sub-módulo ${action}:`, error);
+              mostrarErroGlobal(`Erro ao executar ${action}`, error);
+            }
+          }
+
+          // Configurar event listeners das abas antigas (compatibilidade - DESATIVADO)
+          // Removido para evitar pré-seleção automática dos participantes
+
+          // ✅ COMPATIBILIDADE: Manter funcionalidades específicas
+          // Configurar botão de carregar participantes (se necessário)
 
           // Configurar botão de carregar participantes
           const btnCarregarParticipantes = document.getElementById(
@@ -1424,7 +3066,59 @@
             globalLoading.className = "hide";
           }
 
-          console.log("✅ Loading escondido - interface deve estar visível");
+          // ✅ INICIALIZAÇÃO FINAL DOS ÍCONES LUCIDE E FAVICON (com verificações robustas)
+          setTimeout(() => {
+            // Verificar se Lucide está disponível
+            if (typeof lucide !== 'undefined' && lucide.createIcons) {
+              try {
+                lucide.createIcons();
+                console.log("🎯 Ícones Lucide inicializados globalmente");
+
+                // Verificação adicional: contar ícones criados
+                const icones = document.querySelectorAll('[data-lucide]');
+                console.log(`✅ ${icones.length} ícones Lucide encontrados na página`);
+              } catch (error) {
+                console.warn("⚠️ Erro ao inicializar Lucide:", error);
+              }
+            } else {
+              console.warn("⚠️ Lucide não está disponível");
+            }
+
+            // Garantir favicon (verificação adicional)
+            if (!document.querySelector('link[rel="icon"]')) {
+              try {
+                const favicon = document.createElement('link');
+                favicon.rel = 'icon';
+                favicon.type = 'image/png';
+                favicon.href = '/favicon.png';
+                document.head.appendChild(favicon);
+                console.log("🎯 Favicon adicionado automaticamente");
+              } catch (error) {
+                console.warn("⚠️ Erro ao adicionar favicon:", error);
+              }
+            }
+
+            // ✅ VERIFICAÇÃO FINAL DE INTERFACE
+            const finalMainScreen = document.getElementById('main-screen');
+            const finalSecondaryScreen = document.getElementById('secondary-screen');
+            const finalModulesGrid = document.querySelector('.modules-grid');
+
+            console.log("🔍 Verificação final da interface:");
+            console.log("  main-screen:", !!finalMainScreen, finalMainScreen?.style.display !== 'none' ? 'visível' : 'oculto');
+            console.log("  secondary-screen:", !!finalSecondaryScreen, finalSecondaryScreen?.style.display !== 'none' ? 'visível' : 'oculto');
+            console.log("  modules-grid:", !!finalModulesGrid);
+
+            if (finalMainScreen && finalModulesGrid) {
+              console.log("✅ Interface principal pronta e funcional");
+            } else {
+              console.error("❌ CRÍTICO: Interface principal com problemas");
+            }
+          }, 300);
+
+          console.log("🎉 Navegação Hierárquica inicializada com correções de segurança!");
+          console.log("📱 Use tecla ESC para voltar à tela principal");
+          console.log("🛡️ Verificações de elementos DOM implementadas");
+          console.log("🚫 Nenhum módulo será pré-selecionado automaticamente");
         }
       });
     </script>

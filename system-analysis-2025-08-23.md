@@ -1,12 +1,11 @@
 # 📊 Análise do Sistema Super Cartola Manager
 
-**Data da Análise:** 23/08/2025, 11:26:44
+**Data da Análise:** 23/08/2025, 22:42:00
 
 ---
 
 ## 📁 Estrutura do Sistema
 
-- 📁 **attached_assets/**
 - 📁 **backups/**
 - 📁 **config/**
 - 📁 **controllers/**
@@ -42,6 +41,7 @@
 - 📋 **package-lock.json** - 📋 Dados JSON
 - 📋 **package.json** - 📦 Configuração npm/dependências
 - 📄 **replit.nix** - ❓ Arquivo genérico
+- 📖 **system-analysis-2025-08-23.md** - 📖 Documentação
 - 📜 **system-mapper.js** - 📝 Script JavaScript
 - 📜 **uploadToDrive.js** - 📝 Script JavaScript
 
@@ -100,13 +100,13 @@
 - 📄 **public/criar.html** - 📄 Página HTML
   - 📏 Tamanho: 2KB | Linhas: 76
 - 📄 **public/dashboard.html** - 📊 Dashboard/Painel principal
-  - 📏 Tamanho: 11KB | Linhas: 337
+  - 📏 Tamanho: 19KB | Linhas: 560
 - 📄 **public/detalhe-liga.html** - 🏆 Funcionalidades de Liga
-  - 📏 Tamanho: 35KB | Linhas: 1113
+  - 📏 Tamanho: 47KB | Linhas: 1433
 - 📄 **public/editar-liga.html** - 🏆 Funcionalidades de Liga
   - 📏 Tamanho: 19KB | Linhas: 558
 - 📄 **public/gerenciar.html** - 📄 Página HTML
-  - 📏 Tamanho: 5KB | Linhas: 169
+  - 📏 Tamanho: 34KB | Linhas: 952
 - 📄 **public/gols.js** - ⚽ Gestão de Gols
 - 📄 **public/index.html** - 🏠 Página principal/Entry point
 - 📄 **public/js/artilheiro-campeao/artilheiro-campeao-cache.js** - ⚽ Sistema Artilheiro Campeão
@@ -156,7 +156,7 @@
 - 📄 **public/js/fluxo-financeiro.js** - 📝 Script JavaScript
   - 📏 Tamanho: 27KB | Linhas: 749
 - 📄 **public/js/gerenciar-ligas.js** - 🏆 Funcionalidades de Liga
-  - 📏 Tamanho: 1KB | Linhas: 30
+  - 📏 Tamanho: 8KB | Linhas: 273
 - 📄 **public/js/gols-por-rodada.js** - 📅 Gestão de Rodadas
   - 📏 Tamanho: 2KB | Linhas: 77
 - 📄 **public/js/gols.js** - ⚽ Gestão de Gols
@@ -190,7 +190,7 @@
 - 📄 **public/js/utils.js** - 📝 Script JavaScript
   - 📏 Tamanho: 7KB | Linhas: 208
 - 📄 **public/layout.html** - 📄 Página HTML
-  - 📏 Tamanho: 15KB | Linhas: 472
+  - 📏 Tamanho: 22KB | Linhas: 634
 - 📄 **public/parciais.html** - 📄 Página HTML
   - 📏 Tamanho: 11KB | Linhas: 366
 - 📄 **public/preencher-liga.html** - 🏆 Funcionalidades de Liga
@@ -198,7 +198,7 @@
 - 📄 **public/script.js** - 📝 Script JavaScript
   - 📏 Tamanho: 4KB | Linhas: 82
 - 📄 **public/style.css** - 🎨 Folha de estilos
-  - 📏 Tamanho: 21KB | Linhas: 1125
+  - 📏 Tamanho: 18KB | Linhas: 894
 - 📄 **public/templates/fluxo-financeiro-tabela.html** - 📄 Página HTML
   - 📏 Tamanho: 5KB | Linhas: 126
 - 📄 **public/templates/mata-mata-tabela.html** - 📄 Página HTML
@@ -273,53 +273,15 @@
 - 📄 **scripts/times-da-liga.json** - 🏆 Funcionalidades de Liga
   - 📏 Tamanho: 2KB | Linhas: 46
 
-### Documentação (7 arquivos)
+### Documentação (2 arquivos)
 
 - 📄 **HANDOVER.md** - 📖 Documentação
-  - 📏 Tamanho: 3KB | Linhas: 125
-- 📄 **attached_assets/Pasted-detalhe-liga-html-id-684cb1c8af923da7c7df51de-365-Iniciando-carregamento-da-aplica-o-detalhe-1753474888781_1753474888786.txt** - 🏆 Funcionalidades de Liga
-  - 📏 Tamanho: 328KB | Linhas: 2519
-- 📄 **attached_assets/Pasted-detalhe-liga-html-id-684d821cf1a7ae16d1f89572-360-Iniciando-carregamento-da-aplica-o-detalhe-1753050863534_1753050863535.txt** - 🏆 Funcionalidades de Liga
-  - 📏 Tamanho: 5KB | Linhas: 61
-- 📄 **attached_assets/Pasted-detalhe-liga-html-id-684d821cf1a7ae16d1f89572-360-Iniciando-carregamento-da-aplica-o-detalhe-1753053291511_1753053291513.txt** - 🏆 Funcionalidades de Liga
-  - 📏 Tamanho: 5KB | Linhas: 59
-- 📄 **attached_assets/Pasted-detalhe-liga-html-id-684d821cf1a7ae16d1f89572-361-Iniciando-carregamento-da-aplica-o-detalhe-1753058255155_1753058255155.txt** - 🏆 Funcionalidades de Liga
-  - 📏 Tamanho: 5KB | Linhas: 59
-- 📄 **attached_assets/Pasted-rodadas-js-319-DEBUG-Item-28-Object-rodadas-js-319-DEBUG-Item-29-Object-rodadas-js-319-DEBU-1753473829630_1753473829631.txt** - 📅 Gestão de Rodadas
-  - 📏 Tamanho: 35KB | Linhas: 1014
-- 📄 **attached_assets/Pasted-rodadas-js-319-DEBUG-Item-28-Object-rodadas-js-319-DEBUG-Item-29-Object-rodadas-js-319-DEBU-1753473996316_1753473996318.txt** - 📅 Gestão de Rodadas
-  - 📏 Tamanho: 35KB | Linhas: 1014
+  - 📏 Tamanho: 3KB | Linhas: 127
+- 📄 **system-analysis-2025-08-23.md** - 📖 Documentação
+  - 📏 Tamanho: 21KB | Linhas: 494
 
-### Assets (45 arquivos)
+### Assets (17 arquivos)
 
-- 📄 **attached_assets/image_1753052258044.png** - ❓ Arquivo genérico
-- 📄 **attached_assets/image_1753057848682.png** - ❓ Arquivo genérico
-- 📄 **attached_assets/image_1753474151880.png** - ❓ Arquivo genérico
-- 📄 **attached_assets/image_1753474478381.png** - ❓ Arquivo genérico
-- 📄 **attached_assets/image_1753474674695.png** - ❓ Arquivo genérico
-- 📄 **attached_assets/image_1753474923887.png** - ❓ Arquivo genérico
-- 📄 **attached_assets/image_1753475068551.png** - ❓ Arquivo genérico
-- 📄 **attached_assets/image_1753475216719.png** - ❓ Arquivo genérico
-- 📄 **attached_assets/image_1753475388887.png** - ❓ Arquivo genérico
-- 📄 **attached_assets/image_1753475816838.png** - ❓ Arquivo genérico
-- 📄 **attached_assets/image_1753475969433.png** - ❓ Arquivo genérico
-- 📄 **attached_assets/image_1753476072081.png** - ❓ Arquivo genérico
-- 📄 **attached_assets/image_1753476489396.png** - ❓ Arquivo genérico
-- 📄 **attached_assets/image_1753476710229.png** - ❓ Arquivo genérico
-- 📄 **attached_assets/image_1753477150696.png** - ❓ Arquivo genérico
-- 📄 **attached_assets/image_1753477280425.png** - ❓ Arquivo genérico
-- 📄 **attached_assets/image_1753477476622.png** - ❓ Arquivo genérico
-- 📄 **attached_assets/image_1755907864136.png** - ❓ Arquivo genérico
-- 📄 **attached_assets/image_1755907971517.png** - ❓ Arquivo genérico
-- 📄 **attached_assets/image_1755907982423.png** - ❓ Arquivo genérico
-- 📄 **attached_assets/image_1755908000366.png** - ❓ Arquivo genérico
-- 📄 **attached_assets/image_1755908391582.png** - ❓ Arquivo genérico
-- 📄 **attached_assets/image_1755908519527.png** - ❓ Arquivo genérico
-- 📄 **attached_assets/image_1755909658019.png** - ❓ Arquivo genérico
-- 📄 **attached_assets/image_1755911164112.png** - ❓ Arquivo genérico
-- 📄 **attached_assets/image_1755911689984.png** - ❓ Arquivo genérico
-- 📄 **attached_assets/image_1755911826649.png** - ❓ Arquivo genérico
-- 📄 **attached_assets/image_1755912861687.png** - ❓ Arquivo genérico
 - 📄 **generated-icon.png** - ❓ Arquivo genérico
 - 📄 **public/escudos/262.png** - ❓ Arquivo genérico
 - 📄 **public/escudos/263.png** - ❓ Arquivo genérico
@@ -462,27 +424,27 @@
 
 | Métrica | Valor |
 |---------|-------|
-| **Total de arquivos** | 168 |
-| **Tamanho total** | 14387 KB |
-| **Tamanho médio** | 86 KB |
+| **Total de arquivos** | 135 |
+| **Tamanho total** | 9881 KB |
+| **Tamanho médio** | 73 KB |
 
 ### 📋 Por Tipo de Arquivo
 
 | Tipo | Quantidade |
 |------|------------|
 | 🎨 **frontend** | 101 |
-| 📖 **docs** | 7 |
-| 🖼️ **assets** | 45 |
+| 📖 **docs** | 2 |
 | ⚙️ **config** | 11 |
 | ❓ **other** | 4 |
+| 🖼️ **assets** | 17 |
 
 ### 📏 Por Tamanho de Arquivo
 
 | Categoria | Quantidade | Descrição |
 |-----------|------------|----------|
-| 🟢 **Pequenos** | 61 | < 5KB |
-| 🟡 **Médios** | 79 | 5-50KB |
-| 🔴 **Grandes** | 28 | > 50KB |
+| 🟢 **Pequenos** | 57 | < 5KB |
+| 🟡 **Médios** | 73 | 5-50KB |
+| 🔴 **Grandes** | 5 | > 50KB |
 
 ### 🔍 Insights da Arquitetura
 
