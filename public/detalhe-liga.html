@@ -174,6 +174,225 @@
         background: #bdc3c7;
         cursor: not-allowed;
       }
+
+      /* Estilos para os botões de navegação das abas */
+      .tabs {
+        display: flex;
+        justify-content: center;
+        flex-wrap: wrap;
+        margin-bottom: 20px;
+        gap: 5px;
+      }
+
+      .tab {
+        padding: 10px 15px;
+        border: none;
+        background-color: #ecf0f1;
+        color: #34495e;
+        cursor: pointer;
+        border-radius: 6px;
+        font-size: 14px;
+        transition: background-color 0.3s, color 0.3s;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        font-weight: bold;
+      }
+
+      .tab:hover {
+        background-color: #bdc3c7;
+      }
+
+      .tab.active {
+        background-color: #3498db;
+        color: white;
+      }
+
+      .tab span {
+        font-size: 1.1em;
+      }
+
+      .tab-content {
+        display: none;
+        padding: 20px;
+        border: 1px solid #e0e0e0;
+        border-radius: 8px;
+        margin-top: 10px;
+        background-color: #fff;
+        box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+      }
+
+      .tab-content.active {
+        display: block;
+      }
+
+      /* Estilos adicionais para o container principal */
+      .container {
+        max-width: 1200px;
+        margin: 20px auto;
+        padding: 20px;
+        font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        background-color: #fdfdfd;
+        border-radius: 10px;
+        box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+      }
+
+      h2, h3 {
+        color: #2c3e50;
+        text-align: center;
+        margin-bottom: 15px;
+      }
+
+      .btn-voltar {
+        display: inline-block;
+        margin-bottom: 20px;
+        padding: 10px 20px;
+        background-color: #95a5a6;
+        color: white;
+        border: none;
+        border-radius: 6px;
+        cursor: pointer;
+        font-size: 15px;
+        transition: background-color 0.3s;
+      }
+
+      .btn-voltar:hover {
+        background-color: #7f8c8d;
+      }
+
+      /* Estilos para tabelas */
+      .ranking-table {
+        width: 100%;
+        border-collapse: collapse;
+        margin-top: 15px;
+      }
+
+      .ranking-table th,
+      .ranking-table td {
+        border: 1px solid #ddd;
+        padding: 10px 8px;
+        text-align: left;
+      }
+
+      .ranking-table th {
+        background-color: #3498db;
+        color: white;
+        font-weight: bold;
+      }
+
+      .ranking-table tbody tr:nth-child(even) {
+        background-color: #f2f2f2;
+      }
+
+      .ranking-table tbody tr:hover {
+        background-color: #e0e0e0;
+      }
+
+      /* Estilos específicos para colunas da tabela de rodadas */
+      #rodadas table.ranking-table th:nth-child(1),
+      #rodadas table.ranking-table td:nth-child(1) {
+        text-align: center;
+      }
+
+      #rodadas table.ranking-table th:nth-child(5),
+      #rodadas table.ranking-table td:nth-child(5) {
+        text-align: center;
+      }
+
+      #rodadas table.ranking-table th:nth-child(6),
+      #rodadas table.ranking-table td:nth-child(6) {
+        text-align: center;
+      }
+
+      /* Estilos para botões de ação */
+      .rodadas-actions {
+        display: flex;
+        gap: 10px;
+        margin-bottom: 15px;
+        align-items: center;
+      }
+
+      .rodadas-select {
+        padding: 10px 15px;
+        border: 1px solid #ccc;
+        border-radius: 6px;
+        font-size: 14px;
+        min-width: 200px;
+      }
+
+      .refresh-btn,
+      .parciais-btn {
+        padding: 10px 15px;
+        background-color: #3498db;
+        color: white;
+        border: none;
+        border-radius: 6px;
+        cursor: pointer;
+        font-size: 14px;
+        transition: background-color 0.3s;
+      }
+
+      .refresh-btn:hover,
+      .parciais-btn:hover {
+        background-color: #2980b9;
+      }
+
+      .times-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+        gap: 15px;
+      }
+
+      .time-card {
+        border: 1px solid #e0e0e0;
+        border-radius: 8px;
+        padding: 15px;
+        text-align: center;
+        background-color: #fafafa;
+        box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+        transition: transform 0.2s;
+      }
+
+      .time-card:hover {
+        transform: translateY(-5px);
+      }
+
+      .time-card img {
+        width: 50px;
+        height: 50px;
+        border-radius: 50%;
+        margin-bottom: 10px;
+        object-fit: cover;
+      }
+
+      .time-card h4 {
+        margin-bottom: 5px;
+        color: #34495e;
+        font-size: 1.1em;
+      }
+
+      .time-card p {
+        font-size: 0.9em;
+        color: #7f8c8d;
+      }
+
+      .toggle-participants {
+        display: block;
+        width: fit-content;
+        margin: 20px auto;
+        padding: 10px 20px;
+        background-color: #3498db;
+        color: white;
+        border: none;
+        border-radius: 6px;
+        cursor: pointer;
+        font-size: 15px;
+        transition: background-color 0.3s;
+      }
+
+      .toggle-participants:hover {
+        background-color: #2980b9;
+      }
     </style>
   </head>
   <body>
@@ -200,23 +419,35 @@
 
       <div class="tabs">
         <button class="tab active" data-tab="participantes">
-          Participantes
+          <span>👥 Participantes</span>
         </button>
-        <button class="tab" data-tab="rodadas">Rodadas</button>
-        <button class="tab" data-tab="mata-mata">Disputas Mata-Mata</button>
-        <button class="tab" data-tab="ranking-geral">Ranking Geral</button>
+        <button class="tab" data-tab="rodadas">
+          <span>📊 Rodadas</span>
+        </button>
+        <button class="tab" data-tab="mata-mata">
+          <span>⚔️ Disputas Mata-Mata</span>
+        </button>
+        <button class="tab" data-tab="ranking-geral">
+          <span>🏆 Ranking Geral</span>
+        </button>
         <button class="tab" data-tab="pontos-corridos">
-          Liga Pontos Corridos
+          <span>📈 Liga Pontos Corridos</span>
         </button>
-        <button class="tab" data-tab="melhor-mes">Melhor do Mês</button>
-        <button class="tab" data-tab="top-10">Top 10</button>
+        <button class="tab" data-tab="melhor-mes">
+          <span>⭐ Melhor do Mês</span>
+        </button>
+        <button class="tab" data-tab="top-10">
+          <span>🔥 Top 10</span>
+        </button>
         <button class="tab" data-tab="fluxo-financeiro">
-          Fluxo Financeiro
+          <span>💰 Fluxo Financeiro</span>
         </button>
         <button class="tab" data-tab="artilheiro-campeao">
-          Artilheiro Campeão
+          <span>⚽ Artilheiro Campeão</span>
         </button>
-        <button class="tab" data-tab="luva-de-ouro">Luva de Ouro</button>
+        <button class="tab" data-tab="luva-de-ouro">
+          <span>🥅 Luva de Ouro</span>
+        </button>
       </div>
 
       <div id="errorMessage" class="error-message" style="display: none"></div>
@@ -419,38 +650,38 @@
             // Fallback original melhorado
             const params = new URLSearchParams(window.location.search);
             const ligaId = params.get("id");
-            
+
             if (!ligaId) {
               throw new Error("ID da liga não encontrado na URL");
             }
-            
+
             console.log(`Fallback: Buscando liga ${ligaId}`);
             const response = await fetch(`/api/ligas/${ligaId}`);
-            
+
             if (!response.ok) {
               throw new Error(`Erro HTTP: ${response.status} ${response.statusText}`);
             }
-            
+
             const liga = await response.json();
-            
+
             if (!liga) {
               throw new Error("Liga não encontrada");
             }
-            
+
             // Atualiza elementos da interface
             const nomeElement = document.getElementById("nomeLiga");
             const quantidadeElement = document.getElementById("quantidadeTimes");
-            
+
             if (nomeElement) {
               nomeElement.textContent = `🏆 ${liga.nome || "Liga"}`;
             }
-            
+
             if (quantidadeElement) {
               const participantes = liga.participantes || liga.times || [];
               const quantidade = Array.isArray(participantes) ? participantes.length : 0;
               quantidadeElement.textContent = `${quantidade} participantes`;
             }
-            
+
             console.log(`✅ Fallback: Liga carregada - ${liga.nome} com ${(liga.participantes || liga.times || []).length} participantes`);
             return liga;
           } catch (error) {
