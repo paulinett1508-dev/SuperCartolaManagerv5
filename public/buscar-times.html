@@ -1,0 +1,491 @@
+
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Buscar Times - Super Cartola Manager</title>
+    <link rel="stylesheet" href="style.css">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+            overflow: hidden;
+        }
+
+        .header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 30px;
+            text-align: center;
+        }
+
+        .header h1 {
+            font-size: 28px;
+            margin-bottom: 10px;
+        }
+
+        .header p {
+            opacity: 0.9;
+            font-size: 16px;
+        }
+
+        .content {
+            padding: 40px;
+        }
+
+        .search-section {
+            margin-bottom: 30px;
+        }
+
+        .search-form {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+
+        .search-input {
+            flex: 1;
+            padding: 15px;
+            border: 2px solid #e1e8ed;
+            border-radius: 8px;
+            font-size: 16px;
+            transition: all 0.3s ease;
+        }
+
+        .search-input:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102,126,234,0.1);
+        }
+
+        .search-btn {
+            padding: 15px 25px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 16px;
+            font-weight: 600;
+            transition: all 0.3s ease;
+        }
+
+        .search-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 20px rgba(102,126,234,0.3);
+        }
+
+        .search-btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .results-section {
+            margin-top: 30px;
+        }
+
+        .time-card {
+            border: 1px solid #e1e8ed;
+            border-radius: 8px;
+            padding: 20px;
+            margin-bottom: 15px;
+            background: #f8f9fa;
+            transition: all 0.3s ease;
+        }
+
+        .time-card:hover {
+            background: #e9ecef;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+        }
+
+        .time-info {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .time-details {
+            flex: 1;
+        }
+
+        .time-name {
+            font-size: 18px;
+            font-weight: 600;
+            color: #2c3e50;
+            margin-bottom: 5px;
+        }
+
+        .time-cartoleiro {
+            color: #7f8c8d;
+            margin-bottom: 5px;
+        }
+
+        .time-id {
+            color: #95a5a6;
+            font-size: 12px;
+        }
+
+        .time-escudo {
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            margin-right: 15px;
+        }
+
+        .add-btn {
+            padding: 10px 20px;
+            background: #27ae60;
+            color: white;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.3s ease;
+        }
+
+        .add-btn:hover {
+            background: #229954;
+            transform: translateY(-1px);
+        }
+
+        .add-btn:disabled {
+            background: #95a5a6;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .loading {
+            text-align: center;
+            padding: 40px;
+            color: #7f8c8d;
+        }
+
+        .error {
+            background: #e74c3c;
+            color: white;
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+        }
+
+        .success {
+            background: #27ae60;
+            color: white;
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+        }
+
+        .back-btn {
+            display: inline-block;
+            padding: 12px 24px;
+            background: #6c757d;
+            color: white;
+            text-decoration: none;
+            border-radius: 6px;
+            margin-bottom: 20px;
+            transition: all 0.3s ease;
+        }
+
+        .back-btn:hover {
+            background: #5a6268;
+            transform: translateY(-1px);
+        }
+
+        .selected-times {
+            background: #e8f5e8;
+            border: 1px solid #27ae60;
+            border-radius: 8px;
+            padding: 20px;
+            margin-top: 30px;
+        }
+
+        .selected-times h3 {
+            color: #27ae60;
+            margin-bottom: 15px;
+        }
+
+        .selected-list {
+            list-style: none;
+        }
+
+        .selected-list li {
+            padding: 10px;
+            background: white;
+            margin-bottom: 10px;
+            border-radius: 6px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .remove-btn {
+            background: #e74c3c;
+            color: white;
+            border: none;
+            padding: 5px 10px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 12px;
+        }
+
+        .continue-btn {
+            display: block;
+            width: 100%;
+            padding: 15px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            margin-top: 20px;
+            transition: all 0.3s ease;
+        }
+
+        .continue-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 20px rgba(102,126,234,0.3);
+        }
+
+        @media (max-width: 768px) {
+            .search-form {
+                flex-direction: column;
+            }
+            
+            .search-btn {
+                width: 100%;
+            }
+            
+            .time-info {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 15px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🔍 Buscar Times</h1>
+            <p>Pesquise e adicione times do Cartola FC à sua liga</p>
+        </div>
+
+        <div class="content">
+            <a href="criar-liga.html" class="back-btn">← Voltar para Criar Liga</a>
+            <a href="dashboard.html" class="back-btn" style="margin-left: 10px;">🏠 Voltar ao Dashboard</a>
+
+            <div class="search-section">
+                <div class="search-form">
+                    <input type="text" id="searchInput" class="search-input" placeholder="Digite o ID do time do Cartola FC">
+                    <button onclick="buscarTime()" class="search-btn" id="searchBtn">Buscar Time</button>
+                </div>
+                <div id="messages"></div>
+            </div>
+
+            <div id="resultsSection" class="results-section" style="display: none;">
+                <h3>Resultado da Busca:</h3>
+                <div id="timeResult"></div>
+            </div>
+
+            <div id="selectedTimes" class="selected-times" style="display: none;">
+                <h3>Times Selecionados (0)</h3>
+                <ul id="selectedList" class="selected-list"></ul>
+                <button onclick="continuarCriacao()" class="continue-btn">Continuar para Criar Liga</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let selectedTimes = JSON.parse(localStorage.getItem('selectedTimes') || '[]');
+        
+        // Carregar times já selecionados
+        document.addEventListener('DOMContentLoaded', () => {
+            updateSelectedTimes();
+            
+            // Enter para buscar
+            document.getElementById('searchInput').addEventListener('keypress', (e) => {
+                if (e.key === 'Enter') {
+                    buscarTime();
+                }
+            });
+        });
+
+        async function buscarTime() {
+            const input = document.getElementById('searchInput');
+            const timeId = input.value.trim();
+            const messagesDiv = document.getElementById('messages');
+            const searchBtn = document.getElementById('searchBtn');
+            
+            if (!timeId) {
+                showMessage('Digite um ID válido', 'error');
+                return;
+            }
+
+            if (!/^\d+$/.test(timeId)) {
+                showMessage('ID deve conter apenas números', 'error');
+                return;
+            }
+
+            try {
+                searchBtn.disabled = true;
+                searchBtn.textContent = 'Buscando...';
+                messagesDiv.innerHTML = '';
+
+                const response = await fetch(`/api/times/${timeId}`);
+                const data = await response.json();
+
+                if (!response.ok) {
+                    throw new Error(data.erro || 'Erro ao buscar time');
+                }
+
+                displayTimeResult(timeId, data);
+                input.value = '';
+                
+            } catch (error) {
+                console.error('Erro ao buscar time:', error);
+                showMessage(`Erro: ${error.message}`, 'error');
+                document.getElementById('resultsSection').style.display = 'none';
+            } finally {
+                searchBtn.disabled = false;
+                searchBtn.textContent = 'Buscar Time';
+            }
+        }
+
+        function displayTimeResult(timeId, timeData) {
+            const resultsSection = document.getElementById('resultsSection');
+            const timeResult = document.getElementById('timeResult');
+            
+            const isAlreadySelected = selectedTimes.some(t => t.time_id == timeId);
+            
+            timeResult.innerHTML = `
+                <div class="time-card">
+                    <div class="time-info">
+                        <div style="display: flex; align-items: center;">
+                            <img src="${timeData.url_escudo_png || '/escudos/default.png'}" 
+                                 alt="Escudo" class="time-escudo" 
+                                 onerror="this.src='/escudos/default.png'">
+                            <div class="time-details">
+                                <div class="time-name">${timeData.nome_time || 'Time não encontrado'}</div>
+                                <div class="time-cartoleiro">👤 ${timeData.nome_cartoleiro || 'Cartoleiro desconhecido'}</div>
+                                <div class="time-id">ID: ${timeId}</div>
+                            </div>
+                        </div>
+                        <button onclick="adicionarTime('${timeId}', '${timeData.nome_time}', '${timeData.nome_cartoleiro}', '${timeData.url_escudo_png || ''}')" 
+                                class="add-btn" ${isAlreadySelected ? 'disabled' : ''}>
+                            ${isAlreadySelected ? 'Já Adicionado' : '+ Adicionar'}
+                        </button>
+                    </div>
+                </div>
+            `;
+            
+            resultsSection.style.display = 'block';
+        }
+
+        function adicionarTime(timeId, nomeTime, nomeCartoleiro, escudo) {
+            // Verificar se já foi adicionado
+            if (selectedTimes.some(t => t.time_id == timeId)) {
+                showMessage('Time já foi adicionado!', 'error');
+                return;
+            }
+
+            const novoTime = {
+                time_id: parseInt(timeId),
+                nome: nomeTime || 'Time não encontrado',
+                nome_cartola: nomeCartoleiro || 'Cartoleiro desconhecido',
+                escudo: escudo || ''
+            };
+
+            selectedTimes.push(novoTime);
+            localStorage.setItem('selectedTimes', JSON.stringify(selectedTimes));
+            
+            updateSelectedTimes();
+            showMessage('Time adicionado com sucesso!', 'success');
+            
+            // Atualizar botão do resultado
+            displayTimeResult(timeId, {
+                nome_time: nomeTime,
+                nome_cartoleiro: nomeCartoleiro,
+                url_escudo_png: escudo
+            });
+        }
+
+        function removerTime(timeId) {
+            selectedTimes = selectedTimes.filter(t => t.time_id != timeId);
+            localStorage.setItem('selectedTimes', JSON.stringify(selectedTimes));
+            updateSelectedTimes();
+            showMessage('Time removido!', 'success');
+        }
+
+        function updateSelectedTimes() {
+            const selectedTimesDiv = document.getElementById('selectedTimes');
+            const selectedList = document.getElementById('selectedList');
+            
+            if (selectedTimes.length === 0) {
+                selectedTimesDiv.style.display = 'none';
+                return;
+            }
+
+            selectedTimesDiv.style.display = 'block';
+            selectedTimesDiv.querySelector('h3').textContent = `Times Selecionados (${selectedTimes.length})`;
+            
+            selectedList.innerHTML = selectedTimes.map(time => `
+                <li>
+                    <div style="display: flex; align-items: center; gap: 10px;">
+                        <img src="${time.escudo || '/escudos/default.png'}" 
+                             alt="Escudo" width="30" height="30" style="border-radius: 50%;"
+                             onerror="this.src='/escudos/default.png'">
+                        <div>
+                            <strong>${time.nome}</strong><br>
+                            <small>👤 ${time.nome_cartola} | ID: ${time.time_id}</small>
+                        </div>
+                    </div>
+                    <button onclick="removerTime(${time.time_id})" class="remove-btn">Remover</button>
+                </li>
+            `).join('');
+        }
+
+        function continuarCriacao() {
+            if (selectedTimes.length === 0) {
+                showMessage('Adicione pelo menos um time antes de continuar!', 'error');
+                return;
+            }
+            
+            window.location.href = 'criar-liga.html';
+        }
+
+        function showMessage(message, type) {
+            const messagesDiv = document.getElementById('messages');
+            messagesDiv.innerHTML = `<div class="${type}">${message}</div>`;
+            
+            // Auto-hide success messages
+            if (type === 'success') {
+                setTimeout(() => {
+                    messagesDiv.innerHTML = '';
+                }, 3000);
+            }
+        }
+    </script>
+</body>
+</html>
