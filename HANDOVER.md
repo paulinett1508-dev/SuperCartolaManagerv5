@@ -1,6 +1,6 @@
 # 🚀 PROJECT HANDOVER
 
-**Data:** 30/07/2025  
+**Data:** 23/08/2025  
 **Ambiente:** Replit
 
 ## 📋 RESUMO EXECUTIVO
@@ -22,17 +22,12 @@ Projeto Backend/API
 📁 .upm/
   📄 store.json
 📄 DOCUMENTACAO_COMPLETA.html
-📁 attached_assets/
-  📄 Pasted-detalhe-liga-html-id-684cb1c8af923da7c7df51de-365-Iniciando-carregamento-da-aplica-o-detalhe-1753474888781_1753474888786.txt
-  📄 Pasted-detalhe-liga-html-id-684d821cf1a7ae16d1f89572-360-Iniciando-carregamento-da-aplica-o-detalhe-1753050863534_1753050863535.txt
-  📄 Pasted-detalhe-liga-html-id-684d821cf1a7ae16d1f89572-360-Iniciando-carregamento-da-aplica-o-detalhe-1753053291511_1753053291513.txt
-  📄 Pasted-detalhe-liga-html-id-684d821cf1a7ae16d1f89572-361-Iniciando-carregamento-da-aplica-o-detalhe-1753058255155_1753058255155.txt
-  📄 Pasted-rodadas-js-319-DEBUG-Item-28-Object-rodadas-js-319-DEBUG-Item-29-Object-rodadas-js-319-DEBU-1753473829630_1753473829631.txt
-  📄 Pasted-rodadas-js-319-DEBUG-Item-28-Object-rodadas-js-319-DEBUG-Item-29-Object-rodadas-js-319-DEBU-1753473996316_1753473996318.txt
+📄 HANDOVER.md
 📄 backupJson.js
 📄 backupScheduler.js
 📁 backups/
   📄 artilheirocampeaos.json
+  📄 goleiros.json
   📄 gols.json
   📄 ligas.json
   📄 rodadas.json
@@ -64,20 +59,19 @@ Projeto Backend/API
 📄 package.json
 📁 public/
   📄 admin.html
+  📄 buscar-times.html
   📄 criar-liga.html
   📄 criar-liga.js
   📄 criar.html
+  📄 dashboard.html
   📄 detalhe-liga.html
   📄 editar-liga.html
-  📁 escudos/
-
-  📄 gerenciar.html
 ```
 
 ## ⚡ COMANDOS ESSENCIAIS
 
-- **start:** `node index.js`
-- **dev:** `nodemon index.js`
+- **start:** `NODE_ENV=production node index.js`
+- **dev:** `NODE_ENV=development nodemon index.js`
 - **test:** `NODE_ENV=test NODE_OPTIONS='--experimental-vm-modules' jest --detectOpenHandles --forceExit`
 - **test:watch:** `NODE_ENV=test NODE_OPTIONS='--experimental-vm-modules' jest --watch --detectOpenHandles`
 - **test:coverage:** `NODE_ENV=test NODE_OPTIONS='--experimental-vm-modules' jest --coverage --detectOpenHandles --forceExit`
@@ -130,4 +124,4 @@ Projeto Backend/API
 - **Porta ocupada:** Mude a porta no Replit ou no código
 
 ---
-*Handover gerado automaticamente em 30/07/2025, 12:10:33*
+*Handover gerado automaticamente em 23/08/2025, 22:40:00*
