@@ -15,20 +15,35 @@
 
         .sidebar {
             width: 280px;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            background: linear-gradient(180deg, #1a237e 0%, #d84315 100%);
             color: white;
             padding: 20px;
-            box-shadow: 2px 0 10px rgba(0,0,0,0.1);
+            box-shadow: 4px 0 20px rgba(0, 0, 0, 0.15);
             position: fixed;
             height: 100vh;
             overflow-y: auto;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .sidebar::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><defs><pattern id="grain" width="100" height="100" patternUnits="userSpaceOnUse"><circle cx="25" cy="25" r="1" fill="%23ffffff" opacity="0.05"/><circle cx="75" cy="75" r="1" fill="%23ffffff" opacity="0.05"/><circle cx="50" cy="50" r="0.5" fill="%23ffffff" opacity="0.1"/></pattern></defs><rect width="100" height="100" fill="url(%23grain)"/></svg>');
+            opacity: 0.3;
         }
 
         .sidebar-logo {
             text-align: center;
             margin-bottom: 30px;
             padding-bottom: 20px;
-            border-bottom: 1px solid rgba(255,255,255,0.2);
+            border-bottom: 1px solid rgba(255,255,255,0.3);
+            position: relative;
+            z-index: 2;
         }
 
         .sidebar-logo h2 {
@@ -36,19 +51,24 @@
             margin: 0;
             font-size: 1.4rem;
             font-weight: 600;
+            text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
         }
 
         .sidebar-section {
             margin-bottom: 25px;
+            position: relative;
+            z-index: 2;
         }
 
         .sidebar-section h3 {
-            color: rgba(255,255,255,0.9);
+            color: white;
             font-size: 0.9rem;
             text-transform: uppercase;
             letter-spacing: 1px;
             margin-bottom: 15px;
-            font-weight: 500;
+            font-weight: 600;
+            text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
+            opacity: 0.95;
         }
 
         .sidebar-menu {
@@ -65,22 +85,30 @@
             display: flex;
             align-items: center;
             padding: 12px 15px;
-            color: rgba(255,255,255,0.9);
+            color: white;
             text-decoration: none;
             border-radius: 8px;
             transition: all 0.3s ease;
             font-weight: 500;
+            position: relative;
+            z-index: 2;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
         }
 
         .sidebar-menu a:hover {
-            background: rgba(255,255,255,0.1);
+            background: rgba(255,255,255,0.2);
             color: white;
             transform: translateX(5px);
+            border-color: rgba(255, 255, 255, 0.3);
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
         }
 
         .sidebar-menu a.active {
-            background: rgba(255,255,255,0.2);
+            background: rgba(255,255,255,0.25);
             color: white;
+            border-color: rgba(255, 255, 255, 0.4);
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
         }
 
         .sidebar-menu a span {
@@ -90,31 +118,41 @@
 
         .liga-item {
             background: rgba(255,255,255,0.1);
-            border-radius: 8px;
+            border-radius: 12px;
             padding: 15px;
             margin-bottom: 10px;
             cursor: pointer;
             transition: all 0.3s ease;
+            position: relative;
+            z-index: 2;
+            border: 1px solid rgba(255, 255, 255, 0.15);
+            backdrop-filter: blur(10px);
         }
 
         .liga-item:hover {
             background: rgba(255,255,255,0.2);
             transform: translateY(-2px);
+            border-color: rgba(255, 255, 255, 0.3);
+            box-shadow: 0 6px 20px rgba(0, 0, 0, 0.2);
         }
 
         .liga-item.selected {
             background: rgba(255,255,255,0.25);
-            border: 1px solid rgba(255,255,255,0.3);
+            border: 1px solid rgba(255,255,255,0.4);
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.3);
         }
 
         .liga-nome {
             font-weight: 600;
             margin-bottom: 5px;
+            color: white;
+            text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
         }
 
         .liga-info {
             font-size: 0.85rem;
-            opacity: 0.8;
+            color: rgba(255, 255, 255, 0.9);
+            text-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
         }
 
         .main-content {
