@@ -95,13 +95,10 @@
             border-radius: 8px;
             cursor: pointer;
             transition: all 0.3s ease;
-            border: 2px solid transparent;
         }
 
-        .liga-item:hover,
-        .liga-item.selected {
+        .liga-item:hover {
             background: rgba(255,255,255,0.2);
-            border-color: rgba(255,255,255,0.5);
         }
 
         .liga-item h4 {
@@ -136,85 +133,77 @@
             font-size: 16px;
         }
 
-        /* Cards Dashboard */
-        .dashboard-cards {
+        .ligas-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-            gap: 25px;
-            margin-bottom: 30px;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: 20px;
         }
 
-        .dashboard-card {
+        .liga-card {
             background: white;
             border-radius: 12px;
-            padding: 25px;
+            padding: 20px;
             box-shadow: 0 4px 20px rgba(0,0,0,0.08);
             transition: all 0.3s ease;
             border: 1px solid #e1e8ed;
-            cursor: pointer;
         }
 
-        .dashboard-card:hover {
+        .liga-card:hover {
             transform: translateY(-5px);
             box-shadow: 0 8px 30px rgba(0,0,0,0.12);
         }
 
-        .card-header {
+        .liga-card-header {
             display: flex;
+            justify-content: space-between;
             align-items: center;
             margin-bottom: 15px;
         }
 
-        .card-icon {
-            width: 50px;
-            height: 50px;
-            border-radius: 10px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 24px;
-            margin-right: 15px;
-        }
-
-        .card-content h3 {
-            font-size: 18px;
+        .liga-card h3 {
             color: #2c3e50;
-            margin-bottom: 5px;
+            font-size: 18px;
         }
 
-        .card-content p {
+        .liga-card-info {
             color: #7f8c8d;
-            font-size: 14px;
-            line-height: 1.4;
+            margin-bottom: 20px;
         }
 
-        /* Card Colors */
-        .card-participantes .card-icon { background: linear-gradient(135deg, #667eea, #764ba2); color: white; }
-        .card-rodadas .card-icon { background: linear-gradient(135deg, #f093fb, #f5576c); color: white; }
-        .card-mata-mata .card-icon { background: linear-gradient(135deg, #4facfe, #00f2fe); color: white; }
-        .card-ranking .card-icon { background: linear-gradient(135deg, #43e97b, #38f9d7); color: white; }
-        .card-melhor-mes .card-icon { background: linear-gradient(135deg, #fa709a, #fee140); color: white; }
-        .card-fluxo .card-icon { background: linear-gradient(135deg, #a8edea, #fed6e3); color: #2c3e50; }
-        .card-editar .card-icon { background: linear-gradient(135deg, #ffecd2, #fcb69f); color: #2c3e50; }
-        .card-admin .card-icon { background: linear-gradient(135deg, #ff9a9e, #fecfef); color: white; }
-        .card-excluir .card-icon { background: linear-gradient(135deg, #ffeef7, #ff758c); color: white; }
+        .liga-card-actions {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+
+        .btn {
+            padding: 8px 16px;
+            border: none;
+            border-radius: 6px;
+            font-size: 14px;
+            cursor: pointer;
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+            transition: all 0.3s ease;
+        }
+
+        .btn-primary { background: #667eea; color: white; }
+        .btn-secondary { background: #6c757d; color: white; }
+        .btn-success { background: #28a745; color: white; }
+        .btn-warning { background: #ffc107; color: #212529; }
+        .btn-danger { background: #dc3545; color: white; }
+
+        .btn:hover {
+            opacity: 0.9;
+            transform: translateY(-1px);
+        }
 
         .loading {
             text-align: center;
-            padding: 20px;
-            color: rgba(255,255,255,0.8);
-        }
-
-        .no-liga-selected {
-            text-align: center;
-            padding: 60px 20px;
+            padding: 40px;
             color: #7f8c8d;
-        }
-
-        .no-liga-selected .icon {
-            font-size: 64px;
-            margin-bottom: 20px;
-            opacity: 0.5;
         }
 
         @media (max-width: 768px) {
@@ -227,7 +216,7 @@
                 min-height: auto;
             }
             
-            .dashboard-cards {
+            .ligas-grid {
                 grid-template-columns: 1fr;
             }
         }
@@ -260,19 +249,13 @@
         <!-- Conteúdo Principal -->
         <main class="main-content">
             <div class="content-header">
-                <h1 id="contentTitle">Gerenciar Ligas</h1>
-                <p id="contentSubtitle">Selecione uma liga no sidebar para ver suas opções de gerenciamento</p>
+                <h1>Gerenciar Ligas</h1>
+                <p>Visualize e gerencie suas ligas criadas</p>
             </div>
 
             <div class="content-body">
-                <div id="noLigaSelected" class="no-liga-selected">
-                    <div class="icon">📊</div>
-                    <h3>Nenhuma liga selecionada</h3>
-                    <p>Escolha uma liga no menu lateral para visualizar suas opções de gerenciamento</p>
-                </div>
-
-                <div id="dashboardCards" class="dashboard-cards" style="display: none;">
-                    <!-- Cards serão gerados dinamicamente -->
+                <div id="ligasGrid" class="ligas-grid">
+                    <!-- Cards das ligas serão inseridos aqui -->
                 </div>
             </div>
         </main>
@@ -281,9 +264,6 @@
     <script type="module">
         import { carregarLigas, deletarLiga } from "./js/gerenciar-ligas.js";
 
-        let ligaSelecionada = null;
-        let ligas = [];
-
         // Carregar ligas na inicialização
         document.addEventListener("DOMContentLoaded", async () => {
             await carregarListaLigas();
@@ -291,150 +271,72 @@
 
         async function carregarListaLigas() {
             try {
-                ligas = await carregarLigas();
-                const container = document.getElementById("ligasContainer");
-                container.innerHTML = "";
-
-                if (ligas.length === 0) {
-                    container.innerHTML = '<div class="loading">Nenhuma liga encontrada</div>';
-                    return;
-                }
-
-                ligas.forEach((liga) => {
-                    const ligaElement = document.createElement("div");
-                    ligaElement.className = "liga-item";
-                    ligaElement.dataset.ligaId = liga._id;
-                    ligaElement.innerHTML = `
-                        <h4>${liga.nome}</h4>
-                        <p>${liga.times.length} times</p>
-                    `;
-                    ligaElement.addEventListener("click", () => selecionarLiga(liga));
-                    container.appendChild(ligaElement);
-                });
+                const ligas = await carregarLigas();
+                renderizarLigasNoSidebar(ligas);
+                renderizarLigasNaGrid(ligas);
             } catch (error) {
                 console.error("Erro ao carregar ligas:", error);
             }
         }
 
-        function selecionarLiga(liga) {
-            ligaSelecionada = liga;
-            
-            // Atualizar seleção visual no sidebar
-            document.querySelectorAll('.liga-item').forEach(item => {
-                item.classList.remove('selected');
+        function renderizarLigasNoSidebar(ligas) {
+            const container = document.getElementById("ligasContainer");
+            container.innerHTML = "";
+
+            if (ligas.length === 0) {
+                container.innerHTML = '<div class="loading">Nenhuma liga encontrada</div>';
+                return;
+            }
+
+            ligas.forEach((liga) => {
+                const ligaElement = document.createElement("div");
+                ligaElement.className = "liga-item";
+                ligaElement.innerHTML = `
+                    <h4>${liga.nome}</h4>
+                    <p>${liga.times.length} times</p>
+                `;
+                ligaElement.addEventListener("click", () => {
+                    window.location.href = `detalhe-liga.html?id=${liga._id}`;
+                });
+                container.appendChild(ligaElement);
             });
-            document.querySelector(`[data-liga-id="${liga._id}"]`).classList.add('selected');
-
-            // Atualizar header
-            document.getElementById("contentTitle").textContent = liga.nome;
-            document.getElementById("contentSubtitle").textContent = `Gerencie todas as funcionalidades desta liga`;
-
-            // Mostrar cards
-            document.getElementById("noLigaSelected").style.display = "none";
-            document.getElementById("dashboardCards").style.display = "grid";
-
-            // Gerar cards
-            gerarCards(liga);
         }
 
-        function gerarCards(liga) {
-            const cardsContainer = document.getElementById("dashboardCards");
-            cardsContainer.innerHTML = `
-                <div class="dashboard-card card-participantes" onclick="abrirPagina('detalhe-liga.html?id=${liga._id}#participantes')">
-                    <div class="card-header">
-                        <div class="card-icon">👥</div>
-                        <div class="card-content">
-                            <h3>Participantes</h3>
-                            <p>Visualize e gerencie os ${liga.times.length} times participantes da liga</p>
-                        </div>
-                    </div>
-                </div>
+        function renderizarLigasNaGrid(ligas) {
+            const grid = document.getElementById("ligasGrid");
+            
+            if (ligas.length === 0) {
+                grid.innerHTML = '<div class="loading">Nenhuma liga encontrada. <a href="criar-liga.html">Criar primeira liga</a></div>';
+                return;
+            }
 
-                <div class="dashboard-card card-rodadas" onclick="abrirPagina('detalhe-liga.html?id=${liga._id}#rodadas')">
-                    <div class="card-header">
-                        <div class="card-icon">📅</div>
-                        <div class="card-content">
-                            <h3>Rodadas</h3>
-                            <p>Acompanhe o desempenho por rodada e estatísticas detalhadas</p>
-                        </div>
+            grid.innerHTML = ligas.map(liga => `
+                <div class="liga-card">
+                    <div class="liga-card-header">
+                        <h3>${liga.nome}</h3>
+                        <span class="badge">${liga.times.length} times</span>
+                    </div>
+                    <div class="liga-card-info">
+                        <p>Criada em: ${new Date(liga.criadaEm).toLocaleDateString('pt-BR')}</p>
+                        <p>ID: ${liga._id}</p>
+                    </div>
+                    <div class="liga-card-actions">
+                        <a href="detalhe-liga.html?id=${liga._id}" class="btn btn-primary">
+                            👁️ Ver Detalhes
+                        </a>
+                        <a href="editar-liga.html?id=${liga._id}" class="btn btn-warning">
+                            ✏️ Editar
+                        </a>
+                        <a href="admin.html?id=${liga._id}" class="btn btn-success">
+                            🛠️ Popular Rodadas
+                        </a>
+                        <button onclick="confirmarExclusao('${liga._id}', '${liga.nome}')" class="btn btn-danger">
+                            🗑️ Excluir
+                        </button>
                     </div>
                 </div>
-
-                <div class="dashboard-card card-mata-mata" onclick="abrirPagina('detalhe-liga.html?id=${liga._id}#mata-mata')">
-                    <div class="card-header">
-                        <div class="card-icon">🏆</div>
-                        <div class="card-content">
-                            <h3>Mata-Mata</h3>
-                            <p>Visualize as fases eliminatórias e confrontos diretos</p>
-                        </div>
-                    </div>
-                </div>
-
-                <div class="dashboard-card card-ranking" onclick="abrirPagina('detalhe-liga.html?id=${liga._id}#ranking')">
-                    <div class="card-header">
-                        <div class="card-icon">📊</div>
-                        <div class="card-content">
-                            <h3>Ranking Geral</h3>
-                            <p>Classificação completa e estatísticas dos participantes</p>
-                        </div>
-                    </div>
-                </div>
-
-                <div class="dashboard-card card-melhor-mes" onclick="abrirPagina('detalhe-liga.html?id=${liga._id}#melhor-mes')">
-                    <div class="card-header">
-                        <div class="card-icon">⭐</div>
-                        <div class="card-content">
-                            <h3>Melhor do Mês</h3>
-                            <p>Premiações mensais e destaques por período</p>
-                        </div>
-                    </div>
-                </div>
-
-                <div class="dashboard-card card-fluxo" onclick="abrirPagina('detalhe-liga.html?id=${liga._id}#fluxo-financeiro')">
-                    <div class="card-header">
-                        <div class="card-icon">💰</div>
-                        <div class="card-content">
-                            <h3>Fluxo Financeiro</h3>
-                            <p>Controle de pagamentos, prêmios e movimentações</p>
-                        </div>
-                    </div>
-                </div>
-
-                <div class="dashboard-card card-editar" onclick="abrirPagina('editar-liga.html?id=${liga._id}')">
-                    <div class="card-header">
-                        <div class="card-icon">✏️</div>
-                        <div class="card-content">
-                            <h3>Editar Liga</h3>
-                            <p>Modifique configurações, regras e informações da liga</p>
-                        </div>
-                    </div>
-                </div>
-
-                <div class="dashboard-card card-admin" onclick="abrirPagina('admin.html?id=${liga._id}')">
-                    <div class="card-header">
-                        <div class="card-icon">🛠️</div>
-                        <div class="card-content">
-                            <h3>Popular Rodadas</h3>
-                            <p>Ferramentas administrativas para gestão de rodadas</p>
-                        </div>
-                    </div>
-                </div>
-
-                <div class="dashboard-card card-excluir" onclick="confirmarExclusao('${liga._id}', '${liga.nome}')">
-                    <div class="card-header">
-                        <div class="card-icon">🗑️</div>
-                        <div class="card-content">
-                            <h3>Excluir Liga</h3>
-                            <p>Remover permanentemente esta liga do sistema</p>
-                        </div>
-                    </div>
-                </div>
-            `;
+            `).join("");
         }
-
-        window.abrirPagina = function(url) {
-            window.location.href = url;
-        };
 
         window.confirmarExclusao = async function(ligaId, nomeLiga) {
             if (!confirm(`Tem certeza que deseja excluir a liga "${nomeLiga}"?\nEsta ação não pode ser desfeita.`)) {
@@ -445,13 +347,6 @@
                 await deletarLiga(ligaId);
                 alert("Liga excluída com sucesso!");
                 await carregarListaLigas();
-                
-                // Reset da seleção
-                ligaSelecionada = null;
-                document.getElementById("contentTitle").textContent = "Gerenciar Ligas";
-                document.getElementById("contentSubtitle").textContent = "Selecione uma liga no sidebar para ver suas opções de gerenciamento";
-                document.getElementById("noLigaSelected").style.display = "block";
-                document.getElementById("dashboardCards").style.display = "none";
             } catch (error) {
                 alert(`Erro ao excluir a liga: ${error.message}`);
             }
