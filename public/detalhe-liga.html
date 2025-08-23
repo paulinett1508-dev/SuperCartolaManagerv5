@@ -1089,6 +1089,18 @@
 
         try {
           await atualizarPagina();
+          
+          // Verificar se há uma aba específica na URL
+          const urlParams = new URLSearchParams(window.location.search);
+          const tabParam = urlParams.get('tab');
+          
+          if (tabParam) {
+            // Ativar a aba específica
+            const tabButton = document.querySelector(`[data-tab="${tabParam}"]`);
+            if (tabButton) {
+              tabButton.click();
+            }
+          }
         } catch (error) {
           console.error("❌ Erro ao atualizar página:", error);
           mostrarErroGlobal("Erro ao atualizar a página", error);
