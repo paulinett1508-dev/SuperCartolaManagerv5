@@ -98,6 +98,7 @@
             backdrop-filter: blur(10px);
             width: 100%;
             box-sizing: border-box;
+            cursor: pointer;
         }
 
         .sidebar-menu a:hover {
@@ -159,6 +160,40 @@
             text-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
         }
 
+        .liga-actions {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+            margin-top: 10px;
+        }
+
+        .liga-actions button {
+            padding: 6px 12px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            color: white;
+            font-size: 12px;
+            text-align: center;
+            transition: all 0.3s ease;
+        }
+
+        .btn-details {
+            background-color: #3498db;
+        }
+
+        .btn-edit {
+            background-color: #2ecc71;
+        }
+
+        .btn-delete {
+            background-color: #e74c3c;
+        }
+
+        .btn-popular {
+            background-color: #f39c12;
+        }
+
         .main-content {
             margin-left: 280px;
             flex: 1;
@@ -193,12 +228,12 @@
             min-height: 500px;
         }
 
-        .liga-funcionalidades {
+        .funcionalidades-section {
             display: none;
             padding: 25px;
         }
 
-        .liga-funcionalidades.active {
+        .funcionalidades-section.active {
             display: block;
         }
 
@@ -254,6 +289,114 @@
             margin-bottom: 20px;
         }
 
+        /* Estilos para criação de liga */
+        .criar-liga-form {
+            max-width: 600px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        .criar-liga-form input, .criar-liga-form button {
+            width: 100%;
+            padding: 12px;
+            margin: 10px 0;
+            font-size: 16px;
+            border-radius: 8px;
+            border: 1px solid #ccc;
+            box-sizing: border-box;
+        }
+
+        .criar-liga-form button {
+            background: var(--primary-color);
+            color: white;
+            cursor: pointer;
+            border: none;
+        }
+
+        .criar-liga-form button:hover {
+            background: var(--secondary-color);
+        }
+
+        .times-selecionados {
+            background: #f8f9fa;
+            border-radius: 8px;
+            padding: 15px;
+            margin: 15px 0;
+        }
+
+        .times-selecionados ul {
+            list-style: none;
+            padding: 0;
+            margin: 10px 0 0 0;
+        }
+
+        .times-selecionados li {
+            background: #e9ecef;
+            margin: 5px 0;
+            padding: 8px;
+            border-radius: 4px;
+            font-size: 14px;
+        }
+
+        /* Estilos para gerenciar ligas */
+        .search-container {
+            text-align: center;
+            margin-bottom: 20px;
+        }
+
+        .search-container input {
+            padding: 8px;
+            width: 300px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            font-size: 14px;
+        }
+
+        .liga-card {
+            border: 1px solid #ccc;
+            border-radius: 8px;
+            padding: 16px;
+            margin: 10px 0;
+            background-color: #f9f9f9;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .liga-card-info {
+            flex: 1;
+        }
+
+        .liga-card-info h3 {
+            margin: 0;
+            color: #2c3e50;
+            font-size: 18px;
+        }
+
+        .liga-card-info p {
+            margin: 5px 0;
+            color: #7f8c8d;
+            font-size: 14px;
+        }
+
+        .error-message {
+            color: red;
+            text-align: center;
+            margin: 10px 0;
+        }
+
+        .success-message {
+            color: green;
+            text-align: center;
+            margin: 10px 0;
+        }
+
+        .loading {
+            text-align: center;
+            color: #555;
+            margin: 20px 0;
+        }
+
         @media (max-width: 768px) {
             .sidebar {
                 width: 100%;
@@ -295,14 +438,43 @@
         <main class="main-content">
             <div class="content-header">
                 <h1 id="contentTitle">Gerenciar Ligas</h1>
-                <p id="contentSubtitle">Selecione uma liga para visualizar suas funcionalidades</p>
+                <p id="contentSubtitle">Selecione uma liga para visualizar suas funcionalidades ou crie uma nova</p>
             </div>
 
             <div class="content-body">
                 <!-- Tela de boas-vindas -->
                 <div id="welcomeScreen" class="welcome-screen">
                     <h2>🎯 Bem-vindo ao Dashboard</h2>
-                    <p>Selecione uma liga na barra lateral para acessar suas funcionalidades</p>
+                    <p>Selecione uma liga na barra lateral para acessar suas funcionalidades ou crie uma nova liga</p>
+                </div>
+
+                <!-- Seção de Criar Liga -->
+                <div id="criarLigaSection" class="funcionalidades-section">
+                    <div class="criar-liga-form">
+                        <h3>📋 Criar Nova Liga</h3>
+                        <input type="text" id="nomeLiga" placeholder="Digite o nome da liga" />
+                        
+                        <div class="times-selecionados" id="timesSelecionadosContainer" style="display: none;">
+                            <h4>✅ Times selecionados:</h4>
+                            <ul id="listaTimes"></ul>
+                        </div>
+                        
+                        <button type="button" id="btnBuscarTimes">🔍 Buscar e Adicionar Times</button>
+                        <button type="button" id="btnSalvarLiga" style="display: none;">💾 Salvar Liga</button>
+                        
+                        <div id="loadingCriar" class="loading" style="display: none;">⏳ Salvando liga...</div>
+                        <div id="mensagemCriar"></div>
+                    </div>
+                </div>
+
+                <!-- Seção de Gerenciar Ligas -->
+                <div id="gerenciarLigasSection" class="funcionalidades-section active">
+                    <div class="search-container">
+                        <input type="text" id="searchInput" placeholder="Buscar por nome da liga..." oninput="filtrarLigas()" />
+                    </div>
+                    
+                    <div id="errorMessage" class="error-message" style="display: none"></div>
+                    <div id="ligasGerenciarContainer"></div>
                 </div>
 
                 <!-- Funcionalidades das ligas (uma div para cada liga) -->
@@ -312,10 +484,11 @@
     </div>
 
     <script type="module">
-        import { carregarLigas } from './js/gerenciar-ligas.js';
+        import { carregarLigas, deletarLiga } from './js/gerenciar-ligas.js';
 
         let ligaSelecionada = null;
         let ligasData = [];
+        let timesSelecionados = [];
 
         // Funcionalidades disponíveis para cada liga
         const funcionalidades = [
@@ -336,6 +509,7 @@
             try {
                 ligasData = await carregarLigas();
                 renderizarLigas();
+                renderizarLigasGerenciar();
             } catch (error) {
                 console.error('Erro ao carregar ligas:', error);
                 document.getElementById('ligasContainer').innerHTML = 
@@ -356,16 +530,50 @@
                 <div class="liga-item" data-liga-id="${liga._id}">
                     <div class="liga-nome">${liga.nome}</div>
                     <div class="liga-info">${liga.times?.length || 0} participantes</div>
+                    <div class="liga-actions">
+                        <button class="btn-details" onclick="window.location.href='detalhe-liga.html?id=${liga._id}'">🔎 Detalhes</button>
+                        <button class="btn-edit" onclick="window.location.href='editar-liga.html?id=${liga._id}'">✏️ Editar</button>
+                        <button class="btn-popular" onclick="window.location.href='admin.html?id=${liga._id}'">🛠 Popular</button>
+                        <button class="btn-delete" onclick="confirmarExclusao('${liga._id}')">🗑 Excluir</button>
+                    </div>
                 </div>
             `).join('');
 
             // Adicionar eventos de clique nas ligas
             container.querySelectorAll('.liga-item').forEach(item => {
-                item.addEventListener('click', () => {
-                    const ligaId = item.dataset.ligaId;
-                    selecionarLiga(ligaId);
+                item.addEventListener('click', (e) => {
+                    if (!e.target.matches('button')) {
+                        const ligaId = item.dataset.ligaId;
+                        selecionarLiga(ligaId);
+                    }
                 });
             });
+        }
+
+        // Renderizar ligas para gerenciar
+        function renderizarLigasGerenciar() {
+            const container = document.getElementById('ligasGerenciarContainer');
+            
+            if (ligasData.length === 0) {
+                container.innerHTML = '<div style="text-align: center; color: #666; margin: 40px 0;">Nenhuma liga encontrada</div>';
+                return;
+            }
+
+            container.innerHTML = ligasData.map(liga => `
+                <div class="liga-card">
+                    <div class="liga-card-info">
+                        <h3>${liga.nome}</h3>
+                        <p>ID: ${liga._id}</p>
+                        <p>Times: ${liga.times?.length || 0}</p>
+                    </div>
+                    <div class="liga-actions">
+                        <button class="btn-details" onclick="window.location.href='detalhe-liga.html?id=${liga._id}'">🔎 Ver Detalhes</button>
+                        <button class="btn-edit" onclick="window.location.href='editar-liga.html?id=${liga._id}'">✏️ Editar Liga</button>
+                        <button class="btn-popular" onclick="window.location.href='admin.html?id=${liga._id}'">🛠 Popular Rodadas</button>
+                        <button class="btn-delete" onclick="confirmarExclusao('${liga._id}')">🗑 Excluir</button>
+                    </div>
+                </div>
+            `).join('');
         }
 
         // Selecionar uma liga
@@ -379,15 +587,15 @@
             document.querySelectorAll('.liga-item').forEach(item => {
                 item.classList.remove('selected');
             });
-            document.querySelector(`[data-liga-id="${ligaId}"]`).classList.add('selected');
+            document.querySelector(`[data-liga-id="${ligaId}"]`)?.classList.add('selected');
 
             // Atualizar header
             document.getElementById('contentTitle').textContent = `🏆 ${liga.nome}`;
             document.getElementById('contentSubtitle').textContent = 
                 `${liga.times?.length || 0} participantes • Gerencie as funcionalidades da liga`;
 
-            // Ocultar tela de boas-vindas
-            document.getElementById('welcomeScreen').style.display = 'none';
+            // Mostrar seções corretas
+            mostrarSecao('ligaFuncionalidades');
 
             // Renderizar funcionalidades da liga
             renderizarFuncionalidades(liga);
@@ -397,10 +605,10 @@
         function renderizarFuncionalidades(liga) {
             const container = document.getElementById('ligaFuncionalidades');
             
-            // Filtrar funcionalidades específicas por liga (se necessário)
+            // Filtrar funcionalidades específicas por liga
             let funcionalidadesDisponiveis = [...funcionalidades];
             
-            // Para a liga Cartoleiros do Sobral, remover mata-mata e pontos-corridos, adicionar artilheiro e luva
+            // Para a liga Cartoleiros do Sobral, remover mata-mata e pontos-corridos
             if (liga._id === '684d821cf1a7ae16d1f89572') {
                 funcionalidadesDisponiveis = funcionalidadesDisponiveis.filter(f => 
                     !['mata-mata', 'pontos-corridos'].includes(f.id)
@@ -413,7 +621,7 @@
             }
 
             container.innerHTML = `
-                <div class="liga-funcionalidades active">
+                <div class="funcionalidades-section active">
                     <div class="funcionalidades-grid">
                         ${funcionalidadesDisponiveis.map(func => `
                             <div class="funcionalidade-card" data-funcionalidade="${func.id}">
@@ -448,11 +656,31 @@
             document.querySelectorAll('.funcionalidade-card').forEach(card => {
                 card.classList.remove('active');
             });
-            document.querySelector(`[data-funcionalidade="${funcionalidadeId}"]`).classList.add('active');
+            document.querySelector(`[data-funcionalidade="${funcionalidadeId}"]`)?.classList.add('active');
 
             // Redirecionar para a página de detalhes com a aba específica
             const url = `detalhe-liga.html?id=${ligaSelecionada._id}&tab=${funcionalidadeId}`;
             window.location.href = url;
+        }
+
+        // Mostrar seção específica
+        function mostrarSecao(secaoId) {
+            // Ocultar todas as seções
+            document.getElementById('welcomeScreen').style.display = 'none';
+            document.querySelectorAll('.funcionalidades-section').forEach(secao => {
+                secao.classList.remove('active');
+            });
+            document.getElementById('ligaFuncionalidades').innerHTML = '';
+
+            // Mostrar seção específica
+            if (secaoId === 'welcome') {
+                document.getElementById('welcomeScreen').style.display = 'block';
+            } else {
+                const secao = document.getElementById(secaoId + 'Section');
+                if (secao) {
+                    secao.classList.add('active');
+                }
+            }
         }
 
         // Event listeners para menu da sidebar
@@ -461,18 +689,162 @@
                 e.preventDefault();
                 const action = link.dataset.action;
                 
+                // Limpar seleção de liga
+                ligaSelecionada = null;
+                document.querySelectorAll('.liga-item').forEach(item => {
+                    item.classList.remove('selected');
+                });
+                
                 // Atualizar visual do menu ativo
                 document.querySelectorAll('.sidebar-menu a').forEach(a => a.classList.remove('active'));
                 link.classList.add('active');
 
                 if (action === 'criar-liga') {
-                    window.location.href = 'preencher-liga.html';
+                    document.getElementById('contentTitle').textContent = 'Criar Nova Liga';
+                    document.getElementById('contentSubtitle').textContent = 'Preencha as informações para criar uma nova liga';
+                    mostrarSecao('criarLiga');
+                    
+                    // Recuperar times do localStorage se existirem
+                    const timesSalvos = JSON.parse(localStorage.getItem('timesSelecionados') || '[]');
+                    if (timesSalvos.length > 0) {
+                        timesSelecionados = timesSalvos;
+                        mostrarTimesSelecionados();
+                    }
                 } else if (action === 'gerenciar') {
-                    // Já estamos na tela de gerenciar
                     document.getElementById('contentTitle').textContent = 'Gerenciar Ligas';
-                    document.getElementById('contentSubtitle').textContent = 'Selecione uma liga para visualizar suas funcionalidades';
+                    document.getElementById('contentSubtitle').textContent = 'Visualize e gerencie suas ligas criadas';
+                    mostrarSecao('gerenciarLigas');
                 }
             });
+        });
+
+        // Funcionalidades de criar liga
+        document.getElementById('btnBuscarTimes').addEventListener('click', () => {
+            window.location.href = 'preencher-liga.html';
+        });
+
+        function mostrarTimesSelecionados() {
+            const container = document.getElementById('timesSelecionadosContainer');
+            const lista = document.getElementById('listaTimes');
+            
+            if (timesSelecionados.length > 0) {
+                container.style.display = 'block';
+                document.getElementById('btnSalvarLiga').style.display = 'block';
+                
+                const uniqueIds = new Set();
+                lista.innerHTML = '';
+                timesSelecionados.forEach(time => {
+                    if (uniqueIds.has(time.time_id)) return;
+                    uniqueIds.add(time.time_id);
+                    
+                    const li = document.createElement('li');
+                    li.innerHTML = `🛡️ <strong>${time.nome}</strong> — 👤 ${time.nome_cartola}`;
+                    lista.appendChild(li);
+                });
+            }
+        }
+
+        document.getElementById('btnSalvarLiga').addEventListener('click', async () => {
+            const nome = document.getElementById('nomeLiga').value.trim();
+            if (!nome) {
+                alert('Digite o nome da liga!');
+                return;
+            }
+
+            const uniqueTimes = [];
+            const uniqueIds = new Set();
+            timesSelecionados.forEach(time => {
+                if (!uniqueIds.has(time.time_id)) {
+                    uniqueIds.add(time.time_id);
+                    uniqueTimes.push(time.time_id);
+                }
+            });
+
+            if (uniqueTimes.length === 0) {
+                document.getElementById('mensagemCriar').innerHTML = 
+                    '<p style="color:red;">Adicione ao menos 1 time antes de salvar a liga.</p>';
+                return;
+            }
+
+            try {
+                document.getElementById('loadingCriar').style.display = 'block';
+                const res = await fetch('/api/ligas', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        nome,
+                        times: uniqueTimes
+                    })
+                });
+
+                if (!res.ok) {
+                    const errorData = await res.json();
+                    throw new Error(errorData.erro || 'Erro desconhecido');
+                }
+
+                const data = await res.json();
+                document.getElementById('mensagemCriar').innerHTML = 
+                    `<p style="color:green;">✅ Liga "${data.nome}" salva com sucesso!</p>`;
+                localStorage.removeItem('timesSelecionados');
+                
+                // Limpar formulário
+                document.getElementById('nomeLiga').value = '';
+                document.getElementById('timesSelecionadosContainer').style.display = 'none';
+                document.getElementById('btnSalvarLiga').style.display = 'none';
+                timesSelecionados = [];
+                
+                // Recarregar ligas
+                setTimeout(async () => {
+                    await inicializar();
+                    window.location.href = `detalhe-liga.html?id=${data._id}`;
+                }, 1000);
+                
+            } catch (err) {
+                document.getElementById('mensagemCriar').innerHTML = 
+                    `<p style="color:red;">❌ Erro ao salvar a liga: ${err.message}</p>`;
+            } finally {
+                document.getElementById('loadingCriar').style.display = 'none';
+            }
+        });
+
+        // Funções globais para gerenciar ligas
+        window.filtrarLigas = function() {
+            const searchTerm = document.getElementById('searchInput').value.toLowerCase();
+            const ligas = document.querySelectorAll('.liga-card');
+
+            ligas.forEach(liga => {
+                const nomeLiga = liga.querySelector('h3').textContent.toLowerCase();
+                liga.style.display = nomeLiga.includes(searchTerm) ? 'flex' : 'none';
+            });
+        };
+
+        window.confirmarExclusao = async function(id) {
+            if (!confirm('Tem certeza que deseja excluir esta liga?')) return;
+            
+            try {
+                await deletarLiga(id);
+                await inicializar();
+                document.getElementById('mensagemCriar').innerHTML = 
+                    '<p style="color:green;">Liga excluída com sucesso!</p>';
+                setTimeout(() => {
+                    document.getElementById('mensagemCriar').innerHTML = '';
+                }, 3000);
+            } catch (err) {
+                const errorDiv = document.getElementById('errorMessage');
+                errorDiv.textContent = `Erro ao excluir a liga: ${err.message}`;
+                errorDiv.style.display = 'block';
+                setTimeout(() => {
+                    errorDiv.style.display = 'none';
+                }, 5000);
+            }
+        };
+
+        // Verificar se há times selecionados ao carregar
+        document.addEventListener('DOMContentLoaded', () => {
+            const timesSalvos = JSON.parse(localStorage.getItem('timesSelecionados') || '[]');
+            if (timesSalvos.length > 0) {
+                timesSelecionados = timesSalvos;
+            }
         });
 
         // Inicializar aplicação
