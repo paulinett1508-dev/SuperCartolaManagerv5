@@ -1,0 +1,138 @@
+// 🧭 SISTEMA DE NAVEGAÇÃO (CORRIGIDO)
+initializeNavigation() {
+    const cards = document.querySelectorAll('.module-card');
+    const items = document.querySelectorAll('.module-items li[data-action]');
+
+    // Cards principais
+    cards.forEach(card => {
+        if (card.classList.contains('disabled')) return;
+
+        card.addEventListener('click', async (e) => {
+            if (this.processingModule) return;
+
+            // Feedback visual imediato
+            card.style.transform = 'translateY(-1px) scale(0.98)';
+            setTimeout(() => card.style.transform = '', 150);
+
+            const module = card.dataset.module;
+            
+            // ⚡ CORREÇÃO CRÍTICA: Sempre mostrar tela secundária primeiro
+            this.showSecondaryScreen();
+            
+            if (module === 'participantes') {
+                await this.showModule('participantes');
+            } else {
+                // Para outros cards, mostrar primeira ação
+                const firstAction = card.querySelector('li[data-action]');
+                if (firstAction) {
+                    await this.executeAction(firstAction.dataset.action, false); // false = não chamar showSecondaryScreen novamente
+                }
+            }
+        });
+    });
+
+    // Items específicos
+    items.forEach(item => {
+        const parentCard = item.closest('.module-card');
+        if (parentCard && parentCard.classList.contains('disabled')) return;
+
+        item.addEventListener('click', async (e) => {
+            e.stopPropagation();
+            if (this.processingModule) return;
+
+            // Feedback visual
+            item.style.opacity = '0.6';
+            setTimeout(() => item.style.opacity = '', 150);
+
+            await this.executeAction(item.dataset.action);
+        });
+    });
+}
+
+// ⚡ EXECUTAR AÇÃO ESPECÍFICA (ATUALIZADO)
+async executeAction(action, showSecondary = true) {
+    if (this.processingModule) return;
+
+    this.processingModule = true;
+
+    try {
+        // Só mostrar tela secundária se solicitado
+        if (showSecondary) {
+            this.showSecondaryScreen();
+        }
+
+        switch (action) {
+            case 'ranking-geral':
+                await this.showModule('ranking-geral');
+                break;
+            case 'parciais':
+                this.redirectToParciais();
+                break;
+            case 'rodadas':
+                await this.showModule('rodadas');
+                break;
+            case 'mata-mata':
+                await this.showModule('mata-mata');
+                break;
+            case 'pontos-corridos':
+                await this.showModule('pontos-corridos');
+                break;
+            case 'luva-de-ouro':
+                await this.showModule('luva-de-ouro');
+                break;
+            case 'artilheiro-campeao':
+                await this.showModule('artilheiro-campeao');
+                break;
+            case 'melhor-mes':
+                await this.showModule('melhor-mes');
+                break;
+            case 'top10':
+                await this.showModule('top10');
+                break;
+            case 'fluxo-financeiro':
+                await this.showModule('fluxo-financeiro');
+                break;
+            default:
+                document.getElementById('dynamic-content-area').innerHTML = 
+                    '<div class="empty-state">Funcionalidade em desenvolvimento</div>';
+        }
+    } catch (error) {
+        document.getElementById('dynamic-content-area').innerHTML = 
+            `<div class="empty-state">Erro: ${error.message}</div>`;
+    } finally {
+        this.processingModule = false;
+    }
+}
+
+// 🔄 NAVEGAÇÃO ENTRE TELAS (VERIFICAÇÃO DE CSS)
+showSecondaryScreen() {
+    const mainScreen = document.getElementById('main-screen');
+    const secondaryScreen = document.getElementById('secondary-screen');
+    
+    if (mainScreen) {
+        mainScreen.style.display = 'none';
+        console.log('🔄 Tela principal ocultada');
+    }
+    
+    if (secondaryScreen) {
+        secondaryScreen.classList.add('active');
+        secondaryScreen.style.display = 'block'; // ⚡ FORÇAR DISPLAY
+        console.log('🔄 Tela secundária ativada');
+    }
+}
+
+voltarParaCards() {
+    const mainScreen = document.getElementById('main-screen');
+    const secondaryScreen = document.getElementById('secondary-screen');
+    
+    if (secondaryScreen) {
+        secondaryScreen.classList.remove('active');
+        secondaryScreen.style.display = 'none'; // ⚡ FORÇAR OCULTAÇÃO
+        console.log('🔄 Tela secundária ocultada');
+    }
+    
+    if (mainScreen) {
+        mainScreen.style.display = 'block';
+        console.log('🔄 Tela principal exibida');
+    }
+}
