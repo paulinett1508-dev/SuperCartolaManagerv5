@@ -269,8 +269,20 @@
     font-size: 12px;
 }
 
-/* === NAVEGAÇÃO ENTRE TELAS === */
-.dynamic-content {
+/* === NAVEGAÇÃO ENTRE TELAS (CORRIGIDO) === */
+.main-screen,
+#main-screen {
+    display: block;
+    transition: all 0.3s ease;
+}
+
+.main-screen.hidden,
+#main-screen[style*="display: none"] {
+    display: none !important;
+}
+
+.dynamic-content,
+#secondary-screen {
     display: none;
     background: linear-gradient(135deg, #2a2a2a 0%, #1e1e1e 100%);
     border-radius: 12px;
@@ -279,10 +291,72 @@
     border: 1px solid rgba(255, 69, 0, 0.2);
     margin-top: 20px;
     animation: fadeInUp 0.3s ease-out;
+    transition: all 0.3s ease;
 }
 
-.dynamic-content.active {
-    display: block;
+.dynamic-content.active,
+#secondary-screen.active,
+#secondary-screen[style*="display: block"] {
+    display: block !important; /* ⚡ FORÇAR EXIBIÇÃO */
+}
+
+/* === ÁREA DE CONTEÚDO DINÂMICO === */
+#dynamic-content-area {
+    min-height: 200px;
+    width: 100%;
+    position: relative;
+}
+
+/* === BOTÃO VOLTAR CONDICIONAL (APRIMORADO) === */
+#main-screen .back-button,
+.main-screen .back-button {
+    display: none !important;
+}
+
+#secondary-screen .back-button,
+.dynamic-content .back-button,
+.dynamic-content.active .back-button {
+    display: inline-block !important;
+    background: rgba(255, 69, 0, 0.1);
+    border: 1px solid rgba(255, 69, 0, 0.3);
+    color: #ff4500;
+    padding: 8px 15px;
+    border-radius: 8px;
+    cursor: pointer;
+    font-size: 12px;
+    font-weight: 600;
+    margin-bottom: 20px;
+    transition: all 0.3s ease;
+    text-decoration: none;
+}
+
+#secondary-screen .back-button:hover,
+.dynamic-content .back-button:hover {
+    background: #ff4500;
+    color: #ffffff;
+    transform: translateX(-3px);
+}
+
+/* === GARANTIR COMPATIBILIDADE TOTAL === */
+/* Forçar estados corretos independente do JavaScript */
+body[data-screen="main"] #main-screen,
+body[data-screen="main"] .main-screen {
+    display: block !important;
+}
+
+body[data-screen="main"] #secondary-screen,
+body[data-screen="main"] .dynamic-content {
+    display: none !important;
+}
+
+body[data-screen="secondary"] #main-screen,
+body[data-screen="secondary"] .main-screen {
+    display: none !important;
+}
+
+body[data-screen="secondary"] #secondary-screen,
+body[data-screen="secondary"] .dynamic-content {
+    display: block !important;
 }
 
 /* === EFEITO SHINE === */

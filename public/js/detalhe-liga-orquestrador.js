@@ -256,59 +256,72 @@ class DetalheLigaOrquestrador {
 
     // 🧭 SISTEMA DE NAVEGAÇÃO
     initializeNavigation() {
-        const cards = document.querySelectorAll('.module-card');
-        const items = document.querySelectorAll('.module-items li[data-action]');
+        console.log("🧭 [ORQUESTRADOR] Inicializando navegação...");
+
+        const cards = document.querySelectorAll(".module-card");
+        const items = document.querySelectorAll(".module-items li[data-action]");
 
         // Cards principais
-        cards.forEach(card => {
-            if (card.classList.contains('disabled')) return;
+        cards.forEach((card) => {
+            if (card.classList.contains("disabled")) return;
 
-            card.addEventListener('click', async (e) => {
+            card.addEventListener("click", async (e) => {
                 if (this.processingModule) return;
 
                 // Feedback visual imediato
-                card.style.transform = 'translateY(-1px) scale(0.98)';
-                setTimeout(() => card.style.transform = '', 150);
+                card.style.transform = "translateY(-1px) scale(0.98)";
+                setTimeout(() => (card.style.transform = ""), 150);
 
                 const module = card.dataset.module;
+
+                // ⚡ CORREÇÃO CRÍTICA: Sempre mostrar tela secundária primeiro
+                this.showSecondaryScreen();
+
                 if (module === 'participantes') {
                     await this.showModule('participantes');
                 } else {
                     // Para outros cards, mostrar primeira ação
                     const firstAction = card.querySelector('li[data-action]');
                     if (firstAction) {
-                        await this.executeAction(firstAction.dataset.action);
+                        await this.executeAction(firstAction.dataset.action, false); // false = não chamar showSecondaryScreen novamente
                     }
                 }
             });
         });
 
         // Items específicos
-        items.forEach(item => {
-            const parentCard = item.closest('.module-card');
-            if (parentCard && parentCard.classList.contains('disabled')) return;
+        items.forEach((item) => {
+            const parentCard = item.closest(".module-card");
+            if (parentCard && parentCard.classList.contains("disabled")) return;
 
-            item.addEventListener('click', async (e) => {
+            item.addEventListener("click", async (e) => {
                 e.stopPropagation();
                 if (this.processingModule) return;
 
                 // Feedback visual
-                item.style.opacity = '0.6';
-                setTimeout(() => item.style.opacity = '', 150);
+                item.style.opacity = "0.6";
+                setTimeout(() => (item.style.opacity = ""), 150);
 
                 await this.executeAction(item.dataset.action);
             });
         });
+
+        console.log("✅ [ORQUESTRADOR] Navegação inicializada");
     }
 
-    // ⚡ EXECUTAR AÇÃO ESPECÍFICA
-    async executeAction(action) {
+    // ⚡ EXECUTAR AÇÃO ESPECÍFICA (NOVO MÉTODO)
+    async executeAction(action, showSecondary = true) {
         if (this.processingModule) return;
 
         this.processingModule = true;
 
         try {
-            this.showSecondaryScreen();
+            console.log(`🎯 [ORQUESTRADOR] Executando ação: ${action}`);
+
+            // Só mostrar tela secundária se solicitado
+            if (showSecondary) {
+                this.showSecondaryScreen();
+            }
 
             switch (action) {
                 case 'ranking-geral':
@@ -346,6 +359,7 @@ class DetalheLigaOrquestrador {
                         '<div class="empty-state">Funcionalidade em desenvolvimento</div>';
             }
         } catch (error) {
+            console.error(`❌ [ORQUESTRADOR] Erro na ação ${action}:`, error);
             document.getElementById('dynamic-content-area').innerHTML = 
                 `<div class="empty-state">Erro: ${error.message}</div>`;
         } finally {
@@ -353,38 +367,73 @@ class DetalheLigaOrquestrador {
         }
     }
 
-    // 📄 MOSTRAR MÓDULO ESPECÍFICO
-    async showModule(moduleName) {
-        const result = await this.loadModule(moduleName);
+    // 🔄 NAVEGAÇÃO ENTRE TELAS (CORRIGIDO + APRIMORADO)
+    showSecondaryScreen() {
+        const mainScreen = document.getElementById('main-screen');
+        const secondaryScreen = document.getElementById('secondary-screen');
 
-        if (!result.success) {
-            document.getElementById('dynamic-content-area').innerHTML = 
-                `<div class="empty-state">Erro ao carregar módulo: ${result.error}</div>`;
+        // Atualizar atributo do body para CSS funcionar
+        document.body.setAttribute('data-screen', 'secondary');
+
+        if (mainScreen) {
+            mainScreen.style.display = 'none';
+            mainScreen.classList.add('hidden');
+            console.log('🔄 [ORQUESTRADOR] Tela principal ocultada');
+        }
+
+        if (secondaryScreen) {
+            secondaryScreen.classList.add('active');
+            secondaryScreen.style.display = 'block'; // ⚡ FORÇAR DISPLAY
+            console.log('🔄 [ORQUESTRADOR] Tela secundária ativada');
+        } else {
+            // Fallback: usar .dynamic-content se #secondary-screen não existir
+            const dynamicContent = document.querySelector('.dynamic-content');
+            if (dynamicContent) {
+                dynamicContent.classList.add('active');
+                dynamicContent.style.display = 'block';
+                console.log('🔄 [ORQUESTRADOR] Dynamic content ativado (fallback)');
+            }
         }
     }
 
-    // 🔄 NAVEGAÇÃO ENTRE TELAS
-    showSecondaryScreen() {
-        document.getElementById('main-screen').style.display = 'none';
-        document.getElementById('secondary-screen').classList.add('active');
-    }
-
     voltarParaCards() {
-        document.getElementById('secondary-screen').classList.remove('active');
-        document.getElementById('main-screen').style.display = 'block';
+        const mainScreen = document.getElementById('main-screen');
+        const secondaryScreen = document.getElementById('secondary-screen');
+
+        // Atualizar atributo do body para CSS funcionar
+        document.body.setAttribute('data-screen', 'main');
+
+        if (secondaryScreen) {
+            secondaryScreen.classList.remove('active');
+            secondaryScreen.style.display = 'none'; // ⚡ FORÇAR OCULTAÇÃO
+            console.log('🔄 [ORQUESTRADOR] Tela secundária ocultada');
+        } else {
+            // Fallback: usar .dynamic-content se #secondary-screen não existir
+            const dynamicContent = document.querySelector('.dynamic-content');
+            if (dynamicContent) {
+                dynamicContent.classList.remove('active');
+                dynamicContent.style.display = 'none';
+                console.log('🔄 [ORQUESTRADOR] Dynamic content ocultado (fallback)');
+            }
+        }
+
+        if (mainScreen) {
+            mainScreen.style.display = 'block';
+            mainScreen.classList.remove('hidden');
+            console.log('🔄 [ORQUESTRADOR] Tela principal exibida');
+        }
     }
 
-    // 🔄 LOADING STATES
-    showLoading(text = 'Carregando dados...') {
-        const overlay = document.getElementById('processing-overlay');
-        const textEl = overlay.querySelector('.processing-text');
-        textEl.textContent = text;
-        overlay.classList.add('active');
-    }
+    // ⚡ REDIRECIONAMENTO PARA PARCIAIS
+    redirectToParciais() {
+        const urlParams = new URLSearchParams(window.location.search);
+        const ligaId = urlParams.get('id');
 
-    hideLoading() {
-        const overlay = document.getElementById('processing-overlay');
-        overlay.classList.remove('active');
+        if (ligaId) {
+            window.location.href = `/parciais.html?liga=${ligaId}`;
+        } else {
+            console.warn('⚠️ [ORQUESTRADOR] ID da liga não encontrado para redirecionamento');
+        }
     }
 
     // 📊 CARREGAR LAYOUT (MANTIDO PARA COMPATIBILIDADE)
@@ -491,7 +540,7 @@ class DetalheLigaOrquestrador {
                     const timeResponse = await fetch(`/api/time/${timeId}`);
                     if (timeResponse.ok) {
                         const time = await timeResponse.json();
-                        
+
                         // Adicionar à contagem de times únicos
                         if (time.nome_time && time.nome_time !== 'Time N/A') {
                             timesUnicos.add(time.nome_time);
@@ -828,21 +877,12 @@ class DetalheLigaOrquestrador {
         setTimeout(() => {
             const participanteCards = document.querySelectorAll('.participante-card');
             console.log(`👥 Módulo Participantes carregado com ${participanteCards.length} cards`);
-            
+
             // Aplicar animações escalonadas
             participanteCards.forEach((card, index) => {
                 card.style.animationDelay = `${index * 0.1}s`;
             });
         }, 100);
-    }
-
-    // 🔄 REDIRECIONAMENTO PARA PARCIAIS
-    redirectToParciais() {
-        const urlParams = new URLSearchParams(window.location.search);
-        const ligaId = urlParams.get('id');
-        if (ligaId) {
-            window.location.href = `parciais.html?id=${ligaId}`;
-        }
     }
 
     // 🌐 CONFIGURAR FUNÇÕES GLOBAIS (COMPATIBILIDADE)
