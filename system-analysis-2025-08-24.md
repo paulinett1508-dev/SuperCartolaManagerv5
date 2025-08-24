@@ -1,6 +1,6 @@
 # 📊 Análise do Sistema Super Cartola Manager
 
-**Data da Análise:** 24/08/2025, 14:41:19
+**Data da Análise:** 24/08/2025, 15:44:39
 
 ---
 
@@ -41,6 +41,7 @@
 - 📋 **package-lock.json** - 📋 Dados JSON
 - 📋 **package.json** - 📦 Configuração npm/dependências
 - 📄 **replit.nix** - ❓ Arquivo genérico
+- 📖 **system-analysis-2025-08-24.md** - 📖 Documentação
 - 📜 **system-mapper.js** - 📝 Script JavaScript
 - 📜 **uploadToDrive.js** - 📝 Script JavaScript
 
@@ -48,7 +49,7 @@
 
 ## 🔍 Análise por Categoria
 
-### Frontend (Cliente) (103 arquivos)
+### Frontend (Cliente) (104 arquivos)
 
 - 📄 **DOCUMENTACAO_COMPLETA.html** - 📄 Página HTML
   - 📏 Tamanho: 5396KB | Linhas: 137882
@@ -103,9 +104,9 @@
 - 📄 **public/detalhe-liga.css** - 🏆 Funcionalidades de Liga
   - 📏 Tamanho: 11KB | Linhas: 589
 - 📄 **public/detalhe-liga.html** - 🏆 Funcionalidades de Liga
-  - 📏 Tamanho: 9KB | Linhas: 248
+  - 📏 Tamanho: 18KB | Linhas: 434
 - 📄 **public/detalhe-liga.js** - 🏆 Funcionalidades de Liga
-  - 📏 Tamanho: 26KB | Linhas: 833
+  - 📏 Tamanho: 9KB | Linhas: 279
 - 📄 **public/editar-liga.html** - 🏆 Funcionalidades de Liga
   - 📏 Tamanho: 19KB | Linhas: 558
 - 📄 **public/gerenciar.html** - 📄 Página HTML
@@ -129,7 +130,7 @@
 - 📄 **public/js/exports/export-base.js** - 📝 Script JavaScript
   - 📏 Tamanho: 17KB | Linhas: 568
 - 📄 **public/js/exports/export-exports.js** - 📝 Script JavaScript
-  - 📏 Tamanho: 15KB | Linhas: 573
+  - 📏 Tamanho: 15KB | Linhas: 572
 - 📄 **public/js/exports/export-extrato-financeiro.js** - 📝 Script JavaScript
   - 📏 Tamanho: 29KB | Linhas: 890
 - 📄 **public/js/exports/export-mata-mata.js** - 📝 Script JavaScript
@@ -161,7 +162,7 @@
 - 📄 **public/js/gerenciar-ligas.js** - 🏆 Funcionalidades de Liga
   - 📏 Tamanho: 8KB | Linhas: 273
 - 📄 **public/js/gols-por-rodada.js** - 📅 Gestão de Rodadas
-  - 📏 Tamanho: 2KB | Linhas: 77
+  - 📏 Tamanho: 2KB | Linhas: 52
 - 📄 **public/js/gols.js** - ⚽ Gestão de Gols
   - 📏 Tamanho: 1KB | Linhas: 19
 - 📄 **public/js/layout-system.js** - 📝 Script JavaScript
@@ -173,7 +174,7 @@
 - 📄 **public/js/mata-mata.js** - 📝 Script JavaScript
   - 📏 Tamanho: 42KB | Linhas: 1304
 - 📄 **public/js/melhor-mes.js** - 📝 Script JavaScript
-  - 📏 Tamanho: 17KB | Linhas: 452
+  - 📏 Tamanho: 17KB | Linhas: 453
 - 📄 **public/js/navigation.js** - 🧭 Sistema de navegação
   - 📏 Tamanho: 3KB | Linhas: 76
 - 📄 **public/js/participantes.js** - 📝 Script JavaScript
@@ -188,6 +189,8 @@
   - 📏 Tamanho: 23KB | Linhas: 697
 - 📄 **public/js/seletor-ligas.js** - 🏆 Funcionalidades de Liga
   - 📏 Tamanho: 4KB | Linhas: 125
+- 📄 **public/js/sistema-modulos-init.js** - 📝 Script JavaScript
+  - 📏 Tamanho: 1KB | Linhas: 38
 - 📄 **public/js/top10.js** - 📝 Script JavaScript
   - 📏 Tamanho: 10KB | Linhas: 310
 - 📄 **public/js/utils.js** - 📝 Script JavaScript
@@ -276,10 +279,12 @@
 - 📄 **scripts/times-da-liga.json** - 🏆 Funcionalidades de Liga
   - 📏 Tamanho: 2KB | Linhas: 46
 
-### Documentação (1 arquivos)
+### Documentação (2 arquivos)
 
 - 📄 **HANDOVER.md** - 📖 Documentação
   - 📏 Tamanho: 3KB | Linhas: 135
+- 📄 **system-analysis-2025-08-24.md** - 📖 Documentação
+  - 📏 Tamanho: 17KB | Linhas: 457
 
 ### Assets (17 arquivos)
 
@@ -425,16 +430,16 @@
 
 | Métrica | Valor |
 |---------|-------|
-| **Total de arquivos** | 136 |
-| **Tamanho total** | 9860 KB |
+| **Total de arquivos** | 138 |
+| **Tamanho total** | 9871 KB |
 | **Tamanho médio** | 72 KB |
 
 ### 📋 Por Tipo de Arquivo
 
 | Tipo | Quantidade |
 |------|------------|
-| 🎨 **frontend** | 103 |
-| 📖 **docs** | 1 |
+| 🎨 **frontend** | 104 |
+| 📖 **docs** | 2 |
 | ⚙️ **config** | 11 |
 | ❓ **other** | 4 |
 | 🖼️ **assets** | 17 |
@@ -443,8 +448,8 @@
 
 | Categoria | Quantidade | Descrição |
 |-----------|------------|----------|
-| 🟢 **Pequenos** | 57 | < 5KB |
-| 🟡 **Médios** | 74 | 5-50KB |
+| 🟢 **Pequenos** | 58 | < 5KB |
+| 🟡 **Médios** | 75 | 5-50KB |
 | 🔴 **Grandes** | 5 | > 50KB |
 
 ### 🔍 Insights da Arquitetura
