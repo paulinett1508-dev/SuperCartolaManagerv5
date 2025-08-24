@@ -6,316 +6,113 @@
         <title>Detalhe da Liga - Super Cartola Manager</title>
         <link rel="shortcut icon" href="favicon.ico" type="image/x-icon" />
         <link rel="stylesheet" href="style.css" />
-
+        <link rel="stylesheet" href="detalhe-liga.css" />
         <style>
-            /* === CARDS ORGANIZADOS PROFISSIONAL === */
-            .page-content {
-                background: #1a1a1a;
-                min-height: calc(100vh - 100px);
-                padding: 20px;
-            }
+            /* === MELHORIAS - CARDS DESATIVADOS + LOGO MAIOR === */
 
-            .liga-header {
-                margin-bottom: 25px;
-                background: linear-gradient(135deg, #2a2a2a 0%, #1e1e1e 100%);
-                border-radius: 12px;
-                padding: 25px;
-                box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
-                border: 1px solid rgba(255, 69, 0, 0.2);
-            }
-
-            .liga-titulo {
-                color: #ffffff;
-                margin-bottom: 5px;
-                font-size: 22px;
-                font-weight: 700;
-            }
-
-            .liga-info {
-                color: #a0a0a0;
-                margin: 0;
-                font-size: 14px;
-            }
-
-            /* === GRID DE CARDS === */
-            .modules-grid {
-                display: grid;
-                grid-template-columns: repeat(3, 1fr);
-                gap: 15px;
-                margin: 20px 0;
-            }
-
-            .module-card {
-                background: linear-gradient(135deg, #2a2a2a 0%, #1e1e1e 100%);
-                border-radius: 12px;
-                padding: 18px;
-                border: 1px solid rgba(255, 69, 0, 0.2);
-                cursor: pointer;
+            /* Logo Sidebar Aumentado */
+            .logo-image {
+                width: 42px !important;
+                height: 42px !important;
+                object-fit: contain;
+                filter: drop-shadow(0 0 8px rgba(255, 69, 0, 0.4));
                 transition: all 0.3s ease;
-                position: relative;
-                overflow: hidden;
             }
 
-            .module-card::before {
-                content: "";
+            #logoFallback {
+                width: 42px !important;
+                height: 42px !important;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                font-size: 28px !important;
+                color: var(--laranja);
+                text-shadow: 0 0 8px rgba(255, 69, 0, 0.4);
+                transition: all 0.3s ease;
+            }
+
+            /* Cards Desativados */
+            .module-card.disabled {
+                opacity: 0.4 !important;
+                cursor: not-allowed !important;
+                pointer-events: none !important;
+                background: linear-gradient(135deg, #1a1a1a 0%, #161616 100%) !important;
+                border-color: rgba(96, 96, 96, 0.3) !important;
+            }
+
+            .module-card.disabled::before {
+                background: linear-gradient(135deg, #606060 0%, #4a4a4a 100%) !important;
+                opacity: 1 !important;
+            }
+
+            .module-card.disabled .module-icon {
+                color: #606060 !important;
+            }
+
+            .module-card.disabled .module-title {
+                color: #606060 !important;
+            }
+
+            .module-card.disabled .module-items li {
+                color: #4a4a4a !important;
+            }
+
+            .module-card.disabled .module-items li::before {
+                color: #4a4a4a !important;
+            }
+
+            .module-card.disabled:hover {
+                transform: none !important;
+                box-shadow: none !important;
+                border-color: rgba(96, 96, 96, 0.3) !important;
+            }
+
+            /* Tooltip para Cards Desativados */
+            .module-card.disabled::after {
+                content: "Não aplicável a esta liga";
                 position: absolute;
-                top: 0;
-                left: 0;
-                right: 0;
-                height: 3px;
-                background: linear-gradient(135deg, #ff4500 0%, #e8472b 100%);
+                top: 50%;
+                left: 50%;
+                transform: translate(-50%, -50%);
+                background: rgba(0, 0, 0, 0.9);
+                color: #ffffff;
+                padding: 8px 12px;
+                border-radius: 6px;
+                font-size: 11px;
+                font-weight: 600;
+                white-space: nowrap;
                 opacity: 0;
+                pointer-events: none;
                 transition: opacity 0.3s ease;
+                z-index: 10;
             }
 
-            .module-card:hover {
-                transform: translateY(-3px);
-                box-shadow: 0 12px 28px rgba(255, 69, 0, 0.25);
-                border-color: #ff4500;
-            }
-
-            .module-card:hover::before {
+            .module-card.disabled:hover::after {
                 opacity: 1;
             }
 
-            .module-header {
-                display: flex;
-                align-items: center;
-                gap: 10px;
-                margin-bottom: 12px;
-            }
-
-            .module-icon {
-                font-size: 20px;
-                color: #ff4500;
-                min-width: 24px;
-            }
-
-            .module-title {
-                color: #ffffff;
-                font-size: 14px;
-                font-weight: 600;
-                margin: 0;
-            }
-
-            .module-items {
-                list-style: none;
-                padding: 0;
-                margin: 0;
-            }
-
-            .module-items li {
-                color: #a0a0a0;
-                font-size: 12px;
-                padding: 3px 0;
-                display: flex;
-                align-items: center;
-                gap: 6px;
-            }
-
-            .module-items li::before {
-                content: "•";
-                color: #ff4500;
-                font-weight: bold;
-            }
-
-            /* === CONTEÚDO DINÂMICO === */
-            .dynamic-content {
-                display: none;
-                background: linear-gradient(135deg, #2a2a2a 0%, #1e1e1e 100%);
-                border-radius: 12px;
-                padding: 25px;
-                box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
-                border: 1px solid rgba(255, 69, 0, 0.2);
-                margin-top: 20px;
-                animation: fadeInUp 0.3s ease-out;
-            }
-
-            .dynamic-content.active {
-                display: block;
-            }
-
-            .back-button {
-                background: rgba(255, 69, 0, 0.1);
-                border: 1px solid rgba(255, 69, 0, 0.3);
-                color: #ff4500;
-                padding: 8px 15px;
-                border-radius: 8px;
-                cursor: pointer;
-                font-size: 12px;
-                font-weight: 600;
-                margin-bottom: 20px;
-                transition: all 0.3s ease;
-            }
-
-            .back-button:hover {
-                background: #ff4500;
-                color: #ffffff;
-            }
-
-            /* === PARTICIPANTES ESPECÍFICO === */
-            .participantes-grid {
-                display: grid;
-                grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
-                gap: 12px;
-                margin-top: 15px;
-            }
-
-            .participante-card {
-                background: rgba(42, 42, 42, 0.6);
-                border-radius: 8px;
-                padding: 12px;
-                border: 1px solid rgba(255, 69, 0, 0.15);
-                transition: all 0.3s ease;
-                cursor: pointer;
-            }
-
-            .participante-card:hover {
-                background: rgba(255, 69, 0, 0.1);
-                border-color: #ff4500;
-                transform: scale(1.02);
-            }
-
-            .participante-escudo {
-                width: 24px;
-                height: 24px;
-                border-radius: 50%;
-                margin-bottom: 8px;
-            }
-
-            .participante-nome {
-                color: #ffffff;
-                font-size: 13px;
-                font-weight: 600;
-                margin-bottom: 2px;
-            }
-
-            .participante-time {
-                color: #a0a0a0;
-                font-size: 11px;
-            }
-
-            /* === TABELAS COMPACTAS === */
-            .ranking-table {
-                width: 100%;
-                border-collapse: collapse;
-                background: rgba(26, 26, 26, 0.8);
-                border-radius: 8px;
-                overflow: hidden;
-                border: 1px solid rgba(255, 69, 0, 0.2);
-            }
-
-            .ranking-table th {
-                background: linear-gradient(135deg, #ff4500 0%, #e8472b 100%);
-                color: #ffffff;
-                padding: 10px 8px;
-                font-weight: 600;
-                text-transform: uppercase;
-                font-size: 11px;
-                letter-spacing: 0.5px;
-            }
-
-            .ranking-table td {
-                padding: 8px;
-                border-bottom: 1px solid rgba(255, 69, 0, 0.1);
-                color: #e0e0e0;
-                font-size: 12px;
-            }
-
-            /* === RESPONSIVIDADE === */
+            /* Responsividade Logo */
             @media (max-width: 768px) {
-                .modules-grid {
-                    grid-template-columns: 1fr;
-                    gap: 12px;
+                .logo-image {
+                    width: 36px !important;
+                    height: 36px !important;
                 }
-
-                .participantes-grid {
-                    grid-template-columns: repeat(2, 1fr);
-                }
-
-                .module-card {
-                    padding: 15px;
-                }
-
-                .liga-titulo {
-                    font-size: 18px;
+                #logoFallback {
+                    width: 36px !important;
+                    height: 36px !important;
+                    font-size: 24px !important;
                 }
             }
 
             @media (max-width: 480px) {
-                .participantes-grid {
-                    grid-template-columns: 1fr;
+                .logo-image {
+                    width: 32px !important;
+                    height: 32px !important;
                 }
-            }
-
-            /* === LOADING STATES === */
-            .processing-overlay {
-                position: fixed;
-                top: 0;
-                left: 0;
-                width: 100%;
-                height: 100%;
-                background: rgba(0, 0, 0, 0.8);
-                display: none;
-                justify-content: center;
-                align-items: center;
-                z-index: 9999;
-                flex-direction: column;
-                gap: 15px;
-            }
-
-            .processing-overlay.active {
-                display: flex;
-            }
-
-            .spinner {
-                width: 40px;
-                height: 40px;
-                border: 4px solid rgba(255, 69, 0, 0.2);
-                border-top: 4px solid #ff4500;
-                border-radius: 50%;
-                animation: spin 1s linear infinite;
-            }
-
-            .processing-text {
-                color: #ffffff;
-                font-size: 16px;
-                font-weight: 600;
-            }
-
-            @keyframes spin {
-                0% {
-                    transform: rotate(0deg);
-                }
-                100% {
-                    transform: rotate(360deg);
-                }
-            }
-
-            /* === ESTADOS === */
-            .loading-state {
-                text-align: center;
-                padding: 30px;
-                color: #a0a0a0;
-                font-size: 13px;
-            }
-
-            .empty-state {
-                text-align: center;
-                padding: 40px;
-                color: #666666;
-                font-style: italic;
-                font-size: 13px;
-            }
-
-            @keyframes fadeInUp {
-                from {
-                    opacity: 0;
-                    transform: translateY(15px);
-                }
-                to {
-                    opacity: 1;
-                    transform: translateY(0);
+                #logoFallback {
+                    width: 32px !important;
+                    height: 32px !important;
+                    font-size: 22px !important;
                 }
             }
         </style>
@@ -926,6 +723,47 @@
             // Expor função globalmente
             window.voltarParaCards = voltarParaCards;
 
+            // === SISTEMA CONDICIONAL DE CARDS ===
+            const CARDS_CONFIG = {
+                "684cb1c8af923da7c7df51de": { // Super Cartola 2025
+                    disabled: ["premios"],
+                    reason: "Prêmios não se aplicam a esta liga"
+                },
+                "684d821cf1a7ae16d1f89572": { // Cartoleiros do Sobral
+                    disabled: ["competicoes"], 
+                    reason: "Competições não se aplicam a esta liga"
+                }
+            };
+
+            function aplicarConfiguracaoCards() {
+                try {
+                    const urlParams = new URLSearchParams(window.location.search);
+                    const ligaId = urlParams.get("id");
+
+                    if (!ligaId) return;
+
+                    const config = CARDS_CONFIG[ligaId];
+                    if (!config) return;
+
+                    config.disabled.forEach(moduleId => {
+                        const card = document.querySelector(`[data-module="${moduleId}"]`);
+                        if (card) {
+                            card.classList.add('disabled');
+                            console.log(`🚫 Card "${moduleId}" desabilitado para liga ${ligaId}`);
+                        }
+                    });
+                } catch (error) {
+                    console.error("Erro ao aplicar configuração cards:", error);
+                }
+            }
+
+            function isModuleDisabled(moduleId) {
+                const urlParams = new URLSearchParams(window.location.search);
+                const ligaId = urlParams.get("id");
+                const config = CARDS_CONFIG[ligaId];
+                return config && config.disabled.includes(moduleId);
+            }
+
             // Inicialização
             document.addEventListener("DOMContentLoaded", async function () {
                 await loadLayout();
@@ -938,6 +776,9 @@
                 if (typeof lucide !== "undefined") {
                     lucide.createIcons();
                 }
+
+                // Aplicar configuração de cards após inicialização
+                setTimeout(aplicarConfiguracaoCards, 200);
             });
         </script>
     </body>
