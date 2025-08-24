@@ -1,6 +1,8 @@
 
-// === SISTEMA DE CARDS CONDICIONAIS ===
-// Sistema para desabilitar cards específicos baseado na liga atual
+// === CARDS-CONDICIONAIS.JS ===
+// Sistema de desativação condicional de cards por liga
+
+console.log("🎛️ [CARDS-CONDICIONAIS] Carregando sistema...");
 
 /**
  * Configuração dos cards por liga
@@ -20,28 +22,58 @@ const CARDS_CONFIG = {
 };
 
 /**
+ * Obter ID da liga atual da URL
+ */
+function getLigaIdAtual() {
+    const urlParams = new URLSearchParams(window.location.search);
+    return urlParams.get("id");
+}
+
+/**
+ * Verificar se um módulo está desabilitado para a liga atual
+ */
+function isModuleDisabled(moduleId) {
+    const ligaId = getLigaIdAtual();
+    const config = CARDS_CONFIG[ligaId];
+    return config && config.disabled.includes(moduleId);
+}
+
+/**
+ * Aplicar estado desabilitado visual nos cards
+ */
+function aplicarEstadoDesabilitado(card, moduleId) {
+    // Adicionar classe CSS
+    card.classList.add('disabled');
+    
+    // Remover event listeners existentes clonando o elemento
+    const newCard = card.cloneNode(true);
+    card.parentNode.replaceChild(newCard, card);
+    
+    console.log(`🚫 [CARDS-CONDICIONAIS] Card "${moduleId}" desabilitado`);
+    return newCard;
+}
+
+/**
  * Aplicar configurações condicionais baseadas na liga
  */
 function aplicarConfiguracaoCards() {
-    console.log("🎛️ [CARDS] Aplicando configuração condicional...");
+    console.log("🎯 [CARDS-CONDICIONAIS] Aplicando configuração...");
     
     try {
-        // Obter ID da liga atual
-        const urlParams = new URLSearchParams(window.location.search);
-        const ligaId = urlParams.get("id");
+        const ligaId = getLigaIdAtual();
         
         if (!ligaId) {
-            console.warn("⚠️ [CARDS] ID da liga não encontrado");
+            console.warn("⚠️ [CARDS-CONDICIONAIS] ID da liga não encontrado");
             return;
         }
         
-        console.log(`🎯 [CARDS] Liga atual: ${ligaId}`);
+        console.log(`🔍 [CARDS-CONDICIONAIS] Liga atual: ${ligaId}`);
         
         // Verificar se há configuração para esta liga
         const config = CARDS_CONFIG[ligaId];
         
-        if (!config) {
-            console.log("✅ [CARDS] Nenhuma restrição para esta liga");
+        if (!config || !config.disabled.length) {
+            console.log("✅ [CARDS-CONDICIONAIS] Nenhuma restrição para esta liga");
             return;
         }
         
@@ -50,143 +82,95 @@ function aplicarConfiguracaoCards() {
             const card = document.querySelector(`[data-module="${moduleId}"]`);
             
             if (card) {
-                // Adicionar classe desabilitada
-                card.classList.add('disabled');
-                
-                // Remover event listeners existentes clonando o elemento
-                const newCard = card.cloneNode(true);
-                card.parentNode.replaceChild(newCard, card);
-                
-                console.log(`🚫 [CARDS] Card "${moduleId}" desabilitado`);
+                aplicarEstadoDesabilitado(card, moduleId);
             } else {
-                console.warn(`⚠️ [CARDS] Card "${moduleId}" não encontrado`);
+                console.warn(`⚠️ [CARDS-CONDICIONAIS] Card "${moduleId}" não encontrado`);
             }
         });
         
-        console.log(`✅ [CARDS] Configuração aplicada: ${config.disabled.length} cards desabilitados`);
+        console.log(`✅ [CARDS-CONDICIONAIS] ${config.disabled.length} cards desabilitados`);
         
     } catch (error) {
-        console.error("❌ [CARDS] Erro ao aplicar configuração:", error);
+        console.error("❌ [CARDS-CONDICIONAIS] Erro ao aplicar configuração:", error);
     }
 }
 
 /**
- * Verificar se um módulo está desabilitado
+ * Verificar se um card deve ser bloqueado na navegação
  */
-function isModuleDisabled(moduleId) {
-    const urlParams = new URLSearchParams(window.location.search);
-    const ligaId = urlParams.get("id");
+function verificarCardBloqueado(card) {
+    const moduleId = card?.dataset?.module;
     
-    const config = CARDS_CONFIG[ligaId];
-    return config && config.disabled.includes(moduleId);
+    if (!moduleId) return false;
+    
+    if (isModuleDisabled(moduleId)) {
+        console.log(`🚫 [CARDS-CONDICIONAIS] Clique bloqueado no card: ${moduleId}`);
+        return true;
+    }
+    
+    return false;
 }
 
 /**
- * Override do sistema de navegação para verificar cards desabilitados
+ * Override da navegação para aplicar verificações condicionais
  */
-function initializeConditionalNavigation() {
-    console.log("🧭 [CARDS] Inicializando navegação condicional...");
+function aplicarNavegacaoCondicional() {
+    console.log("🧭 [CARDS-CONDICIONAIS] Configurando navegação condicional...");
     
-    const cards = document.querySelectorAll(".module-card");
-    const items = document.querySelectorAll(".module-items li[data-action]");
-    
-    // Cards principais com verificação condicional
-    cards.forEach((card) => {
-        const moduleId = card.dataset.module;
+    // Interceptar cliques nos cards
+    document.addEventListener('click', (e) => {
+        const card = e.target.closest('.module-card');
         
-        // Verificar se está desabilitado
-        if (isModuleDisabled(moduleId)) {
-            card.classList.add('disabled');
-            return; // Não adicionar event listener
-        }
-        
-        // Event listener normal para cards ativos
-        card.addEventListener("click", async (e) => {
-            if (card.classList.contains('disabled')) {
-                e.preventDefault();
-                e.stopPropagation();
-                return false;
-            }
-            
-            // Lógica original mantida
-            if (window.processingModule) return;
-            
-            card.style.transform = "translateY(-1px) scale(0.98)";
-            setTimeout(() => {
-                card.style.transform = "";
-            }, 150);
-            
-            if (moduleId === "participantes") {
-                await window.showParticipantes();
-            } else {
-                const firstAction = card.querySelector("li[data-action]");
-                if (firstAction && window.executeAction) {
-                    await window.executeAction(firstAction.dataset.action);
-                }
-            }
-        });
-    });
-    
-    // Items específicos com verificação
-    items.forEach((item) => {
-        const parentCard = item.closest('.module-card');
-        const moduleId = parentCard?.dataset.module;
-        
-        if (isModuleDisabled(moduleId)) {
-            return; // Não adicionar event listener
-        }
-        
-        item.addEventListener("click", async (e) => {
+        if (card && card.classList.contains('disabled')) {
+            e.preventDefault();
             e.stopPropagation();
-            if (window.processingModule) return;
+            e.stopImmediatePropagation();
             
-            item.style.opacity = "0.6";
-            setTimeout(() => {
-                item.style.opacity = "";
-            }, 150);
-            
-            if (window.executeAction) {
-                await window.executeAction(item.dataset.action);
-            }
-        });
-    });
-    
-    console.log("✅ [CARDS] Navegação condicional inicializada");
+            console.log("🚫 [CARDS-CONDICIONAIS] Clique bloqueado em card desabilitado");
+            return false;
+        }
+    }, true); // useCapture = true para interceptar antes de outros listeners
 }
 
 /**
- * Integração com o sistema existente
+ * Inicializar sistema quando DOM estiver pronto
  */
-function integrarSistemaCondicional() {
-    console.log("🔧 [CARDS] Integrando sistema condicional...");
+function inicializar() {
+    console.log("🚀 [CARDS-CONDICIONAIS] Inicializando...");
     
-    // Aguardar DOM estar pronto
-    if (document.readyState === 'loading') {
-        document.addEventListener('DOMContentLoaded', () => {
-            setTimeout(() => {
-                aplicarConfiguracaoCards();
-                initializeConditionalNavigation();
-            }, 500);
-        });
-    } else {
-        setTimeout(() => {
-            aplicarConfiguracaoCards();
-            initializeConditionalNavigation();
-        }, 500);
+    try {
+        // Aplicar configurações visuais
+        aplicarConfiguracaoCards();
+        
+        // Configurar navegação condicional
+        aplicarNavegacaoCondicional();
+        
+        console.log("✅ [CARDS-CONDICIONAIS] Sistema inicializado");
+        
+    } catch (error) {
+        console.error("❌ [CARDS-CONDICIONAIS] Erro na inicialização:", error);
     }
 }
 
 /**
- * Expor funções globalmente para compatibilidade
+ * API pública do módulo
  */
 window.cardsCondicionais = {
     aplicarConfiguracao: aplicarConfiguracaoCards,
     isModuleDisabled: isModuleDisabled,
-    initializeNavigation: initializeConditionalNavigation,
-    config: CARDS_CONFIG
+    verificarBloqueado: verificarCardBloqueado,
+    CARDS_CONFIG: CARDS_CONFIG
 };
 
-// Inicializar automaticamente
-integrarSistemaCondicional();
+// Auto-inicialização
+if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', () => {
+        // Aguardar um pouco para outros scripts carregarem
+        setTimeout(inicializar, 150);
+    });
+} else {
+    // DOM já carregado
+    setTimeout(inicializar, 150);
+}
 
-console.log("✅ [CARDS] Sistema condicional carregado");
+console.log("✅ [CARDS-CONDICIONAIS] Módulo carregado");
