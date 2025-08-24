@@ -1,248 +1,437 @@
 <!doctype html>
 <html lang="pt-BR">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Liga - Super Cartola Manager</title>
-    <link rel="icon" type="image/png" href="/favicon.png" />
+    <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <title>Detalhe da Liga - Super Cartola Manager</title>
+        <link rel="shortcut icon" href="favicon.ico" type="image/x-icon" />
 
-    <!-- CSS REFATORADO -->
-    <link rel="stylesheet" href="style.css" />
-    <link rel="stylesheet" href="detalhe-liga.css" />
+        <!-- ✅ CORREÇÃO: Estilos básicos inline para substituir CSS ausente -->
+        <style>
+            .navbar {
+                background: #fff;
+                border-bottom: 1px solid #ddd;
+                padding: 10px 0;
+            }
+            .navbar-brand {
+                font-weight: bold;
+                color: #333;
+                text-decoration: none;
+            }
+            .liga-header {
+                margin-bottom: 20px;
+            }
+            .liga-titulo {
+                color: #333;
+                margin-bottom: 5px;
+            }
+            .liga-info {
+                color: #666;
+                margin: 0;
+            }
+            .tabs-nav {
+                display: flex;
+                border-bottom: 1px solid #ddd;
+                margin-bottom: 20px;
+                flex-wrap: wrap;
+            }
+            .tab-button {
+                background: none;
+                border: none;
+                padding: 10px 15px;
+                cursor: pointer;
+                border-bottom: 2px solid transparent;
+            }
+            .tab-button:hover {
+                background: #f8f9fa;
+            }
+            .tab-button.active {
+                border-bottom-color: #007bff;
+                color: #007bff;
+            }
+            .tab-pane {
+                display: none;
+            }
+            .tab-pane.active {
+                display: block;
+            }
+            .ranking-table {
+                width: 100%;
+                border-collapse: collapse;
+            }
+            .ranking-table th,
+            .ranking-table td {
+                padding: 8px;
+                text-align: left;
+                border-bottom: 1px solid #ddd;
+            }
+            .ranking-table th {
+                background: #f8f9fa;
+                font-weight: 600;
+            }
+            .error-toast {
+                position: fixed;
+                top: 20px;
+                right: 20px;
+                background: #dc3545;
+                color: white;
+                padding: 15px;
+                border-radius: 5px;
+                z-index: 9999;
+            }
+            .sidebar {
+                background: #f8f9fa;
+                padding: 15px;
+                border-radius: 5px;
+            }
+            .sidebar-title {
+                font-size: 1.1em;
+                margin-bottom: 10px;
+            }
+            .sidebar-menu {
+                list-style: none;
+                padding: 0;
+                margin: 0;
+            }
+            .sidebar-menu li {
+                margin: 5px 0;
+            }
+            .sidebar-link {
+                color: #333;
+                text-decoration: none;
+                padding: 5px 0;
+                display: block;
+            }
+            .sidebar-link:hover {
+                color: #007bff;
+            }
+        </style>
 
-    <!-- DEPENDÊNCIAS EXTERNAS -->
-    <script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
-    <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.js"></script>
-  </head>
-  <body>
-    <div class="app-container">
-      <!-- SIDEBAR -->
-      <aside class="app-sidebar">
-        <div class="sidebar-logo">
-          <div class="logo-container">
-            <img src="/img/logo-supercartola.png" alt="Logo" class="logo-image" style="display: none;" onerror="this.style.display='none'; document.getElementById('logoFallback').style.display='flex';">
-            <div id="logoFallback">⚽</div>
-            <div class="logo-text">
-              <h2>SUPER CARTOLA</h2>
-              <p>Manager</p>
+        <!-- Lucide Icons -->
+        <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.js"></script>
+
+        <!-- Bootstrap CSS -->
+        <link
+            href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css"
+            rel="stylesheet"
+        />
+    </head>
+
+    <body>
+        <nav class="navbar">
+            <div class="container">
+                <a class="navbar-brand" href="/">
+                    <span style="font-weight: bold">Super Cartola Manager</span>
+                </a>
             </div>
-          </div>
-        </div>
-
-        <nav class="sidebar-section">
-          <h3>Navegação</h3>
-          <ul class="sidebar-menu">
-            <li><a href="/dashboard.html"><span class="icon">🏠</span>Dashboard</a></li>
-            <li><a href="/gerenciar.html"><span class="icon">⚙️</span>Gerenciar</a></li>
-            <li><a href="/criar.html"><span class="icon">➕</span>Criar Liga</a></li>
-          </ul>
         </nav>
 
-        <div class="sidebar-section">
-          <h3>Minhas Ligas</h3>
-          <div id="sidebar-ligas">
-            <div class="ligas-loading">Carregando ligas...</div>
-          </div>
-        </div>
-      </aside>
-
-      <!-- CONTEÚDO PRINCIPAL -->
-      <main class="app-main">
-        <header class="page-header">
-          <button class="mobile-sidebar-toggle">☰</button>
-          <div class="breadcrumb">
-            <a href="/dashboard.html">Dashboard</a>
-            <span class="separator">›</span>
-            <span class="current">Liga</span>
-          </div>
-          <h1 class="page-title">Carregando Liga...</h1>
-          <p class="page-subtitle">Aguarde...</p>
-        </header>
-
-        <div class="page-content">
-          <!-- HEADER DA LIGA -->
-          <div class="liga-header">
-            <div class="liga-info">
-              <img id="liga-escudo" src="/escudos/default.png" alt="Escudo da Liga" class="liga-escudo">
-              <div class="liga-dados">
-                <h1 id="liga-nome">Nome da Liga</h1>
-                <div class="liga-meta">
-                  <span><span class="icon">👥</span><span id="liga-participantes">0</span> participantes</span>
-                  <span><span class="icon">🎯</span>Rodada <span id="liga-rodada">1</span></span>
-                  <span><span class="icon">💰</span>Status: <span id="liga-status">Ativa</span></span>
+        <div class="container mt-4">
+            <div class="row">
+                <div class="col-md-3">
+                    <div id="sidebar-container">
+                        <!-- Sidebar será carregado aqui dinamicamente -->
+                    </div>
                 </div>
-              </div>
+
+                <div class="col-md-9">
+                    <div class="liga-header mb-4">
+                        <h2 id="nomeLiga" class="liga-titulo">Nome da Liga</h2>
+                        <p id="quantidadeTimes" class="liga-info">
+                            0 participantes
+                        </p>
+                    </div>
+
+                    <div class="tabs-container">
+                        <nav class="tabs-nav">
+                            <button
+                                class="tab-button active"
+                                data-tab="ranking-geral"
+                            >
+                                <i data-lucide="trophy"></i>
+                                Ranking Geral
+                            </button>
+                            <button class="tab-button" data-tab="rodadas">
+                                <i data-lucide="calendar"></i>
+                                Rodadas
+                            </button>
+                            <button class="tab-button" data-tab="mata-mata">
+                                <i data-lucide="zap"></i>
+                                Mata-Mata
+                            </button>
+                            <button
+                                class="tab-button"
+                                data-tab="pontos-corridos"
+                            >
+                                <i data-lucide="trending-up"></i>
+                                Pontos Corridos
+                            </button>
+                            <button class="tab-button" data-tab="luva-de-ouro">
+                                <i data-lucide="award"></i>
+                                Luva de Ouro
+                            </button>
+                            <button
+                                class="tab-button"
+                                data-tab="artilheiro-campeao"
+                            >
+                                <i data-lucide="target"></i>
+                                Artilheiro Campeão
+                            </button>
+                            <button class="tab-button" data-tab="melhor-mes">
+                                <i data-lucide="star"></i>
+                                Melhor Mês
+                            </button>
+                            <button class="tab-button" data-tab="top10">
+                                <i data-lucide="crown"></i>
+                                Top 10
+                            </button>
+                            <button
+                                class="tab-button"
+                                data-tab="fluxo-financeiro"
+                            >
+                                <i data-lucide="dollar-sign"></i>
+                                Fluxo Financeiro
+                            </button>
+                        </nav>
+
+                        <div class="tab-content">
+                            <!-- Ranking Geral Tab -->
+                            <div id="ranking-geral" class="tab-pane active">
+                                <div
+                                    style="
+                                        color: #555;
+                                        text-align: center;
+                                        padding: 20px;
+                                    "
+                                >
+                                    Carregando ranking geral...
+                                </div>
+                            </div>
+
+                            <!-- Rodadas Tab -->
+                            <div id="rodadas" class="tab-pane">
+                                <div class="rodadas-controls mb-3">
+                                    <div class="row align-items-center">
+                                        <div class="col-md-6">
+                                            <select
+                                                id="rodadaSelect"
+                                                class="form-control"
+                                            >
+                                                <option value="">
+                                                    Escolha uma rodada
+                                                </option>
+                                            </select>
+                                        </div>
+                                        <div class="col-md-6 text-end">
+                                            <div
+                                                id="rodadasExportBtnContainer"
+                                            ></div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div
+                                    id="loading"
+                                    style="
+                                        display: none;
+                                        text-align: center;
+                                        padding: 20px;
+                                    "
+                                >
+                                    Carregando dados da rodada...
+                                </div>
+
+                                <div class="table-responsive">
+                                    <table
+                                        class="table table-striped ranking-table"
+                                    >
+                                        <thead>
+                                            <tr>
+                                                <th style="width: 60px">Pos</th>
+                                                <th style="width: 50px">❤️</th>
+                                                <th style="min-width: 120px">
+                                                    Cartoleiro
+                                                </th>
+                                                <th style="min-width: 120px">
+                                                    Time
+                                                </th>
+                                                <th style="width: 80px">
+                                                    Pontos
+                                                </th>
+                                                <th style="width: 80px">
+                                                    Banco
+                                                </th>
+                                            </tr>
+                                        </thead>
+                                        <tbody id="rankingBody">
+                                            <tr>
+                                                <td colspan="6">
+                                                    Selecione uma rodada para
+                                                    visualizar o ranking.
+                                                </td>
+                                            </tr>
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+
+                            <!-- Mata-Mata Tab -->
+                            <div id="mata-mata" class="tab-pane">
+                                <div id="mataMataContent">
+                                    <div
+                                        style="
+                                            color: #555;
+                                            text-align: center;
+                                            padding: 20px;
+                                        "
+                                    >
+                                        Clique para carregar dados do
+                                        Mata-Mata...
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Pontos Corridos Tab -->
+                            <div id="pontos-corridos" class="tab-pane">
+                                <div id="pontosCorridosContent">
+                                    <div
+                                        style="
+                                            color: #555;
+                                            text-align: center;
+                                            padding: 20px;
+                                        "
+                                    >
+                                        Clique para carregar dados dos Pontos
+                                        Corridos...
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Luva de Ouro Tab -->
+                            <div id="luva-de-ouro" class="tab-pane">
+                                <div id="luvaDeOuroContent">
+                                    <div
+                                        style="
+                                            color: #555;
+                                            text-align: center;
+                                            padding: 20px;
+                                        "
+                                    >
+                                        Clique para carregar dados da Luva de
+                                        Ouro...
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Artilheiro Campeão Tab -->
+                            <div id="artilheiro-campeao" class="tab-pane">
+                                <div id="artilheiroCampeaoContent">
+                                    <div
+                                        style="
+                                            color: #555;
+                                            text-align: center;
+                                            padding: 20px;
+                                        "
+                                    >
+                                        Clique para carregar dados do Artilheiro
+                                        Campeão...
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Melhor Mês Tab -->
+                            <div id="melhor-mes" class="tab-pane">
+                                <div id="melhorMesContent">
+                                    <div
+                                        style="
+                                            color: #555;
+                                            text-align: center;
+                                            padding: 20px;
+                                        "
+                                    >
+                                        Clique para carregar dados do Melhor
+                                        Mês...
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Top 10 Tab -->
+                            <div id="top10" class="tab-pane">
+                                <div class="row">
+                                    <div class="col-md-6">
+                                        <div
+                                            id="top10MitosExportBtnContainer"
+                                            class="text-end mb-2"
+                                        ></div>
+                                        <div id="top10MitosTable"></div>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <div
+                                            id="top10MicosExportBtnContainer"
+                                            class="text-end mb-2"
+                                        ></div>
+                                        <div id="top10MicosTable"></div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Fluxo Financeiro Tab -->
+                            <div id="fluxo-financeiro" class="tab-pane">
+                                <div id="fluxoFinanceiroContent">
+                                    <div
+                                        style="
+                                            color: #555;
+                                            text-align: center;
+                                            padding: 20px;
+                                        "
+                                    >
+                                        Clique para carregar dados do Fluxo
+                                        Financeiro...
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
             </div>
-
-            <div class="liga-actions">
-              <button class="action-btn" onclick="ExportSystem.show()">
-                <span class="icon">📤</span>Exportar
-              </button>
-              <button class="action-btn" onclick="window.print()">
-                <span class="icon">🖨️</span>Imprimir
-              </button>
-              <button class="action-btn" onclick="location.reload()">
-                <span class="icon">🔄</span>Atualizar
-              </button>
-            </div>
-          </div>
-
-          <!-- SISTEMA DE NAVEGAÇÃO HIERÁRQUICA -->
-          <div class="main-screen" id="main-screen">
-            <div class="modules-grid">
-              <div class="module-card" data-navigate="participantes">
-                <span class="icon">👥</span>
-                <h3>Participantes</h3>
-                <p>Gerenciar times da liga</p>
-              </div>
-              <div class="module-card" data-navigate="ranking">
-                <span class="icon">🏆</span>
-                <h3>Ranking</h3>
-                <p>Classificação geral</p>
-              </div>
-              <button class="tab-button" data-tab="rodadas">
-                <span class="icon">🎯</span>Rodadas
-              </button>
-              <button class="tab-button" data-tab="mata-mata">
-                <span class="icon">⚔️</span>Mata-Mata
-              </button>
-              <button class="tab-button" data-tab="pontos-corridos">
-                <span class="icon">📊</span>Pontos Corridos
-              </button>
-              <button class="tab-button" data-tab="fluxo-financeiro">
-                <span class="icon">💰</span>Financeiro
-              </button>
-              <button class="tab-button" data-tab="artilheiro-campeao">
-                <span class="icon">⚽</span>Artilheiro
-              </button>
-              <button class="tab-button" data-tab="melhor-mes">
-                <span class="icon">🌟</span>Melhor Mês
-              </button>
-              <button class="tab-button" data-tab="luva-de-ouro">
-                <span class="icon">🥅</span>Luva de Ouro
-              </button>
-              <button class="tab-button" data-tab="top10">
-                <span class="icon">🔥</span>Top 10
-              </button>
-            </div>
-          </div>
-
-          <!-- ÁREA DE CONTEÚDO DINÂMICO -->
-          <div class="secondary-screen hidden" id="secondary-screen">
-            <div class="secondary-header">
-              <button class="back-button" data-action="back">
-                <span class="icon">←</span> Voltar
-              </button>
-              <h2 id="secondary-title">Módulo</h2>
-            </div>
-            <div class="dynamic-content" id="dynamic-content">
-              <!-- Conteúdo dos módulos será inserido aqui -->
-            </div>
-          </div>
-
-          <!-- CONTAINERS DE COMPATIBILIDADE -->
-          <div class="tab-contents hidden">
-            <div id="tab-ranking" class="tab-content">
-              <div class="liga-loading">Carregando ranking...</div>
-            </div></div>
-
-          <div id="tab-participantes" class="tab-content">
-            <div class="liga-loading">Carregando participantes...</div>
-          </div>
-
-          <div id="tab-rodadas" class="tab-content">
-            <div class="liga-loading">Carregando rodadas...</div>
-          </div>
-
-          <div id="tab-mata-mata" class="tab-content">
-            <div class="liga-loading">Carregando mata-mata...</div>
-          </div>
-
-          <div id="tab-pontos-corridos" class="tab-content">
-            <div class="liga-loading">Carregando pontos corridos...</div>
-          </div>
-
-          <div id="tab-fluxo-financeiro" class="tab-content">
-            <div class="liga-loading">Carregando fluxo financeiro...</div>
-          </div>
-
-          <div id="tab-artilheiro-campeao" class="tab-content">
-            <div class="liga-loading">Carregando artilheiro campeão...</div>
-          </div>
-
-          <div id="tab-melhor-mes" class="tab-content">
-            <div class="liga-loading">Carregando melhor do mês...</div>
-          </div>
-
-          <div id="tab-luva-de-ouro" class="tab-content">
-            <div class="liga-loading">Carregando luva de ouro...</div>
-          </div>
-
-          <div id="tab-top10" class="tab-content">
-            <div class="liga-loading">Carregando top 10...</div>
-          </div>
         </div>
-      </main>
 
-      <!-- PAINEL DE DEBUG -->
-      <div class="debug-panel hidden" id="debug-panel">
-        <div class="debug-header">
-          <h3>🔧 Debug System</h3>
-          <button class="debug-close" data-action="close-debug">×</button>
-        </div>
-        <div class="debug-content">
-          <div class="debug-section">
-            <h4>Módulos Carregados:</h4>
-            <div id="debug-modules"></div>
-          </div>
-          <div class="debug-section">
-            <h4>Estado Atual:</h4>
-            <pre id="debug-state"></pre>
-          </div>
-        </div>
-      </div>
-    </div>
+        <!-- Bootstrap JS -->
+        <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 
-    <!-- SCRIPTS DOS MÓDULOS EXISTENTES -->
-    <script src="/js/utils.js"></script>
-    <script src="/js/layout-system.js"></script>
-    <script src="/js/navigation.js"></script>
-    <script src="/js/seletor-ligas.js"></script>
+        <!-- ✅ CORREÇÃO S.D.A.: Scripts com type="module" para resolver erros ES6 -->
 
-    <!-- MÓDULOS ESPECÍFICOS -->
-    <script src="/js/participantes.js"></script>
-    <script src="/js/rodadas.js"></script>
-    <script src="/js/mata-mata.js"></script>
-    <script src="/js/ranking.js"></script>
-    <script src="/js/pontos-corridos.js"></script>
-    <script src="/js/fluxo-financeiro.js"></script>
-    <script src="/js/artilheiro-campeao.js"></script>
-    <script src="/js/melhor-mes.js"></script>
-    <script src="/js/luva-de-ouro.js"></script>
-    <script src="/js/top10.js"></script>
+        <!-- Scripts base do sistema -->
+        <script type="module" src="js/utils.js"></script>
+        <script type="module" src="js/layout-system.js"></script>
+        <script type="module" src="js/navigation.js"></script>
 
-    <!-- JAVASCRIPT REFATORADO PRINCIPAL -->
-    <script type="module" src="detalhe-liga.js"></script>
+        <!-- Scripts de funcionalidades -->
+        <script type="module" src="js/participantes.js"></script>
+        <script type="module" src="js/ranking.js"></script>
+        <script type="module" src="js/rodadas.js"></script>
 
-    <script>
-      // 🔄 MOBILE SIDEBAR TOGGLE
-      document.addEventListener('DOMContentLoaded', function() {
-        const toggle = document.querySelector('.mobile-sidebar-toggle');
-        const sidebar = document.querySelector('.app-sidebar');
+        <!-- Scripts de módulos específicos -->
+        <script type="module" src="js/mata-mata.js"></script>
+        <script type="module" src="js/pontos-corridos.js"></script>
+        <script type="module" src="js/pontos-corridos-utils.js"></script>
+        <script type="module" src="js/luva-de-ouro.js"></script>
+        <script type="module" src="js/artilheiro-campeao.js"></script>
+        <script type="module" src="js/melhor-mes.js"></script>
+        <script type="module" src="js/top10.js"></script>
+        <script type="module" src="js/fluxo-financeiro.js"></script>
 
-        if (toggle && sidebar) {
-          toggle.addEventListener('click', function() {
-            sidebar.classList.toggle('mobile-open');
-          });
+        <!-- Scripts auxiliares -->
+        <script type="module" src="js/gols.js"></script>
+        <script type="module" src="js/gols-por-rodada.js"></script>
+        <script type="module" src="js/liga-modificacoes.js"></script>
+        <script type="module" src="js/filtro-liga-especial.js"></script>
+        <script type="module" src="js/gerenciar-ligas.js"></script>
 
-          // Fechar ao clicar fora
-          document.addEventListener('click', function(e) {
-            if (!sidebar.contains(e.target) && !toggle.contains(e.target)) {
-              sidebar.classList.remove('mobile-open');
-            }
-          });
-        }
-      });
-    </script>
-  </body>
+        <!-- Seletor de ligas (IIFE - não precisa de type="module") -->
+        <script src="js/seletor-ligas.js"></script>
+
+        <!-- Script principal da página -->
+        <script type="module" src="js/detalhe-liga.js"></script>
+    </body>
 </html>

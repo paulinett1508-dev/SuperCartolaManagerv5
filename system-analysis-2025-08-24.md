@@ -1,6 +1,6 @@
 # 📊 Análise do Sistema Super Cartola Manager
 
-**Data da Análise:** 24/08/2025, 14:21:08
+**Data da Análise:** 24/08/2025, 14:41:19
 
 ---
 
@@ -41,7 +41,6 @@
 - 📋 **package-lock.json** - 📋 Dados JSON
 - 📋 **package.json** - 📦 Configuração npm/dependências
 - 📄 **replit.nix** - ❓ Arquivo genérico
-- 📖 **system-analysis-2025-08-23.md** - 📖 Documentação
 - 📜 **system-mapper.js** - 📝 Script JavaScript
 - 📜 **uploadToDrive.js** - 📝 Script JavaScript
 
@@ -49,7 +48,7 @@
 
 ## 🔍 Análise por Categoria
 
-### Frontend (Cliente) (101 arquivos)
+### Frontend (Cliente) (103 arquivos)
 
 - 📄 **DOCUMENTACAO_COMPLETA.html** - 📄 Página HTML
   - 📏 Tamanho: 5396KB | Linhas: 137882
@@ -101,8 +100,12 @@
   - 📏 Tamanho: 2KB | Linhas: 76
 - 📄 **public/dashboard.html** - 📊 Dashboard/Painel principal
   - 📏 Tamanho: 19KB | Linhas: 560
+- 📄 **public/detalhe-liga.css** - 🏆 Funcionalidades de Liga
+  - 📏 Tamanho: 11KB | Linhas: 589
 - 📄 **public/detalhe-liga.html** - 🏆 Funcionalidades de Liga
-  - 📏 Tamanho: 107KB | Linhas: 3126
+  - 📏 Tamanho: 9KB | Linhas: 248
+- 📄 **public/detalhe-liga.js** - 🏆 Funcionalidades de Liga
+  - 📏 Tamanho: 26KB | Linhas: 833
 - 📄 **public/editar-liga.html** - 🏆 Funcionalidades de Liga
   - 📏 Tamanho: 19KB | Linhas: 558
 - 📄 **public/gerenciar.html** - 📄 Página HTML
@@ -273,12 +276,10 @@
 - 📄 **scripts/times-da-liga.json** - 🏆 Funcionalidades de Liga
   - 📏 Tamanho: 2KB | Linhas: 46
 
-### Documentação (2 arquivos)
+### Documentação (1 arquivos)
 
 - 📄 **HANDOVER.md** - 📖 Documentação
-  - 📏 Tamanho: 3KB | Linhas: 127
-- 📄 **system-analysis-2025-08-23.md** - 📖 Documentação
-  - 📏 Tamanho: 17KB | Linhas: 456
+  - 📏 Tamanho: 3KB | Linhas: 135
 
 ### Assets (17 arquivos)
 
@@ -424,16 +425,16 @@
 
 | Métrica | Valor |
 |---------|-------|
-| **Total de arquivos** | 135 |
-| **Tamanho total** | 9938 KB |
-| **Tamanho médio** | 74 KB |
+| **Total de arquivos** | 136 |
+| **Tamanho total** | 9860 KB |
+| **Tamanho médio** | 72 KB |
 
 ### 📋 Por Tipo de Arquivo
 
 | Tipo | Quantidade |
 |------|------------|
-| 🎨 **frontend** | 101 |
-| 📖 **docs** | 2 |
+| 🎨 **frontend** | 103 |
+| 📖 **docs** | 1 |
 | ⚙️ **config** | 11 |
 | ❓ **other** | 4 |
 | 🖼️ **assets** | 17 |
@@ -443,8 +444,8 @@
 | Categoria | Quantidade | Descrição |
 |-----------|------------|----------|
 | 🟢 **Pequenos** | 57 | < 5KB |
-| 🟡 **Médios** | 72 | 5-50KB |
-| 🔴 **Grandes** | 6 | > 50KB |
+| 🟡 **Médios** | 74 | 5-50KB |
+| 🔴 **Grandes** | 5 | > 50KB |
 
 ### 🔍 Insights da Arquitetura
 

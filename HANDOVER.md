@@ -1,6 +1,6 @@
 # 🚀 PROJECT HANDOVER
 
-**Data:** 23/08/2025  
+**Data:** 24/08/2025  
 **Ambiente:** Replit
 
 ## 📋 RESUMO EXECUTIVO
@@ -22,7 +22,6 @@ Projeto Backend/API
 📁 .upm/
   📄 store.json
 📄 DOCUMENTACAO_COMPLETA.html
-📄 HANDOVER.md
 📄 backupJson.js
 📄 backupScheduler.js
 📁 backups/
@@ -64,8 +63,17 @@ Projeto Backend/API
   📄 criar-liga.js
   📄 criar.html
   📄 dashboard.html
+  📄 detalhe-liga.css
   📄 detalhe-liga.html
-  📄 editar-liga.html
+📁 routes/
+  📄 artilheiro-campeao-routes.js
+  📄 cartola-proxy.js
+  📄 cartola.js
+  📄 configuracao-routes.js
+  📄 gols.js
+  📄 ligas.js
+  📄 luva-de-ouro-routes.js
+  📄 rodadas-routes.js
 ```
 
 ## ⚡ COMANDOS ESSENCIAIS
@@ -124,4 +132,4 @@ Projeto Backend/API
 - **Porta ocupada:** Mude a porta no Replit ou no código
 
 ---
-*Handover gerado automaticamente em 23/08/2025, 22:40:00*
+*Handover gerado automaticamente em 24/08/2025, 14:41:13*
