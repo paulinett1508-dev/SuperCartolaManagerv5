@@ -87,15 +87,19 @@
             </div>
           </div>
 
-          <!-- SISTEMA DE TABS -->
-          <div class="tabs-container">
-            <div class="tabs-list">
-              <button class="tab-button active" data-tab="ranking">
-                <span class="icon">🏆</span>Ranking
-              </button>
-              <button class="tab-button" data-tab="participantes">
-                <span class="icon">👥</span>Participantes
-              </button>
+          <!-- SISTEMA DE NAVEGAÇÃO HIERÁRQUICA -->
+          <div class="main-screen" id="main-screen">
+            <div class="modules-grid">
+              <div class="module-card" data-navigate="participantes">
+                <span class="icon">👥</span>
+                <h3>Participantes</h3>
+                <p>Gerenciar times da liga</p>
+              </div>
+              <div class="module-card" data-navigate="ranking">
+                <span class="icon">🏆</span>
+                <h3>Ranking</h3>
+                <p>Classificação geral</p>
+              </div>
               <button class="tab-button" data-tab="rodadas">
                 <span class="icon">🎯</span>Rodadas
               </button>
@@ -123,10 +127,24 @@
             </div>
           </div>
 
-          <!-- CONTEÚDO DAS TABS -->
-          <div id="tab-ranking" class="tab-content active">
-            <div class="liga-loading">Carregando ranking...</div>
+          <!-- ÁREA DE CONTEÚDO DINÂMICO -->
+          <div class="secondary-screen hidden" id="secondary-screen">
+            <div class="secondary-header">
+              <button class="back-button" data-action="back">
+                <span class="icon">←</span> Voltar
+              </button>
+              <h2 id="secondary-title">Módulo</h2>
+            </div>
+            <div class="dynamic-content" id="dynamic-content">
+              <!-- Conteúdo dos módulos será inserido aqui -->
+            </div>
           </div>
+
+          <!-- CONTAINERS DE COMPATIBILIDADE -->
+          <div class="tab-contents hidden">
+            <div id="tab-ranking" class="tab-content">
+              <div class="liga-loading">Carregando ranking...</div>
+            </div></div>
 
           <div id="tab-participantes" class="tab-content">
             <div class="liga-loading">Carregando participantes...</div>
@@ -165,6 +183,24 @@
           </div>
         </div>
       </main>
+
+      <!-- PAINEL DE DEBUG -->
+      <div class="debug-panel hidden" id="debug-panel">
+        <div class="debug-header">
+          <h3>🔧 Debug System</h3>
+          <button class="debug-close" data-action="close-debug">×</button>
+        </div>
+        <div class="debug-content">
+          <div class="debug-section">
+            <h4>Módulos Carregados:</h4>
+            <div id="debug-modules"></div>
+          </div>
+          <div class="debug-section">
+            <h4>Estado Atual:</h4>
+            <pre id="debug-state"></pre>
+          </div>
+        </div>
+      </div>
     </div>
 
     <!-- SCRIPTS DOS MÓDULOS EXISTENTES -->

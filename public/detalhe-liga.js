@@ -1,4 +1,3 @@
-
 /**
  * ========================================
  * DETALHE LIGA - JAVASCRIPT EXTERNALIZADO
@@ -60,24 +59,24 @@ const TabSystem = {
 
   showTab(tabId) {
     console.log(`📑 [TABS] Ativando tab: ${tabId}`);
-    
+
     // Remover active de todos os botões
     document.querySelectorAll('.tab-button').forEach(btn => {
       btn.classList.remove('active');
     });
-    
+
     // Ocultar todos os conteúdos
     document.querySelectorAll('.tab-content').forEach(content => {
       content.classList.remove('active');
     });
-    
+
     // Ativar tab atual
     const activeBtn = document.querySelector(`[data-tab="${tabId}"]`);
     const activeContent = document.getElementById(`tab-${tabId}`);
-    
+
     if (activeBtn) activeBtn.classList.add('active');
     if (activeContent) activeContent.classList.add('active');
-    
+
     currentTab = tabId;
     this.loadTabContent(tabId);
   },
@@ -88,7 +87,7 @@ const TabSystem = {
 
     try {
       contentDiv.innerHTML = '<div class="liga-loading">Carregando...</div>';
-      
+
       switch (tabId) {
         case 'ranking':
           await RankingModule.load(contentDiv);
@@ -139,15 +138,15 @@ const DataLoader = {
     }
 
     console.log(`📊 [DATA] Carregando liga ${ligaId}...`);
-    
+
     try {
       const response = await fetch(`/api/ligas/${ligaId}`);
       if (!response.ok) throw new Error('Liga não encontrada');
-      
+
       const liga = await response.json();
       currentLiga = liga;
       ligaData = liga;
-      
+
       return liga;
     } catch (error) {
       console.error('❌ [DATA] Erro ao carregar liga:', error);
@@ -157,13 +156,13 @@ const DataLoader = {
 
   async carregarParticipantes() {
     if (!currentLiga) return [];
-    
+
     console.log(`👥 [DATA] Carregando participantes...`);
-    
+
     try {
       const response = await fetch(`/api/ligas/${currentLiga.id}/participantes`);
       if (!response.ok) throw new Error('Erro ao carregar participantes');
-      
+
       participantes = await response.json();
       return participantes;
     } catch (error) {
@@ -174,13 +173,13 @@ const DataLoader = {
 
   async carregarRodadas() {
     if (!currentLiga) return [];
-    
+
     console.log(`🎯 [DATA] Carregando rodadas...`);
-    
+
     try {
       const response = await fetch(`/api/ligas/${currentLiga.id}/rodadas`);
       if (!response.ok) throw new Error('Erro ao carregar rodadas');
-      
+
       rodadas = await response.json();
       return rodadas;
     } catch (error) {
@@ -194,7 +193,7 @@ const DataLoader = {
 const RankingModule = {
   async load(container) {
     const participantes = await DataLoader.carregarParticipantes();
-    
+
     if (!participantes.length) {
       container.innerHTML = '<div class="liga-empty">Nenhum participante encontrado</div>';
       return;
@@ -243,7 +242,7 @@ const RankingModule = {
         </tbody>
       </table>
     `;
-    
+
     container.innerHTML = tableHTML;
     this.bindEvents(container);
   },
@@ -260,7 +259,7 @@ const RankingModule = {
   filtrarTabela(termo, container) {
     const rows = container.querySelectorAll('tbody tr');
     const termoLower = termo.toLowerCase();
-    
+
     rows.forEach(row => {
       const nomeTime = row.querySelector('.time-nome').textContent.toLowerCase();
       row.style.display = nomeTime.includes(termoLower) ? '' : 'none';
@@ -271,7 +270,7 @@ const RankingModule = {
 const ParticipantesModule = {
   async load(container) {
     const participantes = await DataLoader.carregarParticipantes();
-    
+
     container.innerHTML = `
       <div class="liga-stats">
         <div class="stat-card">
@@ -285,7 +284,7 @@ const ParticipantesModule = {
       </div>
       <div id="participantes-lista">Carregando detalhes...</div>
     `;
-    
+
     // Carregar detalhes específicos do módulo existente
     if (typeof window.carregarParticipantes === 'function') {
       setTimeout(() => window.carregarParticipantes(), 100);
@@ -296,7 +295,7 @@ const ParticipantesModule = {
 const RodadasModule = {
   async load(container) {
     const rodadas = await DataLoader.carregarRodadas();
-    
+
     container.innerHTML = `
       <div class="liga-stats">
         <div class="stat-card">
@@ -306,7 +305,7 @@ const RodadasModule = {
       </div>
       <div id="rodadas-lista">Carregando rodadas...</div>
     `;
-    
+
     // Carregar detalhes específicos do módulo existente
     if (typeof window.carregarRodadas === 'function') {
       setTimeout(() => window.carregarRodadas(), 100);
@@ -317,7 +316,7 @@ const RodadasModule = {
 const MataMataMódule = {
   async load(container) {
     container.innerHTML = '<div id="mata-mata-content">Carregando mata-mata...</div>';
-    
+
     if (typeof window.carregarMataMata === 'function') {
       setTimeout(() => window.carregarMataMata(), 100);
     }
@@ -327,7 +326,7 @@ const MataMataMódule = {
 const PontosCorridosModule = {
   async load(container) {
     container.innerHTML = '<div id="pontos-corridos-content">Carregando pontos corridos...</div>';
-    
+
     if (typeof window.carregarPontosCorridos === 'function') {
       setTimeout(() => window.carregarPontosCorridos(), 100);
     }
@@ -337,7 +336,7 @@ const PontosCorridosModule = {
 const FluxoFinanceiroModule = {
   async load(container) {
     container.innerHTML = '<div id="fluxo-financeiro-content">Carregando fluxo financeiro...</div>';
-    
+
     if (typeof window.carregarFluxoFinanceiro === 'function') {
       setTimeout(() => window.carregarFluxoFinanceiro(), 100);
     }
@@ -347,7 +346,7 @@ const FluxoFinanceiroModule = {
 const ArtilheiroCampeaoModule = {
   async load(container) {
     container.innerHTML = '<div id="artilheiro-campeao-content">Carregando artilheiro campeão...</div>';
-    
+
     if (typeof window.carregarArtilheiroCampeao === 'function') {
       setTimeout(() => window.carregarArtilheiroCampeao(), 100);
     }
@@ -357,7 +356,7 @@ const ArtilheiroCampeaoModule = {
 const MelhorMesModule = {
   async load(container) {
     container.innerHTML = '<div id="melhor-mes-content">Carregando melhor do mês...</div>';
-    
+
     if (typeof window.carregarMelhorMes === 'function') {
       setTimeout(() => window.carregarMelhorMes(), 100);
     }
@@ -367,7 +366,7 @@ const MelhorMesModule = {
 const LuvaDeOuroModule = {
   async load(container) {
     container.innerHTML = '<div id="luva-de-ouro-content">Carregando luva de ouro...</div>';
-    
+
     if (typeof window.carregarLuvaDeOuro === 'function') {
       setTimeout(() => window.carregarLuvaDeOuro(), 100);
     }
@@ -377,7 +376,7 @@ const LuvaDeOuroModule = {
 const Top10Module = {
   async load(container) {
     container.innerHTML = '<div id="top10-content">Carregando top 10...</div>';
-    
+
     if (typeof window.carregarTop10 === 'function') {
       setTimeout(() => window.carregarTop10(), 100);
     }
@@ -412,9 +411,9 @@ const ExportSystem = {
         </div>
       </div>
     `;
-    
+
     document.body.appendChild(modal);
-    
+
     // Bind events
     modal.querySelectorAll('.export-option').forEach(option => {
       option.addEventListener('click', () => {
@@ -428,14 +427,14 @@ const ExportSystem = {
   execute() {
     const modal = document.querySelector('.export-modal');
     const type = modal?.dataset.selectedType;
-    
+
     if (!type) {
       alert('Selecione um tipo de export');
       return;
     }
-    
+
     console.log(`📤 [EXPORT] Exportando ${type}...`);
-    
+
     // Aqui seria implementado o export real
     // Por ora, simular sucesso
     alert(`Export de ${type} iniciado!`);
@@ -447,25 +446,25 @@ const ExportSystem = {
 const DetalheLiga = {
   async init() {
     console.log("🏆 [DETALHE-LIGA] Inicializando aplicação...");
-    
+
     try {
       // Mostrar loading inicial
       this.showLoading();
-      
+
       // Carregar dados da liga
       const liga = await DataLoader.carregarLiga();
-      
+
       // Atualizar header
       this.updateHeader(liga);
-      
+
       // Inicializar sistemas
       TabSystem.init();
-      
+
       // Remover loading
       this.hideLoading();
-      
+
       console.log("✅ [DETALHE-LIGA] Aplicação inicializada com sucesso!");
-      
+
     } catch (error) {
       console.error("❌ [DETALHE-LIGA] Erro na inicialização:", error);
       this.showError(error.message);
@@ -504,7 +503,7 @@ const DetalheLiga = {
   updateHeader(liga) {
     const title = document.querySelector('.page-title');
     const subtitle = document.querySelector('.page-subtitle');
-    
+
     if (title) title.textContent = liga.nome || 'Liga';
     if (subtitle) subtitle.textContent = `${liga.participantes || 0} participantes • Rodada ${liga.rodada_atual || 1}`;
   }
@@ -522,3 +521,224 @@ document.addEventListener('DOMContentLoaded', () => {
 });
 
 console.log("✅ [DETALHE-LIGA] Módulo JavaScript carregado!");
+
+// 🎭 ORQUESTRADOR DETALHE-LIGA - ARQUITETURA COMPLETA
+class OrquestradorDetalhe {
+  constructor() {
+    this.modulosCarregados = {};
+    this.interfaceAtiva = 'main-screen';
+    this.debugMode = false;
+    console.log('🎭 ORQUESTRADOR: Iniciado');
+  }
+
+  async inicializar() {
+    console.log('🎭 ORQUESTRADOR: Iniciando coordenação...');
+
+    await this.coordenarLayout();
+    await this.coordenarModulos();
+    await this.coordenarInterface();
+
+    console.log('✅ ORQUESTRADOR: Sistema totalmente coordenado');
+  }
+
+  async coordenarLayout() {
+    console.log('🏗️ ORQUESTRADOR: Coordenando layout...');
+    // Layout já carregado via HTML
+  }
+
+  async coordenarModulos() {
+    console.log('📦 ORQUESTRADOR: Coordenando módulos...');
+    const modulos = [
+      'participantes', 'rodadas', 'mata-mata', 'ranking',
+      'melhor-mes', 'pontos-corridos', 'top10', 'fluxo-financeiro',
+      'artilheiro-campeao', 'luva-de-ouro'
+    ];
+
+    for (const modulo of modulos) {
+      try {
+        // Módulos já carregados via <script>, apenas registrar
+        this.modulosCarregados[modulo] = { loaded: true };
+        console.log(`✅ ORQUESTRADOR: Módulo ${modulo} registrado`);
+      } catch (error) {
+        console.warn(`⚠️ ORQUESTRADOR: Erro no módulo ${modulo}:`, error);
+      }
+    }
+  }
+
+  async coordenarInterface() {
+    console.log('🎮 ORQUESTRADOR: Coordenando interface...');
+    this.setupEventListeners();
+    this.setupNavegacaoHierarquica();
+    this.setupDebugSystem();
+  }
+
+  setupEventListeners() {
+    // Navegação por data-navigate
+    document.addEventListener('click', (e) => {
+      const navigateElement = e.target.closest('[data-navigate]');
+      if (navigateElement) {
+        const moduleId = navigateElement.dataset.navigate;
+        this.navigateToModule(moduleId);
+      }
+
+      const actionElement = e.target.closest('[data-action]');
+      if (actionElement) {
+        const action = actionElement.dataset.action;
+        this.executarAcao(action);
+      }
+    });
+
+    // Debug toggle
+    document.addEventListener('keydown', (e) => {
+      if (e.ctrlKey && e.key === 'd') {
+        e.preventDefault();
+        this.toggleDebug();
+      }
+      if (e.key === 'Escape') {
+        this.navigateToMain();
+      }
+    });
+  }
+
+  setupNavegacaoHierarquica() {
+    console.log('🧭 ORQUESTRADOR: Sistema de navegação hierárquica ativo');
+  }
+
+  setupDebugSystem() {
+    console.log('🔧 ORQUESTRADOR: Sistema de debug ativo (Ctrl+D)');
+  }
+
+  navigateToModule(moduleId) {
+    console.log(`🎯 ORQUESTRADOR: Navegando para módulo ${moduleId}`);
+
+    const mainScreen = document.getElementById('main-screen');
+    const secondaryScreen = document.getElementById('secondary-screen');
+    const dynamicContent = document.getElementById('dynamic-content');
+    const secondaryTitle = document.getElementById('secondary-title');
+
+    if (mainScreen && secondaryScreen) {
+      mainScreen.style.display = 'none';
+      secondaryScreen.classList.remove('hidden');
+      secondaryScreen.classList.add('active');
+
+      if (secondaryTitle) {
+        secondaryTitle.textContent = this.getModuleTitle(moduleId);
+      }
+
+      this.interfaceAtiva = 'secondary-screen';
+      this.executarModulo(moduleId);
+    }
+  }
+
+  navigateToMain() {
+    console.log('🏠 ORQUESTRADOR: Voltando para tela principal');
+
+    const mainScreen = document.getElementById('main-screen');
+    const secondaryScreen = document.getElementById('secondary-screen');
+
+    if (mainScreen && secondaryScreen) {
+      secondaryScreen.classList.add('hidden');
+      secondaryScreen.classList.remove('active');
+      mainScreen.style.display = 'block';
+
+      this.interfaceAtiva = 'main-screen';
+    }
+  }
+
+  executarAcao(action) {
+    switch (action) {
+      case 'back':
+        this.navigateToMain();
+        break;
+      case 'close-debug':
+        this.toggleDebug();
+        break;
+    }
+  }
+
+  async executarModulo(moduleId) {
+    console.log(`🎯 ORQUESTRADOR: Executando módulo ${moduleId}`);
+
+    const dynamicContent = document.getElementById('dynamic-content');
+    if (dynamicContent) {
+      dynamicContent.innerHTML = `
+        <div class="loading">Carregando ${this.getModuleTitle(moduleId)}...</div>
+      `;
+
+      // Simular carregamento e depois chamar função do módulo
+      setTimeout(() => {
+        const tabContent = document.getElementById(`tab-${moduleId}`);
+        if (tabContent) {
+          dynamicContent.innerHTML = tabContent.innerHTML;
+        }
+      }, 500);
+    }
+  }
+
+  getModuleTitle(moduleId) {
+    const titles = {
+      'participantes': 'Participantes',
+      'ranking': 'Ranking',
+      'rodadas': 'Rodadas',
+      'mata-mata': 'Mata-Mata',
+      'pontos-corridos': 'Pontos Corridos',
+      'fluxo-financeiro': 'Fluxo Financeiro',
+      'artilheiro-campeao': 'Artilheiro Campeão',
+      'melhor-mes': 'Melhor do Mês',
+      'luva-de-ouro': 'Luva de Ouro',
+      'top10': 'Top 10'
+    };
+    return titles[moduleId] || moduleId;
+  }
+
+  toggleDebug() {
+    this.debugMode = !this.debugMode;
+    const debugPanel = document.getElementById('debug-panel');
+
+    if (debugPanel) {
+      if (this.debugMode) {
+        debugPanel.classList.remove('hidden');
+        this.atualizarDebug();
+      } else {
+        debugPanel.classList.add('hidden');
+      }
+    }
+  }
+
+  atualizarDebug() {
+    const debugModules = document.getElementById('debug-modules');
+    const debugState = document.getElementById('debug-state');
+
+    if (debugModules) {
+      debugModules.innerHTML = Object.keys(this.modulosCarregados)
+        .map(m => `<span class="debug-module">✅ ${m}</span>`)
+        .join('');
+    }
+
+    if (debugState) {
+      debugState.textContent = JSON.stringify({
+        interfaceAtiva: this.interfaceAtiva,
+        debugMode: this.debugMode,
+        modulosCount: Object.keys(this.modulosCarregados).length
+      }, null, 2);
+    }
+  }
+}
+
+// 🚀 INICIALIZAÇÃO DO ORQUESTRADOR
+const orquestrador = new OrquestradorDetalhe();
+
+// 🎭 SISTEMA DE ORQUESTRAÇÃO PRINCIPAL
+// O código a seguir é o que estava presente no arquivo original antes da mudança no orquestrador.
+// Mantenho os comentários para clareza, mas o código de orquestração já foi inserido.
+
+// window.DetalheLiga = DetalheLiga;
+// window.TabSystem = TabSystem;
+// window.ExportSystem = ExportSystem;
+// window.utils = utils;
+
+// document.addEventListener('DOMContentLoaded', () => {
+//   orquestrador.inicializar(); // Usando o novo orquestrador
+// });
+
+// console.log("✅ [DETALHE-LIGA] Módulo JavaScript carregado!");
