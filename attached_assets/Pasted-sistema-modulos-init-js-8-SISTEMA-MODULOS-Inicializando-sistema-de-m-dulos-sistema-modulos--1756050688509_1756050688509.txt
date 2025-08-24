@@ -1,0 +1,44 @@
+sistema-modulos-init.js:8 🔧 [SISTEMA-MODULOS] Inicializando sistema de módulos...
+sistema-modulos-init.js:34 ✅ [SISTEMA-MODULOS] Sistema inicializado com sucesso
+sistema-modulos-init.js:35 📦 [SISTEMA-MODULOS] Módulos disponíveis: 0
+rodadas.js:697 [RODADAS] ✅ Módulo carregado com importações dinâmicas - dependências circulares eliminadas
+mata-mata.js:1302 [MATA-MATA] ✅ Módulo carregado com correções de carregamento implementadas
+luva-de-ouro.js:2 🥅 [LUVA-DE-OURO] Módulo carregado
+luva-de-ouro.js:1088 🥅 [LUVA-DE-OURO] Módulo pronto para uso
+luva-de-ouro.js:1089 🆘 Em caso de erro: window.forcarLuvaDeOuroAgora()
+luva-de-ouro.js:1090 🧪 Para testar manualmente: window.testarLuvaDeOuro()
+luva-de-ouro.js:1097 🥅 [LUVA-DE-OURO] Verificando exportações...
+luva-de-ouro.js:1098 🔍 inicializarLuvaDeOuro definida: function
+luva-de-ouro.js:1099 🔍 mostrarDetalhesParticipante definida: function
+luva-de-ouro.js:1104 📤 [LUVA-DE-OURO] Exportações ES6 adicionadas para compatibilidade
+luva-de-ouro.js:1107 🔍 Exportações disponíveis: Object
+detalhe-liga.js:1   Failed to load resource: the server responded with a status of 404 (Not Found)
+artilheiro-campeao-utils.js:2 🔧 [ARTILHEIRO-UTILS] Módulo de utilitários carregando...
+artilheiro-campeao-utils.js:241 ✅ [ARTILHEIRO-UTILS] Utilitários carregados com sucesso!
+artilheiro-campeao-cache.js:4 📦 [ARTILHEIRO-CACHE] Módulo v1.0 carregando...
+artilheiro-campeao-cache.js:382 🧹 Limpeza automática iniciada (intervalo: 300000ms)
+artilheiro-campeao-cache.js:389 ✅ [ARTILHEIRO-CACHE] Módulo carregado com sucesso!
+artilheiro-campeao-core.js:4 🧠 [ARTILHEIRO-CORE] Módulo v1.0 carregando...
+artilheiro-campeao-core.js:570 ✅ [ARTILHEIRO-CORE] Módulo carregado com sucesso!
+artilheiro-campeao-ui.js:2 🎨 [ARTILHEIRO-UI] Módulo v2.0 carregando...
+artilheiro-campeao-ui.js:903 ✅ [ARTILHEIRO-UI] Interface otimizada carregada sem conflitos!
+artilheiro-campeao-ui.js:904 🎯 [ARTILHEIRO-UI] Funcionalidades: tabela compacta sem coluna média, modal detalhado, dados por rodada
+artilheiro-campeao-detector.js:4 🔍 [ARTILHEIRO-DETECTOR] Módulo v1.0 carregando...
+artilheiro-campeao-detector.js:230 ✅ [ARTILHEIRO-DETECTOR] Módulo carregado com sucesso!
+artilheiro-campeao.js:1 🏆 [ARTILHEIRO-CAMPEAO] Sistema modular carregando...
+artilheiro-campeao.js:408 ✅ [ARTILHEIRO-CAMPEAO] Sistema modular carregado!
+artilheiro-campeao.js:409 🆘 Em caso de erro: window.forcarArtilheiroCampeaoAgora()
+artilheiro-campeao.js:416 🔧 [ARTILHEIRO-CAMPEAO] Sistema de registro compatível iniciado...
+artilheiro-campeao.js:425 ✅ [ARTILHEIRO-CAMPEAO] Registrado em window.modulosCarregados
+artilheiro-campeao.js:452 ✅ [ARTILHEIRO-CAMPEAO] Sistema de registro compatível ativo
+artilheiro-campeao.js:455 📤 [ARTILHEIRO-CAMPEAO] Exportações ES6 adicionadas para compatibilidade
+gols-por-rodada.js:51 ✅ gols-por-rodada.js carregado com correções DOM
+gols-por-rodada.js:35 ✅ Container tabela-gols-container criado
+export-exports.js:4 [EXPORT-EXPORTS] 🎯 Centro coordenador de exportações carregado
+export-exports.js:460 [EXPORT-EXPORTS] 🚀 Inicializando sistema de exportação...
+export-exports.js:471 [EXPORT-EXPORTS] ✅ Sistema inicializado com sucesso
+export-exports.js:472 [EXPORT-EXPORTS] 📦 7 módulos mapeados
+export-exports.js:570 [EXPORT-EXPORTS] ✅ Centro coordenador CORRIGIDO v2.4.2 - Detecção inteligente implementada
+rodadas.js:36 [RODADAS] ✅ Módulos carregados com sucesso
+rodadas.js:46 [RODADAS] ✅ Inicialização assíncrona completa
+artilheiro-campeao.js:425 ✅ [ARTILHEIRO-CAMPEAO] Registrado em window.modulosCarregados
