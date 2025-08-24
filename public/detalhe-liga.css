@@ -1,0 +1,505 @@
+
+/* ========================================
+   DETALHE LIGA - CSS EXTERNALIZADO
+   Extraído de detalhe-liga.html
+   ======================================== */
+
+/* === DETALHE LIGA ESPECÍFICO === */
+.liga-header {
+  background: var(--gradient-card);
+  padding: var(--spacing-lg);
+  border-radius: 12px;
+  box-shadow: var(--shadow-md);
+  border: 1px solid var(--border-primary);
+  margin-bottom: var(--spacing-lg);
+  position: relative;
+  overflow: hidden;
+}
+
+.liga-header::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 3px;
+  background: var(--gradient-primary);
+  box-shadow: var(--shadow-glow);
+}
+
+.liga-info {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-md);
+  margin-bottom: var(--spacing-md);
+}
+
+.liga-escudo {
+  width: 64px;
+  height: 64px;
+  border-radius: 50%;
+  border: 3px solid var(--laranja);
+  object-fit: cover;
+  box-shadow: var(--shadow-orange);
+}
+
+.liga-dados h1 {
+  color: var(--laranja);
+  margin: 0 0 var(--spacing-xs) 0;
+  font-size: 24px;
+  font-weight: 700;
+}
+
+.liga-meta {
+  display: flex;
+  gap: var(--spacing-lg);
+  flex-wrap: wrap;
+  color: var(--text-muted);
+  font-size: 14px;
+}
+
+.liga-meta span {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-xs);
+}
+
+/* === TABS SISTEMA === */
+.tabs-container {
+  background: var(--bg-card);
+  border-radius: 8px;
+  padding: 4px;
+  margin: var(--spacing-lg) 0;
+  box-shadow: var(--shadow-sm);
+  border: 1px solid var(--border-primary);
+}
+
+.tabs-list {
+  display: flex;
+  gap: 2px;
+  flex-wrap: wrap;
+}
+
+.tab-button {
+  background: transparent;
+  color: var(--text-muted);
+  border: none;
+  padding: 10px 16px;
+  border-radius: 6px;
+  cursor: pointer;
+  font-weight: 500;
+  font-size: 13px;
+  transition: all 0.3s ease;
+  white-space: nowrap;
+}
+
+.tab-button:hover {
+  background: var(--laranja-alpha);
+  color: var(--laranja);
+}
+
+.tab-button.active {
+  background: var(--gradient-primary);
+  color: var(--text-primary);
+  font-weight: 600;
+  box-shadow: var(--shadow-orange);
+}
+
+/* === CONTENT AREAS === */
+.tab-content {
+  display: none;
+  padding: var(--spacing-lg);
+  background: var(--bg-secondary);
+  border-radius: 8px;
+  margin-top: var(--spacing-md);
+  animation: fadeInUp 0.3s ease-out;
+}
+
+.tab-content.active {
+  display: block;
+}
+
+/* === ESTATÍSTICAS RÁPIDAS === */
+.liga-stats {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: var(--spacing-md);
+  margin: var(--spacing-lg) 0;
+}
+
+.stat-card {
+  background: var(--gradient-card);
+  padding: var(--spacing-md);
+  border-radius: 8px;
+  text-align: center;
+  border: 1px solid var(--border-primary);
+  transition: all 0.3s ease;
+}
+
+.stat-card:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-md);
+  border-color: var(--laranja);
+}
+
+.stat-value {
+  font-size: 24px;
+  font-weight: 700;
+  color: var(--laranja);
+  margin-bottom: var(--spacing-xs);
+}
+
+.stat-label {
+  color: var(--text-muted);
+  font-size: 12px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+/* === TABELAS ESPECIALIZADAS === */
+.liga-table {
+  width: 100%;
+  border-collapse: collapse;
+  background: var(--bg-card);
+  border-radius: 8px;
+  overflow: hidden;
+  box-shadow: var(--shadow-md);
+  border: 1px solid var(--border-primary);
+  margin: var(--spacing-md) 0;
+}
+
+.liga-table th {
+  background: var(--table-header-bg);
+  color: var(--text-primary);
+  padding: 12px 8px;
+  font-weight: 600;
+  text-transform: uppercase;
+  font-size: 11px;
+  letter-spacing: 0.5px;
+}
+
+.liga-table td {
+  padding: 8px;
+  border-bottom: 1px solid var(--border-secondary);
+  font-size: 13px;
+  color: var(--text-secondary);
+}
+
+.liga-table tbody tr:hover {
+  background: var(--table-row-hover);
+}
+
+.liga-table .posicao {
+  width: 40px;
+  text-align: center;
+  font-weight: 600;
+}
+
+.liga-table .time-nome {
+  text-align: left;
+  font-weight: 500;
+}
+
+.liga-table .escudo-time {
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  margin-right: 8px;
+  vertical-align: middle;
+}
+
+/* === CONTROLES DE AÇÃO === */
+.liga-actions {
+  display: flex;
+  gap: var(--spacing-sm);
+  flex-wrap: wrap;
+  margin: var(--spacing-md) 0;
+  padding: var(--spacing-md);
+  background: var(--bg-card);
+  border-radius: 8px;
+  border: 1px solid var(--border-primary);
+}
+
+.action-btn {
+  background: var(--bg-tertiary);
+  color: var(--text-primary);
+  border: 1px solid var(--border-primary);
+  border-radius: 6px;
+  padding: 8px 12px;
+  font-size: 12px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-xs);
+}
+
+.action-btn:hover {
+  background: var(--laranja);
+  border-color: var(--laranja);
+  transform: translateY(-1px);
+  box-shadow: var(--shadow-orange);
+}
+
+.action-btn .icon {
+  font-size: 14px;
+}
+
+/* === FILTROS E BUSCA === */
+.liga-filters {
+  display: flex;
+  gap: var(--spacing-sm);
+  flex-wrap: wrap;
+  margin-bottom: var(--spacing-md);
+  padding: var(--spacing-md);
+  background: var(--bg-card);
+  border-radius: 8px;
+  border: 1px solid var(--border-primary);
+}
+
+.filter-group {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-xs);
+}
+
+.filter-label {
+  color: var(--text-muted);
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: uppercase;
+}
+
+.filter-input {
+  background: var(--bg-secondary);
+  color: var(--text-primary);
+  border: 1px solid var(--border-primary);
+  border-radius: 4px;
+  padding: 6px 8px;
+  font-size: 12px;
+  min-width: 120px;
+}
+
+.filter-input:focus {
+  border-color: var(--laranja);
+  box-shadow: 0 0 0 2px var(--laranja-alpha);
+}
+
+/* === MATA-MATA ESPECÍFICO === */
+.mata-mata-bracket {
+  background: var(--bg-card);
+  border-radius: 8px;
+  padding: var(--spacing-lg);
+  border: 1px solid var(--border-primary);
+  overflow-x: auto;
+}
+
+.bracket-stage {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-md);
+  min-width: 200px;
+}
+
+.bracket-match {
+  background: var(--bg-tertiary);
+  border-radius: 6px;
+  padding: var(--spacing-sm);
+  border: 1px solid var(--border-secondary);
+  position: relative;
+}
+
+.bracket-team {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-xs);
+  padding: 4px 0;
+  color: var(--text-secondary);
+  font-size: 12px;
+}
+
+.bracket-team.winner {
+  color: var(--text-primary);
+  font-weight: 600;
+}
+
+/* === RESPONSIVIDADE ESPECÍFICA === */
+@media (max-width: 768px) {
+  .liga-info {
+    flex-direction: column;
+    text-align: center;
+  }
+
+  .liga-meta {
+    justify-content: center;
+    font-size: 12px;
+  }
+
+  .liga-stats {
+    grid-template-columns: repeat(2, 1fr);
+    gap: var(--spacing-sm);
+  }
+
+  .tabs-list {
+    justify-content: center;
+  }
+
+  .tab-button {
+    font-size: 11px;
+    padding: 8px 12px;
+  }
+
+  .liga-actions {
+    justify-content: center;
+  }
+
+  .liga-filters {
+    flex-direction: column;
+  }
+}
+
+@media (max-width: 480px) {
+  .liga-header {
+    padding: var(--spacing-md);
+  }
+
+  .liga-escudo {
+    width: 48px;
+    height: 48px;
+  }
+
+  .liga-dados h1 {
+    font-size: 18px;
+  }
+
+  .liga-stats {
+    grid-template-columns: 1fr;
+  }
+
+  .stat-value {
+    font-size: 20px;
+  }
+
+  .liga-table th,
+  .liga-table td {
+    padding: 6px 4px;
+    font-size: 11px;
+  }
+}
+
+/* === UTILITÁRIOS ESPECÍFICOS === */
+.liga-loading {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: var(--spacing-xl);
+  color: var(--laranja);
+  font-size: 14px;
+}
+
+.liga-empty {
+  text-align: center;
+  padding: var(--spacing-xl);
+  color: var(--text-muted);
+  font-style: italic;
+}
+
+.liga-error {
+  background: rgba(239, 68, 68, 0.1);
+  border: 1px solid var(--danger);
+  color: var(--danger);
+  padding: var(--spacing-md);
+  border-radius: 6px;
+  margin: var(--spacing-md) 0;
+  font-size: 13px;
+}
+
+/* === EXPORT MODAL === */
+.export-modal {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.8);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 9999;
+}
+
+.export-content {
+  background: var(--bg-card);
+  border-radius: 12px;
+  padding: var(--spacing-lg);
+  max-width: 500px;
+  width: 90%;
+  border: 1px solid var(--border-primary);
+  box-shadow: var(--shadow-lg);
+}
+
+.export-header {
+  color: var(--laranja);
+  margin-bottom: var(--spacing-md);
+  font-size: 18px;
+  font-weight: 600;
+}
+
+.export-options {
+  display: grid;
+  gap: var(--spacing-sm);
+  margin-bottom: var(--spacing-md);
+}
+
+.export-option {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-sm);
+  padding: var(--spacing-sm);
+  background: var(--bg-secondary);
+  border-radius: 6px;
+  border: 1px solid var(--border-secondary);
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.export-option:hover {
+  border-color: var(--laranja);
+  background: var(--laranja-alpha);
+}
+
+.export-actions {
+  display: flex;
+  gap: var(--spacing-sm);
+  justify-content: flex-end;
+}
+
+/* === TOOLTIPS === */
+.tooltip {
+  position: relative;
+  cursor: help;
+}
+
+.tooltip::after {
+  content: attr(data-tooltip);
+  position: absolute;
+  bottom: 100%;
+  left: 50%;
+  transform: translateX(-50%);
+  background: var(--bg-primary);
+  color: var(--text-primary);
+  padding: 4px 8px;
+  border-radius: 4px;
+  font-size: 11px;
+  white-space: nowrap;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.3s ease;
+  border: 1px solid var(--border-primary);
+  z-index: 1000;
+}
+
+.tooltip:hover::after {
+  opacity: 1;
+}
