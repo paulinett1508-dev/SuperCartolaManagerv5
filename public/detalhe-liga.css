@@ -49,6 +49,45 @@
     font-weight: 500;
 }
 
+/* === OCULTAR LINHA DO MEIO AGRESSIVAMENTE === */
+.liga-header .breadcrumb,
+.liga-header .liga-meta,
+.liga-header p:not(.liga-info),
+.liga-header span[style*="Liga:"],
+.liga-header span:contains("Liga:"),
+.liga-header div:contains("Liga:"),
+.liga-header *:contains("Liga:") {
+    display: none !important;
+    visibility: hidden !important;
+    opacity: 0 !important;
+    height: 0 !important;
+    margin: 0 !important;
+    padding: 0 !important;
+}
+
+/* Garantir apenas 2 elementos visíveis - MAIS ESPECÍFICO */
+.liga-header > *:not(#nomeLiga):not(#quantidadeTimes):not(.liga-titulo):not(.liga-info) {
+    display: none !important;
+}
+
+/* Override para elementos inseridos dinamicamente */
+.liga-header > p:not(#quantidadeTimes):not(.liga-info),
+.liga-header > span:not(#nomeLiga):not(#quantidadeTimes),
+.liga-header > div:not(#nomeLiga):not(#quantidadeTimes) {
+    display: none !important;
+}
+
+/* Ocultar qualquer texto que contenha "Liga:" */
+.liga-header *[innerHTML*="Liga:"],
+.liga-header *[textContent*="Liga:"] {
+    display: none !important;
+}
+
+/* CSS alternativo usando nth-child para garantir apenas 2 elementos */
+.liga-header > *:nth-child(n+3):not(.liga-titulo):not(.liga-info) {
+    display: none !important;
+}
+
 /* === GRID DE MÓDULOS === */
 .modules-grid {
     display: grid;
