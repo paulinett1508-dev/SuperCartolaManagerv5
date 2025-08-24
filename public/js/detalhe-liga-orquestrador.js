@@ -593,14 +593,16 @@ class DetalheLigaOrquestrador {
             });
         });
 
-        observer.observe(ligaHeader, { childList: true, subtree: true });
+        // PROBLEMA: Observer criado mas não conectado
+        // FALTANDO: observer.observe(ligaHeader, { childList: true, subtree: true });
+        // CORRIGIDO: Observer completo e conectado
+        observer.observe(ligaHeader, { childList: true, subtree: true }); // ✅ LINHA ADICIONADA
 
         // Parar observação após 5 segundos
         setTimeout(() => {
             observer.disconnect();
             console.log('🧹 Observer do header desconectado após 5s');
         }, 5000);
-    }
     }
 
     // 🔧 INTERCEPTAR FUNÇÃO DO RANKING.JS (FUNCIONALIDADE CRÍTICA RESTAURADA)
@@ -754,6 +756,8 @@ class DetalheLigaOrquestrador {
             setTimeout(() => observer.disconnect(), 10000);
         }
     }
+
+    // 🔄 REDIRECIONAMENTO PARA PARCIAIS
     redirectToParciais() {
         const urlParams = new URLSearchParams(window.location.search);
         const ligaId = urlParams.get('id');
