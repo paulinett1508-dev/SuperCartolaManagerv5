@@ -1,4 +1,3 @@
-
 /* ========================================
    DETALHE LIGA - CSS EXTERNALIZADO
    Extraído de detalhe-liga.html
@@ -503,3 +502,88 @@
 .tooltip:hover::after {
   opacity: 1;
 }
+
+/* === NAVEGAÇÃO HIERÁRQUICA === */
+.main-screen {
+  display: block;
+  animation: fadeInUp 0.3s ease-out;
+}
+
+.secondary-screen {
+  display: none;
+  animation: slideInUp 0.3s ease-out;
+}
+
+.secondary-screen.active {
+  display: block;
+}
+
+.modules-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  gap: var(--spacing-lg);
+  margin-top: var(--spacing-lg);
+}
+
+.module-card {
+  background: var(--gradient-card);
+  border-radius: 12px;
+  padding: var(--spacing-lg);
+  border: 1px solid var(--border-primary);
+  cursor: pointer;
+  transition: all 0.3s ease;
+  text-align: center;
+}
+
+.module-card:hover {
+  transform: translateY(-5px);
+  box-shadow: var(--shadow-orange);
+  border-color: var(--laranja);
+}
+
+.module-card .icon {
+  font-size: 2rem;
+  margin-bottom: var(--spacing-md);
+  display: block;
+}
+
+.module-card h3 {
+  color: var(--laranja);
+  margin-bottom: var(--spacing-sm);
+  font-size: 1.2rem;
+}
+
+.module-card p {
+  color: var(--text-muted);
+  font-size: 0.9rem;
+}
+
+.secondary-header {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-md);
+  margin-bottom: var(--spacing-lg);
+  padding-bottom: var(--spacing-md);
+  border-bottom: 1px solid var(--border-primary);
+}
+
+.back-button {
+  background: var(--bg-card);
+  border: 1px solid var(--border-primary);
+  color: var(--text-primary);
+  padding: var(--spacing-sm) var(--spacing-md);
+  border-radius: 6px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.back-button:hover {
+  background: var(--laranja);
+  color: var(--text-primary);
+}
+
+.dynamic-content {
+  min-height: 400px;
+}
+
+/* === MÓDULOS GRID === */
