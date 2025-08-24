@@ -1,11 +1,12 @@
 # 📊 Análise do Sistema Super Cartola Manager
 
-**Data da Análise:** 24/08/2025, 15:44:39
+**Data da Análise:** 24/08/2025, 18:32:54
 
 ---
 
 ## 📁 Estrutura do Sistema
 
+- 📁 **attached_assets/**
 - 📁 **backups/**
 - 📁 **config/**
 - 📁 **controllers/**
@@ -49,10 +50,12 @@
 
 ## 🔍 Análise por Categoria
 
-### Frontend (Cliente) (104 arquivos)
+### Frontend (Cliente) (106 arquivos)
 
 - 📄 **DOCUMENTACAO_COMPLETA.html** - 📄 Página HTML
   - 📏 Tamanho: 5396KB | Linhas: 137882
+- 📄 **attached_assets/Pasted--MELHORIAS-CARDS-DESATIVADOS-LOGO-MAIOR-Adicionar-no-final-do-arquivo-style-css-1756056946873_1756056946873.txt** - ❓ Arquivo genérico
+  - 📏 Tamanho: 3KB | Linhas: 114
 - 📄 **backupJson.js** - 📝 Script JavaScript
   - 📏 Tamanho: 1KB | Linhas: 39
 - 📄 **backupScheduler.js** - 📝 Script JavaScript
@@ -104,9 +107,7 @@
 - 📄 **public/detalhe-liga.css** - 🏆 Funcionalidades de Liga
   - 📏 Tamanho: 11KB | Linhas: 589
 - 📄 **public/detalhe-liga.html** - 🏆 Funcionalidades de Liga
-  - 📏 Tamanho: 18KB | Linhas: 434
-- 📄 **public/detalhe-liga.js** - 🏆 Funcionalidades de Liga
-  - 📏 Tamanho: 9KB | Linhas: 279
+  - 📏 Tamanho: 44KB | Linhas: 1148
 - 📄 **public/editar-liga.html** - 🏆 Funcionalidades de Liga
   - 📏 Tamanho: 19KB | Linhas: 558
 - 📄 **public/gerenciar.html** - 📄 Página HTML
@@ -125,6 +126,10 @@
   - 📏 Tamanho: 8KB | Linhas: 245
 - 📄 **public/js/artilheiro-campeao.js** - ⚽ Sistema Artilheiro Campeão
   - 📏 Tamanho: 15KB | Linhas: 462
+- 📄 **public/js/cards-condicionais.js** - 📝 Script JavaScript
+  - 📏 Tamanho: 10KB | Linhas: 344
+- 📄 **public/js/detalhe-liga.js** - 🏆 Funcionalidades de Liga
+  - 📏 Tamanho: 9KB | Linhas: 278
 - 📄 **public/js/exports/export-artilheiro-campeao.js** - ⚽ Sistema Artilheiro Campeão
   - 📏 Tamanho: 16KB | Linhas: 485
 - 📄 **public/js/exports/export-base.js** - 📝 Script JavaScript
@@ -184,7 +189,7 @@
 - 📄 **public/js/pontos-corridos.js** - 📝 Script JavaScript
   - 📏 Tamanho: 32KB | Linhas: 795
 - 📄 **public/js/ranking.js** - 🏅 Sistema de Rankings
-  - 📏 Tamanho: 9KB | Linhas: 262
+  - 📏 Tamanho: 14KB | Linhas: 374
 - 📄 **public/js/rodadas.js** - 📅 Gestão de Rodadas
   - 📏 Tamanho: 23KB | Linhas: 697
 - 📄 **public/js/seletor-ligas.js** - 🏆 Funcionalidades de Liga
@@ -196,7 +201,7 @@
 - 📄 **public/js/utils.js** - 📝 Script JavaScript
   - 📏 Tamanho: 7KB | Linhas: 208
 - 📄 **public/layout.html** - 📄 Página HTML
-  - 📏 Tamanho: 22KB | Linhas: 634
+  - 📏 Tamanho: 13KB | Linhas: 341
 - 📄 **public/parciais.html** - 📄 Página HTML
   - 📏 Tamanho: 11KB | Linhas: 366
 - 📄 **public/preencher-liga.html** - 🏆 Funcionalidades de Liga
@@ -204,7 +209,7 @@
 - 📄 **public/script.js** - 📝 Script JavaScript
   - 📏 Tamanho: 4KB | Linhas: 82
 - 📄 **public/style.css** - 🎨 Folha de estilos
-  - 📏 Tamanho: 18KB | Linhas: 894
+  - 📏 Tamanho: 27KB | Linhas: 1265
 - 📄 **public/templates/fluxo-financeiro-tabela.html** - 📄 Página HTML
   - 📏 Tamanho: 5KB | Linhas: 126
 - 📄 **public/templates/mata-mata-tabela.html** - 📄 Página HTML
@@ -279,12 +284,30 @@
 - 📄 **scripts/times-da-liga.json** - 🏆 Funcionalidades de Liga
   - 📏 Tamanho: 2KB | Linhas: 46
 
-### Documentação (2 arquivos)
+### Documentação (11 arquivos)
 
 - 📄 **HANDOVER.md** - 📖 Documentação
   - 📏 Tamanho: 3KB | Linhas: 135
+- 📄 **attached_assets/Pasted--ADI-ES-NECESS-RIAS-NO-detalhe-liga-html-1-NO-HEAD-ADICIONAR-AP-S-OS-LI-1756056615906_1756056615907.txt** - 🏆 Funcionalidades de Liga
+  - 📏 Tamanho: 7KB | Linhas: 219
+- 📄 **attached_assets/Pasted--ADI-ES-NECESS-RIAS-NO-detalhe-liga-html-1-NO-HEAD-ADICIONAR-AP-S-OS-LI-1756058500772_1756058500774.txt** - 🏆 Funcionalidades de Liga
+  - 📏 Tamanho: 7KB | Linhas: 219
+- 📄 **attached_assets/Pasted--CARDS-CONDICIONAIS-JS-Sistema-de-desativa-o-condicional-de-cards-por-liga-console-1756056817706_1756056817707.txt** - 🏆 Funcionalidades de Liga
+  - 📏 Tamanho: 5KB | Linhas: 175
+- 📄 **attached_assets/Pasted--CARDS-CONDICIONAIS-JS-Sistema-de-desativa-o-condicional-de-cards-por-liga-console-1756058574248_1756058574249.txt** - 🏆 Funcionalidades de Liga
+  - 📏 Tamanho: 6KB | Linhas: 198
+- 📄 **attached_assets/Pasted--CARDS-CONDICIONAIS-JS-Sistema-de-desativa-o-condicional-de-cards-por-liga-console-1756058636082_1756058636084.txt** - 🏆 Funcionalidades de Liga
+  - 📏 Tamanho: 6KB | Linhas: 199
+- 📄 **attached_assets/Pasted--CORRE-ES-DE-VISIBILIDADE-HEADER-E-CARDS-Header-da-Liga-Textos-Sempre-Vis-ve-1756058516953_1756058516954.txt** - 🏆 Funcionalidades de Liga
+  - 📏 Tamanho: 4KB | Linhas: 185
+- 📄 **attached_assets/Pasted--MELHORIAS-SISTEMA-DE-CARDS-CONDICIONAIS-Configura-o-dos-cards-por-liga--1756056684139_1756056684141.txt** - ⚙️ Arquivo de configuração
+  - 📏 Tamanho: 6KB | Linhas: 187
+- 📄 **attached_assets/Pasted-sistema-modulos-init-js-8-SISTEMA-MODULOS-Inicializando-sistema-de-m-dulos-sistema-modulos--1756050688509_1756050688509.txt** - ❓ Arquivo genérico
+  - 📏 Tamanho: 4KB | Linhas: 45
+- 📄 **attached_assets/Pasted-sistema-modulos-init-js-8-SISTEMA-MODULOS-Inicializando-sistema-de-m-dulos-sistema-modulos--1756053131179_1756053131179.txt** - ❓ Arquivo genérico
+  - 📏 Tamanho: 4KB | Linhas: 45
 - 📄 **system-analysis-2025-08-24.md** - 📖 Documentação
-  - 📏 Tamanho: 17KB | Linhas: 457
+  - 📏 Tamanho: 18KB | Linhas: 462
 
 ### Assets (17 arquivos)
 
@@ -430,16 +453,16 @@
 
 | Métrica | Valor |
 |---------|-------|
-| **Total de arquivos** | 138 |
-| **Tamanho total** | 9871 KB |
-| **Tamanho médio** | 72 KB |
+| **Total de arquivos** | 149 |
+| **Tamanho total** | 9962 KB |
+| **Tamanho médio** | 67 KB |
 
 ### 📋 Por Tipo de Arquivo
 
 | Tipo | Quantidade |
 |------|------------|
-| 🎨 **frontend** | 104 |
-| 📖 **docs** | 2 |
+| 🎨 **frontend** | 105 |
+| 📖 **docs** | 12 |
 | ⚙️ **config** | 11 |
 | ❓ **other** | 4 |
 | 🖼️ **assets** | 17 |
@@ -448,8 +471,8 @@
 
 | Categoria | Quantidade | Descrição |
 |-----------|------------|----------|
-| 🟢 **Pequenos** | 58 | < 5KB |
-| 🟡 **Médios** | 75 | 5-50KB |
+| 🟢 **Pequenos** | 62 | < 5KB |
+| 🟡 **Médios** | 82 | 5-50KB |
 | 🔴 **Grandes** | 5 | > 50KB |
 
 ### 🔍 Insights da Arquitetura

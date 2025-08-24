@@ -1,0 +1,347 @@
+<!-- 👥 MÓDULO PARTICIPANTES - HTML SEPARADO -->
+<div id="participantes-content">
+    <!-- Header dos Participantes -->
+    <div class="module-header-section">
+        <div class="module-title-section">
+            <div class="module-title-icon">👥</div>
+            <h2>Participantes da Liga</h2>
+        </div>
+        <div class="module-subtitle">membros ativos na competição</div>
+    </div>
+
+    <!-- Estatísticas Rápidas -->
+    <div class="participants-stats">
+        <div class="stat-card">
+            <div class="stat-icon">👤</div>
+            <div class="stat-info">
+                <div class="stat-number" id="total-participantes">0</div>
+                <div class="stat-label">Total</div>
+            </div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-icon">⚡</div>
+            <div class="stat-info">
+                <div class="stat-number" id="participantes-ativos">0</div>
+                <div class="stat-label">Ativos</div>
+            </div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-icon">🏆</div>
+            <div class="stat-info">
+                <div class="stat-number" id="times-diferentes">0</div>
+                <div class="stat-label">Times Únicos</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Grid de Participantes -->
+    <div id="participantes-grid" class="participantes-grid">
+        <!-- Loading state inicial -->
+        <div class="loading-state-full">
+            <div
+                style="
+                    display: flex;
+                    align-items: center;
+                    justify-content: center;
+                    gap: 15px;
+                    padding: 60px;
+                "
+            >
+                <div
+                    style="
+                        width: 40px;
+                        height: 40px;
+                        border: 4px solid rgba(255, 69, 0, 0.3);
+                        border-top: 4px solid #ff4500;
+                        border-radius: 50%;
+                        animation: spin 1s linear infinite;
+                    "
+                ></div>
+                <div style="color: #ff4500; font-weight: 600; font-size: 16px">
+                    Carregando dados dos participantes...
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Botão Voltar -->
+    <div class="module-actions">
+        <button
+            class="back-button"
+            onclick="window.orquestrador?.voltarParaCards()"
+        >
+            ← Voltar aos Cards
+        </button>
+    </div>
+</div>
+
+<style>
+    /* CSS específico do módulo participantes */
+    .module-header-section {
+        text-align: center;
+        margin-bottom: 30px;
+        padding-bottom: 20px;
+        border-bottom: 2px solid rgba(255, 69, 0, 0.3);
+    }
+
+    .module-title-section {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 15px;
+        margin-bottom: 10px;
+    }
+
+    .module-title-icon {
+        width: 48px;
+        height: 48px;
+        background: linear-gradient(135deg, #ff4500 0%, #e8472b 100%);
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 24px;
+        box-shadow: 0 4px 20px rgba(255, 69, 0, 0.4);
+        border: 3px solid rgba(255, 69, 0, 0.3);
+    }
+
+    .module-title-section h2 {
+        color: #ffffff;
+        font-size: 28px;
+        font-weight: 800;
+        margin: 0;
+        text-shadow: 0 2px 10px rgba(255, 255, 255, 0.3);
+        font-family:
+            "Inter",
+            -apple-system,
+            sans-serif;
+        letter-spacing: -0.5px;
+    }
+
+    .module-subtitle {
+        color: #a0a0a0;
+        font-size: 14px;
+        font-weight: 500;
+        margin: 0;
+        letter-spacing: 0.3px;
+    }
+
+    .participants-stats {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 15px;
+        margin-bottom: 30px;
+    }
+
+    .stat-card {
+        background: rgba(42, 42, 42, 0.8);
+        border-radius: 12px;
+        padding: 20px;
+        border: 1px solid rgba(255, 69, 0, 0.2);
+        display: flex;
+        align-items: center;
+        gap: 15px;
+        transition: all 0.3s ease;
+    }
+
+    .stat-card:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 8px 25px rgba(255, 69, 0, 0.2);
+        border-color: #ff4500;
+    }
+
+    .stat-icon {
+        font-size: 24px;
+        width: 40px;
+        height: 40px;
+        background: linear-gradient(135deg, #ff4500 0%, #e8472b 100%);
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+
+    .stat-info {
+        flex: 1;
+    }
+
+    .stat-number {
+        font-size: 24px;
+        font-weight: 800;
+        color: #ffffff;
+        line-height: 1;
+        font-family: "JetBrains Mono", monospace;
+    }
+
+    .stat-label {
+        font-size: 12px;
+        color: #a0a0a0;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+        font-weight: 600;
+    }
+
+    .participantes-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+        gap: 16px;
+        margin-bottom: 30px;
+    }
+
+    .participante-card {
+        background: linear-gradient(135deg, #2a2a2a 0%, #1e1e1e 100%);
+        border-radius: 12px;
+        padding: 20px;
+        border: 1px solid rgba(255, 69, 0, 0.2);
+        transition: all 0.3s ease;
+        cursor: pointer;
+        position: relative;
+        overflow: hidden;
+    }
+
+    .participante-card::before {
+        content: "";
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        height: 3px;
+        background: linear-gradient(135deg, #ff4500 0%, #e8472b 100%);
+        transform: scaleX(0);
+        transform-origin: left;
+        transition: transform 0.3s ease;
+    }
+
+    .participante-card:hover {
+        transform: translateY(-5px) scale(1.02);
+        box-shadow: 0 15px 30px rgba(255, 69, 0, 0.3);
+        border-color: #ff4500;
+    }
+
+    .participante-card:hover::before {
+        transform: scaleX(1);
+    }
+
+    .participante-info {
+        display: flex;
+        align-items: center;
+        gap: 15px;
+    }
+
+    .participante-escudo {
+        width: 48px;
+        height: 48px;
+        border-radius: 50%;
+        border: 2px solid rgba(255, 69, 0, 0.3);
+        object-fit: cover;
+    }
+
+    .participante-details {
+        flex: 1;
+    }
+
+    .participante-nome {
+        color: #ffffff;
+        font-size: 16px;
+        font-weight: 700;
+        margin-bottom: 4px;
+        line-height: 1.2;
+    }
+
+    .participante-time {
+        color: #a0a0a0;
+        font-size: 13px;
+        font-weight: 500;
+        line-height: 1.2;
+    }
+
+    .participante-stats {
+        margin-top: 12px;
+        padding-top: 12px;
+        border-top: 1px solid rgba(255, 69, 0, 0.1);
+        display: flex;
+        justify-content: space-between;
+        font-size: 11px;
+        color: #888;
+    }
+
+    .loading-state-full {
+        grid-column: 1 / -1;
+        text-align: center;
+        padding: 40px;
+        background: rgba(42, 42, 42, 0.5);
+        border-radius: 12px;
+        border: 1px solid rgba(255, 69, 0, 0.1);
+    }
+
+    @media (max-width: 768px) {
+        .participants-stats {
+            grid-template-columns: 1fr;
+            gap: 12px;
+        }
+
+        .participantes-grid {
+            grid-template-columns: 1fr;
+            gap: 12px;
+        }
+
+        .module-title-section h2 {
+            font-size: 24px;
+        }
+    }
+</style>
+
+<script>
+    // JavaScript específico do módulo participantes
+    (function () {
+        console.log("👥 Módulo Participantes carregado");
+
+        // Aguardar carregamento e processar dados
+        setTimeout(() => {
+            processParticipantsData();
+        }, 100);
+
+        function processParticipantsData() {
+            // Contar estatísticas dos participantes na tela
+            const participanteCards =
+                document.querySelectorAll(".participante-card");
+
+            // Atualizar estatísticas
+            document.getElementById("total-participantes").textContent =
+                participanteCards.length;
+            document.getElementById("participantes-ativos").textContent =
+                participanteCards.length;
+
+            // Contar times únicos (pode ser implementado baseado nos dados)
+            const timesUnicos = new Set();
+            participanteCards.forEach((card) => {
+                const timeNome =
+                    card.querySelector(".participante-time")?.textContent;
+                if (timeNome && timeNome !== "Time N/A") {
+                    timesUnicos.add(timeNome);
+                }
+            });
+
+            document.getElementById("times-diferentes").textContent =
+                timesUnicos.size;
+        }
+
+        // Observer para detectar quando os participantes são carregados
+        const observer = new MutationObserver((mutations) => {
+            mutations.forEach((mutation) => {
+                if (mutation.type === "childList") {
+                    const grid = document.getElementById("participantes-grid");
+                    if (grid && grid.querySelector(".participante-card")) {
+                        processParticipantsData();
+                        observer.disconnect();
+                    }
+                }
+            });
+        });
+
+        const grid = document.getElementById("participantes-grid");
+        if (grid) {
+            observer.observe(grid, { childList: true, subtree: true });
+        }
+    })();
+</script>
