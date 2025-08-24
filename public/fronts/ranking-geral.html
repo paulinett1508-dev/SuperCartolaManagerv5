@@ -1,4 +1,4 @@
-<!-- 🏅 MÓDULO RANKING GERAL - HTML SEPARADO -->
+<!-- 🏅 MÓDULO RANKING GERAL - HTML LIMPO (SEM CSS INLINE) -->
 <div id="ranking-geral">
     <!-- Header do Ranking -->
     <div class="ranking-header">
@@ -36,28 +36,9 @@
             <tbody id="rankingGeralTableBody">
                 <tr>
                     <td colspan="5" class="loading-state">
-                        <div
-                            style="
-                                display: flex;
-                                align-items: center;
-                                justify-content: center;
-                                gap: 12px;
-                                padding: 40px;
-                            "
-                        >
-                            <div
-                                style="
-                                    width: 32px;
-                                    height: 32px;
-                                    border: 3px solid rgba(255, 69, 0, 0.3);
-                                    border-top: 3px solid #ff4500;
-                                    border-radius: 50%;
-                                    animation: spin 1s linear infinite;
-                                "
-                            ></div>
-                            <span style="color: #ff4500; font-weight: 600"
-                                >Processando dados da classificação...</span
-                            >
+                        <div class="ranking-loading">
+                            <div class="spinner"></div>
+                            <span>Processando dados da classificação...</span>
                         </div>
                     </td>
                 </tr>
@@ -75,72 +56,6 @@
         </button>
     </div>
 </div>
-
-<style>
-    /* CSS específico do módulo ranking-geral */
-    .ranking-table-container {
-        background: rgba(26, 26, 26, 0.9);
-        border-radius: 12px;
-        overflow: hidden;
-        border: 1px solid rgba(255, 69, 0, 0.3);
-        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.4);
-    }
-
-    .ranking-table tbody tr:nth-child(1) {
-        background: linear-gradient(
-            135deg,
-            rgba(255, 215, 0, 0.15) 0%,
-            rgba(255, 193, 7, 0.1) 100%
-        );
-        border-left: 4px solid #ffd700;
-    }
-
-    .ranking-table tbody tr:nth-child(2) {
-        background: linear-gradient(
-            135deg,
-            rgba(192, 192, 192, 0.15) 0%,
-            rgba(169, 169, 169, 0.1) 100%
-        );
-        border-left: 4px solid #c0c0c0;
-    }
-
-    .ranking-table tbody tr:nth-child(3) {
-        background: linear-gradient(
-            135deg,
-            rgba(205, 127, 50, 0.15) 0%,
-            rgba(184, 115, 51, 0.1) 100%
-        );
-        border-left: 4px solid #cd7f32;
-    }
-
-    .ranking-table tbody tr:hover {
-        background: rgba(255, 69, 0, 0.08);
-        transform: scale(1.01);
-    }
-
-    .module-actions {
-        margin-top: 20px;
-        text-align: left;
-    }
-
-    .back-button {
-        background: rgba(255, 69, 0, 0.1);
-        border: 1px solid rgba(255, 69, 0, 0.3);
-        color: #ff4500;
-        padding: 10px 20px;
-        border-radius: 8px;
-        cursor: pointer;
-        font-size: 13px;
-        font-weight: 600;
-        transition: all 0.3s ease;
-    }
-
-    .back-button:hover {
-        background: #ff4500;
-        color: #ffffff;
-        transform: translateX(-3px);
-    }
-</style>
 
 <script>
     // JavaScript específico do módulo ranking-geral
@@ -186,6 +101,19 @@
                 btn.style.fontWeight = "700";
                 btn.style.textTransform = "uppercase";
                 btn.style.letterSpacing = "0.5px";
+            });
+
+            // Aplicar badges de pontuação
+            const pontosSpans = document.querySelectorAll(
+                "#rankingGeralTable tbody td:last-child span",
+            );
+            pontosSpans.forEach((span) => {
+                if (
+                    span.style.background &&
+                    span.style.background.includes("linear-gradient")
+                ) {
+                    span.classList.add("points-badge");
+                }
             });
         }
     })();

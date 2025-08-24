@@ -1,6 +1,6 @@
 # 📊 Análise do Sistema Super Cartola Manager
 
-**Data da Análise:** 24/08/2025, 18:32:54
+**Data da Análise:** 24/08/2025, 20:26:49
 
 ---
 
@@ -12,7 +12,9 @@
 - 📁 **controllers/**
 - 📁 **models/**
 - 📁 **public/**
+  - 📁 **css/**
   - 📁 **escudos/**
+  - 📁 **fronts/**
   - 📁 **img/**
   - 📁 **js/**
     - 📁 **artilheiro-campeao/**
@@ -50,7 +52,7 @@
 
 ## 🔍 Análise por Categoria
 
-### Frontend (Cliente) (106 arquivos)
+### Frontend (Cliente) (118 arquivos)
 
 - 📄 **DOCUMENTACAO_COMPLETA.html** - 📄 Página HTML
   - 📏 Tamanho: 5396KB | Linhas: 137882
@@ -102,16 +104,30 @@
   - 📏 Tamanho: 2KB | Linhas: 73
 - 📄 **public/criar.html** - 📄 Página HTML
   - 📏 Tamanho: 2KB | Linhas: 76
+- 📄 **public/css/base.css** - 🎨 Estilos CSS
+  - 📏 Tamanho: 12KB | Linhas: 508
 - 📄 **public/dashboard.html** - 📊 Dashboard/Painel principal
-  - 📏 Tamanho: 19KB | Linhas: 560
+  - 📏 Tamanho: 39KB | Linhas: 1134
 - 📄 **public/detalhe-liga.css** - 🏆 Funcionalidades de Liga
-  - 📏 Tamanho: 11KB | Linhas: 589
+  - 📏 Tamanho: 8KB | Linhas: 399
 - 📄 **public/detalhe-liga.html** - 🏆 Funcionalidades de Liga
-  - 📏 Tamanho: 44KB | Linhas: 1148
+  - 📏 Tamanho: 8KB | Linhas: 163
 - 📄 **public/editar-liga.html** - 🏆 Funcionalidades de Liga
   - 📏 Tamanho: 19KB | Linhas: 558
+- 📄 **public/fronts/artilheiro-campeao.html** - ⚽ Sistema Artilheiro Campeão
+- 📄 **public/fronts/fluxo-financeiro.html** - 📄 Página HTML
+- 📄 **public/fronts/luva-de-ouro.html** - 🥅 Sistema Luva de Ouro
+- 📄 **public/fronts/mata-mata.html** - 📄 Página HTML
+- 📄 **public/fronts/melhor-mes.html** - 📄 Página HTML
+- 📄 **public/fronts/participantes.html** - 📄 Página HTML
+  - 📏 Tamanho: 9KB | Linhas: 348
+- 📄 **public/fronts/pontos-corridos.html** - 📄 Página HTML
+- 📄 **public/fronts/ranking-geral.html** - 🏅 Sistema de Rankings
+  - 📏 Tamanho: 6KB | Linhas: 193
+- 📄 **public/fronts/rodadas.html** - 📅 Gestão de Rodadas
+- 📄 **public/fronts/top10.html** - 📄 Página HTML
 - 📄 **public/gerenciar.html** - 📄 Página HTML
-  - 📏 Tamanho: 34KB | Linhas: 952
+  - 📏 Tamanho: 15KB | Linhas: 433
 - 📄 **public/gols.js** - ⚽ Gestão de Gols
 - 📄 **public/index.html** - 🏠 Página principal/Entry point
 - 📄 **public/js/artilheiro-campeao/artilheiro-campeao-cache.js** - ⚽ Sistema Artilheiro Campeão
@@ -128,6 +144,8 @@
   - 📏 Tamanho: 15KB | Linhas: 462
 - 📄 **public/js/cards-condicionais.js** - 📝 Script JavaScript
   - 📏 Tamanho: 10KB | Linhas: 344
+- 📄 **public/js/detalhe-liga-orquestrador.js** - 🏆 Funcionalidades de Liga
+  - 📏 Tamanho: 32KB | Linhas: 783
 - 📄 **public/js/detalhe-liga.js** - 🏆 Funcionalidades de Liga
   - 📏 Tamanho: 9KB | Linhas: 278
 - 📄 **public/js/exports/export-artilheiro-campeao.js** - ⚽ Sistema Artilheiro Campeão
@@ -201,7 +219,7 @@
 - 📄 **public/js/utils.js** - 📝 Script JavaScript
   - 📏 Tamanho: 7KB | Linhas: 208
 - 📄 **public/layout.html** - 📄 Página HTML
-  - 📏 Tamanho: 13KB | Linhas: 341
+  - 📏 Tamanho: 13KB | Linhas: 340
 - 📄 **public/parciais.html** - 📄 Página HTML
   - 📏 Tamanho: 11KB | Linhas: 366
 - 📄 **public/preencher-liga.html** - 🏆 Funcionalidades de Liga
@@ -284,7 +302,7 @@
 - 📄 **scripts/times-da-liga.json** - 🏆 Funcionalidades de Liga
   - 📏 Tamanho: 2KB | Linhas: 46
 
-### Documentação (11 arquivos)
+### Documentação (12 arquivos)
 
 - 📄 **HANDOVER.md** - 📖 Documentação
   - 📏 Tamanho: 3KB | Linhas: 135
@@ -300,6 +318,8 @@
   - 📏 Tamanho: 6KB | Linhas: 199
 - 📄 **attached_assets/Pasted--CORRE-ES-DE-VISIBILIDADE-HEADER-E-CARDS-Header-da-Liga-Textos-Sempre-Vis-ve-1756058516953_1756058516954.txt** - 🏆 Funcionalidades de Liga
   - 📏 Tamanho: 4KB | Linhas: 185
+- 📄 **attached_assets/Pasted--FUNCIONALIDADES-PERDIDAS-NA-MODULARIZA-O-AN-LISE-CR-TICA-PERDAS-IDENTIFICADAS-E-CO-1756065624831_1756065624832.txt** - ❓ Arquivo genérico
+  - 📏 Tamanho: 6KB | Linhas: 177
 - 📄 **attached_assets/Pasted--MELHORIAS-SISTEMA-DE-CARDS-CONDICIONAIS-Configura-o-dos-cards-por-liga--1756056684139_1756056684141.txt** - ⚙️ Arquivo de configuração
   - 📏 Tamanho: 6KB | Linhas: 187
 - 📄 **attached_assets/Pasted-sistema-modulos-init-js-8-SISTEMA-MODULOS-Inicializando-sistema-de-m-dulos-sistema-modulos--1756050688509_1756050688509.txt** - ❓ Arquivo genérico
@@ -307,7 +327,7 @@
 - 📄 **attached_assets/Pasted-sistema-modulos-init-js-8-SISTEMA-MODULOS-Inicializando-sistema-de-m-dulos-sistema-modulos--1756053131179_1756053131179.txt** - ❓ Arquivo genérico
   - 📏 Tamanho: 4KB | Linhas: 45
 - 📄 **system-analysis-2025-08-24.md** - 📖 Documentação
-  - 📏 Tamanho: 18KB | Linhas: 462
+  - 📏 Tamanho: 20KB | Linhas: 485
 
 ### Assets (17 arquivos)
 
@@ -453,16 +473,16 @@
 
 | Métrica | Valor |
 |---------|-------|
-| **Total de arquivos** | 149 |
-| **Tamanho total** | 9962 KB |
-| **Tamanho médio** | 67 KB |
+| **Total de arquivos** | 162 |
+| **Tamanho total** | 9993 KB |
+| **Tamanho médio** | 62 KB |
 
 ### 📋 Por Tipo de Arquivo
 
 | Tipo | Quantidade |
 |------|------------|
-| 🎨 **frontend** | 105 |
-| 📖 **docs** | 12 |
+| 🎨 **frontend** | 117 |
+| 📖 **docs** | 13 |
 | ⚙️ **config** | 11 |
 | ❓ **other** | 4 |
 | 🖼️ **assets** | 17 |
@@ -471,8 +491,8 @@
 
 | Categoria | Quantidade | Descrição |
 |-----------|------------|----------|
-| 🟢 **Pequenos** | 62 | < 5KB |
-| 🟡 **Médios** | 82 | 5-50KB |
+| 🟢 **Pequenos** | 70 | < 5KB |
+| 🟡 **Médios** | 87 | 5-50KB |
 | 🔴 **Grandes** | 5 | > 50KB |
 
 ### 🔍 Insights da Arquitetura
