@@ -367,13 +367,17 @@ class DetalheLigaOrquestrador {
         }
     }
 
-    // 🔄 NAVEGAÇÃO ENTRE TELAS (CORRIGIDO)
+    // 🔄 NAVEGAÇÃO ENTRE TELAS (CORRIGIDO + APRIMORADO)
     showSecondaryScreen() {
         const mainScreen = document.getElementById('main-screen');
         const secondaryScreen = document.getElementById('secondary-screen');
 
+        // Atualizar atributo do body para CSS funcionar
+        document.body.setAttribute('data-screen', 'secondary');
+
         if (mainScreen) {
             mainScreen.style.display = 'none';
+            mainScreen.classList.add('hidden');
             console.log('🔄 [ORQUESTRADOR] Tela principal ocultada');
         }
 
@@ -381,6 +385,14 @@ class DetalheLigaOrquestrador {
             secondaryScreen.classList.add('active');
             secondaryScreen.style.display = 'block'; // ⚡ FORÇAR DISPLAY
             console.log('🔄 [ORQUESTRADOR] Tela secundária ativada');
+        } else {
+            // Fallback: usar .dynamic-content se #secondary-screen não existir
+            const dynamicContent = document.querySelector('.dynamic-content');
+            if (dynamicContent) {
+                dynamicContent.classList.add('active');
+                dynamicContent.style.display = 'block';
+                console.log('🔄 [ORQUESTRADOR] Dynamic content ativado (fallback)');
+            }
         }
     }
 
@@ -388,14 +400,26 @@ class DetalheLigaOrquestrador {
         const mainScreen = document.getElementById('main-screen');
         const secondaryScreen = document.getElementById('secondary-screen');
 
+        // Atualizar atributo do body para CSS funcionar
+        document.body.setAttribute('data-screen', 'main');
+
         if (secondaryScreen) {
             secondaryScreen.classList.remove('active');
             secondaryScreen.style.display = 'none'; // ⚡ FORÇAR OCULTAÇÃO
             console.log('🔄 [ORQUESTRADOR] Tela secundária ocultada');
+        } else {
+            // Fallback: usar .dynamic-content se #secondary-screen não existir
+            const dynamicContent = document.querySelector('.dynamic-content');
+            if (dynamicContent) {
+                dynamicContent.classList.remove('active');
+                dynamicContent.style.display = 'none';
+                console.log('🔄 [ORQUESTRADOR] Dynamic content ocultado (fallback)');
+            }
         }
 
         if (mainScreen) {
             mainScreen.style.display = 'block';
+            mainScreen.classList.remove('hidden');
             console.log('🔄 [ORQUESTRADOR] Tela principal exibida');
         }
     }
