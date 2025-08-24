@@ -295,7 +295,7 @@ function renderTabelaRankingEdicao(ranking, edicao, edicaoNaoAconteceu) {
           </tr>
         </thead>
         <tbody>
-          ${tabelaBodyHtml} 
+          ${tabelaBodyHtml}
         </tbody>
       </table>
     </div>
@@ -306,16 +306,18 @@ function renderTabelaRankingEdicao(ranking, edicao, edicaoNaoAconteceu) {
     // Botão de exportação (só adiciona se houver ranking)
     if (ranking && ranking.length > 0 && criarBotaoExportacaoMelhorMes) {
       criarBotaoExportacaoMelhorMes({
-        containerId: "melhorMesExportBtnContainer",
-        rodada: `${edicao.inicio}-${edicao.fim}`,
-        rankings: ranking,
-        isParciais: false,
-        isRankingGeral: false,
-        customExport: (rankings) =>
-          exportarMelhorMesComoImagem(rankings, edicao),
-        tabelaId: "melhorMesTable",
-        titulo: `Ranking Melhor do Mês - ${edicao.nome} (Rodadas ${edicao.inicio} a ${edicao.fim})`,
-      });
+            containerId: "melhorMesExportBtnContainer",
+            tipo: "melhor-mes", // ✅ ADICIONAR TIPO EXPLÍCITO
+            rodada: `${edicao.inicio}-${edicao.fim}`,
+            rankings: ranking,
+            isParciais: false,
+            isRankingGeral: false,
+            customExport: (rankings) =>
+                exportarMelhorMesComoImagem(rankings, edicao),
+            tabelaId: "melhorMesTable",
+            titulo: `🏆 Melhor do Mês - ${edicao.nome} (Rodadas ${edicao.inicio} a ${edicao.fim})`, // ✅ TÍTULO ESPECÍFICO
+            nomeModulo: "melhor-mes", // ✅ NOME DO MÓDULO EXPLÍCITO
+        });
     } else {
       // Limpa o container do botão se não houver ranking
       const exportContainer = document.getElementById(

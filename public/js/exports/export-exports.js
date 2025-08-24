@@ -477,7 +477,7 @@ export async function diagnosticarSistema() {
   }
 })();
 
-// ✅ PADRÃO SEGURO PARA EVENT HANDLERS
+// ✅ PADRÃO SEGURO PARA EVENT HANDERS
 export function criarHandlerSeguro(exportFunction, ...args) {
   return async (event) => {
     // Prevenir comportamento padrão e propagação
