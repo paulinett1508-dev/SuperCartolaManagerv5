@@ -248,10 +248,7 @@
                                 <i data-lucide="award"></i>
                                 Luva de Ouro
                             </button>
-                            <button
-                                class="tab-button"
-                                data-tab="artilheiro-campeao"
-                            >
+                            <button class="tab-button" data-tab="artilheiro-campeao">
                                 <i data-lucide="target"></i>
                                 Artilheiro Campeão
                             </button>
@@ -307,6 +304,35 @@
                                             automaticamente, clique no botão
                                             acima</small
                                         >
+                                    </div>
+                                    <div id="rankingGeralTableContainer" style="display: none;">
+                                        <div id="rankingGeralExportBtnContainer" class="text-end mb-2"></div>
+                                        <table class="table table-striped ranking-table">
+                                            <thead>
+                                                <tr>
+                                                    <th style="width: 60px">Pos</th>
+                                                    <th style="width: 50px">❤️</th>
+                                                    <th style="min-width: 120px">
+                                                        Cartoleiro
+                                                    </th>
+                                                    <th style="min-width: 120px">
+                                                        Time
+                                                    </th>
+                                                    <th style="width: 80px">
+                                                        Pontos
+                                                    </th>
+                                                    <th style="width: 80px">
+                                                        Média
+                                                    </th>
+                                                    <th style="width: 80px">
+                                                        Rodadas
+                                                    </th>
+                                                </tr>
+                                            </thead>
+                                            <tbody id="rankingGeralTableBody">
+                                                <!-- Conteúdo do ranking será injetado aqui -->
+                                            </tbody>
+                                        </table>
                                     </div>
                                 </div>
                             </div>
@@ -673,6 +699,35 @@
 
                     switch (tabId) {
                         case "ranking-geral":
+                            // Cria a tabela se não existir
+                            if (!document.getElementById("rankingGeralTableContainer")) {
+                                const rankingContainer = document.getElementById("rankingContainer");
+                                rankingContainer.innerHTML = `
+                                    <div id="rankingGeralLoading" style="color: #a0a0a0; text-align: center; padding: 40px;">
+                                        🔄 Carregando ranking geral...<br><br>
+                                        <button onclick="window.forceRankingRender()" style="background: #ff4500; color: white; border: none; padding: 10px 20px; border-radius: 5px; cursor: pointer; margin-top: 10px;">🎯 Forçar Exibição</button><br><br>
+                                        <small style="color: #666;">Se o ranking não aparecer automaticamente, clique no botão acima</small>
+                                    </div>
+                                    <div id="rankingGeralTableContainer" style="display: none;">
+                                        <div id="rankingGeralExportBtnContainer" class="text-end mb-2"></div>
+                                        <table class="table table-striped ranking-table">
+                                            <thead>
+                                                <tr>
+                                                    <th style="width: 60px">Pos</th>
+                                                    <th style="width: 50px">❤️</th>
+                                                    <th style="min-width: 120px">Cartoleiro</th>
+                                                    <th style="min-width: 120px">Time</th>
+                                                    <th style="width: 80px">Pontos</th>
+                                                    <th style="width: 80px">Média</th>
+                                                    <th style="width: 80px">Rodadas</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody id="rankingGeralTableBody"></tbody>
+                                        </table>
+                                    </div>
+                                `;
+                            }
+
                             if (modules.ranking?.carregarRankingGeral) {
                                 await modules.ranking.carregarRankingGeral();
                             } else if (modules.ranking?.carregarRanking) {
@@ -852,6 +907,23 @@
                 console.log(`✅ [DETALHE-LIGA] Fallback carregado para: ${dados.nome}`);
             }
 
+            // ✅ FUNÇÃO PARA ATUALIZAR O CABEÇALHO DA LIGA
+            function updateLigaHeader(liga) {
+                const nomeElement = document.getElementById("nomeLiga");
+                const quantidadeElement = document.getElementById("quantidadeTimes");
+
+                if (nomeElement) {
+                    nomeElement.textContent = liga.nome || "Nome da Liga";
+                }
+
+                if (quantidadeElement) {
+                    const participantes = liga.participantes || liga.times?.length || 0;
+                    quantidadeElement.textContent = `${participantes} participantes`;
+                }
+
+                console.log(`✅ [DETALHE-LIGA] Header atualizado: ${liga.nome} (${liga.participantes || 0} participantes)`);
+            }
+
             // ✅ FORÇAR RENDERIZAÇÃO DO RANKING
             function forceRankingRender() {
                 console.log("🔄 [DETALHE-LIGA] Forçando renderização do ranking...");
@@ -948,25 +1020,11 @@
 
             // ✅ FUNÇÃO GLOBAL PARA DEBUG
             window.forceRankingRender = forceRankingRender;
-                const nomeElement = document.getElementById("nomeLiga");
-                const quantidadeElement = document.getElementById("quantidadeTimes");
-
-                if (nomeElement) {
-                    nomeElement.textContent = liga.nome || "Nome da Liga";
-                }
-
-                if (quantidadeElement) {
-                    const participantes = liga.participantes || liga.times?.length || 0;
-                    quantidadeElement.textContent = `${participantes} participantes`;
-                }
-
-                console.log(`✅ [DETALHE-LIGA] Header atualizado: ${liga.nome} (${liga.participantes || 0} participantes)`);
-            }
 
             // ✅ INTERCEPTAR CONSOLE.LOG PARA DETECTAR RANKING CALCULADO
             const originalConsoleLog = console.log;
             let rodadasProcessadas = 0;
-            const totalRodadas = 20;
+            const totalRodadas = 20; // Assumindo 20 rodadas como padrão
 
             console.log = function(...args) {
                 originalConsoleLog.apply(console, args);
@@ -975,8 +1033,15 @@
 
                 // Monitorar progresso das rodadas
                 if (message.includes('times encontrados') && message.includes('Rodada')) {
-                    rodadasProcessadas++;
-                    updateProgressStatus(rodadasProcessadas, totalRodadas);
+                    // Extrair o número da rodada se possível
+                    const rodadaMatch = message.match(/Rodada (\d+)/);
+                    if (rodadaMatch) {
+                        const currentRodada = parseInt(rodadaMatch[1], 10);
+                        if (!isNaN(currentRodada)) {
+                            rodadasProcessadas = currentRodada;
+                            updateProgressStatus(rodadasProcessadas, totalRodadas);
+                        }
+                    }
                 }
 
                 // Detectar ranking calculado
@@ -998,14 +1063,14 @@
                 if (statusDiv && statusTexto && progressBar) {
                     statusDiv.style.display = "block";
                     statusTexto.textContent = `Processando rodada ${atual} de ${total}...`;
-                    const percent = (atual / total) * 100;
+                    const percent = Math.min((atual / total) * 100, 100); // Garante que não ultrapasse 100%
                     progressBar.style.width = percent + "%";
 
                     if (atual >= total) {
                         setTimeout(() => {
                             statusTexto.textContent = "✅ Dados processados - Montando tabela...";
                             progressBar.style.width = "100%";
-                            progressBar.style.background = "#22c55e";
+                            progressBar.style.background = "#22c55e"; // Verde
 
                             setTimeout(() => {
                                 statusDiv.style.display = "none";
