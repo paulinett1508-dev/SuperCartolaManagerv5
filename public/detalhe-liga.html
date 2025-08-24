@@ -5,105 +5,157 @@
         <meta name="viewport" content="width=device-width, initial-scale=1.0" />
         <title>Detalhe da Liga - Super Cartola Manager</title>
         <link rel="shortcut icon" href="favicon.ico" type="image/x-icon" />
+        <link rel="stylesheet" href="style.css" />
 
-        <!-- ✅ CORREÇÃO: Estilos básicos inline para substituir CSS ausente -->
+        <!-- ✅ CSS ESPECÍFICO DA PÁGINA - REMOVIDO CSS CONFLITANTE DE NAVEGAÇÃO -->
         <style>
-            .navbar {
-                background: #fff;
-                border-bottom: 1px solid #ddd;
-                padding: 10px 0;
+            /* === ESTILOS ESPECÍFICOS DO DETALHE DA LIGA === */
+            .page-content {
+                background: #1a1a1a;
+                min-height: calc(100vh - 100px);
+                padding: 20px;
             }
-            .navbar-brand {
-                font-weight: bold;
-                color: #333;
-                text-decoration: none;
-            }
+
             .liga-header {
                 margin-bottom: 20px;
+                background: linear-gradient(135deg, #2a2a2a 0%, #1e1e1e 100%);
+                border-radius: 16px;
+                padding: 30px;
+                box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
+                border: 1px solid rgba(255, 69, 0, 0.2);
             }
+
             .liga-titulo {
-                color: #333;
+                color: #ffffff;
                 margin-bottom: 5px;
+                font-size: 28px;
+                font-weight: 700;
             }
+
             .liga-info {
-                color: #666;
+                color: #a0a0a0;
                 margin: 0;
+                font-size: 16px;
             }
+
             .tabs-nav {
                 display: flex;
-                border-bottom: 1px solid #ddd;
-                margin-bottom: 20px;
+                border-bottom: 2px solid rgba(255, 69, 0, 0.2);
+                margin-bottom: 30px;
                 flex-wrap: wrap;
+                background: rgba(42, 42, 42, 0.5);
+                border-radius: 12px 12px 0 0;
+                overflow-x: auto;
             }
+
             .tab-button {
                 background: none;
                 border: none;
-                padding: 10px 15px;
+                padding: 15px 20px;
                 cursor: pointer;
-                border-bottom: 2px solid transparent;
+                border-bottom: 3px solid transparent;
+                color: #a0a0a0;
+                font-weight: 600;
+                font-size: 14px;
+                transition: all 0.3s ease;
+                display: flex;
+                align-items: center;
+                gap: 8px;
+                white-space: nowrap;
             }
+
             .tab-button:hover {
-                background: #f8f9fa;
+                background: rgba(255, 69, 0, 0.1);
+                color: #ffffff;
             }
+
             .tab-button.active {
-                border-bottom-color: #007bff;
-                color: #007bff;
+                border-bottom-color: #ff4500;
+                color: #ff4500;
+                background: rgba(255, 69, 0, 0.15);
             }
+
             .tab-pane {
                 display: none;
+                background: linear-gradient(135deg, #2a2a2a 0%, #1e1e1e 100%);
+                border-radius: 16px;
+                padding: 30px;
+                box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
+                border: 1px solid rgba(255, 69, 0, 0.2);
             }
+
             .tab-pane.active {
                 display: block;
             }
+
             .ranking-table {
                 width: 100%;
                 border-collapse: collapse;
+                background: rgba(26, 26, 26, 0.8);
+                border-radius: 12px;
+                overflow: hidden;
             }
+
             .ranking-table th,
             .ranking-table td {
-                padding: 8px;
+                padding: 12px 15px;
                 text-align: left;
-                border-bottom: 1px solid #ddd;
+                border-bottom: 1px solid rgba(255, 69, 0, 0.1);
+                color: #ffffff;
             }
+
             .ranking-table th {
-                background: #f8f9fa;
-                font-weight: 600;
+                background: rgba(255, 69, 0, 0.2);
+                font-weight: 700;
+                color: #ff4500;
+                text-transform: uppercase;
+                font-size: 12px;
+                letter-spacing: 1px;
             }
-            .error-toast {
-                position: fixed;
-                top: 20px;
-                right: 20px;
-                background: #dc3545;
-                color: white;
-                padding: 15px;
-                border-radius: 5px;
-                z-index: 9999;
+
+            .ranking-table td {
+                color: #e0e0e0;
             }
-            .sidebar {
-                background: #f8f9fa;
-                padding: 15px;
-                border-radius: 5px;
+
+            .form-control {
+                background: rgba(42, 42, 42, 0.8);
+                border: 2px solid rgba(255, 69, 0, 0.2);
+                color: #ffffff;
+                border-radius: 8px;
+                padding: 12px 15px;
+                font-size: 14px;
             }
-            .sidebar-title {
-                font-size: 1.1em;
-                margin-bottom: 10px;
+
+            .form-control:focus {
+                border-color: #ff4500;
+                box-shadow: 0 0 0 0.2rem rgba(255, 69, 0, 0.25);
+                background: rgba(42, 42, 42, 1);
             }
-            .sidebar-menu {
-                list-style: none;
-                padding: 0;
-                margin: 0;
+
+            .form-control option {
+                background: #2a2a2a;
+                color: #ffffff;
             }
-            .sidebar-menu li {
-                margin: 5px 0;
-            }
-            .sidebar-link {
-                color: #333;
-                text-decoration: none;
-                padding: 5px 0;
-                display: block;
-            }
-            .sidebar-link:hover {
-                color: #007bff;
+
+            /* Responsividade */
+            @media (max-width: 768px) {
+                .tabs-nav {
+                    flex-direction: column;
+                }
+
+                .tab-button {
+                    padding: 12px 15px;
+                    font-size: 13px;
+                }
+
+                .page-content {
+                    padding: 15px;
+                }
+
+                .liga-header,
+                .tab-pane {
+                    padding: 20px;
+                }
             }
         </style>
 
@@ -118,28 +170,54 @@
     </head>
 
     <body>
-        <nav class="navbar">
-            <div class="container">
-                <a class="navbar-brand" href="/">
-                    <span style="font-weight: bold">Super Cartola Manager</span>
-                </a>
-            </div>
-        </nav>
+        <div class="app-container">
+            <!-- ✅ CORRIGIDO: Placeholders para injeção do layout -->
+            <div id="sidebar-placeholder"></div>
 
-        <div class="container mt-4">
-            <div class="row">
-                <div class="col-md-3">
-                    <div id="sidebar-container">
-                        <!-- Sidebar será carregado aqui dinamicamente -->
-                    </div>
-                </div>
+            <!-- Conteúdo principal -->
+            <main class="app-main">
+                <!-- ✅ CORRIGIDO: Header será injetado aqui -->
+                <div id="header-placeholder"></div>
 
-                <div class="col-md-9">
+                <!-- Conteúdo da página -->
+                <div class="page-content">
                     <div class="liga-header mb-4">
                         <h2 id="nomeLiga" class="liga-titulo">Nome da Liga</h2>
                         <p id="quantidadeTimes" class="liga-info">
                             0 participantes
                         </p>
+                        <!-- ✅ STATUS DE CARREGAMENTO EM TEMPO REAL -->
+                        <div
+                            id="statusCarregamento"
+                            style="
+                                font-size: 12px;
+                                color: #666;
+                                margin-top: 10px;
+                                display: none;
+                            "
+                        >
+                            <span id="statusTexto">Processando dados...</span>
+                            <div
+                                style="
+                                    width: 100%;
+                                    background: #333;
+                                    border-radius: 5px;
+                                    height: 4px;
+                                    margin-top: 5px;
+                                "
+                            >
+                                <div
+                                    id="progressBar"
+                                    style="
+                                        width: 0%;
+                                        background: #ff4500;
+                                        height: 100%;
+                                        border-radius: 5px;
+                                        transition: width 0.3s;
+                                    "
+                                ></div>
+                            </div>
+                        </div>
                     </div>
 
                     <div class="tabs-container">
@@ -170,7 +248,10 @@
                                 <i data-lucide="award"></i>
                                 Luva de Ouro
                             </button>
-                            <button class="tab-button" data-tab="artilheiro-campeao">
+                            <button
+                                class="tab-button"
+                                data-tab="artilheiro-campeao"
+                            >
                                 <i data-lucide="target"></i>
                                 Artilheiro Campeão
                             </button>
@@ -194,14 +275,39 @@
                         <div class="tab-content">
                             <!-- Ranking Geral Tab -->
                             <div id="ranking-geral" class="tab-pane active">
-                                <div
-                                    style="
-                                        color: #555;
-                                        text-align: center;
-                                        padding: 20px;
-                                    "
-                                >
-                                    Carregando ranking geral...
+                                <!-- ✅ CONTAINER COM ID QUE RANKING.JS ESPERA -->
+                                <div id="rankingContainer">
+                                    <div
+                                        id="rankingGeralLoading"
+                                        style="
+                                            color: #a0a0a0;
+                                            text-align: center;
+                                            padding: 40px;
+                                        "
+                                    >
+                                        🔄 Carregando ranking geral...
+                                        <br /><br />
+                                        <button
+                                            onclick="window.forceRankingRender()"
+                                            style="
+                                                background: #ff4500;
+                                                color: white;
+                                                border: none;
+                                                padding: 10px 20px;
+                                                border-radius: 5px;
+                                                cursor: pointer;
+                                                margin-top: 10px;
+                                            "
+                                        >
+                                            🎯 Forçar Exibição
+                                        </button>
+                                        <br /><br />
+                                        <small style="color: #666"
+                                            >Se o ranking não aparecer
+                                            automaticamente, clique no botão
+                                            acima</small
+                                        >
+                                    </div>
                                 </div>
                             </div>
 
@@ -232,7 +338,8 @@
                                     style="
                                         display: none;
                                         text-align: center;
-                                        padding: 20px;
+                                        padding: 40px;
+                                        color: #a0a0a0;
                                     "
                                 >
                                     Carregando dados da rodada...
@@ -262,7 +369,14 @@
                                         </thead>
                                         <tbody id="rankingBody">
                                             <tr>
-                                                <td colspan="6">
+                                                <td
+                                                    colspan="6"
+                                                    style="
+                                                        color: #a0a0a0;
+                                                        text-align: center;
+                                                        padding: 20px;
+                                                    "
+                                                >
                                                     Selecione uma rodada para
                                                     visualizar o ranking.
                                                 </td>
@@ -277,9 +391,9 @@
                                 <div id="mataMataContent">
                                     <div
                                         style="
-                                            color: #555;
+                                            color: #a0a0a0;
                                             text-align: center;
-                                            padding: 20px;
+                                            padding: 40px;
                                         "
                                     >
                                         Clique para carregar dados do
@@ -293,9 +407,9 @@
                                 <div id="pontosCorridosContent">
                                     <div
                                         style="
-                                            color: #555;
+                                            color: #a0a0a0;
                                             text-align: center;
-                                            padding: 20px;
+                                            padding: 40px;
                                         "
                                     >
                                         Clique para carregar dados dos Pontos
@@ -309,9 +423,9 @@
                                 <div id="luvaDeOuroContent">
                                     <div
                                         style="
-                                            color: #555;
+                                            color: #a0a0a0;
                                             text-align: center;
-                                            padding: 20px;
+                                            padding: 40px;
                                         "
                                     >
                                         Clique para carregar dados da Luva de
@@ -325,9 +439,9 @@
                                 <div id="artilheiroCampeaoContent">
                                     <div
                                         style="
-                                            color: #555;
+                                            color: #a0a0a0;
                                             text-align: center;
-                                            padding: 20px;
+                                            padding: 40px;
                                         "
                                     >
                                         Clique para carregar dados do Artilheiro
@@ -341,9 +455,9 @@
                                 <div id="melhorMesContent">
                                     <div
                                         style="
-                                            color: #555;
+                                            color: #a0a0a0;
                                             text-align: center;
-                                            padding: 20px;
+                                            padding: 40px;
                                         "
                                     >
                                         Clique para carregar dados do Melhor
@@ -377,9 +491,9 @@
                                 <div id="fluxoFinanceiroContent">
                                     <div
                                         style="
-                                            color: #555;
+                                            color: #a0a0a0;
                                             text-align: center;
-                                            padding: 20px;
+                                            padding: 40px;
                                         "
                                     >
                                         Clique para carregar dados do Fluxo
@@ -390,17 +504,17 @@
                         </div>
                     </div>
                 </div>
-            </div>
+            </main>
         </div>
 
         <!-- Bootstrap JS -->
         <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+
         <!-- ✅ SISTEMA DE MÓDULOS - CARREGAR PRIMEIRO -->
         <script src="js/sistema-modulos-init.js"></script>
 
         <!-- Scripts base do sistema -->
         <script type="module" src="js/utils.js"></script>
-        <script type="module" src="js/layout-system.js"></script>
         <script type="module" src="js/navigation.js"></script>
 
         <!-- Scripts de funcionalidades -->
@@ -428,7 +542,530 @@
         <!-- Seletor de ligas (IIFE - não precisa de type="module") -->
         <script src="js/seletor-ligas.js"></script>
 
-        <!-- Script principal da página -->
-        <script type="module" src="js/detalhe-liga.js"></script>
+        <!-- ✅ CORREÇÃO PRINCIPAL: Sistema de carregamento de layout -->
+        <script type="module">
+            import { carregarLigas } from "./js/gerenciar-ligas.js";
+
+            // ✅ FUNÇÃO DE CARREGAMENTO DO LAYOUT (IDÊNTICA AO DASHBOARD)
+            async function loadLayout() {
+                try {
+                    console.log("🔄 [DETALHE-LIGA] Carregando layout...");
+
+                    const response = await fetch("layout.html");
+                    const layoutHtml = await response.text();
+
+                    // Parse do HTML
+                    const parser = new DOMParser();
+                    const doc = parser.parseFromString(layoutHtml, "text/html");
+
+                    // Injetar sidebar
+                    const sidebar = doc.querySelector(".app-sidebar");
+                    if (sidebar) {
+                        document
+                            .getElementById("sidebar-placeholder")
+                            .replaceWith(sidebar);
+                        console.log("✅ [DETALHE-LIGA] Sidebar carregada");
+                    }
+
+                    // Injetar header
+                    const header = doc.querySelector(".page-header");
+                    if (header) {
+                        document
+                            .getElementById("header-placeholder")
+                            .replaceWith(header);
+                        console.log("✅ [DETALHE-LIGA] Header carregado");
+                    }
+
+                    // Executar scripts do layout
+                    const scripts = doc.querySelectorAll("script");
+                    scripts.forEach((script) => {
+                        if (script.textContent.trim()) {
+                            const newScript = document.createElement("script");
+                            newScript.textContent = script.textContent;
+                            document.head.appendChild(newScript);
+                        }
+                    });
+
+                    console.log("✅ [DETALHE-LIGA] Layout completamente carregado");
+                } catch (error) {
+                    console.error("❌ [DETALHE-LIGA] Erro ao carregar layout:", error);
+                }
+            }
+
+            // ✅ SISTEMA DE TABS FUNCIONAL
+            async function initializeTabs() {
+                console.log("🔧 [DETALHE-LIGA] Inicializando sistema de tabs...");
+
+                const tabButtons = document.querySelectorAll(".tab-button");
+                const tabPanes = document.querySelectorAll(".tab-pane");
+
+                // ✅ CARREGAR MÓDULOS E EXPOR FUNÇÕES GLOBALMENTE
+                const modules = {};
+
+                try {
+                    // Importar todos os módulos necessários
+                    modules.ranking = await import("./js/ranking.js");
+                    modules.rodadas = await import("./js/rodadas.js");
+                    modules.mataMata = await import("./js/mata-mata.js");
+                    modules.pontosCorreidos = await import("./js/pontos-corridos.js");
+                    modules.luvaDeOuro = await import("./js/luva-de-ouro.js");
+                    modules.artilheiroCampeao = await import("./js/artilheiro-campeao.js");
+                    modules.melhorMes = await import("./js/melhor-mes.js");
+                    modules.top10 = await import("./js/top10.js");
+                    modules.fluxoFinanceiro = await import("./js/fluxo-financeiro.js");
+
+                    console.log("✅ [DETALHE-LIGA] Módulos carregados:", Object.keys(modules));
+                } catch (error) {
+                    console.error("❌ [DETALHE-LIGA] Erro ao carregar módulos:", error);
+                }
+
+                tabButtons.forEach((button) => {
+                    button.addEventListener("click", async function () {
+                        const tabId = this.getAttribute("data-tab");
+                        console.log(`🔧 [DETALHE-LIGA] Mudando para tab: ${tabId}`);
+
+                        // Atualizar UI das tabs
+                        tabButtons.forEach((btn) => btn.classList.remove("active"));
+                        tabPanes.forEach((pane) => pane.classList.remove("active"));
+
+                        this.classList.add("active");
+                        const targetPane = document.getElementById(tabId);
+                        if (targetPane) {
+                            targetPane.classList.add("active");
+                            await loadTabContent(tabId, modules);
+                        }
+                    });
+                });
+
+                // ✅ CARREGAR CONTEÚDO INICIAL (Ranking Geral)
+                await loadTabContent("ranking-geral", modules);
+
+                // ✅ MONITORAR DADOS DE RANKING A CADA 3 SEGUNDOS
+                const rankingMonitor = setInterval(() => {
+                    const hasVisibleTable = document.getElementById("rankingGeralTableContainer")?.style.display !== "none";
+                    if (!hasVisibleTable) {
+                        forceRankingRender();
+                    } else {
+                        clearInterval(rankingMonitor);
+                        console.log("✅ [DETALHE-LIGA] Monitor de ranking interrompido - tabela visível");
+                    }
+                }, 3000);
+
+                // Parar monitor após 30 segundos
+                setTimeout(() => {
+                    clearInterval(rankingMonitor);
+                    console.log("⏰ [DETALHE-LIGA] Monitor de ranking finalizado por timeout");
+                }, 30000);
+            }
+
+            // ✅ CARREGAMENTO DE CONTEÚDO POR TAB
+            async function loadTabContent(tabId, modules) {
+                try {
+                    console.log(`📊 [DETALHE-LIGA] Carregando conteúdo: ${tabId}`);
+
+                    const urlParams = new URLSearchParams(window.location.search);
+                    const ligaId = urlParams.get("id");
+
+                    if (!ligaId) {
+                        console.warn("⚠️ [DETALHE-LIGA] ID da liga não encontrado");
+                        return;
+                    }
+
+                    switch (tabId) {
+                        case "ranking-geral":
+                            if (modules.ranking?.carregarRankingGeral) {
+                                await modules.ranking.carregarRankingGeral();
+                            } else if (modules.ranking?.carregarRanking) {
+                                await modules.ranking.carregarRanking();
+                            } else {
+                                console.warn("⚠️ Função de ranking não encontrada");
+                                document.getElementById("ranking-geral").innerHTML = `
+                                    <div style="text-align: center; padding: 40px; color: #a0a0a0;">
+                                        <p>Módulo de ranking não disponível</p>
+                                        <button onclick="window.location.reload()" style="background: #ff4500; color: white; border: none; padding: 10px 20px; border-radius: 5px; cursor: pointer;">
+                                            🔄 Recarregar Página
+                                        </button>
+                                    </div>
+                                `;
+                            }
+
+                            // ✅ FORÇAR RENDERIZAÇÃO SE DADOS EXISTIREM
+                            setTimeout(() => {
+                                forceRankingRender();
+                            }, 2000);
+                            break;
+
+                        case "rodadas":
+                            if (modules.rodadas?.carregarRodadas) {
+                                await modules.rodadas.carregarRodadas();
+                            } else {
+                                console.warn("⚠️ Função de rodadas não encontrada");
+                            }
+                            break;
+
+                        case "mata-mata":
+                            if (modules.mataMata?.carregarMataMata) {
+                                await modules.mataMata.carregarMataMata();
+                            } else if (modules.mataMata?.inicializarMataMata) {
+                                await modules.mataMata.inicializarMataMata();
+                            } else {
+                                console.warn("⚠️ Função de mata-mata não encontrada");
+                            }
+                            break;
+
+                        case "pontos-corridos":
+                            if (modules.pontosCorreidos?.inicializarPontosCorreidos) {
+                                await modules.pontosCorreidos.inicializarPontosCorreidos();
+                            } else if (modules.pontosCorreidos?.carregarPontosCorreidos) {
+                                await modules.pontosCorreidos.carregarPontosCorreidos();
+                            } else {
+                                console.warn("⚠️ Função de pontos corridos não encontrada");
+                            }
+                            break;
+
+                        case "luva-de-ouro":
+                            if (modules.luvaDeOuro?.inicializarLuvaDeOuro) {
+                                await modules.luvaDeOuro.inicializarLuvaDeOuro();
+                            } else if (modules.luvaDeOuro?.carregarLuvaDeOuro) {
+                                await modules.luvaDeOuro.carregarLuvaDeOuro();
+                            } else {
+                                console.warn("⚠️ Função de luva de ouro não encontrada");
+                            }
+                            break;
+
+                        case "artilheiro-campeao":
+                            if (modules.artilheiroCampeao?.inicializarArtilheiroCampeao) {
+                                await modules.artilheiroCampeao.inicializarArtilheiroCampeao();
+                            } else if (modules.artilheiroCampeao?.carregarArtilheiroCampeao) {
+                                await modules.artilheiroCampeao.carregarArtilheiroCampeao();
+                            } else {
+                                console.warn("⚠️ Função de artilheiro campeão não encontrada");
+                            }
+                            break;
+
+                        case "melhor-mes":
+                            if (modules.melhorMes?.inicializarMelhorMes) {
+                                await modules.melhorMes.inicializarMelhorMes();
+                            } else if (modules.melhorMes?.carregarMelhorMes) {
+                                await modules.melhorMes.carregarMelhorMes();
+                            } else {
+                                console.warn("⚠️ Função de melhor mês não encontrada");
+                            }
+                            break;
+
+                        case "top10":
+                            if (modules.top10?.inicializarTop10) {
+                                await modules.top10.inicializarTop10();
+                            } else if (modules.top10?.carregarTop10) {
+                                await modules.top10.carregarTop10();
+                            } else {
+                                console.warn("⚠️ Função de top10 não encontrada");
+                            }
+                            break;
+
+                        case "fluxo-financeiro":
+                            if (modules.fluxoFinanceiro?.inicializarFluxoFinanceiro) {
+                                await modules.fluxoFinanceiro.inicializarFluxoFinanceiro();
+                            } else if (modules.fluxoFinanceiro?.carregarFluxoFinanceiro) {
+                                await modules.fluxoFinanceiro.carregarFluxoFinanceiro();
+                            } else {
+                                console.warn("⚠️ Função de fluxo financeiro não encontrada");
+                            }
+                            break;
+
+                        default:
+                            console.log(`ℹ️ [DETALHE-LIGA] Tab ${tabId} não tem função específica`);
+                    }
+
+                    console.log(`✅ [DETALHE-LIGA] Conteúdo ${tabId} carregado`);
+                } catch (error) {
+                    console.error(`❌ [DETALHE-LIGA] Erro ao carregar ${tabId}:`, error);
+
+                    const targetPane = document.getElementById(tabId);
+                    if (targetPane) {
+                        targetPane.innerHTML = `
+                            <div style="text-align: center; padding: 40px; color: #ff4444;">
+                                <p>❌ Erro ao carregar ${tabId}</p>
+                                <p style="font-size: 12px; color: #a0a0a0;">${error.message}</p>
+                                <button onclick="window.location.reload()" style="background: #ff4500; color: white; border: none; padding: 10px 20px; border-radius: 5px; cursor: pointer; margin-top: 10px;">
+                                    🔄 Recarregar Página
+                                </button>
+                            </div>
+                        `;
+                    }
+                }
+            }
+
+            // ✅ CARREGAR DADOS DA LIGA
+            async function loadLigaDetails() {
+                const urlParams = new URLSearchParams(window.location.search);
+                const ligaId = urlParams.get("id");
+
+                if (!ligaId) {
+                    console.warn("⚠️ [DETALHE-LIGA] ID da liga não encontrado na URL");
+                    return;
+                }
+
+                try {
+                    console.log(`📊 [DETALHE-LIGA] Carregando detalhes da liga: ${ligaId}`);
+
+                    const response = await fetch(`/api/ligas/${ligaId}`);
+
+                    if (response.ok) {
+                        const liga = await response.json();
+                        updateLigaHeader(liga);
+                        console.log("✅ [DETALHE-LIGA] Dados da liga carregados:", liga.nome);
+                    } else {
+                        console.warn("⚠️ [DETALHE-LIGA] API da liga falhou, usando fallback");
+                        await loadFallbackData(ligaId);
+                    }
+                } catch (error) {
+                    console.error("❌ [DETALHE-LIGA] Erro ao carregar liga:", error);
+                    await loadFallbackData(ligaId);
+                }
+            }
+
+            // ✅ DADOS DE FALLBACK
+            async function loadFallbackData(ligaId) {
+                console.log("📄 [DETALHE-LIGA] Carregando dados de fallback...");
+
+                const fallbackData = {
+                    "684cb1c8af923da7c7df51de": {
+                        nome: "Super Cartola 2025",
+                        participantes: 32,
+                        status: "Ativo",
+                    },
+                    "684d821cf1a7ae16d1f89572": {
+                        nome: "Cartoleiros Sobral 2025",
+                        participantes: 6,
+                        status: "Ativo",
+                    },
+                };
+
+                const dados = fallbackData[ligaId] || {
+                    nome: "Liga Desconhecida",
+                    participantes: 0,
+                    status: "Carregando...",
+                };
+
+                updateLigaHeader(dados);
+                console.log(`✅ [DETALHE-LIGA] Fallback carregado para: ${dados.nome}`);
+            }
+
+            // ✅ FORÇAR RENDERIZAÇÃO DO RANKING
+            function forceRankingRender() {
+                console.log("🔄 [DETALHE-LIGA] Forçando renderização do ranking...");
+
+                // Verificar se existem dados globais de ranking
+                const possibleData = [
+                    window.rankingData,
+                    window.rankingGeral,
+                    window.dadosRanking,
+                    window.ultimoRanking
+                ];
+
+                let rankingData = null;
+                for (const data of possibleData) {
+                    if (data && Array.isArray(data) && data.length > 0) {
+                        rankingData = data;
+                        console.log(`✅ [DETALHE-LIGA] Dados encontrados:`, data.length, "registros");
+                        break;
+                    }
+                }
+
+                if (!rankingData) {
+                    console.log("⚠️ [DETALHE-LIGA] Nenhum dado de ranking encontrado para forçar renderização");
+                    return;
+                }
+
+                // Renderizar tabela manualmente
+                const tableBody = document.getElementById("rankingGeralTableBody");
+                const tableContainer = document.getElementById("rankingGeralTableContainer");
+                const loadingDiv = document.getElementById("rankingGeralLoading");
+
+                if (!tableBody) {
+                    console.error("❌ [DETALHE-LIGA] Elemento rankingGeralTableBody não encontrado");
+                    return;
+                }
+
+                console.log("🎯 [DETALHE-LIGA] Renderizando", rankingData.length, "registros na tabela");
+
+                // Limpar tabela
+                tableBody.innerHTML = '';
+
+                // Ordenar por pontos (decrescente)
+                const sortedData = [...rankingData].sort((a, b) => {
+                    const pontosA = parseFloat(a.pontos_total || a.pontos || 0);
+                    const pontosB = parseFloat(b.pontos_total || b.pontos || 0);
+                    return pontosB - pontosA;
+                });
+
+                // Renderizar linhas
+                sortedData.forEach((item, index) => {
+                    const posicao = index + 1;
+                    const nome = item.nome || item.cartoleiro || item.participante || 'N/A';
+                    const time = item.time || item.nome_time || 'Time';
+                    const pontos = parseFloat(item.pontos_total || item.pontos || 0).toFixed(2);
+                    const media = parseFloat(item.media || pontos / 20 || 0).toFixed(2);
+                    const rodadas = item.rodadas || 20;
+
+                    const row = document.createElement('tr');
+                    row.innerHTML = `
+                        <td><strong>${posicao}º</strong></td>
+                        <td>❤️</td>
+                        <td><strong style="color: #ffffff;">${nome}</strong></td>
+                        <td style="color: #a0a0a0;">${time}</td>
+                        <td><strong style="color: #ff4500;">${pontos}</strong></td>
+                        <td style="color: #a0a0a0;">${media}</td>
+                        <td style="color: #666;">${rodadas}</td>
+                    `;
+
+                    // Destacar top 3
+                    if (posicao === 1) {
+                        row.style.background = 'rgba(255, 215, 0, 0.1)';
+                        row.style.borderLeft = '4px solid gold';
+                    } else if (posicao === 2) {
+                        row.style.background = 'rgba(192, 192, 192, 0.1)';
+                        row.style.borderLeft = '4px solid silver';
+                    } else if (posicao === 3) {
+                        row.style.background = 'rgba(205, 127, 50, 0.1)';
+                        row.style.borderLeft = '4px solid #cd7f32';
+                    }
+
+                    tableBody.appendChild(row);
+                });
+
+                // Mostrar tabela e esconder loading
+                if (tableContainer) {
+                    tableContainer.style.display = 'block';
+                }
+                if (loadingDiv) {
+                    loadingDiv.style.display = 'none';
+                }
+
+                console.log("✅ [DETALHE-LIGA] Tabela renderizada com sucesso!");
+            }
+
+            // ✅ FUNÇÃO GLOBAL PARA DEBUG
+            window.forceRankingRender = forceRankingRender;
+                const nomeElement = document.getElementById("nomeLiga");
+                const quantidadeElement = document.getElementById("quantidadeTimes");
+
+                if (nomeElement) {
+                    nomeElement.textContent = liga.nome || "Nome da Liga";
+                }
+
+                if (quantidadeElement) {
+                    const participantes = liga.participantes || liga.times?.length || 0;
+                    quantidadeElement.textContent = `${participantes} participantes`;
+                }
+
+                console.log(`✅ [DETALHE-LIGA] Header atualizado: ${liga.nome} (${liga.participantes || 0} participantes)`);
+            }
+
+            // ✅ INTERCEPTAR CONSOLE.LOG PARA DETECTAR RANKING CALCULADO
+            const originalConsoleLog = console.log;
+            let rodadasProcessadas = 0;
+            const totalRodadas = 20;
+
+            console.log = function(...args) {
+                originalConsoleLog.apply(console, args);
+
+                const message = args.join(' ');
+
+                // Monitorar progresso das rodadas
+                if (message.includes('times encontrados') && message.includes('Rodada')) {
+                    rodadasProcessadas++;
+                    updateProgressStatus(rodadasProcessadas, totalRodadas);
+                }
+
+                // Detectar ranking calculado
+                if (message.includes('Ranking final calculado') ||
+                    message.includes('ranking geral') ||
+                    message.includes('times encontrados')) {
+
+                    console.log("🎯 [DETALHE-LIGA] Interceptou mensagem de ranking:", message);
+                    setTimeout(() => forceRankingRender(), 500);
+                }
+            };
+
+            // ✅ ATUALIZAR STATUS DE PROGRESSO
+            function updateProgressStatus(atual, total) {
+                const statusDiv = document.getElementById("statusCarregamento");
+                const statusTexto = document.getElementById("statusTexto");
+                const progressBar = document.getElementById("progressBar");
+
+                if (statusDiv && statusTexto && progressBar) {
+                    statusDiv.style.display = "block";
+                    statusTexto.textContent = `Processando rodada ${atual} de ${total}...`;
+                    const percent = (atual / total) * 100;
+                    progressBar.style.width = percent + "%";
+
+                    if (atual >= total) {
+                        setTimeout(() => {
+                            statusTexto.textContent = "✅ Dados processados - Montando tabela...";
+                            progressBar.style.width = "100%";
+                            progressBar.style.background = "#22c55e";
+
+                            setTimeout(() => {
+                                statusDiv.style.display = "none";
+                            }, 3000);
+                        }, 1000);
+                    }
+                }
+            }
+
+            // ✅ INICIALIZAÇÃO PRINCIPAL
+            document.addEventListener("DOMContentLoaded", async function () {
+                console.log("🚀 [DETALHE-LIGA] Iniciando sistema...");
+
+                try {
+                    // 1. Carregar layout PRIMEIRO
+                    await loadLayout();
+
+                    // 2. Aguardar um pouco para o layout se estabelecer
+                    await new Promise(resolve => setTimeout(resolve, 500));
+
+                    // 3. Carregar detalhes da liga
+                    await loadLigaDetails();
+
+                    // 4. Inicializar sistema de tabs
+                    await initializeTabs();
+
+                    console.log("✅ [DETALHE-LIGA] Sistema inicializado com sucesso");
+                } catch (error) {
+                    console.error("❌ [DETALHE-LIGA] Erro na inicialização:", error);
+                }
+            });
+
+            // ✅ FUNÇÕES GLOBAIS PARA DEBUG E FALLBACK
+            window.debugRanking = function() {
+                console.log("🔍 [DEBUG] Verificando dados de ranking...");
+                console.log("window.rankingData:", window.rankingData);
+                console.log("window.rankingGeral:", window.rankingGeral);
+                console.log("window.dadosRanking:", window.dadosRanking);
+                console.log("window.ultimoRanking:", window.ultimoRanking);
+                console.log("Elementos DOM:", {
+                    tableBody: document.getElementById("rankingGeralTableBody"),
+                    tableContainer: document.getElementById("rankingGeralTableContainer"),
+                    loading: document.getElementById("rankingGeralLoading")
+                });
+            };
+
+            window.manualRankingRender = function(data) {
+                console.log("🔧 [MANUAL] Renderização manual iniciada...");
+                if (data && Array.isArray(data)) {
+                    window.rankingData = data;
+                    forceRankingRender();
+                } else {
+                    console.log("⚠️ Forneça dados: window.manualRankingRender([{nome: 'Time', pontos: 100}, ...])");
+                }
+            };
+
+            console.log("🎮 [DETALHE-LIGA] Funções debug disponíveis:");
+            console.log("- window.forceRankingRender() - Forçar renderização");
+            console.log("- window.debugRanking() - Ver estado dos dados");
+            console.log("- window.manualRankingRender(dados) - Renderização manual");
+        </script>
     </body>
 </html>
