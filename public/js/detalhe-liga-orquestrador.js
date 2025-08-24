@@ -18,6 +18,9 @@ class DetalheLigaOrquestrador {
             await this.updateParticipantesCount();
             this.initializeNavigation();
             this.setupGlobalFunctions();
+            
+            // Verificar compatibilidade com cards condicionais
+            this.initializeCardsCondicionais();
 
             // Inicializar ícones Lucide
             if (typeof lucide !== "undefined") {
@@ -27,6 +30,28 @@ class DetalheLigaOrquestrador {
             console.log("✅ Orquestrador inicializado com sucesso");
         } catch (error) {
             console.error("❌ Erro na inicialização:", error);
+        }
+    }
+
+    // 🔧 INICIALIZAR COMPATIBILIDADE COM CARDS CONDICIONAIS
+    initializeCardsCondicionais() {
+        // Verificar se o sistema de cards condicionais está disponível
+        if (window.cardsCondicionais) {
+            try {
+                // Controlar botão voltar se disponível
+                if (window.cardsCondicionais.controlarBotaoVoltar) {
+                    window.cardsCondicionais.controlarBotaoVoltar();
+                }
+                
+                // Aplicar configurações de cards se disponível
+                if (window.cardsCondicionais.aplicarConfiguracoes) {
+                    window.cardsCondicionais.aplicarConfiguracoes();
+                }
+                
+                console.log("✅ Cards condicionais integrados");
+            } catch (error) {
+                console.warn("⚠️ Erro na integração de cards condicionais:", error);
+            }
         }
     }
 
@@ -114,6 +139,9 @@ class DetalheLigaOrquestrador {
                 case "ranking-geral":
                     if (this.modules.ranking?.carregarRankingGeral) {
                         await this.modules.ranking.carregarRankingGeral();
+                        // Aplicar interceptação e estilos específicos do ranking
+                        this.interceptarRankingFunction();
+                        this.setupRankingObserver();
                     }
                     break;
 
@@ -193,12 +221,19 @@ class DetalheLigaOrquestrador {
                         👥 Participantes da Liga
                     </h4>
                     <div class="participantes-grid">
-                        <div class="loading-state">Carregando participantes...</div>
+                        <div class="loading-state">
+                            <div style="display: flex; align-items: center; justify-content: center; gap: 12px; padding: 20px;">
+                                <div style="width: 24px; height: 24px; border: 2px solid rgba(255, 69, 0, 0.3); 
+                                            border-top: 2px solid #ff4500; border-radius: 50%; 
+                                            animation: spin 1s linear infinite;"></div>
+                                <span style="color: #ff4500; font-weight: 600;">Carregando participantes...</span>
+                            </div>
+                        </div>
                     </div>
                 </div>
             `,
             "ranking-geral": `
-                <div id="ranking-geral">
+                <div id="ranking-geral" class="active">
                     <div class="ranking-header">
                         <div class="ranking-title">
                             <div class="ranking-icon">🏅</div>
@@ -206,7 +241,14 @@ class DetalheLigaOrquestrador {
                         </div>
                         <div class="ranking-subtitle">carregando classificação oficial...</div>
                     </div>
-                    <div class="loading-state">Processando dados da classificação...</div>
+                    <div class="loading-state">
+                        <div style="display: flex; align-items: center; justify-content: center; gap: 12px; padding: 40px;">
+                            <div style="width: 32px; height: 32px; border: 3px solid rgba(255, 69, 0, 0.3); 
+                                        border-top: 3px solid #ff4500; border-radius: 50%; 
+                                        animation: spin 1s linear infinite;"></div>
+                            <span style="color: #ff4500; font-weight: 600;">Processando dados da classificação...</span>
+                        </div>
+                    </div>
                 </div>
             `,
             rodadas: `
@@ -537,6 +579,115 @@ class DetalheLigaOrquestrador {
         }
     }
 
+    // 🔧 INTERCEPTAÇÃO DO RANKING.JS
+    interceptarRankingFunction() {
+        // Backup da função original se existir
+        if (window.criarTabelaRanking && !window.criarTabelaRankingOriginal) {
+            window.criarTabelaRankingOriginal = window.criarTabelaRanking;
+        }
+
+        // Tentativas de interceptação com timeout
+        let tentativas = 0;
+        const maxTentativas = 10;
+        
+        const tentarInterceptar = () => {
+            if (window.criarTabelaRanking && tentativas < maxTentativas) {
+                const originalFunction = window.criarTabelaRanking;
+                
+                window.criarTabelaRanking = (...args) => {
+                    const resultado = originalFunction.apply(this, args);
+                    
+                    // Aplicar estilos após criar a tabela
+                    setTimeout(() => this.applyRankingStyles(), 100);
+                    
+                    return resultado;
+                };
+                
+                console.log("✅ Função criarTabelaRanking interceptada com sucesso");
+                return;
+            }
+            
+            tentativas++;
+            if (tentativas < maxTentativas) {
+                setTimeout(tentarInterceptar, 300);
+            }
+        };
+        
+        tentarInterceptar();
+    }
+
+    // 📊 OBSERVADOR DE MUTAÇÃO PARA RANKING
+    setupRankingObserver() {
+        const observer = new MutationObserver((mutations) => {
+            mutations.forEach((mutation) => {
+                if (mutation.type === 'childList') {
+                    const addedNodes = Array.from(mutation.addedNodes);
+                    const hasRankingContent = addedNodes.some(node => 
+                        node.nodeType === 1 && 
+                        (node.querySelector?.('.ranking-table') || 
+                         node.classList?.contains('ranking-table') ||
+                         node.id === 'ranking-geral')
+                    );
+                    
+                    if (hasRankingContent) {
+                        setTimeout(() => this.applyRankingStyles(), 150);
+                    }
+                }
+            });
+        });
+
+        // Observar mudanças no conteúdo dinâmico
+        const contentArea = document.getElementById('dynamic-content-area');
+        if (contentArea) {
+            observer.observe(contentArea, {
+                childList: true,
+                subtree: true
+            });
+        }
+    }
+
+    // 🎨 APLICAR ESTILOS ESPECÍFICOS DO RANKING
+    applyRankingStyles() {
+        const rankingTable = document.querySelector('#ranking-geral .ranking-table, .ranking-table');
+        if (!rankingTable) return;
+
+        const rows = rankingTable.querySelectorAll('tbody tr');
+        
+        rows.forEach((row, index) => {
+            const posCell = row.querySelector('td:first-child');
+            if (!posCell) return;
+            
+            const posicao = parseInt(posCell.textContent);
+            
+            // Remover classes anteriores
+            row.classList.remove('posicao-1', 'posicao-2', 'posicao-3');
+            
+            // Aplicar estilos por posição
+            switch (posicao) {
+                case 1:
+                    row.classList.add('posicao-1');
+                    row.style.background = 'linear-gradient(135deg, #ffd700 0%, #ffed4e 50%, #ffd700 100%)';
+                    row.style.color = '#000';
+                    row.style.fontWeight = 'bold';
+                    break;
+                case 2:
+                    row.classList.add('posicao-2');
+                    row.style.background = 'linear-gradient(135deg, #c0c0c0 0%, #e8e8e8 50%, #c0c0c0 100%)';
+                    row.style.color = '#000';
+                    row.style.fontWeight = 'bold';
+                    break;
+                case 3:
+                    row.classList.add('posicao-3');
+                    row.style.background = 'linear-gradient(135deg, #cd7f32 0%, #e8a462 50%, #cd7f32 100%)';
+                    row.style.color = '#000';
+                    row.style.fontWeight = 'bold';
+                    break;
+            }
+        });
+
+        console.log(`✅ Estilos aplicados em ${rows.length} linhas do ranking`);
+    }
+
     // 🌐 CONFIGURAR FUNÇÕES GLOBAIS (COMPATIBILIDADE)
     setupGlobalFunctions() {
         window.voltarParaCards = () => this.voltarParaCards();
@@ -545,6 +696,10 @@ class DetalheLigaOrquestrador {
 
         // Manter compatibilidade com sistema existente
         window.orquestrador = this;
+        
+        // Disponibilizar funções de interceptação globalmente
+        window.interceptarRanking = () => this.interceptarRankingFunction();
+        window.aplicarEstilosRanking = () => this.applyRankingStyles();
     }
 }
 
