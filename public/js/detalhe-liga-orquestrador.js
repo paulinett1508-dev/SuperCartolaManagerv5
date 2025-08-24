@@ -885,6 +885,49 @@ class DetalheLigaOrquestrador {
         }, 100);
     }
 
+    // 📄 MÉTODO PRINCIPAL PARA MOSTRAR MÓDULOS (CORRIGIDO)
+    async showModule(moduleName) {
+        if (this.processingModule) {
+            console.log(`⚠️ [ORQUESTRADOR] Módulo ${moduleName} já está sendo processado`);
+            return;
+        }
+
+        this.processingModule = true;
+
+        try {
+            console.log(`🎯 [ORQUESTRADOR] Carregando módulo: ${moduleName}`);
+
+            // Carregar o módulo
+            const result = await this.loadModule(moduleName);
+
+            if (!result.success) {
+                throw new Error(result.error);
+            }
+
+            console.log(`✅ [ORQUESTRADOR] Módulo ${moduleName} carregado com sucesso`);
+
+        } catch (error) {
+            console.error(`❌ [ORQUESTRADOR] Erro ao carregar módulo ${moduleName}:`, error);
+            
+            // Mostrar erro na área de conteúdo
+            const contentArea = document.getElementById('dynamic-content-area');
+            if (contentArea) {
+                contentArea.innerHTML = `
+                    <div class="empty-state" style="text-align: center; padding: 40px; color: #ff4500;">
+                        <h4>Erro ao carregar módulo</h4>
+                        <p style="color: #666; margin-top: 10px;">${error.message}</p>
+                        <button onclick="orquestrador.voltarParaCards()" 
+                                style="margin-top: 20px; padding: 10px 20px; background: #ff4500; color: white; border: none; border-radius: 6px; cursor: pointer;">
+                            Voltar
+                        </button>
+                    </div>
+                `;
+            }
+        } finally {
+            this.processingModule = false;
+        }
+    }
+
     // 🌐 CONFIGURAR FUNÇÕES GLOBAIS (COMPATIBILIDADE)
     setupGlobalFunctions() {
         window.voltarParaCards = () => this.voltarParaCards();
