@@ -433,16 +433,31 @@ class DetalheLigaOrquestrador {
         }
     }
 
-    // 👥 CARREGAR DADOS DE PARTICIPANTES
+    // 👥 CARREGAR DADOS DE PARTICIPANTES (CORRIGIDO)
     async loadParticipantesData() {
         try {
             const urlParams = new URLSearchParams(window.location.search);
             const ligaId = urlParams.get('id');
 
             if (!ligaId) {
-                document.getElementById('dynamic-content-area').innerHTML = 
-                    '<div class="empty-state">ID da liga não encontrado</div>';
+                const emptyState = document.querySelector('#participantes-grid') || document.getElementById('dynamic-content-area');
+                emptyState.innerHTML = '<div class="empty-state">ID da liga não encontrado</div>';
                 return;
+            }
+
+            // Mostrar loading no grid específico
+            const participantesGrid = document.getElementById('participantes-grid');
+            if (participantesGrid) {
+                participantesGrid.innerHTML = `
+                    <div class="loading-state-full">
+                        <div style="display: flex; align-items: center; justify-content: center; gap: 15px; padding: 60px;">
+                            <div class="spinner"></div>
+                            <div style="color: #ff4500; font-weight: 600; font-size: 16px">
+                                Carregando dados dos participantes...
+                            </div>
+                        </div>
+                    </div>
+                `;
             }
 
             const response = await fetch(`/api/ligas/${ligaId}`);
@@ -452,30 +467,50 @@ class DetalheLigaOrquestrador {
 
             const liga = await response.json();
             if (!liga.times || liga.times.length === 0) {
-                document.getElementById('dynamic-content-area').innerHTML = 
-                    '<div class="empty-state">Nenhum participante cadastrado</div>';
+                if (participantesGrid) {
+                    participantesGrid.innerHTML = `
+                        <div class="participantes-empty-state">
+                            <div class="empty-icon">👥</div>
+                            <div class="empty-title">Nenhum participante</div>
+                            <div class="empty-message">Esta liga ainda não possui participantes cadastrados</div>
+                        </div>
+                    `;
+                }
                 return;
             }
 
-            let participantesHtml = `
-                <h4 style="color: #ffffff; margin-bottom: 15px;">
-                    👥 Participantes da Liga (${liga.times.length})
-                </h4>
-                <div class="participantes-grid">
-            `;
+            // Atualizar estatísticas
+            this.updateParticipantesStats(liga.times.length);
+
+            // Carregar dados detalhados dos participantes
+            let participantesHtml = '';
+            let timesUnicos = new Set();
 
             for (const timeId of liga.times) {
                 try {
                     const timeResponse = await fetch(`/api/time/${timeId}`);
                     if (timeResponse.ok) {
                         const time = await timeResponse.json();
+                        
+                        // Adicionar à contagem de times únicos
+                        if (time.nome_time && time.nome_time !== 'Time N/A') {
+                            timesUnicos.add(time.nome_time);
+                        }
+
                         participantesHtml += `
                             <div class="participante-card">
-                                <img src="${time.url_escudo_png || '/escudos/default.png'}" 
-                                     alt="Escudo" class="participante-escudo"
-                                     onerror="this.src='/escudos/default.png'">
-                                <div class="participante-nome">${time.nome_cartoleiro || 'N/A'}</div>
-                                <div class="participante-time">${time.nome_time || 'Time N/A'}</div>
+                                <div class="participante-info">
+                                    <img src="${time.url_escudo_png || '/escudos/default.png'}" 
+                                         alt="Escudo" class="participante-escudo"
+                                         onerror="this.src='/escudos/default.png'">
+                                    <div class="participante-details">
+                                        <div class="participante-nome">${time.nome_cartoleiro || 'Cartoleiro N/A'}</div>
+                                        <div class="participante-time">${time.nome_time || 'Time N/A'}</div>
+                                    </div>
+                                </div>
+                                <div class="participante-stats">
+                                    <span>⚽ Time: ${time.nome_time || 'N/A'}</span>
+                                </div>
                             </div>
                         `;
                     }
@@ -484,12 +519,31 @@ class DetalheLigaOrquestrador {
                 }
             }
 
-            participantesHtml += '</div>';
-            document.getElementById('dynamic-content-area').innerHTML = participantesHtml;
+            // Injetar no grid específico (não sobrescrever tudo)
+            if (participantesGrid) {
+                participantesGrid.innerHTML = participantesHtml;
+            }
+
+            // Atualizar estatísticas finais
+            this.updateParticipantesStats(liga.times.length, liga.times.length, timesUnicos.size);
+
+            // Executar script interno do módulo participantes
+            this.executeParticipantesScript();
+
+            console.log(`✅ ${liga.times.length} participantes carregados com sucesso`);
 
         } catch (error) {
-            document.getElementById('dynamic-content-area').innerHTML = 
-                `<div class="empty-state">Erro ao carregar participantes: ${error.message}</div>`;
+            console.error('❌ Erro ao carregar participantes:', error);
+            const participantesGrid = document.getElementById('participantes-grid');
+            if (participantesGrid) {
+                participantesGrid.innerHTML = `
+                    <div class="participantes-empty-state">
+                        <div class="empty-icon">⚠️</div>
+                        <div class="empty-title">Erro ao carregar</div>
+                        <div class="empty-message">${error.message}</div>
+                    </div>
+                `;
+            }
         }
     }
 
@@ -755,6 +809,31 @@ class DetalheLigaOrquestrador {
             // Parar observação após 10 segundos
             setTimeout(() => observer.disconnect(), 10000);
         }
+    }
+
+    // 📊 ATUALIZAR ESTATÍSTICAS DOS PARTICIPANTES
+    updateParticipantesStats(total = 0, ativos = 0, timesUnicos = 0) {
+        const totalElement = document.getElementById('total-participantes');
+        const ativosElement = document.getElementById('participantes-ativos');
+        const timesElement = document.getElementById('times-diferentes');
+
+        if (totalElement) totalElement.textContent = total;
+        if (ativosElement) ativosElement.textContent = ativos;
+        if (timesElement) timesElement.textContent = timesUnicos;
+    }
+
+    // 🎬 EXECUTAR SCRIPT INTERNO DO MÓDULO PARTICIPANTES
+    executeParticipantesScript() {
+        // Simular execução do script interno do participantes.html
+        setTimeout(() => {
+            const participanteCards = document.querySelectorAll('.participante-card');
+            console.log(`👥 Módulo Participantes carregado com ${participanteCards.length} cards`);
+            
+            // Aplicar animações escalonadas
+            participanteCards.forEach((card, index) => {
+                card.style.animationDelay = `${index * 0.1}s`;
+            });
+        }, 100);
     }
 
     // 🔄 REDIRECIONAMENTO PARA PARCIAIS
