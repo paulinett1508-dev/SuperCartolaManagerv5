@@ -5,299 +5,6 @@
         <meta name="viewport" content="width=device-width, initial-scale=1.0" />
         <title>Super Cartola Manager</title>
         <link rel="stylesheet" href="style.css" />
-        <style>
-            /* === SIDEBAR REESTRUTURADO === */
-            .sidebar {
-                width: 280px;
-                background: linear-gradient(180deg, #0a0a0a 0%, #000000 100%);
-                color: #e0e0e0;
-                border-right: 2px solid rgba(255, 69, 0, 0.3);
-                position: fixed;
-                left: 0;
-                top: 0;
-                bottom: 0;
-                overflow-y: auto;
-                z-index: 1000;
-                font-size: 15px; /* Fonte maior */
-            }
-
-            /* Logo clickável para dashboard */
-            .sidebar-logo {
-                padding: 15px 15px;
-                border-bottom: 2px solid rgba(255, 69, 0, 0.2);
-                text-align: center;
-                cursor: pointer;
-                transition: all 0.3s ease;
-                background: rgba(255, 69, 0, 0.05);
-            }
-
-            .sidebar-logo:hover {
-                background: rgba(255, 69, 0, 0.1);
-                transform: scale(1.02);
-            }
-
-            .logo-container {
-                display: flex;
-                flex-direction: column;
-                align-items: center;
-                gap: 6px;
-            }
-
-            .logo-image {
-                width: 42px !important; /* ALTERADO DE 28px PARA 42px */
-                height: 42px !important; /* ALTERADO DE 28px PARA 42px */
-                object-fit: contain;
-                filter: drop-shadow(0 0 8px rgba(255, 69, 0, 0.4));
-                transition: all 0.3s ease;
-            }
-
-            #logoFallback {
-                width: 42px !important; /* ALTERADO DE 28px PARA 42px */
-                height: 42px !important; /* ALTERADO DE 28px PARA 42px */
-                display: flex;
-                align-items: center;
-                justify-content: center;
-                font-size: 28px !important; /* ALTERADO DE 20px PARA 28px */
-                color: #ff4500;
-                text-shadow: 0 0 8px rgba(255, 69, 0, 0.4);
-                transition: all 0.3s ease;
-            }
-
-            .sidebar-logo:hover .logo-image,
-            .sidebar-logo:hover #logoFallback {
-                filter: drop-shadow(0 0 15px rgba(255, 69, 0, 0.8));
-                text-shadow: 0 0 15px rgba(255, 69, 0, 0.8);
-                transform: scale(1.1);
-            }
-
-            .logo-text {
-                text-align: center;
-            }
-
-            .sidebar-logo h2 {
-                margin: 0;
-                font-size: 13px; /* Muito menor */
-                font-weight: 800;
-                color: #ff4500;
-                text-shadow: 0 0 10px rgba(255, 69, 0, 0.4);
-                line-height: 1.1;
-                letter-spacing: 0.3px;
-            }
-
-            .sidebar-logo p {
-                margin: 2px 0 0 0;
-                font-size: 9px; /* Muito menor */
-                color: #a0a0a0;
-                font-weight: 600;
-                text-transform: uppercase;
-                letter-spacing: 0.5px;
-            }
-
-            /* === RESET DE CORES PARA LINKS === */
-            .liga-item,
-            .liga-item:link,
-            .liga-item:visited,
-            .liga-item:active {
-                color: #e0e0e0 !important;
-                text-decoration: none !important;
-            }
-
-            .liga-item:hover,
-            .liga-item:focus {
-                color: #ffffff !important;
-                text-decoration: none !important;
-            }
-
-            .liga-name,
-            .liga-item .liga-name {
-                color: #ffffff !important;
-            }
-
-            .liga-details,
-            .liga-item .liga-details {
-                color: #a0a0a0 !important;
-            }
-
-            /* Seções do sidebar */
-            .sidebar-section {
-                padding: 0;
-                margin: 0;
-            }
-
-            .sidebar-section-title {
-                padding: 20px 20px 12px 20px;
-                font-size: 13px; /* Fonte maior */
-                font-weight: 700;
-                color: #ff4500;
-                text-transform: uppercase;
-                letter-spacing: 1.2px;
-                border-bottom: 1px solid rgba(255, 69, 0, 0.2);
-                margin: 0;
-            }
-
-            /* Lista de itens */
-            .sidebar-menu {
-                list-style: none;
-                padding: 0;
-                margin: 0;
-            }
-
-            .sidebar-menu li {
-                margin: 0;
-            }
-
-            .sidebar-menu a {
-                display: flex;
-                align-items: center;
-                padding: 14px 20px; /* Padding maior */
-                color: #e0e0e0;
-                text-decoration: none;
-                transition: all 0.3s ease;
-                font-size: 14px; /* Fonte maior */
-                font-weight: 500;
-                border-left: 4px solid transparent;
-            }
-
-            .sidebar-menu a:hover {
-                background: rgba(255, 69, 0, 0.1);
-                border-left-color: #ff4500;
-                color: #ffffff;
-                transform: translateX(4px);
-            }
-
-            .sidebar-menu a.active {
-                background: rgba(255, 69, 0, 0.2);
-                border-left-color: #ff4500;
-                color: #ff4500;
-                font-weight: 600;
-            }
-
-            /* Liga items específicos */
-            .liga-item {
-                display: flex;
-                align-items: center;
-                justify-content: space-between;
-                padding: 12px 20px; /* Padding maior */
-                color: #e0e0e0 !important; /* Forçar cor cinza claro */
-                text-decoration: none !important; /* Remover underline */
-                transition: all 0.3s ease;
-                font-size: 13px; /* Fonte maior */
-                font-weight: 500;
-                border-left: 4px solid transparent;
-            }
-
-            .liga-item:hover {
-                background: rgba(255, 69, 0, 0.1) !important;
-                border-left-color: #ff4500 !important;
-                color: #ffffff !important;
-                transform: translateX(4px);
-            }
-
-            .liga-item:visited {
-                color: #e0e0e0 !important; /* Manter cor após visita */
-            }
-
-            .liga-info {
-                flex: 1;
-            }
-
-            .liga-name {
-                font-weight: 600;
-                margin-bottom: 2px;
-                color: #ffffff !important; /* Branco para nome da liga */
-                font-size: 13px;
-            }
-
-            .liga-details {
-                font-size: 11px; /* Fonte maior */
-                color: #a0a0a0 !important; /* Cinza para detalhes */
-            }
-
-            /* Loading state para ligas */
-            .ligas-loading {
-                padding: 20px;
-                text-align: center;
-                color: #a0a0a0;
-                font-size: 13px; /* Fonte maior */
-            }
-
-            .ligas-empty {
-                padding: 20px;
-                text-align: center;
-                color: #a0a0a0;
-                font-size: 13px; /* Fonte maior */
-                font-style: italic;
-            }
-
-            /* Mobile responsivo */
-            @media (max-width: 768px) {
-                .sidebar {
-                    width: 100%;
-                    position: relative;
-                    height: auto;
-                }
-
-                .logo-image {
-                    width: 36px !important; /* ALTERADO DE 24px PARA 36px */
-                    height: 36px !important; /* ALTERADO DE 24px PARA 36px */
-                }
-
-                #logoFallback {
-                    width: 36px !important; /* ALTERADO DE 24px PARA 36px */
-                    height: 36px !important; /* ALTERADO DE 24px PARA 36px */
-                    font-size: 24px !important; /* ALTERADO DE 16px PARA 24px */
-                }
-
-                .sidebar-logo h2 {
-                    font-size: 12px;
-                }
-
-                .sidebar-logo p {
-                    font-size: 8px;
-                }
-
-                .sidebar-menu a {
-                    font-size: 13px;
-                    padding: 12px 15px;
-                }
-
-                .liga-item {
-                    font-size: 12px;
-                    padding: 10px 15px;
-                }
-            }
-
-            @media (max-width: 480px) {
-                .logo-image {
-                    width: 32px !important; /* ALTERADO DE 22px PARA 32px */
-                    height: 32px !important; /* ALTERADO DE 22px PARA 32px */
-                }
-
-                #logoFallback {
-                    width: 32px !important; /* ALTERADO DE 22px PARA 32px */
-                    height: 32px !important; /* ALTERADO DE 22px PARA 32px */
-                    font-size: 22px !important; /* ALTERADO DE 14px PARA 22px */
-                }
-
-                .sidebar-logo h2 {
-                    font-size: 11px;
-                }
-
-                .sidebar-logo p {
-                    font-size: 7px;
-                }
-
-                .sidebar-menu a {
-                    font-size: 12px;
-                    padding: 10px 12px;
-                }
-
-                .liga-item {
-                    font-size: 11px;
-                    padding: 8px 12px;
-                }
-            }
-        </style>
     </head>
     <body>
         <!-- Sidebar -->
@@ -338,7 +45,6 @@
                     <li><a href="preencher-liga.html">➕ Nova Liga</a></li>
                     <li><a href="buscar-times.html">🔍 Buscar Times</a></li>
                     <li><a href="admin.html">🛠️ Admin</a></li>
-                    <li><a href="parciais.html">📊 Parciais</a></li>
                 </ul>
             </div>
         </nav>
@@ -494,7 +200,7 @@
                         },
                         "gerenciar.html": {
                             title: "⚙️ Gerenciar Ligas",
-                            subtitle: "Controle das Suas Ligas",
+                            subtitle: "Ferramentas Administrativas",
                         },
                         "preencher-liga.html": {
                             title: "➕ Nova Liga",
@@ -508,10 +214,6 @@
                             title: "🛠️ Admin",
                             subtitle: "Popular Rodadas",
                         },
-                        "parciais.html": {
-                            title: "📊 Parciais",
-                            subtitle: "Resultados Parciais",
-                        },
                         "detalhe-liga.html": {
                             title: "🏆 Detalhes da Liga",
                             subtitle: "Visualização Completa",
@@ -519,6 +221,10 @@
                         "editar-liga.html": {
                             title: "✏️ Editar Liga",
                             subtitle: "Modificar Times da Liga",
+                        },
+                        "parciais.html": {
+                            title: "📊 Resultados Parciais",
+                            subtitle: "Pontuações em Tempo Real",
                         },
                     };
 
