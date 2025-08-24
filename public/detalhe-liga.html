@@ -7,9 +7,8 @@
         <link rel="shortcut icon" href="favicon.ico" type="image/x-icon" />
         <link rel="stylesheet" href="style.css" />
 
-        <!-- ✅ CSS ESPECÍFICO DA PÁGINA - REMOVIDO CSS CONFLITANTE DE NAVEGAÇÃO -->
         <style>
-            /* === ESTILOS ESPECÍFICOS DO DETALHE DA LIGA === */
+            /* === CARDS ORGANIZADOS PROFISSIONAL === */
             .page-content {
                 background: #1a1a1a;
                 min-height: calc(100vh - 100px);
@@ -17,10 +16,10 @@
             }
 
             .liga-header {
-                margin-bottom: 20px;
+                margin-bottom: 25px;
                 background: linear-gradient(135deg, #2a2a2a 0%, #1e1e1e 100%);
-                border-radius: 16px;
-                padding: 30px;
+                border-radius: 12px;
+                padding: 25px;
                 box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
                 border: 1px solid rgba(255, 69, 0, 0.2);
             }
@@ -28,140 +27,301 @@
             .liga-titulo {
                 color: #ffffff;
                 margin-bottom: 5px;
-                font-size: 28px;
+                font-size: 22px;
                 font-weight: 700;
             }
 
             .liga-info {
                 color: #a0a0a0;
                 margin: 0;
-                font-size: 16px;
-            }
-
-            .tabs-nav {
-                display: flex;
-                border-bottom: 2px solid rgba(255, 69, 0, 0.2);
-                margin-bottom: 30px;
-                flex-wrap: wrap;
-                background: rgba(42, 42, 42, 0.5);
-                border-radius: 12px 12px 0 0;
-                overflow-x: auto;
-            }
-
-            .tab-button {
-                background: none;
-                border: none;
-                padding: 15px 20px;
-                cursor: pointer;
-                border-bottom: 3px solid transparent;
-                color: #a0a0a0;
-                font-weight: 600;
                 font-size: 14px;
+            }
+
+            /* === GRID DE CARDS === */
+            .modules-grid {
+                display: grid;
+                grid-template-columns: repeat(3, 1fr);
+                gap: 15px;
+                margin: 20px 0;
+            }
+
+            .module-card {
+                background: linear-gradient(135deg, #2a2a2a 0%, #1e1e1e 100%);
+                border-radius: 12px;
+                padding: 18px;
+                border: 1px solid rgba(255, 69, 0, 0.2);
+                cursor: pointer;
                 transition: all 0.3s ease;
+                position: relative;
+                overflow: hidden;
+            }
+
+            .module-card::before {
+                content: "";
+                position: absolute;
+                top: 0;
+                left: 0;
+                right: 0;
+                height: 3px;
+                background: linear-gradient(135deg, #ff4500 0%, #e8472b 100%);
+                opacity: 0;
+                transition: opacity 0.3s ease;
+            }
+
+            .module-card:hover {
+                transform: translateY(-3px);
+                box-shadow: 0 12px 28px rgba(255, 69, 0, 0.25);
+                border-color: #ff4500;
+            }
+
+            .module-card:hover::before {
+                opacity: 1;
+            }
+
+            .module-header {
                 display: flex;
                 align-items: center;
-                gap: 8px;
-                white-space: nowrap;
+                gap: 10px;
+                margin-bottom: 12px;
             }
 
-            .tab-button:hover {
-                background: rgba(255, 69, 0, 0.1);
-                color: #ffffff;
-            }
-
-            .tab-button.active {
-                border-bottom-color: #ff4500;
+            .module-icon {
+                font-size: 20px;
                 color: #ff4500;
-                background: rgba(255, 69, 0, 0.15);
+                min-width: 24px;
             }
 
-            .tab-pane {
+            .module-title {
+                color: #ffffff;
+                font-size: 14px;
+                font-weight: 600;
+                margin: 0;
+            }
+
+            .module-items {
+                list-style: none;
+                padding: 0;
+                margin: 0;
+            }
+
+            .module-items li {
+                color: #a0a0a0;
+                font-size: 12px;
+                padding: 3px 0;
+                display: flex;
+                align-items: center;
+                gap: 6px;
+            }
+
+            .module-items li::before {
+                content: "•";
+                color: #ff4500;
+                font-weight: bold;
+            }
+
+            /* === CONTEÚDO DINÂMICO === */
+            .dynamic-content {
                 display: none;
                 background: linear-gradient(135deg, #2a2a2a 0%, #1e1e1e 100%);
-                border-radius: 16px;
-                padding: 30px;
+                border-radius: 12px;
+                padding: 25px;
                 box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
                 border: 1px solid rgba(255, 69, 0, 0.2);
+                margin-top: 20px;
+                animation: fadeInUp 0.3s ease-out;
             }
 
-            .tab-pane.active {
+            .dynamic-content.active {
                 display: block;
             }
 
+            .back-button {
+                background: rgba(255, 69, 0, 0.1);
+                border: 1px solid rgba(255, 69, 0, 0.3);
+                color: #ff4500;
+                padding: 8px 15px;
+                border-radius: 8px;
+                cursor: pointer;
+                font-size: 12px;
+                font-weight: 600;
+                margin-bottom: 20px;
+                transition: all 0.3s ease;
+            }
+
+            .back-button:hover {
+                background: #ff4500;
+                color: #ffffff;
+            }
+
+            /* === PARTICIPANTES ESPECÍFICO === */
+            .participantes-grid {
+                display: grid;
+                grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+                gap: 12px;
+                margin-top: 15px;
+            }
+
+            .participante-card {
+                background: rgba(42, 42, 42, 0.6);
+                border-radius: 8px;
+                padding: 12px;
+                border: 1px solid rgba(255, 69, 0, 0.15);
+                transition: all 0.3s ease;
+                cursor: pointer;
+            }
+
+            .participante-card:hover {
+                background: rgba(255, 69, 0, 0.1);
+                border-color: #ff4500;
+                transform: scale(1.02);
+            }
+
+            .participante-escudo {
+                width: 24px;
+                height: 24px;
+                border-radius: 50%;
+                margin-bottom: 8px;
+            }
+
+            .participante-nome {
+                color: #ffffff;
+                font-size: 13px;
+                font-weight: 600;
+                margin-bottom: 2px;
+            }
+
+            .participante-time {
+                color: #a0a0a0;
+                font-size: 11px;
+            }
+
+            /* === TABELAS COMPACTAS === */
             .ranking-table {
                 width: 100%;
                 border-collapse: collapse;
                 background: rgba(26, 26, 26, 0.8);
-                border-radius: 12px;
+                border-radius: 8px;
                 overflow: hidden;
-            }
-
-            .ranking-table th,
-            .ranking-table td {
-                padding: 12px 15px;
-                text-align: left;
-                border-bottom: 1px solid rgba(255, 69, 0, 0.1);
-                color: #ffffff;
+                border: 1px solid rgba(255, 69, 0, 0.2);
             }
 
             .ranking-table th {
-                background: rgba(255, 69, 0, 0.2);
-                font-weight: 700;
-                color: #ff4500;
+                background: linear-gradient(135deg, #ff4500 0%, #e8472b 100%);
+                color: #ffffff;
+                padding: 10px 8px;
+                font-weight: 600;
                 text-transform: uppercase;
-                font-size: 12px;
-                letter-spacing: 1px;
+                font-size: 11px;
+                letter-spacing: 0.5px;
             }
 
             .ranking-table td {
+                padding: 8px;
+                border-bottom: 1px solid rgba(255, 69, 0, 0.1);
                 color: #e0e0e0;
+                font-size: 12px;
             }
 
-            .form-control {
-                background: rgba(42, 42, 42, 0.8);
-                border: 2px solid rgba(255, 69, 0, 0.2);
-                color: #ffffff;
-                border-radius: 8px;
-                padding: 12px 15px;
-                font-size: 14px;
-            }
-
-            .form-control:focus {
-                border-color: #ff4500;
-                box-shadow: 0 0 0 0.2rem rgba(255, 69, 0, 0.25);
-                background: rgba(42, 42, 42, 1);
-            }
-
-            .form-control option {
-                background: #2a2a2a;
-                color: #ffffff;
-            }
-
-            /* Responsividade */
+            /* === RESPONSIVIDADE === */
             @media (max-width: 768px) {
-                .tabs-nav {
-                    flex-direction: column;
+                .modules-grid {
+                    grid-template-columns: 1fr;
+                    gap: 12px;
                 }
 
-                .tab-button {
-                    padding: 12px 15px;
-                    font-size: 13px;
+                .participantes-grid {
+                    grid-template-columns: repeat(2, 1fr);
                 }
 
-                .page-content {
+                .module-card {
                     padding: 15px;
                 }
 
-                .liga-header,
-                .tab-pane {
-                    padding: 20px;
+                .liga-titulo {
+                    font-size: 18px;
+                }
+            }
+
+            @media (max-width: 480px) {
+                .participantes-grid {
+                    grid-template-columns: 1fr;
+                }
+            }
+
+            /* === LOADING STATES === */
+            .processing-overlay {
+                position: fixed;
+                top: 0;
+                left: 0;
+                width: 100%;
+                height: 100%;
+                background: rgba(0, 0, 0, 0.8);
+                display: none;
+                justify-content: center;
+                align-items: center;
+                z-index: 9999;
+                flex-direction: column;
+                gap: 15px;
+            }
+
+            .processing-overlay.active {
+                display: flex;
+            }
+
+            .spinner {
+                width: 40px;
+                height: 40px;
+                border: 4px solid rgba(255, 69, 0, 0.2);
+                border-top: 4px solid #ff4500;
+                border-radius: 50%;
+                animation: spin 1s linear infinite;
+            }
+
+            .processing-text {
+                color: #ffffff;
+                font-size: 16px;
+                font-weight: 600;
+            }
+
+            @keyframes spin {
+                0% {
+                    transform: rotate(0deg);
+                }
+                100% {
+                    transform: rotate(360deg);
+                }
+            }
+
+            /* === ESTADOS === */
+            .loading-state {
+                text-align: center;
+                padding: 30px;
+                color: #a0a0a0;
+                font-size: 13px;
+            }
+
+            .empty-state {
+                text-align: center;
+                padding: 40px;
+                color: #666666;
+                font-style: italic;
+                font-size: 13px;
+            }
+
+            @keyframes fadeInUp {
+                from {
+                    opacity: 0;
+                    transform: translateY(15px);
+                }
+                to {
+                    opacity: 1;
+                    transform: translateY(0);
                 }
             }
         </style>
 
         <!-- Lucide Icons -->
         <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.js"></script>
-
         <!-- Bootstrap CSS -->
         <link
             href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css"
@@ -171,358 +331,155 @@
 
     <body>
         <div class="app-container">
-            <!-- ✅ CORRIGIDO: Placeholders para injeção do layout -->
             <div id="sidebar-placeholder"></div>
 
-            <!-- Conteúdo principal -->
             <main class="app-main">
-                <!-- ✅ CORRIGIDO: Header será injetado aqui -->
-                <div id="header-placeholder"></div>
+                <!-- Header removido para eliminar redundância -->
 
-                <!-- Conteúdo da página -->
                 <div class="page-content">
-                    <div class="liga-header mb-4">
+                    <!-- Header da Liga Simplificado -->
+                    <div class="liga-header">
                         <h2 id="nomeLiga" class="liga-titulo">Nome da Liga</h2>
                         <p id="quantidadeTimes" class="liga-info">
                             0 participantes
                         </p>
-                        <!-- ✅ STATUS DE CARREGAMENTO EM TEMPO REAL -->
-                        <div
-                            id="statusCarregamento"
-                            style="
-                                font-size: 12px;
-                                color: #666;
-                                margin-top: 10px;
-                                display: none;
-                            "
-                        >
-                            <span id="statusTexto">Processando dados...</span>
+                    </div>
+
+                    <!-- Tela Principal - Cards Organizados -->
+                    <div id="main-screen" class="main-screen">
+                        <div class="modules-grid">
+                            <!-- Card Participantes -->
                             <div
-                                style="
-                                    width: 100%;
-                                    background: #333;
-                                    border-radius: 5px;
-                                    height: 4px;
-                                    margin-top: 5px;
-                                "
+                                class="module-card"
+                                data-module="participantes"
                             >
-                                <div
-                                    id="progressBar"
-                                    style="
-                                        width: 0%;
-                                        background: #ff4500;
-                                        height: 100%;
-                                        border-radius: 5px;
-                                        transition: width 0.3s;
-                                    "
-                                ></div>
+                                <div class="module-header">
+                                    <i
+                                        class="module-icon"
+                                        data-lucide="users"
+                                    ></i>
+                                    <h3 class="module-title">PARTICIPANTES</h3>
+                                </div>
+                                <ul class="module-items">
+                                    <li>Lista completa</li>
+                                    <li id="participantes-count">0 membros</li>
+                                </ul>
+                            </div>
+
+                            <!-- Card Rankings -->
+                            <div class="module-card" data-module="rankings">
+                                <div class="module-header">
+                                    <i
+                                        class="module-icon"
+                                        data-lucide="bar-chart-3"
+                                    ></i>
+                                    <h3 class="module-title">RANKINGS</h3>
+                                </div>
+                                <ul class="module-items">
+                                    <li data-action="ranking-geral">Geral</li>
+                                    <li data-action="top10">Top 10</li>
+                                </ul>
+                            </div>
+
+                            <!-- Card Temporal -->
+                            <div class="module-card" data-module="temporal">
+                                <div class="module-header">
+                                    <i
+                                        class="module-icon"
+                                        data-lucide="calendar"
+                                    ></i>
+                                    <h3 class="module-title">TEMPORAL</h3>
+                                </div>
+                                <ul class="module-items">
+                                    <li data-action="rodadas">Rodadas</li>
+                                    <li data-action="melhor-mes">Melhor Mês</li>
+                                </ul>
+                            </div>
+
+                            <!-- Card Competições -->
+                            <div class="module-card" data-module="competicoes">
+                                <div class="module-header">
+                                    <i
+                                        class="module-icon"
+                                        data-lucide="zap"
+                                    ></i>
+                                    <h3 class="module-title">COMPETIÇÕES</h3>
+                                </div>
+                                <ul class="module-items">
+                                    <li data-action="mata-mata">Mata-mata</li>
+                                    <li data-action="pontos-corridos">
+                                        Pontos
+                                    </li>
+                                </ul>
+                            </div>
+
+                            <!-- Card Prêmios -->
+                            <div class="module-card" data-module="premios">
+                                <div class="module-header">
+                                    <i
+                                        class="module-icon"
+                                        data-lucide="award"
+                                    ></i>
+                                    <h3 class="module-title">PRÊMIOS</h3>
+                                </div>
+                                <ul class="module-items">
+                                    <li data-action="luva-de-ouro">
+                                        Luva Ouro
+                                    </li>
+                                    <li data-action="artilheiro-campeao">
+                                        Artilheiro
+                                    </li>
+                                </ul>
+                            </div>
+
+                            <!-- Card Financeiro -->
+                            <div class="module-card" data-module="financeiro">
+                                <div class="module-header">
+                                    <i
+                                        class="module-icon"
+                                        data-lucide="dollar-sign"
+                                    ></i>
+                                    <h3 class="module-title">FINANCEIRO</h3>
+                                </div>
+                                <ul class="module-items">
+                                    <li data-action="fluxo-financeiro">
+                                        Fluxo
+                                    </li>
+                                    <li>Extrato</li>
+                                </ul>
                             </div>
                         </div>
                     </div>
 
-                    <div class="tabs-container">
-                        <nav class="tabs-nav">
-                            <button
-                                class="tab-button active"
-                                data-tab="ranking-geral"
-                            >
-                                <i data-lucide="trophy"></i>
-                                Ranking Geral
-                            </button>
-                            <button class="tab-button" data-tab="rodadas">
-                                <i data-lucide="calendar"></i>
-                                Rodadas
-                            </button>
-                            <button class="tab-button" data-tab="mata-mata">
-                                <i data-lucide="zap"></i>
-                                Mata-Mata
-                            </button>
-                            <button
-                                class="tab-button"
-                                data-tab="pontos-corridos"
-                            >
-                                <i data-lucide="trending-up"></i>
-                                Pontos Corridos
-                            </button>
-                            <button class="tab-button" data-tab="luva-de-ouro">
-                                <i data-lucide="award"></i>
-                                Luva de Ouro
-                            </button>
-                            <button
-                                class="tab-button"
-                                data-tab="artilheiro-campeao"
-                            >
-                                <i data-lucide="target"></i>
-                                Artilheiro Campeão
-                            </button>
-                            <button class="tab-button" data-tab="melhor-mes">
-                                <i data-lucide="star"></i>
-                                Melhor Mês
-                            </button>
-                            <button class="tab-button" data-tab="top10">
-                                <i data-lucide="crown"></i>
-                                Top 10
-                            </button>
-                            <button
-                                class="tab-button"
-                                data-tab="fluxo-financeiro"
-                            >
-                                <i data-lucide="dollar-sign"></i>
-                                Fluxo Financeiro
-                            </button>
-                        </nav>
-
-                        <div class="tab-content">
-                            <!-- Ranking Geral Tab -->
-                            <div id="ranking-geral" class="tab-pane active">
-                                <!-- ✅ CONTAINER COM ID QUE RANKING.JS ESPERA -->
-                                <div id="rankingContainer">
-                                    <div
-                                        id="rankingGeralLoading"
-                                        style="
-                                            color: #a0a0a0;
-                                            text-align: center;
-                                            padding: 40px;
-                                        "
-                                    >
-                                        🔄 Carregando ranking geral...
-                                        <br /><br />
-                                        <button
-                                            onclick="window.forceRankingRender()"
-                                            style="
-                                                background: #ff4500;
-                                                color: white;
-                                                border: none;
-                                                padding: 10px 20px;
-                                                border-radius: 5px;
-                                                cursor: pointer;
-                                                margin-top: 10px;
-                                            "
-                                        >
-                                            🎯 Forçar Exibição
-                                        </button>
-                                        <br /><br />
-                                        <small style="color: #666"
-                                            >Se o ranking não aparecer
-                                            automaticamente, clique no botão
-                                            acima</small
-                                        >
-                                    </div>
-                                </div>
-                            </div>
-
-                            <!-- Rodadas Tab -->
-                            <div id="rodadas" class="tab-pane">
-                                <div class="rodadas-controls mb-3">
-                                    <div class="row align-items-center">
-                                        <div class="col-md-6">
-                                            <select
-                                                id="rodadaSelect"
-                                                class="form-control"
-                                            >
-                                                <option value="">
-                                                    Escolha uma rodada
-                                                </option>
-                                            </select>
-                                        </div>
-                                        <div class="col-md-6 text-end">
-                                            <div
-                                                id="rodadasExportBtnContainer"
-                                            ></div>
-                                        </div>
-                                    </div>
-                                </div>
-
-                                <div
-                                    id="loading"
-                                    style="
-                                        display: none;
-                                        text-align: center;
-                                        padding: 40px;
-                                        color: #a0a0a0;
-                                    "
-                                >
-                                    Carregando dados da rodada...
-                                </div>
-
-                                <div class="table-responsive">
-                                    <table
-                                        class="table table-striped ranking-table"
-                                    >
-                                        <thead>
-                                            <tr>
-                                                <th style="width: 60px">Pos</th>
-                                                <th style="width: 50px">❤️</th>
-                                                <th style="min-width: 120px">
-                                                    Cartoleiro
-                                                </th>
-                                                <th style="min-width: 120px">
-                                                    Time
-                                                </th>
-                                                <th style="width: 80px">
-                                                    Pontos
-                                                </th>
-                                                <th style="width: 80px">
-                                                    Banco
-                                                </th>
-                                            </tr>
-                                        </thead>
-                                        <tbody id="rankingBody">
-                                            <tr>
-                                                <td
-                                                    colspan="6"
-                                                    style="
-                                                        color: #a0a0a0;
-                                                        text-align: center;
-                                                        padding: 20px;
-                                                    "
-                                                >
-                                                    Selecione uma rodada para
-                                                    visualizar o ranking.
-                                                </td>
-                                            </tr>
-                                        </tbody>
-                                    </table>
-                                </div>
-                            </div>
-
-                            <!-- Mata-Mata Tab -->
-                            <div id="mata-mata" class="tab-pane">
-                                <div id="mataMataContent">
-                                    <div
-                                        style="
-                                            color: #a0a0a0;
-                                            text-align: center;
-                                            padding: 40px;
-                                        "
-                                    >
-                                        Clique para carregar dados do
-                                        Mata-Mata...
-                                    </div>
-                                </div>
-                            </div>
-
-                            <!-- Pontos Corridos Tab -->
-                            <div id="pontos-corridos" class="tab-pane">
-                                <div id="pontosCorridosContent">
-                                    <div
-                                        style="
-                                            color: #a0a0a0;
-                                            text-align: center;
-                                            padding: 40px;
-                                        "
-                                    >
-                                        Clique para carregar dados dos Pontos
-                                        Corridos...
-                                    </div>
-                                </div>
-                            </div>
-
-                            <!-- Luva de Ouro Tab -->
-                            <div id="luva-de-ouro" class="tab-pane">
-                                <div id="luvaDeOuroContent">
-                                    <div
-                                        style="
-                                            color: #a0a0a0;
-                                            text-align: center;
-                                            padding: 40px;
-                                        "
-                                    >
-                                        Clique para carregar dados da Luva de
-                                        Ouro...
-                                    </div>
-                                </div>
-                            </div>
-
-                            <!-- Artilheiro Campeão Tab -->
-                            <div id="artilheiro-campeao" class="tab-pane">
-                                <div id="artilheiroCampeaoContent">
-                                    <div
-                                        style="
-                                            color: #a0a0a0;
-                                            text-align: center;
-                                            padding: 40px;
-                                        "
-                                    >
-                                        Clique para carregar dados do Artilheiro
-                                        Campeão...
-                                    </div>
-                                </div>
-                            </div>
-
-                            <!-- Melhor Mês Tab -->
-                            <div id="melhor-mes" class="tab-pane">
-                                <div id="melhorMesContent">
-                                    <div
-                                        style="
-                                            color: #a0a0a0;
-                                            text-align: center;
-                                            padding: 40px;
-                                        "
-                                    >
-                                        Clique para carregar dados do Melhor
-                                        Mês...
-                                    </div>
-                                </div>
-                            </div>
-
-                            <!-- Top 10 Tab -->
-                            <div id="top10" class="tab-pane">
-                                <div class="row">
-                                    <div class="col-md-6">
-                                        <div
-                                            id="top10MitosExportBtnContainer"
-                                            class="text-end mb-2"
-                                        ></div>
-                                        <div id="top10MitosTable"></div>
-                                    </div>
-                                    <div class="col-md-6">
-                                        <div
-                                            id="top10MicosExportBtnContainer"
-                                            class="text-end mb-2"
-                                        ></div>
-                                        <div id="top10MicosTable"></div>
-                                    </div>
-                                </div>
-                            </div>
-
-                            <!-- Fluxo Financeiro Tab -->
-                            <div id="fluxo-financeiro" class="tab-pane">
-                                <div id="fluxoFinanceiroContent">
-                                    <div
-                                        style="
-                                            color: #a0a0a0;
-                                            text-align: center;
-                                            padding: 40px;
-                                        "
-                                    >
-                                        Clique para carregar dados do Fluxo
-                                        Financeiro...
-                                    </div>
-                                </div>
-                            </div>
+                    <!-- Tela Secundária - Conteúdo Dinâmico -->
+                    <div id="secondary-screen" class="dynamic-content">
+                        <button class="back-button" onclick="voltarParaCards()">
+                            ← Voltar aos Módulos
+                        </button>
+                        <div id="dynamic-content-area">
+                            <!-- Conteúdo será injetado aqui -->
                         </div>
                     </div>
                 </div>
             </main>
+
+            <!-- Overlay de Loading -->
+            <div id="processing-overlay" class="processing-overlay">
+                <div class="spinner"></div>
+                <div class="processing-text">Carregando dados...</div>
+            </div>
         </div>
 
         <!-- Bootstrap JS -->
         <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 
-        <!-- ✅ SISTEMA DE MÓDULOS - CARREGAR PRIMEIRO -->
+        <!-- Scripts Módulos -->
         <script src="js/sistema-modulos-init.js"></script>
-
-        <!-- Scripts base do sistema -->
         <script type="module" src="js/utils.js"></script>
         <script type="module" src="js/navigation.js"></script>
-
-        <!-- Scripts de funcionalidades -->
         <script type="module" src="js/participantes.js"></script>
         <script type="module" src="js/ranking.js"></script>
         <script type="module" src="js/rodadas.js"></script>
-
-        <!-- Scripts de módulos específicos -->
         <script type="module" src="js/mata-mata.js"></script>
         <script type="module" src="js/pontos-corridos.js"></script>
         <script type="module" src="js/pontos-corridos-utils.js"></script>
@@ -531,52 +488,39 @@
         <script type="module" src="js/melhor-mes.js"></script>
         <script type="module" src="js/top10.js"></script>
         <script type="module" src="js/fluxo-financeiro.js"></script>
-
-        <!-- Scripts auxiliares -->
         <script type="module" src="js/gols.js"></script>
         <script type="module" src="js/gols-por-rodada.js"></script>
         <script type="module" src="js/liga-modificacoes.js"></script>
         <script type="module" src="js/filtro-liga-especial.js"></script>
         <script type="module" src="js/gerenciar-ligas.js"></script>
-
-        <!-- Seletor de ligas (IIFE - não precisa de type="module") -->
         <script src="js/seletor-ligas.js"></script>
 
-        <!-- ✅ CORREÇÃO PRINCIPAL: Sistema de carregamento de layout -->
         <script type="module">
-            import { carregarLigas } from "./js/gerenciar-ligas.js";
+            import {
+                carregarDadosBasicos,
+                carregarDetalhesLiga,
+            } from "./js/participantes.js";
 
-            // ✅ FUNÇÃO DE CARREGAMENTO DO LAYOUT (IDÊNTICA AO DASHBOARD)
+            // Sistema de controle seguro mantido
+            let processingModule = false;
+            const modules = {};
+
+            // Carregar layout (sem header)
             async function loadLayout() {
                 try {
-                    console.log("🔄 [DETALHE-LIGA] Carregando layout...");
-
                     const response = await fetch("layout.html");
                     const layoutHtml = await response.text();
-
-                    // Parse do HTML
                     const parser = new DOMParser();
                     const doc = parser.parseFromString(layoutHtml, "text/html");
 
-                    // Injetar sidebar
+                    // Apenas sidebar, sem header
                     const sidebar = doc.querySelector(".app-sidebar");
                     if (sidebar) {
                         document
                             .getElementById("sidebar-placeholder")
                             .replaceWith(sidebar);
-                        console.log("✅ [DETALHE-LIGA] Sidebar carregada");
                     }
 
-                    // Injetar header
-                    const header = doc.querySelector(".page-header");
-                    if (header) {
-                        document
-                            .getElementById("header-placeholder")
-                            .replaceWith(header);
-                        console.log("✅ [DETALHE-LIGA] Header carregado");
-                    }
-
-                    // Executar scripts do layout
                     const scripts = doc.querySelectorAll("script");
                     scripts.forEach((script) => {
                         if (script.textContent.trim()) {
@@ -585,487 +529,416 @@
                             document.head.appendChild(newScript);
                         }
                     });
-
-                    console.log("✅ [DETALHE-LIGA] Layout completamente carregado");
                 } catch (error) {
-                    console.error("❌ [DETALHE-LIGA] Erro ao carregar layout:", error);
+                    console.error("Erro ao carregar layout:", error);
                 }
             }
 
-            // ✅ SISTEMA DE TABS FUNCIONAL
-            async function initializeTabs() {
-                console.log("🔧 [DETALHE-LIGA] Inicializando sistema de tabs...");
-
-                const tabButtons = document.querySelectorAll(".tab-button");
-                const tabPanes = document.querySelectorAll(".tab-pane");
-
-                // ✅ CARREGAR MÓDULOS E EXPOR FUNÇÕES GLOBALMENTE
-                const modules = {};
-
+            // Carregar módulos dinâmicos
+            async function loadModules() {
                 try {
-                    // Importar todos os módulos necessários
                     modules.ranking = await import("./js/ranking.js");
                     modules.rodadas = await import("./js/rodadas.js");
                     modules.mataMata = await import("./js/mata-mata.js");
-                    modules.pontosCorreidos = await import("./js/pontos-corridos.js");
+                    modules.pontosCorreidos = await import(
+                        "./js/pontos-corridos.js"
+                    );
                     modules.luvaDeOuro = await import("./js/luva-de-ouro.js");
-                    modules.artilheiroCampeao = await import("./js/artilheiro-campeao.js");
+                    modules.artilheiroCampeao = await import(
+                        "./js/artilheiro-campeao.js"
+                    );
                     modules.melhorMes = await import("./js/melhor-mes.js");
                     modules.top10 = await import("./js/top10.js");
-                    modules.fluxoFinanceiro = await import("./js/fluxo-financeiro.js");
-
-                    console.log("✅ [DETALHE-LIGA] Módulos carregados:", Object.keys(modules));
+                    modules.fluxoFinanceiro = await import(
+                        "./js/fluxo-financeiro.js"
+                    );
                 } catch (error) {
-                    console.error("❌ [DETALHE-LIGA] Erro ao carregar módulos:", error);
+                    console.error("Erro ao carregar módulos:", error);
                 }
+            }
 
-                tabButtons.forEach((button) => {
-                    button.addEventListener("click", async function () {
-                        const tabId = this.getAttribute("data-tab");
-                        console.log(`🔧 [DETALHE-LIGA] Mudando para tab: ${tabId}`);
+            // Sistema de navegação entre cards
+            function initializeNavigation() {
+                const cards = document.querySelectorAll(".module-card");
+                const items = document.querySelectorAll(
+                    ".module-items li[data-action]",
+                );
 
-                        // Atualizar UI das tabs
-                        tabButtons.forEach((btn) => btn.classList.remove("active"));
-                        tabPanes.forEach((pane) => pane.classList.remove("active"));
+                // Cards principais
+                cards.forEach((card) => {
+                    card.addEventListener("click", async (e) => {
+                        if (processingModule) return;
 
-                        this.classList.add("active");
-                        const targetPane = document.getElementById(tabId);
-                        if (targetPane) {
-                            targetPane.classList.add("active");
-                            await loadTabContent(tabId, modules);
+                        // Feedback visual imediato
+                        card.style.transform = "translateY(-1px) scale(0.98)";
+                        setTimeout(() => {
+                            card.style.transform = "";
+                        }, 150);
+
+                        const module = card.dataset.module;
+                        if (module === "participantes") {
+                            await showParticipantes();
+                        } else {
+                            // Para outros cards, mostrar submenu ou primeira ação
+                            const firstAction =
+                                card.querySelector("li[data-action]");
+                            if (firstAction) {
+                                await executeAction(firstAction.dataset.action);
+                            }
                         }
                     });
                 });
 
-                // ✅ CARREGAR CONTEÚDO INICIAL (Ranking Geral)
-                await loadTabContent("ranking-geral", modules);
+                // Items específicos
+                items.forEach((item) => {
+                    item.addEventListener("click", async (e) => {
+                        e.stopPropagation();
+                        if (processingModule) return;
 
-                // ✅ MONITORAR DADOS DE RANKING A CADA 3 SEGUNDOS
-                const rankingMonitor = setInterval(() => {
-                    const hasVisibleTable = document.getElementById("rankingGeralTableContainer")?.style.display !== "none";
-                    if (!hasVisibleTable) {
-                        forceRankingRender();
-                    } else {
-                        clearInterval(rankingMonitor);
-                        console.log("✅ [DETALHE-LIGA] Monitor de ranking interrompido - tabela visível");
-                    }
-                }, 3000);
+                        // Feedback visual
+                        item.style.opacity = "0.6";
+                        setTimeout(() => {
+                            item.style.opacity = "";
+                        }, 150);
 
-                // Parar monitor após 30 segundos
-                setTimeout(() => {
-                    clearInterval(rankingMonitor);
-                    console.log("⏰ [DETALHE-LIGA] Monitor de ranking finalizado por timeout");
-                }, 30000);
+                        await executeAction(item.dataset.action);
+                    });
+                });
             }
 
-            // ✅ CARREGAMENTO DE CONTEÚDO POR TAB
-            async function loadTabContent(tabId, modules) {
+            // Estados de loading
+            function showLoading(text = "Processando dados...") {
+                const overlay = document.getElementById("processing-overlay");
+                const textEl = overlay.querySelector(".processing-text");
+                textEl.textContent = text;
+                overlay.classList.add("active");
+            }
+
+            function hideLoading() {
+                const overlay = document.getElementById("processing-overlay");
+                overlay.classList.remove("active");
+            }
+
+            // Executar ação específica
+            async function executeAction(action) {
+                if (processingModule) return;
+                processingModule = true;
+
                 try {
-                    console.log(`📊 [DETALHE-LIGA] Carregando conteúdo: ${tabId}`);
+                    showLoading("Carregando módulo...");
+                    showSecondaryScreen();
 
-                    const urlParams = new URLSearchParams(window.location.search);
-                    const ligaId = urlParams.get("id");
+                    const contentArea = document.getElementById(
+                        "dynamic-content-area",
+                    );
+                    contentArea.innerHTML =
+                        '<div class="loading-state">Preparando conteúdo...</div>';
 
-                    if (!ligaId) {
-                        console.warn("⚠️ [DETALHE-LIGA] ID da liga não encontrado");
-                        return;
-                    }
-
-                    switch (tabId) {
+                    switch (action) {
                         case "ranking-geral":
+                            contentArea.innerHTML = `
+                            <div id="ranking-geral">
+                                <div id="rankingContainer">
+                                    <div id="rankingGeralLoading" class="loading-state">Carregando ranking geral...</div>
+                                    <div id="rankingGeralTableContainer" style="display: none;">
+                                        <div id="rankingGeralExportBtnContainer" class="text-end mb-2"></div>
+                                        <table class="ranking-table">
+                                            <thead>
+                                                <tr>
+                                                    <th>Pos</th><th>❤️</th><th>Cartoleiro</th><th>Time</th><th>Pontos</th><th>Média</th><th>Rodadas</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody id="rankingGeralTableBody"></tbody>
+                                        </table>
+                                    </div>
+                                </div>
+                            </div>
+                        `;
                             if (modules.ranking?.carregarRankingGeral) {
                                 await modules.ranking.carregarRankingGeral();
-                            } else if (modules.ranking?.carregarRanking) {
-                                await modules.ranking.carregarRanking();
-                            } else {
-                                console.warn("⚠️ Função de ranking não encontrada");
-                                document.getElementById("ranking-geral").innerHTML = `
-                                    <div style="text-align: center; padding: 40px; color: #a0a0a0;">
-                                        <p>Módulo de ranking não disponível</p>
-                                        <button onclick="window.location.reload()" style="background: #ff4500; color: white; border: none; padding: 10px 20px; border-radius: 5px; cursor: pointer;">
-                                            🔄 Recarregar Página
-                                        </button>
-                                    </div>
-                                `;
                             }
-
-                            // ✅ FORÇAR RENDERIZAÇÃO SE DADOS EXISTIREM
-                            setTimeout(() => {
-                                forceRankingRender();
-                            }, 2000);
                             break;
 
                         case "rodadas":
+                            contentArea.innerHTML = `
+                            <div id="rodadas">
+                                <div class="mb-3">
+                                    <select id="rodadaSelect" class="form-control">
+                                        <option value="">Escolha uma rodada</option>
+                                    </select>
+                                </div>
+                                <div class="table-responsive">
+                                    <table class="ranking-table">
+                                        <thead>
+                                            <tr><th>Pos</th><th>❤️</th><th>Cartoleiro</th><th>Time</th><th>Pontos</th><th>Banco</th></tr>
+                                        </thead>
+                                        <tbody id="rankingBody">
+                                            <tr><td colspan="6" class="empty-state">Selecione uma rodada</td></tr>
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+                        `;
                             if (modules.rodadas?.carregarRodadas) {
                                 await modules.rodadas.carregarRodadas();
-                            } else {
-                                console.warn("⚠️ Função de rodadas não encontrada");
                             }
                             break;
 
                         case "mata-mata":
+                            contentArea.innerHTML =
+                                '<div id="mataMataContent"><div class="loading-state">Carregando mata-mata...</div></div>';
                             if (modules.mataMata?.carregarMataMata) {
                                 await modules.mataMata.carregarMataMata();
-                            } else if (modules.mataMata?.inicializarMataMata) {
-                                await modules.mataMata.inicializarMataMata();
-                            } else {
-                                console.warn("⚠️ Função de mata-mata não encontrada");
                             }
                             break;
 
                         case "pontos-corridos":
-                            if (modules.pontosCorreidos?.inicializarPontosCorreidos) {
+                            contentArea.innerHTML =
+                                '<div id="pontosCorridosContent"><div class="loading-state">Carregando pontos corridos...</div></div>';
+                            if (
+                                modules.pontosCorreidos
+                                    ?.inicializarPontosCorreidos
+                            ) {
                                 await modules.pontosCorreidos.inicializarPontosCorreidos();
-                            } else if (modules.pontosCorreidos?.carregarPontosCorreidos) {
-                                await modules.pontosCorreidos.carregarPontosCorreidos();
-                            } else {
-                                console.warn("⚠️ Função de pontos corridos não encontrada");
                             }
                             break;
 
                         case "luva-de-ouro":
+                            contentArea.innerHTML =
+                                '<div id="luvaDeOuroContent"><div class="loading-state">Carregando luva de ouro...</div></div>';
                             if (modules.luvaDeOuro?.inicializarLuvaDeOuro) {
                                 await modules.luvaDeOuro.inicializarLuvaDeOuro();
-                            } else if (modules.luvaDeOuro?.carregarLuvaDeOuro) {
-                                await modules.luvaDeOuro.carregarLuvaDeOuro();
-                            } else {
-                                console.warn("⚠️ Função de luva de ouro não encontrada");
                             }
                             break;
 
                         case "artilheiro-campeao":
-                            if (modules.artilheiroCampeao?.inicializarArtilheiroCampeao) {
+                            contentArea.innerHTML =
+                                '<div id="artilheiroCampeaoContent"><div class="loading-state">Carregando artilheiro campeão...</div></div>';
+                            if (
+                                modules.artilheiroCampeao
+                                    ?.inicializarArtilheiroCampeao
+                            ) {
                                 await modules.artilheiroCampeao.inicializarArtilheiroCampeao();
-                            } else if (modules.artilheiroCampeao?.carregarArtilheiroCampeao) {
-                                await modules.artilheiroCampeao.carregarArtilheiroCampeao();
-                            } else {
-                                console.warn("⚠️ Função de artilheiro campeão não encontrada");
                             }
                             break;
 
                         case "melhor-mes":
+                            contentArea.innerHTML =
+                                '<div id="melhorMesContent"><div class="loading-state">Carregando melhor mês...</div></div>';
                             if (modules.melhorMes?.inicializarMelhorMes) {
                                 await modules.melhorMes.inicializarMelhorMes();
-                            } else if (modules.melhorMes?.carregarMelhorMes) {
-                                await modules.melhorMes.carregarMelhorMes();
-                            } else {
-                                console.warn("⚠️ Função de melhor mês não encontrada");
                             }
                             break;
 
                         case "top10":
+                            contentArea.innerHTML = `
+                            <div id="top10">
+                                <div class="row">
+                                    <div class="col-md-6">
+                                        <div id="top10MitosExportBtnContainer" class="text-end mb-2"></div>
+                                        <div id="top10MitosTable"></div>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <div id="top10MicosExportBtnContainer" class="text-end mb-2"></div>
+                                        <div id="top10MicosTable"></div>
+                                    </div>
+                                </div>
+                            </div>
+                        `;
                             if (modules.top10?.inicializarTop10) {
                                 await modules.top10.inicializarTop10();
-                            } else if (modules.top10?.carregarTop10) {
-                                await modules.top10.carregarTop10();
-                            } else {
-                                console.warn("⚠️ Função de top10 não encontrada");
                             }
                             break;
 
                         case "fluxo-financeiro":
-                            if (modules.fluxoFinanceiro?.inicializarFluxoFinanceiro) {
+                            contentArea.innerHTML =
+                                '<div id="fluxoFinanceiroContent"><div class="loading-state">Carregando fluxo financeiro...</div></div>';
+                            if (
+                                modules.fluxoFinanceiro
+                                    ?.inicializarFluxoFinanceiro
+                            ) {
                                 await modules.fluxoFinanceiro.inicializarFluxoFinanceiro();
-                            } else if (modules.fluxoFinanceiro?.carregarFluxoFinanceiro) {
-                                await modules.fluxoFinanceiro.carregarFluxoFinanceiro();
-                            } else {
-                                console.warn("⚠️ Função de fluxo financeiro não encontrada");
                             }
                             break;
 
                         default:
-                            console.log(`ℹ️ [DETALHE-LIGA] Tab ${tabId} não tem função específica`);
+                            contentArea.innerHTML =
+                                '<div class="empty-state">Funcionalidade em desenvolvimento</div>';
                     }
-
-                    console.log(`✅ [DETALHE-LIGA] Conteúdo ${tabId} carregado`);
                 } catch (error) {
-                    console.error(`❌ [DETALHE-LIGA] Erro ao carregar ${tabId}:`, error);
-
-                    const targetPane = document.getElementById(tabId);
-                    if (targetPane) {
-                        targetPane.innerHTML = `
-                            <div style="text-align: center; padding: 40px; color: #ff4444;">
-                                <p>❌ Erro ao carregar ${tabId}</p>
-                                <p style="font-size: 12px; color: #a0a0a0;">${error.message}</p>
-                                <button onclick="window.location.reload()" style="background: #ff4500; color: white; border: none; padding: 10px 20px; border-radius: 5px; cursor: pointer; margin-top: 10px;">
-                                    🔄 Recarregar Página
-                                </button>
-                            </div>
-                        `;
-                    }
+                    document.getElementById("dynamic-content-area").innerHTML =
+                        `
+                    <div class="empty-state">Erro: ${error.message}</div>
+                `;
+                } finally {
+                    hideLoading();
+                    processingModule = false;
                 }
             }
 
-            // ✅ CARREGAR DADOS DA LIGA
-            async function loadLigaDetails() {
-                const urlParams = new URLSearchParams(window.location.search);
-                const ligaId = urlParams.get("id");
-
-                if (!ligaId) {
-                    console.warn("⚠️ [DETALHE-LIGA] ID da liga não encontrado na URL");
-                    return;
-                }
+            // Mostrar participantes
+            async function showParticipantes() {
+                if (processingModule) return;
+                processingModule = true;
 
                 try {
-                    console.log(`📊 [DETALHE-LIGA] Carregando detalhes da liga: ${ligaId}`);
+                    showLoading("Carregando participantes...");
+                    showSecondaryScreen();
+
+                    const contentArea = document.getElementById(
+                        "dynamic-content-area",
+                    );
+                    contentArea.innerHTML =
+                        '<div class="loading-state">Buscando dados dos participantes...</div>';
+
+                    const urlParams = new URLSearchParams(
+                        window.location.search,
+                    );
+                    const ligaId = urlParams.get("id");
+
+                    if (!ligaId) {
+                        contentArea.innerHTML =
+                            '<div class="empty-state">ID da liga não encontrado</div>';
+                        return;
+                    }
 
                     const response = await fetch(`/api/ligas/${ligaId}`);
-
-                    if (response.ok) {
-                        const liga = await response.json();
-                        updateLigaHeader(liga);
-                        console.log("✅ [DETALHE-LIGA] Dados da liga carregados:", liga.nome);
-                    } else {
-                        console.warn("⚠️ [DETALHE-LIGA] API da liga falhou, usando fallback");
-                        await loadFallbackData(ligaId);
+                    if (!response.ok) {
+                        throw new Error("Erro ao carregar liga");
                     }
+
+                    const liga = await response.json();
+                    if (!liga.times || liga.times.length === 0) {
+                        contentArea.innerHTML =
+                            '<div class="empty-state">Nenhum participante cadastrado</div>';
+                        return;
+                    }
+
+                    let participantesHtml = `
+                    <h4 style="color: #ffffff; margin-bottom: 15px;">
+                        👥 Participantes da Liga (${liga.times.length})
+                    </h4>
+                    <div class="participantes-grid">
+                `;
+
+                    for (const timeId of liga.times) {
+                        try {
+                            const timeResponse = await fetch(
+                                `/api/time/${timeId}`,
+                            );
+                            if (timeResponse.ok) {
+                                const time = await timeResponse.json();
+                                participantesHtml += `
+                                <div class="participante-card">
+                                    <img src="${time.url_escudo_png || "/escudos/default.png"}" 
+                                         alt="Escudo" class="participante-escudo"
+                                         onerror="this.src='/escudos/default.png'">
+                                    <div class="participante-nome">${time.nome_cartoleiro || "N/A"}</div>
+                                    <div class="participante-time">${time.nome_time || "Time N/A"}</div>
+                                </div>
+                            `;
+                            }
+                        } catch (error) {
+                            console.warn(
+                                `Erro ao carregar time ${timeId}:`,
+                                error,
+                            );
+                        }
+                    }
+
+                    participantesHtml += "</div>";
+                    contentArea.innerHTML = participantesHtml;
                 } catch (error) {
-                    console.error("❌ [DETALHE-LIGA] Erro ao carregar liga:", error);
-                    await loadFallbackData(ligaId);
+                    document.getElementById("dynamic-content-area").innerHTML =
+                        `
+                    <div class="empty-state">Erro ao carregar participantes: ${error.message}</div>
+                `;
+                } finally {
+                    hideLoading();
+                    processingModule = false;
                 }
             }
 
-            // ✅ DADOS DE FALLBACK
-            async function loadFallbackData(ligaId) {
-                console.log("📄 [DETALHE-LIGA] Carregando dados de fallback...");
-
-                const fallbackData = {
-                    "684cb1c8af923da7c7df51de": {
-                        nome: "Super Cartola 2025",
-                        participantes: 32,
-                        status: "Ativo",
-                    },
-                    "684d821cf1a7ae16d1f89572": {
-                        nome: "Cartoleiros Sobral 2025",
-                        participantes: 6,
-                        status: "Ativo",
-                    },
-                };
-
-                const dados = fallbackData[ligaId] || {
-                    nome: "Liga Desconhecida",
-                    participantes: 0,
-                    status: "Carregando...",
-                };
-
-                updateLigaHeader(dados);
-                console.log(`✅ [DETALHE-LIGA] Fallback carregado para: ${dados.nome}`);
+            // Navegação entre telas
+            function showSecondaryScreen() {
+                document.getElementById("main-screen").style.display = "none";
+                document
+                    .getElementById("secondary-screen")
+                    .classList.add("active");
             }
 
-            // ✅ FORÇAR RENDERIZAÇÃO DO RANKING
-            function forceRankingRender() {
-                console.log("🔄 [DETALHE-LIGA] Forçando renderização do ranking...");
-
-                // Verificar se existem dados globais de ranking
-                const possibleData = [
-                    window.rankingData,
-                    window.rankingGeral,
-                    window.dadosRanking,
-                    window.ultimoRanking
-                ];
-
-                let rankingData = null;
-                for (const data of possibleData) {
-                    if (data && Array.isArray(data) && data.length > 0) {
-                        rankingData = data;
-                        console.log(`✅ [DETALHE-LIGA] Dados encontrados:`, data.length, "registros");
-                        break;
-                    }
-                }
-
-                if (!rankingData) {
-                    console.log("⚠️ [DETALHE-LIGA] Nenhum dado de ranking encontrado para forçar renderização");
-                    return;
-                }
-
-                // Renderizar tabela manualmente
-                const tableBody = document.getElementById("rankingGeralTableBody");
-                const tableContainer = document.getElementById("rankingGeralTableContainer");
-                const loadingDiv = document.getElementById("rankingGeralLoading");
-
-                if (!tableBody) {
-                    console.error("❌ [DETALHE-LIGA] Elemento rankingGeralTableBody não encontrado");
-                    return;
-                }
-
-                console.log("🎯 [DETALHE-LIGA] Renderizando", rankingData.length, "registros na tabela");
-
-                // Limpar tabela
-                tableBody.innerHTML = '';
-
-                // Ordenar por pontos (decrescente)
-                const sortedData = [...rankingData].sort((a, b) => {
-                    const pontosA = parseFloat(a.pontos_total || a.pontos || 0);
-                    const pontosB = parseFloat(b.pontos_total || b.pontos || 0);
-                    return pontosB - pontosA;
-                });
-
-                // Renderizar linhas
-                sortedData.forEach((item, index) => {
-                    const posicao = index + 1;
-                    const nome = item.nome || item.cartoleiro || item.participante || 'N/A';
-                    const time = item.time || item.nome_time || 'Time';
-                    const pontos = parseFloat(item.pontos_total || item.pontos || 0).toFixed(2);
-                    const media = parseFloat(item.media || pontos / 20 || 0).toFixed(2);
-                    const rodadas = item.rodadas || 20;
-
-                    const row = document.createElement('tr');
-                    row.innerHTML = `
-                        <td><strong>${posicao}º</strong></td>
-                        <td>❤️</td>
-                        <td><strong style="color: #ffffff;">${nome}</strong></td>
-                        <td style="color: #a0a0a0;">${time}</td>
-                        <td><strong style="color: #ff4500;">${pontos}</strong></td>
-                        <td style="color: #a0a0a0;">${media}</td>
-                        <td style="color: #666;">${rodadas}</td>
-                    `;
-
-                    // Destacar top 3
-                    if (posicao === 1) {
-                        row.style.background = 'rgba(255, 215, 0, 0.1)';
-                        row.style.borderLeft = '4px solid gold';
-                    } else if (posicao === 2) {
-                        row.style.background = 'rgba(192, 192, 192, 0.1)';
-                        row.style.borderLeft = '4px solid silver';
-                    } else if (posicao === 3) {
-                        row.style.background = 'rgba(205, 127, 50, 0.1)';
-                        row.style.borderLeft = '4px solid #cd7f32';
-                    }
-
-                    tableBody.appendChild(row);
-                });
-
-                // Mostrar tabela e esconder loading
-                if (tableContainer) {
-                    tableContainer.style.display = 'block';
-                }
-                if (loadingDiv) {
-                    loadingDiv.style.display = 'none';
-                }
-
-                console.log("✅ [DETALHE-LIGA] Tabela renderizada com sucesso!");
+            function voltarParaCards() {
+                document
+                    .getElementById("secondary-screen")
+                    .classList.remove("active");
+                document.getElementById("main-screen").style.display = "block";
             }
 
-            // ✅ FUNÇÃO GLOBAL PARA DEBUG
-            window.forceRankingRender = forceRankingRender;
+            // Atualizar header da liga (sem redundância)
+            function updateLigaHeader(liga) {
                 const nomeElement = document.getElementById("nomeLiga");
-                const quantidadeElement = document.getElementById("quantidadeTimes");
+                const quantidadeElement =
+                    document.getElementById("quantidadeTimes");
 
                 if (nomeElement) {
+                    // Remove "Liga:" e deixa apenas o nome limpo
                     nomeElement.textContent = liga.nome || "Nome da Liga";
                 }
 
                 if (quantidadeElement) {
-                    const participantes = liga.participantes || liga.times?.length || 0;
+                    const participantes =
+                        liga.participantes?.length || liga.times?.length || 0;
                     quantidadeElement.textContent = `${participantes} participantes`;
                 }
-
-                console.log(`✅ [DETALHE-LIGA] Header atualizado: ${liga.nome} (${liga.participantes || 0} participantes)`);
             }
 
-            // ✅ INTERCEPTAR CONSOLE.LOG PARA DETECTAR RANKING CALCULADO
-            const originalConsoleLog = console.log;
-            let rodadasProcessadas = 0;
-            const totalRodadas = 20;
-
-            console.log = function(...args) {
-                originalConsoleLog.apply(console, args);
-
-                const message = args.join(' ');
-
-                // Monitorar progresso das rodadas
-                if (message.includes('times encontrados') && message.includes('Rodada')) {
-                    rodadasProcessadas++;
-                    updateProgressStatus(rodadasProcessadas, totalRodadas);
-                }
-
-                // Detectar ranking calculado
-                if (message.includes('Ranking final calculado') ||
-                    message.includes('ranking geral') ||
-                    message.includes('times encontrados')) {
-
-                    console.log("🎯 [DETALHE-LIGA] Interceptou mensagem de ranking:", message);
-                    setTimeout(() => forceRankingRender(), 500);
-                }
-            };
-
-            // ✅ ATUALIZAR STATUS DE PROGRESSO
-            function updateProgressStatus(atual, total) {
-                const statusDiv = document.getElementById("statusCarregamento");
-                const statusTexto = document.getElementById("statusTexto");
-                const progressBar = document.getElementById("progressBar");
-
-                if (statusDiv && statusTexto && progressBar) {
-                    statusDiv.style.display = "block";
-                    statusTexto.textContent = `Processando rodada ${atual} de ${total}...`;
-                    const percent = (atual / total) * 100;
-                    progressBar.style.width = percent + "%";
-
-                    if (atual >= total) {
-                        setTimeout(() => {
-                            statusTexto.textContent = "✅ Dados processados - Montando tabela...";
-                            progressBar.style.width = "100%";
-                            progressBar.style.background = "#22c55e";
-
-                            setTimeout(() => {
-                                statusDiv.style.display = "none";
-                            }, 3000);
-                        }, 1000);
-                    }
-                }
-            }
-
-            // ✅ INICIALIZAÇÃO PRINCIPAL
-            document.addEventListener("DOMContentLoaded", async function () {
-                console.log("🚀 [DETALHE-LIGA] Iniciando sistema...");
-
+            // Atualizar contador de participantes
+            async function updateParticipantesCount() {
                 try {
-                    // 1. Carregar layout PRIMEIRO
-                    await loadLayout();
+                    const urlParams = new URLSearchParams(
+                        window.location.search,
+                    );
+                    const ligaId = urlParams.get("id");
 
-                    // 2. Aguardar um pouco para o layout se estabelecer
-                    await new Promise(resolve => setTimeout(resolve, 500));
+                    if (!ligaId) return;
 
-                    // 3. Carregar detalhes da liga
-                    await loadLigaDetails();
+                    const response = await fetch(`/api/ligas/${ligaId}`);
+                    if (response.ok) {
+                        const liga = await response.json();
 
-                    // 4. Inicializar sistema de tabs
-                    await initializeTabs();
+                        // Atualizar header da liga
+                        updateLigaHeader(liga);
 
-                    console.log("✅ [DETALHE-LIGA] Sistema inicializado com sucesso");
+                        // Atualizar contador no card
+                        const count =
+                            liga.participantes?.length ||
+                            liga.times?.length ||
+                            0;
+                        document.getElementById(
+                            "participantes-count",
+                        ).textContent = `${count} membros`;
+                    }
                 } catch (error) {
-                    console.error("❌ [DETALHE-LIGA] Erro na inicialização:", error);
+                    console.warn("Erro ao atualizar contador:", error);
+                }
+            }
+
+            // Expor função globalmente
+            window.voltarParaCards = voltarParaCards;
+
+            // Inicialização
+            document.addEventListener("DOMContentLoaded", async function () {
+                await loadLayout();
+                await new Promise((resolve) => setTimeout(resolve, 500));
+                await loadModules();
+                await updateParticipantesCount();
+                initializeNavigation();
+
+                // Inicializar ícones Lucide
+                if (typeof lucide !== "undefined") {
+                    lucide.createIcons();
                 }
             });
-
-            // ✅ FUNÇÕES GLOBAIS PARA DEBUG E FALLBACK
-            window.debugRanking = function() {
-                console.log("🔍 [DEBUG] Verificando dados de ranking...");
-                console.log("window.rankingData:", window.rankingData);
-                console.log("window.rankingGeral:", window.rankingGeral);
-                console.log("window.dadosRanking:", window.dadosRanking);
-                console.log("window.ultimoRanking:", window.ultimoRanking);
-                console.log("Elementos DOM:", {
-                    tableBody: document.getElementById("rankingGeralTableBody"),
-                    tableContainer: document.getElementById("rankingGeralTableContainer"),
-                    loading: document.getElementById("rankingGeralLoading")
-                });
-            };
-
-            window.manualRankingRender = function(data) {
-                console.log("🔧 [MANUAL] Renderização manual iniciada...");
-                if (data && Array.isArray(data)) {
-                    window.rankingData = data;
-                    forceRankingRender();
-                } else {
-                    console.log("⚠️ Forneça dados: window.manualRankingRender([{nome: 'Time', pontos: 100}, ...])");
-                }
-            };
-
-            console.log("🎮 [DETALHE-LIGA] Funções debug disponíveis:");
-            console.log("- window.forceRankingRender() - Forçar renderização");
-            console.log("- window.debugRanking() - Ver estado dos dados");
-            console.log("- window.manualRankingRender(dados) - Renderização manual");
         </script>
     </body>
 </html>
