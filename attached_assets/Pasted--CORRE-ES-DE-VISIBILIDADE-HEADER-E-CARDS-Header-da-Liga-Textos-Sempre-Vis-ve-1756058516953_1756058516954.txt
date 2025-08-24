@@ -1,0 +1,185 @@
+/* === CORREÇÕES DE VISIBILIDADE - HEADER E CARDS === */
+
+/* Header da Liga - Textos Sempre Visíveis */
+.liga-titulo {
+    color: #ffffff !important;
+    margin-bottom: 5px;
+    font-size: 22px;
+    font-weight: 700;
+    text-shadow: 0 0 10px rgba(255, 255, 255, 0.1);
+}
+
+.liga-info {
+    color: #e0e0e0 !important;
+    margin: 0;
+    font-size: 14px;
+    opacity: 1;
+}
+
+/* Cards - Informações Sempre Visíveis */
+.module-title {
+    color: #ffffff !important;
+    font-size: 14px;
+    font-weight: 600;
+    margin: 0;
+}
+
+.module-items li {
+    color: #e0e0e0 !important;
+    font-size: 12px;
+    padding: 3px 0;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.module-items li::before {
+    color: #ff4500 !important;
+    font-weight: bold;
+}
+
+/* Sub-informações e contadores */
+#participantes-count,
+.module-items .count,
+.module-items .info {
+    color: #cccccc !important;
+}
+
+/* Botão Voltar Condicional */
+#main-screen .back-button {
+    display: none !important;
+}
+
+#secondary-screen .back-button {
+    display: inline-block !important;
+    background: rgba(255, 69, 0, 0.1);
+    border: 1px solid rgba(255, 69, 0, 0.3);
+    color: #ff4500;
+    padding: 8px 15px;
+    border-radius: 8px;
+    cursor: pointer;
+    font-size: 12px;
+    font-weight: 600;
+    margin-bottom: 20px;
+    transition: all 0.3s ease;
+}
+
+#secondary-screen .back-button:hover {
+    background: #ff4500;
+    color: #ffffff;
+}
+
+/* === MELHORIAS - CARDS DESATIVADOS + LOGO MAIOR === */
+/* Adicionar no final do arquivo style.css */
+
+/* === LOGO SIDEBAR AUMENTADO === */
+.logo-image {
+    width: 42px !important; /* AUMENTADO DE 28px PARA 42px */
+    height: 42px !important;
+    object-fit: contain;
+    filter: drop-shadow(0 0 8px rgba(255, 69, 0, 0.4));
+    transition: all 0.3s ease;
+}
+
+#logoFallback {
+    width: 42px !important; /* AUMENTADO DE 28px PARA 42px */
+    height: 42px !important;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 28px !important; /* AUMENTADO DE 20px PARA 28px */
+    color: var(--laranja);
+    text-shadow: 0 0 8px rgba(255, 69, 0, 0.4);
+    transition: all 0.3s ease;
+}
+
+/* === ESTADOS DESATIVADOS DOS CARDS === */
+.module-card.disabled {
+    opacity: 0.65 !important; /* AUMENTADO DE 0.4 PARA 0.65 */
+    cursor: not-allowed !important;
+    pointer-events: none !important;
+    background: linear-gradient(135deg, #1a1a1a 0%, #161616 100%) !important;
+    border-color: rgba(160, 160, 160, 0.3) !important; /* CLAREADO */
+}
+
+.module-card.disabled::before {
+    background: linear-gradient(135deg, #888888 0%, #666666 100%) !important; /* CLAREADO */
+    opacity: 1 !important;
+}
+
+.module-card.disabled .module-icon {
+    color: #999999 !important; /* CLAREADO DE #606060 PARA #999999 */
+}
+
+.module-card.disabled .module-title {
+    color: #aaaaaa !important; /* CLAREADO DE #606060 PARA #aaaaaa */
+}
+
+.module-card.disabled .module-items li {
+    color: #888888 !important; /* CLAREADO DE #4a4a4a PARA #888888 */
+}
+
+.module-card.disabled .module-items li::before {
+    color: #777777 !important; /* CLAREADO DE #4a4a4a PARA #777777 */
+}
+
+.module-card.disabled:hover {
+    transform: none !important;
+    box-shadow: none !important;
+    border-color: rgba(96, 96, 96, 0.3) !important;
+}
+
+/* === TOOLTIP PARA CARDS DESATIVADOS === */
+.module-card.disabled {
+    position: relative;
+}
+
+.module-card.disabled::after {
+    content: "Não aplicável a esta liga";
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    background: rgba(0, 0, 0, 0.9);
+    color: #ffffff;
+    padding: 8px 12px;
+    border-radius: 6px;
+    font-size: 11px;
+    font-weight: 600;
+    white-space: nowrap;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.3s ease;
+    z-index: 10;
+}
+
+.module-card.disabled:hover::after {
+    opacity: 1;
+}
+
+/* === RESPONSIVIDADE LOGO === */
+@media (max-width: 768px) {
+    .logo-image {
+        width: 36px !important;
+        height: 36px !important;
+    }
+
+    #logoFallback {
+        width: 36px !important;
+        height: 36px !important;
+        font-size: 24px !important;
+    }
+}
+
+@media (max-width: 480px) {
+    .logo-image {
+        width: 32px !important;
+        height: 32px !important;
+    }
+
+    #logoFallback {
+        width: 32px !important;
+        height: 32px !important;
+        font-size: 22px !important;
+    }
+}

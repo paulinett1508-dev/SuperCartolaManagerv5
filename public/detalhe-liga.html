@@ -7,6 +7,7 @@
         <link rel="shortcut icon" href="favicon.ico" type="image/x-icon" />
         <link rel="stylesheet" href="style.css" />
         <link rel="stylesheet" href="detalhe-liga.css" />
+
         <style>
             /* === MELHORIAS - CARDS DESATIVADOS + LOGO MAIOR === */
 
@@ -33,32 +34,32 @@
 
             /* Cards Desativados */
             .module-card.disabled {
-                opacity: 0.4 !important;
+                opacity: 0.65 !important;
                 cursor: not-allowed !important;
                 pointer-events: none !important;
                 background: linear-gradient(135deg, #1a1a1a 0%, #161616 100%) !important;
-                border-color: rgba(96, 96, 96, 0.3) !important;
+                border-color: rgba(160, 160, 160, 0.3) !important;
             }
 
             .module-card.disabled::before {
-                background: linear-gradient(135deg, #606060 0%, #4a4a4a 100%) !important;
+                background: linear-gradient(135deg, #888888 0%, #666666 100%) !important;
                 opacity: 1 !important;
             }
 
             .module-card.disabled .module-icon {
-                color: #606060 !important;
+                color: #999999 !important;
             }
 
             .module-card.disabled .module-title {
-                color: #606060 !important;
+                color: #aaaaaa !important;
             }
 
             .module-card.disabled .module-items li {
-                color: #4a4a4a !important;
+                color: #888888 !important;
             }
 
             .module-card.disabled .module-items li::before {
-                color: #4a4a4a !important;
+                color: #777777 !important;
             }
 
             .module-card.disabled:hover {
@@ -358,16 +359,18 @@
             // Sistema de navegação entre cards
             function initializeNavigation() {
                 const cards = document.querySelectorAll(".module-card");
-                const items = document.querySelectorAll(
-                    ".module-items li[data-action]",
-                );
+                const items = document.querySelectorAll(".module-items li[data-action]");
 
-                // Cards principais
+                // Cards principais com verificação condicional
                 cards.forEach((card) => {
+                    // Verificar se está desabilitado
+                    if (card.classList.contains('disabled')) {
+                        return; // Não adicionar event listener
+                    }
+
                     card.addEventListener("click", async (e) => {
                         if (processingModule) return;
 
-                        // Feedback visual imediato
                         card.style.transform = "translateY(-1px) scale(0.98)";
                         setTimeout(() => {
                             card.style.transform = "";
@@ -377,9 +380,7 @@
                         if (module === "participantes") {
                             await showParticipantes();
                         } else {
-                            // Para outros cards, mostrar submenu ou primeira ação
-                            const firstAction =
-                                card.querySelector("li[data-action]");
+                            const firstAction = card.querySelector("li[data-action]");
                             if (firstAction) {
                                 await executeAction(firstAction.dataset.action);
                             }
@@ -387,13 +388,17 @@
                     });
                 });
 
-                // Items específicos
+                // Items específicos com verificação
                 items.forEach((item) => {
+                    const parentCard = item.closest('.module-card');
+                    if (parentCard && parentCard.classList.contains('disabled')) {
+                        return; // Não adicionar event listener
+                    }
+
                     item.addEventListener("click", async (e) => {
                         e.stopPropagation();
                         if (processingModule) return;
 
-                        // Feedback visual
                         item.style.opacity = "0.6";
                         setTimeout(() => {
                             item.style.opacity = "";
@@ -725,6 +730,7 @@
             window.voltarParaCards = voltarParaCards;
 
             // === SISTEMA CONDICIONAL DE CARDS ===
+
             const CARDS_CONFIG = {
                 "684cb1c8af923da7c7df51de": { // Super Cartola 2025
                     disabled: ["premios"],
