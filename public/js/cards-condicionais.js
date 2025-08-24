@@ -133,6 +133,65 @@ function aplicarNavegacaoCondicional() {
 }
 
 /**
+ * Controlar visibilidade do botão voltar
+ */
+function controlarBotaoVoltar() {
+    const mainScreen = document.getElementById('main-screen');
+    const secondaryScreen = document.getElementById('secondary-screen');
+    const backButton = document.querySelector('.back-button');
+    
+    if (backButton) {
+        // Se estamos na tela principal (cards), ocultar botão
+        if (mainScreen && mainScreen.style.display !== 'none') {
+            backButton.style.display = 'none';
+        }
+        // Se estamos na tela secundária (módulo), mostrar botão
+        else if (secondaryScreen && secondaryScreen.classList.contains('active')) {
+            backButton.style.display = 'inline-block';
+        }
+    }
+}
+
+/**
+ * Monitorar mudanças de tela para controlar botão voltar
+ */
+function monitorarMudancasTela() {
+    // Observar mudanças no DOM
+    const observer = new MutationObserver((mutations) => {
+        let shouldUpdate = false;
+        
+        mutations.forEach((mutation) => {
+            if (mutation.type === 'attributes' && 
+                (mutation.attributeName === 'style' || mutation.attributeName === 'class')) {
+                shouldUpdate = true;
+            }
+        });
+        
+        if (shouldUpdate) {
+            setTimeout(controlarBotaoVoltar, 50);
+        }
+    });
+    
+    // Observar mudanças nas telas
+    const mainScreen = document.getElementById('main-screen');
+    const secondaryScreen = document.getElementById('secondary-screen');
+    
+    if (mainScreen) {
+        observer.observe(mainScreen, { 
+            attributes: true, 
+            attributeFilter: ['style', 'class'] 
+        });
+    }
+    
+    if (secondaryScreen) {
+        observer.observe(secondaryScreen, { 
+            attributes: true, 
+            attributeFilter: ['style', 'class'] 
+        });
+    }
+}
+
+/**
  * Inicializar sistema quando DOM estiver pronto
  */
 function inicializar() {
@@ -144,6 +203,12 @@ function inicializar() {
         
         // Configurar navegação condicional
         aplicarNavegacaoCondicional();
+        
+        // Controlar botão voltar
+        controlarBotaoVoltar();
+        
+        // Monitorar mudanças de tela
+        monitorarMudancasTela();
         
         console.log("✅ [CARDS-CONDICIONAIS] Sistema inicializado");
         
@@ -159,6 +224,7 @@ window.cardsCondicionais = {
     aplicarConfiguracao: aplicarConfiguracaoCards,
     isModuleDisabled: isModuleDisabled,
     verificarBloqueado: verificarCardBloqueado,
+    controlarBotaoVoltar: controlarBotaoVoltar,
     CARDS_CONFIG: CARDS_CONFIG
 };
 
