@@ -10,7 +10,6 @@
         <link rel="stylesheet" href="style.css" />
         <!-- GLOBAL -->
         <link rel="stylesheet" href="detalhe-liga.css" />
-        <link rel="stylesheet" href="/css/modules/brasoes.css" />
         <!-- PÁGINA ESPECÍFICO -->
         <link rel="stylesheet" href="css/base.css" />
         <!-- COMPONENTES REUTILIZÁVEIS -->
@@ -165,106 +164,6 @@
         <script type="module" src="js/navigation.js"></script>
         <script src="js/seletor-ligas.js"></script>
 
-        <!-- SCRIPT DOS BRASÕES -->
-        <script src="js/participantes-brasoes.js"></script>
-
-        <!-- SCRIPT PARA CARREGAR BRASÕES NO MOMENTO CERTO -->
-        <script>
-            // Aguardar o carregamento completo do DOM
-            document.addEventListener("DOMContentLoaded", function () {
-                console.log(
-                    "DOM carregado, iniciando observer para módulo participantes",
-                );
-
-                // Função para tentar carregar os brasões
-                function tentarCarregarBrasoes() {
-                    const grid = document.getElementById("participantes-grid");
-                    if (
-                        grid &&
-                        typeof carregarParticipantesComBrasoes === "function"
-                    ) {
-                        console.log(
-                            "Grid de participantes encontrado, carregando brasões...",
-                        );
-                        // Pequeno delay para garantir que o módulo está completamente carregado
-                        setTimeout(() => {
-                            carregarParticipantesComBrasoes();
-                        }, 1000);
-                        return true;
-                    }
-                    return false;
-                }
-
-                // Observer para detectar quando o módulo participantes é carregado
-                const observer = new MutationObserver(function (mutations) {
-                    mutations.forEach(function (mutation) {
-                        // Verifica se novos nodes foram adicionados
-                        if (
-                            mutation.type === "childList" &&
-                            mutation.addedNodes.length > 0
-                        ) {
-                            // Procura pelo módulo participantes
-                            mutation.addedNodes.forEach(function (node) {
-                                if (node.nodeType === 1) {
-                                    // É um elemento
-                                    // Verifica se é o módulo participantes ou contém ele
-                                    if (
-                                        node.id === "participantes-content" ||
-                                        (node.querySelector &&
-                                            node.querySelector(
-                                                "#participantes-content",
-                                            ))
-                                    ) {
-                                        console.log(
-                                            "Módulo participantes detectado!",
-                                        );
-                                        // Tenta carregar os brasões
-                                        setTimeout(() => {
-                                            if (tentarCarregarBrasoes()) {
-                                                observer.disconnect();
-                                            }
-                                        }, 500);
-                                    }
-                                }
-                            });
-                        }
-                    });
-                });
-
-                // Observa mudanças no container principal e na área de conteúdo dinâmico
-                const containers = [
-                    document.getElementById("dynamic-content-area"),
-                    document.getElementById("secondary-screen"),
-                    document.body,
-                ];
-
-                containers.forEach((container) => {
-                    if (container) {
-                        observer.observe(container, {
-                            childList: true,
-                            subtree: true,
-                        });
-                    }
-                });
-
-                // Também adiciona listener para cliques no card de participantes
-                document.addEventListener("click", function (e) {
-                    const moduleCard = e.target.closest(
-                        '[data-module="participantes"]',
-                    );
-                    if (moduleCard) {
-                        console.log(
-                            "Card participantes clicado, tentando carregar brasões em 2 segundos...",
-                        );
-                        setTimeout(() => {
-                            tentarCarregarBrasoes();
-                        }, 2000);
-                    }
-                });
-
-                // Tenta carregar imediatamente caso o módulo já esteja presente
-                tentarCarregarBrasoes();
-            });
-        </script>
+        
     </body>
 </html>
