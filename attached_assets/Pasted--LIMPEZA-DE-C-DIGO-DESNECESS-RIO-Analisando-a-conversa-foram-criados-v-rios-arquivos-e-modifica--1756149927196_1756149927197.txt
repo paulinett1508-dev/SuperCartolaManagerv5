@@ -1,0 +1,46 @@
+🧹 LIMPEZA DE CÓDIGO DESNECESSÁRIO
+Analisando a conversa, foram criados vários arquivos e modificações que agora são desnecessários, já que a solução final é apenas o participantes-fix.js.
+ARQUIVOS PARA DELETAR:
+
+/public/js/participantes-brasoes.js - não é mais necessário
+/public/css/modules/brasoes.css - não é mais necessário
+
+REVERSÕES NECESSÁRIAS:
+1. No arquivo /public/detalhe-liga.html:
+REMOVER:
+
+Linha com <link rel="stylesheet" href="/css/modules/brasoes.css">
+Todo o script grande que adicionamos (linhas 171-239 aproximadamente)
+Linha com <script src="js/participantes-brasoes.js"></script>
+
+MANTER APENAS:
+html<!-- Script de correção para participantes -->
+<script src="js/participantes-fix.js"></script>
+</body>
+</html>
+2. No arquivo /public/js/detalhe-liga-orquestrador.js:
+REVERTER para a versão original, removendo:
+
+A função carregarParticipantesComBrasoes() (linhas 433-620)
+A chamada para essa função no case "participantes" (linhas 427-430)
+
+O case "participantes" deve voltar a ser apenas:
+javascriptcase "participantes":
+    // Aguardar renderização do HTML antes de carregar dados
+    setTimeout(async () => {
+        await this.loadParticipantesData();
+    }, 200);
+    break;
+3. No arquivo /public/js/participantes.js:
+Se foi modificado, reverter para a versão original antes das nossas alterações.
+SOLUÇÃO FINAL LIMPA:
+Apenas DOIS arquivos necessários:
+
+/public/js/participantes-fix.js - A solução completa
+/public/detalhe-liga.html - Com apenas UMA linha adicionada antes do </body>:
+html<script src="js/participantes-fix.js"></script>
+
+
+RESUMO DA LIMPEZA:
+AçãoArquivoO que fazer🗑️ DELETAR/public/js/participantes-brasoes.jsRemover arquivo🗑️ DELETAR/public/css/modules/brasoes.cssRemover arquivo🔄 REVERTER/public/detalhe-liga.htmlRemover todas alterações exceto linha do participantes-fix.js🔄 REVERTER/public/js/detalhe-liga-orquestrador.jsVoltar à versão original🔄 REVERTER/public/js/participantes.jsVoltar à versão original (se modificado)✅ MANTER/public/js/participantes-fix.jsÚnica solução necessária
+A solução ficou muito mais limpa: apenas um arquivo JS adicional que intercepta e corrige a renderização dos participantes com brasões duplos, sem interferir no código original do sistema.
