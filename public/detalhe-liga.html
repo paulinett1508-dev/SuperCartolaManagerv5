@@ -8,11 +8,8 @@
 
         <!-- CSS HIERÁRQUICO MODULAR -->
         <link rel="stylesheet" href="style.css" />
-        <!-- GLOBAL -->
         <link rel="stylesheet" href="detalhe-liga.css" />
-        <!-- PÁGINA ESPECÍFICO -->
         <link rel="stylesheet" href="css/base.css" />
-        <!-- COMPONENTES REUTILIZÁVEIS -->
 
         <!-- EXTERNAL DEPENDENCIES -->
         <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.js"></script>
@@ -21,11 +18,6 @@
             rel="stylesheet"
         />
     </head>
-    
-    <!-- Script de correção para participantes -->
-    <script src="js/participantes-fix.js"></script>
-    </body>
-    </html>
 
     <body>
         <div class="app-container">
@@ -33,19 +25,18 @@
 
             <main class="app-main">
                 <div class="page-content">
-                    <!-- Header da Liga Simplificado - APENAS 2 LINHAS GARANTIDAS -->
+                    <!-- Header da Liga Simplificado -->
                     <div class="liga-header">
                         <h2 id="nomeLiga" class="liga-titulo">Nome da Liga</h2>
                         <p id="quantidadeTimes" class="liga-info">
                             0 participantes
                         </p>
-                        <!-- GARANTIR: Apenas estes 2 elementos no header -->
                     </div>
 
-                    <!-- Tela Principal - Cards com Ícones Emojis -->
+                    <!-- Tela Principal - 11 Cards Independentes -->
                     <div id="main-screen" class="main-screen">
-                        <div class="modules-grid">
-                            <!-- Card Participantes -->
+                        <div class="modules-grid modules-grid-expanded">
+                            <!-- 1. Card Participantes -->
                             <div
                                 class="module-card"
                                 data-module="participantes"
@@ -55,81 +46,142 @@
                                     <h3 class="module-title">PARTICIPANTES</h3>
                                 </div>
                                 <ul class="module-items">
-                                    <li>Lista completa</li>
+                                    <li>Lista completa com brasões</li>
                                     <li id="participantes-count">0 membros</li>
                                 </ul>
                             </div>
 
-                            <!-- Card Rankings -->
-                            <div class="module-card" data-module="rankings">
-                                <div class="module-header">
-                                    <div class="module-icon">📊</div>
-                                    <h3 class="module-title">RANKINGS</h3>
-                                </div>
-                                <ul class="module-items">
-                                    <li data-action="ranking-geral">
-                                        Classificação Geral
-                                    </li>
-                                    <li data-action="parciais">
-                                        Resultados Parciais
-                                    </li>
-                                    <li data-action="top10">Top 10 Melhores</li>
-                                </ul>
-                            </div>
-
-                            <!-- Card Temporal -->
-                            <div class="module-card" data-module="temporal">
-                                <div class="module-header">
-                                    <div class="module-icon">📅</div>
-                                    <h3 class="module-title">TEMPORAL</h3>
-                                </div>
-                                <ul class="module-items">
-                                    <li data-action="rodadas">Por Rodadas</li>
-                                    <li data-action="melhor-mes">Melhor Mês</li>
-                                </ul>
-                            </div>
-
-                            <!-- Card Competições -->
-                            <div class="module-card" data-module="competicoes">
-                                <div class="module-header">
-                                    <div class="module-icon">⚡</div>
-                                    <h3 class="module-title">COMPETIÇÕES</h3>
-                                </div>
-                                <ul class="module-items">
-                                    <li data-action="mata-mata">Mata-mata</li>
-                                    <li data-action="pontos-corridos">
-                                        Pontos Corridos
-                                    </li>
-                                </ul>
-                            </div>
-
-                            <!-- Card Prêmios -->
-                            <div class="module-card" data-module="premios">
+                            <!-- 2. Card Classificação Geral -->
+                            <div
+                                class="module-card"
+                                data-module="ranking-geral"
+                            >
                                 <div class="module-header">
                                     <div class="module-icon">🏆</div>
-                                    <h3 class="module-title">PRÊMIOS</h3>
+                                    <h3 class="module-title">CLASSIFICAÇÃO</h3>
                                 </div>
                                 <ul class="module-items">
-                                    <li data-action="luva-de-ouro">
-                                        Luva de Ouro
-                                    </li>
-                                    <li data-action="artilheiro-campeao">
-                                        Artilheiro
-                                    </li>
+                                    <li>Ranking geral acumulado</li>
+                                    <li>Pontuação total</li>
                                 </ul>
                             </div>
 
-                            <!-- Card Financeiro -->
-                            <div class="module-card" data-module="financeiro">
+                            <!-- 3. Card Resultados Parciais -->
+                            <div class="module-card" data-module="parciais">
+                                <div class="module-header">
+                                    <div class="module-icon">📊</div>
+                                    <h3 class="module-title">PARCIAIS</h3>
+                                </div>
+                                <ul class="module-items">
+                                    <li>Resultados em tempo real</li>
+                                    <li>Acompanhamento ao vivo</li>
+                                </ul>
+                            </div>
+
+                            <!-- 4. Card Top 10 -->
+                            <div class="module-card" data-module="top10">
+                                <div class="module-header">
+                                    <div class="module-icon">🌟</div>
+                                    <h3 class="module-title">TOP 10</h3>
+                                </div>
+                                <ul class="module-items">
+                                    <li>Mitos e Micos</li>
+                                    <li>Destaques por rodada</li>
+                                </ul>
+                            </div>
+
+                            <!-- 5. Card Por Rodadas -->
+                            <div class="module-card" data-module="rodadas">
+                                <div class="module-header">
+                                    <div class="module-icon">📅</div>
+                                    <h3 class="module-title">RODADAS</h3>
+                                </div>
+                                <ul class="module-items">
+                                    <li>Resultados por rodada</li>
+                                    <li>Histórico completo</li>
+                                </ul>
+                            </div>
+
+                            <!-- 6. Card Melhor Mês -->
+                            <div class="module-card" data-module="melhor-mes">
+                                <div class="module-header">
+                                    <div class="module-icon">📈</div>
+                                    <h3 class="module-title">MELHOR MÊS</h3>
+                                </div>
+                                <ul class="module-items">
+                                    <li>Rankings mensais</li>
+                                    <li>Análise temporal</li>
+                                </ul>
+                            </div>
+
+                            <!-- 7. Card Mata-mata -->
+                            <div class="module-card" data-module="mata-mata">
+                                <div class="module-header">
+                                    <div class="module-icon">⚔️</div>
+                                    <h3 class="module-title">MATA-MATA</h3>
+                                </div>
+                                <ul class="module-items">
+                                    <li>Confrontos diretos</li>
+                                    <li>Eliminatórias</li>
+                                </ul>
+                            </div>
+
+                            <!-- 8. Card Pontos Corridos -->
+                            <div
+                                class="module-card"
+                                data-module="pontos-corridos"
+                            >
+                                <div class="module-header">
+                                    <div class="module-icon">⚡</div>
+                                    <h3 class="module-title">
+                                        PONTOS CORRIDOS
+                                    </h3>
+                                </div>
+                                <ul class="module-items">
+                                    <li>Tabela completa</li>
+                                    <li>Todos contra todos</li>
+                                </ul>
+                            </div>
+
+                            <!-- 9. Card Luva de Ouro -->
+                            <div class="module-card" data-module="luva-de-ouro">
+                                <div class="module-header">
+                                    <div class="module-icon">🥅</div>
+                                    <h3 class="module-title">LUVA DE OURO</h3>
+                                </div>
+                                <ul class="module-items">
+                                    <li>Melhores goleiros</li>
+                                    <li>Ranking de defesas</li>
+                                </ul>
+                            </div>
+
+                            <!-- 10. Card Artilheiro -->
+                            <div
+                                class="module-card"
+                                data-module="artilheiro-campeao"
+                            >
+                                <div class="module-header">
+                                    <div class="module-icon">⚽</div>
+                                    <h3 class="module-title">ARTILHEIRO</h3>
+                                </div>
+                                <ul class="module-items">
+                                    <li>Maiores artilheiros</li>
+                                    <li>Gols por rodada</li>
+                                </ul>
+                            </div>
+
+                            <!-- 11. Card Fluxo Financeiro -->
+                            <div
+                                class="module-card"
+                                data-module="fluxo-financeiro"
+                            >
                                 <div class="module-header">
                                     <div class="module-icon">💰</div>
                                     <h3 class="module-title">FINANCEIRO</h3>
                                 </div>
                                 <ul class="module-items">
-                                    <li data-action="fluxo-financeiro">
-                                        Fluxo Financeiro
-                                    </li>
-                                    <li>Extrato Detalhado</li>
+                                    <li>Fluxo de caixa</li>
+                                    <li>Extrato detalhado</li>
                                 </ul>
                             </div>
                         </div>
@@ -154,16 +206,14 @@
         <!-- Bootstrap JS -->
         <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 
-        <!-- SCRIPTS MODULARES - SEM CÓDIGO INLINE -->
+        <!-- SCRIPTS MODULARES -->
         <script src="js/cards-condicionais.js"></script>
         <script src="js/sistema-modulos-init.js"></script>
         <script type="module" src="js/detalhe-liga-orquestrador.js"></script>
 
-        <!-- MÓDULOS JS EXISTENTES - MANTIDOS PARA COMPATIBILIDADE -->
+        <!-- MÓDULOS JS EXISTENTES -->
         <script type="module" src="js/utils.js"></script>
         <script type="module" src="js/navigation.js"></script>
         <script src="js/seletor-ligas.js"></script>
-
-        
     </body>
 </html>
