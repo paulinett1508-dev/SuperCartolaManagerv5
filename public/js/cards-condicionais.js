@@ -3,21 +3,21 @@
 
 console.log("🎛️ [CARDS-CONDICIONAIS] Carregando sistema...");
 
-/**
- * Configuração dos cards por liga
- */
+// === CONFIGURAÇÕES POR LIGA ===
 const CARDS_CONFIG = {
-    // Super Cartola 2025 - Desabilitar Prêmios
+    // Super Cartola 2025 - Desabilitar Prêmios individuais
     "684cb1c8af923da7c7df51de": {
-        disabled: ["premios"],
+        disabled: ["luva-de-ouro", "artilheiro-campeao"],
         reason: "Prêmios não se aplicam a esta liga",
     },
 
-    // Cartoleiros do Sobral - Desabilitar Competições
+    // Cartoleiros do Sobral - Desabilitar Competições individuais  
     "684d821cf1a7ae16d1f89572": {
-        disabled: ["competicoes"],
+        disabled: ["mata-mata", "pontos-corridos"],
         reason: "Competições não se aplicam a esta liga",
     },
+
+    // Configurações adicionais podem ser adicionadas aqui
 };
 
 /**
