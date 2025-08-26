@@ -194,11 +194,16 @@ class DetalheLigaOrquestrador {
                 case "ranking-geral":
                     // INTERCEPTAR FUNÇÃO ANTES DE CARREGAR
                     this.interceptarRankingFunction();
-
+                    
+                    // Tentar primeiro pelo módulo
                     if (this.modules.ranking?.carregarRankingGeral) {
                         await this.modules.ranking.carregarRankingGeral();
+                    } 
+                    // Fallback se módulo falhar
+                    else if (!await this.executeRankingFallback()) {
+                        console.error("❌ Função carregarRankingGeral não encontrada");
                     }
-
+                    
                     // APLICAR ESTILOS APÓS CARREGAMENTO
                     setTimeout(() => this.applyRankingStyles(), 500);
                     break;
@@ -967,7 +972,12 @@ class DetalheLigaOrquestrador {
     // 📦 CARREGAR MÓDULOS JS (MANTIDO PARA COMPATIBILIDADE)
     async loadModules() {
         try {
-            this.modules.ranking = await import("./ranking.js");
+            // CORREÇÃO PARA O RANKING
+            const rankingModule = await import("./ranking.js");
+            this.modules.ranking = {
+                carregarRankingGeral: rankingModule.carregarRankingGeral || window.carregarRankingGeral
+            };
+            
             this.modules.rodadas = await import("./rodadas.js");
             this.modules.mataMata = await import("./mata-mata.js");
             this.modules.pontosCorreidos = await import("./pontos-corridos.js");
@@ -983,6 +993,17 @@ class DetalheLigaOrquestrador {
         } catch (error) {
             console.error("Erro ao carregar módulos:", error);
         }
+    }
+
+    // 🔧 FALLBACK PARA RANKING
+    async executeRankingFallback() {
+        // Fallback direto se o módulo não carregar
+        if (typeof window.carregarRankingGeral === 'function') {
+            console.log("🔧 Usando fallback direto para ranking");
+            await window.carregarRankingGeral();
+            return true;
+        }
+        return false;
     }
 
     // 📊 ATUALIZAR ESTATÍSTICAS DOS PARTICIPANTES
