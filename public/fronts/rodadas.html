@@ -1,0 +1,312 @@
+<!-- 🎯 MÓDULO RODADAS - RANKING POR RODADA -->
+<div id="rodadas" class="rodadas-module">
+    <!-- Header do Módulo -->
+    <div class="module-header-section">
+        <div class="module-title-section">
+            <div class="module-title-icon">🎯</div>
+            <h2>Ranking por Rodada</h2>
+        </div>
+        <div class="module-subtitle">
+            Classificação e premiação por rodada específica
+        </div>
+    </div>
+
+    <!-- Seletor de Rodada -->
+    <div class="rodada-selector-container">
+        <label for="rodadaSelect" class="rodada-label"
+            >Selecione a Rodada:</label
+        >
+        <select id="rodadaSelect" class="rodada-select">
+            <option value="">Escolha uma rodada</option>
+        </select>
+    </div>
+
+    <!-- Loading State -->
+    <div id="loading" class="loading-state" style="display: none">
+        <div class="spinner"></div>
+        <span>Carregando dados da rodada...</span>
+    </div>
+
+    <!-- Container da Tabela -->
+    <div class="table-container">
+        <table class="ranking-table">
+            <thead>
+                <tr>
+                    <th style="width: 60px; text-align: center">Pos</th>
+                    <th style="width: 40px; text-align: center">❤️</th>
+                    <th style="min-width: 140px; text-align: left">
+                        Cartoleiro
+                    </th>
+                    <th style="min-width: 120px; text-align: left">Time</th>
+                    <th style="width: 80px; text-align: center">Pontos</th>
+                    <th style="width: 90px; text-align: center">Banco</th>
+                </tr>
+            </thead>
+            <tbody id="rankingBody">
+                <tr>
+                    <td colspan="6" class="empty-state">
+                        Selecione uma rodada para visualizar o ranking
+                    </td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+
+    <!-- Container do Botão de Exportação -->
+    <div id="rodadasExportBtnContainer" class="export-btn-container"></div>
+
+    <!-- Botão Voltar -->
+    <div class="module-actions">
+        <button
+            class="back-button"
+            onclick="window.orquestrador?.voltarParaCards()"
+        >
+            ← Voltar aos Cards
+        </button>
+    </div>
+</div>
+
+<style>
+    /* Estilos específicos do módulo Rodadas */
+    .rodadas-module {
+        padding: 20px;
+        background: linear-gradient(135deg, #1a1a1a 0%, #0f0f0f 100%);
+        border-radius: 12px;
+    }
+
+    .module-header-section {
+        text-align: center;
+        margin-bottom: 25px;
+        padding-bottom: 20px;
+        border-bottom: 2px solid rgba(255, 69, 0, 0.3);
+    }
+
+    .module-title-section {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 12px;
+        margin-bottom: 8px;
+    }
+
+    .module-title-icon {
+        font-size: 32px;
+        filter: drop-shadow(0 0 10px rgba(255, 69, 0, 0.5));
+    }
+
+    .module-subtitle {
+        color: #a0a0a0;
+        font-size: 14px;
+        font-weight: 500;
+    }
+
+    .rodada-selector-container {
+        background: rgba(255, 69, 0, 0.05);
+        border: 1px solid rgba(255, 69, 0, 0.2);
+        border-radius: 8px;
+        padding: 20px;
+        margin-bottom: 20px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 15px;
+    }
+
+    .rodada-label {
+        color: #ff4500;
+        font-weight: 600;
+        font-size: 14px;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+    }
+
+    .rodada-select {
+        background: #1a1a1a;
+        color: #ffffff;
+        border: 2px solid rgba(255, 69, 0, 0.3);
+        border-radius: 6px;
+        padding: 10px 15px;
+        font-size: 14px;
+        font-weight: 500;
+        cursor: pointer;
+        min-width: 180px;
+        transition: all 0.3s ease;
+    }
+
+    .rodada-select:hover {
+        border-color: #ff4500;
+        box-shadow: 0 0 10px rgba(255, 69, 0, 0.3);
+    }
+
+    .rodada-select:focus {
+        outline: none;
+        border-color: #ff4500;
+        box-shadow: 0 0 15px rgba(255, 69, 0, 0.5);
+    }
+
+    .rodada-select option {
+        background: #1a1a1a;
+        color: #ffffff;
+        padding: 8px;
+    }
+
+    .rodada-select option.encerrada {
+        color: #4caf50;
+    }
+
+    .rodada-select option.vigente {
+        color: #ff4500;
+        font-weight: bold;
+    }
+
+    .rodada-select option.futura {
+        color: #666;
+    }
+
+    .loading-state {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 15طpx;
+        padding: 40px;
+        color: #ff4500;
+    }
+
+    .spinner {
+        width: 32px;
+        height: 32px;
+        border: 3px solid rgba(255, 69, 0, 0.3);
+        border-top: 3px solid #ff4500;
+        border-radius: 50%;
+        animation: spin 1s linear infinite;
+    }
+
+    @keyframes spin {
+        0% {
+            transform: rotate(0deg);
+        }
+        100% {
+            transform: rotate(360deg);
+        }
+    }
+
+    .table-container {
+        background: rgba(255, 69, 0, 0.02);
+        border: 1px solid rgba(255, 69, 0, 0.1);
+        border-radius: 8px;
+        padding: 15px;
+        margin-bottom: 20px;
+        overflow-x: auto;
+    }
+
+    .ranking-table {
+        width: 100%;
+        border-collapse: collapse;
+    }
+
+    .ranking-table thead th {
+        background: rgba(255, 69, 0, 0.1);
+        color: #ff4500;
+        padding: 12px 8px;
+        font-weight: 700;
+        text-transform: uppercase;
+        font-size: 11px;
+        letter-spacing: 0.5px;
+        border-bottom: 2px solid rgba(255, 69, 0, 0.3);
+    }
+
+    .ranking-table tbody td {
+        padding: 10px 8px;
+        border-bottom: 1px solid rgba(255, 69, 0, 0.05);
+        color: #e0e0e0;
+        font-size: 13px;
+    }
+
+    .ranking-table tbody tr:hover {
+        background: rgba(255, 69, 0, 0.05);
+    }
+
+    .empty-state {
+        text-align: center;
+        color: #888;
+        font-style: italic;
+        padding: 30px !important;
+    }
+
+    /* Estilos das posições */
+    .pos-g {
+        color: #4caf50;
+        font-weight: 600;
+    }
+
+    .pos-z {
+        color: #f44336;
+        font-weight: 600;
+    }
+
+    .pos-mico {
+        background: #dc3545;
+        color: white;
+        padding: 2px 8px;
+        border-radius: 4px;
+        font-weight: bold;
+        font-size: 11px;
+    }
+
+    /* Botão de exportação */
+    .export-btn-container {
+        text-align: center;
+        margin-top: 20px;
+    }
+
+    .module-actions {
+        text-align: center;
+        margin-top: 30px;
+        padding-top: 20px;
+        border-top: 1px solid rgba(255, 69, 0, 0.1);
+    }
+
+    .back-button {
+        background: linear-gradient(135deg, #ff4500 0%, #e8472b 100%);
+        color: white;
+        border: 2px solid rgba(255, 69, 0, 0.3);
+        padding: 12px 24px;
+        border-radius: 8px;
+        font-weight: 700;
+        font-size: 14px;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+    }
+
+    .back-button:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 8px 25px rgba(255, 69, 0, 0.4);
+    }
+
+    /* Responsividade */
+    @media (max-width: 768px) {
+        .rodadas-module {
+            padding: 15px;
+        }
+
+        .rodada-selector-container {
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .rodada-select {
+            width: 100%;
+        }
+
+        .ranking-table {
+            font-size: 11px;
+        }
+
+        .ranking-table thead th,
+        .ranking-table tbody td {
+            padding: 6px 4px;
+        }
+    }
+</style>

@@ -371,3 +371,21 @@ export { carregarRankingGeral, resetarSistemaRanking };
 
 // 🔧 DISPONIBILIZAR FUNÇÃO DE RESET GLOBALMENTE
 window.resetarSistemaRanking = resetarSistemaRanking;
+
+// ==============================
+// EXPOR FUNÇÕES GLOBALMENTE
+// ==============================
+window.carregarRankingGeral = carregarRankingGeral;
+window.criarTabelaRanking = criarTabelaRanking;  // ← LINHA CRÍTICA QUE FALTAVA
+window.resetarSistemaRanking = resetarSistemaRanking;
+
+// Garantir que módulos carregados tenha a função
+if (!window.modulosCarregados) {
+    window.modulosCarregados = {};
+}
+
+window.modulosCarregados.ranking = {
+    carregarRankingGeral: carregarRankingGeral
+};
+
+console.log("✅ [RANKING] Módulo carregado e funções expostas globalmente");
