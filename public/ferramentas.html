@@ -4,494 +4,134 @@
         <meta charset="UTF-8" />
         <meta name="viewport" content="width=device-width, initial-scale=1.0" />
         <title>Ferramentas - Super Cartola Manager</title>
+        <link rel="shortcut icon" href="favicon.ico" type="image/x-icon" />
+
+        <!-- CSS HIERÁRQUICO MODULAR -->
         <link rel="stylesheet" href="style.css" />
-        <style>
-            /* === HERDA ESTILOS DO DASHBOARD === */
-            .page-content {
-                background: #1a1a1a;
-                min-height: calc(100vh - 100px);
-            }
-
-            /* === SEÇÃO DE FERRAMENTAS === */
-            .ferramentas-header {
-                background: linear-gradient(135deg, #2a2a2a 0%, #1e1e1e 100%);
-                border-radius: 16px;
-                padding: 30px;
-                margin-bottom: 30px;
-                box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
-                border: 1px solid rgba(255, 69, 0, 0.2);
-                position: relative;
-                overflow: hidden;
-            }
-
-            .ferramentas-header::before {
-                content: "";
-                position: absolute;
-                top: 0;
-                left: 0;
-                right: 0;
-                height: 4px;
-                background: linear-gradient(135deg, #ff4500 0%, #e8472b 100%);
-                box-shadow: 0 0 15px rgba(255, 69, 0, 0.6);
-            }
-
-            .ferramentas-header h2 {
-                color: #ffffff;
-                font-size: 28px;
-                font-weight: 700;
-                margin: 0 0 12px 0;
-                display: flex;
-                align-items: center;
-                gap: 12px;
-            }
-
-            .ferramentas-header p {
-                color: #a0a0a0;
-                font-size: 14px;
-                line-height: 1.5;
-            }
-
-            /* === CARDS DE FERRAMENTAS === */
-            .ferramentas-grid {
-                display: grid;
-                grid-template-columns: repeat(auto-fill, minmax(420px, 1fr));
-                gap: 20px;
-                margin-bottom: 30px;
-            }
-
-            .ferramenta-card {
-                background: linear-gradient(135deg, #2a2a2a 0%, #1e1e1e 100%);
-                border-radius: 16px;
-                padding: 25px;
-                box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
-                border: 1px solid rgba(255, 69, 0, 0.2);
-                transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
-                position: relative;
-                overflow: hidden;
-            }
-
-            .ferramenta-card::before {
-                content: "";
-                position: absolute;
-                top: 0;
-                left: 0;
-                right: 0;
-                height: 4px;
-                background: linear-gradient(135deg, #ff4500 0%, #e8472b 100%);
-                box-shadow: 0 0 15px rgba(255, 69, 0, 0.6);
-            }
-
-            /* Variações de cores para cards */
-            .ferramenta-card.buscar::before {
-                background: linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%);
-                box-shadow: 0 0 15px rgba(59, 130, 246, 0.4);
-            }
-
-            .ferramenta-card.criar::before {
-                background: linear-gradient(135deg, #22c55e 0%, #16a34a 100%);
-                box-shadow: 0 0 15px rgba(34, 197, 94, 0.4);
-            }
-
-            .ferramenta-card.popular::before {
-                background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
-                box-shadow: 0 0 15px rgba(245, 158, 11, 0.4);
-            }
-
-            .ferramenta-card.editar::before {
-                background: linear-gradient(135deg, #8b5cf6 0%, #7c3aed 100%);
-                box-shadow: 0 0 15px rgba(139, 92, 246, 0.4);
-            }
-
-            .ferramenta-card:hover {
-                transform: translateY(-6px) scale(1.02);
-                box-shadow: 0 16px 48px rgba(255, 69, 0, 0.3);
-                border-color: #ff4500;
-                background: linear-gradient(135deg, #333333 0%, #252525 100%);
-            }
-
-            .ferramenta-header {
-                margin-bottom: 20px;
-                padding-bottom: 20px;
-                border-bottom: 2px solid #333333;
-            }
-
-            .ferramenta-icon {
-                font-size: 48px;
-                margin-bottom: 15px;
-                opacity: 0.9;
-            }
-
-            .ferramenta-title {
-                font-size: 22px;
-                font-weight: 700;
-                color: #ffffff;
-                margin: 0 0 10px 0;
-            }
-
-            .ferramenta-description {
-                color: #a0a0a0;
-                font-size: 14px;
-                line-height: 1.5;
-                margin-bottom: 20px;
-            }
-
-            .ferramenta-features {
-                background: rgba(255, 69, 0, 0.05);
-                border-radius: 8px;
-                padding: 15px;
-                margin-bottom: 20px;
-                border: 1px solid rgba(255, 69, 0, 0.1);
-            }
-
-            .feature-item {
-                display: flex;
-                align-items: center;
-                gap: 8px;
-                color: #b0b0b0;
-                font-size: 13px;
-                margin: 8px 0;
-            }
-
-            .feature-item span {
-                color: #22c55e;
-                font-size: 14px;
-            }
-
-            .ferramenta-action {
-                display: block;
-                width: 100%;
-                padding: 14px 20px;
-                background: linear-gradient(135deg, #ff4500 0%, #e8472b 100%);
-                color: white;
-                border: none;
-                border-radius: 8px;
-                font-weight: 600;
-                font-size: 14px;
-                cursor: pointer;
-                transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-                text-decoration: none;
-                text-align: center;
-                box-shadow: 0 4px 15px rgba(255, 69, 0, 0.3);
-            }
-
-            .ferramenta-card.buscar .ferramenta-action {
-                background: linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%);
-                box-shadow: 0 4px 15px rgba(59, 130, 246, 0.3);
-            }
-
-            .ferramenta-card.criar .ferramenta-action {
-                background: linear-gradient(135deg, #22c55e 0%, #16a34a 100%);
-                box-shadow: 0 4px 15px rgba(34, 197, 94, 0.3);
-            }
-
-            .ferramenta-card.popular .ferramenta-action {
-                background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
-                box-shadow: 0 4px 15px rgba(245, 158, 11, 0.3);
-            }
-
-            .ferramenta-card.editar .ferramenta-action {
-                background: linear-gradient(135deg, #8b5cf6 0%, #7c3aed 100%);
-                box-shadow: 0 4px 15px rgba(139, 92, 246, 0.3);
-            }
-
-            .ferramenta-action:hover {
-                transform: translateY(-2px);
-                box-shadow: 0 8px 25px rgba(255, 69, 0, 0.4);
-            }
-
-            /* === ALERTAS === */
-            .info-alert {
-                background: rgba(59, 130, 246, 0.1);
-                border: 1px solid rgba(59, 130, 246, 0.3);
-                border-radius: 12px;
-                padding: 20px;
-                margin-bottom: 30px;
-                display: flex;
-                align-items: flex-start;
-                gap: 15px;
-            }
-
-            .info-alert-icon {
-                font-size: 24px;
-                color: #3b82f6;
-            }
-
-            .info-alert-content {
-                flex: 1;
-            }
-
-            .info-alert-title {
-                color: #3b82f6;
-                font-size: 16px;
-                font-weight: 600;
-                margin-bottom: 8px;
-            }
-
-            .info-alert-text {
-                color: #a0a0a0;
-                font-size: 14px;
-                line-height: 1.5;
-            }
-
-            /* === RESPONSIVIDADE === */
-            @media (max-width: 1024px) {
-                .ferramentas-grid {
-                    grid-template-columns: repeat(
-                        auto-fill,
-                        minmax(380px, 1fr)
-                    );
-                }
-            }
-
-            @media (max-width: 768px) {
-                .ferramentas-grid {
-                    grid-template-columns: 1fr;
-                }
-
-                .ferramenta-card {
-                    padding: 20px;
-                }
-
-                .ferramenta-icon {
-                    font-size: 40px;
-                }
-
-                .ferramenta-title {
-                    font-size: 20px;
-                }
-            }
-
-            @media (max-width: 480px) {
-                .ferramentas-header {
-                    padding: 20px;
-                }
-
-                .ferramentas-header h2 {
-                    font-size: 24px;
-                }
-
-                .ferramenta-card {
-                    padding: 18px;
-                }
-            }
-        </style>
+        <link rel="stylesheet" href="detalhe-liga.css" />
+        <link rel="stylesheet" href="css/base.css" />
     </head>
+
     <body>
         <div class="app-container">
-            <!-- Sidebar será injetado aqui -->
             <div id="sidebar-placeholder"></div>
 
-            <!-- Conteúdo principal -->
             <main class="app-main">
-                <!-- Header será injetado aqui -->
-                <div id="header-placeholder"></div>
-
-                <!-- Conteúdo da página -->
                 <div class="page-content">
-                    <!-- Cabeçalho da Seção -->
-                    <div class="ferramentas-header">
-                        <h2>🔧 Ferramentas de Gestão</h2>
-                        <p>
-                            Gerencie suas ligas do Cartola FC com ferramentas
-                            poderosas e intuitivas. Busque times, crie ligas,
-                            importe dados e configure tudo de forma simples e
-                            rápida.
+                    <!-- Header Simplificado igual ao detalhe-liga -->
+                    <div class="liga-header">
+                        <h2 class="liga-titulo">Ferramentas de Gestão</h2>
+                        <p class="liga-info">
+                            Gerencie suas ligas do Cartola FC
                         </p>
                     </div>
 
-                    <!-- Alerta Informativo -->
-                    <div class="info-alert">
-                        <div class="info-alert-icon">ℹ️</div>
-                        <div class="info-alert-content">
-                            <div class="info-alert-title">
-                                Dica: Ordem Recomendada
-                            </div>
-                            <div class="info-alert-text">
-                                Para criar uma nova liga, siga esta ordem: 1)
-                                Buscar Times → 2) Criar Liga → 3) Popular
-                                Rodadas → 4) Gerenciar Liga
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- Grid de Cards de Ferramentas -->
-                    <div class="ferramentas-grid">
-                        <!-- Card Buscar Times -->
-                        <div class="ferramenta-card buscar">
-                            <div class="ferramenta-header">
-                                <div class="ferramenta-icon">🔍</div>
-                                <h3 class="ferramenta-title">Buscar Times</h3>
-                                <p class="ferramenta-description">
-                                    Pesquise e encontre times do Cartola FC
-                                    utilizando o ID do time. Visualize
-                                    informações detalhadas e adicione à sua
-                                    liga.
-                                </p>
-                            </div>
-                            <div class="ferramenta-features">
-                                <div class="feature-item">
-                                    <span>✓</span> Busca rápida por ID
-                                </div>
-                                <div class="feature-item">
-                                    <span>✓</span> Visualização de escudos
-                                </div>
-                                <div class="feature-item">
-                                    <span>✓</span> Informações do cartoleiro
-                                </div>
-                            </div>
-                            <a
-                                href="buscar-times.html"
-                                class="ferramenta-action"
+                    <!-- Cards de Ferramentas -->
+                    <div class="main-screen">
+                        <div class="modules-grid modules-grid-expanded">
+                            <!-- Card Buscar Times -->
+                            <div
+                                class="module-card"
+                                onclick="window.location.href='buscar-times.html'"
+                                style="cursor: pointer"
                             >
-                                Buscar Times →
-                            </a>
-                        </div>
+                                <div class="module-header">
+                                    <div class="module-icon">🔍</div>
+                                    <h3 class="module-title">BUSCAR TIMES</h3>
+                                </div>
+                                <ul class="module-items">
+                                    <li>Pesquisa por ID do time</li>
+                                    <li>Visualização de escudos</li>
+                                    <li>Adicionar à liga</li>
+                                </ul>
+                            </div>
 
-                        <!-- Card Criar Liga -->
-                        <div class="ferramenta-card criar">
-                            <div class="ferramenta-header">
-                                <div class="ferramenta-icon">➕</div>
-                                <h3 class="ferramenta-title">
-                                    Criar Nova Liga
-                                </h3>
-                                <p class="ferramenta-description">
-                                    Crie uma nova liga personalizada adicionando
-                                    os times previamente buscados. Configure
-                                    nome e organize seus participantes.
-                                </p>
-                            </div>
-                            <div class="ferramenta-features">
-                                <div class="feature-item">
-                                    <span>✓</span> Interface simplificada
-                                </div>
-                                <div class="feature-item">
-                                    <span>✓</span> Múltiplos times
-                                </div>
-                                <div class="feature-item">
-                                    <span>✓</span> Configuração flexível
-                                </div>
-                            </div>
-                            <a href="criar-liga.html" class="ferramenta-action">
-                                Criar Liga →
-                            </a>
-                        </div>
-
-                        <!-- Card Popular Rodadas -->
-                        <div class="ferramenta-card popular">
-                            <div class="ferramenta-header">
-                                <div class="ferramenta-icon">🔄</div>
-                                <h3 class="ferramenta-title">
-                                    Popular Rodadas
-                                </h3>
-                                <p class="ferramenta-description">
-                                    Importe automaticamente os dados das rodadas
-                                    do Cartola FC. Configure o intervalo de
-                                    rodadas e mantenha sua liga atualizada.
-                                </p>
-                            </div>
-                            <div class="ferramenta-features">
-                                <div class="feature-item">
-                                    <span>✓</span> Importação automática
-                                </div>
-                                <div class="feature-item">
-                                    <span>✓</span> Seleção de intervalo
-                                </div>
-                                <div class="feature-item">
-                                    <span>✓</span> Atualização em lote
-                                </div>
-                            </div>
-                            <a href="admin.html" class="ferramenta-action">
-                                Popular Rodadas →
-                            </a>
-                        </div>
-
-                        <!-- Card Editar Liga -->
-                        <div class="ferramenta-card editar">
-                            <div class="ferramenta-header">
-                                <div class="ferramenta-icon">✏️</div>
-                                <h3 class="ferramenta-title">Editar Liga</h3>
-                                <p class="ferramenta-description">
-                                    Modifique configurações da liga, adicione ou
-                                    remova times, atualize informações e
-                                    gerencie participantes.
-                                </p>
-                            </div>
-                            <div class="ferramenta-features">
-                                <div class="feature-item">
-                                    <span>✓</span> Gerenciar participantes
-                                </div>
-                                <div class="feature-item">
-                                    <span>✓</span> Alterar configurações
-                                </div>
-                                <div class="feature-item">
-                                    <span>✓</span> Remover times
-                                </div>
-                            </div>
-                            <a
-                                href="editar-liga.html"
-                                class="ferramenta-action"
+                            <!-- Card Criar Liga -->
+                            <div
+                                class="module-card"
+                                onclick="window.location.href='criar-liga.html'"
+                                style="cursor: pointer"
                             >
-                                Editar Liga →
-                            </a>
-                        </div>
+                                <div class="module-header">
+                                    <div class="module-icon">➕</div>
+                                    <h3 class="module-title">CRIAR LIGA</h3>
+                                </div>
+                                <ul class="module-items">
+                                    <li>Nova liga personalizada</li>
+                                    <li>Configurar nome</li>
+                                    <li>Adicionar times</li>
+                                </ul>
+                            </div>
 
-                        <!-- Card Preencher Liga -->
-                        <div class="ferramenta-card">
-                            <div class="ferramenta-header">
-                                <div class="ferramenta-icon">📝</div>
-                                <h3 class="ferramenta-title">Preencher Liga</h3>
-                                <p class="ferramenta-description">
-                                    Adicione múltiplos times de uma vez à liga
-                                    existente. Ideal para ligas grandes com
-                                    muitos participantes.
-                                </p>
-                            </div>
-                            <div class="ferramenta-features">
-                                <div class="feature-item">
-                                    <span>✓</span> Adição em massa
-                                </div>
-                                <div class="feature-item">
-                                    <span>✓</span> Importação rápida
-                                </div>
-                                <div class="feature-item">
-                                    <span>✓</span> Validação automática
-                                </div>
-                            </div>
-                            <a
-                                href="preencher-liga.html"
-                                class="ferramenta-action"
+                            <!-- Card Preencher Liga -->
+                            <div
+                                class="module-card"
+                                onclick="window.location.href='preencher-liga.html'"
+                                style="cursor: pointer"
                             >
-                                Preencher Liga →
-                            </a>
-                        </div>
+                                <div class="module-header">
+                                    <div class="module-icon">📝</div>
+                                    <h3 class="module-title">PREENCHER LIGA</h3>
+                                </div>
+                                <ul class="module-items">
+                                    <li>Adicionar múltiplos times</li>
+                                    <li>Importação em massa</li>
+                                    <li>Liga existente</li>
+                                </ul>
+                            </div>
 
-                        <!-- Card Gerenciar Ligas -->
-                        <div class="ferramenta-card">
-                            <div class="ferramenta-header">
-                                <div class="ferramenta-icon">⚙️</div>
-                                <h3 class="ferramenta-title">
-                                    Gerenciar Ligas
-                                </h3>
-                                <p class="ferramenta-description">
-                                    Visão geral de todas as suas ligas. Acesse
-                                    configurações avançadas, exclua ligas e
-                                    gerencie múltiplas competições.
-                                </p>
+                            <!-- Card Popular Rodadas -->
+                            <div
+                                class="module-card"
+                                onclick="window.location.href='admin.html'"
+                                style="cursor: pointer"
+                            >
+                                <div class="module-header">
+                                    <div class="module-icon">🔄</div>
+                                    <h3 class="module-title">
+                                        POPULAR RODADAS
+                                    </h3>
+                                </div>
+                                <ul class="module-items">
+                                    <li>Importar dados do Cartola</li>
+                                    <li>Atualização automática</li>
+                                    <li>Seleção de intervalo</li>
+                                </ul>
                             </div>
-                            <div class="ferramenta-features">
-                                <div class="feature-item">
-                                    <span>✓</span> Visão consolidada
+
+                            <!-- Card Editar Liga -->
+                            <div
+                                class="module-card"
+                                onclick="window.location.href='editar-liga.html'"
+                                style="cursor: pointer"
+                            >
+                                <div class="module-header">
+                                    <div class="module-icon">✏️</div>
+                                    <h3 class="module-title">EDITAR LIGA</h3>
                                 </div>
-                                <div class="feature-item">
-                                    <span>✓</span> Ações em lote
-                                </div>
-                                <div class="feature-item">
-                                    <span>✓</span> Backup de dados
-                                </div>
+                                <ul class="module-items">
+                                    <li>Modificar configurações</li>
+                                    <li>Gerenciar participantes</li>
+                                    <li>Remover times</li>
+                                </ul>
                             </div>
-                            <a href="gerenciar.html" class="ferramenta-action">
-                                Gerenciar →
-                            </a>
+
+                            <!-- Card Gerenciar Ligas -->
+                            <div
+                                class="module-card"
+                                onclick="window.location.href='gerenciar.html'"
+                                style="cursor: pointer"
+                            >
+                                <div class="module-header">
+                                    <div class="module-icon">⚙️</div>
+                                    <h3 class="module-title">GERENCIAR</h3>
+                                </div>
+                                <ul class="module-items">
+                                    <li>Visão geral das ligas</li>
+                                    <li>Configurações avançadas</li>
+                                    <li>Backup de dados</li>
+                                </ul>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -519,18 +159,17 @@
                     // Injetar header
                     const header = doc.querySelector(".page-header");
                     if (header) {
-                        // Atualizar título do header para esta página
+                        // Atualizar título do header
                         const pageTitle = header.querySelector("#pageTitle");
                         const pageSubtitle =
                             header.querySelector("#pageSubtitle");
                         if (pageTitle) pageTitle.textContent = "🔧 Ferramentas";
                         if (pageSubtitle)
-                            pageSubtitle.textContent =
-                                "Gerencie suas ligas com ferramentas poderosas";
+                            pageSubtitle.textContent = "Gestão de Ligas";
 
                         document
                             .getElementById("header-placeholder")
-                            .replaceWith(header);
+                            ?.replaceWith(header);
                     }
 
                     // Executar scripts do layout
