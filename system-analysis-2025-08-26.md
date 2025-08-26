@@ -1,12 +1,11 @@
 # 📊 Análise do Sistema Super Cartola Manager
 
-**Data da Análise:** 26/08/2025, 19:33:29
+**Data da Análise:** 26/08/2025, 20:40:02
 
 ---
 
 ## 📁 Estrutura do Sistema
 
-- 📁 **attached_assets/**
 - 📁 **backups/**
 - 📁 **config/**
 - 📁 **controllers/**
@@ -43,8 +42,6 @@
 - 📋 **package-lock.json** - 📋 Dados JSON
 - 📋 **package.json** - 📦 Configuração npm/dependências
 - 📄 **replit.nix** - ❓ Arquivo genérico
-- 📖 **system-analysis-2025-08-25.md** - 📖 Documentação
-- 📖 **system-analysis-2025-08-26.md** - 📖 Documentação
 - 📜 **system-mapper.js** - 📝 Script JavaScript
 - 📜 **uploadToDrive.js** - 📝 Script JavaScript
 
@@ -52,10 +49,8 @@
 
 ## 🔍 Análise por Categoria
 
-### Frontend (Cliente) (118 arquivos)
+### Frontend (Cliente) (117 arquivos)
 
-- 📄 **attached_assets/Pasted--MELHORIAS-CARDS-DESATIVADOS-LOGO-MAIOR-Adicionar-no-final-do-arquivo-style-css-1756056946873_1756056946873.txt** - ❓ Arquivo genérico
-  - 📏 Tamanho: 3KB | Linhas: 114
 - 📄 **backupJson.js** - 📝 Script JavaScript
   - 📏 Tamanho: 1KB | Linhas: 39
 - 📄 **backupScheduler.js** - 📝 Script JavaScript
@@ -73,7 +68,7 @@
 - 📄 **controllers/luvaDeOuroController.js** - 🥅 Sistema Luva de Ouro
   - 📏 Tamanho: 15KB | Linhas: 518
 - 📄 **controllers/rodadaController.js** - 📅 Gestão de Rodadas
-  - 📏 Tamanho: 8KB | Linhas: 245
+  - 📏 Tamanho: 10KB | Linhas: 335
 - 📄 **controllers/timeController.js** - 📝 Script JavaScript
   - 📏 Tamanho: 4KB | Linhas: 129
 - 📄 **handover.js** - 📝 Script JavaScript
@@ -91,7 +86,7 @@
   - 📏 Tamanho: 1KB | Linhas: 19
 - 📄 **models/Time.js** - 📝 Script JavaScript
 - 📄 **public/admin.html** - 👤 Administração/Gestão
-  - 📏 Tamanho: 6KB | Linhas: 209
+  - 📏 Tamanho: 29KB | Linhas: 774
 - 📄 **public/buscar-times.html** - 📄 Página HTML
   - 📏 Tamanho: 15KB | Linhas: 492
 - 📄 **public/criar-liga.html** - 🏆 Funcionalidades de Liga
@@ -129,7 +124,7 @@
 - 📄 **public/fronts/top10.html** - 📄 Página HTML
   - 📏 Tamanho: 6KB | Linhas: 274
 - 📄 **public/gerenciar.html** - 📄 Página HTML
-  - 📏 Tamanho: 15KB | Linhas: 433
+  - 📏 Tamanho: 15KB | Linhas: 438
 - 📄 **public/gols.js** - ⚽ Gestão de Gols
 - 📄 **public/index.html** - 🏠 Página principal/Entry point
 - 📄 **public/js/artilheiro-campeao/artilheiro-campeao-cache.js** - ⚽ Sistema Artilheiro Campeão
@@ -304,48 +299,13 @@
 - 📄 **scripts/times-da-liga.json** - 🏆 Funcionalidades de Liga
   - 📏 Tamanho: 2KB | Linhas: 46
 
-### Documentação (18 arquivos)
+### Documentação (1 arquivos)
 
 - 📄 **HANDOVER.md** - 📖 Documentação
   - 📏 Tamanho: 3KB | Linhas: 135
-- 📄 **attached_assets/Pasted--ADI-ES-NECESS-RIAS-NO-detalhe-liga-html-1-NO-HEAD-ADICIONAR-AP-S-OS-LI-1756056615906_1756056615907.txt** - 🏆 Funcionalidades de Liga
-  - 📏 Tamanho: 7KB | Linhas: 219
-- 📄 **attached_assets/Pasted--ADI-ES-NECESS-RIAS-NO-detalhe-liga-html-1-NO-HEAD-ADICIONAR-AP-S-OS-LI-1756058500772_1756058500774.txt** - 🏆 Funcionalidades de Liga
-  - 📏 Tamanho: 7KB | Linhas: 219
-- 📄 **attached_assets/Pasted--ATUALIZA-ES-PARA-detalhe-liga-orquestrador-js-Substituir-o-m-todo-initializeNavigati-1756219905607_1756219905607.txt** - 🏆 Funcionalidades de Liga
-  - 📏 Tamanho: 11KB | Linhas: 277
-- 📄 **attached_assets/Pasted--CARDS-CONDICIONAIS-JS-Sistema-de-desativa-o-condicional-de-cards-por-liga-console-1756056817706_1756056817707.txt** - 🏆 Funcionalidades de Liga
-  - 📏 Tamanho: 5KB | Linhas: 175
-- 📄 **attached_assets/Pasted--CARDS-CONDICIONAIS-JS-Sistema-de-desativa-o-condicional-de-cards-por-liga-console-1756058574248_1756058574249.txt** - 🏆 Funcionalidades de Liga
-  - 📏 Tamanho: 6KB | Linhas: 198
-- 📄 **attached_assets/Pasted--CARDS-CONDICIONAIS-JS-Sistema-de-desativa-o-condicional-de-cards-por-liga-console-1756058636082_1756058636084.txt** - 🏆 Funcionalidades de Liga
-  - 📏 Tamanho: 6KB | Linhas: 199
-- 📄 **attached_assets/Pasted--CARREGAR-DADOS-DE-PARTICIPANTES-CORRIGIDO-async-loadParticipantesData-try--1756068290203_1756068290204.txt** - ❓ Arquivo genérico
-  - 📏 Tamanho: 6KB | Linhas: 138
-- 📄 **attached_assets/Pasted--CARREGAR-DADOS-DE-PARTICIPANTES-CORRIGIDO-async-loadParticipantesData-try--1756068323909_1756068323910.txt** - ❓ Arquivo genérico
-  - 📏 Tamanho: 6KB | Linhas: 138
-- 📄 **attached_assets/Pasted--CORRE-ES-DE-VISIBILIDADE-HEADER-E-CARDS-Header-da-Liga-Textos-Sempre-Vis-ve-1756058516953_1756058516954.txt** - 🏆 Funcionalidades de Liga
-  - 📏 Tamanho: 4KB | Linhas: 185
-- 📄 **attached_assets/Pasted--FUNCIONALIDADES-PERDIDAS-NA-MODULARIZA-O-AN-LISE-CR-TICA-PERDAS-IDENTIFICADAS-E-CO-1756065624831_1756065624832.txt** - ❓ Arquivo genérico
-  - 📏 Tamanho: 6KB | Linhas: 177
-- 📄 **attached_assets/Pasted--LIMPEZA-DE-C-DIGO-DESNECESS-RIO-Analisando-a-conversa-foram-criados-v-rios-arquivos-e-modifica--1756149927196_1756149927197.txt** - ❓ Arquivo genérico
-  - 📏 Tamanho: 2KB | Linhas: 46
-- 📄 **attached_assets/Pasted--MELHORIAS-SISTEMA-DE-CARDS-CONDICIONAIS-Configura-o-dos-cards-por-liga--1756056684139_1756056684141.txt** - ⚙️ Arquivo de configuração
-  - 📏 Tamanho: 6KB | Linhas: 187
-- 📄 **attached_assets/Pasted--SISTEMA-DE-NAVEGA-O-CORRIGIDO-initializeNavigation-const-cards-document-querySe-1756068648724_1756068648724.txt** - 🧭 Sistema de navegação
-  - 📏 Tamanho: 5KB | Linhas: 138
-- 📄 **attached_assets/Pasted-sistema-modulos-init-js-8-SISTEMA-MODULOS-Inicializando-sistema-de-m-dulos-sistema-modulos--1756050688509_1756050688509.txt** - ❓ Arquivo genérico
-  - 📏 Tamanho: 4KB | Linhas: 45
-- 📄 **attached_assets/Pasted-sistema-modulos-init-js-8-SISTEMA-MODULOS-Inicializando-sistema-de-m-dulos-sistema-modulos--1756053131179_1756053131179.txt** - ❓ Arquivo genérico
-  - 📏 Tamanho: 4KB | Linhas: 45
-- 📄 **system-analysis-2025-08-25.md** - 📖 Documentação
-  - 📏 Tamanho: 22KB | Linhas: 510
-- 📄 **system-analysis-2025-08-26.md** - 📖 Documentação
-  - 📏 Tamanho: 22KB | Linhas: 516
 
-### Assets (18 arquivos)
+### Assets (17 arquivos)
 
-- 📄 **attached_assets/image_1756068829412.png** - ❓ Arquivo genérico
 - 📄 **generated-icon.png** - ❓ Arquivo genérico
 - 📄 **public/escudos/262.png** - ❓ Arquivo genérico
 - 📄 **public/escudos/263.png** - ❓ Arquivo genérico
@@ -397,7 +357,7 @@
 #### 📜 controllers/rodadaController.js
 
 - **Exports:** `export async, export async`
-- **Tamanho:** 8KB | **Linhas:** 245
+- **Tamanho:** 10KB | **Linhas:** 335
 
 #### 📜 controllers/timeController.js
 
@@ -488,26 +448,26 @@
 
 | Métrica | Valor |
 |---------|-------|
-| **Total de arquivos** | 170 |
-| **Tamanho total** | 4714 KB |
-| **Tamanho médio** | 28 KB |
+| **Total de arquivos** | 152 |
+| **Tamanho total** | 4606 KB |
+| **Tamanho médio** | 30 KB |
 
 ### 📋 Por Tipo de Arquivo
 
 | Tipo | Quantidade |
 |------|------------|
-| 📖 **docs** | 19 |
-| 🖼️ **assets** | 18 |
+| 📖 **docs** | 1 |
 | 🎨 **frontend** | 117 |
 | ⚙️ **config** | 11 |
-| ❓ **other** | 5 |
+| ❓ **other** | 6 |
+| 🖼️ **assets** | 17 |
 
 ### 📏 Por Tamanho de Arquivo
 
 | Categoria | Quantidade | Descrição |
 |-----------|------------|----------|
-| 🟢 **Pequenos** | 72 | < 5KB |
-| 🟡 **Médios** | 93 | 5-50KB |
+| 🟢 **Pequenos** | 66 | < 5KB |
+| 🟡 **Médios** | 81 | 5-50KB |
 | 🔴 **Grandes** | 5 | > 50KB |
 
 ### 🔍 Insights da Arquitetura
