@@ -602,6 +602,7 @@ class DetalheLigaOrquestrador {
                     </div>
                 </div>
             `,
+
             "ranking-geral": `
                 <div id="ranking-geral">
                     <div class="ranking-header">
@@ -614,7 +615,8 @@ class DetalheLigaOrquestrador {
                     <div class="loading-state">Processando dados da classificação...</div>
                 </div>
             `,
-            rodadas: `
+
+            "rodadas": `
                 <div id="rodadas">
                     <div class="mb-3">
                         <select id="rodadaSelect" class="form-control">
@@ -633,6 +635,79 @@ class DetalheLigaOrquestrador {
                     </div>
                 </div>
             `,
+
+            "melhor-mes": `
+                <div id="melhor-mes-content">
+                    <div class="module-header-section">
+                        <h2>📈 Melhor Mês</h2>
+                        <div class="module-subtitle">Rankings mensais consolidados</div>
+                    </div>
+                    <div class="loading-state">Carregando dados mensais...</div>
+                </div>
+            `,
+
+            "mata-mata": `
+                <div id="mata-mata-content">
+                    <div class="module-header-section">
+                        <h2>⚔️ Mata-Mata</h2>
+                        <div class="module-subtitle">Confrontos eliminatórios</div>
+                    </div>
+                    <div class="loading-state">Carregando confrontos...</div>
+                </div>
+            `,
+
+            "pontos-corridos": `
+                <div id="pontos-corridos-content">
+                    <div class="module-header-section">
+                        <h2>⚡ Pontos Corridos</h2>
+                        <div class="module-subtitle">Todos contra todos</div>
+                    </div>
+                    <div class="loading-state">Carregando tabela...</div>
+                </div>
+            `,
+
+            "luva-de-ouro": `
+                <div id="luva-de-ouro-content">
+                    <div class="module-header-section">
+                        <h2>🥅 Luva de Ouro</h2>
+                        <div class="module-subtitle">Ranking dos melhores goleiros</div>
+                    </div>
+                    <div class="loading-state">Carregando dados dos goleiros...</div>
+                </div>
+            `,
+
+            "artilheiro-campeao": `
+                <div id="artilheiro-content">
+                    <div class="module-header-section">
+                        <h2>⚽ Artilheiro Campeão</h2>
+                        <div class="module-subtitle">Maiores pontuadores por rodada</div>
+                    </div>
+                    <div class="loading-state">Carregando artilheiros...</div>
+                </div>
+            `,
+
+            "top10": `
+                <div id="top10-content">
+                    <div class="module-header-section">
+                        <h2>🌟 Top 10 Melhores</h2>
+                        <div class="module-subtitle">Mitos e Micos de todas as rodadas</div>
+                    </div>
+                    <div id="top10MitosTable" class="top10-section"></div>
+                    <div id="top10MitosExportBtnContainer"></div>
+                    <div id="top10MicosTable" class="top10-section"></div>
+                    <div id="top10MicosExportBtnContainer"></div>
+                </div>
+            `,
+
+            "fluxo-financeiro": `
+                <div id="fluxo-financeiro-content">
+                    <div class="module-header-section">
+                        <h2>💰 Fluxo Financeiro</h2>
+                        <div class="module-subtitle">Controle de prêmios e pagamentos</div>
+                    </div>
+                    <div class="loading-state">Carregando dados financeiros...</div>
+                </div>
+            `
         };
 
         return (
@@ -669,18 +744,8 @@ class DetalheLigaOrquestrador {
                 // ⚡ CORREÇÃO CRÍTICA: Sempre mostrar tela secundária primeiro
                 this.showSecondaryScreen();
 
-                if (module === "participantes") {
-                    await this.showModule("participantes");
-                } else {
-                    // Para outros cards, mostrar primeira ação
-                    const firstAction = card.querySelector("li[data-action]");
-                    if (firstAction) {
-                        await this.executeAction(
-                            firstAction.dataset.action,
-                            false,
-                        ); // false = não chamar showSecondaryScreen novamente
-                    }
-                }
+                // Executar ação direta baseada no módulo
+                await this.handleModuleClick(module);
             });
         });
 
@@ -750,6 +815,71 @@ class DetalheLigaOrquestrador {
                         '<div class="empty-state">Funcionalidade em desenvolvimento</div>';
             }
         } catch (error) {
+            document.getElementById("dynamic-content-area").innerHTML =
+                `<div class="empty-state">Erro: ${error.message}</div>`;
+        } finally {
+            this.processingModule = false;
+        }
+    }
+
+    // ⚡ CARREGAR MÓDULO ESPECÍFICO (NOVO MÉTODO)
+    async handleModuleClick(module) {
+        if (this.processingModule) return;
+
+        this.processingModule = true;
+
+        try {
+            switch (module) {
+                case "participantes":
+                    await this.showModule("participantes");
+                    break;
+
+                case "ranking-geral":
+                    await this.showModule("ranking-geral");
+                    break;
+
+                case "parciais":
+                    this.redirectToParciais();
+                    break;
+
+                case "top10":
+                    await this.showModule("top10");
+                    break;
+
+                case "rodadas":
+                    await this.showModule("rodadas");
+                    break;
+
+                case "melhor-mes":
+                    await this.showModule("melhor-mes");
+                    break;
+
+                case "mata-mata":
+                    await this.showModule("mata-mata");
+                    break;
+
+                case "pontos-corridos":
+                    await this.showModule("pontos-corridos");
+                    break;
+
+                case "luva-de-ouro":
+                    await this.showModule("luva-de-ouro");
+                    break;
+
+                case "artilheiro-campeao":
+                    await this.showModule("artilheiro-campeao");
+                    break;
+
+                case "fluxo-financeiro":
+                    await this.showModule("fluxo-financeiro");
+                    break;
+
+                default:
+                    document.getElementById("dynamic-content-area").innerHTML =
+                        '<div class="empty-state">Funcionalidade em desenvolvimento</div>';
+            }
+        } catch (error) {
+            console.error(`Erro ao carregar módulo ${module}:`, error);
             document.getElementById("dynamic-content-area").innerHTML =
                 `<div class="empty-state">Erro: ${error.message}</div>`;
         } finally {
