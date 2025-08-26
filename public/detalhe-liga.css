@@ -521,3 +521,171 @@ body[data-screen="secondary"] .dynamic-content {
     background: #ff4500;
     color: #ffffff;
 }
+/* === ADIÇÕES AO DETALHE-LIGA.CSS === */
+/* Adicionar estas regras ao arquivo detalhe-liga.css existente */
+
+/* === GRID EXPANDIDO PARA 11 CARDS === */
+.modules-grid-expanded {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 18px;
+    margin: 25px 0;
+}
+
+/* Responsividade para múltiplos cards */
+@media (min-width: 1400px) {
+    .modules-grid-expanded {
+        grid-template-columns: repeat(4, 1fr);
+    }
+}
+
+@media (min-width: 1024px) and (max-width: 1399px) {
+    .modules-grid-expanded {
+        grid-template-columns: repeat(3, 1fr);
+    }
+}
+
+@media (min-width: 768px) and (max-width: 1023px) {
+    .modules-grid-expanded {
+        grid-template-columns: repeat(2, 1fr);
+    }
+}
+
+@media (max-width: 767px) {
+    .modules-grid-expanded {
+        grid-template-columns: 1fr;
+    }
+}
+
+/* === ESTILOS ESPECÍFICOS POR CARD === */
+/* Cards de Rankings (Classificação, Parciais, Top 10) */
+.module-card[data-module="ranking-geral"] .module-icon {
+    background: linear-gradient(135deg, #ffd700 0%, #ffb347 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    filter: drop-shadow(0 0 12px rgba(255, 215, 0, 0.6));
+}
+
+.module-card[data-module="parciais"] .module-icon {
+    animation: pulse 2s infinite;
+}
+
+.module-card[data-module="top10"] .module-icon {
+    filter: drop-shadow(0 0 15px rgba(255, 223, 0, 0.8));
+}
+
+/* Cards Temporais (Rodadas, Melhor Mês) */
+.module-card[data-module="rodadas"] .module-header,
+.module-card[data-module="melhor-mes"] .module-header {
+    border-bottom-color: rgba(100, 149, 237, 0.3);
+}
+
+/* Cards de Competições (Mata-mata, Pontos Corridos) */
+.module-card[data-module="mata-mata"] .module-icon,
+.module-card[data-module="pontos-corridos"] .module-icon {
+    animation: shake 4s infinite;
+}
+
+/* Cards de Prêmios (Luva de Ouro, Artilheiro) */
+.module-card[data-module="luva-de-ouro"],
+.module-card[data-module="artilheiro-campeao"] {
+    position: relative;
+    overflow: visible;
+}
+
+.module-card[data-module="luva-de-ouro"]::after,
+.module-card[data-module="artilheiro-campeao"]::after {
+    content: "🏅";
+    position: absolute;
+    top: -10px;
+    right: -10px;
+    font-size: 24px;
+    transform: rotate(15deg);
+    filter: drop-shadow(0 2px 4px rgba(0,0,0,0.3));
+}
+
+/* Card Financeiro */
+.module-card[data-module="fluxo-financeiro"] {
+    background: linear-gradient(135deg, #2a2a2a 0%, #1a3a1a 100%);
+    border-color: rgba(76, 175, 80, 0.3);
+}
+
+.module-card[data-module="fluxo-financeiro"]:hover {
+    border-color: #4caf50;
+    box-shadow: 0 20px 40px rgba(76, 175, 80, 0.3);
+}
+
+/* === ANIMAÇÕES === */
+@keyframes pulse {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.7; }
+}
+
+@keyframes shake {
+    0%, 100% { transform: translateX(0); }
+    25% { transform: translateX(-2px); }
+    75% { transform: translateX(2px); }
+}
+
+/* === AJUSTES DE TAMANHO DOS CARDS === */
+.modules-grid-expanded .module-card {
+    min-height: 160px;
+    display: flex;
+    flex-direction: column;
+}
+
+.modules-grid-expanded .module-header {
+    flex-shrink: 0;
+}
+
+.modules-grid-expanded .module-items {
+    flex-grow: 1;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+}
+
+/* === INDICADORES VISUAIS === */
+/* Destacar cards principais */
+.module-card[data-module="ranking-geral"],
+.module-card[data-module="participantes"],
+.module-card[data-module="fluxo-financeiro"] {
+    position: relative;
+}
+
+.module-card[data-module="ranking-geral"]::before,
+.module-card[data-module="participantes"]::before,
+.module-card[data-module="fluxo-financeiro"]::before {
+    height: 5px;
+}
+
+/* === TOOLTIPS INFORMATIVOS === */
+.module-card[data-module="parciais"]:hover::after {
+    content: "Acompanhe ao vivo";
+    position: absolute;
+    bottom: -25px;
+    left: 50%;
+    transform: translateX(-50%);
+    background: rgba(0,0,0,0.9);
+    color: white;
+    padding: 4px 8px;
+    border-radius: 4px;
+    font-size: 11px;
+    white-space: nowrap;
+    pointer-events: none;
+    z-index: 10;
+}
+
+/* === ORDEM VISUAL DOS CARDS === */
+/* Garantir ordem lógica no grid */
+.module-card[data-module="participantes"] { order: 1; }
+.module-card[data-module="ranking-geral"] { order: 2; }
+.module-card[data-module="parciais"] { order: 3; }
+.module-card[data-module="top10"] { order: 4; }
+.module-card[data-module="rodadas"] { order: 5; }
+.module-card[data-module="melhor-mes"] { order: 6; }
+.module-card[data-module="mata-mata"] { order: 7; }
+.module-card[data-module="pontos-corridos"] { order: 8; }
+.module-card[data-module="luva-de-ouro"] { order: 9; }
+.module-card[data-module="artilheiro-campeao"] { order: 10; }
+.module-card[data-module="fluxo-financeiro"] { order: 11; }

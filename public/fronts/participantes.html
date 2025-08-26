@@ -3,7 +3,14 @@
     <!-- Header dos Participantes -->
     <div class="module-header-section">
         <div class="module-title-section">
-            <div class="module-title-icon">👥</div>
+            <div class="module-title-icon" id="liga-logo-icon">
+                <img
+                    src="/img/logo-cartoleirossobral.png"
+                    alt="Logo da Liga"
+                    class="liga-logo-img"
+                    onerror="this.style.display='none'; this.parentElement.innerHTML='👥';"
+                />
+            </div>
             <h2>Participantes da Liga</h2>
         </div>
         <div class="module-subtitle">membros ativos na competição</div>
@@ -26,7 +33,7 @@
             </div>
         </div>
         <div class="stat-card">
-            <div class="stat-icon">🏆</div>
+            <div class="stat-icon">🆎</div>
             <div class="stat-info">
                 <div class="stat-number" id="times-diferentes">0</div>
                 <div class="stat-label">Times Únicos</div>
@@ -64,15 +71,7 @@
         </div>
     </div>
 
-    <!-- Botão Voltar -->
-    <div class="module-actions">
-        <button
-            class="back-button"
-            onclick="window.orquestrador?.voltarParaCards()"
-        >
-            ← Voltar aos Cards
-        </button>
-    </div>
+    <!-- Área de ações removida - Sem botão voltar -->
 </div>
 
 <script>
@@ -80,52 +79,7 @@
     (function () {
         console.log("👥 Módulo Participantes carregado");
 
-        // Aguardar carregamento e processar dados
-        setTimeout(() => {
-            processParticipantsData();
-        }, 100);
-
-        function processParticipantsData() {
-            // Contar estatísticas dos participantes na tela
-            const participanteCards =
-                document.querySelectorAll(".participante-card");
-
-            // Atualizar estatísticas
-            document.getElementById("total-participantes").textContent =
-                participanteCards.length;
-            document.getElementById("participantes-ativos").textContent =
-                participanteCards.length;
-
-            // Contar times únicos (pode ser implementado baseado nos dados)
-            const timesUnicos = new Set();
-            participanteCards.forEach((card) => {
-                const timeNome =
-                    card.querySelector(".participante-time")?.textContent;
-                if (timeNome && timeNome !== "Time N/A") {
-                    timesUnicos.add(timeNome);
-                }
-            });
-
-            document.getElementById("times-diferentes").textContent =
-                timesUnicos.size;
-        }
-
-        // Observer para detectar quando os participantes são carregados
-        const observer = new MutationObserver((mutations) => {
-            mutations.forEach((mutation) => {
-                if (mutation.type === "childList") {
-                    const grid = document.getElementById("participantes-grid");
-                    if (grid && grid.querySelector(".participante-card")) {
-                        processParticipantsData();
-                        observer.disconnect();
-                    }
-                }
-            });
-        });
-
-        const grid = document.getElementById("participantes-grid");
-        if (grid) {
-            observer.observe(grid, { childList: true, subtree: true });
-        }
+        // A logo é configurada automaticamente pelo orquestrador
+        // As estatísticas são atualizadas após renderização dos cards
     })();
 </script>

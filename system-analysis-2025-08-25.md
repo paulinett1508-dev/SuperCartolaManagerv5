@@ -1,6 +1,6 @@
 # 📊 Análise do Sistema Super Cartola Manager
 
-**Data da Análise:** 25/08/2025, 17:22:31
+**Data da Análise:** 25/08/2025, 20:43:19
 
 ---
 
@@ -30,13 +30,11 @@
 
 ### 📄 Arquivos na Raiz
 
-- 🌐 **DOCUMENTACAO_COMPLETA.html** - 📄 Página HTML
 - 📖 **HANDOVER.md** - 📖 Documentação
 - 📜 **backupJson.js** - 📝 Script JavaScript
 - 📜 **backupScheduler.js** - 📝 Script JavaScript
 - 📋 **credentials.json** - 📋 Dados JSON
 - 📋 **doc-version.json** - 📋 Dados JSON
-- 🌐 **estrutura_selecionada.html** - 📄 Página HTML
 - 📄 **generate-full-docs.cjs** - ❓ Arquivo genérico
 - 🖼️ **generated-icon.png** - ❓ Arquivo genérico
 - 📜 **handover.js** - 📝 Script JavaScript
@@ -45,7 +43,6 @@
 - 📋 **package-lock.json** - 📋 Dados JSON
 - 📋 **package.json** - 📦 Configuração npm/dependências
 - 📄 **replit.nix** - ❓ Arquivo genérico
-- 📖 **system-analysis-2025-08-24.md** - 📖 Documentação
 - 📜 **system-mapper.js** - 📝 Script JavaScript
 - 📜 **uploadToDrive.js** - 📝 Script JavaScript
 
@@ -53,10 +50,8 @@
 
 ## 🔍 Análise por Categoria
 
-### Frontend (Cliente) (120 arquivos)
+### Frontend (Cliente) (118 arquivos)
 
-- 📄 **DOCUMENTACAO_COMPLETA.html** - 📄 Página HTML
-  - 📏 Tamanho: 5396KB | Linhas: 137882
 - 📄 **attached_assets/Pasted--MELHORIAS-CARDS-DESATIVADOS-LOGO-MAIOR-Adicionar-no-final-do-arquivo-style-css-1756056946873_1756056946873.txt** - ❓ Arquivo genérico
   - 📏 Tamanho: 3KB | Linhas: 114
 - 📄 **backupJson.js** - 📝 Script JavaScript
@@ -79,8 +74,6 @@
   - 📏 Tamanho: 8KB | Linhas: 245
 - 📄 **controllers/timeController.js** - 📝 Script JavaScript
   - 📏 Tamanho: 4KB | Linhas: 129
-- 📄 **estrutura_selecionada.html** - 📄 Página HTML
-  - 📏 Tamanho: 19KB | Linhas: 274
 - 📄 **handover.js** - 📝 Script JavaScript
   - 📏 Tamanho: 12KB | Linhas: 444
 - 📄 **index.js** - 🏠 Página principal/Entry point
@@ -108,7 +101,7 @@
 - 📄 **public/css/base.css** - 🎨 Estilos CSS
   - 📏 Tamanho: 12KB | Linhas: 508
 - 📄 **public/css/modules/participantes.css** - 🧩 Módulo do sistema
-  - 📏 Tamanho: 6KB | Linhas: 295
+  - 📏 Tamanho: 9KB | Linhas: 456
 - 📄 **public/css/modules/ranking-geral.css** - 🧩 Módulo do sistema
   - 📏 Tamanho: 7KB | Linhas: 312
 - 📄 **public/dashboard.html** - 📊 Dashboard/Painel principal
@@ -116,7 +109,7 @@
 - 📄 **public/detalhe-liga.css** - 🏆 Funcionalidades de Liga
   - 📏 Tamanho: 11KB | Linhas: 523
 - 📄 **public/detalhe-liga.html** - 🏆 Funcionalidades de Liga
-  - 📏 Tamanho: 8KB | Linhas: 163
+  - 📏 Tamanho: 8KB | Linhas: 168
 - 📄 **public/editar-liga.html** - 🏆 Funcionalidades de Liga
   - 📏 Tamanho: 19KB | Linhas: 558
 - 📄 **public/fronts/artilheiro-campeao.html** - ⚽ Sistema Artilheiro Campeão
@@ -125,7 +118,7 @@
 - 📄 **public/fronts/mata-mata.html** - 📄 Página HTML
 - 📄 **public/fronts/melhor-mes.html** - 📄 Página HTML
 - 📄 **public/fronts/participantes.html** - 📄 Página HTML
-  - 📏 Tamanho: 5KB | Linhas: 132
+  - 📏 Tamanho: 3KB | Linhas: 86
 - 📄 **public/fronts/pontos-corridos.html** - 📄 Página HTML
 - 📄 **public/fronts/ranking-geral.html** - 🏅 Sistema de Rankings
   - 📏 Tamanho: 4KB | Linhas: 121
@@ -150,7 +143,7 @@
 - 📄 **public/js/cards-condicionais.js** - 📝 Script JavaScript
   - 📏 Tamanho: 10KB | Linhas: 344
 - 📄 **public/js/detalhe-liga-orquestrador.js** - 🏆 Funcionalidades de Liga
-  - 📏 Tamanho: 44KB | Linhas: 1079
+  - 📏 Tamanho: 50KB | Linhas: 1217
 - 📄 **public/js/detalhe-liga.js** - 🏆 Funcionalidades de Liga
   - 📏 Tamanho: 9KB | Linhas: 278
 - 📄 **public/js/exports/export-artilheiro-campeao.js** - ⚽ Sistema Artilheiro Campeão
@@ -206,7 +199,7 @@
 - 📄 **public/js/navigation.js** - 🧭 Sistema de navegação
   - 📏 Tamanho: 3KB | Linhas: 76
 - 📄 **public/js/participantes.js** - 📝 Script JavaScript
-  - 📏 Tamanho: 5KB | Linhas: 144
+  - 📏 Tamanho: 15KB | Linhas: 377
 - 📄 **public/js/pontos-corridos-utils.js** - 📝 Script JavaScript
   - 📏 Tamanho: 7KB | Linhas: 225
 - 📄 **public/js/pontos-corridos.js** - 📝 Script JavaScript
@@ -232,7 +225,7 @@
 - 📄 **public/script.js** - 📝 Script JavaScript
   - 📏 Tamanho: 4KB | Linhas: 82
 - 📄 **public/style.css** - 🎨 Folha de estilos
-  - 📏 Tamanho: 27KB | Linhas: 1265
+  - 📏 Tamanho: 21KB | Linhas: 1046
 - 📄 **public/templates/fluxo-financeiro-tabela.html** - 📄 Página HTML
   - 📏 Tamanho: 5KB | Linhas: 126
 - 📄 **public/templates/mata-mata-tabela.html** - 📄 Página HTML
@@ -329,6 +322,8 @@
   - 📏 Tamanho: 4KB | Linhas: 185
 - 📄 **attached_assets/Pasted--FUNCIONALIDADES-PERDIDAS-NA-MODULARIZA-O-AN-LISE-CR-TICA-PERDAS-IDENTIFICADAS-E-CO-1756065624831_1756065624832.txt** - ❓ Arquivo genérico
   - 📏 Tamanho: 6KB | Linhas: 177
+- 📄 **attached_assets/Pasted--LIMPEZA-DE-C-DIGO-DESNECESS-RIO-Analisando-a-conversa-foram-criados-v-rios-arquivos-e-modifica--1756149927196_1756149927197.txt** - ❓ Arquivo genérico
+  - 📏 Tamanho: 2KB | Linhas: 46
 - 📄 **attached_assets/Pasted--MELHORIAS-SISTEMA-DE-CARDS-CONDICIONAIS-Configura-o-dos-cards-por-liga--1756056684139_1756056684141.txt** - ⚙️ Arquivo de configuração
   - 📏 Tamanho: 6KB | Linhas: 187
 - 📄 **attached_assets/Pasted--SISTEMA-DE-NAVEGA-O-CORRIGIDO-initializeNavigation-const-cards-document-querySe-1756068648724_1756068648724.txt** - 🧭 Sistema de navegação
@@ -337,8 +332,6 @@
   - 📏 Tamanho: 4KB | Linhas: 45
 - 📄 **attached_assets/Pasted-sistema-modulos-init-js-8-SISTEMA-MODULOS-Inicializando-sistema-de-m-dulos-sistema-modulos--1756053131179_1756053131179.txt** - ❓ Arquivo genérico
   - 📏 Tamanho: 4KB | Linhas: 45
-- 📄 **system-analysis-2025-08-24.md** - 📖 Documentação
-  - 📏 Tamanho: 21KB | Linhas: 505
 
 ### Assets (18 arquivos)
 
@@ -485,26 +478,26 @@
 
 | Métrica | Valor |
 |---------|-------|
-| **Total de arquivos** | 168 |
-| **Tamanho total** | 10040 KB |
-| **Tamanho médio** | 60 KB |
+| **Total de arquivos** | 167 |
+| **Tamanho total** | 4630 KB |
+| **Tamanho médio** | 28 KB |
 
 ### 📋 Por Tipo de Arquivo
 
 | Tipo | Quantidade |
 |------|------------|
-| 🎨 **frontend** | 119 |
 | 📖 **docs** | 16 |
 | 🖼️ **assets** | 18 |
+| 🎨 **frontend** | 117 |
 | ⚙️ **config** | 11 |
-| ❓ **other** | 4 |
+| ❓ **other** | 5 |
 
 ### 📏 Por Tamanho de Arquivo
 
 | Categoria | Quantidade | Descrição |
 |-----------|------------|----------|
-| 🟢 **Pequenos** | 73 | < 5KB |
-| 🟡 **Médios** | 90 | 5-50KB |
+| 🟢 **Pequenos** | 74 | < 5KB |
+| 🟡 **Médios** | 88 | 5-50KB |
 | 🔴 **Grandes** | 5 | > 50KB |
 
 ### 🔍 Insights da Arquitetura

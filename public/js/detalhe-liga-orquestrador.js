@@ -6,6 +6,7 @@ class DetalheLigaOrquestrador {
         this.processingModule = false;
         this.modules = {};
         this.loadedCSS = new Set();
+        this.participantesLoaded = false; // Flag para evitar dupla renderização
 
         this.init();
     }
@@ -258,16 +259,13 @@ class DetalheLigaOrquestrador {
                     break;
 
                 case "participantes":
-                    // Aguardar renderização do HTML antes de carregar dados
-                    setTimeout(async () => {
-                        // Primeiro carrega os dados básicos
-                        await this.loadParticipantesData();
-
-                        // Depois carrega os brasões
-                        setTimeout(() => {
-                            this.carregarParticipantesComBrasoes();
-                        }, 500);
-                    }, 200);
+                    // CORREÇÃO: Renderização única e controlada
+                    if (!this.participantesLoaded) {
+                        this.participantesLoaded = true;
+                        // Configurar logo da liga antes de renderizar
+                        this.configurarLogoDaLiga();
+                        await this.renderizarParticipantesUnico();
+                    }
                     break;
             }
         } catch (error) {
@@ -278,8 +276,56 @@ class DetalheLigaOrquestrador {
         }
     }
 
-    // 🛡️ FUNÇÃO PARA CARREGAR PARTICIPANTES COM BRASÕES
-    async carregarParticipantesComBrasoes() {
+    // 🎨 CONFIGURAR LOGO DA LIGA
+    configurarLogoDaLiga() {
+        setTimeout(() => {
+            const logoIcon = document.getElementById("liga-logo-icon");
+            if (!logoIcon) {
+                console.log("Logo icon container não encontrado");
+                return;
+            }
+
+            // Determinar qual logo usar baseado no nome da liga
+            const nomeLiga =
+                document.getElementById("nomeLiga")?.textContent || "";
+            let logoPath = "/public/img/logo-cartoleirossobral.png"; // Default com /public/
+
+            // Mapeamento de logos por nome da liga
+            if (
+                nomeLiga.toLowerCase().includes("super") ||
+                nomeLiga.toLowerCase().includes("cartola")
+            ) {
+                logoPath = "/public/img/logo-supercartola.png";
+            } else if (
+                nomeLiga.toLowerCase().includes("sobral") ||
+                nomeLiga.toLowerCase().includes("cartoleiros")
+            ) {
+                logoPath = "/public/img/logo-cartoleirossobral.png";
+            }
+
+            console.log(`🎨 Configurando logo da liga: ${logoPath}`);
+
+            // Aplicar a logo com tamanho adequado e forçar dimensões
+            logoIcon.innerHTML = `
+                <img src="${logoPath}" 
+                     alt="Logo da Liga" 
+                     class="liga-logo-img"
+                     style="width: 32px !important; height: 32px !important; max-width: 32px !important; max-height: 32px !important;"
+                     onerror="console.error('Erro ao carregar logo'); this.style.display='none'; this.parentElement.innerHTML='👥';">
+            `;
+
+            // Verificar se a imagem carregou
+            const img = logoIcon.querySelector("img");
+            if (img) {
+                img.onload = function () {
+                    console.log("✅ Logo carregada com sucesso");
+                };
+            }
+        }, 100); // Pequeno delay para garantir que o DOM esteja pronto
+    }
+
+    // 🛡️ RENDERIZAÇÃO ÚNICA DE PARTICIPANTES (NOVA FUNÇÃO)
+    async renderizarParticipantesUnico() {
         const container = document.getElementById("participantes-grid");
         if (!container) {
             console.log("Container participantes-grid não encontrado");
@@ -290,14 +336,32 @@ class DetalheLigaOrquestrador {
         const ligaId = urlParams.get("id");
 
         if (!ligaId) {
-            console.error("ID da liga não encontrado");
+            container.innerHTML = `
+                <div class="participantes-empty-state">
+                    <div class="empty-icon">⚠️</div>
+                    <div class="empty-title">ID da liga não encontrado</div>
+                    <div class="empty-message">Não foi possível identificar a liga</div>
+                </div>
+            `;
             return;
         }
 
         try {
             console.log(
-                `🛡️ Carregando participantes com brasões da liga: ${ligaId}`,
+                `🛡️ Renderização única de participantes iniciada - Liga: ${ligaId}`,
             );
+
+            // Mostrar loading
+            container.innerHTML = `
+                <div class="loading-state-full">
+                    <div style="display: flex; align-items: center; justify-content: center; gap: 15px; padding: 60px;">
+                        <div style="width: 40px; height: 40px; border: 4px solid rgba(255, 69, 0, 0.3); border-top: 4px solid #ff4500; border-radius: 50%; animation: spin 1s linear infinite;"></div>
+                        <div style="color: #ff4500; font-weight: 600; font-size: 16px">
+                            Carregando participantes com brasões...
+                        </div>
+                    </div>
+                </div>
+            `;
 
             // Buscar dados da liga
             const resLiga = await fetch(`/api/ligas/${ligaId}`);
@@ -305,8 +369,13 @@ class DetalheLigaOrquestrador {
             const liga = await resLiga.json();
 
             if (!liga.times || liga.times.length === 0) {
-                container.innerHTML =
-                    '<p class="no-data" style="text-align: center; padding: 60px; color: #95a5a6;">Nenhum participante cadastrado</p>';
+                container.innerHTML = `
+                    <div class="participantes-empty-state">
+                        <div class="empty-icon">👥</div>
+                        <div class="empty-title">Nenhum participante</div>
+                        <div class="empty-message">Esta liga ainda não possui participantes cadastrados</div>
+                    </div>
+                `;
                 return;
             }
 
@@ -334,7 +403,7 @@ class DetalheLigaOrquestrador {
                     ),
                 );
 
-            // Limpar container e renderizar cards com brasões duplos
+            // Limpar container e renderizar cards
             container.innerHTML = "";
             container.style.display = "grid";
             container.style.gridTemplateColumns =
@@ -342,80 +411,80 @@ class DetalheLigaOrquestrador {
             container.style.gap = "20px";
             container.style.padding = "20px 0";
 
+            // Mapeamento de clubes
+            const clubeNomes = {
+                262: "Flamengo",
+                263: "Botafogo",
+                264: "Corinthians",
+                266: "Fluminense",
+                267: "Vasco",
+                275: "Palmeiras",
+                276: "São Paulo",
+                277: "Santos",
+                283: "Cruzeiro",
+                292: "Atlético-MG",
+                344: "Atlético-GO",
+            };
+
             timesValidos.forEach((timeData, i) => {
                 const card = document.createElement("div");
                 card.className = "participante-card";
-                card.style.cssText = `
-                    background: linear-gradient(135deg, #ffffff 0%, #f8f9fa 100%);
-                    border-radius: 12px;
-                    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-                    padding: 20px;
-                    transition: all 0.3s ease;
-                    position: relative;
-                    overflow: hidden;
-                    animation: fadeInUp 0.5s ease forwards;
-                    animation-delay: ${i * 0.05}s;
-                    opacity: 0;
-                `;
+                card.setAttribute("data-delay", i);
+
+                const clubeNome = clubeNomes[timeData.clube_id] || null;
 
                 card.innerHTML = `
                     <!-- Header do Card -->
-                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
-                        <div style="display: flex; align-items: center; justify-content: center; width: 35px; height: 35px; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); border-radius: 50%; color: white; font-size: 16px;">
+                    <div class="participante-header">
+                        <div class="participante-avatar">
                             <span>👤</span>
                         </div>
-                        <div style="display: flex; align-items: center; gap: 5px; padding: 4px 10px; border-radius: 20px; font-size: 11px; font-weight: 600; text-transform: uppercase; background: #d4edda; color: #155724;">
-                            <span style="width: 6px; height: 6px; border-radius: 50%; background: currentColor;"></span>
+                        <div class="participante-status">
+                            <span class="status-indicator"></span>
                             Ativo
                         </div>
                     </div>
 
                     <!-- Informações do Cartoleiro -->
-                    <div style="text-align: center; margin-bottom: 20px;">
-                        <h4 style="font-size: 18px; font-weight: 700; color: #2c3e50; margin: 0 0 5px 0;">${timeData.nome_cartoleiro || "N/D"}</h4>
-                        <p style="font-size: 14px; color: #7f8c8d; margin: 0;">${timeData.nome_time || "Time N/A"}</p>
+                    <div class="participante-info">
+                        <h4 class="participante-nome">${timeData.nome_cartoleiro || "N/D"}</h4>
+                        <p class="participante-time">${timeData.nome_time || "Time N/A"}</p>
                     </div>
 
                     <!-- Container dos Brasões -->
-                    <div style="display: flex; align-items: center; justify-content: space-around; padding: 20px 10px; background: linear-gradient(135deg, #f6f9fc 0%, #e9ecef 100%); border-radius: 10px; margin-bottom: 15px;">
+                    <div class="brasoes-container">
                         <!-- Brasão do Time Fantasy -->
-                        <div style="display: flex; flex-direction: column; align-items: center; gap: 8px; flex: 1;">
-                            <img src="${timeData.url_escudo_png || "/escudos/default.png"}" 
-                                 alt="Time no Cartola" 
-                                 title="Time no Cartola FC"
-                                 style="width: 60px; height: 60px; object-fit: contain; border-radius: 50%; padding: 5px; background: white; box-shadow: 0 3px 10px rgba(0, 0, 0, 0.1); border: 2px solid #3498db;"
-                                 onerror="this.src='/escudos/default.png'">
-                            <span style="font-size: 11px; color: #3498db; text-align: center; font-weight: 600;">Time Cartola</span>
+                        <div class="brasao-wrapper">
+                            <div class="brasao-circle brasao-fantasy">
+                                <img src="${timeData.url_escudo_png || "/escudos/default.png"}" 
+                                     alt="Time no Cartola" 
+                                     title="Time no Cartola FC"
+                                     class="brasao-img"
+                                     onerror="this.src='/escudos/default.png'">
+                            </div>
+                            <span class="brasao-label fantasy-label">Time Cartola</span>
                         </div>
 
                         <!-- Separador Visual -->
-                        <div style="display: flex; align-items: center; justify-content: center; color: #95a5a6; font-size: 20px; margin: 0 10px;">
+                        <div class="brasao-separator">
                             <span>⚡</span>
                         </div>
 
                         <!-- Brasão do Clube do Coração -->
-                        <div style="display: flex; flex-direction: column; align-items: center; gap: 8px; flex: 1;">
-                            <img src="/escudos/${timeData.clube_id || "placeholder"}.png" 
-                                 alt="Clube do Coração" 
-                                 title="Clube do Coração"
-                                 style="width: 60px; height: 60px; object-fit: contain; border-radius: 50%; padding: 5px; background: white; box-shadow: 0 3px 10px rgba(0, 0, 0, 0.1); border: 2px solid #e74c3c;"
-                                 onerror="this.src='/escudos/placeholder.png'">
-                            <span style="font-size: 11px; color: #e74c3c; text-align: center; font-weight: 600;">
-                                ${timeData.clube_id ? "❤️ Clube" : "Não definido"}
+                        <div class="brasao-wrapper">
+                            <div class="brasao-circle brasao-clube ${!clubeNome ? "brasao-disabled" : ""}">
+                                <img src="/escudos/${timeData.clube_id || "placeholder"}.png" 
+                                     alt="Clube do Coração" 
+                                     title="${clubeNome || "Não definido"}"
+                                     class="brasao-img"
+                                     onerror="this.src='/escudos/placeholder.png'">
+                            </div>
+                            <span class="brasao-label clube-label">
+                                ${clubeNome ? "❤️ " + clubeNome : "Não definido"}
                             </span>
                         </div>
                     </div>
                 `;
-
-                // Adicionar hover effect
-                card.onmouseenter = function () {
-                    this.style.transform = "translateY(-5px)";
-                    this.style.boxShadow = "0 8px 20px rgba(0, 0, 0, 0.15)";
-                };
-                card.onmouseleave = function () {
-                    this.style.transform = "translateY(0)";
-                    this.style.boxShadow = "0 4px 6px rgba(0, 0, 0, 0.1)";
-                };
 
                 container.appendChild(card);
             });
@@ -435,38 +504,46 @@ class DetalheLigaOrquestrador {
                             transform: translateY(0);
                         }
                     }
+                    @keyframes spin {
+                        0% { transform: rotate(0deg); }
+                        100% { transform: rotate(360deg); }
+                    }
+                    @keyframes pulse {
+                        0% { opacity: 1; }
+                        50% { opacity: 0.5; }
+                        100% { opacity: 1; }
+                    }
                 `;
                 document.head.appendChild(style);
             }
 
             // Atualizar estatísticas
-            const totalElement = document.getElementById("total-participantes");
-            if (totalElement) totalElement.textContent = timesValidos.length;
-
-            const ativosElement = document.getElementById(
-                "participantes-ativos",
+            this.updateParticipantesStats(
+                timesValidos.length,
+                timesValidos.length,
+                [
+                    ...new Set(
+                        timesValidos.map((t) => t.clube_id).filter(Boolean),
+                    ),
+                ].length,
             );
-            if (ativosElement) ativosElement.textContent = timesValidos.length;
-
-            const clubesUnicos = new Set(
-                timesValidos.map((t) => t.clube_id).filter(Boolean),
-            );
-            const uniquesElement = document.getElementById("times-diferentes");
-            if (uniquesElement) uniquesElement.textContent = clubesUnicos.size;
 
             console.log(
-                `✅ ${timesValidos.length} participantes carregados com brasões duplos`,
+                `✅ ${timesValidos.length} participantes renderizados com sucesso (renderização única)`,
             );
         } catch (error) {
-            console.error(
-                "❌ Erro ao carregar participantes com brasões:",
-                error,
-            );
+            console.error("❌ Erro ao renderizar participantes:", error);
             container.innerHTML = `
                 <div style="text-align: center; padding: 40px; color: #e74c3c;">
                     <p>❌ Erro ao carregar participantes</p>
+                    <button onclick="window.orquestrador?.renderizarParticipantesUnico()" style="margin-top: 20px; padding: 10px 20px; background: #e74c3c; color: white; border: none; border-radius: 6px; cursor: pointer; font-weight: 600;">Tentar Novamente</button>
                 </div>
             `;
+        } finally {
+            // Reset flag se houver erro para permitir retry
+            if (container.innerHTML.includes("Erro")) {
+                this.participantesLoaded = false;
+            }
         }
     }
 
@@ -478,7 +555,10 @@ class DetalheLigaOrquestrador {
                     <!-- Header dos Participantes -->
                     <div class="module-header-section">
                         <div class="module-title-section">
-                            <div class="module-title-icon">👥</div>
+                            <div class="module-title-icon" id="liga-logo-icon">
+                                <img src="/img/logo-cartoleirossobral.png" alt="Logo da Liga" class="liga-logo-img" 
+                                     onerror="this.style.display='none'; this.parentElement.innerHTML='👥';">
+                            </div>
                             <h2>Participantes da Liga</h2>
                         </div>
                         <div class="module-subtitle">membros ativos na competição</div>
@@ -501,7 +581,7 @@ class DetalheLigaOrquestrador {
                             </div>
                         </div>
                         <div class="stat-card">
-                            <div class="stat-icon">🏆</div>
+                            <div class="stat-icon">🆎</div>
                             <div class="stat-info">
                                 <div class="stat-number" id="times-diferentes">0</div>
                                 <div class="stat-label">Times Únicos</div>
@@ -519,13 +599,6 @@ class DetalheLigaOrquestrador {
                                 </div>
                             </div>
                         </div>
-                    </div>
-
-                    <!-- Botão Voltar -->
-                    <div class="module-actions">
-                        <button class="back-button" onclick="window.orquestrador?.voltarParaCards()">
-                            ← Voltar aos Cards
-                        </button>
                     </div>
                 </div>
             `,
@@ -725,6 +798,9 @@ class DetalheLigaOrquestrador {
             mainScreen.style.display = "block";
             console.log("📄 Tela principal exibida");
         }
+
+        // Reset flag ao voltar
+        this.participantesLoaded = false;
     }
 
     // 📊 CARREGAR LAYOUT (MANTIDO PARA COMPATIBILIDADE)
@@ -776,92 +852,6 @@ class DetalheLigaOrquestrador {
             );
         } catch (error) {
             console.error("Erro ao carregar módulos:", error);
-        }
-    }
-
-    // 👥 CARREGAR DADOS DE PARTICIPANTES (OTIMIZADO SEM LOADING)
-    async loadParticipantesData() {
-        try {
-            const urlParams = new URLSearchParams(window.location.search);
-            const ligaId = urlParams.get("id");
-
-            if (!ligaId) {
-                const participantesGrid =
-                    document.getElementById("participantes-grid");
-                if (participantesGrid) {
-                    participantesGrid.innerHTML = `
-                        <div class="participantes-empty-state">
-                            <div class="empty-icon">⚠️</div>
-                            <div class="empty-title">ID da liga não encontrado</div>
-                            <div class="empty-message">Não foi possível identificar a liga</div>
-                        </div>
-                    `;
-                }
-                return;
-            }
-
-            console.log(`👥 Carregando participantes da liga: ${ligaId}`);
-
-            // Mostrar loading no grid específico
-            const participantesGrid =
-                document.getElementById("participantes-grid");
-            if (participantesGrid) {
-                participantesGrid.innerHTML = `
-                    <div class="loading-state-full">
-                        <div style="display: flex; align-items: center; justify-content: center; gap: 15px; padding: 60px;">
-                            <div style="width: 40px; height: 40px; border: 4px solid rgba(255, 69, 0, 0.3); border-top: 4px solid #ff4500; border-radius: 50%; animation: spin 1s linear infinite;"></div>
-                            <div style="color: #ff4500; font-weight: 600; font-size: 16px">
-                                Carregando dados dos participantes...
-                            </div>
-                        </div>
-                    </div>
-                `;
-            }
-
-            const response = await fetch(`/api/ligas/${ligaId}`);
-            if (!response.ok) {
-                throw new Error("Erro ao carregar liga");
-            }
-
-            const liga = await response.json();
-            console.log(
-                `📊 Liga carregada: ${liga.nome} - ${liga.times?.length || 0} times`,
-            );
-
-            if (!liga.times || liga.times.length === 0) {
-                if (participantesGrid) {
-                    participantesGrid.innerHTML = `
-                        <div class="participantes-empty-state">
-                            <div class="empty-icon">👥</div>
-                            <div class="empty-title">Nenhum participante</div>
-                            <div class="empty-message">Esta liga ainda não possui participantes cadastrados</div>
-                        </div>
-                    `;
-                }
-                return;
-            }
-
-            // Atualizar estatísticas iniciais
-            this.updateParticipantesStats(liga.times.length);
-
-            // Nota: A renderização dos cards com brasões será feita pela função carregarParticipantesComBrasoes()
-
-            console.log(
-                `✅ Dados básicos carregados, aguardando renderização com brasões`,
-            );
-        } catch (error) {
-            console.error("❌ Erro ao carregar participantes:", error);
-            const participantesGrid =
-                document.getElementById("participantes-grid");
-            if (participantesGrid) {
-                participantesGrid.innerHTML = `
-                    <div class="participantes-empty-state">
-                        <div class="empty-icon">⚠️</div>
-                        <div class="empty-title">Erro ao carregar</div>
-                        <div class="empty-message">${error.message}</div>
-                    </div>
-                `;
-            }
         }
     }
 
@@ -1212,6 +1202,8 @@ class DetalheLigaOrquestrador {
         window.voltarParaCards = () => this.voltarParaCards();
         window.showParticipantes = () => this.showModule("participantes");
         window.executeAction = (action) => this.executeAction(action);
+        window.renderizarParticipantesUnico = () =>
+            this.renderizarParticipantesUnico();
 
         // Manter compatibilidade com sistema existente
         window.orquestrador = this;
