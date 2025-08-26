@@ -192,19 +192,31 @@ class DetalheLigaOrquestrador {
         try {
             switch (moduleName) {
                 case "ranking-geral":
-                    // INTERCEPTAR FUNÇÃO ANTES DE CARREGAR
+                    console.log("🎯 Iniciando carregamento do ranking-geral");
+                    
+                    // CRÍTICO: Ativar container ANTES de chamar a função
+                    const rankingContainer = document.getElementById("ranking-geral");
+                    if (rankingContainer) {
+                        rankingContainer.classList.add("active");
+                        console.log("✅ Container ranking-geral ativado");
+                    }
+                    
+                    // Interceptar função antes de carregar
                     this.interceptarRankingFunction();
                     
-                    // Tentar primeiro pelo módulo
+                    // Aguardar um momento
+                    await new Promise(resolve => setTimeout(resolve, 100));
+                    
+                    // Tentar carregar o ranking
                     if (this.modules.ranking?.carregarRankingGeral) {
                         await this.modules.ranking.carregarRankingGeral();
-                    } 
-                    // Fallback se módulo falhar
-                    else if (!await this.executeRankingFallback()) {
+                    } else if (typeof window.carregarRankingGeral === 'function') {
+                        await window.carregarRankingGeral();
+                    } else {
                         console.error("❌ Função carregarRankingGeral não encontrada");
                     }
                     
-                    // APLICAR ESTILOS APÓS CARREGAMENTO
+                    // Aplicar estilos após carregamento
                     setTimeout(() => this.applyRankingStyles(), 500);
                     break;
 
