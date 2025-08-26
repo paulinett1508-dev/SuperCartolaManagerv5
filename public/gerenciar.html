@@ -6,192 +6,191 @@
         <title>Gerenciar Ligas - Super Cartola Manager</title>
         <link rel="stylesheet" href="style.css" />
         <style>
-            .app-main {
-                padding-top: 20px; /* Compensar ausência do header */
-            }
-
-            .admin-container {
-                background: #1a1a1a;
-                min-height: calc(100vh - 100px);
-            }
-
-            .admin-section {
-                background: #2a2a2a;
-                border-radius: 12px;
-                padding: 25px;
-                margin-bottom: 25px;
-                border: 1px solid rgba(255, 69, 0, 0.2);
-                box-shadow: 0 4px 16px rgba(0, 0, 0, 0.3);
-            }
-
-            .admin-section h3 {
-                color: #ff4500;
-                font-size: 18px;
-                font-weight: 700;
-                margin: 0 0 20px 0;
-                padding-bottom: 12px;
-                border-bottom: 2px solid rgba(255, 69, 0, 0.3);
-            }
-
-            .admin-grid {
-                display: grid;
-                grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-                gap: 20px;
-            }
-
-            .admin-tool {
-                background: #1e1e1e;
-                border-radius: 8px;
+            /* Container principal sem padding extra */
+            .page-content {
                 padding: 20px;
-                border: 1px solid #333333;
-                transition: all 0.3s ease;
             }
 
-            .admin-tool:hover {
-                transform: translateY(-2px);
-                border-color: #ff4500;
-                box-shadow: 0 4px 15px rgba(255, 69, 0, 0.2);
-            }
-
-            .admin-tool h4 {
-                color: #ffffff;
-                font-size: 16px;
-                margin: 0 0 10px 0;
+            /* Estatísticas compactas */
+            .stats-bar {
                 display: flex;
-                align-items: center;
-                gap: 8px;
-            }
-
-            .admin-tool p {
-                color: #a0a0a0;
-                font-size: 13px;
-                margin: 0 0 15px 0;
-                line-height: 1.4;
-            }
-
-            .admin-btn {
-                background: linear-gradient(135deg, #ff4500 0%, #e8472b 100%);
-                color: white;
-                padding: 12px 18px;
-                border: none;
-                border-radius: 6px;
-                font-weight: 600;
-                font-size: 13px;
-                cursor: pointer;
-                text-decoration: none;
-                display: inline-block;
-                transition: all 0.3s ease;
-                box-shadow: 0 2px 8px rgba(255, 69, 0, 0.3);
-            }
-
-            .admin-btn:hover {
-                transform: translateY(-2px);
-                box-shadow: 0 4px 15px rgba(255, 69, 0, 0.4);
-            }
-
-            .admin-btn.success {
-                background: linear-gradient(135deg, #22c55e 0%, #16a34a 100%);
-                box-shadow: 0 2px 8px rgba(34, 197, 94, 0.3);
-            }
-
-            .admin-btn.danger {
-                background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
-                box-shadow: 0 2px 8px rgba(239, 68, 68, 0.3);
-            }
-
-            .admin-btn.info {
-                background: linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%);
-                box-shadow: 0 2px 8px rgba(59, 130, 246, 0.3);
-            }
-
-            .liga-list {
-                background: #1e1e1e;
-                border-radius: 8px;
-                border: 1px solid #333333;
-                overflow: hidden;
-            }
-
-            .liga-list-item {
-                display: flex;
-                align-items: center;
-                justify-content: space-between;
-                padding: 15px 20px;
-                border-bottom: 1px solid #333333;
-                transition: all 0.2s ease;
-            }
-
-            .liga-list-item:hover {
-                background: rgba(255, 69, 0, 0.05);
-            }
-
-            .liga-list-item:last-child {
-                border-bottom: none;
-            }
-
-            .liga-list-info h4 {
-                color: #ffffff;
-                font-size: 14px;
-                margin: 0 0 4px 0;
-                font-weight: 600;
-            }
-
-            .liga-list-info p {
-                color: #a0a0a0;
-                font-size: 12px;
-                margin: 0;
-            }
-
-            .liga-list-actions {
-                display: flex;
-                gap: 8px;
-            }
-
-            .liga-list-actions .admin-btn {
-                padding: 8px 12px;
-                font-size: 11px;
-            }
-
-            .search-admin {
+                gap: 30px;
                 margin-bottom: 20px;
+                padding: 15px 20px;
+                background: rgba(255, 69, 0, 0.05);
+                border-radius: 8px;
+                border: 1px solid rgba(255, 69, 0, 0.2);
             }
 
-            .search-admin input {
+            .stat-item {
+                display: flex;
+                align-items: center;
+                gap: 8px;
+            }
+
+            .stat-label {
+                font-size: 13px;
+                color: var(--text-muted);
+                font-weight: 500;
+            }
+
+            .stat-value {
+                font-size: 18px;
+                color: var(--laranja);
+                font-weight: 700;
+            }
+
+            /* Busca */
+            .search-container {
+                max-width: 500px;
+                margin-bottom: 20px;
+                position: relative;
+            }
+
+            .search-input {
                 width: 100%;
-                padding: 12px 16px;
-                background: #1a1a1a;
-                border: 1px solid #333333;
-                border-radius: 8px;
-                color: #ffffff;
+                padding: 12px 20px 12px 45px;
+                background: var(--bg-card);
+                border: 1px solid var(--border-primary);
+                border-radius: 25px;
+                color: var(--text-primary);
                 font-size: 14px;
                 outline: none;
                 transition: all 0.3s ease;
             }
 
-            .search-admin input:focus {
-                border-color: #ff4500;
-                box-shadow: 0 0 0 2px rgba(255, 69, 0, 0.2);
+            .search-input:focus {
+                border-color: var(--laranja);
+                box-shadow: 0 0 0 3px var(--laranja-alpha);
             }
 
-            .search-admin input::placeholder {
-                color: #606060;
+            .search-icon {
+                position: absolute;
+                left: 18px;
+                top: 50%;
+                transform: translateY(-50%);
+                font-size: 16px;
+                color: var(--laranja);
             }
 
-            @media (max-width: 768px) {
-                .admin-grid {
-                    grid-template-columns: 1fr;
-                    gap: 15px;
-                }
+            /* Lista de ligas */
+            .liga-list {
+                background: var(--bg-card);
+                border-radius: 12px;
+                border: 1px solid var(--border-primary);
+                overflow: hidden;
+                box-shadow: var(--shadow-md);
+            }
 
-                .liga-list-item {
-                    flex-direction: column;
-                    align-items: flex-start;
-                    gap: 12px;
-                }
+            .liga-item {
+                display: flex;
+                align-items: center;
+                justify-content: space-between;
+                padding: 18px 20px;
+                border-bottom: 1px solid var(--border-secondary);
+                transition: all 0.3s ease;
+            }
 
-                .liga-list-actions {
-                    width: 100%;
-                    justify-content: flex-start;
-                }
+            .liga-item:hover {
+                background: rgba(255, 69, 0, 0.05);
+            }
+
+            .liga-item:last-child {
+                border-bottom: none;
+            }
+
+            .liga-info {
+                flex: 1;
+            }
+
+            .liga-info h4 {
+                color: var(--text-primary);
+                font-size: 15px;
+                margin: 0 0 4px 0;
+                font-weight: 600;
+            }
+
+            .liga-info p {
+                font-size: 12px;
+                color: var(--text-muted);
+                margin: 0;
+            }
+
+            .liga-actions {
+                display: flex;
+                gap: 8px;
+            }
+
+            .btn-action {
+                padding: 8px 14px;
+                border-radius: 6px;
+                font-size: 12px;
+                font-weight: 600;
+                cursor: pointer;
+                transition: all 0.3s ease;
+                text-decoration: none;
+                border: none;
+                display: inline-flex;
+                align-items: center;
+                gap: 4px;
+            }
+
+            .btn-edit {
+                background: rgba(59, 130, 246, 0.1);
+                color: #3b82f6;
+                border: 1px solid rgba(59, 130, 246, 0.3);
+            }
+
+            .btn-edit:hover {
+                background: rgba(59, 130, 246, 0.2);
+                transform: translateY(-1px);
+            }
+
+            .btn-rodadas {
+                background: var(--gradient-primary);
+                color: white;
+                box-shadow: 0 2px 8px rgba(255, 69, 0, 0.3);
+            }
+
+            .btn-rodadas:hover {
+                transform: translateY(-1px);
+                box-shadow: 0 4px 12px rgba(255, 69, 0, 0.4);
+            }
+
+            .btn-delete {
+                background: rgba(239, 68, 68, 0.1);
+                color: #ef4444;
+                border: 1px solid rgba(239, 68, 68, 0.3);
+            }
+
+            .btn-delete:hover {
+                background: rgba(239, 68, 68, 0.2);
+                transform: translateY(-1px);
+            }
+
+            .loading {
+                text-align: center;
+                padding: 40px;
+                color: var(--text-muted);
+            }
+
+            .empty-state {
+                text-align: center;
+                padding: 60px 20px;
+                color: var(--text-muted);
+            }
+
+            .empty-icon {
+                font-size: 48px;
+                margin-bottom: 16px;
+                opacity: 0.5;
+            }
+
+            .empty-title {
+                font-size: 18px;
+                font-weight: 600;
+                color: var(--text-secondary);
+                margin-bottom: 8px;
             }
         </style>
     </head>
@@ -202,72 +201,41 @@
 
             <!-- Conteúdo principal -->
             <main class="app-main">
+                <!-- Header será injetado aqui -->
+                <div id="header-placeholder"></div>
+
                 <!-- Conteúdo da página -->
-                <div class="page-content" style="padding-top: 0">
-                    <div class="admin-container">
-                        <!-- Ferramentas Administrativas -->
-                        <div class="admin-section">
-                            <div class="admin-grid">
-                                <div class="admin-tool">
-                                    <h4>➕ Criar Liga</h4>
-                                    <p>
-                                        Criar uma nova liga do Cartola FC com
-                                        configurações personalizadas.
-                                    </p>
-                                    <a
-                                        href="preencher-liga.html"
-                                        class="admin-btn success"
-                                    >
-                                        Criar Nova Liga
-                                    </a>
-                                </div>
-
-                                <div class="admin-tool">
-                                    <h4>🔍 Buscar Times</h4>
-                                    <p>
-                                        Encontrar e adicionar times do Cartola
-                                        FC às suas ligas.
-                                    </p>
-                                    <a
-                                        href="buscar-times.html"
-                                        class="admin-btn info"
-                                    >
-                                        Buscar Times
-                                    </a>
-                                </div>
-
-                                <div class="admin-tool">
-                                    <h4>⚙️ Popular Rodadas</h4>
-                                    <p>
-                                        Sincronizar dados das rodadas com a API
-                                        oficial do Cartola FC.
-                                    </p>
-                                    <a href="admin.html" class="admin-btn">
-                                        Administração
-                                    </a>
-                                </div>
-                            </div>
+                <div class="page-content">
+                    <!-- Estatísticas -->
+                    <div class="stats-bar" id="statsBar" style="display: none">
+                        <div class="stat-item">
+                            <span class="stat-label">Total de Ligas:</span>
+                            <span class="stat-value" id="totalLigas">0</span>
                         </div>
-
-                        <!-- Lista Administrativa de Ligas -->
-                        <div class="admin-section">
-                            <h3>📋 Lista Administrativa</h3>
-
-                            <div class="search-admin">
-                                <input
-                                    type="text"
-                                    id="searchAdminInput"
-                                    placeholder="Buscar liga para gerenciar..."
-                                    oninput="filtrarListaAdmin()"
-                                />
-                            </div>
-
-                            <div id="ligasListAdmin">
-                                <div class="loading">
-                                    Carregando lista de ligas...
-                                </div>
-                            </div>
+                        <div class="stat-item">
+                            <span class="stat-label"
+                                >Total de Participantes:</span
+                            >
+                            <span class="stat-value" id="totalParticipantes"
+                                >0</span
+                            >
                         </div>
+                    </div>
+
+                    <!-- Busca -->
+                    <div class="search-container">
+                        <span class="search-icon">🔍</span>
+                        <input
+                            type="text"
+                            id="searchInput"
+                            class="search-input"
+                            placeholder="Buscar liga por nome ou ID..."
+                        />
+                    </div>
+
+                    <!-- Container de Ligas -->
+                    <div id="ligasContainer">
+                        <div class="loading">Carregando ligas...</div>
                     </div>
                 </div>
             </main>
@@ -279,7 +247,8 @@
                 deletarLiga,
             } from "./js/gerenciar-ligas.js";
 
-            let ligasAdmin = [];
+            // Variável global para armazenar ligas
+            window.ligasData = [];
 
             // === CARREGAR LAYOUT ===
             async function loadLayout() {
@@ -298,7 +267,22 @@
                             .replaceWith(sidebar);
                     }
 
-                    // Não injetar header - página admin sem header de estatísticas
+                    // Injetar header
+                    const header = doc.querySelector(".page-header");
+                    if (header) {
+                        const pageTitle = header.querySelector("#pageTitle");
+                        const pageSubtitle =
+                            header.querySelector("#pageSubtitle");
+                        if (pageTitle)
+                            pageTitle.textContent = "⚙️ Gerenciar Ligas";
+                        if (pageSubtitle)
+                            pageSubtitle.textContent =
+                                "Ferramentas Administrativas";
+
+                        document
+                            .getElementById("header-placeholder")
+                            .replaceWith(header);
+                    }
 
                     // Executar scripts do layout
                     const scripts = doc.querySelectorAll("script");
@@ -314,118 +298,139 @@
                 }
             }
 
-            // === CARREGAR LISTA ADMINISTRATIVA ===
-            async function carregarListaAdmin() {
-                const container = document.getElementById("ligasListAdmin");
+            // === CARREGAR LIGAS ===
+            async function carregarListaLigas() {
+                const container = document.getElementById("ligasContainer");
 
                 try {
-                    ligasAdmin = await carregarLigas();
+                    // Usar função do módulo que tem cache e tratamento de erros
+                    const ligas = await carregarLigas();
+                    window.ligasData = ligas;
 
-                    if (ligasAdmin.length === 0) {
+                    console.log(`${ligas.length} ligas carregadas com sucesso`);
+
+                    if (!ligas || ligas.length === 0) {
                         container.innerHTML = `
-                            <div style="text-align: center; padding: 40px; color: #a0a0a0;">
-                                📋 Nenhuma liga criada ainda
+                            <div class="empty-state">
+                                <div class="empty-icon">📋</div>
+                                <div class="empty-title">Nenhuma liga criada</div>
+                                <a href="preencher-liga.html" class="btn-action btn-rodadas" style="margin-top: 20px;">
+                                    ➕ Criar Primeira Liga
+                                </a>
                             </div>
                         `;
+                        document.getElementById("statsBar").style.display =
+                            "none";
                         return;
                     }
 
-                    renderizarListaAdmin(ligasAdmin);
+                    // Atualizar estatísticas usando timesCount já processado
+                    const totalParticipantes = ligas.reduce(
+                        (sum, liga) => sum + (liga.timesCount || 0),
+                        0,
+                    );
+
+                    document.getElementById("totalLigas").textContent =
+                        ligas.length;
+                    document.getElementById("totalParticipantes").textContent =
+                        totalParticipantes;
+                    document.getElementById("statsBar").style.display = "flex";
+
+                    // Renderizar ligas
+                    renderizarLigas(ligas);
                 } catch (error) {
+                    console.error("Erro ao carregar ligas:", error);
                     container.innerHTML = `
-                        <div style="text-align: center; padding: 40px; color: #ef4444;">
-                            ⚠️ Erro ao carregar: ${error.message}
+                        <div class="empty-state">
+                            <div class="empty-icon">⚠️</div>
+                            <div class="empty-title">Erro ao carregar ligas</div>
+                            <button onclick="location.reload()" class="btn-action btn-rodadas" style="margin-top: 20px;">
+                                🔄 Tentar Novamente
+                            </button>
                         </div>
                     `;
                 }
             }
 
-            // === RENDERIZAR LISTA ADMIN ===
-            function renderizarListaAdmin(ligas) {
-                const container = document.getElementById("ligasListAdmin");
+            // === RENDERIZAR LIGAS ===
+            function renderizarLigas(ligas) {
+                const container = document.getElementById("ligasContainer");
 
-                const ligasHtml = `
-                    <div class="liga-list">
-                        ${ligas
-                            .map((liga) => {
-                                const timesCount = liga.times
-                                    ? liga.times.length
-                                    : 0;
-                                const idCurto = liga._id.substring(0, 8);
+                let html = '<div class="liga-list">';
 
-                                return `
-                                <div class="liga-list-item" data-liga-id="${liga._id}">
-                                    <div class="liga-list-info">
-                                        <h4>${liga.nome}</h4>
-                                        <p>ID: ${idCurto} • ${timesCount} participantes</p>
-                                    </div>
-                                    <div class="liga-list-actions">
-                                        <a href="editar-liga.html?id=${liga._id}" class="admin-btn success">
-                                            ✏️ Editar
-                                        </a>
-                                        <a href="fronts/admin-rodadas.html?id=${liga._id}" class="admin-btn">
-                                            ⚙️ Popular Rodadas
-                                        </a>
-                                        <button class="admin-btn danger" 
-                                                onclick="excluirLigaAdmin('${liga._id}', '${liga.nome}')">
-                                            🗑️ Excluir
-                                        </button>
-                                    </div>
-                                </div>
-                            `;
-                            })
-                            .join("")}
-                    </div>
-                `;
+                ligas.forEach((liga) => {
+                    const timesCount = liga.times ? liga.times.length : 0;
+                    const idCurto = liga._id ? liga._id.substring(0, 8) : "";
+                    const nomeLiga = liga.nome || "Liga sem nome";
 
-                container.innerHTML = ligasHtml;
+                    html += `
+                        <div class="liga-item" data-id="${liga._id}" data-nome="${nomeLiga}">
+                            <div class="liga-info">
+                                <h4>${nomeLiga}</h4>
+                                <p>ID: ${idCurto}... • ${timesCount} participantes</p>
+                            </div>
+                            <div class="liga-actions">
+                                <a href="editar-liga.html?id=${liga._id}" class="btn-action btn-edit">
+                                    ✏️ Editar
+                                </a>
+                                <a href="admin.html?id=${liga._id}" class="btn-action btn-rodadas">
+                                    ⚙️ Popular Rodadas
+                                </a>
+                                <button class="btn-action btn-delete" onclick="excluirLiga('${liga._id}', '${nomeLiga.replace(/'/g, "\\'")}')">
+                                    🗑️ Excluir
+                                </button>
+                            </div>
+                        </div>
+                    `;
+                });
+
+                html += "</div>";
+                container.innerHTML = html;
             }
 
-            // === FILTRO LISTA ADMIN ===
-            window.filtrarListaAdmin = function () {
-                const searchTerm = document
-                    .getElementById("searchAdminInput")
-                    .value.toLowerCase()
-                    .trim();
-                const ligaItems = document.querySelectorAll(".liga-list-item");
-
-                ligaItems.forEach((item) => {
-                    const nomeLiga = item
-                        .querySelector("h4")
-                        .textContent.toLowerCase();
-                    const infoLiga = item
-                        .querySelector("p")
-                        .textContent.toLowerCase();
-
-                    const isVisible =
-                        nomeLiga.includes(searchTerm) ||
-                        infoLiga.includes(searchTerm);
-                    item.style.display = isVisible ? "flex" : "none";
-                });
-            };
-
-            // === EXCLUSÃO ADMINISTRATIVA ===
-            window.excluirLigaAdmin = async function (id, nome) {
-                const confirmacao = confirm(
-                    `⚠️ EXCLUSÃO ADMINISTRATIVA\n\n` +
-                        `Confirma exclusão da liga "${nome}"?\n\n` +
-                        `Esta operação é irreversível.`,
-                );
-
-                if (!confirmacao) return;
+            // === EXCLUIR LIGA ===
+            window.excluirLiga = async function (id, nome) {
+                if (
+                    !confirm(
+                        `Tem certeza que deseja excluir a liga "${nome}"?\n\nEsta ação é irreversível.`,
+                    )
+                ) {
+                    return;
+                }
 
                 try {
+                    // Usar função do módulo que limpa cache automaticamente
                     await deletarLiga(id);
-                    await carregarListaAdmin(); // Recarregar lista
+
+                    // Recarregar ligas com force refresh para garantir atualização
+                    await carregarListaLigas();
                 } catch (error) {
-                    alert(`❌ Erro ao excluir: ${error.message}`);
+                    alert(`Erro ao excluir liga: ${error.message}`);
                 }
             };
+
+            // === FILTRAR LIGAS ===
+            document.addEventListener("input", function (e) {
+                if (e.target.id === "searchInput") {
+                    const searchTerm = e.target.value.toLowerCase();
+                    const items = document.querySelectorAll(".liga-item");
+
+                    items.forEach((item) => {
+                        const nome = item.dataset.nome.toLowerCase();
+                        const id = item.dataset.id.toLowerCase();
+                        const visible =
+                            nome.includes(searchTerm) ||
+                            id.includes(searchTerm);
+                        item.style.display = visible ? "flex" : "none";
+                    });
+                }
+            });
 
             // === INICIALIZAÇÃO ===
             document.addEventListener("DOMContentLoaded", async () => {
                 await loadLayout();
-                await carregarListaAdmin();
+                // Delay para garantir que o layout está carregado
+                setTimeout(() => carregarListaLigas(), 100);
             });
         </script>
     </body>
