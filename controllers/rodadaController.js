@@ -2,9 +2,35 @@
 import Rodada from "../models/Rodada.js";
 import Liga from "../models/Liga.js";
 import Time from "../models/Time.js";
-import fetch from "node-fetch"; // Adicione esta importação se necessário
+import fetch from "node-fetch";
 import mongoose from "mongoose";
 
+// Constantes de configuração
+const BATCH_SIZE = 5; // Processar 5 times por vez
+const REQUEST_DELAY = 300; // 300ms entre lotes
+const MAX_RETRIES = 3;
+const TIMEOUT_MS = 10000; // 10 segundos por request
+
+// === FUNÇÃO AUXILIAR: Sleep ===
+const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
+
+// === FUNÇÃO AUXILIAR: Retry com backoff ===
+async function retryRequest(fn, retries = MAX_RETRIES) {
+  for (let i = 0; i < retries; i++) {
+    try {
+      return await fn();
+    } catch (error) {
+      if (i === retries - 1) throw error;
+      const delay = Math.min(1000 * Math.pow(2, i), 5000); // Max 5s
+      console.warn(
+        `Tentativa ${i + 1}/${retries} falhou. Aguardando ${delay}ms...`,
+      );
+      await sleep(delay);
+    }
+  }
+}
+
+// === BUSCAR RODADAS ===
 export async function buscarRodadas(req, res) {
   const { ligaId } = req.params;
   const { inicio, fim } = req.query;
@@ -14,34 +40,26 @@ export async function buscarRodadas(req, res) {
     const fimNum = parseInt(fim);
 
     if (isNaN(inicioNum) || isNaN(fimNum)) {
-      return res
-        .status(400)
-        .json({ error: "Parâmetros inicio e fim devem ser números válidos" });
+      return res.status(400).json({
+        error: "Parâmetros inicio e fim devem ser números válidos",
+      });
     }
 
     // Validação do ObjectId
     if (!mongoose.Types.ObjectId.isValid(ligaId)) {
       return res.status(400).json({ error: "ID de liga inválido" });
     }
+
     const ligaObjectId = new mongoose.Types.ObjectId(ligaId);
 
-    let queryMongo;
-    if (inicioNum === fimNum) {
-      queryMongo = {
-        ligaId: ligaObjectId,
-        rodada: inicioNum,
-      };
-    } else {
-      queryMongo = {
-        ligaId: ligaObjectId,
-        rodada: { $gte: inicioNum, $lte: fimNum },
-      };
-    }
+    const queryMongo = {
+      ligaId: ligaObjectId,
+      rodada:
+        inicioNum === fimNum ? inicioNum : { $gte: inicioNum, $lte: fimNum },
+    };
 
     const rodadas = await Rodada.find(queryMongo).lean();
-
-    // Log para depuração: verificar se o campo 'rodada' está presente
-    console.log("Rodadas encontradas:", rodadas);
+    console.log(`Encontradas ${rodadas.length} rodadas para liga ${ligaId}`);
 
     return res.status(200).json(rodadas);
   } catch (err) {
@@ -50,195 +68,267 @@ export async function buscarRodadas(req, res) {
   }
 }
 
-// Função auxiliar para buscar pontos da API do Cartola
+// === BUSCAR PONTOS COM TIMEOUT E RETRY ===
 async function buscarPontosRodada(timeId, rodada) {
-  try {
-    const res = await fetch(
-      `https://api.cartola.globo.com/time/id/${timeId}/${rodada}`,
-    );
-    if (!res.ok) {
-      console.warn(
-        `API retornou status ${res.status} para time ${timeId} na rodada ${rodada}`,
+  return await retryRequest(async () => {
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), TIMEOUT_MS);
+
+    try {
+      const res = await fetch(
+        `https://api.cartola.globo.com/time/id/${timeId}/${rodada}`,
+        { signal: controller.signal },
       );
-      return 0;
+
+      clearTimeout(timeoutId);
+
+      if (!res.ok) {
+        if (res.status === 404) {
+          console.debug(`Time ${timeId} não jogou na rodada ${rodada}`);
+          return 0;
+        }
+        throw new Error(`API retornou status ${res.status}`);
+      }
+
+      const data = await res.json();
+      return data.pontos || 0;
+    } catch (err) {
+      clearTimeout(timeoutId);
+
+      if (err.name === "AbortError") {
+        console.error(`Timeout ao buscar time ${timeId} rodada ${rodada}`);
+        return 0;
+      }
+      throw err;
     }
-    const data = await res.json();
-    return data.pontos || 0;
-  } catch (err) {
-    console.warn(
-      `Erro ao buscar pontos do time ${timeId} na rodada ${rodada}:`,
-      err.message,
-    );
-    return 0;
-  }
+  });
 }
 
-// Popular uma ou mais rodadas no MongoDB (com pontos reais do Cartola)
+// === PROCESSAR TIMES EM LOTES ===
+async function processarTimesEmLotes(times, rodada, ligaId) {
+  const resultados = [];
+
+  for (let i = 0; i < times.length; i += BATCH_SIZE) {
+    const lote = times.slice(i, i + BATCH_SIZE);
+    console.log(
+      `Processando lote ${Math.floor(i / BATCH_SIZE) + 1}/${Math.ceil(times.length / BATCH_SIZE)} da rodada ${rodada}`,
+    );
+
+    const resultadosLote = await Promise.all(
+      lote.map(async (time) => {
+        const pontos = await buscarPontosRodada(time.id, rodada);
+        return {
+          ligaId,
+          rodada,
+          timeId: time.id,
+          nome_cartola: time.nome_cartoleiro || "N/D",
+          nome_time: time.nome_time || "N/D",
+          escudo: time.url_escudo_png || "",
+          clube_id: time.clube_id || 0,
+          escudo_time_do_coracao: "",
+          pontos,
+          rodadaNaoJogada: false,
+        };
+      }),
+    );
+
+    resultados.push(...resultadosLote);
+
+    // Delay entre lotes para não sobrecarregar a API
+    if (i + BATCH_SIZE < times.length) {
+      await sleep(REQUEST_DELAY);
+    }
+  }
+
+  return resultados;
+}
+
+// === POPULAR RODADAS COM TRANSAÇÕES ===
 export async function popularRodadas(req, res) {
   const { ligaId } = req.params;
   const { inicio, fim, repopular } = req.body;
   const repopularBool = String(repopular) === "true";
-  console.log(
-    "Repopular recebido:",
-    repopular,
-    "Interpretado como:",
-    repopularBool,
-  );
+
+  // Iniciar sessão MongoDB para transação
+  const session = await mongoose.startSession();
 
   try {
     console.log(
-      `[popularRodadas] Iniciando populacao para ligaId: ${ligaId}, inicio: ${inicio}, fim: ${fim}, repopular: ${repopularBool}`,
+      `[popularRodadas] Liga: ${ligaId}, Rodadas: ${inicio}-${fim}, Repopular: ${repopularBool}`,
     );
+
     const inicioNum = parseInt(inicio);
     const fimNum = parseInt(fim);
 
-    if (isNaN(inicioNum) || isNaN(fimNum)) {
-      console.error("[popularRodadas] Parametros inicio ou fim invalidos.");
-      return res
-        .status(400)
-        .json({ error: "Parâmetros inicio e fim devem ser números válidos" });
+    // Validações
+    if (
+      isNaN(inicioNum) ||
+      isNaN(fimNum) ||
+      inicioNum < 1 ||
+      fimNum > 38 ||
+      inicioNum > fimNum
+    ) {
+      return res.status(400).json({
+        error:
+          "Parâmetros inválidos. Use valores entre 1 e 38, com início <= fim",
+      });
     }
 
+    // Buscar liga
     const liga = await Liga.findById(ligaId).lean();
     if (!liga) {
-      console.error(`[popularRodadas] Liga ${ligaId} nao encontrada.`);
+      console.error(`Liga ${ligaId} não encontrada`);
       return res.status(404).json({ error: "Liga não encontrada" });
     }
-    console.log(`[popularRodadas] Liga encontrada: ${liga.nome}`);
 
-    // Verificar se todos os times da liga existem na coleção Time
+    if (!liga.times || liga.times.length === 0) {
+      return res.status(400).json({
+        error: "Liga não possui times cadastrados",
+      });
+    }
+
     console.log(
-      `[popularRodadas] Liga ${ligaId} tem ${liga.times.length} times cadastrados:`,
-      liga.times,
+      `Liga "${liga.nome}" tem ${liga.times.length} times cadastrados`,
     );
 
-    // Buscar todos os times da liga no banco de dados
+    // Buscar times no banco
     const times = await Time.find({ id: { $in: liga.times } }).lean();
-    console.log(
-      `Encontrados ${times.length} times no banco de dados para a liga ${ligaId}`,
-    );
-
-    // Verificar quais IDs estão faltando
     const timesEncontradosIds = times.map((t) => t.id);
     const timesFaltantes = liga.times.filter(
       (id) => !timesEncontradosIds.includes(id),
     );
 
+    // VALIDAÇÃO CRÍTICA: Não prosseguir se houver times faltantes
     if (timesFaltantes.length > 0) {
-      console.warn(
-        `ATENÇÃO: ${timesFaltantes.length} times da liga não foram encontrados no banco de dados:`,
+      console.error(`Times não cadastrados: ${timesFaltantes.join(", ")}`);
+      return res.status(400).json({
+        error: `${timesFaltantes.length} times não estão cadastrados no sistema`,
         timesFaltantes,
-      );
+        solucao: "Cadastre todos os times primeiro usando a busca de times",
+      });
     }
 
-    if (!times.length)
-      return res
-        .status(404)
-        .json({ error: "Nenhum time encontrado para a liga" });
+    if (!times.length) {
+      return res.status(404).json({
+        error: "Nenhum time encontrado no banco de dados",
+      });
+    }
 
-    // Verifica status atual do mercado
+    // Verificar rodada atual
+    let rodadaAtual = 38; // Fallback
     try {
       const statusRes = await fetch(
         "https://api.cartola.globo.com/mercado/status",
       );
-      if (!statusRes.ok) throw new Error("Erro ao buscar status do mercado");
-      const statusData = await statusRes.json();
-      const rodadaAtual = statusData.rodada_atual;
+      if (statusRes.ok) {
+        const statusData = await statusRes.json();
+        rodadaAtual = statusData.rodada_atual || 38;
+      }
+    } catch (err) {
+      console.warn(
+        "Erro ao buscar status do mercado, usando rodada 38 como limite",
+      );
+    }
 
-      // Estatísticas para o relatório final
-      let rodadasProcessadas = 0;
-      let rodadasPuladas = 0;
-      let registrosInseridos = 0;
+    // Estatísticas
+    const estatisticas = {
+      rodadasProcessadas: 0,
+      rodadasPuladas: 0,
+      registrosInseridos: 0,
+      timesEncontrados: times.length,
+      timesCadastrados: liga.times.length,
+    };
 
+    // Processar rodadas com transação
+    await session.withTransaction(async () => {
       for (let rodada = inicioNum; rodada <= fimNum; rodada++) {
-        // Se não for repopular e a rodada já existe, pula
+        console.log(`\n=== Processando Rodada ${rodada}/${fimNum} ===`);
+
+        // Verificar se deve pular
         if (!repopularBool) {
-          const jaExiste = await Rodada.exists({ ligaId, rodada });
+          const jaExiste = await Rodada.exists({ ligaId, rodada }).session(
+            session,
+          );
           if (jaExiste) {
-            console.log(
-              `Pulando rodada ${rodada} - já existe e repopular não está marcado`,
-            );
-            rodadasPuladas++;
+            console.log(`Rodada ${rodada} já existe - pulando`);
+            estatisticas.rodadasPuladas++;
             continue;
           }
         }
 
-        // Sempre remove rodadas existentes antes de inserir novas
-        await Rodada.deleteMany({ ligaId, rodada });
-        rodadasProcessadas++;
+        // Deletar dados existentes (dentro da transação)
+        if (repopularBool) {
+          const deletados = await Rodada.deleteMany({ ligaId, rodada }).session(
+            session,
+          );
+          console.log(
+            `Removidos ${deletados.deletedCount} registros existentes da rodada ${rodada}`,
+          );
+        }
 
-        // Se for rodada futura, marca como não jogada
+        estatisticas.rodadasProcessadas++;
+
+        let rodadasData = [];
+
+        // Rodadas futuras - apenas placeholder
         if (rodada > rodadaAtual) {
-          console.log(`Rodada ${rodada} é futura - preenchendo com zeros`);
-          const rodadasFuturas = times.map((time) => ({
+          console.log(`Rodada ${rodada} é futura - inserindo placeholders`);
+          rodadasData = times.map((time) => ({
             ligaId,
             rodada,
             timeId: time.id,
             nome_cartola: time.nome_cartoleiro || "N/D",
             nome_time: time.nome_time || "N/D",
             escudo: time.url_escudo_png || "",
-            clube_id: time.clube_id || "",
+            clube_id: time.clube_id || 0,
             escudo_time_do_coracao: "",
             pontos: 0,
             rodadaNaoJogada: true,
           }));
-          const resultado = await Rodada.insertMany(rodadasFuturas);
-          registrosInseridos += resultado.length;
+        } else {
+          // Buscar pontos reais em lotes
           console.log(
-            `Inseridos ${resultado.length} registros para rodada futura ${rodada}`,
+            `Buscando pontos reais da rodada ${rodada} para ${times.length} times`,
           );
-          continue;
+          rodadasData = await processarTimesEmLotes(times, rodada, ligaId);
         }
 
-        // Busca pontos reais para cada time na rodada
-        console.log(`Buscando pontos da rodada ${rodada} na API do Cartola...`);
-        const rodadasComPontos = await Promise.all(
-          times.map(async (time) => {
-            const pontos = await buscarPontosRodada(time.id, rodada);
-            console.log(
-              `Time ${time.id} (${time.nome_time}) - Rodada ${rodada} - Pontos: ${pontos}`,
-            );
-            return {
-              ligaId,
-              rodada,
-              timeId: time.id,
-              nome_cartola: time.nome_cartoleiro || "N/D",
-              nome_time: time.nome_time || "N/D",
-              escudo: time.url_escudo_png || "",
-              clube_id: time.clube_id || "",
-              escudo_time_do_coracao: "",
-              pontos,
-              rodadaNaoJogada: false,
-            };
-          }),
-        );
-
-        const resultado = await Rodada.insertMany(rodadasComPontos);
-        registrosInseridos += resultado.length;
-        console.log(
-          `Rodada ${rodada} ${repopularBool ? "re" : ""}populada com sucesso. Inseridos ${resultado.length} registros.`,
-        );
+        // Inserir dados (dentro da transação)
+        if (rodadasData.length > 0) {
+          const resultado = await Rodada.insertMany(rodadasData, { session });
+          estatisticas.registrosInseridos += resultado.length;
+          console.log(
+            `✓ Inseridos ${resultado.length} registros na rodada ${rodada}`,
+          );
+        }
       }
+    });
 
-      res.status(200).json({
-        message: `Rodadas ${inicioNum} a ${fimNum} ${
-          repopularBool ? "repopuladas" : "populadas"
-        } com sucesso`,
-        estatisticas: {
-          rodadasProcessadas,
-          rodadasPuladas,
-          registrosInseridos,
-          timesEncontrados: times.length,
-          timesCadastrados: liga.times.length,
-          timesFaltantes: timesFaltantes.length > 0 ? timesFaltantes : [],
-        },
-      });
-    } catch (err) {
-      console.error("Erro ao acessar API do Cartola:", err.message);
-      return res.status(500).json({ error: "Erro ao acessar API do Cartola" });
-    }
+    console.log("\n=== Processo Concluído ===");
+    console.log(estatisticas);
+
+    // Resposta de sucesso
+    res.status(200).json({
+      message: `Rodadas ${inicioNum} a ${fimNum} ${repopularBool ? "repopuladas" : "populadas"} com sucesso`,
+      estatisticas,
+    });
   } catch (err) {
     console.error("Erro ao popular rodadas:", err.message);
-    res.status(500).json({ error: "Erro ao popular rodadas" });
+
+    // Erro mais descritivo
+    let errorMessage = "Erro ao popular rodadas";
+    if (err.message.includes("buffering timed out")) {
+      errorMessage = "Timeout na conexão com o banco de dados";
+    } else if (err.message.includes("ENOTFOUND")) {
+      errorMessage = "Erro ao conectar com a API do Cartola";
+    }
+
+    res.status(500).json({
+      error: errorMessage,
+      details: err.message,
+    });
+  } finally {
+    // Sempre finalizar a sessão
+    await session.endSession();
   }
 }

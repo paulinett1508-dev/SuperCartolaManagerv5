@@ -221,8 +221,32 @@ class DetalheLigaOrquestrador {
                     break;
 
                 case "rodadas":
+                    console.log("🎯 Iniciando carregamento do módulo rodadas");
+                    
+                    // AGUARDAR O HTML ESTAR NO DOM
+                    await new Promise(resolve => setTimeout(resolve, 100));
+                    
+                    // CRÍTICO: Garantir que o container existe e está ativo
+                    const rodadasContainer = document.getElementById("rodadas");
+                    if (rodadasContainer) {
+                        rodadasContainer.classList.add("active");
+                        console.log("✅ Container rodadas preparado e ativado");
+                    } else {
+                        console.error("❌ Container rodadas não encontrado no DOM");
+                    }
+                    
+                    // Aguardar mais um pouco para garantir
+                    await new Promise(resolve => setTimeout(resolve, 100));
+                    
+                    // Tentar carregar rodadas
                     if (this.modules.rodadas?.carregarRodadas) {
+                        console.log("📊 Executando via módulo");
                         await this.modules.rodadas.carregarRodadas();
+                    } else if (typeof window.carregarRodadas === 'function') {
+                        console.log("📊 Executando via window.carregarRodadas");
+                        await window.carregarRodadas();
+                    } else {
+                        console.error("❌ Função carregarRodadas não encontrada");
                     }
                     break;
 
