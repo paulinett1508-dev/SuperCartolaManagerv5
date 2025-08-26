@@ -1,6 +1,6 @@
 # 📊 Análise do Sistema Super Cartola Manager
 
-**Data da Análise:** 26/08/2025, 14:54:08
+**Data da Análise:** 26/08/2025, 19:33:29
 
 ---
 
@@ -44,6 +44,7 @@
 - 📋 **package.json** - 📦 Configuração npm/dependências
 - 📄 **replit.nix** - ❓ Arquivo genérico
 - 📖 **system-analysis-2025-08-25.md** - 📖 Documentação
+- 📖 **system-analysis-2025-08-26.md** - 📖 Documentação
 - 📜 **system-mapper.js** - 📝 Script JavaScript
 - 📜 **uploadToDrive.js** - 📝 Script JavaScript
 
@@ -124,6 +125,7 @@
 - 📄 **public/fronts/ranking-geral.html** - 🏅 Sistema de Rankings
   - 📏 Tamanho: 4KB | Linhas: 121
 - 📄 **public/fronts/rodadas.html** - 📅 Gestão de Rodadas
+  - 📏 Tamanho: 8KB | Linhas: 313
 - 📄 **public/fronts/top10.html** - 📄 Página HTML
   - 📏 Tamanho: 6KB | Linhas: 274
 - 📄 **public/gerenciar.html** - 📄 Página HTML
@@ -145,7 +147,7 @@
 - 📄 **public/js/cards-condicionais.js** - 📝 Script JavaScript
   - 📏 Tamanho: 10KB | Linhas: 343
 - 📄 **public/js/detalhe-liga-orquestrador.js** - 🏆 Funcionalidades de Liga
-  - 📏 Tamanho: 54KB | Linhas: 1346
+  - 📏 Tamanho: 57KB | Linhas: 1403
 - 📄 **public/js/detalhe-liga.js** - 🏆 Funcionalidades de Liga
   - 📏 Tamanho: 9KB | Linhas: 278
 - 📄 **public/js/exports/export-artilheiro-campeao.js** - ⚽ Sistema Artilheiro Campeão
@@ -207,7 +209,7 @@
 - 📄 **public/js/pontos-corridos.js** - 📝 Script JavaScript
   - 📏 Tamanho: 32KB | Linhas: 795
 - 📄 **public/js/ranking.js** - 🏅 Sistema de Rankings
-  - 📏 Tamanho: 14KB | Linhas: 374
+  - 📏 Tamanho: 14KB | Linhas: 392
 - 📄 **public/js/rodadas.js** - 📅 Gestão de Rodadas
   - 📏 Tamanho: 23KB | Linhas: 697
 - 📄 **public/js/seletor-ligas.js** - 🏆 Funcionalidades de Liga
@@ -302,7 +304,7 @@
 - 📄 **scripts/times-da-liga.json** - 🏆 Funcionalidades de Liga
   - 📏 Tamanho: 2KB | Linhas: 46
 
-### Documentação (17 arquivos)
+### Documentação (18 arquivos)
 
 - 📄 **HANDOVER.md** - 📖 Documentação
   - 📏 Tamanho: 3KB | Linhas: 135
@@ -338,6 +340,8 @@
   - 📏 Tamanho: 4KB | Linhas: 45
 - 📄 **system-analysis-2025-08-25.md** - 📖 Documentação
   - 📏 Tamanho: 22KB | Linhas: 510
+- 📄 **system-analysis-2025-08-26.md** - 📖 Documentação
+  - 📏 Tamanho: 22KB | Linhas: 516
 
 ### Assets (18 arquivos)
 
@@ -484,15 +488,15 @@
 
 | Métrica | Valor |
 |---------|-------|
-| **Total de arquivos** | 169 |
-| **Tamanho total** | 4681 KB |
+| **Total de arquivos** | 170 |
+| **Tamanho total** | 4714 KB |
 | **Tamanho médio** | 28 KB |
 
 ### 📋 Por Tipo de Arquivo
 
 | Tipo | Quantidade |
 |------|------------|
-| 📖 **docs** | 18 |
+| 📖 **docs** | 19 |
 | 🖼️ **assets** | 18 |
 | 🎨 **frontend** | 117 |
 | ⚙️ **config** | 11 |
@@ -502,8 +506,8 @@
 
 | Categoria | Quantidade | Descrição |
 |-----------|------------|----------|
-| 🟢 **Pequenos** | 73 | < 5KB |
-| 🟡 **Médios** | 91 | 5-50KB |
+| 🟢 **Pequenos** | 72 | < 5KB |
+| 🟡 **Médios** | 93 | 5-50KB |
 | 🔴 **Grandes** | 5 | > 50KB |
 
 ### 🔍 Insights da Arquitetura
