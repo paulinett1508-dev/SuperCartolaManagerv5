@@ -295,12 +295,12 @@ export async function carregarMataMata() {
 
 // Função para renderizar a interface
 function renderizarInterface(container, ligaId) {
-  console.log("[MATA-MATA] 🎨 Renderizando interface...");
+  console.log("[MATA-MATA] Renderizando interface...");
 
   const edicoesHtml = `
-    <div class="edicao-selector" style="margin-bottom:16px; text-align:center;">
-      <label for="edicao-select" style="font-weight:bold; margin-right:8px;">Edição:</label>
-      <select id="edicao-select" style="padding:6px 12px; border-radius:4px; border:1px solid #ccc;">
+    <div class="edicao-selector">
+      <label for="edicao-select">Edição:</label>
+      <select id="edicao-select">
         <option value="" selected disabled>Selecione uma edição</option>
         ${edicoes
           .map(
@@ -317,7 +317,7 @@ function renderizarInterface(container, ligaId) {
 
   const fasesHtml = `
     <div id="fase-nav-container" style="display:none;">
-      <div class="fase-nav" style="margin-bottom:16px;">
+      <div class="fase-nav">
         <button class="fase-btn active" data-fase="primeira">1ª FASE</button>
         <button class="fase-btn" data-fase="oitavas">OITAVAS</button>
         <button class="fase-btn" data-fase="quartas">QUARTAS</button>
@@ -326,8 +326,8 @@ function renderizarInterface(container, ligaId) {
       </div>
     </div>
     <div id="mataMataContent">
-      <div class="instrucao-inicial" style="text-align:center; padding:40px 20px; background:#f8f9fa; border-radius:8px; margin:20px 0;">
-        <p style="font-size:16px; color:#666;">Por favor, selecione uma edição do Mata-Mata para visualizar os confrontos.</p>
+      <div class="instrucao-inicial">
+        <p>Por favor, selecione uma edição do Mata-Mata para visualizar os confrontos.</p>
       </div>
     </div>
   `;
@@ -345,7 +345,7 @@ function renderizarInterface(container, ligaId) {
         if (controller.signal.aborted) return;
 
         edicaoAtual = parseInt(this.value);
-        console.log(`[MATA-MATA] 📋 Edição selecionada: ${edicaoAtual}`);
+        console.log(`[MATA-MATA] Edição selecionada: ${edicaoAtual}`);
 
         const faseNavContainer = document.getElementById("fase-nav-container");
         if (faseNavContainer) faseNavContainer.style.display = "block";
@@ -361,7 +361,6 @@ function renderizarInterface(container, ligaId) {
         carregarFase("primeira", ligaId);
       }, 300);
 
-      // Cleanup no unload
       window.addEventListener(
         "beforeunload",
         () => {
@@ -378,12 +377,10 @@ function renderizarInterface(container, ligaId) {
       if (!edicaoAtual) {
         const message =
           "Por favor, selecione uma edição do Mata-Mata primeiro.";
-        console.warn(`[MATA-MATA] ⚠️ ${message}`);
+        console.warn(`[MATA-MATA] ${message}`);
 
         const alertDiv = document.createElement("div");
         alertDiv.className = "alert alert-warning";
-        alertDiv.style.cssText =
-          "margin: 10px 0; padding: 12px; background: #fff3cd; border: 1px solid #ffeaa7; color: #856404; border-radius: 6px; text-align: center;";
         alertDiv.textContent = message;
 
         const contentDiv = document.getElementById("mataMataContent");
@@ -400,7 +397,7 @@ function renderizarInterface(container, ligaId) {
       this.classList.add("active");
 
       const fase = this.getAttribute("data-fase");
-      console.log(`[MATA-MATA] 🎯 Fase selecionada: ${fase}`);
+      console.log(`[MATA-MATA] Fase selecionada: ${fase}`);
       carregarFase(fase, ligaId);
     });
   });
