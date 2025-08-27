@@ -192,7 +192,6 @@ class DetalheLigaOrquestrador {
                     break;
 
                 case "participantes":
-                    // DELEGAR para módulo específico
                     if (
                         typeof window.carregarParticipantesComBrasoes ===
                         "function"
