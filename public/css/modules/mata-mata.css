@@ -8,6 +8,129 @@
   margin: var(--spacing-md, 15px) 0;
 }
 
+/* Header do Mata-Mata */
+.mata-mata-header {
+  padding: 12px 0 8px 0;
+  text-align: center;
+  margin-bottom: var(--spacing-md, 15px);
+}
+
+.mata-mata-titulo {
+  font-size: 20px;
+  font-weight: 700;
+  color: var(--text-primary, #ffffff);
+  font-family: "Inter", -apple-system, sans-serif;
+}
+
+.mata-mata-subtitulo {
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--laranja, #FF4500);
+  margin-top: 2px;
+}
+
+.mata-mata-confronto {
+  font-size: 16px;
+  color: var(--text-primary, #ffffff);
+  background: linear-gradient(135deg, var(--laranja, #ff4500) 0%, var(--laranja-dark, #e8472b) 100%);
+  display: inline-block;
+  padding: 8px 22px;
+  border-radius: var(--border-radius-lg, 16px);
+  font-weight: 700;
+  margin: 16px 0 10px 0;
+  letter-spacing: 1px;
+  box-shadow: 0 4px 15px rgba(255, 69, 0, 0.4);
+}
+
+.mata-mata-rodada {
+  font-size: 13px;
+  color: var(--laranja, #FF4500);
+  margin-bottom: 10px;
+  font-weight: 600;
+}
+
+/* Container da Tabela */
+.mata-mata-table-container {
+  overflow-x: auto;
+  border-radius: var(--border-radius-lg, 12px);
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.4);
+}
+
+/* Tabela Principal */
+.mata-mata-table {
+  width: 100%;
+  max-width: 600px;
+  margin: 0 auto;
+  border-collapse: separate;
+  border-spacing: 0;
+  background: var(--bg-card, #1e1e1e);
+  border-radius: var(--border-radius-lg, 12px);
+  overflow: hidden;
+  font-size: 13px;
+  font-family: "Inter", -apple-system, sans-serif;
+}
+
+.mata-mata-table thead tr {
+  background: rgba(255, 69, 0, 0.1);
+}
+
+.mata-mata-table thead th {
+  padding: 12px 8px;
+  font-weight: 700;
+  color: var(--laranja, #FF4500);
+  text-align: center;
+  font-size: 12px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  border-bottom: 1px solid rgba(255, 69, 0, 0.2);
+}
+
+.mata-mata-table tbody tr {
+  border-bottom: 1px solid rgba(255, 69, 0, 0.1);
+  transition: all 0.2s ease;
+}
+
+.mata-mata-table tbody tr:hover {
+  background: rgba(255, 69, 0, 0.05);
+}
+
+.mata-mata-table tbody td {
+  padding: 10px 8px;
+  vertical-align: middle;
+}
+
+/* Células Específicas */
+.jogo-cell {
+  font-weight: 600;
+  color: var(--laranja, #FF4500);
+  text-align: center;
+  min-width: 50px;
+}
+
+.time-cell {
+  text-align: left;
+}
+
+.escudo-img {
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  border: 1px solid rgba(255, 69, 0, 0.3);
+  flex-shrink: 0;
+}
+
+.pontos-valor {
+  font-weight: 700;
+  font-size: 13px;
+}
+
+.vs-cell {
+  font-weight: 700;
+  color: var(--laranja, #FF4500);
+  text-align: center;
+  min-width: 30px;
+}
+
 /* Seletor de Edição */
 .edicao-selector {
   margin-bottom: 16px;
