@@ -5,15 +5,8 @@ import { carregarPontosCorridos } from "./pontos-corridos/pontos-corridos-orques
 import {
   getConfrontosLigaPontosCorridos,
   calcularFinanceiroConfronto,
+  getRodadaPontosText,
 } from "./pontos-corridos/pontos-corridos-core.js";
-
-// Função getRodadaPontosText para compatibilidade com mata-mata
-function getRodadaPontosText(rodadaLiga, edicao) {
-  if (!rodadaLiga) return "Rodada não definida";
-  const RODADA_INICIAL = 7;
-  const rodadaBrasileirao = RODADA_INICIAL + (rodadaLiga - 1);
-  return `${rodadaLiga}ª Rodada da Liga (Rodada ${rodadaBrasileirao}ª do Brasileirão)`;
-}
 
 // Exportar função principal
 export { carregarPontosCorridos };
