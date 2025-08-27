@@ -59,15 +59,29 @@ class DetalheLigaOrquestrador {
         if (this.loadedCSS.has(moduleName)) return;
 
         try {
-            const response = await fetch(`/css/modules/${moduleName}.css`);
-            if (response.ok) {
-                const cssContent = await response.text();
-                const styleElement = document.createElement("style");
-                styleElement.id = `module-css-${moduleName}`;
-                styleElement.textContent = cssContent;
-                document.head.appendChild(styleElement);
-                this.loadedCSS.add(moduleName);
-                console.log(`✅ CSS do módulo ${moduleName} carregado`);
+            // CORREÇÃO: Verificar múltiplos caminhos possíveis
+            const possiblePaths = [
+                `/css/modules/${moduleName}.css`,
+                `/${moduleName}.css`,
+                `/css/${moduleName}.css`
+            ];
+
+            for (const path of possiblePaths) {
+                try {
+                    const response = await fetch(path);
+                    if (response.ok) {
+                        const cssContent = await response.text();
+                        const styleElement = document.createElement("style");
+                        styleElement.id = `module-css-${moduleName}`;
+                        styleElement.textContent = cssContent;
+                        document.head.appendChild(styleElement);
+                        this.loadedCSS.add(moduleName);
+                        console.log(`✅ CSS do módulo ${moduleName} carregado de: ${path}`);
+                        return;
+                    }
+                } catch (pathError) {
+                    continue;
+                }
             }
         } catch (error) {
             console.log(`ℹ️ CSS do módulo ${moduleName} não encontrado`);
