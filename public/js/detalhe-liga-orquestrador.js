@@ -38,7 +38,7 @@ class DetalheLigaOrquestrador {
 
             console.log("✅ Orquestrador inicializado com sucesso");
         } catch (error) {
-            console.error("❌ Erro na inicialização:", error);
+            console.error("⌐ Erro na inicialização:", error);
         }
     }
 
@@ -59,7 +59,6 @@ class DetalheLigaOrquestrador {
         if (this.loadedCSS.has(moduleName)) return;
 
         try {
-            // CORREÇÃO: Verificar múltiplos caminhos possíveis
             const possiblePaths = [
                 `/css/modules/${moduleName}.css`,
                 `/${moduleName}.css`,
@@ -106,7 +105,7 @@ class DetalheLigaOrquestrador {
             await this.executeModuleScripts(moduleName);
             return { success: true, html };
         } catch (error) {
-            console.error(`❌ Erro ao carregar módulo ${moduleName}:`, error);
+            console.error(`⌐ Erro ao carregar módulo ${moduleName}:`, error);
 
             const contentArea = document.getElementById("dynamic-content-area");
             if (contentArea) {
@@ -159,7 +158,6 @@ class DetalheLigaOrquestrador {
                     break;
 
                 case "mata-mata":
-                    // Wait for container to be available
                     await new Promise((resolve) => setTimeout(resolve, 50));
                     const mataMataContainer =
                         document.getElementById("mata-mata");
@@ -172,14 +170,12 @@ class DetalheLigaOrquestrador {
                     break;
 
                 case "pontos-corridos":
-                    // Wait for container to be available
                     await new Promise((resolve) => setTimeout(resolve, 50));
                     const pontosCorridosContainer =
                         document.getElementById("pontos-corridos");
                     if (pontosCorridosContainer)
                         pontosCorridosContainer.classList.add("active");
 
-                    // CORREÇÃO: Chamar função correta do módulo
                     if (this.modules.pontosCorreidos?.carregarPontosCorridos) {
                         await this.modules.pontosCorreidos.carregarPontosCorridos();
                     } else if (
@@ -246,7 +242,7 @@ class DetalheLigaOrquestrador {
                     break;
             }
         } catch (error) {
-            console.error(`❌ Erro ao executar módulo ${moduleName}:`, error);
+            console.error(`⌐ Erro ao executar módulo ${moduleName}:`, error);
         }
     }
 
@@ -404,10 +400,14 @@ class DetalheLigaOrquestrador {
             this.modules.mataMata = await import("./mata-mata.js");
             this.modules.pontosCorreidos = await import("./pontos-corridos.js");
             this.modules.luvaDeOuro = await import("./luva-de-ouro.js");
-            this.modules.artilheiroCampeao = await import("./artilheiro-campeao.js");
+            this.modules.artilheiroCampeao = await import(
+                "./artilheiro-campeao.js"
+            );
             this.modules.melhorMes = await import("./melhor-mes.js");
             this.modules.top10 = await import("./top10.js");
-            this.modules.fluxoFinanceiro = await import("./fluxo-financeiro.js");
+            this.modules.fluxoFinanceiro = await import(
+                "./fluxo-financeiro.js"
+            );
         } catch (error) {
             console.error("Erro ao carregar módulos:", error);
         }

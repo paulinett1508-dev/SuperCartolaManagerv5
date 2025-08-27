@@ -1,6 +1,6 @@
 # 📊 Análise do Sistema Super Cartola Manager
 
-**Data da Análise:** 27/08/2025, 21:07:42
+**Data da Análise:** 27/08/2025, 23:41:29
 
 ---
 
@@ -33,6 +33,7 @@
 
 ### 📄 Arquivos na Raiz
 
+- 📖 **UX_PATTERNS.md** - 📖 Documentação
 - 📜 **backupJson.js** - 📝 Script JavaScript
 - 📜 **backupScheduler.js** - 📝 Script JavaScript
 - 📋 **credentials.json** - 📋 Dados JSON
@@ -45,6 +46,7 @@
 - 📋 **package-lock.json** - 📋 Dados JSON
 - 📋 **package.json** - 📦 Configuração npm/dependências
 - 📄 **replit.nix** - ❓ Arquivo genérico
+- 📖 **system-analysis-2025-08-27.md** - 📖 Documentação
 - 📜 **system-mapper.js** - 📝 Script JavaScript
 - 📜 **uploadToDrive.js** - 📝 Script JavaScript
 - 📜 **ux-analyzer.js** - 📝 Script JavaScript
@@ -109,7 +111,7 @@
 - 📄 **public/css/modules/participantes.css** - 🧩 Módulo do sistema
   - 📏 Tamanho: 9KB | Linhas: 456
 - 📄 **public/css/modules/pontos-corridos.css** - 🧩 Módulo do sistema
-  - 📏 Tamanho: 7KB | Linhas: 304
+  - 📏 Tamanho: 7KB | Linhas: 310
 - 📄 **public/css/modules/ranking-geral.css** - 🧩 Módulo do sistema
   - 📏 Tamanho: 7KB | Linhas: 312
 - 📄 **public/dashboard.html** - 📊 Dashboard/Painel principal
@@ -133,7 +135,7 @@
 - 📄 **public/fronts/participantes.html** - 📄 Página HTML
   - 📏 Tamanho: 3KB | Linhas: 86
 - 📄 **public/fronts/pontos-corridos.html** - 📄 Página HTML
-  - 📏 Tamanho: 7KB | Linhas: 299
+  - 📏 Tamanho: 7KB | Linhas: 312
 - 📄 **public/fronts/ranking-geral.html** - 🏅 Sistema de Rankings
   - 📏 Tamanho: 4KB | Linhas: 121
 - 📄 **public/fronts/rodadas.html** - 📅 Gestão de Rodadas
@@ -165,7 +167,7 @@
 - 📄 **public/js/criar-liga.js** - 🏆 Funcionalidades de Liga
   - 📏 Tamanho: 11KB | Linhas: 332
 - 📄 **public/js/detalhe-liga-orquestrador.js** - 🏆 Funcionalidades de Liga
-  - 📏 Tamanho: 18KB | Linhas: 471
+  - 📏 Tamanho: 18KB | Linhas: 493
 - 📄 **public/js/detalhe-liga.js** - 🏆 Funcionalidades de Liga
   - 📏 Tamanho: 9KB | Linhas: 278
 - 📄 **public/js/editar-liga.js** - 🏆 Funcionalidades de Liga
@@ -239,9 +241,9 @@
 - 📄 **public/js/pontos-corridos/pontos-corridos-cache.js** - 📝 Script JavaScript
   - 📏 Tamanho: 6KB | Linhas: 211
 - 📄 **public/js/pontos-corridos/pontos-corridos-config.js** - ⚙️ Arquivo de configuração
-  - 📏 Tamanho: 3KB | Linhas: 104
+  - 📏 Tamanho: 3KB | Linhas: 109
 - 📄 **public/js/pontos-corridos/pontos-corridos-core.js** - 📝 Script JavaScript
-  - 📏 Tamanho: 14KB | Linhas: 489
+  - 📏 Tamanho: 25KB | Linhas: 794
 - 📄 **public/js/pontos-corridos/pontos-corridos-orquestrador.js** - 📝 Script JavaScript
   - 📏 Tamanho: 13KB | Linhas: 475
 - 📄 **public/js/pontos-corridos/pontos-corridos-ui.js** - 📝 Script JavaScript
@@ -249,7 +251,7 @@
 - 📄 **public/js/pontos-corridos-utils.js** - 📝 Script JavaScript
   - 📏 Tamanho: 7KB | Linhas: 225
 - 📄 **public/js/pontos-corridos.js** - 📝 Script JavaScript
-  - 📏 Tamanho: 29KB | Linhas: 810
+  - 📏 Tamanho: 1KB | Linhas: 31
 - 📄 **public/js/ranking.js** - 🏅 Sistema de Rankings
   - 📏 Tamanho: 14KB | Linhas: 392
 - 📄 **public/js/rodadas.js** - 📅 Gestão de Rodadas
@@ -344,8 +346,10 @@
 - 📄 **scripts/times-da-liga.json** - 🏆 Funcionalidades de Liga
   - 📏 Tamanho: 2KB | Linhas: 46
 
-### Documentação (4 arquivos)
+### Documentação (6 arquivos)
 
+- 📄 **UX_PATTERNS.md** - 📖 Documentação
+  - 📏 Tamanho: 7KB | Linhas: 364
 - 📄 **attached_assets/Pasted--CORRE-ES-CIR-RGICAS-PARA-MATA-MATA-JS-Aplicar-nas-linhas-indicadas-CORRE-O-1-F-1756314752908_1756314752909.txt** - ❓ Arquivo genérico
   - 📏 Tamanho: 3KB | Linhas: 103
 - 📄 **attached_assets/Pasted--Fun-o-para-renderizar-a-interface-CORRIGIDA-function-renderizarInterface-container-ligaId--1756320632486_1756320632487.txt** - 🏆 Funcionalidades de Liga
@@ -354,6 +358,8 @@
   - 📏 Tamanho: 3KB | Linhas: 88
 - 📄 **attached_assets/Pasted--workspace-node-ux-analyzer-js-UX-PATTERN-AN-1756293155254_1756293155254.txt** - ❓ Arquivo genérico
   - 📏 Tamanho: 13KB | Linhas: 240
+- 📄 **system-analysis-2025-08-27.md** - 📖 Documentação
+  - 📏 Tamanho: 22KB | Linhas: 542
 
 ### Assets (18 arquivos)
 
@@ -490,7 +496,7 @@
 #### 📜 public/js/pontos-corridos/pontos-corridos-config.js
 
 - **Propósito:** ⚙️ Arquivo de configuração
-- **Tamanho:** 3KB | **Linhas:** 104
+- **Tamanho:** 3KB | **Linhas:** 109
 
 #### 📜 routes/configuracao-routes.js
 
@@ -510,15 +516,15 @@
 
 | Métrica | Valor |
 |---------|-------|
-| **Total de arquivos** | 174 |
-| **Tamanho total** | 4761 KB |
+| **Total de arquivos** | 176 |
+| **Tamanho total** | 4774 KB |
 | **Tamanho médio** | 27 KB |
 
 ### 📋 Por Tipo de Arquivo
 
 | Tipo | Quantidade |
 |------|------------|
-| 📖 **docs** | 5 |
+| 📖 **docs** | 7 |
 | 🖼️ **assets** | 18 |
 | 🎨 **frontend** | 136 |
 | ⚙️ **config** | 11 |
@@ -528,8 +534,8 @@
 
 | Categoria | Quantidade | Descrição |
 |-----------|------------|----------|
-| 🟢 **Pequenos** | 72 | < 5KB |
-| 🟡 **Médios** | 98 | 5-50KB |
+| 🟢 **Pequenos** | 73 | < 5KB |
+| 🟡 **Médios** | 99 | 5-50KB |
 | 🔴 **Grandes** | 4 | > 50KB |
 
 ### 🔍 Insights da Arquitetura
