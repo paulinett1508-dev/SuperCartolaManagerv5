@@ -326,9 +326,6 @@
 
             <!-- Conteúdo principal -->
             <main class="app-main">
-                <!-- Header será injetado aqui -->
-                <div id="header-placeholder"></div>
-
                 <!-- Conteúdo da página -->
                 <div class="page-content">
                     <!-- Breadcrumb -->
@@ -482,7 +479,7 @@
             let ligaData = null;
             let isRequestInProgress = false;
 
-            // === CARREGAR LAYOUT ===
+            // === CARREGAR LAYOUT (APENAS SIDEBAR) ===
             async function loadLayout() {
                 try {
                     const response = await fetch("layout.html");
@@ -491,7 +488,7 @@
                     const parser = new DOMParser();
                     const doc = parser.parseFromString(layoutHtml, "text/html");
 
-                    // Injetar sidebar
+                    // Injetar APENAS sidebar
                     const sidebar = doc.querySelector(".app-sidebar");
                     if (sidebar) {
                         document
@@ -499,23 +496,7 @@
                             .replaceWith(sidebar);
                     }
 
-                    // Injetar header
-                    const header = doc.querySelector(".page-header");
-                    if (header) {
-                        // Atualizar título do header para esta página
-                        const pageTitle = header.querySelector("#pageTitle");
-                        const pageSubtitle =
-                            header.querySelector("#pageSubtitle");
-                        if (pageTitle)
-                            pageTitle.textContent = "⚙️ Popular Rodadas";
-                        if (pageSubtitle)
-                            pageSubtitle.textContent =
-                                "Importar dados das rodadas do Cartola FC";
-
-                        document
-                            .getElementById("header-placeholder")
-                            .replaceWith(header);
-                    }
+                    // NÃO injetar header - removido por redundância
 
                     // Executar scripts do layout
                     const scripts = doc.querySelectorAll("script");

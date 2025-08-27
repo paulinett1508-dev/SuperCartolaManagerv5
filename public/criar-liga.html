@@ -1,72 +1,976 @@
 <!doctype html>
-<html lang="pt-br">
-  <head>
-    <meta charset="UTF-8" />
-    <title>Nova Liga</title>
-    <style>
-      body {
-        font-family: Arial, sans-serif;
-        background: #f5f5f5;
-        padding: 20px;
-      }
-      .container {
-        max-width: 600px;
-        margin: auto;
-        background: #fff;
-        padding: 20px;
-        border-radius: 8px;
-        box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
-      }
-      h2 {
-        text-align: center;
-        margin-bottom: 20px;
-      }
-      input,
-      button {
-        width: 100%;
-        padding: 10px;
-        margin: 10px 0;
-        font-size: 16px;
-      }
-      ul {
-        list-style: none;
-        padding: 0;
-      }
-      li {
-        background: #eee;
-        margin-bottom: 6px;
-        padding: 8px;
-        border-radius: 4px;
-      }
-      #loading {
-        display: none;
-        text-align: center;
-        color: #555;
-      }
-      .back-btn {
-        background: #ccc;
-        color: #333;
-        text-align: center;
-        text-decoration: none;
-        display: block;
-        margin-top: 10px;
-      }
-    </style>
-  </head>
-  <body>
-    <div class="container">
-      <h2>📋 Finalizar Criação da Liga</h2>
+<html lang="pt-BR">
+    <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <title>Criar Nova Liga - Super Cartola Manager</title>
+        <link rel="shortcut icon" href="favicon.ico" type="image/x-icon" />
 
-      <input type="text" id="nomeLiga" placeholder="Digite o nome da liga" />
+        <!-- CSS PADRÃO DO SISTEMA -->
+        <link rel="stylesheet" href="style.css" />
+        <link rel="stylesheet" href="css/base.css" />
 
-      <h4>✅ Times selecionados:</h4>
-      <ul id="listaTimes"></ul>
+        <style>
+            /* Container Principal */
+            .criar-container {
+                max-width: 700px;
+                margin: 0 auto;
+                background: var(--gradient-card);
+                border-radius: 16px;
+                padding: 30px;
+                box-shadow: var(--shadow-lg);
+                border: 1px solid var(--border-primary);
+                position: relative;
+                overflow: hidden;
+            }
 
-      <button onclick="salvarLiga()">💾 Salvar Liga</button>
-      <div id="loading">⏳ Salvando liga...</div>
-      <div id="resposta"></div>
-    </div>
+            .criar-container::before {
+                content: "";
+                position: absolute;
+                top: 0;
+                left: 0;
+                right: 0;
+                height: 4px;
+                background: var(--gradient-primary);
+                box-shadow: var(--shadow-glow);
+            }
 
-    <script src="criar-liga.js"></script>
-  </body>
+            /* Progress Steps */
+            .progress-steps {
+                display: flex;
+                justify-content: center;
+                margin-bottom: 30px;
+                gap: 30px;
+            }
+
+            .step {
+                display: flex;
+                align-items: center;
+                gap: 10px;
+                opacity: 0.5;
+                transition: all 0.3s ease;
+            }
+
+            .step.active {
+                opacity: 1;
+            }
+
+            .step-number {
+                width: 32px;
+                height: 32px;
+                background: rgba(255, 69, 0, 0.2);
+                border: 2px solid rgba(255, 69, 0, 0.4);
+                border-radius: 50%;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                font-weight: 700;
+                font-size: 14px;
+                color: var(--text-muted);
+                transition: all 0.3s ease;
+            }
+
+            .step.active .step-number {
+                background: var(--gradient-primary);
+                border-color: var(--laranja);
+                color: white;
+                box-shadow: 0 0 15px rgba(255, 69, 0, 0.5);
+            }
+
+            .step-label {
+                font-size: 13px;
+                color: var(--text-muted);
+                font-weight: 600;
+            }
+
+            .step.active .step-label {
+                color: var(--text-primary);
+            }
+
+            /* Etapas */
+            .etapa {
+                display: none;
+                animation: fadeInUp 0.3s ease-out;
+            }
+
+            .etapa.active {
+                display: block;
+            }
+
+            /* Busca de Times */
+            .search-section {
+                margin-bottom: 25px;
+            }
+
+            .search-header {
+                margin-bottom: 20px;
+            }
+
+            .search-title {
+                font-size: 20px;
+                font-weight: 700;
+                color: var(--text-primary);
+                margin-bottom: 8px;
+            }
+
+            .search-subtitle {
+                font-size: 13px;
+                color: var(--text-muted);
+            }
+
+            .search-form {
+                display: flex;
+                gap: 10px;
+                margin-bottom: 20px;
+            }
+
+            .search-input {
+                flex: 1;
+                padding: 12px 16px;
+                font-size: 14px;
+                background: var(--bg-card);
+                border: 1px solid var(--border-primary);
+                border-radius: 8px;
+                color: var(--text-primary);
+                transition: all 0.3s ease;
+            }
+
+            .search-input:focus {
+                border-color: var(--laranja);
+                box-shadow: 0 0 0 3px var(--laranja-alpha);
+                background: var(--bg-card-hover);
+            }
+
+            .btn-search {
+                padding: 12px 24px;
+                background: var(--gradient-primary);
+                color: white;
+                border: none;
+                border-radius: 8px;
+                font-size: 14px;
+                font-weight: 700;
+                cursor: pointer;
+                transition: all 0.3s ease;
+                box-shadow: var(--shadow-orange);
+            }
+
+            .btn-search:hover:not(:disabled) {
+                transform: translateY(-2px);
+                box-shadow: 0 8px 32px rgba(255, 69, 0, 0.5);
+            }
+
+            .btn-search:disabled {
+                opacity: 0.5;
+                cursor: not-allowed;
+            }
+
+            /* Resultado da Busca */
+            .search-result {
+                background: rgba(255, 69, 0, 0.05);
+                border: 1px solid rgba(255, 69, 0, 0.2);
+                border-radius: 8px;
+                padding: 15px;
+                margin-bottom: 20px;
+                display: none;
+            }
+
+            .search-result.active {
+                display: block;
+            }
+
+            .result-item {
+                display: flex;
+                align-items: center;
+                justify-content: space-between;
+                gap: 15px;
+            }
+
+            .result-info {
+                display: flex;
+                align-items: center;
+                gap: 12px;
+                flex: 1;
+            }
+
+            .result-escudo {
+                width: 40px;
+                height: 40px;
+                border-radius: 50%;
+                object-fit: cover;
+                border: 2px solid var(--border-primary);
+            }
+
+            .result-details {
+                flex: 1;
+            }
+
+            .result-nome {
+                font-size: 14px;
+                color: var(--text-primary);
+                font-weight: 600;
+                margin-bottom: 2px;
+            }
+
+            .result-cartoleiro {
+                font-size: 12px;
+                color: var(--text-muted);
+            }
+
+            .btn-add {
+                padding: 8px 16px;
+                background: var(--success);
+                color: white;
+                border: none;
+                border-radius: 6px;
+                font-size: 13px;
+                font-weight: 600;
+                cursor: pointer;
+                transition: all 0.3s ease;
+            }
+
+            .btn-add:hover {
+                transform: translateY(-1px);
+                box-shadow: 0 4px 12px rgba(34, 197, 94, 0.4);
+            }
+
+            .btn-add:disabled {
+                background: var(--text-muted);
+                cursor: not-allowed;
+            }
+
+            /* Times Selecionados */
+            .times-section {
+                background: rgba(255, 69, 0, 0.05);
+                border: 1px solid rgba(255, 69, 0, 0.2);
+                border-radius: 8px;
+                padding: 20px;
+                margin-bottom: 25px;
+            }
+
+            .times-header {
+                display: flex;
+                justify-content: space-between;
+                align-items: center;
+                margin-bottom: 15px;
+            }
+
+            .times-title {
+                font-size: 14px;
+                color: var(--text-primary);
+                font-weight: 600;
+                display: flex;
+                align-items: center;
+                gap: 8px;
+            }
+
+            .times-count {
+                background: var(--gradient-primary);
+                color: white;
+                padding: 4px 10px;
+                border-radius: 12px;
+                font-size: 12px;
+                font-weight: 700;
+            }
+
+            .times-list {
+                list-style: none;
+                padding: 0;
+                margin: 0;
+                max-height: 250px;
+                overflow-y: auto;
+            }
+
+            .time-item {
+                background: var(--bg-card);
+                border: 1px solid var(--border-primary);
+                border-radius: 6px;
+                padding: 10px 12px;
+                margin-bottom: 8px;
+                display: flex;
+                align-items: center;
+                justify-content: space-between;
+                transition: all 0.3s ease;
+            }
+
+            .time-item:hover {
+                background: var(--bg-card-hover);
+                border-color: var(--laranja);
+            }
+
+            .time-info {
+                display: flex;
+                align-items: center;
+                gap: 10px;
+                flex: 1;
+            }
+
+            .time-escudo {
+                width: 24px;
+                height: 24px;
+                border-radius: 50%;
+                object-fit: cover;
+            }
+
+            .time-details {
+                flex: 1;
+            }
+
+            .time-nome {
+                font-size: 13px;
+                color: var(--text-primary);
+                font-weight: 600;
+            }
+
+            .time-cartoleiro {
+                font-size: 11px;
+                color: var(--text-muted);
+            }
+
+            .btn-remove {
+                background: rgba(239, 68, 68, 0.1);
+                color: var(--danger);
+                border: 1px solid rgba(239, 68, 68, 0.3);
+                padding: 4px 8px;
+                border-radius: 4px;
+                font-size: 11px;
+                cursor: pointer;
+                transition: all 0.3s ease;
+            }
+
+            .btn-remove:hover {
+                background: var(--danger);
+                color: white;
+            }
+
+            /* Nome da Liga */
+            .form-group {
+                margin-bottom: 25px;
+            }
+
+            .form-label {
+                display: block;
+                font-size: 13px;
+                color: var(--text-secondary);
+                margin-bottom: 8px;
+                font-weight: 600;
+                text-transform: uppercase;
+                letter-spacing: 0.5px;
+            }
+
+            .form-input {
+                width: 100%;
+                padding: 12px 16px;
+                font-size: 15px;
+                background: var(--bg-card);
+                border: 1px solid var(--border-primary);
+                border-radius: 8px;
+                color: var(--text-primary);
+                transition: all 0.3s ease;
+            }
+
+            .form-input:focus {
+                border-color: var(--laranja);
+                box-shadow: 0 0 0 3px var(--laranja-alpha);
+                background: var(--bg-card-hover);
+            }
+
+            /* Botões de Navegação */
+            .navigation-buttons {
+                display: flex;
+                gap: 12px;
+                margin-top: 25px;
+            }
+
+            .btn-secondary {
+                flex: 1;
+                padding: 12px 20px;
+                background: var(--bg-card);
+                color: var(--text-secondary);
+                border: 1px solid var(--border-primary);
+                border-radius: 8px;
+                font-size: 14px;
+                font-weight: 600;
+                cursor: pointer;
+                transition: all 0.3s ease;
+            }
+
+            .btn-secondary:hover {
+                background: var(--bg-card-hover);
+                border-color: var(--laranja);
+                color: var(--laranja);
+            }
+
+            .btn-primary {
+                flex: 1;
+                padding: 12px 24px;
+                background: var(--gradient-primary);
+                color: white;
+                border: none;
+                border-radius: 8px;
+                font-size: 14px;
+                font-weight: 700;
+                cursor: pointer;
+                transition: all 0.3s ease;
+                box-shadow: var(--shadow-orange);
+            }
+
+            .btn-primary:hover:not(:disabled) {
+                transform: translateY(-2px);
+                box-shadow: 0 8px 32px rgba(255, 69, 0, 0.5);
+            }
+
+            .btn-primary:disabled {
+                opacity: 0.5;
+                cursor: not-allowed;
+            }
+
+            /* Alerts */
+            .alert {
+                padding: 12px 16px;
+                border-radius: 8px;
+                margin-bottom: 20px;
+                font-size: 13px;
+                display: none;
+            }
+
+            .alert.active {
+                display: block;
+                animation: fadeInUp 0.3s ease-out;
+            }
+
+            .alert-success {
+                background: rgba(34, 197, 94, 0.2);
+                border: 1px solid var(--success);
+                color: var(--success);
+            }
+
+            .alert-error {
+                background: rgba(239, 68, 68, 0.2);
+                border: 1px solid var(--danger);
+                color: var(--danger);
+            }
+
+            .alert-info {
+                background: rgba(59, 130, 246, 0.2);
+                border: 1px solid var(--info);
+                color: var(--info);
+            }
+
+            .empty-state {
+                text-align: center;
+                padding: 30px 20px;
+                color: var(--text-muted);
+            }
+
+            .empty-icon {
+                font-size: 40px;
+                margin-bottom: 10px;
+                opacity: 0.5;
+            }
+
+            .empty-text {
+                font-size: 13px;
+            }
+
+            @keyframes fadeInUp {
+                from {
+                    opacity: 0;
+                    transform: translateY(20px);
+                }
+                to {
+                    opacity: 1;
+                    transform: translateY(0);
+                }
+            }
+
+            .loading {
+                text-align: center;
+                padding: 10px;
+                color: var(--laranja);
+                font-size: 14px;
+            }
+        </style>
+    </head>
+    <body>
+        <div class="app-container">
+            <!-- Sidebar será injetado aqui -->
+            <div id="sidebar-placeholder"></div>
+
+            <!-- Conteúdo principal -->
+            <main class="app-main">
+                <div class="page-content">
+                    <!-- Breadcrumb -->
+                    <nav class="breadcrumb">
+                        <a href="dashboard.html">Dashboard</a>
+                        <span class="separator">›</span>
+                        <a href="ferramentas.html">Ferramentas</a>
+                        <span class="separator">›</span>
+                        <span class="current">Criar Liga</span>
+                    </nav>
+
+                    <!-- Container Principal -->
+                    <div class="criar-container">
+                        <!-- Progress Steps -->
+                        <div class="progress-steps">
+                            <div class="step active" id="step1">
+                                <div class="step-number">1</div>
+                                <div class="step-label">Adicionar Times</div>
+                            </div>
+                            <div class="step" id="step2">
+                                <div class="step-number">2</div>
+                                <div class="step-label">Finalizar Liga</div>
+                            </div>
+                        </div>
+
+                        <!-- Mensagens -->
+                        <div id="alertMessage" class="alert"></div>
+
+                        <!-- Etapa 1: Buscar Times -->
+                        <div class="etapa active" id="etapa1">
+                            <div class="search-section">
+                                <div class="search-header">
+                                    <h3 class="search-title">
+                                        Buscar Times do Cartola FC
+                                    </h3>
+                                    <p class="search-subtitle">
+                                        Pesquise pelo ID do time e adicione à
+                                        sua liga
+                                    </p>
+                                </div>
+
+                                <div class="search-form">
+                                    <input
+                                        type="text"
+                                        id="searchInput"
+                                        class="search-input"
+                                        placeholder="Digite o ID do time (apenas números)"
+                                        pattern="[0-9]*"
+                                    />
+                                    <button
+                                        onclick="buscarTime()"
+                                        class="btn-search"
+                                        id="searchBtn"
+                                    >
+                                        🔍 Buscar
+                                    </button>
+                                </div>
+
+                                <div id="searchResult" class="search-result">
+                                    <!-- Resultado será inserido aqui -->
+                                </div>
+
+                                <div
+                                    id="loadingSearch"
+                                    class="loading"
+                                    style="display: none"
+                                >
+                                    Buscando time...
+                                </div>
+                            </div>
+
+                            <div class="times-section">
+                                <div class="times-header">
+                                    <h4 class="times-title">
+                                        <span>📋</span>
+                                        Times Selecionados
+                                    </h4>
+                                    <span class="times-count" id="timesCount"
+                                        >0 times</span
+                                    >
+                                </div>
+
+                                <ul id="timesList" class="times-list">
+                                    <!-- Times serão inseridos aqui -->
+                                </ul>
+
+                                <div id="emptyState" class="empty-state">
+                                    <div class="empty-icon">🏆</div>
+                                    <p class="empty-text">
+                                        Nenhum time adicionado ainda
+                                    </p>
+                                </div>
+                            </div>
+
+                            <div class="navigation-buttons">
+                                <button
+                                    onclick="window.location.href='ferramentas.html'"
+                                    class="btn-secondary"
+                                >
+                                    ← Cancelar
+                                </button>
+                                <button
+                                    onclick="proximaEtapa()"
+                                    class="btn-primary"
+                                    id="btnProxima"
+                                    disabled
+                                >
+                                    Próxima Etapa →
+                                </button>
+                            </div>
+                        </div>
+
+                        <!-- Etapa 2: Finalizar Liga -->
+                        <div class="etapa" id="etapa2">
+                            <div class="search-header">
+                                <h3 class="search-title">
+                                    Finalizar Criação da Liga
+                                </h3>
+                                <p class="search-subtitle">
+                                    Escolha um nome para sua liga
+                                </p>
+                            </div>
+
+                            <div class="form-group">
+                                <label for="nomeLiga" class="form-label">
+                                    Nome da Liga
+                                </label>
+                                <input
+                                    type="text"
+                                    id="nomeLiga"
+                                    class="form-input"
+                                    placeholder="Digite um nome para sua liga"
+                                    required
+                                />
+                            </div>
+
+                            <div class="times-section">
+                                <div class="times-header">
+                                    <h4 class="times-title">
+                                        <span>✅</span>
+                                        Resumo da Liga
+                                    </h4>
+                                    <span class="times-count" id="resumoCount"
+                                        >0 times</span
+                                    >
+                                </div>
+
+                                <ul id="resumoList" class="times-list">
+                                    <!-- Resumo será inserido aqui -->
+                                </ul>
+                            </div>
+
+                            <div class="navigation-buttons">
+                                <button
+                                    onclick="voltarEtapa()"
+                                    class="btn-secondary"
+                                >
+                                    ← Voltar
+                                </button>
+                                <button
+                                    onclick="salvarLiga()"
+                                    class="btn-primary"
+                                    id="salvarBtn"
+                                >
+                                    💾 Criar Liga
+                                </button>
+                            </div>
+
+                            <div
+                                id="loadingSave"
+                                class="loading"
+                                style="display: none"
+                            >
+                                Salvando liga...
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </main>
+        </div>
+
+        <script>
+            // Variáveis globais
+            let timesSelecionados = [];
+
+            // === CARREGAR LAYOUT ===
+            async function loadLayout() {
+                try {
+                    const response = await fetch("layout.html");
+                    const layoutHtml = await response.text();
+
+                    const parser = new DOMParser();
+                    const doc = parser.parseFromString(layoutHtml, "text/html");
+
+                    // Injetar sidebar
+                    const sidebar = doc.querySelector(".app-sidebar");
+                    if (sidebar) {
+                        document
+                            .getElementById("sidebar-placeholder")
+                            .replaceWith(sidebar);
+                    }
+
+                    // Executar scripts do layout
+                    const scripts = doc.querySelectorAll("script");
+                    scripts.forEach((script) => {
+                        if (script.textContent.trim()) {
+                            const newScript = document.createElement("script");
+                            newScript.textContent = script.textContent;
+                            document.head.appendChild(newScript);
+                        }
+                    });
+                } catch (error) {
+                    console.error("Erro ao carregar layout:", error);
+                }
+            }
+
+            // === BUSCAR TIME ===
+            async function buscarTime() {
+                const input = document.getElementById("searchInput");
+                const timeId = input.value.trim();
+                const searchBtn = document.getElementById("searchBtn");
+                const loadingDiv = document.getElementById("loadingSearch");
+                const resultDiv = document.getElementById("searchResult");
+
+                if (!timeId) {
+                    showAlert("Digite um ID válido", "error");
+                    return;
+                }
+
+                if (!/^\d+$/.test(timeId)) {
+                    showAlert("ID deve conter apenas números", "error");
+                    return;
+                }
+
+                try {
+                    searchBtn.disabled = true;
+                    loadingDiv.style.display = "block";
+                    resultDiv.classList.remove("active");
+
+                    const response = await fetch(`/api/times/${timeId}`);
+                    const data = await response.json();
+
+                    if (!response.ok) {
+                        throw new Error(data.erro || "Time não encontrado");
+                    }
+
+                    // Exibir resultado
+                    const isAdded = timesSelecionados.some(
+                        (t) => t.id == timeId,
+                    );
+
+                    resultDiv.innerHTML = `
+                        <div class="result-item">
+                            <div class="result-info">
+                                <img src="${data.url_escudo_png || "/escudos/default.png"}" 
+                                     class="result-escudo" 
+                                     onerror="this.src='/escudos/default.png'">
+                                <div class="result-details">
+                                    <div class="result-nome">${data.nome_time || "Time sem nome"}</div>
+                                    <div class="result-cartoleiro">👤 ${data.nome_cartoleiro || "Cartoleiro"}</div>
+                                </div>
+                            </div>
+                            <button class="btn-add" ${isAdded ? "disabled" : ""} 
+                                    onclick="adicionarTime('${timeId}', '${data.nome_time}', '${data.nome_cartoleiro}', '${data.url_escudo_png || ""}')">
+                                ${isAdded ? "Já Adicionado" : "+ Adicionar"}
+                            </button>
+                        </div>
+                    `;
+
+                    resultDiv.classList.add("active");
+                    input.value = "";
+                } catch (error) {
+                    showAlert(`Erro: ${error.message}`, "error");
+                } finally {
+                    searchBtn.disabled = false;
+                    loadingDiv.style.display = "none";
+                }
+            }
+
+            // === ADICIONAR TIME ===
+            function adicionarTime(id, nome, cartoleiro, escudo) {
+                if (timesSelecionados.some((t) => t.id == id)) {
+                    showAlert("Time já foi adicionado!", "error");
+                    return;
+                }
+
+                timesSelecionados.push({
+                    id: parseInt(id),
+                    nome: nome || "Time sem nome",
+                    cartoleiro: cartoleiro || "Cartoleiro",
+                    escudo: escudo || "/escudos/default.png",
+                });
+
+                atualizarListaTimes();
+                showAlert("Time adicionado com sucesso!", "success");
+
+                // Atualizar botão no resultado
+                const btnAdd = document.querySelector(".btn-add");
+                if (btnAdd) {
+                    btnAdd.disabled = true;
+                    btnAdd.textContent = "Já Adicionado";
+                }
+            }
+
+            // === REMOVER TIME ===
+            function removerTime(id) {
+                timesSelecionados = timesSelecionados.filter((t) => t.id != id);
+                atualizarListaTimes();
+                showAlert("Time removido!", "success");
+            }
+
+            // === ATUALIZAR LISTA ===
+            function atualizarListaTimes() {
+                const lista = document.getElementById("timesList");
+                const emptyState = document.getElementById("emptyState");
+                const count = document.getElementById("timesCount");
+                const btnProxima = document.getElementById("btnProxima");
+
+                count.textContent = `${timesSelecionados.length} times`;
+                btnProxima.disabled = timesSelecionados.length === 0;
+
+                if (timesSelecionados.length === 0) {
+                    lista.style.display = "none";
+                    emptyState.style.display = "block";
+                    return;
+                }
+
+                lista.style.display = "block";
+                emptyState.style.display = "none";
+
+                lista.innerHTML = timesSelecionados
+                    .map(
+                        (time) => `
+                    <li class="time-item">
+                        <div class="time-info">
+                            <img src="${time.escudo}" class="time-escudo" 
+                                 onerror="this.src='/escudos/default.png'">
+                            <div class="time-details">
+                                <div class="time-nome">${time.nome}</div>
+                                <div class="time-cartoleiro">👤 ${time.cartoleiro}</div>
+                            </div>
+                        </div>
+                        <button onclick="removerTime(${time.id})" class="btn-remove">
+                            Remover
+                        </button>
+                    </li>
+                `,
+                    )
+                    .join("");
+            }
+
+            // === NAVEGAÇÃO ENTRE ETAPAS ===
+            function proximaEtapa() {
+                if (timesSelecionados.length === 0) {
+                    showAlert("Adicione pelo menos um time!", "error");
+                    return;
+                }
+
+                // Mudar para etapa 2
+                document.getElementById("etapa1").classList.remove("active");
+                document.getElementById("etapa2").classList.add("active");
+                document.getElementById("step1").classList.remove("active");
+                document.getElementById("step2").classList.add("active");
+
+                // Atualizar resumo
+                atualizarResumo();
+            }
+
+            function voltarEtapa() {
+                document.getElementById("etapa2").classList.remove("active");
+                document.getElementById("etapa1").classList.add("active");
+                document.getElementById("step2").classList.remove("active");
+                document.getElementById("step1").classList.add("active");
+            }
+
+            function atualizarResumo() {
+                const lista = document.getElementById("resumoList");
+                const count = document.getElementById("resumoCount");
+
+                count.textContent = `${timesSelecionados.length} times`;
+
+                lista.innerHTML = timesSelecionados
+                    .map(
+                        (time) => `
+                    <li class="time-item">
+                        <div class="time-info">
+                            <img src="${time.escudo}" class="time-escudo" 
+                                 onerror="this.src='/escudos/default.png'">
+                            <div class="time-details">
+                                <div class="time-nome">${time.nome}</div>
+                                <div class="time-cartoleiro">👤 ${time.cartoleiro}</div>
+                            </div>
+                        </div>
+                    </li>
+                `,
+                    )
+                    .join("");
+            }
+
+            // === SALVAR LIGA ===
+            async function salvarLiga() {
+                const nomeLiga = document
+                    .getElementById("nomeLiga")
+                    .value.trim();
+                const salvarBtn = document.getElementById("salvarBtn");
+                const loadingDiv = document.getElementById("loadingSave");
+
+                if (!nomeLiga) {
+                    showAlert("Digite o nome da liga!", "error");
+                    return;
+                }
+
+                if (timesSelecionados.length === 0) {
+                    showAlert("Adicione pelo menos um time!", "error");
+                    return;
+                }
+
+                try {
+                    salvarBtn.disabled = true;
+                    loadingDiv.style.display = "block";
+
+                    const response = await fetch("/api/ligas", {
+                        method: "POST",
+                        headers: { "Content-Type": "application/json" },
+                        body: JSON.stringify({
+                            nome: nomeLiga,
+                            times: timesSelecionados.map((t) => t.id),
+                        }),
+                    });
+
+                    if (!response.ok) {
+                        const errorData = await response.json();
+                        throw new Error(
+                            errorData.erro || "Erro ao salvar liga",
+                        );
+                    }
+
+                    const data = await response.json();
+                    showAlert("Liga criada com sucesso!", "success");
+
+                    setTimeout(() => {
+                        window.location.href = `/detalhe-liga.html?id=${data.id}`;
+                    }, 1500);
+                } catch (error) {
+                    showAlert(`Erro: ${error.message}`, "error");
+                    salvarBtn.disabled = false;
+                } finally {
+                    loadingDiv.style.display = "none";
+                }
+            }
+
+            // === MOSTRAR ALERTAS ===
+            function showAlert(message, type) {
+                const alert = document.getElementById("alertMessage");
+                alert.className = `alert alert-${type} active`;
+                alert.textContent = message;
+
+                setTimeout(() => {
+                    alert.classList.remove("active");
+                }, 3000);
+            }
+
+            // === ENTER PARA BUSCAR ===
+            document.addEventListener("keypress", (e) => {
+                if (e.target.id === "searchInput" && e.key === "Enter") {
+                    buscarTime();
+                }
+            });
+
+            // === INICIALIZAÇÃO ===
+            document.addEventListener("DOMContentLoaded", async () => {
+                await loadLayout();
+                atualizarListaTimes();
+            });
+        </script>
+    </body>
 </html>
