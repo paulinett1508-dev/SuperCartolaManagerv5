@@ -168,10 +168,20 @@ class DetalheLigaOrquestrador {
                     break;
 
                 case "pontos-corridos":
-                    if (
-                        this.modules.pontosCorreidos?.inicializarPontosCorreidos
-                    ) {
-                        await this.modules.pontosCorreidos.inicializarPontosCorreidos();
+                    // Wait for container to be available
+                    await new Promise(resolve => setTimeout(resolve, 50));
+                    const pontosCorridosContainer = document.getElementById("pontos-corridos");
+                    if (pontosCorridosContainer) pontosCorridosContainer.classList.add("active");
+                    
+                    // CORREÇÃO: Chamar função correta do módulo
+                    if (this.modules.pontosCorreidos?.carregarPontosCorridos) {
+                        await this.modules.pontosCorreidos.carregarPontosCorridos();
+                    } else if (typeof window.carregarPontosCorridos === "function") {
+                        await window.carregarPontosCorridos();
+                    } else if (typeof window.inicializarPontosCorridos === "function") {
+                        await window.inicializarPontosCorridos();
+                    } else {
+                        console.warn("⚠️ Nenhuma função de inicialização de pontos corridos encontrada");
                     }
                     break;
 
