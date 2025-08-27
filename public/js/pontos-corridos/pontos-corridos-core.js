@@ -485,4 +485,16 @@ export async function getConfrontosLigaPontosCorridos() {
   }
 }
 
+// CORREÇÃO: Função exportada para mata-mata
+export function getRodadaPontosText(rodadaLiga, edicao) {
+  if (!rodadaLiga) return "Rodada não definida";
+  const rodadaBrasileirao = PONTOS_CORRIDOS_CONFIG.rodadaInicial + (rodadaLiga - 1);
+  return `${rodadaLiga}ª Rodada da Liga (Rodada ${rodadaBrasileirao}ª do Brasileirão)`;
+}
+
+// Garantir que está disponível globalmente também
+if (typeof window !== "undefined") {
+  window.getRodadaPontosText = getRodadaPontosText;
+}
+
 console.log("[PONTOS-CORRIDOS-CORE] Módulo carregado com sucesso");
