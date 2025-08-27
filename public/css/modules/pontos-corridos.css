@@ -8,6 +8,12 @@
   margin: var(--spacing-md, 15px) 0;
 }
 
+#pontos-corridos.active {
+  display: block;
+  opacity: 1;
+  visibility: visible;
+}
+
 /* Header do Pontos Corridos */
 .pontos-corridos-header {
   text-align: center;

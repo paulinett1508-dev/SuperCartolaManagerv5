@@ -489,6 +489,299 @@ export async function getConfrontosLigaPontosCorridos() {
 export function getRodadaPontosText(rodadaLiga, edicao) {
   if (!rodadaLiga) return "Rodada não definida";
   const rodadaBrasileirao = PONTOS_CORRIDOS_CONFIG.rodadaInicial + (rodadaLiga - 1);
+  return `${rodadaLiga}ª Rodada da Liga (Rodada ${rodadaBrasileirao}ª do Brasileir// PONTOS CORRIDOS CORE - Lógica de Negócio
+// Responsável por: cálculos, processamento de dados, regras de negócio
+
+import { PONTOS_CORRIDOS_CONFIG, calcularRodadaBrasileirao } from "./pontos-corridos-config.js";
+import { getRankingRodadaCache, setRankingRodadaCache } from "./pontos-corridos-cache.js";
+
+// Variável para função de ranking (injetada dinamicamente)
+let getRankingRodadaEspecifica = null;
+
+// Função para definir a função de ranking
+export function setRankingFunction(func) {
+  getRankingRodadaEspecifica = func;
+}
+
+// Função para buscar times da liga
+export async function buscarTimesLiga(ligaId) {
+  const response = await fetch(`/api/ligas/${ligaId}`);
+  if (!response.ok) {
+    throw new Error(`Erro ao buscar liga: ${response.status}`);
+  }
+  const liga = await response.json();
+  return liga.times || [];
+}
+
+// Função para gerar confrontos no sistema de pontos corridos
+export function gerarConfrontos(times) {
+  const confrontos = [];
+  const numTimes = times.length;
+  const numRodadas = numTimes - 1;
+
+  for (let rodada = 0; rodada < numRodadas; rodada++) {
+    const jogosRodada = [];
+    
+    for (let i = 0; i < numTimes / 2; i++) {
+      const timeA = times[i];
+      const timeB = times[numTimes - 1 - i];
+      
+      if (timeA && timeB) {
+        jogosRodada.push({ timeA, timeB });
+      }
+    }
+    
+    confrontos.push(jogosRodada);
+    
+    // Rotacionar times (exceto o primeiro)
+    const ultimo = times.pop();
+    times.splice(1, 0, ultimo);
+  }
+
+  return confrontos;
+}
+
+// Função para processar dados de uma rodada
+export async function processarDadosRodada(ligaId, rodadaCartola, jogos) {
+  if (!getRankingRodadaEspecifica) {
+    throw new Error("Função de ranking não disponível");
+  }
+
+  // Verificar cache primeiro
+  let ranking = getRankingRodadaCache(ligaId, rodadaCartola);
+  
+  if (!ranking) {
+    ranking = await getRankingRodadaEspecifica(ligaId, rodadaCartola);
+    setRankingRodadaCache(ranking, ligaId, rodadaCartola);
+  }
+
+  const pontuacoesMap = {};
+  ranking.forEach(time => {
+    pontuacoesMap[time.time_id] = time.pontos;
+  });
+
+  return { pontuacoesMap, ranking };
+}
+
+// Função para calcular resultado do confronto
+export function calcularResultadoConfronto(pontosA, pontosB) {
+  const { criterios, pontuacao, financeiro } = PONTOS_CORRIDOS_CONFIG;
+  
+  const diferenca = Math.abs(pontosA - pontosB);
+  const isEmpate = diferenca <= criterios.empateTolerancia;
+  const isGoleada = diferenca >= criterios.goleadaMinima;
+  
+  let resultadoA = { pontos: 0, financeiro: 0, pontosGoleada: 0 };
+  let resultadoB = { pontos: 0, financeiro: 0, pontosGoleada: 0 };
+  
+  if (isEmpate) {
+    resultadoA.pontos = pontuacao.empate;
+    resultadoB.pontos = pontuacao.empate;
+    resultadoA.financeiro = financeiro.empate;
+    resultadoB.financeiro = financeiro.empate;
+  } else if (pontosA > pontosB) {
+    if (isGoleada) {
+      resultadoA.pontos = pontuacao.goleada;
+      resultadoA.financeiro = financeiro.goleada;
+      resultadoA.pontosGoleada = 1;
+      resultadoB.financeiro = financeiro.goleadaPerda;
+    } else {
+      resultadoA.pontos = pontuacao.vitoria;
+      resultadoA.financeiro = financeiro.vitoria;
+      resultadoB.financeiro = financeiro.derrota;
+    }
+  } else {
+    if (isGoleada) {
+      resultadoB.pontos = pontuacao.goleada;
+      resultadoB.financeiro = financeiro.goleada;
+      resultadoB.pontosGoleada = 1;
+      resultadoA.financeiro = financeiro.goleadaPerda;
+    } else {
+      resultadoB.pontos = pontuacao.vitoria;
+      resultadoB.financeiro = financeiro.vitoria;
+      resultadoA.financeiro = financeiro.derrota;
+    }
+  }
+  
+  return { resultadoA, resultadoB };
+}
+
+// Função para calcular financeiro do confronto (para compatibilidade)
+export function calcularFinanceiroConfronto(pontosA, pontosB) {
+  const resultado = calcularResultadoConfronto(pontosA, pontosB);
+  return {
+    financeiroA: resultado.resultadoA.financeiro,
+    financeiroB: resultado.resultadoB.financeiro,
+    pontosGoleadaA: resultado.resultadoA.pontosGoleada,
+    pontosGoleadaB: resultado.resultadoB.pontosGoleada,
+  };
+}
+
+// Função para calcular classificação
+export async function calcularClassificacao(ligaId, times, confrontos, rodadaAtualBrasileirao) {
+  const classificacao = times.map(time => ({
+    time,
+    pontos: 0,
+    jogos: 0,
+    vitorias: 0,
+    empates: 0,
+    derrotas: 0,
+    pontosGoleada: 0,
+    pontosPro: 0,
+    pontosContra: 0,
+    saldoPontos: 0,
+    financeiroTotal: 0,
+  }));
+
+  let ultimaRodadaComDados = 0;
+  let houveErro = false;
+
+  for (let idxRodada = 0; idxRodada < confrontos.length; idxRodada++) {
+    const rodadaCartola = PONTOS_CORRIDOS_CONFIG.rodadaInicial + idxRodada;
+    
+    if (rodadaCartola >= rodadaAtualBrasileirao) break;
+    
+    try {
+      const { pontuacoesMap } = await processarDadosRodada(ligaId, rodadaCartola, confrontos[idxRodada]);
+      
+      confrontos[idxRodada].forEach(jogo => {
+        const pontosA = pontuacoesMap[jogo.timeA.id];
+        const pontosB = pontuacoesMap[jogo.timeB.id];
+        
+        if (pontosA != null && pontosB != null) {
+          const { resultadoA, resultadoB } = calcularResultadoConfronto(pontosA, pontosB);
+          
+          // Atualizar estatísticas do time A
+          const timeAStats = classificacao.find(item => item.time.id === jogo.timeA.id);
+          if (timeAStats) {
+            timeAStats.pontos += resultadoA.pontos;
+            timeAStats.jogos++;
+            timeAStats.pontosGoleada += resultadoA.pontosGoleada;
+            timeAStats.pontosPro += pontosA;
+            timeAStats.pontosContra += pontosB;
+            timeAStats.financeiroTotal += resultadoA.financeiro;
+            
+            if (resultadoA.pontos === PONTOS_CORRIDOS_CONFIG.pontuacao.vitoria || resultadoA.pontos === PONTOS_CORRIDOS_CONFIG.pontuacao.goleada) {
+              timeAStats.vitorias++;
+            } else if (resultadoA.pontos === PONTOS_CORRIDOS_CONFIG.pontuacao.empate) {
+              timeAStats.empates++;
+            } else {
+              timeAStats.derrotas++;
+            }
+          }
+          
+          // Atualizar estatísticas do time B
+          const timeBStats = classificacao.find(item => item.time.id === jogo.timeB.id);
+          if (timeBStats) {
+            timeBStats.pontos += resultadoB.pontos;
+            timeBStats.jogos++;
+            timeBStats.pontosGoleada += resultadoB.pontosGoleada;
+            timeBStats.pontosPro += pontosB;
+            timeBStats.pontosContra += pontosA;
+            timeBStats.financeiroTotal += resultadoB.financeiro;
+            
+            if (resultadoB.pontos === PONTOS_CORRIDOS_CONFIG.pontuacao.vitoria || resultadoB.pontos === PONTOS_CORRIDOS_CONFIG.pontuacao.goleada) {
+              timeBStats.vitorias++;
+            } else if (resultadoB.pontos === PONTOS_CORRIDOS_CONFIG.pontuacao.empate) {
+              timeBStats.empates++;
+            } else {
+              timeBStats.derrotas++;
+            }
+          }
+        }
+      });
+      
+      ultimaRodadaComDados = idxRodada + 1;
+    } catch (error) {
+      console.warn(`Erro ao processar rodada ${idxRodada + 1}:`, error);
+      houveErro = true;
+    }
+  }
+
+  // Calcular médias e saldo
+  classificacao.forEach(item => {
+    if (item.jogos > 0) {
+      item.pontosPro = item.pontosPro / item.jogos;
+      item.pontosContra = item.pontosContra / item.jogos;
+      item.saldoPontos = item.pontosPro - item.pontosContra;
+    }
+  });
+
+  // Ordenar classificação pelos critérios de desempate
+  classificacao.sort((a, b) => {
+    for (const criterio of PONTOS_CORRIDOS_CONFIG.desempate) {
+      if (criterio === "nomeCartola") {
+        const nomeA = a.time.nome_cartola || a.time.nome_cartoleiro || "";
+        const nomeB = b.time.nome_cartola || b.time.nome_cartoleiro || "";
+        const comp = nomeA.localeCompare(nomeB);
+        if (comp !== 0) return comp;
+      } else {
+        const diff = b[criterio] - a[criterio];
+        if (Math.abs(diff) > 0.001) return diff;
+      }
+    }
+    return 0;
+  });
+
+  return { classificacao, ultimaRodadaComDados, houveErro };
+}
+
+// Função para obter confrontos da liga (compatibilidade)
+export function getConfrontosLigaPontosCorridos(times) {
+  return gerarConfrontos(times);
+}
+
+// Função para validar dados de entrada
+export function validarDadosEntrada(times, confrontos) {
+  const timesValidos = Array.isArray(times) ? times.filter(time => 
+    time && (time.id || time.time_id) && (time.nome_time || time.nome)
+  ) : [];
+  
+  const confrontosValidos = Array.isArray(confrontos) ? confrontos : [];
+  
+  return { timesValidos, confrontosValidos };
+}
+
+// Função para normalizar dados para exportação
+export function normalizarDadosParaExportacao(jogo, pontuacoesMap) {
+  return {
+    timeA: {
+      nome: jogo.timeA.nome_time || jogo.timeA.nome || "N/D",
+      cartola: jogo.timeA.nome_cartola || jogo.timeA.nome_cartoleiro || "N/D",
+      pontos: pontuacoesMap[jogo.timeA.id] || null,
+    },
+    timeB: {
+      nome: jogo.timeB.nome_time || jogo.timeB.nome || "N/D", 
+      cartola: jogo.timeB.nome_cartola || jogo.timeB.nome_cartoleiro || "N/D",
+      pontos: pontuacoesMap[jogo.timeB.id] || null,
+    },
+  };
+}
+
+// Função para normalizar classificação para exportação
+export function normalizarClassificacaoParaExportacao(classificacao) {
+  return classificacao.map(item => ({
+    posicao: classificacao.indexOf(item) + 1,
+    nome: item.time.nome_time || item.time.nome || "N/D",
+    cartola: item.time.nome_cartola || item.time.nome_cartoleiro || "N/D",
+    pontos: item.pontos,
+    jogos: item.jogos,
+    vitorias: item.vitorias,
+    empates: item.empates,
+    derrotas: item.derrotas,
+    pontosGoleada: item.pontosGoleada,
+    pontosPro: item.pontosPro.toFixed(2),
+    pontosContra: item.pontosContra.toFixed(2),
+    saldoPontos: item.saldoPontos.toFixed(2),
+    financeiro: item.financeiroTotal.toFixed(2),
+  }));
+}
+
+// Função para obter texto da rodada (CORREÇÃO para mata-mata)
+export function getRodadaPontosText(rodadaLiga, edicao) {
+  if (!rodadaLiga) return "Rodada não definida";
+
+  const rodadaBrasileirao = calcularRodadaBrasileirao(rodadaLiga - 1);
   return `${rodadaLiga}ª Rodada da Liga (Rodada ${rodadaBrasileirao}ª do Brasileirão)`;
 }
 
@@ -497,4 +790,4 @@ if (typeof window !== "undefined") {
   window.getRodadaPontosText = getRodadaPontosText;
 }
 
-console.log("[PONTOS-CORRIDOS-CORE] Módulo carregado com sucesso");
+console.log("[PONTOS-CORRIDOS-CORE] Módulo carregado com sucesso");sole.log("[PONTOS-CORRIDOS-CORE] Módulo carregado com sucesso");
