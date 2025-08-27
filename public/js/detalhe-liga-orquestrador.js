@@ -143,6 +143,11 @@ class DetalheLigaOrquestrador {
                     break;
 
                 case "mata-mata":
+                    // Wait for container to be available
+                    await new Promise(resolve => setTimeout(resolve, 50));
+                    const mataMataContainer = document.getElementById("mata-mata");
+                    if (mataMataContainer) mataMataContainer.classList.add("active");
+                    
                     if (this.modules.mataMata?.carregarMataMata) {
                         await this.modules.mataMata.carregarMataMata();
                     }
@@ -363,14 +368,10 @@ class DetalheLigaOrquestrador {
             this.modules.mataMata = await import("./mata-mata.js");
             this.modules.pontosCorreidos = await import("./pontos-corridos.js");
             this.modules.luvaDeOuro = await import("./luva-de-ouro.js");
-            this.modules.artilheiroCampeao = await import(
-                "./artilheiro-campeao.js"
-            );
+            this.modules.artilheiroCampeao = await import("./artilheiro-campeao.js");
             this.modules.melhorMes = await import("./melhor-mes.js");
             this.modules.top10 = await import("./top10.js");
-            this.modules.fluxoFinanceiro = await import(
-                "./fluxo-financeiro.js"
-            );
+            this.modules.fluxoFinanceiro = await import("./fluxo-financeiro.js");
         } catch (error) {
             console.error("Erro ao carregar módulos:", error);
         }
