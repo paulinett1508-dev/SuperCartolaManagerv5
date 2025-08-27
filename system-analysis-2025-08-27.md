@@ -1,6 +1,6 @@
 # 📊 Análise do Sistema Super Cartola Manager
 
-**Data da Análise:** 27/08/2025, 14:53:21
+**Data da Análise:** 27/08/2025, 17:59:13
 
 ---
 
@@ -31,6 +31,7 @@
 
 ### 📄 Arquivos na Raiz
 
+- 📖 **UX_PATTERNS.md** - 📖 Documentação
 - 📜 **backupJson.js** - 📝 Script JavaScript
 - 📜 **backupScheduler.js** - 📝 Script JavaScript
 - 📋 **credentials.json** - 📋 Dados JSON
@@ -43,6 +44,7 @@
 - 📋 **package-lock.json** - 📋 Dados JSON
 - 📋 **package.json** - 📦 Configuração npm/dependências
 - 📄 **replit.nix** - ❓ Arquivo genérico
+- 📖 **system-analysis-2025-08-27.md** - 📖 Documentação
 - 📜 **system-mapper.js** - 📝 Script JavaScript
 - 📜 **uploadToDrive.js** - 📝 Script JavaScript
 - 📜 **ux-analyzer.js** - 📝 Script JavaScript
@@ -51,7 +53,7 @@
 
 ## 🔍 Análise por Categoria
 
-### Frontend (Cliente) (124 arquivos)
+### Frontend (Cliente) (125 arquivos)
 
 - 📄 **backupJson.js** - 📝 Script JavaScript
   - 📏 Tamanho: 1KB | Linhas: 39
@@ -100,6 +102,8 @@
   - 📏 Tamanho: 9KB | Linhas: 469
 - 📄 **public/css/modules/ferramentas.css** - 🧩 Módulo do sistema
   - 📏 Tamanho: 3KB | Linhas: 151
+- 📄 **public/css/modules/mata-mata.css** - 🧩 Módulo do sistema
+  - 📏 Tamanho: 5KB | Linhas: 264
 - 📄 **public/css/modules/participantes.css** - 🧩 Módulo do sistema
   - 📏 Tamanho: 9KB | Linhas: 456
 - 📄 **public/css/modules/ranking-geral.css** - 🧩 Módulo do sistema
@@ -155,7 +159,7 @@
 - 📄 **public/js/criar-liga.js** - 🏆 Funcionalidades de Liga
   - 📏 Tamanho: 11KB | Linhas: 332
 - 📄 **public/js/detalhe-liga-orquestrador.js** - 🏆 Funcionalidades de Liga
-  - 📏 Tamanho: 57KB | Linhas: 1403
+  - 📏 Tamanho: 17KB | Linhas: 457
 - 📄 **public/js/detalhe-liga.js** - 🏆 Funcionalidades de Liga
   - 📏 Tamanho: 9KB | Linhas: 278
 - 📄 **public/js/editar-liga.js** - 🏆 Funcionalidades de Liga
@@ -209,7 +213,7 @@
 - 📄 **public/js/luva-de-ouro.js** - 🥅 Sistema Luva de Ouro
   - 📏 Tamanho: 44KB | Linhas: 1107
 - 📄 **public/js/mata-mata.js** - 📝 Script JavaScript
-  - 📏 Tamanho: 42KB | Linhas: 1304
+  - 📏 Tamanho: 44KB | Linhas: 1352
 - 📄 **public/js/melhor-mes.js** - 📝 Script JavaScript
   - 📏 Tamanho: 17KB | Linhas: 453
 - 📄 **public/js/navigation.js** - 🧭 Sistema de navegação
@@ -314,13 +318,20 @@
 - 📄 **scripts/times-da-liga.json** - 🏆 Funcionalidades de Liga
   - 📏 Tamanho: 2KB | Linhas: 46
 
-### Documentação (1 arquivos)
+### Documentação (4 arquivos)
 
+- 📄 **UX_PATTERNS.md** - 📖 Documentação
+  - 📏 Tamanho: 7KB | Linhas: 364
+- 📄 **attached_assets/Pasted--CORRE-ES-CIR-RGICAS-PARA-MATA-MATA-JS-Aplicar-nas-linhas-indicadas-CORRE-O-1-F-1756314752908_1756314752909.txt** - ❓ Arquivo genérico
+  - 📏 Tamanho: 3KB | Linhas: 103
 - 📄 **attached_assets/Pasted--workspace-node-ux-analyzer-js-UX-PATTERN-AN-1756293155254_1756293155254.txt** - ❓ Arquivo genérico
   - 📏 Tamanho: 13KB | Linhas: 240
+- 📄 **system-analysis-2025-08-27.md** - 📖 Documentação
+  - 📏 Tamanho: 19KB | Linhas: 495
 
-### Assets (17 arquivos)
+### Assets (18 arquivos)
 
+- 📄 **attached_assets/image_1756316994017.png** - ❓ Arquivo genérico
 - 📄 **generated-icon.png** - ❓ Arquivo genérico
 - 📄 **public/escudos/262.png** - ❓ Arquivo genérico
 - 📄 **public/escudos/263.png** - ❓ Arquivo genérico
@@ -463,27 +474,27 @@
 
 | Métrica | Valor |
 |---------|-------|
-| **Total de arquivos** | 157 |
-| **Tamanho total** | 4703 KB |
-| **Tamanho médio** | 30 KB |
+| **Total de arquivos** | 162 |
+| **Tamanho total** | 4704 KB |
+| **Tamanho médio** | 29 KB |
 
 ### 📋 Por Tipo de Arquivo
 
 | Tipo | Quantidade |
 |------|------------|
-| 📖 **docs** | 1 |
-| 🎨 **frontend** | 124 |
+| 📖 **docs** | 4 |
+| 🖼️ **assets** | 18 |
+| 🎨 **frontend** | 125 |
 | ⚙️ **config** | 11 |
 | ❓ **other** | 4 |
-| 🖼️ **assets** | 17 |
 
 ### 📏 Por Tamanho de Arquivo
 
 | Categoria | Quantidade | Descrição |
 |-----------|------------|----------|
-| 🟢 **Pequenos** | 67 | < 5KB |
-| 🟡 **Médios** | 85 | 5-50KB |
-| 🔴 **Grandes** | 5 | > 50KB |
+| 🟢 **Pequenos** | 68 | < 5KB |
+| 🟡 **Médios** | 90 | 5-50KB |
+| 🔴 **Grandes** | 4 | > 50KB |
 
 ### 🔍 Insights da Arquitetura
 

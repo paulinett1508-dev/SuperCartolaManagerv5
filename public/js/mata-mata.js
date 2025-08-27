@@ -48,7 +48,7 @@ async function carregarExports() {
       return true;
     }
 
-    console.log("[MATA-MATA] 🔄 Carregando módulo de exports...");
+    console.log("[MATA-MATA] 📄 Carregando módulo de exports...");
 
     try {
       const exportModule = await import("./exports/export-exports.js");
@@ -104,7 +104,7 @@ async function carregarRodadas() {
         }
       }, 100);
 
-      // Cleanup após timeout  
+      // Cleanup após timeout
       setTimeout(() => {
         clearInterval(checkInterval);
         controller.abort();
@@ -124,7 +124,7 @@ async function carregarRodadas() {
       return true;
     }
 
-    console.log("[MATA-MATA] 🔄 Carregando módulo rodadas...");
+    console.log("[MATA-MATA] 📄 Carregando módulo rodadas...");
     const rodadasModule = await import("./rodadas.js");
 
     if (rodadasModule && rodadasModule.getRankingRodadaEspecifica) {
@@ -337,36 +337,40 @@ function renderizarInterface(container, ligaId) {
   const edicaoSelect = document.getElementById("edicao-select");
   if (edicaoSelect) {
     let debounceTimer;
-    edicaoSelect.addEventListener("change", function(event) {
-            clearTimeout(debounceTimer);
-            const controller = new AbortController();
+    edicaoSelect.addEventListener("change", function (event) {
+      clearTimeout(debounceTimer);
+      const controller = new AbortController();
 
-            debounceTimer = setTimeout(() => {
-                if (controller.signal.aborted) return;
+      debounceTimer = setTimeout(() => {
+        if (controller.signal.aborted) return;
 
-                edicaoAtual = parseInt(this.value);
-                console.log(`[MATA-MATA] 📋 Edição selecionada: ${edicaoAtual}`);
+        edicaoAtual = parseInt(this.value);
+        console.log(`[MATA-MATA] 📋 Edição selecionada: ${edicaoAtual}`);
 
-                const faseNavContainer = document.getElementById("fase-nav-container");
-                if (faseNavContainer) faseNavContainer.style.display = "block";
+        const faseNavContainer = document.getElementById("fase-nav-container");
+        if (faseNavContainer) faseNavContainer.style.display = "block";
 
-                container
-                    .querySelectorAll(".fase-btn")
-                    .forEach((btn) => btn.classList.remove("active"));
-                const primeiraFaseBtn = container.querySelector(
-                    '.fase-btn[data-fase="primeira"]',
-                );
-                if (primeiraFaseBtn) primeiraFaseBtn.classList.add("active");
+        container
+          .querySelectorAll(".fase-btn")
+          .forEach((btn) => btn.classList.remove("active"));
+        const primeiraFaseBtn = container.querySelector(
+          '.fase-btn[data-fase="primeira"]',
+        );
+        if (primeiraFaseBtn) primeiraFaseBtn.classList.add("active");
 
-                carregarFase("primeira", ligaId);
-            }, 300);
+        carregarFase("primeira", ligaId);
+      }, 300);
 
-            // Cleanup no unload
-            window.addEventListener('beforeunload', () => {
-                controller.abort();
-                clearTimeout(debounceTimer);
-            }, { once: true });
-        });
+      // Cleanup no unload
+      window.addEventListener(
+        "beforeunload",
+        () => {
+          controller.abort();
+          clearTimeout(debounceTimer);
+        },
+        { once: true },
+      );
+    });
   }
 
   container.querySelectorAll(".fase-btn").forEach((btn) => {
@@ -412,7 +416,7 @@ async function carregarFase(fase, ligaId) {
     return;
   }
 
-  console.log(`[MATA-MATA] 🔄 Carregando fase: ${fase}`);
+  console.log(`[MATA-MATA] 📄 Carregando fase: ${fase}`);
 
   contentElement.innerHTML = `
     <div style="text-align:center; padding:30px;">
@@ -964,10 +968,10 @@ export async function getResultadosMataMata() {
         let vencedor = null;
         let perdedor = null;
 
-        if (
-          typeof c.timeA.pontos === "number" &&
-          typeof c.timeB.pontos === "number"
-        ) {
+        const pontosAValidos = typeof c.timeA.pontos === "number";
+        const pontosBValidos = typeof c.timeB.pontos === "number";
+
+        if (pontosAValidos && pontosBValidos) {
           if (c.timeA.pontos > c.timeB.pontos) {
             vencedor = c.timeA;
             perdedor = c.timeB;
@@ -975,15 +979,27 @@ export async function getResultadosMataMata() {
             vencedor = c.timeB;
             perdedor = c.timeA;
           } else {
-            vencedor = c.timeA.rankR2 < c.timeB.rankR2 ? c.timeA : c.timeB;
-            perdedor = vencedor === c.timeA ? c.timeB : c.timeA;
+            if (c.timeA.rankR2 < c.timeB.rankR2) {
+              vencedor = c.timeA;
+              perdedor = c.timeB;
+            } else {
+              vencedor = c.timeB;
+              perdedor = c.timeA;
+            }
           }
         } else {
-          vencedor = c.timeA.rankR2 < c.timeB.rankR2 ? c.timeA : c.timeB;
-          perdedor = vencedor === c.timeA ? c.timeB : c.timeA;
+          if (c.timeA.rankR2 < c.timeB.rankR2) {
+            vencedor = c.timeA;
+            perdedor = c.timeB;
+          } else {
+            vencedor = c.timeB;
+            perdedor = c.timeA;
+          }
         }
 
-        if (vencedor && perdedor) {
+        c.vencedorDeterminado = vencedorDeterminado;
+
+        if (vencedor) {
           resultadosFinanceiros.push({
             timeId: String(vencedor.timeId || vencedor.id),
             fase: fase,
@@ -997,7 +1013,7 @@ export async function getResultadosMataMata() {
             valor: -10.0,
           });
           vencedor.jogoAnterior = c.jogo;
-          proximosVencedores.push(vencedor);
+          vencedoresAnteriores.push(vencedor);
         }
       });
       vencedoresAnteriores = proximosVencedores;
@@ -1327,26 +1343,26 @@ export async function testarDadosMataMata() {
   }
 }
 
-
 // Cleanup global para evitar memory leaks
-window.addEventListener('beforeunload', () => {
-    clearTimeout(debounceTimer);
-    moduleCache.clear();
-    exportsCarregados = false;
-    rodadasCarregados = false;
-    console.log('[MATA-MATA] 🧹 Cleanup executado');
+window.addEventListener("beforeunload", () => {
+  moduleCache.clear();
+  exportsCarregados = false;
+  rodadasCarregados = false;
+  console.log("[MATA-MATA] 🧹 Cleanup executado");
 });
 
 // Interceptar erros de Promise não tratadas
-window.addEventListener('unhandledrejection', (event) => {
-    if (event.reason && event.reason.message && 
-        event.reason.message.includes('message channel closed')) {
-        event.preventDefault();
-        console.log('[MATA-MATA] 🛡️ Promise rejection interceptada e ignorada');
-    }
+window.addEventListener("unhandledrejection", (event) => {
+  if (
+    event.reason &&
+    event.reason.message &&
+    event.reason.message.includes("message channel closed")
+  ) {
+    event.preventDefault();
+    console.log("[MATA-MATA] 🛡️ Promise rejection interceptada e ignorada");
+  }
 });
 
-})();
 console.log(
   "[MATA-MATA] ✅ Módulo carregado com correções de carregamento implementadas",
 );
