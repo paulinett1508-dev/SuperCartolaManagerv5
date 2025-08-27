@@ -193,60 +193,69 @@ class DetalheLigaOrquestrador {
             switch (moduleName) {
                 case "ranking-geral":
                     console.log("🎯 Iniciando carregamento do ranking-geral");
-                    
+
                     // CRÍTICO: Ativar container ANTES de chamar a função
-                    const rankingContainer = document.getElementById("ranking-geral");
+                    const rankingContainer =
+                        document.getElementById("ranking-geral");
                     if (rankingContainer) {
                         rankingContainer.classList.add("active");
                         console.log("✅ Container ranking-geral ativado");
                     }
-                    
+
                     // Interceptar função antes de carregar
                     this.interceptarRankingFunction();
-                    
+
                     // Aguardar um momento
-                    await new Promise(resolve => setTimeout(resolve, 100));
-                    
+                    await new Promise((resolve) => setTimeout(resolve, 100));
+
                     // Tentar carregar o ranking
                     if (this.modules.ranking?.carregarRankingGeral) {
                         await this.modules.ranking.carregarRankingGeral();
-                    } else if (typeof window.carregarRankingGeral === 'function') {
+                    } else if (
+                        typeof window.carregarRankingGeral === "function"
+                    ) {
                         await window.carregarRankingGeral();
                     } else {
-                        console.error("❌ Função carregarRankingGeral não encontrada");
+                        console.error(
+                            "❌ Função carregarRankingGeral não encontrada",
+                        );
                     }
-                    
+
                     // Aplicar estilos após carregamento
                     setTimeout(() => this.applyRankingStyles(), 500);
                     break;
 
                 case "rodadas":
                     console.log("🎯 Iniciando carregamento do módulo rodadas");
-                    
+
                     // AGUARDAR O HTML ESTAR NO DOM
-                    await new Promise(resolve => setTimeout(resolve, 100));
-                    
+                    await new Promise((resolve) => setTimeout(resolve, 100));
+
                     // CRÍTICO: Garantir que o container existe e está ativo
                     const rodadasContainer = document.getElementById("rodadas");
                     if (rodadasContainer) {
                         rodadasContainer.classList.add("active");
                         console.log("✅ Container rodadas preparado e ativado");
                     } else {
-                        console.error("❌ Container rodadas não encontrado no DOM");
+                        console.error(
+                            "❌ Container rodadas não encontrado no DOM",
+                        );
                     }
-                    
+
                     // Aguardar mais um pouco para garantir
-                    await new Promise(resolve => setTimeout(resolve, 100));
-                    
+                    await new Promise((resolve) => setTimeout(resolve, 100));
+
                     // Tentar carregar rodadas
                     if (this.modules.rodadas?.carregarRodadas) {
                         console.log("📊 Executando via módulo");
                         await this.modules.rodadas.carregarRodadas();
-                    } else if (typeof window.carregarRodadas === 'function') {
+                    } else if (typeof window.carregarRodadas === "function") {
                         console.log("📊 Executando via window.carregarRodadas");
                         await window.carregarRodadas();
                     } else {
-                        console.error("❌ Função carregarRodadas não encontrada");
+                        console.error(
+                            "❌ Função carregarRodadas não encontrada",
+                        );
                     }
                     break;
 
@@ -352,7 +361,7 @@ class DetalheLigaOrquestrador {
                      alt="Logo da Liga" 
                      class="liga-logo-img"
                      style="width: 32px !important; height: 32px !important; max-width: 32px !important; max-height: 32px !important;"
-                     onerror="console.error('Erro ao carregar logo'); this.style.display='none'; this.parentElement.innerHTML='👥';">
+                     onerror="console.error('Erro ao carregar logo'); this.style.display='none'; this.parentElement.innerHTML='💥';">
             `;
 
             // Verificar se a imagem carregou
@@ -598,7 +607,7 @@ class DetalheLigaOrquestrador {
                         <div class="module-title-section">
                             <div class="module-title-icon" id="liga-logo-icon">
                                 <img src="/img/logo-cartoleirossobral.png" alt="Logo da Liga" class="liga-logo-img" 
-                                     onerror="this.style.display='none'; this.parentElement.innerHTML='👥';">
+                                     onerror="this.style.display='none'; this.parentElement.innerHTML='💥';">
                             </div>
                             <h2>Participantes da Liga</h2>
                         </div>
@@ -622,7 +631,7 @@ class DetalheLigaOrquestrador {
                             </div>
                         </div>
                         <div class="stat-card">
-                            <div class="stat-icon">🆎</div>
+                            <div class="stat-icon">🏆</div>
                             <div class="stat-info">
                                 <div class="stat-number" id="times-diferentes">0</div>
                                 <div class="stat-label">Times Únicos</div>
@@ -657,7 +666,7 @@ class DetalheLigaOrquestrador {
                 </div>
             `,
 
-            "rodadas": `
+            rodadas: `
                 <div id="rodadas">
                     <div class="mb-3">
                         <select id="rodadaSelect" class="form-control">
@@ -727,7 +736,7 @@ class DetalheLigaOrquestrador {
                 </div>
             `,
 
-            "top10": `
+            top10: `
                 <div id="top10-content">
                     <div class="module-header-section">
                         <h2>🌟 Top 10 Melhores</h2>
@@ -748,7 +757,7 @@ class DetalheLigaOrquestrador {
                     </div>
                     <div class="loading-state">Carregando dados financeiros...</div>
                 </div>
-            `
+            `,
         };
 
         return (
@@ -1005,29 +1014,31 @@ class DetalheLigaOrquestrador {
         }
     }
 
-    // 📦 CARREGAR MÓDULOS JS (MANTIDO PARA COMPATIBILIDADE)
+    // 📦 CARREGAR MÓDULOS JS (CORRIGIDO)
     async loadModules() {
         try {
             this.modules.ranking = await import("./ranking.js");
-            this.modules.rodadas = await import("./rodadas.js"); 
+            this.modules.rodadas = await import("./rodadas.js");
             this.modules.mataMata = await import("./mata-mata.js");
             this.modules.pontosCorreidos = await import("./pontos-corridos.js");
             this.modules.luvaDeOuro = await import("./luva-de-ouro.js");
-            this.modules.artilheiroCampeao = await import("./artilheiro-campeao.js");
+            this.modules.artilheiroCampeao = await import(
+                "./artilheiro-campeao.js"
+            );
             this.modules.melhorMes = await import("./melhor-mes.js");
             this.modules.top10 = await import("./top10.js");
-            this.modules.fluxoFinanceiro = await import("./fluxo-financeiro.js");
+            this.modules.fluxoFinanceiro = await import(
+                "./fluxo-financeiro.js"
+            );
         } catch (error) {
             console.error("Erro ao carregar módulos:", error);
-        }
-    }s:", error);
         }
     }
 
     // 🔧 FALLBACK PARA RANKING
     async executeRankingFallback() {
         // Fallback direto se o módulo não carregar
-        if (typeof window.carregarRankingGeral === 'function') {
+        if (typeof window.carregarRankingGeral === "function") {
             console.log("🔧 Usando fallback direto para ranking");
             await window.carregarRankingGeral();
             return true;
