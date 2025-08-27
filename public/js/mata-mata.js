@@ -776,7 +776,7 @@ function extrairVencedores(confrontos) {
   return vencedores;
 }
 
-// Função para renderizar a tabela do mata-mata
+// Função para renderizar a tabela do mata-mata - CORRIGIDA
 async function renderTabelaMataMata(
   confrontos,
   containerId,
@@ -794,26 +794,26 @@ async function renderTabelaMataMata(
   };
 
   container.innerHTML = `
-    <div style="padding: 12px 0 8px 0; text-align:center;">
-      <div style="font-size: 20px; font-weight: bold; color: #1a237e;">SuperCartola 2025</div>
-      <div style="font-size: 15px; font-weight: 600; color: #3949ab; margin-top: 2px;">${getEdicaoMataMata(edicaoAtual)}</div>
-      <div style="font-size: 16px; color: #fff; background: linear-gradient(90deg, #3949ab 60%, #1a237e 100%); display: inline-block; padding: 4px 22px; border-radius: 16px; font-weight: bold; margin: 16px 0 10px 0; letter-spacing: 1px; box-shadow: 0 2px 8px #0001;">
+    <div class="mata-mata-header">
+      <div class="mata-mata-titulo">SuperCartola 2025</div>
+      <div class="mata-mata-subtitulo">${getEdicaoMataMata(edicaoAtual)}</div>
+      <div class="mata-mata-confronto">
         ${gerarTextoConfronto(faseLabel)}
       </div>
-      <div style="font-size: 13px; color: #3949ab; margin-bottom: 10px;">
+      <div class="mata-mata-rodada">
         ${getRodadaPontosText(faseLabel, edicaoAtual)}
       </div>
     </div>
-    <div style="overflow-x:auto;">
-      <table style="width: 100%; max-width: 600px; margin: 0 auto; border-collapse: separate; border-spacing: 0; background: #fff; border-radius: 12px; overflow: hidden; box-shadow: 0 2px 8px #0001; font-size: 13px;">
+    <div class="mata-mata-table-container">
+      <table class="mata-mata-table">
         <thead>
-          <tr style="background: #e3e3f3;">
-            <th style="padding: 7px 2px;">Jogo</th>
-            <th style="padding: 7px 2px;">Time 1</th>
-            <th style="padding: 7px 2px; min-width: 54px;">Pts</th>
-            <th style="padding: 7px 2px;">X</th>
-            <th style="padding: 7px 2px; min-width: 54px;">Pts</th>
-            <th style="padding: 7px 2px;">Time 2</th>
+          <tr>
+            <th>Jogo</th>
+            <th>Time 1</th>
+            <th class="pontos-cell">Pts</th>
+            <th>X</th>
+            <th class="pontos-cell">Pts</th>
+            <th>Time 2</th>
           </tr>
         </thead>
         <tbody>
@@ -822,36 +822,36 @@ async function renderTabelaMataMata(
               const valorA = c.timeA.valor || 0;
               const valorB = c.timeB.valor || 0;
               return `
-              <tr style="border-bottom:1px solid #f0f0f0;">
-                <td style="font-weight:600; color:#3949ab; padding:6px 2px;">${c.jogo}</td>
-                <td style="text-align:left; padding:6px 2px;">
-                  <div style="display:flex; align-items:center; gap:6px;">
-                    <img src="/escudos/${c.timeA.clube_id}.png" style="width:20px; height:20px; border-radius:50%; flex-shrink:0;" onerror="this.style.display='none'">
-                    <div style="display:flex; flex-direction:column; align-items:flex-start;">
-                      <span style="font-weight:500; font-size:13px; color:#222;">${c.timeA.nome_time}</span>
-                      <span style="font-size:11px; color:#888;">${c.timeA.nome_cartoleiro || c.timeA.nome_cartola || "—"}</span>
+              <tr>
+                <td class="jogo-cell">${c.jogo}</td>
+                <td class="time-cell">
+                  <div class="time-info">
+                    <img src="/escudos/${c.timeA.clube_id}.png" class="escudo-img" onerror="this.style.display='none'">
+                    <div class="time-details">
+                      <span class="time-nome">${c.timeA.nome_time}</span>
+                      <span class="time-cartoleiro">${c.timeA.nome_cartoleiro || c.timeA.nome_cartola || "—"}</span>
                     </div>
                   </div>
                 </td>
-                <td style="font-weight:600; min-width:54px; color:${valorA > 0 ? "#27ae60" : valorA < 0 ? "#c0392b" : "#222"}; padding:6px 2px;">
-                  <div>${formatPoints(c.timeA.pontos)}</div>
-                  <div style="font-size:8px; color:${valorA === 10 ? "#1976d2" : valorA === -10 ? "#c0392b" : "transparent"}; font-weight:400;">
+                <td class="pontos-cell ${valorA > 0 ? "valor-positivo" : valorA < 0 ? "valor-negativo" : "valor-neutro"}">
+                  <div class="pontos-valor">${formatPoints(c.timeA.pontos)}</div>
+                  <div class="premio-valor">
                     ${valorA === 10 ? "R$ 10,00" : valorA === -10 ? "-R$ 10,00" : ""}
                   </div>
                 </td>
-                <td style="font-weight:700; color:#3949ab; padding:6px 2px;">X</td>
-                <td style="font-weight:600; min-width:54px; color:${valorB > 0 ? "#27ae60" : valorB < 0 ? "#c0392b" : "#222"}; padding:6px 2px;">
-                  <div>${formatPoints(c.timeB.pontos)}</div>
-                  <div style="font-size:8px; color:${valorB === 10 ? "#1976d2" : valorB === -10 ? "#c0392b" : "transparent"}; font-weight:400;">
+                <td class="vs-cell">X</td>
+                <td class="pontos-cell ${valorB > 0 ? "valor-positivo" : valorB < 0 ? "valor-negativo" : "valor-neutro"}">
+                  <div class="pontos-valor">${formatPoints(c.timeB.pontos)}</div>
+                  <div class="premio-valor">
                     ${valorB === 10 ? "R$ 10,00" : valorB === -10 ? "-R$ 10,00" : ""}
                   </div>
                 </td>
-                <td style="text-align:left; padding:6px 2px;">
-                  <div style="display:flex; align-items:center; gap:6px;">
-                    <img src="/escudos/${c.timeB.clube_id}.png" style="width:20px; height:20px; border-radius:50%; flex-shrink:0;" onerror="this.style.display='none'">
-                    <div style="display:flex; flex-direction:column; align-items:flex-start;">
-                      <span style="font-weight:500; font-size:13px; color:#222;">${c.timeB.nome_time}</span>
-                      <span style="font-size:11px; color:#888;">${c.timeB.nome_cartoleiro || c.timeB.nome_cartola || "—"}</span>
+                <td class="time-cell">
+                  <div class="time-info">
+                    <img src="/escudos/${c.timeB.clube_id}.png" class="escudo-img" onerror="this.style.display='none'">
+                    <div class="time-details">
+                      <span class="time-nome">${c.timeB.nome_time}</span>
+                      <span class="time-cartoleiro">${c.timeB.nome_cartoleiro || c.timeB.nome_cartola || "—"}</span>
                     </div>
                   </div>
                 </td>
