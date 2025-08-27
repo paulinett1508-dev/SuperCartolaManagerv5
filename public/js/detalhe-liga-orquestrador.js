@@ -63,7 +63,7 @@ class DetalheLigaOrquestrador {
             const possiblePaths = [
                 `/css/modules/${moduleName}.css`,
                 `/${moduleName}.css`,
-                `/css/${moduleName}.css`
+                `/css/${moduleName}.css`,
             ];
 
             for (const path of possiblePaths) {
@@ -76,7 +76,9 @@ class DetalheLigaOrquestrador {
                         styleElement.textContent = cssContent;
                         document.head.appendChild(styleElement);
                         this.loadedCSS.add(moduleName);
-                        console.log(`✅ CSS do módulo ${moduleName} carregado de: ${path}`);
+                        console.log(
+                            `✅ CSS do módulo ${moduleName} carregado de: ${path}`,
+                        );
                         return;
                     }
                 } catch (pathError) {
@@ -158,10 +160,12 @@ class DetalheLigaOrquestrador {
 
                 case "mata-mata":
                     // Wait for container to be available
-                    await new Promise(resolve => setTimeout(resolve, 50));
-                    const mataMataContainer = document.getElementById("mata-mata");
-                    if (mataMataContainer) mataMataContainer.classList.add("active");
-                    
+                    await new Promise((resolve) => setTimeout(resolve, 50));
+                    const mataMataContainer =
+                        document.getElementById("mata-mata");
+                    if (mataMataContainer)
+                        mataMataContainer.classList.add("active");
+
                     if (this.modules.mataMata?.carregarMataMata) {
                         await this.modules.mataMata.carregarMataMata();
                     }
@@ -169,19 +173,27 @@ class DetalheLigaOrquestrador {
 
                 case "pontos-corridos":
                     // Wait for container to be available
-                    await new Promise(resolve => setTimeout(resolve, 50));
-                    const pontosCorridosContainer = document.getElementById("pontos-corridos");
-                    if (pontosCorridosContainer) pontosCorridosContainer.classList.add("active");
-                    
+                    await new Promise((resolve) => setTimeout(resolve, 50));
+                    const pontosCorridosContainer =
+                        document.getElementById("pontos-corridos");
+                    if (pontosCorridosContainer)
+                        pontosCorridosContainer.classList.add("active");
+
                     // CORREÇÃO: Chamar função correta do módulo
                     if (this.modules.pontosCorreidos?.carregarPontosCorridos) {
                         await this.modules.pontosCorreidos.carregarPontosCorridos();
-                    } else if (typeof window.carregarPontosCorridos === "function") {
+                    } else if (
+                        typeof window.carregarPontosCorridos === "function"
+                    ) {
                         await window.carregarPontosCorridos();
-                    } else if (typeof window.inicializarPontosCorridos === "function") {
+                    } else if (
+                        typeof window.inicializarPontosCorridos === "function"
+                    ) {
                         await window.inicializarPontosCorridos();
                     } else {
-                        console.warn("⚠️ Nenhuma função de inicialização de pontos corridos encontrada");
+                        console.warn(
+                            "⚠️ Nenhuma função de inicialização de pontos corridos encontrada",
+                        );
                     }
                     break;
 
@@ -243,7 +255,7 @@ class DetalheLigaOrquestrador {
             "ranking-geral": `<div id="ranking-geral"><div class="loading-state">Carregando ranking...</div></div>`,
             rodadas: `<div id="rodadas"><div class="loading-state">Carregando rodadas...</div></div>`,
             "mata-mata": `<div id="mata-mata"><div class="loading-state">Carregando mata-mata...</div></div>`,
-            "pontos-corridos": `<div id="pontos-corridos-content"><div class="loading-state">Carregando pontos corridos...</div></div>`,
+            "pontos-corridos": `<div id="pontos-corridos"><div class="loading-state">Carregando pontos corridos...</div></div>`,
             "luva-de-ouro": `<div id="luva-de-ouro-content"><div class="loading-state">Carregando luva de ouro...</div></div>`,
             "artilheiro-campeao": `<div id="artilheiro-content"><div class="loading-state">Carregando artilheiros...</div></div>`,
             "melhor-mes": `<div id="melhor-mes-content"><div class="loading-state">Carregando melhor mês...</div></div>`,
@@ -392,10 +404,14 @@ class DetalheLigaOrquestrador {
             this.modules.mataMata = await import("./mata-mata.js");
             this.modules.pontosCorreidos = await import("./pontos-corridos.js");
             this.modules.luvaDeOuro = await import("./luva-de-ouro.js");
-            this.modules.artilheiroCampeao = await import("./artilheiro-campeao.js");
+            this.modules.artilheiroCampeao = await import(
+                "./artilheiro-campeao.js"
+            );
             this.modules.melhorMes = await import("./melhor-mes.js");
             this.modules.top10 = await import("./top10.js");
-            this.modules.fluxoFinanceiro = await import("./fluxo-financeiro.js");
+            this.modules.fluxoFinanceiro = await import(
+                "./fluxo-financeiro.js"
+            );
         } catch (error) {
             console.error("Erro ao carregar módulos:", error);
         }
