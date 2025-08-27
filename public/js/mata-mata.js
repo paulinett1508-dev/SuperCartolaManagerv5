@@ -19,12 +19,21 @@ async function carregarExports() {
   if (exportsCarregados) return true;
   if (exportsCarregando) {
     return new Promise((resolve) => {
+      const controller = new AbortController();
       const checkInterval = setInterval(() => {
         if (exportsCarregados || !exportsCarregando) {
           clearInterval(checkInterval);
+          controller.abort(); // Cleanup
           resolve(exportsCarregados);
         }
       }, 100);
+
+      // Cleanup após timeout
+      setTimeout(() => {
+        clearInterval(checkInterval);
+        controller.abort();
+        resolve(false);
+      }, 5000);
     });
   }
 
@@ -86,12 +95,21 @@ async function carregarRodadas() {
   if (rodadasCarregados) return true;
   if (rodadasCarregando) {
     return new Promise((resolve) => {
+      const controller = new AbortController();
       const checkInterval = setInterval(() => {
         if (rodadasCarregados || !rodadasCarregando) {
           clearInterval(checkInterval);
+          controller.abort(); // Cleanup
           resolve(rodadasCarregados);
         }
       }, 100);
+
+      // Cleanup após timeout  
+      setTimeout(() => {
+        clearInterval(checkInterval);
+        controller.abort();
+        resolve(false);
+      }, 5000);
     });
   }
 
@@ -319,26 +337,36 @@ function renderizarInterface(container, ligaId) {
   const edicaoSelect = document.getElementById("edicao-select");
   if (edicaoSelect) {
     let debounceTimer;
-    edicaoSelect.addEventListener("change", function () {
-      clearTimeout(debounceTimer);
-      debounceTimer = setTimeout(() => {
-        edicaoAtual = parseInt(this.value);
-        console.log(`[MATA-MATA] 📋 Edição selecionada: ${edicaoAtual}`);
+    edicaoSelect.addEventListener("change", function(event) {
+            clearTimeout(debounceTimer);
+            const controller = new AbortController();
 
-        const faseNavContainer = document.getElementById("fase-nav-container");
-        if (faseNavContainer) faseNavContainer.style.display = "block";
+            debounceTimer = setTimeout(() => {
+                if (controller.signal.aborted) return;
 
-        container
-          .querySelectorAll(".fase-btn")
-          .forEach((btn) => btn.classList.remove("active"));
-        const primeiraFaseBtn = container.querySelector(
-          '.fase-btn[data-fase="primeira"]',
-        );
-        if (primeiraFaseBtn) primeiraFaseBtn.classList.add("active");
+                edicaoAtual = parseInt(this.value);
+                console.log(`[MATA-MATA] 📋 Edição selecionada: ${edicaoAtual}`);
 
-        carregarFase("primeira", ligaId);
-      }, 300);
-    });
+                const faseNavContainer = document.getElementById("fase-nav-container");
+                if (faseNavContainer) faseNavContainer.style.display = "block";
+
+                container
+                    .querySelectorAll(".fase-btn")
+                    .forEach((btn) => btn.classList.remove("active"));
+                const primeiraFaseBtn = container.querySelector(
+                    '.fase-btn[data-fase="primeira"]',
+                );
+                if (primeiraFaseBtn) primeiraFaseBtn.classList.add("active");
+
+                carregarFase("primeira", ligaId);
+            }, 300);
+
+            // Cleanup no unload
+            window.addEventListener('beforeunload', () => {
+                controller.abort();
+                clearTimeout(debounceTimer);
+            }, { once: true });
+        });
   }
 
   container.querySelectorAll(".fase-btn").forEach((btn) => {
@@ -775,7 +803,7 @@ async function renderTabelaMataMata(
     <div style="overflow-x:auto;">
       <table style="width: 100%; max-width: 600px; margin: 0 auto; border-collapse: separate; border-spacing: 0; background: #fff; border-radius: 12px; overflow: hidden; box-shadow: 0 2px 8px #0001; font-size: 13px;">
         <thead>
-          <tr style="background: #e3e6f3;">
+          <tr style="background: #e3e3f3;">
             <th style="padding: 7px 2px;">Jogo</th>
             <th style="padding: 7px 2px;">Time 1</th>
             <th style="padding: 7px 2px; min-width: 54px;">Pts</th>
@@ -1299,6 +1327,26 @@ export async function testarDadosMataMata() {
   }
 }
 
+
+// Cleanup global para evitar memory leaks
+window.addEventListener('beforeunload', () => {
+    clearTimeout(debounceTimer);
+    moduleCache.clear();
+    exportsCarregados = false;
+    rodadasCarregados = false;
+    console.log('[MATA-MATA] 🧹 Cleanup executado');
+});
+
+// Interceptar erros de Promise não tratadas
+window.addEventListener('unhandledrejection', (event) => {
+    if (event.reason && event.reason.message && 
+        event.reason.message.includes('message channel closed')) {
+        event.preventDefault();
+        console.log('[MATA-MATA] 🛡️ Promise rejection interceptada e ignorada');
+    }
+});
+
+})();
 console.log(
   "[MATA-MATA] ✅ Módulo carregado com correções de carregamento implementadas",
 );
