@@ -861,7 +861,12 @@ class DetalheLigaOrquestrador {
                     await this.showModule("fluxo-financeiro");
                     break;
                 default:
-                    document.getElementById("dynamic-content-area").innerHTML =
+                    document.getElementById("dynamic-content-area").innerHTML = `
+                        <div class="empty-state">
+                            <p>Módulo não encontrado</p>
+                        </div>
+                    `;
+            }
                         '<div class="empty-state">Funcionalidade em desenvolvimento</div>';
             }
         } catch (error) {
