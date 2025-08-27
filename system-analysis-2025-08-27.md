@@ -1,6 +1,6 @@
 # 📊 Análise do Sistema Super Cartola Manager
 
-**Data da Análise:** 26/08/2025, 20:40:02
+**Data da Análise:** 27/08/2025, 11:08:05
 
 ---
 
@@ -24,12 +24,11 @@
 - 📁 **routes/**
 - 📁 **scripts/**
 - 📁 **services/**
-- 📁 **test/**
 - 📁 **utils/**
 
 ### 📄 Arquivos na Raiz
 
-- 📖 **HANDOVER.md** - 📖 Documentação
+- 📖 **UX_PATTERNS.md** - 📖 Documentação
 - 📜 **backupJson.js** - 📝 Script JavaScript
 - 📜 **backupScheduler.js** - 📝 Script JavaScript
 - 📋 **credentials.json** - 📋 Dados JSON
@@ -38,18 +37,19 @@
 - 🖼️ **generated-icon.png** - ❓ Arquivo genérico
 - 📜 **handover.js** - 📝 Script JavaScript
 - 📜 **index.js** - 🏠 Página principal/Entry point
-- 📄 **listar_estrutura.py** - ❓ Arquivo genérico
 - 📋 **package-lock.json** - 📋 Dados JSON
 - 📋 **package.json** - 📦 Configuração npm/dependências
 - 📄 **replit.nix** - ❓ Arquivo genérico
+- 📖 **system-analysis-2025-08-26.md** - 📖 Documentação
 - 📜 **system-mapper.js** - 📝 Script JavaScript
 - 📜 **uploadToDrive.js** - 📝 Script JavaScript
+- 📜 **ux-analyzer.js** - 📝 Script JavaScript
 
 ---
 
 ## 🔍 Análise por Categoria
 
-### Frontend (Cliente) (117 arquivos)
+### Frontend (Cliente) (115 arquivos)
 
 - 📄 **backupJson.js** - 📝 Script JavaScript
   - 📏 Tamanho: 1KB | Linhas: 39
@@ -86,15 +86,9 @@
   - 📏 Tamanho: 1KB | Linhas: 19
 - 📄 **models/Time.js** - 📝 Script JavaScript
 - 📄 **public/admin.html** - 👤 Administração/Gestão
-  - 📏 Tamanho: 29KB | Linhas: 774
-- 📄 **public/buscar-times.html** - 📄 Página HTML
-  - 📏 Tamanho: 15KB | Linhas: 492
+  - 📏 Tamanho: 28KB | Linhas: 755
 - 📄 **public/criar-liga.html** - 🏆 Funcionalidades de Liga
-  - 📏 Tamanho: 2KB | Linhas: 73
-- 📄 **public/criar-liga.js** - 🏆 Funcionalidades de Liga
-  - 📏 Tamanho: 2KB | Linhas: 73
-- 📄 **public/criar.html** - 📄 Página HTML
-  - 📏 Tamanho: 2KB | Linhas: 76
+  - 📏 Tamanho: 34KB | Linhas: 977
 - 📄 **public/css/base.css** - 🎨 Estilos CSS
   - 📏 Tamanho: 12KB | Linhas: 508
 - 📄 **public/css/modules/participantes.css** - 🧩 Módulo do sistema
@@ -109,11 +103,15 @@
   - 📏 Tamanho: 10KB | Linhas: 220
 - 📄 **public/editar-liga.html** - 🏆 Funcionalidades de Liga
   - 📏 Tamanho: 19KB | Linhas: 558
+- 📄 **public/ferramentas.html** - 📄 Página HTML
+  - 📏 Tamanho: 6KB | Linhas: 143
 - 📄 **public/fronts/artilheiro-campeao.html** - ⚽ Sistema Artilheiro Campeão
 - 📄 **public/fronts/fluxo-financeiro.html** - 📄 Página HTML
 - 📄 **public/fronts/luva-de-ouro.html** - 🥅 Sistema Luva de Ouro
 - 📄 **public/fronts/mata-mata.html** - 📄 Página HTML
 - 📄 **public/fronts/melhor-mes.html** - 📄 Página HTML
+- 📄 **public/fronts/parciais.html** - 📄 Página HTML
+  - 📏 Tamanho: 11KB | Linhas: 366
 - 📄 **public/fronts/participantes.html** - 📄 Página HTML
   - 📏 Tamanho: 3KB | Linhas: 86
 - 📄 **public/fronts/pontos-corridos.html** - 📄 Página HTML
@@ -216,9 +214,7 @@
 - 📄 **public/js/utils.js** - 📝 Script JavaScript
   - 📏 Tamanho: 7KB | Linhas: 208
 - 📄 **public/layout.html** - 📄 Página HTML
-  - 📏 Tamanho: 13KB | Linhas: 340
-- 📄 **public/parciais.html** - 📄 Página HTML
-  - 📏 Tamanho: 11KB | Linhas: 366
+  - 📏 Tamanho: 13KB | Linhas: 338
 - 📄 **public/preencher-liga.html** - 🏆 Funcionalidades de Liga
   - 📏 Tamanho: 5KB | Linhas: 178
 - 📄 **public/script.js** - 📝 Script JavaScript
@@ -268,12 +264,12 @@
   - 📏 Tamanho: 17KB | Linhas: 539
 - 📄 **system-mapper.js** - 📝 Script JavaScript
   - 📏 Tamanho: 19KB | Linhas: 617
-- 📄 **test/artilheiro.test.js** - ⚽ Sistema Artilheiro Campeão
-  - 📏 Tamanho: 10KB | Linhas: 342
 - 📄 **uploadToDrive.js** - 📝 Script JavaScript
   - 📏 Tamanho: 2KB | Linhas: 70
 - 📄 **utils/validators.js** - 📝 Script JavaScript
   - 📏 Tamanho: 9KB | Linhas: 337
+- 📄 **ux-analyzer.js** - 📝 Script JavaScript
+  - 📏 Tamanho: 24KB | Linhas: 801
 
 ### Configuração (11 arquivos)
 
@@ -286,7 +282,7 @@
 - 📄 **backups/ligas.json** - 🏆 Funcionalidades de Liga
   - 📏 Tamanho: 1KB | Linhas: 56
 - 📄 **backups/rodadas.json** - 📅 Gestão de Rodadas
-  - 📏 Tamanho: 400KB | Linhas: 10642
+  - 📏 Tamanho: 420KB | Linhas: 11174
 - 📄 **backups/times.json** - 📋 Dados JSON
   - 📏 Tamanho: 14KB | Linhas: 335
 - 📄 **credentials.json** - 📋 Dados JSON
@@ -299,10 +295,12 @@
 - 📄 **scripts/times-da-liga.json** - 🏆 Funcionalidades de Liga
   - 📏 Tamanho: 2KB | Linhas: 46
 
-### Documentação (1 arquivos)
+### Documentação (2 arquivos)
 
-- 📄 **HANDOVER.md** - 📖 Documentação
-  - 📏 Tamanho: 3KB | Linhas: 135
+- 📄 **UX_PATTERNS.md** - 📖 Documentação
+  - 📏 Tamanho: 5KB | Linhas: 328
+- 📄 **system-analysis-2025-08-26.md** - 📖 Documentação
+  - 📏 Tamanho: 19KB | Linhas: 480
 
 ### Assets (17 arquivos)
 
@@ -448,26 +446,26 @@
 
 | Métrica | Valor |
 |---------|-------|
-| **Total de arquivos** | 152 |
-| **Tamanho total** | 4606 KB |
-| **Tamanho médio** | 30 KB |
+| **Total de arquivos** | 150 |
+| **Tamanho total** | 4669 KB |
+| **Tamanho médio** | 31 KB |
 
 ### 📋 Por Tipo de Arquivo
 
 | Tipo | Quantidade |
 |------|------------|
-| 📖 **docs** | 1 |
-| 🎨 **frontend** | 117 |
+| 📖 **docs** | 2 |
+| 🎨 **frontend** | 115 |
 | ⚙️ **config** | 11 |
-| ❓ **other** | 6 |
+| ❓ **other** | 5 |
 | 🖼️ **assets** | 17 |
 
 ### 📏 Por Tamanho de Arquivo
 
 | Categoria | Quantidade | Descrição |
 |-----------|------------|----------|
-| 🟢 **Pequenos** | 66 | < 5KB |
-| 🟡 **Médios** | 81 | 5-50KB |
+| 🟢 **Pequenos** | 63 | < 5KB |
+| 🟡 **Médios** | 82 | 5-50KB |
 | 🔴 **Grandes** | 5 | > 50KB |
 
 ### 🔍 Insights da Arquitetura
