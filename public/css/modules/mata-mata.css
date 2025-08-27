@@ -340,11 +340,12 @@
   color: var(--warning, #FF4500);
 }
 
-/* Instrução Inicial */
+/* Instrução Inicial - Tema Dark */
 .instrucao-inicial {
   text-align: center;
   padding: 40px 20px;
-  background: rgba(42, 42, 42, 0.3);
+  background: var(--bg-secondary, #1a1a1a);
+  border: 1px solid rgba(255, 69, 0, 0.3);
   border-radius: var(--border-radius-md, 8px);
   margin: 20px 0;
 }
@@ -353,6 +354,39 @@
   font-size: 16px;
   color: var(--text-muted, #a0a0a0);
   margin: 0;
+  font-family: "Inter", -apple-system, sans-serif;
+}
+
+/* Alert de Aviso - Tema Dark */
+.alert.alert-warning {
+  margin: 10px 0;
+  padding: 12px;
+  background: rgba(255, 69, 0, 0.1);
+  border: 1px solid rgba(255, 69, 0, 0.3);
+  color: var(--laranja, #FF4500);
+  border-radius: var(--border-radius-md, 8px);
+  text-align: center;
+  font-family: "Inter", -apple-system, sans-serif;
+}
+
+/* Botão Exportar - Padrão do Sistema */
+.export-mata-mata-btn {
+  background: linear-gradient(135deg, var(--laranja, #ff4500) 0%, var(--laranja-dark, #e8472b) 100%) !important;
+  color: white !important;
+  border: none !important;
+  border-radius: var(--border-radius-md, 8px) !important;
+  padding: 12px 20px !important;
+  font-size: 13px !important;
+  font-weight: 600 !important;
+  transition: all 0.3s ease !important;
+  box-shadow: 0 4px 15px rgba(255, 69, 0, 0.4) !important;
+  font-family: "Inter", -apple-system, sans-serif !important;
+}
+
+.export-mata-mata-btn:hover {
+  background: linear-gradient(135deg, var(--laranja-dark, #e8472b) 0%, #d63920 100%) !important;
+  transform: translateY(-1px) !important;
+  box-shadow: 0 6px 20px rgba(255, 69, 0, 0.6) !important;
 }
 
 /* Animações */
