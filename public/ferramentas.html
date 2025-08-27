@@ -10,6 +10,7 @@
         <link rel="stylesheet" href="style.css" />
         <link rel="stylesheet" href="detalhe-liga.css" />
         <link rel="stylesheet" href="css/base.css" />
+        <link rel="stylesheet" href="css/modules/ferramentas.css" />
     </head>
 
     <body>
@@ -18,65 +19,46 @@
 
             <main class="app-main">
                 <div class="page-content">
-                    <!-- Header Simplificado igual ao detalhe-liga -->
+                    <!-- Header Simplificado -->
                     <div class="liga-header">
                         <h2 class="liga-titulo">Ferramentas de Gestão</h2>
                         <p class="liga-info">
-                            Gerencie suas ligas do Cartola FC
+                            Gerencie suas ligas do Cartola FC de forma unificada
                         </p>
                     </div>
 
-                    <!-- Cards de Ferramentas -->
+                    <!-- Cards de Ferramentas Consolidados -->
                     <div class="main-screen">
                         <div class="modules-grid modules-grid-expanded">
-                            <!-- Card Criar Liga -->
+                            <!-- Card Única: Criar Nova Liga -->
                             <div
                                 class="module-card"
                                 onclick="window.location.href='criar-liga.html'"
-                                style="cursor: pointer"
                             >
                                 <div class="module-header">
-                                    <div class="module-icon">➕</div>
+                                    <div class="module-icon">+</div>
                                     <h3 class="module-title">CRIAR LIGA</h3>
                                 </div>
                                 <ul class="module-items">
-                                    <li>Nova liga personalizada</li>
-                                    <li>Configurar nome</li>
-                                    <li>Adicionar times</li>
+                                    <li>Interface completa em etapas</li>
+                                    <li>Busca e validação de times</li>
+                                    <li>Configuração personalizada</li>
                                 </ul>
                             </div>
 
-                            <!-- Card Preencher Liga -->
-                            <div
-                                class="module-card"
-                                onclick="window.location.href='preencher-liga.html'"
-                                style="cursor: pointer"
-                            >
-                                <div class="module-header">
-                                    <div class="module-icon">📝</div>
-                                    <h3 class="module-title">PREENCHER LIGA</h3>
-                                </div>
-                                <ul class="module-items">
-                                    <li>Adicionar múltiplos times</li>
-                                    <li>Importação em massa</li>
-                                    <li>Liga existente</li>
-                                </ul>
-                            </div>
-
-                            <!-- Card Gerenciar Ligas -->
+                            <!-- Card: Gerenciar Ligas Existentes -->
                             <div
                                 class="module-card"
                                 onclick="window.location.href='gerenciar.html'"
-                                style="cursor: pointer"
                             >
                                 <div class="module-header">
-                                    <div class="module-icon">⚙️</div>
+                                    <div class="module-icon">⚙</div>
                                     <h3 class="module-title">GERENCIAR</h3>
                                 </div>
                                 <ul class="module-items">
-                                    <li>Editar Liga</li>
-                                    <li>Popular Rodadas</li>
-                                    <li>Excluir Liga</li>
+                                    <li>Visão geral das ligas</li>
+                                    <li>Editar times e configurações</li>
+                                    <li>Excluir com confirmação</li>
                                 </ul>
                             </div>
                         </div>
@@ -85,41 +67,23 @@
             </main>
         </div>
 
+        <!-- Scripts simplificados -->
         <script type="module">
-            // === CARREGAR LAYOUT ===
+            // Carregamento básico de layout
             async function loadLayout() {
                 try {
                     const response = await fetch("layout.html");
                     const layoutHtml = await response.text();
-
                     const parser = new DOMParser();
                     const doc = parser.parseFromString(layoutHtml, "text/html");
 
-                    // Injetar sidebar
                     const sidebar = doc.querySelector(".app-sidebar");
                     if (sidebar) {
                         document
                             .getElementById("sidebar-placeholder")
-                            .replaceWith(sidebar);
+                            ?.replaceWith(sidebar);
                     }
 
-                    // Injetar header
-                    const header = doc.querySelector(".page-header");
-                    if (header) {
-                        // Atualizar título do header
-                        const pageTitle = header.querySelector("#pageTitle");
-                        const pageSubtitle =
-                            header.querySelector("#pageSubtitle");
-                        if (pageTitle) pageTitle.textContent = "🔧 Ferramentas";
-                        if (pageSubtitle)
-                            pageSubtitle.textContent = "Gestão de Ligas";
-
-                        document
-                            .getElementById("header-placeholder")
-                            ?.replaceWith(header);
-                    }
-
-                    // Executar scripts do layout
                     const scripts = doc.querySelectorAll("script");
                     scripts.forEach((script) => {
                         if (script.textContent.trim()) {
@@ -133,10 +97,7 @@
                 }
             }
 
-            // === INICIALIZAÇÃO ===
-            document.addEventListener("DOMContentLoaded", async () => {
-                await loadLayout();
-            });
+            document.addEventListener("DOMContentLoaded", loadLayout);
         </script>
     </body>
 </html>

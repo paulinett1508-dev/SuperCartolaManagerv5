@@ -11,6 +11,47 @@
                 padding: 20px;
             }
 
+            /* Botão voltar adicionado */
+            .voltar-button {
+                margin-bottom: 20px;
+            }
+
+            .btn-voltar {
+                padding: 10px 20px;
+                background: var(--bg-card);
+                color: var(--text-secondary);
+                border: 1px solid var(--border-primary);
+                border-radius: 8px;
+                font-size: 14px;
+                font-weight: 600;
+                cursor: pointer;
+                transition: all 0.3s ease;
+                text-decoration: none;
+                display: inline-flex;
+                align-items: center;
+                gap: 8px;
+            }
+
+            .btn-voltar:hover {
+                background: var(--bg-card-hover);
+                border-color: var(--laranja);
+                color: var(--laranja);
+            }
+
+            /* Título da página */
+            .page-title {
+                font-size: 24px;
+                font-weight: 700;
+                color: var(--text-primary);
+                margin-bottom: 8px;
+            }
+
+            .page-subtitle {
+                font-size: 14px;
+                color: var(--text-muted);
+                margin-bottom: 25px;
+            }
+
             /* Estatísticas compactas */
             .stats-bar {
                 display: flex;
@@ -201,11 +242,21 @@
 
             <!-- Conteúdo principal -->
             <main class="app-main">
-                <!-- Header será injetado aqui -->
-                <div id="header-placeholder"></div>
-
                 <!-- Conteúdo da página -->
                 <div class="page-content">
+                    <!-- Botão Voltar -->
+                    <div class="voltar-button">
+                        <a href="ferramentas.html" class="btn-voltar">
+                            ← Voltar para Ferramentas
+                        </a>
+                    </div>
+
+                    <!-- Título da página -->
+                    <h1 class="page-title">Gerenciar Ligas</h1>
+                    <p class="page-subtitle">
+                        Administre suas ligas do Cartola FC
+                    </p>
+
                     <!-- Estatísticas -->
                     <div class="stats-bar" id="statsBar" style="display: none">
                         <div class="stat-item">
@@ -250,7 +301,7 @@
             // Variável global para armazenar ligas
             window.ligasData = [];
 
-            // === CARREGAR LAYOUT ===
+            // === CARREGAR LAYOUT (SEM HEADER) ===
             async function loadLayout() {
                 try {
                     const response = await fetch("layout.html");
@@ -259,29 +310,12 @@
                     const parser = new DOMParser();
                     const doc = parser.parseFromString(layoutHtml, "text/html");
 
-                    // Injetar sidebar
+                    // Injetar apenas sidebar
                     const sidebar = doc.querySelector(".app-sidebar");
                     if (sidebar) {
                         document
                             .getElementById("sidebar-placeholder")
                             .replaceWith(sidebar);
-                    }
-
-                    // Injetar header
-                    const header = doc.querySelector(".page-header");
-                    if (header) {
-                        const pageTitle = header.querySelector("#pageTitle");
-                        const pageSubtitle =
-                            header.querySelector("#pageSubtitle");
-                        if (pageTitle)
-                            pageTitle.textContent = "⚙️ Gerenciar Ligas";
-                        if (pageSubtitle)
-                            pageSubtitle.textContent =
-                                "Ferramentas Administrativas";
-
-                        document
-                            .getElementById("header-placeholder")
-                            .replaceWith(header);
                     }
 
                     // Executar scripts do layout
@@ -314,7 +348,7 @@
                             <div class="empty-state">
                                 <div class="empty-icon">📋</div>
                                 <div class="empty-title">Nenhuma liga criada</div>
-                                <a href="preencher-liga.html" class="btn-action btn-rodadas" style="margin-top: 20px;">
+                                <a href="criar-liga.html" class="btn-action btn-rodadas" style="margin-top: 20px;">
                                     ➕ Criar Primeira Liga
                                 </a>
                             </div>

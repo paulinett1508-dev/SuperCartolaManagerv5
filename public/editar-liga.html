@@ -1,557 +1,122 @@
 <!doctype html>
 <html lang="pt-BR">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Editar Times da Liga</title>
-    <link rel="stylesheet" href="style.css" />
-    <style>
-      /* Seu CSS permanece o mesmo */
-      h2 {
-        text-align: center;
-        color: #2c3e50;
-        margin-top: 20px;
-      }
-      table {
-        width: 800px;
-        margin: 20px auto;
-        border-collapse: collapse;
-      }
-      th,
-      td {
-        border: 1px solid #ccc;
-        padding: 4px 6px;
-        text-align: center;
-        font-size: 12px;
-      }
-      th {
-        background-color: #2c3e50;
-        color: white;
-        padding: 6px 8px;
-      }
-      input[type="text"] {
-        width: 90%;
-        padding: 4px;
-        font-size: 14px;
-      }
-      select {
-        width: 90%;
-        padding: 4px;
-        font-size: 14px;
-      }
-      img {
-        max-height: 24px;
-        max-width: 24px;
-        object-fit: contain;
-      }
-      .btn {
-        padding: 4px 8px;
-        border: none;
-        border-radius: 4px;
-        cursor: pointer;
-        margin: 2px;
-        color: white;
-        font-size: 12px;
-      }
-      .btn-voltar {
-        background: #34495e;
-        display: block;
-        margin: 10px auto 20px;
-        font-size: 14px;
-      }
-      .btn-success {
-        background-color: #27ae60;
-      }
-      .btn-danger {
-        background-color: #e74c3c;
-      }
-      .btn-warning {
-        background-color: #f39c12;
-      }
-      .btn-add {
-        background-color: #2980b9;
-      }
-      .btn-save-all {
-        background-color: #ff9800;
-        display: block;
-        margin: 20px auto;
-        padding: 10px 20px;
-        font-size: 16px;
-      }
-      .status.ok {
-        color: green;
-        font-weight: bold;
-      }
-      .status.error {
-        color: red;
-        font-weight: bold;
-      }
-      .index-column {
-        width: 30px;
-        font-weight: bold;
-      }
-      .id-column {
-        width: 60px;
-      }
-      .error-message {
-        color: red;
-        text-align: center;
-        margin: 10px 0;
-      }
-      .time-coracao-result {
-        display: flex;
-        justify-content: center;
-        align-items: center;
-        height: 100%;
-      }
-    </style>
-  </head>
-  <body>
-    <h2 id="tituloLiga">🛠 Editar Times da Liga</h2>
-    <button
-      class="btn btn-voltar"
-      onclick="window.history.back()"
-      aria-label="Voltar para a página anterior"
-    >
-      ⬅ Voltar
-    </button>
+    <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <title>Editar Liga - Super Cartola Manager</title>
+        <link rel="shortcut icon" href="favicon.ico" type="image/x-icon" />
 
-    <div id="errorMessage" class="error-message" style="display: none"></div>
+        <!-- CSS HIERÁRQUICO MODULAR -->
+        <link rel="stylesheet" href="style.css" />
+        <link rel="stylesheet" href="css/base.css" />
+        <link rel="stylesheet" href="css/modules/editar-liga.css" />
+    </head>
+    <body>
+        <div class="app-container">
+            <!-- Sidebar será injetado aqui -->
+            <div id="sidebar-placeholder"></div>
 
-    <table>
-      <thead>
-        <tr>
-          <th class="index-column">#</th>
-          <th class="id-column">ID</th>
-          <th>Cartoleiro</th>
-          <th>Brasão do Time</th>
-          <th>Time do Coração</th>
-          <th>❤️</th>
-          <th>Ações</th>
-        </tr>
-      </thead>
-      <tbody id="tabelaTimes"></tbody>
-    </table>
+            <!-- Conteúdo principal -->
+            <main class="app-main">
+                <div class="page-content">
+                    <!-- Breadcrumb -->
+                    <nav class="breadcrumb">
+                        <a href="dashboard.html">Dashboard</a>
+                        <span class="separator">></span>
+                        <a href="ferramentas.html">Ferramentas</a>
+                        <span class="separator">></span>
+                        <a href="gerenciar.html">Gerenciar</a>
+                        <span class="separator">></span>
+                        <span class="current">Editar Liga</span>
+                    </nav>
 
-    <button class="btn btn-save-all" onclick="salvarTudo()">
-      💾 Salvar Tudo
-    </button>
+                    <!-- Header da Liga -->
+                    <div class="liga-header">
+                        <div class="header-actions">
+                            <a href="gerenciar.html" class="btn-voltar">
+                                ← Voltar para Gerenciar
+                            </a>
+                        </div>
+                        <h1 class="liga-titulo" id="tituloLiga">
+                            Editar Times da Liga
+                        </h1>
+                        <p class="liga-info">
+                            Gerencie os times participantes da sua liga
+                        </p>
+                    </div>
 
-    <script>
-      const urlParams = new URLSearchParams(window.location.search);
-      const ligaId = urlParams.get("id");
-      let ligaAtual = null;
-      let clubes = [];
+                    <!-- Mensagem de Erro -->
+                    <div
+                        id="errorMessage"
+                        class="alert alert-error"
+                        style="display: none"
+                    >
+                        <!-- Mensagens de erro serão inseridas aqui -->
+                    </div>
 
-      async function carregarClubes() {
-        try {
-          const res = await fetch("/api/cartola/clubes");
-          if (!res.ok)
-            throw new Error(`Erro ao buscar clubes: ${res.statusText}`);
-          const data = await res.json();
-          clubes = Object.keys(data).map((id) => ({
-            id: parseInt(id),
-            nome: data[id].nome,
-            escudo_url: data[id].escudos["30x30"] || "",
-          }));
-          return true;
-        } catch (err) {
-          document.getElementById("errorMessage").textContent =
-            `Erro ao carregar clubes: ${err.message}`;
-          document.getElementById("errorMessage").style.display = "block";
-          clubes = [];
-          return false;
-        }
-      }
+                    <!-- Mensagem de Sucesso -->
+                    <div
+                        id="successMessage"
+                        class="alert alert-success"
+                        style="display: none"
+                    >
+                        <!-- Mensagens de sucesso serão inseridas aqui -->
+                    </div>
 
-      async function buscarDadosCartola(id, span, nomeCell) {
-        if (!id) {
-          span.textContent = "❌";
-          span.className = "status error";
-          nomeCell.innerHTML = "N/D";
-          return null;
-        }
-        try {
-          const res = await fetch(`/api/cartola/time/${id}`);
-          if (!res.ok)
-            throw new Error(`Erro ao buscar time ${id}: ${res.statusText}`);
-          const data = await res.json();
-          span.textContent = data.nome_cartoleiro || "N/D";
-          span.className = data.nome_cartoleiro ? "status ok" : "status error";
+                    <!-- Container da Tabela -->
+                    <div class="editar-container">
+                        <div class="table-wrapper">
+                            <table class="times-table" id="timesTable">
+                                <thead>
+                                    <tr>
+                                        <th class="col-index">#</th>
+                                        <th class="col-id">ID</th>
+                                        <th class="col-cartoleiro">
+                                            Cartoleiro
+                                        </th>
+                                        <th class="col-brasao">Brasão</th>
+                                        <th class="col-clube">
+                                            Time do Coração
+                                        </th>
+                                        <th class="col-escudo">Escudo</th>
+                                        <th class="col-acoes">Ações</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="tabelaTimes">
+                                    <!-- Times serão inseridos aqui -->
+                                </tbody>
+                            </table>
+                        </div>
 
-          if (data.clube_id) {
-            nomeCell.innerHTML = `<img src="${data.url_escudo_png}" alt="Brasão do Time" title="Brasão do Time" style="max-height: 30px;" />`;
-          } else {
-            nomeCell.innerHTML = "N/D";
-          }
+                        <!-- Loading State -->
+                        <div id="loadingState" class="loading-state">
+                            <div class="loading-spinner"></div>
+                            <p>Carregando times da liga...</p>
+                        </div>
 
-          return data;
-        } catch (err) {
-          span.textContent = "❌ Não encontrado";
-          nomeCell.innerHTML = "N/D";
-          span.className = "status error";
-          document.getElementById("errorMessage").textContent =
-            `Erro ao buscar dados do time ${id}: ${err.message}`;
-          document.getElementById("errorMessage").style.display = "block";
-          return null;
-        }
-      }
+                        <!-- Empty State -->
+                        <div
+                            id="emptyState"
+                            class="empty-state"
+                            style="display: none"
+                        >
+                            <div class="empty-icon">📋</div>
+                            <h3>Liga sem times</h3>
+                            <p>Esta liga ainda não possui times cadastrados.</p>
+                        </div>
 
-      async function carregarTimes() {
-        const errorMessage = document.getElementById("errorMessage");
-        errorMessage.style.display = "none";
+                        <!-- Botão Salvar Tudo -->
+                        <div class="action-footer">
+                            <button class="btn-save-all" id="salvarTudoBtn">
+                                Salvar Todas as Alterações
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </main>
+        </div>
 
-        try {
-          if (!ligaId) {
-            throw new Error("ID da liga não fornecido na URL");
-          }
-          const res = await fetch(`/api/ligas/${ligaId}`);
-          if (!res.ok) {
-            throw new Error(`Erro ao buscar liga: ${res.statusText}`);
-          }
-          ligaAtual = await res.json();
-
-          if (!ligaAtual || !ligaAtual.nome) {
-            throw new Error("Liga não encontrada ou dados inválidos");
-          }
-
-          console.log("Liga atual:", ligaAtual);
-          console.log("Times da liga:", ligaAtual.times);
-
-          document.getElementById("tituloLiga").textContent =
-            `🛠 Editar Times da Liga: ${ligaAtual.nome}`;
-          const tabela = document.getElementById("tabelaTimes");
-          tabela.innerHTML = "";
-
-          const timesIds = ligaAtual.times || [];
-          if (!Array.isArray(timesIds)) {
-            errorMessage.textContent = "Erro: Dados dos times inválidos.";
-            errorMessage.style.display = "block";
-            adicionarLinhaNova();
-            return;
-          }
-
-          const timesComNomes = await Promise.all(
-            timesIds.map(async (timeId, index) => {
-              const span = document.createElement("span");
-              const nomeCell = document.createElement("span");
-              const timeData = await buscarDadosCartola(timeId, span, nomeCell);
-              const clubeId = timeData ? timeData.clube_id : null;
-              const clube = clubes.find((c) => c.id === clubeId);
-              return {
-                id: timeId,
-                nome_cartoleiro: span.textContent,
-                brasao: timeData
-                  ? `<img src="${timeData.url_escudo_png}" alt="Brasão do Time" title="Brasão do Time" style="max-height: 30px;" />`
-                  : "N/D",
-                clube_id: clubeId,
-                timeDoCoracao: clube ? `/escudos/${clube.id}.png` : "",
-                timeDoCoracaoNome: clube ? clube.nome : "N/D",
-                index: index,
-              };
-            }),
-          );
-
-          timesComNomes.sort((a, b) =>
-            a.nome_cartoleiro.localeCompare(b.nome_cartoleiro),
-          );
-          ligaAtual.times = timesComNomes.map((t) => t.id);
-
-          const tabelaTimes = document.getElementById("tabelaTimes");
-          tabelaTimes.innerHTML = "";
-
-          timesComNomes.forEach((time) => {
-            const row = document.createElement("tr");
-
-            const options =
-              clubes.length > 0
-                ? clubes
-                    .map(
-                      (clube) =>
-                        `<option value="${clube.id}" data-escudo="/escudos/${clube.id}.png" data-nome="${clube.nome}" ${
-                          time.clube_id === clube.id ? "selected" : ""
-                        }>${clube.id} - ${clube.nome}</option>`,
-                    )
-                    .join("")
-                : `<option value="">Nenhum clube disponível</option>`;
-
-            row.innerHTML = `
-              <td class="index-column">${time.index + 1}</td>
-              <td class="id-column"><input type="text" value="${time.id}" onchange="atualizarCartoleiro(this, ${time.index})" style="width: 60px;" /></td>
-              <td><span class="cartoleiro"></span></td>
-              <td>${time.brasao}</td>
-              <td>
-                <select onchange="atualizarClube(this, ${time.index})">
-                  <option value="">Selecione um clube</option>
-                  ${options}
-                </select>
-              </td>
-              <td>
-                <span class="time-coracao-result">
-                  <img id="timeCoracaoResult_${time.index}" src="${time.timeDoCoracao || ""}" alt="Escudo do Time do Coração (30x30)" title="Escudo do Time do Coração" style="max-height: 30px; display: ${time.timeDoCoracao ? "block" : "none"};" onerror="this.src='/escudos/placeholder.png';" />
-                </span>
-              </td>
-              <td>
-                <button class="btn btn-success" onclick="atualizarTime(${time.index})">Alterar</button>
-                <button class="btn btn-warning" onclick="limparLinha(${time.index})">Limpar Campos</button>
-                <button class="btn btn-danger" onclick="removerTime(${time.index})">Excluir</button>
-              </td>
-            `;
-
-            // Atualiza o nome do cartoleiro separadamente para evitar problemas de HTML
-            row.querySelector(".cartoleiro").textContent = time.nome_cartoleiro;
-
-            tabelaTimes.appendChild(row);
-          });
-
-          adicionarLinhaNova();
-        } catch (err) {
-          document.getElementById("errorMessage").textContent =
-            `Erro ao carregar a liga: ${err.message}`;
-          document.getElementById("errorMessage").style.display = "block";
-          ligaAtual = { times: [] };
-          adicionarLinhaNova();
-        }
-      }
-
-      function adicionarLinhaNova() {
-        const tabela = document.getElementById("tabelaTimes");
-        const row = document.createElement("tr");
-        const options =
-          clubes.length > 0
-            ? clubes
-                .map(
-                  (clube) =>
-                    `<option value="${clube.id}" data-escudo="/escudos/${clube.id}.png" data-nome="${clube.nome}">${clube.id} - ${clube.nome}</option>`,
-                )
-                .join("")
-            : `<option value="">Nenhum clube disponível</option>`;
-        row.innerHTML = `
-          <td class="index-column">-</td>
-          <td class="id-column"><input type="text" id="novoId" placeholder="Novo ID" style="width: 60px;" /></td>
-          <td><span id="novoCartoleiro" class="status"></span></td>
-          <td><span id="novoNomeTime">N/D</span></td>
-          <td>
-            <select id="novoClube" onchange="atualizarNovoEscudo(this)">
-              <option value="">Selecione um clube</option>
-              ${options}
-            </select>
-          </td>
-          <td>
-            <span class="time-coracao-result">
-              <img id="novoTimeCoracaoResult" style="max-height: 30px; display: none;" alt="Escudo do Time do Coração (30x30)" title="Escudo do Time do Coração" />
-            </span>
-          </td>
-          <td>
-            <button class="btn btn-add" onclick="adicionarNovoTime()">Adicionar</button>
-            <button class="btn btn-warning" onclick="limparCampos()">Limpar Campos</button>
-            <button class="btn btn-danger" onclick="excluirNovoTime()">Excluir</button>
-          </td>
-        `;
-        tabela.appendChild(row);
-
-        document.getElementById("novoId").addEventListener("input", () => {
-          const id = document.getElementById("novoId").value.trim();
-          const span = document.getElementById("novoCartoleiro");
-          const nomeCell = document.getElementById("novoNomeTime");
-          buscarDadosCartola(id, span, nomeCell);
-        });
-      }
-
-      async function adicionarNovoTime() {
-        const idInput = document.getElementById("novoId");
-        const id = idInput.value.trim();
-
-        if (!id) {
-          alert("Informe o ID do time.");
-          return;
-        }
-
-        if (ligaAtual.times.some((t) => t.toString() === id)) {
-          alert("❌ Este ID já está na lista!");
-          return;
-        }
-
-        ligaAtual.times.push(isNaN(Number(id)) ? id : Number(id));
-
-        try {
-          const res = await fetch(`/api/ligas/${ligaId}/times`, {
-            method: "PUT",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ times: ligaAtual.times }),
-          });
-
-          if (!res.ok) {
-            throw new Error(
-              `Erro ao adicionar o time à liga: ${res.statusText}`,
-            );
-          }
-
-          alert("Time adicionado com sucesso!");
-          await carregarTimes();
-          limparCampos();
-        } catch (err) {
-          document.getElementById("errorMessage").textContent =
-            `Erro ao adicionar time: ${err.message}`;
-          document.getElementById("errorMessage").style.display = "block";
-        }
-      }
-
-      async function atualizarTime(index) {
-        const tabela = document.getElementById("tabelaTimes");
-        const row = tabela.rows[index];
-        if (!row) {
-          console.error(`Linha com índice ${index} não encontrada.`);
-          return;
-        }
-        const idInput = row.cells[1].querySelector("input");
-        const id = idInput.value.trim();
-
-        if (!id) {
-          alert("Informe o ID do time.");
-          return;
-        }
-
-        if (
-          ligaAtual.times.some((t, i) => t.toString() === id && i !== index)
-        ) {
-          alert("❌ Este ID já foi adicionado!");
-          return;
-        }
-
-        ligaAtual.times[index] = isNaN(Number(id)) ? id : Number(id);
-
-        try {
-          const res = await fetch(`/api/ligas/${ligaId}/times`, {
-            method: "PUT",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ times: ligaAtual.times }),
-          });
-
-          if (!res.ok) {
-            throw new Error(
-              `Erro ao atualizar o time na liga: ${res.statusText}`,
-            );
-          }
-
-          await carregarTimes();
-        } catch (err) {
-          document.getElementById("errorMessage").textContent =
-            `Erro ao atualizar time: ${err.message}`;
-          document.getElementById("errorMessage").style.display = "block";
-        }
-      }
-
-      function limparLinha(index) {
-        const tabela = document.getElementById("tabelaTimes");
-        const row = tabela.rows[index];
-        if (!row) {
-          console.error(`Linha com índice ${index} não encontrada.`);
-          return;
-        }
-        row.cells[1].querySelector("input").value = "";
-        row.cells[2].querySelector("span").innerHTML = "";
-        row.cells[3].innerHTML = "N/D";
-        row.cells[4].querySelector("select").value = "";
-        const resultImg = row.cells[5].querySelector("img");
-        resultImg.src = "";
-        resultImg.style.display = "none";
-      }
-
-      async function removerTime(index) {
-        if (!confirm("Tem certeza que deseja excluir este time da liga?"))
-          return;
-        const tabela = document.getElementById("tabelaTimes");
-        const row = tabela.rows[index];
-        if (!row) {
-          console.error(`Linha com índice ${index} não encontrada.`);
-          return;
-        }
-        const timeId = ligaAtual.times[index];
-        try {
-          const res = await fetch(`/api/ligas/${ligaId}/times/${timeId}`, {
-            method: "DELETE",
-          });
-          if (!res.ok) throw new Error("Erro ao remover o time da liga");
-          ligaAtual.times.splice(index, 1);
-          await carregarTimes();
-        } catch (err) {
-          document.getElementById("errorMessage").textContent =
-            `Erro ao remover time: ${err.message}`;
-          document.getElementById("errorMessage").style.display = "block";
-        }
-      }
-
-      function atualizarCartoleiro(input, index) {
-        const tabela = document.getElementById("tabelaTimes");
-        const row = tabela.rows[index];
-        if (!row) {
-          console.error(`Linha com índice ${index} não encontrada.`);
-          return;
-        }
-        const span = row.cells[2].querySelector("span");
-        const nomeCell = row.cells[3];
-        buscarDadosCartola(input.value.trim(), span, nomeCell);
-      }
-
-      function atualizarClube(select, index) {
-        const tabela = document.getElementById("tabelaTimes");
-        const row = tabela.rows[index];
-        if (!row) {
-          console.error(`Linha com índice ${index} não encontrada.`);
-          return;
-        }
-        const resultImg = row.cells[5].querySelector("img");
-        const selectedOption = select.options[select.selectedIndex];
-        const escudoUrl =
-          selectedOption.getAttribute("data-escudo") ||
-          "/escudos/placeholder.png";
-        resultImg.src = escudoUrl;
-        resultImg.style.display = escudoUrl ? "block" : "none";
-      }
-
-      function atualizarNovoEscudo(select) {
-        const selectedOption = select.options[select.selectedIndex];
-        const escudoUrl = selectedOption.getAttribute("data-escudo") || "";
-        const resultImg = document.getElementById("novoTimeCoracaoResult");
-        resultImg.src = escudoUrl;
-        resultImg.style.display = escudoUrl ? "block" : "none";
-      }
-
-      async function salvarTudo() {
-        if (!confirm("Tem certeza que deseja salvar todas as alterações?"))
-          return;
-        try {
-          const res = await fetch(`/api/ligas/${ligaId}/times`, {
-            method: "PUT",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ times: ligaAtual.times || [] }),
-          });
-
-          if (!res.ok) throw new Error("Erro ao salvar as alterações");
-          alert("Alterações salvas com sucesso!");
-          await carregarTimes();
-        } catch (err) {
-          alert(`Erro ao salvar: ${err.message}`);
-        }
-      }
-
-      function limparCampos() {
-        document.getElementById("novoId").value = "";
-        document.getElementById("novoCartoleiro").textContent = "";
-        document.getElementById("novoNomeTime").textContent = "N/D";
-        document.getElementById("novoClube").value = "";
-        const resultImg = document.getElementById("novoTimeCoracaoResult");
-        resultImg.src = "";
-        resultImg.style.display = "none";
-      }
-
-      function excluirNovoTime() {
-        limparCampos();
-      }
-
-      // Inicializa carregando clubes e depois os times
-      carregarClubes().then(() => carregarTimes());
-    </script>
-  </body>
+        <!-- Scripts Modulares -->
+        <script type="module" src="js/editar-liga.js"></script>
+    </body>
 </html>

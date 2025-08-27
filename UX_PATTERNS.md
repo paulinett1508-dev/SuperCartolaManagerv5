@@ -1,6 +1,6 @@
 # 🎨 PADRÕES UX DO SISTEMA
-# Gerado em: 2025-08-27T11:13:24.862Z
-# Arquivos analisados: 115
+# Gerado em: 27/08/2025, 11:53:33
+# Arquivos analisados: 124
 
 ## 🎨 CORES DO SISTEMA
 
@@ -90,6 +90,7 @@
 - "Inter", -apple-system, sans-serif
 - 'JetBrains Mono', monospace
 - "Inter", -apple-system, sans-serif !important
+- var(--font-mono)
 - "JetBrains Mono", monospace
 - 'Inter', -apple-system, BlinkMacSystemFont, sans-serif
 
@@ -106,10 +107,10 @@
     color: #ffffff !important
 - 1rem
 - 14px !important
-- 16px
-- 18px
-- 48px
-- 10px
+- var(--font-sm)
+- var(--font-xs)
+- var(--font-lg)
+- var(--font-base)
 
 ### Pesos de Fonte
 - 500
@@ -158,8 +159,8 @@
 
 **Input 1:**
 - Border: 1px solid var(--border-primary)
-- Border Radius: 8px
-- Padding: 12px var(--spacing-md)
+- Border Radius: var(--border-radius-md)
+- Padding: var(--spacing-md) var(--spacing-lg)
 - Background: var(--bg-card)
 
 **Input 2:**
@@ -169,10 +170,10 @@
 - Background: var(--bg-card-hover)
 
 **Input 3:**
-- Border: não definido
-- Border Radius: não definido
-- Padding: 10px 12px
-- Background: não definido
+- Border: 1px solid var(--border-primary)
+- Border Radius: var(--border-radius-md)
+- Padding: var(--spacing-md) var(--spacing-lg)
+- Background: var(--bg-card)
 
 ## 📏 ESPAÇAMENTO
 
@@ -191,48 +192,48 @@
 - 4px 8px
 - 8px 6px
 - 30px !important
-- 0
+- var(--spacing-xl)
 
 ### Margins Comuns
 - 20px
 - 30px
 - 10px
 - 0
-- 15px
-- 0 0 5px 0
-- 0 10px
-- 8px
-- 12px
-- 25px
-- 0 !important
-- 25px 0
-- 18px
-- 2px 0
-- 4px
+- 0 auto
+- var(--spacing-xl)
+- var(--spacing-lg)
+- var(--spacing-md)
+- var(--spacing-xs)
+- 2px
+- var(--spacing-sm)
+- 0 var(--spacing-md)
+- 0 0 var(--spacing-xs) 0
+- 1px
+- 0 auto var(--spacing-md)
 
 ### Gaps
 - 15px
 - 10px
 - 16px
 - 12px
-- 20px
-- 5px
-- 8px
-- 18px
-- var(--spacing-xs)
+- var(--spacing-xl)
 - var(--spacing-sm)
+- var(--spacing-md)
+- var(--spacing-xs)
+- 4px
+- 20px
 
 ## 🎬 ANIMAÇÕES
 
 ### Transições
 - all 0.3s ease
 - all 0.3s ease !important
+- all 0.2s ease
 - all 0.4s ease
 - transform 0.4s ease
 - opacity 0.3s ease
 - all 0.6s ease
 - all 0.2s
-- all 0.2s ease
 - transform 0.3s ease
 
 ## 🖼️ LAYOUT
@@ -267,41 +268,41 @@
 **Flex 4:**
 - Direction: row
 - Justify: center
-- Align: center
-- Gap: 15px
+- Align: stretch
+- Gap: var(--spacing-xl)
 
 **Flex 5:**
 - Direction: row
-- Justify: center
+- Justify: flex-start
 - Align: center
-- Gap: não definido
+- Gap: var(--spacing-sm)
 
 ### Padrões Grid
 
 **Grid 1:**
+- Columns: repeat(auto-fit, minmax(200px, 1fr))
+- Rows: não definido
+- Gap: 20px
+
+**Grid 2:**
 - Columns: repeat(3, 1fr)
 - Rows: não definido
 - Gap: 15px
 
-**Grid 2:**
+**Grid 3:**
 - Columns: repeat(auto-fill, minmax(280px, 1fr))
 - Rows: não definido
 - Gap: 20px
 
-**Grid 3:**
+**Grid 4:**
 - Columns: repeat(3, 1fr)
 - Rows: não definido
 - Gap: 20px
 
-**Grid 4:**
+**Grid 5:**
 - Columns: repeat(auto-fit, minmax(280px, 1fr))
 - Rows: não definido
 - Gap: 18px
-
-**Grid 5:**
-- Columns: repeat(auto-fit, minmax(200px, 1fr))
-- Rows: não definido
-- Gap: 20px
 
 ## 🎯 BORDER RADIUS
 
@@ -312,9 +313,9 @@
 - 16px
 - 6px
 - 16px !important
-- 20px
-- 10px
-- 4px
+- var(--border-radius-lg)
+- var(--border-radius-md)
+- var(--border-radius-sm)
 
 ## 📊 Z-INDEX
 

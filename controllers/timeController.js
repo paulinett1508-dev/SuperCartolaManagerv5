@@ -39,7 +39,7 @@ export const salvarTime = async (timeId) => {
       id: timeId,
       nome_time: data.time?.nome || "N/D",
       nome_cartoleiro: data.time?.nome_cartola || "N/D",
-      url_escudo_png: data.time?.escudo_url_60x60 || "",
+      url_escudo_png: data.time?.url_escudo_png || "",
       clube_id: data.time?.clube_id || null,
     });
 
