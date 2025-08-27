@@ -378,10 +378,10 @@ class UXPatternAnalyzer {
         // Extrair classes usadas
         const classPattern = /class="([^"]+)"/gi;
         const classes = new Set();
-        let match;
+        let classMatch;
 
-        while ((match = classPattern.exec(content)) !== null) {
-            match[1].split(" ").forEach((cls) => classes.add(cls));
+        while ((classMatch = classPattern.exec(content)) !== null) {
+            classMatch[1].split(" ").forEach((cls) => classes.add(cls));
         }
 
         // Identificar frameworks CSS
@@ -404,10 +404,10 @@ class UXPatternAnalyzer {
 
     analyzeInlineStyles(content) {
         const stylePattern = /style="([^"]+)"/gi;
-        let match;
+        let styleMatch;
 
-        while ((match = stylePattern.exec(content)) !== null) {
-            const styles = match[1];
+        while ((styleMatch = stylePattern.exec(content)) !== null) {
+            const styles = styleMatch[1];
 
             // Processar estilos inline como CSS
             this.analyzeCSSContent(styles);
@@ -425,10 +425,10 @@ class UXPatternAnalyzer {
 
             // Extrair estilos de template literals
             const styledPattern = /`([^`]+)`/gs;
-            let match;
+            let styledMatch;
 
-            while ((match = styledPattern.exec(content)) !== null) {
-                const possibleCSS = match[1];
+            while ((styledMatch = styledPattern.exec(content)) !== null) {
+                const possibleCSS = styledMatch[1];
                 if (possibleCSS.includes(":") && possibleCSS.includes(";")) {
                     this.analyzeCSSContent(possibleCSS);
                 }
@@ -437,8 +437,9 @@ class UXPatternAnalyzer {
 
         // Detectar Tailwind classes em JSX
         const classNamePattern = /className="([^"]+)"/gi;
-        while ((match = classNamePattern.exec(content)) !== null) {
-            const classes = match[1];
+        let classNameMatch;
+        while ((classNameMatch = classNamePattern.exec(content)) !== null) {
+            const classes = classNameMatch[1];
             // Analisar classes Tailwind
             this.analyzeTailwindClasses(classes);
         }
