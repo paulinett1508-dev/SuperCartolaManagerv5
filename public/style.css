@@ -340,6 +340,17 @@ body {
   color: var(--sidebar-text-muted) !important;
 }
 
+/* === DESTAQUE LIGA ATUAL === */
+.liga-item.liga-atual {
+    background: rgba(255, 69, 0, 0.15) !important;
+    border-left: 3px solid var(--laranja) !important;
+}
+
+.liga-current-badge {
+    color: var(--laranja) !important;
+    font-weight: 700 !important;
+}
+
 /* === RESET GLOBAL DE LINKS DO SIDEBAR === */
 .sidebar a,
 .sidebar a:link,
