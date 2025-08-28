@@ -80,6 +80,10 @@
                 const ligasList = document.getElementById("ligasList");
                 if (!ligasList) return;
 
+                // Obter ID da liga atual da URL
+                const urlParams = new URLSearchParams(window.location.search);
+                const ligaAtualId = urlParams.get("id");
+
                 try {
                     const response = await fetch("/api/ligas");
                     const ligas = await response.json();
@@ -96,17 +100,24 @@
                         return;
                     }
 
-                    // Renderizar ligas
+                    // Renderizar ligas com destaque para a liga atual
                     ligasList.innerHTML = ligas
                         .map(
-                            (liga) => `
-                    <a href="detalhe-liga.html?id=${liga._id || liga.id}" class="liga-item">
+                            (liga) => {
+                                const ligaId = liga._id || liga.id;
+                                const isLigaAtual = ligaId === ligaAtualId;
+                                const activeClass = isLigaAtual ? 'liga-item-active' : '';
+                                const activeIcon = isLigaAtual ? '👑 ' : '';
+                                
+                                return `
+                    <a href="detalhe-liga.html?id=${ligaId}" class="liga-item ${activeClass}">
                         <div class="liga-info">
-                            <div class="liga-name">${liga.nome || "Liga sem nome"}</div>
+                            <div class="liga-name">${activeIcon}${liga.nome || "Liga sem nome"}</div>
                             <div class="liga-details">${liga.times?.length || 0} times</div>
                         </div>
                     </a>
-                `,
+                `;
+                            }
                         )
                         .join("");
                 } catch (error) {
