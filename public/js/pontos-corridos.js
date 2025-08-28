@@ -25,6 +25,4 @@ window.getConfrontosLigaPontosCorridos = getConfrontosLigaPontosCorridos;
 window.calcularFinanceiroConfronto = calcularFinanceiroConfronto;
 window.getRodadaPontosText = getRodadaPontosText;
 
-console.log(
-  "[PONTOS-CORRIDOS] Sistema modular carregado com arquitetura refatorada",
-);
+console.log("[PONTOS-CORRIDOS] Sistema modular carregado com arquitetura refatorada");
