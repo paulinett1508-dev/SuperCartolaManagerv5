@@ -229,7 +229,9 @@ class DetalheLigaOrquestrador {
                     break;
 
                 case "participantes":
-                    if (
+                    if (this.modules.participantes?.carregarParticipantesComBrasoes) {
+                        await this.modules.participantes.carregarParticipantesComBrasoes();
+                    } else if (
                         typeof window.carregarParticipantesComBrasoes ===
                         "function"
                     ) {
@@ -408,6 +410,7 @@ class DetalheLigaOrquestrador {
             this.modules.fluxoFinanceiro = await import(
                 "./fluxo-financeiro.js"
             );
+            this.modules.participantes = await import("./participantes.js");
         } catch (error) {
             console.error("Erro ao carregar módulos:", error);
         }
