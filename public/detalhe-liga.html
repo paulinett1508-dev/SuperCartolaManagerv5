@@ -248,6 +248,14 @@
             }
         </script>
 
+        <!-- CORREÇÃO: Adicionar função goToDashboard antes dos outros scripts -->
+        <script>
+            // Função goToDashboard para compatibilidade com layout
+            function goToDashboard() {
+                window.location.href = "dashboard.html";
+            }
+        </script>
+
         <!-- SCRIPTS MODULARES -->
         <script src="js/cards-condicionais.js"></script>
         <script src="js/sistema-modulos-init.js"></script>
