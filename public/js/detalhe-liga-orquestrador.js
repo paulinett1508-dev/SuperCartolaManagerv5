@@ -441,6 +441,9 @@ class DetalheLigaOrquestrador {
                     quantidadeElement.textContent = `${totalParticipantes} participantes`;
                 }
 
+                // ✅ ADICIONAR: DESTACAR LIGA NO SIDEBAR
+                this.highlightCurrentLigaInSidebar(liga);
+
                 console.log(
                     `✅ Liga atualizada: ${liga.nome} com ${liga.participantes?.length || liga.times?.length || 0} participantes`,
                 );
@@ -449,6 +452,36 @@ class DetalheLigaOrquestrador {
             }
         } catch (error) {
             console.warn("⚠️ Erro ao atualizar contador:", error);
+        }
+    }
+
+    // ✅ NOVA FUNÇÃO: DESTACAR LIGA ATUAL
+    highlightCurrentLigaInSidebar(liga) {
+        try {
+            // Remover destaque de todas as ligas
+            const allLigaItems = document.querySelectorAll('.liga-item');
+            allLigaItems.forEach(item => {
+                item.classList.remove('liga-atual');
+            });
+
+            // Adicionar destaque à liga atual
+            const currentLigaItem = document.querySelector(`a[href*="id=${liga._id}"]`);
+            if (currentLigaItem) {
+                currentLigaItem.classList.add('liga-atual');
+                
+                // Adicionar indicador visual
+                if (!currentLigaItem.querySelector('.liga-current-badge')) {
+                    const badge = document.createElement('span');
+                    badge.className = 'liga-current-badge';
+                    badge.textContent = '●';
+                    badge.style.cssText = 'color: #FF4500; margin-right: 8px; font-size: 12px;';
+                    currentLigaItem.querySelector('.liga-name').prepend(badge);
+                }
+            }
+
+            console.log(`✅ Liga "${liga.nome}" destacada no sidebar`);
+        } catch (error) {
+            console.warn("⚠️ Erro ao destacar liga no sidebar:", error);
         }
     }
 
