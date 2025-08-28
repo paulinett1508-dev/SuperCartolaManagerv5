@@ -105,4 +105,4 @@ if (typeof window !== "undefined") {
   window.getRodadaPontosText = getRodadaPontosText;
 }
 
-console.log("[PONTOS-CORRIDOS-CONFIG] Módulo carregado com sucesso");ONFIG] Módulo carregado com sucesso");
+console.log("[PONTOS-CORRIDOS-CONFIG] Módulo carregado com sucesso");
