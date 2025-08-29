@@ -327,10 +327,6 @@ function getPosLabel(index, total) {
 
 async function fetchAndProcessRankingRodada(ligaId, rodadaNum) {
   try {
-    console.log(
-      `[DEBUG] Iniciando busca para ligaId: ${ligaId}, rodada: ${rodadaNum}`,
-    );
-
     let fetchFunc;
     if (isBackend) {
       fetchFunc = (await import("node-fetch")).default;
@@ -378,9 +374,6 @@ async function fetchAndProcessRankingRodada(ligaId, rodadaNum) {
       (a, b) => parseFloat(b.pontos || 0) - parseFloat(a.pontos || 0),
     );
 
-    console.log(
-      `[DEBUG] Dados processados com sucesso para rodada ${rodadaNum}: ${rankingsDaRodada.length} registros`,
-    );
     return rankingsDaRodada;
   } catch (err) {
     console.error(
