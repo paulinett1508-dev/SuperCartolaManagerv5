@@ -1,0 +1,312 @@
+/* TOP 10 CSS - Módulo Específico
+   Arquivo: public/css/modules/top10.css
+   Usado apenas pelo módulo top10
+*/
+
+/* === CONTAINER PRINCIPAL === */
+#top10 {
+  background: var(--bg-card);
+  border-radius: var(--border-radius-md);
+  padding: var(--spacing-lg);
+  margin: var(--spacing-md) 0;
+  border: 1px solid rgba(255, 69, 0, 0.1);
+  position: relative;
+  overflow: hidden;
+}
+
+#top10::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 3px;
+  background: linear-gradient(135deg, var(--laranja) 0%, var(--laranja-dark) 100%);
+}
+
+/* === HEADER DO MÓDULO === */
+.top10-header {
+  text-align: center;
+  margin-bottom: var(--spacing-lg);
+  padding-bottom: var(--spacing-md);
+  border-bottom: 2px solid rgba(255, 69, 0, 0.2);
+}
+
+.top10-titulo {
+  font: 800 28px "Inter", -apple-system, sans-serif;
+  color: var(--text-primary);
+  margin: 0;
+  letter-spacing: -0.5px;
+}
+
+.top10-subtitulo {
+  font: 600 15px "Inter", -apple-system, sans-serif;
+  color: var(--laranja);
+  margin: 0;
+  opacity: 0.9;
+}
+
+/* === GRID COMPACTO LADO A LADO === */
+.top10-grid-compacto {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: var(--spacing-md);
+  margin-bottom: var(--spacing-lg);
+}
+
+/* === SEÇÕES MITOS/MICOS === */
+.top10-section {
+  background: var(--bg-secondary);
+  border-radius: var(--border-radius-md);
+  padding: var(--spacing-md);
+  border: 1px solid rgba(255, 69, 0, 0.1);
+  position: relative;
+}
+
+.mitos-section {
+  border-left: 4px solid var(--success);
+}
+
+.micos-section {
+  border-left: 4px solid var(--danger);
+}
+
+.section-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--spacing-sm);
+  margin-bottom: var(--spacing-md);
+  padding-bottom: var(--spacing-sm);
+  border-bottom: 1px solid rgba(255, 69, 0, 0.1);
+}
+
+.section-icon {
+  font-size: 24px;
+  min-width: 30px;
+  text-align: center;
+}
+
+.section-header h3 {
+  font: 700 16px "Inter", -apple-system, sans-serif;
+  color: var(--text-primary);
+  margin: 0;
+  flex-grow: 1;
+}
+
+.export-inline {
+  flex-shrink: 0;
+}
+
+/* === SEPARADOR === */
+.section-separator {
+  text-align: center;
+  margin: var(--spacing-xl) 0;
+  font-size: 24px;
+  opacity: 0.5;
+  color: var(--laranja);
+}
+
+/* === CONTEÚDO PRINCIPAL === */
+.top10-content {
+  min-height: 200px;
+}
+
+/* === TABELA TOP 10 === */
+.tabela-top10 {
+  width: 100%;
+  border-collapse: separate;
+  border-spacing: 0;
+  background: var(--bg-card);
+  border-radius: var(--border-radius-md);
+  overflow: hidden;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.4);
+  margin: 0;
+  font-size: 11px;
+}
+
+.tabela-top10 thead {
+  background: linear-gradient(135deg, var(--laranja) 0%, var(--laranja-dark) 100%);
+}
+
+.tabela-top10 thead th {
+  padding: 8px 4px;
+  font: 600 10px "Inter", -apple-system, sans-serif;
+  color: white;
+  text-align: center;
+  text-transform: uppercase;
+  letter-spacing: 0.3px;
+}
+
+.tabela-top10 tbody tr {
+  border-bottom: 1px solid rgba(255, 69, 0, 0.1);
+  transition: all 0.2s ease;
+}
+
+.tabela-top10 tbody tr:hover {
+  background: rgba(255, 69, 0, 0.05);
+}
+
+.tabela-top10 tbody td {
+  padding: 6px 4px;
+  vertical-align: middle;
+  font: 500 10px "Inter", -apple-system, sans-serif;
+  color: var(--text-primary);
+}
+
+/* === POSIÇÕES DE DESTAQUE === */
+.mitos-section .tabela-top10 tbody tr:first-child {
+  background: rgba(34, 197, 94, 0.1);
+  border-left: 4px solid var(--success);
+  font-weight: 700;
+}
+
+.micos-section .tabela-top10 tbody tr:first-child {
+  background: rgba(239, 68, 68, 0.1);
+  border-left: 4px solid var(--danger);
+  font-weight: 700;
+}
+
+.tabela-top10 tbody tr:nth-child(2) {
+  background: rgba(192, 192, 192, 0.05);
+  border-left: 4px solid #c0c0c0;
+}
+
+.tabela-top10 tbody tr:nth-child(3) {
+  background: rgba(205, 127, 50, 0.05);
+  border-left: 4px solid #cd7f32;
+}
+
+/* === ESCUDOS E INFORMAÇÕES === */
+.time-escudo {
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  object-fit: contain;
+  background: var(--bg-primary);
+  border: 1px solid rgba(255, 69, 0, 0.2);
+}
+
+/* === EXPORTAÇÃO INLINE === */
+.export-inline .btn-export-top10 {
+  background: linear-gradient(135deg, #2E8B57 0%, #32CD32 100%);
+  color: white;
+  border: none;
+  border-radius: 6px;
+  padding: 6px 12px;
+  font: 600 11px "Inter", -apple-system, sans-serif;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  box-shadow: 0 2px 8px rgba(46, 139, 87, 0.3);
+}
+
+.export-inline .btn-export-top10:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(46, 139, 87, 0.5);
+}
+
+.export-inline .btn-export-top10.mitos {
+  background: linear-gradient(135deg, var(--success) 0%, #16a34a 100%);
+}
+
+.export-inline .btn-export-top10.micos {
+  background: linear-gradient(135deg, var(--danger) 0%, #dc2626 100%);
+}
+
+/* === BOTÃO VOLTAR === */
+.top10-footer {
+  margin-top: var(--spacing-xl);
+  text-align: center;
+}
+
+.btn-voltar {
+  background: rgba(255, 69, 0, 0.1);
+  color: var(--laranja);
+  border: 1px solid rgba(255, 69, 0, 0.3);
+  border-radius: 8px;
+  padding: 10px 16px;
+  font: 500 13px "Inter", -apple-system, sans-serif;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  text-decoration: none;
+  display: inline-block;
+}
+
+.btn-voltar:hover {
+  background: rgba(255, 69, 0, 0.2);
+  border-color: rgba(255, 69, 0, 0.5);
+  transform: translateY(-1px);
+}
+
+/* === INSTRUÇÃO INICIAL === */
+.instrucao-inicial {
+  text-align: center;
+  padding: 20px;
+  margin-top: var(--spacing-lg);
+  color: var(--text-muted);
+  font: 500 14px "Inter", -apple-system, sans-serif;
+  background: rgba(255, 255, 255, 0.02);
+  border-radius: 8px;
+  border: 1px solid rgba(255, 69, 0, 0.1);
+}
+
+/* === ANIMAÇÕES === */
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+/* === RESPONSIVIDADE === */
+@media (max-width: 768px) {
+  .top10-titulo {
+    font-size: 22px;
+  }
+
+  .section-header {
+    flex-direction: column;
+    text-align: center;
+    gap: var(--spacing-sm);
+  }
+
+  .tabela-top10 {
+    font-size: 10px;
+  }
+
+  .tabela-top10 thead th {
+    padding: 8px 4px;
+    font-size: 9px;
+  }
+
+  .tabela-top10 tbody td {
+    padding: 6px 4px;
+    font-size: 10px;
+  }
+
+  .time-escudo {
+    width: 20px;
+    height: 20px;
+  }
+}
+
+@media (max-width: 480px) {
+  .top10-titulo {
+    font-size: 20px;
+  }
+
+  .section-icon {
+    font-size: 24px;
+  }
+
+  .tabela-top10 {
+    font-size: 9px;
+  }
+
+  .time-escudo {
+    width: 18px;
+    height: 18px;
+  }
+
+  .top10-section {
+    padding: var(--spacing-md);
+  }
+}

@@ -1,4 +1,6 @@
-// VERIFICAÇÃO DE AMBIENTE - Executar lógica diferente para frontend/backend
+// MÓDULO RODADAS MELHORADO - Mini Cards + UX Aprimorada
+
+// VERIFICAÇÃO DE AMBIENTE
 const isBackend = typeof window === "undefined";
 const isFrontend = typeof window !== "undefined";
 
@@ -15,13 +17,18 @@ let exportarRodadaComoImagem = null;
 let modulosCarregados = false;
 
 // ==============================
+// ESTADO DO MÓDULO
+// ==============================
+let rodadaAtualSelecionada = null;
+let statusMercadoGlobal = { rodada_atual: 1, status_mercado: 4 };
+
+// ==============================
 // FUNÇÃO PARA CARREGAR MÓDULOS DINAMICAMENTE
 // ==============================
 async function carregarModulos() {
   if (modulosCarregados || isBackend) return;
 
   try {
-    // CORREÇÃO: Usar importações dinâmicas condicionais para evitar dependências circulares
     const [pontosCorridosModule, exportModule] = await Promise.all([
       import("./pontos-corridos-utils.js"),
       import("./exports/export-exports.js"),
@@ -39,29 +46,29 @@ async function carregarModulos() {
   }
 }
 
+// ==============================
+// INICIALIZAÇÃO DO MÓDULO
+// ==============================
 if (isFrontend) {
-  // ✅ CORREÇÃO: Remover await no nível superior - causar problemas de carregamento
-  // Carregar módulos de forma assíncrona sem bloquear
-  carregarModulos().then(() => {
-    console.log("[RODADAS] ✅ Inicialização assíncrona completa");
-  }).catch(error => {
-    console.warn("[RODADAS] ⚠️ Erro na inicialização assíncrona:", error);
-  });
+  carregarModulos()
+    .then(() => {
+      console.log("[RODADAS] ✅ Inicialização assíncrona completa");
+    })
+    .catch((error) => {
+      console.warn("[RODADAS] ⚠️ Erro na inicialização assíncrona:", error);
+    });
 
-  // Variáveis específicas do frontend
   urlParams = new URLSearchParams(window.location.search);
   ligaId = urlParams.get("id");
-
-  // ✅ CORREÇÃO: Disponibilizar globalmente após carregamento assíncrono
-  // Remover tentativa de disponibilizar antes do carregamento completo
 } else {
-  // BACKEND - Definir valores padrão
   console.log("[RODADAS] Executando no backend - modo limitado");
   urlParams = null;
   ligaId = null;
 }
 
-// Valores padrão para rodadas (mantido inalterado)
+// ==============================
+// VALORES DE BANCO PADRÃO
+// ==============================
 const valoresBancoPadrao = {
   1: 20.0,
   2: 19.0,
@@ -97,7 +104,6 @@ const valoresBancoPadrao = {
   32: -20.0,
 };
 
-// Valores específicos para a liga Cartoleiros Sobral 2025
 const valoresBancoCartoleirosSobral = {
   1: 7.0,
   2: 4.0,
@@ -107,9 +113,193 @@ const valoresBancoCartoleirosSobral = {
   6: -10.0,
 };
 
-// Helper para gerar labels de posição (MITO, G10, Z10, MICO) - mantido inalterado
+// ==============================
+// FUNÇÃO PRINCIPAL - CARREGAR RODADAS COM MINI CARDS
+// ==============================
+export async function carregarRodadas(forceRefresh = false) {
+  if (isBackend) {
+    console.log("[RODADAS] carregarRodadas: executando no backend - ignorando");
+    return;
+  }
+
+  await carregarModulos();
+
+  const rodadasContainer = document.getElementById("rodadas");
+  if (!rodadasContainer || !rodadasContainer.classList.contains("active")) {
+    return;
+  }
+
+  // Buscar status do mercado
+  await atualizarStatusMercado();
+
+  // Renderizar mini cards
+  await renderizarMiniCardsRodadas();
+}
+
+// ==============================
+// ATUALIZAR STATUS DO MERCADO
+// ==============================
+async function atualizarStatusMercado() {
+  try {
+    const resMercado = await fetch("/api/cartola/mercado/status");
+    if (resMercado.ok) {
+      const mercadoData = await resMercado.json();
+      statusMercadoGlobal = {
+        rodada_atual: mercadoData.rodada_atual,
+        status_mercado: mercadoData.status_mercado,
+      };
+    } else {
+      console.warn("Não foi possível buscar status do mercado.");
+    }
+  } catch (err) {
+    console.error("Erro ao buscar status do mercado:", err);
+  }
+}
+
+// ==============================
+// RENDERIZAR MINI CARDS DAS RODADAS
+// ==============================
+async function renderizarMiniCardsRodadas() {
+  const cardsContainer = document.getElementById("rodadasCards");
+  if (!cardsContainer) return;
+
+  const { rodada_atual, status_mercado } = statusMercadoGlobal;
+  const mercadoAberto = status_mercado === 1;
+
+  let cardsHTML = "";
+
+  for (let i = 1; i <= 38; i++) {
+    let statusClass = "";
+    let statusText = "";
+    let isDisabled = false;
+
+    if (i < rodada_atual) {
+      statusClass = "encerrada";
+      statusText = "Encerrada";
+    } else if (i === rodada_atual) {
+      if (mercadoAberto) {
+        statusClass = "vigente";
+        statusText = "Aberta";
+      } else {
+        statusClass = "parcial";
+        statusText = "Parciais";
+      }
+    } else {
+      statusClass = "futura";
+      statusText = "Futura";
+      isDisabled = true;
+    }
+
+    cardsHTML += `
+      <div class="rodada-mini-card ${isDisabled ? "disabled" : ""}" 
+           data-rodada="${i}" 
+           onclick="${isDisabled ? "" : `selecionarRodada(${i})`}">
+        <div class="rodada-numero">${i}</div>
+        <div class="rodada-status ${statusClass}">${statusText}</div>
+      </div>
+    `;
+  }
+
+  cardsContainer.innerHTML = cardsHTML;
+}
+
+// ==============================
+// SELECIONAR RODADA
+// ==============================
+window.selecionarRodada = async function (rodada) {
+  if (rodadaAtualSelecionada === rodada) return;
+
+  // Atualizar seleção visual
+  document.querySelectorAll(".rodada-mini-card").forEach((card) => {
+    card.classList.remove("selected");
+  });
+
+  const cardSelecionado = document.querySelector(`[data-rodada="${rodada}"]`);
+  if (cardSelecionado) {
+    cardSelecionado.classList.add("selected");
+  }
+
+  rodadaAtualSelecionada = rodada;
+
+  // Mostrar seção de conteúdo
+  const contentSection = document.getElementById("rodadaContentSection");
+  if (contentSection) {
+    contentSection.style.display = "block";
+  }
+
+  // Atualizar título
+  const titulo = document.getElementById("rodadaTituloAtual");
+  if (titulo) {
+    titulo.textContent = `Rodada ${rodada}`;
+  }
+
+  // Carregar dados da rodada
+  await carregarDadosRodada(rodada);
+};
+
+// ==============================
+// CARREGAR DADOS DA RODADA SELECIONADA
+// ==============================
+async function carregarDadosRodada(rodadaSelecionada) {
+  const rankingBody = document.getElementById("rankingBody");
+  const loading = document.getElementById("loading");
+
+  if (!rankingBody) return;
+
+  const { rodada_atual, status_mercado } = statusMercadoGlobal;
+  const mercadoAberto = status_mercado === 1;
+
+  try {
+    loading.style.display = "block";
+    rankingBody.innerHTML = "";
+
+    if (rodadaSelecionada < rodada_atual) {
+      // Rodada encerrada
+      const rankingsDaRodada = await fetchAndProcessRankingRodada(
+        ligaId,
+        rodadaSelecionada,
+      );
+      exibirRanking(rankingsDaRodada, rodadaSelecionada);
+    } else if (rodadaSelecionada === rodada_atual) {
+      if (mercadoAberto) {
+        // Mercado aberto
+        rankingBody.innerHTML =
+          '<tr><td colspan="6" style="color: #e67e22; text-align: center; padding: 20px;">O mercado está aberto. A rodada ainda não começou!</td></tr>';
+        limparExportContainer();
+      } else {
+        // Rodada atual com parciais
+        const liga = await buscarLiga(ligaId);
+        if (!liga)
+          throw new Error(
+            "Erro ao buscar dados da liga para calcular parciais",
+          );
+        const rankingsParciais = await calcularPontosParciais(
+          liga,
+          rodada_atual,
+        );
+        exibirRankingParciais(rankingsParciais, rodada_atual);
+      }
+    } else {
+      // Rodada futura
+      rankingBody.innerHTML =
+        '<tr><td colspan="6" style="color: #bbb; text-align: center; padding: 20px;">Esta rodada ainda não aconteceu.</td></tr>';
+      limparExportContainer();
+    }
+  } catch (err) {
+    console.error("Erro em carregarDadosRodada:", err);
+    rankingBody.innerHTML = `<tr><td colspan="6" style="color: red; text-align: center; padding: 20px;">Erro: ${err.message}</td></tr>`;
+    limparExportContainer();
+  } finally {
+    loading.style.display = "none";
+  }
+}
+
+// ==============================
+// HELPER FUNCTIONS (MANTIDAS ORIGINAIS)
+// ==============================
+
 function getPosLabel(index, total) {
-  if (isBackend) return `${index + 1}º`; // Versão simplificada para backend
+  if (isBackend) return `${index + 1}º`;
 
   const pos = index + 1;
   const isLigaCartoleirosSobral = ligaId === "684d821cf1a7ae16d1f89572";
@@ -135,139 +325,12 @@ function getPosLabel(index, total) {
   }
 }
 
-// ✅ CORREÇÃO: Função principal com carregamento garantido
-export async function carregarRodadas(forceRefresh = false) {
-  if (isBackend) {
-    console.log("[RODADAS] carregarRodadas: executando no backend - ignorando");
-    return;
-  }
-
-  // ✅ CORREÇÃO: Garantir que módulos estão carregados antes de usar
-  await carregarModulos();
-
-  const rodadasContainer = document.getElementById("rodadas");
-  if (!rodadasContainer || !rodadasContainer.classList.contains("active")) {
-    return;
-  }
-
-  const rodadaSelect = document.getElementById("rodadaSelect");
-  const rankingBody = document.getElementById("rankingBody");
-  const loading = document.getElementById("loading");
-
-  let rodada_atual = 1;
-  let status_mercado = 4;
-
-  try {
-    const resMercado = await fetch("/api/cartola/mercado/status");
-    if (resMercado.ok) {
-      const mercadoData = await resMercado.json();
-      rodada_atual = mercadoData.rodada_atual;
-      status_mercado = mercadoData.status_mercado;
-    } else {
-      console.warn("Não foi possível buscar status do mercado.");
-    }
-  } catch (err) {
-    console.error("Erro ao buscar status do mercado:", err);
-  }
-
-  const mercadoAberto = status_mercado === 1;
-
-  // Popula o select de rodadas se ainda não foi populado
-  if (rodadaSelect.options.length < 39) {
-    rodadaSelect.innerHTML = "";
-    const defaultOption = document.createElement("option");
-    defaultOption.value = "";
-    defaultOption.textContent = "Escolha uma rodada";
-    rodadaSelect.appendChild(defaultOption);
-
-    for (let i = 1; i <= 38; i++) {
-      const option = document.createElement("option");
-      option.value = i;
-      option.textContent = `Rodada ${i}`;
-      if (i < rodada_atual) {
-        option.className = "encerrada";
-      } else if (i === rodada_atual) {
-        option.className = "vigente";
-      } else {
-        option.className = "futura";
-        option.disabled = true;
-      }
-      rodadaSelect.appendChild(option);
-    }
-    rodadaSelect.onchange = () => carregarRodadas();
-  }
-
-  let rodadaSelecionada = parseInt(rodadaSelect.value);
-
-  if (!rodadaSelecionada || rodadaSelecionada > rodada_atual + 1) {
-    rankingBody.innerHTML =
-      '<tr><td colspan="6">Selecione uma rodada para visualizar o ranking.</td></tr>';
-    loading.style.display = "none";
-    const exportContainer = document.getElementById(
-      "rodadasExportBtnContainer",
-    );
-    if (exportContainer) exportContainer.innerHTML = "";
-    return;
-  }
-
-  try {
-    loading.style.display = "block";
-    rankingBody.innerHTML = "";
-
-    if (rodadaSelecionada < rodada_atual) {
-      const rankingsDaRodada = await fetchAndProcessRankingRodada(
-        ligaId,
-        rodadaSelecionada,
-      );
-      exibirRanking(rankingsDaRodada, rodadaSelecionada);
-    } else if (rodadaSelecionada === rodada_atual) {
-      if (mercadoAberto) {
-        rankingBody.innerHTML =
-          '<tr><td colspan="6" style="color: #e67e22;">O mercado está aberto. A rodada ainda não começou!</td></tr>';
-        const exportContainer = document.getElementById(
-          "rodadasExportBtnContainer",
-        );
-        if (exportContainer) exportContainer.innerHTML = "";
-      } else {
-        const liga = await buscarLiga(ligaId);
-        if (!liga)
-          throw new Error(
-            "Erro ao buscar dados da liga para calcular parciais",
-          );
-        const rankingsParciais = await calcularPontosParciais(
-          liga,
-          rodada_atual,
-        );
-        exibirRankingParciais(rankingsParciais, rodada_atual);
-      }
-    } else {
-      rankingBody.innerHTML =
-        '<tr><td colspan="6" style="color: #bbb;">Esta rodada ainda não aconteceu.</td></tr>';
-      const exportContainer = document.getElementById(
-        "rodadasExportBtnContainer",
-      );
-      if (exportContainer) exportContainer.innerHTML = "";
-    }
-  } catch (err) {
-    console.error("Erro em carregarRodadas:", err);
-    rankingBody.innerHTML = `<tr><td colspan="6" style="color: red;">${err.message}</td></tr>`;
-    const exportContainer = document.getElementById(
-      "rodadasExportBtnContainer",
-    );
-    if (exportContainer) exportContainer.innerHTML = "";
-  } finally {
-    loading.style.display = "none";
-  }
-}
-
-// Função interna para buscar dados da API (mantida inalterada)
 async function fetchAndProcessRankingRodada(ligaId, rodadaNum) {
   try {
     console.log(
       `[DEBUG] Iniciando busca para ligaId: ${ligaId}, rodada: ${rodadaNum}`,
     );
 
-    // Determinar qual fetch usar
     let fetchFunc;
     if (isBackend) {
       fetchFunc = (await import("node-fetch")).default;
@@ -288,17 +351,6 @@ async function fetchAndProcessRankingRodada(ligaId, rodadaNum) {
 
     const rankingsDataFromApi = await resRodadas.json();
 
-    console.log(
-      "[DEBUG] Dados brutos da API recebidos para a rodada:",
-      rodadaNum,
-    );
-    console.log("[DEBUG] Tipo dos dados:", typeof rankingsDataFromApi);
-    console.log("[DEBUG] É array:", Array.isArray(rankingsDataFromApi));
-    console.log(
-      "[DEBUG] Quantidade de registros:",
-      Array.isArray(rankingsDataFromApi) ? rankingsDataFromApi.length : "N/A",
-    );
-
     if (!rankingsDataFromApi) {
       console.warn(
         `[WARN] API retornou dados nulos/undefined para rodada ${rodadaNum}`,
@@ -315,76 +367,12 @@ async function fetchAndProcessRankingRodada(ligaId, rodadaNum) {
       return [];
     }
 
-    const rankingsDaRodada = dataArray.filter((rank, index) => {
-      console.log(`[DEBUG] Item ${index}:`, {
-        rodada_no_dado: rank.rodada,
-        tipo_rodada: typeof rank.rodada,
-        rodada_solicitada: rodadaNum,
-        tipo_solicitada: typeof rodadaNum,
-        tem_campo_rodada: rank.hasOwnProperty("rodada"),
-        comparacao_direta: rank.rodada === rodadaNum,
-        comparacao_numerica: Number(rank.rodada) === Number(rodadaNum),
-        comparacao_string: String(rank.rodada) === String(rodadaNum),
-        parseInt_comparacao: parseInt(rank.rodada) === parseInt(rodadaNum),
-      });
+    const rankingsDaRodada = dataArray.filter((rank) => {
+      if (!rank || typeof rank !== "object") return false;
+      if (!rank.hasOwnProperty("rodada")) return false;
 
-      if (!rank || typeof rank !== "object") {
-        console.warn(`[WARN] Item ${index} não é um objeto válido:`, rank);
-        return false;
-      }
-
-      if (!rank.hasOwnProperty("rodada")) {
-        console.warn(`[WARN] Item ${index} não possui campo 'rodada':`, rank);
-        return false;
-      }
-
-      const rodadaDado = rank.rodada;
-      const rodadaSolicitada = rodadaNum;
-
-      if (rodadaDado === rodadaSolicitada) return true;
-
-      const rodadaDadoNum = Number(rodadaDado);
-      const rodadaSolicitadaNum = Number(rodadaSolicitada);
-
-      if (
-        !isNaN(rodadaDadoNum) &&
-        !isNaN(rodadaSolicitadaNum) &&
-        rodadaDadoNum === rodadaSolicitadaNum
-      ) {
-        return true;
-      }
-
-      const rodadaDadoInt = parseInt(rodadaDado);
-      const rodadaSolicitadaInt = parseInt(rodadaSolicitada);
-
-      if (
-        !isNaN(rodadaDadoInt) &&
-        !isNaN(rodadaSolicitadaInt) &&
-        rodadaDadoInt === rodadaSolicitadaInt
-      ) {
-        return true;
-      }
-
-      return false;
+      return parseInt(rank.rodada) === parseInt(rodadaNum);
     });
-
-    console.log(
-      `[DEBUG] Após filtro: ${rankingsDaRodada.length} registros encontrados`,
-    );
-
-    if (rankingsDaRodada.length === 0) {
-      console.warn(
-        `[WARN] Nenhum dado encontrado após filtro para rodada ${rodadaNum}`,
-      );
-      const rodadasDisponiveis = [
-        ...new Set(dataArray.map((item) => item.rodada)),
-      ].sort();
-      console.log("[DEBUG] Rodadas encontradas nos dados:", rodadasDisponiveis);
-      console.warn(
-        `[WARN] Retornando array vazio para rodada ${rodadaNum}. Rodadas disponíveis: ${rodadasDisponiveis.join(", ")}`,
-      );
-      return [];
-    }
 
     rankingsDaRodada.sort(
       (a, b) => parseFloat(b.pontos || 0) - parseFloat(a.pontos || 0),
@@ -399,34 +387,18 @@ async function fetchAndProcessRankingRodada(ligaId, rodadaNum) {
       `[ERROR] Erro em fetchAndProcessRankingRodada(${rodadaNum}):`,
       err,
     );
-    console.warn(
-      `[WARN] Retornando array vazio devido ao erro para rodada ${rodadaNum}`,
-    );
     return [];
   }
 }
 
-// ✅ FUNÇÃO EXPORTADA: Uso pelo mata-mata.js (mantida inalterada)
-export async function getRankingRodadaEspecifica(ligaId, rodadaNum) {
-  console.log(`[rodadas.js] Solicitado ranking para rodada ${rodadaNum}`);
-  return await fetchAndProcessRankingRodada(ligaId, rodadaNum);
-}
-
-// ✅ CORREÇÃO: Função para exibir ranking com verificação de carregamento
 function exibirRanking(rankingsDaRodada, rodadaSelecionada) {
-  if (isBackend) {
-    console.log("[RODADAS] exibirRanking: executando no backend - ignorando");
-    return;
-  }
+  if (isBackend) return;
 
   const rankingBody = document.getElementById("rankingBody");
 
   if (!rankingsDaRodada || rankingsDaRodada.length === 0) {
     rankingBody.innerHTML = `<tr><td colspan="6">Nenhum dado encontrado para a rodada ${rodadaSelecionada}.</td></tr>`;
-    const exportContainer = document.getElementById(
-      "rodadasExportBtnContainer",
-    );
-    if (exportContainer) exportContainer.innerHTML = "";
+    limparExportContainer();
     return;
   }
 
@@ -447,17 +419,17 @@ function exibirRanking(rankingsDaRodada, rodadaSelecionada) {
 
       return `
       <tr>
-        <td style="text-align:center; padding:4px 2px; font-size:13px; vertical-align:middle;">${posLabel}</td>
-        <td style="text-align:center; padding:4px 2px; vertical-align:middle;">
-          ${rank.clube_id ? `<img src="/escudos/${rank.clube_id}.png" alt="" title="${rank.clube_id}" style="width:20px; height:20px; border-radius:50%; background:#fff; border:1px solid #eee;" onerror="this.style.display='none'"/>` : "—"}
+        <td style="text-align:center; padding:2px; font-size:11px; width:45px;">${posLabel}</td>
+        <td style="text-align:center; padding:2px; width:35px;">
+          ${rank.clube_id ? `<img src="/escudos/${rank.clube_id}.png" alt="" title="${rank.clube_id}" style="width:16px; height:16px; border-radius:50%; background:#fff; border:1px solid #eee;" onerror="this.style.display='none'"/>` : "–"}
         </td>
-        <td style="max-width:110px; text-align:left; padding:4px; font-size:13px; vertical-align:middle; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;" title="${nomeCartoleiro}">${nomeCartoleiro}</td>
-        <td style="max-width:110px; text-align:left; padding:4px; font-size:13px; vertical-align:middle; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;" title="${nomeTime}">${nomeTime}</td>
-        <td style="text-align:center; padding:4px 2px; font-size:13px; vertical-align:middle;">
+        <td style="text-align:left; padding:2px 4px; font-size:11px; max-width:150px; overflow:hidden; text-overflow:ellipsis;" title="${nomeCartoleiro}">${nomeCartoleiro}</td>
+        <td style="text-align:left; padding:2px 4px; font-size:11px; max-width:150px; overflow:hidden; text-overflow:ellipsis;" title="${nomeTime}">${nomeTime}</td>
+        <td style="text-align:center; padding:2px; font-size:11px;">
           <span style="font-weight:600; color:${pontos > 0 ? "#198754" : pontos < 0 ? "#dc3545" : "#333"};">${pontos}</span>
         </td>
-        <td style="text-align:center; padding:4px 2px; font-size:12px; vertical-align:middle;">
-          <span style="font-size:11px; font-weight:600; color:${banco > 0 ? "#198754" : banco < 0 ? "#dc3545" : "#333"}; white-space:nowrap;">
+        <td style="text-align:center; padding:2px; font-size:10px;">
+          <span style="font-weight:600; color:${banco > 0 ? "#198754" : banco < 0 ? "#dc3545" : "#333"};">
             ${banco >= 0 ? `R$ ${banco.toFixed(2)}` : `-R$ ${Math.abs(banco).toFixed(2)}`}
           </span>
         </td>
@@ -467,49 +439,12 @@ function exibirRanking(rankingsDaRodada, rodadaSelecionada) {
 
   rankingBody.innerHTML = tableHTML;
 
-  const rankingsParaExportar = rankingsDaRodada.map((rank, index) => ({
-    ...rank,
-    nome_cartola: rank.nome_cartola || rank.nome_cartoleiro || "N/D",
-    nome_time: rank.nome_time || "N/D",
-    pontos: rank.pontos != null ? parseFloat(rank.pontos) : 0,
-    banco:
-      bancoValores[index + 1] !== undefined ? bancoValores[index + 1] : 0.0,
-  }));
-
-  // ✅ CORREÇÃO: Usar variáveis carregadas dinamicamente com verificação
-  if (criarBotaoExportacaoRodada && exportarRodadaComoImagem) {
-    criarBotaoExportacaoRodada({
-      containerId: "rodadasExportBtnContainer",
-      rodada: rodadaSelecionada,
-      rankings: rankingsParaExportar,
-      tipo: "rodada",
-      customExport: exportarRodadaComoImagem,
-    });
-  } else {
-    console.warn("[RODADAS] ⚠️ Funções de exportação não disponíveis ainda - aguardando carregamento");
-    // Tentar novamente após um delay
-    setTimeout(() => {
-      if (criarBotaoExportacaoRodada && exportarRodadaComoImagem) {
-        criarBotaoExportacaoRodada({
-          containerId: "rodadasExportBtnContainer",
-          rodada: rodadaSelecionada,
-          rankings: rankingsParaExportar,
-          tipo: "rodada",
-          customExport: exportarRodadaComoImagem,
-        });
-      }
-    }, 1000);
-  }
+  // Criar botão de exportação
+  criarBotaoExportacao(rankingsDaRodada, rodadaSelecionada, false);
 }
 
-// ✅ CORREÇÃO: Função para exibir ranking parciais com verificação de carregamento  
 function exibirRankingParciais(rankingsParciais, rodada) {
-  if (isBackend) {
-    console.log(
-      "[RODADAS] exibirRankingParciais: executando no backend - ignorando",
-    );
-    return;
-  }
+  if (isBackend) return;
 
   const rankingBody = document.getElementById("rankingBody");
 
@@ -519,10 +454,7 @@ function exibirRankingParciais(rankingsParciais, rodada) {
     rankingsParciais.length === 0
   ) {
     rankingBody.innerHTML = `<tr><td colspan="6">Nenhum dado parcial encontrado para a rodada ${rodada}.</td></tr>`;
-    const exportContainer = document.getElementById(
-      "rodadasExportBtnContainer",
-    );
-    if (exportContainer) exportContainer.innerHTML = "";
+    limparExportContainer();
     return;
   }
 
@@ -542,17 +474,17 @@ function exibirRankingParciais(rankingsParciais, rodada) {
 
       return `
       <tr>
-        <td style="text-align:center; padding:4px 2px; font-size:13px; vertical-align:middle;">${posLabel}</td>
-        <td style="text-align:center; padding:4px 2px; vertical-align:middle;">
-          ${rank.clube_id ? `<img src="/escudos/${rank.clube_id}.png" alt="" title="${rank.clube_id}" style="width:20px; height:20px; border-radius:50%; background:#fff; border:1px solid #eee;" onerror="this.style.display='none'"/>` : "—"}
+        <td style="text-align:center; padding:2px; font-size:11px; width:45px;">${posLabel}</td>
+        <td style="text-align:center; padding:2px; width:35px;">
+          ${rank.clube_id ? `<img src="/escudos/${rank.clube_id}.png" alt="" title="${rank.clube_id}" style="width:16px; height:16px; border-radius:50%; background:#fff; border:1px solid #eee;" onerror="this.style.display='none'"/>` : "–"}
         </td>
-        <td style="max-width:110px; text-align:left; padding:4px; font-size:13px; vertical-align:middle; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;" title="${nomeCartoleiro}">${nomeCartoleiro}</td>
-        <td style="max-width:110px; text-align:left; padding:4px; font-size:13px; vertical-align:middle; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;" title="${nomeTime}">${nomeTime}</td>
-        <td style="text-align:center; padding:4px 2px; font-size:13px; vertical-align:middle;">
+        <td style="text-align:left; padding:2px 4px; font-size:11px; max-width:150px; overflow:hidden; text-overflow:ellipsis;" title="${nomeCartoleiro}">${nomeCartoleiro}</td>
+        <td style="text-align:left; padding:2px 4px; font-size:11px; max-width:150px; overflow:hidden; text-overflow:ellipsis;" title="${nomeTime}">${nomeTime}</td>
+        <td style="text-align:center; padding:2px; font-size:11px;">
           <span style="font-weight:600; color:${pontos > 0 ? "#198754" : pontos < 0 ? "#dc3545" : "#333"};">${pontos} (Parcial)</span>
         </td>
-        <td style="text-align:center; padding:4px 2px; font-size:12px; vertical-align:middle;">
-          <span style="font-size:11px; font-weight:600; color:#333; white-space:nowrap;">-</span>
+        <td style="text-align:center; padding:2px; font-size:10px;">
+          <span style="font-weight:600; color:#333;">-</span>
         </td>
       </tr>`;
     })
@@ -560,52 +492,63 @@ function exibirRankingParciais(rankingsParciais, rodada) {
 
   rankingBody.innerHTML = tableHTML;
 
-  const rankingsParaExportar = rankingsParciais.map((rank, index) => ({
+  // Criar botão de exportação para parciais
+  criarBotaoExportacao(rankingsParciais, rodada, true);
+}
+
+// ==============================
+// CRIAR BOTÃO DE EXPORTAÇÃO
+// ==============================
+function criarBotaoExportacao(rankings, rodada, isParciais) {
+  if (!criarBotaoExportacaoRodada || !exportarRodadaComoImagem) {
+    setTimeout(() => criarBotaoExportacao(rankings, rodada, isParciais), 1000);
+    return;
+  }
+
+  const rankingsParaExportar = rankings.map((rank, index) => ({
     ...rank,
     nome_cartola: rank.nome_cartola || rank.nome_cartoleiro || "N/D",
     nome_time: rank.nome_time || "N/D",
-    pontos: rank.totalPontos != null ? parseFloat(rank.totalPontos) : 0,
-    banco: null,
+    pontos: isParciais
+      ? rank.totalPontos != null
+        ? parseFloat(rank.totalPontos)
+        : 0
+      : rank.pontos != null
+        ? parseFloat(rank.pontos)
+        : 0,
+    banco: isParciais
+      ? null
+      : valoresBancoPadrao[index + 1] !== undefined
+        ? valoresBancoPadrao[index + 1]
+        : 0.0,
   }));
 
-  // ✅ CORREÇÃO: Usar variáveis carregadas dinamicamente com verificação
-  if (criarBotaoExportacaoRodada && exportarRodadaComoImagem) {
-    criarBotaoExportacaoRodada({
-      containerId: "rodadasExportBtnContainer",
-      rodada: rodada,
-      rankings: rankingsParaExportar,
-      tipo: "rodada",
-      customExport: exportarRodadaComoImagem,
-    });
-  } else {
-    console.warn(
-      "[RODADAS] ⚠️ Funções de exportação não disponíveis para parciais ainda - aguardando carregamento",
-    );
-    // Tentar novamente após um delay
-    setTimeout(() => {
-      if (criarBotaoExportacaoRodada && exportarRodadaComoImagem) {
-        criarBotaoExportacaoRodada({
-          containerId: "rodadasExportBtnContainer",
-          rodada: rodada,
-          rankings: rankingsParaExportar,
-          tipo: "rodada",
-          customExport: exportarRodadaComoImagem,
-        });
-      }
-    }, 1000);
-  }
+  criarBotaoExportacaoRodada({
+    containerId: "rodadasExportBtnContainer",
+    rodada: rodada,
+    rankings: rankingsParaExportar,
+    tipo: "rodada",
+    customExport: exportarRodadaComoImagem,
+  });
 }
 
-// Busca dados da liga (incluindo times) - mantida inalterada
+function limparExportContainer() {
+  const exportContainer = document.getElementById("rodadasExportBtnContainer");
+  if (exportContainer) exportContainer.innerHTML = "";
+}
+
+// ==============================
+// FUNÇÕES AUXILIARES (MANTIDAS ORIGINAIS)
+// ==============================
+
+export async function getRankingRodadaEspecifica(ligaId, rodadaNum) {
+  console.log(`[rodadas.js] Solicitado ranking para rodada ${rodadaNum}`);
+  return await fetchAndProcessRankingRodada(ligaId, rodadaNum);
+}
+
 async function buscarLiga(ligaId) {
   try {
-    let fetchFunc;
-    if (isBackend) {
-      fetchFunc = (await import("node-fetch")).default;
-    } else {
-      fetchFunc = fetch;
-    }
-
+    let fetchFunc = isBackend ? (await import("node-fetch")).default : fetch;
     const baseUrl = isBackend ? "http://localhost:3000" : "";
     const res = await fetchFunc(`${baseUrl}/api/ligas/${ligaId}`);
     if (!res.ok) throw new Error(`Erro ${res.status} ao buscar liga`);
@@ -616,16 +559,9 @@ async function buscarLiga(ligaId) {
   }
 }
 
-// Busca pontuações parciais dos atletas - mantida inalterada
 async function buscarPontuacoesParciais() {
   try {
-    let fetchFunc;
-    if (isBackend) {
-      fetchFunc = (await import("node-fetch")).default;
-    } else {
-      fetchFunc = fetch;
-    }
-
+    let fetchFunc = isBackend ? (await import("node-fetch")).default : fetch;
     const baseUrl = isBackend ? "http://localhost:3000" : "";
     const res = await fetchFunc(`${baseUrl}/api/cartola/atletas/pontuados`);
     if (!res.ok) throw new Error(`Erro ${res.status} ao buscar parciais`);
@@ -637,7 +573,6 @@ async function buscarPontuacoesParciais() {
   }
 }
 
-// Calcula pontos parciais para todos os times da liga - mantida inalterada
 async function calcularPontosParciais(liga, rodada) {
   const atletasPontuados = await buscarPontuacoesParciais();
   const times = liga.times || [];
@@ -645,13 +580,7 @@ async function calcularPontosParciais(liga, rodada) {
 
   for (const time of times) {
     try {
-      let fetchFunc;
-      if (isBackend) {
-        fetchFunc = (await import("node-fetch")).default;
-      } else {
-        fetchFunc = fetch;
-      }
-
+      let fetchFunc = isBackend ? (await import("node-fetch")).default : fetch;
       const baseUrl = isBackend ? "http://localhost:3000" : "";
       const resTime = await fetchFunc(
         `${baseUrl}/api/cartola/time/id/${time.time_id}/${rodada}`,
@@ -694,4 +623,6 @@ async function calcularPontosParciais(liga, rodada) {
   return rankingsParciais;
 }
 
-console.log('[RODADAS] ✅ Módulo carregado com importações dinâmicas - dependências circulares eliminadas');
+console.log(
+  "[RODADAS] ✅ Módulo melhorado carregado - Mini Cards implementados",
+);

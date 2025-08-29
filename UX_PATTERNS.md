@@ -1,6 +1,6 @@
 # 🎨 PADRÕES UX DO SISTEMA
-# Gerado em: 27/08/2025, 20:41:20
-# Arquivos analisados: 136
+# Gerado em: 29/08/2025, 16:55:34
+# Arquivos analisados: 141
 
 ## 🎨 CORES DO SISTEMA
 
@@ -90,8 +90,8 @@
 - "Inter", -apple-system, sans-serif
 - 'JetBrains Mono', monospace
 - "Inter", -apple-system, sans-serif !important
-- var(--font-mono)
 - "JetBrains Mono", monospace
+- var(--font-mono)
 - 'Inter', -apple-system, BlinkMacSystemFont, sans-serif
 
 ### Tamanhos de Fonte
@@ -207,9 +207,9 @@
 - 2px
 - var(--spacing-sm)
 - 0 var(--spacing-md)
-- 0 0 var(--spacing-xs) 0
-- 1px
-- 0 auto var(--spacing-md)
+- 40px
+- 18px
+- 25px
 
 ### Gaps
 - 15px
@@ -220,7 +220,7 @@
 - var(--spacing-sm)
 - var(--spacing-md)
 - var(--spacing-xs)
-- 4px
+- 25px
 - 20px
 
 ## 🎬 ANIMAÇÕES
@@ -228,13 +228,14 @@
 ### Transições
 - all 0.3s ease
 - all 0.3s ease !important
+- all 0.4s cubic-bezier(0.4, 0, 0.2, 1)
+- all 0.3s cubic-bezier(0.4, 0, 0.2, 1)
 - all 0.2s ease
 - all 0.4s ease
+- transform 0.3s ease
+- width 0.5s ease
 - transform 0.4s ease
 - opacity 0.3s ease
-- all 0.6s ease
-- all 0.2s
-- transform 0.3s ease
 
 ## 🖼️ LAYOUT
 
@@ -280,29 +281,29 @@
 ### Padrões Grid
 
 **Grid 1:**
-- Columns: repeat(auto-fit, minmax(200px, 1fr))
+- Columns: repeat(auto-fit, minmax(280px, 1fr))
 - Rows: não definido
-- Gap: 20px
+- Gap: 25px
 
 **Grid 2:**
-- Columns: repeat(3, 1fr)
+- Columns: 1fr
 - Rows: não definido
-- Gap: 15px
+- Gap: 25px
 
 **Grid 3:**
-- Columns: repeat(auto-fill, minmax(280px, 1fr))
+- Columns: repeat(auto-fit, minmax(180px, 1fr))
 - Rows: não definido
-- Gap: 20px
+- Gap: 12px
 
 **Grid 4:**
-- Columns: repeat(3, 1fr)
+- Columns: repeat(auto-fill, minmax(420px, 1fr))
 - Rows: não definido
 - Gap: 20px
 
 **Grid 5:**
-- Columns: repeat(auto-fit, minmax(280px, 1fr))
+- Columns: 1fr 1fr 1fr
 - Rows: não definido
-- Gap: 18px
+- Gap: 15px
 
 ## 🎯 BORDER RADIUS
 

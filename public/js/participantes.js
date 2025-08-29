@@ -1,5 +1,33 @@
+// MÓDULO PARTICIPANTES MELHORADO - UX Aprimorada
+
 const urlParams = new URLSearchParams(window.location.search);
 const ligaId = urlParams.get("id");
+
+// ==============================
+// VARIÁVEIS PARA EXPORTS DINÂMICOS
+// ==============================
+let criarBotaoExportacaoParticipantes = null;
+let exportarParticipantesComoImagem = null;
+let exportsCarregados = false;
+
+// ==============================
+// CARREGAR EXPORTS DINAMICAMENTE
+// ==============================
+async function carregarExports() {
+    if (exportsCarregados) return;
+
+    try {
+        const exportModule = await import("./exports/export-exports.js");
+        criarBotaoExportacaoParticipantes =
+            exportModule.criarBotaoExportacaoParticipantes;
+        exportarParticipantesComoImagem =
+            exportModule.exportarParticipantesComoImagem;
+        exportsCarregados = true;
+        console.log("[PARTICIPANTES] ✅ Exports carregados com sucesso");
+    } catch (error) {
+        console.warn("[PARTICIPANTES] ⚠️ Erro ao carregar exports:", error);
+    }
+}
 
 // CONFIGURAÇÃO DOS BRASÕES
 const CLUBES_CONFIG = {
@@ -45,7 +73,9 @@ const BrasoesHelper = {
     },
 };
 
-// FUNÇÃO PRINCIPAL - Carrega dados básicos da liga
+// ==============================
+// FUNÇÃO PRINCIPAL MELHORADA
+// ==============================
 export async function carregarDadosBasicos() {
     try {
         if (!ligaId) {
@@ -69,25 +99,8 @@ export async function carregarDadosBasicos() {
             return;
         }
 
-        // Atualiza os elementos básicos
-        const nomeElement = document.getElementById("nomeLiga");
-        const quantidadeElement = document.getElementById("quantidadeTimes");
-
-        if (nomeElement) {
-            nomeElement.textContent = `🏆 ${liga.nome || "Liga"}`;
-        }
-
-        if (quantidadeElement) {
-            const participantes = liga.participantes || liga.times || [];
-            const quantidade = Array.isArray(participantes)
-                ? participantes.length
-                : 0;
-            quantidadeElement.textContent = `${quantidade} participantes`;
-        }
-
-        console.log(
-            `✅ Dados básicos carregados: ${liga.nome} - ${(liga.participantes || liga.times || []).length} participantes`,
-        );
+        // Carregar participantes automaticamente
+        await carregarParticipantesComBrasoes();
 
         return liga;
     } catch (err) {
@@ -95,66 +108,9 @@ export async function carregarDadosBasicos() {
     }
 }
 
-// FUNÇÃO ATUALIZADA - Carrega detalhes com brasões duplos
-export async function carregarDetalhesLiga() {
-    const container = document.getElementById("timesContainer");
-    if (!container) {
-        // Se não tem container antigo, usa o novo grid
-        await carregarParticipantesComBrasoes();
-        return;
-    }
-
-    const timesGrid = container.querySelector(".times-grid");
-    if (container.dataset.loaded) return;
-
-    try {
-        if (!ligaId) {
-            throw new Error("ID da liga não fornecido na URL");
-        }
-
-        const res = await fetch(`/api/ligas/${ligaId}`);
-        if (!res.ok) {
-            throw new Error(`Erro ao buscar liga: ${res.statusText}`);
-        }
-        const liga = await res.json();
-
-        if (!liga || !liga.nome) {
-            throw new Error("Liga não encontrada ou dados inválidos");
-        }
-
-        document.getElementById("nomeLiga").textContent = `🏆 ${liga.nome}`;
-        document.getElementById("quantidadeTimes").textContent =
-            liga.times && Array.isArray(liga.times)
-                ? `${liga.times.length} time(s) cadastrados`
-                : "0 time(s) cadastrados";
-
-        timesGrid.innerHTML = "";
-        if (liga.times && Array.isArray(liga.times) && liga.times.length > 0) {
-            for (const time of liga.times) {
-                const resCartola = await fetch(`/api/time/${time}`);
-                if (!resCartola.ok) continue;
-                const dados = await resCartola.json();
-
-                const card = document.createElement("div");
-                card.className = "time-card";
-                card.innerHTML = `
-                    <img src="${dados.url_escudo_png || ""}" alt="Escudo do time" title="Escudo do time" onerror="this.style.display='none'" />
-                    <h4>${dados.nome_time || "Time N/D"}</h4>
-                    <p>👤 ${dados.nome_cartoleiro || "N/D"}</p>
-                `;
-                card.onclick = () => abrirModal(dados);
-                timesGrid.appendChild(card);
-            }
-        } else {
-            timesGrid.innerHTML = "<p>Nenhum time cadastrado nesta liga.</p>";
-        }
-        container.dataset.loaded = "true";
-    } catch (err) {
-        console.error("Erro em carregarDetalhesLiga:", err.message);
-    }
-}
-
-// NOVA FUNÇÃO - Carrega participantes com brasões duplos
+// ==============================
+// CARREGAR PARTICIPANTES COM UX MELHORADA
+// ==============================
 async function carregarParticipantesComBrasoes() {
     const container = document.getElementById("participantes-grid");
     if (!container) {
@@ -162,18 +118,11 @@ async function carregarParticipantesComBrasoes() {
         return;
     }
 
+    // Carregar exports
+    await carregarExports();
+
     try {
         console.log(`Carregando participantes da liga: ${ligaId}`);
-
-        // Mostrar loading
-        container.innerHTML = `
-            <div class="loading-state">
-                <div style="display: flex; align-items: center; justify-content: center; gap: 15px; padding: 60px;">
-                    <div style="width: 40px; height: 40px; border: 4px solid rgba(255, 69, 0, 0.3); border-top: 4px solid #ff4500; border-radius: 50%; animation: spin 1s linear infinite;"></div>
-                    <div style="color: #ff4500; font-weight: 600; font-size: 16px">Carregando participantes com brasões...</div>
-                </div>
-            </div>
-        `;
 
         // Buscar dados da liga
         const resLiga = await fetch(`/api/ligas/${ligaId}`);
@@ -181,19 +130,24 @@ async function carregarParticipantesComBrasoes() {
         const liga = await resLiga.json();
 
         if (!liga.times || liga.times.length === 0) {
-            container.innerHTML =
-                '<p class="no-data" style="text-align: center; padding: 60px; color: #95a5a6;">Nenhum participante cadastrado</p>';
+            container.innerHTML = `
+                <div class="participantes-empty-state">
+                    <div class="empty-icon">👥</div>
+                    <div class="empty-title">Nenhum participante cadastrado</div>
+                    <div class="empty-message">Esta liga ainda não possui participantes</div>
+                </div>
+            `;
             return;
         }
 
         // Buscar dados de cada time
         const timesData = await Promise.all(
-            liga.times.map(async (timeId) => {
+            liga.times.map(async (timeId, index) => {
                 try {
                     const res = await fetch(`/api/time/${timeId}`);
                     if (!res.ok) return null;
                     const data = await res.json();
-                    return { ...data, id: timeId, ativo: true };
+                    return { ...data, id: timeId, ativo: true, index };
                 } catch (err) {
                     console.error(`Erro ao buscar time ${timeId}:`, err);
                     return null;
@@ -210,111 +164,197 @@ async function carregarParticipantesComBrasoes() {
                 ),
             );
 
-        // Limpar container e renderizar cards
+        // Limpar container
         container.innerHTML = "";
-        container.style.display = "grid";
-        container.style.gridTemplateColumns =
-            "repeat(auto-fill, minmax(280px, 1fr))";
-        container.style.gap = "20px";
-        container.style.padding = "20px 0";
 
-        timesValidos.forEach((timeData) => {
+        // Renderizar cards
+        timesValidos.forEach((timeData, index) => {
             const card = document.createElement("div");
             card.className = "participante-card";
-            card.style.cssText = `
-                background: linear-gradient(135deg, #ffffff 0%, #f8f9fa 100%);
-                border-radius: 12px;
-                box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-                padding: 20px;
-                transition: all 0.3s ease;
-                position: relative;
-                overflow: hidden;
-            `;
+            card.setAttribute("data-delay", index % 10);
+
+            // Adicionar dados para busca
+            card.setAttribute(
+                "data-nome",
+                (timeData.nome_cartoleiro || "").toLowerCase(),
+            );
+            card.setAttribute(
+                "data-time",
+                (timeData.nome_time || "").toLowerCase(),
+            );
+            card.setAttribute(
+                "data-clube",
+                BrasoesHelper.getNomeClube(timeData.clube_id).toLowerCase(),
+            );
 
             const temClubeCoracao =
                 timeData.clube_id &&
                 CLUBES_CONFIG.MAPEAMENTO[timeData.clube_id];
 
             card.innerHTML = `
-                <!-- Header do Card -->
-                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
-                    <div style="display: flex; align-items: center; justify-content: center; width: 35px; height: 35px; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); border-radius: 50%; color: white; font-size: 16px;">
-                        <span>👤</span>
-                    </div>
-                    <div style="display: flex; align-items: center; gap: 5px; padding: 4px 10px; border-radius: 20px; font-size: 11px; font-weight: 600; text-transform: uppercase; background: #d4edda; color: #155724;">
-                        <span style="width: 6px; height: 6px; border-radius: 50%; background: currentColor;"></span>
+                <div class="participante-header">
+                    <div class="participante-avatar">👤</div>
+                    <div class="participante-status">
+                        <span class="status-indicator"></span>
                         Ativo
                     </div>
                 </div>
 
-                <!-- Informações do Cartoleiro -->
-                <div style="text-align: center; margin-bottom: 20px;">
-                    <h4 style="font-size: 18px; font-weight: 700; color: #2c3e50; margin: 0 0 5px 0;">${timeData.nome_cartoleiro || "N/D"}</h4>
-                    <p style="font-size: 14px; color: #7f8c8d; margin: 0;">${timeData.nome_time || "Time N/A"}</p>
+                <div class="participante-info">
+                    <h4 class="participante-nome">${timeData.nome_cartoleiro || "N/D"}</h4>
+                    <p class="participante-time">${timeData.nome_time || "Time N/A"}</p>
                 </div>
 
-                <!-- Container dos Brasões -->
-                <div style="display: flex; align-items: center; justify-content: space-around; padding: 20px 10px; background: linear-gradient(135deg, #f6f9fc 0%, #e9ecef 100%); border-radius: 10px; margin-bottom: 15px;">
-                    <!-- Brasão do Time Fantasy -->
-                    <div style="display: flex; flex-direction: column; align-items: center; gap: 8px; flex: 1;">
-                        <img src="${BrasoesHelper.getTimeFantasyBrasao(timeData)}" 
-                             alt="Time no Cartola" 
-                             title="Time no Cartola FC"
-                             style="width: 60px; height: 60px; object-fit: contain; border-radius: 50%; padding: 5px; background: white; box-shadow: 0 3px 10px rgba(0, 0, 0, 0.1); border: 2px solid #3498db;"
-                             onerror="this.src='${CLUBES_CONFIG.PATHS.defaultImage}'">
-                        <span style="font-size: 11px; color: #3498db; text-align: center; font-weight: 600;">Time Cartola</span>
+                <div class="brasoes-container">
+                    <div class="brasao-wrapper">
+                        <div class="brasao-circle brasao-fantasy">
+                            <img src="${BrasoesHelper.getTimeFantasyBrasao(timeData)}" 
+                                 alt="Time no Cartola" 
+                                 title="Time no Cartola FC"
+                                 class="brasao-img"
+                                 onerror="this.src='${CLUBES_CONFIG.PATHS.defaultImage}'">
+                        </div>
+                        <span class="brasao-label fantasy-label">Cartola</span>
                     </div>
 
-                    <!-- Separador Visual -->
-                    <div style="display: flex; align-items: center; justify-content: center; color: #95a5a6; font-size: 20px; margin: 0 10px;">
-                        <span>⚡</span>
-                    </div>
+                    <div class="brasao-separator">⚡</div>
 
-                    <!-- Brasão do Clube do Coração -->
-                    <div style="display: flex; flex-direction: column; align-items: center; gap: 8px; flex: 1;">
-                        <img src="${BrasoesHelper.getClubeBrasao(timeData.clube_id)}" 
-                             alt="Clube do Coração" 
-                             title="${BrasoesHelper.getNomeClube(timeData.clube_id)}"
-                             style="width: 60px; height: 60px; object-fit: contain; border-radius: 50%; padding: 5px; background: white; box-shadow: 0 3px 10px rgba(0, 0, 0, 0.1); border: 2px solid #e74c3c; ${!temClubeCoracao ? "opacity: 0.5; filter: grayscale(100%);" : ""}"
-                             onerror="this.src='${CLUBES_CONFIG.PATHS.placeholder}'">
-                        <span style="font-size: 11px; color: #e74c3c; text-align: center; font-weight: 600; max-width: 80px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">
-                            ${temClubeCoracao ? "❤️ " + BrasoesHelper.getNomeClube(timeData.clube_id) : "Não definido"}
+                    <div class="brasao-wrapper">
+                        <div class="brasao-circle brasao-clube ${!temClubeCoracao ? "brasao-disabled" : ""}">
+                            <img src="${BrasoesHelper.getClubeBrasao(timeData.clube_id)}" 
+                                 alt="Clube do Coração" 
+                                 title="${BrasoesHelper.getNomeClube(timeData.clube_id)}"
+                                 class="brasao-img"
+                                 onerror="this.src='${CLUBES_CONFIG.PATHS.placeholder}'">
+                        </div>
+                        <span class="brasao-label clube-label">
+                            ${temClubeCoracao ? BrasoesHelper.getNomeClube(timeData.clube_id) : "Não definido"}
                         </span>
                     </div>
                 </div>
             `;
 
-            // Adicionar hover effect
-            card.onmouseenter = function () {
-                this.style.transform = "translateY(-5px)";
-                this.style.boxShadow = "0 8px 20px rgba(0, 0, 0, 0.15)";
-            };
-            card.onmouseleave = function () {
-                this.style.transform = "translateY(0)";
-                this.style.boxShadow = "0 4px 6px rgba(0, 0, 0, 0.1)";
-            };
-
             container.appendChild(card);
         });
+
+        // Configurar busca
+        configurarBusca(timesValidos);
 
         // Atualizar estatísticas
         atualizarEstatisticas(timesValidos);
 
+        // Criar botão de exportação
+        if (criarBotaoExportacaoParticipantes && timesValidos.length > 0) {
+            criarBotaoExportacaoParticipantes({
+                containerId: "participantesExportBtnContainer",
+                participantes: timesValidos,
+                customExport: (dados) => exportarParticipantesComoImagem(dados),
+            });
+        }
+
         console.log(
-            `✅ ${timesValidos.length} participantes carregados com brasões duplos`,
+            `✅ ${timesValidos.length} participantes carregados com design system aplicado`,
         );
     } catch (error) {
         console.error("Erro ao carregar participantes:", error);
         container.innerHTML = `
-            <div style="text-align: center; padding: 40px; color: #e74c3c;">
-                <p>❌ Erro ao carregar participantes</p>
-                <button onclick="carregarParticipantesComBrasoes()" style="margin-top: 20px; padding: 10px 20px; background: #e74c3c; color: white; border: none; border-radius: 6px; cursor: pointer; font-weight: 600;">Tentar Novamente</button>
+            <div class="participantes-empty-state">
+                <div class="empty-icon">⚠️</div>
+                <div class="empty-title">Erro ao carregar participantes</div>
+                <div class="empty-message">${error.message}</div>
+                <button class="btn-voltar" onclick="carregarParticipantesComBrasoes()" style="margin-top: 15px;">
+                    🔄 Tentar Novamente
+                </button>
             </div>
         `;
     }
 }
 
-// Atualizar estatísticas
+// ==============================
+// SISTEMA DE BUSCA
+// ==============================
+function configurarBusca(todosParticipantes) {
+    const searchInput = document.getElementById("searchParticipantes");
+    const resultsInfo = document.getElementById("search-results-info");
+    const resultsCount = document.getElementById("results-count");
+
+    if (!searchInput) return;
+
+    let searchTimeout;
+
+    searchInput.addEventListener("input", (e) => {
+        clearTimeout(searchTimeout);
+        searchTimeout = setTimeout(() => {
+            filtrarParticipantes(
+                e.target.value,
+                todosParticipantes,
+                resultsInfo,
+                resultsCount,
+            );
+        }, 300);
+    });
+
+    // Limpar busca ao pressionar Escape
+    searchInput.addEventListener("keydown", (e) => {
+        if (e.key === "Escape") {
+            searchInput.value = "";
+            filtrarParticipantes(
+                "",
+                todosParticipantes,
+                resultsInfo,
+                resultsCount,
+            );
+            searchInput.blur();
+        }
+    });
+}
+
+function filtrarParticipantes(
+    termo,
+    todosParticipantes,
+    resultsInfo,
+    resultsCount,
+) {
+    const cards = document.querySelectorAll(".participante-card");
+    const termoLower = termo.toLowerCase().trim();
+
+    if (!termoLower) {
+        // Mostrar todos
+        cards.forEach((card) => {
+            card.classList.remove("filtered-hidden");
+        });
+        resultsInfo.style.display = "none";
+        return;
+    }
+
+    let countVisible = 0;
+
+    cards.forEach((card) => {
+        const nome = card.getAttribute("data-nome") || "";
+        const time = card.getAttribute("data-time") || "";
+        const clube = card.getAttribute("data-clube") || "";
+
+        const matches =
+            nome.includes(termoLower) ||
+            time.includes(termoLower) ||
+            clube.includes(termoLower);
+
+        if (matches) {
+            card.classList.remove("filtered-hidden");
+            countVisible++;
+        } else {
+            card.classList.add("filtered-hidden");
+        }
+    });
+
+    // Mostrar info dos resultados
+    resultsCount.textContent = countVisible;
+    resultsInfo.style.display = "block";
+}
+
+// ==============================
+// ATUALIZAR ESTATÍSTICAS
+// ==============================
 function atualizarEstatisticas(timesData) {
     const totalElement = document.getElementById("total-participantes");
     if (totalElement) {
@@ -338,39 +378,41 @@ function atualizarEstatisticas(timesData) {
     }
 }
 
-// Toggle para mostrar/ocultar participantes
+// ==============================
+// FUNÇÕES AUXILIARES MANTIDAS
+// ==============================
+export async function carregarDetalhesLiga() {
+    // Compatibilidade com código legado
+    await carregarParticipantesComBrasoes();
+}
+
 export function toggleParticipants() {
     const container = document.getElementById("timesContainer");
     const button = document.querySelector(".toggle-participants");
-    if (container.classList.contains("visible")) {
+    if (container && container.classList.contains("visible")) {
         container.classList.remove("visible");
-        button.textContent = "Exibir Participantes";
-    } else {
+        if (button) button.textContent = "Exibir Participantes";
+    } else if (container) {
         container.classList.add("visible");
-        button.textContent = "Ocultar Participantes";
+        if (button) button.textContent = "Ocultar Participantes";
     }
 }
 
-// Modal
-function abrirModal(dados) {
-    document.getElementById("modalEscudo").src = dados.url_escudo_png || "";
-    document.getElementById("modalNomeTime").textContent =
-        dados.nome_time || "Time N/D";
-    document.getElementById("modalCartoleiro").textContent =
-        "👤 " + (dados.nome_cartoleiro || "N/D");
-    document.getElementById("modal").style.display = "block";
-}
-
 export function fecharModal() {
-    document.getElementById("modal").style.display = "none";
+    const modal = document.getElementById("modal");
+    if (modal) modal.style.display = "none";
 }
 
 // Exportar globalmente
 window.carregarParticipantesComBrasoes = carregarParticipantesComBrasoes;
 
-// Carregar automaticamente quando o módulo participantes for detectado
+// Auto-inicialização
 setTimeout(() => {
     if (document.getElementById("participantes-grid")) {
         carregarParticipantesComBrasoes();
     }
-}, 1000);
+}, 100);
+
+console.log(
+    "[PARTICIPANTES] ✅ Módulo melhorado carregado - UX aprimorada aplicada",
+);

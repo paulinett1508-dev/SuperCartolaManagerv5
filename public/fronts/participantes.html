@@ -1,22 +1,15 @@
-<!-- 👥 MÓDULO PARTICIPANTES - HTML LIMPO (SEM CSS INLINE) -->
-<div id="participantes-content">
-    <!-- Header dos Participantes -->
-    <div class="module-header-section">
-        <div class="module-title-section">
-            <div class="module-title-icon" id="liga-logo-icon">
-                <img
-                    src="/img/logo-cartoleirossobral.png"
-                    alt="Logo da Liga"
-                    class="liga-logo-img"
-                    onerror="this.style.display='none'; this.parentElement.innerHTML='👥';"
-                />
-            </div>
-            <h2>Participantes da Liga</h2>
+<!-- MÓDULO PARTICIPANTES - Interface Melhorada -->
+<div id="participantes-content" class="module-content">
+    <!-- Header do Módulo -->
+    <div class="participantes-header">
+        <div class="participantes-title-section">
+            <div class="participantes-icon">👥</div>
+            <h2 class="participantes-titulo">Participantes da Liga</h2>
         </div>
-        <div class="module-subtitle">membros ativos na competição</div>
+        <p class="participantes-subtitulo">Membros ativos na competição</p>
     </div>
 
-    <!-- Estatísticas Rápidas -->
+    <!-- Estatísticas Compactas -->
     <div class="participants-stats">
         <div class="stat-card">
             <div class="stat-icon">👤</div>
@@ -33,7 +26,7 @@
             </div>
         </div>
         <div class="stat-card">
-            <div class="stat-icon">🆎</div>
+            <div class="stat-icon">🆔</div>
             <div class="stat-info">
                 <div class="stat-number" id="times-diferentes">0</div>
                 <div class="stat-label">Times Únicos</div>
@@ -41,45 +34,56 @@
         </div>
     </div>
 
-    <!-- Grid de Participantes -->
-    <div id="participantes-grid" class="participantes-grid">
-        <!-- Loading state inicial -->
-        <div class="loading-state-full">
-            <div
-                style="
-                    display: flex;
-                    align-items: center;
-                    justify-content: center;
-                    gap: 15px;
-                    padding: 60px;
-                "
-            >
-                <div
-                    style="
-                        width: 40px;
-                        height: 40px;
-                        border: 4px solid rgba(255, 69, 0, 0.3);
-                        border-top: 4px solid #ff4500;
-                        border-radius: 50%;
-                        animation: spin 1s linear infinite;
-                    "
-                ></div>
-                <div style="color: #ff4500; font-weight: 600; font-size: 16px">
-                    Carregando dados dos participantes...
+    <!-- Container Principal com Export e Busca -->
+    <div class="participantes-main-container">
+        <div class="participantes-section">
+            <div class="section-header">
+                <div class="section-icon">📋</div>
+                <h3>Lista de Participantes</h3>
+                <div class="section-actions">
+                    <div class="search-container">
+                        <input
+                            type="text"
+                            id="searchParticipantes"
+                            class="search-input"
+                            placeholder="Buscar participante..."
+                            autocomplete="off"
+                        />
+                        <div class="search-icon">🔍</div>
+                    </div>
+                    <div
+                        id="participantesExportBtnContainer"
+                        class="export-inline"
+                    ></div>
                 </div>
+            </div>
+
+            <!-- Grid de Participantes -->
+            <div id="participantes-grid" class="participantes-grid">
+                <!-- Loading state inicial -->
+                <div class="loading-state-full">
+                    <div class="loading-spinner"></div>
+                    <div class="loading-message">
+                        Carregando dados dos participantes...
+                    </div>
+                </div>
+            </div>
+
+            <!-- Resultado da busca -->
+            <div
+                id="search-results-info"
+                class="search-results-info"
+                style="display: none"
+            >
+                <span id="results-count">0</span> participante(s) encontrado(s)
             </div>
         </div>
     </div>
 
-    <!-- Área de ações removida - Sem botão voltar -->
+    <!-- Botão Voltar -->
+    <div class="participantes-footer">
+        <button class="btn-voltar" onclick="window.voltarParaCards()">
+            ← Voltar aos Cards
+        </button>
+    </div>
 </div>
-
-<script>
-    // JavaScript específico do módulo participantes
-    (function () {
-        console.log("👥 Módulo Participantes carregado");
-
-        // A logo é configurada automaticamente pelo orquestrador
-        // As estatísticas são atualizadas após renderização dos cards
-    })();
-</script>

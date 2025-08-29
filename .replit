@@ -10,3 +10,6 @@ deploymentTarget = "gce"
 run = ["sh", "-c", "npm start"]
 
 [nix]
+
+[agent]
+expertMode = true

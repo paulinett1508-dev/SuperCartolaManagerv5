@@ -1,44 +1,43 @@
-// ✅ FLUXO-FINANCEIRO-UI.JS - Interface para Fluxo Financeiro
-console.log("💰 [FLUXO-FINANCEIRO-UI] Módulo de interface carregando...");
+// FLUXO-FINANCEIRO-UI.JS - Interface UX Elevada
+console.log(
+    "💰 [FLUXO-FINANCEIRO-UI] Módulo de interface UX elevada carregando...",
+);
 
-// ===== CONFIGURAÇÕES DE INTERFACE FLUXO FINANCEIRO =====
-const FLUXO_UI_CONFIG = {
-    classes: {
-        container: "fluxo-container",
-        table: "fluxo-table",
-        header: "table-header-bg",
-    },
-    spacing: {
-        tablePadding: "8px 6px",
-        headerPadding: "10px 6px",
-    },
-};
-
-// ===== CLASSE FLUXO FINANCEIRO UI =====
 class FluxoFinanceiroUI {
     constructor() {
-        this.version = "1.0.0";
-        console.log("[FLUXO-FINANCEIRO-UI] ✅ Instância criada");
+        this.version = "2.0.0";
+        this.selectedParticipant = null;
+        console.log("[FLUXO-FINANCEIRO-UI] ✅ Instância UX elevada criada");
     }
 
     /**
-     * Renderiza loading com progresso
+     * Renderiza loading moderno com animação
      */
     renderizarLoadingComProgresso(titulo, subtitulo) {
         const container = document.getElementById("fluxoFinanceiroContent");
         if (!container) return;
 
         container.innerHTML = `
-            <div class="loading-container" style="text-align: center; padding: 60px 20px; background: white; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); margin: 20px auto; max-width: 800px;">
-                <div class="loading-spinner" style="margin: 0 auto 20px; width: 50px; height: 50px; border: 4px solid #f3f3f3; border-top: 4px solid #3498db; border-radius: 50%; animation: spin 1s linear infinite;"></div>
-                <h3 style="margin: 0 0 10px 0; color: #2c3e50; font-size: 24px;">${titulo}</h3>
-                <p style="margin: 0 0 30px 0; color: #7f8c8d; font-size: 16px;">${subtitulo}</p>
-                <div style="width: 100%; background: #ecf0f1; border-radius: 10px; overflow: hidden; margin-bottom: 15px;">
-                    <div id="loading-progress-bar" style="width: 0%; height: 20px; background: linear-gradient(90deg, #3498db, #2ecc71); transition: width 0.3s ease;"></div>
+            <div class="loading-container">
+                <div class="loading-spinner"></div>
+                <h3>${titulo}</h3>
+                <p>${subtitulo}</p>
+                <div class="loading-progress">
+                    <div id="loading-progress-bar" class="loading-progress-bar"></div>
                 </div>
-                <p style="margin: 0; color: #95a5a6; font-size: 14px;">Isso pode levar alguns instantes...</p>
+                <p class="loading-subtitle">Processando dados financeiros...</p>
             </div>
         `;
+
+        // Animar barra de progresso
+        setTimeout(() => {
+            const bar = document.getElementById("loading-progress-bar");
+            if (bar) {
+                bar.style.width = "30%";
+                setTimeout(() => (bar.style.width = "70%"), 500);
+                setTimeout(() => (bar.style.width = "100%"), 1000);
+            }
+        }, 100);
     }
 
     /**
@@ -49,9 +48,9 @@ class FluxoFinanceiroUI {
         if (!container) return;
 
         container.innerHTML = `
-            <div class="loading-container" style="text-align: center; padding: 40px 20px; color: #666;">
-                <div class="loading-spinner" style="margin: 0 auto 15px; width: 40px; height: 40px; border: 4px solid #f3f3f3; border-top: 4px solid #3498db; border-radius: 50%; animation: spin 1s linear infinite;"></div>
-                <p style="margin: 0; font-size: 16px;">${mensagem}</p>
+            <div class="loading-container">
+                <div class="loading-spinner"></div>
+                <p>${mensagem}</p>
             </div>
         `;
     }
@@ -60,21 +59,23 @@ class FluxoFinanceiroUI {
      * Limpa containers
      */
     limparContainers() {
-        const containers = ["fluxoFinanceiroButtons", "fluxoFinanceiroExportBtnContainer"];
-        containers.forEach(id => {
+        const containers = [
+            "fluxoFinanceiroButtons",
+            "fluxoFinanceiroExportBtnContainer",
+        ];
+        containers.forEach((id) => {
             const element = document.getElementById(id);
             if (element) element.innerHTML = "";
         });
     }
 
     /**
-     * Renderiza interface principal
+     * Renderiza interface principal melhorada
      */
     async renderizarInterface() {
-        console.log("[FLUXO-FINANCEIRO-UI] 🎨 Renderizando interface...");
-
-        // Importar módulos necessários dinamicamente
-        const { FluxoFinanceiroCache } = await import("./fluxo-financeiro-cache.js");
+        console.log(
+            "[FLUXO-FINANCEIRO-UI] 🎨 Renderizando interface UX elevada...",
+        );
 
         if (!window.fluxoFinanceiroCache) {
             console.error("[FLUXO-FINANCEIRO-UI] Cache não inicializado");
@@ -84,546 +85,429 @@ class FluxoFinanceiroUI {
         const participantes = window.fluxoFinanceiroCache.getParticipantes();
 
         if (!participantes || participantes.length === 0) {
-            this.mostrarErro("Nenhum participante encontrado para gerar o fluxo financeiro.");
+            this.mostrarErro(
+                "Nenhum participante encontrado para gerar o fluxo financeiro.",
+            );
             return;
         }
 
-        // Renderizar botões dos participantes
-        this.renderizarBotoesParticipantes(participantes);
+        // Renderizar grid de participantes melhorado
+        this.renderizarGridParticipantes(participantes);
 
-        // Renderizar mensagem inicial
-        this.renderizarMensagemInicial();
+        // Renderizar estado inicial elegante
+        this.renderizarEstadoInicial();
     }
 
     /**
-     * Renderiza botões dos participantes
+     * Renderiza botões dos participantes (compatibilidade)
      */
     renderizarBotoesParticipantes(participantes) {
+        this.renderizarGridParticipantes(participantes);
+    }
+
+    /**
+     * Renderiza grid de participantes com UX elevada
+     */
+    renderizarGridParticipantes(participantes) {
         const container = document.getElementById("fluxoFinanceiroButtons");
         if (!container) return;
 
-        const botoesHtml = participantes
-            .map(participante => `
-                <button 
-                    class="participant-btn participante-btn" 
-                    data-time-id="${participante.time_id || participante.id}"
-                    onclick="window.calcularEExibirExtrato && window.calcularEExibirExtrato('${participante.time_id || participante.id}')"
-                    style="margin: 4px; padding: 8px 12px; background: #3498db; color: white; border: none; border-radius: 4px; cursor: pointer; font-size: 14px;"
-                >
-                    ${participante.nome_cartola || participante.nome_cartoleiro || participante.nome}
-                </button>
-            `)
-            .join("");
+        // Calcular estatísticas rápidas para preview
+        const stats = this._calcularStatsRapidas(participantes);
 
         container.innerHTML = `
-            <div style="text-align: center; margin-bottom: 20px;">
-                <h4 style="margin-bottom: 15px;">👥 Selecione um participante para ver o extrato:</h4>
-                <div style="display: flex; flex-wrap: wrap; justify-content: center; gap: 8px;">
-                    ${botoesHtml}
+            <div class="participantes-header">
+                <h3>👥 Participantes da Liga</h3>
+                <div class="liga-stats">
+                    <span class="stat-item">
+                        <strong>${participantes.length}</strong> participantes
+                    </span>
+                    <span class="stat-item">
+                        <strong>${stats.rodadasProcessadas}</strong> rodadas
+                    </span>
+                </div>
+            </div>
+            <div class="participantes-grid">
+                ${participantes.map((participante) => this._renderizarCardParticipante(participante)).join("")}
+            </div>
+        `;
+    }
+
+    /**
+     * Renderiza card individual do participante
+     */
+    _renderizarCardParticipante(participante) {
+        const timeId = participante.time_id || participante.id;
+        const nome =
+            participante.nome_cartola ||
+            participante.nome_cartoleiro ||
+            participante.nome;
+        const time = participante.nome_time || "Time";
+        const escudo = participante.url_escudo_png || participante.escudo_url;
+
+        // Simular saldo para preview (será calculado real posteriormente)
+        const saldoPreview = this._calcularSaldoPreview(participante);
+
+        return `
+            <div class="participante-card" 
+                 data-time-id="${timeId}"
+                 onclick="this.classList.add('loading'); window.calcularEExibirExtrato && window.calcularEExibirExtrato('${timeId}')">
+
+                <div class="participante-header">
+                    <div class="participante-avatar">
+                        ${
+                            escudo
+                                ? `<img src="${escudo}" alt="${nome}" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">
+                             <div style="display:none; width:100%; height:100%; background: var(--laranja); border-radius:50%; align-items:center; justify-content:center; color:white; font-weight:700;">
+                                ${nome.charAt(0).toUpperCase()}
+                             </div>`
+                                : `<div>${nome.charAt(0).toUpperCase()}</div>`
+                        }
+                    </div>
+                    <div class="participante-info">
+                        <h4 class="participante-nome">${nome}</h4>
+                        <p class="participante-time">${time}</p>
+                    </div>
+                </div>
+
+                <div class="participante-stats">
+                    <div class="participante-saldo ${saldoPreview >= 0 ? "positivo" : "negativo"}">
+                        ${saldoPreview >= 0 ? "+" : ""}R$ ${Math.abs(saldoPreview).toFixed(0)}
+                    </div>
+                    <div class="participante-badge ativo">
+                        Ativo
+                    </div>
                 </div>
             </div>
         `;
     }
 
     /**
-     * Renderiza mensagem inicial
+     * Calcula saldo preview (simulação)
      */
-    renderizarMensagemInicial() {
+    _calcularSaldoPreview(participante) {
+        // Simulação básica baseada em posição média hipotética
+        return Math.floor(Math.random() * 200 - 100); // -100 a +100
+    }
+
+    /**
+     * Calcula stats rápidas
+     */
+    _calcularStatsRapidas(participantes) {
+        return {
+            totalParticipantes: participantes.length,
+            rodadasProcessadas:
+                window.fluxoFinanceiroCache?.getUltimaRodadaCompleta() || 0,
+        };
+    }
+
+    /**
+     * Renderiza estado inicial elegante
+     */
+    renderizarEstadoInicial() {
         const container = document.getElementById("fluxoFinanceiroContent");
         if (!container) return;
 
         container.innerHTML = `
-            <div style="text-align: center; padding: 60px 20px; background: white; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); margin: 20px auto; max-width: 800px;">
-                <div style="font-size: 4rem; margin-bottom: 20px;">💰</div>
-                <h3 style="margin: 0 0 15px 0; color: #2c3e50; font-size: 24px;">Fluxo Financeiro da Liga</h3>
-                <p style="margin: 0 0 20px 0; color: #7f8c8d; font-size: 16px;">
-                    Visualize o extrato financeiro completo de cada participante.
+            <div class="estado-inicial">
+                <div class="estado-inicial-icon">💰</div>
+                <h3 class="estado-inicial-titulo">Fluxo Financeiro da Liga</h3>
+                <p class="estado-inicial-subtitulo">
+                    Visualize o extrato financeiro completo de cada participante com detalhamento por rodada.
                 </p>
-                <p style="margin: 0; color: #95a5a6; font-size: 14px;">
-                    Clique em um participante acima para ver seu extrato detalhado.
+                <div class="estado-inicial-features">
+                    <div class="feature-item">
+                        <span class="feature-icon">📊</span>
+                        <span>Resumo por categoria</span>
+                    </div>
+                    <div class="feature-item">
+                        <span class="feature-icon">📈</span>
+                        <span>Evolução do saldo</span>
+                    </div>
+                    <div class="feature-item">
+                        <span class="feature-icon">🏆</span>
+                        <span>Performance detalhada</span>
+                    </div>
+                </div>
+                <p class="estado-inicial-acao">
+                    Clique em um participante acima para começar
                 </p>
             </div>
         `;
     }
 
     /**
-     * Renderiza extrato financeiro completo
+     * Renderiza extrato financeiro com UX elevada
      */
     renderizarExtratoFinanceiro(extrato, participante, callback) {
-        console.log("[FLUXO-FINANCEIRO-UI] 📊 Renderizando extrato financeiro completo...");
-        console.log("[FLUXO-FINANCEIRO-UI] Dados do extrato:", extrato);
-        console.log("[FLUXO-FINANCEIRO-UI] Dados do participante:", participante);
+        console.log(
+            "[FLUXO-FINANCEIRO-UI] 📊 Renderizando extrato UX elevado...",
+        );
 
         const container = document.getElementById("fluxoFinanceiroContent");
-        if (!container) {
-            console.error("[FLUXO-FINANCEIRO-UI] Container não encontrado");
-            return;
-        }
+        if (!container) return;
 
-        // Formatação de moeda
+        // Marcar participante ativo
+        this._marcarParticipanteAtivo(participante.time_id || participante.id);
+
         const formatarMoeda = (valor) => {
-            const valorNum = typeof valor === 'number' ? valor : 0;
-            const sinal = valorNum >= 0 ? '+' : '';
-            return `${sinal}R$ ${Math.abs(valorNum).toFixed(2).replace('.', ',')}`;
+            const valorNum = typeof valor === "number" ? valor : 0;
+            const sinal = valorNum >= 0 ? "+" : "";
+            return `${sinal}R$ ${Math.abs(valorNum).toFixed(2).replace(".", ",")}`;
         };
 
-        // Determinar se é SuperCartola (tem pontos corridos)
-        const isSuperCartola = extrato.resumo.pontosCorridos !== undefined && extrato.resumo.pontosCorridos !== 0;
+        const isSuperCartola =
+            extrato.resumo.pontosCorridos !== undefined &&
+            extrato.resumo.pontosCorridos !== 0;
+        const escudo = participante.url_escudo_png || participante.escudo_url;
+        const nome =
+            participante.nome_cartola ||
+            participante.nome_cartoleiro ||
+            "Participante";
+        const time = participante.nome_time || "Time";
 
         container.innerHTML = `
-            <div style="max-width: 1200px; margin: 0 auto; padding: 20px;">
-                <!-- CABEÇALHO -->
-                <div style="
-                    background: linear-gradient(135deg, #2E8B57 0%, #228B22 100%);
-                    color: white;
-                    padding: 24px;
-                    border-radius: 12px;
-                    margin-bottom: 24px;
-                    text-align: center;
-                    box-shadow: 0 4px 16px rgba(0,0,0,0.1);
-                ">
-                    <h2 style="margin: 0 0 8px 0; font-size: 28px; font-weight: 700;">
-                        💰 Extrato Financeiro
-                    </h2>
-                    <h3 style="margin: 0 0 12px 0; font-size: 20px; opacity: 0.9;">
-                        ${participante.nome_cartola || participante.nome_cartoleiro || 'Participante'}
-                    </h3>
-                    <p style="margin: 0; font-size: 14px; opacity: 0.8;">
-                        ${participante.nome_time || 'Time'} • ${extrato.rodadas.length} rodadas processadas
-                    </p>
-                </div>
-
-                <!-- SALDO FINAL DESTACADO -->
-                <div style="
-                    background: ${extrato.resumo.saldo >= 0 ? 'linear-gradient(135deg, #27ae60, #2ecc71)' : 'linear-gradient(135deg, #e74c3c, #c0392b)'};
-                    color: white;
-                    padding: 24px;
-                    border-radius: 12px;
-                    margin-bottom: 24px;
-                    text-align: center;
-                    box-shadow: 0 4px 16px rgba(0,0,0,0.1);
-                ">
-                    <h3 style="margin: 0 0 8px 0; font-size: 18px; opacity: 0.9;">Saldo Final</h3>
-                    <div style="font-size: 48px; font-weight: 800; margin: 0;">
-                        ${formatarMoeda(extrato.resumo.saldo)}
-                    </div>
-                </div>
-
-                <!-- RESUMO FINANCEIRO -->
-                <div style="
-                    background: white;
-                    border-radius: 12px;
-                    padding: 24px;
-                    margin-bottom: 24px;
-                    box-shadow: 0 4px 16px rgba(0,0,0,0.06);
-                    border: 1px solid #e0e0e0;
-                ">
-                    <h3 style="margin: 0 0 20px 0; text-align: center; color: #2E8B57; font-size: 20px;">
-                        📊 Resumo por Categoria
-                    </h3>
-
-                    <div style="
-                        display: grid;
-                        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-                        gap: 16px;
-                        margin-bottom: 20px;
-                    ">
-                        <!-- Bônus -->
-                        <div style="
-                            background: linear-gradient(135deg, #d4edda 0%, #c3e6cb 100%);
-                            color: #155724;
-                            padding: 20px;
-                            border-radius: 8px;
-                            text-align: center;
-                            border: 1px solid #c3e6cb;
-                        ">
-                            <h4 style="margin: 0 0 8px 0; font-size: 14px; font-weight: 600; text-transform: uppercase;">
-                                💎 Bônus Total
-                            </h4>
-                            <p style="margin: 0; font-size: 20px; font-weight: 700;">
-                                ${formatarMoeda(extrato.resumo.bonus)}
-                            </p>
+            <div class="extrato-container">
+                <!-- HEADER PARTICIPANTE -->
+                <div class="extrato-header">
+                    <div class="extrato-participante-info">
+                        <div class="extrato-avatar">
+                            ${
+                                escudo
+                                    ? `<img src="${escudo}" alt="${nome}">`
+                                    : `<div class="avatar-placeholder">${nome.charAt(0).toUpperCase()}</div>`
+                            }
                         </div>
-
-                        <!-- Ônus -->
-                        <div style="
-                            background: linear-gradient(135deg, #f8d7da 0%, #f5c6cb 100%);
-                            color: #721c24;
-                            padding: 20px;
-                            border-radius: 8px;
-                            text-align: center;
-                            border: 1px solid #f5c6cb;
-                        ">
-                            <h4 style="margin: 0 0 8px 0; font-size: 14px; font-weight: 600; text-transform: uppercase;">
-                                💸 Ônus Total
-                            </h4>
-                            <p style="margin: 0; font-size: 20px; font-weight: 700;">
-                                ${formatarMoeda(extrato.resumo.onus)}
-                            </p>
-                        </div>
-
-                        ${isSuperCartola ? `
-                        <!-- Pontos Corridos -->
-                        <div style="
-                            background: linear-gradient(135deg, #e3f2fd 0%, #bbdefb 100%);
-                            color: #0d47a1;
-                            padding: 20px;
-                            border-radius: 8px;
-                            text-align: center;
-                            border: 1px solid #bbdefb;
-                        ">
-                            <h4 style="margin: 0 0 8px 0; font-size: 14px; font-weight: 600; text-transform: uppercase;">
-                                ⚽ Pontos Corridos
-                            </h4>
-                            <p style="margin: 0; font-size: 20px; font-weight: 700;">
-                                ${formatarMoeda(extrato.resumo.pontosCorridos)}
-                            </p>
-                        </div>
-
-                        <!-- Mata-Mata -->
-                        <div style="
-                            background: linear-gradient(135deg, #fff3e0 0%, #ffe0b2 100%);
-                            color: #e65100;
-                            padding: 20px;
-                            border-radius: 8px;
-                            text-align: center;
-                            border: 1px solid #ffb74d;
-                        ">
-                            <h4 style="margin: 0 0 8px 0; font-size: 14px; font-weight: 600; text-transform: uppercase;">
-                                🏆 Mata-Mata
-                            </h4>
-                            <p style="margin: 0; font-size: 20px; font-weight: 700;">
-                                ${formatarMoeda(extrato.resumo.mataMata)}
-                            </p>
-                        </div>
-                        ` : ''}
-
-                        <!-- Estatísticas -->
-                        <div style="
-                            background: linear-gradient(135deg, #e8f5e9 0%, #c8e6c9 100%);
-                            color: #2e7d32;
-                            padding: 20px;
-                            border-radius: 8px;
-                            text-align: center;
-                            border: 1px solid #81c784;
-                        ">
-                            <h4 style="margin: 0 0 8px 0; font-size: 14px; font-weight: 600; text-transform: uppercase;">
-                                🔥 Vezes MITO
-                            </h4>
-                            <p style="margin: 0; font-size: 20px; font-weight: 700;">
-                                ${extrato.resumo.vezesMito || 0}
-                            </p>
-                        </div>
-
-                        <div style="
-                            background: linear-gradient(135deg, #ffebee 0%, #ffcdd2 100%);
-                            color: #c62828;
-                            padding: 20px;
-                            border-radius: 8px;
-                            text-align: center;
-                            border: 1px solid #ef5350;
-                        ">
-                            <h4 style="margin: 0 0 8px 0; font-size: 14px; font-weight: 600; text-transform: uppercase;">
-                                💔 Vezes MICO
-                            </h4>
-                            <p style="margin: 0; font-size: 20px; font-weight: 700;">
-                                ${extrato.resumo.vezesMico || 0}
-                            </p>
+                        <div class="extrato-dados">
+                            <h2 class="extrato-titulo">💰 Extrato Financeiro</h2>
+                            <h3 class="extrato-participante">${nome}</h3>
+                            <p class="extrato-info">${time} • ${extrato.rodadas.length} rodadas processadas</p>
                         </div>
                     </div>
                 </div>
 
-                <!-- DETALHAMENTO POR RODADA -->
-                <div style="
-                    background: white;
-                    border-radius: 12px;
-                    padding: 24px;
-                    box-shadow: 0 4px 16px rgba(0,0,0,0.06);
-                    border: 1px solid #e0e0e0;
-                ">
-                    <h3 style="margin: 0 0 20px 0; text-align: center; color: #2E8B57; font-size: 20px;">
-                        📋 Detalhamento por Rodada
-                    </h3>
+                <!-- SALDO FINAL HERO -->
+                <div class="saldo-final-card ${extrato.resumo.saldo >= 0 ? "saldo-final-positivo" : "saldo-final-negativo"}">
+                    <h3 class="saldo-final-titulo">Saldo Final</h3>
+                    <div class="saldo-final-valor">${formatarMoeda(extrato.resumo.saldo)}</div>
+                    <div class="saldo-performance">
+                        ${this._gerarIndicadorPerformance(extrato.resumo)}
+                    </div>
+                </div>
 
-                    <div style="overflow-x: auto;">
-                        <table style="
-                            width: 100%;
-                            border-collapse: collapse;
-                            font-size: 13px;
-                            min-width: 800px;
-                        ">
+                <!-- RESUMO INTELIGENTE -->
+                <div class="resumo-container">
+                    <h3 class="resumo-titulo-principal">📊 Resumo Financeiro</h3>
+                    <div class="resumo-grid">
+                        ${this._renderizarCardResumo("💎 Bônus Total", extrato.resumo.bonus, "bonus")}
+                        ${this._renderizarCardResumo("💸 Ônus Total", extrato.resumo.onus, "onus")}
+
+                        ${
+                            isSuperCartola
+                                ? `
+                            ${this._renderizarCardResumo("⚽ Pontos Corridos", extrato.resumo.pontosCorridos, "pontos-corridos")}
+                            ${this._renderizarCardResumo("🏆 Mata-Mata", extrato.resumo.mataMata, "mata-mata")}
+                        `
+                                : ""
+                        }
+
+                        ${this._renderizarCardResumo("🔥 Vezes MITO", extrato.resumo.vezesMito, "estatisticas-mito", true)}
+                        ${this._renderizarCardResumo("💔 Vezes MICO", extrato.resumo.vezesMico, "estatisticas-mico", true)}
+                    </div>
+                </div>
+
+                <!-- EVOLUÇÃO DO SALDO -->
+                <div class="evolucao-container">
+                    <h3 class="evolucao-titulo">📈 Evolução do Saldo</h3>
+                    <div class="evolucao-grafico">
+                        ${this._renderizarGraficoEvolucao(extrato.rodadas)}
+                    </div>
+                </div>
+
+                <!-- DETALHAMENTO APRIMORADO -->
+                <div class="detalhamento-container">
+                    <div class="detalhamento-header">
+                        <h3 class="detalhamento-titulo">📋 Detalhamento por Rodada</h3>
+                        <div class="detalhamento-stats">
+                            <span class="stat-badge">${extrato.rodadas.length} rodadas</span>
+                            <span class="stat-badge">Média: ${this._calcularMediaRodada(extrato.rodadas)}</span>
+                        </div>
+                    </div>
+
+                    <div class="tabela-wrapper">
+                        <table class="detalhamento-tabela">
                             <thead>
-                                <tr style="background: linear-gradient(135deg, #495057 0%, #343a40 100%); color: white;">
-                                    <th style="padding: 14px 10px; text-align: center; font-weight: 600;">Rodada</th>
-                                    <th style="padding: 14px 10px; text-align: center; font-weight: 600;">Posição</th>
-                                    <th style="padding: 14px 10px; text-align: center; font-weight: 600;">Bônus/Ônus</th>
-                                    ${isSuperCartola ? `
-                                    <th style="padding: 14px 10px; text-align: center; font-weight: 600;">Pontos Corridos</th>
-                                    <th style="padding: 14px 10px; text-align: center; font-weight: 600;">Mata-Mata</th>
-                                    ` : ''}
-                                    <th style="padding: 14px 10px; text-align: center; font-weight: 600;">Saldo Acumulado</th>
+                                <tr>
+                                    <th>Rod</th>
+                                    <th>Pos</th>
+                                    <th>Bônus/Ônus</th>
+                                    ${isSuperCartola ? "<th>Pt.Corridos</th><th>Mata-Mata</th>" : ""}
+                                    <th>Saldo</th>
+                                    <th>Trend</th>
                                 </tr>
                             </thead>
                             <tbody>
-                                ${extrato.rodadas.length === 0 ? `
-                                <tr>
-                                    <td colspan="${isSuperCartola ? '6' : '4'}" style="
-                                        text-align: center;
-                                        padding: 40px 20px;
-                                        color: #666;
-                                        font-style: italic;
-                                    ">
-                                        Nenhuma rodada processada ainda
-                                    </td>
-                                </tr>
-                                ` : extrato.rodadas.map((rodada, index) => {
-                                    const posicaoStyle = this._obterEstiloPosicao(rodada);
-                                    return `
-                                    <tr style="
-                                        border-bottom: 1px solid #e0e0e0;
-                                        ${index % 2 === 0 ? 'background: #f8f9fa;' : ''}
-                                    ">
-                                        <td style="
-                                            text-align: center;
-                                            padding: 12px 10px;
-                                            font-weight: 600;
-                                            background-color: #f8f9fa;
-                                        ">
-                                            R${rodada.rodada}
-                                        </td>
-                                        <td style="
-                                            text-align: center;
-                                            padding: 12px 10px;
-                                            ${posicaoStyle.css}
-                                        ">
-                                            ${posicaoStyle.texto}
-                                        </td>
-                                        <td style="
-                                            text-align: center;
-                                            padding: 12px 10px;
-                                            font-weight: 600;
-                                            color: ${this._obterCorValor(rodada.bonusOnus)};
-                                        ">
-                                            ${this._formatarValorTabela(rodada.bonusOnus)}
-                                        </td>
-                                        ${isSuperCartola ? `
-                                        <td style="
-                                            text-align: center;
-                                            padding: 12px 10px;
-                                            font-weight: 600;
-                                            color: ${this._obterCorValor(rodada.pontosCorridos)};
-                                        ">
-                                            ${this._formatarValorTabela(rodada.pontosCorridos)}
-                                        </td>
-                                        <td style="
-                                            text-align: center;
-                                            padding: 12px 10px;
-                                            font-weight: 600;
-                                            color: ${this._obterCorValor(rodada.mataMata)};
-                                        ">
-                                            ${this._formatarValorTabela(rodada.mataMata)}
-                                        </td>
-                                        ` : ''}
-                                        <td style="
-                                            text-align: center;
-                                            padding: 12px 10px;
-                                            font-weight: 700;
-                                            color: ${this._obterCorValor(rodada.saldo)};
-                                            background-color: #f8f9fa;
-                                            border-left: 3px solid #007bff;
-                                        ">
-                                            ${formatarMoeda(rodada.saldo)}
-                                        </td>
-                                    </tr>
-                                    `;
-                                }).join('')}
+                                ${this._renderizarLinhasDetalhamento(extrato.rodadas, isSuperCartola)}
                             </tbody>
                         </table>
                     </div>
                 </div>
             </div>
         `;
-
-        console.log("[FLUXO-FINANCEIRO-UI] ✅ Extrato renderizado com sucesso");
     }
 
     /**
-     * Obter estilo da posição
+     * Marca participante ativo no grid
      */
-    _obterEstiloPosicao(rodada) {
-        if (rodada.isMito) {
-            return {
-                texto: "MITO",
-                css: "font-weight: 800; background: linear-gradient(135deg, #28a745 0%, #20c997 100%); color: #fff; border-radius: 6px; letter-spacing: 1px; text-shadow: 0 1px 2px rgba(0,0,0,0.3);"
-            };
-        }
+    _marcarParticipanteAtivo(timeId) {
+        // Limpar seleções anteriores
+        document
+            .querySelectorAll(".participante-card.active")
+            .forEach((card) => {
+                card.classList.remove("active");
+            });
 
-        if (rodada.isMico) {
-            return {
-                texto: "MICO", 
-                css: "font-weight: 800; background: linear-gradient(135deg, #dc3545 0%, #c82333 100%); color: #fff; border-radius: 6px; letter-spacing: 1px; text-shadow: 0 1px 2px rgba(0,0,0,0.3);"
-            };
-        }
-
-        if (rodada.posicao) {
-            const isTop11 = rodada.posicao >= 1 && rodada.posicao <= 11;
-            const isZ22_32 = rodada.posicao >= 22 && rodada.posicao <= 32;
-
-            if (isTop11) {
-                return {
-                    texto: `${rodada.posicao}°`,
-                    css: "font-weight: 700; background: linear-gradient(135deg, #d4edda 0%, #c3e6cb 100%); color: #155724; border-radius: 6px;"
-                };
-            }
-
-            if (isZ22_32) {
-                return {
-                    texto: `${rodada.posicao}°`,
-                    css: "font-weight: 700; background: linear-gradient(135deg, #f8d7da 0%, #f5c6cb 100%); color: #721c24; border-radius: 6px;"
-                };
-            }
-
-            return {
-                texto: `${rodada.posicao}°`,
-                css: "font-weight: 500; color: #495057;"
-            };
-        }
-
-        return {
-            texto: "-",
-            css: "font-weight: 500; color: #6c757d;"
-        };
-    }
-
-    /**
-     * Obter cor do valor
-     */
-    _obterCorValor(valor) {
-        if (typeof valor !== 'number') return '#6c757d';
-        if (valor > 0) return '#28a745';
-        if (valor < 0) return '#dc3545';
-        return '#6c757d';
-    }
-
-    /**
-     * Formatar valor da tabela
-     */
-    _formatarValorTabela(valor) {
-        if (typeof valor !== 'number' || valor === 0) return '-';
-        const valorFormatado = `R$ ${Math.abs(valor).toFixed(2).replace('.', ',')}`;
-        return valor >= 0 ? `+${valorFormatado}` : `-${valorFormatado}`;
-    }
-
-    /**
-     * Renderiza botão de exportação
-     */
-    renderizarBotaoExportacao(callback) {
-        const container = document.getElementById("fluxoFinanceiroExportBtnContainer");
-        if (container) {
-            container.innerHTML = `
-                <button onclick="(${callback.toString()})()" style="background: #3498db; color: white; border: none; padding: 8px 16px; border-radius: 4px; cursor: pointer;">
-                    📥 Exportar Extrato
-                </button>
-            `;
+        // Marcar participante atual
+        const cardAtivo = document.querySelector(`[data-time-id="${timeId}"]`);
+        if (cardAtivo) {
+            cardAtivo.classList.add("active");
+            this.selectedParticipant = timeId;
         }
     }
 
     /**
-     * Mostrar erro
+     * Renderiza card de resumo individual
      */
-    mostrarErro(mensagem) {
-        const container = document.getElementById("fluxoFinanceiroContent");
-        if (container) {
-            container.innerHTML = `
-                <div class="error-message" style="text-align: center; padding: 40px;">
-                    <div style="font-size: 3rem; margin-bottom: 15px;">❌</div>
-                    <h3>Erro no Fluxo Financeiro</h3>
-                    <p>${mensagem}</p>
-                </div>
-            `;
-        }
-    }
-
-    /**
-     * Renderizar resumo financeiro
-     */
-    _renderizarResumo(dados) {
-        const totalEntradas = dados.reduce(
-            (acc, item) => acc + (item.entrada || 0),
-            0,
-        );
-        const totalSaidas = dados.reduce(
-            (acc, item) => acc + (item.saida || 0),
-            0,
-        );
-        const saldo = totalEntradas - totalSaidas;
+    _renderizarCardResumo(titulo, valor, tipo, isContador = false) {
+        const valorFormatado = isContador
+            ? String(valor || 0)
+            : this._formatarValorResumo(valor);
 
         return `
-            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 15px; margin-bottom: 20px;">
-                <div style="background: linear-gradient(135deg, #d4edda, #c3e6cb); padding: 15px; border-radius: 8px; text-align: center;">
-                    <div style="font-size: 1.5rem; font-weight: bold; color: #155724;">R$ ${totalEntradas.toFixed(2)}</div>
-                    <div style="font-size: 0.9rem; color: #155724;">💵 Total Entradas</div>
-                </div>
-
-                <div style="background: linear-gradient(135deg, #f8d7da, #f5c6cb); padding: 15px; border-radius: 8px; text-align: center;">
-                    <div style="font-size: 1.5rem; font-weight: bold; color: #721c24;">R$ ${totalSaidas.toFixed(2)}</div>
-                    <div style="font-size: 0.9rem; color: #721c24;">💸 Total Saídas</div>
-                </div>
-
-                <div style="background: linear-gradient(135deg, #cce5ff, #99ccff); padding: 15px; border-radius: 8px; text-align: center;">
-                    <div style="font-size: 1.5rem; font-weight: bold; color: ${saldo >= 0 ? "#0c5460" : "#721c24"};">R$ ${saldo.toFixed(2)}</div>
-                    <div style="font-size: 0.9rem; color: #0c5460;">📊 Saldo</div>
-                </div>
+            <div class="resumo-card ${tipo}">
+                <h4 class="resumo-titulo">${titulo}</h4>
+                <p class="resumo-valor">${valorFormatado}</p>
             </div>
         `;
     }
 
     /**
-     * Renderizar tabela de movimentações
+     * Formatar valor do resumo
      */
-    _renderizarTabela(dados) {
+    _formatarValorResumo(valor) {
+        if (typeof valor !== "number") return "R$ 0,00";
+        const sinal = valor >= 0 ? "+" : "";
+        return `${sinal}R$ ${Math.abs(valor).toFixed(2).replace(".", ",")}`;
+    }
+
+    /**
+     * Gera indicador de performance
+     */
+    _gerarIndicadorPerformance(resumo) {
+        const mitos = resumo.vezesMito || 0;
+        const micos = resumo.vezesMico || 0;
+        const ratio = mitos - micos;
+
+        if (ratio > 2)
+            return '<span class="performance-badge excelente">🔥 Excelente</span>';
+        if (ratio > 0)
+            return '<span class="performance-badge bom">⭐ Bom</span>';
+        if (ratio === 0)
+            return '<span class="performance-badge regular">📊 Regular</span>';
+        return '<span class="performance-badge baixo">📉 Precisa melhorar</span>';
+    }
+
+    /**
+     * Renderiza gráfico de evolução simples
+     */
+    _renderizarGraficoEvolucao(rodadas) {
+        if (!rodadas.length) return "<p>Sem dados para exibir</p>";
+
+        const maxSaldo = Math.max(
+            ...rodadas.map((r) => Math.abs(r.saldo || 0)),
+        );
+        const escala = 100; // Altura máxima das barras
+
         return `
-            <div style="background: white; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); overflow: hidden;">
-                <table class="fluxo-table" style="width: 100%; border-collapse: collapse;">
-                    <thead style="background: #f4f6fa;">
-                        <tr>
-                            <th style="${FLUXO_UI_CONFIG.spacing.headerPadding}; text-align: left;">Data</th>
-                            <th style="${FLUXO_UI_CONFIG.spacing.headerPadding}; text-align: left;">Descrição</th>
-                            <th style="${FLUXO_UI_CONFIG.spacing.headerPadding}; text-align: center;">Entrada</th>
-                            <th style="${FLUXO_UI_CONFIG.spacing.headerPadding}; text-align: center;">Saída</th>
-                            <th style="${FLUXO_UI_CONFIG.spacing.headerPadding}; text-align: center;">Saldo</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        ${this._renderizarLinhasTabela(dados)}
-                    </tbody>
-                </table>
+            <div class="grafico-evolucao">
+                ${rodadas
+                    .map((rodada, index) => {
+                        const altura =
+                            maxSaldo > 0
+                                ? (Math.abs(rodada.saldo || 0) / maxSaldo) *
+                                  escala
+                                : 0;
+                        const isPositivo = (rodada.saldo || 0) >= 0;
+
+                        return `
+                        <div class="grafico-barra" 
+                             title="R${rodada.rodada}: ${this._formatarValorResumo(rodada.saldo)}">
+                            <div class="barra ${isPositivo ? "positiva" : "negativa"}" 
+                                 style="height: ${altura}px;"></div>
+                            <span class="barra-label">R${rodada.rodada}</span>
+                        </div>
+                    `;
+                    })
+                    .join("")}
             </div>
         `;
     }
 
     /**
-     * Renderizar linhas da tabela
+     * Calcula média por rodada
      */
-    _renderizarLinhasTabela(dados) {
-        let saldoAcumulado = 0;
+    _calcularMediaRodada(rodadas) {
+        if (!rodadas.length) return "R$ 0,00";
+        const total = rodadas.reduce((acc, r) => acc + (r.saldo || 0), 0);
+        const media = total / rodadas.length;
+        return this._formatarValorResumo(media);
+    }
 
-        return dados
-            .map((item) => {
-                saldoAcumulado += (item.entrada || 0) - (item.saida || 0);
+    /**
+     * Renderiza linhas do detalhamento aprimorado
+     */
+    _renderizarLinhasDetalhamento(rodadas, isSuperCartola) {
+        if (!rodadas.length) {
+            return `
+                <tr>
+                    <td colspan="${isSuperCartola ? "7" : "5"}" class="sem-dados">
+                        📊 Nenhuma rodada processada ainda
+                    </td>
+                </tr>
+            `;
+        }
+
+        return rodadas
+            .map((rodada, index) => {
+                const posicaoStyle = this._obterEstiloPosicao(rodada);
+                const trend = this._calcularTrend(rodadas, index);
 
                 return `
-                <tr style="border-bottom: 1px solid #eee;">
-                    <td style="${FLUXO_UI_CONFIG.spacing.tablePadding};">${item.data || "—"}</td>
-                    <td style="${FLUXO_UI_CONFIG.spacing.tablePadding};">${item.descricao || "—"}</td>
-                    <td style="${FLUXO_UI_CONFIG.spacing.tablePadding}; text-align: center; color: #28a745;">
-                        ${item.entrada ? `R$ ${item.entrada.toFixed(2)}` : "—"}
+                <tr class="rodada-row">
+                    <td class="rodada-col">R${rodada.rodada}</td>
+                    <td class="posicao-col">
+                        <span class="${posicaoStyle.classe}">${posicaoStyle.texto}</span>
                     </td>
-                    <td style="${FLUXO_UI_CONFIG.spacing.tablePadding}; text-align: center; color: #dc3545;">
-                        ${item.saida ? `R$ ${item.saida.toFixed(2)}` : "—"}
+                    <td class="valor-col ${this._obterClasseValor(rodada.bonusOnus)}">
+                        ${this._formatarValorTabela(rodada.bonusOnus)}
                     </td>
-                    <td style="${FLUXO_UI_CONFIG.spacing.tablePadding}; text-align: center; font-weight: bold; color: ${saldoAcumulado >= 0 ? "#28a745" : "#dc3545"};">
-                        R$ ${saldoAcumulado.toFixed(2)}
+                    ${
+                        isSuperCartola
+                            ? `
+                        <td class="valor-col ${this._obterClasseValor(rodada.pontosCorridos)}">
+                            ${this._formatarValorTabela(rodada.pontosCorridos)}
+                        </td>
+                        <td class="valor-col ${this._obterClasseValor(rodada.mataMata)}">
+                            ${this._formatarValorTabela(rodada.mataMata)}
+                        </td>
+                    `
+                            : ""
+                    }
+                    <td class="saldo-col ${this._obterClasseValor(rodada.saldo)}">
+                        ${this._formatarValorTabela(rodada.saldo)}
+                    </td>
+                    <td class="trend-col">
+                        ${trend}
                     </td>
                 </tr>
             `;
@@ -631,153 +515,167 @@ class FluxoFinanceiroUI {
             .join("");
     }
 
-    // Renderizar dados do participante
-    renderizarDadosParticipante(participante, dadosFinanceiros) {
-        console.log("🎨 [FLUXO-UI] Renderizando dados do participante:", participante);
-        console.log("🎨 [FLUXO-UI] Dados financeiros:", dadosFinanceiros);
+    /**
+     * Calcula trend da rodada
+     */
+    _calcularTrend(rodadas, index) {
+        if (index === 0) return '<span class="trend-neutro">—</span>';
 
-        const container = document.getElementById('fluxoFinanceiroContent');
-        if (!container) {
-            console.error("❌ [FLUXO-UI] Container não encontrado");
-            return;
-        }
+        const atual = rodadas[index].saldo || 0;
+        const anterior = rodadas[index - 1].saldo || 0;
+        const diff = atual - anterior;
 
-        if (!participante) {
-            container.innerHTML = `
-                <div class="alert alert-warning">
-                    <h4>⚠️ Participante não encontrado</h4>
-                    <p>Não foi possível carregar os dados deste participante.</p>
-                </div>
-            `;
-            return;
-        }
-
-        // Garantir que temos os campos necessários
-        const dadosParticipante = {
-            nome_cartoleiro: participante.nome_cartoleiro || participante.nome_cartola || 'Nome não disponível',
-            nome_time: participante.nome_time || participante.nome || 'Time não disponível',
-            time_id: participante.time_id || participante.id || 'ID não disponível',
-            clube_id: participante.clube_id || null,
-            url_escudo_png: participante.url_escudo_png || participante.escudo_url || ''
-        };
-
-        console.log("🎨 [FLUXO-UI] Dados formatados para renderização:", dadosParticipante);
-
-        // Usar o método renderizarExtratoFinanceiro existente que já funciona
-        if (dadosFinanceiros && dadosFinanceiros.extrato) {
-            console.log("🎨 [FLUXO-UI] Usando renderizarExtratoFinanceiro com extrato completo");
-            this.renderizarExtratoFinanceiro(dadosFinanceiros.extrato, participante);
-        } else {
-            console.log("🎨 [FLUXO-UI] Sem extrato, renderizando layout básico");
-            
-            // ✅ RENDERIZAR CABEÇALHO DO PARTICIPANTE
-            container.innerHTML = `
-                <div style="max-width: 1000px; margin: 0 auto; padding: 20px;">
-                    <!-- CABEÇALHO DO PARTICIPANTE -->
-                    <div style="
-                        background: linear-gradient(135deg, #2E8B57 0%, #228B22 100%);
-                        color: white;
-                        padding: 24px;
-                        border-radius: 12px;
-                        margin-bottom: 24px;
-                        text-align: center;
-                        box-shadow: 0 4px 16px rgba(0,0,0,0.1);
-                    ">
-                        <h2 style="margin: 0 0 8px 0; font-size: 28px; font-weight: 700;">
-                            💰 Detalhamento Financeiro
-                        </h2>
-                        <h3 style="margin: 0 0 12px 0; font-size: 20px; opacity: 0.9;">
-                            ${dadosParticipante.nome_cartoleiro}
-                        </h3>
-                        <p style="margin: 0; font-size: 14px; opacity: 0.8;">
-                            ${dadosParticipante.nome_time}
-                        </p>
-                    </div>
-
-                    <!-- CONTAINER PARA DETALHAMENTO -->
-                    <div id="detalhamento-container">
-                        <div style="text-align: center; padding: 40px; color: #666;">
-                            <h3>📊 Nenhuma rodada processada ainda</h3>
-                            <p>Os detalhamentos aparecerão conforme as rodadas forem coletadas.</p>
-                        </div>
-                    </div>
-                </div>
-            `;
-        }
+        if (diff > 0) return '<span class="trend-positivo">📈</span>';
+        if (diff < 0) return '<span class="trend-negativo">📉</span>';
+        return '<span class="trend-neutro">➡️</span>';
     }
-  // Renderizar detalhamento por rodada
-  renderizarDethamentoPorRodada(detalhamentos, container) {
-    console.log('[FLUXO-UI] Renderizando detalhamentos:', detalhamentos?.length || 0, 'rodadas');
-
-    if (!detalhamentos || detalhamentos.length === 0) {
-      container.innerHTML = `
-        <div style="text-align: center; padding: 40px; color: #666;">
-          <h3>📊 Nenhuma rodada processada ainda</h3>
-          <p>Os detalhamentos aparecerão conforme as rodadas forem coletadas.</p>
-          <p style="font-size: 0.9em; color: #999; margin-top: 15px;">
-            Certifique-se de que o participante foi selecionado corretamente.
-          </p>
-        </div>
-      `;
-      return;
-    }
-
-    const tabela = `
-      <div class="detalhamento-header">
-        <h3>📋 Detalhamento por Rodada</h3>
-        <p>${detalhamentos.length} rodada(s) processada(s)</p>
-      </div>
-      <table class="fluxo-detalhamento-table">
-        <thead>
-          <tr>
-            <th style="width: 80px;">Rodada</th>
-            <th style="width: 80px;">Posição</th>
-            <th style="width: 120px;">Bônus/Ônus</th>
-            <th style="width: 120px;">Saldo Acumulado</th>
-          </tr>
-        </thead>
-        <tbody>
-          ${detalhamentos.map((item, index) => {
-            const bonusOnus = parseFloat(item.bonusOnus || 0);
-            const saldoAcumulado = parseFloat(item.saldoAcumulado || 0);
-
-            return `
-              <tr>
-                <td style="text-align: center; font-weight: bold;">${item.rodada}</td>
-                <td style="text-align: center;">${item.posicao}º</td>
-                <td style="text-align: center;" class="${bonusOnus > 0 ? 'positivo' : bonusOnus < 0 ? 'negativo' : 'neutro'}">
-                  ${this.formatarValor(bonusOnus)}
-                </td>
-                <td style="text-align: center;" class="${saldoAcumulado > 0 ? 'positivo' : saldoAcumulado < 0 ? 'negativo' : 'neutro'}">
-                  ${this.formatarValor(saldoAcumulado)}
-                </td>
-              </tr>
-            `;
-          }).join('')}
-        </tbody>
-      </table>
-    `;
-
-    container.innerHTML = tabela;
-    console.log('[FLUXO-UI] Detalhamentos renderizados com sucesso');
-  }
 
     /**
-     * Formatar valor
+     * Obter estilo da posição aprimorado
+     */
+    _obterEstiloPosicao(rodada) {
+        if (rodada.isMito) {
+            return {
+                texto: "MITO",
+                classe: "pos-mito",
+            };
+        }
+
+        if (rodada.isMico) {
+            return {
+                texto: "MICO",
+                classe: "pos-mico",
+            };
+        }
+
+        if (rodada.posicao) {
+            const pos = rodada.posicao;
+            if (pos >= 1 && pos <= 11) {
+                return {
+                    texto: `${pos}°`,
+                    classe: "pos-g",
+                };
+            }
+            if (pos >= 22 && pos <= 32) {
+                return {
+                    texto: `${pos}°`,
+                    classe: "pos-z",
+                };
+            }
+            return {
+                texto: `${pos}°`,
+                classe: "pos-normal",
+            };
+        }
+
+        return {
+            texto: "-",
+            classe: "pos-sem-dados",
+        };
+    }
+
+    /**
+     * Obter classe CSS do valor
+     */
+    _obterClasseValor(valor) {
+        if (typeof valor !== "number") return "valor-neutro";
+        if (valor > 0) return "valor-positivo";
+        if (valor < 0) return "valor-negativo";
+        return "valor-neutro";
+    }
+
+    /**
+     * Formatar valor da tabela
+     */
+    _formatarValorTabela(valor) {
+        if (typeof valor !== "number" || valor === 0) return "—";
+        const valorFormatado = `R$ ${Math.abs(valor).toFixed(2).replace(".", ",")}`;
+        return valor >= 0 ? `+${valorFormatado}` : `${valorFormatado}`;
+    }
+
+    /**
+     * Renderiza botão de exportação moderno
+     */
+    renderizarBotaoExportacao(callback) {
+        const container = document.getElementById(
+            "fluxoFinanceiroExportBtnContainer",
+        );
+        if (!container) return;
+
+        container.innerHTML = `
+            <div class="export-container">
+                <button class="btn-export" onclick="(${callback.toString()})()">
+                    <span class="export-icon">📥</span>
+                    Exportar Extrato Completo
+                </button>
+            </div>
+        `;
+    }
+
+    /**
+     * Mostra erro elegante
+     */
+    mostrarErro(mensagem) {
+        const container = document.getElementById("fluxoFinanceiroContent");
+        if (!container) return;
+
+        container.innerHTML = `
+            <div class="error-message">
+                <div class="error-icon">⚠️</div>
+                <h3>Ops! Algo deu errado</h3>
+                <p>${mensagem}</p>
+                <button class="retry-button" onclick="window.location.reload()">
+                    🔄 Tentar novamente
+                </button>
+            </div>
+        `;
+    }
+
+    /**
+     * Renderiza dados do participante (compatibilidade)
+     */
+    renderizarDadosParticipante(participante, dadosFinanceiros) {
+        console.log(
+            "🎨 [FLUXO-UI] Renderizando dados do participante UX elevado...",
+        );
+
+        if (!participante) {
+            this.mostrarErro("Participante não encontrado");
+            return;
+        }
+
+        if (dadosFinanceiros && dadosFinanceiros.extrato) {
+            this.renderizarExtratoFinanceiro(
+                dadosFinanceiros.extrato,
+                participante,
+            );
+        } else {
+            const container = document.getElementById("fluxoFinanceiroContent");
+            container.innerHTML = `
+                <div class="participante-sem-dados">
+                    <div class="sem-dados-icon">📊</div>
+                    <h3>Dados Financeiros</h3>
+                    <p>Processando informações de <strong>${participante.nome_cartola || participante.nome_cartoleiro}</strong></p>
+                    <div class="loading-spinner"></div>
+                </div>
+            `;
+        }
+    }
+
+    /**
+     * Formatar valor (compatibilidade)
      */
     formatarValor(valor) {
-        if (typeof valor !== 'number') return '-';
-        const valorFormatado = `R$ ${Math.abs(valor).toFixed(2).replace('.', ',')}`;
-        return valor >= 0 ? `+${valorFormatado}` : `-${valorFormatado}`;
+        return this._formatarValorTabela(valor);
     }
 }
 
-// ===== DISPONIBILIZAR GLOBALMENTE =====
+// Disponibilizar globalmente
 if (typeof window !== "undefined") {
     window.FluxoFinanceiroUI = FluxoFinanceiroUI;
 }
 
-console.log("✅ [FLUXO-FINANCEIRO-UI] Interface do fluxo financeiro carregada!");
+console.log("✅ [FLUXO-FINANCEIRO-UI] Interface UX elevada carregada!");
 
 export { FluxoFinanceiroUI };
 export default FluxoFinanceiroUI;

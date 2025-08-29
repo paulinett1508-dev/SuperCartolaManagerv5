@@ -1,12 +1,11 @@
 # 📊 Análise do Sistema Super Cartola Manager
 
-**Data da Análise:** 27/08/2025, 23:41:29
+**Data da Análise:** 29/08/2025, 19:55:20
 
 ---
 
 ## 📁 Estrutura do Sistema
 
-- 📁 **attached_assets/**
 - 📁 **backups/**
 - 📁 **config/**
 - 📁 **controllers/**
@@ -46,7 +45,7 @@
 - 📋 **package-lock.json** - 📋 Dados JSON
 - 📋 **package.json** - 📦 Configuração npm/dependências
 - 📄 **replit.nix** - ❓ Arquivo genérico
-- 📖 **system-analysis-2025-08-27.md** - 📖 Documentação
+- 📖 **system-analysis-2025-08-29.md** - 📖 Documentação
 - 📜 **system-mapper.js** - 📝 Script JavaScript
 - 📜 **uploadToDrive.js** - 📝 Script JavaScript
 - 📜 **ux-analyzer.js** - 📝 Script JavaScript
@@ -55,10 +54,8 @@
 
 ## 🔍 Análise por Categoria
 
-### Frontend (Cliente) (137 arquivos)
+### Frontend (Cliente) (141 arquivos)
 
-- 📄 **attached_assets/Pasted--CLASSES-PARA-HEADER-E-TABELA-ADICIONAR-AO-mata-mata-css-Header-do-Mata-Mata-mata--1756320309383_1756320309383.txt** - ❓ Arquivo genérico
-  - 📏 Tamanho: 3KB | Linhas: 124
 - 📄 **backupJson.js** - 📝 Script JavaScript
   - 📏 Tamanho: 1KB | Linhas: 39
 - 📄 **backupScheduler.js** - 📝 Script JavaScript
@@ -102,46 +99,58 @@
   - 📏 Tamanho: 12KB | Linhas: 508
 - 📄 **public/css/modules/criar-liga.css** - 🧩 Módulo do sistema
   - 📏 Tamanho: 10KB | Linhas: 521
+- 📄 **public/css/modules/dashboard.css** - 🧩 Módulo do sistema
+  - 📏 Tamanho: 13KB | Linhas: 683
 - 📄 **public/css/modules/editar-liga.css** - 🧩 Módulo do sistema
   - 📏 Tamanho: 9KB | Linhas: 469
 - 📄 **public/css/modules/ferramentas.css** - 🧩 Módulo do sistema
   - 📏 Tamanho: 3KB | Linhas: 151
+- 📄 **public/css/modules/fluxo-financeiro.css** - 🧩 Módulo do sistema
+  - 📏 Tamanho: 21KB | Linhas: 1074
 - 📄 **public/css/modules/mata-mata.css** - 🧩 Módulo do sistema
   - 📏 Tamanho: 9KB | Linhas: 421
+- 📄 **public/css/modules/melhor-mes.css** - 🧩 Módulo do sistema
+  - 📏 Tamanho: 9KB | Linhas: 443
 - 📄 **public/css/modules/participantes.css** - 🧩 Módulo do sistema
-  - 📏 Tamanho: 9KB | Linhas: 456
+  - 📏 Tamanho: 13KB | Linhas: 656
 - 📄 **public/css/modules/pontos-corridos.css** - 🧩 Módulo do sistema
-  - 📏 Tamanho: 7KB | Linhas: 310
+  - 📏 Tamanho: 17KB | Linhas: 835
 - 📄 **public/css/modules/ranking-geral.css** - 🧩 Módulo do sistema
   - 📏 Tamanho: 7KB | Linhas: 312
+- 📄 **public/css/modules/rodadas.css** - 🧩 Módulo do sistema
+  - 📏 Tamanho: 8KB | Linhas: 415
+- 📄 **public/css/modules/top10.css** - 🧩 Módulo do sistema
+  - 📏 Tamanho: 6KB | Linhas: 312
 - 📄 **public/dashboard.html** - 📊 Dashboard/Painel principal
-  - 📏 Tamanho: 39KB | Linhas: 1134
+  - 📏 Tamanho: 25KB | Linhas: 600
 - 📄 **public/detalhe-liga.css** - 🏆 Funcionalidades de Liga
   - 📏 Tamanho: 16KB | Linhas: 691
 - 📄 **public/detalhe-liga.html** - 🏆 Funcionalidades de Liga
-  - 📏 Tamanho: 12KB | Linhas: 262
+  - 📏 Tamanho: 12KB | Linhas: 270
 - 📄 **public/editar-liga.html** - 🏆 Funcionalidades de Liga
   - 📏 Tamanho: 5KB | Linhas: 123
 - 📄 **public/ferramentas.html** - 📄 Página HTML
   - 📏 Tamanho: 4KB | Linhas: 104
 - 📄 **public/fronts/artilheiro-campeao.html** - ⚽ Sistema Artilheiro Campeão
 - 📄 **public/fronts/fluxo-financeiro.html** - 📄 Página HTML
+  - 📏 Tamanho: 1KB | Linhas: 44
 - 📄 **public/fronts/luva-de-ouro.html** - 🥅 Sistema Luva de Ouro
 - 📄 **public/fronts/mata-mata.html** - 📄 Página HTML
   - 📏 Tamanho: 1KB | Linhas: 27
 - 📄 **public/fronts/melhor-mes.html** - 📄 Página HTML
+  - 📏 Tamanho: 3KB | Linhas: 75
 - 📄 **public/fronts/parciais.html** - 📄 Página HTML
   - 📏 Tamanho: 11KB | Linhas: 366
 - 📄 **public/fronts/participantes.html** - 📄 Página HTML
-  - 📏 Tamanho: 3KB | Linhas: 86
+  - 📏 Tamanho: 3KB | Linhas: 90
 - 📄 **public/fronts/pontos-corridos.html** - 📄 Página HTML
-  - 📏 Tamanho: 7KB | Linhas: 312
+  - 📏 Tamanho: 1KB | Linhas: 44
 - 📄 **public/fronts/ranking-geral.html** - 🏅 Sistema de Rankings
   - 📏 Tamanho: 4KB | Linhas: 121
 - 📄 **public/fronts/rodadas.html** - 📅 Gestão de Rodadas
-  - 📏 Tamanho: 8KB | Linhas: 313
+  - 📏 Tamanho: 2KB | Linhas: 73
 - 📄 **public/fronts/top10.html** - 📄 Página HTML
-  - 📏 Tamanho: 6KB | Linhas: 274
+  - 📏 Tamanho: 2KB | Linhas: 51
 - 📄 **public/gerenciar.html** - 📄 Página HTML
   - 📏 Tamanho: 16KB | Linhas: 472
 - 📄 **public/gols.js** - ⚽ Gestão de Gols
@@ -167,7 +176,7 @@
 - 📄 **public/js/criar-liga.js** - 🏆 Funcionalidades de Liga
   - 📏 Tamanho: 11KB | Linhas: 332
 - 📄 **public/js/detalhe-liga-orquestrador.js** - 🏆 Funcionalidades de Liga
-  - 📏 Tamanho: 18KB | Linhas: 493
+  - 📏 Tamanho: 23KB | Linhas: 621
 - 📄 **public/js/detalhe-liga.js** - 🏆 Funcionalidades de Liga
   - 📏 Tamanho: 9KB | Linhas: 278
 - 📄 **public/js/editar-liga.js** - 🏆 Funcionalidades de Liga
@@ -197,17 +206,17 @@
 - 📄 **public/js/filtro-liga-especial.js** - 🏆 Funcionalidades de Liga
   - 📏 Tamanho: 4KB | Linhas: 104
 - 📄 **public/js/fluxo-financeiro/fluxo-financeiro-cache.js** - 📝 Script JavaScript
-  - 📏 Tamanho: 22KB | Linhas: 683
+  - 📏 Tamanho: 19KB | Linhas: 582
 - 📄 **public/js/fluxo-financeiro/fluxo-financeiro-campos.js** - 📝 Script JavaScript
   - 📏 Tamanho: 15KB | Linhas: 469
 - 📄 **public/js/fluxo-financeiro/fluxo-financeiro-core.js** - 📝 Script JavaScript
-  - 📏 Tamanho: 21KB | Linhas: 623
+  - 📏 Tamanho: 15KB | Linhas: 487
 - 📄 **public/js/fluxo-financeiro/fluxo-financeiro-ui.js** - 📝 Script JavaScript
-  - 📏 Tamanho: 35KB | Linhas: 783
+  - 📏 Tamanho: 24KB | Linhas: 682
 - 📄 **public/js/fluxo-financeiro/fluxo-financeiro-utils.js** - 📝 Script JavaScript
   - 📏 Tamanho: 10KB | Linhas: 334
 - 📄 **public/js/fluxo-financeiro.js** - 📝 Script JavaScript
-  - 📏 Tamanho: 27KB | Linhas: 749
+  - 📏 Tamanho: 17KB | Linhas: 532
 - 📄 **public/js/gerenciar-ligas.js** - 🏆 Funcionalidades de Liga
   - 📏 Tamanho: 8KB | Linhas: 273
 - 📄 **public/js/gols-por-rodada.js** - 📅 Gestão de Rodadas
@@ -223,7 +232,7 @@
 - 📄 **public/js/mata-mata/mata-mata-config.js** - ⚙️ Arquivo de configuração
   - 📏 Tamanho: 5KB | Linhas: 193
 - 📄 **public/js/mata-mata/mata-mata-confrontos.js** - 📝 Script JavaScript
-  - 📏 Tamanho: 5KB | Linhas: 172
+  - 📏 Tamanho: 7KB | Linhas: 217
 - 📄 **public/js/mata-mata/mata-mata-financeiro.js** - 📝 Script JavaScript
   - 📏 Tamanho: 15KB | Linhas: 502
 - 📄 **public/js/mata-mata/mata-mata-orquestrador.js** - 📝 Script JavaScript
@@ -237,41 +246,41 @@
 - 📄 **public/js/navigation.js** - 🧭 Sistema de navegação
   - 📏 Tamanho: 3KB | Linhas: 76
 - 📄 **public/js/participantes.js** - 📝 Script JavaScript
-  - 📏 Tamanho: 15KB | Linhas: 377
+  - 📏 Tamanho: 14KB | Linhas: 419
 - 📄 **public/js/pontos-corridos/pontos-corridos-cache.js** - 📝 Script JavaScript
   - 📏 Tamanho: 6KB | Linhas: 211
 - 📄 **public/js/pontos-corridos/pontos-corridos-config.js** - ⚙️ Arquivo de configuração
   - 📏 Tamanho: 3KB | Linhas: 109
 - 📄 **public/js/pontos-corridos/pontos-corridos-core.js** - 📝 Script JavaScript
-  - 📏 Tamanho: 25KB | Linhas: 794
+  - 📏 Tamanho: 15KB | Linhas: 502
 - 📄 **public/js/pontos-corridos/pontos-corridos-orquestrador.js** - 📝 Script JavaScript
-  - 📏 Tamanho: 13KB | Linhas: 475
+  - 📏 Tamanho: 14KB | Linhas: 505
 - 📄 **public/js/pontos-corridos/pontos-corridos-ui.js** - 📝 Script JavaScript
-  - 📏 Tamanho: 17KB | Linhas: 440
+  - 📏 Tamanho: 27KB | Linhas: 937
 - 📄 **public/js/pontos-corridos-utils.js** - 📝 Script JavaScript
   - 📏 Tamanho: 7KB | Linhas: 225
 - 📄 **public/js/pontos-corridos.js** - 📝 Script JavaScript
-  - 📏 Tamanho: 1KB | Linhas: 31
+  - 📏 Tamanho: 1KB | Linhas: 28
 - 📄 **public/js/ranking.js** - 🏅 Sistema de Rankings
   - 📏 Tamanho: 14KB | Linhas: 392
 - 📄 **public/js/rodadas.js** - 📅 Gestão de Rodadas
-  - 📏 Tamanho: 23KB | Linhas: 697
+  - 📏 Tamanho: 20KB | Linhas: 629
 - 📄 **public/js/seletor-ligas.js** - 🏆 Funcionalidades de Liga
   - 📏 Tamanho: 4KB | Linhas: 125
 - 📄 **public/js/sistema-modulos-init.js** - 📝 Script JavaScript
   - 📏 Tamanho: 1KB | Linhas: 38
 - 📄 **public/js/top10.js** - 📝 Script JavaScript
-  - 📏 Tamanho: 10KB | Linhas: 310
+  - 📏 Tamanho: 11KB | Linhas: 393
 - 📄 **public/js/utils.js** - 📝 Script JavaScript
   - 📏 Tamanho: 7KB | Linhas: 208
 - 📄 **public/layout.html** - 📄 Página HTML
-  - 📏 Tamanho: 13KB | Linhas: 338
+  - 📏 Tamanho: 14KB | Linhas: 349
 - 📄 **public/preencher-liga.html** - 🏆 Funcionalidades de Liga
   - 📏 Tamanho: 5KB | Linhas: 178
 - 📄 **public/script.js** - 📝 Script JavaScript
   - 📏 Tamanho: 4KB | Linhas: 82
 - 📄 **public/style.css** - 🎨 Folha de estilos
-  - 📏 Tamanho: 21KB | Linhas: 1046
+  - 📏 Tamanho: 21KB | Linhas: 1057
 - 📄 **public/templates/fluxo-financeiro-tabela.html** - 📄 Página HTML
   - 📏 Tamanho: 5KB | Linhas: 126
 - 📄 **public/templates/mata-mata-tabela.html** - 📄 Página HTML
@@ -346,24 +355,15 @@
 - 📄 **scripts/times-da-liga.json** - 🏆 Funcionalidades de Liga
   - 📏 Tamanho: 2KB | Linhas: 46
 
-### Documentação (6 arquivos)
+### Documentação (2 arquivos)
 
 - 📄 **UX_PATTERNS.md** - 📖 Documentação
-  - 📏 Tamanho: 7KB | Linhas: 364
-- 📄 **attached_assets/Pasted--CORRE-ES-CIR-RGICAS-PARA-MATA-MATA-JS-Aplicar-nas-linhas-indicadas-CORRE-O-1-F-1756314752908_1756314752909.txt** - ❓ Arquivo genérico
-  - 📏 Tamanho: 3KB | Linhas: 103
-- 📄 **attached_assets/Pasted--Fun-o-para-renderizar-a-interface-CORRIGIDA-function-renderizarInterface-container-ligaId--1756320632486_1756320632487.txt** - 🏆 Funcionalidades de Liga
-  - 📏 Tamanho: 4KB | Linhas: 109
-- 📄 **attached_assets/Pasted--Fun-o-para-renderizar-a-tabela-do-mata-mata-CORRIGIDA-async-function-renderTabelaMataMata--1756320292141_1756320292142.txt** - ❓ Arquivo genérico
-  - 📏 Tamanho: 3KB | Linhas: 88
-- 📄 **attached_assets/Pasted--workspace-node-ux-analyzer-js-UX-PATTERN-AN-1756293155254_1756293155254.txt** - ❓ Arquivo genérico
-  - 📏 Tamanho: 13KB | Linhas: 240
-- 📄 **system-analysis-2025-08-27.md** - 📖 Documentação
-  - 📏 Tamanho: 22KB | Linhas: 542
+  - 📏 Tamanho: 7KB | Linhas: 365
+- 📄 **system-analysis-2025-08-29.md** - 📖 Documentação
+  - 📏 Tamanho: 22KB | Linhas: 545
 
-### Assets (18 arquivos)
+### Assets (17 arquivos)
 
-- 📄 **attached_assets/image_1756316994017.png** - ❓ Arquivo genérico
 - 📄 **generated-icon.png** - ❓ Arquivo genérico
 - 📄 **public/escudos/262.png** - ❓ Arquivo genérico
 - 📄 **public/escudos/263.png** - ❓ Arquivo genérico
@@ -516,25 +516,25 @@
 
 | Métrica | Valor |
 |---------|-------|
-| **Total de arquivos** | 176 |
-| **Tamanho total** | 4774 KB |
+| **Total de arquivos** | 175 |
+| **Tamanho total** | 4763 KB |
 | **Tamanho médio** | 27 KB |
 
 ### 📋 Por Tipo de Arquivo
 
 | Tipo | Quantidade |
 |------|------------|
-| 📖 **docs** | 7 |
-| 🖼️ **assets** | 18 |
-| 🎨 **frontend** | 136 |
+| 📖 **docs** | 2 |
+| 🎨 **frontend** | 141 |
 | ⚙️ **config** | 11 |
 | ❓ **other** | 4 |
+| 🖼️ **assets** | 17 |
 
 ### 📏 Por Tamanho de Arquivo
 
 | Categoria | Quantidade | Descrição |
 |-----------|------------|----------|
-| 🟢 **Pequenos** | 73 | < 5KB |
+| 🟢 **Pequenos** | 72 | < 5KB |
 | 🟡 **Médios** | 99 | 5-50KB |
 | 🔴 **Grandes** | 4 | > 50KB |
 

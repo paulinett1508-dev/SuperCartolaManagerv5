@@ -1,310 +1,835 @@
-/* PONTOS CORRIDOS MODULE CSS - Padrões UX do Sistema */
+/* PONTOS CORRIDOS CSS - Módulo Específico
+   Arquivo: public/css/modules/pontos-corridos.css
+   Usado apenas pelo módulo pontos-corridos
+*/
 
-/* Container Principal */
+/* === CONTAINER PRINCIPAL === */
 #pontos-corridos {
-  background: var(--bg-card, #1e1e1e);
-  border-radius: var(--border-radius-md, 8px);
-  padding: var(--spacing-lg, 20px);
-  margin: var(--spacing-md, 15px) 0;
+  background: var(--bg-card);
+  border-radius: var(--border-radius-md);
+  padding: var(--spacing-lg);
+  margin: var(--spacing-md) 0;
+  border: 1px solid rgba(255, 69, 0, 0.1);
+  position: relative;
+  overflow: hidden;
 }
 
-#pontos-corridos.active {
-  display: block;
-  opacity: 1;
-  visibility: visible;
+#pontos-corridos::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 3px;
+  background: linear-gradient(135deg, var(--laranja) 0%, var(--laranja-dark) 100%);
 }
 
-/* Header do Pontos Corridos */
+/* === HEADER DO MÓDULO === */
 .pontos-corridos-header {
   text-align: center;
-  margin-bottom: var(--spacing-lg, 20px);
-  padding-bottom: var(--spacing-md, 15px);
-  border-bottom: 1px solid rgba(255, 69, 0, 0.2);
+  margin-bottom: var(--spacing-xl);
+  padding-bottom: var(--spacing-lg);
+  border-bottom: 2px solid rgba(255, 69, 0, 0.2);
+}
+
+.pontos-corridos-title-section {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--spacing-md);
+  margin-bottom: var(--spacing-sm);
+}
+
+.pontos-corridos-icon {
+  width: 48px;
+  height: 48px;
+  background: linear-gradient(135deg, var(--laranja) 0%, var(--laranja-dark) 100%);
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 24px;
+  box-shadow: 0 4px 20px rgba(255, 69, 0, 0.4);
 }
 
 .pontos-corridos-titulo {
-  font: 700 24px "Inter", -apple-system, sans-serif;
-  color: var(--text-primary, #ffffff);
-  margin: 0 0 8px 0;
+  font: 800 28px "Inter", -apple-system, sans-serif;
+  color: var(--text-primary);
+  margin: 0;
   letter-spacing: -0.5px;
 }
 
 .pontos-corridos-subtitulo {
   font: 600 15px "Inter", -apple-system, sans-serif;
-  color: var(--laranja, #FF4500);
+  color: var(--laranja);
   margin: 0;
   opacity: 0.9;
 }
 
-/* Seletor de Rodada */
-.pontos-corridos-selector {
-  margin-bottom: var(--spacing-lg, 20px);
+/* === SELETOR DE RODADAS === */
+.rodadas-selector-container {
+  margin-bottom: var(--spacing-xl);
 }
 
-.rodada-select {
-  background: var(--bg-secondary, #1a1a1a);
-  border: 1px solid rgba(255, 69, 0, 0.3);
-  border-radius: var(--border-radius-md, 8px);
-  color: var(--text-primary, #ffffff);
-  font: 500 14px "Inter", -apple-system, sans-serif;
-  padding: 12px 16px;
-  margin-right: 12px;
+.rodadas-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: var(--spacing-md);
+  flex-wrap: wrap;
+  gap: var(--spacing-md);
+}
+
+.rodadas-title {
+  font: 700 18px "Inter", -apple-system, sans-serif;
+  color: var(--text-primary);
+  margin: 0;
+}
+
+.rodadas-progresso {
+  flex: 1;
+  max-width: 300px;
+}
+
+.progresso-info {
+  text-align: right;
+}
+
+.progresso-texto {
+  font: 500 12px "Inter", -apple-system, sans-serif;
+  color: var(--text-muted);
+  display: block;
+  margin-bottom: 4px;
+}
+
+.progresso-bar {
+  width: 100%;
+  height: 6px;
+  background: var(--bg-secondary);
+  border-radius: 3px;
+  overflow: hidden;
+}
+
+.progresso-fill {
+  height: 100%;
+  background: linear-gradient(90deg, var(--laranja) 0%, var(--laranja-light) 100%);
+  border-radius: 3px;
+  transition: width 0.5s ease;
+}
+
+/* === GRID DE MINI-CARDS === */
+.rodadas-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(75px, 1fr));
+  gap: 6px;
+  margin-bottom: var(--spacing-md);
+}
+
+/* === MINI-CARDS DAS RODADAS === */
+.rodada-card {
+  background: var(--bg-secondary);
+  border: 1px solid rgba(255, 69, 0, 0.1);
+  border-radius: 8px;
+  padding: 10px 6px;
+  text-align: center;
+  cursor: pointer;
   transition: all 0.3s ease;
-  min-width: 280px;
+  position: relative;
+  min-height: 65px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  user-select: none;
 }
 
-.rodada-select:focus {
-  outline: none;
-  border-color: var(--laranja, #FF4500);
-  box-shadow: 0 0 0 2px rgba(255, 69, 0, 0.2);
+/* === ESTADOS DOS MINI-CARDS === */
+.rodada-card.futura {
+  background: rgba(42, 42, 42, 0.3);
+  border-color: rgba(255, 255, 255, 0.05);
+  opacity: 0.5;
+  cursor: not-allowed;
 }
 
-.btn-classificacao {
-  background: linear-gradient(135deg, var(--laranja, #ff4500) 0%, var(--laranja-dark, #e8472b) 100%);
+.rodada-card.passada {
+  background: rgba(255, 69, 0, 0.08);
+  border-color: rgba(255, 69, 0, 0.25);
+  color: var(--text-primary);
+}
+
+.rodada-card.atual {
+  background: linear-gradient(135deg, var(--laranja) 0%, var(--laranja-dark) 100%);
+  border-color: var(--laranja);
+  color: white;
+  box-shadow: 0 4px 15px rgba(255, 69, 0, 0.4);
+  transform: scale(1.03);
+}
+
+.rodada-card.selecionada {
+  background: linear-gradient(135deg, var(--laranja-dark) 0%, #d63920 100%);
+  border-color: var(--laranja);
+  color: white;
+  box-shadow: 0 6px 20px rgba(255, 69, 0, 0.6);
+  transform: translateY(-2px) scale(1.02);
+}
+
+/* === HOVER EFFECTS === */
+.rodada-card.passada:hover:not(.selecionada) {
+  background: rgba(255, 69, 0, 0.15);
+  border-color: rgba(255, 69, 0, 0.4);
+  transform: translateY(-1px);
+}
+
+.rodada-card.atual:hover {
+  transform: scale(1.05);
+  box-shadow: 0 6px 25px rgba(255, 69, 0, 0.6);
+}
+
+/* === CONTEÚDO DO MINI-CARD === */
+.rodada-numero {
+  font: 700 15px "Inter", -apple-system, sans-serif;
+  margin-bottom: 2px;
+  line-height: 1;
+}
+
+.rodada-label {
+  font: 600 8px "Inter", -apple-system, sans-serif;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  opacity: 0.8;
+  margin-bottom: 1px;
+}
+
+.rodada-brasileirao {
+  font: 500 7px "Inter", -apple-system, sans-serif;
+  opacity: 0.6;
+}
+
+/* === CORES POR ESTADO === */
+.rodada-card.futura .rodada-numero,
+.rodada-card.futura .rodada-label,
+.rodada-card.futura .rodada-brasileirao {
+  color: var(--text-muted);
+}
+
+.rodada-card.passada .rodada-numero {
+  color: var(--text-primary);
+}
+
+.rodada-card.passada .rodada-label,
+.rodada-card.passada .rodada-brasileirao {
+  color: var(--laranja);
+}
+
+/* === INDICADORES DE STATUS === */
+.rodada-card::after {
+  content: '';
+  position: absolute;
+  top: 4px;
+  right: 4px;
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+  background: transparent;
+}
+
+.rodada-card.passada::after {
+  background: var(--success);
+}
+
+.rodada-card.atual::after {
+  background: white;
+  animation: pulse 2s infinite;
+}
+
+/* === AÇÕES PRINCIPAIS === */
+.acoes-container {
+  display: flex;
+  gap: var(--spacing-md);
+  justify-content: center;
+  margin-bottom: var(--spacing-xl);
+  flex-wrap: wrap;
+}
+
+.btn-acao {
+  background: linear-gradient(135deg, var(--laranja) 0%, var(--laranja-dark) 100%);
   color: white;
   border: none;
-  border-radius: var(--border-radius-md, 8px);
+  border-radius: 8px;
   padding: 12px 20px;
   font: 600 14px "Inter", -apple-system, sans-serif;
   cursor: pointer;
   transition: all 0.3s ease;
   box-shadow: 0 4px 15px rgba(255, 69, 0, 0.4);
+  min-width: 160px;
+  text-transform: none;
 }
 
-.btn-classificacao:hover {
-  background: linear-gradient(135deg, var(--laranja-dark, #e8472b) 0%, #d63920 100%);
+.btn-acao:hover {
+  background: linear-gradient(135deg, var(--laranja-dark) 0%, #d63920 100%);
   transform: translateY(-1px);
   box-shadow: 0 6px 20px rgba(255, 69, 0, 0.6);
 }
 
-.btn-voltar {
-  background: rgba(255, 69, 0, 0.1);
-  color: var(--laranja, #FF4500);
-  border: 1px solid rgba(255, 69, 0, 0.3);
-  border-radius: var(--border-radius-md, 8px);
-  padding: 10px 16px;
-  font: 500 13px "Inter", -apple-system, sans-serif;
-  cursor: pointer;
-  transition: all 0.3s ease;
+.btn-primary {
+  /* Herda do btn-acao */
 }
 
-.btn-voltar:hover {
-  background: rgba(255, 69, 0, 0.2);
-  transform: translateY(-1px);
+.btn-group-exportacao {
+  display: flex;
+  gap: var(--spacing-sm);
+  flex-wrap: wrap;
 }
 
-/* Conteúdo Principal */
+/* === CONTEÚDO PRINCIPAL === */
 .pontos-corridos-content {
   min-height: 400px;
+  background: var(--bg-secondary);
+  border-radius: var(--border-radius-md);
+  padding: var(--spacing-lg);
+  border: 1px solid rgba(255, 69, 0, 0.1);
 }
 
-/* Tabela de Confrontos */
-.ranking-table {
+/* === INFORMAÇÕES DA RODADA === */
+.rodada-info-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: var(--spacing-lg);
+  padding: var(--spacing-md);
+  background: rgba(255, 69, 0, 0.05);
+  border-radius: 8px;
+  border: 1px solid rgba(255, 69, 0, 0.15);
+  flex-wrap: wrap;
+  gap: var(--spacing-md);
+}
+
+.rodada-info-principal h3 {
+  font: 700 20px "Inter", -apple-system, sans-serif;
+  color: var(--text-primary);
+  margin: 0 0 4px 0;
+}
+
+.rodada-info-principal p {
+  font: 500 14px "Inter", -apple-system, sans-serif;
+  color: var(--laranja);
+  margin: 0;
+}
+
+.rodada-status {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font: 600 13px "Inter", -apple-system, sans-serif;
+  padding: 6px 12px;
+  border-radius: 20px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.status-indicador {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+}
+
+.rodada-status.finalizada {
+  background: rgba(34, 197, 94, 0.15);
+  color: var(--success);
+  border: 1px solid rgba(34, 197, 94, 0.3);
+}
+
+.rodada-status.finalizada .status-indicador {
+  background: var(--success);
+}
+
+.rodada-status.andamento {
+  background: rgba(245, 158, 11, 0.15);
+  color: var(--warning);
+  border: 1px solid rgba(245, 158, 11, 0.3);
+}
+
+.rodada-status.andamento .status-indicador {
+  background: var(--warning);
+  animation: pulse 2s infinite;
+}
+
+.rodada-status.aguardando {
+  background: rgba(160, 160, 160, 0.15);
+  color: var(--text-muted);
+  border: 1px solid rgba(160, 160, 160, 0.3);
+}
+
+.rodada-status.aguardando .status-indicador {
+  background: var(--text-muted);
+}
+
+/* === TABELAS DE CONFRONTOS === */
+.confrontos-container {
+  margin-bottom: var(--spacing-lg);
+}
+
+.confrontos-table {
   width: 100%;
   border-collapse: separate;
   border-spacing: 0;
-  background: var(--bg-card, #1e1e1e);
-  border-radius: var(--border-radius-lg, 12px);
+  background: var(--bg-card);
+  border-radius: var(--border-radius-md);
   overflow: hidden;
   box-shadow: 0 4px 20px rgba(0, 0, 0, 0.4);
-  font-family: "Inter", -apple-system, sans-serif;
 }
 
-.ranking-table thead {
-  background: rgba(255, 69, 0, 0.1);
+.confrontos-table thead {
+  background: linear-gradient(135deg, var(--laranja) 0%, var(--laranja-dark) 100%);
 }
 
-.ranking-table thead th {
-  padding: 12px 8px;
-  font-weight: 700;
-  color: var(--laranja, #FF4500);
+.confrontos-table thead th {
+  padding: 15px 12px;
+  font: 700 12px "Inter", -apple-system, sans-serif;
+  color: white;
   text-align: center;
-  font-size: 12px;
   text-transform: uppercase;
   letter-spacing: 0.5px;
-  border-bottom: 1px solid rgba(255, 69, 0, 0.2);
 }
 
-.ranking-table tbody tr {
+.confrontos-table tbody tr {
   border-bottom: 1px solid rgba(255, 69, 0, 0.1);
   transition: all 0.2s ease;
 }
 
-.ranking-table tbody tr:hover {
+.confrontos-table tbody tr:hover {
   background: rgba(255, 69, 0, 0.05);
 }
 
-.ranking-table tbody td {
-  padding: 10px 8px;
+.confrontos-table tbody td {
+  padding: 12px;
   vertical-align: middle;
-  color: var(--text-primary, #ffffff);
+  font: 500 13px "Inter", -apple-system, sans-serif;
+  color: var(--text-primary);
 }
 
-/* Estados Especiais */
-.linha-goleada {
-  background: rgba(255, 193, 7, 0.1) !important;
-  border-left: 3px solid #ffc107 !important;
+/* === CONFRONTOS ESPECÍFICOS === */
+.confronto-times {
+  display: flex;
+  align-items: center;
+  gap: 10px;
 }
 
-.vencedor {
-  color: var(--success, #22c55e) !important;
+.confronto-time {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex: 1;
 }
 
-.perdedor {
-  color: var(--danger, #ef4444) !important;
+.time-escudo {
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  object-fit: contain;
 }
 
-.empate {
-  color: var(--text-primary, #ffffff) !important;
+.time-nome {
+  font: 600 12px "Inter", -apple-system, sans-serif;
+  color: var(--text-primary);
 }
 
-/* Células de Times */
-.time-info {
+.confronto-vs {
+  font: 700 11px "Inter", -apple-system, sans-serif;
+  color: var(--laranja);
+  padding: 0 8px;
+}
+
+.confronto-placar {
+  font: 700 14px "JetBrains Mono", monospace;
+  text-align: center;
+  color: var(--text-primary);
+}
+
+.confronto-resultado {
+  text-align: center;
+  font: 600 12px "Inter", -apple-system, sans-serif;
+}
+
+.confronto-financeiro {
+  text-align: center;
+  font: 600 12px "JetBrains Mono", monospace;
+  color: var(--success);
+}
+
+/* === ESTADOS DE CONFRONTO === */
+.confronto-linha.goleada {
+  background: rgba(245, 158, 11, 0.08);
+  border-left: 3px solid var(--warning);
+}
+
+.confronto-linha.vitoria .confronto-resultado {
+  color: var(--success);
+}
+
+.confronto-linha.empate .confronto-resultado {
+  color: var(--text-muted);
+}
+
+/* === CLASSIFICAÇÃO === */
+.classificacao-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: var(--spacing-lg);
+  flex-wrap: wrap;
+  gap: var(--spacing-md);
+}
+
+.classificacao-info-principal h3 {
+  font: 700 22px "Inter", -apple-system, sans-serif;
+  color: var(--text-primary);
+  margin: 0 0 4px 0;
+}
+
+.classificacao-info-principal p {
+  font: 500 14px "Inter", -apple-system, sans-serif;
+  color: var(--text-muted);
+  margin: 0;
+}
+
+.classificacao-legenda {
   display: flex;
   align-items: center;
   gap: 8px;
 }
 
-.time-info img {
+.legenda-item {
   width: 24px;
   height: 24px;
   border-radius: 50%;
-  border: 1px solid rgba(255, 69, 0, 0.3);
-  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font: 700 10px "Inter", -apple-system, sans-serif;
+  color: white;
 }
 
-.time-details {
+.legenda-item.primeiro {
+  background: linear-gradient(135deg, #ffd700 0%, #ffed4e 100%);
+  color: #000;
+}
+
+.legenda-item.segundo {
+  background: linear-gradient(135deg, #c0c0c0 0%, #e5e5e5 100%);
+  color: #000;
+}
+
+.legenda-item.terceiro {
+  background: linear-gradient(135deg, #cd7f32 0%, #daa520 100%);
+  color: #000;
+}
+
+.legenda-texto {
+  font: 600 12px "Inter", -apple-system, sans-serif;
+  color: var(--text-muted);
+}
+
+/* === TABELA DE CLASSIFICAÇÃO === */
+.classificacao-table {
+  width: 100%;
+  border-collapse: separate;
+  border-spacing: 0;
+  background: var(--bg-card);
+  border-radius: var(--border-radius-md);
+  overflow: hidden;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.4);
+}
+
+.classificacao-table thead {
+  background: linear-gradient(135deg, var(--laranja) 0%, var(--laranja-dark) 100%);
+}
+
+.classificacao-table thead th {
+  padding: 12px 8px;
+  font: 700 11px "Inter", -apple-system, sans-serif;
+  color: white;
+  text-align: center;
+  text-transform: uppercase;
+  letter-spacing: 0.3px;
+}
+
+.classificacao-table tbody tr {
+  border-bottom: 1px solid rgba(255, 69, 0, 0.1);
+  transition: all 0.2s ease;
+}
+
+.classificacao-table tbody tr:hover {
+  background: rgba(255, 69, 0, 0.05);
+}
+
+.classificacao-table tbody td {
+  padding: 10px 8px;
+  vertical-align: middle;
+  font: 500 12px "Inter", -apple-system, sans-serif;
+  color: var(--text-primary);
+  text-align: center;
+}
+
+/* === POSIÇÕES DE DESTAQUE === */
+.classificacao-linha.primeiro-lugar {
+  background: rgba(255, 215, 0, 0.1);
+  border-left: 4px solid #ffd700;
+}
+
+.classificacao-linha.segundo-lugar {
+  background: rgba(192, 192, 192, 0.1);
+  border-left: 4px solid #c0c0c0;
+}
+
+.classificacao-linha.terceiro-lugar {
+  background: rgba(205, 127, 50, 0.1);
+  border-left: 4px solid #cd7f32;
+}
+
+.time-info {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  text-align: left;
+}
+
+.time-escudo-pequeno {
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  object-fit: contain;
+}
+
+.time-detalhes {
   display: flex;
   flex-direction: column;
-  align-items: flex-start;
 }
 
-.time-nome {
-  font-weight: 500;
-  font-size: 0.9em;
-  color: var(--text-primary, #ffffff);
+.time-nome-principal {
+  font: 600 12px "Inter", -apple-system, sans-serif;
+  color: var(--text-primary);
 }
 
-.time-cartoleiro {
-  font-size: 0.8em;
-  color: var(--text-muted, #a0a0a0);
+.time-nome-secundario {
+  font: 400 10px "Inter", -apple-system, sans-serif;
+  color: var(--text-muted);
 }
 
-/* Células de Pontos */
-.pontos-cell {
-  font-weight: 600;
-  text-align: center;
-  min-width: 60px;
+.pts-destaque {
+  font: 700 14px "JetBrains Mono", monospace;
+  color: var(--laranja);
 }
 
-.valor-positivo {
-  color: var(--success, #22c55e);
+.saldo.positivo,
+.financeiro.positivo {
+  color: var(--success);
 }
 
-.valor-negativo {
-  color: var(--danger, #ef4444);
+.saldo.negativo,
+.financeiro.negativo {
+  color: var(--danger);
 }
 
-.valor-neutro {
-  color: var(--text-primary, #ffffff);
-}
-
-/* Instrução Inicial */
-.instrucao-inicial {
-  text-align: center;
-  padding: 40px 20px;
-  background: var(--bg-secondary, #1a1a1a);
-  border: 1px solid rgba(255, 69, 0, 0.3);
-  border-radius: var(--border-radius-md, 8px);
-  margin: 20px 0;
-}
-
-.instrucao-inicial p {
-  font: 500 16px "Inter", -apple-system, sans-serif;
-  color: var(--text-muted, #a0a0a0);
-  margin: 0;
-}
-
-/* Estados de Loading e Erro */
+/* === ESTADOS DE LOADING E ERRO === */
 .loading-state {
   text-align: center;
-  padding: 40px 20px;
-  color: var(--text-muted, #a0a0a0);
+  padding: 60px 20px;
+  color: var(--text-muted);
 }
 
 .loading-spinner {
   width: 40px;
   height: 40px;
   border: 4px solid rgba(255, 69, 0, 0.3);
-  border-top: 4px solid var(--laranja, #FF4500);
+  border-top: 4px solid var(--laranja);
   border-radius: 50%;
   animation: spin 1s linear infinite;
   margin: 0 auto 20px auto;
 }
 
-.error-state {
-  color: var(--danger, #ef4444);
-  background: rgba(239, 68, 68, 0.1);
-  border: 1px solid rgba(239, 68, 68, 0.2);
-  padding: 20px;
-  border-radius: var(--border-radius-md, 8px);
-  text-align: center;
-  margin: 20px 0;
+.loading-message {
   font: 500 14px "Inter", -apple-system, sans-serif;
+  color: var(--text-muted);
+  margin: 0;
 }
 
-/* Botão Exportar - Padrão do Sistema */
-.export-pontos-corridos-btn {
-  background: linear-gradient(135deg, var(--success, #22c55e) 0%, #16a34a 100%) !important;
-  color: white !important;
-  border: none !important;
-  border-radius: var(--border-radius-md, 8px) !important;
-  padding: 12px 20px !important;
-  font-size: 13px !important;
-  font-weight: 600 !important;
-  transition: all 0.3s ease !important;
-  box-shadow: 0 4px 15px rgba(34, 197, 94, 0.4) !important;
-  font-family: "Inter", -apple-system, sans-serif !important;
+.error-state {
+  text-align: center;
+  padding: 40px 20px;
+  color: var(--danger);
+  background: rgba(239, 68, 68, 0.05);
+  border: 1px solid rgba(239, 68, 68, 0.2);
+  border-radius: 8px;
 }
 
-.export-pontos-corridos-btn:hover {
-  background: linear-gradient(135deg, #16a34a 0%, #15803d 100%) !important;
-  transform: translateY(-1px) !important;
-  box-shadow: 0 6px 20px rgba(34, 197, 94, 0.6) !important;
+.error-icon {
+  font-size: 32px;
+  margin-bottom: var(--spacing-md);
 }
 
-/* Animações */
+.error-title {
+  font: 700 18px "Inter", -apple-system, sans-serif;
+  color: var(--danger);
+  margin: 0 0 8px 0;
+}
+
+.error-message {
+  font: 500 14px "Inter", -apple-system, sans-serif;
+  color: var(--text-muted);
+  margin: 0 0 var(--spacing-md) 0;
+}
+
+.btn-retry {
+  background: var(--danger);
+  color: white;
+  border: none;
+  border-radius: 6px;
+  padding: 8px 16px;
+  font: 600 12px "Inter", -apple-system, sans-serif;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.btn-retry:hover {
+  background: #dc2626;
+  transform: translateY(-1px);
+}
+
+/* === BOTÃO VOLTAR === */
+.pontos-corridos-footer {
+  margin-top: var(--spacing-xl);
+  text-align: center;
+}
+
+.btn-voltar,
+.btn-voltar-rodadas {
+  background: rgba(255, 69, 0, 0.1);
+  color: var(--laranja);
+  border: 1px solid rgba(255, 69, 0, 0.3);
+  border-radius: 8px;
+  padding: 10px 16px;
+  font: 500 13px "Inter", -apple-system, sans-serif;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  text-decoration: none;
+  display: inline-block;
+}
+
+.btn-voltar:hover,
+.btn-voltar-rodadas:hover {
+  background: rgba(255, 69, 0, 0.2);
+  border-color: rgba(255, 69, 0, 0.5);
+  transform: translateY(-1px);
+}
+
+/* === EXPORTAÇÃO === */
+.exportacao-container,
+.classificacao-footer {
+  margin-top: var(--spacing-lg);
+  padding-top: var(--spacing-md);
+  border-top: 1px solid rgba(255, 69, 0, 0.1);
+  display: flex;
+  justify-content: center;
+  gap: var(--spacing-md);
+  flex-wrap: wrap;
+}
+
+/* === ANIMAÇÕES === */
 @keyframes spin {
   0% { transform: rotate(0deg); }
   100% { transform: rotate(360deg); }
 }
 
-/* Responsividade */
+@keyframes pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.5; }
+}
+
+/* === RESPONSIVIDADE === */
 @media (max-width: 768px) {
-  .pontos-corridos-selector {
-    text-align: center;
+  .rodadas-grid {
+    grid-template-columns: repeat(auto-fill, minmax(60px, 1fr));
+    gap: 4px;
   }
 
-  .rodada-select {
-    min-width: auto;
+  .rodada-card {
+    padding: 8px 4px;
+    min-height: 55px;
+  }
+
+  .rodada-numero {
+    font-size: 13px;
+  }
+
+  .rodada-label {
+    font-size: 7px;
+  }
+
+  .rodada-brasileirao {
+    font-size: 6px;
+  }
+
+  .acoes-container {
+    flex-direction: column;
+    align-items: center;
+  }
+
+  .btn-acao {
     width: 100%;
-    margin: 0 0 12px 0;
+    max-width: 280px;
   }
 
-  .btn-classificacao {
-    width: 100%;
-  }
-
-  .ranking-table {
+  .confrontos-table,
+  .classificacao-table {
     font-size: 11px;
   }
 
-  .ranking-table img {
-    width: 18px !important;
-    height: 18px !important;
+  .time-escudo,
+  .time-escudo-pequeno {
+    width: 18px;
+    height: 18px;
   }
 
-  .time-info {
+  .rodadas-header {
+    flex-direction: column;
+    text-align: center;
+  }
+
+  .progresso-info {
+    text-align: center;
+  }
+}
+
+@media (max-width: 480px) {
+  .rodadas-grid {
+    grid-template-columns: repeat(auto-fill, minmax(50px, 1fr));
+    gap: 3px;
+  }
+
+  .rodada-card {
+    padding: 6px 3px;
+    min-height: 50px;
+  }
+
+  .rodada-numero {
+    font-size: 12px;
+  }
+
+  .rodada-label {
+    font-size: 6px;
+  }
+
+  .pontos-corridos-titulo {
+    font-size: 22px;
+  }
+
+  .confronto-times {
+    flex-direction: column;
     gap: 4px;
+  }
+
+  .confronto-vs {
+    transform: rotate(90deg);
   }
 }

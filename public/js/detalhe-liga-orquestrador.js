@@ -1,4 +1,4 @@
-// 🎯 DETALHE-LIGA ORQUESTRADOR - COORDENADOR ENXUTO
+// DETALHE-LIGA ORQUESTRADOR - COORDENADOR ENXUTO
 // Responsável APENAS por coordenar navegação e carregar módulos
 
 class DetalheLigaOrquestrador {
@@ -11,21 +11,21 @@ class DetalheLigaOrquestrador {
 
     async init() {
         try {
-            console.log("🚀 Iniciando orquestrador...");
+            console.log("Iniciando orquestrador...");
             await this.loadLayout();
-            console.log("✅ Layout carregado");
+            console.log("Layout carregado");
 
             await this.loadModules();
-            console.log("✅ Módulos carregados");
+            console.log("Módulos carregados");
 
             await this.updateParticipantesCount();
-            console.log("✅ Participantes atualizados");
+            console.log("Participantes atualizados");
 
             this.initializeNavigation();
-            console.log("✅ Navegação inicializada");
+            console.log("Navegação inicializada");
 
             this.setupGlobalFunctions();
-            console.log("✅ Funções globais configuradas");
+            console.log("Funções globais configuradas");
 
             setTimeout(() => {
                 this.limparLinhaDoMeio();
@@ -33,12 +33,12 @@ class DetalheLigaOrquestrador {
 
             if (typeof lucide !== "undefined") {
                 lucide.createIcons();
-                console.log("✅ Ícones Lucide inicializados");
+                console.log("Ícones Lucide inicializados");
             }
 
-            console.log("✅ Orquestrador inicializado com sucesso");
+            console.log("Orquestrador inicializado com sucesso");
         } catch (error) {
-            console.error("⌐ Erro na inicialização:", error);
+            console.error("Erro na inicialização:", error);
         }
     }
 
@@ -50,7 +50,7 @@ class DetalheLigaOrquestrador {
             }
             return await response.text();
         } catch (error) {
-            console.warn(`⚠️ HTML do módulo ${moduleName} não encontrado`);
+            console.warn(`HTML do módulo ${moduleName} não encontrado`);
             return this.getFallbackHTML(moduleName);
         }
     }
@@ -76,7 +76,7 @@ class DetalheLigaOrquestrador {
                         document.head.appendChild(styleElement);
                         this.loadedCSS.add(moduleName);
                         console.log(
-                            `✅ CSS do módulo ${moduleName} carregado de: ${path}`,
+                            `CSS do módulo ${moduleName} carregado de: ${path}`,
                         );
                         return;
                     }
@@ -85,12 +85,12 @@ class DetalheLigaOrquestrador {
                 }
             }
         } catch (error) {
-            console.log(`ℹ️ CSS do módulo ${moduleName} não encontrado`);
+            console.log(`CSS do módulo ${moduleName} não encontrado`);
         }
     }
 
     async loadModule(moduleName) {
-        console.log(`⚡ Carregando módulo: ${moduleName}`);
+        console.log(`Carregando módulo: ${moduleName}`);
 
         try {
             await this.loadModuleCSS(moduleName);
@@ -99,20 +99,20 @@ class DetalheLigaOrquestrador {
             const contentArea = document.getElementById("dynamic-content-area");
             if (contentArea) {
                 contentArea.innerHTML = html;
-                console.log(`✅ HTML do módulo ${moduleName} injetado`);
+                console.log(`HTML do módulo ${moduleName} injetado`);
             }
 
             await this.executeModuleScripts(moduleName);
             return { success: true, html };
         } catch (error) {
-            console.error(`⌐ Erro ao carregar módulo ${moduleName}:`, error);
+            console.error(`Erro ao carregar módulo ${moduleName}:`, error);
 
             const contentArea = document.getElementById("dynamic-content-area");
             if (contentArea) {
                 contentArea.innerHTML = `
                     <div class="content-card">
                         <div class="card-header">
-                            <h2>⚠️ Erro ao carregar módulo</h2>
+                            <h2>Erro ao carregar módulo</h2>
                             <div class="card-subtitle">${error.message}</div>
                         </div>
                         <button class="back-button" onclick="window.orquestrador?.voltarParaCards()">
@@ -188,7 +188,7 @@ class DetalheLigaOrquestrador {
                         await window.inicializarPontosCorridos();
                     } else {
                         console.warn(
-                            "⚠️ Nenhuma função de inicialização de pontos corridos encontrada",
+                            "Nenhuma função de inicialização de pontos corridos encontrada",
                         );
                     }
                     break;
@@ -229,22 +229,32 @@ class DetalheLigaOrquestrador {
                     break;
 
                 case "participantes":
-                    if (this.modules.participantes?.carregarParticipantesComBrasoes) {
-                        await this.modules.participantes.carregarParticipantesComBrasoes();
-                    } else if (
-                        typeof window.carregarParticipantesComBrasoes ===
-                        "function"
-                    ) {
-                        await window.carregarParticipantesComBrasoes();
-                    } else {
-                        console.warn(
-                            "⚠️ Função carregarParticipantesComBrasoes não encontrada",
+                    try {
+                        await import("./participantes.js");
+                        await new Promise((resolve) =>
+                            setTimeout(resolve, 100),
+                        );
+
+                        if (
+                            typeof window.carregarParticipantesComBrasoes ===
+                            "function"
+                        ) {
+                            await window.carregarParticipantesComBrasoes();
+                        } else {
+                            console.warn(
+                                "Função ainda não disponível após import",
+                            );
+                        }
+                    } catch (error) {
+                        console.error(
+                            "Erro ao carregar módulo participantes:",
+                            error,
                         );
                     }
                     break;
             }
         } catch (error) {
-            console.error(`⌐ Erro ao executar módulo ${moduleName}:`, error);
+            console.error(`Erro ao executar módulo ${moduleName}:`, error);
         }
     }
 
@@ -348,13 +358,13 @@ class DetalheLigaOrquestrador {
 
         if (mainScreen) {
             mainScreen.style.display = "none";
-            console.log("📄 Tela principal ocultada");
+            console.log("Tela principal ocultada");
         }
 
         if (secondaryScreen) {
             secondaryScreen.classList.add("active");
             secondaryScreen.style.display = "block";
-            console.log("📄 Tela secundária ativada");
+            console.log("Tela secundária ativada");
         }
     }
 
@@ -365,12 +375,12 @@ class DetalheLigaOrquestrador {
         if (secondaryScreen) {
             secondaryScreen.classList.remove("active");
             secondaryScreen.style.display = "none";
-            console.log("📄 Tela secundária ocultada");
+            console.log("Tela secundária ocultada");
         }
 
         if (mainScreen) {
             mainScreen.style.display = "block";
-            console.log("📄 Tela principal exibida");
+            console.log("Tela principal exibida");
         }
     }
 
@@ -388,10 +398,113 @@ class DetalheLigaOrquestrador {
                 );
                 if (placeholder) {
                     placeholder.replaceWith(sidebar);
+
+                    setTimeout(() => {
+                        this.carregarLigasSidebar();
+                    }, 100);
                 }
             }
         } catch (error) {
             console.error("Erro ao carregar layout:", error);
+        }
+    }
+
+    async carregarLigasSidebar() {
+        const ligasList = document.getElementById("ligasList");
+        if (!ligasList) {
+            console.warn("Elemento ligasList não encontrado");
+            return;
+        }
+
+        try {
+            console.log("Carregando ligas para o sidebar...");
+
+            const response = await fetch("/api/ligas");
+            const ligas = await response.json();
+
+            if (!Array.isArray(ligas) || ligas.length === 0) {
+                ligasList.innerHTML = `
+                    <div class="ligas-empty">
+                        Nenhuma liga criada<br>
+                        <small style="color: #606060; font-size: 10px; margin-top: 4px; display: block;">
+                            Clique em "Nova Liga" para começar
+                        </small>
+                    </div>
+                `;
+                return;
+            }
+
+            ligasList.innerHTML = ligas
+                .map(
+                    (liga) => `
+                <a href="detalhe-liga.html?id=${liga._id || liga.id}" class="liga-item">
+                    <div class="liga-info">
+                        <div class="liga-name">${liga.nome || "Liga sem nome"}</div>
+                        <div class="liga-details">${liga.times?.length || liga.participantes?.length || 0} times</div>
+                    </div>
+                </a>
+            `,
+                )
+                .join("");
+
+            console.log(`${ligas.length} ligas carregadas no sidebar`);
+
+            const urlParams = new URLSearchParams(window.location.search);
+            const ligaId = urlParams.get("id");
+            if (ligaId) {
+                this.highlightCurrentLigaInSidebar(ligaId);
+            }
+        } catch (error) {
+            console.error("Erro ao carregar ligas:", error);
+            ligasList.innerHTML = `
+                <div class="ligas-empty">
+                    Erro ao carregar<br>
+                    <button onclick="window.orquestrador?.carregarLigasSidebar()" style="
+                        margin-top: 8px; 
+                        padding: 6px 10px; 
+                        background: #ff4500; 
+                        color: white; 
+                        border: none; 
+                        border-radius: 4px; 
+                        font-size: 10px; 
+                        cursor: pointer;
+                        font-weight: 600;
+                    ">Tentar Novamente</button>
+                </div>
+            `;
+        }
+    }
+
+    highlightCurrentLigaInSidebar(ligaId) {
+        try {
+            const allLigaItems = document.querySelectorAll(".liga-item");
+            allLigaItems.forEach((item) => {
+                item.classList.remove("liga-atual");
+                const badge = item.querySelector(".liga-current-badge");
+                if (badge) badge.remove();
+            });
+
+            const currentLigaItem = document.querySelector(
+                `a[href*="id=${ligaId}"]`,
+            );
+            if (currentLigaItem) {
+                currentLigaItem.classList.add("liga-atual");
+
+                const badge = document.createElement("span");
+                badge.className = "liga-current-badge";
+                badge.textContent = "● ";
+                badge.style.cssText =
+                    "color: #FF4500; font-size: 12px; font-weight: 700;";
+
+                const ligaName = currentLigaItem.querySelector(".liga-name");
+                if (ligaName) {
+                    ligaName.prepend(badge);
+                }
+
+                console.log("Liga atual destacada no sidebar");
+            }
+        } catch (error) {
+            console.warn("Erro ao destacar liga no sidebar:", error);
         }
     }
 
@@ -410,7 +523,6 @@ class DetalheLigaOrquestrador {
             this.modules.fluxoFinanceiro = await import(
                 "./fluxo-financeiro.js"
             );
-            this.modules.participantes = await import("./participantes.js");
         } catch (error) {
             console.error("Erro ao carregar módulos:", error);
         }
@@ -430,58 +542,38 @@ class DetalheLigaOrquestrador {
                 const nomeElement = document.getElementById("nomeLiga");
                 const quantidadeElement =
                     document.getElementById("quantidadeTimes");
+                const participantesCardElement = document.getElementById(
+                    "participantes-count",
+                );
 
                 if (nomeElement) {
                     nomeElement.textContent = liga.nome || "Nome da Liga";
                 }
 
+                const totalParticipantes =
+                    liga.participantes?.length || liga.times?.length || 0;
+
                 if (quantidadeElement) {
-                    const totalParticipantes =
-                        liga.participantes?.length || liga.times?.length || 0;
                     quantidadeElement.textContent = `${totalParticipantes} participantes`;
                 }
 
-                // ✅ ADICIONAR: DESTACAR LIGA NO SIDEBAR
-                this.highlightCurrentLigaInSidebar(liga);
+                // CORREÇÃO: Atualizar também o card participantes
+                if (participantesCardElement) {
+                    participantesCardElement.textContent = `${totalParticipantes} membros`;
+                }
 
                 console.log(
-                    `✅ Liga atualizada: ${liga.nome} com ${liga.participantes?.length || liga.times?.length || 0} participantes`,
+                    `Liga atualizada: ${liga.nome} com ${totalParticipantes} participantes`,
                 );
+
+                setTimeout(() => {
+                    this.highlightCurrentLigaInSidebar(ligaId);
+                }, 200);
 
                 setTimeout(() => this.limparLinhaDoMeio(), 100);
             }
         } catch (error) {
-            console.warn("⚠️ Erro ao atualizar contador:", error);
-        }
-    }
-
-    // ✅ NOVA FUNÇÃO: DESTACAR LIGA ATUAL
-    highlightCurrentLigaInSidebar(liga) {
-        try {
-            // Remover destaque de todas as ligas
-            const allLigaItems = document.querySelectorAll('.liga-item');
-            allLigaItems.forEach(item => {
-                item.classList.remove('liga-atual');
-            });
-
-            // Adicionar destaque à liga atual
-            const currentLigaItem = document.querySelector(`a[href*="id=${liga._id}"]`);
-            if (currentLigaItem) {
-                currentLigaItem.classList.add('liga-atual');
-                
-                // Adicionar indicador visual
-                if (!currentLigaItem.querySelector('.liga-current-badge')) {
-                    const badge = document.createElement('span');
-                    badge.className = 'liga-current-badge';
-                    badge.textContent = '●';
-                    badge.style.cssText = 'color: #FF4500; margin-right: 8px; font-size: 12px;';
-                    currentLigaItem.querySelector('.liga-name').prepend(badge);
-                }
-            }
-
-            console.log(`✅ Liga "${liga.nome}" destacada no sidebar`);
-        } catch (error) {
-            console.warn("⚠️ Erro ao destacar liga no sidebar:", error);
+            console.warn("Erro ao atualizar contador:", error);
         }
     }
 
@@ -499,11 +591,11 @@ class DetalheLigaOrquestrador {
                     !el.id.includes("quantidadeTimes")
                 ) {
                     el.remove();
-                    console.log('🧹 Removido elemento com "Liga:"');
+                    console.log('Removido elemento com "Liga:"');
                 }
             });
         } catch (error) {
-            console.warn("⚠️ Erro ao limpar header:", error);
+            console.warn("Erro ao limpar header:", error);
         }
     }
 
@@ -522,7 +614,7 @@ class DetalheLigaOrquestrador {
     }
 }
 
-// 🚀 INICIALIZAÇÃO
+// INICIALIZAÇÃO
 document.addEventListener("DOMContentLoaded", () => {
     window.detalheLigaOrquestrador = new DetalheLigaOrquestrador();
 });

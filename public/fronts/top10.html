@@ -1,273 +1,50 @@
-<!-- 🌟 MÓDULO TOP 10 - MITOS E MICOS -->
-<div id="top10-module">
-    <!-- Header do Módulo -->
-    <div class="module-header-section">
-        <div class="module-title-section">
-            <div class="module-title-icon">🌟</div>
-            <h2>Top 10 - Destaques por Rodada</h2>
-        </div>
-        <div class="module-subtitle">
-            Maiores e menores pontuadores de cada rodada
-        </div>
-    </div>
+<!-- TOP 10 FRONT - Interface Principal -->
+<div id="top10" class="module-content">
+  <!-- Header do Módulo -->
+  <div class="top10-header">
+    <h2 class="top10-titulo">Top 10 - Destaques</h2>
+    <p class="top10-subtitulo">Maiores e menores pontuações por rodada</p>
+  </div>
 
-    <!-- Seção de Mitos -->
+  <!-- Loading Indicator -->
+  <div id="loadingTop10" class="loading-state" style="display: none">
+    <div class="loading-spinner"></div>
+    <p class="loading-message">Carregando rankings...</p>
+  </div>
+
+  <!-- Grid Compacto Mitos/Micos -->
+  <div class="top10-grid-compacto">
+    <!-- Seção Mitos -->
     <div class="top10-section mitos-section">
-        <div class="section-header">
-            <div class="section-icon">👑</div>
-            <h3>Top 10 Mitos</h3>
-            <span class="section-subtitle">Maiores pontuações por rodada</span>
-        </div>
-
-        <!-- Container da Tabela de Mitos -->
-        <div id="top10MitosTable" class="table-container">
-            <div class="loading-state">
-                <div class="spinner"></div>
-                <span>Carregando mitos...</span>
-            </div>
-        </div>
-
-        <!-- Botão de Exportação Mitos -->
-        <div
-            id="top10MitosExportBtnContainer"
-            class="export-btn-container"
-        ></div>
+      <div class="section-header">
+        <div class="section-icon">👑</div>
+        <h3>Mitos</h3>
+        <div id="top10MitosExportBtnContainer" class="export-inline"></div>
+      </div>
+      <div id="top10MitosTable" class="top10-content"></div>
     </div>
 
-    <!-- Separador Visual -->
-    <div class="section-separator">
-        <span>⚡</span>
-    </div>
-
-    <!-- Seção de Micos -->
+    <!-- Seção Micos -->
     <div class="top10-section micos-section">
-        <div class="section-header">
-            <div class="section-icon">💀</div>
-            <h3>Top 10 Micos</h3>
-            <span class="section-subtitle">Menores pontuações por rodada</span>
-        </div>
-
-        <!-- Container da Tabela de Micos -->
-        <div id="top10MicosTable" class="table-container">
-            <div class="loading-state">
-                <div class="spinner"></div>
-                <span>Carregando micos...</span>
-            </div>
-        </div>
-
-        <!-- Botão de Exportação Micos -->
-        <div
-            id="top10MicosExportBtnContainer"
-            class="export-btn-container"
-        ></div>
+      <div class="section-header">
+        <div class="section-icon">💀</div>
+        <h3>Micos</h3>
+        <div id="top10MicosExportBtnContainer" class="export-inline"></div>
+      </div>
+      <div id="top10MicosTable" class="top10-content"></div>
     </div>
+  </div>
 
-    <!-- Botão Voltar -->
-    <div class="module-actions">
-        <button
-            class="back-button"
-            onclick="window.orquestrador?.voltarParaCards()"
-        >
-            ← Voltar aos Cards
-        </button>
-    </div>
+  <!-- Botão Voltar -->
+  <div class="top10-footer">
+    <button class="btn-voltar" onclick="window.voltarParaCards()">
+      ← Voltar aos Cards
+    </button>
+  </div>
 </div>
 
-<style>
-    /* Estilos específicos do módulo Top 10 */
-    #top10-module {
-        padding: 20px;
-    }
-
-    .module-header-section {
-        text-align: center;
-        margin-bottom: 30px;
-        padding-bottom: 20px;
-        border-bottom: 2px solid rgba(255, 69, 0, 0.3);
-    }
-
-    .module-title-section {
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        gap: 15px;
-        margin-bottom: 10px;
-    }
-
-    .module-title-icon {
-        font-size: 36px;
-        filter: drop-shadow(0 0 15px rgba(255, 223, 0, 0.8));
-    }
-
-    .module-subtitle {
-        color: #a0a0a0;
-        font-size: 14px;
-        font-weight: 500;
-    }
-
-    .top10-section {
-        background: linear-gradient(135deg, #2a2a2a 0%, #1e1e1e 100%);
-        border-radius: 12px;
-        padding: 25px;
-        margin-bottom: 25px;
-        border: 1px solid rgba(255, 69, 0, 0.2);
-    }
-
-    .section-header {
-        display: flex;
-        align-items: center;
-        gap: 12px;
-        margin-bottom: 20px;
-        padding-bottom: 15px;
-        border-bottom: 1px solid rgba(255, 69, 0, 0.1);
-    }
-
-    .section-icon {
-        font-size: 28px;
-    }
-
-    .mitos-section .section-icon {
-        filter: drop-shadow(0 0 10px rgba(255, 215, 0, 0.6));
-    }
-
-    .micos-section .section-icon {
-        filter: drop-shadow(0 0 10px rgba(220, 20, 60, 0.6));
-    }
-
-    .section-header h3 {
-        color: #ffffff;
-        font-size: 20px;
-        font-weight: 700;
-        margin: 0;
-        flex-grow: 1;
-    }
-
-    .section-subtitle {
-        color: #888;
-        font-size: 12px;
-    }
-
-    .section-separator {
-        text-align: center;
-        margin: 20px 0;
-        font-size: 24px;
-        opacity: 0.5;
-    }
-
-    .table-container {
-        min-height: 200px;
-        margin-bottom: 15px;
-    }
-
-    .loading-state {
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        gap: 15px;
-        padding: 40px;
-        color: #ff4500;
-    }
-
-    .spinner {
-        width: 32px;
-        height: 32px;
-        border: 3px solid rgba(255, 69, 0, 0.3);
-        border-top: 3px solid #ff4500;
-        border-radius: 50%;
-        animation: spin 1s linear infinite;
-    }
-
-    @keyframes spin {
-        0% {
-            transform: rotate(0deg);
-        }
-        100% {
-            transform: rotate(360deg);
-        }
-    }
-
-    /* Estilos para as tabelas quando carregadas */
-    .tabela-top10 {
-        width: 100%;
-        border-collapse: collapse;
-        background: transparent;
-    }
-
-    .tabela-top10 th {
-        background: rgba(255, 69, 0, 0.1);
-        color: #ff4500;
-        padding: 12px 8px;
-        font-weight: 700;
-        text-transform: uppercase;
-        font-size: 11px;
-        letter-spacing: 0.5px;
-        border-bottom: 2px solid rgba(255, 69, 0, 0.3);
-    }
-
-    .tabela-top10 td {
-        padding: 10px 8px;
-        border-bottom: 1px solid rgba(255, 69, 0, 0.1);
-        color: #e0e0e0;
-        font-size: 13px;
-    }
-
-    .tabela-top10 tbody tr:hover {
-        background: rgba(255, 69, 0, 0.05);
-    }
-
-    /* Valores positivos (bônus) e negativos (ônus) */
-    .valor-positivo {
-        color: #4caf50;
-        font-weight: 600;
-    }
-
-    .valor-negativo {
-        color: #f44336;
-        font-weight: 600;
-    }
-
-    /* Botões de exportação */
-    .export-btn-container {
-        text-align: center;
-        margin-top: 15px;
-    }
-
-    .export-button {
-        background: linear-gradient(135deg, #ff4500 0%, #e8472b 100%);
-        color: white;
-        border: 2px solid rgba(255, 69, 0, 0.3);
-        padding: 10px 20px;
-        border-radius: 8px;
-        font-weight: 700;
-        font-size: 13px;
-        cursor: pointer;
-        transition: all 0.3s ease;
-        text-transform: uppercase;
-        letter-spacing: 0.5px;
-    }
-
-    .export-button:hover {
-        transform: translateY(-2px);
-        box-shadow: 0 8px 25px rgba(255, 69, 0, 0.4);
-    }
-
-    /* Responsividade */
-    @media (max-width: 768px) {
-        .top10-section {
-            padding: 20px 15px;
-        }
-
-        .section-header h3 {
-            font-size: 18px;
-        }
-
-        .tabela-top10 {
-            font-size: 11px;
-        }
-
-        .tabela-top10 th,
-        .tabela-top10 td {
-            padding: 8px 4px;
-        }
-    }
-</style>
+<div>
+  <div class="instrucao-inicial">
+    <p>Rankings dos maiores e menores pontuadores de todas as rodadas</p>
+  </div>
+</div>

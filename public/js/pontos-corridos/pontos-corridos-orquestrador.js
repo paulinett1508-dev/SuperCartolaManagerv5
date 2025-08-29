@@ -16,11 +16,12 @@ import {
   normalizarDadosParaExportacao,
   normalizarClassificacaoParaExportacao,
   validarDadosEntrada,
+  buscarStatusMercado,
 } from "./pontos-corridos-core.js";
 
 import {
   renderizarInterface,
-  renderSeletorRodada,
+  renderizarSeletorRodadasModerno,
   renderLoadingState,
   renderErrorState,
   renderTabelaRodada,
@@ -205,7 +206,7 @@ function aguardarCarregamento(checkFunction) {
   });
 }
 
-// Função principal para carregar pontos corridos
+// ✅ FUNÇÃO PRINCIPAL CORRIGIDA - Usando nova interface
 export async function carregarPontosCorridos() {
   const container = document.getElementById("pontos-corridos");
   if (!container) return;
@@ -245,30 +246,54 @@ export async function carregarPontosCorridos() {
 
     rodadaAtualBrasileirao = status.rodada_atual || 1;
 
-    // Validar e filtrar times
-    const { timesValidos } = validarDadosEntrada(timesData, []);
-    times = timesValidos;
-
-    if (times.length === 0) {
-      renderErrorState(
-        "pontos-corridos",
-        new Error("Nenhum time válido encontrado"),
-      );
-      return;
+    // ✅ VALIDAR APENAS TIMES PRIMEIRO (sem confrontos)
+    if (!Array.isArray(timesData) || timesData.length === 0) {
+      throw new Error("Lista de times inválida ou vazia");
     }
 
-    // Gerar confrontos
+    const timesValidos = timesData.filter((t) => t && typeof t.id === "number");
+    if (timesValidos.length === 0) {
+      throw new Error("Nenhum time com ID numérico válido encontrado");
+    }
+
+    times = timesValidos;
+
+    // ✅ GERAR CONFRONTOS APÓS VALIDAR TIMES
     confrontos = gerarConfrontos(times);
 
-    // Renderizar interface
+    // ✅ AGORA VALIDAR COM CONFRONTOS GERADOS
+    try {
+      validarDadosEntrada(times, confrontos);
+      console.log("[PONTOS-CORRIDOS-ORQUESTRADOR] Dados validados com sucesso");
+    } catch (validationError) {
+      console.warn(
+        "[PONTOS-CORRIDOS-ORQUESTRADOR] Aviso de validação:",
+        validationError.message,
+      );
+      // Continuar execução mesmo com warning de validação
+    }
+
+    // Verificar se há confrontos suficientes
+    if (confrontos.length === 0) {
+      throw new Error("Não foi possível gerar confrontos para esta liga");
+    }
+
+    console.log(
+      `[PONTOS-CORRIDOS-ORQUESTRADOR] ${times.length} times, ${confrontos.length} rodadas de confrontos`,
+    );
+
+    // ✅ RENDERIZAR INTERFACE REDESENHADA
     renderizarInterface(
       container,
       ligaId,
       handleRodadaChange,
       handleClassificacaoClick,
     );
-    renderSeletorRodada(
+
+    // ✅ USAR NOVA FUNÇÃO DE MINI-CARDS
+    renderizarSeletorRodadasModerno(
       confrontos,
+      rodadaAtualBrasileirao,
       handleRodadaChange,
       handleClassificacaoClick,
     );
@@ -277,7 +302,7 @@ export async function carregarPontosCorridos() {
     await renderRodada(0);
 
     console.log(
-      "[PONTOS-CORRIDOS-ORQUESTRADOR] Sistema inicializado com sucesso",
+      "[PONTOS-CORRIDOS-ORQUESTRADOR] Sistema inicializado com UX redesenhado",
     );
   } catch (error) {
     console.error(
@@ -399,11 +424,16 @@ async function renderClassificacao() {
 
     // Configurar botão voltar
     configurarBotaoVoltar(() => {
-      const selectRodada = document.getElementById(
-        "rodadaPontosCorridosSelect",
+      // Voltar para a rodada selecionada ou primeira
+      const rodadaSelecionada = document.querySelector(
+        ".rodada-card.selecionada",
       );
-      const rodadaSelecionada = selectRodada ? Number(selectRodada.value) : 0;
-      renderRodada(rodadaSelecionada);
+      const index = rodadaSelecionada
+        ? Array.from(document.querySelectorAll(".rodada-card")).indexOf(
+            rodadaSelecionada,
+          )
+        : 0;
+      renderRodada(index);
     });
 
     // Adicionar botão de exportação da classificação
@@ -470,5 +500,5 @@ function setupCleanup() {
 setupCleanup();
 
 console.log(
-  "[PONTOS-CORRIDOS-ORQUESTRADOR] Módulo carregado com arquitetura refatorada",
+  "[PONTOS-CORRIDOS-ORQUESTRADOR] Módulo carregado com UX redesenhado",
 );

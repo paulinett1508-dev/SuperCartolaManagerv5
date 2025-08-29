@@ -1,0 +1,74 @@
+<!-- MELHOR MÊS FRONT - Interface Principal Melhorada -->
+<div id="melhor-mes" class="module-content">
+  <!-- Header do Módulo -->
+  <div class="melhor-mes-header">
+    <div class="melhor-mes-title-section">
+      <div class="melhor-mes-icon">🏆</div>
+      <h2 class="melhor-mes-titulo">Melhor do Mês</h2>
+    </div>
+    <p class="melhor-mes-subtitulo">
+      Competição mensal baseada na soma de pontos por edição
+    </p>
+  </div>
+
+  <!-- Seletor de Edição -->
+  <div class="melhor-mes-selector">
+    <select id="edicaoSelect" class="melhor-mes-select">
+      <option value="0">Edição 01 (Rod. 1 a 6)</option>
+      <option value="1">Edição 02 (Rod. 7 a 10)</option>
+      <option value="2">Edição 03 (Rod. 11 a 17)</option>
+      <option value="3">Edição 04 (Rod. 18 a 22)</option>
+      <option value="4">Edição 05 (Rod. 23 a 28)</option>
+      <option value="5">Edição 06 (Rod. 29 a 32)</option>
+      <option value="6">Edição 07 (Rod. 33 a 38)</option>
+    </select>
+  </div>
+
+  <script>
+    // Configurar event listener quando o módulo for carregado
+    document.addEventListener("DOMContentLoaded", () => {
+      const select = document.getElementById("edicaoSelect");
+      if (select) {
+        select.addEventListener("change", (e) => {
+          if (window.melhorMes && window.melhorMes.carregarRankingEdicao) {
+            window.melhorMes.carregarRankingEdicao(Number(e.target.value));
+          }
+        });
+      }
+    });
+  </script>
+
+  <!-- Loading Indicator -->
+  <div id="loadingMelhorMes" class="loading-state" style="display: none">
+    <div class="loading-spinner"></div>
+    <p class="loading-message">Carregando ranking do mês...</p>
+  </div>
+
+  <!-- Container Principal com Export Inline -->
+  <div class="melhor-mes-main-container">
+    <div class="melhor-mes-section">
+      <div class="section-header">
+        <div class="section-icon">📊</div>
+        <h3>Ranking da Edição</h3>
+        <div id="melhorMesExportBtnContainer" class="export-inline"></div>
+      </div>
+
+      <!-- Conteúdo Principal -->
+      <div id="melhorMesTabela" class="melhor-mes-content">
+        <!-- Será preenchido via JavaScript -->
+      </div>
+    </div>
+  </div>
+
+  <!-- Estado Inicial -->
+  <div id="melhorMesInicial" class="instrucao-inicial">
+    <p>Selecione uma edição para ver o ranking completo do Melhor do Mês</p>
+  </div>
+
+  <!-- Botão Voltar -->
+  <div class="melhor-mes-footer">
+    <button class="btn-voltar" onclick="window.voltarParaCards()">
+      ← Voltar aos Cards
+    </button>
+  </div>
+</div>
