@@ -7,6 +7,18 @@ import {
   montarConfrontosFase,
 } from "./mata-mata-confrontos.js";
 
+// Cache para getRankingRodadaEspecifica
+let getRankingRodadaEspecifica = null;
+let tentativasConexao = 0;
+const MAX_TENTATIVAS = 3;
+
+// Função para definir dependência externa
+export function setRankingFunction(func) {
+  getRankingRodadaEspecifica = func;
+  tentativasConexao = 0;
+  console.log("[MATA-FINANCEIRO] Função getRankingRodadaEspecifica configurada");
+}
+
 // Função local para obter pontos de uma rodada (COM PROTEÇÃO ANTI-LOOP)
 async function getPontosDaRodada(ligaId, rodada) {
   try {
@@ -41,18 +53,6 @@ async function getPontosDaRodada(ligaId, rodada) {
     }
     return {};
   }
-}
-
-// Cache para getRankingRodadaEspecifica
-let getRankingRodadaEspecifica = null;
-let tentativasConexao = 0;
-const MAX_TENTATIVAS = 3;
-
-// Função para definir dependência externa
-export function setRankingFunction(func) {
-  getRankingRodadaEspecifica = func;
-  tentativasConexao = 0;
-  console.log("[MATA-FINANCEIRO] Função getRankingRodadaEspecifica configurada");
 }
 
 // Função para obter resultados financeiros do mata-mata
