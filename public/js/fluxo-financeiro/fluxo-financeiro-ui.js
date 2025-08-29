@@ -668,6 +668,22 @@ class FluxoFinanceiroUI {
     formatarValor(valor) {
         return this._formatarValorTabela(valor);
     }
+
+    /**
+     * Renderiza mensagem inicial (alias para compatibilidade)
+     */
+    renderizarMensagemInicial() {
+        console.log("[FLUXO-FINANCEIRO-UI] Renderizando mensagem inicial...");
+        this.renderizarEstadoInicial();
+    }
+
+    /**
+     * Renderiza botões dos participantes (compatibilidade)  
+     */
+    renderizarBotoesParticipantes(participantes) {
+        console.log("[FLUXO-FINANCEIRO-UI] Renderizando botões participantes...");
+        this.renderizarGridParticipantes(participantes);
+    }
 }
 
 // Disponibilizar globalmente
