@@ -3,17 +3,56 @@
 
 import { edicoes, getLigaId } from "./mata-mata-config.js";
 import {
-  getPontosDaRodada,
   montarConfrontosPrimeiraFase,
   montarConfrontosFase,
 } from "./mata-mata-confrontos.js";
 
+// Função local para obter pontos de uma rodada (COM PROTEÇÃO ANTI-LOOP)
+async function getPontosDaRodada(ligaId, rodada) {
+  try {
+    if (!getRankingRodadaEspecifica) {
+      tentativasConexao++;
+      if (tentativasConexao >= MAX_TENTATIVAS) {
+        console.error("[MATA-FINANCEIRO] Máximo de tentativas atingido.");
+        return {};
+      }
+      console.warn(`[MATA-FINANCEIRO] getRankingRodadaEspecifica não disponível (${tentativasConexao}/${MAX_TENTATIVAS})`);
+      return {};
+    }
+
+    tentativasConexao = 0;
+    const ranking = await getRankingRodadaEspecifica(ligaId, rodada);
+    const mapa = {};
+    
+    if (Array.isArray(ranking)) {
+      ranking.forEach((t) => {
+        if (t.timeId && typeof t.pontos === "number") {
+          mapa[t.timeId] = t.pontos;
+        }
+      });
+    }
+    
+    return mapa;
+  } catch (err) {
+    tentativasConexao++;
+    if (tentativasConexao >= MAX_TENTATIVAS) {
+      console.error("[MATA-FINANCEIRO] Máximo de tentativas. Retornando vazio.");
+      return {};
+    }
+    return {};
+  }
+}
+
 // Cache para getRankingRodadaEspecifica
 let getRankingRodadaEspecifica = null;
+let tentativasConexao = 0;
+const MAX_TENTATIVAS = 3;
 
 // Função para definir dependência externa
 export function setRankingFunction(func) {
   getRankingRodadaEspecifica = func;
+  tentativasConexao = 0;
+  console.log("[MATA-FINANCEIRO] Função getRankingRodadaEspecifica configurada");
 }
 
 // Função para obter resultados financeiros do mata-mata
