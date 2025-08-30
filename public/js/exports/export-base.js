@@ -626,3 +626,171 @@ console.log(
 console.log(
   "[EXPORT-BASE-MOBILE-DARK] 🔧 Carregamento dinâmico html2canvas ativado",
 );
+
+
+
+// ======================================================================
+// UTILITÁRIOS PARA CRIAÇÃO DE BOTÕES DE EXPORTAÇÃO MOBILE DARK
+// ======================================================================
+
+// FUNÇÃO PARA CRIAR BOTÃO DE EXPORTAÇÃO MOBILE DARK - GENÉRICO
+export function criarBotaoExportacaoMobileDark(config) {
+  const {
+    containerId,
+    className,
+    textoIcone = "📱",
+    textoBotao = "Exportar Mobile HD",
+    funcaoExportacao,
+    dadosExportacao = {},
+  } = config;
+
+  if (!containerId || !funcaoExportacao) {
+    console.error("[EXPORT-BASE-MOBILE-DARK] containerId e funcaoExportacao são obrigatórios");
+    return;
+  }
+
+  const container = document.getElementById(containerId);
+  if (!container) {
+    console.error(`[EXPORT-BASE-MOBILE-DARK] Container ${containerId} não encontrado`);
+    return;
+  }
+
+  // Remove botão existente se houver
+  const botaoExistente = container.querySelector(`.${className}`);
+  if (botaoExistente) {
+    botaoExistente.remove();
+  }
+
+  // Criar container do botão
+  const btnContainer = document.createElement("div");
+  btnContainer.style.cssText = "text-align: right; margin: 15px 0;";
+
+  // Criar botão com design mobile dark
+  const btn = document.createElement("button");
+  btn.className = className;
+  btn.innerHTML = `
+    <span style="margin-right: 8px; font-size: 16px;">${textoIcone}</span>
+    ${textoBotao}
+  `;
+
+  // Aplicar estilos mobile dark
+  btn.style.cssText = `
+    background: ${MOBILE_DARK_HD_CONFIG.colors.gradientPrimary} !important;
+    color: ${MOBILE_DARK_HD_CONFIG.colors.text} !important;
+    border: 2px solid ${MOBILE_DARK_HD_CONFIG.colors.accent} !important;
+    padding: 12px 20px !important;
+    border-radius: 8px !important;
+    cursor: pointer;
+    font: ${MOBILE_DARK_HD_CONFIG.fonts.weights.semibold} 13px Inter, sans-serif !important;
+    display: inline-flex;
+    align-items: center;
+    transition: all 0.3s ease !important;
+    box-shadow: ${MOBILE_DARK_HD_CONFIG.colors.shadow} !important;
+    text-transform: uppercase !important;
+    letter-spacing: 0.5px !important;
+  `;
+
+  // Efeitos hover
+  btn.onmouseover = () => {
+    btn.style.transform = "translateY(-2px) scale(1.02)";
+    btn.style.boxShadow = `0 12px 35px ${MOBILE_DARK_HD_CONFIG.colors.accent}40 !important`;
+    btn.style.background = `${MOBILE_DARK_HD_CONFIG.colors.gradientDanger} !important`;
+  };
+
+  btn.onmouseout = () => {
+    btn.style.transform = "translateY(0) scale(1)";
+    btn.style.boxShadow = `${MOBILE_DARK_HD_CONFIG.colors.shadow} !important`;
+    btn.style.background = `${MOBILE_DARK_HD_CONFIG.colors.gradientPrimary} !important`;
+  };
+
+  // Configurar click handler
+  btn.onclick = async () => {
+    const textoOriginal = btn.innerHTML;
+    btn.innerHTML = `
+      <div style="width: 16px; height: 16px; margin-right: 8px;">
+        <div style="width: 16px; height: 16px; border: 2px solid transparent; border-top: 2px solid currentColor; border-radius: 50%; animation: spin 1s linear infinite;"></div>
+      </div>
+      Gerando Mobile HD...
+    `;
+    btn.disabled = true;
+
+    try {
+      await funcaoExportacao(dadosExportacao);
+    } catch (error) {
+      console.error("[EXPORT-BASE-MOBILE-DARK] Erro na exportação:", error);
+      mostrarNotificacaoErroMobile("Erro ao gerar imagem HD. Tente novamente.");
+    } finally {
+      btn.innerHTML = textoOriginal;
+      btn.disabled = false;
+    }
+  };
+
+  btnContainer.appendChild(btn);
+
+  // POSICIONAR NA PARTE SUPERIOR (seguindo padrão estabelecido)
+  if (container.firstChild) {
+    container.insertBefore(btnContainer, container.firstChild);
+  } else {
+    container.appendChild(btnContainer);
+  }
+
+  return btn;
+}
+
+// FUNÇÃO ESPECÍFICA PARA CRIAÇÃO DE BOTÃO MOBILE DARK - PONTOS CORRIDOS RODADA
+export function criarBotaoMobileDarkPontosCorridosRodada(config) {
+  return criarBotaoExportacaoMobileDark({
+    ...config,
+    className: "btn-export-mobile-dark-pontos-corridos-rodada",
+    textoIcone: "📱",
+    textoBotao: "Exportar Confrontos Mobile HD",
+    funcaoExportacao: async (dados) => {
+      // Aqui será implementada a função de exportação mobile dark para pontos corridos rodada
+      console.log("[EXPORT-BASE-MOBILE-DARK] Exportando confrontos mobile HD:", dados);
+      // TODO: Implementar exportação mobile dark específica
+      mostrarNotificacaoSucessoMobile("Função em desenvolvimento - Confrontos Mobile HD");
+    },
+  });
+}
+
+// FUNÇÃO ESPECÍFICA PARA CRIAÇÃO DE BOTÃO MOBILE DARK - PONTOS CORRIDOS CLASSIFICAÇÃO
+export function criarBotaoMobileDarkPontosCorridosClassificacao(config) {
+  return criarBotaoExportacaoMobileDark({
+    ...config,
+    className: "btn-export-mobile-dark-pontos-corridos-classificacao",
+    textoIcone: "📱",
+    textoBotao: "Exportar Classificação Mobile HD",
+    funcaoExportacao: async (dados) => {
+      // Aqui será implementada a função de exportação mobile dark para classificação
+      console.log("[EXPORT-BASE-MOBILE-DARK] Exportando classificação mobile HD:", dados);
+      // TODO: Implementar exportação mobile dark específica
+      mostrarNotificacaoSucessoMobile("Função em desenvolvimento - Classificação Mobile HD");
+    },
+  });
+}
+
+// FUNÇÃO ESPECÍFICA PARA CRIAÇÃO DE BOTÃO MOBILE DARK - PONTOS CORRIDOS HISTÓRICO
+export function criarBotaoMobileDarkPontosCorridosHistorico(config) {
+  return criarBotaoExportacaoMobileDark({
+    ...config,
+    className: "btn-export-mobile-dark-pontos-corridos-historico",
+    textoIcone: "📱",
+    textoBotao: "Exportar Histórico Mobile HD",
+    funcaoExportacao: async (dados) => {
+      // Aqui será implementada a função de exportação mobile dark para histórico
+      console.log("[EXPORT-BASE-MOBILE-DARK] Exportando histórico mobile HD:", dados);
+      // TODO: Implementar exportação mobile dark específica
+      mostrarNotificacaoSucessoMobile("Função em desenvolvimento - Histórico Mobile HD");
+    },
+  });
+}
+
+// EXTENSÃO DO UTILITÁRIO MOBILE DARK UTILS
+MobileDarkUtils.criarBotao = criarBotaoExportacaoMobileDark;
+MobileDarkUtils.criarBotaoPontosCorridosRodada = criarBotaoMobileDarkPontosCorridosRodada;
+MobileDarkUtils.criarBotaoPontosCorridosClassificacao = criarBotaoMobileDarkPontosCorridosClassificacao;
+MobileDarkUtils.criarBotaoPontosCorridosHistorico = criarBotaoMobileDarkPontosCorridosHistorico;
+
+console.log("[EXPORT-BASE-MOBILE-DARK] ✅ Utilitários de botões Mobile Dark configurados");
+console.log("[EXPORT-BASE-MOBILE-DARK] 🎯 Funções disponíveis: criarBotao, criarBotaoPontosCorridosRodada, criarBotaoPontosCorridosClassificacao, criarBotaoPontosCorridosHistorico");
+

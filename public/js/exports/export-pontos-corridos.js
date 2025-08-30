@@ -1081,7 +1081,6 @@ function criarLayoutPontosCorridosClassificacao({
       </p>
     </div>
   `;
-}</old_str>
 }
 
 // ✅ FUNÇÃO PARA MOSTRAR NOTIFICAÇÕES
@@ -1230,9 +1229,8 @@ export async function exportarPontosCorridosHistoricoComoImagem(
 
   const titulo = `Liga Pontos Corridos - Histórico de Pontos`;
   const subtitulo = `Evolução até a ${rodadaLiga}ª rodada (Rodada ${rodadaCartola} do Brasileirão)`;
-  const exportDiv = criarDivExportacao(titulo, subtitulo, "1000px");
 
-  // Criar tabela com histórico de pontos
+  // Calcular a rodada máxima para o cabeçalho da tabela
   const maxRodadas = Math.max(
     ...times.map((t) => (t.historico ? t.historico.length : 0)),
   );
@@ -1246,7 +1244,7 @@ export async function exportarPontosCorridosHistoricoComoImagem(
           <th style="text-align: left; padding: 6px 4px; border-bottom: 2px solid #dee2e6;">Time</th>
   `;
 
-  // Adicionar cabeçalhos das rodadas
+  // Adicionar cabeçalhos das rodadas dinamicamente
   for (let r = 1; r <= maxRodadas; r++) {
     tabelaHtml += `<th style="width: 35px; text-align: center; padding: 6px 2px; border-bottom: 2px solid #dee2e6; font-size: 10px;">R${r}</th>`;
   }
@@ -1256,14 +1254,8 @@ export async function exportarPontosCorridosHistoricoComoImagem(
   // Linhas dos times
   times.forEach((time, index) => {
     const posicao = index + 1;
-    let classePosicao = "";
-    
-    if (posicao === 1) classePosicao = "primeiro-lugar";
-    else if (posicao === 2) classePosicao = "segundo-lugar";
-    else if (posicao === 3) classePosicao = "terceiro-lugar";
-    
     const rowBg = index % 2 === 0 ? "background: #f8f9fa;" : "";
-    
+
     tabelaHtml += `
       <tr style="border-bottom: 1px solid ${TEMPLATE_CONFIG.colors.border}; ${rowBg}">
         <td style="text-align:center; padding: 6px 3px; font-weight: bold;">${posicao}</td>
@@ -1272,19 +1264,43 @@ export async function exportarPontosCorridosHistoricoComoImagem(
         </td>
         <td style="text-align:left; padding: 6px 3px; font-weight: 500;">${time.nome_time || "N/D"}</td>
     `;
-    
+
     // Adicionar pontos por rodada
     for (let r = 1; r <= maxRodadas; r++) {
       const pontosRodada = time.historico && time.historico[r-1] ? time.historico[r-1].toFixed(1) : "-";
       tabelaHtml += `<td style="text-align:center; padding: 4px 2px; font-size: 9px;">${pontosRodada}</td>`;
     }
-    
+
     tabelaHtml += `</tr>`;
   });
 
   tabelaHtml += `</tbody></table>`;
 
-  return `
+  const agora = new Date();
+  const dataFormatada = agora.toLocaleDateString("pt-BR", {
+    year: "numeric",
+    month: "long",
+    day: "numeric",
+    hour: "2-digit",
+    minute: "2-digit",
+  });
+
+  // Criar container de exportação invisível
+  const exportContainer = document.createElement("div");
+  exportContainer.id = "pontos-corridos-historico-export-container";
+  exportContainer.style.cssText = `
+    position: absolute;
+    top: -99999px;
+    left: -99999px;
+    width: 1000px;
+    background: ${TEMPLATE_CONFIG.colors.background};
+    font-family: Inter, -apple-system, BlinkMacSystemFont, sans-serif;
+    line-height: 1.3;
+    color: ${TEMPLATE_CONFIG.colors.text};
+  `;
+
+  // Construir layout profissional do histórico
+  exportContainer.innerHTML = `
     <!-- HEADER PROFISSIONAL -->
     <div style="
       background: linear-gradient(135deg, ${TEMPLATE_CONFIG.colors.primary} 0%, ${TEMPLATE_CONFIG.colors.secondary} 100%);
@@ -1295,10 +1311,54 @@ export async function exportarPontosCorridosHistoricoComoImagem(
       overflow: hidden;
       min-height: ${TEMPLATE_CONFIG.headerHeight}px;
     ">
-      <div style="position: relative; z-index: 1;">
-        <h1 style="font: 700 ${TEMPLATE_CONFIG.fonts.title}; margin: 0 0 8px 0;">SuperCartola 2025</h1>
-        <h2 style="font: 600 ${TEMPLATE_CONFIG.fonts.subtitle}; margin: 0;">📈 ${titulo}</h2>
-        <p style="font: 500 ${TEMPLATE_CONFIG.fonts.body}; margin: 8px 0 0 0; opacity: 0.9;">${subtitulo}</p>
+      <!-- Padrão geométrico de fundo -->
+      <div style="
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: url('data:image/svg+xml,<svg xmlns=\"http://www.w3.org/2000/svg\" width=\"50\" height=\"50\" viewBox=\"0 0 50 50\"><g fill=\"none\" fill-rule=\"evenodd\"><g fill=\"%23ffffff\" fill-opacity=\"0.08\"><polygon points=\"30 28 5 28 5 3 30 3\"/></g></g></svg>');
+        opacity: 0.6;
+      "></div>
+
+      <!-- Conteúdo do header -->
+      <div style="position: relative; z-index: 1; display: flex; align-items: center; justify-content: center; gap: 16px;">
+        <!-- Logo SuperCartola -->
+        <div style="flex-shrink: 0;">
+          <img src="/img/logo-supercartola.png" 
+               style="height: 42px; width: auto; filter: brightness(1.1);" 
+               alt="SuperCartola"
+               onerror="this.outerHTML='<div style=\\'width:42px;height:42px;background:rgba(255,255,255,0.2);border-radius:50%;display:flex;align-items:center;justify-content:center;font:bold 14px Inter;\\'>SC</div>'">
+        </div>
+
+        <div style="text-align: center;">
+          <h1 style="
+            font: 700 ${TEMPLATE_CONFIG.fonts.title};
+            margin: 0 0 3px 0;
+            letter-spacing: -0.5px;
+            text-shadow: 0 2px 4px rgba(0,0,0,0.2);
+          ">SuperCartola 2025</h1>
+
+          <h2 style="
+            font: 600 ${TEMPLATE_CONFIG.fonts.subtitle};
+            margin: 0 0 6px 0;
+            opacity: 0.95;
+          ">📈 ${titulo}</h2>
+
+          <div style="
+            background: rgba(255, 255, 255, 0.2);
+            backdrop-filter: blur(10px);
+            border-radius: 20px;
+            padding: 4px 16px;
+            display: inline-block;
+            border: 1px solid rgba(255, 255, 255, 0.3);
+          ">
+            <span style="font: 600 13px Inter, sans-serif; letter-spacing: 0.5px;">
+              ${subtitulo.toUpperCase()}
+            </span>
+          </div>
+        </div>
       </div>
     </div>
 
@@ -1312,11 +1372,101 @@ export async function exportarPontosCorridosHistoricoComoImagem(
         border: 1px solid ${TEMPLATE_CONFIG.colors.border};
         overflow-x: auto;
       ">
+        <h3 style="
+          font: 600 ${TEMPLATE_CONFIG.fonts.heading};
+          margin: 0 0 12px 0;
+          text-align: center;
+          color: ${TEMPLATE_CONFIG.colors.primary};
+        ">📊 Evolução de Pontos por Rodada</h3>
         ${tabelaHtml}
+      </div>
+
+      <!-- INFORMAÇÕES ADICIONAIS -->
+      <div style="
+        margin-top: 16px;
+        display: grid;
+        grid-template-columns: 1fr 1fr 1fr;
+        gap: 12px;
+      ">
+        <!-- Total de Times -->
+        <div style="
+          background: linear-gradient(135deg, ${TEMPLATE_CONFIG.colors.success}, #2ecc71);
+          color: white;
+          padding: 14px;
+          border-radius: 8px;
+          text-align: center;
+        ">
+          <h4 style="
+            font: 600 ${TEMPLATE_CONFIG.fonts.caption};
+            margin: 0 0 4px 0;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+          ">👥 Times</h4>
+          <p style="font: 700 18px Inter, sans-serif; margin: 0;">
+            ${times.length} participantes
+          </p>
+        </div>
+
+        <!-- Rodadas Analisadas -->
+        <div style="
+          background: linear-gradient(135deg, #f39c12, #e67e22);
+          color: white;
+          padding: 14px;
+          border-radius: 8px;
+          text-align: center;
+        ">
+          <h4 style="
+            font: 600 ${TEMPLATE_CONFIG.fonts.caption};
+            margin: 0 0 4px 0;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+          ">📅 Rodadas</h4>
+          <p style="font: 700 18px Inter, sans-serif; margin: 0;">
+            ${maxRodadas} analisadas
+          </p>
+        </div>
+
+        <!-- Rodada Atual -->
+        <div style="
+          background: linear-gradient(135deg, ${TEMPLATE_CONFIG.colors.primary}, ${TEMPLATE_CONFIG.colors.secondary});
+          color: white;
+          padding: 14px;
+          border-radius: 8px;
+          text-align: center;
+        ">
+          <h4 style="
+            font: 600 ${TEMPLATE_CONFIG.fonts.caption};
+            margin: 0 0 4px 0;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+          ">⚽ Atual</h4>
+          <p style="font: 700 18px Inter, sans-serif; margin: 0;">
+            Rodada ${rodadaLiga}
+          </p>
+        </div>
+      </div>
+
+      <!-- LEGENDA -->
+      <div style="
+        margin-top: 16px;
+        background: ${TEMPLATE_CONFIG.colors.surface};
+        border: 1px solid ${TEMPLATE_CONFIG.colors.border};
+        border-radius: 8px;
+        padding: 12px;
+        text-align: center;
+      ">
+        <p style="
+          font: 500 11px Inter, sans-serif;
+          margin: 0;
+          color: ${TEMPLATE_CONFIG.colors.textLight};
+          line-height: 1.4;
+        ">
+          📊 <strong>R1, R2, R3...</strong>: Pontos obtidos em cada rodada específica | 🏆 <strong>Total</strong>: Pontuação acumulada na competição
+        </p>
       </div>
     </div>
 
-    <!-- FOOTER -->
+    <!-- FOOTER PROFISSIONAL -->
     <div style="
       background: ${TEMPLATE_CONFIG.colors.surface};
       border-top: 1px solid ${TEMPLATE_CONFIG.colors.border};
@@ -1328,8 +1478,79 @@ export async function exportarPontosCorridosHistoricoComoImagem(
         font: ${TEMPLATE_CONFIG.fonts.caption};
         margin: 0;
         color: ${TEMPLATE_CONFIG.colors.textLight};
+        line-height: 1.2;
       ">
-        Gerado em ${agora.toLocaleString("pt-BR")} • SuperCartola Manager v2.4.2
+        Gerado em ${dataFormatada} • SuperCartola Manager v2.4.2<br>
+        Sistema de Gerenciamento de Ligas do Cartola FC
       </p>
     </div>
   `;
+
+  document.body.appendChild(exportContainer);
+
+  try {
+    // Aguardar renderização
+    await new Promise((resolve) => requestAnimationFrame(resolve));
+
+    // Aguardar carregamento de imagens
+    const imagens = exportContainer.querySelectorAll("img");
+    if (imagens.length > 0) {
+      await Promise.all(
+        Array.from(imagens).map((img) => {
+          return new Promise((resolve) => {
+            if (img.complete) {
+              resolve();
+            } else {
+              img.onload = resolve;
+              img.onerror = resolve;
+              setTimeout(resolve, 2000);
+            }
+          });
+        }),
+      );
+    }
+
+    console.log("[EXPORT-PONTOS-CORRIDOS] 📸 Capturando histórico...");
+
+    // Carregar html2canvas dinamicamente
+    const html2canvas = await carregarHtml2Canvas();
+
+    if (!html2canvas) {
+      throw new Error("html2canvas não pôde ser carregado");
+    }
+
+    // Capturar com html2canvas
+    const canvas = await html2canvas(exportContainer, {
+      allowTaint: true,
+      useCORS: true,
+      scale: 2,
+      logging: false,
+      width: 1000,
+      height: exportContainer.scrollHeight,
+      backgroundColor: TEMPLATE_CONFIG.colors.background,
+    });
+
+    // Gerar nome do arquivo
+    const timestamp = new Date()
+      .toLocaleDateString("pt-BR")
+      .replace(/\//g, "-");
+    const nomeArquivo = `pontos-corridos-historico-${rodadaLiga}-${timestamp}`;
+
+    // Download da imagem
+    const link = document.createElement("a");
+    link.download = `${nomeArquivo}.png`;
+    link.href = canvas.toDataURL("image/png", 0.95);
+    link.click();
+
+    console.log("[EXPORT-PONTOS-CORRIDOS] ✅ Histórico exportado com sucesso");
+    mostrarNotificacao("Histórico exportado com sucesso!", "success");
+  } catch (error) {
+    console.error("[EXPORT-PONTOS-CORRIDOS] ❌ Erro na exportação:", error);
+    throw error;
+  } finally {
+    // Remover container temporário
+    if (exportContainer.parentNode) {
+      document.body.removeChild(exportContainer);
+    }
+  }
+}
