@@ -6,6 +6,11 @@ import {
   calcularRodadaBrasileirao,
 } from "./pontos-corridos-config.js";
 
+import {
+  criarBotaoExportacaoPontosCorridosRodada,
+  criarBotaoExportacaoPontosCorridosClassificacao,
+} from "../exports/export-pontos-corridos.js";
+
 // Cache de elementos DOM
 const elementsCache = new Map();
 
@@ -436,6 +441,21 @@ export function renderTabelaRodada(
   `;
 }
 
+// Função para criar botão de exportação de rodada
+export function criarBotaoExportacaoRodada(jogos, rodadaLiga, rodadaCartola, times) {
+  // Aguardar que o DOM seja renderizado
+  setTimeout(() => {
+    criarBotaoExportacaoPontosCorridosRodada({
+      containerId: "exportPontosCorridosRodadaBtnContainer",
+      jogos,
+      rodadaLiga,
+      rodadaCartola,
+      times
+    });
+  }, 100);
+}
+}
+
 // Renderizar tabela de classificação (mantida inalterada)
 export function renderTabelaClassificacao(
   classificacao,
@@ -542,6 +562,20 @@ export function renderTabelaClassificacao(
       </button>
     </div>
   `;
+}
+
+// Função para criar botão de exportação de classificação
+export function criarBotaoExportacaoClassificacao(times, rodadaLiga, rodadaCartola) {
+  // Aguardar que o DOM seja renderizado
+  setTimeout(() => {
+    criarBotaoExportacaoPontosCorridosClassificacao({
+      containerId: "exportClassificacaoPontosCorridosBtnContainer",
+      times,
+      rodadaLiga,
+      rodadaCartola
+    });
+  }, 100);
+}
 }
 
 // Atualizar container

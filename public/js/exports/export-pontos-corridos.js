@@ -1247,4 +1247,88 @@ export async function exportarPontosCorridosHistoricoComoImagem(
 
   // Adicionar cabeçalhos das rodadas
   for (let r = 1; r <= maxRodadas; r++) {
-    tabelaHtml += `<th style="width: 35px; text-align: center; padding: 6px 2px; border-bottom: 2px solid #dee2e6; font-size: 0
+    tabelaHtml += `<th style="width: 35px; text-align: center; padding: 6px 2px; border-bottom: 2px solid #dee2e6; font-size: 10px;">R${r}</th>`;
+  }
+
+  tabelaHtml += `</tr></thead><tbody>`;
+
+  // Linhas dos times
+  times.forEach((time, index) => {
+    const posicao = index + 1;
+    let classePosicao = "";
+    
+    if (posicao === 1) classePosicao = "primeiro-lugar";
+    else if (posicao === 2) classePosicao = "segundo-lugar";
+    else if (posicao === 3) classePosicao = "terceiro-lugar";
+    
+    const rowBg = index % 2 === 0 ? "background: #f8f9fa;" : "";
+    
+    tabelaHtml += `
+      <tr style="border-bottom: 1px solid ${TEMPLATE_CONFIG.colors.border}; ${rowBg}">
+        <td style="text-align:center; padding: 6px 3px; font-weight: bold;">${posicao}</td>
+        <td style="text-align:center; padding: 6px 3px;">
+          ${time.clube_id ? `<img src="/escudos/${time.clube_id}.png" style="width:18px; height:18px; border-radius:50%;" onerror="this.style.display='none'"/>` : "—"}
+        </td>
+        <td style="text-align:left; padding: 6px 3px; font-weight: 500;">${time.nome_time || "N/D"}</td>
+    `;
+    
+    // Adicionar pontos por rodada
+    for (let r = 1; r <= maxRodadas; r++) {
+      const pontosRodada = time.historico && time.historico[r-1] ? time.historico[r-1].toFixed(1) : "-";
+      tabelaHtml += `<td style="text-align:center; padding: 4px 2px; font-size: 9px;">${pontosRodada}</td>`;
+    }
+    
+    tabelaHtml += `</tr>`;
+  });
+
+  tabelaHtml += `</tbody></table>`;
+
+  return `
+    <!-- HEADER PROFISSIONAL -->
+    <div style="
+      background: linear-gradient(135deg, ${TEMPLATE_CONFIG.colors.primary} 0%, ${TEMPLATE_CONFIG.colors.secondary} 100%);
+      color: white;
+      padding: ${TEMPLATE_CONFIG.padding}px;
+      text-align: center;
+      position: relative;
+      overflow: hidden;
+      min-height: ${TEMPLATE_CONFIG.headerHeight}px;
+    ">
+      <div style="position: relative; z-index: 1;">
+        <h1 style="font: 700 ${TEMPLATE_CONFIG.fonts.title}; margin: 0 0 8px 0;">SuperCartola 2025</h1>
+        <h2 style="font: 600 ${TEMPLATE_CONFIG.fonts.subtitle}; margin: 0;">📈 ${titulo}</h2>
+        <p style="font: 500 ${TEMPLATE_CONFIG.fonts.body}; margin: 8px 0 0 0; opacity: 0.9;">${subtitulo}</p>
+      </div>
+    </div>
+
+    <!-- CONTEÚDO PRINCIPAL -->
+    <div style="padding: ${TEMPLATE_CONFIG.padding}px;">
+      <div style="
+        background: ${TEMPLATE_CONFIG.colors.surface};
+        border-radius: 10px;
+        padding: 18px;
+        box-shadow: 0 4px 16px rgba(0, 0, 0, 0.06);
+        border: 1px solid ${TEMPLATE_CONFIG.colors.border};
+        overflow-x: auto;
+      ">
+        ${tabelaHtml}
+      </div>
+    </div>
+
+    <!-- FOOTER -->
+    <div style="
+      background: ${TEMPLATE_CONFIG.colors.surface};
+      border-top: 1px solid ${TEMPLATE_CONFIG.colors.border};
+      padding: 12px ${TEMPLATE_CONFIG.padding}px;
+      text-align: center;
+      margin-top: 16px;
+    ">
+      <p style="
+        font: ${TEMPLATE_CONFIG.fonts.caption};
+        margin: 0;
+        color: ${TEMPLATE_CONFIG.colors.textLight};
+      ">
+        Gerado em ${agora.toLocaleString("pt-BR")} • SuperCartola Manager v2.4.2
+      </p>
+    </div>
+  `;
