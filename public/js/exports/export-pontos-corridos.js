@@ -1081,6 +1081,7 @@ function criarLayoutPontosCorridosClassificacao({
       </p>
     </div>
   `;
+}</old_str>
 }
 
 // ✅ FUNÇÃO PARA MOSTRAR NOTIFICAÇÕES
