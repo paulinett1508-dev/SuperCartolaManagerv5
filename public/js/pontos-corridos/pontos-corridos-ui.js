@@ -454,7 +454,6 @@ export function criarBotaoExportacaoRodada(jogos, rodadaLiga, rodadaCartola, tim
     });
   }, 100);
 }
-}
 
 // Renderizar tabela de classificação (mantida inalterada)
 export function renderTabelaClassificacao(
@@ -575,7 +574,6 @@ export function criarBotaoExportacaoClassificacao(times, rodadaLiga, rodadaCarto
       rodadaCartola
     });
   }, 100);
-}
 }
 
 // Atualizar container
