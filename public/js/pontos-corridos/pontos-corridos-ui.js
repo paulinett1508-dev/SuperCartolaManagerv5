@@ -1,5 +1,5 @@
-// PONTOS CORRIDOS UI - Interface Corrigida com Layout Compacto
-// ResponsÃ¡vel por: renderizaÃ§Ã£o, manipulaÃ§Ã£o DOM, estados visuais
+// PONTOS CORRIDOS UI - Interface Otimizada (Preservando Funcionalidades Imersivas)
+// Responsável por: renderização, manipulação DOM, estados visuais
 
 import {
   PONTOS_CORRIDOS_CONFIG,
@@ -13,28 +13,10 @@ const elementsCache = new Map();
 let rodadaAtualInterface = 1;
 let rodadaSelecionadaInterface = 0;
 
-// Mapeamento de brasões (Cartola ID -> Clube ID do time do coração)
-const MAPEAMENTO_BRASOES = {
-  // Liga Super Cartola 2025
-  262: "262", // Cássio Marques -> Santos
-  275: "275", // fucim -> Palmeiras
-  263: "263", // JB Oliveira -> Corinthians
-  276: "276", // Diogo Monte -> São Paulo
-  264: "264", // Felipe Jokstay -> Flamengo
-  277: "277", // Pedro Antônio -> Vasco
-  266: "266", // Eudes Pereira -> Fluminense
-  283: "283", // Emerson -> Botafogo
-  267: "267", // Antonio Luis -> Atlético-MG
-  292: "292", // Raylson Fernandes -> Cruzeiro
-  344: "344", // Jonney Vojvoda -> Fortaleza
-  default: "default", // Padrão para times sem mapeamento
-};
-
-// Função para obter brasão do time do coração
-function obterBrasaoCoracao(time) {
-  const clubeId = time.clube_id || time.id || "default";
-  const brasaoId = MAPEAMENTO_BRASOES[clubeId] || MAPEAMENTO_BRASOES["default"];
-  return `/escudos/${brasaoId}.png`;
+// Função simplificada para brasões (CORREÇÃO APLICADA)
+function obterBrasaoTime(time) {
+  const clubeId = time.clube_id || "default";
+  return `/escudos/${clubeId}.png`;
 }
 
 // Função para cache de elementos DOM
@@ -273,7 +255,7 @@ export function renderErrorState(containerId, error) {
   `;
 }
 
-// CORREÇÃO: Layout compacto com múltiplos confrontos por linha + placar inteligente
+// CORREÇÃO: Layout compacto otimizado (CSS movido para arquivo separado)
 export function renderTabelaRodada(
   jogos,
   idxRodada,
@@ -302,15 +284,14 @@ export function renderTabelaRodada(
     const pontosA = pontuacoesMap[timeA.id] ?? null;
     const pontosB = pontuacoesMap[timeB.id] ?? null;
 
-    // Obter brasões do time do coração
-    const brasaoA = obterBrasaoCoracao(timeA);
-    const brasaoB = obterBrasaoCoracao(timeB);
+    // CORREÇÃO: Usar função simplificada para brasões
+    const brasaoA = obterBrasaoTime(timeA);
+    const brasaoB = obterBrasaoTime(timeB);
 
     // Nomes completos: Cartoleiro (Time)
     const nomeCompletoA = `${timeA.nome_cartoleiro || timeA.nome || "N/D"} (${timeA.nome_time || "Time"})`;
     const nomeCompletoB = `${timeB.nome_cartoleiro || timeB.nome || "N/D"} (${timeB.nome_time || "Time"})`;
 
-    let placarTexto = "- X -";
     let financeiroA = "-";
     let financeiroB = "-";
     let classeResultadoA = "neutro";
@@ -362,7 +343,7 @@ export function renderTabelaRodada(
       classeResultadoB = "aguardando";
     }
 
-    // Layout compacto com colunas
+    // Layout compacto preservando todas as funcionalidades imersivas
     confrontosHTML += `
       <div class="confronto-compacto">
         <!-- Time A -->
@@ -416,380 +397,6 @@ export function renderTabelaRodada(
     <div class="exportacao-container">
       <div id="exportPontosCorridosRodadaBtnContainer"></div>
     </div>
-
-    <style>
-    /* CSS PARA LAYOUT COMPACTO E INTELIGENTE */
-    .confrontos-grid-compacta {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(600px, 1fr));
-      gap: 16px;
-      margin: 20px 0;
-    }
-
-    .confronto-compacto {
-      display: flex;
-      align-items: center;
-      background: linear-gradient(135deg, #2a2a2a 0%, #1e1e1e 100%);
-      border-radius: 12px;
-      padding: 16px;
-      border: 1px solid rgba(255, 69, 0, 0.2);
-      box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
-      transition: all 0.3s ease;
-      min-height: 100px;
-    }
-
-    .confronto-compacto:hover {
-      transform: translateY(-2px);
-      box-shadow: 0 8px 25px rgba(255, 69, 0, 0.4);
-    }
-
-    .time-lado {
-      flex: 1;
-      display: flex;
-      align-items: center;
-      padding: 12px;
-      border-radius: 8px;
-      transition: all 0.3s ease;
-      min-height: 60px;
-    }
-
-    .time-esquerda {
-      gap: 12px;
-      margin-right: 8px;
-    }
-
-    .time-direita {
-      flex-direction: row-reverse;
-      gap: 12px;
-      margin-left: 8px;
-    }
-
-    .brasao-compacto {
-      width: 40px;
-      height: 40px;
-      border-radius: 50%;
-      border: 2px solid rgba(255, 255, 255, 0.3);
-      background: white;
-      object-fit: cover;
-      flex-shrink: 0;
-    }
-
-    .time-info {
-      flex: 1;
-      display: flex;
-      flex-direction: column;
-      gap: 6px;
-    }
-
-    .time-direita .time-info {
-      text-align: right;
-    }
-
-    .nome-completo {
-      color: #ffffff;
-      font-size: 14px;
-      font-weight: 600;
-      line-height: 1.2;
-      text-shadow: 0 1px 3px rgba(0, 0, 0, 0.5);
-    }
-
-    .status-resultado {
-      display: none; /* Removido - cores já indicam resultado */
-    }
-
-    .financeiro {
-      font-size: 12px;
-      font-weight: 600;
-      font-family: 'JetBrains Mono', monospace;
-      margin-top: 2px;
-    }
-
-    .placar-container {
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      gap: 8px;
-      min-width: 140px;
-      padding: 0 16px;
-    }
-
-    .placar-time {
-      background: linear-gradient(135deg, #666 0%, #555 100%);
-      color: white;
-      padding: 8px 12px;
-      border-radius: 6px;
-      font-size: 16px;
-      font-weight: 700;
-      font-family: 'JetBrains Mono', monospace;
-      text-align: center;
-      border: 2px solid rgba(255, 255, 255, 0.2);
-      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
-      min-width: 50px;
-      transition: all 0.3s ease;
-    }
-
-    .vs-separator {
-      color: #ffffff;
-      font-size: 14px;
-      font-weight: 700;
-      text-shadow: 0 1px 3px rgba(0, 0, 0, 0.5);
-    }
-
-    /* ESTADOS DOS MINI-CARDS DE PLACAR */
-    .placar-time.ganhou, .placar-time.goleada-ganhou {
-      background: linear-gradient(135deg, #22c55e 0%, #16a34a 100%);
-      border-color: rgba(34, 197, 94, 0.5);
-      box-shadow: 0 4px 12px rgba(34, 197, 94, 0.4);
-    }
-
-    .placar-time.perdeu, .placar-time.goleada-perdeu {
-      background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
-      border-color: rgba(239, 68, 68, 0.5);
-      box-shadow: 0 4px 12px rgba(239, 68, 68, 0.4);
-    }
-
-    .placar-time.empate {
-      background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
-      border-color: rgba(59, 130, 246, 0.5);
-      box-shadow: 0 4px 12px rgba(59, 130, 246, 0.4);
-    }
-
-    .placar-time.goleada-ganhou {
-      background: linear-gradient(135deg, #ffd700 0%, #ffb347 100%);
-      color: #1a1a1a;
-      border-color: rgba(255, 215, 0, 0.5);
-      box-shadow: 0 4px 12px rgba(255, 215, 0, 0.6);
-      position: relative;
-    }
-
-    .placar-time.goleada-ganhou::after {
-      content: "🔥";
-      position: absolute;
-      top: -8px;
-      right: -8px;
-      font-size: 14px;
-    }
-
-    .placar-time.goleada-perdeu {
-      background: linear-gradient(135deg, #8b0000 0%, #660000 100%);
-      border-color: rgba(139, 0, 0, 0.5);
-      box-shadow: 0 4px 12px rgba(139, 0, 0, 0.4);
-    }
-
-    /* PONTINHO VERMELHO PARA RODADAS FUTURAS */
-    .pontinho-vermelho {
-      position: absolute;
-      top: 8px;
-      right: 8px;
-      width: 8px;
-      height: 8px;
-      background: #ef4444;
-      border-radius: 50%;
-      border: 1px solid #dc2626;
-      animation: pulse-red 2s infinite;
-    }
-
-    @keyframes pulse-red {
-      0%, 100% { opacity: 1; transform: scale(1); }
-      50% { opacity: 0.7; transform: scale(1.1); }
-    }
-
-    /* ESTADOS ESPECÍFICOS DAS RODADAS MINI-CARDS */
-    .rodada-card.passada {
-      background: linear-gradient(135deg, #2a2a2a 0%, #1e1e1e 100%);
-      border: 1px solid rgba(255, 255, 255, 0.2);
-      opacity: 0.8;
-    }
-
-    .rodada-card.atual {
-      background: linear-gradient(135deg, #ff4500 0%, #e8472b 100%);
-      border: 2px solid #ff4500;
-      color: white;
-      font-weight: 700;
-      box-shadow: 0 0 15px rgba(255, 69, 0, 0.6);
-    }
-
-    .rodada-card.atual .rodada-numero,
-    .rodada-card.atual .rodada-label,
-    .rodada-card.atual .rodada-brasileirao {
-      color: white;
-    }
-
-    .rodada-card.futura {
-      background: linear-gradient(135deg, #2a2a2a 0%, #1e1e1e 100%);
-      border: 1px solid rgba(255, 255, 255, 0.1);
-      opacity: 0.7;
-      position: relative;
-    }
-
-    /* CORREÇÃO: Rodada anterior à vigente destacada em VERDE */
-    .rodada-card.selecionada.passada {
-      background: linear-gradient(135deg, #22c55e 0%, #16a34a 100%);
-      border: 2px solid #22c55e;
-      color: white;
-      font-weight: 600;
-      box-shadow: 0 0 12px rgba(34, 197, 94, 0.5);
-      opacity: 1;
-    }
-
-    .rodada-card.selecionada.passada .rodada-numero,
-    .rodada-card.selecionada.passada .rodada-label,
-    .rodada-card.selecionada.passada .rodada-brasileirao {
-      color: white;
-    }
-    .time-lado.ganhou {
-      background: linear-gradient(135deg, rgba(34, 197, 94, 0.15) 0%, rgba(34, 197, 94, 0.05) 100%);
-      border: 1px solid rgba(34, 197, 94, 0.3);
-    }
-
-    .time-lado.ganhou .status-resultado {
-      background: #22c55e;
-      color: white;
-    }
-
-    .time-lado.ganhou .financeiro {
-      color: #22c55e;
-    }
-
-    .time-lado.perdeu {
-      background: linear-gradient(135deg, rgba(239, 68, 68, 0.15) 0%, rgba(239, 68, 68, 0.05) 100%);
-      border: 1px solid rgba(239, 68, 68, 0.3);
-    }
-
-    .time-lado.perdeu .status-resultado {
-      background: #ef4444;
-      color: white;
-    }
-
-    .time-lado.perdeu .financeiro {
-      color: #ef4444;
-    }
-
-    .time-lado.empate {
-      background: linear-gradient(135deg, rgba(59, 130, 246, 0.15) 0%, rgba(59, 130, 246, 0.05) 100%);
-      border: 1px solid rgba(59, 130, 246, 0.3);
-    }
-
-    .time-lado.empate .status-resultado {
-      background: #3b82f6;
-      color: white;
-    }
-
-    .time-lado.empate .financeiro {
-      color: #3b82f6;
-    }
-
-    .time-lado.goleada-ganhou {
-      background: linear-gradient(135deg, rgba(255, 215, 0, 0.2) 0%, rgba(255, 193, 7, 0.1) 100%);
-      border: 1px solid rgba(255, 215, 0, 0.4);
-    }
-
-    .time-lado.goleada-ganhou .status-resultado {
-      background: linear-gradient(135deg, #ffd700 0%, #ffb347 100%);
-      color: #1a1a1a;
-    }
-
-    .time-lado.goleada-ganhou .financeiro {
-      color: #ffd700;
-      font-weight: 700;
-    }
-
-    .time-lado.goleada-perdeu {
-      background: linear-gradient(135deg, rgba(139, 0, 0, 0.2) 0%, rgba(139, 0, 0, 0.1) 100%);
-      border: 1px solid rgba(139, 0, 0, 0.4);
-    }
-
-    .time-lado.goleada-perdeu .status-resultado {
-      background: #8b0000;
-      color: white;
-    }
-
-    .time-lado.goleada-perdeu .financeiro {
-      color: #ff6b6b;
-      font-weight: 700;
-    }
-
-    .time-lado.aguardando, .time-lado.andamento, .time-lado.neutro {
-      background: rgba(255, 255, 255, 0.05);
-      border: 1px solid rgba(255, 255, 255, 0.1);
-    }
-
-    .time-lado.andamento {
-      animation: pulse 2s infinite;
-    }
-
-    /* Estilo específico para rodadas futuras */
-    .rodada-status.futura {
-      color: #ff6b6b;
-      font-weight: 600;
-      font-size: 12px;
-      text-transform: uppercase;
-      letter-spacing: 0.5px;
-    }
-
-    @keyframes pulse {
-      0%, 100% { opacity: 1; }
-      50% { opacity: 0.8; }
-    }
-
-    /* RESPONSIVIDADE */
-    @media (max-width: 768px) {
-      .confrontos-grid-compacta {
-        grid-template-columns: 1fr;
-        gap: 12px;
-      }
-
-      .confronto-compacto {
-        flex-direction: column;
-        gap: 12px;
-        padding: 12px;
-      }
-
-      .time-lado {
-        width: 100%;
-        margin: 0;
-      }
-
-      .time-direita {
-        flex-direction: row;
-      }
-
-      .time-direita .time-info {
-        text-align: left;
-      }
-
-      .placar-container {
-        gap: 6px;
-        min-width: unset;
-        padding: 8px 0;
-      }
-
-      .placar-time {
-        min-width: 40px;
-        padding: 6px 10px;
-        font-size: 14px;
-      }
-
-      .vs-separator {
-        font-size: 12px;
-      }
-
-      .nome-completo {
-        font-size: 13px;
-      }
-    }
-
-    @media (max-width: 480px) {
-      .nome-completo {
-        font-size: 12px;
-      }
-
-      .placar-numero {
-        font-size: 14px;
-        padding: 6px 12px;
-      }
-    }
-    </style>
   `;
 }
 

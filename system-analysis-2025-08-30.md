@@ -1,6 +1,6 @@
 # 📊 Análise do Sistema Super Cartola Manager
 
-**Data da Análise:** 29/08/2025, 19:55:20
+**Data da Análise:** 30/08/2025, 14:04:54
 
 ---
 
@@ -45,7 +45,6 @@
 - 📋 **package-lock.json** - 📋 Dados JSON
 - 📋 **package.json** - 📦 Configuração npm/dependências
 - 📄 **replit.nix** - ❓ Arquivo genérico
-- 📖 **system-analysis-2025-08-29.md** - 📖 Documentação
 - 📜 **system-mapper.js** - 📝 Script JavaScript
 - 📜 **uploadToDrive.js** - 📝 Script JavaScript
 - 📜 **ux-analyzer.js** - 📝 Script JavaScript
@@ -106,7 +105,7 @@
 - 📄 **public/css/modules/ferramentas.css** - 🧩 Módulo do sistema
   - 📏 Tamanho: 3KB | Linhas: 151
 - 📄 **public/css/modules/fluxo-financeiro.css** - 🧩 Módulo do sistema
-  - 📏 Tamanho: 21KB | Linhas: 1074
+  - 📏 Tamanho: 27KB | Linhas: 1059
 - 📄 **public/css/modules/mata-mata.css** - 🧩 Módulo do sistema
   - 📏 Tamanho: 9KB | Linhas: 421
 - 📄 **public/css/modules/melhor-mes.css** - 🧩 Módulo do sistema
@@ -184,7 +183,7 @@
 - 📄 **public/js/exports/export-artilheiro-campeao.js** - ⚽ Sistema Artilheiro Campeão
   - 📏 Tamanho: 16KB | Linhas: 485
 - 📄 **public/js/exports/export-base.js** - 📝 Script JavaScript
-  - 📏 Tamanho: 17KB | Linhas: 568
+  - 📏 Tamanho: 18KB | Linhas: 553
 - 📄 **public/js/exports/export-exports.js** - 📝 Script JavaScript
   - 📏 Tamanho: 15KB | Linhas: 572
 - 📄 **public/js/exports/export-extrato-financeiro.js** - 📝 Script JavaScript
@@ -200,19 +199,19 @@
 - 📄 **public/js/exports/export-rodadas-hq.js** - 📅 Gestão de Rodadas
   - 📏 Tamanho: 24KB | Linhas: 625
 - 📄 **public/js/exports/export-top10.js** - 📝 Script JavaScript
-  - 📏 Tamanho: 22KB | Linhas: 693
+  - 📏 Tamanho: 19KB | Linhas: 583
 - 📄 **public/js/ferramentas/ferramentas-core.js** - 📝 Script JavaScript
   - 📏 Tamanho: 10KB | Linhas: 321
 - 📄 **public/js/filtro-liga-especial.js** - 🏆 Funcionalidades de Liga
   - 📏 Tamanho: 4KB | Linhas: 104
 - 📄 **public/js/fluxo-financeiro/fluxo-financeiro-cache.js** - 📝 Script JavaScript
-  - 📏 Tamanho: 19KB | Linhas: 582
+  - 📏 Tamanho: 23KB | Linhas: 757
 - 📄 **public/js/fluxo-financeiro/fluxo-financeiro-campos.js** - 📝 Script JavaScript
   - 📏 Tamanho: 15KB | Linhas: 469
 - 📄 **public/js/fluxo-financeiro/fluxo-financeiro-core.js** - 📝 Script JavaScript
-  - 📏 Tamanho: 15KB | Linhas: 487
+  - 📏 Tamanho: 15KB | Linhas: 500
 - 📄 **public/js/fluxo-financeiro/fluxo-financeiro-ui.js** - 📝 Script JavaScript
-  - 📏 Tamanho: 24KB | Linhas: 682
+  - 📏 Tamanho: 25KB | Linhas: 698
 - 📄 **public/js/fluxo-financeiro/fluxo-financeiro-utils.js** - 📝 Script JavaScript
   - 📏 Tamanho: 10KB | Linhas: 334
 - 📄 **public/js/fluxo-financeiro.js** - 📝 Script JavaScript
@@ -234,7 +233,7 @@
 - 📄 **public/js/mata-mata/mata-mata-confrontos.js** - 📝 Script JavaScript
   - 📏 Tamanho: 7KB | Linhas: 217
 - 📄 **public/js/mata-mata/mata-mata-financeiro.js** - 📝 Script JavaScript
-  - 📏 Tamanho: 15KB | Linhas: 502
+  - 📏 Tamanho: 16KB | Linhas: 541
 - 📄 **public/js/mata-mata/mata-mata-orquestrador.js** - 📝 Script JavaScript
   - 📏 Tamanho: 13KB | Linhas: 444
 - 📄 **public/js/mata-mata/mata-mata-ui.js** - 📝 Script JavaScript
@@ -264,7 +263,7 @@
 - 📄 **public/js/ranking.js** - 🏅 Sistema de Rankings
   - 📏 Tamanho: 14KB | Linhas: 392
 - 📄 **public/js/rodadas.js** - 📅 Gestão de Rodadas
-  - 📏 Tamanho: 20KB | Linhas: 629
+  - 📏 Tamanho: 19KB | Linhas: 622
 - 📄 **public/js/seletor-ligas.js** - 🏆 Funcionalidades de Liga
   - 📏 Tamanho: 4KB | Linhas: 125
 - 📄 **public/js/sistema-modulos-init.js** - 📝 Script JavaScript
@@ -355,12 +354,10 @@
 - 📄 **scripts/times-da-liga.json** - 🏆 Funcionalidades de Liga
   - 📏 Tamanho: 2KB | Linhas: 46
 
-### Documentação (2 arquivos)
+### Documentação (1 arquivos)
 
 - 📄 **UX_PATTERNS.md** - 📖 Documentação
   - 📏 Tamanho: 7KB | Linhas: 365
-- 📄 **system-analysis-2025-08-29.md** - 📖 Documentação
-  - 📏 Tamanho: 22KB | Linhas: 545
 
 ### Assets (17 arquivos)
 
@@ -516,15 +513,15 @@
 
 | Métrica | Valor |
 |---------|-------|
-| **Total de arquivos** | 175 |
-| **Tamanho total** | 4763 KB |
+| **Total de arquivos** | 174 |
+| **Tamanho total** | 4751 KB |
 | **Tamanho médio** | 27 KB |
 
 ### 📋 Por Tipo de Arquivo
 
 | Tipo | Quantidade |
 |------|------------|
-| 📖 **docs** | 2 |
+| 📖 **docs** | 1 |
 | 🎨 **frontend** | 141 |
 | ⚙️ **config** | 11 |
 | ❓ **other** | 4 |
@@ -535,7 +532,7 @@
 | Categoria | Quantidade | Descrição |
 |-----------|------------|----------|
 | 🟢 **Pequenos** | 72 | < 5KB |
-| 🟡 **Médios** | 99 | 5-50KB |
+| 🟡 **Médios** | 98 | 5-50KB |
 | 🔴 **Grandes** | 4 | > 50KB |
 
 ### 🔍 Insights da Arquitetura

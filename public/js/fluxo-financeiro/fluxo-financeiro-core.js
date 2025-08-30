@@ -1,4 +1,4 @@
-// FLUXO-FINANCEIRO-CORE.JS - Lógica Principal INTEGRADA
+// FLUXO-FINANCEIRO-CORE.JS - Integração Mata-Mata CORRIGIDA
 import { calcularFinanceiroConfronto } from "../pontos-corridos-utils.js";
 import { getLigaId } from "../pontos-corridos-utils.js";
 import { FluxoFinanceiroCampos } from "./fluxo-financeiro-campos.js";
@@ -82,9 +82,14 @@ export class FluxoFinanceiroCore {
         const resultadosMataMata = this.mataMataIntegrado
             ? this.cache.getResultadosMataMata()
             : [];
-        console.log(
-            `[FLUXO-CORE] Resultados mata-mata carregados: ${resultadosMataMata.length} registros`,
-        );
+
+        // DEBUG: Verificar estrutura dos dados mata-mata
+        console.log("[FLUXO-CORE] DEBUG Mata-Mata:", {
+            integrado: this.mataMataIntegrado,
+            resultados: resultadosMataMata.length,
+            exemplo:
+                resultadosMataMata.length > 0 ? resultadosMataMata[0] : null,
+        });
 
         const extrato = {
             rodadas: [],
@@ -166,7 +171,7 @@ export class FluxoFinanceiroCore {
     }
 
     /**
-     * Processa rodada com integração mata-mata
+     * Processa rodada com integração mata-mata CORRIGIDA
      * @private
      */
     _processarRodadaIntegrada(
@@ -228,8 +233,8 @@ export class FluxoFinanceiroCore {
             ? this.calcularPontosCorridosParaRodada(timeId, rodada)
             : null;
 
-        // INTEGRAÇÃO MATA-MATA: Buscar valor da rodada específica
-        const mataMata = this._calcularMataMataIntegrado(
+        // INTEGRAÇÃO MATA-MATA CORRIGIDA: Buscar valor da rodada específica
+        const mataMata = this._calcularMataMataIntegradoCorrigido(
             timeId,
             rodada,
             resultadosMataMata,
@@ -258,21 +263,29 @@ export class FluxoFinanceiroCore {
     }
 
     /**
-     * Calcula mata-mata integrado
+     * Calcula mata-mata integrado CORRIGIDO
      * @private
      */
-    _calcularMataMataIntegrado(timeId, rodada, resultadosMataMata) {
+    _calcularMataMataIntegradoCorrigido(timeId, rodada, resultadosMataMata) {
         if (!this.mataMataIntegrado || !resultadosMataMata.length) {
             return 0;
         }
 
+        // CORREÇÃO: Buscar por rodadaPontos em vez de rodada
         const resultado = resultadosMataMata.find(
             (r) =>
                 normalizarTimeId(r.timeId) === normalizarTimeId(timeId) &&
-                r.rodada === rodada,
+                r.rodadaPontos === rodada, // CORRIGIDO: usar rodadaPontos
         );
 
-        return resultado ? resultado.valor || 0 : 0;
+        if (resultado) {
+            console.log(
+                `[FLUXO-CORE] Mata-Mata encontrado para time ${timeId} rodada ${rodada}: R$ ${resultado.valor}`,
+            );
+            return resultado.valor || 0;
+        }
+
+        return 0;
     }
 
     /**
@@ -393,7 +406,7 @@ export class FluxoFinanceiroCore {
             }
         }
 
-        // Integrar mata-mata e melhor mês
+        // CORREÇÃO: Integrar mata-mata e melhor mês
         if (typeof rodadaData.mataMata === "number") {
             resumo.mataMata += rodadaData.mataMata;
         }

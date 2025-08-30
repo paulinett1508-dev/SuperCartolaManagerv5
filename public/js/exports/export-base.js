@@ -1,199 +1,264 @@
-// ✅ EXPORT-BASE.JS - UTILITÁRIOS COMPARTILHADOS OTIMIZADOS v2.3.0
-// Sistema base padronizado para todos os módulos de exportação
+// SISTEMA DE EXPORTAÇÃO MOBILE DARK HD - BASE UNIFICADA v3.0.1
+// Configuração otimizada para mobile vertical, tema dark, alta definição
+// CORREÇÃO CRÍTICA: Carregamento dinâmico do html2canvas
 
-console.log("[EXPORT-BASE] 🚀 Carregando utilities otimizadas v2.3.0...");
+console.log(
+  "[EXPORT-BASE-MOBILE-DARK] 🚀 Sistema Mobile Dark HD v3.0.1 carregado",
+);
 
-// ✅ CONFIGURAÇÃO PADRONIZADA PARA TODOS OS EXPORTS
-export const EXPORT_BASE_CONFIG = {
-  width: 800,
-  padding: 24,
-  headerHeight: 85,
-  footerHeight: 40,
-  cardSpacing: 8,
+// CONFIGURAÇÃO BASE MOBILE DARK HD - TODOS OS MÓDULOS DEVEM USAR ESTA
+export const MOBILE_DARK_HD_CONFIG = {
+  // DIMENSÕES MOBILE VERTICAL HD
+  width: 400, // Largura mobile vertical
+  minHeight: 800, // Altura mínima para scroll adequado
+  scale: 4, // 4x para ultra alta definição
+  dpi: 300, // DPI profissional para print quality
+
+  // ESPAÇAMENTO MOBILE OTIMIZADO
+  padding: 16, // Padding reduzido para mobile
+  headerHeight: 80, // Header compacto otimizado
+  footerHeight: 60, // Footer proporcional
+  cardSpacing: 12, // Espaçamento entre cards
+
+  // TEMA DARK PROFISSIONAL
   colors: {
-    primary: "#2E8B57", // Verde da logo SuperCartola
-    secondary: "#228B22", // Verde mais escuro
-    accent: "#32CD32", // Verde claro
-    background: "#ffffff",
-    surface: "#ffffff",
-    border: "#e0e0e0",
-    text: "#2c2c2c",
-    textLight: "#666666",
-    success: "#27ae60",
-    danger: "#e74c3c",
+    // Backgrounds Dark
+    primary: "#1a1a1a", // Fundo principal escuro
+    secondary: "#2d2d2d", // Fundo secundário
+    surface: "#1e1e1e", // Superfície de cards
+    surfaceLight: "#252525", // Superfície clara
+
+    // Acentos e Destaques
+    accent: "#FF6B35", // Laranja vibrante para destaques
+    accentDark: "#E55A2B", // Laranja escuro
+    gold: "#FFD700", // Dourado para primeiro lugar
+    silver: "#C0C0C0", // Prata para segundo lugar
+    bronze: "#CD7F32", // Bronze para terceiro lugar
+
+    // Textos Dark Theme
+    text: "#FFFFFF", // Texto principal branco
+    textSecondary: "#E0E0E0", // Texto secundário
+    textMuted: "#B0B0B0", // Texto desbotado
+    textDisabled: "#707070", // Texto desabilitado
+
+    // Estados e Feedbacks
+    success: "#4CAF50", // Verde sucesso
+    successDark: "#388E3C", // Verde escuro
+    danger: "#F44336", // Vermelho erro/negativo
+    dangerDark: "#C62828", // Vermelho escuro
+    warning: "#FF9800", // Amarelo aviso
+    info: "#2196F3", // Azul informação
+
+    // Bordas e Separadores
+    border: "#404040", // Bordas sutis
+    borderLight: "#505050", // Bordas claras
+    divider: "#333333", // Divisores
+
+    // Gradientes Dark
+    gradientPrimary: "linear-gradient(135deg, #FF6B35 0%, #E55A2B 100%)",
+    gradientDark: "linear-gradient(135deg, #1a1a1a 0%, #2d2d2d 100%)",
+    gradientSuccess: "linear-gradient(135deg, #4CAF50 0%, #388E3C 100%)",
+    gradientDanger: "linear-gradient(135deg, #F44336 0%, #C62828 100%)",
+
+    // Overlay e Sombras
+    overlay: "rgba(0, 0, 0, 0.8)",
+    shadow: "0 8px 32px rgba(0, 0, 0, 0.6)",
+    shadowLight: "0 4px 16px rgba(0, 0, 0, 0.4)",
   },
+
+  // TIPOGRAFIA MOBILE OTIMIZADA
   fonts: {
-    title: "28px Inter, sans-serif",
-    subtitle: "18px Inter, sans-serif",
-    heading: "16px Inter, sans-serif",
-    body: "13px Inter, sans-serif",
-    caption: "11px Inter, sans-serif",
+    // Tamanhos maiores para mobile
+    title: "32px 'Inter', -apple-system, sans-serif",
+    titleLarge: "36px 'Inter', -apple-system, sans-serif",
+    subtitle: "24px 'Inter', -apple-system, sans-serif",
+    heading: "20px 'Inter', -apple-system, sans-serif",
+    subheading: "18px 'Inter', -apple-system, sans-serif",
+    body: "16px 'Inter', -apple-system, sans-serif",
+    bodySmall: "14px 'Inter', -apple-system, sans-serif",
+    caption: "12px 'Inter', -apple-system, sans-serif",
+
+    // Pesos específicos
+    weights: {
+      light: 300,
+      regular: 400,
+      medium: 500,
+      semibold: 600,
+      bold: 700,
+      extrabold: 800,
+    },
+  },
+
+  // CONFIGURAÇÕES DE EXPORTAÇÃO HD
+  export: {
+    quality: 1.0, // Qualidade máxima PNG
+    format: "png", // Formato PNG para transparência
+    backgroundColor: "#1a1a1a", // Fundo dark padrão
+    useCORS: true, // Permitir cross-origin
+    allowTaint: true, // Permitir imagens externas
+    logging: false, // Sem logs no html2canvas
+    imageTimeout: 5000, // Timeout para carregar imagens
+    removeContainer: true, // Remover container após export
+    letterRendering: true, // Melhor renderização de texto
   },
 };
 
-// ✅ INFORMAÇÕES DAS LIGAS OTIMIZADAS
-const LIGAS_CONFIG = {
+// INFORMAÇÕES DAS LIGAS OTIMIZADAS PARA MOBILE DARK
+const LIGAS_MOBILE_CONFIG = {
   "684cb1c8af923da7c7df51de": {
-    nome: "SuperCartola 2025",
+    nome: "SuperCartola",
+    nomeCompleto: "SuperCartola 2025",
     logo: "/img/logo-supercartola.png",
     fallbackLogo: "SC",
-    corPrimaria: EXPORT_BASE_CONFIG.colors.primary,
+    corPrimaria: MOBILE_DARK_HD_CONFIG.colors.accent,
+    corSecundaria: MOBILE_DARK_HD_CONFIG.colors.accentDark,
   },
   "684d821cf1a7ae16d1f89572": {
-    nome: "Cartoleiros Sobral 2025",
+    nome: "Cartoleiros Sobral",
+    nomeCompleto: "Cartoleiros Sobral 2025",
     logo: "/img/logo-cartoleirossobral.png",
     fallbackLogo: "CS",
-    corPrimaria: EXPORT_BASE_CONFIG.colors.primary,
+    corPrimaria: MOBILE_DARK_HD_CONFIG.colors.accent,
+    corSecundaria: MOBILE_DARK_HD_CONFIG.colors.accentDark,
   },
 };
 
-// ✅ FUNÇÃO OTIMIZADA PARA OBTER DADOS DA LIGA ATIVA
-export function getLigaAtivaInfo() {
+// FUNÇÃO PARA OBTER DADOS DA LIGA ATIVA
+export function getLigaAtivaInfoMobile() {
   const urlParams = new URLSearchParams(window.location.search);
   const ligaId = urlParams.get("id");
 
-  if (ligaId && LIGAS_CONFIG[ligaId]) {
-    console.log(
-      `[EXPORT-BASE] ✅ Liga identificada: ${LIGAS_CONFIG[ligaId].nome}`,
-    );
-    return LIGAS_CONFIG[ligaId];
+  if (ligaId && LIGAS_MOBILE_CONFIG[ligaId]) {
+    return LIGAS_MOBILE_CONFIG[ligaId];
   }
 
-  // Fallback para liga padrão
-  console.log("[EXPORT-BASE] ⚠️ Liga não identificada, usando padrão");
-  return LIGAS_CONFIG["684cb1c8af923da7c7df51de"];
+  return LIGAS_MOBILE_CONFIG["684cb1c8af923da7c7df51de"];
 }
 
-// ✅ FUNÇÃO OTIMIZADA PARA TOTAL DE RODADAS
-export async function obterTotalRodasExport() {
-  try {
-    const controller = new AbortController();
-    const timeoutId = setTimeout(() => controller.abort(), 3000);
-
-    const response = await fetch("/api/configuracao/total-rodadas", {
-      signal: controller.signal,
-    });
-    clearTimeout(timeoutId);
-
-    if (response.ok) {
-      const data = await response.json();
-      const totalRodadas = data.totalRodadas || 38;
-      console.log(`[EXPORT-BASE] ✅ Total de rodadas: ${totalRodadas}`);
-      return totalRodadas;
-    }
-  } catch (error) {
-    console.warn(
-      "[EXPORT-BASE] ⚠️ Erro ao obter total de rodadas, usando padrão 38:",
-      error.message,
-    );
-  }
-  return 38;
-}
-
-// ✅ FUNÇÃO PRINCIPAL PARA CRIAR HEADER PROFISSIONAL
-export function criarHeaderProfissional(titulo, subtitulo = "", info = {}) {
-  const ligaInfo = getLigaAtivaInfo();
+// HEADER MOBILE DARK COMPACTO - MINI CARDS
+export function criarHeaderMobileDark(titulo, subtitulo = "", info = {}) {
+  const ligaInfo = getLigaAtivaInfoMobile();
   const agora = new Date();
   const dataFormatada = agora.toLocaleDateString("pt-BR", {
-    year: "numeric",
-    month: "long",
-    day: "numeric",
+    day: "2-digit",
+    month: "short",
     hour: "2-digit",
     minute: "2-digit",
   });
 
   return `
-    <!-- HEADER PROFISSIONAL PADRONIZADO -->
+    <!-- HEADER MOBILE DARK COMPACTO -->
     <div style="
-      background: linear-gradient(135deg, ${EXPORT_BASE_CONFIG.colors.primary} 0%, ${EXPORT_BASE_CONFIG.colors.secondary} 100%);
-      color: white;
-      padding: ${EXPORT_BASE_CONFIG.padding}px;
-      text-align: center;
+      background: ${MOBILE_DARK_HD_CONFIG.colors.gradientPrimary};
+      color: ${MOBILE_DARK_HD_CONFIG.colors.text};
+      padding: 12px ${MOBILE_DARK_HD_CONFIG.padding}px;
       position: relative;
       overflow: hidden;
-      min-height: ${EXPORT_BASE_CONFIG.headerHeight}px;
+      min-height: ${MOBILE_DARK_HD_CONFIG.headerHeight}px;
+      box-shadow: ${MOBILE_DARK_HD_CONFIG.colors.shadow};
     ">
-      <!-- Padrão geométrico de fundo -->
-      <div style="
-        position: absolute;
-        top: 0;
-        left: 0;
-        right: 0;
-        bottom: 0;
-        background: url('data:image/svg+xml,<svg xmlns=\"http://www.w3.org/2000/svg\" width=\"50\" height=\"50\" viewBox=\"0 0 50 50\"><g fill=\"none\" fill-rule=\"evenodd\"><g fill=\"%23ffffff\" fill-opacity=\"0.08\"><polygon points=\"30 28 5 28 5 3 30 3\"/></g></g></svg>');
-        opacity: 0.6;
-      "></div>
 
-      <!-- Conteúdo do header -->
-      <div style="position: relative; z-index: 1; display: flex; align-items: center; justify-content: center; gap: 16px;">
-        <!-- Logo sempre presente -->
-        <div style="flex-shrink: 0;">
+      <!-- Container flex compacto -->
+      <div style="
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        position: relative;
+        z-index: 2;
+      ">
+
+        <!-- MINI CARD ESQUERDO - Liga -->
+        <div style="
+          display: flex;
+          align-items: center;
+          background: ${MOBILE_DARK_HD_CONFIG.colors.overlay};
+          backdrop-filter: blur(10px);
+          border-radius: 10px;
+          padding: 6px 10px;
+          border: 1px solid ${MOBILE_DARK_HD_CONFIG.colors.border};
+          min-width: 0;
+          flex: 1;
+        ">
           <img src="${ligaInfo.logo}" 
-               style="height: 42px; width: auto; filter: brightness(1.1);" 
+               style="
+                 height: 24px; 
+                 width: 24px; 
+                 border-radius: 50%;
+                 margin-right: 8px;
+                 flex-shrink: 0;
+               " 
                alt="${ligaInfo.nome}"
-               onerror="this.outerHTML='<div style=\\'width:42px;height:42px;background:rgba(255,255,255,0.2);border-radius:50%;display:flex;align-items:center;justify-content:center;font:bold 14px Inter;\\'>${ligaInfo.fallbackLogo}</div>'">
+               onerror="this.outerHTML='<div style=\\'width:24px;height:24px;background:${MOBILE_DARK_HD_CONFIG.colors.accent};border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:10px;margin-right:8px;flex-shrink:0;\\'>${ligaInfo.fallbackLogo}</div>'">
+
+          <div style="min-width: 0; flex: 1;">
+            <div style="
+              font: ${MOBILE_DARK_HD_CONFIG.fonts.weights.semibold} 12px Inter;
+              color: ${MOBILE_DARK_HD_CONFIG.colors.text};
+              white-space: nowrap;
+              overflow: hidden;
+              text-overflow: ellipsis;
+            ">${ligaInfo.nome}</div>
+          </div>
         </div>
 
-        <div style="text-align: center;">
-          <h1 style="
-            font: 700 ${EXPORT_BASE_CONFIG.fonts.title} Inter, sans-serif;
-            margin: 0 0 3px 0;
-            letter-spacing: -0.5px;
-            text-shadow: 0 2px 4px rgba(0,0,0,0.2);
-          ">${ligaInfo.nome}</h1>
-
-          ${
-            titulo
-              ? `
-            <h2 style="
-              font: 600 ${EXPORT_BASE_CONFIG.fonts.subtitle} Inter, sans-serif;
-              margin: 0 0 6px 0;
-              opacity: 0.95;
-            ">${titulo}</h2>
-          `
-              : ""
-          }
+        <!-- MINI CARD CENTRO - Título -->
+        <div style="
+          background: ${MOBILE_DARK_HD_CONFIG.colors.overlay};
+          backdrop-filter: blur(10px);
+          border-radius: 10px;
+          padding: 6px 12px;
+          border: 1px solid ${MOBILE_DARK_HD_CONFIG.colors.border};
+          margin: 0 8px;
+          flex-shrink: 0;
+        ">
+          <div style="
+            font: ${MOBILE_DARK_HD_CONFIG.fonts.weights.bold} 14px Inter;
+            color: ${MOBILE_DARK_HD_CONFIG.colors.text};
+            text-align: center;
+            white-space: nowrap;
+          ">${titulo || "Exportação"}</div>
 
           ${
             subtitulo
               ? `
             <div style="
-              background: rgba(255, 255, 255, 0.2);
-              backdrop-filter: blur(10px);
-              border-radius: 20px;
-              padding: 4px 16px;
-              display: inline-block;
-              border: 1px solid rgba(255, 255, 255, 0.3);
-            ">
-              <span style="font: 600 13px Inter, sans-serif; letter-spacing: 0.5px;">
-                ${subtitulo.toUpperCase()}
-              </span>
-            </div>
+              font: ${MOBILE_DARK_HD_CONFIG.fonts.weights.regular} 10px Inter;
+              color: ${MOBILE_DARK_HD_CONFIG.colors.textMuted};
+              text-align: center;
+              margin-top: 2px;
+            ">${subtitulo}</div>
           `
               : ""
           }
         </div>
-      </div>
 
-      ${
-        info.rodada
-          ? `
-        <p style="
-          font: 500 11px Inter, sans-serif;
-          margin: 8px 0 0 0;
-          opacity: 0.9;
-        ">Rodada ${info.rodada}</p>
-      `
-          : ""
-      }
+        <!-- MINI CARD DIREITO - Data -->
+        <div style="
+          background: ${MOBILE_DARK_HD_CONFIG.colors.overlay};
+          backdrop-filter: blur(10px);
+          border-radius: 10px;
+          padding: 6px 8px;
+          border: 1px solid ${MOBILE_DARK_HD_CONFIG.colors.border};
+          flex-shrink: 0;
+        ">
+          <div style="
+            font: ${MOBILE_DARK_HD_CONFIG.fonts.weights.medium} 10px Inter;
+            color: ${MOBILE_DARK_HD_CONFIG.colors.textMuted};
+            text-align: center;
+            white-space: nowrap;
+          ">${dataFormatada}</div>
+        </div>
+
+      </div>
     </div>
   `;
 }
 
-// ✅ FUNÇÃO PARA CRIAR FOOTER PROFISSIONAL
-export function criarFooterProfissional() {
+// FOOTER MOBILE DARK PROFISSIONAL
+export function criarFooterMobileDark() {
   const agora = new Date();
-  const dataFormatada = agora.toLocaleDateString("pt-BR", {
+  const dataCompleta = agora.toLocaleDateString("pt-BR", {
+    weekday: "long",
     year: "numeric",
     month: "long",
     day: "numeric",
@@ -202,145 +267,248 @@ export function criarFooterProfissional() {
   });
 
   return `
-    <!-- FOOTER PROFISSIONAL PADRONIZADO -->
+    <!-- FOOTER MOBILE DARK HD -->
     <div style="
-      background: ${EXPORT_BASE_CONFIG.colors.surface};
-      border-top: 1px solid ${EXPORT_BASE_CONFIG.colors.border};
-      padding: 12px ${EXPORT_BASE_CONFIG.padding}px;
+      background: ${MOBILE_DARK_HD_CONFIG.colors.surface};
+      border-top: 2px solid ${MOBILE_DARK_HD_CONFIG.colors.accent};
+      padding: ${MOBILE_DARK_HD_CONFIG.padding}px;
       text-align: center;
-      margin-top: 16px;
+      margin-top: 24px;
     ">
-      <p style="
-        font: ${EXPORT_BASE_CONFIG.fonts.caption} Inter, sans-serif;
-        margin: 0;
-        color: ${EXPORT_BASE_CONFIG.colors.textLight};
-        line-height: 1.2;
+
+      <!-- Logo mini -->
+      <div style="
+        width: 32px;
+        height: 32px;
+        background: ${MOBILE_DARK_HD_CONFIG.colors.gradientPrimary};
+        border-radius: 50%;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        margin-bottom: 8px;
+        box-shadow: ${MOBILE_DARK_HD_CONFIG.colors.shadowLight};
       ">
-        Gerado em ${dataFormatada} • SuperCartola Manager v2.3.0<br>
-        Sistema de Gerenciamento de Ligas do Cartola FC
-      </p>
+        <span style="
+          font: ${MOBILE_DARK_HD_CONFIG.fonts.weights.bold} 14px Inter;
+          color: ${MOBILE_DARK_HD_CONFIG.colors.text};
+        ">SC</span>
+      </div>
+
+      <!-- Informações do sistema -->
+      <div style="
+        font: ${MOBILE_DARK_HD_CONFIG.fonts.weights.medium} ${MOBILE_DARK_HD_CONFIG.fonts.caption};
+        color: ${MOBILE_DARK_HD_CONFIG.colors.textMuted};
+        line-height: 1.4;
+        margin: 0;
+      ">
+        SuperCartola Manager v3.0.1<br>
+        Sistema de Gestão de Ligas Cartola FC<br>
+        <span style="
+          color: ${MOBILE_DARK_HD_CONFIG.colors.accent};
+          font-weight: ${MOBILE_DARK_HD_CONFIG.fonts.weights.semibold};
+        ">Gerado em ${dataCompleta}</span>
+      </div>
     </div>
   `;
 }
 
-// ✅ FUNÇÃO OTIMIZADA PARA CRIAR CONTAINER DE EXPORTAÇÃO
-export function criarDivExportacao(titulo, subtitulo = "", info = {}) {
-  const exportDiv = document.createElement("div");
-  exportDiv.id = "export-container-temp";
-  exportDiv.style.cssText = `
+// CONTAINER DE EXPORTAÇÃO MOBILE DARK HD
+export function criarContainerMobileDark(titulo, subtitulo = "", info = {}) {
+  const exportContainer = document.createElement("div");
+  exportContainer.id = "mobile-dark-export-container";
+  exportContainer.style.cssText = `
     position: absolute;
     top: -99999px;
     left: -99999px;
-    width: ${EXPORT_BASE_CONFIG.width}px;
-    background: ${EXPORT_BASE_CONFIG.colors.background};
-    font-family: Inter, -apple-system, BlinkMacSystemFont, sans-serif;
-    line-height: 1.3;
-    color: ${EXPORT_BASE_CONFIG.colors.text};
+    width: ${MOBILE_DARK_HD_CONFIG.width}px;
+    min-height: ${MOBILE_DARK_HD_CONFIG.minHeight}px;
+    background: ${MOBILE_DARK_HD_CONFIG.colors.primary};
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+    color: ${MOBILE_DARK_HD_CONFIG.colors.text};
+    line-height: 1.4;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
   `;
 
-  const headerHtml = criarHeaderProfissional(titulo, subtitulo, info);
-  const footerHtml = criarFooterProfissional();
+  const headerHtml = criarHeaderMobileDark(titulo, subtitulo, info);
+  const footerHtml = criarFooterMobileDark();
 
-  exportDiv.innerHTML = `
+  exportContainer.innerHTML = `
     ${headerHtml}
 
-    <!-- CONTEÚDO PRINCIPAL -->
-    <div id="export-content" style="padding: ${EXPORT_BASE_CONFIG.padding}px;">
+    <!-- CONTEÚDO PRINCIPAL MOBILE -->
+    <div id="mobile-export-content" style="
+      padding: ${MOBILE_DARK_HD_CONFIG.padding}px;
+      min-height: calc(${MOBILE_DARK_HD_CONFIG.minHeight}px - ${MOBILE_DARK_HD_CONFIG.headerHeight}px - ${MOBILE_DARK_HD_CONFIG.footerHeight}px);
+    ">
       <!-- Conteúdo será inserido aqui -->
     </div>
 
     ${footerHtml}
   `;
 
-  return exportDiv;
+  return exportContainer;
 }
 
-// ✅ FUNÇÃO OTIMIZADA PARA FORMATAR MOEDA
-export function formatarMoedaExport(valor) {
-  if (typeof valor !== "number") {
-    return "R$ 0,00";
+// CARREGAMENTO DINÂMICO DO HTML2CANVAS - CORREÇÃO CRÍTICA
+async function carregarHtml2Canvas() {
+  if (window.html2canvas) {
+    console.log("[EXPORT-BASE-MOBILE-DARK] html2canvas já carregado");
+    return window.html2canvas;
   }
 
-  const abs = Math.abs(valor).toFixed(2).replace(".", ",");
-  return valor >= 0 ? `R$ ${abs}` : `-R$ ${abs}`;
+  console.log(
+    "[EXPORT-BASE-MOBILE-DARK] Carregando html2canvas dinamicamente...",
+  );
+
+  return new Promise((resolve, reject) => {
+    const script = document.createElement("script");
+    script.src =
+      "https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js";
+    script.crossOrigin = "anonymous";
+
+    script.onload = () => {
+      if (window.html2canvas) {
+        console.log(
+          "[EXPORT-BASE-MOBILE-DARK] ✅ html2canvas carregado com sucesso",
+        );
+        resolve(window.html2canvas);
+      } else {
+        console.error(
+          "[EXPORT-BASE-MOBILE-DARK] ❌ html2canvas não disponível após carregamento",
+        );
+        reject(new Error("html2canvas não carregou corretamente"));
+      }
+    };
+
+    script.onerror = (error) => {
+      console.error(
+        "[EXPORT-BASE-MOBILE-DARK] ❌ Erro ao carregar html2canvas:",
+        error,
+      );
+      reject(new Error("Falha ao carregar html2canvas"));
+    };
+
+    // Timeout de segurança
+    setTimeout(() => {
+      if (!window.html2canvas) {
+        console.error(
+          "[EXPORT-BASE-MOBILE-DARK] ❌ Timeout ao carregar html2canvas",
+        );
+        reject(new Error("Timeout ao carregar html2canvas"));
+      }
+    }, 10000);
+
+    document.head.appendChild(script);
+  });
 }
 
-// ✅ FUNÇÃO OTIMIZADA PARA CANVAS E DOWNLOAD
-export async function gerarCanvasDownload(element, filename) {
+// GERAÇÃO DE CANVAS HD OTIMIZADA PARA MOBILE - CORRIGIDA
+export async function gerarCanvasMobileDarkHD(element, filename) {
   try {
-    console.log(`[EXPORT-BASE] 📸 Gerando canvas para: ${filename}`);
+    console.log(
+      `[EXPORT-BASE-MOBILE-DARK] 📱 Gerando canvas mobile HD: ${filename}`,
+    );
 
-    // Verificar se html2canvas está disponível
-    if (!window.html2canvas) {
-      throw new Error("html2canvas não está disponível");
-    }
+    // Carregar html2canvas dinamicamente se não estiver disponível
+    await carregarHtml2Canvas();
 
-    // Aguardar renderização de imagens
+    // Aguardar carregamento de todas as imagens
     const imagens = element.querySelectorAll("img");
     if (imagens.length > 0) {
       await Promise.all(
         Array.from(imagens).map((img) => {
           return new Promise((resolve) => {
-            if (img.complete) {
+            if (img.complete && img.naturalWidth > 0) {
               resolve();
             } else {
               img.onload = resolve;
               img.onerror = resolve;
-              setTimeout(resolve, 2000); // Timeout de segurança
+              setTimeout(resolve, MOBILE_DARK_HD_CONFIG.export.imageTimeout);
             }
           });
         }),
       );
     }
 
-    // Aguardar um frame para garantir renderização
-    await new Promise((resolve) => requestAnimationFrame(resolve));
-
-    // Gerar canvas com configurações otimizadas
-    const canvas = await window.html2canvas(element, {
-      allowTaint: true,
-      useCORS: true,
-      scale: 2,
-      logging: false,
-      width: EXPORT_BASE_CONFIG.width,
-      height: element.scrollHeight,
-      backgroundColor: EXPORT_BASE_CONFIG.colors.background,
+    // Aguardar renderização completa
+    await new Promise((resolve) => {
+      requestAnimationFrame(() => {
+        requestAnimationFrame(resolve);
+      });
     });
 
-    // Download da imagem
+    // Gerar canvas com configurações HD mobile
+    const canvas = await window.html2canvas(element, {
+      allowTaint: MOBILE_DARK_HD_CONFIG.export.allowTaint,
+      useCORS: MOBILE_DARK_HD_CONFIG.export.useCORS,
+      scale: MOBILE_DARK_HD_CONFIG.scale,
+      logging: MOBILE_DARK_HD_CONFIG.export.logging,
+      width: MOBILE_DARK_HD_CONFIG.width,
+      height: Math.max(element.scrollHeight, MOBILE_DARK_HD_CONFIG.minHeight),
+      backgroundColor: MOBILE_DARK_HD_CONFIG.export.backgroundColor,
+      removeContainer: MOBILE_DARK_HD_CONFIG.export.removeContainer,
+      letterRendering: MOBILE_DARK_HD_CONFIG.export.letterRendering,
+      imageTimeout: MOBILE_DARK_HD_CONFIG.export.imageTimeout,
+      pixelRatio: Math.max(window.devicePixelRatio || 1, 2),
+    });
+
+    // Download da imagem HD
     const link = document.createElement("a");
     link.download = filename;
-    link.href = canvas.toDataURL("image/png", 0.95);
-    link.click();
+    link.href = canvas.toDataURL(
+      `image/${MOBILE_DARK_HD_CONFIG.export.format}`,
+      MOBILE_DARK_HD_CONFIG.export.quality,
+    );
 
-    console.log(`[EXPORT-BASE] ✅ Imagem exportada: ${filename}`);
-    mostrarNotificacaoSucesso("Imagem exportada com sucesso!");
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+
+    console.log(
+      `[EXPORT-BASE-MOBILE-DARK] ✅ Imagem HD exportada: ${filename}`,
+    );
+    mostrarNotificacaoSucessoMobile("Imagem HD exportada com sucesso!");
   } catch (error) {
-    console.error("[EXPORT-BASE] ❌ Erro no canvas/download:", error);
-    mostrarNotificacaoErro("Erro ao exportar imagem. Tente novamente.");
+    console.error("[EXPORT-BASE-MOBILE-DARK] ❌ Erro no canvas HD:", error);
+    mostrarNotificacaoErroMobile(
+      "Erro ao exportar imagem HD. Tente novamente.",
+    );
     throw error;
   } finally {
-    // Limpar elemento temporário
+    // Limpar container temporário
     if (element && element.parentNode === document.body) {
       document.body.removeChild(element);
     }
   }
 }
 
-// ✅ SISTEMA DE NOTIFICAÇÕES PADRONIZADO
-export function mostrarNotificacaoSucesso(mensagem) {
-  mostrarNotificacao(mensagem, "success");
+// SISTEMA DE NOTIFICAÇÕES MOBILE DARK
+export function mostrarNotificacaoSucessoMobile(mensagem) {
+  mostrarNotificacaoMobile(mensagem, "success");
 }
 
-export function mostrarNotificacaoErro(mensagem) {
-  mostrarNotificacao(mensagem, "error");
+export function mostrarNotificacaoErroMobile(mensagem) {
+  mostrarNotificacaoMobile(mensagem, "error");
 }
 
-function mostrarNotificacao(mensagem, tipo = "info") {
+function mostrarNotificacaoMobile(mensagem, tipo = "info") {
   const cores = {
-    success: { bg: "#d4edda", border: "#c3e6cb", text: "#155724", icon: "✅" },
-    error: { bg: "#f8d7da", border: "#f5c6cb", text: "#721c24", icon: "❌" },
-    info: { bg: "#d1ecf1", border: "#bee5eb", text: "#0c5460", icon: "ℹ️" },
+    success: {
+      bg: MOBILE_DARK_HD_CONFIG.colors.success,
+      text: MOBILE_DARK_HD_CONFIG.colors.text,
+      icon: "✅",
+    },
+    error: {
+      bg: MOBILE_DARK_HD_CONFIG.colors.danger,
+      text: MOBILE_DARK_HD_CONFIG.colors.text,
+      icon: "❌",
+    },
+    info: {
+      bg: MOBILE_DARK_HD_CONFIG.colors.info,
+      text: MOBILE_DARK_HD_CONFIG.colors.text,
+      icon: "ℹ️",
+    },
   };
 
   const cor = cores[tipo] || cores.info;
@@ -351,22 +519,22 @@ function mostrarNotificacao(mensagem, tipo = "info") {
     top: 20px;
     right: 20px;
     background: ${cor.bg};
-    border: 1px solid ${cor.border};
     color: ${cor.text};
-    padding: 16px 24px;
-    border-radius: 8px;
-    font: 500 14px Inter, sans-serif;
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+    padding: 16px 20px;
+    border-radius: 12px;
+    font: ${MOBILE_DARK_HD_CONFIG.fonts.weights.medium} ${MOBILE_DARK_HD_CONFIG.fonts.body};
+    box-shadow: ${MOBILE_DARK_HD_CONFIG.colors.shadow};
     z-index: 10000;
     transform: translateX(100%);
-    transition: transform 0.3s ease;
-    max-width: 300px;
+    transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    max-width: 280px;
+    border: 1px solid ${MOBILE_DARK_HD_CONFIG.colors.border};
   `;
 
   notificacao.innerHTML = `
-    <div style="display: flex; align-items: center; gap: 8px;">
-      <span style="font-size: 16px;">${cor.icon}</span>
-      <span>${mensagem}</span>
+    <div style="display: flex; align-items: center; gap: 12px;">
+      <span style="font-size: 18px; flex-shrink: 0;">${cor.icon}</span>
+      <span style="line-height: 1.3;">${mensagem}</span>
     </div>
   `;
 
@@ -377,7 +545,7 @@ function mostrarNotificacao(mensagem, tipo = "info") {
     notificacao.style.transform = "translateX(0)";
   });
 
-  // Remover após 3 segundos
+  // Remover após 4 segundos (mais tempo para mobile)
   setTimeout(() => {
     notificacao.style.transform = "translateX(100%)";
     setTimeout(() => {
@@ -385,183 +553,76 @@ function mostrarNotificacao(mensagem, tipo = "info") {
         document.body.removeChild(notificacao);
       }
     }, 300);
-  }, 3000);
+  }, 4000);
 }
 
-// ✅ FUNÇÃO OTIMIZADA PARA CRIAR BOTÃO DE EXPORTAÇÃO
-export function criarBotaoExportacaoRodada({
-  containerId,
-  rodada,
-  rankings,
-  tipo = "rodada",
-  customExport = null,
-  texto = "Exportar Imagem",
-}) {
-  const container =
-    typeof containerId === "string"
-      ? document.getElementById(containerId)
-      : containerId;
+// UTILITÁRIOS MOBILE DARK
+export const MobileDarkUtils = {
+  config: MOBILE_DARK_HD_CONFIG,
+  getLigaInfo: getLigaAtivaInfoMobile,
+  criarHeader: criarHeaderMobileDark,
+  criarFooter: criarFooterMobileDark,
+  criarContainer: criarContainerMobileDark,
+  gerarCanvas: gerarCanvasMobileDarkHD,
+  mostrarSucesso: mostrarNotificacaoSucessoMobile,
+  mostrarErro: mostrarNotificacaoErroMobile,
 
-  if (!container) {
-    console.warn(`[EXPORT-BASE] ⚠️ Container não encontrado: ${containerId}`);
-    // Retry após 100ms
-    setTimeout(() => {
-      const retryContainer =
-        typeof containerId === "string"
-          ? document.getElementById(containerId)
-          : containerId;
-      if (retryContainer) {
-        criarBotaoExportacaoRodada({
-          containerId: retryContainer,
-          rodada,
-          rankings,
-          tipo,
-          customExport,
-          texto,
-        });
-      } else {
-        console.error(
-          `[EXPORT-BASE] ❌ Container ${containerId} não encontrado após retry`,
-        );
-      }
-    }, 100);
-    return;
-  }
+  // Gerar nome de arquivo otimizado para mobile
+  gerarNomeArquivoMobile: (tipo, info = {}) => {
+    const timestamp = new Date()
+      .toISOString()
+      .slice(0, 19)
+      .replace(/[:-]/g, "");
+    const ligaInfo = getLigaAtivaInfoMobile();
+    const ligaNome = ligaInfo.nome.toLowerCase().replace(/\s+/g, "-");
 
-  // Limpar container
-  container.innerHTML = "";
+    let nome = `${ligaNome}-${tipo}-mobile-hd`;
+    if (info.rodada) nome += `-r${info.rodada}`;
+    if (info.extra) nome += `-${info.extra}`;
+    nome += `-${timestamp}`;
 
-  // Criar botão com design profissional
-  const btnContainer = document.createElement("div");
-  btnContainer.style.cssText = "text-align: right; margin: 15px 0;";
+    return `${nome}.png`;
+  },
 
-  const btn = document.createElement("button");
-  btn.className = "btn-exportar-imagem";
-  btn.innerHTML = `
-    <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor" style="margin-right: 8px;">
-      <path d="M19 12v7H5v-7H3v7c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2v-7h-2zm-6 .67l2.59-2.58L17 11.5l-5 5-5-5 1.41-1.41L11 12.67V3h2v9.67z"/>
-    </svg>
-    ${texto}
-  `;
-
-  btn.style.cssText = `
-    background: linear-gradient(135deg, ${EXPORT_BASE_CONFIG.colors.primary} 0%, ${EXPORT_BASE_CONFIG.colors.accent} 100%);
-    color: white;
-    border: none;
-    padding: 12px 24px;
-    border-radius: 8px;
-    cursor: pointer;
-    font: 500 14px Inter, sans-serif;
-    display: inline-flex;
-    align-items: center;
-    transition: all 0.3s ease;
-    box-shadow: 0 4px 12px rgba(46, 139, 87, 0.3);
-  `;
-
-  // Efeitos hover
-  btn.onmouseover = () => {
-    btn.style.transform = "translateY(-2px)";
-    btn.style.boxShadow = "0 6px 20px rgba(46, 139, 87, 0.4)";
-  };
-
-  btn.onmouseout = () => {
-    btn.style.transform = "translateY(0)";
-    btn.style.boxShadow = "0 4px 12px rgba(46, 139, 87, 0.3)";
-  };
-
-  btn.onclick = async (e) => {
-    e.stopPropagation();
-
-    const textoOriginal = btn.innerHTML;
-    btn.innerHTML = `
-      <div style="width: 16px; height: 16px; margin-right: 8px;">
-        <div style="width: 16px; height: 16px; border: 2px solid transparent; border-top: 2px solid currentColor; border-radius: 50%; animation: spin 1s linear infinite;"></div>
-      </div>
-      Gerando Imagem...
-    `;
-    btn.disabled = true;
-
-    try {
-      if (typeof customExport === "function") {
-        await customExport(rankings, rodada, tipo);
-      } else {
-        console.log(
-          `[EXPORT-BASE] 📦 Executando export padrão para rodada ${rodada}`,
-        );
-        mostrarNotificacaoErro("Função de exportação não configurada");
-      }
-    } catch (error) {
-      console.error("[EXPORT-BASE] ❌ Erro no export:", error);
-      mostrarNotificacaoErro("Erro ao exportar. Tente novamente.");
-    } finally {
-      btn.innerHTML = textoOriginal;
-      btn.disabled = false;
-    }
-  };
-
-  // Adicionar animação CSS
-  const style = document.createElement("style");
-  style.textContent = `
-    @keyframes spin {
-      0% { transform: rotate(0deg); }
-      100% { transform: rotate(360deg); }
-    }
-  `;
-  document.head.appendChild(style);
-
-  btnContainer.appendChild(btn);
-  container.appendChild(btnContainer);
-
-  console.log(
-    `[EXPORT-BASE] ✅ Botão de exportação criado para: ${containerId}`,
-  );
-}
-
-// ✅ UTILITÁRIOS ADICIONAIS
-export const ExportUtils = {
-  config: EXPORT_BASE_CONFIG,
-  getLigaInfo: getLigaAtivaInfo,
-  formatarMoeda: formatarMoedaExport,
-  criarHeader: criarHeaderProfissional,
-  criarFooter: criarFooterProfissional,
-  mostrarSucesso: mostrarNotificacaoSucesso,
-  mostrarErro: mostrarNotificacaoErro,
-
-  // Função para validar dados antes da exportação
-  validarDadosExport: (dados, campos = []) => {
+  // Validar dados antes da exportação
+  validarDadosMobile: (dados, campos = []) => {
     if (!dados) {
-      throw new Error("Dados não fornecidos para exportação");
+      throw new Error("Dados não fornecidos para exportação mobile");
     }
 
     for (const campo of campos) {
-      if (!dados[campo]) {
-        throw new Error(`Campo obrigatório não encontrado: ${campo}`);
+      if (dados[campo] === undefined || dados[campo] === null) {
+        console.warn(`Campo ${campo} não encontrado, usando valor padrão`);
       }
     }
 
     return true;
   },
 
-  // Função para gerar nome de arquivo padronizado
-  gerarNomeArquivo: (tipo, info = {}) => {
-    const timestamp = new Date()
-      .toLocaleDateString("pt-BR")
-      .replace(/\//g, "-");
-    const ligaInfo = getLigaAtivaInfo();
-    const ligaNome = ligaInfo.nome.toLowerCase().replace(/\s+/g, "-");
+  // Formatar valores monetários para mobile
+  formatarMoedaMobile: (valor) => {
+    if (typeof valor !== "number" || isNaN(valor)) return "R$ 0,00";
 
-    let nome = `${ligaNome}-${tipo}`;
-    if (info.rodada) nome += `-rodada-${info.rodada}`;
-    if (info.extra) nome += `-${info.extra}`;
-    nome += `-${timestamp}`;
+    const abs = Math.abs(valor);
+    const formatado = abs.toLocaleString("pt-BR", {
+      minimumFractionDigits: 2,
+      maximumFractionDigits: 2,
+    });
 
-    return `${nome}.png`;
+    return valor >= 0 ? `R$ ${formatado}` : `-R$ ${formatado}`;
   },
 };
 
-console.log("[EXPORT-BASE] ✅ Utilities otimizadas carregadas com sucesso");
-console.log("[EXPORT-BASE] 📦 Configuração padronizada disponível");
+console.log("[EXPORT-BASE-MOBILE-DARK] ✅ Sistema Mobile Dark HD configurado");
 console.log(
-  "[EXPORT-BASE] 🎯 Utilitários disponíveis:",
-  Object.keys(ExportUtils),
+  "[EXPORT-BASE-MOBILE-DARK] 📱 Resolução:",
+  `${MOBILE_DARK_HD_CONFIG.width}px x ${MOBILE_DARK_HD_CONFIG.minHeight}px @ ${MOBILE_DARK_HD_CONFIG.scale}x`,
+);
+console.log(
+  "[EXPORT-BASE-MOBILE-DARK] 🎨 Tema Dark ativado com",
+  Object.keys(MOBILE_DARK_HD_CONFIG.colors).length,
+  "cores",
+);
+console.log(
+  "[EXPORT-BASE-MOBILE-DARK] 🔧 Carregamento dinâmico html2canvas ativado",
 );
