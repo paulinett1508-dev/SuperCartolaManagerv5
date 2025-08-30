@@ -255,7 +255,7 @@ export function renderErrorState(containerId, error) {
   `;
 }
 
-// CORREÇÃO: Layout compacto otimizado (CSS movido para arquivo separado)
+// Layout simples usando classes CSS existentes
 export function renderTabelaRodada(
   jogos,
   idxRodada,
@@ -276,6 +276,7 @@ export function renderTabelaRodada(
     statusTexto = "Aguardando Rodada";
   }
 
+  // Usar tabela tradicional com classes existentes
   let confrontosHTML = "";
 
   jogos.forEach((jogo, index) => {
@@ -284,18 +285,22 @@ export function renderTabelaRodada(
     const pontosA = pontuacoesMap[timeA.id] ?? null;
     const pontosB = pontuacoesMap[timeB.id] ?? null;
 
-    // CORREÇÃO: Usar função simplificada para brasões
     const brasaoA = obterBrasaoTime(timeA);
     const brasaoB = obterBrasaoTime(timeB);
 
-    // Nomes completos: Cartoleiro (Time)
-    const nomeCompletoA = `${timeA.nome_cartoleiro || timeA.nome || "N/D"} (${timeA.nome_time || "Time"})`;
-    const nomeCompletoB = `${timeB.nome_cartoleiro || timeB.nome || "N/D"} (${timeB.nome_time || "Time"})`;
+    const nomeA = timeA.nome_cartoleiro || timeA.nome || "N/D";
+    const timeNomeA = timeA.nome_time || "Time";
+    const nomeB = timeB.nome_cartoleiro || timeB.nome || "N/D";
+    const timeNomeB = timeB.nome_time || "Time";
 
-    let financeiroA = "-";
-    let financeiroB = "-";
-    let classeResultadoA = "neutro";
-    let classeResultadoB = "neutro";
+    let financeiroA = "R$ 0,00";
+    let financeiroB = "R$ 0,00";
+    let resultadoTexto = "Aguardando";
+    let classeConfronto = "";
+    let corPlacarA = "";
+    let corPlacarB = "";
+    let corFinanceiroA = "";
+    let corFinanceiroB = "";
 
     if (pontosA !== null && pontosB !== null) {
       const diferenca = Math.abs(pontosA - pontosB);
@@ -303,100 +308,131 @@ export function renderTabelaRodada(
         PONTOS_CORRIDOS_CONFIG.criterios;
 
       if (diferenca <= empateTolerancia) {
-        // EMPATE
         financeiroA = `+R$ ${PONTOS_CORRIDOS_CONFIG.financeiro.empate.toFixed(2)}`;
         financeiroB = `+R$ ${PONTOS_CORRIDOS_CONFIG.financeiro.empate.toFixed(2)}`;
-        classeResultadoA = "empate";
-        classeResultadoB = "empate";
+        resultadoTexto = "Empate";
+        classeConfronto = "empate";
+        corPlacarA = "color: #3b82f6;"; // Azul para empate
+        corPlacarB = "color: #3b82f6;";
+        corFinanceiroA = "color: #22c55e;"; // Verde para positivo
+        corFinanceiroB = "color: #22c55e;";
       } else if (diferenca >= goleadaMinima) {
-        // GOLEADA
         if (pontosA > pontosB) {
           financeiroA = `+R$ ${PONTOS_CORRIDOS_CONFIG.financeiro.goleada.toFixed(2)}`;
           financeiroB = `-R$ ${PONTOS_CORRIDOS_CONFIG.financeiro.goleada.toFixed(2)}`;
-          classeResultadoA = "goleada-ganhou";
-          classeResultadoB = "goleada-perdeu";
+          resultadoTexto = "Goleada A";
+          classeConfronto = "goleada";
+          corPlacarA = "color: #ffd700; font-weight: 700;"; // Dourado para goleada
+          corPlacarB = "color: #ef4444;"; // Vermelho para perdedor
+          corFinanceiroA = "color: #22c55e;"; // Verde para positivo
+          corFinanceiroB = "color: #ef4444;"; // Vermelho para negativo
         } else {
           financeiroA = `-R$ ${PONTOS_CORRIDOS_CONFIG.financeiro.goleada.toFixed(2)}`;
           financeiroB = `+R$ ${PONTOS_CORRIDOS_CONFIG.financeiro.goleada.toFixed(2)}`;
-          classeResultadoA = "goleada-perdeu";
-          classeResultadoB = "goleada-ganhou";
+          resultadoTexto = "Goleada B";
+          classeConfronto = "goleada";
+          corPlacarA = "color: #ef4444;"; // Vermelho para perdedor
+          corPlacarB = "color: #ffd700; font-weight: 700;"; // Dourado para goleada
+          corFinanceiroA = "color: #ef4444;"; // Vermelho para negativo
+          corFinanceiroB = "color: #22c55e;"; // Verde para positivo
         }
       } else {
-        // VITÓRIA SIMPLES
         if (pontosA > pontosB) {
           financeiroA = `+R$ ${PONTOS_CORRIDOS_CONFIG.financeiro.vitoria.toFixed(2)}`;
           financeiroB = `-R$ ${PONTOS_CORRIDOS_CONFIG.financeiro.vitoria.toFixed(2)}`;
-          classeResultadoA = "ganhou";
-          classeResultadoB = "perdeu";
+          resultadoTexto = "Vitória A";
+          classeConfronto = "vitoria";
+          corPlacarA = "color: #22c55e;"; // Verde para vencedor
+          corPlacarB = "color: #ef4444;"; // Vermelho para perdedor
+          corFinanceiroA = "color: #22c55e;"; // Verde para positivo
+          corFinanceiroB = "color: #ef4444;"; // Vermelho para negativo
         } else {
           financeiroA = `-R$ ${PONTOS_CORRIDOS_CONFIG.financeiro.vitoria.toFixed(2)}`;
           financeiroB = `+R$ ${PONTOS_CORRIDOS_CONFIG.financeiro.vitoria.toFixed(2)}`;
-          classeResultadoA = "perdeu";
-          classeResultadoB = "ganhou";
+          resultadoTexto = "Vitória B";
+          classeConfronto = "vitoria";
+          corPlacarA = "color: #ef4444;"; // Vermelho para perdedor
+          corPlacarB = "color: #22c55e;"; // Verde para vencedor
+          corFinanceiroA = "color: #ef4444;"; // Vermelho para negativo
+          corFinanceiroB = "color: #22c55e;"; // Verde para positivo
         }
       }
-    } else {
-      // Rodadas futuras também mostram confrontos
-      financeiroA = "R$ 0.00";
-      financeiroB = "R$ 0.00";
-      classeResultadoA = "aguardando";
-      classeResultadoB = "aguardando";
     }
 
-    // Layout compacto preservando todas as funcionalidades imersivas
     confrontosHTML += `
-      <div class="confronto-compacto">
-        <!-- Time A -->
-        <div class="time-lado time-esquerda ${classeResultadoA}">
-          <img src="${brasaoA}" alt="Time do Coração" class="brasao-compacto" onerror="this.src='/escudos/default.png'">
-          <div class="time-info">
-            <div class="nome-completo">${nomeCompletoA}</div>
-            <div class="financeiro">${financeiroA}</div>
-          </div>
-        </div>
+      <tr class="confronto-linha ${classeConfronto}">
+        <td style="padding: 16px;">
+          <div style="display: flex; align-items: center; justify-content: space-between;">
+            <!-- Time A - Alinhado à esquerda -->
+            <div style="display: flex; align-items: center; gap: 12px; flex: 1; justify-content: flex-start;">
+              <img src="${brasaoA}" style="width: 32px; height: 32px; border-radius: 50%; object-fit: contain;" alt="Time A" onerror="this.src='/escudos/default.png'">
+              <div style="text-align: left;">
+                <div style="font-weight: 600; font-size: 14px; color: var(--text-primary);">${nomeA}</div>
+                <div style="font-size: 11px; color: var(--text-muted);">${timeNomeA}</div>
+              </div>
+            </div>
 
-        <!-- Placar Central - Mini-Cards Condicionais -->
-        <div class="placar-container">
-          <div class="placar-time ${classeResultadoA}">
-            <div class="placar-numero">${pontosA !== null ? pontosA.toFixed(1) : "-"}</div>
-          </div>
-          <div class="vs-separator">X</div>
-          <div class="placar-time ${classeResultadoB}">
-            <div class="placar-numero">${pontosB !== null ? pontosB.toFixed(1) : "-"}</div>
-          </div>
-        </div>
+            <!-- Placar e Financeiro - Centro -->
+            <div style="text-align: center; margin: 0 20px; flex-shrink: 0;">
+              <div style="font-size: 18px; font-weight: 700; font-family: 'JetBrains Mono', monospace; margin-bottom: 4px;">
+                <span style="${corPlacarA}">${pontosA !== null ? pontosA.toFixed(1) : "-"}</span>
+                <span style="color: var(--text-muted); margin: 0 8px;">x</span>
+                <span style="${corPlacarB}">${pontosB !== null ? pontosB.toFixed(1) : "-"}</span>
+              </div>
+              <div style="font-size: 10px; font-family: 'JetBrains Mono', monospace;">
+                <span style="${corFinanceiroA}">${financeiroA}</span>
+                <span style="color: var(--text-muted); margin: 0 4px;">|</span>
+                <span style="${corFinanceiroB}">${financeiroB}</span>
+              </div>
+            </div>
 
-        <!-- Time B -->
-        <div class="time-lado time-direita ${classeResultadoB}">
-          <div class="time-info">
-            <div class="nome-completo">${nomeCompletoB}</div>
-            <div class="financeiro">${financeiroB}</div>
+            <!-- Time B - Alinhado à direita -->
+            <div style="display: flex; align-items: center; gap: 12px; flex: 1; justify-content: flex-end;">
+              <div style="text-align: right;">
+                <div style="font-weight: 600; font-size: 14px; color: var(--text-primary);">${nomeB}</div>
+                <div style="font-size: 11px; color: var(--text-muted);">${timeNomeB}</div>
+              </div>
+              <img src="${brasaoB}" style="width: 32px; height: 32px; border-radius: 50%; object-fit: contain;" alt="Time B" onerror="this.src='/escudos/default.png'">
+            </div>
           </div>
-          <img src="${brasaoB}" alt="Time do Coração" class="brasao-compacto" onerror="this.src='/escudos/default.png'">
-        </div>
-      </div>
+        </td>
+        <td style="text-align: center; padding: 16px; font-family: 'JetBrains Mono', monospace; font-weight: 600; font-size: 16px;">
+          ${pontosA !== null && pontosB !== null ? Math.abs(pontosA - pontosB).toFixed(1) : "-"}
+        </td>
+      </tr>
     `;
   });
 
   return `
     <div class="rodada-info-header">
       <div class="rodada-info-principal">
-        <h3 class="rodada-titulo">${numeroRodada}ª Rodada da Liga</h3>
-        <p class="rodada-subtitulo">Rodada ${rodadaBrasileirao}ª do Campeonato Brasileiro</p>
+        <h3>${numeroRodada}ª Rodada da Liga</h3>
+        <p>Rodada ${rodadaBrasileirao}ª do Campeonato Brasileiro</p>
       </div>
-      <div class="rodada-status ${isRodadaPassada ? "finalizada" : isRodadaAtual ? "andamento" : "futura"}">
+      <div class="rodada-status ${isRodadaPassada ? "finalizada" : isRodadaAtual ? "andamento" : "aguardando"}">
         <span class="status-indicador"></span>
         ${isRodadaPassada ? statusTexto : !isRodadaPassada && !isRodadaAtual ? "RODADA AINDA NÃO ACONTECEU" : statusTexto}
       </div>
     </div>
 
-    <div class="confrontos-grid-compacta">
-      ${confrontosHTML}
+    <div class="confrontos-container">
+      <table class="confrontos-table">
+        <thead>
+          <tr>
+            <th>Confronto</th>
+            <th>Diferença</th>
+          </tr>
+        </thead>
+        <tbody>
+          ${confrontosHTML}
+        </tbody>
+      </table>
     </div>
 
     <div class="exportacao-container">
       <div id="exportPontosCorridosRodadaBtnContainer"></div>
     </div>
+
   `;
 }
 

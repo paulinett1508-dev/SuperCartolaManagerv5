@@ -41,6 +41,7 @@ import {
 
 // Variáveis dinâmicas para exports
 let criarBotaoExportacaoRodada = null;
+let criarBotaoExportacaoClassificacao = null;
 let exportarPontosCorridosRodadaComoImagem = null;
 let exportarPontosCorridosClassificacaoComoImagem = null;
 let exportsCarregados = false;
@@ -105,15 +106,19 @@ async function carregarExports() {
       "../exports/export-pontos-corridos.js"
     );
     if (exportPontosCorridosModule) {
+      // 🔧 CORREÇÃO: Mapeamento correto das funções
       criarBotaoExportacaoRodada =
         exportPontosCorridosModule.criarBotaoExportacaoPontosCorridosRodada;
+      criarBotaoExportacaoClassificacao =
+        exportPontosCorridosModule.criarBotaoExportacaoPontosCorridosClassificacao;
       exportarPontosCorridosRodadaComoImagem =
         exportPontosCorridosModule.exportarPontosCorridosRodadaComoImagem;
       exportarPontosCorridosClassificacaoComoImagem =
-        exportPontosCorridosModule.criarBotaoExportacaoPontosCorridosClassificacao;
+        exportPontosCorridosModule.exportarPontosCorridosClassificacaoComoImagem;
 
       moduleCache.set("exports", {
         criarBotaoExportacaoRodada,
+        criarBotaoExportacaoClassificacao,
         exportarPontosCorridosRodadaComoImagem,
         exportarPontosCorridosClassificacaoComoImagem,
       });
@@ -361,7 +366,10 @@ async function renderRodada(idxRodada) {
     );
     atualizarContainer(containerId, tabelaHtml);
 
-    // Adicionar botão de exportação
+    // 🔧 CORREÇÃO: Aguardar DOM ser atualizado ANTES de criar botão
+    await new Promise((resolve) => requestAnimationFrame(resolve));
+
+    // Adicionar botão de exportação APÓS container estar no DOM
     if (exportsCarregados && criarBotaoExportacaoRodada) {
       const jogosNormalizados = jogos.map((jogo) =>
         normalizarDadosParaExportacao(jogo, pontuacoesMap),
@@ -436,12 +444,12 @@ async function renderClassificacao() {
       renderRodada(index);
     });
 
-    // Adicionar botão de exportação da classificação
-    if (exportsCarregados && exportarPontosCorridosClassificacaoComoImagem) {
+    // 🔧 CORREÇÃO: Adicionar botão de exportação da classificação com função correta
+    if (exportsCarregados && criarBotaoExportacaoClassificacao) {
       const classificacaoNormalizada =
         normalizarClassificacaoParaExportacao(classificacao);
 
-      await exportarPontosCorridosClassificacaoComoImagem({
+      await criarBotaoExportacaoClassificacao({
         containerId: "exportClassificacaoPontosCorridosBtnContainer",
         times: classificacaoNormalizada,
         rodadaLiga: ultimaRodadaComDados,

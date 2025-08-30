@@ -1,7 +1,7 @@
 // ✅ SISTEMA DE EXPORTAÇÃO PROFISSIONAL - PONTOS CORRIDOS
 // Padrão UX modular, vertical, compacto e bonito
 
-// ✅ CONFIGURAÇÃO DO TEMPLATE PROFISSIONAL
+// ✅ CONFIGURAÇÃO DO TEMPLATE PROFISSIONAL - CORES DO SISTEMA ATUALIZADAS
 const TEMPLATE_CONFIG = {
   width: 900,
   padding: 24,
@@ -9,16 +9,16 @@ const TEMPLATE_CONFIG = {
   footerHeight: 40,
   cardSpacing: 8,
   colors: {
-    primary: "#2E8B57",
-    secondary: "#228B22",
-    accent: "#32CD32",
+    primary: "#FF4500",        // --laranja do sistema
+    secondary: "#E8472B",      // --laranja-dark do sistema
+    accent: "#FFA726",         // --laranja-light do sistema
     background: "#ffffff",
     surface: "#ffffff",
     border: "#e0e0e0",
     text: "#2c2c2c",
-    textLight: "#666666",
-    success: "#27ae60",
-    danger: "#e74c3c",
+    textLight: "#a0a0a0",      // --text-muted do sistema
+    success: "#22c55e",        // --success do sistema
+    danger: "#ef4444",         // --danger do sistema
   },
   fonts: {
     title: "28px Inter, sans-serif",
@@ -28,6 +28,40 @@ const TEMPLATE_CONFIG = {
     caption: "11px Inter, sans-serif",
   },
 };
+
+// 🔧 CARREGAMENTO DINÂMICO DO HTML2CANVAS (CORREÇÃO CRÍTICA)
+async function carregarHtml2Canvas() {
+  if (typeof window === "undefined") {
+    console.warn("[EXPORT-PONTOS-CORRIDOS] Executando no backend - html2canvas não disponível");
+    return null;
+  }
+
+  // Verificar se já está disponível
+  if (window.html2canvas) {
+    return window.html2canvas;
+  }
+
+  // Tentar carregar dinamicamente
+  console.log("[EXPORT-PONTOS-CORRIDOS] 📦 Carregando html2canvas dinamicamente...");
+
+  return new Promise((resolve, reject) => {
+    const script = document.createElement('script');
+    script.src = 'https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js';
+    script.async = true;
+
+    script.onload = () => {
+      console.log("[EXPORT-PONTOS-CORRIDOS] ✅ html2canvas carregado com sucesso");
+      resolve(window.html2canvas);
+    };
+
+    script.onerror = () => {
+      console.error("[EXPORT-PONTOS-CORRIDOS] ❌ Erro ao carregar html2canvas");
+      reject(new Error('Falha ao carregar html2canvas'));
+    };
+
+    document.head.appendChild(script);
+  });
+}
 
 // Função utilitária para obter dados da liga ativa
 function getLigaAtivaInfo() {
@@ -96,7 +130,7 @@ export async function criarBotaoExportacaoPontosCorridosRodada(config) {
     botaoExistente.remove();
   }
 
-  // Criar botão com design profissional
+  // Criar botão com design profissional seguindo padrões do sistema
   const btnContainer = document.createElement("div");
   btnContainer.style.cssText = "text-align: right; margin: 15px 0;";
 
@@ -109,29 +143,30 @@ export async function criarBotaoExportacaoPontosCorridosRodada(config) {
     Exportar Confrontos da Rodada
   `;
 
+  // Aplicando padrões de cores do sistema UX_PATTERNS
   btn.style.cssText = `
-    background: linear-gradient(135deg, ${TEMPLATE_CONFIG.colors.primary} 0%, ${TEMPLATE_CONFIG.colors.accent} 100%);
-    color: white;
+    background: linear-gradient(135deg, ${TEMPLATE_CONFIG.colors.primary} 0%, ${TEMPLATE_CONFIG.colors.secondary} 100%) !important;
+    color: white !important;
     border: none;
-    padding: 12px 24px;
-    border-radius: 8px;
+    padding: 12px 20px !important;
+    border-radius: 8px !important;
     cursor: pointer;
-    font: 500 14px Inter, sans-serif;
+    font: 500 13px Inter, sans-serif !important;
     display: inline-flex;
     align-items: center;
-    transition: all 0.3s ease;
-    box-shadow: 0 4px 12px rgba(46, 139, 87, 0.3);
+    transition: all 0.3s ease !important;
+    box-shadow: 0 4px 15px rgba(255, 69, 0, 0.4) !important;
   `;
 
-  // Efeitos hover
+  // Efeitos hover seguindo padrões
   btn.onmouseover = () => {
     btn.style.transform = "translateY(-2px)";
-    btn.style.boxShadow = "0 6px 20px rgba(46, 139, 87, 0.4)";
+    btn.style.boxShadow = "0 8px 25px rgba(255, 69, 0, 0.5) !important";
   };
 
   btn.onmouseout = () => {
     btn.style.transform = "translateY(0)";
-    btn.style.boxShadow = "0 4px 12px rgba(46, 139, 87, 0.3)";
+    btn.style.boxShadow = "0 4px 15px rgba(255, 69, 0, 0.4) !important";
   };
 
   btn.onclick = async () => {
@@ -160,18 +195,26 @@ export async function criarBotaoExportacaoPontosCorridosRodada(config) {
     }
   };
 
-  // Adicionar animação CSS
-  const style = document.createElement("style");
-  style.textContent = `
-    @keyframes spin {
-      0% { transform: rotate(0deg); }
-      100% { transform: rotate(360deg); }
-    }
-  `;
-  document.head.appendChild(style);
+  // Adicionar animação CSS se não existir
+  if (!document.getElementById('export-animations')) {
+    const style = document.createElement("style");
+    style.id = 'export-animations';
+    style.textContent = `
+      @keyframes spin {
+        0% { transform: rotate(0deg); }
+        100% { transform: rotate(360deg); }
+      }
+    `;
+    document.head.appendChild(style);
+  }
 
   btnContainer.appendChild(btn);
-  container.insertBefore(btnContainer, container.firstChild);
+  // POSICIONAR NA PARTE SUPERIOR conforme solicitado
+  if (container.firstChild) {
+    container.insertBefore(btnContainer, container.firstChild);
+  } else {
+    container.appendChild(btnContainer);
+  }
 }
 
 // ✅ FUNÇÃO PRINCIPAL DE EXPORTAÇÃO PROFISSIONAL - CLASSIFICAÇÃO
@@ -233,28 +276,28 @@ export async function criarBotaoExportacaoPontosCorridosClassificacao(config) {
   `;
 
   btn.style.cssText = `
-    background: linear-gradient(135deg, ${TEMPLATE_CONFIG.colors.primary} 0%, ${TEMPLATE_CONFIG.colors.accent} 100%);
-    color: white;
+    background: linear-gradient(135deg, ${TEMPLATE_CONFIG.colors.primary} 0%, ${TEMPLATE_CONFIG.colors.secondary} 100%) !important;
+    color: white !important;
     border: none;
-    padding: 12px 24px;
-    border-radius: 8px;
+    padding: 12px 20px !important;
+    border-radius: 8px !important;
     cursor: pointer;
-    font: 500 14px Inter, sans-serif;
+    font: 500 13px Inter, sans-serif !important;
     display: inline-flex;
     align-items: center;
-    transition: all 0.3s ease;
-    box-shadow: 0 4px 12px rgba(46, 139, 87, 0.3);
+    transition: all 0.3s ease !important;
+    box-shadow: 0 4px 15px rgba(255, 69, 0, 0.4) !important;
   `;
 
   // Efeitos hover
   btn.onmouseover = () => {
     btn.style.transform = "translateY(-2px)";
-    btn.style.boxShadow = "0 6px 20px rgba(46, 139, 87, 0.4)";
+    btn.style.boxShadow = "0 8px 25px rgba(255, 69, 0, 0.5) !important";
   };
 
   btn.onmouseout = () => {
     btn.style.transform = "translateY(0)";
-    btn.style.boxShadow = "0 4px 12px rgba(46, 139, 87, 0.3)";
+    btn.style.boxShadow = "0 4px 15px rgba(255, 69, 0, 0.4) !important";
   };
 
   btn.onclick = async () => {
@@ -283,10 +326,15 @@ export async function criarBotaoExportacaoPontosCorridosClassificacao(config) {
   };
 
   btnContainer.appendChild(btn);
-  container.insertBefore(btnContainer, container.firstChild);
+  // POSICIONAR NA PARTE SUPERIOR
+  if (container.firstChild) {
+    container.insertBefore(btnContainer, container.firstChild);
+  } else {
+    container.appendChild(btnContainer);
+  }
 }
 
-// ✅ FUNÇÃO DE EXPORTAÇÃO PROFISSIONAL - RODADA (CONFRONTOS)
+// ✅ FUNÇÃO DE EXPORTAÇÃO PROFISSIONAL - RODADA (CONFRONTOS) - CORRIGIDA
 async function exportarPontosCorridosRodadaComoImagemProfissional(config) {
   const { jogos, rodadaLiga, rodadaCartola, times } = config;
 
@@ -342,6 +390,13 @@ async function exportarPontosCorridosRodadaComoImagemProfissional(config) {
 
     console.log("[EXPORT-PONTOS-CORRIDOS] 📸 Capturando imagem...");
 
+    // 🔧 CORREÇÃO CRÍTICA: Carregar html2canvas dinamicamente
+    const html2canvas = await carregarHtml2Canvas();
+
+    if (!html2canvas) {
+      throw new Error("html2canvas não pôde ser carregado");
+    }
+
     // Capturar com html2canvas
     const canvas = await html2canvas(exportContainer, {
       allowTaint: true,
@@ -367,9 +422,14 @@ async function exportarPontosCorridosRodadaComoImagemProfissional(config) {
 
     console.log("[EXPORT-PONTOS-CORRIDOS] ✅ Imagem exportada com sucesso");
     mostrarNotificacao("Imagem exportada com sucesso!", "success");
+  } catch (error) {
+    console.error("[EXPORT-PONTOS-CORRIDOS] ❌ Erro na exportação:", error);
+    throw error;
   } finally {
     // Remover container temporário
-    document.body.removeChild(exportContainer);
+    if (exportContainer.parentNode) {
+      document.body.removeChild(exportContainer);
+    }
   }
 }
 
@@ -397,7 +457,7 @@ function criarLayoutPontosCorridosRodada({
   ).length;
 
   return `
-    <!-- HEADER PROFISSIONAL COM LOGO GARANTIDA -->
+    <!-- HEADER PROFISSIONAL COM CORES DO SISTEMA -->
     <div style="
       background: linear-gradient(135deg, ${TEMPLATE_CONFIG.colors.primary} 0%, ${TEMPLATE_CONFIG.colors.secondary} 100%);
       color: white;
@@ -684,7 +744,7 @@ function criarLayoutPontosCorridosRodada({
   `;
 }
 
-// ✅ FUNÇÃO DE EXPORTAÇÃO PROFISSIONAL - CLASSIFICAÇÃO
+// ✅ FUNÇÃO DE EXPORTAÇÃO PROFISSIONAL - CLASSIFICAÇÃO - CORRIGIDA
 export async function exportarPontosCorridosClassificacaoComoImagem(
   times,
   rodadaLiga,
@@ -700,42 +760,6 @@ export async function exportarPontosCorridosClassificacaoComoImagem(
   console.log(
     "[EXPORT-PONTOS-CORRIDOS] 🎨 Criando layout profissional - Classificação...",
   );
-
-  if (times && times.length > 0) {
-    console.log("[DEBUG-EXPORT] Primeiro time:", times[0]);
-    console.log("[DEBUG-EXPORT] Segundo time:", times[1]);
-  } else {
-    console.error("[DEBUG-EXPORT] ❌ TIMES VAZIO OU UNDEFINED!");
-
-    // Tentar gerar dados de teste para mostrar o template funcionando
-    const timesTest = [
-      {
-        nome_time: "Time Teste 1",
-        nome_cartola: "Cartoleiro 1",
-        jogos: 5,
-        vitorias: 3,
-        empates: 1,
-        derrotas: 1,
-        pontos: 10,
-        clube_id: 1,
-      },
-      {
-        nome_time: "Time Teste 2",
-        nome_cartola: "Cartoleiro 2",
-        jogos: 5,
-        vitorias: 2,
-        empates: 2,
-        derrotas: 1,
-        pontos: 8,
-        clube_id: 2,
-      },
-    ];
-
-    console.warn("[DEBUG-EXPORT] 🧪 Usando dados de teste para debug...");
-    times = timesTest;
-    rodadaLiga = rodadaLiga || 5;
-    rodadaCartola = rodadaCartola || 12;
-  }
 
   // Criar container de exportação invisível
   const exportContainer = document.createElement("div");
@@ -784,6 +808,13 @@ export async function exportarPontosCorridosClassificacaoComoImagem(
 
     console.log("[EXPORT-PONTOS-CORRIDOS] 📸 Capturando imagem...");
 
+    // 🔧 CORREÇÃO CRÍTICA: Carregar html2canvas dinamicamente
+    const html2canvas = await carregarHtml2Canvas();
+
+    if (!html2canvas) {
+      throw new Error("html2canvas não pôde ser carregado");
+    }
+
     // Capturar com html2canvas
     const canvas = await html2canvas(exportContainer, {
       allowTaint: true,
@@ -811,11 +842,13 @@ export async function exportarPontosCorridosClassificacaoComoImagem(
     mostrarNotificacao("Classificação exportada com sucesso!", "success");
   } finally {
     // Remover container temporário
-    document.body.removeChild(exportContainer);
+    if (exportContainer.parentNode) {
+      document.body.removeChild(exportContainer);
+    }
   }
 }
 
-// ✅ FUNÇÃO PARA CRIAR LAYOUT PROFISSIONAL - CLASSIFICAÇÃO (AJUSTADA)
+// ✅ FUNÇÃO PARA CRIAR LAYOUT PROFISSIONAL - CLASSIFICAÇÃO
 function criarLayoutPontosCorridosClassificacao({
   times,
   rodadaLiga,
@@ -832,12 +865,6 @@ function criarLayoutPontosCorridosClassificacao({
 
   const titulo = `Liga Pontos Corridos - Classificação`;
   const subtitulo = `Após ${rodadaLiga}ª rodada (Rodada ${rodadaCartola}ª do Brasileirão)`;
-
-  console.log("[DEBUG-LAYOUT] Template vars:", {
-    titulo,
-    subtitulo,
-    timesCount: times?.length || 0,
-  });
 
   return `
     <!-- HEADER PROFISSIONAL -->
@@ -1131,7 +1158,13 @@ async function gerarCanvasDownload(element, filename) {
   }
 
   try {
-    const canvas = await window.html2canvas(element, {
+    const html2canvas = await carregarHtml2Canvas();
+
+    if (!html2canvas) {
+      throw new Error("html2canvas não pôde ser carregado");
+    }
+
+    const canvas = await html2canvas(element, {
       backgroundColor: "#ffffff",
       scale: 2.5,
       useCORS: true,
@@ -1214,68 +1247,4 @@ export async function exportarPontosCorridosHistoricoComoImagem(
 
   // Adicionar cabeçalhos das rodadas
   for (let r = 1; r <= maxRodadas; r++) {
-    tabelaHtml += `<th style="width: 35px; text-align: center; padding: 6px 2px; border-bottom: 2px solid #dee2e6; font-size: 0.8em;">R${r}</th>`;
-  }
-
-  tabelaHtml += `
-          <th style="width: 50px; text-align: center; padding: 6px 4px; border-bottom: 2px solid #dee2e6;">Total</th>
-        </tr>
-      </thead>
-      <tbody>
-  `;
-
-  times.forEach((time, index) => {
-    const nomeTime = time.nome_time || time.nome || "N/D";
-
-    // Determinar cor da posição
-    let corPosicao = "#333";
-    let bgPosicao = "transparent";
-    if (index < 4) {
-      corPosicao = "#fff";
-      bgPosicao = "#198754";
-    } else if (index < 6) {
-      corPosicao = "#fff";
-      bgPosicao = "#fd7e14";
-    } else if (index >= times.length - 4) {
-      corPosicao = "#fff";
-      bgPosicao = "#dc3545";
-    }
-
-    tabelaHtml += `
-      <tr style="border-bottom: 1px solid #eee;">
-        <td style="text-align:center; padding: 6px 4px; background: ${bgPosicao}; color: ${corPosicao}; font-weight: bold; font-size: 0.9em;">${index + 1}</td>
-        <td style="text-align:center; padding: 6px 4px;">
-          ${time.clube_id ? `<img src="/escudos/${time.clube_id}.png" alt="" style="width:16px; height:16px; border-radius:50%; background:#fff; border:1px solid #eee;" onerror="this.style.display='none'"/>` : "—"}
-        </td>
-        <td style="text-align:left; padding: 6px 4px; font-weight: 500; font-size: 0.85em;">${nomeTime}</td>
-    `;
-
-    // Adicionar pontos de cada rodada
-    for (let r = 1; r <= maxRodadas; r++) {
-      const pontos =
-        time.historico && time.historico[r - 1] ? time.historico[r - 1] : 0;
-      tabelaHtml += `<td style="text-align:center; padding: 6px 2px; font-size: 0.8em;">${pontos}</td>`;
-    }
-
-    tabelaHtml += `
-        <td style="text-align:center; padding: 6px 4px; font-weight: bold; font-size: 0.9em;">${time.pontos || 0}</td>
-      </tr>
-    `;
-  });
-
-  tabelaHtml += `
-      </tbody>
-    </table>
-  `;
-
-  exportDiv.innerHTML += tabelaHtml;
-  document.body.appendChild(exportDiv);
-  await gerarCanvasDownload(
-    exportDiv,
-    `pontos_corridos_historico_rodada_${rodadaLiga}.png`,
-  );
-}
-
-console.log(
-  "[EXPORT-PONTOS-CORRIDOS] ✅ Sistema de exportação profissional carregado",
-);
+    tabelaHtml += `<th style="width: 35px; text-align: center; padding: 6px 2px; border-bottom: 2px solid #dee2e6; font-size: 0
