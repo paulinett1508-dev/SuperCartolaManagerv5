@@ -833,3 +833,275 @@
     transform: rotate(90deg);
   }
 }
+
+/* === CLASSES FALTANTES PARA CONFRONTOS COMPACTOS === */
+/* Adicionado para suporte aos confrontos compactos */
+
+/* Grid de confrontos compactos */
+.confrontos-grid-compacta {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(600px, 1fr));
+  gap: 16px;
+  margin: 20px 0;
+}
+
+/* Container de cada confronto */
+.confronto-compacto {
+  display: flex;
+  align-items: center;
+  background: linear-gradient(135deg, #2a2a2a 0%, #1e1e1e 100%);
+  border-radius: 12px;
+  padding: 16px;
+  border: 1px solid rgba(255, 69, 0, 0.2);
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+  transition: all 0.3s ease;
+  min-height: 100px;
+}
+
+.confronto-compacto:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 25px rgba(255, 69, 0, 0.4);
+}
+
+/* Lados dos times */
+.time-esquerda {
+  gap: 12px;
+  margin-right: 8px;
+}
+
+.time-direita {
+  flex-direction: row-reverse;
+  gap: 12px;
+  margin-left: 8px;
+}
+
+.time-direita .time-info {
+  text-align: right;
+}
+
+/* Brasão compacto */
+.brasao-compacto {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  border: 2px solid rgba(255, 255, 255, 0.3);
+  background: white;
+  object-fit: cover;
+  flex-shrink: 0;
+}
+
+/* Nome completo */
+.nome-completo {
+  color: #ffffff;
+  font-size: 14px;
+  font-weight: 600;
+  line-height: 1.2;
+  text-shadow: 0 1px 3px rgba(0, 0, 0, 0.5);
+}
+
+/* Container do placar */
+.placar-container {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  min-width: 140px;
+  padding: 0 16px;
+}
+
+/* Mini-cards do placar */
+.placar-time {
+  background: linear-gradient(135deg, #666 0%, #555 100%);
+  color: white;
+  padding: 8px 12px;
+  border-radius: 6px;
+  font-size: 16px;
+  font-weight: 700;
+  font-family: 'JetBrains Mono', monospace;
+  text-align: center;
+  border: 2px solid rgba(255, 255, 255, 0.2);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+  min-width: 50px;
+  transition: all 0.3s ease;
+}
+
+.vs-separator {
+  color: #ffffff;
+  font-size: 14px;
+  font-weight: 700;
+  text-shadow: 0 1px 3px rgba(0, 0, 0, 0.5);
+}
+
+/* Estados do placar por resultado */
+.placar-time.ganhou {
+  background: linear-gradient(135deg, #22c55e 0%, #16a34a 100%);
+  border-color: rgba(34, 197, 94, 0.5);
+  box-shadow: 0 4px 12px rgba(34, 197, 94, 0.4);
+}
+
+.placar-time.perdeu {
+  background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
+  border-color: rgba(239, 68, 68, 0.5);
+  box-shadow: 0 4px 12px rgba(239, 68, 68, 0.4);
+}
+
+.placar-time.empate {
+  background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
+  border-color: rgba(59, 130, 246, 0.5);
+  box-shadow: 0 4px 12px rgba(59, 130, 246, 0.4);
+}
+
+.placar-time.goleada-ganhou {
+  background: linear-gradient(135deg, #ffd700 0%, #ffb347 100%);
+  color: #1a1a1a;
+  border-color: rgba(255, 215, 0, 0.5);
+  box-shadow: 0 4px 12px rgba(255, 215, 0, 0.6);
+  position: relative;
+}
+
+.placar-time.goleada-ganhou::after {
+  content: "🔥";
+  position: absolute;
+  top: -8px;
+  right: -8px;
+  font-size: 14px;
+}
+
+.placar-time.goleada-perdeu {
+  background: linear-gradient(135deg, #8b0000 0%, #660000 100%);
+  border-color: rgba(139, 0, 0, 0.5);
+  box-shadow: 0 4px 12px rgba(139, 0, 0, 0.4);
+}
+
+/* Estados dos times */
+.time-lado.ganhou {
+  background: linear-gradient(135deg, rgba(34, 197, 94, 0.15) 0%, rgba(34, 197, 94, 0.05) 100%);
+  border: 1px solid rgba(34, 197, 94, 0.3);
+}
+
+.time-lado.ganhou .financeiro {
+  color: #22c55e;
+}
+
+.time-lado.perdeu {
+  background: linear-gradient(135deg, rgba(239, 68, 68, 0.15) 0%, rgba(239, 68, 68, 0.05) 100%);
+  border: 1px solid rgba(239, 68, 68, 0.3);
+}
+
+.time-lado.perdeu .financeiro {
+  color: #ef4444;
+}
+
+.time-lado.empate {
+  background: linear-gradient(135deg, rgba(59, 130, 246, 0.15) 0%, rgba(59, 130, 246, 0.05) 100%);
+  border: 1px solid rgba(59, 130, 246, 0.3);
+}
+
+.time-lado.empate .financeiro {
+  color: #3b82f6;
+}
+
+.time-lado.goleada-ganhou {
+  background: linear-gradient(135deg, rgba(255, 215, 0, 0.2) 0%, rgba(255, 193, 7, 0.1) 100%);
+  border: 1px solid rgba(255, 215, 0, 0.4);
+}
+
+.time-lado.goleada-ganhou .financeiro {
+  color: #ffd700;
+  font-weight: 700;
+}
+
+.time-lado.goleada-perdeu {
+  background: linear-gradient(135deg, rgba(139, 0, 0, 0.2) 0%, rgba(139, 0, 0, 0.1) 100%);
+  border: 1px solid rgba(139, 0, 0, 0.4);
+}
+
+.time-lado.goleada-perdeu .financeiro {
+  color: #ff6b6b;
+  font-weight: 700;
+}
+
+.time-lado.aguardando, 
+.time-lado.andamento, 
+.time-lado.neutro {
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.time-lado.andamento {
+  animation: pulse 2s infinite;
+}
+
+/* Correção para rodada selecionada */
+.rodada-card.selecionada.passada {
+  background: linear-gradient(135deg, #22c55e 0%, #16a34a 100%);
+  border: 2px solid #22c55e;
+  color: white;
+  font-weight: 600;
+  box-shadow: 0 0 12px rgba(34, 197, 94, 0.5);
+  opacity: 1;
+}
+
+.rodada-card.selecionada.passada .rodada-numero,
+.rodada-card.selecionada.passada .rodada-label,
+.rodada-card.selecionada.passada .rodada-brasileirao {
+  color: white;
+}
+
+/* Responsividade para confrontos compactos */
+@media (max-width: 768px) {
+  .confrontos-grid-compacta {
+    grid-template-columns: 1fr;
+    gap: 12px;
+  }
+
+  .confronto-compacto {
+    flex-direction: column;
+    gap: 12px;
+    padding: 12px;
+  }
+
+  .time-lado {
+    width: 100%;
+    margin: 0;
+  }
+
+  .time-direita {
+    flex-direction: row;
+  }
+
+  .time-direita .time-info {
+    text-align: left;
+  }
+
+  .placar-container {
+    gap: 6px;
+    min-width: unset;
+    padding: 8px 0;
+  }
+
+  .placar-time {
+    min-width: 40px;
+    padding: 6px 10px;
+    font-size: 14px;
+  }
+
+  .vs-separator {
+    font-size: 12px;
+  }
+
+  .nome-completo {
+    font-size: 13px;
+  }
+}
+
+@media (max-width: 480px) {
+  .nome-completo {
+    font-size: 12px;
+  }
+
+  .placar-numero {
+    font-size: 14px;
+    padding: 6px 12px;
+  }
+}
