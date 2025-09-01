@@ -308,41 +308,46 @@ function criarLayoutTop10MobileDark(dados, tipo, valoresBonusOnus) {
       : 0;
 
   return `
-    <!-- CARD PRINCIPAL DE DESTAQUE -->
+    <!-- CARD PRINCIPAL DE DESTAQUE COMPACTO -->
     <div style="
       background: ${corGradiente};
-      border-radius: 16px;
-      padding: 20px;
-      margin-bottom: 20px;
+      border-radius: 12px;
+      padding: 16px;
+      margin-bottom: 16px;
       text-align: center;
       box-shadow: ${MOBILE_DARK_HD_CONFIG.colors.shadow};
+      max-height: 140px;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
     ">
       <div style="
         font: ${MOBILE_DARK_HD_CONFIG.fonts.weights.regular} ${MOBILE_DARK_HD_CONFIG.fonts.caption};
         color: rgba(255,255,255,0.9);
-        margin-bottom: 8px;
+        margin-bottom: 4px;
         text-transform: uppercase;
-        letter-spacing: 2px;
-      ">${tipo === "mitos" ? "🔥 DESTAQUE DA RODADA" : "😰 MAIOR PERRENGUE"}</div>
+        letter-spacing: 1px;
+        font-size: 11px;
+      ">${tipo === "mitos" ? "🔥 DESTAQUE" : "😰 PERRENGUE"}</div>
 
       ${
         dados.length > 0
           ? `
         <!-- Escudo e nome do líder -->
-        <div style="margin-bottom: 12px;">
+        <div style="margin-bottom: 8px;">
           ${
             dados[0].clube_id
               ? `
             <img src="/escudos/${dados[0].clube_id}.png"
                  style="
-                   width: 56px; 
-                   height: 56px; 
+                   width: 40px; 
+                   height: 40px; 
                    border-radius: 50%; 
-                   border: 3px solid rgba(255,255,255,0.3);
+                   border: 2px solid rgba(255,255,255,0.3);
                    background: ${MOBILE_DARK_HD_CONFIG.colors.surfaceLight};
-                   margin-bottom: 12px;
+                   margin-bottom: 6px;
                  "
-                 onerror="this.outerHTML='<div style=\\'width:56px;height:56px;background:${MOBILE_DARK_HD_CONFIG.colors.surfaceLight};border:3px solid rgba(255,255,255,0.3);border-radius:50%;display:inline-flex;align-items:center;justify-content:center;font-size:24px;margin-bottom:12px;\\'>⚽</div>'"
+                 onerror="this.outerHTML='<div style=\\'width:40px;height:40px;background:${MOBILE_DARK_HD_CONFIG.colors.surfaceLight};border:2px solid rgba(255,255,255,0.3);border-radius:50%;display:inline-flex;align-items:center;justify-content:center;font-size:16px;margin-bottom:6px;\\'>⚽</div>'"
                  alt="Escudo">
           `
               : ""
@@ -350,21 +355,24 @@ function criarLayoutTop10MobileDark(dados, tipo, valoresBonusOnus) {
         </div>
 
         <div style="
-          font: ${MOBILE_DARK_HD_CONFIG.fonts.weights.bold} ${MOBILE_DARK_HD_CONFIG.fonts.heading};
+          font: ${MOBILE_DARK_HD_CONFIG.fonts.weights.bold} ${MOBILE_DARK_HD_CONFIG.fonts.body};
           color: ${MOBILE_DARK_HD_CONFIG.colors.text};
-          margin-bottom: 4px;
+          margin-bottom: 2px;
+          font-size: 16px;
         ">${dados[0].nome_cartola || dados[0].nome_cartoleiro || "N/D"}</div>
 
         <div style="
-          font: ${MOBILE_DARK_HD_CONFIG.fonts.weights.regular} ${MOBILE_DARK_HD_CONFIG.fonts.bodySmall};
-          color: rgba(255,255,255,0.8);
-          margin-bottom: 12px;
+          font: ${MOBILE_DARK_HD_CONFIG.fonts.weights.regular} ${MOBILE_DARK_HD_CONFIG.fonts.caption};
+          color: rgba(255,255,255,0.7);
+          margin-bottom: 6px;
+          font-size: 12px;
         ">${dados[0].nome_time || "Time não informado"}</div>
 
         <div style="
-          font: ${MOBILE_DARK_HD_CONFIG.fonts.weights.extrabold} ${MOBILE_DARK_HD_CONFIG.fonts.titleLarge};
+          font: ${MOBILE_DARK_HD_CONFIG.fonts.weights.extrabold} ${MOBILE_DARK_HD_CONFIG.fonts.subheading};
           color: ${MOBILE_DARK_HD_CONFIG.colors.text};
           text-shadow: 0 2px 8px rgba(0,0,0,0.5);
+          font-size: 20px;
         ">${formatarPontuacao(dados[0].pontos)} pts</div>
       `
           : `
