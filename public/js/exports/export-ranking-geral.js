@@ -1,537 +1,597 @@
-// ✅ SISTEMA DE EXPORTAÇÃO PROFISSIONAL - RANKING GERAL
-// Padrão UX modular, vertical, compacto e bonito
+// SISTEMA DE EXPORTAÇÃO RANKING GERAL - MOBILE DARK HD v3.0.1
+// Migrado para padrão mobile dark seguindo export-base.js e export-top10.js
 
-// ✅ CONFIGURAÇÃO DO TEMPLATE PROFISSIONAL
-const TEMPLATE_CONFIG = {
-  width: 800,
-  padding: 24,
-  headerHeight: 85,
-  footerHeight: 40,
-  cardSpacing: 8,
-  colors: {
-    primary: "#2E8B57",
-    secondary: "#228B22",
-    accent: "#32CD32",
-    background: "#ffffff",
-    surface: "#ffffff",
-    border: "#e0e0e0",
-    text: "#2c2c2c",
-    textLight: "#666666",
-    success: "#27ae60",
-    danger: "#e74c3c",
-  },
-  fonts: {
-    title: "28px Inter, sans-serif",
-    subtitle: "18px Inter, sans-serif",
-    heading: "16px Inter, sans-serif",
-    body: "13px Inter, sans-serif",
-    caption: "11px Inter, sans-serif",
-  },
-};
+import {
+  MOBILE_DARK_HD_CONFIG,
+  MobileDarkUtils,
+  criarContainerMobileDark,
+  gerarCanvasMobileDarkHD,
+} from "./export-base.js";
 
-console.log("[EXPORT-RANKING-GERAL] ✅ Módulo carregado com sucesso");
+console.log(
+  "[EXPORT-RANKING-GERAL-MOBILE] Sistema Mobile Dark HD v3.0.1 carregado",
+);
 
-// ✅ FUNÇÃO PRINCIPAL DE EXPORTAÇÃO PROFISSIONAL - RANKING GERAL
+// FUNÇÃO PRINCIPAL DE EXPORTAÇÃO - RANKING GERAL
 export async function criarBotaoExportacaoRankingGeral(config) {
   if (!config || typeof config !== "object") {
-    console.error("[EXPORT-RANKING-GERAL] Configuração inválida:", config);
+    console.error(
+      "[EXPORT-RANKING-GERAL-MOBILE] Configuração inválida:",
+      config,
+    );
     return;
   }
 
   const { containerId, rankings = [], rodada = "", tipo = "geral" } = config;
 
   if (!containerId) {
-    console.error("[EXPORT-RANKING-GERAL] containerId é obrigatório");
+    console.error("[EXPORT-RANKING-GERAL-MOBILE] containerId é obrigatório");
     return;
   }
 
   const container = document.getElementById(containerId);
   if (!container) {
     console.error(
-      `[EXPORT-RANKING-GERAL] Container ${containerId} não encontrado`,
+      `[EXPORT-RANKING-GERAL-MOBILE] Container ${containerId} não encontrado`,
     );
     return;
   }
 
   // Remove botão existente
-  const botaoExistente = container.querySelector(".btn-export-ranking-geral");
+  const botaoExistente = container.querySelector(
+    ".btn-export-ranking-geral-mobile",
+  );
   if (botaoExistente) {
     botaoExistente.remove();
   }
 
-  // Criar botão com design profissional
+  // Criar container do botão
   const btnContainer = document.createElement("div");
   btnContainer.style.cssText = "text-align: right; margin: 15px 0;";
 
+  // Criar botão mobile dark
   const btn = document.createElement("button");
-  btn.className = "btn-export-ranking-geral";
+  btn.className = "btn-export-ranking-geral-mobile";
+
+  // Definir conteúdo baseado no tipo
+  const textoTipo = tipo === "geral" ? "Ranking Geral" : "Ranking da Rodada";
+  const iconeTipo = tipo === "geral" ? "🏆" : "📊";
+
   btn.innerHTML = `
-    <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor" style="margin-right: 8px;">
-      <path d="M19 12v7H5v-7H3v7c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2v-7h-2zm-6 .67l2.59-2.58L17 11.5l-5 5-5-5 1.41-1.41L11 12.67V3h2v9.67z"/>
-    </svg>
-    ${tipo === "geral" ? "Exportar Ranking Geral" : "Exportar Ranking da Rodada"}
+    <div style="display: flex; align-items: center; gap: 10px;">
+      <span style="font-size: 16px;">${iconeTipo}</span>
+      <span>${textoTipo} Mobile HD</span>
+      <div style="
+        background: rgba(255,255,255,0.2);
+        padding: 2px 6px;
+        border-radius: 10px;
+        font-size: 10px;
+        font-weight: 600;
+        letter-spacing: 0.5px;
+      ">MOBILE</div>
+    </div>
   `;
 
   btn.style.cssText = `
-    background: linear-gradient(135deg, ${TEMPLATE_CONFIG.colors.primary} 0%, ${TEMPLATE_CONFIG.colors.accent} 100%);
-    color: white;
-    border: none;
-    padding: 12px 24px;
-    border-radius: 8px;
+    background: ${tipo === "geral" ? MOBILE_DARK_HD_CONFIG.colors.gradientSuccess : MOBILE_DARK_HD_CONFIG.colors.gradientPrimary};
+    color: ${MOBILE_DARK_HD_CONFIG.colors.text};
+    border: 2px solid ${tipo === "geral" ? MOBILE_DARK_HD_CONFIG.colors.success : MOBILE_DARK_HD_CONFIG.colors.accent};
+    padding: 16px 24px;
+    border-radius: 14px;
     cursor: pointer;
-    font: 500 14px Inter, sans-serif;
-    display: inline-flex;
-    align-items: center;
-    transition: all 0.3s ease;
-    box-shadow: 0 4px 12px rgba(46, 139, 87, 0.3);
+    font: ${MOBILE_DARK_HD_CONFIG.fonts.weights.semibold} ${MOBILE_DARK_HD_CONFIG.fonts.body};
+    box-shadow: ${MOBILE_DARK_HD_CONFIG.colors.shadow};
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    min-width: 200px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
   `;
 
   // Efeitos hover
   btn.onmouseover = () => {
-    btn.style.transform = "translateY(-2px)";
-    btn.style.boxShadow = "0 6px 20px rgba(46, 139, 87, 0.4)";
+    btn.style.transform = "translateY(-3px) scale(1.02)";
+    btn.style.boxShadow = `0 12px 40px ${tipo === "geral" ? MOBILE_DARK_HD_CONFIG.colors.success : MOBILE_DARK_HD_CONFIG.colors.accent}40`;
   };
 
   btn.onmouseout = () => {
-    btn.style.transform = "translateY(0)";
-    btn.style.boxShadow = "0 4px 12px rgba(46, 139, 87, 0.3)";
+    btn.style.transform = "translateY(0) scale(1)";
+    btn.style.boxShadow = MOBILE_DARK_HD_CONFIG.colors.shadow;
   };
 
   btn.onclick = async () => {
     const textoOriginal = btn.innerHTML;
     btn.innerHTML = `
-      <div style="width: 16px; height: 16px; margin-right: 8px;">
-        <div style="width: 16px; height: 16px; border: 2px solid transparent; border-top: 2px solid currentColor; border-radius: 50%; animation: spin 1s linear infinite;"></div>
+      <div style="display: flex; align-items: center; gap: 10px;">
+        <div style="
+          width: 20px; 
+          height: 20px; 
+          border: 2px solid rgba(255,255,255,0.3);
+          border-top: 2px solid ${MOBILE_DARK_HD_CONFIG.colors.text};
+          border-radius: 50%;
+          animation: spin 1s linear infinite;
+        "></div>
+        <span>Gerando HD...</span>
       </div>
-      Gerando Imagem...
     `;
     btn.disabled = true;
 
     try {
-      await exportarRankingGeralComoImagemProfissional({
+      await exportarRankingGeralMobileDarkHD({
         rankings,
         rodada,
         tipo,
       });
     } catch (error) {
-      console.error("[EXPORT-RANKING-GERAL] Erro na exportação:", error);
-      mostrarNotificacao("Erro ao gerar imagem. Tente novamente.", "error");
+      console.error("[EXPORT-RANKING-GERAL-MOBILE] Erro na exportação:", error);
+      MobileDarkUtils.mostrarErro("Erro ao gerar ranking HD. Tente novamente.");
     } finally {
       btn.innerHTML = textoOriginal;
       btn.disabled = false;
     }
   };
 
-  // Adicionar animação CSS
-  const style = document.createElement("style");
-  style.textContent = `
-    @keyframes spin {
-      0% { transform: rotate(0deg); }
-      100% { transform: rotate(360deg); }
-    }
-  `;
-  document.head.appendChild(style);
+  // Adicionar animação CSS se não existir
+  if (!document.getElementById("export-ranking-animations")) {
+    const style = document.createElement("style");
+    style.id = "export-ranking-animations";
+    style.textContent = `
+      @keyframes spin {
+        0% { transform: rotate(0deg); }
+        100% { transform: rotate(360deg); }
+      }
+    `;
+    document.head.appendChild(style);
+  }
 
   btnContainer.appendChild(btn);
-  container.insertBefore(btnContainer, container.firstChild);
+
+  // POSICIONAR NA PARTE SUPERIOR conforme solicitado
+  if (container.firstChild) {
+    container.insertBefore(btnContainer, container.firstChild);
+  } else {
+    container.appendChild(btnContainer);
+  }
 }
 
-// ✅ FUNÇÃO DE EXPORTAÇÃO PROFISSIONAL
-async function exportarRankingGeralComoImagemProfissional(config) {
+// EXPORTAÇÃO MOBILE DARK HD - RANKING GERAL
+async function exportarRankingGeralMobileDarkHD(config) {
   const { rankings, rodada, tipo } = config;
 
-  console.log("[EXPORT-RANKING-GERAL] 🎨 Criando layout profissional...");
+  console.log("[EXPORT-RANKING-GERAL-MOBILE] Criando layout mobile dark HD...");
 
-  // Criar container de exportação invisível
-  const exportContainer = document.createElement("div");
-  exportContainer.id = "ranking-geral-export-container";
-  exportContainer.style.cssText = `
-    position: absolute;
-    top: -99999px;
-    left: -99999px;
-    width: ${TEMPLATE_CONFIG.width}px;
-    background: ${TEMPLATE_CONFIG.colors.background};
-    font-family: Inter, -apple-system, BlinkMacSystemFont, sans-serif;
-    line-height: 1.3;
-    color: ${TEMPLATE_CONFIG.colors.text};
-  `;
+  // Validar dados
+  MobileDarkUtils.validarDadosMobile(config, ["rankings", "rodada"]);
 
-  // Construir layout profissional
-  exportContainer.innerHTML = criarLayoutRankingGeral({
-    rankings,
-    rodada,
-    tipo,
+  if (!Array.isArray(rankings) || rankings.length === 0) {
+    throw new Error("Dados do ranking inválidos ou vazios");
+  }
+
+  // Definir títulos
+  const titulo =
+    tipo === "geral" ? "🏆 Ranking Geral" : `📊 Ranking R${rodada}`;
+  const subtitulo =
+    tipo === "geral"
+      ? `Até a ${rodada}ª rodada`
+      : `Resultados da ${rodada}ª rodada`;
+
+  // Criar container mobile dark
+  const exportContainer = criarContainerMobileDark(titulo, subtitulo, {
+    rodada: rodada,
   });
+
+  const contentDiv = exportContainer.querySelector("#mobile-export-content");
+
+  // Inserir conteúdo do ranking mobile
+  contentDiv.innerHTML = criarLayoutRankingGeralMobile(rankings, rodada, tipo);
 
   document.body.appendChild(exportContainer);
 
   try {
-    // Aguardar renderização
-    await new Promise((resolve) => requestAnimationFrame(resolve));
-
-    // Aguardar carregamento de imagens
-    const imagens = exportContainer.querySelectorAll("img");
-    if (imagens.length > 0) {
-      await Promise.all(
-        Array.from(imagens).map((img) => {
-          return new Promise((resolve) => {
-            if (img.complete) {
-              resolve();
-            } else {
-              img.onload = resolve;
-              img.onerror = resolve;
-              setTimeout(resolve, 2000);
-            }
-          });
-        }),
-      );
-    }
-
-    console.log("[EXPORT-RANKING-GERAL] 📸 Capturando imagem...");
-
-    // Capturar com html2canvas
-    const canvas = await html2canvas(exportContainer, {
-      allowTaint: true,
-      useCORS: true,
-      scale: 2,
-      logging: false,
-      width: TEMPLATE_CONFIG.width,
-      height: exportContainer.scrollHeight,
-      backgroundColor: TEMPLATE_CONFIG.colors.background,
+    // Gerar nome do arquivo
+    const nomeArquivo = MobileDarkUtils.gerarNomeArquivoMobile("ranking", {
+      rodada: rodada,
+      extra: tipo,
     });
 
-    // Gerar nome do arquivo
-    const timestamp = new Date()
-      .toLocaleDateString("pt-BR")
-      .replace(/\//g, "-");
-    const nomeArquivo =
-      tipo === "geral"
-        ? `ranking-geral-rodada-${rodada}-${timestamp}`
-        : `ranking-rodada-${rodada}-${timestamp}`;
-
-    // Download da imagem
-    const link = document.createElement("a");
-    link.download = `${nomeArquivo}.png`;
-    link.href = canvas.toDataURL("image/png", 0.95);
-    link.click();
-
-    console.log("[EXPORT-RANKING-GERAL] ✅ Imagem exportada com sucesso");
-    mostrarNotificacao("Imagem exportada com sucesso!", "success");
+    // Gerar e fazer download da imagem HD
+    await gerarCanvasMobileDarkHD(exportContainer, nomeArquivo);
   } finally {
-    // Remover container temporário
-    document.body.removeChild(exportContainer);
+    // Limpar container temporário
+    if (exportContainer.parentNode === document.body) {
+      document.body.removeChild(exportContainer);
+    }
   }
 }
 
-// ✅ FUNÇÃO PARA CRIAR LAYOUT PROFISSIONAL
-function criarLayoutRankingGeral({ rankings, rodada, tipo }) {
-  const agora = new Date();
-  const dataFormatada = agora.toLocaleDateString("pt-BR", {
-    year: "numeric",
-    month: "long",
-    day: "numeric",
-    hour: "2-digit",
-    minute: "2-digit",
-  });
+// LAYOUT RANKING GERAL MOBILE DARK
+function criarLayoutRankingGeralMobile(rankings, rodada, tipo) {
+  const lider = rankings.length > 0 ? rankings[0] : null;
+  const pontuacaoMedia =
+    rankings.length > 0
+      ? rankings.reduce((sum, t) => sum + (parseFloat(t.pontos) || 0), 0) /
+        rankings.length
+      : 0;
 
-  const titulo =
-    tipo === "geral" ? "Ranking Geral" : `Ranking da Rodada ${rodada}`;
-  const subtitulo =
+  const pontuacaoMaxima =
+    rankings.length > 0
+      ? Math.max(...rankings.map((t) => parseFloat(t.pontos) || 0))
+      : 0;
+
+  const gradienteTipo =
     tipo === "geral"
-      ? `Pontuação até a ${rodada}ª rodada`
-      : `Resultados da ${rodada}ª rodada`;
+      ? MOBILE_DARK_HD_CONFIG.colors.gradientSuccess
+      : MOBILE_DARK_HD_CONFIG.colors.gradientPrimary;
 
   return `
-    <!-- HEADER PROFISSIONAL COM LOGO GARANTIDA -->
+    <!-- CARD PRINCIPAL DE DESTAQUE - LÍDER -->
     <div style="
-      background: linear-gradient(135deg, ${TEMPLATE_CONFIG.colors.primary} 0%, ${TEMPLATE_CONFIG.colors.secondary} 100%);
-      color: white;
-      padding: ${TEMPLATE_CONFIG.padding}px;
+      background: ${gradienteTipo};
+      border-radius: 16px;
+      padding: 20px;
+      margin-bottom: 20px;
       text-align: center;
-      position: relative;
-      overflow: hidden;
-      min-height: ${TEMPLATE_CONFIG.headerHeight}px;
+      box-shadow: ${MOBILE_DARK_HD_CONFIG.colors.shadow};
     ">
-      <!-- Padrão geométrico de fundo -->
       <div style="
-        position: absolute;
-        top: 0;
-        left: 0;
-        right: 0;
-        bottom: 0;
-        background: url('data:image/svg+xml,<svg xmlns=\"http://www.w3.org/2000/svg\" width=\"50\" height=\"50\" viewBox=\"0 0 50 50\"><g fill=\"none\" fill-rule=\"evenodd\"><g fill=\"%23ffffff\" fill-opacity=\"0.08\"><polygon points=\"30 28 5 28 5 3 30 3\"/></g></g></svg>');
-        opacity: 0.6;
-      "></div>
+        font: ${MOBILE_DARK_HD_CONFIG.fonts.weights.regular} ${MOBILE_DARK_HD_CONFIG.fonts.caption};
+        color: rgba(255,255,255,0.9);
+        margin-bottom: 8px;
+        text-transform: uppercase;
+        letter-spacing: 2px;
+      ">${tipo === "geral" ? "🏆 LÍDER GERAL" : `📊 MITO DA RODADA ${rodada}`}</div>
 
-      <!-- Conteúdo do header -->
-      <div style="position: relative; z-index: 1; display: flex; align-items: center; justify-content: center; gap: 16px;">
-        <!-- Logo SuperCartola - SEMPRE PRESENTE -->
-        <div style="flex-shrink: 0;">
-          <img src="/img/logo-supercartola.png" 
-               style="height: 42px; width: auto; filter: brightness(1.1);" 
-               alt="SuperCartola"
-               onerror="this.outerHTML='<div style=\\'width:42px;height:42px;background:rgba(255,255,255,0.2);border-radius:50%;display:flex;align-items:center;justify-content:center;font:bold 14px Inter;\\'>SC</div>'">
+      ${
+        lider
+          ? `
+        <!-- Escudo do líder -->
+        <div style="margin-bottom: 12px;">
+          ${
+            lider.clube_id
+              ? `
+            <img src="/escudos/${lider.clube_id}.png"
+                 style="
+                   width: 56px; 
+                   height: 56px; 
+                   border-radius: 50%; 
+                   border: 3px solid rgba(255,255,255,0.3);
+                   background: ${MOBILE_DARK_HD_CONFIG.colors.surfaceLight};
+                   margin-bottom: 12px;
+                 "
+                 onerror="this.outerHTML='<div style=\\'width:56px;height:56px;background:${MOBILE_DARK_HD_CONFIG.colors.surfaceLight};border:3px solid rgba(255,255,255,0.3);border-radius:50%;display:inline-flex;align-items:center;justify-content:center;font-size:24px;margin-bottom:12px;\\'>⚽</div>'"
+                 alt="Escudo">
+          `
+              : ""
+          }
         </div>
 
-        <div style="text-align: center;">
-          <h1 style="
-            font: 700 ${TEMPLATE_CONFIG.fonts.title} Inter, sans-serif;
-            margin: 0 0 3px 0;
-            letter-spacing: -0.5px;
-            text-shadow: 0 2px 4px rgba(0,0,0,0.2);
-          ">SuperCartola 2025</h1>
-
-          <h2 style="
-            font: 600 ${TEMPLATE_CONFIG.fonts.subtitle} Inter, sans-serif;
-            margin: 0 0 6px 0;
-            opacity: 0.95;
-          ">${titulo}</h2>
-
-          <div style="
-            background: rgba(255, 255, 255, 0.2);
-            backdrop-filter: blur(10px);
-            border-radius: 20px;
-            padding: 4px 16px;
-            display: inline-block;
-            border: 1px solid rgba(255, 255, 255, 0.3);
-          ">
-            <span style="font: 600 13px Inter, sans-serif; letter-spacing: 0.5px;">
-              ${subtitulo.toUpperCase()}
-            </span>
-          </div>
-        </div>
-      </div>
-    </div>
-
-    <!-- CONTEÚDO PRINCIPAL -->
-    <div style="padding: ${TEMPLATE_CONFIG.padding}px;">
-
-      <!-- TABELA DE RANKING -->
-      <div style="
-        background: ${TEMPLATE_CONFIG.colors.surface};
-        border-radius: 10px;
-        padding: 18px;
-        box-shadow: 0 4px 16px rgba(0, 0, 0, 0.06);
-        border: 1px solid ${TEMPLATE_CONFIG.colors.border};
-      ">
-        <div style="overflow-x: auto;">
-          <table style="width:100%; border-collapse:collapse; font-size:13px;">
-            <thead>
-              <tr style="background: ${TEMPLATE_CONFIG.colors.primary}; color: white;">
-                <th style="width: 50px; text-align: center; padding: 10px 6px; font: 600 11px Inter, sans-serif; letter-spacing: 0.5px;">POS</th>
-                <th style="width: 50px; text-align: center; padding: 10px 6px; font: 600 11px Inter, sans-serif; letter-spacing: 0.5px;">❤️</th>
-                <th style="text-align: left; padding: 10px 6px; font: 600 11px Inter, sans-serif; letter-spacing: 0.5px;">CARTOLEIRO / TIME</th>
-                <th style="width: 80px; text-align: center; padding: 10px 6px; font: 600 11px Inter, sans-serif; letter-spacing: 0.5px;">PONTOS</th>
-                ${
-                  tipo === "rodada"
-                    ? `
-                  <th style="width: 80px; text-align: center; padding: 10px 6px; font: 600 11px Inter, sans-serif; letter-spacing: 0.5px;">BANCO</th>
-                `
-                    : ""
-                }
-              </tr>
-            </thead>
-            <tbody>
-              ${rankings
-                .map((time, index) => {
-                  const nomeCartoleiro =
-                    time.nome_cartola || time.nome_cartoleiro || "N/D";
-                  const nomeTime = time.nome_time || time.nome || "N/D";
-
-                  // Posição com emojis especiais
-                  let posContent = "";
-                  if (tipo === "rodada") {
-                    if (index === 0) {
-                      posContent = `<span style="background:#198754; color:#fff; font-weight:bold; border-radius:4px; padding:2px 8px; font-size:0.9em;">MITO</span>`;
-                    } else if (
-                      index === rankings.length - 1 &&
-                      rankings.length > 1
-                    ) {
-                      posContent = `<span style="background:#dc3545; color:#fff; font-weight:bold; border-radius:4px; padding:2px 8px; font-size:0.9em;">MICO</span>`;
-                    } else {
-                      posContent = `${index + 1}º`;
-                    }
-                  } else {
-                    posContent =
-                      index === 0
-                        ? "🏆"
-                        : index === 1
-                          ? "🥈"
-                          : index === 2
-                            ? "🥉"
-                            : `${index + 1}º`;
-                  }
-
-                  // Banco para ranking de rodada
-                  let bancoContent = "";
-                  if (
-                    tipo === "rodada" &&
-                    time.banco !== undefined &&
-                    time.banco !== null
-                  ) {
-                    const bancoClass =
-                      time.banco >= 0
-                        ? TEMPLATE_CONFIG.colors.success
-                        : TEMPLATE_CONFIG.colors.danger;
-                    const bancoSinal = time.banco >= 0 ? "+" : "-";
-                    bancoContent = `
-                      <td style="text-align:center; padding: 8px 6px; font: 600 12px Inter, sans-serif; color: ${bancoClass};">
-                        ${bancoSinal}R$ ${Math.abs(time.banco).toFixed(2).replace(".", ",")}
-                      </td>
-                    `;
-                  }
-
-                  const rowBg =
-                    index === 0 && tipo === "geral"
-                      ? "background: #e7f3ff;"
-                      : index === 0 && tipo === "rodada"
-                        ? "background: #e7f3ff;"
-                        : index === rankings.length - 1 &&
-                            tipo === "rodada" &&
-                            rankings.length > 1
-                          ? "background: #ffe7e7;"
-                          : index % 2 === 0
-                            ? "background: #f8f9fa;"
-                            : "";
-
-                  return `
-                    <tr style="border-bottom: 1px solid ${TEMPLATE_CONFIG.colors.border}; ${rowBg}">
-                      <td style="text-align:center; padding: 8px 6px;">${posContent}</td>
-                      <td style="text-align:center; padding: 8px 6px;">
-                        ${time.clube_id ? `<img src="/escudos/${time.clube_id}.png" alt="" style="width:20px; height:20px; border-radius:50%; background:#fff; border:1px solid #eee; vertical-align: middle;" onerror="this.style.display='none'"/>` : "—"}
-                      </td>
-                      <td style="text-align:left; padding: 8px 6px;">
-                        <div style="font-weight:600; font-size: 12px;">${nomeCartoleiro}</div>
-                        <div style="color:${TEMPLATE_CONFIG.colors.textLight}; font-size:11px; margin-top:1px;">${nomeTime}</div>
-                      </td>
-                      <td style="text-align:center; padding: 8px 6px; font: 600 14px Inter, sans-serif; color: ${TEMPLATE_CONFIG.colors.primary};">${time.pontos.toFixed(2).replace(".", ",")}</td>
-                      ${bancoContent}
-                    </tr>
-                  `;
-                })
-                .join("")}
-            </tbody>
-          </table>
-        </div>
-      </div>
-
-      <!-- INFORMAÇÕES ADICIONAIS -->
-      <div style="
-        margin-top: 16px;
-        display: grid;
-        grid-template-columns: 1fr 1fr;
-        gap: 12px;
-      ">
-        <!-- Estatísticas -->
         <div style="
-          background: linear-gradient(135deg, ${TEMPLATE_CONFIG.colors.success}, #2ecc71);
-          color: white;
-          padding: 14px;
-          border-radius: 8px;
-          text-align: center;
-        ">
-          <h4 style="
-            font: 600 ${TEMPLATE_CONFIG.fonts.caption} Inter, sans-serif;
-            margin: 0 0 4px 0;
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
-          ">📊 Participantes</h4>
-          <p style="font: 700 18px Inter, sans-serif; margin: 0;">
-            ${rankings.length} times
-          </p>
-        </div>
+          font: ${MOBILE_DARK_HD_CONFIG.fonts.weights.bold} ${MOBILE_DARK_HD_CONFIG.fonts.heading};
+          color: ${MOBILE_DARK_HD_CONFIG.colors.text};
+          margin-bottom: 4px;
+        ">${lider.nome_cartola || lider.nome_cartoleiro || "N/D"}</div>
 
-        <!-- Pontuação Média -->
         <div style="
-          background: linear-gradient(135deg, ${TEMPLATE_CONFIG.colors.primary}, ${TEMPLATE_CONFIG.colors.secondary});
-          color: white;
-          padding: 14px;
-          border-radius: 8px;
-          text-align: center;
-        ">
-          <h4 style="
-            font: 600 ${TEMPLATE_CONFIG.fonts.caption} Inter, sans-serif;
-            margin: 0 0 4px 0;
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
-          ">📈 Média</h4>
-          <p style="font: 700 18px Inter, sans-serif; margin: 0;">
-            ${(rankings.reduce((acc, t) => acc + t.pontos, 0) / rankings.length).toFixed(2).replace(".", ",")} pts
-          </p>
-        </div>
-      </div>
-    </div>
+          font: ${MOBILE_DARK_HD_CONFIG.fonts.weights.regular} ${MOBILE_DARK_HD_CONFIG.fonts.bodySmall};
+          color: rgba(255,255,255,0.8);
+          margin-bottom: 12px;
+        ">${lider.nome_time || "Time não informado"}</div>
 
-    <!-- FOOTER PROFISSIONAL COMPACTO -->
-    <div style="
-      background: ${TEMPLATE_CONFIG.colors.surface};
-      border-top: 1px solid ${TEMPLATE_CONFIG.colors.border};
-      padding: 12px ${TEMPLATE_CONFIG.padding}px;
-      text-align: center;
-      margin-top: 16px;
-    ">
-      <p style="
-        font: ${TEMPLATE_CONFIG.fonts.caption} Inter, sans-serif;
-        margin: 0;
-        color: ${TEMPLATE_CONFIG.colors.textLight};
-        line-height: 1.2;
-      ">
-        Gerado em ${dataFormatada} • SuperCartola Manager v2.3.0<br>
-        Sistema de Gerenciamento de Ligas do Cartola FC
-      </p>
-    </div>
-  `;
-}
-
-// ✅ FUNÇÃO PARA MOSTRAR NOTIFICAÇÕES
-function mostrarNotificacao(mensagem, tipo = "info") {
-  const cores = {
-    success: { bg: "#d4edda", border: "#c3e6cb", text: "#155724" },
-    error: { bg: "#f8d7da", border: "#f5c6cb", text: "#721c24" },
-    info: { bg: "#d1ecf1", border: "#bee5eb", text: "#0c5460" },
-  };
-
-  const cor = cores[tipo] || cores.info;
-
-  const notificacao = document.createElement("div");
-  notificacao.style.cssText = `
-    position: fixed;
-    top: 20px;
-    right: 20px;
-    background: ${cor.bg};
-    border: 1px solid ${cor.border};
-    color: ${cor.text};
-    padding: 16px 24px;
-    border-radius: 8px;
-    font: 500 14px Inter, sans-serif;
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
-    z-index: 10000;
-    transform: translateX(100%);
-    transition: transform 0.3s ease;
-  `;
-
-  notificacao.textContent = mensagem;
-  document.body.appendChild(notificacao);
-
-  // Animação de entrada
-  requestAnimationFrame(() => {
-    notificacao.style.transform = "translateX(0)";
-  });
-
-  // Remover após 3 segundos
-  setTimeout(() => {
-    notificacao.style.transform = "translateX(100%)";
-    setTimeout(() => {
-      if (notificacao.parentNode) {
-        document.body.removeChild(notificacao);
+        <div style="
+          font: ${MOBILE_DARK_HD_CONFIG.fonts.weights.extrabold} ${MOBILE_DARK_HD_CONFIG.fonts.titleLarge};
+          color: ${MOBILE_DARK_HD_CONFIG.colors.text};
+          text-shadow: 0 2px 8px rgba(0,0,0,0.5);
+        ">${(parseFloat(lider.pontos) || 0).toFixed(2)} pts</div>
+      `
+          : `
+        <div style="
+          font: ${MOBILE_DARK_HD_CONFIG.fonts.weights.regular} ${MOBILE_DARK_HD_CONFIG.fonts.body};
+          color: rgba(255,255,255,0.8);
+        ">Nenhum dado disponível</div>
+      `
       }
-    }, 300);
-  }, 3000);
+    </div>
+
+    <!-- LISTA COMPLETA RANKING -->
+    <div style="
+      background: ${MOBILE_DARK_HD_CONFIG.colors.surface};
+      border-radius: 16px;
+      padding: 0;
+      border: 1px solid ${MOBILE_DARK_HD_CONFIG.colors.border};
+      box-shadow: ${MOBILE_DARK_HD_CONFIG.colors.shadowLight};
+      overflow: hidden;
+      margin-bottom: 20px;
+    ">
+
+      <!-- Header da lista -->
+      <div style="
+        background: ${gradienteTipo};
+        color: ${MOBILE_DARK_HD_CONFIG.colors.text};
+        padding: 16px ${MOBILE_DARK_HD_CONFIG.padding}px;
+        text-align: center;
+      ">
+        <h3 style="
+          font: ${MOBILE_DARK_HD_CONFIG.fonts.weights.semibold} ${MOBILE_DARK_HD_CONFIG.fonts.subheading};
+          margin: 0;
+          letter-spacing: 0.5px;
+        ">${tipo === "geral" ? "🏆 RANKING GERAL" : `📊 RANKING RODADA ${rodada}`}</h3>
+      </div>
+
+      <!-- Lista de participantes -->
+      <div style="padding: ${MOBILE_DARK_HD_CONFIG.padding}px 0;">
+        ${rankings
+          .slice(0, 20)
+          .map((time, index) => criarItemRankingMobile(time, index, tipo))
+          .join("")}
+      </div>
+
+    </div>
+
+    <!-- ESTATÍSTICAS RESUMO -->
+    <div style="
+      display: grid;
+      grid-template-columns: 1fr 1fr 1fr;
+      gap: ${MOBILE_DARK_HD_CONFIG.cardSpacing}px;
+    ">
+
+      <!-- Participantes -->
+      <div style="
+        background: ${MOBILE_DARK_HD_CONFIG.colors.surface};
+        border: 1px solid ${MOBILE_DARK_HD_CONFIG.colors.border};
+        border-radius: 12px;
+        padding: 16px;
+        text-align: center;
+        box-shadow: ${MOBILE_DARK_HD_CONFIG.colors.shadowLight};
+      ">
+        <div style="
+          font: ${MOBILE_DARK_HD_CONFIG.fonts.weights.regular} ${MOBILE_DARK_HD_CONFIG.fonts.caption};
+          color: ${MOBILE_DARK_HD_CONFIG.colors.textMuted};
+          margin-bottom: 4px;
+          text-transform: uppercase;
+          letter-spacing: 1px;
+        ">👥 Times</div>
+
+        <div style="
+          font: ${MOBILE_DARK_HD_CONFIG.fonts.weights.bold} ${MOBILE_DARK_HD_CONFIG.fonts.heading};
+          color: ${MOBILE_DARK_HD_CONFIG.colors.accent};
+        ">${rankings.length}</div>
+      </div>
+
+      <!-- Pontuação Média -->
+      <div style="
+        background: ${MOBILE_DARK_HD_CONFIG.colors.surface};
+        border: 1px solid ${MOBILE_DARK_HD_CONFIG.colors.border};
+        border-radius: 12px;
+        padding: 16px;
+        text-align: center;
+        box-shadow: ${MOBILE_DARK_HD_CONFIG.colors.shadowLight};
+      ">
+        <div style="
+          font: ${MOBILE_DARK_HD_CONFIG.fonts.weights.regular} ${MOBILE_DARK_HD_CONFIG.fonts.caption};
+          color: ${MOBILE_DARK_HD_CONFIG.colors.textMuted};
+          margin-bottom: 4px;
+          text-transform: uppercase;
+          letter-spacing: 1px;
+        ">📈 Média</div>
+
+        <div style="
+          font: ${MOBILE_DARK_HD_CONFIG.fonts.weights.bold} ${MOBILE_DARK_HD_CONFIG.fonts.heading};
+          color: ${MOBILE_DARK_HD_CONFIG.colors.info};
+        ">${pontuacaoMedia.toFixed(1)}</div>
+      </div>
+
+      <!-- Pontuação Máxima -->
+      <div style="
+        background: ${MOBILE_DARK_HD_CONFIG.colors.surface};
+        border: 1px solid ${MOBILE_DARK_HD_CONFIG.colors.border};
+        border-radius: 12px;
+        padding: 16px;
+        text-align: center;
+        box-shadow: ${MOBILE_DARK_HD_CONFIG.colors.shadowLight};
+      ">
+        <div style="
+          font: ${MOBILE_DARK_HD_CONFIG.fonts.weights.regular} ${MOBILE_DARK_HD_CONFIG.fonts.caption};
+          color: ${MOBILE_DARK_HD_CONFIG.colors.textMuted};
+          margin-bottom: 4px;
+          text-transform: uppercase;
+          letter-spacing: 1px;
+        ">${tipo === "geral" ? "🔥 Máxima" : "🎯 Melhor"}</div>
+
+        <div style="
+          font: ${MOBILE_DARK_HD_CONFIG.fonts.weights.bold} ${MOBILE_DARK_HD_CONFIG.fonts.heading};
+          color: ${MOBILE_DARK_HD_CONFIG.colors.success};
+        ">${pontuacaoMaxima.toFixed(1)}</div>
+      </div>
+
+    </div>
+  `;
 }
 
-// ✅ MANTER COMPATIBILIDADE COM FUNÇÕES ORIGINAIS
+// ITEM INDIVIDUAL DO RANKING MOBILE DARK
+function criarItemRankingMobile(time, index, tipo) {
+  const posicao = index + 1;
+
+  // Determinar estilo da posição
+  let posicaoDisplay,
+    posicaoStyle,
+    cardStyle = "";
+
+  if (tipo === "rodada") {
+    // Para ranking de rodada - destaque para MITO e MICO
+    if (posicao === 1) {
+      posicaoDisplay = "🔥";
+      posicaoStyle = `
+        background: ${MOBILE_DARK_HD_CONFIG.colors.success};
+        color: #000;
+        font-weight: ${MOBILE_DARK_HD_CONFIG.fonts.weights.extrabold};
+      `;
+      cardStyle = `border-left: 4px solid ${MOBILE_DARK_HD_CONFIG.colors.success};`;
+    } else if (posicao === rankings.length && rankings.length > 1) {
+      posicaoDisplay = "😰";
+      posicaoStyle = `
+        background: ${MOBILE_DARK_HD_CONFIG.colors.danger};
+        color: #000;
+        font-weight: ${MOBILE_DARK_HD_CONFIG.fonts.weights.extrabold};
+      `;
+      cardStyle = `border-left: 4px solid ${MOBILE_DARK_HD_CONFIG.colors.danger};`;
+    } else {
+      posicaoDisplay = `${posicao}º`;
+      posicaoStyle = `
+        background: ${MOBILE_DARK_HD_CONFIG.colors.surfaceLight};
+        color: ${MOBILE_DARK_HD_CONFIG.colors.textSecondary};
+        font-weight: ${MOBILE_DARK_HD_CONFIG.fonts.weights.semibold};
+      `;
+    }
+  } else {
+    // Para ranking geral - medalhas tradicionais
+    if (posicao === 1) {
+      posicaoDisplay = "🥇";
+      posicaoStyle = `
+        background: ${MOBILE_DARK_HD_CONFIG.colors.gold};
+        color: #000;
+        font-weight: ${MOBILE_DARK_HD_CONFIG.fonts.weights.extrabold};
+      `;
+      cardStyle = `border-left: 4px solid ${MOBILE_DARK_HD_CONFIG.colors.gold};`;
+    } else if (posicao === 2) {
+      posicaoDisplay = "🥈";
+      posicaoStyle = `
+        background: ${MOBILE_DARK_HD_CONFIG.colors.silver};
+        color: #000;
+        font-weight: ${MOBILE_DARK_HD_CONFIG.fonts.weights.bold};
+      `;
+    } else if (posicao === 3) {
+      posicaoDisplay = "🥉";
+      posicaoStyle = `
+        background: ${MOBILE_DARK_HD_CONFIG.colors.bronze};
+        color: #000;
+        font-weight: ${MOBILE_DARK_HD_CONFIG.fonts.weights.bold};
+      `;
+    } else {
+      posicaoDisplay = `${posicao}º`;
+      posicaoStyle = `
+        background: ${MOBILE_DARK_HD_CONFIG.colors.surfaceLight};
+        color: ${MOBILE_DARK_HD_CONFIG.colors.textSecondary};
+        font-weight: ${MOBILE_DARK_HD_CONFIG.fonts.weights.semibold};
+      `;
+    }
+  }
+
+  // Mostrar banco apenas para ranking de rodada
+  const mostrarBanco =
+    tipo === "rodada" && time.banco !== undefined && time.banco !== null;
+
+  return `
+    <div style="
+      display: flex;
+      align-items: center;
+      padding: 16px ${MOBILE_DARK_HD_CONFIG.padding}px;
+      border-bottom: 1px solid ${MOBILE_DARK_HD_CONFIG.colors.divider};
+      ${cardStyle}
+      transition: all 0.2s ease;
+    ">
+
+      <!-- Posição -->
+      <div style="
+        ${posicaoStyle}
+        padding: 8px 12px;
+        border-radius: 8px;
+        margin-right: 16px;
+        min-width: 50px;
+        text-align: center;
+        font: ${MOBILE_DARK_HD_CONFIG.fonts.weights.semibold} ${MOBILE_DARK_HD_CONFIG.fonts.bodySmall};
+      ">
+        ${posicaoDisplay}
+      </div>
+
+      <!-- Escudo -->
+      <div style="margin-right: 12px; flex-shrink: 0;">
+        ${
+          time.clube_id
+            ? `
+          <img src="/escudos/${time.clube_id}.png"
+               style="
+                 width: 32px; 
+                 height: 32px; 
+                 border-radius: 50%; 
+                 border: 2px solid ${MOBILE_DARK_HD_CONFIG.colors.border};
+                 background: ${MOBILE_DARK_HD_CONFIG.colors.surfaceLight};
+               "
+               onerror="this.outerHTML='<div style=\\'width:32px;height:32px;background:${MOBILE_DARK_HD_CONFIG.colors.surfaceLight};border:2px solid ${MOBILE_DARK_HD_CONFIG.colors.border};border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:14px;\\'>⚽</div>'"
+               alt="Escudo">
+        `
+            : `
+          <div style="
+            width: 32px; 
+            height: 32px; 
+            background: ${MOBILE_DARK_HD_CONFIG.colors.surfaceLight}; 
+            border: 2px solid ${MOBILE_DARK_HD_CONFIG.colors.border}; 
+            border-radius: 50%; 
+            display: flex; 
+            align-items: center; 
+            justify-content: center; 
+            font-size: 14px;
+          ">❤️</div>
+        `
+        }
+      </div>
+
+      <!-- Informações -->
+      <div style="flex: 1; min-width: 0;">
+        <div style="
+          font: ${MOBILE_DARK_HD_CONFIG.fonts.weights.semibold} ${MOBILE_DARK_HD_CONFIG.fonts.body};
+          color: ${MOBILE_DARK_HD_CONFIG.colors.text};
+          margin-bottom: 2px;
+          overflow: hidden;
+          text-overflow: ellipsis;
+          white-space: nowrap;
+        ">${time.nome_cartola || time.nome_cartoleiro || "N/D"}</div>
+
+        <div style="
+          font: ${MOBILE_DARK_HD_CONFIG.fonts.weights.regular} ${MOBILE_DARK_HD_CONFIG.fonts.bodySmall};
+          color: ${MOBILE_DARK_HD_CONFIG.colors.textMuted};
+          overflow: hidden;
+          text-overflow: ellipsis;
+          white-space: nowrap;
+        ">${time.nome_time || "Time não informado"}</div>
+
+        ${
+          mostrarBanco
+            ? `
+          <div style="
+            font: ${MOBILE_DARK_HD_CONFIG.fonts.weights.medium} ${MOBILE_DARK_HD_CONFIG.fonts.caption};
+            color: ${time.banco >= 0 ? MOBILE_DARK_HD_CONFIG.colors.success : MOBILE_DARK_HD_CONFIG.colors.danger};
+            margin-top: 4px;
+          ">
+            ${time.banco >= 0 ? "+" : ""}R$ ${time.banco.toFixed(2).replace(".", ",")}
+          </div>
+        `
+            : ""
+        }
+      </div>
+
+      <!-- Pontuação -->
+      <div style="
+        text-align: right;
+        margin-left: 12px;
+      ">
+        <div style="
+          font: ${MOBILE_DARK_HD_CONFIG.fonts.weights.bold} ${MOBILE_DARK_HD_CONFIG.fonts.subheading};
+          color: ${posicao <= 3 ? MOBILE_DARK_HD_CONFIG.colors.success : MOBILE_DARK_HD_CONFIG.colors.accent};
+        ">${(parseFloat(time.pontos) || 0).toFixed(2)}</div>
+
+        <div style="
+          font: ${MOBILE_DARK_HD_CONFIG.fonts.weights.regular} ${MOBILE_DARK_HD_CONFIG.fonts.caption};
+          color: ${MOBILE_DARK_HD_CONFIG.colors.textMuted};
+          margin-top: 2px;
+        ">pts</div>
+      </div>
+
+    </div>
+  `;
+}
+
+// COMPATIBILIDADE COM FUNÇÕES LEGADO
 export async function exportarRankingGeralComoImagem(rankings, rodada) {
-  await exportarRankingGeralComoImagemProfissional({
+  await exportarRankingGeralMobileDarkHD({
     rankings,
     rodada,
     tipo: "geral",
@@ -543,13 +603,17 @@ export async function exportarRodadaComoImagem(
   rodada,
   tipo = "rodada",
 ) {
-  await exportarRankingGeralComoImagemProfissional({
+  await exportarRankingGeralMobileDarkHD({
     rankings,
     rodada,
     tipo,
   });
 }
 
+console.log("[EXPORT-RANKING-GERAL-MOBILE] Sistema Mobile Dark HD configurado");
 console.log(
-  "[EXPORT-RANKING-GERAL] ✅ Sistema de exportação profissional carregado",
+  "[EXPORT-RANKING-GERAL-MOBILE] Resolução: 400px x 800px+ @ 4x scale",
+);
+console.log(
+  "[EXPORT-RANKING-GERAL-MOBILE] Compatibilidade com sistema existente mantida",
 );
