@@ -46,7 +46,7 @@ export const MOBILE_DARK_HD_CONFIG = {
     successDark: "#388E3C", // Verde escuro
     danger: "#F44336", // Vermelho erro/negativo
     dangerDark: "#C62828", // Vermelho escuro
-    warning: "#FF9800", // Amarelo aviso
+    warning: "#4CAF50", // ✅ ALTERADO: de "#FF9800" para verde
     info: "#2196F3", // Azul informação
 
     // Bordas e Separadores
@@ -59,6 +59,7 @@ export const MOBILE_DARK_HD_CONFIG = {
     gradientDark: "linear-gradient(135deg, #1a1a1a 0%, #2d2d2d 100%)",
     gradientSuccess: "linear-gradient(135deg, #4CAF50 0%, #388E3C 100%)",
     gradientDanger: "linear-gradient(135deg, #F44336 0%, #C62828 100%)",
+    gradientWarning: "linear-gradient(135deg, #4CAF50 0%, #388E3C 100%)", // ✅ NOVO: verde
 
     // Overlay e Sombras
     overlay: "rgba(0, 0, 0, 0.8)",
@@ -617,10 +618,8 @@ export const MobileDarkUtils = {
     if (typeof valor !== "number" || isNaN(valor)) return "R$ 0,00";
 
     const abs = Math.abs(valor);
-    const formatado = abs.toLocaleString("pt-BR", {
-      minimumFractionDigits: 2,
-      maximumFractionDigits: 2,
-    });
+    // ✅ REMOVIDO: minimumFractionDigits e maximumFractionDigits
+    const formatado = abs.toLocaleString("pt-BR");
 
     return valor >= 0 ? `R$ ${formatado}` : `-R$ ${formatado}`;
   },
