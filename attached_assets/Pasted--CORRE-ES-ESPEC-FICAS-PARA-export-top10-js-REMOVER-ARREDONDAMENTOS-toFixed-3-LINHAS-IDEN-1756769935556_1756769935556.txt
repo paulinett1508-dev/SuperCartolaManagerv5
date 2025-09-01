@@ -1,0 +1,74 @@
+// CORREÇÕES ESPECÍFICAS PARA export-top10.js
+// REMOVER ARREDONDAMENTOS (.toFixed) - 3 LINHAS IDENTIFICADAS
+
+// ==================================================
+// CORREÇÃO 1: Linha 305 - Card principal de destaque
+// ==================================================
+// SUBSTITUIR:
+// DE: ${(parseFloat(dados[0].pontos) || 0).toFixed(2)} pts
+// PARA:
+${(parseFloat(dados[0].pontos) || 0)} pts
+
+// ==================================================  
+// CORREÇÃO 2: Linha 371 - Pontuação máxima/mínima
+// ==================================================
+// SUBSTITUIR:
+// DE: ${pontuacaoExtrema.toFixed(1)}
+// PARA:
+${pontuacaoExtrema}
+
+// ==================================================
+// CORREÇÃO 3: Linha 471 - Pontuação individual dos itens
+// ==================================================
+// SUBSTITUIR:
+// DE: ${pontos.toFixed(2)}
+// PARA:
+${pontos}
+
+// ==================================================
+// ALTERAÇÕES COMPLETAS PARA O ARQUIVO
+// ==================================================
+
+// LINHA 305 - criarLayoutTop10MobileDark:
+<div style="
+  font: ${MOBILE_DARK_HD_CONFIG.fonts.weights.extrabold} ${MOBILE_DARK_HD_CONFIG.fonts.titleLarge};
+  color: ${MOBILE_DARK_HD_CONFIG.colors.text};
+  text-shadow: 0 2px 8px rgba(0,0,0,0.5);
+">${(parseFloat(dados[0].pontos) || 0)} pts</div>
+
+// LINHA 371 - estatísticas resumo:
+<div style="
+  font: ${MOBILE_DARK_HD_CONFIG.fonts.weights.bold} ${MOBILE_DARK_HD_CONFIG.fonts.heading};
+  color: ${corTema};
+">${pontuacaoExtrema}</div>
+
+// LINHA 471 - criarItemTop10Mobile:
+<div style="
+  font: ${MOBILE_DARK_HD_CONFIG.fonts.weights.bold} ${MOBILE_DARK_HD_CONFIG.fonts.subheading};
+  color: ${tipo === "mitos" ? MOBILE_DARK_HD_CONFIG.colors.success : MOBILE_DARK_HD_CONFIG.colors.danger};
+">${pontos}</div>
+
+// ==================================================
+// RESUMO DAS ALTERAÇÕES
+// ==================================================
+/*
+✅ CORREÇÕES IMPLEMENTADAS:
+
+1. ARREDONDAMENTOS REMOVIDOS - 3 ocorrências:
+   - Card principal: .toFixed(2) → valor direto
+   - Estatísticas: .toFixed(1) → valor direto  
+   - Lista individual: .toFixed(2) → valor direto
+
+2. BACKGROUNDS MANTIDOS:
+   - Este arquivo já usa cores apropriadas (verde/vermelho)
+   - Não há backgrounds amarelos para corrigir
+
+3. RESULTADO:
+   - TOP10 agora mostra valores exatos sem arredondamento
+   - Mantém toda funcionalidade e visual existente
+   - Correção cirúrgica sem quebrar dependências
+
+4. TESTE:
+   - Console deve parar de mostrar valores arredondados
+   - Exports do TOP10 terão pontuações precisas
+*/
