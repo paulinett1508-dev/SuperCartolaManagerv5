@@ -135,7 +135,7 @@ export function getLigaAtivaInfoMobile() {
   return LIGAS_MOBILE_CONFIG["684cb1c8af923da7c7df51de"];
 }
 
-// HEADER MOBILE DARK COMPACTO - MINI CARDS
+// HEADER MOBILE DARK COMPACTO UX OTIMIZADO
 export function criarHeaderMobileDark(titulo, subtitulo = "", info = {}) {
   const ligaInfo = getLigaAtivaInfoMobile();
   const agora = new Date();
@@ -147,166 +147,118 @@ export function criarHeaderMobileDark(titulo, subtitulo = "", info = {}) {
   });
 
   return `
-    <!-- HEADER MOBILE DARK COMPACTO -->
+    <!-- HEADER MOBILE DARK COMPACTO UX OTIMIZADO -->
     <div style="
       background: ${MOBILE_DARK_HD_CONFIG.colors.gradientPrimary};
       color: ${MOBILE_DARK_HD_CONFIG.colors.text};
-      padding: 12px ${MOBILE_DARK_HD_CONFIG.padding}px;
+      padding: 8px ${MOBILE_DARK_HD_CONFIG.padding}px;
       position: relative;
       overflow: hidden;
-      min-height: ${MOBILE_DARK_HD_CONFIG.headerHeight}px;
+      min-height: 48px;
       box-shadow: ${MOBILE_DARK_HD_CONFIG.colors.shadow};
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
     ">
 
-      <!-- Container flex compacto -->
+      <!-- LOGO COMPACTO ESQUERDA -->
       <div style="
         display: flex;
         align-items: center;
-        justify-content: space-between;
-        position: relative;
-        z-index: 2;
+        background: ${MOBILE_DARK_HD_CONFIG.colors.overlay};
+        backdrop-filter: blur(10px);
+        border-radius: 6px;
+        padding: 4px 8px;
+        border: 1px solid ${MOBILE_DARK_HD_CONFIG.colors.border};
+        flex-shrink: 0;
       ">
-
-        <!-- MINI CARD ESQUERDO - Liga -->
+        <img src="${ligaInfo.logo}" 
+             style="height: 20px; width: 20px; border-radius: 50%; margin-right: 6px;" 
+             alt="${ligaInfo.nome}"
+             onerror="this.outerHTML='<div style=\\'width:20px;height:20px;background:${MOBILE_DARK_HD_CONFIG.colors.accent};border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:8px;margin-right:6px;\\'>${ligaInfo.fallbackLogo}</div>'">
         <div style="
-          display: flex;
-          align-items: center;
-          background: ${MOBILE_DARK_HD_CONFIG.colors.overlay};
-          backdrop-filter: blur(10px);
-          border-radius: 10px;
-          padding: 6px 10px;
-          border: 1px solid ${MOBILE_DARK_HD_CONFIG.colors.border};
-          min-width: 0;
-          flex: 1;
-        ">
-          <img src="${ligaInfo.logo}" 
-               style="
-                 height: 24px; 
-                 width: 24px; 
-                 border-radius: 50%;
-                 margin-right: 8px;
-                 flex-shrink: 0;
-               " 
-               alt="${ligaInfo.nome}"
-               onerror="this.outerHTML='<div style=\\'width:24px;height:24px;background:${MOBILE_DARK_HD_CONFIG.colors.accent};border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:10px;margin-right:8px;flex-shrink:0;\\'>${ligaInfo.fallbackLogo}</div>'">
-
-          <div style="min-width: 0; flex: 1;">
-            <div style="
-              font: ${MOBILE_DARK_HD_CONFIG.fonts.weights.semibold} 12px Inter;
-              color: ${MOBILE_DARK_HD_CONFIG.colors.text};
-              white-space: nowrap;
-              overflow: hidden;
-              text-overflow: ellipsis;
-            ">${ligaInfo.nome}</div>
-          </div>
-        </div>
-
-        <!-- MINI CARD CENTRO - Título -->
-        <div style="
-          background: ${MOBILE_DARK_HD_CONFIG.colors.overlay};
-          backdrop-filter: blur(10px);
-          border-radius: 10px;
-          padding: 6px 12px;
-          border: 1px solid ${MOBILE_DARK_HD_CONFIG.colors.border};
-          margin: 0 8px;
-          flex-shrink: 0;
-        ">
-          <div style="
-            font: ${MOBILE_DARK_HD_CONFIG.fonts.weights.bold} 14px Inter;
-            color: ${MOBILE_DARK_HD_CONFIG.colors.text};
-            text-align: center;
-            white-space: nowrap;
-          ">${titulo || "Exportação"}</div>
-
-          ${
-            subtitulo
-              ? `
-            <div style="
-              font: ${MOBILE_DARK_HD_CONFIG.fonts.weights.regular} 10px Inter;
-              color: ${MOBILE_DARK_HD_CONFIG.colors.textMuted};
-              text-align: center;
-              margin-top: 2px;
-            ">${subtitulo}</div>
-          `
-              : ""
-          }
-        </div>
-
-        <!-- MINI CARD DIREITO - Data -->
-        <div style="
-          background: ${MOBILE_DARK_HD_CONFIG.colors.overlay};
-          backdrop-filter: blur(10px);
-          border-radius: 10px;
-          padding: 6px 8px;
-          border: 1px solid ${MOBILE_DARK_HD_CONFIG.colors.border};
-          flex-shrink: 0;
-        ">
-          <div style="
-            font: ${MOBILE_DARK_HD_CONFIG.fonts.weights.medium} 10px Inter;
-            color: ${MOBILE_DARK_HD_CONFIG.colors.textMuted};
-            text-align: center;
-            white-space: nowrap;
-          ">${dataFormatada}</div>
-        </div>
-
+          font: ${MOBILE_DARK_HD_CONFIG.fonts.weights.semibold} 10px Inter;
+          color: ${MOBILE_DARK_HD_CONFIG.colors.text};
+          white-space: nowrap;
+        ">${ligaInfo.nome}</div>
       </div>
+
+      <!-- TÍTULO CENTRAL COMPACTO -->
+      <div style="
+        background: ${MOBILE_DARK_HD_CONFIG.colors.overlay};
+        backdrop-filter: blur(10px);
+        border-radius: 6px;
+        padding: 4px 10px;
+        border: 1px solid ${MOBILE_DARK_HD_CONFIG.colors.border};
+        flex: 1;
+        margin: 0 8px;
+        text-align: center;
+        max-width: 200px;
+      ">
+        <div style="
+          font: ${MOBILE_DARK_HD_CONFIG.fonts.weights.bold} 12px Inter;
+          color: ${MOBILE_DARK_HD_CONFIG.colors.text};
+          white-space: nowrap;
+          overflow: hidden;
+          text-overflow: ellipsis;
+        ">${titulo || "Exportação"}</div>
+
+        ${subtitulo ? `
+        <div style="
+          font: ${MOBILE_DARK_HD_CONFIG.fonts.weights.regular} 8px Inter;
+          color: ${MOBILE_DARK_HD_CONFIG.colors.textMuted};
+          margin-top: 1px;
+        ">${subtitulo}</div>
+        ` : ""}
+      </div>
+
+      <!-- DATA DIREITA COMPACTA -->
+      <div style="
+        background: ${MOBILE_DARK_HD_CONFIG.colors.overlay};
+        backdrop-filter: blur(10px);
+        border-radius: 6px;
+        padding: 4px 6px;
+        border: 1px solid ${MOBILE_DARK_HD_CONFIG.colors.border};
+        flex-shrink: 0;
+      ">
+        <div style="
+          font: ${MOBILE_DARK_HD_CONFIG.fonts.weights.medium} 8px Inter;
+          color: ${MOBILE_DARK_HD_CONFIG.colors.textMuted};
+          text-align: center;
+          white-space: nowrap;
+        ">${dataFormatada}</div>
+      </div>
+
     </div>
   `;
 }
 
-// FOOTER MOBILE DARK PROFISSIONAL
+// FOOTER MOBILE DARK COMPACTO
 export function criarFooterMobileDark() {
   const agora = new Date();
   const dataCompleta = agora.toLocaleDateString("pt-BR", {
-    weekday: "long",
+    day: "2-digit",
+    month: "2-digit", 
     year: "numeric",
-    month: "long",
-    day: "numeric",
     hour: "2-digit",
     minute: "2-digit",
   });
 
   return `
-    <!-- FOOTER MOBILE DARK HD -->
+    <!-- FOOTER MOBILE DARK COMPACTO -->
     <div style="
       background: ${MOBILE_DARK_HD_CONFIG.colors.surface};
-      border-top: 2px solid ${MOBILE_DARK_HD_CONFIG.colors.accent};
-      padding: ${MOBILE_DARK_HD_CONFIG.padding}px;
+      border-top: 1px solid ${MOBILE_DARK_HD_CONFIG.colors.accent};
+      padding: 8px ${MOBILE_DARK_HD_CONFIG.padding}px;
       text-align: center;
-      margin-top: 24px;
+      margin-top: 16px;
     ">
-
-      <!-- Logo mini -->
       <div style="
-        width: 32px;
-        height: 32px;
-        background: ${MOBILE_DARK_HD_CONFIG.colors.gradientPrimary};
-        border-radius: 50%;
-        display: inline-flex;
-        align-items: center;
-        justify-content: center;
-        margin-bottom: 8px;
-        box-shadow: ${MOBILE_DARK_HD_CONFIG.colors.shadowLight};
-      ">
-        <span style="
-          font: ${MOBILE_DARK_HD_CONFIG.fonts.weights.bold} 14px Inter;
-          color: ${MOBILE_DARK_HD_CONFIG.colors.text};
-        ">SC</span>
-      </div>
-
-      <!-- Informações do sistema -->
-      <div style="
-        font: ${MOBILE_DARK_HD_CONFIG.fonts.weights.medium} ${MOBILE_DARK_HD_CONFIG.fonts.caption};
+        font: ${MOBILE_DARK_HD_CONFIG.fonts.weights.medium} 9px Inter;
         color: ${MOBILE_DARK_HD_CONFIG.colors.textMuted};
-        line-height: 1.4;
-        margin: 0;
+        line-height: 1.3;
       ">
-        SuperCartola Manager v3.0.1<br>
-        Sistema de Gestão de Ligas Cartola FC<br>
-        <span style="
-          color: ${MOBILE_DARK_HD_CONFIG.colors.accent};
-          font-weight: ${MOBILE_DARK_HD_CONFIG.fonts.weights.semibold};
-        ">Gerado em ${dataCompleta}</span>
+        SuperCartola Manager • ${dataCompleta}
       </div>
     </div>
   `;
