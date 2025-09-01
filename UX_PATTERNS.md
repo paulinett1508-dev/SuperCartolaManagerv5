@@ -1,6 +1,6 @@
 # 🎨 PADRÕES UX DO SISTEMA
-# Gerado em: 01/09/2025, 16:42:32
-# Arquivos analisados: 141
+# Gerado em: 01/09/2025, 20:08:17
+# Arquivos analisados: 285
 
 ## 🎨 CORES DO SISTEMA
 
@@ -127,6 +127,12 @@
 ### Cards/Panels
 
 **Card 1:**
+- Background: linear-gradient(135deg, #ff4500 0%, #e8472b 100%)
+- Border Radius: 50%
+- Box Shadow: 0 4px 20px rgba(255, 69, 0, 0.4)
+- Padding: não definido
+
+**Card 2:**
 - Background: linear-gradient(135deg, #ff4500 0%, #e8472b 100%)
 - Border Radius: 50%
 - Box Shadow: 0 4px 20px rgba(255, 69, 0, 0.4)

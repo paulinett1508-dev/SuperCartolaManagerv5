@@ -1,0 +1,225 @@
+{
+  "timestamp": "2025-09-01T20:41:06.280Z",
+  "dataHoraBrasil": "01/09/2025, 17:41:06",
+  "versao": "v3.0.1-estavel",
+  "status": "FUNCIONAL - Ranking Geral corrigido",
+  "totalArquivos": 209,
+  "estrutura": {
+    ".cache": {
+      "tipo": "diretorio",
+      "arquivos": [
+        "YAPF",
+        "nix",
+        "replit",
+        "typescript"
+      ]
+    },
+    ".env": {
+      "tipo": "arquivo",
+      "tamanho": "0.1 KB"
+    },
+    ".gitignore": {
+      "tipo": "arquivo",
+      "tamanho": "0.1 KB"
+    },
+    ".local": {
+      "tipo": "diretorio",
+      "arquivos": [
+        "share",
+        "state"
+      ]
+    },
+    ".upm": {
+      "tipo": "diretorio",
+      "arquivos": [
+        "store.json"
+      ]
+    },
+    "UX_PATTERNS.md": {
+      "tipo": "arquivo",
+      "tamanho": "7.1 KB"
+    },
+    "attached_assets": {
+      "tipo": "diretorio",
+      "arquivos": [
+        "Pasted--CLASSES-FALTANTES-PARA-CONFRONTOS-COMPACTOS-Adicionar-ao-final-do-arquivo-pontos-c-1756564109533_1756564109534.txt",
+        "Pasted--CORRE-O-CR-TICA-DO-EXPORT-BASE-JS-LINHAS-372-468-Problema-Promises-rejeitadas-no-carregam-1756754170774_1756754170775.txt",
+        "Pasted--CORRE-O-DO-ERRO-NA-LINHA-1084-Problema-Fun-o-exportarPontosCorridosHistoricoComoImagem-inc-1756568419593_1756568419594.txt",
+        "Pasted-cards-condicionais-js-4-CARDS-CONDICIONAIS-Carregando-sistema-cards-condicionais-js-343--1756567727988_1756567727990.txt",
+        "Pasted-cards-condicionais-js-4-CARDS-CONDICIONAIS-Carregando-sistema-cards-condicionais-js-343--1756758604178_1756758604180.txt",
+        "Pasted-cards-condicionais-js-4-CARDS-CONDICIONAIS-Carregando-sistema-cards-condicionais-js-343--1756758725306_1756758725307.txt"
+      ]
+    },
+    "backupJson.js": {
+      "tipo": "arquivo",
+      "tamanho": "0.9 KB"
+    },
+    "backupScheduler.js": {
+      "tipo": "arquivo",
+      "tamanho": "1.3 KB"
+    },
+    "backups": {
+      "tipo": "diretorio",
+      "arquivos": [
+        "artilheirocampeaos.json",
+        "goleiros.json",
+        "gols.json",
+        "ligas.json",
+        "rodadas.json",
+        "times.json"
+      ]
+    },
+    "config": {
+      "tipo": "diretorio",
+      "arquivos": [
+        "database.js"
+      ]
+    },
+    "controllers": {
+      "tipo": "diretorio",
+      "arquivos": [
+        "artilheiroCampeaoController.js",
+        "cartolaController.js",
+        "golsController.js",
+        "ligaController.js",
+        "luvaDeOuroController.js",
+        "rodadaController.js",
+        "timeController.js"
+      ]
+    },
+    "credentials.json": {
+      "tipo": "arquivo",
+      "tamanho": "2.3 KB"
+    },
+    "debug-escudos.js": {
+      "tipo": "arquivo",
+      "tamanho": "0.3 KB"
+    },
+    "detector-arquivos-alterados-hoje.js": {
+      "tipo": "arquivo",
+      "tamanho": "4.1 KB"
+    },
+    "doc-version.json": {
+      "tipo": "arquivo",
+      "tamanho": "0.4 KB"
+    },
+    "generate-full-docs.cjs": {
+      "tipo": "arquivo",
+      "tamanho": "39.9 KB"
+    },
+    "generated-icon.png": {
+      "tipo": "arquivo",
+      "tamanho": "13.9 KB"
+    },
+    "handover.js": {
+      "tipo": "arquivo",
+      "tamanho": "12.1 KB"
+    },
+    "index.js": {
+      "tipo": "arquivo",
+      "tamanho": "10.8 KB"
+    },
+    "models": {
+      "tipo": "diretorio",
+      "arquivos": [
+        "ArtilheiroCampeao.js",
+        "Goleiros.js",
+        "Gols.js",
+        "Liga.js",
+        "Rodada.js",
+        "Time.js"
+      ]
+    },
+    "package.json": {
+      "tipo": "arquivo",
+      "tamanho": "1.9 KB"
+    },
+    "public": {
+      "tipo": "diretorio",
+      "arquivos": [
+        "admin.html",
+        "criar-liga.html",
+        "css",
+        "dashboard.html",
+        "detalhe-liga.css",
+        "detalhe-liga.html",
+        "editar-liga.html",
+        "escudos",
+        "favicon.png",
+        "ferramentas.html",
+        "... e mais 11 itens"
+      ]
+    },
+    "replit.nix": {
+      "tipo": "arquivo",
+      "tamanho": "0.1 KB"
+    },
+    "routes": {
+      "tipo": "diretorio",
+      "arquivos": [
+        "artilheiro-campeao-routes.js",
+        "cartola-proxy.js",
+        "cartola.js",
+        "configuracao-routes.js",
+        "gols.js",
+        "ligas.js",
+        "luva-de-ouro-routes.js",
+        "rodadas-routes.js",
+        "times.js"
+      ]
+    },
+    "scripts": {
+      "tipo": "diretorio",
+      "arquivos": [
+        "baixar-escudos.cjs",
+        "exportar-escudos-unicos.js",
+        "limpartimes.js",
+        "populateRodadas.js",
+        "replace-ids.js",
+        "times-da-liga.json"
+      ]
+    },
+    "services": {
+      "tipo": "diretorio",
+      "arquivos": [
+        "cartolaApiService.js",
+        "cartolaService.js",
+        "goleirosService.js",
+        "golsService.js"
+      ]
+    },
+    "system-analysis-2025-09-01.md": {
+      "tipo": "arquivo",
+      "tamanho": "22.5 KB"
+    },
+    "system-mapper.js": {
+      "tipo": "arquivo",
+      "tamanho": "19.4 KB"
+    },
+    "uploadToDrive.js": {
+      "tipo": "arquivo",
+      "tamanho": "1.9 KB"
+    },
+    "utils": {
+      "tipo": "diretorio",
+      "arquivos": [
+        "validators.js"
+      ]
+    },
+    "ux-analyzer.js": {
+      "tipo": "arquivo",
+      "tamanho": "24.7 KB"
+    }
+  },
+  "correcoesAplicadas": [
+    "cartolaController.js - Fallback para getMercadoStatus",
+    "export-pontos-corridos.js - Removido comentário HTML",
+    "Sistema de ranking restaurado"
+  ],
+  "observacoes": [
+    "Sistema funcionando completamente",
+    "Ranking Geral soma rodadas corretamente",
+    "APIs de integração com fallback",
+    "Módulos de exportação funcionais"
+  ]
+}

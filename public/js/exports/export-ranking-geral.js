@@ -330,7 +330,9 @@ function criarLayoutRankingGeralMobile(rankings, rodada, tipo) {
       <div style="padding: ${MOBILE_DARK_HD_CONFIG.padding}px 0;">
         ${rankings
           .slice(0, 20)
-          .map((time, index) => criarItemRankingMobile(time, index, tipo))
+          .map((time, index) =>
+            criarItemRankingMobile(time, index, tipo, rankings.length),
+          )
           .join("")}
       </div>
 
@@ -416,8 +418,8 @@ function criarLayoutRankingGeralMobile(rankings, rodada, tipo) {
   `;
 }
 
-// ITEM INDIVIDUAL DO RANKING MOBILE DARK
-function criarItemRankingMobile(time, index, tipo) {
+// ITEM INDIVIDUAL DO RANKING MOBILE DARK - CORRIGIDO
+function criarItemRankingMobile(time, index, tipo, totalRankings) {
   const posicao = index + 1;
 
   // Determinar estilo da posição
@@ -435,7 +437,7 @@ function criarItemRankingMobile(time, index, tipo) {
         font-weight: ${MOBILE_DARK_HD_CONFIG.fonts.weights.extrabold};
       `;
       cardStyle = `border-left: 4px solid ${MOBILE_DARK_HD_CONFIG.colors.success};`;
-    } else if (posicao === rankings.length && rankings.length > 1) {
+    } else if (posicao === totalRankings && totalRankings > 1) {
       posicaoDisplay = "😰";
       posicaoStyle = `
         background: ${MOBILE_DARK_HD_CONFIG.colors.danger};

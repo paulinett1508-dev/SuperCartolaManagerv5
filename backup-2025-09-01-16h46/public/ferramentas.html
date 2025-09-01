@@ -1,0 +1,103 @@
+<!doctype html>
+<html lang="pt-BR">
+    <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <title>Ferramentas - Super Cartola Manager</title>
+        <link rel="shortcut icon" href="favicon.ico" type="image/x-icon" />
+
+        <!-- CSS HIERÁRQUICO MODULAR -->
+        <link rel="stylesheet" href="style.css" />
+        <link rel="stylesheet" href="detalhe-liga.css" />
+        <link rel="stylesheet" href="css/base.css" />
+        <link rel="stylesheet" href="css/modules/ferramentas.css" />
+    </head>
+
+    <body>
+        <div class="app-container">
+            <div id="sidebar-placeholder"></div>
+
+            <main class="app-main">
+                <div class="page-content">
+                    <!-- Header Simplificado -->
+                    <div class="liga-header">
+                        <h2 class="liga-titulo">Ferramentas de Gestão</h2>
+                        <p class="liga-info">
+                            Gerencie suas ligas do Cartola FC de forma unificada
+                        </p>
+                    </div>
+
+                    <!-- Cards de Ferramentas Consolidados -->
+                    <div class="main-screen">
+                        <div class="modules-grid modules-grid-expanded">
+                            <!-- Card Única: Criar Nova Liga -->
+                            <div
+                                class="module-card"
+                                onclick="window.location.href='criar-liga.html'"
+                            >
+                                <div class="module-header">
+                                    <div class="module-icon">+</div>
+                                    <h3 class="module-title">CRIAR LIGA</h3>
+                                </div>
+                                <ul class="module-items">
+                                    <li>Interface completa em etapas</li>
+                                    <li>Busca e validação de times</li>
+                                    <li>Configuração personalizada</li>
+                                </ul>
+                            </div>
+
+                            <!-- Card: Gerenciar Ligas Existentes -->
+                            <div
+                                class="module-card"
+                                onclick="window.location.href='gerenciar.html'"
+                            >
+                                <div class="module-header">
+                                    <div class="module-icon">⚙</div>
+                                    <h3 class="module-title">GERENCIAR</h3>
+                                </div>
+                                <ul class="module-items">
+                                    <li>Visão geral das ligas</li>
+                                    <li>Editar times e configurações</li>
+                                    <li>Excluir com confirmação</li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </main>
+        </div>
+
+        <!-- Scripts simplificados -->
+        <script type="module">
+            // Carregamento básico de layout
+            async function loadLayout() {
+                try {
+                    const response = await fetch("layout.html");
+                    const layoutHtml = await response.text();
+                    const parser = new DOMParser();
+                    const doc = parser.parseFromString(layoutHtml, "text/html");
+
+                    const sidebar = doc.querySelector(".app-sidebar");
+                    if (sidebar) {
+                        document
+                            .getElementById("sidebar-placeholder")
+                            ?.replaceWith(sidebar);
+                    }
+
+                    const scripts = doc.querySelectorAll("script");
+                    scripts.forEach((script) => {
+                        if (script.textContent.trim()) {
+                            const newScript = document.createElement("script");
+                            newScript.textContent = script.textContent;
+                            document.head.appendChild(newScript);
+                        }
+                    });
+                } catch (error) {
+                    console.error("Erro ao carregar layout:", error);
+                }
+            }
+
+            document.addEventListener("DOMContentLoaded", loadLayout);
+        </script>
+    </body>
+</html>

@@ -1,0 +1,127 @@
+cards-condicionais.js:4 🎛️ [CARDS-CONDICIONAIS] Carregando sistema...
+cards-condicionais.js:343 ✅ [CARDS-CONDICIONAIS] Módulo carregado
+sistema-modulos-init.js:8 🔧 [SISTEMA-MODULOS] Inicializando sistema de módulos...
+sistema-modulos-init.js:34 ✅ [SISTEMA-MODULOS] Sistema inicializado com sucesso
+sistema-modulos-init.js:35 📦 [SISTEMA-MODULOS] Módulos disponíveis: 0
+detalhe-liga-orquestrador.js:14 Iniciando orquestrador...
+cards-condicionais.js:293 🚀 [CARDS-CONDICIONAIS] Inicializando...
+cards-condicionais.js:59 🎯 [CARDS-CONDICIONAIS] Aplicando configuração...
+cards-condicionais.js:69 🔍 [CARDS-CONDICIONAIS] Liga atual: 684cb1c8af923da7c7df51de
+cards-condicionais.js:51 🚫 [CARDS-CONDICIONAIS] Card "luva-de-ouro" desabilitado
+cards-condicionais.js:51 🚫 [CARDS-CONDICIONAIS] Card "artilheiro-campeao" desabilitado
+cards-condicionais.js:94 ✅ [CARDS-CONDICIONAIS] 2 cards desabilitados
+cards-condicionais.js:127 🧭 [CARDS-CONDICIONAIS] Configurando navegação condicional...
+cards-condicionais.js:183 ✅ [CARDS-CONDICIONAIS] Botão voltar controlado
+cards-condicionais.js:312 ✅ [CARDS-CONDICIONAIS] Sistema inicializado com UX melhorado
+detalhe-liga-orquestrador.js:16 Layout carregado
+detalhe-liga-orquestrador.js:420 Carregando ligas para o sidebar...
+ranking.js:391 ✅ [RANKING] Módulo carregado e funções expostas globalmente
+rodadas.js:818 [RODADAS] ✅ Módulo melhorado carregado - Mini Cards implementados
+rodadas.js:821 [RODADAS] 🔧 Funções de debug disponíveis em window.rodadasDebug
+detalhe-liga-orquestrador.js:450 2 ligas carregadas no sidebar
+detalhe-liga-orquestrador.js:504 Liga atual destacada no sidebar
+export-exports.js:4 [EXPORT-EXPORTS] 🎯 Centro coordenador de exportações carregado
+export-exports.js:460 [EXPORT-EXPORTS] 🚀 Inicializando sistema de exportação...
+export-exports.js:471 [EXPORT-EXPORTS] ✅ Sistema inicializado com sucesso
+export-exports.js:472 [EXPORT-EXPORTS] 📦 7 módulos mapeados
+export-exports.js:570 [EXPORT-EXPORTS] ✅ Centro coordenador CORRIGIDO v2.4.2 - Detecção inteligente implementada
+rodadas.js:43 [RODADAS] ✅ Módulos carregados com sucesso
+rodadas.js:55 [RODADAS] ✅ Inicialização assíncrona completa
+mata-mata-orquestrador.js:443 [MATA-ORQUESTRADOR] Módulo carregado com arquitetura refatorada
+mata-mata.js:28 [MATA-MATA] Sistema modular carregado com arquitetura refatorada
+pontos-corridos-config.js:108 [PONTOS-CORRIDOS-CONFIG] Módulo carregado com sucesso
+export-base.js:5 [EXPORT-BASE-MOBILE-DARK] 🚀 Sistema Mobile Dark HD v3.0.1 carregado
+export-base.js:677 [EXPORT-BASE-MOBILE-DARK] ✅ Sistema Mobile Dark HD configurado
+export-base.js:678 [EXPORT-BASE-MOBILE-DARK] 📱 Resolução: 400px x 800px @ 4x
+export-base.js:682 [EXPORT-BASE-MOBILE-DARK] 🎨 Tema Dark ativado com 29 cores
+export-base.js:687 [EXPORT-BASE-MOBILE-DARK] 🔧 Carregamento dinâmico html2canvas ativado
+export-base.js:855 [EXPORT-BASE-MOBILE-DARK] ✅ Utilitários de botões Mobile Dark configurados
+export-base.js:856 [EXPORT-BASE-MOBILE-DARK] 🎯 Funções disponíveis: criarBotao, criarBotaoPontosCorridosRodada, criarBotaoPontosCorridosClassificacao, criarBotaoPontosCorridosHistorico
+export-pontos-corridos.js:11 [EXPORT-PONTOS-CORRIDOS-MOBILE] Sistema Mobile Dark HD v3.0.1 carregado
+export-pontos-corridos.js:1094 [EXPORT-PONTOS-CORRIDOS-MOBILE] Sistema Mobile Dark HD configurado
+export-pontos-corridos.js:1097 [EXPORT-PONTOS-CORRIDOS-MOBILE] Resolução: 400px x 800px+ @ 4x scale
+export-pontos-corridos.js:1100 [EXPORT-PONTOS-CORRIDOS-MOBILE] Compatibilidade com sistema existente mantida
+pontos-corridos-ui.js:609 [PONTOS-CORRIDOS-UI] Módulo carregado com layout compacto e seleção inteligente
+pontos-corridos-core.js:501 [PONTOS-CORRIDOS-CORE] Módulo carregado com sucesso
+pontos-corridos-cache.js:201 [PONTOS-CORRIDOS-CACHE] Sistema de cache inicializado
+pontos-corridos-cache.js:202 [PONTOS-CORRIDOS-CACHE] Limpeza automática configurada (5min)
+pontos-corridos-orquestrador.js:510 [PONTOS-CORRIDOS-ORQUESTRADOR] Módulo carregado com UX redesenhado
+pontos-corridos.js:61 [PONTOS-CORRIDOS] Sistema modular carregado com arquitetura refatorada
+luva-de-ouro.js:2 🥅 [LUVA-DE-OURO] Módulo carregado
+luva-de-ouro.js:1088 🥅 [LUVA-DE-OURO] Módulo pronto para uso
+luva-de-ouro.js:1089 🆘 Em caso de erro: window.forcarLuvaDeOuroAgora()
+luva-de-ouro.js:1090 🧪 Para testar manualmente: window.testarLuvaDeOuro()
+luva-de-ouro.js:1097 🥅 [LUVA-DE-OURO] Verificando exportações...
+luva-de-ouro.js:1098 🔍 inicializarLuvaDeOuro definida: function
+luva-de-ouro.js:1099 🔍 mostrarDetalhesParticipante definida: function
+luva-de-ouro.js:1104 📤 [LUVA-DE-OURO] Exportações ES6 adicionadas para compatibilidade
+luva-de-ouro.js:1107 🔍 Exportações disponíveis: {inicializarLuvaDeOuro: ƒ, mostrarDetalhesParticipante: ƒ}
+artilheiro-campeao-utils.js:2 🔧 [ARTILHEIRO-UTILS] Módulo de utilitários carregando...
+artilheiro-campeao-utils.js:241 ✅ [ARTILHEIRO-UTILS] Utilitários carregados com sucesso!
+artilheiro-campeao-cache.js:4 📦 [ARTILHEIRO-CACHE] Módulo v1.0 carregando...
+artilheiro-campeao-cache.js:382 🧹 Limpeza automática iniciada (intervalo: 300000ms)
+artilheiro-campeao-cache.js:389 ✅ [ARTILHEIRO-CACHE] Módulo carregado com sucesso!
+artilheiro-campeao-core.js:4 🧠 [ARTILHEIRO-CORE] Módulo v1.0 carregando...
+artilheiro-campeao-core.js:570 ✅ [ARTILHEIRO-CORE] Módulo carregado com sucesso!
+artilheiro-campeao-ui.js:2 🎨 [ARTILHEIRO-UI] Módulo v2.0 carregando...
+artilheiro-campeao-ui.js:903 ✅ [ARTILHEIRO-UI] Interface otimizada carregada sem conflitos!
+artilheiro-campeao-ui.js:904 🎯 [ARTILHEIRO-UI] Funcionalidades: tabela compacta sem coluna média, modal detalhado, dados por rodada
+artilheiro-campeao-detector.js:4 🔍 [ARTILHEIRO-DETECTOR] Módulo v1.0 carregando...
+artilheiro-campeao-detector.js:230 ✅ [ARTILHEIRO-DETECTOR] Módulo carregado com sucesso!
+artilheiro-campeao.js:1 🏆 [ARTILHEIRO-CAMPEAO] Sistema modular carregando...
+artilheiro-campeao.js:408 ✅ [ARTILHEIRO-CAMPEAO] Sistema modular carregado!
+artilheiro-campeao.js:409 🆘 Em caso de erro: window.forcarArtilheiroCampeaoAgora()
+artilheiro-campeao.js:416 🔧 [ARTILHEIRO-CAMPEAO] Sistema de registro compatível iniciado...
+artilheiro-campeao.js:425 ✅ [ARTILHEIRO-CAMPEAO] Registrado em window.modulosCarregados
+artilheiro-campeao.js:452 ✅ [ARTILHEIRO-CAMPEAO] Sistema de registro compatível ativo
+artilheiro-campeao.js:455 📤 [ARTILHEIRO-CAMPEAO] Exportações ES6 adicionadas para compatibilidade
+top10.js:392 [TOP10] Módulo carregado e pronto
+artilheiro-campeao.js:425 ✅ [ARTILHEIRO-CAMPEAO] Registrado em window.modulosCarregados
+detalhe-liga-orquestrador.js:19 Módulos carregados
+detalhe-liga-orquestrador.js:568 Liga atualizada: Super Cartola 2025 com 32 participantes
+detalhe-liga-orquestrador.js:22 Participantes atualizados
+detalhe-liga-orquestrador.js:25 Navegação inicializada
+detalhe-liga-orquestrador.js:28 Funções globais configuradas
+detalhe-liga-orquestrador.js:36 Ícones Lucide inicializados
+detalhe-liga-orquestrador.js:39 Orquestrador inicializado com sucesso
+detalhe-liga-orquestrador.js:597 Removido elemento com "Liga:"
+detalhe-liga-orquestrador.js:597 Removido elemento com "Liga:"
+detalhe-liga-orquestrador.js:504 Liga atual destacada no sidebar
+detalhe-liga-orquestrador.js:361 Tela principal ocultada
+detalhe-liga-orquestrador.js:367 Tela secundária ativada
+detalhe-liga-orquestrador.js:93 Carregando módulo: rodadas
+detalhe-liga-orquestrador.js:78 CSS do módulo rodadas carregado de: /css/modules/rodadas.css
+detalhe-liga-orquestrador.js:102 HTML do módulo rodadas injetado
+rodadas.js:120 🎯 [RODADAS] carregarRodadas chamada com forceRefresh: false
+rodadas.js:127 📦 [RODADAS] Aguardando carregamento de módulos...
+rodadas.js:131 🔍 [RODADAS] Container rodadas encontrado: true
+rodadas.js:132 ✅ [RODADAS] Container ativo: true
+rodadas.js:139 🌐 [RODADAS] Buscando status do mercado...
+rodadas.js:153   GET https://e1034b6e-dfb9-401a-8e7f-80ffa6030f79-00-2dc692elmitoe.spock.replit.dev/api/cartola/mercado/status 500 (Internal Server Error)
+atualizarStatusMercado @ rodadas.js:153
+carregarRodadas @ rodadas.js:140
+await in carregarRodadas
+executeModuleScripts @ detalhe-liga-orquestrador.js:156
+await in executeModuleScripts
+loadModule @ detalhe-liga-orquestrador.js:105
+await in loadModule
+showModule @ detalhe-liga-orquestrador.js:348
+handleModuleClick @ detalhe-liga-orquestrador.js:337
+(anônimo) @ detalhe-liga-orquestrador.js:298
+rodadas.js:161  Não foi possível buscar status do mercado.
+atualizarStatusMercado @ rodadas.js:161
+await in atualizarStatusMercado
+carregarRodadas @ rodadas.js:140
+await in carregarRodadas
+executeModuleScripts @ detalhe-liga-orquestrador.js:156
+await in executeModuleScripts
+loadModule @ detalhe-liga-orquestrador.js:105
+await in loadModule
+showModule @ detalhe-liga-orquestrador.js:348
+handleModuleClick @ detalhe-liga-orquestrador.js:337
+(anônimo) @ detalhe-liga-orquestrador.js:298
+rodadas.js:142 🎨 [RODADAS] Renderizando mini cards...
+rodadas.js:172 🎨 [RODADAS] renderizarMiniCardsRodadas iniciada
+rodadas.js:175 📦 [RODADAS] Container rodadasCards encontrado: true
+rodadas.js:183 ⚽ [RODADAS] Status do mercado: {rodada_atual: 1, status_mercado: 4}
+rodadas.js:145 ✅ [RODADAS] carregarRodadas concluída com sucesso

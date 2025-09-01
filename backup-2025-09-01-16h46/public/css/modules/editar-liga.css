@@ -1,0 +1,469 @@
+/* ===== EDITAR LIGA MODULE CSS ===== */
+/* Refatoração completa do CSS inline para padrões do sistema */
+
+/* Header da Liga */
+.liga-header {
+    background: var(--gradient-card);
+    border-radius: var(--border-radius-lg);
+    padding: var(--spacing-xl);
+    margin-bottom: var(--spacing-xl);
+    border: 1px solid var(--border-primary);
+    position: relative;
+    overflow: hidden;
+}
+
+.liga-header::before {
+    content: "";
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 4px;
+    background: var(--gradient-primary);
+    box-shadow: var(--shadow-glow);
+}
+
+.header-actions {
+    margin-bottom: var(--spacing-md);
+}
+
+.btn-voltar {
+    padding: var(--spacing-sm) var(--spacing-md);
+    background: var(--bg-card);
+    color: var(--text-secondary);
+    border: 1px solid var(--border-primary);
+    border-radius: var(--border-radius-md);
+    font-size: var(--font-sm);
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    text-decoration: none;
+    display: inline-flex;
+    align-items: center;
+    gap: var(--spacing-xs);
+}
+
+.btn-voltar:hover {
+    background: var(--bg-card-hover);
+    border-color: var(--laranja);
+    color: var(--laranja);
+    transform: translateY(-1px);
+}
+
+.liga-titulo {
+    font-size: var(--font-xl);
+    font-weight: 700;
+    color: var(--text-primary);
+    margin: 0 0 var(--spacing-xs) 0;
+}
+
+.liga-info {
+    font-size: var(--font-sm);
+    color: var(--text-muted);
+    margin: 0;
+}
+
+/* Container Principal */
+.editar-container {
+    background: var(--bg-card);
+    border-radius: var(--border-radius-lg);
+    border: 1px solid var(--border-primary);
+    overflow: hidden;
+    box-shadow: var(--shadow-md);
+}
+
+/* Wrapper da Tabela */
+.table-wrapper {
+    overflow-x: auto;
+    max-height: 70vh;
+    overflow-y: auto;
+}
+
+/* Tabela de Times */
+.times-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: var(--font-sm);
+}
+
+.times-table th {
+    background: var(--bg-secondary);
+    color: var(--text-primary);
+    padding: var(--spacing-md);
+    text-align: center;
+    font-weight: 600;
+    font-size: var(--font-xs);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    border-bottom: 2px solid var(--border-primary);
+    position: sticky;
+    top: 0;
+    z-index: 10;
+}
+
+.times-table td {
+    padding: var(--spacing-sm) var(--spacing-xs);
+    text-align: center;
+    border-bottom: 1px solid var(--border-secondary);
+    vertical-align: middle;
+}
+
+.times-table tbody tr {
+    transition: all 0.2s ease;
+}
+
+.times-table tbody tr:hover {
+    background: rgba(255, 69, 0, 0.05);
+}
+
+.times-table tbody tr:last-child td {
+    border-bottom: none;
+}
+
+/* Colunas Específicas */
+.col-index {
+    width: 40px;
+    font-weight: 700;
+}
+
+.col-id {
+    width: 80px;
+}
+
+.col-cartoleiro {
+    min-width: 150px;
+}
+
+.col-brasao {
+    width: 60px;
+}
+
+.col-clube {
+    min-width: 180px;
+}
+
+.col-escudo {
+    width: 60px;
+}
+
+.col-acoes {
+    min-width: 200px;
+}
+
+/* Inputs da Tabela */
+.table-input {
+    width: 100%;
+    padding: 4px 6px;
+    background: var(--bg-card-hover);
+    border: 1px solid var(--border-primary);
+    border-radius: 4px;
+    color: var(--text-primary);
+    font-size: var(--font-sm);
+    transition: all 0.2s ease;
+}
+
+.table-input:focus {
+    border-color: var(--laranja);
+    box-shadow: 0 0 0 2px var(--laranja-alpha);
+    outline: none;
+}
+
+.table-select {
+    width: 100%;
+    padding: 4px 6px;
+    background: var(--bg-card-hover);
+    border: 1px solid var(--border-primary);
+    border-radius: 4px;
+    color: var(--text-primary);
+    font-size: var(--font-sm);
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.table-select:focus {
+    border-color: var(--laranja);
+    box-shadow: 0 0 0 2px var(--laranja-alpha);
+    outline: none;
+}
+
+/* Imagens da Tabela */
+.table-img {
+    max-width: 24px;
+    max-height: 24px;
+    object-fit: contain;
+    border-radius: 2px;
+}
+
+.escudo-time {
+    width: 30px;
+    height: 30px;
+    object-fit: contain;
+    border-radius: 4px;
+}
+
+.escudo-coracao {
+    width: 24px;
+    height: 24px;
+    object-fit: contain;
+    border-radius: 2px;
+}
+
+/* Status dos Times */
+.status {
+    font-size: var(--font-xs);
+    font-weight: 600;
+    padding: 2px 6px;
+    border-radius: 4px;
+    display: inline-block;
+}
+
+.status.ok {
+    background: rgba(34, 197, 94, 0.1);
+    color: var(--success);
+    border: 1px solid rgba(34, 197, 94, 0.3);
+}
+
+.status.error {
+    background: rgba(239, 68, 68, 0.1);
+    color: var(--danger);
+    border: 1px solid rgba(239, 68, 68, 0.3);
+}
+
+/* Botões da Tabela */
+.btn-table {
+    padding: 4px 8px;
+    border: none;
+    border-radius: 4px;
+    font-size: 11px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    margin: 1px;
+    color: white;
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+}
+
+.btn-success {
+    background: var(--success);
+    box-shadow: 0 2px 4px rgba(34, 197, 94, 0.3);
+}
+
+.btn-success:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 4px 8px rgba(34, 197, 94, 0.4);
+}
+
+.btn-warning {
+    background: var(--warning);
+    box-shadow: 0 2px 4px rgba(255, 193, 7, 0.3);
+}
+
+.btn-warning:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 4px 8px rgba(255, 193, 7, 0.4);
+}
+
+.btn-danger {
+    background: var(--danger);
+    box-shadow: 0 2px 4px rgba(239, 68, 68, 0.3);
+}
+
+.btn-danger:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 4px 8px rgba(239, 68, 68, 0.4);
+}
+
+.btn-add {
+    background: var(--info);
+    box-shadow: 0 2px 4px rgba(59, 130, 246, 0.3);
+}
+
+.btn-add:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 4px 8px rgba(59, 130, 246, 0.4);
+}
+
+/* Linha Nova (Adicionar Time) */
+.nova-linha {
+    background: rgba(255, 69, 0, 0.05);
+    border-top: 2px solid var(--laranja-alpha);
+}
+
+.nova-linha td {
+    border-bottom: 2px solid var(--laranja-alpha);
+}
+
+/* Botão Salvar Tudo */
+.action-footer {
+    padding: var(--spacing-xl);
+    background: var(--bg-secondary);
+    border-top: 1px solid var(--border-primary);
+    text-align: center;
+}
+
+.btn-save-all {
+    padding: var(--spacing-md) var(--spacing-xl);
+    background: var(--gradient-primary);
+    color: white;
+    border: none;
+    border-radius: var(--border-radius-md);
+    font-size: var(--font-base);
+    font-weight: 700;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    box-shadow: var(--shadow-orange);
+    display: inline-flex;
+    align-items: center;
+    gap: var(--spacing-xs);
+}
+
+.btn-save-all:hover:not(:disabled) {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 32px rgba(255, 69, 0, 0.5);
+}
+
+.btn-save-all:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+    transform: none;
+}
+
+/* Estados de Loading */
+.loading-state {
+    padding: var(--spacing-xl);
+    text-align: center;
+    color: var(--text-muted);
+}
+
+.loading-spinner {
+    width: 40px;
+    height: 40px;
+    border: 4px solid var(--border-primary);
+    border-top: 4px solid var(--laranja);
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+    margin: 0 auto var(--spacing-md);
+}
+
+@keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+
+/* Empty State */
+.empty-state {
+    padding: var(--spacing-xl);
+    text-align: center;
+    color: var(--text-muted);
+}
+
+.empty-icon {
+    font-size: 48px;
+    margin-bottom: var(--spacing-md);
+    opacity: 0.5;
+}
+
+.empty-state h3 {
+    color: var(--text-secondary);
+    font-size: var(--font-lg);
+    margin: 0 0 var(--spacing-xs) 0;
+}
+
+.empty-state p {
+    margin: 0;
+    font-size: var(--font-sm);
+}
+
+/* Alerts */
+.alert {
+    padding: var(--spacing-md);
+    border-radius: var(--border-radius-md);
+    margin-bottom: var(--spacing-md);
+    font-size: var(--font-sm);
+    font-weight: 500;
+    display: none;
+}
+
+.alert.active {
+    display: block;
+    animation: slideInDown 0.3s ease-out;
+}
+
+.alert-success {
+    background: rgba(34, 197, 94, 0.1);
+    border: 1px solid var(--success);
+    color: var(--success);
+}
+
+.alert-error {
+    background: rgba(239, 68, 68, 0.1);
+    border: 1px solid var(--danger);
+    color: var(--danger);
+}
+
+/* Responsividade */
+@media (max-width: 1024px) {
+    .table-wrapper {
+        max-height: 60vh;
+    }
+
+    .times-table {
+        font-size: 11px;
+    }
+
+    .times-table th,
+    .times-table td {
+        padding: var(--spacing-xs);
+    }
+
+    .col-cartoleiro,
+    .col-clube {
+        min-width: 120px;
+    }
+}
+
+@media (max-width: 768px) {
+    .editar-container {
+        margin: 0 -var(--spacing-md);
+        border-radius: 0;
+    }
+
+    .table-wrapper {
+        max-height: 50vh;
+    }
+
+    .btn-table {
+        padding: 2px 4px;
+        font-size: 10px;
+        margin: 1px 0;
+    }
+
+    .action-footer {
+        padding: var(--spacing-md);
+    }
+}
+
+/* Animações */
+@keyframes slideInDown {
+    from {
+        opacity: 0;
+        transform: translateY(-10px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* Melhorias de Acessibilidade */
+.times-table:focus-within {
+    outline: 2px solid var(--laranja);
+    outline-offset: 2px;
+}
+
+.btn-table:focus-visible {
+    outline: 2px solid var(--laranja);
+    outline-offset: 1px;
+}

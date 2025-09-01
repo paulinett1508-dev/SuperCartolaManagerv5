@@ -1,0 +1,415 @@
+/* RODADAS CSS - Módulo Específico
+   Arquivo: public/css/modules/rodadas.css
+   Usado apenas pelo módulo rodadas
+*/
+
+/* === CONTAINER PRINCIPAL === */
+#rodadas {
+  background: var(--bg-card);
+  border-radius: var(--border-radius-md);
+  padding: var(--spacing-lg);
+  margin: var(--spacing-md) 0;
+  border: 1px solid rgba(255, 69, 0, 0.1);
+  position: relative;
+  overflow: hidden;
+}
+
+#rodadas::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 3px;
+  background: linear-gradient(135deg, var(--laranja) 0%, var(--laranja-dark) 100%);
+}
+
+/* === HEADER DO MÓDULO === */
+.module-header-section {
+  text-align: center;
+  margin-bottom: var(--spacing-xl);
+  padding-bottom: var(--spacing-lg);
+  border-bottom: 2px solid rgba(255, 69, 0, 0.2);
+}
+
+.module-title-section {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--spacing-md);
+  margin-bottom: var(--spacing-sm);
+}
+
+.module-title-icon {
+  width: 48px;
+  height: 48px;
+  background: linear-gradient(135deg, var(--laranja) 0%, var(--laranja-dark) 100%);
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 24px;
+  box-shadow: 0 4px 20px rgba(255, 69, 0, 0.4);
+}
+
+.module-title-section h2 {
+  font: 800 28px "Inter", -apple-system, sans-serif;
+  color: var(--text-primary);
+  margin: 0;
+  letter-spacing: -0.5px;
+}
+
+.module-subtitle {
+  font: 600 15px "Inter", -apple-system, sans-serif;
+  color: var(--laranja);
+  margin: 0;
+  opacity: 0.9;
+}
+
+/* === GRID DE MINI CARDS === */
+.rodadas-grid {
+  margin-bottom: var(--spacing-xl);
+}
+
+.rodadas-cards-container {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+  gap: var(--spacing-md);
+  max-height: 300px;
+  overflow-y: auto;
+  padding: var(--spacing-sm);
+  background: var(--bg-secondary);
+  border-radius: var(--border-radius-md);
+  border: 1px solid rgba(255, 69, 0, 0.1);
+}
+
+.rodada-mini-card {
+  background: var(--bg-card);
+  border: 2px solid rgba(255, 69, 0, 0.2);
+  border-radius: 8px;
+  padding: 12px 8px;
+  text-align: center;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  position: relative;
+  min-height: 80px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  gap: 4px;
+}
+
+.rodada-mini-card:hover {
+  border-color: rgba(255, 69, 0, 0.5);
+  background: var(--bg-card-hover);
+  transform: translateY(-2px);
+  box-shadow: 0 4px 15px rgba(255, 69, 0, 0.3);
+}
+
+.rodada-mini-card.selected {
+  border-color: var(--laranja);
+  background: rgba(255, 69, 0, 0.1);
+  box-shadow: 0 0 0 3px rgba(255, 69, 0, 0.15);
+}
+
+.rodada-mini-card.disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  border-color: rgba(255, 69, 0, 0.1);
+}
+
+.rodada-mini-card.disabled:hover {
+  transform: none;
+  box-shadow: none;
+  background: var(--bg-card);
+}
+
+.rodada-numero {
+  font: 700 16px "Inter", -apple-system, sans-serif;
+  color: var(--text-primary);
+  margin: 0;
+}
+
+.rodada-status {
+  font: 500 10px "Inter", -apple-system, sans-serif;
+  margin: 0;
+  text-transform: uppercase;
+  letter-spacing: 0.3px;
+}
+
+.rodada-status.encerrada {
+  color: var(--success);
+}
+
+.rodada-status.vigente {
+  color: var(--laranja);
+  font-weight: 700;
+}
+
+.rodada-status.futura {
+  color: var(--text-muted);
+}
+
+.rodada-status.parcial {
+  color: var(--warning);
+}
+
+/* === SEÇÃO DE CONTEÚDO === */
+.rodada-content-section {
+  background: var(--bg-secondary);
+  border-radius: var(--border-radius-md);
+  padding: var(--spacing-md);
+  border: 1px solid rgba(255, 69, 0, 0.1);
+  border-left: 4px solid var(--laranja);
+  margin-bottom: var(--spacing-lg);
+}
+
+.section-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--spacing-sm);
+  margin-bottom: var(--spacing-md);
+  padding-bottom: var(--spacing-sm);
+  border-bottom: 1px solid rgba(255, 69, 0, 0.1);
+}
+
+.section-icon {
+  font-size: 24px;
+  min-width: 30px;
+  text-align: center;
+}
+
+.section-header h3 {
+  font: 700 16px "Inter", -apple-system, sans-serif;
+  color: var(--text-primary);
+  margin: 0;
+  flex-grow: 1;
+}
+
+.export-inline {
+  flex-shrink: 0;
+}
+
+/* === TABELA === */
+.table-container {
+  overflow-x: auto;
+}
+
+.ranking-table {
+  width: 100%;
+  max-width: 900px;
+  margin: 0 auto;
+  border-collapse: separate;
+  border-spacing: 0;
+  background: var(--bg-card);
+  border-radius: var(--border-radius-md);
+  overflow: hidden;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.4);
+}
+
+.ranking-table thead {
+  background: linear-gradient(135deg, var(--laranja) 0%, var(--laranja-dark) 100%);
+}
+
+.ranking-table thead th {
+  padding: 6px 4px;
+  font: 700 10px "Inter", -apple-system, sans-serif;
+  color: white;
+  text-transform: uppercase;
+  letter-spacing: 0.3px;
+  white-space: nowrap;
+}
+
+.ranking-table tbody tr {
+  border-bottom: 1px solid rgba(255, 69, 0, 0.1);
+  transition: all 0.2s ease;
+}
+
+.ranking-table tbody tr:hover {
+  background: rgba(255, 69, 0, 0.05);
+}
+
+.ranking-table tbody td {
+  padding: 4px 2px;
+  vertical-align: middle;
+  font: 500 11px "Inter", -apple-system, sans-serif;
+  color: var(--text-primary);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.empty-state {
+  text-align: center;
+  color: var(--text-muted);
+  font-style: italic;
+  padding: 30px !important;
+}
+
+/* === POSIÇÕES ESPECIAIS === */
+.pos-g {
+  color: var(--success);
+  font-weight: 600;
+}
+
+.pos-z {
+  color: var(--danger);
+  font-weight: 600;
+}
+
+.pos-mico {
+  background: var(--danger);
+  color: white;
+  padding: 2px 8px;
+  border-radius: 4px;
+  font-weight: bold;
+  font-size: 11px;
+}
+
+/* === LOADING === */
+.loading-state {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 15px;
+  padding: 40px;
+  color: var(--laranja);
+}
+
+.spinner {
+  width: 32px;
+  height: 32px;
+  border: 3px solid rgba(255, 69, 0, 0.3);
+  border-top: 3px solid var(--laranja);
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+}
+
+/* === EXPORTAÇÃO INLINE === */
+.export-inline .btn-export {
+  background: linear-gradient(135deg, #2E8B57 0%, #32CD32 100%);
+  color: white;
+  border: none;
+  border-radius: 6px;
+  padding: 6px 12px;
+  font: 600 11px "Inter", -apple-system, sans-serif;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  box-shadow: 0 2px 8px rgba(46, 139, 87, 0.3);
+}
+
+.export-inline .btn-export:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(46, 139, 87, 0.5);
+}
+
+/* === BOTÕES === */
+.module-actions {
+  text-align: center;
+  margin-top: var(--spacing-xl);
+  padding-top: var(--spacing-lg);
+  border-top: 1px solid rgba(255, 69, 0, 0.1);
+}
+
+.back-button {
+  background: rgba(255, 69, 0, 0.1);
+  color: var(--laranja);
+  border: 1px solid rgba(255, 69, 0, 0.3);
+  border-radius: 8px;
+  padding: 10px 16px;
+  font: 500 13px "Inter", -apple-system, sans-serif;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  text-decoration: none;
+  display: inline-block;
+}
+
+.back-button:hover {
+  background: rgba(255, 69, 0, 0.2);
+  border-color: rgba(255, 69, 0, 0.5);
+  transform: translateY(-1px);
+}
+
+/* === ANIMAÇÕES === */
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+/* === RESPONSIVIDADE === */
+@media (max-width: 768px) {
+  .rodadas-module {
+    padding: var(--spacing-md);
+  }
+
+  .module-title-section {
+    flex-direction: column;
+    gap: var(--spacing-sm);
+  }
+
+  .module-title-section h2 {
+    font-size: 22px;
+  }
+
+  .rodadas-cards-container {
+    grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
+    gap: var(--spacing-sm);
+  }
+
+  .rodada-mini-card {
+    min-height: 70px;
+    padding: 8px 4px;
+  }
+
+  .rodada-numero {
+    font-size: 14px;
+  }
+
+  .rodada-status {
+    font-size: 9px;
+  }
+
+  .section-header {
+    flex-direction: column;
+    text-align: center;
+    gap: var(--spacing-sm);
+  }
+
+  .ranking-table {
+    font-size: 9px;
+  }
+
+  .ranking-table thead th,
+  .ranking-table tbody td {
+    padding: 4px 3px;
+  }
+}
+
+@media (max-width: 480px) {
+  .module-title-icon {
+    width: 40px;
+    height: 40px;
+    font-size: 20px;
+  }
+
+  .rodadas-cards-container {
+    grid-template-columns: repeat(auto-fill, minmax(85px, 1fr));
+    max-height: 250px;
+  }
+
+  .rodada-mini-card {
+    min-height: 60px;
+    padding: 6px 4px;
+  }
+
+  .rodada-numero {
+    font-size: 13px;
+  }
+
+  .ranking-table thead th,
+  .ranking-table tbody td {
+    padding: 3px 2px;
+  }
+}
