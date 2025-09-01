@@ -329,7 +329,7 @@ function criarLayoutTop10MobileDark(dados, tipo, valoresBonusOnus) {
           font: ${MOBILE_DARK_HD_CONFIG.fonts.weights.extrabold} ${MOBILE_DARK_HD_CONFIG.fonts.titleLarge};
           color: ${MOBILE_DARK_HD_CONFIG.colors.text};
           text-shadow: 0 2px 8px rgba(0,0,0,0.5);
-        ">${(parseFloat(dados[0].pontos) || 0).toFixed(2)} pts</div>
+        ">${(parseFloat(dados[0].pontos) || 0)} pts</div>
       ` : `
         <div style="
           font: ${MOBILE_DARK_HD_CONFIG.fonts.weights.regular} ${MOBILE_DARK_HD_CONFIG.fonts.body};
@@ -422,7 +422,7 @@ function criarLayoutTop10MobileDark(dados, tipo, valoresBonusOnus) {
         <div style="
           font: ${MOBILE_DARK_HD_CONFIG.fonts.weights.bold} ${MOBILE_DARK_HD_CONFIG.fonts.heading};
           color: ${corTema};
-        ">${pontuacaoExtrema.toFixed(1)}</div>
+        ">${pontuacaoExtrema}</div>
       </div>
 
     </div>
@@ -559,7 +559,7 @@ function criarItemTop10Mobile(item, index, tipo, valoresBonusOnus) {
         <div style="
           font: ${MOBILE_DARK_HD_CONFIG.fonts.weights.bold} ${MOBILE_DARK_HD_CONFIG.fonts.subheading};
           color: ${tipo === "mitos" ? MOBILE_DARK_HD_CONFIG.colors.success : MOBILE_DARK_HD_CONFIG.colors.danger};
-        ">${pontos.toFixed(2)}</div>
+        ">${pontos}</div>
 
         <div style="
           font: ${MOBILE_DARK_HD_CONFIG.fonts.weights.regular} ${MOBILE_DARK_HD_CONFIG.fonts.caption};
