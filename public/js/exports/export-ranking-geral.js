@@ -223,72 +223,82 @@ function criarLayoutRankingGeralMobile(rankings, rodada, tipo) {
       : MOBILE_DARK_HD_CONFIG.colors.gradientPrimary;
 
   return `
-    <!-- CARD PRINCIPAL DE DESTAQUE - LÍDER -->
+    <!-- MINI CARD DISCRETO - LÍDER -->
     <div style="
-      background: ${gradienteTipo};
-      border-radius: 16px;
-      padding: 20px;
-      margin-bottom: 20px;
-      text-align: center;
-      box-shadow: ${MOBILE_DARK_HD_CONFIG.colors.shadow};
+      background: ${MOBILE_DARK_HD_CONFIG.colors.surface};
+      border: 1px solid ${MOBILE_DARK_HD_CONFIG.colors.border};
+      border-radius: 12px;
+      padding: 12px;
+      margin-bottom: 16px;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      box-shadow: ${MOBILE_DARK_HD_CONFIG.colors.shadowLight};
     ">
-      <div style="
-        font: ${MOBILE_DARK_HD_CONFIG.fonts.weights.regular} ${MOBILE_DARK_HD_CONFIG.fonts.caption};
-        color: rgba(255,255,255,0.9);
-        margin-bottom: 8px;
-        text-transform: uppercase;
-        letter-spacing: 2px;
-      ">${tipo === "geral" ? "🏆 LÍDER GERAL" : `📊 MITO DA RODADA ${rodada}`}</div>
-
+      <!-- Escudo compacto -->
       ${
-        lider
+        lider && lider.clube_id
           ? `
-        <!-- Escudo do líder -->
-        <div style="margin-bottom: 12px;">
-          ${
-            lider.clube_id
-              ? `
-            <img src="/escudos/${lider.clube_id}.png"
-                 style="
-                   width: 56px; 
-                   height: 56px; 
-                   border-radius: 50%; 
-                   border: 3px solid rgba(255,255,255,0.3);
-                   background: ${MOBILE_DARK_HD_CONFIG.colors.surfaceLight};
-                   margin-bottom: 12px;
-                 "
-                 onerror="this.outerHTML='<div style=\\'width:56px;height:56px;background:${MOBILE_DARK_HD_CONFIG.colors.surfaceLight};border:3px solid rgba(255,255,255,0.3);border-radius:50%;display:inline-flex;align-items:center;justify-content:center;font-size:24px;margin-bottom:12px;\\'>⚽</div>'"
-                 alt="Escudo">
-          `
-              : ""
-          }
-        </div>
-
-        <div style="
-          font: ${MOBILE_DARK_HD_CONFIG.fonts.weights.bold} ${MOBILE_DARK_HD_CONFIG.fonts.heading};
-          color: ${MOBILE_DARK_HD_CONFIG.colors.text};
-          margin-bottom: 4px;
-        ">${lider.nome_cartola || lider.nome_cartoleiro || "N/D"}</div>
-
-        <div style="
-          font: ${MOBILE_DARK_HD_CONFIG.fonts.weights.regular} ${MOBILE_DARK_HD_CONFIG.fonts.bodySmall};
-          color: rgba(255,255,255,0.8);
-          margin-bottom: 12px;
-        ">${lider.nome_time || "Time não informado"}</div>
-
-        <div style="
-          font: ${MOBILE_DARK_HD_CONFIG.fonts.weights.extrabold} ${MOBILE_DARK_HD_CONFIG.fonts.titleLarge};
-          color: ${MOBILE_DARK_HD_CONFIG.colors.text};
-          text-shadow: 0 2px 8px rgba(0,0,0,0.5);
-        ">${(parseFloat(lider.pontos) || 0).toFixed(2)} pts</div>
+        <img src="/escudos/${lider.clube_id}.png"
+             style="
+               width: 32px; 
+               height: 32px; 
+               border-radius: 50%; 
+               border: 2px solid ${MOBILE_DARK_HD_CONFIG.colors.gold};
+               background: ${MOBILE_DARK_HD_CONFIG.colors.surfaceLight};
+               flex-shrink: 0;
+             "
+             onerror="this.outerHTML='<div style=\\'width:32px;height:32px;background:${MOBILE_DARK_HD_CONFIG.colors.surfaceLight};border:2px solid ${MOBILE_DARK_HD_CONFIG.colors.gold};border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:14px;\\'>⚽</div>'"
+             alt="Líder">
       `
           : `
         <div style="
-          font: ${MOBILE_DARK_HD_CONFIG.fonts.weights.regular} ${MOBILE_DARK_HD_CONFIG.fonts.body};
-          color: rgba(255,255,255,0.8);
-        ">Nenhum dado disponível</div>
+          width: 32px; 
+          height: 32px; 
+          background: ${MOBILE_DARK_HD_CONFIG.colors.gold}; 
+          border-radius: 50%; 
+          display: flex; 
+          align-items: center; 
+          justify-content: center; 
+          font-size: 16px;
+          flex-shrink: 0;
+        ">🏆</div>
       `
       }
+
+      <!-- Informações compactas -->
+      <div style="flex: 1; min-width: 0;">
+        <div style="
+          font: ${MOBILE_DARK_HD_CONFIG.fonts.weights.semibold} ${MOBILE_DARK_HD_CONFIG.fonts.bodySmall};
+          color: ${MOBILE_DARK_HD_CONFIG.colors.text};
+          margin-bottom: 2px;
+          overflow: hidden;
+          text-overflow: ellipsis;
+          white-space: nowrap;
+        ">${lider ? lider.nome_cartola || lider.nome_cartoleiro || "N/D" : "N/D"}</div>
+
+        <div style="
+          font: ${MOBILE_DARK_HD_CONFIG.fonts.weights.regular} ${MOBILE_DARK_HD_CONFIG.fonts.caption};
+          color: ${MOBILE_DARK_HD_CONFIG.colors.textMuted};
+          overflow: hidden;
+          text-overflow: ellipsis;
+          white-space: nowrap;
+        ">${tipo === "geral" ? "Líder Geral" : `Mito R${rodada}`}</div>
+      </div>
+
+      <!-- Pontuação destaque -->
+      <div style="
+        background: ${MOBILE_DARK_HD_CONFIG.colors.gold};
+        color: #000;
+        padding: 6px 10px;
+        border-radius: 8px;
+        text-align: center;
+        flex-shrink: 0;
+      ">
+        <div style="
+          font: ${MOBILE_DARK_HD_CONFIG.fonts.weights.bold} ${MOBILE_DARK_HD_CONFIG.fonts.bodySmall};
+        ">${lider ? (parseFloat(lider.pontos) || 0).toFixed(1) : "0"}</div>
+      </div>
     </div>
 
     <!-- LISTA COMPLETA RANKING -->
