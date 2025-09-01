@@ -511,7 +511,10 @@ class DetalheLigaOrquestrador {
     async loadModules() {
         try {
             this.modules.ranking = await import("./ranking.js");
-            this.modules.rodadas = await import("./rodadas.js");
+            // Importar e configurar módulos dinamicamente
+            // Rodadas com função de carregamento
+            const rodadasModule = await import("./rodadas.js");
+            window.carregarRodadas = rodadasModule.carregarRodadas;
             this.modules.mataMata = await import("./mata-mata.js");
             this.modules.pontosCorreidos = await import("./pontos-corridos.js");
             this.modules.luvaDeOuro = await import("./luva-de-ouro.js");

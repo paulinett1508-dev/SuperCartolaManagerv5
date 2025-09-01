@@ -117,23 +117,32 @@ const valoresBancoCartoleirosSobral = {
 // FUNÇÃO PRINCIPAL - CARREGAR RODADAS COM MINI CARDS
 // ==============================
 export async function carregarRodadas(forceRefresh = false) {
+  console.log("🎯 [RODADAS] carregarRodadas chamada com forceRefresh:", forceRefresh);
+  
   if (isBackend) {
     console.log("[RODADAS] carregarRodadas: executando no backend - ignorando");
     return;
   }
 
+  console.log("📦 [RODADAS] Aguardando carregamento de módulos...");
   await carregarModulos();
 
   const rodadasContainer = document.getElementById("rodadas");
+  console.log("🔍 [RODADAS] Container rodadas encontrado:", !!rodadasContainer);
+  console.log("✅ [RODADAS] Container ativo:", rodadasContainer?.classList.contains("active"));
+  
   if (!rodadasContainer || !rodadasContainer.classList.contains("active")) {
+    console.log("⏭️ [RODADAS] Container não ativo, saindo da função");
     return;
   }
 
-  // Buscar status do mercado
+  console.log("🌐 [RODADAS] Buscando status do mercado...");
   await atualizarStatusMercado();
 
-  // Renderizar mini cards
+  console.log("🎨 [RODADAS] Renderizando mini cards...");
   await renderizarMiniCardsRodadas();
+  
+  console.log("✅ [RODADAS] carregarRodadas concluída com sucesso");
 }
 
 // ==============================
@@ -160,10 +169,19 @@ async function atualizarStatusMercado() {
 // RENDERIZAR MINI CARDS DAS RODADAS
 // ==============================
 async function renderizarMiniCardsRodadas() {
+  console.log("🎨 [RODADAS] renderizarMiniCardsRodadas iniciada");
+  
   const cardsContainer = document.getElementById("rodadasCards");
-  if (!cardsContainer) return;
+  console.log("📦 [RODADAS] Container rodadasCards encontrado:", !!cardsContainer);
+  
+  if (!cardsContainer) {
+    console.error("❌ [RODADAS] Container rodadasCards não encontrado!");
+    return;
+  }
 
   const { rodada_atual, status_mercado } = statusMercadoGlobal;
+  console.log("⚽ [RODADAS] Status do mercado:", { rodada_atual, status_mercado });
+  
   const mercadoAberto = status_mercado === 1;
 
   let cardsHTML = "";
@@ -721,47 +739,47 @@ function exibirRodadas(rodadas) {
 
 // Inicializar módulo de rodadas
 async function inicializarRodadas() {
-  console.log("🚀 Inicializando módulo de rodadas...");
-  console.log("🌐 URL atual:", window.location.href);
-  console.log("📍 Pathname:", window.location.pathname);
-  console.log("🔍 Search:", window.location.search);
+  console.log("🚀 [RODADAS] Inicializando módulo de rodadas...");
+  console.log("🌐 [RODADAS] URL atual:", window.location.href);
+  console.log("📍 [RODADAS] Pathname:", window.location.pathname);
+  console.log("🔍 [RODADAS] Search:", window.location.search);
 
   // Verificar se estamos na página correta
   const naRodadas = window.location.pathname.includes('rodadas') || window.location.search.includes('secao=rodadas');
-  console.log("✅ Está na seção de rodadas?", naRodadas);
+  console.log("✅ [RODADAS] Está na seção de rodadas?", naRodadas);
 
   if (!naRodadas) {
-    console.log("⏭️ Não está na seção de rodadas, pulando inicialização");
+    console.log("⏭️ [RODADAS] Não está na seção de rodadas, pulando inicialização");
     return;
   }
 
-  console.log("📥 Carregando dados das rodadas...");
-  await carregarRodadas();
+  console.log("📥 [RODADAS] Chamando função principal de carregamento...");
+  await carregarRodadas(false); // Usar a função principal exportada
+  
+  console.log("🔧 [RODADAS] Executando debug adicional...");
+  await carregarRodadasDebug(); // Função de debug separada
 }
 
-// Carregar e exibir rodadas
-async function carregarRodadas() {
-  console.log("📊 Iniciando carregamento de rodadas...");
-  mostrarLoader("Carregando rodadas...");
-
+// Carregar e exibir rodadas para debug
+async function carregarRodadasDebug() {
+  console.log("📊 [DEBUG] Iniciando carregamento de rodadas...");
+  
   try {
-    console.log("🌐 Fazendo busca na API...");
+    console.log("🌐 [DEBUG] Fazendo busca na API...");
     const rodadas = await buscarRodadas();
-    console.log("📦 Dados brutos recebidos:", rodadas?.length || 0, "registros");
+    console.log("📦 [DEBUG] Dados brutos recebidos:", rodadas?.length || 0, "registros");
 
-    console.log("🔄 Agrupando rodadas por número...");
+    console.log("🔄 [DEBUG] Agrupando rodadas por número...");
     const rodadasAgrupadas = agruparRodadasPorNumero(rodadas);
-    console.log("📊 Rodadas agrupadas:", Object.keys(rodadasAgrupadas).length, "rodadas diferentes");
+    console.log("📊 [DEBUG] Rodadas agrupadas:", Object.keys(rodadasAgrupadas).length, "rodadas diferentes");
 
-    console.log("🎨 Iniciando exibição...");
+    console.log("🎨 [DEBUG] Iniciando exibição...");
     exibirRodadas(rodadasAgrupadas);
-    console.log("✅ Carregamento concluído com sucesso");
+    console.log("✅ [DEBUG] Carregamento concluído com sucesso");
 
   } catch (error) {
-    console.error("❌ Erro ao carregar rodadas:", error);
-    mostrarErro("Erro ao carregar rodadas. Tente novamente.");
-  } finally {
-    esconderLoader();
+    console.error("❌ [DEBUG] Erro ao carregar rodadas:", error);
+    console.error("❌ [DEBUG] Erro completo:", error.stack);
   }
 }
 
@@ -784,6 +802,20 @@ function esconderLoader() { console.log("[LOADER] Escondendo..."); }
 function mostrarErro(message) { console.error(`[ERRO] ${message}`); }
 
 
+// Expor funções para debug global
+if (isFrontend) {
+  window.rodadasDebug = {
+    carregarRodadasDebug,
+    buscarRodadas,
+    inicializarRodadas,
+    agruparRodadasPorNumero,
+    exibirRodadas,
+    statusMercadoGlobal: () => statusMercadoGlobal,
+    getLigaIdFromUrl,
+  };
+}
+
 console.log(
   "[RODADAS] ✅ Módulo melhorado carregado - Mini Cards implementados",
 );
+console.log("[RODADAS] 🔧 Funções de debug disponíveis em window.rodadasDebug");
