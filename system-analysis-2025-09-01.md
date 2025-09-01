@@ -1,11 +1,12 @@
 # 📊 Análise do Sistema Super Cartola Manager
 
-**Data da Análise:** 30/08/2025, 14:04:54
+**Data da Análise:** 01/09/2025, 19:42:24
 
 ---
 
 ## 📁 Estrutura do Sistema
 
+- 📁 **attached_assets/**
 - 📁 **backups/**
 - 📁 **config/**
 - 📁 **controllers/**
@@ -32,7 +33,6 @@
 
 ### 📄 Arquivos na Raiz
 
-- 📖 **UX_PATTERNS.md** - 📖 Documentação
 - 📜 **backupJson.js** - 📝 Script JavaScript
 - 📜 **backupScheduler.js** - 📝 Script JavaScript
 - 📋 **credentials.json** - 📋 Dados JSON
@@ -113,7 +113,7 @@
 - 📄 **public/css/modules/participantes.css** - 🧩 Módulo do sistema
   - 📏 Tamanho: 13KB | Linhas: 656
 - 📄 **public/css/modules/pontos-corridos.css** - 🧩 Módulo do sistema
-  - 📏 Tamanho: 17KB | Linhas: 835
+  - 📏 Tamanho: 22KB | Linhas: 1107
 - 📄 **public/css/modules/ranking-geral.css** - 🧩 Módulo do sistema
   - 📏 Tamanho: 7KB | Linhas: 312
 - 📄 **public/css/modules/rodadas.css** - 🧩 Módulo do sistema
@@ -125,7 +125,7 @@
 - 📄 **public/detalhe-liga.css** - 🏆 Funcionalidades de Liga
   - 📏 Tamanho: 16KB | Linhas: 691
 - 📄 **public/detalhe-liga.html** - 🏆 Funcionalidades de Liga
-  - 📏 Tamanho: 12KB | Linhas: 270
+  - 📏 Tamanho: 12KB | Linhas: 267
 - 📄 **public/editar-liga.html** - 🏆 Funcionalidades de Liga
   - 📏 Tamanho: 5KB | Linhas: 123
 - 📄 **public/ferramentas.html** - 📄 Página HTML
@@ -183,7 +183,7 @@
 - 📄 **public/js/exports/export-artilheiro-campeao.js** - ⚽ Sistema Artilheiro Campeão
   - 📏 Tamanho: 16KB | Linhas: 485
 - 📄 **public/js/exports/export-base.js** - 📝 Script JavaScript
-  - 📏 Tamanho: 18KB | Linhas: 553
+  - 📏 Tamanho: 26KB | Linhas: 797
 - 📄 **public/js/exports/export-exports.js** - 📝 Script JavaScript
   - 📏 Tamanho: 15KB | Linhas: 572
 - 📄 **public/js/exports/export-extrato-financeiro.js** - 📝 Script JavaScript
@@ -193,9 +193,9 @@
 - 📄 **public/js/exports/export-melhor-mes.js** - 📝 Script JavaScript
   - 📏 Tamanho: 21KB | Linhas: 652
 - 📄 **public/js/exports/export-pontos-corridos.js** - 📝 Script JavaScript
-  - 📏 Tamanho: 46KB | Linhas: 1282
+  - 📏 Tamanho: 34KB | Linhas: 1002
 - 📄 **public/js/exports/export-ranking-geral.js** - 🏅 Sistema de Rankings
-  - 📏 Tamanho: 19KB | Linhas: 556
+  - 📏 Tamanho: 20KB | Linhas: 620
 - 📄 **public/js/exports/export-rodadas-hq.js** - 📅 Gestão de Rodadas
   - 📏 Tamanho: 24KB | Linhas: 625
 - 📄 **public/js/exports/export-top10.js** - 📝 Script JavaScript
@@ -253,13 +253,13 @@
 - 📄 **public/js/pontos-corridos/pontos-corridos-core.js** - 📝 Script JavaScript
   - 📏 Tamanho: 15KB | Linhas: 502
 - 📄 **public/js/pontos-corridos/pontos-corridos-orquestrador.js** - 📝 Script JavaScript
-  - 📏 Tamanho: 14KB | Linhas: 505
+  - 📏 Tamanho: 14KB | Linhas: 513
 - 📄 **public/js/pontos-corridos/pontos-corridos-ui.js** - 📝 Script JavaScript
-  - 📏 Tamanho: 27KB | Linhas: 937
+  - 📏 Tamanho: 21KB | Linhas: 612
 - 📄 **public/js/pontos-corridos-utils.js** - 📝 Script JavaScript
   - 📏 Tamanho: 7KB | Linhas: 225
 - 📄 **public/js/pontos-corridos.js** - 📝 Script JavaScript
-  - 📏 Tamanho: 1KB | Linhas: 28
+  - 📏 Tamanho: 2KB | Linhas: 61
 - 📄 **public/js/ranking.js** - 🏅 Sistema de Rankings
   - 📏 Tamanho: 14KB | Linhas: 392
 - 📄 **public/js/rodadas.js** - 📅 Gestão de Rodadas
@@ -354,10 +354,16 @@
 - 📄 **scripts/times-da-liga.json** - 🏆 Funcionalidades de Liga
   - 📏 Tamanho: 2KB | Linhas: 46
 
-### Documentação (1 arquivos)
+### Documentação (4 arquivos)
 
-- 📄 **UX_PATTERNS.md** - 📖 Documentação
-  - 📏 Tamanho: 7KB | Linhas: 365
+- 📄 **attached_assets/Pasted--CLASSES-FALTANTES-PARA-CONFRONTOS-COMPACTOS-Adicionar-ao-final-do-arquivo-pontos-c-1756564109533_1756564109534.txt** - ❓ Arquivo genérico
+  - 📏 Tamanho: 6KB | Linhas: 271
+- 📄 **attached_assets/Pasted--CORRE-O-CR-TICA-DO-EXPORT-BASE-JS-LINHAS-372-468-Problema-Promises-rejeitadas-no-carregam-1756754170774_1756754170775.txt** - ❓ Arquivo genérico
+  - 📏 Tamanho: 7KB | Linhas: 196
+- 📄 **attached_assets/Pasted--CORRE-O-DO-ERRO-NA-LINHA-1084-Problema-Fun-o-exportarPontosCorridosHistoricoComoImagem-inc-1756568419593_1756568419594.txt** - ❓ Arquivo genérico
+  - 📏 Tamanho: 3KB | Linhas: 62
+- 📄 **attached_assets/Pasted-cards-condicionais-js-4-CARDS-CONDICIONAIS-Carregando-sistema-cards-condicionais-js-343--1756567727988_1756567727990.txt** - ❓ Arquivo genérico
+  - 📏 Tamanho: 4KB | Linhas: 61
 
 ### Assets (17 arquivos)
 
@@ -513,15 +519,15 @@
 
 | Métrica | Valor |
 |---------|-------|
-| **Total de arquivos** | 174 |
-| **Tamanho total** | 4751 KB |
+| **Total de arquivos** | 177 |
+| **Tamanho total** | 4762 KB |
 | **Tamanho médio** | 27 KB |
 
 ### 📋 Por Tipo de Arquivo
 
 | Tipo | Quantidade |
 |------|------------|
-| 📖 **docs** | 1 |
+| 📖 **docs** | 4 |
 | 🎨 **frontend** | 141 |
 | ⚙️ **config** | 11 |
 | ❓ **other** | 4 |
@@ -531,8 +537,8 @@
 
 | Categoria | Quantidade | Descrição |
 |-----------|------------|----------|
-| 🟢 **Pequenos** | 72 | < 5KB |
-| 🟡 **Médios** | 98 | 5-50KB |
+| 🟢 **Pequenos** | 74 | < 5KB |
+| 🟡 **Médios** | 99 | 5-50KB |
 | 🔴 **Grandes** | 4 | > 50KB |
 
 ### 🔍 Insights da Arquitetura
