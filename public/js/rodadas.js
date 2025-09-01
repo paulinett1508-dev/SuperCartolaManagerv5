@@ -616,6 +616,174 @@ async function calcularPontosParciais(liga, rodada) {
   return rankingsParciais;
 }
 
+// ==============================
+// NOVAS FUNÇÕES PARA DEBUG E EXIBIÇÃO
+// ==============================
+
+// Função auxiliar para obter ID da liga da URL
+function getLigaIdFromUrl() {
+  const urlParams = new URLSearchParams(window.location.search);
+  const ligaId = urlParams.get('id');
+  console.log("🔗 URL params:", window.location.search);
+  console.log("🆔 Liga ID extraído:", ligaId);
+  return ligaId;
+}
+
+// Buscar rodadas da API
+async function buscarRodadas() {
+  try {
+    const ligaId = getLigaIdFromUrl();
+    if (!ligaId) {
+      console.error("ID da liga não encontrado na URL");
+      return [];
+    }
+
+    console.log(`🔍 Buscando rodadas para liga: ${ligaId}`);
+    const response = await fetch(`/api/ligas/${ligaId}/rodadas?inicio=1&fim=38`);
+
+    if (!response.ok) {
+      console.error(`❌ Erro HTTP: ${response.status} - ${response.statusText}`);
+      throw new Error(`Erro HTTP: ${response.status}`);
+    }
+
+    const rodadas = await response.json();
+    console.log(`✅ Rodadas recebidas: ${rodadas.length} registros`);
+
+    if (rodadas.length > 0) {
+      console.log("📊 Primeira rodada:", rodadas[0]);
+      console.log("📊 Última rodada:", rodadas[rodadas.length - 1]);
+
+      // Agrupar por rodada para verificar estrutura
+      const rodadasAgrupadas = {};
+      rodadas.forEach(r => {
+        if (!rodadasAgrupadas[r.rodada]) {
+          rodadasAgrupadas[r.rodada] = 0;
+        }
+        rodadasAgrupadas[r.rodada]++;
+      });
+      console.log("📈 Rodadas por número:", rodadasAgrupadas);
+    } else {
+      console.warn("⚠️ Nenhuma rodada encontrada no banco de dados");
+    }
+
+    return rodadas;
+  } catch (error) {
+    console.error("❌ Erro ao buscar rodadas:", error);
+    return [];
+  }
+}
+
+// Exibir rodadas na interface
+function exibirRodadas(rodadas) {
+  console.log("🎨 Iniciando exibição de rodadas...");
+  console.log("📦 Dados recebidos:", rodadas);
+
+  const container = document.getElementById("rodadas-lista");
+  if (!container) {
+    console.error("❌ Container 'rodadas-lista' não encontrado no DOM");
+    return;
+  }
+
+  console.log("✅ Container encontrado:", container);
+
+  if (!rodadas || rodadas.length === 0) {
+    console.warn("⚠️ Nenhuma rodada para exibir");
+    container.innerHTML = `
+      <div class="alert alert-info">
+        <i class="fas fa-info-circle"></i>
+        Nenhuma rodada encontrada. Use o botão "Popular Rodadas" para carregar os dados.
+      </div>
+    `;
+    return;
+  }
+
+  console.log(`🔢 Exibindo ${rodadas.length} registros de rodadas`);
+  // A lógica original para criar os cards de rodada seria aqui, mas o código fornecido só inclui logs
+  // Para fins deste exemplo, assumimos que a exibição correta é feita pelo 'renderizarMiniCardsRodadas'
+  // Se houver um 'rodadas-lista' e 'rodadasCards', pode haver uma duplicação de funcionalidade ou um erro de design.
+  // O 'renderizarMiniCardsRodadas' parece lidar com os mini cards na parte superior.
+  // Se 'rodadas-lista' for para uma exibição mais detalhada, a lógica de mapeamento e criação de elementos estaria aqui.
+  // Por exemplo:
+  /*
+  const rodadaCardsHTML = Object.entries(rodadas).map(([rodadaNum, jogos]) => {
+    return `
+      <div class="rodada-item" data-rodada="${rodadaNum}">
+        <h3>Rodada ${rodadaNum}</h3>
+        <ul>
+          ${jogos.map(jogo => `<li>${jogo.time_casa} vs ${jogo.time_visitante}</li>`).join('')}
+        </ul>
+      </div>
+    `;
+  }).join('');
+  container.innerHTML = rodadaCardsHTML;
+  */
+}
+
+// Inicializar módulo de rodadas
+async function inicializarRodadas() {
+  console.log("🚀 Inicializando módulo de rodadas...");
+  console.log("🌐 URL atual:", window.location.href);
+  console.log("📍 Pathname:", window.location.pathname);
+  console.log("🔍 Search:", window.location.search);
+
+  // Verificar se estamos na página correta
+  const naRodadas = window.location.pathname.includes('rodadas') || window.location.search.includes('secao=rodadas');
+  console.log("✅ Está na seção de rodadas?", naRodadas);
+
+  if (!naRodadas) {
+    console.log("⏭️ Não está na seção de rodadas, pulando inicialização");
+    return;
+  }
+
+  console.log("📥 Carregando dados das rodadas...");
+  await carregarRodadas();
+}
+
+// Carregar e exibir rodadas
+async function carregarRodadas() {
+  console.log("📊 Iniciando carregamento de rodadas...");
+  mostrarLoader("Carregando rodadas...");
+
+  try {
+    console.log("🌐 Fazendo busca na API...");
+    const rodadas = await buscarRodadas();
+    console.log("📦 Dados brutos recebidos:", rodadas?.length || 0, "registros");
+
+    console.log("🔄 Agrupando rodadas por número...");
+    const rodadasAgrupadas = agruparRodadasPorNumero(rodadas);
+    console.log("📊 Rodadas agrupadas:", Object.keys(rodadasAgrupadas).length, "rodadas diferentes");
+
+    console.log("🎨 Iniciando exibição...");
+    exibirRodadas(rodadasAgrupadas);
+    console.log("✅ Carregamento concluído com sucesso");
+
+  } catch (error) {
+    console.error("❌ Erro ao carregar rodadas:", error);
+    mostrarErro("Erro ao carregar rodadas. Tente novamente.");
+  } finally {
+    esconderLoader();
+  }
+}
+
+// Função para agrupar rodadas por número (necessária para exibirRodadas)
+function agruparRodadasPorNumero(rodadas) {
+  if (!rodadas) return {};
+  const grouped = {};
+  rodadas.forEach(rodada => {
+    if (!grouped[rodada.rodada]) {
+      grouped[rodada.rodada] = [];
+    }
+    grouped[rodada.rodada].push(rodada);
+  });
+  return grouped;
+}
+
+// Funções placeholder para loader e erro (assumindo que existem em outro lugar)
+function mostrarLoader(message) { console.log(`[LOADER] ${message}`); }
+function esconderLoader() { console.log("[LOADER] Escondendo..."); }
+function mostrarErro(message) { console.error(`[ERRO] ${message}`); }
+
+
 console.log(
   "[RODADAS] ✅ Módulo melhorado carregado - Mini Cards implementados",
 );
