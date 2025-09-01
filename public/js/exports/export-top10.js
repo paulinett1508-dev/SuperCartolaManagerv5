@@ -5,20 +5,37 @@ import {
   MOBILE_DARK_HD_CONFIG,
   MobileDarkUtils,
   criarContainerMobileDark,
-  gerarCanvasMobileDarkHD
-} from './export-base.js';
+  gerarCanvasMobileDarkHD,
+} from "./export-base.js";
 
-console.log("[EXPORT-TOP10-MOBILE-DARK] Módulo Top 10 Mobile Dark HD v3.0.0 carregado");
+console.log(
+  "[EXPORT-TOP10-MOBILE-DARK] Módulo Top 10 Mobile Dark HD v3.0.0 carregado",
+);
+
+/**
+ * Formata pontuação com 2 casas decimais
+ * @param {number|string} valor - Valor a ser formatado
+ * @returns {string} - Valor formatado com 2 casas decimais
+ */
+function formatarPontuacao(valor) {
+  const numero = parseFloat(valor) || 0;
+  return numero.toFixed(2);
+}
 
 /**
  * Função principal para exportar Top10 mobile dark HD
  * @param {Array} dados - Array com dados do top10
- * @param {string} tipo - 'mitos' ou 'micos'  
+ * @param {string} tipo - 'mitos' ou 'micos'
  * @param {number} rodada - Número da rodada
  * @param {Object} valoresBonusOnus - Valores de bônus/ônus da liga
  * @returns {Promise<void>}
  */
-export async function exportarTop10ComoImagem(dados, tipo, rodada, valoresBonusOnus = {}) {
+export async function exportarTop10ComoImagem(
+  dados,
+  tipo,
+  rodada,
+  valoresBonusOnus = {},
+) {
   try {
     console.log("[EXPORT-TOP10-MOBILE-DARK] Iniciando exportação:", {
       dados: dados.length,
@@ -52,24 +69,26 @@ export async function criarBotaoExportacaoTop10(config) {
     dados = [],
     tipo = "mitos",
     rodada = "",
-    valoresBonusOnus = {}
+    valoresBonusOnus = {},
   } = config;
 
   // Localizar container
   let container = null;
   if (containerId) {
-    container = typeof containerId === 'string' 
-      ? document.getElementById(containerId) 
-      : containerId;
+    container =
+      typeof containerId === "string"
+        ? document.getElementById(containerId)
+        : containerId;
   }
 
   if (!container) {
     // Fallback para containers comuns
-    container = document.querySelector('.top10-container') ||
-               document.querySelector('.ranking-container') ||
-               document.querySelector('#top10-mitos') ||
-               document.querySelector('#top10-micos') ||
-               document.body;
+    container =
+      document.querySelector(".top10-container") ||
+      document.querySelector(".ranking-container") ||
+      document.querySelector("#top10-mitos") ||
+      document.querySelector("#top10-micos") ||
+      document.body;
   }
 
   if (!container) {
@@ -78,7 +97,9 @@ export async function criarBotaoExportacaoTop10(config) {
   }
 
   // Remover botão existente
-  const botaoExistente = container.querySelector(".btn-export-top10-mobile-dark");
+  const botaoExistente = container.querySelector(
+    ".btn-export-top10-mobile-dark",
+  );
   if (botaoExistente) {
     botaoExistente.remove();
   }
@@ -169,7 +190,7 @@ export async function criarBotaoExportacaoTop10(config) {
         dados,
         tipo,
         rodada,
-        valoresBonusOnus
+        valoresBonusOnus,
       });
     } catch (error) {
       console.error("[EXPORT-TOP10-MOBILE-DARK] Erro:", error);
@@ -218,23 +239,28 @@ async function exportarTop10MobileDarkHD(config) {
   }
 
   // Extrair número da rodada
-  const rodadaNumero = typeof rodada === "object" && rodada !== null
-    ? rodada.numero || rodada.id || rodada.rodada || "atual"
-    : rodada || "atual";
+  const rodadaNumero =
+    typeof rodada === "object" && rodada !== null
+      ? rodada.numero || rodada.id || rodada.rodada || "atual"
+      : rodada || "atual";
 
   // Definir títulos
   const titulo = tipo === "mitos" ? "🏆 Top 10 MITOS" : "😅 Top 10 MICOS";
   const subtitulo = `Rodada ${rodadaNumero}`;
 
   // Criar container mobile dark
-  const exportContainer = criarContainerMobileDark(titulo, subtitulo, { 
-    rodada: rodadaNumero 
+  const exportContainer = criarContainerMobileDark(titulo, subtitulo, {
+    rodada: rodadaNumero,
   });
 
   const contentDiv = exportContainer.querySelector("#mobile-export-content");
 
   // Inserir conteúdo do top 10 mobile
-  contentDiv.innerHTML = criarLayoutTop10MobileDark(dados, tipo, valoresBonusOnus);
+  contentDiv.innerHTML = criarLayoutTop10MobileDark(
+    dados,
+    tipo,
+    valoresBonusOnus,
+  );
 
   document.body.appendChild(exportContainer);
 
@@ -242,12 +268,11 @@ async function exportarTop10MobileDarkHD(config) {
     // Gerar nome do arquivo
     const nomeArquivo = MobileDarkUtils.gerarNomeArquivoMobile("top10", {
       rodada: rodadaNumero,
-      extra: tipo
+      extra: tipo,
     });
 
     // Gerar e fazer download da imagem HD
     await gerarCanvasMobileDarkHD(exportContainer, nomeArquivo);
-
   } finally {
     // Limpar container temporário
     if (exportContainer.parentNode === document.body) {
@@ -258,24 +283,29 @@ async function exportarTop10MobileDarkHD(config) {
 
 // LAYOUT TOP 10 MOBILE DARK OTIMIZADO
 function criarLayoutTop10MobileDark(dados, tipo, valoresBonusOnus) {
-  const corTema = tipo === "mitos" 
-    ? MOBILE_DARK_HD_CONFIG.colors.success 
-    : MOBILE_DARK_HD_CONFIG.colors.danger;
+  const corTema =
+    tipo === "mitos"
+      ? MOBILE_DARK_HD_CONFIG.colors.success
+      : MOBILE_DARK_HD_CONFIG.colors.danger;
 
-  const corGradiente = tipo === "mitos"
-    ? MOBILE_DARK_HD_CONFIG.colors.gradientSuccess
-    : MOBILE_DARK_HD_CONFIG.colors.gradientDanger;
+  const corGradiente =
+    tipo === "mitos"
+      ? MOBILE_DARK_HD_CONFIG.colors.gradientSuccess
+      : MOBILE_DARK_HD_CONFIG.colors.gradientDanger;
 
   // Calcular estatísticas
-  const pontuacaoMedia = dados.length > 0 
-    ? (dados.reduce((sum, t) => sum + (parseFloat(t.pontos) || 0), 0) / dados.length)
-    : 0;
+  const pontuacaoMedia =
+    dados.length > 0
+      ? dados.reduce((sum, t) => sum + (parseFloat(t.pontos) || 0), 0) /
+        dados.length
+      : 0;
 
-  const pontuacaoExtrema = dados.length > 0 
-    ? (tipo === "mitos" 
-       ? Math.max(...dados.map(t => parseFloat(t.pontos) || 0))
-       : Math.min(...dados.map(t => parseFloat(t.pontos) || 0)))
-    : 0;
+  const pontuacaoExtrema =
+    dados.length > 0
+      ? tipo === "mitos"
+        ? Math.max(...dados.map((t) => parseFloat(t.pontos) || 0))
+        : Math.min(...dados.map((t) => parseFloat(t.pontos) || 0))
+      : 0;
 
   return `
     <!-- CARD PRINCIPAL DE DESTAQUE -->
@@ -295,10 +325,14 @@ function criarLayoutTop10MobileDark(dados, tipo, valoresBonusOnus) {
         letter-spacing: 2px;
       ">${tipo === "mitos" ? "🔥 DESTAQUE DA RODADA" : "😰 MAIOR PERRENGUE"}</div>
 
-      ${dados.length > 0 ? `
+      ${
+        dados.length > 0
+          ? `
         <!-- Escudo e nome do líder -->
         <div style="margin-bottom: 12px;">
-          ${dados[0].clube_id ? `
+          ${
+            dados[0].clube_id
+              ? `
             <img src="/escudos/${dados[0].clube_id}.png"
                  style="
                    width: 56px; 
@@ -310,7 +344,9 @@ function criarLayoutTop10MobileDark(dados, tipo, valoresBonusOnus) {
                  "
                  onerror="this.outerHTML='<div style=\\'width:56px;height:56px;background:${MOBILE_DARK_HD_CONFIG.colors.surfaceLight};border:3px solid rgba(255,255,255,0.3);border-radius:50%;display:inline-flex;align-items:center;justify-content:center;font-size:24px;margin-bottom:12px;\\'>⚽</div>'"
                  alt="Escudo">
-          ` : ""}
+          `
+              : ""
+          }
         </div>
 
         <div style="
@@ -329,13 +365,15 @@ function criarLayoutTop10MobileDark(dados, tipo, valoresBonusOnus) {
           font: ${MOBILE_DARK_HD_CONFIG.fonts.weights.extrabold} ${MOBILE_DARK_HD_CONFIG.fonts.titleLarge};
           color: ${MOBILE_DARK_HD_CONFIG.colors.text};
           text-shadow: 0 2px 8px rgba(0,0,0,0.5);
-        ">${(parseFloat(dados[0].pontos) || 0)} pts</div>
-      ` : `
+        ">${formatarPontuacao(dados[0].pontos)} pts</div>
+      `
+          : `
         <div style="
           font: ${MOBILE_DARK_HD_CONFIG.fonts.weights.regular} ${MOBILE_DARK_HD_CONFIG.fonts.body};
           color: rgba(255,255,255,0.8);
         ">Nenhum dado disponível</div>
-      `}
+      `
+      }
     </div>
 
     <!-- LISTA COMPLETA TOP 10 -->
@@ -365,9 +403,12 @@ function criarLayoutTop10MobileDark(dados, tipo, valoresBonusOnus) {
 
       <!-- Lista de participantes -->
       <div style="padding: ${MOBILE_DARK_HD_CONFIG.padding}px 0;">
-        ${dados.slice(0, 10).map((item, index) => 
-          criarItemTop10Mobile(item, index, tipo, valoresBonusOnus)
-        ).join('')}
+        ${dados
+          .slice(0, 10)
+          .map((item, index) =>
+            criarItemTop10Mobile(item, index, tipo, valoresBonusOnus),
+          )
+          .join("")}
       </div>
 
     </div>
@@ -422,7 +463,7 @@ function criarLayoutTop10MobileDark(dados, tipo, valoresBonusOnus) {
         <div style="
           font: ${MOBILE_DARK_HD_CONFIG.fonts.weights.bold} ${MOBILE_DARK_HD_CONFIG.fonts.heading};
           color: ${corTema};
-        ">${pontuacaoExtrema}</div>
+        ">${formatarPontuacao(pontuacaoExtrema)}</div>
       </div>
 
     </div>
@@ -445,7 +486,9 @@ function criarItemTop10Mobile(item, index, tipo, valoresBonusOnus) {
   }
 
   // Determinar estilo da posição
-  let posicaoDisplay, posicaoStyle, cardStyle = "";
+  let posicaoDisplay,
+    posicaoStyle,
+    cardStyle = "";
 
   if (posicao === 1) {
     posicaoDisplay = tipo === "mitos" ? "🥇" : "🏆";
@@ -503,7 +546,9 @@ function criarItemTop10Mobile(item, index, tipo, valoresBonusOnus) {
 
       <!-- Escudo -->
       <div style="margin-right: 12px; flex-shrink: 0;">
-        ${item.clube_id ? `
+        ${
+          item.clube_id
+            ? `
           <img src="/escudos/${item.clube_id}.png"
                style="
                  width: 32px; 
@@ -514,7 +559,8 @@ function criarItemTop10Mobile(item, index, tipo, valoresBonusOnus) {
                "
                onerror="this.outerHTML='<div style=\\'width:32px;height:32px;background:${MOBILE_DARK_HD_CONFIG.colors.surfaceLight};border:2px solid ${MOBILE_DARK_HD_CONFIG.colors.border};border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:14px;\\'>⚽</div>'"
                alt="Escudo">
-        ` : `
+        `
+            : `
           <div style="
             width: 32px; 
             height: 32px; 
@@ -526,7 +572,8 @@ function criarItemTop10Mobile(item, index, tipo, valoresBonusOnus) {
             justify-content: center; 
             font-size: 14px;
           ">❤️</div>
-        `}
+        `
+        }
       </div>
 
       <!-- Informações -->
@@ -559,7 +606,7 @@ function criarItemTop10Mobile(item, index, tipo, valoresBonusOnus) {
         <div style="
           font: ${MOBILE_DARK_HD_CONFIG.fonts.weights.bold} ${MOBILE_DARK_HD_CONFIG.fonts.subheading};
           color: ${tipo === "mitos" ? MOBILE_DARK_HD_CONFIG.colors.success : MOBILE_DARK_HD_CONFIG.colors.danger};
-        ">${pontos}</div>
+        ">${formatarPontuacao(pontos)}</div>
 
         <div style="
           font: ${MOBILE_DARK_HD_CONFIG.fonts.weights.regular} ${MOBILE_DARK_HD_CONFIG.fonts.caption};
@@ -580,4 +627,6 @@ export function testarModulo() {
 
 console.log("[EXPORT-TOP10-MOBILE-DARK] Sistema mobile dark HD configurado");
 console.log("[EXPORT-TOP10-MOBILE-DARK] Resolução: 400px x 800px+ @ 4x scale");
-console.log("[EXPORT-TOP10-MOBILE-DARK] Compatibilidade com sistema existente mantida");
+console.log(
+  "[EXPORT-TOP10-MOBILE-DARK] Compatibilidade com sistema existente mantida",
+);
