@@ -1,4 +1,6 @@
-<!-- MELHOR MÊS FRONT - Interface Principal Melhorada -->
+<!-- MELHOR MÊS FRONT - Interface Padronizada (Mini-Cards)
+     Seguindo padrão dos outros módulos (pontos-corridos/mata-mata)
+-->
 <div id="melhor-mes" class="module-content">
   <!-- Header do Módulo -->
   <div class="melhor-mes-header">
@@ -11,40 +13,31 @@
     </p>
   </div>
 
-  <!-- Seletor de Edição -->
-  <div class="melhor-mes-selector">
-    <select id="edicaoSelect" class="melhor-mes-select">
-      <option value="0">Edição 01 (Rod. 1 a 6)</option>
-      <option value="1">Edição 02 (Rod. 7 a 10)</option>
-      <option value="2">Edição 03 (Rod. 11 a 17)</option>
-      <option value="3">Edição 04 (Rod. 18 a 22)</option>
-      <option value="4">Edição 05 (Rod. 23 a 28)</option>
-      <option value="5">Edição 06 (Rod. 29 a 32)</option>
-      <option value="6">Edição 07 (Rod. 33 a 38)</option>
-    </select>
-  </div>
+  <!-- Seletor de Edições (Mini-Cards) -->
+  <div class="edicoes-selector-container">
+    <div class="edicoes-header">
+      <div class="edicoes-title">Selecione uma Edição</div>
+      <div class="edicoes-progresso">
+        <span class="progresso-texto">Progresso das Edições</span>
+        <div class="progresso-bar">
+          <div class="progresso-fill" style="width: 57%"></div>
+        </div>
+      </div>
+    </div>
 
-  <script>
-    // Configurar event listener quando o módulo for carregado
-    document.addEventListener("DOMContentLoaded", () => {
-      const select = document.getElementById("edicaoSelect");
-      if (select) {
-        select.addEventListener("change", (e) => {
-          if (window.melhorMes && window.melhorMes.carregarRankingEdicao) {
-            window.melhorMes.carregarRankingEdicao(Number(e.target.value));
-          }
-        });
-      }
-    });
-  </script>
+    <!-- Grid de Mini-Cards das Edições -->
+    <div id="edicoesContainer" class="edicoes-grid">
+      <!-- Será preenchido via JavaScript com mini-cards -->
+    </div>
+  </div>
 
   <!-- Loading Indicator -->
   <div id="loadingMelhorMes" class="loading-state" style="display: none">
     <div class="loading-spinner"></div>
-    <p class="loading-message">Carregando ranking do mês...</p>
+    <p class="loading-message">Carregando ranking da edição...</p>
   </div>
 
-  <!-- Container Principal com Export Inline -->
+  <!-- Container Principal -->
   <div class="melhor-mes-main-container">
     <div class="melhor-mes-section">
       <div class="section-header">

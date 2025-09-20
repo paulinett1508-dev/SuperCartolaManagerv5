@@ -1,6 +1,6 @@
-/* MELHOR MÊS CSS - Módulo Específico Melhorado
+/* MELHOR MÊS CSS - Módulo Específico com Mini-Cards
    Arquivo: public/css/modules/melhor-mes.css
-   Baseado nos padrões UX do sistema
+   Seguindo padrão pontos-corridos
 */
 
 /* === CONTAINER PRINCIPAL === */
@@ -27,8 +27,8 @@
 /* === HEADER DO MÓDULO === */
 .melhor-mes-header {
   text-align: center;
-  margin-bottom: var(--spacing-lg);
-  padding-bottom: var(--spacing-md);
+  margin-bottom: var(--spacing-xl);
+  padding-bottom: var(--spacing-lg);
   border-bottom: 2px solid rgba(255, 69, 0, 0.2);
 }
 
@@ -67,32 +67,180 @@
 }
 
 /* === SELETOR DE EDIÇÕES === */
-.melhor-mes-selector {
+.edicoes-selector-container {
   margin-bottom: var(--spacing-xl);
-  text-align: center;
 }
 
-.melhor-mes-select {
-  background: var(--bg-card);
-  border: 2px solid rgba(255, 69, 0, 0.2);
-  border-radius: 8px;
-  padding: 12px 16px;
-  font: 600 16px "Inter", -apple-system, sans-serif;
+.edicoes-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: var(--spacing-md);
+  flex-wrap: wrap;
+  gap: var(--spacing-md);
+}
+
+.edicoes-title {
+  font: 700 18px "Inter", -apple-system, sans-serif;
   color: var(--text-primary);
+  margin: 0;
+}
+
+.edicoes-progresso {
+  flex: 1;
+  max-width: 300px;
+}
+
+.progresso-info {
+  text-align: right;
+}
+
+.progresso-texto {
+  font: 500 12px "Inter", -apple-system, sans-serif;
+  color: var(--text-muted);
+  display: block;
+  margin-bottom: 4px;
+}
+
+.progresso-bar {
+  width: 100%;
+  height: 6px;
+  background: var(--bg-secondary);
+  border-radius: 3px;
+  overflow: hidden;
+}
+
+.progresso-fill {
+  height: 100%;
+  background: linear-gradient(90deg, var(--laranja) 0%, var(--laranja-light) 100%);
+  border-radius: 3px;
+  transition: width 0.5s ease;
+}
+
+/* === GRID DE MINI-CARDS === */
+.edicoes-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(90px, 1fr));
+  gap: 8px;
+  margin-bottom: var(--spacing-md);
+}
+
+/* === MINI-CARDS DAS EDIÇÕES === */
+.edicao-card {
+  background: var(--bg-secondary);
+  border: 1px solid rgba(255, 69, 0, 0.1);
+  border-radius: 10px;
+  padding: 12px 8px;
+  text-align: center;
   cursor: pointer;
   transition: all 0.3s ease;
-  min-width: 280px;
-  outline: none;
+  position: relative;
+  min-height: 80px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  user-select: none;
 }
 
-.melhor-mes-select:hover {
-  border-color: rgba(255, 69, 0, 0.4);
-  background: var(--bg-card-hover);
+/* === ESTADOS DOS MINI-CARDS === */
+.edicao-card.aguardando {
+  background: rgba(42, 42, 42, 0.3);
+  border-color: rgba(255, 255, 255, 0.05);
+  opacity: 0.5;
+  cursor: not-allowed;
 }
 
-.melhor-mes-select:focus {
+.edicao-card.concluida {
+  background: rgba(255, 69, 0, 0.08);
+  border-color: rgba(255, 69, 0, 0.25);
+  color: var(--text-primary);
+}
+
+.edicao-card.andamento {
+  background: linear-gradient(135deg, var(--laranja) 0%, var(--laranja-dark) 100%);
   border-color: var(--laranja);
-  box-shadow: 0 0 0 3px rgba(255, 69, 0, 0.15);
+  color: white;
+  box-shadow: 0 4px 15px rgba(255, 69, 0, 0.4);
+  transform: scale(1.03);
+}
+
+.edicao-card.selecionada {
+  background: linear-gradient(135deg, #22c55e 0%, #16a34a 100%);
+  border: 2px solid #22c55e;
+  color: white;
+  font-weight: 700;
+  box-shadow: 0 0 12px rgba(34, 197, 94, 0.5);
+  transform: translateY(-2px) scale(1.02);
+}
+
+/* === HOVER EFFECTS === */
+.edicao-card.concluida:hover:not(.selecionada) {
+  background: rgba(255, 69, 0, 0.15);
+  border-color: rgba(255, 69, 0, 0.4);
+  transform: translateY(-1px);
+}
+
+.edicao-card.andamento:hover {
+  transform: scale(1.05);
+  box-shadow: 0 6px 25px rgba(255, 69, 0, 0.6);
+}
+
+/* === CONTEÚDO DO MINI-CARD === */
+.edicao-numero {
+  font: 700 16px "Inter", -apple-system, sans-serif;
+  margin-bottom: 2px;
+  line-height: 1;
+}
+
+.edicao-label {
+  font: 600 8px "Inter", -apple-system, sans-serif;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  opacity: 0.8;
+  margin-bottom: 1px;
+}
+
+.edicao-rodadas {
+  font: 500 7px "Inter", -apple-system, sans-serif;
+  opacity: 0.6;
+}
+
+/* === CORES POR ESTADO === */
+.edicao-card.aguardando .edicao-numero,
+.edicao-card.aguardando .edicao-label,
+.edicao-card.aguardando .edicao-rodadas {
+  color: var(--text-muted);
+}
+
+.edicao-card.concluida .edicao-numero {
+  color: var(--text-primary);
+}
+
+.edicao-card.concluida .edicao-label,
+.edicao-card.concluida .edicao-rodadas {
+  color: var(--laranja);
+}
+
+/* === INDICADORES DE STATUS === */
+.edicao-card::after {
+  content: '';
+  position: absolute;
+  top: 4px;
+  right: 4px;
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+  background: transparent;
+}
+
+.edicao-card.concluida::after {
+  background: var(--success);
+}
+
+.edicao-card.andamento::after {
+  background: white;
+  animation: pulse 2s infinite;
 }
 
 /* === CONTAINER PRINCIPAL === */
@@ -103,10 +251,9 @@
 .melhor-mes-section {
   background: var(--bg-secondary);
   border-radius: var(--border-radius-md);
-  padding: var(--spacing-md);
+  padding: var(--spacing-lg);
   border: 1px solid rgba(255, 69, 0, 0.1);
   border-left: 4px solid var(--laranja);
-  position: relative;
 }
 
 .section-header {
@@ -151,7 +298,6 @@
   overflow: hidden;
   box-shadow: 0 4px 20px rgba(0, 0, 0, 0.4);
   margin: 0;
-  font-size: 12px;
 }
 
 .tabela-melhor-mes thead {
@@ -181,6 +327,7 @@
   vertical-align: middle;
   font: 500 12px "Inter", -apple-system, sans-serif;
   color: var(--text-primary);
+  text-align: center;
 }
 
 /* === POSIÇÕES DE DESTAQUE === */
@@ -294,29 +441,6 @@
   margin: 0;
 }
 
-/* === ESTADO EDIÇÃO NÃO ACONTECEU === */
-.edicao-nao-aconteceu {
-  background: rgba(255, 251, 230, 0.9);
-  border: 1px solid #ffe58f;
-  border-radius: 8px;
-  padding: 32px 20px;
-  text-align: center;
-  color: #b8860b;
-  margin: var(--spacing-xl) auto;
-  max-width: 480px;
-}
-
-.edicao-nao-aconteceu h3 {
-  font: 700 18px "Inter", -apple-system, sans-serif;
-  color: #b8860b;
-  margin: 0 0 8px 0;
-}
-
-.edicao-nao-aconteceu p {
-  font: 500 14px "Inter", -apple-system, sans-serif;
-  margin: 0;
-}
-
 /* === BOTÃO VOLTAR === */
 .melhor-mes-footer {
   margin-top: var(--spacing-xl);
@@ -367,6 +491,28 @@
 
 /* === RESPONSIVIDADE === */
 @media (max-width: 768px) {
+  .edicoes-grid {
+    grid-template-columns: repeat(auto-fill, minmax(75px, 1fr));
+    gap: 6px;
+  }
+
+  .edicao-card {
+    padding: 10px 6px;
+    min-height: 70px;
+  }
+
+  .edicao-numero {
+    font-size: 14px;
+  }
+
+  .edicao-label {
+    font-size: 7px;
+  }
+
+  .edicao-rodadas {
+    font-size: 6px;
+  }
+
   .melhor-mes-titulo {
     font-size: 22px;
   }
@@ -374,11 +520,6 @@
   .melhor-mes-title-section {
     flex-direction: column;
     gap: var(--spacing-sm);
-  }
-
-  .melhor-mes-select {
-    min-width: 240px;
-    font-size: 14px;
   }
 
   .section-header {
@@ -405,9 +546,36 @@
     width: 20px;
     height: 20px;
   }
+
+  .edicoes-header {
+    flex-direction: column;
+    text-align: center;
+  }
+
+  .progresso-info {
+    text-align: center;
+  }
 }
 
 @media (max-width: 480px) {
+  .edicoes-grid {
+    grid-template-columns: repeat(auto-fill, minmax(65px, 1fr));
+    gap: 4px;
+  }
+
+  .edicao-card {
+    padding: 8px 4px;
+    min-height: 60px;
+  }
+
+  .edicao-numero {
+    font-size: 13px;
+  }
+
+  .edicao-label {
+    font-size: 6px;
+  }
+
   .melhor-mes-titulo {
     font-size: 20px;
   }
@@ -416,12 +584,6 @@
     width: 40px;
     height: 40px;
     font-size: 20px;
-  }
-
-  .melhor-mes-select {
-    min-width: 200px;
-    font-size: 13px;
-    padding: 10px 12px;
   }
 
   .tabela-melhor-mes {
@@ -435,9 +597,5 @@
 
   .melhor-mes-section {
     padding: var(--spacing-sm);
-  }
-
-  .edicao-nao-aconteceu {
-    padding: 24px 16px;
   }
 }
