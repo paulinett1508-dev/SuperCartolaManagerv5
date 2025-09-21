@@ -1,0 +1,122 @@
+<!doctype html>
+<html lang="pt-BR">
+    <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <title>Editar Liga - Super Cartola Manager</title>
+        <link rel="shortcut icon" href="favicon.ico" type="image/x-icon" />
+
+        <!-- CSS HIERÁRQUICO MODULAR -->
+        <link rel="stylesheet" href="style.css" />
+        <link rel="stylesheet" href="css/base.css" />
+        <link rel="stylesheet" href="css/modules/editar-liga.css" />
+    </head>
+    <body>
+        <div class="app-container">
+            <!-- Sidebar será injetado aqui -->
+            <div id="sidebar-placeholder"></div>
+
+            <!-- Conteúdo principal -->
+            <main class="app-main">
+                <div class="page-content">
+                    <!-- Breadcrumb -->
+                    <nav class="breadcrumb">
+                        <a href="dashboard.html">Dashboard</a>
+                        <span class="separator">></span>
+                        <a href="ferramentas.html">Ferramentas</a>
+                        <span class="separator">></span>
+                        <a href="gerenciar.html">Gerenciar</a>
+                        <span class="separator">></span>
+                        <span class="current">Editar Liga</span>
+                    </nav>
+
+                    <!-- Header da Liga -->
+                    <div class="liga-header">
+                        <div class="header-actions">
+                            <a href="gerenciar.html" class="btn-voltar">
+                                ← Voltar para Gerenciar
+                            </a>
+                        </div>
+                        <h1 class="liga-titulo" id="tituloLiga">
+                            Editar Times da Liga
+                        </h1>
+                        <p class="liga-info">
+                            Gerencie os times participantes da sua liga
+                        </p>
+                    </div>
+
+                    <!-- Mensagem de Erro -->
+                    <div
+                        id="errorMessage"
+                        class="alert alert-error"
+                        style="display: none"
+                    >
+                        <!-- Mensagens de erro serão inseridas aqui -->
+                    </div>
+
+                    <!-- Mensagem de Sucesso -->
+                    <div
+                        id="successMessage"
+                        class="alert alert-success"
+                        style="display: none"
+                    >
+                        <!-- Mensagens de sucesso serão inseridas aqui -->
+                    </div>
+
+                    <!-- Container da Tabela -->
+                    <div class="editar-container">
+                        <div class="table-wrapper">
+                            <table class="times-table" id="timesTable">
+                                <thead>
+                                    <tr>
+                                        <th class="col-index">#</th>
+                                        <th class="col-id">ID</th>
+                                        <th class="col-cartoleiro">
+                                            Cartoleiro
+                                        </th>
+                                        <th class="col-brasao">Brasão</th>
+                                        <th class="col-clube">
+                                            Time do Coração
+                                        </th>
+                                        <th class="col-escudo">Escudo</th>
+                                        <th class="col-acoes">Ações</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="tabelaTimes">
+                                    <!-- Times serão inseridos aqui -->
+                                </tbody>
+                            </table>
+                        </div>
+
+                        <!-- Loading State -->
+                        <div id="loadingState" class="loading-state">
+                            <div class="loading-spinner"></div>
+                            <p>Carregando times da liga...</p>
+                        </div>
+
+                        <!-- Empty State -->
+                        <div
+                            id="emptyState"
+                            class="empty-state"
+                            style="display: none"
+                        >
+                            <div class="empty-icon">📋</div>
+                            <h3>Liga sem times</h3>
+                            <p>Esta liga ainda não possui times cadastrados.</p>
+                        </div>
+
+                        <!-- Botão Salvar Tudo -->
+                        <div class="action-footer">
+                            <button class="btn-save-all" id="salvarTudoBtn">
+                                Salvar Todas as Alterações
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </main>
+        </div>
+
+        <!-- Scripts Modulares -->
+        <script type="module" src="js/editar-liga.js"></script>
+    </body>
+</html>

@@ -1,0 +1,72 @@
+<!-- MÓDULO RODADAS - Interface com Mini Cards -->
+<div id="rodadas" class="rodadas-module">
+    <!-- Header do Módulo -->
+    <div class="module-header-section">
+        <div class="module-title-section">
+            <div class="module-title-icon">🎯</div>
+            <h2>Ranking por Rodada</h2>
+        </div>
+        <div class="module-subtitle">
+            Classificação e premiação por rodada específica
+        </div>
+    </div>
+
+    <!-- Grid de Mini Cards das Rodadas -->
+    <div class="rodadas-grid">
+        <div id="rodadasCards" class="rodadas-cards-container">
+            <!-- Será preenchido via JavaScript -->
+        </div>
+    </div>
+
+    <!-- Loading State -->
+    <div id="loading" class="loading-state" style="display: none">
+        <div class="spinner"></div>
+        <span>Carregando dados da rodada...</span>
+    </div>
+
+    <!-- Container Principal com Export Inline -->
+    <div
+        id="rodadaContentSection"
+        class="rodada-content-section"
+        style="display: none"
+    >
+        <div class="section-header">
+            <div class="section-icon">📊</div>
+            <h3 id="rodadaTituloAtual">Rodada Selecionada</h3>
+            <div id="rodadasExportBtnContainer" class="export-inline"></div>
+        </div>
+
+        <!-- Container da Tabela -->
+        <div class="table-container">
+            <table class="ranking-table">
+                <thead>
+                    <tr>
+                        <th style="width: 45px; text-align: center">Pos</th>
+                        <th style="width: 35px; text-align: center">❤️</th>
+                        <th style="width: 35%; text-align: left">Cartoleiro</th>
+                        <th style="width: 35%; text-align: left">Time</th>
+                        <th style="width: 12%; text-align: center">Pontos</th>
+                        <th style="width: 13%; text-align: center">Banco</th>
+                    </tr>
+                </thead>
+                <tbody id="rankingBody">
+                    <tr>
+                        <td colspan="6" class="empty-state">
+                            Selecione uma rodada para visualizar o ranking
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <!-- Botão Voltar -->
+    <div class="module-actions">
+        <button
+            class="back-button"
+            onclick="window.orquestrador?.voltarParaCards()"
+        >
+            ← Voltar aos Cards
+        </button>
+    </div>
+</div>

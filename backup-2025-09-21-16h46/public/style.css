@@ -1,0 +1,1057 @@
+/* === SUPER CARTOLA MANAGER - TEMA ESCURO PROFISSIONAL === */
+:root {
+  /* === PALETA ESCURA + LARANJA === */
+  --laranja: #FF4500;
+  --laranja-dark: #E8472B;
+  --laranja-light: #FFA726;
+  --laranja-alpha: rgba(255, 69, 0, 0.15);
+  --laranja-hover: rgba(255, 69, 0, 0.25);
+
+  /* === TEMA ESCURO === */
+  --bg-primary: #0a0a0a;
+  --bg-secondary: #1a1a1a;
+  --bg-tertiary: #2a2a2a;
+  --bg-card: #1e1e1e;
+  --bg-card-hover: #252525;
+
+  /* === TEXTOS ESCUROS === */
+  --text-primary: #ffffff;
+  --text-secondary: #e0e0e0;
+  --text-muted: #a0a0a0;
+  --text-dark: #606060;
+
+  /* === CORES FUNCIONAIS === */
+  --success: #22c55e;
+  --danger: #ef4444;
+  --warning: var(--laranja);
+  --info: #3b82f6;
+
+  /* === SIDEBAR ESCURO === */
+  --sidebar-bg: linear-gradient(180deg, #0a0a0a 0%, #000000 100%);
+  --sidebar-border: rgba(255, 69, 0, 0.3);
+  --sidebar-item-hover: rgba(255, 69, 0, 0.1);
+  --sidebar-text: #e0e0e0;
+  --sidebar-text-muted: #a0a0a0;
+
+  /* === GRADIENTES ESCUROS === */
+  --gradient-primary: linear-gradient(135deg, var(--laranja) 0%, var(--laranja-dark) 100%);
+  --gradient-dark: linear-gradient(135deg, #1a1a1a 0%, #0a0a0a 100%);
+  --gradient-card: linear-gradient(135deg, #1e1e1e 0%, #2a2a2a 100%);
+
+  /* === SOMBRAS ESCURAS === */
+  --shadow-sm: 0 2px 8px rgba(0,0,0,0.3);
+  --shadow-md: 0 4px 16px rgba(0,0,0,0.4);
+  --shadow-lg: 0 8px 32px rgba(0,0,0,0.5);
+  --shadow-orange: 0 4px 20px rgba(255, 69, 0, 0.4);
+  --shadow-glow: 0 0 20px rgba(255, 69, 0, 0.3);
+
+  /* === BORDAS === */
+  --border-primary: #333333;
+  --border-secondary: #2a2a2a;
+  --border-orange: rgba(255, 69, 0, 0.5);
+
+  /* === ESPAÇAMENTOS === */
+  --spacing-xs: 4px;
+  --spacing-sm: 8px;
+  --spacing-md: 16px;
+  --spacing-lg: 24px;
+  --spacing-xl: 32px;
+
+  /* === TABELAS COMPACTAS === */
+  --table-padding: 6px 8px;
+  --table-header-bg: var(--gradient-primary);
+  --table-row-hover: rgba(255, 69, 0, 0.1);
+}
+
+/* === BASE ESCURA === */
+* { 
+  box-sizing: border-box; 
+  scrollbar-width: thin;
+  scrollbar-color: var(--laranja) var(--bg-secondary);
+}
+
+body {
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+  background: var(--bg-primary);
+  color: var(--text-primary);
+  margin: 0;
+  padding: 0;
+  line-height: 1.5;
+  font-size: 15px;
+  overflow-x: hidden;
+}
+
+/* === LAYOUT PRINCIPAL === */
+.app-container {
+  display: flex;
+  min-height: 100vh;
+  background: var(--bg-primary);
+}
+
+.app-sidebar {
+  width: 280px;
+  background: var(--sidebar-bg);
+  color: var(--text-primary);
+  padding: 0;
+  overflow-y: hidden;
+  box-shadow: 4px 0 20px rgba(0,0,0,0.6);
+  position: fixed;
+  height: 100vh;
+  z-index: 1000;
+  border-right: 2px solid var(--sidebar-border);
+}
+
+.app-main {
+  flex: 1;
+  margin-left: 280px;
+  background: var(--bg-secondary);
+  min-height: 100vh;
+}
+
+/* === HEADER ESCURO === */
+.page-header {
+  background: var(--gradient-card);
+  padding: var(--spacing-lg) 30px;
+  border-bottom: 2px solid var(--border-primary);
+  box-shadow: var(--shadow-md);
+}
+
+.page-title {
+  font-size: 18px;
+  font-weight: 700;
+  color: var(--laranja);
+  margin: 0;
+  text-shadow: 0 0 10px rgba(255, 69, 0, 0.3);
+}
+
+.page-subtitle {
+  color: var(--text-muted);
+  margin: 4px 0 0 0;
+  font-size: 12px;
+}
+
+.page-content {
+  padding: 20px;
+  background: var(--bg-secondary);
+}
+
+/* === BREADCRUMB ESCURO === */
+.breadcrumb {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-xs);
+  margin-bottom: 8px;
+  font-size: 10px;
+  font-weight: 500;
+}
+
+.breadcrumb a {
+  color: var(--text-muted);
+  text-decoration: none;
+  padding: 2px 6px;
+  border-radius: 4px;
+  transition: all 0.2s;
+}
+
+.breadcrumb a:hover {
+  color: var(--laranja);
+  background: var(--laranja-alpha);
+}
+
+.breadcrumb .separator { color: #555555; }
+.breadcrumb .current { color: var(--laranja); font-weight: 600; }
+
+/* === SIDEBAR COMPACTO === */
+.sidebar-logo {
+  padding: 15px 15px;
+  border-bottom: 1px solid var(--sidebar-border);
+  margin-bottom: 15px;
+  background: rgba(255, 69, 0, 0.05);
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.sidebar-logo:hover {
+  background: rgba(255, 69, 0, 0.1);
+  transform: scale(1.02);
+}
+
+.sidebar-logo h2 {
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--text-primary);
+  margin: 0;
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-sm);
+  text-align: center;
+  justify-content: center;
+}
+
+.sidebar-logo .logo-icon {
+  color: var(--laranja);
+  font-size: 16px;
+  filter: drop-shadow(0 0 5px rgba(255, 69, 0, 0.5));
+}
+
+/* === LOGO RESPONSIVA === */
+.logo-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+}
+
+.logo-image {
+  width: 42px !important;
+  height: 42px !important;
+  object-fit: contain;
+  filter: drop-shadow(0 0 8px rgba(255, 69, 0, 0.4));
+  transition: all 0.3s ease;
+}
+
+#logoFallback {
+  width: 42px !important;
+  height: 42px !important;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 28px !important;
+  color: var(--laranja);
+  text-shadow: 0 0 8px rgba(255, 69, 0, 0.4);
+  transition: all 0.3s ease;
+}
+
+.logo-text h2 {
+  font-size: 13px !important;
+  color: var(--laranja) !important;
+  margin: 0 !important;
+}
+
+.logo-text p {
+  font-size: 9px !important;
+  color: var(--text-muted) !important;
+  margin: 2px 0 0 0 !important;
+  text-transform: uppercase;
+  font-weight: 600;
+}
+
+.sidebar-section {
+  margin-bottom: 15px;
+  padding: 0 8px;
+}
+
+.sidebar-section h3 {
+  padding: 0 12px;
+  font-size: 11px;
+  color: var(--sidebar-text-muted);
+  margin-bottom: 8px;
+  text-transform: uppercase;
+  letter-spacing: 1.2px;
+  font-weight: 700;
+}
+
+.sidebar-menu {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.sidebar-menu li { margin-bottom: 1px; }
+
+.sidebar-menu a {
+  display: flex;
+  align-items: center;
+  padding: 10px 14px;
+  color: var(--sidebar-text);
+  text-decoration: none;
+  border-left: 3px solid transparent;
+  font-size: 14px;
+  font-weight: 500;
+  border-radius: 0 15px 15px 0;
+  margin-right: 8px;
+  transition: all 0.3s ease;
+}
+
+.sidebar-menu a:hover {
+  background: var(--sidebar-item-hover);
+  border-left-color: var(--laranja);
+  color: var(--text-primary);
+  transform: translateX(3px);
+}
+
+.sidebar-menu a.active {
+  background: var(--laranja-alpha);
+  border-left-color: var(--laranja);
+  color: var(--text-primary);
+  font-weight: 600;
+  box-shadow: var(--shadow-orange);
+}
+
+.sidebar-menu .icon {
+  margin-right: 10px;
+  font-size: 14px;
+  width: 16px;
+  text-align: center;
+  color: var(--laranja);
+}
+
+/* === LIGA ITEMS === */
+.liga-item, 
+.liga-item:link, 
+.liga-item:visited, 
+.liga-item:active {
+  display: flex !important;
+  align-items: center !important;
+  justify-content: space-between !important;
+  padding: 12px 20px !important;
+  color: var(--sidebar-text) !important;
+  text-decoration: none !important;
+  transition: all 0.3s ease !important;
+  font-size: 13px !important;
+  font-weight: 500 !important;
+  border-left: 4px solid transparent !important;
+  border-radius: 0 15px 15px 0 !important;
+  margin-right: 8px !important;
+}
+
+.liga-item:hover,
+.liga-item:focus {
+  background: var(--sidebar-item-hover) !important;
+  border-left-color: var(--laranja) !important;
+  color: var(--text-primary) !important;
+  transform: translateX(4px) !important;
+  text-decoration: none !important;
+}
+
+.liga-info {
+  flex: 1 !important;
+}
+
+.liga-name {
+  font-weight: 600 !important;
+  margin-bottom: 2px !important;
+  color: var(--text-primary) !important;
+  font-size: 13px !important;
+}
+
+.liga-details {
+  font-size: 11px !important;
+  color: var(--sidebar-text-muted) !important;
+}
+
+/* === DESTAQUE LIGA ATUAL === */
+.liga-item.liga-atual {
+    background: rgba(255, 69, 0, 0.15) !important;
+    border-left: 3px solid var(--laranja) !important;
+}
+
+.liga-current-badge {
+    color: var(--laranja) !important;
+    font-weight: 700 !important;
+}
+
+/* === RESET GLOBAL DE LINKS DO SIDEBAR === */
+.sidebar a,
+.sidebar a:link,
+.sidebar a:visited,
+.sidebar a:active {
+  color: var(--sidebar-text) !important;
+  text-decoration: none !important;
+}
+
+.sidebar a:hover {
+  color: var(--text-primary) !important;
+}
+
+/* === BOTÕES ESCUROS === */
+.btn, button, .action-btn {
+  background: var(--bg-card);
+  color: var(--text-primary);
+  border: 1px solid var(--border-primary);
+  border-radius: 6px;
+  padding: 10px 16px;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  margin: 2px 4px 2px 0;
+  transition: all 0.3s ease;
+  outline: none;
+}
+
+.btn:hover, button:hover { 
+  background: var(--bg-card-hover);
+  border-color: var(--laranja);
+  transform: translateY(-1px); 
+  box-shadow: var(--shadow-sm); 
+}
+
+.btn.active, button.active {
+  background: var(--laranja);
+  color: var(--text-primary);
+  border-color: var(--laranja);
+}
+
+/* === CARDS ESCUROS === */
+.liga-card, .time-card, .stat-card {
+  background: var(--gradient-card);
+  border-radius: 12px;
+  box-shadow: var(--shadow-md);
+  padding: var(--spacing-lg);
+  border: 1px solid var(--border-primary);
+  position: relative;
+  overflow: hidden;
+  transition: all 0.4s ease;
+}
+
+.liga-card::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 3px;
+  background: var(--gradient-primary);
+  box-shadow: var(--shadow-glow);
+}
+
+.liga-card:hover {
+  transform: translateY(-5px);
+  box-shadow: var(--shadow-lg);
+  border-color: var(--laranja);
+  background: var(--bg-card-hover);
+}
+
+/* === TABELAS ESCURAS === */
+table, .ranking-table, .mata-mata-table {
+  width: 100%;
+  border-collapse: collapse;
+  background: var(--bg-card);
+  font-size: 13px;
+  margin: 12px 0;
+  border-radius: 8px;
+  overflow: hidden;
+  box-shadow: var(--shadow-md);
+  border: 1px solid var(--border-primary);
+}
+
+th, td {
+  padding: var(--table-padding);
+  border-bottom: 1px solid var(--border-secondary);
+  text-align: center;
+  font-size: 13px;
+  color: var(--text-secondary);
+}
+
+th {
+  background: var(--table-header-bg);
+  color: var(--text-primary);
+  font-weight: 600;
+  text-transform: uppercase;
+  font-size: 12px;
+  letter-spacing: 0.5px;
+  padding: 10px var(--spacing-sm);
+}
+
+tbody tr:hover {
+  background: var(--table-row-hover);
+}
+
+tr:nth-child(even) { 
+  background: rgba(255,255,255,0.02); 
+}
+
+/* === ESCUDOS === */
+.escudo, .escudo-coracao, .escudo-time {
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  border: 1px solid var(--border-primary);
+  object-fit: cover;
+  vertical-align: middle;
+  margin-right: 4px;
+  transition: all 0.2s ease;
+}
+
+.escudo:hover {
+  transform: scale(1.1);
+  border-color: var(--laranja);
+  box-shadow: 0 0 8px rgba(255, 69, 0, 0.5);
+}
+
+/* === VALORES COLORIDOS === */
+.valor-positivo { 
+  color: var(--success); 
+  background: rgba(34, 197, 94, 0.2);
+  padding: 2px 5px;
+  border-radius: 3px;
+  font-size: 10px;
+  font-weight: 600;
+}
+
+.valor-negativo { 
+  color: var(--danger); 
+  background: rgba(239, 68, 68, 0.2);
+  padding: 2px 5px;
+  border-radius: 3px;
+  font-size: 10px;
+  font-weight: 600;
+}
+
+.valor-neutro { 
+  color: var(--text-muted); 
+  font-size: 10px; 
+}
+
+.pontos {
+  background: var(--gradient-primary);
+  color: var(--text-primary);
+  border-radius: 3px;
+  padding: 2px 6px;
+  font-size: 10px;
+  font-weight: 600;
+}
+
+/* === RANKINGS ESCUROS === */
+.pos-mito {
+  background: linear-gradient(135deg, var(--success) 0%, #16a34a 100%);
+  color: var(--text-primary) !important;
+  font-weight: 600;
+  border-radius: 3px;
+  padding: 2px 5px;
+  font-size: 9px;
+}
+
+.pos-g {
+  background: linear-gradient(135deg, #059669 0%, #047857 100%);
+  color: var(--text-primary) !important;
+  font-weight: 600;
+  border-radius: 3px;
+  padding: 2px 5px;
+  font-size: 9px;
+}
+
+.pos-z {
+  background: var(--gradient-primary);
+  color: var(--text-primary) !important;
+  font-weight: 600;
+  border-radius: 3px;
+  padding: 2px 5px;
+  font-size: 9px;
+}
+
+.pos-mico {
+  background: linear-gradient(135deg, var(--danger) 0%, #dc2626 100%);
+  color: var(--text-primary) !important;
+  font-weight: 600;
+  border-radius: 3px;
+  padding: 2px 5px;
+  font-size: 9px;
+}
+
+/* === FORMULÁRIOS ESCUROS === */
+input, select, .search-input {
+  background: var(--bg-card);
+  color: var(--text-primary);
+  border: 1px solid var(--border-primary);
+  border-radius: 8px;
+  padding: 12px var(--spacing-md);
+  font-size: 15px;
+  transition: all 0.3s ease;
+  outline: none;
+}
+
+input:focus, select:focus {
+  border-color: var(--laranja);
+  box-shadow: 0 0 0 3px var(--laranja-alpha);
+  background: var(--bg-card-hover);
+}
+
+input::placeholder {
+  color: var(--text-dark);
+}
+
+/* === ALERTAS ESCUROS === */
+.alert {
+  padding: 10px var(--spacing-md);
+  border-radius: 8px;
+  margin: 10px 0;
+  font-weight: 500;
+  font-size: 12px;
+  border: 1px solid transparent;
+}
+
+.alert-success {
+  background: rgba(34, 197, 94, 0.2);
+  border-color: var(--success);
+  color: var(--success);
+}
+
+.alert-warning {
+  background: rgba(255, 69, 0, 0.2);
+  border-color: var(--laranja);
+  color: var(--laranja);
+}
+
+.alert-error, .error-message {
+  background: rgba(239, 68, 68, 0.2);
+  border-color: var(--danger);
+  color: var(--danger);
+}
+
+.alert-info {
+  background: rgba(59, 130, 246, 0.2);
+  border-color: var(--info);
+  color: var(--info);
+}
+
+/* === CONTAINERS === */
+.container {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: var(--spacing-lg);
+}
+
+.dashboard-stats {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 20px;
+  margin-bottom: 30px;
+}
+
+.ligas-container, .times-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: var(--spacing-lg);
+  margin-top: 20px;
+}
+
+/* === LOADING ESCURO === */
+.loading {
+  text-align: center;
+  margin: 25px 0;
+  font-size: 13px;
+  color: var(--laranja);
+}
+
+.loading::after {
+  content: "";
+  display: inline-block;
+  width: 14px;
+  height: 14px;
+  border: 2px solid var(--laranja-alpha);
+  border-radius: 50%;
+  border-top-color: var(--laranja);
+  animation: spin 1s ease-in-out infinite;
+  margin-left: var(--spacing-sm);
+}
+
+.loading-spinner {
+  width: 32px;
+  height: 32px;
+  border: 3px solid var(--laranja-alpha);
+  border-top: 3px solid var(--laranja);
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+  margin: 0 auto;
+}
+
+.ligas-loading, .ligas-empty {
+  text-align: center;
+  padding: 20px;
+  color: var(--text-muted);
+  font-size: 13px;
+  border-radius: 8px;
+  background: rgba(255, 69, 0, 0.05);
+  border: 1px solid rgba(255, 69, 0, 0.2);
+  margin: 5px 15px;
+}
+
+/* === HEADINGS ESCUROS === */
+h1, h2, h3, h4 {
+  font-weight: 600;
+  color: var(--text-primary);
+  margin: 15px 0 10px 0;
+}
+
+h2 {
+  font-size: 1.6rem;
+  color: var(--laranja);
+  text-shadow: 0 0 10px rgba(255, 69, 0, 0.3);
+}
+
+h3 { font-size: 1.3rem; }
+h4 { font-size: 1.1rem; }
+
+/* === TABS ESCUROS === */
+.tabs {
+  display: flex;
+  justify-content: center;
+  gap: 3px;
+  margin: 15px 0;
+  flex-wrap: wrap;
+  padding: 3px;
+  background: var(--bg-card);
+  border-radius: 8px;
+  box-shadow: var(--shadow-sm);
+  border: 1px solid var(--border-primary);
+}
+
+.tab {
+  background: transparent;
+  color: var(--text-muted);
+  padding: 6px 12px;
+  border-radius: 5px;
+  cursor: pointer;
+  font-weight: 500;
+  border: none;
+  font-size: 11px;
+  transition: all 0.3s ease;
+}
+
+.tab.active {
+  background: var(--gradient-primary);
+  color: var(--text-primary);
+  font-weight: 600;
+  box-shadow: var(--shadow-orange);
+}
+
+.tab:not(.active):hover {
+  background: var(--laranja-alpha);
+  color: var(--laranja);
+}
+
+/* === UTILITÁRIOS === */
+.text-center { text-align: center; }
+.text-left { text-align: left; }
+.text-right { text-align: right; }
+.hidden { display: none; }
+.visible { display: block; }
+
+/* === ANIMAÇÕES === */
+@keyframes spin { 
+  to { transform: rotate(360deg); }
+}
+
+@keyframes slideInUp {
+  from { opacity: 0; transform: translateY(20px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes fadeInUp {
+  from { opacity: 0; transform: translateY(15px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.tab-content { 
+  display: none; 
+  animation: fadeInUp 0.3s ease-out;
+}
+.tab-content.active { display: block; }
+
+/* === SCROLLBAR ESCURA === */
+::-webkit-scrollbar { width: 4px; }
+::-webkit-scrollbar-track { background: var(--bg-secondary); }
+::-webkit-scrollbar-thumb { 
+  background: var(--laranja); 
+  border-radius: 2px; 
+  box-shadow: var(--shadow-glow);
+}
+::-webkit-scrollbar-thumb:hover { background: var(--laranja-dark); }
+
+/* === CORREÇÕES DE VISIBILIDADE - HEADER E CARDS === */
+.liga-titulo {
+    color: #ffffff !important;
+    margin-bottom: 5px;
+    font-size: 22px;
+    font-weight: 700;
+    text-shadow: 0 0 10px rgba(255, 255, 255, 0.1);
+}
+
+.liga-info {
+    color: #e0e0e0 !important;
+    margin: 0;
+    font-size: 14px;
+    opacity: 1;
+}
+
+/* Cards - Informações Sempre Visíveis */
+.module-title {
+    color: #ffffff !important;
+    font-size: 14px;
+    font-weight: 600;
+    margin: 0;
+}
+
+.module-items li {
+    color: #e0e0e0 !important;
+    font-size: 12px;
+    padding: 3px 0;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.module-items li::before {
+    color: #ff4500 !important;
+    font-weight: bold;
+}
+
+/* Sub-informações e contadores */
+#participantes-count,
+.module-items .count,
+.module-items .info {
+    color: #cccccc !important;
+}
+
+/* Botão Voltar Condicional */
+#main-screen .back-button {
+    display: none !important;
+}
+
+#secondary-screen .back-button {
+    display: inline-block !important;
+    background: rgba(255, 69, 0, 0.1);
+    border: 1px solid rgba(255, 69, 0, 0.3);
+    color: #ff4500;
+    padding: 8px 15px;
+    border-radius: 8px;
+    cursor: pointer;
+    font-size: 12px;
+    font-weight: 600;
+    margin-bottom: 20px;
+    transition: all 0.3s ease;
+}
+
+#secondary-screen .back-button:hover {
+    background: #ff4500;
+    color: #ffffff;
+}
+
+/* === ESTADOS DESATIVADOS DOS CARDS === */
+.module-card.disabled {
+    opacity: 0.65 !important;
+    cursor: not-allowed !important;
+    pointer-events: none !important;
+    background: linear-gradient(135deg, #1a1a1a 0%, #161616 100%) !important;
+    border-color: rgba(160, 160, 160, 0.3) !important;
+}
+
+.module-card.disabled::before {
+    background: linear-gradient(135deg, #888888 0%, #666666 100%) !important;
+    opacity: 1 !important;
+}
+
+.module-card.disabled .module-icon {
+    color: #999999 !important;
+}
+
+.module-card.disabled .module-title {
+    color: #aaaaaa !important;
+}
+
+.module-card.disabled .module-items li {
+    color: #888888 !important;
+}
+
+.module-card.disabled .module-items li::before {
+    color: #777777 !important;
+}
+
+.module-card.disabled:hover {
+    transform: none !important;
+    box-shadow: none !important;
+    border-color: rgba(160, 160, 160, 0.3) !important;
+}
+
+/* === TOOLTIP PARA CARDS DESATIVADOS === */
+.module-card.disabled {
+    position: relative;
+}
+
+.module-card.disabled::after {
+    content: "Não aplicável a esta liga";
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    background: rgba(0, 0, 0, 0.9);
+    color: #ffffff;
+    padding: 8px 12px;
+    border-radius: 6px;
+    font-size: 11px;
+    font-weight: 600;
+    white-space: nowrap;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.3s ease;
+    z-index: 10;
+}
+
+.module-card.disabled:hover::after {
+    opacity: 1;
+}
+
+/* === RESPONSIVIDADE === */
+@media (max-width: 768px) {
+  body {
+    font-size: 14px;
+  }
+
+  .app-sidebar {
+    transform: translateX(-100%);
+    transition: transform 0.3s ease;
+  }
+
+  .app-sidebar.mobile-open {
+    transform: translateX(0);
+  }
+
+  .app-main {
+    margin-left: 0;
+  }
+
+  .mobile-sidebar-toggle {
+    display: flex !important;
+    align-items: center;
+    justify-content: center;
+    position: fixed;
+    top: 12px;
+    left: 12px;
+    z-index: 1001;
+    background: var(--laranja);
+    color: var(--text-primary);
+    border: none;
+    padding: 10px;
+    border-radius: 6px;
+    cursor: pointer;
+    box-shadow: var(--shadow-orange);
+    font-size: 16px;
+  }
+
+  .page-header {
+    padding: 12px 15px 12px 50px;
+  }
+
+  .page-title { 
+    font-size: 18px;
+  }
+
+  .page-content { 
+    padding: 15px;
+  }
+
+  .ligas-container, .times-grid {
+    grid-template-columns: 1fr;
+    gap: 12px;
+  }
+
+  .liga-card, .time-card {
+    padding: 18px;
+  }
+
+  th, td {
+    padding: 6px 4px;
+    font-size: 12px;
+  }
+
+  .tabs {
+    gap: 3px;
+    padding: 4px;
+  }
+
+  .tab {
+    padding: 8px 12px;
+    font-size: 12px;
+  }
+
+  .sidebar-menu a {
+    font-size: 13px;
+    padding: 9px 12px;
+  }
+
+  .liga-item {
+    font-size: 12px !important;
+    padding: 10px 15px !important;
+  }
+
+  .btn, button, .action-btn {
+    font-size: 13px;
+    padding: 8px 14px;
+  }
+
+  .logo-image {
+    width: 36px !important;
+    height: 36px !important;
+  }
+
+  #logoFallback {
+    width: 36px !important;
+    height: 36px !important;
+    font-size: 24px !important;
+  }
+}
+
+@media (max-width: 480px) {
+  body {
+    font-size: 13px;
+  }
+
+  .sidebar-logo h2 {
+    font-size: 12px !important;
+  }
+
+  .logo-text h2 {
+    font-size: 12px !important;
+  }
+
+  .logo-text p {
+    font-size: 8px !important;
+  }
+
+  .logo-image {
+    width: 32px !important;
+    height: 32px !important;
+  }
+
+  #logoFallback {
+    width: 32px !important;
+    height: 32px !important;
+    font-size: 22px !important;
+  }
+
+  .sidebar-menu a {
+    font-size: 12px;
+    padding: 8px 10px;
+  }
+
+  .liga-item {
+    font-size: 11px !important;
+    padding: 8px 12px !important;
+  }
+
+  .btn, button, .action-btn {
+    font-size: 12px;
+    padding: 7px 12px;
+  }
+
+  th, td {
+    font-size: 11px;
+    padding: 5px 3px;
+  }
+
+  input, select, .search-input {
+    font-size: 14px;
+    padding: 10px 12px;
+  }
+}
+
+.mobile-sidebar-toggle { display: none; }
+
+/* === FOCUS STATES === */
+button:focus, .btn:focus, input:focus, select:focus {
+  outline: none;
+  box-shadow: 0 0 0 2px var(--laranja-alpha);
+}
+
+/* === FIM DO ARQUIVO === */

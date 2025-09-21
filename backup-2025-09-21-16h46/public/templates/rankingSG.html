@@ -1,0 +1,43 @@
+<!doctype html>
+<html lang="pt-BR">
+  <head>
+    <meta charset="UTF-8" />
+    <title>Ranking Gols - Artilheiro Campeão</title>
+    <link rel="stylesheet" href="/style.css" />
+  </head>
+  <body>
+    <h2>Ranking de Gols Marcados</h2>
+    <table>
+      <thead>
+        <tr>
+          <th>Posição</th>
+          <th>Cartoleiro</th>
+          <th>Total G</th>
+        </tr>
+      </thead>
+      <tbody id="rankingBody">
+        <!-- Preenchido via JS -->
+      </tbody>
+    </table>
+    <script src="/js/gols.js"></script>
+    <script>
+      // Chama a função do JS para buscar e preencher o ranking
+      document.addEventListener("DOMContentLoaded", async () => {
+        const res = await fetch("/api/gols/ranking");
+        const ranking = await res.json();
+        const tbody = document.getElementById("rankingBody");
+        tbody.innerHTML = ranking
+          .map(
+            (item, idx) => `
+        <tr>
+          <td>${idx + 1}</td>
+          <td>${item._id}</td>
+          <td>${item.totalSG}</td>
+        </tr>
+      `,
+          )
+          .join("");
+      });
+    </script>
+  </body>
+</html>

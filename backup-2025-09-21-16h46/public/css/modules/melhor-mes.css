@@ -1,0 +1,601 @@
+/* MELHOR MÊS CSS - Módulo Específico com Mini-Cards
+   Arquivo: public/css/modules/melhor-mes.css
+   Seguindo padrão pontos-corridos
+*/
+
+/* === CONTAINER PRINCIPAL === */
+#melhor-mes {
+  background: var(--bg-card);
+  border-radius: var(--border-radius-md);
+  padding: var(--spacing-lg);
+  margin: var(--spacing-md) 0;
+  border: 1px solid rgba(255, 69, 0, 0.1);
+  position: relative;
+  overflow: hidden;
+}
+
+#melhor-mes::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 3px;
+  background: linear-gradient(135deg, var(--laranja) 0%, var(--laranja-dark) 100%);
+}
+
+/* === HEADER DO MÓDULO === */
+.melhor-mes-header {
+  text-align: center;
+  margin-bottom: var(--spacing-xl);
+  padding-bottom: var(--spacing-lg);
+  border-bottom: 2px solid rgba(255, 69, 0, 0.2);
+}
+
+.melhor-mes-title-section {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--spacing-md);
+  margin-bottom: var(--spacing-sm);
+}
+
+.melhor-mes-icon {
+  width: 48px;
+  height: 48px;
+  background: linear-gradient(135deg, var(--laranja) 0%, var(--laranja-dark) 100%);
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 24px;
+  box-shadow: 0 4px 20px rgba(255, 69, 0, 0.4);
+}
+
+.melhor-mes-titulo {
+  font: 800 28px "Inter", -apple-system, sans-serif;
+  color: var(--text-primary);
+  margin: 0;
+  letter-spacing: -0.5px;
+}
+
+.melhor-mes-subtitulo {
+  font: 600 15px "Inter", -apple-system, sans-serif;
+  color: var(--laranja);
+  margin: 0;
+  opacity: 0.9;
+}
+
+/* === SELETOR DE EDIÇÕES === */
+.edicoes-selector-container {
+  margin-bottom: var(--spacing-xl);
+}
+
+.edicoes-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: var(--spacing-md);
+  flex-wrap: wrap;
+  gap: var(--spacing-md);
+}
+
+.edicoes-title {
+  font: 700 18px "Inter", -apple-system, sans-serif;
+  color: var(--text-primary);
+  margin: 0;
+}
+
+.edicoes-progresso {
+  flex: 1;
+  max-width: 300px;
+}
+
+.progresso-info {
+  text-align: right;
+}
+
+.progresso-texto {
+  font: 500 12px "Inter", -apple-system, sans-serif;
+  color: var(--text-muted);
+  display: block;
+  margin-bottom: 4px;
+}
+
+.progresso-bar {
+  width: 100%;
+  height: 6px;
+  background: var(--bg-secondary);
+  border-radius: 3px;
+  overflow: hidden;
+}
+
+.progresso-fill {
+  height: 100%;
+  background: linear-gradient(90deg, var(--laranja) 0%, var(--laranja-light) 100%);
+  border-radius: 3px;
+  transition: width 0.5s ease;
+}
+
+/* === GRID DE MINI-CARDS === */
+.edicoes-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(90px, 1fr));
+  gap: 8px;
+  margin-bottom: var(--spacing-md);
+}
+
+/* === MINI-CARDS DAS EDIÇÕES === */
+.edicao-card {
+  background: var(--bg-secondary);
+  border: 1px solid rgba(255, 69, 0, 0.1);
+  border-radius: 10px;
+  padding: 12px 8px;
+  text-align: center;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  position: relative;
+  min-height: 80px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  user-select: none;
+}
+
+/* === ESTADOS DOS MINI-CARDS === */
+.edicao-card.aguardando {
+  background: rgba(42, 42, 42, 0.3);
+  border-color: rgba(255, 255, 255, 0.05);
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.edicao-card.concluida {
+  background: rgba(255, 69, 0, 0.08);
+  border-color: rgba(255, 69, 0, 0.25);
+  color: var(--text-primary);
+}
+
+.edicao-card.andamento {
+  background: linear-gradient(135deg, var(--laranja) 0%, var(--laranja-dark) 100%);
+  border-color: var(--laranja);
+  color: white;
+  box-shadow: 0 4px 15px rgba(255, 69, 0, 0.4);
+  transform: scale(1.03);
+}
+
+.edicao-card.selecionada {
+  background: linear-gradient(135deg, #22c55e 0%, #16a34a 100%);
+  border: 2px solid #22c55e;
+  color: white;
+  font-weight: 700;
+  box-shadow: 0 0 12px rgba(34, 197, 94, 0.5);
+  transform: translateY(-2px) scale(1.02);
+}
+
+/* === HOVER EFFECTS === */
+.edicao-card.concluida:hover:not(.selecionada) {
+  background: rgba(255, 69, 0, 0.15);
+  border-color: rgba(255, 69, 0, 0.4);
+  transform: translateY(-1px);
+}
+
+.edicao-card.andamento:hover {
+  transform: scale(1.05);
+  box-shadow: 0 6px 25px rgba(255, 69, 0, 0.6);
+}
+
+/* === CONTEÚDO DO MINI-CARD === */
+.edicao-numero {
+  font: 700 16px "Inter", -apple-system, sans-serif;
+  margin-bottom: 2px;
+  line-height: 1;
+}
+
+.edicao-label {
+  font: 600 8px "Inter", -apple-system, sans-serif;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  opacity: 0.8;
+  margin-bottom: 1px;
+}
+
+.edicao-rodadas {
+  font: 500 7px "Inter", -apple-system, sans-serif;
+  opacity: 0.6;
+}
+
+/* === CORES POR ESTADO === */
+.edicao-card.aguardando .edicao-numero,
+.edicao-card.aguardando .edicao-label,
+.edicao-card.aguardando .edicao-rodadas {
+  color: var(--text-muted);
+}
+
+.edicao-card.concluida .edicao-numero {
+  color: var(--text-primary);
+}
+
+.edicao-card.concluida .edicao-label,
+.edicao-card.concluida .edicao-rodadas {
+  color: var(--laranja);
+}
+
+/* === INDICADORES DE STATUS === */
+.edicao-card::after {
+  content: '';
+  position: absolute;
+  top: 4px;
+  right: 4px;
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+  background: transparent;
+}
+
+.edicao-card.concluida::after {
+  background: var(--success);
+}
+
+.edicao-card.andamento::after {
+  background: white;
+  animation: pulse 2s infinite;
+}
+
+/* === CONTAINER PRINCIPAL === */
+.melhor-mes-main-container {
+  margin-bottom: var(--spacing-lg);
+}
+
+.melhor-mes-section {
+  background: var(--bg-secondary);
+  border-radius: var(--border-radius-md);
+  padding: var(--spacing-lg);
+  border: 1px solid rgba(255, 69, 0, 0.1);
+  border-left: 4px solid var(--laranja);
+}
+
+.section-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--spacing-sm);
+  margin-bottom: var(--spacing-md);
+  padding-bottom: var(--spacing-sm);
+  border-bottom: 1px solid rgba(255, 69, 0, 0.1);
+}
+
+.section-icon {
+  font-size: 24px;
+  min-width: 30px;
+  text-align: center;
+}
+
+.section-header h3 {
+  font: 700 16px "Inter", -apple-system, sans-serif;
+  color: var(--text-primary);
+  margin: 0;
+  flex-grow: 1;
+}
+
+.export-inline {
+  flex-shrink: 0;
+}
+
+/* === CONTEÚDO PRINCIPAL === */
+.melhor-mes-content {
+  min-height: 200px;
+}
+
+/* === TABELA DE RANKING === */
+.tabela-melhor-mes {
+  width: 100%;
+  border-collapse: separate;
+  border-spacing: 0;
+  background: var(--bg-card);
+  border-radius: var(--border-radius-md);
+  overflow: hidden;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.4);
+  margin: 0;
+}
+
+.tabela-melhor-mes thead {
+  background: linear-gradient(135deg, var(--laranja) 0%, var(--laranja-dark) 100%);
+}
+
+.tabela-melhor-mes thead th {
+  padding: 12px 8px;
+  font: 700 11px "Inter", -apple-system, sans-serif;
+  color: white;
+  text-align: center;
+  text-transform: uppercase;
+  letter-spacing: 0.3px;
+}
+
+.tabela-melhor-mes tbody tr {
+  border-bottom: 1px solid rgba(255, 69, 0, 0.1);
+  transition: all 0.2s ease;
+}
+
+.tabela-melhor-mes tbody tr:hover {
+  background: rgba(255, 69, 0, 0.05);
+}
+
+.tabela-melhor-mes tbody td {
+  padding: 10px 8px;
+  vertical-align: middle;
+  font: 500 12px "Inter", -apple-system, sans-serif;
+  color: var(--text-primary);
+  text-align: center;
+}
+
+/* === POSIÇÕES DE DESTAQUE === */
+.tabela-melhor-mes tbody tr:first-child {
+  background: rgba(255, 215, 0, 0.15) !important;
+  border-left: 4px solid #ffd700 !important;
+  font-weight: 700;
+}
+
+.tabela-melhor-mes tbody tr:nth-child(2) {
+  background: rgba(192, 192, 192, 0.1);
+  border-left: 4px solid #c0c0c0;
+}
+
+.tabela-melhor-mes tbody tr:nth-child(3) {
+  background: rgba(205, 127, 50, 0.1);
+  border-left: 4px solid #cd7f32;
+}
+
+/* === ESCUDOS E INFORMAÇÕES === */
+.time-escudo {
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  object-fit: contain;
+  background: var(--bg-primary);
+  border: 1px solid rgba(255, 69, 0, 0.2);
+}
+
+.time-info {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  text-align: left;
+}
+
+.time-nome {
+  font: 600 12px "Inter", -apple-system, sans-serif;
+  color: var(--text-primary);
+}
+
+.pontos-destaque {
+  font: 700 13px "JetBrains Mono", monospace;
+  color: var(--laranja);
+}
+
+/* === PREMIAÇÃO (CARTOLEIROS SOBRAL) === */
+.premio-positivo {
+  color: var(--success) !important;
+  font-weight: bold;
+}
+
+.premio-negativo {
+  color: var(--danger) !important;
+  font-weight: bold;
+}
+
+/* === EXPORTAÇÃO INLINE === */
+.export-inline .btn-export-melhor-mes {
+  background: linear-gradient(135deg, #2E8B57 0%, #32CD32 100%);
+  color: white;
+  border: none;
+  border-radius: 6px;
+  padding: 6px 12px;
+  font: 600 11px "Inter", -apple-system, sans-serif;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  box-shadow: 0 2px 8px rgba(46, 139, 87, 0.3);
+}
+
+.export-inline .btn-export-melhor-mes:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(46, 139, 87, 0.5);
+}
+
+/* === ESTADOS DE LOADING E ERRO === */
+.loading-state {
+  text-align: center;
+  padding: 60px 20px;
+  color: var(--text-muted);
+}
+
+.loading-spinner {
+  width: 40px;
+  height: 40px;
+  border: 4px solid rgba(255, 69, 0, 0.3);
+  border-top: 4px solid var(--laranja);
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+  margin: 0 auto 20px auto;
+}
+
+.loading-message {
+  font: 500 14px "Inter", -apple-system, sans-serif;
+  color: var(--text-muted);
+  margin: 0;
+}
+
+.error-state {
+  text-align: center;
+  padding: 40px 20px;
+  color: var(--danger);
+  background: rgba(239, 68, 68, 0.05);
+  border: 1px solid rgba(239, 68, 68, 0.2);
+  border-radius: 8px;
+}
+
+.error-message {
+  font: 500 14px "Inter", -apple-system, sans-serif;
+  color: var(--danger);
+  margin: 0;
+}
+
+/* === BOTÃO VOLTAR === */
+.melhor-mes-footer {
+  margin-top: var(--spacing-xl);
+  text-align: center;
+}
+
+.btn-voltar {
+  background: rgba(255, 69, 0, 0.1);
+  color: var(--laranja);
+  border: 1px solid rgba(255, 69, 0, 0.3);
+  border-radius: 8px;
+  padding: 10px 16px;
+  font: 500 13px "Inter", -apple-system, sans-serif;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  text-decoration: none;
+  display: inline-block;
+}
+
+.btn-voltar:hover {
+  background: rgba(255, 69, 0, 0.2);
+  border-color: rgba(255, 69, 0, 0.5);
+  transform: translateY(-1px);
+}
+
+/* === INSTRUÇÃO INICIAL === */
+.instrucao-inicial {
+  text-align: center;
+  padding: 20px;
+  margin-top: var(--spacing-lg);
+  color: var(--text-muted);
+  font: 500 14px "Inter", -apple-system, sans-serif;
+  background: rgba(255, 255, 255, 0.02);
+  border-radius: 8px;
+  border: 1px solid rgba(255, 69, 0, 0.1);
+}
+
+/* === ANIMAÇÕES === */
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+@keyframes pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.5; }
+}
+
+/* === RESPONSIVIDADE === */
+@media (max-width: 768px) {
+  .edicoes-grid {
+    grid-template-columns: repeat(auto-fill, minmax(75px, 1fr));
+    gap: 6px;
+  }
+
+  .edicao-card {
+    padding: 10px 6px;
+    min-height: 70px;
+  }
+
+  .edicao-numero {
+    font-size: 14px;
+  }
+
+  .edicao-label {
+    font-size: 7px;
+  }
+
+  .edicao-rodadas {
+    font-size: 6px;
+  }
+
+  .melhor-mes-titulo {
+    font-size: 22px;
+  }
+
+  .melhor-mes-title-section {
+    flex-direction: column;
+    gap: var(--spacing-sm);
+  }
+
+  .section-header {
+    flex-direction: column;
+    text-align: center;
+    gap: var(--spacing-sm);
+  }
+
+  .tabela-melhor-mes {
+    font-size: 11px;
+  }
+
+  .tabela-melhor-mes thead th {
+    padding: 10px 6px;
+    font-size: 10px;
+  }
+
+  .tabela-melhor-mes tbody td {
+    padding: 8px 6px;
+    font-size: 11px;
+  }
+
+  .time-escudo {
+    width: 20px;
+    height: 20px;
+  }
+
+  .edicoes-header {
+    flex-direction: column;
+    text-align: center;
+  }
+
+  .progresso-info {
+    text-align: center;
+  }
+}
+
+@media (max-width: 480px) {
+  .edicoes-grid {
+    grid-template-columns: repeat(auto-fill, minmax(65px, 1fr));
+    gap: 4px;
+  }
+
+  .edicao-card {
+    padding: 8px 4px;
+    min-height: 60px;
+  }
+
+  .edicao-numero {
+    font-size: 13px;
+  }
+
+  .edicao-label {
+    font-size: 6px;
+  }
+
+  .melhor-mes-titulo {
+    font-size: 20px;
+  }
+
+  .melhor-mes-icon {
+    width: 40px;
+    height: 40px;
+    font-size: 20px;
+  }
+
+  .tabela-melhor-mes {
+    font-size: 10px;
+  }
+
+  .time-escudo {
+    width: 18px;
+    height: 18px;
+  }
+
+  .melhor-mes-section {
+    padding: var(--spacing-sm);
+  }
+}
