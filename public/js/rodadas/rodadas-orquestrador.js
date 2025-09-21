@@ -1,0 +1,376 @@
+// RODADAS ORQUESTRADOR - Coordenação entre Módulos
+// Responsável por: coordenação, fluxo principal, integração de módulos
+
+import {
+  atualizarStatusMercado,
+  getStatusMercado,
+  fetchAndProcessRankingRodada,
+  buscarLiga,
+  calcularPontosParciais,
+  buscarRodadas,
+  agruparRodadasPorNumero,
+  getBancoPorLiga,
+} from "./rodadas-core.js";
+
+import {
+  renderizarMiniCardsRodadas,
+  selecionarRodada,
+  exibirRanking,
+  exibirRankingParciais,
+  mostrarLoading,
+  mostrarMensagemRodada,
+  limparExportContainer,
+  getRodadaAtualSelecionada,
+  exibirRodadas,
+} from "./rodadas-ui.js";
+
+import {
+  cacheRankingRodada,
+  getCachedRankingRodada,
+  cacheParciais,
+  getCachedParciais,
+  cacheStatusMercado,
+  getCachedStatusMercado,
+  cacheLiga,
+  getCachedLiga,
+  preloadEscudos,
+  debounce,
+  getElementCached,
+} from "./rodadas-cache.js";
+
+// ESTADO DO ORQUESTRADOR
+let modulosCarregados = false;
+let ligaIdAtual = null;
+let exportModules = null;
+
+// ==============================
+// CARREGAMENTO DE MÓDULOS EXTERNOS
+// ==============================
+
+async function carregarModulosExternos() {
+  if (modulosCarregados) return exportModules;
+
+  try {
+    console.log("[RODADAS-ORQUESTRADOR] Carregando módulos de exportação...");
+
+    const [pontosCorridosModule, exportModule] = await Promise.all([
+      import("../pontos-corridos-utils.js").catch(() => null),
+      import("../exports/export-exports.js").catch(() => null),
+    ]);
+
+    exportModules = {
+      getMercadoStatus: pontosCorridosModule?.buscarStatusMercado,
+      getLigaId: pontosCorridosModule?.getLigaId,
+      criarBotaoExportacaoRodada: exportModule?.criarBotaoExportacaoRodada,
+      exportarRodadaComoImagem: exportModule?.exportarRodadaComoImagem,
+    };
+
+    modulosCarregados = true;
+    console.log(
+      "[RODADAS-ORQUESTRADOR] Módulos externos carregados com sucesso",
+    );
+    return exportModules;
+  } catch (error) {
+    console.warn(
+      "[RODADAS-ORQUESTRADOR] Erro ao carregar módulos externos:",
+      error,
+    );
+    exportModules = {};
+    return exportModules;
+  }
+}
+
+// ==============================
+// FUNÇÃO PRINCIPAL DO ORQUESTRADOR
+// ==============================
+
+export async function carregarRodadas(forceRefresh = false) {
+  console.log(
+    "[RODADAS-ORQUESTRADOR] carregarRodadas iniciada com forceRefresh:",
+    forceRefresh,
+  );
+
+  if (typeof window === "undefined") {
+    console.log("[RODADAS-ORQUESTRADOR] Executando no backend - ignorando");
+    return;
+  }
+
+  const rodadasContainer = getElementCached("rodadas");
+  if (!rodadasContainer || !rodadasContainer.classList.contains("active")) {
+    console.log("[RODADAS-ORQUESTRADOR] Container não ativo, saindo da função");
+    return;
+  }
+
+  try {
+    await carregarModulosExternos();
+
+    const urlParams = new URLSearchParams(window.location.search);
+    ligaIdAtual = urlParams.get("id");
+
+    if (!ligaIdAtual) {
+      mostrarMensagemRodada("ID da liga não encontrado na URL", "erro");
+      return;
+    }
+
+    await atualizarStatusMercadoComCache(forceRefresh);
+    await renderizarMiniCardsRodadas();
+
+    console.log("[RODADAS-ORQUESTRADOR] Carregamento concluído com sucesso");
+  } catch (error) {
+    console.error("[RODADAS-ORQUESTRADOR] Erro no carregamento:", error);
+    mostrarMensagemRodada(`Erro ao carregar rodadas: ${error.message}`, "erro");
+  }
+}
+
+// ==============================
+// GESTÃO DE STATUS DO MERCADO COM CACHE
+// ==============================
+
+async function atualizarStatusMercadoComCache(forceRefresh = false) {
+  if (!forceRefresh) {
+    const cached = getCachedStatusMercado();
+    if (cached) {
+      console.log("[RODADAS-ORQUESTRADOR] Usando status do mercado em cache");
+      return;
+    }
+  }
+
+  await atualizarStatusMercado();
+  const status = getStatusMercado();
+  cacheStatusMercado(status);
+}
+
+// ==============================
+// CARREGAMENTO DE DADOS DA RODADA
+// ==============================
+
+export async function carregarDadosRodada(rodadaSelecionada) {
+  const rankingBody = getElementCached("rankingBody");
+  if (!rankingBody) return;
+
+  const { rodada_atual, status_mercado } = getStatusMercado();
+  const mercadoAberto = status_mercado === 1;
+
+  try {
+    mostrarLoading(true);
+    limparExportContainer();
+
+    if (rodadaSelecionada < rodada_atual) {
+      await carregarRodadaFinalizada(rodadaSelecionada);
+    } else if (rodadaSelecionada === rodada_atual) {
+      if (mercadoAberto) {
+        mostrarMensagemRodada(
+          "O mercado está aberto. A rodada ainda não começou!",
+          "info",
+        );
+      } else {
+        await carregarRodadaParciais(rodadaSelecionada);
+      }
+    } else {
+      mostrarMensagemRodada("Esta rodada ainda não aconteceu.", "aviso");
+    }
+  } catch (err) {
+    console.error("[RODADAS-ORQUESTRADOR] Erro em carregarDadosRodada:", err);
+    mostrarMensagemRodada(`Erro: ${err.message}`, "erro");
+  } finally {
+    mostrarLoading(false);
+  }
+}
+
+// CARREGAR RODADA FINALIZADA COM CACHE
+async function carregarRodadaFinalizada(rodada) {
+  let rankingsData = getCachedRankingRodada(ligaIdAtual, rodada);
+
+  if (!rankingsData) {
+    console.log(
+      `[RODADAS-ORQUESTRADOR] Buscando dados da rodada ${rodada} na API...`,
+    );
+    rankingsData = await fetchAndProcessRankingRodada(ligaIdAtual, rodada);
+
+    if (rankingsData && rankingsData.length > 0) {
+      cacheRankingRodada(ligaIdAtual, rodada, rankingsData);
+      preloadEscudos(rankingsData);
+    }
+  }
+
+  exibirRanking(rankingsData, rodada, ligaIdAtual, criarBotaoExportacao);
+}
+
+// CARREGAR RODADA COM PARCIAIS
+async function carregarRodadaParciais(rodada) {
+  let rankingsParciais = getCachedParciais(ligaIdAtual, rodada);
+
+  if (!rankingsParciais) {
+    console.log(
+      `[RODADAS-ORQUESTRADOR] Calculando parciais da rodada ${rodada}...`,
+    );
+
+    let liga = getCachedLiga(ligaIdAtual);
+    if (!liga) {
+      liga = await buscarLiga(ligaIdAtual);
+      if (liga) {
+        cacheLiga(ligaIdAtual, liga);
+      }
+    }
+
+    if (!liga) {
+      throw new Error("Erro ao buscar dados da liga para calcular parciais");
+    }
+
+    rankingsParciais = await calcularPontosParciais(liga, rodada);
+
+    if (rankingsParciais && rankingsParciais.length > 0) {
+      cacheParciais(ligaIdAtual, rodada, rankingsParciais);
+      preloadEscudos(rankingsParciais);
+    }
+  }
+
+  exibirRankingParciais(
+    rankingsParciais,
+    rodada,
+    ligaIdAtual,
+    criarBotaoExportacao,
+  );
+}
+
+// ==============================
+// CRIAÇÃO DE BOTÃO DE EXPORTAÇÃO
+// ==============================
+
+function criarBotaoExportacao(rankings, rodada, isParciais) {
+  if (
+    !exportModules?.criarBotaoExportacaoRodada ||
+    !exportModules?.exportarRodadaComoImagem
+  ) {
+    setTimeout(() => criarBotaoExportacao(rankings, rodada, isParciais), 1000);
+    return;
+  }
+
+  const rankingsParaExportar = rankings.map((rank, index) => ({
+    ...rank,
+    nome_cartola: rank.nome_cartola || rank.nome_cartoleiro || "N/D",
+    nome_time: rank.nome_time || "N/D",
+    pontos: isParciais
+      ? rank.totalPontos != null
+        ? parseFloat(rank.totalPontos)
+        : 0
+      : rank.pontos != null
+        ? parseFloat(rank.pontos)
+        : 0,
+    banco: isParciais ? null : getBancoParaIndex(index, ligaIdAtual),
+  }));
+
+  exportModules.criarBotaoExportacaoRodada({
+    containerId: "rodadasExportBtnContainer",
+    rodada: rodada,
+    rankings: rankingsParaExportar,
+    tipo: "rodada",
+    customExport: exportModules.exportarRodadaComoImagem,
+  });
+}
+
+// HELPER PARA VALORES DE BANCO
+function getBancoParaIndex(index, ligaId) {
+  const bancoPorLiga = getBancoPorLiga(ligaId);
+  return bancoPorLiga[index + 1] || 0.0;
+}
+
+// ==============================
+// FUNÇÕES PARA DEBUG E DESENVOLVIMENTO
+// ==============================
+
+export async function inicializarRodadas() {
+  console.log("[RODADAS-ORQUESTRADOR] Inicializando módulo de rodadas...");
+  console.log("[RODADAS-ORQUESTRADOR] URL atual:", window.location.href);
+
+  const naRodadas =
+    window.location.pathname.includes("rodadas") ||
+    window.location.search.includes("secao=rodadas");
+
+  if (!naRodadas) {
+    console.log(
+      "[RODADAS-ORQUESTRADOR] Não está na seção de rodadas, pulando inicialização",
+    );
+    return;
+  }
+
+  await carregarRodadas(false);
+  await carregarRodadasDebug();
+}
+
+async function carregarRodadasDebug() {
+  console.log(
+    "[RODADAS-ORQUESTRADOR] Iniciando carregamento de rodadas para debug...",
+  );
+
+  try {
+    const rodadas = await buscarRodadas();
+    const rodadasAgrupadas = agruparRodadasPorNumero(rodadas);
+    exibirRodadas(rodadasAgrupadas);
+
+    console.log("[RODADAS-ORQUESTRADOR] Debug concluído com sucesso");
+  } catch (error) {
+    console.error("[RODADAS-ORQUESTRADOR] Erro no debug:", error);
+  }
+}
+
+// ==============================
+// GESTÃO DE EVENTOS E SELEÇÃO
+// ==============================
+
+export const selecionarRodadaDebounced = debounce(async (rodada) => {
+  await selecionarRodada(rodada, carregarDadosRodada);
+}, 300);
+
+if (typeof window !== "undefined") {
+  window.selecionarRodada = async function (rodada) {
+    await selecionarRodadaDebounced(rodada);
+  };
+}
+
+// ==============================
+// UTILITÁRIOS E ESTADO
+// ==============================
+
+export function getLigaAtual() {
+  return ligaIdAtual;
+}
+
+export function getExportModules() {
+  return exportModules;
+}
+
+export function isModulosCarregados() {
+  return modulosCarregados;
+}
+
+export async function forcarRecarregamento() {
+  console.log("[RODADAS-ORQUESTRADOR] Forçando recarregamento completo...");
+
+  const { limparCache, clearDOMCache } = await import("./rodadas-cache.js");
+  limparCache();
+  clearDOMCache();
+
+  modulosCarregados = false;
+  exportModules = null;
+
+  await carregarRodadas(true);
+}
+
+// ==============================
+// EXPOSIÇÃO PARA DEBUG
+// ==============================
+
+if (typeof window !== "undefined") {
+  window.rodadasOrquestradorDebug = {
+    carregarRodadas,
+    carregarDadosRodada,
+    forcarRecarregamento,
+    getLigaAtual,
+    getExportModules,
+    isModulosCarregados,
+    selecionarRodadaDebounced,
+  };
+}
+
+console.log("[RODADAS-ORQUESTRADOR] Módulo carregado com UX redesenhado");

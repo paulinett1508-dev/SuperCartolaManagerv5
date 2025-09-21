@@ -1,5 +1,6 @@
 // SISTEMA DE EXPORTAÇÃO MATA-MATA - MOBILE DARK HD v3.0.1
 // Seguindo padrão estabelecido por export-pontos-corridos.js
+// CORREÇÃO: Cores vermelhas para perdedores + Fix de sintaxe
 
 import {
   MOBILE_DARK_HD_CONFIG,
@@ -409,7 +410,7 @@ function criarLayoutMataMataComoImagemMobile(
 }
 
 // ================================================================
-// ITEM INDIVIDUAL DO CONFRONTO MOBILE DARK
+// ITEM INDIVIDUAL DO CONFRONTO MOBILE DARK - CORRIGIDO
 // ================================================================
 function criarItemConfrontoMataMataComoImagemMobile(
   confronto,
@@ -606,158 +607,6 @@ function criarItemConfrontoMataMataComoImagemMobile(
       </div>
 
     </div>
-  `;lors.warning};` : ""}
-      transition: all 0.2s ease;
-    ">
-
-      <!-- Número do Jogo -->
-      <div style="
-        background: ${MOBILE_DARK_HD_CONFIG.colors.warning};
-        color: #000;
-        padding: 8px 12px;
-        border-radius: 8px;
-        margin-right: 16px;
-        min-width: 50px;
-        text-align: center;
-        font: ${MOBILE_DARK_HD_CONFIG.fonts.weights.bold} ${MOBILE_DARK_HD_CONFIG.fonts.bodySmall};
-      ">
-        J${jogo}
-      </div>
-
-      <!-- Time A -->
-      <div style="flex: 1; display: flex; align-items: center; gap: 12px;">
-        ${
-          timeA?.clube_id
-            ? `
-          <img src="/escudos/${timeA.clube_id}.png"
-               style="
-                 width: 32px; 
-                 height: 32px; 
-                 border-radius: 50%; 
-                 border: 2px solid ${vencedorA ? MOBILE_DARK_HD_CONFIG.colors.success : MOBILE_DARK_HD_CONFIG.colors.border};
-                 background: ${MOBILE_DARK_HD_CONFIG.colors.surfaceLight};
-               "
-               onerror="this.outerHTML='<div style=\\'width:32px;height:32px;background:${MOBILE_DARK_HD_CONFIG.colors.surfaceLight};border:2px solid ${MOBILE_DARK_HD_CONFIG.colors.border};border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:14px;\\'>⚽</div>'"
-               alt="Escudo">
-        `
-            : `
-          <div style="
-            width: 32px; 
-            height: 32px; 
-            background: ${MOBILE_DARK_HD_CONFIG.colors.surfaceLight}; 
-            border: 2px solid ${MOBILE_DARK_HD_CONFIG.colors.border}; 
-            border-radius: 50%; 
-            display: flex; 
-            align-items: center; 
-            justify-content: center; 
-            font-size: 14px;
-          ">⚽</div>
-        `
-        }
-
-        <div style="flex: 1; min-width: 0;">
-          <div style="
-            font: ${MOBILE_DARK_HD_CONFIG.fonts.weights.semibold} ${MOBILE_DARK_HD_CONFIG.fonts.bodySmall};
-            color: ${vencedorA ? MOBILE_DARK_HD_CONFIG.colors.success : MOBILE_DARK_HD_CONFIG.colors.text};
-            margin-bottom: 2px;
-            overflow: hidden;
-            text-overflow: ellipsis;
-            white-space: nowrap;
-          ">
-            ${vencedorA ? "👑 " : ""}${timeA?.nome_time || "Time A"}
-          </div>
-
-          <div style="
-            font: ${MOBILE_DARK_HD_CONFIG.fonts.weights.regular} ${MOBILE_DARK_HD_CONFIG.fonts.caption};
-            color: ${MOBILE_DARK_HD_CONFIG.colors.textMuted};
-            overflow: hidden;
-            text-overflow: ellipsis;
-            white-space: nowrap;
-          ">${timeA?.nome_cartoleiro || timeA?.nome_cartola || "N/D"}</div>
-        </div>
-      </div>
-
-      <!-- Pontuação A -->
-      <div style="text-align: center; margin: 0 12px;">
-        <div style="
-          font: ${MOBILE_DARK_HD_CONFIG.fonts.weights.bold} ${MOBILE_DARK_HD_CONFIG.fonts.subheading};
-          color: ${vencedorA ? MOBILE_DARK_HD_CONFIG.colors.success : MOBILE_DARK_HD_CONFIG.colors.text};
-        ">
-          ${formatarPontos(timeA?.pontos)}${goleada && vencedorA ? " 🔥" : ""}
-        </div>
-      </div>
-
-      <!-- VS -->
-      <div style="
-        font: ${MOBILE_DARK_HD_CONFIG.fonts.weights.bold} ${MOBILE_DARK_HD_CONFIG.fonts.bodySmall};
-        color: ${MOBILE_DARK_HD_CONFIG.colors.textMuted};
-        margin: 0 8px;
-      ">VS</div>
-
-      <!-- Pontuação B -->
-      <div style="text-align: center; margin: 0 12px;">
-        <div style="
-          font: ${MOBILE_DARK_HD_CONFIG.fonts.weights.bold} ${MOBILE_DARK_HD_CONFIG.fonts.subheading};
-          color: ${vencedorB ? MOBILE_DARK_HD_CONFIG.colors.success : MOBILE_DARK_HD_CONFIG.colors.text};
-        ">
-          ${formatarPontos(timeB?.pontos)}${goleada && vencedorB ? " 🔥" : ""}
-        </div>
-      </div>
-
-      <!-- Time B -->
-      <div style="flex: 1; display: flex; align-items: center; gap: 12px; flex-direction: row-reverse;">
-        ${
-          timeB?.clube_id
-            ? `
-          <img src="/escudos/${timeB.clube_id}.png"
-               style="
-                 width: 32px; 
-                 height: 32px; 
-                 border-radius: 50%; 
-                 border: 2px solid ${vencedorB ? MOBILE_DARK_HD_CONFIG.colors.success : MOBILE_DARK_HD_CONFIG.colors.border};
-                 background: ${MOBILE_DARK_HD_CONFIG.colors.surfaceLight};
-               "
-               onerror="this.outerHTML='<div style=\\'width:32px;height:32px;background:${MOBILE_DARK_HD_CONFIG.colors.surfaceLight};border:2px solid ${MOBILE_DARK_HD_CONFIG.colors.border};border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:14px;\\'>⚽</div>'"
-               alt="Escudo">
-        `
-            : `
-          <div style="
-            width: 32px; 
-            height: 32px; 
-            background: ${MOBILE_DARK_HD_CONFIG.colors.surfaceLight}; 
-            border: 2px solid ${MOBILE_DARK_HD_CONFIG.colors.border}; 
-            border-radius: 50%; 
-            display: flex; 
-            align-items: center; 
-            justify-content: center; 
-            font-size: 14px;
-          ">⚽</div>
-        `
-        }
-
-        <div style="flex: 1; min-width: 0; text-align: right;">
-          <div style="
-            font: ${MOBILE_DARK_HD_CONFIG.fonts.weights.semibold} ${MOBILE_DARK_HD_CONFIG.fonts.bodySmall};
-            color: ${vencedorB ? MOBILE_DARK_HD_CONFIG.colors.success : MOBILE_DARK_HD_CONFIG.colors.text};
-            margin-bottom: 2px;
-            overflow: hidden;
-            text-overflow: ellipsis;
-            white-space: nowrap;
-          ">
-            ${timeB?.nome_time || "Time B"}${vencedorB ? " 👑" : ""}
-          </div>
-
-          <div style="
-            font: ${MOBILE_DARK_HD_CONFIG.fonts.weights.regular} ${MOBILE_DARK_HD_CONFIG.fonts.caption};
-            color: ${MOBILE_DARK_HD_CONFIG.colors.textMuted};
-            overflow: hidden;
-            text-overflow: ellipsis;
-            white-space: nowrap;
-          ">${timeB?.nome_cartoleiro || timeB?.nome_cartola || "N/D"}</div>
-        </div>
-      </div>
-
-    </div>
   `;
 }
 
@@ -769,7 +618,7 @@ export async function exportarMataMataComoImagem(config) {
 }
 
 console.log("[EXPORT-MATA-MATA-MOBILE] Sistema Mobile Dark HD configurado");
-console.log("[EXPORT-MATA-MATA-MOBILE] Resolução: 400px x 800px+ @ 4x scale");
+console.log("[EXPORT-MATA-MATA-MOBILE] Resolução: 720px x 800px+ @ 4x scale");
 console.log(
   "[EXPORT-MATA-MATA-MOBILE] Compatibilidade com sistema existente mantida",
 );
