@@ -344,7 +344,7 @@ async function carregarHtml2Canvas() {
 
     script.onload = () => {
       if (resolved) return;
-      
+
       // Aguardar um momento para o script se registrar
       setTimeout(() => {
         if (window.html2canvas && typeof window.html2canvas === 'function') {
@@ -402,7 +402,7 @@ export async function gerarCanvasMobileDarkHD(element, filename) {
     const imagens = element.querySelectorAll("img");
     if (imagens.length > 0) {
       console.log(`[EXPORT-BASE-MOBILE-DARK] Aguardando ${imagens.length} imagens...`);
-      
+
       await Promise.allSettled(
         Array.from(imagens).map((img) => {
           return new Promise((resolve) => {
@@ -418,7 +418,7 @@ export async function gerarCanvasMobileDarkHD(element, filename) {
                 clearTimeout(timer);
                 resolve();
               };
-              
+
               img.onerror = () => {
                 clearTimeout(timer);
                 console.warn(`[EXPORT-BASE-MOBILE-DARK] Erro ao carregar imagem: ${img.src}`);
@@ -480,7 +480,7 @@ export async function gerarCanvasMobileDarkHD(element, filename) {
 
     console.log(`[EXPORT-BASE-MOBILE-DARK] ✅ Imagem HD exportada: ${filename}`);
     mostrarNotificacaoSucessoMobile("Imagem HD exportada com sucesso!");
-    
+
   } catch (error) {
     console.error("[EXPORT-BASE-MOBILE-DARK] ❌ Erro no canvas HD:", error);
     mostrarNotificacaoErroMobile("Erro ao exportar imagem HD. Tente novamente.");
@@ -805,4 +805,3 @@ MobileDarkUtils.criarBotaoPontosCorridosHistorico = criarBotaoMobileDarkPontosCo
 
 console.log("[EXPORT-BASE-MOBILE-DARK] ✅ Utilitários de botões Mobile Dark configurados");
 console.log("[EXPORT-BASE-MOBILE-DARK] 🎯 Funções disponíveis: criarBotao, criarBotaoPontosCorridosRodada, criarBotaoPontosCorridosClassificacao, criarBotaoPontosCorridosHistorico");
-
