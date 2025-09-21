@@ -309,7 +309,7 @@ export async function buscarRodadas() {
 
     console.log(`[RODADAS-CORE] Buscando rodadas para liga: ${ligaId}`);
     const response = await fetch(
-      `/api/ligas/${ligaId}/rodadas?inicio=1&fim=38`,
+      `/api/rodadas/${ligaId}/rodadas?inicio=1&fim=38`,
     );
 
     if (!response.ok) {
