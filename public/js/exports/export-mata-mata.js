@@ -1,286 +1,178 @@
-// SISTEMA DE EXPORTAÇÃO MATA-MATA - MOBILE DARK HD v3.0.1 CORRIGIDO
-// Implementação completa e funcional
+// SISTEMA DE EXPORTAÇÃO MATA-MATA - MOBILE DARK HD v3.0.1
+// Seguindo padrão estabelecido por export-pontos-corridos.js
 
-console.log("[EXPORT-MATA-MATA] 🚀 Sistema Mobile Dark HD v3.0.1 carregado");
+import {
+  MOBILE_DARK_HD_CONFIG,
+  MobileDarkUtils,
+  criarContainerMobileDark,
+  gerarCanvasMobileDarkHD,
+} from "./export-base.js";
 
-// ================================================================
-// CONFIGURAÇÃO LOCAL (FALLBACK SE IMPORT FALHAR)
-// ================================================================
-const FALLBACK_CONFIG = {
-  colors: {
-    gradientPrimary: "linear-gradient(135deg, #FF6B35 0%, #E55A2B 100%)",
-    gradientWarning: "linear-gradient(135deg, #4CAF50 0%, #388E3C 100%)",
-    gradientDark: "linear-gradient(135deg, #1a1a1a 0%, #2d2d2d 100%)",
-    gradientSuccess: "linear-gradient(135deg, #4CAF50 0%, #388E3C 100%)",
-    text: "#FFFFFF",
-    accent: "#FF6B35",
-    warning: "#4CAF50",
-    success: "#4CAF50",
-    surface: "#1e1e1e",
-    border: "#404040",
-    divider: "#333333",
-    textMuted: "#B0B0B0",
-    shadow: "0 8px 32px rgba(0, 0, 0, 0.6)",
-    shadowLight: "0 4px 16px rgba(0, 0, 0, 0.4)",
-  },
-  fonts: {
-    weights: { semibold: 600, bold: 700, regular: 400 },
-    heading: "20px 'Inter', sans-serif",
-    subheading: "18px 'Inter', sans-serif",
-    body: "16px 'Inter', sans-serif",
-    bodySmall: "14px 'Inter', sans-serif",
-    caption: "12px 'Inter', sans-serif",
-  },
-  padding: 16,
-};
-
-// Sistema Desktop Original (mantido do arquivo atual)
-const TEMPLATE_CONFIG = {
-  colors: {
-    primary: "#2E8B57",
-    secondary: "#228B22",
-    accent: "#32CD32",
-  },
-};
-
-// Tentar importar Mobile Dark HD ou usar fallback
-let MobileDarkConfig = FALLBACK_CONFIG;
-let MobileDarkUtils = null;
-let criarContainerMobileDark = null;
-let gerarCanvasMobileDarkHD = null;
-
-async function carregarMobileDarkHD() {
-  try {
-    const module = await import("./export-base.js");
-    MobileDarkConfig = module.MOBILE_DARK_HD_CONFIG || FALLBACK_CONFIG;
-    MobileDarkUtils = module.MobileDarkUtils;
-    criarContainerMobileDark = module.criarContainerMobileDark;
-    gerarCanvasMobileDarkHD = module.gerarCanvasMobileDarkHD;
-    console.log("[EXPORT-MATA-MATA] ✅ Mobile Dark HD importado com sucesso");
-    return true;
-  } catch (error) {
-    console.warn("[EXPORT-MATA-MATA] ⚠️ Usando fallback config:", error);
-    return false;
-  }
-}
+console.log(
+  "[EXPORT-MATA-MATA-MOBILE] Sistema Mobile Dark HD v3.0.1 carregado",
+);
 
 // ================================================================
 // FUNÇÃO PRINCIPAL DE EXPORTAÇÃO
 // ================================================================
 export async function criarBotaoExportacaoMataMata(config) {
   if (!config || typeof config !== "object") {
-    console.error("[EXPORT-MATA-MATA] Configuração inválida:", config);
+    console.error("[EXPORT-MATA-MATA-MOBILE] Configuração inválida:", config);
     return;
   }
 
-  const { containerId } = config;
-  console.log(
-    "[EXPORT-MATA-MATA] 🎯 Criando botão para container:",
+  const {
     containerId,
-  );
+    fase = "Mata-Mata",
+    confrontos = [],
+    isPending = false,
+    rodadaPontos = "",
+    edicao = "SuperCartola 2025",
+  } = config;
+
+  console.log("[EXPORT-MATA-MATA-MOBILE] Criando botão exportação:", {
+    containerId,
+    confrontosCount: confrontos.length,
+    fase,
+    isPending,
+  });
 
   const container = document.getElementById(containerId);
   if (!container) {
     console.error(
-      `[EXPORT-MATA-MATA] ❌ Container ${containerId} não encontrado`,
+      `[EXPORT-MATA-MATA-MOBILE] Container ${containerId} não encontrado`,
     );
     return;
   }
 
-  // Carregar Mobile Dark HD
-  const mobileDarkLoaded = await carregarMobileDarkHD();
-
-  // Remove botões existentes
-  const botoesExistentes = container.querySelectorAll(
-    ".btn-export-mata-mata, .btn-export-mata-mata-mobile, .btn-export-mata-mata-test",
+  // Remove botão existente
+  const botaoExistente = container.querySelector(
+    ".btn-export-mata-mata-mobile",
   );
-  botoesExistentes.forEach((btn) => btn.remove());
-
-  // Criar container para botões
-  const btnContainer = document.createElement("div");
-  btnContainer.style.cssText = `
-    text-align: right; 
-    margin: 15px 0; 
-    display: flex; 
-    gap: 10px; 
-    justify-content: flex-end; 
-    flex-wrap: wrap;
-    border: 1px solid #ddd;
-    padding: 10px;
-    border-radius: 8px;
-    background: #f9f9f9;
-  `;
-
-  // Botão Mobile Dark HD (se disponível)
-  if (mobileDarkLoaded) {
-    const btnMobile = criarBotaoMobileDarkHD(config);
-    btnContainer.appendChild(btnMobile);
+  if (botaoExistente) {
+    botaoExistente.remove();
   }
 
-  // Botão Desktop (sempre disponível)
-  const btnDesktop = criarBotaoDesktop(config);
-  btnContainer.appendChild(btnDesktop);
+  // Criar container do botão
+  const btnContainer = document.createElement("div");
+  btnContainer.style.cssText = "text-align: right; margin: 15px 0;";
 
-  // Botão de teste (para debug)
-  const btnTest = criarBotaoTeste(config);
-  btnContainer.appendChild(btnTest);
+  // Criar botão mobile dark
+  const btn = document.createElement("button");
+  btn.className = "btn-export-mata-mata-mobile";
+  btn.innerHTML = `
+    <div style="display: flex; align-items: center; gap: 10px;">
+      <span style="font-size: 16px;">⚔️</span>
+      <span>Mata-Mata Mobile HD</span>
+      <div style="
+        background: rgba(255,255,255,0.2);
+        padding: 2px 6px;
+        border-radius: 10px;
+        font-size: 10px;
+        font-weight: 600;
+        letter-spacing: 0.5px;
+      ">MOBILE</div>
+    </div>
+  `;
 
-  // Posicionar container
+  btn.style.cssText = `
+    background: ${MOBILE_DARK_HD_CONFIG.colors.gradientWarning};
+    color: ${MOBILE_DARK_HD_CONFIG.colors.text};
+    border: 2px solid ${MOBILE_DARK_HD_CONFIG.colors.warning};
+    padding: 16px 24px;
+    border-radius: 14px;
+    cursor: pointer;
+    font: ${MOBILE_DARK_HD_CONFIG.fonts.weights.semibold} ${MOBILE_DARK_HD_CONFIG.fonts.body};
+    box-shadow: ${MOBILE_DARK_HD_CONFIG.colors.shadow};
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    min-width: 200px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+  `;
+
+  // Efeitos hover
+  btn.onmouseover = () => {
+    btn.style.transform = "translateY(-3px) scale(1.02)";
+    btn.style.boxShadow = `0 12px 40px ${MOBILE_DARK_HD_CONFIG.colors.warning}40`;
+  };
+
+  btn.onmouseout = () => {
+    btn.style.transform = "translateY(0) scale(1)";
+    btn.style.boxShadow = MOBILE_DARK_HD_CONFIG.colors.shadow;
+  };
+
+  btn.onclick = async () => {
+    const textoOriginal = btn.innerHTML;
+    btn.innerHTML = `
+      <div style="display: flex; align-items: center; gap: 10px;">
+        <div style="
+          width: 20px; 
+          height: 20px; 
+          border: 2px solid rgba(255,255,255,0.3);
+          border-top: 2px solid ${MOBILE_DARK_HD_CONFIG.colors.text};
+          border-radius: 50%;
+          animation: spin 1s linear infinite;
+        "></div>
+        <span>Gerando HD...</span>
+      </div>
+    `;
+    btn.disabled = true;
+
+    try {
+      await exportarMataMataComoImagemMobileDarkHD({
+        fase,
+        edicao,
+        confrontos,
+        isPending,
+        rodadaPontos,
+      });
+    } catch (error) {
+      console.error("[EXPORT-MATA-MATA-MOBILE] Erro na exportação:", error);
+      MobileDarkUtils.mostrarErro(
+        "Erro ao gerar Mata-Mata HD. Tente novamente.",
+      );
+    } finally {
+      btn.innerHTML = textoOriginal;
+      btn.disabled = false;
+    }
+  };
+
+  // Adicionar animação CSS se não existir
+  if (!document.getElementById("export-mobile-animations")) {
+    const style = document.createElement("style");
+    style.id = "export-mobile-animations";
+    style.textContent = `
+      @keyframes spin {
+        0% { transform: rotate(0deg); }
+        100% { transform: rotate(360deg); }
+      }
+    `;
+    document.head.appendChild(style);
+  }
+
+  btnContainer.appendChild(btn);
+
+  // POSICIONAR NA PARTE SUPERIOR
   if (container.firstChild) {
     container.insertBefore(btnContainer, container.firstChild);
   } else {
     container.appendChild(btnContainer);
   }
-
-  console.log("[EXPORT-MATA-MATA] ✅ Botões criados com sucesso");
-}
-
-// ================================================================
-// BOTÃO MOBILE DARK HD
-// ================================================================
-function criarBotaoMobileDarkHD(config) {
-  const btn = document.createElement("button");
-  btn.className = "btn-export-mata-mata-mobile";
-  btn.innerHTML = `
-    <div style="display: flex; align-items: center; gap: 8px;">
-      <span style="font-size: 14px;">📱</span>
-      <span>Mobile HD</span>
-    </div>
-  `;
-
-  btn.style.cssText = `
-    background: ${MobileDarkConfig.colors.gradientPrimary};
-    color: ${MobileDarkConfig.colors.text};
-    border: 2px solid ${MobileDarkConfig.colors.accent};
-    padding: 12px 18px;
-    border-radius: 8px;
-    cursor: pointer;
-    font: ${MobileDarkConfig.fonts.weights.semibold} 13px Inter, sans-serif;
-    transition: all 0.3s ease;
-    box-shadow: ${MobileDarkConfig.colors.shadow};
-  `;
-
-  btn.onclick = async () => {
-    const textoOriginal = btn.innerHTML;
-    btn.innerHTML = `
-      <div style="display: flex; align-items: center; gap: 8px;">
-        <div style="width: 14px; height: 14px; border: 2px solid transparent; border-top: 2px solid currentColor; border-radius: 50%; animation: spin 1s linear infinite;"></div>
-        <span>Gerando...</span>
-      </div>
-    `;
-    btn.disabled = true;
-
-    try {
-      await exportarMataMataComoImagemMobileDarkHD(config);
-      alert("✅ Mobile HD exportado com sucesso!");
-    } catch (error) {
-      console.error("[EXPORT-MATA-MATA] ❌ Erro Mobile HD:", error);
-      alert("❌ Erro ao gerar Mobile HD: " + error.message);
-    } finally {
-      btn.innerHTML = textoOriginal;
-      btn.disabled = false;
-    }
-  };
-
-  return btn;
-}
-
-// ================================================================
-// BOTÃO DESKTOP (SISTEMA ORIGINAL)
-// ================================================================
-function criarBotaoDesktop(config) {
-  const btn = document.createElement("button");
-  btn.className = "btn-export-mata-mata";
-  btn.innerHTML = `
-    <div style="display: flex; align-items: center; gap: 8px;">
-      <span>🖥️</span>
-      <span>Desktop</span>
-    </div>
-  `;
-
-  btn.style.cssText = `
-    background: linear-gradient(135deg, ${TEMPLATE_CONFIG.colors.primary} 0%, ${TEMPLATE_CONFIG.colors.accent} 100%);
-    color: white;
-    border: none;
-    padding: 12px 18px;
-    border-radius: 8px;
-    cursor: pointer;
-    font: 500 13px Inter, sans-serif;
-    transition: all 0.3s ease;
-    box-shadow: 0 4px 12px rgba(46, 139, 87, 0.3);
-  `;
-
-  btn.onclick = async () => {
-    const textoOriginal = btn.innerHTML;
-    btn.innerHTML = `
-      <div style="display: flex; align-items: center; gap: 8px;">
-        <div style="width: 14px; height: 14px; border: 2px solid transparent; border-top: 2px solid currentColor; border-radius: 50%; animation: spin 1s linear infinite;"></div>
-        <span>Gerando...</span>
-      </div>
-    `;
-    btn.disabled = true;
-
-    try {
-      await exportarMataMataDesktop(config);
-      alert("✅ Desktop exportado com sucesso!");
-    } catch (error) {
-      console.error("[EXPORT-MATA-MATA] ❌ Erro Desktop:", error);
-      alert("❌ Erro ao gerar Desktop: " + error.message);
-    } finally {
-      btn.innerHTML = textoOriginal;
-      btn.disabled = false;
-    }
-  };
-
-  return btn;
-}
-
-// ================================================================
-// BOTÃO DE TESTE
-// ================================================================
-function criarBotaoTeste(config) {
-  const btn = document.createElement("button");
-  btn.className = "btn-export-mata-mata-test";
-  btn.innerHTML = `🧪 Teste`;
-
-  btn.style.cssText = `
-    background: #17a2b8;
-    color: white;
-    border: none;
-    padding: 12px 18px;
-    border-radius: 8px;
-    cursor: pointer;
-    font: 500 13px Inter, sans-serif;
-  `;
-
-  btn.onclick = () => {
-    console.log("[EXPORT-MATA-MATA] 🧪 Teste executado");
-    console.log("Config recebida:", config);
-    alert("🧪 Botão funcionando!\nVerifique o console para detalhes.");
-  };
-
-  return btn;
 }
 
 // ================================================================
 // EXPORTAÇÃO MOBILE DARK HD
 // ================================================================
 async function exportarMataMataComoImagemMobileDarkHD(config) {
-  console.log("[EXPORT-MATA-MATA] 📱 Iniciando exportação Mobile Dark HD...");
-
-  if (!criarContainerMobileDark || !gerarCanvasMobileDarkHD) {
-    throw new Error("Funções Mobile Dark HD não disponíveis");
-  }
-
   const { fase, edicao, confrontos, isPending, rodadaPontos } = config;
 
-  // Validar dados básicos
-  if (!confrontos || !Array.isArray(confrontos)) {
-    throw new Error("Confrontos inválidos");
-  }
+  console.log("[EXPORT-MATA-MATA-MOBILE] Criando layout mobile dark HD...");
+
+  // Validar dados
+  MobileDarkUtils.validarDadosMobile(config, ["fase", "confrontos"]);
 
   // Definir títulos
-  const titulo = `⚔️ ${fase || "Mata-Mata"}`;
+  const titulo = `⚔️ ${fase}`;
   const subtitulo = isPending
     ? "Aguardando próxima rodada"
     : "Resultados finalizados";
@@ -288,34 +180,29 @@ async function exportarMataMataComoImagemMobileDarkHD(config) {
   // Criar container mobile dark
   const exportContainer = criarContainerMobileDark(titulo, subtitulo, {
     fase: fase,
-    edicao: edicao,
   });
 
   const contentDiv = exportContainer.querySelector("#mobile-export-content");
 
   // Inserir conteúdo específico do mata-mata
-  contentDiv.innerHTML = criarLayoutMataMataMobile(
+  contentDiv.innerHTML = criarLayoutMataMataComoImagemMobile(
     confrontos,
-    fase || "Mata-Mata",
-    edicao || "SuperCartola 2025",
-    isPending || false,
-    rodadaPontos || "",
+    fase,
+    edicao,
+    isPending,
+    rodadaPontos,
   );
 
   document.body.appendChild(exportContainer);
 
   try {
-    // Gerar nome do arquivo
-    const timestamp = new Date()
-      .toISOString()
-      .slice(0, 19)
-      .replace(/[:-]/g, "");
-    const nomeArquivo = `mata-mata-mobile-${timestamp}.png`;
+    // Gerar nome do arquivo seguindo padrão
+    const nomeArquivo = MobileDarkUtils.gerarNomeArquivoMobile("mata-mata", {
+      extra: fase.toLowerCase().replace(/\s+/g, "-"),
+    });
 
     // Gerar e fazer download da imagem HD
     await gerarCanvasMobileDarkHD(exportContainer, nomeArquivo);
-
-    console.log("[EXPORT-MATA-MATA] ✅ Mobile HD exportado:", nomeArquivo);
   } finally {
     // Limpar container temporário
     if (exportContainer.parentNode === document.body) {
@@ -325,55 +212,9 @@ async function exportarMataMataComoImagemMobileDarkHD(config) {
 }
 
 // ================================================================
-// EXPORTAÇÃO DESKTOP (SIMPLIFICADA)
+// LAYOUT MATA-MATA MOBILE DARK
 // ================================================================
-async function exportarMataMataDesktop(config) {
-  console.log("[EXPORT-MATA-MATA] 🖥️ Iniciando exportação Desktop...");
-
-  // Implementação simplificada para teste
-  const { confrontos, fase } = config;
-
-  const html = `
-    <div style="width: 800px; background: white; padding: 20px; font-family: Inter;">
-      <h1 style="text-align: center; color: #2E8B57;">${fase || "Mata-Mata"}</h1>
-      <div style="display: grid; gap: 10px;">
-        ${confrontos
-          .map(
-            (c) => `
-          <div style="border: 1px solid #ddd; padding: 10px; border-radius: 5px;">
-            <strong>Jogo ${c.jogo}:</strong>
-            ${c.timeA?.nome_time || "Time A"} vs ${c.timeB?.nome_time || "Time B"}
-          </div>
-        `,
-          )
-          .join("")}
-      </div>
-    </div>
-  `;
-
-  // Criar container temporário
-  const tempDiv = document.createElement("div");
-  tempDiv.style.position = "absolute";
-  tempDiv.style.top = "-9999px";
-  tempDiv.innerHTML = html;
-  document.body.appendChild(tempDiv);
-
-  try {
-    // Simular exportação (aqui você usaria html2canvas)
-    console.log("[EXPORT-MATA-MATA] 🖥️ Desktop gerado (simulado)");
-
-    // Cleanup
-    document.body.removeChild(tempDiv);
-  } catch (error) {
-    document.body.removeChild(tempDiv);
-    throw error;
-  }
-}
-
-// ================================================================
-// LAYOUT MOBILE DARK
-// ================================================================
-function criarLayoutMataMataMobile(
+function criarLayoutMataMataComoImagemMobile(
   confrontos,
   fase,
   edicao,
@@ -385,109 +226,199 @@ function criarLayoutMataMataMobile(
     (c) => !isPending && c.timeA?.pontos !== null && c.timeB?.pontos !== null,
   ).length;
 
+  const vitoriasPorGoleada = confrontos.filter((c) => {
+    if (isPending || !c.timeA?.pontos || !c.timeB?.pontos) return false;
+    const diferenca = Math.abs(c.timeA.pontos - c.timeB.pontos);
+    return diferenca >= 50; // Critério de goleada no mata-mata
+  }).length;
+
   return `
+    <!-- MINI CARD DISCRETO - FASE -->
     <div style="
-      background: ${MobileDarkConfig.colors.gradientWarning};
-      border-radius: 16px;
-      padding: 20px;
-      margin-bottom: 20px;
-      text-align: center;
-      box-shadow: ${MobileDarkConfig.colors.shadow};
+      background: ${MOBILE_DARK_HD_CONFIG.colors.surface};
+      border: 1px solid ${MOBILE_DARK_HD_CONFIG.colors.border};
+      border-radius: 12px;
+      padding: 12px;
+      margin-bottom: 16px;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      box-shadow: ${MOBILE_DARK_HD_CONFIG.colors.shadowLight};
     ">
+      <!-- Ícone da fase -->
       <div style="
-        font: ${MobileDarkConfig.fonts.weights.regular} ${MobileDarkConfig.fonts.caption};
-        color: rgba(255,255,255,0.9);
-        margin-bottom: 8px;
-        text-transform: uppercase;
-        letter-spacing: 2px;
-      ">⚔️ MATA-MATA</div>
+        width: 32px; 
+        height: 32px; 
+        background: ${MOBILE_DARK_HD_CONFIG.colors.warning}; 
+        border-radius: 50%; 
+        display: flex; 
+        align-items: center; 
+        justify-content: center; 
+        font-size: 16px;
+        flex-shrink: 0;
+      ">⚔️</div>
 
-      <div style="
-        font: ${MobileDarkConfig.fonts.weights.bold} ${MobileDarkConfig.fonts.heading};
-        color: ${MobileDarkConfig.colors.text};
-        margin-bottom: 4px;
-      ">${fase}</div>
+      <!-- Informações compactas -->
+      <div style="flex: 1; min-width: 0;">
+        <div style="
+          font: ${MOBILE_DARK_HD_CONFIG.fonts.weights.semibold} ${MOBILE_DARK_HD_CONFIG.fonts.bodySmall};
+          color: ${MOBILE_DARK_HD_CONFIG.colors.text};
+          margin-bottom: 2px;
+        ">${fase}</div>
 
+        <div style="
+          font: ${MOBILE_DARK_HD_CONFIG.fonts.weights.regular} ${MOBILE_DARK_HD_CONFIG.fonts.caption};
+          color: ${MOBILE_DARK_HD_CONFIG.colors.textMuted};
+        ">${edicao}</div>
+      </div>
+
+      <!-- Total confrontos -->
       <div style="
-        font: ${MobileDarkConfig.fonts.weights.regular} ${MobileDarkConfig.fonts.bodySmall};
-        color: rgba(255,255,255,0.8);
-      ">${edicao}</div>
+        background: ${MOBILE_DARK_HD_CONFIG.colors.warning};
+        color: #000;
+        padding: 6px 10px;
+        border-radius: 8px;
+        text-align: center;
+        flex-shrink: 0;
+      ">
+        <div style="
+          font: ${MOBILE_DARK_HD_CONFIG.fonts.weights.bold} ${MOBILE_DARK_HD_CONFIG.fonts.bodySmall};
+        ">${confrontos.length}</div>
+      </div>
     </div>
 
+    <!-- LISTA DE CONFRONTOS -->
     <div style="
-      background: ${MobileDarkConfig.colors.surface};
+      background: ${MOBILE_DARK_HD_CONFIG.colors.surface};
       border-radius: 16px;
       padding: 0;
-      border: 1px solid ${MobileDarkConfig.colors.border};
-      box-shadow: ${MobileDarkConfig.colors.shadowLight};
+      border: 1px solid ${MOBILE_DARK_HD_CONFIG.colors.border};
+      box-shadow: ${MOBILE_DARK_HD_CONFIG.colors.shadowLight};
       overflow: hidden;
       margin-bottom: 20px;
     ">
+
+      <!-- Header da lista -->
       <div style="
-        background: ${MobileDarkConfig.colors.gradientDark};
-        color: ${MobileDarkConfig.colors.text};
-        padding: 16px;
+        background: ${MOBILE_DARK_HD_CONFIG.colors.gradientDark};
+        color: ${MOBILE_DARK_HD_CONFIG.colors.text};
+        padding: 16px ${MOBILE_DARK_HD_CONFIG.padding}px;
         text-align: center;
       ">
         <h3 style="
-          font: ${MobileDarkConfig.fonts.weights.semibold} ${MobileDarkConfig.fonts.subheading};
+          font: ${MOBILE_DARK_HD_CONFIG.fonts.weights.semibold} ${MOBILE_DARK_HD_CONFIG.fonts.subheading};
           margin: 0;
-        ">⚔️ CONFRONTOS</h3>
+          letter-spacing: 0.5px;
+        ">⚔️ CONFRONTOS DO MATA-MATA</h3>
       </div>
 
-      <div style="padding: 16px 0;">
+      <!-- Lista de confrontos -->
+      <div style="padding: ${MOBILE_DARK_HD_CONFIG.padding}px 0;">
         ${confrontos
           .slice(0, 16)
           .map((confronto, index) =>
-            criarItemConfrontoMobile(confronto, index, isPending),
+            criarItemConfrontoMataMataComoImagemMobile(
+              confronto,
+              index,
+              isPending,
+            ),
           )
           .join("")}
       </div>
+
     </div>
 
-    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">
+    <!-- ESTATÍSTICAS RESUMO -->
+    <div style="
+      display: grid;
+      grid-template-columns: 1fr 1fr 1fr;
+      gap: ${MOBILE_DARK_HD_CONFIG.cardSpacing}px;
+    ">
+
+      <!-- Total Confrontos -->
       <div style="
-        background: ${MobileDarkConfig.colors.surface};
-        border: 1px solid ${MobileDarkConfig.colors.border};
+        background: ${MOBILE_DARK_HD_CONFIG.colors.surface};
+        border: 1px solid ${MOBILE_DARK_HD_CONFIG.colors.border};
         border-radius: 12px;
         padding: 16px;
         text-align: center;
+        box-shadow: ${MOBILE_DARK_HD_CONFIG.colors.shadowLight};
       ">
         <div style="
-          font: ${MobileDarkConfig.fonts.weights.regular} ${MobileDarkConfig.fonts.caption};
-          color: ${MobileDarkConfig.colors.textMuted};
+          font: ${MOBILE_DARK_HD_CONFIG.fonts.weights.regular} ${MOBILE_DARK_HD_CONFIG.fonts.caption};
+          color: ${MOBILE_DARK_HD_CONFIG.colors.textMuted};
           margin-bottom: 4px;
-        ">⚔️ JOGOS</div>
+          text-transform: uppercase;
+          letter-spacing: 1px;
+        ">⚔️ Confrontos</div>
+
         <div style="
-          font: ${MobileDarkConfig.fonts.weights.bold} ${MobileDarkConfig.fonts.heading};
-          color: ${MobileDarkConfig.colors.accent};
+          font: ${MOBILE_DARK_HD_CONFIG.fonts.weights.bold} ${MOBILE_DARK_HD_CONFIG.fonts.heading};
+          color: ${MOBILE_DARK_HD_CONFIG.colors.warning};
         ">${totalConfrontos}</div>
       </div>
 
+      <!-- Finalizados -->
       <div style="
-        background: ${MobileDarkConfig.colors.surface};
-        border: 1px solid ${MobileDarkConfig.colors.border};
+        background: ${MOBILE_DARK_HD_CONFIG.colors.surface};
+        border: 1px solid ${MOBILE_DARK_HD_CONFIG.colors.border};
         border-radius: 12px;
         padding: 16px;
         text-align: center;
+        box-shadow: ${MOBILE_DARK_HD_CONFIG.colors.shadowLight};
       ">
         <div style="
-          font: ${MobileDarkConfig.fonts.weights.regular} ${MobileDarkConfig.fonts.caption};
-          color: ${MobileDarkConfig.colors.textMuted};
+          font: ${MOBILE_DARK_HD_CONFIG.fonts.weights.regular} ${MOBILE_DARK_HD_CONFIG.fonts.caption};
+          color: ${MOBILE_DARK_HD_CONFIG.colors.textMuted};
           margin-bottom: 4px;
-        ">✅ FINALIZADOS</div>
+          text-transform: uppercase;
+          letter-spacing: 1px;
+        ">✅ Finalizados</div>
+
         <div style="
-          font: ${MobileDarkConfig.fonts.weights.bold} ${MobileDarkConfig.fonts.heading};
-          color: ${MobileDarkConfig.colors.success};
+          font: ${MOBILE_DARK_HD_CONFIG.fonts.weights.bold} ${MOBILE_DARK_HD_CONFIG.fonts.heading};
+          color: ${MOBILE_DARK_HD_CONFIG.colors.success};
         ">${confrontosFinalizados}</div>
       </div>
+
+      <!-- Goleadas -->
+      <div style="
+        background: ${MOBILE_DARK_HD_CONFIG.colors.surface};
+        border: 1px solid ${MOBILE_DARK_HD_CONFIG.colors.border};
+        border-radius: 12px;
+        padding: 16px;
+        text-align: center;
+        box-shadow: ${MOBILE_DARK_HD_CONFIG.colors.shadowLight};
+      ">
+        <div style="
+          font: ${MOBILE_DARK_HD_CONFIG.fonts.weights.regular} ${MOBILE_DARK_HD_CONFIG.fonts.caption};
+          color: ${MOBILE_DARK_HD_CONFIG.colors.textMuted};
+          margin-bottom: 4px;
+          text-transform: uppercase;
+          letter-spacing: 1px;
+        ">🔥 Goleadas</div>
+
+        <div style="
+          font: ${MOBILE_DARK_HD_CONFIG.fonts.weights.bold} ${MOBILE_DARK_HD_CONFIG.fonts.heading};
+          color: ${MOBILE_DARK_HD_CONFIG.colors.warning};
+        ">${vitoriasPorGoleada}</div>
+      </div>
+
     </div>
   `;
 }
 
-function criarItemConfrontoMobile(confronto, index, isPending) {
+// ================================================================
+// ITEM INDIVIDUAL DO CONFRONTO MOBILE DARK
+// ================================================================
+function criarItemConfrontoMataMataComoImagemMobile(
+  confronto,
+  index,
+  isPending,
+) {
   const { jogo, timeA, timeB } = confronto;
 
+  // Determinar vencedor
   let vencedorA = false,
     vencedorB = false;
   if (!isPending && timeA?.pontos !== null && timeB?.pontos !== null) {
@@ -495,15 +426,25 @@ function criarItemConfrontoMobile(confronto, index, isPending) {
       vencedorA = true;
     } else if (timeB.pontos > timeA.pontos) {
       vencedorB = true;
-    } else if (timeA.rankR2 < timeB.rankR2) {
-      vencedorA = true;
     } else {
-      vencedorB = true;
+      // Critério de desempate por ranking (mata-mata)
+      if (timeA.rankR2 < timeB.rankR2) {
+        vencedorA = true;
+      } else {
+        vencedorB = true;
+      }
     }
   }
 
+  // Verificar goleada
+  const diferenca =
+    !isPending && timeA?.pontos && timeB?.pontos
+      ? Math.abs(timeA.pontos - timeB.pontos)
+      : 0;
+  const goleada = diferenca >= 50;
+
   const formatarPontos = (pontos) => {
-    if (isPending || pontos === null) return "-";
+    if (isPending || pontos === null || pontos === undefined) return "-";
     return typeof pontos === "number" ? pontos.toFixed(2) : "-";
   };
 
@@ -511,72 +452,172 @@ function criarItemConfrontoMobile(confronto, index, isPending) {
     <div style="
       display: flex;
       align-items: center;
-      padding: 12px 16px;
-      border-bottom: 1px solid ${MobileDarkConfig.colors.divider};
+      padding: 16px ${MOBILE_DARK_HD_CONFIG.padding}px;
+      border-bottom: 1px solid ${MOBILE_DARK_HD_CONFIG.colors.divider};
+      ${goleada ? `border-left: 4px solid ${MOBILE_DARK_HD_CONFIG.colors.warning};` : ""}
+      transition: all 0.2s ease;
     ">
-      <div style="
-        background: ${MobileDarkConfig.colors.warning};
-        color: #000;
-        padding: 6px 10px;
-        border-radius: 6px;
-        margin-right: 12px;
-        font: ${MobileDarkConfig.fonts.weights.bold} ${MobileDarkConfig.fonts.bodySmall};
-      ">J${jogo}</div>
 
-      <div style="flex: 1; text-align: center;">
-        <div style="
-          font: ${MobileDarkConfig.fonts.weights.semibold} ${MobileDarkConfig.fonts.bodySmall};
-          color: ${vencedorA ? MobileDarkConfig.colors.success : MobileDarkConfig.colors.text};
-          margin-bottom: 2px;
-        ">
-          ${vencedorA ? "👑 " : ""}${timeA?.nome_time || "Time A"}
-        </div>
-        <div style="
-          font: ${MobileDarkConfig.fonts.weights.bold} ${MobileDarkConfig.fonts.subheading};
-          color: ${vencedorA ? MobileDarkConfig.colors.success : MobileDarkConfig.colors.text};
-        ">${formatarPontos(timeA?.pontos)}</div>
+      <!-- Número do Jogo -->
+      <div style="
+        background: ${MOBILE_DARK_HD_CONFIG.colors.warning};
+        color: #000;
+        padding: 8px 12px;
+        border-radius: 8px;
+        margin-right: 16px;
+        min-width: 50px;
+        text-align: center;
+        font: ${MOBILE_DARK_HD_CONFIG.fonts.weights.bold} ${MOBILE_DARK_HD_CONFIG.fonts.bodySmall};
+      ">
+        J${jogo}
       </div>
 
+      <!-- Time A -->
+      <div style="flex: 1; display: flex; align-items: center; gap: 12px;">
+        ${
+          timeA?.clube_id
+            ? `
+          <img src="/escudos/${timeA.clube_id}.png"
+               style="
+                 width: 32px; 
+                 height: 32px; 
+                 border-radius: 50%; 
+                 border: 2px solid ${vencedorA ? MOBILE_DARK_HD_CONFIG.colors.success : MOBILE_DARK_HD_CONFIG.colors.border};
+                 background: ${MOBILE_DARK_HD_CONFIG.colors.surfaceLight};
+               "
+               onerror="this.outerHTML='<div style=\\'width:32px;height:32px;background:${MOBILE_DARK_HD_CONFIG.colors.surfaceLight};border:2px solid ${MOBILE_DARK_HD_CONFIG.colors.border};border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:14px;\\'>⚽</div>'"
+               alt="Escudo">
+        `
+            : `
+          <div style="
+            width: 32px; 
+            height: 32px; 
+            background: ${MOBILE_DARK_HD_CONFIG.colors.surfaceLight}; 
+            border: 2px solid ${MOBILE_DARK_HD_CONFIG.colors.border}; 
+            border-radius: 50%; 
+            display: flex; 
+            align-items: center; 
+            justify-content: center; 
+            font-size: 14px;
+          ">⚽</div>
+        `
+        }
+
+        <div style="flex: 1; min-width: 0;">
+          <div style="
+            font: ${MOBILE_DARK_HD_CONFIG.fonts.weights.semibold} ${MOBILE_DARK_HD_CONFIG.fonts.bodySmall};
+            color: ${vencedorA ? MOBILE_DARK_HD_CONFIG.colors.success : MOBILE_DARK_HD_CONFIG.colors.text};
+            margin-bottom: 2px;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+          ">
+            ${vencedorA ? "👑 " : ""}${timeA?.nome_time || "Time A"}
+          </div>
+
+          <div style="
+            font: ${MOBILE_DARK_HD_CONFIG.fonts.weights.regular} ${MOBILE_DARK_HD_CONFIG.fonts.caption};
+            color: ${MOBILE_DARK_HD_CONFIG.colors.textMuted};
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+          ">${timeA?.nome_cartoleiro || timeA?.nome_cartola || "N/D"}</div>
+        </div>
+      </div>
+
+      <!-- Pontuação A -->
+      <div style="text-align: center; margin: 0 12px;">
+        <div style="
+          font: ${MOBILE_DARK_HD_CONFIG.fonts.weights.bold} ${MOBILE_DARK_HD_CONFIG.fonts.subheading};
+          color: ${vencedorA ? MOBILE_DARK_HD_CONFIG.colors.success : MOBILE_DARK_HD_CONFIG.colors.text};
+        ">
+          ${formatarPontos(timeA?.pontos)}${goleada && vencedorA ? " 🔥" : ""}
+        </div>
+      </div>
+
+      <!-- VS -->
       <div style="
-        font: ${MobileDarkConfig.fonts.weights.bold} ${MobileDarkConfig.fonts.bodySmall};
-        color: ${MobileDarkConfig.colors.textMuted};
+        font: ${MOBILE_DARK_HD_CONFIG.fonts.weights.bold} ${MOBILE_DARK_HD_CONFIG.fonts.bodySmall};
+        color: ${MOBILE_DARK_HD_CONFIG.colors.textMuted};
         margin: 0 8px;
       ">VS</div>
 
-      <div style="flex: 1; text-align: center;">
+      <!-- Pontuação B -->
+      <div style="text-align: center; margin: 0 12px;">
         <div style="
-          font: ${MobileDarkConfig.fonts.weights.semibold} ${MobileDarkConfig.fonts.bodySmall};
-          color: ${vencedorB ? MobileDarkConfig.colors.success : MobileDarkConfig.colors.text};
-          margin-bottom: 2px;
+          font: ${MOBILE_DARK_HD_CONFIG.fonts.weights.bold} ${MOBILE_DARK_HD_CONFIG.fonts.subheading};
+          color: ${vencedorB ? MOBILE_DARK_HD_CONFIG.colors.success : MOBILE_DARK_HD_CONFIG.colors.text};
         ">
-          ${timeB?.nome_time || "Time B"}${vencedorB ? " 👑" : ""}
+          ${formatarPontos(timeB?.pontos)}${goleada && vencedorB ? " 🔥" : ""}
         </div>
-        <div style="
-          font: ${MobileDarkConfig.fonts.weights.bold} ${MobileDarkConfig.fonts.subheading};
-          color: ${vencedorB ? MobileDarkConfig.colors.success : MobileDarkConfig.colors.text};
-        ">${formatarPontos(timeB?.pontos)}</div>
       </div>
+
+      <!-- Time B -->
+      <div style="flex: 1; display: flex; align-items: center; gap: 12px; flex-direction: row-reverse;">
+        ${
+          timeB?.clube_id
+            ? `
+          <img src="/escudos/${timeB.clube_id}.png"
+               style="
+                 width: 32px; 
+                 height: 32px; 
+                 border-radius: 50%; 
+                 border: 2px solid ${vencedorB ? MOBILE_DARK_HD_CONFIG.colors.success : MOBILE_DARK_HD_CONFIG.colors.border};
+                 background: ${MOBILE_DARK_HD_CONFIG.colors.surfaceLight};
+               "
+               onerror="this.outerHTML='<div style=\\'width:32px;height:32px;background:${MOBILE_DARK_HD_CONFIG.colors.surfaceLight};border:2px solid ${MOBILE_DARK_HD_CONFIG.colors.border};border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:14px;\\'>⚽</div>'"
+               alt="Escudo">
+        `
+            : `
+          <div style="
+            width: 32px; 
+            height: 32px; 
+            background: ${MOBILE_DARK_HD_CONFIG.colors.surfaceLight}; 
+            border: 2px solid ${MOBILE_DARK_HD_CONFIG.colors.border}; 
+            border-radius: 50%; 
+            display: flex; 
+            align-items: center; 
+            justify-content: center; 
+            font-size: 14px;
+          ">⚽</div>
+        `
+        }
+
+        <div style="flex: 1; min-width: 0; text-align: right;">
+          <div style="
+            font: ${MOBILE_DARK_HD_CONFIG.fonts.weights.semibold} ${MOBILE_DARK_HD_CONFIG.fonts.bodySmall};
+            color: ${vencedorB ? MOBILE_DARK_HD_CONFIG.colors.success : MOBILE_DARK_HD_CONFIG.colors.text};
+            margin-bottom: 2px;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+          ">
+            ${timeB?.nome_time || "Time B"}${vencedorB ? " 👑" : ""}
+          </div>
+
+          <div style="
+            font: ${MOBILE_DARK_HD_CONFIG.fonts.weights.regular} ${MOBILE_DARK_HD_CONFIG.fonts.caption};
+            color: ${MOBILE_DARK_HD_CONFIG.colors.textMuted};
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+          ">${timeB?.nome_cartoleiro || timeB?.nome_cartola || "N/D"}</div>
+        </div>
+      </div>
+
     </div>
   `;
 }
 
 // ================================================================
-// COMPATIBILIDADE E EXPORTS
+// COMPATIBILIDADE COM SISTEMA LEGADO
 // ================================================================
-
-// Função legado para compatibilidade
 export async function exportarMataMataComoImagem(config) {
-  return await criarBotaoExportacaoMataMata(config);
+  return await exportarMataMataComoImagemMobileDarkHD(config);
 }
 
-// Adicionar animação CSS
-const style = document.createElement("style");
-style.textContent = `
-  @keyframes spin {
-    0% { transform: rotate(0deg); }
-    100% { transform: rotate(360deg); }
-  }
-`;
-document.head.appendChild(style);
-
-console.log("[EXPORT-MATA-MATA] ✅ Sistema carregado e funcional");
+console.log("[EXPORT-MATA-MATA-MOBILE] Sistema Mobile Dark HD configurado");
+console.log("[EXPORT-MATA-MATA-MOBILE] Resolução: 400px x 800px+ @ 4x scale");
+console.log(
+  "[EXPORT-MATA-MATA-MOBILE] Compatibilidade com sistema existente mantida",
+);
