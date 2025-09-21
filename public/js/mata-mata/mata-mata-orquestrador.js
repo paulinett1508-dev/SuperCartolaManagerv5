@@ -2,6 +2,32 @@
 // Responsável por: coordenação de módulos, carregamento dinâmico, cache
 
 import { edicoes, getFaseInfo, getLigaId } from "./mata-mata-config.js";
+
+// Funções auxiliares para exportação
+function getEdicaoMataMata(edicaoAtual) {
+  if (!edicaoAtual) return "SuperCartola 2025";
+  
+  const edicoes = {
+    1: "SuperCartola 2025 - 1ª Edição",
+    2: "SuperCartola 2025 - 2ª Edição", 
+    3: "SuperCartola 2025 - 3ª Edição",
+    4: "SuperCartola 2025 - 4ª Edição",
+  };
+  
+  return edicoes[edicaoAtual] || `SuperCartola 2025 - ${edicaoAtual}ª Edição`;
+}
+
+function getRodadaPontosText(faseLabel, edicaoAtual) {
+  const fasesRodadas = {
+    "Primeira Fase": "Rodada 22 do Brasileirão",
+    "Oitavas de Final": "Rodada 23 do Brasileirão", 
+    "Quartas de Final": "Rodada 24 do Brasileirão",
+    "Semifinal": "Rodada 25 do Brasileirão",
+    "Final": "Rodada 26 do Brasileirão",
+  };
+  
+  return fasesRodadas[faseLabel] || `Rodada do ${faseLabel}`;
+}
 import {
   setRankingFunction as setRankingConfronto,
   getPontosDaRodada,
