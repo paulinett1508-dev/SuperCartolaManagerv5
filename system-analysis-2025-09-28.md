@@ -1,6 +1,6 @@
 # 📊 Análise do Sistema Super Cartola Manager
 
-**Data da Análise:** 21/09/2025, 16:07:02
+**Data da Análise:** 28/09/2025, 15:12:16
 
 ---
 
@@ -800,7 +800,7 @@
 - 📄 **public/js/exports/export-base.js** - 📝 Script JavaScript
   - 📏 Tamanho: 24KB | Linhas: 785
 - 📄 **public/js/exports/export-exports.js** - 📝 Script JavaScript
-  - 📏 Tamanho: 15KB | Linhas: 572
+  - 📏 Tamanho: 16KB | Linhas: 600
 - 📄 **public/js/exports/export-extrato-financeiro.js** - 📝 Script JavaScript
   - 📏 Tamanho: 29KB | Linhas: 890
 - 📄 **public/js/exports/export-mata-mata.js** - 📝 Script JavaScript
@@ -812,7 +812,7 @@
 - 📄 **public/js/exports/export-ranking-geral.js** - 🏅 Sistema de Rankings
   - 📏 Tamanho: 20KB | Linhas: 632
 - 📄 **public/js/exports/export-rodadas-hq.js** - 📅 Gestão de Rodadas
-  - 📏 Tamanho: 24KB | Linhas: 625
+  - 📏 Tamanho: 21KB | Linhas: 548
 - 📄 **public/js/exports/export-top10.js** - 📝 Script JavaScript
   - 📏 Tamanho: 10KB | Linhas: 227
 - 📄 **public/js/ferramentas/ferramentas-core.js** - 📝 Script JavaScript
@@ -888,7 +888,7 @@
 - 📄 **public/js/rodadas/rodadas-cache.js** - 📅 Gestão de Rodadas
   - 📏 Tamanho: 8KB | Linhas: 341
 - 📄 **public/js/rodadas/rodadas-config.js** - ⚙️ Arquivo de configuração
-  - 📏 Tamanho: 3KB | Linhas: 127
+  - 📏 Tamanho: 3KB | Linhas: 135
 - 📄 **public/js/rodadas/rodadas-core.js** - 📅 Gestão de Rodadas
   - 📏 Tamanho: 11KB | Linhas: 373
 - 📄 **public/js/rodadas/rodadas-orquestrador.js** - 📅 Gestão de Rodadas
@@ -1475,7 +1475,7 @@
 #### 📜 public/js/rodadas/rodadas-config.js
 
 - **Propósito:** ⚙️ Arquivo de configuração
-- **Tamanho:** 3KB | **Linhas:** 127
+- **Tamanho:** 3KB | **Linhas:** 135
 
 #### 📜 routes/configuracao-routes.js
 
@@ -1496,7 +1496,7 @@
 | Métrica | Valor |
 |---------|-------|
 | **Total de arquivos** | 547 |
-| **Tamanho total** | 13641 KB |
+| **Tamanho total** | 13639 KB |
 | **Tamanho médio** | 25 KB |
 
 ### 📋 Por Tipo de Arquivo

@@ -1,9 +1,9 @@
 // ✅ SISTEMA DE EXPORTAÇÃO - CENTRO COORDENADOR
-// 🔧 VERSÃO CORRIGIDA v2.4.2 - FIX CRÍTICO: Detecção inteligente de módulos
+// 🔧 VERSÃO CORRIGIDA v2.4.3 - FIX CRÍTICO: Rodadas usando módulo correto
 
 console.log("[EXPORT-EXPORTS] 🎯 Centro coordenador de exportações carregado");
 
-// 🔧 FIX: Mapeamento correto de módulos
+// 🔧 FIX: Mapeamento correto de módulos - ADICIONADO MÓDULO RODADAS
 const moduleMap = {
   "mata-mata": "./export-mata-mata.js",
   "extrato-financeiro": "./export-extrato-financeiro.js",
@@ -11,7 +11,8 @@ const moduleMap = {
   top10: "./export-top10.js",
   "melhor-mes": "./export-melhor-mes.js",
   "liga-pontos-corridos": "./export-liga-pontos-corridos.js",
-  "pontos-corridos": "./export-pontos-corridos.js", // ✅ Módulo correto para funções de pontos corridos
+  "pontos-corridos": "./export-pontos-corridos.js",
+  rodadas: "./export-rodadas-hq.js", // ✅ ADICIONADO: Módulo específico para rodadas
 };
 
 // Cache de módulos carregados
@@ -105,6 +106,18 @@ function detectarModuloEFuncao(config) {
 
   console.log(`[EXPORT-EXPORTS] 🔍 Detectando módulo para tipo: ${tipo}`);
 
+  // ✅ FIX CRÍTICO: Detecção específica para rodadas
+  if (
+    tipo === "rodada" ||
+    tipo === "ranking-rodada" ||
+    (config && config.rodada)
+  ) {
+    return {
+      moduleName: "rodadas",
+      functionName: "exportarRodadaAltaQualidade",
+    };
+  }
+
   // Detecção inteligente baseada no tipo
   if (tipo && tipo.includes("pontos-corridos")) {
     if (tipo === "pontos-corridos-rodada") {
@@ -191,10 +204,11 @@ export async function exportarRankingGeralComoImagem(...args) {
   );
 }
 
+// ✅ FIX CRÍTICO: Rodadas agora usam módulo específico
 export async function exportarRodadaComoImagem(...args) {
   return executeExportFunction(
-    "ranking-geral",
-    "exportarRodadaComoImagem",
+    "rodadas", // ✅ CORRIGIDO: Usar módulo específico para rodadas
+    "exportarRodadaAltaQualidade",
     ...args,
   );
 }
@@ -207,6 +221,19 @@ export async function criarBotaoExportacaoRodada(config, ...restArgs) {
     console.log(
       `[EXPORT-EXPORTS] 🎯 Direcionando para ${moduleName}.${functionName}`,
     );
+
+    // ✅ ESPECIAL: Para rodadas, usar função específica de criação de botão
+    if (moduleName === "rodadas") {
+      const module = await loadModule("rodadas");
+      if (module.criarBotaoExportacaoRodadaHQ) {
+        return module.criarBotaoExportacaoRodadaHQ(
+          config.containerId,
+          config.rodada,
+          config.rankings,
+          config.tipo,
+        );
+      }
+    }
 
     return executeExportFunction(moduleName, functionName, config, ...restArgs);
   } catch (error) {
@@ -568,5 +595,5 @@ function mostrarNotificacao(mensagem, tipo = "info") {
 }
 
 console.log(
-  "[EXPORT-EXPORTS] ✅ Centro coordenador CORRIGIDO v2.4.2 - Detecção inteligente implementada",
+  "[EXPORT-EXPORTS] ✅ Centro coordenador CORRIGIDO v2.4.3 - Rodadas usando módulo específico",
 );
