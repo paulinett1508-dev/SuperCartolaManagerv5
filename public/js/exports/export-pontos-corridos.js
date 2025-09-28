@@ -749,7 +749,7 @@ function criarItemConfrontoMobile(jogo, index) {
 `;
 }
 
-// LAYOUT CLASSIFICAÇÃO MOBILE DARK
+// LAYOUT CLASSIFICAÇÃO MOBILE DARK - CORRIGIDO
 function criarLayoutPontosCorridosClassificacaoMobile(
   times,
   rodadaLiga,
@@ -759,84 +759,43 @@ function criarLayoutPontosCorridosClassificacaoMobile(
   const lider = times.length > 0 ? times[0] : null;
 
   return `
-  <!-- CARD PRINCIPAL DE DESTAQUE - LÍDER -->
+  <!-- CARD COMPACTO DE DESTAQUE - LÍDER (60PX) -->
   <div style="
     background: ${MOBILE_DARK_HD_CONFIG.colors.gradientSuccess};
-    border-radius: 16px;
-    padding: 20px;
-    margin-bottom: 20px;
+    border-radius: 8px;
+    padding: 8px;
+    margin-bottom: 16px;
     text-align: center;
-    box-shadow: ${MOBILE_DARK_HD_CONFIG.colors.shadow};
+    max-height: 60px;
+    min-height: 60px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: ${MOBILE_DARK_HD_CONFIG.colors.shadowLight};
   ">
-    <div style="
-      font: ${MOBILE_DARK_HD_CONFIG.fonts.weights.regular} ${MOBILE_DARK_HD_CONFIG.fonts.caption};
-      color: rgba(255,255,255,0.9);
-      margin-bottom: 8px;
-      text-transform: uppercase;
-      letter-spacing: 2px;
-    ">🏆 LÍDER DA LIGA</div>
-
-    ${
-      lider
-        ? `
-      <!-- Escudo do líder -->
-      <div style="margin-bottom: 12px;">
-        ${
-          lider.clube_id
-            ? `
+    ${lider ? `
+      <div style="display: flex; align-items: center; gap: 12px;">
+        ${lider.clube_id ? `
           <img src="/escudos/${lider.clube_id}.png"
-               style="
-                 width: 56px; 
-                 height: 56px; 
-                 border-radius: 50%; 
-                 border: 3px solid rgba(255,255,255,0.3);
-                 background: ${MOBILE_DARK_HD_CONFIG.colors.surfaceLight};
-                 margin-bottom: 12px;
-               "
-               onerror="this.outerHTML='<div style=\\'width:56px;height:56px;background:${MOBILE_DARK_HD_CONFIG.colors.surfaceLight};border:3px solid rgba(255,255,255,0.3);border-radius:50%;display:inline-flex;align-items:center;justify-content:center;font-size:24px;margin-bottom:12px;\\'>⚽</div>'"
-               alt="Líder">
-        `
-            : `
-          <div style="
-            width: 56px; 
-            height: 56px; 
-            background: ${MOBILE_DARK_HD_CONFIG.colors.gold}; 
-            border-radius: 50%; 
-            display: flex; 
-            align-items: center; 
-            justify-content: center; 
-            font-size: 16px;
-            flex-shrink: 0;
-          ">🏆</div>
-        `
-        }
+               style="width: 28px; height: 28px; border-radius: 50%; border: 1px solid rgba(255,255,255,0.3);"
+               onerror="this.style.display='none'"
+               alt="Escudo">
+        ` : ""}
+
+        <div>
+          <div style="font: ${MOBILE_DARK_HD_CONFIG.fonts.weights.semibold} 13px Inter; color: white; margin-bottom: 1px;">
+            ${lider.nome_cartola || lider.nome_cartoleiro || "N/D"}
+          </div>
+          <div style="font: ${MOBILE_DARK_HD_CONFIG.fonts.weights.bold} 16px Inter; color: white;">
+            ${lider.pontos || 0} pts
+          </div>
+        </div>
       </div>
-
-      <div style="
-        font: ${MOBILE_DARK_HD_CONFIG.fonts.weights.bold} ${MOBILE_DARK_HD_CONFIG.fonts.heading};
-        color: ${MOBILE_DARK_HD_CONFIG.colors.text};
-        margin-bottom: 4px;
-      ">${lider.nome_cartola || lider.nome_cartoleiro || "N/D"}</div>
-
-      <div style="
-        font: ${MOBILE_DARK_HD_CONFIG.fonts.weights.regular} ${MOBILE_DARK_HD_CONFIG.fonts.bodySmall};
-        color: rgba(255,255,255,0.8);
-        margin-bottom: 12px;
-      ">${lider.nome_time || "Time não informado"}</div>
-
-      <div style="
-        font: ${MOBILE_DARK_HD_CONFIG.fonts.weights.extrabold} ${MOBILE_DARK_HD_CONFIG.fonts.titleLarge};
-        color: ${MOBILE_DARK_HD_CONFIG.colors.text};
-        text-shadow: 0 2px 8px rgba(0,0,0,0.5);
-      ">${lider.pontos || 0} pts</div>
-    `
-        : `
-      <div style="
-        font: ${MOBILE_DARK_HD_CONFIG.fonts.weights.regular} ${MOBILE_DARK_HD_CONFIG.fonts.body};
-        color: rgba(255,255,255,0.8);
-      ">Nenhum dado disponível</div>
-    `
-    }
+    ` : `
+      <div style="font: ${MOBILE_DARK_HD_CONFIG.fonts.weights.regular} 14px Inter; color: rgba(255,255,255,0.8);">
+        Nenhum dado disponível
+      </div>
+    `}
   </div>
 
   <!-- TABELA CLASSIFICAÇÃO -->
@@ -864,12 +823,9 @@ function criarLayoutPontosCorridosClassificacaoMobile(
       ">🏆 CLASSIFICAÇÃO GERAL</h3>
     </div>
 
-    <!-- Lista de classificação -->
+    <!-- Lista de classificação - TODOS OS TIMES -->
     <div style="padding: ${MOBILE_DARK_HD_CONFIG.padding}px 0;">
-      ${times
-        .slice(0, 20)
-        .map((time, index) => criarItemClassificacaoMobile(time, index))
-        .join("")}
+      ${times.map((time, index) => criarItemClassificacaoMobile(time, index)).join("")}
     </div>
 
   </div>
