@@ -1,12 +1,11 @@
 # 📊 Análise do Sistema Super Cartola Manager
 
-**Data da Análise:** 28/09/2025, 15:12:16
+**Data da Análise:** 02/10/2025, 22:12:41
 
 ---
 
 ## 📁 Estrutura do Sistema
 
-- 📁 **attached_assets/**
 - 📁 **backup-2025-09-01-16h46/**
   - 📁 **attached_assets/**
   - 📁 **backups/**
@@ -808,11 +807,11 @@
 - 📄 **public/js/exports/export-melhor-mes.js** - 📝 Script JavaScript
   - 📏 Tamanho: 21KB | Linhas: 652
 - 📄 **public/js/exports/export-pontos-corridos.js** - 📝 Script JavaScript
-  - 📏 Tamanho: 33KB | Linhas: 1103
+  - 📏 Tamanho: 37KB | Linhas: 1204
 - 📄 **public/js/exports/export-ranking-geral.js** - 🏅 Sistema de Rankings
   - 📏 Tamanho: 20KB | Linhas: 632
 - 📄 **public/js/exports/export-rodadas-hq.js** - 📅 Gestão de Rodadas
-  - 📏 Tamanho: 21KB | Linhas: 548
+  - 📏 Tamanho: 20KB | Linhas: 639
 - 📄 **public/js/exports/export-top10.js** - 📝 Script JavaScript
   - 📏 Tamanho: 10KB | Linhas: 227
 - 📄 **public/js/ferramentas/ferramentas-core.js** - 📝 Script JavaScript
@@ -1029,12 +1028,8 @@
 - 📄 **scripts/times-da-liga.json** - 🏆 Funcionalidades de Liga
   - 📏 Tamanho: 2KB | Linhas: 46
 
-### Documentação (12 arquivos)
+### Documentação (10 arquivos)
 
-- 📄 **attached_assets/Pasted--CONFIGURA-O-BASE-MOBILE-DARK-HD-CORRE-O-DE-LARGURA-export-const-MOBILE-DARK-HD-CONFIG--1758466246684_1758466246685.txt** - ⚙️ Arquivo de configuração
-  - 📏 Tamanho: 4KB | Linhas: 97
-- 📄 **attached_assets/Pasted--CORRE-O-Aplicar-cores-vermelhas-para-perdedores-no-Mata-Mata-Fun-o-criarItemConfrontoMataM-1758467644467_1758467644469.txt** - ❓ Arquivo genérico
-  - 📏 Tamanho: 8KB | Linhas: 200
 - 📄 **backup-2025-09-01-16h46/README-BACKUP.md** - 📖 Documentação
   - 📏 Tamanho: 1KB | Linhas: 39
 - 📄 **backup-2025-09-01-16h46/UX_PATTERNS.md** - 📖 Documentação
@@ -1495,16 +1490,16 @@
 
 | Métrica | Valor |
 |---------|-------|
-| **Total de arquivos** | 547 |
-| **Tamanho total** | 13639 KB |
+| **Total de arquivos** | 545 |
+| **Tamanho total** | 13630 KB |
 | **Tamanho médio** | 25 KB |
 
 ### 📋 Por Tipo de Arquivo
 
 | Tipo | Quantidade |
 |------|------------|
-| 📖 **docs** | 12 |
 | ⚙️ **config** | 33 |
+| 📖 **docs** | 10 |
 | 🎨 **frontend** | 439 |
 | ❓ **other** | 12 |
 | 🖼️ **assets** | 51 |
@@ -1513,8 +1508,8 @@
 
 | Categoria | Quantidade | Descrição |
 |-----------|------------|----------|
-| 🟢 **Pequenos** | 225 | < 5KB |
-| 🟡 **Médios** | 312 | 5-50KB |
+| 🟢 **Pequenos** | 224 | < 5KB |
+| 🟡 **Médios** | 311 | 5-50KB |
 | 🔴 **Grandes** | 10 | > 50KB |
 
 ### 🔍 Insights da Arquitetura

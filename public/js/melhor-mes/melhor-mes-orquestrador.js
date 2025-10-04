@@ -1,4 +1,4 @@
-// MELHOR DO MÊS - ORQUESTRADOR v1.0
+// MELHOR DO MÊS - ORQUESTRADOR v1.1 - EXPORTAÇÃO CORRIGIDA
 // public/js/melhor-mes/melhor-mes-orquestrador.js
 
 import { MelhorMesCore, melhorMesCore } from "./melhor-mes-core.js";
@@ -37,7 +37,7 @@ export class MelhorMesOrquestrador {
       // Renderizar interface
       this.ui.renderizar(dadosProcessados);
 
-      // Carregar sistema de exports
+      // Carregar sistema de exports E EXPOR GLOBALMENTE
       await this.carregarExports();
 
       this.inicializado = true;
@@ -51,7 +51,7 @@ export class MelhorMesOrquestrador {
     }
   }
 
-  // CARREGAR SISTEMA DE EXPORTS
+  // CARREGAR SISTEMA DE EXPORTS - CORRIGIDO
   async carregarExports() {
     if (this.exportsCarregados) return;
 
@@ -63,8 +63,17 @@ export class MelhorMesOrquestrador {
         exportarImagem: exportModule.exportarMelhorMesComoImagem,
       };
 
+      // ✅ CORREÇÃO: EXPOR FUNÇÃO GLOBALMENTE PARA O UI
+      window.criarBotaoExportacaoMelhorMes =
+        exportModule.criarBotaoExportacaoMelhorMes;
+      window.exportarMelhorMesComoImagem =
+        exportModule.exportarMelhorMesComoImagem;
+
       this.exportsCarregados = true;
       console.log("[MELHOR-MES-ORQUESTRADOR] Sistema de exports carregado");
+      console.log(
+        "[MELHOR-MES-ORQUESTRADOR] ✅ Funções expostas globalmente para UI",
+      );
     } catch (error) {
       console.warn("[MELHOR-MES-ORQUESTRADOR] Exports não disponíveis:", error);
       this.exportsCarregados = false;
@@ -79,47 +88,9 @@ export class MelhorMesOrquestrador {
       }
 
       this.ui.selecionarEdicao(index);
-
-      // Configurar exportação se disponível
-      if (this.exportsCarregados && this.exportFunctions.criarBotao) {
-        const dados = this.core.dadosProcessados.resultados[index];
-        if (dados && dados.ranking.length > 0) {
-          this.configurarExportacao(dados);
-        }
-      }
     } catch (error) {
       console.error(
         "[MELHOR-MES-ORQUESTRADOR] Erro ao selecionar edição:",
-        error,
-      );
-    }
-  }
-
-  // CONFIGURAR SISTEMA DE EXPORTAÇÃO
-  configurarExportacao(dados) {
-    if (!this.exportFunctions.criarBotao) return;
-
-    try {
-      this.exportFunctions.criarBotao({
-        containerId: this.ui.containers.exportBtn,
-        tipo: "melhor-mes",
-        rodada: `${dados.edicao.inicio}-${dados.edicao.fim}`,
-        rankings: dados.ranking,
-        isParciais: false,
-        isRankingGeral: false,
-        customExport: (rankings) =>
-          this.exportFunctions.exportarImagem(rankings, dados.edicao),
-        tabelaId: "melhorMesTable",
-        titulo: `Melhor do Mês - ${dados.edicao.nome} (Rodadas ${dados.edicao.inicio}-${dados.edicao.fim})`,
-        nomeModulo: "melhor-mes",
-      });
-
-      console.log(
-        `[MELHOR-MES-ORQUESTRADOR] Exportação configurada para ${dados.edicao.nome}`,
-      );
-    } catch (error) {
-      console.error(
-        "[MELHOR-MES-ORQUESTRADOR] Erro ao configurar exportação:",
         error,
       );
     }
@@ -193,6 +164,12 @@ export class MelhorMesOrquestrador {
         inicializado: this.inicializado,
         exportsCarregados: this.exportsCarregados,
         edicaoAtiva: this.ui.edicaoAtiva,
+        funcoesGlobaisExpostas: {
+          criarBotao:
+            typeof window.criarBotaoExportacaoMelhorMes === "function",
+          exportarImagem:
+            typeof window.exportarMelhorMesComoImagem === "function",
+        },
       },
       core: coreStats,
       ui: {
@@ -228,8 +205,9 @@ export class MelhorMesOrquestrador {
     this.exportsCarregados = false;
     this.exportFunctions = {};
 
-    // Limpar cache do core
-    this.core.constructor(); // Reset da instância
+    // Limpar funções globais
+    delete window.criarBotaoExportacaoMelhorMes;
+    delete window.exportarMelhorMesComoImagem;
 
     return await this.inicializar();
   }
@@ -243,6 +221,11 @@ export class MelhorMesOrquestrador {
         this.ui.containers.select,
       ),
       exportsDisponiveis: this.exportsCarregados,
+      funcoesGlobais: {
+        criarBotao: typeof window.criarBotaoExportacaoMelhorMes === "function",
+        exportarImagem:
+          typeof window.exportarMelhorMesComoImagem === "function",
+      },
       edicaoAtiva: this.ui.edicaoAtiva,
       timestamp: new Date().toISOString(),
     };

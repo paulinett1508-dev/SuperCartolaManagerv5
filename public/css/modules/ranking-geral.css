@@ -1,6 +1,6 @@
-/* 🏅 CSS ESPECÍFICO DO MÓDULO RANKING GERAL
-   Usado apenas pelo módulo fronts/ranking-geral.html
-   Carregado dinamicamente pelo orquestrador quando necessário
+/* 🏅 CSS ESPECÍFICO DO MÓDULO RANKING GERAL - OTIMIZADO
+   Arquivo: public/css/modules/ranking-geral.css
+   PERFORMANCE: Efeitos pesados removidos, funcionalidade 100% preservada
 */
 
 /* === CONTAINER DO RANKING === */
@@ -128,12 +128,12 @@
     border-bottom: 1px solid rgba(255, 69, 0, 0.1);
     color: #e0e0e0;
     font-size: 13px;
-    transition: all 0.3s ease;
+    transition: background-color 0.2s ease;
 }
 
+/* HOVER OTIMIZADO - Apenas mudança de cor */
 .ranking-table tbody tr:hover {
     background: rgba(255, 69, 0, 0.08) !important;
-    transform: scale(1.01);
 }
 
 .ranking-table tbody tr:nth-child(even) {
@@ -170,7 +170,7 @@
     font-family: 'JetBrains Mono', monospace;
 }
 
-/* === BOTÕES DE EXPORTAÇÃO ESPECÍFICOS === */
+/* === BOTÕES DE EXPORTAÇÃO (OTIMIZADO) === */
 #rankingGeralExportBtnContainer .btn,
 #rankingGeralExportBtnContainer button {
     background: linear-gradient(135deg, #ff4500 0%, #e8472b 100%) !important;
@@ -181,16 +181,15 @@
     font-weight: 700 !important;
     font-size: 13px !important;
     cursor: pointer !important;
-    transition: all 0.3s ease !important;
+    transition: background-color 0.2s ease, border-color 0.2s ease !important;
     box-shadow: 0 4px 15px rgba(255, 69, 0, 0.4) !important;
     text-transform: uppercase !important;
     letter-spacing: 0.5px !important;
 }
 
+/* HOVER OTIMIZADO - Apenas mudança de cor */
 #rankingGeralExportBtnContainer .btn:hover,
 #rankingGeralExportBtnContainer button:hover {
-    transform: translateY(-3px) !important;
-    box-shadow: 0 8px 25px rgba(255, 69, 0, 0.5) !important;
     background: linear-gradient(135deg, #e8472b 0%, #d63920 100%) !important;
     border-color: #ff4500 !important;
 }
@@ -210,13 +209,13 @@
     cursor: pointer;
     font-size: 13px;
     font-weight: 600;
-    transition: all 0.3s ease;
+    transition: background-color 0.2s ease, color 0.2s ease;
 }
 
+/* HOVER OTIMIZADO - Apenas mudança de cor */
 .back-button:hover {
     background: #ff4500;
     color: #ffffff;
-    transform: translateX(-3px);
 }
 
 /* === RESPONSIVIDADE === */
@@ -289,8 +288,12 @@
     margin-right: 12px;
 }
 
+@keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+
 /* === OVERRIDE AGRESSIVO PARA COMPATIBILIDADE === */
-/* Garantir que qualquer CSS dinâmico seja sobrescrito */
 #ranking-geral * {
     font-family: "Inter", -apple-system, sans-serif !important;
 }

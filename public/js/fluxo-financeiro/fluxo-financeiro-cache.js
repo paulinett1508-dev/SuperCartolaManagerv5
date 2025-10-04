@@ -1,4 +1,4 @@
-// FLUXO-FINANCEIRO-CACHE.JS - Processamento Mata-Mata CORRIGIDO
+// FLUXO-FINANCEIRO-CACHE.JS - OTIMIZADO
 import { getRankingRodadaEspecifica } from "../rodadas.js";
 import {
     getLigaId,
@@ -30,24 +30,14 @@ export class FluxoFinanceiroCache {
         this.ultimaRodadaCompleta = 0;
     }
 
-    /**
-     * Inicializa o cache com uma liga específica
-     */
     async inicializar(ligaId) {
         console.log(`[FLUXO-CACHE] Inicializando cache para liga: ${ligaId}`);
-
         this.ligaId = ligaId;
 
         try {
-            // Carregar participantes primeiro
             await this.carregarParticipantes();
-
-            // Carregar dados dos pontos corridos
             await this.carregarDadosPontosCorridos();
-
-            // Carregar dados externos (incluindo mata-mata)
             await this.carregarDadosExternos();
-
             console.log(`[FLUXO-CACHE] Cache inicializado com sucesso`);
         } catch (error) {
             console.error(`[FLUXO-CACHE] Erro na inicialização:`, error);
@@ -55,34 +45,18 @@ export class FluxoFinanceiroCache {
         }
     }
 
-    /**
-     * Obtém última rodada completa
-     */
     getUltimaRodadaCompleta() {
         return this.ultimaRodadaCompleta;
     }
 
-    /**
-     * Define última rodada completa
-     */
     setUltimaRodadaCompleta(rodada) {
         this.ultimaRodadaCompleta = rodada;
-        console.log(`[FLUXO-CACHE] Última rodada completa definida: ${rodada}`);
     }
 
-    /**
-     * Define participantes no cache
-     */
     setParticipantes(participantes) {
         this.participantes = participantes || [];
-        console.log(
-            `[FLUXO-CACHE] ${this.participantes.length} participantes definidos no cache`,
-        );
     }
 
-    /**
-     * Carrega participantes da API
-     */
     async carregarParticipantes() {
         const ligaId = this.ligaId || getLigaId();
         if (!ligaId) {
@@ -92,11 +66,10 @@ export class FluxoFinanceiroCache {
 
         try {
             const response = await fetch(`/api/ligas/${ligaId}/times`);
-            if (!response.ok) {
+            if (!response.ok)
                 throw new Error(
                     `Erro ao buscar participantes: ${response.statusText}`,
                 );
-            }
 
             const data = await response.json();
             if (!data || !Array.isArray(data) || data.length === 0) {
@@ -135,7 +108,7 @@ export class FluxoFinanceiroCache {
             return this.participantes;
         } catch (error) {
             console.error(
-                "[FluxoFinanceiroCache] Erro ao carregar participantes:",
+                "[FLUXO-CACHE] Erro ao carregar participantes:",
                 error,
             );
             this.participantes = [];
@@ -143,9 +116,7 @@ export class FluxoFinanceiroCache {
         }
     }
 
-    /**
-     * Carrega cache de rankings em lotes
-     */
+    // OTIMIZADO: Carregamento em lotes com Promise.all
     async carregarCacheRankingsEmLotes(ultimaRodadaCompleta, container) {
         const ligaId = this.ligaId || getLigaId();
         if (!ligaId) {
@@ -153,10 +124,9 @@ export class FluxoFinanceiroCache {
             return;
         }
 
-        // Definir última rodada completa
         this.setUltimaRodadaCompleta(ultimaRodadaCompleta);
-
         this.cacheRankings = {};
+
         const tamanhoDeLote = 5;
         const totalDeLotes = Math.ceil(ultimaRodadaCompleta / tamanhoDeLote);
 
@@ -167,7 +137,6 @@ export class FluxoFinanceiroCache {
                 ultimaRodadaCompleta,
             );
 
-            // Atualizar progresso
             const progressoAtual = Math.round((lote / totalDeLotes) * 100);
             this._atualizarProgresso(
                 container,
@@ -177,7 +146,7 @@ export class FluxoFinanceiroCache {
                 ultimaRodadaCompleta,
             );
 
-            // Processar lote
+            // OTIMIZADO: Promise.all para processar lote em paralelo
             const promessasDoLote = [];
             for (let r = rodadaInicial; r <= rodadaFinal; r++) {
                 promessasDoLote.push(this._carregarRankingRodada(r));
@@ -185,13 +154,12 @@ export class FluxoFinanceiroCache {
             await Promise.all(promessasDoLote);
         }
 
-        // Finalizar progresso
         this._atualizarProgresso(container, 100);
+        console.log(
+            `[FLUXO-CACHE] Cache carregado: ${Object.keys(this.cacheRankings).length} rodadas`,
+        );
     }
 
-    /**
-     * Carrega ranking de uma rodada específica
-     */
     async _carregarRankingRodada(rodada) {
         const ligaId = this.ligaId || getLigaId();
 
@@ -199,41 +167,31 @@ export class FluxoFinanceiroCache {
             const ranking = await getRankingRodadaEspecifica(ligaId, rodada);
 
             if (!ranking || !Array.isArray(ranking) || ranking.length === 0) {
-                const rankingSimulado = gerarRankingSimulado(
+                this.cacheRankings[rodada] = gerarRankingSimulado(
                     rodada,
                     this.participantes,
                 );
-                this.cacheRankings[rodada] = rankingSimulado;
                 return;
             }
 
             const rankingNormalizado = ranking.map((item) => {
                 const timeId = String(item.timeId || item.time_id || item.id);
-                return {
-                    ...item,
-                    time_id: timeId,
-                    timeId: timeId,
-                    id: timeId,
-                };
+                return { ...item, time_id: timeId, timeId: timeId, id: timeId };
             });
 
             this.cacheRankings[rodada] = rankingNormalizado;
         } catch (error) {
             console.warn(
-                `[FluxoFinanceiroCache] Erro ao carregar rodada ${rodada}:`,
+                `[FLUXO-CACHE] Erro ao carregar rodada ${rodada}:`,
                 error,
             );
-            const rankingSimulado = gerarRankingSimulado(
+            this.cacheRankings[rodada] = gerarRankingSimulado(
                 rodada,
                 this.participantes,
             );
-            this.cacheRankings[rodada] = rankingSimulado;
         }
     }
 
-    /**
-     * Atualiza progresso de carregamento
-     */
     _atualizarProgresso(
         container,
         progresso,
@@ -258,9 +216,6 @@ export class FluxoFinanceiroCache {
         }
     }
 
-    /**
-     * Carrega dados dos confrontos de pontos corridos
-     */
     async carregarDadosPontosCorridos() {
         const ligaId = this.ligaId || getLigaId();
         if (ligaId === ID_SUPERCARTOLA_2025) {
@@ -275,14 +230,12 @@ export class FluxoFinanceiroCache {
                         this.timesLiga,
                     );
                     console.log(
-                        "[FluxoFinanceiroCache] Confrontos Pontos Corridos carregados:",
-                        this.cacheFrontosPontosCorridos.length,
-                        "rodadas",
+                        `[FLUXO-CACHE] Confrontos Pontos Corridos: ${this.cacheFrontosPontosCorridos.length} rodadas`,
                     );
                 }
             } catch (error) {
                 console.error(
-                    "Erro ao carregar times para Pontos Corridos:",
+                    "[FLUXO-CACHE] Erro ao carregar Pontos Corridos:",
                     error,
                 );
                 this.timesLiga = [];
@@ -291,38 +244,21 @@ export class FluxoFinanceiroCache {
         }
     }
 
-    /**
-     * Carrega dados externos (confrontos, mata-mata, melhor mês) CORRIGIDO
-     */
     async carregarDadosExternos() {
-        // Testar dados do mata-mata antes do processamento
-        console.log("[FluxoFinanceiroCache] Testando dados do Mata-Mata...");
         try {
             await testarDadosMataMata();
         } catch (error) {
-            console.warn(
-                "[FluxoFinanceiroCache] Aviso ao testar dados do Mata-Mata:",
-                error,
-            );
+            console.warn("[FLUXO-CACHE] Aviso ao testar Mata-Mata:", error);
         }
 
         const [confrontosLPC, resultadosMM, resultadosMelhorMes] =
             await Promise.all([
                 getConfrontosLigaPontosCorridos(),
-                getResultadosMataMataFluxo().catch((err) => {
-                    console.error(
-                        "Erro ao carregar resultados do Mata-Mata:",
-                        err,
-                    );
-                    return { participantes: [], edicoes: [] };
-                }),
-                getResultadosMelhorMes().catch((err) => {
-                    console.warn(
-                        "Erro ao carregar resultados do Melhor Mês:",
-                        err,
-                    );
-                    return [];
-                }),
+                getResultadosMataMataFluxo().catch(() => ({
+                    participantes: [],
+                    edicoes: [],
+                })),
+                getResultadosMelhorMes().catch(() => []),
             ]);
 
         this.cacheConfrontosLPC = confrontosLPC || [];
@@ -330,41 +266,26 @@ export class FluxoFinanceiroCache {
             ? resultadosMelhorMes
             : [];
 
-        // Aplicar filtro de liga especial se necessário
         if (this.cacheResultadosMelhorMes.length > 0) {
             try {
                 this.cacheResultadosMelhorMes =
                     await filtrarDadosPorTimesLigaEspecial(
                         this.cacheResultadosMelhorMes,
                     );
-                console.log(
-                    "[FluxoFinanceiroCache] Filtro de liga especial aplicado ao Melhor Mês",
-                );
             } catch (error) {
-                console.warn(
-                    "[FluxoFinanceiroCache] Erro ao aplicar filtro de liga especial:",
-                    error,
-                );
+                console.warn("[FLUXO-CACHE] Erro ao aplicar filtro:", error);
             }
         }
 
-        // CORREÇÃO: Processar resultados do Mata-Mata
         this._processarResultadosMataMataCorrigido(resultadosMM);
 
-        console.log("[FluxoFinanceiroCache] Dados externos carregados:");
+        console.log(`[FLUXO-CACHE] Dados externos carregados:`);
         console.log(`- Confrontos LPC: ${this.cacheConfrontosLPC.length}`);
         console.log(`- Mata-Mata: ${this.cacheResultadosMM.length}`);
         console.log(`- Melhor Mês: ${this.cacheResultadosMelhorMes.length}`);
     }
 
-    /**
-     * Processa resultados do Mata-Mata CORRIGIDO
-     */
     _processarResultadosMataMataCorrigido(resultadosMM) {
-        console.log(
-            "[FluxoFinanceiroCache] Processando resultados do Mata-Mata CORRIGIDO...",
-        );
-
         this.cacheResultadosMM = [];
 
         if (
@@ -372,28 +293,15 @@ export class FluxoFinanceiroCache {
             !resultadosMM.participantes ||
             !Array.isArray(resultadosMM.participantes)
         ) {
-            console.warn(
-                "[FluxoFinanceiroCache] Dados do Mata-Mata inválidos ou vazios",
-            );
+            console.warn("[FLUXO-CACHE] Dados do Mata-Mata inválidos");
             return;
         }
 
-        // DEBUG: Log da estrutura recebida
-        console.log(
-            "[FluxoFinanceiroCache] DEBUG - Estrutura mata-mata recebida:",
-            {
-                totalParticipantes: resultadosMM.participantes.length,
-                exemploParticipante: resultadosMM.participantes[0],
-            },
-        );
-
         resultadosMM.participantes.forEach((participante) => {
-            if (!participante.edicoes || !Array.isArray(participante.edicoes)) {
+            if (!participante.edicoes || !Array.isArray(participante.edicoes))
                 return;
-            }
 
             participante.edicoes.forEach((edicao) => {
-                // CORREÇÃO: Usar rodadaPontos diretamente dos dados do mata-mata
                 const rodadaPontos =
                     edicao.rodadaPontos ||
                     this._calcularRodadaPontosCorrigido(
@@ -402,49 +310,28 @@ export class FluxoFinanceiroCache {
                     );
 
                 if (rodadaPontos > 0) {
-                    const registro = {
+                    this.cacheResultadosMM.push({
                         timeId: participante.timeId,
                         fase: edicao.fase,
                         rodadaPontos: rodadaPontos,
                         valor: edicao.valor,
-                    };
-
-                    this.cacheResultadosMM.push(registro);
-
-                    // DEBUG: Log dos registros sendo adicionados
-                    console.log(
-                        `[FluxoFinanceiroCache] Adicionado mata-mata: timeId=${participante.timeId}, rodada=${rodadaPontos}, valor=${edicao.valor}`,
-                    );
+                    });
                 }
             });
         });
 
         console.log(
-            "[FluxoFinanceiroCache] Cache Mata-Mata carregado:",
-            this.cacheResultadosMM.length,
-            "registros",
+            `[FLUXO-CACHE] Mata-Mata carregado: ${this.cacheResultadosMM.length} registros`,
         );
-
-        // DEBUG: Mostrar alguns exemplos
-        if (this.cacheResultadosMM.length > 0) {
-            console.log(
-                "[FluxoFinanceiroCache] Exemplos mata-mata carregados:",
-                this.cacheResultadosMM.slice(0, 3),
-            );
-        }
     }
 
-    /**
-     * Calcula rodada de pontos baseada na edição e fase CORRIGIDO
-     */
     _calcularRodadaPontosCorrigido(edicao, fase) {
-        // CORREÇÃO: Estrutura correta baseada na configuração do mata-mata
         const edicaoConfig = {
-            1: { rodadaBase: 3 }, // 1ª edição (rodadas 3-7)
-            2: { rodadaBase: 10 }, // 2ª edição (rodadas 10-14)
-            3: { rodadaBase: 16 }, // 3ª edição (rodadas 16-21)
-            4: { rodadaBase: 24 }, // 4ª edição (rodadas 24-28)
-            5: { rodadaBase: 31 }, // 5ª edição (rodadas 31-35)
+            1: { rodadaBase: 3 },
+            2: { rodadaBase: 10 },
+            3: { rodadaBase: 16 },
+            4: { rodadaBase: 24 },
+            5: { rodadaBase: 31 },
         };
 
         const faseOffset = {
@@ -458,109 +345,36 @@ export class FluxoFinanceiroCache {
         const config = edicaoConfig[edicao];
         const offset = faseOffset[fase];
 
-        if (!config || offset === undefined) {
-            console.warn(
-                `[FluxoFinanceiroCache] Configuração inválida: edição=${edicao}, fase=${fase}`,
-            );
-            return 0;
-        }
-
-        // CORREÇÃO ESPECIAL: Edição 5 não tem semis
-        if (edicao === 5 && fase === "final") {
-            return config.rodadaBase + 4; // Pula semis
-        }
+        if (!config || offset === undefined) return 0;
+        if (edicao === 5 && fase === "final") return config.rodadaBase + 4;
 
         return config.rodadaBase + offset;
     }
 
-    /**
-     * Obtém ranking de uma rodada específica
-     */
     getRankingRodada(rodada) {
         return this.cacheRankings[rodada] || [];
     }
 
-    /**
-     * Obtém confrontos de pontos corridos
-     */
     getConfrontosPontosCorridos() {
         return this.cacheFrontosPontosCorridos;
     }
 
-    /**
-     * Obtém resultados do mata-mata
-     */
     getResultadosMataMata() {
         return this.cacheResultadosMM;
     }
 
-    /**
-     * Obtém confrontos LPC (Liga Pontos Corridos)
-     */
     getConfrontosLPC() {
         return this.cacheConfrontosLPC;
     }
 
-    /**
-     * Obtém resultados do melhor mês
-     */
     getResultadosMelhorMes() {
         return this.cacheResultadosMelhorMes;
     }
 
-    /**
-     * Obtém participantes
-     */
     getParticipantes() {
         return this.participantes;
     }
 
-    /**
-     * Carrega dados dos confrontos de pontos corridos
-     */
-    async carregarDadosPontosCorridos() {
-        const ligaId = this.ligaId || getLigaId();
-        if (ligaId === ID_SUPERCARTOLA_2025) {
-            try {
-                this.timesLiga = await buscarTimesLiga(ligaId);
-                this.timesLiga = this.timesLiga.filter(
-                    (t) => t && typeof t.id === "number",
-                );
-
-                if (this.timesLiga.length > 0) {
-                    this.cacheFrontosPontosCorridos = gerarConfrontos(
-                        this.timesLiga,
-                    );
-                    console.log(
-                        "[FluxoFinanceiroCache] Confrontos Pontos Corridos carregados:",
-                        this.cacheFrontosPontosCorridos.length,
-                        "rodadas",
-                    );
-                }
-            } catch (error) {
-                console.error(
-                    "Erro ao carregar times para Pontos Corridos:",
-                    error,
-                );
-                this.timesLiga = [];
-                this.cacheFrontosPontosCorridos = [];
-            }
-        }
-    }
-
-    /**
-     * Verifica se há confrontos carregados
-     */
-    hasConfrontosPontosCorridos() {
-        return (
-            this.cacheFrontosPontosCorridos &&
-            this.cacheFrontosPontosCorridos.length > 0
-        );
-    }
-
-    /**
-     * Método de debug para verificar estado do cache MELHORADO
-     */
     debugCache() {
         const stats = {
             participantes: this.participantes?.length || 0,
@@ -569,188 +383,9 @@ export class FluxoFinanceiroCache {
                 this.cacheFrontosPontosCorridos?.length || 0,
             resultadosMataMata: this.cacheResultadosMM?.length || 0,
             ultimaRodadaCompleta: this.ultimaRodadaCompleta,
-            rodadasComDados: [],
         };
-
-        // Verificar quais rodadas têm dados
-        for (
-            let rodada = 1;
-            rodada <= (this.ultimaRodadaCompleta || 20);
-            rodada++
-        ) {
-            const ranking = this.getRankingRodada(rodada);
-            if (ranking && ranking.length > 0) {
-                stats.rodadasComDados.push(rodada);
-            }
-        }
 
         console.log("[FLUXO-CACHE] Estado do cache:", stats);
-
-        // DEBUG Mata-Mata
-        if (this.cacheResultadosMM.length > 0) {
-            console.log(
-                "[FLUXO-CACHE] DEBUG Mata-Mata - Primeiros 5 registros:",
-                this.cacheResultadosMM.slice(0, 5),
-            );
-
-            // Agrupar por rodada para debug
-            const porRodada = {};
-            this.cacheResultadosMM.forEach((r) => {
-                if (!porRodada[r.rodadaPontos]) porRodada[r.rodadaPontos] = 0;
-                porRodada[r.rodadaPontos]++;
-            });
-            console.log(
-                "[FLUXO-CACHE] DEBUG Mata-Mata - Registros por rodada:",
-                porRodada,
-            );
-        }
-
-        // Verificar um ranking específico como exemplo
-        if (stats.rodadasComDados.length > 0) {
-            const primeiraRodada = stats.rodadasComDados[0];
-            const exemploRanking = this.getRankingRodada(primeiraRodada);
-            console.log(
-                `[FLUXO-CACHE] Exemplo ranking rodada ${primeiraRodada} (${exemploRanking.length} times):`,
-                exemploRanking.slice(0, 3).map((r) => ({
-                    timeId: r.timeId || r.time_id || r.id,
-                    nome: r.nome_cartola || r.nome_cartoleiro,
-                    pontos: r.pontos,
-                })),
-            );
-        }
-
         return stats;
-    }
-
-    /**
-     * Obtém dados completos do cache para debug
-     */
-    getDadosCompletos() {
-        return {
-            rankings: this.cacheRankings,
-            confrontosLPC: this.cacheConfrontosLPC,
-            resultadosMM: this.cacheResultadosMM,
-            resultadosMelhorMes: this.cacheResultadosMelhorMes,
-            confrontosPontosCorridos: this.cacheFrontosPontosCorridos,
-            timesLiga: this.timesLiga,
-            participantes: this.participantes,
-            ultimaRodadaCompleta: this.ultimaRodadaCompleta,
-        };
-    }
-}
-
-// CACHE MANAGER (mantido do arquivo original)
-const CACHE_CONFIG = {
-    ttl: 60 * 60 * 1000, // 1 hora
-    maxItens: 1000, // Tamanho máximo do cache
-    prefixes: {
-        participantes: "part_",
-        gols: "gols_",
-        completo: "comp_",
-        config: "conf_",
-        rodada: "rod_",
-        detalhamento: "det_",
-    },
-};
-
-class CacheManager {
-    constructor(config = CACHE_CONFIG) {
-        this.cache = new Map();
-        this.ttl = config.ttl || CACHE_CONFIG.ttl;
-        this.maxItens = config.maxItens || CACHE_CONFIG.maxItens;
-        this.config = config;
-        this.filaDeExpiracao = [];
-        this.iniciarLimpezaAutomatica();
-    }
-
-    set(chave, valor, ttl = this.ttl) {
-        if (this.cache.size >= this.maxItens) {
-            this.limparCache();
-        }
-
-        const tempoDeExpiracao = Date.now() + ttl;
-        this.cache.set(chave, {
-            valor,
-            expiraEm: tempoDeExpiracao,
-        });
-
-        this.adicionarAFilaDeExpiracao(chave, tempoDeExpiracao);
-    }
-
-    get(chave) {
-        const item = this.cache.get(chave);
-        if (!item) return undefined;
-
-        if (item.expiraEm <= Date.now()) {
-            this.deletar(chave);
-            return undefined;
-        }
-
-        return item.valor;
-    }
-
-    deletar(chave) {
-        if (this.cache.has(chave)) {
-            this.cache.delete(chave);
-            this.removerDaFilaDeExpiracao(chave);
-        }
-    }
-
-    limparCache() {
-        this.cache.clear();
-        this.filaDeExpiracao = [];
-        console.warn("[CACHE] Cache limpo manualmente!");
-    }
-
-    adicionarAFilaDeExpiracao(chave, tempoDeExpiracao) {
-        this.filaDeExpiracao.push({ chave, tempoDeExpiracao });
-        this.filaDeExpiracao.sort(
-            (a, b) => a.tempoDeExpiracao - b.tempoDeExpiracao,
-        );
-    }
-
-    removerDaFilaDeExpiracao(chave) {
-        this.filaDeExpiracao = this.filaDeExpiracao.filter(
-            (item) => item.chave !== chave,
-        );
-    }
-
-    limparExpirados() {
-        const agora = Date.now();
-        let chavesDeletadas = 0;
-
-        while (
-            this.filaDeExpiracao.length > 0 &&
-            this.filaDeExpiracao[0].tempoDeExpiracao <= agora
-        ) {
-            const item = this.filaDeExpiracao.shift();
-            if (this.cache.has(item.chave)) {
-                this.deletar(item.chave);
-                chavesDeletadas++;
-            }
-        }
-
-        if (chavesDeletadas > 0) {
-            console.log(
-                `[CACHE] Limpeza automática removeu ${chavesDeletadas} itens expirados.`,
-            );
-        }
-    }
-
-    getDetalhamentoPorRodada(timeId) {
-        const chave = `${CACHE_CONFIG.prefixes.detalhamento}${timeId}`;
-        return this.get(chave) || [];
-    }
-
-    setDetalhamentoPorRodada(timeId, detalhamento) {
-        const chave = `${CACHE_CONFIG.prefixes.detalhamento}${timeId}`;
-        this.set(chave, detalhamento);
-    }
-
-    iniciarLimpezaAutomatica(intervalo = 5 * 60 * 1000) {
-        // 5 minutos
-        setInterval(() => {
-            this.limparExpirados();
-        }, intervalo);
     }
 }

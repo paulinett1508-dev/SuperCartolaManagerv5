@@ -1,6 +1,6 @@
-/* PARTICIPANTES CSS - Módulo Específico Melhorado
+/* PARTICIPANTES CSS - Módulo Específico OTIMIZADO
    Arquivo: public/css/modules/participantes.css
-   Baseado nos padrões UX do sistema
+   PERFORMANCE: Efeitos pesados removidos, funcionalidade 100% preservada
 */
 
 /* === CONTAINER PRINCIPAL === */
@@ -82,12 +82,10 @@
   display: flex;
   align-items: center;
   gap: var(--spacing-sm);
-  transition: all 0.3s ease;
+  transition: border-color 0.2s ease;
 }
 
 .stat-card:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 8px 25px rgba(255, 69, 0, 0.2);
   border-color: rgba(255, 69, 0, 0.3);
 }
 
@@ -237,39 +235,23 @@
   padding: var(--spacing-sm) 0;
 }
 
-/* === CARDS DE PARTICIPANTE === */
+/* === CARDS DE PARTICIPANTE (OTIMIZADO) === */
 .participante-card {
   background: var(--bg-card);
   border: 1px solid rgba(255, 69, 0, 0.1);
   border-radius: var(--border-radius-md);
   padding: var(--spacing-md);
-  transition: all 0.3s ease;
+  transition: border-color 0.2s ease, background-color 0.2s ease;
   position: relative;
   overflow: hidden;
   cursor: pointer;
-  animation: fadeInUp 0.5s ease forwards;
-  opacity: 0;
 }
 
+/* HOVER OTIMIZADO - Apenas mudança de cor */
 .participante-card:hover {
-  transform: translateY(-3px);
-  box-shadow: 0 8px 25px rgba(255, 69, 0, 0.3);
   border-color: rgba(255, 69, 0, 0.4);
+  background: rgba(255, 69, 0, 0.03);
 }
-
-/* === ANIMAÇÃO STAGGERED === */
-.participante-card[data-delay="0"] { animation-delay: 0.05s; }
-.participante-card[data-delay="1"] { animation-delay: 0.10s; }
-.participante-card[data-delay="2"] { animation-delay: 0.15s; }
-.participante-card[data-delay="3"] { animation-delay: 0.20s; }
-.participante-card[data-delay="4"] { animation-delay: 0.25s; }
-.participante-card[data-delay="5"] { animation-delay: 0.30s; }
-.participante-card[data-delay="6"] { animation-delay: 0.35s; }
-.participante-card[data-delay="7"] { animation-delay: 0.40s; }
-.participante-card[data-delay="8"] { animation-delay: 0.45s; }
-.participante-card[data-delay="9"] { animation-delay: 0.50s; }
-
-.participante-card:nth-child(n+11) { animation-delay: 0.5s; }
 
 /* === HEADER DO CARD === */
 .participante-header {
@@ -364,7 +346,7 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  transition: all 0.3s ease;
+  transition: border-color 0.2s ease;
   background: var(--bg-primary);
   border: 2px solid rgba(255, 69, 0, 0.2);
 }
@@ -413,11 +395,6 @@
   color: var(--laranja);
   font-size: 16px;
   margin: 0 8px;
-}
-
-/* Hover nos brasões */
-.participante-card:hover .brasao-circle {
-  transform: scale(1.05);
 }
 
 /* === LOADING STATES === */
@@ -516,18 +493,7 @@
   transform: translateY(-1px);
 }
 
-/* === ANIMAÇÕES === */
-@keyframes fadeInUp {
-  from {
-    opacity: 0;
-    transform: translateY(20px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
-}
-
+/* === ANIMAÇÕES (MANTIDAS) === */
 @keyframes pulse {
   0%, 100% { opacity: 1; }
   50% { opacity: 0.5; }
