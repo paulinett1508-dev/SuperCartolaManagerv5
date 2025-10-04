@@ -11,9 +11,9 @@ const CARDS_CONFIG = {
         reason: "Prêmios não se aplicam a esta liga",
     },
 
-    // Cartoleiros do Sobral - Desabilitar Competições individuais  
+    // Cartoleiros do Sobral - Desabilitar Competições individuais e Melhor do Mês
     "684d821cf1a7ae16d1f89572": {
-        disabled: ["mata-mata", "pontos-corridos"],
+        disabled: ["mata-mata", "pontos-corridos", "melhor-mes"],
         reason: "Competições não se aplicam a esta liga",
     },
 
