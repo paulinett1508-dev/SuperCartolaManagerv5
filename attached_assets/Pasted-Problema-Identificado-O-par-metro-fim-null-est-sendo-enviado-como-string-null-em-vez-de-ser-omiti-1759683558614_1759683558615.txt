@@ -1,0 +1,73 @@
+Problema Identificado
+O parâmetro fim=null está sendo enviado como string "null" em vez de ser omitido quando não há valor.
+Correção no luva-de-ouro-orquestrador.js
+Localize a função mostrarDetalhes() (linha ~367) e corrija:
+javascriptasync mostrarDetalhes(participanteId, participanteNome) {
+  console.log(`Carregando detalhes de ${participanteNome} (${participanteId})`);
+
+  try {
+    const config = window.LuvaDeOuroConfig;
+    const inicio = parseInt(document.getElementById(config.SELECTORS.RODADA_INICIO.substring(1))?.value) || config.RODADAS.DEFAULT_INICIO;
+    
+    // ✅ CORREÇÃO: Só enviar 'fim' se tiver valor válido
+    const fimInput = document.getElementById(config.SELECTORS.RODADA_FIM.substring(1))?.value;
+    const fim = fimInput ? parseInt(fimInput) : null;
+
+    // Tentar cache
+    let dados = window.LuvaDeOuroCache.get('detalhes', { participanteId, inicio, fim });
+
+    // Se não tem cache, buscar da API
+    if (!dados) {
+      dados = await window.LuvaDeOuroCore.buscarDetalhesParticipante(participanteId, inicio, fim);
+      window.LuvaDeOuroCache.set('detalhes', { participanteId, inicio, fim }, dados);
+    }
+
+    // Criar modal
+    window.LuvaDeOuroUtils.criarModalDetalhes(dados);
+  } catch (error) {
+    console.error("❌ Erro ao buscar detalhes:", error);
+    alert(`Erro ao carregar detalhes de ${participanteNome}: ${error.message}`);
+  }
+}
+Correção no luva-de-ouro-core.js
+Localize a função buscarDetalhesParticipante() e ajuste para não enviar fim=null:
+javascriptasync buscarDetalhesParticipante(participanteId, inicio, fim) {
+  console.log(`🔍 Buscando detalhes do participante ${participanteId}`);
+
+  try {
+    const config = window.LuvaDeOuroConfig;
+    
+    // ✅ CORREÇÃO: Construir URL sem 'fim=null'
+    let url = `${config.API.DETALHES_PARTICIPANTE(config.LIGA_SOBRAL_ID, participanteId)}?inicio=${inicio}`;
+    
+    // Só adicionar 'fim' se tiver valor válido
+    if (fim !== null && fim !== undefined) {
+      url += `&fim=${fim}`;
+    }
+    
+    const response = await fetch(url);
+
+    if (!response.ok) {
+      throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+    }
+
+    const data = await response.json();
+
+    if (!data.success) {
+      throw new Error(data.error || "Erro ao buscar detalhes");
+    }
+
+    console.log("✅ Detalhes obtidos");
+    return data.data;
+  } catch (error) {
+    console.error("❌ Erro ao buscar detalhes:", error);
+    throw error;
+  }
+}
+Com essas correções, a URL será:
+
+✅ /detalhes?inicio=1 (quando fim está vazio)
+✅ /detalhes?inicio=1&fim=26 (quando fim tem valor)
+❌ /detalhes?inicio=1&fim=null (não vai mais acontecer)
+
+Aplique essas correções e o botão de detalhes funcionará perfeitamente.
