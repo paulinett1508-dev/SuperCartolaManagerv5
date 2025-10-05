@@ -119,7 +119,15 @@ const LuvaDeOuroCore = {
 
     try {
       const config = window.LuvaDeOuroConfig;
-      const url = `${config.API.DETALHES_PARTICIPANTE(config.LIGA_SOBRAL_ID, participanteId)}?inicio=${inicio}&fim=${fim}`;
+      
+      // ✅ CORREÇÃO: Construir URL sem 'fim=null'
+      let url = `${config.API.DETALHES_PARTICIPANTE(config.LIGA_SOBRAL_ID, participanteId)}?inicio=${inicio}`;
+      
+      // Só adicionar 'fim' se tiver valor válido
+      if (fim !== null && fim !== undefined && !isNaN(fim)) {
+        url += `&fim=${fim}`;
+      }
+      
       const response = await fetch(url);
 
       if (!response.ok) {

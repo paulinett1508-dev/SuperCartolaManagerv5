@@ -398,7 +398,7 @@ class LuvaDeOuroController {
   static async obterDetalhesParticipante(req, res) {
     try {
       const { ligaId, participanteId } = req.params;
-      const { inicio = 1, fim = 14 } = req.query;
+      const { inicio = 1, fim } = req.query;
 
       console.log(`🥅 [LUVA-OURO] Detalhes do participante ${participanteId} - Liga: ${ligaId}`);
       console.log(`📊 Parâmetros: início=${inicio}, fim=${fim}`);
@@ -412,7 +412,21 @@ class LuvaDeOuroController {
       }
 
       const rodadaInicio = parseInt(inicio);
-      const rodadaFim = parseInt(fim);
+      // ✅ CORREÇÃO: Detectar rodada fim se não fornecida
+      let rodadaFim = fim ? parseInt(fim) : null;
+      
+      // Se fim não foi especificado, detectar automaticamente
+      if (!rodadaFim || isNaN(rodadaFim)) {
+        try {
+          const { detectarUltimaRodadaConcluida } = await import("../services/goleirosService.js");
+          const deteccao = await detectarUltimaRodadaConcluida();
+          rodadaFim = deteccao.recomendacao || 26;
+          console.log(`📅 Rodada fim detectada automaticamente: ${rodadaFim}`);
+        } catch (error) {
+          rodadaFim = 26; // fallback
+        }
+      }
+      
       const timeId = parseInt(participanteId);
 
       // Validar parâmetros
