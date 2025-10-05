@@ -1,0 +1,43 @@
+Correção Necessária
+Localize a função loadModules() e substitua esta linha:
+javascriptthis.modules.luvaDeOuro = await import("./luva-de-ouro.js");
+Por este bloco:
+javascript// Luva de Ouro - Carregar módulos na ordem correta
+await import("./luva-de-ouro/luva-de-ouro-config.js");
+await import("./luva-de-ouro/luva-de-ouro-core.js");
+await import("./luva-de-ouro/luva-de-ouro-ui.js");
+await import("./luva-de-ouro/luva-de-ouro-utils.js");
+await import("./luva-de-ouro/luva-de-ouro-cache.js");
+await import("./luva-de-ouro/luva-de-ouro-orquestrador.js");
+this.modules.luvaDeOuro = await import("./luva-de-ouro.js"); // Entry point por último
+📄 Função loadModules() Corrigida Completa:
+javascriptasync loadModules() {
+    try {
+        this.modules.ranking = await import("./ranking.js");
+        
+        // Rodadas com função de carregamento
+        const rodadasModule = await import("./rodadas.js");
+        window.carregarRodadas = rodadasModule.carregarRodadas;
+        
+        this.modules.mataMata = await import("./mata-mata.js");
+        this.modules.pontosCorreidos = await import("./pontos-corridos.js");
+        
+        // 🥅 LUVA DE OURO - Carregar módulos na ordem correta
+        console.log('📦 Carregando módulos Luva de Ouro...');
+        await import("./luva-de-ouro/luva-de-ouro-config.js");
+        await import("./luva-de-ouro/luva-de-ouro-core.js");
+        await import("./luva-de-ouro/luva-de-ouro-ui.js");
+        await import("./luva-de-ouro/luva-de-ouro-utils.js");
+        await import("./luva-de-ouro/luva-de-ouro-cache.js");
+        await import("./luva-de-ouro/luva-de-ouro-orquestrador.js");
+        this.modules.luvaDeOuro = await import("./luva-de-ouro.js");
+        console.log('✅ Módulos Luva de Ouro carregados');
+        
+        this.modules.artilheiroCampeao = await import("./artilheiro-campeao.js");
+        this.modules.melhorMes = await import("./melhor-mes.js");
+        this.modules.top10 = await import("./top10.js");
+        this.modules.fluxoFinanceiro = await import("./fluxo-financeiro.js");
+    } catch (error) {
+        console.error("Erro ao carregar módulos:", error);
+    }
+}

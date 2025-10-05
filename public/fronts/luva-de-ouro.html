@@ -1,0 +1,40 @@
+<!-- public/templates/luva-de-ouro.html -->
+<div class="module-content">
+  <!-- Container principal do módulo -->
+  <div id="luvaDeOuroContent">
+    <!-- Conteúdo será injetado dinamicamente pelo orquestrador -->
+  </div>
+
+  <!-- Container para botão de exportação -->
+  <div
+    id="luvaDeOuroExportBtnContainer"
+    style="margin-top: 20px; text-align: center"
+  >
+    <!-- Botão será injetado dinamicamente após carregar ranking -->
+  </div>
+</div>
+
+<script>
+  // Inicialização automática do módulo
+  (function () {
+    console.log("🥅 [LUVA-HTML] Inicializando módulo Luva de Ouro...");
+
+    // Aguardar DOM e módulos estarem prontos
+    function tentarInicializar() {
+      if (typeof window.inicializarLuvaDeOuro === "function") {
+        console.log("✅ [LUVA-HTML] Função encontrada, inicializando...");
+        window.inicializarLuvaDeOuro();
+      } else {
+        console.log("⏳ [LUVA-HTML] Aguardando módulos carregarem...");
+        setTimeout(tentarInicializar, 200);
+      }
+    }
+
+    // Iniciar verificação
+    if (document.readyState === "loading") {
+      document.addEventListener("DOMContentLoaded", tentarInicializar);
+    } else {
+      tentarInicializar();
+    }
+  })();
+</script>
