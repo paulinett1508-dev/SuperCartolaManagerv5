@@ -248,7 +248,9 @@ const LuvaDeOuroUI = {
           <div style="font-size: 9px; color: #6c757d; line-height: 1.2;">R${item.ultimaRodada?.rodada || "-"}</div>
         </td>
         <td style="padding: 8px 6px; text-align: center; vertical-align: middle;">
-          <button class="btn-detalhes" onclick="window.LuvaDeOuroOrquestrador.mostrarDetalhes(${item.participanteId}, '${item.participanteNome.replace(/'/g, "\\'")}'))" 
+          <button class="btn-detalhes" 
+                  data-participante-id="${item.participanteId}" 
+                  data-participante-nome="${item.participanteNome}"
                   style="background: linear-gradient(135deg, #3498db, #2980b9); color: white; border: none; padding: 4px 8px; border-radius: 4px; cursor: pointer; font-size: 10px; font-weight: 500; transition: all 0.2s ease; box-shadow: 0 1px 3px rgba(52, 152, 219, 0.3);"
                   onmouseover="this.style.transform='translateY(-1px)'; this.style.boxShadow='0 2px 6px rgba(52, 152, 219, 0.4)'"
                   onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='0 1px 3px rgba(52, 152, 219, 0.3)'">

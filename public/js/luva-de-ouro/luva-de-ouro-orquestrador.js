@@ -61,31 +61,36 @@ const LuvaDeOuroOrquestrador = {
   configurarEventos() {
     const config = window.LuvaDeOuroConfig;
 
-    // Botão Gerar Ranking
-    const btnRanking = document.getElementById(
-      config.SELECTORS.BTN_RANKING.substring(1),
-    );
+    // Botão de gerar ranking
+    const btnRanking = document.getElementById("luvaRankingBtn");
     if (btnRanking) {
-      btnRanking.onclick = () => this.carregarRanking(false);
+      btnRanking.addEventListener("click", () => this.carregarRanking(false));
     }
 
-    // Botão Até Última Rodada
-    const btnUltimaRodada = document.getElementById(
-      config.SELECTORS.BTN_ULTIMA_RODADA.substring(1),
-    );
+    // Botão de última rodada
+    const btnUltimaRodada = document.getElementById("luvaUltimaRodadaBtn");
     if (btnUltimaRodada) {
-      btnUltimaRodada.onclick = async () => {
-        await this.detectarECarregarRodada();
-      };
+      btnUltimaRodada.addEventListener("click", () =>
+        this.detectarUltimaRodada(),
+      );
     }
 
-    // Botão Forçar Coleta
-    const btnForcarColeta = document.getElementById(
-      config.SELECTORS.BTN_FORCAR_COLETA.substring(1),
-    );
+    // Botão de forçar coleta
+    const btnForcarColeta = document.getElementById("luvaForcarColetaBtn");
     if (btnForcarColeta) {
-      btnForcarColeta.onclick = () => this.carregarRanking(true);
+      btnForcarColeta.addEventListener("click", () => this.carregarRanking(true));
     }
+
+    // Delegação de eventos para botões de detalhes (data-attributes)
+    document.addEventListener('click', (e) => {
+      if (e.target.classList.contains('btn-detalhes')) {
+        const id = e.target.dataset.participanteId;
+        const nome = e.target.dataset.participanteNome;
+        if (id && nome) {
+          this.mostrarDetalhes(parseInt(id), nome);
+        }
+      }
+    });
 
     console.log("📋 Eventos configurados");
   },
@@ -194,8 +199,8 @@ const LuvaDeOuroOrquestrador = {
 
       if (infoContainer) {
         infoContainer.innerHTML = `
-          <strong>Rodada atual:</strong> ${deteccao.rodadaAtualCartola} | 
-          <strong>Mercado:</strong> ${deteccao.mercadoFechado ? "Fechado" : "Aberto"} | 
+          <strong>Rodada atual:</strong> ${deteccao.rodadaAtualCartola} |
+          <strong>Mercado:</strong> ${deteccao.mercadoFechado ? "Fechado" : "Aberto"} |
           <strong>Recomendado:</strong> até rodada ${deteccao.recomendacao}
         `;
       }
