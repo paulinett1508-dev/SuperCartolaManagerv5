@@ -517,10 +517,19 @@ class DetalheLigaOrquestrador {
             window.carregarRodadas = rodadasModule.carregarRodadas;
             this.modules.mataMata = await import("./mata-mata.js");
             this.modules.pontosCorreidos = await import("./pontos-corridos.js");
+
+            // 🥅 LUVA DE OURO - Carregar módulos na ordem correta
+            console.log('📦 Carregando módulos Luva de Ouro...');
+            await import("./luva-de-ouro/luva-de-ouro-config.js");
+            await import("./luva-de-ouro/luva-de-ouro-core.js");
+            await import("./luva-de-ouro/luva-de-ouro-ui.js");
+            await import("./luva-de-ouro/luva-de-ouro-utils.js");
+            await import("./luva-de-ouro/luva-de-ouro-cache.js");
+            await import("./luva-de-ouro/luva-de-ouro-orquestrador.js");
             this.modules.luvaDeOuro = await import("./luva-de-ouro.js");
-            this.modules.artilheiroCampeao = await import(
-                "./artilheiro-campeao.js"
-            );
+            console.log('✅ Módulos Luva de Ouro carregados');
+
+            this.modules.artilheiroCampeao = await import("./artilheiro-campeao.js");
             this.modules.melhorMes = await import("./melhor-mes.js");
             this.modules.top10 = await import("./top10.js");
             this.modules.fluxoFinanceiro = await import(
