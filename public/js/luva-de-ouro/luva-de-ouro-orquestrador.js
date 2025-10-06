@@ -152,6 +152,26 @@ const LuvaDeOuroOrquestrador = {
         window.LuvaDeOuroCache.set("ranking", { inicio, fim }, dados);
       }
 
+      // Buscar participantes para escudos corretos
+      const resPart = await fetch(`/api/luva-de-ouro/${window.LuvaDeOuroConfig.LIGA_SOBRAL_ID}/participantes`);
+      if (resPart.ok) {
+        const payload = await resPart.json();
+        const mapaEscudos = Object.fromEntries(
+          (payload?.data?.participantes || []).map(p => [p.timeId, p.clubeId])
+        );
+
+        // Enriquecer itens do ranking com clubeId (para export)
+        if (dados?.ranking) {
+          dados.ranking = dados.ranking.map(item => ({
+            ...item,
+            clubeId: mapaEscudos[item.participanteId] || item.clubeId
+          }));
+        }
+
+        // Passar mapa dinâmico para a UI
+        dados.escudosParticipantes = mapaEscudos;
+      }
+
       // Atualizar estado
       this.estado.ranking = dados;
 

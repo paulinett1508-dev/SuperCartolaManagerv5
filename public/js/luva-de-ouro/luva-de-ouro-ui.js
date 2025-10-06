@@ -164,11 +164,12 @@ const LuvaDeOuroUI = {
           <tbody>
     `;
 
+    const mapaEscudos = dados.escudosParticipantes || config.ESCUDOS_PARTICIPANTES;
     ranking.forEach((item, index) => {
       html += this.criarLinhaRanking(
         item,
         index,
-        config.ESCUDOS_PARTICIPANTES,
+        mapaEscudos,
         rodadaFim,
       );
     });
