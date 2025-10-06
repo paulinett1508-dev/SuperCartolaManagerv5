@@ -1,0 +1,693 @@
+/* LUVA DE OURO CSS - Módulo Específico - VERSÃO PADRONIZADA
+   Arquivo: public/css/modules/luva-de-ouro.css
+   Usado apenas pelo módulo Luva de Ouro
+
+   ⚠️ IMPORTANTE: Este CSS deve ser referenciado no HTML que carrega o módulo
+   Exemplo: <link rel="stylesheet" href="/css/modules/luva-de-ouro.css">
+*/
+
+/* === CONTAINER PRINCIPAL === */
+#luvaDeOuroContent {
+  background: var(--bg-card);
+  border-radius: var(--border-radius-md);
+  padding: var(--spacing-lg);
+  margin: var(--spacing-md) 0;
+  border: 1px solid rgba(255, 69, 0, 0.1);
+  position: relative;
+  overflow: hidden;
+}
+
+#luvaDeOuroContent::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 3px;
+  background: linear-gradient(135deg, var(--laranja) 0%, var(--laranja-dark) 100%);
+}
+
+/* === CONTROLES === */
+.controls-section {
+  background: var(--bg-secondary);
+  border: 1px solid rgba(255, 69, 0, 0.1);
+  border-radius: var(--border-radius-md);
+  padding: var(--spacing-md);
+  margin-bottom: var(--spacing-md);
+  border-left: 4px solid var(--laranja);
+}
+
+.controls-header h3 {
+  font: 600 16px "Inter", -apple-system, sans-serif;
+  color: var(--text-primary);
+  margin: 0 0 var(--spacing-sm) 0;
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-xs);
+}
+
+.controls-header h3::before {
+  content: '🥅';
+  font-size: 20px;
+}
+
+.controls-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: var(--spacing-sm);
+  margin-bottom: var(--spacing-sm);
+}
+
+.control-group {
+  display: flex;
+  flex-direction: column;
+}
+
+.control-group label {
+  font: 500 12px "Inter", -apple-system, sans-serif;
+  color: var(--text-secondary);
+  margin-bottom: 4px;
+  text-transform: uppercase;
+  letter-spacing: 0.3px;
+}
+
+.form-control {
+  width: 100%;
+  padding: 8px 12px;
+  border: 1px solid rgba(255, 69, 0, 0.2);
+  border-radius: 4px;
+  font: 500 13px "Inter", -apple-system, sans-serif;
+  color: var(--text-primary);
+  background: var(--bg-card);
+  transition: all 0.2s ease;
+}
+
+.form-control:focus {
+  outline: none;
+  border-color: var(--laranja);
+  box-shadow: 0 0 0 3px rgba(255, 69, 0, 0.1);
+}
+
+.controls-actions {
+  display: flex;
+  gap: var(--spacing-xs);
+  flex-wrap: wrap;
+  margin-bottom: var(--spacing-sm);
+}
+
+.info-box {
+  padding: var(--spacing-sm);
+  background: rgba(255, 69, 0, 0.05);
+  border: 1px solid rgba(255, 69, 0, 0.15);
+  border-radius: 4px;
+  font: 500 12px "Inter", -apple-system, sans-serif;
+  color: var(--text-primary);
+}
+
+#luvaInfoTexto {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+/* === HEADER RANKING === */
+.ranking-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: var(--spacing-sm);
+  margin-bottom: var(--spacing-md);
+  padding-bottom: var(--spacing-sm);
+  border-bottom: 2px solid rgba(255, 69, 0, 0.2);
+}
+
+.ranking-header h3 {
+  font: 700 20px "Inter", -apple-system, sans-serif;
+  color: var(--text-primary);
+  margin: 0;
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-xs);
+}
+
+.ranking-meta {
+  display: flex;
+  gap: var(--spacing-xs);
+  flex-wrap: wrap;
+}
+
+.badge {
+  padding: 4px 10px;
+  background: rgba(255, 69, 0, 0.1);
+  border: 1px solid rgba(255, 69, 0, 0.2);
+  border-radius: 12px;
+  font: 600 11px "Inter", -apple-system, sans-serif;
+  color: var(--laranja);
+  text-transform: uppercase;
+  letter-spacing: 0.3px;
+}
+
+/* === TABELA === */
+.table-container {
+  overflow-x: auto;
+  border-radius: var(--border-radius-md);
+  border: 1px solid rgba(255, 69, 0, 0.1);
+  margin-bottom: var(--spacing-md);
+}
+
+.ranking-table {
+  width: 100%;
+  min-width: 700px;
+  border-collapse: separate;
+  border-spacing: 0;
+  background: var(--bg-card);
+}
+
+.ranking-table thead {
+  background: linear-gradient(135deg, var(--laranja) 0%, var(--laranja-dark) 100%);
+  position: sticky;
+  top: 0;
+  z-index: 10;
+}
+
+.ranking-table thead th {
+  padding: 10px 8px;
+  text-align: left;
+  font: 600 10px "Inter", -apple-system, sans-serif;
+  color: white;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  white-space: nowrap;
+}
+
+.ranking-table tbody td {
+  padding: 10px 8px;
+  border-top: 1px solid rgba(255, 69, 0, 0.1);
+  vertical-align: middle;
+  font: 500 12px "Inter", -apple-system, sans-serif;
+  color: var(--text-primary);
+}
+
+.ranking-table tbody tr {
+  transition: all 0.2s ease;
+}
+
+.ranking-table tbody tr:hover {
+  background: rgba(255, 69, 0, 0.03);
+}
+
+/* === POSIÇÕES ESPECIAIS === */
+.ranking-row.pos-1 {
+  background: linear-gradient(90deg, rgba(255, 215, 0, 0.15) 0%, transparent 100%);
+  border-left: 3px solid gold;
+}
+
+.ranking-row.pos-2 {
+  background: linear-gradient(90deg, rgba(192, 192, 192, 0.1) 0%, transparent 100%);
+  border-left: 3px solid silver;
+}
+
+.ranking-row.pos-3 {
+  background: linear-gradient(90deg, rgba(205, 127, 50, 0.1) 0%, transparent 100%);
+  border-left: 3px solid #cd7f32;
+}
+
+/* === COLUNAS === */
+.col-pos, 
+.col-escudo, 
+.col-pontos, 
+.col-pontos-rodada, 
+.col-acoes {
+  text-align: center;
+}
+
+.col-pos { width: 70px; }
+.col-escudo { width: 50px; }
+.col-pontos { width: 90px; }
+.col-pontos-rodada { width: 100px; }
+.col-acoes { width: 110px; }
+
+/* === POSIÇÃO === */
+.pos-content {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+}
+
+.pos-numero {
+  font: 700 14px "Inter", -apple-system, sans-serif;
+  color: var(--text-primary);
+}
+
+.pos-icon {
+  font-size: 18px;
+  line-height: 1;
+}
+
+/* === ESCUDO === */
+.escudo-img {
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  border: 2px solid rgba(255, 69, 0, 0.2);
+  object-fit: cover;
+  transition: all 0.2s ease;
+}
+
+.escudo-img:hover {
+  border-color: var(--laranja);
+  transform: scale(1.1);
+}
+
+/* === PARTICIPANTE === */
+.participante-info {
+  text-align: left;
+}
+
+.participante-nome {
+  font: 600 13px "Inter", -apple-system, sans-serif;
+  color: var(--text-primary);
+  margin-bottom: 2px;
+  line-height: 1.3;
+}
+
+.participante-id {
+  font: 500 10px "Inter", -apple-system, sans-serif;
+  color: var(--text-muted);
+  opacity: 0.7;
+}
+
+/* === PONTOS === */
+.pontos-badge {
+  display: inline-block;
+  padding: 5px 12px;
+  background: linear-gradient(135deg, var(--success) 0%, #27ae60 100%);
+  color: white;
+  border-radius: 6px;
+  font: 700 13px "Inter", -apple-system, sans-serif;
+  box-shadow: 0 2px 8px rgba(46, 204, 113, 0.3);
+}
+
+/* === GOLEIRO === */
+.goleiro-info {
+  text-align: left;
+}
+
+.goleiro-nome {
+  font: 600 12px "Inter", -apple-system, sans-serif;
+  color: var(--text-primary);
+  margin-bottom: 2px;
+  line-height: 1.3;
+}
+
+.goleiro-clube {
+  font: 500 10px "Inter", -apple-system, sans-serif;
+  color: var(--text-muted);
+  opacity: 0.7;
+}
+
+/* === PONTOS RODADA === */
+.pontos-rodada {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+}
+
+.pontos-valor {
+  font: 700 13px "Inter", -apple-system, sans-serif;
+}
+
+.pontos-rodada.positivo .pontos-valor {
+  color: var(--success);
+}
+
+.pontos-rodada.negativo .pontos-valor {
+  color: var(--danger);
+}
+
+.pontos-rodada-num {
+  font: 500 9px "Inter", -apple-system, sans-serif;
+  color: var(--text-muted);
+  opacity: 0.7;
+}
+
+/* === BOTÕES === */
+.btn-detalhes {
+  background: rgba(255, 69, 0, 0.1);
+  color: var(--laranja);
+  border: 1px solid rgba(255, 69, 0, 0.3);
+  border-radius: 4px;
+  padding: 6px 10px;
+  font: 600 10px "Inter", -apple-system, sans-serif;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  justify-content: center;
+  text-transform: uppercase;
+  letter-spacing: 0.3px;
+}
+
+.btn-detalhes:hover {
+  background: rgba(255, 69, 0, 0.2);
+  border-color: var(--laranja);
+  transform: translateY(-1px);
+  box-shadow: 0 2px 8px rgba(255, 69, 0, 0.3);
+}
+
+/* === ESTATÍSTICAS === */
+.stats-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: var(--spacing-sm);
+  margin-top: var(--spacing-md);
+}
+
+.stat-card {
+  background: var(--bg-secondary);
+  border: 1px solid rgba(255, 69, 0, 0.1);
+  border-radius: var(--border-radius-md);
+  padding: var(--spacing-md);
+  text-align: center;
+  transition: all 0.3s ease;
+  position: relative;
+  overflow: hidden;
+}
+
+.stat-card::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 2px;
+  background: linear-gradient(90deg, var(--laranja) 0%, var(--laranja-dark) 100%);
+}
+
+.stat-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(255, 69, 0, 0.2);
+  border-color: rgba(255, 69, 0, 0.3);
+}
+
+.stat-icon {
+  font-size: 36px;
+  margin-bottom: var(--spacing-xs);
+  line-height: 1;
+}
+
+.stat-value {
+  font: 700 26px "Inter", -apple-system, sans-serif;
+  color: var(--laranja);
+  margin-bottom: 4px;
+  line-height: 1;
+}
+
+.stat-label {
+  font: 600 12px "Inter", -apple-system, sans-serif;
+  color: var(--text-secondary);
+  margin-bottom: 4px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.stat-detail {
+  font: 500 11px "Inter", -apple-system, sans-serif;
+  color: var(--text-muted);
+  opacity: 0.8;
+}
+
+/* === ESTADOS VAZIOS === */
+.empty-state {
+  text-align: center;
+  padding: var(--spacing-xl) var(--spacing-lg);
+  background: var(--bg-secondary);
+  border-radius: var(--border-radius-md);
+  border: 2px dashed rgba(255, 69, 0, 0.2);
+}
+
+.empty-state.warning {
+  border-color: var(--warning);
+  background: rgba(255, 193, 7, 0.05);
+}
+
+.empty-icon {
+  font-size: 48px;
+  color: var(--text-muted);
+  margin-bottom: var(--spacing-sm);
+  opacity: 0.5;
+}
+
+.empty-state h3,
+.empty-state h4 {
+  font: 600 18px "Inter", -apple-system, sans-serif;
+  color: var(--text-primary);
+  margin: var(--spacing-sm) 0;
+}
+
+.empty-state p {
+  font: 500 13px "Inter", -apple-system, sans-serif;
+  color: var(--text-secondary);
+  margin: var(--spacing-xs) 0;
+}
+
+.empty-details {
+  margin: var(--spacing-md) auto;
+  max-width: 400px;
+  text-align: left;
+  background: var(--bg-card);
+  padding: var(--spacing-sm);
+  border-radius: 4px;
+  border: 1px solid rgba(255, 69, 0, 0.1);
+}
+
+.empty-details ul {
+  margin: var(--spacing-xs) 0;
+  padding-left: 20px;
+}
+
+.empty-details li {
+  font: 500 12px "Inter", -apple-system, sans-serif;
+  color: var(--text-secondary);
+  margin: 4px 0;
+}
+
+.empty-stats {
+  display: flex;
+  gap: var(--spacing-md);
+  justify-content: center;
+  margin: var(--spacing-md) 0;
+}
+
+.empty-stats span {
+  font: 500 13px "Inter", -apple-system, sans-serif;
+  color: var(--text-secondary);
+}
+
+.empty-stats strong {
+  color: var(--laranja);
+  font-weight: 700;
+}
+
+.empty-actions {
+  display: flex;
+  gap: var(--spacing-xs);
+  justify-content: center;
+  margin-top: var(--spacing-md);
+}
+
+/* === LOADING === */
+.loading-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: var(--spacing-sm);
+  padding: var(--spacing-xl);
+  color: var(--laranja);
+}
+
+.spinner {
+  width: 40px;
+  height: 40px;
+  border: 3px solid rgba(255, 69, 0, 0.2);
+  border-top: 3px solid var(--laranja);
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+}
+
+.loading-state p {
+  font: 500 14px "Inter", -apple-system, sans-serif;
+  color: var(--text-secondary);
+}
+
+/* === ERRO === */
+.error-state {
+  text-align: center;
+  padding: var(--spacing-xl) var(--spacing-lg);
+  background: rgba(231, 76, 60, 0.05);
+  border-radius: var(--border-radius-md);
+  border: 2px solid rgba(231, 76, 60, 0.2);
+}
+
+.error-icon {
+  font-size: 48px;
+  color: var(--danger);
+  margin-bottom: var(--spacing-sm);
+}
+
+.error-state h4 {
+  font: 600 18px "Inter", -apple-system, sans-serif;
+  color: var(--danger);
+  margin: var(--spacing-sm) 0;
+}
+
+.error-message {
+  font: 500 13px "Inter", -apple-system, sans-serif;
+  color: var(--text-secondary);
+  margin: var(--spacing-xs) 0;
+}
+
+.error-details {
+  font: 400 12px "Fira Code", monospace;
+  color: var(--text-muted);
+  background: var(--bg-card);
+  padding: var(--spacing-sm);
+  border-radius: 4px;
+  margin: var(--spacing-sm) 0;
+  max-width: 600px;
+  margin-left: auto;
+  margin-right: auto;
+  overflow-x: auto;
+}
+
+/* === EXPORTAÇÃO === */
+#luvaDeOuroExportBtnContainer {
+  text-align: center;
+  margin-top: var(--spacing-md);
+  padding-top: var(--spacing-md);
+  border-top: 1px solid rgba(255, 69, 0, 0.1);
+}
+
+.btn-export {
+  background: linear-gradient(135deg, #2E8B57 0%, #32CD32 100%);
+  color: white;
+  border: none;
+  border-radius: 6px;
+  padding: 10px 20px;
+  font: 600 13px "Inter", -apple-system, sans-serif;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  box-shadow: 0 4px 15px rgba(46, 139, 87, 0.3);
+  display: inline-flex;
+  align-items: center;
+  gap: var(--spacing-xs);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.btn-export:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(46, 139, 87, 0.4);
+}
+
+/* === ANIMAÇÕES === */
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+/* === RESPONSIVIDADE === */
+@media (max-width: 768px) {
+  #luvaDeOuroContent {
+    padding: var(--spacing-md);
+  }
+
+  .ranking-header {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .ranking-header h3 {
+    font-size: 16px;
+  }
+
+  .controls-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .controls-actions {
+    flex-direction: column;
+  }
+
+  .controls-actions .btn {
+    width: 100%;
+  }
+
+  .stats-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .ranking-table {
+    min-width: 600px;
+  }
+
+  .ranking-table thead th,
+  .ranking-table tbody td {
+    padding: 8px 4px;
+    font-size: 10px;
+  }
+
+  .col-goleiro,
+  .col-pontos-rodada {
+    display: none;
+  }
+
+  .escudo-img {
+    width: 24px;
+    height: 24px;
+  }
+
+  .participante-nome {
+    font-size: 11px;
+  }
+
+  .pontos-badge {
+    padding: 4px 8px;
+    font-size: 11px;
+  }
+}
+
+@media (max-width: 480px) {
+  .ranking-table {
+    min-width: 400px;
+  }
+
+  .col-acoes {
+    display: none;
+  }
+
+  .stat-icon {
+    font-size: 28px;
+  }
+
+  .stat-value {
+    font-size: 20px;
+  }
+
+  .stat-label {
+    font-size: 10px;
+  }
+
+  .empty-state {
+    padding: var(--spacing-md);
+  }
+
+  .empty-icon {
+    font-size: 36px;
+  }
+}
