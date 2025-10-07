@@ -358,6 +358,7 @@ const LuvaDeOuroUtils = {
 
   /**
    * Busca escudos corretos dos participantes (time do coração)
+   * ✅ HARDCODED para Liga Cartoleiros do Sobral
    */
   buscarEscudosParticipantes: function () {
     console.log("[LUVA-UTILS] 🔍 Iniciando busca de escudos...");
@@ -368,17 +369,20 @@ const LuvaDeOuroUtils = {
     // ✅ MAPEAMENTO HARDCODED - Liga Cartoleiros do Sobral
     if (ligaId === "684d821cf1a7ae16d1f89572") {
       const escudos = {
-        1926323: 262,   // Daniel Barbosa - Flamengo
-        13935277: 262,  // Paulinett Miranda - Flamengo
-        14747183: 276,  // Carlos Henrique - São Paulo
-        49149009: 262,  // Matheus Coutinho - Flamengo
-        49149388: 262,  // Junior Brasilino - Flamengo
-        50180257: 267   // Hivisson - Vasco
+        1926323: 262, // Daniel Barbosa
+        13935277: 262, // Paulinett Miranda
+        14747183: 276, // Carlos Henrique
+        49149009: 262, // Matheus Coutinho
+        49149388: 262, // Junior Brasilino
+        50180257: 267, // Hivisson
       };
 
-      console.log("[LUVA-UTILS] ✅ Mapa de escudos criado (hardcoded):", escudos);
-      console.log("[LUVA-UTILS] 📊 Total de escudos:", Object.keys(escudos).length);
-      
+      console.log("[LUVA-UTILS] ✅ Mapa de escudos criado:", escudos);
+      console.log(
+        "[LUVA-UTILS] 📊 Total de escudos:",
+        Object.keys(escudos).length,
+      );
+
       return Promise.resolve(escudos);
     }
 
@@ -416,20 +420,21 @@ const LuvaDeOuroUtils = {
               })
               .then(function (timeData) {
                 if (timeData && timeData.id) {
-                  const clubeId = timeData.clube_id;
-                  
                   console.log("[LUVA-UTILS] ✅ Time carregado:", {
                     id: timeData.id,
                     nome: timeData.nome_cartoleiro,
-                    clube_id: clubeId
+                    clube_id: timeData.clube_id,
                   });
-                  
-                  return { id: timeData.id, clube_id: clubeId };
+                  return { id: timeData.id, clube_id: timeData.clube_id };
                 }
                 return null;
               })
               .catch(function (err) {
-                console.warn("[LUVA-UTILS] ⚠️ Erro ao processar time", timeId, err);
+                console.warn(
+                  "[LUVA-UTILS] ⚠️ Erro ao buscar time",
+                  timeId,
+                  err,
+                );
                 return null;
               });
           }),
@@ -446,7 +451,10 @@ const LuvaDeOuroUtils = {
         });
 
         console.log("[LUVA-UTILS] ✅ Mapa de escudos criado:", mapa);
-        console.log("[LUVA-UTILS] 📊 Total de escudos:", Object.keys(mapa).length);
+        console.log(
+          "[LUVA-UTILS] 📊 Total de escudos:",
+          Object.keys(mapa).length,
+        );
 
         return mapa;
       })

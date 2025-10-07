@@ -1,0 +1,69 @@
+Substitua a função criarLinhaRanking (linhas 189-238):
+javascriptcriarLinhaRanking(item, index, escudos, rodadaFim) {
+  const posicao = index + 1;
+  const posicaoClass = posicao <= 3 ? `pos-${posicao}` : "";
+  const posicaoIcon =
+    {
+      1: "🏆",
+      2: "🥈",
+      3: "🥉",
+    }[posicao] || "";
+
+  // ✅ MAPEAMENTO HARDCODED - Liga Cartoleiros do Sobral
+  const ESCUDOS_SOBRAL = {
+    1926323: 262,   // Daniel Barbosa
+    13935277: 262,  // Paulinett Miranda
+    14747183: 276,  // Carlos Henrique
+    49149009: 262,  // Matheus Coutinho
+    49149388: 262,  // Junior Brasilino
+    50180257: 267   // Hivisson
+  };
+
+  const escudoId = ESCUDOS_SOBRAL[item.participanteId] || escudos[item.participanteId] || "default";
+
+  return `
+    <tr class="ranking-row ${posicaoClass}">
+      <td class="col-pos">
+        <div class="pos-content">
+          <span class="pos-numero">${posicao}º</span>
+          ${posicaoIcon ? `<span class="pos-icon">${posicaoIcon}</span>` : ""}
+        </div>
+      </td>
+      <td class="col-escudo">
+        <img src="/escudos/${escudoId}.png" 
+             alt="Escudo" 
+             class="escudo-img"
+             onerror="this.src='/escudos/default.png';">
+      </td>
+      <td class="col-nome">
+        <div class="participante-info">
+          <div class="participante-nome">${item.participanteNome}</div>
+          <div class="participante-id">ID: ${item.participanteId}</div>
+        </div>
+      </td>
+      <td class="col-pontos">
+        <span class="pontos-badge">${Math.floor(item.pontosTotais * 100) / 100}</span>
+      </td>
+      <td class="col-goleiro">
+        <div class="goleiro-info">
+          <div class="goleiro-nome">${item.ultimaRodada?.goleiroNome || "Sem goleiro"}</div>
+          ${item.ultimaRodada?.goleiroClube ? `<div class="goleiro-clube">${item.ultimaRodada.goleiroClube}</div>` : ""}
+        </div>
+      </td>
+      <td class="col-pontos-rodada">
+        <div class="pontos-rodada ${(item.ultimaRodada?.pontos || 0) >= 0 ? "positivo" : "negativo"}">
+          <div class="pontos-valor">${Math.floor((item.ultimaRodada?.pontos || 0) * 100) / 100}</div>
+          <div class="pontos-rodada-num">R${item.ultimaRodada?.rodada || "-"}</div>
+        </div>
+      </td>
+      <td class="col-acoes">
+        <button class="btn btn-sm btn-detalhes" 
+                data-participante-id="${item.participanteId}" 
+                data-participante-nome="${item.participanteNome}">
+          <i data-lucide="eye"></i>
+          Detalhes
+        </button>
+      </td>
+    </tr>
+  `;
+},
