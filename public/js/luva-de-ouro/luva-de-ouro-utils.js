@@ -358,7 +358,6 @@ const LuvaDeOuroUtils = {
 
   /**
    * Busca escudos corretos dos participantes (time do coração)
-   * ✅ Mesma lógica do módulo de Participantes
    */
   buscarEscudosParticipantes: function () {
     console.log("[LUVA-UTILS] 🔍 Iniciando busca de escudos...");
@@ -373,11 +372,17 @@ const LuvaDeOuroUtils = {
 
     return fetch("/api/ligas/" + ligaId)
       .then(function (resp) {
-        if (!resp.ok) return null;
+        if (!resp.ok) {
+          console.warn("[LUVA-UTILS] ⚠️ Erro ao buscar liga:", resp.status);
+          return null;
+        }
         return resp.json();
       })
       .then(function (liga) {
-        if (!liga || !liga.times || liga.times.length === 0) return null;
+        if (!liga || !liga.times || liga.times.length === 0) {
+          console.warn("[LUVA-UTILS] ⚠️ Liga sem times");
+          return null;
+        }
 
         console.log("[LUVA-UTILS] 📋 Times na liga:", liga.times.length);
 
@@ -385,20 +390,29 @@ const LuvaDeOuroUtils = {
           liga.times.map(function (timeId) {
             return fetch("/api/time/" + timeId)
               .then(function (r) {
-                if (!r.ok) return null;
+                if (!r.ok) {
+                  console.warn("[LUVA-UTILS] ⚠️ Erro ao buscar time", timeId);
+                  return null;
+                }
                 return r.json();
               })
               .then(function (timeData) {
-                if (!timeData || !timeData.id) return null;
-
-                // ✅ Busca clube_id em múltiplos formatos possíveis
-                const clubeId = timeData.clube_id || timeData.clubeId || timeData.time_coracao_id;
-
-                console.log("[LUVA-UTILS] ✅ Time:", timeData.id, "→ Escudo:", clubeId);
-
-                return { id: timeData.id, clube_id: clubeId };
+                if (timeData && timeData.id) {
+                  // ✅ CORREÇÃO: Ler clube_id corretamente
+                  const clubeId = timeData.clube_id;
+                  
+                  console.log("[LUVA-UTILS] ✅ Time carregado:", {
+                    id: timeData.id,
+                    nome: timeData.nome_cartoleiro,
+                    clube_id: clubeId
+                  });
+                  
+                  return { id: timeData.id, clube_id: clubeId };
+                }
+                return null;
               })
-              .catch(function () {
+              .catch(function (err) {
+                console.warn("[LUVA-UTILS] ⚠️ Erro ao processar time", timeId, err);
                 return null;
               });
           }),
@@ -414,13 +428,13 @@ const LuvaDeOuroUtils = {
           }
         });
 
-        console.log("[LUVA-UTILS] ✅ Mapa de escudos:", mapa);
-        console.log("[LUVA-UTILS] 📊 Total:", Object.keys(mapa).length);
+        console.log("[LUVA-UTILS] ✅ Mapa de escudos criado:", mapa);
+        console.log("[LUVA-UTILS] 📊 Total de escudos:", Object.keys(mapa).length);
 
         return mapa;
       })
       .catch(function (error) {
-        console.error("[LUVA-UTILS] ❌ Erro:", error);
+        console.error("[LUVA-UTILS] ❌ Erro ao buscar escudos:", error);
         return null;
       });
   },
