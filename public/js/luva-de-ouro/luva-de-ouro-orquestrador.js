@@ -1,4 +1,4 @@
-// public/js/luva-de-ouro/luva-de-ouro-orquestrador.js - COM EXPORTAÇÕES INTEGRADAS
+// public/js/luva-de-ouro/luva-de-ouro-orquestrador.js - VERSÃO CORRIGIDA
 console.log("🎯 [LUVA-ORQUESTRADOR] Módulo orquestrador carregando...");
 
 /**
@@ -71,7 +71,7 @@ const LuvaDeOuroOrquestrador = {
     const btnUltimaRodada = document.getElementById("luvaUltimaRodadaBtn");
     if (btnUltimaRodada) {
       btnUltimaRodada.addEventListener("click", () =>
-        this.detectarECarregarRodada(),
+        this.detectarUltimaRodada(),
       );
     }
 
@@ -152,35 +152,16 @@ const LuvaDeOuroOrquestrador = {
         window.LuvaDeOuroCache.set("ranking", { inicio, fim }, dados);
       }
 
-      // Buscar participantes para escudos corretos
-      const resPart = await fetch(`/api/luva-de-ouro/${window.LuvaDeOuroConfig.LIGA_SOBRAL_ID}/participantes`);
-      if (resPart.ok) {
-        const payload = await resPart.json();
-        const mapaEscudos = Object.fromEntries(
-          (payload?.data?.participantes || []).map(p => [p.timeId, p.clubeId])
-        );
-
-        // Enriquecer itens do ranking com clubeId (para export)
-        if (dados?.ranking) {
-          dados.ranking = dados.ranking.map(item => ({
-            ...item,
-            clubeId: mapaEscudos[item.participanteId] || item.clubeId
-          }));
-        }
-
-        // Passar mapa dinâmico para a UI
-        dados.escudosParticipantes = mapaEscudos;
-      }
-
       // Atualizar estado
       this.estado.ranking = dados;
 
       // Renderizar ranking
       container.innerHTML = window.LuvaDeOuroUI.renderizarRanking(dados);
 
-      // ✅ CRIAR BOTÃO DE EXPORTAÇÃO GERAL
+      // Criar botão de exportação
       if (exportContainer && dados.ranking && dados.ranking.length > 0) {
-        exportContainer.innerHTML = this.criarBotaoExportacaoGeral(dados);
+        exportContainer.innerHTML = window.LuvaDeOuroUI.criarBotaoExport();
+        this.configurarExportacao(dados);
       }
 
       console.log("✅ Ranking carregado com sucesso");
@@ -189,63 +170,6 @@ const LuvaDeOuroOrquestrador = {
       this.mostrarErro(error.message, "Verifique a conexão ou tente novamente");
     } finally {
       this.estado.carregando = false;
-    }
-  },
-
-  /**
-   * ✅ NOVO: Cria botão de exportação geral com Mobile Dark HD
-   */
-  criarBotaoExportacaoGeral(dados) {
-    return `
-      <button 
-        id="exportLuvaImagemGeral" 
-        class="btn btn-export"
-        onclick="window.LuvaDeOuroOrquestrador.exportarRankingGeral()"
-      >
-        <i data-lucide="download"></i>
-        Exportar Ranking Mobile HD
-      </button>
-    `;
-  },
-
-  /**
-   * ✅ NOVO: Exporta ranking geral
-   */
-  async exportarRankingGeral() {
-    if (!this.estado.ranking || !this.estado.ranking.ranking) {
-      window.LuvaDeOuroUtils.mostrarNotificacao(
-        "Nenhum ranking para exportar",
-        "error",
-      );
-      return;
-    }
-
-    const btnExport = document.getElementById("exportLuvaImagemGeral");
-    const textoOriginal = btnExport ? btnExport.innerHTML : "";
-
-    try {
-      if (btnExport) {
-        btnExport.innerHTML = `
-          <div style="width: 16px; height: 16px; display: inline-block; margin-right: 8px;">
-            <div style="width: 16px; height: 16px; border: 2px solid transparent; border-top: 2px solid currentColor; border-radius: 50%; animation: spin 1s linear infinite;"></div>
-          </div>
-          Gerando Mobile HD...
-        `;
-        btnExport.disabled = true;
-      }
-
-      await window.LuvaDeOuroUtils.exportarRankingGeral(this.estado.ranking);
-    } catch (error) {
-      console.error("[LUVA-ORQUESTRADOR] ❌ Erro na exportação:", error);
-      window.LuvaDeOuroUtils.mostrarNotificacao(
-        "Erro ao exportar. Tente novamente.",
-        "error",
-      );
-    } finally {
-      if (btnExport) {
-        btnExport.innerHTML = textoOriginal;
-        btnExport.disabled = false;
-      }
     }
   },
 
@@ -300,6 +224,136 @@ const LuvaDeOuroOrquestrador = {
   },
 
   /**
+   * Configura exportação de imagem
+   */
+  configurarExportacao(dados) {
+    const config = window.LuvaDeOuroConfig;
+    const btnExport = document.getElementById(
+      config.SELECTORS.BTN_EXPORT.substring(1),
+    );
+
+    if (!btnExport) return;
+
+    btnExport.onclick = () => this.exportarImagem(dados);
+
+    // Efeitos hover já estão no CSS
+  },
+
+  /**
+   * Exporta ranking como imagem
+   */
+  async exportarImagem(dados) {
+    if (!dados || !dados.ranking) {
+      alert("Nenhum dado para exportar");
+      return;
+    }
+
+    const config = window.LuvaDeOuroConfig;
+    const btnExport = document.getElementById(
+      config.SELECTORS.BTN_EXPORT.substring(1),
+    );
+    const textoOriginal = btnExport ? btnExport.innerHTML : "";
+
+    try {
+      if (btnExport) {
+        btnExport.innerHTML = `
+          <div style="width: 16px; height: 16px; margin-right: 8px;">
+            <div style="width: 16px; height: 16px; border: 2px solid transparent; border-top: 2px solid currentColor; border-radius: 50%; animation: spin 1s linear infinite;"></div>
+          </div>
+          Gerando Imagem...
+        `;
+        btnExport.disabled = true;
+      }
+
+      console.log("[LUVA-ORQUESTRADOR] Criando exportação de imagem...");
+
+      // Verificar/carregar html2canvas
+      if (!window.html2canvas) {
+        const script = document.createElement("script");
+        script.src = config.EXPORT.HTML2CANVAS_URL;
+        await new Promise((resolve, reject) => {
+          script.onload = resolve;
+          script.onerror = () => {
+            console.log(
+              "[LUVA-ORQUESTRADOR] Falha ao carregar html2canvas, usando CSV",
+            );
+            window.LuvaDeOuroUtils.exportarCSV(dados);
+            reject(new Error("html2canvas não carregou"));
+          };
+          document.head.appendChild(script);
+        });
+      }
+
+      // Criar container temporário
+      const exportDiv = document.createElement("div");
+      exportDiv.id = "luva-ouro-export-temp";
+      exportDiv.style.cssText = `
+        position: absolute;
+        top: -99999px;
+        left: -99999px;
+        width: ${config.EXPORT.WIDTH}px;
+        background: white;
+        font-family: Inter, -apple-system, BlinkMacSystemFont, sans-serif;
+        color: #2c2c2c;
+      `;
+
+      exportDiv.innerHTML = window.LuvaDeOuroUtils.criarLayoutExportacao(dados);
+      document.body.appendChild(exportDiv);
+
+      await new Promise((resolve) => requestAnimationFrame(resolve));
+
+      // Gerar canvas
+      const canvas = await window.html2canvas(exportDiv, {
+        allowTaint: true,
+        useCORS: true,
+        scale: config.EXPORT.SCALE,
+        logging: false,
+        width: config.EXPORT.WIDTH,
+        height: exportDiv.scrollHeight,
+        backgroundColor: "#ffffff",
+        imageTimeout: 15000,
+        removeContainer: true,
+        letterRendering: true,
+        foreignObjectRendering: true,
+      });
+
+      // Download
+      const timestamp = new Date()
+        .toLocaleDateString("pt-BR")
+        .replace(/\//g, "-");
+      const filename = `luva-de-ouro-rodadas-${dados.rodadaInicio}-${dados.rodadaFim}-${timestamp}.png`;
+
+      const link = document.createElement("a");
+      link.download = filename;
+      link.href = canvas.toDataURL(config.EXPORT.FORMAT, config.EXPORT.QUALITY);
+      link.click();
+
+      console.log("[LUVA-ORQUESTRADOR] ✅ Imagem exportada com sucesso");
+      window.LuvaDeOuroUtils.mostrarNotificacao(
+        config.MESSAGES.SUCESSO_EXPORT,
+        "success",
+      );
+    } catch (error) {
+      console.error("[LUVA-ORQUESTRADOR] ❌ Erro na exportação:", error);
+      window.LuvaDeOuroUtils.mostrarNotificacao(
+        config.MESSAGES.ERRO_EXPORT,
+        "warning",
+      );
+      window.LuvaDeOuroUtils.exportarCSV(dados);
+    } finally {
+      const tempDiv = document.getElementById("luva-ouro-export-temp");
+      if (tempDiv) {
+        document.body.removeChild(tempDiv);
+      }
+
+      if (btnExport) {
+        btnExport.innerHTML = textoOriginal;
+        btnExport.disabled = false;
+      }
+    }
+  },
+
+  /**
    * Mostra detalhes de um participante
    */
   async mostrarDetalhes(participanteId, participanteNome) {
@@ -341,7 +395,7 @@ const LuvaDeOuroOrquestrador = {
         );
       }
 
-      // ✅ Criar modal com botão de exportação individual
+      // Criar modal
       window.LuvaDeOuroUtils.criarModalDetalhes(dados);
     } catch (error) {
       console.error("❌ Erro ao buscar detalhes:", error);

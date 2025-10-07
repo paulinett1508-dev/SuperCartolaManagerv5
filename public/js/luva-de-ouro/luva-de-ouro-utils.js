@@ -1,4 +1,4 @@
-// public/js/luva-de-ouro/luva-de-ouro-utils.js - COM EXPORTAÇÕES MOBILE DARK HD
+// public/js/luva-de-ouro/luva-de-ouro-utils.js - CORRIGIDO
 console.log("🔧 [LUVA-UTILS] Módulo de utilitários carregando...");
 
 /**
@@ -103,7 +103,7 @@ const LuvaDeOuroUtils = {
         <!-- BOTÃO DE EXPORTAÇÃO INDIVIDUAL -->
         <div style="text-align: center; margin-bottom: 15px;">
           <button 
-            onclick="window.LuvaDeOuroUtils.exportarHistoricoIndividual(${JSON.stringify(dados).replace(/"/g, '&quot;')})" 
+            onclick="window.LuvaDeOuroUtils.exportarHistoricoIndividual(${JSON.stringify(dados).replace(/"/g, "&quot;")})" 
             style="
               background: linear-gradient(135deg, #2E8B57 0%, #228B22 100%);
               color: white;
@@ -178,7 +178,7 @@ const LuvaDeOuroUtils = {
   },
 
   /**
-   * EXPORTAÇÃO 1: RANKING GERAL (Mobile Dark HD)
+   * EXPORTAÇÃO 1: RANKING GERAL (Mobile Dark HD) - CORRIGIDO
    */
   async exportarRankingGeral(dados) {
     if (!dados || !dados.ranking || dados.ranking.length === 0) {
@@ -190,12 +190,23 @@ const LuvaDeOuroUtils = {
       console.log("[LUVA-UTILS] 📱 Iniciando exportação geral Mobile Dark HD...");
 
       // Importar utilitários do export-base
-      const { MobileDarkUtils } = await import('/js/exports/export-base.js');
+      const { MobileDarkUtils } = await import("/js/exports/export-base.js");
+
+      // ✅ CORRIGIDO: Buscar escudos corretos dos participantes
+      const escudosParticipantes = await this.buscarEscudosParticipantes();
+
+      // Enriquecer dados com escudos corretos
+      if (escudosParticipantes) {
+        dados.ranking = dados.ranking.map(item => ({
+          ...item,
+          clubeId: escudosParticipantes[item.participanteId] || item.clubeId || 'default'
+        }));
+      }
 
       // Criar container
       const container = MobileDarkUtils.criarContainer(
         "Luva de Ouro",
-        `Rodadas ${dados.rodadaInicio}-${dados.rodadaFim}`
+        `Rodadas ${dados.rodadaInicio}-${dados.rodadaFim}`,
       );
 
       const contentDiv = container.querySelector("#mobile-export-content");
@@ -204,27 +215,35 @@ const LuvaDeOuroUtils = {
       document.body.appendChild(container);
 
       // Aguardar renderização
-      await new Promise(resolve => requestAnimationFrame(() => requestAnimationFrame(resolve)));
+      await new Promise((resolve) =>
+        requestAnimationFrame(() => requestAnimationFrame(resolve)),
+      );
 
       // Gerar e baixar
-      const filename = MobileDarkUtils.gerarNomeArquivoMobile("luva-ouro-ranking", {
-        rodada: dados.rodadaFim,
-        extra: `r${dados.rodadaInicio}-${dados.rodadaFim}`
-      });
+      const filename = MobileDarkUtils.gerarNomeArquivoMobile(
+        "luva-ouro-ranking",
+        {
+          rodada: dados.rodadaFim,
+          extra: `r${dados.rodadaInicio}-${dados.rodadaFim}`,
+        },
+      );
 
       await MobileDarkUtils.gerarCanvas(container, filename);
 
+      this.mostrarNotificacao("Imagem exportada com sucesso!", "success");
       console.log("[LUVA-UTILS] ✅ Exportação geral concluída");
-
     } catch (error) {
       console.error("[LUVA-UTILS] ❌ Erro na exportação geral:", error);
-      this.mostrarNotificacao("Erro ao exportar. Gerando CSV alternativo...", "warning");
+      this.mostrarNotificacao(
+        "Erro ao exportar. Gerando CSV alternativo...",
+        "warning",
+      );
       this.exportarCSV(dados);
     }
   },
 
   /**
-   * EXPORTAÇÃO 2: HISTÓRICO INDIVIDUAL (Mobile Dark HD)
+   * EXPORTAÇÃO 2: HISTÓRICO INDIVIDUAL (Mobile Dark HD) - FORMATO VERTICAL MOBILE
    */
   async exportarHistoricoIndividual(dados) {
     if (!dados || !dados.rodadas || dados.rodadas.length === 0) {
@@ -236,30 +255,61 @@ const LuvaDeOuroUtils = {
       console.log("[LUVA-UTILS] 📱 Iniciando exportação individual Mobile Dark HD...");
 
       // Importar utilitários do export-base
-      const { MobileDarkUtils } = await import('/js/exports/export-base.js');
+      const { MobileDarkUtils } = await import("/js/exports/export-base.js");
 
-      // Criar container
-      const container = MobileDarkUtils.criarContainer(
-        dados.participanteNome,
-        `Histórico Completo R${dados.rodadaInicio}-${dados.rodadaFim}`
-      );
+      // Criar container VERTICAL para mobile (400x altura automática)
+      const container = document.createElement("div");
+      container.id = "mobile-export-container";
+      container.style.cssText = `
+        position: absolute;
+        top: -99999px;
+        left: -99999px;
+        width: 400px;
+        background: #1a1a1a;
+        font-family: Inter, -apple-system, sans-serif;
+        padding: 16px;
+        box-sizing: border-box;
+      `;
 
-      const contentDiv = container.querySelector("#mobile-export-content");
-      contentDiv.innerHTML = this.criarLayoutHistoricoIndividual(dados);
-
+      container.innerHTML = this.criarLayoutHistoricoIndividualVertical(dados);
       document.body.appendChild(container);
 
       // Aguardar renderização
-      await new Promise(resolve => requestAnimationFrame(() => requestAnimationFrame(resolve)));
+      await new Promise((resolve) =>
+        requestAnimationFrame(() => requestAnimationFrame(resolve)),
+      );
 
-      // Gerar e baixar
-      const nomeArquivo = `${dados.participanteNome.toLowerCase().replace(/\s+/g, '-')}-historico-r${dados.rodadaInicio}-${dados.rodadaFim}.png`;
+      // Gerar canvas com html2canvas
+      if (!window.html2canvas) {
+        const script = document.createElement("script");
+        script.src = "https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js";
+        await new Promise((resolve, reject) => {
+          script.onload = resolve;
+          script.onerror = reject;
+          document.head.appendChild(script);
+        });
+      }
 
-      await MobileDarkUtils.gerarCanvas(container, nomeArquivo);
+      const canvas = await window.html2canvas(container, {
+        scale: 3,
+        backgroundColor: '#1a1a1a',
+        logging: false,
+        width: 400,
+        height: container.scrollHeight,
+      });
+
+      // Download
+      const nomeArquivo = `${dados.participanteNome.toLowerCase().replace(/\s+/g, "-")}-historico-r${dados.rodadaInicio}-${dados.rodadaFim}.png`;
+      const link = document.createElement("a");
+      link.download = nomeArquivo;
+      link.href = canvas.toDataURL("image/png", 1.0);
+      link.click();
+
+      // Remover container
+      document.body.removeChild(container);
 
       console.log("[LUVA-UTILS] ✅ Exportação individual concluída");
       this.mostrarNotificacao("Histórico exportado com sucesso!", "success");
-
     } catch (error) {
       console.error("[LUVA-UTILS] ❌ Erro na exportação individual:", error);
       this.mostrarNotificacao("Erro ao exportar histórico", "error");
@@ -267,180 +317,211 @@ const LuvaDeOuroUtils = {
   },
 
   /**
-   * Layout para Ranking Geral (Mobile VERTICAL)
+   * ✅ NOVO: Busca escudos corretos dos participantes (time do coração)
+   */
+  async buscarEscudosParticipantes() {
+    try {
+      const config = window.LuvaDeOuroConfig;
+      const ligaId = config && config.LIGA_SOBRAL_ID ? config.LIGA_SOBRAL_ID : '684d821cf1a7ae16d1f89572';
+      const resp = await fetch(`/api/participantes/${ligaId}`);
+
+      if (!resp.ok) {
+        console.warn("[LUVA-UTILS] ⚠️ Não foi possível buscar participantes");
+        return null;
+      }
+
+      const data = await resp.json();
+      let participantes = [];
+
+      if (data.data && data.data.participantes) {
+        participantes = data.data.participantes;
+      } else if (data.participantes) {
+        participantes = data.participantes;
+      }
+
+      // Mapear participanteId -> timeCoracao (escudo correto)
+      const mapa = {};
+      participantes.forEach(function(p) {
+        const id = p.participanteId || p.timeId;
+        const escudo = p.timeCoracao || p.clubeId || 'default';
+        if (id) {
+          mapa[id] = escudo;
+        }
+      });
+
+      console.log("[LUVA-UTILS] ✅ Escudos corretos carregados:", Object.keys(mapa).length, "participantes");
+      return mapa;
+
+    } catch (error) {
+      console.warn("[LUVA-UTILS] ⚠️ Erro ao buscar escudos:", error);
+      return null;
+    }
+  },
+
+  /**
+   * Layout para Ranking Geral (Mobile Dark HD) - COM ESCUDOS CORRETOS
    */
   criarLayoutRankingGeral(dados) {
-    const topN = dados.ranking.slice(0, 12); // Top 12 para mobile vertical
+    const topN = dados.ranking.slice(0, 15);
+    const lider = topN[0] || {};
+    const pontosLider = lider.pontosTotais ? Math.floor(lider.pontosTotais * 100) / 100 : 0;
+    const nomeLider = lider.participanteNome || "-";
+
+    const pontosMelhorRodada = Math.max.apply(Math, topN.map(function(r) {
+      return (r.ultimaRodada && r.ultimaRodada.pontos) ? r.ultimaRodada.pontos : 0;
+    }));
 
     return `
       <div style="padding: 8px;">
-        <!-- Estatísticas em Linha Única -->
-        <div style="display: flex; gap: 6px; margin-bottom: 12px; overflow-x: auto;">
-          <div style="background: linear-gradient(135deg, #FFD700, #FFA500); padding: 10px 12px; border-radius: 8px; text-align: center; min-width: 90px; flex-shrink: 0;">
-            <div style="font: 700 18px Inter; color: #1a1a1a;">${Math.floor(topN[0]?.pontosTotais * 100) / 100}</div>
-            <div style="font: 600 8px Inter; color: #1a1a1a; margin-top: 2px;">🏆 LÍDER</div>
+        <!-- Estatísticas -->
+        <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 8px; margin-bottom: 12px;">
+          <div style="background: linear-gradient(135deg, #FFD700, #FFA500); padding: 12px; border-radius: 8px; text-align: center;">
+            <div style="font: 700 20px Inter; color: #1a1a1a;">${pontosLider}</div>
+            <div style="font: 500 9px Inter; color: #1a1a1a; margin-top: 2px;">🏆 LÍDER</div>
+            <div style="font: 400 8px Inter; color: #1a1a1a; margin-top: 2px; opacity: 0.8;">${nomeLider}</div>
           </div>
-          <div style="background: linear-gradient(135deg, #3498db, #2980b9); padding: 10px 12px; border-radius: 8px; text-align: center; color: white; min-width: 90px; flex-shrink: 0;">
-            <div style="font: 700 18px Inter;">${dados.totalParticipantes}</div>
-            <div style="font: 600 8px Inter; margin-top: 2px;">👥 TIMES</div>
+          <div style="background: linear-gradient(135deg, #3498db, #2980b9); padding: 12px; border-radius: 8px; text-align: center; color: white;">
+            <div style="font: 700 20px Inter;">${dados.totalParticipantes}</div>
+            <div style="font: 500 9px Inter; margin-top: 2px;">👥 PARTICIPANTES</div>
+            <div style="font: 400 8px Inter; margin-top: 2px; opacity: 0.8;">Liga ativa</div>
           </div>
-          <div style="background: linear-gradient(135deg, #27ae60, #2ecc71); padding: 10px 12px; border-radius: 8px; text-align: center; color: white; min-width: 90px; flex-shrink: 0;">
-            <div style="font: 700 18px Inter;">${Math.max(...topN.map(r => r.ultimaRodada?.pontos || 0))}</div>
-            <div style="font: 600 8px Inter; margin-top: 2px;">🎯 MELHOR</div>
-          </div>
-        </div>
-
-        <!-- Cards Verticais (Formato Mobile) -->
-        <div style="display: flex; flex-direction: column; gap: 8px;">
-          ${topN.map((item, index) => {
-            const posIcon = {1: '🏆', 2: '🥈', 3: '🥉'}[index + 1] || `${index + 1}º`;
-            const gradientBg = index === 0 
-              ? 'linear-gradient(90deg, rgba(255, 215, 0, 0.15), transparent)'
-              : index === 1 
-                ? 'linear-gradient(90deg, rgba(192, 192, 192, 0.1), transparent)'
-                : index === 2
-                  ? 'linear-gradient(90deg, rgba(205, 127, 50, 0.1), transparent)'
-                  : 'transparent';
-
-            return `
-              <div style="
-                background: ${gradientBg}, #2d2d2d;
-                border: 1px solid ${index < 3 ? ['#FFD700', '#C0C0C0', '#CD7F32'][index] : '#404040'};
-                border-left: 4px solid ${index < 3 ? ['#FFD700', '#C0C0C0', '#CD7F32'][index] : '#404040'};
-                border-radius: 8px;
-                padding: 10px;
-              ">
-                <!-- Linha 1: Posição + Nome + Pontos -->
-                <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 6px;">
-                  <div style="font: 700 16px Inter; color: #E0E0E0; min-width: 35px; text-align: center;">
-                    ${posIcon}
-                  </div>
-                  <div style="flex: 1; min-width: 0;">
-                    <div style="font: 600 11px Inter; color: #FFFFFF; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">
-                      ${item.participanteNome}
-                    </div>
-                    <div style="font: 400 8px Inter; color: #B0B0B0;">ID: ${item.participanteId}</div>
-                  </div>
-                  <div style="
-                    background: linear-gradient(135deg, #4CAF50, #388E3C);
-                    padding: 6px 10px;
-                    border-radius: 6px;
-                    text-align: center;
-                  ">
-                    <div style="font: 700 14px Inter; color: white;">${Math.floor(item.pontosTotais * 100) / 100}</div>
-                    <div style="font: 500 7px Inter; color: white; opacity: 0.8;">PONTOS</div>
-                  </div>
-                </div>
-
-                <!-- Linha 2: Último Goleiro -->
-                ${item.ultimaRodada?.goleiroNome ? `
-                <div style="
-                  background: rgba(255, 255, 255, 0.05);
-                  padding: 6px 8px;
-                  border-radius: 4px;
-                  display: flex;
-                  justify-content: space-between;
-                  align-items: center;
-                ">
-                  <div>
-                    <div style="font: 500 9px Inter; color: #E0E0E0;">
-                      🥅 ${item.ultimaRodada.goleiroNome}
-                    </div>
-                    ${item.ultimaRodada.goleiroClube ? `
-                    <div style="font: 400 7px Inter; color: #B0B0B0; margin-top: 1px;">
-                      ${item.ultimaRodada.goleiroClube}
-                    </div>
-                    ` : ''}
-                  </div>
-                  <div style="font: 700 10px Inter; color: ${item.ultimaRodada.pontos >= 0 ? '#4CAF50' : '#F44336'};">
-                    ${Math.floor(item.ultimaRodada.pontos * 100) / 100} pts
-                  </div>
-                </div>
-                ` : ''}
-              </div>
-            `;
-          }).join('')}
-        </div>
-
-        ${dados.ranking.length > 12 ? `
-        <div style="text-align: center; margin-top: 10px; padding: 8px; background: rgba(255, 107, 53, 0.1); border-radius: 6px; border: 1px solid rgba(255, 107, 53, 0.3);">
-          <div style="font: 500 9px Inter; color: #FF6B35;">
-            📊 Top 12 de ${dados.ranking.length} participantes
+          <div style="background: linear-gradient(135deg, #27ae60, #2ecc71); padding: 12px; border-radius: 8px; text-align: center; color: white;">
+            <div style="font: 700 20px Inter;">${pontosMelhorRodada}</div>
+            <div style="font: 500 9px Inter; margin-top: 2px;">🎯 MELHOR RODADA</div>
+            <div style="font: 400 8px Inter; margin-top: 2px; opacity: 0.8;">Individual</div>
           </div>
         </div>
-        ` : ''}
+
+        <!-- Tabela Ranking -->
+        <div style="background: #2d2d2d; border-radius: 8px; overflow: hidden; border: 1px solid #404040;">
+          <table style="width: 100%; border-collapse: collapse;">
+            <thead style="background: linear-gradient(135deg, #FF6B35, #E55A2B);">
+              <tr>
+                <th style="padding: 8px 4px; font: 600 9px Inter; color: white; text-align: center;">POS</th>
+                <th style="padding: 8px 4px; font: 600 9px Inter; color: white; text-align: center;">❤️</th>
+                <th style="padding: 8px 4px; font: 600 9px Inter; color: white; text-align: left;">CARTOLEIRO</th>
+                <th style="padding: 8px 4px; font: 600 9px Inter; color: white; text-align: center;">TOTAL</th>
+              </tr>
+            </thead>
+            <tbody>
+              ${topN
+                .map(function(item, index) {
+                  const posIcon =
+                    { 1: "🏆", 2: "🥈", 3: "🥉" }[index + 1] || (index + 1) + "º";
+                  const bgColor = index % 2 === 0 ? "#1e1e1e" : "#252525";
+                  const borderLeft =
+                    index < 3
+                      ? "border-left: 3px solid " + ["#FFD700", "#C0C0C0", "#CD7F32"][index] + ";"
+                      : "";
+
+                  const goleiroNome = (item.ultimaRodada && item.ultimaRodada.goleiroNome) ? item.ultimaRodada.goleiroNome : "Sem goleiro";
+                  const goleiroPontos = (item.ultimaRodada && item.ultimaRodada.pontos) ? Math.floor(item.ultimaRodada.pontos * 100) / 100 + "pts" : "";
+
+                  return `
+                  <tr style="background: ${bgColor}; ${borderLeft}">
+                    <td style="padding: 8px 4px; text-align: center; font: 700 11px Inter; color: #E0E0E0;">${posIcon}</td>
+                    <td style="padding: 6px; text-align: center;">
+                      <img src="/escudos/${item.clubeId}.png" 
+                           style="width: 20px; height: 20px; border-radius: 50%; background: #fff; border: 1px solid #444;" 
+                           onerror="this.src='/escudos/default.png'">
+                    </td>
+                    <td style="padding: 8px 4px;">
+                      <div style="font: 600 10px Inter; color: #FFFFFF;">${item.participanteNome}</div>
+                      <div style="font: 400 8px Inter; color: #B0B0B0; margin-top: 2px;">
+                        ${goleiroNome} ${goleiroPontos ? "• " + goleiroPontos : ""}
+                      </div>
+                    </td>
+                    <td style="padding: 8px 4px; text-align: center; font: 700 12px Inter; color: #4CAF50;">
+                      ${Math.floor(item.pontosTotais * 100) / 100}
+                    </td>
+                  </tr>
+                `;
+                })
+                .join("")}
+            </tbody>
+          </table>
+        </div>
       </div>
     `;
   },
 
   /**
-   * Layout para Histórico Individual (Mobile Dark HD)
+   * ✅ NOVO: Layout VERTICAL para Mobile (fonte maior)
    */
-  criarLayoutHistoricoIndividual(dados) {
+  criarLayoutHistoricoIndividualVertical(dados) {
     return `
-      <div style="padding: 8px;">
-        <!-- Stats do Participante -->
-        <div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 6px; margin-bottom: 12px;">
-          <div style="background: linear-gradient(135deg, #27ae60, #2ecc71); padding: 10px; border-radius: 6px; text-align: center; color: white;">
-            <div style="font: 700 16px Inter;">${Math.floor(dados.totalPontos * 100) / 100}</div>
-            <div style="font: 500 8px Inter; margin-top: 2px; opacity: 0.9;">TOTAL</div>
-          </div>
-          <div style="background: linear-gradient(135deg, #3498db, #2980b9); padding: 10px; border-radius: 6px; text-align: center; color: white;">
-            <div style="font: 700 16px Inter;">${dados.totalRodadas}</div>
-            <div style="font: 500 8px Inter; margin-top: 2px; opacity: 0.9;">JOGOS</div>
-          </div>
-          <div style="background: linear-gradient(135deg, #f39c12, #e67e22); padding: 10px; border-radius: 6px; text-align: center; color: white;">
-            <div style="font: 700 16px Inter;">${Math.floor(dados.estatisticas.melhorRodada * 100) / 100}</div>
-            <div style="font: 500 8px Inter; margin-top: 2px; opacity: 0.9;">MELHOR</div>
-          </div>
-          <div style="background: linear-gradient(135deg, #e74c3c, #c0392b); padding: 10px; border-radius: 6px; text-align: center; color: white;">
-            <div style="font: 700 16px Inter;">${Math.floor(dados.estatisticas.mediaPontos * 100) / 100}</div>
-            <div style="font: 500 8px Inter; margin-top: 2px; opacity: 0.9;">MÉDIA</div>
-          </div>
+      <!-- Header -->
+      <div style="background: linear-gradient(135deg, #FF6B35, #E55A2B); padding: 16px; border-radius: 8px; margin-bottom: 12px; text-align: center;">
+        <div style="font: 700 18px Inter; color: white; margin-bottom: 4px;">${dados.participanteNome}</div>
+        <div style="font: 500 11px Inter; color: rgba(255,255,255,0.9);">📊 Histórico Completo • R${dados.rodadaInicio}-${dados.rodadaFim}</div>
+      </div>
+
+      <!-- Stats -->
+      <div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; margin-bottom: 12px;">
+        <div style="background: linear-gradient(135deg, #27ae60, #2ecc71); padding: 12px; border-radius: 6px; text-align: center; color: white;">
+          <div style="font: 700 18px Inter;">${Math.floor(dados.totalPontos * 100) / 100}</div>
+          <div style="font: 600 9px Inter; margin-top: 2px; opacity: 0.9;">TOTAL</div>
+        </div>
+        <div style="background: linear-gradient(135deg, #3498db, #2980b9); padding: 12px; border-radius: 6px; text-align: center; color: white;">
+          <div style="font: 700 18px Inter;">${dados.totalRodadas}</div>
+          <div style="font: 600 9px Inter; margin-top: 2px; opacity: 0.9;">JOGOS</div>
+        </div>
+        <div style="background: linear-gradient(135deg, #f39c12, #e67e22); padding: 12px; border-radius: 6px; text-align: center; color: white;">
+          <div style="font: 700 18px Inter;">${Math.floor(dados.estatisticas.melhorRodada * 100) / 100}</div>
+          <div style="font: 600 9px Inter; margin-top: 2px; opacity: 0.9;">MELHOR</div>
+        </div>
+        <div style="background: linear-gradient(135deg, #e74c3c, #c0392b); padding: 12px; border-radius: 6px; text-align: center; color: white;">
+          <div style="font: 700 18px Inter;">${Math.floor(dados.estatisticas.mediaPontos * 100) / 100}</div>
+          <div style="font: 600 9px Inter; margin-top: 2px; opacity: 0.9;">MÉDIA</div>
+        </div>
+      </div>
+
+      <!-- Tabela VERTICAL -->
+      <div style="background: #2d2d2d; border-radius: 8px; overflow: hidden; border: 1px solid #404040;">
+        <div style="background: linear-gradient(135deg, #FF6B35, #E55A2B); padding: 10px; text-align: center;">
+          <div style="font: 700 12px Inter; color: white;">HISTÓRICO POR RODADA</div>
         </div>
 
-        <!-- Tabela Histórico -->
-        <div style="background: #2d2d2d; border-radius: 8px; overflow: hidden; border: 1px solid #404040;">
-          <div style="background: linear-gradient(135deg, #FF6B35, #E55A2B); padding: 8px; text-align: center;">
-            <div style="font: 600 11px Inter; color: white;">📊 HISTÓRICO COMPLETO</div>
-          </div>
-
-          <table style="width: 100%; border-collapse: collapse;">
-            <thead style="background: #252525;">
-              <tr>
-                <th style="padding: 6px 4px; font: 600 8px Inter; color: #B0B0B0; text-align: center;">R</th>
-                <th style="padding: 6px 4px; font: 600 8px Inter; color: #B0B0B0; text-align: left;">GOLEIRO</th>
-                <th style="padding: 6px 4px; font: 600 8px Inter; color: #B0B0B0; text-align: left;">CLUBE</th>
-                <th style="padding: 6px 4px; font: 600 8px Inter; color: #B0B0B0; text-align: center;">PTS</th>
-              </tr>
-            </thead>
-            <tbody>
-              ${dados.rodadas.map((rodada, index) => {
-                const bgColor = index % 2 === 0 ? '#1e1e1e' : '#252525';
-                const pontosCor = rodada.pontos >= 0 ? '#4CAF50' : '#F44336';
+        <table style="width: 100%; border-collapse: collapse;">
+          <thead style="background: #252525;">
+            <tr>
+              <th style="padding: 8px 6px; font: 700 10px Inter; color: #B0B0B0; text-align: center;">RODADA</th>
+              <th style="padding: 8px 6px; font: 700 10px Inter; color: #B0B0B0; text-align: left;">GOLEIRO / CLUBE</th>
+              <th style="padding: 8px 6px; font: 700 10px Inter; color: #B0B0B0; text-align: center;">PONTOS</th>
+            </tr>
+          </thead>
+          <tbody>
+            ${dados.rodadas
+              .map((rodada, index) => {
+                const bgColor = index % 2 === 0 ? "#1e1e1e" : "#252525";
+                const pontosCor = rodada.pontos >= 0 ? "#4CAF50" : "#F44336";
                 const isMelhor = rodada.pontos === dados.estatisticas.melhorRodada;
 
                 return `
-                  <tr style="background: ${bgColor}; ${isMelhor ? 'border-left: 3px solid #FFD700;' : ''}">
-                    <td style="padding: 6px 4px; text-align: center; font: 700 10px Inter; color: #E0E0E0;">${rodada.rodada}</td>
-                    <td style="padding: 6px 4px; font: 500 9px Inter; color: #FFFFFF;">${rodada.goleiroNome || 'Sem goleiro'}</td>
-                    <td style="padding: 6px 4px; font: 400 8px Inter; color: #B0B0B0;">${rodada.goleiroClube || '-'}</td>
-                    <td style="padding: 6px 4px; text-align: center; font: 700 10px Inter; color: ${pontosCor};">
-                      ${isMelhor ? '⭐ ' : ''}${Math.floor(rodada.pontos * 100) / 100}
-                    </td>
-                  </tr>
-                `;
-              }).join('')}
-            </tbody>
-          </table>
-        </div>
+                <tr style="background: ${bgColor}; ${isMelhor ? "border-left: 4px solid #FFD700;" : ""}">
+                  <td style="padding: 10px 6px; text-align: center; font: 700 13px Inter; color: #E0E0E0;">
+                    ${isMelhor ? "⭐ " : ""}R${rodada.rodada}
+                  </td>
+                  <td style="padding: 10px 6px;">
+                    <div style="font: 600 11px Inter; color: #FFFFFF;">${rodada.goleiroNome || "Sem goleiro"}</div>
+                    <div style="font: 500 9px Inter; color: #B0B0B0; margin-top: 2px;">${rodada.goleiroClube || "-"}</div>
+                  </td>
+                  <td style="padding: 10px 6px; text-align: center; font: 700 14px Inter; color: ${pontosCor};">
+                    ${Math.floor(rodada.pontos * 100) / 100}
+                  </td>
+                </tr>
+              `;
+              })
+              .join("")}
+          </tbody>
+        </table>
+      </div>
 
-        <!-- Rodada Destaque -->
-        <div style="margin-top: 8px; padding: 8px; background: rgba(255, 215, 0, 0.1); border-radius: 6px; border: 1px solid rgba(255, 215, 0, 0.3);">
-          <div style="font: 600 9px Inter; color: #FFD700; text-align: center;">
-            ⭐ MELHOR RODADA: R${dados.rodadas.find(r => r.pontos === dados.estatisticas.melhorRodada)?.rodada || '-'} 
-            com ${Math.floor(dados.estatisticas.melhorRodada * 100) / 100} pontos
-          </div>
+      <!-- Footer Destaque -->
+      <div style="margin-top: 12px; padding: 10px; background: rgba(255, 215, 0, 0.15); border-radius: 6px; border: 1px solid rgba(255, 215, 0, 0.4); text-align: center;">
+        <div style="font: 700 11px Inter; color: #FFD700;">
+          ⭐ MELHOR RODADA: R${dados.rodadas.find((r) => r.pontos === dados.estatisticas.melhorRodada)?.rodada || "-"} 
+          com ${Math.floor(dados.estatisticas.melhorRodada * 100) / 100} pontos
         </div>
       </div>
     `;
@@ -472,7 +553,6 @@ const LuvaDeOuroUtils = {
           item.piorRodada || 0,
           `"${item.ultimaRodada?.goleiroNome || "Sem goleiro"}"`,
           `"${item.ultimaRodada?.goleiroClube || "N/A"}"`,
-          item.ultimaRodada?.pontos || 0,
           item.ultimaRodada?.rodada || 0,
         ].join(",") + "\n";
     });
@@ -494,9 +574,19 @@ const LuvaDeOuroUtils = {
   },
 
   /**
-   * Layout para exportação de imagem (LEGADO - mantido para compatibilidade)
+   * Layout para exportação de imagem LEGADO (mantido para compatibilidade)
    */
-  criarLayoutExportacao(dados) {
+  async criarLayoutExportacao(dados) {
+    // ✅ BUSCAR ESCUDOS CORRETOS antes de montar o layout
+    const escudosParticipantes = await this.buscarEscudosParticipantes();
+
+    if (escudosParticipantes) {
+      dados.ranking = dados.ranking.map(item => ({
+        ...item,
+        clubeId: escudosParticipantes[item.participanteId] || item.clubeId || 'default'
+      }));
+    }
+
     const agora = new Date();
     const dataFormatada = agora.toLocaleDateString("pt-BR", {
       year: "numeric",
@@ -515,6 +605,7 @@ const LuvaDeOuroUtils = {
             <h2 style="font: 600 18px Inter, sans-serif; margin: 0 0 6px 0;">🥅 Ranking Luva de Ouro</h2>
             <div style="background: rgba(255,255,255,0.2); border-radius: 20px; padding: 4px 16px; display: inline-block;">
               <span style="font: 600 13px Inter, sans-serif;">RODADAS ${dados.rodadaInicio} A ${dados.rodadaFim}</span>
+            </div>
           </div>
         </div>
       </div>
@@ -553,7 +644,7 @@ const LuvaDeOuroUtils = {
                   <tr style="border-bottom: 1px solid #e0e0e0; ${rowBg}">
                     <td style="text-align:center; padding: 8px 6px; font-weight: bold;">${posContent}</td>
                     <td style="text-align:center; padding: 8px 6px;">
-                      <img src="/escudos/${item.clubeId || "default"}.png" alt="" style="width:20px; height:20px; border-radius:50%; background:#fff; border:1px solid #eee;" onerror="this.style.display='none'"/>
+                      <img src="/escudos/${item.clubeId}.png" alt="" style="width:20px; height:20px; border-radius:50%; background:#fff; border:1px solid #eee;" onerror="this.src='/escudos/default.png'"/>
                     </td>
                     <td style="text-align:left; padding: 8px 6px;">
                       <div style="font-weight:600; font-size: 12px;">${item.participanteNome}</div>
@@ -610,4 +701,5 @@ const LuvaDeOuroUtils = {
 
 window.LuvaDeOuroUtils = LuvaDeOuroUtils;
 
-console.log("✅ [LUVA-UTILS] Módulo de utilitários carregado");
+console.log("✅ [LUVA-UTILS] Módulo de utilitários carregado");?.pontos || 0,
+          item.ultimaRodada
