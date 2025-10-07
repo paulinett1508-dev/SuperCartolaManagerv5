@@ -1,0 +1,80 @@
+Substitua a função buscarEscudosParticipantes (linhas 359-445) do luva-de-ouro-utils.js:
+javascript/**
+ * Busca escudos corretos dos participantes (time do coração)
+ */
+buscarEscudosParticipantes: function () {
+  console.log("[LUVA-UTILS] 🔍 Iniciando busca de escudos...");
+
+  const urlParams = new URLSearchParams(window.location.search);
+  const ligaId = urlParams.get("id");
+
+  // ✅ MAPEAMENTO HARDCODED - Liga Cartoleiros do Sobral
+  if (ligaId === "684d821cf1a7ae16d1f89572") {
+    const escudos = {
+      1926323: 262,   // Daniel Barbosa
+      13935277: 262,  // Paulinett Miranda
+      14747183: 276,  // Carlos Henrique
+      49149009: 262,  // Matheus Coutinho
+      49149388: 262,  // Junior Brasilino
+      50180257: 267   // Hivisson
+    };
+
+    console.log("[LUVA-UTILS] ✅ Mapa de escudos criado:", escudos);
+    console.log("[LUVA-UTILS] 📊 Total de escudos:", Object.keys(escudos).length);
+    
+    return Promise.resolve(escudos);
+  }
+
+  // Para outras ligas, buscar da API normalmente
+  if (!ligaId) {
+    console.warn("[LUVA-UTILS] ⚠️ Liga ID não encontrado na URL");
+    return Promise.resolve(null);
+  }
+
+  return fetch("/api/ligas/" + ligaId)
+    .then(function (resp) {
+      if (!resp.ok) return null;
+      return resp.json();
+    })
+    .then(function (liga) {
+      if (!liga || !liga.times || liga.times.length === 0) return null;
+
+      console.log("[LUVA-UTILS] 📋 Times na liga:", liga.times.length);
+
+      return Promise.all(
+        liga.times.map(function (timeId) {
+          return fetch("/api/time/" + timeId)
+            .then(function (r) {
+              if (!r.ok) return null;
+              return r.json();
+            })
+            .then(function (timeData) {
+              if (!timeData || !timeData.id) return null;
+              return { id: timeData.id, clube_id: timeData.clube_id };
+            })
+            .catch(function () {
+              return null;
+            });
+        }),
+      );
+    })
+    .then(function (timesData) {
+      if (!timesData) return null;
+
+      const mapa = {};
+      timesData.forEach(function (timeData) {
+        if (timeData && timeData.id && timeData.clube_id) {
+          mapa[timeData.id] = timeData.clube_id;
+        }
+      });
+
+      console.log("[LUVA-UTILS] ✅ Mapa de escudos criado:", mapa);
+      console.log("[LUVA-UTILS] 📊 Total de escudos:", Object.keys(mapa).length);
+
+      return mapa;
+    })
+    .catch(function (error) {
+      console.error("[LUVA-UTILS] ❌ Erro ao buscar escudos:", error);
+      return null;
+    });
+},
