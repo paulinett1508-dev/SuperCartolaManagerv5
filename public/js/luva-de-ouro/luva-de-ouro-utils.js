@@ -365,6 +365,24 @@ const LuvaDeOuroUtils = {
     const urlParams = new URLSearchParams(window.location.search);
     const ligaId = urlParams.get("id");
 
+    // ✅ MAPEAMENTO HARDCODED - Liga Cartoleiros do Sobral
+    if (ligaId === "684d821cf1a7ae16d1f89572") {
+      const escudos = {
+        1926323: 262,   // Daniel Barbosa - Flamengo
+        13935277: 262,  // Paulinett Miranda - Flamengo
+        14747183: 276,  // Carlos Henrique - São Paulo
+        49149009: 262,  // Matheus Coutinho - Flamengo
+        49149388: 262,  // Junior Brasilino - Flamengo
+        50180257: 267   // Hivisson - Vasco
+      };
+
+      console.log("[LUVA-UTILS] ✅ Mapa de escudos criado (hardcoded):", escudos);
+      console.log("[LUVA-UTILS] 📊 Total de escudos:", Object.keys(escudos).length);
+      
+      return Promise.resolve(escudos);
+    }
+
+    // Para outras ligas, buscar da API normalmente
     if (!ligaId) {
       console.warn("[LUVA-UTILS] ⚠️ Liga ID não encontrado na URL");
       return Promise.resolve(null);
@@ -398,7 +416,6 @@ const LuvaDeOuroUtils = {
               })
               .then(function (timeData) {
                 if (timeData && timeData.id) {
-                  // ✅ CORREÇÃO: Ler clube_id corretamente
                   const clubeId = timeData.clube_id;
                   
                   console.log("[LUVA-UTILS] ✅ Time carregado:", {
