@@ -194,7 +194,17 @@ const LuvaDeOuroUI = {
         3: "🥉",
       }[posicao] || "";
 
-    const escudoId = escudos[item.participanteId] || "default";
+    // ✅ MAPEAMENTO HARDCODED - Liga Cartoleiros do Sobral
+    const ESCUDOS_SOBRAL = {
+      1926323: 262,   // Daniel Barbosa
+      13935277: 262,  // Paulinett Miranda
+      14747183: 276,  // Carlos Henrique
+      49149009: 262,  // Matheus Coutinho
+      49149388: 262,  // Junior Brasilino
+      50180257: 267   // Hivisson
+    };
+
+    const escudoId = ESCUDOS_SOBRAL[item.participanteId] || escudos[item.participanteId] || "default";
 
     return `
       <tr class="ranking-row ${posicaoClass}">
