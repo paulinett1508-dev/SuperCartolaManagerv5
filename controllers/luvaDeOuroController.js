@@ -1,8 +1,8 @@
 // controllers/luvaDeOuroController.js
-import { 
-  coletarDadosGoleiros, 
-  obterRankingGoleiros, 
-  detectarUltimaRodadaConcluida 
+import {
+  coletarDadosGoleiros,
+  obterRankingGoleiros,
+  detectarUltimaRodadaConcluida,
 } from "../services/goleirosService.js";
 
 class LuvaDeOuroController {
@@ -53,14 +53,8 @@ class LuvaDeOuroController {
         try {
           const fimColeta =
             rodadaFim ||
-            (await detectarUltimaRodadaConcluida().then(
-              (r) => r.recomendacao,
-            ));
-          await coletarDadosGoleiros(
-            ligaId,
-            rodadaInicio,
-            fimColeta,
-          );
+            (await detectarUltimaRodadaConcluida().then((r) => r.recomendacao));
+          await coletarDadosGoleiros(ligaId, rodadaInicio, fimColeta);
         } catch (coletaError) {
           console.error("❌ Erro na coleta forçada:", coletaError);
           // Continua mesmo com erro na coleta
@@ -179,11 +173,7 @@ class LuvaDeOuroController {
           });
         }
 
-        resultado = await coletarDadosGoleiros(
-          ligaId,
-          rodadaInicio,
-          rodadaFim,
-        );
+        resultado = await coletarDadosGoleiros(ligaId, rodadaInicio, rodadaFim);
       } else {
         return res.status(400).json({
           success: false,
@@ -228,17 +218,19 @@ class LuvaDeOuroController {
 
       // Buscar dados no MongoDB
       const totalRegistros = await Goleiros.countDocuments({ ligaId });
-      const registrosComGoleiro = await Goleiros.countDocuments({ 
-        ligaId, 
-        goleiroNome: { $ne: null, $ne: "Sem goleiro" } 
+      const registrosComGoleiro = await Goleiros.countDocuments({
+        ligaId,
+        goleiroNome: { $ne: null, $ne: "Sem goleiro" },
       });
-      const registrosComPontos = await Goleiros.countDocuments({ 
-        ligaId, 
-        pontos: { $gt: 0 } 
+      const registrosComPontos = await Goleiros.countDocuments({
+        ligaId,
+        pontos: { $gt: 0 },
       });
 
       const rodadasDisponiveis = await Goleiros.distinct("rodada", { ligaId });
-      const participantes = await Goleiros.distinct("participanteId", { ligaId });
+      const participantes = await Goleiros.distinct("participanteId", {
+        ligaId,
+      });
 
       // Buscar alguns exemplos
       const exemplos = await Goleiros.find({ ligaId })
@@ -255,26 +247,27 @@ class LuvaDeOuroController {
           rodadasDisponiveis: rodadasDisponiveis.sort(),
           totalParticipantes: participantes.length,
           participantes,
-          exemplos: exemplos.map(e => ({
+          exemplos: exemplos.map((e) => ({
             participante: e.participanteNome,
             rodada: e.rodada,
             goleiro: e.goleiroNome || "N/D",
             pontos: e.pontos || 0,
-            dataColeta: e.dataColeta
-          }))
+            dataColeta: e.dataColeta,
+          })),
         },
         api: {
           status: "Testando...",
           ultimaRodada: null,
-          erro: null
+          erro: null,
         },
-        recomendacoes: []
+        recomendacoes: [],
       };
 
       // Testar API
       try {
-        const deteccao = await (await import("../services/goleirosService.js"))
-          .detectarUltimaRodadaConcluida();
+        const deteccao = await (
+          await import("../services/goleirosService.js")
+        ).detectarUltimaRodadaConcluida();
         diagnostico.api.status = "OK";
         diagnostico.api.ultimaRodada = deteccao.recomendacao;
       } catch (apiError) {
@@ -287,10 +280,14 @@ class LuvaDeOuroController {
         diagnostico.recomendacoes.push("Executar coleta inicial de dados");
       }
       if (registrosComPontos < totalRegistros * 0.1) {
-        diagnostico.recomendacoes.push("Verificar estrutura da API - poucos registros com pontuação");
+        diagnostico.recomendacoes.push(
+          "Verificar estrutura da API - poucos registros com pontuação",
+        );
       }
       if (rodadasDisponiveis.length < 5) {
-        diagnostico.recomendacoes.push("Coletar mais rodadas para análise completa");
+        diagnostico.recomendacoes.push(
+          "Coletar mais rodadas para análise completa",
+        );
       }
 
       res.json({
@@ -328,7 +325,7 @@ class LuvaDeOuroController {
       const estatisticas = {
         message: "Estatísticas não implementadas ainda",
         ligaId,
-        timestamp: new Date().toISOString()
+        timestamp: new Date().toISOString(),
       };
 
       console.log(`✅ Estatísticas obtidas:`, estatisticas);
@@ -366,12 +363,12 @@ class LuvaDeOuroController {
 
       // Hardcoded participantes for Liga Sobral com escudos corretos (baseado em participantes.js)
       const participantes = [
-        { timeId: 1926323, nome: "Daniel Barbosa", clubeId: 262 },      // Flamengo
-        { timeId: 13935277, nome: "Paulinett Miranda", clubeId: 263 },  // Botafogo
-        { timeId: 14747183, nome: "Carlos Henrique", clubeId: 264 },    // Corinthians
-        { timeId: 49149009, nome: "Matheus Coutinho", clubeId: 266 },   // Fluminense
-        { timeId: 49149388, nome: "Junior Brasilino", clubeId: 267 },   // Vasco
-        { timeId: 50180257, nome: "Hivisson", clubeId: 275 },           // Palmeiras
+        { timeId: 1926323, nome: "Daniel Barbosa", clubeId: 262 },
+        { timeId: 13935277, nome: "Paulinett Miranda", clubeId: 262 },
+        { timeId: 14747183, nome: "Carlos Henrique", clubeId: 276 },
+        { timeId: 49149009, nome: "Matheus Coutinho", clubeId: 262 },
+        { timeId: 49149388, nome: "Junior Brasilino", clubeId: 262 },
+        { timeId: 50180257, nome: "Hivisson", clubeId: 267 },
       ];
 
       res.json({
@@ -400,7 +397,9 @@ class LuvaDeOuroController {
       const { ligaId, participanteId } = req.params;
       const { inicio = 1, fim } = req.query;
 
-      console.log(`🥅 [LUVA-OURO] Detalhes do participante ${participanteId} - Liga: ${ligaId}`);
+      console.log(
+        `🥅 [LUVA-OURO] Detalhes do participante ${participanteId} - Liga: ${ligaId}`,
+      );
       console.log(`📊 Parâmetros: início=${inicio}, fim=${fim}`);
 
       // Validar liga
@@ -414,11 +413,13 @@ class LuvaDeOuroController {
       const rodadaInicio = parseInt(inicio);
       // ✅ CORREÇÃO: Detectar rodada fim se não fornecida
       let rodadaFim = fim ? parseInt(fim) : null;
-      
+
       // Se fim não foi especificado, detectar automaticamente
       if (!rodadaFim || isNaN(rodadaFim)) {
         try {
-          const { detectarUltimaRodadaConcluida } = await import("../services/goleirosService.js");
+          const { detectarUltimaRodadaConcluida } = await import(
+            "../services/goleirosService.js"
+          );
           const deteccao = await detectarUltimaRodadaConcluida();
           rodadaFim = deteccao.recomendacao || 26;
           console.log(`📅 Rodada fim detectada automaticamente: ${rodadaFim}`);
@@ -426,11 +427,17 @@ class LuvaDeOuroController {
           rodadaFim = 26; // fallback
         }
       }
-      
+
       const timeId = parseInt(participanteId);
 
       // Validar parâmetros
-      if (rodadaInicio < 1 || rodadaInicio > 38 || rodadaFim < 1 || rodadaFim > 38 || rodadaInicio > rodadaFim) {
+      if (
+        rodadaInicio < 1 ||
+        rodadaInicio > 38 ||
+        rodadaFim < 1 ||
+        rodadaFim > 38 ||
+        rodadaInicio > rodadaFim
+      ) {
         return res.status(400).json({
           success: false,
           error: "Parâmetros de rodada inválidos",
@@ -450,10 +457,10 @@ class LuvaDeOuroController {
       const dadosParticipante = await Goleiros.find({
         ligaId,
         participanteId: timeId,
-        rodada: { $gte: rodadaInicio, $lte: rodadaFim }
+        rodada: { $gte: rodadaInicio, $lte: rodadaFim },
       })
-      .sort({ rodada: 1 })
-      .exec();
+        .sort({ rodada: 1 })
+        .exec();
 
       if (dadosParticipante.length === 0) {
         return res.json({
@@ -470,32 +477,36 @@ class LuvaDeOuroController {
               melhorRodada: 0,
               piorRodada: 0,
               mediaPontos: 0,
-              rodadasComGoleiro: 0
-            }
+              rodadasComGoleiro: 0,
+            },
           },
           timestamp: new Date().toISOString(),
         });
       }
 
       // Processar dados
-      const rodadas = dadosParticipante.map(item => ({
+      const rodadas = dadosParticipante.map((item) => ({
         rodada: item.rodada,
         goleiroNome: item.goleiroNome,
         goleiroClube: item.goleiroClube,
         pontos: item.pontos || 0,
         status: item.status,
-        dataColeta: item.dataColeta
+        dataColeta: item.dataColeta,
       }));
 
       const totalPontos = rodadas.reduce((acc, r) => acc + r.pontos, 0);
-      const rodadasComGoleiro = rodadas.filter(r => r.goleiroNome && r.goleiroNome !== 'Sem goleiro').length;
-      const pontosValidos = rodadas.filter(r => r.pontos > 0).map(r => r.pontos);
+      const rodadasComGoleiro = rodadas.filter(
+        (r) => r.goleiroNome && r.goleiroNome !== "Sem goleiro",
+      ).length;
+      const pontosValidos = rodadas
+        .filter((r) => r.pontos > 0)
+        .map((r) => r.pontos);
 
       const estatisticas = {
         melhorRodada: pontosValidos.length > 0 ? Math.max(...pontosValidos) : 0,
         piorRodada: pontosValidos.length > 0 ? Math.min(...pontosValidos) : 0,
         mediaPontos: rodadas.length > 0 ? totalPontos / rodadas.length : 0,
-        rodadasComGoleiro
+        rodadasComGoleiro,
       };
 
       const resultado = {
@@ -507,10 +518,12 @@ class LuvaDeOuroController {
         totalPontos,
         totalRodadas: rodadas.length,
         rodadas,
-        estatisticas
+        estatisticas,
       };
 
-      console.log(`✅ Detalhes obtidos: ${rodadas.length} rodadas, ${totalPontos.toFixed(1)} pontos totais`);
+      console.log(
+        `✅ Detalhes obtidos: ${rodadas.length} rodadas, ${totalPontos.toFixed(1)} pontos totais`,
+      );
 
       res.json({
         success: true,
@@ -518,7 +531,10 @@ class LuvaDeOuroController {
         timestamp: new Date().toISOString(),
       });
     } catch (error) {
-      console.error("❌ [LUVA-OURO] Erro ao obter detalhes do participante:", error);
+      console.error(
+        "❌ [LUVA-OURO] Erro ao obter detalhes do participante:",
+        error,
+      );
       res.status(500).json({
         success: false,
         error: "Erro interno do servidor",
