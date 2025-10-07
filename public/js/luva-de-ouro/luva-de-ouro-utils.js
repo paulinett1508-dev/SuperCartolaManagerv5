@@ -596,6 +596,15 @@ const LuvaDeOuroUtils = {
       minute: "2-digit",
     });
 
+    // Calcular melhor rodada antes do template
+    const melhorRodadaPontos = Math.max(...dados.ranking.map((r) => {
+      return r.ultimaRodada && r.ultimaRodada.pontos ? r.ultimaRodada.pontos : 0;
+    }));
+
+    // Dados do líder
+    const liderPontos = dados.ranking[0] && dados.ranking[0].pontosTotais ? dados.ranking[0].pontosTotais : 0;
+    const liderNome = dados.ranking[0] && dados.ranking[0].participanteNome ? dados.ranking[0].participanteNome : "N/D";
+
     return `
       <div style="background: linear-gradient(135deg, #2E8B57 0%, #228B22 100%); color: white; padding: 24px; text-align: center; position: relative;">
         <div style="display: flex; align-items: center; justify-content: center; gap: 16px;">
@@ -640,6 +649,10 @@ const LuvaDeOuroUtils = {
                       : index % 2 === 0
                         ? "background: #f8f9fa;"
                         : "";
+                  
+                  const ultimaRodadaGoleiro = item.ultimaRodada && item.ultimaRodada.goleiroNome ? item.ultimaRodada.goleiroNome : "Sem goleiro";
+                  const ultimaRodadaPontos = item.ultimaRodada && item.ultimaRodada.pontos ? item.ultimaRodada.pontos : null;
+                  
                   return `
                   <tr style="border-bottom: 1px solid #e0e0e0; ${rowBg}">
                     <td style="text-align:center; padding: 8px 6px; font-weight: bold;">${posContent}</td>
@@ -658,8 +671,8 @@ const LuvaDeOuroUtils = {
                     </td>
                     <td style="text-align:left; padding: 8px 6px;">
                       <div style="font-size: 11px;">
-                        <span style="font-weight: 500;">${item.ultimaRodada?.goleiroNome || "Sem goleiro"}</span>
-                        ${item.ultimaRodada?.pontos ? `<span style="color: #27ae60; margin-left: 8px;">${item.ultimaRodada.pontos}pts</span>` : ""}
+                        <span style="font-weight: 500;">${ultimaRodadaGoleiro}</span>
+                        ${ultimaRodadaPontos ? `<span style="color: #27ae60; margin-left: 8px;">${ultimaRodadaPontos}pts</span>` : ""}
                       </div>
                     </td>
                   </tr>
@@ -673,8 +686,8 @@ const LuvaDeOuroUtils = {
         <div style="margin-top: 16px; display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 12px;">
           <div style="background: linear-gradient(135deg, #27ae60, #2ecc71); color: white; padding: 14px; border-radius: 8px; text-align: center;">
             <h4 style="font: 600 10px Inter, sans-serif; margin: 0 0 4px 0;">🏆 LÍDER</h4>
-            <p style="font: 700 16px Inter, sans-serif; margin: 0;">${dados.ranking[0]?.pontosTotais || 0} pts</p>
-            <p style="font: 400 9px Inter, sans-serif; margin: 2px 0 0 0;">${dados.ranking[0]?.participanteNome || "N/D"}</p>
+            <p style="font: 700 16px Inter, sans-serif; margin: 0;">${liderPontos} pts</p>
+            <p style="font: 400 9px Inter, sans-serif; margin: 2px 0 0 0;">${liderNome}</p>
           </div>
           <div style="background: linear-gradient(135deg, #3498db, #2980b9); color: white; padding: 14px; border-radius: 8px; text-align: center;">
             <h4 style="font: 600 10px Inter, sans-serif; margin: 0 0 4px 0;">🎯 PARTICIPANTES</h4>
@@ -683,7 +696,7 @@ const LuvaDeOuroUtils = {
           </div>
           <div style="background: linear-gradient(135deg, #e67e22, #d35400); color: white; padding: 14px; border-radius: 8px; text-align: center;">
             <h4 style="font: 600 10px Inter, sans-serif; margin: 0 0 4px 0;">🥅 MELHOR RODADA</h4>
-            <p style="font: 700 16px Inter, sans-serif; margin: 0;">${Math.max(...dados.ranking.map((r) => r.ultimaRodada?.pontos || 0))} pts</p>
+            <p style="font: 700 16px Inter, sans-serif; margin: 0;">${melhorRodadaPontos} pts</p>
             <p style="font: 400 9px Inter, sans-serif; margin: 2px 0 0 0;">Individual</p>
           </div>
         </div>
