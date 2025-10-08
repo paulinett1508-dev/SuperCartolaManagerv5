@@ -499,14 +499,17 @@ const LuvaDeOuroUtils = {
           item.ultimaRodada && item.ultimaRodada.goleiroNome
             ? item.ultimaRodada.goleiroNome
             : "Sem goleiro";
-        const goleiroPontos =
-          item.ultimaRodada && item.ultimaRodada.pontos
-            ? Math.floor(item.ultimaRodada.pontos * 100) / 100 + "pts"
-            : "";
+        
+        // ✅ Pontos da última rodada com cor condicional
+        const pontosUltimaRodada = item.ultimaRodada && item.ultimaRodada.pontos
+          ? Math.floor(item.ultimaRodada.pontos * 100) / 100
+          : 0;
+        const corPontosRodada = pontosUltimaRodada >= 0 ? "#4CAF50" : "#e74c3c";
+        const goleiroPontos = pontosUltimaRodada !== 0
+          ? '<span style="color: ' + corPontosRodada + ';">' + pontosUltimaRodada + "pts</span>"
+          : "";
 
-        // ✅ Cor baseada em positivo/negativo
         const pontosTotal = Math.floor(item.pontosTotais * 100) / 100;
-        const corPontos = pontosTotal >= 0 ? "#4CAF50" : "#e74c3c";
 
         return (
           '<tr style="background: ' +
@@ -524,7 +527,7 @@ const LuvaDeOuroUtils = {
           'style="width: 28px; height: 28px; border-radius: 50%; background: #fff; border: 1px solid #444;" ' +
           "onerror=\"this.src='/escudos/default.png'\">" +
           "</td>" +
-          '<td style="padding: 12px 10px;">' +
+          '<td style="padding: 12px 10px; text-align: center;">' +
           '<div style="font: 600 14px Helvetica, Arial, sans-serif; color: #FFFFFF; letter-spacing: 0.3px;">' +
           item.participanteNome +
           "</div>" +
@@ -533,9 +536,7 @@ const LuvaDeOuroUtils = {
           (goleiroPontos ? " • " + goleiroPontos : "") +
           "</div>" +
           "</td>" +
-          '<td style="padding: 12px 10px; text-align: center; font: 700 16px Helvetica, Arial, sans-serif; color: ' +
-          corPontos +
-          ';">' +
+          '<td style="padding: 12px 10px; text-align: center; font: 700 16px Helvetica, Arial, sans-serif; color: #4CAF50;">' +
           pontosTotal +
           "</td>" +
           "</tr>"
