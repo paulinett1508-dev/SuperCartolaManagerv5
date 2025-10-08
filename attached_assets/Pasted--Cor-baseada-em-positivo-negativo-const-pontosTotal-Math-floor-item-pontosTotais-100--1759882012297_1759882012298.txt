@@ -1,0 +1,74 @@
+// ✅ Cor baseada em positivo/negativo
+      const pontosTotal = Math.floor(item.pontosTotais * 100) / 100;
+      const corPontos = pontosTotal >= 0 ? "#4CAF50" : "#e74c3c";
+
+      return (
+        '<tr style="background: ' +
+        bgColor +
+        "; " +
+        borderLeft +
+        '">' +
+        '<td style="padding: 12px 10px; text-align: center; font: 700 15px Helvetica, Arial, sans-serif; color: #E0E0E0;">' +
+        posIcon +
+        "</td>" +
+        '<td style="padding: 10px; text-align: center;">' +
+        '<img src="/escudos/' +
+        item.clubeId +
+        '.png" ' +
+        'style="width: 28px; height: 28px; border-radius: 50%; background: #fff; border: 1px solid #444;" ' +
+        "onerror=\"this.src='/escudos/default.png'\">" +
+        "</td>" +
+        '<td style="padding: 12px 10px; text-align: center;">' +
+        '<div style="font: 600 14px Helvetica, Arial, sans-serif; color: #FFFFFF; letter-spacing: 0.3px;">' +
+        item.participanteNome +
+        "</div>" +
+        '<div style="font: 400 11px Helvetica, Arial, sans-serif; color: #B0B0B0; margin-top: 4px;">' +
+        goleiroNome +
+        (goleiroPontos ? " • " + goleiroPontos : "") +
+        "</div>" +
+        "</td>" +
+        '<td style="padding: 12px 10px; text-align: center; font: 700 16px Helvetica, Arial, sans-serif; color: ' +
+        corPontos +
+        ';">' +
+        pontosTotal +
+        "</td>" +
+        "</tr>"
+      );
+    })
+    .join("");
+
+  return (
+    '<div style="background: linear-gradient(135deg, #2c3e50, #34495e); padding: 14px; border-radius: 8px; margin-bottom: 16px; text-align: center;">' +
+    '<div style="font: 600 16px Helvetica, Arial, sans-serif; color: white; margin-bottom: 3px;">🥅 Luva de Ouro</div>' +
+    '<div style="font: 400 11px Helvetica, Arial, sans-serif; color: rgba(255,255,255,0.8); letter-spacing: 0.5px;">Cartoleiros Sobral • Rodadas ' +
+    dados.rodadaInicio +
+    "-" +
+    dados.rodadaFim +
+    "</div>" +
+    "</div>" +
+    '<div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 10px; margin-bottom: 16px;">' +
+    '<div style="background: linear-gradient(135deg, #FFD700, #FFA500); padding: 14px; border-radius: 8px; text-align: center;">' +
+    '<div style="font: 700 24px Helvetica, Arial, sans-serif; color: #1a1a1a;">' +
+    pontosLider +
+    "</div>" +
+    '<div style="font: 600 10px Helvetica, Arial, sans-serif; color: #1a1a1a; margin-top: 3px;">🏆 LÍDER</div>' +
+    '<div style="font: 400 9px Helvetica, Arial, sans-serif; color: #1a1a1a; margin-top: 2px; opacity: 0.8;">' +
+    nomeLider +
+    "</div>" +
+    "</div>" +
+    '<div style="background: linear-gradient(135deg, #3498db, #2980b9); padding: 14px; border-radius: 8px; text-align: center; color: white;">' +
+    '<div style="font: 700 24px Helvetica, Arial, sans-serif;">' +
+    dados.totalParticipantes +
+    "</div>" +
+    '<div style="font: 600 10px Helvetica, Arial, sans-serif; margin-top: 3px;">👥 TIMES</div>' +
+    '<div style="font: 400 9px Helvetica, Arial, sans-serif; margin-top: 2px; opacity: 0.8;">Liga ativa</div>' +
+    "</div>" +
+    '<div style="background: linear-gradient(135deg, #27ae60, #2ecc71); padding: 14px; border-radius: 8px; text-align: center; color: white;">' +
+    '<div style="font: 700 24px Helvetica, Arial, sans-serif;">' +
+    pontosMelhorRodada +
+    "</div>" +
+    '<div style="font: 600 10px Helvetica, Arial, sans-serif; margin-top: 3px;">🎯 MELHOR</div>' +
+    '<div style="font: 400 9px Helvetica, Arial, sans-serif; margin-top: 2px; opacity: 0.8;">Rodada</div>' +
+    "</div>" +
+    "</div>" +
+    '<div style="background: #2d2d2d; borde...
