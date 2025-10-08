@@ -504,6 +504,10 @@ const LuvaDeOuroUtils = {
             ? Math.floor(item.ultimaRodada.pontos * 100) / 100 + "pts"
             : "";
 
+        // ✅ Cor baseada em positivo/negativo
+        const pontosTotal = Math.floor(item.pontosTotais * 100) / 100;
+        const corPontos = pontosTotal >= 0 ? "#4CAF50" : "#e74c3c";
+
         return (
           '<tr style="background: ' +
           bgColor +
@@ -529,8 +533,10 @@ const LuvaDeOuroUtils = {
           (goleiroPontos ? " • " + goleiroPontos : "") +
           "</div>" +
           "</td>" +
-          '<td style="padding: 12px 10px; text-align: center; font: 700 16px Helvetica, Arial, sans-serif; color: #4CAF50;">' +
-          Math.floor(item.pontosTotais * 100) / 100 +
+          '<td style="padding: 12px 10px; text-align: center; font: 700 16px Helvetica, Arial, sans-serif; color: ' +
+          corPontos +
+          ';">' +
+          pontosTotal +
           "</td>" +
           "</tr>"
         );
