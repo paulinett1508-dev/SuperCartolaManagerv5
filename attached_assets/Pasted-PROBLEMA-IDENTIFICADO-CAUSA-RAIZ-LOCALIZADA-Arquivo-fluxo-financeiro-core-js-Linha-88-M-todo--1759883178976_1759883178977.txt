@@ -1,0 +1,86 @@
+PROBLEMA IDENTIFICADO
+❌ CAUSA RAIZ LOCALIZADA:
+Arquivo: fluxo-financeiro-core.js
+Linha: 88
+Método: _processarRodadaIntegrada()
+javascriptif (!ranking || !ranking.length) return null; // ❌ AQUI
+Problema: Quando o ranking de uma rodada existe mas está vazio, retorna null e a rodada é omitida do extrato.
+
+🔧 CORREÇÃO CIRÚRGICA
+A lógica atual só processa rodadas onde:
+
+Existe ranking ✅
+O participante está no ranking ✅
+
+Mas deveria processar TODAS as rodadas, mesmo que:
+
+Ranking esteja vazio
+Participante não esteja presente
+Valores sejam R$ 0,00
+
+
+📋 ALTERAÇÃO MÍNIMA NECESSÁRIA:
+Substituir:
+javascript_processarRodadaIntegrada(timeId, rodada, isSuperCartola2025, isCartoleirosSobral) {
+    const ranking = this.cache.getRankingRodada(rodada);
+    if (!ranking || !ranking.length) return null; // ❌ REMOVE RODADA
+    
+    const posicaoIndex = ranking.findIndex((r) => {
+        const rTimeId = normalizarTimeId(r.timeId || r.time_id || r.id);
+        return rTimeId === normalizarTimeId(timeId);
+    });
+
+    if (posicaoIndex === -1) return null; // ❌ REMOVE RODADA
+Por:
+javascript_processarRodadaIntegrada(timeId, rodada, isSuperCartola2025, isCartoleirosSobral) {
+    const ranking = this.cache.getRankingRodada(rodada);
+    
+    // ✅ SEMPRE RETORNA RODADA, MESMO SEM DADOS
+    if (!ranking || !ranking.length) {
+        return {
+            rodada,
+            posicao: null,
+            totalTimes: 0,
+            bonusOnus: 0,
+            pontosCorridos: isSuperCartola2025 ? 0 : null,
+            mataMata: 0,
+            melhorMes: 0,
+            isMito: false,
+            isMico: false,
+        };
+    }
+    
+    const posicaoIndex = ranking.findIndex((r) => {
+        const rTimeId = normalizarTimeId(r.timeId || r.time_id || r.id);
+        return rTimeId === normalizarTimeId(timeId);
+    });
+
+    // ✅ MESMO SEM POSIÇÃO, RETORNA RODADA COM VALORES ZERADOS
+    if (posicaoIndex === -1) {
+        return {
+            rodada,
+            posicao: null,
+            totalTimes: ranking.length,
+            bonusOnus: 0,
+            pontosCorridos: isSuperCartola2025 ? 0 : null,
+            mataMata: 0,
+            melhorMes: 0,
+            isMito: false,
+            isMico: false,
+        };
+    }
+
+🎯 AJUSTE NA UI PARA EXIBIR CORRETAMENTE:
+Arquivo: fluxo-financeiro-ui.js - Linha ~168
+Adicionar tratamento para posição null:
+javascript<td class="posicao-col">
+    ${(() => {
+        if (rodada.posicao === null) {
+            return '<span class="pos-neutro">N/D</span>'; // ✅ NOVO
+        }
+        
+        const isPrimeiro = rodada.posicao === 1;
+        const isUltimo = rodada.posicao === rodada.totalTimes;
+        // ... resto do código
+    })()}
+</td>
