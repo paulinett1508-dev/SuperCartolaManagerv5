@@ -510,26 +510,26 @@ const LuvaDeOuroUtils = {
           "; " +
           borderLeft +
           '">' +
-          '<td style="padding: 10px 8px; text-align: center; font: 700 13px Inter; color: #E0E0E0;">' +
+          '<td style="padding: 12px 10px; text-align: center; font: 700 15px Helvetica, Arial, sans-serif; color: #E0E0E0;">' +
           posIcon +
           "</td>" +
-          '<td style="padding: 8px; text-align: center;">' +
+          '<td style="padding: 10px; text-align: center;">' +
           '<img src="/escudos/' +
           item.clubeId +
           '.png" ' +
-          'style="width: 24px; height: 24px; border-radius: 50%; background: #fff; border: 1px solid #444;" ' +
+          'style="width: 28px; height: 28px; border-radius: 50%; background: #fff; border: 1px solid #444;" ' +
           "onerror=\"this.src='/escudos/default.png'\">" +
           "</td>" +
-          '<td style="padding: 10px 8px;">' +
-          '<div style="font: 600 12px Inter; color: #FFFFFF;">' +
+          '<td style="padding: 12px 10px;">' +
+          '<div style="font: 600 14px Helvetica, Arial, sans-serif; color: #FFFFFF; letter-spacing: 0.3px;">' +
           item.participanteNome +
           "</div>" +
-          '<div style="font: 400 9px Inter; color: #B0B0B0; margin-top: 3px;">' +
+          '<div style="font: 400 11px Helvetica, Arial, sans-serif; color: #B0B0B0; margin-top: 4px;">' +
           goleiroNome +
           (goleiroPontos ? " • " + goleiroPontos : "") +
           "</div>" +
           "</td>" +
-          '<td style="padding: 10px 8px; text-align: center; font: 700 14px Inter; color: #4CAF50;">' +
+          '<td style="padding: 12px 10px; text-align: center; font: 700 16px Helvetica, Arial, sans-serif; color: #4CAF50;">' +
           Math.floor(item.pontosTotais * 100) / 100 +
           "</td>" +
           "</tr>"
@@ -538,53 +538,50 @@ const LuvaDeOuroUtils = {
       .join("");
 
     return (
-      '<div style="background: linear-gradient(135deg, #FF6B35, #E55A2B); padding: 18px; border-radius: 10px; margin-bottom: 16px; text-align: center;">' +
-      '<div style="font: 700 22px Inter; color: white; margin-bottom: 6px;">🥅 Luva de Ouro</div>' +
-      '<div style="font: 600 12px Inter; color: rgba(255,255,255,0.9); margin-bottom: 4px;">Cartoleiros Sobral 2025</div>' +
-      '<div style="background: rgba(255,255,255,0.2); border-radius: 20px; padding: 6px 16px; display: inline-block;">' +
-      '<div style="font: 600 11px Inter; color: white;">RODADAS ' +
+      '<div style="background: linear-gradient(135deg, #2c3e50, #34495e); padding: 14px; border-radius: 8px; margin-bottom: 16px; text-align: center;">' +
+      '<div style="font: 600 16px Helvetica, Arial, sans-serif; color: white; margin-bottom: 3px;">🥅 Luva de Ouro</div>' +
+      '<div style="font: 400 11px Helvetica, Arial, sans-serif; color: rgba(255,255,255,0.8); letter-spacing: 0.5px;">Cartoleiros Sobral • Rodadas ' +
       dados.rodadaInicio +
       "-" +
       dados.rodadaFim +
       "</div>" +
       "</div>" +
-      "</div>" +
       '<div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 10px; margin-bottom: 16px;">' +
       '<div style="background: linear-gradient(135deg, #FFD700, #FFA500); padding: 14px; border-radius: 8px; text-align: center;">' +
-      '<div style="font: 700 22px Inter; color: #1a1a1a;">' +
+      '<div style="font: 700 24px Helvetica, Arial, sans-serif; color: #1a1a1a;">' +
       pontosLider +
       "</div>" +
-      '<div style="font: 600 10px Inter; color: #1a1a1a; margin-top: 3px;">🏆 LÍDER</div>' +
-      '<div style="font: 400 9px Inter; color: #1a1a1a; margin-top: 2px; opacity: 0.8;">' +
+      '<div style="font: 600 10px Helvetica, Arial, sans-serif; color: #1a1a1a; margin-top: 3px;">🏆 LÍDER</div>' +
+      '<div style="font: 400 9px Helvetica, Arial, sans-serif; color: #1a1a1a; margin-top: 2px; opacity: 0.8;">' +
       nomeLider +
       "</div>" +
       "</div>" +
       '<div style="background: linear-gradient(135deg, #3498db, #2980b9); padding: 14px; border-radius: 8px; text-align: center; color: white;">' +
-      '<div style="font: 700 22px Inter;">' +
+      '<div style="font: 700 24px Helvetica, Arial, sans-serif;">' +
       dados.totalParticipantes +
       "</div>" +
-      '<div style="font: 600 10px Inter; margin-top: 3px;">👥 TIMES</div>' +
-      '<div style="font: 400 9px Inter; margin-top: 2px; opacity: 0.8;">Liga ativa</div>' +
+      '<div style="font: 600 10px Helvetica, Arial, sans-serif; margin-top: 3px;">👥 TIMES</div>' +
+      '<div style="font: 400 9px Helvetica, Arial, sans-serif; margin-top: 2px; opacity: 0.8;">Liga ativa</div>' +
       "</div>" +
       '<div style="background: linear-gradient(135deg, #27ae60, #2ecc71); padding: 14px; border-radius: 8px; text-align: center; color: white;">' +
-      '<div style="font: 700 22px Inter;">' +
+      '<div style="font: 700 24px Helvetica, Arial, sans-serif;">' +
       pontosMelhorRodada +
       "</div>" +
-      '<div style="font: 600 10px Inter; margin-top: 3px;">🎯 MELHOR</div>' +
-      '<div style="font: 400 9px Inter; margin-top: 2px; opacity: 0.8;">Rodada</div>' +
+      '<div style="font: 600 10px Helvetica, Arial, sans-serif; margin-top: 3px;">🎯 MELHOR</div>' +
+      '<div style="font: 400 9px Helvetica, Arial, sans-serif; margin-top: 2px; opacity: 0.8;">Rodada</div>' +
       "</div>" +
       "</div>" +
       '<div style="background: #2d2d2d; border-radius: 10px; overflow: hidden; border: 1px solid #404040;">' +
-      '<div style="background: linear-gradient(135deg, #FF6B35, #E55A2B); padding: 12px; text-align: center;">' +
-      '<div style="font: 700 13px Inter; color: white;">📊 RANKING GERAL</div>' +
+      '<div style="background: #2c3e50; padding: 10px; text-align: center; border-bottom: 1px solid #34495e;">' +
+      '<div style="font: 600 12px Helvetica, Arial, sans-serif; color: white; letter-spacing: 0.5px;">📊 RANKING GERAL</div>' +
       "</div>" +
       '<table style="width: 100%; border-collapse: collapse;">' +
       '<thead style="background: #252525;">' +
       "<tr>" +
-      '<th style="padding: 10px 8px; font: 700 11px Inter; color: #B0B0B0; text-align: center;">POS</th>' +
-      '<th style="padding: 10px 8px; font: 700 11px Inter; color: #B0B0B0; text-align: center;">❤️</th>' +
-      '<th style="padding: 10px 8px; font: 700 11px Inter; color: #B0B0B0; text-align: left;">CARTOLEIRO</th>' +
-      '<th style="padding: 10px 8px; font: 700 11px Inter; color: #B0B0B0; text-align: center;">PTS</th>' +
+      '<th style="padding: 10px 8px; font: 600 11px Helvetica, Arial, sans-serif; color: #B0B0B0; text-align: center; letter-spacing: 0.3px;">POS</th>' +
+      '<th style="padding: 10px 8px; font: 600 11px Helvetica, Arial, sans-serif; color: #B0B0B0; text-align: center;">❤️</th>' +
+      '<th style="padding: 10px 8px; font: 600 11px Helvetica, Arial, sans-serif; color: #B0B0B0; text-align: left; letter-spacing: 0.3px;">CARTOLEIRO</th>' +
+      '<th style="padding: 10px 8px; font: 600 11px Helvetica, Arial, sans-serif; color: #B0B0B0; text-align: center; letter-spacing: 0.3px;">PTS</th>' +
       "</tr>" +
       "</thead>" +
       "<tbody>" +
@@ -592,8 +589,8 @@ const LuvaDeOuroUtils = {
       "</tbody>" +
       "</table>" +
       "</div>" +
-      '<div style="margin-top: 16px; padding: 12px; background: rgba(255, 215, 0, 0.15); border-radius: 8px; border: 1px solid rgba(255, 215, 0, 0.4); text-align: center;">' +
-      '<div style="font: 700 11px Inter; color: #FFD700;">⭐ SuperCartola Manager • ' +
+      '<div style="margin-top: 16px; padding: 10px; background: rgba(52, 73, 94, 0.3); border-radius: 6px; border: 1px solid rgba(52, 73, 94, 0.5); text-align: center;">' +
+      '<div style="font: 400 10px Helvetica, Arial, sans-serif; color: #95a5a6; letter-spacing: 0.5px;">SuperCartola Manager • ' +
       new Date().toLocaleDateString("pt-BR") +
       "</div>" +
       "</div>"
