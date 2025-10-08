@@ -111,11 +111,11 @@ export async function getResultadosMataMata() {
     }
 
     const rodadasFases = {
-      primeira: edicaoAtiva.rodadaInicial + (edicaoAtiva.id === 5 ? 0 : 1),
-      oitavas: edicaoAtiva.rodadaInicial + (edicaoAtiva.id === 5 ? 1 : 2),
-      quartas: edicaoAtiva.rodadaInicial + (edicaoAtiva.id === 5 ? 2 : 3),
-      semis: edicaoAtiva.rodadaInicial + 4,
-      final: edicaoAtiva.rodadaInicial + (edicaoAtiva.id === 5 ? 4 : 5),
+      primeira: edicaoAtiva.rodadaInicial,
+      oitavas: edicaoAtiva.rodadaInicial + 1,
+      quartas: edicaoAtiva.rodadaInicial + 2,
+      semis: edicaoAtiva.rodadaInicial + 3,
+      final: edicaoAtiva.rodadaInicial + 4,
     };
 
     let vencedoresAnteriores = rankingBase;

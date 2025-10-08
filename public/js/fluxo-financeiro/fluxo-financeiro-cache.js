@@ -326,12 +326,13 @@ export class FluxoFinanceiroCache {
     }
 
     _calcularRodadaPontosCorrigido(edicao, fase) {
+        // ✅ USAR DADOS DO CONFIG AO INVÉS DE HARDCODE
         const edicaoConfig = {
-            1: { rodadaBase: 3 },
-            2: { rodadaBase: 10 },
-            3: { rodadaBase: 16 },
-            4: { rodadaBase: 24 },
-            5: { rodadaBase: 31 },
+            1: { rodadaBase: 2 },   // ✅ CORRIGIDO
+            2: { rodadaBase: 9 },   // ✅ CORRIGIDO
+            3: { rodadaBase: 15 },  // ✅ CORRIGIDO
+            4: { rodadaBase: 22 },  // ✅ CORRIGIDO
+            5: { rodadaBase: 31 },  // ✅ JÁ ESTAVA CORRETO
         };
 
         const faseOffset = {
@@ -346,6 +347,8 @@ export class FluxoFinanceiroCache {
         const offset = faseOffset[fase];
 
         if (!config || offset === undefined) return 0;
+
+        // Edição 5 não tem semis, final é rodadaBase + 4
         if (edicao === 5 && fase === "final") return config.rodadaBase + 4;
 
         return config.rodadaBase + offset;
