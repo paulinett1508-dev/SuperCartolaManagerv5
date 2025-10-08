@@ -1,0 +1,142 @@
+O problema é que todos os pontos totais são positivos no Luva de Ouro (são somas de pontuações). O que precisa ficar vermelho são os pontos da última rodada quando forem negativos.
+Substitua a função criarLayoutRankingGeral (linhas 457-553) do luva-de-ouro-utils.js:
+javascript/**
+ * Layout para Ranking Geral (Mobile Dark HD - VERTICAL)
+ */
+criarLayoutRankingGeral: function (dados) {
+  const topN = dados.ranking.slice(0, 15);
+  const lider = topN[0] || {};
+  const pontosLider = lider.pontosTotais
+    ? Math.floor(lider.pontosTotais * 100) / 100
+    : 0;
+  const nomeLider = lider.participanteNome || "-";
+
+  const pontosMelhorRodada = Math.max.apply(
+    Math,
+    topN.map(function (r) {
+      return r.ultimaRodada && r.ultimaRodada.pontos
+        ? r.ultimaRodada.pontos
+        : 0;
+    }),
+  );
+
+  const linhasTabela = topN
+    .map(function (item, index) {
+      const posMap = { 0: "🏆", 1: "🥈", 2: "🥉" };
+      const posIcon = posMap[index] || index + 1 + "º";
+      const bgColor = index % 2 === 0 ? "#1e1e1e" : "#252525";
+      const borderColors = ["#FFD700", "#C0C0C0", "#CD7F32"];
+      const borderLeft =
+        index < 3
+          ? "border-left: 3px solid " + borderColors[index] + ";"
+          : "";
+
+      const goleiroNome =
+        item.ultimaRodada && item.ultimaRodada.goleiroNome
+          ? item.ultimaRodada.goleiroNome
+          : "Sem goleiro";
+      
+      // ✅ Pontos da última rodada com cor condicional
+      const pontosUltimaRodada = item.ultimaRodada && item.ultimaRodada.pontos
+        ? Math.floor(item.ultimaRodada.pontos * 100) / 100
+        : 0;
+      const corPontosRodada = pontosUltimaRodada >= 0 ? "#4CAF50" : "#e74c3c";
+      const goleiroPontos = pontosUltimaRodada !== 0
+        ? '<span style="color: ' + corPontosRodada + ';">' + pontosUltimaRodada + "pts</span>"
+        : "";
+
+      const pontosTotal = Math.floor(item.pontosTotais * 100) / 100;
+
+      return (
+        '<tr style="background: ' +
+        bgColor +
+        "; " +
+        borderLeft +
+        '">' +
+        '<td style="padding: 12px 10px; text-align: center; font: 700 15px Helvetica, Arial, sans-serif; color: #E0E0E0;">' +
+        posIcon +
+        "</td>" +
+        '<td style="padding: 10px; text-align: center;">' +
+        '<img src="/escudos/' +
+        item.clubeId +
+        '.png" ' +
+        'style="width: 28px; height: 28px; border-radius: 50%; background: #fff; border: 1px solid #444;" ' +
+        "onerror=\"this.src='/escudos/default.png'\">" +
+        "</td>" +
+        '<td style="padding: 12px 10px; text-align: center;">' +
+        '<div style="font: 600 14px Helvetica, Arial, sans-serif; color: #FFFFFF; letter-spacing: 0.3px;">' +
+        item.participanteNome +
+        "</div>" +
+        '<div style="font: 400 11px Helvetica, Arial, sans-serif; color: #B0B0B0; margin-top: 4px;">' +
+        goleiroNome +
+        (goleiroPontos ? " • " + goleiroPontos : "") +
+        "</div>" +
+        "</td>" +
+        '<td style="padding: 12px 10px; text-align: center; font: 700 16px Helvetica, Arial, sans-serif; color: #4CAF50;">' +
+        pontosTotal +
+        "</td>" +
+        "</tr>"
+      );
+    })
+    .join("");
+
+  return (
+    '<div style="background: linear-gradient(135deg, #2c3e50, #34495e); padding: 14px; border-radius: 8px; margin-bottom: 16px; text-align: center;">' +
+    '<div style="font: 600 16px Helvetica, Arial, sans-serif; color: white; margin-bottom: 3px;">🥅 Luva de Ouro</div>' +
+    '<div style="font: 400 11px Helvetica, Arial, sans-serif; color: rgba(255,255,255,0.8); letter-spacing: 0.5px;">Cartoleiros Sobral • Rodadas ' +
+    dados.rodadaInicio +
+    "-" +
+    dados.rodadaFim +
+    "</div>" +
+    "</div>" +
+    '<div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 10px; margin-bottom: 16px;">' +
+    '<div style="background: linear-gradient(135deg, #FFD700, #FFA500); padding: 14px; border-radius: 8px; text-align: center;">' +
+    '<div style="font: 700 24px Helvetica, Arial, sans-serif; color: #1a1a1a;">' +
+    pontosLider +
+    "</div>" +
+    '<div style="font: 600 10px Helvetica, Arial, sans-serif; color: #1a1a1a; margin-top: 3px;">🏆 LÍDER</div>' +
+    '<div style="font: 400 9px Helvetica, Arial, sans-serif; color: #1a1a1a; margin-top: 2px; opacity: 0.8;">' +
+    nomeLider +
+    "</div>" +
+    "</div>" +
+    '<div style="background: linear-gradient(135deg, #3498db, #2980b9); padding: 14px; border-radius: 8px; text-align: center; color: white;">' +
+    '<div style="font: 700 24px Helvetica, Arial, sans-serif;">' +
+    dados.totalParticipantes +
+    "</div>" +
+    '<div style="font: 600 10px Helvetica, Arial, sans-serif; margin-top: 3px;">👥 TIMES</div>' +
+    '<div style="font: 400 9px Helvetica, Arial, sans-serif; margin-top: 2px; opacity: 0.8;">Liga ativa</div>' +
+    "</div>" +
+    '<div style="background: linear-gradient(135deg, #27ae60, #2ecc71); padding: 14px; border-radius: 8px; text-align: center; color: white;">' +
+    '<div style="font: 700 24px Helvetica, Arial, sans-serif;">' +
+    pontosMelhorRodada +
+    "</div>" +
+    '<div style="font: 600 10px Helvetica, Arial, sans-serif; margin-top: 3px;">🎯 MELHOR</div>' +
+    '<div style="font: 400 9px Helvetica, Arial, sans-serif; margin-top: 2px; opacity: 0.8;">Rodada</div>' +
+    "</div>" +
+    "</div>" +
+    '<div style="background: #2d2d2d; border-radius: 10px; overflow: hidden; border: 1px solid #404040;">' +
+    '<div style="background: #2c3e50; padding: 10px; text-align: center; border-bottom: 1px solid #34495e;">' +
+    '<div style="font: 600 12px Helvetica, Arial, sans-serif; color: white; letter-spacing: 0.5px;">📊 RANKING GERAL</div>' +
+    "</div>" +
+    '<table style="width: 100%; border-collapse: collapse;">' +
+    '<thead style="background: #252525;">' +
+    "<tr>" +
+    '<th style="padding: 10px 8px; font: 600 11px Helvetica, Arial, sans-serif; color: #B0B0B0; text-align: center; letter-spacing: 0.3px;">POS</th>' +
+    '<th style="padding: 10px 8px; font: 600 11px Helvetica, Arial, sans-serif; color: #B0B0B0; text-align: center;">❤️</th>' +
+    '<th style="padding: 10px 8px; font: 600 11px Helvetica, Arial, sans-serif; color: #B0B0B0; text-align: center; letter-spacing: 0.3px;">CARTOLEIRO</th>' +
+    '<th style="padding: 10px 8px; font: 600 11px Helvetica, Arial, sans-serif; color: #B0B0B0; text-align: center; letter-spacing: 0.3px;">PTS</th>' +
+    "</tr>" +
+    "</thead>" +
+    "<tbody>" +
+    linhasTabela +
+    "</tbody>" +
+    "</table>" +
+    "</div>" +
+    '<div style="margin-top: 16px; padding: 10px; background: rgba(52, 73, 94, 0.3); border-radius: 6px; border: 1px solid rgba(52, 73, 94, 0.5); text-align: center;">' +
+    '<div style="font: 400 10px Helvetica, Arial, sans-serif; color: #95a5a6; letter-spacing: 0.5px;">SuperCartola Manager • ' +
+    new Date().toLocaleDateString("pt-BR") +
+    "</div>" +
+    "</div>"
+  );
+},
+Mudança principal: Linhas 36-41 agora aplicam cor condicional (verde/vermelho) aos pontos da última rodada (ex: "Walter • -3pts" ficará vermelho).
