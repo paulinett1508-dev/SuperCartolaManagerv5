@@ -130,14 +130,41 @@ export class FluxoFinanceiroCore {
         isCartoleirosSobral,
     ) {
         const ranking = this.cache.getRankingRodada(rodada);
-        if (!ranking || !ranking.length) return null;
+
+        // ✅ SEMPRE RETORNA RODADA, MESMO SEM DADOS
+        if (!ranking || !ranking.length) {
+            return {
+                rodada,
+                posicao: null,
+                totalTimes: 0,
+                bonusOnus: 0,
+                pontosCorridos: isSuperCartola2025 ? 0 : null,
+                mataMata: 0,
+                melhorMes: 0,
+                isMito: false,
+                isMico: false,
+            };
+        }
 
         const posicaoIndex = ranking.findIndex((r) => {
             const rTimeId = normalizarTimeId(r.timeId || r.time_id || r.id);
             return rTimeId === normalizarTimeId(timeId);
         });
 
-        if (posicaoIndex === -1) return null;
+        // ✅ MESMO SEM POSIÇÃO, RETORNA RODADA COM VALORES ZERADOS
+        if (posicaoIndex === -1) {
+            return {
+                rodada,
+                posicao: null,
+                totalTimes: ranking.length,
+                bonusOnus: 0,
+                pontosCorridos: isSuperCartola2025 ? 0 : null,
+                mataMata: 0,
+                melhorMes: 0,
+                isMito: false,
+                isMico: false,
+            };
+        }
 
         const totalTimes = ranking.length;
         const posicaoReal = posicaoIndex + 1;

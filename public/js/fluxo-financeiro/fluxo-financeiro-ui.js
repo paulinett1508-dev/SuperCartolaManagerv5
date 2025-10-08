@@ -216,12 +216,13 @@ export class FluxoFinanceiroUI {
                                     </td>
                                     <td class="posicao-col">
                                         ${(() => {
-                                            const isPrimeiro =
-                                                rodada.posicao === 1;
-                                            const isUltimo =
-                                                rodada.posicao ===
-                                                rodada.totalTimes;
+                                            if (rodada.posicao === null) {
+                                                return '<span class="pos-neutro">N/D</span>';
+                                            }
 
+                                            const isPrimeiro = rodada.posicao === 1;
+                                            const isUltimo = rodada.posicao === rodada.totalTimes;
+                                            
                                             if (isPrimeiro) {
                                                 return '<span class="pos-mito">MITO 🎩</span>';
                                             } else if (isUltimo) {
