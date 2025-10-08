@@ -580,7 +580,7 @@ const LuvaDeOuroUtils = {
       "<tr>" +
       '<th style="padding: 10px 8px; font: 600 11px Helvetica, Arial, sans-serif; color: #B0B0B0; text-align: center; letter-spacing: 0.3px;">POS</th>' +
       '<th style="padding: 10px 8px; font: 600 11px Helvetica, Arial, sans-serif; color: #B0B0B0; text-align: center;">❤️</th>' +
-      '<th style="padding: 10px 8px; font: 600 11px Helvetica, Arial, sans-serif; color: #B0B0B0; text-align: left; letter-spacing: 0.3px;">CARTOLEIRO</th>' +
+      '<th style="padding: 10px 8px; font: 600 11px Helvetica, Arial, sans-serif; color: #B0B0B0; text-align: center; letter-spacing: 0.3px;">CARTOLEIRO</th>' +
       '<th style="padding: 10px 8px; font: 600 11px Helvetica, Arial, sans-serif; color: #B0B0B0; text-align: center; letter-spacing: 0.3px;">PTS</th>' +
       "</tr>" +
       "</thead>" +
@@ -893,11 +893,11 @@ const LuvaDeOuroUtils = {
           '<div style="padding: 24px;">' +
           '<div style="background: white; border-radius: 10px; padding: 18px; box-shadow: 0 4px 16px rgba(0,0,0,0.06); border: 1px solid #e0e0e0;">' +
           '<table style="width:100%; border-collapse:collapse; font-size:13px;">' +
-          "<thead>" +
-          '<tr style="background: #2E8B57; color: white;">' +
+          '<thead style="background: #2E8B57; color: white;">' +
+          "<tr>" +
           '<th style="width: 50px; text-align: center; padding: 10px 6px; font: 600 11px Inter, sans-serif;">POS</th>' +
           '<th style="width: 50px; text-align: center; padding: 10px 6px; font: 600 11px Inter, sans-serif;">❤️</th>' +
-          '<th style="text-align: left; padding: 10px 6px; font: 600 11px Inter, sans-serif;">CARTOLEIRO</th>' +
+          '<th style="text-align: center; padding: 10px 6px; font: 600 11px Inter, sans-serif;">CARTOLEIRO</th>' +
           '<th style="width: 80px; text-align: center; padding: 10px 6px; font: 600 11px Inter, sans-serif;">TOTAL</th>' +
           '<th style="width: 70px; text-align: center; padding: 10px 6px; font: 600 11px Inter, sans-serif;">JOGOS</th>' +
           '<th style="text-align: left; padding: 10px 6px; font: 600 11px Inter, sans-serif;">ÚLTIMO GOLEIRO</th>' +
