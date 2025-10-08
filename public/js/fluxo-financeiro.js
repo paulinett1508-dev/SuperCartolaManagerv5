@@ -269,22 +269,27 @@ async function exportarExtrato(extrato, participante, timeId) {
             FluxoFinanceiroCampos.carregarTodosCamposEditaveis(timeId);
         const dadosMovimentacoes = [];
 
+        // ✅ CORREÇÃO: SEMPRE ADICIONAR TODAS AS RODADAS
         extrato.rodadas.forEach((rodada) => {
             const rodadaNumero = rodada.rodada;
-            if (rodada.bonusOnus && rodada.bonusOnus !== 0) {
-                const descricao = rodada.isMito
-                    ? `Rodada ${rodadaNumero} - MITO`
-                    : rodada.isMico
-                      ? `Rodada ${rodadaNumero} - MICO`
-                      : `Rodada ${rodadaNumero} - Posição ${rodada.posicao}°`;
-                dadosMovimentacoes.push({
-                    data: `R${rodadaNumero}`,
-                    descricao,
-                    valor: rodada.bonusOnus,
-                    tipo: "bonus_onus",
-                });
-            }
-            if (rodada.pontosCorridos && rodada.pontosCorridos !== 0) {
+
+            // Descrição da posição
+            const descricao = rodada.isMito
+                ? `Rodada ${rodadaNumero} - MITO`
+                : rodada.isMico
+                  ? `Rodada ${rodadaNumero} - MICO`
+                  : `Rodada ${rodadaNumero} - Posição ${rodada.posicao}°`;
+
+            // ✅ SEMPRE ADICIONA BÔNUS/ÔNUS (MESMO SE R$ 0,00)
+            dadosMovimentacoes.push({
+                data: `R${rodadaNumero}`,
+                descricao,
+                valor: rodada.bonusOnus || 0,
+                tipo: "bonus_onus",
+            });
+
+            // ✅ SEMPRE ADICIONA PONTOS CORRIDOS (MESMO SE R$ 0,00)
+            if (rodada.pontosCorridos !== null && rodada.pontosCorridos !== undefined) {
                 dadosMovimentacoes.push({
                     data: `R${rodadaNumero}`,
                     descricao: `Rodada ${rodadaNumero} - Pontos Corridos`,
@@ -292,7 +297,9 @@ async function exportarExtrato(extrato, participante, timeId) {
                     tipo: "pontos_corridos",
                 });
             }
-            if (rodada.mataMata && rodada.mataMata !== 0) {
+
+            // ✅ SEMPRE ADICIONA MATA-MATA (MESMO SE R$ 0,00)
+            if (rodada.mataMata !== null && rodada.mataMata !== undefined) {
                 dadosMovimentacoes.push({
                     data: `R${rodadaNumero}`,
                     descricao: `Rodada ${rodadaNumero} - Mata-Mata`,
@@ -302,6 +309,7 @@ async function exportarExtrato(extrato, participante, timeId) {
             }
         });
 
+        // Campos editáveis (mantido original)
         ["campo1", "campo2", "campo3", "campo4"].forEach((campo) => {
             const valorCampo = extrato.resumo[campo];
             if (valorCampo && valorCampo !== 0) {
