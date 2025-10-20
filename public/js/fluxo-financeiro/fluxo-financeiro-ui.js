@@ -12,12 +12,27 @@ export class FluxoFinanceiroUI {
         if (!container) return;
 
         container.innerHTML = `
-            <div class="participantes-grid">
+            <div style="margin-bottom: 20px;">
+                <input type="text" 
+                       id="searchParticipante" 
+                       placeholder="🔍 Pesquisar participante por nome ou time..."
+                       style="width: 100%; padding: 12px 16px; border: 2px solid #ddd; border-radius: 8px; 
+                              font-size: 15px; transition: all 0.3s ease;"
+                       onkeyup="window.filtrarParticipantes(this.value)"
+                       onfocus="this.style.borderColor='var(--laranja)'"
+                       onblur="this.style.borderColor='#ddd'">
+                <div id="resultadosCount" style="margin-top: 8px; font-size: 13px; color: #666; text-align: right;">
+                    ${participantes.length} participantes
+                </div>
+            </div>
+            <div class="participantes-grid" id="participantesGrid">
                 ${participantes
                     .map(
                         (p) => `
                     <button onclick="window.selecionarParticipante('${p.time_id || p.id}')"
-                            class="participante-card">
+                            class="participante-card"
+                            data-nome="${(p.nome_cartola || "").toLowerCase()}"
+                            data-time="${(p.nome_time || "").toLowerCase()}">
                         <div class="participante-header">
                             ${
                                 p.url_escudo_png
@@ -39,6 +54,9 @@ export class FluxoFinanceiroUI {
                     .join("")}
             </div>
         `;
+
+        // Armazenar participantes globalmente para filtro
+        window.totalParticipantes = participantes.length;
     }
 
     renderizarMensagemInicial() {
@@ -138,12 +156,12 @@ export class FluxoFinanceiroUI {
             <!-- Cards de Resumo -->
             <div class="resumo-grid">
                 <div class="resumo-card bonus">
-                    <div class="resumo-titulo">CRÉDITOS</div>
+                    <div class="resumo-titulo">BÔNUS DE RODADAS</div>
                     <div class="resumo-valor">R$ ${formatarValorComCor(extrato.resumo.bonus)}</div>
                 </div>
 
                 <div class="resumo-card onus">
-                    <div class="resumo-titulo">DÉBITOS</div>
+                    <div class="resumo-titulo">ÔNUS DE RODADAS</div>
                     <div class="resumo-valor">R$ ${formatarValorComCor(extrato.resumo.onus)}</div>
                 </div>
 
@@ -220,9 +238,12 @@ export class FluxoFinanceiroUI {
                                                 return '<span class="pos-neutro">N/D</span>';
                                             }
 
-                                            const isPrimeiro = rodada.posicao === 1;
-                                            const isUltimo = rodada.posicao === rodada.totalTimes;
-                                            
+                                            const isPrimeiro =
+                                                rodada.posicao === 1;
+                                            const isUltimo =
+                                                rodada.posicao ===
+                                                rodada.totalTimes;
+
                                             if (isPrimeiro) {
                                                 return '<span class="pos-mito">MITO 🎩</span>';
                                             } else if (isUltimo) {
@@ -279,8 +300,8 @@ export class FluxoFinanceiroUI {
     }
 
     _renderizarCampoEditavel(timeId, nomeCampo, campoData) {
-        const valor = campoData.valor || 0;
-        const nome = campoData.nome || `Campo ${nomeCampo.slice(-1)}`;
+        const valor = campoData?.valor || 0;
+        const nome = campoData?.nome || `Campo ${nomeCampo.slice(-1)}`;
 
         return `
         <div style="background: white; border-radius: 6px; padding: 12px; border: 1px solid #ffc107;">
@@ -323,25 +344,77 @@ export class FluxoFinanceiroUI {
 }
 
 // Funções globais para campos editáveis
-window.salvarCampoEditavel = function (timeId, nomeCampo, valor) {
-    const valorNum = parseFloat(valor) || 0;
-    FluxoFinanceiroCampos.salvarValorCampo(timeId, nomeCampo, valorNum);
-    console.log(`Campo ${nomeCampo} salvo: R$ ${valorNum}`);
-};
-
-window.editarNomeCampo = function (timeId, nomeCampo) {
-    const nomeAtual = FluxoFinanceiroCampos.obterNomeCampo(timeId, nomeCampo);
-    const novoNome = prompt(
-        `Renomear campo:\n\nNome atual: ${nomeAtual}\n\nNovo nome:`,
-        nomeAtual,
-    );
-
-    if (novoNome && novoNome.trim()) {
-        FluxoFinanceiroCampos.salvarNomeCampo(
+window.salvarCampoEditavel = async function (timeId, nomeCampo, valor) {
+    try {
+        const valorNum = parseFloat(valor) || 0;
+        await FluxoFinanceiroCampos.salvarValorCampo(
             timeId,
             nomeCampo,
-            novoNome.trim(),
+            valorNum,
         );
-        window.calcularEExibirExtrato(timeId);
+        console.log(`Campo ${nomeCampo} salvo: R$ ${valorNum}`);
+    } catch (error) {
+        console.error("Erro ao salvar campo:", error);
+        alert("Erro ao salvar campo. Tente novamente.");
+    }
+};
+
+window.editarNomeCampo = async function (timeId, nomeCampo) {
+    try {
+        const nomeAtual = await FluxoFinanceiroCampos.obterNomeCampo(
+            timeId,
+            nomeCampo,
+        );
+        const novoNome = prompt(
+            `Renomear campo:\n\nNome atual: ${nomeAtual}\n\nNovo nome:`,
+            nomeAtual,
+        );
+
+        if (novoNome && novoNome.trim()) {
+            await FluxoFinanceiroCampos.salvarNomeCampo(
+                timeId,
+                nomeCampo,
+                novoNome.trim(),
+            );
+            window.calcularEExibirExtrato(timeId);
+        }
+    } catch (error) {
+        console.error("Erro ao renomear campo:", error);
+        alert("Erro ao renomear campo. Tente novamente.");
+    }
+};
+
+window.desfazerCampo = async function (timeId, nomeCampo) {
+    await FluxoFinanceiroCampos.desfazerCampo(timeId, nomeCampo);
+};
+
+// Função de filtro de participantes
+window.filtrarParticipantes = function (termoBusca) {
+    const termo = termoBusca.toLowerCase().trim();
+    const cards = document.querySelectorAll(".participante-card");
+    let visiveis = 0;
+
+    cards.forEach((card) => {
+        const nome = card.getAttribute("data-nome") || "";
+        const time = card.getAttribute("data-time") || "";
+
+        if (nome.includes(termo) || time.includes(termo)) {
+            card.style.display = "";
+            visiveis++;
+        } else {
+            card.style.display = "none";
+        }
+    });
+
+    // Atualizar contador
+    const contador = document.getElementById("resultadosCount");
+    if (contador) {
+        if (termo) {
+            contador.textContent = `${visiveis} de ${window.totalParticipantes} participantes`;
+            contador.style.color = visiveis > 0 ? "#2ecc71" : "#e74c3c";
+        } else {
+            contador.textContent = `${window.totalParticipantes} participantes`;
+            contador.style.color = "#666";
+        }
     }
 };

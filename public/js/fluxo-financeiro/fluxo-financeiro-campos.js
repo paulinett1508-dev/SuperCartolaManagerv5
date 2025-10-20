@@ -1,332 +1,235 @@
 // ==============================
-// GERENCIADOR DE CAMPOS EDITÁVEIS
+// GERENCIADOR DE CAMPOS EDITÁVEIS - MONGODB
 // ==============================
+
+import { FluxoFinanceiroAPI } from "./fluxo-financeiro-api.js";
+import { getLigaId } from "../pontos-corridos-utils.js";
 
 export class FluxoFinanceiroCampos {
     /**
-     * Salva um campo editável no localStorage
+     * Carrega todos os campos editáveis de um time do MongoDB
      * @param {string} timeId - ID do time
-     * @param {string} campo - Nome do campo (campo1, campo2, etc.)
-     * @param {string} tipo - Tipo do campo (nome, valor)
-     * @param {*} valor - Valor a ser salvo
+     * @returns {Promise<Object>} - Objeto com todos os campos editáveis
      */
-    static salvarCampoEditavel(timeId, campo, tipo, valor) {
+    static async carregarTodosCamposEditaveis(timeId) {
         try {
-            const chave = `fluxo_financeiro_${timeId}_${campo}_${tipo}`;
-            localStorage.setItem(chave, String(valor));
+            const ligaId = getLigaId();
+            const data = await FluxoFinanceiroAPI.getCampos(ligaId, timeId);
+
+            // Transformar array de campos em objeto
+            const campos = {
+                campo1: data.campos[0] || { nome: "Campo 1", valor: 0 },
+                campo2: data.campos[1] || { nome: "Campo 2", valor: 0 },
+                campo3: data.campos[2] || { nome: "Campo 3", valor: 0 },
+                campo4: data.campos[3] || { nome: "Campo 4", valor: 0 },
+            };
+
             console.log(
-                `[FluxoFinanceiroCampos] Campo salvo: ${chave} = ${valor}`,
+                "[FluxoFinanceiroCampos] Campos carregados do MongoDB:",
+                campos,
             );
+            return campos;
         } catch (error) {
             console.error(
-                "[FluxoFinanceiroCampos] Erro ao salvar campo:",
+                "[FluxoFinanceiroCampos] Erro ao carregar campos, usando padrão:",
                 error,
             );
+            return {
+                campo1: { nome: "Campo 1", valor: 0 },
+                campo2: { nome: "Campo 2", valor: 0 },
+                campo3: { nome: "Campo 3", valor: 0 },
+                campo4: { nome: "Campo 4", valor: 0 },
+            };
         }
     }
 
     /**
-     * Carrega um campo editável do localStorage
+     * Salva o valor de um campo no MongoDB
      * @param {string} timeId - ID do time
-     * @param {string} campo - Nome do campo
-     * @param {string} tipo - Tipo do campo
-     * @param {*} valorPadrao - Valor padrão se não encontrado
-     * @returns {*} - Valor carregado ou padrão
-     */
-    static carregarCampoEditavel(timeId, campo, tipo, valorPadrao) {
-        try {
-            const chave = `fluxo_financeiro_${timeId}_${campo}_${tipo}`;
-            const valor = localStorage.getItem(chave);
-            return valor !== null ? valor : valorPadrao;
-        } catch (error) {
-            console.error(
-                "[FluxoFinanceiroCampos] Erro ao carregar campo:",
-                error,
-            );
-            return valorPadrao;
-        }
-    }
-
-    /**
-     * Carrega todos os campos editáveis de um time
-     * @param {string} timeId - ID do time
-     * @returns {Object} - Objeto com todos os campos editáveis
-     */
-    static carregarTodosCamposEditaveis(timeId) {
-        return {
-            campo1: {
-                nome: this.carregarCampoEditavel(
-                    timeId,
-                    "campo1",
-                    "nome",
-                    "Campo 1",
-                ),
-                valor:
-                    parseFloat(
-                        this.carregarCampoEditavel(
-                            timeId,
-                            "campo1",
-                            "valor",
-                            "0",
-                        ),
-                    ) || 0,
-            },
-            campo2: {
-                nome: this.carregarCampoEditavel(
-                    timeId,
-                    "campo2",
-                    "nome",
-                    "Campo 2",
-                ),
-                valor:
-                    parseFloat(
-                        this.carregarCampoEditavel(
-                            timeId,
-                            "campo2",
-                            "valor",
-                            "0",
-                        ),
-                    ) || 0,
-            },
-            campo3: {
-                nome: this.carregarCampoEditavel(
-                    timeId,
-                    "campo3",
-                    "nome",
-                    "Campo 3",
-                ),
-                valor:
-                    parseFloat(
-                        this.carregarCampoEditavel(
-                            timeId,
-                            "campo3",
-                            "valor",
-                            "0",
-                        ),
-                    ) || 0,
-            },
-            campo4: {
-                nome: this.carregarCampoEditavel(
-                    timeId,
-                    "campo4",
-                    "nome",
-                    "Campo 4",
-                ),
-                valor:
-                    parseFloat(
-                        this.carregarCampoEditavel(
-                            timeId,
-                            "campo4",
-                            "valor",
-                            "0",
-                        ),
-                    ) || 0,
-            },
-        };
-    }
-
-    /**
-     * Adiciona eventos aos campos editáveis
-     * @param {string} timeId - ID do time
-     * @param {Function} onChangeCallback - Callback para quando um campo é alterado
-     */
-    static adicionarEventosCamposEditaveis(timeId, onChangeCallback) {
-        // Eventos para campos de nome
-        document.querySelectorAll(".campo-nome").forEach((input) => {
-            if (input.dataset.timeId === timeId) {
-                // Remover eventos anteriores
-                input.removeEventListener("change", this._handleNomeChange);
-                input.removeEventListener("blur", this._handleNomeBlur);
-
-                // Adicionar novos eventos
-                const handleNomeChange = (e) =>
-                    this._handleNomeChange(e, timeId);
-                const handleNomeBlur = (e) => this._handleNomeBlur(e, timeId);
-
-                input.addEventListener("change", handleNomeChange);
-                input.addEventListener("blur", handleNomeBlur);
-
-                // Armazenar referência para remoção futura
-                input._handleNomeChange = handleNomeChange;
-                input._handleNomeBlur = handleNomeBlur;
-            }
-        });
-
-        // Eventos para campos de valor
-        document.querySelectorAll(".campo-valor").forEach((input) => {
-            if (input.dataset.timeId === timeId) {
-                // Remover eventos anteriores
-                input.removeEventListener("change", this._handleValorChange);
-                input.removeEventListener("blur", this._handleValorBlur);
-                input.removeEventListener("input", this._handleValorInput);
-
-                // Adicionar novos eventos
-                const handleValorChange = (e) =>
-                    this._handleValorChange(e, timeId, onChangeCallback);
-                const handleValorBlur = (e) =>
-                    this._handleValorBlur(e, timeId, onChangeCallback);
-                const handleValorInput = (e) => this._handleValorInput(e);
-
-                input.addEventListener("change", handleValorChange);
-                input.addEventListener("blur", handleValorBlur);
-                input.addEventListener("input", handleValorInput);
-
-                // Armazenar referência para remoção futura
-                input._handleValorChange = handleValorChange;
-                input._handleValorBlur = handleValorBlur;
-                input._handleValorInput = handleValorInput;
-            }
-        });
-    }
-
-    /**
-     * Handler para mudança de nome
-     * @param {Event} e - Evento
-     * @param {string} timeId - ID do time
-     * @private
-     */
-    static _handleNomeChange(e, timeId) {
-        const campo = e.target.dataset.campo;
-        const novoNome = e.target.value.trim() || `Campo ${campo.slice(-1)}`;
-
-        // Atualizar valor no input
-        e.target.value = novoNome;
-
-        // Salvar no localStorage
-        this.salvarCampoEditavel(timeId, campo, "nome", novoNome);
-
-        console.log(
-            `[FluxoFinanceiroCampos] Nome alterado: ${campo} = ${novoNome}`,
-        );
-    }
-
-    /**
-     * Handler para blur de nome
-     * @param {Event} e - Evento
-     * @param {string} timeId - ID do time
-     * @private
-     */
-    static _handleNomeBlur(e, timeId) {
-        // Mesmo comportamento do change
-        this._handleNomeChange(e, timeId);
-    }
-
-    /**
-     * Handler para mudança de valor
-     * @param {Event} e - Evento
-     * @param {string} timeId - ID do time
-     * @param {Function} onChangeCallback - Callback
-     * @private
-     */
-    static _handleValorChange(e, timeId, onChangeCallback) {
-        const campo = e.target.dataset.campo;
-        const novoValor = parseFloat(e.target.value) || 0;
-
-        // Salvar no localStorage
-        this.salvarCampoEditavel(timeId, campo, "valor", novoValor);
-
-        // Atualizar display visual
-        this._atualizarDisplayValor(e.target, novoValor);
-
-        console.log(
-            `[FluxoFinanceiroCampos] Valor alterado: ${campo} = R$ ${novoValor.toFixed(2)}`,
-        );
-
-        // Chamar callback se fornecido
-        if (onChangeCallback) {
-            onChangeCallback(timeId);
-        }
-    }
-
-    /**
-     * Handler para blur de valor
-     * @param {Event} e - Evento
-     * @param {string} timeId - ID do time
-     * @param {Function} onChangeCallback - Callback
-     * @private
-     */
-    static _handleValorBlur(e, timeId, onChangeCallback) {
-        // Mesmo comportamento do change
-        this._handleValorChange(e, timeId, onChangeCallback);
-    }
-
-    /**
-     * Handler para input de valor (validação em tempo real)
-     * @param {Event} e - Evento
-     * @private
-     */
-    static _handleValorInput(e) {
-        const valor = e.target.value;
-
-        // Permitir apenas números, ponto, vírgula e sinal negativo
-        const valorLimpo = valor.replace(/[^0-9.,-]/g, "");
-
-        if (valorLimpo !== valor) {
-            e.target.value = valorLimpo;
-        }
-    }
-
-    /**
-     * Atualiza display visual do valor
-     * @param {HTMLElement} input - Input element
+     * @param {string} nomeCampo - Nome do campo (campo1, campo2, etc.)
      * @param {number} valor - Valor numérico
-     * @private
+     * @returns {Promise<Object>}
      */
-    static _atualizarDisplayValor(input, valor) {
-        const container = input.closest(".card-valor-container");
-        if (container) {
-            const display = container.querySelector(".card-valor");
-            if (display) {
-                // Atualizar texto
-                display.textContent = `R$ ${valor.toFixed(2).replace(".", ",")}`;
+    static async salvarValorCampo(timeId, nomeCampo, valor) {
+        try {
+            const ligaId = getLigaId();
+            const campoIndex = parseInt(nomeCampo.replace("campo", "")) - 1;
 
-                // Atualizar classe CSS
-                display.classList.remove("positivo", "negativo");
-                if (valor > 0) {
-                    display.classList.add("positivo");
-                } else if (valor < 0) {
-                    display.classList.add("negativo");
-                }
-            }
+            const data = await FluxoFinanceiroAPI.salvarCampo(
+                ligaId,
+                timeId,
+                campoIndex,
+                { valor: parseFloat(valor) || 0 },
+            );
+
+            console.log(
+                `[FluxoFinanceiroCampos] Valor salvo: ${nomeCampo} = R$ ${valor}`,
+            );
+            return data;
+        } catch (error) {
+            console.error(
+                "[FluxoFinanceiroCampos] Erro ao salvar valor:",
+                error,
+            );
+            throw error;
         }
     }
 
     /**
-     * Gera HTML para um campo editável
+     * Salva o nome de um campo no MongoDB
      * @param {string} timeId - ID do time
-     * @param {string} campo - Nome do campo
-     * @param {Object} dadosCampo - Dados do campo (nome, valor)
-     * @returns {string} - HTML do campo editável
+     * @param {string} nomeCampo - Nome do campo (campo1, campo2, etc.)
+     * @param {string} nome - Nome do campo
+     * @returns {Promise<Object>}
      */
-    static gerarHtmlCampoEditavel(timeId, campo, dadosCampo) {
-        const valorFormatado = dadosCampo.valor.toFixed(2).replace(".", ",");
-        const classeValor = dadosCampo.valor >= 0 ? "positivo" : "negativo";
+    static async salvarNomeCampo(timeId, nomeCampo, nome) {
+        try {
+            const ligaId = getLigaId();
+            const campoIndex = parseInt(nomeCampo.replace("campo", "")) - 1;
 
-        return `
-            <div class="resumo-card campo-editavel">
-                <div class="card-label">
-                    <input type="text" 
-                           class="campo-nome" 
-                           value="${dadosCampo.nome}" 
-                           data-campo="${campo}" 
-                           data-time-id="${timeId}"
-                           placeholder="Nome do campo"
-                           maxlength="20">
-                </div>
-                <div class="card-valor-container">
-                    <input type="number" 
-                           class="campo-valor" 
-                           value="${dadosCampo.valor}" 
-                           data-campo="${campo}" 
-                           data-time-id="${timeId}" 
-                           step="0.01"
-                           placeholder="0.00">
-                    <div class="card-valor ${classeValor}">
-                        R$ ${valorFormatado}
-                    </div>
-                </div>
-            </div>
-        `;
+            const data = await FluxoFinanceiroAPI.salvarCampo(
+                ligaId,
+                timeId,
+                campoIndex,
+                { nome: nome.trim() },
+            );
+
+            console.log(
+                `[FluxoFinanceiroCampos] Nome salvo: ${nomeCampo} = ${nome}`,
+            );
+            return data;
+        } catch (error) {
+            console.error(
+                "[FluxoFinanceiroCampos] Erro ao salvar nome:",
+                error,
+            );
+            throw error;
+        }
+    }
+
+    /**
+     * Obtém o nome de um campo
+     * @param {string} timeId - ID do time
+     * @param {string} nomeCampo - Nome do campo (campo1, campo2, etc.)
+     * @returns {Promise<string>} - Nome do campo
+     */
+    static async obterNomeCampo(timeId, nomeCampo) {
+        try {
+            const campos = await this.carregarTodosCamposEditaveis(timeId);
+            return campos[nomeCampo]?.nome || `Campo ${nomeCampo.slice(-1)}`;
+        } catch (error) {
+            console.error("[FluxoFinanceiroCampos] Erro ao obter nome:", error);
+            return `Campo ${nomeCampo.slice(-1)}`;
+        }
+    }
+
+    /**
+     * Sistema de desfazer (fallback - não implementado no MongoDB)
+     * @param {string} timeId - ID do time
+     * @param {string} nomeCampo - Nome do campo
+     */
+    static async desfazerCampo(timeId, nomeCampo) {
+        console.warn(
+            "[FluxoFinanceiroCampos] Desfazer não implementado com MongoDB",
+        );
+        alert(
+            'Função "Desfazer" não disponível com persistência em banco de dados.\n\nPara reverter alterações, digite o valor anterior manualmente.',
+        );
+    }
+
+    /**
+     * Reseta todos os campos de um time
+     * @param {string} timeId - ID do time
+     * @returns {Promise<Object>}
+     */
+    static async resetarCampos(timeId) {
+        try {
+            const ligaId = getLigaId();
+            const data = await FluxoFinanceiroAPI.resetarCampos(ligaId, timeId);
+
+            console.log(
+                `[FluxoFinanceiroCampos] Campos resetados para time ${timeId}`,
+            );
+            return data;
+        } catch (error) {
+            console.error(
+                "[FluxoFinanceiroCampos] Erro ao resetar campos:",
+                error,
+            );
+            throw error;
+        }
+    }
+
+    /**
+     * Exporta dados dos campos para backup
+     * @param {string} timeId - ID do time
+     * @returns {Promise<Object>} - Dados dos campos
+     */
+    static async exportarCampos(timeId) {
+        return await this.carregarTodosCamposEditaveis(timeId);
+    }
+
+    /**
+     * Importa dados dos campos de backup
+     * @param {string} timeId - ID do time
+     * @param {Object} dadosCampos - Dados dos campos
+     * @returns {Promise<Object>}
+     */
+    static async importarCampos(timeId, dadosCampos) {
+        try {
+            const ligaId = getLigaId();
+
+            const campos = [
+                dadosCampos.campo1 || { nome: "Campo 1", valor: 0 },
+                dadosCampos.campo2 || { nome: "Campo 2", valor: 0 },
+                dadosCampos.campo3 || { nome: "Campo 3", valor: 0 },
+                dadosCampos.campo4 || { nome: "Campo 4", valor: 0 },
+            ];
+
+            const data = await FluxoFinanceiroAPI.salvarCampos(
+                ligaId,
+                timeId,
+                campos,
+            );
+
+            console.log(
+                `[FluxoFinanceiroCampos] Campos importados para time ${timeId}`,
+            );
+            return data;
+        } catch (error) {
+            console.error(
+                "[FluxoFinanceiroCampos] Erro ao importar campos:",
+                error,
+            );
+            throw error;
+        }
+    }
+
+    /**
+     * Obtém estatísticas dos campos
+     * @param {string} timeId - ID do time
+     * @returns {Promise<Object>} - Estatísticas
+     */
+    static async obterEstatisticas(timeId) {
+        try {
+            const campos = await this.carregarTodosCamposEditaveis(timeId);
+            const valores = Object.values(campos).map((c) => c.valor);
+
+            return {
+                total: valores.reduce((sum, val) => sum + val, 0),
+                positivos: valores.filter((val) => val > 0).length,
+                negativos: valores.filter((val) => val < 0).length,
+                zeros: valores.filter((val) => val === 0).length,
+                maior: Math.max(...valores),
+                menor: Math.min(...valores),
+            };
+        } catch (error) {
+            console.error(
+                "[FluxoFinanceiroCampos] Erro ao obter estatísticas:",
+                error,
+            );
+            return null;
+        }
     }
 
     /**
@@ -342,127 +245,9 @@ export class FluxoFinanceiroCampos {
         }
 
         // Limitar a valores razoáveis
-        if (numero > 9999) return 9999;
-        if (numero < -9999) return -9999;
+        if (numero > 99999) return 99999;
+        if (numero < -99999) return -99999;
 
         return numero;
-    }
-
-    /**
-     * Reseta todos os campos de um time
-     * @param {string} timeId - ID do time
-     */
-    static resetarCampos(timeId) {
-        const campos = ["campo1", "campo2", "campo3", "campo4"];
-
-        campos.forEach((campo) => {
-            this.salvarCampoEditavel(
-                timeId,
-                campo,
-                "nome",
-                `Campo ${campo.slice(-1)}`,
-            );
-            this.salvarCampoEditavel(timeId, campo, "valor", 0);
-        });
-
-        console.log(
-            `[FluxoFinanceiroCampos] Campos resetados para time ${timeId}`,
-        );
-    }
-
-    /**
-     * Exporta dados dos campos para backup
-     * @param {string} timeId - ID do time
-     * @returns {Object} - Dados dos campos
-     */
-    static exportarCampos(timeId) {
-        return this.carregarTodosCamposEditaveis(timeId);
-    }
-
-    /**
-     * Importa dados dos campos de backup
-     * @param {string} timeId - ID do time
-     * @param {Object} dadosCampos - Dados dos campos
-     */
-    static importarCampos(timeId, dadosCampos) {
-        const campos = ["campo1", "campo2", "campo3", "campo4"];
-
-        campos.forEach((campo) => {
-            if (dadosCampos[campo]) {
-                this.salvarCampoEditavel(
-                    timeId,
-                    campo,
-                    "nome",
-                    dadosCampos[campo].nome,
-                );
-                this.salvarCampoEditavel(
-                    timeId,
-                    campo,
-                    "valor",
-                    dadosCampos[campo].valor,
-                );
-            }
-        });
-
-        console.log(
-            `[FluxoFinanceiroCampos] Campos importados para time ${timeId}`,
-        );
-    }
-
-    /**
-     * Remove todos os eventos dos campos
-     * @param {string} timeId - ID do time
-     */
-    static removerEventos(timeId) {
-        document
-            .querySelectorAll(".campo-nome, .campo-valor")
-            .forEach((input) => {
-                if (input.dataset.timeId === timeId) {
-                    // Remover eventos armazenados
-                    if (input._handleNomeChange) {
-                        input.removeEventListener(
-                            "change",
-                            input._handleNomeChange,
-                        );
-                        input.removeEventListener(
-                            "blur",
-                            input._handleNomeBlur,
-                        );
-                    }
-                    if (input._handleValorChange) {
-                        input.removeEventListener(
-                            "change",
-                            input._handleValorChange,
-                        );
-                        input.removeEventListener(
-                            "blur",
-                            input._handleValorBlur,
-                        );
-                        input.removeEventListener(
-                            "input",
-                            input._handleValorInput,
-                        );
-                    }
-                }
-            });
-    }
-
-    /**
-     * Obtém estatísticas dos campos
-     * @param {string} timeId - ID do time
-     * @returns {Object} - Estatísticas
-     */
-    static obterEstatisticas(timeId) {
-        const campos = this.carregarTodosCamposEditaveis(timeId);
-        const valores = Object.values(campos).map((c) => c.valor);
-
-        return {
-            total: valores.reduce((sum, val) => sum + val, 0),
-            positivos: valores.filter((val) => val > 0).length,
-            negativos: valores.filter((val) => val < 0).length,
-            zeros: valores.filter((val) => val === 0).length,
-            maior: Math.max(...valores),
-            menor: Math.min(...valores),
-        };
     }
 }

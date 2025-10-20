@@ -77,10 +77,10 @@ export class FluxoFinanceiroCore {
                 pontosCorridos: 0,
                 mataMata: 0,
                 melhorMes: 0,
-                campo1: camposEditaveis.campo1.valor,
-                campo2: camposEditaveis.campo2.valor,
-                campo3: camposEditaveis.campo3.valor,
-                campo4: camposEditaveis.campo4.valor,
+                campo1: camposEditaveis.campo1?.valor || 0,
+                campo2: camposEditaveis.campo2?.valor || 0,
+                campo3: camposEditaveis.campo3?.valor || 0,
+                campo4: camposEditaveis.campo4?.valor || 0,
                 vezesMito: 0,
                 vezesMico: 0,
                 saldo: 0,
@@ -178,8 +178,8 @@ export class FluxoFinanceiroCore {
         const pontosCorridos = isSuperCartola2025
             ? this.calcularPontosCorridosParaRodada(timeId, rodada)
             : null;
-        const mataMata = this._calcularMataMataOtimizado(timeId, rodada); // OTIMIZADO
-        const melhorMes = 0; // Implementar se necessário
+        const mataMata = this._calcularMataMataOtimizado(timeId, rodada);
+        const melhorMes = 0;
 
         return {
             rodada,

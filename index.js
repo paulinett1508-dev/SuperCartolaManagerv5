@@ -20,6 +20,7 @@ import golsRoutes from "./routes/gols.js";
 import artilheiroCampeaoRoutes from "./routes/artilheiro-campeao-routes.js";
 import luvaDeOuroRoutes from "./routes/luva-de-ouro-routes.js";
 import configuracaoRoutes from "./routes/configuracao-routes.js";
+import fluxoFinanceiroRoutes from "./routes/fluxoFinanceiroRoutes.js";
 
 // Importar controllers específicos
 import { getClubes } from "./controllers/cartolaController.js";
@@ -130,6 +131,12 @@ if (process.env.NODE_ENV !== "production") {
   console.log("✅ [ROUTES] Registrada: /api/configuracao/*");
 }
 
+// ✨ NOVO: Rotas do Fluxo Financeiro
+app.use("/api/fluxo-financeiro", fluxoFinanceiroRoutes);
+if (process.env.NODE_ENV !== "production") {
+  console.log("✅ [ROUTES] Registrada: /api/fluxo-financeiro/*");
+}
+
 // Rota para informações da API e versão
 app.get("/api/version", (req, res) => {
   res.json({
@@ -152,7 +159,7 @@ app.get("/api/version", (req, res) => {
       "Mata-Mata",
       "Artilheiro e Campeão",
       "Luva de Ouro",
-      "Fluxo Financeiro",
+      "Fluxo Financeiro (Persistente)",
       "Exportação de Relatórios (Frontend)",
       "Integração com API do Cartola FC",
       "Cache inteligente",
@@ -168,6 +175,7 @@ app.get("/api/version", (req, res) => {
       artilheiro: "/api/artilheiro-campeao",
       luvaDeOuro: "/api/luva-de-ouro",
       configuracao: "/api/configuracao",
+      fluxoFinanceiro: "/api/fluxo-financeiro",
       version: "/api/version",
     },
   });
@@ -210,6 +218,7 @@ app.use((req, res, next) => {
         "GET /api/artilheiro-campeao/*",
         "GET /api/luva-de-ouro/*",
         "GET /api/configuracao/*",
+        "GET /api/fluxo-financeiro/*",
       ],
     });
   } else {
@@ -288,6 +297,7 @@ async function iniciarServidor() {
       console.log(`📈 Performance: Otimizada`);
       console.log("✨ Módulos de export funcionando no frontend");
       console.log("🥅 Sistema Luva de Ouro integrado");
+      console.log("💰 Sistema Fluxo Financeiro persistente");
       console.log("=".repeat(60) + "\n");
 
       // Log adicional para desenvolvimento
