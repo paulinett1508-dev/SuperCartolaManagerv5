@@ -1,4 +1,4 @@
-// FLUXO-FINANCEIRO-UI.JS - Interface com padrão do sistema
+// FLUXO-FINANCEIRO-UI.JS - Interface com botão de relatório
 import { FluxoFinanceiroCampos } from "./fluxo-financeiro-campos.js";
 
 export class FluxoFinanceiroUI {
@@ -12,18 +12,31 @@ export class FluxoFinanceiroUI {
         if (!container) return;
 
         container.innerHTML = `
-            <div style="margin-bottom: 20px;">
-                <input type="text" 
-                       id="searchParticipante" 
-                       placeholder="🔍 Pesquisar participante por nome ou time..."
-                       style="width: 100%; padding: 12px 16px; border: 2px solid #ddd; border-radius: 8px; 
-                              font-size: 15px; transition: all 0.3s ease;"
-                       onkeyup="window.filtrarParticipantes(this.value)"
-                       onfocus="this.style.borderColor='var(--laranja)'"
-                       onblur="this.style.borderColor='#ddd'">
-                <div id="resultadosCount" style="margin-top: 8px; font-size: 13px; color: #666; text-align: right;">
-                    ${participantes.length} participantes
+            <div style="display: flex; gap: 8px; margin-bottom: 16px; flex-wrap: wrap;">
+                <button onclick="window.gerarRelatorioFinanceiro()" 
+                        style="background: var(--gradient-primary); 
+                               color: white; border: none; padding: 10px 16px; border-radius: 6px; 
+                               cursor: pointer; font-weight: 600; font-size: 12px; display: flex; 
+                               align-items: center; gap: 6px; transition: all 0.3s ease;
+                               box-shadow: var(--shadow-orange);"
+                        onmouseover="this.style.transform='translateY(-1px)'; this.style.boxShadow='0 6px 20px rgba(255, 69, 0, 0.5)'"
+                        onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='var(--shadow-orange)'">
+                    <span style="font-size: 16px;">📊</span>
+                    <span>Relatório Consolidado</span>
+                </button>
+                <div style="flex: 1; min-width: 300px;">
+                    <input type="text" 
+                           id="searchParticipante" 
+                           placeholder="🔍 Pesquisar participante por nome ou time..."
+                           style="width: 100%; padding: 10px 16px; border: 2px solid var(--border-primary); border-radius: 6px; 
+                                  font-size: 13px; transition: all 0.3s ease; background: var(--bg-card); color: var(--text-primary);"
+                           onkeyup="window.filtrarParticipantes(this.value)"
+                           onfocus="this.style.borderColor='var(--laranja)'"
+                           onblur="this.style.borderColor='var(--border-primary)'">
                 </div>
+            </div>
+            <div id="resultadosCount" style="margin-bottom: 8px; font-size: 11px; color: var(--text-muted); text-align: right;">
+                ${participantes.length} participantes
             </div>
             <div class="participantes-grid" id="participantesGrid">
                 ${participantes
@@ -55,7 +68,6 @@ export class FluxoFinanceiroUI {
             </div>
         `;
 
-        // Armazenar participantes globalmente para filtro
         window.totalParticipantes = participantes.length;
     }
 
@@ -341,6 +353,125 @@ export class FluxoFinanceiroUI {
         window.exportarExtratoAtual = callback;
         container.appendChild(botaoContainer);
     }
+
+    renderizarRelatorioConsolidado(relatorio, ultimaRodada) {
+        const container = document.getElementById(this.containerId);
+        if (!container) return;
+
+        const formatarValor = (valor) => {
+            const valorNum = parseFloat(valor) || 0;
+            const sinal = valorNum > 0 ? "+" : "";
+            const cor = valorNum >= 0 ? "var(--success)" : "var(--danger)";
+            return `<span style="color: ${cor}; font-weight: 600;">${sinal}R$ ${Math.abs(valorNum).toFixed(2)}</span>`;
+        };
+
+        const totalPositivo = relatorio
+            .filter((p) => p.saldoFinal > 0)
+            .reduce((sum, p) => sum + p.saldoFinal, 0);
+        const totalNegativo = relatorio
+            .filter((p) => p.saldoFinal < 0)
+            .reduce((sum, p) => sum + p.saldoFinal, 0);
+        const saldoGeral = totalPositivo + totalNegativo;
+
+        const html = `
+            <div style="max-width: 1200px; margin: 0 auto;">
+
+                <!-- Header Compacto -->
+                <div style="background: var(--gradient-card); padding: 16px 20px; border-radius: 8px; margin-bottom: 20px; border: 1px solid var(--border-primary); box-shadow: var(--shadow-md); display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 12px;">
+                    <div style="display: flex; align-items: center; gap: 12px;">
+                        <div style="font-size: 24px;">📊</div>
+                        <div>
+                            <h2 style="margin: 0; font-size: 18px; color: var(--laranja); font-weight: 700;">Relatório Consolidado</h2>
+                            <p style="margin: 4px 0 0 0; font-size: 12px; color: var(--text-muted);">${relatorio.length} participantes • Até rodada ${ultimaRodada}</p>
+                        </div>
+                    </div>
+                    <div style="display: flex; gap: 8px;">
+                        <button onclick="window.exportarRelatorioCSV()" style="background: linear-gradient(135deg, var(--success), #20c997); color: white; border: none; padding: 8px 16px; border-radius: 6px; cursor: pointer; font-weight: 600; font-size: 12px; transition: all 0.3s ease; display: flex; align-items: center; gap: 6px;" onmouseover="this.style.transform='translateY(-1px)'" onmouseout="this.style.transform='translateY(0)'">
+                            <span>📥</span> Exportar CSV
+                        </button>
+                        <button onclick="window.inicializarFluxoFinanceiro()" style="background: var(--bg-card); color: var(--text-secondary); border: 1px solid var(--border-primary); padding: 8px 16px; border-radius: 6px; cursor: pointer; font-weight: 600; font-size: 12px; transition: all 0.3s ease;" onmouseover="this.style.borderColor='var(--laranja)'; this.style.color='var(--laranja)'" onmouseout="this.style.borderColor='var(--border-primary)'; this.style.color='var(--text-secondary)'">
+                            ← Voltar
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Cards Resumo Compactos -->
+                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 12px; margin-bottom: 20px;">
+                    <div style="background: linear-gradient(135deg, var(--success), #20c997); padding: 16px; border-radius: 8px; text-align: center; box-shadow: var(--shadow-md);">
+                        <div style="font-size: 11px; color: rgba(255,255,255,0.9); margin-bottom: 4px; text-transform: uppercase; letter-spacing: 0.5px; font-weight: 600;">💰 A Receber</div>
+                        <div style="font-size: 20px; font-weight: 700; color: white;">R$ ${totalPositivo.toFixed(2)}</div>
+                    </div>
+                    <div style="background: linear-gradient(135deg, var(--danger), #c82333); padding: 16px; border-radius: 8px; text-align: center; box-shadow: var(--shadow-md);">
+                        <div style="font-size: 11px; color: rgba(255,255,255,0.9); margin-bottom: 4px; text-transform: uppercase; letter-spacing: 0.5px; font-weight: 600;">💸 A Pagar</div>
+                        <div style="font-size: 20px; font-weight: 700; color: white;">R$ ${Math.abs(totalNegativo).toFixed(2)}</div>
+                    </div>
+                    <div style="background: linear-gradient(135deg, ${saldoGeral >= 0 ? "var(--info)" : "var(--warning)"}, ${saldoGeral >= 0 ? "#2563eb" : "var(--laranja-dark)"}); padding: 16px; border-radius: 8px; text-align: center; box-shadow: var(--shadow-md);">
+                        <div style="font-size: 11px; color: rgba(255,255,255,0.9); margin-bottom: 4px; text-transform: uppercase; letter-spacing: 0.5px; font-weight: 600;">📊 Saldo Geral</div>
+                        <div style="font-size: 20px; font-weight: 700; color: white;">${formatarValor(saldoGeral)}</div>
+                    </div>
+                </div>
+
+                <!-- Tabela Compacta -->
+                <div style="background: var(--bg-card); border-radius: 8px; overflow: hidden; box-shadow: var(--shadow-md); border: 1px solid var(--border-primary);">
+                    <table style="width: 100%; border-collapse: collapse; font-size: 11px;">
+                        <thead>
+                            <tr style="background: var(--gradient-primary);">
+                                <th style="padding: 8px 6px; text-align: left; color: white; font-weight: 600; font-size: 10px; text-transform: uppercase; letter-spacing: 0.3px;">#</th>
+                                <th style="padding: 8px 6px; text-align: left; color: white; font-weight: 600; font-size: 10px; text-transform: uppercase; letter-spacing: 0.3px;">Participante</th>
+                                <th style="padding: 8px 6px; text-align: center; color: white; font-weight: 600; font-size: 10px; text-transform: uppercase; letter-spacing: 0.3px;">Bônus</th>
+                                <th style="padding: 8px 6px; text-align: center; color: white; font-weight: 600; font-size: 10px; text-transform: uppercase; letter-spacing: 0.3px;">Ônus</th>
+                                <th style="padding: 8px 6px; text-align: center; color: white; font-weight: 600; font-size: 10px; text-transform: uppercase; letter-spacing: 0.3px;">P.Corridos</th>
+                                <th style="padding: 8px 6px; text-align: center; color: white; font-weight: 600; font-size: 10px; text-transform: uppercase; letter-spacing: 0.3px;">Mata-Mata</th>
+                                <th style="padding: 8px 6px; text-align: center; color: white; font-weight: 600; font-size: 10px; text-transform: uppercase; letter-spacing: 0.3px;">M.Mês</th>
+                                <th style="padding: 8px 6px; text-align: center; color: white; font-weight: 600; font-size: 10px; text-transform: uppercase; letter-spacing: 0.3px;">Ajustes</th>
+                                <th style="padding: 8px 6px; text-align: center; color: white; font-weight: 600; font-size: 10px; text-transform: uppercase; letter-spacing: 0.3px; background: rgba(0,0,0,0.2);">Saldo Final</th>
+                                <th style="padding: 8px 6px; text-align: center; color: white; font-weight: 600; font-size: 10px; text-transform: uppercase; letter-spacing: 0.3px;">Ações</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            ${relatorio
+                                .map(
+                                    (p, index) => `
+                                <tr style="border-bottom: 1px solid var(--border-secondary); transition: all 0.2s ease; ${index % 2 === 0 ? "background: rgba(255,255,255,0.02);" : ""}" onmouseover="this.style.background='var(--table-row-hover)'" onmouseout="this.style.background='${index % 2 === 0 ? "rgba(255,255,255,0.02)" : "transparent"}'">
+                                    <td style="padding: 6px 4px; font-weight: 600; color: var(--text-muted);">${index + 1}º</td>
+                                    <td style="padding: 6px 4px;">
+                                        <div style="display: flex; align-items: center; gap: 8px;">
+                                            ${
+                                                p.escudo
+                                                    ? `<img src="${p.escudo}" alt="${p.nome}" style="width: 24px; height: 24px; border-radius: 50%; border: 1px solid var(--border-primary);">`
+                                                    : '<div style="width: 24px; height: 24px; border-radius: 50%; background: var(--bg-secondary); border: 1px solid var(--border-primary); display: flex; align-items: center; justify-content: center; font-size: 12px;">⚽</div>'
+                                            }
+                                            <div style="min-width: 0;">
+                                                <div style="font-weight: 600; color: var(--text-primary); font-size: 11px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">${p.nome}</div>
+                                                <div style="font-size: 9px; color: var(--text-muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">${p.time}</div>
+                                            </div>
+                                        </div>
+                                    </td>
+                                    <td style="padding: 6px 4px; text-align: center; color: var(--text-secondary);">${formatarValor(p.bonus)}</td>
+                                    <td style="padding: 6px 4px; text-align: center; color: var(--text-secondary);">${formatarValor(p.onus)}</td>
+                                    <td style="padding: 6px 4px; text-align: center; color: var(--text-secondary);">${formatarValor(p.pontosCorridos)}</td>
+                                    <td style="padding: 6px 4px; text-align: center; color: var(--text-secondary);">${formatarValor(p.mataMata)}</td>
+                                    <td style="padding: 6px 4px; text-align: center; color: var(--text-secondary);">${formatarValor(p.melhorMes)}</td>
+                                    <td style="padding: 6px 4px; text-align: center; color: var(--text-secondary);">${formatarValor(p.ajustes)}</td>
+                                    <td style="padding: 6px 4px; text-align: center; font-weight: 700; background: rgba(255, 69, 0, 0.05); border-left: 2px solid var(--laranja);">${formatarValor(p.saldoFinal)}</td>
+                                    <td style="padding: 6px 4px; text-align: center;">
+                                        <button onclick="window.selecionarParticipante('${p.timeId}')" style="background: var(--gradient-primary); color: white; border: none; padding: 4px 8px; border-radius: 4px; font-size: 10px; cursor: pointer; transition: all 0.2s ease; font-weight: 600;" onmouseover="this.style.transform='scale(1.05)'" onmouseout="this.style.transform='scale(1)'">
+                                            Ver
+                                        </button>
+                                    </td>
+                                </tr>
+                            `,
+                                )
+                                .join("")}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        `;
+
+        container.innerHTML = html;
+        window.dadosRelatorio = relatorio;
+    }
 }
 
 // Funções globais para campos editáveis
@@ -406,7 +537,6 @@ window.filtrarParticipantes = function (termoBusca) {
         }
     });
 
-    // Atualizar contador
     const contador = document.getElementById("resultadosCount");
     if (contador) {
         if (termo) {

@@ -33,7 +33,6 @@ let exportsCarregados = false;
 async function carregarExports() {
     if (exportsCarregados) return;
 
-    // Garantir que html2canvas está carregado ANTES de importar módulos
     if (!window.html2canvas) {
         console.log("[FLUXO-FINANCEIRO] Carregando html2canvas...");
         await new Promise((resolve, reject) => {
@@ -235,15 +234,35 @@ async function calcularEExibirExtrato(timeId) {
             return;
         }
 
+        const camposAtualizados =
+            await FluxoFinanceiroCampos.carregarTodosCamposEditaveis(timeId);
+
         const extrato = fluxoFinanceiroCore.calcularExtratoFinanceiro(
             timeId,
             ultimaRodadaCompleta,
         );
 
+        extrato.camposEditaveis = camposAtualizados;
+        extrato.resumo.campo1 = camposAtualizados.campo1?.valor || 0;
+        extrato.resumo.campo2 = camposAtualizados.campo2?.valor || 0;
+        extrato.resumo.campo3 = camposAtualizados.campo3?.valor || 0;
+        extrato.resumo.campo4 = camposAtualizados.campo4?.valor || 0;
+
+        extrato.resumo.saldo =
+            extrato.resumo.bonus +
+            extrato.resumo.onus +
+            extrato.resumo.pontosCorridos +
+            extrato.resumo.mataMata +
+            extrato.resumo.melhorMes +
+            extrato.resumo.campo1 +
+            extrato.resumo.campo2 +
+            extrato.resumo.campo3 +
+            extrato.resumo.campo4;
+
         fluxoFinanceiroUI.renderizarExtratoFinanceiro(
             extrato,
             participante,
-            calcularEExibirExtrato,
+            () => calcularEExibirExtrato(timeId),
         );
         fluxoFinanceiroUI.renderizarBotaoExportacao(() =>
             exportarExtrato(extrato, participante, timeId),
@@ -256,6 +275,182 @@ async function calcularEExibirExtrato(timeId) {
     }
 }
 
+async function gerarRelatorioFinanceiro() {
+    try {
+        if (!fluxoFinanceiroCore || !fluxoFinanceiroCache) {
+            await inicializarFluxoFinanceiro();
+        }
+
+        const container = document.getElementById("fluxoFinanceiroContent");
+        if (!container) return;
+
+        container.innerHTML = `
+            <div style="text-align: center; padding: 40px;">
+                <div class="loading-spinner"></div>
+                <p style="margin-top: 20px;">Gerando relatório consolidado...</p>
+            </div>
+        `;
+
+        const participantes = fluxoFinanceiroCache.getParticipantes();
+        const relatorio = [];
+
+        for (const participante of participantes) {
+            const timeId = participante.time_id || participante.id;
+
+            try {
+                const camposAtualizados =
+                    await FluxoFinanceiroCampos.carregarTodosCamposEditaveis(timeId);
+
+                const extrato = fluxoFinanceiroCore.calcularExtratoFinanceiro(
+                    timeId,
+                    ultimaRodadaCompleta,
+                );
+
+                const saldoFinal =
+                    extrato.resumo.bonus +
+                    extrato.resumo.onus +
+                    extrato.resumo.pontosCorridos +
+                    extrato.resumo.mataMata +
+                    extrato.resumo.melhorMes +
+                    (camposAtualizados.campo1?.valor || 0) +
+                    (camposAtualizados.campo2?.valor || 0) +
+                    (camposAtualizados.campo3?.valor || 0) +
+                    (camposAtualizados.campo4?.valor || 0);
+
+                relatorio.push({
+                    nome: participante.nome_cartola,
+                    time: participante.nome_time,
+                    escudo: participante.url_escudo_png,
+                    timeId: timeId,
+                    bonus: extrato.resumo.bonus,
+                    onus: extrato.resumo.onus,
+                    pontosCorridos: extrato.resumo.pontosCorridos,
+                    mataMata: extrato.resumo.mataMata,
+                    melhorMes: extrato.resumo.melhorMes,
+                    ajustes: (camposAtualizados.campo1?.valor || 0) +
+                             (camposAtualizados.campo2?.valor || 0) +
+                             (camposAtualizados.campo3?.valor || 0) +
+                             (camposAtualizados.campo4?.valor || 0),
+                    vezesMito: extrato.resumo.vezesMito,
+                    vezesMico: extrato.resumo.vezesMico,
+                    saldoFinal: saldoFinal
+                });
+            } catch (error) {
+                console.error(`[RELATÓRIO] Erro ao calcular ${participante.nome_cartola}:`, error);
+            }
+        }
+
+        relatorio.sort((a, b) => b.saldoFinal - a.saldoFinal);
+
+        fluxoFinanceiroUI.renderizarRelatorioConsolidado(relatorio, ultimaRodadaCompleta);
+
+    } catch (error) {
+        console.error("[RELATÓRIO] Erro ao gerar relatório:", error);
+        mostrarErro(`Erro ao gerar relatório: ${error.message}`);
+    }
+}
+
+function exportarRelatorioCSV() {
+    if (!window.dadosRelatorio) return;
+
+    const csv = [
+        ['Posição', 'Nome', 'Time', 'Bônus', 'Ônus', 'Pontos Corridos', 'Mata-Mata', 'Melhor Mês', 'Ajustes', 'Saldo Final'],
+        ...window.dadosRelatorio.map((p, index) => [
+            `${index + 1}º`,
+            p.nome,
+            p.time,
+            p.bonus.toFixed(2),
+            p.onus.toFixed(2),
+            p.pontosCorridos.toFixed(2),
+            p.mataMata.toFixed(2),
+            p.melhorMes.toFixed(2),
+            p.ajustes.toFixed(2),
+            p.saldoFinal.toFixed(2)
+        ])
+    ].map(row => row.join(',')).join('\n');
+
+    const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+    const link = document.createElement('a');
+    link.href = URL.createObjectURL(blob);
+    link.download = `relatorio-financeiro-rodada-${ultimaRodadaCompleta}.csv`;
+    link.click();
+}-align: left; color: white; font-weight: 600; font-size: 10px; text-transform: uppercase; letter-spacing: 0.3px;">Participante</th>
+                            <th style="padding: 8px 6px; text-align: center; color: white; font-weight: 600; font-size: 10px; text-transform: uppercase; letter-spacing: 0.3px;">Bônus</th>
+                            <th style="padding: 8px 6px; text-align: center; color: white; font-weight: 600; font-size: 10px; text-transform: uppercase; letter-spacing: 0.3px;">Ônus</th>
+                            <th style="padding: 8px 6px; text-align: center; color: white; font-weight: 600; font-size: 10px; text-transform: uppercase; letter-spacing: 0.3px;">P.Corridos</th>
+                            <th style="padding: 8px 6px; text-align: center; color: white; font-weight: 600; font-size: 10px; text-transform: uppercase; letter-spacing: 0.3px;">Mata-Mata</th>
+                            <th style="padding: 8px 6px; text-align: center; color: white; font-weight: 600; font-size: 10px; text-transform: uppercase; letter-spacing: 0.3px;">M.Mês</th>
+                            <th style="padding: 8px 6px; text-align: center; color: white; font-weight: 600; font-size: 10px; text-transform: uppercase; letter-spacing: 0.3px;">Ajustes</th>
+                            <th style="padding: 8px 6px; text-align: center; color: white; font-weight: 600; font-size: 10px; text-transform: uppercase; letter-spacing: 0.3px; background: rgba(0,0,0,0.2);">Saldo Final</th>
+                            <th style="padding: 8px 6px; text-align: center; color: white; font-weight: 600; font-size: 10px; text-transform: uppercase; letter-spacing: 0.3px;">Ações</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        ${relatorio.map((p, index) => `
+                            <tr style="border-bottom: 1px solid var(--border-secondary); transition: all 0.2s ease; ${index % 2 === 0 ? 'background: rgba(255,255,255,0.02);' : ''}" onmouseover="this.style.background='var(--table-row-hover)'" onmouseout="this.style.background='${index % 2 === 0 ? 'rgba(255,255,255,0.02)' : 'transparent'}'">
+                                <td style="padding: 6px 4px; font-weight: 600; color: var(--text-muted);">${index + 1}º</td>
+                                <td style="padding: 6px 4px;">
+                                    <div style="display: flex; align-items: center; gap: 8px;">
+                                        ${p.escudo 
+                                            ? `<img src="${p.escudo}" alt="${p.nome}" style="width: 24px; height: 24px; border-radius: 50%; border: 1px solid var(--border-primary);">` 
+                                            : '<div style="width: 24px; height: 24px; border-radius: 50%; background: var(--bg-secondary); border: 1px solid var(--border-primary); display: flex; align-items: center; justify-content: center; font-size: 12px;">⚽</div>'
+                                        }
+                                        <div style="min-width: 0;">
+                                            <div style="font-weight: 600; color: var(--text-primary); font-size: 11px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">${p.nome}</div>
+                                            <div style="font-size: 9px; color: var(--text-muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">${p.time}</div>
+                                        </div>
+                                    </div>
+                                </td>
+                                <td style="padding: 6px 4px; text-align: center; color: var(--text-secondary);">${formatarValor(p.bonus)}</td>
+                                <td style="padding: 6px 4px; text-align: center; color: var(--text-secondary);">${formatarValor(p.onus)}</td>
+                                <td style="padding: 6px 4px; text-align: center; color: var(--text-secondary);">${formatarValor(p.pontosCorridos)}</td>
+                                <td style="padding: 6px 4px; text-align: center; color: var(--text-secondary);">${formatarValor(p.mataMata)}</td>
+                                <td style="padding: 6px 4px; text-align: center; color: var(--text-secondary);">${formatarValor(p.melhorMes)}</td>
+                                <td style="padding: 6px 4px; text-align: center; color: var(--text-secondary);">${formatarValor(p.ajustes)}</td>
+                                <td style="padding: 6px 4px; text-align: center; font-weight: 700; background: rgba(255, 69, 0, 0.05); border-left: 2px solid var(--laranja);">${formatarValor(p.saldoFinal)}</td>
+                                <td style="padding: 6px 4px; text-align: center;">
+                                    <button onclick="window.selecionarParticipante('${p.timeId}')" style="background: var(--gradient-primary); color: white; border: none; padding: 4px 8px; border-radius: 4px; font-size: 10px; cursor: pointer; transition: all 0.2s ease; font-weight: 600;" onmouseover="this.style.transform='scale(1.05)'" onmouseout="this.style.transform='scale(1)'">
+                                        Ver
+                                    </button>
+                                </td>
+                            </tr>
+                        `).join('')}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    `;
+
+    container.innerHTML = html;
+    window.dadosRelatorio = relatorio;
+}
+
+function exportarRelatorioCSV() {
+    if (!window.dadosRelatorio) return;
+
+    const csv = [
+        ['Posição', 'Nome', 'Time', 'Bônus', 'Ônus', 'Pontos Corridos', 'Mata-Mata', 'Melhor Mês', 'Ajustes', 'Saldo Final'],
+        ...window.dadosRelatorio.map((p, index) => [
+            `${index + 1}º`,
+            p.nome,
+            p.time,
+            p.bonus.toFixed(2),
+            p.onus.toFixed(2),
+            p.pontosCorridos.toFixed(2),
+            p.mataMata.toFixed(2),
+            p.melhorMes.toFixed(2),
+            p.ajustes.toFixed(2),
+            p.saldoFinal.toFixed(2)
+        ])
+    ].map(row => row.join(',')).join('\n');
+
+    const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+    const link = document.createElement('a');
+    link.href = URL.createObjectURL(blob);
+    link.download = `relatorio-financeiro-rodada-${ultimaRodadaCompleta}.csv`;
+    link.click();
+}
+
 async function exportarExtrato(extrato, participante, timeId) {
     try {
         await carregarExports();
@@ -266,21 +461,13 @@ async function exportarExtrato(extrato, participante, timeId) {
         }
 
         const camposEditaveis =
-            FluxoFinanceiroCampos.carregarTodosCamposEditaveis(timeId);
+            await FluxoFinanceiroCampos.carregarTodosCamposEditaveis(timeId);
         const dadosMovimentacoes = [];
 
-        // ✅ CORREÇÃO: SEMPRE ADICIONAR TODAS AS RODADAS
         extrato.rodadas.forEach((rodada) => {
             const rodadaNumero = rodada.rodada;
+            const descricao = rodada.isMito ? `Rodada ${rodadaNumero} - MITO` : rodada.isMico ? `Rodada ${rodadaNumero} - MICO` : `Rodada ${rodadaNumero} - Posição ${rodada.posicao}°`;
 
-            // Descrição da posição
-            const descricao = rodada.isMito
-                ? `Rodada ${rodadaNumero} - MITO`
-                : rodada.isMico
-                  ? `Rodada ${rodadaNumero} - MICO`
-                  : `Rodada ${rodadaNumero} - Posição ${rodada.posicao}°`;
-
-            // ✅ SEMPRE ADICIONA BÔNUS/ÔNUS (MESMO SE R$ 0,00)
             dadosMovimentacoes.push({
                 data: `R${rodadaNumero}`,
                 descricao,
@@ -288,7 +475,6 @@ async function exportarExtrato(extrato, participante, timeId) {
                 tipo: "bonus_onus",
             });
 
-            // ✅ SEMPRE ADICIONA PONTOS CORRIDOS (MESMO SE R$ 0,00)
             if (rodada.pontosCorridos !== null && rodada.pontosCorridos !== undefined) {
                 dadosMovimentacoes.push({
                     data: `R${rodadaNumero}`,
@@ -298,7 +484,6 @@ async function exportarExtrato(extrato, participante, timeId) {
                 });
             }
 
-            // ✅ SEMPRE ADICIONA MATA-MATA (MESMO SE R$ 0,00)
             if (rodada.mataMata !== null && rodada.mataMata !== undefined) {
                 dadosMovimentacoes.push({
                     data: `R${rodadaNumero}`,
@@ -309,26 +494,19 @@ async function exportarExtrato(extrato, participante, timeId) {
             }
         });
 
-        // Campos editáveis (mantido original)
         ["campo1", "campo2", "campo3", "campo4"].forEach((campo) => {
             const valorCampo = extrato.resumo[campo];
             if (valorCampo && valorCampo !== 0) {
                 dadosMovimentacoes.push({
                     data: "Manual",
-                    descricao:
-                        camposEditaveis[campo].nome ||
-                        `Campo ${campo.slice(-1)}`,
+                    descricao: camposEditaveis[campo].nome || `Campo ${campo.slice(-1)}`,
                     valor: valorCampo,
                     tipo: "campo_editavel",
                 });
             }
         });
 
-        await exportarExtratoFinanceiroComoImagem(
-            dadosMovimentacoes,
-            participante,
-            ultimaRodadaCompleta,
-        );
+        await exportarExtratoFinanceiroComoImagem(dadosMovimentacoes, participante, ultimaRodadaCompleta);
     } catch (error) {
         console.error("[FLUXO-FINANCEIRO] Erro na exportação:", error);
         alert(`Erro ao exportar: ${error.message}`);
@@ -338,26 +516,18 @@ async function exportarExtrato(extrato, participante, timeId) {
 function mostrarErro(mensagem) {
     const container = document.getElementById("fluxoFinanceiroContent");
     if (container) {
-        container.innerHTML = `<div style="background:#f8d7da; border:1px solid #f5c6cb; color:#721c24; padding:20px; 
-            border-radius:8px; text-align:center;"><div style="font-size:48px;">⚠</div><h3>Erro</h3><p>${mensagem}</p>
-            <button onclick="location.reload()" style="background:#dc3545; color:white; border:none; padding:8px 16px; 
-            border-radius:4px; cursor:pointer;">Tentar Novamente</button></div>`;
+        container.innerHTML = `<div style="background:#f8d7da; border:1px solid #f5c6cb; color:#721c24; padding:20px; border-radius:8px; text-align:center;"><div style="font-size:48px;">⚠</div><h3>Erro</h3><p>${mensagem}</p><button onclick="location.reload()" style="background:#dc3545; color:white; border:none; padding:8px 16px; border-radius:4px; cursor:pointer;">Tentar Novamente</button></div>`;
     }
 }
 
 function renderizarErroParticipante() {
     const container = document.getElementById("fluxoFinanceiroContent");
-    if (container)
-        container.innerHTML = `<div style="text-align:center; padding:20px; background:#fff3f3; 
-        border-radius:8px;"><p style="color:#d32f2f;">Participante não encontrado.</p></div>`;
+    if (container) container.innerHTML = `<div style="text-align:center; padding:20px; background:#fff3f3; border-radius:8px;"><p style="color:#d32f2f;">Participante não encontrado.</p></div>`;
 }
 
 function renderizarErroCalculo(error) {
     const container = document.getElementById("fluxoFinanceiroContent");
-    if (container)
-        container.innerHTML = `<div style="text-align:center; padding:20px; background:#fff3f3; 
-        border-radius:8px;"><p style="color:#d32f2f;">Erro ao calcular extrato.</p>
-        <p style="color:#666; margin-top:10px;">${error.message}</p></div>`;
+    if (container) container.innerHTML = `<div style="text-align:center; padding:20px; background:#fff3f3; border-radius:8px;"><p style="color:#d32f2f;">Erro ao calcular extrato.</p><p style="color:#666; margin-top:10px;">${error.message}</p></div>`;
 }
 
 export async function selecionarParticipante(timeId) {
@@ -369,3 +539,5 @@ window.inicializarFluxoFinanceiro = inicializarFluxoFinanceiro;
 window.selecionarParticipante = selecionarParticipante;
 window.obterLigaId = obterLigaId;
 window.exportarExtrato = exportarExtrato;
+window.gerarRelatorioFinanceiro = gerarRelatorioFinanceiro;
+window.exportarRelatorioCSV = exportarRelatorioCSV;

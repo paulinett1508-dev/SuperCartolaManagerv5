@@ -55,11 +55,20 @@ export class FluxoFinanceiroCampos {
             const ligaId = getLigaId();
             const campoIndex = parseInt(nomeCampo.replace("campo", "")) - 1;
 
+            // ✅ CARREGAR DADOS ATUAIS PRIMEIRO
+            const camposAtuais =
+                await this.carregarTodosCamposEditaveis(timeId);
+            const campoAtual = camposAtuais[nomeCampo];
+
+            // ✅ PRESERVAR O NOME EXISTENTE
             const data = await FluxoFinanceiroAPI.salvarCampo(
                 ligaId,
                 timeId,
                 campoIndex,
-                { valor: parseFloat(valor) || 0 },
+                {
+                    nome: campoAtual?.nome || `Campo ${campoIndex + 1}`,
+                    valor: parseFloat(valor) || 0,
+                },
             );
 
             console.log(
@@ -87,11 +96,20 @@ export class FluxoFinanceiroCampos {
             const ligaId = getLigaId();
             const campoIndex = parseInt(nomeCampo.replace("campo", "")) - 1;
 
+            // ✅ CARREGAR DADOS ATUAIS PRIMEIRO
+            const camposAtuais =
+                await this.carregarTodosCamposEditaveis(timeId);
+            const campoAtual = camposAtuais[nomeCampo];
+
+            // ✅ PRESERVAR O VALOR EXISTENTE
             const data = await FluxoFinanceiroAPI.salvarCampo(
                 ligaId,
                 timeId,
                 campoIndex,
-                { nome: nome.trim() },
+                {
+                    nome: nome.trim(),
+                    valor: campoAtual?.valor || 0,
+                },
             );
 
             console.log(

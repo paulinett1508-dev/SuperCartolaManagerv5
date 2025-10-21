@@ -94,18 +94,26 @@ export class FluxoFinanceiroAPI {
 
     /**
      * Salva um campo individual
+     * ✅ CORRIGIDO: Sempre envia nome E valor juntos
      * @param {string} ligaId - ID da liga
      * @param {string} timeId - ID do time
      * @param {number} campoIndex - Índice do campo (0-3)
-     * @param {string} nome - Nome do campo (opcional)
-     * @param {number} valor - Valor do campo (opcional)
+     * @param {Object} dados - { nome: string, valor: number }
      * @returns {Promise<Object>}
      */
-    static async salvarCampo(ligaId, timeId, campoIndex, { nome, valor }) {
+    static async salvarCampo(ligaId, timeId, campoIndex, dados) {
         try {
-            const body = {};
-            if (nome !== undefined) body.nome = nome;
-            if (valor !== undefined) body.valor = valor;
+            // ✅ VALIDAÇÃO: Garante que nome E valor estão presentes
+            if (!dados.nome || dados.valor === undefined) {
+                throw new Error(
+                    "Dados incompletos: nome e valor são obrigatórios",
+                );
+            }
+
+            const body = {
+                nome: dados.nome,
+                valor: parseFloat(dados.valor) || 0,
+            };
 
             const response = await fetch(
                 `${API_BASE_URL}/api/fluxo-financeiro/${ligaId}/times/${timeId}/campo/${campoIndex}`,
@@ -126,7 +134,7 @@ export class FluxoFinanceiroAPI {
             }
 
             const data = await response.json();
-            console.log(`[FLUXO-API] Campo ${campoIndex} salvo com sucesso`);
+            console.log(`[FLUXO-API] Campo ${campoIndex} salvo:`, body);
             return data;
         } catch (error) {
             console.error(
