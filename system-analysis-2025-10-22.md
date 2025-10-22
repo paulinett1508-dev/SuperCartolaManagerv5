@@ -1,6 +1,6 @@
 # 📊 Análise do Sistema Super Cartola Manager
 
-**Data da Análise:** 21/10/2025, 23:03:14
+**Data da Análise:** 22/10/2025, 20:46:27
 
 ---
 
@@ -155,7 +155,7 @@
 - 📄 **public/fronts/participantes.html** - 📄 Página HTML
   - 📏 Tamanho: 3KB | Linhas: 90
 - 📄 **public/fronts/pontos-corridos.html** - 📄 Página HTML
-  - 📏 Tamanho: 1KB | Linhas: 44
+  - 📏 Tamanho: 5KB | Linhas: 153
 - 📄 **public/fronts/ranking-geral.html** - 🏅 Sistema de Rankings
   - 📏 Tamanho: 4KB | Linhas: 121
 - 📄 **public/fronts/rodadas.html** - 📅 Gestão de Rodadas
@@ -187,7 +187,7 @@
 - 📄 **public/js/criar-liga.js** - 🏆 Funcionalidades de Liga
   - 📏 Tamanho: 11KB | Linhas: 332
 - 📄 **public/js/detalhe-liga-orquestrador.js** - 🏆 Funcionalidades de Liga
-  - 📏 Tamanho: 24KB | Linhas: 632
+  - 📏 Tamanho: 24KB | Linhas: 635
 - 📄 **public/js/detalhe-liga.js** - 🏆 Funcionalidades de Liga
   - 📏 Tamanho: 9KB | Linhas: 278
 - 📄 **public/js/editar-liga.js** - 🏆 Funcionalidades de Liga
@@ -205,7 +205,7 @@
 - 📄 **public/js/exports/export-melhor-mes.js** - 📝 Script JavaScript
   - 📏 Tamanho: 16KB | Linhas: 452
 - 📄 **public/js/exports/export-pontos-corridos.js** - 📝 Script JavaScript
-  - 📏 Tamanho: 37KB | Linhas: 1204
+  - 📏 Tamanho: 30KB | Linhas: 934
 - 📄 **public/js/exports/export-ranking-geral.js** - 🏅 Sistema de Rankings
   - 📏 Tamanho: 20KB | Linhas: 632
 - 📄 **public/js/exports/export-rodadas-hq.js** - 📅 Gestão de Rodadas
@@ -273,7 +273,7 @@
 - 📄 **public/js/melhor-mes/melhor-mes-orquestrador.js** - 📝 Script JavaScript
   - 📏 Tamanho: 8KB | Linhas: 274
 - 📄 **public/js/melhor-mes/melhor-mes-ui.js** - 📝 Script JavaScript
-  - 📏 Tamanho: 8KB | Linhas: 281
+  - 📏 Tamanho: 9KB | Linhas: 308
 - 📄 **public/js/melhor-mes.js** - 📝 Script JavaScript
   - 📏 Tamanho: 10KB | Linhas: 313
 - 📄 **public/js/navigation.js** - 🧭 Sistema de navegação
@@ -289,7 +289,7 @@
 - 📄 **public/js/pontos-corridos/pontos-corridos-orquestrador.js** - 📝 Script JavaScript
   - 📏 Tamanho: 14KB | Linhas: 513
 - 📄 **public/js/pontos-corridos/pontos-corridos-ui.js** - 📝 Script JavaScript
-  - 📏 Tamanho: 21KB | Linhas: 612
+  - 📏 Tamanho: 24KB | Linhas: 700
 - 📄 **public/js/pontos-corridos-utils.js** - 📝 Script JavaScript
   - 📏 Tamanho: 7KB | Linhas: 225
 - 📄 **public/js/pontos-corridos.js** - 📝 Script JavaScript
