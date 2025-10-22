@@ -386,6 +386,9 @@ export class FluxoFinanceiroUI {
                         </div>
                     </div>
                     <div style="display: flex; gap: 8px;">
+                        <button onclick="window.exportarRelatorioComoImagem()" style="background: linear-gradient(135deg, var(--laranja), var(--laranja-dark)); color: white; border: none; padding: 8px 16px; border-radius: 6px; cursor: pointer; font-weight: 600; font-size: 12px; transition: all 0.3s ease; display: flex; align-items: center; gap: 6px;" onmouseover="this.style.transform='translateY(-1px)'" onmouseout="this.style.transform='translateY(0)'">
+                            <span>📸</span> Exportar como Imagem
+                        </button>
                         <button onclick="window.exportarRelatorioCSV()" style="background: linear-gradient(135deg, var(--success), #20c997); color: white; border: none; padding: 8px 16px; border-radius: 6px; cursor: pointer; font-weight: 600; font-size: 12px; transition: all 0.3s ease; display: flex; align-items: center; gap: 6px;" onmouseover="this.style.transform='translateY(-1px)'" onmouseout="this.style.transform='translateY(0)'">
                             <span>📥</span> Exportar CSV
                         </button>

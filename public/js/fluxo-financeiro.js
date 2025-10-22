@@ -192,7 +192,7 @@ async function inicializarSistemaFinanceiro(ligaId) {
 
     const participantes = await fluxoFinanceiroCache.carregarParticipantes();
 
-    if (participantes.length === 0) {
+    if (participants.length === 0) {
         mostrarErro("Nenhum participante encontrado");
         return;
     }
@@ -342,6 +342,7 @@ async function gerarRelatorioFinanceiro() {
 
         relatorio.sort((a, b) => b.saldoFinal - a.saldoFinal);
 
+        window.dadosRelatorio = relatorio;
         fluxoFinanceiroUI.renderizarRelatorioConsolidado(relatorio, ultimaRodadaCompleta);
 
     } catch (error) {
@@ -466,3 +467,29 @@ window.obterLigaId = obterLigaId;
 window.exportarExtrato = exportarExtrato;
 window.gerarRelatorioFinanceiro = gerarRelatorioFinanceiro;
 window.exportarRelatorioCSV = exportarRelatorioCSV;
+
+window.exportarRelatorioComoImagem = async function () {
+    try {
+        if (!window.dadosRelatorio || !Array.isArray(window.dadosRelatorio)) {
+            alert("Nenhum relatório disponível para exportar");
+            return;
+        }
+
+        const { exportarRelatorioConsolidadoMobileDarkHD } = await import(
+            "./exports/export-relatorio-consolidado.js"
+        );
+
+        const urlParams = new URLSearchParams(window.location.search);
+        const ligaId = urlParams.get("id");
+        const rodadas = await FluxoFinanceiroCore.obterRodadasLiga(ligaId);
+        const ultimaRodada = Math.max(...rodadas.map((r) => r.rodada_id));
+
+        await exportarRelatorioConsolidadoMobileDarkHD({
+            relatorio: window.dadosRelatorio,
+            ultimaRodada,
+        });
+    } catch (error) {
+        console.error("Erro ao exportar relatório como imagem:", error);
+        alert("Erro ao exportar relatório. Tente novamente.");
+    }
+};
