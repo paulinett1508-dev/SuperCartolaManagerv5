@@ -1,7 +1,8 @@
-// MELHOR DO MÊS - INTERFACE DE USUÁRIO v1.0 - CORRIGIDO
+// MELHOR DO MÊS - INTERFACE DE USUÁRIO v1.1 - BOTÃO EXPORT MOBILE HD RESTAURADO
 // public/js/melhor-mes/melhor-mes-ui.js
 
 import { MELHOR_MES_CONFIG, getPremiosLiga } from "./melhor-mes-config.js";
+import { criarBotaoExportacaoMelhorMes } from "../exports/export-melhor-mes.js";
 
 console.log("[MELHOR-MES-UI] Carregando interface...");
 
@@ -10,7 +11,7 @@ export class MelhorMesUI {
     this.edicaoAtiva = null;
     this.dadosCarregados = null;
     this.containers = {
-      select: "edicoesContainer", // CORREÇÃO: usar mini-cards container
+      select: "edicoesContainer",
       tabela: "melhorMesTabela",
       loading: "loadingMelhorMes",
       exportBtn: "melhorMesExportBtnContainer",
@@ -141,9 +142,6 @@ export class MelhorMesUI {
       return;
     }
 
-    // Habilitar botão de exportação
-    this.criarBotaoExportacao();
-
     // Tabela compacta seguindo padrão do sistema
     const temPremios = dados.premios && dados.premios.primeiro.valor > 0;
 
@@ -152,7 +150,7 @@ export class MelhorMesUI {
         <thead>
           <tr>
             <th style="width: 50px;">POS</th>
-            <th style="width: 35px;">🏛️</th>
+            <th style="width: 35px;">🛡️</th>
             <th style="text-align: left; padding-left: 12px;">CARTOLEIRO</th>
             <th style="width: 70px;">PONTOS</th>
             ${temPremios ? '<th style="width: 70px;">PRÊMIO</th>' : ""}
@@ -163,6 +161,34 @@ export class MelhorMesUI {
         </tbody>
       </table>
     `;
+
+    // ✅ RESTAURADO: Criar botão EXPORT MOBILE HD
+    this.criarBotaoExportacao();
+  }
+
+  // ✅ CRIAR BOTÃO DE EXPORTAÇÃO MOBILE HD
+  async criarBotaoExportacao() {
+    if (this.edicaoAtiva === null) return;
+
+    const edicao = MELHOR_MES_CONFIG.edicoes[this.edicaoAtiva];
+    const dados = this.dadosCarregados?.resultados[this.edicaoAtiva];
+
+    if (!dados || dados.ranking.length === 0) return;
+
+    try {
+      await criarBotaoExportacaoMelhorMes({
+        containerId: this.containers.exportBtn,
+        rankings: dados.ranking,
+        edicao: edicao,
+        tituloPersonalizado: `Melhor do Mês - ${edicao.nome}`,
+        ligaId: window.ligaAtual?.id || "",
+      });
+    } catch (error) {
+      console.error(
+        "[MELHOR-MES-UI] Erro ao criar botão de exportação:",
+        error,
+      );
+    }
   }
 
   // CRIAR LINHA RANKING COMPACTA
@@ -196,53 +222,15 @@ export class MelhorMesUI {
     `;
   }
 
-  // CRIAR BOTÃO DE EXPORTAÇÃO
-  criarBotaoExportacao() {
-    const container = document.getElementById(this.containers.exportBtn);
-    if (!container || this.edicaoAtiva === null) return;
+  // CRIAR COLUNA PRÊMIO
+  criarColunaPremio(isPrimeiro, dados) {
+    if (!dados.premios) return "<td>-</td>";
 
-    const edicao = MELHOR_MES_CONFIG.edicoes[this.edicaoAtiva];
-    const dados = this.dadosCarregados?.resultados[this.edicaoAtiva];
-
-    container.innerHTML = `
-      <button class="btn-export-melhor-mes" id="btn-export-edicao-${this.edicaoAtiva}">
-        📊 Exportar Edição
-      </button>
-    `;
-
-    // Adicionar evento diretamente
-    const btn = container.querySelector(".btn-export-melhor-mes");
-    if (btn && dados) {
-      btn.addEventListener("click", async () => {
-        const textoOriginal = btn.innerHTML;
-        btn.innerHTML = "⏳ Gerando...";
-        btn.disabled = true;
-
-        try {
-          // Chamar função global diretamente (já carregada pelo sistema)
-          if (typeof criarBotaoExportacaoMelhorMes === "function") {
-            await criarBotaoExportacaoMelhorMes({
-              containerId: null,
-              rankings: dados.ranking,
-              edicao: edicao,
-              tituloPersonalizado: `Melhor do Mês - ${edicao.nome}`,
-              ligaId: window.ligaAtual?.id || "",
-            });
-          } else {
-            console.error(
-              "[MELHOR-MES-UI] Sistema de exportação não disponível",
-            );
-            alert("Sistema de exportação não carregado. Recarregue a página.");
-          }
-        } catch (error) {
-          console.error("[MELHOR-MES-UI] Erro na exportação:", error);
-          alert("Erro ao gerar exportação. Verifique o console para detalhes.");
-        } finally {
-          btn.innerHTML = textoOriginal;
-          btn.disabled = false;
-        }
-      });
+    if (isPrimeiro) {
+      return `<td style="text-align: center; color: ${dados.premios.primeiro.cor}; font-weight: 600;">${dados.premios.primeiro.label}</td>`;
     }
+
+    return "<td>-</td>";
   }
 
   // CRIAR MENSAGEM VAZIA

@@ -10,9 +10,9 @@ export const MELHOR_MES_CONFIG = {
     { id: 2, nome: "Edição 02", inicio: 7, fim: 10, cor: "#f39c12" },
     { id: 3, nome: "Edição 03", inicio: 11, fim: 17, cor: "#f1c40f" },
     { id: 4, nome: "Edição 04", inicio: 18, fim: 22, cor: "#2ecc71" },
-    { id: 5, nome: "Edição 05", inicio: 23, fim: 28, cor: "#3498db" },
-    { id: 6, nome: "Edição 06", inicio: 29, fim: 32, cor: "#9b59b6" },
-    { id: 7, nome: "Edição 07", inicio: 33, fim: 38, cor: "#34495e" },
+    { id: 5, nome: "Edição 05", inicio: 23, fim: 26, cor: "#3498db" },
+    { id: 6, nome: "Edição 06", inicio: 27, fim: 30, cor: "#9b59b6" },
+    { id: 7, nome: "Edição 07", inicio: 31, fim: 38, cor: "#34495e" },
   ],
 
   // CONFIGURAÇÃO DE PRÊMIOS POR LIGA

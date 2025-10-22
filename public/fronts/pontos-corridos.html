@@ -42,3 +42,111 @@
     <p>Selecione uma rodada para ver os confrontos da Liga Pontos Corridos</p>
   </div>
 </div>
+
+<!-- ✅ SCRIPT DE INICIALIZAÇÃO - ADICIONADO -->
+<script>
+  (function () {
+    console.log(
+      "[PONTOS-CORRIDOS-HTML] Registrando função global de inicialização...",
+    );
+
+    // ✅ EXPOR FUNÇÃO GLOBAL PARA O ORQUESTRADOR
+    window.carregarPontosCorridos = async function () {
+      console.log("[PONTOS-CORRIDOS] Iniciando carregamento do módulo...");
+
+      try {
+        // Obter ligaId
+        const ligaId =
+          window.ligaAtual?.id || window.orquestrador?.ligaAtual?.id;
+
+        if (!ligaId) {
+          console.error("[PONTOS-CORRIDOS] Liga ID não encontrado");
+          return;
+        }
+
+        console.log("[PONTOS-CORRIDOS] Liga ID:", ligaId);
+
+        // Verificar se container existe
+        const container = document.getElementById("pontosCorridosRodada");
+        if (!container) {
+          console.error(
+            "[PONTOS-CORRIDOS] Container 'pontosCorridosRodada' não encontrado",
+          );
+          return;
+        }
+
+        // Mostrar loading
+        container.innerHTML = `
+        <div style="padding: 40px; text-align: center;">
+          <div style="
+            width: 50px;
+            height: 50px;
+            border: 4px solid rgba(255,69,0,0.1);
+            border-top: 4px solid #ff4500;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 20px;
+          "></div>
+          <p style="color: #999;">Carregando dados da liga...</p>
+        </div>
+        <style>
+          @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+          }
+        </style>
+      `;
+
+        // Importar e inicializar módulo UI
+        const { renderizarInterface } = await import(
+          "/js/pontos-corridos/pontos-corridos-ui.js"
+        );
+
+        // Renderizar interface no container principal
+        const mainContainer = document.getElementById("pontos-corridos");
+
+        renderizarInterface(
+          mainContainer,
+          ligaId,
+          (rodada) =>
+            console.log("[PONTOS-CORRIDOS] Rodada selecionada:", rodada),
+          () => console.log("[PONTOS-CORRIDOS] Visualizar classificação"),
+        );
+
+        console.log("[PONTOS-CORRIDOS] Módulo carregado com sucesso");
+      } catch (error) {
+        console.error("[PONTOS-CORRIDOS] Erro ao carregar módulo:", error);
+
+        const container = document.getElementById("pontosCorridosRodada");
+        if (container) {
+          container.innerHTML = `
+          <div style="padding: 40px; text-align: center; background: #1a1a1a; border-radius: 12px; border: 2px solid #ef4444;">
+            <div style="font-size: 48px; margin-bottom: 16px;">❌</div>
+            <h3 style="color: #ef4444; margin-bottom: 12px;">Erro ao Carregar Módulo</h3>
+            <p style="color: #999; margin-bottom: 20px;">${error.message}</p>
+            <button onclick="window.location.reload()" style="
+              padding: 12px 24px;
+              background: #ff4500;
+              color: white;
+              border: none;
+              border-radius: 8px;
+              cursor: pointer;
+              font-weight: 600;
+            ">🔄 Recarregar</button>
+          </div>
+        `;
+        }
+      }
+    };
+
+    // Alias para compatibilidade
+    window.inicializarPontosCorridos = window.carregarPontosCorridos;
+
+    console.log(
+      "[PONTOS-CORRIDOS-HTML] ✅ window.carregarPontosCorridos() registrada",
+    );
+    console.log(
+      "[PONTOS-CORRIDOS-HTML] ✅ window.inicializarPontosCorridos() registrada",
+    );
+  })();
+</script>

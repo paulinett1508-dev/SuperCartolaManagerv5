@@ -1,6 +1,6 @@
 # 📊 Análise do Sistema Super Cartola Manager
 
-**Data da Análise:** 07/10/2025, 17:48:43
+**Data da Análise:** 21/10/2025, 23:03:14
 
 ---
 
@@ -56,7 +56,7 @@
 
 ## 🔍 Análise por Categoria
 
-### Frontend (Cliente) (158 arquivos)
+### Frontend (Cliente) (163 arquivos)
 
 - 📄 **backup-sistema-completo.js** - 📝 Script JavaScript
   - 📏 Tamanho: 8KB | Linhas: 294
@@ -70,12 +70,14 @@
   - 📏 Tamanho: 14KB | Linhas: 420
 - 📄 **controllers/cartolaController.js** - 🎩 Integração Cartola FC
   - 📏 Tamanho: 5KB | Linhas: 181
+- 📄 **controllers/fluxoFinanceiroController.js** - 📝 Script JavaScript
+  - 📏 Tamanho: 6KB | Linhas: 188
 - 📄 **controllers/golsController.js** - ⚽ Gestão de Gols
   - 📏 Tamanho: 11KB | Linhas: 364
 - 📄 **controllers/ligaController.js** - 🏆 Funcionalidades de Liga
   - 📏 Tamanho: 17KB | Linhas: 512
 - 📄 **controllers/luvaDeOuroController.js** - 🥅 Sistema Luva de Ouro
-  - 📏 Tamanho: 16KB | Linhas: 532
+  - 📏 Tamanho: 16KB | Linhas: 549
 - 📄 **controllers/rodadaController.js** - 📅 Gestão de Rodadas
   - 📏 Tamanho: 13KB | Linhas: 418
 - 📄 **controllers/timeController.js** - 📝 Script JavaScript
@@ -84,9 +86,11 @@
 - 📄 **handover.js** - 📝 Script JavaScript
   - 📏 Tamanho: 12KB | Linhas: 444
 - 📄 **index.js** - 🏠 Página principal/Entry point
-  - 📏 Tamanho: 11KB | Linhas: 342
+  - 📏 Tamanho: 11KB | Linhas: 352
 - 📄 **models/ArtilheiroCampeao.js** - ⚽ Sistema Artilheiro Campeão
   - 📏 Tamanho: 1KB | Linhas: 39
+- 📄 **models/FluxoFinanceiroCampos.js** - 📝 Script JavaScript
+  - 📏 Tamanho: 2KB | Linhas: 66
 - 📄 **models/Goleiros.js** - 📝 Script JavaScript
   - 📏 Tamanho: 3KB | Linhas: 146
 - 📄 **models/Gols.js** - ⚽ Gestão de Gols
@@ -212,18 +216,20 @@
   - 📏 Tamanho: 10KB | Linhas: 321
 - 📄 **public/js/filtro-liga-especial.js** - 🏆 Funcionalidades de Liga
   - 📏 Tamanho: 4KB | Linhas: 104
+- 📄 **public/js/fluxo-financeiro/fluxo-financeiro-api.js** - 📝 Script JavaScript
+  - 📏 Tamanho: 6KB | Linhas: 204
 - 📄 **public/js/fluxo-financeiro/fluxo-financeiro-cache.js** - 📝 Script JavaScript
-  - 📏 Tamanho: 12KB | Linhas: 392
+  - 📏 Tamanho: 13KB | Linhas: 394
 - 📄 **public/js/fluxo-financeiro/fluxo-financeiro-campos.js** - 📝 Script JavaScript
-  - 📏 Tamanho: 15KB | Linhas: 469
+  - 📏 Tamanho: 9KB | Linhas: 272
 - 📄 **public/js/fluxo-financeiro/fluxo-financeiro-core.js** - 📝 Script JavaScript
-  - 📏 Tamanho: 10KB | Linhas: 305
+  - 📏 Tamanho: 11KB | Linhas: 332
 - 📄 **public/js/fluxo-financeiro/fluxo-financeiro-ui.js** - 📝 Script JavaScript
-  - 📏 Tamanho: 17KB | Linhas: 347
+  - 📏 Tamanho: 32KB | Linhas: 551
 - 📄 **public/js/fluxo-financeiro/fluxo-financeiro-utils.js** - 📝 Script JavaScript
   - 📏 Tamanho: 10KB | Linhas: 334
 - 📄 **public/js/fluxo-financeiro.js** - 📝 Script JavaScript
-  - 📏 Tamanho: 13KB | Linhas: 364
+  - 📏 Tamanho: 17KB | Linhas: 468
 - 📄 **public/js/gerenciar-ligas.js** - 🏆 Funcionalidades de Liga
   - 📏 Tamanho: 8KB | Linhas: 273
 - 📄 **public/js/gols-por-rodada.js** - 📅 Gestão de Rodadas
@@ -243,9 +249,9 @@
 - 📄 **public/js/luva-de-ouro/luva-de-ouro-orquestrador.js** - 🥅 Sistema Luva de Ouro
   - 📏 Tamanho: 8KB | Linhas: 264
 - 📄 **public/js/luva-de-ouro/luva-de-ouro-ui.js** - 🥅 Sistema Luva de Ouro
-  - 📏 Tamanho: 10KB | Linhas: 310
+  - 📏 Tamanho: 10KB | Linhas: 320
 - 📄 **public/js/luva-de-ouro/luva-de-ouro-utils.js** - 🥅 Sistema Luva de Ouro
-  - 📏 Tamanho: 35KB | Linhas: 920
+  - 📏 Tamanho: 38KB | Linhas: 960
 - 📄 **public/js/luva-de-ouro.js** - 🥅 Sistema Luva de Ouro
   - 📏 Tamanho: 4KB | Linhas: 152
 - 📄 **public/js/mata-mata/mata-mata-config.js** - ⚙️ Arquivo de configuração
@@ -267,7 +273,7 @@
 - 📄 **public/js/melhor-mes/melhor-mes-orquestrador.js** - 📝 Script JavaScript
   - 📏 Tamanho: 8KB | Linhas: 274
 - 📄 **public/js/melhor-mes/melhor-mes-ui.js** - 📝 Script JavaScript
-  - 📏 Tamanho: 9KB | Linhas: 320
+  - 📏 Tamanho: 8KB | Linhas: 281
 - 📄 **public/js/melhor-mes.js** - 📝 Script JavaScript
   - 📏 Tamanho: 10KB | Linhas: 313
 - 📄 **public/js/navigation.js** - 🧭 Sistema de navegação
@@ -312,6 +318,8 @@
   - 📏 Tamanho: 7KB | Linhas: 208
 - 📄 **public/layout.html** - 📄 Página HTML
   - 📏 Tamanho: 14KB | Linhas: 349
+- 📄 **public/migrar-localstorage-mongodb.html** - 📄 Página HTML
+  - 📏 Tamanho: 23KB | Linhas: 665
 - 📄 **public/preencher-liga.html** - 🏆 Funcionalidades de Liga
   - 📏 Tamanho: 5KB | Linhas: 178
 - 📄 **public/script.js** - 📝 Script JavaScript
@@ -334,6 +342,8 @@
   - 📏 Tamanho: 1KB | Linhas: 25
 - 📄 **routes/configuracao-routes.js** - ⚙️ Arquivo de configuração
   - 📏 Tamanho: 5KB | Linhas: 168
+- 📄 **routes/fluxoFinanceiroRoutes.js** - 📝 Script JavaScript
+  - 📏 Tamanho: 1KB | Linhas: 30
 - 📄 **routes/gols.js** - ⚽ Gestão de Gols
   - 📏 Tamanho: 2KB | Linhas: 57
 - 📄 **routes/ligas.js** - 🏆 Funcionalidades de Liga
@@ -428,6 +438,11 @@
 - **Exports:** `export async, export async, export async, export async, export async, export async, export async`
 - **Tamanho:** 5KB | **Linhas:** 181
 
+#### 📜 controllers/fluxoFinanceiroController.js
+
+- **Exports:** `export const, export const, export const, export const, export const, export const`
+- **Tamanho:** 6KB | **Linhas:** 188
+
 #### 📜 controllers/golsController.js
 
 - **Exports:** `export const, export const, export const, export async`
@@ -440,7 +455,7 @@
 #### 📜 controllers/luvaDeOuroController.js
 
 - **Exports:** `export default LuvaDeOuroController`
-- **Tamanho:** 16KB | **Linhas:** 532
+- **Tamanho:** 16KB | **Linhas:** 549
 
 #### 📜 controllers/rodadaController.js
 
@@ -470,6 +485,11 @@
 
 - **Exports:** `export default router`
 - **Tamanho:** 5KB | **Linhas:** 168
+
+#### 📜 routes/fluxoFinanceiroRoutes.js
+
+- **Exports:** `export default router`
+- **Tamanho:** 1KB | **Linhas:** 30
 
 #### 📜 routes/gols.js
 
@@ -561,15 +581,15 @@
 
 | Métrica | Valor |
 |---------|-------|
-| **Total de arquivos** | 190 |
-| **Tamanho total** | 4851 KB |
-| **Tamanho médio** | 26 KB |
+| **Total de arquivos** | 195 |
+| **Tamanho total** | 4904 KB |
+| **Tamanho médio** | 25 KB |
 
 ### 📋 Por Tipo de Arquivo
 
 | Tipo | Quantidade |
 |------|------------|
-| 🎨 **frontend** | 158 |
+| 🎨 **frontend** | 163 |
 | ⚙️ **config** | 11 |
 | ❓ **other** | 4 |
 | 🖼️ **assets** | 17 |
@@ -578,14 +598,14 @@
 
 | Categoria | Quantidade | Descrição |
 |-----------|------------|----------|
-| 🟢 **Pequenos** | 77 | < 5KB |
-| 🟡 **Médios** | 109 | 5-50KB |
+| 🟢 **Pequenos** | 79 | < 5KB |
+| 🟡 **Médios** | 112 | 5-50KB |
 | 🔴 **Grandes** | 4 | > 50KB |
 
 ### 🔍 Insights da Arquitetura
 
 - **Arquitetura:** Backend
 - **Complexidade Frontend:** Baixa (0 módulos)
-- **Complexidade Backend:** Alta (16 rotas/controllers)
+- **Complexidade Backend:** Alta (18 rotas/controllers)
 - **Modularização:** Muito modular
 
