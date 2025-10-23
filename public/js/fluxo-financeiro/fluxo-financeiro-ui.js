@@ -387,16 +387,6 @@ export class FluxoFinanceiroUI {
             },
         ];
 
-        // ✅ FILTRAR APENAS CAMPOS COM VALOR PREENCHIDO
-        const camposComValor = camposArray.filter(
-            (campo) => campo.valorAtual !== 0,
-        );
-
-        // ✅ SE NÃO HOUVER CAMPOS PREENCHIDOS, NÃO MOSTRAR A SEÇÃO
-        if (camposComValor.length === 0) {
-            return "";
-        }
-
         return `
             <div style="background: var(--bg-card); border-radius: 8px; padding: 20px; margin-bottom: 20px; 
                  box-shadow: var(--shadow-md); border: 1px solid var(--border-primary);">
@@ -406,7 +396,7 @@ export class FluxoFinanceiroUI {
                     Campos Personalizados
                 </h3>
                 <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 12px;">
-                    ${camposComValor
+                    ${camposArray
                         .map(
                             (campo) => `
                         <div style="background: var(--bg-secondary); padding: 12px; border-radius: 6px; border: 1px solid var(--border-secondary);">
