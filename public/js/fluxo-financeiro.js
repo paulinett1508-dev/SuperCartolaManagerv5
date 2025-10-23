@@ -192,7 +192,7 @@ async function inicializarSistemaFinanceiro(ligaId) {
 
     const participantes = await fluxoFinanceiroCache.carregarParticipantes();
 
-    if (participants.length === 0) {
+    if (participantes.length === 0) {
         mostrarErro("Nenhum participante encontrado");
         return;
     }
@@ -207,68 +207,29 @@ async function calcularEExibirExtrato(timeId) {
     isCalculating = true;
 
     try {
-        if (
-            !fluxoFinanceiroUI ||
-            !fluxoFinanceiroCore ||
-            !fluxoFinanceiroCache
-        ) {
-            await inicializarFluxoFinanceiro();
-            if (!fluxoFinanceiroUI) {
-                mostrarErro("Sistema não disponível");
-                return;
-            }
-        }
-
         fluxoFinanceiroUI.renderizarLoading("Calculando extrato...");
 
-        const participante = fluxoFinanceiroCache
-            .getParticipantes()
-            .find(
-                (p) =>
-                    String(p.time_id) === String(timeId) ||
-                    String(p.id) === String(timeId),
-            );
-
+        const participante =
+            await fluxoFinanceiroCore.buscarParticipante(timeId);
         if (!participante) {
             renderizarErroParticipante();
             return;
         }
-
-        const camposAtualizados =
-            await FluxoFinanceiroCampos.carregarTodosCamposEditaveis(timeId);
 
         const extrato = fluxoFinanceiroCore.calcularExtratoFinanceiro(
             timeId,
             ultimaRodadaCompleta,
         );
 
-        extrato.camposEditaveis = camposAtualizados;
-        extrato.resumo.campo1 = camposAtualizados.campo1?.valor || 0;
-        extrato.resumo.campo2 = camposAtualizados.campo2?.valor || 0;
-        extrato.resumo.campo3 = camposAtualizados.campo3?.valor || 0;
-        extrato.resumo.campo4 = camposAtualizados.campo4?.valor || 0;
-
-        extrato.resumo.saldo =
-            extrato.resumo.bonus +
-            extrato.resumo.onus +
-            extrato.resumo.pontosCorridos +
-            extrato.resumo.mataMata +
-            extrato.resumo.melhorMes +
-            extrato.resumo.campo1 +
-            extrato.resumo.campo2 +
-            extrato.resumo.campo3 +
-            extrato.resumo.campo4;
-
-        fluxoFinanceiroUI.renderizarExtratoFinanceiro(
+        await fluxoFinanceiroUI.renderizarExtratoFinanceiro(
             extrato,
             participante,
-            () => calcularEExibirExtrato(timeId),
-        );
-        fluxoFinanceiroUI.renderizarBotaoExportacao(() =>
-            exportarExtrato(extrato, participante, timeId),
+            async () => {
+                await exportarExtrato(extrato, participante, timeId);
+            },
         );
     } catch (error) {
-        console.error("[FLUXO-FINANCEIRO] Erro:", error);
+        console.error("[FLUXO-FINANCEIRO] Erro ao calcular extrato:", error);
         renderizarErroCalculo(error);
     } finally {
         isCalculating = false;
@@ -277,34 +238,25 @@ async function calcularEExibirExtrato(timeId) {
 
 async function gerarRelatorioFinanceiro() {
     try {
-        if (!fluxoFinanceiroCore || !fluxoFinanceiroCache) {
-            await inicializarFluxoFinanceiro();
-        }
+        fluxoFinanceiroUI.renderizarLoading("Gerando relatório consolidado...");
 
-        const container = document.getElementById("fluxoFinanceiroContent");
-        if (!container) return;
-
-        container.innerHTML = `
-            <div style="text-align: center; padding: 40px;">
-                <div class="loading-spinner"></div>
-                <p style="margin-top: 20px;">Gerando relatório consolidado...</p>
-            </div>
-        `;
-
-        const participantes = fluxoFinanceiroCache.getParticipantes();
+        const participantes =
+            await fluxoFinanceiroCache.carregarParticipantes();
         const relatorio = [];
 
         for (const participante of participantes) {
             const timeId = participante.time_id || participante.id;
 
             try {
-                const camposAtualizados =
-                    await FluxoFinanceiroCampos.carregarTodosCamposEditaveis(timeId);
-
                 const extrato = fluxoFinanceiroCore.calcularExtratoFinanceiro(
                     timeId,
                     ultimaRodadaCompleta,
                 );
+
+                const camposAtualizados =
+                    await FluxoFinanceiroCampos.carregarTodosCamposEditaveis(
+                        timeId,
+                    );
 
                 const saldoFinal =
                     extrato.resumo.bonus +
@@ -321,30 +273,37 @@ async function gerarRelatorioFinanceiro() {
                     nome: participante.nome_cartola,
                     time: participante.nome_time,
                     escudo: participante.url_escudo_png,
+                    clube_id: participante.clube_id,
                     timeId: timeId,
                     bonus: extrato.resumo.bonus,
                     onus: extrato.resumo.onus,
                     pontosCorridos: extrato.resumo.pontosCorridos,
                     mataMata: extrato.resumo.mataMata,
                     melhorMes: extrato.resumo.melhorMes,
-                    ajustes: (camposAtualizados.campo1?.valor || 0) +
-                             (camposAtualizados.campo2?.valor || 0) +
-                             (camposAtualizados.campo3?.valor || 0) +
-                             (camposAtualizados.campo4?.valor || 0),
+                    ajustes:
+                        (camposAtualizados.campo1?.valor || 0) +
+                        (camposAtualizados.campo2?.valor || 0) +
+                        (camposAtualizados.campo3?.valor || 0) +
+                        (camposAtualizados.campo4?.valor || 0),
                     vezesMito: extrato.resumo.vezesMito,
                     vezesMico: extrato.resumo.vezesMico,
-                    saldoFinal: saldoFinal
+                    saldoFinal: saldoFinal,
                 });
             } catch (error) {
-                console.error(`[RELATÓRIO] Erro ao calcular ${participante.nome_cartola}:`, error);
+                console.error(
+                    `[RELATÓRIO] Erro ao calcular ${participante.nome_cartola}:`,
+                    error,
+                );
             }
         }
 
         relatorio.sort((a, b) => b.saldoFinal - a.saldoFinal);
 
         window.dadosRelatorio = relatorio;
-        fluxoFinanceiroUI.renderizarRelatorioConsolidado(relatorio, ultimaRodadaCompleta);
-
+        fluxoFinanceiroUI.renderizarRelatorioConsolidado(
+            relatorio,
+            ultimaRodadaCompleta,
+        );
     } catch (error) {
         console.error("[RELATÓRIO] Erro ao gerar relatório:", error);
         mostrarErro(`Erro ao gerar relatório: ${error.message}`);
@@ -355,7 +314,18 @@ function exportarRelatorioCSV() {
     if (!window.dadosRelatorio) return;
 
     const csv = [
-        ['Posição', 'Nome', 'Time', 'Bônus', 'Ônus', 'Pontos Corridos', 'Mata-Mata', 'Melhor Mês', 'Ajustes', 'Saldo Final'],
+        [
+            "Posição",
+            "Nome",
+            "Time",
+            "Bônus",
+            "Ônus",
+            "Pontos Corridos",
+            "Mata-Mata",
+            "Melhor Mês",
+            "Ajustes",
+            "Saldo Final",
+        ],
         ...window.dadosRelatorio.map((p, index) => [
             `${index + 1}º`,
             p.nome,
@@ -366,12 +336,14 @@ function exportarRelatorioCSV() {
             p.mataMata.toFixed(2),
             p.melhorMes.toFixed(2),
             p.ajustes.toFixed(2),
-            p.saldoFinal.toFixed(2)
-        ])
-    ].map(row => row.join(',')).join('\n');
+            p.saldoFinal.toFixed(2),
+        ]),
+    ]
+        .map((row) => row.join(","))
+        .join("\n");
 
-    const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
-    const link = document.createElement('a');
+    const blob = new Blob([csv], { type: "text/csv;charset=utf-8;" });
+    const link = document.createElement("a");
     link.href = URL.createObjectURL(blob);
     link.download = `relatorio-financeiro-rodada-${ultimaRodadaCompleta}.csv`;
     link.click();
@@ -392,7 +364,11 @@ async function exportarExtrato(extrato, participante, timeId) {
 
         extrato.rodadas.forEach((rodada) => {
             const rodadaNumero = rodada.rodada;
-            const descricao = rodada.isMito ? `Rodada ${rodadaNumero} - MITO` : rodada.isMico ? `Rodada ${rodadaNumero} - MICO` : `Rodada ${rodadaNumero} - Posição ${rodada.posicao}°`;
+            const descricao = rodada.isMito
+                ? `Rodada ${rodadaNumero} - MITO`
+                : rodada.isMico
+                  ? `Rodada ${rodadaNumero} - MICO`
+                  : `Rodada ${rodadaNumero} - Posição ${rodada.posicao}°`;
 
             dadosMovimentacoes.push({
                 data: `R${rodadaNumero}`,
@@ -401,7 +377,10 @@ async function exportarExtrato(extrato, participante, timeId) {
                 tipo: "bonus_onus",
             });
 
-            if (rodada.pontosCorridos !== null && rodada.pontosCorridos !== undefined) {
+            if (
+                rodada.pontosCorridos !== null &&
+                rodada.pontosCorridos !== undefined
+            ) {
                 dadosMovimentacoes.push({
                     data: `R${rodadaNumero}`,
                     descricao: `Rodada ${rodadaNumero} - Pontos Corridos`,
@@ -425,14 +404,20 @@ async function exportarExtrato(extrato, participante, timeId) {
             if (valorCampo && valorCampo !== 0) {
                 dadosMovimentacoes.push({
                     data: "Manual",
-                    descricao: camposEditaveis[campo].nome || `Campo ${campo.slice(-1)}`,
+                    descricao:
+                        camposEditaveis[campo].nome ||
+                        `Campo ${campo.slice(-1)}`,
                     valor: valorCampo,
                     tipo: "campo_editavel",
                 });
             }
         });
 
-        await exportarExtratoFinanceiroComoImagem(dadosMovimentacoes, participante, ultimaRodadaCompleta);
+        await exportarExtratoFinanceiroComoImagem(
+            dadosMovimentacoes,
+            participante,
+            ultimaRodadaCompleta,
+        );
     } catch (error) {
         console.error("[FLUXO-FINANCEIRO] Erro na exportação:", error);
         alert(`Erro ao exportar: ${error.message}`);
@@ -448,12 +433,14 @@ function mostrarErro(mensagem) {
 
 function renderizarErroParticipante() {
     const container = document.getElementById("fluxoFinanceiroContent");
-    if (container) container.innerHTML = `<div style="text-align:center; padding:20px; background:#fff3f3; border-radius:8px;"><p style="color:#d32f2f;">Participante não encontrado.</p></div>`;
+    if (container)
+        container.innerHTML = `<div style="text-align:center; padding:20px; background:#fff3f3; border-radius:8px;"><p style="color:#d32f2f;">Participante não encontrado.</p></div>`;
 }
 
 function renderizarErroCalculo(error) {
     const container = document.getElementById("fluxoFinanceiroContent");
-    if (container) container.innerHTML = `<div style="text-align:center; padding:20px; background:#fff3f3; border-radius:8px;"><p style="color:#d32f2f;">Erro ao calcular extrato.</p><p style="color:#666; margin-top:10px;">${error.message}</p></div>`;
+    if (container)
+        container.innerHTML = `<div style="text-align:center; padding:20px; background:#fff3f3; border-radius:8px;"><p style="color:#d32f2f;">Erro ao calcular extrato.</p><p style="color:#666; margin-top:10px;">${error.message}</p></div>`;
 }
 
 export async function selecionarParticipante(timeId) {
@@ -479,14 +466,9 @@ window.exportarRelatorioComoImagem = async function () {
             "./exports/export-relatorio-consolidado.js"
         );
 
-        const urlParams = new URLSearchParams(window.location.search);
-        const ligaId = urlParams.get("id");
-        const rodadas = await FluxoFinanceiroCore.obterRodadasLiga(ligaId);
-        const ultimaRodada = Math.max(...rodadas.map((r) => r.rodada_id));
-
         await exportarRelatorioConsolidadoMobileDarkHD({
             relatorio: window.dadosRelatorio,
-            ultimaRodada,
+            ultimaRodada: ultimaRodadaCompleta,
         });
     } catch (error) {
         console.error("Erro ao exportar relatório como imagem:", error);

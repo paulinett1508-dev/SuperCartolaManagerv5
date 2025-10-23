@@ -226,7 +226,7 @@ async function exportarExtratoFinanceiroMobileDarkHD(config) {
   }
 }
 
-// FUNÇÃO DE FORMATAÇÃO MONETÁRIA (DEVE VIR ANTES DOS LAYOUTS)
+// FUNÇÃO DE FORMATAÇÃO MONETÁRIA
 function formatarValorMonetario(valor) {
   if (typeof valor !== "number" || isNaN(valor)) {
     return "R$ 0,00";
@@ -263,7 +263,7 @@ function criarLayoutExtratoFinanceiroMobile(
     : MOBILE_DARK_HD_CONFIG.colors.gradientDanger;
 
   const isSuperCartola = detalhamentoPorRodada.some(
-    (r) => r.pontosCorridos !== undefined || r.mataMata !== undefined,
+    (r) => r.pontosCorridos !== null && r.pontosCorridos !== undefined,
   );
 
   const totalRodadas = detalhamentoPorRodada.length;
@@ -275,7 +275,7 @@ function criarLayoutExtratoFinanceiroMobile(
 
   if (totalRodadas > 0) {
     detalhamentoPorRodada.forEach((r) => {
-      const valorRodada = r.bonusOnus + r.pontosCorridos + r.mataMata;
+      const valorRodada = r.bonusOnus + (r.pontosCorridos || 0) + r.mataMata;
       if (valorRodada > melhorRodada) {
         melhorRodada = valorRodada;
         melhorRodadaNumero = r.rodada;
@@ -532,6 +532,14 @@ function criarCardStat(titulo, valor, cor, rodada = "") {
 }
 
 function criarSecaoAjustesManuais(campos) {
+  // ✅ FILTRAR APENAS CAMPOS COM VALOR DIFERENTE DE ZERO
+  const camposComValor = campos.filter((campo) => campo.valor !== 0);
+
+  // ✅ SE NÃO HOUVER CAMPOS COM VALOR, NÃO EXIBIR A SEÇÃO
+  if (camposComValor.length === 0) {
+    return "";
+  }
+
   return `
     <div style="
       background: ${MOBILE_DARK_HD_CONFIG.colors.surface};
@@ -548,16 +556,18 @@ function criarSecaoAjustesManuais(campos) {
         display: flex;
         align-items: center;
         gap: 8px;
+        justify-content: center;
       ">
-        <span>⚙️</span> AJUSTES MANUAIS
+        <span>📝</span>
+        <span>Ajustes Manuais</span>
       </h4>
-      <div style="display: grid; grid-template-columns: 1fr; gap: 8px;">
-        ${campos
+      <div style="display: flex; flex-direction: column; gap: 8px;">
+        ${camposComValor
           .map(
             (campo) => `
           <div style="
             background: ${MOBILE_DARK_HD_CONFIG.colors.surfaceLight};
-            border: 1px solid ${MOBILE_DARK_HD_CONFIG.colors.warning};
+            border: 1px solid ${campo.valor >= 0 ? MOBILE_DARK_HD_CONFIG.colors.success : MOBILE_DARK_HD_CONFIG.colors.danger};
             border-radius: 8px;
             padding: 12px;
             display: flex;
@@ -565,9 +575,9 @@ function criarSecaoAjustesManuais(campos) {
             align-items: center;
           ">
             <span style="
-              font: ${MOBILE_DARK_HD_CONFIG.fonts.weights.medium} ${MOBILE_DARK_HD_CONFIG.fonts.bodySmall};
-              color: ${MOBILE_DARK_HD_CONFIG.colors.text};
-            ">✏️ ${campo.nome}</span>
+              font: ${MOBILE_DARK_HD_CONFIG.fonts.weights.medium} ${MOBILE_DARK_HD_CONFIG.fonts.caption};
+              color: ${MOBILE_DARK_HD_CONFIG.colors.textSecondary};
+            ">${campo.nome}</span>
             <span style="
               font: ${MOBILE_DARK_HD_CONFIG.fonts.weights.bold} ${MOBILE_DARK_HD_CONFIG.fonts.body};
               color: ${campo.valor >= 0 ? MOBILE_DARK_HD_CONFIG.colors.success : MOBILE_DARK_HD_CONFIG.colors.danger};
@@ -685,7 +695,7 @@ function criarItemExtratoRodadaMobile(rodada, index, isSuperCartola) {
   `;
 }
 
-// FUNÇÕES AUXILIARES (MANTIDAS DO ORIGINAL)
+// FUNÇÕES AUXILIARES
 function calcularResumoFinanceiro(dadosExtrato) {
   let totalBonus = 0;
   let totalOnus = 0;
@@ -786,7 +796,7 @@ function estruturarDetalhamentoPorRodada(dadosExtrato) {
   let saldoAcumulado = 0;
   rodadasArray.forEach((rodada) => {
     const valorRodada =
-      rodada.bonusOnus + rodada.pontosCorridos + rodada.mataMata;
+      rodada.bonusOnus + (rodada.pontosCorridos || 0) + rodada.mataMata;
     saldoAcumulado += valorRodada;
     rodada.saldoAcumulado = saldoAcumulado;
   });
@@ -795,6 +805,17 @@ function estruturarDetalhamentoPorRodada(dadosExtrato) {
 }
 
 function obterEstiloPosicao(rodada) {
+  // ✅ CORREÇÃO DO UNDEFINED - VERIFICAR SE POSIÇÃO EXISTE
+  if (!rodada.posicao && !rodada.isMito && !rodada.isMico) {
+    return {
+      posicaoTexto: "-",
+      posicaoStyle: `
+        background: ${MOBILE_DARK_HD_CONFIG.colors.surfaceLight};
+        color: ${MOBILE_DARK_HD_CONFIG.colors.textMuted};
+      `,
+    };
+  }
+
   if (rodada.posicao === 1 || rodada.isMito) {
     return {
       posicaoTexto: "MITO",

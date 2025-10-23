@@ -1,4 +1,3 @@
-
 // EXPORT RELATÓRIO CONSOLIDADO FLUXO FINANCEIRO - MOBILE DARK HD
 import {
     MOBILE_DARK_HD_CONFIG,
@@ -9,9 +8,15 @@ import {
 
 export async function exportarRelatorioConsolidadoMobileDarkHD(dados) {
     try {
-        console.log("[EXPORT-RELATORIO] Iniciando exportação do relatório consolidado...");
+        console.log(
+            "[EXPORT-RELATORIO] Iniciando exportação do relatório consolidado...",
+        );
 
-        if (!dados || !Array.isArray(dados.relatorio) || dados.relatorio.length === 0) {
+        if (
+            !dados ||
+            !Array.isArray(dados.relatorio) ||
+            dados.relatorio.length === 0
+        ) {
             throw new Error("Dados do relatório não fornecidos ou inválidos");
         }
 
@@ -19,7 +24,7 @@ export async function exportarRelatorioConsolidadoMobileDarkHD(dados) {
 
         const exportContainer = criarContainerMobileDark(
             "Relatório Consolidado",
-            `Fluxo Financeiro até Rodada ${ultimaRodada}`
+            `Fluxo Financeiro até Rodada ${ultimaRodada}`,
         );
 
         document.body.appendChild(exportContainer);
@@ -37,9 +42,10 @@ export async function exportarRelatorioConsolidadoMobileDarkHD(dados) {
         const formatarValor = (valor) => {
             const valorNum = parseFloat(valor) || 0;
             const sinal = valorNum > 0 ? "+" : "";
-            const cor = valorNum >= 0 
-                ? MOBILE_DARK_HD_CONFIG.colors.success 
-                : MOBILE_DARK_HD_CONFIG.colors.danger;
+            const cor =
+                valorNum >= 0
+                    ? MOBILE_DARK_HD_CONFIG.colors.success
+                    : MOBILE_DARK_HD_CONFIG.colors.danger;
             return `<span style="color: ${cor}; font-weight: 700;">${sinal}R$ ${Math.abs(valorNum).toFixed(2)}</span>`;
         };
 
@@ -125,17 +131,21 @@ export async function exportarRelatorioConsolidadoMobileDarkHD(dados) {
                         </tr>
                     </thead>
                     <tbody>
-                        ${relatorio.map((p, index) => `
+                        ${relatorio
+                            .map(
+                                (p, index) => `
                             <tr style="
                                 border-bottom: 1px solid ${MOBILE_DARK_HD_CONFIG.colors.divider};
-                                ${index % 2 === 0 ? `background: rgba(255,255,255,0.02);` : ''}
+                                ${index % 2 === 0 ? `background: rgba(255,255,255,0.02);` : ""}
                             ">
                                 <td style="padding: 6px 4px; font: ${MOBILE_DARK_HD_CONFIG.fonts.weights.semibold} ${MOBILE_DARK_HD_CONFIG.fonts.mini}; color: ${MOBILE_DARK_HD_CONFIG.colors.textMuted};">${index + 1}º</td>
                                 <td style="padding: 6px 4px;">
                                     <div style="display: flex; align-items: center; gap: 6px;">
-                                        ${p.escudo 
-                                            ? `<img src="${p.escudo}" alt="${p.nome}" style="width: 20px; height: 20px; border-radius: 50%; border: 1px solid ${MOBILE_DARK_HD_CONFIG.colors.border};">`
-                                            : `<div style="width: 20px; height: 20px; border-radius: 50%; background: ${MOBILE_DARK_HD_CONFIG.colors.secondary}; border: 1px solid ${MOBILE_DARK_HD_CONFIG.colors.border}; display: flex; align-items: center; justify-content: center; font-size: 10px;">⚽</div>`
+                                        ${
+                                            p.clube_id
+                                                ? `<img src="/escudos/${p.clube_id}.png" alt="${p.nome}" style="width: 20px; height: 20px; border-radius: 50%; border: 1px solid ${MOBILE_DARK_HD_CONFIG.colors.border};" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">
+                                               <div style="width: 20px; height: 20px; border-radius: 50%; background: ${MOBILE_DARK_HD_CONFIG.colors.secondary}; border: 1px solid ${MOBILE_DARK_HD_CONFIG.colors.border}; display: none; align-items: center; justify-content: center; font-size: 10px;">⚽</div>`
+                                                : `<div style="width: 20px; height: 20px; border-radius: 50%; background: ${MOBILE_DARK_HD_CONFIG.colors.secondary}; border: 1px solid ${MOBILE_DARK_HD_CONFIG.colors.border}; display: flex; align-items: center; justify-content: center; font-size: 10px;">⚽</div>`
                                         }
                                         <div style="min-width: 0; max-width: 180px;">
                                             <div style="font: ${MOBILE_DARK_HD_CONFIG.fonts.weights.semibold} ${MOBILE_DARK_HD_CONFIG.fonts.mini}; color: ${MOBILE_DARK_HD_CONFIG.colors.text}; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">${p.nome}</div>
@@ -150,24 +160,38 @@ export async function exportarRelatorioConsolidadoMobileDarkHD(dados) {
                                 <td style="padding: 6px 4px; text-align: center; font: ${MOBILE_DARK_HD_CONFIG.fonts.weights.medium} ${MOBILE_DARK_HD_CONFIG.fonts.mini};">${formatarValor(p.ajustes)}</td>
                                 <td style="padding: 6px 4px; text-align: center; font: ${MOBILE_DARK_HD_CONFIG.fonts.weights.bold} ${MOBILE_DARK_HD_CONFIG.fonts.bodySmall}; background: rgba(255, 69, 0, 0.05); border-left: 2px solid ${MOBILE_DARK_HD_CONFIG.colors.accent};">${formatarValor(p.saldoFinal)}</td>
                             </tr>
-                        `).join('')}
+                        `,
+                            )
+                            .join("")}
                     </tbody>
                 </table>
             </div>
         `;
 
-        const filename = MobileDarkUtils.gerarNomeArquivoMobile("relatorio-consolidado", {
-            extra: `r${ultimaRodada}`,
-        });
+        const filename = MobileDarkUtils.gerarNomeArquivoMobile(
+            "relatorio-consolidado",
+            {
+                extra: `r${ultimaRodada}`,
+            },
+        );
 
         await gerarCanvasMobileDarkHD(exportContainer, filename);
 
-        console.log("[EXPORT-RELATORIO] ✅ Relatório consolidado exportado com sucesso");
+        console.log(
+            "[EXPORT-RELATORIO] ✅ Relatório consolidado exportado com sucesso",
+        );
     } catch (error) {
-        console.error("[EXPORT-RELATORIO] ❌ Erro ao exportar relatório:", error);
-        MobileDarkUtils.mostrarErro("Erro ao exportar relatório. Tente novamente.");
+        console.error(
+            "[EXPORT-RELATORIO] ❌ Erro ao exportar relatório:",
+            error,
+        );
+        MobileDarkUtils.mostrarErro(
+            "Erro ao exportar relatório. Tente novamente.",
+        );
         throw error;
     }
 }
 
-console.log("[EXPORT-RELATORIO] ✅ Módulo de exportação do relatório consolidado carregado");
+console.log(
+    "[EXPORT-RELATORIO] ✅ Módulo de exportação do relatório consolidado carregado",
+);
