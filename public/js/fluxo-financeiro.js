@@ -8,6 +8,9 @@ let isDataLoading = false;
 let isDataLoaded = false;
 let isCalculating = false;
 
+// IMPORTAR SISTEMA DE EXPORTAÇÃO
+import "./exports/export-extrato-financeiro.js";
+
 function obterLigaId() {
     const pathParts = window.location.pathname.split("/");
     const ligaIdFromPath = pathParts[pathParts.length - 1];
@@ -25,9 +28,7 @@ function obterLigaId() {
 
     console.error("[FLUXO-FINANCEIRO] Liga ID não encontrado");
     return null;
-}
-
-let exportarExtratoFinanceiroComoImagem = null;
+}l;
 let exportsCarregados = false;
 
 async function carregarExports() {
