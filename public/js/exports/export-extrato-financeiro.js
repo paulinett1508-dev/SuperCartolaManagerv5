@@ -895,6 +895,15 @@ export async function exportarExtratoFinanceiroComoImagem(
   });
 }
 
+// ✅ EXPOR FUNÇÃO GLOBALMENTE PARA USO EM ONCLICK
+window.exportarExtratoComoImagem = async function(dadosExtrato, participante, rodadaAtual) {
+  await exportarExtratoFinanceiroMobileDarkHD({
+    dadosExtrato,
+    participante,
+    rodadaAtual,
+  });
+};
+
 console.log(
   "[EXPORT-EXTRATO-FINANCEIRO-MOBILE] Sistema Mobile Dark HD v3.0.1 configurado",
 );
@@ -906,4 +915,7 @@ console.log(
 );
 console.log(
   "[EXPORT-EXTRATO-FINANCEIRO-MOBILE] Destaque para saldo final e acumulado",
+);
+console.log(
+  "[EXPORT-EXTRATO-FINANCEIRO-MOBILE] ✅ Função window.exportarExtratoComoImagem exposta",
 );
