@@ -28,7 +28,8 @@ function obterLigaId() {
 
     console.error("[FLUXO-FINANCEIRO] Liga ID não encontrado");
     return null;
-}l;
+}
+
 let exportsCarregados = false;
 
 async function carregarExports() {
