@@ -159,6 +159,7 @@ async function exportarExtratoFinanceiroMobileDarkHD(config) {
   console.log(
     "[EXPORT-EXTRATO-FINANCEIRO-MOBILE] Criando layout mobile dark HD...",
   );
+  console.log("[EXPORT-EXTRATO-FINANCEIRO-MOBILE] Dados recebidos:", config);
 
   MobileDarkUtils.validarDadosMobile(config, [
     "dadosExtrato",
@@ -166,8 +167,9 @@ async function exportarExtratoFinanceiroMobileDarkHD(config) {
     "rodadaAtual",
   ]);
 
-  if (!Array.isArray(dadosExtrato)) {
-    throw new Error("Dados do extrato inválidos");
+  if (!Array.isArray(dadosExtrato) || dadosExtrato.length === 0) {
+    console.error("[EXPORT-EXTRATO-FINANCEIRO-MOBILE] Dados do extrato inválidos:", dadosExtrato);
+    throw new Error("Dados do extrato inválidos ou vazios. Verifique se há dados financeiros disponíveis.");
   }
 
   const titulo = `💰 Extrato Financeiro`;
@@ -897,11 +899,36 @@ export async function exportarExtratoFinanceiroComoImagem(
 
 // ✅ EXPOR FUNÇÃO GLOBALMENTE PARA USO EM ONCLICK
 window.exportarExtratoComoImagem = async function(dadosExtrato, participante, rodadaAtual) {
-  await exportarExtratoFinanceiroMobileDarkHD({
-    dadosExtrato,
-    participante,
-    rodadaAtual,
-  });
+  try {
+    console.log("[EXPORT-EXTRATO-FINANCEIRO-MOBILE] Função global chamada com:", {
+      dadosExtrato,
+      participante,
+      rodadaAtual
+    });
+
+    // Validação prévia dos dados
+    if (!dadosExtrato) {
+      throw new Error("Dados do extrato não fornecidos. Certifique-se de que o extrato financeiro foi carregado.");
+    }
+
+    if (!Array.isArray(dadosExtrato)) {
+      throw new Error("Dados do extrato devem ser um array.");
+    }
+
+    if (dadosExtrato.length === 0) {
+      throw new Error("Nenhum dado financeiro disponível para exportação.");
+    }
+
+    await exportarExtratoFinanceiroMobileDarkHD({
+      dadosExtrato,
+      participante,
+      rodadaAtual,
+    });
+  } catch (error) {
+    console.error("[EXPORT-EXTRATO-FINANCEIRO-MOBILE] Erro na exportação:", error);
+    MobileDarkUtils.mostrarErro(error.message || "Erro ao exportar extrato financeiro.");
+    throw error;
+  }
 };
 
 console.log(
