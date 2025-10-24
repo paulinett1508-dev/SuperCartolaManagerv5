@@ -362,38 +362,36 @@ function criarLayoutExtratoFinanceiroMobile(
       </div>
     </div>
 
-    <!-- CARD SALDO FINAL DESTACADO -->
+    <!-- MINI CARD SALDO FINAL -->
     <div style="
       background: ${gradienteSaldo};
-      border-radius: 16px;
-      padding: 20px;
+      border-radius: 10px;
+      padding: 12px 16px;
       margin-bottom: 16px;
       text-align: center;
-      min-height: 80px;
       box-shadow: ${MOBILE_DARK_HD_CONFIG.colors.shadow};
       display: flex;
-      flex-direction: column;
       align-items: center;
-      justify-content: center;
+      justify-content: space-between;
+      gap: 12px;
     ">
       <div style="
-        font: ${MOBILE_DARK_HD_CONFIG.fonts.weights.regular} ${MOBILE_DARK_HD_CONFIG.fonts.caption};
-        color: rgba(255,255,255,0.9);
-        margin-bottom: 8px;
+        font: ${MOBILE_DARK_HD_CONFIG.fonts.weights.medium} ${MOBILE_DARK_HD_CONFIG.fonts.mini};
+        color: rgba(255,255,255,0.85);
         text-transform: uppercase;
-        letter-spacing: 2px;
-      ">${resumoFinanceiro.saldoFinal < 0 ? "💸 VALOR A PAGAR" : resumoFinanceiro.saldoFinal > 0 ? "💰 VALOR A RECEBER" : "✅ SALDO"}</div>
+        letter-spacing: 1px;
+      ">${resumoFinanceiro.saldoFinal < 0 ? "💸 A Pagar" : resumoFinanceiro.saldoFinal > 0 ? "💰 A Receber" : "✅ Saldo"}</div>
 
       <div style="
-        font: ${MOBILE_DARK_HD_CONFIG.fonts.weights.extrabold} 32px Inter;
+        font: ${MOBILE_DARK_HD_CONFIG.fonts.weights.extrabold} 20px Inter;
         color: ${MOBILE_DARK_HD_CONFIG.colors.text};
-        text-shadow: 0 2px 4px rgba(0,0,0,0.3);
+        text-shadow: 0 1px 3px rgba(0,0,0,0.3);
       ">
         ${formatarValorMonetario(resumoFinanceiro.saldoFinal)}
       </div>
     </div>
 
-    <!-- GRID RESUMO FINANCEIRO (COMPLETO COMO NA TELA) -->
+    <!-- GRID RESUMO FINANCEIRO (SEM PONTOS CORRIDOS E MATA-MATA) -->
     <div style="
       display: grid;
       grid-template-columns: 1fr 1fr;
@@ -402,8 +400,6 @@ function criarLayoutExtratoFinanceiroMobile(
     ">
       ${criarCardResumo("💚 Bônus Total", resumoFinanceiro.totalBonus, MOBILE_DARK_HD_CONFIG.colors.success)}
       ${criarCardResumo("💔 Ônus Total", resumoFinanceiro.totalOnus, MOBILE_DARK_HD_CONFIG.colors.danger)}
-      ${isSuperCartola ? criarCardResumo("🏆 Pontos Corridos", resumoFinanceiro.totalPontosCorridos, MOBILE_DARK_HD_CONFIG.colors.info) : ""}
-      ${isSuperCartola ? criarCardResumo("⚔️ Mata-Mata", resumoFinanceiro.totalMataMata, MOBILE_DARK_HD_CONFIG.colors.warning) : ""}
       ${criarCardResumo("🎩 Vezes MITO", resumoFinanceiro.vezesMito, MOBILE_DARK_HD_CONFIG.colors.gold, false, true)}
       ${criarCardResumo("🐵 Vezes MICO", resumoFinanceiro.vezesMico, MOBILE_DARK_HD_CONFIG.colors.danger, false, true)}
     </div>
@@ -830,6 +826,33 @@ function calcularResumoFinanceiro(dadosExtrato) {
 function estruturarDetalhamentoPorRodada(dadosExtrato) {
   const rodadasMap = new Map();
 
+  // ✅ PRIMEIRO: Identificar todas as rodadas que existem nos dados
+  let maiorRodada = 0;
+  dadosExtrato.forEach((item) => {
+    if (item.tipo === "campo_editavel") return;
+    const rodadaMatch = item.data.match(/R(\d+)/);
+    if (rodadaMatch) {
+      const numeroRodada = parseInt(rodadaMatch[1]);
+      maiorRodada = Math.max(maiorRodada, numeroRodada);
+    }
+  });
+
+  // ✅ SEGUNDO: Criar estrutura para todas as rodadas (1 até a maior encontrada)
+  for (let i = 1; i <= maiorRodada; i++) {
+    rodadasMap.set(i, {
+      rodada: i,
+      posicao: null,
+      bonusOnus: 0,
+      pontosCorridos: 0,
+      mataMata: 0,
+      saldoAcumulado: 0,
+      isMito: false,
+      isMico: false,
+      totalTimes: 32,
+    });
+  }
+
+  // ✅ TERCEIRO: Preencher com os dados reais
   dadosExtrato.forEach((item) => {
     if (item.tipo === "campo_editavel") return;
 
@@ -837,22 +860,9 @@ function estruturarDetalhamentoPorRodada(dadosExtrato) {
     if (!rodadaMatch) return;
 
     const numeroRodada = parseInt(rodadaMatch[1]);
-
-    if (!rodadasMap.has(numeroRodada)) {
-      rodadasMap.set(numeroRodada, {
-        rodada: numeroRodada,
-        posicao: null,
-        bonusOnus: 0,
-        pontosCorridos: 0,
-        mataMata: 0,
-        saldoAcumulado: 0,
-        isMito: false,
-        isMico: false,
-        totalTimes: 32,
-      });
-    }
-
     const rodadaData = rodadasMap.get(numeroRodada);
+
+    if (!rodadaData) return;
 
     if (item.tipo === "bonus_onus") {
       rodadaData.bonusOnus = item.valor;
