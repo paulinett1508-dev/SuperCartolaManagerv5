@@ -272,7 +272,7 @@ export class FluxoFinanceiroUI {
                         <span style="font-size: 18px;">📋</span>
                         Histórico de Rodadas
                     </h3>
-                    <button onclick="window.exportarExtratoComoImagem()" 
+                    <button id="btnExportarExtrato"
                             style="background: var(--gradient-primary); color: white; border: none; padding: 8px 16px; 
                                    border-radius: 6px; font-size: 12px; font-weight: 600; cursor: pointer; 
                                    display: flex; align-items: center; gap: 6px; transition: all 0.3s ease; 
@@ -356,8 +356,84 @@ export class FluxoFinanceiroUI {
 
         container.innerHTML = html;
 
-        // ✅ CORREÇÃO: Callback removido para evitar download automático
-        // O callback estava causando exportação automática ao renderizar o extrato
+        // ✅ Adicionar event listener para botão de exportação
+        setTimeout(() => {
+            const btnExportar = document.getElementById('btnExportarExtrato');
+            if (btnExportar) {
+                btnExportar.onclick = async () => {
+                    // Preparar dados do extrato no formato esperado
+                    const dadosMovimentacoes = [];
+                    
+                    extrato.rodadas.forEach((rodada) => {
+                        if (rodada.bonusOnus !== 0) {
+                            let descricao = `${rodada.rodada}ª Rodada`;
+                            if (rodada.isMito) descricao += ' - MITO';
+                            if (rodada.isMico) descricao += ' - MICO';
+                            if (rodada.posicao) descricao += ` (${rodada.posicao}°)`;
+                            
+                            dadosMovimentacoes.push({
+                                data: `R${rodada.rodada}`,
+                                descricao,
+                                valor: rodada.bonusOnus,
+                                tipo: 'bonus_onus',
+                            });
+                        }
+
+                        if (rodada.pontosCorridos !== null && rodada.pontosCorridos !== 0) {
+                            dadosMovimentacoes.push({
+                                data: `R${rodada.rodada}`,
+                                descricao: `${rodada.rodada}ª Rodada - Pontos Corridos`,
+                                valor: rodada.pontosCorridos,
+                                tipo: 'pontos_corridos',
+                            });
+                        }
+
+                        if (rodada.mataMata !== 0) {
+                            dadosMovimentacoes.push({
+                                data: `R${rodada.rodada}`,
+                                descricao: `${rodada.rodada}ª Rodada - Mata-Mata`,
+                                valor: rodada.mataMata,
+                                tipo: 'mata_mata',
+                            });
+                        }
+                    });
+
+                    // Adicionar campos editáveis se houver
+                    ['campo1', 'campo2', 'campo3', 'campo4'].forEach((campo) => {
+                        const valorCampo = extrato.resumo[campo];
+                        if (valorCampo && valorCampo !== 0) {
+                            const campoEditavel = extrato.camposEditaveis?.[campo];
+                            dadosMovimentacoes.push({
+                                data: 'Manual',
+                                descricao: campoEditavel?.nome || `Campo ${campo.slice(-1)}`,
+                                valor: valorCampo,
+                                tipo: 'campo_editavel',
+                            });
+                        }
+                    });
+
+                    // Chamar função de exportação
+                    if (window.exportarExtratoComoImagem) {
+                        try {
+                            const rodadaAtual = extrato.rodadas.length > 0 
+                                ? extrato.rodadas[extrato.rodadas.length - 1].rodada 
+                                : 0;
+                            
+                            await window.exportarExtratoComoImagem(
+                                dadosMovimentacoes,
+                                participante,
+                                rodadaAtual
+                            );
+                        } catch (error) {
+                            console.error('[FLUXO-UI] Erro ao exportar extrato:', error);
+                            alert('Erro ao exportar extrato: ' + error.message);
+                        }
+                    } else {
+                        alert('Função de exportação não disponível');
+                    }
+                };
+            }
+        }, 100);
     }
 
     async renderizarCamposEditaveis(timeId) {
