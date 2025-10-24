@@ -515,26 +515,39 @@ window.salvarCampoEditavelComRecalculo = async (timeId, nomeCampo, valor) => {
         if (input) {
             input.style.borderColor = 'var(--laranja)';
             input.style.boxShadow = '0 0 8px rgba(255, 69, 0, 0.3)';
+            input.disabled = true;
         }
 
         // Salvar no banco
         await FluxoFinanceiroCampos.salvarValorCampo(timeId, nomeCampo, valorNumerico);
 
-        // Recalcular saldo na tela
+        // Recalcular saldo na tela COM DADOS ATUALIZADOS
         await recalcularSaldoNaTela(timeId);
 
-        // Resetar feedback visual
+        // Atualizar cor do input baseado no valor
         if (input) {
+            const cor = valorNumerico >= 0 ? '#2ecc71' : '#e74c3c';
+            input.style.color = cor;
+            input.disabled = false;
+            
             setTimeout(() => {
                 input.style.borderColor = 'var(--border-primary)';
                 input.style.boxShadow = 'none';
             }, 500);
         }
 
-        console.log(`[FLUXO] Campo ${nomeCampo} salvo: R$ ${valorNumerico}`);
+        console.log(`[FLUXO] Campo ${nomeCampo} salvo: R$ ${valorNumerico.toFixed(2)}`);
     } catch (error) {
         console.error('[FLUXO] Erro ao salvar campo:', error);
         alert('Erro ao salvar campo: ' + error.message);
+        
+        // Re-habilitar input em caso de erro
+        const input = document.getElementById(`input_${nomeCampo}`);
+        if (input) {
+            input.disabled = false;
+            input.style.borderColor = 'var(--border-primary)';
+            input.style.boxShadow = 'none';
+        }
     }
 };
 
@@ -557,6 +570,8 @@ window.desfazerCampo = async (timeId, nomeCampo) => {
         if (input) {
             input.value = '+R$ 0,00';
             input.style.color = '#2ecc71';
+            input.style.borderColor = 'var(--border-primary)';
+            input.style.boxShadow = 'none';
         }
 
         console.log(`[FLUXO] Campo ${nomeCampo} resetado`);
