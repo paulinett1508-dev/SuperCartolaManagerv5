@@ -331,31 +331,35 @@ export class FluxoFinanceiroUI {
                                 })
                                 .join("")}
                             <!-- LINHA DE TOTAIS -->
-                            <tr style="background: var(--gradient-primary); border-top: 4px solid var(--laranja);">
-                                <td colspan="2" style="padding: 14px 10px; text-align: right; color: white; font-weight: 800; 
+                            <tr style="background: white; border-top: 4px solid var(--laranja); box-shadow: 0 2px 8px rgba(0,0,0,0.1);">
+                                <td colspan="2" style="padding: 14px 10px; text-align: right; color: var(--laranja); font-weight: 800; 
                                      font-size: 14px; text-transform: uppercase; letter-spacing: 1px;">
                                     TOTAIS:
                                 </td>
-                                <td style="padding: 14px 10px; text-align: center; font-weight: 800; font-size: 16px; color: ${(extrato.resumo.bonus + extrato.resumo.onus) >= 0 ? '#2ecc71' : '#e74c3c'};">
+                                <td style="padding: 14px 10px; text-align: center; font-weight: 800; font-size: 16px; 
+                                     background: white; color: ${(extrato.resumo.bonus + extrato.resumo.onus) >= 0 ? '#2ecc71' : '#e74c3c'};">
                                     R$ ${Math.abs(extrato.resumo.bonus + extrato.resumo.onus).toLocaleString("pt-BR", {
                                         minimumFractionDigits: 2,
                                         maximumFractionDigits: 2,
                                     })}
                                 </td>
-                                <td style="padding: 14px 10px; text-align: center; font-weight: 800; font-size: 16px; color: ${extrato.resumo.pontosCorridos >= 0 ? '#2ecc71' : '#e74c3c'};">
+                                <td style="padding: 14px 10px; text-align: center; font-weight: 800; font-size: 16px; 
+                                     background: white; color: ${extrato.resumo.pontosCorridos >= 0 ? '#2ecc71' : '#e74c3c'};">
                                     ${extrato.resumo.pontosCorridos !== null ? `R$ ${Math.abs(extrato.resumo.pontosCorridos).toLocaleString("pt-BR", {
                                         minimumFractionDigits: 2,
                                         maximumFractionDigits: 2,
                                     })}` : '-'}
                                 </td>
-                                <td style="padding: 14px 10px; text-align: center; font-weight: 800; font-size: 16px; color: ${extrato.resumo.mataMata >= 0 ? '#2ecc71' : '#e74c3c'};">
+                                <td style="padding: 14px 10px; text-align: center; font-weight: 800; font-size: 16px; 
+                                     background: white; color: ${extrato.resumo.mataMata >= 0 ? '#2ecc71' : '#e74c3c'};">
                                     R$ ${Math.abs(extrato.resumo.mataMata).toLocaleString("pt-BR", {
                                         minimumFractionDigits: 2,
                                         maximumFractionDigits: 2,
                                     })}
                                 </td>
                                 <td style="padding: 14px 10px; text-align: center; font-weight: 800; font-size: 17px;
-                                     background: rgba(0,0,0,0.3); color: ${extrato.resumo.saldo >= 0 ? '#2ecc71' : '#e74c3c'};">
+                                     background: rgba(255, 69, 0, 0.08); border-left: 3px solid var(--laranja); 
+                                     color: ${extrato.resumo.saldo >= 0 ? '#2ecc71' : '#e74c3c'};">
                                     R$ ${Math.abs(extrato.resumo.saldo).toLocaleString("pt-BR", {
                                         minimumFractionDigits: 2,
                                         maximumFractionDigits: 2,
