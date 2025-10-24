@@ -671,6 +671,12 @@ function criarSecaoAjustesManuais(campos) {
 
 function criarItemExtratoRodadaMobile(rodada, index, isSuperCartola) {
   const { posicaoStyle, posicaoTexto } = obterEstiloPosicao(rodada);
+  
+  // ✅ GARANTIR QUE VALORES SEJAM NÚMEROS (mesmo que 0)
+  const bonusOnus = typeof rodada.bonusOnus === 'number' ? rodada.bonusOnus : 0;
+  const pontosCorridos = typeof rodada.pontosCorridos === 'number' ? rodada.pontosCorridos : 0;
+  const mataMata = typeof rodada.mataMata === 'number' ? rodada.mataMata : 0;
+  const saldoAcumulado = typeof rodada.saldoAcumulado === 'number' ? rodada.saldoAcumulado : 0;
 
   return `
     <div style="
@@ -719,8 +725,8 @@ function criarItemExtratoRodadaMobile(rodada, index, isSuperCartola) {
           ">Bônus/Ônus por Rodadas</div>
           <div style="
             font: ${MOBILE_DARK_HD_CONFIG.fonts.weights.bold} ${MOBILE_DARK_HD_CONFIG.fonts.caption};
-            color: ${rodada.bonusOnus >= 0 ? MOBILE_DARK_HD_CONFIG.colors.success : MOBILE_DARK_HD_CONFIG.colors.danger};
-          ">${formatarValorMonetario(rodada.bonusOnus)}</div>
+            color: ${bonusOnus >= 0 ? MOBILE_DARK_HD_CONFIG.colors.success : MOBILE_DARK_HD_CONFIG.colors.danger};
+          ">${formatarValorMonetario(bonusOnus)}</div>
         </div>
 
         ${
@@ -734,8 +740,8 @@ function criarItemExtratoRodadaMobile(rodada, index, isSuperCartola) {
           ">Pts Corridos</div>
           <div style="
             font: ${MOBILE_DARK_HD_CONFIG.fonts.weights.bold} ${MOBILE_DARK_HD_CONFIG.fonts.caption};
-            color: ${rodada.pontosCorridos >= 0 ? MOBILE_DARK_HD_CONFIG.colors.info : MOBILE_DARK_HD_CONFIG.colors.danger};
-          ">${formatarValorMonetario(rodada.pontosCorridos)}</div>
+            color: ${pontosCorridos >= 0 ? MOBILE_DARK_HD_CONFIG.colors.info : MOBILE_DARK_HD_CONFIG.colors.danger};
+          ">${formatarValorMonetario(pontosCorridos)}</div>
         </div>
 
         <div style="text-align: center;">
@@ -746,8 +752,8 @@ function criarItemExtratoRodadaMobile(rodada, index, isSuperCartola) {
           ">Mata-Mata</div>
           <div style="
             font: ${MOBILE_DARK_HD_CONFIG.fonts.weights.bold} ${MOBILE_DARK_HD_CONFIG.fonts.caption};
-            color: ${rodada.mataMata >= 0 ? MOBILE_DARK_HD_CONFIG.colors.warning : MOBILE_DARK_HD_CONFIG.colors.danger};
-          ">${formatarValorMonetario(rodada.mataMata)}</div>
+            color: ${mataMata >= 0 ? MOBILE_DARK_HD_CONFIG.colors.warning : MOBILE_DARK_HD_CONFIG.colors.danger};
+          ">${formatarValorMonetario(mataMata)}</div>
         </div>
         `
             : ""
@@ -755,8 +761,8 @@ function criarItemExtratoRodadaMobile(rodada, index, isSuperCartola) {
       </div>
 
       <div style="
-        background: ${rodada.saldoAcumulado >= 0 ? MOBILE_DARK_HD_CONFIG.colors.success + "15" : MOBILE_DARK_HD_CONFIG.colors.danger + "15"};
-        border: 1px solid ${rodada.saldoAcumulado >= 0 ? MOBILE_DARK_HD_CONFIG.colors.success + "40" : MOBILE_DARK_HD_CONFIG.colors.danger + "40"};
+        background: ${saldoAcumulado >= 0 ? MOBILE_DARK_HD_CONFIG.colors.success + "15" : MOBILE_DARK_HD_CONFIG.colors.danger + "15"};
+        border: 1px solid ${saldoAcumulado >= 0 ? MOBILE_DARK_HD_CONFIG.colors.success + "40" : MOBILE_DARK_HD_CONFIG.colors.danger + "40"};
         padding: 8px 10px;
         border-radius: 8px;
         text-align: center;
@@ -765,9 +771,9 @@ function criarItemExtratoRodadaMobile(rodada, index, isSuperCartola) {
       ">
         <div style="
           font: ${MOBILE_DARK_HD_CONFIG.fonts.weights.extrabold} ${MOBILE_DARK_HD_CONFIG.fonts.body};
-          color: ${rodada.saldoAcumulado >= 0 ? MOBILE_DARK_HD_CONFIG.colors.success : MOBILE_DARK_HD_CONFIG.colors.danger};
+          color: ${saldoAcumulado >= 0 ? MOBILE_DARK_HD_CONFIG.colors.success : MOBILE_DARK_HD_CONFIG.colors.danger};
           line-height: 1;
-        ">${formatarValorMonetario(rodada.saldoAcumulado)}</div>
+        ">${formatarValorMonetario(saldoAcumulado)}</div>
       </div>
     </div>
   `;
@@ -897,17 +903,8 @@ function estruturarDetalhamentoPorRodada(dadosExtrato) {
 }
 
 function obterEstiloPosicao(rodada) {
-  // ✅ CORREÇÃO DO UNDEFINED - VERIFICAR SE POSIÇÃO EXISTE
-  if (!rodada.posicao && !rodada.isMito && !rodada.isMico) {
-    return {
-      posicaoTexto: "-",
-      posicaoStyle: `
-        background: ${MOBILE_DARK_HD_CONFIG.colors.surfaceLight};
-        color: ${MOBILE_DARK_HD_CONFIG.colors.textMuted};
-      `,
-    };
-  }
-
+  // ✅ SEMPRE MOSTRA A POSIÇÃO SE EXISTIR, SENÃO MOSTRA "-"
+  
   if (rodada.posicao === 1 || rodada.isMito) {
     return {
       posicaoTexto: "MITO",
@@ -930,7 +927,7 @@ function obterEstiloPosicao(rodada) {
     };
   }
 
-  if (rodada.posicao) {
+  if (rodada.posicao && rodada.posicao > 0) {
     const isTop11 = rodada.posicao >= 2 && rodada.posicao <= 11;
     const isZ22_31 = rodada.posicao >= 22 && rodada.posicao <= 31;
 
@@ -965,6 +962,7 @@ function obterEstiloPosicao(rodada) {
     };
   }
 
+  // ✅ SEM POSIÇÃO: Mostra "-" mas mantém a rodada visível
   return {
     posicaoTexto: "-",
     posicaoStyle: `
