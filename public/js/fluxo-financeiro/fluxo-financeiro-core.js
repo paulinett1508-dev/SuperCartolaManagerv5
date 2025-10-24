@@ -49,7 +49,7 @@ export class FluxoFinanceiroCore {
     }
 
     // OTIMIZADO: Cálculo com processamento paralelo
-    calcularExtratoFinanceiro(timeId, ultimaRodadaCompleta) {
+    async calcularExtratoFinanceiro(timeId, ultimaRodadaCompleta) {
         console.log(
             `[FLUXO-CORE] Iniciando cálculo OTIMIZADO para time ${timeId} até rodada ${ultimaRodadaCompleta}`,
         );
@@ -58,8 +58,9 @@ export class FluxoFinanceiroCore {
         const isSuperCartola2025 = ligaId === ID_SUPERCARTOLA_2025;
         const isCartoleirosSobral = ligaId === ID_CARTOLEIROS_SOBRAL;
 
-        const camposEditaveis =
-            FluxoFinanceiroCampos.carregarTodosCamposEditaveis(timeId);
+        // ✅ AGUARDAR CARREGAMENTO DOS CAMPOS DO MONGODB
+        const camposEditaveis = await FluxoFinanceiroCampos.carregarTodosCamposEditaveis(timeId);
+        console.log('[FLUXO-CORE] Campos editáveis carregados:', camposEditaveis);
         const resultadosMataMata = this.mataMataIntegrado
             ? this.cache.getResultadosMataMata()
             : [];
@@ -302,21 +303,25 @@ export class FluxoFinanceiroCore {
 
     _calcularSaldoFinal(resumo) {
         const saldoBase = 
-            (resumo.bonus || 0) +
-            (resumo.onus || 0) +
-            (resumo.pontosCorridos || 0) +
-            (resumo.mataMata || 0) +
-            (resumo.melhorMes || 0);
+            (parseFloat(resumo.bonus) || 0) +
+            (parseFloat(resumo.onus) || 0) +
+            (parseFloat(resumo.pontosCorridos) || 0) +
+            (parseFloat(resumo.mataMata) || 0) +
+            (parseFloat(resumo.melhorMes) || 0);
         
-        const camposEditaveis = 
-            (parseFloat(resumo.campo1) || 0) +
-            (parseFloat(resumo.campo2) || 0) +
-            (parseFloat(resumo.campo3) || 0) +
-            (parseFloat(resumo.campo4) || 0);
+        // ✅ GARANTIR QUE CAMPOS EDITÁVEIS SEJAM NÚMEROS
+        const campo1 = parseFloat(resumo.campo1) || 0;
+        const campo2 = parseFloat(resumo.campo2) || 0;
+        const campo3 = parseFloat(resumo.campo3) || 0;
+        const campo4 = parseFloat(resumo.campo4) || 0;
         
+        const camposEditaveis = campo1 + campo2 + campo3 + campo4;
         const saldoFinal = saldoBase + camposEditaveis;
         
-        console.log(`[FLUXO-CORE] Saldo Base: ${saldoBase.toFixed(2)}, Campos Editáveis: ${camposEditaveis.toFixed(2)}, Saldo Final: ${saldoFinal.toFixed(2)}`);
+        console.log(`[FLUXO-CORE] Saldo Base: ${saldoBase.toFixed(2)}`);
+        console.log(`[FLUXO-CORE] Campo1: ${campo1.toFixed(2)}, Campo2: ${campo2.toFixed(2)}, Campo3: ${campo3.toFixed(2)}, Campo4: ${campo4.toFixed(2)}`);
+        console.log(`[FLUXO-CORE] Campos Editáveis Total: ${camposEditaveis.toFixed(2)}`);
+        console.log(`[FLUXO-CORE] Saldo Final: ${saldoFinal.toFixed(2)}`);
         
         return saldoFinal;
     }

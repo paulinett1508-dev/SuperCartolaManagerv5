@@ -221,7 +221,8 @@ async function calcularEExibirExtrato(timeId) {
         // Armazenar participante atual para refresh
         participanteAtualCache = participante;
 
-        const extrato = fluxoFinanceiroCore.calcularExtratoFinanceiro(
+        // ✅ AGUARDAR CÁLCULO DO EXTRATO (AGORA É ASYNC)
+        const extrato = await fluxoFinanceiroCore.calcularExtratoFinanceiro(
             timeId,
             ultimaRodadaCompleta,
         );
@@ -253,7 +254,8 @@ async function gerarRelatorioFinanceiro() {
             const timeId = participante.time_id || participante.id;
 
             try {
-                const extrato = fluxoFinanceiroCore.calcularExtratoFinanceiro(
+                // ✅ AGUARDAR CÁLCULO DO EXTRATO
+                const extrato = await fluxoFinanceiroCore.calcularExtratoFinanceiro(
                     timeId,
                     ultimaRodadaCompleta,
                 );
@@ -477,8 +479,14 @@ window.recarregarExtratoAtual = async () => {
 // ===== FUNÇÃO PARA RECALCULAR E ATUALIZAR SALDO NA TELA =====
 async function recalcularSaldoNaTela(timeId) {
     try {
-        // Obter resumo do extrato (sem recarregar toda a página)
-        const extrato = await fluxoFinanceiroCore.calcularExtratoFinanceiro(timeId, ultimaRodadaCompleta);
+        console.log('[FLUXO] Iniciando recálculo de saldo para time:', timeId);
+
+        // ✅ RECARREGAR CAMPOS EDITÁVEIS DO MONGODB ANTES DE CALCULAR
+        const camposAtualizados = await FluxoFinanceiroCampos.carregarTodosCamposEditaveis(timeId);
+        console.log('[FLUXO] Campos atualizados do MongoDB:', camposAtualizados);
+
+        // ✅ RECALCULAR EXTRATO COM DADOS ATUALIZADOS
+        const extrato = fluxoFinanceiroCore.calcularExtratoFinanceiro(timeId, ultimaRodadaCompleta);
 
         // Atualizar saldo na tela
         const saldoDisplay = document.getElementById('saldoTotalDisplay');
