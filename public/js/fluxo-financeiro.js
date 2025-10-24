@@ -371,35 +371,47 @@ async function exportarExtrato(extrato, participante, timeId) {
 
         extrato.rodadas.forEach((rodada) => {
             const rodadaNumero = rodada.rodada;
-            const descricao = rodada.isMito
-                ? `Rodada ${rodadaNumero} - MITO`
-                : rodada.isMico
-                  ? `Rodada ${rodadaNumero} - MICO`
-                  : `Rodada ${rodadaNumero} - Posição ${rodada.posicao}°`;
+            
+            // ✅ SEMPRE INCLUIR RODADA COM POSIÇÃO, MESMO QUE BÔNUS/ÔNUS SEJA ZERO
+            if (rodada.posicao || rodada.isMito || rodada.isMico) {
+                const descricao = rodada.isMito
+                    ? `Rodada ${rodadaNumero} - MITO`
+                    : rodada.isMico
+                      ? `Rodada ${rodadaNumero} - MICO`
+                      : `Rodada ${rodadaNumero} - Posição ${rodada.posicao}°`;
 
-            dadosMovimentacoes.push({
-                data: `R${rodadaNumero}`,
-                descricao,
-                valor: rodada.bonusOnus || 0,
-                tipo: "bonus_onus",
-            });
+                dadosMovimentacoes.push({
+                    data: `R${rodadaNumero}`,
+                    descricao,
+                    valor: rodada.bonusOnus || 0,
+                    tipo: "bonus_onus",
+                });
+            }
 
             if (
                 rodada.pontosCorridos !== null &&
                 rodada.pontosCorridos !== undefined
             ) {
+                const descricaoPontos = rodada.posicao 
+                    ? `Rodada ${rodadaNumero} - Pontos Corridos (${rodada.posicao}°)`
+                    : `Rodada ${rodadaNumero} - Pontos Corridos`;
+                    
                 dadosMovimentacoes.push({
                     data: `R${rodadaNumero}`,
-                    descricao: `Rodada ${rodadaNumero} - Pontos Corridos`,
+                    descricao: descricaoPontos,
                     valor: rodada.pontosCorridos,
                     tipo: "pontos_corridos",
                 });
             }
 
-            if (rodada.mataMata !== null && rodada.mataMata !== undefined) {
+            if (rodada.mataMata !== null && rodada.mataMata !== undefined && rodada.mataMata !== 0) {
+                const descricaoMata = rodada.posicao
+                    ? `Rodada ${rodadaNumero} - Mata-Mata (${rodada.posicao}°)`
+                    : `Rodada ${rodadaNumero} - Mata-Mata`;
+                    
                 dadosMovimentacoes.push({
                     data: `R${rodadaNumero}`,
-                    descricao: `Rodada ${rodadaNumero} - Mata-Mata`,
+                    descricao: descricaoMata,
                     valor: rodada.mataMata,
                     tipo: "mata_mata",
                 });

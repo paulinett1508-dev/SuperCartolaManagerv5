@@ -870,16 +870,18 @@ function estruturarDetalhamentoPorRodada(dadosExtrato) {
 
     if (!rodadaData) return;
 
+    // ✅ EXTRAIR POSIÇÃO DA DESCRIÇÃO (funciona para bonus_onus, pontos_corridos e mata_mata)
+    const posicaoMatch = item.descricao.match(/(\d+)°/);
+    if (posicaoMatch && !rodadaData.posicao) {
+      rodadaData.posicao = parseInt(posicaoMatch[1]);
+    }
+
+    // ✅ DETECTAR MITO E MICO DA DESCRIÇÃO
+    if (item.descricao.includes("MITO")) rodadaData.isMito = true;
+    if (item.descricao.includes("MICO")) rodadaData.isMico = true;
+
     if (item.tipo === "bonus_onus") {
       rodadaData.bonusOnus = item.valor;
-
-      const posicaoMatch = item.descricao.match(/(\d+)°/);
-      if (posicaoMatch) {
-        rodadaData.posicao = parseInt(posicaoMatch[1]);
-      }
-
-      if (item.descricao.includes("MITO")) rodadaData.isMito = true;
-      if (item.descricao.includes("MICO")) rodadaData.isMico = true;
     } else if (item.tipo === "pontos_corridos") {
       rodadaData.pontosCorridos = item.valor;
     } else if (item.tipo === "mata_mata") {

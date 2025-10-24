@@ -384,7 +384,8 @@ export class FluxoFinanceiroUI {
                     const dadosMovimentacoes = [];
 
                     extrato.rodadas.forEach((rodada) => {
-                        if (rodada.bonusOnus !== 0) {
+                        // ✅ SEMPRE INCLUIR RODADAS COM POSIÇÃO, MESMO COM BÔNUS/ÔNUS ZERO
+                        if (rodada.posicao || rodada.isMito || rodada.isMico) {
                             let descricao = `${rodada.rodada}ª Rodada`;
                             if (rodada.isMito) descricao += ' - MITO';
                             if (rodada.isMico) descricao += ' - MICO';
@@ -393,24 +394,32 @@ export class FluxoFinanceiroUI {
                             dadosMovimentacoes.push({
                                 data: `R${rodada.rodada}`,
                                 descricao,
-                                valor: rodada.bonusOnus,
+                                valor: rodada.bonusOnus || 0,
                                 tipo: 'bonus_onus',
                             });
                         }
 
                         if (rodada.pontosCorridos !== null && rodada.pontosCorridos !== 0) {
+                            const descricaoPontos = rodada.posicao
+                                ? `${rodada.rodada}ª Rodada - Pontos Corridos (${rodada.posicao}°)`
+                                : `${rodada.rodada}ª Rodada - Pontos Corridos`;
+                                
                             dadosMovimentacoes.push({
                                 data: `R${rodada.rodada}`,
-                                descricao: `${rodada.rodada}ª Rodada - Pontos Corridos`,
+                                descricao: descricaoPontos,
                                 valor: rodada.pontosCorridos,
                                 tipo: 'pontos_corridos',
                             });
                         }
 
-                        if (rodada.mataMata !== 0) {
+                        if (rodada.mataMata !== null && rodada.mataMata !== 0) {
+                            const descricaoMata = rodada.posicao
+                                ? `${rodada.rodada}ª Rodada - Mata-Mata (${rodada.posicao}°)`
+                                : `${rodada.rodada}ª Rodada - Mata-Mata`;
+                                
                             dadosMovimentacoes.push({
                                 data: `R${rodada.rodada}`,
-                                descricao: `${rodada.rodada}ª Rodada - Mata-Mata`,
+                                descricao: descricaoMata,
                                 valor: rodada.mataMata,
                                 tipo: 'mata_mata',
                             });
