@@ -223,15 +223,15 @@ export class FluxoFinanceiroUI {
                         <div style="background: ${parseFloat(extrato.resumo.saldo) >= 0 ? "rgba(34, 197, 94, 0.15)" : "rgba(239, 68, 68, 0.15)"}; 
                              padding: 6px 10px; border-radius: 6px; border: 1px solid ${parseFloat(extrato.resumo.saldo) >= 0 ? "rgba(34, 197, 94, 0.4)" : "rgba(239, 68, 68, 0.4)"};">
                             <div style="font-size: 9px; color: var(--text-muted); font-weight: 600; text-transform: uppercase; 
-                                 letter-spacing: 0.3px; margin-bottom: 2px;">Saldo</div>
+                                 letter-spacing: 0.3px; margin-bottom: 2px;">${parseFloat(extrato.resumo.saldo) >= 0 ? "Saldo a Receber" : "Saldo a Pagar"}</div>
                             <div id="saldoTotalDisplay" style="font-size: 16px; font-weight: 700; color: ${
                                 parseFloat(extrato.resumo.saldo) >= 0
                                     ? "#2ecc71"
                                     : "#e74c3c"
                             };">
-                                R$ ${parseFloat(
+                                R$ ${Math.abs(parseFloat(
                                     extrato.resumo.saldo,
-                                ).toLocaleString("pt-BR", {
+                                )).toLocaleString("pt-BR", {
                                     minimumFractionDigits: 2,
                                     maximumFractionDigits: 2,
                                 })}
@@ -336,27 +336,27 @@ export class FluxoFinanceiroUI {
                                      font-size: 14px; text-transform: uppercase; letter-spacing: 1px;">
                                     TOTAIS:
                                 </td>
-                                <td style="padding: 14px 10px; text-align: center; font-weight: 800; color: white; font-size: 16px;">
-                                    R$ ${(extrato.resumo.bonus + extrato.resumo.onus).toLocaleString("pt-BR", {
+                                <td style="padding: 14px 10px; text-align: center; font-weight: 800; font-size: 16px; color: ${(extrato.resumo.bonus + extrato.resumo.onus) >= 0 ? '#2ecc71' : '#e74c3c'};">
+                                    R$ ${Math.abs(extrato.resumo.bonus + extrato.resumo.onus).toLocaleString("pt-BR", {
                                         minimumFractionDigits: 2,
                                         maximumFractionDigits: 2,
                                     })}
                                 </td>
-                                <td style="padding: 14px 10px; text-align: center; font-weight: 800; color: white; font-size: 16px;">
-                                    ${extrato.resumo.pontosCorridos !== null ? `R$ ${extrato.resumo.pontosCorridos.toLocaleString("pt-BR", {
+                                <td style="padding: 14px 10px; text-align: center; font-weight: 800; font-size: 16px; color: ${extrato.resumo.pontosCorridos >= 0 ? '#2ecc71' : '#e74c3c'};">
+                                    ${extrato.resumo.pontosCorridos !== null ? `R$ ${Math.abs(extrato.resumo.pontosCorridos).toLocaleString("pt-BR", {
                                         minimumFractionDigits: 2,
                                         maximumFractionDigits: 2,
                                     })}` : '-'}
                                 </td>
-                                <td style="padding: 14px 10px; text-align: center; font-weight: 800; color: white; font-size: 16px;">
-                                    R$ ${extrato.resumo.mataMata.toLocaleString("pt-BR", {
+                                <td style="padding: 14px 10px; text-align: center; font-weight: 800; font-size: 16px; color: ${extrato.resumo.mataMata >= 0 ? '#2ecc71' : '#e74c3c'};">
+                                    R$ ${Math.abs(extrato.resumo.mataMata).toLocaleString("pt-BR", {
                                         minimumFractionDigits: 2,
                                         maximumFractionDigits: 2,
                                     })}
                                 </td>
                                 <td style="padding: 14px 10px; text-align: center; font-weight: 800; font-size: 17px;
-                                     background: rgba(0,0,0,0.3); color: white;">
-                                    R$ ${extrato.resumo.saldo.toLocaleString("pt-BR", {
+                                     background: rgba(0,0,0,0.3); color: ${extrato.resumo.saldo >= 0 ? '#2ecc71' : '#e74c3c'};">
+                                    R$ ${Math.abs(extrato.resumo.saldo).toLocaleString("pt-BR", {
                                         minimumFractionDigits: 2,
                                         maximumFractionDigits: 2,
                                     })}
