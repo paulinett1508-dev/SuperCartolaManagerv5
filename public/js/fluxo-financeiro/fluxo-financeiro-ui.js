@@ -338,21 +338,21 @@ export class FluxoFinanceiroUI {
                                 </td>
                                 <td style="padding: 14px 10px; text-align: center; font-weight: 800; font-size: 16px; 
                                      background: white; color: ${(extrato.resumo.bonus + extrato.resumo.onus) >= 0 ? '#2ecc71' : '#e74c3c'};">
-                                    ${(extrato.resumo.bonus + extrato.resumo.onus) >= 0 ? '+' : ''}R$ ${Math.abs(extrato.resumo.bonus + extrato.resumo.onus).toLocaleString("pt-BR", {
+                                    ${(extrato.resumo.bonus + extrato.resumo.onus) >= 0 ? '+' : '-'}R$ ${Math.abs(extrato.resumo.bonus + extrato.resumo.onus).toLocaleString("pt-BR", {
                                         minimumFractionDigits: 2,
                                         maximumFractionDigits: 2,
                                     })}
                                 </td>
                                 <td style="padding: 14px 10px; text-align: center; font-weight: 800; font-size: 16px; 
                                      background: white; color: ${extrato.resumo.pontosCorridos >= 0 ? '#2ecc71' : '#e74c3c'};">
-                                    ${extrato.resumo.pontosCorridos !== null ? `${extrato.resumo.pontosCorridos >= 0 ? '+' : ''}R$ ${Math.abs(extrato.resumo.pontosCorridos).toLocaleString("pt-BR", {
+                                    ${extrato.resumo.pontosCorridos !== null ? `${extrato.resumo.pontosCorridos >= 0 ? '+' : '-'}R$ ${Math.abs(extrato.resumo.pontosCorridos).toLocaleString("pt-BR", {
                                         minimumFractionDigits: 2,
                                         maximumFractionDigits: 2,
                                     })}` : '-'}
                                 </td>
                                 <td style="padding: 14px 10px; text-align: center; font-weight: 800; font-size: 16px; 
                                      background: white; color: ${extrato.resumo.mataMata >= 0 ? '#2ecc71' : '#e74c3c'};">
-                                    ${extrato.resumo.mataMata >= 0 ? '+' : ''}R$ ${Math.abs(extrato.resumo.mataMata).toLocaleString("pt-BR", {
+                                    ${extrato.resumo.mataMata >= 0 ? '+' : '-'}R$ ${Math.abs(extrato.resumo.mataMata).toLocaleString("pt-BR", {
                                         minimumFractionDigits: 2,
                                         maximumFractionDigits: 2,
                                     })}
@@ -360,7 +360,7 @@ export class FluxoFinanceiroUI {
                                 <td style="padding: 14px 10px; text-align: center; font-weight: 800; font-size: 17px;
                                      background: rgba(255, 69, 0, 0.08); border-left: 3px solid var(--laranja); 
                                      color: ${extrato.resumo.saldo >= 0 ? '#2ecc71' : '#e74c3c'};">
-                                    ${extrato.resumo.saldo >= 0 ? '+' : ''}R$ ${Math.abs(extrato.resumo.saldo).toLocaleString("pt-BR", {
+                                    ${extrato.resumo.saldo >= 0 ? '+' : '-'}R$ ${Math.abs(extrato.resumo.saldo).toLocaleString("pt-BR", {
                                         minimumFractionDigits: 2,
                                         maximumFractionDigits: 2,
                                     })}
