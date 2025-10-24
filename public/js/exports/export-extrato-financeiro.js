@@ -289,6 +289,9 @@ function criarLayoutExtratoFinanceiroMobile(
     });
   }
 
+  // ✅ CALCULAR TOTAIS PARA LINHA FINAL (IGUAL À TELA)
+  const totalBonusOnus = resumoFinanceiro.totalBonus + resumoFinanceiro.totalOnus;
+
   return `
     <!-- CARD EXPANDIDO - INFO PARTICIPANTE -->
     <div style="
@@ -390,7 +393,7 @@ function criarLayoutExtratoFinanceiroMobile(
       </div>
     </div>
 
-    <!-- GRID RESUMO FINANCEIRO -->
+    <!-- GRID RESUMO FINANCEIRO (COMPLETO COMO NA TELA) -->
     <div style="
       display: grid;
       grid-template-columns: 1fr 1fr;
@@ -441,27 +444,28 @@ function criarLayoutExtratoFinanceiroMobile(
                 .join("")
         }
         
-        <!-- LINHA DE TOTAIS -->
+        <!-- LINHA DE TOTAIS (IGUAL À TELA) -->
         ${detalhamentoPorRodada.length > 0 ? `
         <div style="
           display: flex;
           align-items: center;
           padding: 16px ${MOBILE_DARK_HD_CONFIG.padding}px;
-          border-top: 3px solid ${MOBILE_DARK_HD_CONFIG.colors.warning};
-          background: ${MOBILE_DARK_HD_CONFIG.colors.gradientDark};
+          border-top: 4px solid ${MOBILE_DARK_HD_CONFIG.colors.warning};
+          background: white;
           min-height: 60px;
+          box-shadow: 0 2px 8px rgba(0,0,0,0.1);
         ">
           <div style="
             padding: 6px 10px;
             border-radius: 8px;
             margin-right: 12px;
-            min-width: 100px;
-            text-align: center;
-            font: ${MOBILE_DARK_HD_CONFIG.fonts.weights.bold} ${MOBILE_DARK_HD_CONFIG.fonts.bodySmall};
-            color: ${MOBILE_DARK_HD_CONFIG.colors.text};
+            min-width: 80px;
+            text-align: right;
+            font: ${MOBILE_DARK_HD_CONFIG.fonts.weights.extrabold} ${MOBILE_DARK_HD_CONFIG.fonts.bodySmall};
+            color: ${MOBILE_DARK_HD_CONFIG.colors.warning};
             flex-shrink: 0;
             text-transform: uppercase;
-            letter-spacing: 0.5px;
+            letter-spacing: 1px;
           ">TOTAIS:</div>
 
           <div style="
@@ -473,14 +477,9 @@ function criarLayoutExtratoFinanceiroMobile(
           ">
             <div style="text-align: center;">
               <div style="
-                font: ${MOBILE_DARK_HD_CONFIG.fonts.weights.medium} ${MOBILE_DARK_HD_CONFIG.fonts.mini};
-                color: ${MOBILE_DARK_HD_CONFIG.colors.textMuted};
-                margin-bottom: 2px;
-              ">Bônus/Ônus por Rodadas</div>
-              <div style="
-                font: ${MOBILE_DARK_HD_CONFIG.fonts.weights.extrabold} ${MOBILE_DARK_HD_CONFIG.fonts.caption};
-                color: ${(resumoFinanceiro.totalBonus + resumoFinanceiro.totalOnus) >= 0 ? MOBILE_DARK_HD_CONFIG.colors.success : MOBILE_DARK_HD_CONFIG.colors.danger};
-              ">${formatarValorMonetario(resumoFinanceiro.totalBonus + resumoFinanceiro.totalOnus)}</div>
+                font: ${MOBILE_DARK_HD_CONFIG.fonts.weights.extrabold} ${MOBILE_DARK_HD_CONFIG.fonts.heading};
+                color: ${totalBonusOnus >= 0 ? MOBILE_DARK_HD_CONFIG.colors.success : MOBILE_DARK_HD_CONFIG.colors.danger};
+              ">${formatarValorMonetario(totalBonusOnus)}</div>
             </div>
 
             ${
@@ -488,24 +487,14 @@ function criarLayoutExtratoFinanceiroMobile(
                 ? `
             <div style="text-align: center;">
               <div style="
-                font: ${MOBILE_DARK_HD_CONFIG.fonts.weights.medium} ${MOBILE_DARK_HD_CONFIG.fonts.mini};
-                color: ${MOBILE_DARK_HD_CONFIG.colors.textMuted};
-                margin-bottom: 2px;
-              ">Pts Corridos</div>
-              <div style="
-                font: ${MOBILE_DARK_HD_CONFIG.fonts.weights.extrabold} ${MOBILE_DARK_HD_CONFIG.fonts.caption};
+                font: ${MOBILE_DARK_HD_CONFIG.fonts.weights.extrabold} ${MOBILE_DARK_HD_CONFIG.fonts.heading};
                 color: ${resumoFinanceiro.totalPontosCorridos >= 0 ? MOBILE_DARK_HD_CONFIG.colors.info : MOBILE_DARK_HD_CONFIG.colors.danger};
               ">${formatarValorMonetario(resumoFinanceiro.totalPontosCorridos)}</div>
             </div>
 
             <div style="text-align: center;">
               <div style="
-                font: ${MOBILE_DARK_HD_CONFIG.fonts.weights.medium} ${MOBILE_DARK_HD_CONFIG.fonts.mini};
-                color: ${MOBILE_DARK_HD_CONFIG.colors.textMuted};
-                margin-bottom: 2px;
-              ">Mata-Mata</div>
-              <div style="
-                font: ${MOBILE_DARK_HD_CONFIG.fonts.weights.extrabold} ${MOBILE_DARK_HD_CONFIG.fonts.caption};
+                font: ${MOBILE_DARK_HD_CONFIG.fonts.weights.extrabold} ${MOBILE_DARK_HD_CONFIG.fonts.heading};
                 color: ${resumoFinanceiro.totalMataMata >= 0 ? MOBILE_DARK_HD_CONFIG.colors.warning : MOBILE_DARK_HD_CONFIG.colors.danger};
               ">${formatarValorMonetario(resumoFinanceiro.totalMataMata)}</div>
             </div>
@@ -515,8 +504,8 @@ function criarLayoutExtratoFinanceiroMobile(
           </div>
 
           <div style="
-            background: ${resumoFinanceiro.saldoFinal >= 0 ? MOBILE_DARK_HD_CONFIG.colors.success + "25" : MOBILE_DARK_HD_CONFIG.colors.danger + "25"};
-            border: 2px solid ${resumoFinanceiro.saldoFinal >= 0 ? MOBILE_DARK_HD_CONFIG.colors.success : MOBILE_DARK_HD_CONFIG.colors.danger};
+            background: rgba(255, 69, 0, 0.08);
+            border-left: 3px solid ${MOBILE_DARK_HD_CONFIG.colors.warning};
             padding: 10px 12px;
             border-radius: 8px;
             text-align: center;
@@ -524,7 +513,7 @@ function criarLayoutExtratoFinanceiroMobile(
             flex-shrink: 0;
           ">
             <div style="
-              font: ${MOBILE_DARK_HD_CONFIG.fonts.weights.extrabold} ${MOBILE_DARK_HD_CONFIG.fonts.body};
+              font: ${MOBILE_DARK_HD_CONFIG.fonts.weights.extrabold} ${MOBILE_DARK_HD_CONFIG.fonts.heading};
               color: ${resumoFinanceiro.saldoFinal >= 0 ? MOBILE_DARK_HD_CONFIG.colors.success : MOBILE_DARK_HD_CONFIG.colors.danger};
               line-height: 1;
             ">${formatarValorMonetario(resumoFinanceiro.saldoFinal)}</div>
