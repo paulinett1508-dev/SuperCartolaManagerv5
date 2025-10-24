@@ -268,21 +268,21 @@ export class FluxoFinanceiroUI {
                 </div>
 
                 <div style="overflow-x: auto;">
-                    <table style="width: 100%; border-collapse: collapse; font-size: 12px;">
+                    <table style="width: 100%; border-collapse: collapse; font-size: 14px;">
                         <thead>
                             <tr style="background: var(--gradient-primary);">
-                                <th style="padding: 10px 8px; text-align: left; color: white; font-weight: 600; 
-                                     font-size: 11px; text-transform: uppercase; letter-spacing: 0.3px;">Rodada</th>
-                                <th style="padding: 10px 8px; text-align: left; color: white; font-weight: 600; 
-                                     font-size: 11px; text-transform: uppercase; letter-spacing: 0.3px;">Posição</th>
-                                <th style="padding: 10px 8px; text-align: center; color: white; font-weight: 600; 
-                                     font-size: 11px; text-transform: uppercase; letter-spacing: 0.3px;">Bônus/Ônus por Rodadas</th>
-                                <th style="padding: 10px 8px; text-align: center; color: white; font-weight: 600; 
-                                     font-size: 11px; text-transform: uppercase; letter-spacing: 0.3px;">P. Corridos</th>
-                                <th style="padding: 10px 8px; text-align: center; color: white; font-weight: 600; 
-                                     font-size: 11px; text-transform: uppercase; letter-spacing: 0.3px;">Mata-Mata</th>
-                                <th style="padding: 10px 8px; text-align: center; color: white; font-weight: 600; 
-                                     font-size: 11px; text-transform: uppercase; letter-spacing: 0.3px; background: rgba(0,0,0,0.2);">Saldo</th>
+                                <th style="padding: 12px 10px; text-align: left; color: white; font-weight: 700; 
+                                     font-size: 13px; text-transform: uppercase; letter-spacing: 0.5px;">Rodada</th>
+                                <th style="padding: 12px 10px; text-align: left; color: white; font-weight: 700; 
+                                     font-size: 13px; text-transform: uppercase; letter-spacing: 0.5px;">Posição</th>
+                                <th style="padding: 12px 10px; text-align: center; color: white; font-weight: 700; 
+                                     font-size: 13px; text-transform: uppercase; letter-spacing: 0.5px;">Bônus/Ônus<br>por Rodadas</th>
+                                <th style="padding: 12px 10px; text-align: center; color: white; font-weight: 700; 
+                                     font-size: 13px; text-transform: uppercase; letter-spacing: 0.5px;">P. Corridos</th>
+                                <th style="padding: 12px 10px; text-align: center; color: white; font-weight: 700; 
+                                     font-size: 13px; text-transform: uppercase; letter-spacing: 0.5px;">Mata-Mata</th>
+                                <th style="padding: 12px 10px; text-align: center; color: white; font-weight: 700; 
+                                     font-size: 13px; text-transform: uppercase; letter-spacing: 0.5px; background: rgba(0,0,0,0.2);">Saldo</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -307,22 +307,22 @@ export class FluxoFinanceiroUI {
                                      ${index % 2 === 0 ? "background: rgba(255,255,255,0.02);" : ""}" 
                                      onmouseover="this.style.background='var(--table-row-hover)'" 
                                      onmouseout="this.style.background='${index % 2 === 0 ? "rgba(255,255,255,0.02)" : "transparent"}'">
-                                    <td style="padding: 10px 8px; font-weight: 600; color: var(--text-primary);">
+                                    <td style="padding: 12px 10px; font-weight: 700; color: var(--text-primary); font-size: 14px;">
                                         ${r.rodada}ª
                                     </td>
-                                    <td style="padding: 10px 8px;">
+                                    <td style="padding: 12px 10px;">
                                         ${formatarPosicao(r)}
                                     </td>
-                                    <td style="padding: 10px 8px; text-align: center;">
+                                    <td style="padding: 12px 10px; text-align: center; font-size: 14px;">
                                         ${formatarValorComCor(r.bonusOnus)}
                                     </td>
-                                    <td style="padding: 10px 8px; text-align: center;">
+                                    <td style="padding: 12px 10px; text-align: center; font-size: 14px;">
                                         ${formatarValorComCor(r.pontosCorridos)}
                                     </td>
-                                    <td style="padding: 10px 8px; text-align: center;">
+                                    <td style="padding: 12px 10px; text-align: center; font-size: 14px;">
                                         ${formatarValorComCor(r.mataMata)}
                                     </td>
-                                    <td style="padding: 10px 8px; text-align: center; font-weight: 700; 
+                                    <td style="padding: 12px 10px; text-align: center; font-weight: 700; font-size: 15px;
                                          background: ${corFundoSaldo(r.saldo)};">
                                         ${formatarValorComCor(r.saldo)}
                                     </td>
@@ -331,23 +331,35 @@ export class FluxoFinanceiroUI {
                                 })
                                 .join("")}
                             <!-- LINHA DE TOTAIS -->
-                            <tr style="background: var(--gradient-primary); border-top: 3px solid var(--laranja);">
-                                <td colspan="2" style="padding: 10px 8px; text-align: right; color: white; font-weight: 700; 
-                                     font-size: 11px; text-transform: uppercase; letter-spacing: 0.3px;">
+                            <tr style="background: var(--gradient-primary); border-top: 4px solid var(--laranja);">
+                                <td colspan="2" style="padding: 14px 10px; text-align: right; color: white; font-weight: 800; 
+                                     font-size: 14px; text-transform: uppercase; letter-spacing: 1px;">
                                     TOTAIS:
                                 </td>
-                                <td style="padding: 10px 8px; text-align: center; font-weight: 700; color: white;">
-                                    ${formatarValorComCor(extrato.resumo.bonus + extrato.resumo.onus)}
+                                <td style="padding: 14px 10px; text-align: center; font-weight: 800; color: white; font-size: 16px;">
+                                    R$ ${(extrato.resumo.bonus + extrato.resumo.onus).toLocaleString("pt-BR", {
+                                        minimumFractionDigits: 2,
+                                        maximumFractionDigits: 2,
+                                    })}
                                 </td>
-                                <td style="padding: 10px 8px; text-align: center; font-weight: 700; color: white;">
-                                    ${formatarValorComCor(extrato.resumo.pontosCorridos)}
+                                <td style="padding: 14px 10px; text-align: center; font-weight: 800; color: white; font-size: 16px;">
+                                    ${extrato.resumo.pontosCorridos !== null ? `R$ ${extrato.resumo.pontosCorridos.toLocaleString("pt-BR", {
+                                        minimumFractionDigits: 2,
+                                        maximumFractionDigits: 2,
+                                    })}` : '-'}
                                 </td>
-                                <td style="padding: 10px 8px; text-align: center; font-weight: 700; color: white;">
-                                    ${formatarValorComCor(extrato.resumo.mataMata)}
+                                <td style="padding: 14px 10px; text-align: center; font-weight: 800; color: white; font-size: 16px;">
+                                    R$ ${extrato.resumo.mataMata.toLocaleString("pt-BR", {
+                                        minimumFractionDigits: 2,
+                                        maximumFractionDigits: 2,
+                                    })}
                                 </td>
-                                <td style="padding: 10px 8px; text-align: center; font-weight: 700; 
+                                <td style="padding: 14px 10px; text-align: center; font-weight: 800; font-size: 17px;
                                      background: rgba(0,0,0,0.3); color: white;">
-                                    ${formatarValorComCor(extrato.resumo.saldo)}
+                                    R$ ${extrato.resumo.saldo.toLocaleString("pt-BR", {
+                                        minimumFractionDigits: 2,
+                                        maximumFractionDigits: 2,
+                                    })}
                                 </td>
                             </tr>
                         </tbody>
