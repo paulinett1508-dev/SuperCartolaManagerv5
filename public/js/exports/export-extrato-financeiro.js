@@ -440,6 +440,97 @@ function criarLayoutExtratoFinanceiroMobile(
                 )
                 .join("")
         }
+        
+        <!-- LINHA DE TOTAIS -->
+        ${detalhamentoPorRodada.length > 0 ? `
+        <div style="
+          display: flex;
+          align-items: center;
+          padding: 16px ${MOBILE_DARK_HD_CONFIG.padding}px;
+          border-top: 3px solid ${MOBILE_DARK_HD_CONFIG.colors.warning};
+          background: ${MOBILE_DARK_HD_CONFIG.colors.gradientDark};
+          min-height: 60px;
+        ">
+          <div style="
+            padding: 6px 10px;
+            border-radius: 8px;
+            margin-right: 12px;
+            min-width: 100px;
+            text-align: center;
+            font: ${MOBILE_DARK_HD_CONFIG.fonts.weights.bold} ${MOBILE_DARK_HD_CONFIG.fonts.bodySmall};
+            color: ${MOBILE_DARK_HD_CONFIG.colors.text};
+            flex-shrink: 0;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+          ">TOTAIS:</div>
+
+          <div style="
+            flex: 1;
+            display: grid;
+            grid-template-columns: ${isSuperCartola ? "1fr 1fr 1fr" : "1fr"};
+            gap: 8px;
+            margin-right: 12px;
+          ">
+            <div style="text-align: center;">
+              <div style="
+                font: ${MOBILE_DARK_HD_CONFIG.fonts.weights.medium} ${MOBILE_DARK_HD_CONFIG.fonts.mini};
+                color: ${MOBILE_DARK_HD_CONFIG.colors.textMuted};
+                margin-bottom: 2px;
+              ">Bônus/Ônus por Rodadas</div>
+              <div style="
+                font: ${MOBILE_DARK_HD_CONFIG.fonts.weights.extrabold} ${MOBILE_DARK_HD_CONFIG.fonts.caption};
+                color: ${(resumoFinanceiro.totalBonus + resumoFinanceiro.totalOnus) >= 0 ? MOBILE_DARK_HD_CONFIG.colors.success : MOBILE_DARK_HD_CONFIG.colors.danger};
+              ">${formatarValorMonetario(resumoFinanceiro.totalBonus + resumoFinanceiro.totalOnus)}</div>
+            </div>
+
+            ${
+              isSuperCartola
+                ? `
+            <div style="text-align: center;">
+              <div style="
+                font: ${MOBILE_DARK_HD_CONFIG.fonts.weights.medium} ${MOBILE_DARK_HD_CONFIG.fonts.mini};
+                color: ${MOBILE_DARK_HD_CONFIG.colors.textMuted};
+                margin-bottom: 2px;
+              ">Pts Corridos</div>
+              <div style="
+                font: ${MOBILE_DARK_HD_CONFIG.fonts.weights.extrabold} ${MOBILE_DARK_HD_CONFIG.fonts.caption};
+                color: ${resumoFinanceiro.totalPontosCorridos >= 0 ? MOBILE_DARK_HD_CONFIG.colors.info : MOBILE_DARK_HD_CONFIG.colors.danger};
+              ">${formatarValorMonetario(resumoFinanceiro.totalPontosCorridos)}</div>
+            </div>
+
+            <div style="text-align: center;">
+              <div style="
+                font: ${MOBILE_DARK_HD_CONFIG.fonts.weights.medium} ${MOBILE_DARK_HD_CONFIG.fonts.mini};
+                color: ${MOBILE_DARK_HD_CONFIG.colors.textMuted};
+                margin-bottom: 2px;
+              ">Mata-Mata</div>
+              <div style="
+                font: ${MOBILE_DARK_HD_CONFIG.fonts.weights.extrabold} ${MOBILE_DARK_HD_CONFIG.fonts.caption};
+                color: ${resumoFinanceiro.totalMataMata >= 0 ? MOBILE_DARK_HD_CONFIG.colors.warning : MOBILE_DARK_HD_CONFIG.colors.danger};
+              ">${formatarValorMonetario(resumoFinanceiro.totalMataMata)}</div>
+            </div>
+            `
+                : ""
+            }
+          </div>
+
+          <div style="
+            background: ${resumoFinanceiro.saldoFinal >= 0 ? MOBILE_DARK_HD_CONFIG.colors.success + "25" : MOBILE_DARK_HD_CONFIG.colors.danger + "25"};
+            border: 2px solid ${resumoFinanceiro.saldoFinal >= 0 ? MOBILE_DARK_HD_CONFIG.colors.success : MOBILE_DARK_HD_CONFIG.colors.danger};
+            padding: 10px 12px;
+            border-radius: 8px;
+            text-align: center;
+            min-width: 80px;
+            flex-shrink: 0;
+          ">
+            <div style="
+              font: ${MOBILE_DARK_HD_CONFIG.fonts.weights.extrabold} ${MOBILE_DARK_HD_CONFIG.fonts.body};
+              color: ${resumoFinanceiro.saldoFinal >= 0 ? MOBILE_DARK_HD_CONFIG.colors.success : MOBILE_DARK_HD_CONFIG.colors.danger};
+              line-height: 1;
+            ">${formatarValorMonetario(resumoFinanceiro.saldoFinal)}</div>
+          </div>
+        </div>
+        ` : ""}
       </div>
     </div>
 
@@ -640,7 +731,7 @@ function criarItemExtratoRodadaMobile(rodada, index, isSuperCartola) {
             font: ${MOBILE_DARK_HD_CONFIG.fonts.weights.medium} ${MOBILE_DARK_HD_CONFIG.fonts.mini};
             color: ${MOBILE_DARK_HD_CONFIG.colors.textMuted};
             margin-bottom: 2px;
-          ">Bônus/Ônus</div>
+          ">Bônus/Ônus por Rodadas</div>
           <div style="
             font: ${MOBILE_DARK_HD_CONFIG.fonts.weights.bold} ${MOBILE_DARK_HD_CONFIG.fonts.caption};
             color: ${rodada.bonusOnus >= 0 ? MOBILE_DARK_HD_CONFIG.colors.success : MOBILE_DARK_HD_CONFIG.colors.danger};

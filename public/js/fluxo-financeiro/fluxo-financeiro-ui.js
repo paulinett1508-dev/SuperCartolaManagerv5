@@ -240,22 +240,6 @@ export class FluxoFinanceiroUI {
                     </div>
                 </div>
 
-                <!-- CARDS RESUMO COMPACTOS -->
-                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(110px, 1fr)); gap: 10px; margin-top: 12px;">
-                    <div style="background: var(--bg-secondary); padding: 8px 10px; border-radius: 6px; border: 1px solid var(--border-secondary);">
-                        <div style="font-size: 9px; color: var(--text-muted); font-weight: 600; text-transform: uppercase; 
-                             letter-spacing: 0.3px; margin-bottom: 4px;">🎁 Bônus</div>
-                        <div style="font-size: 14px; font-weight: 700; color: var(--text-primary);">
-                            ${formatarValorComCor(extrato.resumo.bonus)}
-                        </div>
-                    </div>
-                    <div style="background: var(--bg-secondary); padding: 8px 10px; border-radius: 6px; border: 1px solid var(--border-secondary);">
-                        <div style="font-size: 9px; color: var(--text-muted); font-weight: 600; text-transform: uppercase; 
-                             letter-spacing: 0.3px; margin-bottom: 4px;">⚠️ Ônus</div>
-                        <div style="font-size: 14px; font-weight: 700; color: var(--text-primary);">
-                            ${formatarValorComCor(extrato.resumo.onus)}
-                        </div>
-                    </div>
                 </div>
             </div>
 
@@ -292,7 +276,7 @@ export class FluxoFinanceiroUI {
                                 <th style="padding: 10px 8px; text-align: left; color: white; font-weight: 600; 
                                      font-size: 11px; text-transform: uppercase; letter-spacing: 0.3px;">Posição</th>
                                 <th style="padding: 10px 8px; text-align: center; color: white; font-weight: 600; 
-                                     font-size: 11px; text-transform: uppercase; letter-spacing: 0.3px;">Bônus/Ônus</th>
+                                     font-size: 11px; text-transform: uppercase; letter-spacing: 0.3px;">Bônus/Ônus por Rodadas</th>
                                 <th style="padding: 10px 8px; text-align: center; color: white; font-weight: 600; 
                                      font-size: 11px; text-transform: uppercase; letter-spacing: 0.3px;">P. Corridos</th>
                                 <th style="padding: 10px 8px; text-align: center; color: white; font-weight: 600; 
@@ -346,6 +330,26 @@ export class FluxoFinanceiroUI {
                             `;
                                 })
                                 .join("")}
+                            <!-- LINHA DE TOTAIS -->
+                            <tr style="background: var(--gradient-primary); border-top: 3px solid var(--laranja);">
+                                <td colspan="2" style="padding: 10px 8px; text-align: right; color: white; font-weight: 700; 
+                                     font-size: 11px; text-transform: uppercase; letter-spacing: 0.3px;">
+                                    TOTAIS:
+                                </td>
+                                <td style="padding: 10px 8px; text-align: center; font-weight: 700; color: white;">
+                                    ${formatarValorComCor(extrato.resumo.bonus + extrato.resumo.onus)}
+                                </td>
+                                <td style="padding: 10px 8px; text-align: center; font-weight: 700; color: white;">
+                                    ${formatarValorComCor(extrato.resumo.pontosCorridos)}
+                                </td>
+                                <td style="padding: 10px 8px; text-align: center; font-weight: 700; color: white;">
+                                    ${formatarValorComCor(extrato.resumo.mataMata)}
+                                </td>
+                                <td style="padding: 10px 8px; text-align: center; font-weight: 700; 
+                                     background: rgba(0,0,0,0.3); color: white;">
+                                    ${formatarValorComCor(extrato.resumo.saldo)}
+                                </td>
+                            </tr>
                         </tbody>
                     </table>
                 </div>
