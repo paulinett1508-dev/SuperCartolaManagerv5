@@ -218,6 +218,9 @@ async function calcularEExibirExtrato(timeId) {
             return;
         }
 
+        // Armazenar participante atual para refresh
+        participanteAtualCache = participante;
+
         const extrato = fluxoFinanceiroCore.calcularExtratoFinanceiro(
             timeId,
             ultimaRodadaCompleta,
@@ -445,7 +448,7 @@ function renderizarErroCalculo(error) {
         container.innerHTML = `<div style="text-align:center; padding:20px; background:#fff3f3; border-radius:8px;"><p style="color:#d32f2f;">Erro ao calcular extrato.</p><p style="color:#666; margin-top:10px;">${error.message}</p></div>`;
 }
 
-export async function selecionarParticipante(timeId) {
+async function selecionarParticipante(timeId) {
     await calcularEExibirExtrato(timeId);
 }
 
@@ -456,6 +459,115 @@ window.obterLigaId = obterLigaId;
 window.exportarExtrato = exportarExtrato;
 window.gerarRelatorioFinanceiro = gerarRelatorioFinanceiro;
 window.exportarRelatorioCSV = exportarRelatorioCSV;
+
+// ===== VARIÁVEL GLOBAL PARA ARMAZENAR PARTICIPANTE ATUAL =====
+let participanteAtualCache = null;
+
+// ===== FUNÇÃO PARA RECARREGAR EXTRATO ATUAL =====
+window.recarregarExtratoAtual = async () => {
+    if (!participanteAtualCache) {
+        console.warn('[FLUXO] Nenhum participante selecionado para recarregar');
+        return;
+    }
+
+    console.log('[FLUXO] Recarregando extrato do participante:', participanteAtualCache.time_id || participanteAtualCache.id);
+    await selecionarParticipante(participanteAtualCache.time_id || participanteAtualCache.id);
+};
+
+// ===== FUNÇÃO PARA RECALCULAR E ATUALIZAR SALDO NA TELA =====
+async function recalcularSaldoNaTela(timeId) {
+    try {
+        // Buscar valores atuais dos campos
+        const campos = await FluxoFinanceiroCampos.carregarTodosCamposEditaveis(timeId);
+
+        // Obter resumo do extrato (sem recarregar toda a página)
+        const extrato = await fluxoFinanceiroCore.calcularExtratoFinanceiro(timeId, rodadaAtual);
+
+        // Atualizar saldo na tela
+        const saldoDisplay = document.getElementById('saldoTotalDisplay');
+        if (saldoDisplay) {
+            const saldoFinal = extrato.resumo.saldo;
+            const cor = saldoFinal >= 0 ? '#2ecc71' : '#e74c3c';
+
+            saldoDisplay.style.color = cor;
+            saldoDisplay.textContent = `R$ ${parseFloat(saldoFinal).toLocaleString('pt-BR', {
+                minimumFractionDigits: 2,
+                maximumFractionDigits: 2,
+            })}`;
+
+            // Animação de destaque
+            saldoDisplay.style.transform = 'scale(1.1)';
+            setTimeout(() => {
+                saldoDisplay.style.transform = 'scale(1)';
+            }, 200);
+        }
+
+        console.log('[FLUXO] Saldo recalculado:', extrato.resumo.saldo);
+    } catch (error) {
+        console.error('[FLUXO] Erro ao recalcular saldo:', error);
+    }
+}
+
+// ===== FUNÇÃO PARA SALVAR CAMPO COM RECÁLCULO AUTOMÁTICO =====
+window.salvarCampoEditavelComRecalculo = async (timeId, nomeCampo, valor) => {
+    try {
+        const valorNumerico = parseFloat(valor) || 0;
+
+        // Feedback visual no input
+        const input = document.getElementById(`input_${nomeCampo}`);
+        if (input) {
+            input.style.borderColor = 'var(--laranja)';
+            input.style.boxShadow = '0 0 8px rgba(255, 69, 0, 0.3)';
+        }
+
+        // Salvar no banco
+        await FluxoFinanceiroCampos.salvarValorCampo(timeId, nomeCampo, valorNumerico);
+
+        // Recalcular saldo na tela
+        await recalcularSaldoNaTela(timeId);
+
+        // Resetar feedback visual
+        if (input) {
+            setTimeout(() => {
+                input.style.borderColor = 'var(--border-primary)';
+                input.style.boxShadow = 'none';
+            }, 500);
+        }
+
+        console.log(`[FLUXO] Campo ${nomeCampo} salvo: R$ ${valorNumerico}`);
+    } catch (error) {
+        console.error('[FLUXO] Erro ao salvar campo:', error);
+        alert('Erro ao salvar campo: ' + error.message);
+    }
+};
+
+// ===== FUNÇÕES GLOBAIS PARA CAMPOS EDITÁVEIS =====
+window.salvarCampoEditavel = async (timeId, nomeCampo, valor) => {
+    await FluxoFinanceiroCampos.salvarValorCampo(timeId, nomeCampo, parseFloat(valor) || 0);
+    await recalcularSaldoNaTela(timeId);
+};
+
+window.desfazerCampo = async (timeId, nomeCampo) => {
+    try {
+        // Resetar para zero
+        await FluxoFinanceiroCampos.salvarValorCampo(timeId, nomeCampo, 0);
+
+        // Recalcular saldo
+        await recalcularSaldoNaTela(timeId);
+
+        // Atualizar input
+        const input = document.getElementById(`input_${nomeCampo}`);
+        if (input) {
+            input.value = 'R$ 0,00';
+            input.style.color = '#2ecc71';
+        }
+
+        console.log(`[FLUXO] Campo ${nomeCampo} resetado`);
+    } catch (error) {
+        console.error('[FLUXO] Erro ao resetar campo:', error);
+        alert('Erro ao resetar campo: ' + error.message);
+    }
+};
 
 window.exportarRelatorioComoImagem = async function () {
     try {

@@ -209,20 +209,32 @@ export class FluxoFinanceiroUI {
                             ${participante.nome_time}
                         </p>
                     </div>
-                    <div style="text-align: right;">
-                        <div style="font-size: 11px; color: var(--text-muted); font-weight: 600; text-transform: uppercase; 
-                             letter-spacing: 0.5px; margin-bottom: 4px;">Saldo Total</div>
-                        <div style="font-size: 24px; font-weight: 700; color: ${
-                            parseFloat(extrato.resumo.saldo) >= 0
-                                ? "#2ecc71"
-                                : "#e74c3c"
-                        };">
-                            R$ ${parseFloat(
-                                extrato.resumo.saldo,
-                            ).toLocaleString("pt-BR", {
-                                minimumFractionDigits: 2,
-                                maximumFractionDigits: 2,
-                            })}
+                    <div style="text-align: right; display: flex; flex-direction: column; gap: 8px;">
+                        <button onclick="window.recarregarExtratoAtual()" 
+                                style="background: var(--gradient-secondary); color: white; border: none; 
+                                       padding: 6px 12px; border-radius: 6px; cursor: pointer; font-size: 11px; 
+                                       font-weight: 600; transition: all 0.3s ease; display: flex; align-items: center; 
+                                       gap: 4px; align-self: flex-end;"
+                                onmouseover="this.style.transform='translateY(-1px)'"
+                                onmouseout="this.style.transform='translateY(0)'">
+                            <span style="font-size: 14px;">🔄</span>
+                            <span>Atualizar</span>
+                        </button>
+                        <div>
+                            <div style="font-size: 11px; color: var(--text-muted); font-weight: 600; text-transform: uppercase; 
+                                 letter-spacing: 0.5px; margin-bottom: 4px;">Saldo Total</div>
+                            <div id="saldoTotalDisplay" style="font-size: 24px; font-weight: 700; color: ${
+                                parseFloat(extrato.resumo.saldo) >= 0
+                                    ? "#2ecc71"
+                                    : "#e74c3c"
+                            };">
+                                R$ ${parseFloat(
+                                    extrato.resumo.saldo,
+                                ).toLocaleString("pt-BR", {
+                                    minimumFractionDigits: 2,
+                                    maximumFractionDigits: 2,
+                                })}
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -492,13 +504,14 @@ export class FluxoFinanceiroUI {
                                 }
                             </div>
                             <input type="text" 
+                                   id="input_${campo.nomeCampo}"
                                    value="R$ ${Math.abs(campo.valorAtual).toLocaleString("pt-BR", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}" 
                                    onfocus="this.value = '${campo.valorAtual}'; this.type='number'; this.step='0.01'"
                                    onblur="this.type='text'; const val = parseFloat(this.value) || 0; this.value = 'R$ ' + Math.abs(val).toLocaleString('pt-BR', {minimumFractionDigits: 2, maximumFractionDigits: 2})"
-                                   onchange="window.salvarCampoEditavel('${timeId}', '${campo.nomeCampo}', this.value)"
+                                   onchange="window.salvarCampoEditavelComRecalculo('${timeId}', '${campo.nomeCampo}', this.value)"
                                    style="width: 100%; padding: 8px; border: 1px solid var(--border-primary); 
                                           border-radius: 4px; font-size: 14px; font-weight: 600; 
-                                          background: var(--bg-card); color: ${campo.valorAtual >= 0 ? "#2ecc71" : "#e74c3c"};">
+                                          background: var(--bg-card); color: ${campo.valorAtual >= 0 ? "#2ecc71" : "#e74c3c"}; transition: all 0.3s ease;">
                         </div>
                     `,
                         )
