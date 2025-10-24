@@ -477,11 +477,8 @@ window.recarregarExtratoAtual = async () => {
 // ===== FUNÇÃO PARA RECALCULAR E ATUALIZAR SALDO NA TELA =====
 async function recalcularSaldoNaTela(timeId) {
     try {
-        // Buscar valores atuais dos campos
-        const campos = await FluxoFinanceiroCampos.carregarTodosCamposEditaveis(timeId);
-
         // Obter resumo do extrato (sem recarregar toda a página)
-        const extrato = await fluxoFinanceiroCore.calcularExtratoFinanceiro(timeId, rodadaAtual);
+        const extrato = await fluxoFinanceiroCore.calcularExtratoFinanceiro(timeId, ultimaRodadaCompleta);
 
         // Atualizar saldo na tela
         const saldoDisplay = document.getElementById('saldoTotalDisplay');

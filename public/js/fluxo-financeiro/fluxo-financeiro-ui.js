@@ -505,9 +505,9 @@ export class FluxoFinanceiroUI {
                             </div>
                             <input type="text" 
                                    id="input_${campo.nomeCampo}"
-                                   value="R$ ${Math.abs(campo.valorAtual).toLocaleString("pt-BR", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}" 
+                                   value="${campo.valorAtual >= 0 ? '+' : ''}R$ ${Math.abs(campo.valorAtual).toLocaleString("pt-BR", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}" 
                                    onfocus="this.value = '${campo.valorAtual}'; this.type='number'; this.step='0.01'"
-                                   onblur="this.type='text'; const val = parseFloat(this.value) || 0; this.value = 'R$ ' + Math.abs(val).toLocaleString('pt-BR', {minimumFractionDigits: 2, maximumFractionDigits: 2})"
+                                   onblur="this.type='text'; const val = parseFloat(this.value) || 0; this.value = (val >= 0 ? '+' : '') + 'R$ ' + Math.abs(val).toLocaleString('pt-BR', {minimumFractionDigits: 2, maximumFractionDigits: 2}); this.style.color = val >= 0 ? '#2ecc71' : '#e74c3c';"
                                    onchange="window.salvarCampoEditavelComRecalculo('${timeId}', '${campo.nomeCampo}', this.value)"
                                    style="width: 100%; padding: 8px; border: 1px solid var(--border-primary); 
                                           border-radius: 4px; font-size: 14px; font-weight: 600; 

@@ -301,17 +301,24 @@ export class FluxoFinanceiroCore {
     }
 
     _calcularSaldoFinal(resumo) {
-        return (
+        const saldoBase = 
             resumo.bonus +
             resumo.onus +
             resumo.pontosCorridos +
             resumo.mataMata +
-            resumo.melhorMes +
-            resumo.campo1 +
-            resumo.campo2 +
-            resumo.campo3 +
-            resumo.campo4
-        );
+            resumo.melhorMes;
+        
+        const camposEditaveis = 
+            (resumo.campo1 || 0) +
+            (resumo.campo2 || 0) +
+            (resumo.campo3 || 0) +
+            (resumo.campo4 || 0);
+        
+        const saldoFinal = saldoBase + camposEditaveis;
+        
+        console.log(`[FLUXO-CORE] Saldo Base: ${saldoBase}, Campos Editáveis: ${camposEditaveis}, Saldo Final: ${saldoFinal}`);
+        
+        return saldoFinal;
     }
 
     async carregarParticipantes() {
