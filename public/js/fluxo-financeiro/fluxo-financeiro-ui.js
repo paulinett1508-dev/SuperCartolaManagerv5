@@ -221,10 +221,10 @@ export class FluxoFinanceiroUI {
                             <span>Atualizar</span>
                         </button>
                         <div style="background: ${parseFloat(extrato.resumo.saldo) >= 0 ? "rgba(34, 197, 94, 0.15)" : "rgba(239, 68, 68, 0.15)"}; 
-                             padding: 8px 12px; border-radius: 8px; border: 1px solid ${parseFloat(extrato.resumo.saldo) >= 0 ? "rgba(34, 197, 94, 0.4)" : "rgba(239, 68, 68, 0.4)"};">
+                             padding: 6px 10px; border-radius: 6px; border: 1px solid ${parseFloat(extrato.resumo.saldo) >= 0 ? "rgba(34, 197, 94, 0.4)" : "rgba(239, 68, 68, 0.4)"};">
                             <div style="font-size: 9px; color: var(--text-muted); font-weight: 600; text-transform: uppercase; 
-                                 letter-spacing: 0.5px; margin-bottom: 3px;">Saldo Total</div>
-                            <div id="saldoTotalDisplay" style="font-size: 18px; font-weight: 700; color: ${
+                                 letter-spacing: 0.3px; margin-bottom: 2px;">Saldo</div>
+                            <div id="saldoTotalDisplay" style="font-size: 16px; font-weight: 700; color: ${
                                 parseFloat(extrato.resumo.saldo) >= 0
                                     ? "#2ecc71"
                                     : "#e74c3c"
@@ -241,18 +241,18 @@ export class FluxoFinanceiroUI {
                 </div>
 
                 <!-- CARDS RESUMO COMPACTOS -->
-                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 12px; margin-top: 16px;">
-                    <div style="background: var(--bg-secondary); padding: 12px; border-radius: 6px; border: 1px solid var(--border-secondary);">
-                        <div style="font-size: 10px; color: var(--text-muted); font-weight: 600; text-transform: uppercase; 
-                             letter-spacing: 0.5px; margin-bottom: 6px;">🎁 Bônus</div>
-                        <div style="font-size: 16px; font-weight: 700; color: var(--text-primary);">
+                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(110px, 1fr)); gap: 10px; margin-top: 12px;">
+                    <div style="background: var(--bg-secondary); padding: 8px 10px; border-radius: 6px; border: 1px solid var(--border-secondary);">
+                        <div style="font-size: 9px; color: var(--text-muted); font-weight: 600; text-transform: uppercase; 
+                             letter-spacing: 0.3px; margin-bottom: 4px;">🎁 Bônus</div>
+                        <div style="font-size: 14px; font-weight: 700; color: var(--text-primary);">
                             ${formatarValorComCor(extrato.resumo.bonus)}
                         </div>
                     </div>
-                    <div style="background: var(--bg-secondary); padding: 12px; border-radius: 6px; border: 1px solid var(--border-secondary);">
-                        <div style="font-size: 10px; color: var(--text-muted); font-weight: 600; text-transform: uppercase; 
-                             letter-spacing: 0.5px; margin-bottom: 6px;">⚠️ Ônus</div>
-                        <div style="font-size: 16px; font-weight: 700; color: var(--text-primary);">
+                    <div style="background: var(--bg-secondary); padding: 8px 10px; border-radius: 6px; border: 1px solid var(--border-secondary);">
+                        <div style="font-size: 9px; color: var(--text-muted); font-weight: 600; text-transform: uppercase; 
+                             letter-spacing: 0.3px; margin-bottom: 4px;">⚠️ Ônus</div>
+                        <div style="font-size: 14px; font-weight: 700; color: var(--text-primary);">
                             ${formatarValorComCor(extrato.resumo.onus)}
                         </div>
                     </div>
