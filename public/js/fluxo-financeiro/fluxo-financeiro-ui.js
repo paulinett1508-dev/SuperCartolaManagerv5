@@ -375,14 +375,14 @@ export class FluxoFinanceiroUI {
                 btnExportar.onclick = async () => {
                     // Preparar dados do extrato no formato esperado
                     const dadosMovimentacoes = [];
-                    
+
                     extrato.rodadas.forEach((rodada) => {
                         if (rodada.bonusOnus !== 0) {
                             let descricao = `${rodada.rodada}ª Rodada`;
                             if (rodada.isMito) descricao += ' - MITO';
                             if (rodada.isMico) descricao += ' - MICO';
                             if (rodada.posicao) descricao += ` (${rodada.posicao}°)`;
-                            
+
                             dadosMovimentacoes.push({
                                 data: `R${rodada.rodada}`,
                                 descricao,
@@ -430,7 +430,7 @@ export class FluxoFinanceiroUI {
                             const rodadaAtual = extrato.rodadas.length > 0 
                                 ? extrato.rodadas[extrato.rodadas.length - 1].rodada 
                                 : 0;
-                            
+
                             await window.exportarExtratoComoImagem(
                                 dadosMovimentacoes,
                                 participante,
@@ -505,9 +505,9 @@ export class FluxoFinanceiroUI {
                             </div>
                             <input type="text" 
                                    id="input_${campo.nomeCampo}"
-                                   value="${campo.valorAtual >= 0 ? '+' : ''}R$ ${Math.abs(campo.valorAtual).toLocaleString("pt-BR", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}" 
+                                   value="${campo.valorAtual >= 0 ? '+' : ''}R$ ${campo.valorAtual.toLocaleString("pt-BR", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}" 
                                    onfocus="this.value = '${campo.valorAtual}'; this.type='number'; this.step='0.01'"
-                                   onblur="this.type='text'; const val = parseFloat(this.value) || 0; this.value = (val >= 0 ? '+' : '') + 'R$ ' + Math.abs(val).toLocaleString('pt-BR', {minimumFractionDigits: 2, maximumFractionDigits: 2}); this.style.color = val >= 0 ? '#2ecc71' : '#e74c3c';"
+                                   onblur="this.type='text'; const val = parseFloat(this.value) || 0; this.value = (val >= 0 ? '+' : '') + 'R$ ' + val.toLocaleString('pt-BR', {minimumFractionDigits: 2, maximumFractionDigits: 2})"
                                    onchange="window.salvarCampoEditavelComRecalculo('${timeId}', '${campo.nomeCampo}', this.value)"
                                    style="width: 100%; padding: 8px; border: 1px solid var(--border-primary); 
                                           border-radius: 4px; font-size: 14px; font-weight: 600; 

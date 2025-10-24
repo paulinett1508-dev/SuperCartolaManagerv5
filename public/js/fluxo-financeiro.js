@@ -555,7 +555,7 @@ window.desfazerCampo = async (timeId, nomeCampo) => {
         // Atualizar input
         const input = document.getElementById(`input_${nomeCampo}`);
         if (input) {
-            input.value = 'R$ 0,00';
+            input.value = '+R$ 0,00';
             input.style.color = '#2ecc71';
         }
 
