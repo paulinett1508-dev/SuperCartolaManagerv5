@@ -70,18 +70,19 @@ export class FluxoFinanceiroCore {
             this._carregarMataMataMap(resultadosMataMata);
         }
 
+        // ✅ GARANTIR QUE TODOS OS VALORES DO RESUMO SEJAM NÚMEROS
         const extrato = {
             rodadas: [],
             resumo: {
                 bonus: 0,
                 onus: 0,
-                pontosCorridos: 0,
+                pontosCorridos: isSuperCartola2025 ? 0 : null,
                 mataMata: 0,
                 melhorMes: 0,
-                campo1: camposEditaveis.campo1?.valor || 0,
-                campo2: camposEditaveis.campo2?.valor || 0,
-                campo3: camposEditaveis.campo3?.valor || 0,
-                campo4: camposEditaveis.campo4?.valor || 0,
+                campo1: parseFloat(camposEditaveis.campo1?.valor) || 0,
+                campo2: parseFloat(camposEditaveis.campo2?.valor) || 0,
+                campo3: parseFloat(camposEditaveis.campo3?.valor) || 0,
+                campo4: parseFloat(camposEditaveis.campo4?.valor) || 0,
                 vezesMito: 0,
                 vezesMico: 0,
                 saldo: 0,
@@ -89,6 +90,15 @@ export class FluxoFinanceiroCore {
             totalTimes: 0,
             camposEditaveis: camposEditaveis,
         };
+        
+        console.log('[FLUXO-CORE] Resumo inicializado:', {
+            pontosCorridos: extrato.resumo.pontosCorridos,
+            mataMata: extrato.resumo.mataMata,
+            campo1: extrato.resumo.campo1,
+            campo2: extrato.resumo.campo2,
+            campo3: extrato.resumo.campo3,
+            campo4: extrato.resumo.campo4,
+        });
 
         // OTIMIZADO: Processar rodadas de forma síncrona (dados já em cache)
         const rodadasProcessadas = [];
@@ -271,21 +281,27 @@ export class FluxoFinanceiroCore {
     }
 
     _acumularValoresIntegrados(resumo, rodadaData, isSuperCartola2025) {
+        // Acumular Bônus e Ônus
         if (rodadaData.bonusOnus > 0) resumo.bonus += rodadaData.bonusOnus;
         if (rodadaData.bonusOnus < 0) resumo.onus += rodadaData.bonusOnus;
+        
+        // Contar MITO e MICO
         if (rodadaData.isMito) resumo.vezesMito++;
         if (rodadaData.isMico) resumo.vezesMico++;
 
-        if (
-            isSuperCartola2025 &&
-            typeof rodadaData.pontosCorridos === "number"
-        ) {
-            resumo.pontosCorridos += rodadaData.pontosCorridos;
+        // ✅ GARANTIR que Pontos Corridos seja acumulado (mesmo que seja 0)
+        if (isSuperCartola2025) {
+            const valorPC = typeof rodadaData.pontosCorridos === "number" ? rodadaData.pontosCorridos : 0;
+            resumo.pontosCorridos += valorPC;
         }
-        if (typeof rodadaData.mataMata === "number")
-            resumo.mataMata += rodadaData.mataMata;
-        if (typeof rodadaData.melhorMes === "number")
-            resumo.melhorMes += rodadaData.melhorMes;
+        
+        // ✅ GARANTIR que Mata-Mata seja acumulado (mesmo que seja 0)
+        const valorMM = typeof rodadaData.mataMata === "number" ? rodadaData.mataMata : 0;
+        resumo.mataMata += valorMM;
+        
+        // Melhor Mês (futuro)
+        const valorBM = typeof rodadaData.melhorMes === "number" ? rodadaData.melhorMes : 0;
+        resumo.melhorMes += valorBM;
     }
 
     _calcularSaldoAcumulado(rodadas) {
@@ -302,12 +318,14 @@ export class FluxoFinanceiroCore {
     }
 
     _calcularSaldoFinal(resumo) {
-        const saldoBase = 
-            (parseFloat(resumo.bonus) || 0) +
-            (parseFloat(resumo.onus) || 0) +
-            (parseFloat(resumo.pontosCorridos) || 0) +
-            (parseFloat(resumo.mataMata) || 0) +
-            (parseFloat(resumo.melhorMes) || 0);
+        // ✅ CONVERTER TODOS OS VALORES PARA NÚMERO COM SEGURANÇA
+        const bonus = parseFloat(resumo.bonus) || 0;
+        const onus = parseFloat(resumo.onus) || 0;
+        const pontosCorridos = parseFloat(resumo.pontosCorridos) || 0;
+        const mataMata = parseFloat(resumo.mataMata) || 0;
+        const melhorMes = parseFloat(resumo.melhorMes) || 0;
+        
+        const saldoBase = bonus + onus + pontosCorridos + mataMata + melhorMes;
         
         // ✅ GARANTIR QUE CAMPOS EDITÁVEIS SEJAM NÚMEROS
         const campo1 = parseFloat(resumo.campo1) || 0;
@@ -318,10 +336,24 @@ export class FluxoFinanceiroCore {
         const camposEditaveis = campo1 + campo2 + campo3 + campo4;
         const saldoFinal = saldoBase + camposEditaveis;
         
-        console.log(`[FLUXO-CORE] Saldo Base: ${saldoBase.toFixed(2)}`);
-        console.log(`[FLUXO-CORE] Campo1: ${campo1.toFixed(2)}, Campo2: ${campo2.toFixed(2)}, Campo3: ${campo3.toFixed(2)}, Campo4: ${campo4.toFixed(2)}`);
-        console.log(`[FLUXO-CORE] Campos Editáveis Total: ${camposEditaveis.toFixed(2)}`);
-        console.log(`[FLUXO-CORE] Saldo Final: ${saldoFinal.toFixed(2)}`);
+        // ✅ LOGS DETALHADOS PARA DEBUG
+        console.log(`[FLUXO-CORE] ========== CÁLCULO SALDO FINAL ==========`);
+        console.log(`[FLUXO-CORE] Bônus: R$ ${bonus.toFixed(2)}`);
+        console.log(`[FLUXO-CORE] Ônus: R$ ${onus.toFixed(2)}`);
+        console.log(`[FLUXO-CORE] Pontos Corridos: R$ ${pontosCorridos.toFixed(2)}`);
+        console.log(`[FLUXO-CORE] Mata-Mata: R$ ${mataMata.toFixed(2)}`);
+        console.log(`[FLUXO-CORE] Melhor Mês: R$ ${melhorMes.toFixed(2)}`);
+        console.log(`[FLUXO-CORE] -----------------------------------------`);
+        console.log(`[FLUXO-CORE] Saldo Base: R$ ${saldoBase.toFixed(2)}`);
+        console.log(`[FLUXO-CORE] -----------------------------------------`);
+        console.log(`[FLUXO-CORE] Campo1: R$ ${campo1.toFixed(2)}`);
+        console.log(`[FLUXO-CORE] Campo2: R$ ${campo2.toFixed(2)}`);
+        console.log(`[FLUXO-CORE] Campo3: R$ ${campo3.toFixed(2)}`);
+        console.log(`[FLUXO-CORE] Campo4: R$ ${campo4.toFixed(2)}`);
+        console.log(`[FLUXO-CORE] Campos Editáveis Total: R$ ${camposEditaveis.toFixed(2)}`);
+        console.log(`[FLUXO-CORE] -----------------------------------------`);
+        console.log(`[FLUXO-CORE] SALDO FINAL: R$ ${saldoFinal.toFixed(2)}`);
+        console.log(`[FLUXO-CORE] ==========================================`);
         
         return saldoFinal;
     }
