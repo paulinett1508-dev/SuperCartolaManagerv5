@@ -6,6 +6,97 @@
  * Fornece funções base para exportação em diferentes formatos
  */
 
+// ✅ CONFIGURAÇÃO MOBILE DARK HD
+export const MOBILE_DARK_HD_CONFIG = {
+    width: 720,
+    scale: 2,
+    quality: 0.95,
+    padding: 20,
+    fontSize: {
+        title: 28,
+        subtitle: 16,
+        heading: 22,
+        body: 14,
+        small: 12,
+        caption: 10,
+    },
+    spacing: {
+        card: 12,
+        section: 16,
+        item: 10,
+    },
+};
+
+// ✅ UTILIDADES MOBILE DARK
+export const MobileDarkUtils = {
+    validarDadosMobile(dados, camposObrigatorios) {
+        camposObrigatorios.forEach(campo => {
+            if (!dados[campo]) {
+                throw new Error(`Campo obrigatório ausente: ${campo}`);
+            }
+        });
+    },
+    
+    mostrarErro(mensagem) {
+        console.error(`❌ ${mensagem}`);
+        alert(mensagem);
+    },
+    
+    mostrarSucesso(mensagem) {
+        console.log(`✅ ${mensagem}`);
+    }
+};
+
+// ✅ CRIAR CONTAINER MOBILE DARK
+export function criarContainerMobileDark(titulo, subtitulo, metadata = {}) {
+    const container = document.createElement('div');
+    container.style.cssText = `
+        position: fixed;
+        top: -99999px;
+        left: -99999px;
+        width: ${MOBILE_DARK_HD_CONFIG.width}px;
+        background: #0a0a0a;
+        font-family: 'Inter', -apple-system, sans-serif;
+        z-index: 999999;
+    `;
+    
+    container.innerHTML = `
+        <div style="background: linear-gradient(135deg, #ff4500 0%, #d63920 100%); padding: ${MOBILE_DARK_HD_CONFIG.padding}px; text-align: center;">
+            <h1 style="font-size: ${MOBILE_DARK_HD_CONFIG.fontSize.title}px; color: white; margin: 0;">${titulo}</h1>
+            <p style="font-size: ${MOBILE_DARK_HD_CONFIG.fontSize.subtitle}px; color: rgba(255,255,255,0.9); margin: 8px 0 0 0;">${subtitulo}</p>
+        </div>
+        <div id="mobile-hd-export-content" style="padding: ${MOBILE_DARK_HD_CONFIG.padding}px;"></div>
+        <div style="padding: ${MOBILE_DARK_HD_CONFIG.padding}px; text-align: center; background: #1a1a1a; font-size: ${MOBILE_DARK_HD_CONFIG.fontSize.small}px; color: rgba(255,255,255,0.6);">
+            🏆 Super Cartola Manager • ${new Date().toLocaleDateString('pt-BR')}
+        </div>
+    `;
+    
+    return container;
+}
+
+// ✅ GERAR CANVAS MOBILE DARK HD
+export async function gerarCanvasMobileDarkHD(container, nomeArquivo) {
+    const html2canvas = (await import('https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/+esm')).default;
+    
+    const canvas = await html2canvas(container, {
+        width: MOBILE_DARK_HD_CONFIG.width,
+        scale: MOBILE_DARK_HD_CONFIG.scale,
+        backgroundColor: '#0a0a0a',
+        logging: false,
+        useCORS: true,
+        allowTaint: true,
+    });
+    
+    canvas.toBlob((blob) => {
+        const url = URL.createObjectURL(blob);
+        const link = document.createElement('a');
+        link.href = url;
+        link.download = nomeArquivo;
+        link.click();
+        URL.revokeObjectURL(url);
+    }, 'image/png', MOBILE_DARK_HD_CONFIG.quality);
+}
+
 export const ExportBase = {
     /**
      * Formata data para uso em nomes de arquivo
