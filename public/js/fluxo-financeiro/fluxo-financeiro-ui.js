@@ -277,8 +277,8 @@ export class FluxoFinanceiroUI {
                                      font-size: 13px; text-transform: uppercase; letter-spacing: 0.5px;">Posição</th>
                                 <th style="padding: 12px 10px; text-align: center; color: white; font-weight: 700;
                                      font-size: 13px; text-transform: uppercase; letter-spacing: 0.5px;">Bônus/Ônus<br>por Rodadas</th>
-                                ${extrato.disputasAtivas?.pontosCorridos ? `<th style="padding: 12px 10px; text-align: center; color: white; font-weight: 700; font-size: 13px; text-transform: uppercase; letter-spacing: 0.5px;">P. Corridos</th>` : ''}
-                                ${extrato.disputasAtivas?.mataMata ? `<th style="padding: 12px 10px; text-align: center; color: white; font-weight: 700; font-size: 13px; text-transform: uppercase; letter-spacing: 0.5px;">Mata-Mata</th>` : ''}
+                                ${extrato.disputasAtivas?.pontosCorridos ? '<th style="padding: 12px 10px; text-align: center; color: white; font-weight: 700; font-size: 13px; text-transform: uppercase; letter-spacing: 0.5px;">P. Corridos</th>' : ''}
+                                ${extrato.disputasAtivas?.mataMata ? '<th style="padding: 12px 10px; text-align: center; color: white; font-weight: 700; font-size: 13px; text-transform: uppercase; letter-spacing: 0.5px;">Mata-Mata</th>' : ''}
                                 <th style="padding: 12px 10px; text-align: center; color: white; font-weight: 700;
                                      font-size: 13px; text-transform: uppercase; letter-spacing: 0.5px; background: rgba(255, 215, 0, 0.1); border-left: 2px solid gold;">
                                     TOP 10 MITO ou MICO
@@ -684,8 +684,8 @@ export class FluxoFinanceiroUI {
                                 <th style="padding: 12px 10px; text-align: left; color: white; font-weight: 700; font-size: 13px; text-transform: uppercase; letter-spacing: 0.5px;">Participante</th>
                                 <th style="padding: 12px 10px; text-align: center; color: white; font-weight: 700; font-size: 13px; text-transform: uppercase; letter-spacing: 0.5px;">Bônus</th>
                                 <th style="padding: 12px 10px; text-align: center; color: white; font-weight: 700; font-size: 13px; text-transform: uppercase; letter-spacing: 0.5px;">Ônus</th>
-                                ${temPontosCorridos ? `<th style="padding: 12px 10px; text-align: center; color: white; font-weight: 700; font-size: 13px; text-transform: uppercase; letter-spacing: 0.5px;">Pts Corridos</th>` : ''}
-                                ${temMataMata ? `<th style="padding: 12px 10px; text-align: center; color: white; font-weight: 700; font-size: 13px; text-transform: uppercase; letter-spacing: 0.5px;">Mata-Mata</th>` : ''}
+                                ${temPontosCorridos ? '<th style="padding: 12px 10px; text-align: center; color: white; font-weight: 700; font-size: 13px; text-transform: uppercase; letter-spacing: 0.5px;">Pts Corridos</th>' : ''}
+                                ${temMataMata ? '<th style="padding: 12px 10px; text-align: center; color: white; font-weight: 700; font-size: 13px; text-transform: uppercase; letter-spacing: 0.5px;">Mata-Mata</th>' : ''}
                                 <th style="padding: 12px 10px; text-align: center; color: white; font-weight: 700; font-size: 13px; text-transform: uppercase; letter-spacing: 0.5px; background: rgba(255, 215, 0, 0.1); border-left: 2px solid gold;">
                                     TOP 10 MITO ou MICO
                                     <button onclick="window.recarregarExtratoAtual()" style="
