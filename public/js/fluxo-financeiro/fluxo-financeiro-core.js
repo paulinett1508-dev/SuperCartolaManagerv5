@@ -98,7 +98,7 @@ export class FluxoFinanceiroCore {
             camposEditaveis: camposEditaveis,
             disputasAtivas: disputasAtivas, // ✅ NOVO: Informação sobre disputas ativas
         };
-        
+
         console.log('[FLUXO-CORE] Resumo inicializado:', {
             pontosCorridos: extrato.resumo.pontosCorridos,
             mataMata: extrato.resumo.mataMata,
@@ -292,7 +292,7 @@ export class FluxoFinanceiroCore {
         // Acumular Bônus e Ônus
         if (rodadaData.bonusOnus > 0) resumo.bonus += rodadaData.bonusOnus;
         if (rodadaData.bonusOnus < 0) resumo.onus += rodadaData.bonusOnus;
-        
+
         // Contar MITO e MICO
         if (rodadaData.isMito) resumo.vezesMito++;
         if (rodadaData.isMico) resumo.vezesMico++;
@@ -302,11 +302,11 @@ export class FluxoFinanceiroCore {
             const valorPC = typeof rodadaData.pontosCorridos === "number" ? rodadaData.pontosCorridos : 0;
             resumo.pontosCorridos += valorPC;
         }
-        
+
         // ✅ GARANTIR que Mata-Mata seja acumulado (mesmo que seja 0)
         const valorMM = typeof rodadaData.mataMata === "number" ? rodadaData.mataMata : 0;
         resumo.mataMata += valorMM;
-        
+
         // Melhor Mês (futuro)
         const valorBM = typeof rodadaData.melhorMes === "number" ? rodadaData.melhorMes : 0;
         resumo.melhorMes += valorBM;
@@ -354,18 +354,18 @@ export class FluxoFinanceiroCore {
         const pontosCorridos = parseFloat(resumo.pontosCorridos) || 0;
         const mataMata = parseFloat(resumo.mataMata) || 0;
         const melhorMes = parseFloat(resumo.melhorMes) || 0;
-        
+
         const saldoBase = bonus + onus + pontosCorridos + mataMata + melhorMes;
-        
+
         // ✅ GARANTIR QUE CAMPOS EDITÁVEIS SEJAM NÚMEROS
         const campo1 = parseFloat(resumo.campo1) || 0;
         const campo2 = parseFloat(resumo.campo2) || 0;
         const campo3 = parseFloat(resumo.campo3) || 0;
         const campo4 = parseFloat(resumo.campo4) || 0;
-        
+
         const camposEditaveis = campo1 + campo2 + campo3 + campo4;
         const saldoFinal = saldoBase + camposEditaveis;
-        
+
         // ✅ LOGS DETALHADOS PARA DEBUG
         console.log(`[FLUXO-CORE] ========== CÁLCULO SALDO FINAL ==========`);
         console.log(`[FLUXO-CORE] Bônus: R$ ${bonus.toFixed(2)}`);
@@ -384,7 +384,7 @@ export class FluxoFinanceiroCore {
         console.log(`[FLUXO-CORE] -----------------------------------------`);
         console.log(`[FLUXO-CORE] SALDO FINAL: R$ ${saldoFinal.toFixed(2)}`);
         console.log(`[FLUXO-CORE] ==========================================`);
-        
+
         return saldoFinal;
     }
 

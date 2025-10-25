@@ -1,3 +1,4 @@
+replit_final_file>
 // SISTEMA DE EXPORTAÇÃO MOBILE DARK HD - BASE UNIFICADA v3.0.1 - CORRIGIDO
 // CORREÇÃO APLICADA: Largura otimizada para layouts complexos
 
@@ -378,41 +379,43 @@ export async function gerarCanvasMobileDarkHD(element, filename) {
     }
 
     const imagens = element.querySelectorAll("img");
-    if (imagens.length > 0) {
-      console.log(
-        `[EXPORT-BASE-MOBILE-DARK] Aguardando ${imagens.length} imagens...`,
-      );
+    const imagensParaCarregar = Array.from(imagens).map((img) => {
+      return new Promise((resolve) => {
+        if (img.complete && img.naturalWidth > 0) {
+          resolve();
+        } else {
+          const timer = setTimeout(() => {
+            console.warn(
+              `[EXPORT-BASE-MOBILE-DARK] Timeout na imagem: ${img.src}`,
+            );
+            resolve();
+          }, MOBILE_DARK_HD_CONFIG.export.imageTimeout);
 
-      await Promise.allSettled(
-        Array.from(imagens).map((img) => {
-          return new Promise((resolve) => {
-            if (img.complete && img.naturalWidth > 0) {
-              resolve();
-            } else {
-              const timer = setTimeout(() => {
-                console.warn(
-                  `[EXPORT-BASE-MOBILE-DARK] Timeout na imagem: ${img.src}`,
-                );
-                resolve();
-              }, MOBILE_DARK_HD_CONFIG.export.imageTimeout);
+          img.onload = () => {
+            clearTimeout(timer);
+            resolve();
+          };
 
-              img.onload = () => {
-                clearTimeout(timer);
-                resolve();
-              };
+          img.onerror = () => {
+            clearTimeout(timer);
+            console.warn(
+              `[EXPORT-BASE-MOBILE-DARK] Erro ao carregar imagem: ${img.src}`,
+            );
+            resolve();
+          };
+        }
+      });
+    });
 
-              img.onerror = () => {
-                clearTimeout(timer);
-                console.warn(
-                  `[EXPORT-BASE-MOBILE-DARK] Erro ao carregar imagem: ${img.src}`,
-                );
-                resolve();
-              };
-            }
-          });
-        }),
-      );
-    }
+    // Aguardar imagens
+      console.log(`[EXPORT-BASE-MOBILE-DARK] Aguardando ${imagensParaCarregar.length} imagens...`);
+
+      // Definir função global temporária para compatibilidade
+      window.logoCarregada = () => console.log('[EXPORT-BASE] Logo carregada');
+
+      await Promise.all(imagensParaCarregar)
+        .catch(err => console.warn('[EXPORT-BASE] Erro ao carregar algumas imagens:', err));
+
 
     await new Promise((resolve) => {
       requestAnimationFrame(() => {
@@ -782,3 +785,4 @@ console.log(
 console.log(
   "[EXPORT-BASE-MOBILE-DARK] 🎯 Funções disponíveis: criarBotao, criarBotaoPontosCorridosRodada, criarBotaoPontosCorridosClassificacao, criarBotaoPontosCorridosHistorico",
 );
+</replit_final_file>

@@ -35,7 +35,7 @@ async function getPontosDaRodada(ligaId, rodada) {
     tentativasConexao = 0;
     const ranking = await getRankingRodadaEspecifica(ligaId, rodada);
     const mapa = {};
-    
+
     if (Array.isArray(ranking)) {
       ranking.forEach((t) => {
         if (t.timeId && typeof t.pontos === "number") {
@@ -43,7 +43,7 @@ async function getPontosDaRodada(ligaId, rodada) {
         }
       });
     }
-    
+
     return mapa;
   } catch (err) {
     tentativasConexao++;
@@ -106,8 +106,15 @@ export async function getResultadosMataMata() {
       ligaId,
       rodadaDefinicao,
     );
-    if (!Array.isArray(rankingBase) || rankingBase.length < 32) {
-      throw new Error(`Ranking base da Rodada ${rodadaDefinicao} inválido.`);
+    // Validar ranking
+    if (!rankingBase || !Array.isArray(rankingBase)) {
+      console.warn(` [MATA-FINANCEIRO] Ranking base inválido para ${edicaoAtiva.nome}`, rankingBase);
+      return [];
+    }
+
+    if (rankingBase.length === 0) {
+      console.warn(` [MATA-FINANCEIRO] Ranking vazio para ${edicaoAtiva.nome}`);
+      return [];
     }
 
     const rodadasFases = {
@@ -379,10 +386,14 @@ export async function calcularResultadosEdicaoFluxo(
       edicao.rodadaDefinicao,
     );
 
-    if (!Array.isArray(rankingBase) || rankingBase.length < 32) {
-      console.error(
-        `[MATA-FINANCEIRO] Ranking base inválido para ${edicao.nome}`,
-      );
+    // Validar ranking
+    if (!rankingBase || !Array.isArray(rankingBase)) {
+      console.warn(` [MATA-FINANCEIRO] Ranking base inválido para ${edicao.nome}`, rankingBase);
+      return [];
+    }
+
+    if (rankingBase.length === 0) {
+      console.warn(` [MATA-FINANCEIRO] Ranking vazio para ${edicao.nome}`);
       return [];
     }
 
