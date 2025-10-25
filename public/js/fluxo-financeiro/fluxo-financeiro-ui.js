@@ -277,14 +277,8 @@ export class FluxoFinanceiroUI {
                                      font-size: 13px; text-transform: uppercase; letter-spacing: 0.5px;">Posição</th>
                                 <th style="padding: 12px 10px; text-align: center; color: white; font-weight: 700;
                                      font-size: 13px; text-transform: uppercase; letter-spacing: 0.5px;">Bônus/Ônus<br>por Rodadas</th>
-                                ${extrato.disputasAtivas?.pontosCorridos ? `
-                                <th style="padding: 12px 10px; text-align: center; color: white; font-weight: 700;
-                                     font-size: 13px; text-transform: uppercase; letter-spacing: 0.5px;">P. Corridos</th>
-                                ` : ''}
-                                ${extrato.disputasAtivas?.mataMata ? `
-                                <th style="padding: 12px 10px; text-align: center; color: white; font-weight: 700;
-                                     font-size: 13px; text-transform: uppercase; letter-spacing: 0.5px;">Mata-Mata</th>
-                                ` : ''}
+                                ${extrato.disputasAtivas?.pontosCorridos ? `<th style="padding: 12px 10px; text-align: center; color: white; font-weight: 700; font-size: 13px; text-transform: uppercase; letter-spacing: 0.5px;">P. Corridos</th>` : ''}
+                                ${extrato.disputasAtivas?.mataMata ? `<th style="padding: 12px 10px; text-align: center; color: white; font-weight: 700; font-size: 13px; text-transform: uppercase; letter-spacing: 0.5px;">Mata-Mata</th>` : ''}
                                 <th style="padding: 12px 10px; text-align: center; color: white; font-weight: 700;
                                      font-size: 13px; text-transform: uppercase; letter-spacing: 0.5px; background: rgba(255, 215, 0, 0.1); border-left: 2px solid gold;">
                                     TOP 10 MITO ou MICO
@@ -361,7 +355,7 @@ export class FluxoFinanceiroUI {
                                         ${top10Valor !== 0 ? (top10Valor > 0 ? '+' : '') + top10Valor.toLocaleString("pt-BR", { minimumFractionDigits: 2, maximumFractionDigits: 2 }) : '-'}
                                         ${top10Status ? `<br><span style="font-size: 10px; opacity: 0.8;">${top10Status}</span>` : ''}
                                     </td>
-                                    <td style="padding: 12px 10px; text-align: center; font-weight: 700; font-size: 15px;
+                                    <td style="padding: 12px 10px; text-align: center; font-weight: 700;
                                          background: ${corFundoSaldo(r.saldo)};">
                                         ${formatarValorComCor(r.saldo)}
                                     </td>
@@ -693,7 +687,7 @@ export class FluxoFinanceiroUI {
                                 ${temPontosCorridos ? `<th style="padding: 12px 10px; text-align: center; color: white; font-weight: 700; font-size: 13px; text-transform: uppercase; letter-spacing: 0.5px;">Pts Corridos</th>` : ''}
                                 ${temMataMata ? `<th style="padding: 12px 10px; text-align: center; color: white; font-weight: 700; font-size: 13px; text-transform: uppercase; letter-spacing: 0.5px;">Mata-Mata</th>` : ''}
                                 <th style="padding: 12px 10px; text-align: center; color: white; font-weight: 700; font-size: 13px; text-transform: uppercase; letter-spacing: 0.5px; background: rgba(255, 215, 0, 0.1); border-left: 2px solid gold;">
-                                    TOP 10 MITO/MICO
+                                    TOP 10 MITO ou MICO
                                     <button onclick="window.recarregarExtratoAtual()" style="
                                         margin-left: 8px;
                                         background: rgba(255, 255, 255, 0.2);
