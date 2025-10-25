@@ -300,6 +300,18 @@
     animation: none;
 }
 
+/* Efeito grayscale para cards inativos */
+.participante-card.card-inativo {
+    filter: grayscale(100%);
+    opacity: 0.6;
+    transition: filter 0.3s ease, opacity 0.3s ease;
+}
+
+.participante-card.card-inativo:hover {
+    filter: grayscale(80%);
+    opacity: 0.75;
+}
+
 .status-indicator {
   width: 5px;
   height: 5px;

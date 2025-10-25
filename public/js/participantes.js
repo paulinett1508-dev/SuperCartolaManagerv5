@@ -182,7 +182,7 @@ async function carregarParticipantesComBrasoes() {
         // Renderizar cards
         timesValidos.forEach((timeData, index) => {
             const card = document.createElement("div");
-            card.className = "participante-card";
+            card.className = `participante-card ${!estaAtivo ? 'card-inativo' : ''}`;
             card.setAttribute("data-delay", index % 10);
 
             // Adicionar dados para busca
@@ -479,8 +479,7 @@ async function toggleStatusParticipante(timeId, estaAtivo) {
         
         console.log('[STATUS] Recarregando participantes após alteração...');
         
-        // Forçar recarga completa (limpar cache se houver)
-        await new Promise(resolve => setTimeout(resolve, 500));
+        // Recarregar dados para atualizar visual
         await carregarParticipantesComBrasoes();
         
     } catch (error) {
