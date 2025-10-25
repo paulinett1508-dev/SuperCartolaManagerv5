@@ -443,9 +443,10 @@ function criarLayoutExtratoFinanceiroMobile(
         ${detalhamentoPorRodada.length === 0
             ? `<div style="text-align: center; padding: 40px 20px; color: ${MOBILE_DARK_HD_CONFIG.colors.textMuted};">Nenhuma rodada encontrada</div>`
             : detalhamentoPorRodada
-                .map((rodada, index) =>
-                  criarItemExtratoRodadaMobile(rodada, index, temPontosCorridos, temMataMata),
-                )
+                .map((rodada, index) => {
+                    const temTop10 = rodada.top10 !== undefined && rodada.top10 !== 0;
+                    return criarItemExtratoRodadaMobile(rodada, index, temPontosCorridos, temMataMata, temTop10);
+                })
                 .join("")
         }
 
@@ -680,13 +681,14 @@ function criarSecaoAjustesManuais(campos) {
   `;
 }
 
-function criarItemExtratoRodadaMobile(rodada, index, temPontosCorridos, temMataMata) { // ✅ Parâmetros adicionados
+function criarItemExtratoRodadaMobile(rodada, index, temPontosCorridos, temMataMata, temTop10) { // ✅ Parâmetro temTop10 adicionado
   const { posicaoStyle, posicaoTexto } = obterEstiloPosicao(rodada);
 
   // ✅ GARANTIR QUE VALORES SEJAM NÚMEROS (mesmo que 0)
   const bonusOnus = typeof rodada.bonusOnus === 'number' ? rodada.bonusOnus : 0;
   const pontosCorridos = typeof rodada.pontosCorridos === 'number' ? rodada.pontosCorridos : 0;
   const mataMata = typeof rodada.mataMata === 'number' ? rodada.mataMata : 0;
+  const top10 = typeof rodada.top10 === 'number' ? rodada.top10 : 0;
   const saldoAcumulado = typeof rodada.saldoAcumulado === 'number' ? rodada.saldoAcumulado : 0;
 
   return `
@@ -724,7 +726,7 @@ function criarItemExtratoRodadaMobile(rodada, index, temPontosCorridos, temMataM
       <div style="
         flex: 1;
         display: grid;
-        grid-template-columns: ${temPontosCorridos ? "1fr 1fr" : "1fr"}; /* Ajustado para usar temPontosCorridos */
+        grid-template-columns: ${temPontosCorridos && temMataMata && temTop10 ? "1fr 1fr 1fr 1fr" : temPontosCorridos && temMataMata ? "1fr 1fr 1fr" : temPontosCorridos ? "1fr 1fr" : "1fr"};
         gap: 8px;
         margin-right: 12px;
       ">
@@ -733,7 +735,7 @@ function criarItemExtratoRodadaMobile(rodada, index, temPontosCorridos, temMataM
             font: ${MOBILE_DARK_HD_CONFIG.fonts.weights.medium} ${MOBILE_DARK_HD_CONFIG.fonts.mini};
             color: ${MOBILE_DARK_HD_CONFIG.colors.textMuted};
             margin-bottom: 2px;
-          ">Bônus/Ônus por Rodadas</div>
+          ">Bônus/Ônus</div>
           <div style="
             font: ${MOBILE_DARK_HD_CONFIG.fonts.weights.bold} ${MOBILE_DARK_HD_CONFIG.fonts.caption};
             color: ${bonusOnus >= 0 ? MOBILE_DARK_HD_CONFIG.colors.success : MOBILE_DARK_HD_CONFIG.colors.danger};
@@ -770,6 +772,24 @@ function criarItemExtratoRodadaMobile(rodada, index, temPontosCorridos, temMataM
             font: ${MOBILE_DARK_HD_CONFIG.fonts.weights.bold} ${MOBILE_DARK_HD_CONFIG.fonts.caption};
             color: ${mataMata >= 0 ? MOBILE_DARK_HD_CONFIG.colors.warning : MOBILE_DARK_HD_CONFIG.colors.danger};
           ">${formatarValorMonetario(mataMata)}</div>
+        </div>
+        `
+            : ""
+        }
+        ${
+          temTop10
+            ? `
+        <div style="text-align: center;">
+          <div style="
+            font: ${MOBILE_DARK_HD_CONFIG.fonts.weights.medium} ${MOBILE_DARK_HD_CONFIG.fonts.mini};
+            color: ${MOBILE_DARK_HD_CONFIG.colors.textMuted};
+            margin-bottom: 2px;
+          ">TOP 10</div>
+          <div style="
+            font: ${MOBILE_DARK_HD_CONFIG.fonts.weights.bold} ${MOBILE_DARK_HD_CONFIG.fonts.caption};
+            color: ${top10 >= 0 ? MOBILE_DARK_HD_CONFIG.colors.gold : MOBILE_DARK_HD_CONFIG.colors.danger};
+          ">${formatarValorMonetario(top10)}</div>
+          ${rodada.top10Status ? `<div style="font-size: 9px; color: ${MOBILE_DARK_HD_CONFIG.colors.textMuted};">${rodada.top10Status}</div>` : ''}
         </div>
         `
             : ""

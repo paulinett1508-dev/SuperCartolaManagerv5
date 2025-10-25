@@ -409,6 +409,12 @@
     border-color: #ffb74d;
 }
 
+.resumo-card.top10 {
+    background: linear-gradient(135deg, #fff9e6 0%, #ffe680 100%);
+    color: #b8860b;
+    border-color: #ffd700;
+}
+
 .resumo-card.estatisticas-mito {
     background: linear-gradient(135deg, #e8f5e9 0%, #c8e6c9 100%);
     color: #2e7d32;

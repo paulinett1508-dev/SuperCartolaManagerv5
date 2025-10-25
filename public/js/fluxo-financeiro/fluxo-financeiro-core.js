@@ -93,6 +93,7 @@ export class FluxoFinanceiroCore {
                 vezesMito: 0,
                 vezesMico: 0,
                 saldo: 0,
+                top10: 0, // ✅ NOVO: Total TOP 10
             },
             totalTimes: 0,
             camposEditaveis: camposEditaveis,
@@ -106,7 +107,12 @@ export class FluxoFinanceiroCore {
             campo2: extrato.resumo.campo2,
             campo3: extrato.resumo.campo3,
             campo4: extrato.resumo.campo4,
+            top10: extrato.resumo.top10, // Log TOP 10
         });
+
+        // ✅ BUSCAR DADOS DO TOP 10
+        const dadosTop10 = await this.buscarDadosTop10(timeId, ultimaRodadaCompleta);
+        const top10Map = new Map(dadosTop10.map(item => [item.rodada, item]));
 
         // OTIMIZADO: Processar rodadas de forma síncrona (dados já em cache)
         const rodadasProcessadas = [];
@@ -119,6 +125,14 @@ export class FluxoFinanceiroCore {
             );
 
             if (rodadaData) {
+                // ✅ BUSCAR DADOS DO TOP 10 PARA ESTA RODADA
+                const top10Data = top10Map.get(rodada);
+                const top10Valor = top10Data ? (top10Data.valor || 0) : 0;
+                const top10Status = top10Data ? top10Data.status : null; // 'MITO' ou 'MICO'
+
+                rodadaData.top10 = top10Valor; // ✅ NOVO
+                rodadaData.top10Status = top10Status; // ✅ NOVO
+
                 rodadasProcessadas.push(rodadaData);
                 extrato.totalTimes = Math.max(
                     extrato.totalTimes,
@@ -160,7 +174,9 @@ export class FluxoFinanceiroCore {
                 pontosCorridos: isSuperCartola2025 ? 0 : null,
                 mataMata: 0,
                 melhorMes: 0,
-                top10Bonus: 0,
+                top10Bonus: 0, // REMOVIDO: Valor será calculado em _acumularValoresIntegrados
+                top10: 0,      // NOVO: Valor TOP 10
+                top10Status: null, // NOVO: Status MITO/MICO
                 isMito: false,
                 isMico: false,
             };
@@ -181,7 +197,9 @@ export class FluxoFinanceiroCore {
                 pontosCorridos: isSuperCartola2025 ? 0 : null,
                 mataMata: 0,
                 melhorMes: 0,
-                top10Bonus: 0,
+                top10Bonus: 0, // REMOVIDO
+                top10: 0,      // NOVO
+                top10Status: null, // NOVO
                 isMito: false,
                 isMico: false,
             };
@@ -201,7 +219,7 @@ export class FluxoFinanceiroCore {
             : null;
         const mataMata = this._calcularMataMataOtimizado(timeId, rodada);
         const melhorMes = 0;
-        const top10Bonus = this._calcularTop10Bonus(posicaoReal, totalTimes);
+        const top10Bonus = this._calcularTop10Bonus(posicaoReal, totalTimes); // Valor será usado em _acumularValoresIntegrados
 
         return {
             rodada,
@@ -211,7 +229,9 @@ export class FluxoFinanceiroCore {
             pontosCorridos,
             mataMata,
             melhorMes,
-            top10Bonus,
+            top10Bonus, // Mantido para uso em _acumularValoresIntegrados
+            top10: 0, // Será preenchido depois de buscar dados do TOP 10
+            top10Status: null, // Será preenchido depois de buscar dados do TOP 10
             isMito,
             isMico,
         };
@@ -222,13 +242,13 @@ export class FluxoFinanceiroCore {
         if (posicaoReal >= 1 && posicaoReal <= 10) {
             return 10;
         }
-        
+
         // ÚLTIMOS 10: do (total-9) ao último = -10 reais
         const posicaoUltimos10 = totalTimes - 9;
         if (posicaoReal >= posicaoUltimos10 && posicaoReal <= totalTimes) {
             return -10;
         }
-        
+
         // Meio de tabela: sem bônus/ônus
         return 0;
     }
@@ -332,9 +352,8 @@ export class FluxoFinanceiroCore {
         resumo.melhorMes += valorBM;
 
         // ✅ TOP 10 Bônus/Ônus
-        const valorTop10 = typeof rodadaData.top10Bonus === "number" ? rodadaData.top10Bonus : 0;
-        if (!resumo.top10Bonus) resumo.top10Bonus = 0;
-        resumo.top10Bonus += valorTop10;
+        const valorTop10 = typeof rodadaData.top10 === "number" ? rodadaData.top10 : 0; // Usa o valor direto do TOP 10
+        resumo.top10 += valorTop10; // Acumula o valor do TOP 10
     }
 
     _calcularSaldoAcumulado(rodadas) {
@@ -345,7 +364,7 @@ export class FluxoFinanceiroCore {
                 (rodada.pontosCorridos || 0) +
                 (rodada.mataMata || 0) +
                 (rodada.melhorMes || 0) +
-                (rodada.top10Bonus || 0);
+                (rodada.top10 || 0); // Inclui o valor do TOP 10
             saldoAcumulado += valorRodada;
             rodada.saldo = saldoAcumulado;
         });
@@ -380,9 +399,9 @@ export class FluxoFinanceiroCore {
         const pontosCorridos = parseFloat(resumo.pontosCorridos) || 0;
         const mataMata = parseFloat(resumo.mataMata) || 0;
         const melhorMes = parseFloat(resumo.melhorMes) || 0;
-        const top10Bonus = parseFloat(resumo.top10Bonus) || 0;
+        const top10 = parseFloat(resumo.top10) || 0; // Valor do TOP 10
 
-        const saldoBase = bonus + onus + pontosCorridos + mataMata + melhorMes + top10Bonus;
+        const saldoBase = bonus + onus + pontosCorridos + mataMata + melhorMes + top10;
 
         // ✅ GARANTIR QUE CAMPOS EDITÁVEIS SEJAM NÚMEROS
         const campo1 = parseFloat(resumo.campo1) || 0;
@@ -400,7 +419,7 @@ export class FluxoFinanceiroCore {
         console.log(`[FLUXO-CORE] Pontos Corridos: R$ ${pontosCorridos.toFixed(2)}`);
         console.log(`[FLUXO-CORE] Mata-Mata: R$ ${mataMata.toFixed(2)}`);
         console.log(`[FLUXO-CORE] Melhor Mês: R$ ${melhorMes.toFixed(2)}`);
-        console.log(`[FLUXO-CORE] TOP 10 Bônus: R$ ${top10Bonus.toFixed(2)}`);
+        console.log(`[FLUXO-CORE] TOP 10: R$ ${top10.toFixed(2)}`); // Log TOP 10
         console.log(`[FLUXO-CORE] -----------------------------------------`);
         console.log(`[FLUXO-CORE] Saldo Base: R$ ${saldoBase.toFixed(2)}`);
         console.log(`[FLUXO-CORE] -----------------------------------------`);
@@ -429,5 +448,40 @@ export class FluxoFinanceiroCore {
                 String(p.timeId) === String(timeId)
             );
         });
+    }
+
+    // ===== BUSCAR DADOS DO TOP 10 =====
+    async buscarDadosTop10(timeId, rodadaAtual) {
+        try {
+            const ligaId = window.obterLigaId();
+            if (!ligaId) {
+                console.warn('[FLUXO-FINANCEIRO-CORE] Liga ID não encontrado para buscar TOP 10');
+                return [];
+            }
+
+            const response = await fetch(`/api/ligas/${ligaId}/top10?timeId=${timeId}&rodada=${rodadaAtual}`);
+            if (!response.ok) {
+                console.warn('[FLUXO-FINANCEIRO-CORE] Endpoint TOP 10 não disponível');
+                return [];
+            }
+
+            const data = await response.json();
+            return data.historico || [];
+        } catch (error) {
+            console.error('[FLUXO-FINANCEIRO-CORE] Erro ao buscar dados TOP 10:', error);
+            return [];
+        }
+    }
+
+    async buscarDisputasAtivas(timeId) {
+        try {
+            const response = await fetch(`/api/fluxo-financeiro/${timeId}/disputas-ativas`);
+            if (!response.ok) throw new Error('Erro ao buscar disputas ativas');
+            const data = await response.json();
+            return data.disputas || [];
+        } catch (error) {
+            console.error('[FLUXO-FINANCEIRO-CORE] Erro ao buscar disputas ativas:', error);
+            return [];
+        }
     }
 }

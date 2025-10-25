@@ -13,10 +13,10 @@ export class FluxoFinanceiroUI {
 
         container.innerHTML = `
             <div style="display: flex; gap: 8px; margin-bottom: 16px; flex-wrap: wrap;">
-                <button onclick="window.gerarRelatorioFinanceiro()" 
-                        style="background: var(--gradient-primary); 
-                               color: white; border: none; padding: 10px 16px; border-radius: 6px; 
-                               cursor: pointer; font-weight: 600; font-size: 12px; display: flex; 
+                <button onclick="window.gerarRelatorioFinanceiro()"
+                        style="background: var(--gradient-primary);
+                               color: white; border: none; padding: 10px 16px; border-radius: 6px;
+                               cursor: pointer; font-weight: 600; font-size: 12px; display: flex;
                                align-items: center; gap: 6px; transition: all 0.3s ease;
                                box-shadow: var(--shadow-orange);"
                         onmouseover="this.style.transform='translateY(-1px)'; this.style.boxShadow='0 6px 20px rgba(255, 69, 0, 0.5)'"
@@ -25,10 +25,10 @@ export class FluxoFinanceiroUI {
                     <span>Relatório Consolidado</span>
                 </button>
                 <div style="flex: 1; min-width: 300px;">
-                    <input type="text" 
-                           id="searchParticipante" 
+                    <input type="text"
+                           id="searchParticipante"
                            placeholder="🔍 Pesquisar participante por nome ou time..."
-                           style="width: 100%; padding: 10px 16px; border: 2px solid var(--border-primary); border-radius: 6px; 
+                           style="width: 100%; padding: 10px 16px; border: 2px solid var(--border-primary); border-radius: 6px;
                                   font-size: 13px; transition: all 0.3s ease; background: var(--bg-card); color: var(--text-primary);"
                            onkeyup="window.filtrarParticipantes(this.value)"
                            onfocus="this.style.borderColor='var(--laranja)'"
@@ -123,7 +123,7 @@ export class FluxoFinanceiroUI {
         const formatarPosicao = (rodada) => {
             // Sem posição
             if (!rodada.posicao && !rodada.isMito && !rodada.isMico) {
-                return `<span style="display: inline-block; padding: 4px 8px; border-radius: 4px; 
+                return `<span style="display: inline-block; padding: 4px 8px; border-radius: 4px;
                     background: var(--bg-secondary); color: var(--text-muted); font-size: 11px; font-weight: 600;">
                     -
                 </span>`;
@@ -131,8 +131,8 @@ export class FluxoFinanceiroUI {
 
             // MITO (1º lugar)
             if (rodada.posicao === 1 || rodada.isMito) {
-                return `<span style="display: inline-block; padding: 4px 8px; border-radius: 4px; 
-                    background: linear-gradient(135deg, #2ecc71, #27ae60); 
+                return `<span style="display: inline-block; padding: 4px 8px; border-radius: 4px;
+                    background: linear-gradient(135deg, #2ecc71, #27ae60);
                     color: white; font-size: 11px; font-weight: 700; border: 2px solid #f1c40f;
                     box-shadow: 0 2px 8px rgba(46, 204, 113, 0.3); text-transform: uppercase; letter-spacing: 0.5px;">
                     🎩 MITO
@@ -141,8 +141,8 @@ export class FluxoFinanceiroUI {
 
             // MICO (último lugar)
             if (rodada.posicao === rodada.totalTimes || rodada.isMico) {
-                return `<span style="display: inline-block; padding: 4px 8px; border-radius: 4px; 
-                    background: linear-gradient(135deg, #e74c3c, #c0392b); 
+                return `<span style="display: inline-block; padding: 4px 8px; border-radius: 4px;
+                    background: linear-gradient(135deg, #e74c3c, #c0392b);
                     color: white; font-size: 11px; font-weight: 700; border: 2px solid #943126;
                     box-shadow: 0 2px 8px rgba(231, 76, 60, 0.3); text-transform: uppercase; letter-spacing: 0.5px;">
                     🐵 MICO
@@ -152,8 +152,8 @@ export class FluxoFinanceiroUI {
             // Top 11 (2º ao 11º)
             const isTop11 = rodada.posicao >= 2 && rodada.posicao <= 11;
             if (isTop11) {
-                return `<span style="display: inline-block; padding: 4px 8px; border-radius: 4px; 
-                    background: rgba(46, 204, 113, 0.15); color: #2ecc71; 
+                return `<span style="display: inline-block; padding: 4px 8px; border-radius: 4px;
+                    background: rgba(46, 204, 113, 0.15); color: #2ecc71;
                     font-size: 11px; font-weight: 700; border: 1px solid #2ecc71;">
                     ${rodada.posicao}º
                 </span>`;
@@ -162,16 +162,16 @@ export class FluxoFinanceiroUI {
             // Z4 (22º ao 31º)
             const isZ22_31 = rodada.posicao >= 22 && rodada.posicao <= 31;
             if (isZ22_31) {
-                return `<span style="display: inline-block; padding: 4px 8px; border-radius: 4px; 
-                    background: rgba(231, 76, 60, 0.15); color: #e74c3c; 
+                return `<span style="display: inline-block; padding: 4px 8px; border-radius: 4px;
+                    background: rgba(231, 76, 60, 0.15); color: #e74c3c;
                     font-size: 11px; font-weight: 700; border: 1px solid #e74c3c;">
                     ${rodada.posicao}º
                 </span>`;
             }
 
             // Meio de tabela (12º ao 21º e 32º)
-            return `<span style="display: inline-block; padding: 4px 8px; border-radius: 4px; 
-                background: var(--bg-secondary); color: var(--text-secondary); 
+            return `<span style="display: inline-block; padding: 4px 8px; border-radius: 4px;
+                background: var(--bg-secondary); color: var(--text-secondary);
                 font-size: 11px; font-weight: 600; border: 1px solid var(--border-primary);">
                 ${rodada.posicao}º
             </span>`;
@@ -185,44 +185,44 @@ export class FluxoFinanceiroUI {
         let html = `
         <div class="extrato-container">
             <!-- CABEÇALHO PROFISSIONAL -->
-            <div class="extrato-header" style="background: var(--bg-card); padding: 20px; border-radius: 8px; 
+            <div class="extrato-header" style="background: var(--bg-card); padding: 20px; border-radius: 8px;
                  margin-bottom: 20px; box-shadow: var(--shadow-md); border: 1px solid var(--border-primary);">
                 <div style="display: flex; align-items: center; gap: 16px; margin-bottom: 16px;">
                     ${
                         participante.url_escudo_png
-                            ? `<div style="width: 56px; height: 56px; border-radius: 50%; overflow: hidden; 
+                            ? `<div style="width: 56px; height: 56px; border-radius: 50%; overflow: hidden;
                                    border: 2px solid var(--border-primary); flex-shrink: 0;">
-                                   <img src="${participante.url_escudo_png}" alt="${participante.nome_cartola}" 
+                                   <img src="${participante.url_escudo_png}" alt="${participante.nome_cartola}"
                                         style="width: 100%; height: 100%; object-fit: cover;">
                                </div>`
-                            : `<div style="width: 56px; height: 56px; border-radius: 50%; background: var(--bg-secondary); 
-                                   border: 2px solid var(--border-primary); display: flex; align-items: center; 
+                            : `<div style="width: 56px; height: 56px; border-radius: 50%; background: var(--bg-secondary);
+                                   border: 2px solid var(--border-primary); display: flex; align-items: center;
                                    justify-content: center; font-size: 24px; flex-shrink: 0;">⚽</div>`
                     }
                     <div style="flex: 1; min-width: 0;">
-                        <h2 style="margin: 0 0 4px 0; font-size: 18px; font-weight: 700; color: var(--text-primary); 
+                        <h2 style="margin: 0 0 4px 0; font-size: 18px; font-weight: 700; color: var(--text-primary);
                              white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">
                             ${participante.nome_cartola}
                         </h2>
-                        <p style="margin: 0; font-size: 13px; color: var(--text-muted); font-weight: 500; 
+                        <p style="margin: 0; font-size: 13px; color: var(--text-muted); font-weight: 500;
                              white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">
                             ${participante.nome_time}
                         </p>
                     </div>
                     <div style="text-align: right; display: flex; flex-direction: column; gap: 8px;">
-                        <button onclick="window.recarregarExtratoAtual()" 
-                                style="background: var(--gradient-secondary); color: white; border: none; 
-                                       padding: 6px 12px; border-radius: 6px; cursor: pointer; font-size: 11px; 
-                                       font-weight: 600; transition: all 0.3s ease; display: flex; align-items: center; 
+                        <button onclick="window.recarregarExtratoAtual()"
+                                style="background: var(--gradient-secondary); color: white; border: none;
+                                       padding: 6px 12px; border-radius: 6px; cursor: pointer; font-size: 11px;
+                                       font-weight: 600; transition: all 0.3s ease; display: flex; align-items: center;
                                        gap: 4px; align-self: flex-end;"
                                 onmouseover="this.style.transform='translateY(-1px)'"
                                 onmouseout="this.style.transform='translateY(0)'">
                             <span style="font-size: 14px;">🔄</span>
                             <span>Atualizar</span>
                         </button>
-                        <div style="background: ${parseFloat(extrato.resumo.saldo) >= 0 ? "rgba(34, 197, 94, 0.15)" : "rgba(239, 68, 68, 0.15)"}; 
+                        <div style="background: ${parseFloat(extrato.resumo.saldo) >= 0 ? "rgba(34, 197, 94, 0.15)" : "rgba(239, 68, 68, 0.15)"};
                              padding: 6px 10px; border-radius: 6px; border: 1px solid ${parseFloat(extrato.resumo.saldo) >= 0 ? "rgba(34, 197, 94, 0.4)" : "rgba(239, 68, 68, 0.4)"};">
-                            <div style="font-size: 9px; color: var(--text-muted); font-weight: 600; text-transform: uppercase; 
+                            <div style="font-size: 9px; color: var(--text-muted); font-weight: 600; text-transform: uppercase;
                                  letter-spacing: 0.3px; margin-bottom: 2px;">${parseFloat(extrato.resumo.saldo) >= 0 ? "Saldo a Receber" : "Saldo a Pagar"}</div>
                             <div id="saldoTotalDisplay" style="font-size: 16px; font-weight: 700; color: ${
                                 parseFloat(extrato.resumo.saldo) >= 0
@@ -247,18 +247,18 @@ export class FluxoFinanceiroUI {
             ${camposEditaveisHTML}
 
             <!-- Histórico Rodadas -->
-            <div style="background: var(--bg-card); border-radius: 8px; padding: 20px; 
+            <div style="background: var(--bg-card); border-radius: 8px; padding: 20px;
                  box-shadow: var(--shadow-md); border: 1px solid var(--border-primary);">
                 <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px;">
-                    <h3 style="margin: 0; font-size: 14px; font-weight: 700; color: var(--text-primary); 
+                    <h3 style="margin: 0; font-size: 14px; font-weight: 700; color: var(--text-primary);
                          display: flex; align-items: center; gap: 8px;">
                         <span style="font-size: 18px;">📋</span>
                         Histórico de Rodadas
                     </h3>
                     <button id="btnExportarExtrato"
-                            style="background: var(--gradient-primary); color: white; border: none; padding: 8px 16px; 
-                                   border-radius: 6px; font-size: 12px; font-weight: 600; cursor: pointer; 
-                                   display: flex; align-items: center; gap: 6px; transition: all 0.3s ease; 
+                            style="background: var(--gradient-primary); color: white; border: none; padding: 8px 16px;
+                                   border-radius: 6px; font-size: 12px; font-weight: 600; cursor: pointer;
+                                   display: flex; align-items: center; gap: 6px; transition: all 0.3s ease;
                                    box-shadow: var(--shadow-orange);"
                             onmouseover="this.style.transform='translateY(-1px)'; this.style.boxShadow='0 6px 20px rgba(255, 69, 0, 0.5)'"
                             onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='var(--shadow-orange)'">
@@ -271,23 +271,38 @@ export class FluxoFinanceiroUI {
                     <table style="width: 100%; border-collapse: collapse; font-size: 14px;">
                         <thead>
                             <tr style="background: var(--gradient-primary);">
-                                <th style="padding: 12px 10px; text-align: left; color: white; font-weight: 700; 
+                                <th style="padding: 12px 10px; text-align: left; color: white; font-weight: 700;
                                      font-size: 13px; text-transform: uppercase; letter-spacing: 0.5px;">Rodada</th>
-                                <th style="padding: 12px 10px; text-align: left; color: white; font-weight: 700; 
+                                <th style="padding: 12px 10px; text-align: left; color: white; font-weight: 700;
                                      font-size: 13px; text-transform: uppercase; letter-spacing: 0.5px;">Posição</th>
-                                <th style="padding: 12px 10px; text-align: center; color: white; font-weight: 700; 
+                                <th style="padding: 12px 10px; text-align: center; color: white; font-weight: 700;
                                      font-size: 13px; text-transform: uppercase; letter-spacing: 0.5px;">Bônus/Ônus<br>por Rodadas</th>
                                 ${extrato.disputasAtivas?.pontosCorridos ? `
-                                <th style="padding: 12px 10px; text-align: center; color: white; font-weight: 700; 
+                                <th style="padding: 12px 10px; text-align: center; color: white; font-weight: 700;
                                      font-size: 13px; text-transform: uppercase; letter-spacing: 0.5px;">P. Corridos</th>
                                 ` : ''}
                                 ${extrato.disputasAtivas?.mataMata ? `
-                                <th style="padding: 12px 10px; text-align: center; color: white; font-weight: 700; 
+                                <th style="padding: 12px 10px; text-align: center; color: white; font-weight: 700;
                                      font-size: 13px; text-transform: uppercase; letter-spacing: 0.5px;">Mata-Mata</th>
                                 ` : ''}
-                                <th style="padding: 12px 10px; text-align: center; color: white; font-weight: 700; 
-                                     font-size: 13px; text-transform: uppercase; letter-spacing: 0.5px;">TOP 10<br>MITO ou MICO</th>
-                                <th style="padding: 12px 10px; text-align: center; color: white; font-weight: 700; 
+                                <th style="padding: 12px 10px; text-align: center; color: white; font-weight: 700;
+                                     font-size: 13px; text-transform: uppercase; letter-spacing: 0.5px; background: rgba(255, 215, 0, 0.1); border-left: 2px solid gold;">
+                                    TOP 10 MITO ou MICO
+                                    <button onclick="window.recarregarExtratoAtual()" style="
+                                        margin-left: 8px;
+                                        background: rgba(255, 255, 255, 0.2);
+                                        border: 1px solid rgba(255, 255, 255, 0.3);
+                                        color: white;
+                                        padding: 4px 8px;
+                                        border-radius: 4px;
+                                        cursor: pointer;
+                                        font-size: 10px;
+                                        transition: all 0.3s ease;
+                                    " onmouseover="this.style.background='rgba(255, 255, 255, 0.3)'" onmouseout="this.style.background='rgba(255, 255, 255, 0.2)'">
+                                        🔄 Refresh
+                                    </button>
+                                </th>
+                                <th style="padding: 12px 10px; text-align: center; color: white; font-weight: 700;
                                      font-size: 13px; text-transform: uppercase; letter-spacing: 0.5px; background: rgba(0,0,0,0.2);">Saldo</th>
                             </tr>
                         </thead>
@@ -307,11 +322,15 @@ export class FluxoFinanceiroUI {
                                             "border-left: 4px solid #e74c3c;";
                                     }
 
+                                    const saldoAcumulado = parseFloat(r.saldo || 0);
+                                    const top10Valor = parseFloat(r.top10Bonus || 0);
+                                    const top10Status = r.top10Status || '';
+
                                     return `
-                                <tr style="border-bottom: 1px solid var(--border-secondary); transition: all 0.2s ease; 
+                                <tr style="border-bottom: 1px solid var(--border-secondary); transition: all 0.2s ease;
                                      ${bordaLateral}
-                                     ${index % 2 === 0 ? "background: rgba(255,255,255,0.02);" : ""}" 
-                                     onmouseover="this.style.background='var(--table-row-hover)'" 
+                                     ${index % 2 === 0 ? "background: rgba(255,255,255,0.02);" : ""}"
+                                     onmouseover="this.style.background='var(--table-row-hover)'"
                                      onmouseout="this.style.background='${index % 2 === 0 ? "rgba(255,255,255,0.02)" : "transparent"}'">
                                     <td style="padding: 12px 10px; font-weight: 700; color: var(--text-primary); font-size: 14px;">
                                         ${r.rodada}ª
@@ -332,8 +351,15 @@ export class FluxoFinanceiroUI {
                                         ${formatarValorComCor(r.mataMata)}
                                     </td>
                                     ` : ''}
-                                    <td style="padding: 12px 10px; text-align: center; font-size: 14px;">
-                                        ${formatarValorComCor(r.top10Bonus || 0)}
+                                    <td class="valor-col" style="
+                                        background: ${top10Valor > 0 ? 'rgba(34, 197, 94, 0.1)' : top10Valor < 0 ? 'rgba(239, 68, 68, 0.1)' : 'transparent'};
+                                        color: ${top10Valor > 0 ? '#22c55e' : top10Valor < 0 ? '#ef4444' : '#999'};
+                                        font-weight: ${top10Valor !== 0 ? '700' : '500'};
+                                        border-left: 2px solid ${top10Valor > 0 ? '#22c55e' : top10Valor < 0 ? '#ef4444' : '#ddd'};
+                                        padding: 12px 10px; text-align: center; font-size: 14px;
+                                    ">
+                                        ${top10Valor !== 0 ? (top10Valor > 0 ? '+' : '') + top10Valor.toLocaleString("pt-BR", { minimumFractionDigits: 2, maximumFractionDigits: 2 }) : '-'}
+                                        ${top10Status ? `<br><span style="font-size: 10px; opacity: 0.8;">${top10Status}</span>` : ''}
                                     </td>
                                     <td style="padding: 12px 10px; text-align: center; font-weight: 700; font-size: 15px;
                                          background: ${corFundoSaldo(r.saldo)};">
@@ -345,11 +371,11 @@ export class FluxoFinanceiroUI {
                                 .join("")}
                             <!-- LINHA DE TOTAIS -->
                             <tr style="background: white; border-top: 4px solid var(--laranja); box-shadow: 0 2px 8px rgba(0,0,0,0.1);">
-                                <td colspan="2" style="padding: 14px 10px; text-align: right; color: var(--laranja); font-weight: 800; 
+                                <td colspan="2" style="padding: 14px 10px; text-align: right; color: var(--laranja); font-weight: 800;
                                      font-size: 14px; text-transform: uppercase; letter-spacing: 1px;">
                                     TOTAIS:
                                 </td>
-                                <td style="padding: 14px 10px; text-align: center; font-weight: 800; font-size: 16px; 
+                                <td style="padding: 14px 10px; text-align: center; font-weight: 800; font-size: 16px;
                                      background: white; color: ${(extrato.resumo.bonus + extrato.resumo.onus) >= 0 ? '#2ecc71' : '#e74c3c'};">
                                     ${(extrato.resumo.bonus + extrato.resumo.onus) >= 0 ? '+' : '-'}R$ ${Math.abs(extrato.resumo.bonus + extrato.resumo.onus).toLocaleString("pt-BR", {
                                         minimumFractionDigits: 2,
@@ -357,7 +383,7 @@ export class FluxoFinanceiroUI {
                                     })}
                                 </td>
                                 ${extrato.disputasAtivas?.pontosCorridos ? `
-                                <td style="padding: 14px 10px; text-align: center; font-weight: 800; font-size: 16px; 
+                                <td style="padding: 14px 10px; text-align: center; font-weight: 800; font-size: 16px;
                                      background: white; color: ${extrato.resumo.pontosCorridos >= 0 ? '#2ecc71' : '#e74c3c'};">
                                     ${extrato.resumo.pontosCorridos !== null ? `${extrato.resumo.pontosCorridos >= 0 ? '+' : '-'}R$ ${Math.abs(extrato.resumo.pontosCorridos).toLocaleString("pt-BR", {
                                         minimumFractionDigits: 2,
@@ -366,7 +392,7 @@ export class FluxoFinanceiroUI {
                                 </td>
                                 ` : ''}
                                 ${extrato.disputasAtivas?.mataMata ? `
-                                <td style="padding: 14px 10px; text-align: center; font-weight: 800; font-size: 16px; 
+                                <td style="padding: 14px 10px; text-align: center; font-weight: 800; font-size: 16px;
                                      background: white; color: ${extrato.resumo.mataMata >= 0 ? '#2ecc71' : '#e74c3c'};">
                                     ${extrato.resumo.mataMata >= 0 ? '+' : '-'}R$ ${Math.abs(extrato.resumo.mataMata).toLocaleString("pt-BR", {
                                         minimumFractionDigits: 2,
@@ -374,7 +400,7 @@ export class FluxoFinanceiroUI {
                                     })}
                                 </td>
                                 ` : ''}
-                                <td style="padding: 14px 10px; text-align: center; font-weight: 800; font-size: 16px; 
+                                <td style="padding: 14px 10px; text-align: center; font-weight: 800; font-size: 16px;
                                      background: white; color: ${(extrato.resumo.top10Bonus || 0) >= 0 ? '#2ecc71' : '#e74c3c'};">
                                     ${(extrato.resumo.top10Bonus || 0) >= 0 ? '+' : '-'}R$ ${Math.abs(extrato.resumo.top10Bonus || 0).toLocaleString("pt-BR", {
                                         minimumFractionDigits: 2,
@@ -382,7 +408,7 @@ export class FluxoFinanceiroUI {
                                     })}
                                 </td>
                                 <td style="padding: 14px 10px; text-align: center; font-weight: 800; font-size: 17px;
-                                     background: rgba(255, 69, 0, 0.08); border-left: 3px solid var(--laranja); 
+                                     background: rgba(255, 69, 0, 0.08); border-left: 3px solid var(--laranja);
                                      color: ${extrato.resumo.saldo >= 0 ? '#2ecc71' : '#e74c3c'};">
                                     ${extrato.resumo.saldo >= 0 ? '+' : '-'}R$ ${Math.abs(extrato.resumo.saldo).toLocaleString("pt-BR", {
                                         minimumFractionDigits: 2,
@@ -427,7 +453,7 @@ export class FluxoFinanceiroUI {
                             const descricaoPontos = rodada.posicao
                                 ? `${rodada.rodada}ª Rodada - Pontos Corridos (${rodada.posicao}°)`
                                 : `${rodada.rodada}ª Rodada - Pontos Corridos`;
-                                
+
                             dadosMovimentacoes.push({
                                 data: `R${rodada.rodada}`,
                                 descricao: descricaoPontos,
@@ -440,7 +466,7 @@ export class FluxoFinanceiroUI {
                             const descricaoMata = rodada.posicao
                                 ? `${rodada.rodada}ª Rodada - Mata-Mata (${rodada.posicao}°)`
                                 : `${rodada.rodada}ª Rodada - Mata-Mata`;
-                                
+
                             dadosMovimentacoes.push({
                                 data: `R${rodada.rodada}`,
                                 descricao: descricaoMata,
@@ -451,10 +477,11 @@ export class FluxoFinanceiroUI {
                     });
 
                     // Adicionar campos editáveis se houver
+                    const camposEditaveis = extrato.camposEditaveis || {};
                     ['campo1', 'campo2', 'campo3', 'campo4'].forEach((campo) => {
                         const valorCampo = extrato.resumo[campo];
                         if (valorCampo && valorCampo !== 0) {
-                            const campoEditavel = extrato.camposEditaveis?.[campo];
+                            const campoEditavel = camposEditaveis[campo];
                             dadosMovimentacoes.push({
                                 data: 'Manual',
                                 descricao: campoEditavel?.nome || `Campo ${campo.slice(-1)}`,
@@ -467,8 +494,8 @@ export class FluxoFinanceiroUI {
                     // Chamar função de exportação
                     if (window.exportarExtratoComoImagem) {
                         try {
-                            const rodadaAtual = extrato.rodadas.length > 0 
-                                ? extrato.rodadas[extrato.rodadas.length - 1].rodada 
+                            const rodadaAtual = extrato.rodadas.length > 0
+                                ? extrato.rodadas[extrato.rodadas.length - 1].rodada
                                 : 0;
 
                             // ✅ PASSAR DISPUTAS ATIVAS PARA A EXPORTAÇÃO
@@ -518,9 +545,9 @@ export class FluxoFinanceiroUI {
         ];
 
         return `
-            <div style="background: var(--bg-card); border-radius: 8px; padding: 20px; margin-bottom: 20px; 
+            <div style="background: var(--bg-card); border-radius: 8px; padding: 20px; margin-bottom: 20px;
                  box-shadow: var(--shadow-md); border: 1px solid var(--border-primary);">
-                <h3 style="margin: 0 0 16px 0; font-size: 14px; font-weight: 700; color: var(--text-primary); 
+                <h3 style="margin: 0 0 16px 0; font-size: 14px; font-weight: 700; color: var(--text-primary);
                      display: flex; align-items: center; gap: 8px;">
                     <span style="font-size: 18px;">⚙️</span>
                     Campos Personalizados
@@ -531,28 +558,28 @@ export class FluxoFinanceiroUI {
                             (campo) => `
                         <div style="background: var(--bg-secondary); padding: 12px; border-radius: 6px; border: 1px solid var(--border-secondary);">
                             <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 8px;">
-                                <div style="font-size: 11px; color: var(--text-muted); font-weight: 600; 
+                                <div style="font-size: 11px; color: var(--text-muted); font-weight: 600;
                                      text-transform: uppercase; letter-spacing: 0.5px; flex: 1; cursor: pointer;"
                                      onclick="window.editarNomeCampo('${timeId}', '${campo.nomeCampo}')">
                                     ${campo.label}
                                 </div>
                                 ${
                                     campo.valorAtual !== 0
-                                        ? `<button onclick="window.desfazerCampo('${timeId}', '${campo.nomeCampo}')" 
-                                               style="background: none; border: none; color: var(--text-muted); 
+                                        ? `<button onclick="window.desfazerCampo('${timeId}', '${campo.nomeCampo}')"
+                                               style="background: none; border: none; color: var(--text-muted);
                                                       cursor: pointer; padding: 0; font-size: 14px; line-height: 1;"
                                                title="Desfazer">↩️</button>`
                                         : ""
                                 }
                             </div>
-                            <input type="text" 
+                            <input type="text"
                                    id="input_${campo.nomeCampo}"
-                                   value="${campo.valorAtual >= 0 ? '+' : ''}R$ ${Math.abs(campo.valorAtual).toLocaleString("pt-BR", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}" 
+                                   value="${campo.valorAtual >= 0 ? '+' : ''}R$ ${Math.abs(campo.valorAtual).toLocaleString("pt-BR", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}"
                                    onfocus="this.value = '${campo.valorAtual}'; this.type='number'; this.step='0.01'"
                                    onblur="this.type='text'; const val = parseFloat(this.value) || 0; this.value = (val >= 0 ? '+R$ ' : '-R$ ') + Math.abs(val).toLocaleString('pt-BR', {minimumFractionDigits: 2, maximumFractionDigits: 2}); this.style.color = val >= 0 ? '#2ecc71' : '#e74c3c';"
                                    onchange="window.salvarCampoEditavelComRecalculo('${timeId}', '${campo.nomeCampo}', this.value)"
-                                   style="width: 100%; padding: 8px; border: 1px solid var(--border-primary); 
-                                          border-radius: 4px; font-size: 14px; font-weight: 600; 
+                                   style="width: 100%; padding: 8px; border: 1px solid var(--border-primary);
+                                          border-radius: 4px; font-size: 14px; font-weight: 600;
                                           background: var(--bg-card); color: ${campo.valorAtual >= 0 ? "#2ecc71" : "#e74c3c"}; transition: all 0.3s ease;">
                         </div>
                     `,
@@ -562,6 +589,42 @@ export class FluxoFinanceiroUI {
             </div>
         `;
     }
+
+    criarCardResumoCategoria(tipo, titulo, valor) {
+        const valorNum = parseFloat(valor) || 0;
+        const cor = valorNum >= 0 ? "#2ecc71" : "#e74c3c";
+        const sinal = valorNum > 0 ? "+" : "";
+        const valorFormatado = Math.abs(valorNum).toLocaleString("pt-BR", {
+            minimumFractionDigits: 2,
+            maximumFractionDigits: 2,
+        });
+
+        let style = `
+            padding: 12px; border-radius: 6px; border: 1px solid var(--border-secondary);
+            display: flex; justify-content: space-between; align-items: center;
+            background: var(--bg-secondary);
+        `;
+
+        if (tipo === 'saldo') {
+            style += `font-weight: 700; font-size: 15px; color: ${cor}; border-color: ${cor};`;
+        } else if (tipo === 'top10') {
+            style += `font-weight: 700; font-size: 14px; color: ${cor}; border-color: ${cor}; background: ${valorNum > 0 ? 'rgba(34, 197, 94, 0.05)' : valorNum < 0 ? 'rgba(239, 68, 68, 0.05)' : 'var(--bg-secondary)'};`;
+        } else {
+             style += `font-size: 14px; color: var(--text-primary);`;
+        }
+
+        return `
+            <div style="${style}">
+                <div style="font-size: 11px; color: var(--text-muted); font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px;">
+                    ${titulo}
+                </div>
+                <div style="font-weight: ${tipo === 'saldo' ? '800' : '600'}; font-size: ${tipo === 'saldo' ? '16px' : '14px'}; color: ${cor};">
+                    ${tipo === 'saldo' ? `${sinal}R$ ${valorFormatado}` : valorNum !== 0 ? `${sinal}${valorFormatado}` : '-'}
+                </div>
+            </div>
+        `;
+    }
+
 
     renderizarRelatorioConsolidado(relatorio) {
         const container = document.getElementById(this.containerId);
@@ -578,12 +641,15 @@ export class FluxoFinanceiroUI {
             </span>`;
         };
 
+        const temPontosCorridos = relatorio[0]?.disputasAtivas?.pontosCorridos;
+        const temMataMata = relatorio[0]?.disputasAtivas?.mataMata;
+
         let html = `
-            <div style="background: var(--bg-card); border-radius: 8px; padding: 24px; 
+            <div style="background: var(--bg-card); border-radius: 8px; padding: 24px;
                  box-shadow: var(--shadow-lg); border: 1px solid var(--border-primary);">
                 <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
                     <div>
-                        <h2 style="margin: 0 0 6px 0; font-size: 20px; font-weight: 700; color: var(--text-primary); 
+                        <h2 style="margin: 0 0 6px 0; font-size: 20px; font-weight: 700; color: var(--text-primary);
                              display: flex; align-items: center; gap: 10px;">
                             <span style="font-size: 24px;">📊</span>
                             Relatório Consolidado
@@ -593,19 +659,19 @@ export class FluxoFinanceiroUI {
                         </p>
                     </div>
                     <div style="display: flex; gap: 8px;">
-                        <button onclick="window.exportarRelatorioCSV()" 
-                                style="background: var(--gradient-secondary); color: white; border: none; padding: 10px 16px; 
-                                       border-radius: 6px; font-size: 12px; font-weight: 600; cursor: pointer; 
+                        <button onclick="window.exportarRelatorioCSV()"
+                                style="background: var(--gradient-secondary); color: white; border: none; padding: 10px 16px;
+                                       border-radius: 6px; font-size: 12px; font-weight: 600; cursor: pointer;
                                        display: flex; align-items: center; gap: 6px; transition: all 0.3s ease;"
                                 onmouseover="this.style.transform='translateY(-1px)'"
                                 onmouseout="this.style.transform='translateY(0)'">
                             <span style="font-size: 16px;">📥</span>
                             <span>Exportar CSV</span>
                         </button>
-                        <button onclick="window.location.reload()" 
-                                style="background: var(--gradient-primary); color: white; border: none; padding: 10px 16px; 
-                                       border-radius: 6px; font-size: 12px; font-weight: 600; cursor: pointer; 
-                                       display: flex; align-items: center; gap: 6px; transition: all 0.3s ease; 
+                        <button onclick="window.location.reload()"
+                                style="background: var(--gradient-primary); color: white; border: none; padding: 10px 16px;
+                                       border-radius: 6px; font-size: 12px; font-weight: 600; cursor: pointer;
+                                       display: flex; align-items: center; gap: 6px; transition: all 0.3s ease;
                                        box-shadow: var(--shadow-orange);"
                                 onmouseover="this.style.transform='translateY(-1px)'; this.style.boxShadow='0 6px 20px rgba(255, 69, 0, 0.5)'"
                                 onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='var(--shadow-orange)'">
@@ -619,26 +685,47 @@ export class FluxoFinanceiroUI {
                 <div style="background: var(--bg-card); border-radius: 8px; overflow: hidden; box-shadow: var(--shadow-md); border: 1px solid var(--border-primary);">
                     <table style="width: 100%; border-collapse: collapse; font-size: 11px;">
                         <thead>
-                            <tr style="background: var(--gradient-primary);">
-                                <th style="padding: 8px 6px; text-align: left; color: white; font-weight: 600; font-size: 10px; text-transform: uppercase; letter-spacing: 0.3px;">#</th>
-                                <th style="padding: 8px 6px; text-align: left; color: white; font-weight: 600; font-size: 10px; text-transform: uppercase; letter-spacing: 0.3px;">Participante</th>
-                                <th style="padding: 8px 6px; text-align: center; color: white; font-weight: 600; font-size: 10px; text-transform: uppercase; letter-spacing: 0.3px;">Bônus</th>
-                                <th style="padding: 8px 6px; text-align: center; color: white; font-weight: 600; font-size: 10px; text-transform: uppercase; letter-spacing: 0.3px;">Ônus</th>
-                                ${relatorio[0]?.disputasAtivas?.pontosCorridos ? `
-                                <th style="padding: 8px 6px; text-align: center; color: white; font-weight: 600; font-size: 10px; text-transform: uppercase; letter-spacing: 0.3px;">P.Corridos</th>
-                                ` : ''}
-                                ${relatorio[0]?.disputasAtivas?.mataMata ? `
-                                <th style="padding: 8px 6px; text-align: center; color: white; font-weight: 600; font-size: 10px; text-transform: uppercase; letter-spacing: 0.3px;">Mata-Mata</th>
-                                ` : ''}
-                                <th style="padding: 8px 6px; text-align: center; color: white; font-weight: 600; font-size: 10px; text-transform: uppercase; letter-spacing: 0.3px;">Ajustes</th>
-                                <th style="padding: 8px 6px; text-align: center; color: white; font-weight: 600; font-size: 10px; text-transform: uppercase; letter-spacing: 0.3px; background: rgba(0,0,0,0.2);">Saldo Final</th>
-                                <th style="padding: 8px 6px; text-align: center; color: white; font-weight: 600; font-size: 10px; text-transform: uppercase; letter-spacing: 0.3px;">Ações</th>
+                            <tr style="background: linear-gradient(135deg, #495057 0%, #343a40 100%); color: white;">
+                                <th style="padding: 12px 10px; text-align: left; color: white; font-weight: 700; font-size: 13px; text-transform: uppercase; letter-spacing: 0.5px;">#</th>
+                                <th style="padding: 12px 10px; text-align: left; color: white; font-weight: 700; font-size: 13px; text-transform: uppercase; letter-spacing: 0.5px;">Participante</th>
+                                <th style="padding: 12px 10px; text-align: center; color: white; font-weight: 700; font-size: 13px; text-transform: uppercase; letter-spacing: 0.5px;">Bônus</th>
+                                <th style="padding: 12px 10px; text-align: center; color: white; font-weight: 700; font-size: 13px; text-transform: uppercase; letter-spacing: 0.5px;">Ônus</th>
+                                ${temPontosCorridos ? `<th style="padding: 12px 10px; text-align: center; color: white; font-weight: 700; font-size: 13px; text-transform: uppercase; letter-spacing: 0.5px;">Pts Corridos</th>` : ''}
+                                ${temMataMata ? `<th style="padding: 12px 10px; text-align: center; color: white; font-weight: 700; font-size: 13px; text-transform: uppercase; letter-spacing: 0.5px;">Mata-Mata</th>` : ''}
+                                <th style="padding: 12px 10px; text-align: center; color: white; font-weight: 700; font-size: 13px; text-transform: uppercase; letter-spacing: 0.5px; background: rgba(255, 215, 0, 0.1); border-left: 2px solid gold;">
+                                    TOP 10 MITO/MICO
+                                    <button onclick="window.recarregarExtratoAtual()" style="
+                                        margin-left: 8px;
+                                        background: rgba(255, 255, 255, 0.2);
+                                        border: 1px solid rgba(255, 255, 255, 0.3);
+                                        color: white;
+                                        padding: 4px 8px;
+                                        border-radius: 4px;
+                                        cursor: pointer;
+                                        font-size: 10px;
+                                        transition: all 0.3s ease;
+                                    " onmouseover="this.style.background='rgba(255, 255, 255, 0.3)'" onmouseout="this.style.background='rgba(255, 255, 255, 0.2)'">
+                                        🔄 Refresh
+                                    </button>
+                                </th>
+                                <th style="padding: 12px 10px; text-align: center; color: white; font-weight: 700; font-size: 13px; text-transform: uppercase; letter-spacing: 0.5px; background: rgba(255, 69, 0, 0.1); border-left: 3px solid var(--laranja);">Saldo Final</th>
+                                <th style="padding: 12px 10px; text-align: center; color: white; font-weight: 700; font-size: 13px; text-transform: uppercase; letter-spacing: 0.5px;">Ações</th>
                             </tr>
                         </thead>
                         <tbody>
                             ${relatorio
                                 .map(
-                                    (p, index) => `
+                                    (p, index) => {
+                                        const saldoFinal = parseFloat(p.saldoFinal || 0);
+                                        const bonus = parseFloat(p.bonus || 0);
+                                        const onus = parseFloat(p.onus || 0);
+                                        const pontosCorridos = p.disputasAtivas?.pontosCorridos ? parseFloat(p.pontosCorridos || 0) : 0;
+                                        const mataMata = p.disputasAtivas?.mataMata ? parseFloat(p.mataMata || 0) : 0;
+                                        const ajustes = parseFloat(p.ajustes || 0);
+                                        const top10Valor = parseFloat(p.top10 || 0);
+                                        const top10Status = p.top10Status || '';
+
+                                        return `
                                 <tr style="border-bottom: 1px solid var(--border-secondary); transition: all 0.2s ease; ${index % 2 === 0 ? "background: rgba(255,255,255,0.02);" : ""}" onmouseover="this.style.background='var(--table-row-hover)'" onmouseout="this.style.background='${index % 2 === 0 ? "rgba(255,255,255,0.02)" : "transparent"}'">
                                     <td style="padding: 6px 4px; font-weight: 600; color: var(--text-muted);">${index + 1}º</td>
                                     <td style="padding: 6px 4px;">
@@ -654,16 +741,21 @@ export class FluxoFinanceiroUI {
                                             </div>
                                         </div>
                                     </td>
-                                    <td style="padding: 6px 4px; text-align: center; color: var(--text-secondary);">${formatarValor(p.bonus)}</td>
-                                    <td style="padding: 6px 4px; text-align: center; color: var(--text-secondary);">${formatarValor(p.onus)}</td>
-                                    ${p.disputasAtivas?.pontosCorridos ? `
-                                    <td style="padding: 6px 4px; text-align: center; color: var(--text-secondary);">${formatarValor(p.pontosCorridos)}</td>
-                                    ` : ''}
-                                    ${p.disputasAtivas?.mataMata ? `
-                                    <td style="padding: 6px 4px; text-align: center; color: var(--text-secondary);">${formatarValor(p.mataMata)}</td>
-                                    ` : ''}
-                                    <td style="padding: 6px 4px; text-align: center; color: var(--text-secondary);">${formatarValor(p.ajustes)}</td>
-                                    <td style="padding: 6px 4px; text-align: center; font-weight: 700; background: rgba(255, 69, 0, 0.05); border-left: 2px solid var(--laranja);">${formatarValor(p.saldoFinal)}</td>
+                                    <td style="padding: 6px 4px; text-align: center; color: ${bonus >= 0 ? '#2ecc71' : '#e74c3c'};">${bonus >= 0 ? '+' : ''}${bonus.toLocaleString("pt-BR", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</td>
+                                    <td style="padding: 6px 4px; text-align: center; color: ${onus >= 0 ? '#2ecc71' : '#e74c3c'};">${onus >= 0 ? '+' : ''}${onus.toLocaleString("pt-BR", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</td>
+                                    ${temPontosCorridos ? `<td style="padding: 6px 4px; text-align: center; color: ${pontosCorridos >= 0 ? '#2ecc71' : '#e74c3c'};">${pontosCorridos >= 0 ? '+' : ''}${pontosCorridos.toLocaleString("pt-BR", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</td>` : ''}
+                                    ${temMataMata ? `<td style="padding: 6px 4px; text-align: center; color: ${mataMata >= 0 ? '#2ecc71' : '#e74c3c'};">${mataMata >= 0 ? '+' : ''}${mataMata.toLocaleString("pt-BR", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</td>` : ''}
+                                    <td class="valor-col" style="
+                                        background: ${top10Valor > 0 ? 'rgba(34, 197, 94, 0.1)' : top10Valor < 0 ? 'rgba(239, 68, 68, 0.1)' : 'transparent'};
+                                        color: ${top10Valor > 0 ? '#22c55e' : top10Valor < 0 ? '#ef4444' : '#999'};
+                                        font-weight: ${top10Valor !== 0 ? '700' : '500'};
+                                        border-left: 2px solid ${top10Valor > 0 ? '#22c55e' : top10Valor < 0 ? '#ef4444' : '#ddd'};
+                                        padding: 6px 4px; text-align: center; font-size: 14px;
+                                    ">
+                                        ${top10Valor !== 0 ? (top10Valor > 0 ? '+' : '') + top10Valor.toLocaleString("pt-BR", { minimumFractionDigits: 2, maximumFractionDigits: 2 }) : '-'}
+                                        ${top10Status ? `<br><span style="font-size: 10px; opacity: 0.8;">${top10Status}</span>` : ''}
+                                    </td>
+                                    <td style="padding: 6px 4px; text-align: center; font-weight: 700; background: ${saldoFinal >= 0 ? "rgba(34, 197, 94, 0.05)" : "rgba(239, 68, 68, 0.05)"}; border-left: 2px solid ${saldoFinal >= 0 ? "#2ecc71" : "#ef4444"}; color: ${saldoFinal >= 0 ? "#2ecc71" : "#ef4444"};">${saldoFinal >= 0 ? '+' : ''}${saldoFinal.toLocaleString("pt-BR", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</td>
                                     <td style="padding: 6px 4px; text-align: center;">
                                         <button onclick="window.selecionarParticipante('${p.timeId}')" style="background: var(--gradient-primary); color: white; border: none; padding: 4px 8px; border-radius: 4px; font-size: 10px; cursor: pointer; transition: all 0.2s ease; font-weight: 600;" onmouseover="this.style.transform='scale(1.05)'" onmouseout="this.style.transform='scale(1)'">
                                             Ver
@@ -675,6 +767,17 @@ export class FluxoFinanceiroUI {
                                 .join("")}
                         </tbody>
                     </table>
+                </div>
+
+                <!-- Cards de Resumo -->
+                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 16px; margin-top: 20px;">
+                    ${this.criarCardResumoCategoria('bonus', 'Bônus', relatorio.reduce((sum, p) => sum + parseFloat(p.bonus || 0), 0))}
+                    ${this.criarCardResumoCategoria('onus', 'Ônus', relatorio.reduce((sum, p) => sum + parseFloat(p.onus || 0), 0))}
+                    ${temPontosCorridos ? this.criarCardResumoCategoria('pontosCorridos', 'Pts Corridos', relatorio.reduce((sum, p) => sum + (parseFloat(p.pontosCorridos || 0)), 0)) : ''}
+                    ${temMataMata ? this.criarCardResumoCategoria('mataMata', 'Mata-Mata', relatorio.reduce((sum, p) => sum + parseFloat(p.mataMata || 0), 0)) : ''}
+                    ${this.criarCardResumoCategoria('top10', '🏆 TOP 10', relatorio.reduce((sum, p) => sum + parseFloat(p.top10 || 0), 0))}
+                    ${this.criarCardResumoCategoria('ajustes', 'Ajustes', relatorio.reduce((sum, p) => sum + parseFloat(p.ajustes || 0), 0))}
+                    ${this.criarCardResumoCategoria('saldo', 'SALDO FINAL', relatorio.reduce((sum, p) => sum + parseFloat(p.saldoFinal || 0), 0))}
                 </div>
             </div>
         `;
