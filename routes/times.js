@@ -11,10 +11,10 @@ const router = express.Router();
 
 // Rota para buscar time por ID
 // GET /api/time/:timeId - Buscar dados de um time específico
-router.get('/time/:timeId', async (req, res) => {
+router.get('/:timeId', async (req, res) => {
     try {
         const { timeId } = req.params;
-        const time = await Time.findOne({ time_id: parseInt(timeId) });
+        const time = await Time.findOne({ id: parseInt(timeId) });
 
         if (!time) {
             return res.status(404).json({ erro: 'Time não encontrado' });

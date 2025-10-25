@@ -210,8 +210,8 @@ app.use((req, res, next) => {
       available_endpoints: [
         "GET /api/version",
         "GET /api/clubes",
-        "GET /api/cartola/*",
         "GET /api/times/*",
+        "GET /api/time/*",
         "GET /api/ligas/*",
         "GET /api/rodadas/*",
         "GET /api/gols/*",
