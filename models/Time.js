@@ -7,6 +7,9 @@ const TimeSchema = new mongoose.Schema({
   nome_cartoleiro: { type: String, required: true },
   url_escudo_png: { type: String },
   clube_id: { type: Number },
+  ativo: { type: Boolean, default: true },
+  rodada_desistencia: { type: Number, default: null },
+  data_desistencia: { type: Date, default: null },
 });
 
 // Exportar o modelo usando um padrão singleton

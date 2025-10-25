@@ -191,12 +191,16 @@ async function carregarParticipantesComBrasoes() {
                 timeData.clube_id &&
                 CLUBES_CONFIG.MAPEAMENTO[timeData.clube_id];
 
+            const estaAtivo = timeData.ativo !== false;
+            const statusClass = estaAtivo ? 'status-ativo' : 'status-inativo';
+            const statusText = estaAtivo ? 'Ativo' : `Inativo (R${timeData.rodada_desistencia || '?'})`;
+
             card.innerHTML = `
                 <div class="participante-header">
-                    <div class="participante-avatar">👤</div>
-                    <div class="participante-status">
+                    <div class="participante-avatar">${estaAtivo ? '👤' : '⏸️'}</div>
+                    <div class="participante-status ${statusClass}">
                         <span class="status-indicator"></span>
-                        Ativo
+                        ${statusText}
                     </div>
                 </div>
 
@@ -231,6 +235,14 @@ async function carregarParticipantesComBrasoes() {
                             ${temClubeCoracao ? BrasoesHelper.getNomeClube(timeData.clube_id) : "Não definido"}
                         </span>
                     </div>
+                </div>
+
+                <div class="participante-actions">
+                    <button class="btn-action btn-status" 
+                            onclick="window.toggleStatusParticipante(${timeData.id}, ${estaAtivo})"
+                            title="${estaAtivo ? 'Inativar participante' : 'Reativar participante'}">
+                        ${estaAtivo ? '⏸️ Inativar' : '▶️ Reativar'}
+                    </button>
                 </div>
             `;
 
@@ -403,8 +415,65 @@ export function fecharModal() {
     if (modal) modal.style.display = "none";
 }
 
+// ==============================
+// GESTÃO DE STATUS
+// ==============================
+async function toggleStatusParticipante(timeId, estaAtivo) {
+    if (!confirm(`Confirma ${estaAtivo ? 'inativação' : 'reativação'} deste participante?`)) {
+        return;
+    }
+
+    try {
+        let endpoint, body;
+
+        if (estaAtivo) {
+            // Inativar - pedir rodada de desistência
+            const rodadaDesistencia = prompt(
+                "Em qual rodada o participante desistiu?\n(Digite o número da rodada, ex: 15)"
+            );
+            
+            if (!rodadaDesistencia) return;
+            
+            const rodada = parseInt(rodadaDesistencia);
+            if (isNaN(rodada) || rodada < 1 || rodada > 38) {
+                alert("Rodada inválida! Deve ser entre 1 e 38.");
+                return;
+            }
+
+            endpoint = `/api/time/${timeId}/inativar`;
+            body = { rodada_desistencia: rodada };
+        } else {
+            // Reativar
+            endpoint = `/api/time/${timeId}/reativar`;
+            body = {};
+        }
+
+        const response = await fetch(endpoint, {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(body)
+        });
+
+        const data = await response.json();
+
+        if (!response.ok) {
+            throw new Error(data.erro || 'Erro ao alterar status');
+        }
+
+        alert(data.mensagem || 'Status atualizado com sucesso!');
+        
+        // Recarregar participantes
+        await carregarParticipantesComBrasoes();
+        
+    } catch (error) {
+        console.error('Erro ao alterar status:', error);
+        alert(`Erro: ${error.message}`);
+    }
+}
+
 // Exportar globalmente
 window.carregarParticipantesComBrasoes = carregarParticipantesComBrasoes;
+window.toggleStatusParticipante = toggleStatusParticipante;
 
 // Auto-inicialização
 setTimeout(() => {
