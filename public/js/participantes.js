@@ -147,7 +147,19 @@ async function carregarParticipantesComBrasoes() {
                     const res = await fetch(`/api/time/${timeId}`);
                     if (!res.ok) return null;
                     const data = await res.json();
-                    return { ...data, id: timeId, ativo: true, index };
+                    
+                    // Garantir que ativo seja boolean
+                    const ativo = data.ativo !== false;
+                    
+                    console.log(`[PARTICIPANTES] Time ${timeId}: ativo=${ativo}, rodada_desistencia=${data.rodada_desistencia}`);
+                    
+                    return { 
+                        ...data, 
+                        id: timeId, 
+                        ativo: ativo,
+                        rodada_desistencia: data.rodada_desistencia,
+                        index 
+                    };
                 } catch (err) {
                     console.error(`Erro ao buscar time ${timeId}:`, err);
                     return null;
@@ -191,9 +203,12 @@ async function carregarParticipantesComBrasoes() {
                 timeData.clube_id &&
                 CLUBES_CONFIG.MAPEAMENTO[timeData.clube_id];
 
+            // Verificar status do participante
             const estaAtivo = timeData.ativo !== false;
             const statusClass = estaAtivo ? 'status-ativo' : 'status-inativo';
-            const statusText = estaAtivo ? 'Ativo' : `Inativo (R${timeData.rodada_desistencia || '?'})`;
+            const statusText = estaAtivo ? 'Ativo' : `Inativo desde R${timeData.rodada_desistencia || '?'}`;
+
+            console.log(`[CARD] ${timeData.nome_cartoleiro}: estaAtivo=${estaAtivo}, classe=${statusClass}`);
 
             card.innerHTML = `
                 <div class="participante-header">
@@ -462,7 +477,10 @@ async function toggleStatusParticipante(timeId, estaAtivo) {
 
         alert(data.mensagem || 'Status atualizado com sucesso!');
         
-        // Recarregar participantes
+        console.log('[STATUS] Recarregando participantes após alteração...');
+        
+        // Forçar recarga completa (limpar cache se houver)
+        await new Promise(resolve => setTimeout(resolve, 500));
         await carregarParticipantesComBrasoes();
         
     } catch (error) {

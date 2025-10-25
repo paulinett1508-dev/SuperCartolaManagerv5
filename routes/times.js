@@ -5,11 +5,33 @@ import {
   reativarParticipante, 
   buscarStatusParticipante 
 } from "../controllers/participanteStatusController.js";
+import Time from "../models/Time.js"; // Assumindo que Time.js é o modelo
 
 const router = express.Router();
 
 // Rota para buscar time por ID
-router.get("/:id", obterTimePorId);
+// GET /api/time/:timeId - Buscar dados de um time específico
+router.get('/time/:timeId', async (req, res) => {
+    try {
+        const { timeId } = req.params;
+        const time = await Time.findOne({ time_id: parseInt(timeId) });
+
+        if (!time) {
+            return res.status(404).json({ erro: 'Time não encontrado' });
+        }
+
+        // Garantir que campos de status estejam presentes
+        const timeData = time.toObject();
+        if (timeData.ativo === undefined) {
+            timeData.ativo = true;
+        }
+
+        res.json(timeData);
+    } catch (erro) {
+        console.error('Erro ao buscar time:', erro);
+        res.status(500).json({ erro: 'Erro ao buscar time' });
+    }
+});
 
 // Rotas de gerenciamento de status
 router.get("/:timeId/status", buscarStatusParticipante);

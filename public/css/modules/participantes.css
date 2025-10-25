@@ -290,11 +290,14 @@
 }
 
 .participante-status.status-inativo {
-    color: var(--error-color, #ff4444);
+    background: rgba(244, 67, 54, 0.15);
+    color: #f44336;
+    border-color: rgba(244, 67, 54, 0.3);
 }
 
 .participante-status.status-inativo .status-indicator {
-    background-color: var(--error-color, #ff4444);
+    background-color: #f44336;
+    animation: none;
 }
 
 .status-indicator {
