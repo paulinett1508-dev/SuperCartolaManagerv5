@@ -386,10 +386,10 @@ function criarLayoutExtratoFinanceiroMobile(
       gap: 12px;
     ">
       <div style="
-        font: ${MOBILE_DARK_HD_CONFIG.fonts.weights.medium} ${MOBILE_DARK_HD_CONFIG.fonts.mini};
-        color: rgba(255,255,255,0.85);
+        font: ${MOBILE_DARK_HD_CONFIG.fonts.weights.bold} 15px Inter;
+        color: rgba(255,255,255,0.95);
         text-transform: uppercase;
-        letter-spacing: 1px;
+        letter-spacing: 1.2px;
       ">${resumoFinanceiro.saldoFinal < 0 ? "💸 A Pagar" : resumoFinanceiro.saldoFinal > 0 ? "💰 A Receber" : "✅ Saldo"}</div>
 
       <div style="
