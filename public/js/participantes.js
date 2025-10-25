@@ -181,6 +181,9 @@ async function carregarParticipantesComBrasoes() {
 
         // Renderizar cards
         timesValidos.forEach((timeData, index) => {
+            // Verificar status do participante ANTES de criar o card
+            const estaAtivo = timeData.ativo !== false;
+            
             const card = document.createElement("div");
             card.className = `participante-card ${!estaAtivo ? 'card-inativo' : ''}`;
             card.setAttribute("data-delay", index % 10);
@@ -202,9 +205,6 @@ async function carregarParticipantesComBrasoes() {
             const temClubeCoracao =
                 timeData.clube_id &&
                 CLUBES_CONFIG.MAPEAMENTO[timeData.clube_id];
-
-            // Verificar status do participante
-            const estaAtivo = timeData.ativo !== false;
             const statusClass = estaAtivo ? 'status-ativo' : 'status-inativo';
             const statusText = estaAtivo ? 'Ativo' : `Inativo desde R${timeData.rodada_desistencia || '?'}`;
 
