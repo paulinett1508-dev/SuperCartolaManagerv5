@@ -264,6 +264,8 @@ async function gerarRelatorioFinanceiro() {
                     await FluxoFinanceiroCampos.carregarTodosCamposEditaveis(
                         timeId,
                     );
+                
+                const disputasAtivas = await fluxoFinanceiroCore.buscarDisputasAtivas(timeId);
 
                 const saldoFinal =
                     extrato.resumo.bonus +
@@ -277,24 +279,21 @@ async function gerarRelatorioFinanceiro() {
                     (camposAtualizados.campo4?.valor || 0);
 
                 relatorio.push({
-                    nome: participante.nome_cartola,
-                    time: participante.nome_time,
-                    escudo: participante.url_escudo_png,
-                    clube_id: participante.clube_id,
-                    timeId: timeId,
+                    timeId,
+                    nome: participante.nome_cartola || "Sem nome",
+                    time: participante.nome_time || "Sem time",
+                    escudo: participante.url_escudo_png || null,
                     bonus: extrato.resumo.bonus,
                     onus: extrato.resumo.onus,
-                    pontosCorridos: extrato.resumo.pontosCorridos,
+                    pontosCorridos: extrato.resumo.pontosCorridos || 0,
                     mataMata: extrato.resumo.mataMata,
-                    melhorMes: extrato.resumo.melhorMes,
                     ajustes:
                         (camposAtualizados.campo1?.valor || 0) +
                         (camposAtualizados.campo2?.valor || 0) +
                         (camposAtualizados.campo3?.valor || 0) +
                         (camposAtualizados.campo4?.valor || 0),
-                    vezesMito: extrato.resumo.vezesMito,
-                    vezesMico: extrato.resumo.vezesMico,
-                    saldoFinal: saldoFinal,
+                    saldoFinal: extrato.resumo.saldo,
+                    disputasAtivas: disputasAtivas, // ✅ NOVO
                 });
             } catch (error) {
                 console.error(
@@ -371,7 +370,7 @@ async function exportarExtrato(extrato, participante, timeId) {
 
         extrato.rodadas.forEach((rodada) => {
             const rodadaNumero = rodada.rodada;
-            
+
             // ✅ SEMPRE INCLUIR RODADA COM POSIÇÃO, MESMO QUE BÔNUS/ÔNUS SEJA ZERO
             if (rodada.posicao || rodada.isMito || rodada.isMico) {
                 const descricao = rodada.isMito
@@ -395,7 +394,7 @@ async function exportarExtrato(extrato, participante, timeId) {
                 const descricaoPontos = rodada.posicao 
                     ? `Rodada ${rodadaNumero} - Pontos Corridos (${rodada.posicao}°)`
                     : `Rodada ${rodadaNumero} - Pontos Corridos`;
-                    
+
                 dadosMovimentacoes.push({
                     data: `R${rodadaNumero}`,
                     descricao: descricaoPontos,
@@ -408,7 +407,7 @@ async function exportarExtrato(extrato, participante, timeId) {
                 const descricaoMata = rodada.posicao
                     ? `Rodada ${rodadaNumero} - Mata-Mata (${rodada.posicao}°)`
                     : `Rodada ${rodadaNumero} - Mata-Mata`;
-                    
+
                 dadosMovimentacoes.push({
                     data: `R${rodadaNumero}`,
                     descricao: descricaoMata,
@@ -549,7 +548,7 @@ window.salvarCampoEditavelComRecalculo = async (timeId, nomeCampo, valor) => {
             const cor = valorNumerico >= 0 ? '#2ecc71' : '#e74c3c';
             input.style.color = cor;
             input.disabled = false;
-            
+
             setTimeout(() => {
                 input.style.borderColor = 'var(--border-primary)';
                 input.style.boxShadow = 'none';
@@ -560,7 +559,7 @@ window.salvarCampoEditavelComRecalculo = async (timeId, nomeCampo, valor) => {
     } catch (error) {
         console.error('[FLUXO] Erro ao salvar campo:', error);
         alert('Erro ao salvar campo: ' + error.message);
-        
+
         // Re-habilitar input em caso de erro
         const input = document.getElementById(`input_${nomeCampo}`);
         if (input) {

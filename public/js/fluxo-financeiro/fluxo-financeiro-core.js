@@ -70,6 +70,13 @@ export class FluxoFinanceiroCore {
             this._carregarMataMataMap(resultadosMataMata);
         }
 
+        // ✅ DETECTAR DISPUTAS ATIVAS NA LIGA
+        const disputasAtivas = await this._detectarDisputasAtivas(
+            ultimaRodadaCompleta,
+            isSuperCartola2025,
+            resultadosMataMata
+        );
+
         // ✅ GARANTIR QUE TODOS OS VALORES DO RESUMO SEJAM NÚMEROS
         const extrato = {
             rodadas: [],
@@ -89,6 +96,7 @@ export class FluxoFinanceiroCore {
             },
             totalTimes: 0,
             camposEditaveis: camposEditaveis,
+            disputasAtivas: disputasAtivas, // ✅ NOVO: Informação sobre disputas ativas
         };
         
         console.log('[FLUXO-CORE] Resumo inicializado:', {
@@ -315,6 +323,28 @@ export class FluxoFinanceiroCore {
             saldoAcumulado += valorRodada;
             rodada.saldo = saldoAcumulado;
         });
+    }
+
+    // ✅ NOVO: Detectar quais disputas estão ativas na liga
+    async _detectarDisputasAtivas(ultimaRodadaCompleta, isSuperCartola2025, resultadosMataMata) {
+        const disputas = {
+            bonusOnus: true, // Sempre ativo
+            pontosCorridos: false,
+            mataMata: false,
+            melhorMes: false, // Futuro
+        };
+
+        // Verificar Pontos Corridos
+        if (isSuperCartola2025) {
+            const confrontos = this.cache.getConfrontosPontosCorridos();
+            disputas.pontosCorridos = confrontos && confrontos.length > 0;
+        }
+
+        // Verificar Mata-Mata
+        disputas.mataMata = this.mataMataIntegrado && resultadosMataMata.length > 0;
+
+        console.log('[FLUXO-CORE] Disputas ativas detectadas:', disputas);
+        return disputas;
     }
 
     _calcularSaldoFinal(resumo) {

@@ -277,10 +277,14 @@ export class FluxoFinanceiroUI {
                                      font-size: 13px; text-transform: uppercase; letter-spacing: 0.5px;">Posição</th>
                                 <th style="padding: 12px 10px; text-align: center; color: white; font-weight: 700; 
                                      font-size: 13px; text-transform: uppercase; letter-spacing: 0.5px;">Bônus/Ônus<br>por Rodadas</th>
+                                ${extrato.disputasAtivas?.pontosCorridos ? `
                                 <th style="padding: 12px 10px; text-align: center; color: white; font-weight: 700; 
                                      font-size: 13px; text-transform: uppercase; letter-spacing: 0.5px;">P. Corridos</th>
+                                ` : ''}
+                                ${extrato.disputasAtivas?.mataMata ? `
                                 <th style="padding: 12px 10px; text-align: center; color: white; font-weight: 700; 
                                      font-size: 13px; text-transform: uppercase; letter-spacing: 0.5px;">Mata-Mata</th>
+                                ` : ''}
                                 <th style="padding: 12px 10px; text-align: center; color: white; font-weight: 700; 
                                      font-size: 13px; text-transform: uppercase; letter-spacing: 0.5px; background: rgba(0,0,0,0.2);">Saldo</th>
                             </tr>
@@ -316,12 +320,16 @@ export class FluxoFinanceiroUI {
                                     <td style="padding: 12px 10px; text-align: center; font-size: 14px;">
                                         ${formatarValorComCor(r.bonusOnus)}
                                     </td>
+                                    ${extrato.disputasAtivas?.pontosCorridos ? `
                                     <td style="padding: 12px 10px; text-align: center; font-size: 14px;">
                                         ${formatarValorComCor(r.pontosCorridos)}
                                     </td>
+                                    ` : ''}
+                                    ${extrato.disputasAtivas?.mataMata ? `
                                     <td style="padding: 12px 10px; text-align: center; font-size: 14px;">
                                         ${formatarValorComCor(r.mataMata)}
                                     </td>
+                                    ` : ''}
                                     <td style="padding: 12px 10px; text-align: center; font-weight: 700; font-size: 15px;
                                          background: ${corFundoSaldo(r.saldo)};">
                                         ${formatarValorComCor(r.saldo)}
@@ -343,6 +351,7 @@ export class FluxoFinanceiroUI {
                                         maximumFractionDigits: 2,
                                     })}
                                 </td>
+                                ${extrato.disputasAtivas?.pontosCorridos ? `
                                 <td style="padding: 14px 10px; text-align: center; font-weight: 800; font-size: 16px; 
                                      background: white; color: ${extrato.resumo.pontosCorridos >= 0 ? '#2ecc71' : '#e74c3c'};">
                                     ${extrato.resumo.pontosCorridos !== null ? `${extrato.resumo.pontosCorridos >= 0 ? '+' : '-'}R$ ${Math.abs(extrato.resumo.pontosCorridos).toLocaleString("pt-BR", {
@@ -350,6 +359,8 @@ export class FluxoFinanceiroUI {
                                         maximumFractionDigits: 2,
                                     })}` : '-'}
                                 </td>
+                                ` : ''}
+                                ${extrato.disputasAtivas?.mataMata ? `
                                 <td style="padding: 14px 10px; text-align: center; font-weight: 800; font-size: 16px; 
                                      background: white; color: ${extrato.resumo.mataMata >= 0 ? '#2ecc71' : '#e74c3c'};">
                                     ${extrato.resumo.mataMata >= 0 ? '+' : '-'}R$ ${Math.abs(extrato.resumo.mataMata).toLocaleString("pt-BR", {
@@ -357,6 +368,7 @@ export class FluxoFinanceiroUI {
                                         maximumFractionDigits: 2,
                                     })}
                                 </td>
+                                ` : ''}
                                 <td style="padding: 14px 10px; text-align: center; font-weight: 800; font-size: 17px;
                                      background: rgba(255, 69, 0, 0.08); border-left: 3px solid var(--laranja); 
                                      color: ${extrato.resumo.saldo >= 0 ? '#2ecc71' : '#e74c3c'};">
@@ -598,8 +610,12 @@ export class FluxoFinanceiroUI {
                                 <th style="padding: 8px 6px; text-align: left; color: white; font-weight: 600; font-size: 10px; text-transform: uppercase; letter-spacing: 0.3px;">Participante</th>
                                 <th style="padding: 8px 6px; text-align: center; color: white; font-weight: 600; font-size: 10px; text-transform: uppercase; letter-spacing: 0.3px;">Bônus</th>
                                 <th style="padding: 8px 6px; text-align: center; color: white; font-weight: 600; font-size: 10px; text-transform: uppercase; letter-spacing: 0.3px;">Ônus</th>
+                                ${relatorio[0]?.disputasAtivas?.pontosCorridos ? `
                                 <th style="padding: 8px 6px; text-align: center; color: white; font-weight: 600; font-size: 10px; text-transform: uppercase; letter-spacing: 0.3px;">P.Corridos</th>
+                                ` : ''}
+                                ${relatorio[0]?.disputasAtivas?.mataMata ? `
                                 <th style="padding: 8px 6px; text-align: center; color: white; font-weight: 600; font-size: 10px; text-transform: uppercase; letter-spacing: 0.3px;">Mata-Mata</th>
+                                ` : ''}
                                 <th style="padding: 8px 6px; text-align: center; color: white; font-weight: 600; font-size: 10px; text-transform: uppercase; letter-spacing: 0.3px;">Ajustes</th>
                                 <th style="padding: 8px 6px; text-align: center; color: white; font-weight: 600; font-size: 10px; text-transform: uppercase; letter-spacing: 0.3px; background: rgba(0,0,0,0.2);">Saldo Final</th>
                                 <th style="padding: 8px 6px; text-align: center; color: white; font-weight: 600; font-size: 10px; text-transform: uppercase; letter-spacing: 0.3px;">Ações</th>
@@ -626,8 +642,12 @@ export class FluxoFinanceiroUI {
                                     </td>
                                     <td style="padding: 6px 4px; text-align: center; color: var(--text-secondary);">${formatarValor(p.bonus)}</td>
                                     <td style="padding: 6px 4px; text-align: center; color: var(--text-secondary);">${formatarValor(p.onus)}</td>
+                                    ${p.disputasAtivas?.pontosCorridos ? `
                                     <td style="padding: 6px 4px; text-align: center; color: var(--text-secondary);">${formatarValor(p.pontosCorridos)}</td>
+                                    ` : ''}
+                                    ${p.disputasAtivas?.mataMata ? `
                                     <td style="padding: 6px 4px; text-align: center; color: var(--text-secondary);">${formatarValor(p.mataMata)}</td>
+                                    ` : ''}
                                     <td style="padding: 6px 4px; text-align: center; color: var(--text-secondary);">${formatarValor(p.ajustes)}</td>
                                     <td style="padding: 6px 4px; text-align: center; font-weight: 700; background: rgba(255, 69, 0, 0.05); border-left: 2px solid var(--laranja);">${formatarValor(p.saldoFinal)}</td>
                                     <td style="padding: 6px 4px; text-align: center;">
