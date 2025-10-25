@@ -459,10 +459,12 @@ export class FluxoFinanceiroUI {
                                 ? extrato.rodadas[extrato.rodadas.length - 1].rodada 
                                 : 0;
 
+                            // ✅ PASSAR DISPUTAS ATIVAS PARA A EXPORTAÇÃO
                             await window.exportarExtratoComoImagem(
                                 dadosMovimentacoes,
                                 participante,
-                                rodadaAtual
+                                rodadaAtual,
+                                extrato.disputasAtivas
                             );
                         } catch (error) {
                             console.error('[FLUXO-UI] Erro ao exportar extrato:', error);

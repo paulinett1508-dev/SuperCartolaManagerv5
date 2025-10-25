@@ -9,16 +9,59 @@
 // ✅ CONFIGURAÇÃO MOBILE DARK HD
 export const MOBILE_DARK_HD_CONFIG = {
     width: 720,
-    scale: 2,
-    quality: 0.95,
+    scale: 4,
+    quality: 0.98,
     padding: 20,
+    cardSpacing: 12,
     fontSize: {
         title: 28,
         subtitle: 16,
         heading: 22,
         body: 14,
+        bodySmall: 13,
         small: 12,
         caption: 10,
+        mini: 9,
+    },
+    fonts: {
+        weights: {
+            regular: '400',
+            medium: '500',
+            semibold: '600',
+            bold: '700',
+            extrabold: '800',
+        },
+        title: '28px Inter',
+        subtitle: '16px Inter',
+        heading: '22px Inter',
+        subheading: '18px Inter',
+        body: '14px Inter',
+        bodySmall: '13px Inter',
+        caption: '10px Inter',
+        mini: '9px Inter',
+    },
+    colors: {
+        text: '#FFFFFF',
+        textSecondary: 'rgba(255,255,255,0.85)',
+        textMuted: 'rgba(255,255,255,0.6)',
+        success: '#2ecc71',
+        danger: '#e74c3c',
+        dangerDark: '#c0392b',
+        warning: '#ff4500',
+        info: '#3498db',
+        gold: '#f1c40f',
+        accent: '#9b59b6',
+        surface: '#1a1a1a',
+        surfaceLight: '#2a2a2a',
+        border: 'rgba(255,255,255,0.1)',
+        divider: 'rgba(255,255,255,0.05)',
+        shadow: '0 4px 16px rgba(0,0,0,0.3)',
+        shadowLight: '0 2px 8px rgba(0,0,0,0.2)',
+        gradientPrimary: 'linear-gradient(135deg, #ff4500 0%, #d63920 100%)',
+        gradientSuccess: 'linear-gradient(135deg, #2ecc71 0%, #27ae60 100%)',
+        gradientDanger: 'linear-gradient(135deg, #e74c3c 0%, #c0392b 100%)',
+        gradientWarning: 'linear-gradient(135deg, #f39c12 0%, #e67e22 100%)',
+        gradientDark: 'linear-gradient(135deg, #2c3e50 0%, #34495e 100%)',
     },
     spacing: {
         card: 12,
@@ -44,6 +87,27 @@ export const MobileDarkUtils = {
     
     mostrarSucesso(mensagem) {
         console.log(`✅ ${mensagem}`);
+    },
+    
+    gerarNomeArquivoMobile(tipo, config = {}) {
+        const data = new Date();
+        const ano = data.getFullYear();
+        const mes = String(data.getMonth() + 1).padStart(2, '0');
+        const dia = String(data.getDate()).padStart(2, '0');
+        const hora = String(data.getHours()).padStart(2, '0');
+        const min = String(data.getMinutes()).padStart(2, '0');
+        
+        let nome = `${tipo}_${ano}${mes}${dia}_${hora}${min}`;
+        
+        if (config.rodada) {
+            nome += `_R${config.rodada}`;
+        }
+        
+        if (config.extra) {
+            nome += `_${config.extra}`;
+        }
+        
+        return `${nome}.png`;
     }
 };
 
@@ -65,7 +129,7 @@ export function criarContainerMobileDark(titulo, subtitulo, metadata = {}) {
             <h1 style="font-size: ${MOBILE_DARK_HD_CONFIG.fontSize.title}px; color: white; margin: 0;">${titulo}</h1>
             <p style="font-size: ${MOBILE_DARK_HD_CONFIG.fontSize.subtitle}px; color: rgba(255,255,255,0.9); margin: 8px 0 0 0;">${subtitulo}</p>
         </div>
-        <div id="mobile-hd-export-content" style="padding: ${MOBILE_DARK_HD_CONFIG.padding}px;"></div>
+        <div id="mobile-export-content" style="padding: ${MOBILE_DARK_HD_CONFIG.padding}px;"></div>
         <div style="padding: ${MOBILE_DARK_HD_CONFIG.padding}px; text-align: center; background: #1a1a1a; font-size: ${MOBILE_DARK_HD_CONFIG.fontSize.small}px; color: rgba(255,255,255,0.6);">
             🏆 Super Cartola Manager • ${new Date().toLocaleDateString('pt-BR')}
         </div>
@@ -85,6 +149,8 @@ export async function gerarCanvasMobileDarkHD(container, nomeArquivo) {
         logging: false,
         useCORS: true,
         allowTaint: true,
+        windowWidth: MOBILE_DARK_HD_CONFIG.width,
+        windowHeight: container.scrollHeight,
     });
     
     canvas.toBlob((blob) => {

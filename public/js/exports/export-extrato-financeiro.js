@@ -181,10 +181,16 @@ async function exportarExtratoFinanceiroMobileDarkHD(config) {
 
   const contentDiv = exportContainer.querySelector("#mobile-export-content");
 
+  // ✅ DETERMINAR SE HÁ DADOS DE PONTOS CORRIDOS E MATA-MATA PARA AJUSTAR O LAYOUT
+  const temPontosCorridos = dadosExtrato.some(item => item.tipo === "pontos_corridos");
+  const temMataMata = dadosExtrato.some(item => item.tipo === "mata_mata");
+
   contentDiv.innerHTML = criarLayoutExtratoFinanceiroMobile(
     dadosExtrato,
     participante,
     rodadaAtual,
+    temPontosCorridos,
+    temMataMata,
   );
 
   document.body.appendChild(exportContainer);
@@ -217,7 +223,8 @@ async function exportarExtratoFinanceiroMobileDarkHD(config) {
       extra: participante?.nome_cartola?.replace(/\s/g, "_") || "participante",
     });
 
-    await gerarCanvasMobileDarkHD(exportContainer, nomeArquivo);
+    // ✅ AUMENTAR ESCALA PARA MELHOR QUALIDADE DE IMAGEM
+    await gerarCanvasMobileDarkHD(exportContainer, nomeArquivo, 4);
 
     console.log("[EXPORT-EXTRATO-FINANCEIRO-MOBILE] Exportação concluída");
     MobileDarkUtils.mostrarSucesso("Extrato financeiro exportado com sucesso!");
@@ -254,6 +261,8 @@ function criarLayoutExtratoFinanceiroMobile(
   dadosExtrato,
   participante,
   rodadaAtual,
+  temPontosCorridos, // ✅ Parâmetro adicionado
+  temMataMata,       // ✅ Parâmetro adicionado
 ) {
   const dadosValidados = Array.isArray(dadosExtrato) ? dadosExtrato : [];
   const resumoFinanceiro = calcularResumoFinanceiro(dadosValidados);
@@ -264,9 +273,10 @@ function criarLayoutExtratoFinanceiroMobile(
     ? MOBILE_DARK_HD_CONFIG.colors.gradientSuccess
     : MOBILE_DARK_HD_CONFIG.colors.gradientDanger;
 
-  const isSuperCartola = detalhamentoPorRodada.some(
-    (r) => r.pontosCorridos !== null && r.pontosCorridos !== undefined,
-  );
+  // ✅ REMOVIDO: A detecção de isSuperCartola foi substituída por temPontosCorridos e temMataMata
+  // const isSuperCartola = detalhamentoPorRodada.some(
+  //   (r) => r.pontosCorridos !== null && r.pontosCorridos !== undefined,
+  // );
 
   const totalRodadas = detalhamentoPorRodada.length;
 
@@ -430,16 +440,15 @@ function criarLayoutExtratoFinanceiroMobile(
       </div>
 
       <div style="padding: ${MOBILE_DARK_HD_CONFIG.padding}px 0;">
-        ${
-          detalhamentoPorRodada.length === 0
+        ${detalhamentoPorRodada.length === 0
             ? `<div style="text-align: center; padding: 40px 20px; color: ${MOBILE_DARK_HD_CONFIG.colors.textMuted};">Nenhuma rodada encontrada</div>`
             : detalhamentoPorRodada
                 .map((rodada, index) =>
-                  criarItemExtratoRodadaMobile(rodada, index, isSuperCartola),
+                  criarItemExtratoRodadaMobile(rodada, index, temPontosCorridos, temMataMata),
                 )
                 .join("")
         }
-        
+
         <!-- LINHA DE TOTAIS (IGUAL À TELA) -->
         ${detalhamentoPorRodada.length > 0 ? `
         <div style="
@@ -467,7 +476,7 @@ function criarLayoutExtratoFinanceiroMobile(
           <div style="
             flex: 1;
             display: grid;
-            grid-template-columns: ${isSuperCartola ? "1fr 1fr 1fr" : "1fr"};
+            grid-template-columns: ${temPontosCorridos ? "1fr 1fr" : "1fr"}; /* Ajustado para usar temPontosCorridos */
             gap: 8px;
             margin-right: 12px;
           ">
@@ -479,7 +488,7 @@ function criarLayoutExtratoFinanceiroMobile(
             </div>
 
             ${
-              isSuperCartola
+              temPontosCorridos
                 ? `
             <div style="text-align: center;">
               <div style="
@@ -488,12 +497,14 @@ function criarLayoutExtratoFinanceiroMobile(
               ">${formatarValorMonetario(resumoFinanceiro.totalPontosCorridos)}</div>
             </div>
 
+            ${temMataMata ? `
             <div style="text-align: center;">
               <div style="
                 font: ${MOBILE_DARK_HD_CONFIG.fonts.weights.extrabold} ${MOBILE_DARK_HD_CONFIG.fonts.heading};
                 color: ${resumoFinanceiro.totalMataMata >= 0 ? MOBILE_DARK_HD_CONFIG.colors.warning : MOBILE_DARK_HD_CONFIG.colors.danger};
               ">${formatarValorMonetario(resumoFinanceiro.totalMataMata)}</div>
             </div>
+            ` : ""}
             `
                 : ""
             }
@@ -669,9 +680,9 @@ function criarSecaoAjustesManuais(campos) {
   `;
 }
 
-function criarItemExtratoRodadaMobile(rodada, index, isSuperCartola) {
+function criarItemExtratoRodadaMobile(rodada, index, temPontosCorridos, temMataMata) { // ✅ Parâmetros adicionados
   const { posicaoStyle, posicaoTexto } = obterEstiloPosicao(rodada);
-  
+
   // ✅ GARANTIR QUE VALORES SEJAM NÚMEROS (mesmo que 0)
   const bonusOnus = typeof rodada.bonusOnus === 'number' ? rodada.bonusOnus : 0;
   const pontosCorridos = typeof rodada.pontosCorridos === 'number' ? rodada.pontosCorridos : 0;
@@ -713,7 +724,7 @@ function criarItemExtratoRodadaMobile(rodada, index, isSuperCartola) {
       <div style="
         flex: 1;
         display: grid;
-        grid-template-columns: ${isSuperCartola ? "1fr 1fr 1fr" : "1fr"};
+        grid-template-columns: ${temPontosCorridos ? "1fr 1fr" : "1fr"}; /* Ajustado para usar temPontosCorridos */
         gap: 8px;
         margin-right: 12px;
       ">
@@ -730,7 +741,7 @@ function criarItemExtratoRodadaMobile(rodada, index, isSuperCartola) {
         </div>
 
         ${
-          isSuperCartola
+          temPontosCorridos
             ? `
         <div style="text-align: center;">
           <div style="
@@ -743,7 +754,12 @@ function criarItemExtratoRodadaMobile(rodada, index, isSuperCartola) {
             color: ${pontosCorridos >= 0 ? MOBILE_DARK_HD_CONFIG.colors.info : MOBILE_DARK_HD_CONFIG.colors.danger};
           ">${formatarValorMonetario(pontosCorridos)}</div>
         </div>
-
+        `
+            : ""
+        }
+        ${
+          temMataMata
+            ? `
         <div style="text-align: center;">
           <div style="
             font: ${MOBILE_DARK_HD_CONFIG.fonts.weights.medium} ${MOBILE_DARK_HD_CONFIG.fonts.mini};
@@ -854,7 +870,7 @@ function estruturarDetalhamentoPorRodada(dadosExtrato) {
       saldoAcumulado: 0,
       isMito: false,
       isMico: false,
-      totalTimes: 32,
+      totalTimes: 32, // Valor padrão, pode ser ajustado se necessário
     });
   }
 
@@ -872,7 +888,7 @@ function estruturarDetalhamentoPorRodada(dadosExtrato) {
 
     // ✅ EXTRAIR POSIÇÃO DA DESCRIÇÃO (funciona para bonus_onus, pontos_corridos e mata_mata)
     const posicaoMatch = item.descricao.match(/(\d+)°/);
-    if (posicaoMatch && !rodadaData.posicao) {
+    if (posicaoMatch && rodadaData.posicao === null) { // Garante que a posição só seja definida uma vez por rodada
       rodadaData.posicao = parseInt(posicaoMatch[1]);
     }
 
@@ -905,9 +921,9 @@ function estruturarDetalhamentoPorRodada(dadosExtrato) {
 }
 
 function obterEstiloPosicao(rodada) {
-  // ✅ SEMPRE MOSTRA A POSIÇÃO SE EXISTIR, SENÃO MOSTRA "-"
-  
-  if (rodada.posicao === 1 || rodada.isMito) {
+  const totalTimes = rodada.totalTimes || 32; // Usa o valor de totalTimes do objeto rodada ou um padrão
+
+  if (rodada.isMito) {
     return {
       posicaoTexto: "MITO",
       posicaoStyle: `
@@ -918,7 +934,7 @@ function obterEstiloPosicao(rodada) {
     };
   }
 
-  if (rodada.posicao === rodada.totalTimes || rodada.isMico) {
+  if (rodada.isMico) {
     return {
       posicaoTexto: "MICO",
       posicaoStyle: `
@@ -930,8 +946,8 @@ function obterEstiloPosicao(rodada) {
   }
 
   if (rodada.posicao && rodada.posicao > 0) {
-    const isTop11 = rodada.posicao >= 2 && rodada.posicao <= 11;
-    const isZ22_31 = rodada.posicao >= 22 && rodada.posicao <= 31;
+    const isTop11 = rodada.posicao >= 1 && rodada.posicao <= 11; // Ajustado para incluir 1° posição
+    const isZ22_31 = rodada.posicao >= 22 && rodada.posicao <= totalTimes; // Usa totalTimes para o limite inferior
 
     if (isTop11) {
       return {
