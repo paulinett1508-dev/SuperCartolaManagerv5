@@ -160,6 +160,7 @@ export class FluxoFinanceiroCore {
                 pontosCorridos: isSuperCartola2025 ? 0 : null,
                 mataMata: 0,
                 melhorMes: 0,
+                top10Bonus: 0,
                 isMito: false,
                 isMico: false,
             };
@@ -180,6 +181,7 @@ export class FluxoFinanceiroCore {
                 pontosCorridos: isSuperCartola2025 ? 0 : null,
                 mataMata: 0,
                 melhorMes: 0,
+                top10Bonus: 0,
                 isMito: false,
                 isMico: false,
             };
@@ -199,6 +201,7 @@ export class FluxoFinanceiroCore {
             : null;
         const mataMata = this._calcularMataMataOtimizado(timeId, rodada);
         const melhorMes = 0;
+        const top10Bonus = this._calcularTop10Bonus(posicaoReal, totalTimes);
 
         return {
             rodada,
@@ -208,9 +211,26 @@ export class FluxoFinanceiroCore {
             pontosCorridos,
             mataMata,
             melhorMes,
+            top10Bonus,
             isMito,
             isMico,
         };
+    }
+
+    _calcularTop10Bonus(posicaoReal, totalTimes) {
+        // TOP 10: 1º ao 10º = +10 reais
+        if (posicaoReal >= 1 && posicaoReal <= 10) {
+            return 10;
+        }
+        
+        // ÚLTIMOS 10: do (total-9) ao último = -10 reais
+        const posicaoUltimos10 = totalTimes - 9;
+        if (posicaoReal >= posicaoUltimos10 && posicaoReal <= totalTimes) {
+            return -10;
+        }
+        
+        // Meio de tabela: sem bônus/ônus
+        return 0;
     }
 
     // OTIMIZADO: Busca O(1) usando Map
@@ -310,6 +330,11 @@ export class FluxoFinanceiroCore {
         // Melhor Mês (futuro)
         const valorBM = typeof rodadaData.melhorMes === "number" ? rodadaData.melhorMes : 0;
         resumo.melhorMes += valorBM;
+
+        // ✅ TOP 10 Bônus/Ônus
+        const valorTop10 = typeof rodadaData.top10Bonus === "number" ? rodadaData.top10Bonus : 0;
+        if (!resumo.top10Bonus) resumo.top10Bonus = 0;
+        resumo.top10Bonus += valorTop10;
     }
 
     _calcularSaldoAcumulado(rodadas) {
@@ -319,7 +344,8 @@ export class FluxoFinanceiroCore {
                 (rodada.bonusOnus || 0) +
                 (rodada.pontosCorridos || 0) +
                 (rodada.mataMata || 0) +
-                (rodada.melhorMes || 0);
+                (rodada.melhorMes || 0) +
+                (rodada.top10Bonus || 0);
             saldoAcumulado += valorRodada;
             rodada.saldo = saldoAcumulado;
         });
@@ -354,8 +380,9 @@ export class FluxoFinanceiroCore {
         const pontosCorridos = parseFloat(resumo.pontosCorridos) || 0;
         const mataMata = parseFloat(resumo.mataMata) || 0;
         const melhorMes = parseFloat(resumo.melhorMes) || 0;
+        const top10Bonus = parseFloat(resumo.top10Bonus) || 0;
 
-        const saldoBase = bonus + onus + pontosCorridos + mataMata + melhorMes;
+        const saldoBase = bonus + onus + pontosCorridos + mataMata + melhorMes + top10Bonus;
 
         // ✅ GARANTIR QUE CAMPOS EDITÁVEIS SEJAM NÚMEROS
         const campo1 = parseFloat(resumo.campo1) || 0;
@@ -373,6 +400,7 @@ export class FluxoFinanceiroCore {
         console.log(`[FLUXO-CORE] Pontos Corridos: R$ ${pontosCorridos.toFixed(2)}`);
         console.log(`[FLUXO-CORE] Mata-Mata: R$ ${mataMata.toFixed(2)}`);
         console.log(`[FLUXO-CORE] Melhor Mês: R$ ${melhorMes.toFixed(2)}`);
+        console.log(`[FLUXO-CORE] TOP 10 Bônus: R$ ${top10Bonus.toFixed(2)}`);
         console.log(`[FLUXO-CORE] -----------------------------------------`);
         console.log(`[FLUXO-CORE] Saldo Base: R$ ${saldoBase.toFixed(2)}`);
         console.log(`[FLUXO-CORE] -----------------------------------------`);

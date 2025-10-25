@@ -286,6 +286,8 @@ export class FluxoFinanceiroUI {
                                      font-size: 13px; text-transform: uppercase; letter-spacing: 0.5px;">Mata-Mata</th>
                                 ` : ''}
                                 <th style="padding: 12px 10px; text-align: center; color: white; font-weight: 700; 
+                                     font-size: 13px; text-transform: uppercase; letter-spacing: 0.5px;">TOP 10<br>MITO ou MICO</th>
+                                <th style="padding: 12px 10px; text-align: center; color: white; font-weight: 700; 
                                      font-size: 13px; text-transform: uppercase; letter-spacing: 0.5px; background: rgba(0,0,0,0.2);">Saldo</th>
                             </tr>
                         </thead>
@@ -330,6 +332,9 @@ export class FluxoFinanceiroUI {
                                         ${formatarValorComCor(r.mataMata)}
                                     </td>
                                     ` : ''}
+                                    <td style="padding: 12px 10px; text-align: center; font-size: 14px;">
+                                        ${formatarValorComCor(r.top10Bonus || 0)}
+                                    </td>
                                     <td style="padding: 12px 10px; text-align: center; font-weight: 700; font-size: 15px;
                                          background: ${corFundoSaldo(r.saldo)};">
                                         ${formatarValorComCor(r.saldo)}
@@ -369,6 +374,13 @@ export class FluxoFinanceiroUI {
                                     })}
                                 </td>
                                 ` : ''}
+                                <td style="padding: 14px 10px; text-align: center; font-weight: 800; font-size: 16px; 
+                                     background: white; color: ${(extrato.resumo.top10Bonus || 0) >= 0 ? '#2ecc71' : '#e74c3c'};">
+                                    ${(extrato.resumo.top10Bonus || 0) >= 0 ? '+' : '-'}R$ ${Math.abs(extrato.resumo.top10Bonus || 0).toLocaleString("pt-BR", {
+                                        minimumFractionDigits: 2,
+                                        maximumFractionDigits: 2,
+                                    })}
+                                </td>
                                 <td style="padding: 14px 10px; text-align: center; font-weight: 800; font-size: 17px;
                                      background: rgba(255, 69, 0, 0.08); border-left: 3px solid var(--laranja); 
                                      color: ${extrato.resumo.saldo >= 0 ? '#2ecc71' : '#e74c3c'};">
