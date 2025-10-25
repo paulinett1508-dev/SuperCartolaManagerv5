@@ -1,4 +1,3 @@
-replit_final_file>
 // SISTEMA DE EXPORTAÇÃO MOBILE DARK HD - BASE UNIFICADA v3.0.1 - CORRIGIDO
 // CORREÇÃO APLICADA: Largura otimizada para layouts complexos
 
