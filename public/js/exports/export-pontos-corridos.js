@@ -13,16 +13,142 @@ console.log(
   "[EXPORT-PONTOS-CORRIDOS-ULTRA-HD] Sistema Ultra HD v4.0.0 PREMIUM carregado",
 );
 
-// ✅ FUNÇÃO DE COMPATIBILIDADE - Exportação de Confrontos/Rodadas
-// Mantém compatibilidade com sistema antigo que chama esta função
+// ✅ FUNÇÃO PARA EXPORTAÇÃO DE CONFRONTOS DA RODADA
 export async function criarBotaoExportacaoPontosCorridosRodada(config) {
   console.log(
-    "[EXPORT-PONTOS-CORRIDOS] criarBotaoExportacaoPontosCorridosRodada chamada (compatibilidade)",
+    "[EXPORT-PONTOS-CORRIDOS] criarBotaoExportacaoPontosCorridosRodada",
+    config,
   );
 
-  // Por enquanto, redireciona para a função principal de classificação
-  // Pode ser implementada versão específica para rodadas no futuro
-  return criarBotaoExportacaoPontosCorridosClassificacao(config);
+  if (!config || typeof config !== "object") {
+    console.error(
+      "[EXPORT-PONTOS-CORRIDOS-RODADA] Configuração inválida:",
+      config,
+    );
+    return;
+  }
+
+  const {
+    containerId,
+    jogos = [],
+    rodadaLiga = "",
+    rodadaCartola = "",
+  } = config;
+
+  const container = document.getElementById(containerId);
+  if (!container) {
+    console.error(
+      `[EXPORT-PONTOS-CORRIDOS-RODADA] Container ${containerId} não encontrado - Tentando novamente em 500ms`,
+    );
+    setTimeout(() => {
+      criarBotaoExportacaoPontosCorridosRodada(config);
+    }, 500);
+    return;
+  }
+
+  // Remove botão existente
+  const botaoExistente = container.querySelector(
+    ".btn-export-pontos-corridos-rodada-ultra-hd",
+  );
+  if (botaoExistente) {
+    botaoExistente.remove();
+  }
+
+  // Criar container do botão
+  const btnContainer = document.createElement("div");
+  btnContainer.style.cssText = "text-align: center; margin: 20px 0;";
+
+  // Criar botão para Rodada
+  const btn = document.createElement("button");
+  btn.className = "btn-export-pontos-corridos-rodada-ultra-hd";
+  btn.innerHTML = `
+  <div style="display: flex; align-items: center; gap: 12px;">
+    <span style="font-size: 18px;">⚡</span>
+    <div>
+      <div style="font-size: 14px; font-weight: 700; letter-spacing: 0.5px;">Exportar Confrontos</div>
+      <div style="font-size: 10px; opacity: 0.9;">Rodada ${rodadaLiga} • Brasileirão R${rodadaCartola}</div>
+    </div>
+  </div>
+`;
+
+  btn.style.cssText = `
+  background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
+  color: white;
+  border: 2px solid #3b82f6;
+  padding: 18px 28px;
+  border-radius: 16px;
+  cursor: pointer;
+  font-family: 'Inter', -apple-system, sans-serif;
+  font-weight: 600;
+  box-shadow: 0 8px 30px rgba(59, 130, 246, 0.5);
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  min-width: 280px;
+  text-transform: none;
+`;
+
+  // Efeitos hover
+  btn.onmouseover = () => {
+    btn.style.transform = "translateY(-4px) scale(1.03)";
+    btn.style.boxShadow = "0 16px 50px rgba(59, 130, 246, 0.7)";
+  };
+
+  btn.onmouseout = () => {
+    btn.style.transform = "translateY(0) scale(1)";
+    btn.style.boxShadow = "0 8px 30px rgba(59, 130, 246, 0.5)";
+  };
+
+  btn.onclick = async () => {
+    const textoOriginal = btn.innerHTML;
+    btn.innerHTML = `
+    <div style="display: flex; align-items: center; gap: 10px;">
+      <div style="
+        width: 24px; 
+        height: 24px; 
+        border: 3px solid rgba(255,255,255,0.3);
+        border-top: 3px solid white;
+        border-radius: 50%;
+        animation: spin 0.8s linear infinite;
+      "></div>
+      <span>Gerando imagem...</span>
+    </div>
+  `;
+    btn.disabled = true;
+
+    try {
+      await exportarPontosCorridosRodadaMobileHD(
+        jogos,
+        rodadaLiga,
+        rodadaCartola,
+      );
+    } catch (error) {
+      console.error(
+        "[EXPORT-PONTOS-CORRIDOS-RODADA] Erro na exportação:",
+        error,
+      );
+      MobileDarkUtils.mostrarErro("Erro ao gerar confrontos. Tente novamente.");
+    } finally {
+      btn.innerHTML = textoOriginal;
+      btn.disabled = false;
+    }
+  };
+
+  // Adicionar animação CSS se não existir
+  if (!document.getElementById("export-ultra-hd-animations")) {
+    const style = document.createElement("style");
+    style.id = "export-ultra-hd-animations";
+    style.textContent = `
+    @keyframes spin {
+      0% { transform: rotate(0deg); }
+      100% { transform: rotate(360deg); }
+    }
+  `;
+    document.head.appendChild(style);
+  }
+
+  btnContainer.appendChild(btn);
+  container.appendChild(btnContainer);
+
+  console.log("[EXPORT-PONTOS-CORRIDOS-RODADA] ✅ Botão ULTRA HD criado");
 }
 
 // ✅ CONFIGURAÇÃO MOBILE-FIRST - RESOLUÇÃO OTIMIZADA
@@ -87,26 +213,16 @@ export async function criarBotaoExportacaoPontosCorridosClassificacao(config) {
   const btnContainer = document.createElement("div");
   btnContainer.style.cssText = "text-align: right; margin: 15px 0;";
 
-  // Criar botão ULTRA HD
+  // Criar botão de Classificação
   const btn = document.createElement("button");
   btn.className = "btn-export-pontos-corridos-classificacao-ultra-hd";
   btn.innerHTML = `
   <div style="display: flex; align-items: center; gap: 12px;">
     <span style="font-size: 18px;">🏆</span>
     <div>
-      <div style="font-size: 14px; font-weight: 700; letter-spacing: 0.5px;">Exportar Classificação HD</div>
-      <div style="font-size: 10px; opacity: 0.9;">Otimizado para Mobile • 1440px</div>
+      <div style="font-size: 14px; font-weight: 700; letter-spacing: 0.5px;">Exportar Classificação</div>
+      <div style="font-size: 10px; opacity: 0.9;">Rodada ${rodadaLiga} • Brasileirão R${rodadaCartola}</div>
     </div>
-    <div style="
-      background: linear-gradient(135deg, #22c55e 0%, #16a34a 100%);
-      color: white;
-      padding: 4px 10px;
-      border-radius: 12px;
-      font-size: 9px;
-      font-weight: 800;
-      letter-spacing: 1px;
-      box-shadow: 0 2px 8px rgba(34,197,94,0.4);
-    ">📱 HD</div>
   </div>
 `;
 
@@ -148,7 +264,7 @@ export async function criarBotaoExportacaoPontosCorridosClassificacao(config) {
         border-radius: 50%;
         animation: spin 0.8s linear infinite;
       "></div>
-      <span>Gerando HD Mobile...</span>
+      <span>Gerando imagem...</span>
     </div>
   `;
     btn.disabled = true;
@@ -165,7 +281,7 @@ export async function criarBotaoExportacaoPontosCorridosClassificacao(config) {
         error,
       );
       MobileDarkUtils.mostrarErro(
-        "Erro ao gerar classificação ULTRA HD. Tente novamente.",
+        "Erro ao gerar classificação. Tente novamente.",
       );
     } finally {
       btn.innerHTML = textoOriginal;
@@ -334,19 +450,6 @@ function criarContainerMobileHD(titulo, subtitulo, metadata = {}) {
           text-shadow: 0 2px 6px rgba(0,0,0,0.4);
         ">${subtitulo}</p>
 
-        <!-- Badge de Qualidade -->
-        <div style="
-          display: inline-block;
-          margin-top: 10px;
-          background: linear-gradient(135deg, #22c55e 0%, #16a34a 100%);
-          color: white;
-          padding: 6px 14px;
-          border-radius: 16px;
-          font-size: ${MOBILE_OPTIMIZED_CONFIG.fontSize.caption}px;
-          font-weight: 800;
-          letter-spacing: 1px;
-          box-shadow: 0 3px 12px rgba(34,197,94,0.5);
-        ">📱 MOBILE HD</div>
       </div>
     </div>
 
@@ -917,6 +1020,300 @@ async function gerarCanvasMobileHD(container, nomeArquivo) {
     "image/png",
     MOBILE_OPTIMIZED_CONFIG.quality,
   );
+}
+
+// ========================================
+// EXPORTAÇÃO MOBILE HD - CONFRONTOS DA RODADA
+// ========================================
+
+async function exportarPontosCorridosRodadaMobileHD(
+  jogos,
+  rodadaLiga,
+  rodadaCartola,
+) {
+  console.log(
+    "[EXPORT-PONTOS-CORRIDOS-RODADA-HD] 🎨 Criando layout Mobile HD de confrontos...",
+  );
+  console.log("[EXPORT-PONTOS-CORRIDOS-RODADA-HD] Jogos recebidos:", jogos);
+
+  // Validar dados
+  if (!Array.isArray(jogos) || jogos.length === 0) {
+    console.error(
+      "[EXPORT-PONTOS-CORRIDOS-RODADA-HD] Nenhum jogo válido encontrado",
+    );
+    MobileDarkUtils.mostrarErro("Nenhum confronto disponível para exportar");
+    return;
+  }
+
+  // Definir títulos
+  const titulo = `⚡ ${rodadaLiga}ª Rodada da Liga`;
+  const subtitulo = `Rodada ${rodadaCartola}ª do Campeonato Brasileiro`;
+
+  console.log("[EXPORT-PONTOS-CORRIDOS-RODADA-HD] Criando container...");
+
+  // Criar container Mobile HD (720px base)
+  const exportContainer = criarContainerMobileHD(titulo, subtitulo, {
+    rodada: rodadaLiga,
+  });
+
+  console.log(
+    "[EXPORT-PONTOS-CORRIDOS-RODADA-HD] Container criado, buscando contentDiv...",
+  );
+
+  const contentDiv = exportContainer.querySelector("#mobile-hd-export-content");
+
+  if (!contentDiv) {
+    console.error(
+      "[EXPORT-PONTOS-CORRIDOS-RODADA-HD] contentDiv não encontrado!",
+    );
+    console.error(
+      "[EXPORT-PONTOS-CORRIDOS-RODADA-HD] Container HTML:",
+      exportContainer.innerHTML.substring(0, 500),
+    );
+    MobileDarkUtils.mostrarErro("Erro ao criar estrutura de exportação");
+    return;
+  }
+
+  console.log(
+    "[EXPORT-PONTOS-CORRIDOS-RODADA-HD] contentDiv encontrado, gerando layout...",
+  );
+
+  // Inserir conteúdo dos confrontos Mobile HD
+  contentDiv.innerHTML = criarLayoutConfrontosRodadaMobileHD(
+    jogos,
+    rodadaLiga,
+    rodadaCartola,
+  );
+
+  console.log(
+    "[EXPORT-PONTOS-CORRIDOS-RODADA-HD] Layout gerado, adicionando ao body...",
+  );
+
+  document.body.appendChild(exportContainer);
+
+  try {
+    // Aguardar renderização e carregamento de imagens
+    await new Promise((resolve) => setTimeout(resolve, 1000));
+
+    const imagens = exportContainer.querySelectorAll("img");
+    if (imagens.length > 0) {
+      console.log(
+        `[EXPORT-PONTOS-CORRIDOS-RODADA-HD] 🖼️ Aguardando ${imagens.length} imagens...`,
+      );
+      await Promise.allSettled(
+        Array.from(imagens).map((img) => {
+          return new Promise((resolve) => {
+            if (img.complete && img.naturalWidth > 0) {
+              resolve();
+            } else {
+              img.onload = resolve;
+              img.onerror = resolve;
+              setTimeout(resolve, 2000);
+            }
+          });
+        }),
+      );
+    }
+
+    await new Promise((resolve) => setTimeout(resolve, 500));
+
+    console.log(
+      "[EXPORT-PONTOS-CORRIDOS-RODADA-HD] Gerando e baixando imagem...",
+    );
+
+    const nomeArquivo = MobileDarkUtils.gerarNomeArquivoMobile(
+      "confrontos_pontos_corridos",
+      {
+        rodada: rodadaLiga,
+      },
+    );
+
+    // A função gerarCanvasMobileDarkHD já faz o download automaticamente
+    await gerarCanvasMobileDarkHD(exportContainer, nomeArquivo);
+
+    console.log("[EXPORT-PONTOS-CORRIDOS-RODADA-HD] Removendo container...");
+    document.body.removeChild(exportContainer);
+
+    console.log("[EXPORT-PONTOS-CORRIDOS-RODADA-HD] ✅ Download iniciado");
+    MobileDarkUtils.mostrarSucesso("Confrontos exportados com sucesso!");
+  } catch (error) {
+    console.error("[EXPORT-PONTOS-CORRIDOS-RODADA-HD] Erro:", error);
+    if (document.body.contains(exportContainer)) {
+      document.body.removeChild(exportContainer);
+    }
+    MobileDarkUtils.mostrarErro(`Erro ao gerar imagem: ${error.message}`);
+    throw error;
+  }
+}
+
+// Layout dos confrontos da rodada em formato tabela profissional
+function criarLayoutConfrontosRodadaMobileHD(jogos, rodadaLiga, rodadaCartola) {
+  if (!Array.isArray(jogos) || jogos.length === 0) {
+    return `
+      <div style="
+        padding: 40px 20px;
+        text-align: center;
+        color: rgba(255,255,255,0.6);
+      ">
+        <div style="font-size: 48px; margin-bottom: 12px;">⚠️</div>
+        <div style="font-size: 16px;">Nenhum confronto disponível</div>
+      </div>
+    `;
+  }
+
+  let confrontosHTML = `
+    <style>
+      .confronto-row { border-bottom: 1px solid rgba(255,255,255,0.1); }
+      .confronto-row:last-child { border-bottom: none; }
+      .time-cell { padding: 12px 8px; vertical-align: middle; }
+      .escudo-img { width: 32px; height: 32px; border-radius: 50%; object-fit: contain; }
+      .placar-cell { text-align: center; padding: 12px 16px; font-family: 'JetBrains Mono', monospace; }
+    </style>
+    <table style="width: 100%; border-collapse: collapse; background: rgba(255,255,255,0.03); border-radius: 12px; overflow: hidden;">
+      <thead>
+        <tr style="background: rgba(255,255,255,0.05); border-bottom: 2px solid rgba(255,255,255,0.1);">
+          <th style="padding: 14px 8px; text-align: left; font-size: ${MOBILE_OPTIMIZED_CONFIG.fontSize.small}px; font-weight: 700; color: rgba(255,255,255,0.7); text-transform: uppercase; letter-spacing: 0.5px;">Mandante</th>
+          <th style="padding: 14px 16px; text-align: center; font-size: ${MOBILE_OPTIMIZED_CONFIG.fontSize.small}px; font-weight: 700; color: rgba(255,255,255,0.7); text-transform: uppercase; letter-spacing: 0.5px; width: 100px;">Placar</th>
+          <th style="padding: 14px 8px; text-align: right; font-size: ${MOBILE_OPTIMIZED_CONFIG.fontSize.small}px; font-weight: 700; color: rgba(255,255,255,0.7); text-transform: uppercase; letter-spacing: 0.5px;">Visitante</th>
+        </tr>
+      </thead>
+      <tbody>
+  `;
+
+  jogos.forEach((jogo, index) => {
+    const timeA = jogo.timeA || {};
+    const timeB = jogo.timeB || {};
+
+    const nomeA = timeA.nome_cartola || timeA.nome_cartoleiro || "N/D";
+    const timeNomeA = timeA.nome_time || "";
+    const pontosA =
+      timeA.pontos !== null && timeA.pontos !== undefined ? timeA.pontos : null;
+    const brasaoA = timeA.clube_id
+      ? `/escudos/${timeA.clube_id}.png`
+      : "/escudos/default.png";
+
+    const nomeB = timeB.nome_cartola || timeB.nome_cartoleiro || "N/D";
+    const timeNomeB = timeB.nome_time || "";
+    const pontosB =
+      timeB.pontos !== null && timeB.pontos !== undefined ? timeB.pontos : null;
+    const brasaoB = timeB.clube_id
+      ? `/escudos/${timeB.clube_id}.png`
+      : "/escudos/default.png";
+
+    // Determinar cores do placar
+    let corPontosA = "rgba(255,255,255,0.9)";
+    let corPontosB = "rgba(255,255,255,0.9)";
+    let bgPlacar = "transparent";
+
+    if (pontosA !== null && pontosB !== null) {
+      const diferenca = Math.abs(pontosA - pontosB);
+
+      if (diferenca <= 1) {
+        // Empate
+        corPontosA = "#3b82f6";
+        corPontosB = "#3b82f6";
+        bgPlacar = "rgba(59, 130, 246, 0.1)";
+      } else if (pontosA > pontosB) {
+        // Time A venceu
+        corPontosA = "#22c55e";
+        corPontosB = "#ef4444";
+        if (diferenca >= 30) {
+          bgPlacar = "rgba(251, 191, 36, 0.15)"; // Goleada
+        } else {
+          bgPlacar = "rgba(34, 197, 94, 0.1)";
+        }
+      } else {
+        // Time B venceu
+        corPontosA = "#ef4444";
+        corPontosB = "#22c55e";
+        if (diferenca >= 30) {
+          bgPlacar = "rgba(251, 191, 36, 0.15)"; // Goleada
+        } else {
+          bgPlacar = "rgba(34, 197, 94, 0.1)";
+        }
+      }
+    }
+
+    confrontosHTML += `
+      <tr class="confronto-row">
+        <!-- Time A (Mandante) -->
+        <td class="time-cell" style="width: 45%;">
+          <div style="display: flex; align-items: center; gap: 10px;">
+            <img src="${brasaoA}" class="escudo-img" onerror="this.src='/escudos/default.png'" alt="Time A" />
+            <div style="flex: 1; min-width: 0;">
+              <div style="
+                font-size: ${MOBILE_OPTIMIZED_CONFIG.fontSize.body}px;
+                font-weight: 700;
+                color: white;
+                overflow: hidden;
+                text-overflow: ellipsis;
+                white-space: nowrap;
+              ">${nomeA}</div>
+              <div style="
+                font-size: ${MOBILE_OPTIMIZED_CONFIG.fontSize.caption}px;
+                color: rgba(255,255,255,0.5);
+                overflow: hidden;
+                text-overflow: ellipsis;
+                white-space: nowrap;
+              ">${timeNomeA}</div>
+            </div>
+          </div>
+        </td>
+
+        <!-- Placar -->
+        <td class="placar-cell" style="background: ${bgPlacar};">
+          <div style="display: flex; align-items: center; justify-content: center; gap: 8px;">
+            <span style="
+              font-size: 20px;
+              font-weight: 900;
+              color: ${corPontosA};
+            ">${pontosA !== null ? pontosA.toFixed(1) : "-"}</span>
+            <span style="
+              font-size: ${MOBILE_OPTIMIZED_CONFIG.fontSize.small}px;
+              color: rgba(255,255,255,0.3);
+              font-weight: 700;
+            ">×</span>
+            <span style="
+              font-size: 20px;
+              font-weight: 900;
+              color: ${corPontosB};
+            ">${pontosB !== null ? pontosB.toFixed(1) : "-"}</span>
+          </div>
+        </td>
+
+        <!-- Time B (Visitante) -->
+        <td class="time-cell" style="width: 45%;">
+          <div style="display: flex; align-items: center; gap: 10px; justify-content: flex-end;">
+            <div style="flex: 1; min-width: 0; text-align: right;">
+              <div style="
+                font-size: ${MOBILE_OPTIMIZED_CONFIG.fontSize.body}px;
+                font-weight: 700;
+                color: white;
+                overflow: hidden;
+                text-overflow: ellipsis;
+                white-space: nowrap;
+              ">${nomeB}</div>
+              <div style="
+                font-size: ${MOBILE_OPTIMIZED_CONFIG.fontSize.caption}px;
+                color: rgba(255,255,255,0.5);
+                overflow: hidden;
+                text-overflow: ellipsis;
+                white-space: nowrap;
+              ">${timeNomeB}</div>
+            </div>
+            <img src="${brasaoB}" class="escudo-img" onerror="this.src='/escudos/default.png'" alt="Time B" />
+          </div>
+        </td>
+      </tr>
+    `;
+  });
+
+  confrontosHTML += `
+      </tbody>
+    </table>
+  `;
+
+  return confrontosHTML;
 }
 
 console.log(

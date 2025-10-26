@@ -338,6 +338,14 @@ async function renderRodada(idxRodada) {
     `Carregando dados da rodada ${idxRodada + 1}`,
   );
 
+  // Limpar container de exportação do topo (usado pela classificação)
+  const containerTopoExportacao = document.getElementById(
+    "exportPontosCorridosContainer",
+  );
+  if (containerTopoExportacao) {
+    containerTopoExportacao.innerHTML = "";
+  }
+
   try {
     // Verificar dependências
     if (!getRankingRodadaEspecifica) {
