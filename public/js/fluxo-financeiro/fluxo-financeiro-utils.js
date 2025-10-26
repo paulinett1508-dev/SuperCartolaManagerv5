@@ -7,20 +7,78 @@ export const RODADA_INICIAL_PONTOS_CORRIDOS = 23;
 
 // ===== VALORES DE BÔNUS/ÔNUS =====
 export const valoresRodadaPadrao = {
-    1: 15, 2: 5, 3: 0, 4: 0, 5: 0, 6: 0, 7: 0, 8: 0, 9: 0, 10: 0,
-    11: 0, 12: 0, 13: 0, 14: 0, 15: 0, 16: 0, 17: 0, 18: 0, 19: 0, 20: 0,
-    21: 0, 22: 0, 23: 0, 24: 0, 25: 0, 26: 0, 27: 0, 28: 0, 29: 0, 30: 0,
-    31: 0, 32: -15
+    1: 15,
+    2: 5,
+    3: 0,
+    4: 0,
+    5: 0,
+    6: 0,
+    7: 0,
+    8: 0,
+    9: 0,
+    10: 0,
+    11: 0,
+    12: 0,
+    13: 0,
+    14: 0,
+    15: 0,
+    16: 0,
+    17: 0,
+    18: 0,
+    19: 0,
+    20: 0,
+    21: 0,
+    22: 0,
+    23: 0,
+    24: 0,
+    25: 0,
+    26: 0,
+    27: 0,
+    28: 0,
+    29: 0,
+    30: 0,
+    31: 0,
+    32: -15,
 };
 
 export const valoresRodadaCartoleirosSobral = {
-    1: 10, 2: 0, 3: 0, 4: 0, 5: 0, 6: -10
+    1: 10,
+    2: 0,
+    3: 0,
+    4: 0,
+    5: 0,
+    6: -10,
 };
 
 // ===== FUNÇÃO PARA NORMALIZAR IDS =====
 export function normalizarTimeId(timeId) {
     if (!timeId) return null;
     return String(timeId).trim();
+}
+
+// ===== FUNÇÃO PARA GERAR RANKING SIMULADO =====
+export function gerarRankingSimulado(rodada, participantes) {
+    if (!Array.isArray(participantes) || participantes.length === 0) {
+        return [];
+    }
+
+    return participantes.map((p, index) => {
+        const timeId = normalizarTimeId(p.time_id || p.timeId || p.id);
+        return {
+            timeId: timeId,
+            time_id: timeId,
+            id: timeId,
+            posicao: index + 1,
+            pontos: 0,
+            patrimonio: 0,
+            rodada: rodada,
+            nome_cartola: p.nome_cartola || "N/D",
+            nome_time: p.nome_time || "Time S/ Nome",
+            clube_id: p.clube_id,
+            url_escudo_png: p.url_escudo_png,
+            escudo_url: p.escudo_url,
+        };
+    });
 }
 
 export class FluxoFinanceiroUtils {
@@ -43,7 +101,7 @@ export class FluxoFinanceiroUtils {
 
     throttle(func, limit) {
         let inThrottle;
-        return function(...args) {
+        return function (...args) {
             if (!inThrottle) {
                 func.apply(this, args);
                 inThrottle = true;

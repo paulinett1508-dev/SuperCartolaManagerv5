@@ -374,6 +374,35 @@ function renderizarErro(mensagem) {
 // ==============================
 // FUNÇÕES PARA OBTER DADOS (COMPATIBILIDADE)
 // ==============================
+
+// ✅ NOVA: Garante que os dados estão carregados
+export async function garantirDadosCarregados() {
+  // Se já tem dados, retorna imediatamente
+  if (todosOsMitos.length > 0 && todosOsMicos.length > 0) {
+    console.log("[TOP10] Dados já carregados, retornando cache");
+    return {
+      mitos: todosOsMitos.slice(0, 10),
+      micos: todosOsMicos.slice(0, 10),
+    };
+  }
+
+  // Carrega os dados
+  console.log("[TOP10] Carregando dados para integração...");
+  try {
+    await carregarDadosTop10();
+    console.log(
+      `[TOP10] Dados carregados: ${todosOsMitos.length} mitos, ${todosOsMicos.length} micos`,
+    );
+    return {
+      mitos: todosOsMitos.slice(0, 10),
+      micos: todosOsMicos.slice(0, 10),
+    };
+  } catch (error) {
+    console.error("[TOP10] Erro ao carregar dados:", error);
+    return { mitos: [], micos: [] };
+  }
+}
+
 export function getMitosData() {
   return todosOsMitos.slice(0, 10);
 }

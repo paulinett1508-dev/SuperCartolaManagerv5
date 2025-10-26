@@ -1,11 +1,12 @@
 # 📊 Análise do Sistema Super Cartola Manager
 
-**Data da Análise:** 22/10/2025, 20:46:27
+**Data da Análise:** 25/10/2025, 15:15:07
 
 ---
 
 ## 📁 Estrutura do Sistema
 
+- 📁 **attached_assets/**
 - 📁 **backups/**
 - 📁 **config/**
 - 📁 **controllers/**
@@ -56,7 +57,7 @@
 
 ## 🔍 Análise por Categoria
 
-### Frontend (Cliente) (163 arquivos)
+### Frontend (Cliente) (166 arquivos)
 
 - 📄 **backup-sistema-completo.js** - 📝 Script JavaScript
   - 📏 Tamanho: 8KB | Linhas: 294
@@ -78,6 +79,8 @@
   - 📏 Tamanho: 17KB | Linhas: 512
 - 📄 **controllers/luvaDeOuroController.js** - 🥅 Sistema Luva de Ouro
   - 📏 Tamanho: 16KB | Linhas: 549
+- 📄 **controllers/participanteStatusController.js** - 📝 Script JavaScript
+  - 📏 Tamanho: 4KB | Linhas: 155
 - 📄 **controllers/rodadaController.js** - 📅 Gestão de Rodadas
   - 📏 Tamanho: 13KB | Linhas: 418
 - 📄 **controllers/timeController.js** - 📝 Script JavaScript
@@ -86,7 +89,7 @@
 - 📄 **handover.js** - 📝 Script JavaScript
   - 📏 Tamanho: 12KB | Linhas: 444
 - 📄 **index.js** - 🏠 Página principal/Entry point
-  - 📏 Tamanho: 11KB | Linhas: 352
+  - 📏 Tamanho: 11KB | Linhas: 351
 - 📄 **models/ArtilheiroCampeao.js** - ⚽ Sistema Artilheiro Campeão
   - 📏 Tamanho: 1KB | Linhas: 39
 - 📄 **models/FluxoFinanceiroCampos.js** - 📝 Script JavaScript
@@ -99,6 +102,7 @@
 - 📄 **models/Rodada.js** - 📅 Gestão de Rodadas
   - 📏 Tamanho: 1KB | Linhas: 19
 - 📄 **models/Time.js** - 📝 Script JavaScript
+  - 📏 Tamanho: 1KB | Linhas: 19
 - 📄 **public/admin.html** - 👤 Administração/Gestão
   - 📏 Tamanho: 28KB | Linhas: 755
 - 📄 **public/criar-liga.html** - 🏆 Funcionalidades de Liga
@@ -114,7 +118,7 @@
 - 📄 **public/css/modules/ferramentas.css** - 🧩 Módulo do sistema
   - 📏 Tamanho: 3KB | Linhas: 151
 - 📄 **public/css/modules/fluxo-financeiro.css** - 🧩 Módulo do sistema
-  - 📏 Tamanho: 27KB | Linhas: 1059
+  - 📏 Tamanho: 27KB | Linhas: 1065
 - 📄 **public/css/modules/luva-de-ouro.css** - 🧩 Módulo do sistema
   - 📏 Tamanho: 14KB | Linhas: 693
 - 📄 **public/css/modules/mata-mata.css** - 🧩 Módulo do sistema
@@ -122,7 +126,7 @@
 - 📄 **public/css/modules/melhor-mes.css** - 🧩 Módulo do sistema
   - 📏 Tamanho: 12KB | Linhas: 601
 - 📄 **public/css/modules/participantes.css** - 🧩 Módulo do sistema
-  - 📏 Tamanho: 12KB | Linhas: 622
+  - 📏 Tamanho: 13KB | Linhas: 677
 - 📄 **public/css/modules/pontos-corridos.css** - 🧩 Módulo do sistema
   - 📏 Tamanho: 22KB | Linhas: 1107
 - 📄 **public/css/modules/ranking-geral.css** - 🧩 Módulo do sistema
@@ -195,11 +199,11 @@
 - 📄 **public/js/exports/export-artilheiro-campeao.js** - ⚽ Sistema Artilheiro Campeão
   - 📏 Tamanho: 16KB | Linhas: 485
 - 📄 **public/js/exports/export-base.js** - 📝 Script JavaScript
-  - 📏 Tamanho: 24KB | Linhas: 785
+  - 📏 Tamanho: 10KB | Linhas: 306
 - 📄 **public/js/exports/export-exports.js** - 📝 Script JavaScript
   - 📏 Tamanho: 16KB | Linhas: 600
 - 📄 **public/js/exports/export-extrato-financeiro.js** - 📝 Script JavaScript
-  - 📏 Tamanho: 28KB | Linhas: 889
+  - 📏 Tamanho: 36KB | Linhas: 1074
 - 📄 **public/js/exports/export-mata-mata.js** - 📝 Script JavaScript
   - 📏 Tamanho: 21KB | Linhas: 625
 - 📄 **public/js/exports/export-melhor-mes.js** - 📝 Script JavaScript
@@ -208,6 +212,8 @@
   - 📏 Tamanho: 30KB | Linhas: 934
 - 📄 **public/js/exports/export-ranking-geral.js** - 🏅 Sistema de Rankings
   - 📏 Tamanho: 20KB | Linhas: 632
+- 📄 **public/js/exports/export-relatorio-consolidado.js** - 📝 Script JavaScript
+  - 📏 Tamanho: 12KB | Linhas: 198
 - 📄 **public/js/exports/export-rodadas-hq.js** - 📅 Gestão de Rodadas
   - 📏 Tamanho: 20KB | Linhas: 639
 - 📄 **public/js/exports/export-top10.js** - 📝 Script JavaScript
@@ -223,13 +229,13 @@
 - 📄 **public/js/fluxo-financeiro/fluxo-financeiro-campos.js** - 📝 Script JavaScript
   - 📏 Tamanho: 9KB | Linhas: 272
 - 📄 **public/js/fluxo-financeiro/fluxo-financeiro-core.js** - 📝 Script JavaScript
-  - 📏 Tamanho: 11KB | Linhas: 332
+  - 📏 Tamanho: 18KB | Linhas: 487
 - 📄 **public/js/fluxo-financeiro/fluxo-financeiro-ui.js** - 📝 Script JavaScript
-  - 📏 Tamanho: 32KB | Linhas: 551
+  - 📏 Tamanho: 50KB | Linhas: 781
 - 📄 **public/js/fluxo-financeiro/fluxo-financeiro-utils.js** - 📝 Script JavaScript
-  - 📏 Tamanho: 10KB | Linhas: 334
+  - 📏 Tamanho: 2KB | Linhas: 73
 - 📄 **public/js/fluxo-financeiro.js** - 📝 Script JavaScript
-  - 📏 Tamanho: 17KB | Linhas: 468
+  - 📏 Tamanho: 22KB | Linhas: 622
 - 📄 **public/js/gerenciar-ligas.js** - 🏆 Funcionalidades de Liga
   - 📏 Tamanho: 8KB | Linhas: 273
 - 📄 **public/js/gols-por-rodada.js** - 📅 Gestão de Rodadas
@@ -259,7 +265,7 @@
 - 📄 **public/js/mata-mata/mata-mata-confrontos.js** - 📝 Script JavaScript
   - 📏 Tamanho: 7KB | Linhas: 217
 - 📄 **public/js/mata-mata/mata-mata-financeiro.js** - 📝 Script JavaScript
-  - 📏 Tamanho: 16KB | Linhas: 541
+  - 📏 Tamanho: 16KB | Linhas: 551
 - 📄 **public/js/mata-mata/mata-mata-orquestrador.js** - 📝 Script JavaScript
   - 📏 Tamanho: 14KB | Linhas: 470
 - 📄 **public/js/mata-mata/mata-mata-ui.js** - 📝 Script JavaScript
@@ -279,7 +285,7 @@
 - 📄 **public/js/navigation.js** - 🧭 Sistema de navegação
   - 📏 Tamanho: 3KB | Linhas: 76
 - 📄 **public/js/participantes.js** - 📝 Script JavaScript
-  - 📏 Tamanho: 14KB | Linhas: 419
+  - 📏 Tamanho: 17KB | Linhas: 505
 - 📄 **public/js/pontos-corridos/pontos-corridos-cache.js** - 📝 Script JavaScript
   - 📏 Tamanho: 6KB | Linhas: 211
 - 📄 **public/js/pontos-corridos/pontos-corridos-config.js** - ⚙️ Arquivo de configuração
@@ -352,7 +358,7 @@
   - 📏 Tamanho: 1KB | Linhas: 28
 - 📄 **routes/rodadas-routes.js** - 📅 Gestão de Rodadas
 - 📄 **routes/times.js** - 📝 Script JavaScript
-  - 📏 Tamanho: 1KB | Linhas: 20
+  - 📏 Tamanho: 2KB | Linhas: 51
 - 📄 **scripts/exportar-escudos-unicos.js** - 📝 Script JavaScript
   - 📏 Tamanho: 1KB | Linhas: 47
 - 📄 **scripts/limpartimes.js** - 📝 Script JavaScript
@@ -373,6 +379,8 @@
   - 📏 Tamanho: 19KB | Linhas: 617
 - 📄 **uploadToDrive.js** - 📝 Script JavaScript
   - 📏 Tamanho: 2KB | Linhas: 70
+- 📄 **utils/participanteUtils.js** - 📝 Script JavaScript
+  - 📏 Tamanho: 1KB | Linhas: 36
 - 📄 **utils/validators.js** - 📝 Script JavaScript
   - 📏 Tamanho: 9KB | Linhas: 337
 - 📄 **ux-analyzer.js** - 📝 Script JavaScript
@@ -402,8 +410,39 @@
 - 📄 **scripts/times-da-liga.json** - 🏆 Funcionalidades de Liga
   - 📏 Tamanho: 2KB | Linhas: 46
 
-### Assets (17 arquivos)
+### Documentação (13 arquivos)
 
+- 📄 **attached_assets/Pasted--CARDS-CONDICIONAIS-Carregando-sistema-CARDS-CONDICIONAIS-M-dulo-carregado-SIST-1761400355356_1761400355357.txt** - ❓ Arquivo genérico
+  - 📏 Tamanho: 11KB | Linhas: 148
+- 📄 **attached_assets/Pasted--RODADAS-CORE-Tentando-endpoint-api-rodadas-684cb1c8af923da7c7df51de-rodadas-inicio-23-fim-23--1761259602827_1761259602830.txt** - 📅 Gestão de Rodadas
+  - 📏 Tamanho: 59KB | Linhas: 1004
+- 📄 **attached_assets/Pasted-cards-condicionais-js-4-CARDS-CONDICIONAIS-Carregando-sistema-cards-condicionais-js-343--1761259858349_1761259858351.txt** - ❓ Arquivo genérico
+  - 📏 Tamanho: 11KB | Linhas: 135
+- 📄 **attached_assets/Pasted-cards-condicionais-js-4-CARDS-CONDICIONAIS-Carregando-sistema-cards-condicionais-js-343--1761335286502_1761335286505.txt** - ❓ Arquivo genérico
+  - 📏 Tamanho: 102KB | Linhas: 1349
+- 📄 **attached_assets/Pasted-cards-condicionais-js-4-CARDS-CONDICIONAIS-Carregando-sistema-cards-condicionais-js-343--1761400557610_1761400557615.txt** - ❓ Arquivo genérico
+  - 📏 Tamanho: 73KB | Linhas: 1066
+- 📄 **attached_assets/Pasted-cards-condicionais-js-4-CARDS-CONDICIONAIS-Carregando-sistema-cards-condicionais-js-343--1761400790180_1761400790180.txt** - ❓ Arquivo genérico
+  - 📏 Tamanho: 14KB | Linhas: 177
+- 📄 **attached_assets/Pasted-cards-condicionais-js-4-CARDS-CONDICIONAIS-Carregando-sistema-cards-condicionais-js-343--1761401755798_1761401755800.txt** - ❓ Arquivo genérico
+  - 📏 Tamanho: 92KB | Linhas: 1223
+- 📄 **attached_assets/Pasted-cards-condicionais-js-4-CARDS-CONDICIONAIS-Carregando-sistema-cards-condicionais-js-343--1761401774250_1761401774252.txt** - ❓ Arquivo genérico
+  - 📏 Tamanho: 92KB | Linhas: 1223
+- 📄 **attached_assets/Pasted-cards-condicionais-js-4-CARDS-CONDICIONAIS-Carregando-sistema-cards-condicionais-js-343--1761401885779_1761401885779.txt** - ❓ Arquivo genérico
+  - 📏 Tamanho: 5KB | Linhas: 67
+- 📄 **attached_assets/Pasted-cards-condicionais-js-4-CARDS-CONDICIONAIS-Carregando-sistema-cards-condicionais-js-343--1761401997478_1761401997480.txt** - ❓ Arquivo genérico
+  - 📏 Tamanho: 5KB | Linhas: 67
+- 📄 **attached_assets/Pasted-cards-condicionais-js-4-CARDS-CONDICIONAIS-Carregando-sistema-cards-condicionais-js-343--1761403886962_1761403886964.txt** - ❓ Arquivo genérico
+  - 📏 Tamanho: 10KB | Linhas: 132
+- 📄 **attached_assets/Pasted-cards-condicionais-js-4-CARDS-CONDICIONAIS-Carregando-sistema-cards-condicionais-js-343--1761404666497_1761404666499.txt** - ❓ Arquivo genérico
+  - 📏 Tamanho: 11KB | Linhas: 139
+- 📄 **attached_assets/Pasted-rodadas-core-js-91-RODADAS-CORE-Dados-encontrados-no-endpoint-api-rodadas-684cb1c8af923da7c7df51-1761311464545_1761311464551.txt** - 📅 Gestão de Rodadas
+  - 📏 Tamanho: 79KB | Linhas: 1056
+
+### Assets (19 arquivos)
+
+- 📄 **attached_assets/image_1761333863393.png** - ❓ Arquivo genérico
+- 📄 **attached_assets/image_1761338638676.png** - ❓ Arquivo genérico
 - 📄 **generated-icon.png** - ❓ Arquivo genérico
 - 📄 **public/escudos/262.png** - ❓ Arquivo genérico
 - 📄 **public/escudos/263.png** - ❓ Arquivo genérico
@@ -456,6 +495,11 @@
 
 - **Exports:** `export default LuvaDeOuroController`
 - **Tamanho:** 16KB | **Linhas:** 549
+
+#### 📜 controllers/participanteStatusController.js
+
+- **Exports:** `export const, export const, export const, export const`
+- **Tamanho:** 4KB | **Linhas:** 155
 
 #### 📜 controllers/rodadaController.js
 
@@ -514,7 +558,7 @@
 #### 📜 routes/times.js
 
 - **Exports:** `export default router`
-- **Tamanho:** 1KB | **Linhas:** 20
+- **Tamanho:** 2KB | **Linhas:** 51
 
 #### 📜 services/cartolaApiService.js
 
@@ -581,31 +625,32 @@
 
 | Métrica | Valor |
 |---------|-------|
-| **Total de arquivos** | 195 |
-| **Tamanho total** | 4904 KB |
-| **Tamanho médio** | 25 KB |
+| **Total de arquivos** | 213 |
+| **Tamanho total** | 5562 KB |
+| **Tamanho médio** | 26 KB |
 
 ### 📋 Por Tipo de Arquivo
 
 | Tipo | Quantidade |
 |------|------------|
-| 🎨 **frontend** | 163 |
+| 📖 **docs** | 13 |
+| 🖼️ **assets** | 19 |
+| 🎨 **frontend** | 166 |
 | ⚙️ **config** | 11 |
 | ❓ **other** | 4 |
-| 🖼️ **assets** | 17 |
 
 ### 📏 Por Tamanho de Arquivo
 
 | Categoria | Quantidade | Descrição |
 |-----------|------------|----------|
-| 🟢 **Pequenos** | 79 | < 5KB |
-| 🟡 **Médios** | 112 | 5-50KB |
-| 🔴 **Grandes** | 4 | > 50KB |
+| 🟢 **Pequenos** | 84 | < 5KB |
+| 🟡 **Médios** | 117 | 5-50KB |
+| 🔴 **Grandes** | 12 | > 50KB |
 
 ### 🔍 Insights da Arquitetura
 
 - **Arquitetura:** Backend
 - **Complexidade Frontend:** Baixa (0 módulos)
-- **Complexidade Backend:** Alta (18 rotas/controllers)
+- **Complexidade Backend:** Alta (19 rotas/controllers)
 - **Modularização:** Muito modular
 

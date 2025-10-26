@@ -168,8 +168,13 @@ async function exportarExtratoFinanceiroMobileDarkHD(config) {
   ]);
 
   if (!Array.isArray(dadosExtrato) || dadosExtrato.length === 0) {
-    console.error("[EXPORT-EXTRATO-FINANCEIRO-MOBILE] Dados do extrato inválidos:", dadosExtrato);
-    throw new Error("Dados do extrato inválidos ou vazios. Verifique se há dados financeiros disponíveis.");
+    console.error(
+      "[EXPORT-EXTRATO-FINANCEIRO-MOBILE] Dados do extrato inválidos:",
+      dadosExtrato,
+    );
+    throw new Error(
+      "Dados do extrato inválidos ou vazios. Verifique se há dados financeiros disponíveis.",
+    );
   }
 
   const titulo = `💰 Extrato Financeiro`;
@@ -181,9 +186,12 @@ async function exportarExtratoFinanceiroMobileDarkHD(config) {
 
   const contentDiv = exportContainer.querySelector("#mobile-export-content");
 
-  // ✅ DETERMINAR SE HÁ DADOS DE PONTOS CORRIDOS E MATA-MATA PARA AJUSTAR O LAYOUT
-  const temPontosCorridos = dadosExtrato.some(item => item.tipo === "pontos_corridos");
-  const temMataMata = dadosExtrato.some(item => item.tipo === "mata_mata");
+  // ✅ DETERMINAR SE HÁ DADOS DE PONTOS CORRIDOS, MATA-MATA E TOP 10 PARA AJUSTAR O LAYOUT
+  const temPontosCorridos = dadosExtrato.some(
+    (item) => item.tipo === "pontos_corridos",
+  );
+  const temMataMata = dadosExtrato.some((item) => item.tipo === "mata_mata");
+  const temTop10 = dadosExtrato.some((item) => item.tipo === "top10");
 
   contentDiv.innerHTML = criarLayoutExtratoFinanceiroMobile(
     dadosExtrato,
@@ -191,6 +199,7 @@ async function exportarExtratoFinanceiroMobileDarkHD(config) {
     rodadaAtual,
     temPontosCorridos,
     temMataMata,
+    temTop10,
   );
 
   document.body.appendChild(exportContainer);
@@ -223,8 +232,8 @@ async function exportarExtratoFinanceiroMobileDarkHD(config) {
       extra: participante?.nome_cartola?.replace(/\s/g, "_") || "participante",
     });
 
-    // ✅ AUMENTAR ESCALA PARA MELHOR QUALIDADE DE IMAGEM
-    await gerarCanvasMobileDarkHD(exportContainer, nomeArquivo, 4);
+    // ✅ AUMENTAR ESCALA PARA MÁXIMA QUALIDADE DE IMAGEM (6x)
+    await gerarCanvasMobileDarkHD(exportContainer, nomeArquivo, 6);
 
     console.log("[EXPORT-EXTRATO-FINANCEIRO-MOBILE] Exportação concluída");
     MobileDarkUtils.mostrarSucesso("Extrato financeiro exportado com sucesso!");
@@ -261,22 +270,37 @@ function criarLayoutExtratoFinanceiroMobile(
   dadosExtrato,
   participante,
   rodadaAtual,
-  temPontosCorridos, // ✅ Parâmetro adicionado
-  temMataMata,       // ✅ Parâmetro adicionado
+  temPontosCorridos,
+  temMataMata,
+  temTop10,
 ) {
   const dadosValidados = Array.isArray(dadosExtrato) ? dadosExtrato : [];
+
   const resumoFinanceiro = calcularResumoFinanceiro(dadosValidados);
   const detalhamentoPorRodada = estruturarDetalhamentoPorRodada(dadosValidados);
+
+  // ✅ DEBUG: Verificar campos editáveis
+  console.log("[EXPORT-EXTRATO-FINANCEIRO-MOBILE] 🔍 DEBUG Campos Editáveis:");
+  console.log("  - Total de itens no extrato:", dadosValidados.length);
+  console.log(
+    "  - Campos editáveis encontrados:",
+    resumoFinanceiro.camposEditaveis.length,
+  );
+  console.log("  - Dados dos campos:", resumoFinanceiro.camposEditaveis);
+
+  const camposEditaveisNoArray = dadosValidados.filter(
+    (item) => item.tipo === "campo_editavel",
+  );
+  console.log(
+    "  - Campos editáveis no array original:",
+    camposEditaveisNoArray.length,
+  );
+  console.log("  - Dados originais:", camposEditaveisNoArray);
 
   const saldoPositivo = resumoFinanceiro.saldoFinal >= 0;
   const gradienteSaldo = saldoPositivo
     ? MOBILE_DARK_HD_CONFIG.colors.gradientSuccess
     : MOBILE_DARK_HD_CONFIG.colors.gradientDanger;
-
-  // ✅ REMOVIDO: A detecção de isSuperCartola foi substituída por temPontosCorridos e temMataMata
-  // const isSuperCartola = detalhamentoPorRodada.some(
-  //   (r) => r.pontosCorridos !== null && r.pontosCorridos !== undefined,
-  // );
 
   const totalRodadas = detalhamentoPorRodada.length;
 
@@ -300,45 +324,46 @@ function criarLayoutExtratoFinanceiroMobile(
   }
 
   // ✅ CALCULAR TOTAIS PARA LINHA FINAL (IGUAL À TELA)
-  const totalBonusOnus = resumoFinanceiro.totalBonus + resumoFinanceiro.totalOnus;
+  const totalBonusOnus =
+    resumoFinanceiro.totalBonus + resumoFinanceiro.totalOnus;
 
   return `
-    <!-- CARD EXPANDIDO - INFO PARTICIPANTE -->
+    <!-- CARD COMPACTO - INFO PARTICIPANTE -->
     <div style="
       background: ${MOBILE_DARK_HD_CONFIG.colors.surface};
       border: 1px solid ${MOBILE_DARK_HD_CONFIG.colors.border};
-      border-radius: 12px;
-      padding: 14px;
-      margin-bottom: 16px;
+      border-radius: 10px;
+      padding: 12px;
+      margin-bottom: 12px;
       box-shadow: ${MOBILE_DARK_HD_CONFIG.colors.shadowLight};
     ">
-      <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 10px;">
+      <div style="display: flex; align-items: center; gap: 10px;">
         <!-- Escudo do Time -->
         ${
           participante?.clube_id
             ? `
           <img src="/escudos/${participante.clube_id}.png"
                style="
-                 width: 40px; 
-                 height: 40px; 
+                 width: 36px; 
+                 height: 36px; 
                  border-radius: 50%; 
                  border: 2px solid ${MOBILE_DARK_HD_CONFIG.colors.warning};
                  background: ${MOBILE_DARK_HD_CONFIG.colors.surfaceLight};
                  flex-shrink: 0;
                "
-               onerror="this.outerHTML='<div style=\\'width:40px;height:40px;background:${MOBILE_DARK_HD_CONFIG.colors.warning};border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0;\\'>⚽</div>'"
+               onerror="this.outerHTML='<div style=\\'width:36px;height:36px;background:${MOBILE_DARK_HD_CONFIG.colors.warning};border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:16px;flex-shrink:0;\\'>⚽</div>'"
                alt="Escudo">
         `
             : `
           <div style="
-            width: 40px; 
-            height: 40px; 
+            width: 36px; 
+            height: 36px; 
             background: ${MOBILE_DARK_HD_CONFIG.colors.warning}; 
             border-radius: 50%; 
             display: flex; 
             align-items: center; 
             justify-content: center; 
-            font-size: 18px;
+            font-size: 16px;
             flex-shrink: 0;
           ">⚽</div>
         `
@@ -347,27 +372,21 @@ function criarLayoutExtratoFinanceiroMobile(
         <!-- Informações Principais -->
         <div style="flex: 1; min-width: 0;">
           <div style="
-            font: ${MOBILE_DARK_HD_CONFIG.fonts.weights.bold} ${MOBILE_DARK_HD_CONFIG.fonts.body};
+            font: ${MOBILE_DARK_HD_CONFIG.fonts.weights.bold} 14px Inter;
             color: ${MOBILE_DARK_HD_CONFIG.colors.text};
-            margin-bottom: 3px;
+            margin-bottom: 2px;
             overflow: hidden;
             text-overflow: ellipsis;
             white-space: nowrap;
           ">${participante?.nome_cartola || participante?.nome_cartoleiro || "Participante"}</div>
 
           <div style="
-            font: ${MOBILE_DARK_HD_CONFIG.fonts.weights.medium} ${MOBILE_DARK_HD_CONFIG.fonts.caption};
+            font: ${MOBILE_DARK_HD_CONFIG.fonts.weights.medium} 11px Inter;
             color: ${MOBILE_DARK_HD_CONFIG.colors.textSecondary};
-            margin-bottom: 2px;
             overflow: hidden;
             text-overflow: ellipsis;
             white-space: nowrap;
-          ">${participante?.nome_time || "Time não informado"}</div>
-
-          <div style="
-            font: ${MOBILE_DARK_HD_CONFIG.fonts.weights.regular} ${MOBILE_DARK_HD_CONFIG.fonts.mini};
-            color: ${MOBILE_DARK_HD_CONFIG.colors.textMuted};
-          ">até rodada ${rodadaAtual}</div>
+          ">${participante?.nome_time || "Time não informado"} • até R${rodadaAtual}</div>
         </div>
       </div>
     </div>
@@ -375,25 +394,25 @@ function criarLayoutExtratoFinanceiroMobile(
     <!-- MINI CARD SALDO FINAL -->
     <div style="
       background: ${gradienteSaldo};
-      border-radius: 10px;
-      padding: 12px 16px;
-      margin-bottom: 16px;
+      border-radius: 8px;
+      padding: 10px 14px;
+      margin-bottom: 12px;
       text-align: center;
       box-shadow: ${MOBILE_DARK_HD_CONFIG.colors.shadow};
       display: flex;
       align-items: center;
       justify-content: space-between;
-      gap: 12px;
+      gap: 10px;
     ">
       <div style="
-        font: ${MOBILE_DARK_HD_CONFIG.fonts.weights.bold} 15px Inter;
+        font: ${MOBILE_DARK_HD_CONFIG.fonts.weights.bold} 13px Inter;
         color: rgba(255,255,255,0.95);
         text-transform: uppercase;
-        letter-spacing: 1.2px;
+        letter-spacing: 1px;
       ">${resumoFinanceiro.saldoFinal < 0 ? "💸 A Pagar" : resumoFinanceiro.saldoFinal > 0 ? "💰 A Receber" : "✅ Saldo"}</div>
 
       <div style="
-        font: ${MOBILE_DARK_HD_CONFIG.fonts.weights.extrabold} 20px Inter;
+        font: ${MOBILE_DARK_HD_CONFIG.fonts.weights.extrabold} 18px Inter;
         color: ${MOBILE_DARK_HD_CONFIG.colors.text};
         text-shadow: 0 1px 3px rgba(0,0,0,0.3);
       ">
@@ -401,17 +420,17 @@ function criarLayoutExtratoFinanceiroMobile(
       </div>
     </div>
 
-    <!-- GRID RESUMO FINANCEIRO (SEM PONTOS CORRIDOS E MATA-MATA) -->
+    <!-- GRID RESUMO FINANCEIRO COMPACTO -->
     <div style="
       display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: ${MOBILE_DARK_HD_CONFIG.cardSpacing}px;
-      margin-bottom: 16px;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 8px;
+      margin-bottom: 12px;
     ">
-      ${criarCardResumo("💚 Bônus Total", resumoFinanceiro.totalBonus, MOBILE_DARK_HD_CONFIG.colors.success)}
-      ${criarCardResumo("💔 Ônus Total", resumoFinanceiro.totalOnus, MOBILE_DARK_HD_CONFIG.colors.danger)}
-      ${criarCardResumo("🎩 Vezes MITO", resumoFinanceiro.vezesMito, MOBILE_DARK_HD_CONFIG.colors.gold, false, true)}
-      ${criarCardResumo("🐵 Vezes MICO", resumoFinanceiro.vezesMico, MOBILE_DARK_HD_CONFIG.colors.danger, false, true)}
+      ${criarCardResumoCompacto("💚 Bônus", resumoFinanceiro.totalBonus, MOBILE_DARK_HD_CONFIG.colors.success)}
+      ${criarCardResumoCompacto("💔 Ônus", resumoFinanceiro.totalOnus, MOBILE_DARK_HD_CONFIG.colors.danger)}
+      ${criarCardResumoCompacto("🎩 MITO", resumoFinanceiro.vezesMito, MOBILE_DARK_HD_CONFIG.colors.gold, false, true)}
+      ${criarCardResumoCompacto("🐵 MICO", resumoFinanceiro.vezesMico, MOBILE_DARK_HD_CONFIG.colors.danger, false, true)}
     </div>
 
     ${resumoFinanceiro.camposEditaveis.length > 0 ? criarSecaoAjustesManuais(resumoFinanceiro.camposEditaveis) : ""}
@@ -440,18 +459,26 @@ function criarLayoutExtratoFinanceiroMobile(
       </div>
 
       <div style="padding: ${MOBILE_DARK_HD_CONFIG.padding}px 0;">
-        ${detalhamentoPorRodada.length === 0
+        ${
+          detalhamentoPorRodada.length === 0
             ? `<div style="text-align: center; padding: 40px 20px; color: ${MOBILE_DARK_HD_CONFIG.colors.textMuted};">Nenhuma rodada encontrada</div>`
             : detalhamentoPorRodada
                 .map((rodada, index) => {
-                    const temTop10 = rodada.top10 !== undefined && rodada.top10 !== 0;
-                    return criarItemExtratoRodadaMobile(rodada, index, temPontosCorridos, temMataMata, temTop10);
+                  return criarItemExtratoRodadaMobile(
+                    rodada,
+                    index,
+                    temPontosCorridos,
+                    temMataMata,
+                    temTop10,
+                  );
                 })
                 .join("")
         }
 
-        <!-- LINHA DE TOTAIS (IGUAL À TELA) -->
-        ${detalhamentoPorRodada.length > 0 ? `
+        <!-- LINHA DE TOTAIS (ALINHADA COM AS RODADAS) -->
+        ${
+          detalhamentoPorRodada.length > 0
+            ? `
         <div style="
           display: flex;
           align-items: center;
@@ -461,30 +488,44 @@ function criarLayoutExtratoFinanceiroMobile(
           min-height: 60px;
           box-shadow: 0 2px 8px rgba(0,0,0,0.1);
         ">
+          <!-- Espaço alinhado com número da rodada (R1, R2...) -->
           <div style="
             padding: 6px 10px;
             border-radius: 8px;
             margin-right: 12px;
-            min-width: 80px;
-            text-align: right;
+            min-width: 40px;
+            text-align: center;
+            flex-shrink: 0;
+            visibility: hidden;
+          ">-</div>
+
+          <!-- Label TOTAIS: alinhado com posição -->
+          <div style="
+            padding: 6px 10px;
+            border-radius: 8px;
+            margin-right: 12px;
+            min-width: 50px;
+            text-align: center;
             font: ${MOBILE_DARK_HD_CONFIG.fonts.weights.extrabold} ${MOBILE_DARK_HD_CONFIG.fonts.bodySmall};
             color: ${MOBILE_DARK_HD_CONFIG.colors.warning};
             flex-shrink: 0;
             text-transform: uppercase;
-            letter-spacing: 1px;
-          ">TOTAIS:</div>
+            letter-spacing: 0.5px;
+          ">TOTAIS</div>
 
+          <!-- Grid de valores alinhado com as colunas das rodadas -->
           <div style="
             flex: 1;
             display: grid;
-            grid-template-columns: ${temPontosCorridos ? "1fr 1fr" : "1fr"}; /* Ajustado para usar temPontosCorridos */
+            grid-template-columns: ${temPontosCorridos && temMataMata && temTop10 ? "1fr 1fr 1fr 1fr" : temPontosCorridos && temMataMata ? "1fr 1fr 1fr" : temPontosCorridos && temTop10 ? "1fr 1fr 1fr" : temPontosCorridos ? "1fr 1fr" : "1fr"};
             gap: 8px;
             margin-right: 12px;
           ">
             <div style="text-align: center;">
               <div style="
-                font: ${MOBILE_DARK_HD_CONFIG.fonts.weights.extrabold} ${MOBILE_DARK_HD_CONFIG.fonts.heading};
-                color: ${totalBonusOnus >= 0 ? MOBILE_DARK_HD_CONFIG.colors.success : MOBILE_DARK_HD_CONFIG.colors.danger};
+                font: ${MOBILE_DARK_HD_CONFIG.fonts.weights.extrabold} 13px Inter;
+                color: ${totalBonusOnus === 0 ? MOBILE_DARK_HD_CONFIG.colors.textMuted : totalBonusOnus > 0 ? MOBILE_DARK_HD_CONFIG.colors.success : MOBILE_DARK_HD_CONFIG.colors.danger};
+                white-space: nowrap;
               ">${formatarValorMonetario(totalBonusOnus)}</div>
             </div>
 
@@ -493,24 +534,45 @@ function criarLayoutExtratoFinanceiroMobile(
                 ? `
             <div style="text-align: center;">
               <div style="
-                font: ${MOBILE_DARK_HD_CONFIG.fonts.weights.extrabold} ${MOBILE_DARK_HD_CONFIG.fonts.heading};
-                color: ${resumoFinanceiro.totalPontosCorridos >= 0 ? MOBILE_DARK_HD_CONFIG.colors.info : MOBILE_DARK_HD_CONFIG.colors.danger};
+                font: ${MOBILE_DARK_HD_CONFIG.fonts.weights.extrabold} 13px Inter;
+                color: ${resumoFinanceiro.totalPontosCorridos === 0 ? MOBILE_DARK_HD_CONFIG.colors.textMuted : resumoFinanceiro.totalPontosCorridos > 0 ? MOBILE_DARK_HD_CONFIG.colors.info : MOBILE_DARK_HD_CONFIG.colors.danger};
+                white-space: nowrap;
               ">${formatarValorMonetario(resumoFinanceiro.totalPontosCorridos)}</div>
             </div>
+            `
+                : ""
+            }
 
-            ${temMataMata ? `
+            ${
+              temMataMata
+                ? `
             <div style="text-align: center;">
               <div style="
-                font: ${MOBILE_DARK_HD_CONFIG.fonts.weights.extrabold} ${MOBILE_DARK_HD_CONFIG.fonts.heading};
-                color: ${resumoFinanceiro.totalMataMata >= 0 ? MOBILE_DARK_HD_CONFIG.colors.warning : MOBILE_DARK_HD_CONFIG.colors.danger};
+                font: ${MOBILE_DARK_HD_CONFIG.fonts.weights.extrabold} 13px Inter;
+                color: ${resumoFinanceiro.totalMataMata === 0 ? MOBILE_DARK_HD_CONFIG.colors.textMuted : resumoFinanceiro.totalMataMata > 0 ? MOBILE_DARK_HD_CONFIG.colors.warning : MOBILE_DARK_HD_CONFIG.colors.danger};
+                white-space: nowrap;
               ">${formatarValorMonetario(resumoFinanceiro.totalMataMata)}</div>
             </div>
-            ` : ""}
+            `
+                : ""
+            }
+
+            ${
+              temTop10
+                ? `
+            <div style="text-align: center;">
+              <div style="
+                font: ${MOBILE_DARK_HD_CONFIG.fonts.weights.extrabold} 13px Inter;
+                color: ${resumoFinanceiro.totalTop10 === 0 ? MOBILE_DARK_HD_CONFIG.colors.textMuted : resumoFinanceiro.totalTop10 > 0 ? MOBILE_DARK_HD_CONFIG.colors.success : MOBILE_DARK_HD_CONFIG.colors.danger};
+                white-space: nowrap;
+              ">${formatarValorMonetario(resumoFinanceiro.totalTop10)}</div>
+            </div>
             `
                 : ""
             }
           </div>
 
+          <!-- Saldo final alinhado com saldo acumulado das rodadas -->
           <div style="
             background: rgba(255, 69, 0, 0.08);
             border-left: 3px solid ${MOBILE_DARK_HD_CONFIG.colors.warning};
@@ -521,13 +583,16 @@ function criarLayoutExtratoFinanceiroMobile(
             flex-shrink: 0;
           ">
             <div style="
-              font: ${MOBILE_DARK_HD_CONFIG.fonts.weights.extrabold} ${MOBILE_DARK_HD_CONFIG.fonts.heading};
+              font: ${MOBILE_DARK_HD_CONFIG.fonts.weights.extrabold} 14px Inter;
               color: ${resumoFinanceiro.saldoFinal >= 0 ? MOBILE_DARK_HD_CONFIG.colors.success : MOBILE_DARK_HD_CONFIG.colors.danger};
               line-height: 1;
+              white-space: nowrap;
             ">${formatarValorMonetario(resumoFinanceiro.saldoFinal)}</div>
           </div>
         </div>
-        ` : ""}
+        `
+            : ""
+        }
       </div>
     </div>
 
@@ -545,6 +610,47 @@ function criarLayoutExtratoFinanceiroMobile(
 }
 
 // HELPERS DE LAYOUT
+function criarCardResumoCompacto(
+  titulo,
+  valor,
+  cor,
+  isMoeda = true,
+  isContador = false,
+) {
+  let valorFormatado;
+  if (isContador) {
+    valorFormatado = `${valor}x`;
+  } else if (isMoeda) {
+    valorFormatado = formatarValorMonetario(valor);
+  } else {
+    valorFormatado = valor;
+  }
+
+  return `
+    <div style="
+      background: ${MOBILE_DARK_HD_CONFIG.colors.surface};
+      border: 1px solid ${cor};
+      border-radius: 8px;
+      padding: 10px 12px;
+      text-align: center;
+      box-shadow: ${MOBILE_DARK_HD_CONFIG.colors.shadowLight};
+    ">
+      <div style="
+        font: ${MOBILE_DARK_HD_CONFIG.fonts.weights.regular} 10px Inter;
+        color: ${MOBILE_DARK_HD_CONFIG.colors.textMuted};
+        margin-bottom: 4px;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+      ">${titulo}</div>
+      <div style="
+        font: ${MOBILE_DARK_HD_CONFIG.fonts.weights.bold} 15px Inter;
+        color: ${cor};
+        line-height: 1;
+      ">${valorFormatado}</div>
+    </div>
+  `;
+}
+
 function criarCardResumo(
   titulo,
   valor,
@@ -622,10 +728,8 @@ function criarCardStat(titulo, valor, cor, rodada = "") {
 }
 
 function criarSecaoAjustesManuais(campos) {
-  // ✅ FILTRAR APENAS CAMPOS COM VALOR DIFERENTE DE ZERO
   const camposComValor = campos.filter((campo) => campo.valor !== 0);
 
-  // ✅ SE NÃO HOUVER CAMPOS COM VALOR, NÃO EXIBIR A SEÇÃO
   if (camposComValor.length === 0) {
     return "";
   }
@@ -634,43 +738,43 @@ function criarSecaoAjustesManuais(campos) {
     <div style="
       background: ${MOBILE_DARK_HD_CONFIG.colors.surface};
       border: 2px dashed ${MOBILE_DARK_HD_CONFIG.colors.warning};
-      border-radius: 12px;
-      padding: 16px;
-      margin-bottom: 16px;
+      border-radius: 10px;
+      padding: 12px;
+      margin-bottom: 12px;
       box-shadow: ${MOBILE_DARK_HD_CONFIG.colors.shadowLight};
     ">
       <h4 style="
-        font: ${MOBILE_DARK_HD_CONFIG.fonts.weights.bold} ${MOBILE_DARK_HD_CONFIG.fonts.body};
+        font: ${MOBILE_DARK_HD_CONFIG.fonts.weights.bold} 12px Inter;
         color: ${MOBILE_DARK_HD_CONFIG.colors.warning};
-        margin: 0 0 12px 0;
+        margin: 0 0 10px 0;
         display: flex;
         align-items: center;
-        gap: 8px;
+        gap: 6px;
         justify-content: center;
       ">
         <span>📝</span>
         <span>Ajustes Manuais</span>
       </h4>
-      <div style="display: flex; flex-direction: column; gap: 8px;">
+      <div style="display: flex; flex-direction: column; gap: 6px;">
         ${camposComValor
           .map(
             (campo) => `
           <div style="
             background: ${MOBILE_DARK_HD_CONFIG.colors.surfaceLight};
-            border: 1px solid ${campo.valor >= 0 ? MOBILE_DARK_HD_CONFIG.colors.success : MOBILE_DARK_HD_CONFIG.colors.danger};
-            border-radius: 8px;
-            padding: 12px;
+            border: 1px solid ${campo.valor === 0 ? MOBILE_DARK_HD_CONFIG.colors.textMuted : campo.valor > 0 ? MOBILE_DARK_HD_CONFIG.colors.success : MOBILE_DARK_HD_CONFIG.colors.danger};
+            border-radius: 6px;
+            padding: 8px 10px;
             display: flex;
             justify-content: space-between;
             align-items: center;
           ">
             <span style="
-              font: ${MOBILE_DARK_HD_CONFIG.fonts.weights.medium} ${MOBILE_DARK_HD_CONFIG.fonts.caption};
+              font: ${MOBILE_DARK_HD_CONFIG.fonts.weights.medium} 11px Inter;
               color: ${MOBILE_DARK_HD_CONFIG.colors.textSecondary};
             ">${campo.nome}</span>
             <span style="
-              font: ${MOBILE_DARK_HD_CONFIG.fonts.weights.bold} ${MOBILE_DARK_HD_CONFIG.fonts.body};
-              color: ${campo.valor >= 0 ? MOBILE_DARK_HD_CONFIG.colors.success : MOBILE_DARK_HD_CONFIG.colors.danger};
+              font: ${MOBILE_DARK_HD_CONFIG.fonts.weights.bold} 13px Inter;
+              color: ${campo.valor === 0 ? MOBILE_DARK_HD_CONFIG.colors.textMuted : campo.valor > 0 ? MOBILE_DARK_HD_CONFIG.colors.success : MOBILE_DARK_HD_CONFIG.colors.danger};
             ">${formatarValorMonetario(campo.valor)}</span>
           </div>
         `,
@@ -681,15 +785,22 @@ function criarSecaoAjustesManuais(campos) {
   `;
 }
 
-function criarItemExtratoRodadaMobile(rodada, index, temPontosCorridos, temMataMata, temTop10) { // ✅ Parâmetro temTop10 adicionado
+function criarItemExtratoRodadaMobile(
+  rodada,
+  index,
+  temPontosCorridos,
+  temMataMata,
+  temTop10,
+) {
   const { posicaoStyle, posicaoTexto } = obterEstiloPosicao(rodada);
 
-  // ✅ GARANTIR QUE VALORES SEJAM NÚMEROS (mesmo que 0)
-  const bonusOnus = typeof rodada.bonusOnus === 'number' ? rodada.bonusOnus : 0;
-  const pontosCorridos = typeof rodada.pontosCorridos === 'number' ? rodada.pontosCorridos : 0;
-  const mataMata = typeof rodada.mataMata === 'number' ? rodada.mataMata : 0;
-  const top10 = typeof rodada.top10 === 'number' ? rodada.top10 : 0;
-  const saldoAcumulado = typeof rodada.saldoAcumulado === 'number' ? rodada.saldoAcumulado : 0;
+  const bonusOnus = typeof rodada.bonusOnus === "number" ? rodada.bonusOnus : 0;
+  const pontosCorridos =
+    typeof rodada.pontosCorridos === "number" ? rodada.pontosCorridos : 0;
+  const mataMata = typeof rodada.mataMata === "number" ? rodada.mataMata : 0;
+  const top10 = typeof rodada.top10 === "number" ? rodada.top10 : 0;
+  const saldoAcumulado =
+    typeof rodada.saldoAcumulado === "number" ? rodada.saldoAcumulado : 0;
 
   return `
     <div style="
@@ -738,7 +849,7 @@ function criarItemExtratoRodadaMobile(rodada, index, temPontosCorridos, temMataM
           ">Bônus/Ônus</div>
           <div style="
             font: ${MOBILE_DARK_HD_CONFIG.fonts.weights.bold} ${MOBILE_DARK_HD_CONFIG.fonts.caption};
-            color: ${bonusOnus >= 0 ? MOBILE_DARK_HD_CONFIG.colors.success : MOBILE_DARK_HD_CONFIG.colors.danger};
+            color: ${bonusOnus === 0 ? MOBILE_DARK_HD_CONFIG.colors.textMuted : bonusOnus > 0 ? MOBILE_DARK_HD_CONFIG.colors.success : MOBILE_DARK_HD_CONFIG.colors.danger};
           ">${formatarValorMonetario(bonusOnus)}</div>
         </div>
 
@@ -753,7 +864,7 @@ function criarItemExtratoRodadaMobile(rodada, index, temPontosCorridos, temMataM
           ">Pts Corridos</div>
           <div style="
             font: ${MOBILE_DARK_HD_CONFIG.fonts.weights.bold} ${MOBILE_DARK_HD_CONFIG.fonts.caption};
-            color: ${pontosCorridos >= 0 ? MOBILE_DARK_HD_CONFIG.colors.info : MOBILE_DARK_HD_CONFIG.colors.danger};
+            color: ${pontosCorridos === 0 ? MOBILE_DARK_HD_CONFIG.colors.textMuted : pontosCorridos > 0 ? MOBILE_DARK_HD_CONFIG.colors.info : MOBILE_DARK_HD_CONFIG.colors.danger};
           ">${formatarValorMonetario(pontosCorridos)}</div>
         </div>
         `
@@ -770,7 +881,7 @@ function criarItemExtratoRodadaMobile(rodada, index, temPontosCorridos, temMataM
           ">Mata-Mata</div>
           <div style="
             font: ${MOBILE_DARK_HD_CONFIG.fonts.weights.bold} ${MOBILE_DARK_HD_CONFIG.fonts.caption};
-            color: ${mataMata >= 0 ? MOBILE_DARK_HD_CONFIG.colors.warning : MOBILE_DARK_HD_CONFIG.colors.danger};
+            color: ${mataMata === 0 ? MOBILE_DARK_HD_CONFIG.colors.textMuted : mataMata > 0 ? MOBILE_DARK_HD_CONFIG.colors.warning : MOBILE_DARK_HD_CONFIG.colors.danger};
           ">${formatarValorMonetario(mataMata)}</div>
         </div>
         `
@@ -783,13 +894,33 @@ function criarItemExtratoRodadaMobile(rodada, index, temPontosCorridos, temMataM
           <div style="
             font: ${MOBILE_DARK_HD_CONFIG.fonts.weights.medium} ${MOBILE_DARK_HD_CONFIG.fonts.mini};
             color: ${MOBILE_DARK_HD_CONFIG.colors.textMuted};
-            margin-bottom: 2px;
+            margin-bottom: 4px;
           ">TOP 10</div>
+          ${
+            top10 !== 0
+              ? `
           <div style="
-            font: ${MOBILE_DARK_HD_CONFIG.fonts.weights.bold} ${MOBILE_DARK_HD_CONFIG.fonts.caption};
-            color: ${top10 >= 0 ? MOBILE_DARK_HD_CONFIG.colors.gold : MOBILE_DARK_HD_CONFIG.colors.danger};
-          ">${formatarValorMonetario(top10)}</div>
-          ${rodada.top10Status ? `<div style="font-size: 9px; color: ${MOBILE_DARK_HD_CONFIG.colors.textMuted};">${rodada.top10Status}</div>` : ''}
+            background: ${rodada.top10Status === "MITO" ? "linear-gradient(90deg, rgba(46,204,113,0.15), transparent)" : "linear-gradient(90deg, rgba(231,76,60,0.15), transparent)"};
+            border-left: 2px solid ${rodada.top10Status === "MITO" ? "#2ecc71" : "#e74c3c"};
+            padding: 4px 6px;
+            border-radius: 4px;
+            margin: 0 auto;
+            max-width: 90px;
+          ">
+            <div style="
+              font: ${MOBILE_DARK_HD_CONFIG.fonts.weights.bold} 8px sans-serif;
+              color: ${rodada.top10Status === "MITO" ? "#2ecc71" : "#e74c3c"};
+              line-height: 1.2;
+              margin-bottom: 2px;
+            ">${rodada.top10Status === "MITO" ? "🏆" : "🐵"} ${rodada.top10Ordinal || ""} ${rodada.top10Tipo || ""}</div>
+            <div style="
+              font: ${MOBILE_DARK_HD_CONFIG.fonts.weights.bold} ${MOBILE_DARK_HD_CONFIG.fonts.caption};
+              color: ${rodada.top10Status === "MITO" ? "#2ecc71" : "#e74c3c"};
+            ">${formatarValorMonetario(top10)}</div>
+          </div>
+          `
+              : `<div style="color: ${MOBILE_DARK_HD_CONFIG.colors.textMuted};">-</div>`
+          }
         </div>
         `
             : ""
@@ -821,6 +952,7 @@ function calcularResumoFinanceiro(dadosExtrato) {
   let totalOnus = 0;
   let totalPontosCorridos = 0;
   let totalMataMata = 0;
+  let totalTop10 = 0;
   let vezesMito = 0;
   let vezesMico = 0;
   let camposEditaveis = [];
@@ -838,6 +970,8 @@ function calcularResumoFinanceiro(dadosExtrato) {
       totalPontosCorridos += item.valor;
     } else if (item.tipo === "mata_mata") {
       totalMataMata += item.valor;
+    } else if (item.tipo === "top10") {
+      totalTop10 += item.valor;
     } else if (item.tipo === "campo_editavel") {
       camposEditaveis.push({
         nome: item.descricao,
@@ -851,6 +985,7 @@ function calcularResumoFinanceiro(dadosExtrato) {
     totalOnus +
     totalPontosCorridos +
     totalMataMata +
+    totalTop10 +
     camposEditaveis.reduce((acc, campo) => acc + campo.valor, 0);
 
   return {
@@ -858,6 +993,7 @@ function calcularResumoFinanceiro(dadosExtrato) {
     totalOnus,
     totalPontosCorridos,
     totalMataMata,
+    totalTop10,
     vezesMito,
     vezesMico,
     camposEditaveis,
@@ -868,7 +1004,6 @@ function calcularResumoFinanceiro(dadosExtrato) {
 function estruturarDetalhamentoPorRodada(dadosExtrato) {
   const rodadasMap = new Map();
 
-  // ✅ PRIMEIRO: Identificar todas as rodadas que existem nos dados
   let maiorRodada = 0;
   dadosExtrato.forEach((item) => {
     if (item.tipo === "campo_editavel") return;
@@ -879,7 +1014,6 @@ function estruturarDetalhamentoPorRodada(dadosExtrato) {
     }
   });
 
-  // ✅ SEGUNDO: Criar estrutura para todas as rodadas (1 até a maior encontrada)
   for (let i = 1; i <= maiorRodada; i++) {
     rodadasMap.set(i, {
       rodada: i,
@@ -887,14 +1021,14 @@ function estruturarDetalhamentoPorRodada(dadosExtrato) {
       bonusOnus: 0,
       pontosCorridos: 0,
       mataMata: 0,
+      top10: 0,
       saldoAcumulado: 0,
       isMito: false,
       isMico: false,
-      totalTimes: 32, // Valor padrão, pode ser ajustado se necessário
+      totalTimes: 32,
     });
   }
 
-  // ✅ TERCEIRO: Preencher com os dados reais
   dadosExtrato.forEach((item) => {
     if (item.tipo === "campo_editavel") return;
 
@@ -906,13 +1040,11 @@ function estruturarDetalhamentoPorRodada(dadosExtrato) {
 
     if (!rodadaData) return;
 
-    // ✅ EXTRAIR POSIÇÃO DA DESCRIÇÃO (funciona para bonus_onus, pontos_corridos e mata_mata)
     const posicaoMatch = item.descricao.match(/(\d+)°/);
-    if (posicaoMatch && rodadaData.posicao === null) { // Garante que a posição só seja definida uma vez por rodada
+    if (posicaoMatch && rodadaData.posicao === null) {
       rodadaData.posicao = parseInt(posicaoMatch[1]);
     }
 
-    // ✅ DETECTAR MITO E MICO DA DESCRIÇÃO
     if (item.descricao.includes("MITO")) rodadaData.isMito = true;
     if (item.descricao.includes("MICO")) rodadaData.isMico = true;
 
@@ -922,6 +1054,12 @@ function estruturarDetalhamentoPorRodada(dadosExtrato) {
       rodadaData.pontosCorridos = item.valor;
     } else if (item.tipo === "mata_mata") {
       rodadaData.mataMata = item.valor;
+    } else if (item.tipo === "top10") {
+      rodadaData.top10 = item.valor;
+      rodadaData.top10Status = item.top10Status;
+      rodadaData.top10Posicao = item.top10Posicao;
+      rodadaData.top10Ordinal = item.top10Ordinal;
+      rodadaData.top10Tipo = item.top10Tipo;
     }
   });
 
@@ -932,7 +1070,10 @@ function estruturarDetalhamentoPorRodada(dadosExtrato) {
   let saldoAcumulado = 0;
   rodadasArray.forEach((rodada) => {
     const valorRodada =
-      rodada.bonusOnus + (rodada.pontosCorridos || 0) + rodada.mataMata;
+      rodada.bonusOnus +
+      (rodada.pontosCorridos || 0) +
+      rodada.mataMata +
+      (rodada.top10 || 0);
     saldoAcumulado += valorRodada;
     rodada.saldoAcumulado = saldoAcumulado;
   });
@@ -941,7 +1082,7 @@ function estruturarDetalhamentoPorRodada(dadosExtrato) {
 }
 
 function obterEstiloPosicao(rodada) {
-  const totalTimes = rodada.totalTimes || 32; // Usa o valor de totalTimes do objeto rodada ou um padrão
+  const totalTimes = rodada.totalTimes || 32;
 
   if (rodada.isMito) {
     return {
@@ -966,8 +1107,8 @@ function obterEstiloPosicao(rodada) {
   }
 
   if (rodada.posicao && rodada.posicao > 0) {
-    const isTop11 = rodada.posicao >= 1 && rodada.posicao <= 11; // Ajustado para incluir 1° posição
-    const isZ22_31 = rodada.posicao >= 22 && rodada.posicao <= totalTimes; // Usa totalTimes para o limite inferior
+    const isTop11 = rodada.posicao >= 1 && rodada.posicao <= 11;
+    const isZ22_31 = rodada.posicao >= 22 && rodada.posicao <= totalTimes;
 
     if (isTop11) {
       return {
@@ -1000,7 +1141,6 @@ function obterEstiloPosicao(rodada) {
     };
   }
 
-  // ✅ SEM POSIÇÃO: Mostra "-" mas mantém a rodada visível
   return {
     posicaoTexto: "-",
     posicaoStyle: `
@@ -1024,17 +1164,25 @@ export async function exportarExtratoFinanceiroComoImagem(
 }
 
 // ✅ EXPOR FUNÇÃO GLOBALMENTE PARA USO EM ONCLICK
-window.exportarExtratoComoImagem = async function(dadosExtrato, participante, rodadaAtual) {
+window.exportarExtratoComoImagem = async function (
+  dadosExtrato,
+  participante,
+  rodadaAtual,
+) {
   try {
-    console.log("[EXPORT-EXTRATO-FINANCEIRO-MOBILE] Função global chamada com:", {
-      dadosExtrato,
-      participante,
-      rodadaAtual
-    });
+    console.log(
+      "[EXPORT-EXTRATO-FINANCEIRO-MOBILE] Função global chamada com:",
+      {
+        dadosExtrato,
+        participante,
+        rodadaAtual,
+      },
+    );
 
-    // Validação prévia dos dados
     if (!dadosExtrato) {
-      throw new Error("Dados do extrato não fornecidos. Certifique-se de que o extrato financeiro foi carregado.");
+      throw new Error(
+        "Dados do extrato não fornecidos. Certifique-se de que o extrato financeiro foi carregado.",
+      );
     }
 
     if (!Array.isArray(dadosExtrato)) {
@@ -1051,8 +1199,13 @@ window.exportarExtratoComoImagem = async function(dadosExtrato, participante, ro
       rodadaAtual,
     });
   } catch (error) {
-    console.error("[EXPORT-EXTRATO-FINANCEIRO-MOBILE] Erro na exportação:", error);
-    MobileDarkUtils.mostrarErro(error.message || "Erro ao exportar extrato financeiro.");
+    console.error(
+      "[EXPORT-EXTRATO-FINANCEIRO-MOBILE] Erro na exportação:",
+      error,
+    );
+    MobileDarkUtils.mostrarErro(
+      error.message || "Erro ao exportar extrato financeiro.",
+    );
     throw error;
   }
 };

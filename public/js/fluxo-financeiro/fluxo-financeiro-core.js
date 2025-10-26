@@ -3,13 +3,15 @@ import { calcularFinanceiroConfronto } from "../pontos-corridos-utils.js";
 import { getLigaId } from "../pontos-corridos-utils.js";
 import { FluxoFinanceiroCampos } from "./fluxo-financeiro-campos.js";
 import {
-    valoresRodadaPadrao,
-    valoresRodadaCartoleirosSobral,
     RODADA_INICIAL_PONTOS_CORRIDOS,
     ID_SUPERCARTOLA_2025,
     ID_CARTOLEIROS_SOBRAL,
     normalizarTimeId,
 } from "./fluxo-financeiro-utils.js";
+import {
+    valoresBancoPadrao,
+    valoresBancoCartoleirosSobral,
+} from "../rodadas/rodadas-config.js";
 
 export class FluxoFinanceiroCore {
     constructor(cache) {
@@ -59,8 +61,9 @@ export class FluxoFinanceiroCore {
         const isCartoleirosSobral = ligaId === ID_CARTOLEIROS_SOBRAL;
 
         // ✅ AGUARDAR CARREGAMENTO DOS CAMPOS DO MONGODB
-        const camposEditaveis = await FluxoFinanceiroCampos.carregarTodosCamposEditaveis(timeId);
-        console.log('[FLUXO-CORE] Campos editáveis carregados:', camposEditaveis);
+        const camposEditaveis =
+            await FluxoFinanceiroCampos.carregarTodosCamposEditaveis(timeId);
+
         const resultadosMataMata = this.mataMataIntegrado
             ? this.cache.getResultadosMataMata()
             : [];
@@ -70,14 +73,6 @@ export class FluxoFinanceiroCore {
             this._carregarMataMataMap(resultadosMataMata);
         }
 
-        // ✅ DETECTAR DISPUTAS ATIVAS NA LIGA
-        const disputasAtivas = await this._detectarDisputasAtivas(
-            ultimaRodadaCompleta,
-            isSuperCartola2025,
-            resultadosMataMata
-        );
-
-        // ✅ GARANTIR QUE TODOS OS VALORES DO RESUMO SEJAM NÚMEROS
         const extrato = {
             rodadas: [],
             resumo: {
@@ -97,22 +92,11 @@ export class FluxoFinanceiroCore {
             },
             totalTimes: 0,
             camposEditaveis: camposEditaveis,
-            disputasAtivas: disputasAtivas, // ✅ NOVO: Informação sobre disputas ativas
         };
 
-        console.log('[FLUXO-CORE] Resumo inicializado:', {
-            pontosCorridos: extrato.resumo.pontosCorridos,
-            mataMata: extrato.resumo.mataMata,
-            campo1: extrato.resumo.campo1,
-            campo2: extrato.resumo.campo2,
-            campo3: extrato.resumo.campo3,
-            campo4: extrato.resumo.campo4,
-            top10: extrato.resumo.top10, // Log TOP 10
-        });
-
         // ✅ BUSCAR DADOS DO TOP 10
-        const dadosTop10 = await this.buscarDadosTop10(timeId, ultimaRodadaCompleta);
-        const top10Map = new Map(dadosTop10.map(item => [item.rodada, item]));
+        const dadosTop10 = await this.buscarDadosTop10(timeId);
+        const top10Map = new Map(dadosTop10.map((item) => [item.rodada, item]));
 
         // OTIMIZADO: Processar rodadas de forma síncrona (dados já em cache)
         const rodadasProcessadas = [];
@@ -127,11 +111,13 @@ export class FluxoFinanceiroCore {
             if (rodadaData) {
                 // ✅ BUSCAR DADOS DO TOP 10 PARA ESTA RODADA
                 const top10Data = top10Map.get(rodada);
-                const top10Valor = top10Data ? (top10Data.valor || 0) : 0;
-                const top10Status = top10Data ? top10Data.status : null; // 'MITO' ou 'MICO'
+                const top10Valor = top10Data ? top10Data.valor || 0 : 0;
+                const top10Status = top10Data ? top10Data.status : null;
+                const top10Posicao = top10Data ? top10Data.posicao : null;
 
-                rodadaData.top10 = top10Valor; // ✅ NOVO
-                rodadaData.top10Status = top10Status; // ✅ NOVO
+                rodadaData.top10 = top10Valor;
+                rodadaData.top10Status = top10Status;
+                rodadaData.top10Posicao = top10Posicao;
 
                 rodadasProcessadas.push(rodadaData);
                 extrato.totalTimes = Math.max(
@@ -147,7 +133,7 @@ export class FluxoFinanceiroCore {
         }
 
         extrato.rodadas = rodadasProcessadas;
-        this._calcularSaldoAcumulado(extrato.rodadas);
+        this._calcularSaldoAcumulado(extrato.rodadas, camposEditaveis);
         extrato.resumo.saldo = this._calcularSaldoFinal(extrato.resumo);
 
         console.log(
@@ -174,9 +160,8 @@ export class FluxoFinanceiroCore {
                 pontosCorridos: isSuperCartola2025 ? 0 : null,
                 mataMata: 0,
                 melhorMes: 0,
-                top10Bonus: 0, // REMOVIDO: Valor será calculado em _acumularValoresIntegrados
-                top10: 0,      // NOVO: Valor TOP 10
-                top10Status: null, // NOVO: Status MITO/MICO
+                top10: 0,
+                top10Status: null,
                 isMito: false,
                 isMico: false,
             };
@@ -197,9 +182,8 @@ export class FluxoFinanceiroCore {
                 pontosCorridos: isSuperCartola2025 ? 0 : null,
                 mataMata: 0,
                 melhorMes: 0,
-                top10Bonus: 0, // REMOVIDO
-                top10: 0,      // NOVO
-                top10Status: null, // NOVO
+                top10: 0,
+                top10Status: null,
                 isMito: false,
                 isMico: false,
             };
@@ -219,7 +203,6 @@ export class FluxoFinanceiroCore {
             : null;
         const mataMata = this._calcularMataMataOtimizado(timeId, rodada);
         const melhorMes = 0;
-        const top10Bonus = this._calcularTop10Bonus(posicaoReal, totalTimes); // Valor será usado em _acumularValoresIntegrados
 
         return {
             rodada,
@@ -229,28 +212,11 @@ export class FluxoFinanceiroCore {
             pontosCorridos,
             mataMata,
             melhorMes,
-            top10Bonus, // Mantido para uso em _acumularValoresIntegrados
-            top10: 0, // Será preenchido depois de buscar dados do TOP 10
-            top10Status: null, // Será preenchido depois de buscar dados do TOP 10
+            top10: 0, // Será preenchido no calcularExtratoFinanceiro
+            top10Status: null,
             isMito,
             isMico,
         };
-    }
-
-    _calcularTop10Bonus(posicaoReal, totalTimes) {
-        // TOP 10: 1º ao 10º = +10 reais
-        if (posicaoReal >= 1 && posicaoReal <= 10) {
-            return 10;
-        }
-
-        // ÚLTIMOS 10: do (total-9) ao último = -10 reais
-        const posicaoUltimos10 = totalTimes - 9;
-        if (posicaoReal >= posicaoUltimos10 && posicaoReal <= totalTimes) {
-            return -10;
-        }
-
-        // Meio de tabela: sem bônus/ônus
-        return 0;
     }
 
     // OTIMIZADO: Busca O(1) usando Map
@@ -263,8 +229,8 @@ export class FluxoFinanceiroCore {
 
     _calcularBonusOnus(posicaoReal, isCartoleirosSobral) {
         const valoresRodadaAtual = isCartoleirosSobral
-            ? valoresRodadaCartoleirosSobral
-            : valoresRodadaPadrao;
+            ? valoresBancoCartoleirosSobral
+            : valoresBancoPadrao;
         return valoresRodadaAtual[posicaoReal] || 0;
     }
 
@@ -329,110 +295,170 @@ export class FluxoFinanceiroCore {
     }
 
     _acumularValoresIntegrados(resumo, rodadaData, isSuperCartola2025) {
-        // Acumular Bônus e Ônus
         if (rodadaData.bonusOnus > 0) resumo.bonus += rodadaData.bonusOnus;
         if (rodadaData.bonusOnus < 0) resumo.onus += rodadaData.bonusOnus;
-
-        // Contar MITO e MICO
         if (rodadaData.isMito) resumo.vezesMito++;
         if (rodadaData.isMico) resumo.vezesMico++;
 
-        // ✅ GARANTIR que Pontos Corridos seja acumulado (mesmo que seja 0)
-        if (isSuperCartola2025) {
-            const valorPC = typeof rodadaData.pontosCorridos === "number" ? rodadaData.pontosCorridos : 0;
-            resumo.pontosCorridos += valorPC;
+        if (
+            isSuperCartola2025 &&
+            typeof rodadaData.pontosCorridos === "number"
+        ) {
+            resumo.pontosCorridos += rodadaData.pontosCorridos;
         }
+        if (typeof rodadaData.mataMata === "number")
+            resumo.mataMata += rodadaData.mataMata;
+        if (typeof rodadaData.melhorMes === "number")
+            resumo.melhorMes += rodadaData.melhorMes;
 
-        // ✅ GARANTIR que Mata-Mata seja acumulado (mesmo que seja 0)
-        const valorMM = typeof rodadaData.mataMata === "number" ? rodadaData.mataMata : 0;
-        resumo.mataMata += valorMM;
-
-        // Melhor Mês (futuro)
-        const valorBM = typeof rodadaData.melhorMes === "number" ? rodadaData.melhorMes : 0;
-        resumo.melhorMes += valorBM;
-
-        // ✅ TOP 10 Bônus/Ônus
-        const valorTop10 = typeof rodadaData.top10 === "number" ? rodadaData.top10 : 0; // Usa o valor direto do TOP 10
-        resumo.top10 += valorTop10; // Acumula o valor do TOP 10
+        // ✅ Acumular TOP 10
+        if (typeof rodadaData.top10 === "number")
+            resumo.top10 += rodadaData.top10;
     }
 
-    _calcularSaldoAcumulado(rodadas) {
+    _calcularSaldoAcumulado(rodadas, camposEditaveis = null) {
         let saldoAcumulado = 0;
+
         rodadas.forEach((rodada) => {
             const valorRodada =
                 (rodada.bonusOnus || 0) +
                 (rodada.pontosCorridos || 0) +
                 (rodada.mataMata || 0) +
                 (rodada.melhorMes || 0) +
-                (rodada.top10 || 0); // Inclui o valor do TOP 10
+                (rodada.top10 || 0);
+
             saldoAcumulado += valorRodada;
             rodada.saldo = saldoAcumulado;
         });
     }
 
-    // ✅ NOVO: Detectar quais disputas estão ativas na liga
-    async _detectarDisputasAtivas(ultimaRodadaCompleta, isSuperCartola2025, resultadosMataMata) {
-        const disputas = {
-            bonusOnus: true, // Sempre ativo
-            pontosCorridos: false,
-            mataMata: false,
-            melhorMes: false, // Futuro
-        };
-
-        // Verificar Pontos Corridos
-        if (isSuperCartola2025) {
-            const confrontos = this.cache.getConfrontosPontosCorridos();
-            disputas.pontosCorridos = confrontos && confrontos.length > 0;
-        }
-
-        // Verificar Mata-Mata
-        disputas.mataMata = this.mataMataIntegrado && resultadosMataMata.length > 0;
-
-        console.log('[FLUXO-CORE] Disputas ativas detectadas:', disputas);
-        return disputas;
+    _calcularSaldoFinal(resumo) {
+        return (
+            resumo.bonus +
+            resumo.onus +
+            resumo.pontosCorridos +
+            resumo.mataMata +
+            resumo.melhorMes +
+            resumo.top10 +
+            resumo.campo1 +
+            resumo.campo2 +
+            resumo.campo3 +
+            resumo.campo4
+        );
     }
 
-    _calcularSaldoFinal(resumo) {
-        // ✅ CONVERTER TODOS OS VALORES PARA NÚMERO COM SEGURANÇA
-        const bonus = parseFloat(resumo.bonus) || 0;
-        const onus = parseFloat(resumo.onus) || 0;
-        const pontosCorridos = parseFloat(resumo.pontosCorridos) || 0;
-        const mataMata = parseFloat(resumo.mataMata) || 0;
-        const melhorMes = parseFloat(resumo.melhorMes) || 0;
-        const top10 = parseFloat(resumo.top10) || 0; // Valor do TOP 10
+    // ===== BUSCAR DADOS DO TOP 10 (INTEGRADO COM MÓDULO TOP10.JS) =====
+    async buscarDadosTop10(timeId) {
+        try {
+            const { garantirDadosCarregados } = await import("../top10.js");
+            const { mitos: top10Mitos, micos: top10Micos } =
+                await garantirDadosCarregados();
 
-        const saldoBase = bonus + onus + pontosCorridos + mataMata + melhorMes + top10;
+            const ligaId = getLigaId();
+            const isCartoleirosSobral = ligaId === ID_CARTOLEIROS_SOBRAL;
 
-        // ✅ GARANTIR QUE CAMPOS EDITÁVEIS SEJAM NÚMEROS
-        const campo1 = parseFloat(resumo.campo1) || 0;
-        const campo2 = parseFloat(resumo.campo2) || 0;
-        const campo3 = parseFloat(resumo.campo3) || 0;
-        const campo4 = parseFloat(resumo.campo4) || 0;
+            const valoresMitos = isCartoleirosSobral
+                ? {
+                      1: 10,
+                      2: 9,
+                      3: 8,
+                      4: 7,
+                      5: 6,
+                      6: 5,
+                      7: 4,
+                      8: 3,
+                      9: 2,
+                      10: 1,
+                  }
+                : {
+                      1: 30,
+                      2: 28,
+                      3: 26,
+                      4: 24,
+                      5: 22,
+                      6: 20,
+                      7: 18,
+                      8: 16,
+                      9: 14,
+                      10: 12,
+                  };
 
-        const camposEditaveis = campo1 + campo2 + campo3 + campo4;
-        const saldoFinal = saldoBase + camposEditaveis;
+            const valoresMicos = isCartoleirosSobral
+                ? {
+                      1: -10,
+                      2: -9,
+                      3: -8,
+                      4: -7,
+                      5: -6,
+                      6: -5,
+                      7: -4,
+                      8: -3,
+                      9: -2,
+                      10: -1,
+                  }
+                : {
+                      1: -30,
+                      2: -28,
+                      3: -26,
+                      4: -24,
+                      5: -22,
+                      6: -20,
+                      7: -18,
+                      8: -16,
+                      9: -14,
+                      10: -12,
+                  };
 
-        // ✅ LOGS DETALHADOS PARA DEBUG
-        console.log(`[FLUXO-CORE] ========== CÁLCULO SALDO FINAL ==========`);
-        console.log(`[FLUXO-CORE] Bônus: R$ ${bonus.toFixed(2)}`);
-        console.log(`[FLUXO-CORE] Ônus: R$ ${onus.toFixed(2)}`);
-        console.log(`[FLUXO-CORE] Pontos Corridos: R$ ${pontosCorridos.toFixed(2)}`);
-        console.log(`[FLUXO-CORE] Mata-Mata: R$ ${mataMata.toFixed(2)}`);
-        console.log(`[FLUXO-CORE] Melhor Mês: R$ ${melhorMes.toFixed(2)}`);
-        console.log(`[FLUXO-CORE] TOP 10: R$ ${top10.toFixed(2)}`); // Log TOP 10
-        console.log(`[FLUXO-CORE] -----------------------------------------`);
-        console.log(`[FLUXO-CORE] Saldo Base: R$ ${saldoBase.toFixed(2)}`);
-        console.log(`[FLUXO-CORE] -----------------------------------------`);
-        console.log(`[FLUXO-CORE] Campo1: R$ ${campo1.toFixed(2)}`);
-        console.log(`[FLUXO-CORE] Campo2: R$ ${campo2.toFixed(2)}`);
-        console.log(`[FLUXO-CORE] Campo3: R$ ${campo3.toFixed(2)}`);
-        console.log(`[FLUXO-CORE] Campo4: R$ ${campo4.toFixed(2)}`);
-        console.log(`[FLUXO-CORE] Campos Editáveis Total: R$ ${camposEditaveis.toFixed(2)}`);
-        console.log(`[FLUXO-CORE] -----------------------------------------`);
-        console.log(`[FLUXO-CORE] SALDO FINAL: R$ ${saldoFinal.toFixed(2)}`);
-        console.log(`[FLUXO-CORE] ==========================================`);
+            const timeIdNormalizado = normalizarTimeId(timeId);
+            const historico = [];
 
-        return saldoFinal;
+            // Verificar MITOS
+            top10Mitos.forEach((mito, index) => {
+                const mitoTimeId = normalizarTimeId(
+                    mito.timeId || mito.time_id || mito.id,
+                );
+
+                if (mitoTimeId === timeIdNormalizado) {
+                    const posicao = index + 1;
+                    const valor = valoresMitos[posicao] || 0;
+
+                    historico.push({
+                        rodada: mito.rodada,
+                        valor: valor,
+                        status: "MITO",
+                        posicao: posicao,
+                        pontos: mito.pontos,
+                        tipo: `Mito #${posicao}`,
+                    });
+                }
+            });
+
+            // Verificar MICOS
+            top10Micos.forEach((mico, index) => {
+                const micoTimeId = normalizarTimeId(
+                    mico.timeId || mico.time_id || mico.id,
+                );
+
+                if (micoTimeId === timeIdNormalizado) {
+                    const posicao = index + 1;
+                    const valor = valoresMicos[posicao] || 0;
+
+                    historico.push({
+                        rodada: mico.rodada,
+                        valor: valor,
+                        status: "MICO",
+                        posicao: posicao,
+                        pontos: mico.pontos,
+                        tipo: `Mico #${posicao}`,
+                    });
+                }
+            });
+
+            return historico;
+        } catch (error) {
+            console.error("[FLUXO-CORE] Erro ao buscar dados TOP 10:", error);
+            return [];
+        }
     }
 
     async carregarParticipantes() {
@@ -449,39 +475,26 @@ export class FluxoFinanceiroCore {
             );
         });
     }
-
-    // ===== BUSCAR DADOS DO TOP 10 =====
-    async buscarDadosTop10(timeId, rodadaAtual) {
-        try {
-            const ligaId = window.obterLigaId();
-            if (!ligaId) {
-                console.warn('[FLUXO-FINANCEIRO-CORE] Liga ID não encontrado para buscar TOP 10');
-                return [];
-            }
-
-            const response = await fetch(`/api/ligas/${ligaId}/top10?timeId=${timeId}&rodada=${rodadaAtual}`);
-            if (!response.ok) {
-                console.warn('[FLUXO-FINANCEIRO-CORE] Endpoint TOP 10 não disponível');
-                return [];
-            }
-
-            const data = await response.json();
-            return data.historico || [];
-        } catch (error) {
-            console.error('[FLUXO-FINANCEIRO-CORE] Erro ao buscar dados TOP 10:', error);
-            return [];
-        }
-    }
-
-    async buscarDisputasAtivas(timeId) {
-        try {
-            const response = await fetch(`/api/fluxo-financeiro/${timeId}/disputas-ativas`);
-            if (!response.ok) throw new Error('Erro ao buscar disputas ativas');
-            const data = await response.json();
-            return data.disputas || [];
-        } catch (error) {
-            console.error('[FLUXO-FINANCEIRO-CORE] Erro ao buscar disputas ativas:', error);
-            return [];
-        }
-    }
 }
+
+// ========================================
+// FUNÇÃO GLOBAL: ATUALIZAR TOP 10
+// ========================================
+window.atualizarTop10 = async function (timeId) {
+    try {
+        console.log(`[FLUXO] Atualizando TOP 10 para time: ${timeId}`);
+
+        // Recarregar o extrato completo para atualizar os dados do TOP 10
+        if (window.selecionarParticipante) {
+            await window.selecionarParticipante(timeId);
+            console.log("[FLUXO] TOP 10 atualizado com sucesso");
+        } else {
+            console.warn(
+                "[FLUXO] Função selecionarParticipante não encontrada",
+            );
+        }
+    } catch (error) {
+        console.error("[FLUXO] Erro ao atualizar TOP 10:", error);
+        alert("Erro ao atualizar dados do TOP 10. Tente novamente.");
+    }
+};
