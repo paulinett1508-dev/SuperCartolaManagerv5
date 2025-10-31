@@ -9,8 +9,8 @@
 // ✅ CONFIGURAÇÃO MOBILE DARK HD
 export const MOBILE_DARK_HD_CONFIG = {
     width: 720,
-    scale: 2,
-    quality: 0.95,
+    scale: 6,
+    quality: 1.0,
     padding: 20,
     cardSpacing: 12,
     fontSize: {
@@ -152,20 +152,25 @@ export function criarContainerMobileDark(titulo, subtitulo, metadata = {}) {
 }
 
 // ✅ GERAR CANVAS MOBILE DARK HD
-export async function gerarCanvasMobileDarkHD(container, nomeArquivo) {
+export async function gerarCanvasMobileDarkHD(container, nomeArquivo, customScale) {
     const html2canvas = (
         await import("https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/+esm")
     ).default;
 
+    const scaleToUse = customScale || MOBILE_DARK_HD_CONFIG.scale;
+
     const canvas = await html2canvas(container, {
         width: MOBILE_DARK_HD_CONFIG.width,
-        scale: MOBILE_DARK_HD_CONFIG.scale,
+        scale: scaleToUse,
         backgroundColor: "#0a0a0a",
         logging: false,
         useCORS: true,
         allowTaint: true,
         imageTimeout: 0,
         removeContainer: false,
+        letterRendering: true,
+        foreignObjectRendering: false,
+        async: true,
     });
 
     canvas.toBlob(

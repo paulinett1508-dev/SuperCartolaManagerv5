@@ -16,11 +16,11 @@ const EXTRATO_LIGHT_CONFIG = {
     surface: "#F8F9FA",
     surfaceLight: "#FFFFFF",
     
-    // Textos com alto contraste
-    text: "#1A1A1A",
-    textPrimary: "#212529",
-    textSecondary: "#495057",
-    textMuted: "#6C757D",
+    // Textos com alto contraste para exportação
+    text: "#000000",
+    textPrimary: "#000000",
+    textSecondary: "#2C3E50",
+    textMuted: "#5A6C7D",
     
     // Bordas suaves
     border: "#DEE2E6",
@@ -49,12 +49,12 @@ const EXTRATO_LIGHT_CONFIG = {
     shadowLight: "0 1px 3px rgba(0, 0, 0, 0.06)",
   },
   fonts: {
-    body: "14px 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif",
-    bodySmall: "12px 'Inter', sans-serif",
-    heading: "20px 'Inter', sans-serif",
-    subheading: "16px 'Inter', sans-serif",
-    caption: "11px 'Inter', sans-serif",
-    mini: "10px 'Inter', sans-serif",
+    body: "16px 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif",
+    bodySmall: "14px 'Inter', sans-serif",
+    heading: "24px 'Inter', sans-serif",
+    subheading: "18px 'Inter', sans-serif",
+    caption: "13px 'Inter', sans-serif",
+    mini: "12px 'Inter', sans-serif",
     weights: {
       regular: "400",
       medium: "500",
@@ -316,8 +316,8 @@ async function exportarExtratoFinanceiroMobileDarkHD(config) {
       extra: participante?.nome_cartola?.replace(/\s/g, "_") || "participante",
     });
 
-    // ✅ AUMENTAR ESCALA PARA MÁXIMA QUALIDADE DE IMAGEM (6x)
-    await gerarCanvasMobileDarkHD(exportContainer, nomeArquivo, 6);
+    // ✅ USAR ESCALA PADRÃO DO SISTEMA (6x para máxima qualidade)
+    await gerarCanvasMobileDarkHD(exportContainer, nomeArquivo);
 
     console.log("[EXPORT-EXTRATO-FINANCEIRO-MOBILE] Exportação concluída");
     MobileDarkUtils.mostrarSucesso("Extrato financeiro exportado com sucesso!");
