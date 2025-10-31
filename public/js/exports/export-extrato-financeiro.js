@@ -1,5 +1,5 @@
-// SISTEMA DE EXPORTAÇÃO EXTRATO FINANCEIRO - MOBILE DARK HD v3.0.1
-// Migrado para padrão Mobile Dark HD seguindo export-pontos-corridos.js
+// SISTEMA DE EXPORTAÇÃO EXTRATO FINANCEIRO - MOBILE LIGHT HD v3.1.0
+// Tema claro otimizado para máxima legibilidade em exportações
 
 import {
   MOBILE_DARK_HD_CONFIG,
@@ -8,8 +8,67 @@ import {
   gerarCanvasMobileDarkHD,
 } from "./export-base.js";
 
+// ✅ CONFIGURAÇÃO DE CORES PARA TEMA CLARO (HIGH CONTRAST)
+const EXTRATO_LIGHT_CONFIG = {
+  colors: {
+    // Fundo branco limpo
+    background: "#FFFFFF",
+    surface: "#F8F9FA",
+    surfaceLight: "#FFFFFF",
+    
+    // Textos com alto contraste
+    text: "#1A1A1A",
+    textPrimary: "#212529",
+    textSecondary: "#495057",
+    textMuted: "#6C757D",
+    
+    // Bordas suaves
+    border: "#DEE2E6",
+    borderLight: "#E9ECEF",
+    divider: "#E9ECEF",
+    
+    // Cores de status (mais saturadas para impressão)
+    success: "#198754",
+    successLight: "#D1F2EB",
+    danger: "#DC3545",
+    dangerLight: "#F8D7DA",
+    warning: "#FD7E14",
+    warningLight: "#FFE8CC",
+    info: "#0DCAF0",
+    infoLight: "#CFF4FC",
+    gold: "#FFD700",
+    
+    // Gradientes para cabeçalhos
+    gradientPrimary: "linear-gradient(135deg, #FF4500 0%, #FF6347 100%)",
+    gradientSuccess: "linear-gradient(135deg, #198754 0%, #20C997 100%)",
+    gradientDanger: "linear-gradient(135deg, #DC3545 0%, #E74C3C 100%)",
+    gradientWarning: "linear-gradient(135deg, #FD7E14 0%, #FFC107 100%)",
+    
+    // Sombras suaves
+    shadow: "0 2px 8px rgba(0, 0, 0, 0.08)",
+    shadowLight: "0 1px 3px rgba(0, 0, 0, 0.06)",
+  },
+  fonts: {
+    body: "14px 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif",
+    bodySmall: "12px 'Inter', sans-serif",
+    heading: "20px 'Inter', sans-serif",
+    subheading: "16px 'Inter', sans-serif",
+    caption: "11px 'Inter', sans-serif",
+    mini: "10px 'Inter', sans-serif",
+    weights: {
+      regular: "400",
+      medium: "500",
+      semibold: "600",
+      bold: "700",
+      extrabold: "800",
+    },
+  },
+  padding: 16,
+  cardSpacing: 12,
+};
+
 console.log(
-  "[EXPORT-EXTRATO-FINANCEIRO-MOBILE] Sistema Mobile Dark HD v3.0.1 carregado",
+  "[EXPORT-EXTRATO-FINANCEIRO-MOBILE] Sistema Mobile Light HD v3.1.0 carregado",
 );
 
 // FUNÇÃO PRINCIPAL - CRIAR BOTÃO DE EXPORTAÇÃO
@@ -180,9 +239,34 @@ async function exportarExtratoFinanceiroMobileDarkHD(config) {
   const titulo = `💰 Extrato Financeiro`;
   const subtitulo = `${participante?.nome_cartola || "Participante"} • R${rodadaAtual}`;
 
-  const exportContainer = criarContainerMobileDark(titulo, subtitulo, {
-    rodada: rodadaAtual,
-  });
+  // ✅ CRIAR CONTAINER COM TEMA CLARO
+  const exportContainer = document.createElement("div");
+  exportContainer.id = "mobile-export-container-light";
+  exportContainer.style.cssText = `
+    position: fixed;
+    left: -9999px;
+    top: 0;
+    width: 720px;
+    background: ${EXTRATO_LIGHT_CONFIG.colors.background};
+    font-family: ${EXTRATO_LIGHT_CONFIG.fonts.body};
+    padding: 24px;
+    box-sizing: border-box;
+  `;
+
+  exportContainer.innerHTML = `
+    <div style="
+      background: ${EXTRATO_LIGHT_CONFIG.colors.gradientPrimary};
+      color: white;
+      padding: 20px;
+      border-radius: 12px;
+      margin-bottom: 20px;
+      text-align: center;
+    ">
+      <h1 style="margin: 0 0 8px 0; font-size: 24px; font-weight: 800;">${titulo}</h1>
+      <p style="margin: 0; font-size: 14px; opacity: 0.95;">${subtitulo}</p>
+    </div>
+    <div id="mobile-export-content"></div>
+  `;
 
   const contentDiv = exportContainer.querySelector("#mobile-export-content");
 
@@ -330,12 +414,12 @@ function criarLayoutExtratoFinanceiroMobile(
   return `
     <!-- CARD COMPACTO - INFO PARTICIPANTE -->
     <div style="
-      background: ${MOBILE_DARK_HD_CONFIG.colors.surface};
-      border: 1px solid ${MOBILE_DARK_HD_CONFIG.colors.border};
+      background: ${EXTRATO_LIGHT_CONFIG.colors.surface};
+      border: 2px solid ${EXTRATO_LIGHT_CONFIG.colors.border};
       border-radius: 10px;
       padding: 12px;
       margin-bottom: 12px;
-      box-shadow: ${MOBILE_DARK_HD_CONFIG.colors.shadowLight};
+      box-shadow: ${EXTRATO_LIGHT_CONFIG.colors.shadow};
     ">
       <div style="display: flex; align-items: center; gap: 10px;">
         <!-- Escudo do Time -->
@@ -372,8 +456,8 @@ function criarLayoutExtratoFinanceiroMobile(
         <!-- Informações Principais -->
         <div style="flex: 1; min-width: 0;">
           <div style="
-            font: ${MOBILE_DARK_HD_CONFIG.fonts.weights.bold} 14px Inter;
-            color: ${MOBILE_DARK_HD_CONFIG.colors.text};
+            font: ${EXTRATO_LIGHT_CONFIG.fonts.weights.bold} 14px Inter;
+            color: ${EXTRATO_LIGHT_CONFIG.colors.textPrimary};
             margin-bottom: 2px;
             overflow: hidden;
             text-overflow: ellipsis;
@@ -381,8 +465,8 @@ function criarLayoutExtratoFinanceiroMobile(
           ">${participante?.nome_cartola || participante?.nome_cartoleiro || "Participante"}</div>
 
           <div style="
-            font: ${MOBILE_DARK_HD_CONFIG.fonts.weights.medium} 11px Inter;
-            color: ${MOBILE_DARK_HD_CONFIG.colors.textSecondary};
+            font: ${EXTRATO_LIGHT_CONFIG.fonts.weights.medium} 11px Inter;
+            color: ${EXTRATO_LIGHT_CONFIG.colors.textSecondary};
             overflow: hidden;
             text-overflow: ellipsis;
             white-space: nowrap;
@@ -437,31 +521,31 @@ function criarLayoutExtratoFinanceiroMobile(
 
     <!-- TABELA DETALHAMENTO -->
     <div style="
-      background: ${MOBILE_DARK_HD_CONFIG.colors.surface};
-      border-radius: 16px;
+      background: ${EXTRATO_LIGHT_CONFIG.colors.background};
+      border-radius: 12px;
       padding: 0;
-      border: 1px solid ${MOBILE_DARK_HD_CONFIG.colors.border};
-      box-shadow: ${MOBILE_DARK_HD_CONFIG.colors.shadowLight};
+      border: 2px solid ${EXTRATO_LIGHT_CONFIG.colors.border};
+      box-shadow: ${EXTRATO_LIGHT_CONFIG.colors.shadow};
       overflow: hidden;
       margin-bottom: 20px;
     ">
       <div style="
-        background: ${MOBILE_DARK_HD_CONFIG.colors.gradientDark};
-        color: ${MOBILE_DARK_HD_CONFIG.colors.text};
-        padding: 16px ${MOBILE_DARK_HD_CONFIG.padding}px;
+        background: ${EXTRATO_LIGHT_CONFIG.colors.gradientPrimary};
+        color: white;
+        padding: 16px ${EXTRATO_LIGHT_CONFIG.padding}px;
         text-align: center;
       ">
         <h3 style="
-          font: ${MOBILE_DARK_HD_CONFIG.fonts.weights.semibold} ${MOBILE_DARK_HD_CONFIG.fonts.subheading};
+          font: ${EXTRATO_LIGHT_CONFIG.fonts.weights.bold} ${EXTRATO_LIGHT_CONFIG.fonts.subheading};
           margin: 0;
           letter-spacing: 0.5px;
         ">📋 DETALHAMENTO POR RODADA</h3>
       </div>
 
-      <div style="padding: ${MOBILE_DARK_HD_CONFIG.padding}px 0;">
+      <div style="padding: ${EXTRATO_LIGHT_CONFIG.padding}px 0; background: ${EXTRATO_LIGHT_CONFIG.colors.background};">
         ${
           detalhamentoPorRodada.length === 0
-            ? `<div style="text-align: center; padding: 40px 20px; color: ${MOBILE_DARK_HD_CONFIG.colors.textMuted};">Nenhuma rodada encontrada</div>`
+            ? `<div style="text-align: center; padding: 40px 20px; color: ${EXTRATO_LIGHT_CONFIG.colors.textMuted};">Nenhuma rodada encontrada</div>`
             : detalhamentoPorRodada
                 .map((rodada, index) => {
                   return criarItemExtratoRodadaMobile(
@@ -482,11 +566,11 @@ function criarLayoutExtratoFinanceiroMobile(
         <div style="
           display: flex;
           align-items: center;
-          padding: 16px ${MOBILE_DARK_HD_CONFIG.padding}px;
-          border-top: 4px solid ${MOBILE_DARK_HD_CONFIG.colors.warning};
-          background: white;
+          padding: 16px ${EXTRATO_LIGHT_CONFIG.padding}px;
+          border-top: 3px solid ${EXTRATO_LIGHT_CONFIG.colors.warning};
+          background: ${EXTRATO_LIGHT_CONFIG.colors.surface};
           min-height: 60px;
-          box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+          box-shadow: ${EXTRATO_LIGHT_CONFIG.colors.shadow};
         ">
           <!-- Espaço alinhado com número da rodada (R1, R2...) -->
           <div style="
@@ -506,8 +590,9 @@ function criarLayoutExtratoFinanceiroMobile(
             margin-right: 12px;
             min-width: 50px;
             text-align: center;
-            font: ${MOBILE_DARK_HD_CONFIG.fonts.weights.extrabold} ${MOBILE_DARK_HD_CONFIG.fonts.bodySmall};
-            color: ${MOBILE_DARK_HD_CONFIG.colors.warning};
+            font: ${EXTRATO_LIGHT_CONFIG.fonts.weights.extrabold} ${EXTRATO_LIGHT_CONFIG.fonts.bodySmall};
+            color: ${EXTRATO_LIGHT_CONFIG.colors.textPrimary};
+            background: ${EXTRATO_LIGHT_CONFIG.colors.warningLight};
             flex-shrink: 0;
             text-transform: uppercase;
             letter-spacing: 0.5px;
@@ -806,20 +891,22 @@ function criarItemExtratoRodadaMobile(
     <div style="
       display: flex;
       align-items: center;
-      padding: 12px ${MOBILE_DARK_HD_CONFIG.padding}px;
-      border-bottom: 1px solid ${MOBILE_DARK_HD_CONFIG.colors.divider};
-      ${rodada.isMito ? `border-left: 4px solid ${MOBILE_DARK_HD_CONFIG.colors.success};` : rodada.isMico ? `border-left: 4px solid ${MOBILE_DARK_HD_CONFIG.colors.danger};` : ""}
+      padding: 12px ${EXTRATO_LIGHT_CONFIG.padding}px;
+      border-bottom: 1px solid ${EXTRATO_LIGHT_CONFIG.colors.divider};
+      background: ${index % 2 === 0 ? EXTRATO_LIGHT_CONFIG.colors.surface : EXTRATO_LIGHT_CONFIG.colors.background};
+      ${rodada.isMito ? `border-left: 4px solid ${EXTRATO_LIGHT_CONFIG.colors.success};` : rodada.isMico ? `border-left: 4px solid ${EXTRATO_LIGHT_CONFIG.colors.danger};` : ""}
       min-height: 50px;
     ">
       <div style="
-        background: ${MOBILE_DARK_HD_CONFIG.colors.surfaceLight};
+        background: ${EXTRATO_LIGHT_CONFIG.colors.surface};
+        border: 1px solid ${EXTRATO_LIGHT_CONFIG.colors.border};
         padding: 6px 10px;
         border-radius: 8px;
         margin-right: 12px;
         min-width: 40px;
         text-align: center;
-        font: ${MOBILE_DARK_HD_CONFIG.fonts.weights.semibold} ${MOBILE_DARK_HD_CONFIG.fonts.bodySmall};
-        color: ${MOBILE_DARK_HD_CONFIG.colors.text};
+        font: ${EXTRATO_LIGHT_CONFIG.fonts.weights.bold} ${EXTRATO_LIGHT_CONFIG.fonts.bodySmall};
+        color: ${EXTRATO_LIGHT_CONFIG.colors.textPrimary};
         flex-shrink: 0;
       ">R${rodada.rodada}</div>
 
@@ -843,13 +930,13 @@ function criarItemExtratoRodadaMobile(
       ">
         <div style="text-align: center;">
           <div style="
-            font: ${MOBILE_DARK_HD_CONFIG.fonts.weights.medium} ${MOBILE_DARK_HD_CONFIG.fonts.mini};
-            color: ${MOBILE_DARK_HD_CONFIG.colors.textMuted};
+            font: ${EXTRATO_LIGHT_CONFIG.fonts.weights.semibold} ${EXTRATO_LIGHT_CONFIG.fonts.mini};
+            color: ${EXTRATO_LIGHT_CONFIG.colors.textSecondary};
             margin-bottom: 2px;
           ">Bônus/Ônus</div>
           <div style="
-            font: ${MOBILE_DARK_HD_CONFIG.fonts.weights.bold} ${MOBILE_DARK_HD_CONFIG.fonts.caption};
-            color: ${bonusOnus === 0 ? MOBILE_DARK_HD_CONFIG.colors.textMuted : bonusOnus > 0 ? MOBILE_DARK_HD_CONFIG.colors.success : MOBILE_DARK_HD_CONFIG.colors.danger};
+            font: ${EXTRATO_LIGHT_CONFIG.fonts.weights.bold} ${EXTRATO_LIGHT_CONFIG.fonts.caption};
+            color: ${bonusOnus === 0 ? EXTRATO_LIGHT_CONFIG.colors.textMuted : bonusOnus > 0 ? EXTRATO_LIGHT_CONFIG.colors.success : EXTRATO_LIGHT_CONFIG.colors.danger};
           ">${formatarValorMonetario(bonusOnus)}</div>
         </div>
 
