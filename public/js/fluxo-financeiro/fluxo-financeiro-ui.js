@@ -914,6 +914,12 @@ function calcularDetalhamentoGanhos(extrato) {
         },
     };
 
+    // ✅ Validação defensiva
+    if (!extrato || !extrato.rodadas || !Array.isArray(extrato.rodadas)) {
+        console.warn('[FLUXO-UI] Extrato inválido ou sem rodadas em calcularDetalhamentoGanhos');
+        return detalhes;
+    }
+
     // Percorrer rodadas
     extrato.rodadas.forEach((rodada) => {
         if (rodada.bonusOnus > 0) {
@@ -983,6 +989,12 @@ function calcularDetalhamentoPerdas(extrato) {
             melhorMes: [],
         },
     };
+
+    // ✅ Validação defensiva
+    if (!extrato || !extrato.rodadas || !Array.isArray(extrato.rodadas)) {
+        console.warn('[FLUXO-UI] Extrato inválido ou sem rodadas em calcularDetalhamentoPerdas');
+        return detalhes;
+    }
 
     // Percorrer rodadas
     extrato.rodadas.forEach((rodada) => {
