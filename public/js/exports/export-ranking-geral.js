@@ -329,7 +329,6 @@ function criarLayoutRankingGeralMobile(rankings, rodada, tipo) {
       <!-- Lista de participantes -->
       <div style="padding: ${MOBILE_DARK_HD_CONFIG.padding}px 0;">
         ${rankings
-          .slice(0, 20)
           .map((time, index) =>
             criarItemRankingMobile(time, index, tipo, rankings.length),
           )

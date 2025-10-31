@@ -3,52 +3,10 @@
 // ===== CONSTANTES DE IDENTIFICAÇÃO =====
 export const ID_SUPERCARTOLA_2025 = "684cb1c8af923da7c7df51de";
 export const ID_CARTOLEIROS_SOBRAL = "684d821cf1a7ae16d1f89572";
-export const RODADA_INICIAL_PONTOS_CORRIDOS = 23;
+export const RODADA_INICIAL_PONTOS_CORRIDOS = 7; // Pontos Corridos começam na rodada 7
 
-// ===== VALORES DE BÔNUS/ÔNUS =====
-export const valoresRodadaPadrao = {
-    1: 15,
-    2: 5,
-    3: 0,
-    4: 0,
-    5: 0,
-    6: 0,
-    7: 0,
-    8: 0,
-    9: 0,
-    10: 0,
-    11: 0,
-    12: 0,
-    13: 0,
-    14: 0,
-    15: 0,
-    16: 0,
-    17: 0,
-    18: 0,
-    19: 0,
-    20: 0,
-    21: 0,
-    22: 0,
-    23: 0,
-    24: 0,
-    25: 0,
-    26: 0,
-    27: 0,
-    28: 0,
-    29: 0,
-    30: 0,
-    31: 0,
-    32: -15,
-};
-
-export const valoresRodadaCartoleirosSobral = {
-    1: 10,
-    2: 0,
-    3: 0,
-    4: 0,
-    5: 0,
-    6: -10,
-};
+// NOTA: Os valores de bônus/ônus por posição estão em ../rodadas/rodadas-config.js
+// e são importados corretamente pelo fluxo-financeiro-core.js
 
 // ===== FUNÇÃO PARA NORMALIZAR IDS =====
 export function normalizarTimeId(timeId) {

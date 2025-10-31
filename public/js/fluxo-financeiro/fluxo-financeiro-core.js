@@ -76,6 +76,9 @@ export class FluxoFinanceiroCore {
         const extrato = {
             rodadas: [],
             resumo: {
+                totalGanhos: 0, // ✅ NOVO: Soma de TUDO que é positivo
+                totalPerdas: 0, // ✅ NOVO: Soma de TUDO que é negativo
+                // Mantidos para cálculos internos (não exibidos no cabeçalho)
                 bonus: 0,
                 onus: 0,
                 pontosCorridos: isSuperCartola2025 ? 0 : null,
@@ -88,7 +91,7 @@ export class FluxoFinanceiroCore {
                 vezesMito: 0,
                 vezesMico: 0,
                 saldo: 0,
-                top10: 0, // ✅ NOVO: Total TOP 10
+                top10: 0,
             },
             totalTimes: 0,
             camposEditaveis: camposEditaveis,
@@ -135,6 +138,9 @@ export class FluxoFinanceiroCore {
         extrato.rodadas = rodadasProcessadas;
         this._calcularSaldoAcumulado(extrato.rodadas, camposEditaveis);
         extrato.resumo.saldo = this._calcularSaldoFinal(extrato.resumo);
+
+        // ✅ CALCULAR TOTAIS CONSOLIDADOS - passar rodadas
+        this._calcularTotaisConsolidados(extrato.resumo, extrato.rodadas);
 
         console.log(
             `[FLUXO-CORE] Extrato OTIMIZADO calculado: ${extrato.rodadas.length} rodadas`,
@@ -345,6 +351,60 @@ export class FluxoFinanceiroCore {
             resumo.campo3 +
             resumo.campo4
         );
+    }
+
+    _calcularTotaisConsolidados(resumo, rodadas) {
+        // Resetar totais
+        resumo.totalGanhos = 0;
+        resumo.totalPerdas = 0;
+
+        console.log("[DEBUG-TOTAIS] === INICIANDO CÁLCULO ===");
+
+        // PERCORRER RODADAS para separar valores positivos e negativos
+        if (rodadas && Array.isArray(rodadas)) {
+            rodadas.forEach((rodada) => {
+                // Bônus/Ônus
+                if (rodada.bonusOnus > 0)
+                    resumo.totalGanhos += rodada.bonusOnus;
+                if (rodada.bonusOnus < 0)
+                    resumo.totalPerdas += rodada.bonusOnus;
+
+                // Pontos Corridos
+                if (rodada.pontosCorridos > 0)
+                    resumo.totalGanhos += rodada.pontosCorridos;
+                if (rodada.pontosCorridos < 0)
+                    resumo.totalPerdas += rodada.pontosCorridos;
+
+                // Mata-Mata
+                if (rodada.mataMata > 0) resumo.totalGanhos += rodada.mataMata;
+                if (rodada.mataMata < 0) resumo.totalPerdas += rodada.mataMata;
+
+                // Melhor Mês
+                if (rodada.melhorMes > 0)
+                    resumo.totalGanhos += rodada.melhorMes;
+                if (rodada.melhorMes < 0)
+                    resumo.totalPerdas += rodada.melhorMes;
+
+                // TOP 10
+                if (rodada.top10 > 0) resumo.totalGanhos += rodada.top10;
+                if (rodada.top10 < 0) resumo.totalPerdas += rodada.top10;
+            });
+        }
+
+        // Adicionar campos editáveis (valores globais)
+        if (resumo.campo1 > 0) resumo.totalGanhos += resumo.campo1;
+        if (resumo.campo1 < 0) resumo.totalPerdas += resumo.campo1;
+        if (resumo.campo2 > 0) resumo.totalGanhos += resumo.campo2;
+        if (resumo.campo2 < 0) resumo.totalPerdas += resumo.campo2;
+        if (resumo.campo3 > 0) resumo.totalGanhos += resumo.campo3;
+        if (resumo.campo3 < 0) resumo.totalPerdas += resumo.campo3;
+        if (resumo.campo4 > 0) resumo.totalGanhos += resumo.campo4;
+        if (resumo.campo4 < 0) resumo.totalPerdas += resumo.campo4;
+
+        console.log(
+            `[FLUXO-CORE] ✅ Totais: Ganhou=${resumo.totalGanhos.toFixed(2)} | Perdeu=${resumo.totalPerdas.toFixed(2)} | Saldo=${(resumo.totalGanhos + resumo.totalPerdas).toFixed(2)}`,
+        );
+        console.log("[DEBUG-TOTAIS] === FIM CÁLCULO ===");
     }
 
     // ===== BUSCAR DADOS DO TOP 10 (INTEGRADO COM MÓDULO TOP10.JS) =====

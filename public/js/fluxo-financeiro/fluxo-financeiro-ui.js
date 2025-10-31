@@ -432,41 +432,70 @@ export class FluxoFinanceiroUI {
                     </div>
                 </div>
 
-                <!-- CARDS RESUMO COMPACTOS -->
-                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 12px; margin-top: 16px;">
-                    <div style="background: var(--bg-secondary); padding: 12px; border-radius: 6px; border: 1px solid var(--border-secondary);">
-                        <div style="font-size: 10px; color: var(--text-muted); font-weight: 600; text-transform: uppercase; 
-                             letter-spacing: 0.5px; margin-bottom: 6px;">🎁 Bônus</div>
-                        <div style="font-size: 16px; font-weight: 700; color: var(--text-primary);">
-                            ${formatarValorComCor(extrato.resumo.bonus)}
+                <!-- CARDS RESUMO SIMPLIFICADOS -->
+                <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; margin-top: 16px;">
+                    <div onclick="window.mostrarDetalhamentoGanhos()" 
+                         style="background: linear-gradient(135deg, rgba(46, 204, 113, 0.1), rgba(46, 204, 113, 0.05)); 
+                                padding: 16px; border-radius: 8px; border: 2px solid rgba(46, 204, 113, 0.3);
+                                cursor: pointer; transition: all 0.3s ease;"
+                         onmouseover="this.style.transform='translateY(-2px)'; this.style.boxShadow='0 4px 12px rgba(46, 204, 113, 0.3)'"
+                         onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='none'">
+                        <div style="font-size: 11px; color: rgba(46, 204, 113, 0.8); font-weight: 700; text-transform: uppercase; 
+                             letter-spacing: 0.8px; margin-bottom: 8px; display: flex; align-items: center; gap: 6px;">
+                            <span style="font-size: 16px;">💰</span>
+                            <span>Tudo que Ganhou</span>
+                            <span style="font-size: 10px; margin-left: auto; opacity: 0.7;">🔍 clique</span>
+                        </div>
+                        <div style="font-size: 20px; font-weight: 700; color: #2ecc71;">
+                            +R$ ${(
+                                extrato.resumo.totalGanhos || 0
+                            ).toLocaleString("pt-BR", {
+                                minimumFractionDigits: 2,
+                                maximumFractionDigits: 2,
+                            })}
                         </div>
                     </div>
-                    <div style="background: var(--bg-secondary); padding: 12px; border-radius: 6px; border: 1px solid var(--border-secondary);">
-                        <div style="font-size: 10px; color: var(--text-muted); font-weight: 600; text-transform: uppercase; 
-                             letter-spacing: 0.5px; margin-bottom: 6px;">⚠️ Ônus</div>
-                        <div style="font-size: 16px; font-weight: 700; color: var(--text-primary);">
-                            ${formatarValorComCor(extrato.resumo.onus)}
+
+                    <div onclick="window.mostrarDetalhamentoPerdas()" 
+                         style="background: linear-gradient(135deg, rgba(231, 76, 60, 0.1), rgba(231, 76, 60, 0.05)); 
+                                padding: 16px; border-radius: 8px; border: 2px solid rgba(231, 76, 60, 0.3);
+                                cursor: pointer; transition: all 0.3s ease;"
+                         onmouseover="this.style.transform='translateY(-2px)'; this.style.boxShadow='0 4px 12px rgba(231, 76, 60, 0.3)'"
+                         onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='none'">
+                        <div style="font-size: 11px; color: rgba(231, 76, 60, 0.8); font-weight: 700; text-transform: uppercase; 
+                             letter-spacing: 0.8px; margin-bottom: 8px; display: flex; align-items: center; gap: 6px;">
+                            <span style="font-size: 16px;">💸</span>
+                            <span>Tudo que Perdeu</span>
+                            <span style="font-size: 10px; margin-left: auto; opacity: 0.7;">🔍 clique</span>
+                        </div>
+                        <div style="font-size: 20px; font-weight: 700; color: #e74c3c;">
+                            R$ ${(
+                                extrato.resumo.totalPerdas || 0
+                            ).toLocaleString("pt-BR", {
+                                minimumFractionDigits: 2,
+                                maximumFractionDigits: 2,
+                            })}
                         </div>
                     </div>
-                    <div style="background: var(--bg-secondary); padding: 12px; border-radius: 6px; border: 1px solid var(--border-secondary);">
-                        <div style="font-size: 10px; color: var(--text-muted); font-weight: 600; text-transform: uppercase; 
-                             letter-spacing: 0.5px; margin-bottom: 6px;">🏆 P. Corridos</div>
-                        <div style="font-size: 16px; font-weight: 700; color: var(--text-primary);">
-                            ${formatarValorComCor(extrato.resumo.pontosCorridos)}
+
+                    <div style="background: linear-gradient(135deg, rgba(255, 69, 0, 0.1), rgba(255, 69, 0, 0.05)); 
+                                padding: 16px; border-radius: 8px; border: 2px solid rgba(255, 69, 0, 0.4);">
+                        <div style="font-size: 11px; color: rgba(255, 69, 0, 0.9); font-weight: 700; text-transform: uppercase; 
+                             letter-spacing: 0.8px; margin-bottom: 4px; display: flex; align-items: center; gap: 6px;">
+                            <span style="font-size: 16px;">💵</span>
+                            <span>${parseFloat(extrato.resumo.saldo) >= 0 ? "Saldo a Receber" : "Saldo a Pagar"}</span>
                         </div>
-                    </div>
-                    <div style="background: var(--bg-secondary); padding: 12px; border-radius: 6px; border: 1px solid var(--border-secondary);">
-                        <div style="font-size: 10px; color: var(--text-muted); font-weight: 600; text-transform: uppercase; 
-                             letter-spacing: 0.5px; margin-bottom: 6px;">⚔️ Mata-Mata</div>
-                        <div style="font-size: 16px; font-weight: 700; color: var(--text-primary);">
-                            ${formatarValorComCor(extrato.resumo.mataMata)}
-                        </div>
-                    </div>
-                    <div style="background: var(--bg-secondary); padding: 12px; border-radius: 6px; border: 1px solid var(--border-secondary);">
-                        <div style="font-size: 10px; color: var(--text-muted); font-weight: 600; text-transform: uppercase; 
-                             letter-spacing: 0.5px; margin-bottom: 6px;">🏅 TOP 10</div>
-                        <div style="font-size: 16px; font-weight: 700; color: var(--text-primary);">
-                            ${formatarValorComCor(extrato.resumo.top10 || 0)}
+                        <div style="font-size: 20px; font-weight: 700; color: ${
+                            parseFloat(extrato.resumo.saldo) >= 0
+                                ? "#2ecc71"
+                                : "#e74c3c"
+                        };">
+                            ${parseFloat(extrato.resumo.saldo) >= 0 ? "+" : ""}R$ ${Math.abs(
+                                parseFloat(extrato.resumo.saldo),
+                            ).toLocaleString("pt-BR", {
+                                minimumFractionDigits: 2,
+                                maximumFractionDigits: 2,
+                            })}
                         </div>
                     </div>
                 </div>
@@ -658,19 +687,10 @@ export class FluxoFinanceiroUI {
                                      onclick="window.editarNomeCampo('${timeId}', '${campo.nomeCampo}')">
                                     ${campo.label}
                                 </div>
-                                ${
-                                    campo.valorAtual !== 0
-                                        ? `<button onclick="window.desfazerCampo('${timeId}', '${campo.nomeCampo}')" 
-                                               style="background: none; border: none; color: var(--text-muted); 
-                                                      cursor: pointer; padding: 0; font-size: 14px; line-height: 1;"
-                                               title="Desfazer">↩️</button>`
-                                        : ""
-                                }
                             </div>
-                            <input type="text" 
-                                   value="R$ ${Math.abs(campo.valorAtual).toLocaleString("pt-BR", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}" 
-                                   onfocus="this.value = '${campo.valorAtual}'; this.type='number'; this.step='0.01'"
-                                   onblur="this.type='text'; const val = parseFloat(this.value) || 0; this.value = 'R$ ' + Math.abs(val).toLocaleString('pt-BR', {minimumFractionDigits: 2, maximumFractionDigits: 2})"
+                            <input type="number" 
+                                   step="0.01"
+                                   value="${campo.valorAtual}" 
                                    onchange="window.salvarCampoEditavel('${timeId}', '${campo.nomeCampo}', this.value)"
                                    style="width: 100%; padding: 8px; border: 1px solid var(--border-primary); 
                                           border-radius: 4px; font-size: 14px; font-weight: 600; 
@@ -679,6 +699,18 @@ export class FluxoFinanceiroUI {
                     `,
                         )
                         .join("")}
+                </div>
+                <div style="margin-top: 16px; display: flex; justify-content: flex-end;">
+                    <button onclick="window.calcularEExibirExtrato('${timeId}')" 
+                            style="background: var(--gradient-primary); color: white; border: none; 
+                                   padding: 10px 20px; border-radius: 6px; cursor: pointer; font-weight: 600; 
+                                   font-size: 13px; display: flex; align-items: center; gap: 8px;
+                                   box-shadow: var(--shadow-orange); transition: all 0.3s ease;"
+                            onmouseover="this.style.transform='translateY(-2px)'; this.style.boxShadow='0 6px 20px rgba(255, 69, 0, 0.5)'"
+                            onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='var(--shadow-orange)'">
+                        <span style="font-size: 16px;">🔄</span>
+                        <span>Recalcular</span>
+                    </button>
                 </div>
             </div>
         `;
@@ -796,4 +828,388 @@ export class FluxoFinanceiroUI {
 
         container.innerHTML = html;
     }
+}
+
+// ===== FUNÇÕES GLOBAIS PARA CAMPOS EDITÁVEIS =====
+
+window.salvarCampoEditavel = async function (timeId, nomeCampo, valor) {
+    try {
+        const valorNum = parseFloat(valor) || 0;
+        await FluxoFinanceiroCampos.salvarValorCampo(
+            timeId,
+            nomeCampo,
+            valorNum,
+        );
+        console.log(`[UI] Campo ${nomeCampo} salvo: R$ ${valorNum}`);
+    } catch (error) {
+        console.error("[UI] Erro ao salvar campo:", error);
+        alert("Erro ao salvar campo. Tente novamente.");
+    }
+};
+
+window.editarNomeCampo = async function (timeId, nomeCampo) {
+    try {
+        const nomeAtual = await FluxoFinanceiroCampos.obterNomeCampo(
+            timeId,
+            nomeCampo,
+        );
+        const novoNome = prompt(
+            `Renomear campo:\n\nNome atual: ${nomeAtual}\n\nNovo nome:`,
+            nomeAtual,
+        );
+
+        if (novoNome && novoNome.trim()) {
+            await FluxoFinanceiroCampos.salvarNomeCampo(
+                timeId,
+                nomeCampo,
+                novoNome.trim(),
+            );
+            window.calcularEExibirExtrato(timeId);
+        }
+    } catch (error) {
+        console.error("[UI] Erro ao renomear campo:", error);
+        alert("Erro ao renomear campo. Tente novamente.");
+    }
+};
+
+// ===== FUNÇÕES DE DETALHAMENTO (POPUP) =====
+window.mostrarDetalhamentoGanhos = function () {
+    const extrato = window.extratoAtual;
+    if (!extrato) return;
+
+    const detalhes = calcularDetalhamentoGanhos(extrato);
+    mostrarPopupDetalhamento(
+        "Detalhamento: Tudo que Ganhou",
+        detalhes,
+        "#2ecc71",
+    );
+};
+
+window.mostrarDetalhamentoPerdas = function () {
+    const extrato = window.extratoAtual;
+    if (!extrato) return;
+
+    const detalhes = calcularDetalhamentoPerdas(extrato);
+    mostrarPopupDetalhamento(
+        "Detalhamento: Tudo que Perdeu",
+        detalhes,
+        "#e74c3c",
+    );
+};
+
+function calcularDetalhamentoGanhos(extrato) {
+    const detalhes = {
+        bonusOnus: 0,
+        pontosCorridos: 0,
+        mataMata: 0,
+        top10: 0,
+        melhorMes: 0,
+        camposEditaveis: 0,
+        rodadas: {
+            bonusOnus: [],
+            pontosCorridos: [],
+            mataMata: [],
+            top10: [],
+            melhorMes: [],
+        },
+    };
+
+    // Percorrer rodadas
+    extrato.rodadas.forEach((rodada) => {
+        if (rodada.bonusOnus > 0) {
+            detalhes.bonusOnus += rodada.bonusOnus;
+            detalhes.rodadas.bonusOnus.push({
+                rodada: rodada.rodada,
+                valor: rodada.bonusOnus,
+            });
+        }
+        if (rodada.pontosCorridos > 0) {
+            detalhes.pontosCorridos += rodada.pontosCorridos;
+            detalhes.rodadas.pontosCorridos.push({
+                rodada: rodada.rodada,
+                valor: rodada.pontosCorridos,
+            });
+        }
+        if (rodada.mataMata > 0) {
+            detalhes.mataMata += rodada.mataMata;
+            detalhes.rodadas.mataMata.push({
+                rodada: rodada.rodada,
+                valor: rodada.mataMata,
+            });
+        }
+        if (rodada.top10 > 0) {
+            detalhes.top10 += rodada.top10;
+            detalhes.rodadas.top10.push({
+                rodada: rodada.rodada,
+                valor: rodada.top10,
+                status: rodada.top10Status,
+            });
+        }
+        if (rodada.melhorMes > 0) {
+            detalhes.melhorMes += rodada.melhorMes;
+            detalhes.rodadas.melhorMes.push({
+                rodada: rodada.rodada,
+                valor: rodada.melhorMes,
+            });
+        }
+    });
+
+    // Campos editáveis
+    if (extrato.resumo.campo1 > 0)
+        detalhes.camposEditaveis += extrato.resumo.campo1;
+    if (extrato.resumo.campo2 > 0)
+        detalhes.camposEditaveis += extrato.resumo.campo2;
+    if (extrato.resumo.campo3 > 0)
+        detalhes.camposEditaveis += extrato.resumo.campo3;
+    if (extrato.resumo.campo4 > 0)
+        detalhes.camposEditaveis += extrato.resumo.campo4;
+
+    return detalhes;
+}
+
+function calcularDetalhamentoPerdas(extrato) {
+    const detalhes = {
+        bonusOnus: 0,
+        pontosCorridos: 0,
+        mataMata: 0,
+        top10: 0,
+        melhorMes: 0,
+        camposEditaveis: 0,
+        rodadas: {
+            bonusOnus: [],
+            pontosCorridos: [],
+            mataMata: [],
+            top10: [],
+            melhorMes: [],
+        },
+    };
+
+    // Percorrer rodadas
+    extrato.rodadas.forEach((rodada) => {
+        if (rodada.bonusOnus < 0) {
+            detalhes.bonusOnus += rodada.bonusOnus;
+            detalhes.rodadas.bonusOnus.push({
+                rodada: rodada.rodada,
+                valor: rodada.bonusOnus,
+            });
+        }
+        if (rodada.pontosCorridos < 0) {
+            detalhes.pontosCorridos += rodada.pontosCorridos;
+            detalhes.rodadas.pontosCorridos.push({
+                rodada: rodada.rodada,
+                valor: rodada.pontosCorridos,
+            });
+        }
+        if (rodada.mataMata < 0) {
+            detalhes.mataMata += rodada.mataMata;
+            detalhes.rodadas.mataMata.push({
+                rodada: rodada.rodada,
+                valor: rodada.mataMata,
+            });
+        }
+        if (rodada.top10 < 0) {
+            detalhes.top10 += rodada.top10;
+            detalhes.rodadas.top10.push({
+                rodada: rodada.rodada,
+                valor: rodada.top10,
+                status: rodada.top10Status,
+            });
+        }
+        if (rodada.melhorMes < 0) {
+            detalhes.melhorMes += rodada.melhorMes;
+            detalhes.rodadas.melhorMes.push({
+                rodada: rodada.rodada,
+                valor: rodada.melhorMes,
+            });
+        }
+    });
+
+    // Campos editáveis
+    if (extrato.resumo.campo1 < 0)
+        detalhes.camposEditaveis += extrato.resumo.campo1;
+    if (extrato.resumo.campo2 < 0)
+        detalhes.camposEditaveis += extrato.resumo.campo2;
+    if (extrato.resumo.campo3 < 0)
+        detalhes.camposEditaveis += extrato.resumo.campo3;
+    if (extrato.resumo.campo4 < 0)
+        detalhes.camposEditaveis += extrato.resumo.campo4;
+
+    return detalhes;
+}
+
+function mostrarPopupDetalhamento(titulo, detalhes, cor) {
+    const formatarMoeda = (valor) => {
+        return (valor || 0).toLocaleString("pt-BR", {
+            minimumFractionDigits: 2,
+            maximumFractionDigits: 2,
+        });
+    };
+
+    const formatarRodadas = (rodadas) => {
+        if (!rodadas || rodadas.length === 0) return "-";
+        return rodadas
+            .map((r) => `R${r.rodada}(${formatarMoeda(Math.abs(r.valor))})`)
+            .join(", ");
+    };
+
+    const total =
+        detalhes.bonusOnus +
+        detalhes.pontosCorridos +
+        detalhes.mataMata +
+        detalhes.top10 +
+        detalhes.melhorMes +
+        detalhes.camposEditaveis;
+
+    const html = `
+        <div id="popupDetalhamento" style="position: fixed; top: 0; left: 0; width: 100%; height: 100%; 
+             background: rgba(0,0,0,0.7); display: flex; align-items: center; justify-content: center; 
+             z-index: 10000; backdrop-filter: blur(4px);" onclick="this.remove()">
+            <div style="background: var(--bg-card); border-radius: 12px; max-width: 600px; width: 90%; 
+                 max-height: 80vh; overflow-y: auto; box-shadow: 0 20px 60px rgba(0,0,0,0.5); 
+                 border: 2px solid ${cor};" onclick="event.stopPropagation()">
+
+                <!-- CABEÇALHO -->
+                <div style="background: ${cor}; padding: 20px; border-radius: 10px 10px 0 0; 
+                     display: flex; justify-content: space-between; align-items: center;">
+                    <h3 style="margin: 0; color: white; font-size: 18px; font-weight: 700;">${titulo}</h3>
+                    <button onclick="document.getElementById('popupDetalhamento').remove()" 
+                            style="background: rgba(255,255,255,0.2); border: none; color: white; 
+                            width: 32px; height: 32px; border-radius: 50%; cursor: pointer; 
+                            font-size: 20px; display: flex; align-items: center; justify-content: center;
+                            transition: all 0.3s ease;"
+                            onmouseover="this.style.background='rgba(255,255,255,0.3)'"
+                            onmouseout="this.style.background='rgba(255,255,255,0.2)'">×</button>
+                </div>
+
+                <!-- CONTEÚDO -->
+                <div style="padding: 24px;">
+                    <!-- Bônus/Ônus -->
+                    ${
+                        detalhes.bonusOnus !== 0
+                            ? `
+                    <div style="margin-bottom: 20px; padding-bottom: 20px; border-bottom: 1px solid var(--border-primary);">
+                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+                            <span style="font-weight: 700; color: var(--text-primary); font-size: 14px;">💰 Bônus/Ônus</span>
+                            <span style="font-weight: 700; font-size: 16px; color: ${cor};">
+                                R$ ${formatarMoeda(detalhes.bonusOnus)}
+                            </span>
+                        </div>
+                        <div style="font-size: 12px; color: var(--text-muted); line-height: 1.6;">
+                            ${detalhes.rodadas.bonusOnus.length} rodada(s): ${formatarRodadas(detalhes.rodadas.bonusOnus)}
+                        </div>
+                    </div>
+                    `
+                            : ""
+                    }
+
+                    <!-- Pontos Corridos -->
+                    ${
+                        detalhes.pontosCorridos !== 0
+                            ? `
+                    <div style="margin-bottom: 20px; padding-bottom: 20px; border-bottom: 1px solid var(--border-primary);">
+                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+                            <span style="font-weight: 700; color: var(--text-primary); font-size: 14px;">⚽ Pontos Corridos</span>
+                            <span style="font-weight: 700; font-size: 16px; color: ${cor};">
+                                R$ ${formatarMoeda(detalhes.pontosCorridos)}
+                            </span>
+                        </div>
+                        <div style="font-size: 12px; color: var(--text-muted); line-height: 1.6;">
+                            ${detalhes.rodadas.pontosCorridos.length} rodada(s): ${formatarRodadas(detalhes.rodadas.pontosCorridos)}
+                        </div>
+                    </div>
+                    `
+                            : ""
+                    }
+
+                    <!-- Mata-Mata -->
+                    ${
+                        detalhes.mataMata !== 0
+                            ? `
+                    <div style="margin-bottom: 20px; padding-bottom: 20px; border-bottom: 1px solid var(--border-primary);">
+                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+                            <span style="font-weight: 700; color: var(--text-primary); font-size: 14px;">🏆 Mata-Mata</span>
+                            <span style="font-weight: 700; font-size: 16px; color: ${cor};">
+                                R$ ${formatarMoeda(detalhes.mataMata)}
+                            </span>
+                        </div>
+                        <div style="font-size: 12px; color: var(--text-muted); line-height: 1.6;">
+                            ${detalhes.rodadas.mataMata.length} rodada(s): ${formatarRodadas(detalhes.rodadas.mataMata)}
+                        </div>
+                    </div>
+                    `
+                            : ""
+                    }
+
+                    <!-- TOP 10 -->
+                    ${
+                        detalhes.top10 !== 0
+                            ? `
+                    <div style="margin-bottom: 20px; padding-bottom: 20px; border-bottom: 1px solid var(--border-primary);">
+                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+                            <span style="font-weight: 700; color: var(--text-primary); font-size: 14px;">🔝 TOP 10</span>
+                            <span style="font-weight: 700; font-size: 16px; color: ${cor};">
+                                R$ ${formatarMoeda(detalhes.top10)}
+                            </span>
+                        </div>
+                        <div style="font-size: 12px; color: var(--text-muted); line-height: 1.6;">
+                            ${detalhes.rodadas.top10.length} rodada(s): ${formatarRodadas(detalhes.rodadas.top10)}
+                        </div>
+                    </div>
+                    `
+                            : ""
+                    }
+
+                    <!-- Melhor Mês -->
+                    ${
+                        detalhes.melhorMes !== 0
+                            ? `
+                    <div style="margin-bottom: 20px; padding-bottom: 20px; border-bottom: 1px solid var(--border-primary);">
+                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+                            <span style="font-weight: 700; color: var(--text-primary); font-size: 14px;">📅 Melhor Mês</span>
+                            <span style="font-weight: 700; font-size: 16px; color: ${cor};">
+                                R$ ${formatarMoeda(detalhes.melhorMes)}
+                            </span>
+                        </div>
+                        <div style="font-size: 12px; color: var(--text-muted); line-height: 1.6;">
+                            ${detalhes.rodadas.melhorMes.length} rodada(s): ${formatarRodadas(detalhes.rodadas.melhorMes)}
+                        </div>
+                    </div>
+                    `
+                            : ""
+                    }
+
+                    <!-- Campos Editáveis -->
+                    ${
+                        detalhes.camposEditaveis !== 0
+                            ? `
+                    <div style="margin-bottom: 20px; padding-bottom: 20px; border-bottom: 1px solid var(--border-primary);">
+                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+                            <span style="font-weight: 700; color: var(--text-primary); font-size: 14px;">⚙️ Campos Personalizados</span>
+                            <span style="font-weight: 700; font-size: 16px; color: ${cor};">
+                                R$ ${formatarMoeda(detalhes.camposEditaveis)}
+                            </span>
+                        </div>
+                    </div>
+                    `
+                            : ""
+                    }
+
+                    <!-- TOTAL -->
+                    <div style="background: linear-gradient(135deg, ${cor}15, ${cor}05); 
+                         padding: 16px; border-radius: 8px; border: 2px solid ${cor};">
+                        <div style="display: flex; justify-content: space-between; align-items: center;">
+                            <span style="font-weight: 700; color: var(--text-primary); font-size: 16px;">
+                                💵 TOTAL
+                            </span>
+                            <span style="font-weight: 700; font-size: 20px; color: ${cor};">
+                                R$ ${formatarMoeda(total)}
+                            </span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    `;
+
+    document.body.insertAdjacentHTML("beforeend", html);
 }

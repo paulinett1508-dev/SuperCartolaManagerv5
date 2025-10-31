@@ -102,15 +102,25 @@ async function executeExportFunction(moduleName, functionName, ...args) {
 
 // 🔧 NOVO: Função para detectar módulo e função corretos baseado no tipo
 function detectarModuloEFuncao(config) {
-  const { tipo, customExport } = config || {};
+  const { tipo, customExport, isRankingGeral } = config || {};
 
-  console.log(`[EXPORT-EXPORTS] 🔍 Detectando módulo para tipo: ${tipo}`);
+  console.log(
+    `[EXPORT-EXPORTS] 🔍 Detectando módulo para tipo: ${tipo}, isRankingGeral: ${isRankingGeral}`,
+  );
 
-  // ✅ FIX CRÍTICO: Detecção específica para rodadas
+  // 🎯 PRIORIDADE 1: Verificar se é Ranking Geral (antes de verificar rodada)
+  if (isRankingGeral === true || tipo === "ranking-geral" || tipo === "geral") {
+    return {
+      moduleName: "ranking-geral",
+      functionName: "criarBotaoExportacaoRankingGeral",
+    };
+  }
+
+  // ✅ FIX CRÍTICO: Detecção específica para rodadas (só se NÃO for ranking geral)
   if (
     tipo === "rodada" ||
     tipo === "ranking-rodada" ||
-    (config && config.rodada)
+    (config && config.rodada && !isRankingGeral)
   ) {
     return {
       moduleName: "rodadas",
@@ -168,10 +178,14 @@ function detectarModuloEFuncao(config) {
     };
   }
 
-  // Padrão: ranking-geral
+  // Padrão: RODADAS (não ranking-geral!)
+  // Se chegou aqui e não foi identificado, provavelmente é uma rodada
+  console.warn(
+    `[EXPORT-EXPORTS] ⚠️ Tipo não identificado: ${tipo}, usando padrão rodadas`,
+  );
   return {
-    moduleName: "ranking-geral",
-    functionName: "criarBotaoExportacaoRankingGeral",
+    moduleName: "rodadas",
+    functionName: "criarBotaoExportacaoRodadaHQ",
   };
 }
 
@@ -239,14 +253,8 @@ export async function criarBotaoExportacaoRodada(config, ...restArgs) {
   } catch (error) {
     console.error("[EXPORT-EXPORTS] ❌ Erro na detecção/execução:", error);
 
-    // Fallback para ranking-geral em caso de erro
-    console.log("[EXPORT-EXPORTS] 🔄 Usando fallback para ranking-geral");
-    return executeExportFunction(
-      "ranking-geral",
-      "criarBotaoExportacaoRankingGeral",
-      config,
-      ...restArgs,
-    );
+    // Não fazer fallback automático - deixar o erro aparecer
+    throw error;
   }
 }
 

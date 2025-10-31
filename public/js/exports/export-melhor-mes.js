@@ -8,7 +8,9 @@ import {
   gerarCanvasMobileDarkHD,
 } from "./export-base.js";
 
-console.log("[EXPORT-MELHOR-MES-MOBILE] Sistema Mobile Dark HD v3.0.1 carregado");
+console.log(
+  "[EXPORT-MELHOR-MES-MOBILE] Sistema Mobile Dark HD v3.0.1 carregado",
+);
 
 // ✅ FUNÇÃO PRINCIPAL - CRIAR BOTÃO DE EXPORTAÇÃO
 export async function criarBotaoExportacaoMelhorMes(config) {
@@ -50,10 +52,15 @@ export async function criarBotaoExportacaoMelhorMes(config) {
     return;
   }
 
-  console.log("[EXPORT-MELHOR-MES-MOBILE] ✅ Container:", container.id || container.className);
+  console.log(
+    "[EXPORT-MELHOR-MES-MOBILE] ✅ Container:",
+    container.id || container.className,
+  );
 
   // Remove botão existente
-  const botaoExistente = container.querySelector(".btn-export-melhor-mes-mobile");
+  const botaoExistente = container.querySelector(
+    ".btn-export-melhor-mes-mobile",
+  );
   if (botaoExistente) {
     botaoExistente.remove();
   }
@@ -66,15 +73,7 @@ export async function criarBotaoExportacaoMelhorMes(config) {
   btn.innerHTML = `
     <div style="display: flex; align-items: center; gap: 10px;">
       <span style="font-size: 16px;">🏆</span>
-      <span>Exportar Mobile HD</span>
-      <div style="
-        background: rgba(255,255,255,0.2);
-        padding: 2px 6px;
-        border-radius: 10px;
-        font-size: 10px;
-        font-weight: 600;
-        letter-spacing: 0.5px;
-      ">MOBILE</div>
+      <span>EXPORTAR</span>
     </div>
   `;
 
@@ -115,7 +114,7 @@ export async function criarBotaoExportacaoMelhorMes(config) {
           border-radius: 50%;
           animation: spin 1s linear infinite;
         "></div>
-        <span>Gerando HD...</span>
+        <span>Gerando...</span>
       </div>
     `;
     btn.disabled = true;
@@ -172,7 +171,8 @@ async function exportarMelhorMesMobileDarkHD(config) {
   }
 
   const numeroEdicao = edicao.numero || edicao.nome || "05";
-  const titulo = tituloPersonalizado || `🏆 Melhor do Mês - Edição ${numeroEdicao}`;
+  const titulo =
+    tituloPersonalizado || `🏆 Melhor do Mês - Edição ${numeroEdicao}`;
   const subtitulo = `Rodadas ${edicao.inicio || edicao.rodadaInicio || 23} a ${edicao.fim || edicao.rodadaFim || 28}`;
 
   const rodadaAtual = window.rodadaAtual || 26;
@@ -193,11 +193,13 @@ async function exportarMelhorMesMobileDarkHD(config) {
   document.body.appendChild(exportContainer);
 
   try {
-    await new Promise((resolve) => setTimeout(resolve, 1000));
+    await new Promise((resolve) => setTimeout(resolve, 2000));
 
     const imagens = exportContainer.querySelectorAll("img");
     if (imagens.length > 0) {
-      console.log(`[EXPORT-MELHOR-MES-MOBILE] 🖼️ Aguardando ${imagens.length} imagens...`);
+      console.log(
+        `[EXPORT-MELHOR-MES-MOBILE] 🖼️ Aguardando ${imagens.length} imagens...`,
+      );
       await Promise.allSettled(
         Array.from(imagens).map((img) => {
           return new Promise((resolve) => {
@@ -206,11 +208,14 @@ async function exportarMelhorMesMobileDarkHD(config) {
             } else {
               img.onload = resolve;
               img.onerror = resolve;
-              setTimeout(resolve, 3000);
+              setTimeout(resolve, 5000);
             }
           });
         }),
       );
+
+      // Aguardar adicional para renderização completa
+      await new Promise((resolve) => setTimeout(resolve, 500));
     }
 
     const nomeArquivo = MobileDarkUtils.gerarNomeArquivoMobile("melhor-mes", {
@@ -254,14 +259,20 @@ function criarLayoutMelhorMesMobile(rankings, edicao, edicaoCompleta) {
         letter-spacing: 1px;
       ">${bannerTexto}</div>
 
-      ${campeao ? `
+      ${
+        campeao
+          ? `
       <div style="display: flex; align-items: center; justify-content: center; gap: 12px; margin-bottom: 8px;">
-        ${campeao.clube_id ? `
+        ${
+          campeao.clube_id
+            ? `
           <img src="/escudos/${campeao.clube_id}.png"
-               style="width: 48px; height: 48px; border-radius: 50%; border: 3px solid ${MOBILE_DARK_HD_CONFIG.colors.gold}; background: ${MOBILE_DARK_HD_CONFIG.colors.surface};"
-               onerror="this.outerHTML='<div style=\\'width:48px;height:48px;background:${MOBILE_DARK_HD_CONFIG.colors.gold};border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:24px;\\'>⚽</div>'"
+               style="width: 32px; height: 32px; border-radius: 50%; border: 3px solid ${MOBILE_DARK_HD_CONFIG.colors.gold}; background: ${MOBILE_DARK_HD_CONFIG.colors.surface};"
+               onerror="this.outerHTML='<div style=\\'width:32px;height:32px;background:${MOBILE_DARK_HD_CONFIG.colors.gold};border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:16px;\\'>⚽</div>'"
                alt="Escudo">
-        ` : `<div style="width:48px;height:48px;background:${MOBILE_DARK_HD_CONFIG.colors.gold};border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:24px;">⚽</div>`}
+        `
+            : `<div style="width:32px;height:32px;background:${MOBILE_DARK_HD_CONFIG.colors.gold};border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:16px;">⚽</div>`
+        }
 
         <div style="text-align: left;">
           <div style="
@@ -280,7 +291,9 @@ function criarLayoutMelhorMesMobile(rankings, edicao, edicaoCompleta) {
         color: ${MOBILE_DARK_HD_CONFIG.colors.text};
         text-shadow: 0 2px 4px rgba(0,0,0,0.3);
       ">${campeao.pontos.toFixed(2).replace(".", ",")} pontos</div>
-      ` : `<div style="color: ${MOBILE_DARK_HD_CONFIG.colors.textMuted};">Nenhum dado disponível</div>`}
+      `
+          : `<div style="color: ${MOBILE_DARK_HD_CONFIG.colors.textMuted};">Nenhum dado disponível</div>`
+      }
     </div>
 
     <!-- STATUS DA EDIÇÃO -->
@@ -341,9 +354,12 @@ function criarLayoutMelhorMesMobile(rankings, edicao, edicaoCompleta) {
       </div>
 
       <div style="padding: ${MOBILE_DARK_HD_CONFIG.padding}px 0;">
-        ${rankings.length === 0 
-          ? `<div style="text-align: center; padding: 40px 20px; color: ${MOBILE_DARK_HD_CONFIG.colors.textMuted};">Nenhum participante encontrado</div>`
-          : rankings.map((time, index) => criarItemRankingMobile(time, index)).join("")
+        ${
+          rankings.length === 0
+            ? `<div style="text-align: center; padding: 40px 20px; color: ${MOBILE_DARK_HD_CONFIG.colors.textMuted};">Nenhum participante encontrado</div>`
+            : rankings
+                .map((time, index) => criarItemRankingMobile(time, index))
+                .join("")
         }
       </div>
     </div>
@@ -368,7 +384,13 @@ function criarItemRankingMobile(time, index) {
     borderLeft = `4px solid ${MOBILE_DARK_HD_CONFIG.colors.success}`;
   }
 
-  const posicaoEmoji = isPrimeiro ? "🏆" : isSegundo ? "🥈" : isTerceiro ? "🥉" : `${posicao}º`;
+  const posicaoEmoji = isPrimeiro
+    ? "🏆"
+    : isSegundo
+      ? "🥈"
+      : isTerceiro
+        ? "🥉"
+        : `${posicao}º`;
 
   return `
     <div style="
@@ -392,16 +414,20 @@ function criarItemRankingMobile(time, index) {
         flex-shrink: 0;
       ">${posicaoEmoji}</div>
 
-      ${time.clube_id ? `
+      ${
+        time.clube_id
+          ? `
         <img src="/escudos/${time.clube_id}.png"
-             style="width: 40px; height: 40px; border-radius: 50%; border: 2px solid ${MOBILE_DARK_HD_CONFIG.colors.border}; background: ${MOBILE_DARK_HD_CONFIG.colors.surface}; margin-right: 12px; flex-shrink: 0;"
+             style="width: 32px; height: 32px; border-radius: 50%; border: 2px solid ${MOBILE_DARK_HD_CONFIG.colors.border}; background: ${MOBILE_DARK_HD_CONFIG.colors.surface}; margin-right: 12px; flex-shrink: 0;"
              onerror="this.style.display='none'"
              alt="Escudo">
-      ` : ""}
+      `
+          : ""
+      }
 
       <div style="flex: 1; min-width: 0; margin-right: 12px;">
         <div style="
-          font: ${MOBILE_DARK_HD_CONFIG.fonts.weights.bold} ${MOBILE_DARK_HD_CONFIG.fonts.body};
+          font: ${MOBILE_DARK_HD_CONFIG.fonts.weights.bold} ${MOBILE_DARK_HD_CONFIG.fonts.bodySmall};
           color: ${MOBILE_DARK_HD_CONFIG.colors.text};
           overflow: hidden;
           text-overflow: ellipsis;
@@ -426,7 +452,7 @@ function criarItemRankingMobile(time, index) {
         flex-shrink: 0;
       ">
         <div style="
-          font: ${MOBILE_DARK_HD_CONFIG.fonts.weights.extrabold} ${MOBILE_DARK_HD_CONFIG.fonts.body};
+          font: ${MOBILE_DARK_HD_CONFIG.fonts.weights.bold} ${MOBILE_DARK_HD_CONFIG.fonts.subheading};
           color: ${isPrimeiro ? MOBILE_DARK_HD_CONFIG.colors.gold : MOBILE_DARK_HD_CONFIG.colors.success};
           line-height: 1;
         ">${time.pontos.toFixed(2).replace(".", ",")}</div>
@@ -447,6 +473,10 @@ export async function exportarMelhorMesComoImagem(rankings, edicao) {
   });
 }
 
-console.log("[EXPORT-MELHOR-MES-MOBILE] ✅ Sistema Mobile Dark HD v3.0.1 configurado");
-console.log("[EXPORT-MELHOR-MES-MOBILE] 📱 Resolução: 720px x 800px+ @ 4x scale");
-console.log("[EXPORT-MELHOR-MES-MOBILE] 🎨 Tema Dark com destaque para campeão");
+console.log(
+  "[EXPORT-MELHOR-MES-MOBILE] ✅ Sistema Mobile Dark HD v3.0.1 configurado",
+);
+console.log(
+  "[EXPORT-MELHOR-MES-MOBILE] 📱 Resolução: 720px @ 2x scale (1440px final - Full HD)",
+);
+console.log("[EXPORT-MELHOR-MES-MOBILE] 🎨 Padrão Pontos Corridos aplicado");

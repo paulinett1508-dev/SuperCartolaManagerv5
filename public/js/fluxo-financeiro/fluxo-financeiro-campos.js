@@ -60,6 +60,8 @@ export class FluxoFinanceiroCampos {
                 await this.carregarTodosCamposEditaveis(timeId);
             const campoAtual = camposAtuais[nomeCampo];
 
+            const valorNumerico = parseFloat(valor) || 0;
+
             // ✅ PRESERVAR O NOME EXISTENTE
             const data = await FluxoFinanceiroAPI.salvarCampo(
                 ligaId,
@@ -67,7 +69,7 @@ export class FluxoFinanceiroCampos {
                 campoIndex,
                 {
                     nome: campoAtual?.nome || `Campo ${campoIndex + 1}`,
-                    valor: parseFloat(valor) || 0,
+                    valor: valorNumerico,
                 },
             );
 
@@ -139,20 +141,6 @@ export class FluxoFinanceiroCampos {
             console.error("[FluxoFinanceiroCampos] Erro ao obter nome:", error);
             return `Campo ${nomeCampo.slice(-1)}`;
         }
-    }
-
-    /**
-     * Sistema de desfazer (fallback - não implementado no MongoDB)
-     * @param {string} timeId - ID do time
-     * @param {string} nomeCampo - Nome do campo
-     */
-    static async desfazerCampo(timeId, nomeCampo) {
-        console.warn(
-            "[FluxoFinanceiroCampos] Desfazer não implementado com MongoDB",
-        );
-        alert(
-            'Função "Desfazer" não disponível com persistência em banco de dados.\n\nPara reverter alterações, digite o valor anterior manualmente.',
-        );
     }
 
     /**
