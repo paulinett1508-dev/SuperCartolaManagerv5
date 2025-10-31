@@ -914,9 +914,15 @@ function calcularDetalhamentoGanhos(extrato) {
         },
     };
 
-    // ✅ Validação defensiva
+    // ✅ Validação defensiva com diagnóstico
     if (!extrato || !extrato.rodadas || !Array.isArray(extrato.rodadas)) {
         console.warn('[FLUXO-UI] Extrato inválido ou sem rodadas em calcularDetalhamentoGanhos');
+        console.warn('[FLUXO-UI] DEBUG - Estrutura recebida:', {
+            extratoExiste: !!extrato,
+            temRodadas: extrato ? !!extrato.rodadas : false,
+            tipoRodadas: extrato?.rodadas ? typeof extrato.rodadas : 'undefined',
+            keysDoExtrato: extrato ? Object.keys(extrato) : []
+        });
         return detalhes;
     }
 
@@ -990,9 +996,15 @@ function calcularDetalhamentoPerdas(extrato) {
         },
     };
 
-    // ✅ Validação defensiva
+    // ✅ Validação defensiva com diagnóstico
     if (!extrato || !extrato.rodadas || !Array.isArray(extrato.rodadas)) {
         console.warn('[FLUXO-UI] Extrato inválido ou sem rodadas em calcularDetalhamentoPerdas');
+        console.warn('[FLUXO-UI] DEBUG - Estrutura recebida:', {
+            extratoExiste: !!extrato,
+            temRodadas: extrato ? !!extrato.rodadas : false,
+            tipoRodadas: extrato?.rodadas ? typeof extrato.rodadas : 'undefined',
+            keysDoExtrato: extrato ? Object.keys(extrato) : []
+        });
         return detalhes;
     }
 
