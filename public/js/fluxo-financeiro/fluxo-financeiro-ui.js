@@ -299,6 +299,8 @@ export class FluxoFinanceiroUI {
             dadosExtrato: dadosParaExportacao,
             participante: participante,
             rodadaAtual: extrato.rodadas?.length || 0,
+            rodadas: extrato.rodadas || [], // ✅ CORRIGIDO: incluir rodadas para detalhamento
+            resumo: extrato.resumo || {} // ✅ CORRIGIDO: incluir resumo para detalhamento
         };
 
         const formatarValorComCor = (valor) => {
