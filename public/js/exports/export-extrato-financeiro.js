@@ -15,18 +15,18 @@ const EXTRATO_LIGHT_CONFIG = {
     background: "#FFFFFF",
     surface: "#F8F9FA",
     surfaceLight: "#FFFFFF",
-    
+
     // Textos com alto contraste para exportação
     text: "#000000",
     textPrimary: "#000000",
     textSecondary: "#2C3E50",
     textMuted: "#5A6C7D",
-    
+
     // Bordas suaves
     border: "#DEE2E6",
     borderLight: "#E9ECEF",
     divider: "#E9ECEF",
-    
+
     // Cores de status (mais saturadas para impressão)
     success: "#198754",
     successLight: "#D1F2EB",
@@ -37,13 +37,13 @@ const EXTRATO_LIGHT_CONFIG = {
     info: "#0DCAF0",
     infoLight: "#CFF4FC",
     gold: "#FFD700",
-    
+
     // Gradientes para cabeçalhos
     gradientPrimary: "linear-gradient(135deg, #FF4500 0%, #FF6347 100%)",
     gradientSuccess: "linear-gradient(135deg, #198754 0%, #20C997 100%)",
     gradientDanger: "linear-gradient(135deg, #DC3545 0%, #E74C3C 100%)",
     gradientWarning: "linear-gradient(135deg, #FD7E14 0%, #FFC107 100%)",
-    
+
     // Sombras suaves
     shadow: "0 2px 8px rgba(0, 0, 0, 0.08)",
     shadowLight: "0 1px 3px rgba(0, 0, 0, 0.06)",
@@ -372,7 +372,7 @@ function criarLayoutExtratoFinanceiroMobile(
   );
   console.log("  - Dados dos campos:", resumoFinanceiro.camposEditaveis);
 
-  const camposEditaveisNoArray = dadosValidados.filter(
+  const camposEditaveisNoArray = dadosExtrato.filter(
     (item) => item.tipo === "campo_editavel",
   );
   console.log(
@@ -887,13 +887,24 @@ function criarItemExtratoRodadaMobile(
   const saldoAcumulado =
     typeof rodada.saldoAcumulado === "number" ? rodada.saldoAcumulado : 0;
 
+  // Verificar se a rodada teve ganhos
+  const valorTotalRodada = bonusOnus + pontosCorridos + mataMata + top10;
+  const temGanhos = valorTotalRodada !== 0;
+
+  // Background: cinza claro se não teve ganhos, alternado normal se teve
+  const backgroundRodada = !temGanhos
+    ? "#E9ECEF"
+    : index % 2 === 0
+    ? EXTRATO_LIGHT_CONFIG.colors.surface
+    : EXTRATO_LIGHT_CONFIG.colors.background;
+
   return `
     <div style="
       display: flex;
       align-items: center;
       padding: 12px ${EXTRATO_LIGHT_CONFIG.padding}px;
       border-bottom: 1px solid ${EXTRATO_LIGHT_CONFIG.colors.divider};
-      background: ${index % 2 === 0 ? EXTRATO_LIGHT_CONFIG.colors.surface : EXTRATO_LIGHT_CONFIG.colors.background};
+      background: ${backgroundRodada};
       ${rodada.isMito ? `border-left: 4px solid ${EXTRATO_LIGHT_CONFIG.colors.success};` : rodada.isMico ? `border-left: 4px solid ${EXTRATO_LIGHT_CONFIG.colors.danger};` : ""}
       min-height: 50px;
     ">
