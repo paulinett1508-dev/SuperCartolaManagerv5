@@ -4,40 +4,33 @@ import Time from "../models/Time.js";
 
 const router = express.Router();
 
-// Rota para obter time por ID (do controller)
+// Buscar um time específico por ID
 router.get("/:id", async (req, res) => {
-  try {
-    const timeId = req.params.id;
-    const time = await Time.findOne({ time_id: parseInt(timeId) });
-
-    if (!time) {
-      return res.status(404).json({ erro: 'Time não encontrado' });
-    }
-
-    // Garantir que senha_acesso seja incluída na resposta
-    const timeData = time.toObject();
-    timeData.senha_acesso = time.senha_acesso || '';
-
-    res.json(timeData);
-  } catch (error) {
-    console.error('[TIMES] Erro ao buscar time:', error);
-    res.status(500).json({ erro: 'Erro ao buscar time' });
-  }
-});
-
-// Rota para buscar todos os times
-router.get("/", async (req, res) => {
     try {
-        const times = await Time.find();
-        res.json(times);
-    } catch (error) {
-        console.error("[TIMES] Erro ao buscar times:", error);
-        res.status(500).json({ erro: "Erro ao buscar times" });
+        const timeId = parseInt(req.params.id);
+
+        if (isNaN(timeId)) {
+            return res.status(400).json({ erro: "ID do time inválido" });
+        }
+
+        const time = await Time.findOne({ time_id: timeId });
+
+        if (!time) {
+            return res.status(404).json({ erro: "Time não encontrado" });
+        }
+
+        res.json(time);
+    } catch (erro) {
+        console.error(`[TIMES] Erro ao buscar time ${req.params.id}:`, erro);
+        res.status(500).json({ 
+            erro: "Erro ao buscar time", 
+            detalhes: erro.message 
+        });
     }
 });
 
-// Rota para buscar times ativos de uma liga
-router.get("/ativos/:ligaId", async (req, res) => {
+// Buscar todos os times de uma liga
+router.get("/liga/:ligaId", async (req, res) => {
     try {
         const { ligaId } = req.params;
         const times = await Time.find({ 
