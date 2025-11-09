@@ -1,0 +1,302 @@
+
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Login - Participante</title>
+  <link rel="stylesheet" href="/css/base.css">
+  <style>
+    body {
+      margin: 0;
+      padding: 0;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+    }
+
+    .login-container {
+      background: white;
+      border-radius: 16px;
+      padding: 40px;
+      max-width: 400px;
+      width: 90%;
+      box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+    }
+
+    .logo-section {
+      text-align: center;
+      margin-bottom: 30px;
+    }
+
+    .logo-section img {
+      max-width: 120px;
+      height: auto;
+      margin-bottom: 20px;
+    }
+
+    .logo-section h1 {
+      font-size: 24px;
+      font-weight: 700;
+      color: #2d3748;
+      margin: 0 0 8px 0;
+    }
+
+    .logo-section p {
+      font-size: 14px;
+      color: #718096;
+      margin: 0;
+    }
+
+    .repl-auth-container {
+      margin: 30px 0;
+      text-align: center;
+    }
+
+    .form-group {
+      margin-bottom: 20px;
+    }
+
+    .form-group label {
+      display: block;
+      font-size: 14px;
+      font-weight: 600;
+      color: #2d3748;
+      margin-bottom: 8px;
+    }
+
+    .form-group input {
+      width: 100%;
+      padding: 12px 16px;
+      font-size: 14px;
+      border: 2px solid #e2e8f0;
+      border-radius: 8px;
+      transition: all 0.3s ease;
+      box-sizing: border-box;
+    }
+
+    .form-group input:focus {
+      outline: none;
+      border-color: #667eea;
+      box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+    }
+
+    .btn-primary {
+      width: 100%;
+      padding: 14px;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      color: white;
+      border: none;
+      border-radius: 8px;
+      font-size: 16px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.3s ease;
+    }
+
+    .btn-primary:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 10px 20px rgba(102, 126, 234, 0.3);
+    }
+
+    .btn-primary:disabled {
+      opacity: 0.6;
+      cursor: not-allowed;
+      transform: none;
+    }
+
+    .error-message {
+      background: #fed7d7;
+      color: #c53030;
+      padding: 12px;
+      border-radius: 8px;
+      font-size: 14px;
+      margin-bottom: 20px;
+      display: none;
+    }
+
+    .info-message {
+      background: #e6fffa;
+      color: #234e52;
+      padding: 12px;
+      border-radius: 8px;
+      font-size: 13px;
+      margin-top: 20px;
+      text-align: center;
+    }
+
+    .loading {
+      text-align: center;
+      padding: 20px;
+    }
+
+    .spinner {
+      border: 3px solid #f3f4f6;
+      border-top: 3px solid #667eea;
+      border-radius: 50%;
+      width: 40px;
+      height: 40px;
+      animation: spin 1s linear infinite;
+      margin: 0 auto;
+    }
+
+    @keyframes spin {
+      0% { transform: rotate(0deg); }
+      100% { transform: rotate(360deg); }
+    }
+  </style>
+</head>
+<body>
+  <div class="login-container">
+    <div class="logo-section">
+      <img src="/img/logo-supercartola.png" alt="Logo" onerror="this.style.display='none'">
+      <h1>💰 Área do Participante</h1>
+      <p>Acesse seu extrato financeiro</p>
+    </div>
+
+    <div id="errorMessage" class="error-message"></div>
+
+    <!-- Repl Auth Button -->
+    <div class="repl-auth-container">
+      <div id="replAuthButton">
+        <script authed="handleReplAuth()" src="https://auth.util.repl.co/script.js"></script>
+      </div>
+    </div>
+
+    <!-- Form de ID do Time (aparece após autenticação) -->
+    <form id="timeIdForm" style="display: none;">
+      <div class="form-group">
+        <label for="timeId">🎯 ID do seu Time no Cartola FC</label>
+        <input 
+          type="text" 
+          id="timeId" 
+          name="timeId" 
+          placeholder="Ex: 1234567"
+          required
+          pattern="[0-9]+"
+        >
+      </div>
+
+      <button type="submit" class="btn-primary" id="submitBtn">
+        Acessar Meu Extrato
+      </button>
+    </form>
+
+    <div id="loadingIndicator" class="loading" style="display: none;">
+      <div class="spinner"></div>
+      <p style="margin-top: 10px; color: #718096;">Validando acesso...</p>
+    </div>
+
+    <div class="info-message">
+      <strong>📌 Como encontrar seu ID do time?</strong><br>
+      Acesse cartola.globo.com, clique no seu time e copie o número da URL.
+    </div>
+  </div>
+
+  <script>
+    let replitUserId = null;
+    let replitUsername = null;
+
+    // Função chamada após autenticação com Replit
+    function handleReplAuth() {
+      // Capturar headers do Replit
+      fetch('/api/auth/check', {
+        credentials: 'include'
+      })
+      .then(res => res.json())
+      .then(data => {
+        if (data.authenticated) {
+          replitUserId = data.userId;
+          replitUsername = data.username;
+          
+          // Mostrar formulário de ID do time
+          document.getElementById('replAuthButton').style.display = 'none';
+          document.getElementById('timeIdForm').style.display = 'block';
+        }
+      })
+      .catch(err => {
+        showError('Erro ao verificar autenticação. Tente novamente.');
+        console.error(err);
+      });
+    }
+
+    // Verificar se já está autenticado ao carregar
+    window.addEventListener('load', async () => {
+      try {
+        const res = await fetch('/api/auth/check', { credentials: 'include' });
+        const data = await res.json();
+        
+        if (data.authenticated) {
+          replitUserId = data.userId;
+          replitUsername = data.username;
+          document.getElementById('replAuthButton').style.display = 'none';
+          document.getElementById('timeIdForm').style.display = 'block';
+        }
+      } catch (err) {
+        console.log('Usuário não autenticado');
+      }
+    });
+
+    // Submit do formulário
+    document.getElementById('timeIdForm').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      
+      const timeId = document.getElementById('timeId').value.trim();
+      
+      if (!timeId) {
+        showError('Por favor, insira o ID do seu time.');
+        return;
+      }
+
+      showLoading(true);
+      
+      try {
+        const response = await fetch('/api/participante/login', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          credentials: 'include',
+          body: JSON.stringify({
+            timeId: timeId,
+            replitUserId: replitUserId,
+            replitUsername: replitUsername
+          })
+        });
+
+        const data = await response.json();
+
+        if (response.ok) {
+          // Login bem-sucedido - redirecionar
+          window.location.href = '/participante-dashboard.html';
+        } else {
+          showError(data.error || 'ID do time não encontrado na liga.');
+        }
+      } catch (err) {
+        showError('Erro ao validar acesso. Tente novamente.');
+        console.error(err);
+      } finally {
+        showLoading(false);
+      }
+    });
+
+    function showError(message) {
+      const errorDiv = document.getElementById('errorMessage');
+      errorDiv.textContent = message;
+      errorDiv.style.display = 'block';
+      setTimeout(() => {
+        errorDiv.style.display = 'none';
+      }, 5000);
+    }
+
+    function showLoading(show) {
+      document.getElementById('loadingIndicator').style.display = show ? 'block' : 'none';
+      document.getElementById('timeIdForm').style.display = show ? 'none' : 'block';
+      document.getElementById('submitBtn').disabled = show;
+    }
+  </script>
+</body>
+</html>

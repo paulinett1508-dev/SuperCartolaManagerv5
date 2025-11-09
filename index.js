@@ -1,6 +1,7 @@
 // index.js - Super Cartola Manager OTIMIZADO
 import { readFileSync } from "fs";
 import express from "express";
+import session from "express-session";
 import dotenv from "dotenv";
 import cors from "cors";
 import path from "path";
@@ -21,9 +22,7 @@ import artilheiroCampeaoRoutes from "./routes/artilheiro-campeao-routes.js";
 import luvaDeOuroRoutes from "./routes/luva-de-ouro-routes.js";
 import configuracaoRoutes from "./routes/configuracao-routes.js";
 import fluxoFinanceiroRoutes from "./routes/fluxoFinanceiroRoutes.js";
-
-// Importar controllers específicos
-import { getClubes } from "./controllers/cartolaController.js";
+import participanteAuthRoutes from "./routes/participante-auth.js"; // Importar rotas de autenticação de participantes
 
 // Configurar variáveis de ambiente
 dotenv.config();
@@ -38,6 +37,7 @@ if (!process.env.MONGODB_URI) {
 
 // Criar aplicação Express
 const app = express();
+const PORT = process.env.PORT || 5000;
 
 // Configuração de middlewares globais
 app.use(
@@ -46,6 +46,20 @@ app.use(
     methods: ["GET", "POST", "PUT", "DELETE", "PATCH"],
     allowedHeaders: ["Content-Type", "Authorization"],
   }),
+);
+
+// Configurar sessões
+app.use(
+    session({
+        secret: process.env.SESSION_SECRET || "cartola-secret-key-2025", // Chave secreta para assinar os cookies de sessão
+        resave: false, // Não salvar sessões que não foram modificadas
+        saveUninitialized: false, // Não criar sessões para usuários não logados
+        cookie: {
+            secure: false, // set true se usar HTTPS
+            httpOnly: true, // O cookie de sessão não pode ser acessado por JavaScript no cliente
+            maxAge: 24 * 60 * 60 * 1000, // Duração da sessão em milissegundos (24 horas)
+        },
+    }),
 );
 
 app.use(express.json({ limit: "10mb" }));
@@ -137,6 +151,19 @@ if (process.env.NODE_ENV !== "production") {
   console.log("✅ [ROUTES] Registrada: /api/fluxo-financeiro/*");
 }
 
+// ✨ NOVO: Rotas de autenticação de participantes
+app.use("/api/participante", participanteAuthRoutes);
+if (process.env.NODE_ENV !== "production") {
+  console.log("✅ [ROUTES] Registrada: /api/participante/*");
+}
+
+// Rotas de autenticação genéricas (para login/logout)
+app.use("/api/auth", participanteAuthRoutes);
+if (process.env.NODE_ENV !== "production") {
+  console.log("✅ [ROUTES] Registrada: /api/auth/*");
+}
+
+
 // Rota para informações da API e versão
 app.get("/api/version", (req, res) => {
   res.json({
@@ -164,6 +191,7 @@ app.get("/api/version", (req, res) => {
       "Integração com API do Cartola FC",
       "Cache inteligente",
       "Índices otimizados",
+      "Autenticação de Participantes", // Nova feature
     ],
     endpoints: {
       clubes: "/api/clubes",
@@ -176,6 +204,8 @@ app.get("/api/version", (req, res) => {
       luvaDeOuro: "/api/luva-de-ouro",
       configuracao: "/api/configuracao",
       fluxoFinanceiro: "/api/fluxo-financeiro",
+      participanteAuth: "/api/participante/*", // Novo endpoint
+      auth: "/api/auth/*", // Novo endpoint
       version: "/api/version",
     },
   });
@@ -219,6 +249,9 @@ app.use((req, res, next) => {
         "GET /api/luva-de-ouro/*",
         "GET /api/configuracao/*",
         "GET /api/fluxo-financeiro/*",
+        "POST /api/participante/login", // Novo endpoint
+        "POST /api/participante/register", // Novo endpoint
+        "POST /api/auth/logout", // Novo endpoint
       ],
     });
   } else {
@@ -280,8 +313,6 @@ async function iniciarServidor() {
 
     console.log("✅ Conectado ao MongoDB com sucesso!");
 
-    const PORT = process.env.PORT || 5000;
-
     app.listen(PORT, () => {
       console.log("\n" + "=".repeat(60));
       console.log("🚀 SUPER CARTOLA MANAGER INICIADO COM SUCESSO!");
@@ -298,6 +329,7 @@ async function iniciarServidor() {
       console.log("✨ Módulos de export funcionando no frontend");
       console.log("🥅 Sistema Luva de Ouro integrado");
       console.log("💰 Sistema Fluxo Financeiro persistente");
+      console.log("🔒 Sistema de Autenticação de Participantes integrado"); // Nova informação
       console.log("=".repeat(60) + "\n");
 
       // Log adicional para desenvolvimento
