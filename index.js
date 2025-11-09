@@ -22,7 +22,8 @@ import artilheiroCampeaoRoutes from "./routes/artilheiro-campeao-routes.js";
 import luvaDeOuroRoutes from "./routes/luva-de-ouro-routes.js";
 import configuracaoRoutes from "./routes/configuracao-routes.js";
 import fluxoFinanceiroRoutes from "./routes/fluxoFinanceiroRoutes.js";
-import participanteAuthRoutes from "./routes/participante-auth.js"; // Importar rotas de autenticação de participantes
+import participanteAuthRoutes from "./routes/participante-auth.js";
+import { getClubes } from "./controllers/cartolaController.js";
 
 // Configurar variáveis de ambiente
 dotenv.config();
