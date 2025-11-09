@@ -541,6 +541,184 @@
 
 .btn-action:hover {
     background: rgba(255, 255, 255, 0.2);
+    transform: translateY(-1px);
+}
+
+.btn-senha {
+    background: rgba(255, 193, 7, 0.2);
+    color: #ffc107;
+}
+
+.btn-senha:hover {
+    background: rgba(255, 193, 7, 0.3);
+}
+
+/* Modal de Senha */
+.modal-senha {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.8);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 10000;
+    backdrop-filter: blur(4px);
+}
+
+.modal-senha-content {
+    background: var(--bg-card);
+    border: 1px solid rgba(255, 69, 0, 0.3);
+    border-radius: 12px;
+    padding: 24px;
+    max-width: 500px;
+    width: 90%;
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
+}
+
+.modal-senha-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px;
+    padding-bottom: 15px;
+    border-bottom: 1px solid rgba(255, 69, 0, 0.2);
+}
+
+.modal-senha-header h3 {
+    color: var(--text-primary);
+    margin: 0;
+    font-size: 1.2rem;
+}
+
+.modal-senha-close {
+    background: transparent;
+    border: none;
+    color: var(--text-muted);
+    font-size: 24px;
+    cursor: pointer;
+    padding: 0;
+    width: 30px;
+    height: 30px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 4px;
+    transition: all 0.2s ease;
+}
+
+.modal-senha-close:hover {
+    background: rgba(255, 69, 0, 0.1);
+    color: var(--laranja);
+}
+
+.senha-info {
+    margin-bottom: 20px;
+    color: var(--text-muted);
+    font-size: 0.9rem;
+}
+
+.senha-field {
+    margin-bottom: 15px;
+}
+
+.senha-field label {
+    display: block;
+    color: var(--text-primary);
+    margin-bottom: 8px;
+    font-weight: 500;
+}
+
+.senha-input-group {
+    display: flex;
+    gap: 8px;
+}
+
+.senha-field input {
+    flex: 1;
+    padding: 10px 12px;
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 6px;
+    color: var(--text-primary);
+    font-size: 0.95rem;
+}
+
+.btn-gerar-senha {
+    padding: 10px 16px;
+    background: rgba(76, 175, 80, 0.2);
+    color: #4CAF50;
+    border: 1px solid rgba(76, 175, 80, 0.3);
+    border-radius: 6px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    white-space: nowrap;
+}
+
+.btn-gerar-senha:hover {
+    background: rgba(76, 175, 80, 0.3);
+}
+
+.senha-actions {
+    display: flex;
+    gap: 10px;
+    justify-content: flex-end;
+    margin-top: 20px;
+}
+
+.btn-modal {
+    padding: 10px 20px;
+    border: none;
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: 0.9rem;
+    transition: all 0.2s ease;
+}
+
+.btn-modal-cancelar {
+    background: rgba(255, 255, 255, 0.1);
+    color: var(--text-primary);
+}
+
+.btn-modal-cancelar:hover {
+    background: rgba(255, 255, 255, 0.15);
+}
+
+.btn-modal-salvar {
+    background: linear-gradient(135deg, var(--laranja) 0%, var(--laranja-dark) 100%);
+    color: white;
+}
+
+.btn-modal-salvar:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(255, 69, 0, 0.4);
+}
+
+.senha-status {
+    display: inline-block;
+    padding: 4px 12px;
+    border-radius: 12px;
+    font-size: 0.8rem;
+    margin-bottom: 15px;
+}
+
+.senha-status.configurada {
+    background: rgba(76, 175, 80, 0.2);
+    color: #4CAF50;
+}
+
+.senha-status.nao-configurada {
+    background: rgba(255, 152, 0, 0.2);
+    color: #ff9800;
+}
+
+.color: white;
+}
+
+.btn-action:hover {
+    background: rgba(255, 255, 255, 0.2);
     transform: translateY(-2px);
 }
 

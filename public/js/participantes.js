@@ -488,9 +488,136 @@ async function toggleStatusParticipante(timeId, estaAtivo) {
     }
 }
 
+// ==============================
+// GERENCIAMENTO DE SENHAS
+// ==============================
+async function gerenciarSenhaParticipante(timeId, nomeCartoleiro) {
+    try {
+        // Buscar dados do participante
+        const response = await fetch(`/api/time/${timeId}`);
+        if (!response.ok) throw new Error('Erro ao buscar dados do participante');
+        
+        const participante = await response.json();
+        const temSenha = participante.senha_acesso && participante.senha_acesso.length > 0;
+
+        // Criar modal
+        const modal = document.createElement('div');
+        modal.className = 'modal-senha';
+        modal.innerHTML = `
+            <div class="modal-senha-content">
+                <div class="modal-senha-header">
+                    <h3>🔑 Gerenciar Senha - ${nomeCartoleiro}</h3>
+                    <button class="modal-senha-close" onclick="this.closest('.modal-senha').remove()">×</button>
+                </div>
+
+                <div class="senha-status ${temSenha ? 'configurada' : 'nao-configurada'}">
+                    ${temSenha ? '✓ Senha configurada' : '⚠ Senha não configurada'}
+                </div>
+
+                <div class="senha-info">
+                    <p><strong>ID do Time:</strong> ${timeId}</p>
+                    <p>Configure uma senha para permitir que o participante acesse seu extrato financeiro.</p>
+                </div>
+
+                <div class="senha-field">
+                    <label>Nova Senha:</label>
+                    <div class="senha-input-group">
+                        <input type="text" 
+                               id="novaSenha" 
+                               placeholder="Digite ou gere uma senha"
+                               value="${temSenha ? participante.senha_acesso : ''}"
+                               maxlength="20">
+                        <button class="btn-gerar-senha" onclick="window.gerarSenhaAleatoria()">
+                            🎲 Gerar
+                        </button>
+                    </div>
+                    <small style="color: var(--text-muted); display: block; margin-top: 5px;">
+                        Mínimo 4 caracteres. Evite caracteres especiais.
+                    </small>
+                </div>
+
+                <div class="senha-actions">
+                    <button class="btn-modal btn-modal-cancelar" onclick="this.closest('.modal-senha').remove()">
+                        Cancelar
+                    </button>
+                    <button class="btn-modal btn-modal-salvar" onclick="window.salvarSenhaParticipante(${timeId})">
+                        💾 Salvar Senha
+                    </button>
+                </div>
+            </div>
+        `;
+
+        // Fechar com ESC
+        modal.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape') modal.remove();
+        });
+
+        document.body.appendChild(modal);
+
+        // Focar no input
+        setTimeout(() => {
+            document.getElementById('novaSenha')?.focus();
+        }, 100);
+
+    } catch (error) {
+        console.error('Erro ao abrir modal de senha:', error);
+        alert(`Erro: ${error.message}`);
+    }
+}
+
+function gerarSenhaAleatoria() {
+    // Gerar senha de 8 caracteres (letras e números)
+    const chars = 'abcdefghijklmnopqrstuvwxyz0123456789';
+    let senha = '';
+    for (let i = 0; i < 8; i++) {
+        senha += chars.charAt(Math.floor(Math.random() * chars.length));
+    }
+    
+    const input = document.getElementById('novaSenha');
+    if (input) {
+        input.value = senha;
+        input.select();
+    }
+}
+
+async function salvarSenhaParticipante(timeId) {
+    const novaSenha = document.getElementById('novaSenha')?.value.trim();
+
+    if (!novaSenha || novaSenha.length < 4) {
+        alert('A senha deve ter no mínimo 4 caracteres!');
+        return;
+    }
+
+    try {
+        const response = await fetch(`/api/time/${timeId}/senha`, {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ senha: novaSenha })
+        });
+
+        const data = await response.json();
+
+        if (!response.ok) {
+            throw new Error(data.erro || 'Erro ao salvar senha');
+        }
+
+        alert(`✅ Senha configurada com sucesso!\n\nCredenciais de acesso:\nID do Time: ${timeId}\nSenha: ${novaSenha}\n\nOriente o participante a acessar via menu Ferramentas > Participantes`);
+        
+        // Fechar modal
+        document.querySelector('.modal-senha')?.remove();
+
+    } catch (error) {
+        console.error('Erro ao salvar senha:', error);
+        alert(`Erro: ${error.message}`);
+    }
+}
+
 // Exportar globalmente
 window.carregarParticipantesComBrasoes = carregarParticipantesComBrasoes;
 window.toggleStatusParticipante = toggleStatusParticipante;
+window.gerenciarSenhaParticipante = gerenciarSenhaParticipante;
+window.gerarSenhaAleatoria = gerarSenhaAleatoria;
+window.salvarSenhaParticipante = salvarSenhaParticipante;
 
 // Auto-inicialização
 setTimeout(() => {
