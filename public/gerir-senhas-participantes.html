@@ -252,6 +252,76 @@
       color: #fff;
     }
 
+    /* Senha Geral */
+    .senha-geral-section {
+      margin-bottom: 24px;
+    }
+
+    .senha-geral-card {
+      background: linear-gradient(135deg, #2a2a2a 0%, #1f1f1f 100%);
+      border-left: 4px solid #ff4500;
+      padding: 20px;
+      border-radius: 4px;
+    }
+
+    .senha-geral-card h3 {
+      font-size: 16px;
+      font-weight: 600;
+      color: #fff;
+      margin-bottom: 6px;
+    }
+
+    .senha-geral-card p {
+      font-size: 13px;
+      color: #888;
+      margin-bottom: 16px;
+    }
+
+    .senha-geral-controls {
+      display: flex;
+      gap: 12px;
+      align-items: center;
+    }
+
+    .senha-geral-controls .senha-input {
+      flex: 1;
+      max-width: none;
+    }
+
+    .btn-gerar, .btn-aplicar {
+      padding: 10px 20px;
+      border: none;
+      border-radius: 3px;
+      font-weight: 500;
+      font-size: 13px;
+      cursor: pointer;
+      transition: all 0.2s;
+      white-space: nowrap;
+    }
+
+    .btn-gerar {
+      background: #444;
+      color: white;
+    }
+
+    .btn-gerar:hover {
+      background: #555;
+    }
+
+    .btn-aplicar {
+      background: #ff4500;
+      color: white;
+    }
+
+    .btn-aplicar:hover {
+      background: #e63e00;
+    }
+
+    .btn-aplicar:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+    }
+
     /* Responsividade */
     @media (max-width: 768px) {
       .participantes-table {
@@ -264,6 +334,15 @@
 
       .stats {
         flex-direction: column;
+      }
+
+      .senha-geral-controls {
+        flex-direction: column;
+        align-items: stretch;
+      }
+
+      .btn-gerar, .btn-aplicar {
+        width: 100%;
       }
     }
   </style>
@@ -295,6 +374,28 @@
       <select id="ligaSelect" onchange="carregarParticipantes()">
         <option value="">Selecione uma liga...</option>
       </select>
+    </div>
+
+    <div class="senha-geral-section" id="senhaGeralSection" style="display: none;">
+      <div class="senha-geral-card">
+        <h3>🔑 Senha Geral para Todos os Participantes</h3>
+        <p>Gere e aplique a mesma senha para todos os participantes desta liga</p>
+        <div class="senha-geral-controls">
+          <input 
+            type="text" 
+            id="senhaGeral" 
+            class="senha-input" 
+            placeholder="Digite ou gere uma senha"
+            maxlength="20"
+          >
+          <button class="btn-gerar" onclick="gerarSenhaGeral()">
+            🎲 Gerar Senha
+          </button>
+          <button class="btn-aplicar" onclick="aplicarSenhaGeral()">
+            ✨ Aplicar a Todos
+          </button>
+        </div>
+      </div>
     </div>
 
     <div id="participantesContainer">
@@ -336,8 +437,12 @@
       if (!ligaId) {
         container.innerHTML = '<div class="loading"><div class="loading-spinner"></div>Selecione uma liga para começar</div>';
         statsContainer.style.display = 'none';
+        document.getElementById('senhaGeralSection').style.display = 'none';
         return;
       }
+
+      // Mostrar seção de senha geral
+      document.getElementById('senhaGeralSection').style.display = 'block';
 
       container.innerHTML = '<div class="loading"><div class="loading-spinner"></div>Carregando participantes...</div>';
 
@@ -537,6 +642,110 @@
       } catch (error) {
         console.error('Erro ao salvar senha:', error);
         alert(`❌ Erro: ${error.message}`);
+      }
+    }
+
+    // Gerar senha geral aleatória
+    function gerarSenhaGeral() {
+      const chars = 'abcdefghijklmnopqrstuvwxyz0123456789';
+      let senha = '';
+      for (let i = 0; i < 8; i++) {
+        senha += chars.charAt(Math.floor(Math.random() * chars.length));
+      }
+      
+      const input = document.getElementById('senhaGeral');
+      if (input) {
+        input.value = senha;
+        input.select();
+      }
+    }
+
+    // Aplicar senha geral a todos os participantes
+    async function aplicarSenhaGeral() {
+      const ligaId = document.getElementById('ligaSelect').value;
+      const senhaGeral = document.getElementById('senhaGeral').value.trim();
+
+      if (!ligaId) {
+        alert('Selecione uma liga primeiro');
+        return;
+      }
+
+      if (!senhaGeral || senhaGeral.length < 4) {
+        alert('A senha deve ter no mínimo 4 caracteres');
+        return;
+      }
+
+      const confirmacao = confirm(
+        `🔐 ATENÇÃO!\n\n` +
+        `Você está prestes a aplicar a senha "${senhaGeral}" para TODOS os participantes desta liga.\n\n` +
+        `Esta ação irá sobrescrever as senhas existentes.\n\n` +
+        `Deseja continuar?`
+      );
+
+      if (!confirmacao) return;
+
+      try {
+        const response = await fetch(`/api/ligas/${ligaId}`);
+        const liga = await response.json();
+
+        if (!liga.times || liga.times.length === 0) {
+          alert('Nenhum participante encontrado nesta liga');
+          return;
+        }
+
+        const btnAplicar = document.querySelector('.btn-aplicar');
+        if (btnAplicar) {
+          btnAplicar.disabled = true;
+          btnAplicar.textContent = '⏳ Aplicando...';
+        }
+
+        let sucessos = 0;
+        let falhas = 0;
+
+        // Aplicar senha para cada time
+        for (const timeId of liga.times) {
+          try {
+            const response = await fetch(`/api/ligas/${ligaId}/participante/${timeId}/senha`, {
+              method: 'PUT',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ senha: senhaGeral })
+            });
+
+            if (response.ok) {
+              sucessos++;
+            } else {
+              falhas++;
+            }
+          } catch (error) {
+            console.error(`Erro ao aplicar senha para time ${timeId}:`, error);
+            falhas++;
+          }
+        }
+
+        if (btnAplicar) {
+          btnAplicar.disabled = false;
+          btnAplicar.textContent = '✨ Aplicar a Todos';
+        }
+
+        alert(
+          `✅ Processo concluído!\n\n` +
+          `Sucessos: ${sucessos}\n` +
+          `Falhas: ${falhas}\n\n` +
+          `Senha aplicada: ${senhaGeral}`
+        );
+
+        // Recarregar participantes para atualizar a interface
+        await carregarParticipantes();
+
+      } catch (error) {
+        console.error('Erro ao aplicar senha geral:', error);
+        alert(`❌ Erro: ${error.message}`);
+        
+        const btnAplicar = document.querySelector('.btn-aplicar');
+        if (btnAplicar) {
+          btnAplicar.disabled = false;
+          btnAplicar.textContent = '✨ Aplicar a Todos';
+        }
       }
     }
 
