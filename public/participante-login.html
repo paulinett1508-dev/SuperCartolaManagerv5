@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
@@ -49,11 +48,6 @@
       font-size: 14px;
       color: #718096;
       margin: 0;
-    }
-
-    .repl-auth-container {
-      margin: 30px 0;
-      text-align: center;
     }
 
     .form-group {
@@ -159,15 +153,7 @@
 
     <div id="errorMessage" class="error-message"></div>
 
-    <!-- Repl Auth Button -->
-    <div class="repl-auth-container">
-      <div id="replAuthButton">
-        <script authed="handleReplAuth()" src="https://auth.util.repl.co/script.js"></script>
-      </div>
-    </div>
-
-    <!-- Form de ID do Time (aparece após autenticação) -->
-    <form id="timeIdForm" style="display: none;">
+    <form id="loginForm">
       <div class="form-group">
         <label for="timeId">🎯 ID do seu Time no Cartola FC</label>
         <input 
@@ -177,6 +163,17 @@
           placeholder="Ex: 1234567"
           required
           pattern="[0-9]+"
+        >
+      </div>
+
+      <div class="form-group">
+        <label for="senha">🔒 Senha de Acesso</label>
+        <input 
+          type="password" 
+          id="senha" 
+          name="senha" 
+          placeholder="Digite sua senha"
+          required
         >
       </div>
 
@@ -191,68 +188,25 @@
     </div>
 
     <div class="info-message">
-      <strong>📌 Como encontrar seu ID do time?</strong><br>
-      Acesse cartola.globo.com, clique no seu time e copie o número da URL.
+      <strong>📌 Dúvidas?</strong><br>
+      Entre em contato com o administrador da liga para obter sua senha de acesso.
     </div>
   </div>
 
   <script>
-    let replitUserId = null;
-    let replitUsername = null;
-
-    // Função chamada após autenticação com Replit
-    function handleReplAuth() {
-      // Capturar headers do Replit
-      fetch('/api/auth/check', {
-        credentials: 'include'
-      })
-      .then(res => res.json())
-      .then(data => {
-        if (data.authenticated) {
-          replitUserId = data.userId;
-          replitUsername = data.username;
-          
-          // Mostrar formulário de ID do time
-          document.getElementById('replAuthButton').style.display = 'none';
-          document.getElementById('timeIdForm').style.display = 'block';
-        }
-      })
-      .catch(err => {
-        showError('Erro ao verificar autenticação. Tente novamente.');
-        console.error(err);
-      });
-    }
-
-    // Verificar se já está autenticado ao carregar
-    window.addEventListener('load', async () => {
-      try {
-        const res = await fetch('/api/auth/check', { credentials: 'include' });
-        const data = await res.json();
-        
-        if (data.authenticated) {
-          replitUserId = data.userId;
-          replitUsername = data.username;
-          document.getElementById('replAuthButton').style.display = 'none';
-          document.getElementById('timeIdForm').style.display = 'block';
-        }
-      } catch (err) {
-        console.log('Usuário não autenticado');
-      }
-    });
-
-    // Submit do formulário
-    document.getElementById('timeIdForm').addEventListener('submit', async (e) => {
+    document.getElementById('loginForm').addEventListener('submit', async (e) => {
       e.preventDefault();
-      
+
       const timeId = document.getElementById('timeId').value.trim();
-      
-      if (!timeId) {
-        showError('Por favor, insira o ID do seu time.');
+      const senha = document.getElementById('senha').value;
+
+      if (!timeId || !senha) {
+        showError('Por favor, preencha todos os campos.');
         return;
       }
 
       showLoading(true);
-      
+
       try {
         const response = await fetch('/api/participante/login', {
           method: 'POST',
@@ -260,20 +214,15 @@
             'Content-Type': 'application/json'
           },
           credentials: 'include',
-          body: JSON.stringify({
-            timeId: timeId,
-            replitUserId: replitUserId,
-            replitUsername: replitUsername
-          })
+          body: JSON.stringify({ timeId, senha })
         });
 
         const data = await response.json();
 
         if (response.ok) {
-          // Login bem-sucedido - redirecionar
           window.location.href = '/participante-dashboard.html';
         } else {
-          showError(data.error || 'ID do time não encontrado na liga.');
+          showError(data.error || 'Credenciais inválidas.');
         }
       } catch (err) {
         showError('Erro ao validar acesso. Tente novamente.');
@@ -294,7 +243,7 @@
 
     function showLoading(show) {
       document.getElementById('loadingIndicator').style.display = show ? 'block' : 'none';
-      document.getElementById('timeIdForm').style.display = show ? 'none' : 'block';
+      document.getElementById('loginForm').style.display = show ? 'none' : 'block';
       document.getElementById('submitBtn').disabled = show;
     }
   </script>

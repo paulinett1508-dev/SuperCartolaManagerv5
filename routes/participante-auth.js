@@ -1,37 +1,17 @@
-
 import express from "express";
+import session from "express-session";
 
 const router = express.Router();
 
-// Middleware para verificar autenticação Replit
-function verificarReplitAuth(req, res, next) {
-    const userId = req.headers["x-replit-user-id"];
-    const username = req.headers["x-replit-user-name"];
-
-    if (!userId || !username) {
-        return res.status(401).json({ error: "Não autenticado com Replit" });
-    }
-
-    req.replitUser = { userId, username };
-    next();
-}
-
-// Verificar status de autenticação
-router.get("/check", verificarReplitAuth, (req, res) => {
-    res.json({
-        authenticated: true,
-        userId: req.replitUser.userId,
-        username: req.replitUser.username,
-    });
-});
-
-// Login do participante (valida timeId)
-router.post("/login", verificarReplitAuth, async (req, res) => {
+// Login do participante (valida timeId + senha)
+router.post("/login", async (req, res) => {
     try {
-        const { timeId } = req.body;
+        const { timeId, senha } = req.body;
 
-        if (!timeId) {
-            return res.status(400).json({ error: "timeId é obrigatório" });
+        if (!timeId || !senha) {
+            return res.status(400).json({ 
+                error: "ID do time e senha são obrigatórios" 
+            });
         }
 
         // Buscar time em todas as ligas
@@ -43,7 +23,7 @@ router.post("/login", verificarReplitAuth, async (req, res) => {
 
         for (const liga of ligas) {
             const participante = liga.participantes.find(
-                (p) => String(p.time_id) === String(timeId),
+                (p) => String(p.time_id) === String(timeId)
             );
 
             if (participante) {
@@ -54,18 +34,22 @@ router.post("/login", verificarReplitAuth, async (req, res) => {
         }
 
         if (!participanteEncontrado) {
-            return res
-                .status(404)
-                .json({ error: "ID do time não encontrado em nenhuma liga" });
+            return res.status(404).json({ 
+                error: "ID do time não encontrado" 
+            });
+        }
+
+        // Validar senha
+        if (participanteEncontrado.senha_acesso !== senha) {
+            return res.status(401).json({ 
+                error: "Senha incorreta" 
+            });
         }
 
         // Criar sessão
-        req.session = req.session || {};
         req.session.participante = {
             timeId: timeId,
             ligaId: ligaEncontrada._id.toString(),
-            replitUserId: req.replitUser.userId,
-            replitUsername: req.replitUser.username,
             participante: participanteEncontrado,
         };
 
