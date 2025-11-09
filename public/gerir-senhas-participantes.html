@@ -462,11 +462,16 @@
               const response = await fetch(`/api/times/${timeId}`);
               if (!response.ok) return null;
               const data = await response.json();
+              
+              // Buscar senha do array participantes da liga
+              const participanteLiga = liga.participantes?.find(p => p.time_id === timeId);
+              const senha = participanteLiga?.senha_acesso || '';
+              
               return {
                 time_id: timeId,
                 nome_cartola: data.nome_cartoleiro || 'N/D',
                 nome_time: data.nome_time || 'Time N/A',
-                senha_acesso: data.senha_acesso || ''
+                senha_acesso: senha
               };
             } catch {
               return null;
@@ -573,27 +578,17 @@
         let comSenha = 0;
         let semSenha = 0;
 
-        // Verificar senhas consultando cada time individualmente para garantir dados atualizados
-        if (liga.times && Array.isArray(liga.times)) {
-          const promises = liga.times.map(async (timeId) => {
-            try {
-              const timeResponse = await fetch(`/api/times/${timeId}`);
-              if (!timeResponse.ok) return false;
-              const timeData = await timeResponse.json();
-              return !!(timeData.senha_acesso && timeData.senha_acesso.trim() !== '');
-            } catch {
-              return false;
-            }
-          });
-
-          const resultados = await Promise.all(promises);
-          comSenha = resultados.filter(r => r === true).length;
+        // Verificar senhas no array participantes da liga
+        if (liga.participantes && Array.isArray(liga.participantes)) {
+          comSenha = liga.participantes.filter(p => 
+            p.senha_acesso && p.senha_acesso.trim() !== ''
+          ).length;
           semSenha = totalParticipantes - comSenha;
         } else {
           semSenha = totalParticipantes;
         }
 
-        console.log(`Estatísticas atualizadas: Total=${totalParticipantes}, ComSenha=${comSenha}, SemSenha=${semSenha}`);
+        console.log(`Estatísticas: Total=${totalParticipantes}, ComSenha=${comSenha}, SemSenha=${semSenha}`);
 
         document.getElementById('totalParticipantes').textContent = totalParticipantes;
         document.getElementById('comSenha').textContent = comSenha;
