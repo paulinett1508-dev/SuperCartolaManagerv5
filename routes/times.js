@@ -1,26 +1,38 @@
+
 import express from "express";
-import {
-    criarTime,
-    buscarTimePorId,
-    buscarTodosTimes,
-    atualizarTime,
-    excluirTime,
-    buscarTimesAtivos,
-    inativarTime,
-    reativarTime,
-} from "../controllers/timeController.js";
+import { obterTimePorId } from "../controllers/timeController.js";
 import Time from "../models/Time.js";
 
 const router = express.Router();
 
-router.post("/", criarTime);
-router.get("/:id", buscarTimePorId);
-router.get("/", buscarTodosTimes);
-router.put("/:id", atualizarTime);
-router.delete("/:id", excluirTime);
-router.get("/ativos/:ligaId", buscarTimesAtivos);
-router.put("/:id/inativar", inativarTime);
-router.put("/:id/reativar", reativarTime);
+// Rota para obter time por ID (do controller)
+router.get("/:id", obterTimePorId);
+
+// Rota para buscar todos os times
+router.get("/", async (req, res) => {
+    try {
+        const times = await Time.find();
+        res.json(times);
+    } catch (error) {
+        console.error("[TIMES] Erro ao buscar times:", error);
+        res.status(500).json({ erro: "Erro ao buscar times" });
+    }
+});
+
+// Rota para buscar times ativos de uma liga
+router.get("/ativos/:ligaId", async (req, res) => {
+    try {
+        const { ligaId } = req.params;
+        const times = await Time.find({ 
+            liga_id: parseInt(ligaId), 
+            ativo: true 
+        });
+        res.json(times);
+    } catch (error) {
+        console.error("[TIMES] Erro ao buscar times ativos:", error);
+        res.status(500).json({ erro: "Erro ao buscar times ativos" });
+    }
+});
 
 // Rota para salvar senha de acesso do participante
 router.put("/:id/senha", async (req, res) => {
@@ -55,6 +67,48 @@ router.put("/:id/senha", async (req, res) => {
     } catch (error) {
         console.error("[TIMES] Erro ao salvar senha:", error);
         res.status(500).json({ erro: "Erro ao salvar senha" });
+    }
+});
+
+// Rota para inativar time
+router.put("/:id/inativar", async (req, res) => {
+    try {
+        const { id } = req.params;
+        const time = await Time.findOneAndUpdate(
+            { time_id: parseInt(id) },
+            { ativo: false },
+            { new: true }
+        );
+
+        if (!time) {
+            return res.status(404).json({ erro: "Time não encontrado" });
+        }
+
+        res.json({ success: true, time });
+    } catch (error) {
+        console.error("[TIMES] Erro ao inativar time:", error);
+        res.status(500).json({ erro: "Erro ao inativar time" });
+    }
+});
+
+// Rota para reativar time
+router.put("/:id/reativar", async (req, res) => {
+    try {
+        const { id } = req.params;
+        const time = await Time.findOneAndUpdate(
+            { time_id: parseInt(id) },
+            { ativo: true },
+            { new: true }
+        );
+
+        if (!time) {
+            return res.status(404).json({ erro: "Time não encontrado" });
+        }
+
+        res.json({ success: true, time });
+    } catch (error) {
+        console.error("[TIMES] Erro ao reativar time:", error);
+        res.status(500).json({ erro: "Erro ao reativar time" });
     }
 });
 
