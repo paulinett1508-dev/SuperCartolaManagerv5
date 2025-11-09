@@ -431,7 +431,7 @@ async function carregarFase(fase, ligaId) {
     );
 
     // Adicionar botão de exportação
-    if (dependenciasOk[1] && criarBotaoExportacaoMataMata) {
+    if (exportsCarregados && criarBotaoExportacaoMataMata) {
       try {
         await criarBotaoExportacaoMataMata({
           containerId: contentId,
