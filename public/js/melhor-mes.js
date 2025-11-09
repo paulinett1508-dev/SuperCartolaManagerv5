@@ -45,6 +45,9 @@ export async function inicializarMelhorMes() {
   }
 }
 
+// Expor globalmente para compatibilidade
+window.inicializarMelhorMes = inicializarMelhorMes;
+
 // FUNÇÃO COMPATÍVEL PARA OUTROS MÓDULOS
 export async function getResultadosMelhorMes() {
   console.log("[MELHOR-MES] Obtendo resultados...");

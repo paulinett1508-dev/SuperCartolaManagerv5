@@ -224,8 +224,27 @@ class DetalheLigaOrquestrador {
                     break;
 
                 case "melhor-mes":
+                    await new Promise((resolve) => setTimeout(resolve, 100));
+                    
+                    // Garantir que o módulo foi importado
+                    if (!this.modules.melhorMes) {
+                        await carregarModuloMelhorMes();
+                    }
+                    
+                    const melhorMesContainer = document.getElementById("melhor-mes");
+                    if (melhorMesContainer) {
+                        melhorMesContainer.classList.add("active");
+                    }
+
+                    // Tentar múltiplas formas de inicialização
                     if (this.modules.melhorMes?.inicializarMelhorMes) {
                         await this.modules.melhorMes.inicializarMelhorMes();
+                    } else if (typeof window.inicializarMelhorMes === "function") {
+                        await window.inicializarMelhorMes();
+                    } else if (window.melhorMesOrquestrador?.inicializar) {
+                        await window.melhorMesOrquestrador.inicializar();
+                    } else {
+                        console.warn("Nenhuma função de inicialização de Melhor do Mês encontrada");
                     }
                     break;
 
@@ -740,8 +759,20 @@ async function carregarModuloPontosCorridos() {
 }
 
 async function carregarModuloMelhorMes() {
+    console.log('[ORQUESTRADOR] Iniciando carregamento do módulo Melhor do Mês...');
     if (!window.orquestrador.modules.melhorMes) {
-        window.orquestrador.modules.melhorMes = await import("./melhor-mes.js");
+        try {
+            window.orquestrador.modules.melhorMes = await import("./melhor-mes.js");
+            console.log('[ORQUESTRADOR] ✅ Módulo Melhor do Mês importado com sucesso');
+            
+            // Aguardar um momento para garantir que todas as funções foram expostas
+            await new Promise(resolve => setTimeout(resolve, 200));
+            
+            console.log('[ORQUESTRADOR] Funções disponíveis:', Object.keys(window.orquestrador.modules.melhorMes));
+        } catch (error) {
+            console.error('[ORQUESTRADOR] ❌ Erro ao importar módulo Melhor do Mês:', error);
+            throw error;
+        }
     }
     return window.orquestrador.modules.melhorMes;
 }
