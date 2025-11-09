@@ -55,11 +55,19 @@ router.put("/:ligaId/participante/:timeId/senha", async (req, res) => {
             });
         }
 
-        const liga = await Liga.findById(ligaId);
+        const liga = await Liga.findById(ligaId).select('+times +participantes');
         if (!liga) {
             console.log(`[LIGAS] Liga ${ligaId} não encontrada`);
             return res.status(404).json({ erro: "Liga não encontrada" });
         }
+        
+        console.log(`[LIGAS] Liga carregada:`, {
+            id: liga._id,
+            nome: liga.nome,
+            temCampoTimes: !!liga.times,
+            quantidadeTimes: liga.times?.length,
+            primeirosTimes: liga.times?.slice(0, 3)
+        });
 
         // Verificar se o time está na lista de times da liga
         const timeIdNum = Number(timeId);
