@@ -207,7 +207,39 @@
         const liga = await response.json();
         ligaSelecionada = liga;
 
-        if (!liga.participantes || liga.participantes.length === 0) {
+        // Buscar participantes dos times da liga
+        if (!liga.times || liga.times.length === 0) {
+          container.innerHTML = '<div class="loading">Nenhum participante encontrado</div>';
+          return;
+        }
+
+        // Buscar dados completos de cada time
+        container.innerHTML = '<div class="loading">Carregando dados dos participantes...</div>';
+
+        const participantesData = await Promise.all(
+          liga.times.map(async (timeId) => {
+            try {
+              const res = await fetch(`/api/time/${timeId}`);
+              if (!res.ok) return null;
+              const data = await res.json();
+              return {
+                time_id: timeId,
+                nome_cartola: data.nome_cartoleiro || 'N/D',
+                nome_time: data.nome_time || 'Time N/A',
+                senha_acesso: data.senha_acesso || ''
+              };
+            } catch (err) {
+              console.error(`Erro ao buscar time ${timeId}:`, err);
+              return null;
+            }
+          })
+        );
+
+        const participantesValidos = participantesData
+          .filter(p => p !== null)
+          .sort((a, b) => a.nome_cartola.localeCompare(b.nome_cartola));
+
+        if (participantesValidos.length === 0) {
           container.innerHTML = '<div class="loading">Nenhum participante encontrado</div>';
           return;
         }
@@ -216,38 +248,40 @@
         container.innerHTML = '<div class="participantes-grid"></div>';
         const grid = container.querySelector('.participantes-grid');
 
-        liga.participantes
-          .sort((a, b) => (a.nome_cartola || '').localeCompare(b.nome_cartola || ''))
-          .forEach(p => {
-            const row = document.createElement('div');
-            row.className = 'participante-row';
-            row.innerHTML = `
-              <div class="participante-info">
-                <div class="participante-nome">${p.nome_cartola || 'N/D'}</div>
-                <div class="participante-time">${p.nome_time || 'Time N/A'}</div>
-              </div>
-              
-              <div class="time-id">
-                ID: ${p.time_id}
-              </div>
-              
-              <input 
-                type="password" 
-                class="senha-input" 
-                placeholder="Digite a senha"
-                value="${p.senha_acesso || ''}"
-                id="senha-${p.time_id}"
-              >
-              
-              <button 
-                class="btn-salvar" 
-                onclick="salvarSenha('${p.time_id}', '${ligaId}')"
-              >
-                💾 Salvar
-              </button>
-            `;
-            grid.appendChild(row);
-          });
+        participantesValidos.forEach(p => {
+          const temSenha = p.senha_acesso && p.senha_acesso.length > 0;
+          
+          const row = document.createElement('div');
+          row.className = 'participante-row';
+          row.innerHTML = `
+            <div class="participante-info">
+              <div class="participante-nome">${p.nome_cartola}</div>
+              <div class="participante-time">${p.nome_time}</div>
+              ${temSenha ? '<span class="status-senha definida">✓ Com senha</span>' : '<span class="status-senha nao-definida">⚠ Sem senha</span>'}
+            </div>
+            
+            <div class="time-id">
+              ID: ${p.time_id}
+            </div>
+            
+            <input 
+              type="text" 
+              class="senha-input" 
+              placeholder="Digite a senha (mín. 4 caracteres)"
+              value="${p.senha_acesso}"
+              id="senha-${p.time_id}"
+              maxlength="20"
+            >
+            
+            <button 
+              class="btn-salvar" 
+              onclick="salvarSenha(${p.time_id}, '${ligaId}')"
+            >
+              💾 Salvar
+            </button>
+          `;
+          grid.appendChild(row);
+        });
 
       } catch (error) {
         console.error('Erro ao carregar participantes:', error);
