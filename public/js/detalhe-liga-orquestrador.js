@@ -44,13 +44,16 @@ class DetalheLigaOrquestrador {
 
     async loadModuleHTML(moduleName) {
         try {
+            console.log(`[ORQUESTRADOR] Carregando HTML do módulo: ${moduleName}`);
             const response = await fetch(`/fronts/${moduleName}.html`);
             if (!response.ok) {
-                throw new Error(`Módulo ${moduleName} não encontrado`);
+                throw new Error(`Módulo ${moduleName} não encontrado (HTTP ${response.status})`);
             }
-            return await response.text();
+            const html = await response.text();
+            console.log(`[ORQUESTRADOR] ✅ HTML do módulo ${moduleName} carregado (${html.length} bytes)`);
+            return html;
         } catch (error) {
-            console.warn(`HTML do módulo ${moduleName} não encontrado`);
+            console.warn(`[ORQUESTRADOR] ⚠️ HTML do módulo ${moduleName} não encontrado:`, error);
             return this.getFallbackHTML(moduleName);
         }
     }
@@ -146,14 +149,26 @@ class DetalheLigaOrquestrador {
 
                 case "rodadas":
                     await new Promise((resolve) => setTimeout(resolve, 100));
+                    
+                    // Garantir que o módulo foi importado
+                    if (!this.modules.rodadas) {
+                        await carregarModuloRodadas();
+                    }
+                    
                     const rodadasContainer = document.getElementById("rodadas");
-                    if (rodadasContainer)
+                    if (rodadasContainer) {
                         rodadasContainer.classList.add("active");
+                    }
 
+                    // Tentar múltiplas formas de inicialização
                     if (this.modules.rodadas?.carregarRodadas) {
                         await this.modules.rodadas.carregarRodadas();
                     } else if (typeof window.carregarRodadas === "function") {
                         await window.carregarRodadas();
+                    } else if (window.rodadasOrquestrador?.inicializar) {
+                        await window.rodadasOrquestrador.inicializar();
+                    } else {
+                        console.warn("Nenhuma função de inicialização de rodadas encontrada");
                     }
                     break;
 
@@ -692,8 +707,20 @@ async function carregarModuloTop10() {
 }
 
 async function carregarModuloRodadas() {
+    console.log('[ORQUESTRADOR] Iniciando carregamento do módulo rodadas...');
     if (!window.orquestrador.modules.rodadas) {
-        window.orquestrador.modules.rodadas = await import("./rodadas.js");
+        try {
+            window.orquestrador.modules.rodadas = await import("./rodadas.js");
+            console.log('[ORQUESTRADOR] ✅ Módulo rodadas importado com sucesso');
+            
+            // Aguardar um momento para garantir que todas as funções foram expostas
+            await new Promise(resolve => setTimeout(resolve, 200));
+            
+            console.log('[ORQUESTRADOR] Funções disponíveis:', Object.keys(window.orquestrador.modules.rodadas));
+        } catch (error) {
+            console.error('[ORQUESTRADOR] ❌ Erro ao importar módulo rodadas:', error);
+            throw error;
+        }
     }
     return window.orquestrador.modules.rodadas;
 }
