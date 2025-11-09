@@ -272,10 +272,25 @@ class DetalheLigaOrquestrador {
                     break;
 
                 case "fluxo-financeiro":
-                    if (
-                        this.modules.fluxoFinanceiro?.inicializarFluxoFinanceiro
-                    ) {
+                    await new Promise((resolve) => setTimeout(resolve, 100));
+
+                    // Garantir que o módulo foi importado
+                    if (!this.modules.fluxoFinanceiro) {
+                        await carregarModuloFluxoFinanceiro();
+                    }
+
+                    const fluxoFinanceiroContainer = document.getElementById("fluxo-financeiro");
+                    if (fluxoFinanceiroContainer) {
+                        fluxoFinanceiroContainer.classList.add("active");
+                    }
+
+                    // Tentar múltiplas formas de inicialização
+                    if (this.modules.fluxoFinanceiro?.inicializarFluxoFinanceiro) {
                         await this.modules.fluxoFinanceiro.inicializarFluxoFinanceiro();
+                    } else if (typeof window.inicializarFluxoFinanceiro === "function") {
+                        await window.inicializarFluxoFinanceiro();
+                    } else {
+                        console.warn("Nenhuma função de inicialização de Fluxo Financeiro encontrada");
                     }
                     break;
 
@@ -415,7 +430,7 @@ class DetalheLigaOrquestrador {
             'pontos-corridos': 'Pontos Corridos',
             'luva-de-ouro': 'Luva de Ouro',
             'artilheiro-campeao': 'Artilheiro',
-            'fluxo-financeiro': 'Financeiro'
+            'fluxo-financeiro': 'Fluxo Financeiro'
         };
         return names[module] || module;
     }
