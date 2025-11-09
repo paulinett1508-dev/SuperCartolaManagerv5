@@ -1,0 +1,295 @@
+
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Gerir Senhas - Participantes</title>
+  <link rel="stylesheet" href="/css/base.css">
+  <style>
+    .container {
+      max-width: 1200px;
+      margin: 40px auto;
+      padding: 20px;
+    }
+
+    .header {
+      background: linear-gradient(135deg, #2a2a2a 0%, #1e1e1e 100%);
+      padding: 30px;
+      border-radius: 15px;
+      margin-bottom: 30px;
+      border: 1px solid rgba(255, 69, 0, 0.3);
+    }
+
+    .header h1 {
+      color: #ffffff;
+      margin-bottom: 10px;
+    }
+
+    .header p {
+      color: #a0a0a0;
+    }
+
+    .liga-selector {
+      margin-bottom: 30px;
+    }
+
+    .liga-selector select {
+      width: 100%;
+      padding: 15px;
+      font-size: 16px;
+      border: 2px solid rgba(255, 69, 0, 0.3);
+      border-radius: 10px;
+      background: #2a2a2a;
+      color: #ffffff;
+    }
+
+    .participantes-grid {
+      display: grid;
+      gap: 20px;
+    }
+
+    .participante-row {
+      background: #2a2a2a;
+      padding: 20px;
+      border-radius: 12px;
+      border: 1px solid rgba(255, 69, 0, 0.2);
+      display: grid;
+      grid-template-columns: 1fr 1fr 200px 150px;
+      gap: 15px;
+      align-items: center;
+    }
+
+    .participante-info {
+      display: flex;
+      flex-direction: column;
+    }
+
+    .participante-nome {
+      color: #ffffff;
+      font-weight: 600;
+      margin-bottom: 5px;
+    }
+
+    .participante-time {
+      color: #a0a0a0;
+      font-size: 14px;
+    }
+
+    .time-id {
+      background: rgba(255, 69, 0, 0.1);
+      padding: 8px 12px;
+      border-radius: 8px;
+      color: #ff4500;
+      font-weight: 600;
+      text-align: center;
+    }
+
+    .senha-input {
+      padding: 10px;
+      border: 2px solid rgba(255, 69, 0, 0.3);
+      border-radius: 8px;
+      background: rgba(26, 26, 26, 0.8);
+      color: #ffffff;
+      font-size: 14px;
+    }
+
+    .btn-salvar {
+      background: linear-gradient(135deg, #ff4500 0%, #e8472b 100%);
+      color: white;
+      border: none;
+      padding: 10px 20px;
+      border-radius: 8px;
+      cursor: pointer;
+      font-weight: 600;
+      transition: all 0.3s;
+    }
+
+    .btn-salvar:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 5px 15px rgba(255, 69, 0, 0.4);
+    }
+
+    .btn-salvar:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+    }
+
+    .status-senha {
+      padding: 5px 10px;
+      border-radius: 6px;
+      font-size: 12px;
+      font-weight: 600;
+    }
+
+    .status-senha.definida {
+      background: rgba(34, 197, 94, 0.1);
+      color: #22c55e;
+    }
+
+    .status-senha.nao-definida {
+      background: rgba(244, 67, 54, 0.1);
+      color: #f44336;
+    }
+
+    .loading {
+      text-align: center;
+      padding: 40px;
+      color: #a0a0a0;
+    }
+
+    .success-message {
+      background: rgba(34, 197, 94, 0.1);
+      color: #22c55e;
+      padding: 15px;
+      border-radius: 8px;
+      margin-top: 10px;
+      display: none;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="header">
+      <h1>🔐 Gerir Senhas dos Participantes</h1>
+      <p>Defina ou altere as senhas de acesso ao app dos participantes</p>
+    </div>
+
+    <div class="liga-selector">
+      <select id="ligaSelect" onchange="carregarParticipantes()">
+        <option value="">Selecione uma liga...</option>
+      </select>
+    </div>
+
+    <div id="participantesContainer">
+      <div class="loading">Selecione uma liga para começar</div>
+    </div>
+  </div>
+
+  <script>
+    let ligaSelecionada = null;
+
+    // Carregar ligas disponíveis
+    async function carregarLigas() {
+      try {
+        const response = await fetch('/api/ligas');
+        const ligas = await response.json();
+        
+        const select = document.getElementById('ligaSelect');
+        select.innerHTML = '<option value="">Selecione uma liga...</option>';
+        
+        ligas.forEach(liga => {
+          const option = document.createElement('option');
+          option.value = liga._id;
+          option.textContent = liga.nome;
+          select.appendChild(option);
+        });
+      } catch (error) {
+        console.error('Erro ao carregar ligas:', error);
+        alert('Erro ao carregar ligas');
+      }
+    }
+
+    // Carregar participantes da liga selecionada
+    async function carregarParticipantes() {
+      const ligaId = document.getElementById('ligaSelect').value;
+      const container = document.getElementById('participantesContainer');
+      
+      if (!ligaId) {
+        container.innerHTML = '<div class="loading">Selecione uma liga para começar</div>';
+        return;
+      }
+
+      container.innerHTML = '<div class="loading">Carregando participantes...</div>';
+
+      try {
+        const response = await fetch(`/api/ligas/${ligaId}`);
+        const liga = await response.json();
+        ligaSelecionada = liga;
+
+        if (!liga.participantes || liga.participantes.length === 0) {
+          container.innerHTML = '<div class="loading">Nenhum participante encontrado</div>';
+          return;
+        }
+
+        // Renderizar participantes
+        container.innerHTML = '<div class="participantes-grid"></div>';
+        const grid = container.querySelector('.participantes-grid');
+
+        liga.participantes
+          .sort((a, b) => (a.nome_cartola || '').localeCompare(b.nome_cartola || ''))
+          .forEach(p => {
+            const row = document.createElement('div');
+            row.className = 'participante-row';
+            row.innerHTML = `
+              <div class="participante-info">
+                <div class="participante-nome">${p.nome_cartola || 'N/D'}</div>
+                <div class="participante-time">${p.nome_time || 'Time N/A'}</div>
+              </div>
+              
+              <div class="time-id">
+                ID: ${p.time_id}
+              </div>
+              
+              <input 
+                type="password" 
+                class="senha-input" 
+                placeholder="Digite a senha"
+                value="${p.senha_acesso || ''}"
+                id="senha-${p.time_id}"
+              >
+              
+              <button 
+                class="btn-salvar" 
+                onclick="salvarSenha('${p.time_id}', '${ligaId}')"
+              >
+                💾 Salvar
+              </button>
+            `;
+            grid.appendChild(row);
+          });
+
+      } catch (error) {
+        console.error('Erro ao carregar participantes:', error);
+        container.innerHTML = '<div class="loading">Erro ao carregar participantes</div>';
+      }
+    }
+
+    // Salvar senha do participante
+    async function salvarSenha(timeId, ligaId) {
+      const senhaInput = document.getElementById(`senha-${timeId}`);
+      const senha = senhaInput.value.trim();
+
+      if (!senha) {
+        alert('Digite uma senha válida');
+        return;
+      }
+
+      try {
+        const response = await fetch(`/api/ligas/${ligaId}/participante/${timeId}/senha`, {
+          method: 'PUT',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({ senha })
+        });
+
+        const data = await response.json();
+
+        if (!response.ok) {
+          throw new Error(data.erro || 'Erro ao salvar senha');
+        }
+
+        alert('✅ Senha salva com sucesso!');
+        
+      } catch (error) {
+        console.error('Erro ao salvar senha:', error);
+        alert(`❌ Erro: ${error.message}`);
+      }
+    }
+
+    // Inicializar
+    carregarLigas();
+  </script>
+</body>
+</html>
