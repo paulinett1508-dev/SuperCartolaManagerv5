@@ -318,6 +318,9 @@ class DetalheLigaOrquestrador {
         if (this.processingModule) return;
         this.processingModule = true;
 
+        // Mostrar loading imediatamente
+        this.showLoadingOverlay(`Carregando ${this.getModuleDisplayName(action)}...`);
+
         try {
             if (showSecondary) this.showSecondaryScreen();
             await this.showModule(action);
@@ -326,12 +329,16 @@ class DetalheLigaOrquestrador {
                 `<div class="empty-state">Erro: ${error.message}</div>`;
         } finally {
             this.processingModule = false;
+            this.hideLoadingOverlay();
         }
     }
 
     async handleModuleClick(module) {
         if (this.processingModule) return;
         this.processingModule = true;
+
+        // Mostrar loading imediatamente
+        this.showLoadingOverlay(`Carregando ${this.getModuleDisplayName(module)}...`);
 
         try {
             await this.showModule(module);
@@ -341,6 +348,58 @@ class DetalheLigaOrquestrador {
                 `<div class="empty-state">Erro: ${error.message}</div>`;
         } finally {
             this.processingModule = false;
+            this.hideLoadingOverlay();
+        }
+    }
+
+    getModuleDisplayName(module) {
+        const names = {
+            'participantes': 'Participantes',
+            'ranking-geral': 'Classificação',
+            'parciais': 'Parciais',
+            'top10': 'Top 10',
+            'rodadas': 'Rodadas',
+            'melhor-mes': 'Melhor Mês',
+            'mata-mata': 'Mata-Mata',
+            'pontos-corridos': 'Pontos Corridos',
+            'luva-de-ouro': 'Luva de Ouro',
+            'artilheiro-campeao': 'Artilheiro',
+            'fluxo-financeiro': 'Financeiro'
+        };
+        return names[module] || module;
+    }
+
+    showLoadingOverlay(message = 'Carregando...') {
+        let overlay = document.getElementById('module-loading-overlay');
+        if (!overlay) {
+            overlay = document.createElement('div');
+            overlay.id = 'module-loading-overlay';
+            overlay.className = 'module-loading-overlay';
+            overlay.innerHTML = `
+                <div class="loading-content">
+                    <div class="loading-spinner"></div>
+                    <div class="loading-message">${message}</div>
+                    <div class="loading-submessage">Carregando dependências...</div>
+                </div>
+            `;
+            document.body.appendChild(overlay);
+        } else {
+            overlay.querySelector('.loading-message').textContent = message;
+        }
+        // Força reflow para garantir animação
+        overlay.offsetHeight;
+        overlay.classList.add('active');
+    }
+
+    hideLoadingOverlay() {
+        const overlay = document.getElementById('module-loading-overlay');
+        if (overlay) {
+            overlay.classList.remove('active');
+            setTimeout(() => {
+                if (overlay.parentNode) {
+                    overlay.remove();
+                }
+            }, 300);
         }
     }
 
@@ -700,39 +759,18 @@ function setupLazyModuleLoading() {
         "participantes": async () => {
             if (!window.orquestrador.modules.participantes) {
                 await import("./participantes.js");
-                window.orquestrador.modules.participantes = window.carregarParticipantesComBrasoes || {}; // Assumindo que a função é exposta globalmente ou em window
+                window.orquestrador.modules.participantes = window.carregarParticipantesComBrasoes || {};
             }
             return window.orquestrador.modules.participantes;
         }
     };
 
+    // Pré-carregar módulos sob demanda (não no click)
     document.querySelectorAll('.module-card[data-module]').forEach(card => {
         const moduleName = card.dataset.module;
         if (moduleName && moduleLoaders[moduleName]) {
-            card.addEventListener('click', async () => {
-                if (window.orquestrador.processingModule) return;
-                window.orquestrador.processingModule = true;
-
-                try {
-                    const moduleLoader = moduleLoaders[moduleName];
-                    const loadedModule = await moduleLoader();
-
-                    // Executar a lógica específica do módulo após o carregamento
-                    // Exemplo: Se o módulo expõe uma função de inicialização
-                    if (loadedModule && loadedModule[getModuleInitFunctionName(moduleName)]) {
-                        await loadedModule[getModuleInitFunctionName(moduleName)]();
-                    } else if (typeof window[getModuleFunctionName(moduleName)] === 'function') {
-                        await window[getModuleFunctionName(moduleName)]();
-                    }
-                } catch (error) {
-                    console.error(`Erro ao carregar ou inicializar módulo ${moduleName}:`, error);
-                    // Mostrar mensagem de erro na tela
-                    document.getElementById("dynamic-content-area").innerHTML =
-                        `<div class="empty-state">Erro ao carregar módulo ${moduleName}: ${error.message}</div>`;
-                } finally {
-                    window.orquestrador.processingModule = false;
-                }
-            }, { once: true }); // Executar o listener apenas uma vez
+            // Remover listener { once: true } que causa problemas
+            // O orquestrador já gerencia o estado de processamento
         }
     });
 }
