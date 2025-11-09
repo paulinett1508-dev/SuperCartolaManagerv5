@@ -560,47 +560,49 @@
 
     // Atualizar estatísticas do painel superior
     async function atualizarEstatisticas(ligaId) {
-            try {
-                const response = await fetch(`/api/ligas/${ligaId}`);
-                if (!response.ok) {
-                    throw new Error('Erro ao buscar liga');
-                }
-
-                const liga = await response.json();
-                console.log('Liga para estatísticas:', liga);
-
-                const totalParticipantes = liga.times?.length || 0;
-                let comSenha = 0;
-                let semSenha = 0;
-
-                // Verificar senhas no array participantes
-                if (liga.participantes && Array.isArray(liga.participantes)) {
-                    console.log('Verificando participantes:', liga.participantes);
-                    liga.participantes.forEach(p => {
-                        console.log(`Participante ${p.time_id}: senha="${p.senha_acesso}"`);
-                        if (p.senha_acesso && p.senha_acesso.trim() !== '') {
-                            comSenha++;
-                        } else {
-                            semSenha++;
-                        }
-                    });
-                }
-
-                // Se não há participantes no array, todos estão sem senha
-                if (!liga.participantes || liga.participantes.length === 0) {
-                    semSenha = totalParticipantes;
-                }
-
-                console.log(`Estatísticas: Total=${totalParticipantes}, ComSenha=${comSenha}, SemSenha=${semSenha}`);
-
-                document.getElementById('totalParticipantes').textContent = totalParticipantes;
-                document.getElementById('comSenha').textContent = comSenha;
-                document.getElementById('semSenha').textContent = semSenha;
-
-            } catch (error) {
-                console.error('Erro ao atualizar estatísticas:', error);
-            }
+      try {
+        const response = await fetch(`/api/ligas/${ligaId}`);
+        if (!response.ok) {
+          throw new Error('Erro ao buscar liga');
         }
+
+        const liga = await response.json();
+        console.log('Liga para estatísticas:', liga);
+
+        const totalParticipantes = liga.times?.length || 0;
+        let comSenha = 0;
+        let semSenha = 0;
+
+        // Verificar senhas consultando cada time individualmente para garantir dados atualizados
+        if (liga.times && Array.isArray(liga.times)) {
+          const promises = liga.times.map(async (timeId) => {
+            try {
+              const timeResponse = await fetch(`/api/times/${timeId}`);
+              if (!timeResponse.ok) return false;
+              const timeData = await timeResponse.json();
+              return !!(timeData.senha_acesso && timeData.senha_acesso.trim() !== '');
+            } catch {
+              return false;
+            }
+          });
+
+          const resultados = await Promise.all(promises);
+          comSenha = resultados.filter(r => r === true).length;
+          semSenha = totalParticipantes - comSenha;
+        } else {
+          semSenha = totalParticipantes;
+        }
+
+        console.log(`Estatísticas atualizadas: Total=${totalParticipantes}, ComSenha=${comSenha}, SemSenha=${semSenha}`);
+
+        document.getElementById('totalParticipantes').textContent = totalParticipantes;
+        document.getElementById('comSenha').textContent = comSenha;
+        document.getElementById('semSenha').textContent = semSenha;
+
+      } catch (error) {
+        console.error('Erro ao atualizar estatísticas:', error);
+      }
+    }
 
     // Salvar senha
     async function salvarSenha(timeId, ligaId) {
@@ -736,6 +738,9 @@
 
         // Recarregar participantes para atualizar a interface
         await carregarParticipantes();
+
+        // Atualizar estatísticas do painel superior
+        await atualizarEstatisticas(ligaId);
 
       } catch (error) {
         console.error('Erro ao aplicar senha geral:', error);
