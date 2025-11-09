@@ -322,6 +322,88 @@
       cursor: not-allowed;
     }
 
+    /* Busca */
+    .busca-section {
+      margin-bottom: 24px;
+    }
+
+    .busca-card {
+      background: linear-gradient(135deg, #2a2a2a 0%, #1f1f1f 100%);
+      border-left: 4px solid #4CAF50;
+      padding: 20px;
+      border-radius: 4px;
+    }
+
+    .busca-card h3 {
+      font-size: 16px;
+      font-weight: 600;
+      color: #fff;
+      margin-bottom: 6px;
+    }
+
+    .busca-card p {
+      font-size: 13px;
+      color: #888;
+      margin-bottom: 16px;
+    }
+
+    .busca-controls {
+      display: flex;
+      gap: 12px;
+      align-items: center;
+      margin-bottom: 16px;
+    }
+
+    .busca-input {
+      flex: 1;
+      padding: 10px 16px;
+      border: 1px solid #3a3a3a;
+      border-radius: 3px;
+      background: #1a1a1a;
+      color: #fff;
+      font-size: 14px;
+      transition: border-color 0.2s;
+    }
+
+    .busca-input:focus {
+      border-color: #4CAF50;
+      outline: none;
+    }
+
+    .btn-limpar-busca {
+      padding: 10px 20px;
+      border: none;
+      border-radius: 3px;
+      font-weight: 500;
+      font-size: 13px;
+      cursor: pointer;
+      transition: all 0.2s;
+      white-space: nowrap;
+      background: #444;
+      color: white;
+    }
+
+    .btn-limpar-busca:hover {
+      background: #555;
+    }
+
+    .resultados-busca {
+      font-size: 12px;
+      color: #888;
+      padding: 8px 12px;
+      background: rgba(76, 175, 80, 0.1);
+      border-radius: 3px;
+      display: none;
+    }
+
+    .resultados-busca.visible {
+      display: block;
+    }
+
+    .participante-card.hidden-by-search {
+      display: none;
+    }
+
     /* Responsividade */
     @media (max-width: 768px) {
       .participantes-table {
@@ -336,12 +418,12 @@
         flex-direction: column;
       }
 
-      .senha-geral-controls {
+      .senha-geral-controls, .busca-controls {
         flex-direction: column;
         align-items: stretch;
       }
 
-      .btn-gerar, .btn-aplicar {
+      .btn-gerar, .btn-aplicar, .btn-limpar-busca {
         width: 100%;
       }
     }
@@ -398,6 +480,26 @@
       </div>
     </div>
 
+    <div class="busca-section" id="buscaSection" style="display: none;">
+      <div class="busca-card">
+        <h3>🔍 Buscar Participante</h3>
+        <p>Encontre rapidamente por ID do time, nome do cartoleiro ou nome do time</p>
+        <div class="busca-controls">
+          <input 
+            type="text" 
+            id="buscaParticipante" 
+            class="busca-input" 
+            placeholder="Digite para buscar..."
+            oninput="buscarParticipante()"
+          >
+          <button class="btn-limpar-busca" onclick="limparBusca()">
+            ✖ Limpar
+          </button>
+        </div>
+        <div id="resultadosBusca" class="resultados-busca"></div>
+      </div>
+    </div>
+
     <div id="participantesContainer">
       <div class="loading">
         <div class="loading-spinner"></div>
@@ -438,11 +540,13 @@
         container.innerHTML = '<div class="loading"><div class="loading-spinner"></div>Selecione uma liga para começar</div>';
         statsContainer.style.display = 'none';
         document.getElementById('senhaGeralSection').style.display = 'none';
+        document.getElementById('buscaSection').style.display = 'none';
         return;
       }
 
-      // Mostrar seção de senha geral
+      // Mostrar seções de senha geral e busca
       document.getElementById('senhaGeralSection').style.display = 'block';
+      document.getElementById('buscaSection').style.display = 'block';
 
       container.innerHTML = '<div class="loading"><div class="loading-spinner"></div>Carregando participantes...</div>';
 
@@ -747,6 +851,68 @@
           btnAplicar.textContent = '✨ Aplicar a Todos';
         }
       }
+    }
+
+    // Buscar participante
+    function buscarParticipante() {
+      const termo = document.getElementById('buscaParticipante').value.toLowerCase().trim();
+      const rows = document.querySelectorAll('#participantesTableBody tr');
+      const resultadosDiv = document.getElementById('resultadosBusca');
+
+      if (!termo) {
+        // Mostrar todos
+        rows.forEach(row => {
+          row.classList.remove('hidden-by-search');
+        });
+        resultadosDiv.classList.remove('visible');
+        return;
+      }
+
+      let countVisible = 0;
+
+      rows.forEach(row => {
+        const nomeCartola = row.querySelector('.participante-nome')?.textContent.toLowerCase() || '';
+        const nomeTime = row.querySelector('.participante-time')?.textContent.toLowerCase() || '';
+        const timeId = row.querySelector('.time-id')?.textContent.toLowerCase() || '';
+
+        const matches = 
+          nomeCartola.includes(termo) ||
+          nomeTime.includes(termo) ||
+          timeId.includes(termo);
+
+        if (matches) {
+          row.classList.remove('hidden-by-search');
+          countVisible++;
+        } else {
+          row.classList.add('hidden-by-search');
+        }
+      });
+
+      // Mostrar resultado da busca
+      if (countVisible === 0) {
+        resultadosDiv.textContent = `❌ Nenhum participante encontrado para "${termo}"`;
+      } else if (countVisible === 1) {
+        resultadosDiv.textContent = `✅ 1 participante encontrado`;
+      } else {
+        resultadosDiv.textContent = `✅ ${countVisible} participantes encontrados`;
+      }
+      resultadosDiv.classList.add('visible');
+    }
+
+    // Limpar busca
+    function limparBusca() {
+      const input = document.getElementById('buscaParticipante');
+      input.value = '';
+      
+      const rows = document.querySelectorAll('#participantesTableBody tr');
+      rows.forEach(row => {
+        row.classList.remove('hidden-by-search');
+      });
+
+      const resultadosDiv = document.getElementById('resultadosBusca');
+      resultadosDiv.classList.remove('visible');
+      
+      input.focus();
     }
 
     // Inicializar
