@@ -61,6 +61,31 @@ const moduleCache = new Map();
 // Estado atual
 let edicaoAtual = null;
 
+// Cache de rankings por rodada
+const rankingCache = new Map();
+const RANKING_CACHE_DURATION = 300000; // 5 minutos
+
+// Função para obter ranking com cache
+async function getRankingComCache(ligaId, rodada) {
+  const cacheKey = `${ligaId}-${rodada}`;
+  const cached = rankingCache.get(cacheKey);
+  
+  if (cached && (Date.now() - cached.timestamp) < RANKING_CACHE_DURATION) {
+    console.log(`[MATA-ORQUESTRADOR] ⚡ Cache hit para rodada ${rodada}`);
+    return cached.data;
+  }
+
+  console.log(`[MATA-ORQUESTRADOR] 🌐 Buscando ranking da rodada ${rodada}...`);
+  const ranking = await getRankingRodadaEspecifica(ligaId, rodada);
+  
+  rankingCache.set(cacheKey, {
+    data: ranking,
+    timestamp: Date.now()
+  });
+
+  return ranking;
+}
+
 // Função de carregamento dinâmico dos exports
 async function carregarExports() {
   if (exportsCarregados) return true;
@@ -200,52 +225,75 @@ async function carregarRodadas() {
   }
 }
 
-// Função principal para carregar mata-mata
-export async function carregarMataMata() {
-  const container = document.getElementById("mata-mata");
-  if (!container) return;
+// Cache do status do mercado
+let mercadoStatusCache = null;
+let mercadoStatusTimestamp = 0;
+const CACHE_DURATION = 60000; // 1 minuto
 
-  console.log("[MATA-ORQUESTRADOR] Iniciando carregamento do mata-mata...");
-
-  try {
-    console.log("[MATA-ORQUESTRADOR] Pré-carregando dependências...");
-    const [rodadasOk, exportsOk] = await Promise.all([
-      carregarRodadas(),
-      carregarExports(),
-    ]);
-    if (!rodadasOk)
-      console.warn("[MATA-ORQUESTRADOR] Módulo rodadas não carregou");
-    if (!exportsOk)
-      console.warn("[MATA-ORQUESTRADOR] Módulo exports não carregou");
-  } catch (error) {
-    console.warn("[MATA-ORQUESTRADOR] Erro no pré-carregamento:", error);
+// Função para obter status do mercado com cache
+async function getMercadoStatus() {
+  const now = Date.now();
+  if (mercadoStatusCache && (now - mercadoStatusTimestamp) < CACHE_DURATION) {
+    return mercadoStatusCache;
   }
-
-  const ligaId = getLigaId();
 
   try {
     const controller = new AbortController();
-    const timeoutId = setTimeout(() => controller.abort(), 3000);
+    const timeoutId = setTimeout(() => controller.abort(), 2000);
     const response = await fetch("/api/cartola/mercado/status", {
       signal: controller.signal,
     });
     clearTimeout(timeoutId);
 
     if (response.ok) {
-      const data = await response.json();
-      const rodadaAtual = data.rodada_atual || 1;
-      edicoes.forEach((edicao) => {
-        edicao.ativo = rodadaAtual >= edicao.rodadaDefinicao;
-      });
+      mercadoStatusCache = await response.json();
+      mercadoStatusTimestamp = now;
+      return mercadoStatusCache;
     }
   } catch (error) {
-    console.warn(
-      "[MATA-ORQUESTRADOR] Erro ao verificar status do mercado:",
-      error,
-    );
+    console.warn("[MATA-ORQUESTRADOR] Erro ao buscar status:", error);
+  }
+  
+  return mercadoStatusCache || { rodada_atual: 1 };
+}
+
+// Função principal para carregar mata-mata (OTIMIZADA)
+export async function carregarMataMata() {
+  const container = document.getElementById("mata-mata");
+  if (!container) return;
+
+  const startTime = performance.now();
+  console.log("[MATA-ORQUESTRADOR] Iniciando carregamento OTIMIZADO...");
+
+  const ligaId = getLigaId();
+
+  // Carregar tudo em paralelo
+  const [rodadasOk, exportsOk, mercadoData] = await Promise.allSettled([
+    carregarRodadas(),
+    carregarExports(),
+    getMercadoStatus(),
+  ]);
+
+  // Processar resultados
+  if (rodadasOk.status !== 'fulfilled') {
+    console.warn("[MATA-ORQUESTRADOR] Módulo rodadas não carregou");
+  }
+  if (exportsOk.status !== 'fulfilled') {
+    console.warn("[MATA-ORQUESTRADOR] Módulo exports não carregou");
+  }
+
+  // Atualizar edições ativas
+  if (mercadoData.status === 'fulfilled' && mercadoData.value) {
+    const rodadaAtual = mercadoData.value.rodada_atual || 1;
+    edicoes.forEach((edicao) => {
+      edicao.ativo = rodadaAtual >= edicao.rodadaDefinicao;
+    });
   }
 
   renderizarInterface(container, ligaId, handleEdicaoChange, handleFaseClick);
+
+  const endTime = performance.now();
+  console.log(`[MATA-ORQUESTRADOR] ✅ Carregado em ${(endTime - startTime).toFixed(0)}ms`);
 }
 
 // Handler para mudança de edição
@@ -263,6 +311,7 @@ function handleFaseClick(fase, edicao) {
 
 // Função para carregar uma fase específica
 async function carregarFase(fase, ligaId) {
+  const perfStart = performance.now();
   const contentId = "mataMataContent";
   const contentElement = document.getElementById(contentId);
 
@@ -271,17 +320,13 @@ async function carregarFase(fase, ligaId) {
     return;
   }
 
-  console.log(`[MATA-ORQUESTRADOR] Carregando fase: ${fase}`);
+  console.log(`[MATA-ORQUESTRADOR] ⚡ Carregando fase: ${fase}`);
 
   renderLoadingState(contentId, fase, edicaoAtual);
 
   try {
-    const dependenciasOk = await Promise.all([
-      carregarRodadas(),
-      carregarExports(),
-    ]);
-
-    if (!dependenciasOk[0]) {
+    // Verificar dependências (já devem estar carregadas)
+    if (!getRankingRodadaEspecifica) {
       throw new Error(
         "Módulo rodadas não disponível - não é possível calcular confrontos",
       );
@@ -292,22 +337,9 @@ async function carregarFase(fase, ligaId) {
       return;
     }
 
-    let rodada_atual = 1;
-    try {
-      const controller = new AbortController();
-      const timeoutId = setTimeout(() => controller.abort(), 2000);
-      const resMercado = await fetch("/api/cartola/mercado/status", {
-        signal: controller.signal,
-      });
-      clearTimeout(timeoutId);
-
-      if (resMercado.ok) {
-        const data = await resMercado.json();
-        rodada_atual = data.rodada_atual || 1;
-      }
-    } catch (err) {
-      console.warn("[MATA-ORQUESTRADOR] Usando rodada padrão:", err.message);
-    }
+    // Usar cache do mercado ao invés de fazer nova requisição
+    const mercadoData = await getMercadoStatus();
+    const rodada_atual = mercadoData.rodada_atual || 1;
 
     const edicaoSelecionada = edicoes.find((e) => e.id === edicaoAtual);
     if (!edicaoSelecionada) {
@@ -319,10 +351,11 @@ async function carregarFase(fase, ligaId) {
       `[MATA-ORQUESTRADOR] Buscando ranking base da Rodada ${rodadaDefinicao}...`,
     );
 
+    // Usar cache de ranking
     const rankingBase = await Promise.race([
-      getRankingRodadaEspecifica(ligaId, rodadaDefinicao),
+      getRankingComCache(ligaId, rodadaDefinicao),
       new Promise((_, reject) =>
-        setTimeout(() => reject(new Error("Timeout ao buscar ranking")), 10000),
+        setTimeout(() => reject(new Error("Timeout ao buscar ranking")), 8000),
       ),
     ]);
 
@@ -424,7 +457,8 @@ async function carregarFase(fase, ligaId) {
       renderRodadaPendente(contentId, rodadaPontosNum);
     }
 
-    console.log(`[MATA-ORQUESTRADOR] Fase ${fase} carregada com sucesso`);
+    const perfEnd = performance.now();
+    console.log(`[MATA-ORQUESTRADOR] ✅ Fase ${fase} carregada em ${(perfEnd - perfStart).toFixed(0)}ms`);
   } catch (err) {
     console.error(`[MATA-ORQUESTRADOR] Erro ao carregar fase ${fase}:`, err);
     renderErrorState(contentId, fase, err);

@@ -173,14 +173,21 @@ class DetalheLigaOrquestrador {
                     break;
 
                 case "mata-mata":
-                    await new Promise((resolve) => setTimeout(resolve, 50));
-                    const mataMataContainer =
-                        document.getElementById("mata-mata");
-                    if (mataMataContainer)
+                    // Garantir que o módulo foi importado
+                    if (!this.modules.mataMata) {
+                        await carregarModuloMataMata();
+                    }
+                    
+                    const mataMataContainer = document.getElementById("mata-mata");
+                    if (mataMataContainer) {
                         mataMataContainer.classList.add("active");
+                    }
 
+                    // Inicializar mata-mata
                     if (this.modules.mataMata?.carregarMataMata) {
                         await this.modules.mataMata.carregarMataMata();
+                    } else {
+                        console.warn("Função carregarMataMata não encontrada");
                     }
                     break;
 
