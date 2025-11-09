@@ -7,18 +7,24 @@ const router = express.Router();
 // Buscar um time específico por ID
 router.get("/:id", async (req, res) => {
     try {
+        console.log(`[TIMES] Requisição GET /:id recebida para ID: ${req.params.id}`);
+        
         const timeId = parseInt(req.params.id);
 
         if (isNaN(timeId)) {
+            console.log(`[TIMES] ID inválido: ${req.params.id}`);
             return res.status(400).json({ erro: "ID do time inválido" });
         }
 
+        console.log(`[TIMES] Buscando time com time_id: ${timeId}`);
         const time = await Time.findOne({ time_id: timeId });
 
         if (!time) {
+            console.log(`[TIMES] Time não encontrado: ${timeId}`);
             return res.status(404).json({ erro: "Time não encontrado" });
         }
 
+        console.log(`[TIMES] Time encontrado: ${time.nome_time || time.nome_cartoleiro}`);
         res.json(time);
     } catch (erro) {
         console.error(`[TIMES] Erro ao buscar time ${req.params.id}:`, erro);

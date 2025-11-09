@@ -100,21 +100,15 @@ if (process.env.NODE_ENV !== "production") {
   console.log("✅ [ROUTES] Registrada: /api/cartola/*");
 }
 
+// Rotas de times - ORDEM IMPORTA!
 app.use("/api/times", timesRoutes);
-if (process.env.NODE_ENV !== "production") {
-  console.log("✅ [ROUTES] Registrada: /api/times/*");
-}
+console.log("✅ [ROUTES] Registrada: /api/times/*");
 
-// Rotas adicionais para compatibilidade com frontend
 app.use("/api/time", timesRoutes);
-if (process.env.NODE_ENV !== "production") {
-  console.log("✅ [ROUTES] Registrada: /api/time/* (compatibilidade)");
-}
+console.log("✅ [ROUTES] Registrada: /api/time/* (compatibilidade)");
 
 app.use("/api/cartola/time", timesRoutes);
-if (process.env.NODE_ENV !== "production") {
-  console.log("✅ [ROUTES] Registrada: /api/cartola/time/* (compatibilidade)");
-}
+console.log("✅ [ROUTES] Registrada: /api/cartola/time/* (compatibilidade)");
 
 app.use("/api/ligas", ligaRoutes);
 if (process.env.NODE_ENV !== "production") {
