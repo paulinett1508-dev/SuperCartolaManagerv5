@@ -149,12 +149,12 @@ class DetalheLigaOrquestrador {
 
                 case "rodadas":
                     await new Promise((resolve) => setTimeout(resolve, 100));
-                    
+
                     // Garantir que o módulo foi importado
                     if (!this.modules.rodadas) {
                         await carregarModuloRodadas();
                     }
-                    
+
                     const rodadasContainer = document.getElementById("rodadas");
                     if (rodadasContainer) {
                         rodadasContainer.classList.add("active");
@@ -177,7 +177,7 @@ class DetalheLigaOrquestrador {
                     if (!this.modules.mataMata) {
                         await carregarModuloMataMata();
                     }
-                    
+
                     const mataMataContainer = document.getElementById("mata-mata");
                     if (mataMataContainer) {
                         mataMataContainer.classList.add("active");
@@ -198,20 +198,30 @@ class DetalheLigaOrquestrador {
                     if (pontosCorridosContainer)
                         pontosCorridosContainer.classList.add("active");
 
-                    if (this.modules.pontosCorridos?.carregarPontosCorridos) {
-                        await this.modules.pontosCorridos.carregarPontosCorridos();
-                    } else if (
-                        typeof window.carregarPontosCorridos === "function"
-                    ) {
-                        await window.carregarPontosCorridos();
-                    } else if (
-                        typeof window.inicializarPontosCorridos === "function"
-                    ) {
-                        await window.inicializarPontosCorridos();
-                    } else {
-                        console.warn(
-                            "Nenhuma função de inicialização de pontos corridos encontrada",
+                    // 3. Pontos Corridos
+                    try {
+                      const pontosCorridosModule = await import("./pontos-corridos.js");
+                      if (pontosCorridosModule?.carregarPontosCorridos) {
+                        await pontosCorridosModule.carregarPontosCorridos();
+                        console.log(
+                          "[ORQUESTRADOR] ✅ Carregando HTML do módulo pontos-corridos injetado",
                         );
+                      }
+                    } catch (error) {
+                      console.error(
+                        "[ORQUESTRADOR] Erro ao carregar pontos-corridos:",
+                        error,
+                      );
+                      // Renderizar erro no container
+                      const container = document.getElementById("pontos-corridos");
+                      if (container) {
+                        container.innerHTML = `
+                          <div style="padding: 20px; text-align: center; color: var(--text-muted);">
+                            <p>⚠️ Erro ao carregar Pontos Corridos</p>
+                            <p style="font-size: 12px;">${error.message}</p>
+                          </div>
+                        `;
+                      }
                     }
                     break;
 
@@ -232,12 +242,12 @@ class DetalheLigaOrquestrador {
 
                 case "melhor-mes":
                     await new Promise((resolve) => setTimeout(resolve, 100));
-                    
+
                     // Garantir que o módulo foi importado
                     if (!this.modules.melhorMes) {
                         await carregarModuloMelhorMes();
                     }
-                    
+
                     const melhorMesContainer = document.getElementById("melhor-mes");
                     if (melhorMesContainer) {
                         melhorMesContainer.classList.add("active");
@@ -738,10 +748,10 @@ async function carregarModuloRodadas() {
         try {
             window.orquestrador.modules.rodadas = await import("./rodadas.js");
             console.log('[ORQUESTRADOR] ✅ Módulo rodadas importado com sucesso');
-            
+
             // Aguardar um momento para garantir que todas as funções foram expostas
             await new Promise(resolve => setTimeout(resolve, 200));
-            
+
             console.log('[ORQUESTRADOR] Funções disponíveis:', Object.keys(window.orquestrador.modules.rodadas));
         } catch (error) {
             console.error('[ORQUESTRADOR] ❌ Erro ao importar módulo rodadas:', error);
@@ -771,10 +781,10 @@ async function carregarModuloMelhorMes() {
         try {
             window.orquestrador.modules.melhorMes = await import("./melhor-mes.js");
             console.log('[ORQUESTRADOR] ✅ Módulo Melhor do Mês importado com sucesso');
-            
+
             // Aguardar um momento para garantir que todas as funções foram expostas
             await new Promise(resolve => setTimeout(resolve, 200));
-            
+
             console.log('[ORQUESTRADOR] Funções disponíveis:', Object.keys(window.orquestrador.modules.melhorMes));
         } catch (error) {
             console.error('[ORQUESTRADOR] ❌ Erro ao importar módulo Melhor do Mês:', error);
