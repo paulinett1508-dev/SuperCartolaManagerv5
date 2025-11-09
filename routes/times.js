@@ -1,4 +1,3 @@
-
 import express from "express";
 import { obterTimePorId } from "../controllers/timeController.js";
 import Time from "../models/Time.js";
@@ -6,7 +5,25 @@ import Time from "../models/Time.js";
 const router = express.Router();
 
 // Rota para obter time por ID (do controller)
-router.get("/:id", obterTimePorId);
+router.get("/:id", async (req, res) => {
+  try {
+    const timeId = req.params.id;
+    const time = await Time.findOne({ time_id: parseInt(timeId) });
+
+    if (!time) {
+      return res.status(404).json({ erro: 'Time não encontrado' });
+    }
+
+    // Garantir que senha_acesso seja incluída na resposta
+    const timeData = time.toObject();
+    timeData.senha_acesso = time.senha_acesso || '';
+
+    res.json(timeData);
+  } catch (error) {
+    console.error('[TIMES] Erro ao buscar time:', error);
+    res.status(500).json({ erro: 'Erro ao buscar time' });
+  }
+});
 
 // Rota para buscar todos os times
 router.get("/", async (req, res) => {
