@@ -18,12 +18,19 @@
 
 /* Otimizar hover states */
 .module-card {
-    transition: transform 0.2s cubic-bezier(0.4, 0, 0.2, 1),
-                box-shadow 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+    transition: transform 0.25s cubic-bezier(0.4, 0, 0.2, 1),
+                box-shadow 0.25s cubic-bezier(0.4, 0, 0.2, 1),
+                border-color 0.25s ease;
+    contain: layout style paint;
 }
 
 .module-card:hover {
     transform: translateY(-4px) translateZ(0);
+}
+
+/* Otimizar renderização de itens internos */
+.module-items li {
+    contain: layout style;
 }
 
 /* Reduzir transições em dispositivos lentos */
