@@ -3,200 +3,250 @@
 <html lang="pt-BR">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Meu Extrato Financeiro</title>
-  <link rel="stylesheet" href="/css/base.css">
-  <link rel="stylesheet" href="/css/modules/fluxo-financeiro.css">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="mobile-web-app-capable" content="yes">
+  <title>Dashboard - Participante</title>
+  <link rel="stylesheet" href="detalhe-liga.css">
+  <link rel="stylesheet" href="css/modules/fluxo-financeiro.css">
   <style>
-    body {
+    * {
       margin: 0;
       padding: 0;
-      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      background: #f5f5f5;
       min-height: 100vh;
-      font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
     }
 
-    .dashboard-header {
-      background: white;
-      padding: 20px;
-      box-shadow: 0 2px 10px rgba(0,0,0,0.1);
-      margin-bottom: 20px;
-    }
-
-    .header-content {
-      max-width: 1200px;
-      margin: 0 auto;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-    }
-
-    .user-info h1 {
-      margin: 0 0 5px 0;
-      font-size: 24px;
-      color: #2d3748;
-    }
-
-    .user-info p {
-      margin: 0;
-      color: #718096;
-      font-size: 14px;
-    }
-
-    .btn-logout {
-      background: #e53e3e;
+    .header {
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
       color: white;
-      border: none;
+      padding: 20px;
+      box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+    }
+
+    .header h1 {
+      font-size: 22px;
+      margin-bottom: 5px;
+    }
+
+    .header p {
+      font-size: 14px;
+      opacity: 0.9;
+    }
+
+    .header .btn-sair {
+      background: rgba(255, 255, 255, 0.2);
+      color: white;
+      border: 1px solid rgba(255, 255, 255, 0.3);
       padding: 10px 20px;
       border-radius: 8px;
+      font-size: 14px;
       cursor: pointer;
-      font-weight: 600;
-      transition: all 0.3s ease;
+      margin-top: 15px;
+      width: 100%;
+      max-width: 200px;
+      touch-action: manipulation;
+      -webkit-tap-highlight-color: transparent;
     }
 
-    .btn-logout:hover {
-      background: #c53030;
+    .header .btn-sair:active {
+      background: rgba(255, 255, 255, 0.3);
     }
 
-    .dashboard-container {
-      max-width: 1400px;
-      margin: 0 auto;
+    .container {
       padding: 20px;
+      max-width: 1200px;
+      margin: 0 auto;
     }
 
-    .extrato-wrapper {
+    .info-card {
       background: white;
-      border-radius: 16px;
-      padding: 30px;
-      box-shadow: 0 10px 40px rgba(0,0,0,0.2);
+      border-radius: 12px;
+      padding: 20px;
+      margin-bottom: 20px;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
     }
 
-    .loading-state {
+    .info-card h2 {
+      color: #333;
+      font-size: 18px;
+      margin-bottom: 15px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .loading {
       text-align: center;
-      padding: 60px 20px;
+      padding: 40px;
+      color: #666;
     }
 
     .spinner {
-      border: 4px solid #f3f4f6;
-      border-top: 4px solid #667eea;
+      border: 3px solid #f3f3f3;
+      border-top: 3px solid #667eea;
       border-radius: 50%;
-      width: 50px;
-      height: 50px;
+      width: 40px;
+      height: 40px;
       animation: spin 1s linear infinite;
-      margin: 0 auto 20px;
+      margin: 0 auto 15px;
     }
 
     @keyframes spin {
       0% { transform: rotate(0deg); }
       100% { transform: rotate(360deg); }
     }
+
+    .error-message {
+      background: #ffebee;
+      color: #c62828;
+      padding: 15px;
+      border-radius: 8px;
+      margin: 20px 0;
+      border-left: 4px solid #c62828;
+    }
+
+    /* Mobile optimizations */
+    @media (max-width: 768px) {
+      .header {
+        padding: 15px;
+      }
+
+      .header h1 {
+        font-size: 20px;
+      }
+
+      .container {
+        padding: 15px;
+      }
+
+      .info-card {
+        padding: 15px;
+      }
+    }
+
+    /* Sobrescrever estilos do fluxo financeiro para mobile */
+    @media (max-width: 768px) {
+      .extrato-table {
+        font-size: 12px !important;
+      }
+
+      .extrato-table th,
+      .extrato-table td {
+        padding: 8px 4px !important;
+      }
+    }
   </style>
 </head>
 <body>
-  <div class="dashboard-header">
-    <div class="header-content">
-      <div class="user-info">
-        <h1>💰 Meu Extrato Financeiro</h1>
-        <p id="userWelcome">Carregando...</p>
-      </div>
-      <button class="btn-logout" onclick="logout()">Sair</button>
-    </div>
+  <div class="header">
+    <h1>💰 Meu Extrato Financeiro</h1>
+    <p id="userInfo">Carregando informações...</p>
+    <button class="btn-sair" onclick="sair()">🚪 Sair</button>
   </div>
 
-  <div class="dashboard-container">
-    <div class="extrato-wrapper">
-      <div id="loadingState" class="loading-state">
-        <div class="spinner"></div>
-        <p style="color: #718096;">Carregando seu extrato financeiro...</p>
-      </div>
-
-      <div id="extratoContent" style="display: none;">
-        <!-- O extrato será renderizado aqui -->
-      </div>
+  <div class="container">
+    <div class="loading" id="loading">
+      <div class="spinner"></div>
+      <p>Carregando seu extrato...</p>
     </div>
+
+    <div id="errorContainer"></div>
+    <div id="fluxoFinanceiroContent"></div>
   </div>
 
   <script type="module">
-    import { FluxoFinanceiroCache } from '/js/fluxo-financeiro/fluxo-financeiro-cache.js';
-    import { FluxoFinanceiroCore } from '/js/fluxo-financeiro/fluxo-financeiro-core.js';
-    import { FluxoFinanceiroUI } from '/js/fluxo-financeiro/fluxo-financeiro-ui.js';
+    import { calcularEExibirExtrato } from './js/fluxo-financeiro.js';
 
-    let currentSession = null;
-
-    async function init() {
+    async function carregarDados() {
       try {
-        // Verificar sessão
-        const sessionRes = await fetch('/api/participante/session', {
+        const loading = document.getElementById('loading');
+        const errorContainer = document.getElementById('errorContainer');
+        
+        // Verificar autenticação
+        const authResponse = await fetch('/api/participante/auth/check', {
           credentials: 'include'
         });
 
-        if (!sessionRes.ok) {
+        if (!authResponse.ok) {
           window.location.href = '/participante-login.html';
           return;
         }
 
-        currentSession = await sessionRes.json();
+        const authData = await authResponse.json();
         
-        // Atualizar boas-vindas
-        document.getElementById('userWelcome').textContent = 
-          `Olá, ${currentSession.participante.nome_cartola || currentSession.participante.nome_time}!`;
+        if (!authData.authenticated) {
+          window.location.href = '/participante-login.html';
+          return;
+        }
 
-        // Carregar extrato
-        await carregarExtrato();
+        // Atualizar info do usuário
+        document.getElementById('userInfo').textContent = 
+          `Bem-vindo, ${authData.user.name || 'Participante'}`;
 
-      } catch (err) {
-        console.error('Erro ao inicializar:', err);
-        alert('Erro ao carregar dados. Redirecionando...');
-        window.location.href = '/participante-login.html';
+        // Pedir timeId (futuramente virá do backend)
+        const timeId = prompt('Digite o ID do seu time no Cartola FC:');
+        
+        if (!timeId) {
+          errorContainer.innerHTML = 
+            '<div class="error-message">❌ ID do time é obrigatório</div>';
+          loading.style.display = 'none';
+          return;
+        }
+
+        // Validar se o timeId é número
+        if (isNaN(timeId)) {
+          errorContainer.innerHTML = 
+            '<div class="error-message">❌ ID do time deve ser um número</div>';
+          loading.style.display = 'none';
+          return;
+        }
+
+        // Buscar liga ativa (primeira liga por enquanto)
+        const ligasResponse = await fetch('/api/ligas');
+        const ligas = await ligasResponse.json();
+        
+        if (!ligas || ligas.length === 0) {
+          errorContainer.innerHTML = 
+            '<div class="error-message">❌ Nenhuma liga encontrada</div>';
+          loading.style.display = 'none';
+          return;
+        }
+
+        const ligaId = ligas[0]._id;
+
+        // Carregar extrato financeiro
+        await calcularEExibirExtrato(timeId, ligaId);
+        
+        loading.style.display = 'none';
+
+      } catch (error) {
+        console.error('Erro ao carregar dados:', error);
+        document.getElementById('errorContainer').innerHTML = 
+          `<div class="error-message">❌ Erro: ${error.message}</div>`;
+        document.getElementById('loading').style.display = 'none';
       }
     }
 
-    async function carregarExtrato() {
-      const cache = new FluxoFinanceiroCache(currentSession.ligaId);
-      await cache.inicializar();
-
-      const core = new FluxoFinanceiroCore(cache);
-      const ui = new FluxoFinanceiroUI(core, cache, currentSession.ligaId);
-
-      // Buscar rodada atual
-      const statusRes = await fetch('/api/cartola/status');
-      const status = await statusRes.json();
-      const rodadaAtual = status.rodada_atual;
-
-      // Calcular extrato
-      const extrato = await core.calcularExtratoFinanceiro(
-        currentSession.timeId,
-        rodadaAtual
-      );
-
-      // Renderizar na UI
-      const container = document.getElementById('extratoContent');
-      container.innerHTML = await ui.renderizarExtratoCompleto(
-        currentSession.timeId,
-        currentSession.participante,
-        extrato,
-        rodadaAtual
-      );
-
-      // Ocultar loading
-      document.getElementById('loadingState').style.display = 'none';
-      container.style.display = 'block';
-    }
-
-    window.logout = async function() {
+    async function sair() {
       try {
-        await fetch('/api/participante/logout', {
+        await fetch('/api/participante/auth/logout', {
           method: 'POST',
           credentials: 'include'
         });
-      } catch (err) {
-        console.error('Erro ao fazer logout:', err);
+      } catch (error) {
+        console.error('Erro ao fazer logout:', error);
       }
       window.location.href = '/participante-login.html';
-    };
+    }
 
-    // Inicializar ao carregar
-    init();
+    window.sair = sair;
+    window.addEventListener('load', carregarDados);
   </script>
 </body>
 </html>

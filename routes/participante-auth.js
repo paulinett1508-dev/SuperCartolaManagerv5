@@ -3,6 +3,19 @@ import session from "express-session";
 
 const router = express.Router();
 
+// Middleware de autenticação Replit
+function verificarAutenticacao(req, res, next) {
+  if (req.headers["x-replit-user-id"]) {
+    req.user = {
+      id: req.headers["x-replit-user-id"],
+      name: req.headers["x-replit-user-name"],
+      roles: req.headers["x-replit-user-roles"],
+    };
+    return next();
+  }
+  res.status(401).json({ erro: "Não autenticado" });
+}
+
 // Login do participante (valida timeId + senha)
 router.post("/login", async (req, res) => {
     try {
@@ -76,12 +89,30 @@ router.get("/session", (req, res) => {
     res.json(req.session.participante);
 });
 
-// Logout
+// Rota para verificar status de autenticação Replit
+router.get("/check", (req, res) => {
+  if (req.headers["x-replit-user-id"]) {
+    res.json({
+      authenticated: true,
+      user: {
+        id: req.headers["x-replit-user-id"],
+        name: req.headers["x-replit-user-name"],
+        roles: req.headers["x-replit-user-roles"],
+      },
+    });
+  } else {
+    res.json({ authenticated: false });
+  }
+});
+
+// Rota para logout (ajustada para o novo padrão)
 router.post("/logout", (req, res) => {
-    if (req.session) {
-        req.session.destroy();
-    }
-    res.json({ success: true });
+  // Se houver sessão de participante, a destruímos
+  if (req.session && req.session.participante) {
+    req.session.destroy();
+  }
+  // Respondemos com sucesso, indicando que o logout foi processado
+  res.json({ success: true, message: "Logout realizado com sucesso" });
 });
 
 export default router;
