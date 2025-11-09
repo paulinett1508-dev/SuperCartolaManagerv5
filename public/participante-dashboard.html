@@ -185,43 +185,29 @@
           return;
         }
 
+        // Buscar dados da sessão do participante
+        const sessionResponse = await fetch('/api/participante/auth/session', {
+          credentials: 'include'
+        });
+
+        if (!sessionResponse.ok) {
+          const sessionData = await sessionResponse.json();
+          if (sessionData.needsLogin) {
+            window.location.href = '/participante-login.html';
+            return;
+          }
+          throw new Error('Erro ao carregar sessão');
+        }
+
+        const sessionData = await sessionResponse.json();
+        const { participante } = sessionData;
+
         // Atualizar info do usuário
         document.getElementById('userInfo').textContent = 
-          `Bem-vindo, ${authData.user.name || 'Participante'}`;
+          `${participante.participante.nome_cartola} - ${participante.participante.nome_time}`;
 
-        // Pedir timeId (futuramente virá do backend)
-        const timeId = prompt('Digite o ID do seu time no Cartola FC:');
-        
-        if (!timeId) {
-          errorContainer.innerHTML = 
-            '<div class="error-message">❌ ID do time é obrigatório</div>';
-          loading.style.display = 'none';
-          return;
-        }
-
-        // Validar se o timeId é número
-        if (isNaN(timeId)) {
-          errorContainer.innerHTML = 
-            '<div class="error-message">❌ ID do time deve ser um número</div>';
-          loading.style.display = 'none';
-          return;
-        }
-
-        // Buscar liga ativa (primeira liga por enquanto)
-        const ligasResponse = await fetch('/api/ligas');
-        const ligas = await ligasResponse.json();
-        
-        if (!ligas || ligas.length === 0) {
-          errorContainer.innerHTML = 
-            '<div class="error-message">❌ Nenhuma liga encontrada</div>';
-          loading.style.display = 'none';
-          return;
-        }
-
-        const ligaId = ligas[0]._id;
-
-        // Carregar extrato financeiro
-        await calcularEExibirExtrato(timeId, ligaId);
+        // Carregar extrato financeiro usando dados da sessão
+        await calcularEExibirExtrato(participante.timeId, participante.ligaId);
         
         loading.style.display = 'none';
 

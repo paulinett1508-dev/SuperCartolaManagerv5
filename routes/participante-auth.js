@@ -16,6 +16,17 @@ function verificarAutenticacao(req, res, next) {
   res.status(401).json({ erro: "Não autenticado" });
 }
 
+// Middleware para verificar sessão de participante ativo
+function verificarSessaoParticipante(req, res, next) {
+  if (!req.session || !req.session.participante) {
+    return res.status(401).json({ 
+      error: "Sessão expirada ou inválida",
+      needsLogin: true 
+    });
+  }
+  next();
+}
+
 // Login do participante (valida timeId + senha)
 router.post("/login", async (req, res) => {
     try {
@@ -80,13 +91,61 @@ router.post("/login", async (req, res) => {
     }
 });
 
-// Verificar sessão ativa
+// Verificar sessão ativa e retornar dados completos
 router.get("/session", (req, res) => {
     if (!req.session || !req.session.participante) {
-        return res.status(401).json({ error: "Sessão não encontrada" });
+        return res.status(401).json({ 
+            error: "Sessão não encontrada",
+            needsLogin: true 
+        });
     }
 
-    res.json(req.session.participante);
+    res.json({
+        authenticated: true,
+        participante: req.session.participante
+    });
+});
+
+// Obter extrato financeiro do participante logado
+router.get("/extrato", verificarSessaoParticipante, async (req, res) => {
+    try {
+        const { timeId, ligaId } = req.session.participante;
+
+        // Buscar dados da liga
+        const { default: Liga } = await import("../models/Liga.js");
+        const liga = await Liga.findById(ligaId);
+
+        if (!liga) {
+            return res.status(404).json({ error: "Liga não encontrada" });
+        }
+
+        const participante = liga.participantes.find(
+            p => String(p.time_id) === String(timeId)
+        );
+
+        if (!participante) {
+            return res.status(404).json({ error: "Participante não encontrado" });
+        }
+
+        res.json({
+            success: true,
+            participante: {
+                time_id: participante.time_id,
+                nome_cartola: participante.nome_cartola,
+                nome_time: participante.nome_time,
+                foto_perfil: participante.foto_perfil,
+                foto_time: participante.foto_time
+            },
+            liga: {
+                _id: liga._id,
+                nome: liga.nome,
+                descricao: liga.descricao
+            }
+        });
+    } catch (error) {
+        console.error("[PARTICIPANTE-AUTH] Erro ao buscar extrato:", error);
+        res.status(500).json({ error: "Erro ao buscar dados" });
+    }
 });
 
 // Rota para verificar status de autenticação Replit
@@ -115,4 +174,5 @@ router.post("/logout", (req, res) => {
   res.json({ success: true, message: "Logout realizado com sucesso" });
 });
 
+export { verificarSessaoParticipante };
 export default router;

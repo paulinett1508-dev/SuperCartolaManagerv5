@@ -155,22 +155,44 @@
 </head>
 <body>
   <div class="login-container">
-    <div class="logo">👤</div>
-    <h1>Acesso de Participante</h1>
-    <p>Faça login para visualizar seu extrato financeiro</p>
+    <div class="logo">⚽</div>
+    <h1>App Participante</h1>
+    <p>Acesse seu extrato financeiro</p>
 
-    <button class="btn-replit" onclick="iniciarLogin()">
-      🔐 Entrar com Replit
-    </button>
+    <form id="loginForm" onsubmit="fazerLogin(event)">
+      <input 
+        type="number" 
+        id="timeId" 
+        placeholder="ID do seu time no Cartola" 
+        required
+        autocomplete="off"
+        style="width: 100%; padding: 16px; margin-bottom: 15px; border: 2px solid #e0e0e0; border-radius: 10px; font-size: 16px;"
+      >
+      
+      <input 
+        type="password" 
+        id="senha" 
+        placeholder="Senha de acesso" 
+        required
+        autocomplete="off"
+        style="width: 100%; padding: 16px; margin-bottom: 20px; border: 2px solid #e0e0e0; border-radius: 10px; font-size: 16px;"
+      >
+
+      <button type="submit" class="btn-replit">
+        🔐 Entrar no App
+      </button>
+    </form>
 
     <div class="loading" id="loading">
-      Aguarde, autenticando...
+      Aguarde, validando...
     </div>
 
+    <div id="errorMessage" style="display: none; background: #ffebee; color: #c62828; padding: 15px; border-radius: 8px; margin-top: 15px; border-left: 4px solid #c62828; text-align: left; font-size: 14px;"></div>
+
     <div class="info-box">
-      <h3>📱 Acesso Mobile</h3>
+      <h3>📱 App Mobile</h3>
       <ul>
-        <li>Funciona em celulares e tablets</li>
+        <li>Sessão salva automaticamente</li>
         <li>Interface otimizada para toque</li>
         <li>Dados seguros e criptografados</li>
       </ul>
@@ -178,20 +200,47 @@
   </div>
 
   <script>
-    function iniciarLogin() {
-      document.getElementById('loading').classList.add('show');
+    async function fazerLogin(event) {
+      event.preventDefault();
+      
+      const loading = document.getElementById('loading');
+      const errorMessage = document.getElementById('errorMessage');
+      const timeId = document.getElementById('timeId').value;
+      const senha = document.getElementById('senha').value;
 
-      // Construir URL de autenticação Replit
-      const authUrl = `https://replit.com/auth_with_repl_site?domain=${window.location.hostname}`;
+      loading.classList.add('show');
+      errorMessage.style.display = 'none';
 
-      // Redirecionar para autenticação
-      window.location.href = authUrl;
+      try {
+        const response = await fetch('/api/participante/auth/login', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          credentials: 'include',
+          body: JSON.stringify({ timeId, senha })
+        });
+
+        const data = await response.json();
+
+        if (!response.ok) {
+          throw new Error(data.error || 'Erro ao fazer login');
+        }
+
+        // Login bem-sucedido, redirecionar
+        window.location.href = '/participante-dashboard.html';
+
+      } catch (error) {
+        errorMessage.textContent = error.message;
+        errorMessage.style.display = 'block';
+        loading.classList.remove('show');
+      }
     }
 
     // Verificar se já está autenticado ao carregar a página
     window.addEventListener('load', async () => {
       try {
-        const response = await fetch('/api/participante/auth/check', {
+        const response = await fetch('/api/participante/auth/session', {
           credentials: 'include'
         });
 
