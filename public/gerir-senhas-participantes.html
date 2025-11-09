@@ -400,7 +400,7 @@
       display: block;
     }
 
-    .participante-card.hidden-by-search {
+    tr.hidden-by-search {
       display: none;
     }
 
@@ -862,7 +862,7 @@
       if (!termo) {
         // Mostrar todos
         rows.forEach(row => {
-          row.classList.remove('hidden-by-search');
+          row.style.display = '';
         });
         resultadosDiv.classList.remove('visible');
         return;
@@ -881,10 +881,10 @@
           timeId.includes(termo);
 
         if (matches) {
-          row.classList.remove('hidden-by-search');
+          row.style.display = '';
           countVisible++;
         } else {
-          row.classList.add('hidden-by-search');
+          row.style.display = 'none';
         }
       });
 
@@ -906,7 +906,7 @@
       
       const rows = document.querySelectorAll('#participantesTableBody tr');
       rows.forEach(row => {
-        row.classList.remove('hidden-by-search');
+        row.style.display = '';
       });
 
       const resultadosDiv = document.getElementById('resultadosBusca');
