@@ -453,6 +453,50 @@
       }
     }
 
+    // Atualizar estatísticas do painel superior
+    async function atualizarEstatisticas(ligaId) {
+            try {
+                const response = await fetch(`/api/ligas/${ligaId}`);
+                if (!response.ok) {
+                    throw new Error('Erro ao buscar liga');
+                }
+
+                const liga = await response.json();
+                console.log('Liga para estatísticas:', liga);
+
+                const totalParticipantes = liga.times?.length || 0;
+                let comSenha = 0;
+                let semSenha = 0;
+
+                // Verificar senhas no array participantes
+                if (liga.participantes && Array.isArray(liga.participantes)) {
+                    console.log('Verificando participantes:', liga.participantes);
+                    liga.participantes.forEach(p => {
+                        console.log(`Participante ${p.time_id}: senha="${p.senha_acesso}"`);
+                        if (p.senha_acesso && p.senha_acesso.trim() !== '') {
+                            comSenha++;
+                        } else {
+                            semSenha++;
+                        }
+                    });
+                }
+
+                // Se não há participantes no array, todos estão sem senha
+                if (!liga.participantes || liga.participantes.length === 0) {
+                    semSenha = totalParticipantes;
+                }
+
+                console.log(`Estatísticas: Total=${totalParticipantes}, ComSenha=${comSenha}, SemSenha=${semSenha}`);
+
+                document.getElementById('totalParticipantes').textContent = totalParticipantes;
+                document.getElementById('comSenha').textContent = comSenha;
+                document.getElementById('semSenha').textContent = semSenha;
+
+            } catch (error) {
+                console.error('Erro ao atualizar estatísticas:', error);
+            }
+        }
+
     // Salvar senha
     async function salvarSenha(timeId, ligaId) {
       const senhaInput = document.getElementById(`senha-${timeId}`);
@@ -487,36 +531,8 @@
 
         alert('✅ Senha salva com sucesso!');
 
-        // Atualizar stats sem recarregar toda a tabela
-        const ligaIdAtual = document.getElementById('ligaSelect').value;
-        if (ligaIdAtual) {
-          const response = await fetch(`/api/ligas/${ligaIdAtual}`);
-          const liga = await response.json();
-
-          if (liga.times && liga.times.length > 0) {
-            const participantesData = await Promise.all(
-              liga.times.map(async (tid) => {
-                try {
-                  const res = await fetch(`/api/times/${tid}`);
-                  if (!res.ok) return null;
-                  const data = await res.json();
-                  return {
-                    senha_acesso: data.senha_acesso || ''
-                  };
-                } catch {
-                  return null;
-                }
-              })
-            );
-
-            const participantes = participantesData.filter(p => p !== null);
-            const comSenha = participantes.filter(p => p.senha_acesso).length;
-            const semSenha = participantes.length - comSenha;
-
-            document.getElementById('comSenha').textContent = comSenha;
-            document.getElementById('semSenha').textContent = semSenha;
-          }
-        }
+        // Atualizar estatísticas do painel
+        await atualizarEstatisticas(ligaId);
 
       } catch (error) {
         console.error('Erro ao salvar senha:', error);
