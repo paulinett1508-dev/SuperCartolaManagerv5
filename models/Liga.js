@@ -20,6 +20,7 @@ const ligaSchema = new mongoose.Schema({
     nome: { type: String, required: true },
     descricao: { type: String, default: "" },
     tipo: { type: String, enum: ["publica", "privada"], default: "publica" },
+    times: [{ type: Number }], // Array de IDs dos times da liga
     participantes: [participanteSchema],
     configuracoes: {
         pontos_corridos: { type: Object, default: {} },
