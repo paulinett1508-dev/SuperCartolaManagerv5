@@ -63,12 +63,19 @@ router.put("/:ligaId/participante/:timeId/senha", async (req, res) => {
 
         // Verificar se o time está na lista de times da liga
         const timeIdNum = Number(timeId);
+        console.log(`[LIGAS] Verificando time ${timeId} (convertido: ${timeIdNum})`);
+        console.log(`[LIGAS] Times na liga:`, liga.times);
+        console.log(`[LIGAS] Includes result:`, liga.times?.includes(timeIdNum));
+        
         if (!liga.times || !liga.times.includes(timeIdNum)) {
-            console.log(`[LIGAS] Time ${timeId} não está na liga ${ligaId}`);
+            console.log(`[LIGAS] ❌ Time ${timeId} (${timeIdNum}) não está na liga ${ligaId}`);
+            console.log(`[LIGAS] Lista de times:`, liga.times);
             return res.status(404).json({ 
                 erro: "Time não encontrado nesta liga" 
             });
         }
+        
+        console.log(`[LIGAS] ✅ Time ${timeIdNum} encontrado na liga`);
 
         // Inicializar array de participantes se não existir
         if (!liga.participantes) {
