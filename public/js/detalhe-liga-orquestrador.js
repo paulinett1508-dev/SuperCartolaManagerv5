@@ -460,13 +460,13 @@ class DetalheLigaOrquestrador {
                 <div class="ligas-empty">
                     Erro ao carregar<br>
                     <button onclick="window.orquestrador?.carregarLigasSidebar()" style="
-                        margin-top: 8px; 
-                        padding: 6px 10px; 
-                        background: #ff4500; 
-                        color: white; 
-                        border: none; 
-                        border-radius: 4px; 
-                        font-size: 10px; 
+                        margin-top: 8px;
+                        padding: 6px 10px;
+                        background: #ff4500;
+                        color: white;
+                        border: none;
+                        border-radius: 4px;
+                        font-size: 10px;
                         cursor: pointer;
                         font-weight: 600;
                     ">Tentar Novamente</button>
@@ -510,16 +510,14 @@ class DetalheLigaOrquestrador {
 
     async loadModules() {
         try {
+            // Módulos essenciais carregados inicialmente
             this.modules.ranking = await import("./ranking.js");
-            // Importar e configurar módulos dinamicamente
-            // Rodadas com função de carregamento
-            const rodadasModule = await import("./rodadas.js");
-            window.carregarRodadas = rodadasModule.carregarRodadas;
-            this.modules.mataMata = await import("./mata-mata.js");
-            this.modules.pontosCorridos = await import("./pontos-corridos.js");
+            this.modules.top10 = await import("./top10.js");
 
-            // 🥅 LUVA DE OURO - Carregar módulos na ordem correta
-            console.log("📦 Carregando módulos Luva de Ouro...");
+            // Configuração para carregar outros módulos sob demanda
+            setupLazyModuleLoading();
+
+            // Carregar módulos específicos para Luva de Ouro (se necessário no layout inicial)
             await import("./luva-de-ouro/luva-de-ouro-config.js");
             await import("./luva-de-ouro/luva-de-ouro-core.js");
             await import("./luva-de-ouro/luva-de-ouro-ui.js");
@@ -527,18 +525,9 @@ class DetalheLigaOrquestrador {
             await import("./luva-de-ouro/luva-de-ouro-cache.js");
             await import("./luva-de-ouro/luva-de-ouro-orquestrador.js");
             this.modules.luvaDeOuro = await import("./luva-de-ouro.js");
-            console.log("✅ Módulos Luva de Ouro carregados");
 
-            this.modules.artilheiroCampeao = await import(
-                "./artilheiro-campeao.js"
-            );
-            this.modules.melhorMes = await import("./melhor-mes.js");
-            this.modules.top10 = await import("./top10.js");
-            this.modules.fluxoFinanceiro = await import(
-                "./fluxo-financeiro.js"
-            );
         } catch (error) {
-            console.error("Erro ao carregar módulos:", error);
+            console.error("Erro ao carregar módulos iniciais:", error);
         }
     }
 
@@ -627,6 +616,154 @@ class DetalheLigaOrquestrador {
         window.orquestrador = this;
     }
 }
+
+// Funções auxiliares para lazy loading de módulos
+async function carregarModuloRanking() {
+    if (!window.orquestrador.modules.ranking) {
+        window.orquestrador.modules.ranking = await import("./ranking.js");
+    }
+    return window.orquestrador.modules.ranking;
+}
+
+async function carregarModuloTop10() {
+    if (!window.orquestrador.modules.top10) {
+        window.orquestrador.modules.top10 = await import("./top10.js");
+    }
+    return window.orquestrador.modules.top10;
+}
+
+async function carregarModuloRodadas() {
+    if (!window.orquestrador.modules.rodadas) {
+        window.orquestrador.modules.rodadas = await import("./rodadas.js");
+    }
+    return window.orquestrador.modules.rodadas;
+}
+
+async function carregarModuloMataMata() {
+    if (!window.orquestrador.modules.mataMata) {
+        window.orquestrador.modules.mataMata = await import("./mata-mata.js");
+    }
+    return window.orquestrador.modules.mataMata;
+}
+
+async function carregarModuloPontosCorridos() {
+    if (!window.orquestrador.modules.pontosCorridos) {
+        window.orquestrador.modules.pontosCorridos = await import("./pontos-corridos.js");
+    }
+    return window.orquestrador.modules.pontosCorridos;
+}
+
+async function carregarModuloMelhorMes() {
+    if (!window.orquestrador.modules.melhorMes) {
+        window.orquestrador.modules.melhorMes = await import("./melhor-mes.js");
+    }
+    return window.orquestrador.modules.melhorMes;
+}
+
+async function carregarModuloArtilheiroCampeao() {
+    if (!window.orquestrador.modules.artilheiroCampeao) {
+        window.orquestrador.modules.artilheiroCampeao = await import("./artilheiro-campeao.js");
+    }
+    return window.orquestrador.modules.artilheiroCampeao;
+}
+
+async function carregarModuloLuvaDeOuro() {
+    if (!window.orquestrador.modules.luvaDeOuro) {
+        // Carregando dependências da Luva de Ouro antes do módulo principal
+        await import("./luva-de-ouro/luva-de-ouro-config.js");
+        await import("./luva-de-ouro/luva-de-ouro-core.js");
+        await import("./luva-de-ouro/luva-de-ouro-ui.js");
+        await import("./luva-de-ouro/luva-de-ouro-utils.js");
+        await import("./luva-de-ouro/luva-de-ouro-cache.js");
+        await import("./luva-de-ouro/luva-de-ouro-orquestrador.js");
+        window.orquestrador.modules.luvaDeOuro = await import("./luva-de-ouro.js");
+    }
+    return window.orquestrador.modules.luvaDeOuro;
+}
+
+async function carregarModuloFluxoFinanceiro() {
+    if (!window.orquestrador.modules.fluxoFinanceiro) {
+        window.orquestrador.modules.fluxoFinanceiro = await import("./fluxo-financeiro.js");
+    }
+    return window.orquestrador.modules.fluxoFinanceiro;
+}
+
+function setupLazyModuleLoading() {
+    const moduleLoaders = {
+        "rodadas": carregarModuloRodadas,
+        "mata-mata": carregarModuloMataMata,
+        "pontos-corridos": carregarModuloPontosCorridos,
+        "melhor-mes": carregarModuloMelhorMes,
+        "artilheiro-campeao": carregarModuloArtilheiroCampeao,
+        "luva-de-ouro": carregarModuloLuvaDeOuro,
+        "fluxo-financeiro": carregarModuloFluxoFinanceiro,
+        "participantes": async () => {
+            if (!window.orquestrador.modules.participantes) {
+                await import("./participantes.js");
+                window.orquestrador.modules.participantes = window.carregarParticipantesComBrasoes || {}; // Assumindo que a função é exposta globalmente ou em window
+            }
+            return window.orquestrador.modules.participantes;
+        }
+    };
+
+    document.querySelectorAll('.module-card[data-module]').forEach(card => {
+        const moduleName = card.dataset.module;
+        if (moduleName && moduleLoaders[moduleName]) {
+            card.addEventListener('click', async () => {
+                if (window.orquestrador.processingModule) return;
+                window.orquestrador.processingModule = true;
+
+                try {
+                    const moduleLoader = moduleLoaders[moduleName];
+                    const loadedModule = await moduleLoader();
+
+                    // Executar a lógica específica do módulo após o carregamento
+                    // Exemplo: Se o módulo expõe uma função de inicialização
+                    if (loadedModule && loadedModule[getModuleInitFunctionName(moduleName)]) {
+                        await loadedModule[getModuleInitFunctionName(moduleName)]();
+                    } else if (typeof window[getModuleFunctionName(moduleName)] === 'function') {
+                        await window[getModuleFunctionName(moduleName)]();
+                    }
+                } catch (error) {
+                    console.error(`Erro ao carregar ou inicializar módulo ${moduleName}:`, error);
+                    // Mostrar mensagem de erro na tela
+                    document.getElementById("dynamic-content-area").innerHTML =
+                        `<div class="empty-state">Erro ao carregar módulo ${moduleName}: ${error.message}</div>`;
+                } finally {
+                    window.orquestrador.processingModule = false;
+                }
+            }, { once: true }); // Executar o listener apenas uma vez
+        }
+    });
+}
+
+// Helper para obter o nome da função de inicialização do módulo
+function getModuleInitFunctionName(moduleName) {
+    switch (moduleName) {
+        case "ranking-geral": return "carregarRankingGeral";
+        case "rodadas": return "carregarRodadas";
+        case "mata-mata": return "carregarMataMata";
+        case "pontos-corridos": return "carregarPontosCorridos";
+        case "luva-de-ouro": return "inicializarLuvaDeOuro";
+        case "artilheiro-campeao": return "inicializarArtilheiroCampeao";
+        case "melhor-mes": return "inicializarMelhorMes";
+        case "top10": return "inicializarTop10";
+        case "fluxo-financeiro": return "inicializarFluxoFinanceiro";
+        case "participantes": return "carregarParticipantesComBrasoes";
+        default: return `inicializar${moduleName.charAt(0).toUpperCase() + moduleName.slice(1)}`;
+    }
+}
+
+// Helper para obter o nome da função global (caso o módulo não esteja diretamente anexado ao orquestrador)
+function getModuleFunctionName(moduleName) {
+    switch (moduleName) {
+        case "ranking-geral": return "carregarRankingGeral";
+        case "rodadas": return "carregarRodadas";
+        case "pontos-corridos": return "carregarPontosCorridos";
+        default: return null; // Retorna null se não houver uma função global conhecida
+    }
+}
+
 
 // INICIALIZAÇÃO
 document.addEventListener("DOMContentLoaded", () => {

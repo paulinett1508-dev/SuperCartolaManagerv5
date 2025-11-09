@@ -184,103 +184,76 @@ function controlarBotaoVoltar() {
 }
 
 /**
- * Interceptar navegação para controlar botão voltar
+ * Interceptar navegação - OTIMIZADO
  */
 function interceptarNavegacao() {
-    // Observar mudanças nas telas
-    const observer = new MutationObserver((mutations) => {
-        mutations.forEach((mutation) => {
-            if (
-                mutation.type === "attributes" &&
-                mutation.attributeName === "style"
-            ) {
-                const target = mutation.target;
-
-                // Se tela principal ficou visível, garantir que não tenha botão voltar
-                if (
-                    target.id === "main-screen" &&
-                    target.style.display !== "none"
-                ) {
-                    const backButton = target.querySelector(".back-button");
-                    if (backButton) {
-                        backButton.remove();
-                    }
-                }
-
-                // Se tela secundária ficou ativa, garantir que tenha botão voltar
-                if (
-                    target.id === "secondary-screen" &&
-                    target.classList.contains("active")
-                ) {
-                    let backButton = target.querySelector(".back-button");
-                    if (!backButton) {
-                        controlarBotaoVoltar();
-                    }
-                }
-            }
-        });
-    });
-
-    // Observar ambas as telas
+    // Usar event delegation ao invés de observers para melhor performance
     const mainScreen = document.getElementById("main-screen");
     const secondaryScreen = document.getElementById("secondary-screen");
 
-    if (mainScreen) {
-        observer.observe(mainScreen, { attributes: true });
-    }
+    if (!mainScreen || !secondaryScreen) return;
 
-    if (secondaryScreen) {
-        observer.observe(secondaryScreen, {
-            attributes: true,
-            attributeFilter: ["class"],
-        });
-    }
-}
+    // Observer simplificado apenas para mudanças de classe
+    const observer = new MutationObserver((mutations) => {
+        for (const mutation of mutations) {
+            if (mutation.type === "attributes" && mutation.attributeName === "class") {
+                const target = mutation.target;
+                
+                if (target.id === "secondary-screen" && target.classList.contains("active")) {
+                    requestAnimationFrame(() => {
+                        if (!target.querySelector(".back-button")) {
+                            controlarBotaoVoltar();
+                        }
+                    });
+                }
+            }
+        }
+    });
 
-/**
- * Melhorar experiência visual dos cards
- */
-function melhorarExperienciaCards() {
-    // Adicionar efeito de loading nos cards
-    const cards = document.querySelectorAll(".module-card:not(.disabled)");
-
-    cards.forEach((card, index) => {
-        // Animação de entrada escalonada
-        card.style.animationDelay = `${index * 100}ms`;
-        card.style.animation = "cardEntrance 0.6s ease forwards";
-
-        // Efeito de hover melhorado
-        card.addEventListener("mouseenter", () => {
-            card.style.transform = "translateY(-8px) scale(1.02)";
-            card.style.boxShadow = "0 20px 40px rgba(255, 69, 0, 0.3)";
-        });
-
-        card.addEventListener("mouseleave", () => {
-            card.style.transform = "translateY(0) scale(1)";
-            card.style.boxShadow = "0 4px 20px rgba(0, 0, 0, 0.3)";
-        });
+    // Observar apenas o necessário
+    observer.observe(secondaryScreen, {
+        attributes: true,
+        attributeFilter: ["class"],
     });
 }
 
 /**
- * Adicionar animações CSS dinamicamente
+ * Melhorar experiência visual dos cards - OTIMIZADO
+ */
+function melhorarExperienciaCards() {
+    const cards = document.querySelectorAll(".module-card:not(.disabled)");
+    
+    // Usar CSS classes ao invés de inline styles para melhor performance
+    cards.forEach((card, index) => {
+        card.classList.add('card-animated');
+        card.style.setProperty('--card-delay', `${index * 50}ms`);
+    });
+}
+
+/**
+ * Adicionar animações CSS otimizadas
  */
 function adicionarAnimacoes() {
+    // Verificar se já existe para evitar duplicação
+    if (document.getElementById('cards-animations')) return;
+    
     const style = document.createElement("style");
+    style.id = 'cards-animations';
     style.textContent = `
         @keyframes cardEntrance {
             from {
                 opacity: 0;
-                transform: translateY(30px) scale(0.9);
+                transform: translateY(15px);
             }
             to {
                 opacity: 1;
-                transform: translateY(0) scale(1);
+                transform: translateY(0);
             }
         }
 
-        .module-card {
-            opacity: 0;
+        .card-animated {
+            animation: cardEntrance 0.3s ease-out forwards;
+            animation-delay: var(--card-delay, 0ms);
         }
     `;
     document.head.appendChild(style);

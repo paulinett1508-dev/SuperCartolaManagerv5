@@ -1,0 +1,13 @@
+
+{
+  "timestamp": "2025-01-01T00:00:00.000Z",
+  "version": "pre-performance-optimization",
+  "critical_files": [
+    "public/js/cards-condicionais.js",
+    "public/detalhe-liga.css",
+    "public/css/base.css",
+    "public/js/detalhe-liga-orquestrador.js"
+  ],
+  "backup_reason": "Performance optimization - reducing card effects",
+  "restore_instructions": "Use git to restore these files if needed"
+}

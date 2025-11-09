@@ -1,0 +1,48 @@
+
+/* ⚡ OTIMIZAÇÕES DE PERFORMANCE */
+
+/* Reduzir repaint/reflow em animações */
+* {
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+}
+
+/* Usar GPU para animações */
+.module-card,
+.card-animated,
+.fade-in {
+    will-change: auto;
+    transform: translateZ(0);
+    backface-visibility: hidden;
+}
+
+/* Otimizar hover states */
+.module-card {
+    transition: transform 0.2s cubic-bezier(0.4, 0, 0.2, 1),
+                box-shadow 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.module-card:hover {
+    transform: translateY(-4px) translateZ(0);
+}
+
+/* Reduzir transições em dispositivos lentos */
+@media (prefers-reduced-motion: reduce) {
+    *,
+    *::before,
+    *::after {
+        animation-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: 0.01ms !important;
+    }
+}
+
+/* Otimizar renderização de listas */
+.ranking-table tbody {
+    contain: layout style paint;
+}
+
+/* Lazy loading para imagens */
+img[loading="lazy"] {
+    content-visibility: auto;
+}
