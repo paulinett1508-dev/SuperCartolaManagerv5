@@ -47,6 +47,8 @@ router.put("/:ligaId/participante/:timeId/senha", async (req, res) => {
         const { ligaId, timeId } = req.params;
         const { senha } = req.body;
 
+        console.log(`[LIGAS] Salvando senha para time ${timeId} na liga ${ligaId}`);
+
         if (!senha || senha.trim().length < 4) {
             return res.status(400).json({ 
                 erro: "Senha deve ter no mínimo 4 caracteres" 
@@ -55,20 +57,47 @@ router.put("/:ligaId/participante/:timeId/senha", async (req, res) => {
 
         const liga = await Liga.findById(ligaId);
         if (!liga) {
+            console.log(`[LIGAS] Liga ${ligaId} não encontrada`);
             return res.status(404).json({ erro: "Liga não encontrada" });
         }
 
-        const participante = liga.participantes.find(
-            p => String(p.time_id) === String(timeId)
-        );
-
-        if (!participante) {
+        // Verificar se o time está na lista de times da liga
+        const timeIdNum = Number(timeId);
+        if (!liga.times || !liga.times.includes(timeIdNum)) {
+            console.log(`[LIGAS] Time ${timeId} não está na liga ${ligaId}`);
             return res.status(404).json({ 
-                erro: "Participante não encontrado nesta liga" 
+                erro: "Time não encontrado nesta liga" 
             });
         }
 
-        participante.senha_acesso = senha.trim();
+        // Inicializar array de participantes se não existir
+        if (!liga.participantes) {
+            liga.participantes = [];
+        }
+
+        // Buscar ou criar participante
+        let participante = liga.participantes.find(
+            p => Number(p.time_id) === timeIdNum
+        );
+
+        if (!participante) {
+            // Buscar dados do time para criar participante
+            const Time = (await import("../models/Time.js")).default;
+            const timeData = await Time.findOne({ time_id: timeIdNum });
+            
+            participante = {
+                time_id: timeIdNum,
+                nome_cartola: timeData?.nome_cartoleiro || "N/D",
+                nome_time: timeData?.nome_time || "N/D",
+                senha_acesso: senha.trim()
+            };
+            liga.participantes.push(participante);
+            console.log(`[LIGAS] Criado novo participante para time ${timeId}`);
+        } else {
+            participante.senha_acesso = senha.trim();
+            console.log(`[LIGAS] Atualizada senha do participante ${timeId}`);
+        }
+
         await liga.save();
 
         res.json({ 
@@ -82,7 +111,7 @@ router.put("/:ligaId/participante/:timeId/senha", async (req, res) => {
 
     } catch (error) {
         console.error("[LIGAS] Erro ao salvar senha:", error);
-        res.status(500).json({ erro: "Erro ao salvar senha" });
+        res.status(500).json({ erro: "Erro ao salvar senha: " + error.message });
     }
 });
 
