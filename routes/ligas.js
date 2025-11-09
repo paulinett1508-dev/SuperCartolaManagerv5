@@ -95,9 +95,10 @@ router.put("/:ligaId/participante/:timeId/senha", async (req, res) => {
             p => Number(p.time_id) === timeIdNum
         );
 
+        const Time = (await import("../models/Time.js")).default;
+
         if (!participante) {
             // Buscar dados do time para criar participante
-            const Time = (await import("../models/Time.js")).default;
             const timeData = await Time.findOne({ time_id: timeIdNum });
             
             participante = {
@@ -112,6 +113,14 @@ router.put("/:ligaId/participante/:timeId/senha", async (req, res) => {
             participante.senha_acesso = senha.trim();
             console.log(`[LIGAS] Atualizada senha do participante ${timeId}`);
         }
+
+        // ✅ SALVAR TAMBÉM NA COLEÇÃO TIMES
+        await Time.findOneAndUpdate(
+            { time_id: timeIdNum },
+            { senha_acesso: senha.trim() },
+            { new: true }
+        );
+        console.log(`[LIGAS] ✅ Senha sincronizada na coleção Times`);
 
         await liga.save();
 
