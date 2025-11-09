@@ -7,107 +7,175 @@
   <title>Gerir Senhas - Participantes</title>
   <link rel="stylesheet" href="/css/base.css">
   <style>
-    .container {
-      max-width: 1200px;
-      margin: 40px auto;
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      background: #1a1a1a;
+      color: #e0e0e0;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
       padding: 20px;
     }
 
-    .header {
-      background: linear-gradient(135deg, #2a2a2a 0%, #1e1e1e 100%);
-      padding: 30px;
-      border-radius: 15px;
-      margin-bottom: 30px;
-      border: 1px solid rgba(255, 69, 0, 0.3);
+    .container {
+      max-width: 1400px;
+      margin: 0 auto;
     }
 
-    .header h1 {
+    /* Header */
+    .page-header {
+      background: #2a2a2a;
+      border-left: 4px solid #ff4500;
+      padding: 20px 24px;
+      margin-bottom: 24px;
+      border-radius: 4px;
+    }
+
+    .page-header h1 {
+      font-size: 20px;
+      font-weight: 600;
       color: #ffffff;
-      margin-bottom: 10px;
+      margin-bottom: 4px;
     }
 
-    .header p {
-      color: #a0a0a0;
+    .page-header p {
+      font-size: 13px;
+      color: #888;
     }
 
+    /* Liga Selector */
     .liga-selector {
-      margin-bottom: 30px;
+      margin-bottom: 24px;
+    }
+
+    .liga-selector label {
+      display: block;
+      font-size: 12px;
+      font-weight: 500;
+      color: #aaa;
+      margin-bottom: 6px;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
     }
 
     .liga-selector select {
       width: 100%;
-      padding: 15px;
-      font-size: 16px;
-      border: 2px solid rgba(255, 69, 0, 0.3);
-      border-radius: 10px;
+      max-width: 400px;
+      padding: 10px 12px;
+      font-size: 14px;
+      border: 1px solid #3a3a3a;
+      border-radius: 4px;
       background: #2a2a2a;
-      color: #ffffff;
+      color: #fff;
+      cursor: pointer;
+      transition: border-color 0.2s;
     }
 
-    .participantes-grid {
-      display: grid;
-      gap: 20px;
+    .liga-selector select:hover,
+    .liga-selector select:focus {
+      border-color: #ff4500;
+      outline: none;
     }
 
-    .participante-row {
+    /* Table */
+    .participantes-table {
       background: #2a2a2a;
-      padding: 20px;
-      border-radius: 12px;
-      border: 1px solid rgba(255, 69, 0, 0.2);
-      display: grid;
-      grid-template-columns: 1fr 1fr 200px 150px;
-      gap: 15px;
-      align-items: center;
+      border-radius: 4px;
+      overflow: hidden;
     }
 
-    .participante-info {
-      display: flex;
-      flex-direction: column;
+    table {
+      width: 100%;
+      border-collapse: collapse;
+    }
+
+    thead {
+      background: #333;
+      border-bottom: 2px solid #ff4500;
+    }
+
+    thead th {
+      padding: 12px 16px;
+      text-align: left;
+      font-size: 11px;
+      font-weight: 600;
+      color: #aaa;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+
+    tbody tr {
+      border-bottom: 1px solid #333;
+      transition: background-color 0.15s;
+    }
+
+    tbody tr:hover {
+      background: rgba(255, 69, 0, 0.05);
+    }
+
+    tbody td {
+      padding: 14px 16px;
+      font-size: 13px;
+      color: #e0e0e0;
     }
 
     .participante-nome {
-      color: #ffffff;
-      font-weight: 600;
-      margin-bottom: 5px;
+      font-weight: 500;
+      color: #fff;
     }
 
     .participante-time {
-      color: #a0a0a0;
-      font-size: 14px;
+      color: #888;
+      font-size: 12px;
+      margin-top: 2px;
     }
 
     .time-id {
-      background: rgba(255, 69, 0, 0.1);
-      padding: 8px 12px;
-      border-radius: 8px;
+      display: inline-block;
+      background: rgba(255, 69, 0, 0.15);
       color: #ff4500;
+      padding: 4px 10px;
+      border-radius: 3px;
+      font-size: 12px;
       font-weight: 600;
-      text-align: center;
+      font-family: 'Courier New', monospace;
     }
 
     .senha-input {
-      padding: 10px;
-      border: 2px solid rgba(255, 69, 0, 0.3);
-      border-radius: 8px;
-      background: rgba(26, 26, 26, 0.8);
-      color: #ffffff;
-      font-size: 14px;
+      width: 100%;
+      max-width: 200px;
+      padding: 8px 10px;
+      border: 1px solid #3a3a3a;
+      border-radius: 3px;
+      background: #1a1a1a;
+      color: #fff;
+      font-size: 13px;
+      font-family: 'Courier New', monospace;
+      transition: border-color 0.2s;
+    }
+
+    .senha-input:focus {
+      border-color: #ff4500;
+      outline: none;
     }
 
     .btn-salvar {
-      background: linear-gradient(135deg, #ff4500 0%, #e8472b 100%);
+      background: #ff4500;
       color: white;
       border: none;
-      padding: 10px 20px;
-      border-radius: 8px;
+      padding: 8px 16px;
+      border-radius: 3px;
       cursor: pointer;
-      font-weight: 600;
-      transition: all 0.3s;
+      font-weight: 500;
+      font-size: 12px;
+      transition: background-color 0.2s;
     }
 
     .btn-salvar:hover {
-      transform: translateY(-2px);
-      box-shadow: 0 5px 15px rgba(255, 69, 0, 0.4);
+      background: #e63e00;
     }
 
     .btn-salvar:disabled {
@@ -115,61 +183,131 @@
       cursor: not-allowed;
     }
 
-    .status-senha {
-      padding: 5px 10px;
-      border-radius: 6px;
-      font-size: 12px;
+    .status-badge {
+      display: inline-block;
+      padding: 3px 8px;
+      border-radius: 3px;
+      font-size: 11px;
       font-weight: 600;
+      text-transform: uppercase;
     }
 
-    .status-senha.definida {
-      background: rgba(34, 197, 94, 0.1);
+    .status-badge.definida {
+      background: rgba(34, 197, 94, 0.15);
       color: #22c55e;
     }
 
-    .status-senha.nao-definida {
-      background: rgba(244, 67, 54, 0.1);
-      color: #f44336;
+    .status-badge.nao-definida {
+      background: rgba(234, 179, 8, 0.15);
+      color: #eab308;
     }
 
+    /* Loading */
     .loading {
       text-align: center;
-      padding: 40px;
-      color: #a0a0a0;
+      padding: 60px 20px;
+      color: #888;
+      font-size: 14px;
     }
 
-    .success-message {
-      background: rgba(34, 197, 94, 0.1);
-      color: #22c55e;
-      padding: 15px;
-      border-radius: 8px;
-      margin-top: 10px;
-      display: none;
+    .loading-spinner {
+      width: 24px;
+      height: 24px;
+      border: 2px solid #333;
+      border-top-color: #ff4500;
+      border-radius: 50%;
+      animation: spin 0.8s linear infinite;
+      margin: 0 auto 12px;
+    }
+
+    @keyframes spin {
+      to { transform: rotate(360deg); }
+    }
+
+    /* Stats */
+    .stats {
+      display: flex;
+      gap: 16px;
+      margin-bottom: 24px;
+    }
+
+    .stat-card {
+      background: #2a2a2a;
+      padding: 16px 20px;
+      border-radius: 4px;
+      flex: 1;
+      border-left: 3px solid #ff4500;
+    }
+
+    .stat-label {
+      font-size: 11px;
+      color: #888;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      margin-bottom: 4px;
+    }
+
+    .stat-value {
+      font-size: 24px;
+      font-weight: 600;
+      color: #fff;
+    }
+
+    /* Responsividade */
+    @media (max-width: 768px) {
+      .participantes-table {
+        overflow-x: auto;
+      }
+
+      table {
+        min-width: 800px;
+      }
+
+      .stats {
+        flex-direction: column;
+      }
     }
   </style>
 </head>
 <body>
   <div class="container">
-    <div class="header">
-      <h1>🔐 Gerir Senhas dos Participantes</h1>
-      <p>Defina ou altere as senhas de acesso ao app dos participantes</p>
+    <div class="page-header">
+      <h1>Gerir Senhas dos Participantes</h1>
+      <p>Configure senhas de acesso ao app para cada participante</p>
+    </div>
+
+    <div class="stats" id="statsContainer" style="display: none;">
+      <div class="stat-card">
+        <div class="stat-label">Total de Participantes</div>
+        <div class="stat-value" id="totalParticipantes">0</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-label">Com Senha Definida</div>
+        <div class="stat-value" id="comSenha">0</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-label">Sem Senha</div>
+        <div class="stat-value" id="semSenha">0</div>
+      </div>
     </div>
 
     <div class="liga-selector">
+      <label for="ligaSelect">Liga</label>
       <select id="ligaSelect" onchange="carregarParticipantes()">
         <option value="">Selecione uma liga...</option>
       </select>
     </div>
 
     <div id="participantesContainer">
-      <div class="loading">Selecione uma liga para começar</div>
+      <div class="loading">
+        <div class="loading-spinner"></div>
+        Selecione uma liga para começar
+      </div>
     </div>
   </div>
 
   <script>
-    let ligaSelecionada = null;
-
-    // Carregar ligas disponíveis
+    // Carregar ligas
     async function carregarLigas() {
       try {
         const response = await fetch('/api/ligas');
@@ -190,31 +328,29 @@
       }
     }
 
-    // Carregar participantes da liga selecionada
+    // Carregar participantes
     async function carregarParticipantes() {
       const ligaId = document.getElementById('ligaSelect').value;
       const container = document.getElementById('participantesContainer');
+      const statsContainer = document.getElementById('statsContainer');
       
       if (!ligaId) {
-        container.innerHTML = '<div class="loading">Selecione uma liga para começar</div>';
+        container.innerHTML = '<div class="loading"><div class="loading-spinner"></div>Selecione uma liga para começar</div>';
+        statsContainer.style.display = 'none';
         return;
       }
 
-      container.innerHTML = '<div class="loading">Carregando participantes...</div>';
+      container.innerHTML = '<div class="loading"><div class="loading-spinner"></div>Carregando participantes...</div>';
 
       try {
         const response = await fetch(`/api/ligas/${ligaId}`);
         const liga = await response.json();
-        ligaSelecionada = liga;
 
-        // Buscar participantes dos times da liga
         if (!liga.times || liga.times.length === 0) {
           container.innerHTML = '<div class="loading">Nenhum participante encontrado</div>';
+          statsContainer.style.display = 'none';
           return;
         }
-
-        // Buscar dados completos de cada time
-        container.innerHTML = '<div class="loading">Carregando dados dos participantes...</div>';
 
         const participantesData = await Promise.all(
           liga.times.map(async (timeId) => {
@@ -228,83 +364,110 @@
                 nome_time: data.nome_time || 'Time N/A',
                 senha_acesso: data.senha_acesso || ''
               };
-            } catch (err) {
-              console.error(`Erro ao buscar time ${timeId}:`, err);
+            } catch {
               return null;
             }
           })
         );
 
-        const participantesValidos = participantesData
+        const participantes = participantesData
           .filter(p => p !== null)
           .sort((a, b) => a.nome_cartola.localeCompare(b.nome_cartola));
 
-        if (participantesValidos.length === 0) {
+        if (participantes.length === 0) {
           container.innerHTML = '<div class="loading">Nenhum participante encontrado</div>';
+          statsContainer.style.display = 'none';
           return;
         }
 
-        // Renderizar participantes
-        container.innerHTML = '<div class="participantes-grid"></div>';
-        const grid = container.querySelector('.participantes-grid');
+        // Atualizar stats
+        const comSenha = participantes.filter(p => p.senha_acesso).length;
+        const semSenha = participantes.length - comSenha;
+        
+        document.getElementById('totalParticipantes').textContent = participantes.length;
+        document.getElementById('comSenha').textContent = comSenha;
+        document.getElementById('semSenha').textContent = semSenha;
+        statsContainer.style.display = 'flex';
 
-        participantesValidos.forEach(p => {
+        // Renderizar tabela
+        container.innerHTML = `
+          <div class="participantes-table">
+            <table>
+              <thead>
+                <tr>
+                  <th>Participante</th>
+                  <th>Time ID</th>
+                  <th>Status</th>
+                  <th>Senha</th>
+                  <th>Ação</th>
+                </tr>
+              </thead>
+              <tbody id="participantesTableBody"></tbody>
+            </table>
+          </div>
+        `;
+
+        const tbody = document.getElementById('participantesTableBody');
+        participantes.forEach(p => {
           const temSenha = p.senha_acesso && p.senha_acesso.length > 0;
           
-          const row = document.createElement('div');
-          row.className = 'participante-row';
+          const row = document.createElement('tr');
           row.innerHTML = `
-            <div class="participante-info">
+            <td>
               <div class="participante-nome">${p.nome_cartola}</div>
               <div class="participante-time">${p.nome_time}</div>
-              ${temSenha ? '<span class="status-senha definida">✓ Com senha</span>' : '<span class="status-senha nao-definida">⚠ Sem senha</span>'}
-            </div>
-            
-            <div class="time-id">
-              ID: ${p.time_id}
-            </div>
-            
-            <input 
-              type="text" 
-              class="senha-input" 
-              placeholder="Digite a senha (mín. 4 caracteres)"
-              value="${p.senha_acesso}"
-              id="senha-${p.time_id}"
-              maxlength="20"
-            >
-            
-            <button 
-              class="btn-salvar" 
-              onclick="salvarSenha(${p.time_id}, '${ligaId}')"
-            >
-              💾 Salvar
-            </button>
+            </td>
+            <td>
+              <span class="time-id">${p.time_id}</span>
+            </td>
+            <td>
+              <span class="status-badge ${temSenha ? 'definida' : 'nao-definida'}">
+                ${temSenha ? 'Definida' : 'Pendente'}
+              </span>
+            </td>
+            <td>
+              <input 
+                type="text" 
+                class="senha-input" 
+                placeholder="Digite a senha"
+                value="${p.senha_acesso}"
+                id="senha-${p.time_id}"
+                maxlength="20"
+              >
+            </td>
+            <td>
+              <button 
+                class="btn-salvar" 
+                onclick="salvarSenha(${p.time_id}, '${ligaId}')"
+              >
+                Salvar
+              </button>
+            </td>
           `;
-          grid.appendChild(row);
+          tbody.appendChild(row);
         });
 
       } catch (error) {
         console.error('Erro ao carregar participantes:', error);
         container.innerHTML = '<div class="loading">Erro ao carregar participantes</div>';
+        statsContainer.style.display = 'none';
       }
     }
 
-    // Salvar senha do participante
+    // Salvar senha
     async function salvarSenha(timeId, ligaId) {
       const senhaInput = document.getElementById(`senha-${timeId}`);
       const senha = senhaInput.value.trim();
 
-      if (!senha) {
-        alert('Digite uma senha válida');
+      if (!senha || senha.length < 4) {
+        alert('A senha deve ter no mínimo 4 caracteres');
         return;
       }
 
       try {
         const response = await fetch(`/api/ligas/${ligaId}/participante/${timeId}/senha`, {
           method: 'PUT',
-          headers: {
-            'Content-Type': 'application/json'
-          },
+          headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ senha })
         });
 
@@ -315,6 +478,7 @@
         }
 
         alert('✅ Senha salva com sucesso!');
+        carregarParticipantes();
         
       } catch (error) {
         console.error('Erro ao salvar senha:', error);
