@@ -216,6 +216,11 @@ if (process.env.NODE_ENV !== "production") {
   console.log("✅ [ROUTES] Registrada: GET /api/version");
 }
 
+// Rota para servir o favicon
+app.get("/favicon.ico", (req, res) => {
+  res.sendFile(path.join(process.cwd(), "public", "favicon.png"));
+});
+
 // Rota raiz - redireciona para a aplicação
 app.get("/", (req, res) => {
   res.redirect("/index.html");
