@@ -16,8 +16,8 @@ router.get("/:id", async (req, res) => {
             return res.status(400).json({ erro: "ID do time inválido" });
         }
 
-        console.log(`[TIMES] Buscando time com time_id: ${timeId}`);
-        const time = await Time.findOne({ time_id: timeId });
+        console.log(`[TIMES] Buscando time com id: ${timeId}`);
+        const time = await Time.findOne({ id: timeId });
 
         if (!time) {
             console.log(`[TIMES] Time não encontrado: ${timeId}`);
@@ -62,7 +62,7 @@ router.put("/:id/senha", async (req, res) => {
             });
         }
 
-        const time = await Time.findOne({ time_id: parseInt(id) });
+        const time = await Time.findOne({ id: parseInt(id) });
 
         if (!time) {
             return res.status(404).json({ erro: "Time não encontrado" });
@@ -91,7 +91,7 @@ router.put("/:id/inativar", async (req, res) => {
     try {
         const { id } = req.params;
         const time = await Time.findOneAndUpdate(
-            { time_id: parseInt(id) },
+            { id: parseInt(id) },
             { ativo: false },
             { new: true }
         );
@@ -112,7 +112,7 @@ router.put("/:id/reativar", async (req, res) => {
     try {
         const { id } = req.params;
         const time = await Time.findOneAndUpdate(
-            { time_id: parseInt(id) },
+            { id: parseInt(id) },
             { ativo: true },
             { new: true }
         );
