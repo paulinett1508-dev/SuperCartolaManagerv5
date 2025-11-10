@@ -652,10 +652,10 @@
                     userAvatar.innerHTML = `<img src="/escudos/${clubeId}.png" alt="Escudo" onerror="this.parentElement.innerHTML='<span style=\\'font-size: 24px;\\'>⚽</span>'">`;
                 }
 
-                // Atualizar tela de boas-vindas com escudo do time do coração
+                // Atualizar tela de boas-vindas com escudo do TIME CARTOLA (diferente do time do coração)
                 const teamShieldIcon = document.getElementById('teamShieldIcon');
-                if (teamShieldIcon && clubeId) {
-                    teamShieldIcon.innerHTML = `<img src="/escudos/${clubeId}.png" alt="Time do Coração" onerror="this.innerHTML='<div style=\\'width: 64px; height: 64px; background: rgba(255,255,255,0.1); border-radius: 50%; display: flex; align-items: center; justify-content: center;\\'><span style=\\'font-size: 32px;\\'>⚽</span></div>'">`;
+                if (teamShieldIcon && escudoUrl) {
+                    teamShieldIcon.innerHTML = `<img src="${escudoUrl}" alt="Time Cartola" style="width: 64px; height: 64px; border-radius: 50%; object-fit: contain; background: white; border: 3px solid rgba(255, 69, 0, 0.3);" onerror="this.innerHTML='<div style=\\'width: 64px; height: 64px; background: rgba(255,255,255,0.1); border-radius: 50%; display: flex; align-items: center; justify-content: center;\\'><span style=\\'font-size: 32px;\\'>⚽</span></div>'">`;
                 }
 
                 const welcomeTitle = document.getElementById('welcomeTitle');
