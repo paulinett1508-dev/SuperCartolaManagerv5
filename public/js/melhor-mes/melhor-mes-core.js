@@ -2,7 +2,7 @@
 // public/js/melhor-mes/melhor-mes-core.js
 
 import { getRankingRodadaEspecifica } from "../rodadas.js";
-import { getLigaId } from "../pontos-corridos-utils.js";
+import { obterLigaId } from "../pontos-corridos-utils.js";
 import {
   MELHOR_MES_CONFIG,
   getPremiosLiga,
@@ -44,7 +44,7 @@ export class MelhorMesCore {
   // CARREGAR DADOS BÁSICOS DO SISTEMA
   async carregarDadosBasicos() {
     // ✅ USAR FUNÇÃO GLOBAL obterLigaId()
-    const ligaId = window.obterLigaId ? window.obterLigaId() : getLigaId();
+    const ligaId = window.obterLigaId ? window.obterLigaId() : obterLigaId();
 
     if (!ligaId) {
       throw new Error("ID da Liga não encontrado");

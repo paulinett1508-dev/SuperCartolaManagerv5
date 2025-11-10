@@ -1,7 +1,7 @@
 import { getRankingRodadaEspecifica } from "./rodadas.js";
 import {
   buscarStatusMercado as getMercadoStatus,
-  getLigaId,
+  obterLigaId,
 } from "./pontos-corridos-utils.js";
 
 // ==============================
@@ -27,7 +27,7 @@ async function carregarExports() {
 }
 
 // ==============================
-// CONFIGURAÇÃO DE VALORES POR LIGA
+// CONFIGURAÇÃO DE VALORES PARA LIGA ESPECÍFICA
 // ==============================
 const valoresBonusOnusPadrao = {
   mitos: {
@@ -105,7 +105,7 @@ async function carregarDadosTop10() {
   console.log('[TOP10] Carregando dados...');
 
   // ✅ USAR FUNÇÃO GLOBAL obterLigaId()
-  const ligaId = window.obterLigaId ? window.obterLigaId() : getLigaId();
+  const ligaId = window.obterLigaId ? window.obterLigaId() : obterLigaId();
 
   if (!ligaId) {
     throw new Error('ID da Liga não encontrado');
@@ -180,7 +180,7 @@ async function renderizarTabelasTop10() {
   }
 
   // Determinar valores de bônus/ônus baseado na liga
-  const ligaId = window.obterLigaId ? window.obterLigaId() : getLigaId();
+  const ligaId = window.obterLigaId ? window.obterLigaId() : obterLigaId();
   const isLigaCartoleirosSobral = ligaId === "684d821cf1a7ae16d1f89572";
   const valoresBonusOnus = isLigaCartoleirosSobral
     ? valoresBonusOnusCartoleirosSobral
