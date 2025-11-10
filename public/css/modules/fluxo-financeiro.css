@@ -36,13 +36,14 @@ body {
 
 /* ===== HEADER PRINCIPAL COMPACTO ===== */
 .fluxo-financeiro-header {
-    background: var(--gradient-primary);
+    background: var(--bg-card);
+    border: 1px solid var(--border-primary);
     color: var(--text-primary);
     padding: 16px 20px; /* REDUZIDO de 40px para 16px */
     border-radius: var(--border-radius-md);
     margin-bottom: 20px; /* REDUZIDO de 40px para 20px */
     text-align: center;
-    box-shadow: 0 4px 20px rgba(255, 69, 0, 0.4);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
 }
 
 .fluxo-financeiro-titulo {
