@@ -374,8 +374,16 @@
     }
 
     .welcome-icon {
-        font-size: 32px;
         margin-right: 10px;
+    }
+
+    .welcome-icon img {
+        width: 64px;
+        height: 64px;
+        border-radius: 50%;
+        border: 3px solid rgba(255, 69, 0, 0.3);
+        object-fit: contain;
+        background: white;
     }
 
     .welcome-info {
@@ -478,16 +486,17 @@
   <div class="container">
     <div id="errorContainer"></div>
 
-    <!-- Extrato Financeiro -->
+    <!-- Dashboard Principal -->
     <div id="extratoFinanceiro" class="dashboard-card">
-        <div class="card-header">
-            <h2 class="card-title">💰 Extrato Financeiro</h2>
-        </div>
-        <!-- Container onde o extrato será renderizado -->
+        <!-- Container onde o conteúdo será renderizado -->
         <div id="fluxoFinanceiroContent" class="card-content" style="padding: 0;">
             <div class="welcome-dashboard" style="padding: 0;">
                 <div class="welcome-header">
-                    <div class="welcome-icon">👤</div>
+                    <div class="welcome-icon" id="teamShieldIcon">
+                        <div style="width: 64px; height: 64px; background: rgba(255,255,255,0.1); border-radius: 50%; display: flex; align-items: center; justify-content: center;">
+                            <span style="font-size: 32px;">⚽</span>
+                        </div>
+                    </div>
                     <div class="welcome-info">
                         <h1 id="welcomeTitle">Bem-vindo!</h1>
                         <p id="welcomeSubtitle">Carregando informações...</p>
@@ -590,19 +599,46 @@
                 const sessionData = await sessionResponse.json();
                 const { participante } = sessionData;
 
+                console.log('[PARTICIPANTE-DASHBOARD] Dados do participante:', participante);
+
+                // Buscar dados completos do time via API do Cartola
+                let dadosCompletos = null;
+                try {
+                    const timeResponse = await fetch(`/api/cartola/time/${participante.timeId}`);
+                    if (timeResponse.ok) {
+                        dadosCompletos = await timeResponse.json();
+                        console.log('[PARTICIPANTE-DASHBOARD] Dados da API Cartola:', dadosCompletos);
+                    }
+                } catch (error) {
+                    console.warn('[PARTICIPANTE-DASHBOARD] Erro ao buscar dados da API:', error);
+                }
+
                 // Atualizar info do usuário no header
                 const userName = document.getElementById('userName');
                 const userTeam = document.getElementById('userTeam');
                 const userAvatar = document.getElementById('userAvatar');
 
-                console.log('[PARTICIPANTE-DASHBOARD] Dados do participante:', participante);
-
-                // Extrair dados do participante
-                const nomeCartola = participante.participante?.nome_cartola || participante.nomeCartola || participante.nome_cartola || 'Participante';
-                const nomeTime = participante.participante?.nome_time || participante.nomeTime || participante.nome_time || 'Time';
-                const escudoUrl = participante.participante?.url_escudo_png || participante.url_escudo_png ||
-                                 (participante.participante?.clube_id ? `/escudos/${participante.participante.clube_id}.png` :
-                                  participante.clube_id ? `/escudos/${participante.clube_id}.png` : null);
+                // Priorizar dados da API do Cartola, depois dados da sessão
+                const nomeCartola = dadosCompletos?.nome_cartoleiro || 
+                                   participante.participante?.nome_cartola || 
+                                   participante.nomeCartola || 
+                                   participante.nome_cartola || 
+                                   'Participante';
+                
+                const nomeTime = dadosCompletos?.nome || 
+                                participante.participante?.nome_time || 
+                                participante.nomeTime || 
+                                participante.nome_time || 
+                                'Time';
+                
+                const clubeId = dadosCompletos?.clube_id || 
+                               participante.participante?.clube_id || 
+                               participante.clube_id;
+                
+                const escudoUrl = dadosCompletos?.url_escudo_png || 
+                                 participante.participante?.url_escudo_png || 
+                                 participante.url_escudo_png ||
+                                 (clubeId ? `/escudos/${clubeId}.png` : null);
 
                 // Atualizar header (verificar se elementos existem)
                 if (userName) {
@@ -611,11 +647,17 @@
                 if (userTeam) {
                     userTeam.textContent = nomeTime;
                 }
-                if (userAvatar && escudoUrl) {
-                    userAvatar.innerHTML = `<img src="${escudoUrl}" alt="${nomeCartola}" onerror="this.parentElement.innerHTML='<span style=\\'font-size: 24px;\\'>⚽</span>'">`;
+                if (userAvatar && clubeId) {
+                    // Usar escudo do clube (time do coração)
+                    userAvatar.innerHTML = `<img src="/escudos/${clubeId}.png" alt="Escudo" onerror="this.parentElement.innerHTML='<span style=\\'font-size: 24px;\\'>⚽</span>'">`;
                 }
 
-                // Atualizar tela de boas-vindas
+                // Atualizar tela de boas-vindas com escudo do time do coração
+                const teamShieldIcon = document.getElementById('teamShieldIcon');
+                if (teamShieldIcon && clubeId) {
+                    teamShieldIcon.innerHTML = `<img src="/escudos/${clubeId}.png" alt="Time do Coração" onerror="this.innerHTML='<div style=\\'width: 64px; height: 64px; background: rgba(255,255,255,0.1); border-radius: 50%; display: flex; align-items: center; justify-content: center;\\'><span style=\\'font-size: 32px;\\'>⚽</span></div>'">`;
+                }
+
                 const welcomeTitle = document.getElementById('welcomeTitle');
                 const welcomeSubtitle = document.getElementById('welcomeSubtitle');
 
