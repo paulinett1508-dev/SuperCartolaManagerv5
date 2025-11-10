@@ -407,18 +407,51 @@ export class FluxoFinanceiroUI {
                                    justify-content: center; font-size: 24px; flex-shrink: 0;">⚽</div>`
                     }
                     <div style="flex: 1; min-width: 0;">
-                        <h2 style="margin: 0 0 4px 0; font-size: 16px; font-weight: 700; color: var(--text-primary); 
-                             white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">
-                            ${participante.nome_cartola}
-                        </h2>
+                        <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 4px;">
+                            <h2 style="margin: 0; font-size: 16px; font-weight: 700; color: var(--text-primary); 
+                                 white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">
+                                ${participante.nome_cartola}
+                            </h2>
+                            ${extrato.updatedAt ? `
+                            <span style="background: rgba(52, 152, 219, 0.15); color: #3498db; 
+                                         padding: 2px 8px; border-radius: 4px; font-size: 9px; 
+                                         font-weight: 700; text-transform: uppercase; letter-spacing: 0.3px; 
+                                         border: 1px solid rgba(52, 152, 219, 0.3); white-space: nowrap;">
+                                💾 Cache
+                            </span>
+                            ` : ''}
+                        </div>
                         <p style="margin: 0; font-size: 12px; color: var(--text-muted); font-weight: 500; 
                              white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">
                             ${participante.nome_time}
                         </p>
                     </div>
-                    <div style="text-align: right;">
+                    <div style="text-align: right; display: flex; flex-direction: column; gap: 8px; align-items: flex-end;">
+                        <button onclick="window.forcarRefreshExtrato('${participante.time_id || participante.id}')" 
+                                style="background: var(--gradient-secondary); color: white; border: none; 
+                                       padding: 6px 12px; border-radius: 6px; font-size: 11px; font-weight: 600; 
+                                       cursor: pointer; display: flex; align-items: center; gap: 6px; 
+                                       transition: all 0.3s ease; box-shadow: 0 2px 8px rgba(52, 152, 219, 0.3);"
+                                onmouseover="this.style.transform='translateY(-1px)'; this.style.boxShadow='0 4px 12px rgba(52, 152, 219, 0.5)'"
+                                onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='0 2px 8px rgba(52, 152, 219, 0.3)'">
+                            <span style="font-size: 14px;">🔄</span>
+                            <span>Atualizar Dados</span>
+                        </button>
+                        ${extrato.updatedAt ? `
+                        <div style="font-size: 9px; color: var(--text-muted); font-weight: 500; 
+                             text-align: right; line-height: 1.3;">
+                            Última atualização:<br>
+                            ${new Date(extrato.updatedAt).toLocaleString('pt-BR', {
+                                day: '2-digit',
+                                month: '2-digit',
+                                year: 'numeric',
+                                hour: '2-digit',
+                                minute: '2-digit'
+                            })}
+                        </div>
+                        ` : ''}
                         <div style="font-size: 10px; color: var(--text-muted); font-weight: 600; text-transform: uppercase; 
-                             letter-spacing: 0.3px; margin-bottom: 4px;">Saldo Total</div>
+                             letter-spacing: 0.3px; margin-top: 4px;">Saldo Total</div>
                         <div style="font-size: 20px; font-weight: 700; color: ${
                             parseFloat(extrato.resumo.saldo) >= 0
                                 ? "#2ecc71"
