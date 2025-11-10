@@ -1,7 +1,7 @@
 // FLUXO-FINANCEIRO-CACHE.JS - OTIMIZADO
 import { getRankingRodadaEspecifica } from "../rodadas.js";
 import {
-    getLigaId,
+    obterLigaId,
     getConfrontosLigaPontosCorridos,
     gerarConfrontos,
     buscarTimesLiga,
@@ -58,7 +58,7 @@ export class FluxoFinanceiroCache {
     }
 
     async carregarParticipantes() {
-        const ligaId = this.ligaId || getLigaId();
+        const ligaId = this.ligaId || obterLigaId();
         if (!ligaId) {
             this.participantes = [];
             return [];
@@ -118,7 +118,7 @@ export class FluxoFinanceiroCache {
 
     // OTIMIZADO: Carregamento em lotes com Promise.all
     async carregarCacheRankingsEmLotes(ultimaRodadaCompleta, container) {
-        const ligaId = this.ligaId || getLigaId();
+        const ligaId = this.ligaId || obterLigaId();
         if (!ligaId) {
             this.cacheRankings = {};
             return;
@@ -161,7 +161,7 @@ export class FluxoFinanceiroCache {
     }
 
     async _carregarRankingRodada(rodada) {
-        const ligaId = this.ligaId || getLigaId();
+        const ligaId = this.ligaId || obterLigaId();
 
         try {
             const ranking = await getRankingRodadaEspecifica(ligaId, rodada);
@@ -210,14 +210,14 @@ export class FluxoFinanceiroCache {
             const mensagemDeProgresso = container.querySelector(
                 ".loading-container p:nth-child(2)",
             );
-            if (mensagemDeProgresso) {
+            if ( mensagemDeProgresso) {
                 mensagemDeProgresso.textContent = `Processando rodadas ${rodadaInicial} a ${rodadaFinal} de ${ultimaRodadaCompleta}`;
             }
         }
     }
 
     async carregarDadosPontosCorridos() {
-        const ligaId = this.ligaId || getLigaId();
+        const ligaId = this.ligaId || obterLigaId();
         if (ligaId === ID_SUPERCARTOLA_2025) {
             try {
                 this.timesLiga = await buscarTimesLiga(ligaId);
