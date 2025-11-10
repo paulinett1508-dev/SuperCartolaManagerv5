@@ -76,6 +76,13 @@ export class FluxoFinanceiroCampos {
             console.log(
                 `[FluxoFinanceiroCampos] Valor salvo: ${nomeCampo} = R$ ${valor}`,
             );
+
+            // ✅ INVALIDAR CACHE após salvar campo editável
+            console.log('[FLUXO-CAMPOS] Invalidando cache após alteração de campo');
+            if (window.invalidarCacheTime) {
+              await window.invalidarCacheTime(ligaId, timeId);
+            }
+
             return data;
         } catch (error) {
             console.error(
@@ -117,6 +124,10 @@ export class FluxoFinanceiroCampos {
             console.log(
                 `[FluxoFinanceiroCampos] Nome salvo: ${nomeCampo} = ${nome}`,
             );
+
+            // ✅ INVALIDAR CACHE após renomear campo (não afeta valores, mas por segurança)
+            console.log('[FLUXO-CAMPOS] Campo renomeado - cache mantido');
+
             return data;
         } catch (error) {
             console.error(

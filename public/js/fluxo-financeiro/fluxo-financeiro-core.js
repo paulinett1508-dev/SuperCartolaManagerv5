@@ -50,12 +50,15 @@ export class FluxoFinanceiroCore {
         );
     }
 
-    // OTIMIZADO: Cálculo com cache persistente
+    // OTIMIZADO: Cálculo com cache persistente e detecção inteligente de mudanças
     async calcularExtratoFinanceiro(timeId, ultimaRodadaCompleta, forcarRecalculo = false) {
         const ligaId = obterLigaId();
 
-        // ✅ TENTAR USAR CACHE PRIMEIRO
-        if (!forcarRecalculo) {
+        // ✅ VERIFICAR SE HOUVE MUDANÇA DE RODADA (mercado fechou)
+        const precisaRecalcular = forcarRecalculo || await this._verificarMudancaRodada(ligaId, timeId);
+
+        // ✅ TENTAR USAR CACHE PRIMEIRO (se não precisa recalcular)
+        if (!precisaRecalcular) {
             const cacheValido = await this._verificarEUsarCache(ligaId, timeId, ultimaRodadaCompleta);
             if (cacheValido) {
                 console.log(`[FLUXO-CORE] ✅ Usando extrato em cache para time ${timeId}`);
@@ -159,6 +162,41 @@ export class FluxoFinanceiroCore {
         await this._salvarNoCache(ligaId, timeId, extrato, ultimaRodadaCompleta, "calculo_automatico");
 
         return extrato;
+    }
+
+    // ===== VERIFICAR SE HOUVE MUDANÇA DE RODADA =====
+    async _verificarMudancaRodada(ligaId, timeId) {
+        try {
+            // Buscar última rodada calculada do cache
+            const response = await fetch(
+                `/api/extrato-cache/${ligaId}/times/${timeId}/cache?rodadaAtual=1`
+            );
+
+            if (!response.ok) return true; // Se não tem cache, precisa calcular
+
+            const data = await response.json();
+            
+            if (!data.cached) return true;
+
+            // Buscar rodada atual do mercado
+            const mercadoResponse = await fetch('/api/cartola/mercado-status');
+            if (!mercadoResponse.ok) return false;
+            
+            const mercadoData = await mercadoResponse.json();
+            const rodadaAtualMercado = mercadoData.rodada_atual;
+
+            // Se a rodada atual é maior que a última calculada, precisa recalcular
+            const precisaRecalcular = rodadaAtualMercado > data.ultimaRodadaCalculada;
+            
+            if (precisaRecalcular) {
+                console.log(`[FLUXO-CORE] 🔄 Nova rodada detectada (${rodadaAtualMercado} > ${data.ultimaRodadaCalculada}) - recálculo necessário`);
+            }
+
+            return precisaRecalcular;
+        } catch (error) {
+            console.warn("[FLUXO-CORE] Erro ao verificar mudança de rodada:", error);
+            return false; // Em caso de erro, não força recálculo
+        }
     }
 
     // ===== VERIFICAR E USAR CACHE =====

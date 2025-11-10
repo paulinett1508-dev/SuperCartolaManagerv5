@@ -515,16 +515,7 @@ export class FluxoFinanceiroUI {
                         <span style="font-size: 16px;">📋</span>
                         Histórico de Rodadas
                     </h3>
-                    <button onclick="window.exportarExtratoComoImagem(window.extratoAtual?.dadosExtrato, window.extratoAtual?.participante, window.extratoAtual?.rodadaAtual)" 
-                            style="background: var(--gradient-primary); color: white; border: none; padding: 6px 12px; 
-                                   border-radius: 6px; font-size: 11px; font-weight: 600; cursor: pointer; 
-                                   display: flex; align-items: center; gap: 4px; transition: all 0.3s ease; 
-                                   box-shadow: var(--shadow-orange);"
-                            onmouseover="this.style.transform='translateY(-1px)'; this.style.boxShadow='0 6px 20px rgba(255, 69, 0, 0.5)'"
-                            onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='var(--shadow-orange)'">
-                        <span style="font-size: 16px;">📸</span>
-                        <span>Exportar Extrato</span>
-                    </button>
+                    
                 </div>
 
                 <div style="overflow-x: auto;">
