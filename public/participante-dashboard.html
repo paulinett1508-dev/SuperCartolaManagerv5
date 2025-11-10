@@ -391,7 +391,7 @@
 
     <!-- NAVEGAÇÃO ENTRE MÓDULOS -->
     <nav class="nav-menu">
-      <button class="nav-item active" data-module="extrato">
+      <button class="nav-item" data-module="extrato">
         <span class="nav-icon">💰</span>
         <span class="nav-label">Extrato</span>
       </button>
@@ -424,14 +424,60 @@
         </div>
         <!-- Container onde o extrato será renderizado -->
         <div id="fluxoFinanceiroContent" class="card-content" style="padding: 0;">
-            <div class="professional-loading">
-                <div class="loading-spinner-professional"></div>
-                <h3 style="margin: 20px 0 8px 0; color: var(--text-primary); font-size: 16px; font-weight: 600;">
-                    Carregando dados financeiros
-                </h3>
-                <p style="margin: 0; color: var(--text-muted); font-size: 13px;">
-                    Preparando cache...
-                </p>
+            <div class="welcome-dashboard" style="padding: 40px 20px; background: var(--bg-card);">
+                <!-- Avatar e Nome -->
+                <div style="text-align: center; margin-bottom: 30px;">
+                    <div id="welcomeAvatar" style="width: 80px; height: 80px; margin: 0 auto 16px; border-radius: 50%; background: var(--gradient-primary); display: flex; align-items: center; justify-content: center; box-shadow: 0 4px 16px rgba(255, 69, 0, 0.3);">
+                        <span style="font-size: 36px;">⚽</span>
+                    </div>
+                    <h2 id="welcomeName" style="margin: 0 0 8px 0; color: var(--text-primary); font-size: 22px; font-weight: 700;">
+                        Carregando...
+                    </h2>
+                    <p id="welcomeTeam" style="margin: 0 0 4px 0; color: var(--text-secondary); font-size: 14px;">
+                        Time
+                    </p>
+                    <p id="welcomeLiga" style="margin: 0; color: var(--text-muted); font-size: 12px;">
+                        Liga
+                    </p>
+                </div>
+
+                <!-- Cards de Estatísticas Rápidas -->
+                <div id="welcomeStats" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 12px; margin-bottom: 30px;">
+                    <!-- Será preenchido dinamicamente -->
+                </div>
+
+                <!-- Módulos Disponíveis -->
+                <div style="background: rgba(255, 69, 0, 0.05); border: 1px solid rgba(255, 69, 0, 0.15); border-radius: 12px; padding: 20px;">
+                    <h3 style="margin: 0 0 16px 0; color: var(--text-primary); font-size: 14px; font-weight: 600; text-align: center;">
+                        📱 Módulos Disponíveis
+                    </h3>
+                    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(100px, 1fr)); gap: 12px;">
+                        <div style="text-align: center; padding: 12px; background: rgba(255, 255, 255, 0.02); border-radius: 8px; cursor: pointer; transition: all 0.3s ease;" onclick="document.querySelector('[data-module=&quot;extrato&quot;]').click()">
+                            <div style="font-size: 24px; margin-bottom: 6px;">💰</div>
+                            <div style="font-size: 11px; font-weight: 600; color: var(--text-secondary);">Extrato</div>
+                        </div>
+                        <div style="text-align: center; padding: 12px; background: rgba(255, 255, 255, 0.02); border-radius: 8px; opacity: 0.5;">
+                            <div style="font-size: 24px; margin-bottom: 6px;">🏆</div>
+                            <div style="font-size: 11px; font-weight: 600; color: var(--text-secondary);">Classificação</div>
+                            <div style="font-size: 9px; color: var(--text-muted); margin-top: 2px;">Em breve</div>
+                        </div>
+                        <div style="text-align: center; padding: 12px; background: rgba(255, 255, 255, 0.02); border-radius: 8px; opacity: 0.5;">
+                            <div style="font-size: 24px; margin-bottom: 6px;">📊</div>
+                            <div style="font-size: 11px; font-weight: 600; color: var(--text-secondary);">Rodadas</div>
+                            <div style="font-size: 9px; color: var(--text-muted); margin-top: 2px;">Em breve</div>
+                        </div>
+                        <div style="text-align: center; padding: 12px; background: rgba(255, 255, 255, 0.02); border-radius: 8px; opacity: 0.5;">
+                            <div style="font-size: 24px; margin-bottom: 6px;">🔝</div>
+                            <div style="font-size: 11px; font-weight: 600; color: var(--text-secondary);">TOP 10</div>
+                            <div style="font-size: 9px; color: var(--text-muted); margin-top: 2px;">Em breve</div>
+                        </div>
+                        <div style="text-align: center; padding: 12px; background: rgba(255, 255, 255, 0.02); border-radius: 8px; opacity: 0.5;">
+                            <div style="font-size: 24px; margin-bottom: 6px;">⚔️</div>
+                            <div style="font-size: 11px; font-weight: 600; color: var(--text-secondary);">Mata-Mata</div>
+                            <div style="font-size: 9px; color: var(--text-muted); margin-top: 2px;">Em breve</div>
+                        </div>
+                    </div>
+                </div>
             </div>
         </div>
     </div>
@@ -519,43 +565,36 @@
 
                 console.log('[PARTICIPANTE-DASHBOARD] Dados do participante:', participante);
 
-                if (userName) {
-                    // Tentar diferentes caminhos para o nome do cartola
-                    const nomeCartola = participante.participante?.nome_cartola || 
-                                       participante.nomeCartola || 
-                                       participante.nome_cartola || 
-                                       'Participante';
-                    userName.textContent = nomeCartola;
-                }
-                
-                if (userTeam) {
-                    // Tentar diferentes caminhos para o nome do time
-                    const nomeTime = participante.participante?.nome_time || 
-                                    participante.nomeTime || 
-                                    participante.nome_time || 
-                                    'Time';
-                    userTeam.textContent = nomeTime;
-                }
-                
-                if (userAvatar) {
-                    // Tentar diferentes caminhos para o escudo
-                    const escudoUrl = participante.participante?.url_escudo_png || 
-                                     participante.url_escudo_png || 
-                                     participante.participante?.clube_id ? `/escudos/${participante.participante.clube_id}.png` :
-                                     participante.clube_id ? `/escudos/${participante.clube_id}.png` : null;
-                    
-                    const nomeCartola = participante.participante?.nome_cartola || 
-                                       participante.nomeCartola || 
-                                       participante.nome_cartola || 
-                                       'Participante';
-                    
-                    if (escudoUrl) {
-                        userAvatar.innerHTML = `<img src="${escudoUrl}" alt="${nomeCartola}" onerror="this.parentElement.innerHTML='<span style=\\'font-size: 24px;\\'>⚽</span>'">`;
-                    }
+                // Extrair dados do participante
+                const nomeCartola = participante.participante?.nome_cartola || participante.nomeCartola || participante.nome_cartola || 'Participante';
+                const nomeTime = participante.participante?.nome_time || participante.nomeTime || participante.nome_time || 'Time';
+                const escudoUrl = participante.participante?.url_escudo_png || participante.url_escudo_png || 
+                                 (participante.participante?.clube_id ? `/escudos/${participante.participante.clube_id}.png` :
+                                  participante.clube_id ? `/escudos/${participante.clube_id}.png` : null);
+
+                // Atualizar header
+                if (userName) userName.textContent = nomeCartola;
+                if (userTeam) userTeam.textContent = nomeTime;
+                if (userAvatar && escudoUrl) {
+                    userAvatar.innerHTML = `<img src="${escudoUrl}" alt="${nomeCartola}" onerror="this.parentElement.innerHTML='<span style=\\'font-size: 24px;\\'>⚽</span>'">`;
                 }
 
-                // Carregar extrato financeiro usando dados da sessão
-                await carregarExtrato(participante.timeId, participante.ligaId, participante);
+                // Atualizar tela de boas-vindas
+                const welcomeName = document.getElementById('welcomeName');
+                const welcomeTeam = document.getElementById('welcomeTeam');
+                const welcomeLiga = document.getElementById('welcomeLiga');
+                const welcomeAvatar = document.getElementById('welcomeAvatar');
+
+                if (welcomeName) welcomeName.textContent = `Olá, ${nomeCartola}! 👋`;
+                if (welcomeTeam) welcomeTeam.textContent = nomeTime;
+                if (welcomeLiga) welcomeLiga.textContent = sessionData.ligaNome || 'Liga';
+                
+                if (welcomeAvatar && escudoUrl) {
+                    welcomeAvatar.innerHTML = `<img src="${escudoUrl}" alt="${nomeCartola}" style="width: 100%; height: 100%; border-radius: 50%; object-fit: cover;" onerror="this.parentElement.innerHTML='<span style=\\'font-size: 36px;\\'>⚽</span>'">`;
+                }
+
+                // Buscar estatísticas do participante para exibir na welcome screen
+                await carregarEstatisticasParticipante(participante.timeId, participante.ligaId);
 
             } catch (error) {
                 console.error('[PARTICIPANTE-DASHBOARD] Erro na verificação de autenticação:', error);
@@ -567,7 +606,49 @@
             }
         }
 
-        // ✅ CARREGAR EXTRATO FINANCEIRO
+        // ✅ CARREGAR ESTATÍSTICAS DO PARTICIPANTE
+        async function carregarEstatisticasParticipante(timeId, ligaId) {
+            const welcomeStats = document.getElementById('welcomeStats');
+            if (!welcomeStats) return;
+
+            try {
+                // Buscar dados básicos do participante
+                const response = await fetch(`/api/pontos-corridos/calcular/${ligaId}`, {
+                    credentials: 'include'
+                });
+
+                if (response.ok) {
+                    const data = await response.json();
+                    const participante = data.classificacao?.find(p => p.timeId === timeId);
+
+                    if (participante) {
+                        welcomeStats.innerHTML = `
+                            <div style="background: rgba(255, 69, 0, 0.08); border: 1px solid rgba(255, 69, 0, 0.2); border-radius: 8px; padding: 12px; text-align: center;">
+                                <div style="font-size: 24px; font-weight: 700; color: var(--laranja); margin-bottom: 4px;">${participante.posicao}º</div>
+                                <div style="font-size: 11px; color: var(--text-muted); font-weight: 600;">Posição</div>
+                            </div>
+                            <div style="background: rgba(34, 197, 94, 0.08); border: 1px solid rgba(34, 197, 94, 0.2); border-radius: 8px; padding: 12px; text-align: center;">
+                                <div style="font-size: 24px; font-weight: 700; color: var(--success); margin-bottom: 4px;">${participante.pontos}</div>
+                                <div style="font-size: 11px; color: var(--text-muted); font-weight: 600;">Pontos</div>
+                            </div>
+                            <div style="background: rgba(59, 130, 246, 0.08); border: 1px solid rgba(59, 130, 246, 0.2); border-radius: 8px; padding: 12px; text-align: center;">
+                                <div style="font-size: 24px; font-weight: 700; color: #3b82f6; margin-bottom: 4px;">${participante.vitorias}</div>
+                                <div style="font-size: 11px; color: var(--text-muted); font-weight: 600;">Vitórias</div>
+                            </div>
+                        `;
+                    }
+                }
+            } catch (error) {
+                console.error('[PARTICIPANTE-DASHBOARD] Erro ao carregar estatísticas:', error);
+                welcomeStats.innerHTML = `
+                    <div style="grid-column: 1 / -1; text-align: center; padding: 20px; color: var(--text-muted); font-size: 12px;">
+                        Use o menu acima para navegar pelos módulos
+                    </div>
+                `;
+            }
+        }
+
+        // ✅ CARREGAR EXTRATO FINANCEIRO (só quando usuário clicar)
             async function carregarExtrato(timeId, ligaId, participante) {
                 console.log('[PARTICIPANTE-DASHBOARD] Carregando extrato para:', { timeId, ligaId, participante });
 
@@ -625,7 +706,7 @@
         function inicializarNavegacao() {
             const navItems = document.querySelectorAll('.nav-item');
             navItems.forEach(item => {
-                item.addEventListener('click', function() {
+                item.addEventListener('click', async function() {
                     const module = this.getAttribute('data-module');
 
                     // Remover active de todos
@@ -634,11 +715,18 @@
                     // Adicionar active no clicado
                     this.classList.add('active');
 
-                    // Por enquanto, apenas o extrato está disponível
-                    if (module !== 'extrato') {
+                    // Carregar módulo específico
+                    if (module === 'extrato') {
+                        // Carregar extrato sob demanda
+                        const sessionResponse = await fetch('/api/participante/auth/session', {
+                            credentials: 'include'
+                        });
+                        const sessionData = await sessionResponse.json();
+                        const { participante } = sessionData;
+                        await carregarExtrato(participante.timeId, participante.ligaId, participante);
+                    } else {
                         alert('🚧 Em breve! Este módulo estará disponível em uma próxima atualização.');
-                        // Voltar para extrato
-                        document.querySelector('[data-module="extrato"]').classList.add('active');
+                        // Remover active deste módulo
                         this.classList.remove('active');
                     }
                 });
