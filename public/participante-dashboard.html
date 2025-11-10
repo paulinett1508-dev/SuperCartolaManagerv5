@@ -388,7 +388,7 @@
         <span>Sair</span>
       </button>
     </div>
-    
+
     <!-- NAVEGAÇÃO ENTRE MÓDULOS -->
     <nav class="nav-menu">
       <button class="nav-item active" data-module="extrato">
@@ -466,7 +466,7 @@
             if (fluxoContent) {
                 fluxoContent.innerHTML = `
                     <div style="text-align: center; padding: 40px; color: var(--text-muted);">
-                        <div style="display: inline-block; width: 40px; height: 40px; border: 4px solid #f3f3f3; 
+                        <div style="display: inline-block; width: 40px; height: 40px; border: 4px solid #f3f3f3;
                                     border-top: 4px solid var(--laranja); border-radius: 50%; animation: spin 1s linear infinite;"></div>
                         <p style="margin-top: 20px;">Verificando autenticação...</p>
                     </div>
@@ -600,13 +600,13 @@
             navItems.forEach(item => {
                 item.addEventListener('click', function() {
                     const module = this.getAttribute('data-module');
-                    
+
                     // Remover active de todos
                     navItems.forEach(nav => nav.classList.remove('active'));
-                    
+
                     // Adicionar active no clicado
                     this.classList.add('active');
-                    
+
                     // Por enquanto, apenas o extrato está disponível
                     if (module !== 'extrato') {
                         alert('🚧 Em breve! Este módulo estará disponível em uma próxima atualização.');
