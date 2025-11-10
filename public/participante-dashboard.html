@@ -564,17 +564,8 @@
 
         // Verificar autenticação
         async function verificarAutenticacao() {
-            // Mostrar loading inicial
-            const fluxoContent = document.getElementById('fluxoFinanceiroContent');
-            if (fluxoContent) {
-                fluxoContent.innerHTML = `
-                    <div style="text-align: center; padding: 40px; color: var(--text-muted);">
-                        <div style="display: inline-block; width: 40px; height: 40px; border: 4px solid #f3f3f3;
-                                    border-top: 4px solid var(--laranja); border-radius: 50%; animation: spin 1s linear infinite;"></div>
-                        <p style="margin-top: 20px;">Verificando autenticação...</p>
-                    </div>
-                `;
-            }
+            // NÃO mostrar loading - manter tela de boas-vindas
+            console.log('[PARTICIPANTE-DASHBOARD] Verificando autenticação...');
 
             try {
                 const authResponse = await fetch('/api/participante/auth/check', {
@@ -649,6 +640,36 @@
 
                 // Buscar estatísticas do participante para exibir na welcome screen
                 await carregarEstatisticasParticipante(participante.timeId, participante.ligaId);
+
+                // Mostrar botão de refresh
+                const btnRefresh = document.getElementById('btnRefreshCache');
+                if (btnRefresh) {
+                    btnRefresh.style.display = 'flex';
+                    
+                    // Configurar evento de refresh manual
+                    btnRefresh.addEventListener('click', async () => {
+                        const confirmRefresh = confirm(
+                            '⚠️ Isso irá recarregar todos os dados do servidor.\n\n' +
+                            'Deseja continuar?'
+                        );
+
+                        if (confirmRefresh) {
+                            btnRefresh.disabled = true;
+                            btnRefresh.innerHTML = '<span class="refresh-icon">⏳</span><span class="refresh-text">Atualizando...</span>';
+
+                            try {
+                                const { forceRefresh } = await import('/js/fluxo-financeiro/fluxo-financeiro-cache.js');
+                                await forceRefresh(participante.timeId, participante.ligaId);
+                                setTimeout(() => window.location.reload(), 500);
+                            } catch (e) {
+                                console.error("Erro ao atualizar:", e);
+                                alert("Não foi possível atualizar os dados.");
+                                btnRefresh.innerHTML = '<span class="refresh-icon">🔄</span><span class="refresh-text">Atualizar</span>';
+                                btnRefresh.disabled = false;
+                            }
+                        }
+                    });
+                }
 
             } catch (error) {
                 console.error('[PARTICIPANTE-DASHBOARD] Erro na verificação de autenticação:', error);
@@ -828,67 +849,7 @@
             // Verificar autenticação
             await verificarAutenticacao();
 
-            // ✅ APENAS CONFIGURAR TELA DE BOAS-VINDAS - NÃO CARREGAR EXTRATO
-            const sessionResponse = await fetch('/api/participante/auth/session', { credentials: 'include' });
-            if (sessionResponse.ok) {
-                const sessionData = await sessionResponse.json();
-                const { participante } = sessionData;
-
-                if (participante) {
-                    const welcomeTitle = document.getElementById('welcomeTitle');
-                    const welcomeSubtitle = document.getElementById('welcomeSubtitle');
-                    
-                    if (welcomeTitle) {
-                        welcomeTitle.textContent = `Olá, ${participante.nome || participante.nome_cartola || 'Participante'}! 👋`;
-                    }
-                    if (welcomeSubtitle) {
-                        welcomeSubtitle.textContent = `Time: ${participante.time_nome || participante.nomeTime || 'Time'} | Liga: ${sessionData.ligaNome || 'Liga'}`;
-                    }
-
-                    // Carregar estatísticas para a tela de boas-vindas
-                    await carregarEstatisticasParticipante(participante.timeId, participante.ligaId);
-
-                    // Mostrar botão de refresh
-                    const btnRefresh = document.getElementById('btnRefreshCache');
-                    if (btnRefresh) {
-                        btnRefresh.style.display = 'flex';
-                    }
-
-                    // Configurar evento de refresh manual
-                    if (btnRefresh) {
-                        btnRefresh.addEventListener('click', async () => {
-                            const confirmRefresh = confirm(
-                                '⚠️ Isso irá recarregar todos os dados do servidor.\n\n' +
-                                'Deseja continuar?'
-                            );
-
-                            if (confirmRefresh) {
-                                btnRefresh.disabled = true;
-                                btnRefresh.innerHTML = '<span class="refresh-icon">⏳</span><span class="refresh-text">Atualizando...</span>';
-
-                                // Importar função de refresh
-                                try {
-                                    const { forceRefresh } = await import('/js/fluxo-financeiro/fluxo-financeiro-cache.js');
-                                    await forceRefresh(participante.timeId || participante.id, participante.ligaId || sessionData.ligaId);
-                                } catch (e) {
-                                    console.error("Erro ao importar ou executar forceRefresh:", e);
-                                    alert("Não foi possível atualizar os dados. Tente novamente mais tarde.");
-                                    btnRefresh.innerHTML = '<span class="refresh-icon">🔄</span><span class="refresh-text">Atualizar</span>';
-                                    btnRefresh.disabled = false;
-                                    return;
-                                }
-
-                                // Recarregar página após 500ms
-                                setTimeout(() => {
-                                    window.location.reload();
-                                }, 500);
-                            }
-                        });
-                    }
-
-                    console.log('[PARTICIPANTE-DASHBOARD] ✅ Tela de boas-vindas configurada');
-                }
-            }
+            console.log('[PARTICIPANTE-DASHBOARD] ✅ Dashboard inicializado - aguardando interação do usuário');
         });
     </script>
 </body>
