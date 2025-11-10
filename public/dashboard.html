@@ -47,30 +47,6 @@
                         </div>
                     </div>
 
-                    <!-- Insights Avançados -->
-                    <div class="insights-section">
-                        <div class="insights-header">
-                            <div class="section-icon">📊</div>
-                            <h3>Insights da Plataforma</h3>
-                        </div>
-
-                        <div class="insights-grid">
-                            <div class="insight-card full-width">
-                                <div class="insight-title">
-                                    Distribuição Completa por Clube do Coração
-                                </div>
-                                <div
-                                    id="clubesDistribuicao"
-                                    class="clubes-stats-completa"
-                                >
-                                    <div class="loading-mini">
-                                        Analisando distribuição...
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-
                     <!-- Seção de Busca -->
                     <div class="search-section">
                         <div class="search-container">
@@ -359,7 +335,6 @@
 
                     renderizarLigas(ligasData);
                     atualizarEstatisticasGlobais(estatisticasGlobais);
-                    renderizarInsights(estatisticasGlobais);
                 } catch (error) {
                     console.error("Erro ao carregar ligas:", error);
                     container.innerHTML = "";
