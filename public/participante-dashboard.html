@@ -289,11 +289,6 @@
             margin: 0 auto;
         }
 
-        @keyframes spin {
-            0% { transform: rotate(0deg); }
-            100% { transform: rotate(360deg); }
-        }
-
         /* Mobile optimizations */
         @media (max-width: 768px) {
             .header-top {
@@ -368,6 +363,72 @@
         padding: 8px 4px !important;
       }
     }
+
+    .welcome-header {
+        display: flex;
+        align-items: center;
+        gap: 16px;
+        padding: 20px 20px 10px 20px;
+        justify-content: space-between; /* Adjust to make space for the button */
+        flex-wrap: wrap; /* Allow wrapping on smaller screens */
+    }
+
+    .welcome-icon {
+        font-size: 32px;
+        margin-right: 10px;
+    }
+
+    .welcome-info {
+        display: flex;
+        flex-direction: column;
+        flex-grow: 1; /* Allow info to take available space */
+        min-width: 150px; /* Ensure minimum width */
+    }
+
+    .welcome-title {
+        margin: 0;
+        color: var(--text-primary);
+        font-size: 22px;
+        font-weight: 700;
+    }
+
+    .welcome-subtitle {
+            margin: 0;
+            color: var(--text-muted);
+            font-size: 13px;
+        }
+
+        .btn-refresh-cache {
+            padding: 10px 18px;
+            background: linear-gradient(135deg, #FF4500, #FF6B35);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 13px;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            transition: all 0.3s ease;
+            box-shadow: 0 2px 8px rgba(255, 69, 0, 0.3);
+        }
+
+        .btn-refresh-cache:hover {
+            background: linear-gradient(135deg, #FF6B35, #FF4500);
+            box-shadow: 0 4px 12px rgba(255, 69, 0, 0.5);
+            transform: translateY(-2px);
+        }
+
+        .btn-refresh-cache:active .refresh-icon {
+            animation: spin 0.6s ease-in-out;
+        }
+
+        @keyframes spin {
+            from { transform: rotate(0deg); }
+            to { transform: rotate(360deg); }
+        }
+
   </style>
 </head>
 <body>
@@ -424,30 +485,26 @@
         </div>
         <!-- Container onde o extrato será renderizado -->
         <div id="fluxoFinanceiroContent" class="card-content" style="padding: 0;">
-            <div class="welcome-dashboard" style="padding: 40px 20px; background: var(--bg-card);">
-                <!-- Avatar e Nome -->
-                <div style="text-align: center; margin-bottom: 30px;">
-                    <div id="welcomeAvatar" style="width: 80px; height: 80px; margin: 0 auto 16px; border-radius: 50%; background: var(--gradient-primary); display: flex; align-items: center; justify-content: center; box-shadow: 0 4px 16px rgba(255, 69, 0, 0.3);">
-                        <span style="font-size: 36px;">⚽</span>
+            <div class="welcome-dashboard" style="padding: 0;">
+                <div class="welcome-header">
+                    <div class="welcome-icon">👤</div>
+                    <div class="welcome-info">
+                        <h1 id="welcomeTitle">Bem-vindo!</h1>
+                        <p id="welcomeSubtitle">Carregando informações...</p>
                     </div>
-                    <h2 id="welcomeName" style="margin: 0 0 8px 0; color: var(--text-primary); font-size: 22px; font-weight: 700;">
-                        Carregando...
-                    </h2>
-                    <p id="welcomeTeam" style="margin: 0 0 4px 0; color: var(--text-secondary); font-size: 14px;">
-                        Time
-                    </p>
-                    <p id="welcomeLiga" style="margin: 0; color: var(--text-muted); font-size: 12px;">
-                        Liga
-                    </p>
+                    <button id="btnRefreshCache" class="btn-refresh-cache" title="Atualizar dados do servidor" style="display: none;">
+                        <span class="refresh-icon">🔄</span>
+                        <span class="refresh-text">Atualizar</span>
+                    </button>
                 </div>
 
                 <!-- Cards de Estatísticas Rápidas -->
-                <div id="welcomeStats" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 12px; margin-bottom: 30px;">
+                <div id="welcomeStats" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 12px; margin-bottom: 30px; padding: 0 20px;">
                     <!-- Será preenchido dinamicamente -->
                 </div>
 
                 <!-- Módulos Disponíveis -->
-                <div style="background: rgba(255, 69, 0, 0.05); border: 1px solid rgba(255, 69, 0, 0.15); border-radius: 12px; padding: 20px;">
+                <div style="background: rgba(255, 69, 0, 0.05); border: 1px solid rgba(255, 69, 0, 0.15); border-radius: 12px; padding: 20px; margin: 0 20px 20px 20px;">
                     <h3 style="margin: 0 0 16px 0; color: var(--text-primary); font-size: 14px; font-weight: 600; text-align: center;">
                         📱 Módulos Disponíveis
                     </h3>
@@ -568,7 +625,7 @@
                 // Extrair dados do participante
                 const nomeCartola = participante.participante?.nome_cartola || participante.nomeCartola || participante.nome_cartola || 'Participante';
                 const nomeTime = participante.participante?.nome_time || participante.nomeTime || participante.nome_time || 'Time';
-                const escudoUrl = participante.participante?.url_escudo_png || participante.url_escudo_png || 
+                const escudoUrl = participante.participante?.url_escudo_png || participante.url_escudo_png ||
                                  (participante.participante?.clube_id ? `/escudos/${participante.participante.clube_id}.png` :
                                   participante.clube_id ? `/escudos/${participante.clube_id}.png` : null);
 
@@ -588,7 +645,7 @@
                 if (welcomeName) welcomeName.textContent = `Olá, ${nomeCartola}! 👋`;
                 if (welcomeTeam) welcomeTeam.textContent = nomeTime;
                 if (welcomeLiga) welcomeLiga.textContent = sessionData.ligaNome || 'Liga';
-                
+
                 if (welcomeAvatar && escudoUrl) {
                     welcomeAvatar.innerHTML = `<img src="${escudoUrl}" alt="${nomeCartola}" style="width: 100%; height: 100%; border-radius: 50%; object-fit: cover;" onerror="this.parentElement.innerHTML='<span style=\\'font-size: 36px;\\'>⚽</span>'">`;
                 }
@@ -758,6 +815,57 @@
 
             // Verificar autenticação
             await verificarAutenticacao();
+
+            // Mostrar informações personalizadas
+            // Se participante já estiver disponível (por exemplo, em um cache de sessão)
+            const sessionResponse = await fetch('/api/participante/auth/session', { credentials: 'include' });
+            if (sessionResponse.ok) {
+                const sessionData = await sessionResponse.json();
+                const { participante } = sessionData;
+
+                if (participante) {
+                    document.getElementById('welcomeTitle').textContent =
+                        `Olá, ${participante.nome || participante.nome_cartola || 'Participante'}!`;
+                    document.getElementById('welcomeSubtitle').textContent =
+                        `Time: ${participante.time_nome || participante.nomeTime || 'Time'} | Liga: ${sessionData.ligaNome || 'Liga'}`;
+
+                    // Mostrar botão de refresh
+                    const btnRefresh = document.getElementById('btnRefreshCache');
+                    btnRefresh.style.display = 'flex';
+
+                    // Configurar evento de refresh manual
+                    btnRefresh.addEventListener('click', async () => {
+                        const confirmRefresh = confirm(
+                            '⚠️ Isso irá recarregar todos os dados do servidor.\n\n' +
+                            'Deseja continuar?'
+                        );
+
+                        if (confirmRefresh) {
+                            btnRefresh.disabled = true;
+                            btnRefresh.innerHTML = '<span class="refresh-icon">⏳</span><span class="refresh-text">Atualizando...</span>';
+
+                            // Importar função de refresh
+                            try {
+                                const { forceRefresh } = await import('/js/fluxo-financeiro/fluxo-financeiro-cache.js');
+                                // Use participante.timeId e participante.ligaId ou participante.id se disponível
+                                await forceRefresh(participante.timeId || participante.id, participante.ligaId || sessionData.ligaId);
+                            } catch (e) {
+                                console.error("Erro ao importar ou executar forceRefresh:", e);
+                                alert("Não foi possível atualizar os dados. Tente novamente mais tarde.");
+                                btnRefresh.innerHTML = '<span class="refresh-icon">🔄</span><span class="refresh-text">Atualizar</span>';
+                                btnRefresh.disabled = false;
+                                return;
+                            }
+
+
+                            // Recarregar página após 500ms
+                            setTimeout(() => {
+                                window.location.reload();
+                            }, 500);
+                        }
+                    });
+                }
+            }
         });
     </script>
 </body>

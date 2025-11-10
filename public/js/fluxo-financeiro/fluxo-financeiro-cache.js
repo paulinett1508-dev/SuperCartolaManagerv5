@@ -19,6 +19,12 @@ import {
 
 import { cacheManager } from "../core/cache-manager.js";
 
+// ✅ CACHE PERSISTENTE - NÃO EXPIRA AUTOMATICAMENTE
+const CACHE_NEVER_EXPIRE = Infinity;
+const cache = new Map();
+let ultimaLigaId = null;
+let ultimaAtualizacaoManual = null;
+
 export class FluxoFinanceiroCache {
     constructor() {
         this.cacheRankings = {};
@@ -182,7 +188,7 @@ export class FluxoFinanceiroCache {
                 async () => {
                     // Cache miss - buscar da API
                     const data = await getRankingRodadaEspecifica(ligaId, rodada);
-                    
+
                     if (!data || !Array.isArray(data) || data.length === 0) {
                         return gerarRankingSimulado(rodada, this.participantes);
                     }
@@ -410,4 +416,61 @@ export class FluxoFinanceiroCache {
         console.log("[FLUXO-CACHE] Estado do cache:", stats);
         return stats;
     }
+}
+
+// Gera a chave única para o cache, considerando ligaId e participante
+function generateCacheKey(ligaId, participante = null) {
+    if (participante) {
+        return `${ligaId}-${participante.timeId}`;
+    }
+    return `${ligaId}-geral`;
+}
+
+// Obtém dados do cache, sem expiração automática
+export async function getCachedFluxoFinanceiro(ligaId, participante = null) {
+  const key = generateCacheKey(ligaId, participante);
+  const cached = cache.get(key);
+
+  if (cached) {
+    console.log('[FLUXO-CACHE] ⚡ Cache persistente encontrado (última atualização manual:', 
+      ultimaAtualizacaoManual ? new Date(ultimaAtualizacaoManual).toLocaleString('pt-BR') : 'nunca',
+      ')');
+    return cached.data;
+  }
+
+  console.log('[FLUXO-CACHE] ⏱️ Nenhum cache encontrado - primeira carga');
+  return null;
+}
+
+// Armazena dados no cache persistente
+export function setCachedFluxoFinanceiro(ligaId, data, participante = null) {
+    const key = generateCacheKey(ligaId, participante);
+    // Armazena o timestamp da última atualização manual, se existir
+    cache.set(key, {
+        data: data,
+        timestamp: ultimaAtualizacaoManual || Date.now() // Usa timestamp manual se disponível
+    });
+    console.log('[FLUXO-CACHE] 💾 Dados armazenados em cache:', key);
+}
+
+// Limpa o cache (todo ou específico)
+export function invalidateCache(ligaId = null, participante = null) {
+  if (!ligaId) {
+    cache.clear();
+    ultimaAtualizacaoManual = null;
+    console.log('[FLUXO-CACHE] 🗑️ Todo cache limpo');
+    return;
+  }
+
+  const key = generateCacheKey(ligaId, participante);
+  cache.delete(key);
+  console.log('[FLUXO-CACHE] 🗑️ Cache invalidado para:', key);
+}
+
+// ✅ NOVA FUNÇÃO: Refresh manual do usuário
+export function forceRefresh(ligaId, participante = null) {
+  invalidateCache(ligaId, participante);
+  ultimaAtualizacaoManual = Date.now();
+  console.log('[FLUXO-CACHE] 🔄 Refresh manual acionado pelo usuário');
+  return true;
 }
