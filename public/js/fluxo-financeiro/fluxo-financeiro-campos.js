@@ -3,7 +3,7 @@
 // ==============================
 
 import { FluxoFinanceiroAPI } from "./fluxo-financeiro-api.js";
-import { getLigaId } from "../pontos-corridos-utils.js";
+import { obterLigaId } from "../pontos-corridos-utils.js";
 
 export class FluxoFinanceiroCampos {
     /**
@@ -13,7 +13,7 @@ export class FluxoFinanceiroCampos {
      */
     static async carregarTodosCamposEditaveis(timeId) {
         try {
-            const ligaId = getLigaId();
+            const ligaId = obterLigaId();
             const data = await FluxoFinanceiroAPI.getCampos(ligaId, timeId);
 
             // Transformar array de campos em objeto
@@ -52,7 +52,7 @@ export class FluxoFinanceiroCampos {
      */
     static async salvarValorCampo(timeId, nomeCampo, valor) {
         try {
-            const ligaId = getLigaId();
+            const ligaId = obterLigaId();
             const campoIndex = parseInt(nomeCampo.replace("campo", "")) - 1;
 
             // ✅ CARREGAR DADOS ATUAIS PRIMEIRO
@@ -95,7 +95,7 @@ export class FluxoFinanceiroCampos {
      */
     static async salvarNomeCampo(timeId, nomeCampo, nome) {
         try {
-            const ligaId = getLigaId();
+            const ligaId = obterLigaId();
             const campoIndex = parseInt(nomeCampo.replace("campo", "")) - 1;
 
             // ✅ CARREGAR DADOS ATUAIS PRIMEIRO
@@ -150,7 +150,7 @@ export class FluxoFinanceiroCampos {
      */
     static async resetarCampos(timeId) {
         try {
-            const ligaId = getLigaId();
+            const ligaId = obterLigaId();
             const data = await FluxoFinanceiroAPI.resetarCampos(ligaId, timeId);
 
             console.log(
@@ -183,7 +183,7 @@ export class FluxoFinanceiroCampos {
      */
     static async importarCampos(timeId, dadosCampos) {
         try {
-            const ligaId = getLigaId();
+            const ligaId = obterLigaId();
 
             const campos = [
                 dadosCampos.campo1 || { nome: "Campo 1", valor: 0 },
