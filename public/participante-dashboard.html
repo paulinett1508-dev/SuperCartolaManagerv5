@@ -771,6 +771,18 @@
 
                     // Carregar módulo específico
                     if (module === 'extrato') {
+                        // Mostrar loading enquanto carrega
+                        const fluxoContent = document.getElementById('fluxoFinanceiroContent');
+                        if (fluxoContent) {
+                            fluxoContent.innerHTML = `
+                                <div style="text-align: center; padding: 40px; color: var(--text-muted);">
+                                    <div style="display: inline-block; width: 40px; height: 40px; border: 4px solid #f3f3f3;
+                                                border-top: 4px solid var(--laranja); border-radius: 50%; animation: spin 1s linear infinite;"></div>
+                                    <p style="margin-top: 20px;">Carregando extrato...</p>
+                                </div>
+                            `;
+                        }
+
                         // Carregar extrato sob demanda
                         const sessionResponse = await fetch('/api/participante/auth/session', {
                             credentials: 'include'
@@ -787,37 +799,31 @@
             });
         }
 
-        // ✅ REMOVER ACTIVE DO BOTÃO EXTRATO AO CARREGAR (não deve estar ativo por padrão)
-        function removerActiveInicial() {
-            const navItems = document.querySelectorAll('.nav-item');
-            navItems.forEach(nav => nav.classList.remove('active'));
-        }
-
         // Inicializar dashboard
         window.addEventListener('DOMContentLoaded', async () => {
             console.log('[PARTICIPANTE-DASHBOARD] Inicializando...');
-
-            // Inicializar navegação
-            inicializarNavegacao();
-
-            // ✅ REMOVER ACTIVE INICIAL (não carregar extrato automaticamente)
-            removerActiveInicial();
 
             // Carregar módulos primeiro
             const modulosCarregados = await carregarModulosFluxo();
 
             if (!modulosCarregados) {
                 console.error('[PARTICIPANTE-DASHBOARD] Falha ao carregar módulos');
-                document.getElementById('extratoFinanceiroContainer').innerHTML = `
-                    <div style="text-align: center; padding: 40px; background: rgba(239, 68, 68, 0.1); border-radius: 12px; border: 1px solid rgba(239, 68, 68, 0.3);">
-                        <div style="font-size: 48px; margin-bottom: 16px;">⚠️</div>
-                        <h3 style="color: #ef4444; margin-bottom: 12px;">Erro ao Carregar Sistema</h3>
-                        <p style="color: #e0e0e0;">Não foi possível carregar o módulo financeiro.</p>
-                        <button onclick="location.reload()" style="margin-top: 20px; padding: 10px 20px; background: linear-gradient(135deg, #ff4500 0%, #e8472b 100%); color: white; border: none; border-radius: 8px; cursor: pointer; font-weight: 600;">Tentar Novamente</button>
-                    </div>
-                `;
+                const fluxoContent = document.getElementById('fluxoFinanceiroContent');
+                if (fluxoContent) {
+                    fluxoContent.innerHTML = `
+                        <div style="text-align: center; padding: 40px; background: rgba(239, 68, 68, 0.1); border-radius: 12px; border: 1px solid rgba(239, 68, 68, 0.3);">
+                            <div style="font-size: 48px; margin-bottom: 16px;">⚠️</div>
+                            <h3 style="color: #ef4444; margin-bottom: 12px;">Erro ao Carregar Sistema</h3>
+                            <p style="color: #e0e0e0;">Não foi possível carregar o módulo financeiro.</p>
+                            <button onclick="location.reload()" style="margin-top: 20px; padding: 10px 20px; background: linear-gradient(135deg, #ff4500 0%, #e8472b 100%); color: white; border: none; border-radius: 8px; cursor: pointer; font-weight: 600;">Tentar Novamente</button>
+                        </div>
+                    `;
+                }
                 return;
             }
+
+            // Inicializar navegação (DEPOIS de carregar módulos)
+            inicializarNavegacao();
 
             // Verificar autenticação
             await verificarAutenticacao();
@@ -851,7 +857,7 @@
                     // Configurar evento de refresh manual
                     if (btnRefresh) {
                         btnRefresh.addEventListener('click', async () => {
-                        const confirmRefresh = confirm(
+                            const confirmRefresh = confirm(
                                 '⚠️ Isso irá recarregar todos os dados do servidor.\n\n' +
                                 'Deseja continuar?'
                             );
@@ -879,6 +885,8 @@
                             }
                         });
                     }
+
+                    console.log('[PARTICIPANTE-DASHBOARD] ✅ Tela de boas-vindas configurada');
                 }
             }
         });
