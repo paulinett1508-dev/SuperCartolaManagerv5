@@ -25,6 +25,7 @@ import fluxoFinanceiroRoutes from "./routes/fluxoFinanceiroRoutes.js";
 import extratoFinanceiroCacheRoutes from "./routes/extratoFinanceiroCacheRoutes.js"; // Nova importação
 import participanteAuthRoutes from "./routes/participante-auth.js";
 import { getClubes } from "./controllers/cartolaController.js";
+import { verificarAutenticacaoReplit, isRotaPublica } from "./middleware/auth.js";
 
 // Configurar variáveis de ambiente
 dotenv.config();
@@ -66,6 +67,27 @@ app.use(
 
 app.use(express.json({ limit: "10mb" }));
 app.use(express.urlencoded({ extended: true, limit: "10mb" }));
+
+// ⚡ MIDDLEWARE DE SEGURANÇA: Proteger páginas admin
+app.use((req, res, next) => {
+  // Se é uma rota de API, deixa passar (autenticação é feita nas rotas)
+  if (req.path.startsWith('/api/')) {
+    return next();
+  }
+  
+  // Se é uma rota pública (participante ou assets), deixa passar
+  if (isRotaPublica(req.path)) {
+    return next();
+  }
+  
+  // Se é uma página HTML do admin, verificar autenticação Replit
+  if (req.path.endsWith('.html') && !req.path.startsWith('/participante-')) {
+    return verificarAutenticacaoReplit(req, res, next);
+  }
+  
+  // Outros arquivos estáticos (css, js, etc) deixa passar
+  next();
+});
 
 // Servir arquivos estáticos da pasta public
 app.use(express.static(path.join(process.cwd(), "public")));
