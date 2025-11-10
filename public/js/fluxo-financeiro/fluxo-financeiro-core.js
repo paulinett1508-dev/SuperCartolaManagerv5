@@ -1,6 +1,6 @@
 // FLUXO-FINANCEIRO-CORE.JS - OTIMIZADO COM PROCESSAMENTO PARALELO
 import { calcularFinanceiroConfronto } from "../pontos-corridos-utils.js";
-import { getLigaId } from "../pontos-corridos-utils.js";
+import { obterLigaId } from "../pontos-corridos-utils.js";
 import { FluxoFinanceiroCampos } from "./fluxo-financeiro-campos.js";
 import {
     RODADA_INICIAL_PONTOS_CORRIDOS,
@@ -56,7 +56,7 @@ export class FluxoFinanceiroCore {
             `[FLUXO-CORE] Iniciando cálculo OTIMIZADO para time ${timeId} até rodada ${ultimaRodadaCompleta}`,
         );
 
-        const ligaId = getLigaId();
+        const ligaId = obterLigaId();
         const isSuperCartola2025 = ligaId === ID_SUPERCARTOLA_2025;
         const isCartoleirosSobral = ligaId === ID_CARTOLEIROS_SOBRAL;
 
@@ -414,7 +414,7 @@ export class FluxoFinanceiroCore {
             const { mitos: top10Mitos, micos: top10Micos } =
                 await garantirDadosCarregados();
 
-            const ligaId = getLigaId();
+            const ligaId = obterLigaId();
             const isCartoleirosSobral = ligaId === ID_CARTOLEIROS_SOBRAL;
 
             const valoresMitos = isCartoleirosSobral
