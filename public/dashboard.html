@@ -115,9 +115,7 @@
 
         <script type="module">
             import { carregarLigas } from "./js/gerenciar-ligas.js";
-            import { CacheManager } from "./js/cacheManager.js"; // Assumindo que CacheManager está em cacheManager.js
-
-            const cacheManager = new CacheManager();
+            import { cacheManager } from "./js/core/cache-manager.js";
 
             let ligasData = [];
             let estatisticasGlobais = {
@@ -314,13 +312,11 @@
 
                 try {
                     // Tenta carregar dados do cache primeiro
-                    ligasData = await cacheManager.getItem('ligasData');
-
-                    if (!ligasData) {
-                        ligasData = await carregarLigas();
-                        // Salva no cache se os dados foram carregados do backend
-                        await cacheManager.setItem('ligasData', ligasData, 86400); // Cache por 1 dia
-                    }
+                    const cacheKey = 'dashboard_ligas_{"all":true}';
+                    
+                    ligasData = await cacheManager.get('ligas', cacheKey, async () => {
+                        return await carregarLigas();
+                    }, { ttl: 86400000 }); // Cache por 1 dia (em ms)
 
                     if (ligasData.length === 0) {
                         container.innerHTML = "";
@@ -580,7 +576,7 @@
                 const btnLimparCache = document.getElementById("btn-limpar-cache");
                 if (btnLimparCache) {
                     btnLimparCache.addEventListener("click", async () => {
-                        await cacheManager.clear();
+                        await cacheManager.clearAll();
                         alert("Cache limpo com sucesso! A página será recarregada.");
                         window.location.reload();
                     });
