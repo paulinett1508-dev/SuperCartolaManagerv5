@@ -217,13 +217,7 @@
   </div>
 
   <div class="container">
-    <div class="loading" id="loading">
-      <div class="spinner"></div>
-      <p>Carregando seu extrato...</p>
-    </div>
-
     <div id="errorContainer"></div>
-    <div id="extratoFinanceiroContainer"></div>
 
     <!-- Extrato Financeiro -->
     <div id="extratoFinanceiro" class="dashboard-card">
@@ -265,6 +259,18 @@
 
         // Verificar autenticação
         async function verificarAutenticacao() {
+            // Mostrar loading inicial
+            const fluxoContent = document.getElementById('fluxoFinanceiroContent');
+            if (fluxoContent) {
+                fluxoContent.innerHTML = `
+                    <div style="text-align: center; padding: 40px; color: var(--text-muted);">
+                        <div style="display: inline-block; width: 40px; height: 40px; border: 4px solid #f3f3f3; 
+                                    border-top: 4px solid var(--laranja); border-radius: 50%; animation: spin 1s linear infinite;"></div>
+                        <p style="margin-top: 20px;">Verificando autenticação...</p>
+                    </div>
+                `;
+            }
+
             try {
                 const authResponse = await fetch('/api/participante/auth/check', {
                     credentials: 'include'
@@ -315,7 +321,9 @@
                 console.error('[PARTICIPANTE-DASHBOARD] Erro na verificação de autenticação:', error);
                 document.getElementById('errorContainer').innerHTML =
                     `<div class="error-message">❌ Erro: ${error.message}</div>`;
-                document.getElementById('loading').style.display = 'none';
+                if (fluxoContent) {
+                    fluxoContent.innerHTML = '';
+                }
             }
         }
 
