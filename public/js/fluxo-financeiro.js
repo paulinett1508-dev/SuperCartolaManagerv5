@@ -473,6 +473,14 @@ window.exportarExtrato = exportarExtrato;
 window.gerarRelatorioFinanceiro = gerarRelatorioFinanceiro;
 window.exportarRelatorioCSV = exportarRelatorioCSV;
 
+// ✅ EXPORTAR PARA USO EM MÓDULOS ES6 (participante-dashboard.html)
+export { 
+    calcularEExibirExtrato, 
+    inicializarFluxoFinanceiro,
+    selecionarParticipante,
+    obterLigaId 
+};
+
 // ===== VARIÁVEL GLOBAL PARA ARMAZENAR PARTICIPANTE ATUAL =====
 let participanteAtualCache = null;
 
