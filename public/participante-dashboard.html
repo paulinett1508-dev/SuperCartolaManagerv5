@@ -517,14 +517,41 @@
                 const userTeam = document.getElementById('userTeam');
                 const userAvatar = document.getElementById('userAvatar');
 
+                console.log('[PARTICIPANTE-DASHBOARD] Dados do participante:', participante);
+
                 if (userName) {
-                    userName.textContent = participante.participante.nome_cartola || 'Participante';
+                    // Tentar diferentes caminhos para o nome do cartola
+                    const nomeCartola = participante.participante?.nome_cartola || 
+                                       participante.nomeCartola || 
+                                       participante.nome_cartola || 
+                                       'Participante';
+                    userName.textContent = nomeCartola;
                 }
+                
                 if (userTeam) {
-                    userTeam.textContent = participante.participante.nome_time || 'Time';
+                    // Tentar diferentes caminhos para o nome do time
+                    const nomeTime = participante.participante?.nome_time || 
+                                    participante.nomeTime || 
+                                    participante.nome_time || 
+                                    'Time';
+                    userTeam.textContent = nomeTime;
                 }
-                if (userAvatar && participante.participante.url_escudo_png) {
-                    userAvatar.innerHTML = `<img src="${participante.participante.url_escudo_png}" alt="${participante.participante.nome_cartola}">`;
+                
+                if (userAvatar) {
+                    // Tentar diferentes caminhos para o escudo
+                    const escudoUrl = participante.participante?.url_escudo_png || 
+                                     participante.url_escudo_png || 
+                                     participante.participante?.clube_id ? `/escudos/${participante.participante.clube_id}.png` :
+                                     participante.clube_id ? `/escudos/${participante.clube_id}.png` : null;
+                    
+                    const nomeCartola = participante.participante?.nome_cartola || 
+                                       participante.nomeCartola || 
+                                       participante.nome_cartola || 
+                                       'Participante';
+                    
+                    if (escudoUrl) {
+                        userAvatar.innerHTML = `<img src="${escudoUrl}" alt="${nomeCartola}" onerror="this.parentElement.innerHTML='<span style=\\'font-size: 24px;\\'>⚽</span>'">`;
+                    }
                 }
 
                 // Carregar extrato financeiro usando dados da sessão
