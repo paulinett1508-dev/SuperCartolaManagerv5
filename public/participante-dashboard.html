@@ -637,18 +637,11 @@
                 }
 
                 // Atualizar tela de boas-vindas
-                const welcomeName = document.getElementById('welcomeName');
-                const welcomeTeam = document.getElementById('welcomeTeam');
-                const welcomeLiga = document.getElementById('welcomeLiga');
-                const welcomeAvatar = document.getElementById('welcomeAvatar');
+                const welcomeTitle = document.getElementById('welcomeTitle');
+                const welcomeSubtitle = document.getElementById('welcomeSubtitle');
 
-                if (welcomeName) welcomeName.textContent = `Olá, ${nomeCartola}! 👋`;
-                if (welcomeTeam) welcomeTeam.textContent = nomeTime;
-                if (welcomeLiga) welcomeLiga.textContent = sessionData.ligaNome || 'Liga';
-
-                if (welcomeAvatar && escudoUrl) {
-                    welcomeAvatar.innerHTML = `<img src="${escudoUrl}" alt="${nomeCartola}" style="width: 100%; height: 100%; border-radius: 50%; object-fit: cover;" onerror="this.parentElement.innerHTML='<span style=\\'font-size: 36px;\\'>⚽</span>'">`;
-                }
+                if (welcomeTitle) welcomeTitle.textContent = `Olá, ${nomeCartola}! 👋`;
+                if (welcomeSubtitle) welcomeSubtitle.textContent = `Time: ${nomeTime} | Liga: ${sessionData.ligaNome || 'Liga'}`;
 
                 // Buscar estatísticas do participante para exibir na welcome screen
                 await carregarEstatisticasParticipante(participante.timeId, participante.ligaId);
@@ -790,12 +783,21 @@
             });
         }
 
+        // ✅ REMOVER ACTIVE DO BOTÃO EXTRATO AO CARREGAR (não deve estar ativo por padrão)
+        function removerActiveInicial() {
+            const navItems = document.querySelectorAll('.nav-item');
+            navItems.forEach(nav => nav.classList.remove('active'));
+        }
+
         // Inicializar dashboard
         window.addEventListener('DOMContentLoaded', async () => {
             console.log('[PARTICIPANTE-DASHBOARD] Inicializando...');
 
             // Inicializar navegação
             inicializarNavegacao();
+
+            // ✅ REMOVER ACTIVE INICIAL (não carregar extrato automaticamente)
+            removerActiveInicial();
 
             // Carregar módulos primeiro
             const modulosCarregados = await carregarModulosFluxo();
