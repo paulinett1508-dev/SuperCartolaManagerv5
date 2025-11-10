@@ -17,6 +17,8 @@ import {
     ID_SUPERCARTOLA_2025,
 } from "./fluxo-financeiro-utils.js";
 
+import { cacheManager } from "../core/cache-manager.js";
+
 export class FluxoFinanceiroCache {
     constructor() {
         this.cacheRankings = {};
@@ -28,6 +30,7 @@ export class FluxoFinanceiroCache {
         this.participantes = [];
         this.ligaId = null;
         this.ultimaRodadaCompleta = 0;
+        this.cacheManager = cacheManager;
     }
 
     async inicializar(ligaId) {
@@ -64,14 +67,21 @@ export class FluxoFinanceiroCache {
             return [];
         }
 
-        try {
-            const response = await fetch(`/api/ligas/${ligaId}/times`);
-            if (!response.ok)
-                throw new Error(
-                    `Erro ao buscar participantes: ${response.statusText}`,
-                );
+        const cacheKey = `participantes_${ligaId}`;
 
-            const data = await response.json();
+        try {
+            const data = await this.cacheManager.get(
+                "participantes",
+                cacheKey,
+                async () => {
+                    const response = await fetch(`/api/ligas/${ligaId}/times`);
+                    if (!response.ok)
+                        throw new Error(
+                            `Erro ao buscar participantes: ${response.statusText}`,
+                        );
+                    return await response.json();
+                }
+            );
             if (!data || !Array.isArray(data) || data.length === 0) {
                 this.participantes = [];
                 return [];
@@ -162,24 +172,29 @@ export class FluxoFinanceiroCache {
 
     async _carregarRankingRodada(rodada) {
         const ligaId = this.ligaId || obterLigaId();
+        const cacheKey = `ranking_${ligaId}_${rodada}`;
 
         try {
-            const ranking = await getRankingRodadaEspecifica(ligaId, rodada);
+            // Tentar cache persistente primeiro
+            const ranking = await this.cacheManager.get(
+                "rankings",
+                cacheKey,
+                async () => {
+                    // Cache miss - buscar da API
+                    const data = await getRankingRodadaEspecifica(ligaId, rodada);
+                    
+                    if (!data || !Array.isArray(data) || data.length === 0) {
+                        return gerarRankingSimulado(rodada, this.participantes);
+                    }
 
-            if (!ranking || !Array.isArray(ranking) || ranking.length === 0) {
-                this.cacheRankings[rodada] = gerarRankingSimulado(
-                    rodada,
-                    this.participantes,
-                );
-                return;
-            }
+                    return data.map((item) => {
+                        const timeId = String(item.timeId || item.time_id || item.id);
+                        return { ...item, time_id: timeId, timeId: timeId, id: timeId };
+                    });
+                }
+            );
 
-            const rankingNormalizado = ranking.map((item) => {
-                const timeId = String(item.timeId || item.time_id || item.id);
-                return { ...item, time_id: timeId, timeId: timeId, id: timeId };
-            });
-
-            this.cacheRankings[rodada] = rankingNormalizado;
+            this.cacheRankings[rodada] = ranking;
         } catch (error) {
             console.warn(
                 `[FLUXO-CACHE] Erro ao carregar rodada ${rodada}:`,

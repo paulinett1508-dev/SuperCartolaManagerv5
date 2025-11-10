@@ -1,4 +1,3 @@
-
 // Sistema de Layout Hierárquico
 class LayoutSystem {
     constructor() {
@@ -92,7 +91,7 @@ class LayoutSystem {
     renderLigasInSidebar(ligas) {
         const container = document.getElementById('ligasContainer');
         if (!container) return;
-        
+
         if (ligas.length === 0) {
             container.innerHTML = '<div style="padding: 20px; text-align: center; color: rgba(255,255,255,0.6); font-size: 12px;">Nenhuma liga encontrada</div>';
             return;
@@ -144,11 +143,11 @@ class LayoutSystem {
 
         if (this.currentPage !== 'dashboard') {
             breadcrumbHtml += ' <span class="separator">›</span> ';
-            
+
             if (this.ligaId && ['detalhe-liga', 'editar-liga', 'admin', 'parciais'].includes(this.currentPage)) {
                 breadcrumbHtml += '<a href="dashboard.html">Ligas</a> <span class="separator">›</span> ';
             }
-            
+
             breadcrumbHtml += `<span class="current">${pageMap[this.currentPage] || this.currentPage}</span>`;
         }
 
@@ -158,7 +157,7 @@ class LayoutSystem {
     updatePageInfo() {
         const pageTitle = document.getElementById('pageTitle');
         const pageSubtitle = document.getElementById('pageSubtitle');
-        
+
         if (!pageTitle || !pageSubtitle) return;
 
         const pageInfo = {
@@ -210,4 +209,18 @@ document.addEventListener('DOMContentLoaded', () => {
     if (!window.location.pathname.includes('dashboard.html')) {
         window.initLayout();
     }
+
+    // Event listeners dos botões de exportação
+    document.getElementById("btn-exportar-consolidado")?.addEventListener("click", () => {
+      console.log("Exportar consolidado - funcionalidade futura");
+    });
+
+    // Limpar cache
+    document.getElementById("btn-limpar-cache")?.addEventListener("click", async () => {
+      if (confirm("Tem certeza que deseja limpar todo o cache? Isso pode deixar o carregamento mais lento temporariamente.")) {
+        await window.cacheManager.clearAll();
+        alert("✅ Cache limpo com sucesso! Recarregue a página.");
+        location.reload();
+      }
+    });
 });

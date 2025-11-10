@@ -102,6 +102,8 @@ class RodadasCache {
   }
 }
 
+import { cacheManager } from "../core/cache-manager.js";
+
 // INSTÂNCIA SINGLETON
 const rodadasCache = new RodadasCache();
 
@@ -109,15 +111,27 @@ const rodadasCache = new RodadasCache();
 // FUNÇÕES DE CACHE PARA RANKINGS
 // ==============================
 
-// CACHE PARA RANKINGS DE RODADA
-export function cacheRankingRodada(ligaId, rodada, data) {
+// CACHE PARA RANKINGS DE RODADA (com persistência)
+export async function cacheRankingRodada(ligaId, rodada, data) {
   const key = rodadasCache.generateKey(ligaId, rodada, "ranking");
   rodadasCache.set(key, data);
+  await cacheManager.set("rankings", key, data);
 }
 
-export function getCachedRankingRodada(ligaId, rodada) {
+export async function getCachedRankingRodada(ligaId, rodada) {
   const key = rodadasCache.generateKey(ligaId, rodada, "ranking");
-  return rodadasCache.get(key);
+  
+  // Tentar memory cache primeiro
+  let cached = rodadasCache.get(key);
+  if (cached) return cached;
+  
+  // Tentar IndexedDB
+  cached = await cacheManager.get("rankings", key, null);
+  if (cached) {
+    rodadasCache.set(key, cached);
+  }
+  
+  return cached;
 }
 
 // CACHE PARA DADOS PARCIAIS
