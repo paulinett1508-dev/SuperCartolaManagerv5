@@ -19,6 +19,7 @@
             --text-primary: #ffffff;
             --text-secondary: #e0e0e0;
             --border-primary: rgba(255, 69, 0, 0.3);
+            --laranja: #ff4500; /* Alias para laranja */
         }
 
         * {
@@ -223,6 +224,21 @@
 
     <div id="errorContainer"></div>
     <div id="extratoFinanceiroContainer"></div>
+
+    <!-- Extrato Financeiro -->
+    <div id="extratoFinanceiro" class="dashboard-card">
+        <div class="card-header">
+            <h2 class="card-title">💰 Extrato Financeiro</h2>
+        </div>
+        <!-- Container onde o extrato será renderizado -->
+        <div id="fluxoFinanceiroContent" class="card-content" style="padding: 0;">
+            <div style="text-align: center; padding: 40px; color: var(--text-muted);">
+                <div style="display: inline-block; width: 40px; height: 40px; border: 4px solid #f3f3f3; 
+                            border-top: 4px solid var(--laranja); border-radius: 50%; animation: spin 1s linear infinite;"></div>
+                <p style="margin-top: 20px;">Carregando extrato financeiro...</p>
+            </div>
+        </div>
+    </div>
   </div>
 
   <script type="module">
@@ -238,6 +254,8 @@
                 selecionarParticipante = modulo.selecionarParticipante;
                 obterLigaId = modulo.obterLigaId;
                 console.log('[PARTICIPANTE-DASHBOARD] Módulos do fluxo financeiro carregados');
+                window.calcularEExibirExtrato = calcularEExibirExtrato; // Expor para uso global se necessário
+                window.inicializarFluxoFinanceiro = inicializarFluxoFinanceiro; // Expor para uso global se necessário
                 return true;
             } catch (error) {
                 console.error('[PARTICIPANTE-DASHBOARD] Erro ao carregar módulos:', error);
@@ -291,7 +309,7 @@
                     `${participante.participante.nome_cartola} - ${participante.participante.nome_time}`;
 
                 // Carregar extrato financeiro usando dados da sessão
-                await carregarExtrato(participante);
+                await carregarExtrato(participante.timeId, participante.ligaId, participante);
 
             } catch (error) {
                 console.error('[PARTICIPANTE-DASHBOARD] Erro na verificação de autenticação:', error);
@@ -301,45 +319,45 @@
             }
         }
 
-        async function carregarExtrato(participante) {
-            try {
-                console.log('[PARTICIPANTE-DASHBOARD] Carregando extrato para:', participante);
+        // ✅ CARREGAR EXTRATO FINANCEIRO
+            async function carregarExtrato(timeId, ligaId, participante) {
+                console.log('[PARTICIPANTE-DASHBOARD] Carregando extrato para:', { timeId, ligaId, participante });
 
-                const container = document.getElementById('extratoFinanceiroContainer');
-
-                // Verificar se os módulos estão carregados
-                if (!calcularEExibirExtrato || !inicializarFluxoFinanceiro) {
-                    throw new Error('Módulos financeiros não foram carregados corretamente');
+                const extratoContainer = document.getElementById('extratoFinanceiro');
+                if (!extratoContainer) {
+                    console.error('[PARTICIPANTE-DASHBOARD] Container de extrato não encontrado');
+                    return;
                 }
 
-                // Mostrar loading
-                container.innerHTML = `
-                    <div style="text-align: center; padding: 40px;">
-                        <div style="display: inline-block; width: 40px; height: 40px; border: 4px solid rgba(255, 69, 0, 0.2); border-top: 4px solid #ff4500; border-radius: 50%; animation: spin 1s linear infinite;"></div>
-                        <p style="margin-top: 20px; color: #e0e0e0;">Carregando seu extrato financeiro...</p>
-                    </div>
-                    <style>@keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }</style>
-                `;
+                // ✅ DEFINIR GLOBALMENTE O ID DA LIGA CORRETO
+                window.ligaIdAtual = ligaId;
+                window.currentLigaId = ligaId;
+                console.log('[PARTICIPANTE-DASHBOARD] Liga ID definido:', ligaId);
 
-                // ✅ DEFINIR GLOBALMENTE O ID DA LIGA ANTES DE INICIALIZAR
-                window.ligaIdAtual = participante.ligaId;
-                console.log('[PARTICIPANTE-DASHBOARD] Liga ID definido:', window.ligaIdAtual);
+                // ✅ SOBRESCREVER A FUNÇÃO obterLigaId PARA RETORNAR O ID CORRETO
+                window.obterLigaId = function() {
+                    return ligaId;
+                };
 
-                // Inicializar sistema financeiro
-                await inicializarFluxoFinanceiro();
+                try {
+                    // Carregar módulos do fluxo financeiro se ainda não estiverem carregados
+                    if (!window.fluxoFinanceiroCore) {
+                        await inicializarFluxoFinanceiro();
+                    }
 
-                // Calcular e exibir extrato
-                await calcularEExibirExtrato(participante.timeId);
+                    // Calcular e exibir o extrato
+                    await window.calcularEExibirExtrato(timeId);
 
-                // Esconder o loading principal após o extrato ser carregado
-                document.getElementById('loading').style.display = 'none';
-            } catch (error) {
-                console.error('[PARTICIPANTE-DASHBOARD] Erro ao carregar extrato:', error);
-                document.getElementById('errorContainer').innerHTML =
-                    `<div class="error-message">❌ Erro ao carregar extrato: ${error.message}</div>`;
-                document.getElementById('loading').style.display = 'none'; // Esconder o loading principal em caso de erro
+                } catch (error) {
+                    console.error('[PARTICIPANTE-DASHBOARD] Erro ao carregar extrato:', error);
+                    extratoContainer.innerHTML = `
+                        <div style="text-align: center; padding: 40px; color: #e74c3c;">
+                            <h3>❌ Erro ao carregar extrato</h3>
+                            <p>${error.message}</p>
+                        </div>
+                    `;
+                }
             }
-        }
 
         async function sair() {
             try {

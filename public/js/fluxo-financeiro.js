@@ -13,10 +13,20 @@ let isCalculating = false;
 import "./exports/export-extrato-financeiro.js";
 
 function obterLigaId() {
+    // ✅ PRIORIDADE 1: Liga ID definido globalmente (para dashboard do participante)
+    if (typeof window.ligaIdAtual !== "undefined" && window.ligaIdAtual) {
+        return window.ligaIdAtual;
+    }
+
+    if (typeof window.currentLigaId !== "undefined" && window.currentLigaId) {
+        return window.currentLigaId;
+    }
+
+    // ✅ PRIORIDADE 2: ID da URL
     const pathParts = window.location.pathname.split("/");
     const ligaIdFromPath = pathParts[pathParts.length - 1];
 
-    if (ligaIdFromPath && ligaIdFromPath !== "detalhe-liga.html") {
+    if (ligaIdFromPath && ligaIdFromPath !== "detalhe-liga.html" && ligaIdFromPath !== "participante-dashboard.html") {
         return ligaIdFromPath;
     }
 
@@ -24,8 +34,6 @@ function obterLigaId() {
     const ligaIdFromParams = urlParams.get("id");
 
     if (ligaIdFromParams) return ligaIdFromParams;
-    if (typeof window.currentLigaId !== "undefined")
-        return window.currentLigaId;
 
     console.error("[FLUXO-FINANCEIRO] Liga ID não encontrado");
     return null;
