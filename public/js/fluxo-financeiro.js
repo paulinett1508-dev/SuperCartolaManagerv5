@@ -465,6 +465,7 @@ async function selecionarParticipante(timeId) {
     await calcularEExibirExtrato(timeId);
 }
 
+// ✅ ATRIBUIR AO WINDOW E EXPORTAR COMO MÓDULO ES6
 window.calcularEExibirExtrato = calcularEExibirExtrato;
 window.inicializarFluxoFinanceiro = inicializarFluxoFinanceiro;
 window.selecionarParticipante = selecionarParticipante;
