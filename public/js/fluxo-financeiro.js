@@ -1,3 +1,4 @@
+
 import { buscarStatusMercado as getMercadoStatus } from "./pontos-corridos-utils.js";
 import { FluxoFinanceiroCampos } from "./fluxo-financeiro/fluxo-financeiro-campos.js";
 
@@ -55,7 +56,7 @@ async function carregarExports() {
 
     try {
         const exportModule = await import("./exports/export-exports.js");
-        exportarExtratoFinanceiroComoImagem =
+        window.exportarExtratoFinanceiroComoImagem =
             exportModule.exportarExtratoFinanceiroComoImagem;
         exportsCarregados = true;
         console.log("[FLUXO-FINANCEIRO] Sistema de exportação carregado");
@@ -119,7 +120,8 @@ async function carregarModulos() {
     }
 }
 
-export async function inicializarFluxoFinanceiro() {
+// ===== FUNÇÃO DE INICIALIZAÇÃO =====
+async function inicializarFluxoFinanceiro() {
     try {
         await carregarModulos();
 
@@ -218,10 +220,8 @@ async function calcularEExibirExtrato(timeId) {
             return;
         }
 
-        // Armazenar participante atual para refresh
-        participanteAtualCache = participante;
+        window.participanteAtualCache = participante;
 
-        // ✅ AGUARDAR CÁLCULO DO EXTRATO (AGORA É ASYNC)
         const extrato = await fluxoFinanceiroCore.calcularExtratoFinanceiro(
             timeId,
             ultimaRodadaCompleta,
@@ -254,7 +254,6 @@ async function gerarRelatorioFinanceiro() {
             const timeId = participante.time_id || participante.id;
 
             try {
-                // ✅ AGUARDAR CÁLCULO DO EXTRATO
                 const extrato = await fluxoFinanceiroCore.calcularExtratoFinanceiro(
                     timeId,
                     ultimaRodadaCompleta,
@@ -293,7 +292,7 @@ async function gerarRelatorioFinanceiro() {
                         (camposAtualizados.campo3?.valor || 0) +
                         (camposAtualizados.campo4?.valor || 0),
                     saldoFinal: extrato.resumo.saldo,
-                    disputasAtivas: disputasAtivas, // ✅ NOVO
+                    disputasAtivas: disputasAtivas,
                 });
             } catch (error) {
                 console.error(
@@ -359,7 +358,7 @@ async function exportarExtrato(extrato, participante, timeId) {
     try {
         await carregarExports();
 
-        if (!exportarExtratoFinanceiroComoImagem) {
+        if (!window.exportarExtratoFinanceiroComoImagem) {
             alert("Exportação não disponível");
             return;
         }
@@ -371,7 +370,6 @@ async function exportarExtrato(extrato, participante, timeId) {
         extrato.rodadas.forEach((rodada) => {
             const rodadaNumero = rodada.rodada;
 
-            // ✅ SEMPRE INCLUIR RODADA COM POSIÇÃO, MESMO QUE BÔNUS/ÔNUS SEJA ZERO
             if (rodada.posicao || rodada.isMito || rodada.isMico) {
                 const descricao = rodada.isMito
                     ? `Rodada ${rodadaNumero} - MITO`
@@ -431,7 +429,7 @@ async function exportarExtrato(extrato, participante, timeId) {
             }
         });
 
-        await exportarExtratoFinanceiroComoImagem(
+        await window.exportarExtratoFinanceiroComoImagem(
             dadosMovimentacoes,
             participante,
             ultimaRodadaCompleta,
@@ -465,7 +463,7 @@ async function selecionarParticipante(timeId) {
     await calcularEExibirExtrato(timeId);
 }
 
-// ✅ ATRIBUIR AO WINDOW E EXPORTAR COMO MÓDULO ES6
+// ===== EXPORTAR PARA WINDOW (COMPATIBILIDADE GLOBAL) =====
 window.calcularEExibirExtrato = calcularEExibirExtrato;
 window.inicializarFluxoFinanceiro = inicializarFluxoFinanceiro;
 window.selecionarParticipante = selecionarParticipante;
@@ -474,7 +472,7 @@ window.exportarExtrato = exportarExtrato;
 window.gerarRelatorioFinanceiro = gerarRelatorioFinanceiro;
 window.exportarRelatorioCSV = exportarRelatorioCSV;
 
-// ✅ EXPORTAR PARA USO EM MÓDULOS ES6 (participante-dashboard.html)
+// ===== EXPORTAR APENAS PARA ES6 MODULES (SEM DUPLICAÇÃO) =====
 export { 
     calcularEExibirExtrato, 
     inicializarFluxoFinanceiro,
@@ -483,17 +481,17 @@ export {
 };
 
 // ===== VARIÁVEL GLOBAL PARA ARMAZENAR PARTICIPANTE ATUAL =====
-let participanteAtualCache = null;
+window.participanteAtualCache = null;
 
 // ===== FUNÇÃO PARA RECARREGAR EXTRATO ATUAL =====
 window.recarregarExtratoAtual = async () => {
-    if (!participanteAtualCache) {
+    if (!window.participanteAtualCache) {
         console.warn('[FLUXO] Nenhum participante selecionado para recarregar');
         return;
     }
 
-    console.log('[FLUXO] Recarregando extrato do participante:', participanteAtualCache.time_id || participanteAtualCache.id);
-    await selecionarParticipante(participanteAtualCache.time_id || participanteAtualCache.id);
+    console.log('[FLUXO] Recarregando extrato do participante:', window.participanteAtualCache.time_id || window.participanteAtualCache.id);
+    await selecionarParticipante(window.participanteAtualCache.time_id || window.participanteAtualCache.id);
 };
 
 // ===== FUNÇÃO PARA RECALCULAR E ATUALIZAR SALDO NA TELA =====
@@ -501,14 +499,11 @@ async function recalcularSaldoNaTela(timeId) {
     try {
         console.log('[FLUXO] Iniciando recálculo de saldo para time:', timeId);
 
-        // ✅ RECARREGAR CAMPOS EDITÁVEIS DO MONGODB ANTES DE CALCULAR
         const camposAtualizados = await FluxoFinanceiroCampos.carregarTodosCamposEditaveis(timeId);
         console.log('[FLUXO] Campos atualizados do MongoDB:', camposAtualizados);
 
-        // ✅ RECALCULAR EXTRATO COM DADOS ATUALIZADOS
-        const extrato = fluxoFinanceiroCore.calcularExtratoFinanceiro(timeId, ultimaRodadaCompleta);
+        const extrato = await fluxoFinanceiroCore.calcularExtratoFinanceiro(timeId, ultimaRodadaCompleta);
 
-        // Atualizar saldo na tela
         const saldoDisplay = document.getElementById('saldoTotalDisplay');
         if (saldoDisplay) {
             const saldoFinal = extrato.resumo.saldo;
@@ -520,7 +515,6 @@ async function recalcularSaldoNaTela(timeId) {
                 maximumFractionDigits: 2,
             })}`;
 
-            // Animação de destaque
             saldoDisplay.style.transform = 'scale(1.1)';
             setTimeout(() => {
                 saldoDisplay.style.transform = 'scale(1)';
@@ -538,7 +532,6 @@ window.salvarCampoEditavelComRecalculo = async (timeId, nomeCampo, valor) => {
     try {
         const valorNumerico = parseFloat(valor) || 0;
 
-        // Feedback visual no input
         const input = document.getElementById(`input_${nomeCampo}`);
         if (input) {
             input.style.borderColor = 'var(--laranja)';
@@ -546,13 +539,10 @@ window.salvarCampoEditavelComRecalculo = async (timeId, nomeCampo, valor) => {
             input.disabled = true;
         }
 
-        // Salvar no banco
         await FluxoFinanceiroCampos.salvarValorCampo(timeId, nomeCampo, valorNumerico);
 
-        // Recalcular saldo na tela COM DADOS ATUALIZADOS
         await recalcularSaldoNaTela(timeId);
 
-        // Atualizar cor do input baseado no valor
         if (input) {
             const cor = valorNumerico >= 0 ? '#2ecc71' : '#e74c3c';
             input.style.color = cor;
@@ -569,7 +559,6 @@ window.salvarCampoEditavelComRecalculo = async (timeId, nomeCampo, valor) => {
         console.error('[FLUXO] Erro ao salvar campo:', error);
         alert('Erro ao salvar campo: ' + error.message);
 
-        // Re-habilitar input em caso de erro
         const input = document.getElementById(`input_${nomeCampo}`);
         if (input) {
             input.disabled = false;
@@ -587,13 +576,10 @@ window.salvarCampoEditavel = async (timeId, nomeCampo, valor) => {
 
 window.desfazerCampo = async (timeId, nomeCampo) => {
     try {
-        // Resetar para zero
         await FluxoFinanceiroCampos.salvarValorCampo(timeId, nomeCampo, 0);
 
-        // Recalcular saldo
         await recalcularSaldoNaTela(timeId);
 
-        // Atualizar input
         const input = document.getElementById(`input_${nomeCampo}`);
         if (input) {
             input.value = '+R$ 0,00';
