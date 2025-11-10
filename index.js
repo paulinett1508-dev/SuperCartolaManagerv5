@@ -22,6 +22,7 @@ import artilheiroCampeaoRoutes from "./routes/artilheiro-campeao-routes.js";
 import luvaDeOuroRoutes from "./routes/luva-de-ouro-routes.js";
 import configuracaoRoutes from "./routes/configuracao-routes.js";
 import fluxoFinanceiroRoutes from "./routes/fluxoFinanceiroRoutes.js";
+import extratoFinanceiroCacheRoutes from "./routes/extratoFinanceiroCacheRoutes.js"; // Nova importação
 import participanteAuthRoutes from "./routes/participante-auth.js";
 import { getClubes } from "./controllers/cartolaController.js";
 
@@ -146,6 +147,12 @@ if (process.env.NODE_ENV !== "production") {
   console.log("✅ [ROUTES] Registrada: /api/fluxo-financeiro/*");
 }
 
+// ✨ NOVO: Rotas do Cache de Extrato Financeiro
+app.use("/api/extrato-cache", extratoFinanceiroCacheRoutes);
+if (process.env.NODE_ENV !== "production") {
+  console.log("✅ [ROUTES] Registrada: /api/extrato-cache/*");
+}
+
 // ✨ NOVO: Rotas de autenticação de participantes
 app.use("/api/participante/auth", participanteAuthRoutes);
 if (process.env.NODE_ENV !== "production") {
@@ -199,6 +206,7 @@ app.get("/api/version", (req, res) => {
       luvaDeOuro: "/api/luva-de-ouro",
       configuracao: "/api/configuracao",
       fluxoFinanceiro: "/api/fluxo-financeiro",
+      extratoCache: "/api/extrato-cache/*", // Novo endpoint
       participanteAuth: "/api/participante/auth/*", // Novo endpoint
       auth: "/api/auth/*", // Novo endpoint
       version: "/api/version",
@@ -249,6 +257,7 @@ app.use((req, res, next) => {
         "GET /api/luva-de-ouro/*",
         "GET /api/configuracao/*",
         "GET /api/fluxo-financeiro/*",
+        "GET /api/extrato-cache/*", // Novo endpoint
         "POST /api/participante/auth/login", // Novo endpoint
         "POST /api/participante/auth/register", // Novo endpoint
         "POST /api/auth/logout", // Novo endpoint
@@ -330,6 +339,7 @@ async function iniciarServidor() {
       console.log("🥅 Sistema Luva de Ouro integrado");
       console.log("💰 Sistema Fluxo Financeiro persistente");
       console.log("🔒 Sistema de Autenticação de Participantes integrado"); // Nova informação
+      console.log("✅ Sistema de Cache de Extrato Financeiro integrado"); // Nova informação
       console.log("=".repeat(60) + "\n");
 
       // Log adicional para desenvolvimento

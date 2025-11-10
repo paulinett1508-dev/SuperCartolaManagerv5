@@ -50,13 +50,22 @@ export class FluxoFinanceiroCore {
         );
     }
 
-    // OTIMIZADO: Cálculo com processamento paralelo
-    async calcularExtratoFinanceiro(timeId, ultimaRodadaCompleta) {
-        console.log(
-            `[FLUXO-CORE] Iniciando cálculo OTIMIZADO para time ${timeId} até rodada ${ultimaRodadaCompleta}`,
-        );
-
+    // OTIMIZADO: Cálculo com cache persistente
+    async calcularExtratoFinanceiro(timeId, ultimaRodadaCompleta, forcarRecalculo = false) {
         const ligaId = obterLigaId();
+
+        // ✅ TENTAR USAR CACHE PRIMEIRO
+        if (!forcarRecalculo) {
+            const cacheValido = await this._verificarEUsarCache(ligaId, timeId, ultimaRodadaCompleta);
+            if (cacheValido) {
+                console.log(`[FLUXO-CORE] ✅ Usando extrato em cache para time ${timeId}`);
+                return cacheValido;
+            }
+        }
+
+        console.log(
+            `[FLUXO-CORE] Calculando extrato para time ${timeId} até rodada ${ultimaRodadaCompleta}`,
+        );
         const isSuperCartola2025 = ligaId === ID_SUPERCARTOLA_2025;
         const isCartoleirosSobral = ligaId === ID_CARTOLEIROS_SOBRAL;
 
@@ -143,9 +152,64 @@ export class FluxoFinanceiroCore {
         this._calcularTotaisConsolidados(extrato.resumo, extrato.rodadas);
 
         console.log(
-            `[FLUXO-CORE] Extrato OTIMIZADO calculado: ${extrato.rodadas.length} rodadas`,
+            `[FLUXO-CORE] Extrato calculado: ${extrato.rodadas.length} rodadas`,
         );
+
+        // ✅ SALVAR NO CACHE
+        await this._salvarNoCache(ligaId, timeId, extrato, ultimaRodadaCompleta, "calculo_automatico");
+
         return extrato;
+    }
+
+    // ===== VERIFICAR E USAR CACHE =====
+    async _verificarEUsarCache(ligaId, timeId, rodadaAtual) {
+        try {
+            const response = await fetch(
+                `/api/extrato-cache/${ligaId}/times/${timeId}/cache?rodadaAtual=${rodadaAtual}`
+            );
+
+            if (!response.ok) return null;
+
+            const data = await response.json();
+
+            if (!data.cached || !data.data) return null;
+
+            // Verificar se cache está atualizado
+            if (data.ultimaRodadaCalculada < rodadaAtual) {
+                console.log(`[FLUXO-CORE] Cache desatualizado (rodada ${data.ultimaRodadaCalculada} < ${rodadaAtual})`);
+                return null;
+            }
+
+            console.log(`[FLUXO-CORE] ✅ Cache válido encontrado (atualizado em ${new Date(data.updatedAt).toLocaleString()})`);
+            return data.data;
+        } catch (error) {
+            console.warn("[FLUXO-CORE] Erro ao verificar cache:", error);
+            return null;
+        }
+    }
+
+    // ===== SALVAR NO CACHE =====
+    async _salvarNoCache(ligaId, timeId, extrato, ultimaRodadaCalculada, motivo) {
+        try {
+            const response = await fetch(
+                `/api/extrato-cache/${ligaId}/times/${timeId}/cache`,
+                {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({
+                        extrato,
+                        ultimaRodadaCalculada,
+                        motivoRecalculo: motivo,
+                    }),
+                }
+            );
+
+            if (response.ok) {
+                console.log(`[FLUXO-CORE] ✅ Extrato salvo no cache`);
+            }
+        } catch (error) {
+            console.warn("[FLUXO-CORE] Erro ao salvar cache:", error);
+        }
     }
 
     _processarRodadaIntegrada(
@@ -536,6 +600,64 @@ export class FluxoFinanceiroCore {
         });
     }
 }
+
+// ========================================
+// FUNÇÕES GLOBAIS: GERENCIAMENTO DE CACHE
+// ========================================
+
+// Invalidar cache de um time específico
+window.invalidarCacheTime = async function (ligaId, timeId) {
+    try {
+        const response = await fetch(
+            `/api/extrato-cache/${ligaId}/times/${timeId}/cache`,
+            { method: "DELETE" }
+        );
+
+        if (response.ok) {
+            console.log(`[FLUXO] Cache invalidado para time ${timeId}`);
+            return true;
+        }
+        return false;
+    } catch (error) {
+        console.error("[FLUXO] Erro ao invalidar cache:", error);
+        return false;
+    }
+};
+
+// Invalidar cache de toda a liga (ADMIN)
+window.invalidarCacheLiga = async function (ligaId) {
+    try {
+        const response = await fetch(
+            `/api/extrato-cache/${ligaId}/cache`,
+            { method: "DELETE" }
+        );
+
+        if (response.ok) {
+            const data = await response.json();
+            console.log(`[FLUXO] ${data.deletedCount} caches invalidados`);
+            return data.deletedCount;
+        }
+        return 0;
+    } catch (error) {
+        console.error("[FLUXO] Erro ao invalidar cache da liga:", error);
+        return 0;
+    }
+};
+
+// Forçar recálculo de um time
+window.forcarRecalculoExtrato = async function (timeId) {
+    try {
+        const ligaId = window.obterLigaId();
+        await window.invalidarCacheTime(ligaId, timeId);
+        
+        if (window.selecionarParticipante) {
+            await window.selecionarParticipante(timeId);
+            console.log("[FLUXO] Extrato recalculado com sucesso");
+        }
+    } catch (error) {
+        console.error("[FLUXO] Erro ao forçar recálculo:", error);
+    }
+};
 
 // ========================================
 // FUNÇÃO GLOBAL: ATUALIZAR TOP 10
