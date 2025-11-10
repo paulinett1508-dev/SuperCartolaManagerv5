@@ -37,39 +37,135 @@
 
         .dashboard-header {
             background: linear-gradient(135deg, #ff4500 0%, #e8472b 100%);
-            padding: 2rem;
             box-shadow: 0 4px 20px rgba(255, 69, 0, 0.4);
             border-bottom: 3px solid var(--border-primary);
         }
 
-    .header h1 {
-      font-size: 22px;
-      margin-bottom: 5px;
-    }
+        .header-top {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 20px;
+            gap: 16px;
+        }
 
-    .header p {
-      font-size: 14px;
-      opacity: 0.9;
-    }
+        .user-info-section {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            flex: 1;
+            min-width: 0;
+        }
 
-    .header .btn-sair {
-      background: rgba(255, 255, 255, 0.2);
-      color: white;
-      border: 1px solid rgba(255, 255, 255, 0.3);
-      padding: 10px 20px;
-      border-radius: 8px;
-      font-size: 14px;
-      cursor: pointer;
-      margin-top: 15px;
-      width: 100%;
-      max-width: 200px;
-      touch-action: manipulation;
-      -webkit-tap-highlight-color: transparent;
-    }
+        .user-avatar {
+            width: 48px;
+            height: 48px;
+            border-radius: 50%;
+            background: rgba(255, 255, 255, 0.2);
+            border: 2px solid rgba(255, 255, 255, 0.4);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+        }
 
-    .header .btn-sair:active {
-      background: rgba(255, 255, 255, 0.3);
-    }
+        .user-avatar img {
+            width: 100%;
+            height: 100%;
+            border-radius: 50%;
+            object-fit: cover;
+        }
+
+        .user-details {
+            flex: 1;
+            min-width: 0;
+        }
+
+        .user-details h1,
+        .user-details p {
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            color: white;
+        }
+
+        .btn-sair {
+            background: rgba(255, 255, 255, 0.15);
+            color: white;
+            border: 2px solid rgba(255, 255, 255, 0.4);
+            padding: 10px 16px;
+            border-radius: 8px;
+            font-size: 13px;
+            font-weight: 600;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            transition: all 0.3s ease;
+            white-space: nowrap;
+            flex-shrink: 0;
+        }
+
+        .btn-sair:hover {
+            background: rgba(255, 255, 255, 0.25);
+            transform: translateY(-2px);
+        }
+
+        .btn-sair:active {
+            transform: translateY(0);
+        }
+
+        /* NAVEGAÇÃO */
+        .nav-menu {
+            display: flex;
+            gap: 0;
+            background: rgba(0, 0, 0, 0.2);
+            overflow-x: auto;
+            -webkit-overflow-scrolling: touch;
+            scrollbar-width: none;
+        }
+
+        .nav-menu::-webkit-scrollbar {
+            display: none;
+        }
+
+        .nav-item {
+            flex: 1;
+            min-width: 80px;
+            background: transparent;
+            border: none;
+            color: rgba(255, 255, 255, 0.7);
+            padding: 12px 8px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            border-bottom: 3px solid transparent;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 4px;
+        }
+
+        .nav-item:hover {
+            background: rgba(255, 255, 255, 0.1);
+            color: white;
+        }
+
+        .nav-item.active {
+            color: white;
+            background: rgba(255, 255, 255, 0.15);
+            border-bottom-color: white;
+        }
+
+        .nav-icon {
+            font-size: 20px;
+        }
+
+        .nav-label {
+            font-size: 11px;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.3px;
+        }
 
     .container {
       padding: 20px;
@@ -177,24 +273,89 @@
         }
 
 
-    /* Mobile optimizations */
-    @media (max-width: 768px) {
-      .header {
-        padding: 15px;
-      }
+    /* Loading profissional */
+        .professional-loading {
+            text-align: center;
+            padding: 60px 20px;
+        }
 
-      .header h1 {
-        font-size: 20px;
-      }
+        .loading-spinner-professional {
+            width: 50px;
+            height: 50px;
+            border: 4px solid rgba(255, 69, 0, 0.1);
+            border-top: 4px solid #ff4500;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin: 0 auto;
+        }
 
-      .container {
-        padding: 15px;
-      }
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
 
-      .info-card {
-        padding: 15px;
-      }
-    }
+        /* Mobile optimizations */
+        @media (max-width: 768px) {
+            .header-top {
+                padding: 16px;
+            }
+
+            .user-details h1 {
+                font-size: 16px;
+            }
+
+            .user-details p {
+                font-size: 12px;
+            }
+
+            .user-avatar {
+                width: 40px;
+                height: 40px;
+            }
+
+            .user-avatar span {
+                font-size: 20px !important;
+            }
+
+            .btn-sair span:last-child {
+                display: none;
+            }
+
+            .btn-sair {
+                padding: 10px 12px;
+            }
+
+            .nav-item {
+                min-width: 70px;
+                padding: 10px 6px;
+            }
+
+            .nav-icon {
+                font-size: 18px;
+            }
+
+            .nav-label {
+                font-size: 10px;
+            }
+
+            .container {
+                padding: 15px;
+            }
+
+            .info-card {
+                padding: 15px;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .nav-label {
+                font-size: 9px;
+            }
+
+            .nav-item {
+                min-width: 60px;
+            }
+        }
 
     /* Sobrescrever estilos do fluxo financeiro para mobile */
     @media (max-width: 768px) {
@@ -210,10 +371,47 @@
   </style>
 </head>
 <body>
-  <div class="header">
-    <h1>💰 Meu Extrato Financeiro</h1>
-    <p id="userInfo">Carregando informações...</p>
-    <button class="btn-sair" onclick="sair()">🚪 Sair</button>
+  <!-- HEADER PROFISSIONAL COM NAVEGAÇÃO -->
+  <div class="dashboard-header">
+    <div class="header-top">
+      <div class="user-info-section">
+        <div class="user-avatar" id="userAvatar">
+          <span style="font-size: 24px;">⚽</span>
+        </div>
+        <div class="user-details">
+          <h1 id="userName" style="margin: 0; font-size: 18px; font-weight: 700;">Carregando...</h1>
+          <p id="userTeam" style="margin: 0; font-size: 13px; opacity: 0.9;">Aguarde...</p>
+        </div>
+      </div>
+      <button class="btn-sair" onclick="sair()">
+        <span style="font-size: 16px;">🚪</span>
+        <span>Sair</span>
+      </button>
+    </div>
+    
+    <!-- NAVEGAÇÃO ENTRE MÓDULOS -->
+    <nav class="nav-menu">
+      <button class="nav-item active" data-module="extrato">
+        <span class="nav-icon">💰</span>
+        <span class="nav-label">Extrato</span>
+      </button>
+      <button class="nav-item" data-module="classificacao">
+        <span class="nav-icon">🏆</span>
+        <span class="nav-label">Classificação</span>
+      </button>
+      <button class="nav-item" data-module="rodadas">
+        <span class="nav-icon">📊</span>
+        <span class="nav-label">Rodadas</span>
+      </button>
+      <button class="nav-item" data-module="top10">
+        <span class="nav-icon">🔝</span>
+        <span class="nav-label">TOP 10</span>
+      </button>
+      <button class="nav-item" data-module="mata-mata">
+        <span class="nav-icon">⚔️</span>
+        <span class="nav-label">Mata-Mata</span>
+      </button>
+    </nav>
   </div>
 
   <div class="container">
@@ -226,10 +424,14 @@
         </div>
         <!-- Container onde o extrato será renderizado -->
         <div id="fluxoFinanceiroContent" class="card-content" style="padding: 0;">
-            <div style="text-align: center; padding: 40px; color: var(--text-muted);">
-                <div style="display: inline-block; width: 40px; height: 40px; border: 4px solid #f3f3f3; 
-                            border-top: 4px solid var(--laranja); border-radius: 50%; animation: spin 1s linear infinite;"></div>
-                <p style="margin-top: 20px;">Carregando extrato financeiro...</p>
+            <div class="professional-loading">
+                <div class="loading-spinner-professional"></div>
+                <h3 style="margin: 20px 0 8px 0; color: var(--text-primary); font-size: 16px; font-weight: 600;">
+                    Carregando dados financeiros
+                </h3>
+                <p style="margin: 0; color: var(--text-muted); font-size: 13px;">
+                    Preparando cache...
+                </p>
             </div>
         </div>
     </div>
@@ -310,9 +512,20 @@
                 const sessionData = await sessionResponse.json();
                 const { participante } = sessionData;
 
-                // Atualizar info do usuário
-                document.getElementById('userInfo').textContent =
-                    `${participante.participante.nome_cartola} - ${participante.participante.nome_time}`;
+                // Atualizar info do usuário no header
+                const userName = document.getElementById('userName');
+                const userTeam = document.getElementById('userTeam');
+                const userAvatar = document.getElementById('userAvatar');
+
+                if (userName) {
+                    userName.textContent = participante.participante.nome_cartola || 'Participante';
+                }
+                if (userTeam) {
+                    userTeam.textContent = participante.participante.nome_time || 'Time';
+                }
+                if (userAvatar && participante.participante.url_escudo_png) {
+                    userAvatar.innerHTML = `<img src="${participante.participante.url_escudo_png}" alt="${participante.participante.nome_cartola}">`;
+                }
 
                 // Carregar extrato financeiro usando dados da sessão
                 await carregarExtrato(participante.timeId, participante.ligaId, participante);
@@ -381,9 +594,36 @@
 
         window.sair = sair;
 
+        // Navegação entre módulos
+        function inicializarNavegacao() {
+            const navItems = document.querySelectorAll('.nav-item');
+            navItems.forEach(item => {
+                item.addEventListener('click', function() {
+                    const module = this.getAttribute('data-module');
+                    
+                    // Remover active de todos
+                    navItems.forEach(nav => nav.classList.remove('active'));
+                    
+                    // Adicionar active no clicado
+                    this.classList.add('active');
+                    
+                    // Por enquanto, apenas o extrato está disponível
+                    if (module !== 'extrato') {
+                        alert('🚧 Em breve! Este módulo estará disponível em uma próxima atualização.');
+                        // Voltar para extrato
+                        document.querySelector('[data-module="extrato"]').classList.add('active');
+                        this.classList.remove('active');
+                    }
+                });
+            });
+        }
+
         // Inicializar dashboard
         window.addEventListener('DOMContentLoaded', async () => {
             console.log('[PARTICIPANTE-DASHBOARD] Inicializando...');
+
+            // Inicializar navegação
+            inicializarNavegacao();
 
             // Carregar módulos primeiro
             const modulosCarregados = await carregarModulosFluxo();
