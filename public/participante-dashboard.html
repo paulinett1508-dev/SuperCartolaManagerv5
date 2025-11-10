@@ -453,7 +453,7 @@
         </div>
       </div>
       <button class="btn-sair" onclick="sair()">
-        <span style="font-size: 16px;">🚪</span>
+        <span style="font-size: 16px;">🔓</span>
         <span>Sair</span>
       </button>
     </div>
@@ -501,10 +501,7 @@
                         <h1 id="welcomeTitle">Bem-vindo!</h1>
                         <p id="welcomeSubtitle">Carregando informações...</p>
                     </div>
-                    <button id="btnRefreshCache" class="btn-refresh-cache" title="Atualizar dados do servidor" style="display: none;">
-                        <span class="refresh-icon">🔄</span>
-                        <span class="refresh-text">Atualizar</span>
-                    </button>
+                    
                 </div>
 
                 <!-- Cards de Estatísticas Rápidas -->
@@ -512,21 +509,17 @@
                     <!-- Será preenchido dinamicamente -->
                 </div>
 
-                <!-- Mensagem de Boas-Vindas -->
-                <div style="background: linear-gradient(135deg, rgba(255, 69, 0, 0.08) 0%, rgba(255, 69, 0, 0.02) 100%); border: 1px solid rgba(255, 69, 0, 0.15); border-radius: 12px; padding: 30px 20px; margin: 0 20px 20px 20px; text-align: center;">
-                    <div style="font-size: 48px; margin-bottom: 16px;">🎮</div>
-                    <h3 style="margin: 0 0 12px 0; color: var(--text-primary); font-size: 18px; font-weight: 700;">
-                        Seu Dashboard Está Pronto!
-                    </h3>
-                    <p style="color: var(--text-secondary); font-size: 14px; line-height: 1.6; margin: 0 0 20px 0; max-width: 400px; margin-left: auto; margin-right: auto;">
-                        Use o menu superior para navegar entre os módulos e acompanhar seu desempenho na liga.
-                    </p>
-                    <div style="display: inline-flex; align-items: center; gap: 8px; padding: 10px 20px; background: rgba(255, 69, 0, 0.1); border-radius: 8px; border: 1px solid rgba(255, 69, 0, 0.2);">
-                        <span style="font-size: 16px;">👆</span>
-                        <span style="font-size: 12px; color: var(--text-secondary); font-weight: 600;">
-                            Explore o menu acima para começar
-                        </span>
+                <!-- Logo e Mensagem Centralizada -->
+                <div style="background: linear-gradient(135deg, rgba(255, 69, 0, 0.08) 0%, rgba(255, 69, 0, 0.02) 100%); border: 1px solid rgba(255, 69, 0, 0.15); border-radius: 12px; padding: 40px 20px; margin: 0 20px 20px 20px; text-align: center;">
+                    <div style="width: 100px; height: 100px; margin: 0 auto 20px; border-radius: 50%; display: flex; align-items: center; justify-content: center; overflow: hidden; background: #fff; border: 3px solid rgba(255, 69, 0, 0.3); box-shadow: 0 4px 20px rgba(255, 69, 0, 0.4);">
+                        <img src="/escudos/default.png" alt="Super Cartola Logo" style="width: 100%; height: 100%; object-fit: cover;">
                     </div>
+                    <h1 style="color: #ffffff; font-size: 24px; margin-bottom: 10px; font-weight: 800; text-shadow: 0 2px 10px rgba(255, 255, 255, 0.3); letter-spacing: -0.5px;">
+                        SUPER CARTOLA 2025 - ano XI
+                    </h1>
+                    <p style="color: #a0a0a0; font-size: 14px; margin-bottom: 0; font-weight: 500;">
+                        O melhor fantasy game
+                    </p>
                 </div>
             </div>
         </div>
@@ -661,41 +654,23 @@
                 const welcomeTitle = document.getElementById('welcomeTitle');
                 const welcomeSubtitle = document.getElementById('welcomeSubtitle');
 
+                // Buscar nome da liga
+                let nomeLiga = 'Liga';
+                try {
+                    const ligaResponse = await fetch(`/api/ligas/${participante.ligaId}`);
+                    if (ligaResponse.ok) {
+                        const ligaData = await ligaResponse.json();
+                        nomeLiga = ligaData.nome || 'Liga';
+                    }
+                } catch (error) {
+                    console.warn('[PARTICIPANTE-DASHBOARD] Erro ao buscar nome da liga:', error);
+                }
+
                 if (welcomeTitle) welcomeTitle.textContent = `Olá, ${nomeCartola}! 👋`;
-                if (welcomeSubtitle) welcomeSubtitle.textContent = `Time: ${nomeTime} | Liga: ${sessionData.ligaNome || 'Liga'}`;
+                if (welcomeSubtitle) welcomeSubtitle.textContent = `Time: ${nomeTime} | Liga: ${nomeLiga}`;
 
                 // Buscar estatísticas do participante para exibir na welcome screen
                 await carregarEstatisticasParticipante(participante.timeId, participante.ligaId);
-
-                // Mostrar botão de refresh
-                const btnRefresh = document.getElementById('btnRefreshCache');
-                if (btnRefresh) {
-                    btnRefresh.style.display = 'flex';
-                    
-                    // Configurar evento de refresh manual
-                    btnRefresh.addEventListener('click', async () => {
-                        const confirmRefresh = confirm(
-                            '⚠️ Isso irá recarregar todos os dados do servidor.\n\n' +
-                            'Deseja continuar?'
-                        );
-
-                        if (confirmRefresh) {
-                            btnRefresh.disabled = true;
-                            btnRefresh.innerHTML = '<span class="refresh-icon">⏳</span><span class="refresh-text">Atualizando...</span>';
-
-                            try {
-                                const { forceRefresh } = await import('/js/fluxo-financeiro/fluxo-financeiro-cache.js');
-                                await forceRefresh(participante.timeId, participante.ligaId);
-                                setTimeout(() => window.location.reload(), 500);
-                            } catch (e) {
-                                console.error("Erro ao atualizar:", e);
-                                alert("Não foi possível atualizar os dados.");
-                                btnRefresh.innerHTML = '<span class="refresh-icon">🔄</span><span class="refresh-text">Atualizar</span>';
-                                btnRefresh.disabled = false;
-                            }
-                        }
-                    });
-                }
 
             } catch (error) {
                 console.error('[PARTICIPANTE-DASHBOARD] Erro na verificação de autenticação:', error);
@@ -757,6 +732,45 @@
                 if (!extratoContainer) {
                     console.error('[PARTICIPANTE-DASHBOARD] Container de extrato não encontrado');
                     return;
+                }
+
+                // Adicionar botão de refresh no topo do extrato
+                const headerExtrato = document.createElement('div');
+                headerExtrato.style.cssText = 'display: flex; justify-content: flex-end; padding: 10px 20px; margin-bottom: 10px;';
+                headerExtrato.innerHTML = `
+                    <button id="btnRefreshExtrato" class="btn-refresh-cache" title="Atualizar dados do servidor">
+                        <span class="refresh-icon">🔄</span>
+                        <span class="refresh-text">Atualizar</span>
+                    </button>
+                `;
+                
+                const fluxoContent = document.getElementById('fluxoFinanceiroContent');
+                if (fluxoContent && !document.getElementById('btnRefreshExtrato')) {
+                    fluxoContent.insertBefore(headerExtrato, fluxoContent.firstChild);
+
+                    // Configurar evento de refresh
+                    document.getElementById('btnRefreshExtrato').addEventListener('click', async function() {
+                        const confirmRefresh = confirm(
+                            '⚠️ Isso irá recarregar todos os dados do servidor.\n\n' +
+                            'Deseja continuar?'
+                        );
+
+                        if (confirmRefresh) {
+                            this.disabled = true;
+                            this.innerHTML = '<span class="refresh-icon">⏳</span><span class="refresh-text">Atualizando...</span>';
+
+                            try {
+                                const { forceRefresh } = await import('/js/fluxo-financeiro/fluxo-financeiro-cache.js');
+                                await forceRefresh(timeId, ligaId);
+                                setTimeout(() => window.location.reload(), 500);
+                            } catch (e) {
+                                console.error("Erro ao atualizar:", e);
+                                alert("Não foi possível atualizar os dados.");
+                                this.innerHTML = '<span class="refresh-icon">🔄</span><span class="refresh-text">Atualizar</span>';
+                                this.disabled = false;
+                            }
+                        }
+                    });
                 }
 
                 // ✅ DEFINIR GLOBALMENTE O ID DA LIGA CORRETO
