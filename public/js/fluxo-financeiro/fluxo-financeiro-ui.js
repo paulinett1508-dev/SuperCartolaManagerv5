@@ -548,7 +548,7 @@ export class FluxoFinanceiroUI {
                         <span style="font-size: 16px;">📋</span>
                         Histórico de Rodadas
                     </h3>
-                    
+
                 </div>
 
                 <div style="overflow-x: auto;">
@@ -696,7 +696,7 @@ export class FluxoFinanceiroUI {
 
         // ✅ VERIFICAR SE HÁ ALGUM CAMPO COM VALOR DIFERENTE DE ZERO
         const temCamposPreenchidos = camposArray.some(campo => campo.valorAtual !== 0);
-        
+
         // ✅ NÃO RENDERIZAR SE NÃO HOUVER CAMPOS PREENCHIDOS
         if (!temCamposPreenchidos) {
             return '';
