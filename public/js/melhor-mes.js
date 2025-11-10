@@ -53,9 +53,15 @@ export async function getResultadosMelhorMes() {
   console.log("[MELHOR-MES] Obtendo resultados...");
 
   try {
-    if (!modulosCarregados) {
-      await carregarModulos();
+    // ✅ VALIDAÇÃO: Verificar se ligaId está disponível
+    const ligaId = window.ligaIdAtual || window.currentLigaId;
+
+    if (!ligaId || ligaId === 'null') {
+        console.warn("[MELHOR-MES] Liga ID não disponível, retornando vazio");
+        return [];
     }
+
+    await carregarModulos();
 
     if (melhorMesOrquestrador) {
       return await melhorMesOrquestrador.obterVencedores();

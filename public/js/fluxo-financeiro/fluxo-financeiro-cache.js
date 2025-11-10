@@ -266,6 +266,9 @@ export class FluxoFinanceiroCache {
             console.warn("[FLUXO-CACHE] Aviso ao testar Mata-Mata:", error);
         }
 
+        // ✅ GARANTIR ligaId válido antes de carregar Melhor Mês
+        const ligaIdValido = this.ligaId || obterLigaId();
+
         const [confrontosLPC, resultadosMM, resultadosMelhorMes] =
             await Promise.all([
                 getConfrontosLigaPontosCorridos(),
@@ -273,7 +276,8 @@ export class FluxoFinanceiroCache {
                     participantes: [],
                     edicoes: [],
                 })),
-                getResultadosMelhorMes().catch(() => []),
+                // Só buscar Melhor Mês se ligaId for válido
+                ligaIdValido ? getResultadosMelhorMes().catch(() => []) : Promise.resolve([]),
             ]);
 
         this.cacheConfrontosLPC = confrontosLPC || [];

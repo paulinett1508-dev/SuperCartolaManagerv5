@@ -26,19 +26,20 @@ export class MelhorMesCore {
   }
 
   // INICIALIZAÇÃO DO CORE
-  async inicializar() {
-    console.log("[MELHOR-MES-CORE] Inicializando...");
+  async inicializar(ligaId = null, ultimaRodadaCompleta = null) {
+        console.log("[MELHOR-MES-CORE] Inicializando...");
 
-    try {
-      await this.carregarDadosBasicos();
-      await this.processarTodasEdicoes();
+        // ✅ VALIDAÇÃO: Não processar se ligaId inválido
+        if (!ligaId || ligaId === 'null') {
+            console.warn("[MELHOR-MES-CORE] Liga ID inválido, pulando inicialização");
+            this.vencedores = [];
+            return;
+        }
 
-      console.log("[MELHOR-MES-CORE] Core inicializado com sucesso");
-      return this.dadosProcessados;
-    } catch (error) {
-      console.error("[MELHOR-MES-CORE] Erro na inicialização:", error);
-      throw error;
-    }
+        await this.processarTodasEdicoes(ligaId, ultimaRodadaCompleta);
+
+    console.log("[MELHOR-MES-CORE] Core inicializado com sucesso");
+    return this.dadosProcessados;
   }
 
   // CARREGAR DADOS BÁSICOS DO SISTEMA
