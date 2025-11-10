@@ -102,9 +102,13 @@ export async function inicializarTop10() {
 // CARREGAMENTO DE DADOS
 // ==============================
 async function carregarDadosTop10() {
-  const ligaId = getLigaId();
+  console.log('[TOP10] Carregando dados...');
+
+  // ✅ USAR FUNÇÃO GLOBAL obterLigaId()
+  const ligaId = window.obterLigaId ? window.obterLigaId() : getLigaId();
+
   if (!ligaId) {
-    throw new Error("ID da Liga não encontrado");
+    throw new Error('ID da Liga não encontrado');
   }
 
   todosOsMitos = [];
@@ -176,7 +180,7 @@ async function renderizarTabelasTop10() {
   }
 
   // Determinar valores de bônus/ônus baseado na liga
-  const ligaId = getLigaId();
+  const ligaId = window.obterLigaId ? window.obterLigaId() : getLigaId();
   const isLigaCartoleirosSobral = ligaId === "684d821cf1a7ae16d1f89572";
   const valoresBonusOnus = isLigaCartoleirosSobral
     ? valoresBonusOnusCartoleirosSobral

@@ -231,141 +231,123 @@ export async function getResultadosMataMata() {
 
 // Função para obter resultados consolidados para fluxo financeiro
 export async function getResultadosMataMataFluxo() {
-  console.log("[MATA-FINANCEIRO] Calculando TODAS as edições concluídas...");
+  console.log('[MATA-FINANCEIRO] Calculando TODAS as edições concluídas...');
 
-  try {
-    if (!getRankingRodadaEspecifica) {
-      console.error(
-        "[MATA-FINANCEIRO] Função getRankingRodadaEspecifica não disponível.",
-      );
-      return {
-        participantes: [],
-        totalArrecadado: 0,
-        totalPago: 0,
-        saldoFinal: 0,
-        edicoes: [],
-      };
-    }
+  // ✅ USAR FUNÇÃO GLOBAL obterLigaId()
+  const ligaId = window.obterLigaId ? window.obterLigaId() : getLigaId();
 
-    const ligaId = getLigaId();
-    if (!ligaId) {
-      console.error("[MATA-FINANCEIRO] ID da Liga não encontrado.");
-      return {
-        participantes: [],
-        totalArrecadado: 0,
-        totalPago: 0,
-        saldoFinal: 0,
-        edicoes: [],
-      };
-    }
-
-    let rodada_atual = 1;
-    try {
-      const resMercado = await fetch("/api/cartola/mercado/status");
-      if (resMercado.ok) {
-        rodada_atual = (await resMercado.json()).rodada_atual;
-      }
-    } catch (err) {
-      console.warn("[MATA-FINANCEIRO] Erro ao buscar status do mercado:", err);
-    }
-
-    const edicoesProcessaveis = edicoes.filter(
-      (edicao) => rodada_atual > edicao.rodadaInicial,
-    );
-    console.log(
-      `[MATA-FINANCEIRO] Encontradas ${edicoesProcessaveis.length} edições para processar (rodada atual: ${rodada_atual})`,
-    );
-
-    if (edicoesProcessaveis.length === 0) {
-      return {
-        participantes: [],
-        totalArrecadado: 0,
-        totalPago: 0,
-        saldoFinal: 0,
-        edicoes: [],
-      };
-    }
-
-    const resultadosConsolidados = new Map();
-    let totalArrecadado = 0;
-    let totalPago = 0;
-    const edicoesProcessadas = [];
-
-    for (const edicao of edicoesProcessaveis) {
-      console.log(`[MATA-FINANCEIRO] Processando ${edicao.nome}...`);
-      const resultadosEdicao = await calcularResultadosEdicaoFluxo(
-        ligaId,
-        edicao,
-        rodada_atual,
-      );
-
-      if (resultadosEdicao.length > 0) {
-        resultadosEdicao.forEach((resultado) => {
-          const timeId = resultado.timeId;
-          if (!resultadosConsolidados.has(timeId)) {
-            resultadosConsolidados.set(timeId, {
-              timeId: timeId,
-              nome: resultado.nome || `Time ${timeId}`,
-              totalPago: 0,
-              totalRecebido: 0,
-              saldoFinal: 0,
-              edicoes: [],
-            });
-          }
-
-          const participante = resultadosConsolidados.get(timeId);
-          if (resultado.valor > 0) {
-            participante.totalRecebido += resultado.valor;
-          } else {
-            participante.totalPago += Math.abs(resultado.valor);
-          }
-
-          participante.saldoFinal += resultado.valor;
-          participante.edicoes.push({
-            edicao: edicao.id,
-            fase: resultado.fase,
-            valor: resultado.valor,
-          });
-        });
-
-        const arrecadadoEdicao = 32 * 10.0;
-        const pagoEdicao = resultadosEdicao
-          .filter((r) => r.valor > 0)
-          .reduce((total, r) => total + r.valor, 0);
-        totalArrecadado += arrecadadoEdicao;
-        totalPago += pagoEdicao;
-
-        edicoesProcessadas.push({
-          edicao: edicao.id,
-          nome: edicao.nome,
-          arrecadado: arrecadadoEdicao,
-          pago: pagoEdicao,
-        });
-      }
-    }
-
-    const participantesArray = Array.from(resultadosConsolidados.values());
-    console.log(
-      `[MATA-FINANCEIRO] CONSOLIDADO: ${participantesArray.length} participantes, R$ ${totalArrecadado.toFixed(2)} total`,
-    );
-
+  if (!ligaId) {
+    console.warn(' [MATA-FINANCEIRO] ID da Liga não encontrado.');
     return {
-      participantes: participantesArray,
-      totalArrecadado: totalArrecadado,
-      totalPago: totalPago,
-      saldoFinal: totalArrecadado - totalPago,
-      edicoes: edicoesProcessadas,
-    };
-  } catch (error) {
-    console.error("[MATA-FINANCEIRO] Erro ao calcular resultados:", error);
-    return {
-      participantes: [],
+      temParticipantes: true,
+      numeroParticipantes: 0,
       totalArrecadado: 0,
       totalPago: 0,
       saldoFinal: 0,
-      edicoes: [],
+      edicoesConcluidas: [],
+      disputasAtivas: []
     };
   }
+
+  let rodada_atual = 1;
+  try {
+    const resMercado = await fetch("/api/cartola/mercado/status");
+    if (resMercado.ok) {
+      rodada_atual = (await resMercado.json()).rodada_atual;
+    }
+  } catch (err) {
+    console.warn("[MATA-FINANCEIRO] Erro ao buscar status do mercado:", err);
+  }
+
+  const edicoesProcessaveis = edicoes.filter(
+    (edicao) => rodada_atual > edicao.rodadaInicial,
+  );
+  console.log(
+    `[MATA-FINANCEIRO] Encontradas ${edicoesProcessaveis.length} edições para processar (rodada atual: ${rodada_atual})`,
+  );
+
+  if (edicoesProcessaveis.length === 0) {
+    return {
+      temParticipantes: true,
+      numeroParticipantes: 0,
+      totalArrecadado: 0,
+      totalPago: 0,
+      saldoFinal: 0,
+      edicoesConcluidas: [],
+      disputasAtivas: []
+    };
+  }
+
+  const resultadosConsolidados = new Map();
+  let totalArrecadado = 0;
+  let totalPago = 0;
+  const edicoesProcessadas = [];
+
+  for (const edicao of edicoesProcessaveis) {
+    console.log(`[MATA-FINANCEIRO] Processando ${edicao.nome}...`);
+    const resultadosEdicao = await calcularResultadosEdicaoFluxo(
+      ligaId,
+      edicao,
+      rodada_atual,
+    );
+
+    if (resultadosEdicao.length > 0) {
+      resultadosEdicao.forEach((resultado) => {
+        const timeId = resultado.timeId;
+        if (!resultadosConsolidados.has(timeId)) {
+          resultadosConsolidados.set(timeId, {
+            timeId: timeId,
+            nome: resultado.nome || `Time ${timeId}`,
+            totalPago: 0,
+            totalRecebido: 0,
+            saldoFinal: 0,
+            edicoes: [],
+          });
+        }
+
+        const participante = resultadosConsolidados.get(timeId);
+        if (resultado.valor > 0) {
+          participante.totalRecebido += resultado.valor;
+        } else {
+          participante.totalPago += Math.abs(resultado.valor);
+        }
+
+        participante.saldoFinal += resultado.valor;
+        participante.edicoes.push({
+          edicao: edicao.id,
+          fase: resultado.fase,
+          valor: resultado.valor,
+        });
+      });
+
+      const arrecadadoEdicao = 32 * 10.0;
+      const pagoEdicao = resultadosEdicao
+        .filter((r) => r.valor > 0)
+        .reduce((total, r) => total + r.valor, 0);
+      totalArrecadado += arrecadadoEdicao;
+      totalPago += pagoEdicao;
+
+      edicoesProcessadas.push({
+        edicao: edicao.id,
+        nome: edicao.nome,
+        arrecadado: arrecadadoEdicao,
+        pago: pagoEdicao,
+      });
+    }
+  }
+
+  const participantesArray = Array.from(resultadosConsolidados.values());
+  console.log(
+    `[MATA-FINANCEIRO] CONSOLIDADO: ${participantesArray.length} participantes, R$ ${totalArrecadado.toFixed(2)} total`,
+  );
+
+  return {
+    participantes: participantesArray,
+    totalArrecadado: totalArrecadado,
+    totalPago: totalPago,
+    saldoFinal: totalArrecadado - totalPago,
+    edicoes: edicoesProcessadas,
+  };
 }
 
 // Função para calcular resultados de uma edição específica

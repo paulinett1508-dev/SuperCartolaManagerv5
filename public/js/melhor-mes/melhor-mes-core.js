@@ -43,8 +43,10 @@ export class MelhorMesCore {
 
   // CARREGAR DADOS BÁSICOS DO SISTEMA
   async carregarDadosBasicos() {
-    this.ligaId = getLigaId();
-    if (!this.ligaId) {
+    // ✅ USAR FUNÇÃO GLOBAL obterLigaId()
+    const ligaId = window.obterLigaId ? window.obterLigaId() : getLigaId();
+
+    if (!ligaId) {
       throw new Error("ID da Liga não encontrado");
     }
 
