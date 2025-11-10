@@ -148,19 +148,22 @@ router.get("/extrato", verificarSessaoParticipante, async (req, res) => {
     }
 });
 
-// Rota para verificar status de autenticação Replit
+// Rota para verificar status de autenticação do participante
 router.get("/check", (req, res) => {
-  if (req.headers["x-replit-user-id"]) {
+  if (req.session && req.session.participante) {
     res.json({
       authenticated: true,
-      user: {
-        id: req.headers["x-replit-user-id"],
-        name: req.headers["x-replit-user-name"],
-        roles: req.headers["x-replit-user-roles"],
-      },
+      participante: {
+        timeId: req.session.participante.timeId,
+        nome: req.session.participante.participante.nome_cartola,
+        time: req.session.participante.participante.nome_time
+      }
     });
   } else {
-    res.json({ authenticated: false });
+    res.json({ 
+      authenticated: false,
+      needsLogin: true 
+    });
   }
 });
 
