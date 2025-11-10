@@ -9,29 +9,37 @@
   <link rel="stylesheet" href="detalhe-liga.css">
   <link rel="stylesheet" href="css/modules/fluxo-financeiro.css">
   <style>
-    * {
-      margin: 0;
-      padding: 0;
-      box-sizing: border-box;
-    }
+        :root {
+            --primary: #ff4500;
+            --primary-dark: #e8472b;
+            --success: #22c55e;
+            --danger: #ef4444;
+            --bg-dark: #0a0a0a;
+            --bg-card: #1e1e1e;
+            --text-primary: #ffffff;
+            --text-secondary: #e0e0e0;
+            --border-primary: rgba(255, 69, 0, 0.3);
+        }
 
-    body {
-      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-      background: #0a0a0a !important;
-      color: #ffffff !important;
-      min-height: 100vh;
-    }
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
 
-    .page-content {
-      background: #121212 !important;
-    }
+        body {
+            font-family: 'Inter', -apple-system, sans-serif;
+            background: var(--bg-dark);
+            color: var(--text-primary);
+            min-height: 100vh;
+        }
 
-    .header {
-      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-      color: white;
-      padding: 20px;
-      box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
-    }
+        .dashboard-header {
+            background: linear-gradient(135deg, #ff4500 0%, #e8472b 100%);
+            padding: 2rem;
+            box-shadow: 0 4px 20px rgba(255, 69, 0, 0.4);
+            border-bottom: 3px solid var(--border-primary);
+        }
 
     .header h1 {
       font-size: 22px;
@@ -115,6 +123,59 @@
       border-left: 4px solid #e57373; /* Lighter red border */
     }
 
+        .btn-logout {
+            background: rgba(255, 255, 255, 0.15);
+            color: white;
+            border: 2px solid rgba(255, 255, 255, 0.4);
+            padding: 0.75rem 1.5rem;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            text-transform: uppercase;
+            font-size: 13px;
+            letter-spacing: 0.5px;
+        }
+
+        .btn-logout:hover {
+            background: rgba(255, 255, 255, 0.25);
+            transform: translateY(-2px);
+            box-shadow: 0 4px 15px rgba(255, 255, 255, 0.2);
+        }
+
+        .stat-card {
+            background: var(--bg-card);
+            padding: 1.5rem;
+            border-radius: 12px;
+            border: 1px solid var(--border-primary);
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .stat-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 3px;
+            background: linear-gradient(135deg, #ff4500 0%, #e8472b 100%);
+            transform: scaleX(0);
+            transition: transform 0.3s ease;
+        }
+
+        .stat-card:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 8px 30px rgba(255, 69, 0, 0.25);
+            border-color: var(--primary);
+        }
+
+        .stat-card:hover::before {
+            transform: scaleX(1);
+        }
+
+
     /* Mobile optimizations */
     @media (max-width: 768px) {
       .header {
@@ -161,82 +222,158 @@
     </div>
 
     <div id="errorContainer"></div>
-    <div id="fluxoFinanceiroContent"></div>
+    <div id="extratoFinanceiroContainer"></div>
   </div>
 
   <script type="module">
-    import { calcularEExibirExtrato } from './js/fluxo-financeiro.js';
+        // Importar módulos necessários
+        let calcularEExibirExtrato, inicializarFluxoFinanceiro, selecionarParticipante, obterLigaId;
 
-    async function carregarDados() {
-      try {
-        const loading = document.getElementById('loading');
-        const errorContainer = document.getElementById('errorContainer');
+        // Carregar módulos de forma segura
+        async function carregarModulosFluxo() {
+            try {
+                const modulo = await import('./js/fluxo-financeiro.js');
+                calcularEExibirExtrato = modulo.calcularEExibirExtrato;
+                inicializarFluxoFinanceiro = modulo.inicializarFluxoFinanceiro;
+                selecionarParticipante = modulo.selecionarParticipante;
+                obterLigaId = modulo.obterLigaId;
+                console.log('[PARTICIPANTE-DASHBOARD] Módulos do fluxo financeiro carregados');
+                return true;
+            } catch (error) {
+                console.error('[PARTICIPANTE-DASHBOARD] Erro ao carregar módulos:', error);
+                return false;
+            }
+        }
 
         // Verificar autenticação
-        const authResponse = await fetch('/api/participante/auth/check', {
-          credentials: 'include'
-        });
+        async function verificarAutenticacao() {
+            try {
+                const authResponse = await fetch('/api/participante/auth/check', {
+                    credentials: 'include'
+                });
 
-        if (!authResponse.ok) {
-          window.location.href = '/participante-login.html';
-          return;
+                if (!authResponse.ok) {
+                    console.error('[PARTICIPANTE-DASHBOARD] Falha na autenticação:', authResponse.statusText);
+                    window.location.href = '/participante-login.html';
+                    return;
+                }
+
+                const authData = await authResponse.json();
+
+                if (!authData.authenticated) {
+                    console.log('[PARTICIPANTE-DASHBOARD] Usuário não autenticado.');
+                    window.location.href = '/participante-login.html';
+                    return;
+                }
+
+                console.log('[PARTICIPANTE-DASHBOARD] Autenticação verificada com sucesso.');
+
+                // Buscar dados da sessão do participante
+                const sessionResponse = await fetch('/api/participante/auth/session', {
+                    credentials: 'include'
+                });
+
+                if (!sessionResponse.ok) {
+                    const errorData = await sessionResponse.json();
+                    if (errorData.needsLogin) {
+                        console.log('[PARTICIPANTE-DASHBOARD] Sessão expirada, redirecionando para login.');
+                        window.location.href = '/participante-login.html';
+                        return;
+                    }
+                    throw new Error('Erro ao carregar sessão');
+                }
+
+                const sessionData = await sessionResponse.json();
+                const { participante } = sessionData;
+
+                // Atualizar info do usuário
+                document.getElementById('userInfo').textContent =
+                    `${participante.participante.nome_cartola} - ${participante.participante.nome_time}`;
+
+                // Carregar extrato financeiro usando dados da sessão
+                await carregarExtrato(participante);
+
+            } catch (error) {
+                console.error('[PARTICIPANTE-DASHBOARD] Erro na verificação de autenticação:', error);
+                document.getElementById('errorContainer').innerHTML =
+                    `<div class="error-message">❌ Erro: ${error.message}</div>`;
+                document.getElementById('loading').style.display = 'none';
+            }
         }
 
-        const authData = await authResponse.json();
+        async function carregarExtrato(participante) {
+            try {
+                console.log('[PARTICIPANTE-DASHBOARD] Carregando extrato para:', participante);
 
-        if (!authData.authenticated) {
-          window.location.href = '/participante-login.html';
-          return;
+                const container = document.getElementById('extratoFinanceiroContainer');
+
+                // Verificar se os módulos estão carregados
+                if (!calcularEExibirExtrato || !inicializarFluxoFinanceiro) {
+                    throw new Error('Módulos financeiros não foram carregados corretamente');
+                }
+
+                // Mostrar loading
+                container.innerHTML = `
+                    <div style="text-align: center; padding: 40px;">
+                        <div style="display: inline-block; width: 40px; height: 40px; border: 4px solid rgba(255, 69, 0, 0.2); border-top: 4px solid #ff4500; border-radius: 50%; animation: spin 1s linear infinite;"></div>
+                        <p style="margin-top: 20px; color: #e0e0e0;">Carregando seu extrato financeiro...</p>
+                    </div>
+                    <style>@keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }</style>
+                `;
+
+                // Inicializar sistema financeiro
+                await inicializarFluxoFinanceiro();
+
+                // Calcular e exibir extrato
+                await calcularEExibirExtrato(participante.timeId);
+
+                // Esconder o loading principal após o extrato ser carregado
+                document.getElementById('loading').style.display = 'none';
+            } catch (error) {
+                console.error('[PARTICIPANTE-DASHBOARD] Erro ao carregar extrato:', error);
+                document.getElementById('errorContainer').innerHTML =
+                    `<div class="error-message">❌ Erro ao carregar extrato: ${error.message}</div>`;
+                document.getElementById('loading').style.display = 'none'; // Esconder o loading principal em caso de erro
+            }
         }
 
-        // Buscar dados da sessão do participante
-        const sessionResponse = await fetch('/api/participante/auth/session', {
-          credentials: 'include'
-        });
-
-        if (!sessionResponse.ok) {
-          const sessionData = await sessionResponse.json();
-          if (sessionData.needsLogin) {
+        async function sair() {
+            try {
+                await fetch('/api/participante/auth/logout', {
+                    method: 'POST',
+                    credentials: 'include'
+                });
+            } catch (error) {
+                console.error('Erro ao fazer logout:', error);
+            }
             window.location.href = '/participante-login.html';
-            return;
-          }
-          throw new Error('Erro ao carregar sessão');
         }
 
-        const sessionData = await sessionResponse.json();
-        const { participante } = sessionData;
+        window.sair = sair;
 
-        // Atualizar info do usuário
-        document.getElementById('userInfo').textContent = 
-          `${participante.participante.nome_cartola} - ${participante.participante.nome_time}`;
+        // Inicializar dashboard
+        window.addEventListener('DOMContentLoaded', async () => {
+            console.log('[PARTICIPANTE-DASHBOARD] Inicializando...');
 
-        // Carregar extrato financeiro usando dados da sessão
-        await calcularEExibirExtrato(participante.timeId, participante.ligaId);
+            // Carregar módulos primeiro
+            const modulosCarregados = await carregarModulosFluxo();
 
-        loading.style.display = 'none';
+            if (!modulosCarregados) {
+                console.error('[PARTICIPANTE-DASHBOARD] Falha ao carregar módulos');
+                document.getElementById('extratoFinanceiroContainer').innerHTML = `
+                    <div style="text-align: center; padding: 40px; background: rgba(239, 68, 68, 0.1); border-radius: 12px; border: 1px solid rgba(239, 68, 68, 0.3);">
+                        <div style="font-size: 48px; margin-bottom: 16px;">⚠️</div>
+                        <h3 style="color: #ef4444; margin-bottom: 12px;">Erro ao Carregar Sistema</h3>
+                        <p style="color: #e0e0e0;">Não foi possível carregar o módulo financeiro.</p>
+                        <button onclick="location.reload()" style="margin-top: 20px; padding: 10px 20px; background: linear-gradient(135deg, #ff4500 0%, #e8472b 100%); color: white; border: none; border-radius: 8px; cursor: pointer; font-weight: 600;">Tentar Novamente</button>
+                    </div>
+                `;
+                return;
+            }
 
-      } catch (error) {
-        console.error('Erro ao carregar dados:', error);
-        document.getElementById('errorContainer').innerHTML = 
-          `<div class="error-message">❌ Erro: ${error.message}</div>`;
-        document.getElementById('loading').style.display = 'none';
-      }
-    }
-
-    async function sair() {
-      try {
-        await fetch('/api/participante/auth/logout', {
-          method: 'POST',
-          credentials: 'include'
+            // Verificar autenticação
+            await verificarAutenticacao();
         });
-      } catch (error) {
-        console.error('Erro ao fazer logout:', error);
-      }
-      window.location.href = '/participante-login.html';
-    }
-
-    window.sair = sair;
-    window.addEventListener('load', carregarDados);
-  </script>
+    </script>
 </body>
 </html>
