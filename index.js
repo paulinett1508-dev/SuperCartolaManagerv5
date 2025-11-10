@@ -147,9 +147,9 @@ if (process.env.NODE_ENV !== "production") {
 }
 
 // ✨ NOVO: Rotas de autenticação de participantes
-app.use("/api/participante", participanteAuthRoutes);
+app.use("/api/participante/auth", participanteAuthRoutes);
 if (process.env.NODE_ENV !== "production") {
-  console.log("✅ [ROUTES] Registrada: /api/participante/*");
+  console.log("✅ [ROUTES] Registrada: /api/participante/auth/*");
 }
 
 // Rotas de autenticação genéricas (para login/logout)
@@ -199,7 +199,7 @@ app.get("/api/version", (req, res) => {
       luvaDeOuro: "/api/luva-de-ouro",
       configuracao: "/api/configuracao",
       fluxoFinanceiro: "/api/fluxo-financeiro",
-      participanteAuth: "/api/participante/*", // Novo endpoint
+      participanteAuth: "/api/participante/auth/*", // Novo endpoint
       auth: "/api/auth/*", // Novo endpoint
       version: "/api/version",
     },
@@ -249,8 +249,8 @@ app.use((req, res, next) => {
         "GET /api/luva-de-ouro/*",
         "GET /api/configuracao/*",
         "GET /api/fluxo-financeiro/*",
-        "POST /api/participante/login", // Novo endpoint
-        "POST /api/participante/register", // Novo endpoint
+        "POST /api/participante/auth/login", // Novo endpoint
+        "POST /api/participante/auth/register", // Novo endpoint
         "POST /api/auth/logout", // Novo endpoint
       ],
     });
