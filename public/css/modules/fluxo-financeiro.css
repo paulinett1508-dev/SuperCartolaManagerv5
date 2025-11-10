@@ -4,6 +4,7 @@
 
 /* === VARIÁVEIS DE CORES === */
 :root {
+  /* Variáveis de cor originais redefinidas para o tema laranja/preto */
   --bg-primary: #0a0a0a;
   --bg-secondary: #121212;
   --bg-tertiary: #1a1a1a;
@@ -13,9 +14,12 @@
   --text-secondary: #e0e0e0;
   --text-muted: #a0a0a0;
   --text-dark: #666666;
-  --laranja: #ff4500;
-  --border-primary: rgba(255, 69, 0, 0.3);
+  --laranja: #ff4500; /* Tema laranja principal */
+  --laranja-dark: #e8472b; /* Versão mais escura do laranja */
+  --border-primary: rgba(255, 69, 0, 0.3); /* Borda com tom laranja */
+  /* Gradientes atualizados para o tema laranja */
   --gradient-primary: linear-gradient(135deg, #ff4500 0%, #e8472b 100%);
+  --gradient-secondary: linear-gradient(135deg, #ff6347 0%, #ff7f50 100%); /* Gradiente secundário laranja */
   --success: #22c55e;
   --danger: #ef4444;
   --warning: #f59e0b;

@@ -246,8 +246,12 @@ const buscarTimesDaLiga = async (req, res) => {
 
   // --- CORREÇÃO: Validar ID da liga ---
   if (!mongoose.Types.ObjectId.isValid(ligaIdParam)) {
-    console.log(`ID de liga inválido para buscar times: ${ligaIdParam}`);
-    return res.status(400).json({ erro: "ID de liga inválido" });
+    console.log(`[TIMES] ID de liga inválido recebido: "${ligaIdParam}"`);
+    return res.status(400).json({ 
+      erro: "ID de liga inválido", 
+      recebido: ligaIdParam,
+      dica: "Verifique se o ligaId está sendo passado corretamente da sessão"
+    });
   }
   // --- FIM CORREÇÃO ---
 
@@ -287,9 +291,14 @@ const buscarRodadasDaLiga = async (req, res) => {
   const rodadaNumParam = req.params.rodadaNum;
   const { rodada, inicio, fim } = req.query;
 
-  if (!ligaIdParam) {
-    console.log(`ID de liga inválido para buscar rodadas: ${ligaIdParam}`);
-    return res.status(400).json({ erro: "ID de liga inválido" });
+  // Validar ID da liga
+  if (!mongoose.Types.ObjectId.isValid(ligaIdParam)) {
+    console.log(`[RODADAS] ID de liga inválido recebido: "${ligaIdParam}"`);
+    return res.status(400).json({ 
+      erro: "ID de liga inválido", 
+      recebido: ligaIdParam,
+      dica: "Certifique-se de que está usando o ID correto da liga, não o nome do arquivo"
+    });
   }
 
   try {

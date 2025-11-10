@@ -321,6 +321,10 @@
                     <style>@keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }</style>
                 `;
 
+                // ✅ DEFINIR GLOBALMENTE O ID DA LIGA ANTES DE INICIALIZAR
+                window.ligaIdAtual = participante.ligaId;
+                console.log('[PARTICIPANTE-DASHBOARD] Liga ID definido:', window.ligaIdAtual);
+
                 // Inicializar sistema financeiro
                 await inicializarFluxoFinanceiro();
 
