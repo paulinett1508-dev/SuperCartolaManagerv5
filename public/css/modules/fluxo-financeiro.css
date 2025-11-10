@@ -1,9 +1,42 @@
-/* FLUXO FINANCEIRO CSS - UX COMPACTA E PROFISSIONAL
-   Otimizado para densidade visual e scroll reduzido */
+/* FLUXO FINANCEIRO CSS - Módulo Específico
+   Arquivo: public/css/modules/fluxo-financeiro.css
+*/
+
+/* === VARIÁVEIS DE CORES === */
+:root {
+  --bg-primary: #0a0a0a;
+  --bg-secondary: #121212;
+  --bg-tertiary: #1a1a1a;
+  --bg-card: #1e1e1e;
+  --bg-card-hover: #262626;
+  --text-primary: #ffffff;
+  --text-secondary: #e0e0e0;
+  --text-muted: #a0a0a0;
+  --text-dark: #666666;
+  --laranja: #ff4500;
+  --border-primary: rgba(255, 69, 0, 0.3);
+  --gradient-primary: linear-gradient(135deg, #ff4500 0%, #e8472b 100%);
+  --success: #22c55e;
+  --danger: #ef4444;
+  --warning: #f59e0b;
+  --info: #3b82f6;
+}
+
+/* === TEMA ESCURO PROFISSIONAL === */
+body {
+  background: var(--bg-primary) !important;
+  color: var(--text-primary) !important;
+}
+
+.page-content {
+  background: var(--bg-secondary) !important;
+  min-height: calc(100vh - 60px);
+  padding: 30px;
+}
 
 /* ===== HEADER PRINCIPAL COMPACTO ===== */
 .fluxo-financeiro-header {
-    background: linear-gradient(135deg, var(--laranja) 0%, var(--laranja-dark) 100%);
+    background: var(--gradient-primary);
     color: var(--text-primary);
     padding: 16px 20px; /* REDUZIDO de 40px para 16px */
     border-radius: var(--border-radius-md);
@@ -39,7 +72,7 @@
 
 .participante-card {
     background: var(--bg-card);
-    border: 1px solid rgba(255, 69, 0, 0.1);
+    border: 1px solid var(--border-primary);
     border-radius: 8px; /* REDUZIDO de 12px para 8px */
     padding: 10px; /* REDUZIDO de 16px para 10px */
     cursor: pointer;
@@ -55,7 +88,7 @@
     left: 0;
     right: 0;
     height: 3px; /* REDUZIDO de 4px para 3px */
-    background: linear-gradient(135deg, var(--laranja) 0%, var(--laranja-dark) 100%);
+    background: var(--gradient-primary);
     transform: scaleX(0);
     transition: transform 0.3s ease;
 }
@@ -67,7 +100,7 @@
 .participante-card:hover {
     transform: translateY(-2px); /* REDUZIDO de -4px para -2px */
     box-shadow: 0 4px 16px rgba(255, 69, 0, 0.15); /* REDUZIDO shadow */
-    border-color: rgba(255, 69, 0, 0.3);
+    border-color: var(--border-primary);
     background: var(--bg-card-hover);
 }
 
@@ -98,7 +131,7 @@
     width: 32px; /* REDUZIDO de 40px para 32px */
     height: 32px;
     border-radius: 50%;
-    background: linear-gradient(135deg, var(--laranja) 0%, var(--laranja-dark) 100%);
+    background: var(--gradient-primary);
     display: flex;
     align-items: center;
     justify-content: center;
@@ -123,7 +156,7 @@
     display: flex;
     align-items: center;
     justify-content: center;
-    background: linear-gradient(135deg, var(--laranja) 0%, var(--laranja-dark) 100%);
+    background: var(--gradient-primary);
     color: white;
     font-weight: 700;
     font-size: 13px;
@@ -159,7 +192,7 @@
     align-items: center;
     margin-top: 8px; /* REDUZIDO de 12px para 8px */
     padding-top: 8px;
-    border-top: 1px solid rgba(255, 69, 0, 0.1);
+    border-top: 1px solid var(--border-primary);
 }
 
 .participante-saldo {
@@ -194,7 +227,7 @@
 }
 
 .participante-badge.ativo {
-    background: linear-gradient(135deg, var(--success) 0%, #20c997 100%);
+    background: var(--gradient-primary);
     color: white;
 }
 
@@ -204,7 +237,7 @@
     border-radius: var(--border-radius-md);
     padding: 20px; /* REDUZIDO de var(--spacing-xl) */
     margin-bottom: 20px;
-    border: 1px solid rgba(255, 69, 0, 0.1);
+    border: 1px solid var(--border-primary);
     min-height: 300px; /* REDUZIDO de 400px para 300px */
 }
 
@@ -215,7 +248,7 @@
 }
 
 .extrato-header {
-    background: linear-gradient(135deg, #2E8B57 0%, #228B22 100%);
+    background: var(--gradient-primary);
     color: white;
     padding: 16px 20px; /* REDUZIDO de 24px para 16px */
     border-radius: 8px; /* REDUZIDO de 12px para 8px */
@@ -290,7 +323,7 @@
 }
 
 .saldo-final-positivo {
-    background: linear-gradient(135deg, #27ae60, #2ecc71);
+    background: var(--gradient-primary);
     color: white;
 }
 
@@ -353,7 +386,7 @@
     border-radius: 8px; /* REDUZIDO de 12px para 8px */
     padding: 16px; /* REDUZIDO de 24px para 16px */
     margin-bottom: 16px; /* REDUZIDO de 24px para 16px */
-    border: 1px solid rgba(255, 69, 0, 0.1);
+    border: 1px solid var(--border-primary);
 }
 
 .resumo-titulo-principal {
@@ -447,7 +480,7 @@
     border-radius: 8px; /* REDUZIDO de 12px para 8px */
     padding: 16px; /* REDUZIDO de 24px para 16px */
     margin-bottom: 16px; /* REDUZIDO de 24px para 16px */
-    border: 1px solid rgba(255, 69, 0, 0.1);
+    border: 1px solid var(--border-primary);
 }
 
 .evolucao-titulo {
@@ -512,7 +545,7 @@
     border-radius: 8px; /* REDUZIDO de 12px para 8px */
     padding: 16px; /* REDUZIDO de 24px para 16px */
     box-shadow: 0 2px 8px rgba(0,0,0,0.06); /* REDUZIDO shadow */
-    border: 1px solid rgba(255, 69, 0, 0.1);
+    border: 1px solid var(--border-primary);
 }
 
 .detalhamento-header {
@@ -538,7 +571,7 @@
 
 .stat-badge {
     padding: 3px 6px; /* REDUZIDO de 4px 8px */
-    background: rgba(255, 69, 0, 0.1);
+    background: var(--border-primary);
     color: var(--laranja);
     border-radius: 4px; /* REDUZIDO de 6px para 4px */
     font-size: 10px; /* REDUZIDO de 12px para 10px */
@@ -548,7 +581,7 @@
 .tabela-wrapper {
     overflow-x: auto;
     border-radius: 6px; /* REDUZIDO de 8px para 6px */
-    border: 1px solid rgba(255, 69, 0, 0.1);
+    border: 1px solid var(--border-primary);
 }
 
 .detalhamento-tabela {
@@ -560,7 +593,7 @@
 }
 
 .detalhamento-tabela thead tr {
-    background: linear-gradient(135deg, #495057 0%, #343a40 100%);
+    background: var(--bg-tertiary);
     color: white;
 }
 
@@ -622,7 +655,7 @@
 .pos-mito {
     color: #fff;
     font-weight: 800;
-    background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
+    background: var(--gradient-primary);
     border-radius: 4px; /* REDUZIDO de 6px para 4px */
     padding: 2px 5px; /* REDUZIDO de 4px 8px */
     font-size: 9px; /* REDUZIDO de 11px para 9px */
@@ -706,7 +739,7 @@
     padding: 40px 20px; /* REDUZIDO de 60px para 40px */
     background: var(--bg-card);
     border-radius: 8px; /* REDUZIDO de 12px para 8px */
-    border: 1px solid rgba(255, 69, 0, 0.1);
+    border: 1px solid var(--border-primary);
     margin: 16px auto; /* REDUZIDO de 20px para 16px */
     max-width: 500px; /* REDUZIDO de 600px para 500px */
 }
@@ -765,7 +798,7 @@
     padding: 40px 20px; /* REDUZIDO de 60px para 40px */
     background: var(--bg-card);
     border-radius: 8px; /* REDUZIDO de 12px para 8px */
-    border: 1px solid rgba(255, 69, 0, 0.1);
+    border: 1px solid var(--border-primary);
 }
 
 .sem-dados-icon {
@@ -781,7 +814,7 @@
     border-radius: 8px; /* REDUZIDO de 12px para 8px */
     margin: 16px auto; /* REDUZIDO de 20px para 16px */
     max-width: 400px; /* REDUZIDO de 500px para 400px */
-    border: 1px solid rgba(255, 69, 0, 0.1);
+    border: 1px solid var(--border-primary);
 }
 
 .loading-spinner {
@@ -798,7 +831,7 @@
 .loading-progress {
     width: 100%;
     height: 3px; /* REDUZIDO de 4px para 3px */
-    background: rgba(255, 69, 0, 0.1);
+    background: var(--border-primary);
     border-radius: 2px;
     margin: 16px 0; /* REDUZIDO de 20px para 16px */
     overflow: hidden;
@@ -807,7 +840,7 @@
 .loading-progress-bar {
     width: 0%;
     height: 100%;
-    background: linear-gradient(90deg, var(--laranja) 0%, var(--laranja-dark) 100%);
+    background: var(--gradient-primary);
     border-radius: 2px;
     transition: width 0.5s ease;
 }
@@ -848,7 +881,7 @@
 }
 
 .retry-button {
-    background: linear-gradient(135deg, var(--laranja) 0%, var(--laranja-dark) 100%);
+    background: var(--gradient-primary);
     color: white;
     border: none;
     padding: 8px 16px; /* REDUZIDO de 10px 20px */
@@ -879,7 +912,7 @@
 }
 
 .btn-export {
-    background: linear-gradient(135deg, var(--laranja) 0%, var(--laranja-dark) 100%);
+    background: var(--gradient-primary);
     color: white;
     border: none;
     border-radius: 6px; /* REDUZIDO de 8px para 6px */
@@ -911,9 +944,9 @@
 }
 
 .btn-voltar {
-    background: rgba(42, 42, 42, 0.5);
+    background: var(--bg-tertiary);
     color: var(--text-secondary);
-    border: 1px solid rgba(255, 69, 0, 0.2);
+    border: 1px solid var(--border-primary);
     border-radius: var(--border-radius-md);
     padding: 8px 16px; /* REDUZIDO de var(--spacing-md) var(--spacing-lg) */
     font-size: 12px; /* REDUZIDO de var(--font-sm) */
@@ -1056,10 +1089,10 @@
 /* ===== DARK MODE OTIMIZADO ===== */
 @media (prefers-color-scheme: dark) {
     .detalhamento-tabela thead tr {
-        background: linear-gradient(135deg, #2a2a2a 0%, #1e1e1e 100%);
+        background: var(--bg-tertiary);
     }
 
     .loading-progress {
-        background: rgba(255, 255, 255, 0.1);
+        background: var(--bg-secondary);
     }
 }

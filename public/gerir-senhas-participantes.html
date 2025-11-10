@@ -566,11 +566,11 @@
               const response = await fetch(`/api/times/${timeId}`);
               if (!response.ok) return null;
               const data = await response.json();
-              
+
               // Buscar senha do array participantes da liga
               const participanteLiga = liga.participantes?.find(p => p.time_id === timeId);
               const senha = participanteLiga?.senha_acesso || '';
-              
+
               return {
                 time_id: timeId,
                 nome_cartola: data.nome_cartoleiro || 'N/D',
@@ -753,7 +753,7 @@
       for (let i = 0; i < 8; i++) {
         senha += chars.charAt(Math.floor(Math.random() * chars.length));
       }
-      
+
       const input = document.getElementById('senhaGeral');
       if (input) {
         input.value = senha;
@@ -844,7 +844,7 @@
       } catch (error) {
         console.error('Erro ao aplicar senha geral:', error);
         alert(`❌ Erro: ${error.message}`);
-        
+
         const btnAplicar = document.querySelector('.btn-aplicar');
         if (btnAplicar) {
           btnAplicar.disabled = false;
@@ -903,7 +903,7 @@
     function limparBusca() {
       const input = document.getElementById('buscaParticipante');
       input.value = '';
-      
+
       const rows = document.querySelectorAll('#participantesTableBody tr');
       rows.forEach(row => {
         row.style.display = '';
@@ -911,7 +911,7 @@
 
       const resultadosDiv = document.getElementById('resultadosBusca');
       resultadosDiv.classList.remove('visible');
-      
+
       input.focus();
     }
 
