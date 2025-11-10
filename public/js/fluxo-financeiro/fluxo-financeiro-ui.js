@@ -407,19 +407,19 @@ export class FluxoFinanceiroUI {
                                    justify-content: center; font-size: 24px; flex-shrink: 0;">⚽</div>`
                     }
                     <div style="flex: 1; min-width: 0;">
-                        <h2 style="margin: 0 0 4px 0; font-size: 18px; font-weight: 700; color: var(--text-primary); 
+                        <h2 style="margin: 0 0 4px 0; font-size: 16px; font-weight: 700; color: var(--text-primary); 
                              white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">
                             ${participante.nome_cartola}
                         </h2>
-                        <p style="margin: 0; font-size: 13px; color: var(--text-muted); font-weight: 500; 
+                        <p style="margin: 0; font-size: 12px; color: var(--text-muted); font-weight: 500; 
                              white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">
                             ${participante.nome_time}
                         </p>
                     </div>
                     <div style="text-align: right;">
-                        <div style="font-size: 11px; color: var(--text-muted); font-weight: 600; text-transform: uppercase; 
-                             letter-spacing: 0.5px; margin-bottom: 4px;">Saldo Total</div>
-                        <div style="font-size: 24px; font-weight: 700; color: ${
+                        <div style="font-size: 10px; color: var(--text-muted); font-weight: 600; text-transform: uppercase; 
+                             letter-spacing: 0.3px; margin-bottom: 4px;">Saldo Total</div>
+                        <div style="font-size: 20px; font-weight: 700; color: ${
                             parseFloat(extrato.resumo.saldo) >= 0
                                 ? "#2ecc71"
                                 : "#e74c3c"
@@ -435,20 +435,20 @@ export class FluxoFinanceiroUI {
                 </div>
 
                 <!-- CARDS RESUMO SIMPLIFICADOS -->
-                <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; margin-top: 16px;">
+                <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; margin-top: 16px;">
                     <div onclick="window.mostrarDetalhamentoGanhos()" 
                          style="background: linear-gradient(135deg, rgba(46, 204, 113, 0.1), rgba(46, 204, 113, 0.05)); 
-                                padding: 16px; border-radius: 8px; border: 2px solid rgba(46, 204, 113, 0.3);
+                                padding: 12px; border-radius: 8px; border: 2px solid rgba(46, 204, 113, 0.3);
                                 cursor: pointer; transition: all 0.3s ease;"
                          onmouseover="this.style.transform='translateY(-2px)'; this.style.boxShadow='0 4px 12px rgba(46, 204, 113, 0.3)'"
                          onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='none'">
-                        <div style="font-size: 11px; color: rgba(46, 204, 113, 0.8); font-weight: 700; text-transform: uppercase; 
-                             letter-spacing: 0.8px; margin-bottom: 8px; display: flex; align-items: center; gap: 6px;">
-                            <span style="font-size: 16px;">💰</span>
+                        <div style="font-size: 9px; color: rgba(46, 204, 113, 0.8); font-weight: 700; text-transform: uppercase; 
+                             letter-spacing: 0.5px; margin-bottom: 6px; display: flex; align-items: center; gap: 4px;">
+                            <span style="font-size: 14px;">💰</span>
                             <span>Tudo que Ganhou</span>
-                            <span style="font-size: 10px; margin-left: auto; opacity: 0.7;">🔍 clique</span>
+                            <span style="font-size: 8px; margin-left: auto; opacity: 0.7;">🔍</span>
                         </div>
-                        <div style="font-size: 20px; font-weight: 700; color: #2ecc71;">
+                        <div style="font-size: 16px; font-weight: 700; color: #2ecc71;">
                             +R$ ${(
                                 extrato.resumo.totalGanhos || 0
                             ).toLocaleString("pt-BR", {
@@ -460,17 +460,17 @@ export class FluxoFinanceiroUI {
 
                     <div onclick="window.mostrarDetalhamentoPerdas()" 
                          style="background: linear-gradient(135deg, rgba(231, 76, 60, 0.1), rgba(231, 76, 60, 0.05)); 
-                                padding: 16px; border-radius: 8px; border: 2px solid rgba(231, 76, 60, 0.3);
+                                padding: 12px; border-radius: 8px; border: 2px solid rgba(231, 76, 60, 0.3);
                                 cursor: pointer; transition: all 0.3s ease;"
                          onmouseover="this.style.transform='translateY(-2px)'; this.style.boxShadow='0 4px 12px rgba(231, 76, 60, 0.3)'"
                          onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='none'">
-                        <div style="font-size: 11px; color: rgba(231, 76, 60, 0.8); font-weight: 700; text-transform: uppercase; 
-                             letter-spacing: 0.8px; margin-bottom: 8px; display: flex; align-items: center; gap: 6px;">
-                            <span style="font-size: 16px;">💸</span>
+                        <div style="font-size: 9px; color: rgba(231, 76, 60, 0.8); font-weight: 700; text-transform: uppercase; 
+                             letter-spacing: 0.5px; margin-bottom: 6px; display: flex; align-items: center; gap: 4px;">
+                            <span style="font-size: 14px;">💸</span>
                             <span>Tudo que Perdeu</span>
-                            <span style="font-size: 10px; margin-left: auto; opacity: 0.7;">🔍 clique</span>
+                            <span style="font-size: 8px; margin-left: auto; opacity: 0.7;">🔍</span>
                         </div>
-                        <div style="font-size: 20px; font-weight: 700; color: #e74c3c;">
+                        <div style="font-size: 16px; font-weight: 700; color: #e74c3c;">
                             R$ ${(
                                 extrato.resumo.totalPerdas || 0
                             ).toLocaleString("pt-BR", {
@@ -481,13 +481,13 @@ export class FluxoFinanceiroUI {
                     </div>
 
                     <div style="background: linear-gradient(135deg, rgba(255, 69, 0, 0.1), rgba(255, 69, 0, 0.05)); 
-                                padding: 16px; border-radius: 8px; border: 2px solid rgba(255, 69, 0, 0.4);">
-                        <div style="font-size: 11px; color: rgba(255, 69, 0, 0.9); font-weight: 700; text-transform: uppercase; 
-                             letter-spacing: 0.8px; margin-bottom: 4px; display: flex; align-items: center; gap: 6px;">
-                            <span style="font-size: 16px;">💵</span>
+                                padding: 12px; border-radius: 8px; border: 2px solid rgba(255, 69, 0, 0.4);">
+                        <div style="font-size: 9px; color: rgba(255, 69, 0, 0.9); font-weight: 700; text-transform: uppercase; 
+                             letter-spacing: 0.5px; margin-bottom: 4px; display: flex; align-items: center; gap: 4px;">
+                            <span style="font-size: 14px;">💵</span>
                             <span>${parseFloat(extrato.resumo.saldo) >= 0 ? "Saldo a Receber" : "Saldo a Pagar"}</span>
                         </div>
-                        <div style="font-size: 20px; font-weight: 700; color: ${
+                        <div style="font-size: 16px; font-weight: 700; color: ${
                             parseFloat(extrato.resumo.saldo) >= 0
                                 ? "#2ecc71"
                                 : "#e74c3c"
@@ -507,18 +507,18 @@ export class FluxoFinanceiroUI {
             ${camposEditaveisHTML}
 
             <!-- Histórico Rodadas -->
-            <div style="background: var(--bg-card); border-radius: 8px; padding: 20px; 
+            <div style="background: var(--bg-card); border-radius: 8px; padding: 16px; 
                  box-shadow: var(--shadow-md); border: 1px solid var(--border-primary);">
-                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px;">
-                    <h3 style="margin: 0; font-size: 14px; font-weight: 700; color: var(--text-primary); 
-                         display: flex; align-items: center; gap: 8px;">
-                        <span style="font-size: 18px;">📋</span>
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; flex-wrap: wrap; gap: 8px;">
+                    <h3 style="margin: 0; font-size: 13px; font-weight: 700; color: var(--text-primary); 
+                         display: flex; align-items: center; gap: 6px;">
+                        <span style="font-size: 16px;">📋</span>
                         Histórico de Rodadas
                     </h3>
                     <button onclick="window.exportarExtratoComoImagem(window.extratoAtual?.dadosExtrato, window.extratoAtual?.participante, window.extratoAtual?.rodadaAtual)" 
-                            style="background: var(--gradient-primary); color: white; border: none; padding: 8px 16px; 
-                                   border-radius: 6px; font-size: 12px; font-weight: 600; cursor: pointer; 
-                                   display: flex; align-items: center; gap: 6px; transition: all 0.3s ease; 
+                            style="background: var(--gradient-primary); color: white; border: none; padding: 6px 12px; 
+                                   border-radius: 6px; font-size: 11px; font-weight: 600; cursor: pointer; 
+                                   display: flex; align-items: center; gap: 4px; transition: all 0.3s ease; 
                                    box-shadow: var(--shadow-orange);"
                             onmouseover="this.style.transform='translateY(-1px)'; this.style.boxShadow='0 6px 20px rgba(255, 69, 0, 0.5)'"
                             onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='var(--shadow-orange)'">
@@ -528,33 +528,33 @@ export class FluxoFinanceiroUI {
                 </div>
 
                 <div style="overflow-x: auto;">
-                    <table style="width: 100%; border-collapse: collapse; font-size: 12px;">
+                    <table style="width: 100%; border-collapse: collapse; font-size: 11px;">
                         <thead>
                             <tr style="background: var(--gradient-primary);">
-                                <th style="padding: 10px 8px; text-align: left; color: white; font-weight: 600; 
-                                     font-size: 11px; text-transform: uppercase; letter-spacing: 0.3px;">Rodada</th>
-                                <th style="padding: 10px 8px; text-align: left; color: white; font-weight: 600; 
-                                     font-size: 11px; text-transform: uppercase; letter-spacing: 0.3px;">Posição</th>
-                                <th style="padding: 10px 8px; text-align: center; color: white; font-weight: 600; 
-                                     font-size: 11px; text-transform: uppercase; letter-spacing: 0.3px;">Bônus/Ônus</th>
-                                <th style="padding: 10px 8px; text-align: center; color: white; font-weight: 600; 
-                                     font-size: 11px; text-transform: uppercase; letter-spacing: 0.3px;">P. Corridos</th>
-                                <th style="padding: 10px 8px; text-align: center; color: white; font-weight: 600; 
-                                     font-size: 11px; text-transform: uppercase; letter-spacing: 0.3px;">Mata-Mata</th>
-                                <th style="padding: 8px 4px; text-align: center; color: white; font-weight: 600; 
-                                     font-size: 10px; text-transform: uppercase; letter-spacing: 0.2px;">
-                                    TOP 10
+                                <th style="padding: 8px 6px; text-align: left; color: white; font-weight: 600; 
+                                     font-size: 10px; text-transform: uppercase; letter-spacing: 0.2px;">Rod</th>
+                                <th style="padding: 8px 6px; text-align: left; color: white; font-weight: 600; 
+                                     font-size: 10px; text-transform: uppercase; letter-spacing: 0.2px;">Pos</th>
+                                <th style="padding: 8px 6px; text-align: center; color: white; font-weight: 600; 
+                                     font-size: 10px; text-transform: uppercase; letter-spacing: 0.2px;">Bônus</th>
+                                <th style="padding: 8px 6px; text-align: center; color: white; font-weight: 600; 
+                                     font-size: 10px; text-transform: uppercase; letter-spacing: 0.2px;">P.C</th>
+                                <th style="padding: 8px 6px; text-align: center; color: white; font-weight: 600; 
+                                     font-size: 10px; text-transform: uppercase; letter-spacing: 0.2px;">M-M</th>
+                                <th style="padding: 6px 4px; text-align: center; color: white; font-weight: 600; 
+                                     font-size: 9px; text-transform: uppercase; letter-spacing: 0.1px;">
+                                    TOP10
                                     <button onclick="window.atualizarTop10('${participante.time_id || participante.id}')" 
                                             style="background: rgba(255,255,255,0.2); border: 1px solid rgba(255,255,255,0.4); 
-                                                   color: white; padding: 1px 4px; border-radius: 3px; font-size: 9px; 
-                                                   cursor: pointer; margin-left: 3px; transition: all 0.2s ease;"
+                                                   color: white; padding: 1px 3px; border-radius: 3px; font-size: 8px; 
+                                                   cursor: pointer; margin-left: 2px; transition: all 0.2s ease;"
                                             onmouseover="this.style.background='rgba(255,255,255,0.3)'"
                                             onmouseout="this.style.background='rgba(255,255,255,0.2)'">
                                         🔄
                                     </button>
                                 </th>
-                                <th style="padding: 10px 8px; text-align: center; color: white; font-weight: 600; 
-                                     font-size: 11px; text-transform: uppercase; letter-spacing: 0.3px; background: rgba(0,0,0,0.2);">Saldo</th>
+                                <th style="padding: 8px 6px; text-align: center; color: white; font-weight: 600; 
+                                     font-size: 10px; text-transform: uppercase; letter-spacing: 0.2px; background: rgba(0,0,0,0.2);">Saldo</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -579,25 +579,25 @@ export class FluxoFinanceiroUI {
                                      ${index % 2 === 0 ? "background: rgba(255,255,255,0.02);" : ""}" 
                                      onmouseover="this.style.background='var(--table-row-hover)'" 
                                      onmouseout="this.style.background='${index % 2 === 0 ? "rgba(255,255,255,0.02)" : "transparent"}'">
-                                    <td style="padding: 10px 8px; font-weight: 600; color: var(--text-primary);">
+                                    <td style="padding: 8px 6px; font-weight: 600; color: var(--text-primary); font-size: 11px;">
                                         ${r.rodada}ª
                                     </td>
-                                    <td style="padding: 10px 8px;">
+                                    <td style="padding: 8px 6px;">
                                         ${formatarPosicao(r)}
                                     </td>
-                                    <td style="padding: 10px 8px; text-align: center;">
+                                    <td style="padding: 8px 6px; text-align: center;">
                                         ${formatarValorComCor(r.bonusOnus)}
                                     </td>
-                                    <td style="padding: 10px 8px; text-align: center;">
+                                    <td style="padding: 8px 6px; text-align: center;">
                                         ${formatarValorComCor(r.pontosCorridos)}
                                     </td>
-                                    <td style="padding: 10px 8px; text-align: center;">
+                                    <td style="padding: 8px 6px; text-align: center;">
                                         ${formatarValorComCor(r.mataMata)}
                                     </td>
-                                    <td style="padding: 10px 8px;">
+                                    <td style="padding: 8px 6px;">
                                         ${this.formatarTop10Cell(r)}
                                     </td>
-                                    <td style="padding: 10px 8px; text-align: center; font-weight: 700; 
+                                    <td style="padding: 8px 6px; text-align: center; font-weight: 700; 
                                          background: ${corFundoSaldo(r.saldo)};">
                                         ${formatarValorComCor(r.saldo)}
                                     </td>
@@ -609,24 +609,24 @@ export class FluxoFinanceiroUI {
                             <!-- LINHA DE TOTAIS -->
                             <tr style="background: linear-gradient(135deg, rgba(255, 69, 0, 0.1), rgba(255, 69, 0, 0.05)); 
                                  border-top: 2px solid var(--laranja); font-weight: 700;">
-                                <td colspan="2" style="padding: 12px 8px; text-align: right; color: var(--text-primary); 
-                                     text-transform: uppercase; letter-spacing: 0.5px; font-size: 11px;">
+                                <td colspan="2" style="padding: 10px 6px; text-align: right; color: var(--text-primary); 
+                                     text-transform: uppercase; letter-spacing: 0.3px; font-size: 10px;">
                                     📊 TOTAIS:
                                 </td>
-                                <td style="padding: 12px 8px; text-align: center; font-size: 13px;">
+                                <td style="padding: 10px 6px; text-align: center; font-size: 11px;">
                                     ${formatarValorComCor(extrato.resumo.bonus + extrato.resumo.onus)}
                                 </td>
-                                <td style="padding: 12px 8px; text-align: center; font-size: 13px;">
+                                <td style="padding: 10px 6px; text-align: center; font-size: 11px;">
                                     ${formatarValorComCor(extrato.resumo.pontosCorridos)}
                                 </td>
-                                <td style="padding: 12px 8px; text-align: center; font-size: 13px;">
+                                <td style="padding: 10px 6px; text-align: center; font-size: 11px;">
                                     ${formatarValorComCor(extrato.resumo.mataMata)}
                                 </td>
-                                <td style="padding: 12px 8px; text-align: center; font-size: 13px;">
+                                <td style="padding: 10px 6px; text-align: center; font-size: 11px;">
                                     ${formatarValorComCor(extrato.resumo.top10 || 0)}
                                 </td>
-                                <td style="padding: 12px 8px; text-align: center; color: var(--text-muted); 
-                                     font-style: italic; font-size: 11px;">
+                                <td style="padding: 10px 6px; text-align: center; color: var(--text-muted); 
+                                     font-style: italic; font-size: 10px;">
                                     -
                                 </td>
                             </tr>
@@ -669,6 +669,14 @@ export class FluxoFinanceiroUI {
                 valorAtual: campos.campo4?.valor || 0,
             },
         ];
+
+        // ✅ VERIFICAR SE HÁ ALGUM CAMPO COM VALOR DIFERENTE DE ZERO
+        const temCamposPreenchidos = camposArray.some(campo => campo.valorAtual !== 0);
+        
+        // ✅ NÃO RENDERIZAR SE NÃO HOUVER CAMPOS PREENCHIDOS
+        if (!temCamposPreenchidos) {
+            return '';
+        }
 
         return `
             <div style="background: var(--bg-card); border-radius: 8px; padding: 20px; margin-bottom: 20px; 
