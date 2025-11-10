@@ -629,9 +629,13 @@
                                  (participante.participante?.clube_id ? `/escudos/${participante.participante.clube_id}.png` :
                                   participante.clube_id ? `/escudos/${participante.clube_id}.png` : null);
 
-                // Atualizar header
-                if (userName) userName.textContent = nomeCartola;
-                if (userTeam) userTeam.textContent = nomeTime;
+                // Atualizar header (verificar se elementos existem)
+                if (userName) {
+                    userName.textContent = nomeCartola;
+                }
+                if (userTeam) {
+                    userTeam.textContent = nomeTime;
+                }
                 if (userAvatar && escudoUrl) {
                     userAvatar.innerHTML = `<img src="${escudoUrl}" alt="${nomeCartola}" onerror="this.parentElement.innerHTML='<span style=\\'font-size: 24px;\\'>⚽</span>'">`;
                 }
@@ -818,22 +822,28 @@
             // Verificar autenticação
             await verificarAutenticacao();
 
-            // Mostrar informações personalizadas
-            // Se participante já estiver disponível (por exemplo, em um cache de sessão)
+            // ✅ NÃO CARREGAR EXTRATO AUTOMATICAMENTE - Apenas configurar informações
             const sessionResponse = await fetch('/api/participante/auth/session', { credentials: 'include' });
             if (sessionResponse.ok) {
                 const sessionData = await sessionResponse.json();
                 const { participante } = sessionData;
 
                 if (participante) {
-                    document.getElementById('welcomeTitle').textContent =
-                        `Olá, ${participante.nome || participante.nome_cartola || 'Participante'}!`;
-                    document.getElementById('welcomeSubtitle').textContent =
-                        `Time: ${participante.time_nome || participante.nomeTime || 'Time'} | Liga: ${sessionData.ligaNome || 'Liga'}`;
+                    const welcomeTitle = document.getElementById('welcomeTitle');
+                    const welcomeSubtitle = document.getElementById('welcomeSubtitle');
+                    
+                    if (welcomeTitle) {
+                        welcomeTitle.textContent = `Olá, ${participante.nome || participante.nome_cartola || 'Participante'}!`;
+                    }
+                    if (welcomeSubtitle) {
+                        welcomeSubtitle.textContent = `Time: ${participante.time_nome || participante.nomeTime || 'Time'} | Liga: ${sessionData.ligaNome || 'Liga'}`;
+                    }
 
                     // Mostrar botão de refresh
                     const btnRefresh = document.getElementById('btnRefreshCache');
-                    btnRefresh.style.display = 'flex';
+                    if (btnRefresh) {
+                        btnRefresh.style.display = 'flex';
+                    }
 
                     // Configurar evento de refresh manual
                     btnRefresh.addEventListener('click', async () => {
