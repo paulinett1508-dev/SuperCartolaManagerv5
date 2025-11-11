@@ -1,0 +1,173 @@
+participante-dashboard.html:1268 [PARTICIPANTE-DASHBOARD] Inicializando...
+participante-dashboard.html:484 [PARTICIPANTE-DASHBOARD] 🔄 Carregando módulo PARTICIPANTE...
+rodadas.js:146 [RODADAS] 🚀 Inicializando módulo refatorado...
+rodadas.js:309 [RODADAS] ✅ Módulo refatorado carregado - Arquitetura modular implementada
+rodadas.js:312 [RODADAS] 🔧 Funções de debug disponíveis em window.rodadasDebug
+rodadas.js:316 [RODADAS] 📦 Estrutura modular:
+rodadas.js:317   - rodadas-config.js: Configurações e constantes
+rodadas.js:318   - rodadas-core.js: Lógica de negócio e API calls
+rodadas.js:319   - rodadas-ui.js: Interface e renderização
+rodadas.js:320   - rodadas-cache.js: Sistema de cache e performance
+rodadas.js:321   - rodadas-orquestrador.js: Coordenação entre módulos
+rodadas.js:322   - rodadas.js: Ponto de entrada refatorado (este arquivo)
+rodadas-config.js:134 [RODADAS-CONFIG] Módulo carregado com sucesso
+melhor-mes.js:4 [MELHOR-MES] Sistema modular carregando...
+melhor-mes.js:319 [MELHOR-MES] Sistema modular carregado com arquitetura refatorada
+cache-manager.js:282 ✅ [CACHE-MANAGER] Sistema de cache inteligente carregado
+fluxo-financeiro-participante.js:13 [FLUXO-PARTICIPANTE] 📦 Módulo carregado (READ-ONLY, sem vida própria)
+participante-dashboard.html:489 [PARTICIPANTE-DASHBOARD] ✅ Módulo PARTICIPANTE carregado
+participante-dashboard.html:500 [PARTICIPANTE-DASHBOARD] Verificando autenticação...
+cache-manager.js:48 ✅ [CACHE-MANAGER] IndexedDB inicializado
+participante-dashboard.html:521 [PARTICIPANTE-DASHBOARD] Autenticação verificada com sucesso.
+rodadas-core.js:372 [RODADAS-CORE] Módulo carregado com sucesso
+rodadas-ui.js:360 [RODADAS-UI] Módulo carregado com layout compacto e seleção inteligente
+rodadas-cache.js:82 [RODADAS-CACHE] Limpeza automática configurada (60000ms)
+rodadas-cache.js:353 [RODADAS-CACHE] Sistema de cache inicializado
+rodadas-cache.js:354 [RODADAS-CACHE] Limpeza automática configurada (5min)
+rodadas-orquestrador.js:376 [RODADAS-ORQUESTRADOR] Módulo carregado com UX redesenhado
+participante-dashboard.html:541 [PARTICIPANTE-DASHBOARD] Dados do participante: {timeId: '13935277', ligaId: '684cb1c8af923da7c7df51de', participante: {…}}
+rodadas.js:36 [RODADAS] ✅ Módulos refatorados carregados com sucesso
+rodadas-orquestrador.js:283 [RODADAS-ORQUESTRADOR] Inicializando módulo de rodadas...
+rodadas-orquestrador.js:284 [RODADAS-ORQUESTRADOR] URL atual: https://e1034b6e-dfb9-401a-8e7f-80ffa6030f79-00-2dc692elmitoe.spock.replit.dev/participante-dashboard.html
+rodadas-orquestrador.js:291 [RODADAS-ORQUESTRADOR] Não está na seção de rodadas, pulando inicialização
+participante-dashboard.html:549 [PARTICIPANTE-DASHBOARD] Dados da API Cartola: {nome: 'Urubu Play F.C.', nome_cartoleiro: 'Paulinett Miranda', url_escudo_png: 'https://s2-cartola.glbimg.com/XqTNWtU0S8uzpU6ZUjcM…81760d8-c096-4ce7-8896-13b4cc8b71f820230318082753', clube_id: 262}
+participante-dashboard.html:749 [PARTICIPANTE-DASHBOARD] Menu renderizado para liga: Super Cartola
+participante-dashboard.html:866 [PARTICIPANTE-DASHBOARD] ✅ Participante encontrado: {timeId: '13935277', nome_time: undefined, nome_cartola: undefined, clube_id: undefined, rodadas: Array(33), …}
+participante-dashboard.html:876 [PARTICIPANTE-DASHBOARD] Buscando rodadas para timeId: 13935277 ligaId: 684cb1c8af923da7c7df51de
+participante-dashboard.html:880 [PARTICIPANTE-DASHBOARD] Total de rodadas recebidas: 1056
+participante-dashboard.html:885 [PARTICIPANTE-DASHBOARD] Rodadas do participante: 33
+participante-dashboard.html:919 [PARTICIPANTE-DASHBOARD] Estatísticas calculadas: {posicao: 29, pontos: 2574.190185546875, vitorias: 417, saldo: 0, ultimasRodadas: Array(5)}
+participante-dashboard.html:1279 [PARTICIPANTE-DASHBOARD] ✅ Dashboard inicializado
+participante-dashboard.html:628 [PARTICIPANTE-DASHBOARD] 🔄 Carregando extrato: {timeId: '13935277', ligaId: '684cb1c8af923da7c7df51de'}
+fluxo-financeiro-participante.js:30 [FLUXO-PARTICIPANTE] Inicializando para participante: {timeId: '13935277', ligaId: '684cb1c8af923da7c7df51de', participante: {…}}
+fluxo-financeiro-cache.js:43 [FLUXO-CACHE] Inicializando cache para liga: 684cb1c8af923da7c7df51de
+cache-manager.js:106 🌐 [CACHE-MANAGER] Fetching: participantes_684cb1c8af923da7c7df51de
+cache-manager.js:132 ✅ [CACHE-MANAGER] Saved: participantes_684cb1c8af923da7c7df51de
+fluxo-financeiro-cache.js:253 [FLUXO-CACHE] Confrontos Pontos Corridos: 31 rodadas
+mata-mata-financeiro.js:496 === TESTE DOS DADOS DO MATA-MATA ===
+mata-mata-financeiro.js:234 [MATA-FINANCEIRO] Calculando TODAS as edições concluídas...
+mata-mata-financeiro.js:240   [MATA-FINANCEIRO] ID da Liga não encontrado.
+getResultadosMataMataFluxo @ mata-mata-financeiro.js:240
+testarDadosMataMata @ mata-mata-financeiro.js:498
+carregarDadosExternos @ fluxo-financeiro-cache.js:270
+inicializar @ fluxo-financeiro-cache.js:49
+await in inicializar
+inicializar @ fluxo-financeiro-participante.js:41
+carregarExtrato @ participante-dashboard.html:645
+await in carregarExtrato
+carregarModulo @ participante-dashboard.html:1221
+(anônimo) @ participante-dashboard.html:1261
+mata-mata-financeiro.js:499 Estrutura do resultado: {temParticipantes: false, numeroParticipantes: 0, totalArrecadado: 0, totalPago: 0, saldoFinal: 0, …}
+pontos-corridos-utils.js:140   ID da Liga não encontrado para buscar confrontos LPC.
+getConfrontosLigaPontosCorridos @ pontos-corridos-utils.js:140
+carregarDadosExternos @ fluxo-financeiro-cache.js:280
+await in carregarDadosExternos
+inicializar @ fluxo-financeiro-cache.js:49
+await in inicializar
+inicializar @ fluxo-financeiro-participante.js:41
+carregarExtrato @ participante-dashboard.html:645
+await in carregarExtrato
+carregarModulo @ participante-dashboard.html:1221
+(anônimo) @ participante-dashboard.html:1261
+mata-mata-financeiro.js:234 [MATA-FINANCEIRO] Calculando TODAS as edições concluídas...
+mata-mata-financeiro.js:240   [MATA-FINANCEIRO] ID da Liga não encontrado.
+getResultadosMataMataFluxo @ mata-mata-financeiro.js:240
+carregarDadosExternos @ fluxo-financeiro-cache.js:281
+await in carregarDadosExternos
+inicializar @ fluxo-financeiro-cache.js:49
+await in inicializar
+inicializar @ fluxo-financeiro-participante.js:41
+carregarExtrato @ participante-dashboard.html:645
+await in carregarExtrato
+carregarModulo @ participante-dashboard.html:1221
+(anônimo) @ participante-dashboard.html:1261
+melhor-mes.js:53 [MELHOR-MES] Obtendo resultados...
+melhor-mes.js:60  [MELHOR-MES] Liga ID não disponível, retornando vazio
+getResultadosMelhorMes @ melhor-mes.js:60
+carregarDadosExternos @ fluxo-financeiro-cache.js:286
+await in carregarDadosExternos
+inicializar @ fluxo-financeiro-cache.js:49
+await in inicializar
+inicializar @ fluxo-financeiro-participante.js:41
+carregarExtrato @ participante-dashboard.html:645
+await in carregarExtrato
+carregarModulo @ participante-dashboard.html:1221
+(anônimo) @ participante-dashboard.html:1261
+fluxo-financeiro-cache.js:321  [FLUXO-CACHE] Dados do Mata-Mata inválidos
+_processarResultadosMataMataCorrigido @ fluxo-financeiro-cache.js:321
+carregarDadosExternos @ fluxo-financeiro-cache.js:305
+await in carregarDadosExternos
+inicializar @ fluxo-financeiro-cache.js:49
+await in inicializar
+inicializar @ fluxo-financeiro-participante.js:41
+carregarExtrato @ participante-dashboard.html:645
+await in carregarExtrato
+carregarModulo @ participante-dashboard.html:1221
+(anônimo) @ participante-dashboard.html:1261
+fluxo-financeiro-cache.js:307 [FLUXO-CACHE] Dados externos carregados:
+fluxo-financeiro-cache.js:308 - Confrontos LPC: 0
+fluxo-financeiro-cache.js:309 - Mata-Mata: 0
+fluxo-financeiro-cache.js:310 - Melhor Mês: 0
+fluxo-financeiro-cache.js:50 [FLUXO-CACHE] Cache inicializado com sucesso
+fluxo-financeiro-participante.js:47 [FLUXO-PARTICIPANTE] ✅ Inicialização completa
+fluxo-financeiro-participante.js:60 [FLUXO-PARTICIPANTE] Carregando extrato para time: 13935277
+mata-mata-financeiro.js:19 [MATA-FINANCEIRO] Função getRankingRodadaEspecifica configurada
+fluxo-financeiro-core.js:34 [FLUXO-CORE] Mata-mata integrado com sucesso
+fluxo-financeiro-participante.js:74   GET https://e1034b6e-dfb9-401a-8e7f-80ffa6030f79-00-2dc692elmitoe.spock.replit.dev/api/cartola/mercado-status 404 (Not Found)
+carregarExtrato @ fluxo-financeiro-participante.js:74
+carregarExtrato @ participante-dashboard.html:652
+await in carregarExtrato
+carregarModulo @ participante-dashboard.html:1221
+(anônimo) @ participante-dashboard.html:1261
+cache-manager.js:88 💾 [CACHE-MANAGER] Memory hit: participantes_684cb1c8af923da7c7df51de
+fluxo-financeiro-core.js:213 [FLUXO-CORE] 💾 Cache encontrado (última atualização: 10/11/2025, 15:40:04)
+fluxo-financeiro-core.js:61 [FLUXO-CORE] 💾 Usando extrato em cache para time 13935277 (última atualização: 10/11/2025, 15:40:04)
+fluxo-financeiro-participante.js:98 [FLUXO-PARTICIPANTE] ✅ Extrato renderizado com sucesso
+participante-dashboard.html:654 [PARTICIPANTE-DASHBOARD] ✅ Extrato carregado com sucesso
+rodadas-cache.js:71 [RODADAS-CACHE] Limpeza automática: 0 itens removidos
+mata-mata-orquestrador.js:503 [MATA-ORQUESTRADOR] Módulo carregado com arquitetura refatorada
+mata-mata.js:28 [MATA-MATA] Sistema modular carregado com arquitetura refatorada
+pontos-corridos-config.js:108 [PONTOS-CORRIDOS-CONFIG] Módulo carregado com sucesso
+export-base.js:343 ✅ [EXPORT-BASE] Módulo carregado com sucesso
+export-pontos-corridos.js:12 [EXPORT-PONTOS-CORRIDOS-ULTRA-HD] Sistema Ultra HD v4.0.0 PREMIUM carregado
+export-pontos-corridos.js:1319 [EXPORT-PONTOS-CORRIDOS-MOBILE-HD] ✅ Sistema Mobile HD v4.0 OTIMIZADO configurado
+export-pontos-corridos.js:1322 [EXPORT-PONTOS-CORRIDOS-MOBILE-HD] 📱 Resolução: 720px @ 2x = 1440px (Full HD Mobile)
+export-pontos-corridos.js:1325 [EXPORT-PONTOS-CORRIDOS-MOBILE-HD] 🎨 Design completo otimizado para visualização mobile perfeita
+export-pontos-corridos.js:1328 [EXPORT-PONTOS-CORRIDOS-MOBILE-HD] ✨ Legibilidade ajustada: fontes e espaçamento ideais para mobile
+pontos-corridos-ui.js:618 [PONTOS-CORRIDOS-UI] Módulo carregado com layout compacto e seleção inteligente
+pontos-corridos-ui.js:697 [PONTOS-CORRIDOS] ✅ Função global window.inicializarPontosCorridos exposta
+pontos-corridos-core.js:501 [PONTOS-CORRIDOS-CORE] Módulo carregado com sucesso
+pontos-corridos-cache.js:201 [PONTOS-CORRIDOS-CACHE] Sistema de cache inicializado
+pontos-corridos-cache.js:202 [PONTOS-CORRIDOS-CACHE] Limpeza automática configurada (5min)
+pontos-corridos-orquestrador.js:518 [PONTOS-CORRIDOS-ORQUESTRADOR] Módulo carregado com UX redesenhado
+pontos-corridos.js:61 [PONTOS-CORRIDOS] Sistema modular carregado com arquitetura refatorada
+rodadas-cache.js:71 [RODADAS-CACHE] Limpeza automática: 0 itens removidos
+top10.js:425 [TOP10] Módulo carregado e pronto
+top10.js:85 [TOP10] Inicializando módulo...
+top10.js:105 [TOP10] Carregando dados...
+top10.js:94  [TOP10] Erro na inicialização: Error: ID da Liga não encontrado
+    at carregarDadosTop10 (top10.js:111:11)
+    at inicializarTop10 (top10.js:91:11)
+    at Object.renderTop10 (participante-dashboard.html:1113:27)
+    at async Object.carregarModulo (participante-dashboard.html:1230:25)
+    at async HTMLButtonElement.<anonymous> (participante-dashboard.html:1261:21)
+inicializarTop10 @ top10.js:94
+await in inicializarTop10
+renderTop10 @ participante-dashboard.html:1113
+await in renderTop10
+carregarModulo @ participante-dashboard.html:1230
+(anônimo) @ participante-dashboard.html:1261
+participante-dashboard.html:628 [PARTICIPANTE-DASHBOARD] 🔄 Carregando extrato: {timeId: '13935277', ligaId: '684cb1c8af923da7c7df51de'}
+fluxo-financeiro-participante.js:26 [FLUXO-PARTICIPANTE] Já inicializado, reutilizando instância
+fluxo-financeiro-participante.js:60 [FLUXO-PARTICIPANTE] Carregando extrato para time: 13935277
+fluxo-financeiro-participante.js:74   GET https://e1034b6e-dfb9-401a-8e7f-80ffa6030f79-00-2dc692elmitoe.spock.replit.dev/api/cartola/mercado-status 404 (Not Found)
+carregarExtrato @ fluxo-financeiro-participante.js:74
+carregarExtrato @ participante-dashboard.html:652
+await in carregarExtrato
+carregarModulo @ participante-dashboard.html:1221
+(anônimo) @ participante-dashboard.html:1261
+cache-manager.js:88 💾 [CACHE-MANAGER] Memory hit: participantes_684cb1c8af923da7c7df51de
+fluxo-financeiro-core.js:213 [FLUXO-CORE] 💾 Cache encontrado (última atualização: 10/11/2025, 15:40:04)
+fluxo-financeiro-core.js:61 [FLUXO-CORE] 💾 Usando extrato em cache para time 13935277 (última atualização: 10/11/2025, 15:40:04)
+fluxo-financeiro-participante.js:98 [FLUXO-PARTICIPANTE] ✅ Extrato renderizado com sucesso
+participante-dashboard.html:654 [PARTICIPANTE-DASHBOARD] ✅ Extrato carregado com sucesso
