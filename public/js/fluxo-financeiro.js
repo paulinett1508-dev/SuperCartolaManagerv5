@@ -1,4 +1,3 @@
-
 import { buscarStatusMercado as getMercadoStatus } from "./pontos-corridos-utils.js";
 import { FluxoFinanceiroCampos } from "./fluxo-financeiro/fluxo-financeiro-campos.js";
 
@@ -13,29 +12,32 @@ let isCalculating = false;
 import "./exports/export-extrato-financeiro.js";
 
 function obterLigaId() {
-    // ✅ PRIORIDADE 1: Liga ID definido globalmente (para dashboard do participante)
-    if (typeof window.ligaIdAtual !== "undefined" && window.ligaIdAtual) {
+    // ✅ PRIORIDADE 1: Usar função global se existir (contexto participante)
+    if (window.ligaIdAtual) {
+        console.log('[FLUXO-FINANCEIRO] Usando ligaIdAtual global:', window.ligaIdAtual);
         return window.ligaIdAtual;
     }
 
-    if (typeof window.currentLigaId !== "undefined" && window.currentLigaId) {
+    if (window.currentLigaId) {
+        console.log('[FLUXO-FINANCEIRO] Usando currentLigaId global:', window.currentLigaId);
         return window.currentLigaId;
     }
 
-    // ✅ PRIORIDADE 2: ID da URL
-    const pathParts = window.location.pathname.split("/");
-    const ligaIdFromPath = pathParts[pathParts.length - 1];
-
-    if (ligaIdFromPath && ligaIdFromPath !== "detalhe-liga.html" && ligaIdFromPath !== "participante-dashboard.html") {
-        return ligaIdFromPath;
+    // ✅ PRIORIDADE 2: URL
+    const ligaIdFromUrl = new URLSearchParams(window.location.search).get("ligaId");
+    if (ligaIdFromUrl) {
+        console.log('[FLUXO-FINANCEIRO] Usando ligaId da URL:', ligaIdFromUrl);
+        return ligaIdFromUrl;
     }
 
-    const urlParams = new URLSearchParams(window.location.search);
-    const ligaIdFromParams = urlParams.get("id");
+    // ✅ PRIORIDADE 3: localStorage
+    const ligaIdSelecionada = localStorage.getItem("ligaIdSelecionada");
+    if (ligaIdSelecionada) {
+        console.log('[FLUXO-FINANCEIRO] Usando ligaId do localStorage:', ligaIdSelecionada);
+        return ligaIdSelecionada;
+    }
 
-    if (ligaIdFromParams) return ligaIdFromParams;
-
-    console.error("[FLUXO-FINANCEIRO] Liga ID não encontrado");
+    console.warn("[FLUXO-FINANCEIRO] Liga ID não encontrado");
     return null;
 }
 
@@ -161,7 +163,7 @@ async function inicializarFluxoFinanceiro() {
 
         const ligaId = obterLigaId();
         if (!ligaId) {
-            mostrarErro("ID da liga não encontrado na URL");
+            mostrarErro("ID da liga não encontrado");
             return;
         }
 
@@ -271,7 +273,7 @@ async function gerarRelatorioFinanceiro() {
                     await FluxoFinanceiroCampos.carregarTodosCamposEditaveis(
                         timeId,
                     );
-                
+
                 const disputasAtivas = await fluxoFinanceiroCore.buscarDisputasAtivas(timeId);
 
                 const saldoFinal =

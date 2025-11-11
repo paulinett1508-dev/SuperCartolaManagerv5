@@ -713,10 +713,16 @@
                 window.currentLigaId = ligaId;
                 console.log('[PARTICIPANTE-DASHBOARD] Liga ID definido:', ligaId);
 
-                // ✅ SOBRESCREVER A FUNÇÃO obterLigaId PARA RETORNAR O ID CORRETO
+                // ✅ SOBRESCREVER TODAS AS FUNÇÕES obterLigaId PARA RETORNAR O ID CORRETO
                 window.obterLigaId = function() {
+                    console.log('[PARTICIPANTE-DASHBOARD] obterLigaId chamado, retornando:', ligaId);
                     return ligaId;
                 };
+                
+                // ✅ Garantir que fluxoFinanceiroCore também use o ligaId correto
+                if (window.fluxoFinanceiroCore) {
+                    window.fluxoFinanceiroCore.obterLigaId = window.obterLigaId;
+                }
 
                 try {
                     // ✅ Verificação robusta de módulos carregados
