@@ -12,33 +12,22 @@ let isCalculating = false;
 import "./exports/export-extrato-financeiro.js";
 
 function obterLigaId() {
-    // ✅ MODO ADMIN: Verificar URL primeiro (detalhe-liga.html?id=XXX)
+    // ✅ MODO ADMIN: Verificar URL (detalhe-liga.html?id=XXX)
     const urlParams = new URLSearchParams(window.location.search);
     const ligaIdFromUrl = urlParams.get("id") || urlParams.get("ligaId");
     if (ligaIdFromUrl) {
-        console.log('[FLUXO-FINANCEIRO] [ADMIN] Liga ID da URL:', ligaIdFromUrl);
+        console.log('[FLUXO-FINANCEIRO-ADMIN] Liga ID da URL:', ligaIdFromUrl);
         return ligaIdFromUrl;
     }
 
-    // ✅ MODO PARTICIPANTE: Usar variáveis globais do contexto participante
-    if (window.ligaIdAtual) {
-        console.log('[FLUXO-FINANCEIRO] [PARTICIPANTE] Usando ligaIdAtual global:', window.ligaIdAtual);
-        return window.ligaIdAtual;
-    }
-
-    if (window.currentLigaId) {
-        console.log('[FLUXO-FINANCEIRO] [PARTICIPANTE] Usando currentLigaId global:', window.currentLigaId);
-        return window.currentLigaId;
-    }
-
-    // ✅ FALLBACK: localStorage (ambos os contextos)
+    // ✅ FALLBACK: localStorage
     const ligaIdSelecionada = localStorage.getItem("ligaIdSelecionada");
     if (ligaIdSelecionada) {
-        console.log('[FLUXO-FINANCEIRO] Usando ligaId do localStorage:', ligaIdSelecionada);
+        console.log('[FLUXO-FINANCEIRO-ADMIN] Usando ligaId do localStorage:', ligaIdSelecionada);
         return ligaIdSelecionada;
     }
 
-    console.error("[FLUXO-FINANCEIRO] ❌ Liga ID não encontrado em nenhum contexto (admin ou participante)");
+    console.error("[FLUXO-FINANCEIRO-ADMIN] ❌ Liga ID não encontrado na URL ou localStorage");
     return null;
 }
 
@@ -133,6 +122,8 @@ async function carregarModulos() {
 
 // ===== FUNÇÃO DE INICIALIZAÇÃO =====
 async function inicializarFluxoFinanceiro() {
+    console.log('[FLUXO-ADMIN] 🚀 Inicializando módulo ADMIN');
+    
     try {
         await carregarModulos();
 
@@ -140,9 +131,11 @@ async function inicializarFluxoFinanceiro() {
             const status = await getMercadoStatus();
             rodadaAtual = status.rodada_atual || 1;
             ultimaRodadaCompleta = Math.max(1, rodadaAtual - 1);
+            console.log('[FLUXO-ADMIN] Rodada atual:', rodadaAtual);
         } catch (error) {
             rodadaAtual = 21;
             ultimaRodadaCompleta = 20;
+            console.warn('[FLUXO-ADMIN] Usando rodada padrão:', ultimaRodadaCompleta);
         }
 
         if (!fluxoFinanceiroCache && FluxoFinanceiroCache) {
@@ -491,17 +484,17 @@ export {
     obterLigaId 
 };
 
-// ===== VARIÁVEL GLOBAL PARA ARMAZENAR PARTICIPANTE ATUAL =====
+// ===== VARIÁVEL GLOBAL PARA ARMAZENAR PARTICIPANTE ATUAL (ADMIN) =====
 window.participanteAtualCache = null;
 
-// ===== FUNÇÃO PARA RECARREGAR EXTRATO ATUAL =====
+// ===== FUNÇÃO PARA RECARREGAR EXTRATO ATUAL (ADMIN) =====
 window.recarregarExtratoAtual = async () => {
     if (!window.participanteAtualCache) {
-        console.warn('[FLUXO] Nenhum participante selecionado para recarregar');
+        console.warn('[FLUXO-ADMIN] Nenhum participante selecionado para recarregar');
         return;
     }
 
-    console.log('[FLUXO] Recarregando extrato do participante:', window.participanteAtualCache.time_id || window.participanteAtualCache.id);
+    console.log('[FLUXO-ADMIN] Recarregando extrato:', window.participanteAtualCache.time_id || window.participanteAtualCache.id);
     await selecionarParticipante(window.participanteAtualCache.time_id || window.participanteAtualCache.id);
 };
 

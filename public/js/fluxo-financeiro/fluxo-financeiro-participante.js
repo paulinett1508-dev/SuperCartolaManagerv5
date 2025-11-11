@@ -1,10 +1,13 @@
 
 // FLUXO-FINANCEIRO-PARTICIPANTE.JS
-// Versão isolada para contexto de participante autenticado
+// Versão 100% isolada para contexto de participante autenticado
+// ⚠️ NÃO DEPENDE DE fluxo-financeiro.js (ADMIN)
 
 import { FluxoFinanceiroCore } from './fluxo-financeiro-core.js';
 import { FluxoFinanceiroUI } from './fluxo-financeiro-ui.js';
 import { FluxoFinanceiroCache } from './fluxo-financeiro-cache.js';
+
+console.log('[FLUXO-PARTICIPANTE] 📦 Módulo carregado (contexto isolado)');
 
 class FluxoFinanceiroParticipante {
     constructor() {

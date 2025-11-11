@@ -496,18 +496,20 @@
   </div>
 
   <script type="module">
-        // Importar módulo específico para participantes
+        // ⚠️ IMPORTANTE: Este script usa APENAS fluxo-financeiro-participante.js
+        // NÃO importar fluxo-financeiro.js (módulo ADMIN)
+        
         let fluxoFinanceiroParticipante;
 
-        // Carregar módulo de forma segura
+        // Carregar módulo PARTICIPANTE
         async function carregarModulosFluxo() {
             try {
-                console.log('[PARTICIPANTE-DASHBOARD] 🔄 Carregando módulo financeiro para participantes...');
+                console.log('[PARTICIPANTE-DASHBOARD] 🔄 Carregando módulo PARTICIPANTE...');
 
                 const modulo = await import('./js/fluxo-financeiro/fluxo-financeiro-participante.js');
                 fluxoFinanceiroParticipante = modulo.fluxoFinanceiroParticipante;
 
-                console.log('[PARTICIPANTE-DASHBOARD] ✅ Módulo financeiro carregado');
+                console.log('[PARTICIPANTE-DASHBOARD] ✅ Módulo PARTICIPANTE carregado');
                 return true;
             } catch (error) {
                 console.error('[PARTICIPANTE-DASHBOARD] ❌ Erro ao carregar módulo:', error);

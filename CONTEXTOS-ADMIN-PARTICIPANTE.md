@@ -10,7 +10,7 @@ Manter **total isolamento** entre as funcionalidades administrativas e as funcio
 
 ### ADMIN (Retaguarda)
 ```
-public/js/fluxo-financeiro.js              ← Módulo principal ADMIN
+public/js/fluxo-financeiro.js              ← Módulo principal ADMIN (100% ISOLADO)
 public/js/fluxo-financeiro/
   ├── fluxo-financeiro-core.js             ← Lógica de cálculo (COMPARTILHADO)
   ├── fluxo-financeiro-ui.js               ← Interface (COMPARTILHADO)
@@ -20,6 +20,8 @@ public/js/fluxo-financeiro/
   └── fluxo-financeiro-utils.js            ← Utilitários (COMPARTILHADO)
 
 public/detalhe-liga.html                   ← Página ADMIN
+public/admin.html                          ← Ferramentas ADMIN
+public/gerenciar.html                      ← Gerenciar ADMIN
 ```
 
 ### PARTICIPANTE (Frontend)
@@ -188,4 +190,26 @@ console.log('Módulo Participante:', window.fluxoFinanceiroParticipante ? 'SIM' 
 
 ---
 
-**Última atualização:** 2025-01-16
+---
+
+## 🧹 HIGIENIZAÇÃO DE CÓDIGO
+
+### Separação Completa (2025-01-16)
+
+1. **fluxo-financeiro.js** - 100% ADMIN, sem referências a contexto participante
+2. **fluxo-financeiro-participante.js** - 100% PARTICIPANTE, totalmente isolado
+3. **Logs específicos** - Todos os logs identificam o contexto ([ADMIN] ou [PARTICIPANTE])
+4. **Imports** - Cada contexto importa apenas o que precisa
+5. **Globals** - Variáveis globais separadas por contexto
+
+### Regras de Higienização
+
+- ❌ NUNCA misturar lógica de admin em código de participante
+- ❌ NUNCA importar fluxo-financeiro.js em participante-dashboard.html
+- ✅ SEMPRE usar logs específicos: [FLUXO-ADMIN] ou [FLUXO-PARTICIPANTE]
+- ✅ SEMPRE manter módulos compartilhados (core, ui, cache) sem lógica de contexto
+- ✅ SEMPRE documentar qual contexto cada função serve
+
+---
+
+**Última atualização:** 2025-01-16 (Higienização completa)
