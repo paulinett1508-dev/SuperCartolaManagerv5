@@ -475,7 +475,7 @@
   <script type="module">
         // ⚠️ IMPORTANTE: Este script usa APENAS fluxo-financeiro-participante.js
         // NÃO importar fluxo-financeiro.js (módulo ADMIN)
-        
+
         let fluxoFinanceiroParticipante;
 
         // Carregar módulo PARTICIPANTE
@@ -593,7 +593,7 @@
 
                 // ✅ DEFINIR LIGA ID GLOBALMENTE (para módulos que precisam)
                 window.ligaId = participante.ligaId;
-                
+
                 // ✅ CONFIGURAR DADOS DO PARTICIPANTE NO MÓDULO
                 ModulosParticipante.participanteAtual = {
                     timeId: participante.timeId,
@@ -655,7 +655,7 @@
 
                 } catch (error) {
                     console.error('[PARTICIPANTE-DASHBOARD] ❌ Erro ao carregar extrato:', error);
-                    
+
                     const extratoContainer = document.getElementById('extratoFinanceiro');
                     if (extratoContainer) {
                         extratoContainer.innerHTML = `
@@ -705,7 +705,7 @@
             renderizarMenu() {
                 const ligaId = this.participanteAtual?.ligaId;
                 const navMenu = document.getElementById('navMenu');
-                
+
                 if (!navMenu) return;
 
                 // Módulos base (sempre visíveis)
@@ -1030,7 +1030,7 @@
             // Renderizar Mata-Mata (apenas Super Cartola)
             async renderMataMata() {
                 const container = document.getElementById('moduleContainer');
-                
+
                 if (this.participanteAtual.ligaId !== CONFIG_LIGAS.SUPER_CARTOLA) {
                     container.innerHTML = this.renderizarBloqueado('Mata-Mata não disponível para esta liga');
                     return;
@@ -1051,7 +1051,7 @@
             // Renderizar Pontos Corridos (apenas Super Cartola)
             async renderPontosCorridos() {
                 const container = document.getElementById('moduleContainer');
-                
+
                 if (this.participanteAtual.ligaId !== CONFIG_LIGAS.SUPER_CARTOLA) {
                     container.innerHTML = this.renderizarBloqueado('Pontos Corridos não disponível para esta liga');
                     return;
@@ -1077,12 +1077,12 @@
                 try {
                     // Importar módulo Top10
                     const { inicializarTop10 } = await import('/js/top10.js');
-                    
+
                     // Criar estrutura HTML necessária
                     container.innerHTML = `
                         <div style="padding: 20px;">
                             <h2 style="margin: 0 0 20px 0; font-size: 22px; font-weight: 800; color: var(--text-primary);">🔟 Top 10 - Destaques</h2>
-                            
+
                             <div class="top10-grid-compacto" style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-bottom: 20px;">
                                 <!-- Seção Mitos -->
                                 <div class="top10-section mitos-section" style="background: var(--bg-card); border-radius: 12px; padding: 20px; border: 1px solid rgba(34, 197, 94, 0.2);">
@@ -1136,7 +1136,7 @@
                 try {
                     const response = await fetch(`/api/rodadas/${this.participanteAtual.ligaId}/rodadas?inicio=1&fim=38`);
                     const todasRodadas = await response.json();
-                    
+
                     // Agrupar rodadas por número
                     const rodadasAgrupadas = {};
                     todasRodadas.forEach(r => {
@@ -1244,24 +1244,68 @@
             }
         };
 
-        // Navegação entre módulos
+        // Inicializar navegação entre módulos
         function inicializarNavegacao() {
+            console.log('[PARTICIPANTE-DASHBOARD] 🔧 Inicializando navegação...');
+
+            // Buscar todos os botões do menu
             const navItems = document.querySelectorAll('.nav-item');
-            navItems.forEach(item => {
-                item.addEventListener('click', async function() {
-                    const module = this.getAttribute('data-module');
 
-                    // Remover active de todos
-                    navItems.forEach(nav => nav.classList.remove('active'));
+            if (!navItems || navItems.length === 0) {
+                console.error('[PARTICIPANTE-DASHBOARD] ❌ Nenhum item de menu encontrado');
+                return;
+            }
 
-                    // Adicionar active no clicado
-                    this.classList.add('active');
+            console.log(`[PARTICIPANTE-DASHBOARD] 📋 ${navItems.length} itens de menu encontrados`);
 
-                    // Carregar módulo
-                    await ModulosParticipante.carregarModulo(module);
+            // Adicionar event listener em cada botão do menu
+            navItems.forEach(navItem => {
+                navItem.addEventListener('click', (e) => {
+                    e.preventDefault();
+
+                    const modulo = navItem.dataset.modulo;
+                    console.log('[PARTICIPANTE-DASHBOARD] 🎯 Clique detectado no módulo:', modulo);
+
+                    // Remover classe active de todos os itens
+                    navItems.forEach(item => item.classList.remove('active'));
+
+                    // Adicionar classe active no item clicado
+                    navItem.classList.add('active');
+
+                    // Mostrar módulo correspondente
+                    mostrarModulo(modulo);
                 });
             });
+
+            console.log('[PARTICIPANTE-DASHBOARD] ✅ Navegação inicializada com sucesso');
         }
+
+        // Mostrar módulo específico
+        function mostrarModulo(modulo) {
+            console.log(`[PARTICIPANTE-DASHBOARD] 📍 Mostrando módulo: ${modulo}`);
+
+            // Ocultar todos os módulos
+            const allSections = document.querySelectorAll('.module-section');
+            console.log(`[PARTICIPANTE-DASHBOARD] 🔍 Total de seções encontradas: ${allSections.length}`);
+
+            allSections.forEach(section => {
+                section.style.display = 'none';
+                console.log(`[PARTICIPANTE-DASHBOARD] 👁️ Ocultando seção: ${section.id}`);
+            });
+
+            // Mostrar módulo selecionado
+            const moduloElement = document.getElementById(modulo);
+            if (moduloElement) {
+                moduloElement.style.display = 'block';
+                console.log(`[PARTICIPANTE-DASHBOARD] ✅ Módulo ${modulo} exibido com sucesso`);
+            } else {
+                console.error(`[PARTICIPANTE-DASHBOARD] ❌ Módulo não encontrado: ${modulo}`);
+                console.log('[PARTICIPANTE-DASHBOARD] 📋 Módulos disponíveis:', 
+                    Array.from(allSections).map(s => s.id)
+                );
+            }
+        }
+
 
         // Inicializar dashboard
         window.addEventListener('DOMContentLoaded', async () => {
