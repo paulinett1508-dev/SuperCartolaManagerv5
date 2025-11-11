@@ -32,3 +32,74 @@
 <script>
 console.log('[RODADAS-HTML] ✅ HTML do módulo rodadas carregado');
 </script>
+<style>
+.rodadas-participante {
+    padding: 20px 0;
+}
+
+.rodadas-header {
+    text-align: center;
+    margin-bottom: 30px;
+}
+
+.rodadas-header h2 {
+    color: var(--participante-primary);
+    margin-bottom: 10px;
+}
+
+.rodada-card {
+    background: var(--participante-card);
+    border: 1px solid var(--participante-border);
+    border-radius: 12px;
+    padding: 20px;
+    margin-bottom: 15px;
+}
+
+.rodada-titulo {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 15px;
+    padding-bottom: 15px;
+    border-bottom: 1px solid var(--participante-border);
+}
+
+.rodada-numero {
+    font-size: 18px;
+    font-weight: 700;
+    color: var(--participante-primary);
+}
+
+.rodada-pontos {
+    font-size: 16px;
+    font-weight: 600;
+    color: #10b981;
+}
+
+.rodada-detalhes {
+    color: #999;
+    font-size: 14px;
+}
+</style>
+
+<div class="rodadas-participante">
+    <div class="rodadas-header">
+        <h2>📅 Minhas Rodadas</h2>
+        <p style="color: #999;">Histórico completo de rodadas</p>
+    </div>
+
+    <div id="rodadasContainer">
+        <div class="loading-participante">
+            <div class="spinner-participante"></div>
+            <p>Carregando rodadas...</p>
+        </div>
+    </div>
+</div>
+
+<script src="/participante/js/modules/participante-rodadas.js"></script>
+<script>
+const { ligaId, timeId } = participanteAuth.getDados();
+if (ligaId && timeId) {
+    inicializarRodadasParticipante(ligaId, timeId);
+}
+</script>

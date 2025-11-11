@@ -43,3 +43,86 @@
 <script>
 console.log('[TOP10-HTML] ✅ HTML do módulo top10 carregado');
 </script>
+<style>
+.top10-participante {
+    padding: 20px 0;
+}
+
+.top10-header {
+    text-align: center;
+    margin-bottom: 30px;
+}
+
+.top10-header h2 {
+    color: var(--participante-primary);
+    margin-bottom: 10px;
+}
+
+.top10-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    gap: 20px;
+}
+
+.top10-card {
+    background: var(--participante-card);
+    border: 1px solid var(--participante-border);
+    border-radius: 12px;
+    padding: 20px;
+    text-align: center;
+}
+
+.top10-card.podium-1 {
+    border-color: gold;
+}
+
+.top10-card.podium-2 {
+    border-color: silver;
+}
+
+.top10-card.podium-3 {
+    border-color: #cd7f32;
+}
+
+.top10-posicao {
+    font-size: 24px;
+    font-weight: 700;
+    color: var(--participante-primary);
+    margin-bottom: 10px;
+}
+
+.top10-nome {
+    font-size: 16px;
+    font-weight: 600;
+    color: white;
+    margin-bottom: 5px;
+}
+
+.top10-pontos {
+    font-size: 20px;
+    font-weight: 700;
+    color: #10b981;
+}
+</style>
+
+<div class="top10-participante">
+    <div class="top10-header">
+        <h2>🌟 TOP 10 da Liga</h2>
+        <p style="color: #999;">Os 10 melhores times</p>
+    </div>
+
+    <div id="top10Grid" class="top10-grid">
+        <div class="loading-participante">
+            <div class="spinner-participante"></div>
+            <p>Carregando TOP 10...</p>
+        </div>
+    </div>
+</div>
+
+<script src="/participante/js/modules/participante-top10.js"></script>
+<script>
+const { ligaId, timeId } = participanteAuth.getDados();
+if (ligaId && timeId) {
+    inicializarTop10Participante(ligaId, timeId);
+}
+</script>

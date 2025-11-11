@@ -32,3 +32,78 @@
 <script>
 console.log('[MELHOR-MES-HTML] ✅ HTML do módulo melhor-mes carregado');
 </script>
+<style>
+.melhor-mes-participante {
+    padding: 20px 0;
+}
+
+.melhor-mes-header {
+    text-align: center;
+    margin-bottom: 30px;
+}
+
+.melhor-mes-header h2 {
+    color: var(--participante-primary);
+    margin-bottom: 10px;
+}
+
+.meses-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 15px;
+}
+
+.mes-card {
+    background: var(--participante-card);
+    border: 1px solid var(--participante-border);
+    border-radius: 12px;
+    padding: 20px;
+    text-align: center;
+}
+
+.mes-card.meu-melhor {
+    border-color: var(--participante-primary);
+    background: rgba(255, 69, 0, 0.1);
+}
+
+.mes-nome {
+    font-size: 16px;
+    font-weight: 600;
+    color: var(--participante-primary);
+    margin-bottom: 10px;
+}
+
+.mes-pontos {
+    font-size: 24px;
+    font-weight: 700;
+    color: #10b981;
+}
+
+.mes-rodadas {
+    font-size: 12px;
+    color: #999;
+    margin-top: 5px;
+}
+</style>
+
+<div class="melhor-mes-participante">
+    <div class="melhor-mes-header">
+        <h2>📆 Melhor Mês</h2>
+        <p style="color: #999;">Desempenho mensal do seu time</p>
+    </div>
+
+    <div id="mesesGrid" class="meses-grid">
+        <div class="loading-participante">
+            <div class="spinner-participante"></div>
+            <p>Carregando dados...</p>
+        </div>
+    </div>
+</div>
+
+<script src="/participante/js/modules/participante-melhor-mes.js"></script>
+<script>
+const { ligaId, timeId } = participanteAuth.getDados();
+if (ligaId && timeId) {
+    inicializarMelhorMesParticipante(ligaId, timeId);
+}
+</script>
