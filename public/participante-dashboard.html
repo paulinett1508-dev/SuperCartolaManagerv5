@@ -830,40 +830,63 @@
                 try {
                     let participante = {};
                     
-                    // ✅ Tentar múltiplos endpoints de pontos corridos
+                    // ✅ Buscar dados da liga e calcular estatísticas a partir das rodadas
                     try {
-                        const endpoints = [
-                            `/api/pontos-corridos/${ligaId}`,
-                            `/api/pontos-corridos/calcular/${ligaId}`,
-                            `/api/liga/${ligaId}/pontos-corridos`
-                        ];
-
-                        for (const endpoint of endpoints) {
-                            try {
-                                console.log('[PARTICIPANTE-DASHBOARD] Tentando endpoint:', endpoint);
-                                const response = await fetch(endpoint);
-                                if (response.ok) {
-                                    const data = await response.json();
-                                    console.log('[PARTICIPANTE-DASHBOARD] Dados recebidos:', data);
-                                    
-                                    // ✅ Buscar participante com conversão de tipos
-                                    participante = data.classificacao?.find(p => {
-                                        const pTimeId = String(p.timeId || p.time_id || '');
-                                        const searchTimeId = String(timeId);
-                                        return pTimeId === searchTimeId;
-                                    }) || {};
-                                    
-                                    if (participante && Object.keys(participante).length > 0) {
-                                        console.log('[PARTICIPANTE-DASHBOARD] ✅ Participante encontrado:', participante);
-                                        break;
-                                    }
+                        // Buscar todas as rodadas da liga
+                        const rodadasResponse = await fetch(`/api/rodadas/${ligaId}/rodadas?inicio=1&fim=38`);
+                        if (rodadasResponse.ok) {
+                            const todasRodadas = await rodadasResponse.json();
+                            
+                            // Agrupar por participante
+                            const porParticipante = {};
+                            todasRodadas.forEach(r => {
+                                const tid = String(r.timeId);
+                                if (!porParticipante[tid]) {
+                                    porParticipante[tid] = {
+                                        timeId: tid,
+                                        nome_time: r.nomeTime,
+                                        nome_cartola: r.nomeCartoleiro,
+                                        clube_id: r.clubeId,
+                                        rodadas: [],
+                                        pontos: 0,
+                                        vitorias: 0,
+                                        empates: 0,
+                                        derrotas: 0
+                                    };
                                 }
-                            } catch (e) {
-                                console.log('[PARTICIPANTE-DASHBOARD] Endpoint falhou:', endpoint, e.message);
+                                porParticipante[tid].rodadas.push(r);
+                                porParticipante[tid].pontos += r.pontos || 0;
+                            });
+
+                            // Calcular vitórias/empates/derrotas comparando rodada por rodada
+                            Object.values(porParticipante).forEach(p => {
+                                p.rodadas.forEach(rodada => {
+                                    const outrasDaRodada = todasRodadas.filter(r => r.rodada === rodada.rodada && r.timeId !== p.timeId);
+                                    const meusPontos = rodada.pontos || 0;
+                                    
+                                    outrasDaRodada.forEach(adversario => {
+                                        const pontosAdv = adversario.pontos || 0;
+                                        if (meusPontos > pontosAdv) p.vitorias++;
+                                        else if (meusPontos === pontosAdv) p.empates++;
+                                        else p.derrotas++;
+                                    });
+                                });
+                            });
+
+                            // Ordenar por pontos
+                            const classificacao = Object.values(porParticipante)
+                                .sort((a, b) => b.pontos - a.pontos)
+                                .map((p, idx) => ({ ...p, posicao: idx + 1 }));
+
+                            // Encontrar participante atual
+                            participante = classificacao.find(p => String(p.timeId) === String(timeId)) || {};
+                            
+                            if (participante && Object.keys(participante).length > 0) {
+                                console.log('[PARTICIPANTE-DASHBOARD] ✅ Participante encontrado:', participante);
                             }
                         }
                     } catch (pcError) {
-                        console.warn('[PARTICIPANTE-DASHBOARD] Erro ao buscar pontos corridos:', pcError);
+                        console.warn('[PARTICIPANTE-DASHBOARD] Erro ao buscar dados:', pcError);
                     }
 
                     // ✅ Buscar rodadas recentes com tratamento de erro
@@ -937,31 +960,57 @@
                 container.innerHTML = '<div style="text-align: center; padding: 40px;"><div class="loading-spinner-professional"></div><p style="margin-top: 20px;">Carregando classificação...</p></div>';
 
                 try {
-                    // ✅ Tentar múltiplos endpoints
-                    let data = null;
-                    const endpoints = [
-                        `/api/pontos-corridos/${this.participanteAtual.ligaId}`,
-                        `/api/pontos-corridos/calcular/${this.participanteAtual.ligaId}`,
-                        `/api/liga/${this.participanteAtual.ligaId}/pontos-corridos`
-                    ];
-
-                    for (const endpoint of endpoints) {
-                        try {
-                            console.log('[PARTICIPANTE-DASHBOARD] Tentando classificação em:', endpoint);
-                            const response = await fetch(endpoint);
-                            if (response.ok) {
-                                data = await response.json();
-                                if (data.classificacao && data.classificacao.length > 0) {
-                                    console.log('[PARTICIPANTE-DASHBOARD] ✅ Classificação encontrada em:', endpoint);
-                                    break;
-                                }
-                            }
-                        } catch (e) {
-                            console.log('[PARTICIPANTE-DASHBOARD] Endpoint falhou:', endpoint);
-                        }
+                    // ✅ Buscar rodadas e calcular classificação
+                    const rodadasResponse = await fetch(`/api/rodadas/${this.participanteAtual.ligaId}/rodadas?inicio=1&fim=38`);
+                    if (!rodadasResponse.ok) {
+                        throw new Error('Erro ao buscar rodadas');
                     }
 
-                    if (!data || !data.classificacao || data.classificacao.length === 0) {
+                    const todasRodadas = await rodadasResponse.json();
+                    
+                    // Agrupar por participante e calcular estatísticas
+                    const porParticipante = {};
+                    todasRodadas.forEach(r => {
+                        const tid = String(r.timeId);
+                        if (!porParticipante[tid]) {
+                            porParticipante[tid] = {
+                                timeId: tid,
+                                nome_time: r.nomeTime,
+                                nome_cartola: r.nomeCartoleiro,
+                                clube_id: r.clubeId,
+                                rodadas: [],
+                                pontos: 0,
+                                vitorias: 0,
+                                empates: 0,
+                                derrotas: 0
+                            };
+                        }
+                        porParticipante[tid].rodadas.push(r);
+                        porParticipante[tid].pontos += r.pontos || 0;
+                    });
+
+                    // Calcular V/E/D
+                    Object.values(porParticipante).forEach(p => {
+                        p.rodadas.forEach(rodada => {
+                            const outrasDaRodada = todasRodadas.filter(r => r.rodada === rodada.rodada && r.timeId !== p.timeId);
+                            const meusPontos = rodada.pontos || 0;
+                            
+                            outrasDaRodada.forEach(adversario => {
+                                const pontosAdv = adversario.pontos || 0;
+                                if (meusPontos > pontosAdv) p.vitorias++;
+                                else if (meusPontos === pontosAdv) p.empates++;
+                                else p.derrotas++;
+                            });
+                        });
+                    });
+
+                    const data = {
+                        classificacao: Object.values(porParticipante)
+                            .sort((a, b) => b.pontos - a.pontos)
+                            .map((p, idx) => ({ ...p, posicao: idx + 1 }))
+                    };
+
+                    if (!data.classificacao || data.classificacao.length === 0) {
                         throw new Error('Nenhum dado de classificação disponível');
                     }
 
