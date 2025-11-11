@@ -102,7 +102,7 @@ router.get('/session', async (req, res) => {
         }
 
         // Buscar dados atualizados do time
-        const Time = require('../models/Time');
+        const { default: Time } = await import('../models/Time.js');
         const timeId = req.session.participante.timeId;
 
         let timeData = null;
