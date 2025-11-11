@@ -75,89 +75,100 @@ class ParticipanteAuth {
         const patrimonioQuick = document.getElementById('patrimonioQuick');
         const pontosQuick = document.getElementById('pontosQuick');
 
+        console.log('[PARTICIPANTE-AUTH] Atualizando header com dados:', this.participante);
+
         try {
-            // Buscar dados atualizados do time
-            const timeResponse = await fetch(`/api/times/${this.timeId}`, {
+            // Buscar dados da liga primeiro para obter informações do participante
+            const ligaResponse = await fetch(`/api/ligas/${this.ligaId}`, {
                 credentials: 'include'
             });
 
-            if (timeResponse.ok) {
-                const timeData = await timeResponse.json();
-                
-                // Atualizar nome do time e cartoleiro
-                if (nomeTime) nomeTime.textContent = timeData.nome || 'Meu Time';
-                if (nomeCartolaText) nomeCartolaText.textContent = timeData.nome_cartola || 'Cartoleiro';
+            if (!ligaResponse.ok) {
+                throw new Error('Erro ao buscar dados da liga');
+            }
+
+            const ligaData = await ligaResponse.json();
+            const participanteData = ligaData.participantes?.find(p => 
+                String(p.time_id) === String(this.timeId)
+            );
+
+            console.log('[PARTICIPANTE-AUTH] Dados do participante:', participanteData);
+
+            if (participanteData) {
+                // Atualizar nome do time e cartoleiro com dados da liga
+                if (nomeTime) {
+                    nomeTime.textContent = participanteData.nome_time || 'Meu Time';
+                }
+                if (nomeCartolaText) {
+                    nomeCartolaText.textContent = participanteData.nome_cartola || 'Cartoleiro';
+                }
 
                 // Escudo do clube (coração)
-                if (escudoCoracao && timeData.clube_id) {
-                    escudoCoracao.src = `/escudos/${timeData.clube_id}.png`;
-                    escudoCoracao.onerror = () => escudoCoracao.src = '/escudos/placeholder.png';
+                if (escudoCoracao) {
+                    if (participanteData.clube_id) {
+                        escudoCoracao.src = `/escudos/${participanteData.clube_id}.png`;
+                        escudoCoracao.onerror = () => escudoCoracao.src = '/escudos/placeholder.png';
+                    } else {
+                        escudoCoracao.src = '/escudos/placeholder.png';
+                    }
                 }
 
                 // Escudo do time (foto do escudo do Cartola)
                 if (escudoTime) {
-                    if (timeData.url_escudo_png) {
-                        escudoTime.src = timeData.url_escudo_png;
+                    if (participanteData.foto_time) {
+                        escudoTime.src = participanteData.foto_time;
                         escudoTime.onerror = () => {
-                            // Fallback para escudo do clube se imagem do Cartola falhar
-                            if (timeData.clube_id) {
-                                escudoTime.src = `/escudos/${timeData.clube_id}.png`;
+                            // Fallback para escudo do clube
+                            if (participanteData.clube_id) {
+                                escudoTime.src = `/escudos/${participanteData.clube_id}.png`;
                             } else {
                                 escudoTime.src = '/escudos/placeholder.png';
                             }
                         };
-                    } else if (timeData.clube_id) {
-                        escudoTime.src = `/escudos/${timeData.clube_id}.png`;
+                    } else if (participanteData.clube_id) {
+                        escudoTime.src = `/escudos/${participanteData.clube_id}.png`;
                         escudoTime.onerror = () => escudoTime.src = '/escudos/placeholder.png';
+                    } else {
+                        escudoTime.src = '/escudos/placeholder.png';
                     }
                 }
 
-                // Buscar dados da liga para estatísticas rápidas
-                const ligaResponse = await fetch(`/api/ligas/${this.ligaId}`, {
+                // Buscar dados do time para patrimônio
+                const timeResponse = await fetch(`/api/times/${this.timeId}`, {
                     credentials: 'include'
                 });
 
-                if (ligaResponse.ok) {
-                    const ligaData = await ligaResponse.json();
-                    const participante = ligaData.participantes?.find(p => 
-                        String(p.time_id) === String(this.timeId)
-                    );
-
-                    if (participante) {
-                        // Atualizar estatísticas rápidas
-                        if (posicaoQuick) {
-                            posicaoQuick.textContent = `${participante.posicao || '--'}º`;
-                        }
-                        if (patrimonioQuick) {
-                            const patrimonio = timeData.patrimonio || 0;
-                            patrimonioQuick.textContent = `C$ ${patrimonio.toFixed(2)}`;
-                        }
-                        if (pontosQuick) {
-                            const pontos = participante.pontos || participante.pontuacao || 0;
-                            pontosQuick.textContent = `${pontos.toFixed(2)} pts`;
-                        }
-                    }
+                let patrimonio = 0;
+                if (timeResponse.ok) {
+                    const timeData = await timeResponse.json();
+                    patrimonio = timeData.patrimonio || 0;
                 }
 
-                // Atualizar dados locais
-                this.participante.time = timeData;
+                // Atualizar estatísticas rápidas
+                if (posicaoQuick) {
+                    posicaoQuick.textContent = `${participanteData.posicao || '--'}º`;
+                }
+                if (patrimonioQuick) {
+                    patrimonioQuick.textContent = `C$ ${patrimonio.toFixed(2)}`;
+                }
+                if (pontosQuick) {
+                    const pontos = participanteData.pontos || participanteData.pontuacao || 0;
+                    pontosQuick.textContent = `${pontos.toFixed(2)} pts`;
+                }
+
+                console.log('[PARTICIPANTE-AUTH] ✅ Header atualizado com sucesso');
+            } else {
+                console.warn('[PARTICIPANTE-AUTH] Participante não encontrado na liga');
             }
+
         } catch (error) {
             console.error('[PARTICIPANTE-AUTH] Erro ao atualizar header:', error);
             
-            // Fallback para dados da sessão
-            if (nomeTime) nomeTime.textContent = this.participante.participante?.nome_time || 'Meu Time';
-            if (nomeCartolaText) nomeCartolaText.textContent = this.participante.participante?.nome_cartola || 'Cartoleiro';
-            
-            if (escudoCoracao && this.participante.participante?.clube_id) {
-                escudoCoracao.src = `/escudos/${this.participante.participante.clube_id}.png`;
-                escudoCoracao.onerror = () => escudoCoracao.src = '/escudos/placeholder.png';
-            }
-
-            if (escudoTime && this.participante.participante?.clube_id) {
-                escudoTime.src = `/escudos/${this.participante.participante.clube_id}.png`;
-                escudoTime.onerror = () => escudoTime.src = '/escudos/placeholder.png';
-            }
+            // Fallback para dados básicos
+            if (nomeTime) nomeTime.textContent = 'Meu Time';
+            if (nomeCartolaText) nomeCartolaText.textContent = 'Cartoleiro';
+            if (escudoCoracao) escudoCoracao.src = '/escudos/placeholder.png';
+            if (escudoTime) escudoTime.src = '/escudos/placeholder.png';
         }
     }
 
