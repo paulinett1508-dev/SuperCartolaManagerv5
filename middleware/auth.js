@@ -8,14 +8,6 @@
  * Verifica se o usuário tem autenticação Replit válida
  */
 export function verificarAutenticacaoReplit(req, res, next) {
-  // 🚨 BYPASS TEMPORÁRIO - SEMPRE ATIVO
-  req.user = {
-    id: 'dev-admin',
-    name: 'Administrador Dev',
-    roles: 'admin',
-  };
-  return next();
-  
   // Verificar se tem os headers de autenticação do Replit
   const replitUserId = req.headers["x-replit-user-id"];
   const replitUserName = req.headers["x-replit-user-name"];
