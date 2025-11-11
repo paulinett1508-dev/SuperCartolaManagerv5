@@ -78,7 +78,25 @@ class ParticipanteAuth {
         console.log('[PARTICIPANTE-AUTH] Atualizando header com dados:', this.participante);
 
         try {
-            // Buscar dados da liga primeiro para obter informações do participante
+            // 1. Buscar dados reais do time da API
+            const timeResponse = await fetch(`/api/times/${this.timeId}`, {
+                credentials: 'include'
+            });
+
+            let timeData = null;
+            let patrimonio = 0;
+
+            if (timeResponse.ok) {
+                timeData = await timeResponse.json();
+                patrimonio = timeData.patrimonio || 0;
+                console.log('[PARTICIPANTE-AUTH] Dados do time carregados:', {
+                    nome: timeData.nome_time,
+                    cartola: timeData.nome_cartoleiro,
+                    clube: timeData.clube_id
+                });
+            }
+
+            // 2. Buscar dados da liga para obter posição e pontos
             const ligaResponse = await fetch(`/api/ligas/${this.ligaId}`, {
                 credentials: 'include'
             });
@@ -88,78 +106,76 @@ class ParticipanteAuth {
             }
 
             const ligaData = await ligaResponse.json();
-            const participanteData = ligaData.participantes?.find(p => 
+            let participanteData = ligaData.participantes?.find(p => 
                 String(p.time_id) === String(this.timeId)
             );
 
-            console.log('[PARTICIPANTE-AUTH] Dados do participante:', participanteData);
+            console.log('[PARTICIPANTE-AUTH] Dados do participante na liga:', participanteData);
 
-            if (participanteData) {
-                // Atualizar nome do time e cartoleiro com dados da liga
-                if (nomeTime) {
-                    nomeTime.textContent = participanteData.nome_time || 'Meu Time';
-                }
-                if (nomeCartolaText) {
-                    nomeCartolaText.textContent = participanteData.nome_cartola || 'Cartoleiro';
-                }
+            // Priorizar dados reais do time sobre dados da liga (que podem estar desatualizados)
+            const nomeTimeTexto = timeData?.nome_time || participanteData?.nome_time || 'Meu Time';
+            const nomeCartolaTexto = timeData?.nome_cartoleiro || participanteData?.nome_cartola || 'Cartoleiro';
+            const clubeId = timeData?.clube_id || participanteData?.clube_id || null;
+            const fotoTime = timeData?.url_escudo_png || participanteData?.foto_time || null;
 
-                // Escudo do clube (coração)
-                if (escudoCoracao) {
-                    if (participanteData.clube_id) {
-                        escudoCoracao.src = `/escudos/${participanteData.clube_id}.png`;
-                        escudoCoracao.onerror = () => escudoCoracao.src = '/escudos/placeholder.png';
-                    } else {
-                        escudoCoracao.src = '/escudos/placeholder.png';
-                    }
-                }
-
-                // Escudo do time (foto do escudo do Cartola)
-                if (escudoTime) {
-                    if (participanteData.foto_time) {
-                        escudoTime.src = participanteData.foto_time;
-                        escudoTime.onerror = () => {
-                            // Fallback para escudo do clube
-                            if (participanteData.clube_id) {
-                                escudoTime.src = `/escudos/${participanteData.clube_id}.png`;
-                            } else {
-                                escudoTime.src = '/escudos/placeholder.png';
-                            }
-                        };
-                    } else if (participanteData.clube_id) {
-                        escudoTime.src = `/escudos/${participanteData.clube_id}.png`;
-                        escudoTime.onerror = () => escudoTime.src = '/escudos/placeholder.png';
-                    } else {
-                        escudoTime.src = '/escudos/placeholder.png';
-                    }
-                }
-
-                // Buscar dados do time para patrimônio
-                const timeResponse = await fetch(`/api/times/${this.timeId}`, {
-                    credentials: 'include'
-                });
-
-                let patrimonio = 0;
-                if (timeResponse.ok) {
-                    const timeData = await timeResponse.json();
-                    patrimonio = timeData.patrimonio || 0;
-                }
-
-                // Atualizar estatísticas rápidas
-                if (posicaoQuick) {
-                    posicaoQuick.textContent = `${participanteData.posicao || '--'}º`;
-                }
-                if (patrimonioQuick) {
-                    patrimonioQuick.textContent = `C$ ${patrimonio.toFixed(2)}`;
-                }
-                if (pontosQuick) {
-                    const pontos = participanteData.pontos || participanteData.pontuacao || 0;
-                    pontosQuick.textContent = `${pontos.toFixed(2)} pts`;
-                }
-
-                console.log('[PARTICIPANTE-AUTH] ✅ Header atualizado com sucesso');
-            } else {
-                console.warn('[PARTICIPANTE-AUTH] Participante não encontrado na liga');
+            // Atualizar nome do time e cartoleiro
+            if (nomeTime) {
+                nomeTime.textContent = nomeTimeTexto;
             }
+            if (nomeCartolaText) {
+                nomeCartolaText.textContent = nomeCartolaTexto;
+            }
+
+            // Escudo do clube (coração)
+            if (escudoCoracao) {
+                if (clubeId) {
+                    escudoCoracao.src = `/escudos/${clubeId}.png`;
+                    escudoCoracao.onerror = () => escudoCoracao.src = '/escudos/placeholder.png';
+                } else {
+                    escudoCoracao.src = '/escudos/placeholder.png';
+                }
+            }
+
+            // Escudo do time (foto do escudo do Cartola)
+            if (escudoTime) {
+                if (fotoTime) {
+                    escudoTime.src = fotoTime;
+                    escudoTime.onerror = () => {
+                        // Fallback para escudo do clube
+                        if (clubeId) {
+                            escudoTime.src = `/escudos/${clubeId}.png`;
+                            escudoTime.onerror = () => escudoTime.src = '/escudos/placeholder.png';
+                        } else {
+                            escudoTime.src = '/escudos/placeholder.png';
+                        }
+                    };
+                } else if (clubeId) {
+                    escudoTime.src = `/escudos/${clubeId}.png`;
+                    escudoTime.onerror = () => escudoTime.src = '/escudos/placeholder.png';
+                } else {
+                    escudoTime.src = '/escudos/placeholder.png';
+                }
+            }
+
+            // Atualizar estatísticas rápidas
+            if (posicaoQuick) {
+                const posicao = participanteData?.posicao || '--';
+                posicaoQuick.textContent = `${posicao}º`;
+            }
+            if (patrimonioQuick) {
+                patrimonioQuick.textContent = `C$ ${patrimonio.toFixed(2)}`;
+            }
+            if (pontosQuick) {
+                const pontos = participanteData?.pontos || participanteData?.pontuacao || 0;
+                pontosQuick.textContent = `${pontos.toFixed(2)} pts`;
+            }
+
+                console.log('[PARTICIPANTE-AUTH] ✅ Header atualizado com sucesso:', {
+                nome: nomeTimeTexto,
+                cartola: nomeCartolaTexto,
+                clube: clubeId,
+                patrimonio: patrimonio
+            });
 
         } catch (error) {
             console.error('[PARTICIPANTE-AUTH] Erro ao atualizar header:', error);
@@ -169,6 +185,9 @@ class ParticipanteAuth {
             if (nomeCartolaText) nomeCartolaText.textContent = 'Cartoleiro';
             if (escudoCoracao) escudoCoracao.src = '/escudos/placeholder.png';
             if (escudoTime) escudoTime.src = '/escudos/placeholder.png';
+            if (posicaoQuick) posicaoQuick.textContent = '--º';
+            if (patrimonioQuick) patrimonioQuick.textContent = 'C$ 0,00';
+            if (pontosQuick) pontosQuick.textContent = '0,00 pts';
         }
     }
 
