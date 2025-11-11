@@ -1,168 +1,191 @@
 
-# Contextos do Sistema: Admin vs Participante
+# SEPARAÇÃO DE CONTEXTOS: ADMIN vs PARTICIPANTE
 
-## 🔴 CONTEXTO ADMIN (Retaguarda)
+## 🎯 Objetivo
+Manter **total isolamento** entre as funcionalidades administrativas e as funcionalidades de participantes, evitando vazamento de dados e conflitos de lógica.
 
-**Acesso:** Desenvolvedor e administrador do sistema
-**Páginas:** `detalhe-liga.html`, `gerenciar.html`, `admin.html`
-**Identificação da Liga:** Parâmetro `id` ou `ligaId` na URL
-**Exemplo URL:** `detalhe-liga.html?id=684cb1c8af923da7c7df51de`
+---
 
-### Características:
-- ✅ Acesso irrestrito a todas as funcionalidades
-- ✅ Pode gerenciar múltiplas ligas
-- ✅ Pode editar configurações sensíveis
-- ✅ Visualiza dados de todos os participantes
-- ✅ Pode invalidar cache e forçar recálculos
+## 📁 ESTRUTURA DE ARQUIVOS
 
-### Variáveis Globais Esperadas:
-```javascript
-// Liga vem da URL, NÃO de variáveis globais
-const ligaId = new URLSearchParams(window.location.search).get("id");
+### ADMIN (Retaguarda)
+```
+public/js/fluxo-financeiro.js              ← Módulo principal ADMIN
+public/js/fluxo-financeiro/
+  ├── fluxo-financeiro-core.js             ← Lógica de cálculo (COMPARTILHADO)
+  ├── fluxo-financeiro-ui.js               ← Interface (COMPARTILHADO)
+  ├── fluxo-financeiro-cache.js            ← Cache (COMPARTILHADO)
+  ├── fluxo-financeiro-api.js              ← API (COMPARTILHADO)
+  ├── fluxo-financeiro-campos.js           ← Campos editáveis (COMPARTILHADO)
+  └── fluxo-financeiro-utils.js            ← Utilitários (COMPARTILHADO)
+
+public/detalhe-liga.html                   ← Página ADMIN
 ```
 
-### Módulos com Acesso Total:
-- ✅ Fluxo Financeiro (todos os participantes)
-- ✅ Rodadas (todas as rodadas)
-- ✅ Pontos Corridos
-- ✅ Mata-Mata
-- ✅ Ranking Geral
-- ✅ TOP 10
-- ✅ Artilheiro Campeão
-- ✅ Luva de Ouro
-- ✅ Melhor Mês
+### PARTICIPANTE (Frontend)
+```
+public/js/fluxo-financeiro/
+  └── fluxo-financeiro-participante.js     ← Módulo específico PARTICIPANTE
 
----
-
-## 🟢 CONTEXTO PARTICIPANTE (Frontend do Participante)
-
-**Acesso:** Participante autenticado
-**Páginas:** `participante-dashboard.html`, `participante-login.html`
-**Identificação:** Time ID do participante autenticado
-**Exemplo URL:** `participante-dashboard.html` (sem parâmetros na URL)
-
-### Características:
-- ✅ Visualiza apenas seus próprios dados
-- ✅ Estatísticas filtradas pelo seu Time ID
-- ✅ Não pode editar configurações da liga
-- ✅ Não pode ver dados sensíveis de outros participantes
-- ✅ Interface simplificada e focada
-
-### Variáveis Globais Esperadas:
-```javascript
-window.ligaIdAtual = "684cb1c8af923da7c7df51de";
-window.currentLigaId = "684cb1c8af923da7c7df51de";
-window.participanteTimeId = "123456"; // ID do time do participante
-window.participanteNome = "Nome do Participante";
+public/participante-dashboard.html          ← Página PARTICIPANTE
+public/participante-login.html              ← Login PARTICIPANTE
 ```
 
-### Módulos Filtrados por Time:
-- ✅ Fluxo Financeiro (apenas seu extrato)
-- ✅ Rodadas (suas posições)
-- ✅ Pontos Corridos (seus confrontos)
-- ✅ Ranking (sua posição)
-- ❌ Sem acesso a: gerenciar ligas, editar configurações, ver dados de outros
-
 ---
 
-## 🔧 REGRAS DE IMPLEMENTAÇÃO
+## 🔐 CONTROLE DE ACESSO
 
-### ❌ O QUE NUNCA FAZER:
-1. **NUNCA** misturar lógicas de admin e participante no mesmo módulo
-2. **NUNCA** assumir que `window.ligaIdAtual` existe no contexto admin
-3. **NUNCA** assumir que a URL tem `id` no contexto participante
-4. **NUNCA** expor dados sensíveis no contexto participante
-
-### ✅ O QUE FAZER:
-1. **SEMPRE** verificar o contexto antes de acessar dados
-2. **SEMPRE** usar a função `obterLigaId()` que detecta o contexto automaticamente
-3. **SEMPRE** filtrar dados por Time ID no contexto participante
-4. **SEMPRE** validar permissões antes de executar ações sensíveis
-
----
-
-## 📝 CHECKLIST DE IMPLEMENTAÇÃO
-
-### Para Módulos que devem funcionar em AMBOS os contextos:
-
+### Middleware (middleware/auth.js)
 ```javascript
-// ✅ CORRETO: Detectar contexto automaticamente
-function obterLigaId() {
-    // ADMIN: URL tem parâmetro id
-    const urlParams = new URLSearchParams(window.location.search);
-    const ligaIdFromUrl = urlParams.get("id") || urlParams.get("ligaId");
-    if (ligaIdFromUrl) return ligaIdFromUrl;
+// Rotas PÚBLICAS
+ROTAS_PUBLICAS = [
+  '/participante-login.html',
+  '/favicon.ico',
+  '/escudos/',
+  '/css/',
+  '/js/'
+]
 
-    // PARTICIPANTE: Variáveis globais
-    if (window.ligaIdAtual) return window.ligaIdAtual;
-    if (window.currentLigaId) return window.currentLigaId;
+// Rotas ADMIN (sem autenticação)
+ROTAS_ADMIN = [
+  '/dashboard.html',
+  '/detalhe-liga.html',
+  '/gerenciar.html'
+]
 
-    // FALLBACK: localStorage
-    return localStorage.getItem("ligaIdSelecionada");
-}
+// Rotas PARTICIPANTE (com autenticação)
+ROTAS_PARTICIPANTE = [
+  '/participante-dashboard.html'
+]
+```
 
-// ✅ CORRETO: Filtrar por contexto
-function obterDados() {
-    const ligaId = obterLigaId();
-    
-    // Se for participante, filtrar por Time ID
-    if (window.participanteTimeId) {
-        return buscarDadosDoTime(ligaId, window.participanteTimeId);
-    }
-    
-    // Se for admin, retornar tudo
-    return buscarTodosDados(ligaId);
+### Função de Verificação
+```javascript
+export function verificarAutenticacaoParticipante(req, res, next) {
+  if (req.session && req.session.participante) {
+    return next();
+  }
+  res.redirect('/participante-login.html');
 }
 ```
 
-### ❌ INCORRETO:
+---
 
-```javascript
-// ❌ NUNCA faça isso (assume que ligaIdAtual sempre existe)
-const ligaId = window.ligaIdAtual;
+## 🔄 FLUXO DE DADOS
 
-// ❌ NUNCA faça isso (assume que URL sempre tem id)
-const ligaId = new URLSearchParams(window.location.search).get("id");
+### ADMIN
+```
+URL (?id=XXX) → obterLigaId() → fluxo-financeiro.js
+                                      ↓
+                          FluxoFinanceiroCore.calcularExtrato()
+                                      ↓
+                          FluxoFinanceiroUI.renderizar()
+```
+
+### PARTICIPANTE
+```
+Sessão Autenticada → participanteData { timeId, ligaId }
+                              ↓
+              fluxo-financeiro-participante.js
+                              ↓
+                  inicializar(participanteData)
+                              ↓
+                      carregarExtrato()
+                              ↓
+          FluxoFinanceiroCore.calcularExtrato() ← COMPARTILHADO
+                              ↓
+          FluxoFinanceiroUI.renderizar() ← COMPARTILHADO
 ```
 
 ---
 
-## 🎯 MÓDULOS AFETADOS
+## 🚀 MÓDULOS COMPARTILHADOS
 
-### ✅ Já corrigidos:
-- `fluxo-financeiro.js` - função `obterLigaId()` atualizada
+Os seguintes módulos são **compartilhados** entre Admin e Participante:
 
-### ⚠️ Precisam verificação:
-- `pontos-corridos-utils.js`
-- `mata-mata-financeiro.js`
-- `ranking.js`
-- `rodadas.js`
-- `top10.js`
-- `luva-de-ouro.js`
-- `artilheiro-campeao.js`
-- `melhor-mes.js`
+1. **fluxo-financeiro-core.js** - Lógica de cálculo (pura)
+2. **fluxo-financeiro-ui.js** - Interface de renderização
+3. **fluxo-financeiro-cache.js** - Sistema de cache
+4. **fluxo-financeiro-api.js** - Comunicação com API
+5. **fluxo-financeiro-campos.js** - Campos editáveis
+6. **fluxo-financeiro-utils.js** - Funções utilitárias
 
 ---
 
-## 🔍 COMO TESTAR
+## ✅ REGRAS DE ISOLAMENTO
 
-### Teste Admin:
-1. Acesse `detalhe-liga.html?id=684cb1c8af923da7c7df51de`
-2. Navegue para Fluxo Financeiro
-3. Verifique se os dados são carregados corretamente
-4. Console deve mostrar: `[ADMIN] Liga ID da URL: 684cb1c8af923da7c7df51de`
+### Admin PODE:
+- ✅ Ver extratos de todos os participantes
+- ✅ Editar campos personalizados
+- ✅ Gerar relatórios consolidados
+- ✅ Acessar qualquer ligaId via URL
 
-### Teste Participante:
-1. Acesse `participante-login.html`
-2. Faça login com credenciais de participante
-3. Dashboard deve carregar com dados filtrados
-4. Console deve mostrar: `[PARTICIPANTE] Usando ligaIdAtual global: ...`
+### Admin NÃO PODE:
+- ❌ Acessar sessões de participantes
+- ❌ Ver páginas de participantes sem autenticação
+
+### Participante PODE:
+- ✅ Ver APENAS seu próprio extrato
+- ✅ Ver estatísticas filtradas por seu timeId
+
+### Participante NÃO PODE:
+- ❌ Ver extratos de outros participantes
+- ❌ Editar campos personalizados
+- ❌ Acessar páginas ADMIN
+- ❌ Mudar ligaId ou timeId
 
 ---
 
-## 📚 REFERÊNCIAS
+## 🛠️ INICIALIZAÇÃO
 
-- **Admin:** `detalhe-liga-orquestrador.js`
-- **Participante:** `participante-dashboard.html` (a ser criado/atualizado)
-- **Autenticação:** `routes/participante-auth.js`
-- **Middleware:** `middleware/auth.js`
+### ADMIN (detalhe-liga.html)
+```javascript
+import './js/fluxo-financeiro.js';
+
+// Automático ao carregar página
+window.inicializarFluxoFinanceiro();
+```
+
+### PARTICIPANTE (participante-dashboard.html)
+```javascript
+import { fluxoFinanceiroParticipante } from './js/fluxo-financeiro/fluxo-financeiro-participante.js';
+
+// Só quando módulo "Extrato" for clicado
+await fluxoFinanceiroParticipante.inicializar({
+  timeId: participanteData.timeId,
+  ligaId: participanteData.ligaId
+});
+
+await fluxoFinanceiroParticipante.carregarExtrato();
+```
+
+---
+
+## 🔍 DEBUG
+
+### Verificar contexto atual:
+```javascript
+console.log('Contexto:', window.location.pathname);
+// Admin: /detalhe-liga.html
+// Participante: /participante-dashboard.html
+```
+
+### Verificar módulo carregado:
+```javascript
+console.log('Módulo Admin:', window.inicializarFluxoFinanceiro ? 'SIM' : 'NÃO');
+console.log('Módulo Participante:', window.fluxoFinanceiroParticipante ? 'SIM' : 'NÃO');
+```
+
+---
+
+## 📊 BENEFÍCIOS DA SEPARAÇÃO
+
+1. **Segurança** - Isolamento total de dados sensíveis
+2. **Manutenibilidade** - Código mais organizado e fácil de debugar
+3. **Performance** - Módulos carregados apenas quando necessários
+4. **Escalabilidade** - Facilita adição de novos recursos específicos
+5. **Testabilidade** - Cada contexto pode ser testado isoladamente
+
+---
+
+**Última atualização:** 2025-01-16

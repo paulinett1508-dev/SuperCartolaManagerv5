@@ -496,36 +496,21 @@
   </div>
 
   <script type="module">
-        // Importar módulos necessários
-        let calcularEExibirExtrato, inicializarFluxoFinanceiro, selecionarParticipante, obterLigaId;
+        // Importar módulo específico para participantes
+        let fluxoFinanceiroParticipante;
 
-        // Carregar módulos de forma segura
+        // Carregar módulo de forma segura
         async function carregarModulosFluxo() {
             try {
-                console.log('[PARTICIPANTE-DASHBOARD] 🔄 Iniciando carregamento de módulos financeiros...');
+                console.log('[PARTICIPANTE-DASHBOARD] 🔄 Carregando módulo financeiro para participantes...');
 
-                const modulo = await import('./js/fluxo-financeiro.js');
+                const modulo = await import('./js/fluxo-financeiro/fluxo-financeiro-participante.js');
+                fluxoFinanceiroParticipante = modulo.fluxoFinanceiroParticipante;
 
-                // ✅ Aguardar inicialização completa
-                if (typeof modulo.inicializarFluxoFinanceiro === 'function') {
-                    await modulo.inicializarFluxoFinanceiro();
-                    console.log('[PARTICIPANTE-DASHBOARD] ✅ Sistema financeiro inicializado');
-                }
-
-                calcularEExibirExtrato = modulo.calcularEExibirExtrato;
-                inicializarFluxoFinanceiro = modulo.inicializarFluxoFinanceiro;
-                selecionarParticipante = modulo.selecionarParticipante;
-                obterLigaId = modulo.obterLigaId;
-
-                // ✅ Expor globalmente de forma segura
-                window.calcularEExibirExtrato = calcularEExibirExtrato;
-                window.inicializarFluxoFinanceiro = inicializarFluxoFinanceiro;
-                window.fluxoFinanceiroCore = modulo;
-
-                console.log('[PARTICIPANTE-DASHBOARD] ✅ Módulos do fluxo financeiro carregados e expostos globalmente');
+                console.log('[PARTICIPANTE-DASHBOARD] ✅ Módulo financeiro carregado');
                 return true;
             } catch (error) {
-                console.error('[PARTICIPANTE-DASHBOARD] ❌ Erro ao carregar módulos:', error);
+                console.error('[PARTICIPANTE-DASHBOARD] ❌ Erro ao carregar módulo:', error);
                 return false;
             }
         }
@@ -652,113 +637,57 @@
 
 
 
-        // ✅ CARREGAR EXTRATO FINANCEIRO (só quando usuário clicar)
+        // ✅ CARREGAR EXTRATO FINANCEIRO (usando módulo específico)
             async function carregarExtrato(timeId, ligaId, participante) {
-                // ✅ VALIDAR timeId
-                const timeIdFinal = timeId || participante?.timeId || participante?.time_id || participante?.id;
-
-                if (!timeIdFinal) {
-                    console.error('[PARTICIPANTE-DASHBOARD] ❌ TimeId não fornecido');
-                    return;
-                }
-
-                console.log('[PARTICIPANTE-DASHBOARD] Carregando extrato para:', { 
-                    timeId: timeIdFinal, 
-                    ligaId, 
-                    participante 
-                });
-
-                // ✅ Aguardar renderização do DOM
-                await new Promise(resolve => setTimeout(resolve, 100));
-
-                const extratoContainer = document.getElementById('extratoFinanceiro');
-                if (!extratoContainer) {
-                    console.error('[PARTICIPANTE-DASHBOARD] ❌ Container #extratoFinanceiro não encontrado após timeout');
-                    console.log('[PARTICIPANTE-DASHBOARD] Containers disponíveis:', 
-                        Array.from(document.querySelectorAll('[id]')).map(el => el.id));
-                    return;
-                }
-
-                console.log('[PARTICIPANTE-DASHBOARD] ✅ Container encontrado, iniciando carregamento...');
-
-                // Adicionar botão de refresh no topo do extrato
-                const headerExtrato = document.createElement('div');
-                headerExtrato.style.cssText = 'display: flex; justify-content: flex-end; padding: 10px 20px; margin-bottom: 10px;';
-                headerExtrato.innerHTML = `
-                    <button id="btnRefreshExtrato" class="btn-refresh-cache" title="Atualizar dados do servidor">
-                        <span class="refresh-icon">🔄</span>
-                        <span class="refresh-text">Atualizar</span>
-                    </button>
-                `;
-
-                const fluxoContent = document.getElementById('fluxoFinanceiroContent');
-                if (fluxoContent && !document.getElementById('btnRefreshExtrato')) {
-                    fluxoContent.insertBefore(headerExtrato, fluxoContent.firstChild);
-
-                    // Configurar evento de refresh
-                    document.getElementById('btnRefreshExtrato').addEventListener('click', async function() {
-                        const confirmRefresh = confirm(
-                            '⚠️ Isso irá recarregar todos os dados do servidor.\n\n' +
-                            'Deseja continuar?'
-                        );
-
-                        if (confirmRefresh) {
-                            this.disabled = true;
-                            this.innerHTML = '<span class="refresh-icon">⏳</span><span class="refresh-text">Atualizando...</span>';
-
-                            try {
-                                const { forceRefresh } = await import('/js/fluxo-financeiro/fluxo-financeiro-cache.js');
-                                await forceRefresh(timeIdFinal, ligaId);
-                                setTimeout(() => window.location.reload(), 500);
-                            } catch (e) {
-                                console.error("Erro ao atualizar:", e);
-                                alert("Não foi possível atualizar os dados.");
-                                this.innerHTML = '<span class="refresh-icon">🔄</span><span class="refresh-text">Atualizar</span>';
-                                this.disabled = false;
-                            }
-                        }
-                    });
-                }
-
-                // ✅ DEFINIR GLOBALMENTE O ID DA LIGA CORRETO
-                window.ligaIdAtual = ligaId;
-                window.currentLigaId = ligaId;
-                console.log('[PARTICIPANTE-DASHBOARD] Liga ID definido:', ligaId);
-
-                // ✅ SOBRESCREVER A FUNÇÃO GLOBAL obterLigaId PARA RETORNAR O ID CORRETO
-                window.obterLigaId = function() {
-                    console.log('[PARTICIPANTE-DASHBOARD] obterLigaId global chamado, retornando:', ligaId);
-                    return ligaId;
-                };
-
                 try {
-                    // ✅ Verificação robusta de módulos carregados
-                    if (!window.calcularEExibirExtrato) {
-                        console.warn('[PARTICIPANTE-DASHBOARD] Módulos não carregados, tentando carregar agora...');
-                        const carregou = await carregarModulosFluxo();
+                    console.log('[PARTICIPANTE-DASHBOARD] 🔄 Carregando extrato:', { timeId, ligaId });
 
-                        if (!carregou || !window.calcularEExibirExtrato) {
-                            throw new Error('Não foi possível carregar o sistema financeiro. Recarregue a página.');
-                        }
+                    // Aguardar renderização do DOM
+                    await new Promise(resolve => setTimeout(resolve, 100));
+
+                    const extratoContainer = document.getElementById('extratoFinanceiro');
+                    if (!extratoContainer) {
+                        console.error('[PARTICIPANTE-DASHBOARD] ❌ Container #extratoFinanceiro não encontrado');
+                        return;
                     }
 
-                    // ✅ Calcular e exibir o extrato
-                    console.log('[PARTICIPANTE-DASHBOARD] Chamando calcularEExibirExtrato para timeId:', timeIdFinal);
-                    await window.calcularEExibirExtrato(timeIdFinal);
+                    // Verificar se módulo foi carregado
+                    if (!fluxoFinanceiroParticipante) {
+                        throw new Error('Módulo financeiro não foi carregado');
+                    }
+
+                    // Inicializar módulo com dados do participante
+                    await fluxoFinanceiroParticipante.inicializar({
+                        timeId: timeId,
+                        ligaId: ligaId,
+                        participante: participante
+                    });
+
+                    // Carregar extrato
+                    await fluxoFinanceiroParticipante.carregarExtrato();
+
                     console.log('[PARTICIPANTE-DASHBOARD] ✅ Extrato carregado com sucesso');
 
                 } catch (error) {
                     console.error('[PARTICIPANTE-DASHBOARD] ❌ Erro ao carregar extrato:', error);
-                    extratoContainer.innerHTML = `
-                        <div style="text-align: center; padding: 40px; background: rgba(239, 68, 68, 0.1); border-radius: 12px; border: 1px solid rgba(239, 68, 68, 0.3);">
-                            <div style="font-size: 48px; margin-bottom: 16px;">⚠️</div>
-                            <h3 style="color: #ef4444; margin-bottom: 12px;">Erro ao Carregar Extrato</h3>
-                            <p style="color: #e0e0e0;">${error.message}</p>
-                            <button onclick="window.location.reload()" style="padding: 12px 24px; background: linear-gradient(135deg, #ff4500 0%, #e8472b 100%); color: white; border: none; border-radius: 8px; cursor: pointer; font-weight: 600; font-size: 14px;">
-                                🔄 Recarregar Página
-                            </button>
-                        </div>
-                    `;
+                    
+                    const extratoContainer = document.getElementById('extratoFinanceiro');
+                    if (extratoContainer) {
+                        extratoContainer.innerHTML = `
+                            <div style="text-align: center; padding: 40px; background: rgba(239, 68, 68, 0.1); 
+                                        border-radius: 12px; border: 1px solid rgba(239, 68, 68, 0.3);">
+                                <div style="font-size: 48px; margin-bottom: 16px;">⚠️</div>
+                                <h3 style="color: #ef4444; margin-bottom: 12px;">Erro ao Carregar Extrato</h3>
+                                <p style="color: #e0e0e0;">${error.message}</p>
+                                <button onclick="window.location.reload()" 
+                                        style="padding: 12px 24px; background: linear-gradient(135deg, #ff4500 0%, #e8472b 100%); 
+                                               color: white; border: none; border-radius: 8px; cursor: pointer; 
+                                               font-weight: 600; font-size: 14px; margin-top: 16px;">
+                                    🔄 Recarregar Página
+                                </button>
+                            </div>
+                        `;
+                    }
                 }
             }
 
@@ -1149,32 +1078,16 @@
         window.addEventListener('DOMContentLoaded', async () => {
             console.log('[PARTICIPANTE-DASHBOARD] Inicializando...');
 
-            // Carregar módulos primeiro
-            const modulosCarregados = await carregarModulosFluxo();
+            // Carregar módulo financeiro
+            await carregarModulosFluxo();
 
-            if (!modulosCarregados) {
-                console.error('[PARTICIPANTE-DASHBOARD] Falha ao carregar módulos');
-                const fluxoContent = document.getElementById('fluxoFinanceiroContent');
-                if (fluxoContent) {
-                    fluxoContent.innerHTML = `
-                        <div style="text-align: center; padding: 40px; background: rgba(239, 68, 68, 0.1); border-radius: 12px; border: 1px solid rgba(239, 68, 68, 0.3);">
-                            <div style="font-size: 48px; margin-bottom: 16px;">⚠️</div>
-                            <h3 style="color: #ef4444; margin-bottom: 12px;">Erro ao Carregar Sistema</h3>
-                            <p style="color: #e0e0e0;">Não foi possível carregar o módulo financeiro.</p>
-                            <button onclick="location.reload()" style="margin-top: 20px; padding: 10px 20px; background: linear-gradient(135deg, #ff4500 0%, #e8472b 100%); color: white; border: none; border-radius: 8px; cursor: pointer; font-weight: 600;">Tentar Novamente</button>
-                        </div>
-                    `;
-                }
-                return;
-            }
-
-            // Inicializar navegação (DEPOIS de carregar módulos)
+            // Inicializar navegação
             inicializarNavegacao();
 
             // Verificar autenticação
             await verificarAutenticacao();
 
-            console.log('[PARTICIPANTE-DASHBOARD] ✅ Dashboard inicializado - aguardando interação do usuário');
+            console.log('[PARTICIPANTE-DASHBOARD] ✅ Dashboard inicializado');
         });
     </script>
 </body>
