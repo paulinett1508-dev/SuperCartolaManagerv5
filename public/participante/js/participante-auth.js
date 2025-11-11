@@ -64,19 +64,44 @@ class ParticipanteAuth {
         }
     }
 
-    atualizarHeader() {
+    async atualizarHeader() {
         if (!this.participante) return;
 
         const nomeTime = document.getElementById('nomeTime');
         const nomeCartoleiro = document.getElementById('nomeCartoleiro');
         const escudo = document.getElementById('escudoParticipante');
 
-        if (nomeTime) nomeTime.textContent = this.participante.participante?.nome_time || 'Meu Time';
-        if (nomeCartoleiro) nomeCartoleiro.textContent = this.participante.participante?.nome_cartola || 'Cartoleiro';
+        try {
+            // Buscar dados atualizados do time
+            const timeResponse = await fetch(`/api/times/${this.timeId}`, {
+                credentials: 'include'
+            });
 
-        if (escudo && this.participante.participante?.clube_id) {
-            escudo.src = `/escudos/${this.participante.participante.clube_id}.png`;
-            escudo.onerror = () => escudo.src = '/escudos/placeholder.png';
+            if (timeResponse.ok) {
+                const timeData = await timeResponse.json();
+                
+                if (nomeTime) nomeTime.textContent = timeData.nome || 'Meu Time';
+                if (nomeCartoleiro) nomeCartoleiro.textContent = timeData.nome_cartola || 'Cartoleiro';
+
+                if (escudo && timeData.clube_id) {
+                    escudo.src = `/escudos/${timeData.clube_id}.png`;
+                    escudo.onerror = () => escudo.src = '/escudos/placeholder.png';
+                }
+
+                // Atualizar dados locais
+                this.participante.time = timeData;
+            }
+        } catch (error) {
+            console.error('[PARTICIPANTE-AUTH] Erro ao atualizar header:', error);
+            
+            // Fallback para dados da sessão
+            if (nomeTime) nomeTime.textContent = this.participante.participante?.nome_time || 'Meu Time';
+            if (nomeCartoleiro) nomeCartoleiro.textContent = this.participante.participante?.nome_cartola || 'Cartoleiro';
+            
+            if (escudo && this.participante.participante?.clube_id) {
+                escudo.src = `/escudos/${this.participante.participante.clube_id}.png`;
+                escudo.onerror = () => escudo.src = '/escudos/placeholder.png';
+            }
         }
     }
 

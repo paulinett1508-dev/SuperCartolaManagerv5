@@ -19,9 +19,9 @@ function verificarAutenticacao(req, res, next) {
 // Middleware para verificar sessão de participante ativo
 function verificarSessaoParticipante(req, res, next) {
   if (!req.session || !req.session.participante) {
-    return res.status(401).json({ 
+    return res.status(401).json({
       error: "Sessão expirada ou inválida",
-      needsLogin: true 
+      needsLogin: true
     });
   }
   next();
@@ -33,8 +33,8 @@ router.post("/login", async (req, res) => {
         const { timeId, senha } = req.body;
 
         if (!timeId || !senha) {
-            return res.status(400).json({ 
-                error: "ID do time e senha são obrigatórios" 
+            return res.status(400).json({
+                error: "ID do time e senha são obrigatórios"
             });
         }
 
@@ -58,15 +58,15 @@ router.post("/login", async (req, res) => {
         }
 
         if (!participanteEncontrado) {
-            return res.status(404).json({ 
-                error: "ID do time não encontrado" 
+            return res.status(404).json({
+                error: "ID do time não encontrado"
             });
         }
 
         // Validar senha
         if (participanteEncontrado.senha_acesso !== senha) {
-            return res.status(401).json({ 
-                error: "Senha incorreta" 
+            return res.status(401).json({
+                error: "Senha incorreta"
             });
         }
 
@@ -91,19 +91,41 @@ router.post("/login", async (req, res) => {
     }
 });
 
-// Verificar sessão ativa e retornar dados completos
-router.get("/session", (req, res) => {
-    if (!req.session || !req.session.participante) {
-        return res.status(401).json({ 
-            error: "Sessão não encontrada",
-            needsLogin: true 
-        });
-    }
+// GET - Verificar sessão
+router.get('/session', async (req, res) => {
+    try {
+        if (!req.session.participante) {
+            return res.status(401).json({
+                authenticated: false,
+                message: 'Não autenticado'
+            });
+        }
 
-    res.json({
-        authenticated: true,
-        participante: req.session.participante
-    });
+        // Buscar dados atualizados do time
+        const Time = require('../models/Time');
+        const timeId = req.session.participante.timeId;
+
+        let timeData = null;
+        if (timeId) {
+            timeData = await Time.findOne({ time_id: timeId });
+        }
+
+        res.json({
+            authenticated: true,
+            participante: {
+                ...req.session.participante,
+                time: timeData ? {
+                    nome: timeData.nome,
+                    nome_cartola: timeData.nome_cartola,
+                    clube_id: timeData.clube_id,
+                    url_escudo_png: timeData.url_escudo_png
+                } : null
+            }
+        });
+    } catch (error) {
+        console.error('Erro ao verificar sessão:', error);
+        res.status(500).json({ error: 'Erro ao verificar sessão' });
+    }
 });
 
 // Obter extrato financeiro do participante logado
@@ -160,9 +182,9 @@ router.get("/check", (req, res) => {
       }
     });
   } else {
-    res.json({ 
+    res.json({
       authenticated: false,
-      needsLogin: true 
+      needsLogin: true
     });
   }
 });
