@@ -502,17 +502,30 @@
         // Carregar módulos de forma segura
         async function carregarModulosFluxo() {
             try {
+                console.log('[PARTICIPANTE-DASHBOARD] 🔄 Iniciando carregamento de módulos financeiros...');
+                
                 const modulo = await import('./js/fluxo-financeiro.js');
+                
+                // ✅ Aguardar inicialização completa
+                if (typeof modulo.inicializarFluxoFinanceiro === 'function') {
+                    await modulo.inicializarFluxoFinanceiro();
+                    console.log('[PARTICIPANTE-DASHBOARD] ✅ Sistema financeiro inicializado');
+                }
+                
                 calcularEExibirExtrato = modulo.calcularEExibirExtrato;
                 inicializarFluxoFinanceiro = modulo.inicializarFluxoFinanceiro;
                 selecionarParticipante = modulo.selecionarParticipante;
                 obterLigaId = modulo.obterLigaId;
-                console.log('[PARTICIPANTE-DASHBOARD] Módulos do fluxo financeiro carregados');
-                window.calcularEExibirExtrato = calcularEExibirExtrato; // Expor para uso global se necessário
-                window.inicializarFluxoFinanceiro = inicializarFluxoFinanceiro; // Expor para uso global se necessário
+                
+                // ✅ Expor globalmente de forma segura
+                window.calcularEExibirExtrato = calcularEExibirExtrato;
+                window.inicializarFluxoFinanceiro = inicializarFluxoFinanceiro;
+                window.fluxoFinanceiroCore = modulo;
+                
+                console.log('[PARTICIPANTE-DASHBOARD] ✅ Módulos do fluxo financeiro carregados e expostos globalmente');
                 return true;
             } catch (error) {
-                console.error('[PARTICIPANTE-DASHBOARD] Erro ao carregar módulos:', error);
+                console.error('[PARTICIPANTE-DASHBOARD] ❌ Erro ao carregar módulos:', error);
                 return false;
             }
         }
@@ -706,20 +719,31 @@
                 };
 
                 try {
-                    // Carregar módulos do fluxo financeiro se ainda não estiverem carregados
-                    if (!window.fluxoFinanceiroCore) {
-                        await inicializarFluxoFinanceiro();
+                    // ✅ Verificação robusta de módulos carregados
+                    if (!window.calcularEExibirExtrato) {
+                        console.warn('[PARTICIPANTE-DASHBOARD] Módulos não carregados, tentando carregar agora...');
+                        const carregou = await carregarModulosFluxo();
+                        
+                        if (!carregou || !window.calcularEExibirExtrato) {
+                            throw new Error('Não foi possível carregar o sistema financeiro. Recarregue a página.');
+                        }
                     }
 
-                    // Calcular e exibir o extrato
+                    // ✅ Calcular e exibir o extrato
+                    console.log('[PARTICIPANTE-DASHBOARD] Chamando calcularEExibirExtrato para timeId:', timeId);
                     await window.calcularEExibirExtrato(timeId);
+                    console.log('[PARTICIPANTE-DASHBOARD] ✅ Extrato carregado com sucesso');
 
                 } catch (error) {
-                    console.error('[PARTICIPANTE-DASHBOARD] Erro ao carregar extrato:', error);
+                    console.error('[PARTICIPANTE-DASHBOARD] ❌ Erro ao carregar extrato:', error);
                     extratoContainer.innerHTML = `
-                        <div style="text-align: center; padding: 40px; color: #e74c3c;">
-                            <h3>❌ Erro ao carregar extrato</h3>
-                            <p>${error.message}</p>
+                        <div style="text-align: center; padding: 40px; background: rgba(239, 68, 68, 0.1); border-radius: 12px; border: 1px solid rgba(239, 68, 68, 0.3);">
+                            <div style="font-size: 48px; margin-bottom: 16px;">⚠️</div>
+                            <h3 style="color: #ef4444; margin-bottom: 12px;">Erro ao Carregar Extrato</h3>
+                            <p style="color: #e0e0e0; margin-bottom: 20px;">${error.message}</p>
+                            <button onclick="window.location.reload()" style="padding: 12px 24px; background: linear-gradient(135deg, #ff4500 0%, #e8472b 100%); color: white; border: none; border-radius: 8px; cursor: pointer; font-weight: 600; font-size: 14px;">
+                                🔄 Recarregar Página
+                            </button>
                         </div>
                     `;
                 }
