@@ -1,0 +1,143 @@
+
+<div class="extrato-participante-container">
+    <div class="extrato-header">
+        <h2>💰 Meu Extrato Financeiro</h2>
+        <p class="extrato-subtitle">Histórico de movimentações da liga</p>
+    </div>
+
+    <!-- Cards de Resumo -->
+    <div class="resumo-financeiro">
+        <div class="resumo-card saldo-total">
+            <div class="resumo-icon">💵</div>
+            <div class="resumo-info">
+                <span class="resumo-label">Saldo Total</span>
+                <span class="resumo-valor" id="saldoTotal">R$ 0,00</span>
+            </div>
+        </div>
+
+        <div class="resumo-card creditos">
+            <div class="resumo-icon">✅</div>
+            <div class="resumo-info">
+                <span class="resumo-label">Total Recebido</span>
+                <span class="resumo-valor" id="totalCreditos">R$ 0,00</span>
+            </div>
+        </div>
+
+        <div class="resumo-card debitos">
+            <div class="resumo-icon">❌</div>
+            <div class="resumo-info">
+                <span class="resumo-label">Total Pago</span>
+                <span class="resumo-valor" id="totalDebitos">R$ 0,00</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- Tabela de Movimentações -->
+    <div class="extrato-tabela-container">
+        <div class="tabela-header">
+            <h3>Histórico de Movimentações</h3>
+        </div>
+        <div id="extratoTabela" class="extrato-content">
+            <!-- Preenchido via JS -->
+        </div>
+    </div>
+</div>
+
+<style>
+.extrato-participante-container {
+    padding: 20px;
+}
+
+.extrato-header {
+    margin-bottom: 30px;
+}
+
+.extrato-header h2 {
+    font-size: 24px;
+    color: var(--participante-primary);
+    margin: 0 0 5px 0;
+}
+
+.extrato-subtitle {
+    color: #999;
+    margin: 0;
+}
+
+.resumo-financeiro {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 15px;
+    margin-bottom: 30px;
+}
+
+.resumo-card {
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid var(--participante-border);
+    border-radius: 12px;
+    padding: 20px;
+    display: flex;
+    align-items: center;
+    gap: 15px;
+}
+
+.resumo-icon {
+    font-size: 32px;
+    width: 50px;
+    height: 50px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: rgba(255, 69, 0, 0.1);
+    border-radius: 50%;
+}
+
+.resumo-info {
+    display: flex;
+    flex-direction: column;
+}
+
+.resumo-label {
+    font-size: 12px;
+    color: #999;
+    margin-bottom: 5px;
+}
+
+.resumo-valor {
+    font-size: 20px;
+    font-weight: 700;
+    color: #ffffff;
+}
+
+.saldo-total .resumo-valor {
+    color: var(--participante-primary);
+}
+
+.creditos .resumo-valor {
+    color: #22c55e;
+}
+
+.debitos .resumo-valor {
+    color: #ef4444;
+}
+
+.extrato-tabela-container {
+    background: rgba(255, 255, 255, 0.03);
+    border: 1px solid var(--participante-border);
+    border-radius: 12px;
+    padding: 20px;
+}
+
+.tabela-header {
+    margin-bottom: 20px;
+    padding-bottom: 15px;
+    border-bottom: 1px solid var(--participante-border);
+}
+
+.tabela-header h3 {
+    margin: 0;
+    font-size: 18px;
+    color: #ffffff;
+}
+</style>
+
+<script src="/participante/js/modules/participante-extrato.js"></script>

@@ -1,0 +1,47 @@
+
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Meu Painel - Cartola</title>
+    <link rel="stylesheet" href="/css/base.css">
+    <link rel="stylesheet" href="css/participante.css">
+</head>
+<body>
+    <div class="participante-container">
+        <!-- Header com dados do participante -->
+        <header class="participante-header">
+            <div class="header-content">
+                <img id="escudoParticipante" class="escudo-participante" src="/escudos/placeholder.png" alt="Escudo">
+                <div class="participante-info">
+                    <h1 id="nomeTime">Meu Time</h1>
+                    <p id="nomeCartoleiro">Cartoleiro</p>
+                </div>
+                <button onclick="logout()" class="btn-logout">Sair</button>
+            </div>
+        </header>
+
+        <!-- Menu de Navegação -->
+        <nav class="participante-nav">
+            <button class="nav-btn active" data-module="extrato">💰 Extrato</button>
+            <button class="nav-btn" data-module="ranking">📊 Classificação</button>
+            <button class="nav-btn" data-module="rodadas">🎯 Minhas Rodadas</button>
+            <button class="nav-btn" data-module="top10">🏆 Top 10</button>
+            <button class="nav-btn" data-module="melhor-mes">📅 Melhor do Mês</button>
+            <button class="nav-btn" data-module="pontos-corridos">⚽ Pontos Corridos</button>
+            <button class="nav-btn" data-module="mata-mata">⚔️ Mata-Mata</button>
+            <button class="nav-btn" data-module="artilheiro">🥇 Artilheiro</button>
+            <button class="nav-btn" data-module="luva-ouro">🥅 Luva de Ouro</button>
+        </nav>
+
+        <!-- Container para módulos -->
+        <main id="moduleContainer" class="module-container">
+            <!-- Conteúdo carregado dinamicamente -->
+        </main>
+    </div>
+
+    <script src="js/participante-auth.js"></script>
+    <script src="js/participante-navigation.js"></script>
+</body>
+</html>
