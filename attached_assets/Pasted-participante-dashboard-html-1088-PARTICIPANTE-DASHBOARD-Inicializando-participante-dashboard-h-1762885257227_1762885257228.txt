@@ -1,0 +1,85 @@
+participante-dashboard.html:1088 [PARTICIPANTE-DASHBOARD] Inicializando...
+participante-dashboard.html:505 [PARTICIPANTE-DASHBOARD] 🔄 Iniciando carregamento de módulos financeiros...
+rodadas.js:146 [RODADAS] 🚀 Inicializando módulo refatorado...
+rodadas.js:309 [RODADAS] ✅ Módulo refatorado carregado - Arquitetura modular implementada
+rodadas.js:312 [RODADAS] 🔧 Funções de debug disponíveis em window.rodadasDebug
+rodadas.js:316 [RODADAS] 📦 Estrutura modular:
+rodadas.js:317   - rodadas-config.js: Configurações e constantes
+rodadas.js:318   - rodadas-core.js: Lógica de negócio e API calls
+rodadas.js:319   - rodadas-ui.js: Interface e renderização
+rodadas.js:320   - rodadas-cache.js: Sistema de cache e performance
+rodadas.js:321   - rodadas-orquestrador.js: Coordenação entre módulos
+rodadas.js:322   - rodadas.js: Ponto de entrada refatorado (este arquivo)
+export-base.js:343 ✅ [EXPORT-BASE] Módulo carregado com sucesso
+export-extrato-financeiro.js:70 [EXPORT-EXTRATO-FINANCEIRO-MOBILE] Sistema Mobile Light HD v3.1.0 carregado
+export-extrato-financeiro.js:1311 [EXPORT-EXTRATO-FINANCEIRO-MOBILE] Sistema Mobile Dark HD v3.0.1 configurado
+export-extrato-financeiro.js:1314 [EXPORT-EXTRATO-FINANCEIRO-MOBILE] Resolução: 720px x 800px+ @ 4x scale
+export-extrato-financeiro.js:1317 [EXPORT-EXTRATO-FINANCEIRO-MOBILE] Tema Dark com cores dinâmicas (verde/vermelho)
+export-extrato-financeiro.js:1320 [EXPORT-EXTRATO-FINANCEIRO-MOBILE] Destaque para saldo final e acumulado
+export-extrato-financeiro.js:1323 [EXPORT-EXTRATO-FINANCEIRO-MOBILE] ✅ Função window.exportarExtratoComoImagem exposta
+rodadas-config.js:134 [RODADAS-CONFIG] Módulo carregado com sucesso
+rodadas-core.js:372 [RODADAS-CORE] Módulo carregado com sucesso
+rodadas-ui.js:360 [RODADAS-UI] Módulo carregado com layout compacto e seleção inteligente
+cache-manager.js:282 ✅ [CACHE-MANAGER] Sistema de cache inteligente carregado
+rodadas-cache.js:82 [RODADAS-CACHE] Limpeza automática configurada (60000ms)
+rodadas-cache.js:353 [RODADAS-CACHE] Sistema de cache inicializado
+rodadas-cache.js:354 [RODADAS-CACHE] Limpeza automática configurada (5min)
+rodadas-orquestrador.js:376 [RODADAS-ORQUESTRADOR] Módulo carregado com UX redesenhado
+cache-manager.js:48 ✅ [CACHE-MANAGER] IndexedDB inicializado
+rodadas.js:36 [RODADAS] ✅ Módulos refatorados carregados com sucesso
+rodadas-orquestrador.js:283 [RODADAS-ORQUESTRADOR] Inicializando módulo de rodadas...
+rodadas-orquestrador.js:284 [RODADAS-ORQUESTRADOR] URL atual: https://e1034b6e-dfb9-401a-8e7f-80ffa6030f79-00-2dc692elmitoe.spock.replit.dev/participante-dashboard.html
+rodadas-orquestrador.js:291 [RODADAS-ORQUESTRADOR] Não está na seção de rodadas, pulando inicialização
+melhor-mes.js:4 [MELHOR-MES] Sistema modular carregando...
+melhor-mes.js:319 [MELHOR-MES] Sistema modular carregado com arquitetura refatorada
+fluxo-financeiro.js:38  [FLUXO-FINANCEIRO] Liga ID não encontrado
+obterLigaId @ fluxo-financeiro.js:38
+inicializarFluxoFinanceiro @ fluxo-financeiro.js:162
+await in inicializarFluxoFinanceiro
+carregarModulosFluxo @ participante-dashboard.html:511
+await in carregarModulosFluxo
+(anônimo) @ participante-dashboard.html:1091
+participante-dashboard.html:512 [PARTICIPANTE-DASHBOARD] ✅ Sistema financeiro inicializado
+participante-dashboard.html:525 [PARTICIPANTE-DASHBOARD] ✅ Módulos do fluxo financeiro carregados e expostos globalmente
+participante-dashboard.html:536 [PARTICIPANTE-DASHBOARD] Verificando autenticação...
+mata-mata-financeiro.js:19 [MATA-FINANCEIRO] Função getRankingRodadaEspecifica configurada
+fluxo-financeiro-core.js:34 [FLUXO-CORE] Mata-mata integrado com sucesso
+participante-dashboard.html:557 [PARTICIPANTE-DASHBOARD] Autenticação verificada com sucesso.
+participante-dashboard.html:577 [PARTICIPANTE-DASHBOARD] Dados do participante: {timeId: '13935277', ligaId: '684cb1c8af923da7c7df51de', participante: {…}}
+participante-dashboard.html:585 [PARTICIPANTE-DASHBOARD] Dados da API Cartola: {nome: 'Urubu Play F.C.', nome_cartoleiro: 'Paulinett Miranda', url_escudo_png: 'https://s2-cartola.glbimg.com/XqTNWtU0S8uzpU6ZUjcM…81760d8-c096-4ce7-8896-13b4cc8b71f820230318082753', clube_id: 262}
+participante-dashboard.html:843 [PARTICIPANTE-DASHBOARD] Tentando endpoint: /api/pontos-corridos/684cb1c8af923da7c7df51de
+participante-dashboard.html:844   GET https://e1034b6e-dfb9-401a-8e7f-80ffa6030f79-00-2dc692elmitoe.spock.replit.dev/api/pontos-corridos/684cb1c8af923da7c7df51de 404 (Not Found)
+buscarEstatisticasCompletas @ participante-dashboard.html:844
+renderVisaoGeral @ participante-dashboard.html:779
+carregarModulo @ participante-dashboard.html:1041
+verificarAutenticacao @ participante-dashboard.html:641
+await in verificarAutenticacao
+(anônimo) @ participante-dashboard.html:1113
+participante-dashboard.html:843 [PARTICIPANTE-DASHBOARD] Tentando endpoint: /api/pontos-corridos/calcular/684cb1c8af923da7c7df51de
+participante-dashboard.html:844   GET https://e1034b6e-dfb9-401a-8e7f-80ffa6030f79-00-2dc692elmitoe.spock.replit.dev/api/pontos-corridos/calcular/684cb1c8af923da7c7df51de 404 (Not Found)
+buscarEstatisticasCompletas @ participante-dashboard.html:844
+await in buscarEstatisticasCompletas
+renderVisaoGeral @ participante-dashboard.html:779
+carregarModulo @ participante-dashboard.html:1041
+verificarAutenticacao @ participante-dashboard.html:641
+await in verificarAutenticacao
+(anônimo) @ participante-dashboard.html:1113
+participante-dashboard.html:843 [PARTICIPANTE-DASHBOARD] Tentando endpoint: /api/liga/684cb1c8af923da7c7df51de/pontos-corridos
+participante-dashboard.html:844   GET https://e1034b6e-dfb9-401a-8e7f-80ffa6030f79-00-2dc692elmitoe.spock.replit.dev/api/liga/684cb1c8af923da7c7df51de/pontos-corridos 404 (Not Found)
+buscarEstatisticasCompletas @ participante-dashboard.html:844
+await in buscarEstatisticasCompletas
+renderVisaoGeral @ participante-dashboard.html:779
+carregarModulo @ participante-dashboard.html:1041
+verificarAutenticacao @ participante-dashboard.html:641
+await in verificarAutenticacao
+(anônimo) @ participante-dashboard.html:1113
+participante-dashboard.html:872 [PARTICIPANTE-DASHBOARD] Buscando rodadas para timeId: 13935277 ligaId: 684cb1c8af923da7c7df51de
+participante-dashboard.html:876 [PARTICIPANTE-DASHBOARD] Total de rodadas recebidas: 1056
+participante-dashboard.html:881 [PARTICIPANTE-DASHBOARD] Rodadas do participante: 33
+participante-dashboard.html:915 [PARTICIPANTE-DASHBOARD] Estatísticas calculadas: {posicao: '--', pontos: 0, vitorias: 0, saldo: 0, ultimasRodadas: Array(5)}
+participante-dashboard.html:1115 [PARTICIPANTE-DASHBOARD] ✅ Dashboard inicializado - aguardando interação do usuário
+participante-dashboard.html:657 [PARTICIPANTE-DASHBOARD] Carregando extrato para: {timeId: '13935277', ligaId: '684cb1c8af923da7c7df51de', participante: {…}}
+participante-dashboard.html:670 [PARTICIPANTE-DASHBOARD] ✅ Container encontrado, iniciando carregamento...
+participante-dashboard.html:714 [PARTICIPANTE-DASHBOARD] Liga ID definido: 684cb1c8af923da7c7df51de
+participante-dashboard.html:733 [PARTICIPANTE-DASHBOARD] Chamando calcularEExibirExtrato para timeId: 13935277
+participante-dashboard.html:735 [PARTICIPANTE-DASHBOARD] ✅ Extrato carregado com sucesso
