@@ -1,13 +1,16 @@
 
 // FLUXO-FINANCEIRO-PARTICIPANTE.JS
-// Versão 100% isolada para contexto de participante autenticado
-// ⚠️ NÃO DEPENDE DE fluxo-financeiro.js (ADMIN)
+// ⚠️ IMPORTANTE: Este módulo é 100% READ-ONLY
+// - NÃO cria dados próprios
+// - NÃO modifica configurações
+// - Apenas VISUALIZA dados criados pelo ADMIN
+// - Toda alimentação vem do modo ADMIN via API
 
 import { FluxoFinanceiroCore } from './fluxo-financeiro-core.js';
 import { FluxoFinanceiroUI } from './fluxo-financeiro-ui.js';
 import { FluxoFinanceiroCache } from './fluxo-financeiro-cache.js';
 
-console.log('[FLUXO-PARTICIPANTE] 📦 Módulo carregado (contexto isolado)');
+console.log('[FLUXO-PARTICIPANTE] 📦 Módulo carregado (READ-ONLY, sem vida própria)');
 
 class FluxoFinanceiroParticipante {
     constructor() {

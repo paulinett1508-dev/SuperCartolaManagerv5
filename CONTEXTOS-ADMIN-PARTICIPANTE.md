@@ -121,6 +121,7 @@ Os seguintes módulos são **compartilhados** entre Admin e Participante:
 - ✅ Editar campos personalizados
 - ✅ Gerar relatórios consolidados
 - ✅ Acessar qualquer ligaId via URL
+- ✅ **CRIAR, MODIFICAR E DELETAR dados**
 
 ### Admin NÃO PODE:
 - ❌ Acessar sessões de participantes
@@ -129,12 +130,15 @@ Os seguintes módulos são **compartilhados** entre Admin e Participante:
 ### Participante PODE:
 - ✅ Ver APENAS seu próprio extrato
 - ✅ Ver estatísticas filtradas por seu timeId
+- ✅ **APENAS VISUALIZAR dados criados pelo admin**
 
 ### Participante NÃO PODE:
 - ❌ Ver extratos de outros participantes
 - ❌ Editar campos personalizados
 - ❌ Acessar páginas ADMIN
 - ❌ Mudar ligaId ou timeId
+- ❌ **Criar, modificar ou deletar NENHUM dado**
+- ❌ **Ter "vida própria" - depende 100% do admin**
 
 ---
 
@@ -212,4 +216,19 @@ console.log('Módulo Participante:', window.fluxoFinanceiroParticipante ? 'SIM' 
 
 ---
 
-**Última atualização:** 2025-01-16 (Higienização completa)
+---
+
+## 🔒 PRINCÍPIO FUNDAMENTAL
+
+### O Participante NÃO tem "vida própria"
+
+- **100% READ-ONLY**: O módulo participante apenas visualiza dados
+- **Dependência Total**: Toda alimentação vem do modo ADMIN
+- **Zero Modificações**: Nenhum dado pode ser criado/alterado pelo participante
+- **Visualização Filtrada**: Apenas vê seus próprios dados dentro do que o admin configurou
+
+**REGRA DE OURO:** Se o admin não criar/configurar, o participante não vê.
+
+---
+
+**Última atualização:** 2025-01-16 (Reforço: Participante sem vida própria)
