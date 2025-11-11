@@ -1270,11 +1270,11 @@
             // Carregar módulo financeiro
             await carregarModulosFluxo();
 
-            // Inicializar navegação
-            inicializarNavegacao();
-
-            // Verificar autenticação
+            // Verificar autenticação (renderiza o menu internamente)
             await verificarAutenticacao();
+
+            // Inicializar navegação DEPOIS do menu ser renderizado
+            inicializarNavegacao();
 
             console.log('[PARTICIPANTE-DASHBOARD] ✅ Dashboard inicializado');
         });
