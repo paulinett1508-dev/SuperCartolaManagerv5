@@ -844,18 +844,22 @@
                                 const response = await fetch(endpoint);
                                 if (response.ok) {
                                     const data = await response.json();
-                                    participante = data.classificacao?.find(p => 
-                                        p.timeId === timeId || 
-                                        p.time_id === timeId || 
-                                        String(p.timeId) === String(timeId)
-                                    ) || {};
-                                    if (participante.posicao) {
-                                        console.log('[PARTICIPANTE-DASHBOARD] ✅ Dados encontrados em:', endpoint);
+                                    console.log('[PARTICIPANTE-DASHBOARD] Dados recebidos:', data);
+                                    
+                                    // ✅ Buscar participante com conversão de tipos
+                                    participante = data.classificacao?.find(p => {
+                                        const pTimeId = String(p.timeId || p.time_id || '');
+                                        const searchTimeId = String(timeId);
+                                        return pTimeId === searchTimeId;
+                                    }) || {};
+                                    
+                                    if (participante && Object.keys(participante).length > 0) {
+                                        console.log('[PARTICIPANTE-DASHBOARD] ✅ Participante encontrado:', participante);
                                         break;
                                     }
                                 }
                             } catch (e) {
-                                console.log('[PARTICIPANTE-DASHBOARD] Endpoint falhou:', endpoint);
+                                console.log('[PARTICIPANTE-DASHBOARD] Endpoint falhou:', endpoint, e.message);
                             }
                         }
                     } catch (pcError) {
@@ -865,12 +869,16 @@
                     // ✅ Buscar rodadas recentes com tratamento de erro
                     let ultimasRodadas = [];
                     try {
+                        console.log('[PARTICIPANTE-DASHBOARD] Buscando rodadas para timeId:', timeId, 'ligaId:', ligaId);
                         const rodadasResponse = await fetch(`/api/rodadas/${ligaId}/rodadas?inicio=1&fim=38`);
                         if (rodadasResponse.ok) {
                             const todasRodadas = await rodadasResponse.json();
+                            console.log('[PARTICIPANTE-DASHBOARD] Total de rodadas recebidas:', todasRodadas.length);
+                            
                             const rodadasParticipante = todasRodadas.filter(r => 
                                 String(r.timeId) === String(timeId)
                             );
+                            console.log('[PARTICIPANTE-DASHBOARD] Rodadas do participante:', rodadasParticipante.length);
                             
                             ultimasRodadas = rodadasParticipante.slice(-5).map(r => ({
                                 rodada: r.rodada,
@@ -891,13 +899,22 @@
                         }));
                     }
 
-                    return {
+                    // ✅ Retornar dados com fallback seguro
+                    const stats = {
                         posicao: participante.posicao || '--',
-                        pontos: participante.pontos || 0,
+                        pontos: participante.pontos || participante.pontuacao || 0,
                         vitorias: participante.vitorias || participante.v || 0,
-                        saldo: participante.financeiroTotal || participante.financeiro_total || 0,
-                        ultimasRodadas: ultimasRodadas
+                        saldo: participante.financeiroTotal || participante.financeiro_total || participante.saldo || 0,
+                        ultimasRodadas: ultimasRodadas.length > 0 ? ultimasRodadas : Array.from({length: 5}, (_, i) => ({
+                            rodada: i + 1,
+                            pontos: 0,
+                            resultado: 'N/D'
+                        }))
                     };
+                    
+                    console.log('[PARTICIPANTE-DASHBOARD] Estatísticas calculadas:', stats);
+                    return stats;
+                    
                 } catch (error) {
                     console.error('[PARTICIPANTE-DASHBOARD] ❌ Erro ao buscar estatísticas:', error);
                     return {
