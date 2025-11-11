@@ -459,6 +459,10 @@
 
     <!-- NAVEGAÇÃO ENTRE MÓDULOS -->
     <nav class="nav-menu">
+      <button class="nav-item active" data-module="visao-geral">
+        <span class="nav-icon">🏠</span>
+        <span class="nav-label">Visão Geral</span>
+      </button>
       <button class="nav-item" data-module="extrato">
         <span class="nav-icon">💰</span>
         <span class="nav-label">Extrato</span>
@@ -471,13 +475,13 @@
         <span class="nav-icon">📊</span>
         <span class="nav-label">Rodadas</span>
       </button>
-      <button class="nav-item" data-module="top10">
-        <span class="nav-icon">🔝</span>
-        <span class="nav-label">TOP 10</span>
+      <button class="nav-item" data-module="artilheiro">
+        <span class="nav-icon">⚽</span>
+        <span class="nav-label">Artilheiro</span>
       </button>
-      <button class="nav-item" data-module="mata-mata">
-        <span class="nav-icon">⚔️</span>
-        <span class="nav-label">Mata-Mata</span>
+      <button class="nav-item" data-module="goleiro">
+        <span class="nav-icon">🧤</span>
+        <span class="nav-label">Goleiro</span>
       </button>
     </nav>
   </div>
@@ -485,43 +489,9 @@
   <div class="container">
     <div id="errorContainer"></div>
 
-    <!-- Dashboard Principal -->
-    <div id="extratoFinanceiro" class="dashboard-card">
-        <!-- Container onde o conteúdo será renderizado -->
-        <div id="fluxoFinanceiroContent" class="card-content" style="padding: 0;">
-            <div class="welcome-dashboard" style="padding: 0;">
-                <div class="welcome-header">
-                    <div class="welcome-icon" id="teamShieldIcon">
-                        <div style="width: 64px; height: 64px; background: rgba(255,255,255,0.1); border-radius: 50%; display: flex; align-items: center; justify-content: center;">
-                            <span style="font-size: 32px;">⚽</span>
-                        </div>
-                    </div>
-                    <div class="welcome-info">
-                        <h1 id="welcomeTitle">Bem-vindo ao Super Cartola!</h1>
-                        <p id="welcomeSubtitle">Carregando informações...</p>
-                    </div>
-
-                </div>
-
-                <!-- Cards de Estatísticas Rápidas -->
-                <div id="welcomeStats" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 12px; margin-bottom: 30px; padding: 0 20px;">
-                    <!-- Será preenchido dinamicamente -->
-                </div>
-
-                <!-- Logo e Mensagem Centralizada -->
-                <div style="background: linear-gradient(135deg, rgba(255, 69, 0, 0.08) 0%, rgba(255, 69, 0, 0.02) 100%); border: 1px solid rgba(255, 69, 0, 0.15); border-radius: 12px; padding: 40px 20px; margin: 0 20px 20px 20px; text-align: center;">
-                    <div style="width: 100px; height: 100px; margin: 0 auto 20px; border-radius: 50%; display: flex; align-items: center; justify-content: center; overflow: hidden; background: #fff; border: 3px solid rgba(255, 69, 0, 0.3); box-shadow: 0 4px 20px rgba(255, 69, 0, 0.4);">
-                        <img src="/escudos/default.png" alt="Super Cartola Logo" style="width: 100%; height: 100%; object-fit: cover;">
-                    </div>
-                    <h1 style="color: #ffffff; font-size: 24px; margin-bottom: 10px; font-weight: 800; text-shadow: 0 2px 10px rgba(255, 255, 255, 0.3); letter-spacing: -0.5px;">
-                        SUPER CARTOLA 2025 - ano XI
-                    </h1>
-                    <p style="color: #a0a0a0; font-size: 14px; margin-bottom: 0; font-weight: 500;">
-                        O melhor fantasy game
-                    </p>
-                </div>
-            </div>
-        </div>
+    <!-- Container Dinâmico de Módulos -->
+    <div id="moduleContainer" class="dashboard-card">
+        <!-- O conteúdo será carregado dinamicamente baseado no módulo ativo -->
     </div>
   </div>
 
@@ -644,32 +614,18 @@
                     userAvatar.innerHTML = `<img src="/escudos/${clubeId}.png" alt="Escudo" onerror="this.parentElement.innerHTML='<span style=\\'font-size: 24px;\\'>⚽</span>'">`;
                 }
 
-                // Atualizar tela de boas-vindas com escudo do TIME CARTOLA (diferente do time do coração)
-                const teamShieldIcon = document.getElementById('teamShieldIcon');
-                if (teamShieldIcon && escudoUrl) {
-                    teamShieldIcon.innerHTML = `<img src="${escudoUrl}" alt="Time Cartola" style="width: 64px; height: 64px; border-radius: 50%; object-fit: contain; background: white; border: 3px solid rgba(255, 69, 0, 0.3);" onerror="this.innerHTML='<div style=\\'width: 64px; height: 64px; background: rgba(255,255,255,0.1); border-radius: 50%; display: flex; align-items: center; justify-content: center;\\'><span style=\\'font-size: 32px;\\'>⚽</span></div>'">`;
-                }
+                // ✅ CONFIGURAR DADOS DO PARTICIPANTE NO MÓDULO
+                ModulosParticipante.participanteAtual = {
+                    timeId: participante.timeId,
+                    ligaId: participante.ligaId,
+                    nomeCartola: nomeCartola,
+                    nomeTime: nomeTime,
+                    clube_id: clubeId,
+                    url_escudo_png: escudoUrl
+                };
 
-                const welcomeTitle = document.getElementById('welcomeTitle');
-                const welcomeSubtitle = document.getElementById('welcomeSubtitle');
-
-                // Buscar nome da liga
-                let nomeLiga = 'Liga';
-                try {
-                    const ligaResponse = await fetch(`/api/ligas/${participante.ligaId}`);
-                    if (ligaResponse.ok) {
-                        const ligaData = await ligaResponse.json();
-                        nomeLiga = ligaData.nome || 'Liga';
-                    }
-                } catch (error) {
-                    console.warn('[PARTICIPANTE-DASHBOARD] Erro ao buscar nome da liga:', error);
-                }
-
-                if (welcomeTitle) welcomeTitle.textContent = `Bem-vindo ao Super Cartola! 👋`;
-                if (welcomeSubtitle) welcomeSubtitle.textContent = `Time: ${nomeTime} | Liga: ${nomeLiga}`;
-
-                // Buscar estatísticas do participante para exibir na welcome screen
-                await carregarEstatisticasParticipante(participante.timeId, participante.ligaId);
+                // ✅ CARREGAR MÓDULO INICIAL (VISÃO GERAL)
+                await ModulosParticipante.carregarModulo('visao-geral');
 
             } catch (error) {
                 console.error('[PARTICIPANTE-DASHBOARD] Erro na verificação de autenticação:', error);
@@ -681,47 +637,7 @@
             }
         }
 
-        // ✅ CARREGAR ESTATÍSTICAS DO PARTICIPANTE
-        async function carregarEstatisticasParticipante(timeId, ligaId) {
-            const welcomeStats = document.getElementById('welcomeStats');
-            if (!welcomeStats) return;
-
-            try {
-                // Buscar dados básicos do participante
-                const response = await fetch(`/api/pontos-corridos/calcular/${ligaId}`, {
-                    credentials: 'include'
-                });
-
-                if (response.ok) {
-                    const data = await response.json();
-                    const participante = data.classificacao?.find(p => p.timeId === timeId);
-
-                    if (participante) {
-                        welcomeStats.innerHTML = `
-                            <div style="background: rgba(255, 69, 0, 0.08); border: 1px solid rgba(255, 69, 0, 0.2); border-radius: 8px; padding: 12px; text-align: center;">
-                                <div style="font-size: 24px; font-weight: 700; color: var(--laranja); margin-bottom: 4px;">${participante.posicao}º</div>
-                                <div style="font-size: 11px; color: var(--text-muted); font-weight: 600;">Posição</div>
-                            </div>
-                            <div style="background: rgba(34, 197, 94, 0.08); border: 1px solid rgba(34, 197, 94, 0.2); border-radius: 8px; padding: 12px; text-align: center;">
-                                <div style="font-size: 24px; font-weight: 700; color: var(--success); margin-bottom: 4px;">${participante.pontos}</div>
-                                <div style="font-size: 11px; color: var(--text-muted); font-weight: 600;">Pontos</div>
-                            </div>
-                            <div style="background: rgba(59, 130, 246, 0.08); border: 1px solid rgba(59, 130, 246, 0.2); border-radius: 8px; padding: 12px; text-align: center;">
-                                <div style="font-size: 24px; font-weight: 700; color: #3b82f6; margin-bottom: 4px;">${participante.vitorias}</div>
-                                <div style="font-size: 11px; color: var(--text-muted); font-weight: 600;">Vitórias</div>
-                            </div>
-                        `;
-                    }
-                }
-            } catch (error) {
-                console.error('[PARTICIPANTE-DASHBOARD] Erro ao carregar estatísticas:', error);
-                welcomeStats.innerHTML = `
-                    <div style="grid-column: 1 / -1; text-align: center; padding: 20px; color: var(--text-muted); font-size: 12px;">
-                        Use o menu acima para navegar pelos módulos
-                    </div>
-                `;
-            }
-        }
+        
 
         // ✅ CARREGAR EXTRATO FINANCEIRO (só quando usuário clicar)
             async function carregarExtrato(timeId, ligaId, participante) {
@@ -816,6 +732,208 @@
 
         window.sair = sair;
 
+        // ✅ SISTEMA DE MÓDULOS PERSONALIZADOS
+        const ModulosParticipante = {
+            // Dados do participante
+            participanteAtual: null,
+
+            // Renderizar módulo de Visão Geral
+            async renderVisaoGeral() {
+                const p = this.participanteAtual;
+                if (!p) return;
+
+                const container = document.getElementById('moduleContainer');
+                
+                // Buscar estatísticas completas
+                const stats = await this.buscarEstatisticasCompletas(p.timeId, p.ligaId);
+
+                container.innerHTML = `
+                    <div style="padding: 20px;">
+                        <!-- Header Personalizado -->
+                        <div style="display: flex; align-items: center; gap: 16px; margin-bottom: 24px; padding: 20px; background: linear-gradient(135deg, rgba(255, 69, 0, 0.08) 0%, rgba(255, 69, 0, 0.02) 100%); border-radius: 12px; border: 1px solid rgba(255, 69, 0, 0.15);">
+                            ${p.url_escudo_png ? `<img src="${p.url_escudo_png}" style="width: 64px; height: 64px; border-radius: 50%; border: 3px solid rgba(255, 69, 0, 0.3); background: white;" onerror="this.src='/escudos/default.png'">` : '<div style="width: 64px; height: 64px; background: rgba(255, 69, 0, 0.3); border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 32px;">⚽</div>'}
+                            <div style="flex: 1;">
+                                <h2 style="margin: 0; font-size: 24px; font-weight: 800; color: var(--text-primary);">${p.nomeTime || 'Meu Time'}</h2>
+                                <p style="margin: 4px 0 0 0; font-size: 14px; color: var(--text-muted);">Cartoleiro: ${p.nomeCartola}</p>
+                            </div>
+                        </div>
+
+                        <!-- Grid de Estatísticas -->
+                        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 16px; margin-bottom: 24px;">
+                            ${this.criarCardStat('🏆', 'Posição', stats.posicao + 'º', stats.posicao <= 3 ? '#22c55e' : '#ff4500')}
+                            ${this.criarCardStat('⭐', 'Pontos', stats.pontos, '#3b82f6')}
+                            ${this.criarCardStat('✅', 'Vitórias', stats.vitorias, '#22c55e')}
+                            ${this.criarCardStat('💰', 'Saldo', 'C$ ' + stats.saldo.toFixed(0), stats.saldo >= 0 ? '#22c55e' : '#ef4444')}
+                        </div>
+
+                        <!-- Últimas Rodadas -->
+                        <div style="background: var(--bg-card); border-radius: 12px; padding: 20px; border: 1px solid rgba(255, 69, 0, 0.1);">
+                            <h3 style="margin: 0 0 16px 0; font-size: 18px; font-weight: 700; color: var(--text-primary);">📊 Últimas 5 Rodadas</h3>
+                            <div id="ultimasRodadas" style="display: flex; gap: 12px; overflow-x: auto;">
+                                ${stats.ultimasRodadas.map(r => `
+                                    <div style="min-width: 100px; padding: 12px; background: rgba(255, 255, 255, 0.03); border-radius: 8px; text-align: center; border: 1px solid rgba(255, 69, 0, 0.1);">
+                                        <div style="font-size: 11px; color: var(--text-muted); margin-bottom: 4px;">Rodada ${r.rodada}</div>
+                                        <div style="font-size: 20px; font-weight: 800; color: var(--laranja);">${r.pontos.toFixed(1)}</div>
+                                        <div style="font-size: 10px; color: ${r.resultado === 'V' ? '#22c55e' : r.resultado === 'E' ? '#f59e0b' : '#ef4444'}; margin-top: 4px;">${r.resultado}</div>
+                                    </div>
+                                `).join('')}
+                            </div>
+                        </div>
+                    </div>
+                `;
+            },
+
+            // Criar card de estatística
+            criarCardStat(icon, label, value, color) {
+                return `
+                    <div style="background: rgba(255, 255, 255, 0.03); border: 1px solid rgba(255, 69, 0, 0.1); border-radius: 10px; padding: 16px; text-align: center;">
+                        <div style="font-size: 24px; margin-bottom: 8px;">${icon}</div>
+                        <div style="font-size: 11px; color: var(--text-muted); margin-bottom: 6px; text-transform: uppercase; font-weight: 600;">${label}</div>
+                        <div style="font-size: 24px; font-weight: 800; color: ${color};">${value}</div>
+                    </div>
+                `;
+            },
+
+            // Buscar estatísticas completas
+            async buscarEstatisticasCompletas(timeId, ligaId) {
+                try {
+                    // Pontos Corridos
+                    const pcResponse = await fetch(`/api/pontos-corridos/calcular/${ligaId}`);
+                    const pcData = await pcResponse.json();
+                    const participante = pcData.classificacao?.find(p => p.timeId === timeId) || {};
+
+                    // Rodadas recentes
+                    const rodadasResponse = await fetch(`/api/rodadas/${ligaId}/rodadas?inicio=1&fim=38`);
+                    const todasRodadas = await rodadasResponse.json();
+                    const rodadasParticipante = todasRodadas.filter(r => r.timeId === timeId);
+                    
+                    const ultimasRodadas = rodadasParticipante.slice(-5).map(r => ({
+                        rodada: r.rodada,
+                        pontos: r.pontos || 0,
+                        resultado: r.pontos > 65 ? 'V' : r.pontos > 50 ? 'E' : 'D'
+                    }));
+
+                    return {
+                        posicao: participante.posicao || '--',
+                        pontos: participante.pontos || 0,
+                        vitorias: participante.vitorias || 0,
+                        saldo: participante.financeiroTotal || 0,
+                        ultimasRodadas: ultimasRodadas
+                    };
+                } catch (error) {
+                    console.error('Erro ao buscar estatísticas:', error);
+                    return {
+                        posicao: '--',
+                        pontos: 0,
+                        vitorias: 0,
+                        saldo: 0,
+                        ultimasRodadas: []
+                    };
+                }
+            },
+
+            // Renderizar classificação destacando o participante
+            async renderClassificacao() {
+                const container = document.getElementById('moduleContainer');
+                container.innerHTML = '<div style="text-align: center; padding: 40px;"><div class="loading-spinner-professional"></div><p style="margin-top: 20px;">Carregando classificação...</p></div>';
+
+                try {
+                    const response = await fetch(`/api/pontos-corridos/calcular/${this.participanteAtual.ligaId}`);
+                    const data = await response.json();
+
+                    const html = `
+                        <div style="padding: 20px;">
+                            <h2 style="margin: 0 0 20px 0; font-size: 22px; font-weight: 800; color: var(--text-primary);">🏆 Classificação Geral</h2>
+                            <div style="background: var(--bg-card); border-radius: 12px; overflow: hidden; border: 1px solid rgba(255, 69, 0, 0.1);">
+                                ${data.classificacao.map((p, idx) => {
+                                    const isMe = p.timeId === this.participanteAtual.timeId;
+                                    return `
+                                        <div style="display: flex; align-items: center; gap: 12px; padding: 16px; border-bottom: 1px solid rgba(255, 255, 255, 0.05); ${isMe ? 'background: linear-gradient(135deg, rgba(255, 69, 0, 0.15) 0%, rgba(255, 69, 0, 0.05) 100%); border-left: 4px solid var(--laranja);' : ''}">
+                                            <div style="font-size: 18px; font-weight: 800; color: ${idx < 3 ? '#fbbf24' : 'var(--text-muted)'}; min-width: 30px;">${idx + 1}º</div>
+                                            ${p.clube_id ? `<img src="/escudos/${p.clube_id}.png" style="width: 32px; height: 32px; border-radius: 50%; background: white;" onerror="this.src='/escudos/default.png'">` : '<div style="width: 32px; height: 32px; background: var(--laranja); border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 16px;">⚽</div>'}
+                                            <div style="flex: 1; min-width: 0;">
+                                                <div style="font-weight: ${isMe ? '800' : '600'}; color: ${isMe ? 'var(--laranja)' : 'var(--text-primary)'}; font-size: 14px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">${p.nome_time}</div>
+                                                <div style="font-size: 11px; color: var(--text-muted);">${p.nome_cartola}</div>
+                                            </div>
+                                            <div style="text-align: right;">
+                                                <div style="font-size: 18px; font-weight: 800; color: var(--laranja);">${p.pontos}</div>
+                                                <div style="font-size: 10px; color: var(--text-muted);">${p.vitorias}V ${p.empates}E ${p.derrotas}D</div>
+                                            </div>
+                                            ${isMe ? '<div style="font-size: 20px;">👈</div>' : ''}
+                                        </div>
+                                    `;
+                                }).join('')}
+                            </div>
+                        </div>
+                    `;
+
+                    container.innerHTML = html;
+                } catch (error) {
+                    container.innerHTML = '<div style="text-align: center; padding: 40px; color: #ef4444;"><h3>❌ Erro ao carregar</h3></div>';
+                }
+            },
+
+            // Renderizar rodadas do participante
+            async renderRodadas() {
+                const container = document.getElementById('moduleContainer');
+                container.innerHTML = '<div style="text-align: center; padding: 40px;"><div class="loading-spinner-professional"></div><p style="margin-top: 20px;">Carregando suas rodadas...</p></div>';
+
+                try {
+                    const response = await fetch(`/api/rodadas/${this.participanteAtual.ligaId}/rodadas?inicio=1&fim=38`);
+                    const todasRodadas = await response.json();
+                    const minhasRodadas = todasRodadas.filter(r => r.timeId === this.participanteAtual.timeId).sort((a, b) => a.rodada - b.rodada);
+
+                    const html = `
+                        <div style="padding: 20px;">
+                            <h2 style="margin: 0 0 20px 0; font-size: 22px; font-weight: 800; color: var(--text-primary);">📊 Minhas Rodadas</h2>
+                            <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); gap: 12px;">
+                                ${minhasRodadas.map(r => {
+                                    const pontos = r.pontos || 0;
+                                    const cor = pontos > 65 ? '#22c55e' : pontos > 50 ? '#f59e0b' : pontos > 0 ? '#ef4444' : '#6b7280';
+                                    return `
+                                        <div style="background: var(--bg-card); border: 1px solid rgba(255, 69, 0, 0.1); border-radius: 10px; padding: 16px; text-align: center;">
+                                            <div style="font-size: 12px; color: var(--text-muted); margin-bottom: 8px; font-weight: 600;">RODADA ${r.rodada}</div>
+                                            <div style="font-size: 28px; font-weight: 800; color: ${cor};">${pontos.toFixed(1)}</div>
+                                            ${r.rodadaNaoJogada ? '<div style="font-size: 10px; color: var(--text-muted); margin-top: 4px;">Não jogou</div>' : ''}
+                                        </div>
+                                    `;
+                                }).join('')}
+                            </div>
+                        </div>
+                    `;
+
+                    container.innerHTML = html;
+                } catch (error) {
+                    container.innerHTML = '<div style="text-align: center; padding: 40px; color: #ef4444;"><h3>❌ Erro ao carregar</h3></div>';
+                }
+            },
+
+            // Carregar módulo
+            async carregarModulo(nomeModulo) {
+                const container = document.getElementById('moduleContainer');
+                
+                switch(nomeModulo) {
+                    case 'visao-geral':
+                        await this.renderVisaoGeral();
+                        break;
+                    case 'classificacao':
+                        await this.renderClassificacao();
+                        break;
+                    case 'rodadas':
+                        await this.renderRodadas();
+                        break;
+                    case 'extrato':
+                        container.innerHTML = '<div id="fluxoFinanceiroContent" class="card-content" style="padding: 0;"></div>';
+                        await carregarExtrato(this.participanteAtual.timeId, this.participanteAtual.ligaId, this.participanteAtual);
+                        break;
+                    case 'artilheiro':
+                    case 'goleiro':
+                        container.innerHTML = `<div style="text-align: center; padding: 60px; color: var(--text-muted);"><div style="font-size: 64px; margin-bottom: 16px;">🚧</div><h3>Em breve!</h3><p>Este módulo estará disponível em uma próxima atualização.</p></div>`;
+                        break;
+                }
+            }
+        };
+
         // Navegação entre módulos
         function inicializarNavegacao() {
             const navItems = document.querySelectorAll('.nav-item');
@@ -829,32 +947,8 @@
                     // Adicionar active no clicado
                     this.classList.add('active');
 
-                    // Carregar módulo específico
-                    if (module === 'extrato') {
-                        // Mostrar loading enquanto carrega
-                        const fluxoContent = document.getElementById('fluxoFinanceiroContent');
-                        if (fluxoContent) {
-                            fluxoContent.innerHTML = `
-                                <div style="text-align: center; padding: 40px; color: var(--text-muted);">
-                                    <div style="display: inline-block; width: 40px; height: 40px; border: 4px solid #f3f3f3;
-                                                border-top: 4px solid var(--laranja); border-radius: 50%; animation: spin 1s linear infinite;"></div>
-                                    <p style="margin-top: 20px;">Carregando extrato...</p>
-                                </div>
-                            `;
-                        }
-
-                        // Carregar extrato sob demanda
-                        const sessionResponse = await fetch('/api/participante/auth/session', {
-                            credentials: 'include'
-                        });
-                        const sessionData = await sessionResponse.json();
-                        const { participante } = sessionData;
-                        await carregarExtrato(participante.timeId, participante.ligaId, participante);
-                    } else {
-                        alert('🚧 Em breve! Este módulo estará disponível em uma próxima atualização.');
-                        // Remover active deste módulo
-                        this.classList.remove('active');
-                    }
+                    // Carregar módulo
+                    await ModulosParticipante.carregarModulo(module);
                 });
             });
         }
