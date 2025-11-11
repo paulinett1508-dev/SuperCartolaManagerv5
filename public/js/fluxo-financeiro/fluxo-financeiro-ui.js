@@ -451,15 +451,17 @@ export class FluxoFinanceiroUI {
                         </div>
                         ` : ''}
                         <div style="font-size: 10px; color: var(--text-muted); font-weight: 600; text-transform: uppercase; 
-                             letter-spacing: 0.3px; margin-top: 4px;">Saldo Total</div>
+                             letter-spacing: 0.3px; margin-top: 4px;">
+                            ${parseFloat(extrato.resumo.saldo) > 0 ? "💰 Saldo a Receber" : parseFloat(extrato.resumo.saldo) < 0 ? "💸 Saldo a Pagar" : "✅ Saldo"}
+                        </div>
                         <div style="font-size: 20px; font-weight: 700; color: ${
                             parseFloat(extrato.resumo.saldo) >= 0
                                 ? "#2ecc71"
                                 : "#e74c3c"
                         };">
-                            R$ ${parseFloat(
+                            R$ ${Math.abs(parseFloat(
                                 extrato.resumo.saldo,
-                            ).toLocaleString("pt-BR", {
+                            )).toLocaleString("pt-BR", {
                                 minimumFractionDigits: 2,
                                 maximumFractionDigits: 2,
                             })}
