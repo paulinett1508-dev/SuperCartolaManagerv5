@@ -391,72 +391,79 @@ export class FluxoFinanceiroUI {
 
         let html = `
         <div class="extrato-container">
-            <!-- CABEÇALHO PROFISSIONAL -->
-            <div class="extrato-header" style="background: var(--bg-card); padding: 20px; border-radius: 8px; 
-                 margin-bottom: 20px; box-shadow: var(--shadow-md); border: 1px solid var(--border-primary);">
-                <div style="display: flex; align-items: center; gap: 16px; margin-bottom: 16px;">
+            <!-- CABEÇALHO PROFISSIONAL REDESENHADO -->
+            <div class="extrato-header" style="background: var(--bg-card); padding: 24px; border-radius: 12px; 
+                 margin-bottom: 24px; box-shadow: var(--shadow-md); border: 1px solid var(--border-primary); position: relative;">
+                
+                <!-- Logo do Time no Canto Superior Esquerdo -->
+                <div style="position: absolute; top: 16px; left: 16px;">
                     ${
                         participante.url_escudo_png
-                            ? `<div style="width: 56px; height: 56px; border-radius: 50%; overflow: hidden; 
-                                   border: 2px solid var(--border-primary); flex-shrink: 0;">
+                            ? `<div style="width: 48px; height: 48px; border-radius: 50%; overflow: hidden; 
+                                   border: 3px solid var(--laranja); box-shadow: 0 4px 12px rgba(255, 69, 0, 0.3); 
+                                   background: white; display: flex; align-items: center; justify-content: center;">
                                    <img src="${participante.url_escudo_png}" alt="${participante.nome_cartola}" 
-                                        style="width: 100%; height: 100%; object-fit: cover;">
+                                        style="width: 90%; height: 90%; object-fit: contain;">
                                </div>`
-                            : `<div style="width: 56px; height: 56px; border-radius: 50%; background: var(--bg-secondary); 
-                                   border: 2px solid var(--border-primary); display: flex; align-items: center; 
-                                   justify-content: center; font-size: 24px; flex-shrink: 0;">⚽</div>`
+                            : `<div style="width: 48px; height: 48px; border-radius: 50%; 
+                                   background: linear-gradient(135deg, var(--laranja) 0%, var(--laranja-dark) 100%); 
+                                   border: 3px solid var(--laranja); box-shadow: 0 4px 12px rgba(255, 69, 0, 0.3);
+                                   display: flex; align-items: center; justify-content: center; font-size: 20px;">⚽</div>`
                     }
-                    <div style="text-align: right; display: flex; flex-direction: column; gap: 8px; align-items: flex-end;">
-                        <div style="display: flex; align-items: center; gap: 8px;">
-                            ${extrato.updatedAt ? `
-                            <span style="background: rgba(52, 152, 219, 0.15); color: #3498db; 
-                                         padding: 4px 8px; border-radius: 6px; font-size: 9px; 
-                                         font-weight: 700; text-transform: uppercase; letter-spacing: 0.3px; 
-                                         border: 1px solid rgba(52, 152, 219, 0.3); white-space: nowrap;">
-                                💾 Cache
-                            </span>
-                            ` : ''}
-                            <button onclick="window.forcarRefreshExtrato('${participante.time_id || participante.id}')" 
-                                    style="background: var(--gradient-secondary); color: white; border: none; 
-                                           padding: 6px 12px; border-radius: 6px; font-size: 11px; font-weight: 600; 
-                                           cursor: pointer; display: flex; align-items: center; gap: 6px; 
-                                           transition: all 0.3s ease; box-shadow: 0 2px 8px rgba(52, 152, 219, 0.3);"
-                                    onmouseover="this.style.transform='translateY(-1px)'; this.style.boxShadow='0 4px 12px rgba(52, 152, 219, 0.5)'"
-                                    onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='0 2px 8px rgba(52, 152, 219, 0.3)'">
-                                <span style="font-size: 14px;">🔄</span>
-                                <span>Atualizar Dados</span>
-                            </button>
+                </div>
+
+                <!-- Área de Ações no Canto Superior Direito -->
+                <div style="position: absolute; top: 16px; right: 16px; display: flex; align-items: center; gap: 8px;">
+                    ${extrato.updatedAt ? `
+                    <span style="background: rgba(52, 152, 219, 0.15); color: #3498db; 
+                                 padding: 4px 10px; border-radius: 6px; font-size: 9px; 
+                                 font-weight: 700; text-transform: uppercase; letter-spacing: 0.3px; 
+                                 border: 1px solid rgba(52, 152, 219, 0.3); white-space: nowrap;">
+                        💾 Cache
+                    </span>
+                    ` : ''}
+                    <button onclick="window.forcarRefreshExtrato('${participante.time_id || participante.id}')" 
+                            style="background: var(--gradient-secondary); color: white; border: none; 
+                                   padding: 7px 14px; border-radius: 6px; font-size: 11px; font-weight: 600; 
+                                   cursor: pointer; display: flex; align-items: center; gap: 6px; 
+                                   transition: all 0.3s ease; box-shadow: 0 2px 8px rgba(52, 152, 219, 0.3);"
+                            onmouseover="this.style.transform='translateY(-1px)'; this.style.boxShadow='0 4px 12px rgba(52, 152, 219, 0.5)'"
+                            onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='0 2px 8px rgba(52, 152, 219, 0.3)'">
+                        <span style="font-size: 14px;">🔄</span>
+                        <span>Atualizar</span>
+                    </button>
+                </div>
+
+                <!-- Conteúdo Central -->
+                <div style="text-align: center; padding: 40px 0 20px 0;">
+                    <!-- Saldo Principal -->
+                    <div style="margin-bottom: 8px;">
+                        <div style="font-size: 11px; color: var(--text-muted); font-weight: 600; 
+                             text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 6px;">
+                            ${parseFloat(extrato.resumo.saldo) > 0 ? "💰 Saldo a Receber" : parseFloat(extrato.resumo.saldo) < 0 ? "💸 Saldo a Pagar" : "✅ Saldo Quitado"}
                         </div>
-                        ${extrato.updatedAt ? `
-                        <div style="font-size: 9px; color: var(--text-muted); font-weight: 500; 
-                             text-align: right; line-height: 1.3;">
-                            Última atualização:<br>
-                            ${new Date(extrato.updatedAt).toLocaleString('pt-BR', {
-                                day: '2-digit',
-                                month: '2-digit',
-                                year: 'numeric',
-                                hour: '2-digit',
-                                minute: '2-digit'
-                            })}
-                        </div>
-                        ` : ''}
-                        <div style="font-size: 10px; color: var(--text-muted); font-weight: 600; text-transform: uppercase; 
-                             letter-spacing: 0.3px; margin-top: 4px;">
-                            ${parseFloat(extrato.resumo.saldo) > 0 ? "💰 Saldo a Receber" : parseFloat(extrato.resumo.saldo) < 0 ? "💸 Saldo a Pagar" : "✅ Saldo"}
-                        </div>
-                        <div style="font-size: 20px; font-weight: 700; color: ${
-                            parseFloat(extrato.resumo.saldo) >= 0
-                                ? "#2ecc71"
-                                : "#e74c3c"
-                        };">
-                            R$ ${Math.abs(parseFloat(
-                                extrato.resumo.saldo,
-                            )).toLocaleString("pt-BR", {
+                        <div style="font-size: 36px; font-weight: 800; line-height: 1; color: ${
+                            parseFloat(extrato.resumo.saldo) >= 0 ? "#2ecc71" : "#e74c3c"
+                        }; font-family: 'Inter', 'SF Pro Display', -apple-system, sans-serif;">
+                            R$ ${Math.abs(parseFloat(extrato.resumo.saldo)).toLocaleString("pt-BR", {
                                 minimumFractionDigits: 2,
                                 maximumFractionDigits: 2,
                             })}
                         </div>
                     </div>
+
+                    ${extrato.updatedAt ? `
+                    <!-- Última Atualização -->
+                    <div style="font-size: 9px; color: var(--text-muted); font-weight: 500; margin-top: 12px;">
+                        Última atualização: ${new Date(extrato.updatedAt).toLocaleString('pt-BR', {
+                            day: '2-digit',
+                            month: '2-digit',
+                            year: 'numeric',
+                            hour: '2-digit',
+                            minute: '2-digit'
+                        })}
+                    </div>
+                    ` : ''}
                 </div>
 
                 <!-- CARDS RESUMO SIMPLIFICADOS -->
