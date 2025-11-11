@@ -458,31 +458,8 @@
     </div>
 
     <!-- NAVEGAÇÃO ENTRE MÓDULOS -->
-    <nav class="nav-menu">
-      <button class="nav-item active" data-module="visao-geral">
-        <span class="nav-icon">🏠</span>
-        <span class="nav-label">Visão Geral</span>
-      </button>
-      <button class="nav-item" data-module="extrato">
-        <span class="nav-icon">💰</span>
-        <span class="nav-label">Extrato</span>
-      </button>
-      <button class="nav-item" data-module="classificacao">
-        <span class="nav-icon">🏆</span>
-        <span class="nav-label">Classificação</span>
-      </button>
-      <button class="nav-item" data-module="rodadas">
-        <span class="nav-icon">📊</span>
-        <span class="nav-label">Rodadas</span>
-      </button>
-      <button class="nav-item" data-module="artilheiro">
-        <span class="nav-icon">⚽</span>
-        <span class="nav-label">Artilheiro</span>
-      </button>
-      <button class="nav-item" data-module="goleiro">
-        <span class="nav-icon">🧤</span>
-        <span class="nav-label">Goleiro</span>
-      </button>
+    <nav class="nav-menu" id="navMenu">
+      <!-- Módulos serão inseridos dinamicamente baseado na liga -->
     </nav>
   </div>
 
@@ -627,6 +604,9 @@
                     url_escudo_png: escudoUrl
                 };
 
+                // ✅ RENDERIZAR MENU BASEADO NA LIGA
+                ModulosParticipante.renderizarMenu();
+
                 // ✅ CARREGAR MÓDULO INICIAL (VISÃO GERAL)
                 await ModulosParticipante.carregarModulo('visao-geral');
 
@@ -710,10 +690,64 @@
 
         window.sair = sair;
 
+        // ✅ CONFIGURAÇÃO DE LIGAS
+        const CONFIG_LIGAS = {
+            SUPER_CARTOLA: '684cb1c8af923da7c7df51de',
+            CARTOLEIROS_SOBRAL: '684d821cf1a7ae16d1f89572'
+        };
+
         // ✅ SISTEMA DE MÓDULOS PERSONALIZADOS
         const ModulosParticipante = {
             // Dados do participante
             participanteAtual: null,
+
+            // Renderizar menu baseado na liga
+            renderizarMenu() {
+                const ligaId = this.participanteAtual?.ligaId;
+                const navMenu = document.getElementById('navMenu');
+                
+                if (!navMenu) return;
+
+                // Módulos base (sempre visíveis)
+                const modulosBase = [
+                    { id: 'visao-geral', icon: '🏠', label: 'Visão Geral', ativo: true },
+                    { id: 'extrato', icon: '💰', label: 'Extrato', ativo: false },
+                    { id: 'classificacao', icon: '🏆', label: 'Classificação', ativo: false },
+                    { id: 'rodadas', icon: '📊', label: 'Rodadas', ativo: false }
+                ];
+
+                // Módulos condicionais
+                let modulosCondicionais = [];
+
+                if (ligaId === CONFIG_LIGAS.SUPER_CARTOLA) {
+                    // Super Cartola: Mata-Mata, Pontos Corridos, Top10
+                    modulosCondicionais = [
+                        { id: 'mata-mata', icon: '⚔️', label: 'Mata-Mata', ativo: false },
+                        { id: 'pontos-corridos', icon: '🔄', label: 'Pontos Corridos', ativo: false },
+                        { id: 'top10', icon: '🔟', label: 'Top 10', ativo: false }
+                    ];
+                } else if (ligaId === CONFIG_LIGAS.CARTOLEIROS_SOBRAL) {
+                    // Cartoleiros Sobral: Top10, Artilheiro, Goleiro
+                    modulosCondicionais = [
+                        { id: 'top10', icon: '🔟', label: 'Top 10', ativo: false },
+                        { id: 'artilheiro', icon: '⚽', label: 'Artilheiro', ativo: false },
+                        { id: 'goleiro', icon: '🧤', label: 'Goleiro', ativo: false }
+                    ];
+                }
+
+                // Combinar módulos
+                const todosModulos = [...modulosBase, ...modulosCondicionais];
+
+                // Renderizar menu
+                navMenu.innerHTML = todosModulos.map(modulo => `
+                    <button class="nav-item ${modulo.ativo ? 'active' : ''}" data-module="${modulo.id}">
+                        <span class="nav-icon">${modulo.icon}</span>
+                        <span class="nav-label">${modulo.label}</span>
+                    </button>
+                `).join('');
+
+                console.log(`[PARTICIPANTE-DASHBOARD] Menu renderizado para liga: ${ligaId === CONFIG_LIGAS.SUPER_CARTOLA ? 'Super Cartola' : 'Cartoleiros Sobral'}`);
+            },
 
             // Renderizar módulo de Visão Geral
             async renderVisaoGeral() {
@@ -993,6 +1027,107 @@
                 }
             },
 
+            // Renderizar Mata-Mata (apenas Super Cartola)
+            async renderMataMata() {
+                const container = document.getElementById('moduleContainer');
+                
+                if (this.participanteAtual.ligaId !== CONFIG_LIGAS.SUPER_CARTOLA) {
+                    container.innerHTML = this.renderizarBloqueado('Mata-Mata não disponível para esta liga');
+                    return;
+                }
+
+                container.innerHTML = '<div style="text-align: center; padding: 40px;"><div class="loading-spinner-professional"></div><p style="margin-top: 20px;">Carregando Mata-Mata...</p></div>';
+
+                try {
+                    // Importar e carregar módulo Mata-Mata
+                    const { carregarMataMata } = await import('/js/mata-mata.js');
+                    await carregarMataMata();
+                } catch (error) {
+                    console.error('[PARTICIPANTE-DASHBOARD] Erro ao carregar Mata-Mata:', error);
+                    container.innerHTML = '<div style="text-align: center; padding: 40px; color: #ef4444;"><h3>❌ Erro ao carregar Mata-Mata</h3></div>';
+                }
+            },
+
+            // Renderizar Pontos Corridos (apenas Super Cartola)
+            async renderPontosCorridos() {
+                const container = document.getElementById('moduleContainer');
+                
+                if (this.participanteAtual.ligaId !== CONFIG_LIGAS.SUPER_CARTOLA) {
+                    container.innerHTML = this.renderizarBloqueado('Pontos Corridos não disponível para esta liga');
+                    return;
+                }
+
+                container.innerHTML = '<div style="text-align: center; padding: 40px;"><div class="loading-spinner-professional"></div><p style="margin-top: 20px;">Carregando Pontos Corridos...</p></div>';
+
+                try {
+                    // Importar e carregar módulo Pontos Corridos
+                    const { carregarPontosCorridos } = await import('/js/pontos-corridos.js');
+                    await carregarPontosCorridos();
+                } catch (error) {
+                    console.error('[PARTICIPANTE-DASHBOARD] Erro ao carregar Pontos Corridos:', error);
+                    container.innerHTML = '<div style="text-align: center; padding: 40px; color: #ef4444;"><h3>❌ Erro ao carregar Pontos Corridos</h3></div>';
+                }
+            },
+
+            // Renderizar Top10 (ambas as ligas)
+            async renderTop10() {
+                const container = document.getElementById('moduleContainer');
+                container.innerHTML = '<div style="text-align: center; padding: 40px;"><div class="loading-spinner-professional"></div><p style="margin-top: 20px;">Carregando Top 10...</p></div>';
+
+                try {
+                    // Importar módulo Top10
+                    const { inicializarTop10 } = await import('/js/top10.js');
+                    
+                    // Criar estrutura HTML necessária
+                    container.innerHTML = `
+                        <div style="padding: 20px;">
+                            <h2 style="margin: 0 0 20px 0; font-size: 22px; font-weight: 800; color: var(--text-primary);">🔟 Top 10 - Destaques</h2>
+                            
+                            <div class="top10-grid-compacto" style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-bottom: 20px;">
+                                <!-- Seção Mitos -->
+                                <div class="top10-section mitos-section" style="background: var(--bg-card); border-radius: 12px; padding: 20px; border: 1px solid rgba(34, 197, 94, 0.2);">
+                                    <div class="section-header" style="margin-bottom: 16px;">
+                                        <div style="display: flex; align-items: center; gap: 8px;">
+                                            <div class="section-icon" style="font-size: 24px;">👑</div>
+                                            <h3 style="margin: 0; font-size: 18px; font-weight: 700; color: #22c55e;">Mitos</h3>
+                                        </div>
+                                    </div>
+                                    <div id="top10MitosTable" class="top10-content"></div>
+                                </div>
+
+                                <!-- Seção Micos -->
+                                <div class="top10-section micos-section" style="background: var(--bg-card); border-radius: 12px; padding: 20px; border: 1px solid rgba(239, 68, 68, 0.2);">
+                                    <div class="section-header" style="margin-bottom: 16px;">
+                                        <div style="display: flex; align-items: center; gap: 8px;">
+                                            <div class="section-icon" style="font-size: 24px;">💀</div>
+                                            <h3 style="margin: 0; font-size: 18px; font-weight: 700; color: #ef4444;">Micos</h3>
+                                        </div>
+                                    </div>
+                                    <div id="top10MicosTable" class="top10-content"></div>
+                                </div>
+                            </div>
+                        </div>
+                    `;
+
+                    // Inicializar Top10
+                    await inicializarTop10();
+                } catch (error) {
+                    console.error('[PARTICIPANTE-DASHBOARD] Erro ao carregar Top 10:', error);
+                    container.innerHTML = '<div style="text-align: center; padding: 40px; color: #ef4444;"><h3>❌ Erro ao carregar Top 10</h3></div>';
+                }
+            },
+
+            // Renderizar mensagem de bloqueio
+            renderizarBloqueado(mensagem) {
+                return `
+                    <div style="text-align: center; padding: 60px 20px; background: linear-gradient(135deg, rgba(239, 68, 68, 0.1) 0%, rgba(239, 68, 68, 0.05) 100%); border-radius: 12px; border: 2px solid rgba(239, 68, 68, 0.3);">
+                        <div style="font-size: 64px; margin-bottom: 16px;">🔒</div>
+                        <h3 style="color: #ef4444; margin-bottom: 12px;">Módulo Bloqueado</h3>
+                        <p style="color: var(--text-muted); margin-bottom: 20px;">${mensagem}</p>
+                    </div>
+                `;
+            },
+
             // Renderizar rodadas (DADOS GERAIS com destaque no participante)
             async renderRodadas() {
                 const container = document.getElementById('moduleContainer');
@@ -1077,7 +1212,6 @@
                         await this.renderRodadas();
                         break;
                     case 'extrato':
-                        // ✅ Criar estrutura completa de containers necessários
                         container.innerHTML = `
                             <div id="extratoFinanceiro" style="padding: 20px;">
                                 <div id="fluxoFinanceiroButtons"></div>
@@ -1086,10 +1220,26 @@
                         `;
                         await carregarExtrato(this.participanteAtual.timeId, this.participanteAtual.ligaId, this.participanteAtual);
                         break;
+                    case 'mata-mata':
+                        await this.renderMataMata();
+                        break;
+                    case 'pontos-corridos':
+                        await this.renderPontosCorridos();
+                        break;
+                    case 'top10':
+                        await this.renderTop10();
+                        break;
                     case 'artilheiro':
                     case 'goleiro':
-                        container.innerHTML = `<div style="text-align: center; padding: 60px; color: var(--text-muted);"><div style="font-size: 64px; margin-bottom: 16px;">🚧</div><h3>Em breve!</h3><p>Este módulo estará disponível em uma próxima atualização.</p></div>`;
+                        // Apenas para Cartoleiros Sobral
+                        if (this.participanteAtual.ligaId === CONFIG_LIGAS.CARTOLEIROS_SOBRAL) {
+                            container.innerHTML = `<div style="text-align: center; padding: 60px; color: var(--text-muted);"><div style="font-size: 64px; margin-bottom: 16px;">🚧</div><h3>Em breve!</h3><p>Este módulo estará disponível em uma próxima atualização.</p></div>`;
+                        } else {
+                            container.innerHTML = this.renderizarBloqueado(`${nomeModulo === 'artilheiro' ? 'Artilheiro' : 'Goleiro'} disponível apenas para Liga Cartoleiros Sobral`);
+                        }
                         break;
+                    default:
+                        container.innerHTML = `<div style="text-align: center; padding: 60px; color: var(--text-muted);"><div style="font-size: 64px; margin-bottom: 16px;">❓</div><h3>Módulo não encontrado</h3></div>`;
                 }
             }
         };
