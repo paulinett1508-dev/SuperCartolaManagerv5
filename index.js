@@ -25,7 +25,7 @@ import fluxoFinanceiroRoutes from "./routes/fluxoFinanceiroRoutes.js";
 import extratoFinanceiroCacheRoutes from "./routes/extratoFinanceiroCacheRoutes.js"; // Nova importação
 import participanteAuthRoutes from "./routes/participante-auth.js";
 import { getClubes } from "./controllers/cartolaController.js";
-import { verificarAutenticacaoReplit, isRotaPublica } from "./middleware/auth.js";
+import { verificarAutenticacaoParticipante, isRotaPublica, isRotaAdmin, isRotaParticipante } from "./middleware/auth.js";
 
 // Configurar variáveis de ambiente
 dotenv.config();
@@ -70,22 +70,32 @@ app.use(express.urlencoded({ extended: true, limit: "10mb" }));
 
 // ⚡ MIDDLEWARE DE SEGURANÇA: Proteger páginas admin
 app.use((req, res, next) => {
-  // Se é uma rota de API, deixa passar (autenticação é feita nas rotas)
-  if (req.path.startsWith('/api/')) {
+  // Rotas públicas: sempre permitir
+  if (isRotaPublica(req.url)) {
     return next();
   }
-  
-  // Se é uma rota pública (participante ou assets), deixa passar
-  if (isRotaPublica(req.path)) {
+
+  // Rotas admin: sempre permitir (sem autenticação de participante)
+  if (isRotaAdmin(req.url)) {
     return next();
   }
-  
-  // Se é uma página HTML do admin, verificar autenticação Replit
-  if (req.path.endsWith('.html') && !req.path.startsWith('/participante-')) {
-    return verificarAutenticacaoReplit(req, res, next);
+
+  // Arquivos estáticos: sempre permitir
+  if (req.url.match(/\.(css|js|png|jpg|jpeg|gif|svg|ico|json)$/)) {
+    return next();
   }
-  
-  // Outros arquivos estáticos (css, js, etc) deixa passar
+
+  // Rotas de API: permitir (autenticação própria se necessário)
+  if (req.url.startsWith('/api/')) {
+    return next();
+  }
+
+  // Rotas de PARTICIPANTE: verificar autenticação
+  if (isRotaParticipante(req.url)) {
+    return verificarAutenticacaoParticipante(req, res, next);
+  }
+
+  // Qualquer outra rota: permitir
   next();
 });
 
