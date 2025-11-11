@@ -73,7 +73,6 @@ body {
     display: flex;
     flex-direction: column;
     align-items: center;
-    gap: 3px;
 }
 
 .escudo-coracao,
@@ -93,10 +92,7 @@ body {
 }
 
 .escudo-label {
-    font-size: 8px;
-    color: #999;
-    text-transform: uppercase;
-    letter-spacing: 0.5px;
+    display: none;
 }
 
 /* === INFO DO PARTICIPANTE === */
@@ -208,10 +204,6 @@ body {
         width: 56px;
         height: 56px;
         border: 3px solid var(--participante-primary);
-    }
-
-    .escudo-label {
-        font-size: 9px;
     }
 
     .participante-info h1 {
