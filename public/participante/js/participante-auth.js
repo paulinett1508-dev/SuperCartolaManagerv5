@@ -1,4 +1,3 @@
-
 // PARTICIPANTE AUTH - Sistema de Autenticação
 
 console.log('[PARTICIPANTE-AUTH] Carregando sistema de autenticação...');
@@ -14,7 +13,7 @@ class ParticipanteAuth {
         console.log('[PARTICIPANTE-AUTH] Verificando autenticação...');
 
         const authData = localStorage.getItem('participante_auth');
-        
+
         if (!authData) {
             console.log('[PARTICIPANTE-AUTH] Sem autenticação, redirecionando...');
             this.redirecionarLogin();
@@ -23,11 +22,11 @@ class ParticipanteAuth {
 
         try {
             const { ligaId, timeId, timestamp } = JSON.parse(authData);
-            
+
             // Verificar expiração (24 horas)
             const agora = Date.now();
             const horasDecorridas = (agora - timestamp) / (1000 * 60 * 60);
-            
+
             if (horasDecorridas > 24) {
                 console.log('[PARTICIPANTE-AUTH] Sessão expirada');
                 this.logout();
@@ -39,7 +38,7 @@ class ParticipanteAuth {
 
             // Carregar dados do participante
             await this.carregarDadosParticipante();
-            
+
             console.log('[PARTICIPANTE-AUTH] ✅ Autenticação válida');
             return true;
 
@@ -54,7 +53,7 @@ class ParticipanteAuth {
         try {
             // Buscar dados do time
             const response = await fetch(`/api/times/${this.timeId}`);
-            
+
             if (!response.ok) {
                 throw new Error('Erro ao buscar dados do time');
             }
@@ -79,7 +78,7 @@ class ParticipanteAuth {
 
         if (nomeTime) nomeTime.textContent = this.participante.nome || 'Meu Time';
         if (nomeCartoleiro) nomeCartoleiro.textContent = this.participante.nome_cartola || 'Cartoleiro';
-        
+
         if (escudo && this.participante.clube_id) {
             escudo.src = `/escudos/${this.participante.clube_id}.png`;
             escudo.onerror = () => escudo.src = '/escudos/placeholder.png';
@@ -92,7 +91,21 @@ class ParticipanteAuth {
     }
 
     redirecionarLogin() {
-        window.location.href = '/participante-login.html';
+        // O ajuste aqui é para evitar redirecionar de volta para a página de login se já estivermos nela.
+        if (window.location.pathname !== '/participante-login.html') {
+            window.location.href = '/participante-login.html';
+        }
+    }
+
+    estaAutenticado() {
+        return this.participante !== null;
+    }
+
+    limpar() {
+        this.participante = null;
+        this.ligaId = null;
+        this.timeId = null;
+        localStorage.removeItem('participante_auth');
     }
 
     getDados() {
@@ -108,13 +121,22 @@ class ParticipanteAuth {
 const participanteAuth = new ParticipanteAuth();
 
 // Verificar autenticação ao carregar
-if (window.location.pathname.includes('participante/index.html')) {
+// Se não estiver autenticado, redirecionar para login
+if (!participanteAuth.estaAutenticado()) {
+    if (window.location.pathname !== '/participante-login.html') {
+        window.location.href = '/participante-login.html';
+    }
+    // return; // Comentado pois a checagem já está na classe redirecionarLogin
+} else {
+    // Carregar dados se já estiver autenticado
     participanteAuth.verificarAutenticacao();
 }
 
+
 // Função de logout global
 function logout() {
-    participanteAuth.logout();
+    participanteAuth.limpar();
+    window.location.href = '/participante-login.html';
 }
 
 console.log('[PARTICIPANTE-AUTH] ✅ Sistema carregado');

@@ -185,7 +185,7 @@
         autocomplete="off"
         style="width: 100%; padding: 16px; margin-bottom: 15px; border: 2px solid rgba(255, 69, 0, 0.3); border-radius: 10px; font-size: 16px; background: rgba(26, 26, 26, 0.8); color: #ffffff;"
       >
-      
+
       <input 
         type="password" 
         id="senha" 
@@ -210,7 +210,7 @@
   <script>
     async function fazerLogin(event) {
       event.preventDefault();
-      
+
       const loading = document.getElementById('loading');
       const errorMessage = document.getElementById('errorMessage');
       const timeId = document.getElementById('timeId').value;
@@ -235,8 +235,8 @@
           throw new Error(data.error || 'Erro ao fazer login');
         }
 
-        // Login bem-sucedido, redirecionar
-        window.location.href = '/participante-dashboard.html';
+        // Login bem-sucedido
+        window.location.href = '/participante/';
 
       } catch (error) {
         errorMessage.textContent = error.message;
@@ -256,7 +256,7 @@
           const data = await response.json();
           if (data.authenticated) {
             // Já autenticado, redirecionar para dashboard
-            window.location.href = '/participante-dashboard.html';
+            window.location.href = '/participante/';
           }
         }
       } catch (error) {
