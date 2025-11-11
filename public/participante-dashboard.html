@@ -614,6 +614,9 @@
                     userAvatar.innerHTML = `<img src="/escudos/${clubeId}.png" alt="Escudo" onerror="this.parentElement.innerHTML='<span style=\\'font-size: 24px;\\'>⚽</span>'">`;
                 }
 
+                // ✅ DEFINIR LIGA ID GLOBALMENTE (para módulos que precisam)
+                window.ligaId = participante.ligaId;
+                
                 // ✅ CONFIGURAR DADOS DO PARTICIPANTE NO MÓDULO
                 ModulosParticipante.participanteAtual = {
                     timeId: participante.timeId,
