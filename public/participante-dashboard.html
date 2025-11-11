@@ -2,7 +2,7 @@
 <html lang="pt-BR">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+  <meta name="viewport" content="width=device-width, user-scalable=no, initial-scale=1.0">
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="mobile-web-app-capable" content="yes">
   <title>Dashboard - Participante</title>
@@ -503,25 +503,25 @@
         async function carregarModulosFluxo() {
             try {
                 console.log('[PARTICIPANTE-DASHBOARD] 🔄 Iniciando carregamento de módulos financeiros...');
-                
+
                 const modulo = await import('./js/fluxo-financeiro.js');
-                
+
                 // ✅ Aguardar inicialização completa
                 if (typeof modulo.inicializarFluxoFinanceiro === 'function') {
                     await modulo.inicializarFluxoFinanceiro();
                     console.log('[PARTICIPANTE-DASHBOARD] ✅ Sistema financeiro inicializado');
                 }
-                
+
                 calcularEExibirExtrato = modulo.calcularEExibirExtrato;
                 inicializarFluxoFinanceiro = modulo.inicializarFluxoFinanceiro;
                 selecionarParticipante = modulo.selecionarParticipante;
                 obterLigaId = modulo.obterLigaId;
-                
+
                 // ✅ Expor globalmente de forma segura
                 window.calcularEExibirExtrato = calcularEExibirExtrato;
                 window.inicializarFluxoFinanceiro = inicializarFluxoFinanceiro;
                 window.fluxoFinanceiroCore = modulo;
-                
+
                 console.log('[PARTICIPANTE-DASHBOARD] ✅ Módulos do fluxo financeiro carregados e expostos globalmente');
                 return true;
             } catch (error) {
@@ -650,11 +650,23 @@
             }
         }
 
-        
+
 
         // ✅ CARREGAR EXTRATO FINANCEIRO (só quando usuário clicar)
             async function carregarExtrato(timeId, ligaId, participante) {
-                console.log('[PARTICIPANTE-DASHBOARD] Carregando extrato para:', { timeId, ligaId, participante });
+                // ✅ VALIDAR timeId
+                const timeIdFinal = timeId || participante?.timeId || participante?.time_id || participante?.id;
+
+                if (!timeIdFinal) {
+                    console.error('[PARTICIPANTE-DASHBOARD] ❌ TimeId não fornecido');
+                    return;
+                }
+
+                console.log('[PARTICIPANTE-DASHBOARD] Carregando extrato para:', { 
+                    timeId: timeIdFinal, 
+                    ligaId, 
+                    participante 
+                });
 
                 // ✅ Aguardar renderização do DOM
                 await new Promise(resolve => setTimeout(resolve, 100));
@@ -696,7 +708,7 @@
 
                             try {
                                 const { forceRefresh } = await import('/js/fluxo-financeiro/fluxo-financeiro-cache.js');
-                                await forceRefresh(timeId, ligaId);
+                                await forceRefresh(timeIdFinal, ligaId);
                                 setTimeout(() => window.location.reload(), 500);
                             } catch (e) {
                                 console.error("Erro ao atualizar:", e);
@@ -724,15 +736,15 @@
                     if (!window.calcularEExibirExtrato) {
                         console.warn('[PARTICIPANTE-DASHBOARD] Módulos não carregados, tentando carregar agora...');
                         const carregou = await carregarModulosFluxo();
-                        
+
                         if (!carregou || !window.calcularEExibirExtrato) {
                             throw new Error('Não foi possível carregar o sistema financeiro. Recarregue a página.');
                         }
                     }
 
                     // ✅ Calcular e exibir o extrato
-                    console.log('[PARTICIPANTE-DASHBOARD] Chamando calcularEExibirExtrato para timeId:', timeId);
-                    await window.calcularEExibirExtrato(timeId);
+                    console.log('[PARTICIPANTE-DASHBOARD] Chamando calcularEExibirExtrato para timeId:', timeIdFinal);
+                    await window.calcularEExibirExtrato(timeIdFinal);
                     console.log('[PARTICIPANTE-DASHBOARD] ✅ Extrato carregado com sucesso');
 
                 } catch (error) {
@@ -741,7 +753,7 @@
                         <div style="text-align: center; padding: 40px; background: rgba(239, 68, 68, 0.1); border-radius: 12px; border: 1px solid rgba(239, 68, 68, 0.3);">
                             <div style="font-size: 48px; margin-bottom: 16px;">⚠️</div>
                             <h3 style="color: #ef4444; margin-bottom: 12px;">Erro ao Carregar Extrato</h3>
-                            <p style="color: #e0e0e0; margin-bottom: 20px;">${error.message}</p>
+                            <p style="color: #e0e0e0;">${error.message}</p>
                             <button onclick="window.location.reload()" style="padding: 12px 24px; background: linear-gradient(135deg, #ff4500 0%, #e8472b 100%); color: white; border: none; border-radius: 8px; cursor: pointer; font-weight: 600; font-size: 14px;">
                                 🔄 Recarregar Página
                             </button>
@@ -775,7 +787,7 @@
                 if (!p) return;
 
                 const container = document.getElementById('moduleContainer');
-                
+
                 // Buscar estatísticas completas
                 const stats = await this.buscarEstatisticasCompletas(p.timeId, p.ligaId);
 
@@ -830,14 +842,14 @@
             async buscarEstatisticasCompletas(timeId, ligaId) {
                 try {
                     let participante = {};
-                    
+
                     // ✅ Buscar dados da liga e calcular estatísticas a partir das rodadas
                     try {
                         // Buscar todas as rodadas da liga
                         const rodadasResponse = await fetch(`/api/rodadas/${ligaId}/rodadas?inicio=1&fim=38`);
                         if (rodadasResponse.ok) {
                             const todasRodadas = await rodadasResponse.json();
-                            
+
                             // Agrupar por participante
                             const porParticipante = {};
                             todasRodadas.forEach(r => {
@@ -864,7 +876,7 @@
                                 p.rodadas.forEach(rodada => {
                                     const outrasDaRodada = todasRodadas.filter(r => r.rodada === rodada.rodada && r.timeId !== p.timeId);
                                     const meusPontos = rodada.pontos || 0;
-                                    
+
                                     outrasDaRodada.forEach(adversario => {
                                         const pontosAdv = adversario.pontos || 0;
                                         if (meusPontos > pontosAdv) p.vitorias++;
@@ -881,7 +893,7 @@
 
                             // Encontrar participante atual
                             participante = classificacao.find(p => String(p.timeId) === String(timeId)) || {};
-                            
+
                             if (participante && Object.keys(participante).length > 0) {
                                 console.log('[PARTICIPANTE-DASHBOARD] ✅ Participante encontrado:', participante);
                             }
@@ -898,12 +910,12 @@
                         if (rodadasResponse.ok) {
                             const todasRodadas = await rodadasResponse.json();
                             console.log('[PARTICIPANTE-DASHBOARD] Total de rodadas recebidas:', todasRodadas.length);
-                            
+
                             const rodadasParticipante = todasRodadas.filter(r => 
                                 String(r.timeId) === String(timeId)
                             );
                             console.log('[PARTICIPANTE-DASHBOARD] Rodadas do participante:', rodadasParticipante.length);
-                            
+
                             ultimasRodadas = rodadasParticipante.slice(-5).map(r => ({
                                 rodada: r.rodada,
                                 pontos: r.pontos || 0,
@@ -935,10 +947,10 @@
                             resultado: 'N/D'
                         }))
                     };
-                    
+
                     console.log('[PARTICIPANTE-DASHBOARD] Estatísticas calculadas:', stats);
                     return stats;
-                    
+
                 } catch (error) {
                     console.error('[PARTICIPANTE-DASHBOARD] ❌ Erro ao buscar estatísticas:', error);
                     return {
@@ -968,7 +980,7 @@
                     }
 
                     const todasRodadas = await rodadasResponse.json();
-                    
+
                     // Agrupar por participante e calcular estatísticas
                     const porParticipante = {};
                     todasRodadas.forEach(r => {
@@ -995,7 +1007,7 @@
                         p.rodadas.forEach(rodada => {
                             const outrasDaRodada = todasRodadas.filter(r => r.rodada === rodada.rodada && r.timeId !== p.timeId);
                             const meusPontos = rodada.pontos || 0;
-                            
+
                             outrasDaRodada.forEach(adversario => {
                                 const pontosAdv = adversario.pontos || 0;
                                 if (meusPontos > pontosAdv) p.vitorias++;
@@ -1085,7 +1097,7 @@
             // Carregar módulo
             async carregarModulo(nomeModulo) {
                 const container = document.getElementById('moduleContainer');
-                
+
                 switch(nomeModulo) {
                     case 'visao-geral':
                         await this.renderVisaoGeral();
