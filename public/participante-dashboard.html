@@ -643,11 +643,18 @@
             async function carregarExtrato(timeId, ligaId, participante) {
                 console.log('[PARTICIPANTE-DASHBOARD] Carregando extrato para:', { timeId, ligaId, participante });
 
+                // ✅ Aguardar renderização do DOM
+                await new Promise(resolve => setTimeout(resolve, 100));
+
                 const extratoContainer = document.getElementById('extratoFinanceiro');
                 if (!extratoContainer) {
-                    console.error('[PARTICIPANTE-DASHBOARD] Container de extrato não encontrado');
+                    console.error('[PARTICIPANTE-DASHBOARD] ❌ Container #extratoFinanceiro não encontrado após timeout');
+                    console.log('[PARTICIPANTE-DASHBOARD] Containers disponíveis:', 
+                        Array.from(document.querySelectorAll('[id]')).map(el => el.id));
                     return;
                 }
+
+                console.log('[PARTICIPANTE-DASHBOARD] ✅ Container encontrado, iniciando carregamento...');
 
                 // Adicionar botão de refresh no topo do extrato
                 const headerExtrato = document.createElement('div');
@@ -923,7 +930,13 @@
                         await this.renderRodadas();
                         break;
                     case 'extrato':
-                        container.innerHTML = '<div id="fluxoFinanceiroContent" class="card-content" style="padding: 0;"></div>';
+                        // ✅ Criar estrutura completa de containers necessários
+                        container.innerHTML = `
+                            <div id="extratoFinanceiro" style="padding: 20px;">
+                                <div id="fluxoFinanceiroButtons"></div>
+                                <div id="fluxoFinanceiroContent" class="card-content" style="padding: 0;"></div>
+                            </div>
+                        `;
                         await carregarExtrato(this.participanteAtual.timeId, this.participanteAtual.ligaId, this.participanteAtual);
                         break;
                     case 'artilheiro':
