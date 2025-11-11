@@ -68,8 +68,12 @@ class ParticipanteAuth {
         if (!this.participante) return;
 
         const nomeTime = document.getElementById('nomeTime');
-        const nomeCartoleiro = document.getElementById('nomeCartoleiro');
-        const escudo = document.getElementById('escudoParticipante');
+        const nomeCartolaText = document.getElementById('nomeCartolaText');
+        const escudoCoracao = document.getElementById('escudoCoracao');
+        const escudoTime = document.getElementById('escudoTime');
+        const posicaoQuick = document.getElementById('posicaoQuick');
+        const patrimonioQuick = document.getElementById('patrimonioQuick');
+        const pontosQuick = document.getElementById('pontosQuick');
 
         try {
             // Buscar dados atualizados do time
@@ -80,12 +84,59 @@ class ParticipanteAuth {
             if (timeResponse.ok) {
                 const timeData = await timeResponse.json();
                 
+                // Atualizar nome do time e cartoleiro
                 if (nomeTime) nomeTime.textContent = timeData.nome || 'Meu Time';
-                if (nomeCartoleiro) nomeCartoleiro.textContent = timeData.nome_cartola || 'Cartoleiro';
+                if (nomeCartolaText) nomeCartolaText.textContent = timeData.nome_cartola || 'Cartoleiro';
 
-                if (escudo && timeData.clube_id) {
-                    escudo.src = `/escudos/${timeData.clube_id}.png`;
-                    escudo.onerror = () => escudo.src = '/escudos/placeholder.png';
+                // Escudo do clube (coração)
+                if (escudoCoracao && timeData.clube_id) {
+                    escudoCoracao.src = `/escudos/${timeData.clube_id}.png`;
+                    escudoCoracao.onerror = () => escudoCoracao.src = '/escudos/placeholder.png';
+                }
+
+                // Escudo do time (foto do escudo do Cartola)
+                if (escudoTime) {
+                    if (timeData.url_escudo_png) {
+                        escudoTime.src = timeData.url_escudo_png;
+                        escudoTime.onerror = () => {
+                            // Fallback para escudo do clube se imagem do Cartola falhar
+                            if (timeData.clube_id) {
+                                escudoTime.src = `/escudos/${timeData.clube_id}.png`;
+                            } else {
+                                escudoTime.src = '/escudos/placeholder.png';
+                            }
+                        };
+                    } else if (timeData.clube_id) {
+                        escudoTime.src = `/escudos/${timeData.clube_id}.png`;
+                        escudoTime.onerror = () => escudoTime.src = '/escudos/placeholder.png';
+                    }
+                }
+
+                // Buscar dados da liga para estatísticas rápidas
+                const ligaResponse = await fetch(`/api/ligas/${this.ligaId}`, {
+                    credentials: 'include'
+                });
+
+                if (ligaResponse.ok) {
+                    const ligaData = await ligaResponse.json();
+                    const participante = ligaData.participantes?.find(p => 
+                        String(p.time_id) === String(this.timeId)
+                    );
+
+                    if (participante) {
+                        // Atualizar estatísticas rápidas
+                        if (posicaoQuick) {
+                            posicaoQuick.textContent = `${participante.posicao || '--'}º`;
+                        }
+                        if (patrimonioQuick) {
+                            const patrimonio = timeData.patrimonio || 0;
+                            patrimonioQuick.textContent = `C$ ${patrimonio.toFixed(2)}`;
+                        }
+                        if (pontosQuick) {
+                            const pontos = participante.pontos || participante.pontuacao || 0;
+                            pontosQuick.textContent = `${pontos.toFixed(2)} pts`;
+                        }
+                    }
                 }
 
                 // Atualizar dados locais
@@ -96,11 +147,16 @@ class ParticipanteAuth {
             
             // Fallback para dados da sessão
             if (nomeTime) nomeTime.textContent = this.participante.participante?.nome_time || 'Meu Time';
-            if (nomeCartoleiro) nomeCartoleiro.textContent = this.participante.participante?.nome_cartola || 'Cartoleiro';
+            if (nomeCartolaText) nomeCartolaText.textContent = this.participante.participante?.nome_cartola || 'Cartoleiro';
             
-            if (escudo && this.participante.participante?.clube_id) {
-                escudo.src = `/escudos/${this.participante.participante.clube_id}.png`;
-                escudo.onerror = () => escudo.src = '/escudos/placeholder.png';
+            if (escudoCoracao && this.participante.participante?.clube_id) {
+                escudoCoracao.src = `/escudos/${this.participante.participante.clube_id}.png`;
+                escudoCoracao.onerror = () => escudoCoracao.src = '/escudos/placeholder.png';
+            }
+
+            if (escudoTime && this.participante.participante?.clube_id) {
+                escudoTime.src = `/escudos/${this.participante.participante.clube_id}.png`;
+                escudoTime.onerror = () => escudoTime.src = '/escudos/placeholder.png';
             }
         }
     }

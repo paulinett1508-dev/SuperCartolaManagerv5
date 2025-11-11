@@ -1,4 +1,3 @@
-
 /* PARTICIPANTE CSS - Tema Dark Customizado */
 
 :root {
@@ -48,70 +47,147 @@ body {
 }
 
 /* Header - Mobile First */
+/* === HEADER === */
 .participante-header {
-    background: linear-gradient(135deg, var(--participante-card) 0%, #2a2a2a 100%);
-    border-radius: 8px;
-    padding: 12px;
+    background: linear-gradient(135deg, rgba(255, 69, 0, 0.1) 0%, rgba(255, 140, 0, 0.05) 100%);
+    border-bottom: 2px solid var(--participante-border);
+    padding: 12px 15px;
     margin-bottom: 15px;
-    border: 1px solid var(--participante-border);
 }
 
 .header-content {
     display: flex;
     align-items: center;
     gap: 12px;
+    max-width: 100%;
 }
 
-.escudo-participante {
-    width: 50px;
-    height: 50px;
-    border-radius: 50%;
-    border: 2px solid var(--participante-primary);
-    object-fit: cover;
+/* === ESCUDOS === */
+.escudos-container {
+    display: flex;
+    gap: 8px;
     flex-shrink: 0;
 }
 
+.escudo-wrapper {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 3px;
+}
+
+.escudo-coracao,
+.escudo-time {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    border: 2px solid var(--participante-primary);
+    background: rgba(255, 255, 255, 0.05);
+    object-fit: cover;
+    transition: transform 0.3s ease;
+}
+
+.escudo-coracao:hover,
+.escudo-time:hover {
+    transform: scale(1.1);
+}
+
+.escudo-label {
+    font-size: 8px;
+    color: #999;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+/* === INFO DO PARTICIPANTE === */
 .participante-info {
     flex: 1;
-    min-width: 0; /* Permite text-overflow funcionar */
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
 }
 
 .participante-info h1 {
-    font-size: 16px;
-    margin: 0 0 3px 0;
+    font-size: 14px;
+    margin: 0;
     color: var(--participante-primary);
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
+    font-weight: 700;
 }
 
 .participante-info p {
-    font-size: 12px;
+    font-size: 11px;
     margin: 0;
     color: #999;
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
+    display: flex;
+    align-items: center;
+    gap: 4px;
 }
 
+.cartoleiro-icon {
+    font-size: 10px;
+}
+
+/* === ESTATÍSTICAS RÁPIDAS === */
+.participante-stats-quick {
+    display: flex;
+    gap: 8px;
+    margin-top: 4px;
+}
+
+.stat-quick {
+    display: flex;
+    align-items: center;
+    gap: 3px;
+    background: rgba(255, 255, 255, 0.03);
+    padding: 3px 6px;
+    border-radius: 4px;
+    font-size: 9px;
+    color: #ccc;
+    border: 1px solid rgba(255, 69, 0, 0.1);
+}
+
+.stat-icon {
+    font-size: 10px;
+}
+
+/* === BOTÃO LOGOUT === */
 .btn-logout {
     background: rgba(255, 69, 0, 0.1);
     color: var(--participante-primary);
     border: 1px solid var(--participante-border);
-    padding: 8px 12px;
+    padding: 6px 10px;
     border-radius: 6px;
     cursor: pointer;
     transition: all 0.3s ease;
-    font-size: 12px;
+    font-size: 11px;
     white-space: nowrap;
     flex-shrink: 0;
+    display: flex;
+    align-items: center;
+    gap: 4px;
 }
 
 .btn-logout:hover {
     background: rgba(255, 69, 0, 0.2);
+    transform: translateY(-1px);
 }
 
-/* Tablet e Desktop */
+.logout-icon {
+    font-size: 12px;
+}
+
+.logout-text {
+    display: none;
+}
+
+/* === TABLET E DESKTOP === */
 @media (min-width: 768px) {
     .participante-header {
         padding: 20px;
@@ -123,24 +199,57 @@ body {
         gap: 20px;
     }
 
-    .escudo-participante {
-        width: 60px;
-        height: 60px;
+    .escudos-container {
+        gap: 12px;
+    }
+
+    .escudo-coracao,
+    .escudo-time {
+        width: 56px;
+        height: 56px;
         border: 3px solid var(--participante-primary);
     }
 
+    .escudo-label {
+        font-size: 9px;
+    }
+
     .participante-info h1 {
-        font-size: 24px;
-        margin: 0 0 5px 0;
+        font-size: 22px;
+        margin-bottom: 4px;
     }
 
     .participante-info p {
-        font-size: 14px;
+        font-size: 13px;
+    }
+
+    .cartoleiro-icon {
+        font-size: 12px;
+    }
+
+    .participante-stats-quick {
+        gap: 12px;
+        margin-top: 8px;
+    }
+
+    .stat-quick {
+        padding: 4px 10px;
+        font-size: 11px;
+        gap: 5px;
+    }
+
+    .stat-icon {
+        font-size: 12px;
     }
 
     .btn-logout {
-        padding: 10px 20px;
-        font-size: 14px;
+        padding: 10px 16px;
+        font-size: 13px;
+        gap: 6px;
+    }
+
+    .logout-text {
+        display: inline;
     }
 }
 

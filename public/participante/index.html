@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
@@ -13,12 +12,45 @@
         <!-- Header com dados do participante -->
         <header class="participante-header">
             <div class="header-content">
-                <img id="escudoParticipante" class="escudo-participante" src="/escudos/placeholder.png" alt="Escudo">
-                <div class="participante-info">
-                    <h1 id="nomeTime">Meu Time</h1>
-                    <p id="nomeCartoleiro">Cartoleiro</p>
+                <!-- Escudos lado a lado -->
+                <div class="escudos-container">
+                    <div class="escudo-wrapper" title="Time do Coração">
+                        <img id="escudoCoracao" class="escudo-coracao" src="/escudos/placeholder.png" alt="Clube do Coração">
+                        <span class="escudo-label">Coração</span>
+                    </div>
+                    <div class="escudo-wrapper" title="Escudo do Time">
+                        <img id="escudoTime" class="escudo-time" src="/escudos/placeholder.png" alt="Escudo Time">
+                        <span class="escudo-label">Time</span>
+                    </div>
                 </div>
-                <button onclick="logout()" class="btn-logout">Sair</button>
+
+                <!-- Informações do Participante -->
+                <div class="participante-info">
+                    <h1 id="nomeTime">Carregando...</h1>
+                    <p id="nomeCartoleiro">
+                        <span class="cartoleiro-icon">👤</span>
+                        <span id="nomeCartolaText">Aguarde...</span>
+                    </p>
+                    <div class="participante-stats-quick">
+                        <div class="stat-quick" title="Posição no Ranking">
+                            <span class="stat-icon">🏆</span>
+                            <span id="posicaoQuick">--</span>
+                        </div>
+                        <div class="stat-quick" title="Patrimônio Total">
+                            <span class="stat-icon">💰</span>
+                            <span id="patrimonioQuick">C$ 0</span>
+                        </div>
+                        <div class="stat-quick" title="Pontuação Total">
+                            <span class="stat-icon">⚡</span>
+                            <span id="pontosQuick">0 pts</span>
+                        </div>
+                    </div>
+                </div>
+
+                <button class="btn-logout" onclick="logout()">
+                    <span class="logout-icon">🚪</span>
+                    <span class="logout-text">Sair</span>
+                </button>
             </div>
         </header>
 
