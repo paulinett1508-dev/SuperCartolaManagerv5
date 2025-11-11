@@ -406,18 +406,6 @@ export class FluxoFinanceiroUI {
                                    border: 2px solid var(--border-primary); display: flex; align-items: center; 
                                    justify-content: center; font-size: 24px; flex-shrink: 0;">⚽</div>`
                     }
-                    <div style="flex: 1; min-width: 0;">
-                        <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 4px;">
-                            <h2 style="margin: 0; font-size: 16px; font-weight: 700; color: var(--text-primary); 
-                                 white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">
-                                ${participante.nome_cartola}
-                            </h2>
-                        </div>
-                        <p style="margin: 0; font-size: 12px; color: var(--text-muted); font-weight: 500; 
-                             white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">
-                            ${participante.nome_time}
-                        </p>
-                    </div>
                     <div style="text-align: right; display: flex; flex-direction: column; gap: 8px; align-items: flex-end;">
                         <div style="display: flex; align-items: center; gap: 8px;">
                             ${extrato.updatedAt ? `
