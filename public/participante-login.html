@@ -246,7 +246,12 @@
     }
 
     // Verificar se já está autenticado ao carregar a página
+    let verificandoSessao = false;
+    
     window.addEventListener('load', async () => {
+      if (verificandoSessao) return;
+      verificandoSessao = true;
+
       try {
         const response = await fetch('/api/participante/auth/session', {
           credentials: 'include'
@@ -254,13 +259,17 @@
 
         if (response.ok) {
           const data = await response.json();
-          if (data.authenticated) {
-            // Já autenticado, redirecionar para dashboard
-            window.location.href = '/participante/';
+          if (data.authenticated && data.participante) {
+            console.log('Sessão válida detectada, redirecionando...');
+            // Usar replace para evitar loop de navegação
+            window.location.replace('/participante/');
+            return;
           }
         }
       } catch (error) {
         console.log('Usuário não autenticado');
+      } finally {
+        verificandoSessao = false;
       }
     });
   </script>
