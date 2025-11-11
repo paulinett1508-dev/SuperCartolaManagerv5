@@ -294,13 +294,15 @@ export class FluxoFinanceiroUI {
             });
         }
 
-        // ✅ ARMAZENAR DADOS GLOBALMENTE PARA EXPORTAÇÃO
+        // ✅ ARMAZENAR DADOS GLOBALMENTE PARA EXPORTAÇÃO E DETALHAMENTO
         window.extratoAtual = {
             dadosExtrato: dadosParaExportacao,
             participante: participante,
             rodadaAtual: extrato.rodadas?.length || 0,
-            rodadas: extrato.rodadas || [], // ✅ CORRIGIDO: incluir rodadas para detalhamento
-            resumo: extrato.resumo || {} // ✅ CORRIGIDO: incluir resumo para detalhamento
+            rodadas: Array.isArray(extrato.rodadas) ? extrato.rodadas : [],
+            resumo: extrato.resumo || {},
+            // Facilitar acesso direto
+            ...extrato
         };
 
         const formatarValorComCor = (valor) => {
@@ -926,20 +928,23 @@ function calcularDetalhamentoGanhos(extrato) {
         },
     };
 
-    // ✅ Validação defensiva com diagnóstico
-    if (!extrato || !extrato.rodadas || !Array.isArray(extrato.rodadas)) {
-        console.warn('[FLUXO-UI] Extrato inválido ou sem rodadas em calcularDetalhamentoGanhos');
-        console.warn('[FLUXO-UI] DEBUG - Estrutura recebida:', {
-            extratoExiste: !!extrato,
-            temRodadas: extrato ? !!extrato.rodadas : false,
-            tipoRodadas: extrato?.rodadas ? typeof extrato.rodadas : 'undefined',
-            keysDoExtrato: extrato ? Object.keys(extrato) : []
-        });
+    // ✅ Validação defensiva aprimorada
+    if (!extrato) {
+        console.warn('[FLUXO-UI] Extrato não fornecido em calcularDetalhamentoGanhos');
+        return detalhes;
+    }
+
+    // Verificar se temos rodadas ou dados no formato alternativo
+    const rodadas = extrato.rodadas || [];
+    const resumo = extrato.resumo || {};
+
+    if (!Array.isArray(rodadas)) {
+        console.warn('[FLUXO-UI] Rodadas inválidas:', typeof rodadas);
         return detalhes;
     }
 
     // Percorrer rodadas
-    extrato.rodadas.forEach((rodada) => {
+    rodadas.forEach((rodada) => {
         if (rodada.bonusOnus > 0) {
             detalhes.bonusOnus += rodada.bonusOnus;
             detalhes.rodadas.bonusOnus.push({
@@ -979,14 +984,14 @@ function calcularDetalhamentoGanhos(extrato) {
     });
 
     // Campos editáveis
-    if (extrato.resumo.campo1 > 0)
-        detalhes.camposEditaveis += extrato.resumo.campo1;
-    if (extrato.resumo.campo2 > 0)
-        detalhes.camposEditaveis += extrato.resumo.campo2;
-    if (extrato.resumo.campo3 > 0)
-        detalhes.camposEditaveis += extrato.resumo.campo3;
-    if (extrato.resumo.campo4 > 0)
-        detalhes.camposEditaveis += extrato.resumo.campo4;
+    if (resumo.campo1 > 0)
+        detalhes.camposEditaveis += resumo.campo1;
+    if (resumo.campo2 > 0)
+        detalhes.camposEditaveis += resumo.campo2;
+    if (resumo.campo3 > 0)
+        detalhes.camposEditaveis += resumo.campo3;
+    if (resumo.campo4 > 0)
+        detalhes.camposEditaveis += resumo.campo4;
 
     return detalhes;
 }
@@ -1008,20 +1013,23 @@ function calcularDetalhamentoPerdas(extrato) {
         },
     };
 
-    // ✅ Validação defensiva com diagnóstico
-    if (!extrato || !extrato.rodadas || !Array.isArray(extrato.rodadas)) {
-        console.warn('[FLUXO-UI] Extrato inválido ou sem rodadas em calcularDetalhamentoPerdas');
-        console.warn('[FLUXO-UI] DEBUG - Estrutura recebida:', {
-            extratoExiste: !!extrato,
-            temRodadas: extrato ? !!extrato.rodadas : false,
-            tipoRodadas: extrato?.rodadas ? typeof extrato.rodadas : 'undefined',
-            keysDoExtrato: extrato ? Object.keys(extrato) : []
-        });
+    // ✅ Validação defensiva aprimorada
+    if (!extrato) {
+        console.warn('[FLUXO-UI] Extrato não fornecido em calcularDetalhamentoPerdas');
+        return detalhes;
+    }
+
+    // Verificar se temos rodadas ou dados no formato alternativo
+    const rodadas = extrato.rodadas || [];
+    const resumo = extrato.resumo || {};
+
+    if (!Array.isArray(rodadas)) {
+        console.warn('[FLUXO-UI] Rodadas inválidas:', typeof rodadas);
         return detalhes;
     }
 
     // Percorrer rodadas
-    extrato.rodadas.forEach((rodada) => {
+    rodadas.forEach((rodada) => {
         if (rodada.bonusOnus < 0) {
             detalhes.bonusOnus += rodada.bonusOnus;
             detalhes.rodadas.bonusOnus.push({
@@ -1061,14 +1069,14 @@ function calcularDetalhamentoPerdas(extrato) {
     });
 
     // Campos editáveis
-    if (extrato.resumo.campo1 < 0)
-        detalhes.camposEditaveis += extrato.resumo.campo1;
-    if (extrato.resumo.campo2 < 0)
-        detalhes.camposEditaveis += extrato.resumo.campo2;
-    if (extrato.resumo.campo3 < 0)
-        detalhes.camposEditaveis += extrato.resumo.campo3;
-    if (extrato.resumo.campo4 < 0)
-        detalhes.camposEditaveis += extrato.resumo.campo4;
+    if (resumo.campo1 < 0)
+        detalhes.camposEditaveis += resumo.campo1;
+    if (resumo.campo2 < 0)
+        detalhes.camposEditaveis += resumo.campo2;
+    if (resumo.campo3 < 0)
+        detalhes.camposEditaveis += resumo.campo3;
+    if (resumo.campo4 < 0)
+        detalhes.camposEditaveis += resumo.campo4;
 
     return detalhes;
 }
