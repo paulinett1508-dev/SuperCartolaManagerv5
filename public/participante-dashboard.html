@@ -453,8 +453,7 @@
         </div>
       </div>
       <button class="btn-sair" onclick="sair()">
-        <span style="font-size: 16px;">🚪➡️</span>
-        <span>Sair</span>
+        <span>➡️</span>
       </button>
     </div>
 
@@ -501,7 +500,7 @@
                         <h1 id="welcomeTitle">Bem-vindo!</h1>
                         <p id="welcomeSubtitle">Carregando informações...</p>
                     </div>
-                    
+
                 </div>
 
                 <!-- Cards de Estatísticas Rápidas -->
@@ -617,17 +616,17 @@
                                    participante.nomeCartola || 
                                    participante.nome_cartola || 
                                    'Participante';
-                
+
                 const nomeTime = dadosCompletos?.nome || 
                                 participante.participante?.nome_time || 
                                 participante.nomeTime || 
                                 participante.nome_time || 
                                 'Time';
-                
+
                 const clubeId = dadosCompletos?.clube_id || 
                                participante.participante?.clube_id || 
                                participante.clube_id;
-                
+
                 const escudoUrl = dadosCompletos?.url_escudo_png || 
                                  participante.participante?.url_escudo_png || 
                                  participante.url_escudo_png ||
@@ -743,7 +742,7 @@
                         <span class="refresh-text">Atualizar</span>
                     </button>
                 `;
-                
+
                 const fluxoContent = document.getElementById('fluxoFinanceiroContent');
                 if (fluxoContent && !document.getElementById('btnRefreshExtrato')) {
                     fluxoContent.insertBefore(headerExtrato, fluxoContent.firstChild);
