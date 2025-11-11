@@ -70,6 +70,11 @@ app.use(express.urlencoded({ extended: true, limit: "10mb" }));
 
 // ⚡ MIDDLEWARE DE SEGURANÇA: Proteger páginas admin
 app.use((req, res, next) => {
+  // 🚨 BYPASS EM DESENVOLVIMENTO
+  if (process.env.NODE_ENV !== 'production') {
+    return next();
+  }
+  
   // Se é uma rota de API, deixa passar (autenticação é feita nas rotas)
   if (req.path.startsWith('/api/')) {
     return next();
