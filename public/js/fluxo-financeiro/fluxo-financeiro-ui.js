@@ -412,14 +412,6 @@ export class FluxoFinanceiroUI {
                                  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">
                                 ${participante.nome_cartola}
                             </h2>
-                            ${extrato.updatedAt ? `
-                            <span style="background: rgba(52, 152, 219, 0.15); color: #3498db; 
-                                         padding: 2px 8px; border-radius: 4px; font-size: 9px; 
-                                         font-weight: 700; text-transform: uppercase; letter-spacing: 0.3px; 
-                                         border: 1px solid rgba(52, 152, 219, 0.3); white-space: nowrap;">
-                                💾 Cache
-                            </span>
-                            ` : ''}
                         </div>
                         <p style="margin: 0; font-size: 12px; color: var(--text-muted); font-weight: 500; 
                              white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">
@@ -427,16 +419,26 @@ export class FluxoFinanceiroUI {
                         </p>
                     </div>
                     <div style="text-align: right; display: flex; flex-direction: column; gap: 8px; align-items: flex-end;">
-                        <button onclick="window.forcarRefreshExtrato('${participante.time_id || participante.id}')" 
-                                style="background: var(--gradient-secondary); color: white; border: none; 
-                                       padding: 6px 12px; border-radius: 6px; font-size: 11px; font-weight: 600; 
-                                       cursor: pointer; display: flex; align-items: center; gap: 6px; 
-                                       transition: all 0.3s ease; box-shadow: 0 2px 8px rgba(52, 152, 219, 0.3);"
-                                onmouseover="this.style.transform='translateY(-1px)'; this.style.boxShadow='0 4px 12px rgba(52, 152, 219, 0.5)'"
-                                onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='0 2px 8px rgba(52, 152, 219, 0.3)'">
-                            <span style="font-size: 14px;">🔄</span>
-                            <span>Atualizar Dados</span>
-                        </button>
+                        <div style="display: flex; align-items: center; gap: 8px;">
+                            ${extrato.updatedAt ? `
+                            <span style="background: rgba(52, 152, 219, 0.15); color: #3498db; 
+                                         padding: 4px 8px; border-radius: 6px; font-size: 9px; 
+                                         font-weight: 700; text-transform: uppercase; letter-spacing: 0.3px; 
+                                         border: 1px solid rgba(52, 152, 219, 0.3); white-space: nowrap;">
+                                💾 Cache
+                            </span>
+                            ` : ''}
+                            <button onclick="window.forcarRefreshExtrato('${participante.time_id || participante.id}')" 
+                                    style="background: var(--gradient-secondary); color: white; border: none; 
+                                           padding: 6px 12px; border-radius: 6px; font-size: 11px; font-weight: 600; 
+                                           cursor: pointer; display: flex; align-items: center; gap: 6px; 
+                                           transition: all 0.3s ease; box-shadow: 0 2px 8px rgba(52, 152, 219, 0.3);"
+                                    onmouseover="this.style.transform='translateY(-1px)'; this.style.boxShadow='0 4px 12px rgba(52, 152, 219, 0.5)'"
+                                    onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='0 2px 8px rgba(52, 152, 219, 0.3)'">
+                                <span style="font-size: 14px;">🔄</span>
+                                <span>Atualizar Dados</span>
+                            </button>
+                        </div>
                         ${extrato.updatedAt ? `
                         <div style="font-size: 9px; color: var(--text-muted); font-weight: 500; 
                              text-align: right; line-height: 1.3;">
@@ -470,7 +472,7 @@ export class FluxoFinanceiroUI {
                 </div>
 
                 <!-- CARDS RESUMO SIMPLIFICADOS -->
-                <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; margin-top: 16px;">
+                <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px; margin-top: 16px;">
                     <div onclick="window.mostrarDetalhamentoGanhos()" 
                          style="background: linear-gradient(135deg, rgba(46, 204, 113, 0.1), rgba(46, 204, 113, 0.05)); 
                                 padding: 12px; border-radius: 8px; border: 2px solid rgba(46, 204, 113, 0.3);
@@ -508,27 +510,6 @@ export class FluxoFinanceiroUI {
                         <div style="font-size: 16px; font-weight: 700; color: #e74c3c;">
                             R$ ${(
                                 extrato.resumo.totalPerdas || 0
-                            ).toLocaleString("pt-BR", {
-                                minimumFractionDigits: 2,
-                                maximumFractionDigits: 2,
-                            })}
-                        </div>
-                    </div>
-
-                    <div style="background: linear-gradient(135deg, rgba(255, 69, 0, 0.1), rgba(255, 69, 0, 0.05)); 
-                                padding: 12px; border-radius: 8px; border: 2px solid rgba(255, 69, 0, 0.4);">
-                        <div style="font-size: 9px; color: rgba(255, 69, 0, 0.9); font-weight: 700; text-transform: uppercase; 
-                             letter-spacing: 0.5px; margin-bottom: 4px; display: flex; align-items: center; gap: 4px;">
-                            <span style="font-size: 14px;">💵</span>
-                            <span>${parseFloat(extrato.resumo.saldo) >= 0 ? "Saldo a Receber" : "Saldo a Pagar"}</span>
-                        </div>
-                        <div style="font-size: 16px; font-weight: 700; color: ${
-                            parseFloat(extrato.resumo.saldo) >= 0
-                                ? "#2ecc71"
-                                : "#e74c3c"
-                        };">
-                            ${parseFloat(extrato.resumo.saldo) >= 0 ? "+" : ""}R$ ${Math.abs(
-                                parseFloat(extrato.resumo.saldo),
                             ).toLocaleString("pt-BR", {
                                 minimumFractionDigits: 2,
                                 maximumFractionDigits: 2,
