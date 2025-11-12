@@ -179,18 +179,28 @@ export async function carregarDadosRodada(rodadaSelecionada) {
 
 // CARREGAR RODADA FINALIZADA COM CACHE
 async function carregarRodadaFinalizada(rodada) {
-  let rankingsData = getCachedRankingRodada(ligaIdAtual, rodada);
+  let rankingsData = await getCachedRankingRodada(ligaIdAtual, rodada);
 
-  if (!rankingsData) {
+  // Validar se é array válido
+  if (!rankingsData || !Array.isArray(rankingsData) || rankingsData.length === 0) {
     console.log(
       `[RODADAS-ORQUESTRADOR] Buscando dados da rodada ${rodada} na API...`,
     );
     rankingsData = await fetchAndProcessRankingRodada(ligaIdAtual, rodada);
 
-    if (rankingsData && rankingsData.length > 0) {
-      cacheRankingRodada(ligaIdAtual, rodada, rankingsData);
+    if (rankingsData && Array.isArray(rankingsData) && rankingsData.length > 0) {
+      await cacheRankingRodada(ligaIdAtual, rodada, rankingsData);
       preloadEscudos(rankingsData);
     }
+  } else {
+    console.log(
+      `[RODADAS-ORQUESTRADOR] Usando dados da rodada ${rodada} do cache`,
+    );
+  }
+
+  // Garantir que sempre seja array antes de exibir
+  if (!Array.isArray(rankingsData)) {
+    rankingsData = [];
   }
 
   exibirRanking(rankingsData, rodada, ligaIdAtual, criarBotaoExportacao);
@@ -200,7 +210,8 @@ async function carregarRodadaFinalizada(rodada) {
 async function carregarRodadaParciais(rodada) {
   let rankingsParciais = getCachedParciais(ligaIdAtual, rodada);
 
-  if (!rankingsParciais) {
+  // Validar se é array válido
+  if (!rankingsParciais || !Array.isArray(rankingsParciais) || rankingsParciais.length === 0) {
     console.log(
       `[RODADAS-ORQUESTRADOR] Calculando parciais da rodada ${rodada}...`,
     );
@@ -219,10 +230,19 @@ async function carregarRodadaParciais(rodada) {
 
     rankingsParciais = await calcularPontosParciais(liga, rodada);
 
-    if (rankingsParciais && rankingsParciais.length > 0) {
+    if (rankingsParciais && Array.isArray(rankingsParciais) && rankingsParciais.length > 0) {
       cacheParciais(ligaIdAtual, rodada, rankingsParciais);
       preloadEscudos(rankingsParciais);
     }
+  } else {
+    console.log(
+      `[RODADAS-ORQUESTRADOR] Usando parciais da rodada ${rodada} do cache`,
+    );
+  }
+
+  // Garantir que sempre seja array antes de exibir
+  if (!Array.isArray(rankingsParciais)) {
+    rankingsParciais = [];
   }
 
   exibirRankingParciais(

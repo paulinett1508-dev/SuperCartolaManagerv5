@@ -175,7 +175,9 @@ export function exibirRanking(
 ) {
   const rankingBody = getElement("rankingBody");
 
-  if (!rankingsDaRodada || rankingsDaRodada.length === 0) {
+  // Validar se é array
+  if (!rankingsDaRodada || !Array.isArray(rankingsDaRodada) || rankingsDaRodada.length === 0) {
+    console.warn('[RODADAS-UI] Dados inválidos recebidos:', typeof rankingsDaRodada);
     rankingBody.innerHTML = `<tr><td colspan="6">Nenhum dado encontrado para a rodada ${rodadaSelecionada}.</td></tr>`;
     limparExportContainer();
     return;
@@ -230,11 +232,13 @@ export function exibirRankingParciais(
 ) {
   const rankingBody = getElement("rankingBody");
 
+  // Validar se é array
   if (
     !rankingsParciais ||
     !Array.isArray(rankingsParciais) ||
     rankingsParciais.length === 0
   ) {
+    console.warn('[RODADAS-UI] Dados parciais inválidos recebidos:', typeof rankingsParciais);
     rankingBody.innerHTML = `<tr><td colspan="6">Nenhum dado parcial encontrado para a rodada ${rodada}.</td></tr>`;
     limparExportContainer();
     return;
