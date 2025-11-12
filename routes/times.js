@@ -1,11 +1,5 @@
 import express from "express";
-import {
-  buscarTimes,
-  buscarTimePorId,
-  criarTime,
-  atualizarTime,
-  deletarTime,
-} from "../controllers/timeController.js";
+import { obterTimePorId } from "../controllers/timeController.js";
 import {
   inativarParticipante,
   reativarParticipante,
@@ -53,6 +47,53 @@ router.get("/liga/:ligaId", async (req, res) => {
         const times = await Time.find({ 
             liga_id: parseInt(ligaId), 
             ativo: true 
+
+
+// ==============================
+// ROTA: Gerenciar Senha do Participante
+// ==============================
+router.put("/:id/senha", async (req, res) => {
+    try {
+        const timeId = parseInt(req.params.id);
+        const { senha } = req.body;
+
+        if (isNaN(timeId)) {
+            return res.status(400).json({ erro: "ID inválido" });
+        }
+
+        if (!senha || senha.length < 4) {
+            return res.status(400).json({ 
+                erro: "Senha deve ter no mínimo 4 caracteres" 
+            });
+        }
+
+        const time = await Time.findOne({ id: timeId });
+        if (!time) {
+            return res.status(404).json({ erro: "Time não encontrado" });
+        }
+
+        time.senha_acesso = senha;
+        await time.save();
+
+        console.log(`✅ Senha atualizada para time ${timeId}`);
+
+        res.json({
+            mensagem: "Senha configurada com sucesso",
+            time_id: timeId
+        });
+    } catch (err) {
+        console.error("Erro ao configurar senha:", err);
+        res.status(500).json({ erro: err.message });
+    }
+});
+
+// ==============================
+// ROTAS DE STATUS
+// ==============================
+router.put("/:timeId/inativar", inativarParticipante);
+router.put("/:timeId/reativar", reativarParticipante);
+router.get("/:timeId/status", buscarStatusParticipante);
+
         });
         res.json(times);
     } catch (error) {
