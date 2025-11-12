@@ -1,0 +1,949 @@
+ 🎛️ [CARDS-CONDICIONAIS] Carregando sistema...
+ ✅ [CARDS-CONDICIONAIS] Módulo carregado
+ 🔧 [SISTEMA-MODULOS] Inicializando sistema de módulos...
+ ✅ [SISTEMA-MODULOS] Sistema inicializado com sucesso
+ 📦 [SISTEMA-MODULOS] Módulos disponíveis: 0
+ Iniciando orquestrador...
+ 🚀 [CARDS-CONDICIONAIS] Inicializando...
+ 🎯 [CARDS-CONDICIONAIS] Aplicando configuração...
+ 🔍 [CARDS-CONDICIONAIS] Liga atual: 684cb1c8af923da7c7df51de
+ 🚫 [CARDS-CONDICIONAIS] Card "luva-de-ouro" desabilitado
+ 🚫 [CARDS-CONDICIONAIS] Card "artilheiro-campeao" desabilitado
+ ✅ [CARDS-CONDICIONAIS] 2 cards desabilitados
+ 🧭 [CARDS-CONDICIONAIS] Configurando navegação condicional...
+ ✅ [CARDS-CONDICIONAIS] Botão voltar controlado
+ ✅ [CARDS-CONDICIONAIS] Sistema inicializado com UX melhorado
+ Layout carregado
+ Carregando ligas para o sidebar...
+ ✅ [RANKING] Módulo carregado e funções expostas globalmente
+ 2 ligas carregadas no sidebar
+ Liga atual destacada no sidebar
+ [RODADAS] 🚀 Inicializando módulo refatorado...
+ [RODADAS] ✅ Módulo refatorado carregado - Arquitetura modular implementada
+ [RODADAS] 🔧 Funções de debug disponíveis em window.rodadasDebug
+ [RODADAS] 📦 Estrutura modular:
+   - rodadas-config.js: Configurações e constantes
+   - rodadas-core.js: Lógica de negócio e API calls
+   - rodadas-ui.js: Interface e renderização
+   - rodadas-cache.js: Sistema de cache e performance
+   - rodadas-orquestrador.js: Coordenação entre módulos
+   - rodadas.js: Ponto de entrada refatorado (este arquivo)
+ [TOP10] Módulo carregado e pronto
+ 🥅 [LUVA-CONFIG] Módulo de configuração carregando...
+ ✅ [LUVA-CONFIG] Módulo de configuração carregado
+ 🧠 [LUVA-CORE] Módulo core carregando...
+ ✅ [LUVA-CORE] Módulo core carregado
+ [RODADAS-CONFIG] Módulo carregado com sucesso
+ [RODADAS-CORE] Módulo carregado com sucesso
+ [RODADAS-UI] Módulo carregado com layout compacto e seleção inteligente
+ ✅ [CACHE-MANAGER] Sistema de cache inteligente carregado
+ [RODADAS-CACHE] Limpeza automática configurada (60000ms)
+ [RODADAS-CACHE] Sistema de cache inicializado
+ [RODADAS-CACHE] Limpeza automática configurada (5min)
+ [RODADAS-ORQUESTRADOR] Módulo carregado com UX redesenhado
+ ✅ [CACHE-MANAGER] IndexedDB inicializado
+ 🎨 [LUVA-UI] Módulo UI carregando...
+ ✅ [LUVA-UI] Módulo UI carregado (CSS externo)
+ [RODADAS] ✅ Módulos refatorados carregados com sucesso
+ [RODADAS-ORQUESTRADOR] Inicializando módulo de rodadas...
+ [RODADAS-ORQUESTRADOR] URL atual: https://e1034b6e-dfb9-401a-8e7f-80ffa6030f79-00-2dc692elmitoe.spock.replit.dev/detalhe-liga.html?id=684cb1c8af923da7c7df51de
+ [RODADAS-ORQUESTRADOR] Não está na seção de rodadas, pulando inicialização
+ 🔧 [LUVA-UTILS] Módulo de utilitários carregando...
+ ✅ [LUVA-UTILS] Módulo de utilitários carregado
+ 📦 [LUVA-CACHE] Módulo de cache carregando...
+ ✅ [LUVA-CACHE] Sistema de cache inicializado
+ 🧹 Limpeza automática configurada (5min)
+ 🎯 [LUVA-ORQUESTRADOR] Módulo orquestrador carregando...
+ ✅ [LUVA-ORQUESTRADOR] Módulo carregado
+ 🥅 [LUVA-DE-OURO] Sistema modular carregando...
+ ✅ [LUVA-DE-OURO] Sistema modular carregado com arquitetura refatorada
+ 🆘 Em caso de erro: window.forcarLuvaDeOuroAgora()
+ 🧪 Para testar: window.testarLuvaDeOuro()
+ Módulos carregados
+ Liga atualizada: Super Cartola 2025 com 32 participantes
+ Participantes atualizados
+ Navegação inicializada
+ Funções globais configuradas
+ Ícones Lucide inicializados
+ Orquestrador inicializado com sucesso
+ Removido elemento com "Liga:"
+ Removido elemento com "Liga:"
+ Liga atual destacada no sidebar
+ Tela principal ocultada
+ Tela secundária ativada
+ Carregando módulo: participantes
+ CSS do módulo participantes carregado de: /css/modules/participantes.css
+ [ORQUESTRADOR] Carregando HTML do módulo: participantes
+ [ORQUESTRADOR] ✅ HTML do módulo participantes carregado (3309 bytes)
+ HTML do módulo participantes injetado
+ [PARTICIPANTES] ✅ Módulo melhorado carregado - UX aprimorada aplicada
+ [EXPORT-EXPORTS] 🎯 Centro coordenador de exportações carregado
+ [EXPORT-EXPORTS] 🚀 Inicializando sistema de exportação...
+ [EXPORT-EXPORTS] ✅ Sistema inicializado com sucesso
+ [EXPORT-EXPORTS] 📦 8 módulos mapeados
+ [EXPORT-EXPORTS] ✅ Centro coordenador CORRIGIDO v2.4.3 - Rodadas usando módulo específico
+ [PARTICIPANTES] ✅ Exports carregados com sucesso
+ Carregando participantes da liga: 684cb1c8af923da7c7df51de
+ [PARTICIPANTES] ✅ Exports carregados com sucesso
+ Carregando participantes da liga: 684cb1c8af923da7c7df51de
+ [PARTICIPANTES] Time 645089: ativo=true, rodada_desistencia=null
+ [PARTICIPANTES] Time 39786: ativo=true, rodada_desistencia=null
+ [PARTICIPANTES] Time 1097804: ativo=true, rodada_desistencia=null
+ [PARTICIPANTES] Time 1323370: ativo=true, rodada_desistencia=null
+ [PARTICIPANTES] Time 22623329: ativo=true, rodada_desistencia=null
+ [PARTICIPANTES] Time 8098497: ativo=true, rodada_desistencia=null
+ [PARTICIPANTES] Time 8188312: ativo=true, rodada_desistencia=null
+ [PARTICIPANTES] Time 621609: ativo=true, rodada_desistencia=null
+ [PARTICIPANTES] Time 575856: ativo=true, rodada_desistencia=null
+ [PARTICIPANTES] Time 45004009: ativo=true, rodada_desistencia=null
+ [PARTICIPANTES] Time 2718174: ativo=true, rodada_desistencia=null
+ [PARTICIPANTES] Time 164131: ativo=true, rodada_desistencia=null
+ [PARTICIPANTES] Time 715731: ativo=true, rodada_desistencia=null
+ [PARTICIPANTES] Time 25371297: ativo=true, rodada_desistencia=null
+ [PARTICIPANTES] Time 5902324: ativo=true, rodada_desistencia=null
+ [PARTICIPANTES] Time 3300583: ativo=true, rodada_desistencia=null
+ [PARTICIPANTES] Time 5254799: ativo=true, rodada_desistencia=null
+ [PARTICIPANTES] Time 1173066: ativo=true, rodada_desistencia=null
+ [PARTICIPANTES] Time 13935277: ativo=true, rodada_desistencia=null
+ [PARTICIPANTES] Time 8183683: ativo=true, rodada_desistencia=null
+ [PARTICIPANTES] Time 25324292: ativo=true, rodada_desistencia=null
+ [PARTICIPANTES] Time 14569704: ativo=true, rodada_desistencia=null
+ [PARTICIPANTES] Time 20165417: ativo=true, rodada_desistencia=null
+ [PARTICIPANTES] Time 1039496: ativo=true, rodada_desistencia=null
+ [PARTICIPANTES] Time 14916330: ativo=true, rodada_desistencia=null
+ [PARTICIPANTES] Time 1932235: ativo=true, rodada_desistencia=null
+ [PARTICIPANTES] Time 4966295: ativo=true, rodada_desistencia=null
+ [PARTICIPANTES] Time 1459952: ativo=true, rodada_desistencia=null
+ [PARTICIPANTES] Time 1568358: ativo=true, rodada_desistencia=null
+ [PARTICIPANTES] Time 3027272: ativo=true, rodada_desistencia=null
+ [PARTICIPANTES] Time 7698677: ativo=true, rodada_desistencia=null
+ [PARTICIPANTES] Time 1233737: ativo=true, rodada_desistencia=null
+ [CARD] Antonio Luis : estaAtivo=true, classe=status-ativo
+ [CARD] Cássio Marques: estaAtivo=true, classe=status-ativo
+ [CARD] China Guardiola: estaAtivo=true, classe=status-ativo
+ [CARD] Diego Barbosa: estaAtivo=true, classe=status-ativo
+ [CARD] Diogo Monte: estaAtivo=true, classe=status-ativo
+ [CARD] Emerson: estaAtivo=true, classe=status-ativo
+ [CARD] Eudes Pereira: estaAtivo=true, classe=status-ativo
+ [CARD] Felipe Barbosa: estaAtivo=true, classe=status-ativo
+ [CARD] Felipe Jokstay: estaAtivo=true, classe=status-ativo
+ [CARD] Felipe Santos: estaAtivo=true, classe=status-ativo
+ [CARD] Flavio André: estaAtivo=true, classe=status-ativo
+ [CARD] fucim : estaAtivo=true, classe=status-ativo
+ [CARD] JB Oliveira: estaAtivo=true, classe=status-ativo
+ [CARD] Jonney Vojvoda: estaAtivo=true, classe=status-ativo
+ [CARD] juniel henrique: estaAtivo=true, classe=status-ativo
+ [CARD] Leilson Bezerra: estaAtivo=true, classe=status-ativo
+ [CARD] Mauricio Wendel: estaAtivo=true, classe=status-ativo
+ [CARD] Mr. Carmilton: estaAtivo=true, classe=status-ativo
+ [CARD] Neto Waquim: estaAtivo=true, classe=status-ativo
+ [CARD] Paulinett Miranda: estaAtivo=true, classe=status-ativo
+ [CARD] Pedro Antônio: estaAtivo=true, classe=status-ativo
+ [CARD] Rafael Janderson: estaAtivo=true, classe=status-ativo
+ [CARD] Raimundo Pinheiro : estaAtivo=true, classe=status-ativo
+ [CARD] Randerson Rodrigues: estaAtivo=true, classe=status-ativo
+ [CARD] Raylson Fernandes: estaAtivo=true, classe=status-ativo
+ [CARD] RODRIGO PAES LANDIM : estaAtivo=true, classe=status-ativo
+ [CARD] Rony Morais: estaAtivo=true, classe=status-ativo
+ [CARD] Sávio C Cavalcante : estaAtivo=true, classe=status-ativo
+ [CARD] Sir Gegé   : estaAtivo=true, classe=status-ativo
+ [CARD] Vitim: estaAtivo=true, classe=status-ativo
+ [CARD] Wesley Oliveira: estaAtivo=true, classe=status-ativo
+ [CARD] Wildemar Silva: estaAtivo=true, classe=status-ativo
+ ✅ 32 participantes carregados com design system aplicado
+ [PARTICIPANTES] Time 645089: ativo=true, rodada_desistencia=null
+ [PARTICIPANTES] Time 39786: ativo=true, rodada_desistencia=null
+ [PARTICIPANTES] Time 1097804: ativo=true, rodada_desistencia=null
+ [PARTICIPANTES] Time 22623329: ativo=true, rodada_desistencia=null
+ [PARTICIPANTES] Time 1323370: ativo=true, rodada_desistencia=null
+ [PARTICIPANTES] Time 8098497: ativo=true, rodada_desistencia=null
+ [PARTICIPANTES] Time 8188312: ativo=true, rodada_desistencia=null
+ [PARTICIPANTES] Time 621609: ativo=true, rodada_desistencia=null
+ [PARTICIPANTES] Time 575856: ativo=true, rodada_desistencia=null
+ [PARTICIPANTES] Time 45004009: ativo=true, rodada_desistencia=null
+ [PARTICIPANTES] Time 2718174: ativo=true, rodada_desistencia=null
+ [PARTICIPANTES] Time 164131: ativo=true, rodada_desistencia=null
+ [PARTICIPANTES] Time 715731: ativo=true, rodada_desistencia=null
+ [PARTICIPANTES] Time 25371297: ativo=true, rodada_desistencia=null
+ [PARTICIPANTES] Time 5902324: ativo=true, rodada_desistencia=null
+ [PARTICIPANTES] Time 3300583: ativo=true, rodada_desistencia=null
+ [PARTICIPANTES] Time 5254799: ativo=true, rodada_desistencia=null
+ [PARTICIPANTES] Time 1173066: ativo=true, rodada_desistencia=null
+ [PARTICIPANTES] Time 13935277: ativo=true, rodada_desistencia=null
+ [PARTICIPANTES] Time 8183683: ativo=true, rodada_desistencia=null
+ [PARTICIPANTES] Time 25324292: ativo=true, rodada_desistencia=null
+ [PARTICIPANTES] Time 14569704: ativo=true, rodada_desistencia=null
+ [PARTICIPANTES] Time 20165417: ativo=true, rodada_desistencia=null
+ [PARTICIPANTES] Time 1039496: ativo=true, rodada_desistencia=null
+ [PARTICIPANTES] Time 14916330: ativo=true, rodada_desistencia=null
+ [PARTICIPANTES] Time 1932235: ativo=true, rodada_desistencia=null
+ [PARTICIPANTES] Time 4966295: ativo=true, rodada_desistencia=null
+ [PARTICIPANTES] Time 1459952: ativo=true, rodada_desistencia=null
+ [PARTICIPANTES] Time 1568358: ativo=true, rodada_desistencia=null
+ [PARTICIPANTES] Time 3027272: ativo=true, rodada_desistencia=null
+ [PARTICIPANTES] Time 7698677: ativo=true, rodada_desistencia=null
+ [PARTICIPANTES] Time 1233737: ativo=true, rodada_desistencia=null
+ [CARD] Antonio Luis : estaAtivo=true, classe=status-ativo
+ [CARD] Cássio Marques: estaAtivo=true, classe=status-ativo
+ [CARD] China Guardiola: estaAtivo=true, classe=status-ativo
+ [CARD] Diego Barbosa: estaAtivo=true, classe=status-ativo
+ [CARD] Diogo Monte: estaAtivo=true, classe=status-ativo
+ [CARD] Emerson: estaAtivo=true, classe=status-ativo
+ [CARD] Eudes Pereira: estaAtivo=true, classe=status-ativo
+ [CARD] Felipe Barbosa: estaAtivo=true, classe=status-ativo
+ [CARD] Felipe Jokstay: estaAtivo=true, classe=status-ativo
+ [CARD] Felipe Santos: estaAtivo=true, classe=status-ativo
+ [CARD] Flavio André: estaAtivo=true, classe=status-ativo
+ [CARD] fucim : estaAtivo=true, classe=status-ativo
+ [CARD] JB Oliveira: estaAtivo=true, classe=status-ativo
+ [CARD] Jonney Vojvoda: estaAtivo=true, classe=status-ativo
+ [CARD] juniel henrique: estaAtivo=true, classe=status-ativo
+ [CARD] Leilson Bezerra: estaAtivo=true, classe=status-ativo
+ [CARD] Mauricio Wendel: estaAtivo=true, classe=status-ativo
+ [CARD] Mr. Carmilton: estaAtivo=true, classe=status-ativo
+ [CARD] Neto Waquim: estaAtivo=true, classe=status-ativo
+ [CARD] Paulinett Miranda: estaAtivo=true, classe=status-ativo
+ [CARD] Pedro Antônio: estaAtivo=true, classe=status-ativo
+ [CARD] Rafael Janderson: estaAtivo=true, classe=status-ativo
+ [CARD] Raimundo Pinheiro : estaAtivo=true, classe=status-ativo
+ [CARD] Randerson Rodrigues: estaAtivo=true, classe=status-ativo
+ [CARD] Raylson Fernandes: estaAtivo=true, classe=status-ativo
+ [CARD] RODRIGO PAES LANDIM : estaAtivo=true, classe=status-ativo
+ [CARD] Rony Morais: estaAtivo=true, classe=status-ativo
+ [CARD] Sávio C Cavalcante : estaAtivo=true, classe=status-ativo
+ [CARD] Sir Gegé   : estaAtivo=true, classe=status-ativo
+ [CARD] Vitim: estaAtivo=true, classe=status-ativo
+ [CARD] Wesley Oliveira: estaAtivo=true, classe=status-ativo
+ [CARD] Wildemar Silva: estaAtivo=true, classe=status-ativo
+ ✅ 32 participantes carregados com design system aplicado
+ Tela secundária ocultada
+ Tela principal exibida
+ Tela principal ocultada
+ Tela secundária ativada
+ Carregando módulo: ranking-geral
+ CSS do módulo ranking-geral carregado de: /css/modules/ranking-geral.css
+ [ORQUESTRADOR] Carregando HTML do módulo: ranking-geral
+ [ORQUESTRADOR] ✅ HTML do módulo ranking-geral carregado (4502 bytes)
+ HTML do módulo ranking-geral injetado
+ [RANKING-SEGURO] Iniciando processamento do sistema
+ [RANKING-SEGURO] Processando 33 rodadas para liga 684cb1c8af923da7c7df51de
+ [RANKING-SEGURO] Processando dados da etapa 1 de 33
+ [RODADAS] Solicitado ranking para rodada 1 (refatorado)
+ [RODADAS-CORE] Solicitado ranking para rodada 1
+ [RODADAS-CORE] Tentando endpoint: /api/rodadas/684cb1c8af923da7c7df51de/rodadas?inicio=1&fim=1
+ [RODADAS-CORE] Dados encontrados no endpoint: /api/rodadas/684cb1c8af923da7c7df51de/rodadas?inicio=1&fim=1
+ [RODADAS-CORE] Processamento rodada 1:
+    - Dados brutos: 32 items
+    - Após filtro: 32 items
+    - Rodadas únicas nos dados: Array(1)
+ [RANKING-SEGURO] Etapa 1: 32 participantes processados
+ [RANKING-SEGURO] Processando dados da etapa 2 de 33
+ [RODADAS] Solicitado ranking para rodada 2 (refatorado)
+ [RODADAS-CORE] Solicitado ranking para rodada 2
+ [RODADAS-CORE] Tentando endpoint: /api/rodadas/684cb1c8af923da7c7df51de/rodadas?inicio=2&fim=2
+ [RODADAS-CORE] Dados encontrados no endpoint: /api/rodadas/684cb1c8af923da7c7df51de/rodadas?inicio=2&fim=2
+ [RODADAS-CORE] Processamento rodada 2:
+    - Dados brutos: 32 items
+    - Após filtro: 32 items
+    - Rodadas únicas nos dados: Array(1)
+ [RANKING-SEGURO] Etapa 2: 32 participantes processados
+ [RANKING-SEGURO] Processando dados da etapa 3 de 33
+ [RODADAS] Solicitado ranking para rodada 3 (refatorado)
+ [RODADAS-CORE] Solicitado ranking para rodada 3
+ [RODADAS-CORE] Tentando endpoint: /api/rodadas/684cb1c8af923da7c7df51de/rodadas?inicio=3&fim=3
+ [RODADAS-CORE] Dados encontrados no endpoint: /api/rodadas/684cb1c8af923da7c7df51de/rodadas?inicio=3&fim=3
+ [RODADAS-CORE] Processamento rodada 3:
+    - Dados brutos: 32 items
+    - Após filtro: 32 items
+    - Rodadas únicas nos dados: Array(1)
+ [RANKING-SEGURO] Etapa 3: 32 participantes processados
+ [RANKING-SEGURO] Processando dados da etapa 4 de 33
+ [RODADAS] Solicitado ranking para rodada 4 (refatorado)
+ [RODADAS-CORE] Solicitado ranking para rodada 4
+ [RODADAS-CORE] Tentando endpoint: /api/rodadas/684cb1c8af923da7c7df51de/rodadas?inicio=4&fim=4
+ [RODADAS-CORE] Dados encontrados no endpoint: /api/rodadas/684cb1c8af923da7c7df51de/rodadas?inicio=4&fim=4
+ [RODADAS-CORE] Processamento rodada 4:
+    - Dados brutos: 32 items
+    - Após filtro: 32 items
+    - Rodadas únicas nos dados: Array(1)
+ [RANKING-SEGURO] Etapa 4: 32 participantes processados
+ [RANKING-SEGURO] Processando dados da etapa 5 de 33
+ [RODADAS] Solicitado ranking para rodada 5 (refatorado)
+ [RODADAS-CORE] Solicitado ranking para rodada 5
+ [RODADAS-CORE] Tentando endpoint: /api/rodadas/684cb1c8af923da7c7df51de/rodadas?inicio=5&fim=5
+ [RODADAS-CORE] Dados encontrados no endpoint: /api/rodadas/684cb1c8af923da7c7df51de/rodadas?inicio=5&fim=5
+ [RODADAS-CORE] Processamento rodada 5:
+    - Dados brutos: 32 items
+    - Após filtro: 32 items
+    - Rodadas únicas nos dados: Array(1)
+ [RANKING-SEGURO] Etapa 5: 32 participantes processados
+ [RANKING-SEGURO] Processando dados da etapa 6 de 33
+ [RODADAS] Solicitado ranking para rodada 6 (refatorado)
+ [RODADAS-CORE] Solicitado ranking para rodada 6
+ [RODADAS-CORE] Tentando endpoint: /api/rodadas/684cb1c8af923da7c7df51de/rodadas?inicio=6&fim=6
+ [RODADAS-CORE] Dados encontrados no endpoint: /api/rodadas/684cb1c8af923da7c7df51de/rodadas?inicio=6&fim=6
+ [RODADAS-CORE] Processamento rodada 6:
+    - Dados brutos: 32 items
+    - Após filtro: 32 items
+    - Rodadas únicas nos dados: Array(1)
+ [RANKING-SEGURO] Etapa 6: 32 participantes processados
+ [RANKING-SEGURO] Processando dados da etapa 7 de 33
+ [RODADAS] Solicitado ranking para rodada 7 (refatorado)
+ [RODADAS-CORE] Solicitado ranking para rodada 7
+ [RODADAS-CORE] Tentando endpoint: /api/rodadas/684cb1c8af923da7c7df51de/rodadas?inicio=7&fim=7
+ [RODADAS-CORE] Dados encontrados no endpoint: /api/rodadas/684cb1c8af923da7c7df51de/rodadas?inicio=7&fim=7
+ [RODADAS-CORE] Processamento rodada 7:
+    - Dados brutos: 32 items
+    - Após filtro: 32 items
+    - Rodadas únicas nos dados: Array(1)
+ [RANKING-SEGURO] Etapa 7: 32 participantes processados
+ [RANKING-SEGURO] Processando dados da etapa 8 de 33
+ [RODADAS] Solicitado ranking para rodada 8 (refatorado)
+ [RODADAS-CORE] Solicitado ranking para rodada 8
+ [RODADAS-CORE] Tentando endpoint: /api/rodadas/684cb1c8af923da7c7df51de/rodadas?inicio=8&fim=8
+ [RODADAS-CORE] Dados encontrados no endpoint: /api/rodadas/684cb1c8af923da7c7df51de/rodadas?inicio=8&fim=8
+ [RODADAS-CORE] Processamento rodada 8:
+    - Dados brutos: 32 items
+    - Após filtro: 32 items
+    - Rodadas únicas nos dados: Array(1)
+ [RANKING-SEGURO] Etapa 8: 32 participantes processados
+ [RANKING-SEGURO] Processando dados da etapa 9 de 33
+ [RODADAS] Solicitado ranking para rodada 9 (refatorado)
+ [RODADAS-CORE] Solicitado ranking para rodada 9
+ [RODADAS-CORE] Tentando endpoint: /api/rodadas/684cb1c8af923da7c7df51de/rodadas?inicio=9&fim=9
+ [RODADAS-CORE] Dados encontrados no endpoint: /api/rodadas/684cb1c8af923da7c7df51de/rodadas?inicio=9&fim=9
+ [RODADAS-CORE] Processamento rodada 9:
+    - Dados brutos: 32 items
+    - Após filtro: 32 items
+    - Rodadas únicas nos dados: Array(1)
+ [RANKING-SEGURO] Etapa 9: 32 participantes processados
+ [RANKING-SEGURO] Processando dados da etapa 10 de 33
+ [RODADAS] Solicitado ranking para rodada 10 (refatorado)
+ [RODADAS-CORE] Solicitado ranking para rodada 10
+ [RODADAS-CORE] Tentando endpoint: /api/rodadas/684cb1c8af923da7c7df51de/rodadas?inicio=10&fim=10
+ [RODADAS-CORE] Dados encontrados no endpoint: /api/rodadas/684cb1c8af923da7c7df51de/rodadas?inicio=10&fim=10
+ [RODADAS-CORE] Processamento rodada 10:
+    - Dados brutos: 32 items
+    - Após filtro: 32 items
+    - Rodadas únicas nos dados: Array(1)
+ [RANKING-SEGURO] Etapa 10: 32 participantes processados
+ [RANKING-SEGURO] Processando dados da etapa 11 de 33
+ [RODADAS] Solicitado ranking para rodada 11 (refatorado)
+ [RODADAS-CORE] Solicitado ranking para rodada 11
+ [RODADAS-CORE] Tentando endpoint: /api/rodadas/684cb1c8af923da7c7df51de/rodadas?inicio=11&fim=11
+ [RODADAS-CORE] Dados encontrados no endpoint: /api/rodadas/684cb1c8af923da7c7df51de/rodadas?inicio=11&fim=11
+ [RODADAS-CORE] Processamento rodada 11:
+    - Dados brutos: 32 items
+    - Após filtro: 32 items
+    - Rodadas únicas nos dados: Array(1)
+ [RANKING-SEGURO] Etapa 11: 32 participantes processados
+ [RANKING-SEGURO] Processando dados da etapa 12 de 33
+ [RODADAS] Solicitado ranking para rodada 12 (refatorado)
+ [RODADAS-CORE] Solicitado ranking para rodada 12
+ [RODADAS-CORE] Tentando endpoint: /api/rodadas/684cb1c8af923da7c7df51de/rodadas?inicio=12&fim=12
+ [RODADAS-CORE] Dados encontrados no endpoint: /api/rodadas/684cb1c8af923da7c7df51de/rodadas?inicio=12&fim=12
+ [RODADAS-CORE] Processamento rodada 12:
+    - Dados brutos: 32 items
+    - Após filtro: 32 items
+    - Rodadas únicas nos dados: Array(1)
+ [RANKING-SEGURO] Etapa 12: 32 participantes processados
+ [RANKING-SEGURO] Processando dados da etapa 13 de 33
+ [RODADAS] Solicitado ranking para rodada 13 (refatorado)
+ [RODADAS-CORE] Solicitado ranking para rodada 13
+ [RODADAS-CORE] Tentando endpoint: /api/rodadas/684cb1c8af923da7c7df51de/rodadas?inicio=13&fim=13
+ [RODADAS-CORE] Dados encontrados no endpoint: /api/rodadas/684cb1c8af923da7c7df51de/rodadas?inicio=13&fim=13
+ [RODADAS-CORE] Processamento rodada 13:
+    - Dados brutos: 32 items
+    - Após filtro: 32 items
+    - Rodadas únicas nos dados: Array(1)
+ [RANKING-SEGURO] Etapa 13: 32 participantes processados
+ [RANKING-SEGURO] Processando dados da etapa 14 de 33
+ [RODADAS] Solicitado ranking para rodada 14 (refatorado)
+ [RODADAS-CORE] Solicitado ranking para rodada 14
+ [RODADAS-CORE] Tentando endpoint: /api/rodadas/684cb1c8af923da7c7df51de/rodadas?inicio=14&fim=14
+ [RODADAS-CORE] Dados encontrados no endpoint: /api/rodadas/684cb1c8af923da7c7df51de/rodadas?inicio=14&fim=14
+ [RODADAS-CORE] Processamento rodada 14:
+    - Dados brutos: 32 items
+    - Após filtro: 32 items
+    - Rodadas únicas nos dados: Array(1)
+ [RANKING-SEGURO] Etapa 14: 32 participantes processados
+ [RANKING-SEGURO] Processando dados da etapa 15 de 33
+ [RODADAS] Solicitado ranking para rodada 15 (refatorado)
+ [RODADAS-CORE] Solicitado ranking para rodada 15
+ [RODADAS-CORE] Tentando endpoint: /api/rodadas/684cb1c8af923da7c7df51de/rodadas?inicio=15&fim=15
+ [RODADAS-CORE] Dados encontrados no endpoint: /api/rodadas/684cb1c8af923da7c7df51de/rodadas?inicio=15&fim=15
+ [RODADAS-CORE] Processamento rodada 15:
+    - Dados brutos: 32 items
+    - Após filtro: 32 items
+    - Rodadas únicas nos dados: Array(1)
+ [RANKING-SEGURO] Etapa 15: 32 participantes processados
+ [RANKING-SEGURO] Processando dados da etapa 16 de 33
+ [RODADAS] Solicitado ranking para rodada 16 (refatorado)
+ [RODADAS-CORE] Solicitado ranking para rodada 16
+ [RODADAS-CORE] Tentando endpoint: /api/rodadas/684cb1c8af923da7c7df51de/rodadas?inicio=16&fim=16
+ [RODADAS-CORE] Dados encontrados no endpoint: /api/rodadas/684cb1c8af923da7c7df51de/rodadas?inicio=16&fim=16
+ [RODADAS-CORE] Processamento rodada 16:
+    - Dados brutos: 32 items
+    - Após filtro: 32 items
+    - Rodadas únicas nos dados: Array(1)
+ [RANKING-SEGURO] Etapa 16: 32 participantes processados
+ [RANKING-SEGURO] Processando dados da etapa 17 de 33
+ [RODADAS] Solicitado ranking para rodada 17 (refatorado)
+ [RODADAS-CORE] Solicitado ranking para rodada 17
+ [RODADAS-CORE] Tentando endpoint: /api/rodadas/684cb1c8af923da7c7df51de/rodadas?inicio=17&fim=17
+ [RODADAS-CORE] Dados encontrados no endpoint: /api/rodadas/684cb1c8af923da7c7df51de/rodadas?inicio=17&fim=17
+ [RODADAS-CORE] Processamento rodada 17:
+    - Dados brutos: 32 items
+    - Após filtro: 32 items
+    - Rodadas únicas nos dados: Array(1)
+ [RANKING-SEGURO] Etapa 17: 32 participantes processados
+ [RANKING-SEGURO] Processando dados da etapa 18 de 33
+ [RODADAS] Solicitado ranking para rodada 18 (refatorado)
+ [RODADAS-CORE] Solicitado ranking para rodada 18
+ [RODADAS-CORE] Tentando endpoint: /api/rodadas/684cb1c8af923da7c7df51de/rodadas?inicio=18&fim=18
+ [RODADAS-CORE] Dados encontrados no endpoint: /api/rodadas/684cb1c8af923da7c7df51de/rodadas?inicio=18&fim=18
+ [RODADAS-CORE] Processamento rodada 18:
+    - Dados brutos: 32 items
+    - Após filtro: 32 items
+    - Rodadas únicas nos dados: Array(1)
+ [RANKING-SEGURO] Etapa 18: 32 participantes processados
+ [RANKING-SEGURO] Processando dados da etapa 19 de 33
+ [RODADAS] Solicitado ranking para rodada 19 (refatorado)
+ [RODADAS-CORE] Solicitado ranking para rodada 19
+ [RODADAS-CORE] Tentando endpoint: /api/rodadas/684cb1c8af923da7c7df51de/rodadas?inicio=19&fim=19
+ [RODADAS-CORE] Dados encontrados no endpoint: /api/rodadas/684cb1c8af923da7c7df51de/rodadas?inicio=19&fim=19
+ [RODADAS-CORE] Processamento rodada 19:
+    - Dados brutos: 32 items
+    - Após filtro: 32 items
+    - Rodadas únicas nos dados: Array(1)
+ [RANKING-SEGURO] Etapa 19: 32 participantes processados
+ [RANKING-SEGURO] Processando dados da etapa 20 de 33
+ [RODADAS] Solicitado ranking para rodada 20 (refatorado)
+ [RODADAS-CORE] Solicitado ranking para rodada 20
+ [RODADAS-CORE] Tentando endpoint: /api/rodadas/684cb1c8af923da7c7df51de/rodadas?inicio=20&fim=20
+ [RODADAS-CORE] Dados encontrados no endpoint: /api/rodadas/684cb1c8af923da7c7df51de/rodadas?inicio=20&fim=20
+ [RODADAS-CORE] Processamento rodada 20:
+    - Dados brutos: 32 items
+    - Após filtro: 32 items
+    - Rodadas únicas nos dados: Array(1)
+ [RANKING-SEGURO] Etapa 20: 32 participantes processados
+ [RANKING-SEGURO] Processando dados da etapa 21 de 33
+ [RODADAS] Solicitado ranking para rodada 21 (refatorado)
+ [RODADAS-CORE] Solicitado ranking para rodada 21
+ [RODADAS-CORE] Tentando endpoint: /api/rodadas/684cb1c8af923da7c7df51de/rodadas?inicio=21&fim=21
+ [RODADAS-CORE] Dados encontrados no endpoint: /api/rodadas/684cb1c8af923da7c7df51de/rodadas?inicio=21&fim=21
+ [RODADAS-CORE] Processamento rodada 21:
+    - Dados brutos: 32 items
+    - Após filtro: 32 items
+    - Rodadas únicas nos dados: Array(1)
+ [RANKING-SEGURO] Etapa 21: 32 participantes processados
+ [RANKING-SEGURO] Processando dados da etapa 22 de 33
+ [RODADAS] Solicitado ranking para rodada 22 (refatorado)
+ [RODADAS-CORE] Solicitado ranking para rodada 22
+ [RODADAS-CORE] Tentando endpoint: /api/rodadas/684cb1c8af923da7c7df51de/rodadas?inicio=22&fim=22
+ [RODADAS-CORE] Dados encontrados no endpoint: /api/rodadas/684cb1c8af923da7c7df51de/rodadas?inicio=22&fim=22
+ [RODADAS-CORE] Processamento rodada 22:
+    - Dados brutos: 32 items
+    - Após filtro: 32 items
+    - Rodadas únicas nos dados: Array(1)
+ [RANKING-SEGURO] Etapa 22: 32 participantes processados
+ [RANKING-SEGURO] Processando dados da etapa 23 de 33
+ [RODADAS] Solicitado ranking para rodada 23 (refatorado)
+ [RODADAS-CORE] Solicitado ranking para rodada 23
+ [RODADAS-CORE] Tentando endpoint: /api/rodadas/684cb1c8af923da7c7df51de/rodadas?inicio=23&fim=23
+ [RODADAS-CORE] Dados encontrados no endpoint: /api/rodadas/684cb1c8af923da7c7df51de/rodadas?inicio=23&fim=23
+ [RODADAS-CORE] Processamento rodada 23:
+    - Dados brutos: 32 items
+    - Após filtro: 32 items
+    - Rodadas únicas nos dados: Array(1)
+ [RANKING-SEGURO] Etapa 23: 32 participantes processados
+ [RANKING-SEGURO] Processando dados da etapa 24 de 33
+ [RODADAS] Solicitado ranking para rodada 24 (refatorado)
+ [RODADAS-CORE] Solicitado ranking para rodada 24
+ [RODADAS-CORE] Tentando endpoint: /api/rodadas/684cb1c8af923da7c7df51de/rodadas?inicio=24&fim=24
+ [RODADAS-CORE] Dados encontrados no endpoint: /api/rodadas/684cb1c8af923da7c7df51de/rodadas?inicio=24&fim=24
+ [RODADAS-CORE] Processamento rodada 24:
+    - Dados brutos: 32 items
+    - Após filtro: 32 items
+    - Rodadas únicas nos dados: Array(1)
+ [RANKING-SEGURO] Etapa 24: 32 participantes processados
+ [RANKING-SEGURO] Processando dados da etapa 25 de 33
+ [RODADAS] Solicitado ranking para rodada 25 (refatorado)
+ [RODADAS-CORE] Solicitado ranking para rodada 25
+ [RODADAS-CORE] Tentando endpoint: /api/rodadas/684cb1c8af923da7c7df51de/rodadas?inicio=25&fim=25
+ [RODADAS-CORE] Dados encontrados no endpoint: /api/rodadas/684cb1c8af923da7c7df51de/rodadas?inicio=25&fim=25
+ [RODADAS-CORE] Processamento rodada 25:
+    - Dados brutos: 32 items
+    - Após filtro: 32 items
+    - Rodadas únicas nos dados: Array(1)
+ [RANKING-SEGURO] Etapa 25: 32 participantes processados
+ [RANKING-SEGURO] Processando dados da etapa 26 de 33
+ [RODADAS] Solicitado ranking para rodada 26 (refatorado)
+ [RODADAS-CORE] Solicitado ranking para rodada 26
+ [RODADAS-CORE] Tentando endpoint: /api/rodadas/684cb1c8af923da7c7df51de/rodadas?inicio=26&fim=26
+ [RODADAS-CORE] Dados encontrados no endpoint: /api/rodadas/684cb1c8af923da7c7df51de/rodadas?inicio=26&fim=26
+ [RODADAS-CORE] Processamento rodada 26:
+    - Dados brutos: 32 items
+    - Após filtro: 32 items
+    - Rodadas únicas nos dados: Array(1)
+ [RANKING-SEGURO] Etapa 26: 32 participantes processados
+ [RANKING-SEGURO] Processando dados da etapa 27 de 33
+ [RODADAS] Solicitado ranking para rodada 27 (refatorado)
+ [RODADAS-CORE] Solicitado ranking para rodada 27
+ [RODADAS-CORE] Tentando endpoint: /api/rodadas/684cb1c8af923da7c7df51de/rodadas?inicio=27&fim=27
+ [RODADAS-CORE] Dados encontrados no endpoint: /api/rodadas/684cb1c8af923da7c7df51de/rodadas?inicio=27&fim=27
+ [RODADAS-CORE] Processamento rodada 27:
+    - Dados brutos: 32 items
+    - Após filtro: 32 items
+rodadas-core.js:167    - Rodadas únicas nos dados: Array(1)
+ranking.js:62 [RANKING-SEGURO] Etapa 27: 32 participantes processados
+ranking.js:62 [RANKING-SEGURO] Processando dados da etapa 28 de 33
+rodadas.js:86 [RODADAS] Solicitado ranking para rodada 28 (refatorado)
+rodadas-core.js:368 [RODADAS-CORE] Solicitado ranking para rodada 28
+rodadas-core.js:74 [RODADAS-CORE] Tentando endpoint: /api/rodadas/684cb1c8af923da7c7df51de/rodadas?inicio=28&fim=28
+rodadas-core.js:91 [RODADAS-CORE] Dados encontrados no endpoint: /api/rodadas/684cb1c8af923da7c7df51de/rodadas?inicio=28&fim=28
+rodadas-core.js:164 [RODADAS-CORE] Processamento rodada 28:
+rodadas-core.js:165    - Dados brutos: 32 items
+rodadas-core.js:166    - Após filtro: 32 items
+rodadas-core.js:167    - Rodadas únicas nos dados: Array(1)
+ranking.js:62 [RANKING-SEGURO] Etapa 28: 32 participantes processados
+ranking.js:62 [RANKING-SEGURO] Processando dados da etapa 29 de 33
+rodadas.js:86 [RODADAS] Solicitado ranking para rodada 29 (refatorado)
+rodadas-core.js:368 [RODADAS-CORE] Solicitado ranking para rodada 29
+rodadas-core.js:74 [RODADAS-CORE] Tentando endpoint: /api/rodadas/684cb1c8af923da7c7df51de/rodadas?inicio=29&fim=29
+rodadas-core.js:91 [RODADAS-CORE] Dados encontrados no endpoint: /api/rodadas/684cb1c8af923da7c7df51de/rodadas?inicio=29&fim=29
+rodadas-core.js:164 [RODADAS-CORE] Processamento rodada 29:
+rodadas-core.js:165    - Dados brutos: 32 items
+rodadas-core.js:166    - Após filtro: 32 items
+rodadas-core.js:167    - Rodadas únicas nos dados: Array(1)
+ranking.js:62 [RANKING-SEGURO] Etapa 29: 32 participantes processados
+ranking.js:62 [RANKING-SEGURO] Processando dados da etapa 30 de 33
+rodadas.js:86 [RODADAS] Solicitado ranking para rodada 30 (refatorado)
+rodadas-core.js:368 [RODADAS-CORE] Solicitado ranking para rodada 30
+rodadas-core.js:74 [RODADAS-CORE] Tentando endpoint: /api/rodadas/684cb1c8af923da7c7df51de/rodadas?inicio=30&fim=30
+rodadas-core.js:91 [RODADAS-CORE] Dados encontrados no endpoint: /api/rodadas/684cb1c8af923da7c7df51de/rodadas?inicio=30&fim=30
+rodadas-core.js:164 [RODADAS-CORE] Processamento rodada 30:
+rodadas-core.js:165    - Dados brutos: 32 items
+rodadas-core.js:166    - Após filtro: 32 items
+rodadas-core.js:167    - Rodadas únicas nos dados: Array(1)
+ranking.js:62 [RANKING-SEGURO] Etapa 30: 32 participantes processados
+ranking.js:62 [RANKING-SEGURO] Processando dados da etapa 31 de 33
+rodadas.js:86 [RODADAS] Solicitado ranking para rodada 31 (refatorado)
+rodadas-core.js:368 [RODADAS-CORE] Solicitado ranking para rodada 31
+rodadas-core.js:74 [RODADAS-CORE] Tentando endpoint: /api/rodadas/684cb1c8af923da7c7df51de/rodadas?inicio=31&fim=31
+rodadas-core.js:91 [RODADAS-CORE] Dados encontrados no endpoint: /api/rodadas/684cb1c8af923da7c7df51de/rodadas?inicio=31&fim=31
+rodadas-core.js:164 [RODADAS-CORE] Processamento rodada 31:
+rodadas-core.js:165    - Dados brutos: 32 items
+rodadas-core.js:166    - Após filtro: 32 items
+rodadas-core.js:167    - Rodadas únicas nos dados: Array(1)
+ranking.js:62 [RANKING-SEGURO] Etapa 31: 32 participantes processados
+ranking.js:62 [RANKING-SEGURO] Processando dados da etapa 32 de 33
+rodadas.js:86 [RODADAS] Solicitado ranking para rodada 32 (refatorado)
+rodadas-core.js:368 [RODADAS-CORE] Solicitado ranking para rodada 32
+rodadas-core.js:74 [RODADAS-CORE] Tentando endpoint: /api/rodadas/684cb1c8af923da7c7df51de/rodadas?inicio=32&fim=32
+rodadas-core.js:91 [RODADAS-CORE] Dados encontrados no endpoint: /api/rodadas/684cb1c8af923da7c7df51de/rodadas?inicio=32&fim=32
+rodadas-core.js:164 [RODADAS-CORE] Processamento rodada 32:
+rodadas-core.js:165    - Dados brutos: 32 items
+rodadas-core.js:166    - Após filtro: 32 items
+rodadas-core.js:167    - Rodadas únicas nos dados: Array(1)
+ranking.js:62 [RANKING-SEGURO] Etapa 32: 32 participantes processados
+ranking.js:62 [RANKING-SEGURO] Processando dados da etapa 33 de 33
+rodadas.js:86 [RODADAS] Solicitado ranking para rodada 33 (refatorado)
+rodadas-core.js:368 [RODADAS-CORE] Solicitado ranking para rodada 33
+rodadas-core.js:74 [RODADAS-CORE] Tentando endpoint: /api/rodadas/684cb1c8af923da7c7df51de/rodadas?inicio=33&fim=33
+rodadas-core.js:91 [RODADAS-CORE] Dados encontrados no endpoint: /api/rodadas/684cb1c8af923da7c7df51de/rodadas?inicio=33&fim=33
+rodadas-core.js:164 [RODADAS-CORE] Processamento rodada 33:
+rodadas-core.js:165    - Dados brutos: 32 items
+rodadas-core.js:166    - Após filtro: 32 items
+rodadas-core.js:167    - Rodadas únicas nos dados: Array(1)
+ranking.js:62 [RANKING-SEGURO] Etapa 33: 32 participantes processados
+ranking.js:62 [RANKING-SEGURO] Sistema processado: 32 participantes no total
+ranking.js:28 [RANKING] ✅ Exports carregados com sucesso
+export-exports.js:107 [EXPORT-EXPORTS] 🔍 Detectando módulo para tipo: undefined, isRankingGeral: true
+export-exports.js:235 [EXPORT-EXPORTS] 🎯 Direcionando para ranking-geral.criarBotaoExportacaoRankingGeral
+export-exports.js:53 [EXPORT-EXPORTS] 🎯 Executando criarBotaoExportacaoRankingGeral do módulo ranking-geral
+export-exports.js:28 [EXPORT-EXPORTS] 📦 Carregando módulo: ranking-geral
+ranking.js:62 [RANKING-SEGURO] ✅ Processamento concluído com sucesso
+ranking.js:62 [RANKING-SEGURO] Processamento finalizado, sistema liberado
+export-base.js:343 ✅ [EXPORT-BASE] Módulo carregado com sucesso
+export-ranking-geral.js:11 [EXPORT-RANKING-GERAL-MOBILE] Sistema Mobile Dark HD v3.0.1 carregado
+export-ranking-geral.js:624 [EXPORT-RANKING-GERAL-MOBILE] Sistema Mobile Dark HD configurado
+export-ranking-geral.js:625 [EXPORT-RANKING-GERAL-MOBILE] Resolução: 400px x 800px+ @ 4x scale
+export-ranking-geral.js:628 [EXPORT-RANKING-GERAL-MOBILE] Compatibilidade com sistema existente mantida
+export-exports.js:39 [EXPORT-EXPORTS] ✅ Módulo ranking-geral carregado com sucesso
+export-exports.js:95 [EXPORT-EXPORTS] ✅ Executando função criarBotaoExportacaoRankingGeral
+detalhe-liga-orquestrador.js:503 Tela secundária ocultada
+detalhe-liga-orquestrador.js:508 Tela principal exibida
+detalhe-liga-orquestrador.js:486 Tela principal ocultada
+detalhe-liga-orquestrador.js:492 Tela secundária ativada
+detalhe-liga-orquestrador.js:96 Carregando módulo: parciais
+/css/modules/parciais.css:1   Failed to load resource: the server responded with a status of 404 (Not Found)
+/parciais.css:1   Failed to load resource: the server responded with a status of 404 (Not Found)
+/css/parciais.css:1   Failed to load resource: the server responded with a status of 404 (Not Found)
+detalhe-liga-orquestrador.js:47 [ORQUESTRADOR] Carregando HTML do módulo: parciais
+detalhe-liga-orquestrador.js:53 [ORQUESTRADOR] ✅ HTML do módulo parciais carregado (11399 bytes)
+detalhe-liga-orquestrador.js:105 HTML do módulo parciais injetado
+detalhe-liga-orquestrador.js:503 Tela secundária ocultada
+detalhe-liga-orquestrador.js:508 Tela principal exibida
+detalhe-liga-orquestrador.js:486 Tela principal ocultada
+detalhe-liga-orquestrador.js:492 Tela secundária ativada
+detalhe-liga-orquestrador.js:96 Carregando módulo: top10
+detalhe-liga-orquestrador.js:81 CSS do módulo top10 carregado de: /css/modules/top10.css
+detalhe-liga-orquestrador.js:47 [ORQUESTRADOR] Carregando HTML do módulo: top10
+detalhe-liga-orquestrador.js:53 [ORQUESTRADOR] ✅ HTML do módulo top10 carregado (1542 bytes)
+detalhe-liga-orquestrador.js:105 HTML do módulo top10 injetado
+top10.js:85 [TOP10] Inicializando módulo...
+top10.js:105 [TOP10] Carregando dados...
+top10.js:124 [TOP10] Buscando dados até rodada 33
+rodadas.js:86 [RODADAS] Solicitado ranking para rodada 1 (refatorado)
+rodadas-core.js:368 [RODADAS-CORE] Solicitado ranking para rodada 1
+rodadas-core.js:74 [RODADAS-CORE] Tentando endpoint: /api/rodadas/684cb1c8af923da7c7df51de/rodadas?inicio=1&fim=1
+rodadas.js:86 [RODADAS] Solicitado ranking para rodada 2 (refatorado)
+rodadas-core.js:368 [RODADAS-CORE] Solicitado ranking para rodada 2
+ [RODADAS-CORE] Tentando endpoint: /api/rodadas/684cb1c8af923da7c7df51de/rodadas?inicio=2&fim=2
+ [RODADAS] Solicitado ranking para rodada 3 (refatorado)
+ [RODADAS-CORE] Solicitado ranking para rodada 3
+ [RODADAS-CORE] Tentando endpoint: /api/rodadas/684cb1c8af923da7c7df51de/rodadas?inicio=3&fim=3
+ [RODADAS] Solicitado ranking para rodada 4 (refatorado)
+ [RODADAS-CORE] Solicitado ranking para rodada 4
+ [RODADAS-CORE] Tentando endpoint: /api/rodadas/684cb1c8af923da7c7df51de/rodadas?inicio=4&fim=4
+ [RODADAS] Solicitado ranking para rodada 5 (refatorado)
+ [RODADAS-CORE] Solicitado ranking para rodada 5
+ [RODADAS-CORE] Tentando endpoint: /api/rodadas/684cb1c8af923da7c7df51de/rodadas?inicio=5&fim=5
+ [RODADAS] Solicitado ranking para rodada 6 (refatorado)
+ [RODADAS-CORE] Solicitado ranking para rodada 6
+ [RODADAS-CORE] Tentando endpoint: /api/rodadas/684cb1c8af923da7c7df51de/rodadas?inicio=6&fim=6
+ [RODADAS] Solicitado ranking para rodada 7 (refatorado)
+ [RODADAS-CORE] Solicitado ranking para rodada 7
+ [RODADAS-CORE] Tentando endpoint: /api/rodadas/684cb1c8af923da7c7df51de/rodadas?inicio=7&fim=7
+ [RODADAS] Solicitado ranking para rodada 8 (refatorado)
+ [RODADAS-CORE] Solicitado ranking para rodada 8
+ [RODADAS-CORE] Tentando endpoint: /api/rodadas/684cb1c8af923da7c7df51de/rodadas?inicio=8&fim=8
+ [RODADAS] Solicitado ranking para rodada 9 (refatorado)
+ [RODADAS-CORE] Solicitado ranking para rodada 9
+ [RODADAS-CORE] Tentando endpoint: /api/rodadas/684cb1c8af923da7c7df51de/rodadas?inicio=9&fim=9
+ [RODADAS] Solicitado ranking para rodada 10 (refatorado)
+ [RODADAS-CORE] Solicitado ranking para rodada 10
+ [RODADAS-CORE] Tentando endpoint: /api/rodadas/684cb1c8af923da7c7df51de/rodadas?inicio=10&fim=10
+ [RODADAS] Solicitado ranking para rodada 11 (refatorado)
+ [RODADAS-CORE] Solicitado ranking para rodada 11
+ [RODADAS-CORE] Tentando endpoint: /api/rodadas/684cb1c8af923da7c7df51de/rodadas?inicio=11&fim=11
+ [RODADAS] Solicitado ranking para rodada 12 (refatorado)
+ [RODADAS-CORE] Solicitado ranking para rodada 12
+ [RODADAS-CORE] Tentando endpoint: /api/rodadas/684cb1c8af923da7c7df51de/rodadas?inicio=12&fim=12
+ [RODADAS] Solicitado ranking para rodada 13 (refatorado)
+ [RODADAS-CORE] Solicitado ranking para rodada 13
+ [RODADAS-CORE] Tentando endpoint: /api/rodadas/684cb1c8af923da7c7df51de/rodadas?inicio=13&fim=13
+ [RODADAS] Solicitado ranking para rodada 14 (refatorado)
+ [RODADAS-CORE] Solicitado ranking para rodada 14
+ [RODADAS-CORE] Tentando endpoint: /api/rodadas/684cb1c8af923da7c7df51de/rodadas?inicio=14&fim=14
+ [RODADAS] Solicitado ranking para rodada 15 (refatorado)
+ [RODADAS-CORE] Solicitado ranking para rodada 15
+ [RODADAS-CORE] Tentando endpoint: /api/rodadas/684cb1c8af923da7c7df51de/rodadas?inicio=15&fim=15
+ [RODADAS] Solicitado ranking para rodada 16 (refatorado)
+ [RODADAS-CORE] Solicitado ranking para rodada 16
+ [RODADAS-CORE] Tentando endpoint: /api/rodadas/684cb1c8af923da7c7df51de/rodadas?inicio=16&fim=16
+ [RODADAS] Solicitado ranking para rodada 17 (refatorado)
+ [RODADAS-CORE] Solicitado ranking para rodada 17
+ [RODADAS-CORE] Tentando endpoint: /api/rodadas/684cb1c8af923da7c7df51de/rodadas?inicio=17&fim=17
+ [RODADAS] Solicitado ranking para rodada 18 (refatorado)
+ [RODADAS-CORE] Solicitado ranking para rodada 18
+ [RODADAS-CORE] Tentando endpoint: /api/rodadas/684cb1c8af923da7c7df51de/rodadas?inicio=18&fim=18
+ [RODADAS] Solicitado ranking para rodada 19 (refatorado)
+ [RODADAS-CORE] Solicitado ranking para rodada 19
+ [RODADAS-CORE] Tentando endpoint: /api/rodadas/684cb1c8af923da7c7df51de/rodadas?inicio=19&fim=19
+ [RODADAS] Solicitado ranking para rodada 20 (refatorado)
+ [RODADAS-CORE] Solicitado ranking para rodada 20
+ [RODADAS-CORE] Tentando endpoint: /api/rodadas/684cb1c8af923da7c7df51de/rodadas?inicio=20&fim=20
+ [RODADAS] Solicitado ranking para rodada 21 (refatorado)
+ [RODADAS-CORE] Solicitado ranking para rodada 21
+ [RODADAS-CORE] Tentando endpoint: /api/rodadas/684cb1c8af923da7c7df51de/rodadas?inicio=21&fim=21
+ [RODADAS] Solicitado ranking para rodada 22 (refatorado)
+ [RODADAS-CORE] Solicitado ranking para rodada 22
+ [RODADAS-CORE] Tentando endpoint: /api/rodadas/684cb1c8af923da7c7df51de/rodadas?inicio=22&fim=22
+ [RODADAS] Solicitado ranking para rodada 23 (refatorado)
+ [RODADAS-CORE] Solicitado ranking para rodada 23
+ [RODADAS-CORE] Tentando endpoint: /api/rodadas/684cb1c8af923da7c7df51de/rodadas?inicio=23&fim=23
+ [RODADAS] Solicitado ranking para rodada 24 (refatorado)
+ [RODADAS-CORE] Solicitado ranking para rodada 24
+ [RODADAS-CORE] Tentando endpoint: /api/rodadas/684cb1c8af923da7c7df51de/rodadas?inicio=24&fim=24
+ [RODADAS] Solicitado ranking para rodada 25 (refatorado)
+ [RODADAS-CORE] Solicitado ranking para rodada 25
+ [RODADAS-CORE] Tentando endpoint: /api/rodadas/684cb1c8af923da7c7df51de/rodadas?inicio=25&fim=25
+ [RODADAS] Solicitado ranking para rodada 26 (refatorado)
+ [RODADAS-CORE] Solicitado ranking para rodada 26
+ [RODADAS-CORE] Tentando endpoint: /api/rodadas/684cb1c8af923da7c7df51de/rodadas?inicio=26&fim=26
+ [RODADAS] Solicitado ranking para rodada 27 (refatorado)
+ [RODADAS-CORE] Solicitado ranking para rodada 27
+ [RODADAS-CORE] Tentando endpoint: /api/rodadas/684cb1c8af923da7c7df51de/rodadas?inicio=27&fim=27
+ [RODADAS] Solicitado ranking para rodada 28 (refatorado)
+ [RODADAS-CORE] Solicitado ranking para rodada 28
+ [RODADAS-CORE] Tentando endpoint: /api/rodadas/684cb1c8af923da7c7df51de/rodadas?inicio=28&fim=28
+ [RODADAS] Solicitado ranking para rodada 29 (refatorado)
+ [RODADAS-CORE] Solicitado ranking para rodada 29
+ [RODADAS-CORE] Tentando endpoint: /api/rodadas/684cb1c8af923da7c7df51de/rodadas?inicio=29&fim=29
+ [RODADAS] Solicitado ranking para rodada 30 (refatorado)
+ [RODADAS-CORE] Solicitado ranking para rodada 30
+ [RODADAS-CORE] Tentando endpoint: /api/rodadas/684cb1c8af923da7c7df51de/rodadas?inicio=30&fim=30
+ [RODADAS] Solicitado ranking para rodada 31 (refatorado)
+ [RODADAS-CORE] Solicitado ranking para rodada 31
+ [RODADAS-CORE] Tentando endpoint: /api/rodadas/684cb1c8af923da7c7df51de/rodadas?inicio=31&fim=31
+ [RODADAS] Solicitado ranking para rodada 32 (refatorado)
+ [RODADAS-CORE] Solicitado ranking para rodada 32
+ [RODADAS-CORE] Tentando endpoint: /api/rodadas/684cb1c8af923da7c7df51de/rodadas?inicio=32&fim=32
+ [RODADAS] Solicitado ranking para rodada 33 (refatorado)
+ [RODADAS-CORE] Solicitado ranking para rodada 33
+ [RODADAS-CORE] Tentando endpoint: /api/rodadas/684cb1c8af923da7c7df51de/rodadas?inicio=33&fim=33
+ [RODADAS-CORE] Dados encontrados no endpoint: /api/rodadas/684cb1c8af923da7c7df51de/rodadas?inicio=1&fim=1
+ [RODADAS-CORE] Processamento rodada 1:
+    - Dados brutos: 32 items
+    - Após filtro: 32 items
+    - Rodadas únicas nos dados: Array(1)
+ [TOP10] R1: Vitim (116.73) / Rafael Janderson (58.29)
+ [RODADAS-CORE] Dados encontrados no endpoint: /api/rodadas/684cb1c8af923da7c7df51de/rodadas?inicio=2&fim=2
+ [RODADAS-CORE] Processamento rodada 2:
+    - Dados brutos: 32 items
+    - Após filtro: 32 items
+    - Rodadas únicas nos dados: Array(1)
+ [TOP10] R2: Diego Barbosa (111.72) / Wildemar Silva (51.98)
+ [RODADAS-CORE] Dados encontrados no endpoint: /api/rodadas/684cb1c8af923da7c7df51de/rodadas?inicio=3&fim=3
+ [RODADAS-CORE] Processamento rodada 3:
+    - Dados brutos: 32 items
+    - Após filtro: 32 items
+    - Rodadas únicas nos dados: Array(1)
+ [TOP10] R3: Sávio C Cavalcante  (100.47) / Diogo Monte (55.27)
+ [RODADAS-CORE] Dados encontrados no endpoint: /api/rodadas/684cb1c8af923da7c7df51de/rodadas?inicio=4&fim=4
+ [RODADAS-CORE] Processamento rodada 4:
+    - Dados brutos: 32 items
+    - Após filtro: 32 items
+    - Rodadas únicas nos dados: Array(1)
+ [TOP10] R4: Vitim (133.58) / Diogo Monte (70.33)
+ [RODADAS-CORE] Dados encontrados no endpoint: /api/rodadas/684cb1c8af923da7c7df51de/rodadas?inicio=6&fim=6
+ [RODADAS-CORE] Processamento rodada 6:
+    - Dados brutos: 32 items
+    - Após filtro: 32 items
+    - Rodadas únicas nos dados: Array(1)
+ [TOP10] R6: Mauricio Wendel (121.46) / Felipe Santos (62.11)
+ [RODADAS-CORE] Dados encontrados no endpoint: /api/rodadas/684cb1c8af923da7c7df51de/rodadas?inicio=5&fim=5
+ [RODADAS-CORE] Processamento rodada 5:
+    - Dados brutos: 32 items
+    - Após filtro: 32 items
+    - Rodadas únicas nos dados: Array(1)
+ [TOP10] R5: Jonney Vojvoda (93.30) / Paulinett Miranda (40.93)
+ [RODADAS-CORE] Dados encontrados no endpoint: /api/rodadas/684cb1c8af923da7c7df51de/rodadas?inicio=7&fim=7
+ [RODADAS-CORE] Processamento rodada 7:
+    - Dados brutos: 32 items
+    - Após filtro: 32 items
+    - Rodadas únicas nos dados: Array(1)
+ [TOP10] R7: fucim  (128.49) / juniel henrique (77.09)
+ [RODADAS-CORE] Dados encontrados no endpoint: /api/rodadas/684cb1c8af923da7c7df51de/rodadas?inicio=8&fim=8
+ [RODADAS-CORE] Processamento rodada 8:
+    - Dados brutos: 32 items
+    - Após filtro: 32 items
+    - Rodadas únicas nos dados: Array(1)
+ [TOP10] R8: Vitim (169.60) / JB Oliveira (58.60)
+ [RODADAS-CORE] Dados encontrados no endpoint: /api/rodadas/684cb1c8af923da7c7df51de/rodadas?inicio=9&fim=9
+ [RODADAS-CORE] Processamento rodada 9:
+    - Dados brutos: 32 items
+    - Após filtro: 32 items
+    - Rodadas únicas nos dados: Array(1)
+ [TOP10] R9: JB Oliveira (93.68) / Wildemar Silva (35.82)
+ [RODADAS-CORE] Dados encontrados no endpoint: /api/rodadas/684cb1c8af923da7c7df51de/rodadas?inicio=10&fim=10
+ [RODADAS-CORE] Processamento rodada 10:
+    - Dados brutos: 32 items
+    - Após filtro: 32 items
+    - Rodadas únicas nos dados: Array(1)
+ [TOP10] R10: Sávio C Cavalcante  (82.77) / Felipe Barbosa (46.97)
+ [RODADAS-CORE] Dados encontrados no endpoint: /api/rodadas/684cb1c8af923da7c7df51de/rodadas?inicio=11&fim=11
+ [RODADAS-CORE] Processamento rodada 11:
+    - Dados brutos: 32 items
+    - Após filtro: 32 items
+    - Rodadas únicas nos dados: Array(1)
+ [TOP10] R11: juniel henrique (128.57) / Wildemar Silva (56.16)
+ [RODADAS-CORE] Dados encontrados no endpoint: /api/rodadas/684cb1c8af923da7c7df51de/rodadas?inicio=12&fim=12
+ [RODADAS-CORE] Processamento rodada 12:
+    - Dados brutos: 32 items
+    - Após filtro: 32 items
+    - Rodadas únicas nos dados: Array(1)
+ [TOP10] R12: China Guardiola (83.64) / JB Oliveira (34.10)
+ [RODADAS-CORE] Dados encontrados no endpoint: /api/rodadas/684cb1c8af923da7c7df51de/rodadas?inicio=13&fim=13
+ [RODADAS-CORE] Processamento rodada 13:
+    - Dados brutos: 32 items
+    - Após filtro: 32 items
+    - Rodadas únicas nos dados: Array(1)
+ [TOP10] R13: fucim  (129.81) / Jonney Vojvoda (74.19)
+ [RODADAS-CORE] Dados encontrados no endpoint: /api/rodadas/684cb1c8af923da7c7df51de/rodadas?inicio=14&fim=14
+ [RODADAS-CORE] Processamento rodada 14:
+    - Dados brutos: 32 items
+    - Após filtro: 32 items
+    - Rodadas únicas nos dados: Array(1)
+ [TOP10] R14: Emerson (87.00) / Rafael Janderson (46.02)
+ [RODADAS-CORE] Dados encontrados no endpoint: /api/rodadas/684cb1c8af923da7c7df51de/rodadas?inicio=15&fim=15
+ [RODADAS-CORE] Processamento rodada 15:
+    - Dados brutos: 32 items
+    - Após filtro: 32 items
+    - Rodadas únicas nos dados: Array(1)
+ [TOP10] R15: Sir Gegé    (112.80) / Diogo Monte (57.42)
+ [RODADAS-CORE] Dados encontrados no endpoint: /api/rodadas/684cb1c8af923da7c7df51de/rodadas?inicio=16&fim=16
+ [RODADAS-CORE] Processamento rodada 16:
+    - Dados brutos: 32 items
+    - Após filtro: 32 items
+    - Rodadas únicas nos dados: Array(1)
+ [TOP10] R16: Wildemar Silva (89.33) / Flavio André (58.10)
+ [RODADAS-CORE] Dados encontrados no endpoint: /api/rodadas/684cb1c8af923da7c7df51de/rodadas?inicio=17&fim=17
+ [RODADAS-CORE] Processamento rodada 17:
+    - Dados brutos: 32 items
+    - Após filtro: 32 items
+    - Rodadas únicas nos dados: Array(1)
+ [TOP10] R17: Leilson Bezerra (73.25) / JB Oliveira (20.18)
+ [RODADAS-CORE] Dados encontrados no endpoint: /api/rodadas/684cb1c8af923da7c7df51de/rodadas?inicio=18&fim=18
+ [RODADAS-CORE] Processamento rodada 18:
+    - Dados brutos: 32 items
+    - Após filtro: 32 items
+    - Rodadas únicas nos dados: Array(1)
+ [TOP10] R18: fucim  (107.20) / Paulinett Miranda (55.42)
+ [RODADAS-CORE] Dados encontrados no endpoint: /api/rodadas/684cb1c8af923da7c7df51de/rodadas?inicio=19&fim=19
+ [RODADAS-CORE] Processamento rodada 19:
+    - Dados brutos: 32 items
+    - Após filtro: 32 items
+    - Rodadas únicas nos dados: Array(1)
+ [TOP10] R19: Diogo Monte (94.91) / Rafael Janderson (42.28)
+ [RODADAS-CORE] Dados encontrados no endpoint: /api/rodadas/684cb1c8af923da7c7df51de/rodadas?inicio=20&fim=20
+ [RODADAS-CORE] Processamento rodada 20:
+    - Dados brutos: 32 items
+    - Após filtro: 32 items
+    - Rodadas únicas nos dados: Array(1)
+ [TOP10] R20: Felipe Jokstay (103.14) / Vitim (47.35)
+ [RODADAS-CORE] Dados encontrados no endpoint: /api/rodadas/684cb1c8af923da7c7df51de/rodadas?inicio=21&fim=21
+ [RODADAS-CORE] Processamento rodada 21:
+    - Dados brutos: 32 items
+    - Após filtro: 32 items
+    - Rodadas únicas nos dados: Array(1)
+ [TOP10] R21: Cássio Marques (213.51) / Sávio C Cavalcante  (43.70)
+ [RODADAS-CORE] Dados encontrados no endpoint: /api/rodadas/684cb1c8af923da7c7df51de/rodadas?inicio=22&fim=22
+ [RODADAS-CORE] Processamento rodada 22:
+rodadas-core.js:165    - Dados brutos: 32 items
+rodadas-core.js:166    - Após filtro: 32 items
+rodadas-core.js:167    - Rodadas únicas nos dados: Array(1)
+top10.js:146 [TOP10] R22: Rony Morais (90.06) / Jonney Vojvoda (55.70)
+rodadas-core.js:91 [RODADAS-CORE] Dados encontrados no endpoint: /api/rodadas/684cb1c8af923da7c7df51de/rodadas?inicio=23&fim=23
+rodadas-core.js:164 [RODADAS-CORE] Processamento rodada 23:
+rodadas-core.js:165    - Dados brutos: 32 items
+rodadas-core.js:166    - Após filtro: 32 items
+rodadas-core.js:167    - Rodadas únicas nos dados: Array(1)
+top10.js:146 [TOP10] R23: Neto Waquim (113.70) / Raylson Fernandes (51.75)
+rodadas-core.js:91 [RODADAS-CORE] Dados encontrados no endpoint: /api/rodadas/684cb1c8af923da7c7df51de/rodadas?inicio=24&fim=24
+rodadas-core.js:164 [RODADAS-CORE] Processamento rodada 24:
+rodadas-core.js:165    - Dados brutos: 32 items
+rodadas-core.js:166    - Após filtro: 32 items
+rodadas-core.js:167    - Rodadas únicas nos dados: Array(1)
+top10.js:146 [TOP10] R24: Jonney Vojvoda (82.48) / Wildemar Silva (27.71)
+rodadas-core.js:91 [RODADAS-CORE] Dados encontrados no endpoint: /api/rodadas/684cb1c8af923da7c7df51de/rodadas?inicio=25&fim=25
+rodadas-core.js:164 [RODADAS-CORE] Processamento rodada 25:
+rodadas-core.js:165    - Dados brutos: 32 items
+rodadas-core.js:166    - Após filtro: 32 items
+rodadas-core.js:167    - Rodadas únicas nos dados: Array(1)
+top10.js:146 [TOP10] R25: Vitim (97.76) / juniel henrique (41.64)
+rodadas-core.js:91 [RODADAS-CORE] Dados encontrados no endpoint: /api/rodadas/684cb1c8af923da7c7df51de/rodadas?inicio=26&fim=26
+rodadas-core.js:164 [RODADAS-CORE] Processamento rodada 26:
+rodadas-core.js:165    - Dados brutos: 32 items
+rodadas-core.js:166    - Após filtro: 32 items
+rodadas-core.js:167    - Rodadas únicas nos dados: Array(1)
+top10.js:146 [TOP10] R26: Raimundo Pinheiro  (113.54) / Raylson Fernandes (42.84)
+rodadas-core.js:91 [RODADAS-CORE] Dados encontrados no endpoint: /api/rodadas/684cb1c8af923da7c7df51de/rodadas?inicio=27&fim=27
+rodadas-core.js:164 [RODADAS-CORE] Processamento rodada 27:
+rodadas-core.js:165    - Dados brutos: 32 items
+rodadas-core.js:166    - Após filtro: 32 items
+rodadas-core.js:167    - Rodadas únicas nos dados: Array(1)
+top10.js:146 [TOP10] R27: juniel henrique (124.37) / Antonio Luis  (53.27)
+rodadas-core.js:91 [RODADAS-CORE] Dados encontrados no endpoint: /api/rodadas/684cb1c8af923da7c7df51de/rodadas?inicio=29&fim=29
+rodadas-core.js:164 [RODADAS-CORE] Processamento rodada 29:
+rodadas-core.js:165    - Dados brutos: 32 items
+rodadas-core.js:166    - Após filtro: 32 items
+rodadas-core.js:167    - Rodadas únicas nos dados: Array(1)
+top10.js:146 [TOP10] R29: fucim  (122.60) / Randerson Rodrigues (56.63)
+rodadas-core.js:91 [RODADAS-CORE] Dados encontrados no endpoint: /api/rodadas/684cb1c8af923da7c7df51de/rodadas?inicio=28&fim=28
+rodadas-core.js:164 [RODADAS-CORE] Processamento rodada 28:
+rodadas-core.js:165    - Dados brutos: 32 items
+rodadas-core.js:166    - Após filtro: 32 items
+rodadas-core.js:167    - Rodadas únicas nos dados: Array(1)
+top10.js:146 [TOP10] R28: Mr. Carmilton (134.80) / fucim  (29.01)
+rodadas-core.js:91 [RODADAS-CORE] Dados encontrados no endpoint: /api/rodadas/684cb1c8af923da7c7df51de/rodadas?inicio=30&fim=30
+rodadas-core.js:164 [RODADAS-CORE] Processamento rodada 30:
+rodadas-core.js:165    - Dados brutos: 32 items
+rodadas-core.js:166    - Após filtro: 32 items
+rodadas-core.js:167    - Rodadas únicas nos dados: Array(1)
+top10.js:146 [TOP10] R30: Rafael Janderson (96.61) / Cássio Marques (22.24)
+rodadas-core.js:91 [RODADAS-CORE] Dados encontrados no endpoint: /api/rodadas/684cb1c8af923da7c7df51de/rodadas?inicio=31&fim=31
+rodadas-core.js:164 [RODADAS-CORE] Processamento rodada 31:
+rodadas-core.js:165    - Dados brutos: 32 items
+rodadas-core.js:166    - Após filtro: 32 items
+rodadas-core.js:167    - Rodadas únicas nos dados: Array(1)
+top10.js:146 [TOP10] R31: Wesley Oliveira (105.97) / JB Oliveira (23.18)
+rodadas-core.js:91 [RODADAS-CORE] Dados encontrados no endpoint: /api/rodadas/684cb1c8af923da7c7df51de/rodadas?inicio=32&fim=32
+rodadas-core.js:164 [RODADAS-CORE] Processamento rodada 32:
+rodadas-core.js:165    - Dados brutos: 32 items
+rodadas-core.js:166    - Após filtro: 32 items
+rodadas-core.js:167    - Rodadas únicas nos dados: Array(1)
+top10.js:146 [TOP10] R32: China Guardiola (118.74) / Raylson Fernandes (69.57)
+rodadas-core.js:91 [RODADAS-CORE] Dados encontrados no endpoint: /api/rodadas/684cb1c8af923da7c7df51de/rodadas?inicio=33&fim=33
+rodadas-core.js:164 [RODADAS-CORE] Processamento rodada 33:
+rodadas-core.js:165    - Dados brutos: 32 items
+rodadas-core.js:166    - Após filtro: 32 items
+rodadas-core.js:167    - Rodadas únicas nos dados: Array(1)
+top10.js:146 [TOP10] R33: Jonney Vojvoda (94.22) / Raylson Fernandes (52.92)
+top10.js:161 [TOP10] Dados carregados: 33 mitos, 33 micos
+export-top10.js:11 [EXPORT-TOP10] Módulo Top 10 v3.0.3 IMPORTS CORRETOS carregado
+export-top10.js:225 [EXPORT-TOP10] ✅ Sistema corrigido v3.0.3
+export-top10.js:226 [EXPORT-TOP10] 🎯 Card verde limitado a 60px - IMPORTS CORRETOS
+export-top10.js:227 [EXPORT-TOP10] 🔧 Usando apenas MOBILE_DARK_HD_CONFIG existente
+top10.js:23 [TOP10] Exports carregados com sucesso
+top10.js:209 [TOP10] Tabelas renderizadas com sucesso
+rodadas-cache.js:71 [RODADAS-CACHE] Limpeza automática: 0 itens removidos
+detalhe-liga-orquestrador.js:503 Tela secundária ocultada
+detalhe-liga-orquestrador.js:508 Tela principal exibida
+detalhe-liga-orquestrador.js:486 Tela principal ocultada
+detalhe-liga-orquestrador.js:492 Tela secundária ativada
+detalhe-liga-orquestrador.js:96 Carregando módulo: rodadas
+detalhe-liga-orquestrador.js:81 CSS do módulo rodadas carregado de: /css/modules/rodadas.css
+detalhe-liga-orquestrador.js:47 [ORQUESTRADOR] Carregando HTML do módulo: rodadas
+detalhe-liga-orquestrador.js:53 [ORQUESTRADOR] ✅ HTML do módulo rodadas carregado (2601 bytes)
+detalhe-liga-orquestrador.js:105 HTML do módulo rodadas injetado
+detalhe-liga-orquestrador.js:761 [ORQUESTRADOR] Iniciando carregamento do módulo rodadas...
+detalhe-liga-orquestrador.js:765 [ORQUESTRADOR] ✅ Módulo rodadas importado com sucesso
+detalhe-liga-orquestrador.js:770 [ORQUESTRADOR] Funções disponíveis: Array(4)
+rodadas.js:53 [RODADAS] 🎯 carregarRodadas chamada (refatorada)
+rodadas.js:36 [RODADAS] ✅ Módulos refatorados carregados com sucesso
+rodadas-orquestrador.js:88 [RODADAS-ORQUESTRADOR] carregarRodadas iniciada com forceRefresh: false
+rodadas-orquestrador.js:54 [RODADAS-ORQUESTRADOR] Carregando módulos de exportação...
+rodadas-orquestrador.js:69 [RODADAS-ORQUESTRADOR] Módulos externos carregados com sucesso
+rodadas-cache.js:33 [RODADAS-CACHE] Dados armazenados: status_mercado
+rodadas-ui.js:32 [RODADAS-UI] renderizarMiniCardsRodadas iniciada
+rodadas-ui.js:35 [RODADAS-UI] Container rodadasCards encontrado: true
+rodadas-ui.js:46 [RODADAS-UI] Status do mercado: Object
+rodadas-orquestrador.js:118 [RODADAS-ORQUESTRADOR] Carregamento concluído com sucesso
+rodadas.js:78 [RODADAS] ✅ Carregamento concluído via orquestrador
+rodadas-orquestrador.js:173  [RODADAS-ORQUESTRADOR] Erro em carregarDadosRodada: TypeError: rankingsDaRodada.map is not a function
+    at exibirRanking (rodadas-ui.js:187:6)
+    at carregarRodadaFinalizada (rodadas-orquestrador.js:196:3)
+    at carregarDadosRodada (rodadas-orquestrador.js:159:13)
+    at selecionarRodada (rodadas-ui.js:124:11)
+    at rodadas-orquestrador.js:322:9
+    at later (rodadas-cache.js:262:7)
+carregarDadosRodada @ rodadas-orquestrador.js:173
+rodadas-orquestrador.js:173  [RODADAS-ORQUESTRADOR] Erro em carregarDadosRodada: TypeError: rankingsDaRodada.map is not a function
+    at exibirRanking (rodadas-ui.js:187:6)
+    at carregarRodadaFinalizada (rodadas-orquestrador.js:196:3)
+    at carregarDadosRodada (rodadas-orquestrador.js:159:13)
+    at selecionarRodada (rodadas-ui.js:124:11)
+    at rodadas-orquestrador.js:322:9
+    at later (rodadas-cache.js:262:7)
+carregarDadosRodada @ rodadas-orquestrador.js:173
+rodadas-orquestrador.js:173  [RODADAS-ORQUESTRADOR] Erro em carregarDadosRodada: TypeError: rankingsDaRodada.map is not a function
+    at exibirRanking (rodadas-ui.js:187:6)
+    at carregarRodadaFinalizada (rodadas-orquestrador.js:196:3)
+    at carregarDadosRodada (rodadas-orquestrador.js:159:13)
+    at selecionarRodada (rodadas-ui.js:124:11)
+    at rodadas-orquestrador.js:322:9
+    at later (rodadas-cache.js:262:7)
+carregarDadosRodada @ rodadas-orquestrador.js:173
