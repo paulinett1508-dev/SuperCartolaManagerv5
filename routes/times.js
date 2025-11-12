@@ -9,7 +9,9 @@ import Time from "../models/Time.js";
 
 const router = express.Router();
 
-// Buscar um time específico por ID
+// ==============================
+// ROTA: Buscar um time específico por ID
+// ==============================
 router.get("/:id", async (req, res) => {
     try {
         console.log(`[TIMES] Requisição GET /:id recebida para ID: ${req.params.id}`);
@@ -40,60 +42,15 @@ router.get("/:id", async (req, res) => {
     }
 });
 
-// Buscar todos os times de uma liga
+// ==============================
+// ROTA: Buscar todos os times de uma liga
+// ==============================
 router.get("/liga/:ligaId", async (req, res) => {
     try {
         const { ligaId } = req.params;
         const times = await Time.find({ 
             liga_id: parseInt(ligaId), 
             ativo: true 
-
-
-// ==============================
-// ROTA: Gerenciar Senha do Participante
-// ==============================
-router.put("/:id/senha", async (req, res) => {
-    try {
-        const timeId = parseInt(req.params.id);
-        const { senha } = req.body;
-
-        if (isNaN(timeId)) {
-            return res.status(400).json({ erro: "ID inválido" });
-        }
-
-        if (!senha || senha.length < 4) {
-            return res.status(400).json({ 
-                erro: "Senha deve ter no mínimo 4 caracteres" 
-            });
-        }
-
-        const time = await Time.findOne({ id: timeId });
-        if (!time) {
-            return res.status(404).json({ erro: "Time não encontrado" });
-        }
-
-        time.senha_acesso = senha;
-        await time.save();
-
-        console.log(`✅ Senha atualizada para time ${timeId}`);
-
-        res.json({
-            mensagem: "Senha configurada com sucesso",
-            time_id: timeId
-        });
-    } catch (err) {
-        console.error("Erro ao configurar senha:", err);
-        res.status(500).json({ erro: err.message });
-    }
-});
-
-// ==============================
-// ROTAS DE STATUS
-// ==============================
-router.put("/:timeId/inativar", inativarParticipante);
-router.put("/:timeId/reativar", reativarParticipante);
-router.get("/:timeId/status", buscarStatusParticipante);
-
         });
         res.json(times);
     } catch (error) {
@@ -102,7 +59,9 @@ router.get("/:timeId/status", buscarStatusParticipante);
     }
 });
 
-// Rota para salvar senha de acesso do participante
+// ==============================
+// ROTA: Gerenciar Senha do Participante
+// ==============================
 router.put("/:id/senha", async (req, res) => {
     try {
         const { id } = req.params;
@@ -123,6 +82,8 @@ router.put("/:id/senha", async (req, res) => {
         time.senha_acesso = senha.trim();
         await time.save();
 
+        console.log(`✅ Senha atualizada para time ${id}`);
+
         res.json({ 
             success: true, 
             mensagem: "Senha atualizada com sucesso",
@@ -138,7 +99,16 @@ router.put("/:id/senha", async (req, res) => {
     }
 });
 
-// Rota para inativar time
+// ==============================
+// ROTAS DE STATUS
+// ==============================
+router.put("/:timeId/inativar", inativarParticipante);
+router.put("/:timeId/reativar", reativarParticipante);
+router.get("/:timeId/status", buscarStatusParticipante);
+
+// ==============================
+// ROTA: Inativar time (rota alternativa)
+// ==============================
 router.put("/:id/inativar", async (req, res) => {
     try {
         const { id } = req.params;
@@ -159,7 +129,9 @@ router.put("/:id/inativar", async (req, res) => {
     }
 });
 
-// Rota para reativar time
+// ==============================
+// ROTA: Reativar time (rota alternativa)
+// ==============================
 router.put("/:id/reativar", async (req, res) => {
     try {
         const { id } = req.params;
