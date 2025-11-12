@@ -1,5 +1,16 @@
 import express from "express";
-import { obterTimePorId } from "../controllers/timeController.js";
+import {
+  buscarTimes,
+  buscarTimePorId,
+  criarTime,
+  atualizarTime,
+  deletarTime,
+} from "../controllers/timeController.js";
+import {
+  inativarParticipante,
+  reativarParticipante,
+  buscarStatusParticipante,
+} from "../controllers/participanteStatusController.js";
 import Time from "../models/Time.js";
 
 const router = express.Router();
@@ -8,7 +19,7 @@ const router = express.Router();
 router.get("/:id", async (req, res) => {
     try {
         console.log(`[TIMES] Requisição GET /:id recebida para ID: ${req.params.id}`);
-        
+
         const timeId = parseInt(req.params.id);
 
         if (isNaN(timeId)) {

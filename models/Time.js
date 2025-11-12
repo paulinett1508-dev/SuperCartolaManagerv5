@@ -9,6 +9,7 @@ const TimeSchema = new mongoose.Schema({
   clube_id: { type: Number },
   ativo: { type: Boolean, default: true },
   rodada_desistencia: { type: Number, default: null },
+  data_desistencia: { type: Date, default: null },
   senha_acesso: { type: String, default: "" }, // Senha para acesso ao app
 });
 

@@ -98,13 +98,19 @@ export const obterTimePorId = async (req, res) => {
     }
 
     if (time) {
-      const resultado = {
-        nome_time: time.nome_time || "N/D",
-        nome_cartoleiro: time.nome_cartoleiro || time.nome_cartola || "N/D",
-        url_escudo_png: time.url_escudo_png || time.escudo || "",
-        clube_id: time.clube_id || null,
-      };
-      return res.status(200).json(resultado);
+      // Atualiza para incluir campos de status
+      return res.json({
+        id: time.id,
+        nome_time: time.nome_time,
+        nome_cartoleiro: time.nome_cartoleiro,
+        url_escudo_png: time.url_escudo_png,
+        clube_id: time.clube_id,
+        assinante: time.assinante,
+        senha_acesso: time.senha_acesso,
+        ativo: time.ativo !== false,
+        rodada_desistencia: time.rodada_desistencia,
+        data_desistencia: time.data_desistencia,
+      });
     }
 
     // Mantém lógica original de buscar na API se não encontrar
