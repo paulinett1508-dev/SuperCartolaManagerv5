@@ -442,26 +442,22 @@
     <!-- Scripts de Autenticação -->
     <script src="/participante/js/participante-auth.js"></script>
 
-    <!-- Módulos de funcionalidades (carregar ANTES da navegação) -->
+    <!-- ✅ CRITICAL: Módulo DEVE carregar ANTES de tudo -->
     <script src="/participante/js/modules/participante-extrato.js"></script>
-
-    <!-- Script de inicialização que garante ordem de carregamento -->
+    
+    <!-- ✅ Verificação IMEDIATA após carregamento -->
     <script>
-        // Garantir que módulos estejam carregados antes de inicializar navegação
-        window.modulosCarregados = false;
+        console.log('[PARTICIPANTE-DASHBOARD] 🔍 Verificando módulo IMEDIATAMENTE após tag script');
+        console.log('[PARTICIPANTE-DASHBOARD] typeof window.inicializarExtratoParticipante =', typeof window.inicializarExtratoParticipante);
         
-        function verificarModulos() {
-            if (typeof window.inicializarExtratoParticipante === 'function') {
-                console.log('[PARTICIPANTE-DASHBOARD] ✅ Módulo extrato carregado');
-                window.modulosCarregados = true;
-                return true;
-            }
-            console.warn('[PARTICIPANTE-DASHBOARD] ⚠️ Aguardando módulo extrato...');
-            return false;
+        if (typeof window.inicializarExtratoParticipante === 'function') {
+            console.log('[PARTICIPANTE-DASHBOARD] ✅ Módulo extrato CONFIRMADO como carregado');
+            window.moduloExtratoOK = true;
+        } else {
+            console.error('[PARTICIPANTE-DASHBOARD] ❌ ERRO: Módulo extrato NÃO carregou!');
+            console.error('[PARTICIPANTE-DASHBOARD] Scripts carregados:', document.querySelectorAll('script[src]').length);
+            window.moduloExtratoOK = false;
         }
-        
-        // Verificar imediatamente
-        verificarModulos();
     </script>
 
     <!-- Sistema de Navegação -->

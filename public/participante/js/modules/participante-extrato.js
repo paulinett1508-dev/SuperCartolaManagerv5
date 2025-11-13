@@ -2,6 +2,8 @@
 // Integra com fluxo-financeiro-participante.js
 
 console.log('[EXTRATO-PARTICIPANTE] 🔄 Carregando módulo...');
+console.log('[EXTRATO-PARTICIPANTE] ⏱️ Timestamp:', new Date().toISOString());
+console.log('[EXTRATO-PARTICIPANTE] 📍 window object exists:', typeof window);
 
 window.inicializarExtratoParticipante = async function(participanteData) {
     console.log('[EXTRATO-PARTICIPANTE] 🔄 Inicializando para:', participanteData);
@@ -92,3 +94,13 @@ function mostrarErro(mensagem) {
 };
 
 console.log('[EXTRATO-PARTICIPANTE] ✅ Função exposta globalmente:', typeof window.inicializarExtratoParticipante);
+console.log('[EXTRATO-PARTICIPANTE] ✅ Função registrada em:', new Date().toISOString());
+
+// ✅ GARANTIR que a função está disponível
+if (typeof window.inicializarExtratoParticipante !== 'function') {
+    console.error('[EXTRATO-PARTICIPANTE] ❌ ERRO CRÍTICO: Função não foi registrada!');
+} else {
+    console.log('[EXTRATO-PARTICIPANTE] ✅ CONFIRMADO: Função disponível para uso');
+    // Disparar evento personalizado para notificar que módulo carregou
+    window.dispatchEvent(new CustomEvent('moduloExtratoCarregado'));
+}

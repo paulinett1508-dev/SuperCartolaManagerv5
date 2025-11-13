@@ -38,15 +38,33 @@ class ParticipanteNavigation {
 
     async aguardarModulosENavegar() {
         console.log('[PARTICIPANTE-NAV] Aguardando módulos...');
+        console.log('[PARTICIPANTE-NAV] 🔍 Debug: typeof window.inicializarExtratoParticipante =', typeof window.inicializarExtratoParticipante);
+        console.log('[PARTICIPANTE-NAV] 🔍 Debug: window object keys:', Object.keys(window).filter(k => k.includes('inicializar')));
         
         let tentativas = 0;
         const maxTentativas = 20; // 2 segundos máximo
+        let moduloCarregado = false;
+        
+        // ✅ ESCUTAR EVENTO DE CARREGAMENTO DO MÓDULO
+        const handleModuloCarregado = () => {
+            console.log('[PARTICIPANTE-NAV] 📢 Evento de módulo carregado recebido!');
+            moduloCarregado = true;
+            if (typeof window.inicializarExtratoParticipante === 'function') {
+                console.log('[PARTICIPANTE-NAV] ✅ Módulos carregados via evento, navegando...');
+                this.navegarPara('extrato');
+            }
+        };
+        
+        window.addEventListener('moduloExtratoCarregado', handleModuloCarregado, { once: true });
         
         const verificar = () => {
             tentativas++;
             
+            console.log(`[PARTICIPANTE-NAV] 🔍 Tentativa ${tentativas}: typeof =`, typeof window.inicializarExtratoParticipante);
+            
             if (typeof window.inicializarExtratoParticipante === 'function') {
                 console.log('[PARTICIPANTE-NAV] ✅ Módulos carregados, navegando...');
+                window.removeEventListener('moduloExtratoCarregado', handleModuloCarregado);
                 this.navegarPara('extrato');
                 return;
             }
