@@ -50,10 +50,17 @@
                         <span id="statusIndicador" style="width: 8px; height: 8px; border-radius: 50%; background: #22c55e;"></span>
                         <span id="statusTexto" style="color: #999;">Online</span>
                     </div>
-                    <button class="btn-logout" onclick="logout()">
-                        <span class="logout-icon">🚪</span>
-                        <span class="logout-text">Sair</span>
-                    </button>
+                    <!-- Botão Home -->
+        <button class="btn-home" onclick="participanteNav.navegarPara('boas-vindas')">
+            <span class="home-icon">🏠</span>
+            <span class="home-text">Início</span>
+        </button>
+
+        <!-- Botão Logout -->
+        <button class="btn-logout" onclick="logout()">
+            <span class="logout-icon">🚪</span>
+            <span class="logout-text">Sair</span>
+        </button>
                 </div>
             </div>
         </header>

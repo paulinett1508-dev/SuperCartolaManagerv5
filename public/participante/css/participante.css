@@ -174,6 +174,55 @@ body {
     }
 }
 
+/* === BOTÃO HOME === */
+.btn-home {
+    background: rgba(59, 130, 246, 0.15);
+    color: #3b82f6;
+    border: 1px solid rgba(59, 130, 246, 0.3);
+    padding: 8px 10px;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    font-size: 12px;
+    white-space: nowrap;
+    flex-shrink: 0;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    min-height: 40px;
+    font-weight: 600;
+}
+
+.btn-home:active {
+    background: rgba(59, 130, 246, 0.3);
+    transform: scale(0.96);
+}
+
+.home-icon {
+    font-size: 14px;
+}
+
+.home-text {
+    display: none;
+}
+
+@media (min-width: 768px) {
+    .home-text {
+        display: inline;
+    }
+    
+    .btn-home {
+        padding: 10px 14px;
+        gap: 6px;
+        min-height: 44px;
+    }
+
+    .btn-home:hover {
+        background: rgba(59, 130, 246, 0.25);
+        transform: translateY(-1px);
+    }
+}
+
 /* === BOTÃO LOGOUT === */
 .btn-logout {
     background: rgba(255, 69, 0, 0.15);
