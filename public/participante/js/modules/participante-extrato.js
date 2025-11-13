@@ -28,8 +28,16 @@ async function inicializarExtratoParticipante(participanteData) {
 
         console.log('[EXTRATO-PARTICIPANTE] 📦 Importando módulo de fluxo financeiro...');
         
-        // Importar módulo de extrato financeiro
-        const { fluxoFinanceiroParticipante } = await import('/js/fluxo-financeiro/fluxo-financeiro-participante.js');
+        // Importar módulo de extrato financeiro dinamicamente
+        let fluxoFinanceiroParticipante;
+        try {
+            const module = await import('/js/fluxo-financeiro/fluxo-financeiro-participante.js');
+            fluxoFinanceiroParticipante = module.fluxoFinanceiroParticipante;
+            console.log('[EXTRATO-PARTICIPANTE] ✅ Módulo importado:', typeof fluxoFinanceiroParticipante);
+        } catch (importError) {
+            console.error('[EXTRATO-PARTICIPANTE] ❌ Erro ao importar módulo:', importError);
+            throw new Error('Falha ao importar módulo de fluxo financeiro');
+        }
 
         console.log('[EXTRATO-PARTICIPANTE] ⚙️ Inicializando módulo...');
         
@@ -41,6 +49,9 @@ async function inicializarExtratoParticipante(participanteData) {
         });
 
         console.log('[EXTRATO-PARTICIPANTE] 💰 Carregando extrato...');
+        
+        // Aguardar pequeno delay para garantir que o DOM esteja pronto
+        await new Promise(resolve => setTimeout(resolve, 200));
         
         // Carregar extrato (container já tem ID correto: fluxoFinanceiroContent)
         await fluxoFinanceiroParticipante.carregarExtrato();

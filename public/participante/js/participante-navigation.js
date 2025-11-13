@@ -99,22 +99,22 @@ class ParticipanteNavigation {
 
         switch(modulo) {
             case 'extrato':
-                // Aguardar até que a função esteja disponível (máximo 3 segundos)
-                let tentativas = 0;
-                while (!window.inicializarExtratoParticipante && tentativas < 30) {
-                    console.log(`[PARTICIPANTE-NAV] Aguardando módulo de extrato... (${tentativas + 1}/30)`);
-                    await new Promise(resolve => setTimeout(resolve, 100));
-                    tentativas++;
-                }
-
-                if (window.inicializarExtratoParticipante) {
+                if (typeof window.inicializarExtratoParticipante === 'function') {
                     console.log('[PARTICIPANTE-NAV] Chamando inicializarExtratoParticipante com dados:', participanteData);
-                    await window.inicializarExtratoParticipante(participanteData);
+                    try {
+                        await window.inicializarExtratoParticipante(participanteData);
+                    } catch (error) {
+                        console.error('[PARTICIPANTE-NAV] Erro ao inicializar extrato:', error);
+                        const container = document.getElementById('moduleContainer');
+                        if (container) {
+                            container.innerHTML = `<div style="text-align: center; padding: 40px; color: #ef4444;"><h3>❌ Erro ao carregar extrato</h3><p>${error.message}</p><button onclick="window.location.reload()" style="margin-top: 20px; padding: 10px 20px; background: #ff4500; color: white; border: none; border-radius: 8px; cursor: pointer;">🔄 Recarregar</button></div>`;
+                        }
+                    }
                 } else {
-                    console.error('[PARTICIPANTE-NAV] Função inicializarExtratoParticipante não encontrada após timeout');
+                    console.error('[PARTICIPANTE-NAV] Função inicializarExtratoParticipante não encontrada');
                     const container = document.getElementById('moduleContainer');
                     if (container) {
-                        container.innerHTML = '<div style="text-align: center; padding: 40px; color: #ef4444;"><h3>❌ Erro ao carregar módulo de extrato</h3><p>Por favor, recarregue a página</p></div>';
+                        container.innerHTML = '<div style="text-align: center; padding: 40px; color: #ef4444;"><h3>❌ Módulo de extrato não carregado</h3><p>Por favor, recarregue a página</p><button onclick="window.location.reload()" style="margin-top: 20px; padding: 10px 20px; background: #ff4500; color: white; border: none; border-radius: 8px; cursor: pointer;">🔄 Recarregar</button></div>';
                     }
                 }
                 break;
