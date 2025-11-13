@@ -1,4 +1,5 @@
 
+
 <div id="extratoFinanceiro" class="extrato-container">
     <!-- Header compacto com resumo inline -->
     <div class="extrato-header-compact">
@@ -27,7 +28,15 @@
         </div>
     </div>
 
-    <!-- Controles removidos temporariamente -->
+    <!-- Botões de ação -->
+    <div class="extrato-actions">
+        <button id="cacheBtn" class="extrato-btn extrato-btn-secondary">
+            💾 Info Cache
+        </button>
+        <button id="atualizarBtn" class="extrato-btn extrato-btn-primary">
+            🔄 Atualizar
+        </button>
+    </div>
 
     <!-- Tabela de transações mobile-optimized -->
     <div id="fluxoFinanceiroContent" class="extrato-content">
@@ -162,7 +171,7 @@
     border-bottom: 1px solid rgba(255, 255, 255, 0.05);
 }
 
-.action-btn {
+.extrato-btn {
     flex: 1;
     display: flex;
     align-items: center;
@@ -180,21 +189,17 @@
     min-height: 44px;
 }
 
-.action-btn.primary {
+.extrato-btn-primary {
     background: linear-gradient(135deg, var(--participante-primary) 0%, #e8472b 100%);
     border-color: var(--participante-primary);
 }
 
-.action-btn.secondary {
+.extrato-btn-secondary {
     background: rgba(255, 255, 255, 0.05);
 }
 
-.action-btn:active {
+.extrato-btn:active {
     transform: scale(0.96);
-}
-
-.btn-icon {
-    font-size: 16px;
 }
 
 /* Conteúdo com tabela full-width */
@@ -337,7 +342,7 @@
         padding: 20px;
     }
 
-    .action-btn {
+    .extrato-btn {
         max-width: 200px;
     }
 
@@ -364,3 +369,4 @@
     }
 }
 </style>
+
