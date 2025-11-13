@@ -705,6 +705,20 @@
             // Dados do participante
             participanteAtual: null,
 
+            // Carrega o HTML de um front específico
+            async carregarFrontHTML(nomeFront) {
+                try {
+                    const response = await fetch(`/participante/fronts/${nomeFront}.html`);
+                    if (!response.ok) {
+                        throw new Error(`Erro ao carregar front ${nomeFront}.html: ${response.statusText}`);
+                    }
+                    return await response.text();
+                } catch (error) {
+                    console.error('[PARTICIPANTE-DASHBOARD] Erro ao carregar front:', error);
+                    throw error; // Re-throw para ser capturado pelo chamador
+                }
+            },
+
             // Renderizar menu baseado na liga
             renderizarMenu() {
                 const ligaId = this.participanteAtual?.ligaId;
@@ -939,94 +953,21 @@
                 }
             },
 
-            // Renderizar classificação destacando o participante
+            // Renderizar classificação usando módulo dedicado
             async renderClassificacao() {
                 const container = document.getElementById('moduleContainer');
                 container.innerHTML = '<div style="text-align: center; padding: 40px;"><div class="loading-spinner-professional"></div><p style="margin-top: 20px;">Carregando classificação...</p></div>';
 
                 try {
-                    // ✅ Buscar rodadas e calcular classificação
-                    const rodadasResponse = await fetch(`/api/rodadas/${this.participanteAtual.ligaId}/rodadas?inicio=1&fim=38`);
-                    if (!rodadasResponse.ok) {
-                        throw new Error('Erro ao buscar rodadas');
-                    }
-
-                    const todasRodadas = await rodadasResponse.json();
-
-                    // Agrupar por participante e calcular estatísticas
-                    const porParticipante = {};
-                    todasRodadas.forEach(r => {
-                        const tid = String(r.timeId);
-                        if (!porParticipante[tid]) {
-                            porParticipante[tid] = {
-                                timeId: tid,
-                                nome_time: r.nomeTime,
-                                nome_cartoleiro: r.nomeCartoleiro,
-                                clube_id: r.clubeId,
-                                rodadas: [],
-                                pontos: 0,
-                                vitorias: 0,
-                                empates: 0,
-                                derrotas: 0
-                            };
-                        }
-                        porParticipante[tid].rodadas.push(r);
-                        porParticipante[tid].pontos += r.pontos || 0;
-                    });
-
-                    // Calcular V/E/D
-                    Object.values(porParticipante).forEach(p => {
-                        p.rodadas.forEach(rodada => {
-                            const outrasDaRodada = todasRodadas.filter(r => r.rodada === rodada.rodada && r.timeId !== p.timeId);
-                            const meusPontos = rodada.pontos || 0;
-
-                            outrasDaRodada.forEach(adversario => {
-                                const pontosAdv = adversario.pontos || 0;
-                                if (meusPontos > pontosAdv) p.vitorias++;
-                                else if (meusPontos === pontosAdv) p.empates++;
-                                else p.derrotas++;
-                            });
-                        });
-                    });
-
-                    const data = {
-                        classificacao: Object.values(porParticipante)
-                            .sort((a, b) => b.pontos - a.pontos)
-                            .map((p, idx) => ({ ...p, posicao: idx + 1 }))
-                    };
-
-                    if (!data.classificacao || data.classificacao.length === 0) {
-                        throw new Error('Nenhum dado de classificação disponível');
-                    }
-
-                    const html = `
-                        <div style="padding: 20px;">
-                            <h2 style="margin: 0 0 20px 0; font-size: 22px; font-weight: 800; color: var(--text-primary);">🏆 Classificação Geral</h2>
-                            <div style="background: var(--bg-card); border-radius: 12px; overflow: hidden; border: 1px solid rgba(255, 69, 0, 0.1);">
-                                ${data.classificacao.map((p, idx) => {
-                                    const isMe = p.timeId === this.participanteAtual.timeId;
-                                    return `
-                                        <div style="display: flex; align-items: center; gap: 12px; padding: 16px; border-bottom: 1px solid rgba(255, 255, 255, 0.05); ${isMe ? 'background: linear-gradient(135deg, rgba(255, 69, 0, 0.15) 0%, rgba(255, 69, 0, 0.05) 100%); border-left: 4px solid var(--laranja);' : ''}">
-                                            <div style="font-size: 18px; font-weight: 800; color: ${idx < 3 ? '#fbbf24' : 'var(--text-muted)'}; min-width: 30px;">${idx + 1}º</div>
-                                            ${p.clube_id ? `<img src="/escudos/${p.clube_id}.png" style="width: 32px; height: 32px; border-radius: 50%; background: white;" onerror="this.src='/escudos/default.png'">` : '<div style="width: 32px; height: 32px; background: var(--laranja); border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 16px;">⚽</div>'}
-                                            <div style="flex: 1; min-width: 0;">
-                                                <div style="font-weight: ${isMe ? '800' : '600'}; color: ${isMe ? 'var(--laranja)' : 'var(--text-primary)'}; font-size: 14px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">${p.nome_time}</div>
-                                                <div style="font-size: 11px; color: var(--text-muted);">${p.nome_cartola}</div>
-                                            </div>
-                                            <div style="text-align: right;">
-                                                <div style="font-size: 18px; font-weight: 800; color: var(--laranja);">${p.pontos}</div>
-                                                <div style="font-size: 10px; color: var(--text-muted);">${p.vitorias}V ${p.empates}E ${p.derrotas}D</div>
-                                            </div>
-                                            ${isMe ? '<div style="font-size: 20px;">👈</div>' : ''}
-                                        </div>
-                                    `;
-                                }).join('')}
-                            </div>
-                        </div>
-                    `;
-
+                    // Carregar HTML do front
+                    const html = await this.carregarFrontHTML('ranking');
                     container.innerHTML = html;
+
+                    // Carregar e inicializar módulo JS
+                    const { inicializarRankingParticipante } = await import('/participante/js/modules/participante-ranking.js');
+                    await inicializarRankingParticipante(this.participanteAtual);
                 } catch (error) {
+                    console.error('[PARTICIPANTE] Erro ao carregar classificação:', error);
                     container.innerHTML = '<div style="text-align: center; padding: 40px; color: #ef4444;"><h3>❌ Erro ao carregar</h3></div>';
                 }
             },
