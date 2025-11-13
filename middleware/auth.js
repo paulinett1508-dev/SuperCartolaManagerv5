@@ -7,6 +7,11 @@
  * Verifica se o participante está autenticado via sessão
  */
 export function verificarAutenticacaoParticipante(req, res, next) {
+  // Permitir rotas de API sem autenticação de participante
+  if (req.url.startsWith('/api/')) {
+    return next();
+  }
+
   // Verificar se há sessão de participante
   if (req.session && req.session.participante) {
     return next();

@@ -7,17 +7,23 @@ export function validarLigaId(ligaId) {
     return { valido: false, erro: 'Liga ID é obrigatório' };
   }
 
-  if (ligaId === 'null' || ligaId === 'undefined' || ligaId.toString().trim() === '') {
+  const ligaIdStr = ligaId.toString().trim();
+  
+  if (ligaIdStr === '' || ligaIdStr === 'null' || ligaIdStr === 'undefined') {
     return { valido: false, erro: 'Liga ID inválido' };
   }
 
   // Verificar se é um ObjectId válido do MongoDB (24 caracteres hexadecimais)
   const objectIdRegex = /^[0-9a-fA-F]{24}$/;
-  if (!objectIdRegex.test(ligaId.toString())) {
-    return { valido: false, erro: 'Liga ID deve ser um ObjectId válido (24 caracteres hexadecimais)' };
+  if (!objectIdRegex.test(ligaIdStr)) {
+    // Se não for ObjectId, permitir IDs numéricos
+    const numericId = parseInt(ligaIdStr);
+    if (isNaN(numericId) || numericId <= 0) {
+      return { valido: false, erro: 'Liga ID deve ser um ObjectId válido ou número positivo' };
+    }
   }
 
-  return { valido: true };
+  return { valido: true, ligaId: ligaIdStr };
 }
 
 // Validador de Rodada

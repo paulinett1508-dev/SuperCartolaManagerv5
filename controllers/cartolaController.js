@@ -91,7 +91,7 @@ export async function obterEscalacao(req, res) {
   }
 }
 
-// Função para buscar o status do mercado - CORRIGIDA
+// Função para buscar o status do mercado
 export async function getMercadoStatus(req, res) {
   try {
     console.log("[CARTOLA-CONTROLLER] Buscando status do mercado...");
@@ -129,15 +129,11 @@ export async function getMercadoStatus(req, res) {
       error.message,
     );
 
-    // FALLBACK: Retornar dados padrão baseados no que você viu na API
-    console.log(
-      "[CARTOLA-CONTROLLER] Usando fallback - rodada 23, mercado aberto",
-    );
-    res.status(200).json({
-      rodada_atual: 23,
-      status_mercado: 1,
-      mercado_aberto: true,
-      fechamento: null,
+    // Retornar erro apropriado
+    res.status(503).json({
+      error: "API do Cartola FC indisponível no momento",
+      message: error.message,
+      retry_after: 60
     });
   }
 }

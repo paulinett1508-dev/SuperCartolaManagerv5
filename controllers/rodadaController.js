@@ -11,6 +11,9 @@ const REQUEST_DELAY = 1000; // 1s entre lotes (aumentado)
 const MAX_RETRIES = 5; // Mais tentativas
 const TIMEOUT_MS = 15000; // 15 segundos por request (aumentado)
 
+// Constante para limite de erros consecutivos
+const MAX_ERROS_CONSECUTIVOS = 3;
+
 // === FUNÇÃO AUXILIAR: Sleep ===
 const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
 
@@ -24,12 +27,12 @@ async function retryRequest(fn, retries = MAX_RETRIES) {
         console.error(`Todas as ${retries} tentativas falharam:`, error.message);
         throw error;
       }
-      
+
       // Backoff exponencial com jitter para evitar thundering herd
       const baseDelay = 1000 * Math.pow(2, i);
       const jitter = Math.random() * 1000;
       const delay = Math.min(baseDelay + jitter, 10000); // Max 10s
-      
+
       console.warn(
         `Tentativa ${i + 1}/${retries} falhou: ${error.message}. Aguardando ${Math.round(delay)}ms...`,
       );
@@ -85,7 +88,7 @@ async function buscarPontosRodada(timeId, rodada) {
     try {
       const res = await fetch(
         `https://api.cartola.globo.com/time/id/${timeId}/${rodada}`,
-        { 
+        {
           signal: controller.signal,
           headers: {
             'User-Agent': 'Super-Cartola-Manager/1.0.0',
@@ -119,11 +122,11 @@ async function buscarPontosRodada(timeId, rodada) {
         console.error(`Timeout ao buscar time ${timeId} rodada ${rodada}`);
         throw new Error(`Timeout na requisição para time ${timeId}`);
       }
-      
+
       if (err.code === 'ECONNRESET' || err.code === 'ENOTFOUND' || err.code === 'ECONNREFUSED') {
         throw new Error(`Erro de conexão com API Cartola: ${err.code}`);
       }
-      
+
       throw err;
     }
   });
@@ -133,7 +136,6 @@ async function buscarPontosRodada(timeId, rodada) {
 async function processarTimesEmLotes(times, rodada, ligaId) {
   const resultados = [];
   let errosConsecutivos = 0;
-  const MAX_ERROS_CONSECUTIVOS = 5;
 
   for (let i = 0; i < times.length; i += BATCH_SIZE) {
     const lote = times.slice(i, i + BATCH_SIZE);
@@ -159,15 +161,15 @@ async function processarTimesEmLotes(times, rodada, ligaId) {
             pontos,
             rodadaNaoJogada: false,
           });
-          
+
           errosConsecutivos = 0; // Reset contador de erros
-          
+
           // Pequeno delay entre times do mesmo lote
           await sleep(200);
         } catch (timeError) {
           console.warn(`Erro ao buscar time ${time.id}: ${timeError.message}`);
           errosConsecutivos++;
-          
+
           // Registro com erro
           resultadosLote.push({
             ligaId,
@@ -182,7 +184,7 @@ async function processarTimesEmLotes(times, rodada, ligaId) {
             rodadaNaoJogada: true,
             erro: timeError.message.substring(0, 100),
           });
-          
+
           // Se muitos erros consecutivos, parar
           if (errosConsecutivos >= MAX_ERROS_CONSECUTIVOS) {
             throw new Error(`Muitos erros consecutivos (${errosConsecutivos}). API indisponível.`);
@@ -285,11 +287,13 @@ export async function popularRodadas(req, res) {
       );
       if (statusRes.ok) {
         const statusData = await statusRes.json();
-        rodadaAtual = statusData.rodada_atual || 38;
+        rodadaAtual = statusData.rodada_atual || 38; // Usar rodada atual ou fallback para 38
+      } else {
+        console.warn(`API Cartola retornou status ${statusRes.status} ao buscar mercado/status`);
       }
     } catch (err) {
       console.warn(
-        "Erro ao buscar status do mercado, usando rodada 38 como limite",
+        "Erro ao buscar status do mercado, usando rodada 38 como limite", err.message
       );
     }
 
@@ -357,7 +361,7 @@ export async function popularRodadas(req, res) {
             rodadasData = await processarTimesEmLotes(times, rodada, ligaId);
           } catch (error) {
             console.error(`Erro ao buscar pontos da rodada ${rodada}:`, error.message);
-            
+
             // Fallback: criar registros com pontos zerados
             console.warn(`Criando registros com pontos zerados para rodada ${rodada}`);
             rodadasData = times.map((time) => ({
