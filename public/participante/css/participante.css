@@ -75,7 +75,7 @@ body {
     align-items: center;
 }
 
-.escudo-coracao,
+/* Escudo do time do Cartola */
 .escudo-time {
     width: 44px;
     height: 44px;
@@ -85,6 +85,18 @@ body {
     object-fit: cover;
     transition: transform 0.2s ease;
     box-shadow: 0 2px 6px rgba(0, 0, 0, 0.3);
+}
+
+/* Escudo do time do coração */
+.escudo-coracao {
+    width: 44px;
+    height: 44px;
+    border-radius: 50%;
+    border: 2px solid #FFD700;
+    background: rgba(255, 215, 0, 0.1);
+    object-fit: cover;
+    transition: transform 0.2s ease;
+    box-shadow: 0 2px 6px rgba(255, 215, 0, 0.3);
 }
 
 .escudo-coracao:active,
