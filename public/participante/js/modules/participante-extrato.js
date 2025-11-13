@@ -17,18 +17,18 @@ export async function inicializarExtratoParticipante(participanteData) {
     try {
         // ✅ GARANTIR QUE O CONTAINER EXISTE
         const container = document.getElementById('extratoFinanceiro');
-        
+
         if (!container) {
             console.error('[EXTRATO-PARTICIPANTE] ❌ Container #extratoFinanceiro não encontrado no DOM');
             console.log('[EXTRATO-PARTICIPANTE] Containers disponíveis:', 
                 Array.from(document.querySelectorAll('[id]')).map(el => el.id)
             );
-            
+
             throw new Error('Container #extratoFinanceiro não encontrado. Verifique se extrato.html foi carregado corretamente.');
         }
 
         console.log('[EXTRATO-PARTICIPANTE] 📦 Importando módulo de fluxo financeiro...');
-        
+
         // Importar módulo de extrato financeiro dinamicamente
         let fluxoFinanceiroParticipante;
         try {
@@ -41,7 +41,7 @@ export async function inicializarExtratoParticipante(participanteData) {
         }
 
         console.log('[EXTRATO-PARTICIPANTE] ⚙️ Inicializando módulo...');
-        
+
         // Inicializar com dados do participante
         await fluxoFinanceiroParticipante.inicializar({
             timeId: participanteData.timeId,
@@ -50,15 +50,15 @@ export async function inicializarExtratoParticipante(participanteData) {
         });
 
         console.log('[EXTRATO-PARTICIPANTE] 💰 Carregando extrato...');
-        
+
         // Aguardar pequeno delay para garantir que o DOM esteja pronto
         await new Promise(resolve => setTimeout(resolve, 200));
-        
+
         // Carregar extrato (container já tem ID correto: fluxoFinanceiroContent)
         await fluxoFinanceiroParticipante.carregarExtrato();
 
         console.log('[EXTRATO-PARTICIPANTE] ✅ Extrato carregado com sucesso');
-        
+
     } catch (error) {
         console.error('[EXTRATO-PARTICIPANTE] ❌ Erro detalhado:', {
             message: error.message,
@@ -73,7 +73,7 @@ export async function inicializarExtratoParticipante(participanteData) {
 function mostrarErro(mensagem) {
     const container = document.getElementById('fluxoFinanceiroContent') || 
                      document.getElementById('moduleContainer');
-    
+
     if (container) {
         container.innerHTML = `
             <div style="text-align: center; padding: 40px; background: rgba(239, 68, 68, 0.1); 
