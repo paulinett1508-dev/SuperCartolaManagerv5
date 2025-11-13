@@ -1,13 +1,9 @@
 
 
 <div id="extratoFinanceiro" class="extrato-container">
-    <!-- Header compacto com resumo inline -->
+    <!-- Header compacto -->
     <div class="extrato-header-compact">
         <h2 class="extrato-title">💰 Extrato</h2>
-        <div class="saldo-principal">
-            <span class="saldo-label">Saldo a Pagar</span>
-            <span id="saldoTotalHeader" class="saldo-valor">R$ 0,00</span>
-        </div>
     </div>
 
     <!-- Cards resumo horizontal (estilo Nubank) -->
@@ -65,27 +61,7 @@
     font-size: 18px;
     font-weight: 700;
     color: var(--participante-primary);
-    margin: 0 0 12px 0;
-}
-
-.saldo-principal {
-    display: flex;
-    justify-content: space-between;
-    align-items: baseline;
-}
-
-.saldo-label {
-    font-size: 12px;
-    color: #999;
-    text-transform: uppercase;
-    letter-spacing: 0.5px;
-}
-
-.saldo-valor {
-    font-size: 24px;
-    font-weight: 800;
-    color: #fff;
-    font-family: 'JetBrains Mono', monospace;
+    margin: 0;
 }
 
 /* Cards horizontais estilo fintech */
