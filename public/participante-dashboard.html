@@ -438,6 +438,12 @@
         }
 
   </style>
+  <!-- Scripts de Módulos (carregar ANTES da navegação) -->
+    <script src="/participante/js/modules/participante-extrato.js"></script>
+
+    <!-- Scripts de Navegação -->
+    <script src="/participante/js/participante-auth.js"></script>
+    <script src="/participante/js/participante-navigation.js"></script>
 </head>
 <body>
   <!-- HEADER PROFISSIONAL COM NAVEGAÇÃO -->
@@ -559,24 +565,24 @@
                 const userAvatar = document.getElementById('userAvatar');
 
                 // Priorizar dados da API do Cartola, depois dados da sessão
-                const nomeCartola = dadosCompletos?.nome_cartoleiro || 
-                                   participante.participante?.nome_cartola || 
-                                   participante.nomeCartola || 
-                                   participante.nome_cartola || 
+                const nomeCartola = dadosCompletos?.nome_cartoleiro ||
+                                   participante.participante?.nome_cartola ||
+                                   participante.nomeCartola ||
+                                   participante.nome_cartola ||
                                    'Participante';
 
-                const nomeTime = dadosCompletos?.nome || 
-                                participante.participante?.nome_time || 
-                                participante.nomeTime || 
-                                participante.nome_time || 
+                const nomeTime = dadosCompletos?.nome ||
+                                participante.participante?.nome_time ||
+                                participante.nomeTime ||
+                                participante.nome_time ||
                                 'Time';
 
-                const clubeId = dadosCompletos?.clube_id || 
-                               participante.participante?.clube_id || 
+                const clubeId = dadosCompletos?.clube_id ||
+                               participante.participante?.clube_id ||
                                participante.clube_id;
 
-                const escudoUrl = dadosCompletos?.url_escudo_png || 
-                                 participante.participante?.url_escudo_png || 
+                const escudoUrl = dadosCompletos?.url_escudo_png ||
+                                 participante.participante?.url_escudo_png ||
                                  participante.url_escudo_png ||
                                  (clubeId ? `/escudos/${clubeId}.png` : null);
 
@@ -663,14 +669,14 @@
                     const extratoContainer = document.getElementById('fluxoFinanceiroContent');
                     if (extratoContainer) {
                         extratoContainer.innerHTML = `
-                            <div style="text-align: center; padding: 40px; background: rgba(239, 68, 68, 0.1); 
+                            <div style="text-align: center; padding: 40px; background: rgba(239, 68, 68, 0.1);
                                         border-radius: 12px; border: 1px solid rgba(239, 68, 68, 0.3);">
                                 <div style="font-size: 48px; margin-bottom: 16px;">⚠️</div>
                                 <h3 style="color: #ef4444; margin-bottom: 12px;">Erro ao Carregar Extrato</h3>
                                 <p style="color: #e0e0e0;">${error.message}</p>
-                                <button onclick="window.location.reload()" 
-                                        style="padding: 12px 24px; background: linear-gradient(135deg, #ff4500 0%, #e8472b 100%); 
-                                               color: white; border: none; border-radius: 8px; cursor: pointer; 
+                                <button onclick="window.location.reload()"
+                                        style="padding: 12px 24px; background: linear-gradient(135deg, #ff4500 0%, #e8472b 100%);
+                                               color: white; border: none; border-radius: 8px; cursor: pointer;
                                                font-weight: 600; font-size: 14px; margin-top: 16px;">
                                     🔄 Recarregar Página
                                 </button>
@@ -897,7 +903,7 @@
                             const todasRodadas = await rodadasResponse.json();
                             console.log('[PARTICIPANTE-DASHBOARD] Total de rodadas recebidas:', todasRodadas.length);
 
-                            const rodadasParticipante = todasRodadas.filter(r => 
+                            const rodadasParticipante = todasRodadas.filter(r =>
                                 String(r.timeId) === String(timeId)
                             );
                             console.log('[PARTICIPANTE-DASHBOARD] Rodadas do participante:', rodadasParticipante.length);
@@ -1160,19 +1166,19 @@
                         // ✅ USAR O MÓDULO CORRETO DO FLUXO FINANCEIRO
                         console.log('[PARTICIPANTE-DASHBOARD] 🔄 Carregando módulo de extrato...');
                         console.log('[PARTICIPANTE-DASHBOARD] Dados do participante:', this.participanteAtual);
-                        
+
                         container.innerHTML = `
                             <div id="fluxoFinanceiroContent" style="padding: 0;">
                                 <div style="text-align: center; padding: 40px;">
                                     <div class="loading-spinner-professional"></div>
                                     <p style="margin-top: 20px; color: var(--text-primary);">Carregando extrato financeiro...</p>
                                 </div>
-                            </div> 
+                            </div>
                         `;
-                        
+
                         // Aguardar renderização do DOM
                         await new Promise(resolve => setTimeout(resolve, 100));
-                        
+
                         // Carregar extrato usando módulo participante
                         try {
                             await carregarExtrato(this.participanteAtual.timeId, this.participanteAtual.ligaId, this.participanteAtual);
@@ -1203,7 +1209,7 @@
                     case 'goleiro':
                         // Apenas para Cartoleiros Sobral
                         if (this.participanteAtual.ligaId === CONFIG_LIGAS.CARTOLEIROS_SOBRAL) {
-                            container.innerHTML = `<div style="text-align: center; padding: 60px; color: var(--text-muted);"><div style="font-size: 64px; margin-bottom: 16px;">🚧</div><h3>Em breve!</h3><p>Este módulo estará disponível em uma próxima atualização.</p></div>`;
+                            container.innerHTML = this.renderizarBloqueado('Este módulo estará disponível em uma próxima atualização.');
                         } else {
                             container.innerHTML = this.renderizarBloqueado(`${nomeModulo === 'artilheiro' ? 'Artilheiro' : 'Goleiro'} disponível apenas para Liga Cartoleiros Sobral`);
                         }
@@ -1270,7 +1276,7 @@
                 console.log(`[PARTICIPANTE-DASHBOARD] ✅ Módulo ${modulo} exibido com sucesso`);
             } else {
                 console.error(`[PARTICIPANTE-DASHBOARD] ❌ Módulo não encontrado: ${modulo}`);
-                console.log('[PARTICIPANTE-DASHBOARD] 📋 Módulos disponíveis:', 
+                console.log('[PARTICIPANTE-DASHBOARD] 📋 Módulos disponíveis:',
                     Array.from(allSections).map(s => s.id)
                 );
             }
