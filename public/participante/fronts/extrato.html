@@ -24,16 +24,6 @@
         </div>
     </div>
 
-    <!-- Botões de ação -->
-    <div class="extrato-actions">
-        <button id="cacheBtn" class="extrato-btn extrato-btn-secondary">
-            💾 Info Cache
-        </button>
-        <button id="atualizarBtn" class="extrato-btn extrato-btn-primary">
-            🔄 Atualizar
-        </button>
-    </div>
-
     <!-- Tabela de transações mobile-optimized -->
     <div id="fluxoFinanceiroContent" class="extrato-content">
         <div class="loading-state">
@@ -136,46 +126,6 @@
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
-}
-
-/* Ações compactas */
-.extrato-actions {
-    display: flex;
-    gap: 10px;
-    padding: 16px;
-    background: rgba(0, 0, 0, 0.2);
-    border-bottom: 1px solid rgba(255, 255, 255, 0.05);
-}
-
-.extrato-btn {
-    flex: 1;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: 6px;
-    padding: 10px;
-    border-radius: 8px;
-    border: 1px solid rgba(255, 255, 255, 0.1);
-    background: transparent;
-    color: #fff;
-    font-size: 13px;
-    font-weight: 600;
-    cursor: pointer;
-    transition: all 0.2s ease;
-    min-height: 44px;
-}
-
-.extrato-btn-primary {
-    background: linear-gradient(135deg, var(--participante-primary) 0%, #e8472b 100%);
-    border-color: var(--participante-primary);
-}
-
-.extrato-btn-secondary {
-    background: rgba(255, 255, 255, 0.05);
-}
-
-.extrato-btn:active {
-    transform: scale(0.96);
 }
 
 /* Conteúdo com tabela full-width */
@@ -312,14 +262,6 @@
 
     .resumo-valor {
         font-size: 18px;
-    }
-
-    .extrato-actions {
-        padding: 20px;
-    }
-
-    .extrato-btn {
-        max-width: 200px;
     }
 
     .extrato-content {
