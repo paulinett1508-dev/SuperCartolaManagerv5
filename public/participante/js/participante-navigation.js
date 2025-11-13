@@ -7,6 +7,7 @@ class ParticipanteNavigation {
     constructor() {
         this.moduloAtual = 'extrato';
         this.modulos = {
+            'boas-vindas': '/participante/fronts/boas-vindas.html',
             'extrato': '/participante/fronts/extrato.html',
             'ranking': '/participante/fronts/ranking.html',
             'rodadas': '/participante/fronts/rodadas.html',
@@ -38,8 +39,8 @@ class ParticipanteNavigation {
 
     async aguardarModulosENavegar() {
         console.log('[PARTICIPANTE-NAV] Sistema de navegação pronto');
-        // ✅ NAVEGAR DIRETO - HTML será carregado primeiro
-        this.navegarPara('extrato');
+        // ✅ CARREGAR PÁGINA DE BOAS-VINDAS PRIMEIRO
+        this.navegarPara('boas-vindas');
     }
 
     async navegarPara(modulo) {
@@ -148,6 +149,12 @@ class ParticipanteNavigation {
         console.log(`[PARTICIPANTE-NAV] Inicializando módulo: ${modulo}`);
 
         const participanteData = participanteAuth.getDados();
+
+        // Página de boas-vindas não precisa de inicialização
+        if (modulo === 'boas-vindas') {
+            console.log('[PARTICIPANTE-NAV] Página de boas-vindas carregada');
+            return;
+        }
 
         switch(modulo) {
             case 'extrato':
