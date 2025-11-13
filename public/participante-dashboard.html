@@ -1158,12 +1158,37 @@
                         break;
                     case 'extrato':
                         // ✅ USAR O MÓDULO CORRETO DO FLUXO FINANCEIRO
+                        console.log('[PARTICIPANTE-DASHBOARD] 🔄 Carregando módulo de extrato...');
+                        console.log('[PARTICIPANTE-DASHBOARD] Dados do participante:', this.participanteAtual);
+                        
                         container.innerHTML = `
-                            <div id="fluxoFinanceiroContent" style="padding: 0;"></div> 
+                            <div id="fluxoFinanceiroContent" style="padding: 0;">
+                                <div style="text-align: center; padding: 40px;">
+                                    <div class="loading-spinner-professional"></div>
+                                    <p style="margin-top: 20px; color: var(--text-primary);">Carregando extrato financeiro...</p>
+                                </div>
+                            </div> 
                         `;
                         
+                        // Aguardar renderização do DOM
+                        await new Promise(resolve => setTimeout(resolve, 100));
+                        
                         // Carregar extrato usando módulo participante
-                        await carregarExtrato(this.participanteAtual.timeId, this.participanteAtual.ligaId, this.participanteAtual);
+                        try {
+                            await carregarExtrato(this.participanteAtual.timeId, this.participanteAtual.ligaId, this.participanteAtual);
+                            console.log('[PARTICIPANTE-DASHBOARD] ✅ Extrato carregado');
+                        } catch (error) {
+                            console.error('[PARTICIPANTE-DASHBOARD] ❌ Erro ao carregar extrato:', error);
+                            const extratoContainer = document.getElementById('fluxoFinanceiroContent');
+                            if (extratoContainer) {
+                                extratoContainer.innerHTML = `
+                                    <div style="text-align: center; padding: 40px; color: #ef4444;">
+                                        <h3>❌ Erro ao carregar extrato</h3>
+                                        <p>${error.message}</p>
+                                    </div>
+                                `;
+                            }
+                        }
                         break;
                     case 'mata-mata':
                         await this.renderMataMata();
