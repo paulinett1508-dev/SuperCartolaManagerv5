@@ -62,10 +62,45 @@ export async function inicializarExtratoParticipante(participanteData) {
         console.error('[EXTRATO-PARTICIPANTE] ❌ Erro detalhado:', {
             message: error.message,
             stack: error.stack,
-            participanteData: participanteData
+            participanteData
         });
 
-        mostrarErro(error.message);
+        // Detectar tipo de erro
+        const is502Error = error.message.includes('502') || error.message.includes('Bad Gateway');
+        const isNetworkError = error.message.includes('Failed to fetch') || error.message.includes('NetworkError');
+
+        // Renderizar erro no container
+        const container = document.getElementById('extratoParticipanteContainer');
+        if (container) {
+            container.innerHTML = `
+                <div style="text-align: center; padding: 40px; color: #ef4444;">
+                    <div style="font-size: 60px; margin-bottom: 20px;">${is502Error || isNetworkError ? '🔌' : '❌'}</div>
+                    <h3>${is502Error ? 'Servidor Indisponível' : isNetworkError ? 'Erro de Conexão' : 'Erro ao Carregar Extrato'}</h3>
+                    <p style="color: #999; font-size: 14px; margin: 12px 0;">
+                        ${is502Error 
+                            ? 'O servidor está reiniciando ou temporariamente indisponível. Tente novamente em alguns segundos.' 
+                            : isNetworkError 
+                            ? 'Verifique sua conexão com a internet e tente novamente.'
+                            : error.message
+                        }
+                    </p>
+                    <div style="display: flex; gap: 10px; justify-content: center; margin-top: 20px;">
+                        <button onclick="participanteNav.navegarPara('extrato')" 
+                                style="padding: 12px 24px; background: linear-gradient(135deg, #ff4500 0%, #e8472b 100%); 
+                                       color: white; border: none; border-radius: 8px; cursor: pointer; 
+                                       font-weight: 600; font-size: 14px;">
+                            🔄 Tentar Novamente
+                        </button>
+                        <button onclick="participanteNav.navegarPara('boas-vindas')" 
+                                style="padding: 12px 24px; background: #666; 
+                                       color: white; border: none; border-radius: 8px; cursor: pointer; 
+                                       font-weight: 600; font-size: 14px;">
+                            ← Voltar ao Início
+                        </button>
+                    </div>
+                </div>
+            `;
+        }
     }
 }
 
