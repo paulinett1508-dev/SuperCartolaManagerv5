@@ -38,6 +38,16 @@ class ParticipanteNavigation {
 
     async aguardarModulosENavegar() {
         console.log('[PARTICIPANTE-NAV] Aguardando módulos...');
+        
+        // ✅ PRÉ-CARREGAR MÓDULO DE EXTRATO
+        try {
+            console.log('[PARTICIPANTE-NAV] 📦 Importando módulo de extrato...');
+            await import('/participante/js/modules/participante-extrato.js');
+            console.log('[PARTICIPANTE-NAV] ✅ Módulo de extrato importado com sucesso');
+        } catch (error) {
+            console.error('[PARTICIPANTE-NAV] ❌ Erro ao importar módulo de extrato:', error);
+        }
+        
         console.log('[PARTICIPANTE-NAV] 🔍 Debug: typeof window.inicializarExtratoParticipante =', typeof window.inicializarExtratoParticipante);
         console.log('[PARTICIPANTE-NAV] 🔍 Debug: window object keys:', Object.keys(window).filter(k => k.includes('inicializar')));
         
