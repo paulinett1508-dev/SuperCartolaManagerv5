@@ -626,7 +626,7 @@
 
 
 
-        // ✅ CARREGAR EXTRATO FINANCEIRO (usando módulo específico)
+        // ✅ CARREGAR EXTRATO FINANCEIRO (IGUAL AO ADMIN, MAS FILTRADO)
             async function carregarExtrato(timeId, ligaId, participante) {
                 try {
                     console.log('[PARTICIPANTE-DASHBOARD] 🔄 Carregando extrato:', { timeId, ligaId });
@@ -634,9 +634,9 @@
                     // Aguardar renderização do DOM
                     await new Promise(resolve => setTimeout(resolve, 100));
 
-                    const extratoContainer = document.getElementById('extratoContainer'); // Correção: usar extratoContainer
+                    const extratoContainer = document.getElementById('fluxoFinanceiroContent');
                     if (!extratoContainer) {
-                        console.error('[PARTICIPANTE-DASHBOARD] ❌ Container #extratoContainer não encontrado');
+                        console.error('[PARTICIPANTE-DASHBOARD] ❌ Container #fluxoFinanceiroContent não encontrado');
                         return;
                     }
 
@@ -652,7 +652,7 @@
                         participante: participante
                     });
 
-                    // Carregar extrato
+                    // Carregar extrato (renderiza igual ao admin)
                     await fluxoFinanceiroParticipante.carregarExtrato();
 
                     console.log('[PARTICIPANTE-DASHBOARD] ✅ Extrato carregado com sucesso');
@@ -660,7 +660,7 @@
                 } catch (error) {
                     console.error('[PARTICIPANTE-DASHBOARD] ❌ Erro ao carregar extrato:', error);
 
-                    const extratoContainer = document.getElementById('extratoContainer'); // Correção: usar extratoContainer
+                    const extratoContainer = document.getElementById('fluxoFinanceiroContent');
                     if (extratoContainer) {
                         extratoContainer.innerHTML = `
                             <div style="text-align: center; padding: 40px; background: rgba(239, 68, 68, 0.1); 
@@ -793,7 +793,7 @@
                             ${this.criarCardStat('🏆', 'Posição', stats.posicao + 'º', stats.posicao <= 3 ? '#22c55e' : '#ff4500')}
                             ${this.criarCardStat('⭐', 'Pontos', stats.pontos, '#3b82f6')}
                             ${this.criarCardStat('✅', 'Vitórias', stats.vitorias, '#22c55e')}
-                            ${this.criarCardStat('💰', 'Saldo', 'C$ ' + stats.saldo.toFixed(0), stats.saldo >= 0 ? '#22c55e' : '#ef4444')}
+                            ${this.criarCardStat('💰', 'Saldo', 'R$ ' + stats.saldo.toFixed(2), stats.saldo >= 0 ? '#22c55e' : '#ef4444')}
                         </div>
 
                         <!-- Últimas Rodadas -->
@@ -1157,11 +1157,12 @@
                         await this.renderRodadas();
                         break;
                     case 'extrato':
-                        // Limpar conteúdo anterior e preparar container para o extrato
+                        // ✅ USAR O MÓDULO CORRETO DO FLUXO FINANCEIRO
                         container.innerHTML = `
-                            <div id="extratoContainer" style="padding: 0;"></div> 
+                            <div id="fluxoFinanceiroContent" style="padding: 0;"></div> 
                         `;
-                        // Chamada correta para carregar extrato com os dados do participante
+                        
+                        // Carregar extrato usando módulo participante
                         await carregarExtrato(this.participanteAtual.timeId, this.participanteAtual.ligaId, this.participanteAtual);
                         break;
                     case 'mata-mata':
