@@ -442,22 +442,18 @@
     <!-- Scripts de Autenticação -->
     <script src="/participante/js/participante-auth.js"></script>
 
-    <!-- ✅ CRITICAL: Módulo DEVE carregar ANTES de tudo -->
-    <script src="/participante/js/modules/participante-extrato.js"></script>
-    
-    <!-- ✅ Verificação IMEDIATA após carregamento -->
-    <script>
-        console.log('[PARTICIPANTE-DASHBOARD] 🔍 Verificando módulo IMEDIATAMENTE após tag script');
-        console.log('[PARTICIPANTE-DASHBOARD] typeof window.inicializarExtratoParticipante =', typeof window.inicializarExtratoParticipante);
+    <!-- ✅ CRITICAL: Módulo DEVE carregar como ES6 MODULE -->
+    <script type="module">
+        console.log('[PARTICIPANTE-DASHBOARD] 🔄 Carregando módulo extrato...');
         
-        if (typeof window.inicializarExtratoParticipante === 'function') {
-            console.log('[PARTICIPANTE-DASHBOARD] ✅ Módulo extrato CONFIRMADO como carregado');
-            window.moduloExtratoOK = true;
-        } else {
-            console.error('[PARTICIPANTE-DASHBOARD] ❌ ERRO: Módulo extrato NÃO carregou!');
-            console.error('[PARTICIPANTE-DASHBOARD] Scripts carregados:', document.querySelectorAll('script[src]').length);
-            window.moduloExtratoOK = false;
-        }
+        // Importar e expor função globalmente
+        const { inicializarExtratoParticipante } = await import('/participante/js/modules/participante-extrato.js');
+        window.inicializarExtratoParticipante = inicializarExtratoParticipante;
+        
+        console.log('[PARTICIPANTE-DASHBOARD] ✅ Módulo extrato carregado:', typeof window.inicializarExtratoParticipante);
+        
+        // Disparar evento para notificar que módulo está pronto
+        window.dispatchEvent(new CustomEvent('moduloExtratoCarregado'));
     </script>
 
     <!-- Sistema de Navegação -->
