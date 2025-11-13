@@ -32,8 +32,10 @@ class ParticipanteNavigation {
             });
         });
 
-        // Carregar módulo inicial
-        this.navegarPara('extrato');
+        // Aguardar um pouco antes de carregar módulo inicial para garantir que scripts externos carregaram
+        setTimeout(() => {
+            this.navegarPara('extrato');
+        }, 200);
     }
 
     async navegarPara(modulo) {

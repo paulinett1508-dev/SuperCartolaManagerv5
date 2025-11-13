@@ -1223,6 +1223,23 @@
             }
         };
 
+        // Verificar se módulos estão carregados
+        function verificarModulosCarregados() {
+            const modulosNecessarios = [
+                'inicializarExtratoParticipante'
+            ];
+            
+            const modulosFaltando = modulosNecessarios.filter(m => typeof window[m] !== 'function');
+            
+            if (modulosFaltando.length > 0) {
+                console.warn('[PARTICIPANTE-DASHBOARD] ⚠️ Módulos faltando:', modulosFaltando);
+                return false;
+            }
+            
+            console.log('[PARTICIPANTE-DASHBOARD] ✅ Todos os módulos necessários carregados');
+            return true;
+        }
+
         // Inicializar navegação entre módulos
         function inicializarNavegacao() {
             console.log('[PARTICIPANTE-DASHBOARD] 🔧 Inicializando navegação...');
@@ -1289,6 +1306,19 @@
         // Inicializar dashboard
         window.addEventListener('DOMContentLoaded', async () => {
             console.log('[PARTICIPANTE-DASHBOARD] Inicializando...');
+
+            // Aguardar pequeno delay para garantir que scripts externos carreguem
+            await new Promise(resolve => setTimeout(resolve, 100));
+
+            // Verificar se módulos estão carregados
+            if (!verificarModulosCarregados()) {
+                console.error('[PARTICIPANTE-DASHBOARD] ❌ Módulos necessários não carregados');
+                // Tentar novamente após delay
+                await new Promise(resolve => setTimeout(resolve, 500));
+                if (!verificarModulosCarregados()) {
+                    console.error('[PARTICIPANTE-DASHBOARD] ❌ Falha ao carregar módulos após retry');
+                }
+            }
 
             // Carregar módulo financeiro
             await carregarModulosFluxo();
