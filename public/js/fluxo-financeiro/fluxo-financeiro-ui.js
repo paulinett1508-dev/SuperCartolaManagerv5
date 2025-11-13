@@ -477,6 +477,30 @@ export class FluxoFinanceiroUI {
                         })}
                     </div>
                     ` : ''}
+
+                    <!-- Botões de Detalhamento -->
+                    <div style="display: flex; justify-content: center; gap: 12px; margin-top: 16px;">
+                        <button onclick="window.mostrarDetalhamentoGanhos()"
+                                style="background: linear-gradient(135deg, #2ecc71, #27ae60); color: white; border: none;
+                                       padding: 8px 16px; border-radius: 6px; font-size: 11px; font-weight: 600;
+                                       cursor: pointer; display: flex; align-items: center; gap: 6px;
+                                       transition: all 0.3s ease; box-shadow: 0 2px 8px rgba(46, 204, 113, 0.3);"
+                                onmouseover="this.style.transform='translateY(-1px)'; this.style.boxShadow='0 4px 12px rgba(46, 204, 113, 0.5)'"
+                                onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='0 2px 8px rgba(46, 204, 113, 0.3)'">
+                            <span style="font-size: 14px;">💰</span>
+                            <span>TUDO QUE GANHOU</span>
+                        </button>
+                        <button onclick="window.mostrarDetalhamentoPerdas()"
+                                style="background: linear-gradient(135deg, #e74c3c, #c0392b); color: white; border: none;
+                                       padding: 8px 16px; border-radius: 6px; font-size: 11px; font-weight: 600;
+                                       cursor: pointer; display: flex; align-items: center; gap: 6px;
+                                       transition: all 0.3s ease; box-shadow: 0 2px 8px rgba(231, 76, 60, 0.3);"
+                                onmouseover="this.style.transform='translateY(-1px)'; this.style.boxShadow='0 4px 12px rgba(231, 76, 60, 0.5)'"
+                                onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='0 2px 8px rgba(231, 76, 60, 0.3)'">
+                            <span style="font-size: 14px;">💸</span>
+                            <span>TUDO QUE PERDEU</span>
+                        </button>
+                    </div>
                 </div>
             </div>
 
