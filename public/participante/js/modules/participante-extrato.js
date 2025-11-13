@@ -1,5 +1,5 @@
 // MÓDULO: EXTRATO PARTICIPANTE
-// Integra com fluxo-financeiro-participante.js
+// Usa o core do admin para cálculos, mas renderiza com UI própria
 
 console.log('[EXTRATO-PARTICIPANTE] 🔄 Carregando módulo...');
 console.log('[EXTRATO-PARTICIPANTE] ⏱️ Timestamp:', new Date().toISOString());
@@ -20,42 +20,41 @@ export async function inicializarExtratoParticipante(participanteData) {
 
         if (!container) {
             console.error('[EXTRATO-PARTICIPANTE] ❌ Container #extratoFinanceiro não encontrado no DOM');
-            console.log('[EXTRATO-PARTICIPANTE] Containers disponíveis:', 
-                Array.from(document.querySelectorAll('[id]')).map(el => el.id)
-            );
-
-            throw new Error('Container #extratoFinanceiro não encontrado. Verifique se extrato.html foi carregado corretamente.');
+            throw new Error('Container #extratoFinanceiro não encontrado');
         }
 
-        console.log('[EXTRATO-PARTICIPANTE] 📦 Importando módulo de fluxo financeiro...');
+        console.log('[EXTRATO-PARTICIPANTE] 📦 Importando módulos...');
 
-        // Importar módulo de extrato financeiro dinamicamente
-        let fluxoFinanceiroParticipante;
-        try {
-            const module = await import('/js/fluxo-financeiro/fluxo-financeiro-participante.js');
-            fluxoFinanceiroParticipante = module.fluxoFinanceiroParticipante;
-            console.log('[EXTRATO-PARTICIPANTE] ✅ Módulo importado:', typeof fluxoFinanceiroParticipante);
-        } catch (importError) {
-            console.error('[EXTRATO-PARTICIPANTE] ❌ Erro ao importar módulo:', importError);
-            throw new Error('Falha ao importar módulo de fluxo financeiro');
-        }
+        // Importar módulo de cálculo (core do admin) e UI própria
+        const [coreModule, uiModule] = await Promise.all([
+            import('/js/fluxo-financeiro/fluxo-financeiro-participante.js'),
+            import('./participante-extrato-ui.js')
+        ]);
 
-        console.log('[EXTRATO-PARTICIPANTE] ⚙️ Inicializando módulo...');
+        const fluxoCore = coreModule.fluxoFinanceiroParticipante;
+        const { renderizarExtratoParticipante, mostrarLoading } = uiModule;
 
-        // Inicializar com dados do participante
-        await fluxoFinanceiroParticipante.inicializar({
+        console.log('[EXTRATO-PARTICIPANTE] ⚙️ Inicializando core...');
+
+        // Inicializar core de cálculo
+        await fluxoCore.inicializar({
             timeId: participanteData.timeId,
             ligaId: participanteData.ligaId,
             participante: participanteData
         });
 
-        console.log('[EXTRATO-PARTICIPANTE] 💰 Carregando extrato...');
+        console.log('[EXTRATO-PARTICIPANTE] 💰 Carregando dados...');
 
-        // Aguardar pequeno delay para garantir que o DOM esteja pronto
-        await new Promise(resolve => setTimeout(resolve, 200));
+        // Mostrar loading
+        mostrarLoading();
 
-        // Carregar extrato (container já tem ID correto: fluxoFinanceiroContent)
-        await fluxoFinanceiroParticipante.carregarExtrato();
+        // Buscar dados calculados (sem renderizar)
+        const extrato = await fluxoCore.buscarExtratoCalculado();
+
+        console.log('[EXTRATO-PARTICIPANTE] 🎨 Renderizando UI personalizada...');
+
+        // Renderizar com UI própria do participante
+        renderizarExtratoParticipante(extrato, participanteData);
 
         console.log('[EXTRATO-PARTICIPANTE] ✅ Extrato carregado com sucesso');
 

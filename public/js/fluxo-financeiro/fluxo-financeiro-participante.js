@@ -1,4 +1,3 @@
-
 // FLUXO-FINANCEIRO-PARTICIPANTE.JS
 // ⚠️ IMPORTANTE: Este módulo é 100% READ-ONLY
 // - NÃO cria dados próprios
@@ -30,7 +29,7 @@ class FluxoFinanceiroParticipante {
         console.log('[FLUXO-PARTICIPANTE] Inicializando para participante:', participanteData);
 
         this.participanteData = participanteData;
-        
+
         // Validar dados obrigatórios
         if (!participanteData.ligaId || !participanteData.timeId) {
             throw new Error('Dados do participante incompletos (ligaId ou timeId faltando)');
@@ -123,6 +122,34 @@ class FluxoFinanceiroParticipante {
 
         console.log('[FLUXO-PARTICIPANTE] 🔄 Forçando atualização do extrato');
         await this.carregarExtrato();
+    }
+
+    // ===== MÉTODO PARA RETORNAR DADOS SEM RENDERIZAÇÃO =====
+    async buscarExtratoCalculado() {
+        if (!this.isInitialized) {
+            throw new Error('Módulo não inicializado. Chame inicializar() primeiro.');
+        }
+
+        try {
+            console.log('[FLUXO-PARTICIPANTE] Buscando dados calculados...');
+
+            // Buscar rodada atual
+            const mercadoStatus = await fetch('/api/cartola/mercado-status');
+            const mercadoData = await mercadoStatus.json();
+            const rodadaAtual = mercadoData.rodada_atual || 1;
+            const ultimaRodadaCompleta = Math.max(1, rodadaAtual - 1);
+
+            // Calcular extrato
+            const extrato = await this.core.calcularExtratoFinanceiro(
+                this.participanteData.timeId,
+                ultimaRodadaCompleta
+            );
+
+            return extrato;
+        } catch (error) {
+            console.error('[FLUXO-PARTICIPANTE] Erro ao buscar extrato:', error);
+            throw error;
+        }
     }
 }
 
