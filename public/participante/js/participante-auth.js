@@ -94,9 +94,6 @@ class ParticipanteAuth {
         const nomeCartolaText = document.getElementById('nomeCartolaText');
         const escudoCoracao = document.getElementById('escudoCoracao');
         const escudoTime = document.getElementById('escudoTime');
-        const posicaoQuick = document.getElementById('posicaoQuick');
-        const patrimonioQuick = document.getElementById('patrimonioQuick');
-        const pontosQuick = document.getElementById('pontosQuick');
 
         console.log('[PARTICIPANTE-AUTH] Atualizando header com dados:', this.participante);
 
@@ -180,18 +177,7 @@ class ParticipanteAuth {
                 }
             }
 
-            // Atualizar estatísticas rápidas
-            if (posicaoQuick) {
-                const posicao = participanteData?.posicao || '--';
-                posicaoQuick.textContent = `${posicao}º`;
-            }
-            if (patrimonioQuick) {
-                patrimonioQuick.textContent = `C$ ${patrimonio.toFixed(2)}`;
-            }
-            if (pontosQuick) {
-                const pontos = participanteData?.pontos || participanteData?.pontuacao || 0;
-                pontosQuick.textContent = `${pontos.toFixed(2)} pts`;
-            }
+            // Estatísticas rápidas removidas da UI
 
                 console.log('[PARTICIPANTE-AUTH] ✅ Header atualizado com sucesso:', {
                 nome: nomeTimeTexto,
