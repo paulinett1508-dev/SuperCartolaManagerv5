@@ -313,13 +313,13 @@ export class FluxoFinanceiroUI {
                 return `<span style="color: var(--text-muted); font-weight: 400;">-</span>`;
             }
 
-            const classe = valorNum > 0 ? "valor-positivo" : "valor-negativo";
-            const sinal = valorNum > 0 ? "+" : "";
+            const cor = valorNum > 0 ? "#2ecc71" : "#e74c3c";
+            const sinal = valorNum > 0 ? "+" : "-";
             const valorFormatado = Math.abs(valorNum).toLocaleString("pt-BR", {
                 minimumFractionDigits: 2,
                 maximumFractionDigits: 2,
             });
-            return `<span class="${classe}">${sinal}${valorNum < 0 ? "-" : ""}${valorFormatado}</span>`;
+            return `<span style="color: ${cor}; font-weight: 600;">${sinal}R$ ${valorFormatado}</span>`;
         };
 
         const corFundoSaldo = (valor) => {
@@ -540,7 +540,7 @@ export class FluxoFinanceiroUI {
                                 <th style="padding: 8px 6px; text-align: left; color: white; font-weight: 600; 
                                      font-size: 10px; text-transform: uppercase; letter-spacing: 0.2px;">Pos</th>
                                 <th style="padding: 8px 6px; text-align: center; color: white; font-weight: 600; 
-                                     font-size: 10px; text-transform: uppercase; letter-spacing: 0.2px;">Bônus</th>
+                                     font-size: 10px; text-transform: uppercase; letter-spacing: 0.2px;">Bônus/Ônus</th>
                                 <th style="padding: 8px 6px; text-align: center; color: white; font-weight: 600; 
                                      font-size: 10px; text-transform: uppercase; letter-spacing: 0.2px;">P.C</th>
                                 <th style="padding: 8px 6px; text-align: center; color: white; font-weight: 600; 
@@ -1133,7 +1133,7 @@ function mostrarPopupDetalhamento(titulo, detalhes, cor) {
                             ? `
                     <div style="margin-bottom: 20px; padding-bottom: 20px; border-bottom: 1px solid var(--border-primary);">
                         <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
-                            <span style="font-weight: 700; color: var(--text-primary); font-size: 14px;">💰 Bônus/Ônus</span>
+                            <span style="font-weight: 700; color: var(--text-primary); font-size: 14px;">💰 Bônus/Ônus de Rodada</span>
                             <span style="font-weight: 700; font-size: 16px; color: ${cor};">
                                 R$ ${formatarMoeda(detalhes.bonusOnus)}
                             </span>
