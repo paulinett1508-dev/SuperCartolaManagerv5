@@ -396,7 +396,7 @@ export class FluxoFinanceiroUI {
             <!-- CABEÇALHO PROFISSIONAL REDESENHADO -->
             <div class="extrato-header" style="background: var(--bg-card); padding: 24px; border-radius: 12px; 
                  margin-bottom: 24px; box-shadow: var(--shadow-md); border: 1px solid var(--border-primary); position: relative;">
-                
+
                 <!-- Logo do Time no Canto Superior Esquerdo -->
                 <div style="position: absolute; top: 16px; left: 16px;">
                     ${
@@ -482,7 +482,7 @@ export class FluxoFinanceiroUI {
                             <span>Tudo que Ganhou</span>
                             <span style="font-size: 8px; margin-left: auto; opacity: 0.7;">🔍</span>
                         </div>
-                        <div style="font-size: 16px; font-weight: 700; color: #2ecc71;">
+                        <div style="font-size: 16px; font-weight: 700; color: #2ecc71;" id="totalCreditosCard">
                             +R$ ${(
                                 extrato.resumo.totalGanhos || 0
                             ).toLocaleString("pt-BR", {
@@ -504,7 +504,7 @@ export class FluxoFinanceiroUI {
                             <span>Tudo que Perdeu</span>
                             <span style="font-size: 8px; margin-left: auto; opacity: 0.7;">🔍</span>
                         </div>
-                        <div style="font-size: 16px; font-weight: 700; color: #e74c3c;">
+                        <div style="font-size: 16px; font-weight: 700; color: #e74c3c;" id="totalDebitosCard">
                             R$ ${(
                                 extrato.resumo.totalPerdas || 0
                             ).toLocaleString("pt-BR", {
