@@ -445,13 +445,13 @@
     <!-- ✅ CRITICAL: Módulo DEVE carregar como ES6 MODULE -->
     <script type="module">
         console.log('[PARTICIPANTE-DASHBOARD] 🔄 Carregando módulo extrato...');
-        
+
         // Importar e expor função globalmente
         const { inicializarExtratoParticipante } = await import('/participante/js/modules/participante-extrato.js');
         window.inicializarExtratoParticipante = inicializarExtratoParticipante;
-        
+
         console.log('[PARTICIPANTE-DASHBOARD] ✅ Módulo extrato carregado:', typeof window.inicializarExtratoParticipante);
-        
+
         // Disparar evento para notificar que módulo está pronto
         window.dispatchEvent(new CustomEvent('moduloExtratoCarregado'));
     </script>
@@ -1239,14 +1239,14 @@
             const modulosNecessarios = [
                 'inicializarExtratoParticipante'
             ];
-            
+
             const modulosFaltando = modulosNecessarios.filter(m => typeof window[m] !== 'function');
-            
+
             if (modulosFaltando.length > 0) {
                 console.warn('[PARTICIPANTE-DASHBOARD] ⚠️ Módulos faltando:', modulosFaltando);
                 return false;
             }
-            
+
             console.log('[PARTICIPANTE-DASHBOARD] ✅ Todos os módulos necessários carregados');
             return true;
         }
