@@ -389,6 +389,40 @@ class CacheManager {
 
     return stats;
   }
+
+    /**
+     * Busca múltiplos times de uma vez (otimização)
+     * @param {Array<number>} timeIds - IDs dos times
+     * @returns {Promise<Array>} Lista de times
+     */
+    async buscarTimesBatch(timeIds) {
+        try {
+            const response = await fetch('/api/times/batch', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ ids: timeIds })
+            });
+
+            if (!response.ok) {
+                throw new Error(`Erro HTTP: ${response.status}`);
+            }
+
+            const times = await response.json();
+
+            // Cachear cada time individualmente para uso futuro
+            for (const time of times) {
+                const cacheKey = `time_${time.id}`;
+                await this.save(cacheKey, time, 300000); // 5 minutos
+            }
+
+            return times;
+        } catch (error) {
+            console.error('[CACHE-MANAGER] Erro ao buscar times em lote:', error);
+            return [];
+        }
+    }
 }
 
 // Instância singleton

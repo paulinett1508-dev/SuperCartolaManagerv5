@@ -2,7 +2,7 @@ import mongoose from "mongoose";
 
 // Definir o schema do Time
 const TimeSchema = new mongoose.Schema({
-  id: { type: Number, required: true, unique: true },
+  id: { type: Number, required: true, unique: true, index: true },
   nome_time: { type: String, required: true },
   nome_cartoleiro: { type: String, required: true },
   url_escudo_png: { type: String },

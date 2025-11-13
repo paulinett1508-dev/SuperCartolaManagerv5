@@ -10,6 +10,34 @@ import Time from "../models/Time.js";
 const router = express.Router();
 
 // ==============================
+// ROTA: Buscar múltiplos times de uma vez (OTIMIZAÇÃO)
+// ==============================
+router.post("/batch", async (req, res) => {
+    try {
+        const { ids } = req.body;
+        
+        if (!Array.isArray(ids) || ids.length === 0) {
+            return res.status(400).json({ erro: "Lista de IDs inválida" });
+        }
+
+        console.log(`[TIMES] Buscando ${ids.length} times em lote`);
+        
+        const timeIds = ids.map(id => parseInt(id)).filter(id => !isNaN(id));
+        const times = await Time.find({ id: { $in: timeIds } });
+        
+        console.log(`[TIMES] ${times.length} times encontrados em lote`);
+        
+        res.json(times);
+    } catch (erro) {
+        console.error(`[TIMES] Erro ao buscar times em lote:`, erro);
+        res.status(500).json({ 
+            erro: "Erro ao buscar times em lote", 
+            detalhes: erro.message 
+        });
+    }
+});
+
+// ==============================
 // ROTA: Buscar um time específico por ID
 // ==============================
 router.get("/:id", async (req, res) => {

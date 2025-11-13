@@ -11,7 +11,15 @@ const connectDB = async () => {
     // Configurações recomendadas para Mongoose 6+
     mongoose.set('strictQuery', false);
     
-    const conn = await mongoose.connect(process.env.MONGODB_URI);
+    // Configurações otimizadas para performance
+    const options = {
+      maxPoolSize: 50,        // Aumentar pool de conexões
+      minPoolSize: 10,        // Manter conexões abertas
+      serverSelectionTimeoutMS: 5000,
+      socketTimeoutMS: 45000,
+    };
+    
+    const conn = await mongoose.connect(process.env.MONGODB_URI, options);
     
     console.log(`MongoDB conectado: ${conn.connection.host}`);
     
