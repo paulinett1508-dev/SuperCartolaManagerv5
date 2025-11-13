@@ -32,10 +32,49 @@ class ParticipanteNavigation {
             });
         });
 
-        // Aguardar um pouco antes de carregar módulo inicial para garantir que scripts externos carregaram
-        setTimeout(() => {
-            this.navegarPara('extrato');
-        }, 200);
+        // Aguardar módulos carregarem antes de navegar
+        this.aguardarModulosENavegar();
+    }
+
+    async aguardarModulosENavegar() {
+        console.log('[PARTICIPANTE-NAV] Aguardando módulos...');
+        
+        let tentativas = 0;
+        const maxTentativas = 20; // 2 segundos máximo
+        
+        const verificar = () => {
+            tentativas++;
+            
+            if (typeof window.inicializarExtratoParticipante === 'function') {
+                console.log('[PARTICIPANTE-NAV] ✅ Módulos carregados, navegando...');
+                this.navegarPara('extrato');
+                return;
+            }
+            
+            if (tentativas >= maxTentativas) {
+                console.error('[PARTICIPANTE-NAV] ❌ Timeout esperando módulos');
+                const container = document.getElementById('moduleContainer');
+                if (container) {
+                    container.innerHTML = `
+                        <div style="text-align: center; padding: 40px; color: #ef4444;">
+                            <h3>❌ Erro ao carregar módulos</h3>
+                            <p>Os módulos necessários não foram carregados</p>
+                            <button onclick="window.location.reload()" 
+                                    style="padding: 10px 20px; background: #ff4500; color: white; 
+                                           border: none; border-radius: 8px; cursor: pointer; margin-top: 10px;">
+                                🔄 Recarregar Página
+                            </button>
+                        </div>
+                    `;
+                }
+                return;
+            }
+            
+            console.log(`[PARTICIPANTE-NAV] Tentativa ${tentativas}/${maxTentativas}...`);
+            setTimeout(verificar, 100);
+        };
+        
+        verificar();
     }
 
     async navegarPara(modulo) {

@@ -445,6 +445,25 @@
     <!-- Módulos de funcionalidades (carregar ANTES da navegação) -->
     <script src="/participante/js/modules/participante-extrato.js"></script>
 
+    <!-- Script de inicialização que garante ordem de carregamento -->
+    <script>
+        // Garantir que módulos estejam carregados antes de inicializar navegação
+        window.modulosCarregados = false;
+        
+        function verificarModulos() {
+            if (typeof window.inicializarExtratoParticipante === 'function') {
+                console.log('[PARTICIPANTE-DASHBOARD] ✅ Módulo extrato carregado');
+                window.modulosCarregados = true;
+                return true;
+            }
+            console.warn('[PARTICIPANTE-DASHBOARD] ⚠️ Aguardando módulo extrato...');
+            return false;
+        }
+        
+        // Verificar imediatamente
+        verificarModulos();
+    </script>
+
     <!-- Sistema de Navegação -->
     <script src="/participante/js/participante-navigation.js"></script>
 </head>
