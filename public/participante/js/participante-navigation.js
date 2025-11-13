@@ -95,12 +95,15 @@ class ParticipanteNavigation {
     async inicializarModulo(modulo) {
         console.log(`[PARTICIPANTE-NAV] Inicializando módulo: ${modulo}`);
 
-        const { ligaId, timeId } = participanteAuth.getDados();
+        const participanteData = participanteAuth.getDados();
 
         switch(modulo) {
             case 'extrato':
                 if (window.inicializarExtratoParticipante) {
-                    await window.inicializarExtratoParticipante(ligaId, timeId);
+                    console.log('[PARTICIPANTE-NAV] Chamando inicializarExtratoParticipante com dados:', participanteData);
+                    await window.inicializarExtratoParticipante(participanteData);
+                } else {
+                    console.error('[PARTICIPANTE-NAV] Função inicializarExtratoParticipante não encontrada');
                 }
                 break;
             case 'ranking':

@@ -1,7 +1,7 @@
 // MÓDULO: EXTRATO PARTICIPANTE
 // Integra com fluxo-financeiro-participante.js
 
-export async function inicializarExtratoParticipante(participanteData) {
+async function inicializarExtratoParticipante(participanteData) {
     console.log('[EXTRATO-PARTICIPANTE] 🔄 Inicializando para:', participanteData);
 
     // ✅ VERIFICAR DADOS OBRIGATÓRIOS
@@ -77,3 +77,8 @@ function mostrarErro(mensagem) {
         `;
     }
 }
+
+// ✅ Expor globalmente para compatibilidade com participante-navigation.js
+window.inicializarExtratoParticipante = inicializarExtratoParticipante;
+
+console.log('[EXTRATO-PARTICIPANTE] ✅ Módulo exposto globalmente');
