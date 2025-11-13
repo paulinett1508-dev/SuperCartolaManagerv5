@@ -92,6 +92,58 @@ function mostrarErro(mensagem) {
     }
 }
 
+// ===== FUNÇÕES GLOBAIS DOS BOTÕES =====
+window.mostrarInfoCache = function() {
+    const extrato = window.extratoAtual;
+    if (!extrato) {
+        alert('⚠️ Nenhum extrato carregado ainda.');
+        return;
+    }
+
+    const updatedAt = extrato.updatedAt 
+        ? new Date(extrato.updatedAt).toLocaleString('pt-BR')
+        : 'Nunca atualizado';
+
+    const mensagem = `
+💾 INFORMAÇÕES DO CACHE
+
+📅 Última atualização: ${updatedAt}
+🎯 Rodada atual: ${extrato.rodadaAtual || 0}
+📊 Total de registros: ${extrato.rodadas?.length || 0}
+
+ℹ️ O cache armazena seu extrato para carregar mais rápido. Use "Atualizar" para buscar dados atualizados.
+    `.trim();
+
+    alert(mensagem);
+};
+
+window.forcarRefreshExtratoParticipante = function() {
+    const timeId = localStorage.getItem('timeId');
+    if (!timeId) {
+        alert('⚠️ Sessão expirada. Faça login novamente.');
+        window.location.href = '/participante/index.html';
+        return;
+    }
+
+    // Limpar cache do extrato
+    if (window.invalidateCache) {
+        const ligaId = localStorage.getItem('ligaId');
+        window.invalidateCache(ligaId, { timeId });
+    }
+
+    // Recarregar extrato
+    if (window.calcularEExibirExtrato) {
+        window.calcularEExibirExtrato(timeId);
+    } else {
+        location.reload();
+    }
+};
+
+// ===== EXPORTAR FUNÇÕES GLOBAIS =====
+export function initExtratoParticipante() {
+    console.log('[PARTICIPANTE-EXTRATO] Módulo carregado');
+}
+
 // ===== EXPOR GLOBALMENTE PARA COMPATIBILIDADE COM NAVEGAÇÃO =====
 window.inicializarExtratoParticipante = inicializarExtratoParticipante;
 

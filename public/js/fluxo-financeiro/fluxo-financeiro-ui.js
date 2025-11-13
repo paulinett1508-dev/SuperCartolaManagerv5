@@ -467,53 +467,6 @@ export class FluxoFinanceiroUI {
                     </div>
                     ` : ''}
                 </div>
-
-                <!-- CARDS RESUMO SIMPLIFICADOS -->
-                <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px; margin-top: 16px;">
-                    <div onclick="window.mostrarDetalhamentoGanhos()" 
-                         style="background: linear-gradient(135deg, rgba(46, 204, 113, 0.1), rgba(46, 204, 113, 0.05)); 
-                                padding: 12px; border-radius: 8px; border: 2px solid rgba(46, 204, 113, 0.3);
-                                cursor: pointer; transition: all 0.3s ease;"
-                         onmouseover="this.style.transform='translateY(-2px)'; this.style.boxShadow='0 4px 12px rgba(46, 204, 113, 0.3)'"
-                         onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='none'">
-                        <div style="font-size: 9px; color: rgba(46, 204, 113, 0.8); font-weight: 700; text-transform: uppercase; 
-                             letter-spacing: 0.5px; margin-bottom: 6px; display: flex; align-items: center; gap: 4px;">
-                            <span style="font-size: 14px;">💰</span>
-                            <span>Tudo que Ganhou</span>
-                            <span style="font-size: 8px; margin-left: auto; opacity: 0.7;">🔍</span>
-                        </div>
-                        <div style="font-size: 16px; font-weight: 700; color: #2ecc71;" id="totalCreditosCard">
-                            +R$ ${(
-                                extrato.resumo.totalGanhos || 0
-                            ).toLocaleString("pt-BR", {
-                                minimumFractionDigits: 2,
-                                maximumFractionDigits: 2,
-                            })}
-                        </div>
-                    </div>
-
-                    <div onclick="window.mostrarDetalhamentoPerdas()" 
-                         style="background: linear-gradient(135deg, rgba(231, 76, 60, 0.1), rgba(231, 76, 60, 0.05)); 
-                                padding: 12px; border-radius: 8px; border: 2px solid rgba(231, 76, 60, 0.3);
-                                cursor: pointer; transition: all 0.3s ease;"
-                         onmouseover="this.style.transform='translateY(-2px)'; this.style.boxShadow='0 4px 12px rgba(231, 76, 60, 0.3)'"
-                         onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='none'">
-                        <div style="font-size: 9px; color: rgba(231, 76, 60, 0.8); font-weight: 700; text-transform: uppercase; 
-                             letter-spacing: 0.5px; margin-bottom: 6px; display: flex; align-items: center; gap: 4px;">
-                            <span style="font-size: 14px;">💸</span>
-                            <span>Tudo que Perdeu</span>
-                            <span style="font-size: 8px; margin-left: auto; opacity: 0.7;">🔍</span>
-                        </div>
-                        <div style="font-size: 16px; font-weight: 700; color: #e74c3c;" id="totalDebitosCard">
-                            R$ ${(
-                                extrato.resumo.totalPerdas || 0
-                            ).toLocaleString("pt-BR", {
-                                minimumFractionDigits: 2,
-                                maximumFractionDigits: 2,
-                            })}
-                        </div>
-                    </div>
-                </div>
             </div>
 
             <!-- Campos Editáveis -->
