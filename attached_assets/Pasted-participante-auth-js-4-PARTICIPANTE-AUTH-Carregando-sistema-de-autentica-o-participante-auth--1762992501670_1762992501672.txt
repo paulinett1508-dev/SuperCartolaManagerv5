@@ -1,0 +1,25 @@
+participante-auth.js:4 [PARTICIPANTE-AUTH] Carregando sistema de autenticação...
+participante-auth.js:252 [PARTICIPANTE-AUTH] ✅ Sistema carregado
+participante-navigation.js:4 [PARTICIPANTE-NAV] Carregando sistema de navegação...
+participante-navigation.js:133 [PARTICIPANTE-NAV] ✅ Sistema carregado
+participante-auth.js:22 [PARTICIPANTE-AUTH] Verificando autenticação...
+participante-navigation.js:25 [PARTICIPANTE-NAV] Inicializando navegação...
+participante-navigation.js:45 [PARTICIPANTE-NAV] Navegando para: extrato
+participante-navigation.js:96 [PARTICIPANTE-NAV] Inicializando módulo: extrato
+participante-auth.js:78 [PARTICIPANTE-AUTH] Atualizando header com dados: {timeId: '13935277', ligaId: '684cb1c8af923da7c7df51de', participante: {…}, time: null}
+participante-auth.js:55 [PARTICIPANTE-AUTH] ✅ Autenticação válida
+participante-auth.js:92 [PARTICIPANTE-AUTH] Dados do time carregados: {nome: 'Urubu Play F.C.', cartola: 'Paulinett Miranda', clube: 262}
+participante-auth.js:113 [PARTICIPANTE-AUTH] Dados do participante na liga: {time_id: 13935277, nome_cartola: 'N/D', nome_time: 'N/D', clube_id: null, foto_perfil: '', …}
+participante-auth.js:173 [PARTICIPANTE-AUTH] ✅ Header atualizado com sucesso: {nome: 'Urubu Play F.C.', cartola: 'Paulinett Miranda', clube: 262, patrimonio: 0}
+participante-navigation.js:45 [PARTICIPANTE-NAV] Navegando para: ranking
+participante-navigation.js:96 [PARTICIPANTE-NAV] Inicializando módulo: ranking
+participante-navigation.js:45 [PARTICIPANTE-NAV] Navegando para: rodadas
+participante-navigation.js:96 [PARTICIPANTE-NAV] Inicializando módulo: rodadas
+participante-navigation.js:45 [PARTICIPANTE-NAV] Navegando para: top10
+participante-navigation.js:96 [PARTICIPANTE-NAV] Inicializando módulo: top10
+participante-navigation.js:45 [PARTICIPANTE-NAV] Navegando para: melhor-mes
+participante-navigation.js:96 [PARTICIPANTE-NAV] Inicializando módulo: melhor-mes
+participante-navigation.js:45 [PARTICIPANTE-NAV] Navegando para: pontos-corridos
+participante-navigation.js:96 [PARTICIPANTE-NAV] Inicializando módulo: pontos-corridos
+participante-navigation.js:45 [PARTICIPANTE-NAV] Navegando para: mata-mata
+participante-navigation.js:96 [PARTICIPANTE-NAV] Inicializando módulo: mata-mata
