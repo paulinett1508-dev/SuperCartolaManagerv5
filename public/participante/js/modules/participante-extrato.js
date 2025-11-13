@@ -13,22 +13,15 @@ export async function inicializarExtratoParticipante(participanteData) {
 
     try {
         // ✅ GARANTIR QUE O CONTAINER EXISTE
-        const container = document.getElementById('fluxoFinanceiroContent');
+        const container = document.getElementById('extratoFinanceiro');
         
         if (!container) {
-            console.error('[EXTRATO-PARTICIPANTE] ❌ Container #fluxoFinanceiroContent não encontrado no DOM');
+            console.error('[EXTRATO-PARTICIPANTE] ❌ Container #extratoFinanceiro não encontrado no DOM');
             console.log('[EXTRATO-PARTICIPANTE] Containers disponíveis:', 
                 Array.from(document.querySelectorAll('[id]')).map(el => el.id)
             );
             
-            // Criar container se não existir
-            const moduleContainer = document.getElementById('moduleContainer');
-            if (moduleContainer) {
-                moduleContainer.innerHTML = '<div id="fluxoFinanceiroContent" style="padding: 0;"></div>';
-                console.log('[EXTRATO-PARTICIPANTE] ✅ Container criado dinamicamente');
-            } else {
-                throw new Error('Container moduleContainer não encontrado');
-            }
+            throw new Error('Container #extratoFinanceiro não encontrado. Verifique se extrato.html foi carregado corretamente.');
         }
 
         console.log('[EXTRATO-PARTICIPANTE] 📦 Importando módulo de fluxo financeiro...');
@@ -64,7 +57,7 @@ export async function inicializarExtratoParticipante(participanteData) {
 }
 
 function mostrarErro(mensagem) {
-    const container = document.getElementById('fluxoFinanceiroContent') || 
+    const container = document.getElementById('extratoFinanceiro') || 
                      document.getElementById('moduleContainer');
     
     if (container) {
