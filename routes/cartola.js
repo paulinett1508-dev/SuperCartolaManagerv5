@@ -1,4 +1,5 @@
 import express from "express";
+import fetch from "node-fetch";
 import {
   listarClubes,
   obterTimePorId,
@@ -8,7 +9,6 @@ import {
   getParciais,
   getClubes,
 } from "../controllers/cartolaController.js";
-import cartolaService from '../services/cartolaService.js'; // Importar o serviço
 
 const router = express.Router();
 
@@ -19,8 +19,10 @@ router.get("/time/:id/:rodada/escalacao", obterEscalacao);
 // ===== BUSCAR STATUS DO MERCADO (RODADA ATUAL) =====
 router.get('/mercado-status', async (req, res) => {
     try {
-        const mercadoStatus = await cartolaService.obterMercadoStatus();
-        res.json(mercadoStatus);
+        // Usar a API diretamente já que não há função específica no service
+        const response = await fetch('https://api.cartola.globo.com/mercado/status');
+        const data = await response.json();
+        res.json(data);
     } catch (error) {
         console.error('[CARTOLA-ROUTES] Erro ao buscar mercado-status:', error);
         res.status(500).json({
@@ -33,8 +35,9 @@ router.get('/mercado-status', async (req, res) => {
 // ===== BUSCAR STATUS DO MERCADO (RODADA ATUAL) - ROTA ALTERNATIVA =====
 router.get('/status', async (req, res) => {
     try {
-        const mercadoStatus = await cartolaService.obterMercadoStatus();
-        res.json(mercadoStatus);
+        const response = await fetch('https://api.cartola.globo.com/mercado/status');
+        const data = await response.json();
+        res.json(data);
     } catch (error) {
         console.error('[CARTOLA-ROUTES] Erro ao buscar mercado-status:', error);
         res.status(500).json({
