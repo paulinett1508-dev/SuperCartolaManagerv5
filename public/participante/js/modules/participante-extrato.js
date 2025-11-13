@@ -92,4 +92,7 @@ function mostrarErro(mensagem) {
     }
 }
 
-console.log('[EXTRATO-PARTICIPANTE] ✅ Função exportada com sucesso');
+// ===== EXPOR GLOBALMENTE PARA COMPATIBILIDADE COM NAVEGAÇÃO =====
+window.inicializarExtratoParticipante = inicializarExtratoParticipante;
+
+console.log('[EXTRATO-PARTICIPANTE] ✅ Função exportada (ES6 + window) com sucesso');
