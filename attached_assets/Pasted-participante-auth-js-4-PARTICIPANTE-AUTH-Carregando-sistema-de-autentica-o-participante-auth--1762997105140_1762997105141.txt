@@ -1,0 +1,170 @@
+participante-auth.js:4 [PARTICIPANTE-AUTH] Carregando sistema de autenticação...
+participante-auth.js:278 [PARTICIPANTE-AUTH] ✅ Sistema carregado
+participante-navigation.js:4 [PARTICIPANTE-NAV] Carregando sistema de navegação...
+participante-navigation.js:200 [PARTICIPANTE-NAV] ✅ Sistema carregado
+participante-status.js:4 [PARTICIPANTE-STATUS] Carregando sistema de status...
+participante-status.js:42 [PARTICIPANTE-STATUS] 🟢 Online
+participante-status.js:63 [PARTICIPANTE-STATUS] ✅ Sistema carregado
+participante-auth.js:37 [PARTICIPANTE-AUTH] Verificando autenticação...
+participante-navigation.js:25 [PARTICIPANTE-NAV] Inicializando navegação...
+participante-navigation.js:40 [PARTICIPANTE-NAV] Sistema de navegação pronto
+participante-navigation.js:51 [PARTICIPANTE-NAV] Navegando para: extrato
+participante-navigation.js:122 [PARTICIPANTE-NAV] 📦 Importando módulo JS: extrato
+participante-auth.js:101 [PARTICIPANTE-AUTH] Atualizando header com dados: {timeId: '13935277', ligaId: '684cb1c8af923da7c7df51de', participante: {…}, time: null}
+participante-auth.js:74 [PARTICIPANTE-AUTH] ✅ Autenticação válida (cache atualizado)
+participante-extrato.js:4 [EXTRATO-PARTICIPANTE] 🔄 Carregando módulo...
+participante-extrato.js:5 [EXTRATO-PARTICIPANTE] ⏱️ Timestamp: 2025-11-13T01:24:55.070Z
+participante-extrato.js:98 [EXTRATO-PARTICIPANTE] ✅ Função exportada (ES6 + window) com sucesso
+participante-navigation.js:139 [PARTICIPANTE-NAV] ✅ Módulo extrato importado
+participante-navigation.js:148 [PARTICIPANTE-NAV] Inicializando módulo: extrato
+participante-navigation.js:155 [PARTICIPANTE-NAV] Chamando inicializarExtratoParticipante com dados: {participante: {…}, ligaId: '684cb1c8af923da7c7df51de', timeId: '13935277'}
+participante-extrato.js:8 [EXTRATO-PARTICIPANTE] 🔄 Inicializando para: {participante: {…}, ligaId: '684cb1c8af923da7c7df51de', timeId: '13935277'}
+participante-extrato.js:30 [EXTRATO-PARTICIPANTE] 📦 Importando módulo de fluxo financeiro...
+participante-auth.js:115 [PARTICIPANTE-AUTH] Dados do time carregados: {nome: 'Urubu Play F.C.', cartola: 'Paulinett Miranda', clube: 262}
+participante-auth.js:136 [PARTICIPANTE-AUTH] Dados do participante na liga: {time_id: 13935277, nome_cartola: 'N/D', nome_time: 'N/D', clube_id: null, foto_perfil: '', …}
+participante-auth.js:196 [PARTICIPANTE-AUTH] ✅ Header atualizado com sucesso: {nome: 'Urubu Play F.C.', cartola: 'Paulinett Miranda', clube: 262, patrimonio: 0}
+rodadas.js:146 [RODADAS] 🚀 Inicializando módulo refatorado...
+rodadas.js:309 [RODADAS] ✅ Módulo refatorado carregado - Arquitetura modular implementada
+rodadas.js:312 [RODADAS] 🔧 Funções de debug disponíveis em window.rodadasDebug
+rodadas.js:316 [RODADAS] 📦 Estrutura modular:
+rodadas.js:317   - rodadas-config.js: Configurações e constantes
+rodadas.js:318   - rodadas-core.js: Lógica de negócio e API calls
+rodadas.js:319   - rodadas-ui.js: Interface e renderização
+rodadas.js:320   - rodadas-cache.js: Sistema de cache e performance
+rodadas.js:321   - rodadas-orquestrador.js: Coordenação entre módulos
+rodadas.js:322   - rodadas.js: Ponto de entrada refatorado (este arquivo)
+rodadas-config.js:134 [RODADAS-CONFIG] Módulo carregado com sucesso
+melhor-mes.js:4 [MELHOR-MES] Sistema modular carregando...
+melhor-mes.js:319 [MELHOR-MES] Sistema modular carregado com arquitetura refatorada
+cache-manager.js:405 ✅ [CACHE-MANAGER] Sistema de cache inteligente carregado
+fluxo-financeiro-participante.js:13 [FLUXO-PARTICIPANTE] 📦 Módulo carregado (READ-ONLY, sem vida própria)
+participante-extrato.js:37 [EXTRATO-PARTICIPANTE] ✅ Módulo importado: object
+participante-extrato.js:43 [EXTRATO-PARTICIPANTE] ⚙️ Inicializando módulo...
+fluxo-financeiro-participante.js:30 [FLUXO-PARTICIPANTE] Inicializando para participante: {timeId: '13935277', ligaId: '684cb1c8af923da7c7df51de', participante: {…}}
+fluxo-financeiro-cache.js:43 [FLUXO-CACHE] Inicializando cache para liga: 684cb1c8af923da7c7df51de
+cache-manager.js:50 ✅ [CACHE-MANAGER] IndexedDB inicializado
+cache-manager.js:100 💿 [CACHE-MANAGER] IndexedDB hit: participantes_684cb1c8af923da7c7df51de
+rodadas-core.js:372 [RODADAS-CORE] Módulo carregado com sucesso
+rodadas-ui.js:364 [RODADAS-UI] Módulo carregado com layout compacto e seleção inteligente
+rodadas-cache.js:82 [RODADAS-CACHE] Limpeza automática configurada (60000ms)
+rodadas-cache.js:353 [RODADAS-CACHE] Sistema de cache inicializado
+rodadas-cache.js:354 [RODADAS-CACHE] Limpeza automática configurada (5min)
+rodadas-orquestrador.js:396 [RODADAS-ORQUESTRADOR] Módulo carregado com UX redesenhado
+rodadas.js:36 [RODADAS] ✅ Módulos refatorados carregados com sucesso
+rodadas-orquestrador.js:303 [RODADAS-ORQUESTRADOR] Inicializando módulo de rodadas...
+rodadas-orquestrador.js:304 [RODADAS-ORQUESTRADOR] URL atual: https://e1034b6e-dfb9-401a-8e7f-80ffa6030f79-00-2dc692elmitoe.spock.replit.dev/participante/
+rodadas-orquestrador.js:311 [RODADAS-ORQUESTRADOR] Não está na seção de rodadas, pulando inicialização
+fluxo-financeiro-cache.js:253 [FLUXO-CACHE] Confrontos Pontos Corridos: 31 rodadas
+mata-mata-financeiro.js:496 === TESTE DOS DADOS DO MATA-MATA ===
+mata-mata-financeiro.js:234 [MATA-FINANCEIRO] Calculando TODAS as edições concluídas...
+mata-mata-financeiro.js:240   [MATA-FINANCEIRO] ID da Liga não encontrado.
+getResultadosMataMataFluxo @ mata-mata-financeiro.js:240
+testarDadosMataMata @ mata-mata-financeiro.js:498
+carregarDadosExternos @ fluxo-financeiro-cache.js:270
+inicializar @ fluxo-financeiro-cache.js:49
+await in inicializar
+inicializar @ fluxo-financeiro-participante.js:41
+inicializarExtratoParticipante @ participante-extrato.js:46
+await in inicializarExtratoParticipante
+inicializarModulo @ participante-navigation.js:157
+navegarPara @ participante-navigation.js:90
+await in navegarPara
+aguardarModulosENavegar @ participante-navigation.js:42
+inicializar @ participante-navigation.js:36
+ParticipanteNavigation @ participante-navigation.js:21
+(anônimo) @ participante-navigation.js:194
+mata-mata-financeiro.js:499 Estrutura do resultado: {temParticipantes: false, numeroParticipantes: 0, totalArrecadado: 0, totalPago: 0, saldoFinal: 0, …}
+pontos-corridos-utils.js:140   ID da Liga não encontrado para buscar confrontos LPC.
+getConfrontosLigaPontosCorridos @ pontos-corridos-utils.js:140
+carregarDadosExternos @ fluxo-financeiro-cache.js:280
+await in carregarDadosExternos
+inicializar @ fluxo-financeiro-cache.js:49
+await in inicializar
+inicializar @ fluxo-financeiro-participante.js:41
+inicializarExtratoParticipante @ participante-extrato.js:46
+await in inicializarExtratoParticipante
+inicializarModulo @ participante-navigation.js:157
+navegarPara @ participante-navigation.js:90
+await in navegarPara
+aguardarModulosENavegar @ participante-navigation.js:42
+inicializar @ participante-navigation.js:36
+ParticipanteNavigation @ participante-navigation.js:21
+(anônimo) @ participante-navigation.js:194
+mata-mata-financeiro.js:234 [MATA-FINANCEIRO] Calculando TODAS as edições concluídas...
+mata-mata-financeiro.js:240   [MATA-FINANCEIRO] ID da Liga não encontrado.
+getResultadosMataMataFluxo @ mata-mata-financeiro.js:240
+carregarDadosExternos @ fluxo-financeiro-cache.js:281
+await in carregarDadosExternos
+inicializar @ fluxo-financeiro-cache.js:49
+await in inicializar
+inicializar @ fluxo-financeiro-participante.js:41
+inicializarExtratoParticipante @ participante-extrato.js:46
+await in inicializarExtratoParticipante
+inicializarModulo @ participante-navigation.js:157
+navegarPara @ participante-navigation.js:90
+await in navegarPara
+aguardarModulosENavegar @ participante-navigation.js:42
+inicializar @ participante-navigation.js:36
+ParticipanteNavigation @ participante-navigation.js:21
+(anônimo) @ participante-navigation.js:194
+melhor-mes.js:53 [MELHOR-MES] Obtendo resultados...
+melhor-mes.js:60  [MELHOR-MES] Liga ID não disponível, retornando vazio
+getResultadosMelhorMes @ melhor-mes.js:60
+carregarDadosExternos @ fluxo-financeiro-cache.js:286
+await in carregarDadosExternos
+inicializar @ fluxo-financeiro-cache.js:49
+await in inicializar
+inicializar @ fluxo-financeiro-participante.js:41
+inicializarExtratoParticipante @ participante-extrato.js:46
+await in inicializarExtratoParticipante
+inicializarModulo @ participante-navigation.js:157
+navegarPara @ participante-navigation.js:90
+await in navegarPara
+aguardarModulosENavegar @ participante-navigation.js:42
+inicializar @ participante-navigation.js:36
+ParticipanteNavigation @ participante-navigation.js:21
+(anônimo) @ participante-navigation.js:194
+fluxo-financeiro-cache.js:321  [FLUXO-CACHE] Dados do Mata-Mata inválidos
+_processarResultadosMataMataCorrigido @ fluxo-financeiro-cache.js:321
+carregarDadosExternos @ fluxo-financeiro-cache.js:305
+await in carregarDadosExternos
+inicializar @ fluxo-financeiro-cache.js:49
+await in inicializar
+inicializar @ fluxo-financeiro-participante.js:41
+inicializarExtratoParticipante @ participante-extrato.js:46
+await in inicializarExtratoParticipante
+inicializarModulo @ participante-navigation.js:157
+navegarPara @ participante-navigation.js:90
+await in navegarPara
+aguardarModulosENavegar @ participante-navigation.js:42
+inicializar @ participante-navigation.js:36
+ParticipanteNavigation @ participante-navigation.js:21
+(anônimo) @ participante-navigation.js:194
+fluxo-financeiro-cache.js:307 [FLUXO-CACHE] Dados externos carregados:
+fluxo-financeiro-cache.js:308 - Confrontos LPC: 0
+fluxo-financeiro-cache.js:309 - Mata-Mata: 0
+fluxo-financeiro-cache.js:310 - Melhor Mês: 0
+fluxo-financeiro-cache.js:50 [FLUXO-CACHE] Cache inicializado com sucesso
+fluxo-financeiro-participante.js:47 [FLUXO-PARTICIPANTE] ✅ Inicialização completa
+participante-extrato.js:52 [EXTRATO-PARTICIPANTE] 💰 Carregando extrato...
+mata-mata-financeiro.js:19 [MATA-FINANCEIRO] Função getRankingRodadaEspecifica configurada
+fluxo-financeiro-core.js:34 [FLUXO-CORE] Mata-mata integrado com sucesso
+fluxo-financeiro-participante.js:60 [FLUXO-PARTICIPANTE] Carregando extrato para time: 13935277
+fluxo-financeiro-participante.js:74   GET https://e1034b6e-dfb9-401a-8e7f-80ffa6030f79-00-2dc692elmitoe.spock.replit.dev/api/cartola/mercado-status 500 (Internal Server Error)
+carregarExtrato @ fluxo-financeiro-participante.js:74
+inicializarExtratoParticipante @ participante-extrato.js:58
+await in inicializarExtratoParticipante
+inicializarModulo @ participante-navigation.js:157
+navegarPara @ participante-navigation.js:90
+await in navegarPara
+aguardarModulosENavegar @ participante-navigation.js:42
+inicializar @ participante-navigation.js:36
+ParticipanteNavigation @ participante-navigation.js:21
+(anônimo) @ participante-navigation.js:194
+cache-manager.js:90 💾 [CACHE-MANAGER] Memory hit: participantes_684cb1c8af923da7c7df51de
+fluxo-financeiro-core.js:213 [FLUXO-CORE] 💾 Cache encontrado (última atualização: 10/11/2025, 15:40:04)
+fluxo-financeiro-core.js:61 [FLUXO-CORE] 💾 Usando extrato em cache para time 13935277 (última atualização: 10/11/2025, 15:40:04)
+fluxo-financeiro-api.js:25 [FLUXO-API] Campos carregados: {_id: '691227a644bd1953a0badf1b', ligaId: 'null', timeId: '13935277', campos: Array(4), updatedAt: '2025-11-10T17:57:58.655Z', …}
+fluxo-financeiro-campos.js:27 [FluxoFinanceiroCampos] Campos carregados do MongoDB: {campo1: {…}, campo2: {…}, campo3: {…}, campo4: {…}}
+fluxo-financeiro-participante.js:98 [FLUXO-PARTICIPANTE] ✅ Extrato renderizado com sucesso
+participante-extrato.js:60 [EXTRATO-PARTICIPANTE] ✅ Extrato carregado com sucesso
