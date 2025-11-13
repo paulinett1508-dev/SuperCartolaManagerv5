@@ -47,12 +47,12 @@ body {
 }
 
 /* Header - Mobile First */
-/* === HEADER === */
+/* === HEADER MOBILE-OPTIMIZED === */
 .participante-header {
     background: linear-gradient(135deg, rgba(255, 69, 0, 0.1) 0%, rgba(255, 140, 0, 0.05) 100%);
-    border-bottom: 2px solid var(--participante-border);
-    padding: 12px 15px;
-    margin-bottom: 15px;
+    border-bottom: 1px solid var(--participante-border);
+    padding: 12px 16px;
+    margin-bottom: 0;
 }
 
 .header-content {
@@ -62,10 +62,10 @@ body {
     max-width: 100%;
 }
 
-/* === ESCUDOS === */
+/* === ESCUDOS COMPACTOS === */
 .escudos-container {
     display: flex;
-    gap: 12px;
+    gap: 8px;
     flex-shrink: 0;
 }
 
@@ -77,14 +77,14 @@ body {
 
 .escudo-coracao,
 .escudo-time {
-    width: 52px;
-    height: 52px;
+    width: 44px;
+    height: 44px;
     border-radius: 50%;
-    border: 3px solid var(--participante-primary);
+    border: 2px solid var(--participante-primary);
     background: rgba(255, 255, 255, 0.05);
     object-fit: cover;
     transition: transform 0.2s ease;
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.3);
 }
 
 .escudo-coracao:active,
@@ -102,22 +102,22 @@ body {
     min-width: 0;
     display: flex;
     flex-direction: column;
-    gap: 4px;
+    gap: 2px;
 }
 
 .participante-info h1 {
-    font-size: 16px;
+    font-size: 15px;
     margin: 0;
     color: var(--participante-primary);
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
     font-weight: 700;
-    line-height: 1.3;
+    line-height: 1.2;
 }
 
 .participante-info p {
-    font-size: 13px;
+    font-size: 12px;
     margin: 0;
     color: #999;
     white-space: nowrap;
@@ -125,18 +125,16 @@ body {
     text-overflow: ellipsis;
     display: flex;
     align-items: center;
-    gap: 5px;
+    gap: 4px;
 }
 
 .cartoleiro-icon {
-    font-size: 12px;
+    font-size: 11px;
 }
 
-/* === ESTATÍSTICAS RÁPIDAS === */
+/* === ESTATÍSTICAS RÁPIDAS (esconder em mobile) === */
 .participante-stats-quick {
-    display: flex;
-    gap: 8px;
-    margin-top: 4px;
+    display: none;
 }
 
 .stat-quick {
@@ -144,40 +142,48 @@ body {
     align-items: center;
     gap: 5px;
     background: rgba(255, 255, 255, 0.05);
-    padding: 6px 10px;
+    padding: 4px 8px;
     border-radius: 6px;
-    font-size: 12px;
+    font-size: 11px;
     color: #e0e0e0;
     border: 1px solid rgba(255, 69, 0, 0.15);
     font-weight: 600;
 }
 
 .stat-icon {
-    font-size: 13px;
+    font-size: 12px;
+}
+
+@media (min-width: 768px) {
+    .participante-stats-quick {
+        display: flex;
+        gap: 8px;
+        margin-top: 6px;
+    }
 }
 
 /* === BOTÃO LOGOUT === */
 .btn-logout {
     background: rgba(255, 69, 0, 0.15);
     color: var(--participante-primary);
-    border: 2px solid var(--participante-border);
-    padding: 10px 14px;
+    border: 1px solid var(--participante-border);
+    padding: 8px 10px;
     border-radius: 8px;
     cursor: pointer;
     transition: all 0.2s ease;
-    font-size: 13px;
+    font-size: 12px;
     white-space: nowrap;
     flex-shrink: 0;
     display: flex;
     align-items: center;
-    gap: 6px;
-    min-height: 44px;
+    gap: 4px;
+    min-height: 40px;
     font-weight: 600;
 }
 
 .btn-logout:active {
     background: rgba(255, 69, 0, 0.3);
-    transform: scale(0.97);
+    transform: scale(0.96);
 }
 
 .logout-icon {
@@ -185,7 +191,19 @@ body {
 }
 
 .logout-text {
-    display: inline;
+    display: none;
+}
+
+@media (min-width: 768px) {
+    .logout-text {
+        display: inline;
+    }
+    
+    .btn-logout {
+        padding: 10px 14px;
+        gap: 6px;
+        min-height: 44px;
+    }
 }
 
 /* === TABLET E DESKTOP === */

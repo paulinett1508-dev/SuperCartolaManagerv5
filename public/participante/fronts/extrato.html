@@ -1,113 +1,301 @@
+
 <div id="extratoFinanceiro" class="extrato-container">
-    <div class="extrato-header">
-        <h2>💰 Extrato Financeiro</h2>
-        <div class="extrato-resumo">
-            <div class="resumo-item">
-                <span class="resumo-label">Total</span>
-                <span id="saldoTotal" class="resumo-valor">C$ 0,00</span>
-            </div>
-            <div class="resumo-item creditos">
-                <span class="resumo-label">Créditos</span>
+    <!-- Header compacto com resumo inline -->
+    <div class="extrato-header-compact">
+        <h2 class="extrato-title">💰 Extrato</h2>
+        <div class="saldo-principal">
+            <span class="saldo-label">Saldo a Pagar</span>
+            <span id="saldoTotal" class="saldo-valor">C$ 0,00</span>
+        </div>
+    </div>
+
+    <!-- Cards resumo horizontal (estilo Nubank) -->
+    <div class="resumo-horizontal">
+        <div class="resumo-card credito">
+            <div class="resumo-icon">↑</div>
+            <div class="resumo-info">
+                <span class="resumo-label">Ganhou</span>
                 <span id="totalCreditos" class="resumo-valor">C$ 0,00</span>
             </div>
-            <div class="resumo-item debitos">
-                <span class="resumo-label">Débitos</span>
+        </div>
+        <div class="resumo-card debito">
+            <div class="resumo-icon">↓</div>
+            <div class="resumo-info">
+                <span class="resumo-label">Perdeu</span>
                 <span id="totalDebitos" class="resumo-valor">C$ 0,00</span>
             </div>
         </div>
     </div>
 
+    <!-- Controles compactos -->
+    <div class="extrato-actions">
+        <button id="btnCache" class="action-btn secondary">
+            <span class="btn-icon">⚡</span>
+            <span class="btn-text">Cache</span>
+        </button>
+        <button id="btnAtualizar" class="action-btn primary">
+            <span class="btn-icon">🔄</span>
+            <span class="btn-text">Atualizar</span>
+        </button>
+    </div>
+
+    <!-- Tabela de transações mobile-optimized -->
     <div id="fluxoFinanceiroContent" class="extrato-content">
         <div class="loading-state">
             <div class="spinner"></div>
-            <p>Carregando extrato...</p>
+            <p>Carregando...</p>
         </div>
     </div>
-
-    <!-- Container adicional para garantir renderização -->
-    <div id="extratoDetalhes"></div>
 </div>
 
 <style>
+/* === MOBILE-FIRST DESIGN === */
 .extrato-container {
-    padding: 20px;
-    max-width: 1200px;
-    margin: 0 auto;
+    padding: 0;
+    max-width: 100%;
 }
 
-.extrato-header {
-    margin-bottom: 30px;
+/* Header compacto */
+.extrato-header-compact {
+    background: linear-gradient(135deg, rgba(255, 69, 0, 0.1) 0%, rgba(255, 140, 0, 0.05) 100%);
+    padding: 16px;
+    border-bottom: 1px solid rgba(255, 69, 0, 0.2);
 }
 
-.extrato-header h2 {
+.extrato-title {
+    font-size: 18px;
+    font-weight: 700;
     color: var(--participante-primary);
-    margin-bottom: 20px;
-    font-size: 24px;
+    margin: 0 0 12px 0;
 }
 
-.extrato-resumo {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-    gap: 15px;
+.saldo-principal {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
 }
 
-.resumo-item {
-    background: rgba(255, 255, 255, 0.05);
-    padding: 20px;
-    border-radius: 12px;
-    border: 1px solid rgba(255, 255, 255, 0.1);
-}
-
-.resumo-item.creditos {
-    border-color: rgba(34, 197, 94, 0.3);
-}
-
-.resumo-item.debitos {
-    border-color: rgba(239, 68, 68, 0.3);
-}
-
-.resumo-label {
-    display: block;
+.saldo-label {
     font-size: 12px;
     color: #999;
-    margin-bottom: 8px;
     text-transform: uppercase;
     letter-spacing: 0.5px;
 }
 
-.resumo-valor {
-    display: block;
+.saldo-valor {
     font-size: 24px;
-    font-weight: 700;
+    font-weight: 800;
     color: #fff;
+    font-family: 'JetBrains Mono', monospace;
 }
 
-.creditos .resumo-valor {
+/* Cards horizontais estilo fintech */
+.resumo-horizontal {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+    padding: 16px;
+    background: rgba(0, 0, 0, 0.2);
+}
+
+.resumo-card {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 12px;
+    border-radius: 12px;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.resumo-card.credito {
+    background: linear-gradient(135deg, rgba(34, 197, 94, 0.15) 0%, rgba(34, 197, 94, 0.05) 100%);
+    border-color: rgba(34, 197, 94, 0.3);
+}
+
+.resumo-card.debito {
+    background: linear-gradient(135deg, rgba(239, 68, 68, 0.15) 0%, rgba(239, 68, 68, 0.05) 100%);
+    border-color: rgba(239, 68, 68, 0.3);
+}
+
+.resumo-icon {
+    width: 32px;
+    height: 32px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 18px;
+    border-radius: 8px;
+    flex-shrink: 0;
+}
+
+.credito .resumo-icon {
+    background: rgba(34, 197, 94, 0.2);
     color: #22c55e;
 }
 
-.debitos .resumo-valor {
+.debito .resumo-icon {
+    background: rgba(239, 68, 68, 0.2);
     color: #ef4444;
 }
 
-.extrato-content {
-    background: rgba(255, 255, 255, 0.03);
-    border-radius: 12px;
-    padding: 20px;
-    min-height: 400px;
+.resumo-info {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    min-width: 0;
 }
 
+.resumo-label {
+    font-size: 10px;
+    color: #999;
+    text-transform: uppercase;
+    letter-spacing: 0.3px;
+    font-weight: 600;
+}
+
+.resumo-valor {
+    font-size: 16px;
+    font-weight: 700;
+    color: #fff;
+    font-family: 'JetBrains Mono', monospace;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+/* Ações compactas */
+.extrato-actions {
+    display: flex;
+    gap: 10px;
+    padding: 16px;
+    background: rgba(0, 0, 0, 0.2);
+    border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.action-btn {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    padding: 10px;
+    border-radius: 8px;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    background: transparent;
+    color: #fff;
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    min-height: 44px;
+}
+
+.action-btn.primary {
+    background: linear-gradient(135deg, var(--participante-primary) 0%, #e8472b 100%);
+    border-color: var(--participante-primary);
+}
+
+.action-btn.secondary {
+    background: rgba(255, 255, 255, 0.05);
+}
+
+.action-btn:active {
+    transform: scale(0.96);
+}
+
+.btn-icon {
+    font-size: 16px;
+}
+
+/* Conteúdo com tabela full-width */
+.extrato-content {
+    padding: 16px;
+    min-height: 300px;
+}
+
+/* Tabela mobile-optimized */
+.extrato-content table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 13px;
+}
+
+.extrato-content th {
+    background: rgba(255, 69, 0, 0.1);
+    color: var(--participante-primary);
+    padding: 10px 8px;
+    text-align: left;
+    font-size: 11px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    border-bottom: 1px solid rgba(255, 69, 0, 0.3);
+    position: sticky;
+    top: 0;
+    z-index: 10;
+}
+
+.extrato-content td {
+    padding: 12px 8px;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+    color: #e0e0e0;
+}
+
+.extrato-content tr:active {
+    background: rgba(255, 255, 255, 0.05);
+}
+
+/* Badges de posição compactos */
+.badge-pos {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 28px;
+    height: 28px;
+    padding: 0 8px;
+    border-radius: 6px;
+    font-size: 12px;
+    font-weight: 700;
+}
+
+.badge-pos.top3 {
+    background: linear-gradient(135deg, #ffd700 0%, #ffb347 100%);
+    color: #000;
+}
+
+.badge-pos.mico {
+    background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
+    color: #fff;
+}
+
+.badge-pos.default {
+    background: rgba(255, 255, 255, 0.1);
+    color: #999;
+}
+
+/* Valores monetários */
+.valor-credito {
+    color: #22c55e;
+    font-weight: 700;
+}
+
+.valor-debito {
+    color: #ef4444;
+    font-weight: 700;
+}
+
+/* Loading otimizado */
 .loading-state {
     display: flex;
     flex-direction: column;
     align-items: center;
     justify-content: center;
-    padding: 60px 20px;
+    padding: 40px 20px;
 }
 
 .spinner {
-    width: 40px;
-    height: 40px;
+    width: 32px;
+    height: 32px;
     border: 3px solid rgba(255, 69, 0, 0.2);
     border-top-color: var(--participante-primary);
     border-radius: 50%;
@@ -119,8 +307,70 @@
 }
 
 .loading-state p {
-    margin-top: 20px;
+    margin-top: 16px;
     color: #999;
-    font-size: 14px;
+    font-size: 13px;
+}
+
+/* === TABLET (768px+) === */
+@media (min-width: 768px) {
+    .extrato-container {
+        padding: 20px;
+        max-width: 1200px;
+        margin: 0 auto;
+    }
+
+    .extrato-header-compact {
+        padding: 24px;
+        border-radius: 12px;
+    }
+
+    .extrato-title {
+        font-size: 22px;
+    }
+
+    .saldo-valor {
+        font-size: 32px;
+    }
+
+    .resumo-horizontal {
+        grid-template-columns: repeat(2, 1fr);
+        gap: 16px;
+        padding: 20px;
+    }
+
+    .resumo-valor {
+        font-size: 18px;
+    }
+
+    .extrato-actions {
+        padding: 20px;
+    }
+
+    .action-btn {
+        max-width: 200px;
+    }
+
+    .extrato-content {
+        padding: 20px;
+    }
+
+    .extrato-content th {
+        font-size: 12px;
+        padding: 12px;
+    }
+
+    .extrato-content td {
+        padding: 14px 12px;
+        font-size: 14px;
+    }
+}
+
+/* === DESKTOP (1024px+) === */
+@media (min-width: 1024px) {
+    .resumo-horizontal {
+        grid-template-columns: repeat(2, 1fr);
+        max-width: 600px;
+    }
 }
 </style>
