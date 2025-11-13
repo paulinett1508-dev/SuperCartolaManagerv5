@@ -40,18 +40,19 @@ export class FluxoFinanceiroCache {
     }
 
     async inicializar(ligaId) {
-        console.log(`[FLUXO-CACHE] Inicializando cache para liga: ${ligaId}`);
-        this.ligaId = ligaId;
+        console.log('[FLUXO-CACHE] Inicializando cache para liga:', ligaId);
 
-        try {
-            await this.carregarParticipantes();
-            await this.carregarDadosPontosCorridos();
-            await this.carregarDadosExternos();
-            console.log(`[FLUXO-CACHE] Cache inicializado com sucesso`);
-        } catch (error) {
-            console.error(`[FLUXO-CACHE] Erro na inicialização:`, error);
-            throw error;
-        }
+        // ✅ ARMAZENAR ligaId globalmente para uso pelos módulos
+        this.ligaId = ligaId;
+        window.ligaId = ligaId; // Expor globalmente também
+
+        // Aguardar carregamento de participantes
+        await this.carregarParticipantes();
+
+        // Carregar dados externos (Mata-Mata, Pontos Corridos, etc.)
+        await this.carregarDadosExternos();
+
+        console.log('[FLUXO-CACHE] Cache inicializado com sucesso');
     }
 
     getUltimaRodadaCompleta() {
@@ -266,48 +267,65 @@ export class FluxoFinanceiroCache {
     }
 
     async carregarDadosExternos() {
+        console.log('[FLUXO-CACHE] Carregando dados externos...');
+
         try {
-            await testarDadosMataMata();
-        } catch (error) {
-            console.warn("[FLUXO-CACHE] Aviso ao testar Mata-Mata:", error);
-        }
+            // ✅ USAR ligaId ARMAZENADO NA INICIALIZAÇÃO
+            const ligaId = this.ligaId || window.ligaId || obterLigaId();
 
-        // ✅ GARANTIR ligaId válido antes de carregar Melhor Mês
-        const ligaIdValido = this.ligaId || obterLigaId();
-
-        const [confrontosLPC, resultadosMM, resultadosMelhorMes] =
-            await Promise.all([
-                getConfrontosLigaPontosCorridos(),
-                getResultadosMataMataFluxo().catch(() => ({
-                    participantes: [],
-                    edicoes: [],
-                })),
-                // Só buscar Melhor Mês se ligaId for válido
-                ligaIdValido ? getResultadosMelhorMes().catch(() => []) : Promise.resolve([]),
-            ]);
-
-        this.cacheConfrontosLPC = confrontosLPC || [];
-        this.cacheResultadosMelhorMes = Array.isArray(resultadosMelhorMes)
-            ? resultadosMelhorMes
-            : [];
-
-        if (this.cacheResultadosMelhorMes.length > 0) {
-            try {
-                this.cacheResultadosMelhorMes =
-                    await filtrarDadosPorTimesLigaEspecial(
-                        this.cacheResultadosMelhorMes,
-                    );
-            } catch (error) {
-                console.warn("[FLUXO-CACHE] Erro ao aplicar filtro:", error);
+            if (!ligaId) {
+                console.error('[FLUXO-CACHE] ❌ ligaId não disponível para buscar dados externos');
+                return;
             }
+
+            console.log('[FLUXO-CACHE] 🔑 Usando ligaId:', ligaId);
+
+            // Importar módulos necessários
+            const { getRankingRodadaEspecifica } = await import('/js/rodadas.js');
+            const { setRankingFunction } = await import('/js/mata-mata/mata-mata-financeiro.js');
+
+            // Configurar ranking no Mata-Mata
+            setRankingFunction(getRankingRodadaEspecifica);
+
+            // Buscar confrontos de pontos corridos
+            const confrontosLPC = await getConfrontosLigaPontosCorridos(ligaId); // Passar ligaId
+            const resultadosMM = await getResultadosMataMataFluxo().catch(() => ({
+                participantes: [],
+                edicoes: [],
+            }));
+            // Só buscar Melhor Mês se ligaId for válido
+            const resultadosMelhorMes = ligaId ? await getResultadosMelhorMes(ligaId).catch(() => []) : Promise.resolve([]);
+
+
+            this.cacheConfrontosLPC = confrontosLPC || [];
+            this.cacheResultadosMelhorMes = Array.isArray(resultadosMelhorMes)
+                ? resultadosMelhorMes
+                : [];
+
+            if (this.cacheResultadosMelhorMes.length > 0) {
+                try {
+                    this.cacheResultadosMelhorMes =
+                        await filtrarDadosPorTimesLigaEspecial(
+                            this.cacheResultadosMelhorMes,
+                        );
+                } catch (error) {
+                    console.warn("[FLUXO-CACHE] Erro ao aplicar filtro:", error);
+                }
+            }
+
+            this._processarResultadosMataMataCorrigido(resultadosMM);
+
+            console.log(`[FLUXO-CACHE] Dados externos carregados:`);
+            console.log(`- Confrontos LPC: ${this.cacheConfrontosLPC.length}`);
+            console.log(`- Mata-Mata: ${this.cacheResultadosMM.length}`);
+            console.log(`- Melhor Mês: ${this.cacheResultadosMelhorMes.length}`);
+        } catch (error) {
+            console.error("[FLUXO-CACHE] Erro geral ao carregar dados externos:", error);
+            // Resetar caches em caso de erro para evitar dados inconsistentes
+            this.cacheConfrontosLPC = [];
+            this.cacheResultadosMM = [];
+            this.cacheResultadosMelhorMes = [];
         }
-
-        this._processarResultadosMataMataCorrigido(resultadosMM);
-
-        console.log(`[FLUXO-CACHE] Dados externos carregados:`);
-        console.log(`- Confrontos LPC: ${this.cacheConfrontosLPC.length}`);
-        console.log(`- Mata-Mata: ${this.cacheResultadosMM.length}`);
-        console.log(`- Melhor Mês: ${this.cacheResultadosMelhorMes.length}`);
     }
 
     _processarResultadosMataMataCorrigido(resultadosMM) {
@@ -432,7 +450,7 @@ export async function getCachedFluxoFinanceiro(ligaId, participante = null) {
   const cached = cache.get(key);
 
   if (cached) {
-    console.log('[FLUXO-CACHE] ⚡ Cache persistente encontrado (última atualização manual:', 
+    console.log('[FLUXO-CACHE] ⚡ Cache persistente encontrado (última atualização manual:',
       ultimaAtualizacaoManual ? new Date(ultimaAtualizacaoManual).toLocaleString('pt-BR') : 'nunca',
       ')');
     return cached.data;
