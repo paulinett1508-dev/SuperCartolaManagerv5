@@ -8,7 +8,10 @@ class ParticipanteAuth {
         this.participante = null;
         this.ligaId = null;
         this.timeId = null;
-        this.verificandoAuth = false; // Flag para evitar múltiplas verificações
+        this.verificandoAuth = false;
+        this.sessionCache = null;
+        this.sessionCacheTime = null;
+        this.CACHE_DURATION = 60000; // 1 minuto
     }
 
     async verificarAutenticacao() {
@@ -16,6 +19,18 @@ class ParticipanteAuth {
         if (this.verificandoAuth) {
             console.log('[PARTICIPANTE-AUTH] Verificação já em andamento...');
             return false;
+        }
+
+        // Usar cache se disponível e válido
+        const now = Date.now();
+        if (this.sessionCache && this.sessionCacheTime && (now - this.sessionCacheTime) < this.CACHE_DURATION) {
+            console.log('[PARTICIPANTE-AUTH] 💾 Usando sessão em cache');
+            const { participante } = this.sessionCache;
+            this.ligaId = participante.ligaId;
+            this.timeId = participante.timeId;
+            this.participante = participante;
+            this.atualizarHeader();
+            return true;
         }
 
         this.verificandoAuth = true;
@@ -49,10 +64,14 @@ class ParticipanteAuth {
             this.timeId = participante.timeId;
             this.participante = participante;
 
+            // Armazenar em cache
+            this.sessionCache = data;
+            this.sessionCacheTime = Date.now();
+
             // Atualizar UI
             this.atualizarHeader();
 
-            console.log('[PARTICIPANTE-AUTH] ✅ Autenticação válida');
+            console.log('[PARTICIPANTE-AUTH] ✅ Autenticação válida (cache atualizado)');
             this.verificandoAuth = false;
             return true;
 
@@ -66,6 +85,10 @@ class ParticipanteAuth {
 
     async atualizarHeader() {
         if (!this.participante) return;
+
+        // Evitar múltiplas atualizações simultâneas
+        if (this._atualizandoHeader) return;
+        this._atualizandoHeader = true;
 
         const nomeTime = document.getElementById('nomeTime');
         const nomeCartolaText = document.getElementById('nomeCartolaText');
@@ -177,7 +200,10 @@ class ParticipanteAuth {
                 patrimonio: patrimonio
             });
 
+            this._atualizandoHeader = false;
+
         } catch (error) {
+            this._atualizandoHeader = false;
             console.error('[PARTICIPANTE-AUTH] Erro ao atualizar header:', error);
             
             // Fallback para dados básicos

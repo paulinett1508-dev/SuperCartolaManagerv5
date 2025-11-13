@@ -45,10 +45,16 @@
                     </div>
                 </div>
 
-                <button class="btn-logout" onclick="logout()">
-                    <span class="logout-icon">🚪</span>
-                    <span class="logout-text">Sair</span>
-                </button>
+                <div style="display: flex; align-items: center; gap: 15px;">
+                    <div id="statusConexao" style="display: flex; align-items: center; gap: 5px; font-size: 12px;">
+                        <span id="statusIndicador" style="width: 8px; height: 8px; border-radius: 50%; background: #22c55e;"></span>
+                        <span id="statusTexto" style="color: #999;">Online</span>
+                    </div>
+                    <button class="btn-logout" onclick="logout()">
+                        <span class="logout-icon">🚪</span>
+                        <span class="logout-text">Sair</span>
+                    </button>
+                </div>
             </div>
         </header>
 
@@ -73,5 +79,6 @@
 
     <script src="js/participante-auth.js"></script>
     <script src="js/participante-navigation.js"></script>
+    <script src="js/participante-status.js"></script>
 </body>
 </html>

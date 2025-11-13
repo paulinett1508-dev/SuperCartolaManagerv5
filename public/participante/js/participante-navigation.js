@@ -139,13 +139,26 @@ class ParticipanteNavigation {
 
         } catch (error) {
             console.error(`[PARTICIPANTE-NAV] Erro ao carregar ${modulo}:`, error);
+            
+            const isNetworkError = error.message.includes('fetch') || !navigator.onLine;
+            
             container.innerHTML = `
                 <div style="text-align: center; padding: 40px; color: #ef4444;">
-                    <h3>Erro ao Carregar Módulo</h3>
-                    <p>${error.message}</p>
-                    <button onclick="participanteNav.navegarPara('extrato')" class="btn-voltar">
-                        Voltar ao Extrato
-                    </button>
+                    <h3>❌ ${isNetworkError ? 'Erro de Conexão' : 'Erro ao Carregar Módulo'}</h3>
+                    <p style="margin: 15px 0;">${error.message}</p>
+                    ${isNetworkError ? '<p style="color: #999; font-size: 14px;">Verifique sua conexão com a internet</p>' : ''}
+                    <div style="display: flex; gap: 10px; justify-content: center; margin-top: 20px;">
+                        <button onclick="participanteNav.navegarPara('${modulo}')" 
+                                style="padding: 10px 20px; background: var(--participante-primary); color: white; 
+                                       border: none; border-radius: 8px; cursor: pointer;">
+                            🔄 Tentar Novamente
+                        </button>
+                        <button onclick="participanteNav.navegarPara('extrato')" 
+                                style="padding: 10px 20px; background: #666; color: white; 
+                                       border: none; border-radius: 8px; cursor: pointer;">
+                            ← Voltar ao Extrato
+                        </button>
+                    </div>
                 </div>
             `;
         }
