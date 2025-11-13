@@ -3,7 +3,7 @@
 
 console.log('[EXTRATO-PARTICIPANTE] 🔄 Carregando módulo...');
 
-async function inicializarExtratoParticipante(participanteData) {
+window.inicializarExtratoParticipante = async function(participanteData) {
     console.log('[EXTRATO-PARTICIPANTE] 🔄 Inicializando para:', participanteData);
 
     // ✅ VERIFICAR DADOS OBRIGATÓRIOS
@@ -89,10 +89,6 @@ function mostrarErro(mensagem) {
             </div>
         `;
     }
-}
+};
 
-// ✅ Expor globalmente IMEDIATAMENTE
-if (typeof window !== 'undefined') {
-    window.inicializarExtratoParticipante = inicializarExtratoParticipante;
-    console.log('[EXTRATO-PARTICIPANTE] ✅ Função exposta globalmente:', typeof window.inicializarExtratoParticipante);
-}
+console.log('[EXTRATO-PARTICIPANTE] ✅ Função exposta globalmente:', typeof window.inicializarExtratoParticipante);
