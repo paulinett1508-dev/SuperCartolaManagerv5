@@ -52,9 +52,9 @@ class FluxoFinanceiroParticipante {
             throw new Error('Módulo não inicializado. Chame inicializar() primeiro.');
         }
 
-        const container = document.getElementById('extratoFinanceiro');
+        const container = document.getElementById('fluxoFinanceiroContent');
         if (!container) {
-            throw new Error('Container #extratoFinanceiro não encontrado');
+            throw new Error('Container #fluxoFinanceiroContent não encontrado');
         }
 
         console.log('[FLUXO-PARTICIPANTE] Carregando extrato para time:', this.participanteData.timeId);

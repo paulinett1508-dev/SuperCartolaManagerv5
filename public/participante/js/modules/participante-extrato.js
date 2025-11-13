@@ -40,10 +40,7 @@ export async function inicializarExtratoParticipante(participanteData) {
 
         console.log('[EXTRATO-PARTICIPANTE] 💰 Carregando extrato...');
         
-        // ✅ CRIAR ADAPTER: Mapear IDs do participante para IDs esperados pelo módulo UI
-        criarAdapterDeIDs();
-        
-        // Carregar extrato
+        // Carregar extrato (container já tem ID correto: fluxoFinanceiroContent)
         await fluxoFinanceiroParticipante.carregarExtrato();
 
         console.log('[EXTRATO-PARTICIPANTE] ✅ Extrato carregado com sucesso');
@@ -59,28 +56,8 @@ export async function inicializarExtratoParticipante(participanteData) {
     }
 }
 
-function criarAdapterDeIDs() {
-    // ✅ Criar um container wrapper que o módulo UI espera
-    const extratoContainer = document.getElementById('extratoFinanceiro');
-    if (!extratoContainer) return;
-
-    // Criar container interno com ID que o módulo UI espera
-    const wrapperContent = document.createElement('div');
-    wrapperContent.id = 'fluxoFinanceiroContent';
-    wrapperContent.style.padding = '0';
-    
-    // Mover todo o conteúdo atual para dentro do wrapper
-    while (extratoContainer.firstChild) {
-        wrapperContent.appendChild(extratoContainer.firstChild);
-    }
-    
-    extratoContainer.appendChild(wrapperContent);
-    
-    console.log('[EXTRATO-PARTICIPANTE] ✅ Adapter de IDs criado (#fluxoFinanceiroContent injetado)');
-}
-
 function mostrarErro(mensagem) {
-    const container = document.getElementById('extratoFinanceiro') || 
+    const container = document.getElementById('fluxoFinanceiroContent') || 
                      document.getElementById('moduleContainer');
     
     if (container) {

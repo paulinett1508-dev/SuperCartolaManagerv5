@@ -1,4 +1,5 @@
 
+
 <div class="extrato-participante-container">
     <div class="extrato-header">
         <h2>💰 Meu Extrato Financeiro</h2>
@@ -37,7 +38,8 @@
         <div class="tabela-header">
             <h3>Histórico de Movimentações</h3>
         </div>
-        <div id="extratoFinanceiro" class="extrato-content">
+        <!-- ✅ CORREÇÃO: Container com ID correto que o módulo UI espera -->
+        <div id="fluxoFinanceiroContent" class="extrato-content">
             <!-- Preenchido via JS pelo módulo fluxo-financeiro-participante.js -->
         </div>
     </div>
@@ -137,6 +139,11 @@
     margin: 0;
     font-size: 18px;
     color: #ffffff;
+}
+
+/* ✅ NOVO: Estilos para o conteúdo do extrato */
+.extrato-content {
+    min-height: 200px;
 }
 </style>
 
