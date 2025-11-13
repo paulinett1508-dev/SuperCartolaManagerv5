@@ -1,6 +1,8 @@
 // MÓDULO: EXTRATO PARTICIPANTE
 // Integra com fluxo-financeiro-participante.js
 
+console.log('[EXTRATO-PARTICIPANTE] 🔄 Carregando módulo...');
+
 async function inicializarExtratoParticipante(participanteData) {
     console.log('[EXTRATO-PARTICIPANTE] 🔄 Inicializando para:', participanteData);
 
@@ -78,7 +80,8 @@ function mostrarErro(mensagem) {
     }
 }
 
-// ✅ Expor globalmente para compatibilidade com participante-navigation.js
-window.inicializarExtratoParticipante = inicializarExtratoParticipante;
-
-console.log('[EXTRATO-PARTICIPANTE] ✅ Módulo exposto globalmente');
+// ✅ Expor globalmente IMEDIATAMENTE
+if (typeof window !== 'undefined') {
+    window.inicializarExtratoParticipante = inicializarExtratoParticipante;
+    console.log('[EXTRATO-PARTICIPANTE] ✅ Função exposta globalmente:', typeof window.inicializarExtratoParticipante);
+}

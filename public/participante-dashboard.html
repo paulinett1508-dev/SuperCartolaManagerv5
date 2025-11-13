@@ -438,12 +438,12 @@
         }
 
   </style>
-  <!-- Scripts de Módulos (carregar ANTES da navegação) -->
-    <script src="/participante/js/modules/participante-extrato.js"></script>
-
-    <!-- Scripts de Navegação -->
+  <!-- Scripts de Navegação -->
     <script src="/participante/js/participante-auth.js"></script>
     <script src="/participante/js/participante-navigation.js"></script>
+    
+    <!-- Scripts de Módulos (carregar DEPOIS da navegação, como módulos) -->
+    <script type="module" src="/participante/js/modules/participante-extrato.js"></script>
 </head>
 <body>
   <!-- HEADER PROFISSIONAL COM NAVEGAÇÃO -->
