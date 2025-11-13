@@ -643,8 +643,44 @@ export class FluxoFinanceiroUI {
 
         container.innerHTML = html;
 
+        // ✅ ATUALIZAR VALORES DO HEADER (cards do topo)
+        this.atualizarValoresHeader(extrato);
+
         // ✅ CORREÇÃO: Callback removido para evitar download automático
         // O callback estava causando exportação automática ao renderizar o extrato
+    }
+
+    atualizarValoresHeader(extrato) {
+        // Atualizar Saldo Total no Header
+        const saldoHeader = document.getElementById('saldoTotalHeader');
+        if (saldoHeader && extrato.resumo) {
+            const saldo = parseFloat(extrato.resumo.saldo) || 0;
+            saldoHeader.textContent = `R$ ${Math.abs(saldo).toLocaleString('pt-BR', {
+                minimumFractionDigits: 2,
+                maximumFractionDigits: 2
+            })}`;
+            saldoHeader.style.color = saldo >= 0 ? '#2ecc71' : '#ef4444';
+        }
+
+        // Atualizar Total Ganhos no Header
+        const ganhosHeader = document.getElementById('totalGanhosHeader');
+        if (ganhosHeader && extrato.resumo) {
+            const ganhos = parseFloat(extrato.resumo.totalGanhos) || 0;
+            ganhosHeader.textContent = `+R$ ${ganhos.toLocaleString('pt-BR', {
+                minimumFractionDigits: 2,
+                maximumFractionDigits: 2
+            })}`;
+        }
+
+        // Atualizar Total Perdas no Header
+        const perdeuHeader = document.getElementById('totalPerdeuHeader');
+        if (perdeuHeader && extrato.resumo) {
+            const perdas = Math.abs(parseFloat(extrato.resumo.totalPerdas) || 0);
+            perdeuHeader.textContent = `R$ ${perdas.toLocaleString('pt-BR', {
+                minimumFractionDigits: 2,
+                maximumFractionDigits: 2
+            })}`;
+        }
     }
 
     async renderizarCamposEditaveis(timeId) {

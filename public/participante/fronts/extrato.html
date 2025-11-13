@@ -5,24 +5,24 @@
         <h2 class="extrato-title">💰 Extrato</h2>
         <div class="saldo-principal">
             <span class="saldo-label">Saldo a Pagar</span>
-            <span id="saldoTotal" class="saldo-valor">C$ 0,00</span>
+            <span id="saldoTotalHeader" class="saldo-valor">R$ 0,00</span>
         </div>
     </div>
 
     <!-- Cards resumo horizontal (estilo Nubank) -->
     <div class="resumo-horizontal">
-        <div class="resumo-card credito">
+        <div class="resumo-card credito" onclick="window.mostrarDetalhamentoGanhos()" style="cursor: pointer;">
             <div class="resumo-icon">↑</div>
             <div class="resumo-info">
                 <span class="resumo-label">Ganhou</span>
-                <span id="totalCreditosCard" class="resumo-valor">C$ 0,00</span>
+                <span id="totalGanhosHeader" class="resumo-valor">R$ 0,00</span>
             </div>
         </div>
-        <div class="resumo-card debito">
+        <div class="resumo-card debito" onclick="window.mostrarDetalhamentoPerdas()" style="cursor: pointer;">
             <div class="resumo-icon">↓</div>
             <div class="resumo-info">
                 <span class="resumo-label">Perdeu</span>
-                <span id="totalDebitosCard" class="resumo-valor">C$ 0,00</span>
+                <span id="totalPerdeuHeader" class="resumo-valor">R$ 0,00</span>
             </div>
         </div>
     </div>
