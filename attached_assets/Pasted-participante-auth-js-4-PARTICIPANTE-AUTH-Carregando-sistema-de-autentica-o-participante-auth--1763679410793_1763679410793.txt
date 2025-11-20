@@ -1,0 +1,26 @@
+participante-auth.js:4 [PARTICIPANTE-AUTH] Carregando sistema de autenticação...
+participante-auth.js:264 [PARTICIPANTE-AUTH] ✅ Sistema carregado
+participante-navigation.js:4 [PARTICIPANTE-NAV] Carregando sistema de navegação...
+participante-navigation.js:288 [PARTICIPANTE-NAV] ✅ Sistema carregado
+participante-status.js:4 [PARTICIPANTE-STATUS] Carregando sistema de status...
+participante-status.js:42 [PARTICIPANTE-STATUS] 🟢 Online
+participante-status.js:63 [PARTICIPANTE-STATUS] ✅ Sistema carregado
+participante-auth.js:37 [PARTICIPANTE-AUTH] Verificando autenticação...
+participante-navigation.js:26 [PARTICIPANTE-NAV] Inicializando navegação...
+participante-navigation.js:43 [PARTICIPANTE-NAV] Sistema de navegação pronto
+participante-navigation.js:54 [PARTICIPANTE-NAV] Navegando para: boas-vindas
+participante-navigation.js:125 [PARTICIPANTE-NAV] 📦 Importando módulo JS: boas-vindas
+participante-navigation.js:151 [PARTICIPANTE-NAV] Inicializando módulo: boas-vindas
+participante-navigation.js:157 [PARTICIPANTE-NAV] Página de boas-vindas carregada
+participante-auth.js:98 [PARTICIPANTE-AUTH] Atualizando header com dados: {timeId: '13935277', ligaId: '684cb1c8af923da7c7df51de', participante: {…}, time: null}
+participante-auth.js:74 [PARTICIPANTE-AUTH] ✅ Autenticação válida (cache atualizado)
+participante-auth.js:112 [PARTICIPANTE-AUTH] Dados do time carregados: {nome: 'Urubu Play F.C.', cartola: 'Paulinett Miranda', clube: 262}
+participante-auth.js:133 [PARTICIPANTE-AUTH] Dados do participante na liga: {time_id: 13935277, nome_cartola: 'N/D', nome_time: 'N/D', clube_id: null, foto_perfil: '', …}
+participante-auth.js:182 [PARTICIPANTE-AUTH] ✅ Header atualizado com sucesso: {nome: 'Urubu Play F.C.', cartola: 'Paulinett Miranda', clube: 262, patrimonio: 0}
+participante-navigation.js:54 [PARTICIPANTE-NAV] Navegando para: ranking
+participante-navigation.js:125 [PARTICIPANTE-NAV] 📦 Importando módulo JS: ranking
+participante-ranking.js:4 [PARTICIPANTE-RANKING] Carregando módulo...
+participante-ranking.js:71 [PARTICIPANTE-RANKING] ✅ Módulo carregado
+participante-navigation.js:142 [PARTICIPANTE-NAV] ✅ Módulo ranking importado
+participante-navigation.js:151 [PARTICIPANTE-NAV] Inicializando módulo: ranking
+participante-ranking.js:7 [PARTICIPANTE-RANKING] Inicializando para time 13935277 na liga 684cb1c8af923da7c7df51de
