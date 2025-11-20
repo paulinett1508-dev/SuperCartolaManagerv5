@@ -38,17 +38,19 @@ function renderizarRanking(dados, meuTimeId) {
                     <th>Time</th>
                     <th>Cartoleiro</th>
                     <th>Pontos</th>
-                    <th>Vitórias</th>
+                    <th>Média</th>
+                    <th>Rodadas</th>
                 </tr>
             </thead>
             <tbody>
-                ${dados.map((time, index) => `
-                    <tr class="${time.time_id === meuTimeId ? 'meu-time' : ''}">
-                        <td><span class="posicao-badge">${index + 1}º</span></td>
-                        <td>${time.nome || 'N/D'}</td>
+                ${dados.map((time) => `
+                    <tr class="${time.timeId === parseInt(meuTimeId) ? 'meu-time' : ''}">
+                        <td><span class="posicao-badge">${time.posicao}º</span></td>
+                        <td>${time.nome_time || 'N/D'}</td>
                         <td>${time.nome_cartola || 'N/D'}</td>
-                        <td class="pontos-destaque">${(time.pontos || 0).toFixed(2)}</td>
-                        <td>${time.vitorias || 0}</td>
+                        <td class="pontos-destaque">${(time.pontos_totais || 0).toFixed(2)}</td>
+                        <td>${time.media || '0.00'}</td>
+                        <td>${time.rodadas_jogadas || 0}</td>
                     </tr>
                 `).join('')}
             </tbody>
