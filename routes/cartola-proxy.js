@@ -52,7 +52,7 @@ router.get("/liga/:ligaId", async (req, res) => {
 });
 
 // Rota: Status do mercado
-router.get('/mercado-status', async (req, res) => {
+router.get('/mercado/status', async (req, res) => {
     try {
         const response = await axios.get('https://api.cartola.globo.com/mercado/status', {
             timeout: 10000
@@ -70,6 +70,7 @@ router.get('/mercado-status', async (req, res) => {
         });
     }
 });
+
 
 // Proxy para atletas
 router.get("/atletas/mercado", async (req, res) => {
