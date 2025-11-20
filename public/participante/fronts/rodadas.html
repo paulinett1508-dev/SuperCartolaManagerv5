@@ -2,8 +2,18 @@
 <!-- PARTICIPANTE RODADAS - Interface -->
 <div class="rodadas-participante">
     <div class="rodadas-header">
-        <h2>📅 Minhas Rodadas</h2>
+        <h2>📅 Rodadas</h2>
         <p style="color: #999;">Histórico completo de rodadas</p>
+        
+        <!-- Filtro de Visualização -->
+        <div class="rodadas-filtro">
+            <button class="filtro-btn active" data-filtro="todas" onclick="window.filtrarRodadas('todas')">
+                📊 Todas as Rodadas
+            </button>
+            <button class="filtro-btn" data-filtro="minhas" onclick="window.filtrarRodadas('minhas')">
+                🎯 Minhas Rodadas
+            </button>
+        </div>
     </div>
 
     <div id="rodadasContainer">
@@ -29,6 +39,38 @@
     margin-bottom: 10px;
 }
 
+/* Filtro de Rodadas */
+.rodadas-filtro {
+    display: flex;
+    gap: 10px;
+    justify-content: center;
+    margin-top: 20px;
+    flex-wrap: wrap;
+}
+
+.filtro-btn {
+    padding: 10px 20px;
+    border: 2px solid var(--participante-border);
+    background: var(--participante-card);
+    color: var(--participante-text);
+    border-radius: 8px;
+    cursor: pointer;
+    font-size: 14px;
+    font-weight: 600;
+    transition: all 0.3s ease;
+}
+
+.filtro-btn:hover {
+    border-color: var(--participante-primary);
+    transform: translateY(-2px);
+}
+
+.filtro-btn.active {
+    background: var(--participante-primary);
+    color: white;
+    border-color: var(--participante-primary);
+}
+
 .rodada-card {
     background: var(--participante-card);
     border: 1px solid var(--participante-border);
@@ -36,6 +78,10 @@
     padding: 20px;
     margin-bottom: 15px;
     transition: transform 0.2s ease;
+}
+
+.rodada-card.hidden {
+    display: none;
 }
 
 .rodada-card:active {
@@ -85,6 +131,11 @@
     
     .rodada-pontos {
         font-size: 14px;
+    }
+    
+    .filtro-btn {
+        font-size: 12px;
+        padding: 8px 16px;
     }
 }
 </style>
