@@ -239,17 +239,27 @@ export async function calcularPontosParciais(liga, rodada) {
   const times = liga.times || [];
   const rankingsParciais = [];
 
+  console.log(`[RODADAS-CORE] Calculando parciais para ${times.length} times`);
+
   for (const time of times) {
     try {
+      // Verificar se 'time' é um número (ID) ou objeto
+      const timeId = typeof time === 'number' ? time : (time.time_id || time.id);
+      
+      if (!timeId) {
+        console.warn('[RODADAS-CORE] Time sem ID encontrado:', time);
+        continue;
+      }
+
       let fetchFunc = isBackend ? (await import("node-fetch")).default : fetch;
       const baseUrl = isBackend ? "http://localhost:3000" : "";
       const resTime = await fetchFunc(
-        RODADAS_ENDPOINTS.timeEscalacao(time.time_id, rodada, baseUrl),
+        RODADAS_ENDPOINTS.timeEscalacao(timeId, rodada, baseUrl),
       );
 
       if (!resTime.ok) {
         console.warn(
-          `[RODADAS-CORE] Erro ${resTime.status} ao buscar escalação do time ${time.time_id} para rodada ${rodada}`,
+          `[RODADAS-CORE] Erro ${resTime.status} ao buscar escalação do time ${timeId} para rodada ${rodada}`,
         );
         continue;
       }
@@ -270,17 +280,21 @@ export async function calcularPontosParciais(liga, rodada) {
       });
 
       rankingsParciais.push({
-        ...time,
+        time_id: timeId,
+        nome_cartola: escalacaoData.nome_cartoleiro || escalacaoData.nome || 'N/D',
+        nome_time: escalacaoData.nome || 'N/D',
+        escudo_url: escalacaoData.url_escudo_png || escalacaoData.url_escudo_svg || '',
         totalPontos: totalPontos,
       });
     } catch (err) {
       console.error(
-        `[RODADAS-CORE] Erro ao processar parciais para o time ${time.time_id}:`,
+        `[RODADAS-CORE] Erro ao processar parciais para o time:`,
         err,
       );
     }
   }
 
+  console.log(`[RODADAS-CORE] ${rankingsParciais.length} times processados com parciais`);
   return rankingsParciais;
 }
 

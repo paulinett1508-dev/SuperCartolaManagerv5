@@ -102,6 +102,40 @@ router.get('/atletas/pontuados', async (req, res) => {
     }
 });
 
+// Endpoint: Escalação de um time em uma rodada específica
+router.get('/time/id/:timeId/:rodada', async (req, res) => {
+    try {
+        const { timeId, rodada } = req.params;
+        console.log(`🔄 [CARTOLA-PROXY] Buscando escalação do time ${timeId} na rodada ${rodada}...`);
+        
+        const response = await axios.get(`https://api.cartola.globo.com/time/id/${timeId}/${rodada}`, {
+            timeout: 10000,
+            headers: {
+                'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36'
+            }
+        });
+        
+        console.log(`✅ [CARTOLA-PROXY] Escalação obtida para time ${timeId}`);
+        res.json(response.data);
+    } catch (error) {
+        console.error(`❌ [CARTOLA-PROXY] Erro ao buscar escalação do time ${req.params.timeId}:`, error.message);
+        
+        // Retornar 404 se time não jogou na rodada
+        if (error.response?.status === 404) {
+            res.status(404).json({
+                error: 'Time não jogou nesta rodada',
+                timeId: req.params.timeId,
+                rodada: req.params.rodada
+            });
+        } else {
+            res.status(error.response?.status || 500).json({
+                error: 'Erro ao buscar escalação',
+                details: error.message
+            });
+        }
+    }
+});
+
 // Proxy para atletas
 router.get("/atletas/mercado", async (req, res) => {
     try {

@@ -150,6 +150,7 @@ export async function carregarDadosRodada(rodadaSelecionada) {
 
   const { rodada_atual, status_mercado } = getStatusMercado();
   const mercadoAberto = status_mercado === 1;
+  const mercadoFechadoBolaRolando = status_mercado === 2; // Mercado fechado mas rodada em andamento
 
   try {
     mostrarLoading(true);
@@ -164,6 +165,7 @@ export async function carregarDadosRodada(rodadaSelecionada) {
           "info",
         );
       } else {
+        // Mercado fechado (status_mercado: 2) - permitir parciais
         await carregarRodadaParciais(rodadaSelecionada);
       }
     } else {
