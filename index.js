@@ -198,6 +198,11 @@ if (process.env.NODE_ENV !== "production") {
 }
 
 
+// Rotas da API (ordem importa!)
+app.use('/api/clubes', require('./routes/clubes'));
+app.use('/api/cartola', require('./routes/cartola-proxy')); // Proxy para API do Cartola (inclui /mercado/status e /atletas/pontuados)
+app.use('/api/times', require('./routes/times'));
+
 // Rota para informações da API e versão
 app.get("/api/version", (req, res) => {
   res.json({
@@ -293,6 +298,8 @@ app.use((req, res, next) => {
         "POST /api/participante/auth/login", // Novo endpoint
         "POST /api/participante/auth/register", // Novo endpoint
         "POST /api/auth/logout", // Novo endpoint
+        "GET /api/cartola/mercado/status", // Novo endpoint esperado
+        "GET /api/cartola/atletas/pontuados", // Novo endpoint esperado
       ],
     });
   } else {

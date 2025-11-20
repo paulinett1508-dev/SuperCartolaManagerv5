@@ -51,9 +51,11 @@ router.get("/liga/:ligaId", async (req, res) => {
     }
 });
 
-// Rota: Status do mercado (corrigida)
+// Rota: Status do mercado (corrigida e sem duplicação)
 router.get('/mercado/status', async (req, res) => {
     try {
+        console.log('🔄 [CARTOLA-PROXY] Buscando status do mercado...');
+        
         const response = await axios.get('https://api.cartola.globo.com/mercado/status', {
             timeout: 10000,
             headers: {
@@ -61,20 +63,10 @@ router.get('/mercado/status', async (req, res) => {
             }
         });
 
+        console.log('✅ [CARTOLA-PROXY] Status do mercado obtido:', response.data);
         res.json(response.data);
     } catch (error) {
-        console.error('[CARTOLA-PROXY] Erro ao buscar status do mercado:', error.message);
-
-        // Retornar dados padrão em caso de erro
-        res.json({
-            rodada_atual: 1,
-            mercado_fechado: false,
-            times_escalados: 0
-        });
-        
-        res.json(response.data);
-    } catch (error) {
-        console.error('Erro ao buscar status do mercado:', error.message);
+        console.error('❌ [CARTOLA-PROXY] Erro ao buscar status do mercado:', error.message);
         
         // Retornar dados de fallback em caso de erro
         res.json({
