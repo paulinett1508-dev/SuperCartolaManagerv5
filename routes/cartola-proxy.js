@@ -1,7 +1,8 @@
-const express = require("express");
-const router = express.Router();
-const axios = require("axios");
 
+import express from "express";
+import axios from "axios";
+
+const router = express.Router();
 const CARTOLA_API_BASE = "https://api.cartola.globo.com";
 
 // Middleware para CORS
@@ -128,4 +129,4 @@ router.get("/atletas/mercado", async (req, res) => {
     }
 });
 
-module.exports = router;
+export default router;
