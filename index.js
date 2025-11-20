@@ -15,6 +15,7 @@ const pkg = JSON.parse(readFileSync("./package.json", "utf8"));
 // Importar rotas do sistema
 import ligaRoutes from "./routes/ligas.js";
 import cartolaRoutes from "./routes/cartola.js";
+import cartolaProxyRoutes from "./routes/cartola-proxy.js";
 import timesRoutes from "./routes/times.js";
 import rodadasRoutes from "./routes/rodadas-routes.js";
 import golsRoutes from "./routes/gols.js";
@@ -133,6 +134,12 @@ if (process.env.NODE_ENV !== "production") {
   console.log("✅ [ROUTES] Registrada: /api/cartola/*");
 }
 
+// Proxy para API do Cartola (mercado/status e atletas/pontuados)
+app.use("/api/cartola", cartolaProxyRoutes);
+if (process.env.NODE_ENV !== "production") {
+  console.log("✅ [ROUTES] Registrada: /api/cartola/* (proxy)");
+}
+
 // Rotas de times - ORDEM IMPORTA!
 app.use("/api/times", timesRoutes);
 console.log("✅ [ROUTES] Registrada: /api/times/*");
@@ -196,12 +203,6 @@ app.use("/api/auth", participanteAuthRoutes);
 if (process.env.NODE_ENV !== "production") {
   console.log("✅ [ROUTES] Registrada: /api/auth/*");
 }
-
-
-// Rotas da API (ordem importa!)
-app.use('/api/clubes', require('./routes/clubes'));
-app.use('/api/cartola', require('./routes/cartola-proxy')); // Proxy para API do Cartola (inclui /mercado/status e /atletas/pontuados)
-app.use('/api/times', require('./routes/times'));
 
 // Rota para informações da API e versão
 app.get("/api/version", (req, res) => {
@@ -295,11 +296,11 @@ app.use((req, res, next) => {
         "GET /api/configuracao/*",
         "GET /api/fluxo-financeiro/*",
         "GET /api/extrato-cache/*", // Novo endpoint
-        "POST /api/participante/auth/login", // Novo endpoint
-        "POST /api/participante/auth/register", // Novo endpoint
-        "POST /api/auth/logout", // Novo endpoint
-        "GET /api/cartola/mercado/status", // Novo endpoint esperado
-        "GET /api/cartola/atletas/pontuados", // Novo endpoint esperado
+        "POST /api/participante/auth/login",
+        "POST /api/participante/auth/register",
+        "POST /api/auth/logout",
+        "GET /api/cartola/mercado/status",
+        "GET /api/cartola/atletas/pontuados",
       ],
     });
   } else {
