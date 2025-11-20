@@ -1,4 +1,3 @@
-
 // PARTICIPANTE RODADAS - Grid de Cards + Detalhamento
 
 console.log('[PARTICIPANTE-RODADAS] Carregando módulo...');
@@ -18,7 +17,7 @@ window.inicializarRodadasParticipante = async function(ligaIdParam, timeIdParam)
     try {
         // Buscar todas as rodadas da liga
         const response = await fetch(`/api/rodadas/${ligaId}/rodadas?inicio=1&fim=38`);
-        
+
         if (!response.ok) {
             throw new Error('Erro ao buscar rodadas da liga');
         }
@@ -42,7 +41,7 @@ window.inicializarRodadasParticipante = async function(ligaIdParam, timeIdParam)
 // Agrupar rodadas por número
 function agruparRodadasPorNumero(rodadas) {
     const rodadasMap = new Map();
-    
+
     rodadas.forEach(r => {
         const rodadaNum = r.rodada;
         if (!rodadasMap.has(rodadaNum)) {
@@ -53,24 +52,26 @@ function agruparRodadasPorNumero(rodadas) {
                 jogou: false
             });
         }
-        
+
         const rodadaData = rodadasMap.get(rodadaNum);
         rodadaData.participantes.push(r);
-        
+
         // Se for minha rodada
         if (String(r.timeId) === String(meuTimeId)) {
             rodadaData.meusPontos = r.pontos || 0;
             rodadaData.jogou = !r.rodadaNaoJogada;
+            // Adicionar posição financeira para o meu time
+            rodadaData.posicaoFinanceira = r.posicaoFinanceira;
         }
     });
-    
+
     return Array.from(rodadasMap.values()).sort((a, b) => a.numero - b.numero);
 }
 
 // Renderizar grid de cards
 function renderizarCardsRodadas(rodadas) {
     const container = document.getElementById('rodadasCardsGrid');
-    
+
     if (!rodadas || rodadas.length === 0) {
         container.innerHTML = '<p style="text-align: center; color: #999; padding: 40px;">Nenhuma rodada encontrada</p>';
         return;
@@ -79,45 +80,36 @@ function renderizarCardsRodadas(rodadas) {
     const html = rodadas.map(rodada => {
         const statusClass = rodada.jogou ? 'jogou' : 'nao-jogou';
         const pontos = rodada.meusPontos !== null ? rodada.meusPontos.toFixed(2) : '-';
-        
-        // Determinar cor e ícone baseado na zona financeira
-        let corPontos = '#999'; // padrão
+        const statusTexto = rodada.jogou ? `${pontos} pts` : 'Não jogou';
+
+        // Determinar destaque visual baseado na posição financeira
+        let corFonte = '';
         let icone = '';
-        
-        if (rodada.jogou && rodada.meusPontos !== null) {
-            // Buscar minha posição na rodada
-            const minhaPosicao = rodada.participantes
-                .sort((a, b) => (b.pontos || 0) - (a.pontos || 0))
-                .findIndex(p => String(p.timeId) === String(meuTimeId)) + 1;
-            
+
+        if (rodada.jogou && rodada.posicaoFinanceira) {
+            const pos = rodada.posicaoFinanceira;
             const totalParticipantes = rodada.participantes.length;
-            
-            // Zona de ganho (top 25%)
-            if (minhaPosicao <= Math.ceil(totalParticipantes * 0.25)) {
-                corPontos = '#10b981'; // verde
-                if (minhaPosicao === 1) {
-                    icone = ' 🎩'; // MITO
-                }
+
+            // Zona de ganho (verde)
+            if (pos <= Math.ceil(totalParticipantes * 0.3)) {
+                corFonte = 'color: #10b981;';
+                if (pos === 1) icone = ' 🎩'; // MITO
             }
-            // Zona neutra (26% a 75%)
-            else if (minhaPosicao <= Math.ceil(totalParticipantes * 0.75)) {
-                corPontos = '#e0e0e0'; // branco
+            // Zona neutra (branco)
+            else if (pos <= Math.ceil(totalParticipantes * 0.7)) {
+                corFonte = 'color: #fff;';
             }
-            // Zona de perda (bottom 25%)
+            // Zona de perda (vermelho)
             else {
-                corPontos = '#ef4444'; // vermelho
-                if (minhaPosicao === totalParticipantes) {
-                    icone = ' 🐵'; // MICO
-                }
+                corFonte = 'color: #ef4444;';
+                if (pos === totalParticipantes) icone = ' 🐵'; // MICO
             }
         }
-        
-        const statusTexto = rodada.jogou ? `${pontos} pts${icone}` : 'Não jogou';
-        
+
         return `
             <div class="rodada-mini-card ${statusClass}" onclick="window.selecionarRodada(${rodada.numero})" data-rodada="${rodada.numero}">
                 <div class="numero">Rodada ${rodada.numero}</div>
-                <div class="pontos" style="color: ${corPontos};">${statusTexto}</div>
+                <div class="pontos" style="${corFonte}">${statusTexto}${icone}</div>
                 <div class="status">${rodada.participantes.length} times</div>
             </div>
         `;
@@ -129,33 +121,33 @@ function renderizarCardsRodadas(rodadas) {
 // Selecionar rodada e mostrar detalhamento
 window.selecionarRodada = async function(numeroRodada) {
     console.log(`[PARTICIPANTE-RODADAS] Selecionando rodada ${numeroRodada}`);
-    
+
     rodadaSelecionada = numeroRodada;
-    
+
     // Atualizar visual dos cards
     document.querySelectorAll('.rodada-mini-card').forEach(card => {
         card.classList.remove('selected');
     });
-    
+
     const cardSelecionado = document.querySelector(`[data-rodada="${numeroRodada}"]`);
     if (cardSelecionado) {
         cardSelecionado.classList.add('selected');
     }
-    
+
     // Buscar dados da rodada
     const rodadaData = todasRodadasCache.find(r => r.numero === numeroRodada);
-    
+
     if (!rodadaData) {
         console.error('[PARTICIPANTE-RODADAS] Dados da rodada não encontrados');
         return;
     }
-    
+
     // Renderizar detalhamento
     renderizarDetalhamentoRodada(rodadaData);
-    
+
     // Mostrar seção de detalhamento
     document.getElementById('rodadaDetalhamento').style.display = 'block';
-    
+
     // Scroll suave para o detalhamento
     document.getElementById('rodadaDetalhamento').scrollIntoView({ 
         behavior: 'smooth', 
@@ -167,50 +159,50 @@ window.selecionarRodada = async function(numeroRodada) {
 function renderizarDetalhamentoRodada(rodadaData) {
     // Atualizar título
     document.getElementById('rodadaTitulo').textContent = `Rodada ${rodadaData.numero}`;
-    
+
     // Ordenar participantes por pontuação
     const participantesOrdenados = [...rodadaData.participantes].sort((a, b) => 
         (b.pontos || 0) - (a.pontos || 0)
     );
-    
+
     const totalParticipantes = participantesOrdenados.length;
-    const zonaGanho = Math.ceil(totalParticipantes * 0.25);
-    const zonaNeutra = Math.ceil(totalParticipantes * 0.75);
-    
+
     // Renderizar tabela
     const tbody = document.getElementById('rankingBody');
-    
+
     const html = participantesOrdenados.map((participante, index) => {
         const isMeuTime = String(participante.timeId) === String(meuTimeId);
         const posicao = index + 1;
-        
-        // Determinar zona financeira e saldo
-        let zonaFinanceira = '';
-        let saldoFinanceiro = 'R$ 0,00';
-        let classeFinanceira = '';
-        
+
+        // Calcular financeiro baseado na posição
+        let financeiro = 0;
+        const zonaGanho = Math.ceil(totalParticipantes * 0.3);
+        const zonaNeutra = Math.ceil(totalParticipantes * 0.7);
+
         if (posicao <= zonaGanho) {
-            zonaFinanceira = '💚 Ganho';
-            saldoFinanceiro = '+R$ 10,00'; // valor exemplo, pode ser calculado
-            classeFinanceira = 'financeiro-positivo';
-        } else if (posicao <= zonaNeutra) {
-            zonaFinanceira = '⚪ Neutro';
-            saldoFinanceiro = 'R$ 0,00';
-            classeFinanceira = 'financeiro-neutro';
-        } else {
-            zonaFinanceira = '💔 Perda';
-            saldoFinanceiro = '-R$ 10,00'; // valor exemplo, pode ser calculado
-            classeFinanceira = 'financeiro-negativo';
+            financeiro = (zonaGanho - posicao + 1) * 10; // Exemplo: 10 por posição
+        } else if (posicao > zonaNeutra) {
+            financeiro = -(posicao - zonaNeutra) * 10; // Negativo na zona de perda
         }
-        
-        // Adicionar ícones MITO/MICO
+
+        const financeiroTexto = financeiro > 0 ? `+R$ ${financeiro}` : 
+                               financeiro < 0 ? `-R$ ${Math.abs(financeiro)}` : 
+                               'R$ 0';
+
+        const financeiroClass = financeiro > 0 ? 'financeiro-positivo' : 
+                               financeiro < 0 ? 'financeiro-negativo' : 
+                               'financeiro-neutro';
+
+        // Adicionar ícones MITO/MICO apenas para o meu time
         let icone = '';
-        if (posicao === 1) {
-            icone = ' 🎩';
-        } else if (posicao === totalParticipantes) {
-            icone = ' 🐵';
+        if (isMeuTime) {
+            if (posicao === 1) {
+                icone = ' 🎩';
+            } else if (posicao === totalParticipantes) {
+                icone = ' 🐵';
+            }
         }
-        
+
         return `
             <tr class="${isMeuTime ? 'meu-time' : ''}">
                 <td style="text-align: center;">
@@ -221,27 +213,27 @@ function renderizarDetalhamentoRodada(rodadaData) {
                 <td style="text-align: center;" class="pontos-destaque">
                     ${(participante.pontos || 0).toFixed(2)}
                 </td>
-                <td style="text-align: center;" class="${classeFinanceira}">
-                    ${saldoFinanceiro}
+                <td style="text-align: center;" class="${financeiroClass}">
+                    ${financeiroTexto}
                 </td>
             </tr>
         `;
     }).join('');
-    
+
     tbody.innerHTML = html || '<tr><td colspan="5" style="text-align: center; padding: 20px;">Nenhum dado disponível</td></tr>';
 }
 
 // Voltar para os cards
 window.voltarParaCards = function() {
     document.getElementById('rodadaDetalhamento').style.display = 'none';
-    
+
     // Remover seleção
     document.querySelectorAll('.rodada-mini-card').forEach(card => {
         card.classList.remove('selected');
     });
-    
+
     rodadaSelecionada = null;
-    
+
     // Scroll para o topo
     window.scrollTo({ top: 0, behavior: 'smooth' });
 };
