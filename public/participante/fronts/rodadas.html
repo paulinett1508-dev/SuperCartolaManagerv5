@@ -1,37 +1,19 @@
 
 <!-- PARTICIPANTE RODADAS - Interface -->
-<div id="rodadas-participante" class="participante-module">
-    <!-- Header do Módulo -->
-    <div class="module-header-section">
-        <div class="module-title-section">
-            <div class="module-title-icon">📊</div>
-            <h2>Rodadas</h2>
+<div class="rodadas-participante">
+    <div class="rodadas-header">
+        <h2>📅 Minhas Rodadas</h2>
+        <p style="color: #999;">Histórico completo de rodadas</p>
+    </div>
+
+    <div id="rodadasContainer">
+        <div class="loading-participante">
+            <div class="spinner-participante"></div>
+            <p>Carregando rodadas...</p>
         </div>
-        <div class="module-subtitle">
-            Resultados por rodada
-        </div>
-    </div>
-
-    <!-- Seletor de Rodadas -->
-    <div id="rodadasSelector" class="rodadas-selector">
-        <!-- Mini-cards de rodadas serão inseridos aqui -->
-    </div>
-
-    <!-- Loading State -->
-    <div id="loadingRodadas" class="loading-state" style="display: none">
-        <div class="spinner"></div>
-        <span>Carregando rodada...</span>
-    </div>
-
-    <!-- Container dos Dados da Rodada -->
-    <div id="rodadaContainer" class="rodada-container">
-        <!-- Será preenchido via JavaScript -->
     </div>
 </div>
 
-<script>
-console.log('[RODADAS-HTML] ✅ HTML do módulo rodadas carregado');
-</script>
 <style>
 .rodadas-participante {
     padding: 20px 0;
@@ -53,6 +35,11 @@ console.log('[RODADAS-HTML] ✅ HTML do módulo rodadas carregado');
     border-radius: 12px;
     padding: 20px;
     margin-bottom: 15px;
+    transition: transform 0.2s ease;
+}
+
+.rodada-card:active {
+    transform: scale(0.99);
 }
 
 .rodada-titulo {
@@ -80,26 +67,24 @@ console.log('[RODADAS-HTML] ✅ HTML do módulo rodadas carregado');
     color: #999;
     font-size: 14px;
 }
-</style>
 
-<div class="rodadas-participante">
-    <div class="rodadas-header">
-        <h2>📅 Minhas Rodadas</h2>
-        <p style="color: #999;">Histórico completo de rodadas</p>
-    </div>
-
-    <div id="rodadasContainer">
-        <div class="loading-participante">
-            <div class="spinner-participante"></div>
-            <p>Carregando rodadas...</p>
-        </div>
-    </div>
-</div>
-
-<script src="/participante/js/modules/participante-rodadas.js"></script>
-<script>
-const { ligaId, timeId } = participanteAuth.getDados();
-if (ligaId && timeId) {
-    inicializarRodadasParticipante(ligaId, timeId);
+.rodada-detalhes p {
+    margin: 5px 0;
 }
-</script>
+
+@media (max-width: 768px) {
+    .rodada-card {
+        padding: 15px;
+    }
+    
+    .rodada-titulo {
+        flex-direction: column;
+        gap: 10px;
+        align-items: flex-start;
+    }
+    
+    .rodada-pontos {
+        font-size: 14px;
+    }
+}
+</style>

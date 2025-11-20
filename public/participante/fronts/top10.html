@@ -1,48 +1,19 @@
 
 <!-- PARTICIPANTE TOP10 - Interface -->
-<div id="top10-participante" class="participante-module">
-    <!-- Header do Módulo -->
-    <div class="module-header-section">
-        <div class="module-title-section">
-            <div class="module-title-icon">🔟</div>
-            <h2>Top 10 - Destaques</h2>
-        </div>
-        <div class="module-subtitle">
-            Maiores e menores pontuações
-        </div>
+<div class="top10-participante">
+    <div class="top10-header">
+        <h2>🌟 TOP 10 da Liga</h2>
+        <p style="color: #999;">Os 10 melhores times</p>
     </div>
 
-    <!-- Loading State -->
-    <div id="loadingTop10" class="loading-state" style="display: none">
-        <div class="spinner"></div>
-        <span>Carregando destaques...</span>
-    </div>
-
-    <!-- Grid Mitos/Micos -->
-    <div class="top10-grid">
-        <!-- Seção Mitos -->
-        <div class="top10-section mitos-section">
-            <div class="section-header">
-                <div class="section-icon">👑</div>
-                <h3>Mitos</h3>
-            </div>
-            <div id="top10Mitos" class="top10-content"></div>
-        </div>
-
-        <!-- Seção Micos -->
-        <div class="top10-section micos-section">
-            <div class="section-header">
-                <div class="section-icon">💀</div>
-                <h3>Micos</h3>
-            </div>
-            <div id="top10Micos" class="top10-content"></div>
+    <div id="top10Grid" class="top10-grid">
+        <div class="loading-participante">
+            <div class="spinner-participante"></div>
+            <p>Carregando TOP 10...</p>
         </div>
     </div>
 </div>
 
-<script>
-console.log('[TOP10-HTML] ✅ HTML do módulo top10 carregado');
-</script>
 <style>
 .top10-participante {
     padding: 20px 0;
@@ -70,18 +41,31 @@ console.log('[TOP10-HTML] ✅ HTML do módulo top10 carregado');
     border-radius: 12px;
     padding: 20px;
     text-align: center;
+    transition: transform 0.2s ease;
+}
+
+.top10-card:active {
+    transform: scale(0.98);
 }
 
 .top10-card.podium-1 {
     border-color: gold;
+    box-shadow: 0 0 15px rgba(255, 215, 0, 0.3);
 }
 
 .top10-card.podium-2 {
     border-color: silver;
+    box-shadow: 0 0 15px rgba(192, 192, 192, 0.3);
 }
 
 .top10-card.podium-3 {
     border-color: #cd7f32;
+    box-shadow: 0 0 15px rgba(205, 127, 50, 0.3);
+}
+
+.top10-card.meu-time {
+    background: rgba(255, 69, 0, 0.15);
+    border-color: var(--participante-primary);
 }
 
 .top10-posicao {
@@ -103,26 +87,15 @@ console.log('[TOP10-HTML] ✅ HTML do módulo top10 carregado');
     font-weight: 700;
     color: #10b981;
 }
-</style>
 
-<div class="top10-participante">
-    <div class="top10-header">
-        <h2>🌟 TOP 10 da Liga</h2>
-        <p style="color: #999;">Os 10 melhores times</p>
-    </div>
-
-    <div id="top10Grid" class="top10-grid">
-        <div class="loading-participante">
-            <div class="spinner-participante"></div>
-            <p>Carregando TOP 10...</p>
-        </div>
-    </div>
-</div>
-
-<script src="/participante/js/modules/participante-top10.js"></script>
-<script>
-const { ligaId, timeId } = participanteAuth.getDados();
-if (ligaId && timeId) {
-    inicializarTop10Participante(ligaId, timeId);
+@media (max-width: 768px) {
+    .top10-grid {
+        grid-template-columns: 1fr;
+        gap: 15px;
+    }
+    
+    .top10-card {
+        padding: 15px;
+    }
 }
-</script>
+</style>

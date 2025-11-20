@@ -1,29 +1,107 @@
 
 <!-- PARTICIPANTE ARTILHEIRO - Interface -->
-<div id="artilheiro-participante" class="participante-module">
-    <!-- Header do Módulo -->
-    <div class="module-header-section">
-        <div class="module-title-section">
-            <div class="module-title-icon">⚽</div>
-            <h2>Artilheiro</h2>
-        </div>
-        <div class="module-subtitle">
-            Ranking de gols marcados
-        </div>
+<div class="artilheiro-participante">
+    <div class="artilheiro-header">
+        <h2>⚽ Artilheiro</h2>
+        <p style="color: #999;">Ranking de gols marcados</p>
     </div>
 
-    <!-- Loading State -->
-    <div id="loadingArtilheiro" class="loading-state" style="display: none">
-        <div class="spinner"></div>
-        <span>Carregando ranking...</span>
-    </div>
-
-    <!-- Container do Ranking -->
-    <div id="artilheiroContainer" class="artilheiro-container">
-        <!-- Será preenchido via JavaScript -->
+    <div id="artilheiroContainer">
+        <div class="loading-participante">
+            <div class="spinner-participante"></div>
+            <p>Carregando artilheiros...</p>
+        </div>
     </div>
 </div>
 
-<script>
-console.log('[ARTILHEIRO-HTML] ✅ HTML do módulo artilheiro carregado');
-</script>
+<style>
+.artilheiro-participante {
+    padding: 20px 0;
+}
+
+.artilheiro-header {
+    text-align: center;
+    margin-bottom: 30px;
+}
+
+.artilheiro-header h2 {
+    color: var(--participante-primary);
+    margin-bottom: 10px;
+}
+
+.artilheiro-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    gap: 20px;
+}
+
+.artilheiro-card {
+    background: var(--participante-card);
+    border: 1px solid var(--participante-border);
+    border-radius: 12px;
+    padding: 20px;
+    text-align: center;
+    transition: transform 0.2s ease;
+}
+
+.artilheiro-card:active {
+    transform: scale(0.98);
+}
+
+.artilheiro-card.podium-1 {
+    border-color: gold;
+    box-shadow: 0 0 15px rgba(255, 215, 0, 0.3);
+}
+
+.artilheiro-card.podium-2 {
+    border-color: silver;
+    box-shadow: 0 0 15px rgba(192, 192, 192, 0.3);
+}
+
+.artilheiro-card.podium-3 {
+    border-color: #cd7f32;
+    box-shadow: 0 0 15px rgba(205, 127, 50, 0.3);
+}
+
+.artilheiro-card.meu-artilheiro {
+    background: rgba(255, 69, 0, 0.15);
+    border-color: var(--participante-primary);
+}
+
+.artilheiro-posicao {
+    font-size: 24px;
+    font-weight: 700;
+    color: var(--participante-primary);
+    margin-bottom: 10px;
+}
+
+.artilheiro-nome {
+    font-size: 16px;
+    font-weight: 600;
+    color: white;
+    margin-bottom: 5px;
+}
+
+.artilheiro-time {
+    font-size: 14px;
+    color: #999;
+    margin-bottom: 10px;
+}
+
+.artilheiro-gols {
+    font-size: 18px;
+    font-weight: 700;
+    color: #10b981;
+}
+
+@media (max-width: 768px) {
+    .artilheiro-grid {
+        grid-template-columns: 1fr;
+        gap: 15px;
+    }
+    
+    .artilheiro-card {
+        padding: 15px;
+    }
+}
+</style>

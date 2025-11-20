@@ -1,29 +1,107 @@
 
 <!-- PARTICIPANTE MATA-MATA - Interface -->
-<div id="mata-mata-participante" class="participante-module">
-    <!-- Header do Módulo -->
-    <div class="module-header-section">
-        <div class="module-title-section">
-            <div class="module-title-icon">⚔️</div>
-            <h2>Mata-Mata</h2>
-        </div>
-        <div class="module-subtitle">
-            Sistema eliminatório
-        </div>
+<div class="mata-mata-participante">
+    <div class="mata-mata-header">
+        <h2>⚔️ Mata-Mata</h2>
+        <p style="color: #999;">Sistema eliminatório da liga</p>
     </div>
 
-    <!-- Loading State -->
-    <div id="loadingMataMata" class="loading-state" style="display: none">
-        <div class="spinner"></div>
-        <span>Carregando chaveamento...</span>
-    </div>
-
-    <!-- Container do Chaveamento -->
-    <div id="mataMataContainer" class="mata-mata-container">
-        <!-- Será preenchido via JavaScript -->
+    <div id="mataMataContainer">
+        <div class="loading-participante">
+            <div class="spinner-participante"></div>
+            <p>Carregando chaveamento...</p>
+        </div>
     </div>
 </div>
 
-<script>
-console.log('[MATA-MATA-HTML] ✅ HTML do módulo mata-mata carregado');
-</script>
+<style>
+.mata-mata-participante {
+    padding: 20px 0;
+}
+
+.mata-mata-header {
+    text-align: center;
+    margin-bottom: 30px;
+}
+
+.mata-mata-header h2 {
+    color: var(--participante-primary);
+    margin-bottom: 10px;
+}
+
+.fase-card {
+    background: var(--participante-card);
+    border: 1px solid var(--participante-border);
+    border-radius: 12px;
+    padding: 20px;
+    margin-bottom: 20px;
+}
+
+.fase-titulo h3 {
+    color: var(--participante-primary);
+    font-size: 18px;
+    margin-bottom: 15px;
+    text-align: center;
+}
+
+.confrontos-grid {
+    display: grid;
+    gap: 15px;
+}
+
+.confronto-card {
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid var(--participante-border);
+    border-radius: 8px;
+    padding: 15px;
+}
+
+.confronto-card.meu-confronto {
+    background: rgba(255, 69, 0, 0.15);
+    border-color: var(--participante-primary);
+}
+
+.time-confronto {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin: 8px 0;
+}
+
+.time-nome {
+    font-weight: 600;
+    color: #ccc;
+}
+
+.time-placar {
+    font-size: 20px;
+    font-weight: 700;
+    color: var(--participante-primary);
+}
+
+.vs {
+    text-align: center;
+    color: #999;
+    font-weight: 700;
+    margin: 10px 0;
+}
+
+.vencedor {
+    text-align: center;
+    color: #10b981;
+    font-weight: 600;
+    margin-top: 10px;
+    padding-top: 10px;
+    border-top: 1px solid var(--participante-border);
+}
+
+@media (max-width: 768px) {
+    .confronto-card {
+        padding: 12px;
+    }
+    
+    .time-placar {
+        font-size: 18px;
+    }
+}
+</style>

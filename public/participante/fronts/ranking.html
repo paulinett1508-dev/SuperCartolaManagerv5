@@ -1,32 +1,19 @@
 
 <!-- PARTICIPANTE RANKING - Interface -->
-<div id="ranking-participante" class="participante-module">
-    <!-- Header do Módulo -->
-    <div class="module-header-section">
-        <div class="module-title-section">
-            <div class="module-title-icon">🏆</div>
-            <h2>Classificação Geral</h2>
-        </div>
-        <div class="module-subtitle">
-            Ranking completo da liga
-        </div>
+<div class="ranking-participante">
+    <div class="ranking-header">
+        <h2>🏆 Ranking Geral</h2>
+        <p style="color: #999;">Classificação completa da liga</p>
     </div>
 
-    <!-- Loading State -->
-    <div id="loadingRanking" class="loading-state" style="display: none">
-        <div class="spinner"></div>
-        <span>Carregando classificação...</span>
-    </div>
-
-    <!-- Container da Classificação -->
-    <div id="rankingContainer" class="ranking-container">
-        <!-- Será preenchido via JavaScript -->
+    <div id="rankingTabela" class="ranking-tabela">
+        <div class="loading-participante">
+            <div class="spinner-participante"></div>
+            <p>Carregando ranking...</p>
+        </div>
     </div>
 </div>
 
-<script>
-console.log('[RANKING-HTML] ✅ HTML do módulo ranking carregado');
-</script>
 <style>
 .ranking-participante {
     padding: 20px 0;
@@ -94,26 +81,18 @@ console.log('[RANKING-HTML] ✅ HTML do módulo ranking carregado');
     color: var(--participante-primary);
     font-size: 16px;
 }
-</style>
 
-<div class="ranking-participante">
-    <div class="ranking-header">
-        <h2>🏆 Ranking Geral</h2>
-        <p style="color: #999;">Classificação completa da liga</p>
-    </div>
-
-    <div id="rankingTabela" class="ranking-tabela">
-        <div class="loading-participante">
-            <div class="spinner-participante"></div>
-            <p>Carregando ranking...</p>
-        </div>
-    </div>
-</div>
-
-<script src="/participante/js/modules/participante-ranking.js"></script>
-<script>
-const { ligaId, timeId } = participanteAuth.getDados();
-if (ligaId && timeId) {
-    inicializarRankingParticipante(ligaId, timeId);
+@media (max-width: 768px) {
+    .ranking-tabela th, .ranking-tabela td {
+        padding: 10px 8px;
+        font-size: 12px;
+    }
+    
+    .posicao-badge {
+        width: 25px;
+        height: 25px;
+        line-height: 25px;
+        font-size: 12px;
+    }
 }
-</script>
+</style>

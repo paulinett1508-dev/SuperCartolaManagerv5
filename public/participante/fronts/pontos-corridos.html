@@ -1,34 +1,99 @@
 
 <!-- PARTICIPANTE PONTOS CORRIDOS - Interface -->
-<div id="pontos-corridos-participante" class="participante-module">
-    <!-- Header do Módulo -->
-    <div class="module-header-section">
-        <div class="module-title-section">
-            <div class="module-title-icon">🔄</div>
-            <h2>Pontos Corridos</h2>
+<div class="pontos-corridos-participante">
+    <div class="pontos-corridos-header">
+        <h2>🏁 Pontos Corridos</h2>
+        <p style="color: #999;">Sistema de confrontos</p>
+    </div>
+
+    <div id="pontosCorridosContainer">
+        <div class="loading-participante">
+            <div class="spinner-participante"></div>
+            <p>Carregando confrontos...</p>
         </div>
-        <div class="module-subtitle">
-            Sistema de confrontos
-        </div>
-    </div>
-
-    <!-- Seletor de Rodadas -->
-    <div id="pontosCorridosSelector" class="pontos-corridos-selector">
-        <!-- Mini-cards de rodadas serão inseridos aqui -->
-    </div>
-
-    <!-- Loading State -->
-    <div id="loadingPontosCorridos" class="loading-state" style="display: none">
-        <div class="spinner"></div>
-        <span>Carregando confrontos...</span>
-    </div>
-
-    <!-- Container dos Confrontos -->
-    <div id="pontosCorridosContainer" class="pontos-corridos-container">
-        <!-- Será preenchido via JavaScript -->
     </div>
 </div>
 
-<script>
-console.log('[PONTOS-CORRIDOS-HTML] ✅ HTML do módulo pontos-corridos carregado');
-</script>
+<style>
+.pontos-corridos-participante {
+    padding: 20px 0;
+}
+
+.pontos-corridos-header {
+    text-align: center;
+    margin-bottom: 30px;
+}
+
+.pontos-corridos-header h2 {
+    color: var(--participante-primary);
+    margin-bottom: 10px;
+}
+
+.pontos-corridos-tabela {
+    background: var(--participante-card);
+    border-radius: 12px;
+    overflow: hidden;
+    border: 1px solid var(--participante-border);
+}
+
+.pontos-corridos-tabela table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+.pontos-corridos-tabela thead {
+    background: rgba(255, 69, 0, 0.1);
+}
+
+.pontos-corridos-tabela th {
+    padding: 12px 8px;
+    text-align: center;
+    color: var(--participante-primary);
+    font-weight: 600;
+    font-size: 12px;
+}
+
+.pontos-corridos-tabela td {
+    padding: 10px 8px;
+    border-top: 1px solid var(--participante-border);
+    color: #ccc;
+    text-align: center;
+    font-size: 12px;
+}
+
+.pontos-corridos-tabela tr.meu-time {
+    background: rgba(255, 69, 0, 0.15);
+    font-weight: 600;
+}
+
+.posicao-badge {
+    display: inline-block;
+    width: 25px;
+    height: 25px;
+    background: var(--participante-primary);
+    color: white;
+    border-radius: 50%;
+    text-align: center;
+    line-height: 25px;
+    font-weight: 700;
+    font-size: 12px;
+}
+
+.pontos-destaque {
+    font-weight: 700;
+    color: var(--participante-primary);
+    font-size: 14px;
+}
+
+@media (max-width: 768px) {
+    .pontos-corridos-tabela th {
+        padding: 8px 4px;
+        font-size: 10px;
+    }
+    
+    .pontos-corridos-tabela td {
+        padding: 8px 4px;
+        font-size: 11px;
+    }
+}
+</style>

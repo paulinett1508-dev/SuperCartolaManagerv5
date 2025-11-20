@@ -28,7 +28,9 @@ class ParticipanteNavigation {
         // Event listeners nos botões
         document.querySelectorAll('.nav-btn').forEach(btn => {
             btn.addEventListener('click', (e) => {
-                const modulo = e.target.dataset.module;
+                // ✅ Usar currentTarget ao invés de target para garantir que sempre pegamos o botão
+                // mesmo quando o usuário clica em ícones ou texto dentro do botão
+                const modulo = e.currentTarget.dataset.module;
                 this.navegarPara(modulo);
             });
         });
@@ -156,6 +158,29 @@ class ParticipanteNavigation {
             return;
         }
 
+        // ✅ VALIDAR DADOS DO PARTICIPANTE
+        if (!participanteData || !participanteData.ligaId || !participanteData.timeId) {
+            console.error('[PARTICIPANTE-NAV] Dados do participante inválidos:', participanteData);
+            const container = document.getElementById('moduleContainer');
+            if (container) {
+                container.innerHTML = `
+                    <div style="text-align: center; padding: 40px; color: #ef4444;">
+                        <h3>❌ Erro de Autenticação</h3>
+                        <p>Dados do participante não encontrados. Por favor, faça login novamente.</p>
+                        <button onclick="window.location.href='/participante-login.html'" 
+                                style="margin-top: 20px; padding: 10px 20px; background: #ff4500; 
+                                       color: white; border: none; border-radius: 8px; cursor: pointer;">
+                            🔐 Fazer Login
+                        </button>
+                    </div>
+                `;
+            }
+            return;
+        }
+
+        // ✅ EXTRAIR DADOS PARA USO SIMPLIFICADO
+        const { ligaId, timeId } = participanteData;
+
         switch(modulo) {
             case 'extrato':
                 if (typeof window.inicializarExtratoParticipante === 'function') {
@@ -177,17 +202,73 @@ class ParticipanteNavigation {
                     }
                 }
                 break;
+            
             case 'ranking':
                 if (window.inicializarRankingParticipante) {
                     await window.inicializarRankingParticipante(ligaId, timeId);
+                } else {
+                    console.error('[PARTICIPANTE-NAV] Função inicializarRankingParticipante não encontrada');
                 }
                 break;
+            
             case 'rodadas':
                 if (window.inicializarRodadasParticipante) {
                     await window.inicializarRodadasParticipante(ligaId, timeId);
+                } else {
+                    console.error('[PARTICIPANTE-NAV] Função inicializarRodadasParticipante não encontrada');
                 }
                 break;
-            // ... outros módulos
+            
+            case 'top10':
+                if (window.inicializarTop10Participante) {
+                    await window.inicializarTop10Participante(ligaId, timeId);
+                } else {
+                    console.error('[PARTICIPANTE-NAV] Função inicializarTop10Participante não encontrada');
+                }
+                break;
+            
+            case 'melhor-mes':
+                if (window.inicializarMelhorMesParticipante) {
+                    await window.inicializarMelhorMesParticipante(ligaId, timeId);
+                } else {
+                    console.error('[PARTICIPANTE-NAV] Função inicializarMelhorMesParticipante não encontrada');
+                }
+                break;
+            
+            case 'pontos-corridos':
+                if (window.inicializarPontosCorridosParticipante) {
+                    await window.inicializarPontosCorridosParticipante(ligaId, timeId);
+                } else {
+                    console.error('[PARTICIPANTE-NAV] Função inicializarPontosCorridosParticipante não encontrada');
+                }
+                break;
+            
+            case 'mata-mata':
+                if (window.inicializarMataMataParticipante) {
+                    await window.inicializarMataMataParticipante(ligaId, timeId);
+                } else {
+                    console.error('[PARTICIPANTE-NAV] Função inicializarMataMataParticipante não encontrada');
+                }
+                break;
+            
+            case 'artilheiro':
+                if (window.inicializarArtilheiroParticipante) {
+                    await window.inicializarArtilheiroParticipante(ligaId, timeId);
+                } else {
+                    console.error('[PARTICIPANTE-NAV] Função inicializarArtilheiroParticipante não encontrada');
+                }
+                break;
+            
+            case 'luva-ouro':
+                if (window.inicializarLuvaOuroParticipante) {
+                    await window.inicializarLuvaOuroParticipante(ligaId, timeId);
+                } else {
+                    console.error('[PARTICIPANTE-NAV] Função inicializarLuvaOuroParticipante não encontrada');
+                }
+                break;
+            
+            default:
+                console.warn(`[PARTICIPANTE-NAV] Módulo ${modulo} não tem inicializador definido`);
         }
     }
 }

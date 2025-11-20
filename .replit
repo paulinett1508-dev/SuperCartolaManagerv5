@@ -5,6 +5,10 @@ modules = ["nodejs-20", "python-3.11"]
 localPort = 5000
 externalPort = 80
 
+[[ports]]
+localPort = 36657
+externalPort = 3000
+
 [deployment]
 deploymentTarget = "gce"
 run = ["sh", "-c", "npm start"]
@@ -15,7 +19,7 @@ run = ["sh", "-c", "npm start"]
 expertMode = true
 
 [workflows]
-runButton = "Run"
+runButton = "Project"
 
 [[workflows.workflow]]
 name = "Run"
@@ -25,3 +29,24 @@ mode = "sequential"
 [[workflows.workflow.tasks]]
 task = "shell.exec"
 args = "npm start"
+
+[[workflows.workflow]]
+name = "Project"
+mode = "parallel"
+author = "agent"
+
+[[workflows.workflow.tasks]]
+task = "workflow.run"
+args = "Super Cartola Server"
+
+[[workflows.workflow]]
+name = "Super Cartola Server"
+author = "agent"
+
+[[workflows.workflow.tasks]]
+task = "shell.exec"
+args = "npm run dev"
+waitForPort = 5000
+
+[workflows.workflow.metadata]
+outputType = "webview"
