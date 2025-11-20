@@ -51,11 +51,14 @@ router.get("/liga/:ligaId", async (req, res) => {
     }
 });
 
-// Rota: Status do mercado
+// Rota: Status do mercado (corrigida)
 router.get('/mercado/status', async (req, res) => {
     try {
         const response = await axios.get('https://api.cartola.globo.com/mercado/status', {
-            timeout: 10000
+            timeout: 10000,
+            headers: {
+                'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36'
+            }
         });
 
         res.json(response.data);
@@ -68,9 +71,43 @@ router.get('/mercado/status', async (req, res) => {
             mercado_fechado: false,
             times_escalados: 0
         });
+        
+        res.json(response.data);
+    } catch (error) {
+        console.error('Erro ao buscar status do mercado:', error.message);
+        
+        // Retornar dados de fallback em caso de erro
+        res.json({
+            rodada_atual: 1,
+            status_mercado: 2, // Mercado fechado (permite visualizar rodadas)
+            mes: 11,
+            ano: 2025,
+            aviso: 'Dados de fallback - API indisponível'
+        });
     }
 });
 
+// Endpoint: Atletas pontuados (para cálculo de parciais)
+router.get('/atletas/pontuados', async (req, res) => {
+    try {
+        const response = await axios.get('https://api.cartola.globo.com/atletas/pontuados', {
+            timeout: 10000,
+            headers: {
+                'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36'
+            }
+        });
+        
+        res.json(response.data);
+    } catch (error) {
+        console.error('Erro ao buscar atletas pontuados:', error.message);
+        
+        // Retornar objeto vazio em caso de erro (mercado pode estar fechado)
+        res.json({
+            atletas: {},
+            rodada: 1
+        });
+    }
+});
 
 // Proxy para atletas
 router.get("/atletas/mercado", async (req, res) => {

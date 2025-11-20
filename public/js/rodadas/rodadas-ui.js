@@ -60,18 +60,21 @@ export async function renderizarMiniCardsRodadas() {
     if (i < rodada_atual) {
       statusClass = "encerrada";
       statusText = "Encerrada";
+      isDisabled = false; // Permitir clicar em rodadas encerradas
     } else if (i === rodada_atual) {
       if (mercadoAberto) {
         statusClass = "vigente";
         statusText = "Aberta";
+        isDisabled = true; // Mercado aberto = sem dados ainda
       } else {
         statusClass = "parcial";
         statusText = "Parciais";
+        isDisabled = false; // Mercado fechado = tem parciais
       }
     } else {
       statusClass = "futura";
       statusText = "Futura";
-      isDisabled = true;
+      isDisabled = true; // Apenas rodadas futuras ficam desabilitadas
     }
 
     cardsHTML += `
