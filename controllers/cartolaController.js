@@ -98,7 +98,7 @@ export async function getMercadoStatus(req, res) {
     const response = await fetch(
       "https://api.cartola.globo.com/mercado/status",
       {
-        timeout: 8000,
+        timeout: 10000,
         headers: {
           "Cache-Control": "no-cache",
           Pragma: "no-cache",
@@ -129,11 +129,15 @@ export async function getMercadoStatus(req, res) {
       error.message,
     );
 
-    // Retornar erro apropriado
-    res.status(503).json({
-      error: "API do Cartola FC indisponível no momento",
-      message: error.message,
-      retry_after: 60
+    // Retornar dados de fallback em vez de erro 503
+    console.log("[CARTOLA-CONTROLLER] Retornando fallback (rodada 1)");
+    res.status(200).json({
+      rodada_atual: 1,
+      status_mercado: 2,
+      mercado_aberto: false,
+      fechamento: null,
+      fallback: true,
+      message: "API Cartola indisponível, usando dados padrão"
     });
   }
 }

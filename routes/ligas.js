@@ -139,6 +139,149 @@ router.put("/:ligaId/participante/:timeId/senha", async (req, res) => {
     }
 });
 
+// ==============================
+// ROTA: Buscar ranking da liga
+// ==============================
+router.get("/:id/ranking", async (req, res) => {
+  const { id: ligaId } = req.params;
+  
+  try {
+    console.log(`[LIGAS] Buscando ranking para liga ${ligaId}`);
+    
+    // Buscar todas as rodadas da liga
+    const Rodada = (await import("../models/Rodada.js")).default;
+    const rodadas = await Rodada.find({ ligaId }).lean();
+    
+    if (!rodadas || rodadas.length === 0) {
+      return res.json([]);
+    }
+    
+    // Calcular pontuação total por time
+    const rankingMap = {};
+    
+    rodadas.forEach(rodada => {
+      const timeId = rodada.timeId;
+      const pontos = parseFloat(rodada.pontos) || 0;
+      
+      if (!rankingMap[timeId]) {
+        rankingMap[timeId] = {
+          timeId,
+          nome_time: rodada.nome_time || "N/D",
+          nome_cartola: rodada.nome_cartola || "N/D",
+          escudo: rodada.escudo || "",
+          pontos_totais: 0,
+          rodadas_jogadas: 0
+        };
+      }
+      
+      rankingMap[timeId].pontos_totais += pontos;
+      rankingMap[timeId].rodadas_jogadas++;
+    });
+    
+    // Converter para array e ordenar
+    const ranking = Object.values(rankingMap)
+      .sort((a, b) => b.pontos_totais - a.pontos_totais)
+      .map((time, index) => ({
+        ...time,
+        posicao: index + 1,
+        media: time.rodadas_jogadas > 0 
+          ? (time.pontos_totais / time.rodadas_jogadas).toFixed(2)
+          : "0.00"
+      }));
+    
+    console.log(`[LIGAS] Ranking calculado: ${ranking.length} times`);
+    res.json(ranking);
+    
+  } catch (error) {
+    console.error(`[LIGAS] Erro ao buscar ranking:`, error);
+    res.status(500).json({ erro: "Erro ao buscar ranking" });
+  }
+});
+
+// ==============================
+// ROTA: Buscar rodadas de um time específico
+// ==============================
+router.get("/:id/rodadas/:timeId", async (req, res) => {
+  const { id: ligaId, timeId } = req.params;
+  
+  try {
+    console.log(`[LIGAS] Buscando rodadas do time ${timeId} na liga ${ligaId}`);
+    
+    const Rodada = (await import("../models/Rodada.js")).default;
+    const rodadas = await Rodada.find({ 
+      ligaId, 
+      timeId: parseInt(timeId) 
+    })
+    .sort({ rodada: 1 })
+    .lean();
+    
+    console.log(`[LIGAS] Encontradas ${rodadas.length} rodadas para o time ${timeId}`);
+    res.json(rodadas);
+    
+  } catch (error) {
+    console.error(`[LIGAS] Erro ao buscar rodadas do time:`, error);
+    res.status(500).json({ erro: "Erro ao buscar rodadas do time" });
+  }
+});
+
+// ==============================
+// ROTA: Buscar TOP 10 da liga
+// ==============================
+router.get("/:id/top10", async (req, res) => {
+  const { id: ligaId } = req.params;
+  
+  try {
+    console.log(`[LIGAS] Buscando TOP 10 para liga ${ligaId}`);
+    
+    const Rodada = (await import("../models/Rodada.js")).default;
+    
+    // Buscar todas as rodadas
+    const rodadas = await Rodada.find({ ligaId }).lean();
+    
+    if (!rodadas || rodadas.length === 0) {
+      return res.json([]);
+    }
+    
+    // Agrupar por rodada e encontrar os 10 melhores de cada
+    const rodadasAgrupadas = {};
+    
+    rodadas.forEach(r => {
+      if (!rodadasAgrupadas[r.rodada]) {
+        rodadasAgrupadas[r.rodada] = [];
+      }
+      rodadasAgrupadas[r.rodada].push(r);
+    });
+    
+    const top10PorRodada = {};
+    
+    Object.keys(rodadasAgrupadas).forEach(numRodada => {
+      const timesRodada = rodadasAgrupadas[numRodada];
+      
+      // Ordenar por pontos e pegar os 10 melhores
+      const top10 = timesRodada
+        .sort((a, b) => (parseFloat(b.pontos) || 0) - (parseFloat(a.pontos) || 0))
+        .slice(0, 10)
+        .map((time, index) => ({
+          posicao: index + 1,
+          timeId: time.timeId,
+          nome_time: time.nome_time || "N/D",
+          nome_cartola: time.nome_cartola || "N/D",
+          escudo: time.escudo || "",
+          pontos: parseFloat(time.pontos) || 0
+        }));
+      
+      top10PorRodada[numRodada] = top10;
+    });
+    
+    console.log(`[LIGAS] TOP 10 calculado para ${Object.keys(top10PorRodada).length} rodadas`);
+    res.json(top10PorRodada);
+    
+  } catch (error) {
+    console.error(`[LIGAS] Erro ao buscar TOP 10:`, error);
+    res.status(500).json({ erro: "Erro ao buscar TOP 10" });
+  }
+});
+
 // Rota de análise de performance
 router.get("/:id/performance", async (req, res) => {
   // O restante do código original permanece inalterado aqui.
