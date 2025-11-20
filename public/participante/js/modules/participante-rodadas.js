@@ -79,12 +79,45 @@ function renderizarCardsRodadas(rodadas) {
     const html = rodadas.map(rodada => {
         const statusClass = rodada.jogou ? 'jogou' : 'nao-jogou';
         const pontos = rodada.meusPontos !== null ? rodada.meusPontos.toFixed(2) : '-';
-        const statusTexto = rodada.jogou ? `${pontos} pts` : 'Não jogou';
+        
+        // Determinar cor e ícone baseado na zona financeira
+        let corPontos = '#999'; // padrão
+        let icone = '';
+        
+        if (rodada.jogou && rodada.meusPontos !== null) {
+            // Buscar minha posição na rodada
+            const minhaPosicao = rodada.participantes
+                .sort((a, b) => (b.pontos || 0) - (a.pontos || 0))
+                .findIndex(p => String(p.timeId) === String(meuTimeId)) + 1;
+            
+            const totalParticipantes = rodada.participantes.length;
+            
+            // Zona de ganho (top 25%)
+            if (minhaPosicao <= Math.ceil(totalParticipantes * 0.25)) {
+                corPontos = '#10b981'; // verde
+                if (minhaPosicao === 1) {
+                    icone = ' 🎩'; // MITO
+                }
+            }
+            // Zona neutra (26% a 75%)
+            else if (minhaPosicao <= Math.ceil(totalParticipantes * 0.75)) {
+                corPontos = '#e0e0e0'; // branco
+            }
+            // Zona de perda (bottom 25%)
+            else {
+                corPontos = '#ef4444'; // vermelho
+                if (minhaPosicao === totalParticipantes) {
+                    icone = ' 🐵'; // MICO
+                }
+            }
+        }
+        
+        const statusTexto = rodada.jogou ? `${pontos} pts${icone}` : 'Não jogou';
         
         return `
             <div class="rodada-mini-card ${statusClass}" onclick="window.selecionarRodada(${rodada.numero})" data-rodada="${rodada.numero}">
                 <div class="numero">Rodada ${rodada.numero}</div>
-                <div class="pontos">${statusTexto}</div>
+                <div class="pontos" style="color: ${corPontos};">${statusTexto}</div>
                 <div class="status">${rodada.participantes.length} times</div>
             </div>
         `;
@@ -140,6 +173,10 @@ function renderizarDetalhamentoRodada(rodadaData) {
         (b.pontos || 0) - (a.pontos || 0)
     );
     
+    const totalParticipantes = participantesOrdenados.length;
+    const zonaGanho = Math.ceil(totalParticipantes * 0.25);
+    const zonaNeutra = Math.ceil(totalParticipantes * 0.75);
+    
     // Renderizar tabela
     const tbody = document.getElementById('rankingBody');
     
@@ -147,21 +184,51 @@ function renderizarDetalhamentoRodada(rodadaData) {
         const isMeuTime = String(participante.timeId) === String(meuTimeId);
         const posicao = index + 1;
         
+        // Determinar zona financeira e saldo
+        let zonaFinanceira = '';
+        let saldoFinanceiro = 'R$ 0,00';
+        let classeFinanceira = '';
+        
+        if (posicao <= zonaGanho) {
+            zonaFinanceira = '💚 Ganho';
+            saldoFinanceiro = '+R$ 10,00'; // valor exemplo, pode ser calculado
+            classeFinanceira = 'financeiro-positivo';
+        } else if (posicao <= zonaNeutra) {
+            zonaFinanceira = '⚪ Neutro';
+            saldoFinanceiro = 'R$ 0,00';
+            classeFinanceira = 'financeiro-neutro';
+        } else {
+            zonaFinanceira = '💔 Perda';
+            saldoFinanceiro = '-R$ 10,00'; // valor exemplo, pode ser calculado
+            classeFinanceira = 'financeiro-negativo';
+        }
+        
+        // Adicionar ícones MITO/MICO
+        let icone = '';
+        if (posicao === 1) {
+            icone = ' 🎩';
+        } else if (posicao === totalParticipantes) {
+            icone = ' 🐵';
+        }
+        
         return `
             <tr class="${isMeuTime ? 'meu-time' : ''}">
                 <td style="text-align: center;">
-                    <span class="posicao-badge">${posicao}º</span>
+                    <span class="posicao-badge">${posicao}º${icone}</span>
                 </td>
                 <td>${participante.nome_time || 'N/D'}</td>
                 <td>${participante.nome_cartola || 'N/D'}</td>
                 <td style="text-align: center;" class="pontos-destaque">
                     ${(participante.pontos || 0).toFixed(2)}
                 </td>
+                <td style="text-align: center;" class="${classeFinanceira}">
+                    ${saldoFinanceiro}
+                </td>
             </tr>
         `;
     }).join('');
     
-    tbody.innerHTML = html || '<tr><td colspan="4" style="text-align: center; padding: 20px;">Nenhum dado disponível</td></tr>';
+    tbody.innerHTML = html || '<tr><td colspan="5" style="text-align: center; padding: 20px;">Nenhum dado disponível</td></tr>';
 }
 
 // Voltar para os cards
