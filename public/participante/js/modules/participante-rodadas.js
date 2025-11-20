@@ -1,44 +1,37 @@
 
-// PARTICIPANTE RODADAS - Módulo de Rodadas
+// PARTICIPANTE RODADAS - Grid de Cards + Detalhamento
 
 console.log('[PARTICIPANTE-RODADAS] Carregando módulo...');
 
-let todasRodadasCache = []; // Cache de todas as rodadas
-let filtroAtual = 'todas'; // Estado do filtro
+let todasRodadasCache = [];
+let meuTimeId = null;
+let ligaId = null;
+let rodadaSelecionada = null;
 
-window.inicializarRodadasParticipante = async function(ligaId, timeId) {
-    console.log(`[PARTICIPANTE-RODADAS] Inicializando para time ${timeId} na liga ${ligaId}`);
+// Função de inicialização
+window.inicializarRodadasParticipante = async function(ligaIdParam, timeIdParam) {
+    console.log(`[PARTICIPANTE-RODADAS] Inicializando para time ${timeIdParam} na liga ${ligaIdParam}`);
+
+    ligaId = ligaIdParam;
+    meuTimeId = timeIdParam;
 
     try {
         // Buscar todas as rodadas da liga
-        const responseTodasRodadas = await fetch(`/api/rodadas/${ligaId}/rodadas?inicio=1&fim=38`);
+        const response = await fetch(`/api/rodadas/${ligaId}/rodadas?inicio=1&fim=38`);
         
-        if (!responseTodasRodadas.ok) {
+        if (!response.ok) {
             throw new Error('Erro ao buscar rodadas da liga');
         }
 
-        const todasRodadas = await responseTodasRodadas.json();
-        console.log(`[PARTICIPANTE-RODADAS] Total de rodadas recebidas: ${todasRodadas.length}`);
+        const rodadas = await response.json();
+        console.log(`[PARTICIPANTE-RODADAS] Total de rodadas recebidas: ${rodadas.length}`);
 
-        // Filtrar rodadas do participante
-        const minhasRodadas = todasRodadas.filter(r => String(r.timeId) === String(timeId));
-        
         // Agrupar rodadas por número
-        const rodadasAgrupadas = agruparRodadasPorNumero(todasRodadas, timeId);
-        
-        // Armazenar no cache
-        todasRodadasCache = {
-            todas: rodadasAgrupadas,
-            minhas: minhasRodadas.map(r => ({
-                numero: r.rodada,
-                pontos: r.pontos || 0,
-                capitao: 'N/D',
-                patrimonio: 0
-            }))
-        };
+        const rodadasAgrupadas = agruparRodadasPorNumero(rodadas);
+        todasRodadasCache = rodadasAgrupadas;
 
-        // Renderizar com filtro atual
-        renderizarRodadas(todasRodadasCache[filtroAtual]);
+        // Renderizar grid de cards
+        renderizarCardsRodadas(rodadasAgrupadas);
 
     } catch (error) {
         console.error('[PARTICIPANTE-RODADAS] Erro:', error);
@@ -46,8 +39,8 @@ window.inicializarRodadasParticipante = async function(ligaId, timeId) {
     }
 };
 
-// Função para agrupar rodadas por número
-function agruparRodadasPorNumero(rodadas, meuTimeId) {
+// Agrupar rodadas por número
+function agruparRodadasPorNumero(rodadas) {
     const rodadasMap = new Map();
     
     rodadas.forEach(r => {
@@ -55,98 +48,142 @@ function agruparRodadasPorNumero(rodadas, meuTimeId) {
         if (!rodadasMap.has(rodadaNum)) {
             rodadasMap.set(rodadaNum, {
                 numero: rodadaNum,
-                pontos: 0,
+                participantes: [],
                 meusPontos: null,
-                participantes: 0,
                 jogou: false
             });
         }
         
         const rodadaData = rodadasMap.get(rodadaNum);
-        rodadaData.participantes++;
+        rodadaData.participantes.push(r);
         
         // Se for minha rodada
         if (String(r.timeId) === String(meuTimeId)) {
             rodadaData.meusPontos = r.pontos || 0;
-            rodadaData.jogou = true;
+            rodadaData.jogou = !r.rodadaNaoJogada;
         }
     });
     
-    return Array.from(rodadasMap.values()).sort((a, b) => b.numero - a.numero);
+    return Array.from(rodadasMap.values()).sort((a, b) => a.numero - b.numero);
 }
 
-// Função global para alternar filtros
-window.filtrarRodadas = function(tipo) {
-    console.log(`[PARTICIPANTE-RODADAS] Alterando filtro para: ${tipo}`);
-    
-    filtroAtual = tipo;
-    
-    // Atualizar botões
-    document.querySelectorAll('.filtro-btn').forEach(btn => {
-        btn.classList.toggle('active', btn.dataset.filtro === tipo);
-    });
-    
-    // Renderizar rodadas filtradas
-    if (todasRodadasCache[tipo]) {
-        renderizarRodadas(todasRodadasCache[tipo]);
-    }
-};
-
-function renderizarRodadas(rodadas) {
-    const container = document.getElementById('rodadasContainer');
+// Renderizar grid de cards
+function renderizarCardsRodadas(rodadas) {
+    const container = document.getElementById('rodadasCardsGrid');
     
     if (!rodadas || rodadas.length === 0) {
         container.innerHTML = '<p style="text-align: center; color: #999; padding: 40px;">Nenhuma rodada encontrada</p>';
         return;
     }
 
-    let html = '';
-    
-    if (filtroAtual === 'todas') {
-        // Visualização de todas as rodadas (resumida)
-        html = rodadas.map(rodada => {
-            const jogou = rodada.jogou;
-            const pontos = rodada.meusPontos !== null ? rodada.meusPontos : 0;
-            const statusClass = jogou ? 'jogou' : 'nao-jogou';
-            
-            return `
-                <div class="rodada-card ${statusClass}">
-                    <div class="rodada-titulo">
-                        <span class="rodada-numero">Rodada ${rodada.numero}</span>
-                        <span class="rodada-pontos ${jogou ? '' : 'status-nao-jogou'}">
-                            ${jogou ? `${pontos.toFixed(2)} pts` : 'Não jogou'}
-                        </span>
-                    </div>
-                    <div class="rodada-detalhes">
-                        <p><strong>Participantes:</strong> ${rodada.participantes} times</p>
-                        ${jogou ? `<p><strong>Status:</strong> ✅ Rodada disputada</p>` : `<p><strong>Status:</strong> ⚠️ Rodada não disputada</p>`}
-                    </div>
-                </div>
-            `;
-        }).join('');
-    } else {
-        // Visualização só das minhas rodadas (detalhada)
-        html = rodadas.map(rodada => `
-            <div class="rodada-card">
-                <div class="rodada-titulo">
-                    <span class="rodada-numero">Rodada ${rodada.numero}</span>
-                    <span class="rodada-pontos">${(rodada.pontos || 0).toFixed(2)} pts</span>
-                </div>
-                <div class="rodada-detalhes">
-                    <p><strong>Capitão:</strong> ${rodada.capitao || 'N/D'}</p>
-                    <p><strong>Patrimônio:</strong> C$ ${(rodada.patrimonio || 0).toFixed(2)}</p>
-                </div>
+    const html = rodadas.map(rodada => {
+        const statusClass = rodada.jogou ? 'jogou' : 'nao-jogou';
+        const pontos = rodada.meusPontos !== null ? rodada.meusPontos.toFixed(2) : '-';
+        const statusTexto = rodada.jogou ? `${pontos} pts` : 'Não jogou';
+        
+        return `
+            <div class="rodada-mini-card ${statusClass}" onclick="window.selecionarRodada(${rodada.numero})" data-rodada="${rodada.numero}">
+                <div class="numero">Rodada ${rodada.numero}</div>
+                <div class="pontos">${statusTexto}</div>
+                <div class="status">${rodada.participantes.length} times</div>
             </div>
-        `).join('');
-    }
+        `;
+    }).join('');
 
     container.innerHTML = html;
 }
 
+// Selecionar rodada e mostrar detalhamento
+window.selecionarRodada = async function(numeroRodada) {
+    console.log(`[PARTICIPANTE-RODADAS] Selecionando rodada ${numeroRodada}`);
+    
+    rodadaSelecionada = numeroRodada;
+    
+    // Atualizar visual dos cards
+    document.querySelectorAll('.rodada-mini-card').forEach(card => {
+        card.classList.remove('selected');
+    });
+    
+    const cardSelecionado = document.querySelector(`[data-rodada="${numeroRodada}"]`);
+    if (cardSelecionado) {
+        cardSelecionado.classList.add('selected');
+    }
+    
+    // Buscar dados da rodada
+    const rodadaData = todasRodadasCache.find(r => r.numero === numeroRodada);
+    
+    if (!rodadaData) {
+        console.error('[PARTICIPANTE-RODADAS] Dados da rodada não encontrados');
+        return;
+    }
+    
+    // Renderizar detalhamento
+    renderizarDetalhamentoRodada(rodadaData);
+    
+    // Mostrar seção de detalhamento
+    document.getElementById('rodadaDetalhamento').style.display = 'block';
+    
+    // Scroll suave para o detalhamento
+    document.getElementById('rodadaDetalhamento').scrollIntoView({ 
+        behavior: 'smooth', 
+        block: 'start' 
+    });
+};
+
+// Renderizar detalhamento da rodada
+function renderizarDetalhamentoRodada(rodadaData) {
+    // Atualizar título
+    document.getElementById('rodadaTitulo').textContent = `Rodada ${rodadaData.numero}`;
+    
+    // Ordenar participantes por pontuação
+    const participantesOrdenados = [...rodadaData.participantes].sort((a, b) => 
+        (b.pontos || 0) - (a.pontos || 0)
+    );
+    
+    // Renderizar tabela
+    const tbody = document.getElementById('rankingBody');
+    
+    const html = participantesOrdenados.map((participante, index) => {
+        const isMeuTime = String(participante.timeId) === String(meuTimeId);
+        const posicao = index + 1;
+        
+        return `
+            <tr class="${isMeuTime ? 'meu-time' : ''}">
+                <td style="text-align: center;">
+                    <span class="posicao-badge">${posicao}º</span>
+                </td>
+                <td>${participante.nome_time || 'N/D'}</td>
+                <td>${participante.nome_cartola || 'N/D'}</td>
+                <td style="text-align: center;" class="pontos-destaque">
+                    ${(participante.pontos || 0).toFixed(2)}
+                </td>
+            </tr>
+        `;
+    }).join('');
+    
+    tbody.innerHTML = html || '<tr><td colspan="4" style="text-align: center; padding: 20px;">Nenhum dado disponível</td></tr>';
+}
+
+// Voltar para os cards
+window.voltarParaCards = function() {
+    document.getElementById('rodadaDetalhamento').style.display = 'none';
+    
+    // Remover seleção
+    document.querySelectorAll('.rodada-mini-card').forEach(card => {
+        card.classList.remove('selected');
+    });
+    
+    rodadaSelecionada = null;
+    
+    // Scroll para o topo
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+};
+
+// Mostrar erro
 function mostrarErro(mensagem) {
-    const container = document.getElementById('rodadasContainer');
+    const container = document.getElementById('rodadasCardsGrid');
     container.innerHTML = `
-        <div style="text-align: center; padding: 40px; color: #ef4444;">
+        <div style="grid-column: 1 / -1; text-align: center; padding: 40px; color: #ef4444;">
             <h3>Erro ao Carregar Rodadas</h3>
             <p>${mensagem}</p>
         </div>

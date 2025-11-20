@@ -1,25 +1,42 @@
 
-<!-- PARTICIPANTE RODADAS - Interface -->
+<!-- PARTICIPANTE RODADAS - Interface Grid + Detalhamento -->
 <div class="rodadas-participante">
     <div class="rodadas-header">
         <h2>📅 Rodadas</h2>
-        <p style="color: #999;">Histórico completo de rodadas</p>
-        
-        <!-- Filtro de Visualização -->
-        <div class="rodadas-filtro">
-            <button class="filtro-btn active" data-filtro="todas" onclick="window.filtrarRodadas('todas')">
-                📊 Todas as Rodadas
-            </button>
-            <button class="filtro-btn" data-filtro="minhas" onclick="window.filtrarRodadas('minhas')">
-                🎯 Minhas Rodadas
-            </button>
-        </div>
+        <p style="color: #999;">Selecione uma rodada para ver o ranking</p>
     </div>
 
-    <div id="rodadasContainer">
+    <!-- Grid de Cards das Rodadas -->
+    <div id="rodadasCardsGrid" class="rodadas-cards-grid">
         <div class="loading-participante">
             <div class="spinner-participante"></div>
             <p>Carregando rodadas...</p>
+        </div>
+    </div>
+
+    <!-- Detalhamento da Rodada Selecionada -->
+    <div id="rodadaDetalhamento" class="rodada-detalhamento" style="display: none;">
+        <div class="detalhamento-header">
+            <h3 id="rodadaTitulo">Rodada X</h3>
+            <button class="btn-voltar" onclick="window.voltarParaCards()">
+                ← Voltar para as Rodadas
+            </button>
+        </div>
+
+        <div class="ranking-container">
+            <table class="ranking-table">
+                <thead>
+                    <tr>
+                        <th style="width: 60px; text-align: center;">Pos</th>
+                        <th style="text-align: left;">Time</th>
+                        <th style="text-align: left;">Cartoleiro</th>
+                        <th style="width: 120px; text-align: center;">Pontos</th>
+                    </tr>
+                </thead>
+                <tbody id="rankingBody">
+                    <!-- Será preenchido dinamicamente -->
+                </tbody>
+            </table>
         </div>
     </div>
 </div>
@@ -39,103 +56,191 @@
     margin-bottom: 10px;
 }
 
-/* Filtro de Rodadas */
-.rodadas-filtro {
-    display: flex;
-    gap: 10px;
-    justify-content: center;
-    margin-top: 20px;
-    flex-wrap: wrap;
+/* Grid de Cards */
+.rodadas-cards-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+    gap: 15px;
+    margin-bottom: 30px;
 }
 
-.filtro-btn {
-    padding: 10px 20px;
+.rodada-mini-card {
+    background: var(--participante-card);
     border: 2px solid var(--participante-border);
-    background: var(--participante-card);
-    color: var(--participante-text);
-    border-radius: 8px;
-    cursor: pointer;
-    font-size: 14px;
-    font-weight: 600;
-    transition: all 0.3s ease;
-}
-
-.filtro-btn:hover {
-    border-color: var(--participante-primary);
-    transform: translateY(-2px);
-}
-
-.filtro-btn.active {
-    background: var(--participante-primary);
-    color: white;
-    border-color: var(--participante-primary);
-}
-
-.rodada-card {
-    background: var(--participante-card);
-    border: 1px solid var(--participante-border);
     border-radius: 12px;
     padding: 20px;
-    margin-bottom: 15px;
-    transition: transform 0.2s ease;
+    text-align: center;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    position: relative;
 }
 
-.rodada-card.hidden {
-    display: none;
+.rodada-mini-card:hover {
+    transform: translateY(-4px);
+    border-color: var(--participante-primary);
+    box-shadow: 0 4px 12px rgba(255, 69, 0, 0.2);
 }
 
-.rodada-card:active {
-    transform: scale(0.99);
+.rodada-mini-card.jogou {
+    border-color: #10b981;
 }
 
-.rodada-titulo {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-bottom: 15px;
-    padding-bottom: 15px;
-    border-bottom: 1px solid var(--participante-border);
+.rodada-mini-card.nao-jogou {
+    opacity: 0.6;
+    border-color: #6b7280;
 }
 
-.rodada-numero {
+.rodada-mini-card.selected {
+    background: var(--participante-primary);
+    border-color: var(--participante-primary);
+    color: white;
+}
+
+.rodada-mini-card .numero {
     font-size: 18px;
     font-weight: 700;
-    color: var(--participante-primary);
+    margin-bottom: 8px;
 }
 
-.rodada-pontos {
+.rodada-mini-card .pontos {
     font-size: 16px;
     font-weight: 600;
     color: #10b981;
 }
 
-.rodada-detalhes {
-    color: #999;
+.rodada-mini-card.selected .pontos {
+    color: white;
+}
+
+.rodada-mini-card .status {
+    font-size: 12px;
+    margin-top: 5px;
+    opacity: 0.8;
+}
+
+/* Detalhamento da Rodada */
+.rodada-detalhamento {
+    background: var(--participante-card);
+    border-radius: 12px;
+    padding: 20px;
+    margin-top: 20px;
+}
+
+.detalhamento-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px;
+    padding-bottom: 15px;
+    border-bottom: 2px solid var(--participante-border);
+}
+
+.detalhamento-header h3 {
+    color: var(--participante-primary);
+    margin: 0;
+    font-size: 22px;
+}
+
+.btn-voltar {
+    background: var(--participante-primary);
+    color: white;
+    border: none;
+    padding: 10px 20px;
+    border-radius: 8px;
+    cursor: pointer;
+    font-weight: 600;
+    transition: all 0.3s ease;
+}
+
+.btn-voltar:hover {
+    opacity: 0.9;
+    transform: translateY(-2px);
+}
+
+/* Tabela de Ranking */
+.ranking-container {
+    overflow-x: auto;
+}
+
+.ranking-table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+.ranking-table thead {
+    background: var(--participante-primary);
+    color: white;
+}
+
+.ranking-table th {
+    padding: 12px;
+    font-weight: 600;
     font-size: 14px;
 }
 
-.rodada-detalhes p {
-    margin: 5px 0;
+.ranking-table tbody tr {
+    border-bottom: 1px solid var(--participante-border);
+    transition: background 0.2s ease;
+}
+
+.ranking-table tbody tr:hover {
+    background: rgba(255, 69, 0, 0.05);
+}
+
+.ranking-table tbody tr.meu-time {
+    background: rgba(16, 185, 129, 0.1);
+    font-weight: 600;
+}
+
+.ranking-table td {
+    padding: 12px;
+    font-size: 14px;
+}
+
+.posicao-badge {
+    display: inline-block;
+    background: var(--participante-primary);
+    color: white;
+    padding: 4px 10px;
+    border-radius: 6px;
+    font-weight: 700;
+    font-size: 13px;
+}
+
+.pontos-destaque {
+    color: #10b981;
+    font-weight: 700;
+    font-size: 15px;
 }
 
 @media (max-width: 768px) {
-    .rodada-card {
-        padding: 15px;
-    }
-    
-    .rodada-titulo {
-        flex-direction: column;
+    .rodadas-cards-grid {
+        grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
         gap: 10px;
-        align-items: flex-start;
     }
-    
-    .rodada-pontos {
+
+    .rodada-mini-card {
+        padding: 15px 10px;
+    }
+
+    .rodada-mini-card .numero {
+        font-size: 16px;
+    }
+
+    .rodada-mini-card .pontos {
         font-size: 14px;
     }
-    
-    .filtro-btn {
+
+    .detalhamento-header {
+        flex-direction: column;
+        gap: 15px;
+        align-items: flex-start;
+    }
+
+    .ranking-table th,
+    .ranking-table td {
+        padding: 8px;
         font-size: 12px;
-        padding: 8px 16px;
     }
 }
 </style>
