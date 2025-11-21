@@ -225,6 +225,70 @@ router.get("/:id/rodadas/:timeId", async (req, res) => {
 });
 
 // ==============================
+// ROTA: Buscar Melhor Mês de um participante
+// ==============================
+router.get("/:id/melhor-mes/:timeId", async (req, res) => {
+  const { id: ligaId, timeId } = req.params;
+
+  try {
+    console.log(`[LIGAS] Buscando Melhor Mês para time ${timeId} na liga ${ligaId}`);
+
+    const Rodada = (await import("../models/Rodada.js")).default;
+
+    // Definir edições do Melhor Mês (mesma config do admin)
+    const edicoes = [
+      { nome: "Abril", inicio: 1, fim: 5 },
+      { nome: "Maio", inicio: 6, fim: 9 },
+      { nome: "Junho", inicio: 10, fim: 13 },
+      { nome: "Julho", inicio: 14, fim: 18 },
+      { nome: "Agosto", inicio: 19, fim: 22 },
+      { nome: "Setembro", inicio: 23, fim: 27 },
+      { nome: "Outubro", inicio: 28, fim: 31 },
+      { nome: "Novembro", inicio: 32, fim: 35 },
+      { nome: "Dezembro", inicio: 36, fim: 38 }
+    ];
+
+    // Buscar todas as rodadas do time
+    const rodadas = await Rodada.find({
+      ligaId,
+      timeId: parseInt(timeId)
+    }).sort({ rodada: 1 }).lean();
+
+    if (!rodadas || rodadas.length === 0) {
+      return res.json([]);
+    }
+
+    // Calcular pontuação por mês
+    const meses = edicoes.map(edicao => {
+      const rodadasDoMes = rodadas.filter(
+        r => r.rodada >= edicao.inicio && r.rodada <= edicao.fim
+      );
+
+      const pontos = rodadasDoMes.reduce(
+        (total, r) => total + (parseFloat(r.pontos) || 0), 
+        0
+      );
+
+      return {
+        mes: edicao.nome,
+        nome: edicao.nome,
+        pontos: pontos,
+        rodadas_inicio: edicao.inicio,
+        rodadas_fim: edicao.fim,
+        rodadas_jogadas: rodadasDoMes.length
+      };
+    }).filter(mes => mes.rodadas_jogadas > 0); // Apenas meses com rodadas jogadas
+
+    console.log(`[LIGAS] Melhor Mês calculado: ${meses.length} meses para time ${timeId}`);
+    res.json(meses);
+
+  } catch (error) {
+    console.error(`[LIGAS] Erro ao buscar Melhor Mês:`, error);
+    res.status(500).json({ erro: "Erro ao buscar dados do Melhor Mês" });
+  }
+});
+
+// ==============================
 // ROTA: Buscar TOP 10 da liga
 // ==============================
 router.get("/:id/top10", async (req, res) => {
