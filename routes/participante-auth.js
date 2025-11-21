@@ -51,39 +51,26 @@ router.post('/login', async (req, res) => {
             });
         }
 
-        // Se tem apenas uma liga, logar direto
-        if (ligasAutenticadas.length === 1) {
-            const { ligaId, participante } = ligasAutenticadas[0];
-            
-            req.session.participante = {
-                timeId: parseInt(timeId),
-                ligaId: ligaId,
-                nome_cartola: participante.nome_cartola,
-                nome_time: participante.nome_time,
-                clube_id: participante.clube_id,
-                foto_perfil: participante.foto_perfil,
-                foto_time: participante.foto_time,
-                assinante: participante.assinante
-            };
+        // Sempre logar na primeira liga encontrada (timeId é único)
+        const { ligaId, participante } = ligasAutenticadas[0];
+        
+        req.session.participante = {
+            timeId: parseInt(timeId),
+            ligaId: ligaId,
+            nome_cartola: participante.nome_cartola,
+            nome_time: participante.nome_time,
+            clube_id: participante.clube_id,
+            foto_perfil: participante.foto_perfil,
+            foto_time: participante.foto_time,
+            assinante: participante.assinante
+        };
 
-            await req.session.save();
+        await req.session.save();
 
-            return res.json({
-                success: true,
-                participante: req.session.participante,
-                message: 'Login realizado com sucesso'
-            });
-        }
-
-        // Se tem múltiplas ligas, retornar para seleção
         return res.json({
             success: true,
-            multiplas_ligas: true,
-            ligas: ligasAutenticadas.map(l => ({
-                ligaId: l.ligaId,
-                ligaNome: l.ligaNome
-            })),
-            timeId: parseInt(timeId)
+            participante: req.session.participante,
+            message: 'Login realizado com sucesso'
         });
 
     } catch (error) {
@@ -169,7 +156,7 @@ router.get('/session', async (req, res) => {
     try {
         if (!req.session || !req.session.participante) {
             return res.status(401).json({ 
-                autenticado: false,
+                authenticated: false,
                 erro: 'Sessão não encontrada' 
             });
         }
@@ -182,7 +169,7 @@ router.get('/session', async (req, res) => {
         if (!liga) {
             req.session.destroy();
             return res.status(404).json({ 
-                autenticado: false,
+                authenticated: false,
                 erro: 'Liga não encontrada' 
             });
         }
@@ -194,7 +181,7 @@ router.get('/session', async (req, res) => {
         if (!participante) {
             req.session.destroy();
             return res.status(404).json({ 
-                autenticado: false,
+                authenticated: false,
                 erro: 'Participante não encontrado' 
             });
         }
@@ -212,14 +199,14 @@ router.get('/session', async (req, res) => {
         };
 
         res.json({
-            autenticado: true,
+            authenticated: true,
             participante: req.session.participante
         });
 
     } catch (error) {
         console.error('[PARTICIPANTE-AUTH] Erro ao verificar sessão:', error);
         res.status(500).json({ 
-            autenticado: false,
+            authenticated: false,
             erro: 'Erro ao verificar sessão',
             detalhes: error.message 
         });
