@@ -10,26 +10,36 @@ const router = express.Router();
  */
 router.post('/login', async (req, res) => {
     try {
+        console.log('[PARTICIPANTE-AUTH] ========================================');
         console.log('[PARTICIPANTE-AUTH] Requisição de login recebida');
         console.log('[PARTICIPANTE-AUTH] Body:', { timeId: req.body.timeId, senhaLength: req.body.senha?.length });
+        console.log('[PARTICIPANTE-AUTH] Headers:', req.headers);
         
         const { timeId, senha } = req.body;
 
         if (!timeId || !senha) {
-            console.log('[PARTICIPANTE-AUTH] Campos obrigatórios faltando');
+            console.log('[PARTICIPANTE-AUTH] ❌ Campos obrigatórios faltando');
             return res.status(400).json({ 
                 erro: 'Time ID e senha são obrigatórios' 
             });
         }
         
-        console.log('[PARTICIPANTE-AUTH] Buscando ligas para timeId:', timeId);
+        console.log('[PARTICIPANTE-AUTH] 🔍 Buscando ligas para timeId:', timeId);
 
-        // Buscar todas as ligas onde o participante está inscrito
-        const ligas = await Liga.find({
-            'participantes.time_id': parseInt(timeId)
-        });
-
-        console.log('[PARTICIPANTE-AUTH] Ligas encontradas:', ligas?.length || 0);
+        // Buscar todas as ligas onde o participante está inscrito com timeout
+        let ligas;
+        try {
+            ligas = await Promise.race([
+                Liga.find({ 'participantes.time_id': parseInt(timeId) }),
+                new Promise((_, reject) => 
+                    setTimeout(() => reject(new Error('Timeout ao buscar ligas')), 10000)
+                )
+            ]);
+            console.log('[PARTICIPANTE-AUTH] ✅ Ligas encontradas:', ligas?.length || 0);
+        } catch (dbError) {
+            console.error('[PARTICIPANTE-AUTH] ❌ Erro ao buscar ligas:', dbError.message);
+            throw dbError;
+        }
 
         if (!ligas || ligas.length === 0) {
             console.log('[PARTICIPANTE-AUTH] Nenhuma liga encontrada para o time');
@@ -91,10 +101,17 @@ router.post('/login', async (req, res) => {
         });
 
     } catch (error) {
-        console.error('[PARTICIPANTE-AUTH] Erro no login:', error);
-        res.status(500).json({ 
+        console.error('[PARTICIPANTE-AUTH] ❌❌❌ ERRO CRÍTICO NO LOGIN ❌❌❌');
+        console.error('[PARTICIPANTE-AUTH] Tipo:', error.name);
+        console.error('[PARTICIPANTE-AUTH] Mensagem:', error.message);
+        console.error('[PARTICIPANTE-AUTH] Stack:', error.stack);
+        
+        // Garantir que sempre retornamos JSON
+        return res.status(500).json({ 
+            success: false,
             erro: 'Erro ao processar login',
-            detalhes: error.message 
+            detalhes: error.message,
+            tipo: error.name
         });
     }
 });
