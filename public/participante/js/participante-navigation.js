@@ -25,18 +25,48 @@ class ParticipanteNavigation {
     inicializar() {
         console.log('[PARTICIPANTE-NAV] Inicializando navegação...');
 
-        // Event listeners nos botões
+        // Renderizar menu
+        this.renderizarMenu();
+
+        // Aguardar módulos carregarem antes de navegar
+        this.aguardarModulosENavegar();
+    }
+
+    renderizarMenu() {
+        const menuContainer = document.getElementById('menuLateral');
+        if (!menuContainer) {
+            console.error('[PARTICIPANTE-NAV] Container de menu não encontrado');
+            return;
+        }
+
+        const menuItems = [
+            { id: 'boas-vindas', label: '🏠 Início', icon: '🏠' },
+            { id: 'extrato', label: '💰 Extrato', icon: '💰' },
+            { id: 'ranking', label: '🏆 Ranking', icon: '🏆' },
+            { id: 'rodadas', label: '📊 Rodadas', icon: '📊' },
+            { id: 'top10', label: '⭐ Top 10', icon: '⭐' },
+            { id: 'melhor-mes', label: '📅 Melhor Mês', icon: '📅' },
+            { id: 'pontos-corridos', label: '📈 Pontos Corridos', icon: '📈' },
+            { id: 'mata-mata', label: '⚔️ Mata-Mata', icon: '⚔️' },
+            { id: 'artilheiro', label: '⚽ Artilheiro', icon: '⚽' },
+            { id: 'luva-ouro', label: '🥅 Luva de Ouro', icon: '🥅' }
+        ];
+
+        menuContainer.innerHTML = menuItems.map(item => `
+            <button class="nav-btn" data-module="${item.id}">
+                ${item.label}
+            </button>
+        `).join('');
+
+        // Adicionar event listeners
         document.querySelectorAll('.nav-btn').forEach(btn => {
             btn.addEventListener('click', (e) => {
-                // ✅ Usar currentTarget ao invés de target para garantir que sempre pegamos o botão
-                // mesmo quando o usuário clica em ícones ou texto dentro do botão
                 const modulo = e.currentTarget.dataset.module;
                 this.navegarPara(modulo);
             });
         });
 
-        // Aguardar módulos carregarem antes de navegar
-        this.aguardarModulosENavegar();
+        console.log('[PARTICIPANTE-NAV] Menu renderizado com', menuItems.length, 'itens');
     }
 
     async aguardarModulosENavegar() {
