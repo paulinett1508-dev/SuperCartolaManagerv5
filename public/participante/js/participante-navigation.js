@@ -1,3 +1,4 @@
+
 // PARTICIPANTE NAVIGATION - Sistema de Navegação
 
 console.log('[PARTICIPANTE-NAV] Carregando sistema de navegação...');
@@ -24,48 +25,18 @@ class ParticipanteNavigation {
     inicializar() {
         console.log('[PARTICIPANTE-NAV] Inicializando navegação...');
 
-        // Renderizar menu
-        this.renderizarMenu();
-
-        // Aguardar módulos carregarem antes de navegar
-        this.aguardarModulosENavegar();
-    }
-
-    renderizarMenu() {
-        const menuContainer = document.getElementById('menuLateral');
-        if (!menuContainer) {
-            console.error('[PARTICIPANTE-NAV] Container de menu não encontrado');
-            return;
-        }
-
-        const menuItems = [
-            { id: 'boas-vindas', label: '🏠 Início', icon: '🏠' },
-            { id: 'extrato', label: '💰 Extrato', icon: '💰' },
-            { id: 'ranking', label: '🏆 Ranking', icon: '🏆' },
-            { id: 'rodadas', label: '📊 Rodadas', icon: '📊' },
-            { id: 'top10', label: '⭐ Top 10', icon: '⭐' },
-            { id: 'melhor-mes', label: '📅 Melhor Mês', icon: '📅' },
-            { id: 'pontos-corridos', label: '📈 Pontos Corridos', icon: '📈' },
-            { id: 'mata-mata', label: '⚔️ Mata-Mata', icon: '⚔️' },
-            { id: 'artilheiro', label: '⚽ Artilheiro', icon: '⚽' },
-            { id: 'luva-ouro', label: '🥅 Luva de Ouro', icon: '🥅' }
-        ];
-
-        menuContainer.innerHTML = menuItems.map(item => `
-            <button class="nav-btn" data-module="${item.id}">
-                ${item.label}
-            </button>
-        `).join('');
-
-        // Adicionar event listeners
+        // Event listeners nos botões
         document.querySelectorAll('.nav-btn').forEach(btn => {
             btn.addEventListener('click', (e) => {
+                // ✅ Usar currentTarget ao invés de target para garantir que sempre pegamos o botão
+                // mesmo quando o usuário clica em ícones ou texto dentro do botão
                 const modulo = e.currentTarget.dataset.module;
                 this.navegarPara(modulo);
             });
         });
 
-        console.log('[PARTICIPANTE-NAV] Menu renderizado com', menuItems.length, 'itens');
+        // Aguardar módulos carregarem antes de navegar
+        this.aguardarModulosENavegar();
     }
 
     async aguardarModulosENavegar() {
@@ -92,7 +63,7 @@ class ParticipanteNavigation {
 
         // Carregar conteúdo
         const container = document.getElementById('moduleContainer');
-
+        
         // Loading
         container.innerHTML = `
             <div class="loading-participante">
@@ -104,7 +75,7 @@ class ParticipanteNavigation {
         try {
             // ✅ 1. CARREGAR HTML PRIMEIRO
             const response = await fetch(this.modulos[modulo]);
-
+            
             if (!response.ok) {
                 throw new Error(`HTTP ${response.status}`);
             }
@@ -125,22 +96,22 @@ class ParticipanteNavigation {
 
         } catch (error) {
             console.error(`[PARTICIPANTE-NAV] Erro ao carregar ${modulo}:`, error);
-
+            
             const isNetworkError = error.message.includes('fetch') || !navigator.onLine;
-
+            
             container.innerHTML = `
                 <div style="text-align: center; padding: 40px; color: #ef4444;">
                     <h3>❌ ${isNetworkError ? 'Erro de Conexão' : 'Erro ao Carregar Módulo'}</h3>
                     <p style="margin: 15px 0;">${error.message}</p>
                     ${isNetworkError ? '<p style="color: #999; font-size: 14px;">Verifique sua conexão com a internet</p>' : ''}
                     <div style="display: flex; gap: 10px; justify-content: center; margin-top: 20px;">
-                        <button onclick="participanteNav.navegarPara('${modulo}')"
-                                style="padding: 10px 20px; background: var(--participante-primary); color: white;
+                        <button onclick="participanteNav.navegarPara('${modulo}')" 
+                                style="padding: 10px 20px; background: var(--participante-primary); color: white; 
                                        border: none; border-radius: 8px; cursor: pointer;">
                             🔄 Tentar Novamente
                         </button>
-                        <button onclick="participanteNav.navegarPara('extrato')"
-                                style="padding: 10px 20px; background: #666; color: white;
+                        <button onclick="participanteNav.navegarPara('extrato')" 
+                                style="padding: 10px 20px; background: #666; color: white; 
                                        border: none; border-radius: 8px; cursor: pointer;">
                             ← Voltar ao Extrato
                         </button>
@@ -152,7 +123,7 @@ class ParticipanteNavigation {
 
     async carregarModuloJS(modulo) {
         console.log(`[PARTICIPANTE-NAV] 📦 Importando módulo JS: ${modulo}`);
-
+        
         const modulosPaths = {
             'extrato': '/participante/js/modules/participante-extrato.js',
             'ranking': '/participante/js/modules/participante-ranking.js',
@@ -196,8 +167,8 @@ class ParticipanteNavigation {
                     <div style="text-align: center; padding: 40px; color: #ef4444;">
                         <h3>❌ Erro de Autenticação</h3>
                         <p>Dados do participante não encontrados. Por favor, faça login novamente.</p>
-                        <button onclick="window.location.href='/participante-login.html'"
-                                style="margin-top: 20px; padding: 10px 20px; background: #ff4500;
+                        <button onclick="window.location.href='/participante-login.html'" 
+                                style="margin-top: 20px; padding: 10px 20px; background: #ff4500; 
                                        color: white; border: none; border-radius: 8px; cursor: pointer;">
                             🔐 Fazer Login
                         </button>
@@ -231,7 +202,7 @@ class ParticipanteNavigation {
                     }
                 }
                 break;
-
+            
             case 'ranking':
                 if (window.inicializarRankingParticipante) {
                     await window.inicializarRankingParticipante(ligaId, timeId);
@@ -239,7 +210,7 @@ class ParticipanteNavigation {
                     console.error('[PARTICIPANTE-NAV] Função inicializarRankingParticipante não encontrada');
                 }
                 break;
-
+            
             case 'rodadas':
                 if (window.inicializarRodadasParticipante) {
                     await window.inicializarRodadasParticipante(ligaId, timeId);
@@ -247,7 +218,7 @@ class ParticipanteNavigation {
                     console.error('[PARTICIPANTE-NAV] Função inicializarRodadasParticipante não encontrada');
                 }
                 break;
-
+            
             case 'top10':
                 if (window.inicializarTop10Participante) {
                     await window.inicializarTop10Participante(ligaId, timeId);
@@ -255,7 +226,7 @@ class ParticipanteNavigation {
                     console.error('[PARTICIPANTE-NAV] Função inicializarTop10Participante não encontrada');
                 }
                 break;
-
+            
             case 'melhor-mes':
                 if (window.inicializarMelhorMesParticipante) {
                     await window.inicializarMelhorMesParticipante(ligaId, timeId);
@@ -263,7 +234,7 @@ class ParticipanteNavigation {
                     console.error('[PARTICIPANTE-NAV] Função inicializarMelhorMesParticipante não encontrada');
                 }
                 break;
-
+            
             case 'pontos-corridos':
                 if (window.inicializarPontosCorridosParticipante) {
                     await window.inicializarPontosCorridosParticipante(ligaId, timeId);
@@ -271,7 +242,7 @@ class ParticipanteNavigation {
                     console.error('[PARTICIPANTE-NAV] Função inicializarPontosCorridosParticipante não encontrada');
                 }
                 break;
-
+            
             case 'mata-mata':
                 if (window.inicializarMataMataParticipante) {
                     await window.inicializarMataMataParticipante(ligaId, timeId);
@@ -279,7 +250,7 @@ class ParticipanteNavigation {
                     console.error('[PARTICIPANTE-NAV] Função inicializarMataMataParticipante não encontrada');
                 }
                 break;
-
+            
             case 'artilheiro':
                 if (window.inicializarArtilheiroParticipante) {
                     await window.inicializarArtilheiroParticipante(ligaId, timeId);
@@ -287,7 +258,7 @@ class ParticipanteNavigation {
                     console.error('[PARTICIPANTE-NAV] Função inicializarArtilheiroParticipante não encontrada');
                 }
                 break;
-
+            
             case 'luva-ouro':
                 if (window.inicializarLuvaOuroParticipante) {
                     await window.inicializarLuvaOuroParticipante(ligaId, timeId);
@@ -295,7 +266,7 @@ class ParticipanteNavigation {
                     console.error('[PARTICIPANTE-NAV] Função inicializarLuvaOuroParticipante não encontrada');
                 }
                 break;
-
+            
             default:
                 console.warn(`[PARTICIPANTE-NAV] Módulo ${modulo} não tem inicializador definido`);
         }

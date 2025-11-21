@@ -54,29 +54,17 @@ app.use(
 
 // Configurar sessões
 app.use(
-  session({
-    secret: process.env.SESSION_SECRET || "cartola-secret-key-2025",
-    resave: false,
-    saveUninitialized: false,
-    cookie: {
-      secure: false,
-      httpOnly: true,
-      maxAge: 24 * 60 * 60 * 1000,
-    },
-  })
+    session({
+        secret: process.env.SESSION_SECRET || "cartola-secret-key-2025", // Chave secreta para assinar os cookies de sessão
+        resave: false, // Não salvar sessões que não foram modificadas
+        saveUninitialized: false, // Não criar sessões para usuários não logados
+        cookie: {
+            secure: false, // set true se usar HTTPS
+            httpOnly: true, // O cookie de sessão não pode ser acessado por JavaScript no cliente
+            maxAge: 24 * 60 * 60 * 1000, // Duração da sessão em milissegundos (24 horas)
+        },
+    }),
 );
-
-// Log de sessões (apenas em desenvolvimento)
-if (process.env.NODE_ENV !== "production") {
-    app.use((req, res, next) => {
-        if (req.url.includes('/api/participante/auth/')) {
-            console.log('[SESSION-DEBUG] URL:', req.url);
-            console.log('[SESSION-DEBUG] Session ID:', req.sessionID);
-            console.log('[SESSION-DEBUG] Session exists:', !!req.session);
-        }
-        next();
-    });
-}
 
 app.use(express.json({ limit: "10mb" }));
 app.use(express.urlencoded({ extended: true, limit: "10mb" }));
@@ -347,29 +335,21 @@ app.use((req, res, next) => {
 // Middleware de tratamento de erros globais
 app.use((err, req, res, next) => {
   const timestamp = new Date().toISOString();
-  console.error(`🚨 [${timestamp}] ========================================`);
-  console.error(`🚨 ERRO NO SERVIDOR`);
-  console.error(`🚨 URL: ${req.method} ${req.url}`);
-  console.error(`🚨 Tipo: ${err.name}`);
-  console.error(`🚨 Mensagem:`, err.message);
-  console.error(`🚨 ========================================`);
+  console.error(`🚨 [${timestamp}] Erro no servidor:`, err.message);
 
   // Log do stack trace apenas em desenvolvimento
   if (process.env.NODE_ENV !== "production") {
     console.error("Stack trace:", err.stack);
   }
 
-  // Garantir que sempre retornamos JSON
-  if (!res.headersSent) {
-    const isDevelopment = process.env.NODE_ENV !== "production";
-    res.status(err.status || 500).json({
-      success: false,
-      erro: "Erro interno no servidor",
-      message: isDevelopment ? err.message : "Algo deu errado",
-      timestamp: timestamp,
-      ...(isDevelopment && { stack: err.stack }),
-    });
-  }
+  // Resposta de erro padronizada
+  const isDevelopment = process.env.NODE_ENV !== "production";
+  res.status(err.status || 500).json({
+    erro: "Erro interno no servidor",
+    message: isDevelopment ? err.message : "Algo deu errado",
+    timestamp: timestamp,
+    ...(isDevelopment && { stack: err.stack }),
+  });
 });
 
 // ⚡ FUNÇÃO OTIMIZADA PARA CONECTAR AO MONGODB E INICIAR SERVIDOR
