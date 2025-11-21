@@ -289,6 +289,169 @@ router.get("/:id/melhor-mes/:timeId", async (req, res) => {
 });
 
 // ==============================
+// ROTA: Buscar Pontos Corridos da liga
+// ==============================
+router.get("/:id/pontos-corridos", async (req, res) => {
+  const { id: ligaId } = req.params;
+
+  try {
+    console.log(`[LIGAS] Buscando Pontos Corridos para liga ${ligaId}`);
+
+    const Rodada = (await import("../models/Rodada.js")).default;
+
+    // Buscar todas as rodadas da liga
+    const rodadas = await Rodada.find({ ligaId }).lean();
+
+    if (!rodadas || rodadas.length === 0) {
+      return res.json({ 
+        nome: "Pontos Corridos",
+        rodada_atual: null,
+        classificacao: [] 
+      });
+    }
+
+    // Agrupar rodadas por time
+    const timesMap = {};
+
+    rodadas.forEach(rodada => {
+      const timeId = rodada.timeId;
+      
+      if (!timesMap[timeId]) {
+        timesMap[timeId] = {
+          time_id: timeId,
+          nome: rodada.nome_time || "N/D",
+          nome_cartola: rodada.nome_cartola || "N/D",
+          escudo: rodada.escudo || "",
+          clube_id: rodada.clube_id || null,
+          pontos: 0,
+          jogos: 0,
+          vitorias: 0,
+          empates: 0,
+          derrotas: 0,
+          gols_pro: 0,
+          gols_contra: 0,
+          saldo_gols: 0,
+          rodadas: []
+        };
+      }
+
+      timesMap[timeId].rodadas.push({
+        rodada: rodada.rodada,
+        pontos: parseFloat(rodada.pontos) || 0
+      });
+    });
+
+    // Processar confrontos e calcular estatísticas
+    // (baseado na lógica do pontos-corridos do admin)
+    const CRITERIOS = {
+      empateTolerancia: 0.3,
+      goleadaMinima: 50.0
+    };
+
+    const PONTUACAO = {
+      vitoria: 3,
+      empate: 1,
+      derrota: 0,
+      goleada: 4
+    };
+
+    // Obter número máximo de rodadas
+    const maxRodada = Math.max(...rodadas.map(r => r.rodada));
+
+    // Para cada rodada, calcular confrontos
+    for (let numRodada = 1; numRodada <= maxRodada; numRodada++) {
+      const rodadasDaRodada = rodadas.filter(r => r.rodada === numRodada);
+      
+      // Gerar confrontos (todos contra todos)
+      for (let i = 0; i < rodadasDaRodada.length; i++) {
+        for (let j = i + 1; j < rodadasDaRodada.length; j++) {
+          const timeA = rodadasDaRodada[i];
+          const timeB = rodadasDaRodada[j];
+          
+          const pontosA = parseFloat(timeA.pontos) || 0;
+          const pontosB = parseFloat(timeB.pontos) || 0;
+          
+          const diff = Math.abs(pontosA - pontosB);
+          
+          // Calcular resultado
+          if (diff <= CRITERIOS.empateTolerancia) {
+            // Empate
+            timesMap[timeA.timeId].pontos += PONTUACAO.empate;
+            timesMap[timeB.timeId].pontos += PONTUACAO.empate;
+            timesMap[timeA.timeId].empates += 1;
+            timesMap[timeB.timeId].empates += 1;
+          } else if (pontosA > pontosB) {
+            // Vitória do A
+            if (diff >= CRITERIOS.goleadaMinima) {
+              timesMap[timeA.timeId].pontos += PONTUACAO.goleada;
+              timesMap[timeA.timeId].gols_pro += 1;
+            } else {
+              timesMap[timeA.timeId].pontos += PONTUACAO.vitoria;
+            }
+            timesMap[timeA.timeId].vitorias += 1;
+            timesMap[timeB.timeId].derrotas += 1;
+          } else {
+            // Vitória do B
+            if (diff >= CRITERIOS.goleadaMinima) {
+              timesMap[timeB.timeId].pontos += PONTUACAO.goleada;
+              timesMap[timeB.timeId].gols_pro += 1;
+            } else {
+              timesMap[timeB.timeId].pontos += PONTUACAO.vitoria;
+            }
+            timesMap[timeB.timeId].vitorias += 1;
+            timesMap[timeA.timeId].derrotas += 1;
+          }
+          
+          // Atualizar jogos
+          timesMap[timeA.timeId].jogos += 1;
+          timesMap[timeB.timeId].jogos += 1;
+          
+          // Saldo de gols (usando diferença de pontos como proxy)
+          timesMap[timeA.timeId].saldo_gols += (pontosA - pontosB);
+          timesMap[timeB.timeId].saldo_gols += (pontosB - pontosA);
+        }
+      }
+    }
+
+    // Converter para array e ordenar
+    const classificacao = Object.values(timesMap)
+      .map(time => ({
+        time_id: time.time_id,
+        nome: time.nome,
+        nome_cartola: time.nome_cartola,
+        escudo: time.escudo,
+        clube_id: time.clube_id,
+        pontos: time.pontos,
+        jogos: time.jogos,
+        vitorias: time.vitorias,
+        empates: time.empates,
+        derrotas: time.derrotas,
+        gols_pro: time.gols_pro,
+        gols_contra: time.gols_contra,
+        saldo_gols: Math.round(time.saldo_gols * 100) / 100
+      }))
+      .sort((a, b) => {
+        // Ordenar por pontos, depois vitórias, depois saldo
+        if (b.pontos !== a.pontos) return b.pontos - a.pontos;
+        if (b.vitorias !== a.vitorias) return b.vitorias - a.vitorias;
+        return b.saldo_gols - a.saldo_gols;
+      });
+
+    console.log(`[LIGAS] Pontos Corridos calculado: ${classificacao.length} times`);
+    
+    res.json({
+      nome: "Pontos Corridos",
+      rodada_atual: maxRodada,
+      classificacao
+    });
+
+  } catch (error) {
+    console.error(`[LIGAS] Erro ao buscar Pontos Corridos:`, error);
+    res.status(500).json({ erro: "Erro ao buscar dados de Pontos Corridos" });
+  }
+});
+
+// ==============================
 // ROTA: Buscar TOP 10 da liga
 // ==============================
 router.get("/:id/top10", async (req, res) => {
