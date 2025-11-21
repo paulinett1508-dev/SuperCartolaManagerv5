@@ -409,6 +409,21 @@ async function carregarFase(fase, ligaId) {
       `[MATA-ORQUESTRADOR] Rodada ${rodadaPontosNum} - Status: ${isPending ? "Pendente" : "Concluída"}`,
     );
 
+    // Verificar se é uma fase futura sem times classificados
+    if (isPending && fase !== "primeira" && (!timesParaConfronto || timesParaConfronto.length === 0)) {
+      contentElement.innerHTML = `
+        <div class="rodada-pendente-fase">
+          <div class="pendente-icon">⏳</div>
+          <h3>Rodada Ainda Não Aconteceu</h3>
+          <p><strong>Fase:</strong> ${faseLabel}</p>
+          <p><strong>Rodada:</strong> ${rodadaPontosNum}</p>
+          <p class="pendente-message">Aguardando definição dos times classificados da fase anterior.</p>
+          <p class="pendente-submessage">Os confrontos serão gerados automaticamente após o término da rodada ${prevFaseRodada}.</p>
+        </div>
+      `;
+      return;
+    }
+
     const pontosRodadaAtual = isPending
       ? {}
       : await getPontosDaRodada(ligaId, rodadaPontosNum);

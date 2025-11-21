@@ -331,13 +331,73 @@
 
 /* Mensagem de Rodada Pendente */
 .rodada-pendente {
+  background: linear-gradient(135deg, #ffeaa7 0%, #fdcb6e 100%);
+  border: 2px solid #f39c12;
+  border-radius: 12px;
+  padding: 20px;
+  margin: 20px 0;
   text-align: center;
-  margin-top: 15px;
-  padding: 12px;
-  background: rgba(255, 243, 205, 0.1);
-  border: 1px solid rgba(255, 234, 167, 0.3);
-  border-radius: 6px;
-  color: var(--warning, #FF4500);
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  animation: pulse 2s ease-in-out infinite;
+}
+
+.rodada-pendente strong {
+  display: block;
+  font-size: 18px;
+  color: #d35400;
+  margin-bottom: 8px;
+}
+
+.rodada-pendente-fase {
+  background: linear-gradient(135deg, #e8f4f8 0%, #d4e8f1 100%);
+  border: 2px solid #3498db;
+  border-radius: 16px;
+  padding: 40px;
+  margin: 40px auto;
+  max-width: 600px;
+  text-align: center;
+  box-shadow: 0 8px 16px rgba(0, 0, 0, 0.15);
+}
+
+.rodada-pendente-fase .pendente-icon {
+  font-size: 64px;
+  margin-bottom: 20px;
+  animation: rotate 3s linear infinite;
+}
+
+.rodada-pendente-fase h3 {
+  color: #2c3e50;
+  font-size: 24px;
+  margin-bottom: 20px;
+  font-weight: 700;
+}
+
+.rodada-pendente-fase p {
+  color: #34495e;
+  font-size: 16px;
+  margin: 10px 0;
+  line-height: 1.6;
+}
+
+.rodada-pendente-fase p strong {
+  color: #2980b9;
+  font-weight: 600;
+}
+
+.rodada-pendente-fase .pendente-message {
+  font-size: 18px;
+  font-weight: 600;
+  color: #2c3e50;
+  margin: 20px 0 10px 0;
+  padding: 15px;
+  background: rgba(255, 255, 255, 0.6);
+  border-radius: 8px;
+}
+
+.rodada-pendente-fase .pendente-submessage {
+  font-size: 14px;
+  color: #7f8c8d;
+  font-style: italic;
 }
 
 /* Instrução Inicial - Tema Dark */
@@ -393,6 +453,30 @@
 @keyframes spin {
   0% { transform: rotate(0deg); }
   100% { transform: rotate(360deg); }
+}
+
+@keyframes pulse {
+  0% {
+    transform: scale(1);
+    opacity: 1;
+  }
+  50% {
+    transform: scale(1.02);
+    opacity: 0.9;
+  }
+  100% {
+    transform: scale(1);
+    opacity: 1;
+  }
+}
+
+@keyframes rotate {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
 }
 
 /* Responsividade */
