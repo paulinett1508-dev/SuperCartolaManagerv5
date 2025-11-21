@@ -1,4 +1,3 @@
-
 import express from 'express';
 import Liga from '../models/Liga.js';
 
@@ -7,6 +6,7 @@ const router = express.Router();
 /**
  * POST /api/participante/auth/login
  * Rota de login de participante
+ * Fluxo: valida credenciais primeiro, depois mostra seletor de ligas se necessário
  */
 router.post('/login', async (req, res) => {
     try {
@@ -51,26 +51,38 @@ router.post('/login', async (req, res) => {
             });
         }
 
-        // Sempre logar na primeira liga encontrada (timeId é único)
-        const { ligaId, participante } = ligasAutenticadas[0];
-        
-        req.session.participante = {
-            timeId: parseInt(timeId),
-            ligaId: ligaId,
-            nome_cartola: participante.nome_cartola,
-            nome_time: participante.nome_time,
-            clube_id: participante.clube_id,
-            foto_perfil: participante.foto_perfil,
-            foto_time: participante.foto_time,
-            assinante: participante.assinante
-        };
+        // Se tem apenas uma liga, criar sessão e logar direto
+        if (ligasAutenticadas.length === 1) {
+            const { ligaId, participante } = ligasAutenticadas[0];
 
-        await req.session.save();
+            req.session.participante = {
+                timeId: parseInt(timeId),
+                ligaId: ligaId,
+                nome_cartola: participante.nome_cartola,
+                nome_time: participante.nome_time,
+                clube_id: participante.clube_id,
+                foto_perfil: participante.foto_perfil,
+                foto_time: participante.foto_time,
+                assinante: participante.assinante
+            };
 
+            await req.session.save();
+
+            return res.json({
+                success: true,
+                participante: req.session.participante,
+                message: 'Login realizado com sucesso'
+            });
+        }
+
+        // Se tem múltiplas ligas, retornar para seleção (SEM criar sessão ainda)
         return res.json({
             success: true,
-            participante: req.session.participante,
-            message: 'Login realizado com sucesso'
+            multiplas_ligas: true,
+            ligas: ligasAutenticadas.map(l => ({
+                ligaId: l.ligaId,
+                ligaNome: l.ligaNome
+            }))
         });
 
     } catch (error) {
