@@ -404,12 +404,17 @@ async function carregarFase(fase, ligaId) {
       timesParaConfronto = vencedoresAnteriores;
     }
 
+    // LÓGICA CORRIGIDA: Verificar status baseado na rodada de pontuação
     let isPending = rodada_atual < rodadaPontosNum;
+    
+    // Se a rodada de pontos é a ATUAL (em andamento), podemos buscar parciais
+    const isRodadaEmAndamento = rodada_atual === rodadaPontosNum;
+    
     console.log(
-      `[MATA-ORQUESTRADOR] Rodada ${rodadaPontosNum} - Status: ${isPending ? "Pendente" : "Concluída"}`,
+      `[MATA-ORQUESTRADOR] Rodada ${rodadaPontosNum} - Atual: ${rodada_atual} - Status: ${isPending ? "Pendente" : isRodadaEmAndamento ? "Em Andamento (Parciais)" : "Concluída"}`,
     );
 
-    // Verificar se é uma fase futura sem times classificados
+    // Verificar se é uma fase FUTURA (rodada ainda não começou)
     if (isPending && fase !== "primeira" && (!timesParaConfronto || timesParaConfronto.length === 0)) {
       contentElement.innerHTML = `
         <div class="rodada-pendente-fase">
@@ -423,9 +428,16 @@ async function carregarFase(fase, ligaId) {
       return;
     }
 
-    const pontosRodadaAtual = isPending
-      ? {}
-      : await getPontosDaRodada(ligaId, rodadaPontosNum);
+    // Buscar pontos: se está pendente E não tem times, retorna vazio
+    // Se está em andamento (rodada atual), busca parciais
+    // Se já finalizou, busca pontos finais
+    let pontosRodadaAtual = {};
+    
+    if (isPending && (!timesParaConfronto || timesParaConfronto.length === 0)) {
+      pontosRodadaAtual = {};
+    } else {
+      pontosRodadaAtual = await getPontosDaRodada(ligaId, rodadaPontosNum);
+    }
 
     const confrontos =
       fase === "primeira"
@@ -466,9 +478,23 @@ async function carregarFase(fase, ligaId) {
       console.warn("[MATA-ORQUESTRADOR] Função de exportação não disponível");
     }
 
-    // Renderizar mensagem de rodada pendente se necessário
-    if (isPending) {
+    // Renderizar mensagem de rodada pendente APENAS se realmente não tiver pontos
+    // (rodada futura ou sem dados)
+    if (isPending && (!timesParaConfronto || timesParaConfronto.length === 0)) {
       renderRodadaPendente(contentId, rodadaPontosNum);
+    } else if (isRodadaEmAndamento) {
+      // Se está em andamento, mostrar aviso de parciais
+      const avisoDiv = document.createElement("div");
+      avisoDiv.className = "rodada-pendente-fase";
+      avisoDiv.style.background = "rgba(33, 150, 243, 0.05)";
+      avisoDiv.style.borderColor = "rgba(33, 150, 243, 0.3)";
+      avisoDiv.innerHTML = `
+        <span class="pendente-icon">⚡</span>
+        <h3>Pontuação Parcial</h3>
+        <p class="pendente-message">A Rodada ${rodadaPontosNum} está em andamento.</p>
+        <p class="pendente-submessage">Os pontos exibidos são parciais e podem mudar até o fim da rodada.</p>
+      `;
+      contentElement.appendChild(avisoDiv);
     }
 
     const perfEnd = performance.now();
