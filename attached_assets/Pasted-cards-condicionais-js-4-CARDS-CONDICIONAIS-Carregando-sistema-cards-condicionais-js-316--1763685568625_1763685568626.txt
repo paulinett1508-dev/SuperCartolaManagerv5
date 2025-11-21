@@ -1,0 +1,299 @@
+cards-condicionais.js:4 🎛️ [CARDS-CONDICIONAIS] Carregando sistema...
+cards-condicionais.js:316 ✅ [CARDS-CONDICIONAIS] Módulo carregado
+sistema-modulos-init.js:8 🔧 [SISTEMA-MODULOS] Inicializando sistema de módulos...
+sistema-modulos-init.js:34 ✅ [SISTEMA-MODULOS] Sistema inicializado com sucesso
+sistema-modulos-init.js:35 📦 [SISTEMA-MODULOS] Módulos disponíveis: 0
+detalhe-liga-orquestrador.js:14 Iniciando orquestrador...
+cards-condicionais.js:266 🚀 [CARDS-CONDICIONAIS] Inicializando...
+cards-condicionais.js:59 🎯 [CARDS-CONDICIONAIS] Aplicando configuração...
+cards-condicionais.js:69 🔍 [CARDS-CONDICIONAIS] Liga atual: 684cb1c8af923da7c7df51de
+cards-condicionais.js:51 🚫 [CARDS-CONDICIONAIS] Card "luva-de-ouro" desabilitado
+cards-condicionais.js:51 🚫 [CARDS-CONDICIONAIS] Card "artilheiro-campeao" desabilitado
+cards-condicionais.js:94 ✅ [CARDS-CONDICIONAIS] 2 cards desabilitados
+cards-condicionais.js:127 🧭 [CARDS-CONDICIONAIS] Configurando navegação condicional...
+cards-condicionais.js:183 ✅ [CARDS-CONDICIONAIS] Botão voltar controlado
+cards-condicionais.js:285 ✅ [CARDS-CONDICIONAIS] Sistema inicializado com UX melhorado
+detalhe-liga-orquestrador.js:16 Layout carregado
+detalhe-liga-orquestrador.js:545 Carregando ligas para o sidebar...
+ranking.js:391 ✅ [RANKING] Módulo carregado e funções expostas globalmente
+rodadas.js:146 [RODADAS] 🚀 Inicializando módulo refatorado...
+rodadas.js:309 [RODADAS] ✅ Módulo refatorado carregado - Arquitetura modular implementada
+rodadas.js:312 [RODADAS] 🔧 Funções de debug disponíveis em window.rodadasDebug
+rodadas.js:316 [RODADAS] 📦 Estrutura modular:
+rodadas.js:317   - rodadas-config.js: Configurações e constantes
+rodadas.js:318   - rodadas-core.js: Lógica de negócio e API calls
+rodadas.js:319   - rodadas-ui.js: Interface e renderização
+rodadas.js:320   - rodadas-cache.js: Sistema de cache e performance
+rodadas.js:321   - rodadas-orquestrador.js: Coordenação entre módulos
+rodadas.js:322   - rodadas.js: Ponto de entrada refatorado (este arquivo)
+top10.js:425 [TOP10] Módulo carregado e pronto
+detalhe-liga-orquestrador.js:575 2 ligas carregadas no sidebar
+detalhe-liga-orquestrador.js:629 Liga atual destacada no sidebar
+luva-de-ouro-config.js:2 🥅 [LUVA-CONFIG] Módulo de configuração carregando...
+luva-de-ouro-config.js:100 ✅ [LUVA-CONFIG] Módulo de configuração carregado
+luva-de-ouro-core.js:2 🧠 [LUVA-CORE] Módulo core carregando...
+luva-de-ouro-core.js:155 ✅ [LUVA-CORE] Módulo core carregado
+rodadas-config.js:134 [RODADAS-CONFIG] Módulo carregado com sucesso
+rodadas-core.js:415 [RODADAS-CORE] Módulo carregado com sucesso
+rodadas-ui.js:369 [RODADAS-UI] Módulo carregado com layout compacto e seleção inteligente
+cache-manager.js:439 ✅ [CACHE-MANAGER] Sistema de cache inteligente carregado
+rodadas-cache.js:82 [RODADAS-CACHE] Limpeza automática configurada (60000ms)
+rodadas-cache.js:353 [RODADAS-CACHE] Sistema de cache inicializado
+rodadas-cache.js:354 [RODADAS-CACHE] Limpeza automática configurada (5min)
+rodadas-orquestrador.js:457 [RODADAS-ORQUESTRADOR] Módulo carregado com UX redesenhado
+cache-manager.js:50 ✅ [CACHE-MANAGER] IndexedDB inicializado
+rodadas.js:36 [RODADAS] ✅ Módulos refatorados carregados com sucesso
+rodadas-orquestrador.js:364 [RODADAS-ORQUESTRADOR] Inicializando módulo de rodadas...
+rodadas-orquestrador.js:365 [RODADAS-ORQUESTRADOR] URL atual: https://e1034b6e-dfb9-401a-8e7f-80ffa6030f79-00-2dc692elmitoe.spock.replit.dev/detalhe-liga.html?id=684cb1c8af923da7c7df51de
+rodadas-orquestrador.js:372 [RODADAS-ORQUESTRADOR] Não está na seção de rodadas, pulando inicialização
+luva-de-ouro-ui.js:2 🎨 [LUVA-UI] Módulo UI carregando...
+luva-de-ouro-ui.js:319 ✅ [LUVA-UI] Módulo UI carregado (CSS externo)
+luva-de-ouro-utils.js:2 🔧 [LUVA-UTILS] Módulo de utilitários carregando...
+luva-de-ouro-utils.js:960 ✅ [LUVA-UTILS] Módulo de utilitários carregado
+luva-de-ouro-cache.js:2 📦 [LUVA-CACHE] Módulo de cache carregando...
+luva-de-ouro-cache.js:125 ✅ [LUVA-CACHE] Sistema de cache inicializado
+luva-de-ouro-cache.js:126 🧹 Limpeza automática configurada (5min)
+luva-de-ouro-orquestrador.js:2 🎯 [LUVA-ORQUESTRADOR] Módulo orquestrador carregando...
+luva-de-ouro-orquestrador.js:263 ✅ [LUVA-ORQUESTRADOR] Módulo carregado
+luva-de-ouro.js:2 🥅 [LUVA-DE-OURO] Sistema modular carregando...
+luva-de-ouro.js:147 ✅ [LUVA-DE-OURO] Sistema modular carregado com arquitetura refatorada
+luva-de-ouro.js:150 🆘 Em caso de erro: window.forcarLuvaDeOuroAgora()
+luva-de-ouro.js:151 🧪 Para testar: window.testarLuvaDeOuro()
+detalhe-liga-orquestrador.js:19 Módulos carregados
+detalhe-liga-orquestrador.js:693 Liga atualizada: Super Cartola 2025 com 32 participantes
+detalhe-liga-orquestrador.js:22 Participantes atualizados
+detalhe-liga-orquestrador.js:25 Navegação inicializada
+detalhe-liga-orquestrador.js:28 Funções globais configuradas
+detalhe-liga-orquestrador.js:36 Ícones Lucide inicializados
+detalhe-liga-orquestrador.js:39 Orquestrador inicializado com sucesso
+detalhe-liga-orquestrador.js:722 Removido elemento com "Liga:"
+detalhe-liga-orquestrador.js:722 Removido elemento com "Liga:"
+detalhe-liga-orquestrador.js:629 Liga atual destacada no sidebar
+detalhe-liga-orquestrador.js:486 Tela principal ocultada
+detalhe-liga-orquestrador.js:492 Tela secundária ativada
+detalhe-liga-orquestrador.js:96 Carregando módulo: mata-mata
+detalhe-liga-orquestrador.js:81 CSS do módulo mata-mata carregado de: /css/modules/mata-mata.css
+detalhe-liga-orquestrador.js:47 [ORQUESTRADOR] Carregando HTML do módulo: mata-mata
+detalhe-liga-orquestrador.js:53 [ORQUESTRADOR] ✅ HTML do módulo mata-mata carregado (808 bytes)
+detalhe-liga-orquestrador.js:105 HTML do módulo mata-mata injetado
+mata-mata-orquestrador.js:518 [MATA-ORQUESTRADOR] Módulo carregado com arquitetura refatorada
+mata-mata-orquestrador.js:266 [MATA-ORQUESTRADOR] Iniciando carregamento OTIMIZADO...
+mata-mata-orquestrador.js:199 [MATA-ORQUESTRADOR] Carregando módulo rodadas...
+mata-mata-orquestrador.js:122 [MATA-ORQUESTRADOR] Carregando módulo de exports...
+mata-mata-confrontos.js:13 [MATA-CONFRONTOS] Função getRankingRodadaEspecifica configurada
+mata-mata-financeiro.js:19 [MATA-FINANCEIRO] Função getRankingRodadaEspecifica configurada
+mata-mata-orquestrador.js:211 [MATA-ORQUESTRADOR] Módulo rodadas carregado com sucesso
+export-exports.js:4 [EXPORT-EXPORTS] 🎯 Centro coordenador de exportações carregado
+export-exports.js:495 [EXPORT-EXPORTS] 🚀 Inicializando sistema de exportação...
+export-exports.js:506 [EXPORT-EXPORTS] ✅ Sistema inicializado com sucesso
+export-exports.js:507 [EXPORT-EXPORTS] 📦 8 módulos mapeados
+export-exports.js:605 [EXPORT-EXPORTS] ✅ Centro coordenador CORRIGIDO v2.4.3 - Rodadas usando módulo específico
+export-base.js:343 ✅ [EXPORT-BASE] Módulo carregado com sucesso
+export-mata-mata.js:12 [EXPORT-MATA-MATA-MOBILE] Sistema Mobile Dark HD v3.0.1 carregado
+export-mata-mata.js:620 [EXPORT-MATA-MATA-MOBILE] Sistema Mobile Dark HD configurado
+export-mata-mata.js:621 [EXPORT-MATA-MATA-MOBILE] Resolução: 720px x 800px+ @ 4x scale
+export-mata-mata.js:622 [EXPORT-MATA-MATA-MOBILE] Compatibilidade com sistema existente mantida
+mata-mata-orquestrador.js:150 [MATA-ORQUESTRADOR] Exports carregados via módulo específico
+mata-mata-ui.js:18 [MATA-UI] Renderizando interface...
+mata-mata-orquestrador.js:296 [MATA-ORQUESTRADOR] ✅ Carregado em 934ms
+mata-mata-ui.js:76 [MATA-UI] Edição selecionada: 5
+mata-mata-orquestrador.js:323 [MATA-ORQUESTRADOR] ⚡ Carregando fase: primeira
+mata-mata-orquestrador.js:350 [MATA-ORQUESTRADOR] Buscando ranking base da Rodada 30...
+mata-mata-orquestrador.js:78 [MATA-ORQUESTRADOR] 🌐 Buscando ranking da rodada 30...
+rodadas.js:86 [RODADAS] Solicitado ranking para rodada 30 (refatorado)
+rodadas-core.js:411 [RODADAS-CORE] Solicitado ranking para rodada 30
+rodadas-core.js:74 [RODADAS-CORE] Tentando endpoint: /api/rodadas/684cb1c8af923da7c7df51de/rodadas?inicio=30&fim=30
+rodadas-core.js:91 [RODADAS-CORE] Dados encontrados no endpoint: /api/rodadas/684cb1c8af923da7c7df51de/rodadas?inicio=30&fim=30
+rodadas-core.js:164 [RODADAS-CORE] Processamento rodada 30:
+rodadas-core.js:165    - Dados brutos: 32 items
+rodadas-core.js:166    - Após filtro: 32 items
+rodadas-core.js:167    - Rodadas únicas nos dados: [30]
+mata-mata-orquestrador.js:362 [MATA-ORQUESTRADOR] Ranking base recebido: 32 times
+mata-mata-orquestrador.js:408 [MATA-ORQUESTRADOR] Rodada 31 - Status: Concluída
+rodadas.js:86 [RODADAS] Solicitado ranking para rodada 31 (refatorado)
+rodadas-core.js:411 [RODADAS-CORE] Solicitado ranking para rodada 31
+rodadas-core.js:74 [RODADAS-CORE] Tentando endpoint: /api/rodadas/684cb1c8af923da7c7df51de/rodadas?inicio=31&fim=31
+rodadas-core.js:91 [RODADAS-CORE] Dados encontrados no endpoint: /api/rodadas/684cb1c8af923da7c7df51de/rodadas?inicio=31&fim=31
+rodadas-core.js:164 [RODADAS-CORE] Processamento rodada 31:
+rodadas-core.js:165    - Dados brutos: 32 items
+rodadas-core.js:166    - Após filtro: 32 items
+rodadas-core.js:167    - Rodadas únicas nos dados: [31]
+export-mata-mata.js:34 [EXPORT-MATA-MATA-MOBILE] Criando botão exportação: {containerId: 'mataMataContent', confrontosCount: 16, fase: '1ª FASE', isPending: false}
+mata-mata-orquestrador.js:459 [MATA-ORQUESTRADOR] Botão de exportação adicionado
+mata-mata-orquestrador.js:476 [MATA-ORQUESTRADOR] ✅ Fase primeira carregada em 1177ms
+mata-mata-ui.js:135 [MATA-UI] Fase selecionada: oitavas
+mata-mata-orquestrador.js:323 [MATA-ORQUESTRADOR] ⚡ Carregando fase: oitavas
+mata-mata-orquestrador.js:350 [MATA-ORQUESTRADOR] Buscando ranking base da Rodada 30...
+mata-mata-orquestrador.js:74 [MATA-ORQUESTRADOR] ⚡ Cache hit para rodada 30
+mata-mata-orquestrador.js:362 [MATA-ORQUESTRADOR] Ranking base recebido: 32 times
+rodadas.js:86 [RODADAS] Solicitado ranking para rodada 31 (refatorado)
+rodadas-core.js:411 [RODADAS-CORE] Solicitado ranking para rodada 31
+rodadas-core.js:74 [RODADAS-CORE] Tentando endpoint: /api/rodadas/684cb1c8af923da7c7df51de/rodadas?inicio=31&fim=31
+rodadas-core.js:91 [RODADAS-CORE] Dados encontrados no endpoint: /api/rodadas/684cb1c8af923da7c7df51de/rodadas?inicio=31&fim=31
+rodadas-core.js:164 [RODADAS-CORE] Processamento rodada 31:
+rodadas-core.js:165    - Dados brutos: 32 items
+rodadas-core.js:166    - Após filtro: 32 items
+rodadas-core.js:167    - Rodadas únicas nos dados: [31]
+mata-mata-orquestrador.js:408 [MATA-ORQUESTRADOR] Rodada 32 - Status: Concluída
+rodadas.js:86 [RODADAS] Solicitado ranking para rodada 32 (refatorado)
+rodadas-core.js:411 [RODADAS-CORE] Solicitado ranking para rodada 32
+rodadas-core.js:74 [RODADAS-CORE] Tentando endpoint: /api/rodadas/684cb1c8af923da7c7df51de/rodadas?inicio=32&fim=32
+rodadas-core.js:91 [RODADAS-CORE] Dados encontrados no endpoint: /api/rodadas/684cb1c8af923da7c7df51de/rodadas?inicio=32&fim=32
+rodadas-core.js:164 [RODADAS-CORE] Processamento rodada 32:
+rodadas-core.js:165    - Dados brutos: 32 items
+rodadas-core.js:166    - Após filtro: 32 items
+rodadas-core.js:167    - Rodadas únicas nos dados: [32]
+export-mata-mata.js:34 [EXPORT-MATA-MATA-MOBILE] Criando botão exportação: {containerId: 'mataMataContent', confrontosCount: 8, fase: 'OITAVAS', isPending: false}
+mata-mata-orquestrador.js:459 [MATA-ORQUESTRADOR] Botão de exportação adicionado
+mata-mata-orquestrador.js:476 [MATA-ORQUESTRADOR] ✅ Fase oitavas carregada em 1166ms
+mata-mata-ui.js:135 [MATA-UI] Fase selecionada: quartas
+mata-mata-orquestrador.js:323 [MATA-ORQUESTRADOR] ⚡ Carregando fase: quartas
+mata-mata-orquestrador.js:350 [MATA-ORQUESTRADOR] Buscando ranking base da Rodada 30...
+mata-mata-orquestrador.js:74 [MATA-ORQUESTRADOR] ⚡ Cache hit para rodada 30
+mata-mata-orquestrador.js:362 [MATA-ORQUESTRADOR] Ranking base recebido: 32 times
+rodadas.js:86 [RODADAS] Solicitado ranking para rodada 31 (refatorado)
+rodadas-core.js:411 [RODADAS-CORE] Solicitado ranking para rodada 31
+rodadas-core.js:74 [RODADAS-CORE] Tentando endpoint: /api/rodadas/684cb1c8af923da7c7df51de/rodadas?inicio=31&fim=31
+rodadas-core.js:91 [RODADAS-CORE] Dados encontrados no endpoint: /api/rodadas/684cb1c8af923da7c7df51de/rodadas?inicio=31&fim=31
+rodadas-core.js:164 [RODADAS-CORE] Processamento rodada 31:
+rodadas-core.js:165    - Dados brutos: 32 items
+rodadas-core.js:166    - Após filtro: 32 items
+rodadas-core.js:167    - Rodadas únicas nos dados: [31]
+rodadas.js:86 [RODADAS] Solicitado ranking para rodada 32 (refatorado)
+rodadas-core.js:411 [RODADAS-CORE] Solicitado ranking para rodada 32
+rodadas-core.js:74 [RODADAS-CORE] Tentando endpoint: /api/rodadas/684cb1c8af923da7c7df51de/rodadas?inicio=32&fim=32
+rodadas-core.js:91 [RODADAS-CORE] Dados encontrados no endpoint: /api/rodadas/684cb1c8af923da7c7df51de/rodadas?inicio=32&fim=32
+rodadas-core.js:164 [RODADAS-CORE] Processamento rodada 32:
+rodadas-core.js:165    - Dados brutos: 32 items
+rodadas-core.js:166    - Após filtro: 32 items
+rodadas-core.js:167    - Rodadas únicas nos dados: [32]
+mata-mata-orquestrador.js:408 [MATA-ORQUESTRADOR] Rodada 33 - Status: Concluída
+rodadas.js:86 [RODADAS] Solicitado ranking para rodada 33 (refatorado)
+rodadas-core.js:411 [RODADAS-CORE] Solicitado ranking para rodada 33
+rodadas-core.js:74 [RODADAS-CORE] Tentando endpoint: /api/rodadas/684cb1c8af923da7c7df51de/rodadas?inicio=33&fim=33
+rodadas-core.js:91 [RODADAS-CORE] Dados encontrados no endpoint: /api/rodadas/684cb1c8af923da7c7df51de/rodadas?inicio=33&fim=33
+rodadas-core.js:164 [RODADAS-CORE] Processamento rodada 33:
+rodadas-core.js:165    - Dados brutos: 32 items
+rodadas-core.js:166    - Após filtro: 32 items
+rodadas-core.js:167    - Rodadas únicas nos dados: [33]
+export-mata-mata.js:34 [EXPORT-MATA-MATA-MOBILE] Criando botão exportação: {containerId: 'mataMataContent', confrontosCount: 4, fase: 'QUARTAS', isPending: false}
+mata-mata-orquestrador.js:459 [MATA-ORQUESTRADOR] Botão de exportação adicionado
+mata-mata-orquestrador.js:476 [MATA-ORQUESTRADOR] ✅ Fase quartas carregada em 1744ms
+mata-mata-ui.js:135 [MATA-UI] Fase selecionada: semis
+mata-mata-orquestrador.js:323 [MATA-ORQUESTRADOR] ⚡ Carregando fase: semis
+mata-mata-orquestrador.js:350 [MATA-ORQUESTRADOR] Buscando ranking base da Rodada 30...
+mata-mata-orquestrador.js:74 [MATA-ORQUESTRADOR] ⚡ Cache hit para rodada 30
+mata-mata-orquestrador.js:362 [MATA-ORQUESTRADOR] Ranking base recebido: 32 times
+rodadas.js:86 [RODADAS] Solicitado ranking para rodada 31 (refatorado)
+rodadas-core.js:411 [RODADAS-CORE] Solicitado ranking para rodada 31
+rodadas-core.js:74 [RODADAS-CORE] Tentando endpoint: /api/rodadas/684cb1c8af923da7c7df51de/rodadas?inicio=31&fim=31
+rodadas-core.js:91 [RODADAS-CORE] Dados encontrados no endpoint: /api/rodadas/684cb1c8af923da7c7df51de/rodadas?inicio=31&fim=31
+rodadas-core.js:164 [RODADAS-CORE] Processamento rodada 31:
+rodadas-core.js:165    - Dados brutos: 32 items
+rodadas-core.js:166    - Após filtro: 32 items
+rodadas-core.js:167    - Rodadas únicas nos dados: [31]
+rodadas.js:86 [RODADAS] Solicitado ranking para rodada 32 (refatorado)
+rodadas-core.js:411 [RODADAS-CORE] Solicitado ranking para rodada 32
+rodadas-core.js:74 [RODADAS-CORE] Tentando endpoint: /api/rodadas/684cb1c8af923da7c7df51de/rodadas?inicio=32&fim=32
+rodadas-core.js:91 [RODADAS-CORE] Dados encontrados no endpoint: /api/rodadas/684cb1c8af923da7c7df51de/rodadas?inicio=32&fim=32
+rodadas-core.js:164 [RODADAS-CORE] Processamento rodada 32:
+rodadas-core.js:165    - Dados brutos: 32 items
+rodadas-core.js:166    - Após filtro: 32 items
+rodadas-core.js:167    - Rodadas únicas nos dados: [32]
+rodadas.js:86 [RODADAS] Solicitado ranking para rodada 33 (refatorado)
+rodadas-core.js:411 [RODADAS-CORE] Solicitado ranking para rodada 33
+rodadas-core.js:74 [RODADAS-CORE] Tentando endpoint: /api/rodadas/684cb1c8af923da7c7df51de/rodadas?inicio=33&fim=33
+rodadas-core.js:91 [RODADAS-CORE] Dados encontrados no endpoint: /api/rodadas/684cb1c8af923da7c7df51de/rodadas?inicio=33&fim=33
+rodadas-core.js:164 [RODADAS-CORE] Processamento rodada 33:
+rodadas-core.js:165    - Dados brutos: 32 items
+rodadas-core.js:166    - Após filtro: 32 items
+rodadas-core.js:167    - Rodadas únicas nos dados: [33]
+mata-mata-orquestrador.js:408 [MATA-ORQUESTRADOR] Rodada 34 - Status: Concluída
+rodadas.js:86 [RODADAS] Solicitado ranking para rodada 34 (refatorado)
+rodadas-core.js:411 [RODADAS-CORE] Solicitado ranking para rodada 34
+rodadas-core.js:74 [RODADAS-CORE] Tentando endpoint: /api/rodadas/684cb1c8af923da7c7df51de/rodadas?inicio=34&fim=34
+rodadas-core.js:74 [RODADAS-CORE] Tentando endpoint: /api/ligas/684cb1c8af923da7c7df51de/rodadas?rodada=34
+rodadas-core.js:74 [RODADAS-CORE] Tentando endpoint: /api/ligas/684cb1c8af923da7c7df51de/ranking/34
+rodadas-core.js:75   GET https://e1034b6e-dfb9-401a-8e7f-80ffa6030f79-00-2dc692elmitoe.spock.replit.dev/api/ligas/684cb1c8af923da7c7df51de/ranking/34 404 (Not Found)
+fetchAndProcessRankingRodada @ rodadas-core.js:75
+await in fetchAndProcessRankingRodada
+getRankingRodadaEspecifica @ rodadas-core.js:412
+getRankingRodadaEspecifica @ rodadas.js:124
+getPontosDaRodada @ mata-mata-confrontos.js:38
+carregarFase @ mata-mata-orquestrador.js:429
+await in carregarFase
+handleFaseClick @ mata-mata-orquestrador.js:309
+(anônimo) @ mata-mata-ui.js:136
+rodadas-core.js:78  [RODADAS-CORE] Endpoint /api/ligas/684cb1c8af923da7c7df51de/ranking/34 retornou 404
+fetchAndProcessRankingRodada @ rodadas-core.js:78
+await in fetchAndProcessRankingRodada
+getRankingRodadaEspecifica @ rodadas-core.js:412
+getRankingRodadaEspecifica @ rodadas.js:124
+getPontosDaRodada @ mata-mata-confrontos.js:38
+carregarFase @ mata-mata-orquestrador.js:429
+await in carregarFase
+handleFaseClick @ mata-mata-orquestrador.js:309
+(anônimo) @ mata-mata-ui.js:136
+rodadas-core.js:111 [RODADAS-CORE] Rodada 34 é futura (atual: 1)
+export-mata-mata.js:34 [EXPORT-MATA-MATA-MOBILE] Criando botão exportação: {containerId: 'mataMataContent', confrontosCount: 2, fase: 'SEMIS', isPending: false}
+mata-mata-orquestrador.js:459 [MATA-ORQUESTRADOR] Botão de exportação adicionado
+mata-mata-orquestrador.js:476 [MATA-ORQUESTRADOR] ✅ Fase semis carregada em 2953ms
+mata-mata-ui.js:135 [MATA-UI] Fase selecionada: final
+mata-mata-orquestrador.js:323 [MATA-ORQUESTRADOR] ⚡ Carregando fase: final
+mata-mata-orquestrador.js:350 [MATA-ORQUESTRADOR] Buscando ranking base da Rodada 30...
+mata-mata-orquestrador.js:74 [MATA-ORQUESTRADOR] ⚡ Cache hit para rodada 30
+mata-mata-orquestrador.js:362 [MATA-ORQUESTRADOR] Ranking base recebido: 32 times
+rodadas.js:86 [RODADAS] Solicitado ranking para rodada 31 (refatorado)
+rodadas-core.js:411 [RODADAS-CORE] Solicitado ranking para rodada 31
+rodadas-core.js:74 [RODADAS-CORE] Tentando endpoint: /api/rodadas/684cb1c8af923da7c7df51de/rodadas?inicio=31&fim=31
+rodadas-core.js:91 [RODADAS-CORE] Dados encontrados no endpoint: /api/rodadas/684cb1c8af923da7c7df51de/rodadas?inicio=31&fim=31
+rodadas-core.js:164 [RODADAS-CORE] Processamento rodada 31:
+rodadas-core.js:165    - Dados brutos: 32 items
+rodadas-core.js:166    - Após filtro: 32 items
+rodadas-core.js:167    - Rodadas únicas nos dados: [31]
+rodadas.js:86 [RODADAS] Solicitado ranking para rodada 32 (refatorado)
+rodadas-core.js:411 [RODADAS-CORE] Solicitado ranking para rodada 32
+rodadas-core.js:74 [RODADAS-CORE] Tentando endpoint: /api/rodadas/684cb1c8af923da7c7df51de/rodadas?inicio=32&fim=32
+rodadas-core.js:91 [RODADAS-CORE] Dados encontrados no endpoint: /api/rodadas/684cb1c8af923da7c7df51de/rodadas?inicio=32&fim=32
+rodadas-core.js:164 [RODADAS-CORE] Processamento rodada 32:
+rodadas-core.js:165    - Dados brutos: 32 items
+rodadas-core.js:166    - Após filtro: 32 items
+rodadas-core.js:167    - Rodadas únicas nos dados: [32]
+rodadas.js:86 [RODADAS] Solicitado ranking para rodada 33 (refatorado)
+rodadas-core.js:411 [RODADAS-CORE] Solicitado ranking para rodada 33
+rodadas-core.js:74 [RODADAS-CORE] Tentando endpoint: /api/rodadas/684cb1c8af923da7c7df51de/rodadas?inicio=33&fim=33
+rodadas-core.js:91 [RODADAS-CORE] Dados encontrados no endpoint: /api/rodadas/684cb1c8af923da7c7df51de/rodadas?inicio=33&fim=33
+rodadas-core.js:164 [RODADAS-CORE] Processamento rodada 33:
+rodadas-core.js:165    - Dados brutos: 32 items
+rodadas-core.js:166    - Após filtro: 32 items
+rodadas-core.js:167    - Rodadas únicas nos dados: [33]
+rodadas.js:86 [RODADAS] Solicitado ranking para rodada 34 (refatorado)
+rodadas-core.js:411 [RODADAS-CORE] Solicitado ranking para rodada 34
+rodadas-core.js:74 [RODADAS-CORE] Tentando endpoint: /api/rodadas/684cb1c8af923da7c7df51de/rodadas?inicio=34&fim=34
+rodadas-core.js:74 [RODADAS-CORE] Tentando endpoint: /api/ligas/684cb1c8af923da7c7df51de/rodadas?rodada=34
+rodadas-core.js:74 [RODADAS-CORE] Tentando endpoint: /api/ligas/684cb1c8af923da7c7df51de/ranking/34
+rodadas-core.js:75   GET https://e1034b6e-dfb9-401a-8e7f-80ffa6030f79-00-2dc692elmitoe.spock.replit.dev/api/ligas/684cb1c8af923da7c7df51de/ranking/34 404 (Not Found)
+fetchAndProcessRankingRodada @ rodadas-core.js:75
+await in fetchAndProcessRankingRodada
+getRankingRodadaEspecifica @ rodadas-core.js:412
+getRankingRodadaEspecifica @ rodadas.js:124
+getPontosDaRodada @ mata-mata-confrontos.js:38
+carregarFase @ mata-mata-orquestrador.js:389
+await in carregarFase
+handleFaseClick @ mata-mata-orquestrador.js:309
+(anônimo) @ mata-mata-ui.js:136
+rodadas-core.js:78  [RODADAS-CORE] Endpoint /api/ligas/684cb1c8af923da7c7df51de/ranking/34 retornou 404
+fetchAndProcessRankingRodada @ rodadas-core.js:78
+await in fetchAndProcessRankingRodada
+getRankingRodadaEspecifica @ rodadas-core.js:412
+getRankingRodadaEspecifica @ rodadas.js:124
+getPontosDaRodada @ mata-mata-confrontos.js:38
+carregarFase @ mata-mata-orquestrador.js:389
+await in carregarFase
+handleFaseClick @ mata-mata-orquestrador.js:309
+(anônimo) @ mata-mata-ui.js:136
+rodadas-core.js:111 [RODADAS-CORE] Rodada 34 é futura (atual: 1)
+mata-mata-orquestrador.js:408 [MATA-ORQUESTRADOR] Rodada 35 - Status: Pendente
+export-mata-mata.js:34 [EXPORT-MATA-MATA-MOBILE] Criando botão exportação: {containerId: 'mataMataContent', confrontosCount: 1, fase: 'FINAL', isPending: true}
+mata-mata-orquestrador.js:459 [MATA-ORQUESTRADOR] Botão de exportação adicionado
+mata-mata-orquestrador.js:476 [MATA-ORQUESTRADOR] ✅ Fase final carregada em 2949ms
