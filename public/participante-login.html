@@ -195,7 +195,7 @@
                 `;
             }
 
-            loginForm.onsubmit = async function(e) {
+            loginForm.addEventListener('submit', async function(e) {
                 e.preventDefault();
                 e.stopPropagation();
                 console.log('[LOGIN] 🚀 Formulário submetido!');
@@ -250,8 +250,9 @@
                         mostrarAlerta('Login realizado com sucesso!', 'success');
                         
                         setTimeout(() => {
+                            console.log('[LOGIN] Redirecionando para:', '/participante/index.html');
                             window.location.href = '/participante/index.html';
-                        }, 500);
+                        }, 800);
                     } else {
                         console.error('[LOGIN] ❌ Success=false');
                         mostrarAlerta(data.erro || 'Erro ao fazer login');
@@ -265,7 +266,7 @@
                 }
                 
                 return false;
-            };
+            });
 
             console.log('[LOGIN] ✅ Handler registrado com sucesso');
         });
