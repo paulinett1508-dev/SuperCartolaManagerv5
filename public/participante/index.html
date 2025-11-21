@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Meu Painel - Cartola</title>
+    <link rel="stylesheet" href="/css/base.css">
+    <link rel="stylesheet" href="css/participante.css">
+</head>
+<body>
+    <div class="participante-container">
+        <!-- Header com dados do participante -->
+        <header class="participante-header">
+            <div class="header-content">
+                <!-- Escudos lado a lado -->
+                <div class="escudos-container">
+                    <div class="escudo-wrapper" title="Time do Coração">
+                        <img id="escudoCoracao" class="escudo-coracao" src="/escudos/placeholder.png" alt="Clube do Coração">
+                    </div>
+                    <div class="escudo-wrapper" title="Escudo do Time">
+                        <img id="escudoTime" class="escudo-time" src="/escudos/placeholder.png" alt="Escudo Time">
+                    </div>
+                </div>
+
+                <!-- Informações do Participante -->
+                <div class="participante-info">
+                    <h1 id="nomeTime">Carregando...</h1>
+                    <p id="nomeCartoleiro">
+                        <span class="cartoleiro-icon">👤</span>
+                        <span id="nomeCartolaText">Aguarde...</span>
+                    </p>
+                </div>
+
+                <div style="display: flex; align-items: center; gap: 15px;">
+                    <div id="statusConexao" style="display: flex; align-items: center; gap: 5px; font-size: 12px;">
+                        <span id="statusIndicador" style="width: 8px; height: 8px; border-radius: 50%; background: #22c55e;"></span>
+                        <span id="statusTexto" style="color: #999;">Online</span>
+                    </div>
+                    <!-- Botão Home -->
+        <button class="btn-home" onclick="participanteNav.navegarPara('boas-vindas')">
+            <span class="home-icon">🏠</span>
+            <span class="home-text">Início</span>
+        </button>
+
+        <!-- Botão Logout -->
+        <button class="btn-logout" onclick="logout()">
+            <span class="logout-icon">🚪</span>
+            <span class="logout-text">Sair</span>
+        </button>
+                </div>
+            </div>
+        </header>
+
+        <!-- Menu de Navegação -->
+        <nav class="participante-nav">
+            <button class="nav-btn active" data-module="extrato">💰 Extrato</button>
+            <button class="nav-btn" data-module="ranking">📊 Classificação</button>
+            <button class="nav-btn" data-module="rodadas">🎯 Minhas Rodadas</button>
+            <button class="nav-btn" data-module="top10">🏆 Top 10</button>
+            <button class="nav-btn" data-module="melhor-mes">📅 Melhor do Mês</button>
+            <button class="nav-btn" data-module="pontos-corridos">⚽ Pontos Corridos</button>
+            <button class="nav-btn" data-module="mata-mata">⚔️ Mata-Mata</button>
+            <button class="nav-btn" data-module="artilheiro">🥇 Artilheiro</button>
+            <button class="nav-btn" data-module="luva-ouro">🥅 Luva de Ouro</button>
+        </nav>
+
+        <!-- Container para módulos -->
+        <main id="moduleContainer" class="module-container">
+            <!-- Conteúdo carregado dinamicamente -->
+        </main>
+    </div>
+
+    <script src="js/participante-auth.js"></script>
+    <script src="js/participante-navigation.js"></script>
+    <script src="js/participante-status.js"></script>
+</body>
+</html>
