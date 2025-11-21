@@ -1,5 +1,52 @@
 <!-- 🎯 MÓDULO RODADAS - HTML LIMPO E MODULAR -->
-<div id="rodadas" class="rodadas-module">
+<style>
+.btn-refresh-parciais {
+    padding: 10px 18px;
+    background: linear-gradient(135deg, #3b82f6, #2563eb);
+    color: white;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    font-size: 13px;
+    font-weight: 600;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    transition: all 0.3s ease;
+    box-shadow: 0 2px 8px rgba(59, 130, 246, 0.3);
+}
+
+.btn-refresh-parciais:hover {
+    background: linear-gradient(135deg, #2563eb, #1d4ed8);
+    box-shadow: 0 4px 12px rgba(59, 130, 246, 0.5);
+    transform: translateY(-2px);
+}
+
+.btn-refresh-parciais:active .refresh-icon {
+    animation: spin 0.6s ease-in-out;
+}
+
+.btn-refresh-parciais:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+    transform: none;
+}
+
+@keyframes spin {
+    from { transform: rotate(0deg); }
+    to { transform: rotate(360deg); }
+}
+
+@media (max-width: 768px) {
+    .btn-refresh-parciais span:last-child {
+        display: none;
+    }
+    .btn-refresh-parciais {
+        padding: 10px 14px;
+    }
+}
+</style>
+<div id="rodadas" class="rodadas-module"></div>
     <!-- Header do Módulo -->
     <div class="module-header-section">
         <div class="module-title-section">
@@ -33,7 +80,13 @@
         <div class="section-header">
             <div class="section-icon">📊</div>
             <h3 id="rodadaTituloAtual">Rodada Selecionada</h3>
-            <div id="rodadasExportBtnContainer" class="export-inline"></div>
+            <div style="display: flex; align-items: center; gap: 12px;">
+                <button id="btnRefreshParciais" class="btn-refresh-parciais" style="display: none;" title="Recarregar parciais">
+                    <span class="refresh-icon">🔄</span>
+                    <span>Atualizar</span>
+                </button>
+                <div id="rodadasExportBtnContainer" class="export-inline"></div>
+            </div>
         </div>
 
         <!-- Container da Tabela -->

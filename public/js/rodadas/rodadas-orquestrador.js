@@ -206,16 +206,26 @@ async function carregarRodadaFinalizada(rodada) {
   }
 
   exibirRanking(rankingsData, rodada, ligaIdAtual, criarBotaoExportacao);
+  
+  // Ocultar botão de refresh para rodadas finalizadas
+  const btnRefresh = getElementCached('btnRefreshParciais');
+  if (btnRefresh) {
+    btnRefresh.style.display = 'none';
+  }
 }
 
 // CARREGAR RODADA COM PARCIAIS
-async function carregarRodadaParciais(rodada) {
-  let rankingsParciais = getCachedParciais(ligaIdAtual, rodada);
+async function carregarRodadaParciais(rodada, forcarRecalculo = false) {
+  let rankingsParciais = null;
+  
+  if (!forcarRecalculo) {
+    rankingsParciais = getCachedParciais(ligaIdAtual, rodada);
+  }
 
   // Validar se é array válido
-  if (!rankingsParciais || !Array.isArray(rankingsParciais) || rankingsParciais.length === 0) {
+  if (forcarRecalculo || !rankingsParciais || !Array.isArray(rankingsParciais) || rankingsParciais.length === 0) {
     console.log(
-      `[RODADAS-ORQUESTRADOR] Calculando parciais da rodada ${rodada}...`,
+      `[RODADAS-ORQUESTRADOR] ${forcarRecalculo ? 'Forçando recalculo de' : 'Calculando'} parciais da rodada ${rodada}...`,
     );
 
     let liga = getCachedLiga(ligaIdAtual);
@@ -253,6 +263,55 @@ async function carregarRodadaParciais(rodada) {
     ligaIdAtual,
     criarBotaoExportacao,
   );
+  
+  // Configurar botão de refresh
+  configurarBotaoRefresh(rodada);
+}
+
+// CONFIGURAR BOTÃO DE REFRESH
+function configurarBotaoRefresh(rodada) {
+  const btnRefresh = getElementCached('btnRefreshParciais');
+  if (!btnRefresh) return;
+
+  const { rodada_atual, status_mercado } = getStatusMercado();
+  const isParciais = rodada === rodada_atual && status_mercado === 2;
+
+  if (isParciais) {
+    btnRefresh.style.display = 'flex';
+    btnRefresh.onclick = async () => {
+      btnRefresh.disabled = true;
+      const icon = btnRefresh.querySelector('.refresh-icon');
+      if (icon) {
+        icon.style.animation = 'spin 0.6s ease-in-out';
+      }
+
+      try {
+        await carregarRodadaParciais(rodada, true);
+        
+        // Mostrar feedback visual
+        const originalText = btnRefresh.querySelector('span:last-child')?.textContent;
+        const textSpan = btnRefresh.querySelector('span:last-child');
+        if (textSpan) {
+          textSpan.textContent = 'Atualizado!';
+          setTimeout(() => {
+            if (textSpan) textSpan.textContent = originalText || 'Atualizar';
+          }, 2000);
+        }
+      } catch (error) {
+        console.error('[RODADAS-ORQUESTRADOR] Erro ao atualizar parciais:', error);
+        alert('Erro ao atualizar parciais. Tente novamente.');
+      } finally {
+        btnRefresh.disabled = false;
+        if (icon) {
+          setTimeout(() => {
+            icon.style.animation = '';
+          }, 600);
+        }
+      }
+    };
+  } else {
+    btnRefresh.style.display = 'none';
+  }
 }
 
 // ==============================
