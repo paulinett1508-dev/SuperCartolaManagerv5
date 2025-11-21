@@ -78,8 +78,8 @@ export async function renderizarMiniCardsRodadas() {
     }
 
     cardsHTML += `
-      <div class="rodada-mini-card ${isDisabled ? "disabled" : ""}" 
-           data-rodada="${i}" 
+      <div class="rodada-mini-card ${isDisabled ? "disabled" : ""}"
+           data-rodada="${i}"
            onclick="${isDisabled ? "" : `selecionarRodada(${i})`}">
         <div class="rodada-numero">${i}</div>
         <div class="rodada-status ${statusClass}">${statusText}</div>
@@ -227,34 +227,50 @@ export function exibirRanking(
 }
 
 // EXIBIR RANKING PARCIAIS (linhas 516-567 do original)
-export function exibirRankingParciais(
-  rankingsParciais,
-  rodada,
-  ligaId,
-  criarBotaoCallback,
-) {
+export async function exibirRankingParciais(rankings, rodada, ligaId, callbackBotaoExportacao) {
   const rankingBody = getElement("rankingBody");
 
   // Validar se é array
   if (
-    !rankingsParciais ||
-    !Array.isArray(rankingsParciais) ||
-    rankingsParciais.length === 0
+    !rankings ||
+    !Array.isArray(rankings) ||
+    rankings.length === 0
   ) {
-    console.warn('[RODADAS-UI] Dados parciais inválidos recebidos:', typeof rankingsParciais);
+    console.warn('[RODADAS-UI] Dados parciais inválidos recebidos:', typeof rankings);
     rankingBody.innerHTML = `<tr><td colspan="6">Nenhum dado parcial encontrado para a rodada ${rodada}.</td></tr>`;
     limparExportContainer();
     return;
   }
 
-  rankingsParciais.sort(
+  // Ordenar por pontos (maior primeiro)
+  rankings.sort(
     (a, b) => parseFloat(b.totalPontos) - parseFloat(a.totalPontos),
   );
 
-  const tableHTML = rankingsParciais
+  // Buscar dados completos dos times
+  const rankingsCompletos = await Promise.all(rankings.map(async (rank, index) => {
+    try {
+      const response = await fetch(`/api/time/${rank.time_id}`);
+      if (response.ok) {
+        const timeData = await response.json();
+        return {
+          ...rank,
+          nome_cartola: timeData.cartola || rank.nome_cartola || 'N/D',
+          nome_time: timeData.nome || rank.nome_time || 'N/D',
+          escudo_url: timeData.url_escudo_png || timeData.url_escudo_svg || rank.escudo_url || ''
+        };
+      }
+    } catch (err) {
+      console.warn(`[RODADAS-UI] Erro ao buscar dados do time ${rank.time_id}:`, err);
+    }
+    return rank;
+  }));
+
+
+  const tableHTML = rankingsCompletos
     .map((rank, index) => {
-      const posLabel = getPosLabel(index, rankingsParciais.length, ligaId);
-      const nomeCartoleiro = rank.nome_cartola || rank.nome_cartoleiro || "N/D";
+      const posLabel = getPosLabel(index, rankingsCompletos.length, ligaId);
+      const nomeCartoleiro = rank.nome_cartola || "N/D";
       const nomeTime = rank.nome_time || "N/D";
       const pontos =
         rank.totalPontos != null
@@ -270,7 +286,7 @@ export function exibirRankingParciais(
         <td style="text-align:left; padding:2px 4px; font-size:11px; max-width:150px; overflow:hidden; text-overflow:ellipsis;" title="${nomeCartoleiro}">${nomeCartoleiro}</td>
         <td style="text-align:left; padding:2px 4px; font-size:11px; max-width:150px; overflow:hidden; text-overflow:ellipsis;" title="${nomeTime}">${nomeTime}</td>
         <td style="text-align:center; padding:2px; font-size:11px;">
-          <span style="font-weight:600; color:${pontos > 0 ? "#198754" : pontos < 0 ? "#dc3545" : "#333"};">${pontos} (Parcial)</span>
+          <span style="font-weight:600; color:${pontos > 0 ? "#198754" : pontos < 0 ? "#dc3545" : "#333"};">${pontos}</span>
         </td>
         <td style="text-align:center; padding:2px; font-size:10px;">
           <span style="font-weight:600; color:#333;">-</span>
@@ -282,8 +298,8 @@ export function exibirRankingParciais(
   rankingBody.innerHTML = tableHTML;
 
   // Criar botão de exportação para parciais
-  if (criarBotaoCallback) {
-    criarBotaoCallback(rankingsParciais, rodada, true);
+  if (callbackBotaoExportacao) {
+    callbackBotaoExportacao(rankingsCompletos, rodada, true);
   }
 }
 

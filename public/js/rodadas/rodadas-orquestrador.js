@@ -247,7 +247,7 @@ async function carregarRodadaParciais(rodada) {
     rankingsParciais = [];
   }
 
-  exibirRankingParciais(
+  await exibirRankingParciais(
     rankingsParciais,
     rodada,
     ligaIdAtual,

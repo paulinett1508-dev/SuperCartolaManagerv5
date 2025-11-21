@@ -279,10 +279,28 @@ export async function calcularPontosParciais(liga, rodada) {
         }
       });
 
+      // Buscar dados adicionais do time se necessário
+      let nomeCartola = escalacaoData.nome_cartoleiro || escalacaoData.nome_cartola || 'N/D';
+      let nomeTime = escalacaoData.nome || escalacaoData.nome_time || 'N/D';
+
+      // Se os dados não estiverem completos, buscar do time
+      if (nomeCartola === 'N/D' || nomeTime === 'N/D') {
+        try {
+          const resTimeInfo = await fetchFunc(`${baseUrl}/api/time/${timeId}`);
+          if (resTimeInfo.ok) {
+            const timeInfo = await resTimeInfo.json();
+            nomeCartola = timeInfo.cartola || nomeCartola;
+            nomeTime = timeInfo.nome || nomeTime;
+          }
+        } catch (errInfo) {
+          console.warn(`[RODADAS-CORE] Erro ao buscar info adicional do time ${timeId}`);
+        }
+      }
+
       rankingsParciais.push({
         time_id: timeId,
-        nome_cartola: escalacaoData.nome_cartoleiro || escalacaoData.nome || 'N/D',
-        nome_time: escalacaoData.nome || 'N/D',
+        nome_cartola: nomeCartola,
+        nome_time: nomeTime,
         escudo_url: escalacaoData.url_escudo_png || escalacaoData.url_escudo_svg || '',
         totalPontos: totalPontos,
       });
