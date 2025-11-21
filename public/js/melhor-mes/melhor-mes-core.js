@@ -27,16 +27,36 @@ export class MelhorMesCore {
 
   // INICIALIZAÇÃO DO CORE
   async inicializar(ligaId = null, ultimaRodadaCompleta = null) {
-        console.log("[MELHOR-MES-CORE] Inicializando...");
+    console.log("[MELHOR-MES-CORE] Inicializando...");
 
-        // ✅ VALIDAÇÃO: Não processar se ligaId inválido
-        if (!ligaId || ligaId === 'null') {
-            console.warn("[MELHOR-MES-CORE] Liga ID inválido, pulando inicialização");
-            this.vencedores = [];
-            return;
-        }
+    // ✅ CARREGAR DADOS BÁSICOS PRIMEIRO (obtém ligaId se não fornecido)
+    if (!ligaId || ligaId === 'null') {
+      await this.carregarDadosBasicos();
+    } else {
+      this.ligaId = ligaId;
+      this.ultimaRodadaCompleta = ultimaRodadaCompleta || 0;
+      
+      // Carregar dados básicos para obter rodada atual se não fornecida
+      if (!ultimaRodadaCompleta) {
+        await this.carregarDadosBasicos();
+      } else {
+        dadosBasicos = {
+          ligaId: this.ligaId,
+          ultimaRodadaCompleta: this.ultimaRodadaCompleta,
+          premiosLiga: getPremiosLiga(this.ligaId),
+          timestamp: Date.now(),
+        };
+      }
+    }
 
-        await this.processarTodasEdicoes(ligaId, ultimaRodadaCompleta);
+    // ✅ VALIDAÇÃO: Verificar se conseguimos obter o ligaId
+    if (!this.ligaId || this.ligaId === 'null') {
+      console.warn("[MELHOR-MES-CORE] Liga ID não encontrado, pulando inicialização");
+      this.dadosProcessados = { resultados: {}, dadosBasicos: null };
+      return this.dadosProcessados;
+    }
+
+    await this.processarTodasEdicoes();
 
     console.log("[MELHOR-MES-CORE] Core inicializado com sucesso");
     return this.dadosProcessados;
@@ -47,9 +67,14 @@ export class MelhorMesCore {
     // ✅ USAR FUNÇÃO GLOBAL obterLigaId()
     const ligaId = window.obterLigaId ? window.obterLigaId() : obterLigaId();
 
-    if (!ligaId) {
-      throw new Error("ID da Liga não encontrado");
+    if (!ligaId || ligaId === 'null') {
+      console.error("[MELHOR-MES-CORE] ID da Liga não encontrado");
+      this.ligaId = null;
+      this.ultimaRodadaCompleta = 0;
+      return;
     }
+
+    this.ligaId = ligaId;
 
     const response = await fetch("/api/cartola/mercado/status");
     if (!response.ok) {
