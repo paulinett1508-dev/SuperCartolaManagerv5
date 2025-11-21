@@ -436,30 +436,71 @@ async function carregarFase(fase, ligaId) {
     if (isPending && (!timesParaConfronto || timesParaConfronto.length === 0)) {
       pontosRodadaAtual = {};
     } else if (isRodadaEmAndamento) {
-      // Buscar parciais diretamente da API do Cartola
+      // Buscar parciais usando API de atletas pontuados (mesmo padrão do módulo PARCIAIS)
       console.log(`[MATA-ORQUESTRADOR] 🔄 Buscando PARCIAIS da rodada ${rodadaPontosNum} (em andamento)...`);
       try {
+        // Buscar atletas pontuados da rodada
+        const resPartials = await fetch("/api/cartola/atletas/pontuados", {
+          headers: {
+            "Cache-Control": "no-cache",
+            Pragma: "no-cache",
+            "If-Modified-Since": "0",
+          },
+        });
+
+        if (!resPartials.ok) {
+          throw new Error("Erro ao buscar parciais da API Cartola");
+        }
+
+        const partialsData = await resPartials.json();
+        if (!partialsData.atletas) {
+          throw new Error("Dados de parciais não disponíveis");
+        }
+
+        console.log(`[MATA-ORQUESTRADOR] ✅ Atletas pontuados recebidos`);
+
+        // Buscar escalações e calcular pontos para cada time
         const timesIds = timesParaConfronto.map(t => t.timeId);
         const parciaisPromises = timesIds.map(async (timeId) => {
           try {
-            const response = await fetch(`/api/cartola-proxy/time/id/${timeId}/${rodadaPontosNum}`);
-            if (response.ok) {
-              const data = await response.json();
-              return { timeId, pontos: data.pontos || 0 };
+            // Buscar escalação do time
+            const resEscalacao = await fetch(`/api/cartola/time/id/${timeId}/${rodadaPontosNum}`);
+            if (!resEscalacao.ok) {
+              console.warn(`[MATA-ORQUESTRADOR] Time ${timeId} não tem escalação na rodada ${rodadaPontosNum}`);
+              return { timeId, pontos: 0 };
             }
+
+            const dadosEscalacao = await resEscalacao.json();
+            
+            // Calcular pontos baseado nos atletas escalados
+            let pontos = 0;
+            if (dadosEscalacao.atletas && Array.isArray(dadosEscalacao.atletas)) {
+              dadosEscalacao.atletas.forEach((atleta) => {
+                const pontuacao = partialsData.atletas[atleta.atleta_id]?.pontuacao || 0;
+                // Capitão vale o dobro
+                if (atleta.atleta_id === dadosEscalacao.capitao_id) {
+                  pontos += pontuacao * 2;
+                } else {
+                  pontos += pontuacao;
+                }
+              });
+            }
+
+            return { timeId, pontos: parseFloat(pontos.toFixed(2)) };
           } catch (err) {
-            console.warn(`[MATA-ORQUESTRADOR] Erro ao buscar time ${timeId}:`, err);
+            console.warn(`[MATA-ORQUESTRADOR] Erro ao processar time ${timeId}:`, err.message);
+            return { timeId, pontos: 0 };
           }
-          return { timeId, pontos: 0 };
         });
-        
+
         const parciais = await Promise.all(parciaisPromises);
         pontosRodadaAtual = Object.fromEntries(
           parciais.map(({ timeId, pontos }) => [timeId, pontos])
         );
-        console.log(`[MATA-ORQUESTRADOR] ✅ Parciais obtidas:`, pontosRodadaAtual);
+        console.log(`[MATA-ORQUESTRADOR] ✅ Parciais calculadas:`, pontosRodadaAtual);
       } catch (error) {
         console.error(`[MATA-ORQUESTRADOR] Erro ao buscar parciais:`, error);
+        // Fallback para dados do MongoDB
         pontosRodadaAtual = await getPontosDaRodada(ligaId, rodadaPontosNum);
       }
     } else {
