@@ -193,8 +193,8 @@ export function renderizarSeletorRodadasModerno(
       card.classList.add("selecionada");
       rodadaSelecionadaInterface = index;
 
-      // Executar callback
-      handleRodadaChange(index);
+      // Executar callback com número da rodada (index + 1)
+      handleRodadaChange(numeroRodada);
     });
 
     // Tooltip informativo

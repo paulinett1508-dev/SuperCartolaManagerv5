@@ -339,6 +339,14 @@ async function handleClassificacaoClick() {
 // Função para renderizar rodada específica
 async function renderRodada(rodadaNum) {
   const containerId = "pontosCorridosRodada";
+  
+  // CORREÇÃO: Validar rodadaNum
+  if (!rodadaNum || rodadaNum < 1 || rodadaNum > estadoOrquestrador.confrontos.length) {
+    console.error(`[PONTOS-CORRIDOS-ORQUESTRADOR] Rodada inválida: ${rodadaNum}`);
+    renderErrorState(containerId, new Error(`Rodada ${rodadaNum} inválida`));
+    return;
+  }
+  
   const rodadaCartola = PONTOS_CORRIDOS_CONFIG.rodadaInicial + rodadaNum - 1; // Ajuste para índice 0
 
   renderLoadingState(
@@ -363,7 +371,7 @@ async function renderRodada(rodadaNum) {
     const jogos = estadoOrquestrador.confrontos[rodadaNum - 1]; // Ajuste para índice 0
     
     // CORREÇÃO: Validar se jogos existe
-    if (!jogos) {
+    if (!jogos || jogos.length === 0) {
       throw new Error(`Confrontos não encontrados para rodada ${rodadaNum}`);
     }
 
