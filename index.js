@@ -52,30 +52,19 @@ app.use(
   }),
 );
 
-// Configurar sessões com tratamento de erro
-app.use((req, res, next) => {
-    try {
-        session({
-            secret: process.env.SESSION_SECRET || "cartola-secret-key-2025",
-            resave: false,
-            saveUninitialized: false,
-            cookie: {
-                secure: false,
-                httpOnly: true,
-                maxAge: 24 * 60 * 60 * 1000,
-            },
-        })(req, res, (err) => {
-            if (err) {
-                console.error('[SESSION] Erro ao processar sessão:', err);
-                return next();
-            }
-            next();
-        });
-    } catch (error) {
-        console.error('[SESSION] Erro crítico na sessão:', error);
-        next();
-    }
-});
+// Configurar sessões
+app.use(
+  session({
+    secret: process.env.SESSION_SECRET || "cartola-secret-key-2025",
+    resave: false,
+    saveUninitialized: false,
+    cookie: {
+      secure: false,
+      httpOnly: true,
+      maxAge: 24 * 60 * 60 * 1000,
+    },
+  })
+);
 
 // Log de sessões (apenas em desenvolvimento)
 if (process.env.NODE_ENV !== "production") {
