@@ -329,25 +329,8 @@
   margin: 20px 0;
 }
 
-/* Mensagem de Rodada Pendente */
-.rodada-pendente {
-  background: linear-gradient(135deg, #ffeaa7 0%, #fdcb6e 100%);
-  border: 2px solid #f39c12;
-  border-radius: 12px;
-  padding: 20px;
-  margin: 20px 0;
-  text-align: center;
-  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-  animation: pulse 2s ease-in-out infinite;
-}
-
-.rodada-pendente strong {
-  display: block;
-  font-size: 18px;
-  color: #d35400;
-  margin-bottom: 8px;
-}
-
+/* Mensagem de Rodada Pendente - Tema Unificado */
+.rodada-pendente,
 .rodada-pendente-fase {
   background: rgba(255, 69, 0, 0.05);
   border: 1px solid rgba(255, 69, 0, 0.3);

@@ -271,15 +271,17 @@ export function renderTabelaMataMata(
 }
 
 // Função para renderizar mensagem de rodada pendente
-export function renderRodadaPendente(containerId, rodadaPontosNum) {
-  const contentElement = document.getElementById(containerId);
+export function renderRodadaPendente(contentId, rodadaPontosNum) {
+  const contentElement = document.getElementById(contentId);
   if (!contentElement) return;
 
-  const msgContainer = document.createElement("div");
-  msgContainer.className = "rodada-pendente";
-  msgContainer.innerHTML = `
-    <strong>Rodada Pendente</strong><br>
-    A Rodada ${rodadaPontosNum} ainda não ocorreu.
+  const pendenteDiv = document.createElement("div");
+  pendenteDiv.className = "rodada-pendente-fase";
+  pendenteDiv.innerHTML = `
+    <span class="pendente-icon">⚠️</span>
+    <h3>Rodada Pendente</h3>
+    <p class="pendente-message">A Rodada ${rodadaPontosNum} ainda não aconteceu.</p>
+    <p class="pendente-submessage">Os pontos e vencedores serão atualizados automaticamente após o término.</p>
   `;
-  contentElement.appendChild(msgContainer);
+  contentElement.appendChild(pendenteDiv);
 }
