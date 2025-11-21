@@ -253,6 +253,19 @@ export async function calcularPontosParciais(liga, rodada) {
 
       let fetchFunc = isBackend ? (await import("node-fetch")).default : fetch;
       const baseUrl = isBackend ? "http://localhost:3000" : "";
+      
+      // Buscar dados completos do time primeiro
+      let timeCompleto = null;
+      try {
+        const resTimeInfo = await fetchFunc(`${baseUrl}/api/time/${timeId}`);
+        if (resTimeInfo.ok) {
+          timeCompleto = await resTimeInfo.json();
+        }
+      } catch (errInfo) {
+        console.warn(`[RODADAS-CORE] Erro ao buscar dados do time ${timeId}:`, errInfo.message);
+      }
+
+      // Buscar escalação para calcular pontos
       const resTime = await fetchFunc(
         RODADAS_ENDPOINTS.timeEscalacao(timeId, rodada, baseUrl),
       );
@@ -279,28 +292,26 @@ export async function calcularPontosParciais(liga, rodada) {
         }
       });
 
-      // Buscar dados adicionais do time se necessário
-      let nomeCartola = escalacaoData.nome_cartoleiro || escalacaoData.nome_cartola || 'N/D';
-      let nomeTime = escalacaoData.nome || escalacaoData.nome_time || 'N/D';
-
-      // Se os dados não estiverem completos, buscar do time
-      if (nomeCartola === 'N/D' || nomeTime === 'N/D') {
-        try {
-          const resTimeInfo = await fetchFunc(`${baseUrl}/api/time/${timeId}`);
-          if (resTimeInfo.ok) {
-            const timeInfo = await resTimeInfo.json();
-            nomeCartola = timeInfo.cartola || nomeCartola;
-            nomeTime = timeInfo.nome || nomeTime;
-          }
-        } catch (errInfo) {
-          console.warn(`[RODADAS-CORE] Erro ao buscar info adicional do time ${timeId}`);
-        }
-      }
+      // Usar dados completos do time ou fallback para dados da escalação
+      const nomeCartola = timeCompleto?.nome_cartoleiro || 
+                         timeCompleto?.cartola || 
+                         escalacaoData.time?.nome_cartola || 
+                         'N/D';
+      
+      const nomeTime = timeCompleto?.nome_time || 
+                      timeCompleto?.nome || 
+                      escalacaoData.time?.nome || 
+                      'N/D';
+      
+      const clubeId = timeCompleto?.clube_id || 
+                     escalacaoData.time?.clube_id || 
+                     null;
 
       rankingsParciais.push({
         time_id: timeId,
         nome_cartola: nomeCartola,
         nome_time: nomeTime,
+        clube_id: clubeId,
         escudo_url: escalacaoData.url_escudo_png || escalacaoData.url_escudo_svg || '',
         totalPontos: totalPontos,
       });
