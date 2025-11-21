@@ -267,8 +267,9 @@ export function renderTabelaRodada(
   pontuacoesMap,
   rodadaAtualBrasileirao,
 ) {
-  const numeroRodada = idxRodada + 1;
-  const rodadaBrasileirao = calcularRodadaBrasileirao(idxRodada);
+  // CORREÇÃO: idxRodada agora é o número da rodada da liga (1-31), não índice
+  const numeroRodada = idxRodada;
+  const rodadaBrasileirao = calcularRodadaBrasileirao(idxRodada - 1); // Subtrair 1 para índice
   const isRodadaPassada = rodadaBrasileirao < rodadaAtualBrasileirao;
   const isRodadaAtual = rodadaBrasileirao === rodadaAtualBrasileirao;
 

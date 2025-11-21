@@ -361,6 +361,12 @@ async function renderRodada(rodadaNum) {
     }
 
     const jogos = estadoOrquestrador.confrontos[rodadaNum - 1]; // Ajuste para índice 0
+    
+    // CORREÇÃO: Validar se jogos existe
+    if (!jogos) {
+      throw new Error(`Confrontos não encontrados para rodada ${rodadaNum}`);
+    }
+
     const isRodadaPassada = rodadaCartola < estadoOrquestrador.rodadaAtualBrasileirao;
 
     let pontuacoesMap = {};
@@ -373,10 +379,10 @@ async function renderRodada(rodadaNum) {
       pontuacoesMap = resultado.pontuacoesMap;
     }
 
-    // Renderizar tabela
+    // Renderizar tabela (CORREÇÃO: passar rodadaNum diretamente, não -1)
     const tabelaHtml = renderTabelaRodada(
       jogos,
-      rodadaNum - 1, // Ajuste para índice 0
+      rodadaNum, // CORREÇÃO: passar o número da rodada da liga (1-31)
       pontuacoesMap,
       estadoOrquestrador.rodadaAtualBrasileirao,
     );
