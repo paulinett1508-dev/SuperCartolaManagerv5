@@ -6,7 +6,7 @@ const router = express.Router();
 /**
  * POST /api/participante/auth/login
  * Rota de login de participante
- * Fluxo: valida credenciais primeiro, depois mostra seletor de ligas se necessário
+ * Fluxo: valida credenciais e loga direto na primeira liga encontrada
  */
 router.post('/login', async (req, res) => {
     try {
@@ -51,44 +51,71 @@ router.post('/login', async (req, res) => {
             });
         }
 
-        // Se tem apenas uma liga, criar sessão e logar direto
-        if (ligasAutenticadas.length === 1) {
-            const { ligaId, participante } = ligasAutenticadas[0];
+        // Criar sessão com a primeira liga encontrada
+        const { ligaId, participante } = ligasAutenticadas[0];
 
-            req.session.participante = {
-                timeId: parseInt(timeId),
-                ligaId: ligaId,
-                nome_cartola: participante.nome_cartola,
-                nome_time: participante.nome_time,
-                clube_id: participante.clube_id,
-                foto_perfil: participante.foto_perfil,
-                foto_time: participante.foto_time,
-                assinante: participante.assinante
-            };
+        req.session.participante = {
+            timeId: parseInt(timeId),
+            ligaId: ligaId,
+            nome_cartola: participante.nome_cartola,
+            nome_time: participante.nome_time,
+            clube_id: participante.clube_id,
+            foto_perfil: participante.foto_perfil,
+            foto_time: participante.foto_time,
+            assinante: participante.assinante
+        };
 
-            await req.session.save();
+        await req.session.save();
 
-            return res.json({
-                success: true,
-                participante: req.session.participante,
-                message: 'Login realizado com sucesso'
-            });
-        }
-
-        // Se tem múltiplas ligas, retornar para seleção (SEM criar sessão ainda)
         return res.json({
             success: true,
-            multiplas_ligas: true,
-            ligas: ligasAutenticadas.map(l => ({
-                ligaId: l.ligaId,
-                ligaNome: l.ligaNome
-            }))
+            participante: req.session.participante,
+            message: 'Login realizado com sucesso'
         });
 
     } catch (error) {
         console.error('[PARTICIPANTE-AUTH] Erro no login:', error);
         res.status(500).json({ 
             erro: 'Erro ao processar login',
+            detalhes: error.message 
+        });
+    }
+});
+
+/**
+ * GET /api/participante/auth/ligas
+ * Listar todas as ligas onde o participante está inscrito
+ */
+router.get('/ligas', async (req, res) => {
+    try {
+        if (!req.session || !req.session.participante) {
+            return res.status(401).json({ 
+                erro: 'Não autenticado' 
+            });
+        }
+
+        const { timeId } = req.session.participante;
+
+        // Buscar todas as ligas onde o participante está inscrito
+        const ligas = await Liga.find({
+            'participantes.time_id': parseInt(timeId)
+        });
+
+        const ligasDisponiveis = ligas.map(liga => ({
+            ligaId: liga._id.toString(),
+            ligaNome: liga.nome,
+            isAtual: liga._id.toString() === req.session.participante.ligaId
+        }));
+
+        res.json({
+            success: true,
+            ligas: ligasDisponiveis
+        });
+
+    } catch (error) {
+        console.error('[PARTICIPANTE-AUTH] Erro ao listar ligas:', error);
+        res.status(500).json({ 
+            erro: 'Erro ao listar ligas',
             detalhes: error.message 
         });
     }

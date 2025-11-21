@@ -1,10 +1,9 @@
-
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Login - Super Cartola Manager</title>
+    <title>Login - Participante</title>
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
     <style>
         body {
@@ -57,36 +56,6 @@
             border-radius: 10px;
             font-size: 14px;
         }
-        #seletorLigas {
-            display: none;
-            margin-top: 20px;
-            padding: 20px;
-            background: #f8f9fa;
-            border-radius: 10px;
-        }
-        #seletorLigas h5 {
-            color: #667eea;
-            margin-bottom: 15px;
-        }
-        .liga-option {
-            background: white;
-            border: 2px solid #e0e0e0;
-            border-radius: 8px;
-            padding: 15px;
-            margin-bottom: 10px;
-            cursor: pointer;
-            transition: all 0.3s;
-        }
-        .liga-option:hover {
-            border-color: #667eea;
-            transform: translateY(-2px);
-            box-shadow: 0 4px 12px rgba(102, 126, 234, 0.15);
-        }
-        .liga-option h6 {
-            margin: 0;
-            color: #333;
-            font-size: 16px;
-        }
         .loading {
             display: none;
             text-align: center;
@@ -103,7 +72,6 @@
 
         <div id="alertContainer"></div>
 
-        <!-- FORMULÁRIO DE LOGIN -->
         <form id="loginForm">
             <div class="mb-3">
                 <label for="timeId" class="form-label">ID do Time</label>
@@ -133,28 +101,13 @@
                 <span class="visually-hidden">Carregando...</span>
             </div>
         </div>
-
-        <!-- SELETOR DE LIGAS (aparece só se houver múltiplas ligas) -->
-        <div id="seletorLigas">
-            <h5>Selecione a Liga</h5>
-            <p style="font-size: 14px; color: #666; margin-bottom: 15px;">
-                Você participa de múltiplas ligas. Escolha qual deseja acessar:
-            </p>
-            <div id="ligasContainer"></div>
-        </div>
     </div>
 
     <script>
         const loginForm = document.getElementById('loginForm');
         const alertContainer = document.getElementById('alertContainer');
-        const seletorLigas = document.getElementById('seletorLigas');
-        const ligasContainer = document.getElementById('ligasContainer');
         const loadingDiv = document.querySelector('.loading');
 
-        let timeIdTemp = null;
-        let senhaTemp = null;
-
-        // Mostrar alerta
         function mostrarAlerta(mensagem, tipo = 'danger') {
             alertContainer.innerHTML = `
                 <div class="alert alert-${tipo} alert-dismissible fade show" role="alert">
@@ -164,15 +117,11 @@
             `;
         }
 
-        // Login inicial (apenas validar credenciais e buscar ligas)
         loginForm.addEventListener('submit', async (e) => {
             e.preventDefault();
 
             const timeId = document.getElementById('timeId').value;
             const senha = document.getElementById('senha').value;
-
-            timeIdTemp = timeId;
-            senhaTemp = senha;
 
             loadingDiv.style.display = 'block';
             alertContainer.innerHTML = '';
@@ -195,14 +144,7 @@
                     return;
                 }
 
-                // Se tem múltiplas ligas, mostrar seletor
-                if (data.multiplas_ligas && data.ligas) {
-                    loginForm.style.display = 'none';
-                    seletorLigas.style.display = 'block';
-                    renderizarLigas(data.ligas);
-                } 
-                // Se tem apenas uma liga, redirecionar direto
-                else if (data.success && data.participante) {
+                if (data.success) {
                     window.location.href = '/participante/index.html';
                 }
 
@@ -212,56 +154,6 @@
                 mostrarAlerta('Erro ao conectar com o servidor');
             }
         });
-
-        // Renderizar opções de ligas
-        function renderizarLigas(ligas) {
-            ligasContainer.innerHTML = '';
-            
-            ligas.forEach(liga => {
-                const ligaDiv = document.createElement('div');
-                ligaDiv.className = 'liga-option';
-                ligaDiv.innerHTML = `<h6>${liga.ligaNome}</h6>`;
-                ligaDiv.onclick = () => selecionarLiga(liga.ligaId);
-                ligasContainer.appendChild(ligaDiv);
-            });
-        }
-
-        // Selecionar liga específica
-        async function selecionarLiga(ligaId) {
-            loadingDiv.style.display = 'block';
-
-            try {
-                const response = await fetch('/api/participante/auth/select-liga', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json'
-                    },
-                    credentials: 'include',
-                    body: JSON.stringify({
-                        timeId: timeIdTemp,
-                        ligaId: ligaId,
-                        senha: senhaTemp
-                    })
-                });
-
-                const data = await response.json();
-                loadingDiv.style.display = 'none';
-
-                if (!response.ok) {
-                    mostrarAlerta(data.erro || 'Erro ao selecionar liga');
-                    return;
-                }
-
-                if (data.success) {
-                    window.location.href = '/participante/index.html';
-                }
-
-            } catch (error) {
-                loadingDiv.style.display = 'none';
-                console.error('Erro ao selecionar liga:', error);
-                mostrarAlerta('Erro ao conectar com o servidor');
-            }
-        }
     </script>
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 </body>
