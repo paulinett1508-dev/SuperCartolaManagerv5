@@ -1,0 +1,57 @@
+participante-auth.js:4 [PARTICIPANTE-AUTH] Carregando sistema de autenticação...
+participante-auth.js:264 [PARTICIPANTE-AUTH] ✅ Sistema carregado
+participante-navigation.js:4 [PARTICIPANTE-NAV] Carregando sistema de navegação...
+participante-navigation.js:288 [PARTICIPANTE-NAV] ✅ Sistema carregado
+participante-status.js:4 [PARTICIPANTE-STATUS] Carregando sistema de status...
+participante-status.js:42 [PARTICIPANTE-STATUS] 🟢 Online
+participante-status.js:63 [PARTICIPANTE-STATUS] ✅ Sistema carregado
+participante-auth.js:37 [PARTICIPANTE-AUTH] Verificando autenticação...
+participante-navigation.js:26 [PARTICIPANTE-NAV] Inicializando navegação...
+participante-navigation.js:43 [PARTICIPANTE-NAV] Sistema de navegação pronto
+participante-navigation.js:54 [PARTICIPANTE-NAV] Navegando para: boas-vindas
+participante-navigation.js:125 [PARTICIPANTE-NAV] 📦 Importando módulo JS: boas-vindas
+participante-navigation.js:151 [PARTICIPANTE-NAV] Inicializando módulo: boas-vindas
+participante-navigation.js:157 [PARTICIPANTE-NAV] Página de boas-vindas carregada
+participante-auth.js:98 [PARTICIPANTE-AUTH] Atualizando header com dados: {timeId: '13935277', ligaId: '684cb1c8af923da7c7df51de', participante: {…}, time: null}
+participante-auth.js:74 [PARTICIPANTE-AUTH] ✅ Autenticação válida (cache atualizado)
+participante-auth.js:112 [PARTICIPANTE-AUTH] Dados do time carregados: {nome: 'Urubu Play F.C.', cartola: 'Paulinett Miranda', clube: 262}
+participante-auth.js:133 [PARTICIPANTE-AUTH] Dados do participante na liga: {time_id: 13935277, nome_cartola: 'N/D', nome_time: 'N/D', clube_id: null, foto_perfil: '', …}
+participante-auth.js:182 [PARTICIPANTE-AUTH] ✅ Header atualizado com sucesso: {nome: 'Urubu Play F.C.', cartola: 'Paulinett Miranda', clube: 262, patrimonio: 0}
+participante-navigation.js:54 [PARTICIPANTE-NAV] Navegando para: top10
+participante-navigation.js:125 [PARTICIPANTE-NAV] 📦 Importando módulo JS: top10
+participante-top10.js:4 [PARTICIPANTE-TOP10] Carregando módulo...
+participante-top10.js:82 [PARTICIPANTE-TOP10] ✅ Módulo carregado
+participante-navigation.js:142 [PARTICIPANTE-NAV] ✅ Módulo top10 importado
+participante-navigation.js:151 [PARTICIPANTE-NAV] Inicializando módulo: top10
+participante-top10.js:7 [PARTICIPANTE-TOP10] Inicializando para time 13935277 na liga 684cb1c8af923da7c7df51de
+participante-top10.js:25  [PARTICIPANTE-TOP10] Resposta inesperada: {1: Array(10), 2: Array(10), 3: Array(10), 4: Array(10), 5: Array(10), 6: Array(10), 7: Array(10), 8: Array(10), 9: Array(10), 10: Array(10), 11: Array(10), 12: Array(10), 13: Array(10), 14: Array(10), 15: Array(10), 16: Array(10), 17: Array(10), 18: Array(10), 19: Array(10), 20: Array(10), 21: Array(10), 22: Array(10), 23: Array(10), 24: Array(10), 25: Array(10), 26: Array(10), 27: Array(10), 28: Array(10), 29: Array(10), 30: Array(10), 31: Array(10), 32: Array(10), 33: Array(10)}
+window.inicializarTop10Participante @ participante-top10.js:25
+await in window.inicializarTop10Participante
+inicializarModulo @ participante-navigation.js:224
+navegarPara @ participante-navigation.js:93
+await in navegarPara
+(anônimo) @ participante-navigation.js:34
+participante-top10.js:29 [PARTICIPANTE-TOP10] Times processados: 33
+participante-navigation.js:54 [PARTICIPANTE-NAV] Navegando para: melhor-mes
+participante-navigation.js:125 [PARTICIPANTE-NAV] 📦 Importando módulo JS: melhor-mes
+participante-melhor-mes.js:4 [PARTICIPANTE-MELHOR-MES] Carregando módulo...
+participante-melhor-mes.js:56 [PARTICIPANTE-MELHOR-MES] ✅ Módulo carregado
+participante-navigation.js:142 [PARTICIPANTE-NAV] ✅ Módulo melhor-mes importado
+participante-navigation.js:151 [PARTICIPANTE-NAV] Inicializando módulo: melhor-mes
+participante-melhor-mes.js:7 [PARTICIPANTE-MELHOR-MES] Inicializando para time 13935277 na liga 684cb1c8af923da7c7df51de
+participante-melhor-mes.js:10   GET https://e1034b6e-dfb9-401a-8e7f-80ffa6030f79-00-2dc692elmitoe.spock.replit.dev/api/ligas/684cb1c8af923da7c7df51de/melhor-mes/13935277 404 (Not Found)
+window.inicializarMelhorMesParticipante @ participante-melhor-mes.js:10
+inicializarModulo @ participante-navigation.js:232
+navegarPara @ participante-navigation.js:93
+await in navegarPara
+(anônimo) @ participante-navigation.js:34
+participante-melhor-mes.js:20  [PARTICIPANTE-MELHOR-MES] Erro: Error: Erro ao buscar dados do melhor mês
+    at window.inicializarMelhorMesParticipante (participante-melhor-mes.js:13:19)
+    at async ParticipanteNavigation.inicializarModulo (participante-navigation.js:232:21)
+    at async ParticipanteNavigation.navegarPara (participante-navigation.js:93:13)
+window.inicializarMelhorMesParticipante @ participante-melhor-mes.js:20
+await in window.inicializarMelhorMesParticipante
+inicializarModulo @ participante-navigation.js:232
+navegarPara @ participante-navigation.js:93
+await in navegarPara
+(anônimo) @ participante-navigation.js:34
