@@ -7,6 +7,10 @@
  * Verifica se o participante está autenticado via sessão
  */
 export function verificarAutenticacaoParticipante(req, res, next) {
+  console.log('[AUTH-MIDDLEWARE] Verificando autenticação para:', req.url);
+  console.log('[AUTH-MIDDLEWARE] Session exists:', !!req.session);
+  console.log('[AUTH-MIDDLEWARE] Participante exists:', !!req.session?.participante);
+
   // Permitir rotas de API sem autenticação de participante
   if (req.url.startsWith('/api/')) {
     return next();
@@ -14,10 +18,12 @@ export function verificarAutenticacaoParticipante(req, res, next) {
 
   // Verificar se há sessão de participante
   if (req.session && req.session.participante) {
+    console.log('[AUTH-MIDDLEWARE] ✅ Participante autenticado:', req.session.participante.timeId);
     return next();
   }
 
   // Se não está autenticado, redirecionar para login de participante
+  console.log('[AUTH-MIDDLEWARE] ❌ Sem autenticação, redirecionando...');
   res.redirect('/participante-login.html');
 }
 

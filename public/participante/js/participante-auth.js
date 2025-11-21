@@ -42,6 +42,8 @@ class ParticipanteAuth {
                 credentials: 'include'
             });
 
+            console.log('[PARTICIPANTE-AUTH] Response status:', response.status);
+
             if (!response.ok) {
                 console.log('[PARTICIPANTE-AUTH] Sem sessão válida no servidor');
                 this.verificandoAuth = false;
@@ -50,6 +52,7 @@ class ParticipanteAuth {
             }
 
             const data = await response.json();
+            console.log('[PARTICIPANTE-AUTH] Dados da sessão:', data);
 
             if (!data.authenticated || !data.participante) {
                 console.log('[PARTICIPANTE-AUTH] Sessão inválida');
@@ -68,10 +71,12 @@ class ParticipanteAuth {
             this.sessionCache = data;
             this.sessionCacheTime = Date.now();
 
-            // Atualizar UI
-            this.atualizarHeader();
+            console.log('[PARTICIPANTE-AUTH] ✅ Autenticação válida');
+            console.log('[PARTICIPANTE-AUTH] TimeID:', this.timeId, 'LigaID:', this.ligaId);
 
-            console.log('[PARTICIPANTE-AUTH] ✅ Autenticação válida (cache atualizado)');
+            // Atualizar UI
+            await this.atualizarHeader();
+
             this.verificandoAuth = false;
             return true;
 
