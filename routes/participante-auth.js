@@ -10,20 +10,29 @@ const router = express.Router();
  */
 router.post('/login', async (req, res) => {
     try {
+        console.log('[PARTICIPANTE-AUTH] Requisição de login recebida');
+        console.log('[PARTICIPANTE-AUTH] Body:', { timeId: req.body.timeId, senhaLength: req.body.senha?.length });
+        
         const { timeId, senha } = req.body;
 
         if (!timeId || !senha) {
+            console.log('[PARTICIPANTE-AUTH] Campos obrigatórios faltando');
             return res.status(400).json({ 
                 erro: 'Time ID e senha são obrigatórios' 
             });
         }
+        
+        console.log('[PARTICIPANTE-AUTH] Buscando ligas para timeId:', timeId);
 
         // Buscar todas as ligas onde o participante está inscrito
         const ligas = await Liga.find({
             'participantes.time_id': parseInt(timeId)
         });
 
+        console.log('[PARTICIPANTE-AUTH] Ligas encontradas:', ligas?.length || 0);
+
         if (!ligas || ligas.length === 0) {
+            console.log('[PARTICIPANTE-AUTH] Nenhuma liga encontrada para o time');
             return res.status(404).json({ 
                 erro: 'Time não encontrado em nenhuma liga' 
             });
@@ -45,7 +54,10 @@ router.post('/login', async (req, res) => {
             }
         }
 
+        console.log('[PARTICIPANTE-AUTH] Ligas autenticadas:', ligasAutenticadas.length);
+
         if (ligasAutenticadas.length === 0) {
+            console.log('[PARTICIPANTE-AUTH] Senha incorreta');
             return res.status(401).json({ 
                 erro: 'Senha incorreta' 
             });
@@ -53,6 +65,8 @@ router.post('/login', async (req, res) => {
 
         // Criar sessão com a primeira liga encontrada
         const { ligaId, participante } = ligasAutenticadas[0];
+        
+        console.log('[PARTICIPANTE-AUTH] Criando sessão para:', { timeId, ligaId });
 
         req.session.participante = {
             timeId: parseInt(timeId),
@@ -66,6 +80,9 @@ router.post('/login', async (req, res) => {
         };
 
         await req.session.save();
+        
+        console.log('[PARTICIPANTE-AUTH] Sessão criada com sucesso');
+        console.log('[PARTICIPANTE-AUTH] Login bem-sucedido para time:', timeId);
 
         return res.json({
             success: true,
