@@ -778,7 +778,7 @@ async function carregarModuloRodadas() {
 
 async function carregarModuloMataMata() {
     if (!window.orquestrador.modules.mataMata) {
-        window.orquestrador.modules.mataMata = await import("./mata-mata.js");
+        window.orquestrador.modules.mataMata = await import("/js/mata-mata/mata-mata-orquestrador.js");
     }
     return window.orquestrador.modules.mataMata;
 }
@@ -844,7 +844,6 @@ function setupLazyModuleLoading() {
         "pontos-corridos": carregarModuloPontosCorridos,
         "melhor-mes": carregarModuloMelhorMes,
         "artilheiro-campeao": carregarModuloArtilheiroCampeao,
-        "luva-de-ouro": carregarModuloLuvaDeOuro,
         "fluxo-financeiro": carregarModuloFluxoFinanceiro,
         "participantes": async () => {
             if (!window.orquestrador.modules.participantes) {
