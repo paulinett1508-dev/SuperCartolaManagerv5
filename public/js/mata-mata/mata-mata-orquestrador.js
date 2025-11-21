@@ -429,12 +429,39 @@ async function carregarFase(fase, ligaId) {
     }
 
     // Buscar pontos: se está pendente E não tem times, retorna vazio
-    // Se está em andamento (rodada atual), busca parciais
-    // Se já finalizou, busca pontos finais
+    // Se está em andamento (rodada atual), busca parciais da API Cartola
+    // Se já finalizou, busca pontos finais do MongoDB
     let pontosRodadaAtual = {};
     
     if (isPending && (!timesParaConfronto || timesParaConfronto.length === 0)) {
       pontosRodadaAtual = {};
+    } else if (isRodadaEmAndamento) {
+      // Buscar parciais diretamente da API do Cartola
+      console.log(`[MATA-ORQUESTRADOR] 🔄 Buscando PARCIAIS da rodada ${rodadaPontosNum} (em andamento)...`);
+      try {
+        const timesIds = timesParaConfronto.map(t => t.timeId);
+        const parciaisPromises = timesIds.map(async (timeId) => {
+          try {
+            const response = await fetch(`/api/cartola-proxy/time/id/${timeId}/${rodadaPontosNum}`);
+            if (response.ok) {
+              const data = await response.json();
+              return { timeId, pontos: data.pontos || 0 };
+            }
+          } catch (err) {
+            console.warn(`[MATA-ORQUESTRADOR] Erro ao buscar time ${timeId}:`, err);
+          }
+          return { timeId, pontos: 0 };
+        });
+        
+        const parciais = await Promise.all(parciaisPromises);
+        pontosRodadaAtual = Object.fromEntries(
+          parciais.map(({ timeId, pontos }) => [timeId, pontos])
+        );
+        console.log(`[MATA-ORQUESTRADOR] ✅ Parciais obtidas:`, pontosRodadaAtual);
+      } catch (error) {
+        console.error(`[MATA-ORQUESTRADOR] Erro ao buscar parciais:`, error);
+        pontosRodadaAtual = await getPontosDaRodada(ligaId, rodadaPontosNum);
+      }
     } else {
       pontosRodadaAtual = await getPontosDaRodada(ligaId, rodadaPontosNum);
     }

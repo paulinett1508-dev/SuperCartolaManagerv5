@@ -104,15 +104,19 @@ export async function fetchAndProcessRankingRodada(ligaId, rodadaNum) {
     }
 
     if (!rankingsDataFromApi) {
-      // Verificar se rodada ainda não tem dados ou se houve erro real
-      const { rodada_atual, status_mercado } = statusMercadoGlobal;
+      // Se nenhum endpoint funcionou, verificar se é rodada futura
+      let rodadaAtualReal = 1;
+      try {
+        const mercadoStatus = await fetch('/api/cartola/mercado/status').then(r => r.json());
+        rodadaAtualReal = mercadoStatus.rodada_atual || 1;
+      } catch (err) {
+        console.warn('[RODADAS-CORE] Erro ao buscar status do mercado:', err);
+      }
 
-      if (rodadaNum > rodada_atual) {
-        console.log(
-          `[RODADAS-CORE] Rodada ${rodadaNum} é futura (atual: ${rodada_atual})`,
-        );
+      if (rodadaNum > rodadaAtualReal) {
+        console.log(`[RODADAS-CORE] Rodada ${rodadaNum} é futura (atual: ${rodadaAtualReal})`);
         return [];
-      } else if (rodadaNum === rodada_atual && status_mercado === 1) {
+      } else if (rodadaNum === rodadaAtualReal && statusMercadoGlobal.status_mercado === 1) {
         console.log(
           `[RODADAS-CORE] Rodada ${rodadaNum} está em andamento - mercado aberto`,
         );
@@ -245,7 +249,7 @@ export async function calcularPontosParciais(liga, rodada) {
     try {
       // Verificar se 'time' é um número (ID) ou objeto
       const timeId = typeof time === 'number' ? time : (time.time_id || time.id);
-      
+
       if (!timeId) {
         console.warn('[RODADAS-CORE] Time sem ID encontrado:', time);
         continue;
@@ -253,7 +257,7 @@ export async function calcularPontosParciais(liga, rodada) {
 
       let fetchFunc = isBackend ? (await import("node-fetch")).default : fetch;
       const baseUrl = isBackend ? "http://localhost:3000" : "";
-      
+
       // Buscar dados completos do time primeiro
       let timeCompleto = null;
       try {
@@ -297,12 +301,12 @@ export async function calcularPontosParciais(liga, rodada) {
                          timeCompleto?.cartola || 
                          escalacaoData.time?.nome_cartola || 
                          'N/D';
-      
+
       const nomeTime = timeCompleto?.nome_time || 
                       timeCompleto?.nome || 
                       escalacaoData.time?.nome || 
                       'N/D';
-      
+
       const clubeId = timeCompleto?.clube_id || 
                      escalacaoData.time?.clube_id || 
                      null;
