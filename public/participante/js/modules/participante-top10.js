@@ -14,7 +14,20 @@ window.inicializarTop10Participante = async function(ligaId, timeId) {
         }
 
         const dados = await response.json();
-        renderizarTop10(dados, timeId);
+        
+        // CORREÇÃO: Validar e extrair array de times
+        let times = [];
+        if (Array.isArray(dados)) {
+            times = dados;
+        } else if (dados && Array.isArray(dados.times)) {
+            times = dados.times;
+        } else if (dados && typeof dados === 'object') {
+            console.warn('[PARTICIPANTE-TOP10] Resposta inesperada:', dados);
+            times = Object.values(dados).filter(item => item && typeof item === 'object');
+        }
+        
+        console.log(`[PARTICIPANTE-TOP10] Times processados: ${times.length}`);
+        renderizarTop10(times, timeId);
 
     } catch (error) {
         console.error('[PARTICIPANTE-TOP10] Erro:', error);
@@ -25,7 +38,14 @@ window.inicializarTop10Participante = async function(ligaId, timeId) {
 function renderizarTop10(times, meuTimeId) {
     const container = document.getElementById('top10Grid');
     
-    if (!times || times.length === 0) {
+    // CORREÇÃO: Validação mais robusta
+    if (!container) {
+        console.error('[PARTICIPANTE-TOP10] Container não encontrado');
+        return;
+    }
+    
+    if (!Array.isArray(times) || times.length === 0) {
+        console.warn('[PARTICIPANTE-TOP10] Dados inválidos ou vazios:', times);
         container.innerHTML = '<p style="text-align: center; color: #999; padding: 40px;">Nenhum dado disponível</p>';
         return;
     }
