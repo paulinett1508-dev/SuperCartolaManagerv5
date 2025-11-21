@@ -19,29 +19,93 @@
     padding: 20px 0;
 }
 
-.mata-mata-header {
+.edicao-selector-participante {
     text-align: center;
-    margin-bottom: 30px;
-}
-
-.mata-mata-header h2 {
-    color: var(--participante-primary);
-    margin-bottom: 10px;
-}
-
-.fase-card {
-    background: var(--participante-card);
-    border: 1px solid var(--participante-border);
-    border-radius: 12px;
-    padding: 20px;
     margin-bottom: 20px;
 }
 
-.fase-titulo h3 {
-    color: var(--participante-primary);
-    font-size: 18px;
-    margin-bottom: 15px;
+.edicao-selector-participante label {
+    font-weight: 600;
+    margin-right: 8px;
+    color: var(--participante-text);
+}
+
+.edicao-selector-participante select {
+    padding: 8px 12px;
+    border-radius: 6px;
+    border: 1px solid var(--participante-border);
+    background: var(--participante-card);
+    color: var(--participante-text);
+    font-size: 14px;
+}
+
+.fase-nav-participante {
+    display: flex;
+    justify-content: center;
+    gap: 8px;
+    margin-bottom: 20px;
+    flex-wrap: wrap;
+}
+
+.fase-btn-participante {
+    background: rgba(42, 42, 42, 0.5);
+    color: var(--participante-text-muted);
+    border: 1px solid var(--participante-border);
+    padding: 8px 12px;
+    border-radius: 6px;
+    font-size: 12px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    text-transform: uppercase;
+}
+
+.fase-btn-participante:hover {
+    background: rgba(255, 69, 0, 0.1);
+    border-color: var(--participante-primary);
+}
+
+.fase-btn-participante.active {
+    background: var(--participante-primary);
+    color: white;
+    border-color: var(--participante-primary);
+}
+
+.mata-mata-header-participante {
     text-align: center;
+    margin-bottom: 25px;
+}
+
+.mata-mata-header-participante h3 {
+    color: var(--participante-primary);
+    font-size: 16px;
+    margin-bottom: 8px;
+}
+
+.confronto-titulo {
+    background: var(--participante-primary);
+    color: white;
+    display: inline-block;
+    padding: 8px 20px;
+    border-radius: 16px;
+    font-weight: 700;
+    margin: 10px 0;
+}
+
+.rodada-info {
+    font-size: 13px;
+    color: var(--participante-text-muted);
+    margin-top: 5px;
+}
+
+.aviso-pendente {
+    background: rgba(255, 69, 0, 0.1);
+    border: 1px solid var(--participante-primary);
+    color: var(--participante-primary);
+    padding: 8px;
+    border-radius: 6px;
+    font-size: 13px;
+    margin-top: 10px;
 }
 
 .confrontos-grid {
@@ -50,7 +114,7 @@
 }
 
 .confronto-card {
-    background: rgba(255, 255, 255, 0.05);
+    background: var(--participante-card);
     border: 1px solid var(--participante-border);
     border-radius: 8px;
     padding: 15px;
@@ -59,6 +123,14 @@
 .confronto-card.meu-confronto {
     background: rgba(255, 69, 0, 0.15);
     border-color: var(--participante-primary);
+    border-width: 2px;
+}
+
+.confronto-numero {
+    font-size: 12px;
+    color: var(--participante-text-muted);
+    margin-bottom: 10px;
+    text-align: center;
 }
 
 .time-confronto {
@@ -66,11 +138,20 @@
     justify-content: space-between;
     align-items: center;
     margin: 8px 0;
+    padding: 8px;
+    border-radius: 6px;
+    transition: all 0.2s ease;
+}
+
+.time-confronto.vencedor {
+    background: rgba(16, 185, 129, 0.1);
+    border-left: 3px solid #10b981;
 }
 
 .time-nome {
     font-weight: 600;
-    color: #ccc;
+    color: var(--participante-text);
+    font-size: 14px;
 }
 
 .time-placar {
@@ -81,18 +162,30 @@
 
 .vs {
     text-align: center;
-    color: #999;
+    color: var(--participante-text-muted);
     font-weight: 700;
     margin: 10px 0;
+    font-size: 12px;
 }
 
-.vencedor {
+.loading-participante {
     text-align: center;
-    color: #10b981;
-    font-weight: 600;
-    margin-top: 10px;
-    padding-top: 10px;
-    border-top: 1px solid var(--participante-border);
+    padding: 40px;
+}
+
+.spinner-participante {
+    width: 40px;
+    height: 40px;
+    border: 4px solid rgba(255, 69, 0, 0.3);
+    border-top: 4px solid var(--participante-primary);
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+    margin: 0 auto 20px;
+}
+
+@keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
 }
 
 @media (max-width: 768px) {
@@ -102,6 +195,10 @@
     
     .time-placar {
         font-size: 18px;
+    }
+    
+    .time-nome {
+        font-size: 13px;
     }
 }
 </style>

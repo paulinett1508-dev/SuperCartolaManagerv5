@@ -452,6 +452,68 @@ router.get("/:id/pontos-corridos", async (req, res) => {
 });
 
 // ==============================
+// ROTA: Buscar Mata-Mata para participante
+// ==============================
+router.get("/:id/mata-mata", async (req, res) => {
+  const { id: ligaId } = req.params;
+
+  try {
+    console.log(`[LIGAS] Buscando Mata-Mata para participante - Liga ${ligaId}`);
+
+    // Buscar status do mercado
+    let rodada_atual = 1;
+    try {
+      const resMercado = await fetch("/api/cartola/mercado/status");
+      if (resMercado.ok) {
+        rodada_atual = (await resMercado.json()).rodada_atual;
+      }
+    } catch (err) {
+      console.warn("[LIGAS] Erro ao buscar status do mercado");
+    }
+
+    // Definir edições (mesma estrutura do admin)
+    const edicoes = [
+      { id: 1, nome: "1ª Edição", rodadaInicial: 2, rodadaFinal: 7, rodadaDefinicao: 2 },
+      { id: 2, nome: "2ª Edição", rodadaInicial: 9, rodadaFinal: 14, rodadaDefinicao: 9 },
+      { id: 3, nome: "3ª Edição", rodadaInicial: 15, rodadaFinal: 21, rodadaDefinicao: 15 },
+      { id: 4, nome: "4ª Edição", rodadaInicial: 22, rodadaFinal: 26, rodadaDefinicao: 21 },
+      { id: 5, nome: "5ª Edição", rodadaInicial: 31, rodadaFinal: 35, rodadaDefinicao: 30 }
+    ];
+
+    // Filtrar edições ativas
+    const edicoesAtivas = edicoes.filter(e => rodada_atual >= e.rodadaDefinicao);
+
+    if (edicoesAtivas.length === 0) {
+      return res.json({
+        edicoes: [],
+        rodada_atual,
+        mensagem: "Nenhuma edição iniciada ainda"
+      });
+    }
+
+    // Retornar estrutura simplificada para o participante
+    const resultado = {
+      edicoes: edicoesAtivas.map(e => ({
+        id: e.id,
+        nome: e.nome,
+        rodadaInicial: e.rodadaInicial,
+        rodadaFinal: e.rodadaFinal,
+        rodadaDefinicao: e.rodadaDefinicao,
+        ativo: true
+      })),
+      rodada_atual
+    };
+
+    console.log(`[LIGAS] Mata-Mata: ${edicoesAtivas.length} edições ativas`);
+    res.json(resultado);
+
+  } catch (error) {
+    console.error(`[LIGAS] Erro ao buscar Mata-Mata:`, error);
+    res.status(500).json({ erro: "Erro ao buscar dados do Mata-Mata" });
+  }
+});
+
+// ==============================
 // ROTA: Buscar TOP 10 da liga
 // ==============================
 router.get("/:id/top10", async (req, res) => {
