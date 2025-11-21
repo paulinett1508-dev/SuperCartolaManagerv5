@@ -161,13 +161,12 @@
         </div>
     </div>
 
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     <script>
-        // Log inicial
-        console.log('[LOGIN] 🔄 Script carregando...');
+        console.log('[LOGIN] 🔄 Script iniciando...');
         
-        // Aguardar DOM carregar completamente
-        document.addEventListener('DOMContentLoaded', function() {
-            console.log('[LOGIN] ✅ DOM carregado');
+        window.addEventListener('load', function() {
+            console.log('[LOGIN] ✅ Window load event disparado');
             
             const loginForm = document.getElementById('loginForm');
             const alertContainer = document.getElementById('alertContainer');
@@ -196,8 +195,9 @@
                 `;
             }
 
-            loginForm.addEventListener('submit', async (e) => {
+            loginForm.onsubmit = async function(e) {
                 e.preventDefault();
+                e.stopPropagation();
                 console.log('[LOGIN] 🚀 Formulário submetido!');
 
                 const timeId = document.getElementById('timeId').value;
@@ -205,15 +205,13 @@
 
                 console.log('[LOGIN] Dados coletados:', { 
                     timeId, 
-                    senhaLength: senha?.length,
-                    timeIdType: typeof timeId,
-                    senhaType: typeof senha
+                    senhaLength: senha?.length
                 });
 
                 if (!timeId || !senha) {
                     console.warn('[LOGIN] ⚠️ Campos vazios');
                     mostrarAlerta('Por favor, preencha todos os campos');
-                    return;
+                    return false;
                 }
 
                 console.log('[LOGIN] Mostrando loading...');
@@ -222,10 +220,7 @@
                 btnSubmit.disabled = true;
 
                 try {
-                    console.log('[LOGIN] 📡 Enviando requisição para /api/participante/auth/login...');
-                    
-                    const requestBody = { timeId, senha };
-                    console.log('[LOGIN] Body da requisição:', requestBody);
+                    console.log('[LOGIN] 📡 Enviando requisição...');
                     
                     const response = await fetch('/api/participante/auth/login', {
                         method: 'POST',
@@ -233,56 +228,47 @@
                             'Content-Type': 'application/json'
                         },
                         credentials: 'include',
-                        body: JSON.stringify(requestBody)
+                        body: JSON.stringify({ timeId, senha })
                     });
 
-                    console.log('[LOGIN] ✅ Resposta recebida:', {
-                        status: response.status,
-                        statusText: response.statusText,
-                        ok: response.ok
-                    });
+                    console.log('[LOGIN] ✅ Resposta recebida:', response.status);
 
                     const data = await response.json();
-                    console.log('[LOGIN] 📦 Dados parseados:', data);
+                    console.log('[LOGIN] 📦 Dados:', data);
                     
                     loadingDiv.style.display = 'none';
                     btnSubmit.disabled = false;
 
                     if (!response.ok) {
-                        console.error('[LOGIN] ❌ Resposta com erro:', data);
+                        console.error('[LOGIN] ❌ Erro:', data);
                         mostrarAlerta(data.erro || 'Erro ao fazer login');
-                        return;
+                        return false;
                     }
 
                     if (data.success) {
-                        console.log('[LOGIN] 🎉 Login bem-sucedido!');
+                        console.log('[LOGIN] 🎉 Sucesso! Redirecionando...');
                         mostrarAlerta('Login realizado com sucesso!', 'success');
                         
-                        console.log('[LOGIN] ⏳ Aguardando 500ms antes de redirecionar...');
                         setTimeout(() => {
-                            console.log('[LOGIN] 🔄 Redirecionando para /participante/index.html...');
                             window.location.href = '/participante/index.html';
                         }, 500);
                     } else {
-                        console.error('[LOGIN] ❌ Success=false:', data);
+                        console.error('[LOGIN] ❌ Success=false');
                         mostrarAlerta(data.erro || 'Erro ao fazer login');
                     }
 
                 } catch (error) {
                     loadingDiv.style.display = 'none';
                     btnSubmit.disabled = false;
-                    console.error('[LOGIN] 💥 Erro capturado:', error);
-                    console.error('[LOGIN] Stack:', error.stack);
-                    console.error('[LOGIN] Mensagem:', error.message);
-                    mostrarAlerta('Erro ao conectar com o servidor: ' + error.message);
+                    console.error('[LOGIN] 💥 Erro:', error);
+                    mostrarAlerta('Erro ao conectar: ' + error.message);
                 }
-            });
+                
+                return false;
+            };
 
-            console.log('[LOGIN] ✅ Event listener registrado com sucesso');
+            console.log('[LOGIN] ✅ Handler registrado com sucesso');
         });
-
-        console.log('[LOGIN] ✅ Script carregado');
     </script>
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 </body>
 </html>
