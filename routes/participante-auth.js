@@ -9,41 +9,34 @@ const router = express.Router();
  * Fluxo: valida credenciais e loga direto na primeira liga encontrada
  */
 router.post('/login', async (req, res) => {
+    console.log('[PARTICIPANTE-AUTH] ========================================');
+    console.log('[PARTICIPANTE-AUTH] Requisição de login recebida');
+    
     try {
-        console.log('[PARTICIPANTE-AUTH] ========================================');
-        console.log('[PARTICIPANTE-AUTH] Requisição de login recebida');
-        console.log('[PARTICIPANTE-AUTH] Body:', { timeId: req.body.timeId, senhaLength: req.body.senha?.length });
-        console.log('[PARTICIPANTE-AUTH] Headers:', req.headers);
-        
         const { timeId, senha } = req.body;
+        console.log('[PARTICIPANTE-AUTH] Body:', { timeId, senhaLength: senha?.length });
 
         if (!timeId || !senha) {
             console.log('[PARTICIPANTE-AUTH] ❌ Campos obrigatórios faltando');
             return res.status(400).json({ 
+                success: false,
                 erro: 'Time ID e senha são obrigatórios' 
             });
         }
         
         console.log('[PARTICIPANTE-AUTH] 🔍 Buscando ligas para timeId:', timeId);
 
-        // Buscar todas as ligas onde o participante está inscrito com timeout
-        let ligas;
-        try {
-            ligas = await Promise.race([
-                Liga.find({ 'participantes.time_id': parseInt(timeId) }),
-                new Promise((_, reject) => 
-                    setTimeout(() => reject(new Error('Timeout ao buscar ligas')), 10000)
-                )
-            ]);
-            console.log('[PARTICIPANTE-AUTH] ✅ Ligas encontradas:', ligas?.length || 0);
-        } catch (dbError) {
-            console.error('[PARTICIPANTE-AUTH] ❌ Erro ao buscar ligas:', dbError.message);
-            throw dbError;
-        }
+        // Buscar todas as ligas onde o participante está inscrito
+        const ligas = await Liga.find({ 
+            'participantes.time_id': parseInt(timeId) 
+        }).lean();
+
+        console.log('[PARTICIPANTE-AUTH] ✅ Ligas encontradas:', ligas?.length || 0);
 
         if (!ligas || ligas.length === 0) {
             console.log('[PARTICIPANTE-AUTH] Nenhuma liga encontrada para o time');
             return res.status(404).json({ 
+                success: false,
                 erro: 'Time não encontrado em nenhuma liga' 
             });
         }
@@ -106,12 +99,17 @@ router.post('/login', async (req, res) => {
         console.error('[PARTICIPANTE-AUTH] Mensagem:', error.message);
         console.error('[PARTICIPANTE-AUTH] Stack:', error.stack);
         
-        // Garantir que sempre retornamos JSON
-        return res.status(500).json({ 
+        // Garantir que não enviamos resposta duplicada
+        if (res.headersSent) {
+            console.error('[PARTICIPANTE-AUTH] Headers já enviados, não posso responder');
+            return;
+        }
+        
+        // Sempre retornar JSON válido
+        res.status(500).json({ 
             success: false,
             erro: 'Erro ao processar login',
-            detalhes: error.message,
-            tipo: error.name
+            detalhes: error.message
         });
     }
 });

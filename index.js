@@ -52,19 +52,30 @@ app.use(
   }),
 );
 
-// Configurar sessões
-app.use(
-    session({
-        secret: process.env.SESSION_SECRET || "cartola-secret-key-2025", // Chave secreta para assinar os cookies de sessão
-        resave: false, // Não salvar sessões que não foram modificadas
-        saveUninitialized: false, // Não criar sessões para usuários não logados
-        cookie: {
-            secure: false, // set true se usar HTTPS
-            httpOnly: true, // O cookie de sessão não pode ser acessado por JavaScript no cliente
-            maxAge: 24 * 60 * 60 * 1000, // Duração da sessão em milissegundos (24 horas)
-        },
-    }),
-);
+// Configurar sessões com tratamento de erro
+app.use((req, res, next) => {
+    try {
+        session({
+            secret: process.env.SESSION_SECRET || "cartola-secret-key-2025",
+            resave: false,
+            saveUninitialized: false,
+            cookie: {
+                secure: false,
+                httpOnly: true,
+                maxAge: 24 * 60 * 60 * 1000,
+            },
+        })(req, res, (err) => {
+            if (err) {
+                console.error('[SESSION] Erro ao processar sessão:', err);
+                return next();
+            }
+            next();
+        });
+    } catch (error) {
+        console.error('[SESSION] Erro crítico na sessão:', error);
+        next();
+    }
+});
 
 // Log de sessões (apenas em desenvolvimento)
 if (process.env.NODE_ENV !== "production") {
