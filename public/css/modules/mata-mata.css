@@ -349,55 +349,58 @@
 }
 
 .rodada-pendente-fase {
-  background: linear-gradient(135deg, #e8f4f8 0%, #d4e8f1 100%);
-  border: 2px solid #3498db;
-  border-radius: 16px;
-  padding: 40px;
-  margin: 40px auto;
-  max-width: 600px;
-  text-align: center;
-  box-shadow: 0 8px 16px rgba(0, 0, 0, 0.15);
+  background: rgba(255, 69, 0, 0.05);
+  border: 1px solid rgba(255, 69, 0, 0.3);
+  border-left: 4px solid var(--laranja, #FF4500);
+  border-radius: var(--border-radius-md, 8px);
+  padding: 20px;
+  margin: 20px 0;
+  max-width: 500px;
+  text-align: left;
 }
 
 .rodada-pendente-fase .pendente-icon {
-  font-size: 64px;
-  margin-bottom: 20px;
-  animation: rotate 3s linear infinite;
+  font-size: 28px;
+  display: inline-block;
+  margin-right: 10px;
+  vertical-align: middle;
+  opacity: 0.7;
 }
 
 .rodada-pendente-fase h3 {
-  color: #2c3e50;
-  font-size: 24px;
-  margin-bottom: 20px;
-  font-weight: 700;
+  color: var(--text-primary, #ffffff);
+  font-size: 16px;
+  margin: 0 0 12px 0;
+  font-weight: 600;
+  display: inline-block;
+  vertical-align: middle;
 }
 
 .rodada-pendente-fase p {
-  color: #34495e;
-  font-size: 16px;
-  margin: 10px 0;
-  line-height: 1.6;
+  color: var(--text-secondary, #e0e0e0);
+  font-size: 13px;
+  margin: 6px 0;
+  line-height: 1.5;
 }
 
 .rodada-pendente-fase p strong {
-  color: #2980b9;
+  color: var(--laranja, #FF4500);
   font-weight: 600;
 }
 
 .rodada-pendente-fase .pendente-message {
-  font-size: 18px;
-  font-weight: 600;
-  color: #2c3e50;
-  margin: 20px 0 10px 0;
-  padding: 15px;
-  background: rgba(255, 255, 255, 0.6);
-  border-radius: 8px;
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--text-primary, #ffffff);
+  margin: 12px 0 8px 0;
+  padding: 0;
 }
 
 .rodada-pendente-fase .pendente-submessage {
-  font-size: 14px;
-  color: #7f8c8d;
-  font-style: italic;
+  font-size: 12px;
+  color: var(--text-muted, #a0a0a0);
+  font-style: normal;
+  opacity: 0.8;
 }
 
 /* Instrução Inicial - Tema Dark */

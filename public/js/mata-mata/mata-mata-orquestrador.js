@@ -413,12 +413,11 @@ async function carregarFase(fase, ligaId) {
     if (isPending && fase !== "primeira" && (!timesParaConfronto || timesParaConfronto.length === 0)) {
       contentElement.innerHTML = `
         <div class="rodada-pendente-fase">
-          <div class="pendente-icon">⏳</div>
+          <span class="pendente-icon">⏳</span>
           <h3>Rodada Ainda Não Aconteceu</h3>
-          <p><strong>Fase:</strong> ${faseLabel}</p>
-          <p><strong>Rodada:</strong> ${rodadaPontosNum}</p>
-          <p class="pendente-message">Aguardando definição dos times classificados da fase anterior.</p>
-          <p class="pendente-submessage">Os confrontos serão gerados automaticamente após o término da rodada ${prevFaseRodada}.</p>
+          <p><strong>Fase:</strong> ${faseLabel} <strong>•</strong> <strong>Rodada:</strong> ${rodadaPontosNum}</p>
+          <p class="pendente-message">Aguardando definição dos times classificados.</p>
+          <p class="pendente-submessage">Os confrontos serão gerados automaticamente após a conclusão da rodada ${prevFaseRodada}.</p>
         </div>
       `;
       return;
