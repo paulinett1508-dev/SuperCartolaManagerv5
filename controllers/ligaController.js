@@ -557,6 +557,46 @@ const buscarModulosAtivos = async (req, res) => {
   }
 };
 
+// Atualizar módulos ativos da liga
+const atualizarModulosAtivos = async (req, res) => {
+  const ligaIdParam = req.params.id;
+  const { modulos } = req.body;
+
+  if (!mongoose.Types.ObjectId.isValid(ligaIdParam)) {
+    return res.status(400).json({ erro: "ID de liga inválido" });
+  }
+
+  if (!modulos || typeof modulos !== 'object') {
+    return res.status(400).json({ erro: "Dados de módulos inválidos" });
+  }
+
+  try {
+    console.log(`[LIGAS] 🔧 Atualizando módulos ativos para liga ${ligaIdParam}`);
+    console.log(`[LIGAS] Novos módulos:`, modulos);
+
+    const liga = await Liga.findById(ligaIdParam);
+    if (!liga) {
+      return res.status(404).json({ erro: "Liga não encontrada" });
+    }
+
+    // Atualizar módulos ativos
+    liga.modulos_ativos = modulos;
+    liga.atualizadaEm = new Date();
+    await liga.save();
+
+    console.log(`[LIGAS] ✅ Módulos atualizados com sucesso`);
+    res.json({ 
+      success: true, 
+      modulos: liga.modulos_ativos,
+      mensagem: "Módulos atualizados com sucesso"
+    });
+
+  } catch (err) {
+    console.error("[LIGAS] ❌ Erro ao atualizar módulos:", err);
+    res.status(500).json({ erro: "Erro ao atualizar módulos ativos" });
+  }
+};
+
 export {
   listarLigas,
   buscarLigaPorId,
@@ -571,4 +611,5 @@ export {
   buscarConfrontosPontosCorridos,
   buscarCartoleiroPorId,
   buscarModulosAtivos,
+  atualizarModulosAtivos,
 };
