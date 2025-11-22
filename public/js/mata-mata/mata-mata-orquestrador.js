@@ -405,13 +405,17 @@ async function carregarFase(fase, ligaId) {
     }
 
     // LÓGICA CORRIGIDA: Verificar status baseado na rodada de pontuação
-    let isPending = rodada_atual < rodadaPontosNum;
+    // Uma rodada está PENDENTE se:
+    // 1. Ainda não começou (rodada_atual < rodadaPontosNum)
+    // 2. OU está em andamento (rodada_atual === rodadaPontosNum)
+    // Apenas rodadas CONCLUÍDAS (rodada_atual > rodadaPontosNum) podem ter valores financeiros
+    const isPending = rodada_atual <= rodadaPontosNum;
     
     // Se a rodada de pontos é a ATUAL (em andamento), podemos buscar parciais
     const isRodadaEmAndamento = rodada_atual === rodadaPontosNum;
     
     console.log(
-      `[MATA-ORQUESTRADOR] Rodada ${rodadaPontosNum} - Atual: ${rodada_atual} - Status: ${isPending ? "Pendente" : isRodadaEmAndamento ? "Em Andamento (Parciais)" : "Concluída"}`,
+      `[MATA-ORQUESTRADOR] Rodada ${rodadaPontosNum} - Atual: ${rodada_atual} - Status: ${isPending ? (isRodadaEmAndamento ? "Em Andamento (Parciais - SEM valores financeiros)" : "Pendente") : "Concluída"}`,
     );
 
     // Verificar se é uma fase FUTURA (rodada ainda não começou)
@@ -512,8 +516,18 @@ async function carregarFase(fase, ligaId) {
         ? montarConfrontosPrimeiraFase(rankingBase, pontosRodadaAtual)
         : montarConfrontosFase(timesParaConfronto, pontosRodadaAtual, numJogos);
 
-    // Calcular valores dos confrontos
-    calcularValoresConfronto(confrontos, isPending);
+    // ✅ APENAS calcular valores financeiros se a rodada já foi CONCLUÍDA
+    // Rodadas em andamento NÃO devem ter valores (+R$ 10 / -R$ 10)
+    if (!isPending) {
+      calcularValoresConfronto(confrontos, false);
+    } else {
+      // Para rodadas pendentes/em andamento, zerar valores
+      confrontos.forEach(c => {
+        c.timeA.valor = 0;
+        c.timeB.valor = 0;
+        c.vencedorDeterminado = null;
+      });
+    }
 
     // Renderizar tabela
     renderTabelaMataMata(
@@ -554,13 +568,13 @@ async function carregarFase(fase, ligaId) {
       // Se está em andamento, mostrar aviso de parciais
       const avisoDiv = document.createElement("div");
       avisoDiv.className = "rodada-pendente-fase";
-      avisoDiv.style.background = "rgba(33, 150, 243, 0.05)";
-      avisoDiv.style.borderColor = "rgba(33, 150, 243, 0.3)";
+      avisoDiv.style.background = "rgba(255, 152, 0, 0.05)";
+      avisoDiv.style.borderColor = "rgba(255, 152, 0, 0.3)";
       avisoDiv.innerHTML = `
         <span class="pendente-icon">⚡</span>
-        <h3>Pontuação Parcial</h3>
-        <p class="pendente-message">A Rodada ${rodadaPontosNum} está em andamento.</p>
-        <p class="pendente-submessage">Os pontos exibidos são parciais e podem mudar até o fim da rodada.</p>
+        <h3>Rodada em Andamento</h3>
+        <p class="pendente-message">A Rodada ${rodadaPontosNum} está acontecendo agora.</p>
+        <p class="pendente-submessage"><strong>⚠️ Os pontos exibidos são PARCIAIS.</strong> Valores financeiros serão calculados após a conclusão da rodada.</p>
       `;
       contentElement.appendChild(avisoDiv);
     }
