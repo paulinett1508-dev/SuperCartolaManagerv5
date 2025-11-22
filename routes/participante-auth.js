@@ -117,6 +117,77 @@ router.get('/session', async (req, res) => {
                 time: timeData ? {
                     nome: timeData.nome,
                     nome_cartola: timeData.nome_cartola,
+
+
+// Buscar todas as ligas que o participante faz parte
+router.get("/minhas-ligas", verificarSessaoParticipante, async (req, res) => {
+    try {
+        const { timeId } = req.session.participante;
+
+        if (!timeId) {
+            return res.status(400).json({ error: "Time ID não encontrado na sessão" });
+        }
+
+        // Buscar todas as ligas onde o participante está
+        const { default: Liga } = await import("../models/Liga.js");
+        const ligas = await Liga.find({
+            "participantes.time_id": parseInt(timeId)
+        }).select('_id nome descricao').lean();
+
+        res.json({
+            success: true,
+            ligas: ligas.map(liga => ({
+                id: liga._id.toString(),
+                nome: liga.nome,
+                descricao: liga.descricao || ""
+            }))
+        });
+    } catch (error) {
+        console.error("[PARTICIPANTE-AUTH] Erro ao buscar ligas:", error);
+        res.status(500).json({ error: "Erro ao buscar ligas" });
+    }
+});
+
+// Trocar de liga (atualizar sessão)
+router.post("/trocar-liga", verificarSessaoParticipante, async (req, res) => {
+    try {
+        const { ligaId } = req.body;
+        const { timeId } = req.session.participante;
+
+        if (!ligaId) {
+            return res.status(400).json({ error: "Liga ID não fornecido" });
+        }
+
+        // Verificar se participante está nessa liga
+        const { default: Liga } = await import("../models/Liga.js");
+        const liga = await Liga.findById(ligaId);
+
+        if (!liga) {
+            return res.status(404).json({ error: "Liga não encontrada" });
+        }
+
+        const participante = liga.participantes.find(
+            p => String(p.time_id) === String(timeId)
+        );
+
+        if (!participante) {
+            return res.status(403).json({ error: "Você não participa desta liga" });
+        }
+
+        // Atualizar sessão
+        req.session.participante.ligaId = ligaId;
+        
+        res.json({
+            success: true,
+            message: "Liga alterada com sucesso",
+            ligaNome: liga.nome
+        });
+    } catch (error) {
+        console.error("[PARTICIPANTE-AUTH] Erro ao trocar liga:", error);
+        res.status(500).json({ error: "Erro ao trocar liga" });
+    }
+});
+
                     clube_id: timeData.clube_id,
                     url_escudo_png: timeData.url_escudo_png
                 } : null

@@ -30,6 +30,7 @@ class ParticipanteAuth {
             this.timeId = participante.timeId;
             this.participante = participante;
             this.atualizarHeader();
+            await this.verificarMultiplasLigas(); // Verificar múltiplas ligas
             return true;
         }
 
@@ -141,6 +142,103 @@ class ParticipanteAuth {
             // Atualizar nome do time e cartoleiro
             if (nomeTime) {
                 nomeTime.textContent = nomeTimeTexto;
+
+
+    async verificarMultiplasLigas() {
+        try {
+            const response = await fetch('/api/participante/auth/minhas-ligas', {
+                credentials: 'include'
+            });
+
+            if (!response.ok) {
+                console.warn('[PARTICIPANTE-AUTH] Erro ao buscar ligas do participante');
+                return;
+            }
+
+            const data = await response.json();
+            const ligas = data.ligas || [];
+
+            // Só mostrar seletor se tiver MAIS DE UMA liga
+            if (ligas.length > 1) {
+                console.log('[PARTICIPANTE-AUTH] 🏆 Participante em múltiplas ligas:', ligas.length);
+                this.renderizarSeletorLigas(ligas);
+            } else {
+                console.log('[PARTICIPANTE-AUTH] Participante em apenas uma liga');
+                this.ocultarSeletorLigas();
+            }
+        } catch (error) {
+            console.error('[PARTICIPANTE-AUTH] Erro ao verificar múltiplas ligas:', error);
+        }
+    }
+
+    renderizarSeletorLigas(ligas) {
+        const container = document.getElementById('seletorLigaContainer');
+        const select = document.getElementById('seletorLiga');
+
+        if (!container || !select) return;
+
+        // Limpar opções anteriores
+        select.innerHTML = '';
+
+        // Adicionar opções
+        ligas.forEach(liga => {
+            const option = document.createElement('option');
+            option.value = liga.id;
+            option.textContent = liga.nome;
+            option.selected = liga.id === this.ligaId;
+            select.appendChild(option);
+        });
+
+        // Event listener para trocar de liga
+        select.addEventListener('change', async (e) => {
+            await this.trocarLiga(e.target.value);
+        });
+
+        // Mostrar container
+        container.style.display = 'block';
+    }
+
+    ocultarSeletorLigas() {
+        const container = document.getElementById('seletorLigaContainer');
+        if (container) {
+            container.style.display = 'none';
+        }
+    }
+
+    async trocarLiga(novaLigaId) {
+        if (novaLigaId === this.ligaId) {
+            return; // Mesma liga
+        }
+
+        try {
+            console.log('[PARTICIPANTE-AUTH] 🔄 Trocando para liga:', novaLigaId);
+
+            const response = await fetch('/api/participante/auth/trocar-liga', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                credentials: 'include',
+                body: JSON.stringify({ ligaId: novaLigaId })
+            });
+
+            if (!response.ok) {
+                throw new Error('Erro ao trocar liga');
+            }
+
+            const data = await response.json();
+            console.log('[PARTICIPANTE-AUTH] ✅ Liga alterada:', data.ligaNome);
+
+            // Limpar cache e recarregar página
+            this.sessionCache = null;
+            this.sessionCacheTime = null;
+            window.location.reload();
+        } catch (error) {
+            console.error('[PARTICIPANTE-AUTH] ❌ Erro ao trocar liga:', error);
+            alert('Erro ao trocar de liga. Tente novamente.');
+        }
+    }
+
             }
             if (nomeCartolaText) {
                 nomeCartolaText.textContent = nomeCartolaTexto;

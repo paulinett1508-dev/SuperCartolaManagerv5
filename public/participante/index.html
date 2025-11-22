@@ -36,6 +36,14 @@
                         <span id="statusIndicador" style="width: 8px; height: 8px; border-radius: 50%; background: #22c55e;"></span>
                         <span id="statusTexto" style="color: #999;">Online</span>
                     </div>
+
+                    <!-- Seletor de Liga (só aparece se participante tiver múltiplas ligas) -->
+                    <div id="seletorLigaContainer" style="display: none;">
+                        <select id="seletorLiga" style="padding: 6px 10px; border-radius: 6px; border: 1px solid #333; background: #1a1a1a; color: #fff; font-size: 13px; cursor: pointer;">
+                            <!-- Opções carregadas dinamicamente -->
+                        </select>
+                    </div>
+
                     <!-- Botão Home -->
         <button class="btn-home" onclick="participanteNav.navegarPara('boas-vindas')">
             <span class="home-icon">🏠</span>
