@@ -229,6 +229,56 @@
     font-weight: 600;
 }
 
+.rodada-card {
+    background: linear-gradient(135deg, #1a1a1a 0%, #2a2a2a 100%);
+    border: 1px solid #333;
+    border-radius: 12px;
+    padding: 20px;
+    cursor: pointer;
+    transition: all 0.3s;
+    position: relative;
+}
+
+.rodada-card.zona-bonus {
+    border-color: #22c55e;
+    color: #22c55e;
+}
+
+.rodada-card.zona-onus {
+    border-color: #ef4444;
+    color: #ef4444;
+}
+
+.rodada-card.neutro {
+    color: #fff;
+}
+
+.rodada-card.mito::before {
+    content: '⭐ MITO';
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    background: #ffd700;
+    color: #000;
+    padding: 4px 8px;
+    border-radius: 4px;
+    font-size: 10px;
+    font-weight: bold;
+}
+
+.rodada-card.mico::before {
+    content: '💩 MICO';
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    background: #ef4444;
+    color: #fff;
+    padding: 4px 8px;
+    border-radius: 4px;
+    font-size: 10px;
+    font-weight: bold;
+}
+
 @media (max-width: 768px) {
     .rodadas-cards-grid {
         grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));

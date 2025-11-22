@@ -188,17 +188,19 @@ class ParticipanteNavigation {
 
     async aguardarModulosENavegar() {
         console.log('[PARTICIPANTE-NAV] Sistema de navegação pronto');
-        // ✅ CARREGAR PÁGINA DE BOAS-VINDAS PRIMEIRO
-        this.restaurarModuloAnterior();
-        this.navegarPara(this.moduloAtual || 'boas-vindas');
+        // ✅ RESTAURAR MÓDULO ANTERIOR OU CARREGAR BOAS-VINDAS
+        const moduloSalvo = this.restaurarModuloAnterior();
+        this.navegarPara(moduloSalvo || 'boas-vindas');
     }
 
     restaurarModuloAnterior() {
         const moduloAnterior = sessionStorage.getItem('moduloAtual');
-        if (moduloAnterior && moduloAnterior !== 'boas-vindas') {
+        if (moduloAnterior) {
             console.log('[PARTICIPANTE-NAV] 🔄 Restaurando módulo:', moduloAnterior);
             this.moduloAtual = moduloAnterior;
+            return moduloAnterior;
         }
+        return null;
     }
 
     async navegarPara(modulo) {

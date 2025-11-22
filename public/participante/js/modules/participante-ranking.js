@@ -1,147 +1,157 @@
 
-// PARTICIPANTE RANKING - Módulo de Ranking Geral com Premiações
-
 console.log('[PARTICIPANTE-RANKING] Carregando módulo...');
-
-window.mostrarPremiacaoRanking = function(posicao) {
-    const premiacoes = {
-        1: { emoji: '🥇', titulo: 'CAMPEÃO', premio: 'R$ 1.000,00', cor: 'gold' },
-        2: { emoji: '🥈', titulo: '2º LUGAR', premio: 'R$ 700,00', cor: 'silver' },
-        3: { emoji: '🥉', titulo: '3º LUGAR', premio: 'R$ 400,00', cor: '#cd7f32' }
-    };
-    
-    if (!premiacoes[posicao]) return;
-    
-    const p = premiacoes[posicao];
-    
-    // Criar modal se não existir
-    let modal = document.getElementById('premiacaoModal');
-    if (!modal) {
-        modal = document.createElement('div');
-        modal.id = 'premiacaoModal';
-        modal.className = 'modal-premiacao';
-        document.body.appendChild(modal);
-    }
-    
-    // Renderizar todas as 3 premiações
-    const todasPremiacoes = Object.keys(premiacoes).map(pos => {
-        const item = premiacoes[pos];
-        const isAtual = parseInt(pos) === parseInt(posicao);
-        return `
-            <div class="premiacao-item ${isAtual ? 'destaque' : ''}">
-                <div class="premiacao-emoji" style="color: ${item.cor}">${item.emoji}</div>
-                <div class="premiacao-info">
-                    <div class="premiacao-titulo">${item.titulo}</div>
-                    <div class="premiacao-valor">${item.premio}</div>
-                </div>
-            </div>
-        `;
-    }).join('');
-    
-    modal.innerHTML = `
-        <div class="modal-overlay" onclick="window.fecharPremiacaoModal()"></div>
-        <div class="modal-content-premiacao">
-            <button class="btn-fechar-modal" onclick="window.fecharPremiacaoModal()">×</button>
-            <h3 style="text-align: center; margin-bottom: 20px; color: var(--participante-primary);">
-                🏆 Premiações do Ranking
-            </h3>
-            <div class="premiacoes-grid">
-                ${todasPremiacoes}
-            </div>
-        </div>
-    `;
-    
-    modal.classList.add('show');
-};
-
-window.fecharPremiacaoModal = function() {
-    const modal = document.getElementById('premiacaoModal');
-    if (modal) {
-        modal.classList.remove('show');
-        setTimeout(() => modal.remove(), 300);
-    }
-};
 
 window.inicializarRankingParticipante = async function(ligaId, timeId) {
     console.log(`[PARTICIPANTE-RANKING] Inicializando para time ${timeId} na liga ${ligaId}`);
 
     try {
+        // Buscar ranking da liga
         const response = await fetch(`/api/ligas/${ligaId}/ranking`);
+        if (!response.ok) throw new Error('Erro ao buscar ranking');
+
+        const ranking = await response.json();
+        const tbody = document.querySelector('#rankingTable tbody');
         
-        if (!response.ok) {
-            throw new Error('Erro ao buscar ranking');
+        if (!tbody) {
+            console.error('[PARTICIPANTE-RANKING] Tabela não encontrada');
+            return;
         }
 
-        const dados = await response.json();
-        renderizarRanking(dados, timeId);
+        // Definir premiações
+        const premiacoes = {
+            1: { valor: 'R$ 1.000,00', label: '🥇 CAMPEÃO' },
+            2: { valor: 'R$ 700,00', label: '🥈 2º LUGAR' },
+            3: { valor: 'R$ 400,00', label: '🥉 3º LUGAR' }
+        };
+
+        tbody.innerHTML = ranking.map((time, index) => {
+            const posicao = index + 1;
+            const isTop3 = posicao <= 3;
+            const isMeuTime = String(time.time_id) === String(timeId);
+            const premiacao = premiacoes[posicao];
+            
+            // Formatação de pontos com casas decimais e milhar
+            const pontosFormatados = parseFloat(time.pontos_total || 0).toLocaleString('pt-BR', {
+                minimumFractionDigits: 2,
+                maximumFractionDigits: 2
+            });
+
+            return `
+                <tr class="${isMeuTime ? 'meu-time' : ''} ${isTop3 ? 'top-3' : ''}" 
+                    data-posicao="${posicao}">
+                    <td>
+                        ${isTop3 ? `
+                            <div class="posicao-destaque posicao-${posicao}" 
+                                 onclick="mostrarPremiacao(${posicao}, '${premiacao.label}', '${premiacao.valor}')"
+                                 style="cursor: pointer; position: relative;">
+                                <span class="posicao-numero">${posicao}º</span>
+                                ${posicao === 1 ? '👑' : posicao === 2 ? '🥈' : '🥉'}
+                            </div>
+                        ` : `
+                            <span class="posicao-normal">${posicao}º</span>
+                        `}
+                    </td>
+                    <td class="time-info">
+                        <img src="${time.url_escudo_png || `/escudos/${time.clube_id || 'placeholder'}.png`}" 
+                             alt="${time.nome_time}"
+                             class="escudo-time"
+                             onerror="this.src='/escudos/placeholder.png'">
+                        <div>
+                            <div class="nome-time">${time.nome_time || 'Time'}</div>
+                            <div class="nome-cartola">${time.nome_cartola || 'Cartoleiro'}</div>
+                        </div>
+                    </td>
+                    <td class="time-clube">
+                        ${time.clube_id ? `
+                            <img src="/escudos/${time.clube_id}.png" 
+                                 alt="Clube" 
+                                 class="escudo-clube"
+                                 onerror="this.src='/escudos/placeholder.png'">
+                        ` : 'N/D'}
+                    </td>
+                    <td class="pontos">${pontosFormatados}</td>
+                </tr>
+            `;
+        }).join('');
+
+        console.log('[PARTICIPANTE-RANKING] ✅ Ranking carregado');
 
     } catch (error) {
         console.error('[PARTICIPANTE-RANKING] Erro:', error);
-        mostrarErro(error.message);
+        const tbody = document.querySelector('#rankingTable tbody');
+        if (tbody) {
+            tbody.innerHTML = `
+                <tr>
+                    <td colspan="4" style="text-align: center; padding: 40px; color: #ef4444;">
+                        ❌ Erro ao carregar ranking
+                    </td>
+                </tr>
+            `;
+        }
     }
 };
 
-function renderizarRanking(dados, meuTimeId) {
-    const container = document.getElementById('rankingTabela');
-    
-    if (!dados || dados.length === 0) {
-        container.innerHTML = '<p style="text-align: center; color: #999; padding: 40px;">Nenhum ranking disponível</p>';
-        return;
-    }
-
-    const html = `
-        <table>
-            <thead>
-                <tr>
-                    <th>Pos.</th>
-                    <th>Time</th>
-                    <th>Cartoleiro</th>
-                    <th>Pontos</th>
-                </tr>
-            </thead>
-            <tbody>
-                ${dados.map((time, index) => {
-                    const posicao = index + 1;
-                    const isPodium = posicao <= 3;
-                    const premiacaoClick = isPodium ? `onclick="window.mostrarPremiacaoRanking(${posicao})"` : '';
-                    const cursorStyle = isPodium ? 'style="cursor: pointer;"' : '';
-                    const meuTime = parseInt(time.time_id) === parseInt(meuTimeId);
-                    const classe = meuTime ? 'meu-time' : (isPodium ? `podium-${posicao}` : '');
-                    
-                    // Usar nome do time (API retorna time.nome)
-                    const nomeTime = time.nome || time.nome_time || 'N/D';
-                    
-                    // Converter para número e formatar com vírgula e casas decimais
-                    const pontos = Number(time.pontos_totais ?? 0);
-                    const pontosFormatados = pontos.toLocaleString('pt-BR', {
-                        minimumFractionDigits: 2,
-                        maximumFractionDigits: 2
-                    });
-                    
-                    return `
-                        <tr class="${classe}">
-                            <td><span class="posicao-badge" ${cursorStyle} ${premiacaoClick}>${posicao}º</span></td>
-                            <td>${nomeTime}</td>
-                            <td>${time.nome_cartola || 'N/D'}</td>
-                            <td class="pontos-destaque">${pontosFormatados}</td>
-                        </tr>
-                    `;
-                }).join('')}
-            </tbody>
-        </table>
+// Função para mostrar premiação
+window.mostrarPremiacao = function(posicao, label, valor) {
+    const modal = document.createElement('div');
+    modal.style.cssText = `
+        position: fixed;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: rgba(0, 0, 0, 0.8);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        z-index: 10000;
+        padding: 20px;
     `;
-
-    container.innerHTML = html;
-}
-
-function mostrarErro(mensagem) {
-    const container = document.getElementById('rankingTabela');
-    container.innerHTML = `
-        <div style="text-align: center; padding: 40px; color: #ef4444;">
-            <h3>Erro ao Carregar Ranking</h3>
-            <p>${mensagem}</p>
+    
+    modal.innerHTML = `
+        <div style="background: linear-gradient(135deg, #1a1a1a 0%, #2a2a2a 100%);
+                    border: 2px solid ${posicao === 1 ? '#ffd700' : posicao === 2 ? '#c0c0c0' : '#cd7f32'};
+                    border-radius: 16px;
+                    padding: 30px;
+                    max-width: 400px;
+                    text-align: center;
+                    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.5);">
+            <div style="font-size: 48px; margin-bottom: 20px;">
+                ${posicao === 1 ? '👑' : posicao === 2 ? '🥈' : '🥉'}
+            </div>
+            <h2 style="color: ${posicao === 1 ? '#ffd700' : posicao === 2 ? '#c0c0c0' : '#cd7f32'};
+                       margin-bottom: 10px;
+                       font-size: 24px;">
+                ${label}
+            </h2>
+            <p style="color: #22c55e; font-size: 32px; font-weight: bold; margin: 20px 0;">
+                ${valor}
+            </p>
+            <p style="color: #999; font-size: 14px; margin-bottom: 20px;">
+                Premiação garantida ao final da competição
+            </p>
+            <button onclick="this.closest('div[style*=\"fixed\"]').remove()"
+                    style="background: #ff4500;
+                           color: white;
+                           border: none;
+                           padding: 12px 30px;
+                           border-radius: 8px;
+                           cursor: pointer;
+                           font-size: 14px;
+                           font-weight: bold;">
+                Fechar
+            </button>
         </div>
     `;
-}
+    
+    document.body.appendChild(modal);
+    
+    // Fechar ao clicar fora
+    modal.addEventListener('click', (e) => {
+        if (e.target === modal) {
+            modal.remove();
+        }
+    });
+};
 
 console.log('[PARTICIPANTE-RANKING] ✅ Módulo carregado');

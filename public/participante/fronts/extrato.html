@@ -1,5 +1,3 @@
-
-
 <div id="extratoFinanceiro" class="extrato-container">
     <!-- Header compacto com Status do Saldo -->
     <div class="extrato-header-compact">
@@ -383,5 +381,27 @@
         max-width: 600px;
     }
 }
-</style>
 
+/* Melhorias para mobile */
+@media (max-width: 768px) {
+    .extrato-table-wrapper {
+        overflow-x: auto;
+        -webkit-overflow-scrolling: touch;
+    }
+
+    .extrato-table {
+        min-width: 100%;
+        font-size: 12px;
+    }
+
+    .modal-table {
+        font-size: 11px;
+    }
+
+    .modal-table td,
+    .modal-table th {
+        padding: 8px 4px;
+        white-space: nowrap;
+    }
+}
+</style>
