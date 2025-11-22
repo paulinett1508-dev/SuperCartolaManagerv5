@@ -7,15 +7,15 @@ window.inicializarBoasVindas = async function(ligaId, timeId) {
 
     try {
         // Buscar dados em paralelo
-        const [resRanking, resRodadas, resExtrato] = await Promise.all([
+        const [resRanking, resRodadas, resFluxo] = await Promise.all([
             fetch(`/api/ligas/${ligaId}/ranking`),
             fetch(`/api/rodadas/${ligaId}/rodadas?inicio=1&fim=38`),
-            fetch(`/api/participante/extrato/${timeId}/${ligaId}`)
+            fetch(`/api/fluxo-financeiro/${ligaId}`)
         ]);
 
         const ranking = resRanking.ok ? await resRanking.json() : [];
         const rodadas = resRodadas.ok ? await resRodadas.json() : [];
-        const extratoData = resExtrato.ok ? await resExtrato.json() : null;
+        const fluxoData = resFluxo.ok ? await resFluxo.json() : null;
 
         // Processar dados
         const posicao = ranking.findIndex(t => parseInt(t.time_id) === parseInt(timeId)) + 1 || '-';
@@ -25,8 +25,9 @@ window.inicializarBoasVindas = async function(ligaId, timeId) {
         // Pontuação total do ranking
         const pontosTotal = meuTime ? meuTime.pontos_total : 0;
 
-        // Saldo financeiro do extrato
-        const saldoFinanceiro = extratoData?.resumo?.saldo || 0;
+        // Saldo financeiro do fluxo
+        const meuFluxo = fluxoData?.find(f => String(f.timeId) === String(timeId));
+        const saldoFinanceiro = meuFluxo?.saldoAtual || 0;
 
         // Última rodada do usuário
         const minhasRodadas = rodadas.filter(r => String(r.timeId) === String(timeId));
@@ -128,23 +129,17 @@ async function buscarInfoTimeCoracao(clubeId) {
 
         // Buscar informações públicas do time (placares recentes, etc)
         timeCoracaoCard.innerHTML = `
-            <div style="display: flex; align-items: center; gap: 20px; padding: 20px;">
+            <div style="display: flex; align-items: center; gap: 12px;">
                 <img src="/escudos/${clubeId}.png"
                      alt="${clube.nome}"
-                     style="width: 80px; height: 80px; border-radius: 50%;"
+                     style="width: 48px; height: 48px; border-radius: 50%;"
                      onerror="this.src='/escudos/placeholder.png'">
                 <div style="flex: 1;">
-                    <h3 style="color: #fff; margin-bottom: 10px; font-size: 20px;">
+                    <h3 style="color: #fff; margin: 0 0 4px 0; font-size: 14px; font-weight: 600;">
                         ${clube.nome}
                     </h3>
-                    <p style="color: #999; font-size: 14px; margin-bottom: 5px;">
-                        <strong>Abreviação:</strong> ${clube.abreviacao || 'N/D'}
-                    </p>
-                    <p style="color: #999; font-size: 14px;">
-                        <strong>ID:</strong> ${clube.id}
-                    </p>
-                    <p style="color: #22c55e; font-size: 12px; margin-top: 10px;">
-                        ✓ Time selecionado no Cartola FC
+                    <p style="color: #999; font-size: 11px; margin: 0;">
+                        ${clube.abreviacao || 'N/D'}
                     </p>
                 </div>
             </div>
