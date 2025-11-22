@@ -518,29 +518,32 @@ const buscarModulosAtivos = async (req, res) => {
       return res.status(404).json({ erro: "Liga não encontrada" });
     }
 
-    // Detectar módulos ativos baseado nas configurações da liga
+    console.log(`[LIGAS] 🔍 Detectando módulos para liga ${ligaIdParam}`);
+    console.log(`[LIGAS] Configurações disponíveis:`, Object.keys(liga.configuracoes || {}));
+
+    // DETECÇÃO AUTOMÁTICA: Se existe configuração, módulo está ativo
+    const config = liga.configuracoes || {};
+    
     const modulosAtivos = {
       // Módulos base (sempre ativos)
       extrato: true,
       ranking: true,
       rodadas: true,
 
-      // Módulos condicionais - Se existe objeto de configuração, módulo está ativo
-      // Se tem propriedade 'ativo', verifica o valor; senão, presença do objeto = ativo
-      top10: !!(liga.configuracoes?.top10 && (liga.configuracoes.top10.ativo !== false)),
-      melhorMes: !!(liga.configuracoes?.melhor_mes && (liga.configuracoes.melhor_mes.ativo !== false)),
-      pontosCorridos: !!(liga.configuracoes?.pontos_corridos && (liga.configuracoes.pontos_corridos.ativo !== false)),
-      mataMata: !!(liga.configuracoes?.mata_mata && (liga.configuracoes.mata_mata.ativo !== false)),
-      artilheiro: !!(liga.configuracoes?.artilheiro && (liga.configuracoes.artilheiro.ativo !== false)),
-      luvaOuro: !!(liga.configuracoes?.luva_ouro && (liga.configuracoes.luva_ouro.ativo !== false))
+      // Módulos condicionais - Detecção automática pela presença da configuração
+      top10: !!config.top10,
+      melhorMes: !!config.melhor_mes,
+      pontosCorridos: !!config.pontos_corridos,
+      mataMata: !!config.mata_mata,
+      artilheiro: !!config.artilheiro,
+      luvaOuro: !!config.luva_ouro
     };
 
-    console.log(`[LIGAS] Configurações da liga:`, JSON.stringify(liga.configuracoes, null, 2));
-    console.log(`[LIGAS] Módulos ativos para liga ${ligaIdParam}:`, modulosAtivos);
+    console.log(`[LIGAS] ✅ Módulos detectados automaticamente:`, modulosAtivos);
     res.json({ modulos: modulosAtivos });
 
   } catch (err) {
-    console.error("Erro ao buscar módulos ativos:", err);
+    console.error("[LIGAS] ❌ Erro ao buscar módulos ativos:", err);
     res.status(500).json({ erro: "Erro ao buscar módulos ativos" });
   }
 };
