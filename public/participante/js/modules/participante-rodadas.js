@@ -104,10 +104,19 @@ function renderizarCardsRodadas(rodadas) {
         const statusClass = rodada.jogou ? 'jogou' : 'nao-jogou';
         
         // Formatar pontos com vírgula decimal brasileira
-        const pontos = rodada.meusPontos !== null 
+        const pontos = rodada.meusPontos !== null && rodada.meusPontos > 0
             ? Number(rodada.meusPontos).toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })
             : '-';
-        const statusTexto = rodada.jogou ? `${pontos} pts` : 'Não jogou';
+        
+        // Melhor label para rodadas futuras/não jogadas
+        let statusTexto;
+        if (rodada.participantes.length === 0) {
+            statusTexto = '⏳ Aguardando';
+        } else if (rodada.jogou) {
+            statusTexto = `${pontos} pts`;
+        } else {
+            statusTexto = 'Não jogou';
+        }
 
         // Determinar destaque visual baseado na posição financeira
         let corFonte = '';

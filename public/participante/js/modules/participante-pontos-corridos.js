@@ -86,7 +86,11 @@ function renderizarPontosComToggle(dados, timeId, modo) {
 
 function renderizarClassificacao(dados, timeId) {
     if (!dados || !dados.classificacao || dados.classificacao.length === 0) {
-        return '<p style="text-align: center; color: #999; padding: 40px;">Nenhum dado disponível</p>';
+        return `
+            <p style="text-align: center; color: #999; padding: 40px;">
+                📊 Classificação será atualizada após as rodadas serem jogadas
+            </p>
+        `;
     }
 
     const totalTimes = dados.classificacao.length;

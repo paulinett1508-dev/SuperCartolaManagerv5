@@ -7,6 +7,15 @@ window.inicializarMataMataParticipante = async function(ligaId, timeId) {
     console.log(`[PARTICIPANTE-MATA-MATA] Inicializando para time ${timeId} na liga ${ligaId}`);
 
     try {
+        // Buscar rodada atual do mercado
+        const statusResponse = await fetch('/api/cartola/mercado/status');
+        let rodadaAtual = 1;
+        
+        if (statusResponse.ok) {
+            const status = await statusResponse.json();
+            rodadaAtual = status.rodada_atual || 1;
+        }
+
         const response = await fetch(`/api/ligas/${ligaId}/mata-mata`);
         
         if (!response.ok) {
@@ -20,7 +29,7 @@ window.inicializarMataMataParticipante = async function(ligaId, timeId) {
             return;
         }
 
-        renderizarSeletorEdicoes(dadosBase.edicoes, ligaId, timeId, dadosBase.rodada_atual);
+        renderizarSeletorEdicoes(dadosBase.edicoes, ligaId, timeId, rodadaAtual);
 
     } catch (error) {
         console.error('[PARTICIPANTE-MATA-MATA] Erro:', error);
@@ -75,6 +84,20 @@ async function carregarFase(fase, edicao, ligaId, meuTimeId, rodadaAtual) {
     console.log(`[PARTICIPANTE-MATA-MATA] Carregando fase: ${fase}`);
 
     try {
+        // Verificar se a fase já começou
+        const rodadaFase = obterRodadaFase(fase, edicao);
+        if (rodadaAtual < rodadaFase) {
+            document.getElementById('conteudo-mata-mata-participante').innerHTML = `
+                <p style="text-align: center; color: #999; padding: 40px;">
+                    ⏳ ${fase.toUpperCase()} ainda não iniciou<br>
+                    <span style="font-size: 12px; margin-top: 10px; display: block;">
+                        Começa na rodada ${rodadaFase}
+                    </span>
+                </p>
+            `;
+            return;
+        }
+
         const response = await fetch(`/api/ligas/${ligaId}/mata-mata/${edicao.id}/${fase}`);
         
         if (!response.ok) {
@@ -92,6 +115,18 @@ async function carregarFase(fase, edicao, ligaId, meuTimeId, rodadaAtual) {
             </p>
         `;
     }
+}
+
+function obterRodadaFase(fase, edicao) {
+    const rodadaInicial = edicao.rodadaInicial;
+    const fases = {
+        'primeira': rodadaInicial,
+        'oitavas': rodadaInicial + 5,
+        'quartas': rodadaInicial + 6,
+        'semis': rodadaInicial + 7,
+        'final': rodadaInicial + 8
+    };
+    return fases[fase] || rodadaInicial;
 }
 
 function renderizarConfrontosParticipante(confrontos, fase, meuTimeId) {
