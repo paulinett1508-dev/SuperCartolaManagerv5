@@ -150,13 +150,13 @@ class FluxoFinanceiroParticipante {
             
             try {
                 console.log('[FLUXO-PARTICIPANTE] 🔍 Buscando cache via API...');
-                const cacheRes = await fetch(`/api/extrato-cache/${ligaId}/${timeId}/${rodadaAtual}`);
+                const cacheRes = await fetch(`/api/extrato-cache/${ligaId}/times/${timeId}/cache?rodadaAtual=${rodadaAtual}`);
                 
                 if (cacheRes.ok) {
                     const cacheData = await cacheRes.json();
-                    if (cacheData && cacheData.extrato) {
+                    if (cacheData && cacheData.cached && cacheData.data) {
                         console.log('[FLUXO-PARTICIPANTE] ✅ Cache válido encontrado na API');
-                        return cacheData.extrato;
+                        return cacheData.data;
                     }
                 }
             } catch (cacheError) {
@@ -170,14 +170,13 @@ class FluxoFinanceiroParticipante {
             // Salvar no cache via API
             try {
                 console.log('[FLUXO-PARTICIPANTE] 💾 Salvando extrato no cache...');
-                await fetch('/api/extrato-cache', {
+                await fetch(`/api/extrato-cache/${ligaId}/times/${timeId}/cache`, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({
-                        ligaId,
-                        timeId,
-                        rodada: rodadaAtual,
-                        extrato: extratoCompleto
+                        extrato: extratoCompleto,
+                        ultimaRodadaCalculada: rodadaAtual,
+                        motivoRecalculo: 'participante_visualizacao'
                     })
                 });
                 console.log('[FLUXO-PARTICIPANTE] ✅ Extrato salvo no cache');

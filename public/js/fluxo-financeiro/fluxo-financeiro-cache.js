@@ -270,31 +270,24 @@ export class FluxoFinanceiroCache {
         console.log('[FLUXO-CACHE] Carregando dados externos...');
 
         try {
-            // ✅ USAR ligaId ARMAZENADO NA INICIALIZAÇÃO
-            const ligaId = this.ligaId || window.ligaId || obterLigaId();
-
-            if (!ligaId) {
-                console.error('[FLUXO-CACHE] ❌ ligaId não disponível para buscar dados externos');
+            // Validar ligaId
+            if (!this.ligaId) {
+                console.warn('[FLUXO-CACHE] ⚠️ ligaId não disponível, pulando dados externos');
+                this.cacheConfrontosLPC = [];
+                this.cacheResultadosMM = [];
+                this.cacheResultadosMelhorMes = [];
                 return;
             }
 
-            console.log('[FLUXO-CACHE] 🔑 Usando ligaId:', ligaId);
-
-            // Importar módulos necessários
-            const { getRankingRodadaEspecifica } = await import('/js/rodadas.js');
-            const { setRankingFunction } = await import('/js/mata-mata/mata-mata-financeiro.js');
-
-            // Configurar ranking no Mata-Mata
-            setRankingFunction(getRankingRodadaEspecifica);
-
-            // Buscar confrontos de pontos corridos
-            const confrontosLPC = await getConfrontosLigaPontosCorridos(ligaId); // Passar ligaId
-            const resultadosMM = await getResultadosMataMataFluxo().catch(() => ({
+            // Buscar confrontos de Pontos Corridos
+            console.log('[FLUXO-CACHE] 🔑 Usando ligaId:', this.ligaId);
+            this.cacheConfrontosLPC = await getConfrontosLigaPontosCorridos(this.ligaId);
+            this.cacheResultadosMM = await getResultadosMataMataFluxo().catch(() => ({
                 participantes: [],
                 edicoes: [],
             }));
             // Só buscar Melhor Mês se ligaId for válido
-            const resultadosMelhorMes = ligaId ? await getResultadosMelhorMes(ligaId).catch(() => []) : Promise.resolve([]);
+            const resultadosMelhorMes = this.ligaId ? await getResultadosMelhorMes(this.ligaId).catch(() => []) : Promise.resolve([]);
 
 
             this.cacheConfrontosLPC = confrontosLPC || [];
