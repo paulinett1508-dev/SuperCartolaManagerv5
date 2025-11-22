@@ -44,7 +44,7 @@ export function renderizarExtratoParticipante(extrato, participante) {
         .tabela-extrato {
             width: 100%;
             border-collapse: collapse;
-            font-size: 13px;
+            font-size: 11px;
         }
 
         .tabela-extrato thead {
@@ -55,19 +55,22 @@ export function renderizarExtratoParticipante(extrato, participante) {
         }
 
         .tabela-extrato th {
-            padding: 10px 8px;
+            padding: 6px 4px;
             text-align: center;
             color: var(--participante-primary);
             font-weight: 700;
-            font-size: 11px;
+            font-size: 9px;
             text-transform: uppercase;
             border-bottom: 2px solid var(--participante-border);
+            line-height: 1.2;
         }
 
         .tabela-extrato td {
-            padding: 12px 8px;
+            padding: 6px 4px;
             text-align: center;
             border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+            font-size: 10px;
+            line-height: 1.3;
         }
 
         .tabela-extrato tbody tr:nth-child(even) {
@@ -81,22 +84,23 @@ export function renderizarExtratoParticipante(extrato, participante) {
         /* Badges de posição */
         .badge-pos {
             display: inline-flex;
-            padding: 4px 8px;
-            border-radius: 6px;
+            padding: 2px 5px;
+            border-radius: 4px;
             font-weight: 700;
-            font-size: 11px;
+            font-size: 9px;
+            line-height: 1.2;
         }
 
         .badge-pos.mito {
             background: linear-gradient(135deg, #2ecc71, #27ae60);
             color: white;
-            border: 2px solid #f1c40f;
+            border: 1px solid #f1c40f;
         }
 
         .badge-pos.mico {
             background: linear-gradient(135deg, #e74c3c, #c0392b);
             color: white;
-            border: 2px solid #943126;
+            border: 1px solid #943126;
         }
 
         .badge-pos.top11 {
@@ -136,12 +140,12 @@ export function renderizarExtratoParticipante(extrato, participante) {
         /* Responsividade */
         @media (max-width: 768px) {
             .tabela-extrato {
-                font-size: 11px;
+                font-size: 10px;
             }
 
             .tabela-extrato th,
             .tabela-extrato td {
-                padding: 8px 4px;
+                padding: 5px 3px;
             }
         }
         </style>
@@ -218,7 +222,7 @@ function formatarValor(valor) {
         maximumFractionDigits: 2
     });
     
-    return `<span class="${classe}">${sinal}R$ ${formatado}</span>`;
+    return `<span class="${classe}">${sinal}${formatado}</span>`;
 }
 
 function formatarTop10(rodada) {
@@ -232,8 +236,8 @@ function formatarTop10(rodada) {
     const icone = status === 'MITO' ? '🏆' : '🐵';
     
     return `
-        <div style="display: flex; flex-direction: column; align-items: center; gap: 2px;">
-            <span style="font-size: 9px; color: ${cor}; font-weight: 600;">
+        <div style="display: flex; flex-direction: column; align-items: center; gap: 1px;">
+            <span style="font-size: 7px; color: ${cor}; font-weight: 600; line-height: 1.1;">
                 ${icone} ${posicao}º ${status === 'MITO' ? 'MAIOR' : 'PIOR'}
             </span>
             ${formatarValor(rodada.top10)}
@@ -245,7 +249,7 @@ function atualizarCardsHeader(resumo) {
     // Atualizar card "Ganhou"
     const ganhosEl = document.getElementById('totalGanhosHeader');
     if (ganhosEl && resumo.totalGanhos !== undefined) {
-        ganhosEl.textContent = `R$ ${resumo.totalGanhos.toLocaleString('pt-BR', {
+        ganhosEl.textContent = `${resumo.totalGanhos.toLocaleString('pt-BR', {
             minimumFractionDigits: 2,
             maximumFractionDigits: 2
         })}`;
@@ -254,7 +258,7 @@ function atualizarCardsHeader(resumo) {
     // Atualizar card "Perdeu"
     const perdeuEl = document.getElementById('totalPerdeuHeader');
     if (perdeuEl && resumo.totalPerdas !== undefined) {
-        perdeuEl.textContent = `R$ ${Math.abs(resumo.totalPerdas).toLocaleString('pt-BR', {
+        perdeuEl.textContent = `${Math.abs(resumo.totalPerdas).toLocaleString('pt-BR', {
             minimumFractionDigits: 2,
             maximumFractionDigits: 2
         })}`;
