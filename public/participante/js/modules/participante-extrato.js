@@ -42,12 +42,14 @@ export async function inicializarExtratoParticipante({ participante, ligaId, tim
 
         // Buscar rodada atual SEMPRE antes de carregar o extrato
         let rodadaAtual = 1;
+        let mercadoAberto = false;
         try {
             const resRodada = await fetch('/api/cartola/mercado/status');
             if (resRodada.ok) {
                 const statusData = await resRodada.json();
                 rodadaAtual = statusData.rodada_atual || 1;
-                console.log(`[EXTRATO-PARTICIPANTE] ✅ Rodada atual: ${rodadaAtual}`);
+                mercadoAberto = statusData.mercado_aberto || false;
+                console.log(`[EXTRATO-PARTICIPANTE] ✅ Rodada atual: ${rodadaAtual} | Mercado: ${mercadoAberto ? 'ABERTO' : 'FECHADO'}`);
             } else {
                 console.warn('[EXTRATO-PARTICIPANTE] ⚠️ Erro ao buscar rodada, usando fallback');
             }
@@ -55,10 +57,14 @@ export async function inicializarExtratoParticipante({ participante, ligaId, tim
             console.warn('[EXTRATO-PARTICIPANTE] ⚠️ Falha na busca de rodada, usando fallback:', error.message);
         }
 
+        // ✅ SE MERCADO ABERTO, USAR RODADA ANTERIOR (a última completa)
+        const ultimaRodadaCompleta = mercadoAberto ? Math.max(1, rodadaAtual - 1) : rodadaAtual;
+        console.log(`[EXTRATO-PARTICIPANTE] 📊 Última rodada completa para cálculo: ${ultimaRodadaCompleta}`);
+
         console.log('[EXTRATO-PARTICIPANTE] 💰 Carregando dados...');
 
-        // Buscar extrato calculado com rodada atual
-        const extratoData = await fluxoFinanceiroParticipante.buscarExtratoCalculado(ligaId, timeId, rodadaAtual);
+        // Buscar extrato calculado com última rodada completa
+        const extratoData = await fluxoFinanceiroParticipante.buscarExtratoCalculado(ligaId, timeId, ultimaRodadaCompleta);
 
         console.log('[EXTRATO-PARTICIPANTE] 🎨 Renderizando UI personalizada...');
 
