@@ -1,75 +1,428 @@
 
-<div style="display: flex; flex-direction: column; align-items: center; justify-content: center; min-height: 60vh; padding: 40px 20px; text-align: center;">
-    <!-- Logo/Ícone Principal -->
-    <div style="font-size: 80px; margin-bottom: 24px; animation: pulse 2s infinite;">
-        ⚽
+<div class="boas-vindas-container">
+    <!-- Hero Section -->
+    <div class="hero-section">
+        <div class="welcome-icon">⚽</div>
+        <h1 class="welcome-title">Bem-vindo de volta!</h1>
+        <p class="welcome-subtitle" id="welcomeMessage">Pronto para dominar a rodada?</p>
     </div>
 
-    <!-- Título de Boas-Vindas -->
-    <h1 style="font-size: 32px; font-weight: 800; color: var(--text-primary); margin-bottom: 12px; background: linear-gradient(135deg, #ff4500 0%, #e8472b 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;">
-        Bem-vindo ao seu Painel!
-    </h1>
-
-    <!-- Subtítulo -->
-    <p style="font-size: 18px; color: var(--text-muted); margin-bottom: 40px; max-width: 500px; line-height: 1.6;">
-        Escolha uma opção no menu acima para começar a explorar suas estatísticas, classificação e muito mais.
-    </p>
-
-    <!-- Cards de Navegação Rápida -->
-    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 16px; max-width: 600px; width: 100%; margin-top: 20px;">
-        <!-- Card Extrato -->
-        <div class="welcome-card" onclick="participanteNav.navegarPara('extrato')" style="background: linear-gradient(135deg, rgba(34, 197, 94, 0.1) 0%, rgba(34, 197, 94, 0.05) 100%); padding: 24px; border-radius: 12px; border: 2px solid rgba(34, 197, 94, 0.3); cursor: pointer; transition: all 0.3s ease;">
-            <div style="font-size: 36px; margin-bottom: 8px;">💰</div>
-            <div style="font-size: 14px; font-weight: 700; color: #22c55e;">Extrato</div>
-            <div style="font-size: 11px; color: var(--text-muted); margin-top: 4px;">Veja seu histórico</div>
+    <!-- Cards de Estatísticas Rápidas -->
+    <div class="stats-grid">
+        <div class="stat-card stat-primary">
+            <div class="stat-icon">🏆</div>
+            <div class="stat-content">
+                <div class="stat-label">Sua Posição</div>
+                <div class="stat-value" id="posicaoAtual">-</div>
+            </div>
         </div>
 
-        <!-- Card Classificação -->
-        <div class="welcome-card" onclick="participanteNav.navegarPara('ranking')" style="background: linear-gradient(135deg, rgba(255, 69, 0, 0.1) 0%, rgba(255, 69, 0, 0.05) 100%); padding: 24px; border-radius: 12px; border: 2px solid rgba(255, 69, 0, 0.3); cursor: pointer; transition: all 0.3s ease;">
-            <div style="font-size: 36px; margin-bottom: 8px;">🏆</div>
-            <div style="font-size: 14px; font-weight: 700; color: #ff4500;">Classificação</div>
-            <div style="font-size: 11px; color: var(--text-muted); margin-top: 4px;">Sua posição</div>
+        <div class="stat-card stat-success">
+            <div class="stat-icon">💰</div>
+            <div class="stat-content">
+                <div class="stat-label">Saldo Atual</div>
+                <div class="stat-value" id="saldoAtual">C$ 0,00</div>
+            </div>
         </div>
 
-        <!-- Card Rodadas -->
-        <div class="welcome-card" onclick="participanteNav.navegarPara('rodadas')" style="background: linear-gradient(135deg, rgba(59, 130, 246, 0.1) 0%, rgba(59, 130, 246, 0.05) 100%); padding: 24px; border-radius: 12px; border: 2px solid rgba(59, 130, 246, 0.3); cursor: pointer; transition: all 0.3s ease;">
-            <div style="font-size: 36px; margin-bottom: 8px;">📊</div>
-            <div style="font-size: 14px; font-weight: 700; color: #3b82f6;">Rodadas</div>
-            <div style="font-size: 11px; color: var(--text-muted); margin-top: 4px;">Seu desempenho</div>
+        <div class="stat-card stat-info">
+            <div class="stat-icon">📈</div>
+            <div class="stat-content">
+                <div class="stat-label">Melhor Rodada</div>
+                <div class="stat-value" id="melhorRodada">-</div>
+            </div>
         </div>
 
-        <!-- Card Top 10 -->
-        <div class="welcome-card" onclick="participanteNav.navegarPara('top10')" style="background: linear-gradient(135deg, rgba(245, 158, 11, 0.1) 0%, rgba(245, 158, 11, 0.05) 100%); padding: 24px; border-radius: 12px; border: 2px solid rgba(245, 158, 11, 0.3); cursor: pointer; transition: all 0.3s ease;">
-            <div style="font-size: 36px; margin-bottom: 8px;">🔟</div>
-            <div style="font-size: 14px; font-weight: 700; color: #f59e0b;">Top 10</div>
-            <div style="font-size: 11px; color: var(--text-muted); margin-top: 4px;">Melhores jogadas</div>
+        <div class="stat-card stat-warning">
+            <div class="stat-icon">🎯</div>
+            <div class="stat-content">
+                <div class="stat-label">Média de Pontos</div>
+                <div class="stat-value" id="mediaPontos">0.00</div>
+            </div>
         </div>
     </div>
 
-    <!-- Mensagem adicional -->
-    <p style="font-size: 13px; color: var(--text-muted); margin-top: 40px; max-width: 400px;">
-        💡 <strong>Dica:</strong> Use o menu de navegação no topo para acessar todas as funcionalidades disponíveis.
-    </p>
+    <!-- Resumo da Última Rodada -->
+    <div class="ultima-rodada-card">
+        <div class="card-header">
+            <h3>📊 Última Rodada</h3>
+            <span class="rodada-numero" id="ultimaRodadaNum">-</span>
+        </div>
+        <div class="rodada-info">
+            <div class="rodada-stat">
+                <span class="label">Pontuação:</span>
+                <span class="value" id="pontosUltimaRodada">-</span>
+            </div>
+            <div class="rodada-stat">
+                <span class="label">Posição:</span>
+                <span class="value" id="posicaoUltimaRodada">-</span>
+            </div>
+            <div class="rodada-stat">
+                <span class="label">Variação:</span>
+                <span class="value" id="variacaoPosicao">-</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- Dicas Rápidas -->
+    <div class="dicas-section">
+        <div class="dica-card">
+            <div class="dica-icon">💡</div>
+            <div class="dica-content">
+                <strong>Navegue pelo Menu</strong>
+                <p>Use os botões acima para acessar classificação, extrato, rodadas e muito mais.</p>
+            </div>
+        </div>
+    </div>
 </div>
 
 <style>
-@keyframes pulse {
-    0%, 100% {
-        transform: scale(1);
-        opacity: 1;
-    }
-    50% {
-        transform: scale(1.1);
-        opacity: 0.8;
+.boas-vindas-container {
+    max-width: 100%;
+    margin: 0 auto;
+    padding: 0;
+}
+
+/* Hero Section */
+.hero-section {
+    text-align: center;
+    padding: 32px 20px;
+    background: linear-gradient(135deg, rgba(255, 69, 0, 0.1) 0%, rgba(255, 140, 0, 0.05) 100%);
+    border-radius: 12px;
+    margin-bottom: 24px;
+}
+
+.welcome-icon {
+    font-size: 64px;
+    margin-bottom: 16px;
+    animation: bounce 2s infinite;
+}
+
+@keyframes bounce {
+    0%, 100% { transform: translateY(0); }
+    50% { transform: translateY(-10px); }
+}
+
+.welcome-title {
+    font-size: 28px;
+    font-weight: 800;
+    color: var(--participante-primary);
+    margin: 0 0 8px 0;
+    background: linear-gradient(135deg, #ff4500 0%, #ff8c00 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+}
+
+.welcome-subtitle {
+    font-size: 16px;
+    color: #a0a0a0;
+    margin: 0;
+    font-weight: 500;
+}
+
+/* Grid de Estatísticas */
+.stats-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 12px;
+    margin-bottom: 24px;
+}
+
+@media (min-width: 768px) {
+    .stats-grid {
+        grid-template-columns: repeat(4, 1fr);
+        gap: 16px;
     }
 }
 
-.welcome-card:hover {
-    transform: translateY(-4px);
-    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.3);
+.stat-card {
+    background: var(--participante-card);
+    border-radius: 12px;
+    padding: 16px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    border: 2px solid transparent;
+    transition: all 0.3s ease;
 }
 
-.welcome-card:active {
-    transform: translateY(-2px);
+.stat-card.stat-primary {
+    border-color: rgba(255, 69, 0, 0.3);
+}
+
+.stat-card.stat-success {
+    border-color: rgba(34, 197, 94, 0.3);
+}
+
+.stat-card.stat-info {
+    border-color: rgba(59, 130, 246, 0.3);
+}
+
+.stat-card.stat-warning {
+    border-color: rgba(245, 158, 11, 0.3);
+}
+
+.stat-icon {
+    font-size: 32px;
+    flex-shrink: 0;
+}
+
+.stat-content {
+    flex: 1;
+    min-width: 0;
+}
+
+.stat-label {
+    font-size: 12px;
+    color: #a0a0a0;
+    margin-bottom: 4px;
+    font-weight: 600;
+}
+
+.stat-value {
+    font-size: 20px;
+    font-weight: 800;
+    color: #ffffff;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+/* Card da Última Rodada */
+.ultima-rodada-card {
+    background: linear-gradient(135deg, rgba(59, 130, 246, 0.1) 0%, rgba(59, 130, 246, 0.05) 100%);
+    border: 2px solid rgba(59, 130, 246, 0.3);
+    border-radius: 12px;
+    padding: 20px;
+    margin-bottom: 24px;
+}
+
+.card-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 16px;
+}
+
+.card-header h3 {
+    font-size: 18px;
+    font-weight: 700;
+    color: #3b82f6;
+    margin: 0;
+}
+
+.rodada-numero {
+    font-size: 14px;
+    color: #a0a0a0;
+    font-weight: 600;
+}
+
+.rodada-info {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+@media (min-width: 768px) {
+    .rodada-info {
+        flex-direction: row;
+        justify-content: space-around;
+    }
+}
+
+.rodada-stat {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 8px 0;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+@media (min-width: 768px) {
+    .rodada-stat {
+        flex-direction: column;
+        border-bottom: none;
+        gap: 4px;
+    }
+}
+
+.rodada-stat .label {
+    font-size: 13px;
+    color: #a0a0a0;
+    font-weight: 600;
+}
+
+.rodada-stat .value {
+    font-size: 18px;
+    font-weight: 800;
+    color: #ffffff;
+}
+
+/* Dicas */
+.dicas-section {
+    margin-top: 24px;
+}
+
+.dica-card {
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 12px;
+    padding: 16px;
+    display: flex;
+    gap: 12px;
+}
+
+.dica-icon {
+    font-size: 32px;
+    flex-shrink: 0;
+}
+
+.dica-content {
+    flex: 1;
+}
+
+.dica-content strong {
+    display: block;
+    font-size: 14px;
+    color: #ffffff;
+    margin-bottom: 4px;
+    font-weight: 700;
+}
+
+.dica-content p {
+    font-size: 13px;
+    color: #a0a0a0;
+    margin: 0;
+    line-height: 1.5;
+}
+
+/* Loading State */
+.stat-value.loading {
+    background: linear-gradient(90deg, rgba(255,255,255,0.1) 25%, rgba(255,255,255,0.2) 50%, rgba(255,255,255,0.1) 75%);
+    background-size: 200% 100%;
+    animation: loading 1.5s infinite;
+    border-radius: 4px;
+    height: 24px;
+}
+
+@keyframes loading {
+    0% { background-position: 200% 0; }
+    100% { background-position: -200% 0; }
 }
 </style>
+
+<script>
+(function() {
+    console.log('📊 [BOAS-VINDAS] Carregando dashboard personalizado...');
+    
+    // Função para carregar dados do participante
+    async function carregarDadosParticipante() {
+        try {
+            // Obter informações da sessão
+            const session = await fetch('/api/participante/auth/session').then(r => r.json());
+            if (!session || !session.timeId) {
+                console.warn('⚠️ Sessão não encontrada');
+                return;
+            }
+
+            const ligaId = session.ligaId || new URLSearchParams(window.location.search).get('liga');
+            if (!ligaId) {
+                console.warn('⚠️ Liga não identificada');
+                return;
+            }
+
+            // Buscar dados da liga e ranking
+            const [ligaData, rankingData] = await Promise.all([
+                fetch(`/api/ligas/${ligaId}`).then(r => r.json()),
+                fetch(`/api/ligas/${ligaId}/ranking-geral`).then(r => r.json())
+            ]);
+
+            // Encontrar participante no ranking
+            const meuTime = rankingData.find(t => t.time_id === session.timeId);
+            
+            if (meuTime) {
+                // Atualizar posição
+                document.getElementById('posicaoAtual').textContent = `${meuTime.posicao}º`;
+                
+                // Atualizar saldo
+                const saldo = meuTime.patrimonio || 0;
+                document.getElementById('saldoAtual').textContent = `C$ ${saldo.toFixed(2)}`;
+                
+                // Atualizar média de pontos
+                const media = meuTime.media_pontos || 0;
+                document.getElementById('mediaPontos').textContent = media.toFixed(2);
+                
+                // Atualizar melhor rodada
+                if (meuTime.melhor_rodada) {
+                    document.getElementById('melhorRodada').textContent = 
+                        `${meuTime.melhor_rodada.pontos.toFixed(2)} pts`;
+                }
+            }
+
+            // Buscar dados da última rodada
+            const rodadasResponse = await fetch(`/api/rodadas?ligaId=${ligaId}`);
+            const rodadas = await rodadasResponse.json();
+            
+            if (rodadas && rodadas.length > 0) {
+                const ultimaRodada = rodadas[rodadas.length - 1];
+                const meuDesempenho = ultimaRodada.ranking.find(t => t.time_id === session.timeId);
+                
+                if (meuDesempenho) {
+                    document.getElementById('ultimaRodadaNum').textContent = `Rodada ${ultimaRodada.rodada}`;
+                    document.getElementById('pontosUltimaRodada').textContent = 
+                        `${meuDesempenho.pontos.toFixed(2)} pts`;
+                    document.getElementById('posicaoUltimaRodada').textContent = 
+                        `${meuDesempenho.posicao}º`;
+                    
+                    // Calcular variação de posição
+                    if (rodadas.length > 1) {
+                        const penultimaRodada = rodadas[rodadas.length - 2];
+                        const penultimoDesempenho = penultimaRodada.ranking.find(t => t.time_id === session.timeId);
+                        
+                        if (penultimoDesempenho) {
+                            const variacao = penultimoDesempenho.posicao - meuDesempenho.posicao;
+                            const variacaoEl = document.getElementById('variacaoPosicao');
+                            
+                            if (variacao > 0) {
+                                variacaoEl.textContent = `↑ ${variacao} posições`;
+                                variacaoEl.style.color = '#22c55e';
+                            } else if (variacao < 0) {
+                                variacaoEl.textContent = `↓ ${Math.abs(variacao)} posições`;
+                                variacaoEl.style.color = '#ef4444';
+                            } else {
+                                variacaoEl.textContent = '→ Manteve';
+                                variacaoEl.style.color = '#a0a0a0';
+                            }
+                        }
+                    }
+                }
+            }
+
+            // Mensagem personalizada baseada na hora
+            const hora = new Date().getHours();
+            const welcomeEl = document.getElementById('welcomeMessage');
+            
+            if (hora < 12) {
+                welcomeEl.textContent = 'Bom dia! Confira suas estatísticas.';
+            } else if (hora < 18) {
+                welcomeEl.textContent = 'Boa tarde! Veja como você está indo.';
+            } else {
+                welcomeEl.textContent = 'Boa noite! Acompanhe seu desempenho.';
+            }
+
+            console.log('✅ [BOAS-VINDAS] Dados carregados com sucesso');
+            
+        } catch (error) {
+            console.error('❌ [BOAS-VINDAS] Erro ao carregar dados:', error);
+        }
+    }
+
+    // Carregar dados quando o módulo for exibido
+    if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', carregarDadosParticipante);
+    } else {
+        carregarDadosParticipante();
+    }
+})();
+</script>
