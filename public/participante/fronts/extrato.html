@@ -6,21 +6,29 @@
         <h2 class="extrato-title">💰 Extrato</h2>
     </div>
 
-    <!-- Cards resumo horizontal (estilo Nubank) -->
+    <!-- Saldo Principal com Status -->
+    <div class="saldo-principal">
+        <div class="saldo-status" id="saldoStatus">💰 Saldo a Receber</div>
+        <div class="saldo-valor" id="saldoTotalHeader">R$ 0,00</div>
+    </div>
+
+    <!-- Cards resumo horizontal (estilo Nubank) - CLICÁVEIS -->
     <div class="resumo-horizontal">
-        <div class="resumo-card credito">
-            <div class="resumo-icon">↑</div>
+        <div class="resumo-card credito" onclick="window.mostrarDetalhamentoGanhos()">
+            <div class="resumo-icon">💰</div>
             <div class="resumo-info">
-                <span class="resumo-label">Ganhou</span>
+                <span class="resumo-label">TUDO QUE GANHOU</span>
                 <span id="totalGanhosHeader" class="resumo-valor">R$ 0,00</span>
             </div>
+            <div class="resumo-arrow">›</div>
         </div>
-        <div class="resumo-card debito">
-            <div class="resumo-icon">↓</div>
+        <div class="resumo-card debito" onclick="window.mostrarDetalhamentoPerdas()">
+            <div class="resumo-icon">💸</div>
             <div class="resumo-info">
-                <span class="resumo-label">Perdeu</span>
+                <span class="resumo-label">TUDO QUE PERDEU</span>
                 <span id="totalPerdeuHeader" class="resumo-valor">R$ 0,00</span>
             </div>
+            <div class="resumo-arrow">›</div>
         </div>
     </div>
 
@@ -54,6 +62,31 @@
     margin: 0;
 }
 
+/* Saldo Principal */
+.saldo-principal {
+    padding: 20px;
+    text-align: center;
+    background: rgba(0, 0, 0, 0.3);
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.saldo-status {
+    font-size: 11px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    margin-bottom: 8px;
+    opacity: 0.8;
+}
+
+.saldo-valor {
+    font-size: 32px;
+    font-weight: 800;
+    font-family: 'JetBrains Mono', monospace;
+    line-height: 1;
+    transition: all 0.3s ease;
+}
+
 /* Cards horizontais estilo fintech */
 .resumo-horizontal {
     display: grid;
@@ -70,6 +103,19 @@
     padding: 12px;
     border-radius: 12px;
     border: 1px solid rgba(255, 255, 255, 0.1);
+    cursor: pointer;
+    transition: all 0.3s ease;
+    position: relative;
+}
+
+.resumo-card:active {
+    transform: scale(0.98);
+}
+
+.resumo-arrow {
+    font-size: 20px;
+    color: rgba(255, 255, 255, 0.5);
+    margin-left: auto;
 }
 
 .resumo-card.credito {

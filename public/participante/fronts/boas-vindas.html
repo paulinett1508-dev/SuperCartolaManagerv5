@@ -20,8 +20,8 @@
         <div class="stat-card stat-success">
             <div class="stat-icon">💰</div>
             <div class="stat-content">
-                <div class="stat-label">Saldo Atual</div>
-                <div class="stat-value" id="saldoAtual">C$ 0,00</div>
+                <div class="stat-label">Saldo Extrato</div>
+                <div class="stat-value" id="saldoExtrato">R$ 0,00</div>
             </div>
         </div>
 
@@ -345,9 +345,22 @@
                 // Atualizar posição
                 document.getElementById('posicaoAtual').textContent = `${meuTime.posicao}º`;
                 
-                // Atualizar saldo
-                const saldo = meuTime.patrimonio || 0;
-                document.getElementById('saldoAtual').textContent = `C$ ${saldo.toFixed(2)}`;
+                // Buscar saldo do extrato financeiro
+                try {
+                    const extratoRes = await fetch(`/api/extrato-cache/${ligaId}/times/${session.timeId}/cache?rodadaAtual=35`);
+                    if (extratoRes.ok) {
+                        const extratoData = await extratoRes.json();
+                        if (extratoData && extratoData.cached && extratoData.data) {
+                            const saldoExtrato = extratoData.data.resumo?.saldo || 0;
+                            const saldoEl = document.getElementById('saldoExtrato');
+                            
+                            saldoEl.textContent = `R$ ${Math.abs(saldoExtrato).toFixed(2)}`;
+                            saldoEl.style.color = saldoExtrato >= 0 ? '#22c55e' : '#ef4444';
+                        }
+                    }
+                } catch (error) {
+                    console.warn('⚠️ Erro ao buscar extrato:', error);
+                }
                 
                 // Atualizar média de pontos
                 const media = meuTime.media_pontos || 0;
