@@ -110,23 +110,41 @@ export class FluxoFinanceiroCore {
             console.warn('[FLUXO-CORE] Erro ao verificar status do mercado:', error);
         }
 
-        // ✅ SE NÃO FORÇAR RECÁLCULO, VERIFICAR SE CACHE ESTÁ COMPLETO
-        if (!forcarRecalculo) {
-            const cacheExistente = await this._verificarEUsarCache(ligaId, timeId, rodadaParaCalculo);
-            if (cacheExistente) {
-                // ✅ VALIDAR SE CACHE TEM TODAS AS RODADAS COM DADOS
-                const rodadasComDados = cacheExistente.rodadas.filter(r => r.totalTimes > 0).length;
+        // ✅ SE NÃO FORÇAR RECÁLCULO, VERIFICAR SE CACHE ESTÁ COMPLETO E ÍNTEGRO
+            if (!forcarRecalculo) {
+                const cacheExistente = await this._verificarEUsarCache(ligaId, timeId, rodadaParaCalculo);
+                if (cacheExistente) {
+                    // ✅ VALIDAÇÃO 1: VERIFICAR SE CACHE TEM TODAS AS RODADAS COM DADOS
+                    const rodadasComDados = cacheExistente.rodadas.filter(r => r.totalTimes > 0).length;
 
-                if (rodadasComDados < rodadaParaCalculo) {
-                    console.log(`[FLUXO-CORE] ⚠️ Cache desatualizado: ${rodadasComDados}/${rodadaParaCalculo} rodadas com dados - recalculando`);
-                    // Invalidar cache
-                    await fetch(`/api/extrato-cache/${ligaId}/times/${timeId}/cache`, { method: 'DELETE' });
-                } else {
-                    console.log(`[FLUXO-CORE] 💾 Usando extrato em cache para time ${timeId} (última atualização: ${new Date(cacheExistente.updatedAt || Date.now()).toLocaleString()})`);
-                    return cacheExistente;
+                    if (rodadasComDados < rodadaParaCalculo) {
+                        console.log(`[FLUXO-CORE] ⚠️ Cache desatualizado: ${rodadasComDados}/${rodadaParaCalculo} rodadas com dados - recalculando`);
+                        await fetch(`/api/extrato-cache/${ligaId}/times/${timeId}/cache`, { method: 'DELETE' });
+                    } 
+                    // ✅ VALIDAÇÃO 2: VERIFICAR SE HÁ VALORES DE MATA-MATA EM RODADAS FUTURAS (BUG ANTIGO)
+                    else {
+                        const rodadasComMataMataInvalido = cacheExistente.rodadas.filter(r => 
+                            r.rodada > rodadaParaCalculo && r.mataMata !== 0
+                        );
+
+                        if (rodadasComMataMataInvalido.length > 0) {
+                            console.log(`[FLUXO-CORE] ⚠️ Cache corrompido: ${rodadasComMataMataInvalido.length} rodadas futuras com Mata-Mata inválido - recalculando`);
+                            await fetch(`/api/extrato-cache/${ligaId}/times/${timeId}/cache`, { method: 'DELETE' });
+                        } 
+                        // ✅ VALIDAÇÃO 3: VERIFICAR SE RODADA 34 TEM MATA-MATA (SE APLICÁVEL)
+                        else {
+                            const rodada34 = cacheExistente.rodadas.find(r => r.rodada === 34);
+                            if (rodadaParaCalculo >= 34 && rodada34 && rodada34.mataMata === 0) {
+                                console.log('[FLUXO-CORE] ⚠️ Rodada 34 sem Mata-Mata - cache pode estar desatualizado - recalculando');
+                                await fetch(`/api/extrato-cache/${ligaId}/times/${timeId}/cache`, { method: 'DELETE' });
+                            } else {
+                                console.log(`[FLUXO-CORE] 💾 Usando extrato em cache para time ${timeId} (última atualização: ${new Date(cacheExistente.updatedAt || Date.now()).toLocaleString()})`);
+                                return cacheExistente;
+                            }
+                        }
+                    }
                 }
             }
-        }
 
         console.log(
             `[FLUXO-CORE] Calculando extrato para time ${timeId} até rodada ${rodadaParaCalculo}`,

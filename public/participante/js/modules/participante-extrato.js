@@ -63,13 +63,51 @@ export async function inicializarExtratoParticipante({ participante, ligaId, tim
 
         console.log('[EXTRATO-PARTICIPANTE] 💰 Carregando dados...');
 
-        // ✅ FORÇAR INVALIDAÇÃO DO CACHE PARA GARANTIR RECÁLCULO COM DADOS ATUALIZADOS
-        console.log('[EXTRATO-PARTICIPANTE] 🗑️ Invalidando cache para forçar recálculo...');
+        // ✅ VALIDAR INTEGRIDADE DO CACHE - VERIFICAR SE TEM DADOS DE RODADAS FUTURAS DO MATA-MATA
+        console.log('[EXTRATO-PARTICIPANTE] 🔍 Validando integridade do cache...');
+        let precisaInvalidar = false;
+
         try {
-            await fetch(`/api/extrato-cache/${ligaId}/times/${timeId}/cache`, { method: 'DELETE' });
-            console.log('[EXTRATO-PARTICIPANTE] ✅ Cache invalidado com sucesso');
+            const cacheResponse = await fetch(`/api/extrato-cache/${ligaId}/times/${timeId}/cache?rodadaAtual=${ultimaRodadaCompleta}`);
+            
+            if (cacheResponse.ok) {
+                const cacheData = await cacheResponse.json();
+                
+                if (cacheData && cacheData.cached && cacheData.data && cacheData.data.rodadas) {
+                    // Verificar se há valores de Mata-Mata em rodadas futuras (bug antigo)
+                    const rodadasComMataMataFuturo = cacheData.data.rodadas.filter(r => 
+                        r.rodada > ultimaRodadaCompleta && r.mataMata !== 0
+                    );
+
+                    if (rodadasComMataMataFuturo.length > 0) {
+                        console.warn(`[EXTRATO-PARTICIPANTE] ⚠️ Cache corrompido detectado: ${rodadasComMataMataFuturo.length} rodadas futuras com valores de Mata-Mata`);
+                        precisaInvalidar = true;
+                    }
+
+                    // Verificar se a rodada 34 existe mas não tem valor de Mata-Mata (quando deveria ter)
+                    const rodada34 = cacheData.data.rodadas.find(r => r.rodada === 34);
+                    if (rodada34 && rodada34.mataMata === 0 && ultimaRodadaCompleta >= 34) {
+                        console.warn('[EXTRATO-PARTICIPANTE] ⚠️ Rodada 34 sem valores de Mata-Mata - cache desatualizado');
+                        precisaInvalidar = true;
+                    }
+                }
+            }
         } catch (error) {
-            console.warn('[EXTRATO-PARTICIPANTE] ⚠️ Erro ao invalidar cache:', error.message);
+            console.warn('[EXTRATO-PARTICIPANTE] ⚠️ Erro ao validar cache:', error.message);
+            precisaInvalidar = true;
+        }
+
+        // ✅ INVALIDAR CACHE SE NECESSÁRIO
+        if (precisaInvalidar) {
+            console.log('[EXTRATO-PARTICIPANTE] 🗑️ Invalidando cache corrompido/desatualizado...');
+            try {
+                await fetch(`/api/extrato-cache/${ligaId}/times/${timeId}/cache`, { method: 'DELETE' });
+                console.log('[EXTRATO-PARTICIPANTE] ✅ Cache invalidado com sucesso');
+            } catch (error) {
+                console.warn('[EXTRATO-PARTICIPANTE] ⚠️ Erro ao invalidar cache:', error.message);
+            }
+        } else {
+            console.log('[EXTRATO-PARTICIPANTE] ✅ Cache validado - dados íntegros');
         }
 
         // Buscar extrato calculado com última rodada completa (forçando recálculo)
