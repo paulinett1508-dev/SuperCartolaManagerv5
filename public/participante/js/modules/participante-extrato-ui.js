@@ -15,10 +15,10 @@ export function renderizarExtratoParticipante(extrato, participanteId) {
     participanteValido: !!participanteId
   });
 
-  const container = document.getElementById('moduleContainer');
+  const container = document.getElementById('fluxoFinanceiroContent');
 
   if (!container) {
-    console.error('[EXTRATO-UI] ❌ Container "moduleContainer" não encontrado!');
+    console.error('[EXTRATO-UI] ❌ Container "fluxoFinanceiroContent" não encontrado!');
     console.log('[EXTRATO-UI] 📍 Containers disponíveis:', Array.from(document.querySelectorAll('[id]')).map(el => el.id));
     return;
   }
@@ -380,7 +380,7 @@ function atualizarCardsHeader(resumo) {
 }
 
 export function mostrarLoading() {
-  const container = document.getElementById('moduleContainer');
+  const container = document.getElementById('fluxoFinanceiroContent');
   if (container) {
     container.innerHTML = `
             <div class="loading-state">
