@@ -1,4 +1,3 @@
-
 // PARTICIPANTE STATUS - Sistema de Verificação de Conectividade
 
 console.log('[PARTICIPANTE-STATUS] Carregando sistema de status...');
@@ -76,7 +75,7 @@ class ParticipanteStatus {
                 this.marcarOnline();
             } else {
                 this.tentativasFalhadas++;
-                
+
                 // Só marcar offline após múltiplas falhas
                 if (this.tentativasFalhadas >= this.maxTentativasFalhadas) {
                     this.marcarOffline();
@@ -91,7 +90,7 @@ class ParticipanteStatus {
             }
 
             this.tentativasFalhadas++;
-            
+
             // Só marcar offline após múltiplas falhas
             if (this.tentativasFalhadas >= this.maxTentativasFalhadas) {
                 this.marcarOffline();

@@ -9,6 +9,11 @@ const PARTICIPANTE_IDS = { ligaId: null, timeId: null };
 
 export async function inicializarExtratoParticipante({ participante, ligaId, timeId }) {
     console.log('[EXTRATO-PARTICIPANTE] 🔄 Inicializando para:', { participante, ligaId, timeId });
+    console.log('[EXTRATO-PARTICIPANTE] 📊 Tipo dos parâmetros:', {
+        participante: typeof participante,
+        ligaId: typeof ligaId,
+        timeId: typeof timeId
+    });
 
     if (!ligaId || !timeId) {
         console.error('[EXTRATO-PARTICIPANTE] ❌ Parâmetros inválidos:', { ligaId, timeId });
@@ -17,6 +22,15 @@ export async function inicializarExtratoParticipante({ participante, ligaId, tim
     }
 
     try {
+        // Verificar se container existe antes de continuar
+        const container = document.getElementById('fluxoFinanceiroContent');
+        if (!container) {
+            console.error('[EXTRATO-PARTICIPANTE] ❌ Container "fluxoFinanceiroContent" não encontrado no início!');
+            mostrarErro('Container de extrato não encontrado. Recarregue a página.');
+            return;
+        }
+        console.log('[EXTRATO-PARTICIPANTE] ✅ Container verificado no início');
+
         // Armazenar IDs
         PARTICIPANTE_IDS.ligaId = ligaId;
         PARTICIPANTE_IDS.timeId = timeId;
@@ -132,6 +146,12 @@ export async function inicializarExtratoParticipante({ participante, ligaId, tim
 
         console.log('[EXTRATO-PARTICIPANTE] 🎨 Renderizando UI personalizada...');
         console.log('[EXTRATO-PARTICIPANTE] 📊 Dados do extrato:', extratoData);
+        console.log('[EXTRATO-PARTICIPANTE] 📊 Estrutura do extrato:', {
+            temRodadas: !!extratoData?.rodadas,
+            qtdRodadas: extratoData?.rodadas?.length || 0,
+            temResumo: !!extratoData?.resumo,
+            saldo: extratoData?.resumo?.saldo
+        });
 
         // Verificar se container existe
         const container = document.getElementById('fluxoFinanceiroContent');
@@ -143,8 +163,24 @@ export async function inicializarExtratoParticipante({ participante, ligaId, tim
 
         console.log('[EXTRATO-PARTICIPANTE] ✅ Container encontrado, renderizando...');
 
+        // Validar dados do extrato antes de renderizar
+        if (!extratoData || !extratoData.rodadas || !Array.isArray(extratoData.rodadas)) {
+            console.error('[EXTRATO-PARTICIPANTE] ❌ Dados do extrato inválidos ou incompletos');
+            mostrarErro('Dados do extrato incompletos. Tente atualizar.');
+            return;
+        }
+
+        console.log('[EXTRATO-PARTICIPANTE] 📋 Rodadas a renderizar:', extratoData.rodadas.length);
+
         // Renderizar extrato
-        renderizarExtratoParticipante(extratoData, timeId);
+        try {
+            renderizarExtratoParticipante(extratoData, timeId);
+            console.log('[EXTRATO-PARTICIPANTE] ✅ Extrato renderizado com sucesso');
+        } catch (renderError) {
+            console.error('[EXTRATO-PARTICIPANTE] ❌ Erro ao renderizar:', renderError);
+            mostrarErro(`Erro ao renderizar extrato: ${renderError.message}`);
+            return;
+        }
 
         console.log('[EXTRATO-PARTICIPANTE] ✅ Extrato carregado com sucesso');
 

@@ -8,6 +8,13 @@ export function renderizarExtratoParticipante(extrato, participante) {
     console.log('[EXTRATO-UI] 🎨 Iniciando renderização...');
     console.log('[EXTRATO-UI] 📦 Dados recebidos:', extrato);
     console.log('[EXTRATO-UI] 👤 Participante:', participante);
+    console.log('[EXTRATO-UI] 🔍 Validação dos dados:', {
+        extratoValido: !!extrato,
+        temRodadas: !!extrato?.rodadas,
+        qtdRodadas: extrato?.rodadas?.length || 0,
+        temResumo: !!extrato?.resumo,
+        participanteValido: !!participante
+    });
     
     const container = document.getElementById('fluxoFinanceiroContent');
     
@@ -20,6 +27,28 @@ export function renderizarExtratoParticipante(extrato, participante) {
     }
 
     console.log('[EXTRATO-UI] ✅ Container encontrado');
+
+    // Validar estrutura do extrato
+    if (!extrato || !extrato.rodadas || !Array.isArray(extrato.rodadas)) {
+        console.error('[EXTRATO-UI] ❌ Estrutura do extrato inválida:', extrato);
+        container.innerHTML = `
+            <div style="text-align: center; padding: 40px; background: rgba(239, 68, 68, 0.1); 
+                        border-radius: 12px; border: 1px solid rgba(239, 68, 68, 0.3);">
+                <div style="font-size: 48px; margin-bottom: 16px;">⚠️</div>
+                <h3 style="color: #ef4444; margin-bottom: 12px;">Dados Inválidos</h3>
+                <p style="color: #e0e0e0; margin-bottom: 20px;">A estrutura do extrato está incompleta ou corrompida.</p>
+                <button onclick="window.forcarRefreshExtratoParticipante()" 
+                        style="padding: 12px 24px; background: linear-gradient(135deg, #ff4500 0%, #e8472b 100%); 
+                               color: white; border: none; border-radius: 8px; cursor: pointer; 
+                               font-weight: 600; font-size: 14px;">
+                    🔄 Tentar Novamente
+                </button>
+            </div>
+        `;
+        return;
+    }
+
+    console.log('[EXTRATO-UI] ✅ Dados validados');
 
     // ✅ ARMAZENAR GLOBALMENTE PARA POPUPS
     window.extratoAtual = extrato;
