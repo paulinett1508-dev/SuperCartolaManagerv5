@@ -89,6 +89,32 @@
             color: white;
         }
 
+        .btn-home {
+            background: rgba(255, 255, 255, 0.1);
+            color: white;
+            border: 2px solid rgba(255, 255, 255, 0.3);
+            padding: 8px 12px;
+            border-radius: 8px;
+            font-size: 18px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.3s ease;
+            flex-shrink: 0;
+            min-width: 44px;
+            min-height: 44px;
+        }
+
+        .btn-home:hover {
+            background: rgba(255, 255, 255, 0.2);
+            transform: translateY(-2px);
+        }
+
+        .btn-home:active {
+            transform: translateY(0);
+        }
+
         .btn-sair {
             background: rgba(255, 255, 255, 0.15);
             color: white;
@@ -472,9 +498,14 @@
           <p id="userTeam" style="margin: 0; font-size: 13px; opacity: 0.9;">Aguarde...</p>
         </div>
       </div>
-      <button class="btn-sair" onclick="sair()">
-        ➡️
-      </button>
+      <div style="display: flex; gap: 8px; align-items: center;">
+        <button class="btn-home" onclick="participanteNav?.navegarPara('boas-vindas')" title="Voltar para Boas-Vindas">
+          🏠
+        </button>
+        <button class="btn-sair" onclick="sair()">
+          ➡️
+        </button>
+      </div>
     </div>
 
     <!-- NAVEGAÇÃO ENTRE MÓDULOS -->

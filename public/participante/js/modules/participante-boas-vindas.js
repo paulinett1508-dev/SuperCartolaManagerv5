@@ -101,10 +101,39 @@ function preencherBoasVindas(posicao, saldo, melhorPontos, media, ultimaRodada, 
         if (variacaoElement) variacaoElement.textContent = '→';
     }
 
-    // Atualizar carta de time do coração (exemplo com dados genéricos)
-    const dicaElement = document.querySelector('.dica-content strong');
-    if (dicaElement && meuTime) {
-        dicaElement.textContent = `Seu Time: ${meuTime.nome || 'N/D'}`;
+    // Buscar informações do time do coração
+    if (meuTime && meuTime.clube_id) {
+        buscarInfoTimeCoracao(meuTime.clube_id);
+    } else {
+        const timeCoracaoElement = document.getElementById('timeCoracaoInfo');
+        if (timeCoracaoElement && meuTime) {
+            timeCoracaoElement.innerHTML = `
+                <strong>${meuTime.nome || 'Seu Time'}</strong>
+                <p>Time selecionado no Cartola FC</p>
+            `;
+        }
+    }
+}
+
+async function buscarInfoTimeCoracao(clubeId) {
+    try {
+        const response = await fetch(`/api/clubes`);
+        if (!response.ok) throw new Error('Erro ao buscar clubes');
+        
+        const clubes = await response.json();
+        const clube = clubes.find(c => c.id === clubeId);
+        
+        const timeCoracaoElement = document.getElementById('timeCoracaoInfo');
+        if (timeCoracaoElement && clube) {
+            timeCoracaoElement.innerHTML = `
+                <strong>❤️ ${clube.nome || 'Time do Coração'}</strong>
+                <p style="font-size: 12px; margin-top: 4px; color: #999;">
+                    ${clube.abreviacao || ''} • Time selecionado no Cartola FC
+                </p>
+            `;
+        }
+    } catch (error) {
+        console.error('[BOAS-VINDAS] Erro ao buscar time do coração:', error);
     }
 }
 
