@@ -125,54 +125,37 @@ class FluxoFinanceiroParticipante {
     }
 
     // ===== MÉTODO PARA RETORNAR DADOS SEM RENDERIZAÇÃO =====
-    async buscarExtratoCalculado(ligaId, timeId, rodadaAtualParam = null) {
-        console.log('[FLUXO-PARTICIPANTE] Buscando dados calculados...');
-
-        if (!this.isInitialized) {
-            throw new Error('Módulo não inicializado. Chame inicializar() primeiro.');
-        }
-
+    async buscarExtratoCalculado(ligaId, timeId, rodadaAtual, forcarRecalculo = false) {
         try {
-            // Usar rodada fornecida ou buscar do mercado
-            let rodadaAtual = rodadaAtualParam;
+            console.log(`[FLUXO-PARTICIPANTE] 💰 Buscando extrato para time ${timeId} (rodada ${rodadaAtual})`);
+            console.log(`[FLUXO-PARTICIPANTE] 📊 Usando rodada para cálculo: ${rodadaAtual}`);
 
-            if (!rodadaAtual) {
-                console.log('[FLUXO-PARTICIPANTE] Buscando rodada atual do mercado...');
-                const mercadoRes = await fetch('/api/cartola/mercado-status');
-                const mercadoStatus = mercadoRes.ok ? await mercadoRes.json() : { rodada_atual: 1, mercado_aberto: false };
-                rodadaAtual = mercadoStatus.rodada_atual || 1;
-                
-                // ✅ SE MERCADO ABERTO, USAR RODADA ANTERIOR
-                const mercadoAberto = mercadoStatus.mercado_aberto || false;
-                if (mercadoAberto) {
-                    rodadaAtual = Math.max(1, rodadaAtual - 1);
-                    console.log(`[FLUXO-PARTICIPANTE] ⚠️ Mercado ABERTO detectado - usando última rodada completa: ${rodadaAtual}`);
-                }
-            }
+            // ✅ SE FORÇAR RECÁLCULO, PULAR CACHE
+            if (!forcarRecalculo) {
+                // Tentar buscar do cache do backend (API)
+                const cacheKey = `extrato_${ligaId}_${timeId}_${rodadaAtual}`;
 
-            console.log(`[FLUXO-PARTICIPANTE] 📅 Usando rodada para cálculo: ${rodadaAtual}`);
+                try {
+                    console.log('[FLUXO-PARTICIPANTE] 🔍 Buscando cache via API...');
+                    const cacheRes = await fetch(`/api/extrato-cache/${ligaId}/times/${timeId}/cache?rodadaAtual=${rodadaAtual}`);
 
-            // Tentar buscar do cache do backend (API)
-            const cacheKey = `extrato_${ligaId}_${timeId}_${rodadaAtual}`;
-            
-            try {
-                console.log('[FLUXO-PARTICIPANTE] 🔍 Buscando cache via API...');
-                const cacheRes = await fetch(`/api/extrato-cache/${ligaId}/times/${timeId}/cache?rodadaAtual=${rodadaAtual}`);
-                
-                if (cacheRes.ok) {
-                    const cacheData = await cacheRes.json();
-                    if (cacheData && cacheData.cached && cacheData.data) {
-                        console.log('[FLUXO-PARTICIPANTE] ✅ Cache válido encontrado na API');
-                        return cacheData.data;
+                    if (cacheRes.ok) {
+                        const cacheData = await cacheRes.json();
+                        if (cacheData && cacheData.cached && cacheData.data) {
+                            console.log('[FLUXO-PARTICIPANTE] ✅ Cache válido encontrado na API');
+                            return cacheData.data;
+                        }
                     }
+                } catch (cacheError) {
+                    console.log('[FLUXO-PARTICIPANTE] ⚠️ Cache não encontrado, calculando...');
                 }
-            } catch (cacheError) {
-                console.log('[FLUXO-PARTICIPANTE] ⚠️ Cache não encontrado, calculando...');
+            } else {
+                console.log('[FLUXO-PARTICIPANTE] 🔄 Recálculo forçado - pulando cache');
             }
 
-            // Se não encontrou cache válido, calcular
+            // Se não encontrou cache válido ou forçou recálculo, calcular
             console.log('[FLUXO-PARTICIPANTE] 🧮 Calculando extrato...');
-            const extratoCompleto = await this.core.calcularExtratoFinanceiro(timeId, rodadaAtual);
+            const extratoCompleto = await this.core.calcularExtratoFinanceiro(timeId, rodadaAtual, forcarRecalculo);
 
             // Salvar no cache via API
             try {

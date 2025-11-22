@@ -63,8 +63,17 @@ export async function inicializarExtratoParticipante({ participante, ligaId, tim
 
         console.log('[EXTRATO-PARTICIPANTE] 💰 Carregando dados...');
 
-        // Buscar extrato calculado com última rodada completa
-        const extratoData = await fluxoFinanceiroParticipante.buscarExtratoCalculado(ligaId, timeId, ultimaRodadaCompleta);
+        // ✅ FORÇAR INVALIDAÇÃO DO CACHE PARA GARANTIR RECÁLCULO COM DADOS ATUALIZADOS
+        console.log('[EXTRATO-PARTICIPANTE] 🗑️ Invalidando cache para forçar recálculo...');
+        try {
+            await fetch(`/api/extrato-cache/${ligaId}/times/${timeId}/cache`, { method: 'DELETE' });
+            console.log('[EXTRATO-PARTICIPANTE] ✅ Cache invalidado com sucesso');
+        } catch (error) {
+            console.warn('[EXTRATO-PARTICIPANTE] ⚠️ Erro ao invalidar cache:', error.message);
+        }
+
+        // Buscar extrato calculado com última rodada completa (forçando recálculo)
+        const extratoData = await fluxoFinanceiroParticipante.buscarExtratoCalculado(ligaId, timeId, ultimaRodadaCompleta, true);
 
         console.log('[EXTRATO-PARTICIPANTE] 🎨 Renderizando UI personalizada...');
 
