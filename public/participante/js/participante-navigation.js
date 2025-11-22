@@ -127,8 +127,8 @@ class ParticipanteNavigation {
         // Definição de todos os módulos possíveis
         const todosModulos = [
             { id: 'extrato', icon: '💰', label: 'Extrato', ativo: true },
-            { id: 'ranking', icon: '📊', label: 'Classificação', ativo: true },
-            { id: 'rodadas', icon: '🎯', label: 'Minhas Rodadas', ativo: true },
+            { id: 'ranking', icon: '📊', label: 'Ranking Geral', ativo: true },
+            { id: 'rodadas', icon: '🎯', label: 'Ranking das Rodadas', ativo: true },
             { id: 'top10', icon: '🏆', label: 'Top 10', key: 'top10' },
             { id: 'melhor-mes', icon: '📅', label: 'Melhor do Mês', key: 'melhorMes' },
             { id: 'pontos-corridos', icon: '⚽', label: 'Pontos Corridos', key: 'pontosCorridos' },
@@ -159,18 +159,14 @@ class ParticipanteNavigation {
             return estaAtivo;
         });
 
-        // Renderizar botões com botão HOME no início
-        navContainer.innerHTML = `
-            <button class="nav-btn nav-home" data-module="boas-vindas" title="Voltar para Início">
-                🏠 Home
-            </button>
-        ` + modulosVisiveis.map(modulo => `
+        // Renderizar botões sem botão HOME (Home agora está no header)
+        navContainer.innerHTML = modulosVisiveis.map(modulo => `
             <button class="nav-btn ${modulo.id === 'extrato' ? 'active' : ''}" data-module="${modulo.id}">
                 ${modulo.icon} ${modulo.label}
             </button>
         `).join('');
 
-        console.log(`[PARTICIPANTE-NAV] ✅ Menu renderizado com ${modulosVisiveis.length} módulos de ${todosModulos.length} possíveis + Botão Home`);
+        console.log(`[PARTICIPANTE-NAV] ✅ Menu renderizado com ${modulosVisiveis.length} módulos de ${todosModulos.length} possíveis`);
 
         // Re-adicionar event listeners
         document.querySelectorAll('.nav-btn').forEach(btn => {
@@ -255,12 +251,6 @@ class ParticipanteNavigation {
                 btn.classList.add('active');
             }
         });
-
-        // Se não for boas-vindas, manter botão Home visível
-        if (modulo !== 'boas-vindas') {
-            const homeBtn = document.querySelector('.nav-home');
-            if (homeBtn) homeBtn.classList.add('active-home');
-        }
 
         // Carregar conteúdo
         const container = document.getElementById('moduleContainer');
