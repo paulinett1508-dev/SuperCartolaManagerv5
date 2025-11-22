@@ -128,7 +128,7 @@ class ParticipanteNavigation {
         const todosModulos = [
             { id: 'extrato', icon: '💰', label: 'Extrato', ativo: true },
             { id: 'ranking', icon: '📊', label: 'Ranking Geral', ativo: true },
-            { id: 'rodadas', icon: '🎯', label: 'Ranking das Rodadas', ativo: true },
+            { id: 'rodadas', icon: '🎯', label: 'Ranking Rodadas', ativo: true },
             { id: 'top10', icon: '🏆', label: 'Top 10', key: 'top10' },
             { id: 'melhor-mes', icon: '📅', label: 'Melhor do Mês', key: 'melhorMes' },
             { id: 'pontos-corridos', icon: '⚽', label: 'Pontos Corridos', key: 'pontosCorridos' },
