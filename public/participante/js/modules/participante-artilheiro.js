@@ -28,9 +28,16 @@ async function inicializarArtilheiroParticipante(ligaId, timeId) {
 export async function init() {
     console.log('🏆 [PARTICIPANTE-ARTILHEIRO] init() chamado via export');
     
-    const participanteData = participanteAuth?.getDados();
+    if (!window.participanteAuth) {
+        console.error('❌ [PARTICIPANTE-ARTILHEIRO] participanteAuth não disponível');
+        throw new Error('Sistema de autenticação não carregado');
+    }
     
-    if (!participanteData) {
+    const participanteData = participanteAuth.getDados();
+    console.log('🏆 [PARTICIPANTE-ARTILHEIRO] Dados do participante:', participanteData);
+    
+    if (!participanteData || !participanteData.ligaId || !participanteData.timeId) {
+        console.error('❌ [PARTICIPANTE-ARTILHEIRO] Dados inválidos:', participanteData);
         throw new Error('Dados do participante não disponíveis');
     }
 

@@ -484,10 +484,15 @@ class ParticipanteNavigation {
                 break;
 
             case 'artilheiro':
+                console.log('[PARTICIPANTE-NAV] 🏆 Inicializando módulo Artilheiro...');
+                console.log('[PARTICIPANTE-NAV] Função disponível?', typeof window.inicializarArtilheiroParticipante);
+                
                 if (window.inicializarArtilheiroParticipante) {
+                    console.log('[PARTICIPANTE-NAV] Chamando inicializarArtilheiroParticipante com:', { ligaId, timeId });
                     await window.inicializarArtilheiroParticipante(ligaId, timeId);
                 } else {
-                    console.error('[PARTICIPANTE-NAV] Função inicializarArtilheiroParticipante não encontrada');
+                    console.error('[PARTICIPANTE-NAV] ❌ Função inicializarArtilheiroParticipante não encontrada');
+                    console.error('[PARTICIPANTE-NAV] Funções disponíveis no window:', Object.keys(window).filter(k => k.includes('Artilheiro')));
                 }
                 break;
 
