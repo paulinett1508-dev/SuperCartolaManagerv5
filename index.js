@@ -91,11 +91,6 @@ app.use((req, res, next) => {
     return next();
   }
 
-  // EXCEÇÃO: Página de login/index do participante sempre acessível
-  if (req.url === '/participante/index.html' || req.url === '/participante/') {
-    return next();
-  }
-
   // Rotas de PARTICIPANTE: verificar autenticação
   if (isRotaParticipante(req.url)) {
     return verificarAutenticacaoParticipante(req, res, next);
@@ -106,16 +101,7 @@ app.use((req, res, next) => {
 });
 
 // Servir arquivos estáticos da pasta public
-app.use(express.static(path.join(process.cwd(), "public"), {
-  maxAge: 0, // Sem cache em desenvolvimento
-  etag: false,
-  setHeaders: (res, filepath) => {
-    // Adiciona headers corretos para HTML
-    if (filepath.endsWith('.html')) {
-      res.setHeader('Content-Type', 'text/html; charset=utf-8');
-    }
-  }
-}));
+app.use(express.static(path.join(process.cwd(), "public")));
 
 // ⚡ MIDDLEWARE DE LOGGING OTIMIZADO (só em desenvolvimento)
 if (process.env.NODE_ENV !== "production") {

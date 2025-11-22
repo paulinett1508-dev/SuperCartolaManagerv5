@@ -1,3 +1,4 @@
+
 // PARTICIPANTE NAVIGATION - Sistema de Navegação
 
 console.log('[PARTICIPANTE-NAV] Carregando sistema de navegação...');
@@ -38,7 +39,7 @@ class ParticipanteNavigation {
 
     async aguardarDadosParticipante() {
         console.log('[PARTICIPANTE-NAV] Aguardando dados do participante...');
-
+        
         // Tentar até 10x com intervalo de 500ms (máximo 5 segundos)
         for (let i = 0; i < 10; i++) {
             const dados = participanteAuth.getDados();
@@ -49,7 +50,7 @@ class ParticipanteNavigation {
             console.log(`[PARTICIPANTE-NAV] Tentativa ${i + 1}/10 - Aguardando dados...`);
             await new Promise(resolve => setTimeout(resolve, 500));
         }
-
+        
         console.warn('[PARTICIPANTE-NAV] ⚠️ Timeout aguardando dados do participante');
         return null;
     }
@@ -143,16 +144,16 @@ class ParticipanteNavigation {
                 console.log(`[PARTICIPANTE-NAV] ✅ ${modulo.label} - sempre ativo`);
                 return true;
             }
-
+            
             // Módulos condicionais: verificar se estão ativos
             const estaAtivo = this.modulosAtivos && this.modulosAtivos[modulo.key];
             console.log(`[PARTICIPANTE-NAV] ${estaAtivo ? '✅' : '❌'} ${modulo.label} - Chave: "${modulo.key}" = ${estaAtivo} (tipo: ${typeof estaAtivo})`);
-
+            
             // Debug adicional
             if (modulo.key && this.modulosAtivos) {
                 console.log(`[PARTICIPANTE-NAV] 🔎 Verificando this.modulosAtivos["${modulo.key}"] =`, this.modulosAtivos[modulo.key]);
             }
-
+            
             return estaAtivo;
         });
 
@@ -198,7 +199,7 @@ class ParticipanteNavigation {
 
         // Carregar conteúdo
         const container = document.getElementById('moduleContainer');
-
+        
         // Loading
         container.innerHTML = `
             <div class="loading-participante">
@@ -210,7 +211,7 @@ class ParticipanteNavigation {
         try {
             // ✅ 1. CARREGAR HTML PRIMEIRO
             const response = await fetch(this.modulos[modulo]);
-
+            
             if (!response.ok) {
                 throw new Error(`HTTP ${response.status}`);
             }
@@ -231,9 +232,9 @@ class ParticipanteNavigation {
 
         } catch (error) {
             console.error(`[PARTICIPANTE-NAV] Erro ao carregar ${modulo}:`, error);
-
+            
             const isNetworkError = error.message.includes('fetch') || !navigator.onLine;
-
+            
             container.innerHTML = `
                 <div style="text-align: center; padding: 40px; color: #ef4444;">
                     <h3>❌ ${isNetworkError ? 'Erro de Conexão' : 'Erro ao Carregar Módulo'}</h3>
@@ -258,7 +259,7 @@ class ParticipanteNavigation {
 
     async carregarModuloJS(modulo) {
         console.log(`[PARTICIPANTE-NAV] 📦 Importando módulo JS: ${modulo}`);
-
+        
         const modulosPaths = {
             'extrato': '/participante/js/modules/participante-extrato.js',
             'ranking': '/participante/js/modules/participante-ranking.js',
@@ -337,7 +338,7 @@ class ParticipanteNavigation {
                     }
                 }
                 break;
-
+            
             case 'ranking':
                 if (window.inicializarRankingParticipante) {
                     await window.inicializarRankingParticipante(ligaId, timeId);
@@ -345,7 +346,7 @@ class ParticipanteNavigation {
                     console.error('[PARTICIPANTE-NAV] Função inicializarRankingParticipante não encontrada');
                 }
                 break;
-
+            
             case 'rodadas':
                 if (window.inicializarRodadasParticipante) {
                     await window.inicializarRodadasParticipante(ligaId, timeId);
@@ -353,7 +354,7 @@ class ParticipanteNavigation {
                     console.error('[PARTICIPANTE-NAV] Função inicializarRodadasParticipante não encontrada');
                 }
                 break;
-
+            
             case 'top10':
                 if (window.inicializarTop10Participante) {
                     await window.inicializarTop10Participante(ligaId, timeId);
@@ -361,7 +362,7 @@ class ParticipanteNavigation {
                     console.error('[PARTICIPANTE-NAV] Função inicializarTop10Participante não encontrada');
                 }
                 break;
-
+            
             case 'melhor-mes':
                 if (window.inicializarMelhorMesParticipante) {
                     await window.inicializarMelhorMesParticipante(ligaId, timeId);
@@ -369,7 +370,7 @@ class ParticipanteNavigation {
                     console.error('[PARTICIPANTE-NAV] Função inicializarMelhorMesParticipante não encontrada');
                 }
                 break;
-
+            
             case 'pontos-corridos':
                 if (window.inicializarPontosCorridosParticipante) {
                     await window.inicializarPontosCorridosParticipante(ligaId, timeId);
@@ -377,7 +378,7 @@ class ParticipanteNavigation {
                     console.error('[PARTICIPANTE-NAV] Função inicializarPontosCorridosParticipante não encontrada');
                 }
                 break;
-
+            
             case 'mata-mata':
                 if (window.inicializarMataMataParticipante) {
                     await window.inicializarMataMataParticipante(ligaId, timeId);
@@ -385,7 +386,7 @@ class ParticipanteNavigation {
                     console.error('[PARTICIPANTE-NAV] Função inicializarMataMataParticipante não encontrada');
                 }
                 break;
-
+            
             case 'artilheiro':
                 if (window.inicializarArtilheiroParticipante) {
                     await window.inicializarArtilheiroParticipante(ligaId, timeId);
@@ -393,7 +394,7 @@ class ParticipanteNavigation {
                     console.error('[PARTICIPANTE-NAV] Função inicializarArtilheiroParticipante não encontrada');
                 }
                 break;
-
+            
             case 'luva-ouro':
                 if (window.inicializarLuvaOuroParticipante) {
                     await window.inicializarLuvaOuroParticipante(ligaId, timeId);
@@ -401,7 +402,7 @@ class ParticipanteNavigation {
                     console.error('[PARTICIPANTE-NAV] Função inicializarLuvaOuroParticipante não encontrada');
                 }
                 break;
-
+            
             default:
                 console.warn(`[PARTICIPANTE-NAV] Módulo ${modulo} não tem inicializador definido`);
         }

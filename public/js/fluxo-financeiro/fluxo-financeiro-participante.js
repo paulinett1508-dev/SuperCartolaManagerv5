@@ -125,83 +125,76 @@ class FluxoFinanceiroParticipante {
     }
 
     // ===== MÉTODO PARA RETORNAR DADOS SEM RENDERIZAÇÃO =====
-    async buscarExtratoCalculado(ligaId, timeId, rodadaFinal, forceRefresh) {
-        if (rodadaFinal === undefined) {
-            rodadaFinal = null;
-        }
-        if (forceRefresh === undefined) {
-            forceRefresh = false;
-        }
-
-        console.log('[FLUXO-PARTICIPANTE] Buscando extrato');
-        console.log('[FLUXO-PARTICIPANTE] ligaId:', ligaId);
-        console.log('[FLUXO-PARTICIPANTE] timeId:', timeId);
-        console.log('[FLUXO-PARTICIPANTE] rodadaFinal:', rodadaFinal);
-        console.log('[FLUXO-PARTICIPANTE] forceRefresh:', forceRefresh);
+    async buscarExtratoCalculado(ligaId, timeId, rodadaAtualParam = null) {
+        console.log('[FLUXO-PARTICIPANTE] Buscando dados calculados...');
 
         if (!this.isInitialized) {
             throw new Error('Módulo não inicializado. Chame inicializar() primeiro.');
         }
 
         try {
-            let rodadaAtual = rodadaFinal;
+            // Usar rodada fornecida ou buscar do mercado
+            let rodadaAtual = rodadaAtualParam;
 
             if (!rodadaAtual) {
                 console.log('[FLUXO-PARTICIPANTE] Buscando rodada atual do mercado...');
                 const mercadoRes = await fetch('/api/cartola/mercado-status');
-                const mercadoData = await mercadoRes.json();
-                rodadaAtual = mercadoData.rodada_atual || 1;
-
-                const mercadoAberto = mercadoData.mercado_aberto || false;
+                const mercadoStatus = mercadoRes.ok ? await mercadoRes.json() : { rodada_atual: 1, mercado_aberto: false };
+                rodadaAtual = mercadoStatus.rodada_atual || 1;
+                
+                // ✅ SE MERCADO ABERTO, USAR RODADA ANTERIOR
+                const mercadoAberto = mercadoStatus.mercado_aberto || false;
                 if (mercadoAberto) {
                     rodadaAtual = Math.max(1, rodadaAtual - 1);
-                    console.log('[FLUXO-PARTICIPANTE] Mercado ABERTO - usando rodada:', rodadaAtual);
+                    console.log(`[FLUXO-PARTICIPANTE] ⚠️ Mercado ABERTO detectado - usando última rodada completa: ${rodadaAtual}`);
                 }
             }
 
-            console.log('[FLUXO-PARTICIPANTE] Usando rodada:', rodadaAtual);
+            console.log(`[FLUXO-PARTICIPANTE] 📅 Usando rodada para cálculo: ${rodadaAtual}`);
 
+            // Tentar buscar do cache do backend (API)
+            const cacheKey = `extrato_${ligaId}_${timeId}_${rodadaAtual}`;
+            
             try {
-                console.log('[FLUXO-PARTICIPANTE] Buscando cache via API...');
-                const cacheUrl = '/api/extrato-cache/' + ligaId + '/times/' + timeId + '/cache?rodadaAtual=' + rodadaAtual;
-                const cacheRes = await fetch(cacheUrl);
-
+                console.log('[FLUXO-PARTICIPANTE] 🔍 Buscando cache via API...');
+                const cacheRes = await fetch(`/api/extrato-cache/${ligaId}/times/${timeId}/cache?rodadaAtual=${rodadaAtual}`);
+                
                 if (cacheRes.ok) {
                     const cacheData = await cacheRes.json();
                     if (cacheData && cacheData.cached && cacheData.data) {
-                        console.log('[FLUXO-PARTICIPANTE] Cache encontrado');
+                        console.log('[FLUXO-PARTICIPANTE] ✅ Cache válido encontrado na API');
                         return cacheData.data;
                     }
                 }
             } catch (cacheError) {
-                console.log('[FLUXO-PARTICIPANTE] Cache nao encontrado');
+                console.log('[FLUXO-PARTICIPANTE] ⚠️ Cache não encontrado, calculando...');
             }
 
-            console.log('[FLUXO-PARTICIPANTE] Calculando extrato...');
+            // Se não encontrou cache válido, calcular
+            console.log('[FLUXO-PARTICIPANTE] 🧮 Calculando extrato...');
             const extratoCompleto = await this.core.calcularExtratoFinanceiro(timeId, rodadaAtual);
 
+            // Salvar no cache via API
             try {
-                console.log('[FLUXO-PARTICIPANTE] Salvando no cache...');
-                const saveUrl = '/api/extrato-cache/' + ligaId + '/times/' + timeId + '/cache';
-                const payload = {
-                    extrato: extratoCompleto,
-                    ultimaRodadaCalculada: rodadaAtual,
-                    motivoRecalculo: 'participante_visualizacao'
-                };
-                await fetch(saveUrl, {
+                console.log('[FLUXO-PARTICIPANTE] 💾 Salvando extrato no cache...');
+                await fetch(`/api/extrato-cache/${ligaId}/times/${timeId}/cache`, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify(payload)
+                    body: JSON.stringify({
+                        extrato: extratoCompleto,
+                        ultimaRodadaCalculada: rodadaAtual,
+                        motivoRecalculo: 'participante_visualizacao'
+                    })
                 });
-                console.log('[FLUXO-PARTICIPANTE] Cache salvo');
+                console.log('[FLUXO-PARTICIPANTE] ✅ Extrato salvo no cache');
             } catch (saveError) {
-                console.warn('[FLUXO-PARTICIPANTE] Erro ao salvar cache');
+                console.warn('[FLUXO-PARTICIPANTE] ⚠️ Erro ao salvar cache:', saveError.message);
             }
 
             return extratoCompleto;
 
         } catch (error) {
-            console.error('[FLUXO-PARTICIPANTE] Erro:', error);
+            console.error('[FLUXO-PARTICIPANTE] Erro ao buscar extrato:', error);
             throw error;
         }
     }

@@ -66,18 +66,6 @@ export async function inicializarExtratoParticipante({ participante, ligaId, tim
         // Buscar extrato calculado com última rodada completa
         const extratoData = await fluxoFinanceiroParticipante.buscarExtratoCalculado(ligaId, timeId, ultimaRodadaCompleta);
 
-        console.log('[EXTRATO-PARTICIPANTE] 📊 Dados recebidos:', {
-            transacoes: extratoData.transacoes?.length || 0,
-            resumo: extratoData.resumo,
-            temDados: !!extratoData.transacoes
-        });
-
-        if (!extratoData.transacoes || extratoData.transacoes.length === 0) {
-            console.error('[EXTRATO-PARTICIPANTE] ❌ Nenhuma transação encontrada!');
-            mostrarErro('Nenhum dado disponível para este time. Verifique se o time está cadastrado na liga.');
-            return;
-        }
-
         console.log('[EXTRATO-PARTICIPANTE] 🎨 Renderizando UI personalizada...');
 
         // Renderizar extrato
@@ -123,12 +111,9 @@ window.forcarRefreshExtratoParticipante = async function() {
     console.log('[EXTRATO-PARTICIPANTE] 🔄 Forçando atualização dos dados...');
     
     if (!PARTICIPANTE_IDS.ligaId || !PARTICIPANTE_IDS.timeId) {
-        console.error('[EXTRATO-PARTICIPANTE] ❌ IDs não disponíveis:', { ligaId: PARTICIPANTE_IDS.ligaId, timeId: PARTICIPANTE_IDS.timeId });
-        mostrarErro('Dados de identificação não disponíveis. Recarregue a página.');
+        console.error('[EXTRATO-PARTICIPANTE] IDs não disponíveis para refresh');
         return;
     }
-
-    console.log('[EXTRATO-PARTICIPANTE] 🔍 Usando IDs:', { ligaId: PARTICIPANTE_IDS.ligaId, timeId: PARTICIPANTE_IDS.timeId });
 
     try {
         // Mostrar loading
@@ -137,7 +122,6 @@ window.forcarRefreshExtratoParticipante = async function() {
         }
 
         // Invalidar cache via API
-        console.log('[EXTRATO-PARTICIPANTE] 🗑️ Invalidando cache...');
         const response = await fetch(
             `/api/extrato-cache/${PARTICIPANTE_IDS.ligaId}/times/${PARTICIPANTE_IDS.timeId}/cache`,
             { method: 'DELETE' }
@@ -145,8 +129,6 @@ window.forcarRefreshExtratoParticipante = async function() {
 
         if (response.ok) {
             console.log('[EXTRATO-PARTICIPANTE] ✅ Cache invalidado');
-        } else {
-            console.warn('[EXTRATO-PARTICIPANTE] ⚠️ Erro ao invalidar cache:', response.status);
         }
 
         // Recarregar extrato
@@ -154,21 +136,19 @@ window.forcarRefreshExtratoParticipante = async function() {
         const { renderizarExtratoParticipante } = await import('./participante-extrato-ui.js');
 
         // Buscar rodada atual
-        console.log('[EXTRATO-PARTICIPANTE] 📅 Buscando rodada atual...');
         const resRodada = await fetch('/api/cartola/mercado/status');
         const statusData = await resRodada.json();
         const rodadaAtual = statusData.rodada_atual || 1;
         const mercadoAberto = statusData.mercado_aberto || false;
         const ultimaRodadaCompleta = mercadoAberto ? Math.max(1, rodadaAtual - 1) : rodadaAtual;
 
-        console.log(`[EXTRATO-PARTICIPANTE] 📊 Recalculando até rodada ${ultimaRodadaCompleta} (ligaId: ${PARTICIPANTE_IDS.ligaId})`);
+        console.log(`[EXTRATO-PARTICIPANTE] 📊 Recalculando até rodada ${ultimaRodadaCompleta}`);
 
-        // Forçar recálculo com forceRefresh = true
+        // Forçar recálculo
         const extratoData = await fluxoFinanceiroParticipante.buscarExtratoCalculado(
             PARTICIPANTE_IDS.ligaId, 
             PARTICIPANTE_IDS.timeId, 
-            ultimaRodadaCompleta,
-            true // forçar recálculo
+            ultimaRodadaCompleta
         );
 
         // Renderizar
