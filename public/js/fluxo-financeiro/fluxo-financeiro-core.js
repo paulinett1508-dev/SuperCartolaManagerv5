@@ -62,7 +62,7 @@ export class FluxoFinanceiroCore {
                 const mercadoData = await mercadoResponse.json();
                 const mercadoAberto = mercadoData.mercado_aberto || mercadoData.status_mercado === 1;
                 const rodadaAtualMercado = mercadoData.rodada_atual;
-                
+
                 // ✅ SE MERCADO ABERTO E RECEBEU A RODADA ATUAL, USAR ANTERIOR
                 if (mercadoAberto && ultimaRodadaCompleta === rodadaAtualMercado) {
                     rodadaParaCalculo = Math.max(1, rodadaAtualMercado - 1);
@@ -73,12 +73,21 @@ export class FluxoFinanceiroCore {
             console.warn('[FLUXO-CORE] Erro ao verificar status do mercado:', error);
         }
 
-        // ✅ SE NÃO FORÇAR RECÁLCULO, SEMPRE USAR CACHE (sem verificar mudança de rodada)
+        // ✅ SE NÃO FORÇAR RECÁLCULO, VERIFICAR SE CACHE ESTÁ COMPLETO
         if (!forcarRecalculo) {
             const cacheExistente = await this._verificarEUsarCache(ligaId, timeId, rodadaParaCalculo);
             if (cacheExistente) {
-                console.log(`[FLUXO-CORE] 💾 Usando extrato em cache para time ${timeId} (última atualização: ${new Date(cacheExistente.updatedAt || Date.now()).toLocaleString()})`);
-                return cacheExistente;
+                // ✅ VALIDAR SE CACHE TEM TODAS AS RODADAS COM DADOS
+                const rodadasComDados = cacheExistente.rodadas.filter(r => r.totalTimes > 0).length;
+
+                if (rodadasComDados < rodadaParaCalculo) {
+                    console.log(`[FLUXO-CORE] ⚠️ Cache desatualizado: ${rodadasComDados}/${rodadaParaCalculo} rodadas com dados - recalculando`);
+                    // Invalidar cache
+                    await fetch(`/api/extrato-cache/${ligaId}/times/${timeId}/cache`, { method: 'DELETE' });
+                } else {
+                    console.log(`[FLUXO-CORE] 💾 Usando extrato em cache para time ${timeId} (última atualização: ${new Date(cacheExistente.updatedAt || Date.now()).toLocaleString()})`);
+                    return cacheExistente;
+                }
             }
         }
 
@@ -191,19 +200,19 @@ export class FluxoFinanceiroCore {
             if (!response.ok) return true; // Se não tem cache, precisa calcular
 
             const data = await response.json();
-            
+
             if (!data.cached) return true;
 
             // Buscar rodada atual do mercado
             const mercadoResponse = await fetch('/api/cartola/mercado-status');
             if (!mercadoResponse.ok) return false;
-            
+
             const mercadoData = await mercadoResponse.json();
             const rodadaAtualMercado = mercadoData.rodada_atual;
 
             // Se a rodada atual é maior que a última calculada, precisa recalcular
             const precisaRecalcular = rodadaAtualMercado > data.ultimaRodadaCalculada;
-            
+
             if (precisaRecalcular) {
                 console.log(`[FLUXO-CORE] 🔄 Nova rodada detectada (${rodadaAtualMercado} > ${data.ultimaRodadaCalculada}) - recálculo necessário`);
             }
@@ -230,10 +239,10 @@ export class FluxoFinanceiroCore {
 
             // ✅ RETORNAR CACHE SEM VERIFICAR EXPIRAÇÃO (cache infinito)
             console.log(`[FLUXO-CORE] 💾 Cache encontrado (última atualização: ${new Date(data.updatedAt).toLocaleString()})`);
-            
+
             // Adicionar timestamp de atualização ao objeto retornado
             data.data.updatedAt = data.updatedAt;
-            
+
             return data.data;
         } catch (error) {
             console.warn("[FLUXO-CORE] Erro ao verificar cache:", error);
@@ -662,16 +671,16 @@ export class FluxoFinanceiroCore {
 window.forcarRefreshExtrato = async function (timeId) {
     try {
         console.log(`[FLUXO] 🔄 Forçando atualização manual do extrato para time ${timeId}`);
-        
+
         // Mostrar loading
         if (window.fluxoFinanceiroUI) {
             window.fluxoFinanceiroUI.renderizarLoading("Atualizando dados...");
         }
-        
+
         // Invalidar cache
         const ligaId = window.obterLigaId();
         await window.invalidarCacheTime(ligaId, timeId);
-        
+
         // Recalcular com força
         if (window.calcularEExibirExtrato) {
             await window.calcularEExibirExtrato(timeId);
@@ -727,7 +736,7 @@ window.forcarRecalculoExtrato = async function (timeId) {
     try {
         const ligaId = window.obterLigaId();
         await window.invalidarCacheTime(ligaId, timeId);
-        
+
         if (window.selecionarParticipante) {
             await window.selecionarParticipante(timeId);
             console.log("[FLUXO] Extrato recalculado com sucesso");
