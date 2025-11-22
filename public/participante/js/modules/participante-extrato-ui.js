@@ -534,18 +534,62 @@ function mostrarPopupDetalhamento(titulo, detalhes, cor) {
         detalhes.camposEditaveis;
 
     const html = `
+        <style>
+            @media (max-width: 768px) {
+                #popupDetalhamento .modal-content {
+                    max-width: 95vw !important;
+                    max-height: 85vh !important;
+                    border-radius: 12px !important;
+                }
+                #popupDetalhamento .modal-header {
+                    padding: 16px !important;
+                }
+                #popupDetalhamento .modal-header h3 {
+                    font-size: 14px !important;
+                }
+                #popupDetalhamento .modal-body {
+                    padding: 16px !important;
+                }
+                #popupDetalhamento .detail-item .detail-header {
+                    flex-direction: column !important;
+                    align-items: flex-start !important;
+                    gap: 4px !important;
+                }
+                #popupDetalhamento .detail-label {
+                    font-size: 12px !important;
+                }
+                #popupDetalhamento .detail-value {
+                    font-size: 14px !important;
+                }
+                #popupDetalhamento .detail-rodadas {
+                    font-size: 10px !important;
+                    word-wrap: break-word !important;
+                    overflow-wrap: break-word !important;
+                    line-height: 1.6 !important;
+                }
+                #popupDetalhamento .total-section {
+                    padding: 12px !important;
+                }
+                #popupDetalhamento .total-label {
+                    font-size: 13px !important;
+                }
+                #popupDetalhamento .total-value {
+                    font-size: 16px !important;
+                }
+            }
+        </style>
         <div id="popupDetalhamento" style="position: fixed; top: 0; left: 0; width: 100%; height: 100%;
              background: rgba(0,0,0,0.8); display: flex; align-items: center; justify-content: center;
              z-index: 10000; backdrop-filter: blur(4px); padding: 20px; box-sizing: border-box;"
              onclick="this.remove()">
-            <div style="background: #1a1a1a; border-radius: 16px; max-width: 500px; width: 100%;
+            <div class="modal-content" style="background: #1a1a1a; border-radius: 16px; max-width: 500px; width: 100%;
                  max-height: 90vh; overflow-y: auto; box-shadow: 0 20px 60px rgba(0,0,0,0.7);
                  border: 2px solid ${cor};" onclick="event.stopPropagation()">
 
                 <!-- CABEÇALHO -->
-                <div style="background: ${cor}; padding: 20px; border-radius: 14px 14px 0 0;
+                <div class="modal-header" style="background: ${cor}; padding: 20px; border-radius: 14px 14px 0 0;
                      display: flex; justify-content: space-between; align-items: center;">
-                    <h3 style="margin: 0; color: white; font-size: 16px; font-weight: 700;">${titulo}</h3>
+                    <h3 style="margin: 0; color: white; font-size: 16px; font-weight: 700; flex: 1; padding-right: 10px;">${titulo}</h3>
                     <button onclick="document.getElementById('popupDetalhamento').remove()"
                             style="background: rgba(255,255,255,0.2); border: none; color: white;
                             width: 32px; height: 32px; border-radius: 50%; cursor: pointer;
@@ -554,58 +598,58 @@ function mostrarPopupDetalhamento(titulo, detalhes, cor) {
                 </div>
 
                 <!-- CONTEÚDO -->
-                <div style="padding: 20px;">
+                <div class="modal-body" style="padding: 20px;">
                     ${detalhes.bonusOnus !== 0 ? `
-                    <div style="margin-bottom: 16px; padding-bottom: 16px; border-bottom: 1px solid rgba(255,255,255,0.1);">
-                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">
-                            <span style="font-weight: 700; color: #fff; font-size: 13px;">💰 Bônus/Ônus</span>
-                            <span style="font-weight: 700; font-size: 15px; color: ${cor};">
+                    <div class="detail-item" style="margin-bottom: 16px; padding-bottom: 16px; border-bottom: 1px solid rgba(255,255,255,0.1);">
+                        <div class="detail-header" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">
+                            <span class="detail-label" style="font-weight: 700; color: #fff; font-size: 13px;">💰 Bônus/Ônus</span>
+                            <span class="detail-value" style="font-weight: 700; font-size: 15px; color: ${cor};">
                                 R$ ${formatarMoeda(detalhes.bonusOnus)}
                             </span>
                         </div>
-                        <div style="font-size: 11px; color: #999; line-height: 1.5;">
+                        <div class="detail-rodadas" style="font-size: 11px; color: #999; line-height: 1.5; word-wrap: break-word; overflow-wrap: break-word;">
                             ${detalhes.rodadas.bonusOnus.length} rodada(s): ${formatarRodadas(detalhes.rodadas.bonusOnus)}
                         </div>
                     </div>
                     ` : ''}
 
                     ${detalhes.pontosCorridos !== 0 ? `
-                    <div style="margin-bottom: 16px; padding-bottom: 16px; border-bottom: 1px solid rgba(255,255,255,0.1);">
-                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">
-                            <span style="font-weight: 700; color: #fff; font-size: 13px;">⚽ Pontos Corridos</span>
-                            <span style="font-weight: 700; font-size: 15px; color: ${cor};">
+                    <div class="detail-item" style="margin-bottom: 16px; padding-bottom: 16px; border-bottom: 1px solid rgba(255,255,255,0.1);">
+                        <div class="detail-header" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">
+                            <span class="detail-label" style="font-weight: 700; color: #fff; font-size: 13px;">⚽ Pontos Corridos</span>
+                            <span class="detail-value" style="font-weight: 700; font-size: 15px; color: ${cor};">
                                 R$ ${formatarMoeda(detalhes.pontosCorridos)}
                             </span>
                         </div>
-                        <div style="font-size: 11px; color: #999; line-height: 1.5;">
+                        <div class="detail-rodadas" style="font-size: 11px; color: #999; line-height: 1.5; word-wrap: break-word; overflow-wrap: break-word;">
                             ${detalhes.rodadas.pontosCorridos.length} rodada(s): ${formatarRodadas(detalhes.rodadas.pontosCorridos)}
                         </div>
                     </div>
                     ` : ''}
 
                     ${detalhes.mataMata !== 0 ? `
-                    <div style="margin-bottom: 16px; padding-bottom: 16px; border-bottom: 1px solid rgba(255,255,255,0.1);">
-                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">
-                            <span style="font-weight: 700; color: #fff; font-size: 13px;">🏆 Mata-Mata</span>
-                            <span style="font-weight: 700; font-size: 15px; color: ${cor};">
+                    <div class="detail-item" style="margin-bottom: 16px; padding-bottom: 16px; border-bottom: 1px solid rgba(255,255,255,0.1);">
+                        <div class="detail-header" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">
+                            <span class="detail-label" style="font-weight: 700; color: #fff; font-size: 13px;">🏆 Mata-Mata</span>
+                            <span class="detail-value" style="font-weight: 700; font-size: 15px; color: ${cor};">
                                 R$ ${formatarMoeda(detalhes.mataMata)}
                             </span>
                         </div>
-                        <div style="font-size: 11px; color: #999; line-height: 1.5;">
+                        <div class="detail-rodadas" style="font-size: 11px; color: #999; line-height: 1.5; word-wrap: break-word; overflow-wrap: break-word;">
                             ${detalhes.rodadas.mataMata.length} rodada(s): ${formatarRodadas(detalhes.rodadas.mataMata)}
                         </div>
                     </div>
                     ` : ''}
 
                     ${detalhes.top10 !== 0 ? `
-                    <div style="margin-bottom: 16px; padding-bottom: 16px; border-bottom: 1px solid rgba(255,255,255,0.1);">
-                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">
-                            <span style="font-weight: 700; color: #fff; font-size: 13px;">🔝 TOP 10</span>
-                            <span style="font-weight: 700; font-size: 15px; color: ${cor};">
+                    <div class="detail-item" style="margin-bottom: 16px; padding-bottom: 16px; border-bottom: 1px solid rgba(255,255,255,0.1);">
+                        <div class="detail-header" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">
+                            <span class="detail-label" style="font-weight: 700; color: #fff; font-size: 13px;">🔝 TOP 10</span>
+                            <span class="detail-value" style="font-weight: 700; font-size: 15px; color: ${cor};">
                                 R$ ${formatarMoeda(detalhes.top10)}
                             </span>
                         </div>
-                        <div style="font-size: 11px; color: #999; line-height: 1.5;">
+                        <div class="detail-rodadas" style="font-size: 11px; color: #999; line-height: 1.5; word-wrap: break-word; overflow-wrap: break-word;">
                             ${detalhes.rodadas.top10.length} rodada(s): ${formatarRodadas(detalhes.rodadas.top10)}
                         </div>
                     </div>
@@ -623,10 +667,10 @@ function mostrarPopupDetalhamento(titulo, detalhes, cor) {
                     ` : ''}
 
                     <!-- TOTAL -->
-                    <div style="background: ${cor}15; padding: 14px; border-radius: 8px; border: 2px solid ${cor};">
+                    <div class="total-section" style="background: ${cor}15; padding: 14px; border-radius: 8px; border: 2px solid ${cor};">
                         <div style="display: flex; justify-content: space-between; align-items: center;">
-                            <span style="font-weight: 700; color: #fff; font-size: 15px;">💵 TOTAL</span>
-                            <span style="font-weight: 700; font-size: 18px; color: ${cor};">
+                            <span class="total-label" style="font-weight: 700; color: #fff; font-size: 15px;">💵 TOTAL</span>
+                            <span class="total-value" style="font-weight: 700; font-size: 18px; color: ${cor};">
                                 R$ ${formatarMoeda(total)}
                             </span>
                         </div>
