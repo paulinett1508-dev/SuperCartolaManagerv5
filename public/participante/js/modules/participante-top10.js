@@ -1,4 +1,3 @@
-
 // PARTICIPANTE TOP 10 - Módulo TOP 10
 
 console.log('[PARTICIPANTE-TOP10] Carregando módulo...');
@@ -8,13 +7,13 @@ window.inicializarTop10Participante = async function(ligaId, timeId) {
 
     try {
         const response = await fetch(`/api/ligas/${ligaId}/top10`);
-        
+
         if (!response.ok) {
             throw new Error('Erro ao buscar TOP 10');
         }
 
         const dados = await response.json();
-        
+
         // CORREÇÃO: Validar e extrair array de times
         let times = [];
         if (Array.isArray(dados)) {
@@ -25,7 +24,7 @@ window.inicializarTop10Participante = async function(ligaId, timeId) {
             console.warn('[PARTICIPANTE-TOP10] Resposta inesperada:', dados);
             times = Object.values(dados).filter(item => item && typeof item === 'object');
         }
-        
+
         console.log(`[PARTICIPANTE-TOP10] Times processados: ${times.length}`);
         renderizarTop10(times, timeId);
 
@@ -42,22 +41,22 @@ window.mostrarPremiacaoTop10 = function(posicao) {
         2: { titulo: '🥈 2º LUGAR', premio: 'R$ 700,00' },
         3: { titulo: '🥉 3º LUGAR', premio: 'R$ 400,00' }
     };
-    
+
     if (!premiacoes[posicao]) return;
-    
+
     const { titulo, premio } = premiacoes[posicao];
     alert(`${titulo}\n${premio}`);
 };
 
 function renderizarTop10(times, meuTimeId) {
     const container = document.getElementById('top10Grid');
-    
+
     // CORREÇÃO: Validação mais robusta
     if (!container) {
         console.error('[PARTICIPANTE-TOP10] Container não encontrado');
         return;
     }
-    
+
     if (!Array.isArray(times) || times.length === 0) {
         console.warn('[PARTICIPANTE-TOP10] Dados inválidos ou vazios:', times);
         container.innerHTML = '<p style="text-align: center; color: #999; padding: 40px;">Nenhum dado disponível</p>';
@@ -71,7 +70,7 @@ function renderizarTop10(times, meuTimeId) {
         const posicao = index + 1;
         let badgeClass = '';
         let badge = '';
-        
+
         if (posicao === 1) {
             badgeClass = 'zona-mito';
             badge = '<div class="badge-especial badge-mito">MITO 🔥</div>';
@@ -83,17 +82,17 @@ function renderizarTop10(times, meuTimeId) {
         } else if (posicao <= 6) {
             badgeClass = 'zona-top10';
         }
-        
+
         const podiumClass = posicao <= 3 ? `podium-${posicao}` : '';
         const meuTime = time.time_id === meuTimeId ? 'meu-time' : '';
         const premiacaoClick = posicao <= 3 ? `onclick="window.mostrarPremiacaoTop10(${posicao})"` : '';
         const cursorStyle = posicao <= 3 ? 'style="cursor: pointer;"' : '';
-        
+
         const pontos = Number(time.pontos || 0).toLocaleString('pt-BR', {
             minimumFractionDigits: 2,
             maximumFractionDigits: 2
         });
-        
+
         return `
             <div class="top10-card ${podiumClass} ${badgeClass} ${meuTime}" ${cursorStyle}>
                 ${badge}

@@ -3,7 +3,8 @@
 
 console.log('[MATA-MATA-PARTICIPANTE] 🔄 Carregando módulo...');
 
-export async function inicializarMataMataParticipante({ participante, ligaId, timeId }) {
+// Exportar para o sistema de navegação
+window.inicializarMataMataParticipante = async function({ participante, ligaId, timeId }) {
     console.log('[MATA-MATA-PARTICIPANTE] Inicializando para:', { participante, ligaId, timeId });
 
     if (!ligaId) {
@@ -71,3 +72,6 @@ function mostrarErro(mensagem) {
 }
 
 console.log('[MATA-MATA-PARTICIPANTE] ✅ Módulo carregado');
+
+// Export também como módulo ES6
+export { window.inicializarMataMataParticipante as inicializarMataMataParticipante };

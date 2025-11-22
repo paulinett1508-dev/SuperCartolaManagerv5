@@ -1,4 +1,3 @@
-
 console.log('🏆 [PARTICIPANTE-ARTILHEIRO] Módulo carregando...');
 
 // Função principal de inicialização
@@ -27,15 +26,15 @@ async function inicializarArtilheiroParticipante(ligaId, timeId) {
 // Export para compatibilidade
 export async function init() {
     console.log('🏆 [PARTICIPANTE-ARTILHEIRO] init() chamado via export');
-    
+
     if (!window.participanteAuth) {
         console.error('❌ [PARTICIPANTE-ARTILHEIRO] participanteAuth não disponível');
         throw new Error('Sistema de autenticação não carregado');
     }
-    
+
     const participanteData = participanteAuth.getDados();
     console.log('🏆 [PARTICIPANTE-ARTILHEIRO] Dados do participante:', participanteData);
-    
+
     if (!participanteData || !participanteData.ligaId || !participanteData.timeId) {
         console.error('❌ [PARTICIPANTE-ARTILHEIRO] Dados inválidos:', participanteData);
         throw new Error('Dados do participante não disponíveis');
@@ -54,7 +53,7 @@ if (typeof window !== 'undefined') {
 function obterContainer() {
     // Tentar múltiplos IDs possíveis
     const possiveisIds = ['artilheiro-content', 'artilheiroContainer', 'moduleContainer'];
-    
+
     for (const id of possiveisIds) {
         const container = document.getElementById(id);
         if (container) {
@@ -62,7 +61,7 @@ function obterContainer() {
             return container;
         }
     }
-    
+
     console.error('❌ [PARTICIPANTE-ARTILHEIRO] Nenhum container encontrado. IDs tentados:', possiveisIds);
     return null;
 }
@@ -108,7 +107,7 @@ async function carregarDadosArtilheiro(ligaId, timeId) {
 
     try {
         const response = await fetch(`/api/artilheiro-campeao/${ligaId}/ranking`);
-        
+
         if (!response.ok) {
             throw new Error(`Erro ao buscar dados: ${response.status}`);
         }

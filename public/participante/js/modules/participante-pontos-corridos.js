@@ -4,7 +4,7 @@
 
 console.log('[PONTOS-CORRIDOS-PARTICIPANTE] 🔄 Carregando módulo...');
 
-export async function inicializarPontosCorridosParticipante({ participante, ligaId, timeId }) {
+window.inicializarPontosCorridosParticipante = async function({ participante, ligaId, timeId }) {
     console.log('[PONTOS-CORRIDOS-PARTICIPANTE] Inicializando para:', { participante, ligaId, timeId });
 
     if (!ligaId) {

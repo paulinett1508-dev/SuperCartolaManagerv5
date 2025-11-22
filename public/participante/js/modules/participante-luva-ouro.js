@@ -1,4 +1,3 @@
-
 // PARTICIPANTE LUVA DE OURO - Módulo Luva de Ouro
 
 console.log('[PARTICIPANTE-LUVA-OURO] Carregando módulo...');
@@ -8,7 +7,7 @@ window.inicializarLuvaOuroParticipante = async function(ligaId, timeId) {
 
     try {
         const response = await fetch(`/api/ligas/${ligaId}/luva-de-ouro`);
-        
+
         if (!response.ok) {
             throw new Error('Erro ao buscar goleiros');
         }
@@ -24,7 +23,7 @@ window.inicializarLuvaOuroParticipante = async function(ligaId, timeId) {
 
 function renderizarLuvaOuro(dados, meuTimeId) {
     const container = document.getElementById('luvaOuroContainer');
-    
+
     if (!dados || dados.length === 0) {
         container.innerHTML = '<p style="text-align: center; color: #999; padding: 40px;">Nenhum goleiro registrado</p>';
         return;
@@ -35,7 +34,7 @@ function renderizarLuvaOuro(dados, meuTimeId) {
             ${dados.map((goleiro, index) => {
                 const posicao = index + 1;
                 const meuGoleiro = goleiro.time_id === meuTimeId;
-                
+
                 return `
                     <div class="goleiro-card ${posicao <= 3 ? `podium-${posicao}` : ''} ${meuGoleiro ? 'meu-goleiro' : ''}">
                         <div class="goleiro-posicao">${posicao}º</div>
