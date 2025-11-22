@@ -42,12 +42,21 @@ export class FluxoFinanceiroCore {
     _carregarMataMataMap(resultadosMataMata) {
         this.mataMataMap.clear();
         resultadosMataMata.forEach((r) => {
-            const key = `${normalizarTimeId(r.timeId)}_${r.rodadaPontos}`;
+            const timeIdNormalizado = normalizarTimeId(r.timeId);
+            const key = `${timeIdNormalizado}_${r.rodadaPontos}`;
             this.mataMataMap.set(key, r.valor);
+            
+            // Log detalhado de cada registro
+            if (r.valor !== 0) {
+                console.log(`[FLUXO-CORE] 📝 Map add: ${key} = ${r.valor > 0 ? '+' : ''}R$ ${r.valor.toFixed(2)}`);
+            }
         });
         console.log(
             `[FLUXO-CORE] Mata-Mata Map carregado: ${this.mataMataMap.size} registros`,
         );
+        
+        // Log de TODAS as chaves do Map (debug)
+        console.log(`[FLUXO-CORE] 🗂️ Chaves no Map:`, Array.from(this.mataMataMap.keys()));
     }
 
     // OTIMIZADO: Cálculo com cache persistente (SEM expiração automática para participantes)
@@ -353,10 +362,17 @@ export class FluxoFinanceiroCore {
 
     // OTIMIZADO: Busca O(1) usando Map
     _calcularMataMataOtimizado(timeId, rodada) {
-        if (!this.mataMataIntegrado || this.mataMataMap.size === 0) return 0;
+        if (!this.mataMataIntegrado || this.mataMataMap.size === 0) {
+            console.log(`[FLUXO-CORE] ⚠️ Mata-Mata não integrado ou Map vazio para time ${timeId} R${rodada}`);
+            return 0;
+        }
 
-        const key = `${normalizarTimeId(timeId)}_${rodada}`;
+        const timeIdNormalizado = normalizarTimeId(timeId);
+        const key = `${timeIdNormalizado}_${rodada}`;
         const valor = this.mataMataMap.get(key) || 0;
+        
+        // Log detalhado SEMPRE (para debug)
+        console.log(`[FLUXO-CORE] 🔍 Mata-Mata R${rodada} - Time: ${timeId} (normalizado: ${timeIdNormalizado}) - Chave: ${key} - Valor: ${valor}`);
         
         if (valor !== 0) {
             console.log(`[FLUXO-CORE] 🎯 Mata-Mata R${rodada} para time ${timeId}: ${valor > 0 ? '+' : ''}R$ ${valor.toFixed(2)}`);
