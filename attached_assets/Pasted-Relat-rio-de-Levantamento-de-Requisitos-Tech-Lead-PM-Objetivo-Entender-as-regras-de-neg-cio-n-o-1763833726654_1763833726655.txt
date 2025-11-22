@@ -1,0 +1,26 @@
+Relatório de Levantamento de Requisitos (Tech Lead & PM)
+Objetivo: Entender as regras de negócio não explícitas no código e mapear a migração da persistência de dados (JSON) para Banco de Dados em Nuvem (Firestore).
+
+1. Regras de Negócio e Competição (Produto)
+Mata-mata e Empates: No módulo "Mata-mata", qual é o critério de desempate exato? O sistema hoje decide isso automaticamente ou requer intervenção manual do admin?
+
+Lógica dos "Cards Condicionais": Notei arquivos referentes a cards-condicionais. Como essa mecânica funciona? O participante usa esses cards para obter vantagens? Se sim, isso afeta a pontuação bruta vinda da API do Cartola?
+
+Luva de Ouro: A competição "Luva de Ouro" roda independente das outras ligas? Existe alguma regra de eliminação automática baseada em performance por rodada?
+
+Fechamento de Rodada: O processo de "virar a rodada" (atualizar pontuações, recalcular ranking, gerar confrontos) é 100% manual hoje (clique de botão) ou existe algum automatismo?
+
+2. Integração com API do Cartola FC (Técnico)
+Estabilidade da API: O cartolaService.js conecta direto na API da Globo ou usa algum proxy? Vocês têm tido problemas de bloqueio (CORS) ou queda de conexão?
+
+Autenticação Cartola: O sistema precisa de um token de autenticação de um usuário "Pro" do Cartola para buscar certas informações (como ligas privadas), ou ele só busca dados públicos?
+
+3. Dados e Migração (Arquitetura)
+Dependência de JSON: O sistema lê e escreve pesadamente em backups/times.json e ligas.json. Existe algum dado histórico crítico nesses arquivos que não pode ser perdido na migração para o banco de dados (Firebase Firestore)?
+
+Drive vs. Local: Vi scripts de uploadToDrive.js. O objetivo atual é usar o Drive como "banco de dados" de backup? Podemos substituir isso inteiramente pelo banco de dados em tempo real do Firebase?
+
+4. Financeiro e Segurança (Crítico)
+Fluxo Financeiro: O módulo financeiro apenas registra quem pagou/quem deve, ou ele bloqueia funcionalidades do participante inadimplente automaticamente?
+
+Acesso dos Participantes: Hoje, como o participante acessa o painel dele? Existe um login/senha real ou é baseado apenas na identificação do time? (Isso é crucial para definirmos a autenticação no Firebase Auth).
