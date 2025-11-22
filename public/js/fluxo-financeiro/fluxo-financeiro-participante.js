@@ -145,11 +145,11 @@ class FluxoFinanceiroParticipante {
             if (!rodadaAtual) {
                 console.log('[FLUXO-PARTICIPANTE] Buscando rodada atual do mercado...');
                 const mercadoRes = await fetch('/api/cartola/mercado-status');
-                const mercadoStatus = mercadoRes.ok ? await mercadoRes.json() : { rodada_atual: 1, mercado_aberto: false };
-                rodadaAtual = mercadoStatus.rodada_atual || 1;
+                const mercadoData = await mercadoRes.json();
+                rodadaAtual = mercadoData.rodada_atual || 1;
 
                 // ✅ SE MERCADO ABERTO, USAR RODADA ANTERIOR
-                const mercadoAberto = mercadoStatus.mercado_aberto || false;
+                const mercadoAberto = mercadoData.mercado_aberto || false;
                 if (mercadoAberto) {
                     rodadaAtual = Math.max(1, rodadaAtual - 1);
                     console.log(`[FLUXO-PARTICIPANTE] ⚠️ Mercado ABERTO detectado - usando última rodada completa: ${rodadaAtual}`);
