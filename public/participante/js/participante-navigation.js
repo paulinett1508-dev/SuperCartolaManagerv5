@@ -22,8 +22,11 @@ class ParticipanteNavigation {
         this.inicializar();
     }
 
-    inicializar() {
+    async inicializar() {
         console.log('[PARTICIPANTE-NAV] Inicializando navegação...');
+
+        // ✅ BUSCAR MÓDULOS ATIVOS DA LIGA
+        await this.carregarModulosAtivos();
 
         // Event listeners nos botões
         document.querySelectorAll('.nav-btn').forEach(btn => {
@@ -37,6 +40,77 @@ class ParticipanteNavigation {
 
         // Aguardar módulos carregarem antes de navegar
         this.aguardarModulosENavegar();
+    }
+
+    async carregarModulosAtivos() {
+        try {
+            const participanteData = participanteAuth.getDados();
+            if (!participanteData || !participanteData.ligaId) {
+                console.warn('[PARTICIPANTE-NAV] Dados do participante não disponíveis ainda');
+                return;
+            }
+
+            const response = await fetch(`/api/ligas/${participanteData.ligaId}/modulos-ativos`);
+            if (!response.ok) throw new Error('Erro ao buscar módulos ativos');
+
+            const data = await response.json();
+            this.modulosAtivos = data.modulos;
+
+            console.log('[PARTICIPANTE-NAV] Módulos ativos carregados:', this.modulosAtivos);
+
+            // ✅ RENDERIZAR MENU COM APENAS MÓDULOS ATIVOS
+            this.renderizarMenuDinamico();
+
+        } catch (error) {
+            console.error('[PARTICIPANTE-NAV] Erro ao carregar módulos ativos:', error);
+            // Se falhar, mostrar todos os módulos (fallback)
+            this.modulosAtivos = null;
+        }
+    }
+
+    renderizarMenuDinamico() {
+        const navContainer = document.querySelector('.participante-nav');
+        if (!navContainer) return;
+
+        // Definição de todos os módulos possíveis
+        const todosModulos = [
+            { id: 'extrato', icon: '💰', label: 'Extrato', ativo: true },
+            { id: 'ranking', icon: '📊', label: 'Classificação', ativo: true },
+            { id: 'rodadas', icon: '🎯', label: 'Minhas Rodadas', ativo: true },
+            { id: 'top10', icon: '🏆', label: 'Top 10', key: 'top10' },
+            { id: 'melhor-mes', icon: '📅', label: 'Melhor do Mês', key: 'melhorMes' },
+            { id: 'pontos-corridos', icon: '⚽', label: 'Pontos Corridos', key: 'pontosCorridos' },
+            { id: 'mata-mata', icon: '⚔️', label: 'Mata-Mata', key: 'mataMata' },
+            { id: 'artilheiro', icon: '🥇', label: 'Artilheiro', key: 'artilheiro' },
+            { id: 'luva-ouro', icon: '🥅', label: 'Luva de Ouro', key: 'luvaOuro' }
+        ];
+
+        // Filtrar módulos baseado na configuração da liga
+        const modulosVisiveis = todosModulos.filter(modulo => {
+            // Módulos base sempre visíveis
+            if (modulo.ativo) return true;
+            
+            // Módulos condicionais: verificar se estão ativos
+            if (!this.modulosAtivos) return true; // Mostrar todos se não conseguiu carregar
+            return this.modulosAtivos[modulo.key];
+        });
+
+        // Renderizar botões
+        navContainer.innerHTML = modulosVisiveis.map(modulo => `
+            <button class="nav-btn ${modulo.id === 'extrato' ? 'active' : ''}" data-module="${modulo.id}">
+                ${modulo.icon} ${modulo.label}
+            </button>
+        `).join('');
+
+        console.log(`[PARTICIPANTE-NAV] Menu renderizado com ${modulosVisiveis.length} módulos`);
+
+        // Re-adicionar event listeners
+        document.querySelectorAll('.nav-btn').forEach(btn => {
+            btn.addEventListener('click', (e) => {
+                const modulo = e.currentTarget.dataset.module;
+                this.navegarPara(modulo);
+            });
+        });
     }
 
     async aguardarModulosENavegar() {

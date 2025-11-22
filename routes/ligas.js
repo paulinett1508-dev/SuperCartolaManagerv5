@@ -1,4 +1,5 @@
 import express from "express";
+import mongoose from "mongoose"; // Import mongoose to use its ObjectId validation
 import {
   listarLigas,
   buscarLigaPorId,
@@ -8,8 +9,12 @@ import {
   removerTimeDaLiga,
   atualizarFluxoFinanceiro,
   consultarFluxoFinanceiro,
-  buscarTimesDaLiga, // novo controlador
-  buscarRodadasDaLiga, // novo controlador
+  buscarTimesDaLiga,
+  buscarRodadasDaLiga,
+  buscarConfrontosPontosCorridos,
+  buscarCartoleiroPorId,
+  // Buscar módulos ativos/configurados da liga
+  buscarModulosAtivos,
 } from "../controllers/ligaController.js";
 
 // Importar o controlador de rodadas para popular rodadas
@@ -315,7 +320,7 @@ router.get("/:id/pontos-corridos", async (req, res) => {
 
     rodadas.forEach(rodada => {
       const timeId = rodada.timeId;
-      
+
       if (!timesMap[timeId]) {
         timesMap[timeId] = {
           time_id: timeId,
@@ -361,18 +366,18 @@ router.get("/:id/pontos-corridos", async (req, res) => {
     // Para cada rodada, calcular confrontos
     for (let numRodada = 1; numRodada <= maxRodada; numRodada++) {
       const rodadasDaRodada = rodadas.filter(r => r.rodada === numRodada);
-      
+
       // Gerar confrontos (todos contra todos)
       for (let i = 0; i < rodadasDaRodada.length; i++) {
         for (let j = i + 1; j < rodadasDaRodada.length; j++) {
           const timeA = rodadasDaRodada[i];
           const timeB = rodadasDaRodada[j];
-          
+
           const pontosA = parseFloat(timeA.pontos) || 0;
           const pontosB = parseFloat(timeB.pontos) || 0;
-          
+
           const diff = Math.abs(pontosA - pontosB);
-          
+
           // Calcular resultado
           if (diff <= CRITERIOS.empateTolerancia) {
             // Empate
@@ -401,11 +406,11 @@ router.get("/:id/pontos-corridos", async (req, res) => {
             timesMap[timeB.timeId].vitorias += 1;
             timesMap[timeA.timeId].derrotas += 1;
           }
-          
+
           // Atualizar jogos
           timesMap[timeA.timeId].jogos += 1;
           timesMap[timeB.timeId].jogos += 1;
-          
+
           // Saldo de gols (usando diferença de pontos como proxy)
           timesMap[timeA.timeId].saldo_gols += (pontosA - pontosB);
           timesMap[timeB.timeId].saldo_gols += (pontosB - pontosA);
@@ -438,7 +443,7 @@ router.get("/:id/pontos-corridos", async (req, res) => {
       });
 
     console.log(`[LIGAS] Pontos Corridos calculado: ${classificacao.length} times`);
-    
+
     res.json({
       nome: "Pontos Corridos",
       rodada_atual: maxRodada,
@@ -576,5 +581,12 @@ router.get("/:id/performance", async (req, res) => {
   // O restante do código original permanece inalterado aqui.
   // Este é apenas um placeholder para indicar onde o código original continuaria.
 });
+
+// Rotas de rodadas
+router.get("/:id/rodadas", buscarRodadasDaLiga);
+router.get("/:id/rodadas/:rodadaNum", buscarRodadasDaLiga);
+
+// Rota de módulos ativos
+router.get("/:id/modulos-ativos", buscarModulosAtivos);
 
 export default router;

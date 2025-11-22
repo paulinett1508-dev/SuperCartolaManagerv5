@@ -504,6 +504,45 @@ const buscarConfrontosPontosCorridos = async (req, res) => {
   }
 };
 
+// Buscar módulos ativos/configurados da liga
+const buscarModulosAtivos = async (req, res) => {
+  const ligaIdParam = req.params.id;
+
+  if (!mongoose.Types.ObjectId.isValid(ligaIdParam)) {
+    return res.status(400).json({ erro: "ID de liga inválido" });
+  }
+
+  try {
+    const liga = await Liga.findById(ligaIdParam).lean();
+    if (!liga) {
+      return res.status(404).json({ erro: "Liga não encontrada" });
+    }
+
+    // Detectar módulos ativos baseado nas configurações da liga
+    const modulosAtivos = {
+      // Módulos base (sempre ativos)
+      extrato: true,
+      ranking: true,
+      rodadas: true,
+      
+      // Módulos condicionais
+      top10: !!(liga.configuracoes?.top10?.ativo !== false), // default true
+      melhorMes: !!(liga.configuracoes?.melhor_mes?.ativo),
+      pontosCorridos: !!(liga.configuracoes?.pontos_corridos?.ativo),
+      mataMata: !!(liga.configuracoes?.mata_mata?.ativo),
+      artilheiro: !!(liga.configuracoes?.artilheiro?.ativo),
+      luvaOuro: !!(liga.configuracoes?.luva_ouro?.ativo)
+    };
+
+    console.log(`[LIGAS] Módulos ativos para liga ${ligaIdParam}:`, modulosAtivos);
+    res.json({ modulos: modulosAtivos });
+
+  } catch (err) {
+    console.error("Erro ao buscar módulos ativos:", err);
+    res.status(500).json({ erro: "Erro ao buscar módulos ativos" });
+  }
+};
+
 export {
   listarLigas,
   buscarLigaPorId,
@@ -517,4 +556,5 @@ export {
   buscarRodadasDaLiga,
   buscarConfrontosPontosCorridos,
   buscarCartoleiroPorId,
+  buscarModulosAtivos,
 };
