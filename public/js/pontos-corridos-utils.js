@@ -218,8 +218,14 @@ export async function getConfrontosLigaPontosCorridos(ligaIdParam = null) {
   }
 }
 
-// Função auxiliar para obter o ID da liga (extraído da URL)
+// Função auxiliar para obter o ID da liga (extraído da URL ou do contexto participante)
 export function obterLigaId() {
+  // ✅ CORREÇÃO CRÍTICA: Verificar se está no modo participante primeiro
+  if (window.participanteData && window.participanteData.ligaId) {
+    return window.participanteData.ligaId;
+  }
+  
+  // Fallback para modo admin (URL)
   const urlParams = new URLSearchParams(window.location.search);
   return urlParams.get("id");
 }
