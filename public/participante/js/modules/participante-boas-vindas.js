@@ -35,13 +35,24 @@ window.inicializarBoasVindas = async function(ligaId, timeId) {
             meuTimeId: timeId
         });
 
-        // Processar dados - CORRIGIDO: ranking retorna array de times ordenados
+        // Processar dados - ranking retorna array de times ordenados
+        console.log('[BOAS-VINDAS] 🔍 Primeiro time do ranking (exemplo):', ranking[0]);
         const meuTime = ranking.find(t => String(t.time_id) === String(timeId));
+        console.log('[BOAS-VINDAS] 🎯 Meu time encontrado:', meuTime);
+        
         const posicao = meuTime ? meuTime.posicao : '-';
         const totalParticipantes = ranking.length;
 
-        // Pontuação total do ranking
-        const pontosTotal = meuTime ? parseFloat(meuTime.pontos_total) || 0 : 0;
+        // Pontuação total - somar pontos de todas as rodadas do participante
+        const minhasRodadasParaPontos = rodadas.filter(r => String(r.timeId) === String(timeId) || String(r.time_id) === String(timeId));
+        const pontosTotal = minhasRodadasParaPontos.reduce((total, rodada) => {
+            return total + (parseFloat(rodada.pontos) || 0);
+        }, 0);
+        
+        console.log('[BOAS-VINDAS] 📊 Cálculo de pontos:', {
+            totalRodadas: minhasRodadasParaPontos.length,
+            pontosTotal: pontosTotal
+        });
 
         // Buscar saldo financeiro do campo editável
         let saldoFinanceiro = 0;
@@ -49,17 +60,25 @@ window.inicializarBoasVindas = async function(ligaId, timeId) {
             const resCampos = await fetch(`/api/fluxo-financeiro/${ligaId}/times/${timeId}`);
             if (resCampos.ok) {
                 const camposData = await resCampos.json();
-                console.log('[BOAS-VINDAS] Campos financeiros:', camposData);
+                console.log('[BOAS-VINDAS] 💰 Campos financeiros recebidos:', camposData);
                 
                 // Somar os 4 campos editáveis
                 if (camposData.campos && Array.isArray(camposData.campos)) {
+                    console.log('[BOAS-VINDAS] 💰 Campos disponíveis:', camposData.campos);
                     saldoFinanceiro = camposData.campos.reduce((total, campo) => {
-                        return total + (parseFloat(campo.valor) || 0);
+                        const valor = parseFloat(campo.valor) || 0;
+                        console.log(`[BOAS-VINDAS] 💰 Campo "${campo.nome}": R$ ${valor}`);
+                        return total + valor;
                     }, 0);
+                    console.log('[BOAS-VINDAS] 💰 Saldo total calculado:', saldoFinanceiro);
+                } else {
+                    console.log('[BOAS-VINDAS] ⚠️ Nenhum campo financeiro encontrado');
                 }
+            } else {
+                console.log('[BOAS-VINDAS] ⚠️ Erro na resposta da API de campos financeiros:', resCampos.status);
             }
         } catch (error) {
-            console.error('[BOAS-VINDAS] Erro ao buscar campos financeiros:', error);
+            console.error('[BOAS-VINDAS] ❌ Erro ao buscar campos financeiros:', error);
         }
 
         // Última rodada do usuário - CORRIGIDO: verificar estrutura correta
