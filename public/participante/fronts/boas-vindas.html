@@ -12,7 +12,7 @@
             <div class="stat-content">
                 <h3>Ranking Geral</h3>
                 <p class="stat-value" id="posicaoRanking">--º</p>
-                <p class="stat-label">de <span id="totalParticipantes">--</span> participantes</p>
+                <p class="stat-label" id="totalParticipantes">de -- participantes</p>
             </div>
         </div>
 
@@ -31,8 +31,8 @@
             <div class="stat-icon">💰</div>
             <div class="stat-content">
                 <h3>Saldo Financeiro</h3>
-                <p class="stat-value" id="saldoFinanceiro">R$ --</p>
-                <p class="stat-label" id="statusFinanceiro">--</p>
+                <p class="stat-value" id="saldoFinanceiro">R$ 0,00</p>
+                <p class="stat-label" id="statusFinanceiro">A receber</p>
             </div>
         </div>
 
@@ -183,51 +183,12 @@
     }
 }
 
-.modulos-overview h2,
 .time-coracao-section h2 {
     font-size: 14px;
     color: #fff;
     margin-bottom: 12px;
     padding-bottom: 6px;
     border-bottom: 1px solid #333;
-}
-
-.modulos-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
-    gap: 15px;
-    margin-bottom: 40px;
-}
-
-.modulo-card {
-    background: #1a1a1a;
-    border: 1px solid #333;
-    border-radius: 8px;
-    padding: 15px;
-    text-align: center;
-    cursor: pointer;
-    transition: all 0.2s;
-}
-
-.modulo-card:hover {
-    border-color: #ff4500;
-    background: #2a2a2a;
-}
-
-.modulo-card .icon {
-    font-size: 32px;
-    margin-bottom: 10px;
-}
-
-.modulo-card h4 {
-    color: #fff;
-    font-size: 14px;
-    margin-bottom: 5px;
-}
-
-.modulo-card p {
-    color: #666;
-    font-size: 12px;
 }
 
 .time-coracao-card {
@@ -248,10 +209,6 @@
 @media (max-width: 768px) {
     .stats-grid {
         grid-template-columns: 1fr;
-    }
-
-    .modulos-grid {
-        grid-template-columns: repeat(2, 1fr);
     }
 }
 </style>
