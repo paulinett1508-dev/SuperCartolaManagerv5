@@ -6,7 +6,7 @@ import { ArtilheiroCache } from "./artilheiro-campeao/artilheiro-campeao-cache.j
 import { ArtilheiroCore } from "./artilheiro-campeao/artilheiro-campeao-core.js";
 import { ArtilheiroUI } from "./artilheiro-campeao/artilheiro-campeao-ui.js";
 import { ArtilheiroUtils } from "./artilheiro-campeao/artilheiro-campeao-utils.js";
-import { RodadaDetector } from "./artilheiro-campeao/artilheiro-campeao-detector.js";
+import { RodadaDetector } from "./artilheiro-campeao/rodada-detector.js";
 
 // ===== CONFIGURAÇÕES =====
 const CONFIG = {
@@ -328,82 +328,23 @@ async function inicializarArtilheiroCampeao() {
     }
 }
 
-// ===== DISPONIBILIZAR GLOBALMENTE =====
+// ✅ DISPONIBILIZAR GLOBALMENTE
 if (typeof window !== "undefined") {
-    window.inicializarArtilheiroCampeao = inicializarArtilheiroCampeao;
-    window.coordinator = null; // Será definido após inicialização
+  window.ArtilheiroCoordinator = ArtilheiroCoordinator;
+  window.inicializarArtilheiroCampeao = inicializarArtilheiroCampeao;
+  window.forcarArtilheiroCampeaoAgora = forcarArtilheiroCampeaoAgora;
+  window.testarArtilheiroCampeao = testarArtilheiroCampeao;
 
-    // Funções de compatibilidade
-    window.popularGols = () => coordinator?.popularGols();
-    window.mostrarDetalhesCompletos = (index) =>
-        coordinator?.mostrarDetalhesCompletos(index);
-    window.exportarDados = () => coordinator?.exportarDados();
-    window.atualizarInterface = () => coordinator?.atualizarInterface();
-
-    // Função de emergência
-    window.forcarArtilheiroCampeaoAgora = function () {
-        console.log(
-            "🚨 [ARTILHEIRO-CAMPEAO] Forçando inicialização modular...",
-        );
-
-        const containers = [
-            "artilheiro-campeao-content",
-            "artilheiro-container",
-            "artilheiro-campeao",
-        ];
-        let containerEncontrado = null;
-
-        for (const containerId of containers) {
-            const container = document.getElementById(containerId);
-            if (container) {
-                containerEncontrado = container;
-                console.log(`✅ Container encontrado: ${containerId}`);
-                break;
-            }
-        }
-
-        if (!containerEncontrado) {
-            const tabContent = document.getElementById("artilheiro-campeao");
-            if (tabContent) {
-                const novoContainer = document.createElement("div");
-                novoContainer.id = "artilheiro-campeao-content";
-                tabContent.innerHTML = "";
-                tabContent.appendChild(novoContainer);
-
-                const artilheiroContainer = document.createElement("div");
-                artilheiroContainer.id = "artilheiro-container";
-                novoContainer.appendChild(artilheiroContainer);
-
-                containerEncontrado = artilheiroContainer;
-                console.log("✅ Containers criados dinamicamente");
-            }
-        }
-
-        if (containerEncontrado) {
-            try {
-                const loading = document.getElementById("artilheiro-loading");
-                if (loading) loading.style.display = "none";
-
-                inicializarArtilheiroCampeao().then(() => {
-                    window.coordinator = coordinator; // Disponibilizar globalmente após inicialização
-                });
-
-                console.log(
-                    "✅ [ARTILHEIRO-CAMPEAO] Inicialização forçada bem-sucedida",
-                );
-                return true;
-            } catch (error) {
-                console.error("❌ Erro na inicialização:", error);
-                return false;
-            }
-        }
-
-        return false;
-    };
+  console.log('✅ [ARTILHEIRO-CAMPEAO] Função inicializarArtilheiroCampeao disponível em window');
 }
 
-export { inicializarArtilheiroCampeao };
-export default inicializarArtilheiroCampeao;
+console.log("✅ [ARTILHEIRO-CAMPEAO] Módulo principal carregado!");
+console.log(
+  "📋 [ARTILHEIRO-CAMPEAO] Funções disponíveis: window.inicializarArtilheiroCampeao, window.ArtilheiroCoordinator, window.forcarArtilheiroCampeaoAgora, window.testarArtilheiroCampeao",
+);
+
+export { ArtilheiroCoordinator, inicializarArtilheiroCampeao };
+export default ArtilheiroCoordinator;
 
 console.log("✅ [ARTILHEIRO-CAMPEAO] Sistema modular carregado!");
 console.log("🆘 Em caso de erro: window.forcarArtilheiroCampeaoAgora()");
