@@ -1,37 +1,34 @@
-
 // MÓDULO: UI DO EXTRATO PARTICIPANTE
 // Renderização visual independente, específica para participantes
 
 console.log('[EXTRATO-UI] 🎨 Módulo de UI carregado');
 
-export function renderizarExtratoParticipante(extrato, participante) {
-    console.log('[EXTRATO-UI] 🎨 Iniciando renderização...');
-    console.log('[EXTRATO-UI] 📦 Dados recebidos:', extrato);
-    console.log('[EXTRATO-UI] 👤 Participante:', participante);
-    console.log('[EXTRATO-UI] 🔍 Validação dos dados:', {
-        extratoValido: !!extrato,
-        temRodadas: !!extrato?.rodadas,
-        qtdRodadas: extrato?.rodadas?.length || 0,
-        temResumo: !!extrato?.resumo,
-        participanteValido: !!participante
-    });
-    
-    const container = document.getElementById('fluxoFinanceiroContent');
-    
-    if (!container) {
-        console.error('[EXTRATO-UI] ❌ Container "fluxoFinanceiroContent" não encontrado!');
-        console.error('[EXTRATO-UI] 📍 Containers disponíveis:', 
-            Array.from(document.querySelectorAll('[id]')).map(el => el.id)
-        );
-        return;
-    }
+export function renderizarExtratoParticipante(extrato, participanteId) {
+  console.log('[EXTRATO-UI] 🎨 Iniciando renderização...');
+  console.log('[EXTRATO-UI] 📦 Dados recebidos:', extrato);
+  console.log('[EXTRATO-UI] 👤 Participante:', participanteId);
+  console.log('[EXTRATO-UI] 🔍 Validação dos dados:', {
+    extratoValido: !!extrato,
+    temRodadas: Array.isArray(extrato?.rodadas),
+    qtdRodadas: extrato?.rodadas?.length || 0,
+    temResumo: !!extrato?.resumo,
+    participanteValido: !!participanteId
+  });
 
-    console.log('[EXTRATO-UI] ✅ Container encontrado');
+  const container = document.getElementById('moduleContainer');
 
-    // Validar estrutura do extrato
-    if (!extrato || !extrato.rodadas || !Array.isArray(extrato.rodadas)) {
-        console.error('[EXTRATO-UI] ❌ Estrutura do extrato inválida:', extrato);
-        container.innerHTML = `
+  if (!container) {
+    console.error('[EXTRATO-UI] ❌ Container "moduleContainer" não encontrado!');
+    console.log('[EXTRATO-UI] 📍 Containers disponíveis:', Array.from(document.querySelectorAll('[id]')).map(el => el.id));
+    return;
+  }
+
+  console.log('[EXTRATO-UI] ✅ Container encontrado');
+
+  // Validar estrutura do extrato
+  if (!extrato || !extrato.rodadas || !Array.isArray(extrato.rodadas)) {
+    console.error('[EXTRATO-UI] ❌ Estrutura do extrato inválida:', extrato);
+    container.innerHTML = `
             <div style="text-align: center; padding: 40px; background: rgba(239, 68, 68, 0.1); 
                         border-radius: 12px; border: 1px solid rgba(239, 68, 68, 0.3);">
                 <div style="font-size: 48px; margin-bottom: 16px;">⚠️</div>
@@ -45,39 +42,39 @@ export function renderizarExtratoParticipante(extrato, participante) {
                 </button>
             </div>
         `;
-        return;
-    }
+    return;
+  }
 
-    console.log('[EXTRATO-UI] ✅ Dados validados');
+  console.log('[EXTRATO-UI] ✅ Dados validados');
 
-    // ✅ ARMAZENAR GLOBALMENTE PARA POPUPS
-    window.extratoAtual = extrato;
-    console.log('[EXTRATO-UI] 💾 Dados armazenados globalmente');
+  // ✅ ARMAZENAR GLOBALMENTE PARA POPUPS
+  window.extratoAtual = extrato;
+  console.log('[EXTRATO-UI] 💾 Dados armazenados globalmente');
 
-    // ✅ CONFIGURAR BOTÃO DE REFRESH
-    setTimeout(() => {
-        const btnRefresh = document.getElementById('btnRefreshExtrato');
-        if (btnRefresh) {
-            btnRefresh.onclick = async () => {
-                if (btnRefresh.classList.contains('loading')) return;
-                
-                btnRefresh.classList.add('loading');
-                console.log('[EXTRATO-UI] 🔄 Refresh solicitado pelo participante');
-                
-                try {
-                    await window.forcarRefreshExtratoParticipante();
-                } catch (error) {
-                    console.error('[EXTRATO-UI] Erro ao atualizar:', error);
-                    alert('Erro ao atualizar dados. Tente novamente.');
-                } finally {
-                    btnRefresh.classList.remove('loading');
-                }
-            };
+  // ✅ CONFIGURAR BOTÃO DE REFRESH
+  setTimeout(() => {
+    const btnRefresh = document.getElementById('btnRefreshExtrato');
+    if (btnRefresh) {
+      btnRefresh.onclick = async () => {
+        if (btnRefresh.classList.contains('loading')) return;
+
+        btnRefresh.classList.add('loading');
+        console.log('[EXTRATO-UI] 🔄 Refresh solicitado pelo participante');
+
+        try {
+          await window.forcarRefreshExtratoParticipante();
+        } catch (error) {
+          console.error('[EXTRATO-UI] Erro ao atualizar:', error);
+          alert('Erro ao atualizar dados. Tente novamente.');
+        } finally {
+          btnRefresh.classList.remove('loading');
         }
-    }, 100);
+      };
+    }
+  }, 100);
 
-    // ===== RENDERIZAR APENAS A TABELA (sem card grande) =====
-    const html = `
+  // ===== RENDERIZAR APENAS A TABELA (sem card grande) =====
+  const html = `
         <div class="extrato-participante-table">
             <!-- Histórico de Rodadas -->
             <table class="tabela-extrato">
@@ -215,19 +212,19 @@ export function renderizarExtratoParticipante(extrato, participante) {
         </style>
     `;
 
-    console.log('[EXTRATO-UI] 📝 HTML gerado, inserindo no container...');
-    container.innerHTML = html;
-    console.log('[EXTRATO-UI] ✅ HTML inserido com sucesso');
-    console.log('[EXTRATO-UI] 📊 Rodadas renderizadas:', extrato?.rodadas?.length || 0);
+  console.log('[EXTRATO-UI] 📝 HTML gerado, inserindo no container...');
+  container.innerHTML = html;
+  console.log('[EXTRATO-UI] ✅ HTML inserido com sucesso');
+  console.log('[EXTRATO-UI] 📊 Rodadas renderizadas:', extrato?.rodadas?.length || 0);
 
-    // ===== ATUALIZAR CARDS DO TOPO (mantém os compactos) =====
-    console.log('[EXTRATO-UI] 🎯 Atualizando cards do header...');
-    atualizarCardsHeader(extrato.resumo);
-    console.log('[EXTRATO-UI] ✅ Cards atualizados');
+  // ===== ATUALIZAR CARDS DO TOPO (mantém os compactos) =====
+  console.log('[EXTRATO-UI] 🎯 Atualizando cards do header...');
+  atualizarCardsHeader(extrato.resumo);
+  console.log('[EXTRATO-UI] ✅ Cards atualizados');
 }
 
 function renderizarLinhasRodadas(rodadas) {
-    return rodadas.map((r) => `
+  return rodadas.map((r) => `
         <tr>
             <td>${r.rodada}ª</td>
             <td>${formatarPosicao(r)}</td>
@@ -243,7 +240,7 @@ function renderizarLinhasRodadas(rodadas) {
 }
 
 function renderizarLinhaTotal(resumo) {
-    return `
+  return `
         <tr class="linha-total">
             <td colspan="2">📊 TOTAIS</td>
             <td>${formatarValor(resumo.bonus + resumo.onus)}</td>
@@ -256,55 +253,55 @@ function renderizarLinhaTotal(resumo) {
 }
 
 function formatarPosicao(rodada) {
-    if (!rodada.posicao) return '<span class="badge-pos">-</span>';
-    
-    if (rodada.posicao === 1 || rodada.isMito) {
-        return '<span class="badge-pos mito">🎩 MITO</span>';
-    }
-    
-    if (rodada.posicao === rodada.totalTimes || rodada.isMico) {
-        return '<span class="badge-pos mico">🐵 MICO</span>';
-    }
-    
-    if (rodada.posicao >= 2 && rodada.posicao <= 11) {
-        return `<span class="badge-pos top11">${rodada.posicao}º</span>`;
-    }
-    
-    if (rodada.posicao >= 22 && rodada.posicao <= 31) {
-        return `<span class="badge-pos z4">${rodada.posicao}º</span>`;
-    }
-    
-    return `<span class="badge-pos">${rodada.posicao}º</span>`;
+  if (!rodada.posicao) return '<span class="badge-pos">-</span>';
+
+  if (rodada.posicao === 1 || rodada.isMito) {
+    return '<span class="badge-pos mito">🎩 MITO</span>';
+  }
+
+  if (rodada.posicao === rodada.totalTimes || rodada.isMico) {
+    return '<span class="badge-pos mico">🐵 MICO</span>';
+  }
+
+  if (rodada.posicao >= 2 && rodada.posicao <= 11) {
+    return `<span class="badge-pos top11">${rodada.posicao}º</span>`;
+  }
+
+  if (rodada.posicao >= 22 && rodada.posicao <= 31) {
+    return `<span class="badge-pos z4">${rodada.posicao}º</span>`;
+  }
+
+  return `<span class="badge-pos">${rodada.posicao}º</span>`;
 }
 
 function formatarValor(valor) {
-    const num = parseFloat(valor) || 0;
-    
-    if (num === 0) {
-        return '<span class="valor-zero">-</span>';
-    }
-    
-    const classe = num > 0 ? 'valor-positivo' : 'valor-negativo';
-    const sinal = num > 0 ? '+' : '';
-    const formatado = Math.abs(num).toLocaleString('pt-BR', {
-        minimumFractionDigits: 2,
-        maximumFractionDigits: 2
-    });
-    
-    return `<span class="${classe}">${sinal}${formatado}</span>`;
+  const num = parseFloat(valor) || 0;
+
+  if (num === 0) {
+    return '<span class="valor-zero">-</span>';
+  }
+
+  const classe = num > 0 ? 'valor-positivo' : 'valor-negativo';
+  const sinal = num > 0 ? '+' : '';
+  const formatado = Math.abs(num).toLocaleString('pt-BR', {
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2
+  });
+
+  return `<span class="${classe}">${sinal}${formatado}</span>`;
 }
 
 function formatarTop10(rodada) {
-    if (!rodada.top10 || rodada.top10 === 0) {
-        return '<span class="valor-zero">-</span>';
-    }
-    
-    const status = rodada.top10Status || (rodada.top10 > 0 ? 'MITO' : 'MICO');
-    const posicao = rodada.top10Posicao || 1;
-    const cor = status === 'MITO' ? '#2ecc71' : '#e74c3c';
-    const icone = status === 'MITO' ? '🏆' : '🐵';
-    
-    return `
+  if (!rodada.top10 || rodada.top10 === 0) {
+    return '<span class="valor-zero">-</span>';
+  }
+
+  const status = rodada.top10Status || (rodada.top10 > 0 ? 'MITO' : 'MICO');
+  const posicao = rodada.top10Posicao || 1;
+  const cor = status === 'MITO' ? '#2ecc71' : '#e74c3c';
+  const icone = status === 'MITO' ? '🏆' : '🐵';
+
+  return `
         <div style="display: flex; flex-direction: column; align-items: center; gap: 1px;">
             <span style="font-size: 7px; color: ${cor}; font-weight: 600; line-height: 1.1;">
                 ${icone} ${posicao}º ${status === 'MITO' ? 'MAIOR' : 'PIOR'}
@@ -315,83 +312,83 @@ function formatarTop10(rodada) {
 }
 
 function atualizarCardsHeader(resumo) {
-    // Atualizar Saldo Total
-    const saldoEl = document.getElementById('saldoTotalHeader');
-    const statusBadgeEl = document.getElementById('saldoStatusBadge');
-    
-    if (saldoEl && resumo.saldo !== undefined) {
-        const saldo = parseFloat(resumo.saldo) || 0;
-        
-        saldoEl.textContent = `R$ ${Math.abs(saldo).toLocaleString('pt-BR', {
-            minimumFractionDigits: 2,
-            maximumFractionDigits: 2
-        })}`;
-        
-        // Atualizar badge de status
-        if (statusBadgeEl) {
-            const iconEl = statusBadgeEl.querySelector('.status-icon');
-            const textEl = statusBadgeEl.querySelector('.status-text');
-            
-            if (saldo > 0) {
-                saldoEl.style.color = '#22c55e';
-                statusBadgeEl.style.borderColor = 'rgba(34, 197, 94, 0.3)';
-                statusBadgeEl.style.background = 'rgba(34, 197, 94, 0.1)';
-                if (iconEl) iconEl.textContent = '💰';
-                if (textEl) {
-                    textEl.textContent = 'A Receber';
-                    textEl.style.color = '#22c55e';
-                }
-            } else if (saldo < 0) {
-                saldoEl.style.color = '#ef4444';
-                statusBadgeEl.style.borderColor = 'rgba(239, 68, 68, 0.3)';
-                statusBadgeEl.style.background = 'rgba(239, 68, 68, 0.1)';
-                if (iconEl) iconEl.textContent = '💸';
-                if (textEl) {
-                    textEl.textContent = 'A Pagar';
-                    textEl.style.color = '#ef4444';
-                }
-            } else {
-                saldoEl.style.color = '#a0a0a0';
-                statusBadgeEl.style.borderColor = 'rgba(160, 160, 160, 0.3)';
-                statusBadgeEl.style.background = 'rgba(160, 160, 160, 0.1)';
-                if (iconEl) iconEl.textContent = '✅';
-                if (textEl) {
-                    textEl.textContent = 'Quitado';
-                    textEl.style.color = '#a0a0a0';
-                }
-            }
+  // Atualizar Saldo Total
+  const saldoEl = document.getElementById('saldoTotalHeader');
+  const statusBadgeEl = document.getElementById('saldoStatusBadge');
+
+  if (saldoEl && resumo.saldo !== undefined) {
+    const saldo = parseFloat(resumo.saldo) || 0;
+
+    saldoEl.textContent = `R$ ${Math.abs(saldo).toLocaleString('pt-BR', {
+      minimumFractionDigits: 2,
+      maximumFractionDigits: 2
+    })}`;
+
+    // Atualizar badge de status
+    if (statusBadgeEl) {
+      const iconEl = statusBadgeEl.querySelector('.status-icon');
+      const textEl = statusBadgeEl.querySelector('.status-text');
+
+      if (saldo > 0) {
+        saldoEl.style.color = '#22c55e';
+        statusBadgeEl.style.borderColor = 'rgba(34, 197, 94, 0.3)';
+        statusBadgeEl.style.background = 'rgba(34, 197, 94, 0.1)';
+        if (iconEl) iconEl.textContent = '💰';
+        if (textEl) {
+          textEl.textContent = 'A Receber';
+          textEl.style.color = '#22c55e';
         }
+      } else if (saldo < 0) {
+        saldoEl.style.color = '#ef4444';
+        statusBadgeEl.style.borderColor = 'rgba(239, 68, 68, 0.3)';
+        statusBadgeEl.style.background = 'rgba(239, 68, 68, 0.1)';
+        if (iconEl) iconEl.textContent = '💸';
+        if (textEl) {
+          textEl.textContent = 'A Pagar';
+          textEl.style.color = '#ef4444';
+        }
+      } else {
+        saldoEl.style.color = '#a0a0a0';
+        statusBadgeEl.style.borderColor = 'rgba(160, 160, 160, 0.3)';
+        statusBadgeEl.style.background = 'rgba(160, 160, 160, 0.1)';
+        if (iconEl) iconEl.textContent = '✅';
+        if (textEl) {
+          textEl.textContent = 'Quitado';
+          textEl.style.color = '#a0a0a0';
+        }
+      }
     }
+  }
 
-    // Atualizar card "Ganhou"
-    const ganhosEl = document.getElementById('totalGanhosHeader');
-    if (ganhosEl && resumo.totalGanhos !== undefined) {
-        ganhosEl.textContent = `+R$ ${resumo.totalGanhos.toLocaleString('pt-BR', {
-            minimumFractionDigits: 2,
-            maximumFractionDigits: 2
-        })}`;
-    }
+  // Atualizar card "Ganhou"
+  const ganhosEl = document.getElementById('totalGanhosHeader');
+  if (ganhosEl && resumo.totalGanhos !== undefined) {
+    ganhosEl.textContent = `+R$ ${resumo.totalGanhos.toLocaleString('pt-BR', {
+      minimumFractionDigits: 2,
+      maximumFractionDigits: 2
+    })}`;
+  }
 
-    // Atualizar card "Perdeu"
-    const perdeuEl = document.getElementById('totalPerdeuHeader');
-    if (perdeuEl && resumo.totalPerdas !== undefined) {
-        perdeuEl.textContent = `R$ ${Math.abs(resumo.totalPerdas).toLocaleString('pt-BR', {
-            minimumFractionDigits: 2,
-            maximumFractionDigits: 2
-        })}`;
-    }
+  // Atualizar card "Perdeu"
+  const perdeuEl = document.getElementById('totalPerdeuHeader');
+  if (perdeuEl && resumo.totalPerdas !== undefined) {
+    perdeuEl.textContent = `R$ ${Math.abs(resumo.totalPerdas).toLocaleString('pt-BR', {
+      minimumFractionDigits: 2,
+      maximumFractionDigits: 2
+    })}`;
+  }
 }
 
 export function mostrarLoading() {
-    const container = document.getElementById('fluxoFinanceiroContent');
-    if (container) {
-        container.innerHTML = `
+  const container = document.getElementById('moduleContainer');
+  if (container) {
+    container.innerHTML = `
             <div class="loading-state">
                 <div class="spinner"></div>
                 <p>Carregando extrato...</p>
             </div>
         `;
-    }
+  }
 }
 
 // Expor globalmente para refresh
@@ -399,185 +396,185 @@ window.mostrarLoadingExtrato = mostrarLoading;
 
 // ===== FUNÇÕES DE DETALHAMENTO (POPUPS) =====
 window.mostrarDetalhamentoGanhos = function () {
-    const extrato = window.extratoAtual;
-    if (!extrato) {
-        console.warn('[EXTRATO-UI] Dados do extrato não disponíveis');
-        return;
-    }
+  const extrato = window.extratoAtual;
+  if (!extrato) {
+    console.warn('[EXTRATO-UI] Dados do extrato não disponíveis');
+    return;
+  }
 
-    const detalhes = calcularDetalhamentoGanhos(extrato);
-    mostrarPopupDetalhamento('Detalhamento: Tudo que Ganhou', detalhes, '#22c55e');
+  const detalhes = calcularDetalhamentoGanhos(extrato);
+  mostrarPopupDetalhamento('Detalhamento: Tudo que Ganhou', detalhes, '#22c55e');
 };
 
 window.mostrarDetalhamentoPerdas = function () {
-    const extrato = window.extratoAtual;
-    if (!extrato) {
-        console.warn('[EXTRATO-UI] Dados do extrato não disponíveis');
-        return;
-    }
+  const extrato = window.extratoAtual;
+  if (!extrato) {
+    console.warn('[EXTRATO-UI] Dados do extrato não disponíveis');
+    return;
+  }
 
-    const detalhes = calcularDetalhamentoPerdas(extrato);
-    mostrarPopupDetalhamento('Detalhamento: Tudo que Perdeu', detalhes, '#ef4444');
+  const detalhes = calcularDetalhamentoPerdas(extrato);
+  mostrarPopupDetalhamento('Detalhamento: Tudo que Perdeu', detalhes, '#ef4444');
 };
 
 function calcularDetalhamentoGanhos(extrato) {
-    const detalhes = {
-        bonusOnus: 0,
-        pontosCorridos: 0,
-        mataMata: 0,
-        top10: 0,
-        melhorMes: 0,
-        camposEditaveis: 0,
-        rodadas: {
-            bonusOnus: [],
-            pontosCorridos: [],
-            mataMata: [],
-            top10: [],
-            melhorMes: [],
-        },
-    };
+  const detalhes = {
+    bonusOnus: 0,
+    pontosCorridos: 0,
+    mataMata: 0,
+    top10: 0,
+    melhorMes: 0,
+    camposEditaveis: 0,
+    rodadas: {
+      bonusOnus: [],
+      pontosCorridos: [],
+      mataMata: [],
+      top10: [],
+      melhorMes: [],
+    },
+  };
 
-    const rodadas = extrato.rodadas || [];
-    const resumo = extrato.resumo || {};
+  const rodadas = extrato.rodadas || [];
+  const resumo = extrato.resumo || {};
 
-    rodadas.forEach((rodada) => {
-        if (rodada.bonusOnus > 0) {
-            detalhes.bonusOnus += rodada.bonusOnus;
-            detalhes.rodadas.bonusOnus.push({
-                rodada: rodada.rodada,
-                valor: rodada.bonusOnus,
-            });
-        }
-        if (rodada.pontosCorridos > 0) {
-            detalhes.pontosCorridos += rodada.pontosCorridos;
-            detalhes.rodadas.pontosCorridos.push({
-                rodada: rodada.rodada,
-                valor: rodada.pontosCorridos,
-            });
-        }
-        if (rodada.mataMata > 0) {
-            detalhes.mataMata += rodada.mataMata;
-            detalhes.rodadas.mataMata.push({
-                rodada: rodada.rodada,
-                valor: rodada.mataMata,
-            });
-        }
-        if (rodada.top10 > 0) {
-            detalhes.top10 += rodada.top10;
-            detalhes.rodadas.top10.push({
-                rodada: rodada.rodada,
-                valor: rodada.top10,
-                status: rodada.top10Status,
-            });
-        }
-        if (rodada.melhorMes > 0) {
-            detalhes.melhorMes += rodada.melhorMes;
-            detalhes.rodadas.melhorMes.push({
-                rodada: rodada.rodada,
-                valor: rodada.melhorMes,
-            });
-        }
-    });
+  rodadas.forEach((rodada) => {
+    if (rodada.bonusOnus > 0) {
+      detalhes.bonusOnus += rodada.bonusOnus;
+      detalhes.rodadas.bonusOnus.push({
+        rodada: rodada.rodada,
+        valor: rodada.bonusOnus,
+      });
+    }
+    if (rodada.pontosCorridos > 0) {
+      detalhes.pontosCorridos += rodada.pontosCorridos;
+      detalhes.rodadas.pontosCorridos.push({
+        rodada: rodada.rodada,
+        valor: rodada.pontosCorridos,
+      });
+    }
+    if (rodada.mataMata > 0) {
+      detalhes.mataMata += rodada.mataMata;
+      detalhes.rodadas.mataMata.push({
+        rodada: rodada.rodada,
+        valor: rodada.mataMata,
+      });
+    }
+    if (rodada.top10 > 0) {
+      detalhes.top10 += rodada.top10;
+      detalhes.rodadas.top10.push({
+        rodada: rodada.rodada,
+        valor: rodada.top10,
+        status: rodada.top10Status,
+      });
+    }
+    if (rodada.melhorMes > 0) {
+      detalhes.melhorMes += rodada.melhorMes;
+      detalhes.rodadas.melhorMes.push({
+        rodada: rodada.rodada,
+        valor: rodada.melhorMes,
+      });
+    }
+  });
 
-    if (resumo.campo1 > 0) detalhes.camposEditaveis += resumo.campo1;
-    if (resumo.campo2 > 0) detalhes.camposEditaveis += resumo.campo2;
-    if (resumo.campo3 > 0) detalhes.camposEditaveis += resumo.campo3;
-    if (resumo.campo4 > 0) detalhes.camposEditaveis += resumo.campo4;
+  if (resumo.campo1 > 0) detalhes.camposEditaveis += resumo.campo1;
+  if (resumo.campo2 > 0) detalhes.camposEditaveis += resumo.campo2;
+  if (resumo.campo3 > 0) detalhes.camposEditaveis += resumo.campo3;
+  if (resumo.campo4 > 0) detalhes.camposEditaveis += resumo.campo4;
 
-    return detalhes;
+  return detalhes;
 }
 
 function calcularDetalhamentoPerdas(extrato) {
-    const detalhes = {
-        bonusOnus: 0,
-        pontosCorridos: 0,
-        mataMata: 0,
-        top10: 0,
-        melhorMes: 0,
-        camposEditaveis: 0,
-        rodadas: {
-            bonusOnus: [],
-            pontosCorridos: [],
-            mataMata: [],
-            top10: [],
-            melhorMes: [],
-        },
-    };
+  const detalhes = {
+    bonusOnus: 0,
+    pontosCorridos: 0,
+    mataMata: 0,
+    top10: 0,
+    melhorMes: 0,
+    camposEditaveis: 0,
+    rodadas: {
+      bonusOnus: [],
+      pontosCorridos: [],
+      mataMata: [],
+      top10: [],
+      melhorMes: [],
+    },
+  };
 
-    const rodadas = extrato.rodadas || [];
-    const resumo = extrato.resumo || {};
+  const rodadas = extrato.rodadas || [];
+  const resumo = extrato.resumo || {};
 
-    rodadas.forEach((rodada) => {
-        if (rodada.bonusOnus < 0) {
-            detalhes.bonusOnus += rodada.bonusOnus;
-            detalhes.rodadas.bonusOnus.push({
-                rodada: rodada.rodada,
-                valor: rodada.bonusOnus,
-            });
-        }
-        if (rodada.pontosCorridos < 0) {
-            detalhes.pontosCorridos += rodada.pontosCorridos;
-            detalhes.rodadas.pontosCorridos.push({
-                rodada: rodada.rodada,
-                valor: rodada.pontosCorridos,
-            });
-        }
-        if (rodada.mataMata < 0) {
-            detalhes.mataMata += rodada.mataMata;
-            detalhes.rodadas.mataMata.push({
-                rodada: rodada.rodada,
-                valor: rodada.mataMata,
-            });
-        }
-        if (rodada.top10 < 0) {
-            detalhes.top10 += rodada.top10;
-            detalhes.rodadas.top10.push({
-                rodada: rodada.rodada,
-                valor: rodada.top10,
-                status: rodada.top10Status,
-            });
-        }
-        if (rodada.melhorMes < 0) {
-            detalhes.melhorMes += rodada.melhorMes;
-            detalhes.rodadas.melhorMes.push({
-                rodada: rodada.rodada,
-                valor: rodada.melhorMes,
-            });
-        }
-    });
+  rodadas.forEach((rodada) => {
+    if (rodada.bonusOnus < 0) {
+      detalhes.bonusOnus += rodada.bonusOnus;
+      detalhes.rodadas.bonusOnus.push({
+        rodada: rodada.rodada,
+        valor: rodada.bonusOnus,
+      });
+    }
+    if (rodada.pontosCorridos < 0) {
+      detalhes.pontosCorridos += rodada.pontosCorridos;
+      detalhes.rodadas.pontosCorridos.push({
+        rodada: rodada.rodada,
+        valor: rodada.pontosCorridos,
+      });
+    }
+    if (rodada.mataMata < 0) {
+      detalhes.mataMata += rodada.mataMata;
+      detalhes.rodadas.mataMata.push({
+        rodada: rodada.rodada,
+        valor: rodada.mataMata,
+      });
+    }
+    if (rodada.top10 < 0) {
+      detalhes.top10 += rodada.top10;
+      detalhes.rodadas.top10.push({
+        rodada: rodada.rodada,
+        valor: rodada.top10,
+        status: rodada.top10Status,
+      });
+    }
+    if (rodada.melhorMes < 0) {
+      detalhes.melhorMes += rodada.melhorMes;
+      detalhes.rodadas.melhorMes.push({
+        rodada: rodada.rodada,
+        valor: rodada.melhorMes,
+      });
+    }
+  });
 
-    if (resumo.campo1 < 0) detalhes.camposEditaveis += resumo.campo1;
-    if (resumo.campo2 < 0) detalhes.camposEditaveis += resumo.campo2;
-    if (resumo.campo3 < 0) detalhes.camposEditaveis += resumo.campo3;
-    if (resumo.campo4 < 0) detalhes.camposEditaveis += resumo.campo4;
+  if (resumo.campo1 < 0) detalhes.camposEditaveis += resumo.campo1;
+  if (resumo.campo2 < 0) detalhes.camposEditaveis += resumo.campo2;
+  if (resumo.campo3 < 0) detalhes.camposEditaveis += resumo.campo3;
+  if (resumo.campo4 < 0) detalhes.camposEditaveis += resumo.campo4;
 
-    return detalhes;
+  return detalhes;
 }
 
 function mostrarPopupDetalhamento(titulo, detalhes, cor) {
-    const formatarMoeda = (valor) => {
-        return (valor || 0).toLocaleString('pt-BR', {
-            minimumFractionDigits: 2,
-            maximumFractionDigits: 2,
-        });
-    };
+  const formatarMoeda = (valor) => {
+    return (valor || 0).toLocaleString('pt-BR', {
+      minimumFractionDigits: 2,
+      maximumFractionDigits: 2,
+    });
+  };
 
-    const formatarRodadas = (rodadas) => {
-        if (!rodadas || rodadas.length === 0) return '-';
-        return rodadas
-            .map((r) => `R${r.rodada}(${formatarMoeda(Math.abs(r.valor))})`)
-            .join(', ');
-    };
+  const formatarRodadas = (rodadas) => {
+    if (!rodadas || rodadas.length === 0) return '-';
+    return rodadas
+      .map((r) => `R${r.rodada}(${formatarMoeda(Math.abs(r.valor))})`)
+      .join(', ');
+  };
 
-    const total =
-        detalhes.bonusOnus +
-        detalhes.pontosCorridos +
-        detalhes.mataMata +
-        detalhes.top10 +
-        detalhes.melhorMes +
-        detalhes.camposEditaveis;
+  const total =
+    detalhes.bonusOnus +
+    detalhes.pontosCorridos +
+    detalhes.mataMata +
+    detalhes.top10 +
+    detalhes.melhorMes +
+    detalhes.camposEditaveis;
 
-    const html = `
+  const html = `
         <style>
             @media (max-width: 768px) {
                 #popupDetalhamento .modal-content {
@@ -724,5 +721,5 @@ function mostrarPopupDetalhamento(titulo, detalhes, cor) {
         </div>
     `;
 
-    document.body.insertAdjacentHTML('beforeend', html);
+  document.body.insertAdjacentHTML('beforeend', html);
 }
