@@ -142,7 +142,62 @@ class ParticipanteAuth {
             // Atualizar nome do time e cartoleiro
             if (nomeTime) {
                 nomeTime.textContent = nomeTimeTexto;
+            }
+            if (nomeCartolaText) {
+                nomeCartolaText.textContent = nomeCartolaTexto;
+            }
 
+            // Escudo do clube (coração)
+            if (escudoCoracao) {
+                if (clubeId) {
+                    escudoCoracao.src = `/escudos/${clubeId}.png`;
+                    escudoCoracao.onerror = () => escudoCoracao.src = '/escudos/placeholder.png';
+                } else {
+                    escudoCoracao.src = '/escudos/placeholder.png';
+                }
+            }
+
+            // Escudo do time (foto do escudo do Cartola)
+            if (escudoTime) {
+                if (fotoTime) {
+                    escudoTime.src = fotoTime;
+                    escudoTime.onerror = () => {
+                        // Fallback para escudo do clube
+                        if (clubeId) {
+                            escudoTime.src = `/escudos/${clubeId}.png`;
+                            escudoTime.onerror = () => escudoTime.src = '/escudos/placeholder.png';
+                        } else {
+                            escudoTime.src = '/escudos/placeholder.png';
+                        }
+                    };
+                } else if (clubeId) {
+                    escudoTime.src = `/escudos/${clubeId}.png`;
+                    escudoTime.onerror = () => escudoTime.src = '/escudos/placeholder.png';
+                } else {
+                    escudoTime.src = '/escudos/placeholder.png';
+                }
+            }
+
+            console.log('[PARTICIPANTE-AUTH] ✅ Header atualizado com sucesso:', {
+                nome: nomeTimeTexto,
+                cartola: nomeCartolaTexto,
+                clube: clubeId,
+                patrimonio: patrimonio
+            });
+
+            this._atualizandoHeader = false;
+
+        } catch (error) {
+            this._atualizandoHeader = false;
+            console.error('[PARTICIPANTE-AUTH] Erro ao atualizar header:', error);
+            
+            // Fallback para dados básicos
+            if (nomeTime) nomeTime.textContent = 'Meu Time';
+            if (nomeCartolaText) nomeCartolaText.textContent = 'Cartoleiro';
+            if (escudoCoracao) escudoCoracao.src = '/escudos/placeholder.png';
+            if (escudoTime) escudoTime.src = '/escudos/placeholder.png';
+        }
+    }
 
     async verificarMultiplasLigas() {
         try {
@@ -236,68 +291,6 @@ class ParticipanteAuth {
         } catch (error) {
             console.error('[PARTICIPANTE-AUTH] ❌ Erro ao trocar liga:', error);
             alert('Erro ao trocar de liga. Tente novamente.');
-        }
-    }
-
-            }
-            if (nomeCartolaText) {
-                nomeCartolaText.textContent = nomeCartolaTexto;
-            }
-
-            // Escudo do clube (coração)
-            if (escudoCoracao) {
-                if (clubeId) {
-                    escudoCoracao.src = `/escudos/${clubeId}.png`;
-                    escudoCoracao.onerror = () => escudoCoracao.src = '/escudos/placeholder.png';
-                } else {
-                    escudoCoracao.src = '/escudos/placeholder.png';
-                }
-            }
-
-            // Escudo do time (foto do escudo do Cartola)
-            if (escudoTime) {
-                if (fotoTime) {
-                    escudoTime.src = fotoTime;
-                    escudoTime.onerror = () => {
-                        // Fallback para escudo do clube
-                        if (clubeId) {
-                            escudoTime.src = `/escudos/${clubeId}.png`;
-                            escudoTime.onerror = () => escudoTime.src = '/escudos/placeholder.png';
-                        } else {
-                            escudoTime.src = '/escudos/placeholder.png';
-                        }
-                    };
-                } else if (clubeId) {
-                    escudoTime.src = `/escudos/${clubeId}.png`;
-                    escudoTime.onerror = () => escudoTime.src = '/escudos/placeholder.png';
-                } else {
-                    escudoTime.src = '/escudos/placeholder.png';
-                }
-            }
-
-            // Estatísticas rápidas removidas da UI
-
-                console.log('[PARTICIPANTE-AUTH] ✅ Header atualizado com sucesso:', {
-                nome: nomeTimeTexto,
-                cartola: nomeCartolaTexto,
-                clube: clubeId,
-                patrimonio: patrimonio
-            });
-
-            this._atualizandoHeader = false;
-
-        } catch (error) {
-            this._atualizandoHeader = false;
-            console.error('[PARTICIPANTE-AUTH] Erro ao atualizar header:', error);
-            
-            // Fallback para dados básicos
-            if (nomeTime) nomeTime.textContent = 'Meu Time';
-            if (nomeCartolaText) nomeCartolaText.textContent = 'Cartoleiro';
-            if (escudoCoracao) escudoCoracao.src = '/escudos/placeholder.png';
-            if (escudoTime) escudoTime.src = '/escudos/placeholder.png';
-            if (posicaoQuick) posicaoQuick.textContent = '--º';
-            if (patrimonioQuick) patrimonioQuick.textContent = 'C$ 0,00';
-            if (pontosQuick) pontosQuick.textContent = '0,00 pts';
         }
     }
 
