@@ -296,8 +296,4 @@ function renderizarTimeCoracao(clube, timeCoracaoCard) {
     console.log('[BOAS-VINDAS] ✅ Time do coração carregado:', clube.nome);
 }
 
-        `;
-    }
-}
-
 console.log('[BOAS-VINDAS] ✅ Módulo carregado');
