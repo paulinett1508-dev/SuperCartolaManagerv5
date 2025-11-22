@@ -31,13 +31,14 @@ window.inicializarBoasVindas = async function(ligaId, timeId) {
             rankingLength: ranking.length,
             rodadasLength: rodadas.length,
             fluxoLength: fluxoData.length,
-            timeData: timeData
+            timeData: timeData,
+            meuTimeId: timeId
         });
 
-        // Processar dados
-        const posicao = ranking.findIndex(t => parseInt(t.time_id) === parseInt(timeId)) + 1 || '-';
+        // Processar dados - CORRIGIDO: ranking retorna array de times ordenados
+        const meuTime = ranking.find(t => String(t.time_id) === String(timeId));
+        const posicao = meuTime ? meuTime.posicao : '-';
         const totalParticipantes = ranking.length;
-        const meuTime = ranking.find(t => parseInt(t.time_id) === parseInt(timeId));
 
         // Pontuação total do ranking
         const pontosTotal = meuTime ? parseFloat(meuTime.pontos_total) || 0 : 0;
@@ -61,8 +62,13 @@ window.inicializarBoasVindas = async function(ligaId, timeId) {
             console.error('[BOAS-VINDAS] Erro ao buscar campos financeiros:', error);
         }
 
-        // Última rodada do usuário
-        const minhasRodadas = rodadas.filter(r => String(r.timeId) === String(timeId));
+        // Última rodada do usuário - CORRIGIDO: verificar estrutura correta
+        console.log('[BOAS-VINDAS] 🔍 Buscando minhas rodadas. Total de rodadas:', rodadas.length);
+        console.log('[BOAS-VINDAS] 🔍 Primeira rodada (exemplo):', rodadas[0]);
+        
+        const minhasRodadas = rodadas.filter(r => String(r.timeId) === String(timeId) || String(r.time_id) === String(timeId));
+        console.log('[BOAS-VINDAS] 🔍 Minhas rodadas encontradas:', minhasRodadas.length);
+        
         const ultimaRodada = minhasRodadas.sort((a, b) => b.rodada - a.rodada)[0];
 
         console.log('[BOAS-VINDAS] Dados processados:', {
@@ -70,7 +76,8 @@ window.inicializarBoasVindas = async function(ligaId, timeId) {
             totalParticipantes,
             pontosTotal,
             saldoFinanceiro,
-            ultimaRodada: ultimaRodada ? `Rodada ${ultimaRodada.rodada}` : 'Nenhuma'
+            ultimaRodada: ultimaRodada ? `Rodada ${ultimaRodada.rodada} - ${ultimaRodada.pontos} pts` : 'Nenhuma',
+            meuTimeDados: meuTime
         });
 
         preencherBoasVindas({
@@ -111,8 +118,9 @@ function preencherBoasVindas({ posicao, totalParticipantes, pontosTotal, saldoFi
     // Mini Card "Posição no Ranking"
     const posElement = document.getElementById('posicaoRanking');
     if (posElement) {
-        posElement.textContent = posicao === '-' ? '--º' : `${posicao}º/${totalParticipantes}`;
-        console.log('[BOAS-VINDAS] Posição atualizada:', posElement.textContent);
+        const posTexto = posicao === '-' ? '--º' : `${posicao}º`;
+        posElement.textContent = posTexto;
+        console.log('[BOAS-VINDAS] ✅ Posição atualizada:', posElement.textContent, '(de', totalParticipantes, 'times)');
     }
 
     // Mini Card "Pontuação Total"
@@ -228,12 +236,24 @@ async function buscarInfoTimeCoracao(clubeId) {
     }
 
     try {
-        // Buscar informações do clube
-        const response = await fetch(`/api/clubes`);
-        if (!response.ok) throw new Error('Erro ao buscar clubes');
+        console.log('[BOAS-VINDAS] 🏟️ Buscando informações do clube:', clubeId);
+        
+        // Buscar informações do clube via API do Cartola
+        const response = await fetch(`https://api.cartola.globo.com/clubes`);
+        if (!response.ok) {
+            console.warn('[BOAS-VINDAS] ⚠️ Erro ao buscar da API Cartola, tentando API local...');
+            // Fallback para API local
+            const localResponse = await fetch(`/api/cartola/clubes`);
+            if (!localResponse.ok) throw new Error('Erro ao buscar clubes');
+            const clubes = await localResponse.json();
+            const clube = Object.values(clubes).find(c => c.id === parseInt(clubeId));
+            if (!clube) throw new Error('Clube não encontrado');
+            renderizarTimeCoracao(clube, timeCoracaoCard);
+            return;
+        }
 
         const clubes = await response.json();
-        const clube = clubes.find(c => c.id === clubeId);
+        const clube = Object.values(clubes).find(c => c.id === parseInt(clubeId));
 
         if (!clube) {
             timeCoracaoCard.innerHTML = `
@@ -244,24 +264,7 @@ async function buscarInfoTimeCoracao(clubeId) {
             return;
         }
 
-        timeCoracaoCard.innerHTML = `
-            <div style="display: flex; align-items: center; gap: 12px;">
-                <img src="/escudos/${clubeId}.png"
-                     alt="${clube.nome}"
-                     style="width: 48px; height: 48px; border-radius: 50%;"
-                     onerror="this.src='/escudos/placeholder.png'">
-                <div style="flex: 1;">
-                    <h3 style="color: #fff; margin: 0 0 4px 0; font-size: 14px; font-weight: 600;">
-                        ${clube.nome}
-                    </h3>
-                    <p style="color: #999; font-size: 11px; margin: 0;">
-                        ${clube.abreviacao || 'N/D'}
-                    </p>
-                </div>
-            </div>
-        `;
-
-        console.log('[BOAS-VINDAS] Time do coração carregado:', clube.nome);
+        renderizarTimeCoracao(clube, timeCoracaoCard);
 
     } catch (error) {
         console.error('[BOAS-VINDAS] Erro ao buscar time do coração:', error);
@@ -269,6 +272,28 @@ async function buscarInfoTimeCoracao(clubeId) {
             <div style="text-align: center; color: #999; padding: 20px; font-size: 12px;">
                 <p>⚽ Erro ao carregar informações</p>
             </div>
+
+
+function renderizarTimeCoracao(clube, timeCoracaoCard) {
+    timeCoracaoCard.innerHTML = `
+        <div style="display: flex; align-items: center; gap: 12px;">
+            <img src="/escudos/${clube.id}.png"
+                 alt="${clube.nome}"
+                 style="width: 48px; height: 48px; border-radius: 50%;"
+                 onerror="this.src='/escudos/placeholder.png'">
+            <div style="flex: 1;">
+                <h3 style="color: #fff; margin: 0 0 4px 0; font-size: 14px; font-weight: 600;">
+                    ${clube.nome}
+                </h3>
+                <p style="color: #999; font-size: 11px; margin: 0;">
+                    ${clube.abreviacao || clube.nome_fantasia || 'N/D'}
+                </p>
+            </div>
+        </div>
+    `;
+    console.log('[BOAS-VINDAS] ✅ Time do coração carregado:', clube.nome);
+}
+
         `;
     }
 }
