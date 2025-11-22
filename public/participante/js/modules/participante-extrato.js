@@ -117,6 +117,16 @@ export async function inicializarExtratoParticipante({ participante, ligaId, tim
             console.log('[EXTRATO-PARTICIPANTE] ✅ Cache validado - dados íntegros');
         }
 
+        // Validar ligaId antes de buscar extrato
+        if (!ligaId || ligaId === 'null' || ligaId === 'undefined') {
+            console.error('[EXTRATO-PARTICIPANTE] ❌ ligaId inválida:', ligaId);
+            mostrarErro('ID da liga inválido. Tente fazer login novamente.');
+            return;
+        }
+
+        console.log('[EXTRATO-PARTICIPANTE] 🔑 Usando ligaId:', ligaId);
+        console.log('[EXTRATO-PARTICIPANTE] 👤 Usando timeId:', timeId);
+
         // Buscar extrato calculado com última rodada completa (forçando recálculo)
         const extratoData = await fluxoFinanceiroParticipante.buscarExtratoCalculado(ligaId, timeId, ultimaRodadaCompleta, true);
 

@@ -191,7 +191,7 @@ class ParticipanteNavigation {
         // ✅ RESTAURAR MÓDULO ANTERIOR OU CARREGAR BOAS-VINDAS
         const moduloSalvo = this.restaurarModuloAnterior();
         this.navegarPara(moduloSalvo || 'boas-vindas');
-        
+
         // ✅ PREVENIR QUE PULL-TO-REFRESH VOLTE PARA BOAS-VINDAS
         this.configurarPullToRefresh();
     }
@@ -394,7 +394,23 @@ class ParticipanteNavigation {
                 if (typeof window.inicializarExtratoParticipante === 'function') {
                     console.log('[PARTICIPANTE-NAV] Chamando inicializarExtratoParticipante com dados:', participanteData);
                     try {
-                        await window.inicializarExtratoParticipante(participanteData);
+                        // Tentar inicializar o módulo com dados do participante
+                        if (window.inicializarExtratoParticipante && typeof window.inicializarExtratoParticipante === 'function') {
+                            console.log(`[PARTICIPANTE-NAV] Inicializando módulo: extrato`);
+                            const dadosParticipante = this.obterDadosParticipante();
+
+                            // Validar dados críticos antes de passar para o módulo
+                            if (!dadosParticipante.ligaId || dadosParticipante.ligaId === 'null') {
+                                console.error('[PARTICIPANTE-NAV] ❌ ligaId inválida nos dados do participante:', dadosParticipante);
+                                this.mostrarErro('Dados de autenticação inválidos. Faça login novamente.');
+                                return;
+                            }
+
+                            console.log(`[PARTICIPANTE-NAV] Chamando ${window.inicializarExtratoParticipante.name} com dados:`, dadosParticipante);
+                            console.log(`[PARTICIPANTE-NAV] 🔑 ligaId: ${dadosParticipante.ligaId}, timeId: ${dadosParticipante.timeId}`);
+
+                            await window.inicializarExtratoParticipante(dadosParticipante);
+                        }
                     } catch (error) {
                         console.error('[PARTICIPANTE-NAV] Erro ao inicializar extrato:', error);
                         const container = document.getElementById('moduleContainer');
@@ -477,6 +493,35 @@ class ParticipanteNavigation {
 
             default:
                 console.warn(`[PARTICIPANTE-NAV] Módulo ${modulo} não tem inicializador definido`);
+        }
+    }
+
+    // Helper function to get participant data, ensuring it's not null/undefined
+    obterDadosParticipante() {
+        const dados = participanteAuth.getDados();
+        if (!dados) {
+            console.error('[PARTICIPANTE-NAV] Erro interno: participanteAuth.getDados() retornou null ou undefined.');
+            // Retornar um objeto com valores padrão para evitar erros subsequentes, mas logar o erro.
+            return { ligaId: 'null', timeId: 'null' };
+        }
+        return dados;
+    }
+
+    // Helper function to display error messages in the module container
+    mostrarErro(mensagem) {
+        const container = document.getElementById('moduleContainer');
+        if (container) {
+            container.innerHTML = `
+                <div style="text-align: center; padding: 40px; color: #ef4444;">
+                    <h3>❌ Erro Crítico</h3>
+                    <p>${mensagem}</p>
+                    <button onclick="window.location.reload()"
+                            style="margin-top: 20px; padding: 10px 20px; background: #ff4500;
+                                   color: white; border: none; border-radius: 8px; cursor: pointer;">
+                        🔄 Recarregar
+                    </button>
+                </div>
+            `;
         }
     }
 }
