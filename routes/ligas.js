@@ -458,6 +458,46 @@ router.get("/:id/pontos-corridos", async (req, res) => {
 });
 
 // ==============================
+// ROTA: Buscar ranking de uma rodada específica
+// ==============================
+router.get("/:id/ranking/:rodada", async (req, res) => {
+  const { id: ligaId, rodada } = req.params;
+
+  try {
+    console.log(`[LIGAS] Buscando ranking da rodada ${rodada} para liga ${ligaId}`);
+
+    const Rodada = (await import("../models/Rodada.js")).default;
+
+    const rodadaNum = parseInt(rodada);
+    if (isNaN(rodadaNum)) {
+      return res.status(400).json({ erro: "Rodada inválida" });
+    }
+
+    const dados = await Rodada.find({ 
+      ligaId, 
+      rodada: rodadaNum 
+    }).lean();
+
+    if (!dados || dados.length === 0) {
+      return res.status(404).json({ 
+        erro: `Dados da rodada ${rodada} não encontrados`,
+        rodada: rodadaNum
+      });
+    }
+
+    // Ordenar por pontos decrescentes
+    const ranking = dados.sort((a, b) => (b.pontos || 0) - (a.pontos || 0));
+
+    console.log(`[LIGAS] Ranking rodada ${rodada}: ${ranking.length} times`);
+    res.json(ranking);
+
+  } catch (error) {
+    console.error(`[LIGAS] Erro ao buscar ranking da rodada ${rodada}:`, error);
+    res.status(500).json({ erro: "Erro ao buscar ranking da rodada" });
+  }
+});
+
+// ==============================
 // ROTA: Buscar Mata-Mata para participante
 // ==============================
 router.get("/:id/mata-mata", async (req, res) => {
