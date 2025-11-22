@@ -5,12 +5,21 @@
     --participante-bg: #0a0a0a;
     --participante-card: #1a1a1a;
     --participante-border: rgba(255, 69, 0, 0.2);
+    
+    /* Sistema de Tipografia Mobile-First */
+    --font-base: 16px;
+    --font-title: 20px;
+    --font-subtitle: 14px;
+    --font-body: 16px;
+    --font-small: 13px;
+    --font-mini: 11px;
 }
 
 body {
     background: var(--participante-bg);
     color: #ffffff;
     font-family: 'Inter', -apple-system, sans-serif;
+    font-size: var(--font-base);
     margin: 0;
     padding: 0;
     -webkit-font-smoothing: antialiased;
@@ -21,7 +30,7 @@ body {
 .participante-container {
     max-width: 1400px;
     margin: 0 auto;
-    padding: 10px;
+    padding: 16px;
 }
 
 /* Tablet */
@@ -77,26 +86,26 @@ body {
 
 /* Escudo do time do Cartola */
 .escudo-time {
-    width: 44px;
-    height: 44px;
+    width: 48px;
+    height: 48px;
     border-radius: 50%;
-    border: 2px solid var(--participante-primary);
+    border: 2.5px solid var(--participante-primary);
     background: rgba(255, 255, 255, 0.05);
     object-fit: cover;
     transition: transform 0.2s ease;
-    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.3);
+    box-shadow: 0 3px 8px rgba(0, 0, 0, 0.4);
 }
 
 /* Escudo do time do coração */
 .escudo-coracao {
-    width: 44px;
-    height: 44px;
+    width: 48px;
+    height: 48px;
     border-radius: 50%;
-    border: 2px solid #FFD700;
+    border: 2.5px solid #FFD700;
     background: rgba(255, 215, 0, 0.1);
     object-fit: cover;
     transition: transform 0.2s ease;
-    box-shadow: 0 2px 6px rgba(255, 215, 0, 0.3);
+    box-shadow: 0 3px 8px rgba(255, 215, 0, 0.4);
 }
 
 .escudo-coracao:active,
@@ -118,30 +127,32 @@ body {
 }
 
 .participante-info h1 {
-    font-size: 15px;
+    font-size: var(--font-title);
     margin: 0;
     color: var(--participante-primary);
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
-    font-weight: 700;
-    line-height: 1.2;
+    font-weight: 800;
+    line-height: 1.3;
+    letter-spacing: -0.02em;
 }
 
 .participante-info p {
-    font-size: 12px;
+    font-size: var(--font-subtitle);
     margin: 0;
-    color: #999;
+    color: #a0a0a0;
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
     display: flex;
     align-items: center;
-    gap: 4px;
+    gap: 5px;
+    font-weight: 500;
 }
 
 .cartoleiro-icon {
-    font-size: 11px;
+    font-size: var(--font-small);
 }
 
 /* === ESTATÍSTICAS RÁPIDAS (esconder em mobile) === */
@@ -178,19 +189,21 @@ body {
 .btn-home {
     background: rgba(59, 130, 246, 0.15);
     color: #3b82f6;
-    border: 1px solid rgba(59, 130, 246, 0.3);
-    padding: 8px 10px;
-    border-radius: 8px;
+    border: 2px solid rgba(59, 130, 246, 0.3);
+    padding: 12px 14px;
+    border-radius: 10px;
     cursor: pointer;
     transition: all 0.2s ease;
-    font-size: 12px;
+    font-size: var(--font-subtitle);
     white-space: nowrap;
     flex-shrink: 0;
     display: flex;
     align-items: center;
-    gap: 4px;
-    min-height: 40px;
-    font-weight: 600;
+    gap: 6px;
+    min-height: 48px;
+    min-width: 48px;
+    font-weight: 700;
+    justify-content: center;
 }
 
 .btn-home:active {
@@ -212,14 +225,16 @@ body {
     }
     
     .btn-home {
-        padding: 10px 14px;
-        gap: 6px;
+        padding: 12px 18px;
+        gap: 8px;
         min-height: 44px;
+        font-size: 15px;
     }
 
     .btn-home:hover {
         background: rgba(59, 130, 246, 0.25);
-        transform: translateY(-1px);
+        transform: translateY(-2px);
+        box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);
     }
 }
 
@@ -227,19 +242,21 @@ body {
 .btn-logout {
     background: rgba(255, 69, 0, 0.15);
     color: var(--participante-primary);
-    border: 1px solid var(--participante-border);
-    padding: 8px 10px;
-    border-radius: 8px;
+    border: 2px solid var(--participante-border);
+    padding: 12px 14px;
+    border-radius: 10px;
     cursor: pointer;
     transition: all 0.2s ease;
-    font-size: 12px;
+    font-size: var(--font-subtitle);
     white-space: nowrap;
     flex-shrink: 0;
     display: flex;
     align-items: center;
-    gap: 4px;
-    min-height: 40px;
-    font-weight: 600;
+    gap: 6px;
+    min-height: 48px;
+    min-width: 48px;
+    font-weight: 700;
+    justify-content: center;
 }
 
 .btn-logout:active {
@@ -261,9 +278,16 @@ body {
     }
     
     .btn-logout {
-        padding: 10px 14px;
-        gap: 6px;
+        padding: 12px 18px;
+        gap: 8px;
         min-height: 44px;
+        font-size: 15px;
+    }
+
+    .btn-logout:hover {
+        background: rgba(255, 69, 0, 0.25);
+        transform: translateY(-2px);
+        box-shadow: 0 4px 12px rgba(255, 69, 0, 0.4);
     }
 }
 
@@ -291,16 +315,16 @@ body {
     }
 
     .participante-info h1 {
-        font-size: 22px;
-        margin-bottom: 4px;
+        font-size: 24px;
+        margin-bottom: 6px;
     }
 
     .participante-info p {
-        font-size: 13px;
+        font-size: 15px;
     }
 
     .cartoleiro-icon {
-        font-size: 12px;
+        font-size: 14px;
     }
 
     .participante-stats-quick {
@@ -333,9 +357,10 @@ body {
 .participante-nav {
     display: grid;
     grid-template-columns: repeat(2, 1fr);
-    gap: 10px;
-    padding: 8px 0;
-    margin-bottom: 15px;
+    gap: 12px;
+    padding: 0;
+    margin-bottom: 20px;
+    margin-top: 16px;
 }
 
 /* Loading melhorado */
@@ -368,20 +393,38 @@ body {
 
 .nav-btn {
     background: var(--participante-card);
-    color: #bbb;
+    color: #d0d0d0;
     border: 2px solid var(--participante-border);
-    padding: 14px 12px;
-    border-radius: 8px;
+    padding: 16px 12px;
+    border-radius: 10px;
     cursor: pointer;
-    transition: all 0.2s ease;
+    transition: all 0.25s ease;
     white-space: nowrap;
-    font-size: 13px;
+    font-size: var(--font-small);
     font-weight: 700;
-    min-height: 50px;
+    min-height: 56px;
     display: flex;
     align-items: center;
     justify-content: center;
     text-align: center;
+    gap: 6px;
+    position: relative;
+    overflow: hidden;
+}
+
+.nav-btn::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.05), transparent);
+    transition: left 0.5s ease;
+}
+
+.nav-btn:active::before {
+    left: 100%;
 }
 
 .nav-btn:active {
@@ -392,8 +435,13 @@ body {
     background: linear-gradient(135deg, var(--participante-primary) 0%, #e8472b 100%);
     color: white;
     border-color: var(--participante-primary);
-    box-shadow: 0 3px 12px rgba(255, 69, 0, 0.4);
-    transform: scale(1.02);
+    box-shadow: 0 4px 16px rgba(255, 69, 0, 0.5);
+    transform: scale(1.03);
+    font-weight: 800;
+}
+
+.nav-btn.active::before {
+    display: none;
 }
 
 /* Tablet e Desktop */
@@ -418,8 +466,8 @@ body {
 /* Container de Módulos - Mobile First */
 .module-container {
     background: var(--participante-card);
-    border-radius: 8px;
-    padding: 15px;
+    border-radius: 12px;
+    padding: 20px;
     min-height: 400px;
     border: 1px solid var(--participante-border);
 }
@@ -450,7 +498,9 @@ body {
 
 .loading-participante p {
     margin-top: 15px;
-    font-size: 14px;
+    font-size: var(--font-base);
+    font-weight: 500;
+    color: #d0d0d0;
 }
 
 /* Tablet */
