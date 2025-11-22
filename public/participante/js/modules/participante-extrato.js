@@ -25,10 +25,10 @@ export async function inicializarExtratoParticipante({ participante, ligaId, tim
 
         // Importar módulos necessários
         const { renderizarExtratoParticipante } = await import('./participante-extrato-ui.js');
-        await import('../../rodadas/rodadas.js');
-        await import('../../melhor-mes.js');
+        await import('../../../js/rodadas/rodadas.js');
+        await import('../../../js/melhor-mes.js');
         await import('../../../js/core/cache-manager.js');
-        await import('../../fluxo-financeiro/fluxo-financeiro-participante.js');
+        await import('../../../js/fluxo-financeiro/fluxo-financeiro-participante.js');
 
         console.log('[EXTRATO-PARTICIPANTE] ⚙️ Inicializando core...');
 
