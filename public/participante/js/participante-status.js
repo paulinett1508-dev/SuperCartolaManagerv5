@@ -1,4 +1,3 @@
-
 // PARTICIPANTE STATUS - Monitoramento de Conexão
 
 console.log('[PARTICIPANTE-STATUS] Carregando sistema de status...');
@@ -23,7 +22,7 @@ class ParticipanteStatus {
 
     atualizarStatus(online) {
         this.isOnline = online;
-        
+
         const indicador = document.getElementById('statusIndicador');
         const texto = document.getElementById('statusTexto');
 
@@ -49,7 +48,7 @@ class ParticipanteStatus {
                 credentials: 'include',
                 cache: 'no-cache'
             });
-            
+
             this.atualizarStatus(response.ok);
         } catch (error) {
             this.atualizarStatus(false);

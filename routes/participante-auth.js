@@ -1,4 +1,3 @@
-
 import express from "express";
 import session from "express-session";
 
@@ -186,7 +185,7 @@ router.post("/trocar-liga", verificarSessaoParticipante, async (req, res) => {
 
         // Atualizar sessão
         req.session.participante.ligaId = ligaId;
-        
+
         res.json({
             success: true,
             message: "Liga alterada com sucesso",
@@ -268,6 +267,32 @@ router.post("/logout", (req, res) => {
   // Respondemos com sucesso, indicando que o logout foi processado
   res.json({ success: true, message: "Logout realizado com sucesso" });
 });
+
+// Rota de extrato do participante
+router.get('/extrato/:timeId/:ligaId', verificarAutenticacao, async (req, res) => {
+    try {
+        const { timeId, ligaId } = req.params;
+
+        // Redirecionar para o endpoint correto de extrato-cache
+        const extratoUrl = `/api/extrato-cache/${ligaId}/times/${timeId}/cache`;
+
+        // Fazer requisição interna
+        const axios = require('axios');
+        const baseURL = process.env.BASE_URL || `http://localhost:${process.env.PORT || 5000}`;
+        const response = await axios.get(`${baseURL}${extratoUrl}`, {
+            params: req.query
+        });
+
+        res.json(response.data);
+    } catch (error) {
+        console.error('[PARTICIPANTE-AUTH] Erro ao buscar extrato:', error);
+        res.status(error.response?.status || 500).json({
+            success: false,
+            message: error.message
+        });
+    }
+});
+
 
 export { verificarSessaoParticipante };
 export default router;

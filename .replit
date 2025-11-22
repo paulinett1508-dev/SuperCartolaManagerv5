@@ -10,6 +10,7 @@ deploymentTarget = "gce"
 run = ["sh", "-c", "npm start"]
 
 [nix]
+channel = "stable-25_05"
 
 [agent]
 expertMode = true
