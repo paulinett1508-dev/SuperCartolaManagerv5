@@ -41,7 +41,7 @@ export class FluxoFinanceiroCore {
     // NOVO: Carregar Map do Mata-Mata para busca O(1) (SOMENTE RODADAS CONSOLIDADAS)
     async _carregarMataMataMap(resultadosMataMata) {
         this.mataMataMap.clear();
-        
+
         // ✅ Obter última rodada consolidada
         let ultimaRodadaConsolidada = 999;
         try {
@@ -57,10 +57,10 @@ export class FluxoFinanceiroCore {
         } catch (error) {
             console.warn('[FLUXO-CORE] Erro ao verificar mercado para Map:', error);
         }
-        
+
         let registrosCarregados = 0;
         let registrosIgnorados = 0;
-        
+
         resultadosMataMata.forEach((r) => {
             // ✅ FILTRAR: só adicionar rodadas já consolidadas
             if (r.rodadaPontos <= ultimaRodadaConsolidada) {
@@ -68,7 +68,7 @@ export class FluxoFinanceiroCore {
                 const key = `${timeIdNormalizado}_${r.rodadaPontos}`;
                 this.mataMataMap.set(key, r.valor);
                 registrosCarregados++;
-                
+
                 if (r.valor !== 0) {
                     console.log(`[FLUXO-CORE] ✅ Map add R${r.rodadaPontos}: ${key} = ${r.valor > 0 ? '+' : ''}R$ ${r.valor.toFixed(2)}`);
                 }
@@ -77,7 +77,7 @@ export class FluxoFinanceiroCore {
                 console.log(`[FLUXO-CORE] ⏭️ Ignorado R${r.rodadaPontos} (futura/pendente) - aguardando consolidação`);
             }
         });
-        
+
         console.log(
             `[FLUXO-CORE] 📦 Mata-Mata Map: ${registrosCarregados} carregados, ${registrosIgnorados} ignorados (futuras)`,
         );
@@ -90,7 +90,7 @@ export class FluxoFinanceiroCore {
         // ✅ SEMPRE validar mercado e usar rodada anterior se aberto
         let rodadaParaCalculo = ultimaRodadaCompleta;
         let mercadoAberto = false;
-        
+
         try {
             const mercadoResponse = await fetch('/api/cartola/mercado/status');
             if (mercadoResponse.ok) {
@@ -397,12 +397,12 @@ export class FluxoFinanceiroCore {
         const timeIdNormalizado = normalizarTimeId(timeId);
         const key = `${timeIdNormalizado}_${rodada}`;
         const valor = this.mataMataMap.get(key) || 0;
-        
+
         // ✅ Log apenas quando há valor (reduzir poluição de console)
         if (valor !== 0) {
             console.log(`[FLUXO-CORE] 💰 Mata-Mata R${rodada} - Time ${timeId}: ${valor > 0 ? '+' : ''}R$ ${valor.toFixed(2)}`);
         }
-        
+
         return valor;
     }
 
@@ -730,7 +730,7 @@ window.forcarRefreshExtrato = async function (timeId) {
 
         // Recalcular com força
         if (window.calcularEExibirExtrato) {
-            await window.calcularEExibirExtrato(timeId);
+            await window.calcularEExibirExtrato(timeId, true); // Passar true para forçar recálculo
             console.log("[FLUXO] ✅ Extrato atualizado com sucesso");
         }
     } catch (error) {
@@ -785,7 +785,7 @@ window.forcarRecalculoExtrato = async function (timeId) {
         await window.invalidarCacheTime(ligaId, timeId);
 
         if (window.selecionarParticipante) {
-            await window.selecionarParticipante(timeId);
+            await window.selecionarParticipante(timeId, true); // Passar true para forçar recálculo
             console.log("[FLUXO] Extrato recalculado com sucesso");
         }
     } catch (error) {
@@ -802,7 +802,7 @@ window.atualizarTop10 = async function (timeId) {
 
         // Recarregar o extrato completo para atualizar os dados do TOP 10
         if (window.selecionarParticipante) {
-            await window.selecionarParticipante(timeId);
+            await window.selecionarParticipante(timeId, true); // Passar true para forçar recálculo
             console.log("[FLUXO] TOP 10 atualizado com sucesso");
         } else {
             console.warn(

@@ -382,10 +382,12 @@ export async function calcularResultadosEdicaoFluxo(
         // ✅ SE MERCADO ABERTO, SEMPRE USAR RODADA ANTERIOR (dados não consolidados)
         if (mercadoAberto) {
           rodadaAtual = Math.max(1, rodadaRealMercado - 1);
-          console.log(`[MATA-FINANCEIRO] ${edicao.nome} - Mercado ABERTO (R${rodadaRealMercado}) - usando R${rodadaAtual} (última consolidada)`);
+          console.log(`[MATA-FINANCEIRO] ${edicao.nome} - 🔴 Mercado ABERTO (R${rodadaRealMercado}) - usando R${rodadaAtual} (última consolidada)`);
         } else {
-          console.log(`[MATA-FINANCEIRO] ${edicao.nome} - Mercado FECHADO - usando R${rodadaAtual}`);
+          console.log(`[MATA-FINANCEIRO] ${edicao.nome} - 🟢 Mercado FECHADO - usando R${rodadaAtual}`);
         }
+        
+        console.log(`[MATA-FINANCEIRO] ${edicao.nome} - 📊 RODADA BASE PARA CÁLCULO: ${rodadaAtual}`);
       }
     } catch (err) {
       console.warn(`[MATA-FINANCEIRO] Erro ao verificar mercado para ${edicao.nome}:`, err);
@@ -420,12 +422,15 @@ export async function calcularResultadosEdicaoFluxo(
       const rodadaPontosNum = rodadasFases[fase];
 
       // Verificar se a rodada da fase já foi concluída (dados disponíveis)
+      console.log(`[MATA-FINANCEIRO] ${edicao.nome} - 🔎 Verificando fase "${fase}": rodadaPontos=${rodadaPontosNum} vs rodadaAtual=${rodadaAtual}`);
+      
       if (rodadaPontosNum > rodadaAtual) {
-        console.log(`[MATA-FINANCEIRO] ${edicao.nome} - ⏭️ Fase "${fase}" (R${rodadaPontosNum}) ainda não concluída (última rodada com dados: R${rodadaAtual})`);
+        console.log(`[MATA-FINANCEIRO] ${edicao.nome} - ⏭️ PULANDO fase "${fase}" (R${rodadaPontosNum}) - ainda não concluída (última rodada com dados: R${rodadaAtual})`);
+        console.log(`[MATA-FINANCEIRO] ${edicao.nome} - ⚠️ PARANDO processamento - fases posteriores também não têm dados`);
         break;
       }
 
-      console.log(`[MATA-FINANCEIRO] ${edicao.nome} - ✅ Processando fase "${fase}" (R${rodadaPontosNum})...`);
+      console.log(`[MATA-FINANCEIRO] ${edicao.nome} - ✅ PROCESSANDO fase "${fase}" (R${rodadaPontosNum}) - dados consolidados`);
 
       const numJogos =
         fase === "primeira"
