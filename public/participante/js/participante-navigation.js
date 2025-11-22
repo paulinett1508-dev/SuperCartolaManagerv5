@@ -87,6 +87,9 @@ class ParticipanteNavigation {
             this.modulosAtivos = data.modulos;
 
             console.log('[PARTICIPANTE-NAV] ✅ Módulos ativos carregados:', this.modulosAtivos);
+            console.log('[PARTICIPANTE-NAV] 🔎 Verificação detalhada:');
+            console.log('  - pontosCorridos:', this.modulosAtivos.pontosCorridos, typeof this.modulosAtivos.pontosCorridos);
+            console.log('  - mataMata:', this.modulosAtivos.mataMata, typeof this.modulosAtivos.mataMata);
 
             // ✅ RENDERIZAR MENU COM APENAS MÓDULOS ATIVOS
             this.renderizarMenuDinamico();
@@ -132,6 +135,8 @@ class ParticipanteNavigation {
             { id: 'luva-ouro', icon: '🥅', label: 'Luva de Ouro', key: 'luvaOuro' }
         ];
 
+        console.log('[PARTICIPANTE-NAV] 🔍 Estado atual dos módulos:', this.modulosAtivos);
+
         // Filtrar módulos baseado na configuração da liga
         const modulosVisiveis = todosModulos.filter(modulo => {
             // Módulos base sempre visíveis
@@ -142,7 +147,13 @@ class ParticipanteNavigation {
             
             // Módulos condicionais: verificar se estão ativos
             const estaAtivo = this.modulosAtivos && this.modulosAtivos[modulo.key];
-            console.log(`[PARTICIPANTE-NAV] ${estaAtivo ? '✅' : '❌'} ${modulo.label} - ${modulo.key}: ${estaAtivo}`);
+            console.log(`[PARTICIPANTE-NAV] ${estaAtivo ? '✅' : '❌'} ${modulo.label} - Chave: "${modulo.key}" = ${estaAtivo} (tipo: ${typeof estaAtivo})`);
+            
+            // Debug adicional
+            if (modulo.key && this.modulosAtivos) {
+                console.log(`[PARTICIPANTE-NAV] 🔎 Verificando this.modulosAtivos["${modulo.key}"] =`, this.modulosAtivos[modulo.key]);
+            }
+            
             return estaAtivo;
         });
 
