@@ -5,15 +5,25 @@
 console.log('[EXTRATO-UI] 🎨 Módulo de UI carregado');
 
 export function renderizarExtratoParticipante(extrato, participante) {
+    console.log('[EXTRATO-UI] 🎨 Iniciando renderização...');
+    console.log('[EXTRATO-UI] 📦 Dados recebidos:', extrato);
+    console.log('[EXTRATO-UI] 👤 Participante:', participante);
+    
     const container = document.getElementById('fluxoFinanceiroContent');
     
     if (!container) {
-        console.error('[EXTRATO-UI] Container não encontrado');
+        console.error('[EXTRATO-UI] ❌ Container "fluxoFinanceiroContent" não encontrado!');
+        console.error('[EXTRATO-UI] 📍 Containers disponíveis:', 
+            Array.from(document.querySelectorAll('[id]')).map(el => el.id)
+        );
         return;
     }
 
+    console.log('[EXTRATO-UI] ✅ Container encontrado');
+
     // ✅ ARMAZENAR GLOBALMENTE PARA POPUPS
     window.extratoAtual = extrato;
+    console.log('[EXTRATO-UI] 💾 Dados armazenados globalmente');
 
     // ✅ CONFIGURAR BOTÃO DE REFRESH
     setTimeout(() => {
@@ -176,10 +186,15 @@ export function renderizarExtratoParticipante(extrato, participante) {
         </style>
     `;
 
+    console.log('[EXTRATO-UI] 📝 HTML gerado, inserindo no container...');
     container.innerHTML = html;
+    console.log('[EXTRATO-UI] ✅ HTML inserido com sucesso');
+    console.log('[EXTRATO-UI] 📊 Rodadas renderizadas:', extrato?.rodadas?.length || 0);
 
     // ===== ATUALIZAR CARDS DO TOPO (mantém os compactos) =====
+    console.log('[EXTRATO-UI] 🎯 Atualizando cards do header...');
     atualizarCardsHeader(extrato.resumo);
+    console.log('[EXTRATO-UI] ✅ Cards atualizados');
 }
 
 function renderizarLinhasRodadas(rodadas) {

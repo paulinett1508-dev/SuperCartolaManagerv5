@@ -121,6 +121,17 @@ export async function inicializarExtratoParticipante({ participante, ligaId, tim
         const extratoData = await fluxoFinanceiroParticipante.buscarExtratoCalculado(ligaId, timeId, ultimaRodadaCompleta, true);
 
         console.log('[EXTRATO-PARTICIPANTE] 🎨 Renderizando UI personalizada...');
+        console.log('[EXTRATO-PARTICIPANTE] 📊 Dados do extrato:', extratoData);
+
+        // Verificar se container existe
+        const container = document.getElementById('fluxoFinanceiroContent');
+        if (!container) {
+            console.error('[EXTRATO-PARTICIPANTE] ❌ Container "fluxoFinanceiroContent" não encontrado!');
+            mostrarErro('Container de extrato não encontrado. Recarregue a página.');
+            return;
+        }
+
+        console.log('[EXTRATO-PARTICIPANTE] ✅ Container encontrado, renderizando...');
 
         // Renderizar extrato
         renderizarExtratoParticipante(extratoData, timeId);

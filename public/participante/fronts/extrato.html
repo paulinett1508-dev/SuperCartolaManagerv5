@@ -40,9 +40,14 @@
     <div id="fluxoFinanceiroContent" class="extrato-content">
         <div class="loading-state">
             <div class="spinner"></div>
-            <p>Carregando...</p>
+            <p>Carregando extrato...</p>
         </div>
     </div>
+
+    <!-- Debug: verificar se container existe -->
+    <script>
+        console.log('[EXTRATO-HTML] Container verificado:', document.getElementById('fluxoFinanceiroContent') ? '✅ EXISTE' : '❌ NÃO EXISTE');
+    </script>
 </div>
 
 <style>
