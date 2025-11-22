@@ -50,11 +50,14 @@ export class MelhorMesCore {
     }
 
     // ✅ VALIDAÇÃO: Verificar se conseguimos obter o ligaId
-    if (!this.ligaId || this.ligaId === 'null') {
-      console.warn("[MELHOR-MES-CORE] Liga ID não encontrado, pulando inicialização");
+    if (!this.ligaId || this.ligaId === 'null' || this.ligaId === null) {
+      console.error("[MELHOR-MES-CORE] ❌ Liga ID não encontrado após todas as tentativas");
+      console.error("[MELHOR-MES-CORE] Tentativas: window.obterLigaId, window.participanteData, URL params");
       this.dadosProcessados = { resultados: {}, dadosBasicos: null };
       return this.dadosProcessados;
     }
+    
+    console.log(`[MELHOR-MES-CORE] ✅ Liga ID validado: ${this.ligaId}`);
 
     await this.processarTodasEdicoes();
 

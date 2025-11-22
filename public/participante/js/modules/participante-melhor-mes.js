@@ -3,7 +3,8 @@
 
 console.log('[MELHOR-MES-PARTICIPANTE] 🔄 Carregando módulo...');
 
-export async function inicializarMelhorMesParticipante({ participante, ligaId, timeId }) {
+// Exportar para o sistema de navegação
+window.inicializarMelhorMesParticipante = async function({ participante, ligaId, timeId }) {
     console.log('[MELHOR-MES-PARTICIPANTE] Inicializando para:', { participante, ligaId, timeId });
 
     if (!ligaId) {
@@ -69,3 +70,6 @@ function mostrarErro(mensagem) {
 }
 
 console.log('[MELHOR-MES-PARTICIPANTE] ✅ Módulo carregado');
+
+// Export também como módulo ES6
+export { window.inicializarMelhorMesParticipante as inicializarMelhorMesParticipante };
