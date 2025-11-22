@@ -371,11 +371,16 @@ export class FluxoFinanceiroCore {
         const key = `${timeIdNormalizado}_${rodada}`;
         const valor = this.mataMataMap.get(key) || 0;
         
-        // Log detalhado SEMPRE (para debug)
-        console.log(`[FLUXO-CORE] 🔍 Mata-Mata R${rodada} - Time: ${timeId} (normalizado: ${timeIdNormalizado}) - Chave: ${key} - Valor: ${valor}`);
+        // Log detalhado SEMPRE (para debug) - INCLUINDO TODAS AS CHAVES DO TIME
+        const todasChavesDoTime = Array.from(this.mataMataMap.keys()).filter(k => k.startsWith(`${timeIdNormalizado}_`));
+        console.log(`[FLUXO-CORE] 🔍 Mata-Mata R${rodada} - Time: ${timeId} (normalizado: ${timeIdNormalizado})`);
+        console.log(`[FLUXO-CORE] 📋 Chaves disponíveis para este time:`, todasChavesDoTime);
+        console.log(`[FLUXO-CORE] 🔑 Chave buscada: ${key} - Valor encontrado: ${valor}`);
         
         if (valor !== 0) {
             console.log(`[FLUXO-CORE] 🎯 Mata-Mata R${rodada} para time ${timeId}: ${valor > 0 ? '+' : ''}R$ ${valor.toFixed(2)}`);
+        } else {
+            console.log(`[FLUXO-CORE] ⚠️ VALOR ZERO para ${key} - Verificar se a chave existe no Map`);
         }
         
         return valor;
