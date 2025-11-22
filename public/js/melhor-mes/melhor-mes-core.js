@@ -35,7 +35,7 @@ export class MelhorMesCore {
     } else {
       this.ligaId = ligaId;
       this.ultimaRodadaCompleta = ultimaRodadaCompleta || 0;
-      
+
       // Carregar dados básicos para obter rodada atual se não fornecida
       if (!ultimaRodadaCompleta) {
         await this.carregarDadosBasicos();
@@ -64,17 +64,33 @@ export class MelhorMesCore {
 
   // CARREGAR DADOS BÁSICOS DO SISTEMA
   async carregarDadosBasicos() {
-    // ✅ USAR FUNÇÃO GLOBAL obterLigaId()
-    const ligaId = window.obterLigaId ? window.obterLigaId() : obterLigaId();
+    // ✅ OBTER LIGA ID - compatível com Admin e Participante
+    let ligaId = null;
 
-    if (!ligaId || ligaId === 'null') {
-      console.error("[MELHOR-MES-CORE] ID da Liga não encontrado");
-      this.ligaId = null;
-      this.ultimaRodadaCompleta = 0;
-      return;
+    // Tentar Admin
+    if (window.obterLigaId) {
+      ligaId = window.obterLigaId();
+    }
+
+    // Tentar Participante
+    if (!ligaId && window.participanteData?.ligaId) {
+      ligaId = window.participanteData.ligaId;
+    }
+
+    // Tentar URL
+    if (!ligaId) {
+      const urlParams = new URLSearchParams(window.location.search);
+      ligaId = urlParams.get('ligaId');
     }
 
     this.ligaId = ligaId;
+
+    if (!this.ligaId) {
+      console.error(' [MELHOR-MES-CORE] ID da Liga não encontrado');
+      return false;
+    }
+
+    console.log(`[MELHOR-MES-CORE] ✅ Liga ID obtido: ${this.ligaId}`);
 
     const response = await fetch("/api/cartola/mercado/status");
     if (!response.ok) {

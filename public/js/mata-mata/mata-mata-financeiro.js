@@ -19,6 +19,25 @@ export function setRankingFunction(func) {
   console.log("[MATA-FINANCEIRO] Função getRankingRodadaEspecifica configurada");
 }
 
+// ✅ FALLBACK: Tentar carregar automaticamente se disponível globalmente
+async function obterRankingFunction() {
+    if (getRankingRodadaEspecifica) return getRankingRodadaEspecifica;
+
+    // Tentar carregar do módulo rodadas.js
+    try {
+        const rodadasModule = await import('../rodadas.js');
+        if (rodadasModule.getRankingRodadaEspecifica) {
+            getRankingRodadaEspecifica = rodadasModule.getRankingRodadaEspecifica;
+            console.log('[MATA-FINANCEIRO] ✅ Função carregada via import dinâmico');
+            return getRankingRodadaEspecifica;
+        }
+    } catch (error) {
+        console.warn('[MATA-FINANCEIRO] Não foi possível importar rodadas.js:', error.message);
+    }
+
+    return null;
+}
+
 // Função local para obter pontos de uma rodada (COM PROTEÇÃO ANTI-LOOP)
 async function getPontosDaRodada(ligaId, rodada) {
   try {
@@ -59,7 +78,8 @@ async function getPontosDaRodada(ligaId, rodada) {
 export async function getResultadosMataMata() {
   console.log("[MATA-FINANCEIRO] Iniciando cálculo financeiro...");
 
-  if (!getRankingRodadaEspecifica) {
+  const rankingFunction = await obterRankingFunction();
+  if (!rankingFunction) {
     console.error(
       "[MATA-FINANCEIRO] Função getRankingRodadaEspecifica não disponível.",
     );
@@ -110,7 +130,7 @@ export async function getResultadosMataMata() {
 
   try {
     const rodadaDefinicao = edicaoAtiva.rodadaDefinicao;
-    const rankingBase = await getRankingRodadaEspecifica(
+    const rankingBase = await rankingFunction(
       ligaId,
       rodadaDefinicao,
     );
@@ -386,14 +406,20 @@ export async function calcularResultadosEdicaoFluxo(
         } else {
           console.log(`[MATA-FINANCEIRO] ${edicao.nome} - 🟢 Mercado FECHADO - usando R${rodadaAtual}`);
         }
-        
+
         console.log(`[MATA-FINANCEIRO] ${edicao.nome} - 📊 RODADA BASE PARA CÁLCULO: ${rodadaAtual}`);
       }
     } catch (err) {
       console.warn(`[MATA-FINANCEIRO] Erro ao verificar mercado para ${edicao.nome}:`, err);
     }
 
-    const rankingBase = await getRankingRodadaEspecifica(
+    const rankingFunction = await obterRankingFunction();
+     if (!rankingFunction) {
+        console.error(`[MATA-FINANCEIRO] Função getRankingRodadaEspecifica não disponível`);
+        return [];
+    }
+
+    const rankingBase = await rankingFunction(
       ligaId,
       edicao.rodadaDefinicao,
     );
@@ -423,7 +449,7 @@ export async function calcularResultadosEdicaoFluxo(
 
       // Verificar se a rodada da fase já foi concluída (dados disponíveis)
       console.log(`[MATA-FINANCEIRO] ${edicao.nome} - 🔎 Verificando fase "${fase}": rodadaPontos=${rodadaPontosNum} vs rodadaAtual=${rodadaAtual}`);
-      
+
       if (rodadaPontosNum > rodadaAtual) {
         console.log(`[MATA-FINANCEIRO] ${edicao.nome} - ⏭️ PULANDO fase "${fase}" (R${rodadaPontosNum}) - ainda não concluída (última rodada com dados: R${rodadaAtual})`);
         console.log(`[MATA-FINANCEIRO] ${edicao.nome} - ⚠️ PARANDO processamento - fases posteriores também não têm dados`);

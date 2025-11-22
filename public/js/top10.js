@@ -104,12 +104,30 @@ export async function inicializarTop10() {
 async function carregarDadosTop10() {
   console.log('[TOP10] Carregando dados...');
 
-  // ✅ USAR FUNÇÃO GLOBAL obterLigaId()
-  const ligaId = window.obterLigaId ? window.obterLigaId() : obterLigaId();
+  // ✅ OBTER LIGA ID - compatível com Admin e Participante
+  let ligaId = null;
+
+  // Tentar Admin
+  if (window.obterLigaId) {
+    ligaId = window.obterLigaId();
+  }
+
+  // Tentar Participante
+  if (!ligaId && window.participanteData?.ligaId) {
+    ligaId = window.participanteData.ligaId;
+  }
+
+  // Tentar URL
+  if (!ligaId) {
+    const urlParams = new URLSearchParams(window.location.search);
+    ligaId = urlParams.get('ligaId');
+  }
 
   if (!ligaId) {
     throw new Error('ID da Liga não encontrado');
   }
+
+  console.log(`[TOP10] ✅ Liga ID obtido: ${ligaId}`);
 
   todosOsMitos = [];
   todosOsMicos = [];
@@ -180,7 +198,18 @@ async function renderizarTabelasTop10() {
   }
 
   // Determinar valores de bônus/ônus baseado na liga
-  const ligaId = window.obterLigaId ? window.obterLigaId() : obterLigaId();
+  let ligaId = null;
+  if (window.obterLigaId) {
+    ligaId = window.obterLigaId();
+  }
+  if (!ligaId && window.participanteData?.ligaId) {
+    ligaId = window.participanteData.ligaId;
+  }
+  if (!ligaId) {
+    const urlParams = new URLSearchParams(window.location.search);
+    ligaId = urlParams.get('ligaId');
+  }
+  
   const isLigaCartoleirosSobral = ligaId === "684d821cf1a7ae16d1f89572";
   const valoresBonusOnus = isLigaCartoleirosSobral
     ? valoresBonusOnusCartoleirosSobral
@@ -190,13 +219,13 @@ async function renderizarTabelasTop10() {
   containerMitos.innerHTML = gerarTabelaHTML(
     todosOsMitos.slice(0, 10),
     "mitos",
-    valoresBonusOnus.mitos,
+    valoresBonusOnus,
   );
 
   containerMicos.innerHTML = gerarTabelaHTML(
     todosOsMicos.slice(0, 10),
     "micos",
-    valoresBonusOnus.micos,
+    valoresBonusOnus,
   );
 
   // Carregar sistema de exportação

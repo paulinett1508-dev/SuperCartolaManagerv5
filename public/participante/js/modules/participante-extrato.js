@@ -21,6 +21,13 @@ export async function inicializarExtratoParticipante({ participante, ligaId, tim
         PARTICIPANTE_IDS.ligaId = ligaId;
         PARTICIPANTE_IDS.timeId = timeId;
 
+        // ✅ EXPOR DADOS GLOBALMENTE para módulos que dependem
+        window.participanteData = {
+            ligaId: ligaId,
+            timeId: timeId,
+            participante: participante
+        };
+
         console.log('[EXTRATO-PARTICIPANTE] 📦 Importando módulos...');
 
         // Importar módulos necessários
