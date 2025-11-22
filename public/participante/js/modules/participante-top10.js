@@ -65,19 +65,41 @@ function renderizarTop10(times, meuTimeId) {
     }
 
     const top10 = times.slice(0, 10);
+    const totalTimes = top10.length;
 
     const html = top10.map((time, index) => {
         const posicao = index + 1;
+        let badgeClass = '';
+        let badge = '';
+        
+        if (posicao === 1) {
+            badgeClass = 'zona-mito';
+            badge = '<div class="badge-especial badge-mito">MITO 🔥</div>';
+        } else if (posicao === totalTimes && totalTimes >= 10) {
+            badgeClass = 'zona-mico';
+            badge = '<div class="badge-especial badge-mico">MICO 💩</div>';
+        } else if (posicao <= 3) {
+            badgeClass = 'zona-top3';
+        } else if (posicao <= 6) {
+            badgeClass = 'zona-top10';
+        }
+        
         const podiumClass = posicao <= 3 ? `podium-${posicao}` : '';
         const meuTime = time.time_id === meuTimeId ? 'meu-time' : '';
         const premiacaoClick = posicao <= 3 ? `onclick="window.mostrarPremiacaoTop10(${posicao})"` : '';
         const cursorStyle = posicao <= 3 ? 'style="cursor: pointer;"' : '';
         
+        const pontos = Number(time.pontos || 0).toLocaleString('pt-BR', {
+            minimumFractionDigits: 2,
+            maximumFractionDigits: 2
+        });
+        
         return `
-            <div class="top10-card ${podiumClass} ${meuTime}" ${cursorStyle}>
+            <div class="top10-card ${podiumClass} ${badgeClass} ${meuTime}" ${cursorStyle}>
+                ${badge}
                 <div class="top10-posicao" ${premiacaoClick}>${posicao}º</div>
                 <div class="top10-nome">${time.nome || 'N/D'}</div>
-                <div class="top10-pontos">${(time.pontos || 0).toFixed(2)} pts</div>
+                <div class="top10-pontos">${pontos} pts</div>
             </div>
         `;
     }).join('');

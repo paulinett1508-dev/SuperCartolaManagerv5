@@ -89,6 +89,8 @@ function renderizarClassificacao(dados, timeId) {
         return '<p style="text-align: center; color: #999; padding: 40px;">Nenhum dado disponível</p>';
     }
 
+    const totalTimes = dados.classificacao.length;
+
     return `
         <div class="pontos-corridos-header">
             <h3>Classificação - ${dados.nome || 'Pontos Corridos'}</h3>
@@ -110,20 +112,52 @@ function renderizarClassificacao(dados, timeId) {
                 </tr>
             </thead>
             <tbody>
-                ${dados.classificacao.map((time, index) => `
-                    <tr class="${time.time_id === timeId ? 'meu-time' : ''}">
-                        <td><span class="posicao-badge">${index + 1}º</span></td>
-                        <td>${time.nome || 'N/D'}</td>
-                        <td class="pontos-destaque">${time.pontos || 0}</td>
+                ${dados.classificacao.map((time, index) => {
+                    const posicao = index + 1;
+                    let classeZona = '';
+                    let labelZona = '';
+                    
+                    if (posicao === 1) {
+                        classeZona = 'zona-primeiro';
+                        labelZona = '<span class="label-zona label-g1">G1</span>';
+                    } else if (posicao === 2) {
+                        classeZona = 'zona-segundo';
+                        labelZona = '<span class="label-zona label-g2">G2</span>';
+                    } else if (posicao === 3) {
+                        classeZona = 'zona-terceiro';
+                        labelZona = '<span class="label-zona label-g3">G3</span>';
+                    } else if (posicao === 4) {
+                        classeZona = 'zona-classificacao';
+                        labelZona = '<span class="label-zona label-g4">G4</span>';
+                    } else if (posicao >= totalTimes - 2) {
+                        classeZona = 'zona-rebaixamento';
+                        labelZona = '<span class="label-zona label-z4">Z4</span>';
+                    }
+                    
+                    const classeMeuTime = time.time_id === timeId ? 'meu-time' : '';
+                    const saldoGols = Number(time.saldo_gols || 0);
+                    const classeSaldo = saldoGols > 0 ? 'positivo' : saldoGols < 0 ? 'negativo' : '';
+                    const saldoFormatado = saldoGols > 0 ? `+${saldoGols}` : saldoGols;
+                    
+                    const pontos = Number(time.pontos || 0).toLocaleString('pt-BR', {
+                        minimumFractionDigits: 1,
+                        maximumFractionDigits: 1
+                    });
+                    
+                    return `
+                    <tr class="classificacao-linha ${classeZona} ${classeMeuTime}">
+                        <td><span class="posicao-badge">${posicao}º</span>${labelZona}</td>
+                        <td class="time-nome">${time.nome || 'N/D'}</td>
+                        <td class="pontos-destaque">${pontos}</td>
                         <td>${time.jogos || 0}</td>
-                        <td>${time.vitorias || 0}</td>
-                        <td>${time.empates || 0}</td>
-                        <td>${time.derrotas || 0}</td>
+                        <td class="vitorias">${time.vitorias || 0}</td>
+                        <td class="empates">${time.empates || 0}</td>
+                        <td class="derrotas">${time.derrotas || 0}</td>
                         <td>${time.gols_pro || 0}</td>
                         <td>${time.gols_contra || 0}</td>
-                        <td>${time.saldo_gols || 0}</td>
+                        <td class="saldo ${classeSaldo}">${saldoFormatado}</td>
                     </tr>
-                `).join('')}
+                `}).join('')}
             </tbody>
         </table>
     `;
