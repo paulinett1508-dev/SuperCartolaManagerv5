@@ -54,8 +54,8 @@ export class FluxoFinanceiroCore {
     async calcularExtratoFinanceiro(timeId, ultimaRodadaCompleta, forcarRecalculo = false) {
         const ligaId = obterLigaId();
 
-        // ✅ VALIDAR SE PRECISA AJUSTAR RODADA (caso mercado esteja aberto)
-        let rodadaParaCalculo = ultimaRodadaCompleta;
+        // ✅ DETERMINAR RODADA FINAL REAL (considerando mercado aberto)
+        let rodadaFinalReal = ultimaRodadaCompleta;
         try {
             const mercadoResponse = await fetch('/api/cartola/mercado/status');
             if (mercadoResponse.ok) {
@@ -63,10 +63,13 @@ export class FluxoFinanceiroCore {
                 const mercadoAberto = mercadoData.mercado_aberto || mercadoData.status_mercado === 1;
                 const rodadaAtualMercado = mercadoData.rodada_atual;
 
-                // ✅ SE MERCADO ABERTO E RECEBEU A RODADA ATUAL, USAR ANTERIOR
-                if (mercadoAberto && ultimaRodadaCompleta === rodadaAtualMercado) {
-                    rodadaParaCalculo = Math.max(1, rodadaAtualMercado - 1);
-                    console.log(`[FLUXO-CORE] ⚠️ Mercado ABERTO detectado - ajustando de rodada ${ultimaRodadaCompleta} para ${rodadaParaCalculo}`);
+                // ✅ SE MERCADO ABERTO, SEMPRE USAR RODADA ANTERIOR (a última completa)
+                if (mercadoAberto) {
+                    rodadaFinalReal = Math.max(1, rodadaAtualMercado - 1);
+                    console.log(`[FLUXO-CORE] ⚠️ Mercado ABERTO - usando última rodada completa: ${rodadaFinalReal} (rodada atual: ${rodadaAtualMercado})`);
+                } else {
+                    rodadaFinalReal = rodadaAtualMercado;
+                    console.log(`[FLUXO-CORE] ✅ Mercado FECHADO - usando rodada atual: ${rodadaFinalReal}`);
                 }
             }
         } catch (error) {
@@ -75,13 +78,13 @@ export class FluxoFinanceiroCore {
 
         // ✅ SE NÃO FORÇAR RECÁLCULO, VERIFICAR SE CACHE ESTÁ COMPLETO
         if (!forcarRecalculo) {
-            const cacheExistente = await this._verificarEUsarCache(ligaId, timeId, rodadaParaCalculo);
+            const cacheExistente = await this._verificarEUsarCache(ligaId, timeId, rodadaFinalReal);
             if (cacheExistente) {
                 // ✅ VALIDAR SE CACHE TEM TODAS AS RODADAS COM DADOS
                 const rodadasComDados = cacheExistente.rodadas.filter(r => r.totalTimes > 0).length;
 
-                if (rodadasComDados < rodadaParaCalculo) {
-                    console.log(`[FLUXO-CORE] ⚠️ Cache desatualizado: ${rodadasComDados}/${rodadaParaCalculo} rodadas com dados - recalculando`);
+                if (rodadasComDados < rodadaFinalReal) {
+                    console.log(`[FLUXO-CORE] ⚠️ Cache desatualizado: ${rodadasComDados}/${rodadaFinalReal} rodadas com dados - recalculando`);
                     // Invalidar cache
                     await fetch(`/api/extrato-cache/${ligaId}/times/${timeId}/cache`, { method: 'DELETE' });
                 } else {
@@ -92,7 +95,7 @@ export class FluxoFinanceiroCore {
         }
 
         console.log(
-            `[FLUXO-CORE] Calculando extrato para time ${timeId} até rodada ${rodadaParaCalculo}`,
+            `[FLUXO-CORE] Calculando extrato para time ${timeId} até rodada ${rodadaFinalReal}`,
         );
         const isSuperCartola2025 = ligaId === ID_SUPERCARTOLA_2025;
         const isCartoleirosSobral = ligaId === ID_CARTOLEIROS_SOBRAL;
@@ -140,7 +143,7 @@ export class FluxoFinanceiroCore {
 
         // OTIMIZADO: Processar rodadas de forma síncrona (dados já em cache)
         const rodadasProcessadas = [];
-        for (let rodada = 1; rodada <= rodadaParaCalculo; rodada++) {
+        for (let rodada = 1; rodada <= rodadaFinalReal; rodada++) {
             const rodadaData = this._processarRodadaIntegrada(
                 timeId,
                 rodada,
@@ -184,7 +187,7 @@ export class FluxoFinanceiroCore {
         );
 
         // ✅ SALVAR NO CACHE
-        await this._salvarNoCache(ligaId, timeId, extrato, rodadaParaCalculo, "calculo_automatico");
+        await this._salvarNoCache(ligaId, timeId, extrato, rodadaFinalReal, "calculo_automatico");
 
         return extrato;
     }
