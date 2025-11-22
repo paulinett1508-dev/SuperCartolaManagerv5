@@ -46,6 +46,9 @@ export class FluxoFinanceiroCache {
         // Aguardar carregamento de participantes
         await this.carregarParticipantes();
 
+        // ✅ CARREGAR CONFRONTOS DE PONTOS CORRIDOS (CRÍTICO!)
+        await this.carregarDadosPontosCorridos();
+
         // Carregar dados externos (Mata-Mata, Pontos Corridos, etc.)
         await this.carregarDadosExternos();
 
