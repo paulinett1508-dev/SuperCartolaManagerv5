@@ -1,4 +1,3 @@
-
 // PARTICIPANTE NAVIGATION - Sistema de Navegação
 
 console.log('[PARTICIPANTE-NAV] Carregando sistema de navegação...');
@@ -39,7 +38,7 @@ class ParticipanteNavigation {
 
     async aguardarDadosParticipante() {
         console.log('[PARTICIPANTE-NAV] Aguardando dados do participante...');
-        
+
         // Tentar até 10x com intervalo de 500ms (máximo 5 segundos)
         for (let i = 0; i < 10; i++) {
             const dados = participanteAuth.getDados();
@@ -50,7 +49,7 @@ class ParticipanteNavigation {
             console.log(`[PARTICIPANTE-NAV] Tentativa ${i + 1}/10 - Aguardando dados...`);
             await new Promise(resolve => setTimeout(resolve, 500));
         }
-        
+
         console.warn('[PARTICIPANTE-NAV] ⚠️ Timeout aguardando dados do participante');
         return null;
     }
@@ -144,16 +143,16 @@ class ParticipanteNavigation {
                 console.log(`[PARTICIPANTE-NAV] ✅ ${modulo.label} - sempre ativo`);
                 return true;
             }
-            
+
             // Módulos condicionais: verificar se estão ativos
             const estaAtivo = this.modulosAtivos && this.modulosAtivos[modulo.key];
             console.log(`[PARTICIPANTE-NAV] ${estaAtivo ? '✅' : '❌'} ${modulo.label} - Chave: "${modulo.key}" = ${estaAtivo} (tipo: ${typeof estaAtivo})`);
-            
+
             // Debug adicional
             if (modulo.key && this.modulosAtivos) {
                 console.log(`[PARTICIPANTE-NAV] 🔎 Verificando this.modulosAtivos["${modulo.key}"] =`, this.modulosAtivos[modulo.key]);
             }
-            
+
             return estaAtivo;
         });
 
@@ -176,7 +175,7 @@ class ParticipanteNavigation {
                 const modulo = e.currentTarget.dataset.module;
                 this.navegarPara(modulo);
             });
-            
+
             // Touch feedback para mobile
             btn.addEventListener('touchstart', () => {
                 btn.style.opacity = '0.7';
@@ -190,16 +189,29 @@ class ParticipanteNavigation {
     async aguardarModulosENavegar() {
         console.log('[PARTICIPANTE-NAV] Sistema de navegação pronto');
         // ✅ CARREGAR PÁGINA DE BOAS-VINDAS PRIMEIRO
-        this.navegarPara('boas-vindas');
+        this.restaurarModuloAnterior();
+        this.navegarPara(this.moduloAtual || 'boas-vindas');
+    }
+
+    restaurarModuloAnterior() {
+        const moduloAnterior = sessionStorage.getItem('moduloAtual');
+        if (moduloAnterior && moduloAnterior !== 'boas-vindas') {
+            console.log('[PARTICIPANTE-NAV] 🔄 Restaurando módulo:', moduloAnterior);
+            this.moduloAtual = moduloAnterior;
+        }
     }
 
     async navegarPara(modulo) {
+        console.log('[PARTICIPANTE-NAV] Navegando para:', modulo);
+
+        // Validar se módulo existe
         if (!this.modulos[modulo]) {
-            console.error(`[PARTICIPANTE-NAV] Módulo ${modulo} não encontrado`);
+            console.error('[PARTICIPANTE-NAV] Módulo não encontrado:', modulo);
             return;
         }
 
-        console.log(`[PARTICIPANTE-NAV] Navegando para: ${modulo}`);
+        // Salvar módulo atual no sessionStorage
+        sessionStorage.setItem('moduloAtual', modulo);
 
         // Atualizar botão ativo
         document.querySelectorAll('.nav-btn').forEach(btn => {
@@ -208,7 +220,7 @@ class ParticipanteNavigation {
                 btn.classList.add('active');
             }
         });
-        
+
         // Se não for boas-vindas, manter botão Home visível
         if (modulo !== 'boas-vindas') {
             const homeBtn = document.querySelector('.nav-home');
@@ -217,7 +229,7 @@ class ParticipanteNavigation {
 
         // Carregar conteúdo
         const container = document.getElementById('moduleContainer');
-        
+
         // Loading
         container.innerHTML = `
             <div class="loading-participante">
@@ -229,7 +241,7 @@ class ParticipanteNavigation {
         try {
             // ✅ 1. CARREGAR HTML PRIMEIRO
             const response = await fetch(this.modulos[modulo]);
-            
+
             if (!response.ok) {
                 throw new Error(`HTTP ${response.status}`);
             }
@@ -250,22 +262,22 @@ class ParticipanteNavigation {
 
         } catch (error) {
             console.error(`[PARTICIPANTE-NAV] Erro ao carregar ${modulo}:`, error);
-            
+
             const isNetworkError = error.message.includes('fetch') || !navigator.onLine;
-            
+
             container.innerHTML = `
                 <div style="text-align: center; padding: 40px; color: #ef4444;">
                     <h3>❌ ${isNetworkError ? 'Erro de Conexão' : 'Erro ao Carregar Módulo'}</h3>
                     <p style="margin: 15px 0;">${error.message}</p>
                     ${isNetworkError ? '<p style="color: #999; font-size: 14px;">Verifique sua conexão com a internet</p>' : ''}
                     <div style="display: flex; gap: 10px; justify-content: center; margin-top: 20px;">
-                        <button onclick="participanteNav.navegarPara('${modulo}')" 
-                                style="padding: 10px 20px; background: var(--participante-primary); color: white; 
+                        <button onclick="participanteNav.navegarPara('${modulo}')"
+                                style="padding: 10px 20px; background: var(--participante-primary); color: white;
                                        border: none; border-radius: 8px; cursor: pointer;">
                             🔄 Tentar Novamente
                         </button>
-                        <button onclick="participanteNav.navegarPara('extrato')" 
-                                style="padding: 10px 20px; background: #666; color: white; 
+                        <button onclick="participanteNav.navegarPara('extrato')"
+                                style="padding: 10px 20px; background: #666; color: white;
                                        border: none; border-radius: 8px; cursor: pointer;">
                             ← Voltar ao Extrato
                         </button>
@@ -277,7 +289,7 @@ class ParticipanteNavigation {
 
     async carregarModuloJS(modulo) {
         console.log(`[PARTICIPANTE-NAV] 📦 Importando módulo JS: ${modulo}`);
-        
+
         const modulosPaths = {
             'boas-vindas': '/participante/js/modules/participante-boas-vindas.js',
             'extrato': '/participante/js/modules/participante-extrato.js',
@@ -331,8 +343,8 @@ class ParticipanteNavigation {
                     <div style="text-align: center; padding: 40px; color: #ef4444;">
                         <h3>❌ Erro de Autenticação</h3>
                         <p>Dados do participante não encontrados. Por favor, faça login novamente.</p>
-                        <button onclick="window.location.href='/participante-login.html'" 
-                                style="margin-top: 20px; padding: 10px 20px; background: #ff4500; 
+                        <button onclick="window.location.href='/participante-login.html'"
+                                style="margin-top: 20px; padding: 10px 20px; background: #ff4500;
                                        color: white; border: none; border-radius: 8px; cursor: pointer;">
                             🔐 Fazer Login
                         </button>
@@ -366,7 +378,7 @@ class ParticipanteNavigation {
                     }
                 }
                 break;
-            
+
             case 'ranking':
                 if (window.inicializarRankingParticipante) {
                     await window.inicializarRankingParticipante(ligaId, timeId);
@@ -374,7 +386,7 @@ class ParticipanteNavigation {
                     console.error('[PARTICIPANTE-NAV] Função inicializarRankingParticipante não encontrada');
                 }
                 break;
-            
+
             case 'rodadas':
                 if (window.inicializarRodadasParticipante) {
                     await window.inicializarRodadasParticipante(ligaId, timeId);
@@ -382,7 +394,7 @@ class ParticipanteNavigation {
                     console.error('[PARTICIPANTE-NAV] Função inicializarRodadasParticipante não encontrada');
                 }
                 break;
-            
+
             case 'top10':
                 if (window.inicializarTop10Participante) {
                     await window.inicializarTop10Participante(ligaId, timeId);
@@ -390,7 +402,7 @@ class ParticipanteNavigation {
                     console.error('[PARTICIPANTE-NAV] Função inicializarTop10Participante não encontrada');
                 }
                 break;
-            
+
             case 'melhor-mes':
                 if (window.inicializarMelhorMesParticipante) {
                     await window.inicializarMelhorMesParticipante(ligaId, timeId);
@@ -398,7 +410,7 @@ class ParticipanteNavigation {
                     console.error('[PARTICIPANTE-NAV] Função inicializarMelhorMesParticipante não encontrada');
                 }
                 break;
-            
+
             case 'pontos-corridos':
                 if (window.inicializarPontosCorridosParticipante) {
                     await window.inicializarPontosCorridosParticipante(ligaId, timeId);
@@ -406,7 +418,7 @@ class ParticipanteNavigation {
                     console.error('[PARTICIPANTE-NAV] Função inicializarPontosCorridosParticipante não encontrada');
                 }
                 break;
-            
+
             case 'mata-mata':
                 if (window.inicializarMataMataParticipante) {
                     await window.inicializarMataMataParticipante(ligaId, timeId);
@@ -414,7 +426,7 @@ class ParticipanteNavigation {
                     console.error('[PARTICIPANTE-NAV] Função inicializarMataMataParticipante não encontrada');
                 }
                 break;
-            
+
             case 'artilheiro':
                 if (window.inicializarArtilheiroParticipante) {
                     await window.inicializarArtilheiroParticipante(ligaId, timeId);
@@ -422,7 +434,7 @@ class ParticipanteNavigation {
                     console.error('[PARTICIPANTE-NAV] Função inicializarArtilheiroParticipante não encontrada');
                 }
                 break;
-            
+
             case 'luva-ouro':
                 if (window.inicializarLuvaOuroParticipante) {
                     await window.inicializarLuvaOuroParticipante(ligaId, timeId);
@@ -430,7 +442,7 @@ class ParticipanteNavigation {
                     console.error('[PARTICIPANTE-NAV] Função inicializarLuvaOuroParticipante não encontrada');
                 }
                 break;
-            
+
             default:
                 console.warn(`[PARTICIPANTE-NAV] Módulo ${modulo} não tem inicializador definido`);
         }

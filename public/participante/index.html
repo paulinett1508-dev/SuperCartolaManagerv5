@@ -44,17 +44,27 @@
                         </select>
                     </div>
 
-                    <!-- Botão Home -->
-        <button class="btn-home" onclick="participanteNav.navegarPara('boas-vindas')">
-            <span class="home-icon">🏠</span>
-            <span class="home-text">Início</span>
-        </button>
+                    <!-- Botão Home (discreto) -->
+                    <button onclick="participanteNav.navegarPara('boas-vindas')" 
+                            style="background: transparent; border: 1px solid #333; color: #999; padding: 6px 12px; 
+                                   border-radius: 6px; cursor: pointer; display: flex; align-items: center; gap: 6px;
+                                   font-size: 12px; transition: all 0.2s;"
+                            onmouseover="this.style.background='#1a1a1a'; this.style.color='#fff'; this.style.borderColor='#fff';"
+                            onmouseout="this.style.background='transparent'; this.style.color='#999'; this.style.borderColor='#333';">
+                        <span>🏠</span>
+                        <span>Início</span>
+                    </button>
 
-        <!-- Botão Logout -->
-        <button class="btn-logout" onclick="logout()">
-            <span class="logout-icon">🚪</span>
-            <span class="logout-text">Sair</span>
-        </button>
+                    <!-- Botão Logout -->
+                    <button onclick="logout()" 
+                            style="background: transparent; border: 1px solid #ef4444; color: #ef4444; padding: 6px 12px; 
+                                   border-radius: 6px; cursor: pointer; display: flex; align-items: center; gap: 6px;
+                                   font-size: 12px; transition: all 0.2s;"
+                            onmouseover="this.style.background='#ef4444'; this.style.color='#fff';"
+                            onmouseout="this.style.background='transparent'; this.style.color='#ef4444';">
+                        <span>🚪</span>
+                        <span>Sair</span>
+                    </button>
                 </div>
             </div>
         </header>
