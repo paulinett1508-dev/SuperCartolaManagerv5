@@ -6,10 +6,7 @@ import {
     gerarConfrontos,
     buscarTimesLiga,
 } from "../pontos-corridos-utils.js";
-import {
-    getResultadosMataMataFluxo,
-    testarDadosMataMata,
-} from "../mata-mata/mata-mata-financeiro.js";
+import { getResultadosMataMataFluxo, testarDadosMataMata } from "../mata-mata/mata-mata-financeiro.js";
 import { getResultadosMelhorMes } from "../melhor-mes.js";
 import { filtrarDadosPorTimesLigaEspecial } from "../filtro-liga-especial.js";
 import {
@@ -135,62 +132,75 @@ export class FluxoFinanceiroCache {
 
     // OTIMIZADO: Carregamento em lotes com Promise.all
     async carregarCacheRankingsEmLotes(ultimaRodadaCompleta, container) {
-        const ligaId = this.ligaId || obterLigaId();
-        if (!ligaId) {
-            this.cacheRankings = {};
+        console.log(`[FLUXO-CACHE] 🔍 Verificando cache de rodadas (1-${ultimaRodadaCompleta})...`);
+
+        // ✅ VERIFICAR QUAIS RODADAS JÁ ESTÃO EM CACHE
+        const rodadasFaltantes = [];
+
+        for (let rodada = 1; rodada <= ultimaRodadaCompleta; rodada++) {
+            const cacheKey = `ranking_${this.ligaId}_${rodada}`;
+
+            // Verificar cache persistente (IndexedDB)
+            const cached = await this.cacheManager.get("rankings", cacheKey, null, { force: false });
+
+            if (!cached || !Array.isArray(cached) || cached.length === 0) {
+                rodadasFaltantes.push(rodada);
+            } else {
+                // Já está em cache - apenas armazenar em memória
+                this.cacheRankings[rodada] = cached;
+            }
+        }
+
+        // ✅ SE TUDO JÁ ESTÁ EM CACHE, NÃO PRECISA BUSCAR NADA
+        if (rodadasFaltantes.length === 0) {
+            console.log(`[FLUXO-CACHE] ✅ Todas as ${ultimaRodadaCompleta} rodadas já estão em cache`);
+            this._atualizarProgresso(container, 100, 1, ultimaRodadaCompleta, ultimaRodadaCompleta);
             return;
         }
 
-        this.setUltimaRodadaCompleta(ultimaRodadaCompleta);
-        this.cacheRankings = {};
+        console.log(`[FLUXO-CACHE] 📥 Buscando ${rodadasFaltantes.length} rodadas faltantes:`, rodadasFaltantes);
 
-        const tamanhoDeLote = 5;
-        const totalDeLotes = Math.ceil(ultimaRodadaCompleta / tamanhoDeLote);
+        // ✅ CARREGAR APENAS RODADAS FALTANTES EM PARALELO (lotes de 5)
+        const rodadasPorLote = 5;
+        const totalLotes = Math.ceil(rodadasFaltantes.length / rodadasPorLote);
 
-        for (let lote = 0; lote < totalDeLotes; lote++) {
-            const rodadaInicial = lote * tamanhoDeLote + 1;
-            const rodadaFinal = Math.min(
-                (lote + 1) * tamanhoDeLote,
-                ultimaRodadaCompleta,
-            );
+        for (let loteIdx = 0; loteIdx < totalLotes; loteIdx++) {
+            const inicio = loteIdx * rodadasPorLote;
+            const fim = Math.min(inicio + rodadasPorLote, rodadasFaltantes.length);
+            const rodadasDoLote = rodadasFaltantes.slice(inicio, fim);
 
-            const progressoAtual = Math.round((lote / totalDeLotes) * 100);
+            // Carregar lote em paralelo
+            await Promise.all(rodadasDoLote.map(rodada => this._carregarRodada(rodada)));
+
+            const progresso = Math.round(((fim / rodadasFaltantes.length) * 100));
             this._atualizarProgresso(
                 container,
-                progressoAtual,
-                rodadaInicial,
-                rodadaFinal,
+                progresso,
+                rodadasDoLote[0],
+                rodadasDoLote[rodadasDoLote.length - 1],
                 ultimaRodadaCompleta,
             );
-
-            // OTIMIZADO: Promise.all para processar lote em paralelo
-            const promessasDoLote = [];
-            for (let r = rodadaInicial; r <= rodadaFinal; r++) {
-                promessasDoLote.push(this._carregarRankingRodada(r));
-            }
-            await Promise.all(promessasDoLote);
         }
 
-        this._atualizarProgresso(container, 100);
-        console.log(
-            `[FLUXO-CACHE] Cache carregado: ${Object.keys(this.cacheRankings).length} rodadas`,
-        );
+        console.log(`[FLUXO-CACHE] ✅ Cache completo com ${ultimaRodadaCompleta} rodadas`);
     }
 
-    async _carregarRankingRodada(rodada) {
-        const ligaId = this.ligaId || obterLigaId();
-        const cacheKey = `ranking_${ligaId}_${rodada}`;
+
+    async _carregarRodada(rodada) {
+        const cacheKey = `ranking_${this.ligaId}_${rodada}`;
 
         try {
-            // Tentar cache persistente primeiro
+            // Buscar com cache persistente
             const ranking = await this.cacheManager.get(
                 "rankings",
                 cacheKey,
                 async () => {
                     // Cache miss - buscar da API
-                    const data = await getRankingRodadaEspecifica(ligaId, rodada);
+                    console.log(`[FLUXO-CACHE] 🌐 Buscando rodada ${rodada} da API...`);
+                    const data = await getRankingRodadaEspecifica(this.ligaId, rodada);
 
                     if (!data || !Array.isArray(data) || data.length === 0) {
+                        console.warn(`[FLUXO-CACHE] ⚠️ Rodada ${rodada} sem dados - usando simulação`);
                         return gerarRankingSimulado(rodada, this.participantes);
                     }
 
@@ -198,13 +208,14 @@ export class FluxoFinanceiroCache {
                         const timeId = String(item.timeId || item.time_id || item.id);
                         return { ...item, time_id: timeId, timeId: timeId, id: timeId };
                     });
-                }
+                },
+                { ttl: 30 * 60 * 1000 } // 30 minutos de TTL
             );
 
             this.cacheRankings[rodada] = ranking;
         } catch (error) {
             console.warn(
-                `[FLUXO-CACHE] Erro ao carregar rodada ${rodada}:`,
+                `[FLUXO-CACHE] ❌ Erro ao carregar rodada ${rodada}:`,
                 error,
             );
             this.cacheRankings[rodada] = gerarRankingSimulado(
@@ -228,12 +239,14 @@ export class FluxoFinanceiroCache {
             barraDeProgresso.style.width = `${progresso}%`;
         }
 
-        if (container && rodadaInicial && rodadaFinal) {
-            const mensagemDeProgresso = container.querySelector(
-                ".loading-container p:nth-child(2)",
-            );
-            if ( mensagemDeProgresso) {
-                mensagemDeProgresso.textContent = `Processando rodadas ${rodadaInicial} a ${rodadaFinal} de ${ultimaRodadaCompleta}`;
+        if (container) {
+            const statusText = container.querySelector("p:last-child");
+            if (statusText) {
+                if (progresso === 100) {
+                    statusText.textContent = `✅ Cache completo (${ultimaRodadaCompleta} rodadas)`;
+                } else {
+                    statusText.textContent = `Buscando rodadas ${rodadaInicial}-${rodadaFinal}... (${progresso}%)`;
+                }
             }
         }
     }
