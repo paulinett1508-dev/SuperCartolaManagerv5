@@ -1,3 +1,4 @@
+
 import express from "express";
 import session from "express-session";
 
@@ -117,7 +118,16 @@ router.get('/session', async (req, res) => {
                 time: timeData ? {
                     nome: timeData.nome,
                     nome_cartola: timeData.nome_cartola,
-
+                    clube_id: timeData.clube_id,
+                    url_escudo_png: timeData.url_escudo_png
+                } : null
+            }
+        });
+    } catch (error) {
+        console.error('Erro ao verificar sessão:', error);
+        res.status(500).json({ error: 'Erro ao verificar sessão' });
+    }
+});
 
 // Buscar todas as ligas que o participante faz parte
 router.get("/minhas-ligas", verificarSessaoParticipante, async (req, res) => {
@@ -185,17 +195,6 @@ router.post("/trocar-liga", verificarSessaoParticipante, async (req, res) => {
     } catch (error) {
         console.error("[PARTICIPANTE-AUTH] Erro ao trocar liga:", error);
         res.status(500).json({ error: "Erro ao trocar liga" });
-    }
-});
-
-                    clube_id: timeData.clube_id,
-                    url_escudo_png: timeData.url_escudo_png
-                } : null
-            }
-        });
-    } catch (error) {
-        console.error('Erro ao verificar sessão:', error);
-        res.status(500).json({ error: 'Erro ao verificar sessão' });
     }
 });
 
