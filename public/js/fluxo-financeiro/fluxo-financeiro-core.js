@@ -54,9 +54,28 @@ export class FluxoFinanceiroCore {
     async calcularExtratoFinanceiro(timeId, ultimaRodadaCompleta, forcarRecalculo = false) {
         const ligaId = obterLigaId();
 
+        // ✅ VALIDAR SE PRECISA AJUSTAR RODADA (caso mercado esteja aberto)
+        let rodadaParaCalculo = ultimaRodadaCompleta;
+        try {
+            const mercadoResponse = await fetch('/api/cartola/mercado/status');
+            if (mercadoResponse.ok) {
+                const mercadoData = await mercadoResponse.json();
+                const mercadoAberto = mercadoData.mercado_aberto || mercadoData.status_mercado === 1;
+                const rodadaAtualMercado = mercadoData.rodada_atual;
+                
+                // ✅ SE MERCADO ABERTO E RECEBEU A RODADA ATUAL, USAR ANTERIOR
+                if (mercadoAberto && ultimaRodadaCompleta === rodadaAtualMercado) {
+                    rodadaParaCalculo = Math.max(1, rodadaAtualMercado - 1);
+                    console.log(`[FLUXO-CORE] ⚠️ Mercado ABERTO detectado - ajustando de rodada ${ultimaRodadaCompleta} para ${rodadaParaCalculo}`);
+                }
+            }
+        } catch (error) {
+            console.warn('[FLUXO-CORE] Erro ao verificar status do mercado:', error);
+        }
+
         // ✅ SE NÃO FORÇAR RECÁLCULO, SEMPRE USAR CACHE (sem verificar mudança de rodada)
         if (!forcarRecalculo) {
-            const cacheExistente = await this._verificarEUsarCache(ligaId, timeId, ultimaRodadaCompleta);
+            const cacheExistente = await this._verificarEUsarCache(ligaId, timeId, rodadaParaCalculo);
             if (cacheExistente) {
                 console.log(`[FLUXO-CORE] 💾 Usando extrato em cache para time ${timeId} (última atualização: ${new Date(cacheExistente.updatedAt || Date.now()).toLocaleString()})`);
                 return cacheExistente;
@@ -64,7 +83,7 @@ export class FluxoFinanceiroCore {
         }
 
         console.log(
-            `[FLUXO-CORE] Calculando extrato para time ${timeId} até rodada ${ultimaRodadaCompleta}`,
+            `[FLUXO-CORE] Calculando extrato para time ${timeId} até rodada ${rodadaParaCalculo}`,
         );
         const isSuperCartola2025 = ligaId === ID_SUPERCARTOLA_2025;
         const isCartoleirosSobral = ligaId === ID_CARTOLEIROS_SOBRAL;
@@ -112,7 +131,7 @@ export class FluxoFinanceiroCore {
 
         // OTIMIZADO: Processar rodadas de forma síncrona (dados já em cache)
         const rodadasProcessadas = [];
-        for (let rodada = 1; rodada <= ultimaRodadaCompleta; rodada++) {
+        for (let rodada = 1; rodada <= rodadaParaCalculo; rodada++) {
             const rodadaData = this._processarRodadaIntegrada(
                 timeId,
                 rodada,
@@ -156,7 +175,7 @@ export class FluxoFinanceiroCore {
         );
 
         // ✅ SALVAR NO CACHE
-        await this._salvarNoCache(ligaId, timeId, extrato, ultimaRodadaCompleta, "calculo_automatico");
+        await this._salvarNoCache(ligaId, timeId, extrato, rodadaParaCalculo, "calculo_automatico");
 
         return extrato;
     }

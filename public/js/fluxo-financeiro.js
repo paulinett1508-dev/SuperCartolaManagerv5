@@ -4,6 +4,7 @@ import { FluxoFinanceiroCampos } from "./fluxo-financeiro/fluxo-financeiro-campo
 // VARIÁVEIS GLOBAIS
 let rodadaAtual = 0;
 let ultimaRodadaCompleta = 0;
+let mercadoAberto = false;
 let isDataLoading = false;
 let isDataLoaded = false;
 let isCalculating = false;
