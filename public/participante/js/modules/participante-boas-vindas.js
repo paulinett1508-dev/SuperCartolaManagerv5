@@ -169,12 +169,22 @@ function preencherBoasVindas({ posicao, totalParticipantes, pontosTotal, saldoFi
     }
 
     // Buscar informações do time do coração
-    const clubeId = meuTime?.clube_id || timeData?.clube_id;
+    // timeData vem da API /api/times/:id que retorna clube_id
+    const clubeId = timeData?.clube_id || timeData?.clube || meuTime?.clube_id;
+    console.log('[BOAS-VINDAS] 🏟️ Clube ID encontrado:', clubeId, 'Fonte:', timeData);
+    
     if (clubeId) {
         buscarInfoTimeCoracao(clubeId);
     } else {
-        console.log('[BOAS-VINDAS] Clube ID não encontrado, tentando buscar da API do Cartola...');
-        buscarTimeDoCoracao(timeId);
+        console.log('[BOAS-VINDAS] Clube ID não encontrado, mostrando mensagem padrão');
+        const timeCoracaoCard = document.getElementById('timeCoracaoCard');
+        if (timeCoracaoCard) {
+            timeCoracaoCard.innerHTML = `
+                <div style="text-align: center; color: #999; padding: 20px; font-size: 12px;">
+                    <p>⚽ Nenhum time do coração definido</p>
+                </div>
+            `;
+        }
     }
 }
 
