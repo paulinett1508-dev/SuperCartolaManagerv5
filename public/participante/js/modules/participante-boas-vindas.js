@@ -161,10 +161,42 @@ function preencherBoasVindas({ posicao, totalParticipantes, pontosTotal, saldoFi
     }
 
     // Buscar informações do time do coração
-    if (meuTime && meuTime.clube_id) {
-        buscarInfoTimeCoracao(meuTime.clube_id);
+    const clubeId = meuTime?.clube_id || participanteData?.clube_id;
+    if (clubeId) {
+        buscarInfoTimeCoracao(clubeId);
     } else {
-        console.log('[BOAS-VINDAS] Clube ID não encontrado');
+        console.log('[BOAS-VINDAS] Clube ID não encontrado, tentando buscar da API do Cartola...');
+        buscarTimeDoCoracao(timeId);
+    }
+}
+
+async function buscarTimeDoCoracao(timeId) {
+    const timeCoracaoCard = document.getElementById('timeCoracaoCard');
+    if (!timeCoracaoCard) return;
+
+    try {
+        const response = await fetch(`/api/times/${timeId}`);
+        if (!response.ok) throw new Error('Time não encontrado');
+
+        const timeData = await response.json();
+        const clubeId = timeData.clube;
+
+        if (clubeId) {
+            buscarInfoTimeCoracao(clubeId);
+        } else {
+            timeCoracaoCard.innerHTML = `
+                <div style="text-align: center; color: #999; padding: 20px; font-size: 12px;">
+                    <p>⚽ Nenhum time do coração definido</p>
+                </div>
+            `;
+        }
+    } catch (error) {
+        console.error('[BOAS-VINDAS] Erro ao buscar time do cartola:', error);
+        timeCoracaoCard.innerHTML = `
+            <div style="text-align: center; color: #999; padding: 20px; font-size: 12px;">
+                <p>⚽ Informações não disponíveis</p>
+            </div>
+        `;
     }
 }
 
@@ -185,8 +217,8 @@ async function buscarInfoTimeCoracao(clubeId) {
 
         if (!clube) {
             timeCoracaoCard.innerHTML = `
-                <div style="text-align: center; color: #999; padding: 20px;">
-                    <p>Informações do time não disponíveis</p>
+                <div style="text-align: center; color: #999; padding: 20px; font-size: 12px;">
+                    <p>⚽ Informações do clube não disponíveis</p>
                 </div>
             `;
             return;
@@ -214,8 +246,8 @@ async function buscarInfoTimeCoracao(clubeId) {
     } catch (error) {
         console.error('[BOAS-VINDAS] Erro ao buscar time do coração:', error);
         timeCoracaoCard.innerHTML = `
-            <div style="text-align: center; color: #ef4444; padding: 20px;">
-                <p>❌ Erro ao carregar informações do time</p>
+            <div style="text-align: center; color: #999; padding: 20px; font-size: 12px;">
+                <p>⚽ Erro ao carregar informações</p>
             </div>
         `;
     }
