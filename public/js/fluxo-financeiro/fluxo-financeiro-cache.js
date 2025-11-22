@@ -281,16 +281,17 @@ export class FluxoFinanceiroCache {
 
             // Buscar confrontos de Pontos Corridos
             console.log('[FLUXO-CACHE] 🔑 Usando ligaId:', this.ligaId);
-            this.cacheConfrontosLPC = await getConfrontosLigaPontosCorridos(this.ligaId);
-            this.cacheResultadosMM = await getResultadosMataMataFluxo().catch(() => ({
+            const confrontosLPC = await getConfrontosLigaPontosCorridos(this.ligaId);
+            const resultadosMM = await getResultadosMataMataFluxo().catch(() => ({
                 participantes: [],
                 edicoes: [],
             }));
             // Só buscar Melhor Mês se ligaId for válido
             const resultadosMelhorMes = this.ligaId ? await getResultadosMelhorMes(this.ligaId).catch(() => []) : Promise.resolve([]);
 
-
+            // Armazenar resultados
             this.cacheConfrontosLPC = confrontosLPC || [];
+            this.cacheResultadosMM = resultadosMM || { participantes: [], edicoes: [] };
             this.cacheResultadosMelhorMes = Array.isArray(resultadosMelhorMes)
                 ? resultadosMelhorMes
                 : [];
@@ -306,7 +307,7 @@ export class FluxoFinanceiroCache {
                 }
             }
 
-            this._processarResultadosMataMataCorrigido(resultadosMM);
+            this._processarResultadosMataMataCorrigido(this.cacheResultadosMM);
 
             console.log(`[FLUXO-CACHE] Dados externos carregados:`);
             console.log(`- Confrontos LPC: ${this.cacheConfrontosLPC.length}`);
