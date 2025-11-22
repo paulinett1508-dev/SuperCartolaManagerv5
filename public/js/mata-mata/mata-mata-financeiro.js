@@ -88,8 +88,9 @@ export async function getResultadosMataMata() {
     );
   }
 
-  // Se mercado aberto, usar rodada anterior como base para cálculos
+  // SEMPRE usar rodada anterior se mercado aberto (dados ainda não consolidados)
   const rodadaBaseCalculo = mercadoAberto ? Math.max(1, rodada_atual - 1) : rodada_atual;
+  console.log(`[MATA-FINANCEIRO] Rodada base para cálculos: ${rodadaBaseCalculo} (mercado ${mercadoAberto ? 'aberto' : 'fechado'})`);
 
   const edicoesAtivas = edicoes.filter(
     (e) => rodada_atual >= e.rodadaDefinicao,
@@ -146,12 +147,15 @@ export async function getResultadosMataMata() {
                 ? 2
                 : 1;
 
+      // Verificar se a rodada já foi concluída (dados disponíveis)
       if (rodadaPontosNum > rodadaBaseCalculo) {
         console.log(
-          `[MATA-FINANCEIRO] Rodada ${rodadaPontosNum} (Fase ${fase}) ainda não concluída (base: ${rodadaBaseCalculo}).`,
+          `[MATA-FINANCEIRO] ⏭️ Fase "${fase}" (R${rodadaPontosNum}) ainda não concluída (última rodada com dados: R${rodadaBaseCalculo}).`,
         );
         break;
       }
+      
+      console.log(`[MATA-FINANCEIRO] ✅ Processando fase "${fase}" (R${rodadaPontosNum})...`);
 
       const pontosDaRodadaAtual = await getPontosDaRodada(
         ligaId,
@@ -357,11 +361,31 @@ export async function getResultadosMataMataFluxo(ligaIdParam = null) {
 export async function calcularResultadosEdicaoFluxo(
   ligaId,
   edicao,
-  rodadaAtual,
+  rodadaAtualParam,
 ) {
   try {
     const resultadosFinanceiros = [];
     const fases = ["primeira", "oitavas", "quartas", "semis", "final"];
+
+    // Verificar mercado para usar rodada correta
+    let rodadaAtual = rodadaAtualParam;
+    let mercadoAberto = false;
+    
+    try {
+      const resMercado = await fetch("/api/cartola/mercado/status");
+      if (resMercado.ok) {
+        const mercadoData = await resMercado.json();
+        mercadoAberto = mercadoData.mercado_aberto || mercadoData.status_mercado === 1;
+        
+        // Se mercado aberto, usar rodada anterior
+        if (mercadoAberto) {
+          rodadaAtual = Math.max(1, mercadoData.rodada_atual - 1);
+          console.log(`[MATA-FINANCEIRO] ${edicao.nome} - Mercado aberto, usando R${rodadaAtual} como base`);
+        }
+      }
+    } catch (err) {
+      console.warn(`[MATA-FINANCEIRO] Erro ao verificar mercado para ${edicao.nome}:`, err);
+    }
 
     const rankingBase = await getRankingRodadaEspecifica(
       ligaId,
@@ -390,11 +414,14 @@ export async function calcularResultadosEdicaoFluxo(
     let vencedoresAnteriores = rankingBase;
     for (const fase of fases) {
       const rodadaPontosNum = rodadasFases[fase];
-      // Verificar se a rodada da fase já foi concluída
+      
+      // Verificar se a rodada da fase já foi concluída (dados disponíveis)
       if (rodadaPontosNum > rodadaAtual) {
-        console.log(`[MATA-FINANCEIRO] ${edicao.nome} - Fase ${fase} (R${rodadaPontosNum}) ainda não jogada (atual: R${rodadaAtual})`);
+        console.log(`[MATA-FINANCEIRO] ${edicao.nome} - ⏭️ Fase "${fase}" (R${rodadaPontosNum}) ainda não concluída (última rodada com dados: R${rodadaAtual})`);
         break;
       }
+      
+      console.log(`[MATA-FINANCEIRO] ${edicao.nome} - ✅ Processando fase "${fase}" (R${rodadaPontosNum})...`);
 
       const numJogos =
         fase === "primeira"
