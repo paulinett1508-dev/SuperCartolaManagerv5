@@ -110,7 +110,6 @@ function renderizarCardsRodadas(rodadas) {
             <div class="rodada-mini-card ${statusClass}" onclick="window.selecionarRodada(${rodada.numero})" data-rodada="${rodada.numero}">
                 <div class="numero">Rodada ${rodada.numero}</div>
                 <div class="pontos" style="${corFonte}">${statusTexto}${icone}</div>
-                <div class="status">${rodada.participantes.length} times</div>
             </div>
         `;
     }).join('');

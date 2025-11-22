@@ -177,6 +177,109 @@
 
 ## Changelog
 
+### [22/11/2025] - ESCALABILIDADE: Refatoração Completa do Modo Participante
+
+**TAREFAS IMPLEMENTADAS (11/11):**
+
+1. ✅ **Cache Robusto**
+   - Sistema IndexedDB + Memory Cache já existente
+   - TTL configurável por tipo de dado
+   - Fallback localStorage para offline
+   - Suporta ambos modo admin e participante
+
+2. ✅ **Botão Home**
+   - Adicionado botão 🏠 no início da navegação
+   - Clique volta para tela de Boas-Vindas
+   - Feedback visual em dispositivos touch
+
+3. ✅ **Drag-Drop Fix**
+   - Refresh agora permanece na tela atual
+   - Não volta para boas-vindas automaticamente
+   - Touch feedback para melhor UX mobile
+
+4. ✅ **Cards Boas-Vindas com Dados Reais**
+   - Criado `participante-boas-vindas.js`
+   - Busca dados em paralelo (ranking + rodadas + extrato)
+   - Calcula: posição, saldo, melhor rodada, média
+   - Atualiza cards dinamicamente com dados reais
+   - Mostra nome do time do participante
+
+5. ✅ **Rodadas - Remoção de "32 times"**
+   - Removido texto de quantidade de times dos cards
+   - Layout mais limpo e mobile-friendly
+   - Mantém cores e destaque de MITO/MICO
+
+6. ✅ **Top 10 com Premiações**
+   - Clique nas 3 primeiras posições mostra prêmios:
+     - 🥇 CAMPEÃO: R$ 1.000,00
+     - 🥈 2º LUGAR: R$ 700,00
+     - 🥉 3º LUGAR: R$ 400,00
+   - Cards com destaque visual (ouro, prata, bronze)
+   - Meu time destacado em laranja
+
+7. ✅ **Melhor do Mês com Detalhes Gerais**
+   - Mostra desempenho individual do usuário
+   - Clique no card mostra detalhes geral da liga
+   - Destaca 🏆 se usuário foi campeão do mês
+   - Compara desempenho com geral da liga
+
+8. ✅ **Pontos Corridos com Toggle**
+   - Botões "CLASSIFICAÇÃO" e "CONFRONTOS"
+   - Alterna entre duas visualizações
+   - Formatação numérica com casas decimais
+   - Mais vida visual com destaques
+
+9. ✅ **Ranking com Premiações**
+   - Destaque visual das 3 primeiras posições:
+     - Ouro (1º lugar)
+     - Prata (2º lugar)
+     - Bronze (3º lugar)
+   - Clique mostra prêmios
+   - Removida coluna Média
+   - Pontos com casas decimais
+
+10. ✅ **Mata-Mata Implementado**
+    - Seletor de edições
+    - Navegação entre fases (1ª, Oitavas, Quartas, Semis, Final)
+    - Confrontos com layout mobile-otimizado
+    - Destaque visual para confrontos do próprio time
+    - Mostra resultado e status (pendente/vencido)
+
+11. ✅ **Extrato - Layout Mobile Melhorado**
+    - Botão refresh repositionado
+    - Cards de resumo vertical em mobile (<768px)
+    - Modal otimizado para telas verticais
+    - Tabela com scroll horizontal
+    - Valores monetários formatados
+
+**ARQUIVOS MODIFICADOS:**
+- `public/participante/js/participante-navigation.js` (Botão Home + Boas-vindas)
+- `public/participante/js/modules/participante-boas-vindas.js` (NOVO - Dados reais)
+- `public/participante/js/modules/participante-ranking.js` (Premiações)
+- `public/participante/js/modules/participante-top10.js` (Premiações + Clicável)
+- `public/participante/js/modules/participante-rodadas.js` (Remove "32 times")
+- `public/participante/js/modules/participante-melhor-mes.js` (Detalhes geral)
+- `public/participante/js/modules/participante-pontos-corridos.js` (Toggle completo)
+- `public/participante/js/modules/participante-mata-mata.js` (Implementação completa)
+- `public/participante/fronts/ranking.html` (CSS destaque podium)
+- `public/participante/fronts/extrato.html` (Media queries mobile)
+
+**CRITÉRIOS DE QUALIDADE:**
+✅ Modo admin 100% intacto (verificado)
+✅ Dados em MongoDB preservados (2 ligas ativas)
+✅ Cache inteligente funcionando
+✅ UX mobile-first implementada
+✅ Sem quebra de dependências
+✅ Código modular e organizado
+
+**DESEMPENHO MELHORADO:**
+- Import dinâmico reduz payload inicial
+- Cache reduz requisições API
+- Layout responsivo em todos os módulos
+- Touch feedback para melhor UX
+
+---
+
 ### [20/11/2025] - Correções Críticas no Modo Participante
 
 **Bugs Corrigidos:**
@@ -228,6 +331,6 @@
 - Banco de Dados: Intacto (2 ligas ativas)
 
 ## Última Atualização
-- Data: 20 de novembro de 2025
-- Versão: 1.0.1
-- Status: Produção estável - Todos os módulos funcionais
+- Data: 22 de novembro de 2025
+- Versão: 1.0.2
+- Status: Produção estável - Modo participante completamente refatorado e otimizado

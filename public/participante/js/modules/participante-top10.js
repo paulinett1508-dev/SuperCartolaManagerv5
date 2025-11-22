@@ -35,6 +35,20 @@ window.inicializarTop10Participante = async function(ligaId, timeId) {
     }
 };
 
+// Modal para premiações
+window.mostrarPremiacaoTop10 = function(posicao) {
+    const premiacoes = {
+        1: { titulo: '🥇 CAMPEÃO', premio: 'R$ 1.000,00' },
+        2: { titulo: '🥈 2º LUGAR', premio: 'R$ 700,00' },
+        3: { titulo: '🥉 3º LUGAR', premio: 'R$ 400,00' }
+    };
+    
+    if (!premiacoes[posicao]) return;
+    
+    const { titulo, premio } = premiacoes[posicao];
+    alert(`${titulo}\n${premio}`);
+};
+
 function renderizarTop10(times, meuTimeId) {
     const container = document.getElementById('top10Grid');
     
@@ -56,10 +70,12 @@ function renderizarTop10(times, meuTimeId) {
         const posicao = index + 1;
         const podiumClass = posicao <= 3 ? `podium-${posicao}` : '';
         const meuTime = time.time_id === meuTimeId ? 'meu-time' : '';
+        const premiacaoClick = posicao <= 3 ? `onclick="window.mostrarPremiacaoTop10(${posicao})"` : '';
+        const cursorStyle = posicao <= 3 ? 'style="cursor: pointer;"' : '';
         
         return `
-            <div class="top10-card ${podiumClass} ${meuTime}">
-                <div class="top10-posicao">${posicao}º</div>
+            <div class="top10-card ${podiumClass} ${meuTime}" ${cursorStyle}>
+                <div class="top10-posicao" ${premiacaoClick}>${posicao}º</div>
                 <div class="top10-nome">${time.nome || 'N/D'}</div>
                 <div class="top10-pontos">${(time.pontos || 0).toFixed(2)} pts</div>
             </div>

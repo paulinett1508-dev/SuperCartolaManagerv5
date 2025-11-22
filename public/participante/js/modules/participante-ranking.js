@@ -1,7 +1,20 @@
 
-// PARTICIPANTE RANKING - Módulo de Ranking Geral
+// PARTICIPANTE RANKING - Módulo de Ranking Geral com Premiações
 
 console.log('[PARTICIPANTE-RANKING] Carregando módulo...');
+
+window.mostrarPremiacaoRanking = function(posicao) {
+    const premiacoes = {
+        1: { titulo: '🥇 CAMPEÃO', premio: 'R$ 1.000,00' },
+        2: { titulo: '🥈 2º LUGAR', premio: 'R$ 700,00' },
+        3: { titulo: '🥉 3º LUGAR', premio: 'R$ 400,00' }
+    };
+    
+    if (!premiacoes[posicao]) return;
+    
+    const { titulo, premio } = premiacoes[posicao];
+    alert(`${titulo}\n${premio}`);
+};
 
 window.inicializarRankingParticipante = async function(ligaId, timeId) {
     console.log(`[PARTICIPANTE-RANKING] Inicializando para time ${timeId} na liga ${ligaId}`);
@@ -38,21 +51,28 @@ function renderizarRanking(dados, meuTimeId) {
                     <th>Time</th>
                     <th>Cartoleiro</th>
                     <th>Pontos</th>
-                    <th>Média</th>
-                    <th>Rodadas</th>
+                    <th>Vitórias</th>
                 </tr>
             </thead>
             <tbody>
-                ${dados.map((time) => `
-                    <tr class="${time.timeId === parseInt(meuTimeId) ? 'meu-time' : ''}">
-                        <td><span class="posicao-badge">${time.posicao}º</span></td>
-                        <td>${time.nome_time || 'N/D'}</td>
-                        <td>${time.nome_cartola || 'N/D'}</td>
-                        <td class="pontos-destaque">${(time.pontos_totais || 0).toFixed(2)}</td>
-                        <td>${time.media || '0.00'}</td>
-                        <td>${time.rodadas_jogadas || 0}</td>
-                    </tr>
-                `).join('')}
+                ${dados.map((time, index) => {
+                    const posicao = index + 1;
+                    const isPodium = posicao <= 3;
+                    const premiacaoClick = isPodium ? `onclick="window.mostrarPremiacaoRanking(${posicao})"` : '';
+                    const cursorStyle = isPodium ? 'style="cursor: pointer;"' : '';
+                    const meuTime = parseInt(time.time_id) === parseInt(meuTimeId);
+                    const classe = meuTime ? 'meu-time' : (isPodium ? `podium-${posicao}` : '');
+                    
+                    return `
+                        <tr class="${classe}">
+                            <td><span class="posicao-badge" ${cursorStyle} ${premiacaoClick}>${posicao}º</span></td>
+                            <td>${time.nome || 'N/D'}</td>
+                            <td>${time.nome_cartola || 'N/D'}</td>
+                            <td class="pontos-destaque">${(time.pontos_totais || 0).toFixed(2)}</td>
+                            <td>${time.vitorias || 0}</td>
+                        </tr>
+                    `;
+                }).join('')}
             </tbody>
         </table>
     `;

@@ -5,6 +5,10 @@ modules = ["nodejs-20", "python-3.11"]
 localPort = 5000
 externalPort = 80
 
+[[ports]]
+localPort = 43849
+externalPort = 3000
+
 [deployment]
 deploymentTarget = "gce"
 run = ["sh", "-c", "npm start"]

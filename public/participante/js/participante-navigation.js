@@ -157,20 +157,32 @@ class ParticipanteNavigation {
             return estaAtivo;
         });
 
-        // Renderizar botões
-        navContainer.innerHTML = modulosVisiveis.map(modulo => `
+        // Renderizar botões com botão HOME no início
+        navContainer.innerHTML = `
+            <button class="nav-btn nav-home" data-module="boas-vindas" title="Voltar para Início">
+                🏠 Home
+            </button>
+        ` + modulosVisiveis.map(modulo => `
             <button class="nav-btn ${modulo.id === 'extrato' ? 'active' : ''}" data-module="${modulo.id}">
                 ${modulo.icon} ${modulo.label}
             </button>
         `).join('');
 
-        console.log(`[PARTICIPANTE-NAV] ✅ Menu renderizado com ${modulosVisiveis.length} módulos de ${todosModulos.length} possíveis`);
+        console.log(`[PARTICIPANTE-NAV] ✅ Menu renderizado com ${modulosVisiveis.length} módulos de ${todosModulos.length} possíveis + Botão Home`);
 
         // Re-adicionar event listeners
         document.querySelectorAll('.nav-btn').forEach(btn => {
             btn.addEventListener('click', (e) => {
                 const modulo = e.currentTarget.dataset.module;
                 this.navegarPara(modulo);
+            });
+            
+            // Touch feedback para mobile
+            btn.addEventListener('touchstart', () => {
+                btn.style.opacity = '0.7';
+            });
+            btn.addEventListener('touchend', () => {
+                btn.style.opacity = '1';
             });
         });
     }
@@ -196,6 +208,12 @@ class ParticipanteNavigation {
                 btn.classList.add('active');
             }
         });
+        
+        // Se não for boas-vindas, manter botão Home visível
+        if (modulo !== 'boas-vindas') {
+            const homeBtn = document.querySelector('.nav-home');
+            if (homeBtn) homeBtn.classList.add('active-home');
+        }
 
         // Carregar conteúdo
         const container = document.getElementById('moduleContainer');
@@ -261,6 +279,7 @@ class ParticipanteNavigation {
         console.log(`[PARTICIPANTE-NAV] 📦 Importando módulo JS: ${modulo}`);
         
         const modulosPaths = {
+            'boas-vindas': '/participante/js/modules/participante-boas-vindas.js',
             'extrato': '/participante/js/modules/participante-extrato.js',
             'ranking': '/participante/js/modules/participante-ranking.js',
             'rodadas': '/participante/js/modules/participante-rodadas.js',
@@ -288,9 +307,18 @@ class ParticipanteNavigation {
 
         const participanteData = participanteAuth.getDados();
 
-        // Página de boas-vindas não precisa de inicialização
+        // Página de boas-vindas com dados reais
         if (modulo === 'boas-vindas') {
-            console.log('[PARTICIPANTE-NAV] Página de boas-vindas carregada');
+            if (participanteData && participanteData.ligaId && participanteData.timeId) {
+                if (window.inicializarBoasVindas) {
+                    await window.inicializarBoasVindas(participanteData.ligaId, participanteData.timeId);
+                    console.log('[PARTICIPANTE-NAV] Página de boas-vindas carregada com dados');
+                } else {
+                    console.log('[PARTICIPANTE-NAV] Função inicializarBoasVindas não encontrada, usando dados padrão');
+                }
+            } else {
+                console.log('[PARTICIPANTE-NAV] Página de boas-vindas carregada sem dados do participante');
+            }
             return;
         }
 
