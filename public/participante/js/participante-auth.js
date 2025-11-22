@@ -29,8 +29,13 @@ class ParticipanteAuth {
             this.ligaId = participante.ligaId;
             this.timeId = participante.timeId;
             this.participante = participante;
-            this.atualizarHeader();
-            await this.verificarMultiplasLigas(); // Verificar múltiplas ligas
+            
+            // Executar operações assíncronas
+            await Promise.all([
+                this.atualizarHeader(),
+                this.verificarMultiplasLigas()
+            ]);
+            
             return true;
         }
 
@@ -69,8 +74,11 @@ class ParticipanteAuth {
             this.sessionCache = data;
             this.sessionCacheTime = Date.now();
 
-            // Atualizar UI
-            this.atualizarHeader();
+            // Atualizar UI e verificar múltiplas ligas
+            await Promise.all([
+                this.atualizarHeader(),
+                this.verificarMultiplasLigas()
+            ]);
 
             console.log('[PARTICIPANTE-AUTH] ✅ Autenticação válida (cache atualizado)');
             this.verificandoAuth = false;
@@ -200,29 +208,38 @@ class ParticipanteAuth {
     }
 
     async verificarMultiplasLigas() {
+        console.log('[PARTICIPANTE-AUTH] 🔍 Verificando múltiplas ligas para timeId:', this.timeId);
+        
         try {
             const response = await fetch('/api/participante/auth/minhas-ligas', {
                 credentials: 'include'
             });
 
             if (!response.ok) {
-                console.warn('[PARTICIPANTE-AUTH] Erro ao buscar ligas do participante');
+                console.warn('[PARTICIPANTE-AUTH] ❌ Erro ao buscar ligas (status:', response.status, ')');
                 return;
             }
 
             const data = await response.json();
+            console.log('[PARTICIPANTE-AUTH] 📊 Resposta da API:', data);
+            
             const ligas = data.ligas || [];
+            console.log('[PARTICIPANTE-AUTH] 📋 Total de ligas encontradas:', ligas.length);
+            
+            if (ligas.length > 0) {
+                console.log('[PARTICIPANTE-AUTH] 📝 Ligas:', ligas.map(l => `${l.nome} (${l.id})`).join(', '));
+            }
 
             // Só mostrar seletor se tiver MAIS DE UMA liga
             if (ligas.length > 1) {
                 console.log('[PARTICIPANTE-AUTH] 🏆 Participante em múltiplas ligas:', ligas.length);
                 this.renderizarSeletorLigas(ligas);
             } else {
-                console.log('[PARTICIPANTE-AUTH] Participante em apenas uma liga');
+                console.log('[PARTICIPANTE-AUTH] ℹ️ Participante em apenas', ligas.length, 'liga(s)');
                 this.ocultarSeletorLigas();
             }
         } catch (error) {
-            console.error('[PARTICIPANTE-AUTH] Erro ao verificar múltiplas ligas:', error);
+            console.error('[PARTICIPANTE-AUTH] ❌ Erro ao verificar múltiplas ligas:', error);
         }
     }
 
