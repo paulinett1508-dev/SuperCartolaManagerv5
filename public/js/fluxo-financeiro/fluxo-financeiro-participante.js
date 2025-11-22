@@ -125,27 +125,57 @@ class FluxoFinanceiroParticipante {
     }
 
     // ===== MÉTODO PARA RETORNAR DADOS SEM RENDERIZAÇÃO =====
-    async buscarExtratoCalculado() {
-        if (!this.isInitialized) {
-            throw new Error('Módulo não inicializado. Chame inicializar() primeiro.');
-        }
+    async buscarExtratoCalculado(ligaId, timeId, rodadaAtualParam = null) {
+        console.log('[FLUXO-PARTICIPANTE] Buscando dados calculados...');
 
         try {
-            console.log('[FLUXO-PARTICIPANTE] Buscando dados calculados...');
+            // Usar rodada fornecida ou buscar do mercado
+            let rodadaAtual = rodadaAtualParam;
 
-            // Buscar rodada atual
-            const mercadoStatus = await fetch('/api/cartola/mercado-status');
-            const mercadoData = await mercadoStatus.json();
-            const rodadaAtual = mercadoData.rodada_atual || 1;
-            const ultimaRodadaCompleta = Math.max(1, rodadaAtual - 1);
+            if (!rodadaAtual) {
+                console.log('[FLUXO-PARTICIPANTE] Buscando rodada atual do mercado...');
+                const mercadoRes = await fetch('/api/cartola/mercado-status');
+                const mercadoStatus = mercadoRes.ok ? await mercadoRes.json() : { rodada_atual: 1 };
+                rodadaAtual = mercadoStatus.rodada_atual || 1;
+            }
 
-            // Calcular extrato
-            const extrato = await this.core.calcularExtratoFinanceiro(
-                this.participanteData.timeId,
-                ultimaRodadaCompleta
-            );
+            console.log(`[FLUXO-PARTICIPANTE] 📅 Usando rodada atual: ${rodadaAtual}`);
 
-            return extrato;
+            // Tentar buscar do cache primeiro
+            const { buscarExtratoCache } = await import('./fluxo-financeiro-core.js');
+            const extratoCache = await buscarExtratoCache(ligaId, timeId, rodadaAtual);
+
+            if (extratoCache) {
+                // Verificar se a rodada do cache corresponde à rodada atual
+                const rodadaCacheKey = `fluxo_rodada_${ligaId}_${timeId}`;
+                const rodadaCache = localStorage.getItem(rodadaCacheKey);
+
+                if (rodadaCache && parseInt(rodadaCache) !== rodadaAtual) {
+                    console.log(`[FLUXO-PARTICIPANTE] ⚠️ Rodada mudou (cache: ${rodadaCache}, atual: ${rodadaAtual}) - invalidando cache`);
+                    // Continuar para recálculo
+                } else {
+                    console.log('[FLUXO-PARTICIPANTE] ✅ Cache válido encontrado');
+                    // Salvar rodada atual no cache
+                    localStorage.setItem(rodadaCacheKey, rodadaAtual.toString());
+                    return extratoCache;
+                }
+            }
+
+            // Se não encontrou cache válido, calcular
+            console.log('[FLUXO-PARTICIPANTE] 🧮 Calculando extrato...');
+            const extratoCompleto = await this.core.calcularExtratoFinanceiro(timeId, rodadaAtual);
+
+            // Salvar no cache
+            const { salvarExtratoCache } = await import('./fluxo-financeiro-core.js');
+            await salvarExtratoCache(ligaId, timeId, rodadaAtual, extratoCompleto);
+
+            // Salvar rodada atual no localStorage
+            const rodadaCacheKey = `fluxo_rodada_${ligaId}_${timeId}`;
+            localStorage.setItem(rodadaCacheKey, rodadaAtual.toString());
+
+            console.log('[FLUXO-PARTICIPANTE] ✅ Extrato calculado e salvo');
+            return extratoCompleto;
+
         } catch (error) {
             console.error('[FLUXO-PARTICIPANTE] Erro ao buscar extrato:', error);
             throw error;

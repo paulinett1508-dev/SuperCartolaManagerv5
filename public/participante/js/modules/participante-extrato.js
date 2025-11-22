@@ -4,103 +4,73 @@
 console.log('[EXTRATO-PARTICIPANTE] 🔄 Carregando módulo...');
 console.log('[EXTRATO-PARTICIPANTE] ⏱️ Timestamp:', new Date().toISOString());
 
-export async function inicializarExtratoParticipante(participanteData) {
-    console.log('[EXTRATO-PARTICIPANTE] 🔄 Inicializando para:', participanteData);
+// Variável global para armazenar IDs, caso necessário para outros fluxos
+const PARTICIPANTE_IDS = { ligaId: null, timeId: null };
 
-    // ✅ VERIFICAR DADOS OBRIGATÓRIOS
-    if (!participanteData || !participanteData.timeId || !participanteData.ligaId) {
-        console.error('[EXTRATO-PARTICIPANTE] ❌ Dados do participante incompletos:', participanteData);
-        mostrarErro('Dados do participante incompletos');
+export async function inicializarExtratoParticipante({ participante, ligaId, timeId }) {
+    console.log('[EXTRATO-PARTICIPANTE] 🔄 Inicializando para:', { participante, ligaId, timeId });
+
+    if (!ligaId || !timeId) {
+        console.error('[EXTRATO-PARTICIPANTE] ❌ Parâmetros inválidos:', { ligaId, timeId });
+        mostrarErro('Dados inválidos para carregar extrato');
         return;
     }
 
     try {
-        // ✅ GARANTIR QUE O CONTAINER EXISTE
-        const container = document.getElementById('extratoFinanceiro');
-
-        if (!container) {
-            console.error('[EXTRATO-PARTICIPANTE] ❌ Container #extratoFinanceiro não encontrado no DOM');
-            throw new Error('Container #extratoFinanceiro não encontrado');
-        }
+        // Armazenar IDs
+        PARTICIPANTE_IDS.ligaId = ligaId;
+        PARTICIPANTE_IDS.timeId = timeId;
 
         console.log('[EXTRATO-PARTICIPANTE] 📦 Importando módulos...');
 
-        // Importar módulo de cálculo (core do admin) e UI própria
-        const [coreModule, uiModule] = await Promise.all([
-            import('/js/fluxo-financeiro/fluxo-financeiro-participante.js'),
-            import('./participante-extrato-ui.js')
-        ]);
-
-        const fluxoCore = coreModule.fluxoFinanceiroParticipante;
-        const { renderizarExtratoParticipante, mostrarLoading } = uiModule;
+        // Importar módulos necessários
+        const { renderizarExtratoParticipante } = await import('./participante-extrato-ui.js');
+        await import('../../rodadas/rodadas.js');
+        await import('../../melhor-mes.js');
+        await import('../../../js/core/cache-manager.js');
+        await import('../../fluxo-financeiro/fluxo-financeiro-participante.js');
 
         console.log('[EXTRATO-PARTICIPANTE] ⚙️ Inicializando core...');
 
-        // Inicializar core de cálculo
-        await fluxoCore.inicializar({
-            timeId: participanteData.timeId,
-            ligaId: participanteData.ligaId,
-            participante: participanteData
+        // Inicializar fluxo financeiro do participante
+        await window.inicializarFluxoFinanceiroParticipante({
+            timeId,
+            ligaId,
+            participante
         });
+
+        console.log('[EXTRATO-PARTICIPANTE] 🔄 Buscando rodada atual...');
+
+        // Buscar rodada atual SEMPRE antes de carregar o extrato
+        let rodadaAtual = 1;
+        try {
+            const resRodada = await fetch('/api/cartola/mercado/status');
+            if (resRodada.ok) {
+                const statusData = await resRodada.json();
+                rodadaAtual = statusData.rodada_atual || 1;
+                console.log(`[EXTRATO-PARTICIPANTE] ✅ Rodada atual: ${rodadaAtual}`);
+            } else {
+                console.warn('[EXTRATO-PARTICIPANTE] ⚠️ Erro ao buscar rodada, usando fallback');
+            }
+        } catch (error) {
+            console.warn('[EXTRATO-PARTICIPANTE] ⚠️ Falha na busca de rodada, usando fallback:', error.message);
+        }
 
         console.log('[EXTRATO-PARTICIPANTE] 💰 Carregando dados...');
 
-        // Mostrar loading
-        mostrarLoading();
-
-        // Buscar dados calculados (sem renderizar)
-        const extrato = await fluxoCore.buscarExtratoCalculado();
+        // Buscar extrato calculado com rodada atual
+        const extratoData = await window.buscarExtratoCalculado(ligaId, timeId, rodadaAtual);
 
         console.log('[EXTRATO-PARTICIPANTE] 🎨 Renderizando UI personalizada...');
 
-        // Renderizar com UI própria do participante
-        renderizarExtratoParticipante(extrato, participanteData);
+        // Renderizar extrato
+        renderizarExtratoParticipante(extratoData, timeId);
 
         console.log('[EXTRATO-PARTICIPANTE] ✅ Extrato carregado com sucesso');
 
     } catch (error) {
-        console.error('[EXTRATO-PARTICIPANTE] ❌ Erro detalhado:', {
-            message: error.message,
-            stack: error.stack,
-            participanteData
-        });
-
-        // Detectar tipo de erro
-        const is502Error = error.message.includes('502') || error.message.includes('Bad Gateway');
-        const isNetworkError = error.message.includes('Failed to fetch') || error.message.includes('NetworkError');
-
-        // Renderizar erro no container
-        const container = document.getElementById('extratoParticipanteContainer');
-        if (container) {
-            container.innerHTML = `
-                <div style="text-align: center; padding: 40px; color: #ef4444;">
-                    <div style="font-size: 60px; margin-bottom: 20px;">${is502Error || isNetworkError ? '🔌' : '❌'}</div>
-                    <h3>${is502Error ? 'Servidor Indisponível' : isNetworkError ? 'Erro de Conexão' : 'Erro ao Carregar Extrato'}</h3>
-                    <p style="color: #999; font-size: 14px; margin: 12px 0;">
-                        ${is502Error 
-                            ? 'O servidor está reiniciando ou temporariamente indisponível. Tente novamente em alguns segundos.' 
-                            : isNetworkError 
-                            ? 'Verifique sua conexão com a internet e tente novamente.'
-                            : error.message
-                        }
-                    </p>
-                    <div style="display: flex; gap: 10px; justify-content: center; margin-top: 20px;">
-                        <button onclick="participanteNav.navegarPara('extrato')" 
-                                style="padding: 12px 24px; background: linear-gradient(135deg, #ff4500 0%, #e8472b 100%); 
-                                       color: white; border: none; border-radius: 8px; cursor: pointer; 
-                                       font-weight: 600; font-size: 14px;">
-                            🔄 Tentar Novamente
-                        </button>
-                        <button onclick="participanteNav.navegarPara('boas-vindas')" 
-                                style="padding: 12px 24px; background: #666; 
-                                       color: white; border: none; border-radius: 8px; cursor: pointer; 
-                                       font-weight: 600; font-size: 14px;">
-                            ← Voltar ao Início
-                        </button>
-                    </div>
-                </div>
-            `;
-        }
+        console.error('[EXTRATO-PARTICIPANTE] ❌ Erro:', error);
+        mostrarErro(`Erro ao carregar extrato: ${error.message}`);
     }
 }
 
