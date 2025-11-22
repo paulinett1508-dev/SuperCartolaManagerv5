@@ -337,7 +337,7 @@
   border-left: 4px solid var(--laranja, #FF4500);
   border-radius: var(--border-radius-md, 8px);
   padding: 20px;
-  margin: 20px 0;
+  margin: 20px auto;
   max-width: 500px;
   text-align: left;
 }

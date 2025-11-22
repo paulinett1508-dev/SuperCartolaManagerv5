@@ -457,11 +457,14 @@ async function carregarFase(fase, ligaId) {
         }
 
         const partialsData = await resPartials.json();
-        if (!partialsData.atletas) {
-          throw new Error("Dados de parciais não disponíveis");
-        }
-
-        console.log(`[MATA-ORQUESTRADOR] ✅ Atletas pontuados recebidos`);
+        
+        // Verificar se há dados de atletas pontuados
+        if (!partialsData || !partialsData.atletas || Object.keys(partialsData.atletas).length === 0) {
+          console.warn(`[MATA-ORQUESTRADOR] ⚠️ Parciais ainda não disponíveis na API Cartola`);
+          // Fallback: usar dados zerados do MongoDB
+          pontosRodadaAtual = await getPontosDaRodada(ligaId, rodadaPontosNum);
+        } else {
+          console.log(`[MATA-ORQUESTRADOR] ✅ Atletas pontuados recebidos (${Object.keys(partialsData.atletas).length} atletas)`);
 
         // Buscar escalações e calcular pontos para cada time
         const timesIds = timesParaConfronto.map(t => t.timeId);
@@ -498,12 +501,13 @@ async function carregarFase(fase, ligaId) {
         });
 
         const parciais = await Promise.all(parciaisPromises);
-        pontosRodadaAtual = Object.fromEntries(
-          parciais.map(({ timeId, pontos }) => [timeId, pontos])
-        );
-        console.log(`[MATA-ORQUESTRADOR] ✅ Parciais calculadas:`, pontosRodadaAtual);
+          pontosRodadaAtual = Object.fromEntries(
+            parciais.map(({ timeId, pontos }) => [timeId, pontos])
+          );
+          console.log(`[MATA-ORQUESTRADOR] ✅ Parciais calculadas:`, pontosRodadaAtual);
+        }
       } catch (error) {
-        console.error(`[MATA-ORQUESTRADOR] Erro ao buscar parciais:`, error);
+        console.error(`[MATA-ORQUESTRADOR] ❌ Erro ao buscar parciais:`, error);
         // Fallback para dados do MongoDB
         pontosRodadaAtual = await getPontosDaRodada(ligaId, rodadaPontosNum);
       }
@@ -570,11 +574,14 @@ async function carregarFase(fase, ligaId) {
       avisoDiv.className = "rodada-pendente-fase";
       avisoDiv.style.background = "rgba(255, 152, 0, 0.05)";
       avisoDiv.style.borderColor = "rgba(255, 152, 0, 0.3)";
+      avisoDiv.style.borderLeftColor = "rgba(255, 152, 0, 0.8)";
       avisoDiv.innerHTML = `
-        <span class="pendente-icon">⚡</span>
-        <h3>Rodada em Andamento</h3>
-        <p class="pendente-message">A Rodada ${rodadaPontosNum} está acontecendo agora.</p>
-        <p class="pendente-submessage"><strong>⚠️ Os pontos exibidos são PARCIAIS.</strong> Valores financeiros serão calculados após a conclusão da rodada.</p>
+        <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 12px;">
+          <span class="pendente-icon" style="font-size: 32px;">⚡</span>
+          <h3 style="margin: 0; color: var(--text-primary, #ffffff); font-size: 18px; font-weight: 600;">Rodada em Andamento</h3>
+        </div>
+        <p class="pendente-message" style="margin: 8px 0;">A Rodada ${rodadaPontosNum} está acontecendo agora.</p>
+        <p class="pendente-submessage" style="margin: 8px 0;"><strong style="color: rgba(255, 152, 0, 1);">⚠️ Os pontos exibidos são PARCIAIS.</strong> Valores financeiros serão calculados após a conclusão da rodada.</p>
       `;
       contentElement.appendChild(avisoDiv);
     }
