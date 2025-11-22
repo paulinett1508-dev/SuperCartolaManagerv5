@@ -142,15 +142,18 @@ export async function inicializarExtratoParticipante({ participante, ligaId, tim
         console.log('[EXTRATO-PARTICIPANTE] 👤 Usando timeId:', timeId);
 
         // Buscar extrato calculado com última rodada completa (forçando recálculo)
+        console.log('[EXTRATO-PARTICIPANTE] 🔍 Buscando extrato para:', { ligaId, timeId, ultimaRodadaCompleta });
         const extratoData = await fluxoFinanceiroParticipante.buscarExtratoCalculado(ligaId, timeId, ultimaRodadaCompleta, true);
 
         console.log('[EXTRATO-PARTICIPANTE] 🎨 Renderizando UI personalizada...');
-        console.log(`[EXTRATO-PARTICIPANTE] 📊 Dados do extrato:`, extratoData);
-        console.log(`[EXTRATO-PARTICIPANTE] 📊 Estrutura do extrato:`, {
+        console.log('[EXTRATO-PARTICIPANTE] 📊 Dados do extrato completos:', JSON.stringify(extratoData, null, 2));
+        console.log('[EXTRATO-PARTICIPANTE] 📊 Estrutura do extrato:', {
             temRodadas: !!extratoData?.rodadas,
             qtdRodadas: extratoData?.rodadas?.length || 0,
             temResumo: !!extratoData?.resumo,
-            saldo: extratoData?.resumo?.saldo
+            saldo: extratoData?.resumo?.saldo,
+            primeiraRodada: extratoData?.rodadas?.[0],
+            ultimaRodada: extratoData?.rodadas?.[extratoData?.rodadas?.length - 1]
         });
 
         // Verificar se container ainda existe (já foi verificado no início)
