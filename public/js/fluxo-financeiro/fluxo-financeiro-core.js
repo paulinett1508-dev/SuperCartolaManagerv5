@@ -356,7 +356,13 @@ export class FluxoFinanceiroCore {
         if (!this.mataMataIntegrado || this.mataMataMap.size === 0) return 0;
 
         const key = `${normalizarTimeId(timeId)}_${rodada}`;
-        return this.mataMataMap.get(key) || 0;
+        const valor = this.mataMataMap.get(key) || 0;
+        
+        if (valor !== 0) {
+            console.log(`[FLUXO-CORE] 🎯 Mata-Mata R${rodada} para time ${timeId}: ${valor > 0 ? '+' : ''}R$ ${valor.toFixed(2)}`);
+        }
+        
+        return valor;
     }
 
     _calcularBonusOnus(posicaoReal, isCartoleirosSobral) {
