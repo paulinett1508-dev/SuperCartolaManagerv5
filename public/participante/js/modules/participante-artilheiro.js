@@ -1,21 +1,12 @@
 
 console.log('🏆 [PARTICIPANTE-ARTILHEIRO] Módulo carregando...');
 
-export async function init() {
+// Função principal de inicialização
+async function inicializarArtilheiroParticipante(ligaId, timeId) {
     console.log('🏆 [PARTICIPANTE-ARTILHEIRO] Inicializando módulo Artilheiro Campeão...');
+    console.log('🏆 [PARTICIPANTE-ARTILHEIRO] Liga:', ligaId, 'Time:', timeId);
 
     try {
-        // Obter dados do participante
-        const participanteData = window.participanteData;
-        
-        if (!participanteData) {
-            throw new Error('Dados do participante não disponíveis');
-        }
-
-        console.log('🏆 [PARTICIPANTE-ARTILHEIRO] Dados do participante:', participanteData);
-
-        const { ligaId, timeId } = participanteData;
-
         // Mostrar loading
         mostrarLoading();
 
@@ -33,32 +24,72 @@ export async function init() {
     }
 }
 
+// Export para compatibilidade
+export async function init() {
+    console.log('🏆 [PARTICIPANTE-ARTILHEIRO] init() chamado via export');
+    
+    const participanteData = participanteAuth?.getDados();
+    
+    if (!participanteData) {
+        throw new Error('Dados do participante não disponíveis');
+    }
+
+    const { ligaId, timeId } = participanteData;
+    await inicializarArtilheiroParticipante(ligaId, timeId);
+}
+
+// Expor função globalmente
+if (typeof window !== 'undefined') {
+    window.inicializarArtilheiroParticipante = inicializarArtilheiroParticipante;
+    console.log('✅ [PARTICIPANTE-ARTILHEIRO] Função global inicializarArtilheiroParticipante registrada');
+}
+
+function obterContainer() {
+    // Tentar múltiplos IDs possíveis
+    const possiveisIds = ['artilheiro-content', 'artilheiroContainer', 'moduleContainer'];
+    
+    for (const id of possiveisIds) {
+        const container = document.getElementById(id);
+        if (container) {
+            console.log(`🏆 [PARTICIPANTE-ARTILHEIRO] Container encontrado: ${id}`);
+            return container;
+        }
+    }
+    
+    console.error('❌ [PARTICIPANTE-ARTILHEIRO] Nenhum container encontrado. IDs tentados:', possiveisIds);
+    return null;
+}
+
 function mostrarLoading() {
-    const container = document.getElementById('artilheiro-content');
+    const container = obterContainer();
     if (!container) {
-        console.warn('[PARTICIPANTE-ARTILHEIRO] Container não encontrado');
+        console.warn('[PARTICIPANTE-ARTILHEIRO] Container não encontrado para loading');
         return;
     }
 
     container.innerHTML = `
-        <div class="text-center p-5">
-            <div class="spinner-border text-primary" role="status">
-                <span class="visually-hidden">Carregando...</span>
-            </div>
-            <p class="mt-3">Carregando dados do Artilheiro Campeão...</p>
+        <div class="loading-participante" style="text-align: center; padding: 40px;">
+            <div class="spinner-participante" style="border: 4px solid #f3f3f3; border-top: 4px solid var(--participante-primary, #ff4500); border-radius: 50%; width: 50px; height: 50px; animation: spin 1s linear infinite; margin: 0 auto;"></div>
+            <p style="margin-top: 20px; color: #999;">Carregando dados do Artilheiro Campeão...</p>
         </div>
+        <style>
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        </style>
     `;
 }
 
 function mostrarErro(mensagem) {
-    const container = document.getElementById('artilheiro-content');
+    const container = obterContainer();
     if (!container) return;
 
     container.innerHTML = `
-        <div class="alert alert-danger">
+        <div style="text-align: center; padding: 40px; background: #fff3cd; border-radius: 8px; color: #856404;">
             <h4>❌ Erro ao Carregar Dados</h4>
             <p>${mensagem}</p>
-            <button class="btn btn-primary mt-3" onclick="location.reload()">
+            <button onclick="location.reload()" style="margin-top: 20px; padding: 10px 20px; background: var(--participante-primary, #ff4500); color: white; border: none; border-radius: 8px; cursor: pointer;">
                 🔄 Tentar Novamente
             </button>
         </div>
@@ -95,8 +126,13 @@ async function carregarDadosArtilheiro(ligaId, timeId) {
 }
 
 function renderizarArtilheiro(dados) {
-    const container = document.getElementById('artilheiro-content');
-    if (!container) return;
+    const container = obterContainer();
+    if (!container) {
+        console.error('❌ [PARTICIPANTE-ARTILHEIRO] Container não encontrado para renderização');
+        return;
+    }
+
+    console.log('🏆 [PARTICIPANTE-ARTILHEIRO] Renderizando dados:', dados);
 
     const html = `
         <div class="artilheiro-participante">
@@ -107,6 +143,7 @@ function renderizarArtilheiro(dados) {
     `;
 
     container.innerHTML = html;
+    console.log('✅ [PARTICIPANTE-ARTILHEIRO] Interface renderizada');
 }
 
 function renderizarMinhaClassificacao(dados) {
