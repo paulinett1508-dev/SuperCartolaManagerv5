@@ -1,0 +1,79 @@
+cards-condicionais.js:4 🎛️ [CARDS-CONDICIONAIS] Carregando sistema...
+cards-condicionais.js:316 ✅ [CARDS-CONDICIONAIS] Módulo carregado
+sistema-modulos-init.js:8 🔧 [SISTEMA-MODULOS] Inicializando sistema de módulos...
+sistema-modulos-init.js:34 ✅ [SISTEMA-MODULOS] Sistema inicializado com sucesso
+sistema-modulos-init.js:35 📦 [SISTEMA-MODULOS] Módulos disponíveis: 0
+detalhe-liga-orquestrador.js:14 Iniciando orquestrador...
+cards-condicionais.js:266 🚀 [CARDS-CONDICIONAIS] Inicializando...
+cards-condicionais.js:59 🎯 [CARDS-CONDICIONAIS] Aplicando configuração...
+cards-condicionais.js:69 🔍 [CARDS-CONDICIONAIS] Liga atual: 684d821cf1a7ae16d1f89572
+cards-condicionais.js:51 🚫 [CARDS-CONDICIONAIS] Card "mata-mata" desabilitado
+cards-condicionais.js:51 🚫 [CARDS-CONDICIONAIS] Card "pontos-corridos" desabilitado
+cards-condicionais.js:51 🚫 [CARDS-CONDICIONAIS] Card "melhor-mes" desabilitado
+cards-condicionais.js:94 ✅ [CARDS-CONDICIONAIS] 3 cards desabilitados
+cards-condicionais.js:127 🧭 [CARDS-CONDICIONAIS] Configurando navegação condicional...
+cards-condicionais.js:183 ✅ [CARDS-CONDICIONAIS] Botão voltar controlado
+cards-condicionais.js:285 ✅ [CARDS-CONDICIONAIS] Sistema inicializado com UX melhorado
+detalhe-liga-orquestrador.js:16 Layout carregado
+detalhe-liga-orquestrador.js:548 Carregando ligas para o sidebar...
+ranking.js:391 ✅ [RANKING] Módulo carregado e funções expostas globalmente
+rodadas.js:146 [RODADAS] 🚀 Inicializando módulo refatorado...
+rodadas.js:309 [RODADAS] ✅ Módulo refatorado carregado - Arquitetura modular implementada
+rodadas.js:312 [RODADAS] 🔧 Funções de debug disponíveis em window.rodadasDebug
+rodadas.js:316 [RODADAS] 📦 Estrutura modular:
+rodadas.js:317   - rodadas-config.js: Configurações e constantes
+rodadas.js:318   - rodadas-core.js: Lógica de negócio e API calls
+rodadas.js:319   - rodadas-ui.js: Interface e renderização
+rodadas.js:320   - rodadas-cache.js: Sistema de cache e performance
+rodadas.js:321   - rodadas-orquestrador.js: Coordenação entre módulos
+rodadas.js:322   - rodadas.js: Ponto de entrada refatorado (este arquivo)
+top10.js:469 [TOP10] Módulo carregado e pronto
+detalhe-liga-orquestrador.js:578 2 ligas carregadas no sidebar
+detalhe-liga-orquestrador.js:632 Liga atual destacada no sidebar
+luva-de-ouro-config.js:2 🥅 [LUVA-CONFIG] Módulo de configuração carregando...
+luva-de-ouro-config.js:100 ✅ [LUVA-CONFIG] Módulo de configuração carregado
+luva-de-ouro-core.js:2 🧠 [LUVA-CORE] Módulo core carregando...
+luva-de-ouro-core.js:155 ✅ [LUVA-CORE] Módulo core carregado
+luva-de-ouro-ui.js:2 🎨 [LUVA-UI] Módulo UI carregando...
+luva-de-ouro-ui.js:319 ✅ [LUVA-UI] Módulo UI carregado (CSS externo)
+rodadas-config.js:134 [RODADAS-CONFIG] Módulo carregado com sucesso
+rodadas-core.js:419 [RODADAS-CORE] Módulo carregado com sucesso
+rodadas-ui.js:369 [RODADAS-UI] Módulo carregado com layout compacto e seleção inteligente
+cache-manager.js:439 ✅ [CACHE-MANAGER] Sistema de cache inteligente carregado
+rodadas-cache.js:82 [RODADAS-CACHE] Limpeza automática configurada (60000ms)
+rodadas-cache.js:353 [RODADAS-CACHE] Sistema de cache inicializado
+rodadas-cache.js:354 [RODADAS-CACHE] Limpeza automática configurada (5min)
+rodadas-orquestrador.js:457 [RODADAS-ORQUESTRADOR] Módulo carregado com UX redesenhado
+cache-manager.js:50 ✅ [CACHE-MANAGER] IndexedDB inicializado
+rodadas.js:36 [RODADAS] ✅ Módulos refatorados carregados com sucesso
+rodadas-orquestrador.js:364 [RODADAS-ORQUESTRADOR] Inicializando módulo de rodadas...
+rodadas-orquestrador.js:365 [RODADAS-ORQUESTRADOR] URL atual: https://e1034b6e-dfb9-401a-8e7f-80ffa6030f79-00-2dc692elmitoe.spock.replit.dev/detalhe-liga.html?id=684d821cf1a7ae16d1f89572
+rodadas-orquestrador.js:372 [RODADAS-ORQUESTRADOR] Não está na seção de rodadas, pulando inicialização
+luva-de-ouro-utils.js:2 🔧 [LUVA-UTILS] Módulo de utilitários carregando...
+luva-de-ouro-utils.js:960 ✅ [LUVA-UTILS] Módulo de utilitários carregado
+luva-de-ouro-cache.js:2 📦 [LUVA-CACHE] Módulo de cache carregando...
+luva-de-ouro-cache.js:125 ✅ [LUVA-CACHE] Sistema de cache inicializado
+luva-de-ouro-cache.js:126 🧹 Limpeza automática configurada (5min)
+luva-de-ouro-orquestrador.js:2 🎯 [LUVA-ORQUESTRADOR] Módulo orquestrador carregando...
+luva-de-ouro-orquestrador.js:263 ✅ [LUVA-ORQUESTRADOR] Módulo carregado
+luva-de-ouro.js:2 🥅 [LUVA-DE-OURO] Sistema modular carregando...
+luva-de-ouro.js:147 ✅ [LUVA-DE-OURO] Sistema modular carregado com arquitetura refatorada
+luva-de-ouro.js:150 🆘 Em caso de erro: window.forcarLuvaDeOuroAgora()
+luva-de-ouro.js:151 🧪 Para testar: window.testarLuvaDeOuro()
+detalhe-liga-orquestrador.js:19 Módulos carregados
+detalhe-liga-orquestrador.js:696 Liga atualizada: Cartoleiros do Sobral com 6 participantes
+detalhe-liga-orquestrador.js:22 Participantes atualizados
+detalhe-liga-orquestrador.js:25 Navegação inicializada
+detalhe-liga-orquestrador.js:28 Funções globais configuradas
+detalhe-liga-orquestrador.js:36 Ícones Lucide inicializados
+detalhe-liga-orquestrador.js:39 Orquestrador inicializado com sucesso
+detalhe-liga-orquestrador.js:725 Removido elemento com "Liga:"
+detalhe-liga-orquestrador.js:725 Removido elemento com "Liga:"
+detalhe-liga-orquestrador.js:632 Liga atual destacada no sidebar
+detalhe-liga-orquestrador.js:489 Tela principal ocultada
+detalhe-liga-orquestrador.js:495 Tela secundária ativada
+detalhe-liga-orquestrador.js:99 Carregando módulo: artilheiro-campeao
+detalhe-liga-orquestrador.js:66 [ORQUESTRADOR] Módulo artilheiro-campeao usa CSS base do sistema
+detalhe-liga-orquestrador.js:47 [ORQUESTRADOR] Carregando HTML do módulo: artilheiro-campeao
+detalhe-liga-orquestrador.js:53 [ORQUESTRADOR] ✅ HTML do módulo artilheiro-campeao carregado (4570 bytes)
+detalhe-liga-orquestrador.js:108 HTML do módulo artilheiro-campeao injetado
