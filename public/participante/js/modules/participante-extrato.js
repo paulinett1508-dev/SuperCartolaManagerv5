@@ -31,7 +31,8 @@ export async function inicializarExtratoParticipante({ participante, ligaId, tim
         console.log('[EXTRATO-PARTICIPANTE] ⚙️ Inicializando core...');
 
         // Inicializar fluxo financeiro do participante
-        await window.inicializarFluxoFinanceiroParticipante({
+        const { fluxoFinanceiroParticipante } = await import('../../../js/fluxo-financeiro/fluxo-financeiro-participante.js');
+        await fluxoFinanceiroParticipante.inicializar({
             timeId,
             ligaId,
             participante
@@ -57,7 +58,8 @@ export async function inicializarExtratoParticipante({ participante, ligaId, tim
         console.log('[EXTRATO-PARTICIPANTE] 💰 Carregando dados...');
 
         // Buscar extrato calculado com rodada atual
-        const extratoData = await window.buscarExtratoCalculado(ligaId, timeId, rodadaAtual);
+        const { fluxoFinanceiroParticipante } = await import('../../../js/fluxo-financeiro/fluxo-financeiro-participante.js');
+        const extratoData = await fluxoFinanceiroParticipante.buscarExtratoCalculado(ligaId, timeId, rodadaAtual);
 
         console.log('[EXTRATO-PARTICIPANTE] 🎨 Renderizando UI personalizada...');
 
