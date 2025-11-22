@@ -134,9 +134,6 @@ export async function getResultadosMataMata() {
 
     let vencedoresAnteriores = rankingBase;
     for (const fase of fases) {
-      // Pular semis para edição 5
-      if (fase === "semis" && edicaoAtiva.id === 5) continue;
-
       const rodadaPontosNum = rodadasFases[fase];
       const numJogos =
         fase === "primeira"
@@ -364,10 +361,7 @@ export async function calcularResultadosEdicaoFluxo(
 ) {
   try {
     const resultadosFinanceiros = [];
-    const fases =
-      edicao.id === 5
-        ? ["primeira", "oitavas", "quartas", "final"]
-        : ["primeira", "oitavas", "quartas", "semis", "final"];
+    const fases = ["primeira", "oitavas", "quartas", "semis", "final"];
 
     const rankingBase = await getRankingRodadaEspecifica(
       ligaId,
@@ -386,11 +380,11 @@ export async function calcularResultadosEdicaoFluxo(
     }
 
     const rodadasFases = {
-      primeira: edicao.rodadaInicial,
-      oitavas: edicao.rodadaInicial + 1,
-      quartas: edicao.rodadaInicial + 2,
-      semis: edicao.rodadaInicial + 3,
-      final: edicao.rodadaInicial + 4,
+      primeira: edicao.rodadaInicial,      // Ed5: R31
+      oitavas: edicao.rodadaInicial + 1,   // Ed5: R32
+      quartas: edicao.rodadaInicial + 2,   // Ed5: R33
+      semis: edicao.rodadaInicial + 3,     // Ed5: R34
+      final: edicao.rodadaInicial + 4,     // Ed5: R35
     };
 
     let vencedoresAnteriores = rankingBase;
