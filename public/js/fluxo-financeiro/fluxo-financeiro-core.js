@@ -38,44 +38,72 @@ export class FluxoFinanceiroCore {
         }
     }
 
-    // NOVO: Carregar Map do Mata-Mata para busca O(1)
-    _carregarMataMataMap(resultadosMataMata) {
+    // NOVO: Carregar Map do Mata-Mata para busca O(1) (SOMENTE RODADAS CONSOLIDADAS)
+    async _carregarMataMataMap(resultadosMataMata) {
         this.mataMataMap.clear();
+        
+        // ✅ Obter última rodada consolidada
+        let ultimaRodadaConsolidada = 999;
+        try {
+            const mercadoResponse = await fetch('/api/cartola/mercado/status');
+            if (mercadoResponse.ok) {
+                const mercadoData = await mercadoResponse.json();
+                const mercadoAberto = mercadoData.mercado_aberto || mercadoData.status_mercado === 1;
+                ultimaRodadaConsolidada = mercadoAberto 
+                    ? Math.max(1, mercadoData.rodada_atual - 1)
+                    : mercadoData.rodada_atual;
+                console.log(`[FLUXO-CORE] 📊 Mata-Mata Map - última rodada consolidada: R${ultimaRodadaConsolidada}`);
+            }
+        } catch (error) {
+            console.warn('[FLUXO-CORE] Erro ao verificar mercado para Map:', error);
+        }
+        
+        let registrosCarregados = 0;
+        let registrosIgnorados = 0;
+        
         resultadosMataMata.forEach((r) => {
-            const timeIdNormalizado = normalizarTimeId(r.timeId);
-            const key = `${timeIdNormalizado}_${r.rodadaPontos}`;
-            this.mataMataMap.set(key, r.valor);
-            
-            // Log detalhado de cada registro
-            if (r.valor !== 0) {
-                console.log(`[FLUXO-CORE] 📝 Map add: ${key} = ${r.valor > 0 ? '+' : ''}R$ ${r.valor.toFixed(2)}`);
+            // ✅ FILTRAR: só adicionar rodadas já consolidadas
+            if (r.rodadaPontos <= ultimaRodadaConsolidada) {
+                const timeIdNormalizado = normalizarTimeId(r.timeId);
+                const key = `${timeIdNormalizado}_${r.rodadaPontos}`;
+                this.mataMataMap.set(key, r.valor);
+                registrosCarregados++;
+                
+                if (r.valor !== 0) {
+                    console.log(`[FLUXO-CORE] ✅ Map add R${r.rodadaPontos}: ${key} = ${r.valor > 0 ? '+' : ''}R$ ${r.valor.toFixed(2)}`);
+                }
+            } else {
+                registrosIgnorados++;
+                console.log(`[FLUXO-CORE] ⏭️ Ignorado R${r.rodadaPontos} (futura/pendente) - aguardando consolidação`);
             }
         });
-        console.log(
-            `[FLUXO-CORE] Mata-Mata Map carregado: ${this.mataMataMap.size} registros`,
-        );
         
-        // Log de TODAS as chaves do Map (debug)
-        console.log(`[FLUXO-CORE] 🗂️ Chaves no Map:`, Array.from(this.mataMataMap.keys()));
+        console.log(
+            `[FLUXO-CORE] 📦 Mata-Mata Map: ${registrosCarregados} carregados, ${registrosIgnorados} ignorados (futuras)`,
+        );
     }
 
     // OTIMIZADO: Cálculo com cache persistente (SEM expiração automática para participantes)
     async calcularExtratoFinanceiro(timeId, ultimaRodadaCompleta, forcarRecalculo = false) {
         const ligaId = obterLigaId();
 
-        // ✅ VALIDAR SE PRECISA AJUSTAR RODADA (caso mercado esteja aberto)
+        // ✅ SEMPRE validar mercado e usar rodada anterior se aberto
         let rodadaParaCalculo = ultimaRodadaCompleta;
+        let mercadoAberto = false;
+        
         try {
             const mercadoResponse = await fetch('/api/cartola/mercado/status');
             if (mercadoResponse.ok) {
                 const mercadoData = await mercadoResponse.json();
-                const mercadoAberto = mercadoData.mercado_aberto || mercadoData.status_mercado === 1;
+                mercadoAberto = mercadoData.mercado_aberto || mercadoData.status_mercado === 1;
                 const rodadaAtualMercado = mercadoData.rodada_atual;
 
-                // ✅ SE MERCADO ABERTO E RECEBEU A RODADA ATUAL, USAR ANTERIOR
-                if (mercadoAberto && ultimaRodadaCompleta === rodadaAtualMercado) {
+                // ✅ SE MERCADO ABERTO, SEMPRE USAR RODADA ANTERIOR (dados não consolidados)
+                if (mercadoAberto) {
                     rodadaParaCalculo = Math.max(1, rodadaAtualMercado - 1);
-                    console.log(`[FLUXO-CORE] ⚠️ Mercado ABERTO detectado - ajustando de rodada ${ultimaRodadaCompleta} para ${rodadaParaCalculo}`);
+                    console.log(`[FLUXO-CORE] 🔄 Mercado ABERTO (R${rodadaAtualMercado}) - usando R${rodadaParaCalculo} (última consolidada)`);
+                } else {
+                    console.log(`[FLUXO-CORE] ✅ Mercado FECHADO - usando R${rodadaParaCalculo}`);
                 }
             }
         } catch (error) {
@@ -360,10 +388,9 @@ export class FluxoFinanceiroCore {
         };
     }
 
-    // OTIMIZADO: Busca O(1) usando Map
+    // OTIMIZADO: Busca O(1) usando Map (COM VALIDAÇÃO DE RODADAS FUTURAS)
     _calcularMataMataOtimizado(timeId, rodada) {
         if (!this.mataMataIntegrado || this.mataMataMap.size === 0) {
-            console.log(`[FLUXO-CORE] ⚠️ Mata-Mata não integrado ou Map vazio para time ${timeId} R${rodada}`);
             return 0;
         }
 
@@ -371,16 +398,9 @@ export class FluxoFinanceiroCore {
         const key = `${timeIdNormalizado}_${rodada}`;
         const valor = this.mataMataMap.get(key) || 0;
         
-        // Log detalhado SEMPRE (para debug) - INCLUINDO TODAS AS CHAVES DO TIME
-        const todasChavesDoTime = Array.from(this.mataMataMap.keys()).filter(k => k.startsWith(`${timeIdNormalizado}_`));
-        console.log(`[FLUXO-CORE] 🔍 Mata-Mata R${rodada} - Time: ${timeId} (normalizado: ${timeIdNormalizado})`);
-        console.log(`[FLUXO-CORE] 📋 Chaves disponíveis para este time:`, todasChavesDoTime);
-        console.log(`[FLUXO-CORE] 🔑 Chave buscada: ${key} - Valor encontrado: ${valor}`);
-        
+        // ✅ Log apenas quando há valor (reduzir poluição de console)
         if (valor !== 0) {
-            console.log(`[FLUXO-CORE] 🎯 Mata-Mata R${rodada} para time ${timeId}: ${valor > 0 ? '+' : ''}R$ ${valor.toFixed(2)}`);
-        } else {
-            console.log(`[FLUXO-CORE] ⚠️ VALOR ZERO para ${key} - Verificar se a chave existe no Map`);
+            console.log(`[FLUXO-CORE] 💰 Mata-Mata R${rodada} - Time ${timeId}: ${valor > 0 ? '+' : ''}R$ ${valor.toFixed(2)}`);
         }
         
         return valor;
