@@ -272,7 +272,9 @@ async function buscarInfoTimeCoracao(clubeId) {
             <div style="text-align: center; color: #999; padding: 20px; font-size: 12px;">
                 <p>⚽ Erro ao carregar informações</p>
             </div>
-
+        `;
+    }
+}
 
 function renderizarTimeCoracao(clube, timeCoracaoCard) {
     timeCoracaoCard.innerHTML = `
