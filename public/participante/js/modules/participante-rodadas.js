@@ -2,6 +2,29 @@
 
 console.log('[PARTICIPANTE-RODADAS] Carregando módulo...');
 
+// Importar configurações de valores de banco
+const LIGAS_CONFIG = {
+    SUPERCARTOLA: "684cb1c8af923da7c7df51de",
+    CARTOLEIROS_SOBRAL: "684d821cf1a7ae16d1f89572",
+};
+
+const valoresBancoPadrao = {
+    1: 20.0, 2: 19.0, 3: 18.0, 4: 17.0, 5: 16.0, 6: 15.0, 7: 14.0, 8: 13.0, 9: 12.0, 10: 11.0,
+    11: 10.0, 12: 0.0, 13: 0.0, 14: 0.0, 15: 0.0, 16: 0.0, 17: 0.0, 18: 0.0, 19: 0.0, 20: 0.0,
+    21: 0.0, 22: -10.0, 23: -11.0, 24: -12.0, 25: -13.0, 26: -14.0, 27: -15.0, 28: -16.0,
+    29: -17.0, 30: -18.0, 31: -19.0, 32: -20.0,
+};
+
+const valoresBancoCartoleirosSobral = {
+    1: 7.0, 2: 4.0, 3: 0.0, 4: -2.0, 5: -5.0, 6: -10.0,
+};
+
+function getBancoPorLiga(ligaIdParam) {
+    return ligaIdParam === LIGAS_CONFIG.CARTOLEIROS_SOBRAL 
+        ? valoresBancoCartoleirosSobral 
+        : valoresBancoPadrao;
+}
+
 let todasRodadasCache = [];
 let meuTimeId = null;
 let ligaId = null;
@@ -79,7 +102,11 @@ function renderizarCardsRodadas(rodadas) {
 
     const html = rodadas.map(rodada => {
         const statusClass = rodada.jogou ? 'jogou' : 'nao-jogou';
-        const pontos = rodada.meusPontos !== null ? rodada.meusPontos.toFixed(2) : '-';
+        
+        // Formatar pontos com vírgula decimal brasileira
+        const pontos = rodada.meusPontos !== null 
+            ? Number(rodada.meusPontos).toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })
+            : '-';
         const statusTexto = rodada.jogou ? `${pontos} pts` : 'Não jogou';
 
         // Determinar destaque visual baseado na posição financeira
@@ -173,44 +200,55 @@ function renderizarDetalhamentoRodada(rodadaData) {
         const isMeuTime = String(participante.timeId) === String(meuTimeId);
         const posicao = index + 1;
 
-        // Calcular financeiro baseado na posição
-        let financeiro = 0;
-        const zonaGanho = Math.ceil(totalParticipantes * 0.3);
-        const zonaNeutra = Math.ceil(totalParticipantes * 0.7);
+        // Calcular financeiro usando valores reais da configuração
+        const valoresBanco = getBancoPorLiga(ligaId);
+        const bonusOnus = valoresBanco[posicao] || 0;
 
-        if (posicao <= zonaGanho) {
-            financeiro = (zonaGanho - posicao + 1) * 10; // Exemplo: 10 por posição
-        } else if (posicao > zonaNeutra) {
-            financeiro = -(posicao - zonaNeutra) * 10; // Negativo na zona de perda
-        }
+        // Formatar valor financeiro com padrão brasileiro
+        const bonusOnusAbs = Math.abs(bonusOnus);
+        const valorFormatado = bonusOnusAbs.toLocaleString('pt-BR', {
+            minimumFractionDigits: 2,
+            maximumFractionDigits: 2
+        });
+        
+        const financeiroTexto = bonusOnus > 0 
+            ? `+R$ ${valorFormatado}` 
+            : bonusOnus < 0 
+                ? `-R$ ${valorFormatado}` 
+                : 'R$ 0,00';
 
-        const financeiroTexto = financeiro > 0 ? `+R$ ${financeiro}` : 
-                               financeiro < 0 ? `-R$ ${Math.abs(financeiro)}` : 
-                               'R$ 0';
+        const financeiroClass = bonusOnus > 0 
+            ? 'financeiro-positivo' 
+            : bonusOnus < 0 
+                ? 'financeiro-negativo' 
+                : 'financeiro-neutro';
 
-        const financeiroClass = financeiro > 0 ? 'financeiro-positivo' : 
-                               financeiro < 0 ? 'financeiro-negativo' : 
-                               'financeiro-neutro';
-
-        // Adicionar ícones MITO/MICO apenas para o meu time
+        // Adicionar ícones MITO/MICO
         let icone = '';
-        if (isMeuTime) {
-            if (posicao === 1) {
-                icone = ' 🎩';
-            } else if (posicao === totalParticipantes) {
-                icone = ' 🐵';
-            }
+        if (posicao === 1) {
+            icone = ' 🎩';
+        } else if (posicao === totalParticipantes) {
+            icone = ' 🐵';
         }
+
+        // Formatar pontos com vírgula decimal brasileira
+        const pontosFormatados = Number(participante.pontos || 0).toLocaleString('pt-BR', {
+            minimumFractionDigits: 2,
+            maximumFractionDigits: 2
+        });
+
+        // Usar nome correto (API retorna 'nome', não 'nome_time')
+        const nomeTime = participante.nome || participante.nome_time || 'N/D';
 
         return `
             <tr class="${isMeuTime ? 'meu-time' : ''}">
                 <td style="text-align: center;">
                     <span class="posicao-badge">${posicao}º${icone}</span>
                 </td>
-                <td>${participante.nome_time || 'N/D'}</td>
+                <td>${nomeTime}</td>
                 <td>${participante.nome_cartola || 'N/D'}</td>
                 <td style="text-align: center;" class="pontos-destaque">
-                    ${(participante.pontos || 0).toFixed(2)}
+                    ${pontosFormatados}
                 </td>
                 <td style="text-align: center;" class="${financeiroClass}">
                     ${financeiroTexto}
