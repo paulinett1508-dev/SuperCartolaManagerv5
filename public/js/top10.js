@@ -107,8 +107,14 @@ async function carregarDadosTop10() {
   // ✅ OBTER LIGA ID - compatível com Admin e Participante
   let ligaId = null;
 
+  // Tentar Orquestrador (prioridade)
+  if (window.orquestrador?.ligaId) {
+    ligaId = window.orquestrador.ligaId;
+    console.log(`[TOP10] Liga ID do orquestrador: ${ligaId}`);
+  }
+
   // Tentar Admin
-  if (window.obterLigaId) {
+  if (!ligaId && window.obterLigaId) {
     ligaId = window.obterLigaId();
   }
 
@@ -120,7 +126,7 @@ async function carregarDadosTop10() {
   // Tentar URL
   if (!ligaId) {
     const urlParams = new URLSearchParams(window.location.search);
-    ligaId = urlParams.get('ligaId');
+    ligaId = urlParams.get('ligaId') || urlParams.get('id');
   }
 
   if (!ligaId) {
@@ -199,7 +205,13 @@ async function renderizarTabelasTop10() {
 
   // Determinar valores de bônus/ônus baseado na liga
   let ligaId = null;
-  if (window.obterLigaId) {
+  
+  // Tentar Orquestrador (prioridade)
+  if (window.orquestrador?.ligaId) {
+    ligaId = window.orquestrador.ligaId;
+  }
+  
+  if (!ligaId && window.obterLigaId) {
     ligaId = window.obterLigaId();
   }
   if (!ligaId && window.participanteData?.ligaId) {
@@ -207,7 +219,7 @@ async function renderizarTabelasTop10() {
   }
   if (!ligaId) {
     const urlParams = new URLSearchParams(window.location.search);
-    ligaId = urlParams.get('ligaId');
+    ligaId = urlParams.get('ligaId') || urlParams.get('id');
   }
   
   const isLigaCartoleirosSobral = ligaId === "684d821cf1a7ae16d1f89572";
