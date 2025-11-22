@@ -247,8 +247,8 @@ const buscarTimesDaLiga = async (req, res) => {
   // --- CORREÇÃO: Validar ID da liga ---
   if (!mongoose.Types.ObjectId.isValid(ligaIdParam)) {
     console.log(`[TIMES] ID de liga inválido recebido: "${ligaIdParam}"`);
-    return res.status(400).json({ 
-      erro: "ID de liga inválido", 
+    return res.status(400).json({
+      erro: "ID de liga inválido",
       recebido: ligaIdParam,
       dica: "Verifique se o ligaId está sendo passado corretamente da sessão"
     });
@@ -294,8 +294,8 @@ const buscarRodadasDaLiga = async (req, res) => {
   // Validar ID da liga
   if (!mongoose.Types.ObjectId.isValid(ligaIdParam)) {
     console.log(`[RODADAS] ID de liga inválido recebido: "${ligaIdParam}"`);
-    return res.status(400).json({ 
-      erro: "ID de liga inválido", 
+    return res.status(400).json({
+      erro: "ID de liga inválido",
       recebido: ligaIdParam,
       dica: "Certifique-se de que está usando o ID correto da liga, não o nome do arquivo"
     });
@@ -524,16 +524,18 @@ const buscarModulosAtivos = async (req, res) => {
       extrato: true,
       ranking: true,
       rodadas: true,
-      
-      // Módulos condicionais
-      top10: !!(liga.configuracoes?.top10?.ativo !== false), // default true
-      melhorMes: !!(liga.configuracoes?.melhor_mes?.ativo),
-      pontosCorridos: !!(liga.configuracoes?.pontos_corridos?.ativo),
-      mataMata: !!(liga.configuracoes?.mata_mata?.ativo),
-      artilheiro: !!(liga.configuracoes?.artilheiro?.ativo),
-      luvaOuro: !!(liga.configuracoes?.luva_ouro?.ativo)
+
+      // Módulos condicionais - Se existe objeto de configuração, módulo está ativo
+      // Se tem propriedade 'ativo', verifica o valor; senão, presença do objeto = ativo
+      top10: !!(liga.configuracoes?.top10 && (liga.configuracoes.top10.ativo !== false)),
+      melhorMes: !!(liga.configuracoes?.melhor_mes && (liga.configuracoes.melhor_mes.ativo !== false)),
+      pontosCorridos: !!(liga.configuracoes?.pontos_corridos && (liga.configuracoes.pontos_corridos.ativo !== false)),
+      mataMata: !!(liga.configuracoes?.mata_mata && (liga.configuracoes.mata_mata.ativo !== false)),
+      artilheiro: !!(liga.configuracoes?.artilheiro && (liga.configuracoes.artilheiro.ativo !== false)),
+      luvaOuro: !!(liga.configuracoes?.luva_ouro && (liga.configuracoes.luva_ouro.ativo !== false))
     };
 
+    console.log(`[LIGAS] Configurações da liga:`, JSON.stringify(liga.configuracoes, null, 2));
     console.log(`[LIGAS] Módulos ativos para liga ${ligaIdParam}:`, modulosAtivos);
     res.json({ modulos: modulosAtivos });
 
