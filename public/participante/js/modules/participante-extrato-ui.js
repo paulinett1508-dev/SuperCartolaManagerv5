@@ -251,7 +251,7 @@ function formatarTop10(rodada) {
 function atualizarCardsHeader(resumo) {
     // Atualizar Saldo Total
     const saldoEl = document.getElementById('saldoTotalHeader');
-    const statusEl = document.getElementById('saldoStatus');
+    const statusBadgeEl = document.getElementById('saldoStatusBadge');
     
     if (saldoEl && resumo.saldo !== undefined) {
         const saldo = parseFloat(resumo.saldo) || 0;
@@ -261,24 +261,38 @@ function atualizarCardsHeader(resumo) {
             maximumFractionDigits: 2
         })}`;
         
-        // Definir cor do saldo
-        if (saldo > 0) {
-            saldoEl.style.color = '#22c55e';
-            if (statusEl) {
-                statusEl.textContent = '💰 Saldo a Receber';
-                statusEl.style.color = '#22c55e';
-            }
-        } else if (saldo < 0) {
-            saldoEl.style.color = '#ef4444';
-            if (statusEl) {
-                statusEl.textContent = '💸 Saldo a Pagar';
-                statusEl.style.color = '#ef4444';
-            }
-        } else {
-            saldoEl.style.color = '#a0a0a0';
-            if (statusEl) {
-                statusEl.textContent = '✅ Saldo Quitado';
-                statusEl.style.color = '#a0a0a0';
+        // Atualizar badge de status
+        if (statusBadgeEl) {
+            const iconEl = statusBadgeEl.querySelector('.status-icon');
+            const textEl = statusBadgeEl.querySelector('.status-text');
+            
+            if (saldo > 0) {
+                saldoEl.style.color = '#22c55e';
+                statusBadgeEl.style.borderColor = 'rgba(34, 197, 94, 0.3)';
+                statusBadgeEl.style.background = 'rgba(34, 197, 94, 0.1)';
+                if (iconEl) iconEl.textContent = '💰';
+                if (textEl) {
+                    textEl.textContent = 'A Receber';
+                    textEl.style.color = '#22c55e';
+                }
+            } else if (saldo < 0) {
+                saldoEl.style.color = '#ef4444';
+                statusBadgeEl.style.borderColor = 'rgba(239, 68, 68, 0.3)';
+                statusBadgeEl.style.background = 'rgba(239, 68, 68, 0.1)';
+                if (iconEl) iconEl.textContent = '💸';
+                if (textEl) {
+                    textEl.textContent = 'A Pagar';
+                    textEl.style.color = '#ef4444';
+                }
+            } else {
+                saldoEl.style.color = '#a0a0a0';
+                statusBadgeEl.style.borderColor = 'rgba(160, 160, 160, 0.3)';
+                statusBadgeEl.style.background = 'rgba(160, 160, 160, 0.1)';
+                if (iconEl) iconEl.textContent = '✅';
+                if (textEl) {
+                    textEl.textContent = 'Quitado';
+                    textEl.style.color = '#a0a0a0';
+                }
             }
         }
     }

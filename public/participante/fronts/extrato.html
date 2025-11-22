@@ -1,15 +1,16 @@
 
 
 <div id="extratoFinanceiro" class="extrato-container">
-    <!-- Header compacto -->
+    <!-- Header compacto com Status do Saldo -->
     <div class="extrato-header-compact">
-        <h2 class="extrato-title">💰 Extrato</h2>
-    </div>
-
-    <!-- Saldo Principal com Status -->
-    <div class="saldo-principal">
-        <div class="saldo-status" id="saldoStatus">💰 Saldo a Receber</div>
-        <div class="saldo-valor" id="saldoTotalHeader">R$ 0,00</div>
+        <div class="header-row">
+            <h2 class="extrato-title">💰 Extrato</h2>
+            <div class="saldo-status-badge" id="saldoStatusBadge">
+                <span class="status-icon">💰</span>
+                <span class="status-text">A Receber</span>
+            </div>
+        </div>
+        <div class="saldo-valor-header" id="saldoTotalHeader">R$ 0,00</div>
     </div>
 
     <!-- Cards resumo horizontal (estilo Nubank) - CLICÁVEIS -->
@@ -55,6 +56,13 @@
     border-bottom: 1px solid rgba(255, 69, 0, 0.2);
 }
 
+.header-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 12px;
+}
+
 .extrato-title {
     font-size: 18px;
     font-weight: 700;
@@ -62,28 +70,36 @@
     margin: 0;
 }
 
-/* Saldo Principal */
-.saldo-principal {
-    padding: 20px;
-    text-align: center;
+.saldo-status-badge {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding: 6px 12px;
+    border-radius: 20px;
     background: rgba(0, 0, 0, 0.3);
-    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    transition: all 0.3s ease;
 }
 
-.saldo-status {
+.status-icon {
+    font-size: 16px;
+    line-height: 1;
+}
+
+.status-text {
     font-size: 11px;
     font-weight: 700;
     text-transform: uppercase;
     letter-spacing: 0.5px;
-    margin-bottom: 8px;
-    opacity: 0.8;
+    line-height: 1;
 }
 
-.saldo-valor {
-    font-size: 32px;
+.saldo-valor-header {
+    font-size: 28px;
     font-weight: 800;
     font-family: 'JetBrains Mono', monospace;
     line-height: 1;
+    text-align: center;
     transition: all 0.3s ease;
 }
 
