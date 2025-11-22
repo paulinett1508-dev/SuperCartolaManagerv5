@@ -59,38 +59,41 @@ class DetalheLigaOrquestrador {
     }
 
     async loadModuleCSS(moduleName) {
-        if (this.loadedCSS.has(moduleName)) return;
+        // Módulos que não precisam de CSS próprio (usam CSS base do sistema)
+        const modulosSemCSS = ['artilheiro-campeao', 'luva-de-ouro'];
 
-        try {
-            const possiblePaths = [
-                `/css/modules/${moduleName}.css`,
-                `/${moduleName}.css`,
-                `/css/${moduleName}.css`,
-            ];
-
-            for (const path of possiblePaths) {
-                try {
-                    const response = await fetch(path);
-                    if (response.ok) {
-                        const cssContent = await response.text();
-                        const styleElement = document.createElement("style");
-                        styleElement.id = `module-css-${moduleName}`;
-                        styleElement.textContent = cssContent;
-                        document.head.appendChild(styleElement);
-                        this.loadedCSS.add(moduleName);
-                        console.log(
-                            `CSS do módulo ${moduleName} carregado de: ${path}`,
-                        );
-                        return;
-                    }
-                } catch (pathError) {
-                    continue;
-                }
-            }
-        } catch (error) {
-            console.log(`CSS do módulo ${moduleName} não encontrado`);
+        if (modulosSemCSS.includes(moduleName)) {
+            console.log(`[ORQUESTRADOR] Módulo ${moduleName} usa CSS base do sistema`);
+            return;
         }
+
+        const cssPaths = [
+            `/css/modules/${moduleName}.css`,
+            `/${moduleName}.css`,
+            `/css/${moduleName}.css`,
+        ];
+
+        for (const path of cssPaths) {
+            try {
+                const response = await fetch(path);
+                if (response.ok) {
+                    const styleElement = document.createElement("style");
+                    styleElement.id = `module-css-${moduleName}`;
+                    styleElement.textContent = await response.text();
+                    document.head.appendChild(styleElement);
+                    this.loadedCSS.add(moduleName);
+                    console.log(
+                        `CSS do módulo ${moduleName} carregado de: ${path}`,
+                    );
+                    return;
+                }
+            } catch (pathError) {
+                // Continua para o próximo caminho se o atual falhar
+            }
+        }
+        console.log(`CSS do módulo ${moduleName} não encontrado nos caminhos esperados.`);
     }
+
 
     async loadModule(moduleName) {
         console.log(`Carregando módulo: ${moduleName}`);
