@@ -238,18 +238,10 @@ async function buscarInfoTimeCoracao(clubeId) {
     try {
         console.log('[BOAS-VINDAS] 🏟️ Buscando informações do clube:', clubeId);
         
-        // Buscar informações do clube via API do Cartola
-        const response = await fetch(`https://api.cartola.globo.com/clubes`);
+        // Buscar informações do clube via proxy do backend (evita CORS)
+        const response = await fetch(`/api/cartola/clubes`);
         if (!response.ok) {
-            console.warn('[BOAS-VINDAS] ⚠️ Erro ao buscar da API Cartola, tentando API local...');
-            // Fallback para API local
-            const localResponse = await fetch(`/api/cartola/clubes`);
-            if (!localResponse.ok) throw new Error('Erro ao buscar clubes');
-            const clubes = await localResponse.json();
-            const clube = Object.values(clubes).find(c => c.id === parseInt(clubeId));
-            if (!clube) throw new Error('Clube não encontrado');
-            renderizarTimeCoracao(clube, timeCoracaoCard);
-            return;
+            throw new Error('Erro ao buscar clubes');
         }
 
         const clubes = await response.json();
