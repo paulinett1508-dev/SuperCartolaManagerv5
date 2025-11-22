@@ -152,6 +152,11 @@ export class FluxoFinanceiroCore {
         const isSuperCartola2025 = ligaId === ID_SUPERCARTOLA_2025;
         const isCartoleirosSobral = ligaId === ID_CARTOLEIROS_SOBRAL;
 
+        // ✅ CARREGAR RANKINGS DAS RODADAS (CRÍTICO PARA O CÁLCULO)
+        console.log(`[FLUXO-CORE] 📊 Carregando rankings das rodadas (1-${rodadaParaCalculo})...`);
+        await this.cache.carregarCacheRankingsEmLotes(rodadaParaCalculo, null);
+        console.log(`[FLUXO-CORE] ✅ Rankings carregados com sucesso`);
+
         // ✅ AGUARDAR CARREGAMENTO DOS CAMPOS DO MONGODB
         const camposEditaveis =
             await FluxoFinanceiroCampos.carregarTodosCamposEditaveis(timeId);
