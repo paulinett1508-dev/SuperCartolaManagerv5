@@ -14,7 +14,7 @@ const MAX_TENTATIVAS = 3;
 
 // Função para definir dependência externa
 export function setRankingFunction(func) {
-  getRankingRodada especific = func;
+  getRankingRodadaEspecifica = func;
   tentativasConexao = 0;
   console.log("[MATA-FINANCEIRO] Função getRankingRodadaEspecifica configurada");
 }
