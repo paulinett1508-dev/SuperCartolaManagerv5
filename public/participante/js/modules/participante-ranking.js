@@ -91,7 +91,7 @@ window.inicializarRankingParticipante = async function(ligaId, timeId) {
     }
 };
 
-// Função para mostrar premiação
+// Função para mostrar premiação com todas as 3 colocações
 window.mostrarPremiacao = function(posicao, label, valor) {
     const modal = document.createElement('div');
     modal.style.cssText = `
@@ -100,12 +100,13 @@ window.mostrarPremiacao = function(posicao, label, valor) {
         left: 0;
         right: 0;
         bottom: 0;
-        background: rgba(0, 0, 0, 0.8);
+        background: rgba(0, 0, 0, 0.85);
         display: flex;
         align-items: center;
         justify-content: center;
         z-index: 10000;
         padding: 20px;
+        backdrop-filter: blur(4px);
     `;
     
     modal.innerHTML = `
@@ -113,23 +114,48 @@ window.mostrarPremiacao = function(posicao, label, valor) {
                     border: 2px solid ${posicao === 1 ? '#ffd700' : posicao === 2 ? '#c0c0c0' : '#cd7f32'};
                     border-radius: 16px;
                     padding: 30px;
-                    max-width: 400px;
+                    max-width: 450px;
                     text-align: center;
-                    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.5);">
-            <div style="font-size: 48px; margin-bottom: 20px;">
-                ${posicao === 1 ? '👑' : posicao === 2 ? '🥈' : '🥉'}
+                    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.7);">
+            <h2 style="color: #fff; margin-bottom: 20px; font-size: 20px;">🏆 Premiações da Liga</h2>
+            
+            <!-- 1º LUGAR -->
+            <div style="background: ${posicao === 1 ? 'rgba(255, 215, 0, 0.15)' : 'rgba(255, 215, 0, 0.05)'};
+                        border: 2px solid ${posicao === 1 ? '#ffd700' : 'rgba(255, 215, 0, 0.3)'};
+                        border-radius: 12px;
+                        padding: 16px;
+                        margin-bottom: 12px;">
+                <div style="font-size: 36px; margin-bottom: 8px;">👑</div>
+                <h3 style="color: #ffd700; margin-bottom: 8px; font-size: 18px;">CAMPEÃO</h3>
+                <p style="color: #22c55e; font-size: 24px; font-weight: bold; margin: 0;">R$ 1.000,00</p>
             </div>
-            <h2 style="color: ${posicao === 1 ? '#ffd700' : posicao === 2 ? '#c0c0c0' : '#cd7f32'};
-                       margin-bottom: 10px;
-                       font-size: 24px;">
-                ${label}
-            </h2>
-            <p style="color: #22c55e; font-size: 32px; font-weight: bold; margin: 20px 0;">
-                ${valor}
+            
+            <!-- 2º LUGAR -->
+            <div style="background: ${posicao === 2 ? 'rgba(192, 192, 192, 0.15)' : 'rgba(192, 192, 192, 0.05)'};
+                        border: 2px solid ${posicao === 2 ? '#c0c0c0' : 'rgba(192, 192, 192, 0.3)'};
+                        border-radius: 12px;
+                        padding: 16px;
+                        margin-bottom: 12px;">
+                <div style="font-size: 36px; margin-bottom: 8px;">🥈</div>
+                <h3 style="color: #c0c0c0; margin-bottom: 8px; font-size: 18px;">2º LUGAR</h3>
+                <p style="color: #22c55e; font-size: 24px; font-weight: bold; margin: 0;">R$ 700,00</p>
+            </div>
+            
+            <!-- 3º LUGAR -->
+            <div style="background: ${posicao === 3 ? 'rgba(205, 127, 50, 0.15)' : 'rgba(205, 127, 50, 0.05)'};
+                        border: 2px solid ${posicao === 3 ? '#cd7f32' : 'rgba(205, 127, 50, 0.3)'};
+                        border-radius: 12px;
+                        padding: 16px;
+                        margin-bottom: 20px;">
+                <div style="font-size: 36px; margin-bottom: 8px;">🥉</div>
+                <h3 style="color: #cd7f32; margin-bottom: 8px; font-size: 18px;">3º LUGAR</h3>
+                <p style="color: #22c55e; font-size: 24px; font-weight: bold; margin: 0;">R$ 400,00</p>
+            </div>
+            
+            <p style="color: #999; font-size: 12px; margin-bottom: 20px;">
+                💰 Total em prêmios: <strong style="color: #22c55e;">R$ 2.100,00</strong>
             </p>
-            <p style="color: #999; font-size: 14px; margin-bottom: 20px;">
-                Premiação garantida ao final da competição
-            </p>
+            
             <button onclick="this.closest('div[style*=\"fixed\"]').remove()"
                     style="background: #ff4500;
                            color: white;

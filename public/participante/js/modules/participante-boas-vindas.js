@@ -16,102 +16,94 @@ window.inicializarBoasVindas = async function(ligaId, timeId) {
 
         const ranking = resRanking.ok ? await resRanking.json() : [];
         const rodadas = resRodadas.ok ? await resRodadas.json() : [];
-        const extrato = resExtrato.ok ? await resExtrato.json() : { total: 0 };
+        const extratoData = resExtrato.ok ? await resExtrato.json() : null;
 
         // Processar dados
         const posicao = ranking.findIndex(t => parseInt(t.time_id) === parseInt(timeId)) + 1 || '-';
+        const totalParticipantes = ranking.length;
         const meuTime = ranking.find(t => parseInt(t.time_id) === parseInt(timeId));
+        
+        // Pontuação total do ranking
+        const pontosTotal = meuTime ? meuTime.pontos_total : 0;
+        
+        // Saldo financeiro do extrato
+        const saldoFinanceiro = extratoData?.resumo?.saldo || 0;
         
         // Última rodada do usuário
         const minhasRodadas = rodadas.filter(r => String(r.timeId) === String(timeId));
         const ultimaRodada = minhasRodadas.sort((a, b) => b.rodada - a.rodada)[0];
-        
-        // Melhor rodada
-        const melhorRodada = minhasRodadas.reduce((max, r) => {
-            const pontosMax = (max.pontos || 0);
-            const pontos = (r.pontos || 0);
-            return pontos > pontosMax ? r : max;
-        }, minhasRodadas[0] || {});
-        
-        // Média de pontos
-        const mediaRodadas = minhasRodadas.length > 0 
-            ? minhasRodadas.reduce((sum, r) => sum + (r.pontos || 0), 0) / minhasRodadas.length 
-            : 0;
 
-        preencherBoasVindas(
+        preencherBoasVindas({
             posicao,
-            extrato.total || 0,
-            melhorRodada.pontos || 0,
-            mediaRodadas,
+            totalParticipantes,
+            pontosTotal,
+            saldoFinanceiro,
             ultimaRodada,
-            minhasRodadas,
             meuTime
-        );
+        });
 
     } catch (error) {
         console.error('[BOAS-VINDAS] Erro:', error);
-        // Usar dados padrão
-        preencherBoasVindas('-', 0, 0, 0, null, [], null);
+        preencherBoasVindas({
+            posicao: '-',
+            totalParticipantes: '-',
+            pontosTotal: 0,
+            saldoFinanceiro: 0,
+            ultimaRodada: null,
+            meuTime: null
+        });
     }
 };
 
-function preencherBoasVindas(posicao, saldo, melhorPontos, media, ultimaRodada, todasRodadas, meuTime) {
-    // Atualizar posição
-    const posElement = document.getElementById('posicaoAtual');
+function preencherBoasVindas({ posicao, totalParticipantes, pontosTotal, saldoFinanceiro, ultimaRodada, meuTime }) {
+    // 4.1 - Card "Ranking Geral"
+    const posElement = document.getElementById('posicaoRanking');
+    const totalElement = document.getElementById('totalParticipantes');
     if (posElement) {
-        posElement.textContent = posicao === '-' ? '-' : `${posicao}º lugar`;
+        posElement.textContent = posicao === '-' ? '--º' : `${posicao}º`;
+    }
+    if (totalElement) {
+        totalElement.textContent = totalParticipantes || '--';
     }
 
-    // Atualizar saldo
-    const saldoElement = document.getElementById('saldoExtrato');
+    // Card "Pontuação Total"
+    const pontosElement = document.getElementById('pontosTotal');
+    if (pontosElement) {
+        pontosElement.textContent = pontosTotal ? pontosTotal.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) : '--';
+    }
+
+    // Card "Saldo Financeiro"
+    const saldoElement = document.getElementById('saldoFinanceiro');
+    const statusElement = document.getElementById('statusFinanceiro');
     if (saldoElement) {
         const saldoFormatado = new Intl.NumberFormat('pt-BR', {
             style: 'currency',
             currency: 'BRL'
-        }).format(saldo);
+        }).format(Math.abs(saldoFinanceiro));
+        
         saldoElement.textContent = saldoFormatado;
+        saldoElement.style.color = saldoFinanceiro >= 0 ? '#22c55e' : '#ef4444';
+    }
+    if (statusElement) {
+        statusElement.textContent = saldoFinanceiro >= 0 ? 'A receber' : 'A pagar';
     }
 
-    // Melhor rodada
-    const melhorElement = document.getElementById('melhorRodada');
-    if (melhorElement) {
-        melhorElement.textContent = melhorPontos.toFixed(2);
-    }
-
-    // Média
-    const mediaElement = document.getElementById('mediaPontos');
-    if (mediaElement) {
-        mediaElement.textContent = media.toFixed(2);
-    }
-
-    // Última rodada
+    // Card "Última Rodada"
     if (ultimaRodada) {
-        const numElement = document.getElementById('ultimaRodadaNum');
+        const numElement = document.getElementById('numeroUltimaRodada');
+        const pontosUltimaElement = document.getElementById('pontosUltimaRodada');
+        
         if (numElement) numElement.textContent = ultimaRodada.rodada;
-
-        const pontosElement = document.getElementById('pontosUltimaRodada');
-        if (pontosElement) pontosElement.textContent = `${ultimaRodada.pontos?.toFixed(2) || '-'} pts`;
-
-        const posicaoElement = document.getElementById('posicaoUltimaRodada');
-        if (posicaoElement) {
-            posicaoElement.textContent = ultimaRodada.posicaoFinanceira ? `${ultimaRodada.posicaoFinanceira}º` : '-';
+        if (pontosUltimaElement) {
+            pontosUltimaElement.textContent = ultimaRodada.pontos 
+                ? ultimaRodada.pontos.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) 
+                : '--';
         }
-
-        const variacaoElement = document.getElementById('variacaoPosicao');
-        if (variacaoElement) variacaoElement.textContent = '→';
     }
 
     // Buscar informações do time do coração
     if (meuTime && meuTime.clube_id) {
         buscarInfoTimeCoracao(meuTime.clube_id);
-    } else {
-        const timeCoracaoElement = document.getElementById('timeCoracaoInfo');
-        if (timeCoracaoElement && meuTime) {
-            timeCoracaoElement.innerHTML = `
-                <strong>${meuTime.nome || 'Seu Time'}</strong>
-                <p>Time selecionado no Cartola FC</p>
-            `;
-        }
     }
 }
 

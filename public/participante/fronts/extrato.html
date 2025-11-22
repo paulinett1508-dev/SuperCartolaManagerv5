@@ -391,17 +391,32 @@
 
     .extrato-table {
         min-width: 100%;
-        font-size: 12px;
+        font-size: 10px;
+    }
+    
+    .extrato-table th,
+    .extrato-table td {
+        padding: 6px 3px;
+        font-size: 9px;
     }
 
     .modal-table {
-        font-size: 11px;
+        font-size: 10px;
+        display: block;
+        overflow-x: auto;
     }
 
     .modal-table td,
     .modal-table th {
-        padding: 8px 4px;
+        padding: 6px 3px;
+        font-size: 9px;
         white-space: nowrap;
+    }
+    
+    /* Reduzir largura das colunas */
+    .extrato-table th:nth-child(1),
+    .extrato-table td:nth-child(1) {
+        width: 35px;
     }
 }
 </style>

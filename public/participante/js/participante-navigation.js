@@ -191,6 +191,36 @@ class ParticipanteNavigation {
         // ✅ RESTAURAR MÓDULO ANTERIOR OU CARREGAR BOAS-VINDAS
         const moduloSalvo = this.restaurarModuloAnterior();
         this.navegarPara(moduloSalvo || 'boas-vindas');
+        
+        // ✅ PREVENIR QUE PULL-TO-REFRESH VOLTE PARA BOAS-VINDAS
+        this.configurarPullToRefresh();
+    }
+
+    configurarPullToRefresh() {
+        let startY = 0;
+        let pulling = false;
+
+        document.addEventListener('touchstart', (e) => {
+            if (window.scrollY === 0) {
+                startY = e.touches[0].pageY;
+                pulling = false;
+            }
+        });
+
+        document.addEventListener('touchmove', (e) => {
+            const currentY = e.touches[0].pageY;
+            if (currentY > startY && window.scrollY === 0) {
+                pulling = true;
+            }
+        });
+
+        document.addEventListener('touchend', () => {
+            if (pulling) {
+                console.log('[PARTICIPANTE-NAV] 🔄 Pull-to-refresh detectado, mantendo módulo atual');
+                // Não navegue para boas-vindas, apenas mantenha o módulo atual
+                pulling = false;
+            }
+        });
     }
 
     restaurarModuloAnterior() {
