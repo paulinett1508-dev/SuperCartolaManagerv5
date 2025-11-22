@@ -5,7 +5,7 @@
     --participante-bg: #0a0a0a;
     --participante-card: #1a1a1a;
     --participante-border: rgba(255, 69, 0, 0.2);
-    
+
     /* Sistema de Tipografia Mobile-First */
     --font-base: 16px;
     --font-title: 20px;
@@ -223,7 +223,7 @@ body {
     .home-text {
         display: inline;
     }
-    
+
     .btn-home {
         padding: 12px 18px;
         gap: 8px;
@@ -276,7 +276,7 @@ body {
     .logout-text {
         display: inline;
     }
-    
+
     .btn-logout {
         padding: 12px 18px;
         gap: 8px;
@@ -540,4 +540,19 @@ body {
     .loading-participante p {
         font-size: 16px;
     }
+}
+
+/* Destaque visual para linha do meu time */
+.meu-time-destaque {
+    background: rgba(16, 185, 129, 0.15) !important;
+    border-left: 4px solid #10b981 !important;
+    font-weight: 600;
+}
+
+/* Cards de Rodadas */
+.rodadas-cards-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+    gap: 15px;
+    margin-bottom: 30px;
 }

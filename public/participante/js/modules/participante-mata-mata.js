@@ -1,194 +1,73 @@
+// MÓDULO: MATA-MATA PARTICIPANTE
+// Exibe visão completa dos confrontos da liga (mesma do admin)
 
-// PARTICIPANTE MATA-MATA - Módulo Mata-Mata
+console.log('[MATA-MATA-PARTICIPANTE] 🔄 Carregando módulo...');
 
-console.log('[PARTICIPANTE-MATA-MATA] Carregando módulo...');
+export async function inicializarMataMataParticipante({ participante, ligaId, timeId }) {
+    console.log('[MATA-MATA-PARTICIPANTE] Inicializando para:', { participante, ligaId, timeId });
 
-window.inicializarMataMataParticipante = async function(ligaId, timeId) {
-    console.log(`[PARTICIPANTE-MATA-MATA] Inicializando para time ${timeId} na liga ${ligaId}`);
+    if (!ligaId) {
+        console.error('[MATA-MATA-PARTICIPANTE] Liga ID não fornecido');
+        mostrarErro('Dados da liga não encontrados');
+        return;
+    }
 
     try {
-        // Buscar rodada atual do mercado
-        const statusResponse = await fetch('/api/cartola/mercado/status');
-        let rodadaAtual = 1;
-        
-        if (statusResponse.ok) {
-            const status = await statusResponse.json();
-            rodadaAtual = status.rodada_atual || 1;
-        }
+        // Importar orquestrador do admin (mesma lógica)
+        const { inicializarMataMata } = await import('../../../js/mata-mata/mata-mata-orquestrador.js');
 
-        const response = await fetch(`/api/ligas/${ligaId}/mata-mata`);
-        
-        if (!response.ok) {
-            throw new Error('Erro ao buscar mata-mata');
-        }
+        console.log('[MATA-MATA-PARTICIPANTE] Carregando dados gerais da liga...');
 
-        const dadosBase = await response.json();
-        
-        if (!dadosBase.edicoes || dadosBase.edicoes.length === 0) {
-            mostrarMensagem('Nenhuma edição do Mata-Mata iniciada ainda');
-            return;
-        }
+        // Inicializar com mesma lógica do admin
+        await inicializarMataMata(ligaId);
 
-        renderizarSeletorEdicoes(dadosBase.edicoes, ligaId, timeId, rodadaAtual);
+        console.log('[MATA-MATA-PARTICIPANTE] ✅ Mata-Mata inicializado com sucesso');
+
+        // Destacar meu time visualmente (opcional)
+        destacarMeuTime(timeId);
 
     } catch (error) {
-        console.error('[PARTICIPANTE-MATA-MATA] Erro:', error);
-        mostrarErro(error.message);
+        console.error('[MATA-MATA-PARTICIPANTE] Erro ao inicializar:', error);
+        mostrarErro(error.message || 'Erro ao carregar Mata-Mata');
     }
-};
-
-function renderizarSeletorEdicoes(edicoes, ligaId, meuTimeId, rodadaAtual) {
-    const container = document.getElementById('mataMataContainer');
-    
-    const html = `
-        <div class="edicao-selector-participante">
-            <label for="edicao-select-participante">Edição:</label>
-            <select id="edicao-select-participante">
-                <option value="" selected>Selecione uma edição</option>
-                ${edicoes.map(e => `
-                    <option value="${e.id}">${e.nome} (Rodadas ${e.rodadaInicial}-${e.rodadaFinal})</option>
-                `).join('')}
-            </select>
-        </div>
-        <div id="fase-nav-participante" style="display:none;">
-            <div class="fase-nav-participante">
-                <button class="fase-btn-participante active" data-fase="primeira">1ª FASE</button>
-                <button class="fase-btn-participante" data-fase="oitavas">OITAVAS</button>
-                <button class="fase-btn-participante" data-fase="quartas">QUARTAS</button>
-                <button class="fase-btn-participante" data-fase="semis">SEMIS</button>
-                <button class="fase-btn-participante" data-fase="final">FINAL</button>
-            </div>
-        </div>
-        <div id="conteudo-mata-mata-participante">
-            <p style="text-align: center; color: #999; padding: 40px;">
-                Selecione uma edição para visualizar os confrontos
-            </p>
-        </div>
-    `;
-
-    container.innerHTML = html;
-
-    const select = document.getElementById('edicao-select-participante');
-    select.addEventListener('change', async (e) => {
-        const edicaoId = parseInt(e.target.value);
-        if (!edicaoId) return;
-
-        const edicao = edicoes.find(ed => ed.id === edicaoId);
-        document.getElementById('fase-nav-participante').style.display = 'block';
-
-        await carregarFase('primeira', edicao, ligaId, meuTimeId, rodadaAtual);
-    });
 }
 
-async function carregarFase(fase, edicao, ligaId, meuTimeId, rodadaAtual) {
-    console.log(`[PARTICIPANTE-MATA-MATA] Carregando fase: ${fase}`);
+function destacarMeuTime(timeId) {
+    if (!timeId) return;
 
-    try {
-        // Verificar se a fase já começou
-        const rodadaFase = obterRodadaFase(fase, edicao);
-        if (rodadaAtual < rodadaFase) {
-            document.getElementById('conteudo-mata-mata-participante').innerHTML = `
-                <p style="text-align: center; color: #999; padding: 40px;">
-                    ⏳ ${fase.toUpperCase()} ainda não iniciou<br>
-                    <span style="font-size: 12px; margin-top: 10px; display: block;">
-                        Começa na rodada ${rodadaFase}
-                    </span>
-                </p>
-            `;
-            return;
-        }
+    // Aguardar renderização
+    setTimeout(() => {
+        const rows = document.querySelectorAll('.confronto-item, .tabela-confrontos tbody tr');
 
-        const response = await fetch(`/api/ligas/${ligaId}/mata-mata/${edicao.id}/${fase}`);
-        
-        if (!response.ok) {
-            throw new Error(`Erro ao buscar ${fase}`);
-        }
+        rows.forEach(row => {
+            const timeElements = row.querySelectorAll('[data-time-id]');
 
-        const confrontos = await response.json();
-        renderizarConfrontosParticipante(confrontos, fase, meuTimeId);
+            timeElements.forEach(el => {
+                if (el.dataset.timeId === String(timeId)) {
+                    row.style.background = 'rgba(16, 185, 129, 0.1)';
+                    row.style.borderLeft = '4px solid #10b981';
+                    console.log('[MATA-MATA-PARTICIPANTE] Meu time destacado na linha');
+                }
+            });
+        });
+    }, 500);
+}
 
-    } catch (error) {
-        console.error('[PARTICIPANTE-MATA-MATA] Erro:', error);
-        document.getElementById('conteudo-mata-mata-participante').innerHTML = `
-            <p style="text-align: center; color: #ef4444; padding: 40px;">
-                Erro ao carregar ${fase}: ${error.message}
-            </p>
+function mostrarErro(mensagem) {
+    const container = document.getElementById('moduleContainer');
+    if (container) {
+        container.innerHTML = `
+            <div style="text-align: center; padding: 40px; color: #ef4444;">
+                <h3>❌ Erro ao carregar Mata-Mata</h3>
+                <p>${mensagem}</p>
+                <button onclick="window.location.reload()" 
+                        style="margin-top: 20px; padding: 10px 20px; background: #ff4500; 
+                               color: white; border: none; border-radius: 8px; cursor: pointer;">
+                    🔄 Recarregar
+                </button>
+            </div>
         `;
     }
 }
 
-function obterRodadaFase(fase, edicao) {
-    const rodadaInicial = edicao.rodadaInicial;
-    const fases = {
-        'primeira': rodadaInicial,
-        'oitavas': rodadaInicial + 5,
-        'quartas': rodadaInicial + 6,
-        'semis': rodadaInicial + 7,
-        'final': rodadaInicial + 8
-    };
-    return fases[fase] || rodadaInicial;
-}
-
-function renderizarConfrontosParticipante(confrontos, fase, meuTimeId) {
-    const container = document.getElementById('conteudo-mata-mata-participante');
-    
-    if (!confrontos || confrontos.length === 0) {
-        container.innerHTML = '<p style="text-align: center; color: #999; padding: 40px;">Nenhum confronto disponível</p>';
-        return;
-    }
-
-    const html = `
-        <div class="mata-mata-header-participante">
-            <h3>${fase.toUpperCase()}</h3>
-        </div>
-        <div class="confrontos-grid">
-            ${confrontos.map(confronto => {
-                const meuTime = confronto.time1_id === meuTimeId || confronto.time2_id === meuTimeId;
-                const classe = meuTime ? 'meu-confronto' : '';
-                
-                return `
-                    <div class="confronto-card ${classe}">
-                        <div style="text-align: center; margin-bottom: 10px;">
-                            <span style="font-size: 12px; color: #999;">Rodada ${confronto.rodada}</span>
-                        </div>
-                        <div style="display: flex; justify-content: space-between; align-items: center; gap: 10px;">
-                            <div style="flex: 1; text-align: center;">
-                                <div style="font-weight: 600; font-size: 14px;">${confronto.time1_nome || 'N/D'}</div>
-                                <div style="font-size: 12px; color: #999;">${confronto.time1_cartoleiro || 'N/D'}</div>
-                                ${confronto.time1_pontos !== null ? `<div style="font-size: 18px; font-weight: 700; color: var(--participante-primary); margin-top: 5px;">${confronto.time1_pontos.toFixed(2)}</div>` : '<div style="color: #666;">-</div>'}
-                            </div>
-                            <div style="text-align: center; flex: 0 0 40px;">
-                                <div style="font-size: 12px; font-weight: 700; color: var(--participante-primary);">VS</div>
-                            </div>
-                            <div style="flex: 1; text-align: center;">
-                                <div style="font-weight: 600; font-size: 14px;">${confronto.time2_nome || 'N/D'}</div>
-                                <div style="font-size: 12px; color: #999;">${confronto.time2_cartoleiro || 'N/D'}</div>
-                                ${confronto.time2_pontos !== null ? `<div style="font-size: 18px; font-weight: 700; color: var(--participante-primary); margin-top: 5px;">${confronto.time2_pontos.toFixed(2)}</div>` : '<div style="color: #666;">-</div>'}
-                            </div>
-                        </div>
-                        ${confronto.vencedor_id ? `<div style="text-align: center; margin-top: 10px; padding-top: 10px; border-top: 1px solid rgba(255, 69, 0, 0.2); color: #10b981; font-size: 12px; font-weight: 600;">✓ ${confronto.vencedor_id === confronto.time1_id ? confronto.time1_nome : confronto.time2_nome} venceu</div>` : '<div style="text-align: center; margin-top: 10px; padding-top: 10px; border-top: 1px solid rgba(255, 69, 0, 0.2); color: #666; font-size: 12px;">⏳ Pendente</div>'}
-                    </div>
-                `;
-            }).join('')}
-        </div>
-    `;
-
-    container.innerHTML = html;
-}
-
-function mostrarMensagem(msg) {
-    const container = document.getElementById('mataMataContainer');
-    container.innerHTML = `<p style="text-align: center; color: #999; padding: 40px;">${msg}</p>`;
-}
-
-function mostrarErro(mensagem) {
-    const container = document.getElementById('mataMataContainer');
-    container.innerHTML = `
-        <div style="text-align: center; padding: 40px; color: #ef4444;">
-            <h3>Erro ao Carregar Mata-Mata</h3>
-            <p>${mensagem}</p>
-        </div>
-    `;
-}
-
-console.log('[PARTICIPANTE-MATA-MATA] ✅ Módulo carregado');
+console.log('[MATA-MATA-PARTICIPANTE] ✅ Módulo carregado');
