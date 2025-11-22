@@ -108,36 +108,38 @@ function preencherBoasVindas({ posicao, totalParticipantes, pontosTotal, saldoFi
         ultimaRodada
     });
 
-    // Card "Ranking Geral"
+    // Mini Card "Posição no Ranking"
     const posElement = document.getElementById('posicaoRanking');
-    const totalElement = document.getElementById('totalParticipantes');
     if (posElement) {
-        posElement.textContent = posicao === '-' ? '--º' : `${posicao}º`;
+        posElement.textContent = posicao === '-' ? '--º' : `${posicao}º/${totalParticipantes}`;
         console.log('[BOAS-VINDAS] Posição atualizada:', posElement.textContent);
     }
-    if (totalElement) {
-        totalElement.textContent = totalParticipantes > 0 ? `de ${totalParticipantes} participantes` : 'de -- participantes';
-        console.log('[BOAS-VINDAS] Total de participantes atualizado:', totalElement.textContent);
-    }
 
-    // Card "Pontuação Total"
+    // Mini Card "Pontuação Total"
     const pontosElement = document.getElementById('pontosTotal');
     if (pontosElement) {
         const pontosFormatados = pontosTotal > 0 
-            ? pontosTotal.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })
+            ? pontosTotal.toFixed(1)
             : '--';
         pontosElement.textContent = pontosFormatados;
         console.log('[BOAS-VINDAS] Pontos atualizados:', pontosElement.textContent);
     }
 
-    // Card "Saldo Financeiro"
+    // Mini Card "Saldo Financeiro"
     const saldoElement = document.getElementById('saldoFinanceiro');
     const statusElement = document.getElementById('statusFinanceiro');
     if (saldoElement) {
-        const saldoFormatado = new Intl.NumberFormat('pt-BR', {
-            style: 'currency',
-            currency: 'BRL'
-        }).format(Math.abs(saldoFinanceiro));
+        // Formatação compacta: R$ 1.2K ou R$ 150
+        const saldoAbs = Math.abs(saldoFinanceiro);
+        let saldoFormatado;
+        
+        if (saldoAbs >= 1000) {
+            saldoFormatado = 'R$ ' + (saldoFinanceiro / 1000).toFixed(1) + 'K';
+        } else if (saldoAbs > 0) {
+            saldoFormatado = 'R$ ' + saldoFinanceiro.toFixed(0);
+        } else {
+            saldoFormatado = 'R$ 0';
+        }
 
         saldoElement.textContent = saldoFormatado;
         saldoElement.style.color = saldoFinanceiro >= 0 ? '#22c55e' : '#ef4444';
@@ -148,7 +150,7 @@ function preencherBoasVindas({ posicao, totalParticipantes, pontosTotal, saldoFi
         console.log('[BOAS-VINDAS] Status financeiro:', statusElement.textContent);
     }
 
-    // Card "Última Rodada"
+    // Mini Card "Última Rodada"
     if (ultimaRodada) {
         const numElement = document.getElementById('numeroUltimaRodada');
         const pontosUltimaElement = document.getElementById('pontosUltimaRodada');
@@ -159,7 +161,7 @@ function preencherBoasVindas({ posicao, totalParticipantes, pontosTotal, saldoFi
         }
         if (pontosUltimaElement) {
             const pontosRodada = ultimaRodada.pontos
-                ? ultimaRodada.pontos.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })
+                ? ultimaRodada.pontos.toFixed(1)
                 : '--';
             pontosUltimaElement.textContent = pontosRodada;
             console.log('[BOAS-VINDAS] Pontos da última rodada:', pontosUltimaElement.textContent);

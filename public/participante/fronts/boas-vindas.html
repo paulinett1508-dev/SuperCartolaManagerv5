@@ -1,58 +1,50 @@
 <div class="boas-vindas-container">
     <div class="welcome-header">
-        <h1>⚽ Bem-vindo ao seu Painel!</h1>
-        <p id="saudacao">Confira seu desempenho e estatísticas</p>
+        <h1>⚽ Painel do Participante</h1>
     </div>
 
-    <!-- Cards de Estatísticas -->
-    <div class="stats-grid">
-        <!-- Ranking Geral -->
-        <div class="stat-card ranking-card">
-            <div class="stat-icon">🏆</div>
-            <div class="stat-content">
-                <h3>Ranking Geral</h3>
-                <p class="stat-value" id="posicaoRanking">--º</p>
-                <p class="stat-label" id="totalParticipantes">de -- participantes</p>
+    <!-- Mini Cards de Estatísticas -->
+    <div class="stats-mini-grid">
+        <!-- Posição no Ranking -->
+        <div class="mini-card">
+            <div class="mini-icon">🏆</div>
+            <div class="mini-content">
+                <div class="mini-value" id="posicaoRanking">--º</div>
+                <div class="mini-label">Ranking</div>
             </div>
         </div>
 
         <!-- Pontuação Total -->
-        <div class="stat-card">
-            <div class="stat-icon">📊</div>
-            <div class="stat-content">
-                <h3>Pontuação Total</h3>
-                <p class="stat-value" id="pontosTotal">--</p>
-                <p class="stat-label">pontos acumulados</p>
+        <div class="mini-card">
+            <div class="mini-icon">📊</div>
+            <div class="mini-content">
+                <div class="mini-value" id="pontosTotal">--</div>
+                <div class="mini-label">Pontos</div>
             </div>
         </div>
 
         <!-- Saldo Financeiro -->
-        <div class="stat-card">
-            <div class="stat-icon">💰</div>
-            <div class="stat-content">
-                <h3>Saldo Financeiro</h3>
-                <p class="stat-value" id="saldoFinanceiro">R$ 0,00</p>
-                <p class="stat-label" id="statusFinanceiro">A receber</p>
+        <div class="mini-card">
+            <div class="mini-icon">💰</div>
+            <div class="mini-content">
+                <div class="mini-value" id="saldoFinanceiro">R$ 0</div>
+                <div class="mini-label" id="statusFinanceiro">Saldo</div>
             </div>
         </div>
 
         <!-- Última Rodada -->
-        <div class="stat-card">
-            <div class="stat-icon">⚡</div>
-            <div class="stat-content">
-                <h3>Última Rodada</h3>
-                <p class="stat-value" id="pontosUltimaRodada">--</p>
-                <p class="stat-label">Rodada <span id="numeroUltimaRodada">--</span></p>
+        <div class="mini-card">
+            <div class="mini-icon">⚡</div>
+            <div class="mini-content">
+                <div class="mini-value" id="pontosUltimaRodada">--</div>
+                <div class="mini-label">R<span id="numeroUltimaRodada">--</span></div>
             </div>
         </div>
     </div>
 
-    <!-- Time do Coração -->
-    <div class="time-coracao-section">
-        <h2>❤️ Time do Coração</h2>
-        <div class="time-coracao-card" id="timeCoracaoCard">
-            <div class="loading">Carregando...</div>
-        </div>
+    <!-- Time do Coração (oculto por enquanto) -->
+    <div class="time-coracao-section" style="display: none;">
+        <div class="time-coracao-card" id="timeCoracaoCard"></div>
     </div>
 </div>
 
@@ -65,151 +57,159 @@
 
 .welcome-header {
     text-align: center;
-    margin-bottom: 16px;
+    margin-bottom: 12px;
 }
 
 .welcome-header h1 {
-    font-size: 20px;
+    font-size: 16px;
     color: #fff;
-    margin-bottom: 6px;
+    margin: 0;
+    font-weight: 700;
 }
 
-#saudacao {
-    color: #999;
-    font-size: 12px;
-}
-
-.stats-grid {
+/* Grid Compacto de Mini Cards */
+.stats-mini-grid {
     display: grid;
     grid-template-columns: repeat(2, 1fr);
     gap: 8px;
-    margin-bottom: 16px;
+    margin-bottom: 12px;
 }
 
-.stat-card {
-    background: linear-gradient(135deg, #1a1a1a 0%, #2a2a2a 100%);
-    border: 1px solid #333;
-    border-radius: 6px;
-    padding: 8px 6px;
+/* Mini Card Compacto */
+.mini-card {
+    background: linear-gradient(135deg, #1a1a1a 0%, #252525 100%);
+    border: 1px solid rgba(255, 69, 0, 0.2);
+    border-radius: 8px;
+    padding: 10px;
     display: flex;
-    flex-direction: column;
     align-items: center;
-    text-align: center;
-    gap: 3px;
-    transition: all 0.3s;
-    min-height: 70px;
+    gap: 8px;
+    transition: all 0.2s;
+    min-height: 60px;
 }
 
-.stat-card:active {
+.mini-card:active {
     transform: scale(0.98);
+    background: linear-gradient(135deg, #1f1f1f 0%, #2a2a2a 100%);
 }
 
-.ranking-card {
-    border-color: #ffd700;
-}
-
-.stat-icon {
-    font-size: 18px;
+.mini-icon {
+    font-size: 20px;
     flex-shrink: 0;
+    width: 32px;
+    height: 32px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: rgba(255, 69, 0, 0.1);
+    border-radius: 6px;
 }
 
-.stat-content {
-    width: 100%;
+.mini-content {
+    flex: 1;
+    min-width: 0;
 }
 
-.stat-content h3 {
-    font-size: 9px;
-    color: #999;
-    margin-bottom: 2px;
-    font-weight: 600;
+.mini-value {
+    font-size: 16px;
+    font-weight: 700;
+    color: #fff;
+    line-height: 1.2;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.mini-label {
+    font-size: 10px;
+    color: #888;
     text-transform: uppercase;
     letter-spacing: 0.3px;
+    line-height: 1.2;
+    margin-top: 2px;
 }
 
-.stat-value {
-    font-size: 14px;
-    font-weight: bold;
-    color: #fff;
-    margin-bottom: 1px;
-    line-height: 1.1;
-}
-
-.stat-label {
-    font-size: 8px;
-    color: #666;
-    line-height: 1.1;
-}
-
+/* Tablet */
 @media (min-width: 768px) {
-    .stats-grid {
-        grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
-        gap: 20px;
-        margin-bottom: 40px;
+    .boas-vindas-container {
+        padding: 16px;
     }
 
-    .stat-card {
-        flex-direction: row;
+    .welcome-header {
+        margin-bottom: 16px;
+    }
+
+    .welcome-header h1 {
+        font-size: 20px;
+    }
+
+    .stats-mini-grid {
+        grid-template-columns: repeat(4, 1fr);
+        gap: 12px;
+        margin-bottom: 16px;
+    }
+
+    .mini-card {
+        padding: 12px;
+        min-height: 70px;
+    }
+
+    .mini-card:hover {
+        border-color: rgba(255, 69, 0, 0.4);
+        transform: translateY(-2px);
+        box-shadow: 0 4px 12px rgba(255, 69, 0, 0.2);
+    }
+
+    .mini-icon {
+        font-size: 24px;
+        width: 40px;
+        height: 40px;
+    }
+
+    .mini-value {
+        font-size: 18px;
+    }
+
+    .mini-label {
+        font-size: 11px;
+    }
+}
+
+/* Desktop */
+@media (min-width: 1024px) {
+    .boas-vindas-container {
         padding: 20px;
-        gap: 15px;
-        text-align: left;
     }
 
-    .stat-card:hover {
-        border-color: #ff4500;
-        transform: translateY(-5px);
-        box-shadow: 0 10px 20px rgba(255, 69, 0, 0.2);
+    .welcome-header h1 {
+        font-size: 22px;
     }
 
-    .ranking-card:hover {
-        box-shadow: 0 10px 20px rgba(255, 215, 0, 0.3);
+    .stats-mini-grid {
+        gap: 16px;
+        margin-bottom: 20px;
     }
 
-    .stat-icon {
-        font-size: 48px;
+    .mini-card {
+        padding: 14px;
+        min-height: 75px;
     }
 
-    .stat-content h3 {
-        font-size: 14px;
-        margin-bottom: 8px;
+    .mini-value {
+        font-size: 20px;
     }
 
-    .stat-value {
-        font-size: 32px;
-        margin-bottom: 5px;
-    }
-
-    .stat-label {
+    .mini-label {
         font-size: 12px;
     }
 }
 
-.time-coracao-section h2 {
-    font-size: 14px;
-    color: #fff;
-    margin-bottom: 12px;
-    padding-bottom: 6px;
-    border-bottom: 1px solid #333;
-}
-
-.time-coracao-card {
-    background: linear-gradient(135deg, #1a1a1a 0%, #2a2a2a 100%);
-    border: 1px solid #333;
-    border-radius: 8px;
-    padding: 16px;
-    min-height: 100px;
-}
-
+/* Loading */
 .loading {
     text-align: center;
-    color: #999;
-    padding: 20px;
-    font-size: 12px;
-}
-
-@media (max-width: 768px) {
-    .stats-grid {
-        grid-template-columns: 1fr;
-    }
+    color: #666;
+    padding: 12px;
+    font-size: 11px;
 }
 </style>
 
@@ -254,16 +254,16 @@
                 pontosUltimaRodadaEl.textContent = '--';
             }
 
-            // Atualiza saudação
-            const hora = new Date().getHours();
-            let saudacao = '';
-            if (hora < 12) saudacao = 'Bom dia! Confira suas estatísticas.';
-            else if (hora < 18) saudacao = 'Boa tarde! Veja como você está indo.';
-            else saudacao = 'Boa noite! Acompanhe seu desempenho.';
-            document.getElementById('saudacao').textContent = saudacao;
+            // Atualiza saudação (removido pois o título foi alterado)
+            // const hora = new Date().getHours();
+            // let saudacao = '';
+            // if (hora < 12) saudacao = 'Bom dia! Confira suas estatísticas.';
+            // else if (hora < 18) saudacao = 'Boa tarde! Veja como você está indo.';
+            // else saudacao = 'Boa noite! Acompanhe seu desempenho.';
+            // document.getElementById('saudacao').textContent = saudacao;
 
             // Carregar módulos (exemplo, precisa ser implementado)
-            carregarModulos();
+            // carregarModulos(); // Removido conforme o novo design não inclui módulos nesta seção
 
             // Carregar time do coração (exemplo, precisa ser implementado)
             carregarTimeCoracao(ligaId, timeId);
@@ -281,26 +281,6 @@
             document.getElementById('numeroUltimaRodada').textContent = '--';
             document.getElementById('pontosUltimaRodada').textContent = '--';
         }
-    }
-
-    // Função placeholder para carregar módulos
-    function carregarModulos() {
-        const modulosGrid = document.getElementById('modulosGrid');
-        // Exemplo de como os módulos poderiam ser carregados
-        const modulosExemplo = [
-            { id: 'mercado', nome: 'Mercado', icon: '🛒', descricao: 'Explore jogadores e faça suas negociações.' },
-            { id: 'estatisticas', nome: 'Estatísticas', icon: '📈', descricao: 'Análise detalhada de jogadores e rodadas.' },
-            { id: 'desafios', nome: 'Desafios', icon: '🎯', descricao: 'Participe de desafios exclusivos e ganhe prêmios.' }
-        ];
-
-        modulosGrid.innerHTML = modulosExemplo.map(modulo => `
-            <div class="modulo-card">
-                <div class="icon">${modulo.icon}</div>
-                <h4>${modulo.nome}</h4>
-                <p>${modulo.descricao}</p>
-            </div>
-        `).join('');
-         console.log(' Módulos carregados (exemplo).');
     }
 
     // Função placeholder para carregar time do coração
