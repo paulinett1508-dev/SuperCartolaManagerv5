@@ -589,4 +589,46 @@ router.get("/:id/rodadas/:rodadaNum", buscarRodadasDaLiga);
 // Rota de módulos ativos
 router.get("/:id/modulos-ativos", buscarModulosAtivos);
 
+// ✅ NOVA ROTA: Atualizar módulos ativos da liga (ADMIN)
+router.put("/:id/modulos-ativos", async (req, res) => {
+    const { id: ligaId } = req.params;
+    const { modulos } = req.body;
+
+    if (!mongoose.Types.ObjectId.isValid(ligaId)) {
+        return res.status(400).json({ erro: "ID de liga inválido" });
+    }
+
+    try {
+        console.log(`[LIGAS] 🔧 Atualizando módulos ativos para liga ${ligaId}`);
+        console.log(`[LIGAS] Novos módulos:`, modulos);
+
+        const liga = await Liga.findById(ligaId);
+        if (!liga) {
+            return res.status(404).json({ erro: "Liga não encontrada" });
+        }
+
+        // Atualizar módulos ativos
+        liga.modulos_ativos = {
+            ...liga.modulos_ativos,
+            ...modulos
+        };
+
+        // Atualizar timestamp
+        liga.atualizadaEm = new Date();
+
+        await liga.save();
+
+        console.log(`[LIGAS] ✅ Módulos atualizados com sucesso`);
+        res.json({
+            success: true,
+            mensagem: "Módulos atualizados com sucesso",
+            modulos_ativos: liga.modulos_ativos
+        });
+
+    } catch (error) {
+        console.error(`[LIGAS] ❌ Erro ao atualizar módulos:`, error);
+        res.status(500).json({ erro: "Erro ao atualizar módulos: " + error.message });
+    }
+});
+
 export default router;

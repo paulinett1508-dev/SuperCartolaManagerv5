@@ -407,9 +407,13 @@
                                 <a href="editar-liga.html?id=${liga._id}" class="btn-action btn-edit">
                                     ✏️ Editar
                                 </a>
-                                <a href="admin.html?id=${liga._id}" class="btn-action btn-rodadas">
-                                    ⚙️ Popular Rodadas
-                                </a>
+                                <button
+                                    class="btn btn-primary"
+                                    onclick="window.location.href='gerenciar-modulos.html?id=${liga._id}'"
+                                    style="background: var(--gradient-primary);"
+                                >
+                                    ⚙️ Módulos
+                                </button>
                                 <button class="btn-action btn-delete" onclick="excluirLiga('${liga._id}', '${nomeLiga.replace(/'/g, "\\'")}')">
                                     🗑️ Excluir
                                 </button>

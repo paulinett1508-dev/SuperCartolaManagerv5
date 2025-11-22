@@ -25,6 +25,25 @@ const ligaSchema = new mongoose.Schema({
     configuracoes: {
         pontos_corridos: { type: Object, default: {} },
         mata_mata: { type: Object, default: {} },
+        top10: { type: Object, default: {} },
+        melhor_mes: { type: Object, default: {} },
+        artilheiro: { type: Object, default: {} },
+        luva_ouro: { type: Object, default: {} },
+    },
+    // ✅ NOVO: Controle granular de módulos ativos
+    modulos_ativos: {
+        type: Object,
+        default: {
+            extrato: true,
+            ranking: true,
+            rodadas: true,
+            top10: true,
+            melhorMes: true,
+            pontosCorridos: true,
+            mataMata: true,
+            artilheiro: true,
+            luvaOuro: true
+        }
     },
     criadaEm: { type: Date, default: Date.now },
     atualizadaEm: { type: Date, default: Date.now },

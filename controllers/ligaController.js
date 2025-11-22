@@ -518,28 +518,37 @@ const buscarModulosAtivos = async (req, res) => {
       return res.status(404).json({ erro: "Liga não encontrada" });
     }
 
-    console.log(`[LIGAS] 🔍 Detectando módulos para liga ${ligaIdParam}`);
-    console.log(`[LIGAS] Configurações disponíveis:`, Object.keys(liga.configuracoes || {}));
+    console.log(`[LIGAS] 🔍 Buscando módulos ativos para liga ${ligaIdParam}`);
 
-    // DETECÇÃO AUTOMÁTICA: Se existe configuração, módulo está ativo
-    const config = liga.configuracoes || {};
-    
-    const modulosAtivos = {
-      // Módulos base (sempre ativos)
-      extrato: true,
-      ranking: true,
-      rodadas: true,
+    // ✅ NOVO SISTEMA: Usar campo modulos_ativos se existir, senão usar detecção automática
+    let modulosAtivos;
 
-      // Módulos condicionais - Detecção automática pela presença da configuração
-      top10: !!config.top10,
-      melhorMes: !!config.melhor_mes,
-      pontosCorridos: !!config.pontos_corridos,
-      mataMata: !!config.mata_mata,
-      artilheiro: !!config.artilheiro,
-      luvaOuro: !!config.luva_ouro
-    };
+    if (liga.modulos_ativos && Object.keys(liga.modulos_ativos).length > 0) {
+      // Usar configuração explícita
+      modulosAtivos = liga.modulos_ativos;
+      console.log(`[LIGAS] ✅ Usando configuração explícita de módulos`);
+    } else {
+      // Fallback: Detecção automática pela presença de configurações
+      const config = liga.configuracoes || {};
+      
+      modulosAtivos = {
+        // Módulos base (sempre ativos por padrão)
+        extrato: true,
+        ranking: true,
+        rodadas: true,
 
-    console.log(`[LIGAS] ✅ Módulos detectados automaticamente:`, modulosAtivos);
+        // Módulos condicionais
+        top10: !!config.top10,
+        melhorMes: !!config.melhor_mes,
+        pontosCorridos: !!config.pontos_corridos,
+        mataMata: !!config.mata_mata,
+        artilheiro: !!config.artilheiro,
+        luvaOuro: !!config.luva_ouro
+      };
+      console.log(`[LIGAS] ⚠️ Usando detecção automática (fallback)`);
+    }
+
+    console.log(`[LIGAS] 📋 Módulos ativos:`, modulosAtivos);
     res.json({ modulos: modulosAtivos });
 
   } catch (err) {
