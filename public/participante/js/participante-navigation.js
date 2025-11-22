@@ -25,52 +25,99 @@ class ParticipanteNavigation {
     async inicializar() {
         console.log('[PARTICIPANTE-NAV] Inicializando navegação...');
 
+        // ✅ AGUARDAR DADOS DO PARTICIPANTE ANTES DE CARREGAR MÓDULOS
+        await this.aguardarDadosParticipante();
+
         // ✅ BUSCAR MÓDULOS ATIVOS DA LIGA
         await this.carregarModulosAtivos();
 
-        // Event listeners nos botões
-        document.querySelectorAll('.nav-btn').forEach(btn => {
-            btn.addEventListener('click', (e) => {
-                // ✅ Usar currentTarget ao invés de target para garantir que sempre pegamos o botão
-                // mesmo quando o usuário clica em ícones ou texto dentro do botão
-                const modulo = e.currentTarget.dataset.module;
-                this.navegarPara(modulo);
-            });
-        });
+        // Event listeners nos botões (serão adicionados no renderizarMenuDinamico)
 
         // Aguardar módulos carregarem antes de navegar
         this.aguardarModulosENavegar();
+    }
+
+    async aguardarDadosParticipante() {
+        console.log('[PARTICIPANTE-NAV] Aguardando dados do participante...');
+        
+        // Tentar até 10x com intervalo de 500ms (máximo 5 segundos)
+        for (let i = 0; i < 10; i++) {
+            const dados = participanteAuth.getDados();
+            if (dados && dados.ligaId && dados.timeId) {
+                console.log('[PARTICIPANTE-NAV] ✅ Dados do participante disponíveis:', dados);
+                return dados;
+            }
+            console.log(`[PARTICIPANTE-NAV] Tentativa ${i + 1}/10 - Aguardando dados...`);
+            await new Promise(resolve => setTimeout(resolve, 500));
+        }
+        
+        console.warn('[PARTICIPANTE-NAV] ⚠️ Timeout aguardando dados do participante');
+        return null;
     }
 
     async carregarModulosAtivos() {
         try {
             const participanteData = participanteAuth.getDados();
             if (!participanteData || !participanteData.ligaId) {
-                console.warn('[PARTICIPANTE-NAV] Dados do participante não disponíveis ainda');
+                console.error('[PARTICIPANTE-NAV] ❌ Dados do participante não disponíveis para carregar módulos');
+                // Renderizar menu básico sem módulos condicionais
+                this.modulosAtivos = {
+                    extrato: true,
+                    ranking: true,
+                    rodadas: true,
+                    top10: false,
+                    melhorMes: false,
+                    pontosCorridos: false,
+                    mataMata: false,
+                    artilheiro: false,
+                    luvaOuro: false
+                };
+                this.renderizarMenuDinamico();
                 return;
             }
 
+            console.log(`[PARTICIPANTE-NAV] 🔍 Buscando módulos ativos para liga ${participanteData.ligaId}...`);
+
             const response = await fetch(`/api/ligas/${participanteData.ligaId}/modulos-ativos`);
-            if (!response.ok) throw new Error('Erro ao buscar módulos ativos');
+            if (!response.ok) {
+                throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+            }
 
             const data = await response.json();
             this.modulosAtivos = data.modulos;
 
-            console.log('[PARTICIPANTE-NAV] Módulos ativos carregados:', this.modulosAtivos);
+            console.log('[PARTICIPANTE-NAV] ✅ Módulos ativos carregados:', this.modulosAtivos);
 
             // ✅ RENDERIZAR MENU COM APENAS MÓDULOS ATIVOS
             this.renderizarMenuDinamico();
 
         } catch (error) {
-            console.error('[PARTICIPANTE-NAV] Erro ao carregar módulos ativos:', error);
-            // Se falhar, mostrar todos os módulos (fallback)
-            this.modulosAtivos = null;
+            console.error('[PARTICIPANTE-NAV] ❌ Erro ao carregar módulos ativos:', error);
+            // Em caso de erro, mostrar apenas módulos básicos
+            this.modulosAtivos = {
+                extrato: true,
+                ranking: true,
+                rodadas: true,
+                top10: false,
+                melhorMes: false,
+                pontosCorridos: false,
+                mataMata: false,
+                artilheiro: false,
+                luvaOuro: false
+            };
+            this.renderizarMenuDinamico();
         }
     }
 
     renderizarMenuDinamico() {
         const navContainer = document.querySelector('.participante-nav');
-        if (!navContainer) return;
+        if (!navContainer) {
+            console.error('[PARTICIPANTE-NAV] ❌ Container .participante-nav não encontrado');
+            return;
+        }
+
+        console.log('[PARTICIPANTE-NAV] 🎨 Renderizando menu dinâmico...');
+        console.log('[PARTICIPANTE-NAV] 📋 Módulos ativos configurados:', this.modulosAtivos);
 
         // Definição de todos os módulos possíveis
         const todosModulos = [
@@ -88,11 +135,15 @@ class ParticipanteNavigation {
         // Filtrar módulos baseado na configuração da liga
         const modulosVisiveis = todosModulos.filter(modulo => {
             // Módulos base sempre visíveis
-            if (modulo.ativo) return true;
+            if (modulo.ativo) {
+                console.log(`[PARTICIPANTE-NAV] ✅ ${modulo.label} - sempre ativo`);
+                return true;
+            }
             
             // Módulos condicionais: verificar se estão ativos
-            if (!this.modulosAtivos) return true; // Mostrar todos se não conseguiu carregar
-            return this.modulosAtivos[modulo.key];
+            const estaAtivo = this.modulosAtivos && this.modulosAtivos[modulo.key];
+            console.log(`[PARTICIPANTE-NAV] ${estaAtivo ? '✅' : '❌'} ${modulo.label} - ${modulo.key}: ${estaAtivo}`);
+            return estaAtivo;
         });
 
         // Renderizar botões
@@ -102,7 +153,7 @@ class ParticipanteNavigation {
             </button>
         `).join('');
 
-        console.log(`[PARTICIPANTE-NAV] Menu renderizado com ${modulosVisiveis.length} módulos`);
+        console.log(`[PARTICIPANTE-NAV] ✅ Menu renderizado com ${modulosVisiveis.length} módulos de ${todosModulos.length} possíveis`);
 
         // Re-adicionar event listeners
         document.querySelectorAll('.nav-btn').forEach(btn => {
