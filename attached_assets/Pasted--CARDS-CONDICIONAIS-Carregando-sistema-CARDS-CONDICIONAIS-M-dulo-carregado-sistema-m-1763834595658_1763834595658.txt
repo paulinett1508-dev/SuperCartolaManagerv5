@@ -1,0 +1,169 @@
+ 🎛️ [CARDS-CONDICIONAIS] Carregando sistema...
+ ✅ [CARDS-CONDICIONAIS] Módulo carregado
+sistema-modulos-init.js:8 🔧 [SISTEMA-MODULOS] Inicializando sistema de módulos...
+sistema-modulos-init.js:34 ✅ [SISTEMA-MODULOS] Sistema inicializado com sucesso
+sistema-modulos-init.js:35 📦 [SISTEMA-MODULOS] Módulos disponíveis: 0
+detalhe-liga-orquestrador.js:14 Iniciando orquestrador...
+detalhe-liga-orquestrador.js:16 Layout carregado
+ranking.js:391 ✅ [RANKING] Módulo carregado e funções expostas globalmente
+rodadas.js:146 [RODADAS] 🚀 Inicializando módulo refatorado...
+rodadas.js:309 [RODADAS] ✅ Módulo refatorado carregado - Arquitetura modular implementada
+rodadas.js:312 [RODADAS] 🔧 Funções de debug disponíveis em window.rodadasDebug
+rodadas.js:316 [RODADAS] 📦 Estrutura modular:
+rodadas.js:317   - rodadas-config.js: Configurações e constantes
+rodadas.js:318   - rodadas-core.js: Lógica de negócio e API calls
+rodadas.js:319   - rodadas-ui.js: Interface e renderização
+rodadas.js:320   - rodadas-cache.js: Sistema de cache e performance
+rodadas.js:321   - rodadas-orquestrador.js: Coordenação entre módulos
+rodadas.js:322   - rodadas.js: Ponto de entrada refatorado (este arquivo)
+top10.js:454 [TOP10] Módulo carregado e pronto
+luva-de-ouro-config.js:2 🥅 [LUVA-CONFIG] Módulo de configuração carregando...
+luva-de-ouro-config.js:100 ✅ [LUVA-CONFIG] Módulo de configuração carregado
+cards-condicionais.js:266 🚀 [CARDS-CONDICIONAIS] Inicializando...
+cards-condicionais.js:59 🎯 [CARDS-CONDICIONAIS] Aplicando configuração...
+cards-condicionais.js:69 🔍 [CARDS-CONDICIONAIS] Liga atual: 684cb1c8af923da7c7df51de
+cards-condicionais.js:51 🚫 [CARDS-CONDICIONAIS] Card "luva-de-ouro" desabilitado
+cards-condicionais.js:51 🚫 [CARDS-CONDICIONAIS] Card "artilheiro-campeao" desabilitado
+cards-condicionais.js:94 ✅ [CARDS-CONDICIONAIS] 2 cards desabilitados
+cards-condicionais.js:127 🧭 [CARDS-CONDICIONAIS] Configurando navegação condicional...
+cards-condicionais.js:183 ✅ [CARDS-CONDICIONAIS] Botão voltar controlado
+cards-condicionais.js:285 ✅ [CARDS-CONDICIONAIS] Sistema inicializado com UX melhorado
+detalhe-liga-orquestrador.js:545 Carregando ligas para o sidebar...
+luva-de-ouro-core.js:2 🧠 [LUVA-CORE] Módulo core carregando...
+luva-de-ouro-core.js:155 ✅ [LUVA-CORE] Módulo core carregado
+detalhe-liga-orquestrador.js:575 2 ligas carregadas no sidebar
+detalhe-liga-orquestrador.js:629 Liga atual destacada no sidebar
+rodadas-config.js:134 [RODADAS-CONFIG] Módulo carregado com sucesso
+rodadas-core.js:419 [RODADAS-CORE] Módulo carregado com sucesso
+rodadas-ui.js:369 [RODADAS-UI] Módulo carregado com layout compacto e seleção inteligente
+cache-manager.js:439 ✅ [CACHE-MANAGER] Sistema de cache inteligente carregado
+rodadas-cache.js:82 [RODADAS-CACHE] Limpeza automática configurada (60000ms)
+rodadas-cache.js:353 [RODADAS-CACHE] Sistema de cache inicializado
+rodadas-cache.js:354 [RODADAS-CACHE] Limpeza automática configurada (5min)
+rodadas-orquestrador.js:457 [RODADAS-ORQUESTRADOR] Módulo carregado com UX redesenhado
+cache-manager.js:50 ✅ [CACHE-MANAGER] IndexedDB inicializado
+rodadas.js:36 [RODADAS] ✅ Módulos refatorados carregados com sucesso
+rodadas-orquestrador.js:364 [RODADAS-ORQUESTRADOR] Inicializando módulo de rodadas...
+rodadas-orquestrador.js:365 [RODADAS-ORQUESTRADOR] URL atual: https://e1034b6e-dfb9-401a-8e7f-80ffa6030f79-00-2dc692elmitoe.spock.replit.dev/detalhe-liga.html?id=684cb1c8af923da7c7df51de
+rodadas-orquestrador.js:372 [RODADAS-ORQUESTRADOR] Não está na seção de rodadas, pulando inicialização
+luva-de-ouro-ui.js:2 🎨 [LUVA-UI] Módulo UI carregando...
+luva-de-ouro-ui.js:319 ✅ [LUVA-UI] Módulo UI carregado (CSS externo)
+luva-de-ouro-utils.js:2 🔧 [LUVA-UTILS] Módulo de utilitários carregando...
+luva-de-ouro-utils.js:960 ✅ [LUVA-UTILS] Módulo de utilitários carregado
+luva-de-ouro-cache.js:2 📦 [LUVA-CACHE] Módulo de cache carregando...
+luva-de-ouro-cache.js:125 ✅ [LUVA-CACHE] Sistema de cache inicializado
+luva-de-ouro-cache.js:126 🧹 Limpeza automática configurada (5min)
+luva-de-ouro-orquestrador.js:2 🎯 [LUVA-ORQUESTRADOR] Módulo orquestrador carregando...
+luva-de-ouro-orquestrador.js:263 ✅ [LUVA-ORQUESTRADOR] Módulo carregado
+luva-de-ouro.js:2 🥅 [LUVA-DE-OURO] Sistema modular carregando...
+luva-de-ouro.js:147 ✅ [LUVA-DE-OURO] Sistema modular carregado com arquitetura refatorada
+luva-de-ouro.js:150 🆘 Em caso de erro: window.forcarLuvaDeOuroAgora()
+luva-de-ouro.js:151 🧪 Para testar: window.testarLuvaDeOuro()
+detalhe-liga-orquestrador.js:19 Módulos carregados
+detalhe-liga-orquestrador.js:693 Liga atualizada: Super Cartola 2025 com 32 participantes
+detalhe-liga-orquestrador.js:22 Participantes atualizados
+detalhe-liga-orquestrador.js:25 Navegação inicializada
+detalhe-liga-orquestrador.js:28 Funções globais configuradas
+detalhe-liga-orquestrador.js:36 Ícones Lucide inicializados
+detalhe-liga-orquestrador.js:39 Orquestrador inicializado com sucesso
+detalhe-liga-orquestrador.js:722 Removido elemento com "Liga:"
+detalhe-liga-orquestrador.js:722 Removido elemento com "Liga:"
+detalhe-liga-orquestrador.js:629 Liga atual destacada no sidebar
+detalhe-liga.html?id…8af923da7c7df51de:1  Uncaught (in promise) Error: A listener indicated an asynchronous response by returning true, but the message channel closed before a response was received
+detalhe-liga.html?id…8af923da7c7df51de:1  Uncaught (in promise) Error: A listener indicated an asynchronous response by returning true, but the message channel closed before a response was received
+detalhe-liga.html?id…8af923da7c7df51de:1  Uncaught (in promise) Error: A listener indicated an asynchronous response by returning true, but the message channel closed before a response was received
+detalhe-liga.html?id…8af923da7c7df51de:1  Uncaught (in promise) Error: A listener indicated an asynchronous response by returning true, but the message channel closed before a response was received
+rodadas-cache.js:71 [RODADAS-CACHE] Limpeza automática: 0 itens removidos
+rodadas-cache.js:71 [RODADAS-CACHE] Limpeza automática: 0 itens removidos
+rodadas-cache.js:71 [RODADAS-CACHE] Limpeza automática: 0 itens removidos
+rodadas-cache.js:71 [RODADAS-CACHE] Limpeza automática: 0 itens removidos
+rodadas-cache.js:71 [RODADAS-CACHE] Limpeza automática: 0 itens removidos
+rodadas-cache.js:71 [RODADAS-CACHE] Limpeza automática: 0 itens removidos
+rodadas-cache.js:71 [RODADAS-CACHE] Limpeza automática: 0 itens removidos
+rodadas-cache.js:71 [RODADAS-CACHE] Limpeza automática: 0 itens removidos
+rodadas-cache.js:71 [RODADAS-CACHE] Limpeza automática: 0 itens removidos
+rodadas-cache.js:71 [RODADAS-CACHE] Limpeza automática: 0 itens removidos
+cache-manager.js:275 🧹 [CACHE-MANAGER] Cleaned 0 expired entries
+rodadas-cache.js:71 [RODADAS-CACHE] Limpeza automática: 0 itens removidos
+rodadas-cache.js:71 [RODADAS-CACHE] Limpeza automática: 0 itens removidos
+rodadas-cache.js:71 [RODADAS-CACHE] Limpeza automática: 0 itens removidos
+rodadas-cache.js:71 [RODADAS-CACHE] Limpeza automática: 0 itens removidos
+rodadas-cache.js:71 [RODADAS-CACHE] Limpeza automática: 0 itens removidos
+rodadas-cache.js:71 [RODADAS-CACHE] Limpeza automática: 0 itens removidos
+rodadas-cache.js:71 [RODADAS-CACHE] Limpeza automática: 0 itens removidos
+rodadas-cache.js:71 [RODADAS-CACHE] Limpeza automática: 0 itens removidos
+rodadas-cache.js:71 [RODADAS-CACHE] Limpeza automática: 0 itens removidos
+rodadas-cache.js:71 [RODADAS-CACHE] Limpeza automática: 0 itens removidos
+cache-manager.js:275 🧹 [CACHE-MANAGER] Cleaned 34 expired entries
+rodadas-cache.js:71 [RODADAS-CACHE] Limpeza automática: 0 itens removidos
+rodadas-cache.js:71 [RODADAS-CACHE] Limpeza automática: 0 itens removidos
+rodadas-cache.js:71 [RODADAS-CACHE] Limpeza automática: 0 itens removidos
+rodadas-cache.js:71 [RODADAS-CACHE] Limpeza automática: 0 itens removidos
+rodadas-cache.js:71 [RODADAS-CACHE] Limpeza automática: 0 itens removidos
+rodadas-cache.js:71 [RODADAS-CACHE] Limpeza automática: 0 itens removidos
+rodadas-cache.js:71 [RODADAS-CACHE] Limpeza automática: 0 itens removidos
+rodadas-cache.js:71 [RODADAS-CACHE] Limpeza automática: 0 itens removidos
+rodadas-cache.js:71 [RODADAS-CACHE] Limpeza automática: 0 itens removidos
+rodadas-cache.js:71 [RODADAS-CACHE] Limpeza automática: 0 itens removidos
+cache-manager.js:275 🧹 [CACHE-MANAGER] Cleaned 0 expired entries
+rodadas-cache.js:71 [RODADAS-CACHE] Limpeza automática: 0 itens removidos
+rodadas-cache.js:71 [RODADAS-CACHE] Limpeza automática: 0 itens removidos
+rodadas-cache.js:71 [RODADAS-CACHE] Limpeza automática: 0 itens removidos
+rodadas-cache.js:71 [RODADAS-CACHE] Limpeza automática: 0 itens removidos
+rodadas-cache.js:71 [RODADAS-CACHE] Limpeza automática: 0 itens removidos
+rodadas-cache.js:71 [RODADAS-CACHE] Limpeza automática: 0 itens removidos
+detalhe-liga-orquestrador.js:486 Tela principal ocultada
+detalhe-liga-orquestrador.js:492 Tela secundária ativada
+detalhe-liga-orquestrador.js:96 Carregando módulo: top10
+detalhe-liga-orquestrador.js:81 CSS do módulo top10 carregado de: /css/modules/top10.css
+detalhe-liga-orquestrador.js:47 [ORQUESTRADOR] Carregando HTML do módulo: top10
+detalhe-liga-orquestrador.js:53 [ORQUESTRADOR] ✅ HTML do módulo top10 carregado (1542 bytes)
+detalhe-liga-orquestrador.js:105 HTML do módulo top10 injetado
+top10.js:85 [TOP10] Inicializando módulo...
+top10.js:105 [TOP10] Carregando dados...
+top10.js:94  [TOP10] Erro na inicialização: Error: ID da Liga não encontrado
+    at carregarDadosTop10 (top10.js:127:11)
+    at Module.inicializarTop10 (top10.js:91:11)
+    at DetalheLigaOrquestrador.executeModuleScripts (detalhe-liga-orquestrador.js:270:50)
+    at DetalheLigaOrquestrador.loadModule (detalhe-liga-orquestrador.js:108:24)
+    at async DetalheLigaOrquestrador.showModule (detalhe-liga-orquestrador.js:473:24)
+    at async DetalheLigaOrquestrador.handleModuleClick (detalhe-liga-orquestrador.js:410:13)
+    at async HTMLDivElement.<anonymous> (detalhe-liga-orquestrador.js:364:17)
+inicializarTop10 @ top10.js:94
+detalhe-liga-orquestrador.js:503 Tela secundária ocultada
+detalhe-liga-orquestrador.js:508 Tela principal exibida
+detalhe-liga-orquestrador.js:486 Tela principal ocultada
+detalhe-liga-orquestrador.js:492 Tela secundária ativada
+detalhe-liga-orquestrador.js:96 Carregando módulo: top10
+detalhe-liga-orquestrador.js:47 [ORQUESTRADOR] Carregando HTML do módulo: top10
+detalhe-liga-orquestrador.js:53 [ORQUESTRADOR] ✅ HTML do módulo top10 carregado (1542 bytes)
+detalhe-liga-orquestrador.js:105 HTML do módulo top10 injetado
+top10.js:85 [TOP10] Inicializando módulo...
+top10.js:105 [TOP10] Carregando dados...
+top10.js:94  [TOP10] Erro na inicialização: Error: ID da Liga não encontrado
+    at carregarDadosTop10 (top10.js:127:11)
+    at Module.inicializarTop10 (top10.js:91:11)
+    at DetalheLigaOrquestrador.executeModuleScripts (detalhe-liga-orquestrador.js:270:50)
+    at DetalheLigaOrquestrador.loadModule (detalhe-liga-orquestrador.js:108:24)
+    at async DetalheLigaOrquestrador.showModule (detalhe-liga-orquestrador.js:473:24)
+    at async DetalheLigaOrquestrador.handleModuleClick (detalhe-liga-orquestrador.js:410:13)
+    at async HTMLDivElement.<anonymous> (detalhe-liga-orquestrador.js:364:17)
+inicializarTop10 @ top10.js:94
+rodadas-cache.js:71 [RODADAS-CACHE] Limpeza automática: 0 itens removidos
+rodadas-cache.js:71 [RODADAS-CACHE] Limpeza automática: 0 itens removidos
+rodadas-cache.js:71 [RODADAS-CACHE] Limpeza automática: 0 itens removidos
+rodadas-cache.js:71 [RODADAS-CACHE] Limpeza automática: 0 itens removidos
+cache-manager.js:275 🧹 [CACHE-MANAGER] Cleaned 1 expired entries
+rodadas-cache.js:71 [RODADAS-CACHE] Limpeza automática: 0 itens removidos
+rodadas-cache.js:71 [RODADAS-CACHE] Limpeza automática: 0 itens removidos
+rodadas-cache.js:71 [RODADAS-CACHE] Limpeza automática: 0 itens removidos
+rodadas-cache.js:71 [RODADAS-CACHE] Limpeza automática: 0 itens removidos
+rodadas-cache.js:71 [RODADAS-CACHE] Limpeza automática: 0 itens removidos
+rodadas-cache.js:71 [RODADAS-CACHE] Limpeza automática: 0 itens removidos
+rodadas-cache.js:71 [RODADAS-CACHE] Limpeza automática: 0 itens removidos
+rodadas-cache.js:71 [RODADAS-CACHE] Limpeza automática: 0 itens removidos
+rodadas-cache.js:71 [RODADAS-CACHE] Limpeza automática: 0 itens removidos
+rodadas-cache.js:71 [RODADAS-CACHE] Limpeza automática: 0 itens removidos
+cache-manager.js:275 🧹 [CACHE-MANAGER] Cleaned 0 expired entries
+rodadas-cache.js:71 [RODADAS-CACHE] Limpeza automática: 0 itens removidos
+rodadas-cache.js:71 [RODADAS-CACHE] Limpeza automática: 0 itens removidos
