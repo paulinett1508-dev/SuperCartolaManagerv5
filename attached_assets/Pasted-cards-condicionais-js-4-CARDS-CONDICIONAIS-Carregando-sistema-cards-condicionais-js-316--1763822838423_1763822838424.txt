@@ -1,0 +1,43 @@
+cards-condicionais.js:4 🎛️ [CARDS-CONDICIONAIS] Carregando sistema...
+cards-condicionais.js:316 ✅ [CARDS-CONDICIONAIS] Módulo carregado
+cache-manager.js:439 ✅ [CACHE-MANAGER] Sistema de cache inteligente carregado
+participante-auth.js:4 [PARTICIPANTE-AUTH] Carregando sistema de autenticação...
+participante-auth.js:43 [PARTICIPANTE-AUTH] Verificando autenticação...
+participante-auth.js:372 [PARTICIPANTE-AUTH] ✅ Sistema carregado
+participante-navigation.js:3 [PARTICIPANTE-NAV] Carregando sistema de navegação...
+participante-navigation.js:25 [PARTICIPANTE-NAV] Inicializando navegação...
+participante-navigation.js:40 [PARTICIPANTE-NAV] Aguardando dados do participante...
+participante-navigation.js:496 [PARTICIPANTE-NAV] ✅ Sistema carregado
+participante-status.js:3 [PARTICIPANTE-STATUS] Carregando sistema de status...
+participante-status.js:41 [PARTICIPANTE-STATUS] 🟢 Online
+participante-status.js:62 [PARTICIPANTE-STATUS] ✅ Sistema carregado
+participante-navigation.js:44  Uncaught (in promise) ReferenceError: participanteAuth is not defined
+    at ParticipanteNavigation.aguardarDadosParticipante (participante-navigation.js:44:27)
+    at ParticipanteNavigation.inicializar (participante-navigation.js:28:20)
+    at new ParticipanteNavigation (participante-navigation.js:21:14)
+    at participante-navigation.js:493:23
+aguardarDadosParticipante @ participante-navigation.js:44
+inicializar @ participante-navigation.js:28
+ParticipanteNavigation @ participante-navigation.js:21
+(anônimo) @ participante-navigation.js:493
+cache-manager.js:50 ✅ [CACHE-MANAGER] IndexedDB inicializado
+cards-condicionais.js:266 🚀 [CARDS-CONDICIONAIS] Inicializando...
+cards-condicionais.js:59 🎯 [CARDS-CONDICIONAIS] Aplicando configuração...
+cards-condicionais.js:65  ⚠️ [CARDS-CONDICIONAIS] ID da liga não encontrado
+aplicarConfiguracaoCards @ cards-condicionais.js:65
+inicializar @ cards-condicionais.js:270
+setTimeout
+(anônimo) @ cards-condicionais.js:309
+cards-condicionais.js:127 🧭 [CARDS-CONDICIONAIS] Configurando navegação condicional...
+cards-condicionais.js:183 ✅ [CARDS-CONDICIONAIS] Botão voltar controlado
+cards-condicionais.js:285 ✅ [CARDS-CONDICIONAIS] Sistema inicializado com UX melhorado
+participante-auth.js:107 [PARTICIPANTE-AUTH] Atualizando header com dados: {timeId: '13935277', ligaId: '684cb1c8af923da7c7df51de', participante: {…}, time: null}
+participante-auth.js:211 [PARTICIPANTE-AUTH] 🔍 Verificando múltiplas ligas para timeId: 13935277
+participante-auth.js:121 [PARTICIPANTE-AUTH] Dados do time carregados: {nome: 'Urubu Play F.C.', cartola: 'Paulinett Miranda', clube: 262}
+participante-auth.js:224 [PARTICIPANTE-AUTH] 📊 Resposta da API: {success: true, ligas: Array(2)}
+participante-auth.js:227 [PARTICIPANTE-AUTH] 📋 Total de ligas encontradas: 2
+participante-auth.js:230 [PARTICIPANTE-AUTH] 📝 Ligas: Super Cartola 2025 (684cb1c8af923da7c7df51de), Cartoleiros do Sobral (684d821cf1a7ae16d1f89572)
+participante-auth.js:235 [PARTICIPANTE-AUTH] 🏆 Participante em múltiplas ligas: 2
+participante-auth.js:142 [PARTICIPANTE-AUTH] Dados do participante na liga: {time_id: 13935277, nome_cartola: 'N/D', nome_time: 'N/D', clube_id: null, foto_perfil: '', …}
+participante-auth.js:189 [PARTICIPANTE-AUTH] ✅ Header atualizado com sucesso: {nome: 'Urubu Play F.C.', cartola: 'Paulinett Miranda', clube: 262, patrimonio: 0}
+participante-auth.js:83 [PARTICIPANTE-AUTH] ✅ Autenticação válida (cache atualizado)
