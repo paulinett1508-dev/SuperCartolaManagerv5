@@ -1,4 +1,3 @@
-
 // PARTICIPANTE BOAS-VINDAS - Módulo de Inicialização com Dados Reais
 
 console.log('[BOAS-VINDAS] Carregando módulo...');
@@ -39,7 +38,7 @@ window.inicializarBoasVindas = async function(ligaId, timeId) {
         console.log('[BOAS-VINDAS] 🔍 Primeiro time do ranking (exemplo):', ranking[0]);
         const meuTime = ranking.find(t => String(t.time_id) === String(timeId));
         console.log('[BOAS-VINDAS] 🎯 Meu time encontrado:', meuTime);
-        
+
         const posicao = meuTime ? meuTime.posicao : '-';
         const totalParticipantes = ranking.length;
 
@@ -48,7 +47,7 @@ window.inicializarBoasVindas = async function(ligaId, timeId) {
         const pontosTotal = minhasRodadasParaPontos.reduce((total, rodada) => {
             return total + (parseFloat(rodada.pontos) || 0);
         }, 0);
-        
+
         console.log('[BOAS-VINDAS] 📊 Cálculo de pontos:', {
             totalRodadas: minhasRodadasParaPontos.length,
             pontosTotal: pontosTotal
@@ -61,7 +60,7 @@ window.inicializarBoasVindas = async function(ligaId, timeId) {
             if (resCampos.ok) {
                 const camposData = await resCampos.json();
                 console.log('[BOAS-VINDAS] 💰 Campos financeiros recebidos:', camposData);
-                
+
                 // Somar os 4 campos editáveis
                 if (camposData.campos && Array.isArray(camposData.campos)) {
                     console.log('[BOAS-VINDAS] 💰 Campos disponíveis:', camposData.campos);
@@ -84,10 +83,10 @@ window.inicializarBoasVindas = async function(ligaId, timeId) {
         // Última rodada do usuário - CORRIGIDO: verificar estrutura correta
         console.log('[BOAS-VINDAS] 🔍 Buscando minhas rodadas. Total de rodadas:', rodadas.length);
         console.log('[BOAS-VINDAS] 🔍 Primeira rodada (exemplo):', rodadas[0]);
-        
+
         const minhasRodadas = rodadas.filter(r => String(r.timeId) === String(timeId) || String(r.time_id) === String(timeId));
         console.log('[BOAS-VINDAS] 🔍 Minhas rodadas encontradas:', minhasRodadas.length);
-        
+
         const ultimaRodada = minhasRodadas.sort((a, b) => b.rodada - a.rodada)[0];
 
         console.log('[BOAS-VINDAS] Dados processados:', {
@@ -145,7 +144,7 @@ function preencherBoasVindas({ posicao, totalParticipantes, pontosTotal, saldoFi
     // Mini Card "Pontuação Total"
     const pontosElement = document.getElementById('pontosTotal');
     if (pontosElement) {
-        const pontosFormatados = pontosTotal > 0 
+        const pontosFormatados = pontosTotal > 0
             ? pontosTotal.toFixed(1)
             : '--';
         pontosElement.textContent = pontosFormatados;
@@ -159,7 +158,7 @@ function preencherBoasVindas({ posicao, totalParticipantes, pontosTotal, saldoFi
         // Formatação compacta: R$ 1.2K ou R$ 150
         const saldoAbs = Math.abs(saldoFinanceiro);
         let saldoFormatado;
-        
+
         if (saldoAbs >= 1000) {
             saldoFormatado = 'R$ ' + (saldoFinanceiro / 1000).toFixed(1) + 'K';
         } else if (saldoAbs > 0) {
@@ -201,7 +200,7 @@ function preencherBoasVindas({ posicao, totalParticipantes, pontosTotal, saldoFi
     // timeData vem da API /api/times/:id que retorna clube_id
     const clubeId = timeData?.clube_id || timeData?.clube || meuTime?.clube_id;
     console.log('[BOAS-VINDAS] 🏟️ Clube ID encontrado:', clubeId, 'Fonte:', timeData);
-    
+
     if (clubeId) {
         buscarInfoTimeCoracao(clubeId);
     } else {
@@ -256,7 +255,7 @@ async function buscarInfoTimeCoracao(clubeId) {
 
     try {
         console.log('[BOAS-VINDAS] 🏟️ Buscando informações do clube:', clubeId);
-        
+
         // Buscar informações do clube via proxy do backend (evita CORS)
         const response = await fetch(`/api/cartola/clubes`);
         if (!response.ok) {
