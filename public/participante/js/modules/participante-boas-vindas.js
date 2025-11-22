@@ -1,3 +1,4 @@
+
 // PARTICIPANTE BOAS-VINDAS - Módulo de Inicialização com Dados Reais
 
 console.log('[BOAS-VINDAS] Carregando módulo...');
@@ -13,9 +14,21 @@ window.inicializarBoasVindas = async function(ligaId, timeId) {
             fetch(`/api/fluxo-financeiro/${ligaId}`)
         ]);
 
+        console.log('[BOAS-VINDAS] Status das requisições:', {
+            ranking: resRanking.ok,
+            rodadas: resRodadas.ok,
+            fluxo: resFluxo.ok
+        });
+
         const ranking = resRanking.ok ? await resRanking.json() : [];
         const rodadas = resRodadas.ok ? await resRodadas.json() : [];
-        const fluxoData = resFluxo.ok ? await resFluxo.json() : null;
+        const fluxoData = resFluxo.ok ? await resFluxo.json() : [];
+
+        console.log('[BOAS-VINDAS] Dados recebidos:', {
+            rankingLength: ranking.length,
+            rodadasLength: rodadas.length,
+            fluxoLength: fluxoData.length
+        });
 
         // Processar dados
         const posicao = ranking.findIndex(t => parseInt(t.time_id) === parseInt(timeId)) + 1 || '-';
@@ -23,15 +36,38 @@ window.inicializarBoasVindas = async function(ligaId, timeId) {
         const meuTime = ranking.find(t => parseInt(t.time_id) === parseInt(timeId));
 
         // Pontuação total do ranking
-        const pontosTotal = meuTime ? meuTime.pontos_total : 0;
+        const pontosTotal = meuTime ? parseFloat(meuTime.pontos_total) || 0 : 0;
 
-        // Saldo financeiro do fluxo
-        const meuFluxo = fluxoData?.find(f => String(f.timeId) === String(timeId));
-        const saldoFinanceiro = meuFluxo?.saldoAtual || 0;
+        // Buscar saldo financeiro do campo editável
+        let saldoFinanceiro = 0;
+        try {
+            const resCampos = await fetch(`/api/fluxo-financeiro/${ligaId}/times/${timeId}`);
+            if (resCampos.ok) {
+                const camposData = await resCampos.json();
+                console.log('[BOAS-VINDAS] Campos financeiros:', camposData);
+                
+                // Somar os 4 campos editáveis
+                if (camposData.campos && Array.isArray(camposData.campos)) {
+                    saldoFinanceiro = camposData.campos.reduce((total, campo) => {
+                        return total + (parseFloat(campo.valor) || 0);
+                    }, 0);
+                }
+            }
+        } catch (error) {
+            console.error('[BOAS-VINDAS] Erro ao buscar campos financeiros:', error);
+        }
 
         // Última rodada do usuário
         const minhasRodadas = rodadas.filter(r => String(r.timeId) === String(timeId));
         const ultimaRodada = minhasRodadas.sort((a, b) => b.rodada - a.rodada)[0];
+
+        console.log('[BOAS-VINDAS] Dados processados:', {
+            posicao,
+            totalParticipantes,
+            pontosTotal,
+            saldoFinanceiro,
+            ultimaRodada: ultimaRodada ? `Rodada ${ultimaRodada.rodada}` : 'Nenhuma'
+        });
 
         preencherBoasVindas({
             posicao,
@@ -56,20 +92,34 @@ window.inicializarBoasVindas = async function(ligaId, timeId) {
 };
 
 function preencherBoasVindas({ posicao, totalParticipantes, pontosTotal, saldoFinanceiro, ultimaRodada, meuTime }) {
-    // 4.1 - Card "Ranking Geral"
+    console.log('[BOAS-VINDAS] Preenchendo interface com:', {
+        posicao,
+        totalParticipantes,
+        pontosTotal,
+        saldoFinanceiro,
+        ultimaRodada
+    });
+
+    // Card "Ranking Geral"
     const posElement = document.getElementById('posicaoRanking');
     const totalElement = document.getElementById('totalParticipantes');
     if (posElement) {
         posElement.textContent = posicao === '-' ? '--º' : `${posicao}º`;
+        console.log('[BOAS-VINDAS] Posição atualizada:', posElement.textContent);
     }
     if (totalElement) {
-        totalElement.textContent = totalParticipantes || '--';
+        totalElement.textContent = totalParticipantes > 0 ? `de ${totalParticipantes} participantes` : 'de -- participantes';
+        console.log('[BOAS-VINDAS] Total de participantes atualizado:', totalElement.textContent);
     }
 
     // Card "Pontuação Total"
     const pontosElement = document.getElementById('pontosTotal');
     if (pontosElement) {
-        pontosElement.textContent = pontosTotal ? pontosTotal.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) : '--';
+        const pontosFormatados = pontosTotal > 0 
+            ? pontosTotal.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })
+            : '--';
+        pontosElement.textContent = pontosFormatados;
+        console.log('[BOAS-VINDAS] Pontos atualizados:', pontosElement.textContent);
     }
 
     // Card "Saldo Financeiro"
@@ -83,9 +133,11 @@ function preencherBoasVindas({ posicao, totalParticipantes, pontosTotal, saldoFi
 
         saldoElement.textContent = saldoFormatado;
         saldoElement.style.color = saldoFinanceiro >= 0 ? '#22c55e' : '#ef4444';
+        console.log('[BOAS-VINDAS] Saldo atualizado:', saldoElement.textContent, 'Cor:', saldoElement.style.color);
     }
     if (statusElement) {
         statusElement.textContent = saldoFinanceiro >= 0 ? 'A receber' : 'A pagar';
+        console.log('[BOAS-VINDAS] Status financeiro:', statusElement.textContent);
     }
 
     // Card "Última Rodada"
@@ -93,22 +145,35 @@ function preencherBoasVindas({ posicao, totalParticipantes, pontosTotal, saldoFi
         const numElement = document.getElementById('numeroUltimaRodada');
         const pontosUltimaElement = document.getElementById('pontosUltimaRodada');
 
-        if (numElement) numElement.textContent = ultimaRodada.rodada;
+        if (numElement) {
+            numElement.textContent = ultimaRodada.rodada;
+            console.log('[BOAS-VINDAS] Número da última rodada:', numElement.textContent);
+        }
         if (pontosUltimaElement) {
-            pontosUltimaElement.textContent = ultimaRodada.pontos
+            const pontosRodada = ultimaRodada.pontos
                 ? ultimaRodada.pontos.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })
                 : '--';
+            pontosUltimaElement.textContent = pontosRodada;
+            console.log('[BOAS-VINDAS] Pontos da última rodada:', pontosUltimaElement.textContent);
         }
+    } else {
+        console.log('[BOAS-VINDAS] Nenhuma rodada encontrada para este time');
     }
 
     // Buscar informações do time do coração
     if (meuTime && meuTime.clube_id) {
         buscarInfoTimeCoracao(meuTime.clube_id);
+    } else {
+        console.log('[BOAS-VINDAS] Clube ID não encontrado');
     }
 }
 
 async function buscarInfoTimeCoracao(clubeId) {
     const timeCoracaoCard = document.getElementById('timeCoracaoCard');
+    if (!timeCoracaoCard) {
+        console.log('[BOAS-VINDAS] Elemento timeCoracaoCard não encontrado');
+        return;
+    }
 
     try {
         // Buscar informações do clube
@@ -127,7 +192,6 @@ async function buscarInfoTimeCoracao(clubeId) {
             return;
         }
 
-        // Buscar informações públicas do time (placares recentes, etc)
         timeCoracaoCard.innerHTML = `
             <div style="display: flex; align-items: center; gap: 12px;">
                 <img src="/escudos/${clubeId}.png"
@@ -144,6 +208,8 @@ async function buscarInfoTimeCoracao(clubeId) {
                 </div>
             </div>
         `;
+
+        console.log('[BOAS-VINDAS] Time do coração carregado:', clube.nome);
 
     } catch (error) {
         console.error('[BOAS-VINDAS] Erro ao buscar time do coração:', error);
