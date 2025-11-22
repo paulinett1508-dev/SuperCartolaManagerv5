@@ -5,9 +5,14 @@
     <div class="extrato-header-compact">
         <div class="header-row">
             <h2 class="extrato-title">💰 Extrato</h2>
-            <div class="saldo-status-badge" id="saldoStatusBadge">
-                <span class="status-icon">💰</span>
-                <span class="status-text">A Receber</span>
+            <div style="display: flex; gap: 8px; align-items: center;">
+                <button id="btnRefreshExtrato" class="btn-refresh-extrato" title="Atualizar dados">
+                    <span class="refresh-icon">🔄</span>
+                </button>
+                <div class="saldo-status-badge" id="saldoStatusBadge">
+                    <span class="status-icon">💰</span>
+                    <span class="status-text">A Receber</span>
+                </div>
             </div>
         </div>
         <div class="saldo-valor-header" id="saldoTotalHeader">R$ 0,00</div>
@@ -54,6 +59,36 @@
     background: linear-gradient(135deg, rgba(255, 69, 0, 0.1) 0%, rgba(255, 140, 0, 0.05) 100%);
     padding: 16px;
     border-bottom: 1px solid rgba(255, 69, 0, 0.2);
+}
+
+/* Botão de refresh */
+.btn-refresh-extrato {
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    background: rgba(0, 0, 0, 0.3);
+    color: var(--participante-primary);
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.3s ease;
+    font-size: 16px;
+}
+
+.btn-refresh-extrato:active {
+    transform: scale(0.95);
+    background: rgba(255, 69, 0, 0.2);
+}
+
+.btn-refresh-extrato.loading .refresh-icon {
+    animation: spin-refresh 0.8s linear infinite;
+}
+
+@keyframes spin-refresh {
+    from { transform: rotate(0deg); }
+    to { transform: rotate(360deg); }
 }
 
 .header-row {

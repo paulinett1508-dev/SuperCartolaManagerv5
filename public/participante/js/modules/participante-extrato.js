@@ -106,6 +106,62 @@ export function initExtratoParticipante() {
     console.log('[PARTICIPANTE-EXTRATO] Módulo carregado');
 }
 
+// ===== FUNÇÃO DE REFRESH FORÇADO =====
+window.forcarRefreshExtratoParticipante = async function() {
+    console.log('[EXTRATO-PARTICIPANTE] 🔄 Forçando atualização dos dados...');
+    
+    if (!PARTICIPANTE_IDS.ligaId || !PARTICIPANTE_IDS.timeId) {
+        console.error('[EXTRATO-PARTICIPANTE] IDs não disponíveis para refresh');
+        return;
+    }
+
+    try {
+        // Mostrar loading
+        if (window.mostrarLoadingExtrato) {
+            window.mostrarLoadingExtrato();
+        }
+
+        // Invalidar cache via API
+        const response = await fetch(
+            `/api/extrato-cache/${PARTICIPANTE_IDS.ligaId}/times/${PARTICIPANTE_IDS.timeId}/cache`,
+            { method: 'DELETE' }
+        );
+
+        if (response.ok) {
+            console.log('[EXTRATO-PARTICIPANTE] ✅ Cache invalidado');
+        }
+
+        // Recarregar extrato
+        const { fluxoFinanceiroParticipante } = await import('../../../js/fluxo-financeiro/fluxo-financeiro-participante.js');
+        const { renderizarExtratoParticipante } = await import('./participante-extrato-ui.js');
+
+        // Buscar rodada atual
+        const resRodada = await fetch('/api/cartola/mercado/status');
+        const statusData = await resRodada.json();
+        const rodadaAtual = statusData.rodada_atual || 1;
+        const mercadoAberto = statusData.mercado_aberto || false;
+        const ultimaRodadaCompleta = mercadoAberto ? Math.max(1, rodadaAtual - 1) : rodadaAtual;
+
+        console.log(`[EXTRATO-PARTICIPANTE] 📊 Recalculando até rodada ${ultimaRodadaCompleta}`);
+
+        // Forçar recálculo
+        const extratoData = await fluxoFinanceiroParticipante.buscarExtratoCalculado(
+            PARTICIPANTE_IDS.ligaId, 
+            PARTICIPANTE_IDS.timeId, 
+            ultimaRodadaCompleta
+        );
+
+        // Renderizar
+        renderizarExtratoParticipante(extratoData, PARTICIPANTE_IDS.timeId);
+
+        console.log('[EXTRATO-PARTICIPANTE] ✅ Dados atualizados com sucesso');
+
+    } catch (error) {
+        console.error('[EXTRATO-PARTICIPANTE] ❌ Erro ao atualizar:', error);
+        mostrarErro(`Erro ao atualizar: ${error.message}`);
+    }
+};
+
 // ===== EXPOR GLOBALMENTE PARA COMPATIBILIDADE COM NAVEGAÇÃO =====
 window.inicializarExtratoParticipante = inicializarExtratoParticipante;
 

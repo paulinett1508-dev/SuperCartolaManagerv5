@@ -15,6 +15,28 @@ export function renderizarExtratoParticipante(extrato, participante) {
     // ✅ ARMAZENAR GLOBALMENTE PARA POPUPS
     window.extratoAtual = extrato;
 
+    // ✅ CONFIGURAR BOTÃO DE REFRESH
+    setTimeout(() => {
+        const btnRefresh = document.getElementById('btnRefreshExtrato');
+        if (btnRefresh) {
+            btnRefresh.onclick = async () => {
+                if (btnRefresh.classList.contains('loading')) return;
+                
+                btnRefresh.classList.add('loading');
+                console.log('[EXTRATO-UI] 🔄 Refresh solicitado pelo participante');
+                
+                try {
+                    await window.forcarRefreshExtratoParticipante();
+                } catch (error) {
+                    console.error('[EXTRATO-UI] Erro ao atualizar:', error);
+                    alert('Erro ao atualizar dados. Tente novamente.');
+                } finally {
+                    btnRefresh.classList.remove('loading');
+                }
+            };
+        }
+    }, 100);
+
     // ===== RENDERIZAR APENAS A TABELA (sem card grande) =====
     const html = `
         <div class="extrato-participante-table">
@@ -327,6 +349,9 @@ export function mostrarLoading() {
         `;
     }
 }
+
+// Expor globalmente para refresh
+window.mostrarLoadingExtrato = mostrarLoading;
 
 // ===== FUNÇÕES DE DETALHAMENTO (POPUPS) =====
 window.mostrarDetalhamentoGanhos = function () {
