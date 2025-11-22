@@ -125,8 +125,14 @@ class FluxoFinanceiroParticipante {
     }
 
     // ===== MÉTODO PARA RETORNAR DADOS SEM RENDERIZAÇÃO =====
-    async buscarExtratoCalculado(ligaId, timeId, rodadaAtualParam = null) {
-        console.log('[FLUXO-PARTICIPANTE] Buscando dados calculados...');
+    async buscarExtratoCalculado(ligaId, timeId, rodadaFinal = null, forceRefresh = false) {
+        console.log(`[FLUXO-PARTICIPANTE] 🔍 Buscando extrato:`, {
+            ligaId,
+            timeId,
+            rodadaFinal,
+            forceRefresh,
+            tipos: typeof ligaId, typeof timeId
+        });
 
         if (!this.isInitialized) {
             throw new Error('Módulo não inicializado. Chame inicializar() primeiro.');
@@ -134,14 +140,14 @@ class FluxoFinanceiroParticipante {
 
         try {
             // Usar rodada fornecida ou buscar do mercado
-            let rodadaAtual = rodadaAtualParam;
+            let rodadaAtual = rodadaFinal;
 
             if (!rodadaAtual) {
                 console.log('[FLUXO-PARTICIPANTE] Buscando rodada atual do mercado...');
                 const mercadoRes = await fetch('/api/cartola/mercado-status');
                 const mercadoStatus = mercadoRes.ok ? await mercadoRes.json() : { rodada_atual: 1, mercado_aberto: false };
                 rodadaAtual = mercadoStatus.rodada_atual || 1;
-                
+
                 // ✅ SE MERCADO ABERTO, USAR RODADA ANTERIOR
                 const mercadoAberto = mercadoStatus.mercado_aberto || false;
                 if (mercadoAberto) {
@@ -154,11 +160,11 @@ class FluxoFinanceiroParticipante {
 
             // Tentar buscar do cache do backend (API)
             const cacheKey = `extrato_${ligaId}_${timeId}_${rodadaAtual}`;
-            
+
             try {
                 console.log('[FLUXO-PARTICIPANTE] 🔍 Buscando cache via API...');
                 const cacheRes = await fetch(`/api/extrato-cache/${ligaId}/times/${timeId}/cache?rodadaAtual=${rodadaAtual}`);
-                
+
                 if (cacheRes.ok) {
                     const cacheData = await cacheRes.json();
                     if (cacheData && cacheData.cached && cacheData.data) {

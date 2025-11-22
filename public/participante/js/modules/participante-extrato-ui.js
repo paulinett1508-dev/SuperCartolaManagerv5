@@ -5,15 +5,35 @@
 console.log('[EXTRATO-UI] 🎨 Módulo de UI carregado');
 
 export function renderizarExtratoParticipante(extrato, participante) {
+    console.log('[EXTRATO-UI] 🎨 Renderizando extrato:', {
+        transacoes: extrato?.transacoes?.length || 0,
+        resumo: extrato?.resumo,
+        participante
+    });
+
     const container = document.getElementById('fluxoFinanceiroContent');
     
     if (!container) {
-        console.error('[EXTRATO-UI] Container não encontrado');
+        console.error('[EXTRATO-UI] ❌ Container não encontrado');
+        return;
+    }
+
+    if (!extrato || !extrato.transacoes || extrato.transacoes.length === 0) {
+        console.error('[EXTRATO-UI] ❌ Dados inválidos ou vazios:', extrato);
+        container.innerHTML = `
+            <div style="text-align: center; padding: 40px; color: #ef4444;">
+                <div style="font-size: 48px; margin-bottom: 16px;">⚠️</div>
+                <h3>Nenhuma transação encontrada</h3>
+                <p style="color: #a0a0a0; margin-top: 12px;">Verifique se o time está cadastrado na liga.</p>
+            </div>
+        `;
         return;
     }
 
     // ✅ ARMAZENAR GLOBALMENTE PARA POPUPS
     window.extratoAtual = extrato;
+    
+    console.log('[EXTRATO-UI] ✅ Iniciando renderização de', extrato.transacoes.length, 'transações');
 
     // ✅ CONFIGURAR BOTÃO DE REFRESH
     setTimeout(() => {

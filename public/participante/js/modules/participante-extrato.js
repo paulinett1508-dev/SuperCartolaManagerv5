@@ -66,6 +66,18 @@ export async function inicializarExtratoParticipante({ participante, ligaId, tim
         // Buscar extrato calculado com última rodada completa
         const extratoData = await fluxoFinanceiroParticipante.buscarExtratoCalculado(ligaId, timeId, ultimaRodadaCompleta);
 
+        console.log('[EXTRATO-PARTICIPANTE] 📊 Dados recebidos:', {
+            transacoes: extratoData.transacoes?.length || 0,
+            resumo: extratoData.resumo,
+            temDados: !!extratoData.transacoes
+        });
+
+        if (!extratoData.transacoes || extratoData.transacoes.length === 0) {
+            console.error('[EXTRATO-PARTICIPANTE] ❌ Nenhuma transação encontrada!');
+            mostrarErro('Nenhum dado disponível para este time. Verifique se o time está cadastrado na liga.');
+            return;
+        }
+
         console.log('[EXTRATO-PARTICIPANTE] 🎨 Renderizando UI personalizada...');
 
         // Renderizar extrato
