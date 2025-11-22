@@ -44,6 +44,9 @@ class ParticipanteNavigation {
             const dados = participanteAuth.getDados();
             if (dados && dados.ligaId && dados.timeId) {
                 console.log('[PARTICIPANTE-NAV] ✅ Dados do participante disponíveis:', dados);
+                this.participante = dados; // Armazenar dados do participante na instância
+                this.ligaId = dados.ligaId; // Armazenar ligaId
+                this.timeId = dados.timeId; // Armazenar timeId
                 return dados;
             }
             console.log(`[PARTICIPANTE-NAV] Tentativa ${i + 1}/10 - Aguardando dados...`);
@@ -261,6 +264,11 @@ class ParticipanteNavigation {
 
         // Carregar conteúdo
         const container = document.getElementById('moduleContainer');
+        if (!container) {
+            console.error('[PARTICIPANTE-NAV] ❌ Container #moduleContainer não encontrado');
+            return;
+        }
+        this.contentArea = container; // Armazenar container para uso em carregarModulo
 
         // Loading
         container.innerHTML = `
@@ -523,6 +531,121 @@ class ParticipanteNavigation {
                 </div>
             `;
         }
+    }
+
+    async carregarModulo(moduloId) {
+        console.log(`[PARTICIPANTE-NAV] 🔄 Navegando para: ${moduloId}`);
+        console.log(`[PARTICIPANTE-NAV] 📊 Dados disponíveis:`, {
+            participante: this.participante,
+            ligaId: this.ligaId,
+            timeId: this.timeId
+        });
+
+        try {
+            // Verificar se módulo está ativo
+            const moduloAtivo = this.verificarModuloAtivo(moduloId);
+            console.log(`[PARTICIPANTE-NAV] ✓ Módulo ${moduloId} está ${moduloAtivo ? 'ATIVO' : 'INATIVO'}`);
+
+            if (!moduloAtivo) {
+                console.warn(`[PARTICIPANTE-NAV] ⚠️ Tentativa de acessar módulo inativo: ${moduloId}`);
+                this.contentArea.innerHTML = `
+                    <div class="alert alert-warning">
+                        <h4>⚠️ Módulo Não Disponível</h4>
+                        <p>Este módulo não está ativo nesta liga.</p>
+                    </div>
+                `;
+                return;
+            }
+
+            // Carregar HTML do front
+            const htmlPath = `/participante/fronts/${moduloId}.html`;
+            console.log(`[PARTICIPANTE-NAV] 📄 Carregando HTML: ${htmlPath}`);
+
+            const response = await fetch(htmlPath);
+
+            if (!response.ok) {
+                throw new Error(`Erro ao carregar ${htmlPath}: ${response.status}`);
+            }
+
+            const html = await response.text();
+            this.contentArea.innerHTML = html;
+            console.log(`[PARTICIPANTE-NAV] ✅ HTML carregado para: ${moduloId}`);
+
+            // Carregar e executar JavaScript do módulo se existir
+            const jsPath = `/participante/js/modules/participante-${moduloId}.js`;
+
+            console.log(`[PARTICIPANTE-NAV] 📦 Importando módulo JS: ${jsPath}`);
+
+            try {
+                const modulo = await import(jsPath);
+                console.log(`[PARTICIPANTE-NAV] ✅ Módulo JS importado:`, modulo);
+
+                console.log(`[PARTICIPANTE-NAV] 🚀 Inicializando módulo: ${moduloId}`);
+
+                if (modulo.init && typeof modulo.init === 'function') {
+                    console.log(`[PARTICIPANTE-NAV] Executando modulo.init()`);
+                    await modulo.init();
+                } else if (modulo.default && typeof modulo.default === 'function') {
+                    console.log(`[PARTICIPANTE-NAV] Executando modulo.default()`);
+                    await modulo.default();
+                } else {
+                    console.warn(`[PARTICIPANTE-NAV] ⚠️ Módulo sem função de inicialização`);
+                }
+
+                console.log(`[PARTICIPANTE-NAV] ✅ Página de ${moduloId} carregada com sucesso`);
+            } catch (jsError) {
+                console.error(`[PARTICIPANTE-NAV] ❌ Erro ao carregar módulo JS:`, jsError);
+                console.error(`[PARTICIPANTE-NAV] Stack:`, jsError.stack);
+                throw new Error(`Erro ao carregar módulo JS: ${jsError.message}`);
+            }
+
+        } catch (error) {
+            console.error(`[PARTICIPANTE-NAV] ❌ Erro ao carregar módulo ${moduloId}:`, error);
+            console.error(`[PARTICIPANTE-NAV] Stack completo:`, error.stack);
+            this.contentArea.innerHTML = `
+                <div class="alert alert-danger">
+                    <h4>❌ Erro ao Carregar Módulo</h4>
+                    <p><strong>Módulo:</strong> ${moduloId}</p>
+                    <p><strong>Erro:</strong> ${error.message}</p>
+                    <details>
+                        <summary>Ver detalhes técnicos</summary>
+                        <pre>${error.stack}</pre>
+                    </details>
+                </div>
+            `;
+        }
+    }
+
+    verificarModuloAtivo(moduloId) {
+        // Mapear IDs de módulos para chaves de configuração
+        const mapaModulos = {
+            'artilheiro': 'artilheiro',
+            'luva-ouro': 'luvaOuro',
+            'mata-mata': 'mataMata',
+            'pontos-corridos': 'pontosCorridos',
+            'melhor-mes': 'melhorMes',
+            'top10': 'top10',
+            'ranking': 'ranking',
+            'rodadas': 'rodadas',
+            'extrato': 'extrato',
+            'boas-vindas': true // Sempre ativo
+        };
+
+        const chaveModulo = mapaModulos[moduloId];
+
+        if (chaveModulo === true) {
+            return true; // Módulos sempre ativos
+        }
+
+        if (!chaveModulo) {
+            console.warn(`[PARTICIPANTE-NAV] Módulo desconhecido: ${moduloId}`);
+            return false;
+        }
+
+        const ativo = this.modulosAtivos && this.modulosAtivos[chaveModulo] === true;
+        console.log(`[PARTICIPANTE-NAV] 🔍 Verificando módulo: ${moduloId} -> ${chaveModulo} = ${ativo}`);
+
+        return ativo;
     }
 }
 

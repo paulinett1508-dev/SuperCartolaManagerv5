@@ -1,64 +1,236 @@
 
-// PARTICIPANTE ARTILHEIRO - Módulo Artilheiro/Campeão
+console.log('🏆 [PARTICIPANTE-ARTILHEIRO] Módulo carregando...');
 
-console.log('[PARTICIPANTE-ARTILHEIRO] Carregando módulo...');
-
-window.inicializarArtilheiroParticipante = async function(ligaId, timeId) {
-    console.log(`[PARTICIPANTE-ARTILHEIRO] Inicializando para time ${timeId} na liga ${ligaId}`);
+export async function init() {
+    console.log('🏆 [PARTICIPANTE-ARTILHEIRO] Inicializando módulo Artilheiro Campeão...');
 
     try {
-        const response = await fetch(`/api/ligas/${ligaId}/artilheiro-campeao`);
+        // Obter dados do participante
+        const participanteData = window.participanteData;
         
-        if (!response.ok) {
-            throw new Error('Erro ao buscar artilheiros');
+        if (!participanteData) {
+            throw new Error('Dados do participante não disponíveis');
         }
 
-        const dados = await response.json();
-        renderizarArtilheiro(dados, timeId);
+        console.log('🏆 [PARTICIPANTE-ARTILHEIRO] Dados do participante:', participanteData);
+
+        const { ligaId, timeId } = participanteData;
+
+        // Mostrar loading
+        mostrarLoading();
+
+        // Carregar dados do artilheiro
+        const dados = await carregarDadosArtilheiro(ligaId, timeId);
+
+        // Renderizar interface
+        renderizarArtilheiro(dados);
+
+        console.log('✅ [PARTICIPANTE-ARTILHEIRO] Módulo inicializado com sucesso');
 
     } catch (error) {
-        console.error('[PARTICIPANTE-ARTILHEIRO] Erro:', error);
+        console.error('❌ [PARTICIPANTE-ARTILHEIRO] Erro ao inicializar:', error);
         mostrarErro(error.message);
     }
-};
+}
 
-function renderizarArtilheiro(dados, meuTimeId) {
-    const container = document.getElementById('artilheiroContainer');
-    
-    if (!dados || dados.length === 0) {
-        container.innerHTML = '<p style="text-align: center; color: #999; padding: 40px;">Nenhum artilheiro registrado</p>';
+function mostrarLoading() {
+    const container = document.getElementById('artilheiro-content');
+    if (!container) {
+        console.warn('[PARTICIPANTE-ARTILHEIRO] Container não encontrado');
         return;
     }
 
+    container.innerHTML = `
+        <div class="text-center p-5">
+            <div class="spinner-border text-primary" role="status">
+                <span class="visually-hidden">Carregando...</span>
+            </div>
+            <p class="mt-3">Carregando dados do Artilheiro Campeão...</p>
+        </div>
+    `;
+}
+
+function mostrarErro(mensagem) {
+    const container = document.getElementById('artilheiro-content');
+    if (!container) return;
+
+    container.innerHTML = `
+        <div class="alert alert-danger">
+            <h4>❌ Erro ao Carregar Dados</h4>
+            <p>${mensagem}</p>
+            <button class="btn btn-primary mt-3" onclick="location.reload()">
+                🔄 Tentar Novamente
+            </button>
+        </div>
+    `;
+}
+
+async function carregarDadosArtilheiro(ligaId, timeId) {
+    console.log(`🏆 [PARTICIPANTE-ARTILHEIRO] Carregando dados da liga ${ligaId}...`);
+
+    try {
+        const response = await fetch(`/api/artilheiro-campeao/${ligaId}/ranking`);
+        
+        if (!response.ok) {
+            throw new Error(`Erro ao buscar dados: ${response.status}`);
+        }
+
+        const dados = await response.json();
+        console.log('🏆 [PARTICIPANTE-ARTILHEIRO] Dados recebidos:', dados);
+
+        // Encontrar posição do participante
+        const minhaPosicao = dados.ranking.findIndex(p => p.timeId == timeId);
+
+        return {
+            ranking: dados.ranking,
+            minhaPosicao: minhaPosicao >= 0 ? minhaPosicao + 1 : null,
+            meusDados: minhaPosicao >= 0 ? dados.ranking[minhaPosicao] : null,
+            estatisticas: dados.estatisticas
+        };
+
+    } catch (error) {
+        console.error('❌ [PARTICIPANTE-ARTILHEIRO] Erro ao carregar dados:', error);
+        throw error;
+    }
+}
+
+function renderizarArtilheiro(dados) {
+    const container = document.getElementById('artilheiro-content');
+    if (!container) return;
+
     const html = `
-        <div class="artilheiro-grid">
-            ${dados.map((artilheiro, index) => {
-                const posicao = index + 1;
-                const meuArtilheiro = artilheiro.time_id === meuTimeId;
-                
-                return `
-                    <div class="artilheiro-card ${posicao <= 3 ? `podium-${posicao}` : ''} ${meuArtilheiro ? 'meu-artilheiro' : ''}">
-                        <div class="artilheiro-posicao">${posicao}º</div>
-                        <div class="artilheiro-nome">${artilheiro.atleta_nome || 'N/D'}</div>
-                        <div class="artilheiro-time">${artilheiro.time_nome || 'N/D'}</div>
-                        <div class="artilheiro-gols">⚽ ${artilheiro.gols || 0} gols</div>
-                    </div>
-                `;
-            }).join('')}
+        <div class="artilheiro-participante">
+            ${renderizarMinhaClassificacao(dados)}
+            ${renderizarTop5(dados)}
+            ${renderizarRankingCompleto(dados)}
         </div>
     `;
 
     container.innerHTML = html;
 }
 
-function mostrarErro(mensagem) {
-    const container = document.getElementById('artilheiroContainer');
-    container.innerHTML = `
-        <div style="text-align: center; padding: 40px; color: #ef4444;">
-            <h3>Erro ao Carregar Artilheiros</h3>
-            <p>${mensagem}</p>
+function renderizarMinhaClassificacao(dados) {
+    if (!dados.meusDados) {
+        return `
+            <div class="alert alert-info">
+                <p>Você ainda não possui dados no ranking do Artilheiro Campeão.</p>
+            </div>
+        `;
+    }
+
+    const { meusDados, minhaPosicao } = dados;
+
+    return `
+        <div class="card mb-4">
+            <div class="card-header bg-primary text-white">
+                <h5 class="mb-0">🏆 Minha Classificação</h5>
+            </div>
+            <div class="card-body">
+                <div class="row text-center">
+                    <div class="col-md-3">
+                        <h3 class="text-primary">${minhaPosicao}º</h3>
+                        <small class="text-muted">Posição</small>
+                    </div>
+                    <div class="col-md-3">
+                        <h3 class="text-success">${meusDados.golsPro || 0}</h3>
+                        <small class="text-muted">Gols Pró</small>
+                    </div>
+                    <div class="col-md-3">
+                        <h3 class="text-danger">${meusDados.golsContra || 0}</h3>
+                        <small class="text-muted">Gols Contra</small>
+                    </div>
+                    <div class="col-md-3">
+                        <h3 class="${(meusDados.saldoGols || 0) >= 0 ? 'text-success' : 'text-danger'}">
+                            ${(meusDados.saldoGols || 0) >= 0 ? '+' : ''}${meusDados.saldoGols || 0}
+                        </h3>
+                        <small class="text-muted">Saldo</small>
+                    </div>
+                </div>
+            </div>
         </div>
     `;
 }
 
-console.log('[PARTICIPANTE-ARTILHEIRO] ✅ Módulo carregado');
+function renderizarTop5(dados) {
+    const top5 = dados.ranking.slice(0, 5);
+
+    return `
+        <div class="card mb-4">
+            <div class="card-header">
+                <h5 class="mb-0">👑 Top 5 Artilheiros</h5>
+            </div>
+            <div class="card-body p-0">
+                <div class="table-responsive">
+                    <table class="table table-hover mb-0">
+                        <thead class="table-light">
+                            <tr>
+                                <th class="text-center">Pos</th>
+                                <th>Cartoleiro</th>
+                                <th class="text-center">GP</th>
+                                <th class="text-center">GC</th>
+                                <th class="text-center">Saldo</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            ${top5.map((p, idx) => `
+                                <tr class="${p.timeId == window.participanteData?.timeId ? 'table-primary' : ''}">
+                                    <td class="text-center">
+                                        ${idx === 0 ? '🏆' : `${idx + 1}º`}
+                                    </td>
+                                    <td>${p.nomeCartoleiro || 'N/D'}</td>
+                                    <td class="text-center text-success fw-bold">${p.golsPro || 0}</td>
+                                    <td class="text-center text-danger fw-bold">${p.golsContra || 0}</td>
+                                    <td class="text-center ${(p.saldoGols || 0) >= 0 ? 'text-success' : 'text-danger'} fw-bold">
+                                        ${(p.saldoGols || 0) >= 0 ? '+' : ''}${p.saldoGols || 0}
+                                    </td>
+                                </tr>
+                            `).join('')}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    `;
+}
+
+function renderizarRankingCompleto(dados) {
+    return `
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0">📊 Classificação Completa</h5>
+            </div>
+            <div class="card-body p-0">
+                <div class="table-responsive">
+                    <table class="table table-hover mb-0">
+                        <thead class="table-light">
+                            <tr>
+                                <th class="text-center">Pos</th>
+                                <th>Cartoleiro</th>
+                                <th>Time</th>
+                                <th class="text-center">GP</th>
+                                <th class="text-center">GC</th>
+                                <th class="text-center">Saldo</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            ${dados.ranking.map((p, idx) => `
+                                <tr class="${p.timeId == window.participanteData?.timeId ? 'table-primary fw-bold' : ''}">
+                                    <td class="text-center">${idx + 1}º</td>
+                                    <td>${p.nomeCartoleiro || 'N/D'}</td>
+                                    <td>${p.nomeTime || 'N/D'}</td>
+                                    <td class="text-center text-success">${p.golsPro || 0}</td>
+                                    <td class="text-center text-danger">${p.golsContra || 0}</td>
+                                    <td class="text-center ${(p.saldoGols || 0) >= 0 ? 'text-success' : 'text-danger'}">
+                                        ${(p.saldoGols || 0) >= 0 ? '+' : ''}${p.saldoGols || 0}
+                                    </td>
+                                </tr>
+                            `).join('')}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    `;
+}
+
+console.log('✅ [PARTICIPANTE-ARTILHEIRO] Módulo carregado');
