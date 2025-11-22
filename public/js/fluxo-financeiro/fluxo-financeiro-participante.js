@@ -128,6 +128,10 @@ class FluxoFinanceiroParticipante {
     async buscarExtratoCalculado(ligaId, timeId, rodadaAtualParam = null) {
         console.log('[FLUXO-PARTICIPANTE] Buscando dados calculados...');
 
+        if (!this.isInitialized) {
+            throw new Error('Módulo não inicializado. Chame inicializar() primeiro.');
+        }
+
         try {
             // Usar rodada fornecida ou buscar do mercado
             let rodadaAtual = rodadaAtualParam;
@@ -141,39 +145,46 @@ class FluxoFinanceiroParticipante {
 
             console.log(`[FLUXO-PARTICIPANTE] 📅 Usando rodada atual: ${rodadaAtual}`);
 
-            // Tentar buscar do cache primeiro
-            const { buscarExtratoCache } = await import('./fluxo-financeiro-core.js');
-            const extratoCache = await buscarExtratoCache(ligaId, timeId, rodadaAtual);
-
-            if (extratoCache) {
-                // Verificar se a rodada do cache corresponde à rodada atual
-                const rodadaCacheKey = `fluxo_rodada_${ligaId}_${timeId}`;
-                const rodadaCache = localStorage.getItem(rodadaCacheKey);
-
-                if (rodadaCache && parseInt(rodadaCache) !== rodadaAtual) {
-                    console.log(`[FLUXO-PARTICIPANTE] ⚠️ Rodada mudou (cache: ${rodadaCache}, atual: ${rodadaAtual}) - invalidando cache`);
-                    // Continuar para recálculo
-                } else {
-                    console.log('[FLUXO-PARTICIPANTE] ✅ Cache válido encontrado');
-                    // Salvar rodada atual no cache
-                    localStorage.setItem(rodadaCacheKey, rodadaAtual.toString());
-                    return extratoCache;
+            // Tentar buscar do cache do backend (API)
+            const cacheKey = `extrato_${ligaId}_${timeId}_${rodadaAtual}`;
+            
+            try {
+                console.log('[FLUXO-PARTICIPANTE] 🔍 Buscando cache via API...');
+                const cacheRes = await fetch(`/api/extrato-cache/${ligaId}/${timeId}/${rodadaAtual}`);
+                
+                if (cacheRes.ok) {
+                    const cacheData = await cacheRes.json();
+                    if (cacheData && cacheData.extrato) {
+                        console.log('[FLUXO-PARTICIPANTE] ✅ Cache válido encontrado na API');
+                        return cacheData.extrato;
+                    }
                 }
+            } catch (cacheError) {
+                console.log('[FLUXO-PARTICIPANTE] ⚠️ Cache não encontrado, calculando...');
             }
 
             // Se não encontrou cache válido, calcular
             console.log('[FLUXO-PARTICIPANTE] 🧮 Calculando extrato...');
             const extratoCompleto = await this.core.calcularExtratoFinanceiro(timeId, rodadaAtual);
 
-            // Salvar no cache
-            const { salvarExtratoCache } = await import('./fluxo-financeiro-core.js');
-            await salvarExtratoCache(ligaId, timeId, rodadaAtual, extratoCompleto);
+            // Salvar no cache via API
+            try {
+                console.log('[FLUXO-PARTICIPANTE] 💾 Salvando extrato no cache...');
+                await fetch('/api/extrato-cache', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        ligaId,
+                        timeId,
+                        rodada: rodadaAtual,
+                        extrato: extratoCompleto
+                    })
+                });
+                console.log('[FLUXO-PARTICIPANTE] ✅ Extrato salvo no cache');
+            } catch (saveError) {
+                console.warn('[FLUXO-PARTICIPANTE] ⚠️ Erro ao salvar cache:', saveError.message);
+            }
 
-            // Salvar rodada atual no localStorage
-            const rodadaCacheKey = `fluxo_rodada_${ligaId}_${timeId}`;
-            localStorage.setItem(rodadaCacheKey, rodadaAtual.toString());
-
-            console.log('[FLUXO-PARTICIPANTE] ✅ Extrato calculado e salvo');
             return extratoCompleto;
 
         } catch (error) {
