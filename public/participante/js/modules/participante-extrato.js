@@ -90,10 +90,10 @@ export async function inicializarExtratoParticipante({ participante, ligaId, tim
 
         try {
             const cacheResponse = await fetch(`/api/extrato-cache/${ligaId}/times/${timeId}/cache?rodadaAtual=${ultimaRodadaCompleta}`);
-            
+
             if (cacheResponse.ok) {
                 const cacheData = await cacheResponse.json();
-                
+
                 if (cacheData && cacheData.cached && cacheData.data && cacheData.data.rodadas) {
                     // Verificar se há valores de Mata-Mata em rodadas futuras (bug antigo)
                     const rodadasComMataMataFuturo = cacheData.data.rodadas.filter(r => 
@@ -145,16 +145,15 @@ export async function inicializarExtratoParticipante({ participante, ligaId, tim
         const extratoData = await fluxoFinanceiroParticipante.buscarExtratoCalculado(ligaId, timeId, ultimaRodadaCompleta, true);
 
         console.log('[EXTRATO-PARTICIPANTE] 🎨 Renderizando UI personalizada...');
-        console.log('[EXTRATO-PARTICIPANTE] 📊 Dados do extrato:', extratoData);
-        console.log('[EXTRATO-PARTICIPANTE] 📊 Estrutura do extrato:', {
+        console.log(`[EXTRATO-PARTICIPANTE] 📊 Dados do extrato:`, extratoData);
+        console.log(`[EXTRATO-PARTICIPANTE] 📊 Estrutura do extrato:`, {
             temRodadas: !!extratoData?.rodadas,
             qtdRodadas: extratoData?.rodadas?.length || 0,
             temResumo: !!extratoData?.resumo,
             saldo: extratoData?.resumo?.saldo
         });
 
-        // Verificar se container existe
-        const container = document.getElementById('fluxoFinanceiroContent');
+        // Verificar se container ainda existe (já foi verificado no início)
         if (!container) {
             console.error('[EXTRATO-PARTICIPANTE] ❌ Container "fluxoFinanceiroContent" não encontrado!');
             mostrarErro('Container de extrato não encontrado. Recarregue a página.');
@@ -220,7 +219,7 @@ export function initExtratoParticipante() {
 // ===== FUNÇÃO DE REFRESH FORÇADO =====
 window.forcarRefreshExtratoParticipante = async function() {
     console.log('[EXTRATO-PARTICIPANTE] 🔄 Forçando atualização dos dados...');
-    
+
     if (!PARTICIPANTE_IDS.ligaId || !PARTICIPANTE_IDS.timeId) {
         console.error('[EXTRATO-PARTICIPANTE] IDs não disponíveis para refresh');
         return;
