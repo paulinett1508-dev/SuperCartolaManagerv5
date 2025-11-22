@@ -24,7 +24,7 @@ async function inicializarMataMataParticipante(ligaId, timeId) {
     } catch (error) {
         console.error('[PARTICIPANTE-MATA-MATA] Erro:', error);
         
-        const container = document.getElementById('mataMataContent');
+        const container = document.getElementById('mataMataContainer');
         if (container) {
             container.innerHTML = `
                 <div style="text-align: center; padding: 40px; background: rgba(239, 68, 68, 0.1); border-radius: 12px; border: 1px solid rgba(239, 68, 68, 0.3);">
@@ -41,7 +41,7 @@ async function inicializarMataMataParticipante(ligaId, timeId) {
  * Renderiza os dados do Mata-Mata
  */
 function renderizarMataMata(data, timeId) {
-    const container = document.getElementById('mataMataContent');
+    const container = document.getElementById('mataMataContainer');
     if (!container) {
         console.error('[PARTICIPANTE-MATA-MATA] Container não encontrado');
         return;
