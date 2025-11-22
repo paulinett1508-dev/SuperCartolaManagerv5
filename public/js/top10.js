@@ -253,7 +253,7 @@ async function renderizarTabelasTop10() {
 // ==============================
 // GERAÇÃO DE HTML DA TABELA
 // ==============================
-function gerarTabelaHTML(dados, tipo, valoresBonus) {
+function gerarTabelaHTML(dados, tipo, valoresBonusOnus) {
   if (!dados || dados.length === 0) {
     return `
       <div class="error-state">
@@ -263,6 +263,9 @@ function gerarTabelaHTML(dados, tipo, valoresBonus) {
   }
 
   const corHeader = tipo === "mitos" ? "var(--success)" : "var(--danger)";
+  
+  // Acessar corretamente os valores baseado no tipo (mitos ou micos)
+  const valoresBonus = tipo === "mitos" ? valoresBonusOnus.mitos : valoresBonusOnus.micos;
 
   return `
     <table class="tabela-top10">
