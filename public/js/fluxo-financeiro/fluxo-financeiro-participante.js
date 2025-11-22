@@ -159,8 +159,6 @@ class FluxoFinanceiroParticipante {
             console.log(`[FLUXO-PARTICIPANTE] 📅 Usando rodada para cálculo: ${rodadaAtual}`);
 
             // Tentar buscar do cache do backend (API)
-            const cacheKey = `extrato_${ligaId}_${timeId}_${rodadaAtual}`;
-
             try {
                 console.log('[FLUXO-PARTICIPANTE] 🔍 Buscando cache via API...');
                 const cacheRes = await fetch(`/api/extrato-cache/${ligaId}/times/${timeId}/cache?rodadaAtual=${rodadaAtual}`);
