@@ -8,26 +8,30 @@ window.inicializarBoasVindas = async function(ligaId, timeId) {
 
     try {
         // Buscar dados em paralelo
-        const [resRanking, resRodadas, resFluxo] = await Promise.all([
+        const [resRanking, resRodadas, resFluxo, resTime] = await Promise.all([
             fetch(`/api/ligas/${ligaId}/ranking`),
             fetch(`/api/rodadas/${ligaId}/rodadas?inicio=1&fim=38`),
-            fetch(`/api/fluxo-financeiro/${ligaId}`)
+            fetch(`/api/fluxo-financeiro/${ligaId}`),
+            fetch(`/api/times/${timeId}`)
         ]);
 
         console.log('[BOAS-VINDAS] Status das requisições:', {
             ranking: resRanking.ok,
             rodadas: resRodadas.ok,
-            fluxo: resFluxo.ok
+            fluxo: resFluxo.ok,
+            time: resTime.ok
         });
 
         const ranking = resRanking.ok ? await resRanking.json() : [];
         const rodadas = resRodadas.ok ? await resRodadas.json() : [];
         const fluxoData = resFluxo.ok ? await resFluxo.json() : [];
+        const timeData = resTime.ok ? await resTime.json() : null;
 
         console.log('[BOAS-VINDAS] Dados recebidos:', {
             rankingLength: ranking.length,
             rodadasLength: rodadas.length,
-            fluxoLength: fluxoData.length
+            fluxoLength: fluxoData.length,
+            timeData: timeData
         });
 
         // Processar dados
@@ -75,7 +79,9 @@ window.inicializarBoasVindas = async function(ligaId, timeId) {
             pontosTotal,
             saldoFinanceiro,
             ultimaRodada,
-            meuTime
+            meuTime,
+            timeData,
+            timeId
         });
 
     } catch (error) {
@@ -86,12 +92,14 @@ window.inicializarBoasVindas = async function(ligaId, timeId) {
             pontosTotal: 0,
             saldoFinanceiro: 0,
             ultimaRodada: null,
-            meuTime: null
+            meuTime: null,
+            timeData: null,
+            timeId: timeId
         });
     }
 };
 
-function preencherBoasVindas({ posicao, totalParticipantes, pontosTotal, saldoFinanceiro, ultimaRodada, meuTime }) {
+function preencherBoasVindas({ posicao, totalParticipantes, pontosTotal, saldoFinanceiro, ultimaRodada, meuTime, timeData, timeId }) {
     console.log('[BOAS-VINDAS] Preenchendo interface com:', {
         posicao,
         totalParticipantes,
@@ -161,7 +169,7 @@ function preencherBoasVindas({ posicao, totalParticipantes, pontosTotal, saldoFi
     }
 
     // Buscar informações do time do coração
-    const clubeId = meuTime?.clube_id || participanteData?.clube_id;
+    const clubeId = meuTime?.clube_id || timeData?.clube_id;
     if (clubeId) {
         buscarInfoTimeCoracao(clubeId);
     } else {
