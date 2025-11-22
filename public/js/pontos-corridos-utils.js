@@ -132,9 +132,8 @@ export async function montarPontuacoesPorTime(ligaId, rodada) {
 
 // Nova função para buscar todos os confrontos da Liga Pontos Corridos com pontuações
 // Retorna: Array de objetos { rodada: num, jogos: [{ timeA, timeB, pontosA, pontosB }] }
-export async function getConfrontosLigaPontosCorridos() {
-  // ✅ USAR FUNÇÃO GLOBAL obterLigaId()
-  const ligaId = window.obterLigaId ? window.obterLigaId() : obterLigaId();
+export async function getConfrontosLigaPontosCorridos(ligaIdParam = null) {
+  const ligaId = ligaIdParam || obterLigaId();
 
   if (!ligaId) {
     console.warn(' ID da Liga não encontrado para buscar confrontos LPC.');
@@ -221,6 +220,12 @@ export async function getConfrontosLigaPontosCorridos() {
 
 // Função auxiliar para obter o ID da liga (extraído da URL)
 export function obterLigaId() {
+  const urlParams = new URLSearchParams(window.location.search);
+  return urlParams.get("id");
+}
+
+// Renomeado getLigaIdFromURL para obterLigaId para consistência
+function getLigaIdFromURL() {
   const urlParams = new URLSearchParams(window.location.search);
   return urlParams.get("id");
 }

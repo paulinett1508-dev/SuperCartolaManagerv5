@@ -87,7 +87,7 @@ export async function getResultadosMataMata() {
       "[MATA-FINANCEIRO] Não foi possível buscar status do mercado.",
     );
   }
-  
+
   // Se mercado aberto, usar rodada anterior como base para cálculos
   const rodadaBaseCalculo = mercadoAberto ? Math.max(1, rodada_atual - 1) : rodada_atual;
 
@@ -237,11 +237,10 @@ export async function getResultadosMataMata() {
 }
 
 // Função para obter resultados consolidados para fluxo financeiro
-export async function getResultadosMataMataFluxo() {
-  console.log('[MATA-FINANCEIRO] Calculando TODAS as edições concluídas...');
+export async function getResultadosMataMataFluxo(ligaIdParam = null) {
+  console.log("[MATA-FINANCEIRO] Calculando TODAS as edições concluídas...");
 
-  // ✅ USAR FUNÇÃO GLOBAL obterLigaId()
-  const ligaId = window.obterLigaId ? window.obterLigaId() : getLigaId();
+  const ligaId = ligaIdParam || getLigaId(); // Use the global getLigaId() if not provided
 
   if (!ligaId) {
     console.warn(' [MATA-FINANCEIRO] ID da Liga não encontrado.');

@@ -49,30 +49,30 @@ export async function inicializarMelhorMes() {
 window.inicializarMelhorMes = inicializarMelhorMes;
 
 // FUNÇÃO COMPATÍVEL PARA OUTROS MÓDULOS
-export async function getResultadosMelhorMes() {
-  console.log("[MELHOR-MES] Obtendo resultados...");
+export async function getResultadosMelhorMes(ligaIdParam = null) {
+    console.log("[MELHOR-MES] Obtendo resultados...");
 
-  try {
-    // ✅ VALIDAÇÃO: Verificar se ligaId está disponível
-    const ligaId = window.ligaIdAtual || window.currentLigaId;
+    // Obter ID da liga
+    const ligaId = ligaIdParam || window.ligaIdAtual || window.currentLigaId;
 
     if (!ligaId || ligaId === 'null') {
         console.warn("[MELHOR-MES] Liga ID não disponível, retornando vazio");
         return [];
     }
 
-    await carregarModulos();
+    try {
+      await carregarModulos();
 
-    if (melhorMesOrquestrador) {
-      return await melhorMesOrquestrador.obterVencedores();
+      if (melhorMesOrquestrador) {
+        return await melhorMesOrquestrador.obterVencedores();
+      }
+
+      // Fallback
+      return await getResultadosMelhorMesFallback();
+    } catch (error) {
+      console.error("[MELHOR-MES] Erro ao obter resultados:", error);
+      return [];
     }
-
-    // Fallback
-    return await getResultadosMelhorMesFallback();
-  } catch (error) {
-    console.error("[MELHOR-MES] Erro ao obter resultados:", error);
-    return [];
-  }
 }
 
 // ==============================
@@ -162,7 +162,7 @@ async function carregarRankingEdicaoFallback(idxEdicao) {
   `;
 
   try {
-    const ligaId = getLigaId();
+    const ligaId = getLigaId(); // Assume que getLigaId() busca o ID da URL se necessário
     const resMercado = await fetch("/api/cartola/mercado/status");
     const { rodada_atual } = await resMercado.json();
     const ultimaRodadaCompleta = rodada_atual - 1;
@@ -237,7 +237,7 @@ function renderTabelaFallback(ranking, edicao) {
   const container = document.getElementById("melhorMesTabela");
   if (!container) return;
 
-  const ligaId = getLigaId();
+  const ligaId = getLigaId(); // Assume que getLigaId() busca o ID da URL se necessário
   const isLigaCartoleirosSobral = ligaId === "684d821cf1a7ae16d1f89572";
 
   const tabelaBodyHtml = ranking

@@ -292,19 +292,18 @@ export class FluxoFinanceiroCache {
                 return;
             }
 
-            // Buscar confrontos de Pontos Corridos
-            console.log('[FLUXO-CACHE] 🔑 Usando ligaId:', this.ligaId);
+            // Buscar confrontos de Pontos Corridos (passar ligaId explicitamente)
             const confrontosLPC = await getConfrontosLigaPontosCorridos(this.ligaId);
-            const resultadosMM = await getResultadosMataMataFluxo().catch(() => ({
+            const resultadosMataMata = await getResultadosMataMataFluxo(this.ligaId).catch(() => ({
                 participantes: [],
                 edicoes: [],
             }));
-            // Só buscar Melhor Mês se ligaId for válido
+            // Só buscar Melhor do Mês (passar ligaId explicitamente)
             const resultadosMelhorMes = this.ligaId ? await getResultadosMelhorMes(this.ligaId).catch(() => []) : Promise.resolve([]);
 
             // Armazenar resultados
             this.cacheConfrontosLPC = confrontosLPC || [];
-            this.cacheResultadosMM = resultadosMM || { participantes: [], edicoes: [] };
+            this.cacheResultadosMM = resultadosMataMata || { participantes: [], edicoes: [] };
             this.cacheResultadosMelhorMes = Array.isArray(resultadosMelhorMes)
                 ? resultadosMelhorMes
                 : [];
