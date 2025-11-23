@@ -39,20 +39,23 @@ export class FluxoFinanceiroCache {
     async inicializar(ligaId) {
         console.log('[FLUXO-CACHE] Inicializando cache para liga:', ligaId);
 
-        // ✅ ARMAZENAR ligaId globalmente para uso pelos módulos
-        this.ligaId = ligaId;
-        window.ligaId = ligaId; // Expor globalmente também
+        // ✅ GARANTIR ligaId ESTÁ DISPONÍVEL (fallback para obterLigaId())
+        this.ligaId = ligaId || obterLigaId();
+        
+        if (!this.ligaId) {
+            console.error('[FLUXO-CACHE] ❌ ligaId não disponível, impossível inicializar cache');
+            return;
+        }
 
-        // Aguardar carregamento de participantes
+        window.ligaId = this.ligaId; // Expor globalmente
+        console.log('[FLUXO-CACHE] ✅ ligaId confirmado:', this.ligaId);
+
+        // SEQUÊNCIA GARANTIDA: participantes → pontos corridos → dados externos
         await this.carregarParticipantes();
-
-        // ✅ CARREGAR CONFRONTOS DE PONTOS CORRIDOS (CRÍTICO!)
         await this.carregarDadosPontosCorridos();
-
-        // Carregar dados externos (Mata-Mata, Pontos Corridos, etc.)
         await this.carregarDadosExternos();
 
-        console.log('[FLUXO-CACHE] Cache inicializado com sucesso');
+        console.log('[FLUXO-CACHE] ✅ Cache inicializado com sucesso');
     }
 
     getUltimaRodadaCompleta() {
@@ -255,30 +258,39 @@ export class FluxoFinanceiroCache {
     }
 
     async carregarDadosPontosCorridos() {
-        const ligaId = this.ligaId || obterLigaId();
-        if (ligaId === ID_SUPERCARTOLA_2025) {
-            try {
-                this.timesLiga = await buscarTimesLiga(ligaId);
-                this.timesLiga = this.timesLiga.filter(
-                    (t) => t && typeof t.id === "number",
-                );
+        // ✅ VALIDAR ligaId ANTES DE PROSSEGUIR
+        if (!this.ligaId) {
+            console.warn('[FLUXO-CACHE] ⚠️ ligaId não disponível, pulando Pontos Corridos');
+            this.timesLiga = [];
+            this.cacheFrontosPontosCorridos = [];
+            return;
+        }
 
-                if (this.timesLiga.length > 0) {
-                    this.cacheFrontosPontosCorridos = gerarConfrontos(
-                        this.timesLiga,
-                    );
-                    console.log(
-                        `[FLUXO-CACHE] Confrontos Pontos Corridos: ${this.cacheFrontosPontosCorridos.length} rodadas`,
-                    );
-                }
-            } catch (error) {
-                console.error(
-                    "[FLUXO-CACHE] Erro ao carregar Pontos Corridos:",
-                    error,
+        try {
+            // ✅ FUNCIONA PARA TODAS AS LIGAS (não só ID_SUPERCARTOLA_2025)
+            this.timesLiga = await buscarTimesLiga(this.ligaId);
+            this.timesLiga = this.timesLiga.filter(
+                (t) => t && typeof t.id === "number",
+            );
+
+            if (this.timesLiga.length > 0) {
+                this.cacheFrontosPontosCorridos = gerarConfrontos(
+                    this.timesLiga,
                 );
-                this.timesLiga = [];
+                console.log(
+                    `[FLUXO-CACHE] ✅ Confrontos Pontos Corridos: ${this.cacheFrontosPontosCorridos.length} rodadas para ${this.timesLiga.length} times`,
+                );
+            } else {
+                console.warn('[FLUXO-CACHE] ⚠️ Nenhum time encontrado para gerar confrontos');
                 this.cacheFrontosPontosCorridos = [];
             }
+        } catch (error) {
+            console.error(
+                "[FLUXO-CACHE] ❌ Erro ao carregar Pontos Corridos:",
+                error,
+            );
+            this.timesLiga = [];
+            this.cacheFrontosPontosCorridos = [];
         }
     }
 
