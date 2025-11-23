@@ -25,7 +25,7 @@ export const edicoes = [
     rodadaInicial: 15,
     rodadaFinal: 21,
     rodadaDefinicao: 15,
-    ativo: false,
+    ativo: true, // ✅ ATIVADO
   },
   {
     id: 4,
@@ -33,7 +33,7 @@ export const edicoes = [
     rodadaInicial: 22,
     rodadaFinal: 26,
     rodadaDefinicao: 21,
-    ativo: false,
+    ativo: true, // ✅ ATIVADO
   },
   {
     id: 5,
@@ -41,7 +41,7 @@ export const edicoes = [
     rodadaInicial: 31,
     rodadaFinal: 35,
     rodadaDefinicao: 30,
-    ativo: false,
+    ativo: true, // ✅ ATIVADO (Estamos na final desta!)
   },
 ];
 
@@ -51,7 +51,6 @@ export function getRodadaPontosText(faseLabel, edicao) {
   if (!edicaoSelecionada) return "";
   const rodadaBase = edicaoSelecionada.rodadaInicial;
 
-  // Todas as edições seguem a mesma estrutura agora
   switch (faseLabel.toUpperCase()) {
     case "1ª FASE":
       return `Pontuação da Rodada ${rodadaBase}`;
@@ -68,13 +67,11 @@ export function getRodadaPontosText(faseLabel, edicao) {
   }
 }
 
-// Função para obter número da rodada de pontos
 export function getRodadaPontosNum(fase, edicao) {
   const edicaoSelecionada = edicoes.find((e) => e.id === edicao);
   if (!edicaoSelecionada) return 0;
   const rodadaBase = edicaoSelecionada.rodadaInicial;
 
-  // Todas as edições seguem a mesma estrutura agora
   switch (fase.toLowerCase()) {
     case "primeira":
       return rodadaBase;
@@ -91,7 +88,6 @@ export function getRodadaPontosNum(fase, edicao) {
   }
 }
 
-// Função para obter nome da edição
 export function getEdicaoMataMata(edicao) {
   const edicaoSelecionada = edicoes.find((e) => e.id === edicao);
   return edicaoSelecionada
@@ -99,7 +95,6 @@ export function getEdicaoMataMata(edicao) {
     : "Mata-Mata";
 }
 
-// Função para gerar texto do confronto
 export function gerarTextoConfronto(faseLabel) {
   const faseUpper = faseLabel.toUpperCase();
   if (faseUpper === "1ª FASE") return "Confronto da 1ª FASE";
@@ -110,43 +105,18 @@ export function gerarTextoConfronto(faseLabel) {
   return `Confronto da ${faseLabel}`;
 }
 
-// Função para gerar informações das fases
-export function getFaseInfo(edicaoAtual, edicaoSelecionada) {
-  return {
-    primeira: {
-      label: "1ª FASE",
-      pontosRodada: edicaoSelecionada.rodadaInicial,
-      numJogos: 16,
-      prevFaseRodada: null,
-    },
-    oitavas: {
-      label: "OITAVAS",
-      pontosRodada: edicaoSelecionada.rodadaInicial + 1,
-      numJogos: 8,
-      prevFaseRodada: edicaoSelecionada.rodadaInicial,
-    },
-    quartas: {
-      label: "QUARTAS",
-      pontosRodada: edicaoSelecionada.rodadaInicial + 2,
-      numJogos: 4,
-      prevFaseRodada: edicaoSelecionada.rodadaInicial + 1,
-    },
-    semis: {
-      label: "SEMIS",
-      pontosRodada: edicaoSelecionada.rodadaInicial + 3,
-      numJogos: 2,
-      prevFaseRodada: edicaoSelecionada.rodadaInicial + 2,
-    },
-    final: {
-      label: "FINAL",
-      pontosRodada: edicaoSelecionada.rodadaInicial + 4,
-      numJogos: 1,
-      prevFaseRodada: edicaoSelecionada.rodadaInicial + 3,
-    },
+export function getFaseInfo(faseNome, edicao) {
+  const nomeLower = faseNome.toLowerCase();
+  const map = {
+    oitavas: { numJogos: 8, pontosRodada: edicao.rodadaInicial + 1 },
+    quartas: { numJogos: 4, pontosRodada: edicao.rodadaInicial + 2 },
+    semifinal: { numJogos: 2, pontosRodada: edicao.rodadaInicial + 3 }, // Corrigido para bater com a chave do Orquestrador
+    semis: { numJogos: 2, pontosRodada: edicao.rodadaInicial + 3 },
+    final: { numJogos: 1, pontosRodada: edicao.rodadaInicial + 4 },
   };
+  return map[nomeLower] || map["final"];
 }
 
-// Função para obter ID da liga
 export function getLigaId() {
   const urlParams = new URLSearchParams(window.location.search);
   return urlParams.get("id");
