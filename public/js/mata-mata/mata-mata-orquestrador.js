@@ -231,15 +231,17 @@ async function recalcularDadosEdicao(ligaId, edicaoId) {
     for (const f of fases) {
         if (vencedoresAtuais.length < 2) break;
 
-        const info = getFaseInfo(f.nome, edicao);
+        // ✅ CORREÇÃO: Ordem correta dos parâmetros (edicaoAtual, edicaoObjeto)
+        const faseInfoMap = getFaseInfo(edicao.id, edicao);
+        const info = faseInfoMap[f.chave];
         
         // Validação crítica: garantir que rodada existe
-        if (!info || !info.rodada) {
+        if (!info || !info.pontosRodada) {
             console.warn(`[MATA-ORQUESTRADOR] ⚠️ Rodada não definida para fase ${f.nome}, pulando...`);
             continue;
         }
         
-        const pontos = await getPontosDaRodada(ligaId, info.rodada);
+        const pontos = await getPontosDaRodada(ligaId, info.pontosRodada);
 
         const confrontos = montarConfrontosFase(
             vencedoresAtuais,
