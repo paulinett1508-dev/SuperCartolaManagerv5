@@ -50,7 +50,7 @@ async function lerCacheTop10(ligaId, rodada) {
  */
 async function salvarCacheTop10(ligaId, rodada, mitos, micos) {
   try {
-    await fetch(`/api/top10/cache/${ligaId}`, {
+    const response = await fetch(`/api/top10/cache/${ligaId}`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
@@ -59,9 +59,17 @@ async function salvarCacheTop10(ligaId, rodada, mitos, micos) {
         micos: micos,
       }),
     });
-    console.log(`[TOP10] 💾 Snapshot da Rodada ${rodada} salvo com sucesso!`);
+
+    // Só comemora se o servidor responder OK (200-299)
+    if (response.ok) {
+      console.log(`[TOP10] 💾 Snapshot da Rodada ${rodada} salvo com sucesso!`);
+    } else {
+      console.warn(
+        `[TOP10] ❌ Falha ao salvar cache: Servidor respondeu ${response.status}`,
+      );
+    }
   } catch (error) {
-    console.warn("[TOP10] Falha ao salvar cache:", error);
+    console.warn("[TOP10] ❌ Erro de conexão ao salvar cache:", error);
   }
 }
 
