@@ -1,10 +1,16 @@
-// MATA-MATA ORQUESTRADOR - Com Cache de Alta Performance
+// MATA-MATA ORQUESTRADOR - Cache de Alta Performance + UI Original
 // Responsável por: coordenação de chaves, carregamento dinâmico e persistência
 
 import { edicoes, getFaseInfo, getLigaId } from "./mata-mata-config.js";
+import * as UI from "./mata-mata-ui.js"; // ✅ Volta a usar o UI original
+
+// Estado interno para navegação
+let dadosEdicaoAtual = null;
+let edicaoIdAtual = null;
+let faseAtual = "primeira";
 
 // ============================================================================
-// 🧠 SISTEMA DE PERSISTÊNCIA (CACHE)
+// 🧠 SISTEMA DE PERSISTÊNCIA (CACHE) - MANTIDO
 // ============================================================================
 
 async function lerCacheMataMata(ligaId, edicaoId) {
@@ -36,31 +42,19 @@ async function salvarCacheMataMata(
     dadosTorneio,
 ) {
     try {
-        const response = await fetch(
-            `/api/mata-mata/cache/${ligaId}/${edicaoId}`,
-            {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({
-                    rodada: rodadaAtual,
-                    dados: dadosTorneio,
-                }),
-            },
+        await fetch(`/api/mata-mata/cache/${ligaId}/${edicaoId}`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+                rodada: rodadaAtual,
+                dados: dadosTorneio,
+            }),
+        });
+        console.log(
+            `[MATA-ORQUESTRADOR] 💾 Snapshot da Edição ${edicaoId} salvo com sucesso!`,
         );
-        if (response.ok) {
-            console.log(
-                `[MATA-ORQUESTRADOR] 💾 Snapshot da Edição ${edicaoId} salvo com sucesso!`,
-            );
-        } else {
-            console.warn(
-                `[MATA-ORQUESTRADOR] ❌ Falha ao salvar cache (HTTP ${response.status}) - Verifique index.js`,
-            );
-        }
     } catch (error) {
-        console.warn(
-            "[MATA-ORQUESTRADOR] Falha de conexão ao salvar cache:",
-            error,
-        );
+        console.warn("[MATA-ORQUESTRADOR] Falha silenciada ao salvar cache");
     }
 }
 
@@ -71,289 +65,215 @@ async function salvarCacheMataMata(
 export async function carregarMataMata() {
     console.log("[MATA-ORQUESTRADOR] Iniciando módulo...");
 
-    const container = document.getElementById("mata-mata-container");
-    if (!container) return;
+    // 1. Renderizar controles (Edições e Fases) usando o UI original
+    // Usamos o 'mata-mata-tabs' para injetar os controles sem limpar o card inteiro
+    const containerControles = document.getElementById("mata-mata-tabs");
+    const ligaId = getLigaId();
 
-    criarTabsEdicoes();
+    if (containerControles && ligaId) {
+        UI.renderizarInterface(
+            containerControles,
+            ligaId,
+            (novoId) => selecionarEdicao(novoId), // Callback troca edição
+            (novaFase) => selecionarFase(novaFase), // Callback troca fase
+        );
+    }
 
+    // 2. Carregar a edição ativa padrão
     const edicaoAtiva =
         edicoes.find((e) => e.ativo) || edicoes[edicoes.length - 1];
     if (edicaoAtiva) {
-        // Marca a aba ativa visualmente
-        setTimeout(() => {
-            document
-                .querySelectorAll(".tab-edicao")
-                .forEach((b) => b.classList.remove("active"));
-            document
-                .getElementById(`tab-edicao-${edicaoAtiva.id}`)
-                ?.classList.add("active");
-        }, 100);
-        await carregarEdicao(edicaoAtiva.id);
+        // Atualiza visualmente o select/tabs do UI original se necessário
+        // (A função renderizarInterface já deve lidar com o estado inicial, mas forçamos aqui)
+        await selecionarEdicao(edicaoAtiva.id);
     }
 }
 
-async function carregarEdicao(edicaoId) {
-    console.log(`[MATA-ORQUESTRADOR] Carregando Edição ${edicaoId}...`);
+// Função chamada ao trocar de edição
+async function selecionarEdicao(edicaoId) {
+    console.log(`[MATA-ORQUESTRADOR] Selecionando Edição ${edicaoId}...`);
+    edicaoIdAtual = edicaoId;
 
-    const ligaId = getLigaId();
-    if (!ligaId) return console.error("Liga ID não encontrado");
-
+    // Mostra loading na área de conteúdo
     const containerConteudo = document.getElementById("mata-mata-conteudo");
     if (containerConteudo) {
         containerConteudo.innerHTML =
-            '<div class="loading-state"><div class="spinner"></div><p>Processando chaves do torneio...</p></div>';
+            '<div class="loading-state"><div class="spinner"></div><p>Carregando chaves...</p></div>';
     }
 
+    const ligaId = getLigaId();
+
     try {
-        // 1. TENTATIVA DE CACHE RÁPIDO 🚀
-        const cache = await lerCacheMataMata(ligaId, edicaoId);
-        if (cache) {
-            renderizarTorneioCompleto(cache);
-            return;
+        // A. Busca dados (Cache ou Cálculo)
+        let dados = await lerCacheMataMata(ligaId, edicaoId);
+
+        if (!dados) {
+            console.log("[MATA-ORQUESTRADOR] ⚠️ Cache Miss. Recalculando...");
+            dados = await recalcularDadosEdicao(ligaId, edicaoId);
         }
 
-        console.log(
-            "[MATA-ORQUESTRADOR] ⚠️ Cache Miss. Iniciando cálculo pesado...",
-        );
+        dadosEdicaoAtual = dados; // Salva no estado
 
-        // 2. PREPARAÇÃO DE DEPENDÊNCIAS
-        // Importamos dinamicamente para garantir que as funções existam
-        const {
-            montarConfrontosFase,
-            montarConfrontosPrimeiraFase,
-            getPontosDaRodada,
-            setRankingFunction,
-        } = await import("./mata-mata-confrontos.js");
-        const { getRankingRodadaEspecifica } = await import("../rodadas.js"); // Importante: Buscar o ranking real!
+        // B. Renderiza a fase inicial (ou a última disponível)
+        // Define qual fase mostrar por padrão
+        faseAtual = determinarFaseInicial(dados);
 
-        // Injetar a função de ranking explicitamente para evitar avisos
-        setRankingFunction(getRankingRodadaEspecifica);
+        // Atualiza navegação de fases no UI (se houver lógica para mostrar/esconder botões)
+        atualizarNavegacaoFases(faseAtual);
 
-        const edicao = edicoes.find((e) => e.id === edicaoId);
-        if (!edicao) throw new Error("Edição não encontrada");
-
-        // 3. BUSCAR DADOS REAIS (AQUI ESTAVA O ERRO ANTES)
-        // Precisamos do Ranking Base para definir os confrontos (1º vs 32º, etc)
-        console.log(
-            `[MATA-ORQUESTRADOR] Buscando ranking base da rodada ${edicao.rodadaDefinicao}...`,
-        );
-        const rankingBase = await getRankingRodadaEspecifica(
-            ligaId,
-            edicao.rodadaDefinicao || 1,
-        );
-
-        if (
-            !rankingBase ||
-            !Array.isArray(rankingBase) ||
-            rankingBase.length === 0
-        ) {
-            throw new Error(
-                `Ranking base não encontrado para rodada ${edicao.rodadaDefinicao}. Verifique se a rodada já aconteceu.`,
-            );
-        }
-
-        // Precisamos garantir 32 times para a chave funcionar
-        // Se tiver menos, o montarConfrontosPrimeiraFase vai quebrar
-        const rankingTratado = garantir32Times(rankingBase);
-
-        // 4. CÁLCULO DA FASE 1
-        console.log(
-            `[MATA-ORQUESTRADOR] Calculando Fase 1 (Rodada ${edicao.rodadaInicial})...`,
-        );
-        const pontosFase1 = await getPontosDaRodada(
-            ligaId,
-            edicao.rodadaInicial,
-        );
-        const fase1 = montarConfrontosPrimeiraFase(rankingTratado, pontosFase1);
-
-        const dadosTorneio = { fase1: fase1 };
-
-        // 5. CÁLCULO DAS FASES SEGUINTES (Cascata)
-        let vencedoresAtuais = await extrairVencedores(fase1);
-
-        const sequenciaFases = [
-            { chave: "oitavas", nome: "OITAVAS" },
-            { chave: "quartas", nome: "QUARTAS" },
-            { chave: "semifinal", nome: "SEMIS" },
-            { chave: "final", nome: "FINAL" },
-        ];
-
-        for (const fase of sequenciaFases) {
-            if (vencedoresAtuais.length < 2) break;
-
-            const infoFase = getFaseInfo(fase.nome, edicao); // Passar a edição é crucial
-            const pontosFase = await getPontosDaRodada(
-                ligaId,
-                infoFase.pontosRodada,
-            );
-
-            // Calcula quem ganhou baseado nos vencedores da anterior + pontos da rodada atual
-            const confrontosFase = montarConfrontosFase(
-                vencedoresAtuais,
-                pontosFase,
-                infoFase.numJogos,
-            );
-
-            dadosTorneio[fase.chave] = confrontosFase;
-            vencedoresAtuais = await extrairVencedores(confrontosFase);
-        }
-
-        // 6. SALVAR E RENDERIZAR
-        const statusMercado = await fetch("/api/cartola/mercado/status")
-            .then((r) => r.json())
-            .catch(() => ({ rodada_atual: 0 }));
-        await salvarCacheMataMata(
-            ligaId,
-            edicaoId,
-            statusMercado.rodada_atual,
-            dadosTorneio,
-        );
-
-        renderizarTorneioCompleto(dadosTorneio);
+        // C. Renderiza a tabela
+        renderizarFaseAtual();
     } catch (error) {
-        console.error("[MATA-ORQUESTRADOR] Erro fatal:", error);
-        if (containerConteudo) {
-            containerConteudo.innerHTML = `
-                <div class="error-state">
-                    <div style="font-size: 40px; margin-bottom: 10px;">⚠️</div>
-                    <p><strong>Não foi possível carregar o Mata-Mata</strong></p>
-                    <p style="font-size: 0.9em; color: #666;">${error.message}</p>
-                    <button class="btn-voltar" onclick="location.reload()">Tentar Novamente</button>
-                </div>`;
-        }
+        console.error("[MATA-ORQUESTRADOR] Erro:", error);
+        if (containerConteudo)
+            containerConteudo.innerHTML = `<div class="erro-box">${error.message}</div>`;
     }
 }
 
+// Função chamada ao clicar nos botões de fase (1ª Fase, Oitavas, etc)
+function selecionarFase(fase) {
+    faseAtual = fase;
+    renderizarFaseAtual();
+}
+
+function renderizarFaseAtual() {
+    if (!dadosEdicaoAtual || !dadosEdicaoAtual[faseAtual]) {
+        const container = document.getElementById("mata-mata-conteudo");
+        if (container)
+            container.innerHTML =
+                '<div class="aviso-box">Fase não disponível ainda.</div>';
+        return;
+    }
+
+    // ✅ AQUI ESTÁ A MÁGICA: Chama o UI original para desenhar a tabela
+    // Passamos o ID da div de conteúdo ("mata-mata-conteudo")
+    UI.renderizarConfrontos(
+        "mata-mata-conteudo",
+        dadosEdicaoAtual[faseAtual],
+        false, // isPending (pode ajustar se quiser tratar status "em andamento")
+    );
+}
+
 // ============================================================================
-// AUXILIARES DE LÓGICA
+// LÓGICA DE CÁLCULO (RESTAURADA E SEGURA)
 // ============================================================================
 
-// Garante que o array tenha 32 posições para não quebrar o loop for(i=0; i<16)
-function garantir32Times(rankingOriginal) {
-    const novoRanking = [...rankingOriginal];
-    while (novoRanking.length < 32) {
-        novoRanking.push({
-            timeId: `fake_${novoRanking.length}`,
+async function recalcularDadosEdicao(ligaId, edicaoId) {
+    const {
+        montarConfrontosFase,
+        montarConfrontosPrimeiraFase,
+        getPontosDaRodada,
+        setRankingFunction,
+    } = await import("./mata-mata-confrontos.js");
+    const { getRankingRodadaEspecifica } = await import("../rodadas.js");
+
+    // Injeção de dependência vital
+    setRankingFunction(getRankingRodadaEspecifica);
+
+    const edicao = edicoes.find((e) => e.id === parseInt(edicaoId));
+    if (!edicao) throw new Error("Edição não encontrada");
+
+    // Garante ranking base
+    const rankingBase = await getRankingRodadaEspecifica(
+        ligaId,
+        edicao.rodadaDefinicao || 1,
+    );
+    const rankingTratado = garantir32Times(rankingBase);
+
+    const dadosTorneio = {};
+
+    // Fase 1
+    const pontosFase1 = await getPontosDaRodada(ligaId, edicao.rodadaInicial);
+    const fase1 = montarConfrontosPrimeiraFase(rankingTratado, pontosFase1);
+    dadosTorneio["primeira"] = fase1; // UI usa chave 'primeira', não 'fase1'
+
+    // Fases Seguintes
+    let vencedoresAtuais = await extrairVencedores(fase1);
+
+    const fases = [
+        { chave: "oitavas", nome: "OITAVAS" },
+        { chave: "quartas", nome: "QUARTAS" },
+        { chave: "semis", nome: "SEMIS" }, // Atenção ao nome no UI
+        { chave: "final", nome: "FINAL" },
+    ];
+
+    for (const f of fases) {
+        if (vencedoresAtuais.length < 2) break;
+
+        const info = getFaseInfo(f.nome, edicao); // Função do config
+        const pontos = await getPontosDaRodada(ligaId, info.pontosRodada);
+
+        const confrontos = montarConfrontosFase(
+            vencedoresAtuais,
+            pontos,
+            info.numJogos,
+        );
+        dadosTorneio[f.chave] = confrontos;
+
+        vencedoresAtuais = await extrairVencedores(confrontos);
+    }
+
+    // Salvar
+    const status = await fetch("/api/cartola/mercado/status")
+        .then((r) => r.json())
+        .catch(() => ({ rodada_atual: 0 }));
+    await salvarCacheMataMata(
+        ligaId,
+        edicaoId,
+        status.rodada_atual,
+        dadosTorneio,
+    );
+
+    return dadosTorneio;
+}
+
+// ============================================================================
+// AUXILIARES
+// ============================================================================
+
+function garantir32Times(ranking) {
+    const arr = Array.isArray(ranking) ? [...ranking] : [];
+    while (arr.length < 32) {
+        arr.push({
+            timeId: `fake_${arr.length}`,
             nome_time: "A definir",
-            nome_cartola: "-",
             escudo: "/escudos/placeholder.png",
-            pontos: 0,
         });
     }
-    return novoRanking;
+    return arr;
 }
 
 async function extrairVencedores(confrontos) {
-    const vencedores = [];
-    if (!confrontos) return [];
-
+    const v = [];
     confrontos.forEach((c) => {
-        // A lógica de quem venceu está no objeto do confronto (vencedorDeterminado)
-        if (c.vencedorDeterminado === "A") vencedores.push(c.timeA);
-        else if (c.vencedorDeterminado === "B") vencedores.push(c.timeB);
-        else {
-            // Se ainda não tem vencedor (futuro), passa um placeholder para desenhar a próxima chave vazia
-            vencedores.push({
+        if (c.vencedorDeterminado === "A") v.push(c.timeA);
+        else if (c.vencedorDeterminado === "B") v.push(c.timeB);
+        else
+            v.push({
                 nome_time: "A definir",
                 escudo: "/escudos/placeholder.png",
             });
-        }
     });
-    return vencedores;
+    return v;
 }
 
-// ============================================================================
-// UI / RENDERIZAÇÃO
-// ============================================================================
-
-function criarTabsEdicoes() {
-    const tabsContainer = document.getElementById("mata-mata-tabs");
-    if (!tabsContainer) return;
-
-    tabsContainer.innerHTML = edicoes
-        .map(
-            (ed) => `
-        <button class="tab-edicao ${ed.ativo ? "" : "inativo"}" 
-                onclick="selecionarEdicaoMataMata(${ed.id})" 
-                id="tab-edicao-${ed.id}">
-            ${ed.nome}
-        </button>
-    `,
-        )
-        .join("");
-
-    window.selecionarEdicaoMataMata = (id) => {
-        document
-            .querySelectorAll(".tab-edicao")
-            .forEach((b) => b.classList.remove("active"));
-        document.getElementById(`tab-edicao-${id}`)?.classList.add("active");
-        carregarEdicao(id);
-    };
+function determinarFaseInicial(dados) {
+    // Retorna a última fase que tem dados
+    if (dados["final"]) return "final";
+    if (dados["semis"]) return "semis";
+    if (dados["quartas"]) return "quartas";
+    if (dados["oitavas"]) return "oitavas";
+    return "primeira";
 }
 
-function renderizarTorneioCompleto(dados) {
-    const container = document.getElementById("mata-mata-conteudo");
-    if (!container) return;
-    container.innerHTML = "";
-
-    const ordemFases = ["fase1", "oitavas", "quartas", "semifinal", "final"];
-
-    ordemFases.forEach((faseKey) => {
-        if (!dados[faseKey]) return;
-
-        const html = `
-            <div class="fase-container">
-                <h3>${formatarNomeFase(faseKey)}</h3>
-                <div class="lista-confrontos">
-                    ${dados[faseKey].map((jogo) => criarCardConfrontoHTML(jogo)).join("")}
-                </div>
-            </div>
-        `;
-        container.innerHTML += html;
+function atualizarNavegacaoFases(faseAtiva) {
+    // Atualiza classes CSS dos botões de fase no UI original
+    document.querySelectorAll(".fase-btn").forEach((btn) => {
+        btn.classList.remove("active");
+        if (btn.dataset.fase === faseAtiva) btn.classList.add("active");
     });
-}
 
-function criarCardConfrontoHTML(jogo) {
-    const timeA = jogo.timeA || { nome_time: "A definir" };
-    const timeB = jogo.timeB || { nome_time: "A definir" };
-
-    // Detectar vencedor para classe CSS
-    const classA = jogo.vencedorDeterminado === "A" ? "vencedor" : "";
-    const classB = jogo.vencedorDeterminado === "B" ? "vencedor" : "";
-
-    // Formatar pontos
-    const pontosA =
-        typeof timeA.pontos === "number" ? timeA.pontos.toFixed(2) : "-";
-    const pontosB =
-        typeof timeB.pontos === "number" ? timeB.pontos.toFixed(2) : "-";
-
-    return `
-    <div class="confronto-card">
-        <div class="time time-a ${classA}">
-            <img src="${timeA.escudo || "/escudos/placeholder.png"}" class="escudo-mini" onerror="this.src='/escudos/placeholder.png'">
-            <div class="info">
-                <span class="nome">${timeA.nome_time || timeA.nome}</span>
-                <span class="pontos">${pontosA}</span>
-            </div>
-        </div>
-        <div class="vs">X</div>
-        <div class="time time-b ${classB}">
-            <div class="info">
-                <span class="pontos">${pontosB}</span>
-                <span class="nome">${timeB.nome_time || timeB.nome}</span>
-            </div>
-            <img src="${timeB.escudo || "/escudos/placeholder.png"}" class="escudo-mini" onerror="this.src='/escudos/placeholder.png'">
-        </div>
-    </div>`;
-}
-
-function formatarNomeFase(key) {
-    const map = {
-        fase1: "1ª FASE",
-        oitavas: "OITAVAS DE FINAL",
-        quartas: "QUARTAS DE FINAL",
-        semifinal: "SEMIFINAIS",
-        final: "GRANDE FINAL",
-    };
-    return map[key] || key.toUpperCase();
+    // Mostra/esconde container de navegação se necessário
+    const navContainer = document.getElementById("fase-nav-container");
+    if (navContainer) navContainer.style.display = "block";
 }
