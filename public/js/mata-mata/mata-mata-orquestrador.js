@@ -232,7 +232,14 @@ async function recalcularDadosEdicao(ligaId, edicaoId) {
         if (vencedoresAtuais.length < 2) break;
 
         const info = getFaseInfo(f.nome, edicao);
-        const pontos = await getPontosDaRodada(ligaId, info.pontosRodada);
+        
+        // Validação crítica: garantir que rodada existe
+        if (!info || !info.rodada) {
+            console.warn(`[MATA-ORQUESTRADOR] ⚠️ Rodada não definida para fase ${f.nome}, pulando...`);
+            continue;
+        }
+        
+        const pontos = await getPontosDaRodada(ligaId, info.rodada);
 
         const confrontos = montarConfrontosFase(
             vencedoresAtuais,
