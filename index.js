@@ -91,7 +91,7 @@ app.use("/api/financeiro", fluxoFinanceiroRoutes);
 app.use("/api/extrato-cache", extratoFinanceiroCacheRoutes);
 app.use("/api/participante-auth", participanteAuthRoutes);
 app.use("/api/pontos-corridos", pontosCorridosCacheRoutes);
-app.use("/api/top10-cache", top10CacheRoutes);
+app.use("/api/top10", top10CacheRoutes);
 
 // Rotas Adicionais (Controllers Diretos)
 app.get("/api/clubes", getClubes);
