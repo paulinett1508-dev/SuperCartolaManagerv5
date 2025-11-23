@@ -122,8 +122,12 @@ async function carregarEdicao(edicaoId) {
             montarConfrontosFase,
             montarConfrontosPrimeiraFase,
             getPontosDaRodada,
+            setRankingFunction,
         } = await import("./mata-mata-confrontos.js");
         const { getRankingRodadaEspecifica } = await import("../rodadas.js"); // Importante: Buscar o ranking real!
+
+        // Injetar a função de ranking explicitamente para evitar avisos
+        setRankingFunction(getRankingRodadaEspecifica);
 
         const edicao = edicoes.find((e) => e.id === edicaoId);
         if (!edicao) throw new Error("Edição não encontrada");
