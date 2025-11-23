@@ -1,16 +1,29 @@
-<!-- MATA-MATA TEMPLATE -->
 <div id="mata-mata" class="module-container">
-    <div class="content-card">
+    <div class="content-card" id="mata-mata-container">
         <div class="card-header">
-            <h2>⚔️ Mata-Mata</h2>
-            <div class="card-subtitle">Sistema de confrontos eliminatórios</div>
+            <div class="header-title">
+                <h2>⚔️ Mata-Mata</h2>
+                <div class="card-subtitle">
+                    Sistema de confrontos eliminatórios
+                </div>
+            </div>
+
+            <div
+                id="mata-mata-tabs"
+                class="tabs-edicoes-container"
+                style="
+                    margin-top: 15px;
+                    display: flex;
+                    gap: 10px;
+                    overflow-x: auto;
+                "
+            ></div>
         </div>
 
-        <div class="card-content">
-            <!-- Conteúdo será injetado dinamicamente pelo JavaScript -->
+        <div class="card-content" id="mata-mata-conteudo">
             <div class="loading-state">
                 <div class="spinner"></div>
-                <p>Inicializando mata-mata...</p>
+                <p>Conectando ao orquestrador...</p>
             </div>
         </div>
 
@@ -24,3 +37,99 @@
         </div>
     </div>
 </div>
+
+<style>
+    .tabs-edicoes-container::-webkit-scrollbar {
+        height: 4px;
+    }
+    .tabs-edicoes-container::-webkit-scrollbar-thumb {
+        background: #ccc;
+        border-radius: 2px;
+    }
+
+    .tab-edicao {
+        background: transparent;
+        border: 1px solid var(--border-color, #eee);
+        padding: 8px 16px;
+        border-radius: 20px;
+        cursor: pointer;
+        white-space: nowrap;
+        font-size: 0.9rem;
+        transition: all 0.2s;
+        color: var(--text-secondary, #666);
+    }
+    .tab-edicao:hover {
+        background: rgba(0, 0, 0, 0.05);
+    }
+    .tab-edicao.active {
+        background: var(--primary-color, #ff7e00);
+        color: white;
+        border-color: var(--primary-color, #ff7e00);
+        font-weight: bold;
+    }
+
+    .fase-container {
+        margin-bottom: 30px;
+        background: var(--bg-secondary, #f8f9fa);
+        padding: 15px;
+        border-radius: 8px;
+    }
+    .fase-container h3 {
+        margin-top: 0;
+        border-bottom: 2px solid var(--border-color, #eee);
+        padding-bottom: 10px;
+        margin-bottom: 15px;
+        color: var(--text-primary, #333);
+    }
+
+    .lista-confrontos {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+        gap: 15px;
+    }
+
+    .confronto-card {
+        background: white;
+        padding: 10px;
+        border-radius: 6px;
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        border: 1px solid var(--border-color, #eee);
+    }
+
+    .time {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        flex: 1;
+    }
+    .time.vencedor {
+        font-weight: bold;
+        color: var(--success-color, #2ecc71);
+    }
+    .time-b {
+        justify-content: flex-end;
+        text-align: right;
+    }
+    .time-b .time-escudo {
+        order: 2;
+    }
+    .time-b .nome {
+        order: 1;
+    }
+
+    .vs {
+        padding: 0 10px;
+        font-weight: bold;
+        color: #ccc;
+        font-size: 0.8rem;
+    }
+
+    .escudo-mini {
+        width: 24px;
+        height: 24px;
+        object-fit: contain;
+    }
+</style>
