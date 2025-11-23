@@ -1,16 +1,16 @@
-// MATA-MATA ORQUESTRADOR - Cache de Alta Performance + UI Original
+// MATA-MATA ORQUESTRADOR - Versão Auto-Corretiva
 // Responsável por: coordenação de chaves, carregamento dinâmico e persistência
 
 import { edicoes, getFaseInfo, getLigaId } from "./mata-mata-config.js";
-import * as UI from "./mata-mata-ui.js"; // ✅ Volta a usar o UI original
+import * as UI from "./mata-mata-ui.js";
 
-// Estado interno para navegação
+// Estado interno
 let dadosEdicaoAtual = null;
 let edicaoIdAtual = null;
 let faseAtual = "primeira";
 
 // ============================================================================
-// 🧠 SISTEMA DE PERSISTÊNCIA (CACHE) - MANTIDO
+// 🧠 SISTEMA DE PERSISTÊNCIA (CACHE)
 // ============================================================================
 
 async function lerCacheMataMata(ligaId, edicaoId) {
@@ -23,9 +23,24 @@ async function lerCacheMataMata(ligaId, edicaoId) {
         if (!response.ok) return null;
 
         const data = await response.json();
+
+        // 🛡️ VALIDAÇÃO DE INTEGRIDADE (NOVO)
+        // Se o cache existir mas estiver vazio (sem jogos na primeira fase), descarta!
         if (data.cached && data.dados) {
+            const temDadosValidos =
+                data.dados["primeira"] &&
+                Array.isArray(data.dados["primeira"]) &&
+                data.dados["primeira"].length > 0;
+
+            if (!temDadosValidos) {
+                console.warn(
+                    `[MATA-ORQUESTRADOR] ⚠️ Cache encontrado mas INVÁLIDO (Vazio). Forçando recálculo.`,
+                );
+                return null;
+            }
+
             console.log(
-                `[MATA-ORQUESTRADOR] 💾 Cache encontrado para Edição ${edicaoId}`,
+                `[MATA-ORQUESTRADOR] 💾 Cache VÁLIDO encontrado para Edição ${edicaoId}`,
             );
             return data.dados;
         }
@@ -42,6 +57,17 @@ async function salvarCacheMataMata(
     dadosTorneio,
 ) {
     try {
+        // Proteção para não salvar cache vazio
+        if (
+            !dadosTorneio["primeira"] ||
+            dadosTorneio["primeira"].length === 0
+        ) {
+            console.warn(
+                "[MATA-ORQUESTRADOR] 🛑 Tentativa de salvar cache vazio abortada.",
+            );
+            return;
+        }
+
         await fetch(`/api/mata-mata/cache/${ligaId}/${edicaoId}`, {
             method: "POST",
             headers: { "Content-Type": "application/json" },
@@ -65,8 +91,6 @@ async function salvarCacheMataMata(
 export async function carregarMataMata() {
     console.log("[MATA-ORQUESTRADOR] Iniciando módulo...");
 
-    // 1. Renderizar controles (Edições e Fases) usando o UI original
-    // Usamos o 'mata-mata-tabs' para injetar os controles sem limpar o card inteiro
     const containerControles = document.getElementById("mata-mata-tabs");
     const ligaId = getLigaId();
 
@@ -74,54 +98,52 @@ export async function carregarMataMata() {
         UI.renderizarInterface(
             containerControles,
             ligaId,
-            (novoId) => selecionarEdicao(novoId), // Callback troca edição
-            (novaFase) => selecionarFase(novaFase), // Callback troca fase
+            (novoId) => selecionarEdicao(novoId),
+            (novaFase) => selecionarFase(novaFase),
         );
     }
 
-    // 2. Carregar a edição ativa padrão
     const edicaoAtiva =
         edicoes.find((e) => e.ativo) || edicoes[edicoes.length - 1];
     if (edicaoAtiva) {
-        // Atualiza visualmente o select/tabs do UI original se necessário
-        // (A função renderizarInterface já deve lidar com o estado inicial, mas forçamos aqui)
-        await selecionarEdicao(edicaoAtiva.id);
+        setTimeout(() => {
+            document
+                .querySelectorAll(".tab-edicao")
+                .forEach((b) => b.classList.remove("active"));
+            document
+                .getElementById(`tab-edicao-${edicaoAtiva.id}`)
+                ?.classList.add("active");
+        }, 100);
+        await selecionarEdicao(edicaoAtiva.id); // Mudado para selecionarEdicao para consistência
     }
 }
 
-// Função chamada ao trocar de edição
 async function selecionarEdicao(edicaoId) {
     console.log(`[MATA-ORQUESTRADOR] Selecionando Edição ${edicaoId}...`);
     edicaoIdAtual = edicaoId;
 
-    // Mostra loading na área de conteúdo
     const containerConteudo = document.getElementById("mata-mata-conteudo");
     if (containerConteudo) {
         containerConteudo.innerHTML =
-            '<div class="loading-state"><div class="spinner"></div><p>Carregando chaves...</p></div>';
+            '<div class="loading-state"><div class="spinner"></div><p>Processando torneio...</p></div>';
     }
 
     const ligaId = getLigaId();
 
     try {
-        // A. Busca dados (Cache ou Cálculo)
         let dados = await lerCacheMataMata(ligaId, edicaoId);
 
         if (!dados) {
-            console.log("[MATA-ORQUESTRADOR] ⚠️ Cache Miss. Recalculando...");
+            console.log(
+                "[MATA-ORQUESTRADOR] ⚠️ Cache Miss ou Inválido. Iniciando cálculo...",
+            );
             dados = await recalcularDadosEdicao(ligaId, edicaoId);
         }
 
-        dadosEdicaoAtual = dados; // Salva no estado
-
-        // B. Renderiza a fase inicial (ou a última disponível)
-        // Define qual fase mostrar por padrão
+        dadosEdicaoAtual = dados;
         faseAtual = determinarFaseInicial(dados);
 
-        // Atualiza navegação de fases no UI (se houver lógica para mostrar/esconder botões)
         atualizarNavegacaoFases(faseAtual);
-
-        // C. Renderiza a tabela
         renderizarFaseAtual();
     } catch (error) {
         console.error("[MATA-ORQUESTRADOR] Erro:", error);
@@ -130,9 +152,9 @@ async function selecionarEdicao(edicaoId) {
     }
 }
 
-// Função chamada ao clicar nos botões de fase (1ª Fase, Oitavas, etc)
 function selecionarFase(fase) {
     faseAtual = fase;
+    atualizarNavegacaoFases(fase); // Atualiza visual dos botões
     renderizarFaseAtual();
 }
 
@@ -145,20 +167,20 @@ function renderizarFaseAtual() {
         return;
     }
 
-    // ✅ AQUI ESTÁ A MÁGICA: Chama o UI original para desenhar a tabela
-    // Passamos o ID da div de conteúdo ("mata-mata-conteudo")
+    // Passa os dados para o UI renderizar
     UI.renderizarConfrontos(
         "mata-mata-conteudo",
         dadosEdicaoAtual[faseAtual],
-        false, // isPending (pode ajustar se quiser tratar status "em andamento")
+        false,
     );
 }
 
 // ============================================================================
-// LÓGICA DE CÁLCULO (RESTAURADA E SEGURA)
+// LÓGICA DE CÁLCULO
 // ============================================================================
 
 async function recalcularDadosEdicao(ligaId, edicaoId) {
+    // Importação Dinâmica das Dependências
     const {
         montarConfrontosFase,
         montarConfrontosPrimeiraFase,
@@ -167,40 +189,49 @@ async function recalcularDadosEdicao(ligaId, edicaoId) {
     } = await import("./mata-mata-confrontos.js");
     const { getRankingRodadaEspecifica } = await import("../rodadas.js");
 
-    // Injeção de dependência vital
-    setRankingFunction(getRankingRodadaEspecifica);
+    // Injeta a função de ranking IMEDIATAMENTE
+    if (setRankingFunction && getRankingRodadaEspecifica) {
+        setRankingFunction(getRankingRodadaEspecifica);
+    }
 
     const edicao = edicoes.find((e) => e.id === parseInt(edicaoId));
     if (!edicao) throw new Error("Edição não encontrada");
 
-    // Garante ranking base
+    // 1. Busca Ranking Base
     const rankingBase = await getRankingRodadaEspecifica(
         ligaId,
         edicao.rodadaDefinicao || 1,
     );
-    const rankingTratado = garantir32Times(rankingBase);
 
+    // Validação crítica para não gerar cache vazio
+    if (!rankingBase || rankingBase.length === 0) {
+        throw new Error(
+            `Ranking da rodada ${edicao.rodadaDefinicao} está vazio. Impossível montar chaves.`,
+        );
+    }
+
+    const rankingTratado = garantir32Times(rankingBase);
     const dadosTorneio = {};
 
-    // Fase 1
+    // 2. Fase 1
     const pontosFase1 = await getPontosDaRodada(ligaId, edicao.rodadaInicial);
     const fase1 = montarConfrontosPrimeiraFase(rankingTratado, pontosFase1);
-    dadosTorneio["primeira"] = fase1; // UI usa chave 'primeira', não 'fase1'
+    dadosTorneio["primeira"] = fase1;
 
-    // Fases Seguintes
+    // 3. Fases Seguintes
     let vencedoresAtuais = await extrairVencedores(fase1);
 
     const fases = [
         { chave: "oitavas", nome: "OITAVAS" },
         { chave: "quartas", nome: "QUARTAS" },
-        { chave: "semis", nome: "SEMIS" }, // Atenção ao nome no UI
+        { chave: "semis", nome: "SEMIS" },
         { chave: "final", nome: "FINAL" },
     ];
 
     for (const f of fases) {
         if (vencedoresAtuais.length < 2) break;
 
-        const info = getFaseInfo(f.nome, edicao); // Função do config
+        const info = getFaseInfo(f.nome, edicao);
         const pontos = await getPontosDaRodada(ligaId, info.pontosRodada);
 
         const confrontos = montarConfrontosFase(
@@ -213,7 +244,7 @@ async function recalcularDadosEdicao(ligaId, edicaoId) {
         vencedoresAtuais = await extrairVencedores(confrontos);
     }
 
-    // Salvar
+    // 4. Salvar Cache (apenas se válido)
     const status = await fetch("/api/cartola/mercado/status")
         .then((r) => r.json())
         .catch(() => ({ rodada_atual: 0 }));
@@ -245,6 +276,8 @@ function garantir32Times(ranking) {
 
 async function extrairVencedores(confrontos) {
     const v = [];
+    if (!confrontos) return v;
+
     confrontos.forEach((c) => {
         if (c.vencedorDeterminado === "A") v.push(c.timeA);
         else if (c.vencedorDeterminado === "B") v.push(c.timeB);
@@ -258,7 +291,6 @@ async function extrairVencedores(confrontos) {
 }
 
 function determinarFaseInicial(dados) {
-    // Retorna a última fase que tem dados
     if (dados["final"]) return "final";
     if (dados["semis"]) return "semis";
     if (dados["quartas"]) return "quartas";
@@ -267,13 +299,11 @@ function determinarFaseInicial(dados) {
 }
 
 function atualizarNavegacaoFases(faseAtiva) {
-    // Atualiza classes CSS dos botões de fase no UI original
     document.querySelectorAll(".fase-btn").forEach((btn) => {
         btn.classList.remove("active");
         if (btn.dataset.fase === faseAtiva) btn.classList.add("active");
     });
 
-    // Mostra/esconde container de navegação se necessário
     const navContainer = document.getElementById("fase-nav-container");
-    if (navContainer) navContainer.style.display = "block";
+    if (navContainer) navContainer.style.display = "flex";
 }
