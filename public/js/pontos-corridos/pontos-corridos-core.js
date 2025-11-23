@@ -360,6 +360,69 @@ export function validarDadosEntrada(times, confrontos) {
   return true;
 }
 
+/**
+ * Calcula o resultado financeiro de um confronto
+ */
+export function calcularFinanceiroConfronto(pontosA, pontosB, config = PONTOS_CORRIDOS_CONFIG) {
+  const A = parseFloat(pontosA || 0);
+  const B = parseFloat(pontosB || 0);
+  const diferenca = Math.abs(A - B);
+
+  const { empateTolerancia, goleadaMinima } = config.criterios;
+  const financeiro = config.financeiro;
+
+  // Empate
+  if (diferenca <= empateTolerancia) {
+    return {
+      financeiroA: financeiro.empate,
+      financeiroB: financeiro.empate,
+      pontosA: 1,
+      pontosB: 1,
+      tipo: 'empate'
+    };
+  }
+
+  // Goleada
+  if (diferenca >= goleadaMinima) {
+    if (A > B) {
+      return {
+        financeiroA: financeiro.goleada,
+        financeiroB: -financeiro.goleada,
+        pontosA: 3,
+        pontosB: 0,
+        tipo: 'goleada'
+      };
+    } else {
+      return {
+        financeiroA: -financeiro.goleada,
+        financeiroB: financeiro.goleada,
+        pontosA: 0,
+        pontosB: 3,
+        tipo: 'goleada'
+      };
+    }
+  }
+
+  // Vitória simples
+  if (A > B) {
+    return {
+      financeiroA: financeiro.vitoria,
+      financeiroB: -financeiro.vitoria,
+      pontosA: 3,
+      pontosB: 0,
+      tipo: 'vitoria'
+    };
+  } else {
+    return {
+      financeiroA: -financeiro.vitoria,
+      financeiroB: financeiro.vitoria,
+      pontosA: 0,
+      pontosB: 3,
+      tipo: 'vitoria'
+    };
+  }
+}
+
 // ============================================================================
 // 🔌 EXPORTAÇÕES DE COMPATIBILIDADE
 // ============================================================================
