@@ -285,3 +285,83 @@ export function renderRodadaPendente(contentId, rodadaPontosNum) {
   `;
   contentElement.appendChild(pendenteDiv);
 }
+
+// Função para limpar a tabela
+export function limparTabela(containerId) {
+    const container = document.getElementById(containerId);
+    if (container) {
+        container.innerHTML = "";
+    }
+}
+
+// Função para renderizar confrontos (compatibilidade com orquestrador)
+export function renderizarConfrontos(containerId, confrontos, isPending = false) {
+    console.log(`[MATA-UI] Renderizando ${confrontos.length} confrontos...`);
+
+    const container = document.getElementById(containerId);
+    if (!container) {
+        console.error(`[MATA-UI] Container ${containerId} não encontrado`);
+        return;
+    }
+
+    if (!confrontos || confrontos.length === 0) {
+        container.innerHTML = '<div class="aviso-box">Nenhum confronto disponível nesta fase.</div>';
+        return;
+    }
+
+    // Construir HTML da tabela
+    let html = '<div class="mata-mata-tabela">';
+
+    confrontos.forEach(c => {
+        const pontosAValidos = typeof c.timeA.pontos === 'number';
+        const pontosBValidos = typeof c.timeB.pontos === 'number';
+
+        // Determinar vencedor
+        let vencedorA = false;
+        let vencedorB = false;
+
+        if (!isPending && pontosAValidos && pontosBValidos) {
+            if (c.timeA.pontos > c.timeB.pontos) {
+                vencedorA = true;
+            } else if (c.timeB.pontos > c.timeA.pontos) {
+                vencedorB = true;
+            } else {
+                // Empate: critério de desempate (rankR2)
+                vencedorA = (c.timeA.rankR2 || 0) < (c.timeB.rankR2 || 0);
+                vencedorB = !vencedorA;
+            }
+        }
+
+        html += `
+            <div class="confronto-item ${isPending ? 'pendente' : ''}">
+                <div class="confronto-header">
+                    <span class="jogo-numero">Jogo ${c.jogo}</span>
+                </div>
+                <div class="confronto-body">
+                    <div class="time-info ${vencedorA ? 'vencedor' : ''}">
+                        <img src="${c.timeA.escudo || '/escudos/default.png'}" alt="${c.timeA.nome_time || 'Time A'}" class="escudo">
+                        <div class="time-detalhes">
+                            <div class="time-nome">${c.timeA.nome_time || 'A definir'}</div>
+                            <div class="cartoleiro-nome">${c.timeA.nome_cartoleiro || c.timeA.nome_cartola || ''}</div>
+                        </div>
+                        <div class="pontos">${pontosAValidos ? c.timeA.pontos.toFixed(2) : '-'}</div>
+                    </div>
+                    <div class="vs">VS</div>
+                    <div class="time-info ${vencedorB ? 'vencedor' : ''}">
+                        <img src="${c.timeB.escudo || '/escudos/default.png'}" alt="${c.timeB.nome_time || 'Time B'}" class="escudo">
+                        <div class="time-detalhes">
+                            <div class="time-nome">${c.timeB.nome_time || 'A definir'}</div>
+                            <div class="cartoleiro-nome">${c.timeB.nome_cartoleiro || c.timeB.nome_cartola || ''}</div>
+                        </div>
+                        <div class="pontos">${pontosBValidos ? c.timeB.pontos.toFixed(2) : '-'}</div>
+                    </div>
+                </div>
+            </div>
+        `;
+    });
+
+    html += '</div>';
+    container.innerHTML = html;
+
+    console.log(`[MATA-UI] ✅ ${confrontos.length} confrontos renderizados`);
+}
