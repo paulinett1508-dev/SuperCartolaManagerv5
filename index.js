@@ -29,6 +29,7 @@ import extratoFinanceiroCacheRoutes from "./routes/extratoFinanceiroCacheRoutes.
 import participanteAuthRoutes from "./routes/participante-auth.js";
 import pontosCorridosCacheRoutes from "./routes/pontosCorridosCacheRoutes.js";
 import top10CacheRoutes from "./routes/top10CacheRoutes.js";
+import mataMataCacheRoutes from "./routes/mataMataCacheRoutes.js";
 
 import { getClubes } from "./controllers/cartolaController.js";
 import {
@@ -92,6 +93,7 @@ app.use("/api/extrato-cache", extratoFinanceiroCacheRoutes);
 app.use("/api/participante-auth", participanteAuthRoutes);
 app.use("/api/pontos-corridos", pontosCorridosCacheRoutes);
 app.use("/api/top10", top10CacheRoutes);
+app.use("/api/mata-mata", mataMataCacheRoutes);
 
 // Rotas Adicionais (Controllers Diretos)
 app.get("/api/clubes", getClubes);
