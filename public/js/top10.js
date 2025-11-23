@@ -5,29 +5,68 @@ import {
 } from "./pontos-corridos-utils.js";
 
 // ==============================
-// VARIÁVEIS PARA EXPORTS DINÂMICOS
+// VARIÁVEIS GLOBAIS E DE ESTADO
 // ==============================
 let exportarTop10ComoImagem = null;
 let exportsCarregados = false;
+let todosOsMitos = [];
+let todosOsMicos = [];
 
 // ==============================
-// FUNÇÃO PARA CARREGAR EXPORTS DINAMICAMENTE
+// SISTEMA DE CACHE UNIFICADO (NOVO)
 // ==============================
-async function carregarExports() {
-  if (exportsCarregados) return;
 
+/**
+ * Tenta buscar o snapshot pronto do servidor
+ */
+async function lerCacheTop10(ligaId, rodada) {
   try {
-    const exportModule = await import("./exports/export-top10.js");
-    exportarTop10ComoImagem = exportModule.exportarTop10ComoImagem;
-    exportsCarregados = true;
-    console.log("[TOP10] Exports carregados com sucesso");
+    const ts = new Date().getTime();
+    const response = await fetch(
+      `/api/top10/cache/${ligaId}?rodada=${rodada}&_=${ts}`,
+    );
+
+    if (!response.ok) return null;
+
+    const data = await response.json();
+    if (data.cached && data.mitos && data.micos) {
+      console.log(
+        `[TOP10] 💾 Cache persistente encontrado para Rodada ${rodada}`,
+      );
+      return { mitos: data.mitos, micos: data.micos };
+    }
+    return null;
   } catch (error) {
-    console.warn("[TOP10] Erro ao carregar exports:", error);
+    console.warn(
+      "[TOP10] Falha ao ler cache (prosseguindo com cálculo):",
+      error,
+    );
+    return null;
+  }
+}
+
+/**
+ * Salva o resultado do cálculo para o futuro
+ */
+async function salvarCacheTop10(ligaId, rodada, mitos, micos) {
+  try {
+    await fetch(`/api/top10/cache/${ligaId}`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        rodada: rodada,
+        mitos: mitos,
+        micos: micos,
+      }),
+    });
+    console.log(`[TOP10] 💾 Snapshot da Rodada ${rodada} salvo com sucesso!`);
+  } catch (error) {
+    console.warn("[TOP10] Falha ao salvar cache:", error);
   }
 }
 
 // ==============================
-// CONFIGURAÇÃO DE VALORES PARA LIGA ESPECÍFICA
+// CONFIGURAÇÕES
 // ==============================
 const valoresBonusOnusPadrao = {
   mitos: {
@@ -72,18 +111,23 @@ const valoresBonusOnusCartoleirosSobral = {
   },
 };
 
-// ==============================
-// VARIÁVEIS DE DADOS
-// ==============================
-let todosOsMitos = [];
-let todosOsMicos = [];
+async function carregarExports() {
+  if (exportsCarregados) return;
+  try {
+    const exportModule = await import("./exports/export-top10.js");
+    exportarTop10ComoImagem = exportModule.exportarTop10ComoImagem;
+    exportsCarregados = true;
+    console.log("[TOP10] Exports carregados com sucesso");
+  } catch (error) {
+    console.warn("[TOP10] Erro ao carregar exports:", error);
+  }
+}
 
 // ==============================
-// FUNÇÃO PRINCIPAL DE INICIALIZAÇÃO
+// INICIALIZAÇÃO
 // ==============================
 export async function inicializarTop10() {
   console.log("[TOP10] Inicializando módulo...");
-
   const loadingIndicator = document.getElementById("loadingTop10");
   if (loadingIndicator) loadingIndicator.style.display = "block";
 
@@ -99,40 +143,23 @@ export async function inicializarTop10() {
 }
 
 // ==============================
-// CARREGAMENTO DE DADOS
+// CARREGAMENTO DE DADOS (OTIMIZADO)
 // ==============================
 async function carregarDadosTop10() {
-  console.log('[TOP10] Carregando dados...');
+  console.log("[TOP10] Carregando dados...");
 
-  // ✅ OBTER LIGA ID - compatível com Admin e Participante
+  // 1. Obter ID da Liga
   let ligaId = null;
-
-  // Tentar Orquestrador (prioridade)
-  if (window.orquestrador?.ligaId) {
-    ligaId = window.orquestrador.ligaId;
-    console.log(`[TOP10] Liga ID do orquestrador: ${ligaId}`);
-  }
-
-  // Tentar Admin
-  if (!ligaId && window.obterLigaId) {
-    ligaId = window.obterLigaId();
-  }
-
-  // Tentar Participante
-  if (!ligaId && window.participanteData?.ligaId) {
+  if (window.orquestrador?.ligaId) ligaId = window.orquestrador.ligaId;
+  if (!ligaId && window.obterLigaId) ligaId = window.obterLigaId();
+  if (!ligaId && window.participanteData?.ligaId)
     ligaId = window.participanteData.ligaId;
-  }
-
-  // Tentar URL
   if (!ligaId) {
     const urlParams = new URLSearchParams(window.location.search);
-    ligaId = urlParams.get('ligaId') || urlParams.get('id');
+    ligaId = urlParams.get("ligaId") || urlParams.get("id");
   }
 
-  if (!ligaId) {
-    throw new Error('ID da Liga não encontrado');
-  }
-
+  if (!ligaId) throw new Error("ID da Liga não encontrado");
   console.log(`[TOP10] ✅ Liga ID obtido: ${ligaId}`);
 
   todosOsMitos = [];
@@ -140,14 +167,38 @@ async function carregarDadosTop10() {
 
   try {
     const status = await getMercadoStatus();
-    if (!status || !status.rodada_atual) {
+    if (!status || !status.rodada_atual)
       throw new Error("Não foi possível obter a rodada atual");
+
+    const ultimaRodadaCompleta =
+      status.rodada_atual > 1 ? status.rodada_atual - 1 : 0;
+
+    if (ultimaRodadaCompleta === 0) {
+      console.log("[TOP10] Nenhuma rodada completa ainda.");
+      return;
     }
 
-    const ultimaRodadaCompleta = status.rodada_atual - 1;
-    console.log(`[TOP10] Buscando dados até rodada ${ultimaRodadaCompleta}`);
+    // ============================================================
+    // 🚀 OTIMIZAÇÃO: Tentar ler do Cache primeiro
+    // ============================================================
+    const cache = await lerCacheTop10(ligaId, ultimaRodadaCompleta);
 
-    // Buscar rankings de todas as rodadas
+    if (cache) {
+      todosOsMitos = cache.mitos;
+      todosOsMicos = cache.micos;
+      // Ordenação de segurança
+      todosOsMitos.sort((a, b) => b.pontos - a.pontos);
+      todosOsMicos.sort((a, b) => a.pontos - b.pontos);
+      return; // ✨ SUCESSO RÁPIDO: Sai da função sem loops!
+    }
+
+    console.log(
+      `[TOP10] ⚠️ Cache Miss. Iniciando cálculo histórico (1 até ${ultimaRodadaCompleta})...`,
+    );
+
+    // ============================================================
+    // 🐢 LENTO: Cálculo Histórico (Só roda se não tiver cache)
+    // ============================================================
     const promises = [];
     for (let i = 1; i <= ultimaRodadaCompleta; i++) {
       promises.push(
@@ -158,18 +209,16 @@ async function carregarDadosTop10() {
                 (a, b) => b.pontos - a.pontos,
               );
 
+              // Mito (Primeiro)
               const mito = { ...rankingOrdenado[0], rodada: i };
+              todosOsMitos.push(mito);
+
+              // Mico (Último)
               const mico = {
                 ...rankingOrdenado[rankingOrdenado.length - 1],
                 rodada: i,
               };
-
-              todosOsMitos.push(mito);
               todosOsMicos.push(mico);
-
-              console.log(
-                `[TOP10] R${i}: ${mito.nome_cartola} (${mito.pontos.toFixed(2)}) / ${mico.nome_cartola} (${mico.pontos.toFixed(2)})`,
-              );
             }
           })
           .catch((error) => console.warn(`[TOP10] Erro rodada ${i}:`, error)),
@@ -182,8 +231,20 @@ async function carregarDadosTop10() {
     todosOsMitos.sort((a, b) => b.pontos - a.pontos);
     todosOsMicos.sort((a, b) => a.pontos - b.pontos);
 
+    // ============================================================
+    // 💾 OTIMIZAÇÃO: Salvar o resultado para a próxima vez
+    // ============================================================
+    if (todosOsMitos.length > 0) {
+      await salvarCacheTop10(
+        ligaId,
+        ultimaRodadaCompleta,
+        todosOsMitos,
+        todosOsMicos,
+      );
+    }
+
     console.log(
-      `[TOP10] Dados carregados: ${todosOsMitos.length} mitos, ${todosOsMicos.length} micos`,
+      `[TOP10] Dados calculados e salvos: ${todosOsMitos.length} mitos`,
     );
   } catch (error) {
     console.error("[TOP10] Erro ao carregar dados:", error);
@@ -192,80 +253,53 @@ async function carregarDadosTop10() {
 }
 
 // ==============================
-// RENDERIZAÇÃO DAS TABELAS
+// RENDERIZAÇÃO (MANTIDA ORIGINAL)
 // ==============================
 async function renderizarTabelasTop10() {
   const containerMitos = document.getElementById("top10MitosTable");
   const containerMicos = document.getElementById("top10MicosTable");
 
-  if (!containerMitos || !containerMicos) {
-    console.error("[TOP10] Containers não encontrados");
-    return;
-  }
+  if (!containerMitos || !containerMicos) return;
 
-  // Determinar valores de bônus/ônus baseado na liga
+  // Determinar valores de bônus/ônus
   let ligaId = null;
-  
-  // Tentar Orquestrador (prioridade)
-  if (window.orquestrador?.ligaId) {
-    ligaId = window.orquestrador.ligaId;
-  }
-  
-  if (!ligaId && window.obterLigaId) {
-    ligaId = window.obterLigaId();
-  }
-  if (!ligaId && window.participanteData?.ligaId) {
-    ligaId = window.participanteData.ligaId;
-  }
+  if (window.orquestrador?.ligaId) ligaId = window.orquestrador.ligaId;
+  if (!ligaId && window.obterLigaId) ligaId = window.obterLigaId();
   if (!ligaId) {
     const urlParams = new URLSearchParams(window.location.search);
-    ligaId = urlParams.get('ligaId') || urlParams.get('id');
+    ligaId = urlParams.get("ligaId") || urlParams.get("id");
   }
-  
+
   const isLigaCartoleirosSobral = ligaId === "684d821cf1a7ae16d1f89572";
   const valoresBonusOnus = isLigaCartoleirosSobral
     ? valoresBonusOnusCartoleirosSobral
     : valoresBonusOnusPadrao;
 
-  // Renderizar tabelas
+  // Renderizar
   containerMitos.innerHTML = gerarTabelaHTML(
     todosOsMitos.slice(0, 10),
     "mitos",
     valoresBonusOnus,
   );
-
   containerMicos.innerHTML = gerarTabelaHTML(
     todosOsMicos.slice(0, 10),
     "micos",
     valoresBonusOnus,
   );
 
-  // Carregar sistema de exportação
   await carregarExports();
-
-  if (exportarTop10ComoImagem) {
-    criarBotoesExportacao(valoresBonusOnus);
-  }
-
+  if (exportarTop10ComoImagem) criarBotoesExportacao(valoresBonusOnus);
   console.log("[TOP10] Tabelas renderizadas com sucesso");
 }
 
-// ==============================
-// GERAÇÃO DE HTML DA TABELA
-// ==============================
 function gerarTabelaHTML(dados, tipo, valoresBonusOnus) {
   if (!dados || dados.length === 0) {
-    return `
-      <div class="error-state">
-        <p class="error-message">Nenhum dado disponível para ${tipo}</p>
-      </div>
-    `;
+    return `<div class="error-state"><p class="error-message">Nenhum dado disponível para ${tipo}</p></div>`;
   }
 
   const corHeader = tipo === "mitos" ? "var(--success)" : "var(--danger)";
-  
-  // Acessar corretamente os valores baseado no tipo (mitos ou micos)
-  const valoresBonus = tipo === "mitos" ? valoresBonusOnus.mitos : valoresBonusOnus.micos;
+  const valoresBonus =
+    tipo === "mitos" ? valoresBonusOnus.mitos : valoresBonusOnus.micos;
 
   return `
     <table class="tabela-top10">
@@ -291,7 +325,6 @@ function gerarTabelaHTML(dados, tipo, valoresBonusOnus) {
               valorBonus >= 0
                 ? `+R$ ${valorBonus.toFixed(2)}`
                 : `-R$ ${Math.abs(valorBonus).toFixed(2)}`;
-
             const rowClass = posicao <= 3 ? `posicao-${posicao}` : "";
 
             return `
@@ -299,30 +332,15 @@ function gerarTabelaHTML(dados, tipo, valoresBonusOnus) {
               <td style="text-align: center; font-weight: 700;">
                 ${posicao === 1 ? (tipo === "mitos" ? "👑" : "💀") : posicao + "º"}
               </td>
-              <td style="text-align: left;">
-                ${item.nome_cartola || item.nome_cartoleiro || "N/D"}
-              </td>
-              <td style="text-align: left;">
-                ${item.nome_time || "N/D"}
-              </td>
+              <td style="text-align: left;">${item.nome_cartola || item.nome_cartoleiro || "N/D"}</td>
+              <td style="text-align: left;">${item.nome_time || "N/D"}</td>
               <td style="text-align: center;">
-                ${
-                  item.clube_id
-                    ? `<img src="/escudos/${item.clube_id}.png" alt="" class="time-escudo" onerror="this.style.display='none'"/>`
-                    : "❤️"
-                }
+                ${item.clube_id ? `<img src="/escudos/${item.clube_id}.png" alt="" class="time-escudo" onerror="this.style.display='none'"/>` : "❤️"}
               </td>
-              <td style="text-align: center;" class="pontos-destaque">
-                ${item.pontos.toFixed(2)}
-              </td>
-              <td style="text-align: center;">
-                R${item.rodada}
-              </td>
-              <td style="text-align: center;" class="${valorClass}">
-                ${valorFormatado}
-              </td>
-            </tr>
-          `;
+              <td style="text-align: center;" class="pontos-destaque">${item.pontos.toFixed(2)}</td>
+              <td style="text-align: center;">R${item.rodada}</td>
+              <td style="text-align: center;" class="${valorClass}">${valorFormatado}</td>
+            </tr>`;
           })
           .join("")}
       </tbody>
@@ -339,19 +357,12 @@ function criarBotoesExportacao(valoresBonusOnus) {
   );
 
   if (btnContainerMitos && todosOsMitos.length > 0) {
-    btnContainerMitos.innerHTML = `
-      <button class="btn-export-top10 mitos" id="exportMitosBtn">
-        Exportar
-      </button>
-    `;
-
+    btnContainerMitos.innerHTML = `<button class="btn-export-top10 mitos" id="exportMitosBtn">Exportar</button>`;
     document.getElementById("exportMitosBtn").onclick = async () => {
       const btn = document.getElementById("exportMitosBtn");
       const textoOriginal = btn.innerHTML;
-
       btn.innerHTML = "...";
       btn.disabled = true;
-
       try {
         await exportarTop10ComoImagem(
           todosOsMitos.slice(0, 10),
@@ -360,7 +371,7 @@ function criarBotoesExportacao(valoresBonusOnus) {
           valoresBonusOnus,
         );
       } catch (error) {
-        console.error("[TOP10] Erro na exportação de mitos:", error);
+        console.error("[TOP10] Erro export:", error);
       } finally {
         btn.innerHTML = textoOriginal;
         btn.disabled = false;
@@ -369,19 +380,12 @@ function criarBotoesExportacao(valoresBonusOnus) {
   }
 
   if (btnContainerMicos && todosOsMicos.length > 0) {
-    btnContainerMicos.innerHTML = `
-      <button class="btn-export-top10 micos" id="exportMicosBtn">
-        Exportar
-      </button>
-    `;
-
+    btnContainerMicos.innerHTML = `<button class="btn-export-top10 micos" id="exportMicosBtn">Exportar</button>`;
     document.getElementById("exportMicosBtn").onclick = async () => {
       const btn = document.getElementById("exportMicosBtn");
       const textoOriginal = btn.innerHTML;
-
       btn.innerHTML = "...";
       btn.disabled = true;
-
       try {
         await exportarTop10ComoImagem(
           todosOsMicos.slice(0, 10),
@@ -390,7 +394,7 @@ function criarBotoesExportacao(valoresBonusOnus) {
           valoresBonusOnus,
         );
       } catch (error) {
-        console.error("[TOP10] Erro na exportação de micos:", error);
+        console.error("[TOP10] Erro export:", error);
       } finally {
         btn.innerHTML = textoOriginal;
         btn.disabled = false;
@@ -399,48 +403,31 @@ function criarBotoesExportacao(valoresBonusOnus) {
   }
 }
 
-// ==============================
-// RENDERIZAÇÃO DE ERRO
-// ==============================
 function renderizarErro(mensagem) {
   const containerMitos = document.getElementById("top10MitosTable");
   const containerMicos = document.getElementById("top10MicosTable");
-
   const erroHTML = `
     <div class="error-state">
       <p class="error-message">${mensagem}</p>
-      <button onclick="window.orquestrador.executeAction('top10')" class="btn-voltar">
-        Tentar Novamente
-      </button>
-    </div>
-  `;
-
+      <button onclick="window.orquestrador.executeAction('top10')" class="btn-voltar">Tentar Novamente</button>
+    </div>`;
   if (containerMitos) containerMitos.innerHTML = erroHTML;
   if (containerMicos) containerMicos.innerHTML = erroHTML;
 }
 
 // ==============================
-// FUNÇÕES PARA OBTER DADOS (COMPATIBILIDADE)
+// EXPORTAÇÕES DE COMPATIBILIDADE (CRUCIAIS)
 // ==============================
 
-// ✅ NOVA: Garante que os dados estão carregados
 export async function garantirDadosCarregados() {
-  // Se já tem dados, retorna imediatamente
   if (todosOsMitos.length > 0 && todosOsMicos.length > 0) {
-    console.log("[TOP10] Dados já carregados, retornando cache");
     return {
       mitos: todosOsMitos.slice(0, 10),
       micos: todosOsMicos.slice(0, 10),
     };
   }
-
-  // Carrega os dados
-  console.log("[TOP10] Carregando dados para integração...");
   try {
     await carregarDadosTop10();
-    console.log(
-      `[TOP10] Dados carregados: ${todosOsMitos.length} mitos, ${todosOsMicos.length} micos`,
-    );
     return {
       mitos: todosOsMitos.slice(0, 10),
       micos: todosOsMicos.slice(0, 10),
@@ -454,16 +441,11 @@ export async function garantirDadosCarregados() {
 export function getMitosData() {
   return todosOsMitos.slice(0, 10);
 }
-
 export function getMicosData() {
   return todosOsMicos.slice(0, 10);
 }
-
 export function getTop10Data() {
-  return {
-    mitos: todosOsMitos.slice(0, 10),
-    micos: todosOsMicos.slice(0, 10),
-  };
+  return { mitos: todosOsMitos.slice(0, 10), micos: todosOsMicos.slice(0, 10) };
 }
 
 console.log("[TOP10] Módulo carregado e pronto");
