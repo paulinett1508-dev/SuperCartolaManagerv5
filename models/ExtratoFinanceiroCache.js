@@ -1,97 +1,48 @@
-
 import mongoose from "mongoose";
 
-const extratoFinanceiroCacheSchema = new mongoose.Schema({
-    ligaId: {
-        type: String,
-        required: true,
-        index: true,
+const ExtratoFinanceiroCacheSchema = new mongoose.Schema(
+  {
+    liga_id: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "Liga",
+      required: true,
+      index: true,
     },
-    timeId: {
-        type: String,
-        required: true,
-        index: true,
-    },
-    ultimaRodadaCalculada: {
-        type: Number,
-        required: true,
-    },
-    extrato: {
-        rodadas: [
-            {
-                rodada: Number,
-                posicao: Number,
-                totalTimes: Number,
-                bonusOnus: Number,
-                pontosCorridos: Number,
-                mataMata: Number,
-                melhorMes: Number,
-                top10: Number,
-                top10Status: String,
-                top10Posicao: Number,
-                isMito: Boolean,
-                isMico: Boolean,
-                saldo: Number,
-            },
-        ],
-        resumo: {
-            totalGanhos: Number,
-            totalPerdas: Number,
-            bonus: Number,
-            onus: Number,
-            pontosCorridos: Number,
-            mataMata: Number,
-            melhorMes: Number,
-            top10: Number,
-            campo1: Number,
-            campo2: Number,
-            campo3: Number,
-            campo4: Number,
-            vezesMito: Number,
-            vezesMico: Number,
-            saldo: Number,
-        },
-        totalTimes: Number,
-        camposEditaveis: {
-            campo1: { nome: String, valor: Number },
-            campo2: { nome: String, valor: Number },
-            campo3: { nome: String, valor: Number },
-            campo4: { nome: String, valor: Number },
-        },
-    },
-    metadados: {
-        versaoCalculo: {
-            type: String,
-            default: "1.0.0",
-        },
-        timestampCalculo: {
-            type: Date,
-            default: Date.now,
-        },
-        motivoRecalculo: String, // "nova_rodada", "admin_forcado", "campos_editados", etc
-    },
-    createdAt: {
-        type: Date,
-        default: Date.now,
-    },
-    updatedAt: {
-        type: Date,
-        default: Date.now,
-    },
-});
+    time_id: { type: Number, required: true, index: true }, // ID do time no Cartola
 
-// Índice composto para busca rápida
-extratoFinanceiroCacheSchema.index({ ligaId: 1, timeId: 1 }, { unique: true });
+    // Controle de Consolidação
+    ultima_rodada_consolidada: { type: Number, default: 0 }, // Até qual rodada os valores estão fechados
+    data_ultima_atualizacao: { type: Date, default: Date.now },
 
-// Atualizar timestamp automaticamente
-extratoFinanceiroCacheSchema.pre("save", function (next) {
-    this.updatedAt = new Date();
-    next();
-});
+    // Valores Consolidados (Soma de tudo até a última rodada consolidada)
+    saldo_consolidado: { type: Number, default: 0 },
+    ganhos_consolidados: { type: Number, default: 0 },
+    perdas_consolidadas: { type: Number, default: 0 },
 
-const ExtratoFinanceiroCache = mongoose.model(
-    "ExtratoFinanceiroCache",
-    extratoFinanceiroCacheSchema,
+    // Histórico de Transações (Json estático das rodadas já fechadas para exibição rápida)
+    historico_transacoes: [
+      {
+        rodada: Number,
+        tipo: String, // 'PREMIACAO', 'MULTA', 'MENSALIDADE'
+        descricao: String,
+        valor: Number,
+        data: Date,
+      },
+    ],
+  },
+  {
+    timestamps: true,
+  },
 );
+
+// Índice composto para busca rápida de um time específico em uma liga
+ExtratoFinanceiroCacheSchema.index(
+  { liga_id: 1, time_id: 1 },
+  { unique: true },
+);
+
+const ExtratoFinanceiroCache =
+  mongoose.models.ExtratoFinanceiroCache ||
+  mongoose.model("ExtratoFinanceiroCache", ExtratoFinanceiroCacheSchema);
 
 export default ExtratoFinanceiroCache;

@@ -3,128 +3,151 @@ import session from "express-session";
 
 const router = express.Router();
 
-// Middleware de autenticação Replit
+// Middleware de autenticação Replit (Legado/Admin)
 function verificarAutenticacao(req, res, next) {
-  if (req.headers["x-replit-user-id"]) {
-    req.user = {
-      id: req.headers["x-replit-user-id"],
-      name: req.headers["x-replit-user-name"],
-      roles: req.headers["x-replit-user-roles"],
-    };
-    return next();
-  }
-  res.status(401).json({ erro: "Não autenticado" });
+    if (req.headers["x-replit-user-id"]) {
+        req.user = {
+            id: req.headers["x-replit-user-id"],
+            name: req.headers["x-replit-user-name"],
+            roles: req.headers["x-replit-user-roles"],
+        };
+        return next();
+    }
+    res.status(401).json({ erro: "Não autenticado" });
 }
 
 // Middleware para verificar sessão de participante ativo
 function verificarSessaoParticipante(req, res, next) {
-  if (!req.session || !req.session.participante) {
-    return res.status(401).json({
-      error: "Sessão expirada ou inválida",
-      needsLogin: true
-    });
-  }
-  next();
+    if (!req.session || !req.session.participante) {
+        return res.status(401).json({
+            error: "Sessão expirada ou inválida",
+            needsLogin: true,
+        });
+    }
+    next();
 }
 
-// Login do participante (valida timeId + senha)
+// LOGIN OTIMIZADO - Busca Direta no MongoDB (Sem carregar tudo na memória)
 router.post("/login", async (req, res) => {
     try {
         const { timeId, senha } = req.body;
 
         if (!timeId || !senha) {
             return res.status(400).json({
-                error: "ID do time e senha são obrigatórios"
+                error: "ID do time e senha são obrigatórios",
             });
         }
 
-        // Buscar time em todas as ligas
         const { default: Liga } = await import("../models/Liga.js");
-        const ligas = await Liga.find({});
 
-        let participanteEncontrado = null;
-        let ligaEncontrada = null;
+        // ⚡ OTIMIZAÇÃO: Busca apenas a liga que contém este participante
+        // Procura em qualquer liga onde 'participantes.time_id' seja igual ao timeId fornecido
+        const ligaEncontrada = await Liga.findOne({
+            "participantes.time_id": parseInt(timeId),
+        });
 
-        for (const liga of ligas) {
-            const participante = liga.participantes.find(
-                (p) => String(p.time_id) === String(timeId)
-            );
-
-            if (participante) {
-                participanteEncontrado = participante;
-                ligaEncontrada = liga;
-                break;
-            }
+        if (!ligaEncontrada) {
+            return res.status(404).json({
+                error: "Time não encontrado em nenhuma liga cadastrada",
+            });
         }
+
+        // Extrair o participante do array da liga
+        const participanteEncontrado = ligaEncontrada.participantes.find(
+            (p) => String(p.time_id) === String(timeId),
+        );
 
         if (!participanteEncontrado) {
-            return res.status(404).json({
-                error: "ID do time não encontrado"
-            });
+            // Caso raro onde o índice achou mas o find não (segurança extra)
+            return res
+                .status(404)
+                .json({ error: "Erro ao localizar dados do participante" });
         }
 
         // Validar senha
+        // Nota: Idealmente usaríamos bcrypt, mas mantendo compatibilidade com texto simples atual
         if (participanteEncontrado.senha_acesso !== senha) {
             return res.status(401).json({
-                error: "Senha incorreta"
+                error: "Senha incorreta",
             });
         }
 
-        // Criar sessão
+        // Criar sessão (Agora persistente no MongoDB graças ao index.js)
         req.session.participante = {
             timeId: timeId,
             ligaId: ligaEncontrada._id.toString(),
-            participante: participanteEncontrado,
+            participante: {
+                nome_cartola: participanteEncontrado.nome_cartola,
+                nome_time: participanteEncontrado.nome_time,
+                foto_perfil: participanteEncontrado.foto_perfil,
+                foto_time: participanteEncontrado.foto_time,
+            },
         };
 
-        res.json({
-            success: true,
-            message: "Login realizado com sucesso",
-            participante: {
-                nome: participanteEncontrado.nome_cartola,
-                time: participanteEncontrado.nome_time,
-            },
+        // Forçar salvamento da sessão
+        req.session.save((err) => {
+            if (err) {
+                console.error("Erro ao salvar sessão:", err);
+                return res.status(500).json({ error: "Erro ao criar sessão" });
+            }
+
+            res.json({
+                success: true,
+                message: "Login realizado com sucesso",
+                participante: {
+                    nome: participanteEncontrado.nome_cartola,
+                    time: participanteEncontrado.nome_time,
+                },
+            });
         });
     } catch (error) {
         console.error("[PARTICIPANTE-AUTH] Erro no login:", error);
-        res.status(500).json({ error: "Erro ao processar login" });
+        res.status(500).json({ error: "Erro interno ao processar login" });
     }
 });
 
-// GET - Verificar sessão
-router.get('/session', async (req, res) => {
+// GET - Verificar sessão (Mais robusto)
+router.get("/session", async (req, res) => {
     try {
-        if (!req.session.participante) {
+        if (!req.session || !req.session.participante) {
             return res.status(401).json({
                 authenticated: false,
-                message: 'Não autenticado'
+                message: "Não autenticado",
             });
         }
 
-        // Buscar dados atualizados do time
-        const { default: Time } = await import('../models/Time.js');
+        // Buscar dados atualizados do time (opcional, mas bom para UX)
+        const { default: Time } = await import("../models/Time.js");
         const timeId = req.session.participante.timeId;
 
         let timeData = null;
         if (timeId) {
-            timeData = await Time.findOne({ time_id: timeId });
+            timeData = await Time.findOne({ time_id: timeId }).select(
+                "nome nome_cartola clube_id url_escudo_png",
+            );
         }
 
         res.json({
             authenticated: true,
             participante: {
                 ...req.session.participante,
-                time: timeData ? {
-                    nome: timeData.nome,
-                    nome_cartola: timeData.nome_cartola,
-                    clube_id: timeData.clube_id,
-                    url_escudo_png: timeData.url_escudo_png
-                } : null
-            }
+                time: timeData
+                    ? {
+                          nome: timeData.nome, // Compatibilidade com schema antigo/novo
+                          nome_cartola: timeData.nome_cartola,
+                          clube_id: timeData.clube_id,
+                          url_escudo_png: timeData.url_escudo_png,
+                      }
+                    : null,
+            },
         });
     } catch (error) {
-        console.error('Erro ao verificar sessão:', error);
-        res.status(500).json({ error: 'Erro ao verificar sessão' });
+        console.error("Erro ao verificar sessão:", error);
+        // Não retornar 500 aqui para não quebrar o frontend, apenas deslogar
+        res.status(401).json({
+            authenticated: false,
+            error: "Sessão inválida",
+        });
     }
 });
 
@@ -134,22 +157,27 @@ router.get("/minhas-ligas", verificarSessaoParticipante, async (req, res) => {
         const { timeId } = req.session.participante;
 
         if (!timeId) {
-            return res.status(400).json({ error: "Time ID não encontrado na sessão" });
+            return res
+                .status(400)
+                .json({ error: "Time ID não encontrado na sessão" });
         }
 
-        // Buscar todas as ligas onde o participante está
         const { default: Liga } = await import("../models/Liga.js");
+
+        // Busca otimizada: Retorna apenas ID, nome e descrição
         const ligas = await Liga.find({
-            "participantes.time_id": parseInt(timeId)
-        }).select('_id nome descricao').lean();
+            "participantes.time_id": parseInt(timeId),
+        })
+            .select("_id nome descricao")
+            .lean();
 
         res.json({
             success: true,
-            ligas: ligas.map(liga => ({
+            ligas: ligas.map((liga) => ({
                 id: liga._id.toString(),
                 nome: liga.nome,
-                descricao: liga.descricao || ""
-            }))
+                descricao: liga.descricao || "",
+            })),
         });
     } catch (error) {
         console.error("[PARTICIPANTE-AUTH] Erro ao buscar ligas:", error);
@@ -163,33 +191,39 @@ router.post("/trocar-liga", verificarSessaoParticipante, async (req, res) => {
         const { ligaId } = req.body;
         const { timeId } = req.session.participante;
 
-        if (!ligaId) {
+        if (!ligaId)
             return res.status(400).json({ error: "Liga ID não fornecido" });
-        }
 
-        // Verificar se participante está nessa liga
         const { default: Liga } = await import("../models/Liga.js");
         const liga = await Liga.findById(ligaId);
 
-        if (!liga) {
+        if (!liga)
             return res.status(404).json({ error: "Liga não encontrada" });
-        }
 
         const participante = liga.participantes.find(
-            p => String(p.time_id) === String(timeId)
+            (p) => String(p.time_id) === String(timeId),
         );
 
         if (!participante) {
-            return res.status(403).json({ error: "Você não participa desta liga" });
+            return res
+                .status(403)
+                .json({ error: "Você não participa desta liga" });
         }
 
         // Atualizar sessão
         req.session.participante.ligaId = ligaId;
 
-        res.json({
-            success: true,
-            message: "Liga alterada com sucesso",
-            ligaNome: liga.nome
+        req.session.save((err) => {
+            if (err)
+                return res
+                    .status(500)
+                    .json({ error: "Erro ao salvar troca de liga" });
+
+            res.json({
+                success: true,
+                message: "Liga alterada com sucesso",
+                ligaNome: liga.nome,
+            });
         });
     } catch (error) {
         console.error("[PARTICIPANTE-AUTH] Erro ao trocar liga:", error);
@@ -197,102 +231,67 @@ router.post("/trocar-liga", verificarSessaoParticipante, async (req, res) => {
     }
 });
 
-// Obter extrato financeiro do participante logado
-router.get("/extrato", verificarSessaoParticipante, async (req, res) => {
-    try {
-        const { timeId, ligaId } = req.session.participante;
-
-        // Buscar dados da liga
-        const { default: Liga } = await import("../models/Liga.js");
-        const liga = await Liga.findById(ligaId);
-
-        if (!liga) {
-            return res.status(404).json({ error: "Liga não encontrada" });
-        }
-
-        const participante = liga.participantes.find(
-            p => String(p.time_id) === String(timeId)
-        );
-
-        if (!participante) {
-            return res.status(404).json({ error: "Participante não encontrado" });
-        }
-
-        res.json({
-            success: true,
-            participante: {
-                time_id: participante.time_id,
-                nome_cartola: participante.nome_cartola,
-                nome_time: participante.nome_time,
-                foto_perfil: participante.foto_perfil,
-                foto_time: participante.foto_time
-            },
-            liga: {
-                _id: liga._id,
-                nome: liga.nome,
-                descricao: liga.descricao
-            }
-        });
-    } catch (error) {
-        console.error("[PARTICIPANTE-AUTH] Erro ao buscar extrato:", error);
-        res.status(500).json({ error: "Erro ao buscar dados" });
-    }
-});
-
-// Rota para verificar status de autenticação do participante
+// Rota para verificar status (Simplified Check)
 router.get("/check", (req, res) => {
-  if (req.session && req.session.participante) {
-    res.json({
-      authenticated: true,
-      participante: {
-        timeId: req.session.participante.timeId,
-        nome: req.session.participante.participante.nome_cartola,
-        time: req.session.participante.participante.nome_time
-      }
-    });
-  } else {
-    res.json({
-      authenticated: false,
-      needsLogin: true
-    });
-  }
-});
-
-// Rota para logout (ajustada para o novo padrão)
-router.post("/logout", (req, res) => {
-  // Se houver sessão de participante, a destruímos
-  if (req.session && req.session.participante) {
-    req.session.destroy();
-  }
-  // Respondemos com sucesso, indicando que o logout foi processado
-  res.json({ success: true, message: "Logout realizado com sucesso" });
-});
-
-// Rota de extrato do participante
-router.get('/extrato/:timeId/:ligaId', verificarAutenticacao, async (req, res) => {
-    try {
-        const { timeId, ligaId } = req.params;
-
-        // Redirecionar para o endpoint correto de extrato-cache
-        const extratoUrl = `/api/extrato-cache/${ligaId}/times/${timeId}/cache`;
-
-        // Fazer requisição interna
-        const axios = require('axios');
-        const baseURL = process.env.BASE_URL || `http://localhost:${process.env.PORT || 5000}`;
-        const response = await axios.get(`${baseURL}${extratoUrl}`, {
-            params: req.query
+    if (req.session && req.session.participante) {
+        res.json({
+            authenticated: true,
+            participante: {
+                timeId: req.session.participante.timeId,
+                nome: req.session.participante.participante.nome_cartola,
+                time: req.session.participante.participante.nome_time,
+            },
         });
-
-        res.json(response.data);
-    } catch (error) {
-        console.error('[PARTICIPANTE-AUTH] Erro ao buscar extrato:', error);
-        res.status(error.response?.status || 500).json({
-            success: false,
-            message: error.message
-        });
+    } else {
+        res.json({ authenticated: false, needsLogin: true });
     }
 });
 
+// Logout Otimizado
+router.post("/logout", (req, res) => {
+    req.session.destroy((err) => {
+        if (err) {
+            console.error("Erro ao destruir sessão:", err);
+            return res.status(500).json({ error: "Erro ao fazer logout" });
+        }
+        res.clearCookie("connect.sid"); // Limpar cookie no navegador
+        res.json({ success: true, message: "Logout realizado com sucesso" });
+    });
+});
+
+// Rota de extrato do participante (Proxy interno)
+router.get(
+    "/extrato/:timeId/:ligaId",
+    verificarAutenticacao,
+    async (req, res) => {
+        try {
+            const { timeId, ligaId } = req.params;
+            // ... (Mantido código original de proxy interno) ...
+            const extratoUrl = `/api/extrato-cache/${ligaId}/times/${timeId}/cache`;
+
+            // Importar axios dinamicamente se necessário ou usar o global
+            const axios = (await import("axios")).default;
+
+            const baseURL =
+                process.env.BASE_URL ||
+                `http://localhost:${process.env.PORT || 5000}`;
+            const response = await axios.get(`${baseURL}${extratoUrl}`, {
+                params: req.query,
+            });
+
+            res.json(response.data);
+        } catch (error) {
+            console.error(
+                "[PARTICIPANTE-AUTH] Erro ao buscar extrato:",
+                error.message,
+            );
+            res.status(error.response?.status || 500).json({
+                success: false,
+                message: "Erro ao buscar extrato",
+            });
+        }
+    },
+);
 
 export { verificarSessaoParticipante };
 export default router;

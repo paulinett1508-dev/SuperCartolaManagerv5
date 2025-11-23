@@ -3,7 +3,11 @@ import * as fluxoController from "../controllers/fluxoFinanceiroController.js";
 
 const router = express.Router();
 
-// Rotas para campos editáveis do fluxo financeiro
+// === ROTA PRINCIPAL (EXTRATO FINANCEIRO) ===
+// Esta é a rota que o frontend novo vai chamar para pegar o JSON consolidado
+router.get("/:ligaId/extrato/:timeId", fluxoController.getExtratoFinanceiro);
+
+// === ROTAS DE CAMPOS EDITÁVEIS (MANUAIS) ===
 
 // Buscar campos de um time específico
 router.get("/:ligaId/times/:timeId", fluxoController.getCampos);
@@ -14,7 +18,7 @@ router.get("/:ligaId", fluxoController.getCamposLiga);
 // Salvar/atualizar todos os campos de um time
 router.put("/:ligaId/times/:timeId", fluxoController.salvarCampos);
 
-// Salvar campo individual (nome ou valor)
+// Salvar campo individual (nome ou valor) - Rota mais usada pelo frontend novo
 router.patch(
   "/:ligaId/times/:timeId/campo/:campoIndex",
   fluxoController.salvarCampo,

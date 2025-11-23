@@ -1,55 +1,92 @@
-
 import ExtratoFinanceiroCache from "../models/ExtratoFinanceiroCache.js";
 
-// ===== BUSCAR EXTRATO EM CACHE =====
+// ===== BUSCAR EXTRATO EM CACHE (GET) =====
 export const getExtratoCache = async (req, res) => {
     try {
         const { ligaId, timeId } = req.params;
 
-        const cache = await ExtratoFinanceiroCache.findOne({ ligaId, timeId });
+        // 🛠️ CORREÇÃO DE TIPAGEM:
+        // timeId vem da URL como String, mas no banco é Number.
+        // Precisamos converter para Number() para o MongoDB encontrar.
+        const cache = await ExtratoFinanceiroCache.findOne({
+            liga_id: ligaId,
+            time_id: Number(timeId),
+        });
 
         if (!cache) {
-            return res.status(404).json({ 
+            // Retorna 404 silencioso para o frontend saber que precisa calcular
+            return res.status(404).json({
                 cached: false,
-                message: "Cache não encontrado" 
+                message: "Cache não encontrado para este time",
             });
         }
 
+        // Sucesso! Retorna o JSON pronto
         res.json({
             cached: true,
-            data: cache.extrato,
+            data: cache.historico_transacoes || [], // Garante array
+            resumo: {
+                saldo_final: cache.saldo_consolidado,
+                ganhos: cache.ganhos_consolidados,
+                perdas: cache.perdas_consolidadas,
+            },
             metadados: cache.metadados,
-            ultimaRodadaCalculada: cache.ultimaRodadaCalculada,
+            ultimaRodadaCalculada: cache.ultima_rodada_consolidada,
             updatedAt: cache.updatedAt,
         });
     } catch (error) {
         console.error("[CACHE-CONTROLLER] Erro ao buscar cache:", error);
-        res.status(500).json({ error: "Erro ao buscar cache do extrato" });
+        res.status(500).json({ error: "Erro interno ao buscar cache" });
     }
 };
 
-// ===== SALVAR/ATUALIZAR CACHE =====
+// ===== SALVAR/ATUALIZAR CACHE (POST) =====
 export const salvarExtratoCache = async (req, res) => {
     try {
         const { ligaId, timeId } = req.params;
-        const { extrato, ultimaRodadaCalculada, motivoRecalculo } = req.body;
-
-        const cacheData = {
-            ligaId,
-            timeId,
-            ultimaRodadaCalculada,
+        // Aceita 'extrato' ou 'historico_transacoes' do frontend
+        const {
             extrato,
+            historico_transacoes,
+            ultimaRodadaCalculada,
+            motivoRecalculo,
+            saldo,
+            resumo,
+        } = req.body;
+
+        const dadosParaSalvar = historico_transacoes || extrato || [];
+
+        // Mapeamento seguro para Snake Case (MongoDB)
+        const cacheData = {
+            liga_id: ligaId,
+            time_id: Number(timeId), // Garante Number
+            ultima_rodada_consolidada: ultimaRodadaCalculada || 0,
+            historico_transacoes: dadosParaSalvar,
+            data_ultima_atualizacao: new Date(),
+
+            // Pega do resumo se existir, ou do saldo direto
+            saldo_consolidado:
+                resumo?.saldo || resumo?.saldo_final || saldo || 0,
+            ganhos_consolidados: resumo?.ganhos || 0,
+            perdas_consolidadas: resumo?.perdas || resumo?.totalPerdas || 0, // Frontend às vezes manda 'totalPerdas'
+
             metadados: {
-                versaoCalculo: "1.0.0",
+                versaoCalculo: "2.1.0",
                 timestampCalculo: new Date(),
-                motivoRecalculo: motivoRecalculo || "desconhecido",
+                motivoRecalculo: motivoRecalculo || "atualizacao_frontend",
+                origem: "participante_app",
             },
         };
 
+        // Upsert: Cria se não existir, Atualiza se existir
         const cache = await ExtratoFinanceiroCache.findOneAndUpdate(
-            { ligaId, timeId },
+            { liga_id: ligaId, time_id: Number(timeId) },
             cacheData,
-            { new: true, upsert: true }
+            { new: true, upsert: true },
+        );
+
+        console.log(
+            `[CACHE] Cache salvo com sucesso: Time ${timeId} | Saldo: ${cacheData.saldo_consolidado}`,
         );
 
         res.json({
@@ -59,6 +96,12 @@ export const salvarExtratoCache = async (req, res) => {
         });
     } catch (error) {
         console.error("[CACHE-CONTROLLER] Erro ao salvar cache:", error);
+        if (error.name === "StrictModeError") {
+            console.error(
+                "⚠️ ERRO DE SCHEMA: Campo não permitido no Model.",
+                error.path,
+            );
+        }
         res.status(500).json({ error: "Erro ao salvar cache do extrato" });
     }
 };
@@ -67,15 +110,12 @@ export const salvarExtratoCache = async (req, res) => {
 export const invalidarCacheTime = async (req, res) => {
     try {
         const { ligaId, timeId } = req.params;
-
-        await ExtratoFinanceiroCache.findOneAndDelete({ ligaId, timeId });
-
-        res.json({ 
-            success: true, 
-            message: "Cache invalidado com sucesso" 
+        await ExtratoFinanceiroCache.findOneAndDelete({
+            liga_id: ligaId,
+            time_id: Number(timeId),
         });
+        res.json({ success: true, message: "Cache invalidado" });
     } catch (error) {
-        console.error("[CACHE-CONTROLLER] Erro ao invalidar cache:", error);
         res.status(500).json({ error: "Erro ao invalidar cache" });
     }
 };
@@ -84,49 +124,51 @@ export const invalidarCacheTime = async (req, res) => {
 export const invalidarCacheLiga = async (req, res) => {
     try {
         const { ligaId } = req.params;
-
-        const result = await ExtratoFinanceiroCache.deleteMany({ ligaId });
-
+        const result = await ExtratoFinanceiroCache.deleteMany({
+            liga_id: ligaId,
+        });
         res.json({
             success: true,
             message: `${result.deletedCount} caches invalidados`,
-            deletedCount: result.deletedCount,
         });
     } catch (error) {
-        console.error("[CACHE-CONTROLLER] Erro ao invalidar cache da liga:", error);
         res.status(500).json({ error: "Erro ao invalidar cache da liga" });
     }
 };
 
-// ===== VERIFICAR SE CACHE ESTÁ VÁLIDO =====
+// ===== VERIFICAR STATUS DO CACHE =====
 export const verificarCacheValido = async (req, res) => {
     try {
         const { ligaId, timeId } = req.params;
         const { rodadaAtual } = req.query;
 
-        const cache = await ExtratoFinanceiroCache.findOne({ ligaId, timeId });
+        const cache = await ExtratoFinanceiroCache.findOne({
+            liga_id: ligaId,
+            time_id: Number(timeId),
+        });
 
         if (!cache) {
             return res.json({ valido: false, motivo: "cache_nao_encontrado" });
         }
 
-        // Cache inválido se rodada atual mudou
-        if (rodadaAtual && cache.ultimaRodadaCalculada < parseInt(rodadaAtual)) {
-            return res.json({ 
-                valido: false, 
+        if (
+            rodadaAtual &&
+            cache.ultima_rodada_consolidada < parseInt(rodadaAtual)
+        ) {
+            return res.json({
+                valido: false,
                 motivo: "rodada_desatualizada",
-                cacheRodada: cache.ultimaRodadaCalculada,
-                rodadaAtual: parseInt(rodadaAtual)
+                cacheRodada: cache.ultima_rodada_consolidada,
+                rodadaAtual: parseInt(rodadaAtual),
             });
         }
 
-        res.json({ 
-            valido: true, 
-            ultimaRodada: cache.ultimaRodadaCalculada,
-            updatedAt: cache.updatedAt
+        res.json({
+            valido: true,
+            ultimaRodada: cache.ultima_rodada_consolidada,
+            updatedAt: cache.updatedAt,
         });
     } catch (error) {
-        console.error("[CACHE-CONTROLLER] Erro ao verificar cache:", error);
         res.status(500).json({ error: "Erro ao verificar cache" });
     }
 };

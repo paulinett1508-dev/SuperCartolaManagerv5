@@ -1,7 +1,9 @@
-// index.js - Super Cartola Manager OTIMIZADO
+// index.js - Super Cartola Manager OTIMIZADO (Sessões Persistentes)
+import mongoose from "mongoose";
 import { readFileSync } from "fs";
 import express from "express";
 import session from "express-session";
+import MongoStore from "connect-mongo"; // ADICIONADO: Persistência de sessão
 import dotenv from "dotenv";
 import cors from "cors";
 import path from "path";
@@ -23,10 +25,15 @@ import artilheiroCampeaoRoutes from "./routes/artilheiro-campeao-routes.js";
 import luvaDeOuroRoutes from "./routes/luva-de-ouro-routes.js";
 import configuracaoRoutes from "./routes/configuracao-routes.js";
 import fluxoFinanceiroRoutes from "./routes/fluxoFinanceiroRoutes.js";
-import extratoFinanceiroCacheRoutes from "./routes/extratoFinanceiroCacheRoutes.js"; // Nova importação
+import extratoFinanceiroCacheRoutes from "./routes/extratoFinanceiroCacheRoutes.js";
 import participanteAuthRoutes from "./routes/participante-auth.js";
 import { getClubes } from "./controllers/cartolaController.js";
-import { verificarAutenticacaoParticipante, isRotaPublica, isRotaAdmin, isRotaParticipante } from "./middleware/auth.js";
+import {
+  verificarAutenticacaoParticipante,
+  isRotaPublica,
+  isRotaAdmin,
+  isRotaParticipante,
+} from "./middleware/auth.js";
 
 // Configurar variáveis de ambiente
 dotenv.config();
@@ -52,18 +59,24 @@ app.use(
   }),
 );
 
-// Configurar sessões
+// ⚡ CONFIGURAÇÃO DE SESSÃO COM MONGODB (Correção de UX e Persistência)
 app.use(
-    session({
-        secret: process.env.SESSION_SECRET || "cartola-secret-key-2025", // Chave secreta para assinar os cookies de sessão
-        resave: false, // Não salvar sessões que não foram modificadas
-        saveUninitialized: false, // Não criar sessões para usuários não logados
-        cookie: {
-            secure: false, // set true se usar HTTPS
-            httpOnly: true, // O cookie de sessão não pode ser acessado por JavaScript no cliente
-            maxAge: 24 * 60 * 60 * 1000, // Duração da sessão em milissegundos (24 horas)
-        },
+  session({
+    secret: process.env.SESSION_SECRET || "cartola-secret-key-2025",
+    resave: false,
+    saveUninitialized: false,
+    store: MongoStore.create({
+      mongoUrl: process.env.MONGODB_URI,
+      collectionName: "sessions", // Coleção específica para sessões
+      ttl: 14 * 24 * 60 * 60, // Sessão dura 14 dias no banco
+      autoRemove: "native", // MongoDB remove sessões expiradas automaticamente
     }),
+    cookie: {
+      secure: false, // set true se usar HTTPS com certificado válido
+      httpOnly: true,
+      maxAge: 14 * 24 * 60 * 60 * 1000, // 14 dias (UX de App)
+    },
+  }),
 );
 
 app.use(express.json({ limit: "10mb" }));
@@ -71,32 +84,15 @@ app.use(express.urlencoded({ extended: true, limit: "10mb" }));
 
 // ⚡ MIDDLEWARE DE SEGURANÇA: Proteger páginas admin
 app.use((req, res, next) => {
-  // Rotas públicas: sempre permitir
-  if (isRotaPublica(req.url)) {
-    return next();
-  }
+  if (isRotaPublica(req.url)) return next();
+  if (isRotaAdmin(req.url)) return next();
+  if (req.url.match(/\.(css|js|png|jpg|jpeg|gif|svg|ico|json)$/)) return next();
+  if (req.url.startsWith("/api/")) return next();
 
-  // Rotas admin: sempre permitir (sem autenticação de participante)
-  if (isRotaAdmin(req.url)) {
-    return next();
-  }
-
-  // Arquivos estáticos: sempre permitir
-  if (req.url.match(/\.(css|js|png|jpg|jpeg|gif|svg|ico|json)$/)) {
-    return next();
-  }
-
-  // Rotas de API: permitir (autenticação própria se necessário)
-  if (req.url.startsWith('/api/')) {
-    return next();
-  }
-
-  // Rotas de PARTICIPANTE: verificar autenticação
   if (isRotaParticipante(req.url)) {
     return verificarAutenticacaoParticipante(req, res, next);
   }
 
-  // Qualquer outra rota: permitir
   next();
 });
 
@@ -124,85 +120,23 @@ app.use((req, res, next) => {
 
 // Rota específica para clubes no nível raiz da API
 app.get("/api/clubes", getClubes);
-if (process.env.NODE_ENV !== "production") {
-  console.log("✅ [ROUTES] Registrada: GET /api/clubes");
-}
 
 // Rotas principais da API
 app.use("/api/cartola", cartolaRoutes);
-if (process.env.NODE_ENV !== "production") {
-  console.log("✅ [ROUTES] Registrada: /api/cartola/*");
-}
-
-// Proxy para API do Cartola (mercado/status e atletas/pontuados)
-app.use("/api/cartola", cartolaProxyRoutes);
-if (process.env.NODE_ENV !== "production") {
-  console.log("✅ [ROUTES] Registrada: /api/cartola/* (proxy)");
-}
-
-// Rotas de times - ORDEM IMPORTA!
+app.use("/api/cartola", cartolaProxyRoutes); // Proxy
 app.use("/api/times", timesRoutes);
-console.log("✅ [ROUTES] Registrada: /api/times/*");
-
-app.use("/api/time", timesRoutes);
-console.log("✅ [ROUTES] Registrada: /api/time/* (compatibilidade)");
-
-app.use("/api/cartola/time", timesRoutes);
-console.log("✅ [ROUTES] Registrada: /api/cartola/time/* (compatibilidade)");
-
+app.use("/api/time", timesRoutes); // Compatibilidade
+app.use("/api/cartola/time", timesRoutes); // Compatibilidade
 app.use("/api/ligas", ligaRoutes);
-if (process.env.NODE_ENV !== "production") {
-  console.log("✅ [ROUTES] Registrada: /api/ligas/*");
-}
-
 app.use("/api/rodadas", rodadasRoutes);
-if (process.env.NODE_ENV !== "production") {
-  console.log("✅ [ROUTES] Registrada: /api/rodadas/*");
-}
-
 app.use("/api/gols", golsRoutes);
-if (process.env.NODE_ENV !== "production") {
-  console.log("✅ [ROUTES] Registrada: /api/gols/*");
-}
-
 app.use("/api/artilheiro-campeao", artilheiroCampeaoRoutes);
-if (process.env.NODE_ENV !== "production") {
-  console.log("✅ [ROUTES] Registrada: /api/artilheiro-campeao/*");
-}
-
 app.use("/api/luva-de-ouro", luvaDeOuroRoutes);
-if (process.env.NODE_ENV !== "production") {
-  console.log("✅ [ROUTES] Registrada: /api/luva-de-ouro/*");
-}
-
 app.use("/api/configuracao", configuracaoRoutes);
-if (process.env.NODE_ENV !== "production") {
-  console.log("✅ [ROUTES] Registrada: /api/configuracao/*");
-}
-
-// ✨ NOVO: Rotas do Fluxo Financeiro
 app.use("/api/fluxo-financeiro", fluxoFinanceiroRoutes);
-if (process.env.NODE_ENV !== "production") {
-  console.log("✅ [ROUTES] Registrada: /api/fluxo-financeiro/*");
-}
-
-// ✨ NOVO: Rotas do Cache de Extrato Financeiro
 app.use("/api/extrato-cache", extratoFinanceiroCacheRoutes);
-if (process.env.NODE_ENV !== "production") {
-  console.log("✅ [ROUTES] Registrada: /api/extrato-cache/*");
-}
-
-// ✨ NOVO: Rotas de autenticação de participantes
 app.use("/api/participante/auth", participanteAuthRoutes);
-if (process.env.NODE_ENV !== "production") {
-  console.log("✅ [ROUTES] Registrada: /api/participante/auth/*");
-}
-
-// Rotas de autenticação genéricas (para login/logout)
-app.use("/api/auth", participanteAuthRoutes);
-if (process.env.NODE_ENV !== "production") {
-  console.log("✅ [ROUTES] Registrada: /api/auth/*");
-}
+app.use("/api/auth", participanteAuthRoutes); // Compatibilidade
 
 // Rota para informações da API e versão
 app.get("/api/version", (req, res) => {
@@ -210,51 +144,14 @@ app.get("/api/version", (req, res) => {
     name: "Super Cartola Manager API",
     version: pkg.version,
     description: "Sistema de gerenciamento de ligas internas do Cartola FC",
-    author: pkg.author || "Super Cartola Team",
     environment: process.env.NODE_ENV || "development",
     performance: {
       cache: "NodeCache habilitado",
       database: "Connection pooling ativo",
-      logs:
-        process.env.NODE_ENV === "production"
-          ? "Otimizados para produção"
-          : "Completos para desenvolvimento",
-    },
-    features: [
-      "Gerenciamento de Ligas",
-      "Sistema de Pontos Corridos",
-      "Mata-Mata",
-      "Artilheiro e Campeão",
-      "Luva de Ouro",
-      "Fluxo Financeiro (Persistente)",
-      "Exportação de Relatórios (Frontend)",
-      "Integração com API do Cartola FC",
-      "Cache inteligente",
-      "Índices otimizados",
-      "Autenticação de Participantes", // Nova feature
-    ],
-    endpoints: {
-      clubes: "/api/clubes",
-      cartola: "/api/cartola",
-      times: "/api/times",
-      ligas: "/api/ligas",
-      rodadas: "/api/rodadas",
-      gols: "/api/gols",
-      artilheiro: "/api/artilheiro-campeao",
-      luvaDeOuro: "/api/luva-de-ouro",
-      configuracao: "/api/configuracao",
-      fluxoFinanceiro: "/api/fluxo-financeiro",
-      extratoCache: "/api/extrato-cache/*", // Novo endpoint
-      participanteAuth: "/api/participante/auth/*", // Novo endpoint
-      auth: "/api/auth/*", // Novo endpoint
-      version: "/api/version",
+      session: "MongoDB Persistent Store", // Indicador da melhoria
     },
   });
 });
-
-if (process.env.NODE_ENV !== "production") {
-  console.log("✅ [ROUTES] Registrada: GET /api/version");
-}
 
 // Rota para servir o favicon
 app.get("/favicon.ico", (req, res) => {
@@ -266,68 +163,18 @@ app.get("/", (req, res) => {
   res.redirect("/index.html");
 });
 
-if (process.env.NODE_ENV !== "production") {
-  console.log("✅ [ROUTES] Registrada: GET / (redirect)");
-}
-
 // Middleware para rotas não encontradas
 app.use((req, res, next) => {
   const isApiRoute = req.url.startsWith("/api/");
-
   if (isApiRoute) {
-    if (process.env.NODE_ENV !== "production") {
-      console.log(
-        `❌ [404] Rota de API não encontrada: ${req.method} ${req.url}`,
-      );
-    }
     res.status(404).json({
       erro: "Rota de API não encontrada",
       message: `O endpoint ${req.method} ${req.url} não existe`,
-      available_endpoints: [
-        "GET /api/version",
-        "GET /api/clubes",
-        "GET /api/times/*",
-        "GET /api/time/*",
-        "GET /api/ligas/*",
-        "GET /api/rodadas/*",
-        "GET /api/gols/*",
-        "GET /api/artilheiro-campeao/*",
-        "GET /api/luva-de-ouro/*",
-        "GET /api/configuracao/*",
-        "GET /api/fluxo-financeiro/*",
-        "GET /api/extrato-cache/*", // Novo endpoint
-        "POST /api/participante/auth/login",
-        "POST /api/participante/auth/register",
-        "POST /api/auth/logout",
-        "GET /api/cartola/mercado/status",
-        "GET /api/cartola/atletas/pontuados",
-      ],
     });
   } else {
-    if (process.env.NODE_ENV !== "production") {
-      console.log(`❌ [404] Arquivo não encontrado: ${req.method} ${req.url}`);
-    }
     res.status(404).send(`
-      <html>
-        <head>
-          <title>404 - Página não encontrada</title>
-          <style>
-            body { font-family: Arial, sans-serif; margin: 50px; }
-            .container { max-width: 600px; margin: 0 auto; text-align: center; }
-            .error-code { font-size: 4em; color: #dc3545; margin: 0; }
-            .error-message { font-size: 1.2em; color: #6c757d; margin: 20px 0; }
-            .back-link { color: #007bff; text-decoration: none; font-size: 1.1em; }
-            .back-link:hover { text-decoration: underline; }
-          </style>
-        </head>
-        <body>
-          <div class="container">
-            <h1 class="error-code">404</h1>
-            <p class="error-message">A página <strong>${req.url}</strong> não foi encontrada.</p>
-            <a href="/" class="back-link">← Voltar para o Super Cartola Manager</a>
-          </div>
-        </body>
-      </html>
+      <html><head><title>404 - Página não encontrada</title></head>
+      <body><h1>404</h1><p>A página <strong>${req.url}</strong> não foi encontrada.</p><a href="/">Voltar</a></body></html>
     `);
   }
 });
@@ -336,19 +183,11 @@ app.use((req, res, next) => {
 app.use((err, req, res, next) => {
   const timestamp = new Date().toISOString();
   console.error(`🚨 [${timestamp}] Erro no servidor:`, err.message);
-
-  // Log do stack trace apenas em desenvolvimento
-  if (process.env.NODE_ENV !== "production") {
-    console.error("Stack trace:", err.stack);
-  }
-
-  // Resposta de erro padronizada
-  const isDevelopment = process.env.NODE_ENV !== "production";
   res.status(err.status || 500).json({
     erro: "Erro interno no servidor",
-    message: isDevelopment ? err.message : "Algo deu errado",
+    message:
+      process.env.NODE_ENV !== "production" ? err.message : "Algo deu errado",
     timestamp: timestamp,
-    ...(isDevelopment && { stack: err.stack }),
   });
 });
 
@@ -356,78 +195,54 @@ app.use((err, req, res, next) => {
 async function iniciarServidor() {
   try {
     console.log("🔄 Conectando ao MongoDB...");
-
-    // ⚡ USAR CONEXÃO OTIMIZADA COM POOLING
     await connectDB();
-
     console.log("✅ Conectado ao MongoDB com sucesso!");
 
     app.listen(PORT, () => {
-      console.log("\n" + "=".repeat(60));
-      console.log("🚀 SUPER CARTOLA MANAGER INICIADO COM SUCESSO!");
-      console.log("=".repeat(60));
-      console.log(`📡 Servidor rodando na porta: ${PORT}`);
-      console.log(`🌐 URL Local: http://localhost:${PORT}`);
-      console.log(`📊 API Info: http://localhost:${PORT}/api/version`);
-      console.log(`🏠 Aplicação: http://localhost:${PORT}/index.html`);
-      console.log(`⚙️  Ambiente: ${process.env.NODE_ENV || "development"}`);
-      console.log(`📦 Versão: ${pkg.version}`);
-      console.log(`💾 MongoDB: Conectado com pooling`);
-      console.log(`⚡ Cache: NodeCache ativo`);
-      console.log(`📈 Performance: Otimizada`);
-      console.log("✨ Módulos de export funcionando no frontend");
-      console.log("🥅 Sistema Luva de Ouro integrado");
-      console.log("💰 Sistema Fluxo Financeiro persistente");
-      console.log("🔒 Sistema de Autenticação de Participantes integrado"); // Nova informação
-      console.log("✅ Sistema de Cache de Extrato Financeiro integrado"); // Nova informação
-      console.log("=".repeat(60) + "\n");
-
-      // Log adicional para desenvolvimento
-      if (process.env.NODE_ENV !== "production") {
-        console.log("🛠️  Modo de desenvolvimento ativo");
-        console.log("📝 Logs detalhados habilitados");
-        console.log("🔍 Cache em modo debug");
-      } else {
-        console.log("🚀 Modo de produção ativo");
-        console.log("⚡ Logs otimizados");
-        console.log("💨 Performance máxima");
-      }
+      console.log(`🚀 SUPER CARTOLA MANAGER RODANDO NA PORTA ${PORT}`);
+      console.log(`💾 Sessões persistentes: ATIVADAS (MongoDB Store)`);
     });
   } catch (err) {
     console.error("❌ Erro ao conectar ao MongoDB:", err.message);
-    console.error(
-      "🔧 Verifique se o MongoDB está rodando e se a string de conexão está correta",
-    );
     process.exit(1);
   }
 }
 
-// Tratamento gracioso de sinais do sistema
-process.on("SIGTERM", () => {
-  console.log("\n🔄 SIGTERM recebido. Encerrando servidor graciosamente...");
-  process.exit(0);
-});
+// ====================================================================
+// 🧹 LIMPEZA DE ÍNDICES ANTIGOS (FIX ERRO E11000)
+// Adicione este bloco no final do seu index.js ou logo após a conexão
+// ====================================================================
+mongoose.connection.once("open", async () => {
+  console.log("🔧 Verificando índices do banco de dados...");
+  try {
+    const collection = mongoose.connection.db.collection(
+      "extratofinanceirocaches",
+    );
 
-process.on("SIGINT", () => {
-  console.log("\n🔄 SIGINT recebido. Encerrando servidor graciosamente...");
-  process.exit(0);
-});
+    // Verifica se o índice antigo existe e o remove
+    const indexes = await collection.indexes();
+    const indiceAntigo = indexes.find(
+      (idx) => idx.name === "ligaId_1_timeId_1",
+    );
 
-// Tratamento de erros não capturados
-process.on("uncaughtException", (error) => {
-  console.error("🚨 Erro não capturado:", error);
-  process.exit(1);
-});
-
-process.on("unhandledRejection", (reason, promise) => {
-  console.error("🚨 Promise rejeitada não tratada:", reason);
-  console.error("Promise:", promise);
-  process.exit(1);
+    if (indiceAntigo) {
+      console.log(
+        "🚨 Índice antigo 'ligaId_1_timeId_1' encontrado. Removendo...",
+      );
+      await collection.dropIndex("ligaId_1_timeId_1");
+      console.log(
+        "✅ Índice antigo removido com sucesso! O erro E11000 deve sumir.",
+      );
+    } else {
+      console.log("✅ Nenhum índice conflitante encontrado.");
+    }
+  } catch (err) {
+    console.log(
+      "⚠️ Aviso na verificação de índices (não crítico):",
+      err.message,
+    );
+  }
 });
 
 // Iniciar o servidor
 iniciarServidor();
-
-// ⚠️  NOTA: Módulos de export (export-*.js) são isolados no frontend
-// Eles são carregados através de <script type="module"> nos arquivos HTML
-// e não devem ser importados no backend Node.js
