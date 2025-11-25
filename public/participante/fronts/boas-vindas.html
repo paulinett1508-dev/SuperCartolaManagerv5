@@ -1,9 +1,11 @@
 <div class="boas-vindas-container">
-    <div class="welcome-header">
-        <h1>⚽ Painel do Participante</h1>
+    <!-- Hero Section Compacta -->
+    <div class="welcome-hero">
+        <h1 id="saudacao">⚽ Bem-vindo(a) ao Painel</h1>
+        <p id="subtitulo">Acompanhe seu desempenho em tempo real</p>
     </div>
 
-    <!-- Mini Cards de Estatísticas -->
+    <!-- Mini Cards de Estatísticas - Mobile Otimizado -->
     <div class="stats-mini-grid">
         <!-- Posição no Ranking -->
         <div class="mini-card">
@@ -23,7 +25,7 @@
             </div>
         </div>
 
-        <!-- Saldo Financeiro (do Extrato) -->
+        <!-- Saldo Financeiro -->
         <div class="mini-card">
             <div class="mini-icon">💰</div>
             <div class="mini-content">
@@ -42,67 +44,118 @@
         </div>
     </div>
 
-    <!-- Time do Coração (oculto por enquanto) -->
-    <div class="time-coracao-section" style="display: none;">
-        <div class="time-coracao-card" id="timeCoracaoCard"></div>
+    <!-- Quick Links - Navegação Rápida -->
+    <div class="quick-links">
+        <h2 class="section-title">📱 Acesso Rápido</h2>
+        <div class="quick-links-grid">
+            <button class="quick-link-btn" onclick="participanteNav.navegarPara('extrato')">
+                <span class="ql-icon">💰</span>
+                <span class="ql-text">Meu Extrato</span>
+            </button>
+            <button class="quick-link-btn" onclick="participanteNav.navegarPara('ranking')">
+                <span class="ql-icon">📊</span>
+                <span class="ql-text">Ranking</span>
+            </button>
+            <button class="quick-link-btn" onclick="participanteNav.navegarPara('rodadas')">
+                <span class="ql-icon">🎯</span>
+                <span class="ql-text">Rodadas</span>
+            </button>
+            <button class="quick-link-btn" onclick="participanteNav.navegarPara('pontos-corridos')">
+                <span class="ql-icon">⚽</span>
+                <span class="ql-text">Pontos Corridos</span>
+            </button>
+        </div>
+    </div>
+
+    <!-- Performance Visual Card -->
+    <div class="performance-card">
+        <h2 class="section-title">📈 Seu Desempenho</h2>
+        <div class="performance-info">
+            <div class="perf-item">
+                <span class="perf-label">Posição anterior:</span>
+                <span class="perf-value" id="posicaoAnterior">-</span>
+            </div>
+            <div class="perf-item">
+                <span class="perf-label">Variação:</span>
+                <span class="perf-value" id="variacao">-</span>
+            </div>
+            <div class="perf-item">
+                <span class="perf-label">Tendência:</span>
+                <span class="perf-value" id="tendencia">📊</span>
+            </div>
+        </div>
     </div>
 </div>
 
 <style>
+/* === BOAS-VINDAS MOBILE-FIRST === */
 .boas-vindas-container {
-    padding: 12px;
-    max-width: 1200px;
-    margin: 0 auto;
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+    width: 100%;
+    padding: 0;
 }
 
-.welcome-header {
+/* Hero Section */
+.welcome-hero {
     text-align: center;
-    margin-bottom: 12px;
+    padding: 12px 0 8px;
+    border-bottom: 2px solid rgba(255, 69, 0, 0.1);
 }
 
-.welcome-header h1 {
-    font-size: 16px;
+.welcome-hero h1 {
+    font-size: 20px;
     color: #fff;
-    margin: 0;
-    font-weight: 700;
+    margin: 0 0 4px;
+    font-weight: 800;
+    letter-spacing: -0.5px;
 }
 
-/* Grid Compacto de Mini Cards */
+.welcome-hero p {
+    font-size: 12px;
+    color: #888;
+    margin: 0;
+    font-weight: 500;
+}
+
+/* Grid Compacto de Mini Cards - 2 colunas em mobile */
 .stats-mini-grid {
     display: grid;
     grid-template-columns: repeat(2, 1fr);
-    gap: 8px;
-    margin-bottom: 12px;
+    gap: 10px;
+    margin: 8px 0;
 }
 
 /* Mini Card Compacto */
 .mini-card {
-    background: linear-gradient(135deg, #1a1a1a 0%, #252525 100%);
-    border: 1px solid rgba(255, 69, 0, 0.2);
+    background: linear-gradient(135deg, #1f1f1f 0%, #252525 100%);
+    border: 1px solid rgba(255, 69, 0, 0.15);
     border-radius: 8px;
-    padding: 10px;
+    padding: 12px;
     display: flex;
     align-items: center;
-    gap: 8px;
+    gap: 10px;
     transition: all 0.2s;
-    min-height: 60px;
+    min-height: 70px;
 }
 
 .mini-card:active {
     transform: scale(0.98);
-    background: linear-gradient(135deg, #1f1f1f 0%, #2a2a2a 100%);
+    background: linear-gradient(135deg, #242424 0%, #2a2a2a 100%);
+    border-color: rgba(255, 69, 0, 0.25);
 }
 
 .mini-icon {
-    font-size: 20px;
+    font-size: 22px;
     flex-shrink: 0;
-    width: 32px;
-    height: 32px;
+    width: 40px;
+    height: 40px;
     display: flex;
     align-items: center;
     justify-content: center;
-    background: rgba(255, 69, 0, 0.1);
-    border-radius: 6px;
+    background: rgba(255, 69, 0, 0.08);
+    border-radius: 8px;
 }
 
 .mini-content {
@@ -122,48 +175,147 @@
 
 .mini-label {
     font-size: 10px;
-    color: #888;
+    color: #777;
     text-transform: uppercase;
     letter-spacing: 0.3px;
     line-height: 1.2;
     margin-top: 2px;
+    font-weight: 600;
 }
 
-/* Tablet */
+/* Section Title */
+.section-title {
+    font-size: 14px;
+    color: #fff;
+    margin: 0 0 10px;
+    font-weight: 700;
+    letter-spacing: -0.3px;
+}
+
+/* Quick Links - Navegação Rápida */
+.quick-links {
+    padding: 12px 0;
+}
+
+.quick-links-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 10px;
+}
+
+.quick-link-btn {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    padding: 14px 12px;
+    background: linear-gradient(135deg, #1f1f1f 0%, #242424 100%);
+    border: 1.5px solid rgba(255, 69, 0, 0.15);
+    border-radius: 10px;
+    color: #d0d0d0;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s;
+    min-height: 80px;
+    -webkit-tap-highlight-color: transparent;
+    touch-action: manipulation;
+}
+
+.quick-link-btn:active {
+    transform: scale(0.96);
+    background: linear-gradient(135deg, #242424 0%, #2a2a2a 100%);
+    border-color: rgba(255, 69, 0, 0.3);
+}
+
+.ql-icon {
+    font-size: 24px;
+}
+
+.ql-text {
+    font-size: 12px;
+    text-align: center;
+    line-height: 1.2;
+}
+
+/* Performance Card */
+.performance-card {
+    background: linear-gradient(135deg, rgba(255, 69, 0, 0.08) 0%, rgba(255, 140, 0, 0.04) 100%);
+    border: 1.5px solid rgba(255, 69, 0, 0.15);
+    border-radius: 10px;
+    padding: 14px;
+}
+
+.performance-info {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.perf-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 8px 0;
+    border-bottom: 1px solid rgba(255, 69, 0, 0.08);
+}
+
+.perf-item:last-child {
+    border-bottom: none;
+}
+
+.perf-label {
+    font-size: 12px;
+    color: #888;
+    font-weight: 600;
+}
+
+.perf-value {
+    font-size: 14px;
+    color: #fff;
+    font-weight: 700;
+}
+
+/* === TABLET (768px) === */
 @media (min-width: 768px) {
     .boas-vindas-container {
-        padding: 16px;
+        gap: 18px;
+        padding: 0;
     }
 
-    .welcome-header {
-        margin-bottom: 16px;
+    .welcome-hero {
+        padding: 14px 0 10px;
     }
 
-    .welcome-header h1 {
-        font-size: 20px;
+    .welcome-hero h1 {
+        font-size: 24px;
+    }
+
+    .welcome-hero p {
+        font-size: 13px;
     }
 
     .stats-mini-grid {
         grid-template-columns: repeat(4, 1fr);
         gap: 12px;
-        margin-bottom: 16px;
+        margin: 10px 0;
     }
 
     .mini-card {
-        padding: 12px;
-        min-height: 70px;
+        padding: 14px;
+        min-height: 75px;
     }
 
     .mini-card:hover {
-        border-color: rgba(255, 69, 0, 0.4);
+        border-color: rgba(255, 69, 0, 0.3);
         transform: translateY(-2px);
-        box-shadow: 0 4px 12px rgba(255, 69, 0, 0.2);
+        box-shadow: 0 4px 12px rgba(255, 69, 0, 0.15);
     }
 
     .mini-icon {
-        font-size: 24px;
-        width: 40px;
-        height: 40px;
+        font-size: 26px;
+        width: 44px;
+        height: 44px;
     }
 
     .mini-value {
@@ -173,26 +325,72 @@
     .mini-label {
         font-size: 11px;
     }
-}
 
-/* Desktop */
-@media (min-width: 1024px) {
-    .boas-vindas-container {
-        padding: 20px;
+    .section-title {
+        font-size: 15px;
+        margin-bottom: 12px;
     }
 
-    .welcome-header h1 {
-        font-size: 22px;
+    .quick-links-grid {
+        grid-template-columns: repeat(4, 1fr);
+        gap: 12px;
+    }
+
+    .quick-link-btn {
+        padding: 16px 12px;
+        min-height: 90px;
+        font-size: 13px;
+    }
+
+    .quick-link-btn:hover {
+        border-color: rgba(255, 69, 0, 0.4);
+        background: linear-gradient(135deg, #242424 0%, #2a2a2a 100%);
+        transform: translateY(-2px);
+        box-shadow: 0 4px 12px rgba(255, 69, 0, 0.15);
+    }
+
+    .ql-icon {
+        font-size: 28px;
+    }
+
+    .performance-card {
+        padding: 16px;
+    }
+
+    .perf-item {
+        padding: 10px 0;
+    }
+
+    .perf-label {
+        font-size: 13px;
+    }
+
+    .perf-value {
+        font-size: 15px;
+    }
+}
+
+/* === DESKTOP (1024px) === */
+@media (min-width: 1024px) {
+    .boas-vindas-container {
+        gap: 20px;
+    }
+
+    .welcome-hero h1 {
+        font-size: 26px;
+    }
+
+    .welcome-hero p {
+        font-size: 14px;
     }
 
     .stats-mini-grid {
         gap: 16px;
-        margin-bottom: 20px;
     }
 
     .mini-card {
-        padding: 14px;
-        min-height: 75px;
+        padding: 16px;
+        min-height: 80px;
     }
 
     .mini-value {
@@ -202,6 +400,24 @@
     .mini-label {
         font-size: 12px;
     }
+
+    .section-title {
+        font-size: 16px;
+    }
+
+    .quick-links-grid {
+        gap: 14px;
+    }
+
+    .quick-link-btn {
+        padding: 18px;
+        min-height: 100px;
+        font-size: 14px;
+    }
+
+    .performance-card {
+        padding: 18px;
+    }
 }
 
 /* Loading */
@@ -209,13 +425,32 @@
     text-align: center;
     color: #666;
     padding: 12px;
-    font-size: 11px;
+    font-size: 12px;
+    animation: fadeIn 0.3s ease;
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
+}
+
+/* Touch-friendly adjustments */
+@media (hover: none) and (pointer: coarse) {
+    .mini-card,
+    .quick-link-btn {
+        min-height: 60px;
+    }
+
+    .quick-link-btn {
+        min-height: 75px;
+        padding: 16px 10px;
+    }
 }
 </style>
 
 <script>
 (function() {
-    console.log('📊 [BOAS-VINDAS] Carregando dashboard participante...');
+    console.log('📊 [BOAS-VINDAS] Inicializando painel participante...');
 
     // Função para buscar dados do jogador
     async function buscarDadosJogador(ligaId, timeId) {
@@ -232,7 +467,6 @@
 
             // Atualiza informações gerais
             document.getElementById('posicaoRanking').textContent = meuTime ? `${meuTime.posicao}º` : '--º';
-            document.getElementById('totalParticipantes').textContent = rankingGeral.length || '--';
             document.getElementById('pontosTotal').textContent = meuTime ? meuTime.pontos_total.toFixed(2) : '--';
 
             // Atualiza informações financeiras
@@ -254,49 +488,33 @@
                 pontosUltimaRodadaEl.textContent = '--';
             }
 
-            // Atualiza saudação (removido pois o título foi alterado)
-            // const hora = new Date().getHours();
-            // let saudacao = '';
-            // if (hora < 12) saudacao = 'Bom dia! Confira suas estatísticas.';
-            // else if (hora < 18) saudacao = 'Boa tarde! Veja como você está indo.';
-            // else saudacao = 'Boa noite! Acompanhe seu desempenho.';
-            // document.getElementById('saudacao').textContent = saudacao;
-
-            // Carregar módulos (exemplo, precisa ser implementado)
-            // carregarModulos(); // Removido conforme o novo design não inclui módulos nesta seção
-
-            // Carregar time do coração (exemplo, precisa ser implementado)
-            carregarTimeCoracao(ligaId, timeId);
+            // Atualiza performance
+            if (meuTime) {
+                document.getElementById('posicaoAnterior').textContent = `${meuTime.posicao_anterior || '--'}º`;
+                const variacao = (meuTime.posicao_anterior || meuTime.posicao) - (meuTime.posicao || 0);
+                const tendenciaEl = document.getElementById('variacao');
+                const tendenciaIconEl = document.getElementById('tendencia');
+                
+                if (variacao > 0) {
+                    tendenciaEl.textContent = `+${variacao} (Subindo!)`;
+                    tendenciaEl.style.color = '#22c55e';
+                    tendenciaIconEl.textContent = '📈';
+                } else if (variacao < 0) {
+                    tendenciaEl.textContent = `${variacao}`;
+                    tendenciaEl.style.color = '#ef4444';
+                    tendenciaIconEl.textContent = '📉';
+                } else {
+                    tendenciaEl.textContent = 'Estável';
+                    tendenciaEl.style.color = '#888';
+                    tendenciaIconEl.textContent = '➡️';
+                }
+            }
 
             console.log('✅ [BOAS-VINDAS] Dados carregados com sucesso');
 
         } catch (error) {
             console.error('❌ [BOAS-VINDAS] Erro ao carregar dados:', error);
-            // Preenche com placeholders em caso de erro
-            document.getElementById('posicaoRanking').textContent = '--º';
-            document.getElementById('totalParticipantes').textContent = '--';
-            document.getElementById('pontosTotal').textContent = '--';
-            document.getElementById('saldoFinanceiro').textContent = 'R$ --';
-            document.getElementById('statusFinanceiro').textContent = '--';
-            document.getElementById('numeroUltimaRodada').textContent = '--';
-            document.getElementById('pontosUltimaRodada').textContent = '--';
         }
-    }
-
-    // Função placeholder para carregar time do coração
-    function carregarTimeCoracao(ligaId, timeId) {
-        const timeCoracaoCard = document.getElementById('timeCoracaoCard');
-        // Simula o carregamento de dados
-        setTimeout(() => {
-            timeCoracaoCard.innerHTML = `
-                <div class="dica-content">
-                    <strong>Seu Time do Coração</strong>
-                    <p>Flamengo - <strong>${Math.floor(Math.random() * 100)} pts</strong> na última rodada!</p>
-                    <p>Uma análise completa será adicionada em breve.</p>
-                </div>
-            `;
-             console.log(' Time do coração carregado (exemplo).');
-        }, 1000);
     }
 
     // Inicialização
@@ -304,21 +522,19 @@
         console.log('📊 [BOAS-VINDAS] Inicializando...');
         try {
             const session = await fetch('/api/participante/auth/session').then(r => r.ok ? r.json() : null);
-            if (!session || !session.timeId) {
+            if (!session || !session.participante?.timeId) {
                 console.warn('⚠️ Sessão do participante não encontrada.');
-                // Redirecionar ou mostrar mensagem de erro
                 return;
             }
-            const ligaId = session.ligaId || new URLSearchParams(window.location.search).get('liga');
+            const ligaId = session.participante?.ligaId || new URLSearchParams(window.location.search).get('liga');
             if (!ligaId) {
                 console.warn('⚠️ ID da Liga não encontrado na sessão ou URL.');
                 return;
             }
-            await buscarDadosJogador(ligaId, session.timeId);
+            await buscarDadosJogador(ligaId, session.participante.timeId);
         } catch (error) {
             console.error('❌ Erro na inicialização:', error);
         }
     })();
-
 })();
 </script>

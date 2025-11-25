@@ -12,59 +12,53 @@
         <!-- Header com dados do participante -->
         <header class="participante-header">
             <div class="header-content">
-                <!-- Escudos lado a lado -->
-                <div class="escudos-container">
-                    <div class="escudo-wrapper" title="Time do Coração">
-                        <img id="escudoCoracao" class="escudo-coracao" src="/escudos/placeholder.png" alt="Clube do Coração">
+                <!-- Row 1: Escudos + Info -->
+                <div class="header-top">
+                    <!-- Escudos lado a lado -->
+                    <div class="escudos-container">
+                        <div class="escudo-wrapper" title="Time do Coração">
+                            <img id="escudoCoracao" class="escudo-coracao" src="/escudos/placeholder.png" alt="Clube do Coração">
+                        </div>
+                        <div class="escudo-wrapper" title="Escudo do Time">
+                            <img id="escudoTime" class="escudo-time" src="/escudos/placeholder.png" alt="Escudo Time">
+                        </div>
                     </div>
-                    <div class="escudo-wrapper" title="Escudo do Time">
-                        <img id="escudoTime" class="escudo-time" src="/escudos/placeholder.png" alt="Escudo Time">
+
+                    <!-- Informações do Participante -->
+                    <div class="participante-info">
+                        <h1 id="nomeTime">Carregando...</h1>
+                        <p id="nomeCartoleiro">
+                            <span class="cartoleiro-icon">👤</span>
+                            <span id="nomeCartolaText">Aguarde...</span>
+                        </p>
                     </div>
                 </div>
 
-                <!-- Informações do Participante -->
-                <div class="participante-info">
-                    <h1 id="nomeTime">Carregando...</h1>
-                    <p id="nomeCartoleiro">
-                        <span class="cartoleiro-icon">👤</span>
-                        <span id="nomeCartolaText">Aguarde...</span>
-                    </p>
-                </div>
-
-                <div style="display: flex; align-items: center; gap: 15px;">
-                    <div id="statusConexao" style="display: flex; align-items: center; gap: 5px; font-size: 12px;">
-                        <span id="statusIndicador" style="width: 8px; height: 8px; border-radius: 50%; background: #22c55e;"></span>
-                        <span id="statusTexto" style="color: #999;">Online</span>
+                <!-- Row 2: Status + Liga + Botões -->
+                <div class="header-bottom">
+                    <div id="statusConexao">
+                        <span id="statusIndicador"></span>
+                        <span id="statusTexto">Online</span>
                     </div>
 
                     <!-- Seletor de Liga (só aparece se participante tiver múltiplas ligas) -->
                     <div id="seletorLigaContainer" style="display: none;">
-                        <select id="seletorLiga" style="padding: 6px 10px; border-radius: 6px; border: 1px solid #333; background: #1a1a1a; color: #fff; font-size: 13px; cursor: pointer;">
+                        <select id="seletorLiga">
                             <!-- Opções carregadas dinamicamente -->
                         </select>
                     </div>
 
-                    <!-- Ícone Home (discreto) -->
-                    <button onclick="participanteNav.navegarPara('boas-vindas')" 
-                            title="Voltar para Início"
-                            style="background: transparent; border: none; color: #999; padding: 8px; 
-                                   cursor: pointer; display: flex; align-items: center; justify-content: center;
-                                   font-size: 20px; transition: all 0.2s; border-radius: 50%;"
-                            onmouseover="this.style.background='rgba(255, 255, 255, 0.1)'; this.style.color='#fff';"
-                            onmouseout="this.style.background='transparent'; this.style.color='#999';">
-                        🏠
-                    </button>
-
-                    <!-- Botão Logout -->
-                    <button onclick="logout()" 
-                            style="background: transparent; border: 1px solid #ef4444; color: #ef4444; padding: 6px 12px; 
-                                   border-radius: 6px; cursor: pointer; display: flex; align-items: center; gap: 6px;
-                                   font-size: 12px; transition: all 0.2s;"
-                            onmouseover="this.style.background='#ef4444'; this.style.color='#fff';"
-                            onmouseout="this.style.background='transparent'; this.style.color='#ef4444';">
-                        <span>🚪</span>
-                        <span>Sair</span>
-                    </button>
+                    <!-- Botões (Home + Logout) -->
+                    <div class="header-buttons">
+                        <button onclick="participanteNav.navegarPara('boas-vindas')" 
+                                title="Voltar para Início">
+                            🏠
+                        </button>
+                        <button onclick="logout()" 
+                                title="Fazer logout">
+                            🚪
+                        </button>
+                    </div>
                 </div>
             </div>
         </header>
