@@ -314,6 +314,12 @@ async function recalcularDadosEdicao(ligaId, edicaoId) {
     for (const f of fases) {
         if (vencedoresAtuais.length < 2) break;
 
+        // ✅ CORREÇÃO ESPECIAL: 5ª Edição pula SEMIS (vai direto de QUARTAS para FINAL)
+        if (edicaoId === 5 && f.chave === "semis") {
+            console.log(`[MATA-ORQUESTRADOR] ⚠️ Edição 5: Pulando SEMIS (formato diferenciado)`);
+            continue;
+        }
+
         // ✅ CORREÇÃO: getFaseInfo espera (faseNome:string, edicaoObjeto)
         const info = getFaseInfo(f.chave, edicao);
         

@@ -78,14 +78,10 @@ function setupEdicaoSelector(container, ligaId, onEdicaoChange) {
       const faseNavContainer = document.getElementById("fase-nav-container");
       if (faseNavContainer) faseNavContainer.style.display = "flex";
 
-      // Controlar visibilidade do botão SEMIS
+      // Controlar visibilidade do botão SEMIS (5ª Edição não tem SEMIS)
       const semisBtn = document.getElementById("semis-btn");
       if (semisBtn) {
-        if (edicaoAtual === 5) {
-          semisBtn.style.display = "none";
-        } else {
-          semisBtn.style.display = "inline-block";
-        }
+        semisBtn.style.display = edicaoAtual === 5 ? "none" : "inline-block";
       }
 
       container
@@ -235,10 +231,20 @@ export function renderTabelaMataMata(
             .map((c) => {
               const valorA = c.timeA.valor || 0;
               const valorB = c.timeB.valor || 0;
+              
+              // Determinar vencedor/perdedor
+              const vencedorA = c.vencedorDeterminado === 'A';
+              const vencedorB = c.vencedorDeterminado === 'B';
+              const empate = !c.vencedorDeterminado || c.vencedorDeterminado === 'empate';
+              
+              // Classes de destaque
+              const classTimeA = vencedorA ? 'vencedor' : (empate ? '' : 'perdedor');
+              const classTimeB = vencedorB ? 'vencedor' : (empate ? '' : 'perdedor');
+              
               return `
               <tr>
                 <td class="jogo-cell">${c.jogo}</td>
-                <td class="time-cell">
+                <td class="time-cell ${classTimeA}">
                   <div class="time-info">
                     <img src="/escudos/${c.timeA.clube_id}.png" class="escudo-img" onerror="this.style.display='none'">
                     <div class="time-details">
@@ -247,20 +253,20 @@ export function renderTabelaMataMata(
                     </div>
                   </div>
                 </td>
-                <td class="pontos-cell ${valorA > 0 ? "valor-positivo" : valorA < 0 ? "valor-negativo" : "valor-neutro"}">
+                <td class="pontos-cell ${classTimeA} ${valorA > 0 ? "valor-positivo" : valorA < 0 ? "valor-negativo" : "valor-neutro"}">
                   <div class="pontos-valor">${formatPoints(c.timeA.pontos)}</div>
                   <div class="premio-valor">
                     ${valorA === 10 ? "R$ 10,00" : valorA === -10 ? "-R$ 10,00" : ""}
                   </div>
                 </td>
                 <td class="vs-cell">X</td>
-                <td class="pontos-cell ${valorB > 0 ? "valor-positivo" : valorB < 0 ? "valor-negativo" : "valor-neutro"}">
+                <td class="pontos-cell ${classTimeB} ${valorB > 0 ? "valor-positivo" : valorB < 0 ? "valor-negativo" : "valor-neutro"}">
                   <div class="pontos-valor">${formatPoints(c.timeB.pontos)}</div>
                   <div class="premio-valor">
                     ${valorB === 10 ? "R$ 10,00" : valorB === -10 ? "-R$ 10,00" : ""}
                   </div>
                 </td>
-                <td class="time-cell">
+                <td class="time-cell ${classTimeB}">
                   <div class="time-info">
                     <img src="/escudos/${c.timeB.clube_id}.png" class="escudo-img" onerror="this.style.display='none'">
                     <div class="time-details">
