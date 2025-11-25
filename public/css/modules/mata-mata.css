@@ -1,14 +1,16 @@
-/* MATA-MATA MODULE CSS - Estilo Profissional */
+/* MATA-MATA.CSS - Estilo Compatível com UI Original */
 
+/* Container Principal */
 #mata-mata {
   background: var(--bg-card, #1e1e1e);
   border-radius: 8px;
   padding: 20px;
   margin: 15px 0;
   box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  color: var(--text-primary, #fff);
 }
 
-/* --- Cabeçalho --- */
+/* Cabeçalho */
 .mata-mata-header {
   text-align: center;
   margin-bottom: 20px;
@@ -17,160 +19,232 @@
 }
 
 .mata-mata-titulo {
-  font-size: 1.4rem;
+  font-size: 1.5rem;
   font-weight: 700;
   color: var(--text-primary, #fff);
-  margin-bottom: 5px;
+  margin: 0;
 }
 
 .mata-mata-subtitulo {
   font-size: 0.9rem;
   color: var(--text-secondary, #aaa);
+  margin-top: 5px;
 }
 
-/* --- Container de Fases (Cards) --- */
-.fase-container {
-  background: var(--bg-secondary, #252525);
+/* Abas de Edição */
+.tabs-edicoes-container {
+  display: flex;
+  gap: 10px;
+  overflow-x: auto;
+  padding-bottom: 10px;
+  margin-top: 15px;
+  justify-content: center;
+}
+
+.tab-edicao {
+  background: transparent;
+  border: 1px solid var(--border-color, #444);
+  padding: 8px 16px;
+  border-radius: 20px;
+  cursor: pointer;
+  white-space: nowrap;
+  font-size: 0.9rem;
+  color: var(--text-secondary, #aaa);
+  transition: all 0.2s ease;
+}
+
+.tab-edicao:hover {
+  background: rgba(255, 255, 255, 0.05);
+  color: #fff;
+}
+
+.tab-edicao.active {
+  background: var(--primary-color, #ff7e00);
+  color: #fff;
+  border-color: var(--primary-color, #ff7e00);
+  font-weight: 600;
+}
+
+/* Navegação de Fases (1ª Fase, Oitavas...) */
+.fase-nav {
+  display: flex;
+  justify-content: center;
+  gap: 5px;
+  flex-wrap: wrap;
+  margin: 20px 0;
+  background: rgba(0,0,0,0.2);
+  padding: 10px;
   border-radius: 8px;
-  margin-bottom: 25px;
-  overflow: hidden;
-  border: 1px solid var(--border-color, #333);
 }
 
-.fase-titulo {
-  background: linear-gradient(90deg, var(--primary-color, #ff7e00), #ff5500);
-  color: white;
-  padding: 10px 15px;
-  font-size: 1rem;
+.fase-btn {
+  background: transparent;
+  border: none;
+  padding: 6px 12px;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 0.85rem;
+  color: var(--text-secondary, #aaa);
+  transition: all 0.2s;
+}
+
+.fase-btn:hover { color: #fff; }
+
+.fase-btn.active {
+  background: rgba(255,255,255,0.1);
+  color: var(--primary-color, #ff7e00);
   font-weight: bold;
-  text-transform: uppercase;
-  letter-spacing: 1px;
-  text-align: center;
 }
 
-/* --- Tabela de Confrontos --- */
+/* --- TABELA DE CONFRONTOS (O Coração do Visual) --- */
+
+.mata-mata-confrontos {
+  overflow-x: auto;
+}
+
 .tabela-confrontos {
   width: 100%;
-  border-collapse: collapse;
-  font-size: 0.9rem;
+  border-collapse: separate; /* Permite border-radius nas linhas */
+  border-spacing: 0 8px; /* Espaço entre os jogos */
 }
 
-.tabela-confrontos tr {
-  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+/* Linha do Jogo (Card) */
+.confronto-row {
+  background: var(--bg-secondary, #252525);
+  transition: transform 0.2s;
 }
 
-.tabela-confrontos tr:last-child {
-  border-bottom: none;
+.confronto-row:hover {
+  transform: scale(1.01);
+  background: #2a2a2a;
 }
 
-/* Célula do Número do Jogo */
+.confronto-row td {
+  padding: 12px 10px;
+  vertical-align: middle;
+  border-top: 1px solid #333;
+  border-bottom: 1px solid #333;
+}
+
+.confronto-row td:first-child {
+  border-left: 1px solid #333;
+  border-top-left-radius: 8px;
+  border-bottom-left-radius: 8px;
+}
+
+.confronto-row td:last-child {
+  border-right: 1px solid #333;
+  border-top-right-radius: 8px;
+  border-bottom-right-radius: 8px;
+}
+
+/* Coluna do Número do Jogo */
 .confronto-info {
   width: 40px;
   text-align: center;
-  color: var(--text-muted, #666);
   font-size: 0.8rem;
-  border-right: 1px solid rgba(255, 255, 255, 0.05);
+  color: #666;
+  font-weight: bold;
 }
 
 /* Células dos Times */
 .time-cell {
-  padding: 12px 15px;
-  width: 40%;
+  width: 35%;
 }
 
 .time-info {
   display: flex;
   align-items: center;
-  gap: 10px;
+  gap: 12px;
 }
 
-/* Alinhamento Espelhado para o Time da Direita */
-.time-cell.right {
-  text-align: right;
-}
-.time-cell.right .time-info {
-  flex-direction: row-reverse;
-}
+/* Time da Direita (Invertido) */
+.time-cell.right { text-align: right; }
+.time-cell.right .time-info { flex-direction: row-reverse; }
+.time-cell.right .time-details { align-items: flex-end; }
 
 .escudo-img {
-  width: 32px;
-  height: 32px;
+  width: 36px;
+  height: 36px;
   object-fit: contain;
-  filter: drop-shadow(0 2px 2px rgba(0,0,0,0.3));
+  filter: drop-shadow(0 2px 2px rgba(0,0,0,0.5));
 }
 
 .time-details {
   display: flex;
   flex-direction: column;
+  justify-content: center;
+  line-height: 1.2;
 }
 
 .time-nome {
   font-weight: 600;
-  color: var(--text-primary, #fff);
-  line-height: 1.2;
+  font-size: 0.95rem;
+  color: #fff;
 }
 
 .time-cartoleiro {
   font-size: 0.75rem;
-  color: var(--text-secondary, #aaa);
+  color: #888;
 }
 
-/* --- Placar Central --- */
+/* Área do Placar Central */
 .placar-cell {
   width: 20%;
-  vertical-align: middle;
+  min-width: 120px;
 }
 
 .placar-container {
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 8px;
-  background: rgba(0, 0, 0, 0.2);
-  padding: 6px 12px;
+  gap: 10px;
+  background: rgba(0,0,0,0.3);
+  padding: 8px;
   border-radius: 20px;
-  width: fit-content;
-  margin: 0 auto;
+  border: 1px solid #333;
 }
 
 .placar-score {
-  font-size: 1.1rem;
+  font-size: 1.2rem;
   font-weight: 800;
-  color: var(--text-primary, #fff);
-  min-width: 25px;
+  min-width: 30px;
   text-align: center;
 }
 
-.placar-score.vencedor {
-  color: var(--success-color, #2ecc71);
-}
-
-.placar-score.perdedor {
-  color: var(--danger-color, #e74c3c);
-  opacity: 0.7;
-}
+.placar-score.vencedor { color: #2ecc71; text-shadow: 0 0 10px rgba(46, 204, 113, 0.3); }
+.placar-score.perdedor { color: #e74c3c; opacity: 0.7; }
 
 .placar-vs {
   font-size: 0.8rem;
-  color: var(--text-muted, #555);
+  color: #555;
   font-weight: bold;
+  text-transform: uppercase;
 }
 
-/* --- Valores Financeiros --- */
+/* Valores Financeiros (Prêmios) */
 .premio-valor {
   font-size: 0.7rem;
-  margin-top: 2px;
   font-weight: bold;
+  margin-top: 2px;
+  display: block; /* Força quebra de linha se estiver dentro do flex */
 }
-.premio-valor.ganho { color: #2ecc71; }
-.premio-valor.perda { color: #e74c3c; }
 
-/* --- Responsividade --- */
-@media (max-width: 600px) {
-  .time-cell { padding: 8px; }
-  .escudo-img { width: 24px; height: 24px; }
+/* Ajuste fino para prêmios dentro do placar */
+.placar-container {
+  position: relative;
+}
+
+/* Responsividade Mobile */
+@media (max-width: 768px) {
+  .confronto-info { display: none; } /* Esconde número do jogo */
+  .time-cartoleiro { display: none; } /* Esconde nome do cartoleiro */
   .time-nome { font-size: 0.85rem; }
-  .time-cartoleiro { display: none; } /* Esconde nome do cartoleiro no mobile */
-  .placar-score { font-size: 0.9rem; }
-  .confronto-info { display: none; } /* Esconde número do jogo no mobile */
+  .escudo-img { width: 28px; height: 28px; }
+  .placar-score { font-size: 1rem; }
+  .tabela-confrontos { border-spacing: 0 5px; }
+  .confronto-row td { padding: 8px 5px; }
+
+  .time-cell { width: 30%; }
+  .placar-cell { width: 40%; }
 }
