@@ -193,10 +193,18 @@ async function detectarUltimaRodadaComDados() {
       error: error.message
     });
     
-    // Fallback final: usar rodada 12 como padrão baseado no contexto do usuário
-    const fallbackRodada = 12;
-    CartolaLogger.warn(`Usando fallback: rodada ${fallbackRodada}`);
-    return fallbackRodada;
+    // Fallback final: estimativa baseada na data atual
+    const agora = new Date();
+    const inicioTemporada = new Date('2025-04-12'); // Ajustar conforme início real da temporada
+    const diasDesdeInicio = Math.floor((agora - inicioTemporada) / (1000 * 60 * 60 * 24));
+    const rodadaEstimada = Math.max(1, Math.min(Math.floor(diasDesdeInicio / 7) + 1, 38));
+    
+    CartolaLogger.warn(`Usando fallback baseado em data: rodada ${rodadaEstimada}`, {
+      inicioTemporada: inicioTemporada.toISOString(),
+      diasDesdeInicio,
+      rodadaEstimada
+    });
+    return rodadaEstimada;
   }
 }
 
