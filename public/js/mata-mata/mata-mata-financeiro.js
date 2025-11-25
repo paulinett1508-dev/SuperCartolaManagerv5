@@ -330,10 +330,7 @@ export async function calcularResultadosEdicaoFluxo(
 ) {
   try {
     const resultadosFinanceiros = [];
-    const fases =
-      edicao.id === 5
-        ? ["primeira", "oitavas", "quartas", "final"]
-        : ["primeira", "oitavas", "quartas", "semis", "final"];
+    const fases = ["primeira", "oitavas", "quartas", "semis", "final"];
 
     const rankingBase = await getRankingRodadaEspecifica(
       ligaId,
