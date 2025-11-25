@@ -9,29 +9,40 @@ const MAX_TENTATIVAS = 3;
 // Função para definir dependência externa
 export function setRankingFunction(func) {
     getRankingRodadaEspecifica = func;
-    tentativasConexao = 0;
-    console.log(
-        "[MATA-CONFRONTOS] Função getRankingRodadaEspecifica configurada",
-    );
+    console.log("[MATA-CONFRONTOS] ✅ Dependência getRankingRodadaEspecifica injetada");
+}
+
+// Função para carregar dinamicamente a dependência se não estiver disponível
+async function garantirDependencia() {
+  if (getRankingRodadaEspecifica) return true;
+
+  console.warn("[MATA-CONFRONTOS] ⚠️ Dependência não injetada, carregando dinamicamente...");
+
+  try {
+    const rodadasModule = await import("../rodadas.js");
+    if (rodadasModule && rodadasModule.getRankingRodadaEspecifica) {
+      getRankingRodadaEspecifica = rodadasModule.getRankingRodadaEspecifica;
+      console.log("[MATA-CONFRONTOS] ✅ Dependência carregada dinamicamente");
+      return true;
+    }
+  } catch (error) {
+    console.error("[MATA-CONFRONTOS] ❌ Erro ao carregar dependência:", error);
+  }
+
+  return false;
 }
 
 // Função para obter pontos de uma rodada (COM PROTEÇÃO ANTI-LOOP)
 export async function getPontosDaRodada(ligaId, rodada) {
-    try {
-        if (!getRankingRodadaEspecifica) {
-            tentativasConexao++;
-            if (tentativasConexao >= MAX_TENTATIVAS) {
-                console.error(
-                    "[MATA-CONFRONTOS] Máximo de tentativas atingido. Parando execução.",
-                );
-                return {};
-            }
-            console.warn(
-                `[MATA-CONFRONTOS] Função getRankingRodadaEspecifica não disponível (tentativa ${tentativasConexao}/${MAX_TENTATIVAS})`,
-            );
-            return {};
-        }
+    // Garantir que a dependência está disponível
+    const dependenciaOk = await garantirDependencia();
 
+    if (!dependenciaOk) {
+        console.error("[MATA-CONFRONTOS] ❌ Dependência getRankingRodadaEspecifica não disponível");
+        return {};
+    }
+
+    try {
         // Reset contador em caso de sucesso
         tentativasConexao = 0;
 

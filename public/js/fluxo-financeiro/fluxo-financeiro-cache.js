@@ -41,7 +41,7 @@ export class FluxoFinanceiroCache {
 
         // ✅ GARANTIR ligaId ESTÁ DISPONÍVEL (fallback para obterLigaId())
         this.ligaId = ligaId || obterLigaId();
-        
+
         if (!this.ligaId) {
             console.error('[FLUXO-CACHE] ❌ ligaId não disponível, impossível inicializar cache');
             return;
@@ -295,58 +295,64 @@ export class FluxoFinanceiroCache {
     }
 
     async carregarDadosExternos() {
-        console.log('[FLUXO-CACHE] Carregando dados externos...');
+        console.log("[FLUXO-CACHE] Carregando dados externos...");
 
-        try {
-            // Validar ligaId
-            if (!this.ligaId) {
-                console.warn('[FLUXO-CACHE] ⚠️ ligaId não disponível, pulando dados externos');
-                this.cacheConfrontosLPC = [];
-                this.cacheResultadosMM = [];
-                this.cacheResultadosMelhorMes = [];
-                return;
-            }
-
-            // Buscar confrontos de Pontos Corridos (passar ligaId explicitamente)
-            const confrontosLPC = await getConfrontosLigaPontosCorridos(this.ligaId);
-            const resultadosMataMata = await getResultadosMataMataFluxo(this.ligaId).catch(() => ({
-                participantes: [],
-                edicoes: [],
-            }));
-            // Só buscar Melhor do Mês (passar ligaId explicitamente)
-            const resultadosMelhorMes = this.ligaId ? await getResultadosMelhorMes(this.ligaId).catch(() => []) : Promise.resolve([]);
-
-            // Armazenar resultados
-            this.cacheConfrontosLPC = confrontosLPC || [];
-            this.cacheResultadosMM = resultadosMataMata || { participantes: [], edicoes: [] };
-            this.cacheResultadosMelhorMes = Array.isArray(resultadosMelhorMes)
-                ? resultadosMelhorMes
-                : [];
-
-            if (this.cacheResultadosMelhorMes.length > 0) {
-                try {
-                    this.cacheResultadosMelhorMes =
-                        await filtrarDadosPorTimesLigaEspecial(
-                            this.cacheResultadosMelhorMes,
-                        );
-                } catch (error) {
-                    console.warn("[FLUXO-CACHE] Erro ao aplicar filtro:", error);
-                }
-            }
-
-            this._processarResultadosMataMataCorrigido(this.cacheResultadosMM);
-
-            console.log(`[FLUXO-CACHE] Dados externos carregados:`);
-            console.log(`- Confrontos LPC: ${this.cacheConfrontosLPC.length}`);
-            console.log(`- Mata-Mata: ${this.cacheResultadosMM.length}`);
-            console.log(`- Melhor Mês: ${this.cacheResultadosMelhorMes.length}`);
-        } catch (error) {
-            console.error("[FLUXO-CACHE] Erro geral ao carregar dados externos:", error);
-            // Resetar caches em caso de erro para evitar dados inconsistentes
-            this.cacheConfrontosLPC = [];
-            this.cacheResultadosMM = [];
-            this.cacheResultadosMelhorMes = [];
+        // Carregar confrontos LPC
+        if (!this.cacheConfrontosLPC || this.cacheConfrontosLPC.length === 0) {
+          await this.carregarConfrontosLPC();
         }
+
+        // Invalidar cache do Mata-Mata se versão antiga (forçar recálculo da 5ª edição)
+        const cacheKey = "mataMataFluxo_v2_invalidated";
+        const cacheInvalidado = localStorage.getItem(cacheKey);
+        if (!cacheInvalidado) {
+          console.warn("[FLUXO-CACHE] 🔄 Invalidando cache de Mata-Mata (correção 5ª edição)");
+          localStorage.removeItem("mataMataFluxo");
+          localStorage.setItem(cacheKey, "true");
+        }
+
+        // Carregar Mata-Mata
+        const resultadosMataMata = await getResultadosMataMataFluxo(this.ligaId).catch(() => ({
+            participantes: [],
+            edicoes: [],
+        }));
+        // Só buscar Melhor do Mês (passar ligaId explicitamente)
+        const resultadosMelhorMes = this.ligaId ? await getResultadosMelhorMes(this.ligaId).catch(() => []) : Promise.resolve([]);
+
+        // Armazenar resultados
+        this.cacheConfrontosLPC = this.cacheConfrontosLPC || []; // Garantir que esta linha seja executada
+        this.cacheResultadosMM = resultadosMataMata || { participantes: [], edicoes: [] };
+        this.cacheResultadosMelhorMes = Array.isArray(resultadosMelhorMes)
+            ? resultadosMelhorMes
+            : [];
+
+        if (this.cacheResultadosMelhorMes.length > 0) {
+            try {
+                this.cacheResultadosMelhorMes =
+                    await filtrarDadosPorTimesLigaEspecial(
+                        this.cacheResultadosMelhorMes,
+                    );
+            } catch (error) {
+                console.warn("[FLUXO-CACHE] Erro ao aplicar filtro:", error);
+            }
+        }
+
+        this._processarResultadosMataMataCorrigido(this.cacheResultadosMM);
+
+        console.log(`[FLUXO-CACHE] Dados externos carregados:`);
+        console.log(`- Confrontos LPC: ${this.cacheConfrontosLPC.length}`);
+        console.log(`- Mata-Mata: ${this.cacheResultadosMM.length}`);
+        console.log(`- Melhor Mês: ${this.cacheResultadosMelhorMes.length}`);
+    }
+
+    // Novo método para carregar confrontos LPC
+    async carregarConfrontosLPC() {
+      try {
+        this.cacheConfrontosLPC = await getConfrontosLigaPontosCorridos(this.ligaId);
+      } catch (error) {
+        console.error("[FLUXO-CACHE] Erro ao carregar confrontos LPC:", error);
+        this.cacheConfrontosLPC = [];
+      }
     }
 
     _processarResultadosMataMataCorrigido(resultadosMM) {
