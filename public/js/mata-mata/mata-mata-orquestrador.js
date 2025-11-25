@@ -1,426 +1,443 @@
-// MATA-MATA ORQUESTRADOR - Versão Auto-Corretiva
-// Responsável por: coordenação de chaves, carregamento dinâmico e persistência
+// MATA-MATA ORQUESTRADOR - Coordenador Principal
+// Responsável por: coordenação de módulos, carregamento dinâmico, cache
 
 import { edicoes, getFaseInfo, getLigaId } from "./mata-mata-config.js";
-import * as UI from "./mata-mata-ui.js";
+import {
+  setRankingFunction as setRankingConfronto,
+  getPontosDaRodada,
+  montarConfrontosPrimeiraFase,
+  montarConfrontosFase,
+  calcularValoresConfronto,
+} from "./mata-mata-confrontos.js";
+import { setRankingFunction as setRankingFinanceiro } from "./mata-mata-financeiro.js";
+import {
+  renderizarInterface,
+  renderLoadingState,
+  renderInstrucaoInicial,
+  renderErrorState,
+  renderTabelaMataMata,
+  renderRodadaPendente,
+} from "./mata-mata-ui.js";
 
-// Estado interno
-let dadosEdicaoAtual = null;
-let edicaoIdAtual = null;
-let faseAtual = "primeira";
+// Variáveis dinâmicas para exports
+let criarBotaoExportacaoMataMata = null;
+let exportsCarregados = false;
+let exportsCarregando = false;
 
-// ============================================================================
-// 🧠 SISTEMA DE PERSISTÊNCIA (CACHE)
-// ============================================================================
+// Variáveis dinâmicas para rodadas
+let getRankingRodadaEspecifica = null;
+let rodadasCarregados = false;
+let rodadasCarregando = false;
 
-async function lerCacheMataMata(ligaId, edicaoId) {
-    try {
-        const ts = new Date().getTime();
-        const response = await fetch(
-            `/api/mata-mata/cache/${ligaId}/${edicaoId}?_=${ts}`,
-        );
+// Cache de módulos
+const moduleCache = new Map();
 
-        if (!response.ok) {
-            console.log(`[MATA-ORQUESTRADOR] ⚠️ Cache não encontrado (HTTP ${response.status})`);
-            return null;
+// Estado atual
+let edicaoAtual = null;
+
+// Função de carregamento dinâmico dos exports
+async function carregarExports() {
+  if (exportsCarregados) return true;
+  if (exportsCarregando) {
+    return new Promise((resolve) => {
+      const controller = new AbortController();
+      const checkInterval = setInterval(() => {
+        if (exportsCarregados || !exportsCarregando) {
+          clearInterval(checkInterval);
+          controller.abort();
+          resolve(exportsCarregados);
         }
+      }, 100);
 
-        const data = await response.json();
+      setTimeout(() => {
+        clearInterval(checkInterval);
+        controller.abort();
+        resolve(false);
+      }, 5000);
+    });
+  }
 
-        // Validação básica: cache deve existir E ter dados
-        if (!data.cached || !data.dados) {
-            console.log(`[MATA-ORQUESTRADOR] ⚠️ Resposta sem cache válido`);
-            return null;
-        }
+  exportsCarregando = true;
 
-        // ✅ CORREÇÃO: Validar mas NÃO deletar - deixar recálculo handle
-        const primeiraFase = data.dados["primeira"];
-        if (!Array.isArray(primeiraFase) || primeiraFase.length === 0) {
-            console.warn(
-                `[MATA-ORQUESTRADOR] ⚠️ Cache com primeira fase vazia, forçando recálculo...`,
-            );
-            return null; // Apenas retorna null, não deleta
-        }
-
-        console.log(
-            `[MATA-ORQUESTRADOR] ✅ Cache encontrado: ${primeiraFase.length} confrontos na primeira fase`,
-        );
-        return data.dados;
-    } catch (error) {
-        console.error('[MATA-ORQUESTRADOR] Erro ao ler cache:', error);
-        return null;
+  try {
+    if (moduleCache.has("exports")) {
+      const cached = moduleCache.get("exports");
+      criarBotaoExportacaoMataMata = cached.criarBotaoExportacaoMataMata;
+      exportsCarregados = true;
+      console.log("[MATA-ORQUESTRADOR] Exports carregados do cache");
+      return true;
     }
+
+    console.log("[MATA-ORQUESTRADOR] Carregando módulo de exports...");
+
+    try {
+      const exportModule = await import("../exports/export-exports.js");
+      if (exportModule && exportModule.exportarMataMata) {
+        criarBotaoExportacaoMataMata = exportModule.exportarMataMata;
+        moduleCache.set("exports", { criarBotaoExportacaoMataMata });
+        exportsCarregados = true;
+        console.log(
+          "[MATA-ORQUESTRADOR] Exports carregados via função centralizada",
+        );
+        return true;
+      }
+    } catch (error) {
+      console.warn(
+        "[MATA-ORQUESTRADOR] Função centralizada não disponível, tentando módulo específico",
+      );
+    }
+
+    const exportMataMataModule = await import("../exports/export-mata-mata.js");
+    if (
+      exportMataMataModule &&
+      exportMataMataModule.criarBotaoExportacaoMataMata
+    ) {
+      criarBotaoExportacaoMataMata =
+        exportMataMataModule.criarBotaoExportacaoMataMata;
+      moduleCache.set("exports", { criarBotaoExportacaoMataMata });
+      exportsCarregados = true;
+      console.log(
+        "[MATA-ORQUESTRADOR] Exports carregados via módulo específico",
+      );
+      return true;
+    }
+
+    throw new Error("Nenhuma função de exportação encontrada");
+  } catch (error) {
+    console.warn("[MATA-ORQUESTRADOR] Erro ao carregar exports:", error);
+    exportsCarregados = false;
+    return false;
+  } finally {
+    exportsCarregando = false;
+  }
 }
 
-async function salvarCacheMataMata(
-    ligaId,
-    edicaoId,
-    rodadaAtual,
-    dadosTorneio,
-) {
-    try {
-        // ✅ CORREÇÃO: Log de diagnóstico antes da validação
-        const primeiraFase = dadosTorneio["primeira"];
-        console.log(
-            `[MATA-ORQUESTRADOR] 💾 Salvando cache - Primeira fase: ${Array.isArray(primeiraFase) ? primeiraFase.length : 'INVÁLIDO'} confrontos`,
-        );
-
-        // Validação mantida, mas com log mais detalhado
-        if (!primeiraFase || primeiraFase.length === 0) {
-            console.error(
-                "[MATA-ORQUESTRADOR] 🛑 ERRO CRÍTICO: Tentativa de salvar cache sem confrontos na primeira fase!",
-                { dadosTorneio }
-            );
-            return;
+// Função de carregamento dinâmico das rodadas
+async function carregarRodadas() {
+  if (rodadasCarregados) return true;
+  if (rodadasCarregando) {
+    return new Promise((resolve) => {
+      const controller = new AbortController();
+      const checkInterval = setInterval(() => {
+        if (rodadasCarregados || !rodadasCarregando) {
+          clearInterval(checkInterval);
+          controller.abort();
+          resolve(rodadasCarregados);
         }
+      }, 100);
 
-        const response = await fetch(`/api/mata-mata/cache/${ligaId}/${edicaoId}`, {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({
-                rodada: rodadaAtual,
-                dados: dadosTorneio,
-            }),
-        });
+      setTimeout(() => {
+        clearInterval(checkInterval);
+        controller.abort();
+        resolve(false);
+      }, 5000);
+    });
+  }
 
-        if (response.ok) {
-            console.log(
-                `[MATA-ORQUESTRADOR] ✅ Snapshot da Edição ${edicaoId} salvo com ${primeiraFase.length} confrontos!`,
-            );
-        } else {
-            console.error(`[MATA-ORQUESTRADOR] ❌ Erro HTTP ${response.status} ao salvar cache`);
-        }
-    } catch (error) {
-        console.error("[MATA-ORQUESTRADOR] ❌ Falha ao salvar cache:", error);
+  rodadasCarregando = true;
+
+  try {
+    if (moduleCache.has("rodadas")) {
+      const cached = moduleCache.get("rodadas");
+      getRankingRodadaEspecifica = cached.getRankingRodadaEspecifica;
+      rodadasCarregados = true;
+      console.log("[MATA-ORQUESTRADOR] Módulo rodadas carregado do cache");
+      return true;
     }
+
+    console.log("[MATA-ORQUESTRADOR] Carregando módulo rodadas...");
+    const rodadasModule = await import("../rodadas.js");
+
+    if (rodadasModule && rodadasModule.getRankingRodadaEspecifica) {
+      getRankingRodadaEspecifica = rodadasModule.getRankingRodadaEspecifica;
+
+      // Injetar dependência nos módulos
+      setRankingConfronto(getRankingRodadaEspecifica);
+      setRankingFinanceiro(getRankingRodadaEspecifica);
+
+      moduleCache.set("rodadas", { getRankingRodadaEspecifica });
+      rodadasCarregados = true;
+      console.log("[MATA-ORQUESTRADOR] Módulo rodadas carregado com sucesso");
+      return true;
+    } else {
+      throw new Error("Função getRankingRodadaEspecifica não encontrada");
+    }
+  } catch (error) {
+    console.error(
+      "[MATA-ORQUESTRADOR] Erro ao carregar módulo rodadas:",
+      error,
+    );
+    rodadasCarregados = false;
+    return false;
+  } finally {
+    rodadasCarregando = false;
+  }
 }
 
-// ============================================================================
-// FUNÇÕES PRINCIPAIS
-// ============================================================================
-
+// Função principal para carregar mata-mata
 export async function carregarMataMata() {
-    console.log("[MATA-ORQUESTRADOR] Iniciando módulo...");
+  const container = document.getElementById("mata-mata");
+  if (!container) return;
 
-    const containerControles = document.getElementById("mata-mata-tabs");
-    const ligaId = getLigaId();
+  console.log("[MATA-ORQUESTRADOR] Iniciando carregamento do mata-mata...");
 
-    if (containerControles && ligaId) {
-        UI.renderizarInterface(
-            containerControles,
-            ligaId,
-            (novoId) => selecionarEdicao(novoId),
-            (novaFase) => selecionarFase(novaFase),
-        );
+  try {
+    console.log("[MATA-ORQUESTRADOR] Pré-carregando dependências...");
+    const [rodadasOk, exportsOk] = await Promise.all([
+      carregarRodadas(),
+      carregarExports(),
+    ]);
+    if (!rodadasOk)
+      console.warn("[MATA-ORQUESTRADOR] Módulo rodadas não carregou");
+    if (!exportsOk)
+      console.warn("[MATA-ORQUESTRADOR] Módulo exports não carregou");
+  } catch (error) {
+    console.warn("[MATA-ORQUESTRADOR] Erro no pré-carregamento:", error);
+  }
+
+  const ligaId = getLigaId();
+
+  try {
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 3000);
+    const response = await fetch("/api/cartola/mercado/status", {
+      signal: controller.signal,
+    });
+    clearTimeout(timeoutId);
+
+    if (response.ok) {
+      const data = await response.json();
+      const rodadaAtual = data.rodada_atual || 1;
+      edicoes.forEach((edicao) => {
+        edicao.ativo = rodadaAtual >= edicao.rodadaDefinicao;
+      });
     }
+  } catch (error) {
+    console.warn(
+      "[MATA-ORQUESTRADOR] Erro ao verificar status do mercado:",
+      error,
+    );
+  }
 
-    const edicaoAtiva =
-        edicoes.find((e) => e.ativo) || edicoes[edicoes.length - 1];
-    
-    if (edicaoAtiva) {
-        // ✅ CORREÇÃO: Definir o valor do select ANTES de chamar selecionarEdicao
-        const edicaoSelect = document.getElementById("edicao-select");
-        if (edicaoSelect) {
-            edicaoSelect.value = edicaoAtiva.id;
-        }
-        
-        setTimeout(() => {
-            document
-                .querySelectorAll(".tab-edicao")
-                .forEach((b) => b.classList.remove("active"));
-            document
-                .getElementById(`tab-edicao-${edicaoAtiva.id}`)
-                ?.classList.add("active");
-        }, 100);
-        
-        await selecionarEdicao(edicaoAtiva.id);
-    }
+  renderizarInterface(container, ligaId, handleEdicaoChange, handleFaseClick);
 }
 
-async function selecionarEdicao(edicaoId) {
-    console.log(`[MATA-ORQUESTRADOR] Selecionando Edição ${edicaoId}...`);
-    edicaoIdAtual = parseInt(edicaoId);
-    
-    // Resetar para primeira fase ao trocar de edição
-    faseAtual = "primeira";
+// Handler para mudança de edição
+function handleEdicaoChange(novaEdicao, fase, ligaId) {
+  edicaoAtual = novaEdicao;
+  carregarFase(fase, ligaId);
+}
 
-    const containerConteudo = document.getElementById("mata-mata-conteudo");
-    if (containerConteudo) {
-        containerConteudo.innerHTML =
-            '<div class="loading-state"><div class="spinner"></div><p>Processando torneio...</p></div>';
+// Handler para clique em fase
+function handleFaseClick(fase, edicao) {
+  edicaoAtual = edicao;
+  const ligaId = getLigaId();
+  carregarFase(fase, ligaId);
+}
+
+// Função para carregar uma fase específica
+async function carregarFase(fase, ligaId) {
+  const contentId = "mataMataContent";
+  const contentElement = document.getElementById(contentId);
+
+  if (!contentElement) {
+    console.error("[MATA-ORQUESTRADOR] Elemento de conteúdo não encontrado");
+    return;
+  }
+
+  console.log(`[MATA-ORQUESTRADOR] Carregando fase: ${fase}`);
+
+  renderLoadingState(contentId, fase, edicaoAtual);
+
+  try {
+    const dependenciasOk = await Promise.all([
+      carregarRodadas(),
+      carregarExports(),
+    ]);
+
+    if (!dependenciasOk[0]) {
+      throw new Error(
+        "Módulo rodadas não disponível - não é possível calcular confrontos",
+      );
     }
 
-    const ligaId = getLigaId();
+    if (!edicaoAtual) {
+      renderInstrucaoInicial(contentId);
+      return;
+    }
 
+    let rodada_atual = 1;
     try {
-        let dados = await lerCacheMataMata(ligaId, edicaoIdAtual);
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 2000);
+      const resMercado = await fetch("/api/cartola/mercado/status", {
+        signal: controller.signal,
+      });
+      clearTimeout(timeoutId);
 
-        if (!dados) {
-            console.log(
-                "[MATA-ORQUESTRADOR] ⚠️ Cache Miss ou Inválido. Iniciando cálculo...",
-            );
-            dados = await recalcularDadosEdicao(ligaId, edicaoIdAtual);
-        }
-
-        // Validação extra: garantir que o cache tem a primeira fase
-        if (!dados || !dados["primeira"] || !Array.isArray(dados["primeira"]) || dados["primeira"].length === 0) {
-            console.warn(
-                "[MATA-ORQUESTRADOR] ⚠️ Cache inválido ou sem primeira fase. Forçando recálculo...",
-            );
-            dados = await recalcularDadosEdicao(ligaId, edicaoIdAtual);
-        }
-
-        dadosEdicaoAtual = dados;
-        faseAtual = determinarFaseInicial(dados);
-
-        console.log(`[MATA-ORQUESTRADOR] Dados carregados. Fase inicial: ${faseAtual}`);
-        console.log(`[MATA-ORQUESTRADOR] Fases disponíveis:`, Object.keys(dados));
-
-        atualizarNavegacaoFases(faseAtual);
-        renderizarFaseAtual();
-    } catch (error) {
-        console.error("[MATA-ORQUESTRADOR] Erro:", error);
-        if (containerConteudo)
-            containerConteudo.innerHTML = `<div class="erro-box" style="padding: 20px; text-align: center; color: #ef4444; background: rgba(239, 68, 68, 0.1); border-radius: 8px;">
-                <h4>Erro ao carregar Mata-Mata</h4>
-                <p>${error.message}</p>
-            </div>`;
-    }
-}
-
-function selecionarFase(fase) {
-    faseAtual = fase;
-    atualizarNavegacaoFases(fase); // Atualiza visual dos botões
-    renderizarFaseAtual();
-}
-
-function renderizarFaseAtual() {
-    const container = document.getElementById("mata-mata-conteudo");
-    
-    if (!dadosEdicaoAtual) {
-        if (container) {
-            container.innerHTML = '<div class="loading-state"><div class="spinner"></div><p>Carregando dados...</p></div>';
-        }
-        return;
+      if (resMercado.ok) {
+        const data = await resMercado.json();
+        rodada_atual = data.rodada_atual || 1;
+      }
+    } catch (err) {
+      console.warn("[MATA-ORQUESTRADOR] Usando rodada padrão:", err.message);
     }
 
-    if (!dadosEdicaoAtual[faseAtual]) {
-        if (container) {
-            container.innerHTML = '<div class="aviso-box" style="padding: 20px; text-align: center; color: #ff7e00;">Fase não disponível ainda.</div>';
-        }
-        return;
+    const edicaoSelecionada = edicoes.find((e) => e.id === edicaoAtual);
+    if (!edicaoSelecionada) {
+      throw new Error(`Edição ${edicaoAtual} não encontrada.`);
     }
 
-    // Mapear nome da fase para label correto
-    const faseLabels = {
-        'primeira': '1ª FASE',
-        'oitavas': 'OITAVAS',
-        'quartas': 'QUARTAS',
-        'semis': 'SEMIS',
-        'final': 'FINAL'
-    };
-
-    const faseLabel = faseLabels[faseAtual] || faseAtual.toUpperCase();
-    
-    console.log(`[MATA-ORQUESTRADOR] Renderizando fase "${faseAtual}" (${faseLabel}) com ${dadosEdicaoAtual[faseAtual].length} confrontos`);
-    
-    // Passa os dados para o UI renderizar usando a função correta
-    UI.renderTabelaMataMata(
-        dadosEdicaoAtual[faseAtual],
-        "mata-mata-conteudo",
-        faseLabel,
-        edicaoIdAtual,
-        false
+    const rodadaDefinicao = edicaoSelecionada.rodadaDefinicao;
+    console.log(
+      `[MATA-ORQUESTRADOR] Buscando ranking base da Rodada ${rodadaDefinicao}...`,
     );
-}
 
-// ============================================================================
-// LÓGICA DE CÁLCULO
-// ============================================================================
+    const rankingBase = await Promise.race([
+      getRankingRodadaEspecifica(ligaId, rodadaDefinicao),
+      new Promise((_, reject) =>
+        setTimeout(() => reject(new Error("Timeout ao buscar ranking")), 10000),
+      ),
+    ]);
 
-async function recalcularDadosEdicao(ligaId, edicaoId) {
-    console.log(`[MATA-ORQUESTRADOR] 🔄 Iniciando RECÁLCULO para Edição ${edicaoId}...`);
-    
-    // Importação Dinâmica das Dependências
+    console.log(
+      `[MATA-ORQUESTRADOR] Ranking base recebido: ${rankingBase?.length || 0} times`,
+    );
+
+    if (!Array.isArray(rankingBase) || rankingBase.length < 32) {
+      throw new Error(
+        `Ranking base inválido: ${rankingBase?.length || 0}/32 times encontrados`,
+      );
+    }
+
+    const faseInfo = getFaseInfo(edicaoAtual, edicaoSelecionada);
+    const currentFaseInfo = faseInfo[fase.toLowerCase()];
+    if (!currentFaseInfo) throw new Error(`Fase desconhecida: ${fase}`);
+
     const {
-        montarConfrontosFase,
-        montarConfrontosPrimeiraFase,
-        getPontosDaRodada,
-        setRankingFunction,
-        calcularValoresConfronto,
-    } = await import("./mata-mata-confrontos.js");
-    const { getRankingRodadaEspecifica } = await import("../rodadas.js");
+      label: faseLabel,
+      pontosRodada: rodadaPontosNum,
+      numJogos,
+      prevFaseRodada,
+    } = currentFaseInfo;
 
-    // Injeta a função de ranking IMEDIATAMENTE
-    if (setRankingFunction && getRankingRodadaEspecifica) {
-        setRankingFunction(getRankingRodadaEspecifica);
-        console.log('[MATA-ORQUESTRADOR] ✅ Função de ranking injetada');
+    let timesParaConfronto = rankingBase;
+    if (prevFaseRodada) {
+      let vencedoresAnteriores = rankingBase;
+      const rodadaInicial = edicaoSelecionada.rodadaInicial;
+
+      for (let r = edicaoSelecionada.rodadaInicial; r <= prevFaseRodada; r++) {
+        const pontosDaRodadaAnterior = await getPontosDaRodada(ligaId, r);
+        const jogosFaseAnterior =
+          r === edicaoSelecionada.rodadaInicial
+            ? 16
+            : 32 / Math.pow(2, r - edicaoSelecionada.rodadaInicial + 1);
+        const confrontosAnteriores =
+          r === edicaoSelecionada.rodadaInicial
+            ? montarConfrontosPrimeiraFase(rankingBase, pontosDaRodadaAnterior)
+            : montarConfrontosFase(
+                vencedoresAnteriores,
+                pontosDaRodadaAnterior,
+                jogosFaseAnterior,
+              );
+        vencedoresAnteriores = await extrairVencedores(confrontosAnteriores);
+      }
+      timesParaConfronto = vencedoresAnteriores;
     }
 
-    const edicao = edicoes.find((e) => e.id === parseInt(edicaoId));
-    if (!edicao) {
-        console.error(`[MATA-ORQUESTRADOR] ❌ Edição ${edicaoId} não encontrada`);
-        throw new Error(`Edição ${edicaoId} não encontrada`);
-    }
-
-    console.log(`[MATA-ORQUESTRADOR] 📊 Buscando ranking da rodada ${edicao.rodadaDefinicao}...`);
-    
-    // 1. Busca Ranking Base
-    const rankingBase = await getRankingRodadaEspecifica(
-        ligaId,
-        edicao.rodadaDefinicao || 1,
+    let isPending = rodada_atual < rodadaPontosNum;
+    console.log(
+      `[MATA-ORQUESTRADOR] Rodada ${rodadaPontosNum} - Status: ${isPending ? "Pendente" : "Concluída"}`,
     );
 
-    // Validação crítica para não gerar cache vazio
-    if (!rankingBase || rankingBase.length === 0) {
-        console.error(`[MATA-ORQUESTRADOR] ❌ Ranking vazio na rodada ${edicao.rodadaDefinicao}`);
-        throw new Error(
-            `Ranking da rodada ${edicao.rodadaDefinicao} está vazio. Impossível montar chaves.`,
-        );
-    }
-    
-    console.log(`[MATA-ORQUESTRADOR] ✅ Ranking obtido: ${rankingBase.length} times`);
+    const pontosRodadaAtual = isPending
+      ? {}
+      : await getPontosDaRodada(ligaId, rodadaPontosNum);
 
-    const rankingTratado = garantir32Times(rankingBase);
-    const dadosTorneio = {};
+    const confrontos =
+      fase === "primeira"
+        ? montarConfrontosPrimeiraFase(rankingBase, pontosRodadaAtual)
+        : montarConfrontosFase(timesParaConfronto, pontosRodadaAtual, numJogos);
 
-    // 2. Fase 1 (Primeira Fase - 16 confrontos)
-    console.log(`[MATA-ORQUESTRADOR] 🎮 Montando PRIMEIRA FASE (rodada ${edicao.rodadaInicial})...`);
-    console.log(`[MATA-ORQUESTRADOR] 📋 Ranking tratado: ${rankingTratado.length} times`);
-    
-    const pontosFase1 = await getPontosDaRodada(ligaId, edicao.rodadaInicial);
-    console.log(`[MATA-ORQUESTRADOR] 📊 Pontos obtidos: ${Object.keys(pontosFase1).length} times`);
-    
-    const fase1 = montarConfrontosPrimeiraFase(rankingTratado, pontosFase1);
-    console.log(`[MATA-ORQUESTRADOR] ✅ Primeira fase montada: ${fase1.length} confrontos`);
-    
-    if (!fase1 || fase1.length === 0) {
-        console.error(`[MATA-ORQUESTRADOR] ❌ ERRO CRÍTICO: Primeira fase retornou vazia!`);
-        console.error(`[MATA-ORQUESTRADOR] Debug - rankingTratado:`, rankingTratado.slice(0, 3));
-        throw new Error('Falha ao montar confrontos da primeira fase');
-    }
-    
-    // Calcular valores e vencedores da primeira fase
-    calcularValoresConfronto(fase1, false);
-    dadosTorneio["primeira"] = fase1;
+    // Calcular valores dos confrontos
+    calcularValoresConfronto(confrontos, isPending);
 
-    // 3. Fases Seguintes - CALCULAR TODAS ANTES DE SALVAR
-    let vencedoresAtuais = await extrairVencedores(fase1);
-
-    const fases = [
-        { chave: "oitavas", nome: "OITAVAS" },
-        { chave: "quartas", nome: "QUARTAS" },
-        { chave: "semis", nome: "SEMIS" },
-        { chave: "final", nome: "FINAL" },
-    ];
-
-    for (const f of fases) {
-        if (vencedoresAtuais.length < 2) break;
-
-        // ✅ CORREÇÃO ESPECIAL: 5ª Edição pula SEMIS (vai direto de QUARTAS para FINAL)
-        if (edicaoId === 5 && f.chave === "semis") {
-            console.log(`[MATA-ORQUESTRADOR] ⚠️ Edição 5: Pulando SEMIS (formato diferenciado)`);
-            continue;
-        }
-
-        // ✅ CORREÇÃO: getFaseInfo espera (faseNome:string, edicaoObjeto)
-        const info = getFaseInfo(f.chave, edicao);
-        
-        // Validação crítica: garantir que rodada existe
-        if (!info || !info.pontosRodada) {
-            console.warn(`[MATA-ORQUESTRADOR] ⚠️ Rodada não definida para fase ${f.nome}, pulando...`);
-            continue;
-        }
-        
-        console.log(`[MATA-ORQUESTRADOR] 🎮 Montando fase ${f.nome} (rodada ${info.pontosRodada})...`);
-        const pontos = await getPontosDaRodada(ligaId, info.pontosRodada);
-
-        const confrontos = montarConfrontosFase(
-            vencedoresAtuais,
-            pontos,
-            info.numJogos,
-        );
-        
-        // Calcular valores e vencedores
-        calcularValoresConfronto(confrontos, false);
-        dadosTorneio[f.chave] = confrontos;
-        
-        console.log(`[MATA-ORQUESTRADOR] ✅ Fase ${f.nome}: ${confrontos.length} confrontos montados`);
-
-        vencedoresAtuais = await extrairVencedores(confrontos);
-    }
-
-    // 4. Log final antes de salvar
-    console.log(`[MATA-ORQUESTRADOR] 📦 Torneio completo calculado:`, {
-        primeira: dadosTorneio.primeira?.length || 0,
-        oitavas: dadosTorneio.oitavas?.length || 0,
-        quartas: dadosTorneio.quartas?.length || 0,
-        semis: dadosTorneio.semis?.length || 0,
-        final: dadosTorneio.final?.length || 0,
-    });
-
-    // 5. Salvar Cache (apenas se válido e completo)
-    const status = await fetch("/api/cartola/mercado/status")
-        .then((r) => r.json())
-        .catch(() => ({ rodada_atual: 0 }));
-    await salvarCacheMataMata(
-        ligaId,
-        edicaoId,
-        status.rodada_atual,
-        dadosTorneio,
+    // Renderizar tabela
+    renderTabelaMataMata(
+      confrontos,
+      contentId,
+      faseLabel,
+      edicaoAtual,
+      isPending,
     );
 
-    return dadosTorneio;
-}
-
-// ============================================================================
-// AUXILIARES
-// ============================================================================
-
-function garantir32Times(ranking) {
-    const arr = Array.isArray(ranking) ? [...ranking] : [];
-    while (arr.length < 32) {
-        arr.push({
-            timeId: `fake_${arr.length}`,
-            nome_time: "A definir",
-            escudo: "/escudos/placeholder.png",
+    // Adicionar botão de exportação
+    if (dependenciasOk[1] && criarBotaoExportacaoMataMata) {
+      try {
+        await criarBotaoExportacaoMataMata({
+          containerId: contentId,
+          fase: faseLabel,
+          confrontos: confrontos,
+          isPending: isPending,
+          rodadaPontos: getRodadaPontosText(faseLabel, edicaoAtual),
+          edicao: getEdicaoMataMata(edicaoAtual),
         });
+        console.log("[MATA-ORQUESTRADOR] Botão de exportação adicionado");
+      } catch (exportError) {
+        console.warn(
+          "[MATA-ORQUESTRADOR] Erro ao adicionar botão de exportação:",
+          exportError,
+        );
+      }
+    } else {
+      console.warn("[MATA-ORQUESTRADOR] Função de exportação não disponível");
     }
-    return arr;
+
+    // Renderizar mensagem de rodada pendente se necessário
+    if (isPending) {
+      renderRodadaPendente(contentId, rodadaPontosNum);
+    }
+
+    console.log(`[MATA-ORQUESTRADOR] Fase ${fase} carregada com sucesso`);
+  } catch (err) {
+    console.error(`[MATA-ORQUESTRADOR] Erro ao carregar fase ${fase}:`, err);
+    renderErrorState(contentId, fase, err);
+  }
 }
 
+// Função para extrair vencedores (importada de confrontos)
 async function extrairVencedores(confrontos) {
-    const v = [];
-    if (!confrontos) return v;
-
-    confrontos.forEach((c) => {
-        if (c.vencedorDeterminado === "A") v.push(c.timeA);
-        else if (c.vencedorDeterminado === "B") v.push(c.timeB);
-        else
-            v.push({
-                nome_time: "A definir",
-                escudo: "/escudos/placeholder.png",
-            });
-    });
-    return v;
+  const { extrairVencedores: extrairVencedoresFunc } = await import(
+    "./mata-mata-confrontos.js"
+  );
+  return extrairVencedoresFunc(confrontos);
 }
 
-function determinarFaseInicial(dados) {
-    // SEMPRE começar pela primeira fase, independente das outras existirem
-    if (dados["primeira"]) return "primeira";
-    if (dados["oitavas"]) return "oitavas";
-    if (dados["quartas"]) return "quartas";
-    if (dados["semis"]) return "semis";
-    if (dados["final"]) return "final";
-    return "primeira";
+// Cleanup global para evitar memory leaks
+function setupCleanup() {
+  window.addEventListener("beforeunload", () => {
+    moduleCache.clear();
+    exportsCarregados = false;
+    rodadasCarregados = false;
+    console.log("[MATA-ORQUESTRADOR] Cleanup executado");
+  });
+
+  // Interceptar erros de Promise não tratadas
+  window.addEventListener("unhandledrejection", (event) => {
+    if (
+      event.reason &&
+      event.reason.message &&
+      event.reason.message.includes("message channel closed")
+    ) {
+      event.preventDefault();
+      console.log(
+        "[MATA-ORQUESTRADOR] Promise rejection interceptada e ignorada",
+      );
+    }
+  });
 }
 
-function atualizarNavegacaoFases(faseAtiva) {
-    document.querySelectorAll(".fase-btn").forEach((btn) => {
-        btn.classList.remove("active");
-        if (btn.dataset.fase === faseAtiva) btn.classList.add("active");
-    });
+// Inicialização do módulo
+setupCleanup();
 
-    const navContainer = document.getElementById("fase-nav-container");
-    if (navContainer) navContainer.style.display = "flex";
-}
+console.log("[MATA-ORQUESTRADOR] Módulo carregado com arquitetura refatorada");

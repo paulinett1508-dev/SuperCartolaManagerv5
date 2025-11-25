@@ -1,339 +1,293 @@
-
 // MATA-MATA UI - Interface e Renderização
-// Responsável por: renderização de tabs, navegação de fases, exibição de confrontos
+// Responsável por: renderização de componentes, templates HTML, formatação
 
-console.log("[MATA-UI] Carregando módulo de interface...");
+import {
+  edicoes,
+  getRodadaPontosText,
+  getEdicaoMataMata,
+  gerarTextoConfronto,
+} from "./mata-mata-config.js";
 
-import { edicoes, gerarTextoConfronto, getRodadaPontosText } from "./mata-mata-config.js";
+// Função para renderizar a interface principal
+export function renderizarInterface(
+  container,
+  ligaId,
+  onEdicaoChange,
+  onFaseClick,
+) {
+  console.log("[MATA-UI] Renderizando interface...");
 
-// ============================================================================
-// RENDERIZAÇÃO DA INTERFACE PRINCIPAL
-// ============================================================================
+  const edicoesHtml = `
+    <div class="edicao-selector">
+      <label for="edicao-select">Edição:</label>
+      <select id="edicao-select">
+        <option value="" selected disabled>Selecione uma edição</option>
+        ${edicoes
+          .map(
+            (edicao) => `
+          <option value="${edicao.id}" ${!edicao.ativo ? "disabled" : ""}>
+            ${edicao.nome} (Rodadas ${edicao.rodadaInicial}-${edicao.rodadaFinal})
+          </option>
+        `,
+          )
+          .join("")}
+      </select>
+    </div>
+  `;
 
-export function renderizarInterface(containerControles, ligaId, onEdicaoChange, onFaseChange) {
-    if (!containerControles) {
-        console.warn("[MATA-UI] Container de controles não encontrado");
+  const fasesHtml = `
+    <div id="fase-nav-container" style="display:none;">
+      <div class="fase-nav">
+        <button class="fase-btn active" data-fase="primeira">1ª FASE</button>
+        <button class="fase-btn" data-fase="oitavas">OITAVAS</button>
+        <button class="fase-btn" data-fase="quartas">QUARTAS</button>
+        <button class="fase-btn" data-fase="semis" id="semis-btn">SEMIS</button>
+        <button class="fase-btn" data-fase="final">FINAL</button>
+      </div>
+    </div>
+    <div id="mataMataContent">
+      <div class="instrucao-inicial">
+        <p>Por favor, selecione uma edição do Mata-Mata para visualizar os confrontos.</p>
+      </div>
+    </div>
+  `;
+
+  container.innerHTML = edicoesHtml + fasesHtml;
+
+  // Setup event listeners
+  setupEdicaoSelector(container, ligaId, onEdicaoChange);
+  setupFaseButtons(container, onFaseClick);
+}
+
+// Função para configurar seletor de edição
+function setupEdicaoSelector(container, ligaId, onEdicaoChange) {
+  const edicaoSelect = document.getElementById("edicao-select");
+  if (!edicaoSelect) return;
+
+  let debounceTimer;
+  edicaoSelect.addEventListener("change", function (event) {
+    clearTimeout(debounceTimer);
+    const controller = new AbortController();
+
+    debounceTimer = setTimeout(() => {
+      if (controller.signal.aborted) return;
+
+      const edicaoAtual = parseInt(this.value);
+      console.log(`[MATA-UI] Edição selecionada: ${edicaoAtual}`);
+
+      const faseNavContainer = document.getElementById("fase-nav-container");
+      if (faseNavContainer) faseNavContainer.style.display = "block";
+
+      // Controlar visibilidade do botão SEMIS
+      const semisBtn = document.getElementById("semis-btn");
+      if (semisBtn) {
+        if (edicaoAtual === 5) {
+          semisBtn.style.display = "none";
+        } else {
+          semisBtn.style.display = "inline-block";
+        }
+      }
+
+      container
+        .querySelectorAll(".fase-btn")
+        .forEach((btn) => btn.classList.remove("active"));
+      const primeiraFaseBtn = container.querySelector(
+        '.fase-btn[data-fase="primeira"]',
+      );
+      if (primeiraFaseBtn) primeiraFaseBtn.classList.add("active");
+
+      onEdicaoChange(edicaoAtual, "primeira", ligaId);
+    }, 300);
+
+    window.addEventListener(
+      "beforeunload",
+      () => {
+        controller.abort();
+        clearTimeout(debounceTimer);
+      },
+      { once: true },
+    );
+  });
+}
+
+// Função para configurar botões de fase
+function setupFaseButtons(container, onFaseClick) {
+  container.querySelectorAll(".fase-btn").forEach((btn) => {
+    btn.addEventListener("click", function () {
+      const edicaoSelect = document.getElementById("edicao-select");
+      const edicaoAtual = edicaoSelect ? parseInt(edicaoSelect.value) : null;
+
+      if (!edicaoAtual) {
+        const message =
+          "Por favor, selecione uma edição do Mata-Mata primeiro.";
+        console.warn(`[MATA-UI] ${message}`);
+
+        const alertDiv = document.createElement("div");
+        alertDiv.className = "alert alert-warning";
+        alertDiv.textContent = message;
+
+        const contentDiv = document.getElementById("mataMataContent");
+        if (contentDiv) {
+          contentDiv.innerHTML = "";
+          contentDiv.appendChild(alertDiv);
+        }
         return;
-    }
+      }
 
-    // Renderizar seletor de edições
-    const seletorHTML = `
-        <div style="display: flex; gap: 12px; align-items: center; margin-bottom: 20px;">
-            <label for="edicao-select" style="font-weight: 600; color: var(--text-primary);">
-                📅 Edição:
-            </label>
-            <select id="edicao-select" style="
-                padding: 8px 16px;
-                border-radius: 8px;
-                border: 1px solid var(--border-color);
-                background: var(--bg-secondary);
-                color: var(--text-primary);
-                font-size: 14px;
-                cursor: pointer;
-            ">
-                ${edicoes.map(e => `
-                    <option value="${e.id}" ${e.ativo ? 'selected' : ''}>
-                        ${e.nome} ${e.ativo ? '(Ativa)' : ''}
-                    </option>
-                `).join('')}
-            </select>
-        </div>
+      container
+        .querySelectorAll(".fase-btn")
+        .forEach((b) => b.classList.remove("active"));
+      this.classList.add("active");
 
-        <!-- Navegação de Fases -->
-        <div id="fase-nav-container" style="display: none; gap: 8px; margin-bottom: 20px; flex-wrap: wrap;">
-            <button class="fase-btn" data-fase="primeira">1ª Fase</button>
-            <button class="fase-btn" data-fase="oitavas">Oitavas</button>
-            <button class="fase-btn" data-fase="quartas">Quartas</button>
-            <button class="fase-btn" data-fase="semis">Semifinal</button>
-            <button class="fase-btn" data-fase="final">Final</button>
-        </div>
-    `;
-
-    containerControles.innerHTML = seletorHTML;
-
-    // Event listeners
-    const edicaoSelect = document.getElementById("edicao-select");
-    if (edicaoSelect && onEdicaoChange) {
-        edicaoSelect.addEventListener("change", (e) => {
-            onEdicaoChange(parseInt(e.target.value));
-        });
-    }
-
-    // Event listeners para botões de fase
-    document.querySelectorAll(".fase-btn").forEach(btn => {
-        btn.addEventListener("click", () => {
-            if (onFaseChange) {
-                onFaseChange(btn.dataset.fase);
-            }
-        });
+      const fase = this.getAttribute("data-fase");
+      console.log(`[MATA-UI] Fase selecionada: ${fase}`);
+      onFaseClick(fase, edicaoAtual);
     });
-
-    console.log("[MATA-UI] Interface renderizada com sucesso");
+  });
 }
 
-// ============================================================================
-// RENDERIZAÇÃO DE CONFRONTOS
-// ============================================================================
+// Função para renderizar loading state
+export function renderLoadingState(containerId, fase, edicaoAtual) {
+  const contentElement = document.getElementById(containerId);
+  if (!contentElement) return;
 
-export function renderTabelaMataMata(confrontos, containerId, faseLabel, edicao, isPending) {
-    const container = document.getElementById(containerId);
-    if (!container) {
-        console.error(`[MATA-UI] Container ${containerId} não encontrado`);
-        return;
-    }
-
-    if (!confrontos || confrontos.length === 0) {
-        container.innerHTML = `
-            <div style="text-align: center; padding: 40px; background: rgba(255, 69, 0, 0.05); border-radius: 12px;">
-                <div style="font-size: 48px; margin-bottom: 16px;">⚠️</div>
-                <h3 style="color: var(--text-muted);">Nenhum confronto disponível</h3>
-                <p style="color: var(--text-muted); font-size: 14px;">Aguardando início da fase ${faseLabel}</p>
-            </div>
-        `;
-        return;
-    }
-
-    const rodadaPontos = getRodadaPontosText(faseLabel, edicao);
-    const textoConfronto = gerarTextoConfronto(faseLabel);
-
-    let html = `
-        <div style="margin-bottom: 24px;">
-            <h3 style="
-                color: var(--primary-color);
-                font-size: 24px;
-                margin: 0 0 8px 0;
-                font-weight: 800;
-            ">${textoConfronto}</h3>
-            <p style="
-                color: var(--text-muted);
-                font-size: 14px;
-                margin: 0;
-            ">${rodadaPontos}</p>
-            ${isPending ? `
-                <div style="
-                    background: rgba(255, 152, 0, 0.1);
-                    border: 1px solid rgba(255, 152, 0, 0.3);
-                    border-radius: 8px;
-                    padding: 12px;
-                    margin-top: 12px;
-                    color: #ff9800;
-                    font-size: 13px;
-                ">
-                    ⏳ Aguardando conclusão da rodada
-                </div>
-            ` : ''}
-        </div>
-
-        <div style="display: grid; gap: 16px;">
-    `;
-
-    confrontos.forEach((confronto, index) => {
-        html += renderizarConfrontoCard(confronto, index, isPending);
-    });
-
-    html += `</div>`;
-
-    // Adicionar botão de exportação
-    html += `
-        <div id="mata-mata-export-container" style="margin-top: 24px;"></div>
-    `;
-
-    container.innerHTML = html;
-
-    // Carregar módulo de exportação se disponível
-    carregarModuloExportacao(confrontos, faseLabel, edicao, isPending, rodadaPontos);
-
-    console.log(`[MATA-UI] Renderizados ${confrontos.length} confrontos da fase ${faseLabel}`);
+  contentElement.innerHTML = `
+    <div class="loading-state">
+      <div class="loading-spinner"></div>
+      <p>Carregando confrontos da fase ${fase.toUpperCase()}...</p>
+      <p style="font-size: 14px; margin-top: 8px;">Aguarde, processando dados da edição ${edicaoAtual}</p>
+    </div>
+  `;
 }
 
-// ============================================================================
-// CARD INDIVIDUAL DE CONFRONTO
-// ============================================================================
+// Função para renderizar mensagem de instrução inicial
+export function renderInstrucaoInicial(containerId) {
+  const contentElement = document.getElementById(containerId);
+  if (!contentElement) return;
 
-function renderizarConfrontoCard(confronto, index, isPending) {
-    const { jogo, timeA, timeB, vencedorDeterminado } = confronto;
+  contentElement.innerHTML = `
+    <div class="instrucao-inicial">
+      <p>Por favor, selecione uma edição do Mata-Mata para visualizar os confrontos.</p>
+    </div>
+  `;
+}
 
-    const vencedorA = !isPending && vencedorDeterminado === "A";
-    const vencedorB = !isPending && vencedorDeterminado === "B";
+// Função para renderizar estado de erro
+export function renderErrorState(containerId, fase, error) {
+  const contentElement = document.getElementById(containerId);
+  if (!contentElement) return;
 
-    const formatarPontos = (pontos) => {
-        if (isPending || pontos === null || pontos === undefined) return "-";
-        return typeof pontos === "number" ? pontos.toFixed(2) : "-";
-    };
+  contentElement.innerHTML = `
+    <div class="error-state">
+      <h4>Erro ao Carregar Confrontos</h4>
+      <p><strong>Fase:</strong> ${fase.toUpperCase()}</p>
+      <p><strong>Erro:</strong> ${error.message}</p>
+      <button onclick="window.location.reload()" class="reload-btn">
+        Recarregar Página
+      </button>
+    </div>
+  `;
+}
 
-    const getCorPontos = (isVencedor, isPendente) => {
-        if (isPendente) return "var(--text-muted)";
-        return isVencedor ? "#10b981" : "#ef4444";
-    };
+// Função para renderizar a tabela do mata-mata
+export function renderTabelaMataMata(
+  confrontos,
+  containerId,
+  faseLabel,
+  edicaoAtual,
+  isPending = false,
+) {
+  const container = document.getElementById(containerId);
+  if (!container) return;
 
-    return `
-        <div style="
-            background: var(--bg-secondary);
-            border: 1px solid ${vencedorA || vencedorB ? "var(--primary-color)" : "var(--border-color)"};
-            border-radius: 12px;
-            padding: 16px;
-            transition: all 0.3s ease;
-        " onmouseover="this.style.boxShadow='0 4px 12px rgba(255,69,0,0.15)'" 
-           onmouseout="this.style.boxShadow='none'">
-            
-            <!-- Número do Jogo -->
-            <div style="
-                text-align: center;
-                margin-bottom: 16px;
-                padding-bottom: 12px;
-                border-bottom: 1px solid var(--border-color);
-            ">
-                <span style="
-                    background: var(--primary-color);
-                    color: white;
-                    padding: 6px 16px;
-                    border-radius: 20px;
-                    font-weight: 700;
-                    font-size: 14px;
-                ">Jogo ${jogo}</span>
-            </div>
+  const formatPoints = (points) => {
+    if (isPending) return "?";
+    return typeof points === "number"
+      ? points.toFixed(2).replace(".", ",")
+      : "-";
+  };
 
-            <!-- Confronto -->
-            <div style="display: flex; align-items: center; gap: 16px;">
-                
-                <!-- Time A -->
-                <div style="flex: 1; display: flex; align-items: center; gap: 12px;">
-                    ${timeA?.clube_id ? `
-                        <img src="/escudos/${timeA.clube_id}.png" 
-                             style="width: 40px; height: 40px; border-radius: 50%; border: 2px solid ${vencedorA ? "#10b981" : "var(--border-color)"}"
-                             onerror="this.src='/escudos/default.png'"
-                             alt="Escudo">
-                    ` : `
-                        <div style="
-                            width: 40px; 
-                            height: 40px; 
-                            background: var(--bg-card); 
-                            border: 2px solid var(--border-color); 
-                            border-radius: 50%; 
-                            display: flex; 
-                            align-items: center; 
-                            justify-content: center;
-                        ">⚽</div>
-                    `}
-                    
-                    <div style="flex: 1; min-width: 0;">
-                        <div style="
-                            font-weight: 700;
-                            color: ${vencedorA ? "#10b981" : "var(--text-primary)"};
-                            font-size: 14px;
-                            overflow: hidden;
-                            text-overflow: ellipsis;
-                            white-space: nowrap;
-                        ">
-                            ${vencedorA ? "👑 " : ""}${timeA?.nome_time || "A definir"}
-                        </div>
-                        <div style="
-                            font-size: 12px;
-                            color: var(--text-muted);
-                            overflow: hidden;
-                            text-overflow: ellipsis;
-                            white-space: nowrap;
-                        ">${timeA?.nome_cartoleiro || timeA?.nome_cartola || "N/D"}</div>
+  container.innerHTML = `
+    <div class="mata-mata-header">
+      <div class="mata-mata-subtitulo">${getEdicaoMataMata(edicaoAtual)}</div>
+      <div class="mata-mata-confronto">
+        ${gerarTextoConfronto(faseLabel)}
+      </div>
+      <div class="mata-mata-rodada">
+        ${getRodadaPontosText(faseLabel, edicaoAtual)}
+      </div>
+    </div>
+    <div class="mata-mata-table-container">
+      <table class="mata-mata-table">
+        <thead>
+          <tr>
+            <th>Jogo</th>
+            <th>Time 1</th>
+            <th class="pontos-cell">Pts</th>
+            <th>X</th>
+            <th class="pontos-cell">Pts</th>
+            <th>Time 2</th>
+          </tr>
+        </thead>
+        <tbody>
+          ${confrontos
+            .map((c) => {
+              const valorA = c.timeA.valor || 0;
+              const valorB = c.timeB.valor || 0;
+              return `
+              <tr>
+                <td class="jogo-cell">${c.jogo}</td>
+                <td class="time-cell">
+                  <div class="time-info">
+                    <img src="/escudos/${c.timeA.clube_id}.png" class="escudo-img" onerror="this.style.display='none'">
+                    <div class="time-details">
+                      <span class="time-nome">${c.timeA.nome_time}</span>
+                      <span class="time-cartoleiro">${c.timeA.nome_cartoleiro || c.timeA.nome_cartola || "—"}</span>
                     </div>
-                </div>
-
-                <!-- Placar A -->
-                <div style="
-                    font-size: 24px;
-                    font-weight: 900;
-                    color: ${getCorPontos(vencedorA, isPending)};
-                    min-width: 60px;
-                    text-align: center;
-                ">
-                    ${formatarPontos(timeA?.pontos)}
-                </div>
-
-                <!-- VS -->
-                <div style="
-                    font-weight: 900;
-                    color: var(--text-muted);
-                    font-size: 16px;
-                    padding: 0 8px;
-                ">VS</div>
-
-                <!-- Placar B -->
-                <div style="
-                    font-size: 24px;
-                    font-weight: 900;
-                    color: ${getCorPontos(vencedorB, isPending)};
-                    min-width: 60px;
-                    text-align: center;
-                ">
-                    ${formatarPontos(timeB?.pontos)}
-                </div>
-
-                <!-- Time B -->
-                <div style="flex: 1; display: flex; align-items: center; gap: 12px; flex-direction: row-reverse;">
-                    ${timeB?.clube_id ? `
-                        <img src="/escudos/${timeB.clube_id}.png" 
-                             style="width: 40px; height: 40px; border-radius: 50%; border: 2px solid ${vencedorB ? "#10b981" : "var(--border-color)"}"
-                             onerror="this.src='/escudos/default.png'"
-                             alt="Escudo">
-                    ` : `
-                        <div style="
-                            width: 40px; 
-                            height: 40px; 
-                            background: var(--bg-card); 
-                            border: 2px solid var(--border-color); 
-                            border-radius: 50%; 
-                            display: flex; 
-                            align-items: center; 
-                            justify-content: center;
-                        ">⚽</div>
-                    `}
-                    
-                    <div style="flex: 1; min-width: 0; text-align: right;">
-                        <div style="
-                            font-weight: 700;
-                            color: ${vencedorB ? "#10b981" : "var(--text-primary)"};
-                            font-size: 14px;
-                            overflow: hidden;
-                            text-overflow: ellipsis;
-                            white-space: nowrap;
-                        ">
-                            ${timeB?.nome_time || "A definir"}${vencedorB ? " 👑" : ""}
-                        </div>
-                        <div style="
-                            font-size: 12px;
-                            color: var(--text-muted);
-                            overflow: hidden;
-                            text-overflow: ellipsis;
-                            white-space: nowrap;
-                        ">${timeB?.nome_cartoleiro || timeB?.nome_cartola || "N/D"}</div>
+                  </div>
+                </td>
+                <td class="pontos-cell ${valorA > 0 ? "valor-positivo" : valorA < 0 ? "valor-negativo" : "valor-neutro"}">
+                  <div class="pontos-valor">${formatPoints(c.timeA.pontos)}</div>
+                  <div class="premio-valor">
+                    ${valorA === 10 ? "R$ 10,00" : valorA === -10 ? "-R$ 10,00" : ""}
+                  </div>
+                </td>
+                <td class="vs-cell">X</td>
+                <td class="pontos-cell ${valorB > 0 ? "valor-positivo" : valorB < 0 ? "valor-negativo" : "valor-neutro"}">
+                  <div class="pontos-valor">${formatPoints(c.timeB.pontos)}</div>
+                  <div class="premio-valor">
+                    ${valorB === 10 ? "R$ 10,00" : valorB === -10 ? "-R$ 10,00" : ""}
+                  </div>
+                </td>
+                <td class="time-cell">
+                  <div class="time-info">
+                    <img src="/escudos/${c.timeB.clube_id}.png" class="escudo-img" onerror="this.style.display='none'">
+                    <div class="time-details">
+                      <span class="time-nome">${c.timeB.nome_time}</span>
+                      <span class="time-cartoleiro">${c.timeB.nome_cartoleiro || c.timeB.nome_cartola || "—"}</span>
                     </div>
-                </div>
-
-            </div>
-        </div>
-    `;
+                  </div>
+                </td>
+              </tr>
+            `;
+            })
+            .join("")}
+        </tbody>
+      </table>
+    </div>
+  `;
 }
 
-// ============================================================================
-// EXPORTAÇÃO
-// ============================================================================
+// Função para renderizar mensagem de rodada pendente
+export function renderRodadaPendente(containerId, rodadaPontosNum) {
+  const contentElement = document.getElementById(containerId);
+  if (!contentElement) return;
 
-async function carregarModuloExportacao(confrontos, fase, edicao, isPending, rodadaPontos) {
-    try {
-        const { criarBotaoExportacaoMataMata } = await import("../exports/export-mata-mata.js");
-        
-        await criarBotaoExportacaoMataMata({
-            containerId: "mata-mata-export-container",
-            fase,
-            confrontos,
-            isPending,
-            rodadaPontos,
-            edicao: `SuperCartola ${new Date().getFullYear()}`
-        });
-        
-        console.log("[MATA-UI] Módulo de exportação carregado");
-    } catch (error) {
-        console.warn("[MATA-UI] Módulo de exportação não disponível:", error);
-    }
+  const msgContainer = document.createElement("div");
+  msgContainer.className = "rodada-pendente";
+  msgContainer.innerHTML = `
+    <strong>Rodada Pendente</strong><br>
+    A Rodada ${rodadaPontosNum} ainda não ocorreu.
+  `;
+  contentElement.appendChild(msgContainer);
 }
-
-console.log("[MATA-UI] ✅ Módulo de interface carregado");

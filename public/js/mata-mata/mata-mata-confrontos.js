@@ -17,20 +17,6 @@ export function setRankingFunction(func) {
 
 // Função para obter pontos de uma rodada (COM PROTEÇÃO ANTI-LOOP)
 export async function getPontosDaRodada(ligaId, rodada) {
-    // Para rodadas futuras, retornar vazio imediatamente
-    try {
-        const mercadoStatus = await fetch('/api/cartola/mercado/status').then(r => r.json());
-        const rodadaAtual = mercadoStatus.rodada_atual || 1;
-
-        if (rodada > rodadaAtual) {
-            console.log(`[MATA-CONFRONTOS] Rodada ${rodada} é futura (atual: ${rodadaAtual}), retornando vazio`);
-            return {};
-        }
-    } catch (err) {
-        console.warn('[MATA-CONFRONTOS] Erro ao verificar status do mercado:', err);
-    }
-
-    // Continuar com a lógica original se a rodada não for futura
     try {
         if (!getRankingRodadaEspecifica) {
             tentativasConexao++;
