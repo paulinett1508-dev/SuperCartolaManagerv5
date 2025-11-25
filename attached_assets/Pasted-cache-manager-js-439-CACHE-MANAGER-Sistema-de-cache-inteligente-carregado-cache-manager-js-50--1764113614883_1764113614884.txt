@@ -1,0 +1,566 @@
+cache-manager.js:439 ✅ [CACHE-MANAGER] Sistema de cache inteligente carregado
+cache-manager.js:50 ✅ [CACHE-MANAGER] IndexedDB inicializado
+cache-manager.js:100 💿 [CACHE-MANAGER] IndexedDB hit: dashboard_ligas_{"all":true}
+dashboard.html:167   GET https://e1034b6e-dfb9-401a-8e7f-80ffa6030f79-00-2dc692elmitoe.spock.replit.dev/api/time/14747183 404 (Not Found)
+buscarDetalhesCompletos @ dashboard.html:167
+calcularEstatisticasAvancadas @ dashboard.html:190
+carregarDadosLigas @ dashboard.html:330
+await in carregarDadosLigas
+(anônimo) @ dashboard.html:573
+dashboard.html:167   GET https://e1034b6e-dfb9-401a-8e7f-80ffa6030f79-00-2dc692elmitoe.spock.replit.dev/api/time/1926323 404 (Not Found)
+buscarDetalhesCompletos @ dashboard.html:167
+await in buscarDetalhesCompletos
+calcularEstatisticasAvancadas @ dashboard.html:190
+carregarDadosLigas @ dashboard.html:330
+await in carregarDadosLigas
+(anônimo) @ dashboard.html:573
+dashboard.html:167   GET https://e1034b6e-dfb9-401a-8e7f-80ffa6030f79-00-2dc692elmitoe.spock.replit.dev/api/time/50180257 404 (Not Found)
+buscarDetalhesCompletos @ dashboard.html:167
+await in buscarDetalhesCompletos
+calcularEstatisticasAvancadas @ dashboard.html:190
+carregarDadosLigas @ dashboard.html:330
+await in carregarDadosLigas
+(anônimo) @ dashboard.html:573
+dashboard.html:167   GET https://e1034b6e-dfb9-401a-8e7f-80ffa6030f79-00-2dc692elmitoe.spock.replit.dev/api/time/49149388 404 (Not Found)
+buscarDetalhesCompletos @ dashboard.html:167
+await in buscarDetalhesCompletos
+calcularEstatisticasAvancadas @ dashboard.html:190
+carregarDadosLigas @ dashboard.html:330
+await in carregarDadosLigas
+(anônimo) @ dashboard.html:573
+dashboard.html:167   GET https://e1034b6e-dfb9-401a-8e7f-80ffa6030f79-00-2dc692elmitoe.spock.replit.dev/api/time/49149009 404 (Not Found)
+buscarDetalhesCompletos @ dashboard.html:167
+await in buscarDetalhesCompletos
+calcularEstatisticasAvancadas @ dashboard.html:190
+carregarDadosLigas @ dashboard.html:330
+await in carregarDadosLigas
+(anônimo) @ dashboard.html:573
+dashboard.html:167   GET https://e1034b6e-dfb9-401a-8e7f-80ffa6030f79-00-2dc692elmitoe.spock.replit.dev/api/time/13935277 404 (Not Found)
+buscarDetalhesCompletos @ dashboard.html:167
+await in buscarDetalhesCompletos
+calcularEstatisticasAvancadas @ dashboard.html:190
+carregarDadosLigas @ dashboard.html:330
+await in carregarDadosLigas
+(anônimo) @ dashboard.html:573
+dashboard.html:167   GET https://e1034b6e-dfb9-401a-8e7f-80ffa6030f79-00-2dc692elmitoe.spock.replit.dev/api/time/645089 404 (Not Found)
+buscarDetalhesCompletos @ dashboard.html:167
+await in buscarDetalhesCompletos
+calcularEstatisticasAvancadas @ dashboard.html:190
+carregarDadosLigas @ dashboard.html:330
+await in carregarDadosLigas
+(anônimo) @ dashboard.html:573
+dashboard.html:167   GET https://e1034b6e-dfb9-401a-8e7f-80ffa6030f79-00-2dc692elmitoe.spock.replit.dev/api/time/39786 404 (Not Found)
+buscarDetalhesCompletos @ dashboard.html:167
+await in buscarDetalhesCompletos
+calcularEstatisticasAvancadas @ dashboard.html:190
+carregarDadosLigas @ dashboard.html:330
+await in carregarDadosLigas
+(anônimo) @ dashboard.html:573
+dashboard.html:167   GET https://e1034b6e-dfb9-401a-8e7f-80ffa6030f79-00-2dc692elmitoe.spock.replit.dev/api/time/1097804 404 (Not Found)
+buscarDetalhesCompletos @ dashboard.html:167
+await in buscarDetalhesCompletos
+calcularEstatisticasAvancadas @ dashboard.html:190
+carregarDadosLigas @ dashboard.html:330
+await in carregarDadosLigas
+(anônimo) @ dashboard.html:573
+dashboard.html:167   GET https://e1034b6e-dfb9-401a-8e7f-80ffa6030f79-00-2dc692elmitoe.spock.replit.dev/api/time/1323370 404 (Not Found)
+buscarDetalhesCompletos @ dashboard.html:167
+await in buscarDetalhesCompletos
+calcularEstatisticasAvancadas @ dashboard.html:190
+carregarDadosLigas @ dashboard.html:330
+await in carregarDadosLigas
+(anônimo) @ dashboard.html:573
+dashboard.html:167   GET https://e1034b6e-dfb9-401a-8e7f-80ffa6030f79-00-2dc692elmitoe.spock.replit.dev/api/time/25371297 404 (Not Found)
+buscarDetalhesCompletos @ dashboard.html:167
+await in buscarDetalhesCompletos
+calcularEstatisticasAvancadas @ dashboard.html:190
+carregarDadosLigas @ dashboard.html:330
+await in carregarDadosLigas
+(anônimo) @ dashboard.html:573
+dashboard.html:167   GET https://e1034b6e-dfb9-401a-8e7f-80ffa6030f79-00-2dc692elmitoe.spock.replit.dev/api/time/22623329 404 (Not Found)
+buscarDetalhesCompletos @ dashboard.html:167
+await in buscarDetalhesCompletos
+calcularEstatisticasAvancadas @ dashboard.html:190
+carregarDadosLigas @ dashboard.html:330
+await in carregarDadosLigas
+(anônimo) @ dashboard.html:573
+dashboard.html:167   GET https://e1034b6e-dfb9-401a-8e7f-80ffa6030f79-00-2dc692elmitoe.spock.replit.dev/api/time/621609 404 (Not Found)
+buscarDetalhesCompletos @ dashboard.html:167
+await in buscarDetalhesCompletos
+calcularEstatisticasAvancadas @ dashboard.html:190
+carregarDadosLigas @ dashboard.html:330
+await in carregarDadosLigas
+(anônimo) @ dashboard.html:573
+dashboard.html:167   GET https://e1034b6e-dfb9-401a-8e7f-80ffa6030f79-00-2dc692elmitoe.spock.replit.dev/api/time/8098497 404 (Not Found)
+buscarDetalhesCompletos @ dashboard.html:167
+await in buscarDetalhesCompletos
+calcularEstatisticasAvancadas @ dashboard.html:190
+carregarDadosLigas @ dashboard.html:330
+await in carregarDadosLigas
+(anônimo) @ dashboard.html:573
+dashboard.html:167   GET https://e1034b6e-dfb9-401a-8e7f-80ffa6030f79-00-2dc692elmitoe.spock.replit.dev/api/time/575856 404 (Not Found)
+buscarDetalhesCompletos @ dashboard.html:167
+await in buscarDetalhesCompletos
+calcularEstatisticasAvancadas @ dashboard.html:190
+carregarDadosLigas @ dashboard.html:330
+await in carregarDadosLigas
+(anônimo) @ dashboard.html:573
+dashboard.html:167   GET https://e1034b6e-dfb9-401a-8e7f-80ffa6030f79-00-2dc692elmitoe.spock.replit.dev/api/time/8188312 404 (Not Found)
+buscarDetalhesCompletos @ dashboard.html:167
+await in buscarDetalhesCompletos
+calcularEstatisticasAvancadas @ dashboard.html:190
+carregarDadosLigas @ dashboard.html:330
+await in carregarDadosLigas
+(anônimo) @ dashboard.html:573
+dashboard.html:167   GET https://e1034b6e-dfb9-401a-8e7f-80ffa6030f79-00-2dc692elmitoe.spock.replit.dev/api/time/2718174 404 (Not Found)
+buscarDetalhesCompletos @ dashboard.html:167
+await in buscarDetalhesCompletos
+calcularEstatisticasAvancadas @ dashboard.html:190
+carregarDadosLigas @ dashboard.html:330
+await in carregarDadosLigas
+(anônimo) @ dashboard.html:573
+dashboard.html:167   GET https://e1034b6e-dfb9-401a-8e7f-80ffa6030f79-00-2dc692elmitoe.spock.replit.dev/api/time/45004009 404 (Not Found)
+buscarDetalhesCompletos @ dashboard.html:167
+await in buscarDetalhesCompletos
+calcularEstatisticasAvancadas @ dashboard.html:190
+carregarDadosLigas @ dashboard.html:330
+await in carregarDadosLigas
+(anônimo) @ dashboard.html:573
+dashboard.html:167   GET https://e1034b6e-dfb9-401a-8e7f-80ffa6030f79-00-2dc692elmitoe.spock.replit.dev/api/time/164131 404 (Not Found)
+buscarDetalhesCompletos @ dashboard.html:167
+await in buscarDetalhesCompletos
+calcularEstatisticasAvancadas @ dashboard.html:190
+carregarDadosLigas @ dashboard.html:330
+await in carregarDadosLigas
+(anônimo) @ dashboard.html:573
+dashboard.html:167   GET https://e1034b6e-dfb9-401a-8e7f-80ffa6030f79-00-2dc692elmitoe.spock.replit.dev/api/time/715731 404 (Not Found)
+buscarDetalhesCompletos @ dashboard.html:167
+await in buscarDetalhesCompletos
+calcularEstatisticasAvancadas @ dashboard.html:190
+carregarDadosLigas @ dashboard.html:330
+await in carregarDadosLigas
+(anônimo) @ dashboard.html:573
+dashboard.html:167   GET https://e1034b6e-dfb9-401a-8e7f-80ffa6030f79-00-2dc692elmitoe.spock.replit.dev/api/time/5902324 404 (Not Found)
+buscarDetalhesCompletos @ dashboard.html:167
+await in buscarDetalhesCompletos
+calcularEstatisticasAvancadas @ dashboard.html:190
+carregarDadosLigas @ dashboard.html:330
+await in carregarDadosLigas
+(anônimo) @ dashboard.html:573
+dashboard.html:167   GET https://e1034b6e-dfb9-401a-8e7f-80ffa6030f79-00-2dc692elmitoe.spock.replit.dev/api/time/3300583 404 (Not Found)
+buscarDetalhesCompletos @ dashboard.html:167
+await in buscarDetalhesCompletos
+calcularEstatisticasAvancadas @ dashboard.html:190
+carregarDadosLigas @ dashboard.html:330
+await in carregarDadosLigas
+(anônimo) @ dashboard.html:573
+dashboard.html:167   GET https://e1034b6e-dfb9-401a-8e7f-80ffa6030f79-00-2dc692elmitoe.spock.replit.dev/api/time/5254799 404 (Not Found)
+buscarDetalhesCompletos @ dashboard.html:167
+await in buscarDetalhesCompletos
+calcularEstatisticasAvancadas @ dashboard.html:190
+carregarDadosLigas @ dashboard.html:330
+await in carregarDadosLigas
+(anônimo) @ dashboard.html:573
+dashboard.html:167   GET https://e1034b6e-dfb9-401a-8e7f-80ffa6030f79-00-2dc692elmitoe.spock.replit.dev/api/time/1173066 404 (Not Found)
+buscarDetalhesCompletos @ dashboard.html:167
+await in buscarDetalhesCompletos
+calcularEstatisticasAvancadas @ dashboard.html:190
+carregarDadosLigas @ dashboard.html:330
+await in carregarDadosLigas
+(anônimo) @ dashboard.html:573
+dashboard.html:167   GET https://e1034b6e-dfb9-401a-8e7f-80ffa6030f79-00-2dc692elmitoe.spock.replit.dev/api/time/8183683 404 (Not Found)
+buscarDetalhesCompletos @ dashboard.html:167
+await in buscarDetalhesCompletos
+calcularEstatisticasAvancadas @ dashboard.html:190
+carregarDadosLigas @ dashboard.html:330
+await in carregarDadosLigas
+(anônimo) @ dashboard.html:573
+dashboard.html:167   GET https://e1034b6e-dfb9-401a-8e7f-80ffa6030f79-00-2dc692elmitoe.spock.replit.dev/api/time/13935277 404 (Not Found)
+buscarDetalhesCompletos @ dashboard.html:167
+await in buscarDetalhesCompletos
+calcularEstatisticasAvancadas @ dashboard.html:190
+carregarDadosLigas @ dashboard.html:330
+await in carregarDadosLigas
+(anônimo) @ dashboard.html:573
+dashboard.html:167   GET https://e1034b6e-dfb9-401a-8e7f-80ffa6030f79-00-2dc692elmitoe.spock.replit.dev/api/time/25324292 404 (Not Found)
+buscarDetalhesCompletos @ dashboard.html:167
+await in buscarDetalhesCompletos
+calcularEstatisticasAvancadas @ dashboard.html:190
+carregarDadosLigas @ dashboard.html:330
+await in carregarDadosLigas
+(anônimo) @ dashboard.html:573
+dashboard.html:167   GET https://e1034b6e-dfb9-401a-8e7f-80ffa6030f79-00-2dc692elmitoe.spock.replit.dev/api/time/14569704 404 (Not Found)
+buscarDetalhesCompletos @ dashboard.html:167
+await in buscarDetalhesCompletos
+calcularEstatisticasAvancadas @ dashboard.html:190
+carregarDadosLigas @ dashboard.html:330
+await in carregarDadosLigas
+(anônimo) @ dashboard.html:573
+dashboard.html:167   GET https://e1034b6e-dfb9-401a-8e7f-80ffa6030f79-00-2dc692elmitoe.spock.replit.dev/api/time/14916330 404 (Not Found)
+buscarDetalhesCompletos @ dashboard.html:167
+await in buscarDetalhesCompletos
+calcularEstatisticasAvancadas @ dashboard.html:190
+carregarDadosLigas @ dashboard.html:330
+await in carregarDadosLigas
+(anônimo) @ dashboard.html:573
+dashboard.html:167   GET https://e1034b6e-dfb9-401a-8e7f-80ffa6030f79-00-2dc692elmitoe.spock.replit.dev/api/time/1039496 404 (Not Found)
+buscarDetalhesCompletos @ dashboard.html:167
+await in buscarDetalhesCompletos
+calcularEstatisticasAvancadas @ dashboard.html:190
+carregarDadosLigas @ dashboard.html:330
+await in carregarDadosLigas
+(anônimo) @ dashboard.html:573
+dashboard.html:167   GET https://e1034b6e-dfb9-401a-8e7f-80ffa6030f79-00-2dc692elmitoe.spock.replit.dev/api/time/20165417 404 (Not Found)
+buscarDetalhesCompletos @ dashboard.html:167
+await in buscarDetalhesCompletos
+calcularEstatisticasAvancadas @ dashboard.html:190
+carregarDadosLigas @ dashboard.html:330
+await in carregarDadosLigas
+(anônimo) @ dashboard.html:573
+dashboard.html:167   GET https://e1034b6e-dfb9-401a-8e7f-80ffa6030f79-00-2dc692elmitoe.spock.replit.dev/api/time/1932235 404 (Not Found)
+buscarDetalhesCompletos @ dashboard.html:167
+await in buscarDetalhesCompletos
+calcularEstatisticasAvancadas @ dashboard.html:190
+carregarDadosLigas @ dashboard.html:330
+await in carregarDadosLigas
+(anônimo) @ dashboard.html:573
+dashboard.html:167   GET https://e1034b6e-dfb9-401a-8e7f-80ffa6030f79-00-2dc692elmitoe.spock.replit.dev/api/time/4966295 404 (Not Found)
+buscarDetalhesCompletos @ dashboard.html:167
+await in buscarDetalhesCompletos
+calcularEstatisticasAvancadas @ dashboard.html:190
+carregarDadosLigas @ dashboard.html:330
+await in carregarDadosLigas
+(anônimo) @ dashboard.html:573
+dashboard.html:167   GET https://e1034b6e-dfb9-401a-8e7f-80ffa6030f79-00-2dc692elmitoe.spock.replit.dev/api/time/1459952 404 (Not Found)
+buscarDetalhesCompletos @ dashboard.html:167
+await in buscarDetalhesCompletos
+calcularEstatisticasAvancadas @ dashboard.html:190
+carregarDadosLigas @ dashboard.html:330
+await in carregarDadosLigas
+(anônimo) @ dashboard.html:573
+dashboard.html:167   GET https://e1034b6e-dfb9-401a-8e7f-80ffa6030f79-00-2dc692elmitoe.spock.replit.dev/api/time/1568358 404 (Not Found)
+buscarDetalhesCompletos @ dashboard.html:167
+await in buscarDetalhesCompletos
+calcularEstatisticasAvancadas @ dashboard.html:190
+carregarDadosLigas @ dashboard.html:330
+await in carregarDadosLigas
+(anônimo) @ dashboard.html:573
+dashboard.html:167   GET https://e1034b6e-dfb9-401a-8e7f-80ffa6030f79-00-2dc692elmitoe.spock.replit.dev/api/time/3027272 404 (Not Found)
+buscarDetalhesCompletos @ dashboard.html:167
+await in buscarDetalhesCompletos
+calcularEstatisticasAvancadas @ dashboard.html:190
+carregarDadosLigas @ dashboard.html:330
+await in carregarDadosLigas
+(anônimo) @ dashboard.html:573
+dashboard.html:167   GET https://e1034b6e-dfb9-401a-8e7f-80ffa6030f79-00-2dc692elmitoe.spock.replit.dev/api/time/7698677 404 (Not Found)
+buscarDetalhesCompletos @ dashboard.html:167
+await in buscarDetalhesCompletos
+calcularEstatisticasAvancadas @ dashboard.html:190
+carregarDadosLigas @ dashboard.html:330
+await in carregarDadosLigas
+(anônimo) @ dashboard.html:573
+dashboard.html:167   GET https://e1034b6e-dfb9-401a-8e7f-80ffa6030f79-00-2dc692elmitoe.spock.replit.dev/api/time/1233737 404 (Not Found)
+buscarDetalhesCompletos @ dashboard.html:167
+await in buscarDetalhesCompletos
+calcularEstatisticasAvancadas @ dashboard.html:190
+carregarDadosLigas @ dashboard.html:330
+await in carregarDadosLigas
+(anônimo) @ dashboard.html:573
+dashboard.html:447   GET https://e1034b6e-dfb9-401a-8e7f-80ffa6030f79-00-2dc692elmitoe.spock.replit.dev/api/time/14747183 404 (Not Found)
+(anônimo) @ dashboard.html:447
+carregarDetalhesEspecificosLigas @ dashboard.html:445
+renderizarLigas @ dashboard.html:433
+carregarDadosLigas @ dashboard.html:332
+await in carregarDadosLigas
+(anônimo) @ dashboard.html:573
+dashboard.html:447   GET https://e1034b6e-dfb9-401a-8e7f-80ffa6030f79-00-2dc692elmitoe.spock.replit.dev/api/time/50180257 404 (Not Found)
+(anônimo) @ dashboard.html:447
+carregarDetalhesEspecificosLigas @ dashboard.html:445
+renderizarLigas @ dashboard.html:433
+carregarDadosLigas @ dashboard.html:332
+await in carregarDadosLigas
+(anônimo) @ dashboard.html:573
+dashboard.html:447   GET https://e1034b6e-dfb9-401a-8e7f-80ffa6030f79-00-2dc692elmitoe.spock.replit.dev/api/time/49149009 404 (Not Found)
+(anônimo) @ dashboard.html:447
+carregarDetalhesEspecificosLigas @ dashboard.html:445
+renderizarLigas @ dashboard.html:433
+carregarDadosLigas @ dashboard.html:332
+await in carregarDadosLigas
+(anônimo) @ dashboard.html:573
+dashboard.html:447   GET https://e1034b6e-dfb9-401a-8e7f-80ffa6030f79-00-2dc692elmitoe.spock.replit.dev/api/time/49149388 404 (Not Found)
+(anônimo) @ dashboard.html:447
+carregarDetalhesEspecificosLigas @ dashboard.html:445
+renderizarLigas @ dashboard.html:433
+carregarDadosLigas @ dashboard.html:332
+await in carregarDadosLigas
+(anônimo) @ dashboard.html:573
+dashboard.html:447   GET https://e1034b6e-dfb9-401a-8e7f-80ffa6030f79-00-2dc692elmitoe.spock.replit.dev/api/time/1926323 404 (Not Found)
+(anônimo) @ dashboard.html:447
+carregarDetalhesEspecificosLigas @ dashboard.html:445
+renderizarLigas @ dashboard.html:433
+carregarDadosLigas @ dashboard.html:332
+await in carregarDadosLigas
+(anônimo) @ dashboard.html:573
+dashboard.html:447   GET https://e1034b6e-dfb9-401a-8e7f-80ffa6030f79-00-2dc692elmitoe.spock.replit.dev/api/time/13935277 404 (Not Found)
+(anônimo) @ dashboard.html:447
+carregarDetalhesEspecificosLigas @ dashboard.html:445
+renderizarLigas @ dashboard.html:433
+carregarDadosLigas @ dashboard.html:332
+await in carregarDadosLigas
+(anônimo) @ dashboard.html:573
+dashboard.html:447   GET https://e1034b6e-dfb9-401a-8e7f-80ffa6030f79-00-2dc692elmitoe.spock.replit.dev/api/time/645089 404 (Not Found)
+(anônimo) @ dashboard.html:447
+carregarDetalhesEspecificosLigas @ dashboard.html:445
+await in carregarDetalhesEspecificosLigas
+renderizarLigas @ dashboard.html:433
+carregarDadosLigas @ dashboard.html:332
+await in carregarDadosLigas
+(anônimo) @ dashboard.html:573
+dashboard.html:447   GET https://e1034b6e-dfb9-401a-8e7f-80ffa6030f79-00-2dc692elmitoe.spock.replit.dev/api/time/39786 404 (Not Found)
+(anônimo) @ dashboard.html:447
+carregarDetalhesEspecificosLigas @ dashboard.html:445
+await in carregarDetalhesEspecificosLigas
+renderizarLigas @ dashboard.html:433
+carregarDadosLigas @ dashboard.html:332
+await in carregarDadosLigas
+(anônimo) @ dashboard.html:573
+dashboard.html:447   GET https://e1034b6e-dfb9-401a-8e7f-80ffa6030f79-00-2dc692elmitoe.spock.replit.dev/api/time/1097804 404 (Not Found)
+(anônimo) @ dashboard.html:447
+carregarDetalhesEspecificosLigas @ dashboard.html:445
+await in carregarDetalhesEspecificosLigas
+renderizarLigas @ dashboard.html:433
+carregarDadosLigas @ dashboard.html:332
+await in carregarDadosLigas
+(anônimo) @ dashboard.html:573
+dashboard.html:447   GET https://e1034b6e-dfb9-401a-8e7f-80ffa6030f79-00-2dc692elmitoe.spock.replit.dev/api/time/1323370 404 (Not Found)
+(anônimo) @ dashboard.html:447
+carregarDetalhesEspecificosLigas @ dashboard.html:445
+await in carregarDetalhesEspecificosLigas
+renderizarLigas @ dashboard.html:433
+carregarDadosLigas @ dashboard.html:332
+await in carregarDadosLigas
+(anônimo) @ dashboard.html:573
+dashboard.html:447   GET https://e1034b6e-dfb9-401a-8e7f-80ffa6030f79-00-2dc692elmitoe.spock.replit.dev/api/time/25371297 404 (Not Found)
+(anônimo) @ dashboard.html:447
+carregarDetalhesEspecificosLigas @ dashboard.html:445
+await in carregarDetalhesEspecificosLigas
+renderizarLigas @ dashboard.html:433
+carregarDadosLigas @ dashboard.html:332
+await in carregarDadosLigas
+(anônimo) @ dashboard.html:573
+dashboard.html:447   GET https://e1034b6e-dfb9-401a-8e7f-80ffa6030f79-00-2dc692elmitoe.spock.replit.dev/api/time/22623329 404 (Not Found)
+(anônimo) @ dashboard.html:447
+carregarDetalhesEspecificosLigas @ dashboard.html:445
+await in carregarDetalhesEspecificosLigas
+renderizarLigas @ dashboard.html:433
+carregarDadosLigas @ dashboard.html:332
+await in carregarDadosLigas
+(anônimo) @ dashboard.html:573
+dashboard.html:447   GET https://e1034b6e-dfb9-401a-8e7f-80ffa6030f79-00-2dc692elmitoe.spock.replit.dev/api/time/8098497 404 (Not Found)
+(anônimo) @ dashboard.html:447
+carregarDetalhesEspecificosLigas @ dashboard.html:445
+await in carregarDetalhesEspecificosLigas
+renderizarLigas @ dashboard.html:433
+carregarDadosLigas @ dashboard.html:332
+await in carregarDadosLigas
+(anônimo) @ dashboard.html:573
+dashboard.html:447   GET https://e1034b6e-dfb9-401a-8e7f-80ffa6030f79-00-2dc692elmitoe.spock.replit.dev/api/time/621609 404 (Not Found)
+(anônimo) @ dashboard.html:447
+carregarDetalhesEspecificosLigas @ dashboard.html:445
+await in carregarDetalhesEspecificosLigas
+renderizarLigas @ dashboard.html:433
+carregarDadosLigas @ dashboard.html:332
+await in carregarDadosLigas
+(anônimo) @ dashboard.html:573
+dashboard.html:447   GET https://e1034b6e-dfb9-401a-8e7f-80ffa6030f79-00-2dc692elmitoe.spock.replit.dev/api/time/575856 404 (Not Found)
+(anônimo) @ dashboard.html:447
+carregarDetalhesEspecificosLigas @ dashboard.html:445
+await in carregarDetalhesEspecificosLigas
+renderizarLigas @ dashboard.html:433
+carregarDadosLigas @ dashboard.html:332
+await in carregarDadosLigas
+(anônimo) @ dashboard.html:573
+dashboard.html:447   GET https://e1034b6e-dfb9-401a-8e7f-80ffa6030f79-00-2dc692elmitoe.spock.replit.dev/api/time/45004009 404 (Not Found)
+(anônimo) @ dashboard.html:447
+carregarDetalhesEspecificosLigas @ dashboard.html:445
+await in carregarDetalhesEspecificosLigas
+renderizarLigas @ dashboard.html:433
+carregarDadosLigas @ dashboard.html:332
+await in carregarDadosLigas
+(anônimo) @ dashboard.html:573
+dashboard.html:447   GET https://e1034b6e-dfb9-401a-8e7f-80ffa6030f79-00-2dc692elmitoe.spock.replit.dev/api/time/2718174 404 (Not Found)
+(anônimo) @ dashboard.html:447
+carregarDetalhesEspecificosLigas @ dashboard.html:445
+await in carregarDetalhesEspecificosLigas
+renderizarLigas @ dashboard.html:433
+carregarDadosLigas @ dashboard.html:332
+await in carregarDadosLigas
+(anônimo) @ dashboard.html:573
+dashboard.html:447   GET https://e1034b6e-dfb9-401a-8e7f-80ffa6030f79-00-2dc692elmitoe.spock.replit.dev/api/time/8188312 404 (Not Found)
+(anônimo) @ dashboard.html:447
+carregarDetalhesEspecificosLigas @ dashboard.html:445
+await in carregarDetalhesEspecificosLigas
+renderizarLigas @ dashboard.html:433
+carregarDadosLigas @ dashboard.html:332
+await in carregarDadosLigas
+(anônimo) @ dashboard.html:573
+dashboard.html:447   GET https://e1034b6e-dfb9-401a-8e7f-80ffa6030f79-00-2dc692elmitoe.spock.replit.dev/api/time/164131 404 (Not Found)
+(anônimo) @ dashboard.html:447
+carregarDetalhesEspecificosLigas @ dashboard.html:445
+await in carregarDetalhesEspecificosLigas
+renderizarLigas @ dashboard.html:433
+carregarDadosLigas @ dashboard.html:332
+await in carregarDadosLigas
+(anônimo) @ dashboard.html:573
+dashboard.html:447   GET https://e1034b6e-dfb9-401a-8e7f-80ffa6030f79-00-2dc692elmitoe.spock.replit.dev/api/time/715731 404 (Not Found)
+(anônimo) @ dashboard.html:447
+carregarDetalhesEspecificosLigas @ dashboard.html:445
+await in carregarDetalhesEspecificosLigas
+renderizarLigas @ dashboard.html:433
+carregarDadosLigas @ dashboard.html:332
+await in carregarDadosLigas
+(anônimo) @ dashboard.html:573
+dashboard.html:447   GET https://e1034b6e-dfb9-401a-8e7f-80ffa6030f79-00-2dc692elmitoe.spock.replit.dev/api/time/3300583 404 (Not Found)
+(anônimo) @ dashboard.html:447
+carregarDetalhesEspecificosLigas @ dashboard.html:445
+await in carregarDetalhesEspecificosLigas
+renderizarLigas @ dashboard.html:433
+carregarDadosLigas @ dashboard.html:332
+await in carregarDadosLigas
+(anônimo) @ dashboard.html:573
+dashboard.html:447   GET https://e1034b6e-dfb9-401a-8e7f-80ffa6030f79-00-2dc692elmitoe.spock.replit.dev/api/time/5902324 404 (Not Found)
+(anônimo) @ dashboard.html:447
+carregarDetalhesEspecificosLigas @ dashboard.html:445
+await in carregarDetalhesEspecificosLigas
+renderizarLigas @ dashboard.html:433
+carregarDadosLigas @ dashboard.html:332
+await in carregarDadosLigas
+(anônimo) @ dashboard.html:573
+dashboard.html:447   GET https://e1034b6e-dfb9-401a-8e7f-80ffa6030f79-00-2dc692elmitoe.spock.replit.dev/api/time/1173066 404 (Not Found)
+(anônimo) @ dashboard.html:447
+carregarDetalhesEspecificosLigas @ dashboard.html:445
+await in carregarDetalhesEspecificosLigas
+renderizarLigas @ dashboard.html:433
+carregarDadosLigas @ dashboard.html:332
+await in carregarDadosLigas
+(anônimo) @ dashboard.html:573
+dashboard.html:447   GET https://e1034b6e-dfb9-401a-8e7f-80ffa6030f79-00-2dc692elmitoe.spock.replit.dev/api/time/5254799 404 (Not Found)
+(anônimo) @ dashboard.html:447
+carregarDetalhesEspecificosLigas @ dashboard.html:445
+await in carregarDetalhesEspecificosLigas
+renderizarLigas @ dashboard.html:433
+carregarDadosLigas @ dashboard.html:332
+await in carregarDadosLigas
+(anônimo) @ dashboard.html:573
+dashboard.html:447   GET https://e1034b6e-dfb9-401a-8e7f-80ffa6030f79-00-2dc692elmitoe.spock.replit.dev/api/time/8183683 404 (Not Found)
+(anônimo) @ dashboard.html:447
+carregarDetalhesEspecificosLigas @ dashboard.html:445
+await in carregarDetalhesEspecificosLigas
+renderizarLigas @ dashboard.html:433
+carregarDadosLigas @ dashboard.html:332
+await in carregarDadosLigas
+(anônimo) @ dashboard.html:573
+dashboard.html:447   GET https://e1034b6e-dfb9-401a-8e7f-80ffa6030f79-00-2dc692elmitoe.spock.replit.dev/api/time/13935277 404 (Not Found)
+(anônimo) @ dashboard.html:447
+carregarDetalhesEspecificosLigas @ dashboard.html:445
+await in carregarDetalhesEspecificosLigas
+renderizarLigas @ dashboard.html:433
+carregarDadosLigas @ dashboard.html:332
+await in carregarDadosLigas
+(anônimo) @ dashboard.html:573
+dashboard.html:447   GET https://e1034b6e-dfb9-401a-8e7f-80ffa6030f79-00-2dc692elmitoe.spock.replit.dev/api/time/25324292 404 (Not Found)
+(anônimo) @ dashboard.html:447
+carregarDetalhesEspecificosLigas @ dashboard.html:445
+await in carregarDetalhesEspecificosLigas
+renderizarLigas @ dashboard.html:433
+carregarDadosLigas @ dashboard.html:332
+await in carregarDadosLigas
+(anônimo) @ dashboard.html:573
+dashboard.html:447   GET https://e1034b6e-dfb9-401a-8e7f-80ffa6030f79-00-2dc692elmitoe.spock.replit.dev/api/time/14916330 404 (Not Found)
+(anônimo) @ dashboard.html:447
+carregarDetalhesEspecificosLigas @ dashboard.html:445
+await in carregarDetalhesEspecificosLigas
+renderizarLigas @ dashboard.html:433
+carregarDadosLigas @ dashboard.html:332
+await in carregarDadosLigas
+(anônimo) @ dashboard.html:573
+dashboard.html:447   GET https://e1034b6e-dfb9-401a-8e7f-80ffa6030f79-00-2dc692elmitoe.spock.replit.dev/api/time/14569704 404 (Not Found)
+(anônimo) @ dashboard.html:447
+carregarDetalhesEspecificosLigas @ dashboard.html:445
+await in carregarDetalhesEspecificosLigas
+renderizarLigas @ dashboard.html:433
+carregarDadosLigas @ dashboard.html:332
+await in carregarDadosLigas
+(anônimo) @ dashboard.html:573
+dashboard.html:447   GET https://e1034b6e-dfb9-401a-8e7f-80ffa6030f79-00-2dc692elmitoe.spock.replit.dev/api/time/1039496 404 (Not Found)
+(anônimo) @ dashboard.html:447
+carregarDetalhesEspecificosLigas @ dashboard.html:445
+await in carregarDetalhesEspecificosLigas
+renderizarLigas @ dashboard.html:433
+carregarDadosLigas @ dashboard.html:332
+await in carregarDadosLigas
+(anônimo) @ dashboard.html:573
+dashboard.html:447   GET https://e1034b6e-dfb9-401a-8e7f-80ffa6030f79-00-2dc692elmitoe.spock.replit.dev/api/time/4966295 404 (Not Found)
+(anônimo) @ dashboard.html:447
+carregarDetalhesEspecificosLigas @ dashboard.html:445
+await in carregarDetalhesEspecificosLigas
+renderizarLigas @ dashboard.html:433
+carregarDadosLigas @ dashboard.html:332
+await in carregarDadosLigas
+(anônimo) @ dashboard.html:573
+dashboard.html:447   GET https://e1034b6e-dfb9-401a-8e7f-80ffa6030f79-00-2dc692elmitoe.spock.replit.dev/api/time/1932235 404 (Not Found)
+(anônimo) @ dashboard.html:447
+carregarDetalhesEspecificosLigas @ dashboard.html:445
+await in carregarDetalhesEspecificosLigas
+renderizarLigas @ dashboard.html:433
+carregarDadosLigas @ dashboard.html:332
+await in carregarDadosLigas
+(anônimo) @ dashboard.html:573
+dashboard.html:447   GET https://e1034b6e-dfb9-401a-8e7f-80ffa6030f79-00-2dc692elmitoe.spock.replit.dev/api/time/20165417 404 (Not Found)
+(anônimo) @ dashboard.html:447
+carregarDetalhesEspecificosLigas @ dashboard.html:445
+await in carregarDetalhesEspecificosLigas
+renderizarLigas @ dashboard.html:433
+carregarDadosLigas @ dashboard.html:332
+await in carregarDadosLigas
+(anônimo) @ dashboard.html:573
+dashboard.html:447   GET https://e1034b6e-dfb9-401a-8e7f-80ffa6030f79-00-2dc692elmitoe.spock.replit.dev/api/time/1459952 404 (Not Found)
+(anônimo) @ dashboard.html:447
+carregarDetalhesEspecificosLigas @ dashboard.html:445
+await in carregarDetalhesEspecificosLigas
+renderizarLigas @ dashboard.html:433
+carregarDadosLigas @ dashboard.html:332
+await in carregarDadosLigas
+(anônimo) @ dashboard.html:573
+dashboard.html:447   GET https://e1034b6e-dfb9-401a-8e7f-80ffa6030f79-00-2dc692elmitoe.spock.replit.dev/api/time/1568358 404 (Not Found)
+(anônimo) @ dashboard.html:447
+carregarDetalhesEspecificosLigas @ dashboard.html:445
+await in carregarDetalhesEspecificosLigas
+renderizarLigas @ dashboard.html:433
+carregarDadosLigas @ dashboard.html:332
+await in carregarDadosLigas
+(anônimo) @ dashboard.html:573
+dashboard.html:447   GET https://e1034b6e-dfb9-401a-8e7f-80ffa6030f79-00-2dc692elmitoe.spock.replit.dev/api/time/3027272 404 (Not Found)
+(anônimo) @ dashboard.html:447
+carregarDetalhesEspecificosLigas @ dashboard.html:445
+await in carregarDetalhesEspecificosLigas
+renderizarLigas @ dashboard.html:433
+carregarDadosLigas @ dashboard.html:332
+await in carregarDadosLigas
+(anônimo) @ dashboard.html:573
+dashboard.html:447   GET https://e1034b6e-dfb9-401a-8e7f-80ffa6030f79-00-2dc692elmitoe.spock.replit.dev/api/time/7698677 404 (Not Found)
+(anônimo) @ dashboard.html:447
+carregarDetalhesEspecificosLigas @ dashboard.html:445
+await in carregarDetalhesEspecificosLigas
+renderizarLigas @ dashboard.html:433
+carregarDadosLigas @ dashboard.html:332
+await in carregarDadosLigas
+(anônimo) @ dashboard.html:573
+dashboard.html:447   GET https://e1034b6e-dfb9-401a-8e7f-80ffa6030f79-00-2dc692elmitoe.spock.replit.dev/api/time/1233737 404 (Not Found)
+(anônimo) @ dashboard.html:447
+carregarDetalhesEspecificosLigas @ dashboard.html:445
+await in carregarDetalhesEspecificosLigas
+renderizarLigas @ dashboard.html:433
+carregarDadosLigas @ dashboard.html:332
+await in carregarDadosLigas
+(anônimo) @ dashboard.html:573
