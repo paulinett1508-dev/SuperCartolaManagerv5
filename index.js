@@ -91,7 +91,7 @@ app.use("/api/configuracao", configuracaoRoutes);
 app.use("/api/fluxo-financeiro", fluxoFinanceiroRoutes);
 console.log('[SERVER] ✅ Rotas de Fluxo Financeiro registradas em /api/fluxo-financeiro');
 app.use("/api/extrato-cache", extratoFinanceiroCacheRoutes);
-app.use("/api/participante-auth", participanteAuthRoutes);
+app.use("/api/participante/auth", participanteAuthRoutes);
 app.use("/api/pontos-corridos", pontosCorridosCacheRoutes);
 app.use("/api/top10", top10CacheRoutes);
 app.use("/api/mata-mata", mataMataCacheRoutes);
