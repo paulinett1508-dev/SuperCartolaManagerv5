@@ -76,7 +76,7 @@ function setupEdicaoSelector(container, ligaId, onEdicaoChange) {
       console.log(`[MATA-UI] Edição selecionada: ${edicaoAtual}`);
 
       const faseNavContainer = document.getElementById("fase-nav-container");
-      if (faseNavContainer) faseNavContainer.style.display = "block";
+      if (faseNavContainer) faseNavContainer.style.display = "flex";
 
       // Controlar visibilidade do botão SEMIS
       const semisBtn = document.getElementById("semis-btn");
@@ -96,7 +96,8 @@ function setupEdicaoSelector(container, ligaId, onEdicaoChange) {
       );
       if (primeiraFaseBtn) primeiraFaseBtn.classList.add("active");
 
-      onEdicaoChange(edicaoAtual, "primeira", ligaId);
+      // Chamar a função com o ID correto
+      onEdicaoChange(edicaoAtual);
     }, 300);
 
     window.addEventListener(

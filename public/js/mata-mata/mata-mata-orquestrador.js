@@ -128,7 +128,7 @@ export async function carregarMataMata() {
 
 async function selecionarEdicao(edicaoId) {
     console.log(`[MATA-ORQUESTRADOR] Selecionando Edição ${edicaoId}...`);
-    edicaoIdAtual = edicaoId;
+    edicaoIdAtual = parseInt(edicaoId);
 
     const containerConteudo = document.getElementById("mata-mata-conteudo");
     if (containerConteudo) {
@@ -139,24 +139,30 @@ async function selecionarEdicao(edicaoId) {
     const ligaId = getLigaId();
 
     try {
-        let dados = await lerCacheMataMata(ligaId, edicaoId);
+        let dados = await lerCacheMataMata(ligaId, edicaoIdAtual);
 
         if (!dados) {
             console.log(
                 "[MATA-ORQUESTRADOR] ⚠️ Cache Miss ou Inválido. Iniciando cálculo...",
             );
-            dados = await recalcularDadosEdicao(ligaId, edicaoId);
+            dados = await recalcularDadosEdicao(ligaId, edicaoIdAtual);
         }
 
         dadosEdicaoAtual = dados;
         faseAtual = determinarFaseInicial(dados);
+
+        console.log(`[MATA-ORQUESTRADOR] Dados carregados. Fase inicial: ${faseAtual}`);
+        console.log(`[MATA-ORQUESTRADOR] Fases disponíveis:`, Object.keys(dados));
 
         atualizarNavegacaoFases(faseAtual);
         renderizarFaseAtual();
     } catch (error) {
         console.error("[MATA-ORQUESTRADOR] Erro:", error);
         if (containerConteudo)
-            containerConteudo.innerHTML = `<div class="erro-box">${error.message}</div>`;
+            containerConteudo.innerHTML = `<div class="erro-box" style="padding: 20px; text-align: center; color: #ef4444; background: rgba(239, 68, 68, 0.1); border-radius: 8px;">
+                <h4>Erro ao carregar Mata-Mata</h4>
+                <p>${error.message}</p>
+            </div>`;
     }
 }
 
@@ -167,11 +173,19 @@ function selecionarFase(fase) {
 }
 
 function renderizarFaseAtual() {
-    if (!dadosEdicaoAtual || !dadosEdicaoAtual[faseAtual]) {
-        const container = document.getElementById("mata-mata-conteudo");
-        if (container)
-            container.innerHTML =
-                '<div class="aviso-box">Fase não disponível ainda.</div>';
+    const container = document.getElementById("mata-mata-conteudo");
+    
+    if (!dadosEdicaoAtual) {
+        if (container) {
+            container.innerHTML = '<div class="loading-state"><div class="spinner"></div><p>Carregando dados...</p></div>';
+        }
+        return;
+    }
+
+    if (!dadosEdicaoAtual[faseAtual]) {
+        if (container) {
+            container.innerHTML = '<div class="aviso-box" style="padding: 20px; text-align: center; color: #ff7e00;">Fase não disponível ainda.</div>';
+        }
         return;
     }
 
@@ -185,6 +199,8 @@ function renderizarFaseAtual() {
     };
 
     const faseLabel = faseLabels[faseAtual] || faseAtual.toUpperCase();
+    
+    console.log(`[MATA-ORQUESTRADOR] Renderizando fase "${faseAtual}" (${faseLabel}) com ${dadosEdicaoAtual[faseAtual].length} confrontos`);
     
     // Passa os dados para o UI renderizar usando a função correta
     UI.renderTabelaMataMata(
