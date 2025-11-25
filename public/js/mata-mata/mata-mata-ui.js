@@ -78,7 +78,15 @@ function setupEdicaoSelector(container, ligaId, onEdicaoChange) {
       const faseNavContainer = document.getElementById("fase-nav-container");
       if (faseNavContainer) faseNavContainer.style.display = "block";
 
-      // Todas as edições têm SEMIS agora
+      // Controlar visibilidade do botão SEMIS
+      const semisBtn = document.getElementById("semis-btn");
+      if (semisBtn) {
+        if (edicaoAtual === 5) {
+          semisBtn.style.display = "none";
+        } else {
+          semisBtn.style.display = "inline-block";
+        }
+      }
 
       container
         .querySelectorAll(".fase-btn")
@@ -271,123 +279,15 @@ export function renderTabelaMataMata(
 }
 
 // Função para renderizar mensagem de rodada pendente
-export function renderRodadaPendente(contentId, rodadaPontosNum) {
-  const contentElement = document.getElementById(contentId);
+export function renderRodadaPendente(containerId, rodadaPontosNum) {
+  const contentElement = document.getElementById(containerId);
   if (!contentElement) return;
 
-  const pendenteDiv = document.createElement("div");
-  pendenteDiv.className = "rodada-pendente-fase";
-  pendenteDiv.innerHTML = `
-    <span class="pendente-icon">⚠️</span>
-    <h3>Rodada Pendente</h3>
-    <p class="pendente-message">A Rodada ${rodadaPontosNum} ainda não aconteceu.</p>
-    <p class="pendente-submessage">Os pontos e vencedores serão atualizados automaticamente após o término.</p>
+  const msgContainer = document.createElement("div");
+  msgContainer.className = "rodada-pendente";
+  msgContainer.innerHTML = `
+    <strong>Rodada Pendente</strong><br>
+    A Rodada ${rodadaPontosNum} ainda não ocorreu.
   `;
-  contentElement.appendChild(pendenteDiv);
-}
-
-// Função para limpar a tabela
-export function limparTabela(containerId) {
-    const container = document.getElementById(containerId);
-    if (container) {
-        container.innerHTML = "";
-    }
-}
-
-// Função para renderizar confrontos (compatibilidade com orquestrador)
-export function renderizarConfrontos(containerId, confrontos, isPending = false) {
-    console.log(`[MATA-UI] Renderizando ${confrontos.length} confrontos...`);
-
-    const container = document.getElementById(containerId);
-    if (!container) {
-        console.error(`[MATA-UI] Container ${containerId} não encontrado`);
-        return;
-    }
-
-    if (!confrontos || confrontos.length === 0) {
-        container.innerHTML = '<div class="aviso-box">Nenhum confronto disponível nesta fase.</div>';
-        return;
-    }
-
-    // Construir HTML da tabela completa
-    let html = `
-        <div class="mata-mata-table-container">
-            <table class="mata-mata-table">
-                <thead>
-                    <tr>
-                        <th>Jogo</th>
-                        <th colspan="2">Time 1</th>
-                        <th>Pts</th>
-                        <th>X</th>
-                        <th>Pts</th>
-                        <th colspan="2">Time 2</th>
-                    </tr>
-                </thead>
-                <tbody>
-    `;
-
-    confrontos.forEach(c => {
-        const pontosAValidos = typeof c.timeA.pontos === 'number';
-        const pontosBValidos = typeof c.timeB.pontos === 'number';
-
-        // Determinar vencedor
-        let vencedorA = false;
-        let vencedorB = false;
-
-        if (!isPending && pontosAValidos && pontosBValidos) {
-            if (c.timeA.pontos > c.timeB.pontos) {
-                vencedorA = true;
-            } else if (c.timeB.pontos > c.timeA.pontos) {
-                vencedorB = true;
-            } else {
-                // Empate: critério de desempate (rankR2)
-                vencedorA = (c.timeA.rankR2 || 0) < (c.timeB.rankR2 || 0);
-                vencedorB = !vencedorA;
-            }
-        }
-
-        const escudoA = c.timeA.clube_id ? `/escudos/${c.timeA.clube_id}.png` : '/escudos/default.png';
-        const escudoB = c.timeB.clube_id ? `/escudos/${c.timeB.clube_id}.png` : '/escudos/default.png';
-
-        html += `
-            <tr class="${isPending ? 'pendente' : ''}">
-                <td class="jogo-cell">${c.jogo}</td>
-                <td class="escudo-cell">
-                    <img src="${escudoA}" class="escudo-img" onerror="this.src='/escudos/default.png'">
-                </td>
-                <td class="time-cell ${vencedorA ? 'vencedor' : ''}">
-                    <div class="time-info">
-                        <div class="time-nome">${c.timeA.nome_time || 'A definir'}</div>
-                        <div class="cartoleiro-nome">${c.timeA.nome_cartoleiro || c.timeA.nome_cartola || ''}</div>
-                    </div>
-                </td>
-                <td class="pontos-cell ${vencedorA ? 'pontos-vencedor' : ''}">
-                    ${pontosAValidos ? c.timeA.pontos.toFixed(2) : '-'}
-                </td>
-                <td class="vs-cell">X</td>
-                <td class="pontos-cell ${vencedorB ? 'pontos-vencedor' : ''}">
-                    ${pontosBValidos ? c.timeB.pontos.toFixed(2) : '-'}
-                </td>
-                <td class="time-cell ${vencedorB ? 'vencedor' : ''}">
-                    <div class="time-info">
-                        <div class="time-nome">${c.timeB.nome_time || 'A definir'}</div>
-                        <div class="cartoleiro-nome">${c.timeB.nome_cartoleiro || c.timeB.nome_cartola || ''}</div>
-                    </div>
-                </td>
-                <td class="escudo-cell">
-                    <img src="${escudoB}" class="escudo-img" onerror="this.src='/escudos/default.png'">
-                </td>
-            </tr>
-        `;
-    });
-
-    html += `
-                </tbody>
-            </table>
-        </div>
-    `;
-
-    container.innerHTML = html;
-
-    console.log(`[MATA-UI] ✅ ${confrontos.length} confrontos renderizados em tabela`);
+  contentElement.appendChild(msgContainer);
 }

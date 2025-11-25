@@ -1,227 +1,264 @@
-/* MATA-MATA.CSS - Estilo Compatível com UI Original */
+/* MATA-MATA MODULE CSS - Padrões UX do Sistema */
 
 /* Container Principal */
 #mata-mata {
   background: var(--bg-card, #1e1e1e);
-  border-radius: 8px;
-  padding: 20px;
-  margin: 15px 0;
-  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-  color: var(--text-primary, #fff);
+  border-radius: var(--border-radius-md, 8px);
+  padding: var(--spacing-lg, 20px);
+  margin: var(--spacing-md, 15px) 0;
 }
 
-/* Cabeçalho */
-.mata-mata-header {
+/* Seletor de Edição */
+.edicao-selector {
+  margin-bottom: 16px;
   text-align: center;
-  margin-bottom: 20px;
-  border-bottom: 1px solid var(--border-color, #333);
-  padding-bottom: 15px;
 }
 
-.mata-mata-titulo {
-  font-size: 1.5rem;
-  font-weight: 700;
-  color: var(--text-primary, #fff);
-  margin: 0;
-}
-
-.mata-mata-subtitulo {
-  font-size: 0.9rem;
-  color: var(--text-secondary, #aaa);
-  margin-top: 5px;
-}
-
-/* Abas de Edição */
-.tabs-edicoes-container {
-  display: flex;
-  gap: 10px;
-  overflow-x: auto;
-  padding-bottom: 10px;
-  margin-top: 15px;
-  justify-content: center;
-}
-
-.tab-edicao {
-  background: transparent;
-  border: 1px solid var(--border-color, #444);
-  padding: 8px 16px;
-  border-radius: 20px;
-  cursor: pointer;
-  white-space: nowrap;
-  font-size: 0.9rem;
-  color: var(--text-secondary, #aaa);
-  transition: all 0.2s ease;
-}
-
-.tab-edicao:hover {
-  background: rgba(255, 255, 255, 0.05);
-  color: #fff;
-}
-
-.tab-edicao.active {
-  background: var(--primary-color, #ff7e00);
-  color: #fff;
-  border-color: var(--primary-color, #ff7e00);
+.edicao-selector label {
   font-weight: 600;
+  margin-right: 8px;
+  color: var(--text-primary, #ffffff);
+  font-family: "Inter", -apple-system, sans-serif;
 }
 
-/* Navegação de Fases (1ª Fase, Oitavas...) */
+.edicao-selector select {
+  padding: 8px 12px;
+  border-radius: 6px;
+  border: 1px solid rgba(255, 69, 0, 0.3);
+  background: var(--bg-secondary, #1a1a1a);
+  color: var(--text-primary, #ffffff);
+  font-size: 13px;
+  transition: all 0.3s ease;
+}
+
+.edicao-selector select:focus {
+  outline: none;
+  border-color: var(--laranja, #FF4500);
+  box-shadow: 0 0 0 2px rgba(255, 69, 0, 0.2);
+}
+
+/* Navegação de Fases */
+#fase-nav-container {
+  margin-bottom: 16px;
+}
+
 .fase-nav {
   display: flex;
   justify-content: center;
-  gap: 5px;
+  gap: 8px;
+  margin-bottom: 16px;
   flex-wrap: wrap;
-  margin: 20px 0;
-  background: rgba(0,0,0,0.2);
-  padding: 10px;
-  border-radius: 8px;
 }
 
 .fase-btn {
-  background: transparent;
-  border: none;
-  padding: 6px 12px;
-  border-radius: 4px;
+  background: rgba(42, 42, 42, 0.5);
+  color: var(--text-secondary, #e0e0e0);
+  border: 1px solid rgba(255, 69, 0, 0.3);
+  padding: 8px 12px;
+  border-radius: 6px;
+  font-size: 12px;
+  font-weight: 600;
   cursor: pointer;
-  font-size: 0.85rem;
-  color: var(--text-secondary, #aaa);
-  transition: all 0.2s;
+  transition: all 0.3s ease;
+  font-family: "Inter", -apple-system, sans-serif;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
 }
 
-.fase-btn:hover { color: #fff; }
+.fase-btn:hover {
+  background: rgba(255, 69, 0, 0.1);
+  border-color: var(--laranja, #FF4500);
+  transform: translateY(-1px);
+}
 
 .fase-btn.active {
-  background: rgba(255,255,255,0.1);
-  color: var(--primary-color, #ff7e00);
-  font-weight: bold;
+  background: linear-gradient(135deg, #ff4500 0%, #e8472b 100%);
+  color: white;
+  border-color: var(--laranja, #FF4500);
+  box-shadow: 0 4px 15px rgba(255, 69, 0, 0.4);
 }
 
-/* --- TABELA DE CONFRONTOS (O Coração do Visual) --- */
-
-.mata-mata-table-container {
-    overflow-x: auto;
-    margin: 20px 0;
-    background: white;
-    border-radius: 8px;
-    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+/* Tabela de Confrontos */
+#mataMataContent table {
+  width: 100%;
+  max-width: 600px;
+  margin: 0 auto;
+  border-collapse: separate;
+  border-spacing: 0;
+  background: var(--bg-card, #1e1e1e);
+  border-radius: 12px;
+  overflow: hidden;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.4);
+  font-size: 13px;
 }
 
-.mata-mata-table {
-    width: 100%;
-    border-collapse: collapse;
-    font-size: 14px;
+#mataMataContent thead tr {
+  background: rgba(255, 69, 0, 0.1);
 }
 
-.mata-mata-table thead {
-    background: var(--bg-secondary, #f8f9fa);
-    border-bottom: 2px solid var(--border-color, #eee);
+#mataMataContent thead th {
+  padding: 12px 8px;
+  font-weight: 700;
+  color: var(--laranja, #FF4500);
+  text-align: center;
+  font-family: "Inter", -apple-system, sans-serif;
+  font-size: 12px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
 }
 
-.mata-mata-table th {
-    padding: 12px 8px;
-    text-align: center;
-    font-weight: 700;
-    color: var(--text-primary);
+#mataMataContent tbody tr {
+  border-bottom: 1px solid rgba(255, 69, 0, 0.1);
+  transition: all 0.2s ease;
 }
 
-.mata-mata-table td {
-    padding: 12px 8px;
-    text-align: center;
-    border-bottom: 1px solid var(--border-color, #eee);
+#mataMataContent tbody tr:hover {
+  background: rgba(255, 69, 0, 0.05);
 }
 
-.mata-mata-table tr:last-child td {
-    border-bottom: none;
+#mataMataContent tbody td {
+  padding: 10px 8px;
+  color: var(--text-primary, #ffffff);
+  vertical-align: middle;
 }
 
-.mata-mata-table tr:hover {
-    background: rgba(255, 69, 0, 0.05);
-}
-
-.jogo-cell {
-    font-weight: 700;
-    color: var(--laranja, #ff4500);
-}
-
-.escudo-cell {
-    width: 40px;
-}
-
-.escudo-img {
-    width: 32px;
-    height: 32px;
-    object-fit: contain;
-    border-radius: 50%;
-}
-
-.time-cell {
-    text-align: left;
-    min-width: 200px;
-}
-
-.time-cell.vencedor {
-    background: rgba(34, 197, 94, 0.1);
-    font-weight: 700;
-}
-
+/* Células de Times */
 .time-info {
-    display: flex;
-    flex-direction: column;
-    gap: 4px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.time-info img {
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  border: 1px solid rgba(255, 69, 0, 0.3);
+  flex-shrink: 0;
+}
+
+.time-details {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
 }
 
 .time-nome {
-    font-weight: 700;
-    color: var(--text-primary);
-    font-size: 14px;
+  font-weight: 600;
+  font-size: 13px;
+  color: var(--text-primary, #ffffff);
 }
 
-.cartoleiro-nome {
-    font-size: 12px;
-    color: var(--text-muted);
+.time-cartoleiro {
+  font-size: 11px;
+  color: var(--text-muted, #a0a0a0);
 }
 
+/* Células de Pontos */
 .pontos-cell {
-    font-size: 18px;
-    font-weight: 700;
-    color: var(--text-primary);
-    min-width: 80px;
+  font-weight: 700;
+  text-align: center;
+  min-width: 54px;
 }
 
-.pontos-vencedor {
-    color: #22c55e;
+.valor-positivo {
+  color: var(--success, #22c55e);
 }
 
-.vs-cell {
-    font-weight: 900;
-    color: var(--text-muted);
-    font-size: 16px;
+.valor-negativo {
+  color: var(--danger, #ef4444);
 }
 
-.pendente {
-    opacity: 0.6;
+.valor-neutro {
+  color: var(--text-primary, #ffffff);
 }
 
+.premio-valor {
+  font-size: 9px;
+  font-weight: 500;
+  margin-top: 2px;
+}
+
+/* Estados de Loading e Erro */
+.loading-state {
+  text-align: center;
+  padding: 40px 20px;
+  color: var(--text-muted, #a0a0a0);
+}
+
+.loading-spinner {
+  width: 40px;
+  height: 40px;
+  border: 4px solid rgba(255, 69, 0, 0.3);
+  border-top: 4px solid var(--laranja, #FF4500);
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+  margin: 0 auto 20px auto;
+}
+
+.error-state {
+  color: var(--danger, #ef4444);
+  background: rgba(239, 68, 68, 0.1);
+  border: 1px solid rgba(239, 68, 68, 0.2);
+  padding: 20px;
+  border-radius: 8px;
+  text-align: center;
+  margin: 20px 0;
+}
+
+/* Mensagem de Rodada Pendente */
+.rodada-pendente {
+  text-align: center;
+  margin-top: 15px;
+  padding: 12px;
+  background: rgba(255, 243, 205, 0.1);
+  border: 1px solid rgba(255, 234, 167, 0.3);
+  border-radius: 6px;
+  color: var(--warning, #FF4500);
+}
+
+/* Instrução Inicial */
+.instrucao-inicial {
+  text-align: center;
+  padding: 40px 20px;
+  background: rgba(42, 42, 42, 0.3);
+  border-radius: var(--border-radius-md, 8px);
+  margin: 20px 0;
+}
+
+.instrucao-inicial p {
+  font-size: 16px;
+  color: var(--text-muted, #a0a0a0);
+  margin: 0;
+}
+
+/* Animações */
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+/* Responsividade */
 @media (max-width: 768px) {
-    .mata-mata-table {
-        font-size: 12px;
-    }
+  .fase-nav {
+    gap: 4px;
+  }
 
-    .time-nome {
-        font-size: 12px;
-    }
+  .fase-btn {
+    padding: 6px 8px;
+    font-size: 10px;
+  }
 
-    .cartoleiro-nome {
-        font-size: 10px;
-    }
+  #mataMataContent table {
+    font-size: 11px;
+  }
 
-    .pontos-cell {
-        font-size: 14px;
-        min-width: 60px;
-    }
+  .time-info {
+    gap: 4px;
+  }
 
-    .escudo-img {
-        width: 24px;
-        height: 24px;
-    }
+  .time-info img {
+    width: 18px;
+    height: 18px;
+  }
 }
