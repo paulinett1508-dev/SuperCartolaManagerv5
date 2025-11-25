@@ -71,7 +71,9 @@ app.use(
       maxAge: 14 * 24 * 60 * 60 * 1000, // 14 dias
       httpOnly: true,
       secure: process.env.NODE_ENV === "production", // Apenas HTTPS em produção
+      sameSite: "lax", // ✅ CRÍTICO: Permite envio de cookie em cross-site (compatibilidade com produção)
     },
+    proxy: process.env.NODE_ENV === "production", // ✅ Confiar em reverse proxy em produção
   }),
 );
 
