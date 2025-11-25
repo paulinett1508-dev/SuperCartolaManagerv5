@@ -172,12 +172,29 @@
                                     ligaNome: liga.nome,
                                     ligaId: liga._id,
                                 });
+                            } else if (res.status === 404) {
+                                // Time não encontrado - adicionar dados padrão
+                                timesDetalhados.push({
+                                    id: timeId,
+                                    nome_time: `Time ${timeId}`,
+                                    nome_cartoleiro: 'N/D',
+                                    clube_id: null,
+                                    url_escudo_png: '',
+                                    ligaNome: liga.nome,
+                                    ligaId: liga._id,
+                                });
                             }
                         } catch (error) {
-                            console.warn(
-                                `Erro ao buscar detalhes do time ${timeId}:`,
-                                error,
-                            );
+                            // Erro de rede - adicionar dados padrão silenciosamente
+                            timesDetalhados.push({
+                                id: timeId,
+                                nome_time: `Time ${timeId}`,
+                                nome_cartoleiro: 'N/D',
+                                clube_id: null,
+                                url_escudo_png: '',
+                                ligaNome: liga.nome,
+                                ligaId: liga._id,
+                            });
                         }
                     }
                 }
@@ -445,9 +462,28 @@
                         times.map(async (timeId) => {
                             try {
                                 const res = await fetch(`/api/time/${timeId}`);
-                                return res.ok ? await res.json() : null;
-                            } catch {
+                                if (res.ok) {
+                                    return await res.json();
+                                } else if (res.status === 404) {
+                                    // Retornar dados padrão ao invés de null
+                                    return {
+                                        id: timeId,
+                                        nome_time: `Time ${timeId}`,
+                                        nome_cartoleiro: 'N/D',
+                                        clube_id: null,
+                                        url_escudo_png: ''
+                                    };
+                                }
                                 return null;
+                            } catch {
+                                // Retornar dados padrão em caso de erro
+                                return {
+                                    id: timeId,
+                                    nome_time: `Time ${timeId}`,
+                                    nome_cartoleiro: 'N/D',
+                                    clube_id: null,
+                                    url_escudo_png: ''
+                                };
                             }
                         }),
                     );

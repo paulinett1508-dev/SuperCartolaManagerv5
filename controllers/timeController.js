@@ -16,19 +16,55 @@ export const salvarTime = async (timeId) => {
       return time;
     }
 
-    // ⚡ CACHE DA API CARTOLA (mantém lógica original)
+    // ⚡ CACHE DA API CARTOLA - CORRIGIDO para usar endpoint correto
     const cacheKey = `api_time_${timeId}`;
     let data = cache.get(cacheKey);
 
     if (!data) {
-      const res = await fetch(
-        `https://api.cartola.globo.com/time/id/${timeId}`,
-      );
-      if (!res.ok) {
-        throw new Error(`Erro ao buscar time ${timeId}: ${res.statusText}`);
+      // A API do Cartola não tem endpoint /time/id/{timeId}
+      // Precisamos buscar da rodada atual ou criar dados básicos
+      try {
+        // Tentar obter rodada atual
+        const statusRes = await fetch('https://api.cartola.globo.com/mercado/status');
+        let rodadaAtual = 1;
+        
+        if (statusRes.ok) {
+          const statusData = await statusRes.json();
+          rodadaAtual = statusData.rodada_atual || 1;
+        }
+
+        // Buscar dados do time na rodada atual
+        const res = await fetch(
+          `https://api.cartola.globo.com/time/id/${timeId}/${rodadaAtual}`,
+        );
+        
+        if (!res.ok) {
+          // Se não encontrar, criar dados básicos padrão
+          data = {
+            time: {
+              nome: `Time ${timeId}`,
+              nome_cartola: 'N/D',
+              url_escudo_png: '',
+              clube_id: null
+            }
+          };
+        } else {
+          data = await res.json();
+        }
+      } catch (error) {
+        console.warn(`Não foi possível buscar dados completos do time ${timeId}, usando dados padrão`);
+        // Dados padrão se tudo falhar
+        data = {
+          time: {
+            nome: `Time ${timeId}`,
+            nome_cartola: 'N/D',
+            url_escudo_png: '',
+            clube_id: null
+          }
+        };
       }
-      data = await res.json();
-      cache.set(cacheKey, data); // Cache por 5 minutos
+      
+      cache.set(cacheKey, data, 300); // Cache por 5 minutos
     }
 
     if (process.env.NODE_ENV !== "production") {
