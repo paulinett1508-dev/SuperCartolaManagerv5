@@ -117,19 +117,19 @@ function setupFaseButtons(container, onFaseClick) {
       const edicaoSelect = document.getElementById("edicao-select");
       const edicaoAtual = edicaoSelect ? parseInt(edicaoSelect.value) : null;
 
-      if (!edicaoAtual) {
+      // ✅ CORREÇÃO: Validação melhorada - só avisar se realmente não há edição
+      if (!edicaoAtual || isNaN(edicaoAtual)) {
         const message =
           "Por favor, selecione uma edição do Mata-Mata primeiro.";
         console.warn(`[MATA-UI] ${message}`);
 
-        const alertDiv = document.createElement("div");
-        alertDiv.className = "alert alert-warning";
-        alertDiv.textContent = message;
-
-        const contentDiv = document.getElementById("mataMataContent");
+        const contentDiv = document.getElementById("mata-mata-conteudo");
         if (contentDiv) {
-          contentDiv.innerHTML = "";
-          contentDiv.appendChild(alertDiv);
+          contentDiv.innerHTML = `
+            <div class="aviso-box" style="padding: 20px; text-align: center; color: #ff7e00;">
+              <p>${message}</p>
+            </div>
+          `;
         }
         return;
       }
@@ -141,7 +141,7 @@ function setupFaseButtons(container, onFaseClick) {
 
       const fase = this.getAttribute("data-fase");
       console.log(`[MATA-UI] Fase selecionada: ${fase}`);
-      onFaseClick(fase, edicaoAtual);
+      onFaseClick(fase);
     });
   });
 }

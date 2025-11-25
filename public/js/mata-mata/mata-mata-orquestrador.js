@@ -105,7 +105,14 @@ export async function carregarMataMata() {
 
     const edicaoAtiva =
         edicoes.find((e) => e.ativo) || edicoes[edicoes.length - 1];
+    
     if (edicaoAtiva) {
+        // ✅ CORREÇÃO: Definir o valor do select ANTES de chamar selecionarEdicao
+        const edicaoSelect = document.getElementById("edicao-select");
+        if (edicaoSelect) {
+            edicaoSelect.value = edicaoAtiva.id;
+        }
+        
         setTimeout(() => {
             document
                 .querySelectorAll(".tab-edicao")
@@ -114,7 +121,8 @@ export async function carregarMataMata() {
                 .getElementById(`tab-edicao-${edicaoAtiva.id}`)
                 ?.classList.add("active");
         }, 100);
-        await selecionarEdicao(edicaoAtiva.id); // Mudado para selecionarEdicao para consistência
+        
+        await selecionarEdicao(edicaoAtiva.id);
     }
 }
 
