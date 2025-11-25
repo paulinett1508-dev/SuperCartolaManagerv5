@@ -167,11 +167,24 @@ function renderizarFaseAtual() {
         return;
     }
 
-    // Passa os dados para o UI renderizar
-    UI.renderizarConfrontos(
-        "mata-mata-conteudo",
+    // Mapear nome da fase para label correto
+    const faseLabels = {
+        'primeira': '1ª FASE',
+        'oitavas': 'OITAVAS',
+        'quartas': 'QUARTAS',
+        'semis': 'SEMIS',
+        'final': 'FINAL'
+    };
+
+    const faseLabel = faseLabels[faseAtual] || faseAtual.toUpperCase();
+    
+    // Passa os dados para o UI renderizar usando a função correta
+    UI.renderTabelaMataMata(
         dadosEdicaoAtual[faseAtual],
-        false,
+        "mata-mata-conteudo",
+        faseLabel,
+        edicaoIdAtual,
+        false
     );
 }
 
