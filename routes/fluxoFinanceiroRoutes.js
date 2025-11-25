@@ -9,8 +9,10 @@ router.get("/:ligaId/extrato/:timeId", fluxoController.getExtratoFinanceiro);
 
 // === ROTAS DE CAMPOS EDITÁVEIS (MANUAIS) ===
 
-// Buscar campos de um time específico
+// Buscar campos de um time específico (corrigido para coincidir com frontend)
 router.get("/:ligaId/times/:timeId", fluxoController.getCampos);
+
+// IMPORTANTE: Esta rota funciona em /api/fluxo-financeiro/:ligaId/times/:timeId
 
 // Buscar campos de todos os times de uma liga
 router.get("/:ligaId", fluxoController.getCamposLiga);

@@ -89,6 +89,7 @@ app.use("/api/artilheiro-campeao", artilheiroCampeaoRoutes);
 app.use("/api/luva-de-ouro", luvaDeOuroRoutes);
 app.use("/api/configuracao", configuracaoRoutes);
 app.use("/api/financeiro", fluxoFinanceiroRoutes);
+console.log('[SERVER] ✅ Rotas de Fluxo Financeiro registradas em /api/fluxo-financeiro');
 app.use("/api/extrato-cache", extratoFinanceiroCacheRoutes);
 app.use("/api/participante-auth", participanteAuthRoutes);
 app.use("/api/pontos-corridos", pontosCorridosCacheRoutes);
