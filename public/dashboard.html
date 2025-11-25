@@ -313,7 +313,7 @@
                 try {
                     // Tenta carregar dados do cache primeiro
                     const cacheKey = 'dashboard_ligas_{"all":true}';
-                    
+
                     ligasData = await cacheManager.get('ligas', cacheKey, async () => {
                         return await carregarLigas();
                     }, { ttl: 86400000 }); // Cache por 1 dia (em ms)
