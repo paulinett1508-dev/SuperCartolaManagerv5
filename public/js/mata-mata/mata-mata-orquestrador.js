@@ -20,32 +20,38 @@ async function lerCacheMataMata(ligaId, edicaoId) {
             `/api/mata-mata/cache/${ligaId}/${edicaoId}?_=${ts}`,
         );
 
-        if (!response.ok) return null;
+        if (!response.ok) {
+            console.log(`[MATA-ORQUESTRADOR] ⚠️ Cache não encontrado (HTTP ${response.status})`);
+            return null;
+        }
 
         const data = await response.json();
 
-        // 🛡️ VALIDAÇÃO DE INTEGRIDADE (NOVO)
-        // Se o cache existir mas estiver vazio (sem jogos na primeira fase), descarta!
-        if (data.cached && data.dados) {
-            const temDadosValidos =
-                data.dados["primeira"] &&
-                Array.isArray(data.dados["primeira"]) &&
-                data.dados["primeira"].length > 0;
-
-            if (!temDadosValidos) {
-                console.warn(
-                    `[MATA-ORQUESTRADOR] ⚠️ Cache encontrado mas INVÁLIDO (Vazio). Forçando recálculo.`,
-                );
-                return null;
-            }
-
-            console.log(
-                `[MATA-ORQUESTRADOR] 💾 Cache VÁLIDO encontrado para Edição ${edicaoId}`,
-            );
-            return data.dados;
+        // Validação: cache deve existir E ter dados válidos
+        if (!data.cached || !data.dados) {
+            console.log(`[MATA-ORQUESTRADOR] ⚠️ Resposta sem cache válido`);
+            return null;
         }
-        return null;
+
+        // Validação crítica: primeira fase deve ter confrontos
+        const primeiraFase = data.dados["primeira"];
+        if (!Array.isArray(primeiraFase) || primeiraFase.length === 0) {
+            console.warn(
+                `[MATA-ORQUESTRADOR] ⚠️ Cache INVÁLIDO: primeira fase vazia. Descartando e forçando recálculo.`,
+            );
+            // DELETAR cache inválido
+            await fetch(`/api/mata-mata/cache/${ligaId}/${edicaoId}`, {
+                method: 'DELETE'
+            }).catch(() => {});
+            return null;
+        }
+
+        console.log(
+            `[MATA-ORQUESTRADOR] ✅ Cache VÁLIDO encontrado: ${primeiraFase.length} confrontos na primeira fase`,
+        );
+        return data.dados;
     } catch (error) {
+        console.error('[MATA-ORQUESTRADOR] Erro ao ler cache:', error);
         return null;
     }
 }
@@ -217,6 +223,8 @@ function renderizarFaseAtual() {
 // ============================================================================
 
 async function recalcularDadosEdicao(ligaId, edicaoId) {
+    console.log(`[MATA-ORQUESTRADOR] 🔄 Iniciando RECÁLCULO para Edição ${edicaoId}...`);
+    
     // Importação Dinâmica das Dependências
     const {
         montarConfrontosFase,
@@ -229,11 +237,17 @@ async function recalcularDadosEdicao(ligaId, edicaoId) {
     // Injeta a função de ranking IMEDIATAMENTE
     if (setRankingFunction && getRankingRodadaEspecifica) {
         setRankingFunction(getRankingRodadaEspecifica);
+        console.log('[MATA-ORQUESTRADOR] ✅ Função de ranking injetada');
     }
 
     const edicao = edicoes.find((e) => e.id === parseInt(edicaoId));
-    if (!edicao) throw new Error("Edição não encontrada");
+    if (!edicao) {
+        console.error(`[MATA-ORQUESTRADOR] ❌ Edição ${edicaoId} não encontrada`);
+        throw new Error(`Edição ${edicaoId} não encontrada`);
+    }
 
+    console.log(`[MATA-ORQUESTRADOR] 📊 Buscando ranking da rodada ${edicao.rodadaDefinicao}...`);
+    
     // 1. Busca Ranking Base
     const rankingBase = await getRankingRodadaEspecifica(
         ligaId,
@@ -242,17 +256,25 @@ async function recalcularDadosEdicao(ligaId, edicaoId) {
 
     // Validação crítica para não gerar cache vazio
     if (!rankingBase || rankingBase.length === 0) {
+        console.error(`[MATA-ORQUESTRADOR] ❌ Ranking vazio na rodada ${edicao.rodadaDefinicao}`);
         throw new Error(
             `Ranking da rodada ${edicao.rodadaDefinicao} está vazio. Impossível montar chaves.`,
         );
     }
+    
+    console.log(`[MATA-ORQUESTRADOR] ✅ Ranking obtido: ${rankingBase.length} times`);
 
     const rankingTratado = garantir32Times(rankingBase);
     const dadosTorneio = {};
 
-    // 2. Fase 1
+    // 2. Fase 1 (Primeira Fase - 16 confrontos)
+    console.log(`[MATA-ORQUESTRADOR] 🎮 Montando PRIMEIRA FASE (rodada ${edicao.rodadaInicial})...`);
     const pontosFase1 = await getPontosDaRodada(ligaId, edicao.rodadaInicial);
+    console.log(`[MATA-ORQUESTRADOR] 📊 Pontos obtidos: ${Object.keys(pontosFase1).length} times`);
+    
     const fase1 = montarConfrontosPrimeiraFase(rankingTratado, pontosFase1);
+    console.log(`[MATA-ORQUESTRADOR] ✅ Primeira fase montada: ${fase1.length} confrontos`);
+    
     dadosTorneio["primeira"] = fase1;
 
     // 3. Fases Seguintes

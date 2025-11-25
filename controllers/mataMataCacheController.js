@@ -54,3 +54,22 @@ export const lerCacheMataMata = async (req, res) => {
         res.status(500).json({ error: "Erro interno" });
     }
 };
+
+export const deletarCacheMataMata = async (req, res) => {
+    try {
+        const { ligaId, edicao } = req.params;
+
+        await MataMataCache.deleteOne({
+            liga_id: ligaId,
+            edicao: Number(edicao),
+        });
+
+        console.log(
+            `[CACHE-MATA] Cache deletado: Liga ${ligaId}, Edição ${edicao}`,
+        );
+        res.json({ success: true, message: 'Cache deletado' });
+    } catch (error) {
+        console.error("[CACHE-MATA] Erro ao deletar:", error);
+        res.status(500).json({ error: "Erro interno" });
+    }
+};
