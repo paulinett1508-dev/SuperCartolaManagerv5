@@ -247,6 +247,7 @@ async function recalcularDadosEdicao(ligaId, edicaoId) {
         montarConfrontosPrimeiraFase,
         getPontosDaRodada,
         setRankingFunction,
+        calcularValoresConfronto,
     } = await import("./mata-mata-confrontos.js");
     const { getRankingRodadaEspecifica } = await import("../rodadas.js");
 
@@ -299,9 +300,11 @@ async function recalcularDadosEdicao(ligaId, edicaoId) {
         throw new Error('Falha ao montar confrontos da primeira fase');
     }
     
+    // Calcular valores e vencedores da primeira fase
+    calcularValoresConfronto(fase1, false);
     dadosTorneio["primeira"] = fase1;
 
-    // 3. Fases Seguintes
+    // 3. Fases Seguintes - CALCULAR TODAS ANTES DE SALVAR
     let vencedoresAtuais = await extrairVencedores(fase1);
 
     const fases = [
@@ -329,6 +332,7 @@ async function recalcularDadosEdicao(ligaId, edicaoId) {
             continue;
         }
         
+        console.log(`[MATA-ORQUESTRADOR] 🎮 Montando fase ${f.nome} (rodada ${info.pontosRodada})...`);
         const pontos = await getPontosDaRodada(ligaId, info.pontosRodada);
 
         const confrontos = montarConfrontosFase(
@@ -336,12 +340,26 @@ async function recalcularDadosEdicao(ligaId, edicaoId) {
             pontos,
             info.numJogos,
         );
+        
+        // Calcular valores e vencedores
+        calcularValoresConfronto(confrontos, false);
         dadosTorneio[f.chave] = confrontos;
+        
+        console.log(`[MATA-ORQUESTRADOR] ✅ Fase ${f.nome}: ${confrontos.length} confrontos montados`);
 
         vencedoresAtuais = await extrairVencedores(confrontos);
     }
 
-    // 4. Salvar Cache (apenas se válido)
+    // 4. Log final antes de salvar
+    console.log(`[MATA-ORQUESTRADOR] 📦 Torneio completo calculado:`, {
+        primeira: dadosTorneio.primeira?.length || 0,
+        oitavas: dadosTorneio.oitavas?.length || 0,
+        quartas: dadosTorneio.quartas?.length || 0,
+        semis: dadosTorneio.semis?.length || 0,
+        final: dadosTorneio.final?.length || 0,
+    });
+
+    // 5. Salvar Cache (apenas se válido e completo)
     const status = await fetch("/api/cartola/mercado/status")
         .then((r) => r.json())
         .catch(() => ({ rodada_atual: 0 }));
