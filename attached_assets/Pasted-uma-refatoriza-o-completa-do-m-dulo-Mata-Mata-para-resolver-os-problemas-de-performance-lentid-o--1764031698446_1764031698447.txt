@@ -1,0 +1,27 @@
+uma refatorização completa do módulo Mata-Mata para resolver os problemas de performance (lentidão), estabilidade (crashes) e visual.
+
+Aqui está o resumo exato do que foi alterado:
+
+1. Backend (Infraestrutura de Cache)
+Criámos 3 novos arquivos: MataMataCache.js (Modelo), mataMataCacheController.js (Lógica) e mataMataCacheRoutes.js (Rotas).
+
+Objetivo: Permitir que o servidor guarde o estado da árvore do torneio ("Snapshot"). Agora, o sistema calcula os jogos apenas uma vez e depois lê deste cache, tornando o carregamento instantâneo.
+
+2. Frontend Lógico (mata-mata-orquestrador.js)
+Implementação do Cache: O orquestrador agora verifica primeiro se existe um snapshot salvo antes de tentar calcular qualquer coisa.
+
+Correção de Crash Crítico: Corrigi o erro onde passávamos um ID de texto em vez da lista de times para a função de montar chaves (montarConfrontosPrimeiraFase), que causava o erro undefined reading 'timeId'.
+
+Blindagem (32 Times): Adicionei a função garantir32Times. Se a liga tiver menos de 32 participantes, o sistema agora completa automaticamente com "A definir" para não quebrar a lógica matemática das chaves.
+
+Auto-Correção: Adicionei uma validação que descarta o cache se ele estiver vazio/corrompido e força um novo cálculo automaticamente.
+
+3. Frontend Visual (mata-mata-ui.js e CSS)
+Restauração do UI Original: Reverti a minha tentativa inicial de usar HTML genérico e reconectei o orquestrador ao seu arquivo original mata-mata-ui.js, que sabe desenhar os escudos e placares corretamente.
+
+CSS Definitivo: Reescrevi o arquivo mata-mata.css para garantir compatibilidade total com as classes geradas pelo UI (tabelas, cores de vencedor/perdedor, alinhamento de escudos), resolvendo o problema da tabela "feia".
+
+4. Configuração (mata-mata-config.js)
+Ativação de Edições: Editei o arquivo para alterar ativo: false para ativo: true nas Edições 3, 4 e 5, fazendo com que elas voltassem a aparecer na navegação.
+
+Resultado Final: O módulo agora carrega instantaneamente (após o primeiro cálculo), mostra todas as edições e mantém a identidade visual do sistema.
