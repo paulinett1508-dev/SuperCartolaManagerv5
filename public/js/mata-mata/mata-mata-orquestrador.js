@@ -27,27 +27,23 @@ async function lerCacheMataMata(ligaId, edicaoId) {
 
         const data = await response.json();
 
-        // Validação: cache deve existir E ter dados válidos
+        // Validação básica: cache deve existir E ter dados
         if (!data.cached || !data.dados) {
             console.log(`[MATA-ORQUESTRADOR] ⚠️ Resposta sem cache válido`);
             return null;
         }
 
-        // Validação crítica: primeira fase deve ter confrontos
+        // ✅ CORREÇÃO: Validar mas NÃO deletar - deixar recálculo handle
         const primeiraFase = data.dados["primeira"];
         if (!Array.isArray(primeiraFase) || primeiraFase.length === 0) {
             console.warn(
-                `[MATA-ORQUESTRADOR] ⚠️ Cache INVÁLIDO: primeira fase vazia. Descartando e forçando recálculo.`,
+                `[MATA-ORQUESTRADOR] ⚠️ Cache com primeira fase vazia, forçando recálculo...`,
             );
-            // DELETAR cache inválido
-            await fetch(`/api/mata-mata/cache/${ligaId}/${edicaoId}`, {
-                method: 'DELETE'
-            }).catch(() => {});
-            return null;
+            return null; // Apenas retorna null, não deleta
         }
 
         console.log(
-            `[MATA-ORQUESTRADOR] ✅ Cache VÁLIDO encontrado: ${primeiraFase.length} confrontos na primeira fase`,
+            `[MATA-ORQUESTRADOR] ✅ Cache encontrado: ${primeiraFase.length} confrontos na primeira fase`,
         );
         return data.dados;
     } catch (error) {
@@ -63,18 +59,22 @@ async function salvarCacheMataMata(
     dadosTorneio,
 ) {
     try {
-        // Proteção para não salvar cache vazio
-        if (
-            !dadosTorneio["primeira"] ||
-            dadosTorneio["primeira"].length === 0
-        ) {
-            console.warn(
-                "[MATA-ORQUESTRADOR] 🛑 Tentativa de salvar cache vazio abortada.",
+        // ✅ CORREÇÃO: Log de diagnóstico antes da validação
+        const primeiraFase = dadosTorneio["primeira"];
+        console.log(
+            `[MATA-ORQUESTRADOR] 💾 Salvando cache - Primeira fase: ${Array.isArray(primeiraFase) ? primeiraFase.length : 'INVÁLIDO'} confrontos`,
+        );
+
+        // Validação mantida, mas com log mais detalhado
+        if (!primeiraFase || primeiraFase.length === 0) {
+            console.error(
+                "[MATA-ORQUESTRADOR] 🛑 ERRO CRÍTICO: Tentativa de salvar cache sem confrontos na primeira fase!",
+                { dadosTorneio }
             );
             return;
         }
 
-        await fetch(`/api/mata-mata/cache/${ligaId}/${edicaoId}`, {
+        const response = await fetch(`/api/mata-mata/cache/${ligaId}/${edicaoId}`, {
             method: "POST",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({
@@ -82,11 +82,16 @@ async function salvarCacheMataMata(
                 dados: dadosTorneio,
             }),
         });
-        console.log(
-            `[MATA-ORQUESTRADOR] 💾 Snapshot da Edição ${edicaoId} salvo com sucesso!`,
-        );
+
+        if (response.ok) {
+            console.log(
+                `[MATA-ORQUESTRADOR] ✅ Snapshot da Edição ${edicaoId} salvo com ${primeiraFase.length} confrontos!`,
+            );
+        } else {
+            console.error(`[MATA-ORQUESTRADOR] ❌ Erro HTTP ${response.status} ao salvar cache`);
+        }
     } catch (error) {
-        console.warn("[MATA-ORQUESTRADOR] Falha silenciada ao salvar cache");
+        console.error("[MATA-ORQUESTRADOR] ❌ Falha ao salvar cache:", error);
     }
 }
 
@@ -269,11 +274,19 @@ async function recalcularDadosEdicao(ligaId, edicaoId) {
 
     // 2. Fase 1 (Primeira Fase - 16 confrontos)
     console.log(`[MATA-ORQUESTRADOR] 🎮 Montando PRIMEIRA FASE (rodada ${edicao.rodadaInicial})...`);
+    console.log(`[MATA-ORQUESTRADOR] 📋 Ranking tratado: ${rankingTratado.length} times`);
+    
     const pontosFase1 = await getPontosDaRodada(ligaId, edicao.rodadaInicial);
     console.log(`[MATA-ORQUESTRADOR] 📊 Pontos obtidos: ${Object.keys(pontosFase1).length} times`);
     
     const fase1 = montarConfrontosPrimeiraFase(rankingTratado, pontosFase1);
     console.log(`[MATA-ORQUESTRADOR] ✅ Primeira fase montada: ${fase1.length} confrontos`);
+    
+    if (!fase1 || fase1.length === 0) {
+        console.error(`[MATA-ORQUESTRADOR] ❌ ERRO CRÍTICO: Primeira fase retornou vazia!`);
+        console.error(`[MATA-ORQUESTRADOR] Debug - rankingTratado:`, rankingTratado.slice(0, 3));
+        throw new Error('Falha ao montar confrontos da primeira fase');
+    }
     
     dadosTorneio["primeira"] = fase1;
 
