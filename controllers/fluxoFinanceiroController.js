@@ -305,10 +305,10 @@ export const getExtratoFinanceiro = async (req, res) => {
             extrato: todasTransacoes,
             resumo: {
                 ganhos:
-                    cache.ganhos_consolidados +
+                    (cache.ganhos_consolidados || 0) +
                     (saldoCampos > 0 ? saldoCampos : 0),
                 perdas:
-                    cache.perdas_consolidadas +
+                    (cache.perdas_consolidadas || 0) +
                     (saldoCampos < 0 ? saldoCampos : 0),
                 saldo_final: saldoTotal,
             },
@@ -329,22 +329,31 @@ export const getCampos = async (req, res) => {
         const { ligaId, timeId } = req.params;
         let campos = await FluxoFinanceiroCampos.findOne({ ligaId, timeId });
 
+        // ✅ CRIAR AUTOMATICAMENTE SE NÃO EXISTIR
         if (!campos) {
-            campos = new FluxoFinanceiroCampos({
+            console.log(`[FLUXO-CONTROLLER] Criando campos padrão para time ${timeId}`);
+            campos = await FluxoFinanceiroCampos.create({
                 ligaId,
                 timeId,
                 campos: [
-                    { nome: "Taxa de Inscrição", valor: 0 },
-                    { nome: "Ajuste Técnico", valor: 0 },
-                    { nome: "Prêmio Extra", valor: 0 },
-                    { nome: "Multa Disciplinar", valor: 0 },
+                    { nome: "Campo 1", valor: 0 },
+                    { nome: "Campo 2", valor: 0 },
+                    { nome: "Campo 3", valor: 0 },
+                    { nome: "Campo 4", valor: 0 },
                 ],
             });
-            await campos.save();
         }
-        res.json(campos);
+
+        res.json({
+            success: true,
+            campos: campos.campos,
+        });
     } catch (error) {
-        res.status(500).json({ error: "Erro ao buscar campos" });
+        console.error("Erro ao buscar campos:", error);
+        res.status(500).json({
+            success: false,
+            message: "Erro ao buscar campos editáveis",
+        });
     }
 };
 
