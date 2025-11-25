@@ -140,6 +140,9 @@ export async function carregarMataMata() {
 async function selecionarEdicao(edicaoId) {
     console.log(`[MATA-ORQUESTRADOR] Selecionando Edição ${edicaoId}...`);
     edicaoIdAtual = parseInt(edicaoId);
+    
+    // Resetar para primeira fase ao trocar de edição
+    faseAtual = "primeira";
 
     const containerConteudo = document.getElementById("mata-mata-conteudo");
     if (containerConteudo) {
@@ -155,6 +158,14 @@ async function selecionarEdicao(edicaoId) {
         if (!dados) {
             console.log(
                 "[MATA-ORQUESTRADOR] ⚠️ Cache Miss ou Inválido. Iniciando cálculo...",
+            );
+            dados = await recalcularDadosEdicao(ligaId, edicaoIdAtual);
+        }
+
+        // Validação extra: garantir que o cache tem a primeira fase
+        if (!dados || !dados["primeira"] || !Array.isArray(dados["primeira"]) || dados["primeira"].length === 0) {
+            console.warn(
+                "[MATA-ORQUESTRADOR] ⚠️ Cache inválido ou sem primeira fase. Forçando recálculo...",
             );
             dados = await recalcularDadosEdicao(ligaId, edicaoIdAtual);
         }
@@ -371,10 +382,12 @@ async function extrairVencedores(confrontos) {
 }
 
 function determinarFaseInicial(dados) {
-    if (dados["final"]) return "final";
-    if (dados["semis"]) return "semis";
-    if (dados["quartas"]) return "quartas";
+    // SEMPRE começar pela primeira fase, independente das outras existirem
+    if (dados["primeira"]) return "primeira";
     if (dados["oitavas"]) return "oitavas";
+    if (dados["quartas"]) return "quartas";
+    if (dados["semis"]) return "semis";
+    if (dados["final"]) return "final";
     return "primeira";
 }
 
