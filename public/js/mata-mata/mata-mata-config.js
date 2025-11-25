@@ -106,11 +106,17 @@ export function gerarTextoConfronto(faseLabel) {
 }
 
 export function getFaseInfo(faseNome, edicao) {
+  // Validação de tipo
+  if (typeof faseNome !== 'string') {
+    console.error('[MATA-CONFIG] getFaseInfo recebeu tipo inválido:', typeof faseNome, faseNome);
+    return { numJogos: 1, pontosRodada: edicao.rodadaInicial + 4 }; // fallback para final
+  }
+  
   const nomeLower = faseNome.toLowerCase();
   const map = {
     oitavas: { numJogos: 8, pontosRodada: edicao.rodadaInicial + 1 },
     quartas: { numJogos: 4, pontosRodada: edicao.rodadaInicial + 2 },
-    semifinal: { numJogos: 2, pontosRodada: edicao.rodadaInicial + 3 }, // Corrigido para bater com a chave do Orquestrador
+    semifinal: { numJogos: 2, pontosRodada: edicao.rodadaInicial + 3 },
     semis: { numJogos: 2, pontosRodada: edicao.rodadaInicial + 3 },
     final: { numJogos: 1, pontosRodada: edicao.rodadaInicial + 4 },
   };

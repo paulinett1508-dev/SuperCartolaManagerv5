@@ -231,9 +231,8 @@ async function recalcularDadosEdicao(ligaId, edicaoId) {
     for (const f of fases) {
         if (vencedoresAtuais.length < 2) break;
 
-        // ✅ CORREÇÃO: Ordem correta dos parâmetros (edicaoAtual, edicaoObjeto)
-        const faseInfoMap = getFaseInfo(edicao.id, edicao);
-        const info = faseInfoMap[f.chave];
+        // ✅ CORREÇÃO: getFaseInfo espera (faseNome:string, edicaoObjeto)
+        const info = getFaseInfo(f.chave, edicao);
         
         // Validação crítica: garantir que rodada existe
         if (!info || !info.pontosRodada) {
