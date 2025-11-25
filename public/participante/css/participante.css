@@ -105,11 +105,11 @@ body {
     width: 44px;
     height: 44px;
     border-radius: 50%;
-    border: 2px solid #FFD700;
-    background: rgba(255, 215, 0, 0.08);
+    border: 2px solid var(--participante-primary);
+    background: rgba(255, 69, 0, 0.08);
     object-fit: cover;
     transition: transform 0.2s ease;
-    box-shadow: 0 2px 6px rgba(255, 215, 0, 0.3);
+    box-shadow: 0 2px 6px rgba(255, 69, 0, 0.3);
 }
 
 .escudo-coracao:active,
@@ -164,10 +164,11 @@ body {
 .header-bottom {
     display: flex;
     align-items: center;
-    justify-content: space-between;
+    justify-content: flex-start;
     gap: 8px;
     min-height: 36px;
-    flex-wrap: wrap;
+    flex-wrap: nowrap;
+    overflow: hidden;
 }
 
 #statusConexao {
@@ -176,6 +177,7 @@ body {
     gap: 4px;
     font-size: 11px !important;
     flex-shrink: 0;
+    white-space: nowrap;
 }
 
 #statusIndicador {
@@ -192,9 +194,9 @@ body {
 }
 
 #seletorLigaContainer {
-    flex: 1;
-    min-width: 120px;
-    max-width: 160px;
+    flex: 0 0 auto;
+    min-width: auto;
+    max-width: 140px;
 }
 
 #seletorLiga {
@@ -214,6 +216,7 @@ body {
     display: flex;
     gap: 6px;
     flex-shrink: 0;
+    margin-left: auto;
 }
 
 .header-buttons button {

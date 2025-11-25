@@ -44,29 +44,6 @@
         </div>
     </div>
 
-    <!-- Quick Links - Navegação Rápida -->
-    <div class="quick-links">
-        <h2 class="section-title">📱 Acesso Rápido</h2>
-        <div class="quick-links-grid">
-            <button class="quick-link-btn" onclick="participanteNav.navegarPara('extrato')">
-                <span class="ql-icon">💰</span>
-                <span class="ql-text">Meu Extrato</span>
-            </button>
-            <button class="quick-link-btn" onclick="participanteNav.navegarPara('ranking')">
-                <span class="ql-icon">📊</span>
-                <span class="ql-text">Ranking</span>
-            </button>
-            <button class="quick-link-btn" onclick="participanteNav.navegarPara('rodadas')">
-                <span class="ql-icon">🎯</span>
-                <span class="ql-text">Rodadas</span>
-            </button>
-            <button class="quick-link-btn" onclick="participanteNav.navegarPara('pontos-corridos')">
-                <span class="ql-icon">⚽</span>
-                <span class="ql-text">Pontos Corridos</span>
-            </button>
-        </div>
-    </div>
-
     <!-- Performance Visual Card -->
     <div class="performance-card">
         <h2 class="section-title">📈 Seu Desempenho</h2>
@@ -192,52 +169,6 @@
     letter-spacing: -0.3px;
 }
 
-/* Quick Links - Navegação Rápida */
-.quick-links {
-    padding: 12px 0;
-}
-
-.quick-links-grid {
-    display: grid;
-    grid-template-columns: repeat(2, 1fr);
-    gap: 10px;
-}
-
-.quick-link-btn {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    gap: 8px;
-    padding: 14px 12px;
-    background: linear-gradient(135deg, #1f1f1f 0%, #242424 100%);
-    border: 1.5px solid rgba(255, 69, 0, 0.15);
-    border-radius: 10px;
-    color: #d0d0d0;
-    font-weight: 600;
-    cursor: pointer;
-    transition: all 0.2s;
-    min-height: 80px;
-    -webkit-tap-highlight-color: transparent;
-    touch-action: manipulation;
-}
-
-.quick-link-btn:active {
-    transform: scale(0.96);
-    background: linear-gradient(135deg, #242424 0%, #2a2a2a 100%);
-    border-color: rgba(255, 69, 0, 0.3);
-}
-
-.ql-icon {
-    font-size: 24px;
-}
-
-.ql-text {
-    font-size: 12px;
-    text-align: center;
-    line-height: 1.2;
-}
-
 /* Performance Card */
 .performance-card {
     background: linear-gradient(135deg, rgba(255, 69, 0, 0.08) 0%, rgba(255, 140, 0, 0.04) 100%);
@@ -329,28 +260,6 @@
     .section-title {
         font-size: 15px;
         margin-bottom: 12px;
-    }
-
-    .quick-links-grid {
-        grid-template-columns: repeat(4, 1fr);
-        gap: 12px;
-    }
-
-    .quick-link-btn {
-        padding: 16px 12px;
-        min-height: 90px;
-        font-size: 13px;
-    }
-
-    .quick-link-btn:hover {
-        border-color: rgba(255, 69, 0, 0.4);
-        background: linear-gradient(135deg, #242424 0%, #2a2a2a 100%);
-        transform: translateY(-2px);
-        box-shadow: 0 4px 12px rgba(255, 69, 0, 0.15);
-    }
-
-    .ql-icon {
-        font-size: 28px;
     }
 
     .performance-card {
