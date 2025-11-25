@@ -98,153 +98,130 @@
 
 /* --- TABELA DE CONFRONTOS (O Coração do Visual) --- */
 
-.mata-mata-confrontos {
-  overflow-x: auto;
+.mata-mata-table-container {
+    overflow-x: auto;
+    margin: 20px 0;
+    background: white;
+    border-radius: 8px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
 }
 
-.tabela-confrontos {
-  width: 100%;
-  border-collapse: separate; /* Permite border-radius nas linhas */
-  border-spacing: 0 8px; /* Espaço entre os jogos */
+.mata-mata-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 14px;
 }
 
-/* Linha do Jogo (Card) */
-.confronto-row {
-  background: var(--bg-secondary, #252525);
-  transition: transform 0.2s;
+.mata-mata-table thead {
+    background: var(--bg-secondary, #f8f9fa);
+    border-bottom: 2px solid var(--border-color, #eee);
 }
 
-.confronto-row:hover {
-  transform: scale(1.01);
-  background: #2a2a2a;
+.mata-mata-table th {
+    padding: 12px 8px;
+    text-align: center;
+    font-weight: 700;
+    color: var(--text-primary);
 }
 
-.confronto-row td {
-  padding: 12px 10px;
-  vertical-align: middle;
-  border-top: 1px solid #333;
-  border-bottom: 1px solid #333;
+.mata-mata-table td {
+    padding: 12px 8px;
+    text-align: center;
+    border-bottom: 1px solid var(--border-color, #eee);
 }
 
-.confronto-row td:first-child {
-  border-left: 1px solid #333;
-  border-top-left-radius: 8px;
-  border-bottom-left-radius: 8px;
+.mata-mata-table tr:last-child td {
+    border-bottom: none;
 }
 
-.confronto-row td:last-child {
-  border-right: 1px solid #333;
-  border-top-right-radius: 8px;
-  border-bottom-right-radius: 8px;
+.mata-mata-table tr:hover {
+    background: rgba(255, 69, 0, 0.05);
 }
 
-/* Coluna do Número do Jogo */
-.confronto-info {
-  width: 40px;
-  text-align: center;
-  font-size: 0.8rem;
-  color: #666;
-  font-weight: bold;
+.jogo-cell {
+    font-weight: 700;
+    color: var(--laranja, #ff4500);
 }
 
-/* Células dos Times */
+.escudo-cell {
+    width: 40px;
+}
+
+.escudo-img {
+    width: 32px;
+    height: 32px;
+    object-fit: contain;
+    border-radius: 50%;
+}
+
 .time-cell {
-  width: 35%;
+    text-align: left;
+    min-width: 200px;
+}
+
+.time-cell.vencedor {
+    background: rgba(34, 197, 94, 0.1);
+    font-weight: 700;
 }
 
 .time-info {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-}
-
-/* Time da Direita (Invertido) */
-.time-cell.right { text-align: right; }
-.time-cell.right .time-info { flex-direction: row-reverse; }
-.time-cell.right .time-details { align-items: flex-end; }
-
-.escudo-img {
-  width: 36px;
-  height: 36px;
-  object-fit: contain;
-  filter: drop-shadow(0 2px 2px rgba(0,0,0,0.5));
-}
-
-.time-details {
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
-  line-height: 1.2;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
 }
 
 .time-nome {
-  font-weight: 600;
-  font-size: 0.95rem;
-  color: #fff;
+    font-weight: 700;
+    color: var(--text-primary);
+    font-size: 14px;
 }
 
-.time-cartoleiro {
-  font-size: 0.75rem;
-  color: #888;
+.cartoleiro-nome {
+    font-size: 12px;
+    color: var(--text-muted);
 }
 
-/* Área do Placar Central */
-.placar-cell {
-  width: 20%;
-  min-width: 120px;
+.pontos-cell {
+    font-size: 18px;
+    font-weight: 700;
+    color: var(--text-primary);
+    min-width: 80px;
 }
 
-.placar-container {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 10px;
-  background: rgba(0,0,0,0.3);
-  padding: 8px;
-  border-radius: 20px;
-  border: 1px solid #333;
+.pontos-vencedor {
+    color: #22c55e;
 }
 
-.placar-score {
-  font-size: 1.2rem;
-  font-weight: 800;
-  min-width: 30px;
-  text-align: center;
+.vs-cell {
+    font-weight: 900;
+    color: var(--text-muted);
+    font-size: 16px;
 }
 
-.placar-score.vencedor { color: #2ecc71; text-shadow: 0 0 10px rgba(46, 204, 113, 0.3); }
-.placar-score.perdedor { color: #e74c3c; opacity: 0.7; }
-
-.placar-vs {
-  font-size: 0.8rem;
-  color: #555;
-  font-weight: bold;
-  text-transform: uppercase;
+.pendente {
+    opacity: 0.6;
 }
 
-/* Valores Financeiros (Prêmios) */
-.premio-valor {
-  font-size: 0.7rem;
-  font-weight: bold;
-  margin-top: 2px;
-  display: block; /* Força quebra de linha se estiver dentro do flex */
-}
-
-/* Ajuste fino para prêmios dentro do placar */
-.placar-container {
-  position: relative;
-}
-
-/* Responsividade Mobile */
 @media (max-width: 768px) {
-  .confronto-info { display: none; } /* Esconde número do jogo */
-  .time-cartoleiro { display: none; } /* Esconde nome do cartoleiro */
-  .time-nome { font-size: 0.85rem; }
-  .escudo-img { width: 28px; height: 28px; }
-  .placar-score { font-size: 1rem; }
-  .tabela-confrontos { border-spacing: 0 5px; }
-  .confronto-row td { padding: 8px 5px; }
+    .mata-mata-table {
+        font-size: 12px;
+    }
 
-  .time-cell { width: 30%; }
-  .placar-cell { width: 40%; }
+    .time-nome {
+        font-size: 12px;
+    }
+
+    .cartoleiro-nome {
+        font-size: 10px;
+    }
+
+    .pontos-cell {
+        font-size: 14px;
+        min-width: 60px;
+    }
+
+    .escudo-img {
+        width: 24px;
+        height: 24px;
+    }
 }

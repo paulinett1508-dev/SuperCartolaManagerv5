@@ -309,8 +309,22 @@ export function renderizarConfrontos(containerId, confrontos, isPending = false)
         return;
     }
 
-    // Construir HTML da tabela
-    let html = '<div class="mata-mata-tabela">';
+    // Construir HTML da tabela completa
+    let html = `
+        <div class="mata-mata-table-container">
+            <table class="mata-mata-table">
+                <thead>
+                    <tr>
+                        <th>Jogo</th>
+                        <th colspan="2">Time 1</th>
+                        <th>Pts</th>
+                        <th>X</th>
+                        <th>Pts</th>
+                        <th colspan="2">Time 2</th>
+                    </tr>
+                </thead>
+                <tbody>
+    `;
 
     confrontos.forEach(c => {
         const pontosAValidos = typeof c.timeA.pontos === 'number';
@@ -332,36 +346,48 @@ export function renderizarConfrontos(containerId, confrontos, isPending = false)
             }
         }
 
+        const escudoA = c.timeA.clube_id ? `/escudos/${c.timeA.clube_id}.png` : '/escudos/default.png';
+        const escudoB = c.timeB.clube_id ? `/escudos/${c.timeB.clube_id}.png` : '/escudos/default.png';
+
         html += `
-            <div class="confronto-item ${isPending ? 'pendente' : ''}">
-                <div class="confronto-header">
-                    <span class="jogo-numero">Jogo ${c.jogo}</span>
-                </div>
-                <div class="confronto-body">
-                    <div class="time-info ${vencedorA ? 'vencedor' : ''}">
-                        <img src="${c.timeA.escudo || '/escudos/default.png'}" alt="${c.timeA.nome_time || 'Time A'}" class="escudo">
-                        <div class="time-detalhes">
-                            <div class="time-nome">${c.timeA.nome_time || 'A definir'}</div>
-                            <div class="cartoleiro-nome">${c.timeA.nome_cartoleiro || c.timeA.nome_cartola || ''}</div>
-                        </div>
-                        <div class="pontos">${pontosAValidos ? c.timeA.pontos.toFixed(2) : '-'}</div>
+            <tr class="${isPending ? 'pendente' : ''}">
+                <td class="jogo-cell">${c.jogo}</td>
+                <td class="escudo-cell">
+                    <img src="${escudoA}" class="escudo-img" onerror="this.src='/escudos/default.png'">
+                </td>
+                <td class="time-cell ${vencedorA ? 'vencedor' : ''}">
+                    <div class="time-info">
+                        <div class="time-nome">${c.timeA.nome_time || 'A definir'}</div>
+                        <div class="cartoleiro-nome">${c.timeA.nome_cartoleiro || c.timeA.nome_cartola || ''}</div>
                     </div>
-                    <div class="vs">VS</div>
-                    <div class="time-info ${vencedorB ? 'vencedor' : ''}">
-                        <img src="${c.timeB.escudo || '/escudos/default.png'}" alt="${c.timeB.nome_time || 'Time B'}" class="escudo">
-                        <div class="time-detalhes">
-                            <div class="time-nome">${c.timeB.nome_time || 'A definir'}</div>
-                            <div class="cartoleiro-nome">${c.timeB.nome_cartoleiro || c.timeB.nome_cartola || ''}</div>
-                        </div>
-                        <div class="pontos">${pontosBValidos ? c.timeB.pontos.toFixed(2) : '-'}</div>
+                </td>
+                <td class="pontos-cell ${vencedorA ? 'pontos-vencedor' : ''}">
+                    ${pontosAValidos ? c.timeA.pontos.toFixed(2) : '-'}
+                </td>
+                <td class="vs-cell">X</td>
+                <td class="pontos-cell ${vencedorB ? 'pontos-vencedor' : ''}">
+                    ${pontosBValidos ? c.timeB.pontos.toFixed(2) : '-'}
+                </td>
+                <td class="time-cell ${vencedorB ? 'vencedor' : ''}">
+                    <div class="time-info">
+                        <div class="time-nome">${c.timeB.nome_time || 'A definir'}</div>
+                        <div class="cartoleiro-nome">${c.timeB.nome_cartoleiro || c.timeB.nome_cartola || ''}</div>
                     </div>
-                </div>
-            </div>
+                </td>
+                <td class="escudo-cell">
+                    <img src="${escudoB}" class="escudo-img" onerror="this.src='/escudos/default.png'">
+                </td>
+            </tr>
         `;
     });
 
-    html += '</div>';
+    html += `
+                </tbody>
+            </table>
+        </div>
+    `;
+
     container.innerHTML = html;
 
-    console.log(`[MATA-UI] ✅ ${confrontos.length} confrontos renderizados`);
+    console.log(`[MATA-UI] ✅ ${confrontos.length} confrontos renderizados em tabela`);
 }
