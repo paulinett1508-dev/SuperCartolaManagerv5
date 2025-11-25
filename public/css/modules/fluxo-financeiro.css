@@ -1341,3 +1341,47 @@ body {
 .btn-secondary-gradient { background: var(--gradient-secondary, linear-gradient(135deg, #3498db, #2980b9)); }
 .btn-success-gradient { background: linear-gradient(135deg, #2ecc71, #27ae60); }
 .btn-danger-gradient { background: linear-gradient(135deg, #e74c3c, #c0392b); }
+
+/* Campos Editáveis */
+.grid-responsive {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+    gap: 12px;
+}
+
+.campo-item {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+}
+
+.campo-label-permanente {
+    font-size: 11px;
+    font-weight: 600;
+    color: var(--text-primary);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    display: block;
+    margin-bottom: 2px;
+}
+
+.btn-editar-nome {
+    position: absolute;
+    top: 0;
+    right: 0;
+    background: transparent;
+    border: none;
+    color: var(--text-muted);
+    cursor: pointer;
+    font-size: 12px;
+    padding: 2px 4px;
+    transition: all 0.2s ease;
+    opacity: 0.6;
+}
+
+.btn-editar-nome:hover {
+    opacity: 1;
+    color: var(--laranja);
+    transform: scale(1.1);
+}

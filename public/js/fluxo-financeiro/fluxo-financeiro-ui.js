@@ -282,10 +282,14 @@ export class FluxoFinanceiroUI {
                         .map(
                             (c) => `
                         <div class="campo-item">
-                            <div class="campo-label" onclick="window.editarNomeCampo('${timeId}', '${c.id}')">✏️ ${c.nome}</div>
+                            <label class="campo-label-permanente">${c.nome}</label>
                             <input type="number" step="0.01" value="${c.valor}" 
                                    class="input-modern ${c.valor >= 0 ? "text-success" : "text-danger"}"
-                                   onchange="window.salvarCampoEditavel('${timeId}', '${c.id}', this.value)">
+                                   onchange="window.salvarCampoEditavel('${timeId}', '${c.id}', this.value)"
+                                   placeholder="R$ 0,00">
+                            <button class="btn-editar-nome" onclick="window.editarNomeCampo('${timeId}', '${c.id}')" title="Renomear campo">
+                                ✏️
+                            </button>
                         </div>
                     `,
                         )
