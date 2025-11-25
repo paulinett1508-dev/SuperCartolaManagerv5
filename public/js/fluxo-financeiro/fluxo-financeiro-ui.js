@@ -195,7 +195,7 @@ export class FluxoFinanceiroUI {
             ${camposEditaveisHTML}
 
             <div class="card-padrao">
-                <h3 class="card-titulo">📋 Histórico de Rodadas</h3>
+                <h3 class="card-titulo">📋 Detalhamento</h3>
                 <div class="table-responsive">
                     <table class="table-modern">
                         <thead>
@@ -276,7 +276,6 @@ export class FluxoFinanceiroUI {
 
         return `
             <div class="card-padrao mb-20">
-                <h3 class="card-titulo">⚙️ Campos Personalizados</h3>
                 <div class="grid-responsive">
                     ${lista
                         .map(

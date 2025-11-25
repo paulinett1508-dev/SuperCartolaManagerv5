@@ -1357,7 +1357,7 @@ body {
 }
 
 .campo-label-permanente {
-    font-size: 11px;
+    font-size: 9px;
     font-weight: 600;
     color: var(--text-primary);
     text-transform: uppercase;
