@@ -42,7 +42,6 @@ export const edicoes = [
     rodadaFinal: 35,
     rodadaDefinicao: 30,
     ativo: false,
-    fasesSemSemis: true,
   },
 ];
 
@@ -52,23 +51,7 @@ export function getRodadaPontosText(faseLabel, edicao) {
   if (!edicaoSelecionada) return "";
   const rodadaBase = edicaoSelecionada.rodadaInicial;
 
-  // Edição 5 tem estrutura diferente (sem semis)
-  if (edicao === 5) {
-    switch (faseLabel.toUpperCase()) {
-      case "1ª FASE":
-        return `Pontuação da Rodada ${rodadaBase}`;
-      case "OITAVAS":
-        return `Pontuação da Rodada ${rodadaBase + 1}`;
-      case "QUARTAS":
-        return `Pontuação da Rodada ${rodadaBase + 2}`;
-      case "FINAL":
-        return `Pontuação da Rodada ${rodadaBase + 4}`;
-      default:
-        return "";
-    }
-  }
-
-  // Edições 1-4 (estrutura padrão)
+  // Todas as edições seguem a mesma estrutura
   switch (faseLabel.toUpperCase()) {
     case "1ª FASE":
       return `Pontuação da Rodada ${rodadaBase}`;
@@ -91,23 +74,7 @@ export function getRodadaPontosNum(fase, edicao) {
   if (!edicaoSelecionada) return 0;
   const rodadaBase = edicaoSelecionada.rodadaInicial;
 
-  // Edição 5 tem estrutura diferente (sem semis)
-  if (edicao === 5) {
-    switch (fase.toLowerCase()) {
-      case "primeira":
-        return rodadaBase;
-      case "oitavas":
-        return rodadaBase + 1;
-      case "quartas":
-        return rodadaBase + 2;
-      case "final":
-        return rodadaBase + 4;
-      default:
-        return 0;
-    }
-  }
-
-  // Edições 1-4 (estrutura padrão)
+  // Todas as edições seguem a mesma estrutura
   switch (fase.toLowerCase()) {
     case "primeira":
       return rodadaBase;
@@ -172,15 +139,9 @@ export function getFaseInfo(edicaoAtual, edicaoSelecionada) {
     },
     final: {
       label: "FINAL",
-      pontosRodada:
-        edicaoAtual === 5
-          ? edicaoSelecionada.rodadaInicial + 4
-          : edicaoSelecionada.rodadaInicial + 4,
+      pontosRodada: edicaoSelecionada.rodadaInicial + 4,
       numJogos: 1,
-      prevFaseRodada:
-        edicaoAtual === 5
-          ? edicaoSelecionada.rodadaInicial + 2
-          : edicaoSelecionada.rodadaInicial + 3,
+      prevFaseRodada: edicaoSelecionada.rodadaInicial + 3,
     },
   };
 }

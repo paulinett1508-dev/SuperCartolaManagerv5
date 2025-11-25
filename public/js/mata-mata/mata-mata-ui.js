@@ -78,14 +78,10 @@ function setupEdicaoSelector(container, ligaId, onEdicaoChange) {
       const faseNavContainer = document.getElementById("fase-nav-container");
       if (faseNavContainer) faseNavContainer.style.display = "block";
 
-      // Controlar visibilidade do botão SEMIS
+      // Todas as edições têm SEMIS
       const semisBtn = document.getElementById("semis-btn");
       if (semisBtn) {
-        if (edicaoAtual === 5) {
-          semisBtn.style.display = "none";
-        } else {
-          semisBtn.style.display = "inline-block";
-        }
+        semisBtn.style.display = "inline-block";
       }
 
       container
