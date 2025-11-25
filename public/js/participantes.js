@@ -140,19 +140,22 @@ async function carregarParticipantesComBrasoes() {
             return;
         }
 
-        // Buscar dados de cada time
+        // Buscar dados de cada time (ROTA CORRIGIDA: /api/times/ com 's')
         const timesData = await Promise.all(
             liga.times.map(async (timeId, index) => {
                 try {
-                    const res = await fetch(`/api/time/${timeId}`);
-                    if (!res.ok) return null;
+                    const res = await fetch(`/api/times/${timeId}`);
+                    if (!res.ok) {
+                        console.warn(`[PARTICIPANTES] Time ${timeId} não encontrado (${res.status})`);
+                        return null;
+                    }
                     const data = await res.json();
-                    
+
                     // Garantir que ativo seja boolean
                     const ativo = data.ativo !== false;
-                    
+
                     console.log(`[PARTICIPANTES] Time ${timeId}: ativo=${ativo}, rodada_desistencia=${data.rodada_desistencia}`);
-                    
+
                     return { 
                         ...data, 
                         id: timeId, 
@@ -183,7 +186,7 @@ async function carregarParticipantesComBrasoes() {
         timesValidos.forEach((timeData, index) => {
             // Verificar status do participante ANTES de criar o card
             const estaAtivo = timeData.ativo !== false;
-            
+
             const card = document.createElement("div");
             card.className = `participante-card ${!estaAtivo ? 'card-inativo' : ''}`;
             card.setAttribute("data-delay", index % 10);
@@ -446,9 +449,9 @@ async function toggleStatusParticipante(timeId, estaAtivo) {
             const rodadaDesistencia = prompt(
                 "Em qual rodada o participante desistiu?\n(Digite o número da rodada, ex: 15)"
             );
-            
+
             if (!rodadaDesistencia) return;
-            
+
             const rodada = parseInt(rodadaDesistencia);
             if (isNaN(rodada) || rodada < 1 || rodada > 38) {
                 alert("Rodada inválida! Deve ser entre 1 e 38.");
@@ -476,12 +479,12 @@ async function toggleStatusParticipante(timeId, estaAtivo) {
         }
 
         alert(data.mensagem || 'Status atualizado com sucesso!');
-        
+
         console.log('[STATUS] Recarregando participantes após alteração...');
-        
+
         // Recarregar dados para atualizar visual
         await carregarParticipantesComBrasoes();
-        
+
     } catch (error) {
         console.error('Erro ao alterar status:', error);
         alert(`Erro: ${error.message}`);
@@ -496,7 +499,7 @@ async function gerenciarSenhaParticipante(timeId, nomeCartoleiro) {
         // Buscar dados do participante
         const response = await fetch(`/api/time/${timeId}`);
         if (!response.ok) throw new Error('Erro ao buscar dados do participante');
-        
+
         const participante = await response.json();
         const temSenha = participante.senha_acesso && participante.senha_acesso.length > 0;
 
@@ -572,7 +575,7 @@ function gerarSenhaAleatoria() {
     for (let i = 0; i < 8; i++) {
         senha += chars.charAt(Math.floor(Math.random() * chars.length));
     }
-    
+
     const input = document.getElementById('novaSenha');
     if (input) {
         input.value = senha;
@@ -602,7 +605,7 @@ async function salvarSenhaParticipante(timeId) {
         }
 
         alert(`✅ Senha configurada com sucesso!\n\nCredenciais de acesso:\nID do Time: ${timeId}\nSenha: ${novaSenha}\n\nOriente o participante a acessar via menu Ferramentas > Participantes`);
-        
+
         // Fechar modal
         document.querySelector('.modal-senha')?.remove();
 
