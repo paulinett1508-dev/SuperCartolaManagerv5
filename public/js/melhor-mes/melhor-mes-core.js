@@ -345,7 +345,7 @@ export class MelhorMesCore {
     }
 
     return false;
-  },
+  }
 
   async salvarCache(key, dados) {
     // Limpar cache se atingir máximo
@@ -364,7 +364,7 @@ export class MelhorMesCore {
     } catch (error) {
       console.warn("[MELHOR-MES-CORE] Erro ao salvar cache persistente:", error);
     }
-  },
+  }
 
   limparCacheAntigo() {
     const agora = Date.now();
@@ -374,7 +374,7 @@ export class MelhorMesCore {
         cacheTimestamps.delete(key);
       }
     }
-  },
+  }
 
   // ATUALIZAR DADOS
   async atualizarDados() {
