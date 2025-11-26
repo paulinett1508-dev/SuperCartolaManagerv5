@@ -232,12 +232,18 @@
           const mercadoStatus = await resMercado.json();
           const rodadaAtual = mercadoStatus.rodada_atual;
 
-          if (!mercadoStatus.mercado_aberto) {
-            rankingBody.innerHTML = `<tr><td colspan="6">Parciais indisponíveis: mercado fechado.</td></tr>`;
+          // ✅ CORREÇÃO: Parciais só disponíveis quando mercado está FECHADO (jogos acontecendo)
+          if (mercadoStatus.mercado_aberto) {
+            rodadaAtualTitle.textContent = `Mercado Aberto - Rodada ${rodadaAtual}`;
+            rankingBody.innerHTML = `<tr><td colspan="6" style="text-align: center; padding: 30px; color: #ffd700;">
+              <div style="font-size: 18px; margin-bottom: 10px;">⏳ Aguardando início da rodada ${rodadaAtual}</div>
+              <div style="font-size: 14px; color: #aaa;">Parciais estarão disponíveis quando o mercado fechar e os jogos começarem</div>
+            </td></tr>`;
+            loading.style.display = "none";
             return;
           }
 
-          rodadaAtualTitle.textContent = `Parciais da Rodada ${rodadaAtual}`;
+          rodadaAtualTitle.textContent = `🔥 Parciais da Rodada ${rodadaAtual} (Ao Vivo)`;
 
           const resLiga = await fetch(`/api/ligas/${ligaId}`);
           if (!resLiga.ok) throw new Error("Erro ao buscar dados da liga");

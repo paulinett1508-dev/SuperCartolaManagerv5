@@ -120,7 +120,7 @@ export async function getMercadoStatus(req, res) {
     res.status(200).json({
       rodada_atual: data.rodada_atual,
       status_mercado: data.status_mercado,
-      mercado_aberto: data.status_mercado === 1,
+      mercado_aberto: data.status_mercado === 1, // 1 = ABERTO, 2 = FECHADO
       fechamento: data.fechamento,
     });
   } catch (error) {
