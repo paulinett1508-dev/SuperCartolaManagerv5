@@ -36,8 +36,12 @@ window.inicializarBoasVindas = async function(ligaId, timeId) {
 
         // Processar dados - ranking retorna array de times ordenados
         console.log('[BOAS-VINDAS] 🔍 Primeiro time do ranking (exemplo):', ranking[0]);
-        const meuTime = ranking.find(t => String(t.time_id) === String(timeId));
-        console.log('[BOAS-VINDAS] 🎯 Meu time encontrado:', meuTime);
+    console.log('[BOAS-VINDAS] 🔍 Tipo do meuTimeId:', typeof timeId, '- Valor:', timeId);
+
+    // ✅ GARANTIR COMPARAÇÃO NUMÉRICA (converter ambos para Number)
+    const meuTimeIdNum = Number(timeId);
+    const meuTime = ranking.find(t => Number(t.timeId) === meuTimeIdNum);
+    console.log('[BOAS-VINDAS] 🎯 Meu time encontrado:', meuTime);
 
         const posicao = meuTime ? meuTime.posicao : '-';
         const totalParticipantes = ranking.length;
@@ -83,9 +87,12 @@ window.inicializarBoasVindas = async function(ligaId, timeId) {
         // Última rodada do usuário - CORRIGIDO: verificar estrutura correta
         console.log('[BOAS-VINDAS] 🔍 Buscando minhas rodadas. Total de rodadas:', rodadas.length);
         console.log('[BOAS-VINDAS] 🔍 Primeira rodada (exemplo):', rodadas[0]);
+    console.log('[BOAS-VINDAS] 🔍 Tipo do timeId na primeira rodada:', typeof rodadas[0]?.timeId);
 
-        const minhasRodadas = rodadas.filter(r => String(r.timeId) === String(timeId) || String(r.time_id) === String(timeId));
-        console.log('[BOAS-VINDAS] 🔍 Minhas rodadas encontradas:', minhasRodadas.length);
+    // ✅ GARANTIR COMPARAÇÃO NUMÉRICA
+    const meuTimeIdNum = Number(timeId);
+    const minhasRodadas = rodadas.filter(r => Number(r.timeId) === meuTimeIdNum);
+    console.log('[BOAS-VINDAS] 🔍 Minhas rodadas encontradas:', minhasRodadas.length);
 
         const ultimaRodada = minhasRodadas.sort((a, b) => b.rodada - a.rodada)[0];
 
