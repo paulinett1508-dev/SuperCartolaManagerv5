@@ -10,7 +10,7 @@ import {
 } from "../rodadas/rodadas-config.js";
 
 // 2. Importar configurações ESPECÍFICAS deste módulo
-import { PONTOS_CORRIDOS_CONFIG, getLigaId } from "./pontos-corridos-config.js";
+import { PONTOS_CORRIDOS_CONFIG, getLigaId, calcularRodadaBrasileirao } from "./pontos-corridos-config.js";
 
 // VERIFICAÇÃO DE AMBIENTE
 const isBackend = typeof window === "undefined";
@@ -264,22 +264,43 @@ export async function calcularClassificacao(ligaId, times, confrontos, rodadaAtu
     financeiro: 0
   }));
 
-  // Agrega dados dos confrontos à classificação
-  for (const rodada of confrontos) {
-    for (const jogo of rodada.jogos) {
-      const timeAId = jogo.time1.id || jogo.time1.time_id;
-      const timeBId = jogo.time2.id || jogo.time2.time_id;
+  // Processar cada rodada de confrontos
+  for (let rodadaIdx = 0; rodadaIdx < confrontos.length; rodadaIdx++) {
+    const rodadaNum = rodadaIdx + 1;
+    const rodadaBrasileirao = PONTOS_CORRIDOS_CONFIG.rodadaInicial + rodadaIdx;
+    
+    // Parar se já passou da rodada atual do brasileirão
+    if (rodadaBrasileirao >= rodadaAtualBrasileirao) {
+      break;
+    }
 
-      // Obter os dados completos do time da lista 'times'
-      const timeA = times.find((t) => t && t.id === timeAId);
-      const timeB = times.find((t) => t && t.id === timeBId);
+    const jogosRodada = confrontos[rodadaIdx];
+    if (!jogosRodada || !Array.isArray(jogosRodada)) continue;
 
-      if (!timeA || !timeB) {
-        console.warn(`[PONTOS-CORRIDOS-CORE] Time A (${timeAId}) ou Time B (${timeBId}) não encontrado para processar jogo da rodada ${rodada.rodada}`);
-        continue;
-      }
+    // Buscar pontuações da rodada
+    const pontuacoesRaw = await getRankingRodadaEspecifica(ligaId, rodadaNum);
+    const pontuacoesMap = {};
+    
+    if (pontuacoesRaw && Array.isArray(pontuacoesRaw)) {
+      pontuacoesRaw.forEach((p) => {
+        const tid = p.time_id || p.timeId || p.id;
+        pontuacoesMap[tid] = p.pontos;
+      });
+    }
 
-      const resultado = calcularFinanceiroConfronto(jogo.pontos1, jogo.pontos2);
+    // Processar cada jogo da rodada
+    for (const jogo of jogosRodada) {
+      const timeAId = jogo.timeA?.id || jogo.timeA?.time_id;
+      const timeBId = jogo.timeB?.id || jogo.timeB?.time_id;
+
+      if (!timeAId || !timeBId) continue;
+
+      const pontosA = pontuacoesMap[timeAId] || null;
+      const pontosB = pontuacoesMap[timeBId] || null;
+
+      if (pontosA === null || pontosB === null) continue;
+
+      const resultado = calcularFinanceiroConfronto(pontosA, pontosB);
 
       // Atualizar estatísticas do Time A
       const idxA = classificacao.findIndex(t => t.time_id === timeAId);
@@ -287,10 +308,10 @@ export async function calcularClassificacao(ligaId, times, confrontos, rodadaAtu
         classificacao[idxA].pontos += resultado.pontosA;
         classificacao[idxA].vitorias += resultado.tipo === 'vitoria' ? 1 : 0;
         classificacao[idxA].empates += resultado.tipo === 'empate' ? 1 : 0;
-        classificacao[idxA].derrotas += resultado.tipo === 'derrota' ? 1 : 0;
+        classificacao[idxA].derrotas += resultado.tipo !== 'vitoria' && resultado.tipo !== 'empate' ? 1 : 0;
         classificacao[idxA].financeiro += resultado.financeiroA;
-        classificacao[idxA].gols_pro += jogo.pontos1 || 0;
-        classificacao[idxA].gols_contra += jogo.pontos2 || 0;
+        classificacao[idxA].gols_pro += pontosA || 0;
+        classificacao[idxA].gols_contra += pontosB || 0;
         classificacao[idxA].saldo_gols = (classificacao[idxA].gols_pro || 0) - (classificacao[idxA].gols_contra || 0);
       }
 
@@ -298,12 +319,12 @@ export async function calcularClassificacao(ligaId, times, confrontos, rodadaAtu
       const idxB = classificacao.findIndex(t => t.time_id === timeBId);
       if (idxB !== -1) {
         classificacao[idxB].pontos += resultado.pontosB;
-        classificacao[idxB].vitorias += resultado.tipo === 'derrota' ? 1 : 0; // Time B perdeu se time A ganhou
+        classificacao[idxB].vitorias += resultado.tipo !== 'vitoria' && resultado.tipo !== 'empate' ? 1 : 0;
         classificacao[idxB].empates += resultado.tipo === 'empate' ? 1 : 0;
-        classificacao[idxB].derrotas += resultado.tipo === 'vitoria' ? 1 : 0; // Time B ganhou se time A perdeu
+        classificacao[idxB].derrotas += resultado.tipo === 'vitoria' ? 1 : 0;
         classificacao[idxB].financeiro += resultado.financeiroB;
-        classificacao[idxB].gols_pro += jogo.pontos2 || 0;
-        classificacao[idxB].gols_contra += jogo.pontos1 || 0;
+        classificacao[idxB].gols_pro += pontosB || 0;
+        classificacao[idxB].gols_contra += pontosA || 0;
         classificacao[idxB].saldo_gols = (classificacao[idxB].gols_pro || 0) - (classificacao[idxB].gols_contra || 0);
       }
     }
