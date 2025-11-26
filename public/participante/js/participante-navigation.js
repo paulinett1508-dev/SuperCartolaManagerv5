@@ -204,17 +204,6 @@ class ParticipanteNavigation {
                 `;
             }
 
-            // FORÇAR ABERTURA DO MENU para facilitar a seleção
-            setTimeout(() => {
-                const menuToggle = document.getElementById('headerMenuToggle');
-                const headerSecondary = document.getElementById('headerSecondary');
-                if (menuToggle && headerSecondary && !headerSecondary.classList.contains('active')) {
-                    headerSecondary.classList.add('active');
-                    menuToggle.style.transform = 'rotate(90deg)';
-                    console.log('[PARTICIPANTE-NAV] 📂 Menu aberto automaticamente para seleção de liga');
-                }
-            }, 500);
-
             return;
         }
         

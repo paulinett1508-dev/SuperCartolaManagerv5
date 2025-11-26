@@ -307,13 +307,6 @@ class ParticipanteAuth {
         novoSelect.style.visibility = 'visible';
         novoSelect.style.opacity = '1';
 
-        // Garantir que o container pai também esteja visível
-        const container = novoSelect.closest('.header-secondary');
-        if (container) {
-            container.classList.add('active');
-            console.log('[PARTICIPANTE-AUTH] ✅ Container do seletor ativado');
-        }
-
         console.log('[PARTICIPANTE-AUTH] ✅ Seletor de ligas renderizado e visível');
     }
 
