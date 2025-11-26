@@ -140,9 +140,9 @@ const LuvaDeOuroOrquestrador = {
       this.estado.ranking = dados;
       container.innerHTML = window.LuvaDeOuroUI.renderizarRanking(dados);
 
-      if (exportContainer && dados.ranking && dados.ranking.length > 0) {
-        exportContainer.innerHTML = window.LuvaDeOuroUI.criarBotaoExport();
-        this.configurarExportacao(dados);
+      // Sistema de exportação desabilitado (usar módulo Relatórios)
+      if (exportContainer) {
+        exportContainer.innerHTML = "";
       }
 
       console.log("✅ Ranking carregado com escudos corretos");

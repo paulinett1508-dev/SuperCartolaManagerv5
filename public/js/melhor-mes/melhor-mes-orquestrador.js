@@ -51,33 +51,11 @@ export class MelhorMesOrquestrador {
     }
   }
 
-  // CARREGAR SISTEMA DE EXPORTS - CORRIGIDO
+  // CARREGAR SISTEMA DE EXPORTS - DESABILITADO (usar módulo Relatórios)
   async carregarExports() {
-    if (this.exportsCarregados) return;
-
-    try {
-      const exportModule = await import("../exports/export-melhor-mes.js");
-
-      this.exportFunctions = {
-        criarBotao: exportModule.criarBotaoExportacaoMelhorMes,
-        exportarImagem: exportModule.exportarMelhorMesComoImagem,
-      };
-
-      // ✅ CORREÇÃO: EXPOR FUNÇÃO GLOBALMENTE PARA O UI
-      window.criarBotaoExportacaoMelhorMes =
-        exportModule.criarBotaoExportacaoMelhorMes;
-      window.exportarMelhorMesComoImagem =
-        exportModule.exportarMelhorMesComoImagem;
-
-      this.exportsCarregados = true;
-      console.log("[MELHOR-MES-ORQUESTRADOR] Sistema de exports carregado");
-      console.log(
-        "[MELHOR-MES-ORQUESTRADOR] ✅ Funções expostas globalmente para UI",
-      );
-    } catch (error) {
-      console.warn("[MELHOR-MES-ORQUESTRADOR] Exports não disponíveis:", error);
-      this.exportsCarregados = false;
-    }
+    console.log("[MELHOR-MES-ORQUESTRADOR] Sistema de exports desabilitado (usar Relatórios)");
+    this.exportsCarregados = true; // Retorna sucesso para não bloquear
+    return;
   }
 
   // SELECIONAR EDIÇÃO

@@ -50,30 +50,20 @@ async function carregarModulosExternos() {
   if (modulosCarregados) return exportModules;
 
   try {
-    console.log("[RODADAS-ORQUESTRADOR] Carregando módulos de exportação...");
+    console.log("[RODADAS-ORQUESTRADOR] Carregando módulos essenciais...");
 
-    const [pontosCorridosModule, exportModule] = await Promise.all([
-      import("../pontos-corridos-utils.js").catch(() => null),
-      import("../exports/export-exports.js").catch(() => null),
-    ]);
+    const pontosCorridosModule = await import("../pontos-corridos-utils.js").catch(() => null);
 
     exportModules = {
       getMercadoStatus: pontosCorridosModule?.buscarStatusMercado,
       getLigaId: pontosCorridosModule?.getLigaId,
-      criarBotaoExportacaoRodada: exportModule?.criarBotaoExportacaoRodada,
-      exportarRodadaComoImagem: exportModule?.exportarRodadaComoImagem,
     };
 
     modulosCarregados = true;
-    console.log(
-      "[RODADAS-ORQUESTRADOR] Módulos externos carregados com sucesso",
-    );
+    console.log("[RODADAS-ORQUESTRADOR] Módulos essenciais carregados (exportação desabilitada)");
     return exportModules;
   } catch (error) {
-    console.warn(
-      "[RODADAS-ORQUESTRADOR] Erro ao carregar módulos externos:",
-      error,
-    );
+    console.warn("[RODADAS-ORQUESTRADOR] Erro ao carregar módulos:", error);
     exportModules = {};
     return exportModules;
   }
