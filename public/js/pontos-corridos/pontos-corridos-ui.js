@@ -477,45 +477,59 @@ export function renderTabelaClassificacao(
     `;
   }
 
-  let linhasClassificacao = "";
-  classificacao.forEach((item, index) => {
+  let linhas = ""; // Variável para acumular as linhas da tabela
+
+  classificacao.forEach((time, index) => {
+    // Validar se o objeto time existe e tem as propriedades mínimas
+    if (!time || typeof time !== 'object') {
+      console.warn('[PONTOS-CORRIDOS-UI] Time inválido na posição', index);
+      return;
+    }
+
     const posicao = index + 1;
-    let classePosicao = "";
+    const isEmpate = index > 0 && classificacao[index - 1].pontos === time.pontos;
 
-    if (posicao === 1) classePosicao = "primeiro-lugar";
-    else if (posicao === 2) classePosicao = "segundo-lugar";
-    else if (posicao === 3) classePosicao = "terceiro-lugar";
-    else if (posicao <= 4) classePosicao = "zona-classificacao";
-    else if (posicao >= classificacao.length - 2)
-      classePosicao = "zona-rebaixamento";
+    // Determinar cor baseada na posição
+    let corPosicao = "";
+    if (!houveErro) {
+      if (posicao <= 4) {
+        corPosicao = "var(--status-success)"; // Top 4
+      } else if (posicao >= classificacao.length - 3) {
+        corPosicao = "var(--status-warning)"; // Bottom 4
+      }
+    }
 
-    const aproveitamento =
-      item.jogos > 0
-        ? ((item.pontos / (item.jogos * 3)) * 100).toFixed(1)
-        : "0.0";
+    // Extrair dados com fallbacks seguros
+    const nomeTime = time.nome || time.nome_time || 'Time Desconhecido';
+    const escudoUrl = time.escudo || time.url_escudo_png || time.foto_time || 'data:image/svg+xml,%3Csvg xmlns=\'http://www.w3.org/2000/svg\' width=\'40\' height=\'40\'%3E%3Crect fill=\'%23ddd\' width=\'40\' height=\'40\'/%3E%3C/svg%3E';
 
-    linhasClassificacao += `
-      <tr class="classificacao-linha ${classePosicao}">
-        <td class="pos-numero">${posicao}º</td>
-        <td class="time-info">
-          <img src="${item.time.url_escudo_png || "/escudos/default.png"}" 
-               alt="${item.time.nome}" 
-               class="time-escudo-pequeno"
-               onerror="this.src='/escudos/default.png'">
-          <div class="time-detalhes">
-            <span class="time-nome-principal">${item.time.nome_cartoleiro || item.time.nome}</span>
-            <span class="time-nome-secundario">${item.time.nome_time || ""}</span>
+    linhas += `
+      <tr style="border-bottom: 1px solid var(--card-border);">
+        <td style="text-align: center; padding: 12px; font-weight: bold; color: ${corPosicao}">
+          ${posicao}º
+        </td>
+        <td style="padding: 12px;">
+          <div style="display: flex; align-items: center; gap: 10px;">
+            <img 
+              src="${escudoUrl}" 
+              alt="${nomeTime}" 
+              style="width: 32px; height: 32px; border-radius: 4px; object-fit: cover;"
+              onerror="this.src='data:image/svg+xml,%3Csvg xmlns=\'http://www.w3.org/2000/svg\' width=\'40\' height=\'40\'%3E%3Crect fill=\'%23ddd\' width=\'40\' height=\'40\'/%3E%3C/svg%3E'"
+            >
+            <span style="font-weight: 500;">${nomeTime}</span>
           </div>
         </td>
-        <td class="pts-destaque">${item.pontos}</td>
-        <td>${item.jogos}</td>
-        <td class="vitorias">${item.vitorias}</td>
-        <td class="empates">${item.empates}</td>
-        <td class="derrotas">${item.derrotas}</td>
-        <td class="goleadas">${item.pontosGoleada}</td>
-        <td class="saldo ${item.saldoPontos >= 0 ? "positivo" : "negativo"}">${item.saldoPontos >= 0 ? "+" : ""}${item.saldoPontos.toFixed(1)}</td>
-        <td class="financeiro ${item.financeiroTotal >= 0 ? "positivo" : "negativo"}">R$ ${item.financeiroTotal.toFixed(2)}</td>
-        <td class="aproveitamento">${aproveitamento}%</td>
+        <td class="pts-destaque">${time.pontos}</td>
+        <td>${time.jogos}</td>
+        <td class="vitorias">${time.vitorias}</td>
+        <td class="empates">${time.empates}</td>
+        <td class="derrotas">${time.derrotas}</td>
+        <td class="goleadas">${time.pontosGoleada}</td>
+        <td class="saldo ${time.saldoPontos >= 0 ? "positivo" : "negativo"}">${time.saldoPontos >= 0 ? "+" : ""}${time.saldoPontos.toFixed(1)}</td>
+        <td class="financeiro ${time.financeiroTotal >= 0 ? "positivo" : "negativo"}">R$ ${time.financeiroTotal.toFixed(2)}</td>
+        <td class="aproveitamento">${((time.jogos > 0
+        ? (item.pontos / (item.jogos * 3)) * 100
+        : 0).toFixed(1))}%</td>
       </tr>
     `;
   });
@@ -555,7 +569,7 @@ export function renderTabelaClassificacao(
           </tr>
         </thead>
         <tbody>
-          ${linhasClassificacao}
+          ${linhas}
         </tbody>
       </table>
     </div>

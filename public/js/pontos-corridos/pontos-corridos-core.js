@@ -237,7 +237,7 @@ export function calcularResultadoConfronto(pontosA, pontosB) {
       pontosA: 0,
       pontosB: 3,
     };
-  return { financeiroA: empate, financeiroB: empate, pontosA: 1, pontosB: 1 };
+  return { financeiroA: empate, financeiroB: empate, pontosA: 1, pontsB: 1 };
 }
 
 // ============================================================================
@@ -248,7 +248,6 @@ export function calcularResultadoConfronto(pontosA, pontosB) {
  * Calcula a classificação completa com todos os critérios de desempate
  */
 export async function calcularClassificacao(ligaId, times, confrontos, rodadaAtualBrasileirao) {
-  // Implementação simplificada - retorna estrutura básica
   const classificacao = times.map(time => ({
     time_id: time.id || time.time_id,
     nome_time: time.nome_time || time.nome || 'N/D',
@@ -265,8 +264,86 @@ export async function calcularClassificacao(ligaId, times, confrontos, rodadaAtu
     financeiro: 0
   }));
 
+  // Agrega dados dos confrontos à classificação
+  for (const rodada of confrontos) {
+    for (const jogo of rodada.jogos) {
+      const timeAId = jogo.time1.id || jogo.time1.time_id;
+      const timeBId = jogo.time2.id || jogo.time2.time_id;
+
+      // Obter os dados completos do time da lista 'times'
+      const timeA = times.find((t) => t && t.id === timeAId);
+      const timeB = times.find((t) => t && t.id === timeBId);
+
+      if (!timeA || !timeB) {
+        console.warn(`[PONTOS-CORRIDOS-CORE] Time A (${timeAId}) ou Time B (${timeBId}) não encontrado para processar jogo da rodada ${rodada.rodada}`);
+        continue;
+      }
+
+      const resultado = calcularFinanceiroConfronto(jogo.pontos1, jogo.pontos2);
+
+      // Atualizar estatísticas do Time A
+      const idxA = classificacao.findIndex(t => t.time_id === timeAId);
+      if (idxA !== -1) {
+        classificacao[idxA].pontos += resultado.pontosA;
+        classificacao[idxA].vitorias += resultado.tipo === 'vitoria' ? 1 : 0;
+        classificacao[idxA].empates += resultado.tipo === 'empate' ? 1 : 0;
+        classificacao[idxA].derrotas += resultado.tipo === 'derrota' ? 1 : 0;
+        classificacao[idxA].financeiro += resultado.financeiroA;
+        classificacao[idxA].gols_pro += jogo.pontos1 || 0;
+        classificacao[idxA].gols_contra += jogo.pontos2 || 0;
+        classificacao[idxA].saldo_gols = (classificacao[idxA].gols_pro || 0) - (classificacao[idxA].gols_contra || 0);
+      }
+
+      // Atualizar estatísticas do Time B
+      const idxB = classificacao.findIndex(t => t.time_id === timeBId);
+      if (idxB !== -1) {
+        classificacao[idxB].pontos += resultado.pontosB;
+        classificacao[idxB].vitorias += resultado.tipo === 'derrota' ? 1 : 0; // Time B perdeu se time A ganhou
+        classificacao[idxB].empates += resultado.tipo === 'empate' ? 1 : 0;
+        classificacao[idxB].derrotas += resultado.tipo === 'vitoria' ? 1 : 0; // Time B ganhou se time A perdeu
+        classificacao[idxB].financeiro += resultado.financeiroB;
+        classificacao[idxB].gols_pro += jogo.pontos2 || 0;
+        classificacao[idxB].gols_contra += jogo.pontos1 || 0;
+        classificacao[idxB].saldo_gols = (classificacao[idxB].gols_pro || 0) - (classificacao[idxB].gols_contra || 0);
+      }
+    }
+  }
+
+  // Ordenar a classificação (por pontos, depois saldo de gols, depois vitórias)
+  classificacao.sort((a, b) => {
+    if (b.pontos !== a.pontos) return b.pontos - a.pontos;
+    if (b.saldo_gols !== a.saldo_gols) return b.saldo_gols - a.saldo_gols;
+    return b.vitorias - a.vitorias;
+  });
+
+  // Adicionar informações de escudo e foto de perfil usando os dados originais de 'times'
+  const classificacaoFinal = classificacao.map(timeClassificado => {
+    const timeOriginal = times.find(t => t && t.id === timeClassificado.time_id);
+    if (!timeOriginal) {
+      console.warn(`[PONTOS-CORRIDOS-CORE] Time ${timeClassificado.time_id} não encontrado na lista de times para adicionar detalhes de imagem.`);
+      return {
+        ...timeClassificado,
+        foto_perfil: '',
+        foto_time: '',
+        url_escudo_png: '', // Adicionando para garantir que o campo exista
+      };
+    }
+
+    // Validar e extrair dados do time com fallbacks
+    const nome = timeOriginal.nome_time || timeOriginal.nome || `Time ${timeClassificado.time_id}`;
+    const escudo = timeOriginal.url_escudo_png || timeOriginal.escudo || timeOriginal.foto_time || "";
+
+    return {
+      ...timeClassificado,
+      nome_time: nome, // Garante que o nome esteja presente
+      foto_perfil: timeOriginal.foto_perfil || '',
+      foto_time: timeOriginal.foto_time || '', // Pode ser usado como fallback para escudo
+      url_escudo_png: escudo, // Mapeando para o campo esperado pela UI
+    };
+  });
+
   return {
-    classificacao,
+    classificacao: classificacaoFinal,
     ultimaRodadaComDados: rodadaAtualBrasileirao,
     houveErro: false
   };
@@ -277,7 +354,7 @@ export async function calcularClassificacao(ligaId, times, confrontos, rodadaAtu
  */
 export async function processarDadosRodada(ligaId, rodadaCartola, jogos) {
   const pontuacoesMap = {};
-  
+
   try {
     if (getRankingRodadaEspecifica) {
       const ranking = await getRankingRodadaEspecifica(ligaId, rodadaCartola);
@@ -327,7 +404,7 @@ export function normalizarDadosParaExportacao(jogo, pontuacoesMap = {}) {
  */
 export function normalizarClassificacaoParaExportacao(classificacao) {
   if (!Array.isArray(classificacao)) return [];
-  
+
   return classificacao.map(time => ({
     time_id: time.time_id,
     nome_time: time.nome_time || 'N/D',
@@ -352,11 +429,11 @@ export function validarDadosEntrada(times, confrontos) {
   if (!Array.isArray(times) || times.length === 0) {
     throw new Error('Times inválidos ou vazios');
   }
-  
+
   if (!Array.isArray(confrontos) || confrontos.length === 0) {
     throw new Error('Confrontos inválidos ou vazios');
   }
-  
+
   return true;
 }
 
