@@ -578,13 +578,6 @@ function mostrarPopupDetalhamento(titulo, detalhes, cor) {
     });
   };
 
-  const formatarRodadas = (rodadas) => {
-    if (!rodadas || rodadas.length === 0) return '-';
-    return rodadas
-      .map((r) => `R${r.rodada}(${formatarMoeda(Math.abs(r.valor))})`)
-      .join(', ');
-  };
-
   const total =
     detalhes.bonusOnus +
     detalhes.pontosCorridos +
@@ -593,152 +586,365 @@ function mostrarPopupDetalhamento(titulo, detalhes, cor) {
     detalhes.melhorMes +
     detalhes.camposEditaveis;
 
+  // Criar array de categorias com valores não-zero
+  const categorias = [];
+  
+  if (detalhes.bonusOnus !== 0) {
+    categorias.push({
+      nome: 'Bônus/Ônus',
+      icone: '💰',
+      valor: detalhes.bonusOnus,
+      rodadas: detalhes.rodadas.bonusOnus,
+      percentual: Math.abs((detalhes.bonusOnus / total) * 100)
+    });
+  }
+  
+  if (detalhes.pontosCorridos !== 0) {
+    categorias.push({
+      nome: 'Pontos Corridos',
+      icone: '⚽',
+      valor: detalhes.pontosCorridos,
+      rodadas: detalhes.rodadas.pontosCorridos,
+      percentual: Math.abs((detalhes.pontosCorridos / total) * 100)
+    });
+  }
+  
+  if (detalhes.mataMata !== 0) {
+    categorias.push({
+      nome: 'Mata-Mata',
+      icone: '🏆',
+      valor: detalhes.mataMata,
+      rodadas: detalhes.rodadas.mataMata,
+      percentual: Math.abs((detalhes.mataMata / total) * 100)
+    });
+  }
+  
+  if (detalhes.top10 !== 0) {
+    categorias.push({
+      nome: 'TOP 10',
+      icone: '🔝',
+      valor: detalhes.top10,
+      rodadas: detalhes.rodadas.top10,
+      percentual: Math.abs((detalhes.top10 / total) * 100)
+    });
+  }
+  
+  if (detalhes.melhorMes !== 0) {
+    categorias.push({
+      nome: 'Melhor Mês',
+      icone: '📅',
+      valor: detalhes.melhorMes,
+      rodadas: detalhes.rodadas.melhorMes,
+      percentual: Math.abs((detalhes.melhorMes / total) * 100)
+    });
+  }
+  
+  if (detalhes.camposEditaveis !== 0) {
+    categorias.push({
+      nome: 'Ajustes Manuais',
+      icone: '⚙️',
+      valor: detalhes.camposEditaveis,
+      rodadas: [],
+      percentual: Math.abs((detalhes.camposEditaveis / total) * 100)
+    });
+  }
+
   const html = `
-        <style>
-            @media (max-width: 768px) {
-                #popupDetalhamento .modal-content {
-                    max-width: 95vw !important;
-                    max-height: 85vh !important;
-                    border-radius: 12px !important;
-                }
-                #popupDetalhamento .modal-header {
-                    padding: 16px !important;
-                }
-                #popupDetalhamento .modal-header h3 {
-                    font-size: 14px !important;
-                }
-                #popupDetalhamento .modal-body {
-                    padding: 16px !important;
-                }
-                #popupDetalhamento .detail-item .detail-header {
-                    flex-direction: column !important;
-                    align-items: flex-start !important;
-                    gap: 4px !important;
-                }
-                #popupDetalhamento .detail-label {
-                    font-size: 12px !important;
-                }
-                #popupDetalhamento .detail-value {
-                    font-size: 14px !important;
-                }
-                #popupDetalhamento .detail-rodadas {
-                    font-size: 10px !important;
-                    word-wrap: break-word !important;
-                    overflow-wrap: break-word !important;
-                    line-height: 1.6 !important;
-                }
-                #popupDetalhamento .total-section {
-                    padding: 12px !important;
-                }
-                #popupDetalhamento .total-label {
-                    font-size: 13px !important;
-                }
-                #popupDetalhamento .total-value {
-                    font-size: 16px !important;
-                }
-            }
-        </style>
-        <div id="popupDetalhamento" style="position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-             background: rgba(0,0,0,0.8); display: flex; align-items: center; justify-content: center;
-             z-index: 10000; backdrop-filter: blur(4px); padding: 20px; box-sizing: border-box;"
-             onclick="this.remove()">
-            <div class="modal-content" style="background: #1a1a1a; border-radius: 16px; max-width: 500px; width: 100%;
-                 max-height: 90vh; overflow-y: auto; box-shadow: 0 20px 60px rgba(0,0,0,0.7);
-                 border: 2px solid ${cor};" onclick="event.stopPropagation()">
-
-                <!-- CABEÇALHO -->
-                <div class="modal-header" style="background: ${cor}; padding: 20px; border-radius: 14px 14px 0 0;
-                     display: flex; justify-content: space-between; align-items: center;">
-                    <h3 style="margin: 0; color: white; font-size: 16px; font-weight: 700; flex: 1; padding-right: 10px;">${titulo}</h3>
-                    <button onclick="document.getElementById('popupDetalhamento').remove()"
-                            style="background: rgba(255,255,255,0.2); border: none; color: white;
-                            width: 32px; height: 32px; border-radius: 50%; cursor: pointer;
-                            font-size: 20px; display: flex; align-items: center; justify-content: center;
-                            transition: all 0.3s ease;">×</button>
-                </div>
-
-                <!-- CONTEÚDO -->
-                <div class="modal-body" style="padding: 20px;">
-                    ${detalhes.bonusOnus !== 0 ? `
-                    <div class="detail-item" style="margin-bottom: 16px; padding-bottom: 16px; border-bottom: 1px solid rgba(255,255,255,0.1);">
-                        <div class="detail-header" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">
-                            <span class="detail-label" style="font-weight: 700; color: #fff; font-size: 13px;">💰 Bônus/Ônus</span>
-                            <span class="detail-value" style="font-weight: 700; font-size: 15px; color: ${cor};">
-                                R$ ${formatarMoeda(detalhes.bonusOnus)}
-                            </span>
-                        </div>
-                        <div class="detail-rodadas" style="font-size: 11px; color: #999; line-height: 1.5; word-wrap: break-word; overflow-wrap: break-word;">
-                            ${detalhes.rodadas.bonusOnus.length} rodada(s): ${formatarRodadas(detalhes.rodadas.bonusOnus)}
-                        </div>
-                    </div>
-                    ` : ''}
-
-                    ${detalhes.pontosCorridos !== 0 ? `
-                    <div class="detail-item" style="margin-bottom: 16px; padding-bottom: 16px; border-bottom: 1px solid rgba(255,255,255,0.1);">
-                        <div class="detail-header" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">
-                            <span class="detail-label" style="font-weight: 700; color: #fff; font-size: 13px;">⚽ Pontos Corridos</span>
-                            <span class="detail-value" style="font-weight: 700; font-size: 15px; color: ${cor};">
-                                R$ ${formatarMoeda(detalhes.pontosCorridos)}
-                            </span>
-                        </div>
-                        <div class="detail-rodadas" style="font-size: 11px; color: #999; line-height: 1.5; word-wrap: break-word; overflow-wrap: break-word;">
-                            ${detalhes.rodadas.pontosCorridos.length} rodada(s): ${formatarRodadas(detalhes.rodadas.pontosCorridos)}
-                        </div>
-                    </div>
-                    ` : ''}
-
-                    ${detalhes.mataMata !== 0 ? `
-                    <div class="detail-item" style="margin-bottom: 16px; padding-bottom: 16px; border-bottom: 1px solid rgba(255,255,255,0.1);">
-                        <div class="detail-header" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">
-                            <span class="detail-label" style="font-weight: 700; color: #fff; font-size: 13px;">🏆 Mata-Mata</span>
-                            <span class="detail-value" style="font-weight: 700; font-size: 15px; color: ${cor};">
-                                R$ ${formatarMoeda(detalhes.mataMata)}
-                            </span>
-                        </div>
-                        <div class="detail-rodadas" style="font-size: 11px; color: #999; line-height: 1.5; word-wrap: break-word; overflow-wrap: break-word;">
-                            ${detalhes.rodadas.mataMata.length} rodada(s): ${formatarRodadas(detalhes.rodadas.mataMata)}
-                        </div>
-                    </div>
-                    ` : ''}
-
-                    ${detalhes.top10 !== 0 ? `
-                    <div class="detail-item" style="margin-bottom: 16px; padding-bottom: 16px; border-bottom: 1px solid rgba(255,255,255,0.1);">
-                        <div class="detail-header" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">
-                            <span class="detail-label" style="font-weight: 700; color: #fff; font-size: 13px;">🔝 TOP 10</span>
-                            <span class="detail-value" style="font-weight: 700; font-size: 15px; color: ${cor};">
-                                R$ ${formatarMoeda(detalhes.top10)}
-                            </span>
-                        </div>
-                        <div class="detail-rodadas" style="font-size: 11px; color: #999; line-height: 1.5; word-wrap: break-word; overflow-wrap: break-word;">
-                            ${detalhes.rodadas.top10.length} rodada(s): ${formatarRodadas(detalhes.rodadas.top10)}
-                        </div>
-                    </div>
-                    ` : ''}
-
-                    ${detalhes.camposEditaveis !== 0 ? `
-                    <div style="margin-bottom: 16px; padding-bottom: 16px; border-bottom: 1px solid rgba(255,255,255,0.1);">
-                        <div style="display: flex; justify-content: space-between; align-items: center;">
-                            <span style="font-weight: 700; color: #fff; font-size: 13px;">⚙️ Ajustes</span>
-                            <span style="font-weight: 700; font-size: 15px; color: ${cor};">
-                                R$ ${formatarMoeda(detalhes.camposEditaveis)}
-                            </span>
-                        </div>
-                    </div>
-                    ` : ''}
-
-                    <!-- TOTAL -->
-                    <div class="total-section" style="background: ${cor}15; padding: 14px; border-radius: 8px; border: 2px solid ${cor};">
-                        <div style="display: flex; justify-content: space-between; align-items: center;">
-                            <span class="total-label" style="font-weight: 700; color: #fff; font-size: 15px;">💵 TOTAL</span>
-                            <span class="total-value" style="font-weight: 700; font-size: 18px; color: ${cor};">
-                                R$ ${formatarMoeda(total)}
-                            </span>
-                        </div>
-                    </div>
-                </div>
-            </div>
+    <style>
+      @keyframes slideIn {
+        from {
+          opacity: 0;
+          transform: translateY(-20px);
+        }
+        to {
+          opacity: 1;
+          transform: translateY(0);
+        }
+      }
+      
+      @keyframes fillBar {
+        from {
+          width: 0%;
+        }
+      }
+      
+      #popupDetalhamento {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: rgba(0,0,0,0.85);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        z-index: 10000;
+        backdrop-filter: blur(6px);
+        padding: 20px;
+        box-sizing: border-box;
+        animation: fadeIn 0.3s ease;
+      }
+      
+      @keyframes fadeIn {
+        from { opacity: 0; }
+        to { opacity: 1; }
+      }
+      
+      #popupDetalhamento .modal-content {
+        background: linear-gradient(135deg, #1a1a1a 0%, #252525 100%);
+        border-radius: 20px;
+        max-width: 550px;
+        width: 100%;
+        max-height: 90vh;
+        overflow-y: auto;
+        box-shadow: 0 25px 80px rgba(0,0,0,0.8);
+        border: 2px solid ${cor};
+        animation: slideIn 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+      }
+      
+      #popupDetalhamento .modal-header {
+        background: linear-gradient(135deg, ${cor} 0%, ${cor}dd 100%);
+        padding: 24px;
+        border-radius: 18px 18px 0 0;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+      }
+      
+      #popupDetalhamento .modal-header h3 {
+        margin: 0;
+        color: white;
+        font-size: 18px;
+        font-weight: 700;
+        flex: 1;
+        text-shadow: 0 2px 4px rgba(0,0,0,0.3);
+      }
+      
+      #popupDetalhamento .btn-close {
+        background: rgba(255,255,255,0.2);
+        border: none;
+        color: white;
+        width: 36px;
+        height: 36px;
+        border-radius: 50%;
+        cursor: pointer;
+        font-size: 22px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        transition: all 0.3s ease;
+      }
+      
+      #popupDetalhamento .btn-close:hover {
+        background: rgba(255,255,255,0.3);
+        transform: rotate(90deg);
+      }
+      
+      #popupDetalhamento .modal-body {
+        padding: 24px;
+      }
+      
+      #popupDetalhamento .categoria-item {
+        background: rgba(255,255,255,0.03);
+        border-radius: 12px;
+        padding: 16px;
+        margin-bottom: 16px;
+        border: 1px solid rgba(255,255,255,0.08);
+        transition: all 0.3s ease;
+        animation: slideIn 0.5s ease both;
+      }
+      
+      #popupDetalhamento .categoria-item:hover {
+        background: rgba(255,255,255,0.06);
+        border-color: ${cor}40;
+        transform: translateX(4px);
+      }
+      
+      #popupDetalhamento .categoria-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 12px;
+      }
+      
+      #popupDetalhamento .categoria-info {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+      }
+      
+      #popupDetalhamento .categoria-icone {
+        font-size: 24px;
+        width: 40px;
+        height: 40px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background: ${cor}20;
+        border-radius: 8px;
+      }
+      
+      #popupDetalhamento .categoria-nome {
+        font-weight: 600;
+        color: #fff;
+        font-size: 14px;
+      }
+      
+      #popupDetalhamento .categoria-valor {
+        font-weight: 700;
+        font-size: 16px;
+        color: ${cor};
+        text-shadow: 0 2px 8px ${cor}40;
+      }
+      
+      #popupDetalhamento .barra-container {
+        background: rgba(255,255,255,0.05);
+        height: 6px;
+        border-radius: 3px;
+        overflow: hidden;
+        margin-bottom: 8px;
+      }
+      
+      #popupDetalhamento .barra-progresso {
+        height: 100%;
+        background: linear-gradient(90deg, ${cor} 0%, ${cor}cc 100%);
+        border-radius: 3px;
+        animation: fillBar 1s ease-out both;
+        box-shadow: 0 0 10px ${cor}80;
+      }
+      
+      #popupDetalhamento .categoria-detalhes {
+        font-size: 11px;
+        color: #999;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+      }
+      
+      #popupDetalhamento .percentual-badge {
+        background: ${cor}20;
+        color: ${cor};
+        padding: 2px 8px;
+        border-radius: 4px;
+        font-weight: 600;
+        font-size: 10px;
+      }
+      
+      #popupDetalhamento .total-section {
+        background: linear-gradient(135deg, ${cor}25 0%, ${cor}15 100%);
+        padding: 20px;
+        border-radius: 12px;
+        border: 2px solid ${cor};
+        margin-top: 20px;
+        box-shadow: 0 4px 16px ${cor}20;
+      }
+      
+      #popupDetalhamento .total-row {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+      }
+      
+      #popupDetalhamento .total-label {
+        font-weight: 700;
+        color: #fff;
+        font-size: 16px;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+      }
+      
+      #popupDetalhamento .total-value {
+        font-weight: 800;
+        font-size: 24px;
+        color: ${cor};
+        text-shadow: 0 2px 12px ${cor}60;
+      }
+      
+      @media (max-width: 768px) {
+        #popupDetalhamento .modal-content {
+          max-width: 95vw;
+          max-height: 85vh;
+          border-radius: 16px;
+        }
+        
+        #popupDetalhamento .modal-header {
+          padding: 18px;
+        }
+        
+        #popupDetalhamento .modal-header h3 {
+          font-size: 15px;
+        }
+        
+        #popupDetalhamento .modal-body {
+          padding: 18px;
+        }
+        
+        #popupDetalhamento .categoria-icone {
+          font-size: 20px;
+          width: 36px;
+          height: 36px;
+        }
+        
+        #popupDetalhamento .categoria-nome {
+          font-size: 13px;
+        }
+        
+        #popupDetalhamento .categoria-valor {
+          font-size: 14px;
+        }
+        
+        #popupDetalhamento .total-value {
+          font-size: 20px;
+        }
+      }
+    </style>
+    
+    <div id="popupDetalhamento" onclick="this.remove()">
+      <div class="modal-content" onclick="event.stopPropagation()">
+        <!-- CABEÇALHO -->
+        <div class="modal-header">
+          <h3>${titulo}</h3>
+          <button class="btn-close" onclick="document.getElementById('popupDetalhamento').remove()">×</button>
         </div>
-    `;
+
+        <!-- CONTEÚDO -->
+        <div class="modal-body">
+          ${categorias.map((cat, idx) => `
+            <div class="categoria-item" style="animation-delay: ${idx * 0.1}s;">
+              <div class="categoria-header">
+                <div class="categoria-info">
+                  <div class="categoria-icone">${cat.icone}</div>
+                  <span class="categoria-nome">${cat.nome}</span>
+                </div>
+                <span class="categoria-valor">R$ ${formatarMoeda(cat.valor)}</span>
+              </div>
+              
+              <div class="barra-container">
+                <div class="barra-progresso" style="width: ${cat.percentual}%; animation-delay: ${idx * 0.1}s;"></div>
+              </div>
+              
+              <div class="categoria-detalhes">
+                <span>${cat.rodadas.length > 0 ? `${cat.rodadas.length} rodada(s)` : 'Ajuste manual'}</span>
+                <span class="percentual-badge">${cat.percentual.toFixed(1)}%</span>
+              </div>
+            </div>
+          `).join('')}
+
+          <!-- TOTAL -->
+          <div class="total-section">
+            <div class="total-row">
+              <span class="total-label">
+                💵 <span>TOTAL ${titulo.includes('Ganhou') ? 'GANHO' : 'PERDIDO'}</span>
+              </span>
+              <span class="total-value">R$ ${formatarMoeda(Math.abs(total))}</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  `;
 
   document.body.insertAdjacentHTML('beforeend', html);
 }
