@@ -175,13 +175,13 @@ class ParticipanteNavigation {
                 this.navegarPara(modulo);
             });
 
-            // Touch feedback para mobile
+            // Touch feedback para mobile com passive listeners
             btn.addEventListener('touchstart', () => {
                 btn.style.opacity = '0.7';
-            });
+            }, { passive: true });
             btn.addEventListener('touchend', () => {
                 btn.style.opacity = '1';
-            });
+            }, { passive: true });
         });
     }
 
@@ -224,14 +224,14 @@ class ParticipanteNavigation {
                 startY = e.touches[0].pageY;
                 pulling = false;
             }
-        });
+        }, { passive: true });
 
         document.addEventListener('touchmove', (e) => {
             const currentY = e.touches[0].pageY;
             if (currentY > startY && window.scrollY === 0) {
                 pulling = true;
             }
-        });
+        }, { passive: true });
 
         document.addEventListener('touchend', () => {
             if (pulling) {
@@ -239,7 +239,7 @@ class ParticipanteNavigation {
                 // Não navegue para boas-vindas, apenas mantenha o módulo atual
                 pulling = false;
             }
-        });
+        }, { passive: true });
     }
 
     restaurarModuloAnterior() {
