@@ -262,20 +262,23 @@ class ParticipanteAuth {
     renderizarSeletorLigas(ligas) {
         const select = document.getElementById('seletorLiga');
 
-        if (!select) return;
+        if (!select) {
+            console.error('[PARTICIPANTE-AUTH] ❌ Elemento #seletorLiga não encontrado no DOM');
+            return;
+        }
+
+        console.log('[PARTICIPANTE-AUTH] 📝 Renderizando seletor com', ligas.length, 'ligas');
 
         // Limpar opções anteriores
         select.innerHTML = '';
 
-        // ✅ OPÇÃO PLACEHOLDER (obrigatória se não houver liga selecionada)
-        if (!this.ligaId || ligas.length > 1) {
-            const placeholder = document.createElement('option');
-            placeholder.value = '';
-            placeholder.textContent = '🏆 Selecione uma Liga';
-            placeholder.disabled = true;
-            placeholder.selected = true;
-            select.appendChild(placeholder);
-        }
+        // ✅ SEMPRE ADICIONAR PLACEHOLDER quando houver múltiplas ligas
+        const placeholder = document.createElement('option');
+        placeholder.value = '';
+        placeholder.textContent = '🏆 Selecione uma Liga';
+        placeholder.disabled = true;
+        placeholder.selected = !this.ligaId; // Selecionar se não houver liga atual
+        select.appendChild(placeholder);
 
         // Adicionar opções de ligas
         ligas.forEach(liga => {
@@ -284,26 +287,46 @@ class ParticipanteAuth {
             option.textContent = liga.nome;
             option.selected = liga.id === this.ligaId;
             select.appendChild(option);
+            console.log(`[PARTICIPANTE-AUTH] ➕ Adicionada liga: ${liga.nome} (${liga.id})`);
         });
 
-        // Event listener para trocar de liga
-        select.addEventListener('change', async (e) => {
+        // Event listener para trocar de liga (remover listeners anteriores)
+        const novoSelect = select.cloneNode(true);
+        select.parentNode.replaceChild(novoSelect, select);
+
+        novoSelect.addEventListener('change', async (e) => {
             const novaLigaId = e.target.value;
+            console.log('[PARTICIPANTE-AUTH] 🔄 Liga selecionada:', novaLigaId);
             if (novaLigaId) {
                 await this.trocarLiga(novaLigaId);
-                // Liberar navegação após seleção
-                this.pausarNavegacaoAteSelecao = false;
             }
         });
 
-        // Mostrar seletor no header
-        select.style.display = 'block';
+        // FORÇAR VISIBILIDADE do seletor
+        novoSelect.style.display = 'block';
+        novoSelect.style.visibility = 'visible';
+        novoSelect.style.opacity = '1';
+
+        // Garantir que o container pai também esteja visível
+        const container = novoSelect.closest('.header-secondary');
+        if (container) {
+            container.classList.add('active');
+            console.log('[PARTICIPANTE-AUTH] ✅ Container do seletor ativado');
+        }
+
+        console.log('[PARTICIPANTE-AUTH] ✅ Seletor de ligas renderizado e visível');
     }
 
     ocultarSeletorLigas() {
-        const container = document.getElementById('seletorLigaContainer');
+        const select = document.getElementById('seletorLiga');
+        if (select) {
+            select.style.display = 'none';
+            console.log('[PARTICIPANTE-AUTH] ℹ️ Seletor de ligas ocultado (uma liga apenas)');
+        }
+
+        const container = select?.closest('.header-secondary');
         if (container) {
-            container.style.display = 'none';
+            container.classList.remove('active');
         }
     }
 

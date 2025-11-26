@@ -197,14 +197,32 @@ class ParticipanteNavigation {
                 container.innerHTML = `
                     <div style="text-align: center; padding: 60px 20px; color: #666;">
                         <h2 style="font-size: 24px; margin-bottom: 20px;">🏆 Bem-vindo!</h2>
-                        <p style="font-size: 16px; margin-bottom: 30px;">
-                            Você participa de múltiplas ligas.<br>
-                            Por favor, selecione uma liga no menu acima para continuar.
+                        <p style="font-size: 16px; margin-bottom: 20px;">
+                            Você participa de múltiplas ligas.
                         </p>
-                        <div style="font-size: 48px; opacity: 0.3;">⬆️</div>
+                        <p style="font-size: 18px; font-weight: 600; color: #FF6B35; margin-bottom: 30px;">
+                            👆 Clique no botão <strong>☰ Menu</strong> acima e selecione uma liga para continuar
+                        </p>
+                        <div style="background: rgba(255, 107, 53, 0.1); padding: 20px; border-radius: 12px; margin-top: 30px;">
+                            <p style="font-size: 14px; color: #888; margin: 0;">
+                                💡 Dica: O seletor de ligas está no menu suspenso do cabeçalho
+                            </p>
+                        </div>
                     </div>
                 `;
             }
+
+            // FORÇAR ABERTURA DO MENU para facilitar a seleção
+            setTimeout(() => {
+                const menuToggle = document.getElementById('headerMenuToggle');
+                const headerSecondary = document.getElementById('headerSecondary');
+                if (menuToggle && headerSecondary && !headerSecondary.classList.contains('active')) {
+                    headerSecondary.classList.add('active');
+                    menuToggle.style.transform = 'rotate(90deg)';
+                    console.log('[PARTICIPANTE-NAV] 📂 Menu aberto automaticamente para seleção de liga');
+                }
+            }, 500);
+
             return;
         }
         
