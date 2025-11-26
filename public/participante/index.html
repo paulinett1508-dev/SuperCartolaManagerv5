@@ -12,10 +12,10 @@
         <!-- HEADER REDESENHADO - UX SÊNIOR MOBILE-FIRST -->
         <header class="participante-header" style="display: flex; flex-direction: column; background: linear-gradient(135deg, #FF6B35 0%, #FF5722 100%); box-shadow: 0 4px 20px rgba(255, 107, 53, 0.5); border-bottom: 3px solid #FF8C42;">
             <!-- LINHA 1: PRIMÁRIA (SEMPRE VISÍVEL) -->
-            <div class="header-content" style="display: flex; align-items: center; justify-content: space-between; padding: 12px 16px; min-height: 56px; gap: 12px;">
+            <div class="header-content" style="display: flex; align-items: center; justify-content: space-between; padding: 12px 16px; min-height: 56px; gap: 12px; align-items: center;">
                 <!-- Escudos + Info -->
                 <div style="display: flex; align-items: center; gap: 12px; flex: 1; min-width: 0;">
-                    <div class="escudos-container" style="display: flex; gap: 6px; flex-shrink: 0;">
+                    <div class="escudos-container" style="display: flex; gap: 8px; flex-shrink: 0;">
                         <div class="escudo-wrapper" title="Time do Coração">
                             <img id="escudoCoracao" class="escudo-coracao" src="/escudos/placeholder.png" alt="Clube do Coração" style="width: 44px; height: 44px; border-radius: 50%; border: 3px solid white; box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);">
                         </div>
@@ -35,7 +35,7 @@
                 </div>
 
                 <!-- Botões: Home + Menu Toggle -->
-                <div style="display: flex; gap: 8px; flex-shrink: 0;">
+                <div style="display: flex; gap: 10px; flex-shrink: 0; align-items: center;">
                     <button onclick="participanteNav?.navegarPara('boas-vindas')" title="Home" style="width: 44px; height: 44px; border-radius: 8px; border: 2px solid rgba(59, 130, 246, 0.4); background: rgba(59, 130, 246, 0.15); color: #3b82f6; font-size: 20px; cursor: pointer; display: flex; align-items: center; justify-content: center; transition: all 0.3s ease; flex-shrink: 0;">
                         🏠
                     </button>
@@ -73,6 +73,89 @@
                 }
                 #headerSecondary.active {
                     max-height: 120px;
+                }
+                
+                /* RESPONSIVIDADE MOBILE CRÍTICA */
+                @media (max-width: 768px) {
+                    .header-content {
+                        padding: 10px 12px !important;
+                        min-height: 52px !important;
+                        gap: 10px !important;
+                    }
+                    #nomeTime {
+                        font-size: 16px !important;
+                        line-height: 1.2;
+                    }
+                    #nomeCartoleiro {
+                        font-size: 12px !important;
+                    }
+                    .escudos-container {
+                        gap: 10px !important;
+                    }
+                    .escudos-container img {
+                        width: 40px !important;
+                        height: 40px !important;
+                    }
+                    .header-content > div:last-child {
+                        gap: 10px !important;
+                    }
+                }
+                
+                @media (max-width: 480px) {
+                    .header-content {
+                        padding: 8px 10px !important;
+                        min-height: 48px !important;
+                        gap: 8px !important;
+                    }
+                    #nomeTime {
+                        font-size: 15px !important;
+                    }
+                    #nomeCartoleiro {
+                        font-size: 11px !important;
+                    }
+                    .escudos-container {
+                        gap: 8px !important;
+                    }
+                    .escudos-container img {
+                        width: 38px !important;
+                        height: 38px !important;
+                        border: 2px solid white !important;
+                    }
+                    .header-content > div:last-child {
+                        gap: 8px !important;
+                    }
+                    .header-content > div:last-child button {
+                        width: 40px !important;
+                        height: 40px !important;
+                        font-size: 18px !important;
+                    }
+                    #headerMenuToggle {
+                        font-size: 20px !important;
+                    }
+                }
+                
+                @media (max-width: 360px) {
+                    .header-content {
+                        padding: 6px 8px !important;
+                        min-height: 44px !important;
+                        gap: 6px !important;
+                    }
+                    .escudos-container {
+                        gap: 6px !important;
+                    }
+                    .escudos-container img {
+                        width: 36px !important;
+                        height: 36px !important;
+                        border: 2px solid white !important;
+                    }
+                    #nomeTime {
+                        font-size: 14px !important;
+                    }
+                    .header-content > div:last-child button {
+                        width: 38px !important;
+                        height: 38px !important;
+                        font-size: 16px !important;
+                    }
                 }
             </style>
         </header>
