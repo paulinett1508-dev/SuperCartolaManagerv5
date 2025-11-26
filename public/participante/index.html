@@ -24,23 +24,17 @@
                     </div>
                 </div>
 
-                <!-- Ações com Notificações -->
+                <!-- Ações Minimalistas -->
                 <div class="header-actions-modern">
-                    <!-- Status Indicador -->
+                    <!-- Status Online/Offline -->
                     <div class="status-wrapper" style="display: flex; align-items: center; gap: 4px; margin-right: 8px;">
                         <div id="statusIndicador" style="width: 8px; height: 8px; border-radius: 50%; background: #22c55e;"></div>
                         <span id="statusTexto" style="font-size: 10px; color: #22c55e; font-weight: 600;">Online</span>
                     </div>
                     
-                    <button class="btn-icon-modern btn-notification" title="Notificações">
-                        <span class="material-icon">🔔</span>
-                        <span class="notification-badge"></span>
-                    </button>
-                    <button class="btn-icon-modern btn-home" onclick="participanteNav?.navegarPara('boas-vindas')" title="Início">
-                        <span class="material-icon">🏠</span>
-                    </button>
-                    <button class="btn-icon-modern btn-menu" id="headerMenuToggle" title="Menu">
-                        <span class="material-icon">☰</span>
+                    <!-- Menu Configurações (Seletor Liga + Logout) -->
+                    <button class="btn-icon-modern btn-menu" id="headerMenuToggle" title="Configurações">
+                        <span class="material-icon">⚙️</span>
                     </button>
                 </div>
             </div>
@@ -296,18 +290,7 @@
             });
         </script>
 
-        <!-- Menu de Navegação -->
-        <nav class="participante-nav">
-            <button class="nav-btn active" data-module="extrato">💰 Extrato</button>
-            <button class="nav-btn" data-module="ranking">📊 Classificação</button>
-            <button class="nav-btn" data-module="rodadas">🎯 Minhas Rodadas</button>
-            <button class="nav-btn" data-module="top10">🏆 Top 10</button>
-            <button class="nav-btn" data-module="melhor-mes">📅 Melhor do Mês</button>
-            <button class="nav-btn" data-module="pontos-corridos">⚽ Pontos Corridos</button>
-            <button class="nav-btn" data-module="mata-mata">⚔️ Mata-Mata</button>
-            <button class="nav-btn" data-module="artilheiro">🥇 Artilheiro</button>
-            <button class="nav-btn" data-module="luva-ouro">🥅 Luva de Ouro</button>
-        </nav>
+        
 
         <!-- Container para módulos -->
         <main id="moduleContainer" class="module-container">
