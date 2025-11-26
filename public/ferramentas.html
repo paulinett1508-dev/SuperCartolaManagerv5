@@ -11,6 +11,45 @@
         <link rel="stylesheet" href="detalhe-liga.css" />
         <link rel="stylesheet" href="css/base.css" />
         <link rel="stylesheet" href="css/modules/ferramentas.css" />
+        <style>
+            .form-group {
+                margin-bottom: 15px;
+            }
+            .form-group label {
+                display: block;
+                margin-bottom: 5px;
+                font-weight: 600;
+            }
+            .form-group input, .form-group select {
+                width: 100%;
+                padding: 8px;
+                border: 1px solid #ddd;
+                border-radius: 4px;
+            }
+            .checkbox-group {
+                display: flex;
+                align-items: center;
+                gap: 8px;
+            }
+            .checkbox-group input[type="checkbox"] {
+                width: auto;
+            }
+            #popularRodadasLog {
+                margin-top: 15px;
+                padding: 10px;
+                background: #f5f5f5;
+                border-radius: 4px;
+                max-height: 200px;
+                overflow-y: auto;
+                font-family: monospace;
+                font-size: 12px;
+                display: none;
+            }
+            .loading {
+                opacity: 0.6;
+                pointer-events: none;
+            }
+        </style>
     </head>
 
     <body>
@@ -87,6 +126,22 @@
                                     <li>Acesso ao extrato financeiro</li>
                                     <li>Interface mobile-friendly</li>
                                 </ul>
+                            </div>
+
+                             <!-- Card: Popular Rodadas -->
+                            <div class="module-card">
+                                <div class="module-header">
+                                    <div class="module-icon">🎯</div>
+                                    <h3 class="module-title">POPULAR RODADAS</h3>
+                                </div>
+                                <ul class="module-items">
+                                    <li>Preencher dados de rodadas</li>
+                                    <li>Encerradas do Cartola FC</li>
+                                    <li>Interface completa na tela</li>
+                                </ul>
+                                <button class="btn-secondary" style="margin-top: 10px;" onclick="window.location.href='ferramentas-rodadas.html'">
+                                    Acessar Ferramenta
+                                </button>
                             </div>
                         </div>
                     </div>
