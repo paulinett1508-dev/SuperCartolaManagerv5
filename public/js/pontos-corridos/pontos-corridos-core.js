@@ -411,18 +411,13 @@ export async function calcularClassificacao(ligaId, times, confrontos, rodadaAtu
 
   // ✅ SALVAR NO CACHE MONGODB (Snapshot vitalício)
   const statusMercado = getStatusMercado();
-  
-  // LÓGICA CORRIGIDA:
-  // - Se mercado está ABERTO (status 1): rodada atual ainda não começou, então (rodada_atual - 1) é a última consolidada
-  // - Se mercado está FECHADO (status 2): rodada atual está rolando, então (rodada_atual - 1) é a última consolidada
-  const ultimaRodadaConsolidada = statusMercado.rodada_atual - 1;
-  const rodadaConsolidada = rodadaLiga <= ultimaRodadaConsolidada;
+  const rodadaConsolidada = statusMercado.rodada_atual > rodadaLiga; // Rodada já encerrada?
   
   if (classificacaoFinal.length > 0 && rodadaConsolidada) {
-    console.log(`[CORE] 💾 Salvando classificação consolidada da rodada ${rodadaLiga} no MongoDB (última consolidada: R${ultimaRodadaConsolidada})...`);
+    console.log(`[CORE] 💾 Salvando classificação consolidada da rodada ${rodadaLiga} no MongoDB...`);
     await salvarCachePersistente(ligaId, rodadaLiga, classificacaoFinal);
   } else if (classificacaoFinal.length > 0) {
-    console.log(`[CORE] ⚠️ Rodada ${rodadaLiga} ainda em andamento (última consolidada: R${ultimaRodadaConsolidada}), cache temporário não salvo.`);
+    console.log(`[CORE] ⚠️ Rodada ${rodadaLiga} ainda em andamento, cache temporário não salvo.`);
   }
 
   return {
