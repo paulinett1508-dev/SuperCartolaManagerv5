@@ -239,43 +239,50 @@ export class FluxoFinanceiroCore {
             if (!response.ok) return null;
             const payload = await response.json(); // payload = { cached: true, data: [...], resumo: {...} }
 
-            if (!payload.cached || !payload.data) return null;
-
-            // === 🔌 ADAPTADOR (A CORREÇÃO MÁGICA) ===
-            // O Backend envia 'data' como Array de rodadas e 'resumo' separado.
-            // O Frontend precisa de um objeto único { rodadas: [...], resumo: {...} }
-
-            let extratoFormatado;
-
-            if (Array.isArray(payload.data)) {
+            // ✅ NOVO: Validação de Cache MongoDB
+            if (payload && payload.cached && payload.data) {
                 console.log(
-                    `[FLUXO-CORE] 💾 Cache Bruto recebido (Array de ${payload.data.length} itens). Adaptando...`,
+                    `[FLUXO-CORE] 💾 Cache MongoDB encontrado! Última rodada: ${payload.ultimaRodadaCalculada}`,
                 );
 
-                extratoFormatado = {
-                    rodadas: payload.data, // O Array vira a propriedade .rodadas
-                    resumo: payload.resumo || {}, // Incorporamos o resumo que veio separado
-                    camposEditaveis: {}, // Default seguro
-                    totalTimes: 0, // Será recalculado se necessário
-                    updatedAt: payload.updatedAt,
-                };
-            } else {
-                // Caso o cache já venha como objeto (compatibilidade futura)
-                extratoFormatado = payload.data;
-            }
+                // Adaptar para formato esperado se necessário
+                let extratoFormatado;
 
-            // Validação final de integridade antes de retornar
-            if (
-                !extratoFormatado.rodadas ||
-                !Array.isArray(extratoFormatado.rodadas)
-            ) {
-                console.warn(
-                    "[FLUXO-CORE] ⚠️ Estrutura final inválida após adaptação.",
+                // Se o cache vier como array direto, transformar no objeto esperado
+                if (Array.isArray(payload.data)) {
+                    console.log(
+                        `[FLUXO-CORE] 💾 Cache Bruto recebido (Array de ${payload.data.length} itens). Adaptando...`,
+                    );
+
+                    extratoFormatado = {
+                        rodadas: payload.data, // O Array vira a propriedade .rodadas
+                        resumo: payload.resumo || {}, // Incorporamos o resumo que veio separado
+                        camposEditaveis: {}, // Default seguro
+                        totalTimes: 0, // Será recalculado se necessário
+                        updatedAt: payload.updatedAt,
+                    };
+                } else {
+                    // Caso o cache já venha como objeto (compatibilidade futura)
+                    extratoFormatado = payload.data;
+                }
+
+                // Validação final de integridade antes de retornar
+                if (
+                    !extratoFormatado.rodadas ||
+                    !Array.isArray(extratoFormatado.rodadas)
+                ) {
+                    console.warn(
+                        "[FLUXO-CORE] ⚠️ Estrutura final inválida após adaptação.",
+                    );
+                    return null;
+                }
+
+                // ✅ RETORNAR CACHE VÁLIDO SEM RECALCULAR
+                console.log(
+                    `[FLUXO-CORE] ✅ Cache válido com ${extratoFormatado.rodadas.length} rodadas - ZERO recálculos`,
                 );
-                return null;
+                return extratoFormatado;
             }
-
-            return extratoFormatado;
         } catch (error) {
             console.warn("[FLUXO-CORE] Erro ao ler/adaptar cache:", error);
             return null;

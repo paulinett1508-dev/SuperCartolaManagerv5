@@ -190,13 +190,26 @@ class FluxoFinanceiroParticipante {
                             return cacheData.data;
                         }
 
-                        // ⚠️ CACHE PARCIAL - Recalcular apenas rodada atual
-                        if (!validacao.valido && validacao.recalcularApenas === 'rodada_atual') {
+                        // ⚠️ CACHE PARCIAL/EXPIRADO - REUTILIZAR DADOS ANTIGOS
+                        if (validacao.usarCacheAntigo || validacao.recalcularApenas === 'rodada_atual') {
                             console.log('┌─────────────────────────────────────────────────────────────┐');
-                            console.log('│ 🔄 CACHE PARCIAL - Recalculando apenas rodada atual         │');
+                            console.log('│ 💎 CACHE ENCONTRADO - Reutilizando dados consolidados       │');
                             console.log(`│ 💾 Rodadas consolidadas: ${validacao.rodadasConsolidadas}                    │`);
+                            console.log('│ ⚡ ZERO recálculos - apenas buscando do banco              │');
                             console.log('└─────────────────────────────────────────────────────────────┘');
-                        } else if (!validacao.valido) {
+                            
+                            const inicio = performance.now();
+                            const cacheRes = await fetch(`/api/extrato-cache/${ligaId}/times/${timeId}/cache`);
+                            const cacheData = await cacheRes.json();
+                            const fim = performance.now();
+                            
+                            console.log(`[TESTE-CACHE] ⚡ Tempo de resposta: ${(fim - inicio).toFixed(2)}ms`);
+                            console.log(`[TESTE-CACHE] 📊 Rodadas no cache: ${cacheData.data?.rodadas?.length || 0}`);
+                            console.log('═══════════════════════════════════════════════════════════════');
+                            return cacheData.data;
+                        }
+                        
+                        if (!validacao.valido) {
                             console.log('┌─────────────────────────────────────────────────────────────┐');
                             console.log('│ ❌ CACHE INVÁLIDO - Recalculando tudo                       │');
                             console.log(`│ 📋 Motivo: ${validacao.motivo}                    │`);

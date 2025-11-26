@@ -172,7 +172,9 @@ export const verificarCacheValido = async (req, res) => {
             // Cache tem rodadas anteriores consolidadas? Reusar!
             if (cache.ultima_rodada_consolidada >= rodadaAnterior) {
                 // Verificar idade do cache para rodada em andamento (5 min)
-                const idadeCache = Date.now() - new Date(cache.data_ultima_atualizacao).getTime();
+                // CORRIGIDO: usar updatedAt ao invés de data_ultima_atualizacao
+                const timestampCache = cache.updatedAt || cache.data_ultima_atualizacao;
+                const idadeCache = Date.now() - new Date(timestampCache).getTime();
                 const TTL_RODADA_ABERTA = 5 * 60 * 1000; // 5 minutos
 
                 if (idadeCache < TTL_RODADA_ABERTA) {
@@ -186,11 +188,15 @@ export const verificarCacheValido = async (req, res) => {
                     });
                 }
 
+                // ✅ CACHE EXPIRADO MAS AINDA VÁLIDO (apenas refresh parcial)
                 return res.json({
-                    valido: false,
-                    motivo: "rodada_aberta_cache_expirado",
+                    valido: true, // ← MUDOU DE FALSE PARA TRUE!
+                    permanente: false,
+                    motivo: "rodada_aberta_cache_expirado_mas_valido",
                     recalcularApenas: "rodada_atual",
                     rodadasConsolidadas: cache.ultima_rodada_consolidada,
+                    usarCacheAntigo: true, // ← NOVO FLAG
+                    updatedAt: cache.updatedAt,
                 });
             }
         }
