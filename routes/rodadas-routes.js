@@ -19,14 +19,14 @@ router.get('/:ligaId/rodadas', async (req, res) => {
 
     // Suportar tanto ?rodada=X quanto ?inicio=X&fim=Y
     let rodadaNum;
-    
+
     if (rodada !== undefined) {
       rodadaNum = parseInt(rodada);
       console.log(`Buscando dados da rodada específica: ${rodadaNum} para liga ${ligaId}`);
     } else if (inicio !== undefined && fim !== undefined) {
       const inicioNum = parseInt(inicio);
       const fimNum = parseInt(fim);
-      
+
       if (inicioNum === fimNum) {
         rodadaNum = inicioNum;
         console.log(`Buscando dados da rodada específica: ${rodadaNum} (via inicio/fim) para liga ${ligaId}`);
@@ -84,7 +84,12 @@ router.get('/:ligaId/rodadas', async (req, res) => {
   }
 });
 
-// POST /api/ligas/:ligaId/rodadas - Popular dados de uma rodada específica
-router.post("/:ligaId/rodadas", popularRodadas);
+// Popular rodadas de uma liga (endpoint principal)
+router.post('/:ligaId/rodadas', async (req, res) => {
+    console.log('[RODADAS-ROUTES] POST /api/rodadas/:ligaId/popular chamado');
+    console.log('[RODADAS-ROUTES] Params:', req.params);
+    console.log('[RODADAS-ROUTES] Body:', req.body);
+    popularRodadas(req, res);
+});
 
 export default router;

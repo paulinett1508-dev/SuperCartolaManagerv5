@@ -224,29 +224,40 @@
             addLog(`Iniciando população de rodadas ${rodadaInicial} a ${rodadaFinal}...`, 'info');
 
             try {
-                const response = await fetch('/api/rodadas/popular', {
+                const response = await fetch(`/api/rodadas/${ligaId}/popular`, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({
-                        ligaId,
-                        rodadaInicial,
-                        rodadaFinal,
-                        forcarRepopular
+                        inicio: rodadaInicial,
+                        fim: rodadaFinal,
+                        repopular: forcarRepopular
                     })
                 });
 
+                if (!response.ok) {
+                    const errorText = await response.text();
+                    throw new Error(`HTTP ${response.status}: ${errorText}`);
+                }
+
                 const resultado = await response.json();
 
-                if (response.ok) {
-                    addLog(`✅ Sucesso! ${resultado.rodadasProcessadas} rodadas processadas`, 'success');
-                    addLog(`📊 Registros inseridos: ${resultado.rodadasInseridas}`, 'success');
-                    
-                    if (resultado.erros && resultado.erros.length > 0) {
-                        addLog(`⚠️ ${resultado.erros.length} erros encontrados`, 'error');
-                        resultado.erros.forEach(erro => addLog(`  - ${erro}`, 'error'));
-                    }
-                } else {
-                    addLog(`❌ Erro: ${resultado.erro || 'Erro desconhecido'}`, 'error');
+                addLog(`✅ Processo concluído!`, 'success');
+                
+                if (resultado.mensagem) {
+                    addLog(`📊 ${resultado.mensagem}`, 'success');
+                }
+                
+                if (resultado.resumo) {
+                    const { processadas, inseridas, atualizadas, erros } = resultado.resumo;
+                    if (processadas) addLog(`   Rodadas processadas: ${processadas}`, 'info');
+                    if (inseridas) addLog(`   Registros inseridos: ${inseridas}`, 'success');
+                    if (atualizadas) addLog(`   Registros atualizados: ${atualizadas}`, 'success');
+                    if (erros && erros > 0) addLog(`   ⚠️ Erros: ${erros}`, 'error');
+                }
+                
+                if (resultado.detalhes && resultado.detalhes.length > 0) {
+                    addLog(`📋 Detalhes:`, 'info');
+                    resultado.detalhes.forEach(d => addLog(`   - ${d}`, 'info'));
                 }
             } catch (error) {
                 addLog(`❌ Erro na requisição: ${error.message}`, 'error');
