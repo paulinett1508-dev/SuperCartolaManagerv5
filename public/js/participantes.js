@@ -118,6 +118,13 @@ async function carregarParticipantesComBrasoes() {
         return;
     }
 
+    // ✅ PROTEÇÃO: Evitar múltiplas chamadas simultâneas
+    if (container.dataset.loading === 'true') {
+        console.log("[PARTICIPANTES] ⏸️ Carregamento já em andamento, aguardando...");
+        return;
+    }
+    container.dataset.loading = 'true';
+
     // Carregar exports
     await carregarExports();
 
@@ -308,6 +315,11 @@ async function carregarParticipantesComBrasoes() {
                 </button>
             </div>
         `;
+    } finally {
+        // ✅ IMPORTANTE: Remover flag de loading
+        if (container) {
+            container.dataset.loading = 'false';
+        }
     }
 }
 
@@ -633,9 +645,16 @@ window.gerenciarSenhaParticipante = gerenciarSenhaParticipante;
 window.gerarSenhaAleatoria = gerarSenhaAleatoria;
 window.salvarSenhaParticipante = salvarSenhaParticipante;
 
-// Auto-inicialização
+// ==============================
+// CONTROLE DE INICIALIZAÇÃO
+// ==============================
+let participantesJaCarregados = false;
+
+// Auto-inicialização com proteção contra duplicação
 setTimeout(() => {
-    if (document.getElementById("participantes-grid")) {
+    if (document.getElementById("participantes-grid") && !participantesJaCarregados) {
+        participantesJaCarregados = true;
+        console.log("[PARTICIPANTES] 🚀 Auto-inicialização disparada");
         carregarParticipantesComBrasoes();
     }
 }, 100);
