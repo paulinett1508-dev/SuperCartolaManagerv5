@@ -39,14 +39,6 @@ import {
   clearCache,
 } from "./pontos-corridos-cache.js";
 
-// Variáveis dinâmicas para exports
-let criarBotaoExportacaoRodada = null;
-let criarBotaoExportacaoClassificacao = null;
-let exportarPontosCorridosRodadaComoImagem = null;
-let exportarPontosCorridosClassificacaoComoImagem = null;
-let exportsCarregados = false;
-let exportsCarregando = false;
-
 // Variáveis dinâmicas para rodadas
 let getRankingRodadaEspecifica = null;
 let rodadasCarregados = false;
@@ -68,87 +60,6 @@ let estadoOrquestrador = {
   visualizacaoAtual: 'rodadas', // 'rodadas' ou 'classificacao'
   rodadaSelecionada: 1,
 };
-
-// Função de carregamento dinâmico dos exports
-async function carregarExports() {
-  if (exportsCarregados) return true;
-  if (exportsCarregando) {
-    return aguardarCarregamento(() => exportsCarregados);
-  }
-
-  exportsCarregando = true;
-
-  try {
-    if (moduleCache.has("exports")) {
-      const cached = moduleCache.get("exports");
-      Object.assign(window, cached);
-      exportsCarregados = true;
-      console.log("[PONTOS-CORRIDOS-ORQUESTRADOR] Exports carregados do cache");
-      return true;
-    }
-
-    console.log(
-      "[PONTOS-CORRIDOS-ORQUESTRADOR] Carregando módulo de exports...",
-    );
-
-    // Tenta carregar módulo centralizado primeiro
-    try {
-      const exportModule = await import("../exports/export-exports.js");
-      if (exportModule?.exportarPontosCorridos) {
-        criarBotaoExportacaoRodada = exportModule.exportarPontosCorridos;
-        moduleCache.set("exports", { criarBotaoExportacaoRodada });
-        exportsCarregados = true;
-        console.log(
-          "[PONTOS-CORRIDOS-ORQUESTRADOR] Exports carregados via função centralizada",
-        );
-        return true;
-      }
-    } catch (error) {
-      console.warn(
-        "[PONTOS-CORRIDOS-ORQUESTRADOR] Função centralizada não disponível",
-      );
-    }
-
-    // Carrega módulo específico
-    const exportPontosCorridosModule = await import(
-      "../exports/export-pontos-corridos.js"
-    );
-    if (exportPontosCorridosModule) {
-      // 🔧 CORREÇÃO: Mapeamento correto das funções
-      criarBotaoExportacaoRodada =
-        exportPontosCorridosModule.criarBotaoExportacaoPontosCorridosRodada;
-      criarBotaoExportacaoClassificacao =
-        exportPontosCorridosModule.criarBotaoExportacaoPontosCorridosClassificacao;
-      exportarPontosCorridosRodadaComoImagem =
-        exportPontosCorridosModule.exportarPontosCorridosRodadaComoImagem;
-      exportarPontosCorridosClassificacaoComoImagem =
-        exportPontosCorridosModule.exportarPontosCorridosClassificacaoComoImagem;
-
-      moduleCache.set("exports", {
-        criarBotaoExportacaoRodada,
-        criarBotaoExportacaoClassificacao,
-        exportarPontosCorridosRodadaComoImagem,
-        exportarPontosCorridosClassificacaoComoImagem,
-      });
-      exportsCarregados = true;
-      console.log(
-        "[PONTOS-CORRIDOS-ORQUESTRADOR] Exports carregados via módulo específico",
-      );
-      return true;
-    }
-
-    throw new Error("Nenhuma função de exportação encontrada");
-  } catch (error) {
-    console.warn(
-      "[PONTOS-CORRIDOS-ORQUESTRADOR] Erro ao carregar exports:",
-      error,
-    );
-    exportsCarregados = false;
-    return false;
-  } finally {
-    exportsCarregando = false;
-  }
-}
 
 // Função de carregamento dinâmico das rodadas
 async function carregarRodadas() {
@@ -235,19 +146,11 @@ export async function carregarPontosCorridos() {
     console.log(
       "[PONTOS-CORRIDOS-ORQUESTRADOR] Pré-carregando dependências...",
     );
-    const [rodadasOk, exportsOk] = await Promise.all([
-      carregarRodadas(),
-      carregarExports(),
-    ]);
+    const rodadasOk = await carregarRodadas();
 
     if (!rodadasOk) {
       console.warn(
         "[PONTOS-CORRIDOS-ORQUESTRADOR] Módulo rodadas não carregou",
-      );
-    }
-    if (!exportsOk) {
-      console.warn(
-        "[PONTOS-CORRIDOS-ORQUESTRADOR] Módulo exports não carregou",
       );
     }
 
@@ -396,25 +299,6 @@ async function renderRodada(rodadaNum) {
     );
     atualizarContainer(containerId, tabelaHtml);
 
-    // 🔧 CORREÇÃO: Aguardar DOM ser atualizado ANTES de criar botão
-    await new Promise((resolve) => requestAnimationFrame(resolve));
-
-    // Adicionar botão de exportação APÓS container estar no DOM
-    if (exportsCarregados && criarBotaoExportacaoRodada) {
-      const jogosNormalizados = jogos.map((jogo) =>
-        normalizarDadosParaExportacao(jogo, pontuacoesMap),
-      );
-
-      await criarBotaoExportacaoRodada({
-        containerId: "exportPontosCorridosRodadaBtnContainer",
-        jogos: jogosNormalizados,
-        rodadaLiga: rodadaNum, // Usar o número da rodada passado para a função
-        rodadaCartola: rodadaCartola,
-        times: estadoOrquestrador.times,
-        tipo: "pontos-corridos-rodada",
-      });
-    }
-
     console.log(
       `[PONTOS-CORRIDOS-ORQUESTRADOR] Rodada ${rodadaNum} carregada`,
     );
@@ -465,21 +349,6 @@ async function renderClassificacao() {
       // Voltar para a rodada selecionada
       renderRodada(estadoOrquestrador.rodadaSelecionada);
     });
-
-    // 🔧 CORREÇÃO: Adicionar botão de exportação da classificação com função correta
-    if (exportsCarregados && criarBotaoExportacaoClassificacao) {
-      const classificacaoNormalizada =
-        normalizarClassificacaoParaExportacao(classificacao);
-
-      await criarBotaoExportacaoClassificacao({
-        containerId: "exportClassificacaoPontosCorridosBtnContainer",
-        times: classificacaoNormalizada,
-        rodadaLiga: ultimaRodadaComDados,
-        rodadaCartola:
-          PONTOS_CORRIDOS_CONFIG.rodadaInicial + ultimaRodadaComDados - 1, // Ajuste para índice 0
-        tipo: "pontos-corridos-classificacao",
-      });
-    }
 
     console.log(
       "[PONTOS-CORRIDOS-ORQUESTRADOR] Classificação carregada com sucesso",
