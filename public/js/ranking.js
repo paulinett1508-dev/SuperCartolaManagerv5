@@ -84,22 +84,6 @@ async function carregarRankingGeral() {
 
         console.log("[RANKING] ✅ Classificação renderizada com sucesso");
 
-        // 📸 ADICIONAR BOTÃO DE EXPORTAÇÃO
-        try {
-            const { criarBotaoExportacaoRankingGeral } = await import('./exports/export-ranking-geral.js');
-            
-            await criarBotaoExportacaoRankingGeral({
-                containerId: 'ranking-geral',
-                rankings: participantesOrdenados,
-                rodada: data.rodadaFinal,
-                tipo: 'geral'
-            });
-            
-            console.log("[RANKING] 📸 Botão de exportação Mobile HD adicionado");
-        } catch (exportError) {
-            console.warn("[RANKING] ⚠️ Erro ao adicionar exportação:", exportError);
-        }
-
     } catch (error) {
         console.error("[RANKING] ❌ Erro no processamento:", error);
         rankingContainer.innerHTML = `
