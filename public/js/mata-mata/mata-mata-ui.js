@@ -287,3 +287,65 @@ export function renderRodadaPendente(containerId, rodadaPontosNum) {
   `;
   contentElement.appendChild(msgContainer);
 }
+
+// Função para renderizar banner do campeão
+export function renderBannerCampeao(containerId, confronto, edicaoNome, isPending = false) {
+  const contentElement = document.getElementById(containerId);
+  if (!contentElement || isPending) return;
+
+  // Determinar o campeão
+  const timeA = confronto.timeA;
+  const timeB = confronto.timeB;
+  const campeao = timeA.pontos > timeB.pontos ? timeA : timeB;
+  const viceCampeao = timeA.pontos > timeB.pontos ? timeB : timeA;
+
+  const bannerHTML = `
+    <div class="campeao-banner-container" id="campeao-banner">
+      <div class="campeao-banner-bg"></div>
+      <div class="campeao-banner-content">
+        <div class="campeao-trophy">🏆</div>
+        <div class="campeao-title">CAMPEÃO</div>
+        <div class="campeao-edicao">${edicaoNome}</div>
+        
+        <div class="campeao-info-principal">
+          <img src="/escudos/${campeao.clube_id}.png" 
+               class="campeao-escudo" 
+               onerror="this.src='/escudos/default.png'">
+          <div class="campeao-detalhes">
+            <div class="campeao-time-nome">${campeao.nome_time}</div>
+            <div class="campeao-cartoleiro">${campeao.nome_cartoleiro || campeao.nome_cartola || "—"}</div>
+            <div class="campeao-pontos">${campeao.pontos.toFixed(2).replace(".", ",")} pts</div>
+          </div>
+        </div>
+
+        <div class="vice-campeao-info">
+          <div class="vice-label">Vice-Campeão</div>
+          <div class="vice-detalhes">
+            <img src="/escudos/${viceCampeao.clube_id}.png" 
+                 class="vice-escudo" 
+                 onerror="this.src='/escudos/default.png'">
+            <span class="vice-nome">${viceCampeao.nome_time}</span>
+            <span class="vice-pontos">${viceCampeao.pontos.toFixed(2).replace(".", ",")} pts</span>
+          </div>
+        </div>
+
+        <div class="campeao-confetti">
+          <div class="confetti"></div>
+          <div class="confetti"></div>
+          <div class="confetti"></div>
+          <div class="confetti"></div>
+          <div class="confetti"></div>
+          <div class="confetti"></div>
+        </div>
+      </div>
+    </div>
+  `;
+
+  contentElement.insertAdjacentHTML('beforeend', bannerHTML);
+
+  // Adicionar animação de entrada
+  setTimeout(() => {
+    const banner = document.getElementById('campeao-banner');
+    if (banner) banner.classList.add('show');
+  }, 100);
+}

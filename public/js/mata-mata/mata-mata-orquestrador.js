@@ -1,7 +1,7 @@
 // MATA-MATA ORQUESTRADOR - Coordenador Principal
 // Responsável por: coordenação de módulos, carregamento dinâmico, cache
 
-import { edicoes, getFaseInfo, getLigaId } from "./mata-mata-config.js";
+import { edicoes, getFaseInfo, getLigaId, getRodadaPontosText, getEdicaoMataMata } from "./mata-mata-config.js";
 import {
   setRankingFunction as setRankingConfronto,
   getPontosDaRodada,
@@ -17,6 +17,7 @@ import {
   renderErrorState,
   renderTabelaMataMata,
   renderRodadaPendente,
+  renderBannerCampeao,
 } from "./mata-mata-ui.js";
 
 // Variáveis dinâmicas para exports
@@ -396,6 +397,13 @@ async function carregarFase(fase, ligaId) {
     // Renderizar mensagem de rodada pendente se necessário
     if (isPending) {
       renderRodadaPendente(contentId, rodadaPontosNum);
+    }
+
+    // Renderizar banner do campeão na FINAL (apenas se não estiver pendente)
+    if (fase === "final" && !isPending && confrontos.length > 0) {
+      const edicaoNome = edicaoSelecionada.nome;
+      renderBannerCampeao(contentId, confrontos[0], edicaoNome, isPending);
+      console.log(`[MATA-ORQUESTRADOR] Banner do campeão renderizado para ${edicaoNome}`);
     }
 
     console.log(`[MATA-ORQUESTRADOR] Fase ${fase} carregada com sucesso`);
