@@ -79,41 +79,11 @@ async function carregarExports() {
       return true;
     }
 
-    console.log("[MATA-ORQUESTRADOR] Carregando módulo de exports...");
+    console.log("[MATA-ORQUESTRADOR] Sistema de exports não implementado (opcional)");
+    // Função de export pode ser implementada futuramente se necessário
+    exportsCarregados = true; // Retorna sucesso para não bloquear o carregamento
+    return true;
 
-    try {
-      const exportModule = await import("../exports/export-exports.js");
-      if (exportModule && exportModule.exportarMataMata) {
-        criarBotaoExportacaoMataMata = exportModule.exportarMataMata;
-        moduleCache.set("exports", { criarBotaoExportacaoMataMata });
-        exportsCarregados = true;
-        console.log(
-          "[MATA-ORQUESTRADOR] Exports carregados via função centralizada",
-        );
-        return true;
-      }
-    } catch (error) {
-      console.warn(
-        "[MATA-ORQUESTRADOR] Função centralizada não disponível, tentando módulo específico",
-      );
-    }
-
-    const exportMataMataModule = await import("../exports/export-mata-mata.js");
-    if (
-      exportMataMataModule &&
-      exportMataMataModule.criarBotaoExportacaoMataMata
-    ) {
-      criarBotaoExportacaoMataMata =
-        exportMataMataModule.criarBotaoExportacaoMataMata;
-      moduleCache.set("exports", { criarBotaoExportacaoMataMata });
-      exportsCarregados = true;
-      console.log(
-        "[MATA-ORQUESTRADOR] Exports carregados via módulo específico",
-      );
-      return true;
-    }
-
-    throw new Error("Nenhuma função de exportação encontrada");
   } catch (error) {
     console.warn("[MATA-ORQUESTRADOR] Erro ao carregar exports:", error);
     exportsCarregados = false;
@@ -249,7 +219,7 @@ function handleFaseClick(fase, edicao) {
 // Função auxiliar para cache de confrontos
 async function getCachedConfrontos(ligaId, edicao, fase, rodadaPontos) {
   const cacheKey = `matamata_confrontos_${ligaId}_${edicao}_${fase}_${rodadaPontos}`;
-  
+
   return await cacheManager.get(
     "rodadas",
     cacheKey,
@@ -260,7 +230,7 @@ async function getCachedConfrontos(ligaId, edicao, fase, rodadaPontos) {
 
 async function setCachedConfrontos(ligaId, edicao, fase, rodadaPontos, confrontos) {
   const cacheKey = `matamata_confrontos_${ligaId}_${edicao}_${fase}_${rodadaPontos}`;
-  
+
   await cacheManager.set("rodadas", cacheKey, confrontos);
   console.log(`[MATA-ORQUESTRADOR] Confrontos salvos em cache: ${cacheKey}`);
 }
@@ -359,11 +329,11 @@ async function carregarFase(fase, ligaId) {
     // ✅ TENTAR CACHE PRIMEIRO (apenas para rodadas consolidadas)
     if (!isPending) {
       const cachedConfrontos = await getCachedConfrontos(ligaId, edicaoAtual, fase, rodadaPontosNum);
-      
+
       if (cachedConfrontos) {
         console.log(`[MATA-ORQUESTRADOR] 💾 Confrontos recuperados do cache`);
         renderTabelaMataMata(cachedConfrontos, contentId, faseLabel, edicaoAtual, isPending);
-        
+
         if (dependenciasOk[1] && criarBotaoExportacaoMataMata) {
           try {
             await criarBotaoExportacaoMataMata({
@@ -378,12 +348,12 @@ async function carregarFase(fase, ligaId) {
             console.warn("[MATA-ORQUESTRADOR] Erro ao adicionar botão de exportação:", exportError);
           }
         }
-        
+
         if (fase === "final" && cachedConfrontos.length > 0) {
           const edicaoNome = edicaoSelecionada.nome;
           renderBannerCampeao(contentId, cachedConfrontos[0], edicaoNome, isPending);
         }
-        
+
         return; // ✅ RETORNA CEDO COM CACHE
       }
     }
