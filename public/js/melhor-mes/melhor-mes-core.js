@@ -385,7 +385,7 @@ export class MelhorMesCore {
     cacheTimestamps.clear();
 
     return await this.inicializar();
-  },
+  }
 
   // OBTER DADOS DE EDIÇÃO ESPECÍFICA
   async obterDadosEdicao(indexEdicao) {
@@ -394,7 +394,7 @@ export class MelhorMesCore {
     }
 
     return this.dadosProcessados.resultados[indexEdicao] || null;
-  },
+  }
 
   // OBTER VENCEDORES DE TODAS AS EDIÇÕES
   obterVencedores() {
@@ -420,7 +420,7 @@ export class MelhorMesCore {
       `[MELHOR-MES-CORE] ${vencedores.length} vencedores encontrados`,
     );
     return vencedores;
-  },
+  }
 
   // DIAGNÓSTICO DO SISTEMA
   diagnosticar() {
