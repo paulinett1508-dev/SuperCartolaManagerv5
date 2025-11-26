@@ -88,10 +88,10 @@ class ParticipanteNavigation {
             const data = await response.json();
             this.modulosAtivos = data.modulos;
 
-            console.log('[PARTICIPANTE-NAV] ✅ Módulos ativos carregados:', this.modulosAtivos);
-            console.log('[PARTICIPANTE-NAV] 🔎 Verificação detalhada:');
-            console.log('  - pontosCorridos:', this.modulosAtivos.pontosCorridos, typeof this.modulosAtivos.pontosCorridos);
-            console.log('  - mataMata:', this.modulosAtivos.mataMata, typeof this.modulosAtivos.mataMata);
+            // Módulos ativos carregados - logging reduzido
+            if (Object.keys(this.modulosAtivos).length === 0) {
+                console.warn('[PARTICIPANTE-NAV] ⚠️ Nenhum módulo ativo encontrado');
+            }
 
             // ✅ RENDERIZAR MENU COM APENAS MÓDULOS ATIVOS
             this.renderizarMenuDinamico();
@@ -187,11 +187,11 @@ class ParticipanteNavigation {
 
     async aguardarModulosENavegar() {
         console.log('[PARTICIPANTE-NAV] Sistema de navegação pronto');
-        
+
         // 🎯 VERIFICAR SE PRECISA AGUARDAR SELEÇÃO DE LIGA
         if (participanteAuth.pausarNavegacaoAteSelecao) {
             console.log('[PARTICIPANTE-NAV] ⏸️ Aguardando seleção de liga antes de navegar...');
-            
+
             const container = document.getElementById('moduleContainer');
             if (container) {
                 container.innerHTML = `
@@ -206,7 +206,7 @@ class ParticipanteNavigation {
 
             return;
         }
-        
+
         // ✅ RESTAURAR MÓDULO ANTERIOR OU CARREGAR BOAS-VINDAS
         const moduloSalvo = this.restaurarModuloAnterior();
         this.navegarPara(moduloSalvo || 'boas-vindas');
@@ -496,7 +496,7 @@ class ParticipanteNavigation {
             case 'artilheiro':
                 console.log('[PARTICIPANTE-NAV] 🏆 Inicializando módulo Artilheiro...');
                 console.log('[PARTICIPANTE-NAV] Função disponível?', typeof window.inicializarArtilheiroParticipante);
-                
+
                 if (window.inicializarArtilheiroParticipante) {
                     console.log('[PARTICIPANTE-NAV] Chamando inicializarArtilheiroParticipante com:', { ligaId, timeId });
                     await window.inicializarArtilheiroParticipante(ligaId, timeId);

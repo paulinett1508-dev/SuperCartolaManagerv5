@@ -78,6 +78,13 @@ export async function inicializarExtratoParticipante({ participante, ligaId, tim
             console.warn('[EXTRATO-PARTICIPANTE] ⚠️ Falha na busca de rodada, usando fallback:', error.message);
         }
 
+        // ✅ EXPOR DADOS GLOBALMENTE para módulos que dependem
+        window.participanteData = {
+            ligaId: ligaId,
+            timeId: timeId,
+            participante: participante
+        };
+
         // ✅ SE MERCADO ABERTO, USAR RODADA ANTERIOR (a última completa)
         const ultimaRodadaCompleta = mercadoAberto ? Math.max(1, rodadaAtual - 1) : rodadaAtual;
         console.log(`[EXTRATO-PARTICIPANTE] 📊 Última rodada completa para cálculo: ${ultimaRodadaCompleta}`);
@@ -181,7 +188,13 @@ export async function inicializarExtratoParticipante({ participante, ligaId, tim
             return;
         }
 
-        console.log('[EXTRATO-PARTICIPANTE] 📋 Rodadas a renderizar:', extratoData.rodadas.length);
+        // Adicionando verificação para o array de rodadas
+        const qtdRodadas = extratoData.rodadas?.length || 0;
+        console.log('[EXTRATO-PARTICIPANTE] 📋 Rodadas a renderizar:', qtdRodadas);
+
+        if (qtdRodadas === 0) {
+            console.warn('[EXTRATO-PARTICIPANTE] ⚠️ Nenhuma rodada no extrato - pode indicar problema no cache');
+        }
 
         // Renderizar extrato
         try {

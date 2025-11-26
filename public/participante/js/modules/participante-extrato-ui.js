@@ -4,19 +4,19 @@
 console.log('[EXTRATO-UI] 🎨 Módulo de UI carregado');
 
 export function renderizarExtratoParticipante(extrato, participanteId) {
-  console.log('═══════════════════════════════════════════════════════════════');
-  console.log('[EXTRATO-UI] 🎨 INICIANDO RENDERIZAÇÃO');
-  console.log('[EXTRATO-UI] 📦 Dados recebidos:', JSON.stringify(extrato, null, 2));
-  console.log('[EXTRATO-UI] 👤 Participante:', participanteId);
-  console.log('[EXTRATO-UI] 🔍 Validação CRÍTICA:', {
-    extratoValido: !!extrato,
-    temRodadas: Array.isArray(extrato?.rodadas),
-    qtdRodadas: extrato?.rodadas?.length || 0,
-    temResumo: !!extrato?.resumo,
-    participanteValido: !!participanteId,
-    estruturaCorreta: extrato && typeof extrato === 'object' && Array.isArray(extrato.rodadas)
-  });
-  console.log('═══════════════════════════════════════════════════════════════');
+  // Validação silenciosa - log apenas se houver problema
+    const validacao = {
+        extratoValido: !!extrato,
+        temRodadas: !!extrato.rodadas,
+        qtdRodadas: extrato.rodadas?.length || 0,
+        temResumo: !!extrato.resumo,
+        participanteValido: !!participanteId,
+        saldoFinal: extrato.resumo?.saldo_final
+    };
+
+    if (!validacao.extratoValido || validacao.qtdRodadas === 0) {
+        console.warn('[EXTRATO-UI] ⚠️ Problema na validação:', validacao);
+    }
 
   const container = document.getElementById('fluxoFinanceiroContent');
 
@@ -228,7 +228,7 @@ export function renderizarExtratoParticipante(extrato, participanteId) {
 
 function renderizarLinhasRodadas(rodadas) {
   console.log('[EXTRATO-UI] 📊 Renderizando rodadas:', rodadas?.length || 0);
-  
+
   if (!rodadas || rodadas.length === 0) {
     console.warn('[EXTRATO-UI] ⚠️ Nenhuma rodada para renderizar');
     return `<tr><td colspan="7" style="text-align: center; padding: 20px; color: #999;">Sem dados de rodadas</td></tr>`;
@@ -241,7 +241,7 @@ function renderizarLinhasRodadas(rodadas) {
       bonusOnus: r.bonusOnus,
       saldo: r.saldo
     });
-    
+
     return `
         <tr>
             <td>${r.rodada}ª</td>
@@ -588,7 +588,7 @@ function mostrarPopupDetalhamento(titulo, detalhes, cor) {
 
   // Criar array de categorias com valores não-zero
   const categorias = [];
-  
+
   if (detalhes.bonusOnus !== 0) {
     categorias.push({
       nome: 'Bônus/Ônus',
@@ -598,7 +598,7 @@ function mostrarPopupDetalhamento(titulo, detalhes, cor) {
       percentual: Math.abs((detalhes.bonusOnus / total) * 100)
     });
   }
-  
+
   if (detalhes.pontosCorridos !== 0) {
     categorias.push({
       nome: 'Pontos Corridos',
@@ -608,7 +608,7 @@ function mostrarPopupDetalhamento(titulo, detalhes, cor) {
       percentual: Math.abs((detalhes.pontosCorridos / total) * 100)
     });
   }
-  
+
   if (detalhes.mataMata !== 0) {
     categorias.push({
       nome: 'Mata-Mata',
@@ -618,7 +618,7 @@ function mostrarPopupDetalhamento(titulo, detalhes, cor) {
       percentual: Math.abs((detalhes.mataMata / total) * 100)
     });
   }
-  
+
   if (detalhes.top10 !== 0) {
     categorias.push({
       nome: 'TOP 10',
@@ -628,7 +628,7 @@ function mostrarPopupDetalhamento(titulo, detalhes, cor) {
       percentual: Math.abs((detalhes.top10 / total) * 100)
     });
   }
-  
+
   if (detalhes.melhorMes !== 0) {
     categorias.push({
       nome: 'Melhor Mês',
@@ -638,7 +638,7 @@ function mostrarPopupDetalhamento(titulo, detalhes, cor) {
       percentual: Math.abs((detalhes.melhorMes / total) * 100)
     });
   }
-  
+
   if (detalhes.camposEditaveis !== 0) {
     categorias.push({
       nome: 'Ajustes Manuais',
@@ -661,13 +661,13 @@ function mostrarPopupDetalhamento(titulo, detalhes, cor) {
           transform: translateY(0);
         }
       }
-      
+
       @keyframes fillBar {
         from {
           width: 0%;
         }
       }
-      
+
       #popupDetalhamento {
         position: fixed;
         top: 0;
@@ -684,12 +684,12 @@ function mostrarPopupDetalhamento(titulo, detalhes, cor) {
         box-sizing: border-box;
         animation: fadeIn 0.3s ease;
       }
-      
+
       @keyframes fadeIn {
         from { opacity: 0; }
         to { opacity: 1; }
       }
-      
+
       #popupDetalhamento .modal-content {
         background: linear-gradient(135deg, #1a1a1a 0%, #252525 100%);
         border-radius: 20px;
@@ -701,7 +701,7 @@ function mostrarPopupDetalhamento(titulo, detalhes, cor) {
         border: 2px solid ${cor};
         animation: slideIn 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
       }
-      
+
       #popupDetalhamento .modal-header {
         background: linear-gradient(135deg, ${cor} 0%, ${cor}dd 100%);
         padding: 24px;
@@ -711,7 +711,7 @@ function mostrarPopupDetalhamento(titulo, detalhes, cor) {
         align-items: center;
         box-shadow: 0 4px 12px rgba(0,0,0,0.3);
       }
-      
+
       #popupDetalhamento .modal-header h3 {
         margin: 0;
         color: white;
@@ -720,7 +720,7 @@ function mostrarPopupDetalhamento(titulo, detalhes, cor) {
         flex: 1;
         text-shadow: 0 2px 4px rgba(0,0,0,0.3);
       }
-      
+
       #popupDetalhamento .btn-close {
         background: rgba(255,255,255,0.2);
         border: none;
@@ -735,16 +735,16 @@ function mostrarPopupDetalhamento(titulo, detalhes, cor) {
         justify-content: center;
         transition: all 0.3s ease;
       }
-      
+
       #popupDetalhamento .btn-close:hover {
         background: rgba(255,255,255,0.3);
         transform: rotate(90deg);
       }
-      
+
       #popupDetalhamento .modal-body {
         padding: 24px;
       }
-      
+
       #popupDetalhamento .categoria-item {
         background: rgba(255,255,255,0.03);
         border-radius: 12px;
@@ -754,26 +754,26 @@ function mostrarPopupDetalhamento(titulo, detalhes, cor) {
         transition: all 0.3s ease;
         animation: slideIn 0.5s ease both;
       }
-      
+
       #popupDetalhamento .categoria-item:hover {
         background: rgba(255,255,255,0.06);
         border-color: ${cor}40;
         transform: translateX(4px);
       }
-      
+
       #popupDetalhamento .categoria-header {
         display: flex;
         justify-content: space-between;
         align-items: center;
         margin-bottom: 12px;
       }
-      
+
       #popupDetalhamento .categoria-info {
         display: flex;
         align-items: center;
         gap: 10px;
       }
-      
+
       #popupDetalhamento .categoria-icone {
         font-size: 24px;
         width: 40px;
@@ -784,20 +784,20 @@ function mostrarPopupDetalhamento(titulo, detalhes, cor) {
         background: ${cor}20;
         border-radius: 8px;
       }
-      
+
       #popupDetalhamento .categoria-nome {
         font-weight: 600;
         color: #fff;
         font-size: 14px;
       }
-      
+
       #popupDetalhamento .categoria-valor {
         font-weight: 700;
         font-size: 16px;
         color: ${cor};
         text-shadow: 0 2px 8px ${cor}40;
       }
-      
+
       #popupDetalhamento .barra-container {
         background: rgba(255,255,255,0.05);
         height: 6px;
@@ -805,7 +805,7 @@ function mostrarPopupDetalhamento(titulo, detalhes, cor) {
         overflow: hidden;
         margin-bottom: 8px;
       }
-      
+
       #popupDetalhamento .barra-progresso {
         height: 100%;
         background: linear-gradient(90deg, ${cor} 0%, ${cor}cc 100%);
@@ -813,7 +813,7 @@ function mostrarPopupDetalhamento(titulo, detalhes, cor) {
         animation: fillBar 1s ease-out both;
         box-shadow: 0 0 10px ${cor}80;
       }
-      
+
       #popupDetalhamento .categoria-detalhes {
         font-size: 11px;
         color: #999;
@@ -821,7 +821,7 @@ function mostrarPopupDetalhamento(titulo, detalhes, cor) {
         justify-content: space-between;
         align-items: center;
       }
-      
+
       #popupDetalhamento .percentual-badge {
         background: ${cor}20;
         color: ${cor};
@@ -830,7 +830,7 @@ function mostrarPopupDetalhamento(titulo, detalhes, cor) {
         font-weight: 600;
         font-size: 10px;
       }
-      
+
       #popupDetalhamento .total-section {
         background: linear-gradient(135deg, ${cor}25 0%, ${cor}15 100%);
         padding: 20px;
@@ -839,13 +839,13 @@ function mostrarPopupDetalhamento(titulo, detalhes, cor) {
         margin-top: 20px;
         box-shadow: 0 4px 16px ${cor}20;
       }
-      
+
       #popupDetalhamento .total-row {
         display: flex;
         justify-content: space-between;
         align-items: center;
       }
-      
+
       #popupDetalhamento .total-label {
         font-weight: 700;
         color: #fff;
@@ -854,53 +854,53 @@ function mostrarPopupDetalhamento(titulo, detalhes, cor) {
         align-items: center;
         gap: 8px;
       }
-      
+
       #popupDetalhamento .total-value {
         font-weight: 800;
         font-size: 24px;
         color: ${cor};
         text-shadow: 0 2px 12px ${cor}60;
       }
-      
+
       @media (max-width: 768px) {
         #popupDetalhamento .modal-content {
           max-width: 95vw;
           max-height: 85vh;
           border-radius: 16px;
         }
-        
+
         #popupDetalhamento .modal-header {
           padding: 18px;
         }
-        
+
         #popupDetalhamento .modal-header h3 {
           font-size: 15px;
         }
-        
+
         #popupDetalhamento .modal-body {
           padding: 18px;
         }
-        
+
         #popupDetalhamento .categoria-icone {
           font-size: 20px;
           width: 36px;
           height: 36px;
         }
-        
+
         #popupDetalhamento .categoria-nome {
           font-size: 13px;
         }
-        
+
         #popupDetalhamento .categoria-valor {
           font-size: 14px;
         }
-        
+
         #popupDetalhamento .total-value {
           font-size: 20px;
         }
       }
     </style>
-    
+
     <div id="popupDetalhamento" onclick="this.remove()">
       <div class="modal-content" onclick="event.stopPropagation()">
         <!-- CABEÇALHO -->
@@ -920,11 +920,11 @@ function mostrarPopupDetalhamento(titulo, detalhes, cor) {
                 </div>
                 <span class="categoria-valor">R$ ${formatarMoeda(cat.valor)}</span>
               </div>
-              
+
               <div class="barra-container">
                 <div class="barra-progresso" style="width: ${cat.percentual}%; animation-delay: ${idx * 0.1}s;"></div>
               </div>
-              
+
               <div class="categoria-detalhes">
                 <span>${cat.rodadas.length > 0 ? `${cat.rodadas.length} rodada(s)` : 'Ajuste manual'}</span>
                 <span class="percentual-badge">${cat.percentual.toFixed(1)}%</span>

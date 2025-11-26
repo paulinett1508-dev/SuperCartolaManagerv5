@@ -165,12 +165,10 @@ export async function fetchAndProcessRankingRodada(ligaId, rodadaNum) {
     });
 
     // Log detalhado para debug
-    console.log(`[RODADAS-CORE] Processamento rodada ${rodadaNum}:`);
-    console.log(`   - Dados brutos: ${dataArray.length} items`);
-    console.log(`   - Após filtro: ${rankingsDaRodada.length} items`);
-    console.log(`   - Rodadas únicas nos dados:`, [
-      ...new Set(dataArray.map((r) => r.rodada)),
-    ]);
+    // Logging reduzido - apenas em caso de anomalias
+    if (rankingsDaRodada.length === 0) {
+        console.warn(`[RODADAS-CORE] ⚠️ Rodada ${rodadaNum}: ${dataArray.length} dados brutos, ${rankingsDaRodada.length} após filtro`);
+    }
 
     // Ordenar por pontos
     rankingsDaRodada.sort(

@@ -185,22 +185,15 @@ export async function getResultadosMataMata() {
 
 // Função para obter resultados consolidados para fluxo financeiro
 export async function getResultadosMataMataFluxo() {
-  console.log("[MATA-FINANCEIRO] Calculando TODAS as edições concluídas...");
+  console.log('[MATA-FINANCEIRO] Calculando TODAS as edições concluídas...');
 
-  try {
-    if (!getRankingRodadaEspecifica) {
-      console.error(
-        "[MATA-FINANCEIRO] Função getRankingRodadaEspecifica não disponível.",
-      );
-      return {
-        participantes: [],
-        totalArrecadado: 0,
-        totalPago: 0,
-        saldoFinal: 0,
-        edicoes: [],
-      };
+    if (typeof window.getRankingRodadaEspecifica !== 'function') {
+        console.warn(' [MATA-FINANCEIRO] Função getRankingRodadaEspecifica não disponível - usando fallback.');
+        // Retornar array vazio por enquanto, pois a função será carregada depois
+        return [];
     }
 
+  try {
     const ligaId = getLigaId();
     if (!ligaId) {
       console.error("[MATA-FINANCEIRO] ID da Liga não encontrado.");
