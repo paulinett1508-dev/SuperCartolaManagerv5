@@ -127,7 +127,7 @@
   </head>
   <body>
     <div class="button-container">
-      <button class="refresh-btn" onclick="carregarParciais()">
+      <button class="refresh-btn" id="btnAtualizarParciais">
         🔄 Atualizar Parciais
       </button>
       <a href="detalhe-liga.html" class="botao-voltar">⬅ Voltar</a>
@@ -368,6 +368,34 @@
             })
             .join("") ||
           `<tr><td colspan="6">Nenhum dado disponível para exibição.</td></tr>`;
+      }
+
+      // Configurar botão de atualizar com validação
+      const btnAtualizarParciais = document.getElementById("btnAtualizarParciais");
+      if (btnAtualizarParciais) {
+        btnAtualizarParciais.addEventListener("click", async function() {
+          try {
+            // Verificar status do mercado primeiro
+            const resMercado = await fetch("/api/mercado/status");
+            if (!resMercado.ok) throw new Error("Erro ao verificar status do mercado");
+            const mercadoStatus = await resMercado.json();
+            
+            if (mercadoStatus.mercado_aberto) {
+              alert(`⏸️ Rodada ${mercadoStatus.rodada_atual} - Mercado Aberto\n\n` +
+                    `As parciais ao vivo só estarão disponíveis quando:\n` +
+                    `✅ O mercado fechar\n` +
+                    `✅ Os jogos da rodada começarem\n\n` +
+                    `Aguarde o início da rodada para visualizar as parciais.`);
+              return;
+            }
+            
+            // Se mercado fechado, carregar parciais
+            await carregarParciais();
+          } catch (error) {
+            console.error("Erro ao atualizar:", error);
+            alert("Erro ao verificar status do mercado. Tente novamente.");
+          }
+        });
       }
 
       document.addEventListener("DOMContentLoaded", carregarParciais);
