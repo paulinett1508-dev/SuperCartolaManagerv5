@@ -187,6 +187,27 @@ class ParticipanteNavigation {
 
     async aguardarModulosENavegar() {
         console.log('[PARTICIPANTE-NAV] Sistema de navegação pronto');
+        
+        // 🎯 VERIFICAR SE PRECISA AGUARDAR SELEÇÃO DE LIGA
+        if (participanteAuth.pausarNavegacaoAteSelecao) {
+            console.log('[PARTICIPANTE-NAV] ⏸️ Aguardando seleção de liga antes de navegar...');
+            
+            const container = document.getElementById('moduleContainer');
+            if (container) {
+                container.innerHTML = `
+                    <div style="text-align: center; padding: 60px 20px; color: #666;">
+                        <h2 style="font-size: 24px; margin-bottom: 20px;">🏆 Bem-vindo!</h2>
+                        <p style="font-size: 16px; margin-bottom: 30px;">
+                            Você participa de múltiplas ligas.<br>
+                            Por favor, selecione uma liga no menu acima para continuar.
+                        </p>
+                        <div style="font-size: 48px; opacity: 0.3;">⬆️</div>
+                    </div>
+                `;
+            }
+            return;
+        }
+        
         // ✅ RESTAURAR MÓDULO ANTERIOR OU CARREGAR BOAS-VINDAS
         const moduloSalvo = this.restaurarModuloAnterior();
         this.navegarPara(moduloSalvo || 'boas-vindas');

@@ -239,13 +239,20 @@ class ParticipanteAuth {
                 console.log('[PARTICIPANTE-AUTH] 📝 Ligas:', ligas.map(l => `${l.nome} (${l.id})`).join(', '));
             }
 
-            // Só mostrar seletor se tiver MAIS DE UMA liga
+            // ✅ SEMPRE mostrar seletor se tiver múltiplas ligas
             if (ligas.length > 1) {
                 console.log('[PARTICIPANTE-AUTH] 🏆 Participante em múltiplas ligas:', ligas.length);
                 this.renderizarSeletorLigas(ligas);
-            } else {
-                console.log('[PARTICIPANTE-AUTH] ℹ️ Participante em apenas', ligas.length, 'liga(s)');
+                
+                // 🎯 PAUSAR navegação até seleção de liga
+                this.pausarNavegacaoAteSelecao = true;
+            } else if (ligas.length === 1) {
+                console.log('[PARTICIPANTE-AUTH] ℹ️ Participante em apenas 1 liga - carregando automaticamente');
                 this.ocultarSeletorLigas();
+                this.pausarNavegacaoAteSelecao = false;
+            } else {
+                console.warn('[PARTICIPANTE-AUTH] ⚠️ Nenhuma liga encontrada para este participante');
+                this.pausarNavegacaoAteSelecao = true;
             }
         } catch (error) {
             console.error('[PARTICIPANTE-AUTH] ❌ Erro ao verificar múltiplas ligas:', error);
@@ -253,15 +260,24 @@ class ParticipanteAuth {
     }
 
     renderizarSeletorLigas(ligas) {
-        const container = document.getElementById('seletorLigaContainer');
         const select = document.getElementById('seletorLiga');
 
-        if (!container || !select) return;
+        if (!select) return;
 
         // Limpar opções anteriores
         select.innerHTML = '';
 
-        // Adicionar opções
+        // ✅ OPÇÃO PLACEHOLDER (obrigatória se não houver liga selecionada)
+        if (!this.ligaId || ligas.length > 1) {
+            const placeholder = document.createElement('option');
+            placeholder.value = '';
+            placeholder.textContent = '🏆 Selecione uma Liga';
+            placeholder.disabled = true;
+            placeholder.selected = true;
+            select.appendChild(placeholder);
+        }
+
+        // Adicionar opções de ligas
         ligas.forEach(liga => {
             const option = document.createElement('option');
             option.value = liga.id;
@@ -272,11 +288,16 @@ class ParticipanteAuth {
 
         // Event listener para trocar de liga
         select.addEventListener('change', async (e) => {
-            await this.trocarLiga(e.target.value);
+            const novaLigaId = e.target.value;
+            if (novaLigaId) {
+                await this.trocarLiga(novaLigaId);
+                // Liberar navegação após seleção
+                this.pausarNavegacaoAteSelecao = false;
+            }
         });
 
-        // Mostrar container
-        container.style.display = 'block';
+        // Mostrar seletor no header
+        select.style.display = 'block';
     }
 
     ocultarSeletorLigas() {
