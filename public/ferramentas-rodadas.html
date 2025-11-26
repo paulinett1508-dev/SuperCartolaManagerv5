@@ -145,6 +145,7 @@
         import { carregarLigas } from './js/gerenciar-ligas.js';
 
         let ligasDisponiveis = [];
+        let logoCarregada = false;
 
         // Carregar layout
         async function loadLayout() {
@@ -224,7 +225,7 @@
             addLog(`Iniciando população de rodadas ${rodadaInicial} a ${rodadaFinal}...`, 'info');
 
             try {
-                const response = await fetch(`/api/rodadas/${ligaId}/popular`, {
+                const response = await fetch(`/api/rodadas/${ligaId}/rodadas`, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({
