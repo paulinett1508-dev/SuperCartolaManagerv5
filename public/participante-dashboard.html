@@ -486,10 +486,12 @@
     <script src="/participante/js/participante-navigation.js"></script>
 </head>
 <body>
-  <!-- HEADER PROFISSIONAL COM NAVEGAÇÃO -->
+  <!-- HEADER PROFISSIONAL COM NAVEGAÇÃO - REDESENHO UX SÊNIOR -->
   <div class="dashboard-header">
-    <div class="header-top">
-      <div class="user-info-section">
+    <!-- LINHA 1: ELEMENTOS PRIORITÁRIOS -->
+    <div class="header-primary">
+      <!-- Escudos + Info do Participante -->
+      <div class="header-left">
         <div class="user-avatar" id="userAvatar">
           <span style="font-size: 24px;">⚽</span>
         </div>
@@ -498,12 +500,35 @@
           <p id="userTeam" style="margin: 0; font-size: 13px; opacity: 0.9;">Aguarde...</p>
         </div>
       </div>
-      <div style="display: flex; gap: 8px; align-items: center;">
-        <button class="btn-home" onclick="participanteNav?.navegarPara('boas-vindas')" title="Voltar para Boas-Vindas">
+
+      <!-- Botões de Ação Prioritários -->
+      <div class="header-actions-primary">
+        <button class="btn-action btn-home" onclick="participanteNav?.navegarPara('boas-vindas')" title="Voltar para Home" aria-label="Home">
           🏠
         </button>
-        <button class="btn-sair" onclick="sair()">
-          ➡️
+        <button class="btn-menu-toggle" id="headerMenuToggle" title="Menu" aria-label="Expandir menu">
+          ☰
+        </button>
+      </div>
+    </div>
+
+    <!-- LINHA 2: ELEMENTOS SECUNDÁRIOS (COLAPSÁVEL) -->
+    <div class="header-secondary" id="headerSecondary">
+      <div class="header-secondary-content">
+        <!-- Status de Conexão -->
+        <div class="status-badge" id="statusConexao" title="Status da conexão">
+          <span id="statusIndicador" class="status-dot"></span>
+          <span id="statusTexto">Online</span>
+        </div>
+
+        <!-- Seletor de Liga -->
+        <div class="liga-selector-wrapper" id="seletorLigaContainer">
+          <select id="seletorLiga" title="Selecionar liga"></select>
+        </div>
+
+        <!-- Botão Logout -->
+        <button class="btn-action btn-logout" onclick="sair()" title="Sair" aria-label="Logout">
+          ➡️ Sair
         </button>
       </div>
     </div>
