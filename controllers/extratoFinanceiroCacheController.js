@@ -92,7 +92,7 @@ export const salvarExtratoCache = async (req, res) => {
             saldo_consolidado:
                 resumo?.saldo || resumo?.saldo_final || saldo || 0,
             ganhos_consolidados: resumo?.totalGanhos || resumo?.ganhos || 0, // ✅ Adicionar totalGanhos
-            perdas_consolidadas: resumo?.totalPerdas || resumo?.perdas || 0,
+            perdas_consolidados: resumo?.totalPerdas || resumo?.perdas || 0,
 
             metadados: {
                 versaoCalculo: "3.0.1", // ✅ Versão atualizada
