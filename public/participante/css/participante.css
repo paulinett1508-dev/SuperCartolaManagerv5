@@ -2,6 +2,8 @@
 
 :root {
     --participante-primary: #FF4500;
+    --participante-primary-dark: #e8472b; /* Added for gradient */
+    --participante-accent: #f66700; /* Added for accent */
     --participante-bg: #0a0a0a;
     --participante-card: #1a1a1a;
     --participante-border: rgba(255, 69, 0, 0.2);
@@ -264,7 +266,9 @@ body {
         font-size: 13px;
     }
 
+    /* === NAVEGAÇÃO - TABLET === */
     .participante-nav {
+        display: grid;
         grid-template-columns: repeat(4, 1fr);
         gap: 12px;
         padding: 14px 20px;
@@ -306,6 +310,7 @@ body {
         font-size: 26px;
     }
 
+    /* === NAVEGAÇÃO - DESKTOP === */
     .participante-nav {
         grid-template-columns: repeat(5, 1fr);
         gap: 14px;
@@ -365,8 +370,30 @@ body {
         max-height: calc(100vh - 200px);
         overflow-y: auto;
     }
+
+    /* === NAVEGAÇÃO - MOBILE FIRST === */
+    .participante-nav {
+        display: grid;
+        grid-template-columns: repeat(2, 1fr);
+        gap: 10px;
+        padding: 12px 16px;
+        margin: 0;
+        background: rgba(22, 43, 65, 0.3);
+        border-bottom: 1px solid var(--participante-border);
+        flex-shrink: 0;
+        width: 100%;
+    }
+
+    .nav-btn.active {
+        background: linear-gradient(135deg, #f66700 0%, var(--participante-primary-dark) 100%);
+        color: white;
+        border-color: var(--participante-accent);
+        box-shadow: 0 4px 12px rgba(246, 103, 0, 0.5);
+        font-weight: 800;
+    }
 }
-/* === BOTTOM NAVIGATION FIXO === */
+
+/* === BOTTOMNAVIGATION FIXO === */
 .bottom-nav-modern {
     position: fixed;
     bottom: 0;
