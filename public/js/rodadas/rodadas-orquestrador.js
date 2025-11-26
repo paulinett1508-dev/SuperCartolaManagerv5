@@ -29,8 +29,7 @@ import {
   getCachedRankingRodada,
   cacheParciais,
   getCachedParciais,
-  cacheStatusMercado,
-  getCachedStatusMercado,
+  getStatusMercadoCache,
   cacheLiga,
   getCachedLiga,
   preloadEscudos,
@@ -127,7 +126,7 @@ export async function carregarRodadas(forceRefresh = false) {
 
 async function atualizarStatusMercadoComCache(forceRefresh = false) {
   if (!forceRefresh) {
-    const cached = getCachedStatusMercado();
+    const cached = getStatusMercadoCache();
     if (cached) {
       console.log("[RODADAS-ORQUESTRADOR] Usando status do mercado em cache");
       return;
