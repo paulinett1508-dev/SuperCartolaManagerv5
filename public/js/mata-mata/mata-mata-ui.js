@@ -288,6 +288,22 @@ export function renderRodadaPendente(containerId, rodadaPontosNum) {
   contentElement.appendChild(msgContainer);
 }
 
+// Mapa de times brasileiros para exibição
+const TIMES_BRASILEIROS = {
+  262: "Flamengo",
+  263: "Botafogo",
+  264: "Corinthians",
+  265: "Grêmio",
+  266: "Fluminense",
+  267: "Vasco",
+  275: "Palmeiras",
+  276: "São Paulo",
+  277: "Santos",
+  283: "Cruzeiro",
+  292: "Atlético-MG",
+  344: "Atlético-GO"
+};
+
 // Função para renderizar banner do campeão
 export function renderBannerCampeao(containerId, confronto, edicaoNome, isPending = false) {
   const contentElement = document.getElementById(containerId);
@@ -298,6 +314,15 @@ export function renderBannerCampeao(containerId, confronto, edicaoNome, isPendin
   const timeB = confronto.timeB;
   const campeao = timeA.pontos > timeB.pontos ? timeA : timeB;
   const viceCampeao = timeA.pontos > timeB.pontos ? timeB : timeA;
+
+  // Verificar se tem time do coração
+  const timeCoracaoNome = TIMES_BRASILEIROS[campeao.clube_id];
+  const timeCoracaoHTML = timeCoracaoNome ? `
+    <div class="campeao-time-coracao">
+      <img src="/escudos/${campeao.clube_id}.png" onerror="this.style.display='none'">
+      <span>Torcedor ${timeCoracaoNome}</span>
+    </div>
+  ` : '';
 
   const bannerHTML = `
     <div class="campeao-banner-container" id="campeao-banner">
@@ -315,6 +340,7 @@ export function renderBannerCampeao(containerId, confronto, edicaoNome, isPendin
             <div class="campeao-time-nome">${campeao.nome_time}</div>
             <div class="campeao-cartoleiro">${campeao.nome_cartoleiro || campeao.nome_cartola || "—"}</div>
             <div class="campeao-pontos">${campeao.pontos.toFixed(2).replace(".", ",")} pts</div>
+            ${timeCoracaoHTML}
           </div>
         </div>
 
@@ -327,15 +353,6 @@ export function renderBannerCampeao(containerId, confronto, edicaoNome, isPendin
             <span class="vice-nome">${viceCampeao.nome_time}</span>
             <span class="vice-pontos">${viceCampeao.pontos.toFixed(2).replace(".", ",")} pts</span>
           </div>
-        </div>
-
-        <div class="campeao-confetti">
-          <div class="confetti"></div>
-          <div class="confetti"></div>
-          <div class="confetti"></div>
-          <div class="confetti"></div>
-          <div class="confetti"></div>
-          <div class="confetti"></div>
         </div>
       </div>
     </div>
