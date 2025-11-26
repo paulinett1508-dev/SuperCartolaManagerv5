@@ -297,17 +297,24 @@ export class FluxoFinanceiroCore {
         motivo,
     ) {
         try {
+            // ✅ ENVIAR PAYLOAD CORRETO
+            const payload = {
+                historico_transacoes: extrato.rodadas, // Array de rodadas
+                ultimaRodadaCalculada,
+                motivoRecalculo: motivo,
+                resumo: extrato.resumo,
+                saldo: extrato.resumo?.saldo || 0
+            };
+
+            console.log(`[FLUXO-CORE] 💾 Salvando cache: ${payload.historico_transacoes?.length} rodadas até R${ultimaRodadaCalculada}`);
+
             await fetch(`/api/extrato-cache/${ligaId}/times/${timeId}/cache`, {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({
-                    extrato, // Objeto completo { rodadas: [], resumo: {} }
-                    ultimaRodadaCalculada,
-                    motivoRecalculo: motivo,
-                }),
+                body: JSON.stringify(payload),
             });
         } catch (error) {
-            console.warn("[FLUXO-CORE] Falha silenciada ao salvar cache");
+            console.warn("[FLUXO-CORE] Falha silenciada ao salvar cache:", error);
         }
     }
 

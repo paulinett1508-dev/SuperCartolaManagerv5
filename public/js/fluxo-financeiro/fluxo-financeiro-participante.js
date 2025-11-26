@@ -248,14 +248,25 @@ class FluxoFinanceiroParticipante {
                 console.log('[TESTE-CACHE] 💾 Salvando extrato no cache MongoDB...');
                 const inicioSave = performance.now();
 
+                // ✅ PAYLOAD CORRETO - enviar rodadas diretamente
+                const payload = {
+                    historico_transacoes: extratoCompleto.rodadas, // ✅ Array de rodadas
+                    ultimaRodadaCalculada: rodadaAtual,
+                    motivoRecalculo: 'participante_visualizacao',
+                    resumo: extratoCompleto.resumo, // ✅ Incluir resumo
+                    saldo: extratoCompleto.resumo.saldo
+                };
+
+                console.log('[TESTE-CACHE] 📤 Payload:', {
+                    rodadas: payload.historico_transacoes?.length,
+                    ultimaRodada: payload.ultimaRodadaCalculada,
+                    saldo: payload.saldo
+                });
+
                 await fetch(`/api/extrato-cache/${ligaId}/times/${timeId}/cache`, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({
-                        extrato: extratoCompleto,
-                        ultimaRodadaCalculada: rodadaAtual,
-                        motivoRecalculo: 'participante_visualizacao'
-                    })
+                    body: JSON.stringify(payload)
                 });
 
                 const fimSave = performance.now();

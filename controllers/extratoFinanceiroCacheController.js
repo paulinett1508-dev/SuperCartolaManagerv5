@@ -59,22 +59,43 @@ export const salvarExtratoCache = async (req, res) => {
 
         const dadosParaSalvar = historico_transacoes || extrato || [];
 
+        // ✅ CORREÇÃO: Extrair rodadas corretamente do array
+        let rodadasArray = dadosParaSalvar;
+
+        // Se vier como objeto com propriedade 'rodadas', extrair
+        if (!Array.isArray(dadosParaSalvar) && dadosParaSalvar?.rodadas) {
+            rodadasArray = dadosParaSalvar.rodadas;
+        }
+
+        // ✅ CALCULAR ÚLTIMA RODADA CORRETAMENTE
+        const rodadaCalculadaReal = ultimaRodadaCalculada ||
+            (Array.isArray(rodadasArray) && rodadasArray.length > 0
+                ? Math.max(...rodadasArray.map(r => r.rodada || 0))
+                : 0);
+
+        console.log(`[CACHE-CONTROLLER] 💾 Salvando cache:`, {
+            timeId,
+            rodadasRecebidas: rodadasArray?.length || 0,
+            ultimaRodadaCalculada: rodadaCalculadaReal,
+            motivoRecalculo
+        });
+
         // Mapeamento seguro para Snake Case (MongoDB)
         const cacheData = {
             liga_id: ligaId,
             time_id: Number(timeId), // Garante Number
-            ultima_rodada_consolidada: ultimaRodadaCalculada || 0,
-            historico_transacoes: dadosParaSalvar,
+            ultima_rodada_consolidada: rodadaCalculadaReal, // ✅ CORRIGIDO
+            historico_transacoes: rodadasArray, // ✅ Usar array correto
             data_ultima_atualizacao: new Date(),
 
             // Pega do resumo se existir, ou do saldo direto
             saldo_consolidado:
                 resumo?.saldo || resumo?.saldo_final || saldo || 0,
-            ganhos_consolidados: resumo?.ganhos || 0,
-            perdas_consolidadas: resumo?.perdas || resumo?.totalPerdas || 0, // Frontend às vezes manda 'totalPerdas'
+            ganhos_consolidados: resumo?.totalGanhos || resumo?.ganhos || 0, // ✅ Adicionar totalGanhos
+            perdas_consolidadas: resumo?.totalPerdas || resumo?.perdas || 0,
 
             metadados: {
-                versaoCalculo: "2.1.0",
+                versaoCalculo: "3.0.1", // ✅ Versão atualizada
                 timestampCalculo: new Date(),
                 motivoRecalculo: motivoRecalculo || "atualizacao_frontend",
                 origem: "participante_app",
