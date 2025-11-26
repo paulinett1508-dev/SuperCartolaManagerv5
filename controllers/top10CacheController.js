@@ -4,7 +4,7 @@ import Top10Cache from "../models/Top10Cache.js";
 export const salvarCacheTop10 = async (req, res) => {
     try {
         const { ligaId } = req.params;
-        const { rodada, mitos, micos } = req.body;
+        const { rodada, mitos, micos, permanent } = req.body;
 
         if (!rodada || !mitos || !micos) {
             return res
@@ -18,15 +18,17 @@ export const salvarCacheTop10 = async (req, res) => {
             {
                 mitos,
                 micos,
+                cache_permanente: permanent || false, // ✅ Marca como permanente
                 ultima_atualizacao: new Date(),
             },
             { new: true, upsert: true },
         );
 
-        console.log(
-            `[CACHE-TOP10] Snapshot da Liga ${ligaId} (Rodada ${rodada}) salvo.`,
-        );
-        res.json({ success: true });
+        const msg = permanent 
+            ? `[CACHE-TOP10] Cache PERMANENTE salvo: Liga ${ligaId}, Rodada ${rodada}`
+            : `[CACHE-TOP10] Cache temporário salvo: Liga ${ligaId}, Rodada ${rodada}`;
+        console.log(msg);
+        res.json({ success: true, permanent });
     } catch (error) {
         console.error("[CACHE-TOP10] Erro ao salvar:", error);
         res.status(500).json({ error: "Erro interno" });

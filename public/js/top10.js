@@ -58,6 +58,10 @@ async function lerCacheTop10(ligaId, rodada) {
  */
 async function salvarCacheTop10(ligaId, rodada, mitos, micos) {
   try {
+    // ✅ Determinar se é cache permanente (rodada consolidada)
+    const status = await getMercadoStatus();
+    const isPermanent = status && status.rodada_atual > rodada;
+    
     const response = await fetch(`/api/top10/cache/${ligaId}`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
@@ -65,12 +69,16 @@ async function salvarCacheTop10(ligaId, rodada, mitos, micos) {
         rodada: rodada,
         mitos: mitos,
         micos: micos,
+        permanent: isPermanent, // ✅ Sinaliza cache permanente
       }),
     });
 
     // Só comemora se o servidor responder OK (200-299)
     if (response.ok) {
-      console.log(`[TOP10] 💾 Snapshot da Rodada ${rodada} salvo com sucesso!`);
+      const msg = isPermanent 
+        ? `[TOP10] 💾 Cache PERMANENTE salvo (Rodada ${rodada} consolidada)`
+        : `[TOP10] 💾 Cache temporário salvo (Rodada ${rodada})`;
+      console.log(msg);
     } else {
       console.warn(
         `[TOP10] ❌ Falha ao salvar cache: Servidor respondeu ${response.status}`,

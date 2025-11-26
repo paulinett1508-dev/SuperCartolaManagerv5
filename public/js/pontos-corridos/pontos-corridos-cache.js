@@ -198,6 +198,42 @@ export function getEstatisticasCache() {
   };
 }
 
+// Função para salvar cache persistente no MongoDB
+export async function salvarCachePersistente(ligaId, rodadaLiga, classificacao) {
+    try {
+        console.log(`[CACHE-PC] 💾 Salvando classificação da rodada ${rodadaLiga} no MongoDB...`);
+
+        // ✅ Determinar se é cache permanente
+        const statusMercado = getStatusMercado(); // Assume que getStatusMercado está disponível e retorna um objeto com rodada_atual
+        const isPermanent = statusMercado.rodada_atual > rodadaLiga;
+
+        const response = await fetch(`/api/pontos-corridos/cache/${ligaId}`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                rodada: rodadaLiga,
+                classificacao: classificacao,
+                permanent: isPermanent // ✅ Sinaliza se é cache permanente
+            })
+        });
+
+        if (response.ok) {
+            const msg = isPermanent
+                ? `[CACHE-PC] ✅ Cache PERMANENTE salvo (Rodada ${rodadaLiga} consolidada)`
+                : `[CACHE-PC] ✅ Cache temporário salvo (Rodada ${rodadaLiga})`;
+            console.log(msg);
+            return true;
+        } else {
+            console.warn(`[CACHE-PC] ⚠️ Falha ao salvar cache: ${response.status}`);
+            return false;
+        }
+    } catch (error) {
+        console.error('[CACHE-PC] ❌ Erro ao salvar cache persistente:', error);
+        return false;
+    }
+}
+
+
 console.log("[PONTOS-CORRIDOS-CACHE] Sistema de cache inicializado");
 console.log("[PONTOS-CORRIDOS-CACHE] Limpeza automática configurada (5min)");
 

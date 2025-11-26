@@ -5,6 +5,7 @@ const Top10CacheSchema = new mongoose.Schema(
     {
         liga_id: { type: String, required: true, index: true },
         rodada_consolidada: { type: Number, required: true }, // Cache válido até esta rodada
+        cache_permanente: { type: Boolean, default: false }, // ✅ NOVO: Flag de cache permanente
 
         mitos: [
             {

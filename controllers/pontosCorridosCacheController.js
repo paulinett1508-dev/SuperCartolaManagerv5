@@ -4,26 +4,27 @@ import PontosCorridosCache from "../models/PontosCorridosCache.js";
 export const salvarCachePontosCorridos = async (req, res) => {
     try {
         const { ligaId } = req.params;
-        const { rodada, classificacao } = req.body;
+        const { rodada, classificacao, permanent } = req.body;
 
         if (!rodada || !classificacao) {
             return res.status(400).json({ error: "Dados incompletos" });
         }
 
-        // Upsert: Atualiza se existir, cria se não
-        const cache = await PontosCorridosCache.findOneAndUpdate(
+        await PontosCorridosCache.findOneAndUpdate(
             { liga_id: ligaId, rodada_consolidada: rodada },
             {
-                classificacao,
+                classificacao: classificacao,
+                cache_permanente: permanent || false, // ✅ Marca como permanente
                 ultima_atualizacao: new Date(),
             },
-            { new: true, upsert: true },
+            { new: true, upsert: true }
         );
 
-        console.log(
-            `[CACHE-PC] Ranking da liga ${ligaId} (Rodada ${rodada}) salvo com sucesso.`,
-        );
-        res.json({ success: true, message: "Cache salvo", id: cache._id });
+        const msg = permanent
+            ? `[CACHE-PC] Cache PERMANENTE salvo: Liga ${ligaId}, Rodada ${rodada}`
+            : `[CACHE-PC] Cache temporário salvo: Liga ${ligaId}, Rodada ${rodada}`;
+        console.log(msg);
+        res.json({ success: true, permanent });
     } catch (error) {
         console.error("[CACHE-PC] Erro ao salvar:", error);
         res.status(500).json({ error: "Erro interno" });
@@ -54,7 +55,7 @@ export const lerCachePontosCorridos = async (req, res) => {
         // ✅ Validar se o cache está na rodada esperada (se rodada foi especificada)
         if (rodada && cache.rodada_consolidada !== Number(rodada)) {
             console.log(`[CACHE-PC] ⚠️ Cache desatualizado: esperava R${rodada}, tinha R${cache.rodada_consolidada}`);
-            return res.status(404).json({ 
+            return res.status(404).json({
                 cached: false,
                 reason: 'outdated',
                 cachedUntil: cache.rodada_consolidada,
