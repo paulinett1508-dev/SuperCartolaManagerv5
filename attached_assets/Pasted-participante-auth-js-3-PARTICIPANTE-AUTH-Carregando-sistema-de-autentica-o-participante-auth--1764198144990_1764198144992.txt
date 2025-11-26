@@ -1,0 +1,64 @@
+participante-auth.js:3 [PARTICIPANTE-AUTH] Carregando sistema de autenticação...
+participante-auth.js:419 [PARTICIPANTE-AUTH] ✅ Sistema carregado
+participante-navigation.js:3 [PARTICIPANTE-NAV] Carregando sistema de navegação...
+participante-navigation.js:679 [PARTICIPANTE-NAV] ✅ Sistema carregado
+participante-status.js:3 [PARTICIPANTE-STATUS] Carregando sistema de status...
+participante-status.js:144 [PARTICIPANTE-STATUS] ✅ Sistema carregado
+cache-manager.js:439 ✅ [CACHE-MANAGER] Sistema de cache inteligente carregado
+participante-auth.js:42 [PARTICIPANTE-AUTH] Verificando autenticação...
+participante-navigation.js:25 [PARTICIPANTE-NAV] Inicializando navegação...
+participante-navigation.js:40 [PARTICIPANTE-NAV] Aguardando dados do participante...
+participante-navigation.js:52 [PARTICIPANTE-NAV] Tentativa 1/10 - Aguardando dados...
+participante-status.js:22  [PARTICIPANTE-STATUS] Elementos de status não encontrados no DOM
+inicializar @ participante-status.js:22
+(anônimo) @ participante-status.js:138
+cache-manager.js:50 ✅ [CACHE-MANAGER] IndexedDB inicializado
+participante-navigation.js:52 [PARTICIPANTE-NAV] Tentativa 2/10 - Aguardando dados...
+participante-auth.js:107 [PARTICIPANTE-AUTH] Atualizando header com dados: {timeId: '13935277', ligaId: '684cb1c8af923da7c7df51de', participante: {…}, time: null}
+participante-auth.js:220 [PARTICIPANTE-AUTH] 🔍 Verificando múltiplas ligas para timeId: 13935277
+participante-navigation.js:46 [PARTICIPANTE-NAV] ✅ Dados do participante disponíveis: {participante: {…}, ligaId: '684cb1c8af923da7c7df51de', timeId: '13935277'}
+participante-navigation.js:81 [PARTICIPANTE-NAV] 🔍 Buscando módulos ativos para liga 684cb1c8af923da7c7df51de...
+participante-auth.js:121 [PARTICIPANTE-AUTH] Dados do time carregados: {nome: 'Urubu Play F.C.', cartola: 'Paulinett Miranda', clube: 262}
+participante-auth.js:233 [PARTICIPANTE-AUTH] 📊 Resposta da API: {success: true, ligas: Array(2)}
+participante-auth.js:236 [PARTICIPANTE-AUTH] 📋 Total de ligas encontradas: 2
+participante-auth.js:239 [PARTICIPANTE-AUTH] 📝 Ligas: Super Cartola 2025 (684cb1c8af923da7c7df51de), Cartoleiros do Sobral (684d821cf1a7ae16d1f89572)
+participante-auth.js:244 [PARTICIPANTE-AUTH] 🏆 Participante em múltiplas ligas: 2
+participante-auth.js:270 [PARTICIPANTE-AUTH] 📝 Renderizando seletor com 2 ligas
+participante-auth.js:290 [PARTICIPANTE-AUTH] ➕ Adicionada liga: Super Cartola 2025 (684cb1c8af923da7c7df51de)
+participante-auth.js:290 [PARTICIPANTE-AUTH] ➕ Adicionada liga: Cartoleiros do Sobral (684d821cf1a7ae16d1f89572)
+participante-auth.js:310 [PARTICIPANTE-AUTH] ✅ Seletor de ligas renderizado e visível
+participante-navigation.js:91 [PARTICIPANTE-NAV] ✅ Módulos ativos carregados: {extrato: true, ranking: true, rodadas: true, top10: true, melhorMes: true, …}
+participante-navigation.js:92 [PARTICIPANTE-NAV] 🔎 Verificação detalhada:
+participante-navigation.js:93   - pontosCorridos: true boolean
+participante-navigation.js:94   - mataMata: true boolean
+participante-navigation.js:124 [PARTICIPANTE-NAV] 🎨 Renderizando menu dinâmico...
+participante-navigation.js:125 [PARTICIPANTE-NAV] 📋 Módulos ativos configurados: {extrato: true, ranking: true, rodadas: true, top10: true, melhorMes: true, …}
+participante-navigation.js:140 [PARTICIPANTE-NAV] 🔍 Estado atual dos módulos: {extrato: true, ranking: true, rodadas: true, top10: true, melhorMes: true, …}
+participante-navigation.js:146 [PARTICIPANTE-NAV] ✅ Extrato - sempre ativo
+participante-navigation.js:146 [PARTICIPANTE-NAV] ✅ Ranking Geral - sempre ativo
+participante-navigation.js:146 [PARTICIPANTE-NAV] ✅ Ranking Rodadas - sempre ativo
+participante-navigation.js:152 [PARTICIPANTE-NAV] ✅ Top 10 - Chave: "top10" = true (tipo: boolean)
+participante-navigation.js:156 [PARTICIPANTE-NAV] 🔎 Verificando this.modulosAtivos["top10"] = true
+participante-navigation.js:152 [PARTICIPANTE-NAV] ✅ Melhor do Mês - Chave: "melhorMes" = true (tipo: boolean)
+participante-navigation.js:156 [PARTICIPANTE-NAV] 🔎 Verificando this.modulosAtivos["melhorMes"] = true
+participante-navigation.js:152 [PARTICIPANTE-NAV] ✅ Pontos Corridos - Chave: "pontosCorridos" = true (tipo: boolean)
+participante-navigation.js:156 [PARTICIPANTE-NAV] 🔎 Verificando this.modulosAtivos["pontosCorridos"] = true
+participante-navigation.js:152 [PARTICIPANTE-NAV] ✅ Mata-Mata - Chave: "mataMata" = true (tipo: boolean)
+participante-navigation.js:156 [PARTICIPANTE-NAV] 🔎 Verificando this.modulosAtivos["mataMata"] = true
+participante-navigation.js:152 [PARTICIPANTE-NAV] ❌ Artilheiro - Chave: "artilheiro" = false (tipo: boolean)
+participante-navigation.js:156 [PARTICIPANTE-NAV] 🔎 Verificando this.modulosAtivos["artilheiro"] = false
+participante-navigation.js:152 [PARTICIPANTE-NAV] ❌ Luva de Ouro - Chave: "luvaOuro" = false (tipo: boolean)
+participante-navigation.js:156 [PARTICIPANTE-NAV] 🔎 Verificando this.modulosAtivos["luvaOuro"] = false
+participante-navigation.js:169 [PARTICIPANTE-NAV] ✅ Menu renderizado com 7 módulos de 9 possíveis
+[Violation]Added non-passive event listener to a scroll-blocking <algum> evento. Consider marking event handler as 'passive' to make the page more responsive. See <URL>
+[Violation]Added non-passive event listener to a scroll-blocking <algum> evento. Consider marking event handler as 'passive' to make the page more responsive. See <URL>
+[Violation]Added non-passive event listener to a scroll-blocking <algum> evento. Consider marking event handler as 'passive' to make the page more responsive. See <URL>
+[Violation]Added non-passive event listener to a scroll-blocking <algum> evento. Consider marking event handler as 'passive' to make the page more responsive. See <URL>
+[Violation]Added non-passive event listener to a scroll-blocking <algum> evento. Consider marking event handler as 'passive' to make the page more responsive. See <URL>
+[Violation]Added non-passive event listener to a scroll-blocking <algum> evento. Consider marking event handler as 'passive' to make the page more responsive. See <URL>
+[Violation]Added non-passive event listener to a scroll-blocking <algum> evento. Consider marking event handler as 'passive' to make the page more responsive. See <URL>
+participante-navigation.js:189 [PARTICIPANTE-NAV] Sistema de navegação pronto
+participante-navigation.js:193 [PARTICIPANTE-NAV] ⏸️ Aguardando seleção de liga antes de navegar...
+participante-auth.js:142 [PARTICIPANTE-AUTH] Dados do participante na liga: {time_id: 13935277, nome_cartola: 'N/D', nome_time: 'N/D', clube_id: null, foto_perfil: '', …}
+participante-auth.js:194 [PARTICIPANTE-AUTH] ✅ Header atualizado com sucesso: {nome: 'Urubu Play F.C.', cartola: 'Paulinett Miranda', clube: 262, patrimonio: 0}
+participante-auth.js:82 [PARTICIPANTE-AUTH] ✅ Autenticação válida (cache atualizado)
