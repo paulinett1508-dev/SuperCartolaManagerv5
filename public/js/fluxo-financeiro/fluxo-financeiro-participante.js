@@ -193,7 +193,19 @@ class FluxoFinanceiroParticipante {
 
                                 console.log(`[TESTE-CACHE] ⚡ Tempo de resposta: ${(fim - inicio).toFixed(2)}ms`);
                                 console.log('═══════════════════════════════════════════════════════════════');
-                                return cacheData.data;
+
+                                // ✅ GARANTIR ESTRUTURA CORRETA: {rodadas, resumo}
+                                const rodadas = cacheData.data?.rodadas || cacheData.rodadas || [];
+                                const resumo = cacheData.data?.resumo || cacheData.resumo || {
+                                    saldo: 0,
+                                    totalGanhos: 0,
+                                    totalPerdas: 0
+                                };
+
+                                return {
+                                    rodadas,
+                                    resumo
+                                };
                             }
                         }
 

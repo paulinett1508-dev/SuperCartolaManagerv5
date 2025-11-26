@@ -266,12 +266,18 @@ export const verificarCacheValido = async (req, res) => {
                 ultimaRodadaCalculada: cacheExistente.ultima_rodada_consolidada,
                 rodadaAtual: rodadaAtualInt,
                 updatedAt: cacheExistente.updatedAt,
-                // Dados completos do cache
-                data: cacheExistente.historico_transacoes || [],
+                // ✅ CORRIGIDO: Retornar 'rodadas' (frontend espera essa chave)
+                rodadas: cacheExistente.historico_transacoes || [],
                 resumo: {
                     saldo: cacheExistente.saldo_consolidado,
-                    ganhos: cacheExistente.ganhos_consolidados,
-                    perdas: cacheExistente.perdas_consolidadas
+                    totalGanhos: cacheExistente.ganhos_consolidados || 0,
+                    totalPerdas: cacheExistente.perdas_consolidadas || 0,
+                    // Adicionar campos que o frontend espera
+                    bonus: 0, // Calculado do historico_transacoes se necessário
+                    onus: 0,
+                    pontosCorridos: 0,
+                    mataMata: 0,
+                    top10: 0
                 },
                 metadados: cacheExistente.metadados
             });

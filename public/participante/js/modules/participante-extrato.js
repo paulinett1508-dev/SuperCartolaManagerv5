@@ -143,7 +143,16 @@ export async function inicializarExtratoParticipante({ participante, ligaId, tim
 
         // Buscar extrato calculado com última rodada completa (usando cache inteligente)
         console.log('[EXTRATO-PARTICIPANTE] 🔍 Buscando extrato para:', { ligaId, timeId, ultimaRodadaCompleta });
-        const extratoData = await fluxoFinanceiroParticipante.buscarExtratoCalculado(ligaId, timeId, ultimaRodadaCompleta, false);
+        let extratoData = await fluxoFinanceiroParticipante.buscarExtratoCalculado(ligaId, timeId, ultimaRodadaCompleta, false);
+
+        // ✅ NORMALIZAR ESTRUTURA DE DADOS (cache pode retornar rodadas ou data)
+        if (extratoData && Array.isArray(extratoData) && !extratoData.rodadas) {
+            console.warn('[EXTRATO-PARTICIPANTE] ⚠️ Estrutura antiga detectada, normalizando...');
+            extratoData = {
+                rodadas: extratoData,
+                resumo: { saldo: 0, totalGanhos: 0, totalPerdas: 0 }
+            };
+        }
 
         console.log('[EXTRATO-PARTICIPANTE] 🎨 Renderizando UI personalizada...');
         console.log('[EXTRATO-PARTICIPANTE] 📊 Dados do extrato completos:', JSON.stringify(extratoData, null, 2));
