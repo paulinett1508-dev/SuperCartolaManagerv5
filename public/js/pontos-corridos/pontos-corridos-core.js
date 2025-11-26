@@ -10,7 +10,7 @@ import {
 } from "../rodadas/rodadas-config.js";
 
 // 2. Importar configurações ESPECÍFICAS deste módulo
-import { PONTOS_CORRIDOS_CONFIG, getLigaId, calcularRodadaBrasileirao } from "./pontos-corridos-config.js";
+import { PONTOS_CORRIDOS_CONFIG, getLigaId } from "./pontos-corridos-config.js";
 
 // VERIFICAÇÃO DE AMBIENTE
 const isBackend = typeof window === "undefined";
