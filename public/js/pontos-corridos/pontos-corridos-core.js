@@ -31,25 +31,28 @@ async function lerCachePersistente(ligaId, rodada) {
       `/api/pontos-corridos/cache/${ligaId}?rodada=${rodada}&_=${ts}`,
     );
 
-    if (!response.ok) return null;
+    if (!response.ok) {
+      console.log(`[CORE] ℹ️ Cache não encontrado para rodada ${rodada} (será calculado)`);
+      return null;
+    }
 
     const data = await response.json();
     if (data.cached && data.classificacao) {
       console.log(
-        `[CORE] 💾 Cache persistente encontrado para Rodada ${rodada}`,
+        `[CORE] 💾 ✅ Cache MongoDB encontrado para Rodada ${rodada} (${data.classificacao.length} times)`,
       );
       return data.classificacao;
     }
     return null;
   } catch (error) {
-    console.warn("[CORE] Erro ao ler cache persistente (ignorando):", error);
+    console.warn("[CORE] ⚠️ Erro ao ler cache persistente:", error);
     return null;
   }
 }
 
 async function salvarCachePersistente(ligaId, rodada, dados) {
   try {
-    await fetch(`/api/pontos-corridos/cache/${ligaId}`, {
+    const response = await fetch(`/api/pontos-corridos/cache/${ligaId}`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
@@ -57,9 +60,16 @@ async function salvarCachePersistente(ligaId, rodada, dados) {
         classificacao: dados,
       }),
     });
-    console.log(`[CORE] 💾 Snapshot da Rodada ${rodada} salvo com sucesso!`);
+
+    if (response.ok) {
+      const result = await response.json();
+      console.log(`[CORE] 💾 ✅ Classificação da Rodada ${rodada} salva no MongoDB (ID: ${result.id})`);
+      console.log(`[CORE] 📊 Snapshot vitalício: ${dados.length} times preservados`);
+    } else {
+      console.warn(`[CORE] ⚠️ Falha ao salvar cache (HTTP ${response.status})`);
+    }
   } catch (error) {
-    console.warn("[CORE] Falha ao salvar cache persistente:", error);
+    console.error("[CORE] ❌ Erro ao salvar cache persistente:", error);
   }
 }
 
@@ -248,6 +258,22 @@ export function calcularResultadoConfronto(pontosA, pontosB) {
  * Calcula a classificação completa com todos os critérios de desempate
  */
 export async function calcularClassificacao(ligaId, times, confrontos, rodadaAtualBrasileirao) {
+  // ✅ VERIFICAR CACHE PRIMEIRO (MongoDB)
+  const rodadaLiga = rodadaAtualBrasileirao - PONTOS_CORRIDOS_CONFIG.rodadaInicial + 1;
+  const cacheClassificacao = await lerCachePersistente(ligaId, rodadaLiga);
+  
+  if (cacheClassificacao && Array.isArray(cacheClassificacao) && cacheClassificacao.length > 0) {
+    console.log(`[CORE] 💾 Classificação em cache para rodada ${rodadaLiga} (${cacheClassificacao.length} times)`);
+    return {
+      classificacao: cacheClassificacao,
+      ultimaRodadaComDados: rodadaAtualBrasileirao,
+      houveErro: false,
+      fromCache: true
+    };
+  }
+
+  console.log(`[CORE] ⚙️ Calculando classificação do zero para rodada ${rodadaLiga}...`);
+
   const classificacao = times.map(time => ({
     time_id: time.id || time.time_id,
     nome_time: time.nome_time || time.nome || 'N/D',
@@ -363,10 +389,22 @@ export async function calcularClassificacao(ligaId, times, confrontos, rodadaAtu
     };
   });
 
+  // ✅ SALVAR NO CACHE MONGODB (Snapshot vitalício)
+  const statusMercado = getStatusMercado();
+  const rodadaConsolidada = statusMercado.rodada_atual > rodadaLiga; // Rodada já encerrada?
+  
+  if (classificacaoFinal.length > 0 && rodadaConsolidada) {
+    console.log(`[CORE] 💾 Salvando classificação consolidada da rodada ${rodadaLiga} no MongoDB...`);
+    await salvarCachePersistente(ligaId, rodadaLiga, classificacaoFinal);
+  } else if (classificacaoFinal.length > 0) {
+    console.log(`[CORE] ⚠️ Rodada ${rodadaLiga} ainda em andamento, cache temporário não salvo.`);
+  }
+
   return {
     classificacao: classificacaoFinal,
     ultimaRodadaComDados: rodadaAtualBrasileirao,
-    houveErro: false
+    houveErro: false,
+    fromCache: false
   };
 }
 
