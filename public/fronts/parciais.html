@@ -234,16 +234,23 @@
 
           // ✅ CORREÇÃO: Parciais só disponíveis quando mercado está FECHADO (jogos acontecendo)
           if (mercadoStatus.mercado_aberto) {
-            rodadaAtualTitle.textContent = `Mercado Aberto - Rodada ${rodadaAtual}`;
-            rankingBody.innerHTML = `<tr><td colspan="6" style="text-align: center; padding: 30px; color: #ffd700;">
-              <div style="font-size: 18px; margin-bottom: 10px;">⏳ Aguardando início da rodada ${rodadaAtual}</div>
-              <div style="font-size: 14px; color: #aaa;">Parciais estarão disponíveis quando o mercado fechar e os jogos começarem</div>
+            loading.style.display = "none"; // 🔴 CRITICAL: Ocultar loading ANTES
+            rodadaAtualTitle.textContent = `⏸️ Mercado Aberto - Rodada ${rodadaAtual}`;
+            rankingBody.innerHTML = `<tr><td colspan="6" style="text-align: center; padding: 40px; background: linear-gradient(135deg, #1e3a5f 0%, #2a4a6f 100%);">
+              <div style="font-size: 24px; margin-bottom: 15px; color: #ffd700;">⏳ Aguardando Início da Rodada ${rodadaAtual}</div>
+              <div style="font-size: 16px; color: #87ceeb; margin-bottom: 10px;">O mercado está em período de escalação</div>
+              <div style="font-size: 14px; color: #aaa;">Parciais ao vivo estarão disponíveis quando:</div>
+              <ul style="list-style: none; padding: 0; margin-top: 10px; color: #ccc; font-size: 14px;">
+                <li>✅ O mercado fechar</li>
+                <li>✅ Os jogos da rodada começarem</li>
+              </ul>
             </td></tr>`;
-            loading.style.display = "none";
+            nomeLiga.textContent = "Super Cartola 2025"; // Garantir que o nome apareça
+            quantidadeTimes.textContent = "Aguardando dados da rodada...";
             return;
           }
 
-          rodadaAtualTitle.textContent = `🔥 Parciais da Rodada ${rodadaAtual} (Ao Vivo)`;
+          rodadaAtualTitle.textContent = `🔥 Parciais AO VIVO - Rodada ${rodadaAtual}`;
 
           const resLiga = await fetch(`/api/ligas/${ligaId}`);
           if (!resLiga.ok) throw new Error("Erro ao buscar dados da liga");
