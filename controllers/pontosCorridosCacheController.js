@@ -32,11 +32,14 @@ export const salvarCachePontosCorridos = async (req, res) => {
 
 export const lerCachePontosCorridos = async (req, res) => {
     try {
-        const { ligaId, rodada } = req.params;
+        const { ligaId } = req.params;
+        const { rodada } = req.query;
 
         // Busca o cache da rodada específica ou o mais recente
         const query = { liga_id: ligaId };
         if (rodada) query.rodada_consolidada = Number(rodada);
+
+        console.log(`[CACHE-PC] 🔍 Buscando cache: Liga ${ligaId}, Rodada ${rodada || 'mais recente'}`);
 
         // Pega o ranking mais recente (maior rodada)
         const cache = await PontosCorridosCache.findOne(query).sort({
@@ -44,6 +47,7 @@ export const lerCachePontosCorridos = async (req, res) => {
         });
 
         if (!cache) {
+            console.log(`[CACHE-PC] ❌ Cache NÃO ENCONTRADO para rodada ${rodada}`);
             return res.status(404).json({ cached: false });
         }
 
@@ -58,7 +62,7 @@ export const lerCachePontosCorridos = async (req, res) => {
             });
         }
 
-        console.log(`[CACHE-PC] ✅ Cache válido: R${cache.rodada_consolidada}`);
+        console.log(`[CACHE-PC] ✅ Cache PERMANENTE encontrado: R${cache.rodada_consolidada} (${cache.classificacao?.length || 0} times)`);
 
         res.json({
             cached: true,

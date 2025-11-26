@@ -120,17 +120,17 @@ export async function cacheRankingRodada(ligaId, rodada, data) {
 
 export async function getCachedRankingRodada(ligaId, rodada) {
   const key = rodadasCache.generateKey(ligaId, rodada, "ranking");
-  
+
   // Tentar memory cache primeiro
   let cached = rodadasCache.get(key);
   if (cached) return cached;
-  
+
   // Tentar IndexedDB
   cached = await cacheManager.get("rankings", key, null);
   if (cached) {
     rodadasCache.set(key, cached);
   }
-  
+
   return cached;
 }
 
@@ -146,14 +146,36 @@ export function getCachedParciais(ligaId, rodada) {
 }
 
 // CACHE PARA STATUS DO MERCADO
-export function cacheStatusMercado(data) {
-  const key = "status_mercado";
-  rodadasCache.set(key, data);
+export async function getStatusMercadoCache() {
+  let status = getCache(cacheKeys.STATUS_MERCADO);
+
+  if (!status) {
+    try {
+      const res = await fetch("/api/cartola/mercado/status");
+      if (!res.ok) throw new Error("Erro ao buscar status do mercado");
+
+      status = await res.json();
+      setCache(cacheKeys.STATUS_MERCADO, status);
+      console.log(`[RODADAS-CACHE] 📊 Rodada atual do Cartola: ${status.rodada_atual}`);
+    } catch (err) {
+      console.error("Erro ao buscar status do mercado:", err);
+      status = { rodada_atual: 1, status_mercado: 2 };
+    }
+  }
+
+  return status;
 }
 
-export function getCachedStatusMercado() {
-  const key = "status_mercado";
-  return rodadasCache.get(key);
+// 🔒 Verificar se rodada está consolidada (nunca mais muda)
+export function isRodadaConsolidada(rodada, statusMercado = null) {
+  const mercado = statusMercado || { rodada_atual: 36 }; // Fallback
+  const consolidada = mercado.rodada_atual > rodada;
+
+  if (consolidada) {
+    console.log(`[RODADAS-CACHE] 🔒 Rodada ${rodada} CONSOLIDADA (atual: ${mercado.rodada_atual})`);
+  }
+
+  return consolidada;
 }
 
 // CACHE PARA DADOS DE LIGA

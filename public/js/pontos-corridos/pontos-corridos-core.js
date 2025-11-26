@@ -258,21 +258,52 @@ export function calcularResultadoConfronto(pontosA, pontosB) {
  * Calcula a classificação completa com todos os critérios de desempate
  */
 export async function calcularClassificacao(ligaId, times, confrontos, rodadaAtualBrasileirao) {
-  // ✅ VERIFICAR CACHE PRIMEIRO (MongoDB)
+  // ✅ VERIFICAR CACHE PRIMEIRO (MongoDB) - PRIORIDADE MÁXIMA
   const rodadaLiga = rodadaAtualBrasileirao - PONTOS_CORRIDOS_CONFIG.rodadaInicial + 1;
-  const cacheClassificacao = await lerCachePersistente(ligaId, rodadaLiga);
+  const statusMercado = getStatusMercado();
+  const rodadaConsolidada = statusMercado.rodada_atual > rodadaLiga;
+  
+  // 🔒 RODADA CONSOLIDADA: Só busca cache, NUNCA recalcula
+  if (rodadaConsolidada) {
+    console.log(`[CORE] 🔒 Rodada ${rodadaLiga} CONSOLIDADA - buscando APENAS do MongoDB...`);
+    const cacheClassificacao = await lerCachePersistente(ligaId, rodadaLiga);
+    
+    if (cacheClassificacao && Array.isArray(cacheClassificacao) && cacheClassificacao.length > 0) {
+      console.log(`[CORE] 💾✅ Cache permanente encontrado (${cacheClassificacao.length} times)`);
+      return {
+        classificacao: cacheClassificacao,
+        ultimaRodadaComDados: rodadaAtualBrasileirao,
+        houveErro: false,
+        fromCache: true,
+        isConsolidated: true
+      };
+    } else {
+      console.warn(`[CORE] ⚠️ Cache não encontrado para rodada consolidada ${rodadaLiga} - isso NÃO deveria acontecer!`);
+      // Ainda assim retorna vazio ao invés de recalcular
+      return {
+        classificacao: [],
+        ultimaRodadaComDados: rodadaAtualBrasileirao,
+        houveErro: true,
+        fromCache: false,
+        errorMessage: 'Cache MongoDB esperado mas não encontrado'
+      };
+    }
+  }
 
+  // 🔄 RODADA EM ANDAMENTO: Tenta cache primeiro, senão calcula
+  const cacheClassificacao = await lerCachePersistente(ligaId, rodadaLiga);
   if (cacheClassificacao && Array.isArray(cacheClassificacao) && cacheClassificacao.length > 0) {
-    console.log(`[CORE] 💾 Classificação em cache para rodada ${rodadaLiga} (${cacheClassificacao.length} times)`);
+    console.log(`[CORE] 💾 Cache temporário encontrado para rodada ${rodadaLiga} (${cacheClassificacao.length} times)`);
     return {
       classificacao: cacheClassificacao,
       ultimaRodadaComDados: rodadaAtualBrasileirao,
       houveErro: false,
-      fromCache: true
+      fromCache: true,
+      isConsolidated: false
     };
   }
 
-  console.log(`[CORE] ⚙️ Calculando classificação do zero para rodada ${rodadaLiga}...`);
+  console.log(`[CORE] ⚙️ Calculando classificação do zero para rodada ${rodadaLiga} (em andamento)...`);
 
   const classificacao = times.map(time => ({
     time_id: time.id || time.time_id,
@@ -294,7 +325,8 @@ export async function calcularClassificacao(ligaId, times, confrontos, rodadaAtu
   const rodadaInicio = 1;
   const rodadaFim = Math.min(rodadaLiga, confrontos.length);
 
-  console.log(`[CORE] 🚀 Buscando rodadas ${rodadaInicio} a ${rodadaFim} em lote...`);
+  console.log(`[CORE] 🚀 Buscando rodadas ${rodadaInicio} a ${rodadaFim} em lote (MODO RECÁLCULO)...`);
+  console.warn(`[CORE] ⚠️ ATENÇÃO: Esta busca só deveria acontecer se cache MongoDB não existe!`);
 
   let todasPontuacoes = [];
   try {
