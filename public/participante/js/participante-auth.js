@@ -1,4 +1,3 @@
-
 // PARTICIPANTE AUTH - Sistema de Autenticação
 
 console.log('[PARTICIPANTE-AUTH] Carregando sistema de autenticação...');
@@ -29,13 +28,13 @@ class ParticipanteAuth {
             this.ligaId = participante.ligaId;
             this.timeId = participante.timeId;
             this.participante = participante;
-            
+
             // Executar operações assíncronas
             await Promise.all([
                 this.atualizarHeader(),
                 this.verificarMultiplasLigas()
             ]);
-            
+
             return true;
         }
 
@@ -103,6 +102,7 @@ class ParticipanteAuth {
         const nomeCartolaText = document.getElementById('nomeCartolaText');
         const escudoCoracao = document.getElementById('escudoCoracao');
         const escudoTime = document.getElementById('escudoTime');
+        const headerLogoutButton = document.getElementById('headerLogoutButton'); // Botão Sair
 
         console.log('[PARTICIPANTE-AUTH] Atualizando header com dados:', this.participante);
 
@@ -186,6 +186,11 @@ class ParticipanteAuth {
                 }
             }
 
+            // Mostrar ou ocultar o botão de logout
+            if (headerLogoutButton) {
+                headerLogoutButton.style.display = this.estaAutenticado() ? 'block' : 'none';
+            }
+
             console.log('[PARTICIPANTE-AUTH] ✅ Header atualizado com sucesso:', {
                 nome: nomeTimeTexto,
                 cartola: nomeCartolaTexto,
@@ -198,18 +203,22 @@ class ParticipanteAuth {
         } catch (error) {
             this._atualizandoHeader = false;
             console.error('[PARTICIPANTE-AUTH] Erro ao atualizar header:', error);
-            
+
             // Fallback para dados básicos
             if (nomeTime) nomeTime.textContent = 'Meu Time';
             if (nomeCartolaText) nomeCartolaText.textContent = 'Cartoleiro';
             if (escudoCoracao) escudoCoracao.src = '/escudos/placeholder.png';
             if (escudoTime) escudoTime.src = '/escudos/placeholder.png';
+            // Esconder botão de logout em caso de erro
+            if (headerLogoutButton) {
+                headerLogoutButton.style.display = 'none';
+            }
         }
     }
 
     async verificarMultiplasLigas() {
         console.log('[PARTICIPANTE-AUTH] 🔍 Verificando múltiplas ligas para timeId:', this.timeId);
-        
+
         try {
             const response = await fetch('/api/participante/auth/minhas-ligas', {
                 credentials: 'include'
@@ -222,10 +231,10 @@ class ParticipanteAuth {
 
             const data = await response.json();
             console.log('[PARTICIPANTE-AUTH] 📊 Resposta da API:', data);
-            
+
             const ligas = data.ligas || [];
             console.log('[PARTICIPANTE-AUTH] 📋 Total de ligas encontradas:', ligas.length);
-            
+
             if (ligas.length > 0) {
                 console.log('[PARTICIPANTE-AUTH] 📝 Ligas:', ligas.map(l => `${l.nome} (${l.id})`).join(', '));
             }
@@ -359,7 +368,7 @@ if (document.readyState === 'loading') {
 // Função de logout global
 function logout() {
     participanteAuth.limpar();
-    
+
     // Fazer logout no servidor
     fetch('/api/participante/auth/logout', {
         method: 'POST',
@@ -369,4 +378,5 @@ function logout() {
     });
 }
 
+// Header simplificado - não precisa mais de toggle
 console.log('[PARTICIPANTE-AUTH] ✅ Sistema carregado');
