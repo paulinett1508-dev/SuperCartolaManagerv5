@@ -9,59 +9,97 @@
 </head>
 <body>
     <div class="participante-container">
-        <!-- DASHBOARD HEADER - MOBILE-FIRST UX CLEAN -->
-        <header class="participante-header" style="display: flex; flex-direction: column; background: linear-gradient(135deg, #FF6B35 0%, #FF5722 100%); box-shadow: 0 4px 20px rgba(255, 107, 53, 0.5); border-bottom: 3px solid #FF8C42;">
-            <!-- LINHA 1: PRIMÁRIA (SEMPRE VISÍVEL) -->
-            <div class="header-content" style="display: flex; align-items: center; justify-content: space-between; padding: 12px 16px; min-height: 56px; gap: 12px; align-items: center;">
-                <!-- Escudos + Info -->
+        <!-- HEADER PARTICIPANTE - REDESIGN PROFISSIONAL -->
+        <header class="participante-header" style="background: linear-gradient(135deg, #FF6B35 0%, #FF5722 100%); box-shadow: 0 4px 20px rgba(255, 107, 53, 0.5); border-bottom: 3px solid #FF8C42;">
+            <!-- LINHA PRINCIPAL: INFO + AÇÕES -->
+            <div class="header-main" style="display: flex; align-items: center; justify-content: space-between; padding: 14px 16px; gap: 16px;">
+                
+                <!-- ESQUERDA: Escudo Coração + Info Participante -->
                 <div style="display: flex; align-items: center; gap: 12px; flex: 1; min-width: 0;">
-                    <div class="escudos-container" style="display: flex; gap: 8px; flex-shrink: 0;">
-                        <div class="escudo-wrapper" title="Time do Coração">
-                            <img id="escudoCoracao" class="escudo-coracao" src="/escudos/placeholder.png" alt="Clube do Coração" style="width: 44px; height: 44px; border-radius: 50%; border: 3px solid white; box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);">
-                        </div>
-                        <div class="escudo-wrapper" title="Escudo do Time">
-                            <img id="escudoTime" class="escudo-time" src="/escudos/placeholder.png" alt="Escudo Time" style="width: 44px; height: 44px; border-radius: 50%; border: 3px solid white; box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);">
-                        </div>
-                    </div>
-
-                    <!-- Informações do Participante -->
-                    <div class="participante-info" style="flex: 1; min-width: 0;">
-                        <h1 id="nomeTime" style="margin: 0; font-size: 18px; font-weight: 700; color: white; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">Carregando...</h1>
-                        <p id="nomeCartoleiro" style="margin: 0; font-size: 13px; opacity: 0.9; color: white;">
-                            <span class="cartoleiro-icon">👤</span>
+                    <!-- Escudo do Time do Coração (destaque à esquerda) -->
+                    <img id="escudoCoracao" src="/escudos/placeholder.png" alt="Clube do Coração" 
+                         style="width: 50px; height: 50px; border-radius: 50%; border: 3px solid white; 
+                                box-shadow: 0 3px 12px rgba(0, 0, 0, 0.4); flex-shrink: 0;">
+                    
+                    <!-- Info do Participante -->
+                    <div style="flex: 1; min-width: 0;">
+                        <h1 id="nomeTime" style="margin: 0 0 3px 0; font-size: 17px; font-weight: 700; 
+                                                  color: white; line-height: 1.2; overflow: hidden; 
+                                                  text-overflow: ellipsis; white-space: nowrap;">
+                            Carregando...
+                        </h1>
+                        <p id="nomeCartoleiro" style="margin: 0; font-size: 13px; color: rgba(255, 255, 255, 0.9); 
+                                                      display: flex; align-items: center; gap: 5px; 
+                                                      overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">
+                            <span style="font-size: 11px;">👤</span>
                             <span id="nomeCartolaText">Aguarde...</span>
                         </p>
                     </div>
                 </div>
 
-                <!-- Botões: Home + Menu Toggle -->
-                <div style="display: flex; gap: 10px; flex-shrink: 0; align-items: center;">
-                    <button onclick="participanteNav?.navegarPara('boas-vindas')" title="Home" style="width: 44px; height: 44px; border-radius: 8px; border: 2px solid rgba(59, 130, 246, 0.4); background: rgba(59, 130, 246, 0.15); color: #3b82f6; font-size: 20px; cursor: pointer; display: flex; align-items: center; justify-content: center; transition: all 0.3s ease; flex-shrink: 0;">
+                <!-- DIREITA: Escudo Time Cartola + Botões -->
+                <div style="display: flex; align-items: center; gap: 12px; flex-shrink: 0;">
+                    <!-- Escudo do Time (Cartola) -->
+                    <img id="escudoTime" src="/escudos/placeholder.png" alt="Escudo Time" 
+                         style="width: 44px; height: 44px; border-radius: 50%; border: 2.5px solid white; 
+                                box-shadow: 0 2px 10px rgba(0, 0, 0, 0.3); flex-shrink: 0;">
+                    
+                    <!-- Botão Home -->
+                    <button onclick="participanteNav?.navegarPara('boas-vindas')" title="Início" 
+                            style="width: 44px; height: 44px; border-radius: 8px; 
+                                   border: 2px solid rgba(255, 255, 255, 0.3); 
+                                   background: rgba(255, 255, 255, 0.15); color: white; 
+                                   font-size: 20px; cursor: pointer; display: flex; 
+                                   align-items: center; justify-content: center; 
+                                   transition: all 0.2s ease; flex-shrink: 0;">
                         🏠
                     </button>
-                    <button id="headerMenuToggle" title="Menu" style="width: 44px; height: 44px; border-radius: 8px; border: 2px solid rgba(255, 255, 255, 0.3); background: rgba(255, 255, 255, 0.1); color: white; font-size: 24px; cursor: pointer; display: flex; align-items: center; justify-content: center; transition: all 0.3s ease; flex-shrink: 0;">
+                    
+                    <!-- Botão Menu -->
+                    <button id="headerMenuToggle" title="Menu" 
+                            style="width: 44px; height: 44px; border-radius: 8px; 
+                                   border: 2px solid rgba(255, 255, 255, 0.3); 
+                                   background: rgba(255, 255, 255, 0.15); color: white; 
+                                   font-size: 22px; cursor: pointer; display: flex; 
+                                   align-items: center; justify-content: center; 
+                                   transition: all 0.2s ease; flex-shrink: 0;">
                         ☰
                     </button>
                 </div>
             </div>
 
-            <!-- LINHA 2: SECUNDÁRIA (COLAPSÁVEL) -->
-            <div id="headerSecondary" style="max-height: 0; overflow: hidden; transition: max-height 0.4s cubic-bezier(0.4, 0, 0.2, 1); background: rgba(0, 0, 0, 0.2);">
-                <div class="header-bottom" style="display: flex; align-items: center; justify-content: space-between; padding: 12px 16px; gap: 12px; flex-wrap: wrap; min-height: 50px;">
-                    <div id="statusConexao" style="display: flex; align-items: center; gap: 6px; padding: 6px 12px; background: rgba(255, 255, 255, 0.1); border-radius: 20px; border: 1px solid rgba(255, 255, 255, 0.2); font-size: 13px; color: white; white-space: nowrap; flex-shrink: 0;">
-                        <span id="statusIndicador" style="width: 8px; height: 8px; border-radius: 50%; background: #22c55e; animation: pulse 2s infinite;"></span>
+            <!-- LINHA SECUNDÁRIA: Status + Liga + Logout (COLAPSÁVEL) -->
+            <div id="headerSecondary" style="max-height: 0; overflow: hidden; 
+                                             transition: max-height 0.3s cubic-bezier(0.4, 0, 0.2, 1); 
+                                             background: rgba(0, 0, 0, 0.25);">
+                <div style="display: flex; align-items: center; justify-content: space-between; 
+                           padding: 12px 16px; gap: 10px; flex-wrap: wrap;">
+                    
+                    <!-- Status Online -->
+                    <div id="statusConexao" style="display: flex; align-items: center; gap: 6px; 
+                                                   padding: 6px 12px; background: rgba(255, 255, 255, 0.1); 
+                                                   border-radius: 20px; font-size: 12px; color: white; 
+                                                   white-space: nowrap; flex-shrink: 0;">
+                        <span id="statusIndicador" style="width: 7px; height: 7px; border-radius: 50%; 
+                                                          background: #22c55e; animation: pulse 2s infinite;"></span>
                         <span id="statusTexto">Online</span>
                     </div>
 
                     <!-- Seletor de Liga -->
-                    <div id="seletorLigaContainer" style="flex: 0 1 140px;">
-                        <select id="seletorLiga" style="width: 100%; padding: 8px 12px; border-radius: 6px; border: 2px solid rgba(255, 255, 255, 0.2); background: rgba(0, 0, 0, 0.3); color: white; font-size: 13px; font-weight: 600; cursor: pointer;">
-                        </select>
-                    </div>
+                    <select id="seletorLiga" style="flex: 0 1 160px; padding: 8px 12px; border-radius: 6px; 
+                                                    border: 2px solid rgba(255, 255, 255, 0.2); 
+                                                    background: rgba(0, 0, 0, 0.3); color: white; 
+                                                    font-size: 13px; font-weight: 600; cursor: pointer;">
+                    </select>
 
                     <!-- Botão Logout -->
-                    <button onclick="logout()" title="Logout" style="background: rgba(255, 69, 0, 0.15); border: 2px solid rgba(255, 69, 0, 0.4); color: #ff6b35; font-size: 13px; font-weight: 600; padding: 8px 14px; border-radius: 6px; cursor: pointer; width: auto; height: 36px; white-space: nowrap; transition: all 0.3s ease; flex-shrink: 0;">
-                        🚪 Logout
+                    <button onclick="logout()" title="Sair" 
+                            style="background: rgba(255, 255, 255, 0.15); 
+                                   border: 2px solid rgba(255, 255, 255, 0.3); 
+                                   color: white; font-size: 13px; font-weight: 700; 
+                                   padding: 8px 16px; border-radius: 6px; cursor: pointer; 
+                                   white-space: nowrap; transition: all 0.2s ease; flex-shrink: 0;">
+                        🚪 Sair
                     </button>
                 </div>
             </div>
@@ -69,43 +107,60 @@
             <style>
                 @keyframes pulse {
                     0%, 100% { opacity: 1; }
-                    50% { opacity: 0.6; }
+                    50% { opacity: 0.5; }
                 }
+                
                 #headerSecondary.active {
-                    max-height: 120px;
+                    max-height: 100px;
                 }
 
-                /* RESPONSIVIDADE MOBILE CRÍTICA */
+                /* Hover states para desktop */
+                @media (hover: hover) {
+                    .header-main button:hover {
+                        background: rgba(255, 255, 255, 0.25) !important;
+                        transform: translateY(-1px);
+                    }
+                }
+
+                /* Mobile: 768px e abaixo */
                 @media (max-width: 768px) {
-                    .header-content {
-                        padding: 10px 12px !important;
-                        min-height: 52px !important;
-                        gap: 10px !important;
+                    .header-main {
+                        padding: 12px 14px !important;
+                    }
+                    #escudoCoracao {
+                        width: 46px !important;
+                        height: 46px !important;
+                    }
+                    #escudoTime {
+                        width: 40px !important;
+                        height: 40px !important;
                     }
                     #nomeTime {
                         font-size: 16px !important;
-                        line-height: 1.2;
                     }
                     #nomeCartoleiro {
                         font-size: 12px !important;
                     }
-                    .escudos-container {
-                        gap: 10px !important;
-                    }
-                    .escudos-container img {
-                        width: 40px !important;
-                        height: 40px !important;
-                    }
-                    .header-content > div:last-child {
-                        gap: 10px !important;
-                    }
                 }
 
+                /* Mobile pequeno: 480px e abaixo */
                 @media (max-width: 480px) {
-                    .header-content {
-                        padding: 8px 10px !important;
-                        min-height: 48px !important;
-                        gap: 8px !important;
+                    .header-main {
+                        padding: 10px 12px !important;
+                        gap: 12px !important;
+                    }
+                    #escudoCoracao {
+                        width: 42px !important;
+                        height: 42px !important;
+                    }
+                    #escudoTime {
+                        width: 38px !important;
+                        height: 38px !important;
+                    }
+                    .header-main button {
+                        width: 40px !important;
+                        height: 40px !important;
+                        font-size: 18px !important;
                     }
                     #nomeTime {
                         font-size: 15px !important;
@@ -113,48 +168,34 @@
                     #nomeCartoleiro {
                         font-size: 11px !important;
                     }
-                    .escudos-container {
-                        gap: 8px !important;
-                    }
-                    .escudos-container img {
-                        width: 38px !important;
-                        height: 38px !important;
-                        border: 2px solid white !important;
-                    }
-                    .header-content > div:last-child {
-                        gap: 8px !important;
-                    }
-                    .header-content > div:last-child button {
-                        width: 40px !important;
-                        height: 40px !important;
-                        font-size: 18px !important;
-                    }
-                    #headerMenuToggle {
-                        font-size: 20px !important;
-                    }
                 }
 
+                /* Mobile muito pequeno: 360px e abaixo */
                 @media (max-width: 360px) {
-                    .header-content {
-                        padding: 6px 8px !important;
-                        min-height: 44px !important;
-                        gap: 6px !important;
+                    .header-main {
+                        padding: 8px 10px !important;
+                        gap: 10px !important;
                     }
-                    .escudos-container {
-                        gap: 6px !important;
+                    #escudoCoracao {
+                        width: 38px !important;
+                        height: 38px !important;
+                        border-width: 2px !important;
                     }
-                    .escudos-container img {
+                    #escudoTime {
                         width: 36px !important;
                         height: 36px !important;
-                        border: 2px solid white !important;
+                        border-width: 2px !important;
+                    }
+                    .header-main button {
+                        width: 38px !important;
+                        height: 38px !important;
+                        font-size: 16px !important;
                     }
                     #nomeTime {
                         font-size: 14px !important;
                     }
-                    .header-content > div:last-child button {
-                        width: 38px !important;
-                        height: 38px !important;
-                        font-size: 16px !important;
+                    #nomeCartoleiro {
+                        font-size: 10px !important;
                     }
                 }
             </style>
