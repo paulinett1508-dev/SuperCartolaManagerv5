@@ -130,7 +130,7 @@
       <button class="refresh-btn" id="btnAtualizarParciais">
         🔄 Atualizar Parciais
       </button>
-      <a href="detalhe-liga.html" class="botao-voltar">⬅ Voltar</a>
+      <a href="#" class="botao-voltar" id="btnVoltar">⬅ Voltar</a>
     </div>
 
     <h2>📈 Parciais da Liga</h2>
@@ -396,6 +396,12 @@
             alert("Erro ao verificar status do mercado. Tente novamente.");
           }
         });
+      }
+
+      // Configurar botão voltar com ID da liga
+      const btnVoltar = document.getElementById("btnVoltar");
+      if (btnVoltar && ligaId) {
+        btnVoltar.href = `detalhe-liga.html?id=${ligaId}`;
       }
 
       document.addEventListener("DOMContentLoaded", carregarParciais);
