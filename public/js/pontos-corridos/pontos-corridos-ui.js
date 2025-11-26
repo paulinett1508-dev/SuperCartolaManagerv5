@@ -524,12 +524,12 @@ export function renderTabelaClassificacao(
         <td class="vitorias">${time.vitorias}</td>
         <td class="empates">${time.empates}</td>
         <td class="derrotas">${time.derrotas}</td>
-        <td class="goleadas">${time.pontosGoleada}</td>
-        <td class="saldo ${time.saldoPontos >= 0 ? "positivo" : "negativo"}">${time.saldoPontos >= 0 ? "+" : ""}${time.saldoPontos.toFixed(1)}</td>
-        <td class="financeiro ${time.financeiroTotal >= 0 ? "positivo" : "negativo"}">R$ ${time.financeiroTotal.toFixed(2)}</td>
-        <td class="aproveitamento">${((time.jogos > 0
-        ? (item.pontos / (item.jogos * 3)) * 100
-        : 0).toFixed(1))}%</td>
+        <td class="goleadas">${time.pontosGoleada || 0}</td>
+        <td class="saldo ${(time.saldo_gols || 0) >= 0 ? "positivo" : "negativo"}">${(time.saldo_gols || 0) >= 0 ? "+" : ""}${(time.saldo_gols || 0).toFixed(1)}</td>
+        <td class="financeiro ${(time.financeiro || 0) >= 0 ? "positivo" : "negativo"}">R$ ${(time.financeiro || 0).toFixed(2)}</td>
+        <td class="aproveitamento">${((time.vitorias + time.empates + time.derrotas) > 0
+        ? ((time.pontos / ((time.vitorias + time.empates + time.derrotas) * 3)) * 100).toFixed(1)
+        : 0)}%</td>
       </tr>
     `;
   });
