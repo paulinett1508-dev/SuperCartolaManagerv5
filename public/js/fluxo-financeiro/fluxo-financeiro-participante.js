@@ -140,7 +140,7 @@ class FluxoFinanceiroParticipante {
                     const mercadoRes = await fetch('/api/cartola/mercado/status');
                     const mercadoData = await mercadoRes.json();
                     const mercadoAberto = mercadoData.mercado_aberto || mercadoData.status_mercado === 1;
-                    
+
                     console.log(`[TESTE-CACHE] 📡 Mercado: ${mercadoAberto ? '🟢 ABERTO' : '🔴 FECHADO'}`);
                     console.log(`[TESTE-CACHE] 🎲 Rodada Atual Cartola: ${mercadoData.rodada_atual}`);
 
@@ -154,40 +154,47 @@ class FluxoFinanceiroParticipante {
                         const validacao = await cacheValidoRes.json();
                         console.log('[TESTE-CACHE] 📋 Resposta da validação:', JSON.stringify(validacao, null, 2));
 
-                        // ✅ CACHE VÁLIDO PERMANENTE (mercado fechado)
-                        if (validacao.valido && validacao.permanente) {
-                            console.log('┌─────────────────────────────────────────────────────────────┐');
-                            console.log('│ 💎 CACHE PERMANENTE ENCONTRADO!                             │');
-                            console.log('│ ✅ Rodadas fechadas - NUNCA recalcular                      │');
-                            console.log(`│ 📅 Última rodada: ${validacao.ultimaRodada}                              │`);
-                            console.log('└─────────────────────────────────────────────────────────────┘');
-                            
-                            const inicio = performance.now();
-                            const cacheRes = await fetch(`/api/extrato-cache/${ligaId}/times/${timeId}/cache`);
-                            const cacheData = await cacheRes.json();
-                            const fim = performance.now();
-                            
-                            console.log(`[TESTE-CACHE] ⚡ Tempo de resposta: ${(fim - inicio).toFixed(2)}ms`);
-                            console.log(`[TESTE-CACHE] 📊 Rodadas no cache: ${cacheData.data?.rodadas?.length || 0}`);
-                            console.log('═══════════════════════════════════════════════════════════════');
-                            return cacheData.data;
-                        }
+                        // ✅ VALIDAR SE O CAMPO "valido" EXISTE
+                        const cacheEhValido = validacao.valido === true;
+                        console.log(`[TESTE-CACHE] 🔍 Cache válido? ${cacheEhValido} (tipo: ${typeof validacao.valido})`);
 
-                        // ✅ CACHE VÁLIDO RECENTE (mercado aberto, mas ainda fresco)
-                        if (validacao.valido && !validacao.permanente) {
-                            console.log('┌─────────────────────────────────────────────────────────────┐');
-                            console.log('│ ⚡ CACHE RECENTE VÁLIDO!                                     │');
-                            console.log(`│ ⏱️  TTL restante: ${validacao.ttlRestante}s                              │`);
-                            console.log('└─────────────────────────────────────────────────────────────┘');
-                            
-                            const inicio = performance.now();
-                            const cacheRes = await fetch(`/api/extrato-cache/${ligaId}/times/${timeId}/cache`);
-                            const cacheData = await cacheRes.json();
-                            const fim = performance.now();
-                            
-                            console.log(`[TESTE-CACHE] ⚡ Tempo de resposta: ${(fim - inicio).toFixed(2)}ms`);
-                            console.log('═══════════════════════════════════════════════════════════════');
-                            return cacheData.data;
+                        // ✅ LÓGICA DE DECISÃO BASEADA NO CACHE
+                        if (cacheEhValido) {
+                            // ✅ CACHE VÁLIDO PERMANENTE (mercado fechado)
+                            if (validacao.permanente) {
+                                console.log('┌─────────────────────────────────────────────────────────────┐');
+                                console.log('│ 💎 CACHE PERMANENTE ENCONTRADO!                             │');
+                                console.log('│ ✅ Rodadas fechadas - NUNCA recalcular                      │');
+                                console.log(`│ 📅 Última rodada: ${validacao.ultimaRodada}                              │`);
+                                console.log('└─────────────────────────────────────────────────────────────┘');
+
+                                const inicio = performance.now();
+                                const cacheRes = await fetch(`/api/extrato-cache/${ligaId}/times/${timeId}/cache`);
+                                const cacheData = await cacheRes.json();
+                                const fim = performance.now();
+
+                                console.log(`[TESTE-CACHE] ⚡ Tempo de resposta: ${(fim - inicio).toFixed(2)}ms`);
+                                console.log(`[TESTE-CACHE] 📊 Rodadas no cache: ${cacheData.data?.rodadas?.length || 0}`);
+                                console.log('═══════════════════════════════════════════════════════════════');
+                                return cacheData.data;
+                            }
+
+                            // ✅ CACHE VÁLIDO RECENTE (mercado aberto, mas ainda fresco)
+                            if (!validacao.permanente) {
+                                console.log('┌─────────────────────────────────────────────────────────────┐');
+                                console.log('│ ⚡ CACHE RECENTE VÁLIDO!                                     │');
+                                console.log(`│ ⏱️  TTL restante: ${validacao.ttlRestante}s                              │`);
+                                console.log('└─────────────────────────────────────────────────────────────┘');
+
+                                const inicio = performance.now();
+                                const cacheRes = await fetch(`/api/extrato-cache/${ligaId}/times/${timeId}/cache`);
+                                const cacheData = await cacheRes.json();
+                                const fim = performance.now();
+
+                                console.log(`[TESTE-CACHE] ⚡ Tempo de resposta: ${(fim - inicio).toFixed(2)}ms`);
+                                console.log('═══════════════════════════════════════════════════════════════');
+                                return cacheData.data;
+                            }
                         }
 
                         // ⚠️ CACHE PARCIAL/EXPIRADO - REUTILIZAR DADOS ANTIGOS
@@ -197,19 +204,19 @@ class FluxoFinanceiroParticipante {
                             console.log(`│ 💾 Rodadas consolidadas: ${validacao.rodadasConsolidadas}                    │`);
                             console.log('│ ⚡ ZERO recálculos - apenas buscando do banco              │');
                             console.log('└─────────────────────────────────────────────────────────────┘');
-                            
+
                             const inicio = performance.now();
                             const cacheRes = await fetch(`/api/extrato-cache/${ligaId}/times/${timeId}/cache`);
                             const cacheData = await cacheRes.json();
                             const fim = performance.now();
-                            
+
                             console.log(`[TESTE-CACHE] ⚡ Tempo de resposta: ${(fim - inicio).toFixed(2)}ms`);
                             console.log(`[TESTE-CACHE] 📊 Rodadas no cache: ${cacheData.data?.rodadas?.length || 0}`);
                             console.log('═══════════════════════════════════════════════════════════════');
                             return cacheData.data;
                         }
-                        
-                        if (!validacao.valido) {
+
+                        if (!cacheEhValido) {
                             console.log('┌─────────────────────────────────────────────────────────────┐');
                             console.log('│ ❌ CACHE INVÁLIDO - Recalculando tudo                       │');
                             console.log(`│ 📋 Motivo: ${validacao.motivo}                    │`);
@@ -230,9 +237,9 @@ class FluxoFinanceiroParticipante {
             // Se não encontrou cache válido ou forçou recálculo, calcular
             console.log('[TESTE-CACHE] 🧮 Iniciando cálculo completo...');
             const inicioCalculo = performance.now();
-            
+
             const extratoCompleto = await this.core.calcularExtratoFinanceiro(timeId, rodadaAtual, forcarRecalculo);
-            
+
             const fimCalculo = performance.now();
             console.log(`[TESTE-CACHE] ⏱️  Tempo de cálculo: ${(fimCalculo - inicioCalculo).toFixed(2)}ms`);
 
@@ -240,7 +247,7 @@ class FluxoFinanceiroParticipante {
             try {
                 console.log('[TESTE-CACHE] 💾 Salvando extrato no cache MongoDB...');
                 const inicioSave = performance.now();
-                
+
                 await fetch(`/api/extrato-cache/${ligaId}/times/${timeId}/cache`, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
@@ -250,7 +257,7 @@ class FluxoFinanceiroParticipante {
                         motivoRecalculo: 'participante_visualizacao'
                     })
                 });
-                
+
                 const fimSave = performance.now();
                 console.log(`[TESTE-CACHE] ✅ Cache salvo em ${(fimSave - inicioSave).toFixed(2)}ms`);
             } catch (saveError) {
@@ -261,7 +268,7 @@ class FluxoFinanceiroParticipante {
             console.log('[TESTE-CACHE] ✅ EXTRATO FINALIZADO');
             console.log(`[TESTE-CACHE] 📊 Total de rodadas: ${extratoCompleto.rodadas?.length || 0}`);
             console.log('═══════════════════════════════════════════════════════════════');
-            
+
             return extratoCompleto;
 
         } catch (error) {

@@ -231,24 +231,41 @@ export const verificarCacheValido = async (req, res) => {
         }
 
 
-        // Se o cache é válido E existe, retorna os dados do cache
+        // ✅ SEMPRE RETORNAR ESTRUTURA DE VALIDAÇÃO CONSISTENTE
         if (validacao.valido && cacheExistente) {
-            console.log('  ✅ Cache válido encontrado - retornando dados');
+            console.log('  ✅ Cache válido encontrado - retornando validação + dados');
 
-            // Garantir que todos os campos sejam retornados
-            const dadosCompletos = cacheExistente.toObject ? cacheExistente.toObject() : cacheExistente;
-
-            return res.json(dadosCompletos);
-        } else {
-            // Se não é válido, retorna as informações da validação
+            // Retornar validação + dados do cache
             return res.json({
-                valido: validacao.valido,
+                valido: true,
+                cached: true,
                 motivo: validacao.motivo,
-                cacheRodada: cacheExistente.ultima_rodada_consolidada,
-                rodadaAtual: rodadaAtualInt,
-                rodadasPendentes: validacao.rodadasPendentes,
+                permanente: validacao.permanente || false,
                 mercadoStatus: validacao.mercadoStatus,
-                updatedAt: cacheExistente.updatedAt
+                ultimaRodadaCalculada: cacheExistente.ultima_rodada_consolidada,
+                rodadaAtual: rodadaAtualInt,
+                updatedAt: cacheExistente.updatedAt,
+                // Dados completos do cache
+                data: cacheExistente.historico_transacoes || [],
+                resumo: {
+                    saldo: cacheExistente.saldo_consolidado,
+                    ganhos: cacheExistente.ganhos_consolidados,
+                    perdas: cacheExistente.perdas_consolidadas
+                },
+                metadados: cacheExistente.metadados
+            });
+        } else {
+            // Se não é válido, retorna informações da validação
+            console.log(`  ❌ Cache inválido: ${validacao.motivo}`);
+            return res.json({
+                valido: false,
+                cached: false,
+                motivo: validacao.motivo,
+                cacheRodada: cacheExistente?.ultima_rodada_consolidada || 0,
+                rodadaAtual: rodadaAtualInt,
+                rodadasPendentes: validacao.rodadasPendentes || 0,
+                mercadoStatus: validacao.mercadoStatus,
+                updatedAt: cacheExistente?.updatedAt
             });
         }
     } catch (error) {
