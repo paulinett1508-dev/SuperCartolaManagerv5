@@ -126,7 +126,7 @@ export async function carregarRodadas(forceRefresh = false) {
 
 async function atualizarStatusMercadoComCache(forceRefresh = false) {
   if (!forceRefresh) {
-    const cached = getStatusMercadoCache();
+    const cached = await getStatusMercadoCache();
     if (cached) {
       console.log("[RODADAS-ORQUESTRADOR] Usando status do mercado em cache");
       return;
@@ -134,8 +134,7 @@ async function atualizarStatusMercadoComCache(forceRefresh = false) {
   }
 
   await atualizarStatusMercado();
-  const status = getStatusMercado();
-  cacheStatusMercado(status);
+  console.log("[RODADAS-ORQUESTRADOR] Status do mercado atualizado");
 }
 
 // ==============================
