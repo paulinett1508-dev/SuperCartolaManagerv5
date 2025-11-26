@@ -1,35 +1,10 @@
 // 🔧 RANKING.JS CORRIGIDO - SEM LOOP INFINITO
 // Versão otimizada e segura do sistema de ranking
 
-// ==============================
-// VARIÁVEIS PARA EXPORTS DINÂMICOS
-// ==============================
-let criarBotaoExportacaoRodada = null;
-let exportarRankingGeralComoImagem = null;
-let exportsCarregados = false;
-
 // 🛡️ SISTEMA DE PROTEÇÃO CONTRA LOOP
 let rankingProcessando = false;
 let ultimoProcessamento = 0;
 const INTERVALO_MINIMO_PROCESSAMENTO = 3000; // 3 segundos
-
-// ==============================
-// FUNÇÃO PARA CARREGAR EXPORTS DINAMICAMENTE
-// ==============================
-async function carregarExports() {
-    if (exportsCarregados) return;
-
-    try {
-        const exportModule = await import("./exports/export-exports.js");
-        criarBotaoExportacaoRodada = exportModule.criarBotaoExportacaoRodada;
-        exportarRankingGeralComoImagem =
-            exportModule.exportarRankingGeralComoImagem;
-        exportsCarregados = true;
-        console.log("[RANKING] ✅ Exports carregados com sucesso");
-    } catch (error) {
-        console.warn("[RANKING] ⚠️ Erro ao carregar exports:", error);
-    }
-}
 
 // ==============================
 // FUNÇÃO PRINCIPAL DE RANKING (OTIMIZADA)
@@ -202,20 +177,6 @@ async function carregarRankingGeral() {
         );
         rankingContainer.innerHTML = tabelaHTML;
 
-        // 8. Carregar e configurar exports
-        await carregarExports();
-
-        if (criarBotaoExportacaoRodada && exportarRankingGeralComoImagem) {
-            criarBotaoExportacaoRodada({
-                containerId: "rankingGeralExportBtnContainer",
-                rodada: ultimaRodadaCompleta,
-                rankings: participantesOrdenados,
-                isParciais: false,
-                isRankingGeral: true,
-                customExport: exportarRankingGeralComoImagem,
-            });
-        }
-
         logSeguro("✅ Processamento concluído com sucesso");
     } catch (error) {
         console.error("[RANKING] ❌ Erro no processamento:", error);
@@ -243,9 +204,6 @@ async function carregarRankingGeral() {
 function criarTabelaRanking(participantes, ultimaRodada, ligaId) {
     return `
         <div style="max-width: 700px; margin: 0 auto;">
-            <div style="display: flex; justify-content: flex-end; align-items: center; margin-bottom: 8px;">
-                <div id="rankingGeralExportBtnContainer"></div>
-            </div>
             <div style="text-align: center;">
                 <h2 style="margin-bottom: 2px; font-size: 2rem;">🏆 Sistema de Classificação</h2>
                 <div style="font-size: 1rem; color: #888; margin-bottom: 18px; font-weight: 400;">

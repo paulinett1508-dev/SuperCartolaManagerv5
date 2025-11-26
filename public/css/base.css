@@ -432,34 +432,6 @@
 }
 
 /* Override para botões de exportação - MAS AGRESSIVO */
-#rankingGeralExportBtnContainer .btn,
-#rankingGeralExportBtnContainer button,
-[id$="ExportBtnContainer"] .btn,
-[id$="ExportBtnContainer"] button {
-    background: linear-gradient(135deg, #ff4500 0%, #e8472b 100%) !important;
-    color: white !important;
-    border: 2px solid rgba(255, 69, 0, 0.3) !important;
-    padding: 12px 20px !important;
-    border-radius: 8px !important;
-    font-weight: 700 !important;
-    font-size: 13px !important;
-    cursor: pointer !important;
-    transition: all 0.3s ease !important;
-    box-shadow: 0 4px 15px rgba(255, 69, 0, 0.4) !important;
-    text-transform: uppercase !important;
-    letter-spacing: 0.5px !important;
-}
-
-#rankingGeralExportBtnContainer .btn:hover,
-#rankingGeralExportBtnContainer button:hover,
-[id$="ExportBtnContainer"] .btn:hover,
-[id$="ExportBtnContainer"] button:hover {
-    transform: translateY(-3px) !important;
-    box-shadow: 0 8px 25px rgba(255, 69, 0, 0.5) !important;
-    background: linear-gradient(135deg, #e8472b 0%, #d63920 100%) !important;
-    border-color: #ff4500 !important;
-}
-
 /* RANKING GERAL - Container e estrutura */
 #ranking-geral {
     background: linear-gradient(135deg, #2a2a2a 0%, #1e1e1e 100%) !important;

@@ -170,30 +170,6 @@
     font-family: 'JetBrains Mono', monospace;
 }
 
-/* === BOTÕES DE EXPORTAÇÃO (OTIMIZADO) === */
-#rankingGeralExportBtnContainer .btn,
-#rankingGeralExportBtnContainer button {
-    background: linear-gradient(135deg, #ff4500 0%, #e8472b 100%) !important;
-    color: white !important;
-    border: 2px solid rgba(255, 69, 0, 0.3) !important;
-    padding: 12px 20px !important;
-    border-radius: 8px !important;
-    font-weight: 700 !important;
-    font-size: 13px !important;
-    cursor: pointer !important;
-    transition: background-color 0.2s ease, border-color 0.2s ease !important;
-    box-shadow: 0 4px 15px rgba(255, 69, 0, 0.4) !important;
-    text-transform: uppercase !important;
-    letter-spacing: 0.5px !important;
-}
-
-/* HOVER OTIMIZADO - Apenas mudança de cor */
-#rankingGeralExportBtnContainer .btn:hover,
-#rankingGeralExportBtnContainer button:hover {
-    background: linear-gradient(135deg, #e8472b 0%, #d63920 100%) !important;
-    border-color: #ff4500 !important;
-}
-
 /* === AÇÕES DO MÓDULO === */
 .module-actions {
     margin-top: 20px;
