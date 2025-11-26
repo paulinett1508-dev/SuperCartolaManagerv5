@@ -4,16 +4,19 @@
 console.log('[EXTRATO-UI] 🎨 Módulo de UI carregado');
 
 export function renderizarExtratoParticipante(extrato, participanteId) {
-  console.log('[EXTRATO-UI] 🎨 Iniciando renderização...');
-  console.log('[EXTRATO-UI] 📦 Dados recebidos:', extrato);
+  console.log('═══════════════════════════════════════════════════════════════');
+  console.log('[EXTRATO-UI] 🎨 INICIANDO RENDERIZAÇÃO');
+  console.log('[EXTRATO-UI] 📦 Dados recebidos:', JSON.stringify(extrato, null, 2));
   console.log('[EXTRATO-UI] 👤 Participante:', participanteId);
-  console.log('[EXTRATO-UI] 🔍 Validação dos dados:', {
+  console.log('[EXTRATO-UI] 🔍 Validação CRÍTICA:', {
     extratoValido: !!extrato,
     temRodadas: Array.isArray(extrato?.rodadas),
     qtdRodadas: extrato?.rodadas?.length || 0,
     temResumo: !!extrato?.resumo,
-    participanteValido: !!participanteId
+    participanteValido: !!participanteId,
+    estruturaCorreta: extrato && typeof extrato === 'object' && Array.isArray(extrato.rodadas)
   });
+  console.log('═══════════════════════════════════════════════════════════════');
 
   const container = document.getElementById('fluxoFinanceiroContent');
 
@@ -224,7 +227,22 @@ export function renderizarExtratoParticipante(extrato, participanteId) {
 }
 
 function renderizarLinhasRodadas(rodadas) {
-  return rodadas.map((r) => `
+  console.log('[EXTRATO-UI] 📊 Renderizando rodadas:', rodadas?.length || 0);
+  
+  if (!rodadas || rodadas.length === 0) {
+    console.warn('[EXTRATO-UI] ⚠️ Nenhuma rodada para renderizar');
+    return `<tr><td colspan="7" style="text-align: center; padding: 20px; color: #999;">Sem dados de rodadas</td></tr>`;
+  }
+
+  return rodadas.map((r, idx) => {
+    console.log(`[EXTRATO-UI] Rodada ${idx + 1}/${rodadas.length}:`, {
+      rodada: r.rodada,
+      posicao: r.posicao,
+      bonusOnus: r.bonusOnus,
+      saldo: r.saldo
+    });
+    
+    return `
         <tr>
             <td>${r.rodada}ª</td>
             <td>${formatarPosicao(r)}</td>
@@ -236,7 +254,8 @@ function renderizarLinhasRodadas(rodadas) {
                 ${formatarValor(r.saldo)}
             </td>
         </tr>
-    `).join('');
+    `;
+  }).join('');
 }
 
 function renderizarLinhaTotal(resumo) {

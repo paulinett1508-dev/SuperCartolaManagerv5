@@ -1,19 +1,22 @@
 <div id="extratoFinanceiro" class="extrato-container">
-    <!-- Header compacto com Status do Saldo -->
+    <!-- Header Redesenhado: Saldo Protagonista -->
     <div class="extrato-header-compact">
-        <div class="header-row">
-            <h2 class="extrato-title">💰 Extrato</h2>
-            <div style="display: flex; gap: 8px; align-items: center;">
-                <button id="btnRefreshExtrato" class="btn-refresh-extrato" title="Atualizar dados">
-                    <span class="refresh-icon">🔄</span>
-                </button>
-                <div class="saldo-status-badge" id="saldoStatusBadge">
-                    <span class="status-icon">💰</span>
-                    <span class="status-text">A Receber</span>
-                </div>
-            </div>
+        <!-- Linha 1: Título + Botão Refresh -->
+        <div class="header-row-title">
+            <h2 class="extrato-title">💰 Extrato Financeiro</h2>
+            <button id="btnRefreshExtrato" class="btn-refresh-extrato" title="Atualizar dados">
+                <span class="refresh-icon">🔄</span>
+            </button>
         </div>
-        <div class="saldo-valor-header" id="saldoTotalHeader">R$ 0,00</div>
+        
+        <!-- Linha 2: Saldo GRANDE (Protagonista) -->
+        <div class="saldo-display-area">
+            <div class="saldo-status-badge" id="saldoStatusBadge">
+                <span class="status-icon">💰</span>
+                <span class="status-text">A RECEBER</span>
+            </div>
+            <div class="saldo-valor-header" id="saldoTotalHeader">R$ 0,00</div>
+        </div>
     </div>
 
     <!-- Cards resumo horizontal (estilo Nubank) - CLICÁVEIS -->
@@ -57,40 +60,37 @@
     max-width: 100%;
 }
 
-/* Header compacto */
+/* Header compacto com hierarquia visual */
 .extrato-header-compact {
-    background: linear-gradient(135deg, rgba(255, 69, 0, 0.1) 0%, rgba(255, 140, 0, 0.05) 100%);
-    padding: 16px;
-    border-bottom: 1px solid rgba(255, 69, 0, 0.2);
+    background: linear-gradient(135deg, rgba(255, 69, 0, 0.12) 0%, rgba(255, 140, 0, 0.06) 100%);
+    padding: 20px 16px;
+    border-bottom: 2px solid rgba(255, 69, 0, 0.25);
 }
 
-.header-row {
+/* Linha 1: Título + Refresh */
+.header-row-title {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    gap: 12px;
-    margin-bottom: 12px;
-    min-width: 0;
+    margin-bottom: 16px;
 }
 
 .extrato-title {
-    font-size: 18px;
+    font-size: 16px;
     font-weight: 700;
     color: var(--participante-primary);
     margin: 0;
-    flex: 1;
-    min-width: 0;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    white-space: nowrap;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
 }
 
-/* Wrapper dos botões e status */
-.header-row > div:last-child {
+/* Linha 2: Saldo PROTAGONISTA */
+.saldo-display-area {
     display: flex;
-    gap: 8px;
+    flex-direction: column;
     align-items: center;
-    flex-shrink: 0;
+    gap: 8px;
+    padding: 12px 0;
 }
 
 /* Botão de refresh */
@@ -135,35 +135,41 @@
     display: flex;
     align-items: center;
     gap: 6px;
-    padding: 6px 10px;
+    padding: 6px 12px;
     border-radius: 20px;
     background: rgba(0, 0, 0, 0.3);
-    border: 1px solid rgba(255, 255, 255, 0.1);
+    border: 1px solid rgba(255, 255, 255, 0.15);
     transition: all 0.3s ease;
-    flex-shrink: 0;
-    white-space: nowrap;
 }
 
 .status-icon {
-    font-size: 16px;
+    font-size: 14px;
     line-height: 1;
 }
 
 .status-text {
-    font-size: 11px;
+    font-size: 10px;
     font-weight: 700;
     text-transform: uppercase;
-    letter-spacing: 0.5px;
+    letter-spacing: 0.8px;
     line-height: 1;
+    color: rgba(255, 255, 255, 0.9);
 }
 
 .saldo-valor-header {
-    font-size: 28px;
+    font-size: 40px;
     font-weight: 800;
-    font-family: 'JetBrains Mono', monospace;
-    line-height: 1;
+    font-family: 'JetBrains Mono', 'Courier New', monospace;
+    line-height: 1.1;
     text-align: center;
     transition: all 0.3s ease;
+    text-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+}
+
+@media (max-width: 360px) {
+    .saldo-valor-header {
+        font-size: 32px;
+    }
 }
 
 /* Cards horizontais estilo fintech */
