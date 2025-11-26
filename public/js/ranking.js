@@ -7,7 +7,7 @@ let ultimoProcessamento = 0;
 const INTERVALO_MINIMO_PROCESSAMENTO = 3000; // 3 segundos
 
 // ==============================
-// FUNÇÃO PRINCIPAL DE RANKING (OTIMIZADA)
+// FUNÇÃO PRINCIPAL DE RANKING (OTIMIZADA COM CACHE)
 // ==============================
 async function carregarRankingGeral() {
     // 🛡️ PROTEÇÃO CONTRA MÚLTIPLAS EXECUÇÕES
@@ -28,53 +28,16 @@ async function carregarRankingGeral() {
 
     const rankingContainer = document.getElementById("ranking-geral");
     if (!rankingContainer || !rankingContainer.classList.contains("active")) {
-        rankingProcessando = false; // Liberar se container inválido
+        rankingProcessando = false;
         return;
     }
 
-    // 📝 LOGS SEGUROS (sem palavras-chave que disparam interceptação)
-    const logSeguro = (mensagem) => {
-        console.log(`[RANKING-SEGURO] ${mensagem}`);
-    };
-
-    rankingContainer.innerHTML = `<div style="color:#555; text-align:center; padding:20px;">⚙️ Processando dados do sistema...</div>`;
+    rankingContainer.innerHTML = `<div style="color:#555; text-align:center; padding:20px;">⚙️ Carregando classificação geral...</div>`;
 
     try {
-        logSeguro("Iniciando processamento do sistema");
+        console.log("[RANKING] 🚀 Iniciando carregamento otimizado via API de cache");
 
-        // 1. Buscar rodada atual de forma segura
-        let rodada_atual = 1;
-        try {
-            const resMercado = await fetch("/api/cartola/mercado/status");
-            if (resMercado.ok) {
-                const dados = await resMercado.json();
-                rodada_atual = dados.rodada_atual || 1;
-            }
-        } catch (err) {
-            logSeguro("Usando rodada padrão devido a erro na API");
-        }
-
-        const ultimaRodadaCompleta = Math.max(1, rodada_atual - 1);
-
-        if (ultimaRodadaCompleta < 1) {
-            rankingContainer.innerHTML = `<div style="color:#555; text-align:center; padding:20px;">📊 Aguardando primeira rodada completa para gerar dados.</div>`;
-            return;
-        }
-
-        // 2. **IMPORTAÇÃO DINÂMICA PARA EVITAR DEPENDÊNCIA CIRCULAR**
-        let getRankingRodadaEspecifica;
-        try {
-            const rodadasModule = await import("./rodadas.js");
-            getRankingRodadaEspecifica =
-                rodadasModule.getRankingRodadaEspecifica;
-        } catch (error) {
-            logSeguro("Erro ao importar módulo de rodadas: " + error.message);
-            throw new Error("Módulo de rodadas não disponível");
-        }
-
-        // 3. Processar dados de forma eficiente
-        const pontuacaoTotal = {};
-        const todosTimesInfo = {};
+        // 1. Obter ID da liga
         const urlParams = new URLSearchParams(window.location.search);
         const ligaId = urlParams.get("id");
 
@@ -82,107 +45,50 @@ async function carregarRankingGeral() {
             throw new Error("ID da liga não encontrado na URL");
         }
 
-        logSeguro(
-            `Processando ${ultimaRodadaCompleta} rodadas para liga ${ligaId}`,
-        );
-
-        // 4. Loop otimizado com controle de erro
-        for (let r = 1; r <= ultimaRodadaCompleta; r++) {
-            try {
-                // 📊 LOG SEGURO (sem palavras que disparam interceptação)
-                logSeguro(
-                    `Processando dados da etapa ${r} de ${ultimaRodadaCompleta}`,
-                );
-
-                const dadosDaRodada = await getRankingRodadaEspecifica(
-                    ligaId,
-                    r,
-                );
-
-                if (Array.isArray(dadosDaRodada) && dadosDaRodada.length > 0) {
-                    logSeguro(
-                        `Etapa ${r}: ${dadosDaRodada.length} participantes processados`,
-                    );
-
-                    dadosDaRodada.forEach((participante) => {
-                        const id = String(participante.timeId);
-                        if (!id) return;
-
-                        if (!pontuacaoTotal[id]) {
-                            pontuacaoTotal[id] = 0;
-                            todosTimesInfo[id] = {
-                                time_id: id,
-                                nome_cartola:
-                                    participante.nome_cartola ||
-                                    participante.nome_cartoleiro ||
-                                    "N/D",
-                                nome_time:
-                                    participante.nome_time ||
-                                    participante.nome ||
-                                    "N/D",
-                                clube_id: participante.clube_id || null,
-                            };
-                        }
-
-                        pontuacaoTotal[id] += parseFloat(
-                            participante.pontos || 0,
-                        );
-
-                        // Atualizar informações com dados mais recentes
-                        todosTimesInfo[id].nome_cartola =
-                            participante.nome_cartola ||
-                            participante.nome_cartoleiro ||
-                            todosTimesInfo[id].nome_cartola;
-                        todosTimesInfo[id].nome_time =
-                            participante.nome_time ||
-                            participante.nome ||
-                            todosTimesInfo[id].nome_time;
-                        todosTimesInfo[id].clube_id =
-                            participante.clube_id ||
-                            todosTimesInfo[id].clube_id;
-                    });
-                } else {
-                    logSeguro(
-                        `Etapa ${r}: dados inválidos ou vazios recebidos`,
-                    );
-                }
-            } catch (errorRodada) {
-                logSeguro(`Erro na etapa ${r}: ${errorRodada.message}`);
-                // Continuar processamento mesmo com erro em uma rodada
-            }
+        // 2. Buscar ranking consolidado da API de cache (1 requisição)
+        const response = await fetch(`/api/ranking-cache/${ligaId}`);
+        
+        if (!response.ok) {
+            throw new Error(`Erro na API: ${response.status}`);
         }
 
-        // 5. Criar array final ordenado
-        const participantesOrdenados = Object.keys(pontuacaoTotal)
-            .map((id) => ({
-                ...todosTimesInfo[id],
-                pontos: pontuacaoTotal[id],
-            }))
-            .sort((a, b) => b.pontos - a.pontos);
+        const data = await response.json();
+        
+        console.log(`[RANKING] ✅ Ranking recebido via cache: ${data.ranking.length} participantes`);
+        console.log(`[RANKING] 📊 Rodada final: ${data.rodadaFinal}`);
+        console.log(`[RANKING] 💾 Cache: ${data.cached ? 'HIT' : 'MISS (calculado)'}`);
 
-        logSeguro(
-            `Sistema processado: ${participantesOrdenados.length} participantes no total`,
-        );
+        // 3. Converter formato da API para formato esperado
+        const participantesOrdenados = data.ranking.map(p => ({
+            time_id: p.timeId,
+            nome_cartola: p.nome_cartola || "N/D",
+            nome_time: p.nome_time || "N/D",
+            clube_id: p.clube_id || null,
+            pontos: p.pontos_totais,
+            rodadas_jogadas: p.rodadas_jogadas,
+            posicao: p.posicao
+        }));
 
-        // 6. Armazenar dados globalmente (para debug e outros usos)
+        // 4. Armazenar dados globalmente
         window.rankingData = participantesOrdenados;
         window.rankingGeral = participantesOrdenados;
         window.ultimoRanking = participantesOrdenados;
 
-        // 7. Gerar HTML da tabela
+        // 5. Gerar HTML da tabela
         const tabelaHTML = criarTabelaRanking(
             participantesOrdenados,
-            ultimaRodadaCompleta,
+            data.rodadaFinal,
             ligaId,
         );
         rankingContainer.innerHTML = tabelaHTML;
 
-        logSeguro("✅ Processamento concluído com sucesso");
+        console.log("[RANKING] ✅ Classificação renderizada com sucesso");
+
     } catch (error) {
         console.error("[RANKING] ❌ Erro no processamento:", error);
         rankingContainer.innerHTML = `
             <div class="error-message" style="text-align:center; padding:40px; color:#ff4444;">
-                <h4>⚠️ Erro ao processar dados</h4>
+                <h4>⚠️ Erro ao carregar classificação</h4>
                 <p>${error.message}</p>
                 <button onclick="window.location.reload()" 
                         style="background:#ff4500; color:white; border:none; padding:10px 20px; 
@@ -194,7 +100,7 @@ async function carregarRankingGeral() {
     } finally {
         // 🔓 SEMPRE LIBERAR O PROCESSAMENTO
         rankingProcessando = false;
-        logSeguro("Processamento finalizado, sistema liberado");
+        console.log("[RANKING] Processamento finalizado");
     }
 }
 
