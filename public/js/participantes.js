@@ -129,7 +129,7 @@ async function carregarParticipantesComBrasoes() {
         if (!resLiga.ok) throw new Error("Erro ao buscar liga");
         const liga = await resLiga.json();
 
-        if (!liga.times || liga.times.length === 0) {
+        if (!liga.participantes || liga.participantes.length === 0) {
             container.innerHTML = `
                 <div class="participantes-empty-state">
                     <div class="empty-icon">👥</div>
@@ -140,35 +140,46 @@ async function carregarParticipantesComBrasoes() {
             return;
         }
 
-        // Buscar dados de cada time (ROTA CORRIGIDA: /api/times/ com 's')
-        const timesData = await Promise.all(
-            liga.times.map(async (timeId, index) => {
-                try {
-                    const res = await fetch(`/api/times/${timeId}`);
-                    if (!res.ok) {
-                        console.warn(`[PARTICIPANTES] Time ${timeId} não encontrado (${res.status})`);
-                        return null;
-                    }
-                    const data = await res.json();
+        console.log(`[PARTICIPANTES] ⚡ Usando dados da liga (${liga.participantes.length} participantes)`);
 
-                    // Garantir que ativo seja boolean
-                    const ativo = data.ativo !== false;
+        // ✅ SUPER OTIMIZADO: Buscar status de todos os times em UMA ÚNICA requisição batch
+        const timeIds = liga.participantes.map(p => p.time_id);
+        let statusMap = {};
 
-                    console.log(`[PARTICIPANTES] Time ${timeId}: ativo=${ativo}, rodada_desistencia=${data.rodada_desistencia}`);
+        try {
+            const statusRes = await fetch('/api/times/batch/status', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ timeIds })
+            });
 
-                    return { 
-                        ...data, 
-                        id: timeId, 
-                        ativo: ativo,
-                        rodada_desistencia: data.rodada_desistencia,
-                        index 
-                    };
-                } catch (err) {
-                    console.error(`Erro ao buscar time ${timeId}:`, err);
-                    return null;
-                }
-            }),
-        );
+            if (statusRes.ok) {
+                const statusData = await statusRes.json();
+                statusMap = statusData.status || {};
+                console.log(`[PARTICIPANTES] ✅ Status batch carregado (1 requisição para ${timeIds.length} times)`);
+            } else {
+                console.warn('[PARTICIPANTES] ⚠️ Erro ao buscar status batch, assumindo todos ativos');
+            }
+        } catch (error) {
+            console.warn('[PARTICIPANTES] ⚠️ Falha no batch status:', error.message);
+        }
+
+        // Processar participantes com dados da liga + status batch
+        const timesData = liga.participantes.map((participante, index) => {
+            const timeId = participante.time_id;
+            const status = statusMap[timeId] || { ativo: true, rodada_desistencia: null };
+
+            return {
+                id: timeId,
+                nome_cartoleiro: participante.nome_cartola || "N/D",
+                nome_time: participante.nome_time || "N/D",
+                clube_id: participante.clube_id,
+                url_escudo_png: participante.foto_time,
+                ativo: status.ativo,
+                rodada_desistencia: status.rodada_desistencia,
+                index
+            };
+        });
 
         // Filtrar times válidos e ordenar
         const timesValidos = timesData

@@ -49,6 +49,36 @@ router.post("/batch", async (req, res) => {
     }
 });
 
+// Buscar status de múltiplos times (batch)
+router.post("/batch/status", async (req, res) => {
+    try {
+        const { timeIds } = req.body;
+
+        if (!Array.isArray(timeIds) || timeIds.length === 0) {
+            return res.status(400).json({ erro: "timeIds deve ser um array não vazio" });
+        }
+
+        const times = await Time.find(
+            { time_id: { $in: timeIds.map(id => Number(id)) } },
+            { time_id: 1, ativo: 1, rodada_desistencia: 1, _id: 0 }
+        ).lean();
+
+        // Criar mapa para acesso rápido
+        const statusMap = {};
+        times.forEach(time => {
+            statusMap[time.time_id] = {
+                ativo: time.ativo !== false,
+                rodada_desistencia: time.rodada_desistencia
+            };
+        });
+
+        res.json({ success: true, status: statusMap });
+    } catch (error) {
+        console.error("[TIMES-BATCH] Erro:", error);
+        res.status(500).json({ erro: "Erro ao buscar status dos times" });
+    }
+});
+
 // Buscar times da liga
 router.get("/liga/:ligaId", async (req, res) => {
     try {
