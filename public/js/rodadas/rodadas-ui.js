@@ -174,7 +174,6 @@ export function exibirRanking(
   rankingsDaRodada,
   rodadaSelecionada,
   ligaId,
-  criarBotaoCallback,
 ) {
   const rankingBody = getElement("rankingBody");
 
@@ -220,10 +219,7 @@ export function exibirRanking(
 
   rankingBody.innerHTML = tableHTML;
 
-  // Criar botão de exportação
-  if (criarBotaoCallback) {
-    criarBotaoCallback(rankingsDaRodada, rodadaSelecionada, false);
-  }
+  // Exportação removida - usar módulo Relatórios
 }
 
 // EXIBIR RANKING PARCIAIS (linhas 516-567 do original)

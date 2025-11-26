@@ -86,8 +86,7 @@ async function carregarModulosExternos() {
 
 export async function carregarRodadas(forceRefresh = false) {
   console.log(
-    "[RODADAS-ORQUESTRADOR] carregarRodadas iniciada com forceRefresh:",
-    forceRefresh,
+    `[RODADAS-ORQUESTRADOR] carregarRodadas iniciada com forceRefresh: ${forceRefresh}`,
   );
 
   if (typeof window === "undefined") {
@@ -205,7 +204,7 @@ async function carregarRodadaFinalizada(rodada) {
     rankingsData = [];
   }
 
-  exibirRanking(rankingsData, rodada, ligaIdAtual, criarBotaoExportacao);
+  exibirRanking(rankingsData, rodada, ligaIdAtual);
 
   // Ocultar botão de refresh para rodadas finalizadas
   const btnRefresh = getElementCached('btnRefreshParciais');
@@ -261,7 +260,6 @@ async function carregarRodadaParciais(rodada, forcarRecalculo = false) {
     rankingsParciais,
     rodada,
     ligaIdAtual,
-    criarBotaoExportacao,
   );
 
   // Configurar botão de refresh
@@ -319,28 +317,6 @@ function configurarBotaoRefresh(rodada) {
 // ==============================
 
 function criarBotaoExportacao(rankings, rodada, isParciais) {
-  if (
-    !exportModules?.criarBotaoExportacaoRodada ||
-    !exportModules?.exportarRodadaComoImagem
-  ) {
-    setTimeout(() => criarBotaoExportacao(rankings, rodada, isParciais), 1000);
-    return;
-  }
-
-  const rankingsParaExportar = rankings.map((rank, index) => ({
-    ...rank,
-    nome_cartola: rank.nome_cartola || rank.nome_cartoleiro || "N/D",
-    nome_time: rank.nome_time || "N/D",
-    pontos: isParciais
-      ? rank.totalPontos != null
-        ? parseFloat(rank.totalPontos)
-        : 0
-      : rank.pontos != null
-        ? parseFloat(rank.pontos)
-        : 0,
-    banco: isParciais ? null : getBancoParaIndex(index, ligaIdAtual),
-  }));
-
   // Exportação removida - usar módulo Relatórios
 }
 
