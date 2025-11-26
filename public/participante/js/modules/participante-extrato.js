@@ -219,9 +219,9 @@ export function initExtratoParticipante() {
     console.log('[PARTICIPANTE-EXTRATO] Módulo carregado');
 }
 
-// ===== FUNÇÃO DE REFRESH FORÇADO =====
+// ===== FUNÇÃO DE REFRESH INTELIGENTE (INCREMENTAL) =====
 window.forcarRefreshExtratoParticipante = async function() {
-    console.log('[EXTRATO-PARTICIPANTE] 🔄 Forçando atualização dos dados...');
+    console.log('[EXTRATO-PARTICIPANTE] 🔄 Iniciando refresh inteligente...');
 
     if (!PARTICIPANTE_IDS.ligaId || !PARTICIPANTE_IDS.timeId) {
         console.error('[EXTRATO-PARTICIPANTE] IDs não disponíveis para refresh');
@@ -234,40 +234,90 @@ window.forcarRefreshExtratoParticipante = async function() {
             window.mostrarLoadingExtrato();
         }
 
-        // Invalidar cache via API
-        const response = await fetch(
-            `/api/extrato-cache/${PARTICIPANTE_IDS.ligaId}/times/${PARTICIPANTE_IDS.timeId}/cache`,
-            { method: 'DELETE' }
-        );
-
-        if (response.ok) {
-            console.log('[EXTRATO-PARTICIPANTE] ✅ Cache invalidado');
-        }
-
-        // Recarregar extrato
-        const { fluxoFinanceiroParticipante } = await import('../../../js/fluxo-financeiro/fluxo-financeiro-participante.js');
-        const { renderizarExtratoParticipante } = await import('./participante-extrato-ui.js');
-
-        // Buscar rodada atual
+        // Buscar status do mercado
         const resRodada = await fetch('/api/cartola/mercado/status');
         const statusData = await resRodada.json();
         const rodadaAtual = statusData.rodada_atual || 1;
         const mercadoAberto = statusData.mercado_aberto || false;
         const ultimaRodadaCompleta = mercadoAberto ? Math.max(1, rodadaAtual - 1) : rodadaAtual;
 
-        console.log(`[EXTRATO-PARTICIPANTE] 📊 Recalculando até rodada ${ultimaRodadaCompleta}`);
+        console.log(`[EXTRATO-PARTICIPANTE] 📊 Rodada atual: ${rodadaAtual} | Mercado: ${mercadoAberto ? 'ABERTO' : 'FECHADO'}`);
 
-        // Forçar recálculo
+        // ✅ VERIFICAR CACHE EXISTENTE
+        const cacheResponse = await fetch(
+            `/api/extrato-cache/${PARTICIPANTE_IDS.ligaId}/times/${PARTICIPANTE_IDS.timeId}/cache?rodadaAtual=${ultimaRodadaCompleta}`
+        );
+
+        let precisaInvalidar = false;
+
+        if (cacheResponse.ok) {
+            const cacheData = await cacheResponse.json();
+            
+            // ✅ ESTRATÉGIA INCREMENTAL:
+            // 1. Se mercado FECHADO e cache atualizado → NÃO INVALIDAR (dados permanentes)
+            // 2. Se mercado ABERTO → Validar apenas rodada atual (5 min TTL)
+            
+            if (cacheData && cacheData.cached && cacheData.data) {
+                const cacheRodada = cacheData.ultimaRodadaCalculada || 0;
+                
+                console.log(`[EXTRATO-PARTICIPANTE] 💾 Cache encontrado: Rodada ${cacheRodada}`);
+
+                if (!mercadoAberto && cacheRodada >= ultimaRodadaCompleta) {
+                    // ✅ MERCADO FECHADO = CACHE PERMANENTE
+                    console.log('[EXTRATO-PARTICIPANTE] ✅ Mercado fechado - Cache permanente válido!');
+                    console.log('[EXTRATO-PARTICIPANTE] 🚀 Sem necessidade de recálculo!');
+                    
+                    // Apenas re-renderizar com dados existentes
+                    const { renderizarExtratoParticipante } = await import('./participante-extrato-ui.js');
+                    renderizarExtratoParticipante(cacheData.data, PARTICIPANTE_IDS.timeId);
+                    return; // ← EARLY RETURN!
+                }
+                
+                if (mercadoAberto) {
+                    // ✅ MERCADO ABERTO = Validar idade do cache
+                    const timestampCache = new Date(cacheData.updatedAt).getTime();
+                    const idadeCache = Date.now() - timestampCache;
+                    const TTL_RODADA_ABERTA = 5 * 60 * 1000; // 5 minutos
+
+                    if (idadeCache < TTL_RODADA_ABERTA) {
+                        console.log(`[EXTRATO-PARTICIPANTE] ✅ Cache recente (${Math.floor(idadeCache/1000)}s) - Reutilizando!`);
+                        
+                        const { renderizarExtratoParticipante } = await import('./participante-extrato-ui.js');
+                        renderizarExtratoParticipante(cacheData.data, PARTICIPANTE_IDS.timeId);
+                        return; // ← EARLY RETURN!
+                    } else {
+                        console.log(`[EXTRATO-PARTICIPANTE] ⏰ Cache expirado (${Math.floor(idadeCache/1000)}s) - Recalculando apenas rodada atual`);
+                        precisaInvalidar = true;
+                    }
+                }
+            }
+        }
+
+        // ✅ SE CHEGOU AQUI: Precisa recalcular
+        if (precisaInvalidar) {
+            console.log('[EXTRATO-PARTICIPANTE] 🗑️ Invalidando cache para recálculo incremental...');
+            await fetch(
+                `/api/extrato-cache/${PARTICIPANTE_IDS.ligaId}/times/${PARTICIPANTE_IDS.timeId}/cache`,
+                { method: 'DELETE' }
+            );
+        }
+
+        // Recarregar extrato (com cache inteligente do backend)
+        const { fluxoFinanceiroParticipante } = await import('../../../js/fluxo-financeiro/fluxo-financeiro-participante.js');
+        const { renderizarExtratoParticipante } = await import('./participante-extrato-ui.js');
+
+        console.log(`[EXTRATO-PARTICIPANTE] 🔄 Recalculando até rodada ${ultimaRodadaCompleta}`);
+
         const extratoData = await fluxoFinanceiroParticipante.buscarExtratoCalculado(
             PARTICIPANTE_IDS.ligaId, 
             PARTICIPANTE_IDS.timeId, 
-            ultimaRodadaCompleta
+            ultimaRodadaCompleta,
+            false // força = false (permite usar cache parcial)
         );
 
-        // Renderizar
         renderizarExtratoParticipante(extratoData, PARTICIPANTE_IDS.timeId);
 
-        console.log('[EXTRATO-PARTICIPANTE] ✅ Dados atualizados com sucesso');
+        console.log('[EXTRATO-PARTICIPANTE] ✅ Refresh concluído!');
 
     } catch (error) {
         console.error('[EXTRATO-PARTICIPANTE] ❌ Erro ao atualizar:', error);
