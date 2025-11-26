@@ -135,12 +135,12 @@
 
     <h2>📈 Parciais da Liga</h2>
     <div style="text-align: center">
-      <h3 id="nomeLiga">Carregando...</h3>
+      <h3 id="nomeLiga"></h3>
       <p id="quantidadeTimes"></p>
     </div>
 
     <div class="parciais-header">
-      <h3 id="rodadaAtualTitle">Parciais da Rodada Atual</h3>
+      <h3 id="rodadaAtualTitle"></h3>
     </div>
     <div id="loading" class="loading" style="display: none">Carregando...</div>
     <div id="error" class="error" style="display: none"></div>
@@ -202,7 +202,7 @@
         32: -20.0,
       };
 
-      async function carregarParciais() {
+      window.carregarParciais = async function() {
         const rankingBody = document.getElementById("rankingBody");
         const loading = document.getElementById("loading");
         const error = document.getElementById("error");
@@ -232,9 +232,16 @@
           const mercadoStatus = await resMercado.json();
           const rodadaAtual = mercadoStatus.rodada_atual;
 
+          const resLiga = await fetch(`/api/ligas/${ligaId}`);
+          if (!resLiga.ok) throw new Error("Erro ao buscar dados da liga");
+          const liga = await resLiga.json();
+
+          nomeLiga.textContent = liga.nome || "Nome não disponível";
+          quantidadeTimes.textContent = `${liga.times.length} time(s) cadastrados`;
+
           // ✅ CORREÇÃO: Parciais só disponíveis quando mercado está FECHADO (jogos acontecendo)
           if (mercadoStatus.mercado_aberto) {
-            loading.style.display = "none"; // 🔴 CRITICAL: Ocultar loading ANTES
+            loading.style.display = "none";
             rodadaAtualTitle.textContent = `⏸️ Mercado Aberto - Rodada ${rodadaAtual}`;
             rankingBody.innerHTML = `<tr><td colspan="6" style="text-align: center; padding: 40px; background: linear-gradient(135deg, #1e3a5f 0%, #2a4a6f 100%);">
               <div style="font-size: 24px; margin-bottom: 15px; color: #ffd700;">⏳ Aguardando Início da Rodada ${rodadaAtual}</div>
@@ -245,19 +252,10 @@
                 <li>✅ Os jogos da rodada começarem</li>
               </ul>
             </td></tr>`;
-            nomeLiga.textContent = "Super Cartola 2025"; // Garantir que o nome apareça
-            quantidadeTimes.textContent = "Aguardando dados da rodada...";
             return;
           }
 
           rodadaAtualTitle.textContent = `🔥 Parciais AO VIVO - Rodada ${rodadaAtual}`;
-
-          const resLiga = await fetch(`/api/ligas/${ligaId}`);
-          if (!resLiga.ok) throw new Error("Erro ao buscar dados da liga");
-          const liga = await resLiga.json();
-
-          nomeLiga.textContent = liga.nome || "Nome não disponível";
-          quantidadeTimes.textContent = `${liga.times.length} time(s) cadastrados`;
 
           const resPartials = await fetch("/api/partials", {
             headers: {
@@ -336,7 +334,7 @@
         }
       }
 
-      function exibirRanking(rankings) {
+      window.exibirRanking = function(rankings) {
         const rankingBody = document.getElementById("rankingBody");
         rankingBody.innerHTML =
           rankings
