@@ -264,6 +264,9 @@ export const verificarCacheValido = async (req, res) => {
             console.log(`  📊 Rodadas no cache: ${rodadas.length}`);
             console.log(`  🔍 Primeira rodada (exemplo):`, rodadas[0]);
 
+            // ✅ CORRIGIDO: Usar o método .toObject() se disponível para garantir dados completos
+            const dadosCompletos = cacheExistente.toObject ? cacheExistente.toObject() : cacheExistente;
+
             // Retornar validação + dados do cache
             return res.json({
                 valido: true,
@@ -271,23 +274,23 @@ export const verificarCacheValido = async (req, res) => {
                 motivo: validacao.motivo,
                 permanente: validacao.permanente || false,
                 mercadoStatus: validacao.mercadoStatus,
-                ultimaRodadaCalculada: cacheExistente.ultima_rodada_consolidada,
+                ultimaRodadaCalculada: dadosCompletos.ultima_rodada_consolidada,
                 rodadaAtual: rodadaAtualInt,
-                updatedAt: cacheExistente.updatedAt,
-                // ✅ CORRIGIDO: Retornar 'rodadas' (frontend espera essa chave)
-                rodadas: rodadas,
+                updatedAt: dadosCompletos.updatedAt,
+                // ✅ CORRIGIDO: Retornar 'rodadas' do campo correto
+                rodadas: dadosCompletos.historico_transacoes || [],
                 resumo: {
-                    saldo: cacheExistente.saldo_consolidado,
-                    totalGanhos: cacheExistente.ganhos_consolidados || 0,
-                    totalPerdas: cacheExistente.perdas_consolidadas || 0,
+                    saldo: dadosCompletos.saldo_consolidado,
+                    totalGanhos: dadosCompletos.ganhos_consolidados || 0,
+                    totalPerdas: dadosCompletos.perdas_consolidadas || 0,
                     // Adicionar campos que o frontend espera
-                    bonus: 0, // Calculado do historico_transacoes se necessário
+                    bonus: 0,
                     onus: 0,
                     pontosCorridos: 0,
                     mataMata: 0,
                     top10: 0
                 },
-                metadados: cacheExistente.metadados
+                metadados: dadosCompletos.metadados
             });
         } else {
             // Se não é válido, retorna informações da validação
