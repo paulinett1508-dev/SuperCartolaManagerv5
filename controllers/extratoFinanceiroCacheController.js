@@ -22,17 +22,20 @@ export const getExtratoCache = async (req, res) => {
         }
 
         // Sucesso! Retorna o JSON pronto
+        // Garantir que todos os campos sejam retornados
+        const dadosCompletos = cache.toObject ? cache.toObject() : cache;
+
         res.json({
             cached: true,
-            data: cache.historico_transacoes || [], // Garante array
+            data: dadosCompletos.historico_transacoes || [], // Garante array
             resumo: {
-                saldo_final: cache.saldo_consolidado,
-                ganhos: cache.ganhos_consolidados,
-                perdas: cache.perdas_consolidadas,
+                saldo_final: dadosCompletos.saldo_consolidado,
+                ganhos: dadosCompletos.ganhos_consolidados,
+                perdas: dadosCompletos.perdas_consolidadas,
             },
-            metadados: cache.metadados,
-            ultimaRodadaCalculada: cache.ultima_rodada_consolidada,
-            updatedAt: cache.updatedAt,
+            metadados: dadosCompletos.metadados,
+            ultimaRodadaCalculada: dadosCompletos.ultima_rodada_consolidada,
+            updatedAt: dadosCompletos.updatedAt,
         });
     } catch (error) {
         console.error("[CACHE-CONTROLLER] Erro ao buscar cache:", error);
@@ -142,81 +145,112 @@ export const verificarCacheValido = async (req, res) => {
         const { ligaId, timeId } = req.params;
         const { rodadaAtual, mercadoAberto } = req.query;
 
-        const cache = await ExtratoFinanceiroCache.findOne({
+        // Buscar cache existente - SEM .lean() para preservar todos os campos
+        const cacheExistente = await ExtratoFinanceiroCache.findOne({
             liga_id: ligaId,
             time_id: Number(timeId),
         });
 
-        if (!cache) {
+        if (!cacheExistente) {
             return res.json({ valido: false, motivo: "cache_nao_encontrado" });
         }
 
         const rodadaAtualNum = parseInt(rodadaAtual);
         const mercadoEstaAberto = mercadoAberto === 'true';
 
+        // Simula a validação que ocorreria em outro controller (para ter os mesmos resultados)
+        // Esta é uma simplificação, em um cenário real, esta lógica estaria em um service/util
+        let validacao = { valido: false, motivo: "erro_simulacao" };
+        const rodadaAtualInt = parseInt(rodadaAtual);
+
         // ✅ REGRA 1: Se mercado está FECHADO e cache está atualizado = VÁLIDO PERMANENTEMENTE
-        if (!mercadoEstaAberto && cache.ultima_rodada_consolidada >= rodadaAtualNum) {
-            return res.json({
+        if (!mercadoEstaAberto && cacheExistente.ultima_rodada_consolidada >= rodadaAtualInt) {
+            validacao = {
                 valido: true,
                 permanente: true,
                 motivo: "rodada_fechada_cache_permanente",
-                ultimaRodada: cache.ultima_rodada_consolidada,
-                updatedAt: cache.updatedAt,
-            });
+                ultimaRodada: cacheExistente.ultima_rodada_consolidada,
+                mercadoStatus: "fechado",
+                updatedAt: cacheExistente.updatedAt,
+            };
         }
-
         // ✅ REGRA 2: Se mercado está ABERTO, verificar se precisa recalcular apenas rodada atual
-        if (mercadoEstaAberto) {
-            const rodadaAnterior = Math.max(1, rodadaAtualNum - 1);
-            
+        else if (mercadoEstaAberto) {
+            const rodadaAnterior = Math.max(1, rodadaAtualInt - 1);
+
             // Cache tem rodadas anteriores consolidadas? Reusar!
-            if (cache.ultima_rodada_consolidada >= rodadaAnterior) {
+            if (cacheExistente.ultima_rodada_consolidada >= rodadaAnterior) {
                 // Verificar idade do cache para rodada em andamento (5 min)
-                // CORRIGIDO: usar updatedAt ao invés de data_ultima_atualizacao
-                const timestampCache = cache.updatedAt || cache.data_ultima_atualizacao;
+                const timestampCache = cacheExistente.updatedAt || cacheExistente.data_ultima_atualizacao;
                 const idadeCache = Date.now() - new Date(timestampCache).getTime();
                 const TTL_RODADA_ABERTA = 5 * 60 * 1000; // 5 minutos
 
                 if (idadeCache < TTL_RODADA_ABERTA) {
-                    return res.json({
+                    validacao = {
                         valido: true,
                         permanente: false,
                         motivo: "rodada_aberta_cache_recente",
-                        ultimaRodada: cache.ultima_rodada_consolidada,
+                        ultimaRodada: cacheExistente.ultima_rodada_consolidada,
                         ttlRestante: Math.ceil((TTL_RODADA_ABERTA - idadeCache) / 1000),
-                        updatedAt: cache.updatedAt,
-                    });
+                        mercadoStatus: "aberto",
+                        updatedAt: cacheExistente.updatedAt,
+                    };
+                } else {
+                    // ✅ CACHE EXPIRADO MAS AINDA VÁLIDO (apenas refresh parcial)
+                    validacao = {
+                        valido: true, // ← MUDOU DE FALSE PARA TRUE!
+                        permanente: false,
+                        motivo: "rodada_aberta_cache_expirado_mas_valido",
+                        recalcularApenas: "rodada_atual",
+                        rodadasConsolidadas: cacheExistente.ultima_rodada_consolidada,
+                        usarCacheAntigo: true, // ← NOVO FLAG
+                        mercadoStatus: "aberto",
+                        updatedAt: cacheExistente.updatedAt,
+                    };
                 }
-
-                // ✅ CACHE EXPIRADO MAS AINDA VÁLIDO (apenas refresh parcial)
-                return res.json({
-                    valido: true, // ← MUDOU DE FALSE PARA TRUE!
-                    permanente: false,
-                    motivo: "rodada_aberta_cache_expirado_mas_valido",
-                    recalcularApenas: "rodada_atual",
-                    rodadasConsolidadas: cache.ultima_rodada_consolidada,
-                    usarCacheAntigo: true, // ← NOVO FLAG
-                    updatedAt: cache.updatedAt,
-                });
             }
         }
 
         // ✅ REGRA 3: Cache desatualizado - precisa recalcular rodadas faltantes
-        if (cache.ultima_rodada_consolidada < rodadaAtualNum) {
-            return res.json({
+        if (!validacao.valido && cacheExistente.ultima_rodada_consolidada < rodadaAtualInt) {
+            validacao = {
                 valido: false,
                 motivo: "rodadas_faltantes",
-                cacheRodada: cache.ultima_rodada_consolidada,
-                rodadaAtual: rodadaAtualNum,
-                rodadasPendentes: rodadaAtualNum - cache.ultima_rodada_consolidada,
-            });
+                cacheRodada: cacheExistente.ultima_rodada_consolidada,
+                rodadaAtual: rodadaAtualInt,
+                rodadasPendentes: rodadaAtualInt - cacheExistente.ultima_rodada_consolidada,
+            };
+        } else if (!validacao.valido) {
+            // Caso geral de cache inválido não coberto pelas regras anteriores
+            validacao = {
+                valido: false,
+                motivo: "cache_desatualizado_ou_invalido",
+                cacheRodada: cacheExistente.ultima_rodada_consolidada,
+                rodadaAtual: rodadaAtualInt,
+            };
         }
 
-        res.json({
-            valido: true,
-            ultimaRodada: cache.ultima_rodada_consolidada,
-            updatedAt: cache.updatedAt,
-        });
+
+        // Se o cache é válido E existe, retorna os dados do cache
+        if (validacao.valido && cacheExistente) {
+            console.log('  ✅ Cache válido encontrado - retornando dados');
+
+            // Garantir que todos os campos sejam retornados
+            const dadosCompletos = cacheExistente.toObject ? cacheExistente.toObject() : cacheExistente;
+
+            return res.json(dadosCompletos);
+        } else {
+            // Se não é válido, retorna as informações da validação
+            return res.json({
+                valido: validacao.valido,
+                motivo: validacao.motivo,
+                cacheRodada: cacheExistente.ultima_rodada_consolidada,
+                rodadaAtual: rodadaAtualInt,
+                rodadasPendentes: validacao.rodadasPendentes,
+                mercadoStatus: validacao.mercadoStatus,
+                updatedAt: cacheExistente.updatedAt
+            });
+        }
     } catch (error) {
         console.error("[CACHE-CONTROLLER] Erro ao verificar cache:", error);
         res.status(500).json({ error: "Erro ao verificar cache" });
