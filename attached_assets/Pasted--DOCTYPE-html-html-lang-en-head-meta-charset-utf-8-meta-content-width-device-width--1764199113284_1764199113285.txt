@@ -1,0 +1,206 @@
+<!DOCTYPE html>
+<html lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Football App Home</title>
+<link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined" rel="stylesheet"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,typography"></script>
+<script>
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            colors: {
+              primary: "#3b82f6", // A vibrant blue for primary actions
+              "background-light": "#f3f4f6",
+              "background-dark": "#0d1b2a",
+              "card-light": "#ffffff",
+              "card-dark": "#172a46",
+              "text-light-primary": "#1f2937",
+              "text-light-secondary": "#6b7280",
+              "text-dark-primary": "#e0e6f1",
+              "text-dark-secondary": "#94a3b8",
+              "border-light": "#e5e7eb",
+              "border-dark": "#334155",
+            },
+            fontFamily: {
+              display: ["Roboto", "sans-serif"],
+            },
+            borderRadius: {
+              DEFAULT: "0.75rem", // 12px
+            },
+          },
+        },
+      };
+    </script>
+<style>
+        body {
+            font-family: 'Roboto', sans-serif;
+        }
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+    </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="bg-background-light dark:bg-background-dark font-display">
+<div class="mx-auto max-w-md bg-background-light dark:bg-background-dark">
+<header class="sticky top-0 z-10 bg-background-light/80 dark:bg-background-dark/80 backdrop-blur-sm p-4 text-text-light-primary dark:text-text-dark-primary">
+<div class="flex justify-between items-center">
+<div class="flex items-center gap-2">
+<img alt="Brazilian flag icon" class="h-6 w-6 rounded-full" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDQ5FCBB6GI_ZRDUfANB9AMmkJCvTqVI4ov7rqKUfgu4UU6T1GIC2irOEow3DEkKlGI1tBJKtSWnEDmck9PEvWfHj7IueEu4w4jP44WHpnq0T-g1u1hi2ok5NwinbpO7SGyqfxi8-ShWhUvNRVsAvPclgE64UeOgt9J4ToxMt_b4u1vF9YPpPH2ogw8iMv0q_95azsASUBDpX8nwqwz7nXZQI9n6ZJr0MbBTOiIfviHmBcdm0Wyjzcszy2fBXUMKG_eU8bUiojUCEE"/>
+<div>
+<h1 class="font-bold text-lg leading-tight">Brasileirão Rodada 36</h1>
+<p class="text-xs text-text-light-secondary dark:text-text-dark-secondary">Mercado fecha qui. | 20:29</p>
+</div>
+</div>
+<div class="flex items-center gap-4 text-text-light-primary dark:text-text-dark-primary">
+<div class="relative">
+<span class="material-symbols-outlined text-2xl">notifications</span>
+<span class="absolute top-0 right-0 block h-2.5 w-2.5 rounded-full bg-blue-500 border-2 border-background-light dark:border-background-dark"></span>
+<span class="absolute top-0 right-0 block h-2.5 w-2.5 rounded-full bg-blue-500 animate-ping"></span>
+</div>
+<span class="material-symbols-outlined text-2xl">refresh</span>
+</div>
+</div>
+</header>
+<main class="p-4 space-y-4 pb-24">
+<section class="bg-card-light dark:bg-card-dark p-4 rounded-lg flex justify-between items-center shadow-sm">
+<div class="flex items-center gap-3">
+<img alt="Urubu Play F.C. team crest" class="h-10 w-10" src="https://lh3.googleusercontent.com/aida-public/AB6AXuBEgOQgchcMA45_nz_12nm1rxUcp7uP_tzZAUnHiY5fYU-9fm_9-8c0y7LqIIQXOOALefcPKzU4of3zSRX_n8nOzpcYkM5sLjOek8Yyh6a1sd1Ug3EfF5Jc6I9v44EuosU6wOxVYcExi0e2uSryj7E3P9wo80sXUvYDiZ6zt9Hy_PxZN57gMuSoPOjRe9LBuLcnwH48ZoWcxXhrUCIvMwgxP_n6y_lK6IsPiINCvGQrnxg77dvb5glGjqL7Ta1oPr7-XXzxk9m3iyo"/>
+<div>
+<h2 class="font-bold text-text-light-primary dark:text-text-dark-primary">Urubu Play F.C.</h2>
+<p class="text-sm text-text-light-secondary dark:text-text-dark-secondary">Paulinett Miranda</p>
+</div>
+</div>
+<div class="flex items-center gap-2">
+<div class="text-right">
+<p class="font-semibold text-sm text-text-light-primary dark:text-text-dark-primary">120,31 <span class="text-xs text-text-light-secondary dark:text-text-dark-secondary">2.755,97</span></p>
+<p class="text-sm text-green-500 font-semibold">$159,09<span class="font-normal">+6,45</span></p>
+</div>
+<span class="material-symbols-outlined text-text-light-secondary dark:text-text-dark-secondary text-2xl">chevron_right</span>
+</div>
+</section>
+<section class="bg-card-light dark:bg-card-dark p-4 rounded-lg flex justify-between items-center shadow-sm">
+<div class="flex items-center gap-3">
+<span class="material-symbols-outlined text-primary">shirt</span>
+<p class="font-semibold text-text-light-primary dark:text-text-dark-primary">9 jogadores com pendências</p>
+</div>
+<span class="material-symbols-outlined text-text-light-secondary dark:text-text-dark-secondary text-2xl">chevron_right</span>
+</section>
+<section class="grid grid-cols-2 gap-4">
+<div class="col-span-2 bg-card-light dark:bg-card-dark rounded-lg flex shadow-sm overflow-hidden">
+<div class="bg-primary/20 dark:bg-primary/20 p-4 flex flex-col justify-between items-center text-center w-1/3">
+<p class="font-bold text-primary dark:text-blue-300 text-sm">Jogo em Destaque</p>
+<img alt="Stake logo" class="w-16 h-auto" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDqv3yYD67rPNqoYq2RFLERExZ11aC4VPhIMNeV1RlMGR4ZLBHmx50NU9MVkehvAsZUJw-F0KDMmm-XVJ11Jq9eDffv6s7dtvLKzHky35bQPGYMWh7JWch-RrmCv7AHk3vRDf2xgbrXF2yqyCJ9gjRUbFiJgUiWDGxhukAK3KBHPizU5GdA5f8CnkSbBMs3kJ7mfllwkNSUa4gYe94NmIBBroeBHTR5kQGFESdUe_GnjWVJP9D4ib01uNfUoZJkvm6DxlvF90fyTmg"/>
+</div>
+<div class="p-3 flex-1 flex justify-between items-center">
+<div>
+<p class="font-bold text-text-light-primary dark:text-text-dark-primary">Brasileirão 2025</p>
+<div class="flex items-center gap-2 text-sm mt-1 font-semibold text-text-light-primary dark:text-text-dark-primary">
+<span>2,5</span>
+<img alt="Corinthians logo" class="h-6 w-6" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCHNoEGaC4Wtj-BXgk3K6UEcHScXiWgGZp8LZFDW4OYqAAtFSrKU_f2A-o8JfqN-QfzhSn2TBjnpTw5xYp_lzYG1B8HX6SsN9g6Jwy-JNxbz3EjflO7VCOiUSy14VfJ7drSUxWBb4vHB9Mz9A3ityuMjWsM8mpYhfTBymQHfvlmtl6A2rHvl15URuedEelwWvCPhfnPkNGa4lkDSdNjl2Skve7GWl-vb1__CJ8m4pHzyJ7sh8iQygxj-5Yt9_oRFt-EcQR3W9JNgOo"/>
+<span>3,1</span>
+<img alt="Botafogo logo" class="h-6 w-6" src="https://lh3.googleusercontent.com/aida-public/AB6AXuD7IJSmLYXeEkjn17bqCOlnIFGiP2Nfx8iVMVUaHyqp1x_9O_opeRr4cMwotJlY730zJSicleq6D-vmSmMMVuu8jAlidKBe77biMWZPB0l-aeIIULvczi5v0g_Jf0iIv2Gud-EvR_2Ggf2zKxk0-C00HaZwy3gVCxmjpHh_OFHHoSuKfJIE73i6vhNsZGyIhSSx1mxm4Rl0wkfmIf8D01eGaz79A8gHSEcYxIFq3B8hEwXE9Lop-PyTLe29H5wqI3LHRDH15WstO_I"/>
+<span>3</span>
+</div>
+<p class="text-xs text-text-light-secondary dark:text-text-dark-secondary mt-1">Corinthians X Botafogo</p>
+<p class="text-xs text-text-light-secondary dark:text-text-dark-secondary">As melhores Odds estão na Stake</p>
+</div>
+<span class="material-symbols-outlined text-text-light-secondary dark:text-text-dark-secondary text-2xl">chevron_right</span>
+</div>
+</div>
+<div class="bg-card-light dark:bg-card-dark p-4 rounded-lg flex flex-col items-center justify-center gap-2 text-center shadow-sm">
+<img alt="Catimba Scores logo" class="h-10 w-10" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDcNj8xHNWQTAmvzLJ9f5xcUtphWPMUaKqqxEAa9pE_n0ASTNT7y6Gc80fDOKLok9e6mGxtvcoHDXk5Rn7ECwdkeUKJSHPd10B4LP2DK0UMQKJ9VMFxxXSHq8o0oK6r34Il4z6bOckSqgFitC3DkYQtImCzNcbPRwgL7TxIuUGfqgwQJfIag-TXRReR46Yf8I214O8sFlo_qFM-7uDtN4KNWp7VEoQ9lNHGBirWF7WGyZo1O-_JKmUDFxbj2Gx-6m4388zM7yXeqsw"/>
+<p class="text-sm font-medium text-text-light-primary dark:text-text-dark-primary">Catimba Scores</p>
+</div>
+<div class="bg-card-light dark:bg-card-dark p-4 rounded-lg flex flex-col items-center justify-center gap-2 text-center shadow-sm">
+<div class="bg-gray-200 dark:bg-gray-700 p-2 rounded-full">
+<span class="material-symbols-outlined text-text-light-primary dark:text-text-dark-primary">edit</span>
+</div>
+<p class="text-sm font-medium text-text-light-primary dark:text-text-dark-primary">Editar atalhos</p>
+</div>
+</section>
+<section class="space-y-4">
+<div class="flex items-center gap-2">
+<span class="material-symbols-outlined text-text-light-primary dark:text-text-dark-primary">calendar_month</span>
+<h3 class="text-lg font-bold text-text-light-primary dark:text-text-dark-primary">Próximos jogos</h3>
+</div>
+<div class="bg-card-light dark:bg-card-dark rounded-lg shadow-sm">
+<div class="p-4">
+<div class="flex justify-center items-center text-center mb-3">
+<div class="flex-1">
+<div class="flex justify-center gap-1 mb-1">
+<span class="h-2 w-2 rounded-full bg-green-500"></span>
+<span class="h-2 w-2 rounded-full bg-green-500"></span>
+<span class="h-2 w-2 rounded-full bg-red-500"></span>
+</div>
+<img alt="Red Bull Bragantino logo" class="h-10 w-10 mx-auto mb-1" src="https://lh3.googleusercontent.com/aida-public/AB6AXuB_d23t8T4nEm8HjI6H2PruPlzi4-f3EO3Uu0OUmEgq_3_m7lQXdBEOn07o6reqY3yrHuQR0ZZh4lCqssC8z2BcNXnJ7uabvyAkdTOeoTJtMZypbM_eEadkbwflqj3jM_OeQm1rgCTQQp1e5nacga0uu_lhhgU4OaWCVTgzdTrK_XX5yvApRNnYUd27qJhz5mkdRDz52U5EqHl1cFT0IMOccCir9syyNKon_QErSX6Ehh6piZ1VXe2U0jKBSZKC1qKwpRhsnsiZoAI"/>
+<p class="text-sm font-semibold text-text-light-primary dark:text-text-dark-primary">Bragantino | 9º</p>
+</div>
+<div class="flex-1 text-text-light-secondary dark:text-text-dark-secondary">
+<p class="text-xs">qua., 26/11 | 19:00</p>
+<p class="text-2xl font-bold my-1 text-text-light-primary dark:text-text-dark-primary">- X -</p>
+<span class="bg-yellow-400 text-yellow-900 text-xs font-bold px-2 py-1 rounded">Não válido</span>
+<p class="text-xs mt-1">Cícero de Souza Marques</p>
+</div>
+<div class="flex-1">
+<div class="flex justify-center gap-1 mb-1">
+<span class="h-2 w-2 rounded-full bg-green-500"></span>
+</div>
+<img alt="Fortaleza logo" class="h-10 w-10 mx-auto mb-1" src="https://lh3.googleusercontent.com/aida-public/AB6AXuB3vI1IZhsNtJ52QehEkLCTVUp_UajVYtzBs84zsZT-b0WdiDpWRrwctBYZ8PuwagTX8GDiPi7k46cxGbmfpb_0OKWk35Ww_K7nL6PKm9Q6vCNEBucjAY8oy0Zefe1EpPCTRUuWKEcrwxKoFWSQVSCFsdkM8zCVpArbRmjvecouz7Q7T8Z2cLL-F60J6Lzs-vnKY956jAu-9jkVB_wPD-2tlqby_NsSzaKYBDmODweP4h2lmlYOI5fSpP8CVmGNob6Uolp_ax3TLBw"/>
+<p class="text-sm font-semibold text-text-light-primary dark:text-text-dark-primary">Fortaleza | 18º</p>
+</div>
+</div>
+</div>
+<div class="bg-gray-100 dark:bg-gray-900/50 flex justify-around items-center text-center p-2 rounded-b-lg">
+<img alt="Stake logo" class="h-6 w-auto opacity-70" src="https://lh3.googleusercontent.com/aida-public/AB6AXuD0jHU1yIjD7-pZnOZAvJk9QxUZkORRcwiwZ2GiaNL54aJomivRwVOWJo5YBwXJhdBndTkLHhTeZeLXjaOreNTci1IISIFovVJi6fm_G7fLg9EY4cFBt_nmtOTaOWqGWn4ga6xJr4IB8qavZUOLhD7Cd_HV9LOKNMUNDKAvde8G5X3KTPymKvwMEmUuiElQXmOzbVcDSUdG-kl4TW3kzR-tolB0mNQiHfmzVPqJmJOfKk1f-SAhAs1Ttifl1GDTjusgcepP9srcmtg"/>
+<span class="font-bold text-primary dark:text-blue-400">2.1</span>
+<span class="font-bold text-primary dark:text-blue-400">2.5</span>
+<span class="font-bold text-primary dark:text-blue-400">5.0</span>
+</div>
+</div>
+<div class="bg-card-light dark:bg-card-dark rounded-lg shadow-sm p-4">
+<div class="flex justify-between items-center text-sm text-text-light-secondary dark:text-text-dark-secondary">
+<span>qui., 27/11 | 20:30</span>
+<div class="flex items-center gap-1">
+<span class="h-1.5 w-1.5 rounded-full bg-green-500"></span>
+<span class="h-1.5 w-1.5 rounded-full bg-green-500"></span>
+<span class="h-1.5 w-1.5 rounded-full bg-red-500"></span>
+<span class="h-1.5 w-1.5 rounded-full bg-gray-400"></span>
+<span class="h-1.5 w-1.5 rounded-full bg-green-500"></span>
+</div>
+</div>
+</div>
+</section>
+</main>
+<nav class="fixed bottom-0 left-0 right-0 max-w-md mx-auto bg-card-light dark:bg-card-dark border-t border-border-light dark:border-border-dark flex justify-around p-2">
+<a class="flex flex-col items-center justify-center w-1/5 text-text-light-secondary dark:text-text-dark-secondary" href="#">
+<span class="material-symbols-outlined">home</span>
+<span class="text-xs">Início</span>
+</a>
+<a class="flex flex-col items-center justify-center w-1/5 text-primary dark:text-primary" href="#">
+<span class="material-symbols-outlined">shirt</span>
+<span class="text-xs">Meu time</span>
+</a>
+<a class="flex flex-col items-center justify-center w-1/5 text-text-light-secondary dark:text-text-dark-secondary" href="#">
+<span class="material-symbols-outlined">signal_cellular_alt</span>
+<span class="text-xs">Parciais</span>
+</a>
+<a class="flex flex-col items-center justify-center w-1/5 text-text-light-secondary dark:text-text-dark-secondary" href="#">
+<span class="material-symbols-outlined">sports_soccer</span>
+<span class="text-xs">Jogos</span>
+</a>
+<a class="flex flex-col items-center justify-center w-1/5 text-text-light-secondary dark:text-text-dark-secondary" href="#">
+<span class="material-symbols-outlined">more_horiz</span>
+<span class="text-xs">Mais itens</span>
+</a>
+</nav>
+</div>
+
+</body></html>
