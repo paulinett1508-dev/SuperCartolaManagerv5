@@ -1,0 +1,84 @@
+participante-auth.js:4 [PARTICIPANTE-AUTH] Carregando sistema de autenticação...
+participante-auth.js:372 [PARTICIPANTE-AUTH] ✅ Sistema carregado
+participante-navigation.js:3 [PARTICIPANTE-NAV] Carregando sistema de navegação...
+participante-navigation.js:659 [PARTICIPANTE-NAV] ✅ Sistema carregado
+participante-status.js:3 [PARTICIPANTE-STATUS] Carregando sistema de status...
+participante-status.js:144 [PARTICIPANTE-STATUS] ✅ Sistema carregado
+cache-manager.js:439 ✅ [CACHE-MANAGER] Sistema de cache inteligente carregado
+participante-auth.js:43 [PARTICIPANTE-AUTH] Verificando autenticação...
+participante-navigation.js:25 [PARTICIPANTE-NAV] Inicializando navegação...
+participante-navigation.js:40 [PARTICIPANTE-NAV] Aguardando dados do participante...
+participante-navigation.js:52 [PARTICIPANTE-NAV] Tentativa 1/10 - Aguardando dados...
+cache-manager.js:50 ✅ [CACHE-MANAGER] IndexedDB inicializado
+participante-navigation.js:52 [PARTICIPANTE-NAV] Tentativa 2/10 - Aguardando dados...
+participante-auth.js:107 [PARTICIPANTE-AUTH] Atualizando header com dados: Object
+participante-auth.js:211 [PARTICIPANTE-AUTH] 🔍 Verificando múltiplas ligas para timeId: 13935277
+participante-navigation.js:46 [PARTICIPANTE-NAV] ✅ Dados do participante disponíveis: Object
+participante-navigation.js:81 [PARTICIPANTE-NAV] 🔍 Buscando módulos ativos para liga 684cb1c8af923da7c7df51de...
+participante-auth.js:224 [PARTICIPANTE-AUTH] 📊 Resposta da API: Object
+participante-auth.js:227 [PARTICIPANTE-AUTH] 📋 Total de ligas encontradas: 2
+participante-auth.js:230 [PARTICIPANTE-AUTH] 📝 Ligas: Super Cartola 2025 (684cb1c8af923da7c7df51de), Cartoleiros do Sobral (684d821cf1a7ae16d1f89572)
+participante-auth.js:235 [PARTICIPANTE-AUTH] 🏆 Participante em múltiplas ligas: 2
+participante-auth.js:121 [PARTICIPANTE-AUTH] Dados do time carregados: Object
+participante-navigation.js:91 [PARTICIPANTE-NAV] ✅ Módulos ativos carregados: Object
+participante-navigation.js:92 [PARTICIPANTE-NAV] 🔎 Verificação detalhada:
+participante-navigation.js:93   - pontosCorridos: true boolean
+participante-navigation.js:94   - mataMata: true boolean
+participante-navigation.js:124 [PARTICIPANTE-NAV] 🎨 Renderizando menu dinâmico...
+participante-navigation.js:125 [PARTICIPANTE-NAV] 📋 Módulos ativos configurados: Object
+participante-navigation.js:140 [PARTICIPANTE-NAV] 🔍 Estado atual dos módulos: Object
+participante-navigation.js:146 [PARTICIPANTE-NAV] ✅ Extrato - sempre ativo
+participante-navigation.js:146 [PARTICIPANTE-NAV] ✅ Ranking Geral - sempre ativo
+participante-navigation.js:146 [PARTICIPANTE-NAV] ✅ Ranking Rodadas - sempre ativo
+participante-navigation.js:152 [PARTICIPANTE-NAV] ✅ Top 10 - Chave: "top10" = true (tipo: boolean)
+participante-navigation.js:156 [PARTICIPANTE-NAV] 🔎 Verificando this.modulosAtivos["top10"] = true
+participante-navigation.js:152 [PARTICIPANTE-NAV] ✅ Melhor do Mês - Chave: "melhorMes" = true (tipo: boolean)
+participante-navigation.js:156 [PARTICIPANTE-NAV] 🔎 Verificando this.modulosAtivos["melhorMes"] = true
+participante-navigation.js:152 [PARTICIPANTE-NAV] ✅ Pontos Corridos - Chave: "pontosCorridos" = true (tipo: boolean)
+participante-navigation.js:156 [PARTICIPANTE-NAV] 🔎 Verificando this.modulosAtivos["pontosCorridos"] = true
+participante-navigation.js:152 [PARTICIPANTE-NAV] ✅ Mata-Mata - Chave: "mataMata" = true (tipo: boolean)
+participante-navigation.js:156 [PARTICIPANTE-NAV] 🔎 Verificando this.modulosAtivos["mataMata"] = true
+participante-navigation.js:152 [PARTICIPANTE-NAV] ❌ Artilheiro - Chave: "artilheiro" = false (tipo: boolean)
+participante-navigation.js:156 [PARTICIPANTE-NAV] 🔎 Verificando this.modulosAtivos["artilheiro"] = false
+participante-navigation.js:152 [PARTICIPANTE-NAV] ❌ Luva de Ouro - Chave: "luvaOuro" = false (tipo: boolean)
+participante-navigation.js:156 [PARTICIPANTE-NAV] 🔎 Verificando this.modulosAtivos["luvaOuro"] = false
+participante-navigation.js:169 [PARTICIPANTE-NAV] ✅ Menu renderizado com 7 módulos de 9 possíveis
+participante-navigation.js:189 [PARTICIPANTE-NAV] Sistema de navegação pronto
+participante-navigation.js:228 [PARTICIPANTE-NAV] 🔄 Restaurando módulo: boas-vindas
+participante-navigation.js:236 [PARTICIPANTE-NAV] Navegando para: boas-vindas
+participante-navigation.js:321 [PARTICIPANTE-NAV] 📦 Importando módulo JS: boas-vindas
+participante-auth.js:142 [PARTICIPANTE-AUTH] Dados do participante na liga: Object
+participante-auth.js:189 [PARTICIPANTE-AUTH] ✅ Header atualizado com sucesso: Object
+participante-auth.js:83 [PARTICIPANTE-AUTH] ✅ Autenticação válida (cache atualizado)
+participante-status.js:106 [PARTICIPANTE-STATUS] 🟢 Online
+participante-boas-vindas.js:3 [BOAS-VINDAS] Carregando módulo...
+participante-boas-vindas.js:309 [BOAS-VINDAS] ✅ Módulo carregado
+participante-navigation.js:339 [PARTICIPANTE-NAV] ✅ Módulo boas-vindas importado
+participante-navigation.js:348 [PARTICIPANTE-NAV] Inicializando módulo: boas-vindas
+participante-boas-vindas.js:6 [BOAS-VINDAS] Inicializando para time 13935277 na liga 684cb1c8af923da7c7df51de
+participante-boas-vindas.js:17 [BOAS-VINDAS] Status das requisições: Object
+participante-boas-vindas.js:29 [BOAS-VINDAS] Dados recebidos: Object
+participante-boas-vindas.js:38 [BOAS-VINDAS] 🔍 Primeiro time do ranking (exemplo): Object
+participante-boas-vindas.js:40 [BOAS-VINDAS] 🎯 Meu time encontrado: undefined
+participante-boas-vindas.js:51 [BOAS-VINDAS] 📊 Cálculo de pontos: Object
+participante-boas-vindas.js:62 [BOAS-VINDAS] 💰 Campos financeiros recebidos: Object
+participante-boas-vindas.js:66 [BOAS-VINDAS] 💰 Campos disponíveis: Array(4)
+participante-boas-vindas.js:69 [BOAS-VINDAS] 💰 Campo "Campo 1": R$ 0
+participante-boas-vindas.js:69 [BOAS-VINDAS] 💰 Campo "Campo 2": R$ 0
+participante-boas-vindas.js:69 [BOAS-VINDAS] 💰 Campo "Campo 3": R$ 0
+participante-boas-vindas.js:69 [BOAS-VINDAS] 💰 Campo "Campo 4": R$ 0
+participante-boas-vindas.js:72 [BOAS-VINDAS] 💰 Saldo total calculado: 0
+participante-boas-vindas.js:84 [BOAS-VINDAS] 🔍 Buscando minhas rodadas. Total de rodadas: 1120
+participante-boas-vindas.js:85 [BOAS-VINDAS] 🔍 Primeira rodada (exemplo): Object
+participante-boas-vindas.js:88 [BOAS-VINDAS] 🔍 Minhas rodadas encontradas: 35
+participante-boas-vindas.js:92 [BOAS-VINDAS] Dados processados: Object
+participante-boas-vindas.js:128 [BOAS-VINDAS] Preenchendo interface com: Object
+participante-boas-vindas.js:141 [BOAS-VINDAS] ✅ Posição atualizada: --º (de 32 times)
+participante-boas-vindas.js:151 [BOAS-VINDAS] Pontos atualizados: 2756.0
+participante-boas-vindas.js:172 [BOAS-VINDAS] Saldo atualizado: R$ 0 Cor: rgb(34, 197, 94)
+participante-boas-vindas.js:176 [BOAS-VINDAS] Status financeiro: A receber
+participante-boas-vindas.js:186 [BOAS-VINDAS] Número da última rodada: 35
+participante-boas-vindas.js:193 [BOAS-VINDAS] Pontos da última rodada: 120.3
+participante-boas-vindas.js:202 [BOAS-VINDAS] 🏟️ Clube ID encontrado: 262 Fonte: Object
+participante-boas-vindas.js:252 [BOAS-VINDAS] Elemento timeCoracaoCard não encontrado
+participante-navigation.js:357 [PARTICIPANTE-NAV] Página de boas-vindas carregada com dados

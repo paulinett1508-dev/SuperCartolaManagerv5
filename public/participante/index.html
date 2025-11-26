@@ -9,59 +9,93 @@
 </head>
 <body>
     <div class="participante-container">
-        <!-- Header com dados do participante -->
-        <header class="participante-header">
-            <div class="header-content">
-                <!-- Row 1: Escudos + Info -->
-                <div class="header-top">
-                    <!-- Escudos lado a lado -->
-                    <div class="escudos-container">
+        <!-- HEADER REDESENHADO - UX SÊNIOR MOBILE-FIRST -->
+        <header class="participante-header" style="display: flex; flex-direction: column; background: linear-gradient(135deg, #ff4500 0%, #e8472b 100%); box-shadow: 0 4px 20px rgba(255, 69, 0, 0.4); border-bottom: 3px solid rgba(255, 69, 0, 0.5);">
+            <!-- LINHA 1: PRIMÁRIA (SEMPRE VISÍVEL) -->
+            <div class="header-content" style="display: flex; align-items: center; justify-content: space-between; padding: 12px 16px; min-height: 56px; gap: 12px;">
+                <!-- Escudos + Info -->
+                <div style="display: flex; align-items: center; gap: 12px; flex: 1; min-width: 0;">
+                    <div class="escudos-container" style="display: flex; gap: 6px; flex-shrink: 0;">
                         <div class="escudo-wrapper" title="Time do Coração">
-                            <img id="escudoCoracao" class="escudo-coracao" src="/escudos/placeholder.png" alt="Clube do Coração">
+                            <img id="escudoCoracao" class="escudo-coracao" src="/escudos/placeholder.png" alt="Clube do Coração" style="width: 44px; height: 44px;">
                         </div>
                         <div class="escudo-wrapper" title="Escudo do Time">
-                            <img id="escudoTime" class="escudo-time" src="/escudos/placeholder.png" alt="Escudo Time">
+                            <img id="escudoTime" class="escudo-time" src="/escudos/placeholder.png" alt="Escudo Time" style="width: 44px; height: 44px;">
                         </div>
                     </div>
 
                     <!-- Informações do Participante -->
-                    <div class="participante-info">
-                        <h1 id="nomeTime">Carregando...</h1>
-                        <p id="nomeCartoleiro">
+                    <div class="participante-info" style="flex: 1; min-width: 0;">
+                        <h1 id="nomeTime" style="margin: 0; font-size: 18px; font-weight: 700; color: white; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">Carregando...</h1>
+                        <p id="nomeCartoleiro" style="margin: 0; font-size: 13px; opacity: 0.9; color: white;">
                             <span class="cartoleiro-icon">👤</span>
                             <span id="nomeCartolaText">Aguarde...</span>
                         </p>
                     </div>
                 </div>
 
-                <!-- Row 2: Status + Liga + Botões -->
-                <div class="header-bottom">
-                    <div id="statusConexao">
-                        <span id="statusIndicador"></span>
+                <!-- Botões: Home + Menu Toggle -->
+                <div style="display: flex; gap: 8px; flex-shrink: 0;">
+                    <button onclick="participanteNav?.navegarPara('boas-vindas')" title="Home" style="width: 44px; height: 44px; border-radius: 8px; border: 2px solid rgba(59, 130, 246, 0.4); background: rgba(59, 130, 246, 0.15); color: #3b82f6; font-size: 20px; cursor: pointer; display: flex; align-items: center; justify-content: center; transition: all 0.3s ease; flex-shrink: 0;">
+                        🏠
+                    </button>
+                    <button id="headerMenuToggle" title="Menu" style="width: 44px; height: 44px; border-radius: 8px; border: 2px solid rgba(255, 255, 255, 0.3); background: rgba(255, 255, 255, 0.1); color: white; font-size: 24px; cursor: pointer; display: flex; align-items: center; justify-content: center; transition: all 0.3s ease; flex-shrink: 0;">
+                        ☰
+                    </button>
+                </div>
+            </div>
+
+            <!-- LINHA 2: SECUNDÁRIA (COLAPSÁVEL) -->
+            <div id="headerSecondary" style="max-height: 0; overflow: hidden; transition: max-height 0.4s cubic-bezier(0.4, 0, 0.2, 1); background: rgba(0, 0, 0, 0.2);">
+                <div class="header-bottom" style="display: flex; align-items: center; justify-content: space-between; padding: 12px 16px; gap: 12px; flex-wrap: wrap; min-height: 50px;">
+                    <div id="statusConexao" style="display: flex; align-items: center; gap: 6px; padding: 6px 12px; background: rgba(255, 255, 255, 0.1); border-radius: 20px; border: 1px solid rgba(255, 255, 255, 0.2); font-size: 13px; color: white; white-space: nowrap; flex-shrink: 0;">
+                        <span id="statusIndicador" style="width: 8px; height: 8px; border-radius: 50%; background: #22c55e; animation: pulse 2s infinite;"></span>
                         <span id="statusTexto">Online</span>
                     </div>
 
-                    <!-- Seletor de Liga (só aparece se participante tiver múltiplas ligas) -->
-                    <div id="seletorLigaContainer" style="display: none;">
-                        <select id="seletorLiga">
-                            <!-- Opções carregadas dinamicamente -->
+                    <!-- Seletor de Liga -->
+                    <div id="seletorLigaContainer" style="flex: 0 1 140px;">
+                        <select id="seletorLiga" style="width: 100%; padding: 8px 12px; border-radius: 6px; border: 2px solid rgba(255, 255, 255, 0.2); background: rgba(0, 0, 0, 0.3); color: white; font-size: 13px; font-weight: 600; cursor: pointer;">
                         </select>
                     </div>
 
-                    <!-- Botões (Home + Logout) -->
-                    <div class="header-buttons">
-                        <button onclick="participanteNav.navegarPara('boas-vindas')" 
-                                title="Voltar para Início">
-                            🏠
-                        </button>
-                        <button onclick="logout()" 
-                                title="Fazer logout">
-                            🚪
-                        </button>
-                    </div>
+                    <!-- Botão Logout -->
+                    <button onclick="logout()" title="Logout" style="background: rgba(255, 69, 0, 0.15); border: 2px solid rgba(255, 69, 0, 0.4); color: #ff6b35; font-size: 13px; font-weight: 600; padding: 8px 14px; border-radius: 6px; cursor: pointer; width: auto; height: 36px; white-space: nowrap; transition: all 0.3s ease; flex-shrink: 0;">
+                        🚪 Logout
+                    </button>
                 </div>
             </div>
+
+            <style>
+                @keyframes pulse {
+                    0%, 100% { opacity: 1; }
+                    50% { opacity: 0.6; }
+                }
+                #headerSecondary.active {
+                    max-height: 120px;
+                }
+            </style>
         </header>
+
+        <!-- SCRIPT: Toggle Menu -->
+        <script>
+            document.addEventListener('DOMContentLoaded', function() {
+                const toggle = document.getElementById('headerMenuToggle');
+                const secondary = document.getElementById('headerSecondary');
+                if (toggle && secondary) {
+                    toggle.addEventListener('click', () => {
+                        secondary.classList.toggle('active');
+                        toggle.style.transform = secondary.classList.contains('active') ? 'rotate(90deg)' : 'rotate(0deg)';
+                    });
+                    secondary.querySelectorAll('button, select').forEach(btn => {
+                        btn.addEventListener('click', () => {
+                            secondary.classList.remove('active');
+                            toggle.style.transform = 'rotate(0deg)';
+                        });
+                    });
+                }
+            });
+        </script>
 
         <!-- Menu de Navegação -->
         <nav class="participante-nav">
