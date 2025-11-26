@@ -13,6 +13,11 @@ const ExtratoFinanceiroCacheSchema = new mongoose.Schema(
     // Controle de Consolidação
     ultima_rodada_consolidada: { type: Number, default: 0 }, // Até qual rodada os valores estão fechados
     data_ultima_atualizacao: { type: Date, default: Date.now },
+    
+    // ✅ NOVO: Controle de Cache Permanente
+    cache_permanente: { type: Boolean, default: false }, // true = rodadas fechadas, nunca recalcular
+    versao_calculo: { type: String, default: "3.0.0" }, // Versionamento para migração futura
+    rodadas_imutaveis: [Number], // Array de rodadas que nunca mudam (1,2,3...N-1)
 
     // Valores Consolidados (Soma de tudo até a última rodada consolidada)
     saldo_consolidado: { type: Number, default: 0 },
@@ -29,6 +34,14 @@ const ExtratoFinanceiroCacheSchema = new mongoose.Schema(
         data: Date,
       },
     ],
+    
+    // ✅ NOVO: Metadados para debug e auditoria
+    metadados: {
+      versaoCalculo: String,
+      timestampCalculo: Date,
+      motivoRecalculo: String,
+      origem: String, // 'admin', 'participante', 'cron'
+    },
   },
   {
     timestamps: true,

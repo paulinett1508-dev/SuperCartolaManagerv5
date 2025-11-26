@@ -141,9 +141,9 @@ export async function inicializarExtratoParticipante({ participante, ligaId, tim
         console.log('[EXTRATO-PARTICIPANTE] 🔑 Usando ligaId:', ligaId);
         console.log('[EXTRATO-PARTICIPANTE] 👤 Usando timeId:', timeId);
 
-        // Buscar extrato calculado com última rodada completa (forçando recálculo)
+        // Buscar extrato calculado com última rodada completa (usando cache inteligente)
         console.log('[EXTRATO-PARTICIPANTE] 🔍 Buscando extrato para:', { ligaId, timeId, ultimaRodadaCompleta });
-        const extratoData = await fluxoFinanceiroParticipante.buscarExtratoCalculado(ligaId, timeId, ultimaRodadaCompleta, true);
+        const extratoData = await fluxoFinanceiroParticipante.buscarExtratoCalculado(ligaId, timeId, ultimaRodadaCompleta, false);
 
         console.log('[EXTRATO-PARTICIPANTE] 🎨 Renderizando UI personalizada...');
         console.log('[EXTRATO-PARTICIPANTE] 📊 Dados do extrato completos:', JSON.stringify(extratoData, null, 2));

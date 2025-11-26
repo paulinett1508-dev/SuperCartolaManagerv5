@@ -130,28 +130,51 @@ class FluxoFinanceiroParticipante {
             console.log(`[FLUXO-PARTICIPANTE] 💰 Buscando extrato para time ${timeId} (rodada ${rodadaAtual})`);
             console.log(`[FLUXO-PARTICIPANTE] 📊 Usando rodada para cálculo: ${rodadaAtual}`);
 
-            // ✅ SE FORÇAR RECÁLCULO, PULAR CACHE
+            // ✅ CACHE INTELIGENTE: Verificar status do mercado e validar cache
             if (!forcarRecalculo) {
-                // Tentar buscar do cache do backend (API)
-                const cacheKey = `extrato_${ligaId}_${timeId}_${rodadaAtual}`;
-
                 try {
-                    console.log('[FLUXO-PARTICIPANTE] 🔍 Buscando cache via API...');
-                    const cacheRes = await fetch(`/api/extrato-cache/${ligaId}/times/${timeId}/cache?rodadaAtual=${rodadaAtual}`);
+                    // Buscar status do mercado
+                    const mercadoRes = await fetch('/api/cartola/mercado/status');
+                    const mercadoData = await mercadoRes.json();
+                    const mercadoAberto = mercadoData.mercado_aberto || mercadoData.status_mercado === 1;
 
-                    if (cacheRes.ok) {
-                        const cacheData = await cacheRes.json();
-                        if (cacheData && cacheData.cached && cacheData.data) {
-                            console.log('[FLUXO-PARTICIPANTE] ✅ Cache válido encontrado na API');
+                    // Validar cache com contexto do mercado
+                    const cacheValidoRes = await fetch(
+                        `/api/extrato-cache/${ligaId}/times/${timeId}/cache/valido?rodadaAtual=${rodadaAtual}&mercadoAberto=${mercadoAberto}`
+                    );
+
+                    if (cacheValidoRes.ok) {
+                        const validacao = await cacheValidoRes.json();
+
+                        // ✅ CACHE VÁLIDO PERMANENTE (mercado fechado)
+                        if (validacao.valido && validacao.permanente) {
+                            console.log('[FLUXO-PARTICIPANTE] 💎 Cache PERMANENTE encontrado - rodadas fechadas');
+                            const cacheRes = await fetch(`/api/extrato-cache/${ligaId}/times/${timeId}/cache`);
+                            const cacheData = await cacheRes.json();
                             return cacheData.data;
+                        }
+
+                        // ✅ CACHE VÁLIDO RECENTE (mercado aberto, mas ainda fresco)
+                        if (validacao.valido && !validacao.permanente) {
+                            console.log(`[FLUXO-PARTICIPANTE] ⚡ Cache válido - TTL restante: ${validacao.ttlRestante}s`);
+                            const cacheRes = await fetch(`/api/extrato-cache/${ligaId}/times/${timeId}/cache`);
+                            const cacheData = await cacheRes.json();
+                            return cacheData.data;
+                        }
+
+                        // ⚠️ CACHE PARCIAL - Recalcular apenas rodada atual
+                        if (!validacao.valido && validacao.recalcularApenas === 'rodada_atual') {
+                            console.log('[FLUXO-PARTICIPANTE] 🔄 Recalculando APENAS rodada atual...');
+                            // Continua para cálculo, mas reutilizará cache das rodadas anteriores
                         }
                     }
                 } catch (cacheError) {
-                    console.log('[FLUXO-PARTICIPANTE] ⚠️ Cache não encontrado, calculando...');
+                    console.log('[FLUXO-PARTICIPANTE] ⚠️ Erro ao validar cache, recalculando...', cacheError.message);
                 }
             } else {
-                console.log('[FLUXO-PARTICIPANTE] 🔄 Recálculo forçado - pulando cache');
+                console.log('[FLUXO-PARTICIPANTE] 🔄 Recálculo forçado pelo admin - pulando cache');
             }
+
 
             // Se não encontrou cache válido ou forçou recálculo, calcular
             console.log('[FLUXO-PARTICIPANTE] 🧮 Calculando extrato...');

@@ -136,11 +136,11 @@ export const invalidarCacheLiga = async (req, res) => {
     }
 };
 
-// ===== VERIFICAR STATUS DO CACHE =====
+// ===== VERIFICAR STATUS DO CACHE (VALIDAÇÃO INTELIGENTE) =====
 export const verificarCacheValido = async (req, res) => {
     try {
         const { ligaId, timeId } = req.params;
-        const { rodadaAtual } = req.query;
+        const { rodadaAtual, mercadoAberto } = req.query;
 
         const cache = await ExtratoFinanceiroCache.findOne({
             liga_id: ligaId,
@@ -151,15 +151,58 @@ export const verificarCacheValido = async (req, res) => {
             return res.json({ valido: false, motivo: "cache_nao_encontrado" });
         }
 
-        if (
-            rodadaAtual &&
-            cache.ultima_rodada_consolidada < parseInt(rodadaAtual)
-        ) {
+        const rodadaAtualNum = parseInt(rodadaAtual);
+        const mercadoEstaAberto = mercadoAberto === 'true';
+
+        // ✅ REGRA 1: Se mercado está FECHADO e cache está atualizado = VÁLIDO PERMANENTEMENTE
+        if (!mercadoEstaAberto && cache.ultima_rodada_consolidada >= rodadaAtualNum) {
+            return res.json({
+                valido: true,
+                permanente: true,
+                motivo: "rodada_fechada_cache_permanente",
+                ultimaRodada: cache.ultima_rodada_consolidada,
+                updatedAt: cache.updatedAt,
+            });
+        }
+
+        // ✅ REGRA 2: Se mercado está ABERTO, verificar se precisa recalcular apenas rodada atual
+        if (mercadoEstaAberto) {
+            const rodadaAnterior = Math.max(1, rodadaAtualNum - 1);
+            
+            // Cache tem rodadas anteriores consolidadas? Reusar!
+            if (cache.ultima_rodada_consolidada >= rodadaAnterior) {
+                // Verificar idade do cache para rodada em andamento (5 min)
+                const idadeCache = Date.now() - new Date(cache.data_ultima_atualizacao).getTime();
+                const TTL_RODADA_ABERTA = 5 * 60 * 1000; // 5 minutos
+
+                if (idadeCache < TTL_RODADA_ABERTA) {
+                    return res.json({
+                        valido: true,
+                        permanente: false,
+                        motivo: "rodada_aberta_cache_recente",
+                        ultimaRodada: cache.ultima_rodada_consolidada,
+                        ttlRestante: Math.ceil((TTL_RODADA_ABERTA - idadeCache) / 1000),
+                        updatedAt: cache.updatedAt,
+                    });
+                }
+
+                return res.json({
+                    valido: false,
+                    motivo: "rodada_aberta_cache_expirado",
+                    recalcularApenas: "rodada_atual",
+                    rodadasConsolidadas: cache.ultima_rodada_consolidada,
+                });
+            }
+        }
+
+        // ✅ REGRA 3: Cache desatualizado - precisa recalcular rodadas faltantes
+        if (cache.ultima_rodada_consolidada < rodadaAtualNum) {
             return res.json({
                 valido: false,
-                motivo: "rodada_desatualizada",
+                motivo: "rodadas_faltantes",
                 cacheRodada: cache.ultima_rodada_consolidada,
-                rodadaAtual: parseInt(rodadaAtual),
+                rodadaAtual: rodadaAtualNum,
+                rodadasPendentes: rodadaAtualNum - cache.ultima_rodada_consolidada,
             });
         }
 
@@ -169,6 +212,7 @@ export const verificarCacheValido = async (req, res) => {
             updatedAt: cache.updatedAt,
         });
     } catch (error) {
+        console.error("[CACHE-CONTROLLER] Erro ao verificar cache:", error);
         res.status(500).json({ error: "Erro ao verificar cache" });
     }
 };

@@ -1,0 +1,147 @@
+
+// ===== FERRAMENTAS ADMINISTRATIVAS - GESTÃO DE CACHE =====
+
+export async function inicializarFerramentasCache() {
+    console.log('[FERRAMENTAS-CACHE] Inicializando...');
+
+    const container = document.getElementById('ferramentasCacheContainer');
+    if (!container) {
+        console.warn('[FERRAMENTAS-CACHE] Container não encontrado');
+        return;
+    }
+
+    container.innerHTML = `
+        <div class="cache-admin-panel">
+            <h3>🗄️ Gestão de Cache do Sistema</h3>
+            
+            <div class="cache-stats">
+                <div class="stat-card">
+                    <span class="stat-label">Cache IndexedDB</span>
+                    <span class="stat-value" id="indexedDBSize">-</span>
+                </div>
+                <div class="stat-card">
+                    <span class="stat-label">Cache MongoDB</span>
+                    <span class="stat-value" id="mongoDBCacheCount">-</span>
+                </div>
+            </div>
+
+            <div class="cache-actions">
+                <button onclick="limparIndexedDB()" class="btn-warning">
+                    🧹 Limpar IndexedDB (Frontend)
+                </button>
+                
+                <button onclick="invalidarCacheLigaCompleta()" class="btn-danger">
+                    ⚠️ RESETAR CACHE COMPLETO (Liga Inteira)
+                </button>
+                
+                <button onclick="recalcularTodosParticipantes()" class="btn-extreme">
+                    🔥 RECALCULAR TUDO DO ZERO (Uso Extremo)
+                </button>
+            </div>
+
+            <div class="cache-info">
+                <p>⚡ <strong>Cache Inteligente:</strong> Rodadas fechadas NUNCA são recalculadas.</p>
+                <p>📊 Use "Resetar" apenas se houver inconsistências graves.</p>
+                <p>🔥 Use "Recalcular Tudo" apenas em casos extremos (pode levar minutos).</p>
+            </div>
+        </div>
+    `;
+
+    await atualizarEstatisticasCache();
+}
+
+async function atualizarEstatisticasCache() {
+    try {
+        // IndexedDB stats
+        if (window.cacheManager) {
+            const stats = await window.cacheManager.getStats();
+            document.getElementById('indexedDBSize').textContent = 
+                `${stats.memorySize} em memória | ${Object.values(stats.stores).reduce((a,b) => a+b, 0)} total`;
+        }
+
+        // MongoDB stats
+        const ligaId = obterLigaId();
+        const response = await fetch(`/api/extrato-cache/${ligaId}/stats`);
+        if (response.ok) {
+            const data = await response.json();
+            document.getElementById('mongoDBCacheCount').textContent = 
+                `${data.totalCaches} times | ${data.totalRodadas} rodadas consolidadas`;
+        }
+    } catch (error) {
+        console.error('[FERRAMENTAS-CACHE] Erro ao buscar estatísticas:', error);
+    }
+}
+
+window.limparIndexedDB = async function() {
+    if (!confirm('Limpar todo o cache do navegador? Esta ação é irreversível.')) return;
+
+    try {
+        await window.cacheManager.clearAll();
+        alert('✅ Cache do navegador limpo com sucesso!');
+        await atualizarEstatisticasCache();
+    } catch (error) {
+        alert(`❌ Erro ao limpar cache: ${error.message}`);
+    }
+};
+
+window.invalidarCacheLigaCompleta = async function() {
+    if (!confirm('⚠️ RESETAR todo o cache desta liga no servidor? Isso forçará recálculo na próxima consulta de qualquer participante.')) return;
+
+    try {
+        const ligaId = obterLigaId();
+        const response = await fetch(`/api/extrato-cache/${ligaId}/cache`, { method: 'DELETE' });
+        
+        if (response.ok) {
+            alert('✅ Cache da liga invalidado! Próximas consultas serão recalculadas.');
+            await atualizarEstatisticasCache();
+        } else {
+            throw new Error('Falha ao invalidar cache');
+        }
+    } catch (error) {
+        alert(`❌ Erro: ${error.message}`);
+    }
+};
+
+window.recalcularTodosParticipantes = async function() {
+    if (!confirm('🔥 ATENÇÃO: Esta operação vai RECALCULAR TUDO DO ZERO para TODOS os participantes. Pode levar vários minutos. Continuar?')) return;
+
+    const btn = event.target;
+    btn.disabled = true;
+    btn.textContent = '🔄 Recalculando...';
+
+    try {
+        const ligaId = obterLigaId();
+        
+        // Invalidar cache atual
+        await fetch(`/api/extrato-cache/${ligaId}/cache`, { method: 'DELETE' });
+        
+        // Buscar todos os times da liga
+        const ligaRes = await fetch(`/api/ligas/${ligaId}`);
+        const ligaData = await ligaRes.json();
+        const times = ligaData.times || [];
+
+        let processados = 0;
+        for (const timeId of times) {
+            try {
+                // Forçar recálculo completo
+                await fetch(`/api/fluxo-financeiro/extrato/${ligaId}/${timeId}/calcular?force=true`);
+                processados++;
+                btn.textContent = `🔄 Processando... ${processados}/${times.length}`;
+            } catch (err) {
+                console.error(`Erro ao recalcular time ${timeId}:`, err);
+            }
+        }
+
+        alert(`✅ Recálculo completo! ${processados} times processados.`);
+        await atualizarEstatisticasCache();
+    } catch (error) {
+        alert(`❌ Erro: ${error.message}`);
+    } finally {
+        btn.disabled = false;
+        btn.textContent = '🔥 RECALCULAR TUDO DO ZERO';
+    }
+};
+
+function obterLigaId() {
+    return localStorage.getItem('ligaId') || document.body.dataset.ligaId;
+}
