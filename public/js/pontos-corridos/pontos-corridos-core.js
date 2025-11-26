@@ -290,6 +290,34 @@ export async function calcularClassificacao(ligaId, times, confrontos, rodadaAtu
     financeiro: 0
   }));
 
+  // ⚡ OTIMIZAÇÃO: Buscar TODAS as rodadas de uma vez
+  const rodadaInicio = 1;
+  const rodadaFim = Math.min(rodadaLiga, confrontos.length);
+  
+  console.log(`[CORE] 🚀 Buscando rodadas ${rodadaInicio} a ${rodadaFim} em lote...`);
+  
+  let todasPontuacoes = [];
+  try {
+    const response = await fetch(`/api/rodadas/${ligaId}/rodadas?inicio=${rodadaInicio}&fim=${rodadaFim}`);
+    if (response.ok) {
+      todasPontuacoes = await response.json();
+      console.log(`[CORE] ✅ ${todasPontuacoes.length} registros carregados em lote`);
+    }
+  } catch (error) {
+    console.error('[CORE] ❌ Erro ao buscar rodadas em lote:', error);
+  }
+
+  // Agrupar pontuações por rodada
+  const pontuacoesPorRodada = {};
+  todasPontuacoes.forEach(p => {
+    const rodadaNum = p.rodada;
+    if (!pontuacoesPorRodada[rodadaNum]) {
+      pontuacoesPorRodada[rodadaNum] = {};
+    }
+    const tid = p.timeId || p.time_id || p.id;
+    pontuacoesPorRodada[rodadaNum][tid] = p.pontos;
+  });
+
   // Processar cada rodada de confrontos
   for (let rodadaIdx = 0; rodadaIdx < confrontos.length; rodadaIdx++) {
     const rodadaNum = rodadaIdx + 1;
@@ -303,16 +331,8 @@ export async function calcularClassificacao(ligaId, times, confrontos, rodadaAtu
     const jogosRodada = confrontos[rodadaIdx];
     if (!jogosRodada || !Array.isArray(jogosRodada)) continue;
 
-    // Buscar pontuações da rodada
-    const pontuacoesRaw = await getRankingRodadaEspecifica(ligaId, rodadaNum);
-    const pontuacoesMap = {};
-    
-    if (pontuacoesRaw && Array.isArray(pontuacoesRaw)) {
-      pontuacoesRaw.forEach((p) => {
-        const tid = p.time_id || p.timeId || p.id;
-        pontuacoesMap[tid] = p.pontos;
-      });
-    }
+    // Usar pontuações já carregadas
+    const pontuacoesMap = pontuacoesPorRodada[rodadaNum] || {}
 
     // Processar cada jogo da rodada
     for (const jogo of jogosRodada) {
