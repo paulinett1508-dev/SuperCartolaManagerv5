@@ -56,7 +56,7 @@ export class MelhorMesCore {
       this.dadosProcessados = { resultados: {}, dadosBasicos: null };
       return this.dadosProcessados;
     }
-    
+
     console.log(`[MELHOR-MES-CORE] ✅ Liga ID validado: ${this.ligaId}`);
 
     await this.processarTodasEdicoes();
@@ -149,7 +149,7 @@ export class MelhorMesCore {
 
     // Verificar cache primeiro
     const cacheKey = `${this.ligaId}_${edicao.id}_${this.ultimaRodadaCompleta}`;
-    if (this.verificarCache(cacheKey)) {
+    if (await this.verificarCache(cacheKey)) {
       console.log(`[MELHOR-MES-CORE] Cache hit para ${edicao.nome}`);
       return cacheRankings.get(cacheKey);
     }
@@ -182,7 +182,7 @@ export class MelhorMesCore {
     );
 
     // Salvar no cache
-    this.salvarCache(cacheKey, resultado);
+    await this.salvarCache(cacheKey, resultado);
 
     console.log(
       `[MELHOR-MES-CORE] ${edicao.nome}: ${resultado.ranking.length} participantes, status: ${status}`,
@@ -309,31 +309,62 @@ export class MelhorMesCore {
     };
   }
 
-  // SISTEMA DE CACHE
-  verificarCache(key) {
-    if (!cacheRankings.has(key)) return false;
+  // SISTEMA DE CACHE (memória + persistente)
+  async verificarCache(key) {
+    // Tentar memória primeiro
+    if (cacheRankings.has(key)) {
+      const timestamp = cacheTimestamps.get(key);
+      const agora = Date.now();
 
-    const timestamp = cacheTimestamps.get(key);
-    const agora = Date.now();
+      if (agora - timestamp <= MELHOR_MES_CONFIG.cache.ttl) {
+        return true;
+      }
 
-    if (agora - timestamp > MELHOR_MES_CONFIG.cache.ttl) {
+      // Expirado na memória
       cacheRankings.delete(key);
       cacheTimestamps.delete(key);
-      return false;
     }
 
-    return true;
-  }
+    // Tentar IndexedDB
+    try {
+      const cached = await cacheManager.get(
+        "rodadas",
+        key,
+        null,
+        { ttl: MELHOR_MES_CONFIG.cache.ttl }
+      );
 
-  salvarCache(key, dados) {
+      if (cached) {
+        // Restaurar para memória
+        cacheRankings.set(key, cached);
+        cacheTimestamps.set(key, Date.now());
+        return true;
+      }
+    } catch (error) {
+      console.warn("[MELHOR-MES-CORE] Erro ao verificar cache persistente:", error);
+    }
+
+    return false;
+  },
+
+  async salvarCache(key, dados) {
     // Limpar cache se atingir máximo
     if (cacheRankings.size >= MELHOR_MES_CONFIG.cache.maxEntries) {
       this.limparCacheAntigo();
     }
 
+    // Salvar em memória
     cacheRankings.set(key, dados);
     cacheTimestamps.set(key, Date.now());
-  }
+
+    // Salvar em IndexedDB
+    try {
+      await cacheManager.set("rodadas", key, dados);
+      console.log(`[MELHOR-MES-CORE] Cache salvo (memória + persistente): ${key}`);
+    } catch (error) {
+      console.warn("[MELHOR-MES-CORE] Erro ao salvar cache persistente:", error);
+    }
+  },
 
   limparCacheAntigo() {
     const agora = Date.now();
@@ -343,7 +374,7 @@ export class MelhorMesCore {
         cacheTimestamps.delete(key);
       }
     }
-  }
+  },
 
   // ATUALIZAR DADOS
   async atualizarDados() {
@@ -354,7 +385,7 @@ export class MelhorMesCore {
     cacheTimestamps.clear();
 
     return await this.inicializar();
-  }
+  },
 
   // OBTER DADOS DE EDIÇÃO ESPECÍFICA
   async obterDadosEdicao(indexEdicao) {
@@ -363,7 +394,7 @@ export class MelhorMesCore {
     }
 
     return this.dadosProcessados.resultados[indexEdicao] || null;
-  }
+  },
 
   // OBTER VENCEDORES DE TODAS AS EDIÇÕES
   obterVencedores() {
@@ -389,7 +420,7 @@ export class MelhorMesCore {
       `[MELHOR-MES-CORE] ${vencedores.length} vencedores encontrados`,
     );
     return vencedores;
-  }
+  },
 
   // DIAGNÓSTICO DO SISTEMA
   diagnosticar() {

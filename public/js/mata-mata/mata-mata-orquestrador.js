@@ -19,6 +19,7 @@ import {
   renderRodadaPendente,
   renderBannerCampeao,
 } from "./mata-mata-ui.js";
+import { cacheManager } from "../core/cache-manager.js";
 
 // Variáveis dinâmicas para exports
 let criarBotaoExportacaoMataMata = null;
@@ -30,8 +31,17 @@ let getRankingRodadaEspecifica = null;
 let rodadasCarregados = false;
 let rodadasCarregando = false;
 
-// Cache de módulos
+// Cache de módulos (mantido para compatibilidade)
 const moduleCache = new Map();
+
+// Configuração de cache persistente
+const CACHE_CONFIG = {
+  ttl: {
+    confrontos: 30 * 60 * 1000, // 30 minutos
+    edicao: 60 * 60 * 1000, // 1 hora
+    rodadaConsolidada: Infinity, // Cache permanente para rodadas fechadas
+  }
+};
 
 // Estado atual
 let edicaoAtual = null;
@@ -236,6 +246,25 @@ function handleFaseClick(fase, edicao) {
   carregarFase(fase, ligaId);
 }
 
+// Função auxiliar para cache de confrontos
+async function getCachedConfrontos(ligaId, edicao, fase, rodadaPontos) {
+  const cacheKey = `matamata_confrontos_${ligaId}_${edicao}_${fase}_${rodadaPontos}`;
+  
+  return await cacheManager.get(
+    "rodadas",
+    cacheKey,
+    null,
+    { ttl: CACHE_CONFIG.ttl.confrontos }
+  );
+}
+
+async function setCachedConfrontos(ligaId, edicao, fase, rodadaPontos, confrontos) {
+  const cacheKey = `matamata_confrontos_${ligaId}_${edicao}_${fase}_${rodadaPontos}`;
+  
+  await cacheManager.set("rodadas", cacheKey, confrontos);
+  console.log(`[MATA-ORQUESTRADOR] Confrontos salvos em cache: ${cacheKey}`);
+}
+
 // Função para carregar uma fase específica
 async function carregarFase(fase, ligaId) {
   const contentId = "mataMataContent";
@@ -322,6 +351,44 @@ async function carregarFase(fase, ligaId) {
       prevFaseRodada,
     } = currentFaseInfo;
 
+    let isPending = rodada_atual < rodadaPontosNum;
+    console.log(
+      `[MATA-ORQUESTRADOR] Rodada ${rodadaPontosNum} - Status: ${isPending ? "Pendente" : "Concluída"}`,
+    );
+
+    // ✅ TENTAR CACHE PRIMEIRO (apenas para rodadas consolidadas)
+    if (!isPending) {
+      const cachedConfrontos = await getCachedConfrontos(ligaId, edicaoAtual, fase, rodadaPontosNum);
+      
+      if (cachedConfrontos) {
+        console.log(`[MATA-ORQUESTRADOR] 💾 Confrontos recuperados do cache`);
+        renderTabelaMataMata(cachedConfrontos, contentId, faseLabel, edicaoAtual, isPending);
+        
+        if (dependenciasOk[1] && criarBotaoExportacaoMataMata) {
+          try {
+            await criarBotaoExportacaoMataMata({
+              containerId: contentId,
+              fase: faseLabel,
+              confrontos: cachedConfrontos,
+              isPending: isPending,
+              rodadaPontos: getRodadaPontosText(faseLabel, edicaoAtual),
+              edicao: getEdicaoMataMata(edicaoAtual),
+            });
+          } catch (exportError) {
+            console.warn("[MATA-ORQUESTRADOR] Erro ao adicionar botão de exportação:", exportError);
+          }
+        }
+        
+        if (fase === "final" && cachedConfrontos.length > 0) {
+          const edicaoNome = edicaoSelecionada.nome;
+          renderBannerCampeao(contentId, cachedConfrontos[0], edicaoNome, isPending);
+        }
+        
+        return; // ✅ RETORNA CEDO COM CACHE
+      }
+    }
+
+    // ❌ CACHE MISS - CALCULAR
     let timesParaConfronto = rankingBase;
     if (prevFaseRodada) {
       let vencedoresAnteriores = rankingBase;
@@ -346,11 +413,6 @@ async function carregarFase(fase, ligaId) {
       timesParaConfronto = vencedoresAnteriores;
     }
 
-    let isPending = rodada_atual < rodadaPontosNum;
-    console.log(
-      `[MATA-ORQUESTRADOR] Rodada ${rodadaPontosNum} - Status: ${isPending ? "Pendente" : "Concluída"}`,
-    );
-
     const pontosRodadaAtual = isPending
       ? {}
       : await getPontosDaRodada(ligaId, rodadaPontosNum);
@@ -359,6 +421,11 @@ async function carregarFase(fase, ligaId) {
       fase === "primeira"
         ? montarConfrontosPrimeiraFase(rankingBase, pontosRodadaAtual)
         : montarConfrontosFase(timesParaConfronto, pontosRodadaAtual, numJogos);
+
+    // ✅ SALVAR NO CACHE (apenas se rodada consolidada)
+    if (!isPending) {
+      await setCachedConfrontos(ligaId, edicaoAtual, fase, rodadaPontosNum, confrontos);
+    }
 
     // Calcular valores dos confrontos
     calcularValoresConfronto(confrontos, isPending);

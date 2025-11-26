@@ -1,16 +1,21 @@
 // public/js/luva-de-ouro/luva-de-ouro-cache.js
 console.log("📦 [LUVA-CACHE] Módulo de cache carregando...");
 
+import { cacheManager } from "../core/cache-manager.js";
+
 /**
- * Módulo Cache - Sistema de cache de dados
+ * Módulo Cache - Sistema de cache de dados com persistência
  */
 const LuvaDeOuroCache = {
-  // Armazenamento em memória
+  // Armazenamento em memória (fallback)
   _cache: new Map(),
   _timestamps: new Map(),
 
   // Tempo de vida do cache (5 minutos)
   TTL: 5 * 60 * 1000,
+  
+  // Cache Manager persistente
+  _cacheManager: cacheManager,
 
   /**
    * Gera chave única para cache
@@ -34,29 +39,53 @@ const LuvaDeOuroCache = {
   },
 
   /**
-   * Armazena dados no cache
+   * Armazena dados no cache (memória + persistente)
    */
-  set(tipo, params, dados) {
+  async set(tipo, params, dados) {
     const chave = this._gerarChave(tipo, params);
+    
+    // Salvar em memória
     this._cache.set(chave, dados);
     this._timestamps.set(chave, Date.now());
 
-    console.log(`📦 [CACHE] Dados armazenados: ${chave}`);
+    // Salvar em IndexedDB via cacheManager
+    try {
+      await this._cacheManager.set("rodadas", chave, dados);
+      console.log(`📦 [CACHE] Dados armazenados (memória + persistente): ${chave}`);
+    } catch (error) {
+      console.warn(`📦 [CACHE] Erro ao salvar em IndexedDB (usando apenas memória):`, error);
+    }
   },
 
   /**
-   * Recupera dados do cache
+   * Recupera dados do cache (persistente + memória)
    */
-  get(tipo, params) {
+  async get(tipo, params) {
     const chave = this._gerarChave(tipo, params);
 
-    if (!this._cacheValido(chave)) {
-      console.log(`📦 [CACHE] Cache expirado ou não encontrado: ${chave}`);
-      return null;
+    // Tentar memória primeiro
+    if (this._cacheValido(chave)) {
+      console.log(`✅ [CACHE] Dados recuperados da memória: ${chave}`);
+      return this._cache.get(chave);
     }
 
-    console.log(`✅ [CACHE] Dados recuperados: ${chave}`);
-    return this._cache.get(chave);
+    // Tentar IndexedDB
+    try {
+      const cached = await this._cacheManager.get("rodadas", chave, null, { ttl: this.TTL });
+      
+      if (cached) {
+        // Restaurar para memória
+        this._cache.set(chave, cached);
+        this._timestamps.set(chave, Date.now());
+        console.log(`✅ [CACHE] Dados recuperados do IndexedDB: ${chave}`);
+        return cached;
+      }
+    } catch (error) {
+      console.warn(`📦 [CACHE] Erro ao ler IndexedDB:`, error);
+    }
+
+    console.log(`📦 [CACHE] Cache não encontrado: ${chave}`);
+    return null;
   },
 
   /**
