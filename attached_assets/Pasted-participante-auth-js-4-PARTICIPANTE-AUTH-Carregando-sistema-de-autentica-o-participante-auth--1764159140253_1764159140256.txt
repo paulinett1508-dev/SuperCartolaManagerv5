@@ -1,0 +1,1455 @@
+participante-auth.js:4 [PARTICIPANTE-AUTH] Carregando sistema de autenticação...
+participante-auth.js:372 [PARTICIPANTE-AUTH] ✅ Sistema carregado
+participante-navigation.js:3 [PARTICIPANTE-NAV] Carregando sistema de navegação...
+participante-navigation.js:659 [PARTICIPANTE-NAV] ✅ Sistema carregado
+participante-status.js:3 [PARTICIPANTE-STATUS] Carregando sistema de status...
+participante-status.js:144 [PARTICIPANTE-STATUS] ✅ Sistema carregado
+cache-manager.js:439 ✅ [CACHE-MANAGER] Sistema de cache inteligente carregado
+participante-auth.js:43 [PARTICIPANTE-AUTH] Verificando autenticação...
+participante-navigation.js:25 [PARTICIPANTE-NAV] Inicializando navegação...
+participante-navigation.js:40 [PARTICIPANTE-NAV] Aguardando dados do participante...
+participante-navigation.js:52 [PARTICIPANTE-NAV] Tentativa 1/10 - Aguardando dados...
+cache-manager.js:50 ✅ [CACHE-MANAGER] IndexedDB inicializado
+participante-navigation.js:52 [PARTICIPANTE-NAV] Tentativa 2/10 - Aguardando dados...
+participante-auth.js:107 [PARTICIPANTE-AUTH] Atualizando header com dados: Object
+participante-auth.js:211 [PARTICIPANTE-AUTH] 🔍 Verificando múltiplas ligas para timeId: 13935277
+participante-navigation.js:46 [PARTICIPANTE-NAV] ✅ Dados do participante disponíveis: Object
+participante-navigation.js:81 [PARTICIPANTE-NAV] 🔍 Buscando módulos ativos para liga 684cb1c8af923da7c7df51de...
+participante-auth.js:121 [PARTICIPANTE-AUTH] Dados do time carregados: Object
+participante-auth.js:224 [PARTICIPANTE-AUTH] 📊 Resposta da API: Object
+participante-auth.js:227 [PARTICIPANTE-AUTH] 📋 Total de ligas encontradas: 2
+participante-auth.js:230 [PARTICIPANTE-AUTH] 📝 Ligas: Super Cartola 2025 (684cb1c8af923da7c7df51de), Cartoleiros do Sobral (684d821cf1a7ae16d1f89572)
+participante-auth.js:235 [PARTICIPANTE-AUTH] 🏆 Participante em múltiplas ligas: 2
+participante-navigation.js:91 [PARTICIPANTE-NAV] ✅ Módulos ativos carregados: Object
+participante-navigation.js:92 [PARTICIPANTE-NAV] 🔎 Verificação detalhada:
+participante-navigation.js:93   - pontosCorridos: true boolean
+participante-navigation.js:94   - mataMata: true boolean
+participante-navigation.js:124 [PARTICIPANTE-NAV] 🎨 Renderizando menu dinâmico...
+participante-navigation.js:125 [PARTICIPANTE-NAV] 📋 Módulos ativos configurados: Object
+participante-navigation.js:140 [PARTICIPANTE-NAV] 🔍 Estado atual dos módulos: Object
+participante-navigation.js:146 [PARTICIPANTE-NAV] ✅ Extrato - sempre ativo
+participante-navigation.js:146 [PARTICIPANTE-NAV] ✅ Ranking Geral - sempre ativo
+participante-navigation.js:146 [PARTICIPANTE-NAV] ✅ Ranking Rodadas - sempre ativo
+participante-navigation.js:152 [PARTICIPANTE-NAV] ✅ Top 10 - Chave: "top10" = true (tipo: boolean)
+participante-navigation.js:156 [PARTICIPANTE-NAV] 🔎 Verificando this.modulosAtivos["top10"] = true
+participante-navigation.js:152 [PARTICIPANTE-NAV] ✅ Melhor do Mês - Chave: "melhorMes" = true (tipo: boolean)
+participante-navigation.js:156 [PARTICIPANTE-NAV] 🔎 Verificando this.modulosAtivos["melhorMes"] = true
+participante-navigation.js:152 [PARTICIPANTE-NAV] ✅ Pontos Corridos - Chave: "pontosCorridos" = true (tipo: boolean)
+participante-navigation.js:156 [PARTICIPANTE-NAV] 🔎 Verificando this.modulosAtivos["pontosCorridos"] = true
+participante-navigation.js:152 [PARTICIPANTE-NAV] ✅ Mata-Mata - Chave: "mataMata" = true (tipo: boolean)
+participante-navigation.js:156 [PARTICIPANTE-NAV] 🔎 Verificando this.modulosAtivos["mataMata"] = true
+participante-navigation.js:152 [PARTICIPANTE-NAV] ❌ Artilheiro - Chave: "artilheiro" = false (tipo: boolean)
+participante-navigation.js:156 [PARTICIPANTE-NAV] 🔎 Verificando this.modulosAtivos["artilheiro"] = false
+participante-navigation.js:152 [PARTICIPANTE-NAV] ❌ Luva de Ouro - Chave: "luvaOuro" = false (tipo: boolean)
+participante-navigation.js:156 [PARTICIPANTE-NAV] 🔎 Verificando this.modulosAtivos["luvaOuro"] = false
+participante-navigation.js:169 [PARTICIPANTE-NAV] ✅ Menu renderizado com 7 módulos de 9 possíveis
+participante-navigation.js:189 [PARTICIPANTE-NAV] Sistema de navegação pronto
+participante-navigation.js:236 [PARTICIPANTE-NAV] Navegando para: boas-vindas
+participante-navigation.js:321 [PARTICIPANTE-NAV] 📦 Importando módulo JS: boas-vindas
+participante-auth.js:142 [PARTICIPANTE-AUTH] Dados do participante na liga: Object
+participante-auth.js:189 [PARTICIPANTE-AUTH] ✅ Header atualizado com sucesso: Object
+participante-auth.js:83 [PARTICIPANTE-AUTH] ✅ Autenticação válida (cache atualizado)
+participante-status.js:106 [PARTICIPANTE-STATUS] 🟢 Online
+participante-boas-vindas.js:3 [BOAS-VINDAS] Carregando módulo...
+participante-boas-vindas.js:309 [BOAS-VINDAS] ✅ Módulo carregado
+participante-navigation.js:339 [PARTICIPANTE-NAV] ✅ Módulo boas-vindas importado
+participante-navigation.js:348 [PARTICIPANTE-NAV] Inicializando módulo: boas-vindas
+participante-boas-vindas.js:6 [BOAS-VINDAS] Inicializando para time 13935277 na liga 684cb1c8af923da7c7df51de
+participante-boas-vindas.js:17 [BOAS-VINDAS] Status das requisições: Object
+participante-boas-vindas.js:29 [BOAS-VINDAS] Dados recebidos: Object
+participante-boas-vindas.js:38 [BOAS-VINDAS] 🔍 Primeiro time do ranking (exemplo): Object
+participante-boas-vindas.js:40 [BOAS-VINDAS] 🎯 Meu time encontrado: undefined
+participante-boas-vindas.js:51 [BOAS-VINDAS] 📊 Cálculo de pontos: Object
+participante-boas-vindas.js:62 [BOAS-VINDAS] 💰 Campos financeiros recebidos: Object
+participante-boas-vindas.js:66 [BOAS-VINDAS] 💰 Campos disponíveis: Array(4)
+participante-boas-vindas.js:69 [BOAS-VINDAS] 💰 Campo "Campo 1": R$ 0
+participante-boas-vindas.js:69 [BOAS-VINDAS] 💰 Campo "Campo 2": R$ 0
+participante-boas-vindas.js:69 [BOAS-VINDAS] 💰 Campo "Campo 3": R$ 0
+participante-boas-vindas.js:69 [BOAS-VINDAS] 💰 Campo "Campo 4": R$ 0
+participante-boas-vindas.js:72 [BOAS-VINDAS] 💰 Saldo total calculado: 0
+participante-boas-vindas.js:84 [BOAS-VINDAS] 🔍 Buscando minhas rodadas. Total de rodadas: 1120
+participante-boas-vindas.js:85 [BOAS-VINDAS] 🔍 Primeira rodada (exemplo): Object
+participante-boas-vindas.js:88 [BOAS-VINDAS] 🔍 Minhas rodadas encontradas: 35
+participante-boas-vindas.js:92 [BOAS-VINDAS] Dados processados: Object
+participante-boas-vindas.js:128 [BOAS-VINDAS] Preenchendo interface com: Object
+participante-boas-vindas.js:141 [BOAS-VINDAS] ✅ Posição atualizada: --º (de 32 times)
+participante-boas-vindas.js:151 [BOAS-VINDAS] Pontos atualizados: 2756.0
+participante-boas-vindas.js:172 [BOAS-VINDAS] Saldo atualizado: R$ 0 Cor: rgb(34, 197, 94)
+participante-boas-vindas.js:176 [BOAS-VINDAS] Status financeiro: A receber
+participante-boas-vindas.js:186 [BOAS-VINDAS] Número da última rodada: 35
+participante-boas-vindas.js:193 [BOAS-VINDAS] Pontos da última rodada: 120.3
+participante-boas-vindas.js:202 [BOAS-VINDAS] 🏟️ Clube ID encontrado: 262 Fonte: Object
+participante-boas-vindas.js:252 [BOAS-VINDAS] Elemento timeCoracaoCard não encontrado
+participante-navigation.js:357 [PARTICIPANTE-NAV] Página de boas-vindas carregada com dados
+participante-navigation.js:236 [PARTICIPANTE-NAV] Navegando para: extrato
+participante-navigation.js:321 [PARTICIPANTE-NAV] 📦 Importando módulo JS: extrato
+participante-extrato.js:4 [EXTRATO-PARTICIPANTE] 🔄 Carregando módulo...
+participante-extrato.js:5 [EXTRATO-PARTICIPANTE] ⏱️ Timestamp: 2025-11-26T12:11:02.622Z
+participante-extrato.js:281 [EXTRATO-PARTICIPANTE] ✅ Função exportada (ES6 + window) com sucesso
+participante-navigation.js:339 [PARTICIPANTE-NAV] ✅ Módulo extrato importado
+participante-navigation.js:348 [PARTICIPANTE-NAV] Inicializando módulo: extrato
+participante-navigation.js:393 [PARTICIPANTE-NAV] Chamando inicializarExtratoParticipante com dados: {participante: {…}, ligaId: '684cb1c8af923da7c7df51de', timeId: '13935277'}
+participante-navigation.js:397 [PARTICIPANTE-NAV] Inicializando módulo: extrato
+participante-navigation.js:407 [PARTICIPANTE-NAV] Chamando inicializarExtratoParticipante com dados: {participante: {…}, ligaId: '684cb1c8af923da7c7df51de', timeId: '13935277'}
+participante-navigation.js:408 [PARTICIPANTE-NAV] 🔑 ligaId: 684cb1c8af923da7c7df51de, timeId: 13935277
+participante-extrato.js:11 [EXTRATO-PARTICIPANTE] 🔄 Inicializando para: {participante: {…}, ligaId: '684cb1c8af923da7c7df51de', timeId: '13935277'}
+participante-extrato.js:12 [EXTRATO-PARTICIPANTE] 📊 Tipo dos parâmetros: {participante: 'object', ligaId: 'string', timeId: 'string'}
+participante-extrato.js:32 [EXTRATO-PARTICIPANTE] ✅ Container verificado no início
+participante-extrato.js:45 [EXTRATO-PARTICIPANTE] 📦 Importando módulos...
+participante-extrato-ui.js:4 [EXTRATO-UI] 🎨 Módulo de UI carregado
+rodadas.js:146 [RODADAS] 🚀 Inicializando módulo refatorado...
+rodadas.js:309 [RODADAS] ✅ Módulo refatorado carregado - Arquitetura modular implementada
+rodadas.js:312 [RODADAS] 🔧 Funções de debug disponíveis em window.rodadasDebug
+rodadas.js:316 [RODADAS] 📦 Estrutura modular:
+rodadas.js:317   - rodadas-config.js: Configurações e constantes
+rodadas.js:318   - rodadas-core.js: Lógica de negócio e API calls
+rodadas.js:319   - rodadas-ui.js: Interface e renderização
+rodadas.js:320   - rodadas-cache.js: Sistema de cache e performance
+rodadas.js:321   - rodadas-orquestrador.js: Coordenação entre módulos
+rodadas.js:322   - rodadas.js: Ponto de entrada refatorado (este arquivo)
+rodadas-config.js:134 [RODADAS-CONFIG] Módulo carregado com sucesso
+melhor-mes.js:4 [MELHOR-MES] Sistema modular carregando...
+melhor-mes.js:319 [MELHOR-MES] Sistema modular carregado com arquitetura refatorada
+fluxo-financeiro-participante.js:12 [FLUXO-PARTICIPANTE] 📦 Módulo carregado (READ-ONLY, sem vida própria)
+participante-extrato.js:52 [EXTRATO-PARTICIPANTE] ⚙️ Inicializando core...
+fluxo-financeiro-participante.js:29 [FLUXO-PARTICIPANTE] Inicializando para participante: {timeId: '13935277', ligaId: '684cb1c8af923da7c7df51de', participante: {…}}
+fluxo-financeiro-cache.js:40 [FLUXO-CACHE] Inicializando cache para liga: 684cb1c8af923da7c7df51de
+fluxo-financeiro-cache.js:51 [FLUXO-CACHE] ✅ ligaId confirmado: 684cb1c8af923da7c7df51de
+cache-manager.js:108 🌐 [CACHE-MANAGER] Fetching: participantes_684cb1c8af923da7c7df51de
+cache-manager.js:152 ✅ [CACHE-MANAGER] Saved to IndexedDB: participantes_684cb1c8af923da7c7df51de
+rodadas-core.js:419 [RODADAS-CORE] Módulo carregado com sucesso
+rodadas-ui.js:369 [RODADAS-UI] Módulo carregado com layout compacto e seleção inteligente
+rodadas-cache.js:82 [RODADAS-CACHE] Limpeza automática configurada (60000ms)
+rodadas-cache.js:353 [RODADAS-CACHE] Sistema de cache inicializado
+rodadas-cache.js:354 [RODADAS-CACHE] Limpeza automática configurada (5min)
+rodadas-orquestrador.js:457 [RODADAS-ORQUESTRADOR] Módulo carregado com UX redesenhado
+rodadas.js:36 [RODADAS] ✅ Módulos refatorados carregados com sucesso
+rodadas-orquestrador.js:364 [RODADAS-ORQUESTRADOR] Inicializando módulo de rodadas...
+rodadas-orquestrador.js:365 [RODADAS-ORQUESTRADOR] URL atual: https://e1034b6e-dfb9-401a-8e7f-80ffa6030f79-00-2dc692elmitoe.spock.replit.dev/participante/
+rodadas-orquestrador.js:372 [RODADAS-ORQUESTRADOR] Não está na seção de rodadas, pulando inicialização
+fluxo-financeiro-cache.js:280 [FLUXO-CACHE] ✅ Confrontos Pontos Corridos: 31 rodadas para 32 times
+fluxo-financeiro-cache.js:298 [FLUXO-CACHE] Carregando dados externos...
+rodadas.js:86 [RODADAS] Solicitado ranking para rodada 1 (refatorado)
+rodadas-core.js:415 [RODADAS-CORE] Solicitado ranking para rodada 1
+rodadas-core.js:74 [RODADAS-CORE] Tentando endpoint: /api/rodadas/684cb1c8af923da7c7df51de/rodadas?inicio=1&fim=1
+participante-status.js:106 [PARTICIPANTE-STATUS] 🟢 Online
+rodadas-core.js:91 [RODADAS-CORE] Dados encontrados no endpoint: /api/rodadas/684cb1c8af923da7c7df51de/rodadas?inicio=1&fim=1
+rodadas-core.js:168 [RODADAS-CORE] Processamento rodada 1:
+rodadas-core.js:169    - Dados brutos: 32 items
+rodadas-core.js:170    - Após filtro: 32 items
+rodadas-core.js:171    - Rodadas únicas nos dados: [1]
+rodadas.js:86 [RODADAS] Solicitado ranking para rodada 2 (refatorado)
+rodadas-core.js:415 [RODADAS-CORE] Solicitado ranking para rodada 2
+rodadas-core.js:74 [RODADAS-CORE] Tentando endpoint: /api/rodadas/684cb1c8af923da7c7df51de/rodadas?inicio=2&fim=2
+rodadas-core.js:91 [RODADAS-CORE] Dados encontrados no endpoint: /api/rodadas/684cb1c8af923da7c7df51de/rodadas?inicio=2&fim=2
+rodadas-core.js:168 [RODADAS-CORE] Processamento rodada 2:
+rodadas-core.js:169    - Dados brutos: 32 items
+rodadas-core.js:170    - Após filtro: 32 items
+rodadas-core.js:171    - Rodadas únicas nos dados: [2]
+rodadas.js:86 [RODADAS] Solicitado ranking para rodada 3 (refatorado)
+rodadas-core.js:415 [RODADAS-CORE] Solicitado ranking para rodada 3
+rodadas-core.js:74 [RODADAS-CORE] Tentando endpoint: /api/rodadas/684cb1c8af923da7c7df51de/rodadas?inicio=3&fim=3
+rodadas-core.js:91 [RODADAS-CORE] Dados encontrados no endpoint: /api/rodadas/684cb1c8af923da7c7df51de/rodadas?inicio=3&fim=3
+rodadas-core.js:168 [RODADAS-CORE] Processamento rodada 3:
+rodadas-core.js:169    - Dados brutos: 32 items
+rodadas-core.js:170    - Após filtro: 32 items
+rodadas-core.js:171    - Rodadas únicas nos dados: [3]
+rodadas.js:86 [RODADAS] Solicitado ranking para rodada 4 (refatorado)
+rodadas-core.js:415 [RODADAS-CORE] Solicitado ranking para rodada 4
+rodadas-core.js:74 [RODADAS-CORE] Tentando endpoint: /api/rodadas/684cb1c8af923da7c7df51de/rodadas?inicio=4&fim=4
+rodadas-core.js:91 [RODADAS-CORE] Dados encontrados no endpoint: /api/rodadas/684cb1c8af923da7c7df51de/rodadas?inicio=4&fim=4
+rodadas-core.js:168 [RODADAS-CORE] Processamento rodada 4:
+rodadas-core.js:169    - Dados brutos: 32 items
+rodadas-core.js:170    - Após filtro: 32 items
+rodadas-core.js:171    - Rodadas únicas nos dados: [4]
+rodadas.js:86 [RODADAS] Solicitado ranking para rodada 5 (refatorado)
+rodadas-core.js:415 [RODADAS-CORE] Solicitado ranking para rodada 5
+rodadas-core.js:74 [RODADAS-CORE] Tentando endpoint: /api/rodadas/684cb1c8af923da7c7df51de/rodadas?inicio=5&fim=5
+rodadas-core.js:91 [RODADAS-CORE] Dados encontrados no endpoint: /api/rodadas/684cb1c8af923da7c7df51de/rodadas?inicio=5&fim=5
+rodadas-core.js:168 [RODADAS-CORE] Processamento rodada 5:
+rodadas-core.js:169    - Dados brutos: 32 items
+rodadas-core.js:170    - Após filtro: 32 items
+rodadas-core.js:171    - Rodadas únicas nos dados: [5]
+rodadas.js:86 [RODADAS] Solicitado ranking para rodada 6 (refatorado)
+rodadas-core.js:415 [RODADAS-CORE] Solicitado ranking para rodada 6
+rodadas-core.js:74 [RODADAS-CORE] Tentando endpoint: /api/rodadas/684cb1c8af923da7c7df51de/rodadas?inicio=6&fim=6
+rodadas-core.js:91 [RODADAS-CORE] Dados encontrados no endpoint: /api/rodadas/684cb1c8af923da7c7df51de/rodadas?inicio=6&fim=6
+rodadas-core.js:168 [RODADAS-CORE] Processamento rodada 6:
+rodadas-core.js:169    - Dados brutos: 32 items
+rodadas-core.js:170    - Após filtro: 32 items
+rodadas-core.js:171    - Rodadas únicas nos dados: [6]
+rodadas.js:86 [RODADAS] Solicitado ranking para rodada 7 (refatorado)
+rodadas-core.js:415 [RODADAS-CORE] Solicitado ranking para rodada 7
+rodadas-core.js:74 [RODADAS-CORE] Tentando endpoint: /api/rodadas/684cb1c8af923da7c7df51de/rodadas?inicio=7&fim=7
+rodadas-core.js:91 [RODADAS-CORE] Dados encontrados no endpoint: /api/rodadas/684cb1c8af923da7c7df51de/rodadas?inicio=7&fim=7
+rodadas-core.js:168 [RODADAS-CORE] Processamento rodada 7:
+rodadas-core.js:169    - Dados brutos: 32 items
+rodadas-core.js:170    - Após filtro: 32 items
+rodadas-core.js:171    - Rodadas únicas nos dados: [7]
+rodadas.js:86 [RODADAS] Solicitado ranking para rodada 8 (refatorado)
+rodadas-core.js:415 [RODADAS-CORE] Solicitado ranking para rodada 8
+rodadas-core.js:74 [RODADAS-CORE] Tentando endpoint: /api/rodadas/684cb1c8af923da7c7df51de/rodadas?inicio=8&fim=8
+rodadas-core.js:91 [RODADAS-CORE] Dados encontrados no endpoint: /api/rodadas/684cb1c8af923da7c7df51de/rodadas?inicio=8&fim=8
+rodadas-core.js:168 [RODADAS-CORE] Processamento rodada 8:
+rodadas-core.js:169    - Dados brutos: 32 items
+rodadas-core.js:170    - Após filtro: 32 items
+rodadas-core.js:171    - Rodadas únicas nos dados: [8]
+rodadas.js:86 [RODADAS] Solicitado ranking para rodada 9 (refatorado)
+rodadas-core.js:415 [RODADAS-CORE] Solicitado ranking para rodada 9
+rodadas-core.js:74 [RODADAS-CORE] Tentando endpoint: /api/rodadas/684cb1c8af923da7c7df51de/rodadas?inicio=9&fim=9
+rodadas-core.js:91 [RODADAS-CORE] Dados encontrados no endpoint: /api/rodadas/684cb1c8af923da7c7df51de/rodadas?inicio=9&fim=9
+rodadas-core.js:168 [RODADAS-CORE] Processamento rodada 9:
+rodadas-core.js:169    - Dados brutos: 32 items
+rodadas-core.js:170    - Após filtro: 32 items
+rodadas-core.js:171    - Rodadas únicas nos dados: [9]
+rodadas.js:86 [RODADAS] Solicitado ranking para rodada 10 (refatorado)
+rodadas-core.js:415 [RODADAS-CORE] Solicitado ranking para rodada 10
+rodadas-core.js:74 [RODADAS-CORE] Tentando endpoint: /api/rodadas/684cb1c8af923da7c7df51de/rodadas?inicio=10&fim=10
+rodadas-core.js:91 [RODADAS-CORE] Dados encontrados no endpoint: /api/rodadas/684cb1c8af923da7c7df51de/rodadas?inicio=10&fim=10
+rodadas-core.js:168 [RODADAS-CORE] Processamento rodada 10:
+rodadas-core.js:169    - Dados brutos: 32 items
+rodadas-core.js:170    - Após filtro: 32 items
+rodadas-core.js:171    - Rodadas únicas nos dados: [10]
+rodadas.js:86 [RODADAS] Solicitado ranking para rodada 11 (refatorado)
+rodadas-core.js:415 [RODADAS-CORE] Solicitado ranking para rodada 11
+rodadas-core.js:74 [RODADAS-CORE] Tentando endpoint: /api/rodadas/684cb1c8af923da7c7df51de/rodadas?inicio=11&fim=11
+rodadas-core.js:91 [RODADAS-CORE] Dados encontrados no endpoint: /api/rodadas/684cb1c8af923da7c7df51de/rodadas?inicio=11&fim=11
+rodadas-core.js:168 [RODADAS-CORE] Processamento rodada 11:
+rodadas-core.js:169    - Dados brutos: 32 items
+rodadas-core.js:170    - Após filtro: 32 items
+rodadas-core.js:171    - Rodadas únicas nos dados: [11]
+rodadas.js:86 [RODADAS] Solicitado ranking para rodada 12 (refatorado)
+rodadas-core.js:415 [RODADAS-CORE] Solicitado ranking para rodada 12
+rodadas-core.js:74 [RODADAS-CORE] Tentando endpoint: /api/rodadas/684cb1c8af923da7c7df51de/rodadas?inicio=12&fim=12
+rodadas-core.js:91 [RODADAS-CORE] Dados encontrados no endpoint: /api/rodadas/684cb1c8af923da7c7df51de/rodadas?inicio=12&fim=12
+rodadas-core.js:168 [RODADAS-CORE] Processamento rodada 12:
+rodadas-core.js:169    - Dados brutos: 32 items
+rodadas-core.js:170    - Após filtro: 32 items
+rodadas-core.js:171    - Rodadas únicas nos dados: [12]
+rodadas.js:86 [RODADAS] Solicitado ranking para rodada 13 (refatorado)
+rodadas-core.js:415 [RODADAS-CORE] Solicitado ranking para rodada 13
+rodadas-core.js:74 [RODADAS-CORE] Tentando endpoint: /api/rodadas/684cb1c8af923da7c7df51de/rodadas?inicio=13&fim=13
+rodadas-core.js:91 [RODADAS-CORE] Dados encontrados no endpoint: /api/rodadas/684cb1c8af923da7c7df51de/rodadas?inicio=13&fim=13
+rodadas-core.js:168 [RODADAS-CORE] Processamento rodada 13:
+rodadas-core.js:169    - Dados brutos: 32 items
+rodadas-core.js:170    - Após filtro: 32 items
+rodadas-core.js:171    - Rodadas únicas nos dados: [13]
+rodadas.js:86 [RODADAS] Solicitado ranking para rodada 14 (refatorado)
+rodadas-core.js:415 [RODADAS-CORE] Solicitado ranking para rodada 14
+rodadas-core.js:74 [RODADAS-CORE] Tentando endpoint: /api/rodadas/684cb1c8af923da7c7df51de/rodadas?inicio=14&fim=14
+rodadas-core.js:91 [RODADAS-CORE] Dados encontrados no endpoint: /api/rodadas/684cb1c8af923da7c7df51de/rodadas?inicio=14&fim=14
+rodadas-core.js:168 [RODADAS-CORE] Processamento rodada 14:
+rodadas-core.js:169    - Dados brutos: 32 items
+rodadas-core.js:170    - Após filtro: 32 items
+rodadas-core.js:171    - Rodadas únicas nos dados: [14]
+rodadas.js:86 [RODADAS] Solicitado ranking para rodada 15 (refatorado)
+rodadas-core.js:415 [RODADAS-CORE] Solicitado ranking para rodada 15
+rodadas-core.js:74 [RODADAS-CORE] Tentando endpoint: /api/rodadas/684cb1c8af923da7c7df51de/rodadas?inicio=15&fim=15
+rodadas-core.js:91 [RODADAS-CORE] Dados encontrados no endpoint: /api/rodadas/684cb1c8af923da7c7df51de/rodadas?inicio=15&fim=15
+rodadas-core.js:168 [RODADAS-CORE] Processamento rodada 15:
+rodadas-core.js:169    - Dados brutos: 32 items
+rodadas-core.js:170    - Após filtro: 32 items
+rodadas-core.js:171    - Rodadas únicas nos dados: [15]
+rodadas.js:86 [RODADAS] Solicitado ranking para rodada 16 (refatorado)
+rodadas-core.js:415 [RODADAS-CORE] Solicitado ranking para rodada 16
+rodadas-core.js:74 [RODADAS-CORE] Tentando endpoint: /api/rodadas/684cb1c8af923da7c7df51de/rodadas?inicio=16&fim=16
+rodadas-core.js:91 [RODADAS-CORE] Dados encontrados no endpoint: /api/rodadas/684cb1c8af923da7c7df51de/rodadas?inicio=16&fim=16
+rodadas-core.js:168 [RODADAS-CORE] Processamento rodada 16:
+rodadas-core.js:169    - Dados brutos: 32 items
+rodadas-core.js:170    - Após filtro: 32 items
+rodadas-core.js:171    - Rodadas únicas nos dados: [16]
+rodadas.js:86 [RODADAS] Solicitado ranking para rodada 17 (refatorado)
+rodadas-core.js:415 [RODADAS-CORE] Solicitado ranking para rodada 17
+rodadas-core.js:74 [RODADAS-CORE] Tentando endpoint: /api/rodadas/684cb1c8af923da7c7df51de/rodadas?inicio=17&fim=17
+rodadas-core.js:91 [RODADAS-CORE] Dados encontrados no endpoint: /api/rodadas/684cb1c8af923da7c7df51de/rodadas?inicio=17&fim=17
+rodadas-core.js:168 [RODADAS-CORE] Processamento rodada 17:
+rodadas-core.js:169    - Dados brutos: 32 items
+rodadas-core.js:170    - Após filtro: 32 items
+rodadas-core.js:171    - Rodadas únicas nos dados: [17]
+rodadas.js:86 [RODADAS] Solicitado ranking para rodada 18 (refatorado)
+rodadas-core.js:415 [RODADAS-CORE] Solicitado ranking para rodada 18
+rodadas-core.js:74 [RODADAS-CORE] Tentando endpoint: /api/rodadas/684cb1c8af923da7c7df51de/rodadas?inicio=18&fim=18
+rodadas-core.js:91 [RODADAS-CORE] Dados encontrados no endpoint: /api/rodadas/684cb1c8af923da7c7df51de/rodadas?inicio=18&fim=18
+rodadas-core.js:168 [RODADAS-CORE] Processamento rodada 18:
+rodadas-core.js:169    - Dados brutos: 32 items
+rodadas-core.js:170    - Após filtro: 32 items
+rodadas-core.js:171    - Rodadas únicas nos dados: [18]
+rodadas.js:86 [RODADAS] Solicitado ranking para rodada 19 (refatorado)
+rodadas-core.js:415 [RODADAS-CORE] Solicitado ranking para rodada 19
+rodadas-core.js:74 [RODADAS-CORE] Tentando endpoint: /api/rodadas/684cb1c8af923da7c7df51de/rodadas?inicio=19&fim=19
+rodadas-core.js:91 [RODADAS-CORE] Dados encontrados no endpoint: /api/rodadas/684cb1c8af923da7c7df51de/rodadas?inicio=19&fim=19
+rodadas-core.js:168 [RODADAS-CORE] Processamento rodada 19:
+rodadas-core.js:169    - Dados brutos: 32 items
+rodadas-core.js:170    - Após filtro: 32 items
+rodadas-core.js:171    - Rodadas únicas nos dados: [19]
+rodadas.js:86 [RODADAS] Solicitado ranking para rodada 20 (refatorado)
+rodadas-core.js:415 [RODADAS-CORE] Solicitado ranking para rodada 20
+rodadas-core.js:74 [RODADAS-CORE] Tentando endpoint: /api/rodadas/684cb1c8af923da7c7df51de/rodadas?inicio=20&fim=20
+rodadas-core.js:91 [RODADAS-CORE] Dados encontrados no endpoint: /api/rodadas/684cb1c8af923da7c7df51de/rodadas?inicio=20&fim=20
+rodadas-core.js:168 [RODADAS-CORE] Processamento rodada 20:
+rodadas-core.js:169    - Dados brutos: 32 items
+rodadas-core.js:170    - Após filtro: 32 items
+rodadas-core.js:171    - Rodadas únicas nos dados: [20]
+rodadas.js:86 [RODADAS] Solicitado ranking para rodada 21 (refatorado)
+rodadas-core.js:415 [RODADAS-CORE] Solicitado ranking para rodada 21
+rodadas-core.js:74 [RODADAS-CORE] Tentando endpoint: /api/rodadas/684cb1c8af923da7c7df51de/rodadas?inicio=21&fim=21
+rodadas-core.js:91 [RODADAS-CORE] Dados encontrados no endpoint: /api/rodadas/684cb1c8af923da7c7df51de/rodadas?inicio=21&fim=21
+rodadas-core.js:168 [RODADAS-CORE] Processamento rodada 21:
+rodadas-core.js:169    - Dados brutos: 32 items
+rodadas-core.js:170    - Após filtro: 32 items
+rodadas-core.js:171    - Rodadas únicas nos dados: [21]
+rodadas.js:86 [RODADAS] Solicitado ranking para rodada 22 (refatorado)
+rodadas-core.js:415 [RODADAS-CORE] Solicitado ranking para rodada 22
+rodadas-core.js:74 [RODADAS-CORE] Tentando endpoint: /api/rodadas/684cb1c8af923da7c7df51de/rodadas?inicio=22&fim=22
+rodadas-core.js:91 [RODADAS-CORE] Dados encontrados no endpoint: /api/rodadas/684cb1c8af923da7c7df51de/rodadas?inicio=22&fim=22
+rodadas-core.js:168 [RODADAS-CORE] Processamento rodada 22:
+rodadas-core.js:169    - Dados brutos: 32 items
+rodadas-core.js:170    - Após filtro: 32 items
+rodadas-core.js:171    - Rodadas únicas nos dados: [22]
+rodadas.js:86 [RODADAS] Solicitado ranking para rodada 23 (refatorado)
+rodadas-core.js:415 [RODADAS-CORE] Solicitado ranking para rodada 23
+rodadas-core.js:74 [RODADAS-CORE] Tentando endpoint: /api/rodadas/684cb1c8af923da7c7df51de/rodadas?inicio=23&fim=23
+rodadas-core.js:91 [RODADAS-CORE] Dados encontrados no endpoint: /api/rodadas/684cb1c8af923da7c7df51de/rodadas?inicio=23&fim=23
+rodadas-core.js:168 [RODADAS-CORE] Processamento rodada 23:
+rodadas-core.js:169    - Dados brutos: 32 items
+rodadas-core.js:170    - Após filtro: 32 items
+rodadas-core.js:171    - Rodadas únicas nos dados: [23]
+rodadas.js:86 [RODADAS] Solicitado ranking para rodada 24 (refatorado)
+rodadas-core.js:415 [RODADAS-CORE] Solicitado ranking para rodada 24
+rodadas-core.js:74 [RODADAS-CORE] Tentando endpoint: /api/rodadas/684cb1c8af923da7c7df51de/rodadas?inicio=24&fim=24
+rodadas-core.js:91 [RODADAS-CORE] Dados encontrados no endpoint: /api/rodadas/684cb1c8af923da7c7df51de/rodadas?inicio=24&fim=24
+rodadas-core.js:168 [RODADAS-CORE] Processamento rodada 24:
+rodadas-core.js:169    - Dados brutos: 32 items
+rodadas-core.js:170    - Após filtro: 32 items
+rodadas-core.js:171    - Rodadas únicas nos dados: [24]
+rodadas.js:86 [RODADAS] Solicitado ranking para rodada 25 (refatorado)
+rodadas-core.js:415 [RODADAS-CORE] Solicitado ranking para rodada 25
+rodadas-core.js:74 [RODADAS-CORE] Tentando endpoint: /api/rodadas/684cb1c8af923da7c7df51de/rodadas?inicio=25&fim=25
+rodadas-core.js:91 [RODADAS-CORE] Dados encontrados no endpoint: /api/rodadas/684cb1c8af923da7c7df51de/rodadas?inicio=25&fim=25
+rodadas-core.js:168 [RODADAS-CORE] Processamento rodada 25:
+rodadas-core.js:169    - Dados brutos: 32 items
+rodadas-core.js:170    - Após filtro: 32 items
+rodadas-core.js:171    - Rodadas únicas nos dados: [25]
+rodadas.js:86 [RODADAS] Solicitado ranking para rodada 26 (refatorado)
+rodadas-core.js:415 [RODADAS-CORE] Solicitado ranking para rodada 26
+rodadas-core.js:74 [RODADAS-CORE] Tentando endpoint: /api/rodadas/684cb1c8af923da7c7df51de/rodadas?inicio=26&fim=26
+rodadas-core.js:91 [RODADAS-CORE] Dados encontrados no endpoint: /api/rodadas/684cb1c8af923da7c7df51de/rodadas?inicio=26&fim=26
+rodadas-core.js:168 [RODADAS-CORE] Processamento rodada 26:
+rodadas-core.js:169    - Dados brutos: 32 items
+rodadas-core.js:170    - Após filtro: 32 items
+rodadas-core.js:171    - Rodadas únicas nos dados: [26]
+rodadas.js:86 [RODADAS] Solicitado ranking para rodada 27 (refatorado)
+rodadas-core.js:415 [RODADAS-CORE] Solicitado ranking para rodada 27
+rodadas-core.js:74 [RODADAS-CORE] Tentando endpoint: /api/rodadas/684cb1c8af923da7c7df51de/rodadas?inicio=27&fim=27
+rodadas-core.js:91 [RODADAS-CORE] Dados encontrados no endpoint: /api/rodadas/684cb1c8af923da7c7df51de/rodadas?inicio=27&fim=27
+rodadas-core.js:168 [RODADAS-CORE] Processamento rodada 27:
+rodadas-core.js:169    - Dados brutos: 32 items
+rodadas-core.js:170    - Após filtro: 32 items
+rodadas-core.js:171    - Rodadas únicas nos dados: [27]
+rodadas.js:86 [RODADAS] Solicitado ranking para rodada 28 (refatorado)
+rodadas-core.js:415 [RODADAS-CORE] Solicitado ranking para rodada 28
+rodadas-core.js:74 [RODADAS-CORE] Tentando endpoint: /api/rodadas/684cb1c8af923da7c7df51de/rodadas?inicio=28&fim=28
+rodadas-core.js:91 [RODADAS-CORE] Dados encontrados no endpoint: /api/rodadas/684cb1c8af923da7c7df51de/rodadas?inicio=28&fim=28
+rodadas-core.js:168 [RODADAS-CORE] Processamento rodada 28:
+rodadas-core.js:169    - Dados brutos: 32 items
+rodadas-core.js:170    - Após filtro: 32 items
+rodadas-core.js:171    - Rodadas únicas nos dados: [28]
+rodadas.js:86 [RODADAS] Solicitado ranking para rodada 29 (refatorado)
+rodadas-core.js:415 [RODADAS-CORE] Solicitado ranking para rodada 29
+rodadas-core.js:74 [RODADAS-CORE] Tentando endpoint: /api/rodadas/684cb1c8af923da7c7df51de/rodadas?inicio=29&fim=29
+rodadas-core.js:91 [RODADAS-CORE] Dados encontrados no endpoint: /api/rodadas/684cb1c8af923da7c7df51de/rodadas?inicio=29&fim=29
+rodadas-core.js:168 [RODADAS-CORE] Processamento rodada 29:
+rodadas-core.js:169    - Dados brutos: 32 items
+rodadas-core.js:170    - Após filtro: 32 items
+rodadas-core.js:171    - Rodadas únicas nos dados: [29]
+rodadas.js:86 [RODADAS] Solicitado ranking para rodada 30 (refatorado)
+rodadas-core.js:415 [RODADAS-CORE] Solicitado ranking para rodada 30
+rodadas-core.js:74 [RODADAS-CORE] Tentando endpoint: /api/rodadas/684cb1c8af923da7c7df51de/rodadas?inicio=30&fim=30
+rodadas-core.js:91 [RODADAS-CORE] Dados encontrados no endpoint: /api/rodadas/684cb1c8af923da7c7df51de/rodadas?inicio=30&fim=30
+rodadas-core.js:168 [RODADAS-CORE] Processamento rodada 30:
+rodadas-core.js:169    - Dados brutos: 32 items
+rodadas-core.js:170    - Após filtro: 32 items
+rodadas-core.js:171    - Rodadas únicas nos dados: [30]
+rodadas.js:86 [RODADAS] Solicitado ranking para rodada 31 (refatorado)
+rodadas-core.js:415 [RODADAS-CORE] Solicitado ranking para rodada 31
+rodadas-core.js:74 [RODADAS-CORE] Tentando endpoint: /api/rodadas/684cb1c8af923da7c7df51de/rodadas?inicio=31&fim=31
+participante-status.js:106 [PARTICIPANTE-STATUS] 🟢 Online
+rodadas-core.js:91 [RODADAS-CORE] Dados encontrados no endpoint: /api/rodadas/684cb1c8af923da7c7df51de/rodadas?inicio=31&fim=31
+rodadas-core.js:168 [RODADAS-CORE] Processamento rodada 31:
+rodadas-core.js:169    - Dados brutos: 32 items
+rodadas-core.js:170    - Após filtro: 32 items
+rodadas-core.js:171    - Rodadas únicas nos dados: [31]
+pontos-corridos-utils.js:210 Confrontos da Liga Pontos Corridos com pontos carregados.
+mata-mata-financeiro.js:188 [MATA-FINANCEIRO] Calculando TODAS as edições concluídas...
+mata-mata-financeiro.js:192  [MATA-FINANCEIRO] Função getRankingRodadaEspecifica não disponível.
+getResultadosMataMataFluxo @ mata-mata-financeiro.js:192
+carregarDadosExternos @ fluxo-financeiro-cache.js:315
+await in carregarDadosExternos
+inicializar @ fluxo-financeiro-cache.js:56
+await in inicializar
+inicializar @ fluxo-financeiro-participante.js:40
+inicializarExtratoParticipante @ participante-extrato.js:56
+await in inicializarExtratoParticipante
+inicializarModulo @ participante-navigation.js:410
+navegarPara @ participante-navigation.js:289
+await in navegarPara
+(anônimo) @ participante-navigation.js:175
+melhor-mes.js:53 [MELHOR-MES] Obtendo resultados...
+melhor-mes-config.js:4 [MELHOR-MES-CONFIG] Carregando configurações...
+melhor-mes-config.js:145 [MELHOR-MES-CONFIG] ✅ Configurações carregadas
+melhor-mes-config.js:146 [MELHOR-MES-CONFIG] 📊 7 edições configuradas
+melhor-mes-config.js:149 [MELHOR-MES-CONFIG] 🎨 Interface com 14 cores
+melhor-mes-core.js:14 [MELHOR-MES-CORE] Inicializando core business logic...
+melhor-mes-core.js:443 [MELHOR-MES-CORE] ✅ Core business logic carregado
+export-base.js:343 ✅ [EXPORT-BASE] Módulo carregado com sucesso
+export-melhor-mes.js:11 [EXPORT-MELHOR-MES-MOBILE] Sistema Mobile Dark HD v3.0.1 carregado
+export-melhor-mes.js:476 [EXPORT-MELHOR-MES-MOBILE] ✅ Sistema Mobile Dark HD v3.0.1 configurado
+export-melhor-mes.js:479 [EXPORT-MELHOR-MES-MOBILE] 📱 Resolução: 720px @ 2x scale (1440px final - Full HD)
+export-melhor-mes.js:482 [EXPORT-MELHOR-MES-MOBILE] 🎨 Padrão Pontos Corridos aplicado
+melhor-mes-ui.js:7 [MELHOR-MES-UI] Carregando interface...
+melhor-mes-ui.js:307 [MELHOR-MES-UI] ✅ Interface modular carregada
+melhor-mes-orquestrador.js:8 [MELHOR-MES-ORQUESTRADOR] Inicializando orquestrador...
+melhor-mes-orquestrador.js:269 [MELHOR-MES-ORQUESTRADOR] ✅ Orquestrador carregado
+melhor-mes-orquestrador.js:270 [MELHOR-MES-ORQUESTRADOR] 🏗️ Arquitetura modular implementada
+melhor-mes-orquestrador.js:271 [MELHOR-MES-ORQUESTRADOR] 🔧 Debug functions disponíveis em window.melhorMesOrquestradorDebug
+melhor-mes.js:20 [MELHOR-MES] Módulos carregados com sucesso
+melhor-mes-orquestrador.js:27 [MELHOR-MES-ORQUESTRADOR] Inicializando sistema completo...
+melhor-mes-core.js:30 [MELHOR-MES-CORE] Inicializando...
+melhor-mes-core.js:96 [MELHOR-MES-CORE] ✅ Liga ID obtido: 684cb1c8af923da7c7df51de
+melhor-mes-core.js:114 [MELHOR-MES-CORE] Liga: 684cb1c8af923da7c7df51de, Última rodada: 35
+melhor-mes-core.js:60 [MELHOR-MES-CORE] ✅ Liga ID validado: 684cb1c8af923da7c7df51de
+melhor-mes-core.js:121 [MELHOR-MES-CORE] Processando todas edições...
+melhor-mes-core.js:196 [MELHOR-MES-CORE] Calculando ranking rodadas 1-6
+rodadas.js:86 [RODADAS] Solicitado ranking para rodada 1 (refatorado)
+rodadas-core.js:415 [RODADAS-CORE] Solicitado ranking para rodada 1
+rodadas-core.js:74 [RODADAS-CORE] Tentando endpoint: /api/rodadas/684cb1c8af923da7c7df51de/rodadas?inicio=1&fim=1
+rodadas.js:86 [RODADAS] Solicitado ranking para rodada 2 (refatorado)
+rodadas-core.js:415 [RODADAS-CORE] Solicitado ranking para rodada 2
+rodadas-core.js:74 [RODADAS-CORE] Tentando endpoint: /api/rodadas/684cb1c8af923da7c7df51de/rodadas?inicio=2&fim=2
+rodadas.js:86 [RODADAS] Solicitado ranking para rodada 3 (refatorado)
+rodadas-core.js:415 [RODADAS-CORE] Solicitado ranking para rodada 3
+rodadas-core.js:74 [RODADAS-CORE] Tentando endpoint: /api/rodadas/684cb1c8af923da7c7df51de/rodadas?inicio=3&fim=3
+rodadas.js:86 [RODADAS] Solicitado ranking para rodada 4 (refatorado)
+rodadas-core.js:415 [RODADAS-CORE] Solicitado ranking para rodada 4
+rodadas-core.js:74 [RODADAS-CORE] Tentando endpoint: /api/rodadas/684cb1c8af923da7c7df51de/rodadas?inicio=4&fim=4
+rodadas.js:86 [RODADAS] Solicitado ranking para rodada 5 (refatorado)
+rodadas-core.js:415 [RODADAS-CORE] Solicitado ranking para rodada 5
+rodadas-core.js:74 [RODADAS-CORE] Tentando endpoint: /api/rodadas/684cb1c8af923da7c7df51de/rodadas?inicio=5&fim=5
+rodadas.js:86 [RODADAS] Solicitado ranking para rodada 6 (refatorado)
+rodadas-core.js:415 [RODADAS-CORE] Solicitado ranking para rodada 6
+rodadas-core.js:74 [RODADAS-CORE] Tentando endpoint: /api/rodadas/684cb1c8af923da7c7df51de/rodadas?inicio=6&fim=6
+rodadas-core.js:91 [RODADAS-CORE] Dados encontrados no endpoint: /api/rodadas/684cb1c8af923da7c7df51de/rodadas?inicio=1&fim=1
+rodadas-core.js:168 [RODADAS-CORE] Processamento rodada 1:
+rodadas-core.js:169    - Dados brutos: 32 items
+rodadas-core.js:170    - Após filtro: 32 items
+rodadas-core.js:171    - Rodadas únicas nos dados: [1]
+rodadas-core.js:91 [RODADAS-CORE] Dados encontrados no endpoint: /api/rodadas/684cb1c8af923da7c7df51de/rodadas?inicio=3&fim=3
+rodadas-core.js:168 [RODADAS-CORE] Processamento rodada 3:
+rodadas-core.js:169    - Dados brutos: 32 items
+rodadas-core.js:170    - Após filtro: 32 items
+rodadas-core.js:171    - Rodadas únicas nos dados: [3]
+rodadas-core.js:91 [RODADAS-CORE] Dados encontrados no endpoint: /api/rodadas/684cb1c8af923da7c7df51de/rodadas?inicio=2&fim=2
+rodadas-core.js:168 [RODADAS-CORE] Processamento rodada 2:
+rodadas-core.js:169    - Dados brutos: 32 items
+rodadas-core.js:170    - Após filtro: 32 items
+rodadas-core.js:171    - Rodadas únicas nos dados: [2]
+rodadas-core.js:91 [RODADAS-CORE] Dados encontrados no endpoint: /api/rodadas/684cb1c8af923da7c7df51de/rodadas?inicio=4&fim=4
+rodadas-core.js:168 [RODADAS-CORE] Processamento rodada 4:
+rodadas-core.js:169    - Dados brutos: 32 items
+rodadas-core.js:170    - Após filtro: 32 items
+rodadas-core.js:171    - Rodadas únicas nos dados: [4]
+rodadas-core.js:91 [RODADAS-CORE] Dados encontrados no endpoint: /api/rodadas/684cb1c8af923da7c7df51de/rodadas?inicio=5&fim=5
+rodadas-core.js:168 [RODADAS-CORE] Processamento rodada 5:
+rodadas-core.js:169    - Dados brutos: 32 items
+rodadas-core.js:170    - Após filtro: 32 items
+rodadas-core.js:171    - Rodadas únicas nos dados: [5]
+rodadas-core.js:91 [RODADAS-CORE] Dados encontrados no endpoint: /api/rodadas/684cb1c8af923da7c7df51de/rodadas?inicio=6&fim=6
+rodadas-core.js:168 [RODADAS-CORE] Processamento rodada 6:
+rodadas-core.js:169    - Dados brutos: 32 items
+rodadas-core.js:170    - Após filtro: 32 items
+rodadas-core.js:171    - Rodadas únicas nos dados: [6]
+melhor-mes-core.js:273 [MELHOR-MES-CORE] Ranking calculado: 32 times
+melhor-mes-core.js:187 [MELHOR-MES-CORE] Edição 01: 32 participantes, status: concluida
+melhor-mes-core.js:196 [MELHOR-MES-CORE] Calculando ranking rodadas 7-10
+rodadas.js:86 [RODADAS] Solicitado ranking para rodada 7 (refatorado)
+rodadas-core.js:415 [RODADAS-CORE] Solicitado ranking para rodada 7
+rodadas-core.js:74 [RODADAS-CORE] Tentando endpoint: /api/rodadas/684cb1c8af923da7c7df51de/rodadas?inicio=7&fim=7
+rodadas.js:86 [RODADAS] Solicitado ranking para rodada 8 (refatorado)
+rodadas-core.js:415 [RODADAS-CORE] Solicitado ranking para rodada 8
+rodadas-core.js:74 [RODADAS-CORE] Tentando endpoint: /api/rodadas/684cb1c8af923da7c7df51de/rodadas?inicio=8&fim=8
+rodadas.js:86 [RODADAS] Solicitado ranking para rodada 9 (refatorado)
+rodadas-core.js:415 [RODADAS-CORE] Solicitado ranking para rodada 9
+rodadas-core.js:74 [RODADAS-CORE] Tentando endpoint: /api/rodadas/684cb1c8af923da7c7df51de/rodadas?inicio=9&fim=9
+rodadas.js:86 [RODADAS] Solicitado ranking para rodada 10 (refatorado)
+rodadas-core.js:415 [RODADAS-CORE] Solicitado ranking para rodada 10
+rodadas-core.js:74 [RODADAS-CORE] Tentando endpoint: /api/rodadas/684cb1c8af923da7c7df51de/rodadas?inicio=10&fim=10
+rodadas-core.js:91 [RODADAS-CORE] Dados encontrados no endpoint: /api/rodadas/684cb1c8af923da7c7df51de/rodadas?inicio=8&fim=8
+rodadas-core.js:168 [RODADAS-CORE] Processamento rodada 8:
+rodadas-core.js:169    - Dados brutos: 32 items
+rodadas-core.js:170    - Após filtro: 32 items
+rodadas-core.js:171    - Rodadas únicas nos dados: [8]
+rodadas-core.js:91 [RODADAS-CORE] Dados encontrados no endpoint: /api/rodadas/684cb1c8af923da7c7df51de/rodadas?inicio=9&fim=9
+rodadas-core.js:168 [RODADAS-CORE] Processamento rodada 9:
+rodadas-core.js:169    - Dados brutos: 32 items
+rodadas-core.js:170    - Após filtro: 32 items
+rodadas-core.js:171    - Rodadas únicas nos dados: [9]
+rodadas-core.js:91 [RODADAS-CORE] Dados encontrados no endpoint: /api/rodadas/684cb1c8af923da7c7df51de/rodadas?inicio=7&fim=7
+rodadas-core.js:168 [RODADAS-CORE] Processamento rodada 7:
+rodadas-core.js:169    - Dados brutos: 32 items
+rodadas-core.js:170    - Após filtro: 32 items
+rodadas-core.js:171    - Rodadas únicas nos dados: [7]
+rodadas-core.js:91 [RODADAS-CORE] Dados encontrados no endpoint: /api/rodadas/684cb1c8af923da7c7df51de/rodadas?inicio=10&fim=10
+rodadas-core.js:168 [RODADAS-CORE] Processamento rodada 10:
+rodadas-core.js:169    - Dados brutos: 32 items
+rodadas-core.js:170    - Após filtro: 32 items
+rodadas-core.js:171    - Rodadas únicas nos dados: [10]
+melhor-mes-core.js:273 [MELHOR-MES-CORE] Ranking calculado: 32 times
+melhor-mes-core.js:187 [MELHOR-MES-CORE] Edição 02: 32 participantes, status: concluida
+melhor-mes-core.js:196 [MELHOR-MES-CORE] Calculando ranking rodadas 11-17
+rodadas.js:86 [RODADAS] Solicitado ranking para rodada 11 (refatorado)
+rodadas-core.js:415 [RODADAS-CORE] Solicitado ranking para rodada 11
+rodadas-core.js:74 [RODADAS-CORE] Tentando endpoint: /api/rodadas/684cb1c8af923da7c7df51de/rodadas?inicio=11&fim=11
+rodadas.js:86 [RODADAS] Solicitado ranking para rodada 12 (refatorado)
+rodadas-core.js:415 [RODADAS-CORE] Solicitado ranking para rodada 12
+rodadas-core.js:74 [RODADAS-CORE] Tentando endpoint: /api/rodadas/684cb1c8af923da7c7df51de/rodadas?inicio=12&fim=12
+rodadas.js:86 [RODADAS] Solicitado ranking para rodada 13 (refatorado)
+rodadas-core.js:415 [RODADAS-CORE] Solicitado ranking para rodada 13
+rodadas-core.js:74 [RODADAS-CORE] Tentando endpoint: /api/rodadas/684cb1c8af923da7c7df51de/rodadas?inicio=13&fim=13
+rodadas.js:86 [RODADAS] Solicitado ranking para rodada 14 (refatorado)
+rodadas-core.js:415 [RODADAS-CORE] Solicitado ranking para rodada 14
+rodadas-core.js:74 [RODADAS-CORE] Tentando endpoint: /api/rodadas/684cb1c8af923da7c7df51de/rodadas?inicio=14&fim=14
+rodadas.js:86 [RODADAS] Solicitado ranking para rodada 15 (refatorado)
+rodadas-core.js:415 [RODADAS-CORE] Solicitado ranking para rodada 15
+rodadas-core.js:74 [RODADAS-CORE] Tentando endpoint: /api/rodadas/684cb1c8af923da7c7df51de/rodadas?inicio=15&fim=15
+rodadas.js:86 [RODADAS] Solicitado ranking para rodada 16 (refatorado)
+rodadas-core.js:415 [RODADAS-CORE] Solicitado ranking para rodada 16
+rodadas-core.js:74 [RODADAS-CORE] Tentando endpoint: /api/rodadas/684cb1c8af923da7c7df51de/rodadas?inicio=16&fim=16
+rodadas.js:86 [RODADAS] Solicitado ranking para rodada 17 (refatorado)
+rodadas-core.js:415 [RODADAS-CORE] Solicitado ranking para rodada 17
+rodadas-core.js:74 [RODADAS-CORE] Tentando endpoint: /api/rodadas/684cb1c8af923da7c7df51de/rodadas?inicio=17&fim=17
+rodadas-core.js:91 [RODADAS-CORE] Dados encontrados no endpoint: /api/rodadas/684cb1c8af923da7c7df51de/rodadas?inicio=15&fim=15
+rodadas-core.js:168 [RODADAS-CORE] Processamento rodada 15:
+rodadas-core.js:169    - Dados brutos: 32 items
+rodadas-core.js:170    - Após filtro: 32 items
+rodadas-core.js:171    - Rodadas únicas nos dados: [15]
+rodadas-core.js:91 [RODADAS-CORE] Dados encontrados no endpoint: /api/rodadas/684cb1c8af923da7c7df51de/rodadas?inicio=16&fim=16
+rodadas-core.js:168 [RODADAS-CORE] Processamento rodada 16:
+rodadas-core.js:169    - Dados brutos: 32 items
+rodadas-core.js:170    - Após filtro: 32 items
+rodadas-core.js:171    - Rodadas únicas nos dados: [16]
+rodadas-core.js:91 [RODADAS-CORE] Dados encontrados no endpoint: /api/rodadas/684cb1c8af923da7c7df51de/rodadas?inicio=14&fim=14
+rodadas-core.js:168 [RODADAS-CORE] Processamento rodada 14:
+rodadas-core.js:169    - Dados brutos: 32 items
+rodadas-core.js:170    - Após filtro: 32 items
+rodadas-core.js:171    - Rodadas únicas nos dados: [14]
+rodadas-core.js:91 [RODADAS-CORE] Dados encontrados no endpoint: /api/rodadas/684cb1c8af923da7c7df51de/rodadas?inicio=12&fim=12
+rodadas-core.js:168 [RODADAS-CORE] Processamento rodada 12:
+rodadas-core.js:169    - Dados brutos: 32 items
+rodadas-core.js:170    - Após filtro: 32 items
+rodadas-core.js:171    - Rodadas únicas nos dados: [12]
+rodadas-core.js:91 [RODADAS-CORE] Dados encontrados no endpoint: /api/rodadas/684cb1c8af923da7c7df51de/rodadas?inicio=11&fim=11
+rodadas-core.js:168 [RODADAS-CORE] Processamento rodada 11:
+rodadas-core.js:169    - Dados brutos: 32 items
+rodadas-core.js:170    - Após filtro: 32 items
+rodadas-core.js:171    - Rodadas únicas nos dados: [11]
+rodadas-core.js:91 [RODADAS-CORE] Dados encontrados no endpoint: /api/rodadas/684cb1c8af923da7c7df51de/rodadas?inicio=13&fim=13
+rodadas-core.js:168 [RODADAS-CORE] Processamento rodada 13:
+rodadas-core.js:169    - Dados brutos: 32 items
+rodadas-core.js:170    - Após filtro: 32 items
+rodadas-core.js:171    - Rodadas únicas nos dados: [13]
+rodadas-core.js:91 [RODADAS-CORE] Dados encontrados no endpoint: /api/rodadas/684cb1c8af923da7c7df51de/rodadas?inicio=17&fim=17
+rodadas-core.js:168 [RODADAS-CORE] Processamento rodada 17:
+rodadas-core.js:169    - Dados brutos: 32 items
+rodadas-core.js:170    - Após filtro: 32 items
+rodadas-core.js:171    - Rodadas únicas nos dados: [17]
+melhor-mes-core.js:273 [MELHOR-MES-CORE] Ranking calculado: 32 times
+melhor-mes-core.js:187 [MELHOR-MES-CORE] Edição 03: 32 participantes, status: concluida
+melhor-mes-core.js:196 [MELHOR-MES-CORE] Calculando ranking rodadas 18-22
+rodadas.js:86 [RODADAS] Solicitado ranking para rodada 18 (refatorado)
+rodadas-core.js:415 [RODADAS-CORE] Solicitado ranking para rodada 18
+rodadas-core.js:74 [RODADAS-CORE] Tentando endpoint: /api/rodadas/684cb1c8af923da7c7df51de/rodadas?inicio=18&fim=18
+rodadas.js:86 [RODADAS] Solicitado ranking para rodada 19 (refatorado)
+rodadas-core.js:415 [RODADAS-CORE] Solicitado ranking para rodada 19
+rodadas-core.js:74 [RODADAS-CORE] Tentando endpoint: /api/rodadas/684cb1c8af923da7c7df51de/rodadas?inicio=19&fim=19
+rodadas.js:86 [RODADAS] Solicitado ranking para rodada 20 (refatorado)
+rodadas-core.js:415 [RODADAS-CORE] Solicitado ranking para rodada 20
+rodadas-core.js:74 [RODADAS-CORE] Tentando endpoint: /api/rodadas/684cb1c8af923da7c7df51de/rodadas?inicio=20&fim=20
+rodadas.js:86 [RODADAS] Solicitado ranking para rodada 21 (refatorado)
+rodadas-core.js:415 [RODADAS-CORE] Solicitado ranking para rodada 21
+rodadas-core.js:74 [RODADAS-CORE] Tentando endpoint: /api/rodadas/684cb1c8af923da7c7df51de/rodadas?inicio=21&fim=21
+rodadas.js:86 [RODADAS] Solicitado ranking para rodada 22 (refatorado)
+rodadas-core.js:415 [RODADAS-CORE] Solicitado ranking para rodada 22
+rodadas-core.js:74 [RODADAS-CORE] Tentando endpoint: /api/rodadas/684cb1c8af923da7c7df51de/rodadas?inicio=22&fim=22
+rodadas-core.js:91 [RODADAS-CORE] Dados encontrados no endpoint: /api/rodadas/684cb1c8af923da7c7df51de/rodadas?inicio=18&fim=18
+rodadas-core.js:168 [RODADAS-CORE] Processamento rodada 18:
+rodadas-core.js:169    - Dados brutos: 32 items
+rodadas-core.js:170    - Após filtro: 32 items
+rodadas-core.js:171    - Rodadas únicas nos dados: [18]
+rodadas-core.js:91 [RODADAS-CORE] Dados encontrados no endpoint: /api/rodadas/684cb1c8af923da7c7df51de/rodadas?inicio=22&fim=22
+rodadas-core.js:168 [RODADAS-CORE] Processamento rodada 22:
+rodadas-core.js:169    - Dados brutos: 32 items
+rodadas-core.js:170    - Após filtro: 32 items
+rodadas-core.js:171    - Rodadas únicas nos dados: [22]
+rodadas-core.js:91 [RODADAS-CORE] Dados encontrados no endpoint: /api/rodadas/684cb1c8af923da7c7df51de/rodadas?inicio=19&fim=19
+rodadas-core.js:168 [RODADAS-CORE] Processamento rodada 19:
+rodadas-core.js:169    - Dados brutos: 32 items
+rodadas-core.js:170    - Após filtro: 32 items
+rodadas-core.js:171    - Rodadas únicas nos dados: [19]
+rodadas-core.js:91 [RODADAS-CORE] Dados encontrados no endpoint: /api/rodadas/684cb1c8af923da7c7df51de/rodadas?inicio=20&fim=20
+rodadas-core.js:168 [RODADAS-CORE] Processamento rodada 20:
+rodadas-core.js:169    - Dados brutos: 32 items
+rodadas-core.js:170    - Após filtro: 32 items
+rodadas-core.js:171    - Rodadas únicas nos dados: [20]
+rodadas-core.js:91 [RODADAS-CORE] Dados encontrados no endpoint: /api/rodadas/684cb1c8af923da7c7df51de/rodadas?inicio=21&fim=21
+rodadas-core.js:168 [RODADAS-CORE] Processamento rodada 21:
+rodadas-core.js:169    - Dados brutos: 32 items
+rodadas-core.js:170    - Após filtro: 32 items
+rodadas-core.js:171    - Rodadas únicas nos dados: [21]
+melhor-mes-core.js:273 [MELHOR-MES-CORE] Ranking calculado: 32 times
+melhor-mes-core.js:187 [MELHOR-MES-CORE] Edição 04: 32 participantes, status: concluida
+melhor-mes-core.js:196 [MELHOR-MES-CORE] Calculando ranking rodadas 23-26
+rodadas.js:86 [RODADAS] Solicitado ranking para rodada 23 (refatorado)
+rodadas-core.js:415 [RODADAS-CORE] Solicitado ranking para rodada 23
+rodadas-core.js:74 [RODADAS-CORE] Tentando endpoint: /api/rodadas/684cb1c8af923da7c7df51de/rodadas?inicio=23&fim=23
+rodadas.js:86 [RODADAS] Solicitado ranking para rodada 24 (refatorado)
+rodadas-core.js:415 [RODADAS-CORE] Solicitado ranking para rodada 24
+rodadas-core.js:74 [RODADAS-CORE] Tentando endpoint: /api/rodadas/684cb1c8af923da7c7df51de/rodadas?inicio=24&fim=24
+rodadas.js:86 [RODADAS] Solicitado ranking para rodada 25 (refatorado)
+rodadas-core.js:415 [RODADAS-CORE] Solicitado ranking para rodada 25
+rodadas-core.js:74 [RODADAS-CORE] Tentando endpoint: /api/rodadas/684cb1c8af923da7c7df51de/rodadas?inicio=25&fim=25
+rodadas.js:86 [RODADAS] Solicitado ranking para rodada 26 (refatorado)
+rodadas-core.js:415 [RODADAS-CORE] Solicitado ranking para rodada 26
+rodadas-core.js:74 [RODADAS-CORE] Tentando endpoint: /api/rodadas/684cb1c8af923da7c7df51de/rodadas?inicio=26&fim=26
+rodadas-core.js:91 [RODADAS-CORE] Dados encontrados no endpoint: /api/rodadas/684cb1c8af923da7c7df51de/rodadas?inicio=23&fim=23
+rodadas-core.js:168 [RODADAS-CORE] Processamento rodada 23:
+rodadas-core.js:169    - Dados brutos: 32 items
+rodadas-core.js:170    - Após filtro: 32 items
+rodadas-core.js:171    - Rodadas únicas nos dados: [23]
+rodadas-core.js:91 [RODADAS-CORE] Dados encontrados no endpoint: /api/rodadas/684cb1c8af923da7c7df51de/rodadas?inicio=24&fim=24
+rodadas-core.js:168 [RODADAS-CORE] Processamento rodada 24:
+rodadas-core.js:169    - Dados brutos: 32 items
+rodadas-core.js:170    - Após filtro: 32 items
+rodadas-core.js:171    - Rodadas únicas nos dados: [24]
+rodadas-core.js:91 [RODADAS-CORE] Dados encontrados no endpoint: /api/rodadas/684cb1c8af923da7c7df51de/rodadas?inicio=25&fim=25
+rodadas-core.js:168 [RODADAS-CORE] Processamento rodada 25:
+rodadas-core.js:169    - Dados brutos: 32 items
+rodadas-core.js:170    - Após filtro: 32 items
+rodadas-core.js:171    - Rodadas únicas nos dados: [25]
+rodadas-core.js:91 [RODADAS-CORE] Dados encontrados no endpoint: /api/rodadas/684cb1c8af923da7c7df51de/rodadas?inicio=26&fim=26
+rodadas-core.js:168 [RODADAS-CORE] Processamento rodada 26:
+rodadas-core.js:169    - Dados brutos: 32 items
+rodadas-core.js:170    - Após filtro: 32 items
+rodadas-core.js:171    - Rodadas únicas nos dados: [26]
+melhor-mes-core.js:273 [MELHOR-MES-CORE] Ranking calculado: 32 times
+melhor-mes-core.js:187 [MELHOR-MES-CORE] Edição 05: 32 participantes, status: concluida
+melhor-mes-core.js:196 [MELHOR-MES-CORE] Calculando ranking rodadas 27-30
+rodadas.js:86 [RODADAS] Solicitado ranking para rodada 27 (refatorado)
+rodadas-core.js:415 [RODADAS-CORE] Solicitado ranking para rodada 27
+rodadas-core.js:74 [RODADAS-CORE] Tentando endpoint: /api/rodadas/684cb1c8af923da7c7df51de/rodadas?inicio=27&fim=27
+rodadas.js:86 [RODADAS] Solicitado ranking para rodada 28 (refatorado)
+rodadas-core.js:415 [RODADAS-CORE] Solicitado ranking para rodada 28
+rodadas-core.js:74 [RODADAS-CORE] Tentando endpoint: /api/rodadas/684cb1c8af923da7c7df51de/rodadas?inicio=28&fim=28
+rodadas.js:86 [RODADAS] Solicitado ranking para rodada 29 (refatorado)
+rodadas-core.js:415 [RODADAS-CORE] Solicitado ranking para rodada 29
+rodadas-core.js:74 [RODADAS-CORE] Tentando endpoint: /api/rodadas/684cb1c8af923da7c7df51de/rodadas?inicio=29&fim=29
+rodadas.js:86 [RODADAS] Solicitado ranking para rodada 30 (refatorado)
+rodadas-core.js:415 [RODADAS-CORE] Solicitado ranking para rodada 30
+rodadas-core.js:74 [RODADAS-CORE] Tentando endpoint: /api/rodadas/684cb1c8af923da7c7df51de/rodadas?inicio=30&fim=30
+rodadas-core.js:91 [RODADAS-CORE] Dados encontrados no endpoint: /api/rodadas/684cb1c8af923da7c7df51de/rodadas?inicio=29&fim=29
+rodadas-core.js:168 [RODADAS-CORE] Processamento rodada 29:
+rodadas-core.js:169    - Dados brutos: 32 items
+rodadas-core.js:170    - Após filtro: 32 items
+rodadas-core.js:171    - Rodadas únicas nos dados: [29]
+rodadas-core.js:91 [RODADAS-CORE] Dados encontrados no endpoint: /api/rodadas/684cb1c8af923da7c7df51de/rodadas?inicio=30&fim=30
+rodadas-core.js:168 [RODADAS-CORE] Processamento rodada 30:
+rodadas-core.js:169    - Dados brutos: 32 items
+rodadas-core.js:170    - Após filtro: 32 items
+rodadas-core.js:171    - Rodadas únicas nos dados: [30]
+rodadas-core.js:91 [RODADAS-CORE] Dados encontrados no endpoint: /api/rodadas/684cb1c8af923da7c7df51de/rodadas?inicio=27&fim=27
+rodadas-core.js:168 [RODADAS-CORE] Processamento rodada 27:
+rodadas-core.js:169    - Dados brutos: 32 items
+rodadas-core.js:170    - Após filtro: 32 items
+rodadas-core.js:171    - Rodadas únicas nos dados: [27]
+rodadas-core.js:91 [RODADAS-CORE] Dados encontrados no endpoint: /api/rodadas/684cb1c8af923da7c7df51de/rodadas?inicio=28&fim=28
+rodadas-core.js:168 [RODADAS-CORE] Processamento rodada 28:
+rodadas-core.js:169    - Dados brutos: 32 items
+rodadas-core.js:170    - Após filtro: 32 items
+rodadas-core.js:171    - Rodadas únicas nos dados: [28]
+melhor-mes-core.js:273 [MELHOR-MES-CORE] Ranking calculado: 32 times
+melhor-mes-core.js:187 [MELHOR-MES-CORE] Edição 06: 32 participantes, status: concluida
+melhor-mes-core.js:196 [MELHOR-MES-CORE] Calculando ranking rodadas 31-35
+rodadas.js:86 [RODADAS] Solicitado ranking para rodada 31 (refatorado)
+rodadas-core.js:415 [RODADAS-CORE] Solicitado ranking para rodada 31
+rodadas-core.js:74 [RODADAS-CORE] Tentando endpoint: /api/rodadas/684cb1c8af923da7c7df51de/rodadas?inicio=31&fim=31
+rodadas.js:86 [RODADAS] Solicitado ranking para rodada 32 (refatorado)
+rodadas-core.js:415 [RODADAS-CORE] Solicitado ranking para rodada 32
+rodadas-core.js:74 [RODADAS-CORE] Tentando endpoint: /api/rodadas/684cb1c8af923da7c7df51de/rodadas?inicio=32&fim=32
+rodadas.js:86 [RODADAS] Solicitado ranking para rodada 33 (refatorado)
+rodadas-core.js:415 [RODADAS-CORE] Solicitado ranking para rodada 33
+rodadas-core.js:74 [RODADAS-CORE] Tentando endpoint: /api/rodadas/684cb1c8af923da7c7df51de/rodadas?inicio=33&fim=33
+rodadas.js:86 [RODADAS] Solicitado ranking para rodada 34 (refatorado)
+rodadas-core.js:415 [RODADAS-CORE] Solicitado ranking para rodada 34
+rodadas-core.js:74 [RODADAS-CORE] Tentando endpoint: /api/rodadas/684cb1c8af923da7c7df51de/rodadas?inicio=34&fim=34
+rodadas.js:86 [RODADAS] Solicitado ranking para rodada 35 (refatorado)
+rodadas-core.js:415 [RODADAS-CORE] Solicitado ranking para rodada 35
+rodadas-core.js:74 [RODADAS-CORE] Tentando endpoint: /api/rodadas/684cb1c8af923da7c7df51de/rodadas?inicio=35&fim=35
+rodadas-core.js:91 [RODADAS-CORE] Dados encontrados no endpoint: /api/rodadas/684cb1c8af923da7c7df51de/rodadas?inicio=35&fim=35
+rodadas-core.js:168 [RODADAS-CORE] Processamento rodada 35:
+rodadas-core.js:169    - Dados brutos: 32 items
+rodadas-core.js:170    - Após filtro: 32 items
+rodadas-core.js:171    - Rodadas únicas nos dados: [35]
+rodadas-core.js:91 [RODADAS-CORE] Dados encontrados no endpoint: /api/rodadas/684cb1c8af923da7c7df51de/rodadas?inicio=31&fim=31
+rodadas-core.js:168 [RODADAS-CORE] Processamento rodada 31:
+rodadas-core.js:169    - Dados brutos: 32 items
+rodadas-core.js:170    - Após filtro: 32 items
+rodadas-core.js:171    - Rodadas únicas nos dados: [31]
+rodadas-core.js:91 [RODADAS-CORE] Dados encontrados no endpoint: /api/rodadas/684cb1c8af923da7c7df51de/rodadas?inicio=33&fim=33
+rodadas-core.js:168 [RODADAS-CORE] Processamento rodada 33:
+rodadas-core.js:169    - Dados brutos: 32 items
+rodadas-core.js:170    - Após filtro: 32 items
+rodadas-core.js:171    - Rodadas únicas nos dados: [33]
+rodadas-core.js:91 [RODADAS-CORE] Dados encontrados no endpoint: /api/rodadas/684cb1c8af923da7c7df51de/rodadas?inicio=32&fim=32
+rodadas-core.js:168 [RODADAS-CORE] Processamento rodada 32:
+rodadas-core.js:169    - Dados brutos: 32 items
+rodadas-core.js:170    - Após filtro: 32 items
+rodadas-core.js:171    - Rodadas únicas nos dados: [32]
+rodadas-core.js:91 [RODADAS-CORE] Dados encontrados no endpoint: /api/rodadas/684cb1c8af923da7c7df51de/rodadas?inicio=34&fim=34
+rodadas-core.js:168 [RODADAS-CORE] Processamento rodada 34:
+rodadas-core.js:169    - Dados brutos: 32 items
+rodadas-core.js:170    - Após filtro: 32 items
+rodadas-core.js:171    - Rodadas únicas nos dados: [34]
+melhor-mes-core.js:273 [MELHOR-MES-CORE] Ranking calculado: 32 times
+melhor-mes-core.js:187 [MELHOR-MES-CORE] Edição 07: 32 participantes, status: andamento
+melhor-mes-core.js:64 [MELHOR-MES-CORE] Core inicializado com sucesso
+melhor-mes-ui.js:23 [MELHOR-MES-UI] Renderizando interface...
+melhor-mes-ui.js:54  [MELHOR-MES-UI] Container de mini-cards não encontrado
+renderizarMiniCards @ melhor-mes-ui.js:54
+renderizar @ melhor-mes-ui.js:26
+inicializar @ melhor-mes-orquestrador.js:38
+await in inicializar
+obterVencedores @ melhor-mes-orquestrador.js:128
+getResultadosMelhorMes @ melhor-mes.js:67
+await in getResultadosMelhorMes
+carregarDadosExternos @ fluxo-financeiro-cache.js:320
+await in carregarDadosExternos
+inicializar @ fluxo-financeiro-cache.js:56
+await in inicializar
+inicializar @ fluxo-financeiro-participante.js:40
+inicializarExtratoParticipante @ participante-extrato.js:56
+await in inicializarExtratoParticipante
+inicializarModulo @ participante-navigation.js:410
+navegarPara @ participante-navigation.js:289
+await in navegarPara
+(anônimo) @ participante-navigation.js:175
+melhor-mes-ui.js:110 [MELHOR-MES-UI] Selecionando edição 6
+melhor-mes-orquestrador.js:73 [MELHOR-MES-ORQUESTRADOR] Sistema de exports carregado
+melhor-mes-orquestrador.js:74 [MELHOR-MES-ORQUESTRADOR] ✅ Funções expostas globalmente para UI
+melhor-mes-orquestrador.js:45 [MELHOR-MES-ORQUESTRADOR] Sistema inicializado com sucesso
+melhor-mes-core.js:388 [MELHOR-MES-CORE] 6 vencedores encontrados
+filtro-liga-especial.js:5 [filtro-liga-especial.js] Verificando se é a liga especial: undefined
+filtro-liga-especial.js:9 [filtro-liga-especial.js] Não é a liga especial, retornando null
+fluxo-financeiro-cache.js:393 [FLUXO-CACHE] Mata-Mata carregado: 0 registros
+fluxo-financeiro-cache.js:342 [FLUXO-CACHE] Dados externos carregados:
+fluxo-financeiro-cache.js:343 - Confrontos LPC: 31
+fluxo-financeiro-cache.js:344 - Mata-Mata: 0
+fluxo-financeiro-cache.js:345 - Melhor Mês: 6
+fluxo-financeiro-cache.js:58 [FLUXO-CACHE] ✅ Cache inicializado com sucesso
+fluxo-financeiro-participante.js:46 [FLUXO-PARTICIPANTE] ✅ Inicialização completa
+participante-extrato.js:62 [EXTRATO-PARTICIPANTE] 🔄 Buscando rodada atual...
+fluxo-financeiro-core.js:34 [FLUXO-CORE] Mata-mata integrado com sucesso
+participante-extrato.js:73 [EXTRATO-PARTICIPANTE] ✅ Rodada atual: 36 | Mercado: FECHADO
+participante-extrato.js:83 [EXTRATO-PARTICIPANTE] 📊 Última rodada completa para cálculo: 36
+participante-extrato.js:85 [EXTRATO-PARTICIPANTE] 💰 Carregando dados...
+participante-extrato.js:88 [EXTRATO-PARTICIPANTE] 🔍 Validando integridade do cache...
+participante-extrato.js:131 [EXTRATO-PARTICIPANTE] ✅ Cache validado - dados íntegros
+participante-extrato.js:141 [EXTRATO-PARTICIPANTE] 🔑 Usando ligaId: 684cb1c8af923da7c7df51de
+participante-extrato.js:142 [EXTRATO-PARTICIPANTE] 👤 Usando timeId: 13935277
+participante-extrato.js:145 [EXTRATO-PARTICIPANTE] 🔍 Buscando extrato para: {ligaId: '684cb1c8af923da7c7df51de', timeId: '13935277', ultimaRodadaCompleta: 36}
+fluxo-financeiro-participante.js:130 ═══════════════════════════════════════════════════════════════
+fluxo-financeiro-participante.js:131 [TESTE-CACHE] 🎯 INICIANDO BUSCA DE EXTRATO
+fluxo-financeiro-participante.js:132 [TESTE-CACHE] 📊 Time: 13935277 | Rodada: 36
+fluxo-financeiro-participante.js:133 [TESTE-CACHE] 🔄 Forçar Recálculo: NÃO
+fluxo-financeiro-participante.js:134 ═══════════════════════════════════════════════════════════════
+fluxo-financeiro-participante.js:139 [TESTE-CACHE] 🔍 Verificando status do mercado...
+fluxo-financeiro-participante.js:144 [TESTE-CACHE] 📡 Mercado: 🟢 ABERTO
+fluxo-financeiro-participante.js:145 [TESTE-CACHE] 🎲 Rodada Atual Cartola: 36
+fluxo-financeiro-participante.js:148 [TESTE-CACHE] 🔍 Consultando validação de cache...
+fluxo-financeiro-participante.js:155 [TESTE-CACHE] 📋 Resposta da validação: {
+  "valido": false,
+  "motivo": "rodada_aberta_cache_expirado",
+  "recalcularApenas": "rodada_atual",
+  "rodadasConsolidadas": 36
+}
+fluxo-financeiro-participante.js:195 ┌─────────────────────────────────────────────────────────────┐
+fluxo-financeiro-participante.js:196 │ 🔄 CACHE PARCIAL - Recalculando apenas rodada atual         │
+fluxo-financeiro-participante.js:197 │ 💾 Rodadas consolidadas: 36                    │
+fluxo-financeiro-participante.js:198 └─────────────────────────────────────────────────────────────┘
+fluxo-financeiro-participante.js:218 [TESTE-CACHE] 🧮 Iniciando cálculo completo...
+fluxo-financeiro-core.js:251 [FLUXO-CORE] 💾 Cache Bruto recebido (Array de 1 itens). Adaptando...
+fluxo-financeiro-core.js:125 [FLUXO-CORE] ⚠️ Cache incompleto (0/35) - recalculando
+fluxo-financeiro-core.js:142 [FLUXO-CORE] 🔄 Iniciando cálculo completo para time 13935277...
+fluxo-financeiro-cache.js:141 [FLUXO-CACHE] 🔍 Verificando cache de rodadas (1-35)...
+fluxo-financeiro-cache.js:167 [FLUXO-CACHE] 📥 Buscando 35 rodadas faltantes: (35) [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35]
+cache-manager.js:108 🌐 [CACHE-MANAGER] Fetching: ranking_684cb1c8af923da7c7df51de_1
+fluxo-financeiro-cache.js:205 [FLUXO-CACHE] 🌐 Buscando rodada 1 da API...
+rodadas.js:86 [RODADAS] Solicitado ranking para rodada 1 (refatorado)
+rodadas-core.js:415 [RODADAS-CORE] Solicitado ranking para rodada 1
+rodadas-core.js:74 [RODADAS-CORE] Tentando endpoint: /api/rodadas/684cb1c8af923da7c7df51de/rodadas?inicio=1&fim=1
+cache-manager.js:108 🌐 [CACHE-MANAGER] Fetching: ranking_684cb1c8af923da7c7df51de_2
+fluxo-financeiro-cache.js:205 [FLUXO-CACHE] 🌐 Buscando rodada 2 da API...
+rodadas.js:86 [RODADAS] Solicitado ranking para rodada 2 (refatorado)
+rodadas-core.js:415 [RODADAS-CORE] Solicitado ranking para rodada 2
+rodadas-core.js:74 [RODADAS-CORE] Tentando endpoint: /api/rodadas/684cb1c8af923da7c7df51de/rodadas?inicio=2&fim=2
+cache-manager.js:108 🌐 [CACHE-MANAGER] Fetching: ranking_684cb1c8af923da7c7df51de_3
+fluxo-financeiro-cache.js:205 [FLUXO-CACHE] 🌐 Buscando rodada 3 da API...
+rodadas.js:86 [RODADAS] Solicitado ranking para rodada 3 (refatorado)
+rodadas-core.js:415 [RODADAS-CORE] Solicitado ranking para rodada 3
+rodadas-core.js:74 [RODADAS-CORE] Tentando endpoint: /api/rodadas/684cb1c8af923da7c7df51de/rodadas?inicio=3&fim=3
+cache-manager.js:108 🌐 [CACHE-MANAGER] Fetching: ranking_684cb1c8af923da7c7df51de_4
+fluxo-financeiro-cache.js:205 [FLUXO-CACHE] 🌐 Buscando rodada 4 da API...
+rodadas.js:86 [RODADAS] Solicitado ranking para rodada 4 (refatorado)
+rodadas-core.js:415 [RODADAS-CORE] Solicitado ranking para rodada 4
+rodadas-core.js:74 [RODADAS-CORE] Tentando endpoint: /api/rodadas/684cb1c8af923da7c7df51de/rodadas?inicio=4&fim=4
+cache-manager.js:108 🌐 [CACHE-MANAGER] Fetching: ranking_684cb1c8af923da7c7df51de_5
+fluxo-financeiro-cache.js:205 [FLUXO-CACHE] 🌐 Buscando rodada 5 da API...
+rodadas.js:86 [RODADAS] Solicitado ranking para rodada 5 (refatorado)
+rodadas-core.js:415 [RODADAS-CORE] Solicitado ranking para rodada 5
+rodadas-core.js:74 [RODADAS-CORE] Tentando endpoint: /api/rodadas/684cb1c8af923da7c7df51de/rodadas?inicio=5&fim=5
+rodadas-core.js:91 [RODADAS-CORE] Dados encontrados no endpoint: /api/rodadas/684cb1c8af923da7c7df51de/rodadas?inicio=1&fim=1
+rodadas-core.js:168 [RODADAS-CORE] Processamento rodada 1:
+rodadas-core.js:169    - Dados brutos: 32 items
+rodadas-core.js:170    - Após filtro: 32 items
+rodadas-core.js:171    - Rodadas únicas nos dados: [1]
+rodadas-core.js:91 [RODADAS-CORE] Dados encontrados no endpoint: /api/rodadas/684cb1c8af923da7c7df51de/rodadas?inicio=4&fim=4
+rodadas-core.js:168 [RODADAS-CORE] Processamento rodada 4:
+rodadas-core.js:169    - Dados brutos: 32 items
+rodadas-core.js:170    - Após filtro: 32 items
+rodadas-core.js:171    - Rodadas únicas nos dados: [4]
+cache-manager.js:152 ✅ [CACHE-MANAGER] Saved to IndexedDB: ranking_684cb1c8af923da7c7df51de_1
+cache-manager.js:152 ✅ [CACHE-MANAGER] Saved to IndexedDB: ranking_684cb1c8af923da7c7df51de_4
+rodadas-core.js:91 [RODADAS-CORE] Dados encontrados no endpoint: /api/rodadas/684cb1c8af923da7c7df51de/rodadas?inicio=2&fim=2
+rodadas-core.js:168 [RODADAS-CORE] Processamento rodada 2:
+rodadas-core.js:169    - Dados brutos: 32 items
+rodadas-core.js:170    - Após filtro: 32 items
+rodadas-core.js:171    - Rodadas únicas nos dados: [2]
+cache-manager.js:152 ✅ [CACHE-MANAGER] Saved to IndexedDB: ranking_684cb1c8af923da7c7df51de_2
+rodadas-core.js:91 [RODADAS-CORE] Dados encontrados no endpoint: /api/rodadas/684cb1c8af923da7c7df51de/rodadas?inicio=3&fim=3
+rodadas-core.js:168 [RODADAS-CORE] Processamento rodada 3:
+rodadas-core.js:169    - Dados brutos: 32 items
+rodadas-core.js:170    - Após filtro: 32 items
+rodadas-core.js:171    - Rodadas únicas nos dados: [3]
+rodadas-core.js:91 [RODADAS-CORE] Dados encontrados no endpoint: /api/rodadas/684cb1c8af923da7c7df51de/rodadas?inicio=5&fim=5
+rodadas-core.js:168 [RODADAS-CORE] Processamento rodada 5:
+rodadas-core.js:169    - Dados brutos: 32 items
+rodadas-core.js:170    - Após filtro: 32 items
+rodadas-core.js:171    - Rodadas únicas nos dados: [5]
+cache-manager.js:152 ✅ [CACHE-MANAGER] Saved to IndexedDB: ranking_684cb1c8af923da7c7df51de_3
+cache-manager.js:152 ✅ [CACHE-MANAGER] Saved to IndexedDB: ranking_684cb1c8af923da7c7df51de_5
+cache-manager.js:108 🌐 [CACHE-MANAGER] Fetching: ranking_684cb1c8af923da7c7df51de_6
+fluxo-financeiro-cache.js:205 [FLUXO-CACHE] 🌐 Buscando rodada 6 da API...
+rodadas.js:86 [RODADAS] Solicitado ranking para rodada 6 (refatorado)
+rodadas-core.js:415 [RODADAS-CORE] Solicitado ranking para rodada 6
+rodadas-core.js:74 [RODADAS-CORE] Tentando endpoint: /api/rodadas/684cb1c8af923da7c7df51de/rodadas?inicio=6&fim=6
+cache-manager.js:108 🌐 [CACHE-MANAGER] Fetching: ranking_684cb1c8af923da7c7df51de_7
+fluxo-financeiro-cache.js:205 [FLUXO-CACHE] 🌐 Buscando rodada 7 da API...
+rodadas.js:86 [RODADAS] Solicitado ranking para rodada 7 (refatorado)
+rodadas-core.js:415 [RODADAS-CORE] Solicitado ranking para rodada 7
+rodadas-core.js:74 [RODADAS-CORE] Tentando endpoint: /api/rodadas/684cb1c8af923da7c7df51de/rodadas?inicio=7&fim=7
+cache-manager.js:108 🌐 [CACHE-MANAGER] Fetching: ranking_684cb1c8af923da7c7df51de_8
+fluxo-financeiro-cache.js:205 [FLUXO-CACHE] 🌐 Buscando rodada 8 da API...
+rodadas.js:86 [RODADAS] Solicitado ranking para rodada 8 (refatorado)
+rodadas-core.js:415 [RODADAS-CORE] Solicitado ranking para rodada 8
+rodadas-core.js:74 [RODADAS-CORE] Tentando endpoint: /api/rodadas/684cb1c8af923da7c7df51de/rodadas?inicio=8&fim=8
+cache-manager.js:108 🌐 [CACHE-MANAGER] Fetching: ranking_684cb1c8af923da7c7df51de_9
+fluxo-financeiro-cache.js:205 [FLUXO-CACHE] 🌐 Buscando rodada 9 da API...
+rodadas.js:86 [RODADAS] Solicitado ranking para rodada 9 (refatorado)
+rodadas-core.js:415 [RODADAS-CORE] Solicitado ranking para rodada 9
+rodadas-core.js:74 [RODADAS-CORE] Tentando endpoint: /api/rodadas/684cb1c8af923da7c7df51de/rodadas?inicio=9&fim=9
+cache-manager.js:108 🌐 [CACHE-MANAGER] Fetching: ranking_684cb1c8af923da7c7df51de_10
+fluxo-financeiro-cache.js:205 [FLUXO-CACHE] 🌐 Buscando rodada 10 da API...
+rodadas.js:86 [RODADAS] Solicitado ranking para rodada 10 (refatorado)
+rodadas-core.js:415 [RODADAS-CORE] Solicitado ranking para rodada 10
+rodadas-core.js:74 [RODADAS-CORE] Tentando endpoint: /api/rodadas/684cb1c8af923da7c7df51de/rodadas?inicio=10&fim=10
+rodadas-core.js:91 [RODADAS-CORE] Dados encontrados no endpoint: /api/rodadas/684cb1c8af923da7c7df51de/rodadas?inicio=9&fim=9
+rodadas-core.js:168 [RODADAS-CORE] Processamento rodada 9:
+rodadas-core.js:169    - Dados brutos: 32 items
+rodadas-core.js:170    - Após filtro: 32 items
+rodadas-core.js:171    - Rodadas únicas nos dados: [9]
+cache-manager.js:152 ✅ [CACHE-MANAGER] Saved to IndexedDB: ranking_684cb1c8af923da7c7df51de_9
+rodadas-core.js:91 [RODADAS-CORE] Dados encontrados no endpoint: /api/rodadas/684cb1c8af923da7c7df51de/rodadas?inicio=10&fim=10
+rodadas-core.js:168 [RODADAS-CORE] Processamento rodada 10:
+rodadas-core.js:169    - Dados brutos: 32 items
+rodadas-core.js:170    - Após filtro: 32 items
+rodadas-core.js:171    - Rodadas únicas nos dados: [10]
+rodadas-core.js:91 [RODADAS-CORE] Dados encontrados no endpoint: /api/rodadas/684cb1c8af923da7c7df51de/rodadas?inicio=8&fim=8
+rodadas-core.js:168 [RODADAS-CORE] Processamento rodada 8:
+rodadas-core.js:169    - Dados brutos: 32 items
+rodadas-core.js:170    - Após filtro: 32 items
+rodadas-core.js:171    - Rodadas únicas nos dados: [8]
+cache-manager.js:152 ✅ [CACHE-MANAGER] Saved to IndexedDB: ranking_684cb1c8af923da7c7df51de_10
+cache-manager.js:152 ✅ [CACHE-MANAGER] Saved to IndexedDB: ranking_684cb1c8af923da7c7df51de_8
+rodadas-core.js:91 [RODADAS-CORE] Dados encontrados no endpoint: /api/rodadas/684cb1c8af923da7c7df51de/rodadas?inicio=7&fim=7
+rodadas-core.js:168 [RODADAS-CORE] Processamento rodada 7:
+rodadas-core.js:169    - Dados brutos: 32 items
+rodadas-core.js:170    - Após filtro: 32 items
+rodadas-core.js:171    - Rodadas únicas nos dados: [7]
+cache-manager.js:152 ✅ [CACHE-MANAGER] Saved to IndexedDB: ranking_684cb1c8af923da7c7df51de_7
+rodadas-core.js:91 [RODADAS-CORE] Dados encontrados no endpoint: /api/rodadas/684cb1c8af923da7c7df51de/rodadas?inicio=6&fim=6
+rodadas-core.js:168 [RODADAS-CORE] Processamento rodada 6:
+rodadas-core.js:169    - Dados brutos: 32 items
+rodadas-core.js:170    - Após filtro: 32 items
+rodadas-core.js:171    - Rodadas únicas nos dados: [6]
+cache-manager.js:152 ✅ [CACHE-MANAGER] Saved to IndexedDB: ranking_684cb1c8af923da7c7df51de_6
+cache-manager.js:108 🌐 [CACHE-MANAGER] Fetching: ranking_684cb1c8af923da7c7df51de_11
+fluxo-financeiro-cache.js:205 [FLUXO-CACHE] 🌐 Buscando rodada 11 da API...
+rodadas.js:86 [RODADAS] Solicitado ranking para rodada 11 (refatorado)
+rodadas-core.js:415 [RODADAS-CORE] Solicitado ranking para rodada 11
+rodadas-core.js:74 [RODADAS-CORE] Tentando endpoint: /api/rodadas/684cb1c8af923da7c7df51de/rodadas?inicio=11&fim=11
+cache-manager.js:108 🌐 [CACHE-MANAGER] Fetching: ranking_684cb1c8af923da7c7df51de_12
+fluxo-financeiro-cache.js:205 [FLUXO-CACHE] 🌐 Buscando rodada 12 da API...
+rodadas.js:86 [RODADAS] Solicitado ranking para rodada 12 (refatorado)
+rodadas-core.js:415 [RODADAS-CORE] Solicitado ranking para rodada 12
+rodadas-core.js:74 [RODADAS-CORE] Tentando endpoint: /api/rodadas/684cb1c8af923da7c7df51de/rodadas?inicio=12&fim=12
+cache-manager.js:108 🌐 [CACHE-MANAGER] Fetching: ranking_684cb1c8af923da7c7df51de_13
+fluxo-financeiro-cache.js:205 [FLUXO-CACHE] 🌐 Buscando rodada 13 da API...
+rodadas.js:86 [RODADAS] Solicitado ranking para rodada 13 (refatorado)
+rodadas-core.js:415 [RODADAS-CORE] Solicitado ranking para rodada 13
+rodadas-core.js:74 [RODADAS-CORE] Tentando endpoint: /api/rodadas/684cb1c8af923da7c7df51de/rodadas?inicio=13&fim=13
+cache-manager.js:108 🌐 [CACHE-MANAGER] Fetching: ranking_684cb1c8af923da7c7df51de_14
+fluxo-financeiro-cache.js:205 [FLUXO-CACHE] 🌐 Buscando rodada 14 da API...
+rodadas.js:86 [RODADAS] Solicitado ranking para rodada 14 (refatorado)
+rodadas-core.js:415 [RODADAS-CORE] Solicitado ranking para rodada 14
+rodadas-core.js:74 [RODADAS-CORE] Tentando endpoint: /api/rodadas/684cb1c8af923da7c7df51de/rodadas?inicio=14&fim=14
+cache-manager.js:108 🌐 [CACHE-MANAGER] Fetching: ranking_684cb1c8af923da7c7df51de_15
+fluxo-financeiro-cache.js:205 [FLUXO-CACHE] 🌐 Buscando rodada 15 da API...
+rodadas.js:86 [RODADAS] Solicitado ranking para rodada 15 (refatorado)
+rodadas-core.js:415 [RODADAS-CORE] Solicitado ranking para rodada 15
+rodadas-core.js:74 [RODADAS-CORE] Tentando endpoint: /api/rodadas/684cb1c8af923da7c7df51de/rodadas?inicio=15&fim=15
+rodadas-core.js:91 [RODADAS-CORE] Dados encontrados no endpoint: /api/rodadas/684cb1c8af923da7c7df51de/rodadas?inicio=15&fim=15
+rodadas-core.js:168 [RODADAS-CORE] Processamento rodada 15:
+rodadas-core.js:169    - Dados brutos: 32 items
+rodadas-core.js:170    - Após filtro: 32 items
+rodadas-core.js:171    - Rodadas únicas nos dados: [15]
+rodadas-core.js:91 [RODADAS-CORE] Dados encontrados no endpoint: /api/rodadas/684cb1c8af923da7c7df51de/rodadas?inicio=14&fim=14
+rodadas-core.js:168 [RODADAS-CORE] Processamento rodada 14:
+rodadas-core.js:169    - Dados brutos: 32 items
+rodadas-core.js:170    - Após filtro: 32 items
+rodadas-core.js:171    - Rodadas únicas nos dados: [14]
+cache-manager.js:152 ✅ [CACHE-MANAGER] Saved to IndexedDB: ranking_684cb1c8af923da7c7df51de_15
+cache-manager.js:152 ✅ [CACHE-MANAGER] Saved to IndexedDB: ranking_684cb1c8af923da7c7df51de_14
+rodadas-core.js:91 [RODADAS-CORE] Dados encontrados no endpoint: /api/rodadas/684cb1c8af923da7c7df51de/rodadas?inicio=12&fim=12
+rodadas-core.js:168 [RODADAS-CORE] Processamento rodada 12:
+rodadas-core.js:169    - Dados brutos: 32 items
+rodadas-core.js:170    - Após filtro: 32 items
+rodadas-core.js:171    - Rodadas únicas nos dados: [12]
+cache-manager.js:152 ✅ [CACHE-MANAGER] Saved to IndexedDB: ranking_684cb1c8af923da7c7df51de_12
+rodadas-core.js:91 [RODADAS-CORE] Dados encontrados no endpoint: /api/rodadas/684cb1c8af923da7c7df51de/rodadas?inicio=13&fim=13
+rodadas-core.js:168 [RODADAS-CORE] Processamento rodada 13:
+rodadas-core.js:169    - Dados brutos: 32 items
+rodadas-core.js:170    - Após filtro: 32 items
+rodadas-core.js:171    - Rodadas únicas nos dados: [13]
+rodadas-core.js:91 [RODADAS-CORE] Dados encontrados no endpoint: /api/rodadas/684cb1c8af923da7c7df51de/rodadas?inicio=11&fim=11
+rodadas-core.js:168 [RODADAS-CORE] Processamento rodada 11:
+rodadas-core.js:169    - Dados brutos: 32 items
+rodadas-core.js:170    - Após filtro: 32 items
+rodadas-core.js:171    - Rodadas únicas nos dados: [11]
+cache-manager.js:152 ✅ [CACHE-MANAGER] Saved to IndexedDB: ranking_684cb1c8af923da7c7df51de_13
+cache-manager.js:152 ✅ [CACHE-MANAGER] Saved to IndexedDB: ranking_684cb1c8af923da7c7df51de_11
+cache-manager.js:108 🌐 [CACHE-MANAGER] Fetching: ranking_684cb1c8af923da7c7df51de_16
+fluxo-financeiro-cache.js:205 [FLUXO-CACHE] 🌐 Buscando rodada 16 da API...
+rodadas.js:86 [RODADAS] Solicitado ranking para rodada 16 (refatorado)
+rodadas-core.js:415 [RODADAS-CORE] Solicitado ranking para rodada 16
+rodadas-core.js:74 [RODADAS-CORE] Tentando endpoint: /api/rodadas/684cb1c8af923da7c7df51de/rodadas?inicio=16&fim=16
+cache-manager.js:108 🌐 [CACHE-MANAGER] Fetching: ranking_684cb1c8af923da7c7df51de_17
+fluxo-financeiro-cache.js:205 [FLUXO-CACHE] 🌐 Buscando rodada 17 da API...
+rodadas.js:86 [RODADAS] Solicitado ranking para rodada 17 (refatorado)
+rodadas-core.js:415 [RODADAS-CORE] Solicitado ranking para rodada 17
+rodadas-core.js:74 [RODADAS-CORE] Tentando endpoint: /api/rodadas/684cb1c8af923da7c7df51de/rodadas?inicio=17&fim=17
+cache-manager.js:108 🌐 [CACHE-MANAGER] Fetching: ranking_684cb1c8af923da7c7df51de_18
+fluxo-financeiro-cache.js:205 [FLUXO-CACHE] 🌐 Buscando rodada 18 da API...
+rodadas.js:86 [RODADAS] Solicitado ranking para rodada 18 (refatorado)
+rodadas-core.js:415 [RODADAS-CORE] Solicitado ranking para rodada 18
+rodadas-core.js:74 [RODADAS-CORE] Tentando endpoint: /api/rodadas/684cb1c8af923da7c7df51de/rodadas?inicio=18&fim=18
+cache-manager.js:108 🌐 [CACHE-MANAGER] Fetching: ranking_684cb1c8af923da7c7df51de_19
+fluxo-financeiro-cache.js:205 [FLUXO-CACHE] 🌐 Buscando rodada 19 da API...
+rodadas.js:86 [RODADAS] Solicitado ranking para rodada 19 (refatorado)
+rodadas-core.js:415 [RODADAS-CORE] Solicitado ranking para rodada 19
+rodadas-core.js:74 [RODADAS-CORE] Tentando endpoint: /api/rodadas/684cb1c8af923da7c7df51de/rodadas?inicio=19&fim=19
+cache-manager.js:108 🌐 [CACHE-MANAGER] Fetching: ranking_684cb1c8af923da7c7df51de_20
+fluxo-financeiro-cache.js:205 [FLUXO-CACHE] 🌐 Buscando rodada 20 da API...
+rodadas.js:86 [RODADAS] Solicitado ranking para rodada 20 (refatorado)
+rodadas-core.js:415 [RODADAS-CORE] Solicitado ranking para rodada 20
+rodadas-core.js:74 [RODADAS-CORE] Tentando endpoint: /api/rodadas/684cb1c8af923da7c7df51de/rodadas?inicio=20&fim=20
+rodadas-core.js:91 [RODADAS-CORE] Dados encontrados no endpoint: /api/rodadas/684cb1c8af923da7c7df51de/rodadas?inicio=16&fim=16
+rodadas-core.js:168 [RODADAS-CORE] Processamento rodada 16:
+rodadas-core.js:169    - Dados brutos: 32 items
+rodadas-core.js:170    - Após filtro: 32 items
+rodadas-core.js:171    - Rodadas únicas nos dados: [16]
+cache-manager.js:152 ✅ [CACHE-MANAGER] Saved to IndexedDB: ranking_684cb1c8af923da7c7df51de_16
+rodadas-core.js:91 [RODADAS-CORE] Dados encontrados no endpoint: /api/rodadas/684cb1c8af923da7c7df51de/rodadas?inicio=19&fim=19
+rodadas-core.js:168 [RODADAS-CORE] Processamento rodada 19:
+rodadas-core.js:169    - Dados brutos: 32 items
+rodadas-core.js:170    - Após filtro: 32 items
+rodadas-core.js:171    - Rodadas únicas nos dados: [19]
+rodadas-core.js:91 [RODADAS-CORE] Dados encontrados no endpoint: /api/rodadas/684cb1c8af923da7c7df51de/rodadas?inicio=18&fim=18
+rodadas-core.js:168 [RODADAS-CORE] Processamento rodada 18:
+rodadas-core.js:169    - Dados brutos: 32 items
+rodadas-core.js:170    - Após filtro: 32 items
+rodadas-core.js:171    - Rodadas únicas nos dados: [18]
+cache-manager.js:152 ✅ [CACHE-MANAGER] Saved to IndexedDB: ranking_684cb1c8af923da7c7df51de_19
+cache-manager.js:152 ✅ [CACHE-MANAGER] Saved to IndexedDB: ranking_684cb1c8af923da7c7df51de_18
+rodadas-core.js:91 [RODADAS-CORE] Dados encontrados no endpoint: /api/rodadas/684cb1c8af923da7c7df51de/rodadas?inicio=20&fim=20
+rodadas-core.js:168 [RODADAS-CORE] Processamento rodada 20:
+rodadas-core.js:169    - Dados brutos: 32 items
+rodadas-core.js:170    - Após filtro: 32 items
+rodadas-core.js:171    - Rodadas únicas nos dados: [20]
+rodadas-core.js:91 [RODADAS-CORE] Dados encontrados no endpoint: /api/rodadas/684cb1c8af923da7c7df51de/rodadas?inicio=17&fim=17
+rodadas-core.js:168 [RODADAS-CORE] Processamento rodada 17:
+rodadas-core.js:169    - Dados brutos: 32 items
+rodadas-core.js:170    - Após filtro: 32 items
+rodadas-core.js:171    - Rodadas únicas nos dados: [17]
+cache-manager.js:152 ✅ [CACHE-MANAGER] Saved to IndexedDB: ranking_684cb1c8af923da7c7df51de_20
+cache-manager.js:152 ✅ [CACHE-MANAGER] Saved to IndexedDB: ranking_684cb1c8af923da7c7df51de_17
+cache-manager.js:108 🌐 [CACHE-MANAGER] Fetching: ranking_684cb1c8af923da7c7df51de_21
+fluxo-financeiro-cache.js:205 [FLUXO-CACHE] 🌐 Buscando rodada 21 da API...
+rodadas.js:86 [RODADAS] Solicitado ranking para rodada 21 (refatorado)
+rodadas-core.js:415 [RODADAS-CORE] Solicitado ranking para rodada 21
+rodadas-core.js:74 [RODADAS-CORE] Tentando endpoint: /api/rodadas/684cb1c8af923da7c7df51de/rodadas?inicio=21&fim=21
+cache-manager.js:108 🌐 [CACHE-MANAGER] Fetching: ranking_684cb1c8af923da7c7df51de_22
+fluxo-financeiro-cache.js:205 [FLUXO-CACHE] 🌐 Buscando rodada 22 da API...
+rodadas.js:86 [RODADAS] Solicitado ranking para rodada 22 (refatorado)
+rodadas-core.js:415 [RODADAS-CORE] Solicitado ranking para rodada 22
+rodadas-core.js:74 [RODADAS-CORE] Tentando endpoint: /api/rodadas/684cb1c8af923da7c7df51de/rodadas?inicio=22&fim=22
+cache-manager.js:108 🌐 [CACHE-MANAGER] Fetching: ranking_684cb1c8af923da7c7df51de_23
+fluxo-financeiro-cache.js:205 [FLUXO-CACHE] 🌐 Buscando rodada 23 da API...
+rodadas.js:86 [RODADAS] Solicitado ranking para rodada 23 (refatorado)
+rodadas-core.js:415 [RODADAS-CORE] Solicitado ranking para rodada 23
+rodadas-core.js:74 [RODADAS-CORE] Tentando endpoint: /api/rodadas/684cb1c8af923da7c7df51de/rodadas?inicio=23&fim=23
+cache-manager.js:108 🌐 [CACHE-MANAGER] Fetching: ranking_684cb1c8af923da7c7df51de_24
+fluxo-financeiro-cache.js:205 [FLUXO-CACHE] 🌐 Buscando rodada 24 da API...
+rodadas.js:86 [RODADAS] Solicitado ranking para rodada 24 (refatorado)
+rodadas-core.js:415 [RODADAS-CORE] Solicitado ranking para rodada 24
+rodadas-core.js:74 [RODADAS-CORE] Tentando endpoint: /api/rodadas/684cb1c8af923da7c7df51de/rodadas?inicio=24&fim=24
+cache-manager.js:108 🌐 [CACHE-MANAGER] Fetching: ranking_684cb1c8af923da7c7df51de_25
+fluxo-financeiro-cache.js:205 [FLUXO-CACHE] 🌐 Buscando rodada 25 da API...
+rodadas.js:86 [RODADAS] Solicitado ranking para rodada 25 (refatorado)
+rodadas-core.js:415 [RODADAS-CORE] Solicitado ranking para rodada 25
+rodadas-core.js:74 [RODADAS-CORE] Tentando endpoint: /api/rodadas/684cb1c8af923da7c7df51de/rodadas?inicio=25&fim=25
+rodadas-core.js:91 [RODADAS-CORE] Dados encontrados no endpoint: /api/rodadas/684cb1c8af923da7c7df51de/rodadas?inicio=22&fim=22
+rodadas-core.js:168 [RODADAS-CORE] Processamento rodada 22:
+rodadas-core.js:169    - Dados brutos: 32 items
+rodadas-core.js:170    - Após filtro: 32 items
+rodadas-core.js:171    - Rodadas únicas nos dados: [22]
+cache-manager.js:152 ✅ [CACHE-MANAGER] Saved to IndexedDB: ranking_684cb1c8af923da7c7df51de_22
+rodadas-core.js:91 [RODADAS-CORE] Dados encontrados no endpoint: /api/rodadas/684cb1c8af923da7c7df51de/rodadas?inicio=23&fim=23
+rodadas-core.js:168 [RODADAS-CORE] Processamento rodada 23:
+rodadas-core.js:169    - Dados brutos: 32 items
+rodadas-core.js:170    - Após filtro: 32 items
+rodadas-core.js:171    - Rodadas únicas nos dados: [23]
+cache-manager.js:152 ✅ [CACHE-MANAGER] Saved to IndexedDB: ranking_684cb1c8af923da7c7df51de_23
+rodadas-core.js:91 [RODADAS-CORE] Dados encontrados no endpoint: /api/rodadas/684cb1c8af923da7c7df51de/rodadas?inicio=21&fim=21
+rodadas-core.js:168 [RODADAS-CORE] Processamento rodada 21:
+rodadas-core.js:169    - Dados brutos: 32 items
+rodadas-core.js:170    - Após filtro: 32 items
+rodadas-core.js:171    - Rodadas únicas nos dados: [21]
+cache-manager.js:152 ✅ [CACHE-MANAGER] Saved to IndexedDB: ranking_684cb1c8af923da7c7df51de_21
+rodadas-core.js:91 [RODADAS-CORE] Dados encontrados no endpoint: /api/rodadas/684cb1c8af923da7c7df51de/rodadas?inicio=25&fim=25
+rodadas-core.js:168 [RODADAS-CORE] Processamento rodada 25:
+rodadas-core.js:169    - Dados brutos: 32 items
+rodadas-core.js:170    - Após filtro: 32 items
+rodadas-core.js:171    - Rodadas únicas nos dados: [25]
+rodadas-core.js:91 [RODADAS-CORE] Dados encontrados no endpoint: /api/rodadas/684cb1c8af923da7c7df51de/rodadas?inicio=24&fim=24
+rodadas-core.js:168 [RODADAS-CORE] Processamento rodada 24:
+rodadas-core.js:169    - Dados brutos: 32 items
+rodadas-core.js:170    - Após filtro: 32 items
+rodadas-core.js:171    - Rodadas únicas nos dados: [24]
+cache-manager.js:152 ✅ [CACHE-MANAGER] Saved to IndexedDB: ranking_684cb1c8af923da7c7df51de_25
+cache-manager.js:152 ✅ [CACHE-MANAGER] Saved to IndexedDB: ranking_684cb1c8af923da7c7df51de_24
+cache-manager.js:108 🌐 [CACHE-MANAGER] Fetching: ranking_684cb1c8af923da7c7df51de_26
+fluxo-financeiro-cache.js:205 [FLUXO-CACHE] 🌐 Buscando rodada 26 da API...
+rodadas.js:86 [RODADAS] Solicitado ranking para rodada 26 (refatorado)
+rodadas-core.js:415 [RODADAS-CORE] Solicitado ranking para rodada 26
+rodadas-core.js:74 [RODADAS-CORE] Tentando endpoint: /api/rodadas/684cb1c8af923da7c7df51de/rodadas?inicio=26&fim=26
+cache-manager.js:108 🌐 [CACHE-MANAGER] Fetching: ranking_684cb1c8af923da7c7df51de_27
+fluxo-financeiro-cache.js:205 [FLUXO-CACHE] 🌐 Buscando rodada 27 da API...
+rodadas.js:86 [RODADAS] Solicitado ranking para rodada 27 (refatorado)
+rodadas-core.js:415 [RODADAS-CORE] Solicitado ranking para rodada 27
+rodadas-core.js:74 [RODADAS-CORE] Tentando endpoint: /api/rodadas/684cb1c8af923da7c7df51de/rodadas?inicio=27&fim=27
+cache-manager.js:108 🌐 [CACHE-MANAGER] Fetching: ranking_684cb1c8af923da7c7df51de_28
+fluxo-financeiro-cache.js:205 [FLUXO-CACHE] 🌐 Buscando rodada 28 da API...
+rodadas.js:86 [RODADAS] Solicitado ranking para rodada 28 (refatorado)
+rodadas-core.js:415 [RODADAS-CORE] Solicitado ranking para rodada 28
+rodadas-core.js:74 [RODADAS-CORE] Tentando endpoint: /api/rodadas/684cb1c8af923da7c7df51de/rodadas?inicio=28&fim=28
+cache-manager.js:108 🌐 [CACHE-MANAGER] Fetching: ranking_684cb1c8af923da7c7df51de_29
+fluxo-financeiro-cache.js:205 [FLUXO-CACHE] 🌐 Buscando rodada 29 da API...
+rodadas.js:86 [RODADAS] Solicitado ranking para rodada 29 (refatorado)
+rodadas-core.js:415 [RODADAS-CORE] Solicitado ranking para rodada 29
+rodadas-core.js:74 [RODADAS-CORE] Tentando endpoint: /api/rodadas/684cb1c8af923da7c7df51de/rodadas?inicio=29&fim=29
+cache-manager.js:108 🌐 [CACHE-MANAGER] Fetching: ranking_684cb1c8af923da7c7df51de_30
+fluxo-financeiro-cache.js:205 [FLUXO-CACHE] 🌐 Buscando rodada 30 da API...
+rodadas.js:86 [RODADAS] Solicitado ranking para rodada 30 (refatorado)
+rodadas-core.js:415 [RODADAS-CORE] Solicitado ranking para rodada 30
+rodadas-core.js:74 [RODADAS-CORE] Tentando endpoint: /api/rodadas/684cb1c8af923da7c7df51de/rodadas?inicio=30&fim=30
+rodadas-core.js:91 [RODADAS-CORE] Dados encontrados no endpoint: /api/rodadas/684cb1c8af923da7c7df51de/rodadas?inicio=30&fim=30
+rodadas-core.js:168 [RODADAS-CORE] Processamento rodada 30:
+rodadas-core.js:169    - Dados brutos: 32 items
+rodadas-core.js:170    - Após filtro: 32 items
+rodadas-core.js:171    - Rodadas únicas nos dados: [30]
+rodadas-core.js:91 [RODADAS-CORE] Dados encontrados no endpoint: /api/rodadas/684cb1c8af923da7c7df51de/rodadas?inicio=26&fim=26
+rodadas-core.js:168 [RODADAS-CORE] Processamento rodada 26:
+rodadas-core.js:169    - Dados brutos: 32 items
+rodadas-core.js:170    - Após filtro: 32 items
+rodadas-core.js:171    - Rodadas únicas nos dados: [26]
+cache-manager.js:152 ✅ [CACHE-MANAGER] Saved to IndexedDB: ranking_684cb1c8af923da7c7df51de_30
+cache-manager.js:152 ✅ [CACHE-MANAGER] Saved to IndexedDB: ranking_684cb1c8af923da7c7df51de_26
+rodadas-core.js:91 [RODADAS-CORE] Dados encontrados no endpoint: /api/rodadas/684cb1c8af923da7c7df51de/rodadas?inicio=29&fim=29
+rodadas-core.js:168 [RODADAS-CORE] Processamento rodada 29:
+rodadas-core.js:169    - Dados brutos: 32 items
+rodadas-core.js:170    - Após filtro: 32 items
+rodadas-core.js:171    - Rodadas únicas nos dados: [29]
+cache-manager.js:152 ✅ [CACHE-MANAGER] Saved to IndexedDB: ranking_684cb1c8af923da7c7df51de_29
+rodadas-core.js:91 [RODADAS-CORE] Dados encontrados no endpoint: /api/rodadas/684cb1c8af923da7c7df51de/rodadas?inicio=27&fim=27
+rodadas-core.js:168 [RODADAS-CORE] Processamento rodada 27:
+rodadas-core.js:169    - Dados brutos: 32 items
+rodadas-core.js:170    - Após filtro: 32 items
+rodadas-core.js:171    - Rodadas únicas nos dados: [27]
+rodadas-core.js:91 [RODADAS-CORE] Dados encontrados no endpoint: /api/rodadas/684cb1c8af923da7c7df51de/rodadas?inicio=28&fim=28
+rodadas-core.js:168 [RODADAS-CORE] Processamento rodada 28:
+rodadas-core.js:169    - Dados brutos: 32 items
+rodadas-core.js:170    - Após filtro: 32 items
+rodadas-core.js:171    - Rodadas únicas nos dados: [28]
+cache-manager.js:152 ✅ [CACHE-MANAGER] Saved to IndexedDB: ranking_684cb1c8af923da7c7df51de_27
+cache-manager.js:152 ✅ [CACHE-MANAGER] Saved to IndexedDB: ranking_684cb1c8af923da7c7df51de_28
+cache-manager.js:108 🌐 [CACHE-MANAGER] Fetching: ranking_684cb1c8af923da7c7df51de_31
+fluxo-financeiro-cache.js:205 [FLUXO-CACHE] 🌐 Buscando rodada 31 da API...
+rodadas.js:86 [RODADAS] Solicitado ranking para rodada 31 (refatorado)
+rodadas-core.js:415 [RODADAS-CORE] Solicitado ranking para rodada 31
+rodadas-core.js:74 [RODADAS-CORE] Tentando endpoint: /api/rodadas/684cb1c8af923da7c7df51de/rodadas?inicio=31&fim=31
+cache-manager.js:108 🌐 [CACHE-MANAGER] Fetching: ranking_684cb1c8af923da7c7df51de_32
+fluxo-financeiro-cache.js:205 [FLUXO-CACHE] 🌐 Buscando rodada 32 da API...
+rodadas.js:86 [RODADAS] Solicitado ranking para rodada 32 (refatorado)
+rodadas-core.js:415 [RODADAS-CORE] Solicitado ranking para rodada 32
+rodadas-core.js:74 [RODADAS-CORE] Tentando endpoint: /api/rodadas/684cb1c8af923da7c7df51de/rodadas?inicio=32&fim=32
+cache-manager.js:108 🌐 [CACHE-MANAGER] Fetching: ranking_684cb1c8af923da7c7df51de_33
+fluxo-financeiro-cache.js:205 [FLUXO-CACHE] 🌐 Buscando rodada 33 da API...
+rodadas.js:86 [RODADAS] Solicitado ranking para rodada 33 (refatorado)
+rodadas-core.js:415 [RODADAS-CORE] Solicitado ranking para rodada 33
+rodadas-core.js:74 [RODADAS-CORE] Tentando endpoint: /api/rodadas/684cb1c8af923da7c7df51de/rodadas?inicio=33&fim=33
+cache-manager.js:108 🌐 [CACHE-MANAGER] Fetching: ranking_684cb1c8af923da7c7df51de_34
+fluxo-financeiro-cache.js:205 [FLUXO-CACHE] 🌐 Buscando rodada 34 da API...
+rodadas.js:86 [RODADAS] Solicitado ranking para rodada 34 (refatorado)
+rodadas-core.js:415 [RODADAS-CORE] Solicitado ranking para rodada 34
+rodadas-core.js:74 [RODADAS-CORE] Tentando endpoint: /api/rodadas/684cb1c8af923da7c7df51de/rodadas?inicio=34&fim=34
+cache-manager.js:108 🌐 [CACHE-MANAGER] Fetching: ranking_684cb1c8af923da7c7df51de_35
+fluxo-financeiro-cache.js:205 [FLUXO-CACHE] 🌐 Buscando rodada 35 da API...
+rodadas.js:86 [RODADAS] Solicitado ranking para rodada 35 (refatorado)
+rodadas-core.js:415 [RODADAS-CORE] Solicitado ranking para rodada 35
+rodadas-core.js:74 [RODADAS-CORE] Tentando endpoint: /api/rodadas/684cb1c8af923da7c7df51de/rodadas?inicio=35&fim=35
+rodadas-core.js:91 [RODADAS-CORE] Dados encontrados no endpoint: /api/rodadas/684cb1c8af923da7c7df51de/rodadas?inicio=31&fim=31
+rodadas-core.js:168 [RODADAS-CORE] Processamento rodada 31:
+rodadas-core.js:169    - Dados brutos: 32 items
+rodadas-core.js:170    - Após filtro: 32 items
+rodadas-core.js:171    - Rodadas únicas nos dados: [31]
+cache-manager.js:152 ✅ [CACHE-MANAGER] Saved to IndexedDB: ranking_684cb1c8af923da7c7df51de_31
+rodadas-core.js:91 [RODADAS-CORE] Dados encontrados no endpoint: /api/rodadas/684cb1c8af923da7c7df51de/rodadas?inicio=32&fim=32
+rodadas-core.js:168 [RODADAS-CORE] Processamento rodada 32:
+rodadas-core.js:169    - Dados brutos: 32 items
+rodadas-core.js:170    - Após filtro: 32 items
+rodadas-core.js:171    - Rodadas únicas nos dados: [32]
+cache-manager.js:152 ✅ [CACHE-MANAGER] Saved to IndexedDB: ranking_684cb1c8af923da7c7df51de_32
+rodadas-core.js:91 [RODADAS-CORE] Dados encontrados no endpoint: /api/rodadas/684cb1c8af923da7c7df51de/rodadas?inicio=33&fim=33
+rodadas-core.js:168 [RODADAS-CORE] Processamento rodada 33:
+rodadas-core.js:169    - Dados brutos: 32 items
+rodadas-core.js:170    - Após filtro: 32 items
+rodadas-core.js:171    - Rodadas únicas nos dados: [33]
+cache-manager.js:152 ✅ [CACHE-MANAGER] Saved to IndexedDB: ranking_684cb1c8af923da7c7df51de_33
+rodadas-core.js:91 [RODADAS-CORE] Dados encontrados no endpoint: /api/rodadas/684cb1c8af923da7c7df51de/rodadas?inicio=35&fim=35
+rodadas-core.js:168 [RODADAS-CORE] Processamento rodada 35:
+rodadas-core.js:169    - Dados brutos: 32 items
+rodadas-core.js:170    - Após filtro: 32 items
+rodadas-core.js:171    - Rodadas únicas nos dados: [35]
+rodadas-core.js:91 [RODADAS-CORE] Dados encontrados no endpoint: /api/rodadas/684cb1c8af923da7c7df51de/rodadas?inicio=34&fim=34
+rodadas-core.js:168 [RODADAS-CORE] Processamento rodada 34:
+rodadas-core.js:169    - Dados brutos: 32 items
+rodadas-core.js:170    - Após filtro: 32 items
+rodadas-core.js:171    - Rodadas únicas nos dados: [34]
+cache-manager.js:152 ✅ [CACHE-MANAGER] Saved to IndexedDB: ranking_684cb1c8af923da7c7df51de_35
+cache-manager.js:152 ✅ [CACHE-MANAGER] Saved to IndexedDB: ranking_684cb1c8af923da7c7df51de_34
+fluxo-financeiro-cache.js:191 [FLUXO-CACHE] ✅ Cache completo com 35 rodadas
+fluxo-financeiro-api.js:25 [FLUXO-API] Campos carregados: {success: true, campos: Array(4)}
+fluxo-financeiro-campos.js:27 [FluxoFinanceiroCampos] Campos carregados do MongoDB: {campo1: {…}, campo2: {…}, campo3: {…}, campo4: {…}}
+top10.js:459 [TOP10] Módulo carregado e pronto
+top10.js:157 [TOP10] Carregando dados...
+top10.js:171 [TOP10] ✅ Liga ID obtido: 684cb1c8af923da7c7df51de
+rodadas-cache.js:71 [RODADAS-CACHE] Limpeza automática: 0 itens removidos
+top10.js:33 [TOP10] 💾 Cache persistente encontrado para Rodada 35
+fluxo-financeiro-participante.js:224 [TESTE-CACHE] ⏱️  Tempo de cálculo: 13998.10ms
+fluxo-financeiro-participante.js:228 [TESTE-CACHE] 💾 Salvando extrato no cache MongoDB...
+participante-status.js:106 [PARTICIPANTE-STATUS] 🟢 Online
+fluxo-financeiro-participante.js:242 [TESTE-CACHE] ✅ Cache salvo em 786.00ms
+fluxo-financeiro-participante.js:247 ═══════════════════════════════════════════════════════════════
+fluxo-financeiro-participante.js:248 [TESTE-CACHE] ✅ EXTRATO FINALIZADO
+fluxo-financeiro-participante.js:249 [TESTE-CACHE] 📊 Total de rodadas: 35
+fluxo-financeiro-participante.js:250 ═══════════════════════════════════════════════════════════════
+participante-extrato.js:148 [EXTRATO-PARTICIPANTE] 🎨 Renderizando UI personalizada...
+participante-extrato.js:149 [EXTRATO-PARTICIPANTE] 📊 Dados do extrato completos: {
+  "rodadas": [
+    {
+      "rodada": 1,
+      "posicao": 21,
+      "totalTimes": 32,
+      "bonusOnus": 0,
+      "pontosCorridos": null,
+      "mataMata": 0,
+      "melhorMes": 0,
+      "top10": 0,
+      "top10Status": null,
+      "isMito": false,
+      "isMico": false,
+      "top10Posicao": null,
+      "saldo": 0
+    },
+    {
+      "rodada": 2,
+      "posicao": 14,
+      "totalTimes": 32,
+      "bonusOnus": 0,
+      "pontosCorridos": null,
+      "mataMata": 0,
+      "melhorMes": 0,
+      "top10": 0,
+      "top10Status": null,
+      "isMito": false,
+      "isMico": false,
+      "top10Posicao": null,
+      "saldo": 0
+    },
+    {
+      "rodada": 3,
+      "posicao": 12,
+      "totalTimes": 32,
+      "bonusOnus": 0,
+      "pontosCorridos": null,
+      "mataMata": 0,
+      "melhorMes": 0,
+      "top10": 0,
+      "top10Status": null,
+      "isMito": false,
+      "isMico": false,
+      "top10Posicao": null,
+      "saldo": 0
+    },
+    {
+      "rodada": 4,
+      "posicao": 26,
+      "totalTimes": 32,
+      "bonusOnus": -14,
+      "pontosCorridos": null,
+      "mataMata": 0,
+      "melhorMes": 0,
+      "top10": 0,
+      "top10Status": null,
+      "isMito": false,
+      "isMico": false,
+      "top10Posicao": null,
+      "saldo": -14
+    },
+    {
+      "rodada": 5,
+      "posicao": 32,
+      "totalTimes": 32,
+      "bonusOnus": -20,
+      "pontosCorridos": null,
+      "mataMata": 0,
+      "melhorMes": 0,
+      "top10": -14,
+      "top10Status": "MICO",
+      "isMito": false,
+      "isMico": true,
+      "top10Posicao": 9,
+      "saldo": -48
+    },
+    {
+      "rodada": 6,
+      "posicao": 16,
+      "totalTimes": 32,
+      "bonusOnus": 0,
+      "pontosCorridos": null,
+      "mataMata": 0,
+      "melhorMes": 0,
+      "top10": 0,
+      "top10Status": null,
+      "isMito": false,
+      "isMico": false,
+      "top10Posicao": null,
+      "saldo": -48
+    },
+    {
+      "rodada": 7,
+      "posicao": 31,
+      "totalTimes": 32,
+      "bonusOnus": -19,
+      "pontosCorridos": -5,
+      "mataMata": 0,
+      "melhorMes": 0,
+      "top10": 0,
+      "top10Status": null,
+      "isMito": false,
+      "isMico": false,
+      "top10Posicao": null,
+      "saldo": -72
+    },
+    {
+      "rodada": 8,
+      "posicao": 26,
+      "totalTimes": 32,
+      "bonusOnus": -14,
+      "pontosCorridos": -5,
+      "mataMata": 0,
+      "melhorMes": 0,
+      "top10": 0,
+      "top10Status": null,
+      "isMito": false,
+      "isMico": false,
+      "top10Posicao": null,
+      "saldo": -91
+    },
+    {
+      "rodada": 9,
+      "posicao": 25,
+      "totalTimes": 32,
+      "bonusOnus": -13,
+      "pontosCorridos": 5,
+      "mataMata": 0,
+      "melhorMes": 0,
+      "top10": 0,
+      "top10Status": null,
+      "isMito": false,
+      "isMico": false,
+      "top10Posicao": null,
+      "saldo": -99
+    },
+    {
+      "rodada": 10,
+      "posicao": 23,
+      "totalTimes": 32,
+      "bonusOnus": -11,
+      "pontosCorridos": -5,
+      "mataMata": 0,
+      "melhorMes": 0,
+      "top10": 0,
+      "top10Status": null,
+      "isMito": false,
+      "isMico": false,
+      "top10Posicao": null,
+      "saldo": -115
+    },
+    {
+      "rodada": 11,
+      "posicao": 19,
+      "totalTimes": 32,
+      "bonusOnus": 0,
+      "pontosCorridos": -5,
+      "mataMata": 0,
+      "melhorMes": 0,
+      "top10": 0,
+      "top10Status": null,
+      "isMito": false,
+      "isMico": false,
+      "top10Posicao": null,
+      "saldo": -120
+    },
+    {
+      "rodada": 12,
+      "posicao": 31,
+      "totalTimes": 32,
+      "bonusOnus": -19,
+      "pontosCorridos": -5,
+      "mataMata": 0,
+      "melhorMes": 0,
+      "top10": 0,
+      "top10Status": null,
+      "isMito": false,
+      "isMico": false,
+      "top10Posicao": null,
+      "saldo": -144
+    },
+    {
+      "rodada": 13,
+      "posicao": 17,
+      "totalTimes": 32,
+      "bonusOnus": 0,
+      "pontosCorridos": 3,
+      "mataMata": 0,
+      "melhorMes": 0,
+      "top10": 0,
+      "top10Status": null,
+      "isMito": false,
+      "isMico": false,
+      "top10Posicao": null,
+      "saldo": -141
+    },
+    {
+      "rodada": 14,
+      "posicao": 4,
+      "totalTimes": 32,
+      "bonusOnus": 17,
+      "pontosCorridos": 5,
+      "mataMata": 0,
+      "melhorMes": 0,
+      "top10": 0,
+      "top10Status": null,
+      "isMito": false,
+      "isMico": false,
+      "top10Posicao": null,
+      "saldo": -119
+    },
+    {
+      "rodada": 15,
+      "posicao": 27,
+      "totalTimes": 32,
+      "bonusOnus": -15,
+      "pontosCorridos": 5,
+      "mataMata": 0,
+      "melhorMes": 0,
+      "top10": 0,
+      "top10Status": null,
+      "isMito": false,
+      "isMico": false,
+      "top10Posicao": null,
+      "saldo": -129
+    },
+    {
+      "rodada": 16,
+      "posicao": 14,
+      "totalTimes": 32,
+      "bonusOnus": 0,
+      "pontosCorridos": 5,
+      "mataMata": 0,
+      "melhorMes": 0,
+      "top10": 0,
+      "top10Status": null,
+      "isMito": false,
+      "isMico": false,
+      "top10Posicao": null,
+      "saldo": -124
+    },
+    {
+      "rodada": 17
+participante-extrato.js:150 [EXTRATO-PARTICIPANTE] 📊 Estrutura do extrato: {temRodadas: true, qtdRodadas: 35, temResumo: true, saldo: -174, primeiraRodada: {…}, …}
+participante-extrato.js:166 [EXTRATO-PARTICIPANTE] ✅ Container encontrado, renderizando...
+participante-extrato.js:175 [EXTRATO-PARTICIPANTE] 📋 Rodadas a renderizar: 35
+participante-extrato-ui.js:7 [EXTRATO-UI] 🎨 Iniciando renderização...
+participante-extrato-ui.js:8 [EXTRATO-UI] 📦 Dados recebidos: {rodadas: Array(35), resumo: {…}, totalTimes: 32, camposEditaveis: {…}}
+participante-extrato-ui.js:9 [EXTRATO-UI] 👤 Participante: 13935277
+participante-extrato-ui.js:10 [EXTRATO-UI] 🔍 Validação dos dados: {extratoValido: true, temRodadas: true, qtdRodadas: 35, temResumo: true, participanteValido: true}
+participante-extrato-ui.js:26 [EXTRATO-UI] ✅ Container encontrado
+participante-extrato-ui.js:48 [EXTRATO-UI] ✅ Dados validados
+participante-extrato-ui.js:52 [EXTRATO-UI] 💾 Dados armazenados globalmente
+participante-extrato-ui.js:215 [EXTRATO-UI] 📝 HTML gerado, inserindo no container...
+participante-extrato-ui.js:217 [EXTRATO-UI] ✅ HTML inserido com sucesso
+participante-extrato-ui.js:218 [EXTRATO-UI] 📊 Rodadas renderizadas: 35
+participante-extrato-ui.js:221 [EXTRATO-UI] 🎯 Atualizando cards do header...
+participante-extrato-ui.js:223 [EXTRATO-UI] ✅ Cards atualizados
+participante-extrato.js:180 [EXTRATO-PARTICIPANTE] ✅ Extrato renderizado com sucesso
+participante-extrato.js:187 [EXTRATO-PARTICIPANTE] ✅ Extrato carregado com sucesso
