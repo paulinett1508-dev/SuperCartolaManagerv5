@@ -11,7 +11,7 @@ export const getExtratoCache = async (req, res) => {
         const cache = await ExtratoFinanceiroCache.findOne({
             liga_id: ligaId,
             time_id: Number(timeId),
-        });
+        }).lean();
 
         if (!cache) {
             // Retorna 404 silencioso para o frontend saber que precisa calcular
@@ -166,11 +166,11 @@ export const verificarCacheValido = async (req, res) => {
         const { ligaId, timeId } = req.params;
         const { rodadaAtual, mercadoAberto } = req.query;
 
-        // Buscar cache existente - SEM .lean() para preservar todos os campos
+        // Buscar cache existente - COM .lean() para garantir dados completos
         const cacheExistente = await ExtratoFinanceiroCache.findOne({
             liga_id: ligaId,
             time_id: Number(timeId),
-        });
+        }).lean();
 
         if (!cacheExistente) {
             return res.json({ valido: false, motivo: "cache_nao_encontrado" });
@@ -256,6 +256,14 @@ export const verificarCacheValido = async (req, res) => {
         if (validacao.valido && cacheExistente) {
             console.log('  ✅ Cache válido encontrado - retornando validação + dados');
 
+            // ✅ GARANTIR QUE historico_transacoes SEJA ARRAY VÁLIDO
+            const rodadas = Array.isArray(cacheExistente.historico_transacoes) 
+                ? cacheExistente.historico_transacoes 
+                : [];
+
+            console.log(`  📊 Rodadas no cache: ${rodadas.length}`);
+            console.log(`  🔍 Primeira rodada (exemplo):`, rodadas[0]);
+
             // Retornar validação + dados do cache
             return res.json({
                 valido: true,
@@ -267,7 +275,7 @@ export const verificarCacheValido = async (req, res) => {
                 rodadaAtual: rodadaAtualInt,
                 updatedAt: cacheExistente.updatedAt,
                 // ✅ CORRIGIDO: Retornar 'rodadas' (frontend espera essa chave)
-                rodadas: cacheExistente.historico_transacoes || [],
+                rodadas: rodadas,
                 resumo: {
                     saldo: cacheExistente.saldo_consolidado,
                     totalGanhos: cacheExistente.ganhos_consolidados || 0,
