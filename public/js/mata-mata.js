@@ -1,3 +1,4 @@
+
 // MATA-MATA.JS - ARQUIVO PRINCIPAL REFATORADO
 // Ponto de entrada que importa e expõe funcionalidades do orquestrador modular
 
