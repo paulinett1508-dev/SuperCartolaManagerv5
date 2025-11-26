@@ -144,6 +144,86 @@ body {
     min-height: 50px;
 }
 
+/* Status Badge */
+.status-badge {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding: 6px 12px;
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: 20px;
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    font-size: 13px;
+    color: white;
+    white-space: nowrap;
+    flex-shrink: 0;
+}
+
+.status-dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: #22c55e;
+    display: inline-block;
+    animation: pulse 2s infinite;
+}
+
+@keyframes pulse {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.6; }
+}
+
+/* Liga Selector */
+.liga-selector-wrapper {
+    flex: 0 1 140px;
+}
+
+#seletorLiga {
+    width: 100%;
+    padding: 8px 12px !important;
+    border-radius: 6px !important;
+    border: 2px solid rgba(255, 255, 255, 0.2) !important;
+    background: rgba(0, 0, 0, 0.3) !important;
+    color: white !important;
+    font-size: 13px !important;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s ease !important;
+    -webkit-appearance: none;
+    appearance: none;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='white' d='M6 9L1 4h10z'/%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: right 8px center;
+    padding-right: 28px !important;
+}
+
+#seletorLiga:active {
+    border-color: rgba(255, 255, 255, 0.4) !important;
+    background-color: rgba(0, 0, 0, 0.5) !important;
+}
+
+/* Botão Logout */
+.btn-logout {
+    background: rgba(255, 69, 0, 0.15) !important;
+    border-color: rgba(255, 69, 0, 0.4) !important;
+    color: #ff6b35 !important;
+    font-size: 13px !important;
+    font-weight: 600;
+    padding: 8px 14px !important;
+    width: auto !important;
+    height: 36px !important;
+    white-space: nowrap;
+}
+
+.btn-logout:hover {
+    background: rgba(255, 69, 0, 0.25) !important;
+    border-color: rgba(255, 69, 0, 0.6) !important;
+}
+
+.btn-logout:active {
+    transform: scale(0.96);
+}
+
 /* === HEADER - MOBILE FIRST === */
 .participante-header {
     background: linear-gradient(135deg, rgba(255, 69, 0, 0.12) 0%, rgba(255, 140, 0, 0.06) 100%);
