@@ -207,9 +207,7 @@
   flex-grow: 1;
 }
 
-.export-inline {
-  flex-shrink: 0;
-}
+/* Exportação removida - usar módulo Relatórios */
 
 /* === TABELA COMPACTA === */
 .table-container {
@@ -306,24 +304,6 @@
   border-top: 2px solid var(--laranja);
   border-radius: 50%;
   animation: spin 1s linear infinite;
-}
-
-/* === EXPORTAÇÃO INLINE === */
-.export-inline .btn-export {
-  background: linear-gradient(135deg, #2E8B57 0%, #32CD32 100%);
-  color: white;
-  border: none;
-  border-radius: 4px;
-  padding: 4px 8px;
-  font: 500 9px "Inter", -apple-system, sans-serif;
-  cursor: pointer;
-  transition: all 0.3s ease;
-  box-shadow: 0 2px 6px rgba(46, 139, 87, 0.3);
-}
-
-.export-inline .btn-export:hover {
-  transform: translateY(-1px);
-  box-shadow: 0 3px 8px rgba(46, 139, 87, 0.5);
 }
 
 /* === BOTÕES === */

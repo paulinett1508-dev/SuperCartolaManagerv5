@@ -206,7 +206,7 @@ async function carregarRodadaFinalizada(rodada) {
   }
 
   exibirRanking(rankingsData, rodada, ligaIdAtual, criarBotaoExportacao);
-  
+
   // Ocultar botão de refresh para rodadas finalizadas
   const btnRefresh = getElementCached('btnRefreshParciais');
   if (btnRefresh) {
@@ -217,7 +217,7 @@ async function carregarRodadaFinalizada(rodada) {
 // CARREGAR RODADA COM PARCIAIS
 async function carregarRodadaParciais(rodada, forcarRecalculo = false) {
   let rankingsParciais = null;
-  
+
   if (!forcarRecalculo) {
     rankingsParciais = getCachedParciais(ligaIdAtual, rodada);
   }
@@ -263,7 +263,7 @@ async function carregarRodadaParciais(rodada, forcarRecalculo = false) {
     ligaIdAtual,
     criarBotaoExportacao,
   );
-  
+
   // Configurar botão de refresh
   configurarBotaoRefresh(rodada);
 }
@@ -287,7 +287,7 @@ function configurarBotaoRefresh(rodada) {
 
       try {
         await carregarRodadaParciais(rodada, true);
-        
+
         // Mostrar feedback visual
         const originalText = btnRefresh.querySelector('span:last-child')?.textContent;
         const textSpan = btnRefresh.querySelector('span:last-child');
@@ -341,13 +341,7 @@ function criarBotaoExportacao(rankings, rodada, isParciais) {
     banco: isParciais ? null : getBancoParaIndex(index, ligaIdAtual),
   }));
 
-  exportModules.criarBotaoExportacaoRodada({
-    containerId: "rodadasExportBtnContainer",
-    rodada: rodada,
-    rankings: rankingsParaExportar,
-    tipo: "rodada",
-    customExport: exportModules.exportarRodadaComoImagem,
-  });
+  // Exportação removida - usar módulo Relatórios
 }
 
 // HELPER PARA VALORES DE BANCO
