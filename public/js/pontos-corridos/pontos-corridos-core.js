@@ -261,7 +261,7 @@ export async function calcularClassificacao(ligaId, times, confrontos, rodadaAtu
   // ✅ VERIFICAR CACHE PRIMEIRO (MongoDB)
   const rodadaLiga = rodadaAtualBrasileirao - PONTOS_CORRIDOS_CONFIG.rodadaInicial + 1;
   const cacheClassificacao = await lerCachePersistente(ligaId, rodadaLiga);
-  
+
   if (cacheClassificacao && Array.isArray(cacheClassificacao) && cacheClassificacao.length > 0) {
     console.log(`[CORE] 💾 Classificação em cache para rodada ${rodadaLiga} (${cacheClassificacao.length} times)`);
     return {
@@ -293,9 +293,9 @@ export async function calcularClassificacao(ligaId, times, confrontos, rodadaAtu
   // ⚡ OTIMIZAÇÃO: Buscar TODAS as rodadas de uma vez
   const rodadaInicio = 1;
   const rodadaFim = Math.min(rodadaLiga, confrontos.length);
-  
+
   console.log(`[CORE] 🚀 Buscando rodadas ${rodadaInicio} a ${rodadaFim} em lote...`);
-  
+
   let todasPontuacoes = [];
   try {
     const response = await fetch(`/api/rodadas/${ligaId}/rodadas?inicio=${rodadaInicio}&fim=${rodadaFim}`);
@@ -322,7 +322,7 @@ export async function calcularClassificacao(ligaId, times, confrontos, rodadaAtu
   for (let rodadaIdx = 0; rodadaIdx < confrontos.length; rodadaIdx++) {
     const rodadaNum = rodadaIdx + 1;
     const rodadaBrasileirao = PONTOS_CORRIDOS_CONFIG.rodadaInicial + rodadaIdx;
-    
+
     // Parar se já passou da rodada atual do brasileirão
     if (rodadaBrasileirao >= rodadaAtualBrasileirao) {
       break;
@@ -412,7 +412,7 @@ export async function calcularClassificacao(ligaId, times, confrontos, rodadaAtu
   // ✅ SALVAR NO CACHE MONGODB (Snapshot vitalício)
   const statusMercado = getStatusMercado();
   const rodadaConsolidada = statusMercado.rodada_atual > rodadaLiga; // Rodada já encerrada?
-  
+
   if (classificacaoFinal.length > 0 && rodadaConsolidada) {
     console.log(`[CORE] 💾 Salvando classificação consolidada da rodada ${rodadaLiga} no MongoDB...`);
     await salvarCachePersistente(ligaId, rodadaLiga, classificacaoFinal);
