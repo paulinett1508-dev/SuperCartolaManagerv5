@@ -244,8 +244,14 @@ class ParticipanteAuth {
                 console.log('[PARTICIPANTE-AUTH] 🏆 Participante em múltiplas ligas:', ligas.length);
                 this.renderizarSeletorLigas(ligas);
                 
-                // 🎯 PAUSAR navegação até seleção de liga
-                this.pausarNavegacaoAteSelecao = true;
+                // 🎯 SÓ PAUSAR se NÃO houver liga selecionada
+                if (!this.ligaId) {
+                    console.log('[PARTICIPANTE-AUTH] ⏸️ Sem liga selecionada - pausando navegação');
+                    this.pausarNavegacaoAteSelecao = true;
+                } else {
+                    console.log('[PARTICIPANTE-AUTH] ✅ Liga já selecionada - permitindo navegação');
+                    this.pausarNavegacaoAteSelecao = false;
+                }
             } else if (ligas.length === 1) {
                 console.log('[PARTICIPANTE-AUTH] ℹ️ Participante em apenas 1 liga - carregando automaticamente');
                 this.ocultarSeletorLigas();
@@ -347,9 +353,14 @@ class ParticipanteAuth {
             const data = await response.json();
             console.log('[PARTICIPANTE-AUTH] ✅ Liga alterada:', data.ligaNome);
 
-            // Limpar cache e recarregar página
+            // Limpar cache de sessão e cache do navegador
             this.sessionCache = null;
             this.sessionCacheTime = null;
+            
+            // Limpar sessionStorage para forçar carregamento dos novos módulos
+            sessionStorage.clear();
+            
+            // Recarregar página para carregar configuração da nova liga
             window.location.reload();
         } catch (error) {
             console.error('[PARTICIPANTE-AUTH] ❌ Erro ao trocar liga:', error);
