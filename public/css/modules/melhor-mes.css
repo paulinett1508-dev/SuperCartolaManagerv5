@@ -385,23 +385,7 @@
   font-weight: bold;
 }
 
-/* === EXPORTAÇÃO INLINE === */
-.export-inline .btn-export-melhor-mes {
-  background: linear-gradient(135deg, #2E8B57 0%, #32CD32 100%);
-  color: white;
-  border: none;
-  border-radius: 6px;
-  padding: 6px 12px;
-  font: 600 11px "Inter", -apple-system, sans-serif;
-  cursor: pointer;
-  transition: all 0.3s ease;
-  box-shadow: 0 2px 8px rgba(46, 139, 87, 0.3);
-}
-
-.export-inline .btn-export-melhor-mes:hover {
-  transform: translateY(-1px);
-  box-shadow: 0 4px 12px rgba(46, 139, 87, 0.5);
-}
+/* Exportação removida - usar módulo Relatórios */
 
 /* === ESTADOS DE LOADING E ERRO === */
 .loading-state {

@@ -187,31 +187,7 @@
   border: 1px solid rgba(255, 69, 0, 0.2);
 }
 
-/* === EXPORTAÇÃO INLINE === */
-.export-inline .btn-export-top10 {
-  background: linear-gradient(135deg, #2E8B57 0%, #32CD32 100%);
-  color: white;
-  border: none;
-  border-radius: 6px;
-  padding: 6px 12px;
-  font: 600 11px "Inter", -apple-system, sans-serif;
-  cursor: pointer;
-  transition: all 0.3s ease;
-  box-shadow: 0 2px 8px rgba(46, 139, 87, 0.3);
-}
-
-.export-inline .btn-export-top10:hover {
-  transform: translateY(-1px);
-  box-shadow: 0 4px 12px rgba(46, 139, 87, 0.5);
-}
-
-.export-inline .btn-export-top10.mitos {
-  background: linear-gradient(135deg, var(--success) 0%, #16a34a 100%);
-}
-
-.export-inline .btn-export-top10.micos {
-  background: linear-gradient(135deg, var(--danger) 0%, #dc2626 100%);
-}
+/* Exportação removida - usar módulo Relatórios */
 
 /* === BOTÃO VOLTAR === */
 .top10-footer {

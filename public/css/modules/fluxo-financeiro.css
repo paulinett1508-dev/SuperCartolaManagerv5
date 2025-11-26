@@ -1001,44 +1001,7 @@ body {
     box-shadow: 0 2px 8px rgba(255, 69, 0, 0.4); /* REDUZIDO shadow */
 }
 
-/* ===== EXPORTAÇÃO COMPACTA ===== */
-.fluxo-financeiro-export {
-    text-align: center;
-    padding: 16px; /* REDUZIDO de var(--spacing-lg) */
-}
-
-.export-container {
-    display: flex;
-    justify-content: center;
-    gap: 10px; /* REDUZIDO de 15px para 10px */
-    flex-wrap: wrap;
-}
-
-.btn-export {
-    background: var(--gradient-primary);
-    color: white;
-    border: none;
-    border-radius: 6px; /* REDUZIDO de 8px para 6px */
-    padding: 10px 16px; /* REDUZIDO de 12px 20px */
-    font-size: 12px; /* REDUZIDO de 13px para 12px */
-    font-weight: 600;
-    cursor: pointer;
-    transition: all 0.3s ease;
-    box-shadow: 0 2px 8px rgba(255, 69, 0, 0.4); /* REDUZIDO shadow */
-    display: flex;
-    align-items: center;
-    gap: 6px; /* REDUZIDO de 8px para 6px */
-}
-
-.btn-export:hover {
-    background: linear-gradient(135deg, var(--laranja-dark) 0%, #d63920 100%);
-    box-shadow: 0 4px 12px rgba(255, 69, 0, 0.5); /* REDUZIDO shadow */
-    transform: translateY(-1px); /* REDUZIDO de -2px para -1px */
-}
-
-.export-icon {
-    font-size: 14px; /* REDUZIDO de 16px para 14px */
-}
+/* Exportação removida - usar módulo Relatórios */
 
 /* ===== FOOTER COMPACTO ===== */
 .fluxo-financeiro-footer {

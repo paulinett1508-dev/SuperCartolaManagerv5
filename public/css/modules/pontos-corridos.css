@@ -723,17 +723,7 @@
   transform: translateY(-1px);
 }
 
-/* === EXPORTAÇÃO === */
-.exportacao-container,
-.classificacao-footer {
-  margin-top: var(--spacing-lg);
-  padding-top: var(--spacing-md);
-  border-top: 1px solid rgba(255, 69, 0, 0.1);
-  display: flex;
-  justify-content: center;
-  gap: var(--spacing-md);
-  flex-wrap: wrap;
-}
+/* Exportação removida - usar módulo Relatórios */
 
 /* === ANIMAÇÕES === */
 @keyframes spin {

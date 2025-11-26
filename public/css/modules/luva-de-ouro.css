@@ -565,35 +565,7 @@
   overflow-x: auto;
 }
 
-/* === EXPORTAÇÃO === */
-#luvaDeOuroExportBtnContainer {
-  text-align: center;
-  margin-top: var(--spacing-md);
-  padding-top: var(--spacing-md);
-  border-top: 1px solid rgba(255, 69, 0, 0.1);
-}
-
-.btn-export {
-  background: linear-gradient(135deg, #2E8B57 0%, #32CD32 100%);
-  color: white;
-  border: none;
-  border-radius: 6px;
-  padding: 10px 20px;
-  font: 600 13px "Inter", -apple-system, sans-serif;
-  cursor: pointer;
-  transition: all 0.3s ease;
-  box-shadow: 0 4px 15px rgba(46, 139, 87, 0.3);
-  display: inline-flex;
-  align-items: center;
-  gap: var(--spacing-xs);
-  text-transform: uppercase;
-  letter-spacing: 0.5px;
-}
-
-.btn-export:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 6px 20px rgba(46, 139, 87, 0.4);
-}
+/* Exportação removida - usar módulo Relatórios */
 
 /* === ANIMAÇÕES === */
 @keyframes spin {
