@@ -30,10 +30,18 @@ async function lerCacheTop10(ligaId, rodada) {
 
     const data = await response.json();
     if (data.cached && data.mitos && data.micos) {
-      console.log(
-        `[TOP10] 💾 Cache persistente encontrado para Rodada ${rodada}`,
-      );
-      return { mitos: data.mitos, micos: data.micos };
+      // ✅ Validar se o cache está na rodada esperada
+      if (data.rodada === rodada) {
+        console.log(
+          `[TOP10] 💾 Cache VÁLIDO encontrado para Rodada ${rodada}`,
+        );
+        return { mitos: data.mitos, micos: data.micos };
+      } else {
+        console.log(
+          `[TOP10] ⚠️ Cache DESATUALIZADO: esperava R${rodada}, tinha R${data.rodada}`,
+        );
+        return null;
+      }
     }
     return null;
   } catch (error) {

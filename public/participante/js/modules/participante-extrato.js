@@ -96,7 +96,7 @@ export async function inicializarExtratoParticipante({ participante, ligaId, tim
 
                 if (cacheData && cacheData.cached && cacheData.data && cacheData.data.rodadas) {
                     // Verificar se há valores de Mata-Mata em rodadas futuras (bug antigo)
-                    const rodadasComMataMataFuturo = cacheData.data.rodadas.filter(r => 
+                    const rodadasComMataMataFuturo = cacheData.data.rodadas.filter(r =>
                         r.rodada > ultimaRodadaCompleta && r.mataMata !== 0
                     );
 
@@ -193,19 +193,19 @@ export async function inicializarExtratoParticipante({ participante, ligaId, tim
 }
 
 function mostrarErro(mensagem) {
-    const container = document.getElementById('fluxoFinanceiroContent') || 
+    const container = document.getElementById('fluxoFinanceiroContent') ||
                      document.getElementById('moduleContainer');
 
     if (container) {
         container.innerHTML = `
-            <div style="text-align: center; padding: 40px; background: rgba(239, 68, 68, 0.1); 
+            <div style="text-align: center; padding: 40px; background: rgba(239, 68, 68, 0.1);
                         border-radius: 12px; border: 1px solid rgba(239, 68, 68, 0.3);">
                 <div style="font-size: 48px; margin-bottom: 16px;">⚠️</div>
                 <h3 style="color: #ef4444; margin-bottom: 12px;">Erro ao Carregar Extrato</h3>
                 <p style="color: #e0e0e0; margin-bottom: 20px;">${mensagem}</p>
-                <button onclick="window.location.reload()" 
-                        style="padding: 12px 24px; background: linear-gradient(135deg, #ff4500 0%, #e8472b 100%); 
-                               color: white; border: none; border-radius: 8px; cursor: pointer; 
+                <button onclick="window.location.reload()"
+                        style="padding: 12px 24px; background: linear-gradient(135deg, #ff4500 0%, #e8472b 100%);
+                               color: white; border: none; border-radius: 8px; cursor: pointer;
                                font-weight: 600; font-size: 14px;">
                     🔄 Recarregar Página
                 </button>
@@ -252,27 +252,27 @@ window.forcarRefreshExtratoParticipante = async function() {
 
         if (cacheResponse.ok) {
             const cacheData = await cacheResponse.json();
-            
+
             // ✅ ESTRATÉGIA INCREMENTAL:
             // 1. Se mercado FECHADO e cache atualizado → NÃO INVALIDAR (dados permanentes)
             // 2. Se mercado ABERTO → Validar apenas rodada atual (5 min TTL)
-            
+
             if (cacheData && cacheData.cached && cacheData.data) {
                 const cacheRodada = cacheData.ultimaRodadaCalculada || 0;
-                
+
                 console.log(`[EXTRATO-PARTICIPANTE] 💾 Cache encontrado: Rodada ${cacheRodada}`);
 
                 if (!mercadoAberto && cacheRodada >= ultimaRodadaCompleta) {
                     // ✅ MERCADO FECHADO = CACHE PERMANENTE
                     console.log('[EXTRATO-PARTICIPANTE] ✅ Mercado fechado - Cache permanente válido!');
                     console.log('[EXTRATO-PARTICIPANTE] 🚀 Sem necessidade de recálculo!');
-                    
+
                     // Apenas re-renderizar com dados existentes
                     const { renderizarExtratoParticipante } = await import('./participante-extrato-ui.js');
                     renderizarExtratoParticipante(cacheData.data, PARTICIPANTE_IDS.timeId);
                     return; // ← EARLY RETURN!
                 }
-                
+
                 if (mercadoAberto) {
                     // ✅ MERCADO ABERTO = Validar idade do cache
                     const timestampCache = new Date(cacheData.updatedAt).getTime();
@@ -281,7 +281,7 @@ window.forcarRefreshExtratoParticipante = async function() {
 
                     if (idadeCache < TTL_RODADA_ABERTA) {
                         console.log(`[EXTRATO-PARTICIPANTE] ✅ Cache recente (${Math.floor(idadeCache/1000)}s) - Reutilizando!`);
-                        
+
                         const { renderizarExtratoParticipante } = await import('./participante-extrato-ui.js');
                         renderizarExtratoParticipante(cacheData.data, PARTICIPANTE_IDS.timeId);
                         return; // ← EARLY RETURN!
@@ -309,8 +309,8 @@ window.forcarRefreshExtratoParticipante = async function() {
         console.log(`[EXTRATO-PARTICIPANTE] 🔄 Recalculando até rodada ${ultimaRodadaCompleta}`);
 
         const extratoData = await fluxoFinanceiroParticipante.buscarExtratoCalculado(
-            PARTICIPANTE_IDS.ligaId, 
-            PARTICIPANTE_IDS.timeId, 
+            PARTICIPANTE_IDS.ligaId,
+            PARTICIPANTE_IDS.timeId,
             ultimaRodadaCompleta,
             false // força = false (permite usar cache parcial)
         );
@@ -325,7 +325,37 @@ window.forcarRefreshExtratoParticipante = async function() {
     }
 };
 
-// ===== EXPOR GLOBALMENTE PARA COMPATIBILIDADE COM NAVEGAÇÃO =====
+// ===== EXPORTAR FUNÇÕES GLOBAIS =====
+export function initExtratoParticipanteGlobal() {
+    console.log('[PARTICIPANTE-EXTRATO] Módulo carregado globalmente');
+}
+
+// ===== FUNÇÕES DE RENDERIZAÇÃO (PARA COMPATIBILIDADE COM NAVEGAÇÃO) =====
+// Essas funções são chamadas por módulos externos que podem não ter acesso
+// direto às funções de importação (dynamic import).
+window.renderizarExtrato = async function(dados, saldoTotal) {
+    console.log('[PARTICIPANTE-EXTRATO] Chamada externa: renderizarExtrato');
+
+    // Verificar se container existe antes de continuar
+    const container = document.getElementById('fluxoFinanceiroContent');
+    if (!container) {
+        console.error('[PARTICIPANTE-EXTRATO] ❌ Container "fluxoFinanceiroContent" não encontrado para renderização externa!');
+        return;
+    }
+
+    // Importar UI se ainda não foi feito
+    const { renderizarExtratoParticipante } = await import('./participante-extrato-ui.js');
+
+    try {
+        renderizarExtratoParticipante({ rodadas: dados, resumo: { saldo: saldoTotal } }, PARTICIPANTE_IDS.timeId);
+        console.log('[PARTICIPANTE-EXTRATO] ✅ Extrato renderizado via chamada externa');
+    } catch (renderError) {
+        console.error('[PARTICIPANTE-EXTRATO] ❌ Erro ao renderizar via chamada externa:', renderError);
+    }
+};
+
+
+// ===== EXPORTAR PARA O WINDOW OBJETIVO =====
 window.inicializarExtratoParticipante = inicializarExtratoParticipante;
 
-console.log('[EXTRATO-PARTICIPANTE] ✅ Função exportada (ES6 + window) com sucesso');
+console.log('[EXTRATO-PARTICIPANTE] ✅ Módulo inicializado com sucesso');

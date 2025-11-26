@@ -256,3 +256,59 @@ export const verificarCacheValido = async (req, res) => {
         res.status(500).json({ error: "Erro ao verificar cache" });
     }
 };
+
+// ===== FUNÇÃO DE LEITURA DE CACHE COM VALIDAÇÃO INTELIGENTE =====
+export const lerCacheExtratoFinanceiro = async (req, res) => {
+    try {
+        const { ligaId, timeId } = req.params;
+        const { rodadaAtual, statusMercado } = req.query;
+
+        const cache = await ExtratoFinanceiroCache.findOne({
+            liga_id: ligaId,
+            time_id: timeId,
+        });
+
+        if (!cache) {
+            return res.status(404).json({ cached: false });
+        }
+
+        // ✅ VALIDAÇÃO INTELIGENTE: Cache é válido se:
+        // 1. Rodada calculada está atualizada OU
+        // 2. Mercado está ABERTO e cache é da rodada anterior (esperando consolidação)
+        const rodadaAtualNum = parseInt(rodadaAtual) || 0;
+        const mercadoFechado = parseInt(statusMercado) === 2;
+
+        let cacheValido = false;
+
+        if (mercadoFechado) {
+            // Mercado FECHADO: cache deve estar na rodada atual
+            cacheValido = cache.rodada_calculada === rodadaAtualNum;
+        } else {
+            // Mercado ABERTO: cache pode ser da rodada anterior (até consolidar)
+            cacheValido = cache.rodada_calculada >= rodadaAtualNum - 1;
+        }
+
+        if (!cacheValido) {
+            console.log(`[CACHE-EXTRATO] ❌ Cache desatualizado: calculado até R${cache.rodada_calculada}, esperado R${rodadaAtualNum}`);
+            return res.status(404).json({
+                cached: false,
+                reason: 'outdated',
+                cachedUntil: cache.rodada_calculada,
+                expectedUntil: rodadaAtualNum
+            });
+        }
+
+        console.log(`[CACHE-EXTRATO] ✅ Cache válido: R${cache.rodada_calculada} (atual: R${rodadaAtualNum})`);
+
+        res.json({
+            cached: true,
+            rodada_calculada: cache.rodada_calculada,
+            dados: cache.dados_extrato,
+            saldo_total: cache.saldo_total,
+            updatedAt: cache.ultima_atualizacao,
+        });
+    } catch (error) {
+        console.error("[CACHE-EXTRATO] Erro ao ler:", error);
+        res.status(500).json({ error: "Erro interno" });
+    }
+};

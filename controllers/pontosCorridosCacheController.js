@@ -47,6 +47,19 @@ export const lerCachePontosCorridos = async (req, res) => {
             return res.status(404).json({ cached: false });
         }
 
+        // ✅ Validar se o cache está na rodada esperada (se rodada foi especificada)
+        if (rodada && cache.rodada_consolidada !== Number(rodada)) {
+            console.log(`[CACHE-PC] ⚠️ Cache desatualizado: esperava R${rodada}, tinha R${cache.rodada_consolidada}`);
+            return res.status(404).json({ 
+                cached: false,
+                reason: 'outdated',
+                cachedUntil: cache.rodada_consolidada,
+                expectedUntil: Number(rodada)
+            });
+        }
+
+        console.log(`[CACHE-PC] ✅ Cache válido: R${cache.rodada_consolidada}`);
+
         res.json({
             cached: true,
             rodada: cache.rodada_consolidada,
