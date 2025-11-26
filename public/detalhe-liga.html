@@ -4,6 +4,17 @@
         <meta charset="UTF-8" />
         <meta name="viewport" content="width=device-width, initial-scale=1.0" />
         <title>Detalhe da Liga - Super Cartola Manager</title>
+
+        <!-- Suprimir warnings de extensões do navegador -->
+        <script>
+            // Capturar erros de extensões que não afetam o sistema
+            window.addEventListener('unhandledrejection', function(event) {
+              if (event.reason && event.reason.message && 
+                  event.reason.message.includes('message channel closed')) {
+                event.preventDefault(); // Silenciar este erro específico
+              }
+            });
+        </script>
         <link rel="shortcut icon" href="favicon.ico" type="image/x-icon" />
 
         <!-- CSS HIERÁRQUICO MODULAR -->
