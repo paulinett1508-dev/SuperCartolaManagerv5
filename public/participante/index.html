@@ -9,29 +9,32 @@
 </head>
 <body>
     <div class="participante-container">
-        <!-- HEADER MOBILE-FIRST - COMPACTO E FUNCIONAL -->
-        <header class="participante-header">
-            <!-- LINHA ÚNICA - TUDO ESSENCIAL -->
-            <div class="header-main">
-                <!-- COLUNA ESQUERDA: Escudos Compactos (lado a lado) -->
-                <div class="escudos-mini">
-                    <img id="escudoTime" class="escudo-mini" src="/escudos/placeholder.png" alt="Time" title="Meu Time">
-                    <img id="escudoCoracao" class="escudo-mini escudo-coracao-badge" src="/escudos/placeholder.png" alt="Coração" title="Time do Coração">
+        <!-- HEADER STICKY COM BACKDROP BLUR -->
+        <header class="participante-header-modern">
+            <div class="header-main-modern">
+                <!-- Info Principal -->
+                <div class="header-info-group">
+                    <div class="escudos-mini-modern">
+                        <img id="escudoTime" class="escudo-mini-modern" src="/escudos/placeholder.png" alt="Time">
+                        <img id="escudoCoracao" class="escudo-coracao-modern" src="/escudos/placeholder.png" alt="Coração">
+                    </div>
+                    <div class="info-participante-modern">
+                        <h1 id="nomeTime">Carregando...</h1>
+                        <p id="nomeCartoleiro"><span id="nomeCartolaText">Aguarde...</span></p>
+                    </div>
                 </div>
 
-                <!-- COLUNA CENTRAL: Info Participante -->
-                <div class="info-participante">
-                    <h1 id="nomeTime">Carregando...</h1>
-                    <p id="nomeCartoleiro"><span id="nomeCartolaText">Aguarde...</span></p>
-                </div>
-
-                <!-- COLUNA DIREITA: Ações -->
-                <div class="header-actions">
-                    <button class="btn-icon btn-home" onclick="participanteNav?.navegarPara('boas-vindas')" title="Início">
-                        🏠
+                <!-- Ações com Notificações -->
+                <div class="header-actions-modern">
+                    <button class="btn-icon-modern btn-notification" title="Notificações">
+                        <span class="material-icon">🔔</span>
+                        <span class="notification-badge"></span>
                     </button>
-                    <button class="btn-icon btn-menu" id="headerMenuToggle" title="Menu">
-                        ☰
+                    <button class="btn-icon-modern btn-home" onclick="participanteNav?.navegarPara('boas-vindas')" title="Início">
+                        <span class="material-icon">🏠</span>
+                    </button>
+                    <button class="btn-icon-modern btn-menu" id="headerMenuToggle" title="Menu">
+                        <span class="material-icon">☰</span>
                     </button>
                 </div>
             </div>
@@ -316,3 +319,28 @@
     <script src="js/participante-status.js"></script>
 </body>
 </html>
+
+
+        <!-- BOTTOM NAVIGATION FIXO -->
+        <nav class="bottom-nav-modern">
+            <button class="nav-item-modern active" data-module="boas-vindas">
+                <span class="nav-icon-modern">🏠</span>
+                <span class="nav-label-modern">Início</span>
+            </button>
+            <button class="nav-item-modern" data-module="extrato">
+                <span class="nav-icon-modern">💰</span>
+                <span class="nav-label-modern">Extrato</span>
+            </button>
+            <button class="nav-item-modern" data-module="ranking">
+                <span class="nav-icon-modern">📊</span>
+                <span class="nav-label-modern">Ranking</span>
+            </button>
+            <button class="nav-item-modern" data-module="rodadas">
+                <span class="nav-icon-modern">🎯</span>
+                <span class="nav-label-modern">Rodadas</span>
+            </button>
+            <button class="nav-item-modern btn-menu-nav" id="bottomMenuToggle">
+                <span class="nav-icon-modern">⋯</span>
+                <span class="nav-label-modern">Mais</span>
+            </button>
+        </nav>
