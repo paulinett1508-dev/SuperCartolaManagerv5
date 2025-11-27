@@ -349,18 +349,8 @@ class ParticipanteNavigation {
                     if (moduloJS[funcName]) { // Verifica se a função existe no módulo importado
                         console.log(`[PARTICIPANTE-NAV] 🚀 Executando função: ${funcName}()`);
                         try {
-                            // ✅ PASSAR PARÂMETROS PADRONIZADOS (objeto OU argumentos separados)
-                            // Tentar primeiro com objeto (novo padrão)
-                            try {
-                                await moduloJS[funcName]({
-                                    participante: this.participanteData.participante,
-                                    ligaId: this.participanteData.ligaId,
-                                    timeId: this.participanteData.timeId
-                                });
-                            } catch (e) {
-                                // Fallback: passar argumentos separados (compatibilidade)
-                                await moduloJS[funcName](this.participanteData.ligaId, this.participanteData.timeId);
-                            }
+                            // ✅ PASSAR PARÂMETROS SEPARADOS (ligaId, timeId)
+                            await moduloJS[funcName](this.participanteData.ligaId, this.participanteData.timeId);
                             console.log(`[PARTICIPANTE-NAV] ✅ Função ${funcName}() executada com sucesso`);
                             functionExecuted = true;
                             break;
