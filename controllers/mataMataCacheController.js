@@ -73,3 +73,35 @@ export const deletarCacheMataMata = async (req, res) => {
         res.status(500).json({ error: "Erro interno" });
     }
 };
+
+// ============================================================================
+// 🔒 FUNÇÃO PARA CONSOLIDAÇÃO DE SNAPSHOTS
+// ============================================================================
+
+export const obterConfrontosMataMata = async (ligaId, rodadaNumero) => {
+    try {
+        console.log(`[MATA-CONSOLIDAÇÃO] Processando liga ${ligaId} até R${rodadaNumero}`);
+        
+        // Buscar todos os caches de Mata-Mata desta liga
+        const caches = await MataMataCache.find({ liga_id: ligaId }).sort({ edicao: 1 });
+        
+        if (caches.length === 0) {
+            console.log('[MATA-CONSOLIDAÇÃO] Nenhum cache encontrado');
+            return [];
+        }
+        
+        const confrontosConsolidados = caches.map(cache => ({
+            edicao: cache.edicao,
+            rodada_atual: cache.rodada_atual,
+            dados_torneio: cache.dados_torneio,
+            ultima_atualizacao: cache.ultima_atualizacao
+        }));
+        
+        console.log(`[MATA-CONSOLIDAÇÃO] ✅ ${confrontosConsolidados.length} edições processadas`);
+        return confrontosConsolidados;
+        
+    } catch (error) {
+        console.error('[MATA-CONSOLIDAÇÃO] ❌ Erro:', error);
+        throw error;
+    }
+};
