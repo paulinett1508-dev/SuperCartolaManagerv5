@@ -1,187 +1,201 @@
 
-// PARTICIPANTE BOAS-VINDAS - Versão Mobile Original
+// MÓDULO: BOAS-VINDAS PARTICIPANTE
+console.log('[BOAS-VINDAS-PARTICIPANTE] 🔄 Carregando módulo...');
 
-console.log('[BOAS-VINDAS] 🚀 Carregando módulo...');
+export async function inicializarBoasVindasParticipante({ participante, ligaId, timeId }) {
+    console.log('[BOAS-VINDAS-PARTICIPANTE] Inicializando:', { participante, ligaId, timeId });
 
-export async function inicializarBoasVindas(ligaId, timeId) {
-    console.log(`[BOAS-VINDAS] Inicializando para time ${timeId} na liga ${ligaId}`);
-    await inicializarBoasVindasInterno(ligaId, timeId);
-}
+    if (!ligaId || !timeId) {
+        console.error('[BOAS-VINDAS-PARTICIPANTE] ❌ Parâmetros inválidos');
+        mostrarErro('Dados inválidos para carregar resumo');
+        return;
+    }
 
-window.inicializarBoasVindas = async function(ligaId, timeId) {
-    console.log(`[BOAS-VINDAS] Inicializando para time ${timeId} na liga ${ligaId}`);
-    await inicializarBoasVindasInterno(ligaId, timeId);
-}
-
-async function inicializarBoasVindasInterno(ligaId, timeId) {
     try {
-        const [resRanking, resRodadas, resTime, resExtrato] = await Promise.all([
-            fetch(`/api/ligas/${ligaId}/ranking`),
-            fetch(`/api/rodadas/${ligaId}/rodadas?inicio=1&fim=38`),
-            fetch(`/api/times/${timeId}`),
-            fetch(`/api/fluxo-financeiro/${ligaId}/extrato/${timeId}`)
+        // Buscar dados do mercado (rodada atual)
+        const statusMercado = await fetch('/api/cartola/mercado/status');
+        const { rodada_atual, mercado_aberto } = await statusMercado.json();
+        const ultimaRodadaCompleta = mercado_aberto ? Math.max(1, rodada_atual - 1) : rodada_atual;
+
+        console.log(`[BOAS-VINDAS-PARTICIPANTE] 📊 Rodada: ${ultimaRodadaCompleta} | Mercado: ${mercado_aberto ? 'ABERTO' : 'FECHADO'}`);
+
+        // Buscar dados em paralelo
+        const [dadosTime, ranking, extratoCache] = await Promise.all([
+            fetch(`/api/times/${timeId}`).then(r => r.json()),
+            fetch(`/api/ligas/${ligaId}/ranking`).then(r => r.json()),
+            fetch(`/api/extrato-cache/${ligaId}/times/${timeId}/cache?rodadaAtual=${ultimaRodadaCompleta}`).then(r => r.json())
         ]);
 
-        const ranking = resRanking.ok ? await resRanking.json() : [];
-        const rodadas = resRodadas.ok ? await resRodadas.json() : [];
-        const timeData = resTime.ok ? await resTime.json() : null;
-        const extratoData = resExtrato.ok ? await resExtrato.json() : null;
-
-        const meuTimeIdNum = Number(timeId);
-        const meuTime = ranking.find(t => Number(t.timeId) === meuTimeIdNum);
-        const posicao = meuTime ? meuTime.posicao : '--';
+        // Processar dados
+        const minhaClassificacao = ranking.findIndex(t => String(t.time_id) === String(timeId)) + 1;
         const totalParticipantes = ranking.length;
+        const meusPontos = ranking.find(t => String(t.time_id) === String(timeId))?.pontos_total || 0;
 
-        const minhasRodadas = rodadas.filter(r => Number(r.timeId) === meuTimeIdNum || Number(r.time_id) === meuTimeIdNum);
-        const pontosTotal = minhasRodadas.reduce((total, rodada) => {
-            return total + (parseFloat(rodada.pontos) || 0);
-        }, 0);
+        // Extrair saldo do cache do extrato
+        let saldo = 0;
+        if (extratoCache?.cached && extratoCache?.data?.resumo) {
+            saldo = extratoCache.data.resumo.saldo || 0;
+        }
 
-        const ultimaRodada = minhasRodadas.sort((a, b) => b.rodada - a.rodada)[0];
-
-        const saldoFinanceiro = extratoData?.saldo_atual || extratoData?.resumo?.saldo_final || 0;
-
+        // Renderizar interface
         renderizarBoasVindas({
-            posicao,
-            totalParticipantes,
-            pontosTotal,
-            ultimaRodada,
-            meuTime,
-            timeData,
-            timeId,
-            minhasRodadas,
-            saldoFinanceiro
+            nomeTime: dadosTime.nome || participante?.nome_time || 'Meu Time',
+            nomeCartola: dadosTime.nome_cartola || participante?.nome_cartola || 'Cartoleiro',
+            clubeId: dadosTime.clube_id,
+            posicao: minhaClassificacao,
+            totalTimes: totalParticipantes,
+            pontos: meusPontos,
+            saldo: saldo,
+            rodadaAtual: ultimaRodadaCompleta
         });
+
+        console.log('[BOAS-VINDAS-PARTICIPANTE] ✅ Módulo inicializado');
 
     } catch (error) {
-        console.error('[BOAS-VINDAS] Erro:', error);
-        renderizarBoasVindas({
-            posicao: '--',
-            totalParticipantes: '--',
-            pontosTotal: 0,
-            ultimaRodada: null,
-            meuTime: null,
-            timeData: null,
-            timeId: timeId,
-            minhasRodadas: [],
-            saldoFinanceiro: 0
-        });
+        console.error('[BOAS-VINDAS-PARTICIPANTE] ❌ Erro:', error);
+        mostrarErro(error.message);
     }
 }
 
-function renderizarBoasVindas({ posicao, totalParticipantes, pontosTotal, ultimaRodada, meuTime, timeData, timeId, minhasRodadas, saldoFinanceiro }) {
+function renderizarBoasVindas(dados) {
     const container = document.getElementById('boas-vindas-container');
-    if (!container) return;
-
-    const nomeTime = meuTime?.nome_time || timeData?.nome_time || 'Seu Time';
-    const nomeCartola = meuTime?.nome_cartola || timeData?.nome_cartola || 'Cartoleiro';
-    const fotoTime = meuTime?.foto_time || timeData?.foto_time || '';
-    
-    const posTexto = posicao === '--' ? '--' : `${posicao}º`;
-    const pontosFormatados = pontosTotal > 0 ? pontosTotal.toFixed(1) : '--';
-    const rodadaAtual = ultimaRodada ? ultimaRodada.rodada : '--';
-    const pontosUltimaRodada = ultimaRodada ? ultimaRodada.pontos.toFixed(1) : '--';
-    const mediapontos = minhasRodadas.length > 0 ? (pontosTotal / minhasRodadas.length).toFixed(1) : '--';
-    
-    // Formatar saldo financeiro
-    const saldoFormatado = Math.abs(saldoFinanceiro).toLocaleString('pt-BR', {
-        minimumFractionDigits: 2,
-        maximumFractionDigits: 2
-    });
-    const saldoComSinal = saldoFinanceiro >= 0 ? `+R$ ${saldoFormatado}` : `-R$ ${saldoFormatado}`;
-    const corSaldo = saldoFinanceiro > 0 ? '#22C55E' : saldoFinanceiro < 0 ? '#EF4444' : '#6B7280';
-    const bgSaldo = saldoFinanceiro > 0 ? 'rgba(34, 197, 94, 0.08)' : saldoFinanceiro < 0 ? 'rgba(239, 68, 68, 0.08)' : 'rgba(107, 114, 128, 0.08)';
-    const borderSaldo = saldoFinanceiro > 0 ? 'rgba(34, 197, 94, 0.3)' : saldoFinanceiro < 0 ? 'rgba(239, 68, 68, 0.3)' : 'rgba(107, 114, 128, 0.3)';
-    
-    // Cálculo de variação e tendência
-    let variacao = '--';
-    let tendencia = 'stable';
-    if (minhasRodadas.length >= 2) {
-        const rodadasOrdenadas = minhasRodadas.sort((a, b) => b.rodada - a.rodada);
-        const ultima = parseFloat(rodadasOrdenadas[0].pontos) || 0;
-        const penultima = parseFloat(rodadasOrdenadas[1].pontos) || 0;
-        const diff = ultima - penultima;
-        variacao = diff > 0 ? `+${diff.toFixed(1)}` : diff.toFixed(1);
-        tendencia = diff > 0 ? 'up' : diff < 0 ? 'down' : 'stable';
+    if (!container) {
+        console.error('[BOAS-VINDAS-PARTICIPANTE] Container não encontrado');
+        return;
     }
+
+    // Determinar status do saldo
+    let statusClass = 'neutro';
+    let statusIcon = '💰';
+    let statusTexto = 'NEUTRO';
     
-    const posicaoAnterior = '--';
+    if (dados.saldo > 0) {
+        statusClass = 'positivo';
+        statusIcon = '💰';
+        statusTexto = 'A RECEBER';
+    } else if (dados.saldo < 0) {
+        statusClass = 'negativo';
+        statusIcon = '💸';
+        statusTexto = 'A PAGAR';
+    }
+
+    // Determinar zona de classificação
+    let zonaClass = '';
+    let zonaTexto = '';
+    const percentualPosicao = (dados.posicao / dados.totalTimes) * 100;
+
+    if (dados.posicao === 1) {
+        zonaClass = 'zona-lider';
+        zonaTexto = '👑 LÍDER';
+    } else if (dados.posicao <= 3) {
+        zonaClass = 'zona-podio';
+        zonaTexto = '🏆 PÓDIO';
+    } else if (percentualPosicao <= 30) {
+        zonaClass = 'zona-classificacao';
+        zonaTexto = '💰 ZONA DE GANHO';
+    } else if (percentualPosicao <= 70) {
+        zonaClass = 'zona-neutra';
+        zonaTexto = '😐 ZONA NEUTRA';
+    } else {
+        zonaClass = 'zona-rebaixamento';
+        zonaTexto = '💸 ZONA DE PERDA';
+    }
 
     container.innerHTML = `
-        <div style="background: #1a1a1a; min-height: 100vh; padding: 16px; padding-bottom: 120px;">
-            <!-- Seção de Boas-vindas PROFISSIONAL -->
-            <section style="text-align: center; margin-bottom: 32px;">
-                <div style="display: flex; align-items: center; justify-content: center; gap: 8px; margin-bottom: 8px;">
-                    <span class="material-icons" style="font-size: 28px; color: #FF6B35;">sports_soccer</span>
-                    <h2 style="font-size: 24px; font-weight: 700; color: white; margin: 0;">Bem-vindo(a) ao Painel</h2>
-                </div>
-                <p style="font-size: 14px; color: #999; margin: 0;">Acompanhe seu desempenho em tempo real</p>
-            </section>
+        <div class="container mx-auto p-6 max-w-4xl">
+            <!-- Header -->
+            <div class="text-center mb-8">
+                <h1 class="text-3xl font-bold text-white mb-2">Bem-vindo de volta!</h1>
+                <p class="text-gray-400">${dados.nomeCartola}</p>
+            </div>
 
-            <!-- Stats Grid 2x2 PROFISSIONAL -->
-            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 24px;">
-                <!-- Posição -->
-                <div style="background: rgba(251, 191, 36, 0.08); border: 1px solid rgba(251, 191, 36, 0.3); border-radius: 12px; padding: 16px; backdrop-filter: blur(10px);">
-                    <div style="display: flex; align-items: center; justify-content: center; width: 40px; height: 40px; background: rgba(251, 191, 36, 0.15); border-radius: 8px; margin-bottom: 12px; color: #FBBF24;">
-                        <span class="material-icons">emoji_events</span>
+            <!-- Card Principal: Saldo -->
+            <div class="bg-gradient-to-br from-gray-800 to-gray-900 rounded-2xl p-6 mb-6 border-2 ${statusClass === 'positivo' ? 'border-green-500' : statusClass === 'negativo' ? 'border-red-500' : 'border-gray-600'}">
+                <div class="flex items-center justify-between mb-4">
+                    <div class="flex items-center gap-3">
+                        <span class="text-3xl">${statusIcon}</span>
+                        <div>
+                            <p class="text-sm text-gray-400 uppercase tracking-wider font-bold">${statusTexto}</p>
+                            <p class="text-xs text-gray-500">Até a rodada ${dados.rodadaAtual}</p>
+                        </div>
                     </div>
-                    <p style="font-size: 12px; color: #999; text-transform: uppercase; margin: 0 0 8px 0; font-weight: 600;">Posição</p>
-                    <p style="font-size: 28px; font-weight: 700; color: white; margin: 0;">${posTexto}</p>
                 </div>
-
-                <!-- Pontos -->
-                <div style="background: rgba(59, 130, 246, 0.08); border: 1px solid rgba(59, 130, 246, 0.3); border-radius: 12px; padding: 16px; backdrop-filter: blur(10px);">
-                    <div style="display: flex; align-items: center; justify-content: center; width: 40px; height: 40px; background: rgba(59, 130, 246, 0.15); border-radius: 8px; margin-bottom: 12px; color: #3B82F6;">
-                        <span class="material-icons">bar_chart</span>
-                    </div>
-                    <p style="font-size: 12px; color: #999; text-transform: uppercase; margin: 0 0 8px 0; font-weight: 600;">Pontos</p>
-                    <p style="font-size: 28px; font-weight: 700; color: white; margin: 0;">${pontosFormatados}</p>
+                
+                <div class="text-5xl font-black ${statusClass === 'positivo' ? 'text-green-400' : statusClass === 'negativo' ? 'text-red-400' : 'text-gray-400'} mb-2">
+                    ${dados.saldo >= 0 ? '+' : ''}R$ ${Math.abs(dados.saldo).toFixed(2).replace('.', ',')}
                 </div>
-
-                <!-- Saldo -->
-                <div style="background: ${bgSaldo}; border: 1px solid ${borderSaldo}; border-radius: 12px; padding: 16px; backdrop-filter: blur(10px);">
-                    <div style="display: flex; align-items: center; justify-content: center; width: 40px; height: 40px; background: ${bgSaldo}; border-radius: 8px; margin-bottom: 12px; color: ${corSaldo};">
-                        <span class="material-icons">account_balance_wallet</span>
-                    </div>
-                    <p style="font-size: 12px; color: #999; text-transform: uppercase; margin: 0 0 8px 0; font-weight: 600;">Saldo</p>
-                    <p style="font-size: 28px; font-weight: 700; color: ${corSaldo}; margin: 0;">${saldoComSinal}</p>
-                </div>
-
-                <!-- Última Rodada -->
-                <div style="background: rgba(249, 115, 22, 0.08); border: 1px solid rgba(249, 115, 22, 0.3); border-radius: 12px; padding: 16px; backdrop-filter: blur(10px);">
-                    <div style="display: flex; align-items: center; justify-content: center; width: 40px; height: 40px; background: rgba(249, 115, 22, 0.15); border-radius: 8px; margin-bottom: 12px; color: #F97316;">
-                        <span class="material-icons">bolt</span>
-                    </div>
-                    <p style="font-size: 12px; color: #999; text-transform: uppercase; margin: 0 0 8px 0; font-weight: 600;">R${rodadaAtual}</p>
-                    <p style="font-size: 28px; font-weight: 700; color: white; margin: 0;">${pontosUltimaRodada}</p>
+                
+                <div class="text-sm text-gray-500">
+                    ${dados.saldo > 0 ? '🎉 Você está ganhando!' : dados.saldo < 0 ? '⚠️ Você está devendo' : '➖ Saldo zerado'}
                 </div>
             </div>
 
-            <!-- Seu Desempenho ELEGANTE -->
-            <div style="background: rgba(255, 255, 255, 0.03); border: 1px solid rgba(255, 107, 53, 0.2); border-radius: 12px; padding: 20px; backdrop-filter: blur(10px);">
-                <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 20px;">
-                    <span class="material-icons" style="color: #FF6B35;">insights</span>
-                    <h3 style="font-size: 18px; font-weight: 700; color: white; margin: 0;">Seu Desempenho</h3>
-                </div>
-                
-                <div style="display: flex; flex-direction: column; gap: 16px;">
-                    <div style="display: flex; justify-content: space-between; align-items: center; padding-bottom: 12px; border-bottom: 1px solid rgba(255, 255, 255, 0.1);">
-                        <span style="font-size: 14px; color: #999;">Posição anterior:</span>
-                        <span style="font-weight: 600; color: white;">${posicaoAnterior}</span>
-                    </div>
-                    
-                    <div style="display: flex; justify-content: space-between; align-items: center; padding-bottom: 12px; border-bottom: 1px solid rgba(255, 255, 255, 0.1);">
-                        <span style="font-size: 14px; color: #999;">Variação:</span>
-                        <span style="font-weight: 600; color: white;">${variacao}</span>
-                    </div>
-                    
-                    <div style="display: flex; justify-content: space-between; align-items: center;">
-                        <span style="font-size: 14px; color: #999;">Tendência:</span>
-                        <div style="display: flex; align-items: center; gap: 6px;">
-                            ${tendencia === 'up' ? '<span class="material-icons" style="color: #22C55E; font-size: 20px;">trending_up</span>' : 
-                              tendencia === 'down' ? '<span class="material-icons" style="color: #EF4444; font-size: 20px;">trending_down</span>' : 
-                              '<span class="material-icons" style="color: #6B7280; font-size: 20px;">trending_flat</span>'}
+            <!-- Grid de Cards -->
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
+                <!-- Card: Classificação -->
+                <div class="bg-gray-800 rounded-xl p-6 border border-gray-700 ${zonaClass}">
+                    <div class="flex items-center gap-3 mb-3">
+                        <span class="text-2xl">📊</span>
+                        <div>
+                            <p class="text-sm text-gray-400 uppercase tracking-wider font-bold">Classificação</p>
+                            <p class="text-xs text-gray-500">${zonaTexto}</p>
                         </div>
+                    </div>
+                    <div class="text-4xl font-black text-primary mb-1">
+                        ${dados.posicao}º
+                    </div>
+                    <div class="text-sm text-gray-500">
+                        de ${dados.totalTimes} times
+                    </div>
+                </div>
+
+                <!-- Card: Pontuação -->
+                <div class="bg-gray-800 rounded-xl p-6 border border-gray-700">
+                    <div class="flex items-center gap-3 mb-3">
+                        <span class="text-2xl">⭐</span>
+                        <div>
+                            <p class="text-sm text-gray-400 uppercase tracking-wider font-bold">Pontos Totais</p>
+                            <p class="text-xs text-gray-500">Acumulado</p>
+                        </div>
+                    </div>
+                    <div class="text-4xl font-black text-blue-400 mb-1">
+                        ${dados.pontos.toFixed(2).replace('.', ',')}
+                    </div>
+                    <div class="text-sm text-gray-500">
+                        pontos na liga
+                    </div>
+                </div>
+            </div>
+
+            <!-- Informações do Time -->
+            <div class="bg-gray-800 rounded-xl p-6 border border-gray-700">
+                <div class="flex items-center gap-4">
+                    ${dados.clubeId ? `
+                        <img src="/escudos/${dados.clubeId}.png" 
+                             alt="Escudo" 
+                             class="w-16 h-16 rounded-lg"
+                             onerror="this.src='/escudos/placeholder.png'">
+                    ` : `
+                        <div class="w-16 h-16 bg-gray-700 rounded-lg flex items-center justify-center text-2xl">
+                            ⚽
+                        </div>
+                    `}
+                    <div class="flex-1">
+                        <h2 class="text-2xl font-bold text-white mb-1">${dados.nomeTime}</h2>
+                        <p class="text-gray-400">${dados.nomeCartola}</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Dica -->
+            <div class="mt-6 bg-blue-900/30 border border-blue-500/50 rounded-xl p-4">
+                <div class="flex items-start gap-3">
+                    <span class="text-2xl">💡</span>
+                    <div>
+                        <p class="text-sm text-blue-300 font-semibold mb-1">Dica</p>
+                        <p class="text-xs text-blue-200">
+                            Use o menu inferior para navegar entre os módulos e acompanhar seu desempenho em tempo real.
+                        </p>
                     </div>
                 </div>
             </div>
@@ -189,4 +203,26 @@ function renderizarBoasVindas({ posicao, totalParticipantes, pontosTotal, ultima
     `;
 }
 
-console.log('[BOAS-VINDAS] ✅ Módulo carregado');
+function mostrarErro(mensagem) {
+    const container = document.getElementById('boas-vindas-container');
+    if (container) {
+        container.innerHTML = `
+            <div class="container mx-auto p-6 max-w-4xl">
+                <div class="bg-red-900/30 border border-red-500 rounded-xl p-6 text-center">
+                    <div class="text-5xl mb-4">⚠️</div>
+                    <h3 class="text-xl font-bold text-red-400 mb-2">Erro ao Carregar</h3>
+                    <p class="text-gray-300 mb-4">${mensagem}</p>
+                    <button onclick="window.location.reload()" 
+                            class="px-6 py-3 bg-primary hover:bg-primary-dark text-white rounded-lg font-semibold">
+                        🔄 Recarregar Página
+                    </button>
+                </div>
+            </div>
+        `;
+    }
+}
+
+// Expor globalmente
+window.inicializarBoasVindasParticipante = inicializarBoasVindasParticipante;
+
+console.log('[BOAS-VINDAS-PARTICIPANTE] ✅ Módulo carregado');
