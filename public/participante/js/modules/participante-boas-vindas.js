@@ -15,15 +15,17 @@ window.inicializarBoasVindas = async function(ligaId, timeId) {
 
 async function inicializarBoasVindasInterno(ligaId, timeId) {
     try {
-        const [resRanking, resRodadas, resTime] = await Promise.all([
+        const [resRanking, resRodadas, resTime, resExtrato] = await Promise.all([
             fetch(`/api/ligas/${ligaId}/ranking`),
             fetch(`/api/rodadas/${ligaId}/rodadas?inicio=1&fim=38`),
-            fetch(`/api/times/${timeId}`)
+            fetch(`/api/times/${timeId}`),
+            fetch(`/api/fluxo-financeiro/${ligaId}/extrato/${timeId}`)
         ]);
 
         const ranking = resRanking.ok ? await resRanking.json() : [];
         const rodadas = resRodadas.ok ? await resRodadas.json() : [];
         const timeData = resTime.ok ? await resTime.json() : null;
+        const extratoData = resExtrato.ok ? await resExtrato.json() : null;
 
         const meuTimeIdNum = Number(timeId);
         const meuTime = ranking.find(t => Number(t.timeId) === meuTimeIdNum);
@@ -37,6 +39,8 @@ async function inicializarBoasVindasInterno(ligaId, timeId) {
 
         const ultimaRodada = minhasRodadas.sort((a, b) => b.rodada - a.rodada)[0];
 
+        const saldoFinanceiro = extratoData?.saldo_atual || extratoData?.resumo?.saldo_final || 0;
+
         renderizarBoasVindas({
             posicao,
             totalParticipantes,
@@ -45,7 +49,8 @@ async function inicializarBoasVindasInterno(ligaId, timeId) {
             meuTime,
             timeData,
             timeId,
-            minhasRodadas
+            minhasRodadas,
+            saldoFinanceiro
         });
 
     } catch (error) {
@@ -58,12 +63,13 @@ async function inicializarBoasVindasInterno(ligaId, timeId) {
             meuTime: null,
             timeData: null,
             timeId: timeId,
-            minhasRodadas: []
+            minhasRodadas: [],
+            saldoFinanceiro: 0
         });
     }
 }
 
-function renderizarBoasVindas({ posicao, totalParticipantes, pontosTotal, ultimaRodada, meuTime, timeData, timeId, minhasRodadas }) {
+function renderizarBoasVindas({ posicao, totalParticipantes, pontosTotal, ultimaRodada, meuTime, timeData, timeId, minhasRodadas, saldoFinanceiro }) {
     const container = document.getElementById('boas-vindas-container');
     if (!container) return;
 
@@ -76,6 +82,16 @@ function renderizarBoasVindas({ posicao, totalParticipantes, pontosTotal, ultima
     const rodadaAtual = ultimaRodada ? ultimaRodada.rodada : '--';
     const pontosUltimaRodada = ultimaRodada ? ultimaRodada.pontos.toFixed(1) : '--';
     const mediapontos = minhasRodadas.length > 0 ? (pontosTotal / minhasRodadas.length).toFixed(1) : '--';
+    
+    // Formatar saldo financeiro
+    const saldoFormatado = Math.abs(saldoFinanceiro).toLocaleString('pt-BR', {
+        minimumFractionDigits: 2,
+        maximumFractionDigits: 2
+    });
+    const saldoComSinal = saldoFinanceiro >= 0 ? `+R$ ${saldoFormatado}` : `-R$ ${saldoFormatado}`;
+    const corSaldo = saldoFinanceiro > 0 ? '#22C55E' : saldoFinanceiro < 0 ? '#EF4444' : '#6B7280';
+    const bgSaldo = saldoFinanceiro > 0 ? 'rgba(34, 197, 94, 0.08)' : saldoFinanceiro < 0 ? 'rgba(239, 68, 68, 0.08)' : 'rgba(107, 114, 128, 0.08)';
+    const borderSaldo = saldoFinanceiro > 0 ? 'rgba(34, 197, 94, 0.3)' : saldoFinanceiro < 0 ? 'rgba(239, 68, 68, 0.3)' : 'rgba(107, 114, 128, 0.3)';
     
     // Cálculo de variação e tendência
     let variacao = '--';
@@ -123,12 +139,12 @@ function renderizarBoasVindas({ posicao, totalParticipantes, pontosTotal, ultima
                 </div>
 
                 <!-- Saldo -->
-                <div style="background: rgba(34, 197, 94, 0.08); border: 1px solid rgba(34, 197, 94, 0.3); border-radius: 12px; padding: 16px; backdrop-filter: blur(10px);">
-                    <div style="display: flex; align-items: center; justify-content: center; width: 40px; height: 40px; background: rgba(34, 197, 94, 0.15); border-radius: 8px; margin-bottom: 12px; color: #22C55E;">
+                <div style="background: ${bgSaldo}; border: 1px solid ${borderSaldo}; border-radius: 12px; padding: 16px; backdrop-filter: blur(10px);">
+                    <div style="display: flex; align-items: center; justify-content: center; width: 40px; height: 40px; background: ${bgSaldo}; border-radius: 8px; margin-bottom: 12px; color: ${corSaldo};">
                         <span class="material-icons">account_balance_wallet</span>
                     </div>
                     <p style="font-size: 12px; color: #999; text-transform: uppercase; margin: 0 0 8px 0; font-weight: 600;">Saldo</p>
-                    <p style="font-size: 28px; font-weight: 700; color: white; margin: 0;">R$ 0</p>
+                    <p style="font-size: 28px; font-weight: 700; color: ${corSaldo}; margin: 0;">${saldoComSinal}</p>
                 </div>
 
                 <!-- Última Rodada -->
