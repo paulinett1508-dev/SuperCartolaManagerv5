@@ -1,8 +1,8 @@
-
 // controllers/rankingGeralCacheController.js
 import RankingGeralCache from "../models/RankingGeralCache.js";
 import Rodada from "../models/Rodada.js";
 import mongoose from "mongoose";
+import { obterDadosRodada } from '../utils/smartDataFetcher.js';
 
 /**
  * Buscar ranking consolidado (com fallback para cálculo se necessário)
@@ -177,3 +177,37 @@ export async function invalidarCacheRanking(req, res) {
     return res.status(500).json({ error: "Erro ao invalidar cache" });
   }
 }
+
+// Mock implementation of calcularRankingCompleto for the new getRankingRodada
+// In a real scenario, this would be the actual calculation logic.
+async function calcularRankingCompleto(ligaId, rodada) {
+    // This is a placeholder. Replace with actual ranking calculation logic.
+    console.log(`Calculating complete ranking for liga ${ligaId}, rodada ${rodada}`);
+    // Simulate some data
+    return {
+        ligaId: ligaId,
+        rodada: rodada,
+        ranking: [
+            { timeId: "team1", nome_cartola: "Cartola1", nome_time: "Time A", escudo: "escudoA.png", clube_id: 1, pontos_totais: 100, rodadas_jogadas: 5, posicao: 1 },
+            { timeId: "team2", nome_cartola: "Cartola2", nome_time: "Time B", escudo: "escudoB.png", clube_id: 2, pontos_totais: 90, rodadas_jogadas: 5, posicao: 2 }
+        ]
+    };
+}
+
+// New function to integrate snapshot system
+export const getRankingRodada = async (req, res) => {
+    try {
+        const { ligaId, rodada } = req.params;
+
+        const dados = await obterDadosRodada(ligaId, parseInt(rodada), async () => {
+            // Ensure the calculation function matches what smartDataFetcher expects
+            return await calcularRankingCompleto(ligaId, parseInt(rodada)); 
+        });
+
+        // Assuming obterDadosRodada returns an object that might contain 'ranking_geral'
+        // or the direct result of the calculation. Adjust as per smartDataFetcher's actual return structure.
+        res.json(dados.ranking_geral || dados);
+    } catch (error) {
+        res.status(500).json({ error: error.message });
+    }
+};
