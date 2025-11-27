@@ -92,92 +92,79 @@ function renderizarBoasVindas({ posicao, totalParticipantes, pontosTotal, ultima
     const posicaoAnterior = '--';
 
     container.innerHTML = `
-        <div class="min-h-screen bg-gradient-to-br from-gray-900 via-black to-gray-900">
-            <!-- Header -->
-            <div class="bg-gradient-to-r from-gray-800/80 to-gray-900/80 backdrop-blur-xl border-b border-gray-700/50 p-4 sticky top-0 z-10">
-                <div class="flex items-center justify-between">
-                    <div class="flex items-center gap-3">
-                        <div class="w-14 h-14 rounded-full overflow-hidden border-2 border-red-500/50 bg-gray-800">
-                            ${fotoTime ? `<img src="${fotoTime}" alt="${nomeTime}" class="w-full h-full object-cover">` : `<div class="w-full h-full flex items-center justify-center text-2xl">⚽</div>`}
-                        </div>
-                        <div>
-                            <h1 class="text-white font-bold text-lg">${nomeTime}</h1>
-                            <p class="text-gray-400 text-sm">${nomeCartola}</p>
-                        </div>
+        <div style="background: #1a1a1a; min-height: 100vh; padding: 16px; padding-bottom: 120px;">
+            <!-- Seção de Boas-vindas PROFISSIONAL -->
+            <section style="text-align: center; margin-bottom: 32px;">
+                <div style="display: flex; align-items: center; justify-content: center; gap: 8px; margin-bottom: 8px;">
+                    <span class="material-icons" style="font-size: 28px; color: #FF6B35;">sports_soccer</span>
+                    <h2 style="font-size: 24px; font-weight: 700; color: white; margin: 0;">Bem-vindo(a) ao Painel</h2>
+                </div>
+                <p style="font-size: 14px; color: #999; margin: 0;">Acompanhe seu desempenho em tempo real</p>
+            </section>
+
+            <!-- Stats Grid 2x2 PROFISSIONAL -->
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 24px;">
+                <!-- Posição -->
+                <div style="background: rgba(251, 191, 36, 0.08); border: 1px solid rgba(251, 191, 36, 0.3); border-radius: 12px; padding: 16px; backdrop-filter: blur(10px);">
+                    <div style="display: flex; align-items: center; justify-content: center; width: 40px; height: 40px; background: rgba(251, 191, 36, 0.15); border-radius: 8px; margin-bottom: 12px; color: #FBBF24;">
+                        <span class="material-icons">emoji_events</span>
                     </div>
-                    <div class="flex items-center gap-2">
-                        <span class="w-2 h-2 bg-green-500 rounded-full"></span>
-                        <span class="text-green-500 text-sm font-medium">Online</span>
+                    <p style="font-size: 12px; color: #999; text-transform: uppercase; margin: 0 0 8px 0; font-weight: 600;">Posição</p>
+                    <p style="font-size: 28px; font-weight: 700; color: white; margin: 0;">${posTexto}</p>
+                </div>
+
+                <!-- Pontos -->
+                <div style="background: rgba(59, 130, 246, 0.08); border: 1px solid rgba(59, 130, 246, 0.3); border-radius: 12px; padding: 16px; backdrop-filter: blur(10px);">
+                    <div style="display: flex; align-items: center; justify-content: center; width: 40px; height: 40px; background: rgba(59, 130, 246, 0.15); border-radius: 8px; margin-bottom: 12px; color: #3B82F6;">
+                        <span class="material-icons">bar_chart</span>
                     </div>
+                    <p style="font-size: 12px; color: #999; text-transform: uppercase; margin: 0 0 8px 0; font-weight: 600;">Pontos</p>
+                    <p style="font-size: 28px; font-weight: 700; color: white; margin: 0;">${pontosFormatados}</p>
+                </div>
+
+                <!-- Saldo -->
+                <div style="background: rgba(34, 197, 94, 0.08); border: 1px solid rgba(34, 197, 94, 0.3); border-radius: 12px; padding: 16px; backdrop-filter: blur(10px);">
+                    <div style="display: flex; align-items: center; justify-content: center; width: 40px; height: 40px; background: rgba(34, 197, 94, 0.15); border-radius: 8px; margin-bottom: 12px; color: #22C55E;">
+                        <span class="material-icons">account_balance_wallet</span>
+                    </div>
+                    <p style="font-size: 12px; color: #999; text-transform: uppercase; margin: 0 0 8px 0; font-weight: 600;">Saldo</p>
+                    <p style="font-size: 28px; font-weight: 700; color: white; margin: 0;">R$ 0</p>
+                </div>
+
+                <!-- Última Rodada -->
+                <div style="background: rgba(249, 115, 22, 0.08); border: 1px solid rgba(249, 115, 22, 0.3); border-radius: 12px; padding: 16px; backdrop-filter: blur(10px);">
+                    <div style="display: flex; align-items: center; justify-content: center; width: 40px; height: 40px; background: rgba(249, 115, 22, 0.15); border-radius: 8px; margin-bottom: 12px; color: #F97316;">
+                        <span class="material-icons">bolt</span>
+                    </div>
+                    <p style="font-size: 12px; color: #999; text-transform: uppercase; margin: 0 0 8px 0; font-weight: 600;">R${rodadaAtual}</p>
+                    <p style="font-size: 28px; font-weight: 700; color: white; margin: 0;">${pontosUltimaRodada}</p>
                 </div>
             </div>
 
-            <div class="p-4 pb-24">
-                <!-- Welcome Message -->
-                <div class="text-center mb-6">
-                    <h2 class="text-2xl font-bold text-white mb-1 flex items-center justify-center gap-2">
-                        <span>⚽</span>
-                        Bem-vindo(a) ao Painel
-                    </h2>
-                    <p class="text-gray-400 text-sm">Acompanhe seu desempenho em tempo real</p>
+            <!-- Seu Desempenho ELEGANTE -->
+            <div style="background: rgba(255, 255, 255, 0.03); border: 1px solid rgba(255, 107, 53, 0.2); border-radius: 12px; padding: 20px; backdrop-filter: blur(10px);">
+                <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 20px;">
+                    <span class="material-icons" style="color: #FF6B35;">insights</span>
+                    <h3 style="font-size: 18px; font-weight: 700; color: white; margin: 0;">Seu Desempenho</h3>
                 </div>
-
-                <!-- Stats Grid -->
-                <div class="grid grid-cols-2 gap-4 mb-6">
-                    <!-- Posição -->
-                    <div class="bg-gradient-to-br from-yellow-500/10 to-yellow-600/5 backdrop-blur-xl rounded-2xl p-4 border border-yellow-500/20">
-                        <div class="text-3xl mb-2">🏆</div>
-                        <div class="text-3xl font-bold text-white mb-1">${posTexto}</div>
-                        <div class="text-yellow-400 text-xs font-semibold uppercase">POSIÇÃO</div>
+                
+                <div style="display: flex; flex-direction: column; gap: 16px;">
+                    <div style="display: flex; justify-content: space-between; align-items: center; padding-bottom: 12px; border-bottom: 1px solid rgba(255, 255, 255, 0.1);">
+                        <span style="font-size: 14px; color: #999;">Posição anterior:</span>
+                        <span style="font-weight: 600; color: white;">${posicaoAnterior}</span>
                     </div>
-
-                    <!-- Pontos -->
-                    <div class="bg-gradient-to-br from-blue-500/10 to-blue-600/5 backdrop-blur-xl rounded-2xl p-4 border border-blue-500/20">
-                        <div class="text-3xl mb-2">📊</div>
-                        <div class="text-3xl font-bold text-white mb-1">${pontosFormatados}</div>
-                        <div class="text-blue-400 text-xs font-semibold uppercase">PONTOS</div>
-                    </div>
-
-                    <!-- Saldo -->
-                    <div class="bg-gradient-to-br from-green-500/10 to-green-600/5 backdrop-blur-xl rounded-2xl p-4 border border-green-500/20">
-                        <div class="text-3xl mb-2">💰</div>
-                        <div class="text-3xl font-bold text-white mb-1">R$ 0</div>
-                        <div class="text-green-400 text-xs font-semibold uppercase">SALDO</div>
-                    </div>
-
-                    <!-- Rodada -->
-                    <div class="bg-gradient-to-br from-purple-500/10 to-purple-600/5 backdrop-blur-xl rounded-2xl p-4 border border-purple-500/20">
-                        <div class="text-3xl mb-2">⚡</div>
-                        <div class="text-3xl font-bold text-white mb-1">${pontosUltimaRodada}</div>
-                        <div class="text-purple-400 text-xs font-semibold uppercase">R-${rodadaAtual}</div>
-                    </div>
-                </div>
-
-                <!-- Seu Desempenho -->
-                <div class="bg-gradient-to-br from-gray-800/40 to-gray-900/40 backdrop-blur-xl rounded-2xl p-5 border border-gray-700/30">
-                    <h3 class="text-white font-bold text-lg mb-4 flex items-center gap-2">
-                        <span>📈</span>
-                        Seu Desempenho
-                    </h3>
                     
-                    <div class="space-y-3">
-                        <div class="flex justify-between items-center text-sm">
-                            <span class="text-gray-400">Posição anterior:</span>
-                            <span class="text-white font-semibold">${posicaoAnterior}</span>
-                        </div>
-                        
-                        <div class="flex justify-between items-center text-sm">
-                            <span class="text-gray-400">Variação:</span>
-                            <span class="text-white font-semibold">${variacao}</span>
-                        </div>
-                        
-                        <div class="flex justify-between items-center text-sm">
-                            <span class="text-gray-400">Tendência:</span>
-                            <div class="flex items-center gap-1">
-                                ${tendencia === 'up' ? '<span class="text-green-500">📈</span>' : 
-                                  tendencia === 'down' ? '<span class="text-red-500">📉</span>' : 
-                                  '<span class="text-gray-400">➡️</span>'}
-                            </div>
+                    <div style="display: flex; justify-content: space-between; align-items: center; padding-bottom: 12px; border-bottom: 1px solid rgba(255, 255, 255, 0.1);">
+                        <span style="font-size: 14px; color: #999;">Variação:</span>
+                        <span style="font-weight: 600; color: white;">${variacao}</span>
+                    </div>
+                    
+                    <div style="display: flex; justify-content: space-between; align-items: center;">
+                        <span style="font-size: 14px; color: #999;">Tendência:</span>
+                        <div style="display: flex; align-items: center; gap: 6px;">
+                            ${tendencia === 'up' ? '<span class="material-icons" style="color: #22C55E; font-size: 20px;">trending_up</span>' : 
+                              tendencia === 'down' ? '<span class="material-icons" style="color: #EF4444; font-size: 20px;">trending_down</span>' : 
+                              '<span class="material-icons" style="color: #6B7280; font-size: 20px;">trending_flat</span>'}
                         </div>
                     </div>
                 </div>
