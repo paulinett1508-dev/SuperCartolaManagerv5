@@ -188,7 +188,7 @@ function renderizarBoasVindas({ posicao, totalParticipantes, pontosTotal, ultima
             </div>
 
             <!-- Card Saldo -->
-            <div class="stat-card-modern stat-balance${saldoFinanceiro < 0 ? ' saldo-negativo' : ''}">
+            <div class="stat-card-modern stat-balance${saldoFinanceiro < 0 ? ' saldo-negativo' : saldoFinanceiro > 0 ? ' saldo-positivo' : ''}">
                 <div class="stat-icon-modern">
                     <span class="material-symbols-outlined" style="font-family: 'Material Symbols Outlined'; font-size: 32px; font-weight: 400;">attach_money</span>
                 </div>
