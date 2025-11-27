@@ -330,14 +330,18 @@ class ParticipanteNavigation {
                 const moduloJS = await import(jsPath);
 
                 // Tenta encontrar e executar uma função de inicialização específica para o módulo
-                const moduloCapitalized = modulo.charAt(0).toUpperCase() + modulo.slice(1);
+                // Converte "boas-vindas" -> "BoasVindas" (camelCase correto)
+                const moduloCamelCase = modulo
+                    .split('-')
+                    .map(part => part.charAt(0).toUpperCase() + part.slice(1))
+                    .join('');
 
                 // Tentar múltiplos padrões de nomenclatura
                 const possibleFunctionNames = [
-                    `inicializar${moduloCapitalized}Participante`,  // padrão completo
-                    `inicializar${moduloCapitalized}`,              // padrão simplificado
-                    `inicializar${modulo}Participante`,          // case original
-                    `inicializar${modulo}`                       // case original simplificado
+                    `inicializar${moduloCamelCase}Participante`,  // inicializarBoasVindasParticipante
+                    `inicializar${moduloCamelCase}`,              // inicializarBoasVindas
+                    `inicializar${modulo}Participante`,           // inicializarboas-vindasParticipante (caso original)
+                    `inicializar${modulo}`                        // inicializarboas-vindas (caso original)
                 ];
 
                 let functionExecuted = false;
