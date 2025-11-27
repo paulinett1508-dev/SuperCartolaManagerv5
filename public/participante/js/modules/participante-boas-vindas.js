@@ -22,6 +22,35 @@ export async function inicializarBoasVindas(ligaIdParam, timeIdParam) {
     await inicializarBoasVindasInterno(ligaId, timeId);
 }
 
+// Função auxiliar para calcular ranking manualmente
+function calcularRankingManual(rodadas) {
+    const timesAgrupados = {};
+    
+    rodadas.forEach(rodada => {
+        const timeId = Number(rodada.timeId) || Number(rodada.time_id);
+        if (!timesAgrupados[timeId]) {
+            timesAgrupados[timeId] = {
+                timeId: timeId,
+                nome_time: rodada.nome_time,
+                nome_cartola: rodada.nome_cartola,
+                pontos_totais: 0,
+                rodadas_jogadas: 0
+            };
+        }
+        timesAgrupados[timeId].pontos_totais += parseFloat(rodada.pontos) || 0;
+        timesAgrupados[timeId].rodadas_jogadas += 1;
+    });
+    
+    const ranking = Object.values(timesAgrupados)
+        .sort((a, b) => b.pontos_totais - a.pontos_totais)
+        .map((time, index) => ({
+            ...time,
+            posicao: index + 1
+        }));
+    
+    return ranking;
+}
+
 window.inicializarBoasVindas = async function(ligaIdParam, timeIdParam) {
     // ✅ GARANTIR que ligaId e timeId sejam strings válidas
     const ligaId = typeof ligaIdParam === 'string' ? ligaIdParam : String(ligaIdParam || '');
@@ -67,6 +96,28 @@ async function inicializarBoasVindasInterno(ligaId, timeId) {
         }, 0);
 
         const ultimaRodada = minhasRodadas.sort((a, b) => b.rodada - a.rodada)[0];
+        const rodadaAtual = ultimaRodada ? ultimaRodada.rodada : 0;
+
+        // Buscar posição anterior (ranking até rodada anterior)
+        let posicaoAnterior = '--';
+        if (rodadaAtual > 1) {
+            try {
+                const resRankingAnterior = await fetch(`/api/ranking-cache/${ligaId}`);
+                if (resRankingAnterior.ok) {
+                    const dataAnterior = await resRankingAnterior.json();
+                    // O cache retorna o ranking até a última rodada, precisamos calcular até rodada anterior
+                    // Vamos buscar as rodadas e calcular manualmente
+                    const rodadasAteAnterior = rodadas.filter(r => r.rodada < rodadaAtual);
+                    const rankingAnterior = calcularRankingManual(rodadasAteAnterior);
+                    const meuTimeAnterior = rankingAnterior.find(t => Number(t.timeId) === meuTimeIdNum);
+                    if (meuTimeAnterior) {
+                        posicaoAnterior = meuTimeAnterior.posicao;
+                    }
+                }
+            } catch (error) {
+                console.warn('[BOAS-VINDAS] Não foi possível buscar posição anterior:', error);
+            }
+        }
 
         const saldoFinanceiro = extratoData?.saldo_atual || extratoData?.resumo?.saldo_final || 0;
 
@@ -79,7 +130,8 @@ async function inicializarBoasVindasInterno(ligaId, timeId) {
             timeData,
             timeId,
             minhasRodadas,
-            saldoFinanceiro
+            saldoFinanceiro,
+            posicaoAnterior
         });
 
     } catch (error) {
@@ -98,7 +150,7 @@ async function inicializarBoasVindasInterno(ligaId, timeId) {
     }
 }
 
-function renderizarBoasVindas({ posicao, totalParticipantes, pontosTotal, ultimaRodada, meuTime, timeData, timeId, minhasRodadas, saldoFinanceiro }) {
+function renderizarBoasVindas({ posicao, totalParticipantes, pontosTotal, ultimaRodada, meuTime, timeData, timeId, minhasRodadas, saldoFinanceiro, posicaoAnterior }) {
     const container = document.getElementById('boas-vindas-container');
     if (!container) return;
 
@@ -122,14 +174,33 @@ function renderizarBoasVindas({ posicao, totalParticipantes, pontosTotal, ultima
     const bgSaldo = saldoFinanceiro > 0 ? 'rgba(34, 197, 94, 0.08)' : saldoFinanceiro < 0 ? 'rgba(239, 68, 68, 0.08)' : 'rgba(107, 114, 128, 0.08)';
     const borderSaldo = saldoFinanceiro > 0 ? 'rgba(34, 197, 94, 0.3)' : saldoFinanceiro < 0 ? 'rgba(239, 68, 68, 0.3)' : 'rgba(107, 114, 128, 0.3)';
 
-    // Cálculo de variação e tendência
+    // Formatar posição anterior e calcular variação de posição
+    const posAnteriorTexto = posicaoAnterior === '--' ? '--' : `${posicaoAnterior}º`;
+    let variacaoPosicao = '';
+    let variacaoPosicaoClass = '';
+    
+    if (posicao !== '--' && posicaoAnterior !== '--') {
+        const diff = posicaoAnterior - posicao; // Se subiu, diff é positivo
+        if (diff > 0) {
+            variacaoPosicao = `▲ ${diff}`;
+            variacaoPosicaoClass = 'positive';
+        } else if (diff < 0) {
+            variacaoPosicao = `▼ ${Math.abs(diff)}`;
+            variacaoPosicaoClass = 'negative';
+        } else {
+            variacaoPosicao = '━';
+            variacaoPosicaoClass = 'stable';
+        }
+    }
+
+    // Cálculo de variação e tendência de pontos
     let variacao = '--';
     let tendencia = 'stable';
-    let variacaoTexto = '--'; // Adicionado para consistência com a variável usada no HTML
-    let variacaoClass = ''; // Adicionado para consistência com a variável usada no HTML
-    let tendenciaClass = ''; // Adicionado para consistência com a variável usada no HTML
-    let tendenciaIcon = ''; // Adicionado para consistência com a variável usada no HTML
-    let tendenciaTexto = ''; // Adicionado para consistência com a variável usada no HTML
+    let variacaoTexto = '--';
+    let variacaoClass = '';
+    let tendenciaClass = '';
+    let tendenciaIcon = '';
+    let tendenciaTexto = '';
 
     if (minhasRodadas.length >= 2) {
         const rodadasOrdenadas = minhasRodadas.sort((a, b) => b.rodada - a.rodada);
@@ -161,8 +232,6 @@ function renderizarBoasVindas({ posicao, totalParticipantes, pontosTotal, ultima
          tendenciaTexto = 'N/D';
          tendenciaClass = 'stable';
     }
-
-    const posicaoAnterior = '--'; // Mantendo como '--' pois não há dados para isso
 
     let statsHTML = ''; // Inicializando statsHTML
 
@@ -217,10 +286,13 @@ function renderizarBoasVindas({ posicao, totalParticipantes, pontosTotal, ultima
             <div class="performance-stats-modern">
                 <div class="performance-item-modern">
                     <span class="performance-label-modern">Posição anterior:</span>
-                    <span class="performance-value-modern">${posicaoAnterior}</span>
+                    <span class="performance-value-modern">
+                        ${posAnteriorTexto}
+                        ${variacaoPosicao ? `<span class="${variacaoPosicaoClass}" style="margin-left: 8px; font-weight: 600;">${variacaoPosicao}</span>` : ''}
+                    </span>
                 </div>
                 <div class="performance-item-modern">
-                    <span class="performance-label-modern">Variação:</span>
+                    <span class="performance-label-modern">Variação pontos:</span>
                     <span class="performance-value-modern ${variacaoClass}">${variacaoTexto}</span>
                 </div>
                 <div class="performance-item-modern">
