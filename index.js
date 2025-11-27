@@ -78,6 +78,10 @@ app.use(
   }),
 );
 
+// Middleware de segurança: bloqueia participantes de acessar admin
+import { bloquearParticipanteDeAdmin } from './middleware/auth.js';
+app.use(bloquearParticipanteDeAdmin);
+
 // Servir arquivos estáticos (Frontend)
 app.use(express.static("public"));
 

@@ -44,7 +44,7 @@ class ParticipanteNavigation {
 
         // Tentar obter dados da sessão
         let tentativas = 0;
-        const maxTentativas = 10;
+        const maxTentativas = 10; // Limite de tentativas para a comunicação API
 
         while (!this.participanteData && tentativas < maxTentativas) {
             try {
@@ -70,12 +70,12 @@ class ParticipanteNavigation {
             }
 
             tentativas++;
-            await new Promise(resolve => setTimeout(resolve, 200));
+            await new Promise(resolve => setTimeout(resolve, 200)); // Espera de 200ms entre tentativas
         }
 
         if (!this.participanteData) {
             console.error('[PARTICIPANTE-NAV] ❌ Não foi possível obter dados do participante');
-            window.location.href = '/participante-login.html';
+            window.location.href = '/participante-login.html'; // Redirecionar para login se falhar
         }
     }
 
@@ -89,12 +89,12 @@ class ParticipanteNavigation {
             }
 
             const liga = await response.json();
-            this.modulosAtivos = liga.configuracao_modulos || {};
+            this.modulosAtivos = liga.configuracao_modulos || {}; // Usa configuração da liga ou objeto vazio
 
             console.log('[PARTICIPANTE-NAV] 📋 Módulos ativos:', this.modulosAtivos);
         } catch (error) {
             console.error('[PARTICIPANTE-NAV] ❌ Erro ao buscar módulos:', error);
-            // Módulos padrão se falhar
+            // Módulos padrão se falhar ao buscar configuração
             this.modulosAtivos = {
                 boas_vindas: true,
                 extrato: true,
@@ -111,7 +111,7 @@ class ParticipanteNavigation {
             return;
         }
 
-        // Definir TODOS os módulos disponíveis
+        // Definir TODOS os módulos disponíveis com suas propriedades
         const todosModulosDisponiveis = [
             { id: 'boas-vindas', icon: '🏠', label: 'Início', config: 'boas_vindas', base: true },
             { id: 'extrato', icon: '💰', label: 'Extrato', config: 'extrato', base: true },
@@ -125,13 +125,13 @@ class ParticipanteNavigation {
             { id: 'luva-ouro', icon: '🧤', label: 'Luva Ouro', config: 'luva_ouro', base: false }
         ];
 
-        // Filtrar apenas módulos ativos
+        // Filtrar apenas os módulos que estão ativos na configuração da liga
         const modulosAtivos = todosModulosDisponiveis.filter(m => this.verificarModuloAtivo(m.config));
 
-        console.log('[PARTICIPANTE-NAV] 📋 Módulos disponíveis:', modulosAtivos.length, 'de', todosModulosDisponiveis.length);
-        console.log('[PARTICIPANTE-NAV] 🔧 Configuração da liga:', this.modulosAtivos);
+        console.log('[PARTICIPANTE-NAV] 📋 Módulos disponíveis para o usuário:', modulosAtivos.length, 'de', todosModulosDisponiveis.length);
+        console.log('[PARTICIPANTE-NAV] 🔧 Configuração da liga recebida:', this.modulosAtivos);
 
-        // Renderizar botões com scroll horizontal
+        // Renderizar os botões de navegação com suporte a scroll horizontal
         bottomNav.innerHTML = modulosAtivos.map(modulo => `
             <button class="nav-item-modern ${modulo.id === 'boas-vindas' ? 'active' : ''}"
                     data-module="${modulo.id}"
@@ -141,60 +141,59 @@ class ParticipanteNavigation {
             </button>
         `).join('');
 
-        // Sempre habilitar scroll horizontal para navegação suave
+        // Habilitar scroll horizontal para navegação suave em dispositivos touch e desktop
         bottomNav.style.overflowX = 'auto';
         bottomNav.style.overflowY = 'hidden';
-        bottomNav.style.webkitOverflowScrolling = 'touch';
-        bottomNav.style.scrollbarWidth = 'thin';
-        
-        console.log('[PARTICIPANTE-NAV] 📱 Menu renderizado com scroll horizontal para', modulosAtivos.length, 'módulos');
+        bottomNav.style.webkitOverflowScrolling = 'touch'; // Para melhor scroll em iOS
+        bottomNav.style.scrollbarWidth = 'thin'; // Para ocultar scrollbar em alguns navegadores
 
-        console.log('[PARTICIPANTE-NAV] ✅ Menu renderizado com', modulosAtivos.length, 'módulos');
+        console.log('[PARTICIPANTE-NAV] ✅ Menu renderizado com scroll horizontal ativado para', modulosAtivos.length, 'módulos');
     }
 
+    // Verifica se um módulo específico está ativo com base na configuração da liga
     verificarModuloAtivo(configKey) {
-        // Módulos base sempre ativos
+        // Módulos base (essenciais) são sempre considerados ativos
         if (['boas_vindas', 'extrato', 'ranking', 'rodadas'].includes(configKey)) {
             return true;
         }
 
-        // Verificar configuração da liga
+        // Para outros módulos, verifica a configuração explícita da liga
         return this.modulosAtivos[configKey] === true;
     }
 
     configurarEventListeners() {
-        const navButtons = document.querySelectorAll('.nav-item-modern');
+        const navButtons = document.querySelectorAll('.nav-item-modern'); // Seleciona todos os botões de navegação
 
         navButtons.forEach(button => {
             button.addEventListener('click', async (e) => {
-                const modulo = button.dataset.module;
-                console.log('[PARTICIPANTE-NAV] 🎯 Clique no módulo:', modulo);
+                const modulo = button.dataset.module; // Obtém o ID do módulo do atributo data-module
+                console.log('[PARTICIPANTE-NAV] 🎯 Clique detectado no módulo:', modulo);
 
-                // Remover active de todos
+                // Remove a classe 'active' de todos os botões para resetar o estilo
                 navButtons.forEach(btn => btn.classList.remove('active'));
 
-                // Adicionar active no clicado
+                // Adiciona a classe 'active' ao botão clicado para feedback visual
                 button.classList.add('active');
 
-                // Navegar
+                // Realiza a navegação para o módulo selecionado
                 await this.navegarPara(modulo);
             });
         });
 
-        console.log('[PARTICIPANTE-NAV] ✅ Event listeners configurados');
+        console.log('[PARTICIPANTE-NAV] ✅ Event listeners de clique configurados nos botões de navegação');
     }
 
     async navegarPara(moduloId) {
-        console.log(`[PARTICIPANTE-NAV] 🧭 Navegando para: ${moduloId}`);
+        console.log(`[PARTICIPANTE-NAV] 🧭 Iniciando navegação para o módulo: ${moduloId}`);
 
-        const container = document.getElementById('moduleContainer');
+        const container = document.getElementById('moduleContainer'); // Container onde o conteúdo do módulo será carregado
         if (!container) {
-            console.error('[PARTICIPANTE-NAV] ❌ Container não encontrado');
-            return;
+            console.error('[PARTICIPANTE-NAV] ❌ Container de módulo não encontrado');
+            return; // Sai da função se o container não existir
         }
 
-        // Feedback visual melhorado
-        const nomeModulo = this.obterNomeModulo(moduloId);
+        // Exibe um estado de carregamento visualmente agradável
+        const nomeModulo = this.obterNomeModulo(moduloId); // Obtém o nome amigável do módulo
         container.innerHTML = `
             <div class="loading-state" style="text-align: center; padding: 80px 20px; min-height: 400px; display: flex; flex-direction: column; align-items: center; justify-content: center;">
                 <div style="position: relative; width: 80px; height: 80px; margin-bottom: 24px;">
@@ -213,42 +212,45 @@ class ParticipanteNavigation {
         `;
 
         try {
-            // Carregar HTML do módulo
+            // Busca o caminho do HTML do módulo a ser carregado
             const htmlPath = this.modulos[moduloId];
             if (!htmlPath) {
-                throw new Error(`Módulo "${moduloId}" não foi encontrado no sistema`);
+                throw new Error(`Módulo "${moduloId}" não foi encontrado no sistema de rotas`);
             }
 
+            // Faz a requisição para obter o conteúdo HTML do módulo
             const response = await fetch(htmlPath);
             if (!response.ok) {
+                // Trata erros específicos como 404
                 if (response.status === 404) {
                     throw new Error(`O módulo "${nomeModulo}" ainda não está disponível`);
                 }
+                // Lança um erro genérico para outros status HTTP
                 throw new Error(`Erro HTTP ${response.status}: ${response.statusText}`);
             }
 
-            const html = await response.text();
-            container.innerHTML = html;
+            const html = await response.text(); // Obtém o HTML como texto
+            container.innerHTML = html; // Insere o HTML no container
 
-            // Carregar e executar JS do módulo
+            // Tenta carregar e executar o script JavaScript associado ao módulo
             await this.carregarModuloJS(moduloId);
 
-            this.moduloAtual = moduloId;
-            console.log(`[PARTICIPANTE-NAV] ✅ Módulo ${moduloId} carregado com sucesso`);
+            this.moduloAtual = moduloId; // Atualiza o módulo atual
+            console.log(`[PARTICIPANTE-NAV] ✅ Módulo ${moduloId} (${nomeModulo}) carregado e renderizado com sucesso`);
 
         } catch (error) {
-            console.error(`[PARTICIPANTE-NAV] ❌ Erro ao carregar ${moduloId}:`, error);
-            
-            // Mensagem de erro mais amigável
+            console.error(`[PARTICIPANTE-NAV] ❌ Erro crítico ao carregar o módulo ${moduloId}:`, error);
+
+            // Exibe uma mensagem de erro amigável para o usuário
             const mensagemErro = this.obterMensagemErroAmigavel(error);
-            
+
             container.innerHTML = `
                 <div style="text-align: center; padding: 60px 20px; max-width: 500px; margin: 0 auto;">
                     <div style="background: linear-gradient(135deg, rgba(239, 68, 68, 0.1), rgba(239, 68, 68, 0.05)); border-radius: 16px; padding: 40px; border: 2px solid rgba(239, 68, 68, 0.2);">
                         <div style="font-size: 64px; margin-bottom: 20px; filter: drop-shadow(0 4px 8px rgba(239, 68, 68, 0.2));">⚠️</div>
                         <h3 style="color: #dc2626; margin-bottom: 16px; font-size: 20px; font-weight: 600;">Ops! Algo deu errado</h3>
                         <p style="color: #666; margin-bottom: 24px; line-height: 1.6;">${mensagemErro}</p>
-                        <button onclick="window.participanteNav.navegarPara('boas-vindas')" 
+                        <button onclick="window.participanteNav.navegarPara('boas-vindas')"
                                 style="background: #ff4500; color: white; border: none; padding: 12px 24px; border-radius: 8px; cursor: pointer; font-weight: 600; transition: all 0.3s;">
                             Voltar ao Início
                         </button>
@@ -258,6 +260,7 @@ class ParticipanteNavigation {
         }
     }
 
+    // Retorna o nome amigável de um módulo com base no seu ID
     obterNomeModulo(moduloId) {
         const nomes = {
             'boas-vindas': 'Boas-Vindas',
@@ -271,30 +274,35 @@ class ParticipanteNavigation {
             'artilheiro': 'Artilheiro Campeão',
             'luva-ouro': 'Luva de Ouro'
         };
-        return nomes[moduloId] || moduloId;
+        return nomes[moduloId] || moduloId; // Retorna o nome mapeado ou o próprio ID se não encontrado
     }
 
+    // Gera uma mensagem de erro mais compreensível para o usuário
     obterMensagemErroAmigavel(error) {
-        const mensagem = error.message.toLowerCase();
-        
+        const mensagem = error.message.toLowerCase(); // Converte a mensagem de erro para minúsculas
+
+        // Mensagens específicas para erros comuns
         if (mensagem.includes('não foi encontrado') || mensagem.includes('404')) {
-            return 'Este módulo ainda não está disponível. Entre em contato com o administrador da liga.';
+            return 'Este módulo ainda não está disponível. Entre em contato com o administrador da liga para mais informações.';
         }
-        
+
         if (mensagem.includes('network') || mensagem.includes('fetch')) {
-            return 'Falha na conexão. Verifique sua internet e tente novamente.';
+            return 'Falha na conexão com o servidor. Por favor, verifique sua conexão com a internet e tente novamente.';
         }
-        
+
         if (mensagem.includes('timeout')) {
-            return 'A requisição demorou muito. Tente novamente em alguns instantes.';
+            return 'A requisição para carregar o módulo demorou muito. Tente novamente em alguns instantes.';
         }
-        
-        return error.message || 'Ocorreu um erro inesperado. Tente novamente.';
+
+        // Mensagem genérica para outros erros
+        return error.message || 'Ocorreu um erro inesperado. Por favor, tente novamente mais tarde.';
     }
 
+    // Carrega e executa o script JavaScript de um módulo específico
     async carregarModuloJS(modulo) {
-        console.log(`[PARTICIPANTE-NAV] 📦 Importando módulo JS: ${modulo}`);
+        console.log(`[PARTICIPANTE-NAV] 📦 Tentando importar o módulo JS: ${modulo}`);
 
+        // Mapeamento dos módulos para seus respectivos arquivos JS
         const modulosPaths = {
             'boas-vindas': '/participante/js/modules/participante-boas-vindas.js',
             'extrato': '/participante/js/modules/participante-extrato.js',
@@ -308,40 +316,48 @@ class ParticipanteNavigation {
             'luva-ouro': '/participante/js/modules/participante-luva-ouro.js'
         };
 
-        if (modulosPaths[modulo]) {
+        const jsPath = modulosPaths[modulo]; // Obtém o caminho do arquivo JS
+        if (jsPath) { // Se o caminho for encontrado
             try {
-                const moduloJS = await import(modulosPaths[modulo]);
+                // Importa o módulo dinamicamente
+                const moduloJS = await import(jsPath);
 
-                // Tentar executar função de inicialização se existir
+                // Tenta encontrar e executar uma função de inicialização específica para o módulo
+                // O nome da função é construído dinamicamente para seguir um padrão:
+                // Ex: 'boas-vindas' -> 'inicializarBoasVindasParticipante'
                 const initFunctionName = `inicializar${modulo.charAt(0).toUpperCase() + modulo.slice(1).replace(/-([a-z])/g, (g) => g[1].toUpperCase())}Participante`;
 
-                if (moduloJS[initFunctionName]) {
+                if (moduloJS[initFunctionName]) { // Verifica se a função de inicialização existe no módulo importado
+                    // Chama a função de inicialização, passando os dados do participante se necessário
                     await moduloJS[initFunctionName](this.participanteData);
-                    console.log(`[PARTICIPANTE-NAV] ✅ ${initFunctionName} executado`);
+                    console.log(`[PARTICIPANTE-NAV] ✅ Função de inicialização '${initFunctionName}' executada com sucesso.`);
                 } else {
-                    console.log(`[PARTICIPANTE-NAV] ℹ️Função de inicialização não encontrada para ${modulo}`);
+                    // Informa se a função de inicialização não foi encontrada, o que pode ser normal
+                    console.log(`[PARTICIPANTE-NAV] ℹ️ Função de inicialização '${initFunctionName}' não encontrada no módulo ${modulo}. Ignorando.`);
                 }
             } catch (error) {
-                console.error(`[PARTICIPANTE-NAV] ❌ Erro ao importar ${modulo}:`, error);
-                throw error;
+                console.error(`[PARTICIPANTE-NAV] ❌ Erro ao importar ou executar o módulo JS '${jsPath}':`, error);
+                throw error; // Re-lança o erro para ser tratado pela lógica de navegação
             }
+        } else {
+            console.log(`[PARTICIPANTE-NAV] ℹ️ Nenhum arquivo JS associado ao módulo '${modulo}'. Ignorando carregamento de JS.`);
         }
     }
 }
 
-// Instância global
+// Cria uma instância global da classe ParticipanteNavigation
 const participanteNav = new ParticipanteNavigation();
 
-// Inicializar quando DOM estiver pronto
-if (document.readyState === 'loading') {
+// Adiciona um listener para inicializar a navegação quando o DOM estiver completamente carregado
+if (document.readyState === 'loading') { // Verifica se o DOM ainda está sendo carregado
     document.addEventListener('DOMContentLoaded', async () => {
-        await participanteNav.inicializar();
+        await participanteNav.inicializar(); // Inicializa a navegação
     });
-} else {
-    participanteNav.inicializar();
+} else { // Se o DOM já estiver pronto
+    participanteNav.inicializar(); // Inicializa a navegação diretamente
 }
 
-// Exportar para uso global
+// Expõe a instância globalmente para que possa ser acessada de outros scripts, se necessário
 window.participanteNav = participanteNav;
 
-console.log('[PARTICIPANTE-NAV] ✅ Sistema de navegação carregado');
+console.log('[PARTICIPANTE-NAV] ✅ Sistema de navegação do participante inicializado e pronto.');

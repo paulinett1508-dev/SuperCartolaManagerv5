@@ -16,6 +16,8 @@ export class MelhorMesUI {
       loading: "loadingMelhorMes",
       exportBtn: "melhorMesExportBtnContainer",
     };
+    // Carregar configuração da liga (assumindo que está disponível globalmente ou via import)
+    this.config = window.ligaConfig || MELHOR_MES_CONFIG; // Exemplo: carregar de window ou usar config default
   }
 
   // RENDERIZAR INTERFACE COMPLETA
@@ -79,7 +81,7 @@ export class MelhorMesUI {
     }
 
     return `
-      <div id="edicao-card-${index}" 
+      <div id="edicao-card-${index}"
            data-edicao="${index}"
            class="edicao-card ${statusClass} ${isAtiva ? "selecionada" : ""}">
 
@@ -144,6 +146,7 @@ export class MelhorMesUI {
 
     // Tabela compacta seguindo padrão do sistema
     const temPremios = dados.premios && dados.premios.primeiro.valor > 0;
+    const ligaId = window.ligaAtual?.id || ""; // Assume que ligaId está disponível globalmente
 
     container.innerHTML = `
       <table class="tabela-melhor-mes">
@@ -157,7 +160,7 @@ export class MelhorMesUI {
           </tr>
         </thead>
         <tbody>
-          ${dados.ranking.map((time, index) => this.criarLinhaRankingPadrao(time, index, dados, temPremios)).join("")}
+          ${dados.ranking.map((time, index) => this.criarLinhaRankingPadrao(time, index, dados, temPremios, ligaId)).join("")}
         </tbody>
       </table>
     `;
@@ -192,7 +195,7 @@ export class MelhorMesUI {
   }
 
   // CRIAR LINHA RANKING COMPACTA
-  criarLinhaRankingPadrao(time, index, dados, temPremios) {
+  criarLinhaRankingPadrao(time, index, dados, temPremios, ligaId) {
     const posicao = index + 1;
     const isPrimeiro = posicao === 1;
 
@@ -217,17 +220,22 @@ export class MelhorMesUI {
         <td style="text-align: center;">
           <span class="pontos-destaque">${time.pontos.toFixed(2)}</span>
         </td>
-        ${temPremios ? this.criarColunaPremio(isPrimeiro, dados) : ""}
+        ${temPremios ? this.criarColunaPremio(isPrimeiro, dados, ligaId) : ""}
       </tr>
     `;
   }
 
   // CRIAR COLUNA PRÊMIO
-  criarColunaPremio(isPrimeiro, dados) {
+  criarColunaPremio(isPrimeiro, dados, ligaId) {
     if (!dados.premios) return "<td>-</td>";
 
     if (isPrimeiro) {
-      return `<td style="text-align: center; color: ${dados.premios.primeiro.cor}; font-weight: 600;">${dados.premios.primeiro.label}</td>`;
+      // ✅ Busca da configuração da liga (vinda do backend)
+      const premioConfig = this.config.premios[ligaId] || this.config.premios.default;
+
+      return `<td style="color: ${premioConfig.primeiro.cor}">
+                ${premioConfig.primeiro.label}
+            </td>`;
     }
 
     return "<td>-</td>";
@@ -280,7 +288,7 @@ export class MelhorMesUI {
       };
     } else if (dados.concluida) {
       return {
-        cor: "#22c55e",
+        cor: "#2196f3",
         icone: "✅",
         texto: "Concluída",
       };

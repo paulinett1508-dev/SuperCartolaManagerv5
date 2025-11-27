@@ -77,3 +77,18 @@ export function isRotaAdmin(url) {
 export function isRotaParticipante(url) {
   return ROTAS_PARTICIPANTE.some(rota => url.includes(rota));
 }
+
+
+/**
+ * Middleware que BLOQUEIA participantes de acessar rotas admin
+ */
+export function bloquearParticipanteDeAdmin(req, res, next) {
+  const isRotaAdmin = ROTAS_ADMIN.some(rota => req.path.includes(rota));
+  
+  if (isRotaAdmin && req.session?.participante) {
+    console.log('[AUTH] 🚫 Participante tentou acessar rota admin:', req.path);
+    return res.redirect('/participante-login.html');
+  }
+  
+  next();
+}
