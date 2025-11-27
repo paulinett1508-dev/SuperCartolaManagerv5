@@ -117,18 +117,18 @@ class ParticipanteNavigation {
             return;
         }
 
-        // Definir TODOS os módulos disponíveis com suas propriedades
+        // Definir TODOS os módulos disponíveis com suas propriedades e ícones Material Symbols
         const todosModulosDisponiveis = [
-            { id: 'boas-vindas', icon: '🏠', label: 'Início', config: 'extrato', base: true },
-            { id: 'extrato', icon: '💰', label: 'Extrato', config: 'extrato', base: true },
-            { id: 'ranking', icon: '📊', label: 'Ranking', config: 'ranking', base: true },
-            { id: 'rodadas', icon: '🎯', label: 'Rodadas', config: 'rodadas', base: true },
-            { id: 'top10', icon: '🔟', label: 'Top 10', config: 'top10', base: false },
-            { id: 'melhor-mes', icon: '📅', label: 'Melhor Mês', config: 'melhorMes', base: false },
-            { id: 'pontos-corridos', icon: '🔄', label: 'P. Corridos', config: 'pontosCorridos', base: false },
-            { id: 'mata-mata', icon: '⚔️', label: 'Mata-Mata', config: 'mataMata', base: false },
-            { id: 'artilheiro', icon: '⚽', label: 'Artilheiro', config: 'artilheiro', base: false },
-            { id: 'luva-ouro', icon: '🧤', label: 'Luva Ouro', config: 'luvaOuro', base: false }
+            { id: 'boas-vindas', icon: 'home', label: 'Início', config: 'extrato', base: true },
+            { id: 'extrato', icon: 'payments', label: 'Extrato', config: 'extrato', base: true },
+            { id: 'ranking', icon: 'bar_chart', label: 'Ranking', config: 'ranking', base: true },
+            { id: 'rodadas', icon: 'target', label: 'Rodadas', config: 'rodadas', base: true },
+            { id: 'top10', icon: 'format_list_numbered', label: 'Top 10', config: 'top10', base: false },
+            { id: 'melhor-mes', icon: 'calendar_month', label: 'Melhor Mês', config: 'melhorMes', base: false },
+            { id: 'pontos-corridos', icon: 'sync', label: 'P. Corridos', config: 'pontosCorridos', base: false },
+            { id: 'mata-mata', icon: 'swords', label: 'Mata-Mata', config: 'mataMata', base: false },
+            { id: 'artilheiro', icon: 'sports_soccer', label: 'Artilheiro', config: 'artilheiro', base: false },
+            { id: 'luva-ouro', icon: 'front_hand', label: 'Luva Ouro', config: 'luvaOuro', base: false }
         ];
 
         // Filtrar apenas os módulos que estão ativos na configuração da liga
@@ -137,12 +137,13 @@ class ParticipanteNavigation {
         console.log('[PARTICIPANTE-NAV] 📋 Módulos disponíveis para o usuário:', modulosAtivos.length, 'de', todosModulosDisponiveis.length);
         console.log('[PARTICIPANTE-NAV] 🔧 Configuração da liga recebida:', this.modulosAtivos);
 
-        // Renderizar os botões de navegação com suporte a scroll horizontal
+        // Renderizar os botões de navegação com ícones Material Symbols
         bottomNav.innerHTML = modulosAtivos.map(modulo => `
             <button class="nav-item-modern ${modulo.id === 'boas-vindas' ? 'active' : ''}"
                     data-module="${modulo.id}"
+                    data-icon="${modulo.icon}"
                     title="${modulo.label}">
-                <span class="nav-icon-modern">${modulo.icon}</span>
+                <span class="material-symbols-outlined nav-icon-modern">${modulo.icon}</span>
                 <span class="nav-label-modern">${modulo.label}</span>
             </button>
         `).join('');
