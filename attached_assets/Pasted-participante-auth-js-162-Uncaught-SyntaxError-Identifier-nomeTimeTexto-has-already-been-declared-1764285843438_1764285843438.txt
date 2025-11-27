@@ -1,0 +1,65 @@
+participante-auth.js:162  Uncaught SyntaxError: Identifier 'nomeTimeTexto' has already been declared (at participante-auth.js:162:19)
+participante-navigation.js:2 [PARTICIPANTE-NAV] 🚀 Carregando sistema de navegação...
+participante-navigation.js:401 [PARTICIPANTE-NAV] ✅ Sistema de navegação do participante inicializado e pronto.
+participante-status.js:3 [PARTICIPANTE-STATUS] Carregando sistema de status...
+participante-status.js:144 [PARTICIPANTE-STATUS] ✅ Sistema carregado
+cache-manager.js:439 ✅ [CACHE-MANAGER] Sistema de cache inteligente carregado
+participante-navigation.js:24 [PARTICIPANTE-NAV] Inicializando navegação...
+participante-navigation.js:43 [PARTICIPANTE-NAV] Aguardando dados do participante...
+cache-manager.js:50 ✅ [CACHE-MANAGER] IndexedDB inicializado
+participante-navigation.js:64 [PARTICIPANTE-NAV] ✅ Dados obtidos: {timeId: '13935277', ligaId: '684cb1c8af923da7c7df51de', nomeCartola: 'N/D', nomeTime: 'N/D'}
+participante-navigation.js:83 [PARTICIPANTE-NAV] 🔍 Buscando configuração de módulos...
+participante-navigation.js:95 [PARTICIPANTE-NAV] 📋 Módulos ativos recebidos: {extrato: true, ranking: true, rodadas: true, top10: true, melhorMes: true, …}
+participante-navigation.js:137 [PARTICIPANTE-NAV] 📋 Módulos disponíveis para o usuário: 8 de 10
+participante-navigation.js:138 [PARTICIPANTE-NAV] 🔧 Configuração da liga recebida: {extrato: true, ranking: true, rodadas: true, top10: true, melhorMes: true, …}
+participante-navigation.js:156 [PARTICIPANTE-NAV] ✅ Menu renderizado com scroll horizontal ativado para 8 módulos
+participante-navigation.js:190 [PARTICIPANTE-NAV] ✅ Event listeners de clique configurados nos botões de navegação
+participante-navigation.js:194 [PARTICIPANTE-NAV] 🧭 Iniciando navegação para o módulo: boas-vindas
+participante-navigation.js:310 [PARTICIPANTE-NAV] 📦 Tentando importar o módulo JS: boas-vindas
+participante-boas-vindas.js:4 [BOAS-VINDAS] 🚀 Carregando módulo...
+participante-boas-vindas.js:192 [BOAS-VINDAS] ✅ Módulo carregado
+participante-navigation.js:350 [PARTICIPANTE-NAV] 🚀 Executando função: inicializarBoasVindas()
+participante-boas-vindas.js:7 [BOAS-VINDAS] Inicializando para time undefined na liga [object Object]
+participante-status.js:106 [PARTICIPANTE-STATUS] 🟢 Online
+participante-boas-vindas.js:20   GET https://e1034b6e-dfb9-401a-8e7f-80ffa6030f79-00-2dc692elmitoe.spock.replit.dev/api/rodadas/[object%20Object]/rodadas?inicio=1&fim=38 502 (Bad Gateway)
+inicializarBoasVindasInterno @ participante-boas-vindas.js:20
+inicializarBoasVindas @ participante-boas-vindas.js:8
+carregarModuloJS @ participante-navigation.js:355
+await in carregarModuloJS
+navegarPara @ participante-navigation.js:243
+await in navegarPara
+inicializar @ participante-navigation.js:39
+await in inicializar
+(anônimo) @ participante-navigation.js:392
+participante-boas-vindas.js:19   GET https://e1034b6e-dfb9-401a-8e7f-80ffa6030f79-00-2dc692elmitoe.spock.replit.dev/api/ligas/[object%20Object]/ranking 502 (Bad Gateway)
+inicializarBoasVindasInterno @ participante-boas-vindas.js:19
+inicializarBoasVindas @ participante-boas-vindas.js:8
+carregarModuloJS @ participante-navigation.js:355
+await in carregarModuloJS
+navegarPara @ participante-navigation.js:243
+await in navegarPara
+inicializar @ participante-navigation.js:39
+await in inicializar
+(anônimo) @ participante-navigation.js:392
+participante-boas-vindas.js:21   GET https://e1034b6e-dfb9-401a-8e7f-80ffa6030f79-00-2dc692elmitoe.spock.replit.dev/api/times/undefined 502 (Bad Gateway)
+inicializarBoasVindasInterno @ participante-boas-vindas.js:21
+inicializarBoasVindas @ participante-boas-vindas.js:8
+carregarModuloJS @ participante-navigation.js:355
+await in carregarModuloJS
+navegarPara @ participante-navigation.js:243
+await in navegarPara
+inicializar @ participante-navigation.js:39
+await in inicializar
+(anônimo) @ participante-navigation.js:392
+participante-boas-vindas.js:22   GET https://e1034b6e-dfb9-401a-8e7f-80ffa6030f79-00-2dc692elmitoe.spock.replit.dev/api/fluxo-financeiro/[object%20Object]/extrato/undefined 502 (Bad Gateway)
+inicializarBoasVindasInterno @ participante-boas-vindas.js:22
+inicializarBoasVindas @ participante-boas-vindas.js:8
+carregarModuloJS @ participante-navigation.js:355
+await in carregarModuloJS
+navegarPara @ participante-navigation.js:243
+await in navegarPara
+inicializar @ participante-navigation.js:39
+await in inicializar
+(anônimo) @ participante-navigation.js:392
+participante-navigation.js:364 [PARTICIPANTE-NAV] ✅ Função inicializarBoasVindas() executada com sucesso
+participante-navigation.js:246 [PARTICIPANTE-NAV] ✅ Módulo boas-vindas (Boas-Vindas) carregado e renderizado com sucesso
