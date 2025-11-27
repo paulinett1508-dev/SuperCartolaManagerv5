@@ -79,12 +79,15 @@ app.use(
   }),
 );
 
-// Middleware de segurança: bloqueia participantes de acessar admin
-import { bloquearParticipanteDeAdmin } from './middleware/auth.js';
-app.use(bloquearParticipanteDeAdmin);
-
-// Servir arquivos estáticos (Frontend)
+// Servir arquivos estáticos (Frontend) - ANTES de qualquer autenticação
 app.use(express.static("public"));
+
+// Middleware de segurança: bloqueia participantes de acessar admin
+// Aplicado APENAS às rotas da API, não aos arquivos estáticos
+import { bloquearParticipanteDeAdmin } from './middleware/auth.js';
+
+// Aplicar bloqueio de participante apenas nas rotas da API (não em arquivos estáticos)
+app.use('/api', bloquearParticipanteDeAdmin);
 
 // Rotas da API
 app.use("/api/ligas", ligaRoutes);
