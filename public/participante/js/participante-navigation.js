@@ -89,17 +89,23 @@ class ParticipanteNavigation {
             }
 
             const liga = await response.json();
-            this.modulosAtivos = liga.configuracao_modulos || {}; // Usa configuração da liga ou objeto vazio
+            // ✅ USAR O CAMPO CORRETO: modulos_ativos
+            this.modulosAtivos = liga.modulos_ativos || {}; 
 
-            console.log('[PARTICIPANTE-NAV] 📋 Módulos ativos:', this.modulosAtivos);
+            console.log('[PARTICIPANTE-NAV] 📋 Módulos ativos recebidos:', this.modulosAtivos);
         } catch (error) {
             console.error('[PARTICIPANTE-NAV] ❌ Erro ao buscar módulos:', error);
             // Módulos padrão se falhar ao buscar configuração
             this.modulosAtivos = {
-                boas_vindas: true,
                 extrato: true,
                 ranking: true,
-                rodadas: true
+                rodadas: true,
+                top10: false,
+                melhorMes: false,
+                pontosCorridos: false,
+                mataMata: false,
+                artilheiro: false,
+                luvaOuro: false
             };
         }
     }
@@ -113,16 +119,16 @@ class ParticipanteNavigation {
 
         // Definir TODOS os módulos disponíveis com suas propriedades
         const todosModulosDisponiveis = [
-            { id: 'boas-vindas', icon: '🏠', label: 'Início', config: 'boas_vindas', base: true },
+            { id: 'boas-vindas', icon: '🏠', label: 'Início', config: 'extrato', base: true },
             { id: 'extrato', icon: '💰', label: 'Extrato', config: 'extrato', base: true },
             { id: 'ranking', icon: '📊', label: 'Ranking', config: 'ranking', base: true },
             { id: 'rodadas', icon: '🎯', label: 'Rodadas', config: 'rodadas', base: true },
             { id: 'top10', icon: '🔟', label: 'Top 10', config: 'top10', base: false },
-            { id: 'melhor-mes', icon: '📅', label: 'Melhor Mês', config: 'melhor_mes', base: false },
-            { id: 'pontos-corridos', icon: '🔄', label: 'P. Corridos', config: 'pontos_corridos', base: false },
-            { id: 'mata-mata', icon: '⚔️', label: 'Mata-Mata', config: 'mata_mata', base: false },
+            { id: 'melhor-mes', icon: '📅', label: 'Melhor Mês', config: 'melhorMes', base: false },
+            { id: 'pontos-corridos', icon: '🔄', label: 'P. Corridos', config: 'pontosCorridos', base: false },
+            { id: 'mata-mata', icon: '⚔️', label: 'Mata-Mata', config: 'mataMata', base: false },
             { id: 'artilheiro', icon: '⚽', label: 'Artilheiro', config: 'artilheiro', base: false },
-            { id: 'luva-ouro', icon: '🧤', label: 'Luva Ouro', config: 'luva_ouro', base: false }
+            { id: 'luva-ouro', icon: '🧤', label: 'Luva Ouro', config: 'luvaOuro', base: false }
         ];
 
         // Filtrar apenas os módulos que estão ativos na configuração da liga
@@ -152,12 +158,13 @@ class ParticipanteNavigation {
 
     // Verifica se um módulo específico está ativo com base na configuração da liga
     verificarModuloAtivo(configKey) {
-        // Módulos base (essenciais) são sempre considerados ativos
-        if (['boas_vindas', 'extrato', 'ranking', 'rodadas'].includes(configKey)) {
-            return true;
+        // Se não houver configuração carregada, permitir apenas módulos base
+        if (!this.modulosAtivos || Object.keys(this.modulosAtivos).length === 0) {
+            return ['extrato', 'ranking', 'rodadas'].includes(configKey);
         }
 
-        // Para outros módulos, verifica a configuração explícita da liga
+        // Verificar configuração explícita da liga
+        // Se não estiver definido, assume false para módulos opcionais
         return this.modulosAtivos[configKey] === true;
     }
 
