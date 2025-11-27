@@ -234,19 +234,54 @@ function renderizarBoasVindas({ posicao, totalParticipantes, pontosTotal, ultima
     `;
 
     container.innerHTML = `
-        <div style="background: #1a1a1a; min-height: 100vh; padding: 16px; padding-bottom: 120px;">
-            <!-- Seção de Boas-vindas PROFISSIONAL -->
-            <section style="text-align: center; margin-bottom: 32px;">
-                <div style="display: flex; align-items: center; justify-content: center; gap: 8px; margin-bottom: 8px;">
-                    <span class="material-symbols-outlined" style="font-family: 'Material Symbols Outlined'; font-size: 28px; font-weight: 400; color: #FF6B35;">sports_soccer</span>
-                    <h2 style="font-size: 24px; font-weight: 700; color: white; margin: 0;">Bem-vindo(a) ao Painel</h2>
-                </div>
-                <p style="font-size: 14px; color: #999; margin: 0;">Acompanhe seu desempenho em tempo real</p>
-            </section>
+        <div style="background: linear-gradient(180deg, #0a0a0a 0%, #1a1a1a 100%); min-height: 100vh; padding: 20px 16px 120px; position: relative; overflow-x: hidden;">
+            
+            <!-- Efeito de glow sutil no topo -->
+            <div style="position: absolute; top: 0; left: 50%; transform: translateX(-50%); width: 80%; height: 150px; background: radial-gradient(ellipse at center, rgba(255, 69, 0, 0.15) 0%, transparent 70%); pointer-events: none; z-index: 0;"></div>
+            
+            <!-- Container com z-index -->
+            <div style="position: relative; z-index: 1;">
+                <!-- Seção de Boas-vindas PREMIUM -->
+                <section style="text-align: center; margin-bottom: 32px; animation: fadeInDown 0.6s ease-out;">
+                    <div style="display: inline-flex; align-items: center; justify-content: center; gap: 12px; margin-bottom: 12px; padding: 12px 24px; background: linear-gradient(135deg, rgba(255, 69, 0, 0.1) 0%, rgba(255, 107, 53, 0.05) 100%); border-radius: 50px; border: 1px solid rgba(255, 69, 0, 0.2); backdrop-filter: blur(10px);">
+                        <span style="font-size: 28px; animation: bounce 2s infinite;">⚽</span>
+                        <h2 style="font-size: 22px; font-weight: 800; background: linear-gradient(135deg, #fff 0%, #FF6B35 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; margin: 0; letter-spacing: -0.5px;">Bem-vindo ao Painel</h2>
+                    </div>
+                    <p style="font-size: 14px; color: #999; margin: 0; font-weight: 500;">Acompanhe seu desempenho em tempo real</p>
+                </section>
 
-            ${statsHTML}
-
+                ${statsHTML}
+            </div>
         </div>
+        
+        <style>
+            @keyframes fadeInDown {
+                from {
+                    opacity: 0;
+                    transform: translateY(-20px);
+                }
+                to {
+                    opacity: 1;
+                    transform: translateY(0);
+                }
+            }
+            
+            @keyframes bounce {
+                0%, 100% { transform: translateY(0); }
+                50% { transform: translateY(-5px); }
+            }
+            
+            @keyframes fadeInUp {
+                from {
+                    opacity: 0;
+                    transform: translateY(20px);
+                }
+                to {
+                    opacity: 1;
+                    transform: translateY(0);
+                }
+            }
+        </style>
     `;
 }
 
