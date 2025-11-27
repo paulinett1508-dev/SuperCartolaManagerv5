@@ -3,13 +3,43 @@
 
 console.log('[BOAS-VINDAS] 🚀 Carregando módulo...');
 
-export async function inicializarBoasVindas(ligaId, timeId) {
+export async function inicializarBoasVindas(ligaIdParam, timeIdParam) {
+    // ✅ GARANTIR que ligaId e timeId sejam strings válidas
+    const ligaId = typeof ligaIdParam === 'string' ? ligaIdParam : String(ligaIdParam || '');
+    const timeId = typeof timeIdParam === 'string' ? timeIdParam : String(timeIdParam || '');
+    
     console.log(`[BOAS-VINDAS] Inicializando para time ${timeId} na liga ${ligaId}`);
+    
+    if (!ligaId || ligaId === '[object Object]') {
+        console.error('[BOAS-VINDAS] ❌ Liga ID inválido:', ligaIdParam);
+        return;
+    }
+    
+    if (!timeId || timeId === 'undefined') {
+        console.error('[BOAS-VINDAS] ❌ Time ID inválido:', timeIdParam);
+        return;
+    }
+    
     await inicializarBoasVindasInterno(ligaId, timeId);
 }
 
-window.inicializarBoasVindas = async function(ligaId, timeId) {
+window.inicializarBoasVindas = async function(ligaIdParam, timeIdParam) {
+    // ✅ GARANTIR que ligaId e timeId sejam strings válidas
+    const ligaId = typeof ligaIdParam === 'string' ? ligaIdParam : String(ligaIdParam || '');
+    const timeId = typeof timeIdParam === 'string' ? timeIdParam : String(timeIdParam || '');
+    
     console.log(`[BOAS-VINDAS] Inicializando para time ${timeId} na liga ${ligaId}`);
+    
+    if (!ligaId || ligaId === '[object Object]') {
+        console.error('[BOAS-VINDAS] ❌ Liga ID inválido:', ligaIdParam);
+        return;
+    }
+    
+    if (!timeId || timeId === 'undefined') {
+        console.error('[BOAS-VINDAS] ❌ Time ID inválido:', timeIdParam);
+        return;
+    }
+    
     await inicializarBoasVindasInterno(ligaId, timeId);
 }
 
