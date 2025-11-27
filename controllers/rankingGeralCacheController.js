@@ -178,20 +178,10 @@ export async function invalidarCacheRanking(req, res) {
   }
 }
 
-// Mock implementation of calcularRankingCompleto for the new getRankingRodada
-// In a real scenario, this would be the actual calculation logic.
-async function calcularRankingCompleto(ligaId, rodada) {
-    // This is a placeholder. Replace with actual ranking calculation logic.
-    console.log(`Calculating complete ranking for liga ${ligaId}, rodada ${rodada}`);
-    // Simulate some data
-    return {
-        ligaId: ligaId,
-        rodada: rodada,
-        ranking: [
-            { timeId: "team1", nome_cartola: "Cartola1", nome_time: "Time A", escudo: "escudoA.png", clube_id: 1, pontos_totais: 100, rodadas_jogadas: 5, posicao: 1 },
-            { timeId: "team2", nome_cartola: "Cartola2", nome_time: "Time B", escudo: "escudoB.png", clube_id: 2, pontos_totais: 90, rodadas_jogadas: 5, posicao: 2 }
-        ]
-    };
+// Função para calcular ranking completo de uma rodada específica
+export async function calcularRankingCompleto(ligaId, rodadaFinal) {
+    console.log(`[RANKING-COMPLETO] Calculando ranking até rodada ${rodadaFinal} da liga ${ligaId}`);
+    return await calcularRankingConsolidado(ligaId, rodadaFinal);
 }
 
 // New function to integrate snapshot system
