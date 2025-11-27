@@ -437,6 +437,26 @@ body {
 .stat-balance .stat-icon-modern { color: #22C55E; }
 .stat-r35 .stat-icon-modern { color: #FF6B35; }
 
+/* Card de saldo negativo com gradiente avermelhado */
+.stat-balance.saldo-negativo {
+    background: linear-gradient(135deg, rgba(239, 68, 68, 0.12) 0%, rgba(220, 38, 38, 0.08) 100%);
+    border: 1px solid rgba(239, 68, 68, 0.2);
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4), 0 2px 8px rgba(239, 68, 68, 0.15);
+}
+
+.stat-balance.saldo-negativo::before {
+    background: linear-gradient(90deg, #EF4444 0%, #DC2626 100%);
+}
+
+.stat-balance.saldo-negativo .stat-icon-modern {
+    color: #EF4444;
+}
+
+.stat-balance.saldo-negativo .stat-value-modern {
+    color: #FCA5A5;
+    text-shadow: 0 2px 12px rgba(239, 68, 68, 0.2);
+}
+
 /* Card de Performance */
 .performance-card-modern {
     background: linear-gradient(135deg, rgba(26, 26, 26, 0.95) 0%, rgba(42, 42, 42, 0.9) 100%);
