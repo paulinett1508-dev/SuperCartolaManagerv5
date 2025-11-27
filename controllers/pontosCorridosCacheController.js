@@ -76,3 +76,24 @@ export const lerCachePontosCorridos = async (req, res) => {
         res.status(500).json({ error: "Erro interno" });
     }
 };
+
+// ✅ FUNÇÃO PARA OBTER CONFRONTOS DE PONTOS CORRIDOS (para consolidação)
+export const obterConfrontosPontosCorridos = async (ligaId, rodada) => {
+    try {
+        const cache = await PontosCorridosCache.findOne({ 
+            liga_id: ligaId, 
+            rodada_consolidada: rodada 
+        });
+
+        if (cache && cache.classificacao) {
+            console.log(`[CONSOLIDAÇÃO] ✅ Carregando confrontos pontos corridos: Liga ${ligaId}, R${rodada}`);
+            return cache.classificacao;
+        }
+        
+        console.log(`[CONSOLIDAÇÃO] ⚠️ Confrontos pontos corridos não encontrados: Liga ${ligaId}, R${rodada}`);
+        return [];
+    } catch (error) {
+        console.error("[CONSOLIDAÇÃO] ❌ Erro ao obter confrontos pontos corridos:", error);
+        return [];
+    }
+};
