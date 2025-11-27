@@ -130,6 +130,166 @@ window.inicializarBoasVindas = async function(ligaId, timeId) {
     }
 };
 
+function renderBoasVindas(participante, liga) {
+  console.log('[BOAS-VINDAS] Renderizando tela com:', { participante, liga });
+
+  const container = document.getElementById('boas-vindas-container');
+  if (!container) {
+    console.error('[BOAS-VINDAS] Container não encontrado');
+    return;
+  }
+
+  // Header moderno com status online
+  const header = `
+    <header class="modern-header">
+      <div class="header-content">
+        <div class="avatar-section">
+          <div class="avatar-wrapper">
+            ${participante.foto_perfil ? 
+              `<img src="${participante.foto_perfil}" alt="Foto de perfil" class="avatar-image">` :
+              `<div class="avatar-placeholder">
+                <span class="avatar-initials">${getInitials(participante.nome_cartola)}</span>
+              </div>`
+            }
+            ${participante.clube_id ? `
+              <img src="/escudos/${participante.clube_id}.png" 
+                   onerror="this.src='/escudos/default.png'"
+                   alt="Escudo" 
+                   class="clube-badge">
+            ` : ''}
+          </div>
+          <div class="user-info">
+            <h1 class="user-name">${participante.nome_time || 'Carregando...'}</h1>
+            <p class="user-subtitle">${participante.nome_cartola || 'Carregando...'}</p>
+          </div>
+        </div>
+        <div class="header-actions">
+          <div class="status-indicator">
+            <span class="status-dot"></span>
+            <span class="status-text">Online</span>
+          </div>
+        </div>
+      </div>
+    </header>
+  `;
+
+  // Seção de boas-vindas centralizada
+  const welcomeSection = `
+    <section class="welcome-hero">
+      <div class="welcome-icon-wrapper">
+        <span class="material-icons-outlined welcome-icon">sports_soccer</span>
+      </div>
+      <h2 class="welcome-title">Bem-vindo(a) ao Painel</h2>
+      <p class="welcome-subtitle">Acompanhe seu desempenho em tempo real</p>
+    </section>
+  `;
+
+  // Cards de estatísticas modernos com ícones Material
+  const statsCards = `
+    <section class="stats-modern-grid">
+      <div class="stat-modern-card stat-yellow">
+        <div class="stat-icon-wrapper">
+          <span class="material-icons-outlined">emoji_events</span>
+        </div>
+        <div class="stat-content">
+          <p class="stat-value" id="posicao-ranking">--.º</p>
+          <p class="stat-label">Posição</p>
+        </div>
+      </div>
+
+      <div class="stat-modern-card stat-blue">
+        <div class="stat-icon-wrapper">
+          <span class="material-icons-outlined">bar_chart</span>
+        </div>
+        <div class="stat-content">
+          <p class="stat-value" id="pontos-totais">--</p>
+          <p class="stat-label">Pontos</p>
+        </div>
+      </div>
+
+      <div class="stat-modern-card stat-green">
+        <div class="stat-icon-wrapper">
+          <span class="material-icons-outlined">account_balance_wallet</span>
+        </div>
+        <div class="stat-content">
+          <p class="stat-value" id="saldo-financeiro">R$ 0</p>
+          <p class="stat-label">Saldo</p>
+        </div>
+      </div>
+
+      <div class="stat-modern-card stat-orange">
+        <div class="stat-icon-wrapper">
+          <span class="material-icons-outlined">bolt</span>
+        </div>
+        <div class="stat-content">
+          <p class="stat-value" id="rodada-atual">--</p>
+          <p class="stat-label">Rodada</p>
+        </div>
+      </div>
+    </section>
+  `;
+
+  // Card de desempenho com divisores
+  const performanceCard = `
+    <section class="performance-card">
+      <div class="card-header">
+        <span class="material-icons-outlined header-icon">show_chart</span>
+        <h3 class="card-title">Seu Desempenho</h3>
+      </div>
+      <div class="performance-stats">
+        <div class="performance-item">
+          <span class="item-label">Posição anterior:</span>
+          <span class="item-value" id="posicao-anterior">-</span>
+        </div>
+        <div class="performance-item">
+          <span class="item-label">Variação:</span>
+          <span class="item-value" id="variacao-posicao">-</span>
+        </div>
+        <div class="performance-item">
+          <span class="item-label">Tendência:</span>
+          <span class="material-icons-outlined trend-icon">signal_cellular_alt</span>
+        </div>
+      </div>
+    </section>
+  `;
+
+  // Informações da liga modernizada
+  const ligaInfo = `
+    <section class="liga-info-modern">
+      <div class="card-header">
+        <span class="material-icons-outlined header-icon">emoji_events</span>
+        <h3 class="card-title">${liga.nome || 'Liga'}</h3>
+      </div>
+      <div class="liga-details">
+        <div class="detail-item">
+          <span class="detail-label">Participantes:</span>
+          <span class="detail-value">${liga.participantes?.length || 0}</span>
+        </div>
+        <div class="detail-item">
+          <span class="detail-label">Tipo:</span>
+          <span class="detail-badge">${liga.tipo === 'publica' ? 'Pública' : 'Privada'}</span>
+        </div>
+      </div>
+    </section>
+  `;
+
+  container.innerHTML = `
+    <div class="dashboard-modern-wrapper">
+      ${header}
+      <main class="dashboard-main">
+        ${welcomeSection}
+        ${statsCards}
+        ${performanceCard}
+        ${ligaInfo}
+      </main>
+    </div>
+  `;
+
+  // Carregar dados dinâmicos
+  carregarDadosParticipante(participante.time_id, liga._id);
+}
+
+
 function preencherBoasVindas({ posicao, totalParticipantes, pontosTotal, saldoFinanceiro, ultimaRodada, meuTime, timeData, timeId }) {
     console.log('[BOAS-VINDAS] Preenchendo interface com:', {
         posicao,
@@ -310,6 +470,57 @@ function renderizarTimeCoracao(clube, timeCoracaoCard) {
         </div>
     `;
     console.log('[BOAS-VINDAS] ✅ Time do coração carregado:', clube.nome);
+}
+
+// Helper function to get initials from a name
+function getInitials(name) {
+    if (!name) return '';
+    const parts = name.trim().split(' ');
+    if (parts.length === 1) {
+        return parts[0].charAt(0).toUpperCase();
+    }
+    return (parts[0].charAt(0) + parts[parts.length - 1].charAt(0)).toUpperCase();
+}
+
+// Placeholder for the actual data fetching and rendering logic for participant and league
+// In a real application, these would be implemented to fetch data from your backend
+function carregarDadosParticipante(timeId, ligaId) {
+    console.log(`[BOAS-VINDAS] Carregando dados para time ${timeId} na liga ${ligaId}`);
+
+    // Mock data for demonstration purposes
+    const mockParticipante = {
+        time_id: timeId,
+        nome_time: "Os Matonense",
+        nome_cartola: "Matheus Vinícius",
+        foto_perfil: "", // Replace with actual photo URL if available
+        clube_id: "20", // Example: Corinthians
+    };
+
+    const mockLiga = {
+        _id: ligaId,
+        nome: "Liga dos Campeões do Cartola",
+        participantes: [
+            { time_id: "1", nome_time: "Time A", nome_cartola: "Jogador A" },
+            { time_id: "2", nome_time: "Time B", nome_cartola: "Jogador B" },
+            { time_id: timeId, nome_time: mockParticipante.nome_time, nome_cartola: mockParticipante.nome_cartola },
+        ],
+        tipo: "publica",
+    };
+
+    // Fetch actual data here and then call renderBoasVindas
+    // For now, we'll simulate the data being available
+    setTimeout(() => {
+        // Update DOM with fetched data
+        document.getElementById('posicao-ranking').textContent = "5º";
+        document.getElementById('pontos-totais').textContent = "125.5";
+        document.getElementById('saldo-financeiro').textContent = "R$ 50";
+        document.getElementById('rodada-atual').textContent = "5";
+        document.getElementById('posicao-anterior').textContent = "8º";
+        document.getElementById('variacao-posicao').textContent = "+3";
+
+        // Call the updated render function
+        renderBoasVindas(mockParticipante, mockLiga);
+    }, 1000); // Simulate network delay
 }
 
 console.log('[BOAS-VINDAS] ✅ Módulo carregado');
