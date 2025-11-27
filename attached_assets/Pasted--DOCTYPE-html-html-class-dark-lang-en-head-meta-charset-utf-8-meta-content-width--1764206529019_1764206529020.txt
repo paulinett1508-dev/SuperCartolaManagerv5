@@ -1,0 +1,148 @@
+<!DOCTYPE html>
+<html class="dark" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Urubu Play F.C. Dashboard</title>
+<link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,typography"></script>
+<script>
+    tailwind.config = {
+      darkMode: "class",
+      theme: {
+        extend: {
+          colors: {
+            primary: "#DC2626", // red-600
+            "background-light": "#F3F4F6", // gray-100
+            "background-dark": "#111827", // gray-900
+          },
+          fontFamily: {
+            display: ["Roboto", "sans-serif"],
+          },
+          borderRadius: {
+            DEFAULT: "0.75rem", // 12px
+          },
+        },
+      },
+    };
+  </script>
+<style>
+    body {
+      -webkit-font-smoothing: antialiased;
+      -moz-osx-font-smoothing: grayscale;
+    }
+  </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="bg-background-light dark:bg-background-dark font-display text-gray-800 dark:text-gray-200">
+<div class="mx-auto flex h-screen max-w-sm flex-col">
+<header class="flex items-center justify-between p-4">
+<div class="flex items-center space-x-3">
+<div class="relative">
+<img alt="Club crest with eagle and red shield" class="h-12 w-12" src="https://lh3.googleusercontent.com/aida-public/AB6AXuAchYSoWKyMjR1tM8qcPiEdsTH-Y4O6qVyD-zBjT7xIHe8ARAqxlG7FN1f7McDdUIL1AqjIiXfDLiO4yum7CC3FKHxJTL_LoTVAbxSo8HBhggfVfl69cWp2DmpYdi7SbccXeAcR9Jj5nS6oVCBVuFQ4U1ao-LlJX0elRa0EesIaCnAIPIq0LWYdOPmjgAQng_3vGf5wvtI7xs9gGFKdMdyTaByUi0_uVPA7jmq6oA37vzkGX6v4yRQw8Du-qoJbPMoAPusAdLo5zw"/>
+<img alt="Secondary club badge" class="absolute -bottom-1 -right-1 h-5 w-5 rounded-full border-2 border-background-light dark:border-background-dark" src="https://lh3.googleusercontent.com/aida-public/AB6AXuBCcYhIP9ImyeKZv-cTu-n7V-F5oIdFQ2rvXDzUgG7lpE7E0pvDVfLqIskqrKC1RXkA-1PjDxw75qD-uy1DlPpAxpuI0JxUPggiRm721OjeabIsp3tnhsLi0ayuzvF7ALs3PJX5YnTtB7oMkDfofbGDNViwBYY9S5_uYPjDdASyrotjXAeBZTHluA0_ojYXBsTN98y9elaS5hUwLb8y5RB0HNk9C4r3IBUsZ491WbQcBeUnPrwMQJKojH93qta2GcMbzbl7Lwh-Bw"/>
+</div>
+<div>
+<h1 class="text-lg font-bold text-gray-900 dark:text-white">Urubu Play F.C.</h1>
+<p class="text-sm text-gray-500 dark:text-gray-400">Paulinett Miranda</p>
+</div>
+</div>
+<div class="flex items-center space-x-4">
+<div class="flex items-center space-x-2">
+<span class="relative flex h-2.5 w-2.5">
+<span class="absolute inline-flex h-full w-full animate-ping rounded-full bg-green-400 opacity-75"></span>
+<span class="relative inline-flex h-2.5 w-2.5 rounded-full bg-green-500"></span>
+</span>
+<span class="text-sm font-medium text-green-500">Online</span>
+</div>
+<button class="text-gray-600 dark:text-gray-300">
+<span class="material-icons">menu</span>
+</button>
+</div>
+</header>
+<main class="flex-grow overflow-y-auto px-4 pb-24">
+<section class="my-6 text-center">
+<div class="mb-2 flex items-center justify-center space-x-2">
+<span class="material-icons text-2xl text-gray-700 dark:text-gray-300">sports_soccer</span>
+<h2 class="text-2xl font-bold text-gray-900 dark:text-white">Bem-vindo(a) ao Painel</h2>
+</div>
+<p class="text-gray-500 dark:text-gray-400">Acompanhe seu desempenho em tempo real</p>
+</section>
+<section class="grid grid-cols-2 gap-4">
+<div class="rounded-lg bg-white/5 p-4 shadow-sm dark:bg-gray-800">
+<div class="mb-2 flex h-10 w-10 items-center justify-center rounded-lg bg-yellow-400/10 text-yellow-400">
+<span class="material-icons">emoji_events</span>
+</div>
+<p class="text-sm uppercase text-gray-500 dark:text-gray-400">Posição</p>
+<p class="text-xl font-bold text-gray-900 dark:text-white">--º</p>
+</div>
+<div class="rounded-lg bg-white/5 p-4 shadow-sm dark:bg-gray-800">
+<div class="mb-2 flex h-10 w-10 items-center justify-center rounded-lg bg-blue-400/10 text-blue-400">
+<span class="material-icons">bar_chart</span>
+</div>
+<p class="text-sm uppercase text-gray-500 dark:text-gray-400">Pontos</p>
+<p class="text-xl font-bold text-gray-900 dark:text-white">--</p>
+</div>
+<div class="rounded-lg bg-white/5 p-4 shadow-sm dark:bg-gray-800">
+<div class="mb-2 flex h-10 w-10 items-center justify-center rounded-lg bg-green-400/10 text-green-400">
+<span class="material-icons">account_balance_wallet</span>
+</div>
+<p class="text-sm uppercase text-gray-500 dark:text-gray-400">Saldo</p>
+<p class="text-xl font-bold text-gray-900 dark:text-white">R$ 0</p>
+</div>
+<div class="rounded-lg bg-white/5 p-4 shadow-sm dark:bg-gray-800">
+<div class="mb-2 flex h-10 w-10 items-center justify-center rounded-lg bg-orange-400/10 text-orange-400">
+<span class="material-icons">bolt</span>
+</div>
+<p class="text-sm uppercase text-gray-500 dark:text-gray-400">R--</p>
+<p class="text-xl font-bold text-gray-900 dark:text-white">--</p>
+</div>
+</section>
+<section class="mt-6 rounded-lg bg-white/5 p-4 shadow-sm dark:bg-gray-800">
+<div class="mb-4 flex items-center space-x-2">
+<span class="material-icons text-lg text-gray-500 dark:text-gray-400">insights</span>
+<h3 class="text-lg font-bold text-gray-900 dark:text-white">Seu Desempenho</h3>
+</div>
+<div class="space-y-4">
+<div class="flex items-center justify-between border-b border-gray-200/50 pb-3 dark:border-gray-700/50">
+<span class="text-gray-500 dark:text-gray-400">Posição anterior:</span>
+<span class="font-medium text-gray-900 dark:text-white">-</span>
+</div>
+<div class="flex items-center justify-between border-b border-gray-200/50 pb-3 dark:border-gray-700/50">
+<span class="text-gray-500 dark:text-gray-400">Variação:</span>
+<span class="font-medium text-gray-900 dark:text-white">-</span>
+</div>
+<div class="flex items-center justify-between pb-1">
+<span class="text-gray-500 dark:text-gray-400">Tendência:</span>
+<span class="material-icons text-blue-500">signal_cellular_alt</span>
+</div>
+</div>
+</section>
+</main>
+<nav class="fixed inset-x-0 bottom-0 z-10 mx-auto max-w-sm border-t border-gray-200/50 bg-background-light/80 backdrop-blur-sm dark:border-gray-700/50 dark:bg-background-dark/80">
+<div class="flex justify-around py-2">
+<a class="flex flex-col items-center justify-center text-primary" href="#">
+<span class="material-icons">home</span>
+<span class="text-xs font-bold">Início</span>
+</a>
+<a class="flex flex-col items-center justify-center text-gray-500 hover:text-primary dark:text-gray-400 dark:hover:text-primary" href="#">
+<span class="material-icons">receipt_long</span>
+<span class="text-xs">Extrato</span>
+</a>
+<a class="flex flex-col items-center justify-center text-gray-500 hover:text-primary dark:text-gray-400 dark:hover:text-primary" href="#">
+<span class="material-icons">leaderboard</span>
+<span class="text-xs">Ranking</span>
+</a>
+<a class="flex flex-col items-center justify-center text-gray-500 hover:text-primary dark:text-gray-400 dark:hover:text-primary" href="#">
+<span class="material-icons">replay_circle_filled</span>
+<span class="text-xs">Rodadas</span>
+</a>
+</div>
+</nav>
+</div>
+
+</body></html>
