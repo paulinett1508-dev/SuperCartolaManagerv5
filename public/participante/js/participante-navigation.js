@@ -330,17 +330,34 @@ class ParticipanteNavigation {
                 const moduloJS = await import(jsPath);
 
                 // Tenta encontrar e executar uma função de inicialização específica para o módulo
-                // O nome da função é construído dinamicamente para seguir um padrão:
-                // Ex: 'boas-vindas' -> 'inicializarBoasVindasParticipante'
-                const initFunctionName = `inicializar${modulo.charAt(0).toUpperCase() + modulo.slice(1).replace(/-([a-z])/g, (g) => g[1].toUpperCase())}Participante`;
+                const moduloCapitalized = modulo.charAt(0).toUpperCase() + modulo.slice(1);
 
-                if (moduloJS[initFunctionName]) { // Verifica se a função de inicialização existe no módulo importado
-                    // Chama a função de inicialização, passando os dados do participante se necessário
-                    await moduloJS[initFunctionName](this.participanteData);
-                    console.log(`[PARTICIPANTE-NAV] ✅ Função de inicialização '${initFunctionName}' executada com sucesso.`);
-                } else {
-                    // Informa se a função de inicialização não foi encontrada, o que pode ser normal
-                    console.log(`[PARTICIPANTE-NAV] ℹ️ Função de inicialização '${initFunctionName}' não encontrada no módulo ${modulo}. Ignorando.`);
+                // Tentar múltiplos padrões de nomenclatura
+                const possibleFunctionNames = [
+                    `inicializar${moduloCapitalized}Participante`,  // padrão completo
+                    `inicializar${moduloCapitalized}`,              // padrão simplificado
+                    `inicializar${modulo}Participante`,          // case original
+                    `inicializar${modulo}`                       // case original simplificado
+                ];
+
+                let functionExecuted = false;
+                for (const funcName of possibleFunctionNames) {
+                    if (moduloJS[funcName]) { // Verifica se a função existe no módulo importado
+                        console.log(`[PARTICIPANTE-NAV] 🚀 Executando função: ${funcName}()`);
+                        try {
+                            // Chama a função de inicialização, passando os dados do participante se necessário
+                            await moduloJS[funcName](this.participanteData);
+                            console.log(`[PARTICIPANTE-NAV] ✅ Função ${funcName}() executada com sucesso`);
+                            functionExecuted = true;
+                            break; // Sai do loop após executar a primeira função encontrada
+                        } catch (error) {
+                            console.error(`[PARTICIPANTE-NAV] ❌ Erro ao executar ${funcName}():`, error);
+                        }
+                    }
+                }
+
+                if (!functionExecuted) {
+                    console.log(`[PARTICIPANTE-NAV] ℹ️ Nenhuma função de inicialização encontrada para o módulo '${modulo}'. Tentativas: ${possibleFunctionNames.join(', ')}`);
                 }
             } catch (error) {
                 console.error(`[PARTICIPANTE-NAV] ❌ Erro ao importar ou executar o módulo JS '${jsPath}':`, error);
