@@ -85,9 +85,12 @@ async function inicializarBoasVindasInterno(ligaId, timeId) {
     }
 };
 
-function renderizarBoasVindas({ posicao, totalParticipantes, pontosTotal, saldoFinanceiro, ultimaRodada, meuTime, timeData, timeId, minhasRodadas }) {
+async function renderizarBoasVindas({ posicao, totalParticipantes, pontosTotal, saldoFinanceiro, ultimaRodada, meuTime, timeData, timeId, minhasRodadas }) {
     const container = document.getElementById('boas-vindas-container');
     if (!container) return;
+
+    // Aguardar carregamento de fontes
+    await aguardarFontes();
 
     const nomeTime = meuTime?.nome_time || timeData?.nome_time || 'Seu Time';
     const nomeCartola = meuTime?.nome_cartola || timeData?.nome_cartola || 'Cartoleiro';
@@ -133,7 +136,7 @@ function renderizarBoasVindas({ posicao, totalParticipantes, pontosTotal, saldoF
                 <!-- Welcome Message com Material Icon -->
                 <div class="text-center mb-10 animate-fade-in">
                     <div class="inline-flex items-center justify-center w-20 h-20 rounded-full bg-gradient-to-br from-primary to-accent mb-5 shadow-2xl shadow-primary/30">
-                        <span class="material-icons-outlined text-white" style="font-size: 48px;">dashboard</span>
+                        <span style="font-size: 48px;">📊</span>
                     </div>
                     <h2 class="text-4xl md:text-5xl font-black text-white mb-3 bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent">
                         Bem-vindo ao Dashboard!
@@ -150,9 +153,9 @@ function renderizarBoasVindas({ posicao, totalParticipantes, pontosTotal, saldoF
                         <div class="relative">
                             <div class="flex items-center justify-between mb-6">
                                 <div class="p-4 bg-yellow-500/10 rounded-2xl shadow-lg">
-                                    <span class="material-icons-outlined text-yellow-400" style="font-size: 32px;">emoji_events</span>
+                                    <span class="text-yellow-400" style="font-size: 32px;">🏆</span>
                                 </div>
-                                <span class="material-icons-outlined text-yellow-500/20" style="font-size: 48px;">star</span>
+                                <span class="text-yellow-500/20" style="font-size: 48px;">⭐</span>
                             </div>
                             <p class="text-yellow-400/60 text-sm font-bold uppercase tracking-wider mb-2">Posição</p>
                             <p class="text-5xl font-black text-white mb-2">${posTexto}</p>
@@ -166,9 +169,9 @@ function renderizarBoasVindas({ posicao, totalParticipantes, pontosTotal, saldoF
                         <div class="relative">
                             <div class="flex items-center justify-between mb-6">
                                 <div class="p-4 bg-blue-500/10 rounded-2xl shadow-lg">
-                                    <span class="material-icons-outlined text-blue-400" style="font-size: 32px;">trending_up</span>
+                                    <span class="text-blue-400" style="font-size: 32px;">📈</span>
                                 </div>
-                                <span class="material-icons-outlined text-blue-500/20" style="font-size: 48px;">insights</span>
+                                <span class="text-blue-500/20" style="font-size: 48px;">💡</span>
                             </div>
                             <p class="text-blue-400/60 text-sm font-bold uppercase tracking-wider mb-2">Pontos Total</p>
                             <p class="text-5xl font-black text-white mb-2">${pontosFormatados}</p>
@@ -182,9 +185,9 @@ function renderizarBoasVindas({ posicao, totalParticipantes, pontosTotal, saldoF
                         <div class="relative">
                             <div class="flex items-center justify-between mb-6">
                                 <div class="p-4 bg-green-500/10 rounded-2xl shadow-lg">
-                                    <span class="material-icons-outlined text-green-400" style="font-size: 32px;">payments</span>
+                                    <span class="text-green-400" style="font-size: 32px;">💰</span>
                                 </div>
-                                <span class="material-icons-outlined text-green-500/20" style="font-size: 48px;">account_balance</span>
+                                <span class="text-green-500/20" style="font-size: 48px;">🏦</span>
                             </div>
                             <p class="text-green-400/60 text-sm font-bold uppercase tracking-wider mb-2">Saldo</p>
                             <p class="text-5xl font-black ${saldoFinanceiro >= 0 ? 'text-green-400' : 'text-red-400'} mb-2">${saldoFormatado}</p>
@@ -198,9 +201,9 @@ function renderizarBoasVindas({ posicao, totalParticipantes, pontosTotal, saldoF
                         <div class="relative">
                             <div class="flex items-center justify-between mb-6">
                                 <div class="p-4 bg-purple-500/10 rounded-2xl shadow-lg">
-                                    <span class="material-icons-outlined text-purple-400" style="font-size: 32px;">flash_on</span>
+                                    <span class="text-purple-400" style="font-size: 32px;">⚡</span>
                                 </div>
-                                <span class="material-icons-outlined text-purple-500/20" style="font-size: 48px;">sports_soccer</span>
+                                <span class="text-purple-500/20" style="font-size: 48px;">⚽</span>
                             </div>
                             <p class="text-purple-400/60 text-sm font-bold uppercase tracking-wider mb-2">Última Rodada</p>
                             <p class="text-5xl font-black text-white mb-2">${rodadaAtual}</p>
@@ -217,31 +220,31 @@ function renderizarBoasVindas({ posicao, totalParticipantes, pontosTotal, saldoF
                     <div class="bg-gradient-to-br from-gray-800/40 to-gray-900/40 backdrop-blur-xl rounded-3xl p-8 border border-gray-700/30 shadow-2xl">
                         <div class="flex items-center gap-4 mb-8">
                             <div class="p-3 bg-primary/10 rounded-xl">
-                                <span class="material-icons-outlined text-primary" style="font-size: 28px;">analytics</span>
+                                <span class="text-primary" style="font-size: 28px;">📊</span>
                             </div>
                             <h3 class="text-2xl font-black text-white">Desempenho</h3>
                         </div>
                         <div class="space-y-4">
                             <div class="flex justify-between items-center p-5 bg-gray-800/30 rounded-2xl border border-gray-700/20 hover:border-primary/20 transition-all">
                                 <div class="flex items-center gap-3">
-                                    <span class="material-icons-outlined text-primary/60">calculate</span>
+                                    <span class="text-primary/60" style="font-size: 20px;">🧮</span>
                                     <span class="text-gray-300 font-medium">Média de Pontos</span>
                                 </div>
                                 <span class="text-white font-black text-xl">${mediapontos}</span>
                             </div>
                             <div class="flex justify-between items-center p-5 bg-gray-800/30 rounded-2xl border border-gray-700/20 hover:border-primary/20 transition-all">
                                 <div class="flex items-center gap-3">
-                                    <span class="material-icons-outlined text-primary/60">event</span>
+                                    <span class="text-primary/60" style="font-size: 20px;">📅</span>
                                     <span class="text-gray-300 font-medium">Rodadas Jogadas</span>
                                 </div>
                                 <span class="text-white font-black text-xl">${minhasRodadas.length || 0}</span>
                             </div>
                             <div class="flex justify-between items-center p-5 bg-gray-800/30 rounded-2xl border border-gray-700/20 hover:border-primary/20 transition-all">
                                 <div class="flex items-center gap-3">
-                                    <span class="material-icons-outlined text-primary/60">timeline</span>
+                                    <span class="text-primary/60" style="font-size: 20px;">📈</span>
                                     <span class="text-gray-300 font-medium">Tendência</span>
                                 </div>
-                                <span class="material-icons-outlined text-green-400" style="font-size: 28px;">trending_up</span>
+                                <span class="text-green-400" style="font-size: 28px;">📈</span>
                             </div>
                         </div>
                     </div>
@@ -250,7 +253,7 @@ function renderizarBoasVindas({ posicao, totalParticipantes, pontosTotal, saldoF
                     <div class="bg-gradient-to-br from-gray-800/40 to-gray-900/40 backdrop-blur-xl rounded-3xl p-8 border border-gray-700/30 shadow-2xl">
                         <div class="flex items-center gap-4 mb-8">
                             <div class="p-3 bg-red-500/10 rounded-xl">
-                                <span class="material-icons-outlined text-red-500" style="font-size: 28px;">favorite</span>
+                                <span class="text-red-500" style="font-size: 28px;">❤️</span>
                             </div>
                             <h3 class="text-2xl font-black text-white">Time do Coração</h3>
                         </div>
@@ -273,7 +276,7 @@ function renderizarBoasVindas({ posicao, totalParticipantes, pontosTotal, saldoF
         if (timeCoracaoCard) {
             timeCoracaoCard.innerHTML = `
                 <div class="text-center text-gray-500 py-8">
-                    <span class="material-icons-outlined mb-4" style="font-size: 64px;">sports_soccer</span>
+                    <span class="mb-4" style="font-size: 64px;">⚽</span>
                     <p class="text-lg font-medium">Nenhum time definido</p>
                 </div>
             `;
@@ -295,7 +298,7 @@ async function buscarInfoTimeCoracao(clubeId) {
         if (!clube) {
             timeCoracaoCard.innerHTML = `
                 <div class="text-center text-gray-500 py-8">
-                    <span class="material-icons-outlined mb-4" style="font-size: 64px;">error_outline</span>
+                    <span class="mb-4" style="font-size: 64px;">⚠️</span>
                     <p class="text-lg font-medium">Clube não encontrado</p>
                 </div>
             `;
@@ -318,7 +321,7 @@ async function buscarInfoTimeCoracao(clubeId) {
         console.error('[BOAS-VINDAS] Erro ao buscar time:', error);
         timeCoracaoCard.innerHTML = `
             <div class="text-center text-red-500 py-8">
-                <span class="material-icons-outlined mb-4" style="font-size: 64px;">error</span>
+                <span class="mb-4" style="font-size: 64px;">❌</span>
                 <p class="text-lg font-medium">Erro ao carregar</p>
             </div>
         `;
@@ -342,6 +345,16 @@ function getInitials(name) {
         return parts[0].charAt(0).toUpperCase();
     }
     return (parts[0].charAt(0) + parts[parts.length - 1].charAt(0)).toUpperCase();
+}
+
+// Aguardar carregamento de fontes do Material Icons
+async function aguardarFontes() {
+    try {
+        await document.fonts.ready;
+        console.log('[BOAS-VINDAS] ✅ Fontes carregadas');
+    } catch (error) {
+        console.warn('[BOAS-VINDAS] ⚠️ Erro ao carregar fontes, usando fallback');
+    }
 }
 
 console.log('[BOAS-VINDAS] ✅ Módulo moderno carregado com design profissional');
