@@ -188,11 +188,22 @@ class ParticipanteNavigation {
             return;
         }
 
-        // Mostrar loading
+        // Feedback visual melhorado
+        const nomeModulo = this.obterNomeModulo(moduloId);
         container.innerHTML = `
-            <div style="text-align: center; padding: 60px 20px;">
-                <div style="width: 50px; height: 50px; border: 4px solid rgba(255, 69, 0, 0.1); border-top: 4px solid #ff4500; border-radius: 50%; animation: spin 1s linear infinite; margin: 0 auto;"></div>
-                <p style="margin-top: 20px; color: #999;">Carregando ${moduloId}...</p>
+            <div class="loading-state" style="text-align: center; padding: 80px 20px; min-height: 400px; display: flex; flex-direction: column; align-items: center; justify-content: center;">
+                <div style="position: relative; width: 80px; height: 80px; margin-bottom: 24px;">
+                    <div style="position: absolute; width: 80px; height: 80px; border: 4px solid rgba(255, 69, 0, 0.1); border-top: 4px solid #ff4500; border-radius: 50%; animation: spin 1s linear infinite;"></div>
+                    <div style="position: absolute; width: 60px; height: 60px; top: 10px; left: 10px; border: 3px solid rgba(255, 69, 0, 0.05); border-bottom: 3px solid #ff4500; border-radius: 50%; animation: spin 1.5s linear infinite reverse;"></div>
+                </div>
+                <h3 style="color: #333; margin-bottom: 8px; font-weight: 600;">Carregando ${nomeModulo}</h3>
+                <p style="color: #999; font-size: 14px;">Aguarde um momento...</p>
+                <style>
+                    @keyframes spin {
+                        0% { transform: rotate(0deg); }
+                        100% { transform: rotate(360deg); }
+                    }
+                </style>
             </div>
         `;
 
@@ -200,12 +211,15 @@ class ParticipanteNavigation {
             // Carregar HTML do módulo
             const htmlPath = this.modulos[moduloId];
             if (!htmlPath) {
-                throw new Error(`Módulo ${moduloId} não encontrado`);
+                throw new Error(`Módulo "${moduloId}" não foi encontrado no sistema`);
             }
 
             const response = await fetch(htmlPath);
             if (!response.ok) {
-                throw new Error(`Erro ao carregar HTML: ${response.statusText}`);
+                if (response.status === 404) {
+                    throw new Error(`O módulo "${nomeModulo}" ainda não está disponível`);
+                }
+                throw new Error(`Erro HTTP ${response.status}: ${response.statusText}`);
             }
 
             const html = await response.text();
@@ -215,18 +229,62 @@ class ParticipanteNavigation {
             await this.carregarModuloJS(moduloId);
 
             this.moduloAtual = moduloId;
-            console.log(`[PARTICIPANTE-NAV] ✅ Módulo ${moduloId} carregado`);
+            console.log(`[PARTICIPANTE-NAV] ✅ Módulo ${moduloId} carregado com sucesso`);
 
         } catch (error) {
             console.error(`[PARTICIPANTE-NAV] ❌ Erro ao carregar ${moduloId}:`, error);
+            
+            // Mensagem de erro mais amigável
+            const mensagemErro = this.obterMensagemErroAmigavel(error);
+            
             container.innerHTML = `
-                <div style="text-align: center; padding: 40px; background: rgba(239, 68, 68, 0.1); border-radius: 12px; border: 1px solid rgba(239, 68, 68, 0.3);">
-                    <div style="font-size: 48px; margin-bottom: 16px;">❌</div>
-                    <h3 style="color: #ef4444; margin-bottom: 12px;">Erro ao Carregar Módulo</h3>
-                    <p style="color: #999;">${error.message}</p>
+                <div style="text-align: center; padding: 60px 20px; max-width: 500px; margin: 0 auto;">
+                    <div style="background: linear-gradient(135deg, rgba(239, 68, 68, 0.1), rgba(239, 68, 68, 0.05)); border-radius: 16px; padding: 40px; border: 2px solid rgba(239, 68, 68, 0.2);">
+                        <div style="font-size: 64px; margin-bottom: 20px; filter: drop-shadow(0 4px 8px rgba(239, 68, 68, 0.2));">⚠️</div>
+                        <h3 style="color: #dc2626; margin-bottom: 16px; font-size: 20px; font-weight: 600;">Ops! Algo deu errado</h3>
+                        <p style="color: #666; margin-bottom: 24px; line-height: 1.6;">${mensagemErro}</p>
+                        <button onclick="window.participanteNav.navegarPara('boas-vindas')" 
+                                style="background: #ff4500; color: white; border: none; padding: 12px 24px; border-radius: 8px; cursor: pointer; font-weight: 600; transition: all 0.3s;">
+                            Voltar ao Início
+                        </button>
+                    </div>
                 </div>
             `;
         }
+    }
+
+    obterNomeModulo(moduloId) {
+        const nomes = {
+            'boas-vindas': 'Boas-Vindas',
+            'extrato': 'Extrato Financeiro',
+            'ranking': 'Ranking Geral',
+            'rodadas': 'Rodadas',
+            'top10': 'Top 10',
+            'melhor-mes': 'Melhor Mês',
+            'pontos-corridos': 'Pontos Corridos',
+            'mata-mata': 'Mata-Mata',
+            'artilheiro': 'Artilheiro Campeão',
+            'luva-ouro': 'Luva de Ouro'
+        };
+        return nomes[moduloId] || moduloId;
+    }
+
+    obterMensagemErroAmigavel(error) {
+        const mensagem = error.message.toLowerCase();
+        
+        if (mensagem.includes('não foi encontrado') || mensagem.includes('404')) {
+            return 'Este módulo ainda não está disponível. Entre em contato com o administrador da liga.';
+        }
+        
+        if (mensagem.includes('network') || mensagem.includes('fetch')) {
+            return 'Falha na conexão. Verifique sua internet e tente novamente.';
+        }
+        
+        if (mensagem.includes('timeout')) {
+            return 'A requisição demorou muito. Tente novamente em alguns instantes.';
+        }
+        
+        return error.message || 'Ocorreu um erro inesperado. Tente novamente.';
     }
 
     async carregarModuloJS(modulo) {

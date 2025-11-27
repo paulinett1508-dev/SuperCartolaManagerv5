@@ -25,6 +25,36 @@ function getBancoPorLiga(ligaIdParam) {
         : valoresBancoPadrao;
 }
 
+// Cache para dados do participante
+const participanteCache = {
+    cache: {},
+    ttlPadrao: 5 * 60 * 1000, // 5 minutos
+    ttlPermanente: Infinity, // Cache permanente
+
+    async buscar(tipo, chave) {
+        const entry = this.cache[tipo]?.[chave];
+        if (entry && entry.timestamp + entry.ttl > Date.now()) {
+            console.log(`[CACHE] Hit para ${tipo}:${chave}`);
+            return entry.data;
+        }
+        console.log(`[CACHE] Miss para ${tipo}:${chave}`);
+        return null;
+    },
+
+    async salvar(tipo, chave, data, ttl = this.ttlPadrao) {
+        if (!this.cache[tipo]) {
+            this.cache[tipo] = {};
+        }
+        this.cache[tipo][chave] = {
+            data,
+            ttl,
+            timestamp: Date.now()
+        };
+        console.log(`[CACHE] Salvou ${tipo}:${chave} com TTL ${ttl === Infinity ? 'Infinito' : ttl / 1000 + 's'}`);
+    }
+};
+
+
 let todasRodadasCache = [];
 let meuTimeId = null;
 let ligaId = null;
@@ -39,14 +69,29 @@ window.inicializarRodadasParticipante = async function(ligaIdParam, timeIdParam)
 
     try {
         // Buscar todas as rodadas da liga
-        const response = await fetch(`/api/rodadas/${ligaId}/rodadas?inicio=1&fim=38`);
+        const cacheKey = `rodadas_lista_${ligaId}`;
+        let rodadas = await participanteCache.buscar('rodadas', cacheKey);
 
-        if (!response.ok) {
-            throw new Error('Erro ao buscar rodadas da liga');
+        if (!rodadas) {
+            console.log('[PARTICIPANTE-RODADAS] 🌐 Buscando rodadas da API...');
+            const response = await fetch(`/api/rodadas/${ligaId}/rodadas?inicio=1&fim=38`);
+
+            if (!response.ok) {
+                throw new Error(`Erro HTTP ${response.status}: ${response.statusText}`);
+            }
+
+            rodadas = await response.json();
+
+            // Determinar o TTL inteligente
+            const rodadaAtual = rodadas.find(r => r.rodadaAberta)?.rodada || 38; // Assumindo 38 rodadas no total
+            const ttlRodadas = rodadaAtual <= 35 ? participanteCache.ttlPermanente : participanteCache.ttlPadrao;
+
+            await participanteCache.salvar('rodadas', cacheKey, rodadas, ttlRodadas);
+        } else {
+            console.log('[PARTICIPANTE-RODADAS] ⚡ Usando dados em cache.');
         }
 
-        const rodadas = await response.json();
-        console.log(`[PARTICIPANTE-RODADAS] Total de rodadas recebidas: ${rodadas.length}`);
+        console.log(`[PARTICIPANTE-RODADAS] Total de rodadas recebidas/cacheadas: ${rodadas.length}`);
 
         // Agrupar rodadas por número
         const rodadasAgrupadas = agruparRodadasPorNumero(rodadas);
@@ -94,6 +139,9 @@ function agruparRodadasPorNumero(rodadas) {
 // Renderizar grid de cards
 function renderizarCardsRodadas(rodadas) {
     const container = document.getElementById('rodadasCardsGrid');
+    
+    // Adicionar feedback visual de carregamento
+    container.innerHTML = '<div class="loading-indicator">Carregando rodadas...</div>';
 
     if (!rodadas || rodadas.length === 0) {
         container.innerHTML = '<p style="text-align: center; color: #999; padding: 40px;">Nenhuma rodada encontrada</p>';
@@ -102,12 +150,12 @@ function renderizarCardsRodadas(rodadas) {
 
     const html = rodadas.map(rodada => {
         const statusClass = rodada.jogou ? 'jogou' : 'nao-jogou';
-        
+
         // Formatar pontos com vírgula decimal brasileira
         const pontos = rodada.meusPontos !== null && rodada.meusPontos > 0
             ? Number(rodada.meusPontos).toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })
             : '-';
-        
+
         // Melhor label para rodadas futuras/não jogadas
         let statusTexto;
         if (rodada.participantes.length === 0) {
@@ -205,68 +253,75 @@ function renderizarDetalhamentoRodada(rodadaData) {
     // Renderizar tabela
     const tbody = document.getElementById('rankingBody');
 
-    const html = participantesOrdenados.map((participante, index) => {
-        const isMeuTime = String(participante.timeId) === String(meuTimeId);
-        const posicao = index + 1;
+    // Adicionar feedback visual de carregamento para a tabela
+    tbody.innerHTML = '<tr><td colspan="5" style="text-align: center; padding: 20px;">Carregando ranking...</td></tr>';
 
-        // Calcular financeiro usando valores reais da configuração
-        const valoresBanco = getBancoPorLiga(ligaId);
-        const bonusOnus = valoresBanco[posicao] || 0;
+    // Simular um pequeno atraso para o feedback visual
+    setTimeout(() => {
+        const html = participantesOrdenados.map((participante, index) => {
+            const isMeuTime = String(participante.timeId) === String(meuTimeId);
+            const posicao = index + 1;
 
-        // Formatar valor financeiro com padrão brasileiro
-        const bonusOnusAbs = Math.abs(bonusOnus);
-        const valorFormatado = bonusOnusAbs.toLocaleString('pt-BR', {
-            minimumFractionDigits: 2,
-            maximumFractionDigits: 2
-        });
-        
-        const financeiroTexto = bonusOnus > 0 
-            ? `+R$ ${valorFormatado}` 
-            : bonusOnus < 0 
-                ? `-R$ ${valorFormatado}` 
-                : 'R$ 0,00';
+            // Calcular financeiro usando valores reais da configuração
+            const valoresBanco = getBancoPorLiga(ligaId);
+            const bonusOnus = valoresBanco[posicao] || 0;
 
-        const financeiroClass = bonusOnus > 0 
-            ? 'financeiro-positivo' 
-            : bonusOnus < 0 
-                ? 'financeiro-negativo' 
-                : 'financeiro-neutro';
+            // Formatar valor financeiro com padrão brasileiro
+            const bonusOnusAbs = Math.abs(bonusOnus);
+            const valorFormatado = bonusOnusAbs.toLocaleString('pt-BR', {
+                minimumFractionDigits: 2,
+                maximumFractionDigits: 2
+            });
 
-        // Adicionar ícones MITO/MICO
-        let icone = '';
-        if (posicao === 1) {
-            icone = ' 🎩';
-        } else if (posicao === totalParticipantes) {
-            icone = ' 🐵';
-        }
+            const financeiroTexto = bonusOnus > 0 
+                ? `+R$ ${valorFormatado}` 
+                : bonusOnus < 0 
+                    ? `-R$ ${valorFormatado}` 
+                    : 'R$ 0,00';
 
-        // Formatar pontos com vírgula decimal brasileira
-        const pontosFormatados = Number(participante.pontos || 0).toLocaleString('pt-BR', {
-            minimumFractionDigits: 2,
-            maximumFractionDigits: 2
-        });
+            const financeiroClass = bonusOnus > 0 
+                ? 'financeiro-positivo' 
+                : bonusOnus < 0 
+                    ? 'financeiro-negativo' 
+                    : 'financeiro-neutro';
 
-        // Usar nome correto (API retorna 'nome', não 'nome_time')
-        const nomeTime = participante.nome || participante.nome_time || 'N/D';
+            // Adicionar ícones MITO/MICO
+            let icone = '';
+            if (posicao === 1) {
+                icone = ' 🎩';
+            } else if (posicao === totalParticipantes) {
+                icone = ' 🐵';
+            }
 
-        return `
-            <tr class="${isMeuTime ? 'meu-time' : ''}">
-                <td style="text-align: center;">
-                    <span class="posicao-badge">${posicao}º${icone}</span>
-                </td>
-                <td>${nomeTime}</td>
-                <td>${participante.nome_cartola || 'N/D'}</td>
-                <td style="text-align: center;" class="pontos-destaque">
-                    ${pontosFormatados}
-                </td>
-                <td style="text-align: center;" class="${financeiroClass}">
-                    ${financeiroTexto}
-                </td>
-            </tr>
-        `;
-    }).join('');
+            // Formatar pontos com vírgula decimal brasileira
+            const pontosFormatados = Number(participante.pontos || 0).toLocaleString('pt-BR', {
+                minimumFractionDigits: 2,
+                maximumFractionDigits: 2
+            });
 
-    tbody.innerHTML = html || '<tr><td colspan="5" style="text-align: center; padding: 20px;">Nenhum dado disponível</td></tr>';
+            // Usar nome correto (API retorna 'nome', não 'nome_time')
+            const nomeTime = participante.nome || participante.nome_time || 'N/D';
+
+            return `
+                <tr class="${isMeuTime ? 'meu-time' : ''}">
+                    <td style="text-align: center;">
+                        <span class="posicao-badge">${posicao}º${icone}</span>
+                    </td>
+                    <td>${nomeTime}</td>
+                    <td>${participante.nome_cartola || 'N/D'}</td>
+                    <td style="text-align: center;" class="pontos-destaque">
+                        ${pontosFormatados}
+                    </td>
+                    <td style="text-align: center;" class="${financeiroClass}">
+                        ${financeiroTexto}
+                    </td>
+                </tr>
+            `;
+        }).join('');
+
+        tbody.innerHTML = html || '<tr><td colspan="5" style="text-align: center; padding: 20px;">Nenhum dado disponível</td></tr>';
+
+    }, 200); // Pequeno atraso para feedback visual
 }
 
 // Voltar para os cards

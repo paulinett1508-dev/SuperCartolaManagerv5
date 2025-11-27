@@ -1,21 +1,41 @@
 
-// SISTEMA DE CACHE ROBUSTO PARA PARTICIPANTE
-console.log('[PARTICIPANTE-CACHE] Carregando sistema de cache...');
+// SISTEMA DE CACHE SUPER INTELIGENTE PARA PARTICIPANTE
+console.log('[PARTICIPANTE-CACHE] 🚀 Carregando sistema de cache inteligente...');
 
 class ParticipanteCache {
     constructor() {
         this.db = null;
         this.dbName = 'ParticipanteCacheDB';
-        this.version = 1;
+        this.version = 2; // Atualizado para incluir melhorias
+        this.RODADA_MAXIMA = 38;
+        this.RODADA_FECHADA_LIMITE = 35; // Rodadas até 35 são permanentes
+        this.rodadaAtual = null;
         this.inicializar();
     }
 
     async inicializar() {
         try {
             this.db = await this.abrirIndexedDB();
+            await this.detectarRodadaAtual();
             console.log('[PARTICIPANTE-CACHE] ✅ IndexedDB inicializado');
+            console.log(`[PARTICIPANTE-CACHE] 📊 Rodada atual: ${this.rodadaAtual || 'detectando...'}`);
         } catch (error) {
             console.error('[PARTICIPANTE-CACHE] ❌ Erro ao inicializar:', error);
+        }
+    }
+
+    async detectarRodadaAtual() {
+        try {
+            const response = await fetch('/api/cartola/mercado/status');
+            if (response.ok) {
+                const data = await response.json();
+                this.rodadaAtual = data.rodada_atual || 36;
+            } else {
+                this.rodadaAtual = 36; // Fallback
+            }
+        } catch (error) {
+            console.warn('[PARTICIPANTE-CACHE] Erro ao detectar rodada, usando fallback:', error);
+            this.rodadaAtual = 36;
         }
     }
 
@@ -39,7 +59,7 @@ class ParticipanteCache {
                     db.createObjectStore('ranking', { keyPath: 'id' });
                 }
 
-                // Store para rodadas
+                // Store para rodadas (PERMANENTE para rodadas fechadas)
                 if (!db.objectStoreNames.contains('rodadas')) {
                     db.createObjectStore('rodadas', { keyPath: 'id' });
                 }
@@ -48,24 +68,62 @@ class ParticipanteCache {
                 if (!db.objectStoreNames.contains('extrato')) {
                     db.createObjectStore('extrato', { keyPath: 'id' });
                 }
+
+                console.log('[PARTICIPANTE-CACHE] 🔧 Database upgraded para v' + this.version);
             };
         });
     }
 
-    async salvar(store, chave, dados, ttl = 300000) { // 5 minutos padrão
+    /**
+     * Calcula TTL inteligente baseado na rodada
+     * Rodadas fechadas (1-35): NUNCA EXPIRA (100 anos)
+     * Rodadas abertas (36+): 5 minutos
+     */
+    calcularTTL(chave) {
+        // Extrair número da rodada da chave (formato: "ranking_ligaId_rodadaNum")
+        const match = chave.match(/_rodada_?(\d+)/i) || chave.match(/_(\d+)$/);
+        
+        if (match) {
+            const rodadaNum = parseInt(match[1]);
+            
+            if (rodadaNum <= this.RODADA_FECHADA_LIMITE) {
+                // Rodada fechada = cache PERMANENTE (100 anos em ms)
+                const TTL_PERMANENTE = 100 * 365 * 24 * 60 * 60 * 1000;
+                console.log(`[PARTICIPANTE-CACHE] 🔒 Rodada ${rodadaNum} FECHADA - Cache PERMANENTE`);
+                return TTL_PERMANENTE;
+            }
+        }
+
+        // Rodada aberta ou dado não relacionado a rodada = 5 minutos
+        console.log(`[PARTICIPANTE-CACHE] ⏱️ Cache temporário (5 min)`);
+        return 5 * 60 * 1000;
+    }
+
+    async salvar(store, chave, dados, ttl = null) {
         try {
+            // Se TTL não fornecido, calcular automaticamente
+            if (ttl === null) {
+                ttl = this.calcularTTL(chave);
+            }
+
             const transaction = this.db.transaction([store], 'readwrite');
             const objectStore = transaction.objectStore(store);
+
+            const ehPermanente = ttl > (50 * 365 * 24 * 60 * 60 * 1000); // > 50 anos = permanente
 
             const registro = {
                 id: chave,
                 dados: dados,
                 timestamp: Date.now(),
-                expira: Date.now() + ttl
+                expira: ehPermanente ? null : Date.now() + ttl, // null = nunca expira
+                permanente: ehPermanente
             };
 
             await objectStore.put(registro);
-            console.log(`[PARTICIPANTE-CACHE] 💾 Salvou: ${store}/${chave}`);
+            
+            const tipo = ehPermanente ? '🔒 PERMANENTE' : `⏱️ ${Math.floor(ttl / 60000)}min`;
+            console.log(`[PARTICIPANTE-CACHE] 💾 ${tipo} - ${store}/${chave}`);
+            
             return true;
         } catch (error) {
             console.error('[PARTICIPANTE-CACHE] Erro ao salvar:', error);
@@ -84,12 +142,19 @@ class ParticipanteCache {
                     const resultado = request.result;
 
                     if (!resultado) {
-                        console.log(`[PARTICIPANTE-CACHE] ❌ Não encontrado: ${store}/${chave}`);
+                        console.log(`[PARTICIPANTE-CACHE] ❌ Miss: ${store}/${chave}`);
                         resolve(null);
                         return;
                     }
 
-                    // Verificar expiração
+                    // Se é permanente, nunca expira
+                    if (resultado.permanente || resultado.expira === null) {
+                        console.log(`[PARTICIPANTE-CACHE] ✅ Hit PERMANENTE: ${store}/${chave}`);
+                        resolve(resultado.dados);
+                        return;
+                    }
+
+                    // Verificar expiração para cache temporário
                     if (Date.now() > resultado.expira) {
                         console.log(`[PARTICIPANTE-CACHE] ⏰ Expirado: ${store}/${chave}`);
                         this.remover(store, chave);
@@ -97,7 +162,8 @@ class ParticipanteCache {
                         return;
                     }
 
-                    console.log(`[PARTICIPANTE-CACHE] ✅ Cache hit: ${store}/${chave}`);
+                    const tempoRestante = Math.floor((resultado.expira - Date.now()) / 60000);
+                    console.log(`[PARTICIPANTE-CACHE] ✅ Hit (${tempoRestante}min): ${store}/${chave}`);
                     resolve(resultado.dados);
                 };
 
