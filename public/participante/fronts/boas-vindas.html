@@ -5,10 +5,25 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Bem-vindo - Super Cartola Manager</title>
     <link rel="stylesheet" href="../css/participante.css">
-    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     <link href="https://fonts.googleapis.com/icon?family=Material+Icons+Outlined" rel="stylesheet">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        primary: "#FF4500",
+                        "primary-dark": "#e8472b",
+                        accent: "#f66700"
+                    }
+                }
+            }
+        }
+    </script>
 </head>
-<body>
+<body class="dark bg-gradient-to-br from-gray-900 via-black to-gray-900 min-h-screen">
     <div id="boas-vindas-container"></div>
     <script type="module" src="../js/modules/participante-boas-vindas.js"></script>
 </body>
