@@ -172,7 +172,7 @@ function renderizarBoasVindas({ posicao, totalParticipantes, pontosTotal, ultima
             <!-- Card Posição -->
             <div class="stat-card-modern stat-position">
                 <div class="stat-icon-modern">
-                    <span class="material-symbols-outlined">emoji_events</span>
+                    <span class="material-symbols-outlined" style="font-family: 'Material Symbols Outlined'; font-size: 32px; font-weight: 400;">military_tech</span>
                 </div>
                 <div class="stat-label-modern">POSIÇÃO</div>
                 <div class="stat-value-modern">${posTexto}</div>
@@ -181,7 +181,7 @@ function renderizarBoasVindas({ posicao, totalParticipantes, pontosTotal, ultima
             <!-- Card Pontos -->
             <div class="stat-card-modern stat-points">
                 <div class="stat-icon-modern">
-                    <span class="material-symbols-outlined">bar_chart</span>
+                    <span class="material-symbols-outlined" style="font-family: 'Material Symbols Outlined'; font-size: 32px; font-weight: 400;">bar_chart</span>
                 </div>
                 <div class="stat-label-modern">PONTOS</div>
                 <div class="stat-value-modern">${pontosFormatados}</div>
@@ -190,7 +190,7 @@ function renderizarBoasVindas({ posicao, totalParticipantes, pontosTotal, ultima
             <!-- Card Saldo -->
             <div class="stat-card-modern stat-balance">
                 <div class="stat-icon-modern">
-                    <span class="material-symbols-outlined">account_balance_wallet</span>
+                    <span class="material-symbols-outlined" style="font-family: 'Material Symbols Outlined'; font-size: 32px; font-weight: 400;">attach_money</span>
                 </div>
                 <div class="stat-label-modern">SALDO</div>
                 <div class="stat-value-modern">${saldoComSinal}</div>
@@ -199,7 +199,7 @@ function renderizarBoasVindas({ posicao, totalParticipantes, pontosTotal, ultima
             <!-- Card Última Rodada -->
             <div class="stat-card-modern stat-r35">
                 <div class="stat-icon-modern">
-                    <span class="material-symbols-outlined">bolt</span>
+                    <span class="material-symbols-outlined" style="font-family: 'Material Symbols Outlined'; font-size: 32px; font-weight: 400;">bolt</span>
                 </div>
                 <div class="stat-label-modern">R${rodadaAtual}</div>
                 <div class="stat-value-modern">${pontosUltimaRodada}</div>
@@ -211,7 +211,7 @@ function renderizarBoasVindas({ posicao, totalParticipantes, pontosTotal, ultima
     statsHTML += `
         <div class="performance-card-modern">
             <div class="performance-header-modern">
-                <span class="material-symbols-outlined performance-icon-modern">insights</span>
+                <span class="material-symbols-outlined performance-icon-modern" style="font-family: 'Material Symbols Outlined'; font-size: 24px; font-weight: 400;">insights</span>
                 <h3 class="performance-title-modern">Seu Desempenho</h3>
             </div>
             <div class="performance-stats-modern">
@@ -226,7 +226,7 @@ function renderizarBoasVindas({ posicao, totalParticipantes, pontosTotal, ultima
                 <div class="performance-item-modern">
                     <span class="performance-label-modern">Tendência:</span>
                     <span class="performance-value-modern">
-                        <span class="material-symbols-outlined ${tendenciaClass}">${tendenciaIcon}</span> ${tendenciaTexto}
+                        <span class="material-symbols-outlined ${tendenciaClass}" style="font-family: 'Material Symbols Outlined'; font-size: 18px; font-weight: 400;">${tendenciaIcon}</span> ${tendenciaTexto}
                     </span>
                 </div>
             </div>
@@ -238,7 +238,7 @@ function renderizarBoasVindas({ posicao, totalParticipantes, pontosTotal, ultima
             <!-- Seção de Boas-vindas PROFISSIONAL -->
             <section style="text-align: center; margin-bottom: 32px;">
                 <div style="display: flex; align-items: center; justify-content: center; gap: 8px; margin-bottom: 8px;">
-                    <span class="material-symbols-outlined" style="font-size: 28px; color: #FF6B35;">sports_soccer</span>
+                    <span class="material-symbols-outlined" style="font-family: 'Material Symbols Outlined'; font-size: 28px; font-weight: 400; color: #FF6B35;">sports_soccer</span>
                     <h2 style="font-size: 24px; font-weight: 700; color: white; margin: 0;">Bem-vindo(a) ao Painel</h2>
                 </div>
                 <p style="font-size: 14px; color: #999; margin: 0;">Acompanhe seu desempenho em tempo real</p>
