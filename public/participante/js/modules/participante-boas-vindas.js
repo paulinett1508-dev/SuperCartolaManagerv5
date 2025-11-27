@@ -3,8 +3,19 @@
 
 console.log('[BOAS-VINDAS] 🚀 Carregando módulo moderno...');
 
+// Exportar como módulo ES6 E como global
+export async function inicializarBoasVindas(ligaId, timeId) {
+    console.log(`[BOAS-VINDAS] Inicializando para time ${timeId} na liga ${ligaId}`);
+    await inicializarBoasVindasInterno(ligaId, timeId);
+}
+
+// Expor globalmente também
 window.inicializarBoasVindas = async function(ligaId, timeId) {
     console.log(`[BOAS-VINDAS] Inicializando para time ${timeId} na liga ${ligaId}`);
+    await inicializarBoasVindasInterno(ligaId, timeId);
+}
+
+async function inicializarBoasVindasInterno(ligaId, timeId) {
 
     try {
         const [resRanking, resRodadas, resFluxo, resTime] = await Promise.all([
@@ -134,7 +145,7 @@ function renderizarBoasVindas({ posicao, totalParticipantes, pontosTotal, saldoF
                     <div class="relative">
                         <div class="flex items-center gap-3 mb-4">
                             <div class="p-3 bg-yellow-500/20 rounded-xl">
-                                <span class="material-icons-outlined text-yellow-400 text-2xl">emoji_events</span>
+                                <span class="material-icons text-yellow-400 text-2xl">emoji_events</span>
                             </div>
                             <span class="text-yellow-400/80 text-sm font-medium">Posição</span>
                         </div>
@@ -149,7 +160,7 @@ function renderizarBoasVindas({ posicao, totalParticipantes, pontosTotal, saldoF
                     <div class="relative">
                         <div class="flex items-center gap-3 mb-4">
                             <div class="p-3 bg-blue-500/20 rounded-xl">
-                                <span class="material-icons-outlined text-blue-400 text-2xl">bar_chart</span>
+                                <span class="material-icons text-blue-400 text-2xl">bar_chart</span>
                             </div>
                             <span class="text-blue-400/80 text-sm font-medium">Pontos</span>
                         </div>
@@ -164,7 +175,7 @@ function renderizarBoasVindas({ posicao, totalParticipantes, pontosTotal, saldoF
                     <div class="relative">
                         <div class="flex items-center gap-3 mb-4">
                             <div class="p-3 bg-green-500/20 rounded-xl">
-                                <span class="material-icons-outlined text-green-400 text-2xl">account_balance_wallet</span>
+                                <span class="material-icons text-green-400 text-2xl">account_balance_wallet</span>
                             </div>
                             <span class="text-green-400/80 text-sm font-medium">Saldo</span>
                         </div>
@@ -179,7 +190,7 @@ function renderizarBoasVindas({ posicao, totalParticipantes, pontosTotal, saldoF
                     <div class="relative">
                         <div class="flex items-center gap-3 mb-4">
                             <div class="p-3 bg-orange-500/20 rounded-xl">
-                                <span class="material-icons-outlined text-orange-400 text-2xl">bolt</span>
+                                <span class="material-icons text-orange-400 text-2xl">offline_bolt</span>
                             </div>
                             <span class="text-orange-400/80 text-sm font-medium">Última Rodada</span>
                         </div>
@@ -196,7 +207,7 @@ function renderizarBoasVindas({ posicao, totalParticipantes, pontosTotal, saldoF
                 <!-- Performance Card -->
                 <div class="bg-gradient-to-br from-gray-800/50 to-gray-900/50 backdrop-blur-xl rounded-2xl p-6 border border-gray-700/50 shadow-xl">
                     <div class="flex items-center gap-3 mb-6">
-                        <span class="material-icons-outlined text-primary text-2xl">show_chart</span>
+                        <span class="material-icons text-primary text-2xl">show_chart</span>
                         <h3 class="text-xl font-bold text-white">Desempenho</h3>
                     </div>
                     <div class="space-y-4">
@@ -210,7 +221,7 @@ function renderizarBoasVindas({ posicao, totalParticipantes, pontosTotal, saldoF
                         </div>
                         <div class="flex justify-between items-center p-4 bg-gray-800/50 rounded-xl">
                             <span class="text-gray-400">Tendência</span>
-                            <span class="material-icons-outlined text-green-400">trending_up</span>
+                            <span class="material-icons text-green-400">trending_up</span>
                         </div>
                     </div>
                 </div>
@@ -218,7 +229,7 @@ function renderizarBoasVindas({ posicao, totalParticipantes, pontosTotal, saldoF
                 <!-- Time do Coração -->
                 <div class="bg-gradient-to-br from-gray-800/50 to-gray-900/50 backdrop-blur-xl rounded-2xl p-6 border border-gray-700/50 shadow-xl">
                     <div class="flex items-center gap-3 mb-6">
-                        <span class="material-icons-outlined text-primary text-2xl">favorite</span>
+                        <span class="material-icons text-primary text-2xl">favorite</span>
                         <h3 class="text-xl font-bold text-white">Time do Coração</h3>
                     </div>
                     <div id="timeCoracaoCard" class="flex items-center justify-center min-h-[120px]">
@@ -239,7 +250,7 @@ function renderizarBoasVindas({ posicao, totalParticipantes, pontosTotal, saldoF
         if (timeCoracaoCard) {
             timeCoracaoCard.innerHTML = `
                 <div class="text-center text-gray-500">
-                    <span class="material-icons-outlined text-4xl mb-2">sports_soccer</span>
+                    <span class="material-icons text-4xl mb-2">sports_soccer</span>
                     <p>Nenhum time definido</p>
                 </div>
             `;
