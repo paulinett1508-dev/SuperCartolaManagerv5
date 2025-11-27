@@ -184,8 +184,19 @@ class FluxoFinanceiroParticipante {
             console.log(`[TESTE-CACHE] 📡 Mercado: ${mercadoAberto ? '🟢 ABERTO' : '🔴 FECHADO'}`);
             console.log(`[TESTE-CACHE] 🎲 Rodada Atual Cartola: ${rodadaAtualCartola}`);
 
+            // ✅ VALIDAR CACHE EXISTENTE (se não forçar recálculo)
+            let validacaoData = null;
+            if (!forcar) {
+                const validacaoResponse = await fetch(
+                    `/api/extrato-cache/${ligaId}/times/${timeId}/validar?rodadaAtual=${rodadaAtual}&mercadoAberto=${mercadoAberto}`
+                );
+                if (validacaoResponse.ok) {
+                    validacaoData = await validacaoResponse.json();
+                }
+            }
+
             // 3️⃣ SE CACHE VÁLIDO → RETORNAR IMEDIATAMENTE
-            if (!forcar && validacaoData.valido === true && validacaoData.cached) {
+            if (!forcar && validacaoData?.valido === true && validacaoData?.cached) {
                 console.log('┌─────────────────────────────────────────────────────────────┐');
                 console.log('│ ⚡ CACHE RECENTE VÁLIDO!                                     │');
                 console.log(`│ ⏱️  TTL restante: ${validacaoData.ttlRestante || 'N/D'}s              │`);

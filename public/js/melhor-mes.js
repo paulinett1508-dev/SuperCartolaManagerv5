@@ -12,6 +12,7 @@ async function carregarModulos() {
   if (modulosCarregados) return;
 
   try {
+    // Importar o orquestrador (verificar se o arquivo existe)
     const orquestradorModule = await import(
       "./melhor-mes/melhor-mes-orquestrador.js"
     );

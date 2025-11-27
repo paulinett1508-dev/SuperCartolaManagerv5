@@ -249,3 +249,41 @@ console.log("[MELHOR-MES-ORQUESTRADOR] 🏗️ Arquitetura modular implementada"
 console.log(
   "[MELHOR-MES-ORQUESTRADOR] 🔧 Debug functions disponíveis em window.melhorMesOrquestradorDebug",
 );
+// MELHOR MÊS ORQUESTRADOR
+// Coordena cache, core e UI
+
+import { MelhorMesConfig } from './melhor-mes-config.js';
+import { MelhorMesCore } from './melhor-mes-core.js';
+import { MelhorMesUI } from './melhor-mes-ui.js';
+
+console.log('[MELHOR-MÊS-ORQUESTRADOR] 📦 Carregando orquestrador...');
+
+export class MelhorMesOrquestrador {
+    constructor() {
+        this.config = new MelhorMesConfig();
+        this.core = new MelhorMesCore();
+        this.ui = new MelhorMesUI();
+    }
+
+    async inicializar(ligaId) {
+        console.log('[MELHOR-MÊS-ORQUESTRADOR] 🚀 Inicializando para liga:', ligaId);
+        this.ligaId = ligaId;
+    }
+
+    async carregarMelhorMes() {
+        try {
+            console.log('[MELHOR-MÊS-ORQUESTRADOR] 📊 Carregando dados...');
+            
+            const dados = await this.core.calcularMelhorMes(this.ligaId);
+            await this.ui.renderizar(dados);
+            
+            console.log('[MELHOR-MÊS-ORQUESTRADOR] ✅ Dados carregados');
+        } catch (error) {
+            console.error('[MELHOR-MÊS-ORQUESTRADOR] ❌ Erro:', error);
+            throw error;
+        }
+    }
+}
+
+window.MelhorMesOrquestrador = MelhorMesOrquestrador;
+console.log('[MELHOR-MÊS-ORQUESTRADOR] ✅ Carregado');
