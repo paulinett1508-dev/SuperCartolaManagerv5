@@ -349,8 +349,8 @@ class ParticipanteNavigation {
                     if (moduloJS[funcName]) { // Verifica se a função existe no módulo importado
                         console.log(`[PARTICIPANTE-NAV] 🚀 Executando função: ${funcName}()`);
                         try {
-                            // Chama a função de inicialização, passando os dados do participante se necessário
-                            await moduloJS[funcName](this.participanteData);
+                            // Chama a função de inicialização com ligaId e timeId separados
+                            await moduloJS[funcName](this.participanteData.ligaId, this.participanteData.timeId);
                             console.log(`[PARTICIPANTE-NAV] ✅ Função ${funcName}() executada com sucesso`);
                             functionExecuted = true;
                             break; // Sai do loop após executar a primeira função encontrada
