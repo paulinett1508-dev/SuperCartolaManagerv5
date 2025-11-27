@@ -111,40 +111,47 @@ class ParticipanteNavigation {
             return;
         }
 
-        // Definir módulos base (sempre visíveis)
-        const modulosBase = [
-            { id: 'boas-vindas', icon: '🏠', label: 'Início', config: 'boas_vindas' },
-            { id: 'extrato', icon: '💰', label: 'Extrato', config: 'extrato' },
-            { id: 'ranking', icon: '📊', label: 'Ranking', config: 'ranking' },
-            { id: 'rodadas', icon: '🎯', label: 'Rodadas', config: 'rodadas' }
+        // Definir TODOS os módulos disponíveis
+        const todosModulosDisponiveis = [
+            { id: 'boas-vindas', icon: '🏠', label: 'Início', config: 'boas_vindas', base: true },
+            { id: 'extrato', icon: '💰', label: 'Extrato', config: 'extrato', base: true },
+            { id: 'ranking', icon: '📊', label: 'Ranking', config: 'ranking', base: true },
+            { id: 'rodadas', icon: '🎯', label: 'Rodadas', config: 'rodadas', base: true },
+            { id: 'top10', icon: '🔟', label: 'Top 10', config: 'top10', base: false },
+            { id: 'melhor-mes', icon: '📅', label: 'Melhor Mês', config: 'melhor_mes', base: false },
+            { id: 'pontos-corridos', icon: '🔄', label: 'P. Corridos', config: 'pontos_corridos', base: false },
+            { id: 'mata-mata', icon: '⚔️', label: 'Mata-Mata', config: 'mata_mata', base: false },
+            { id: 'artilheiro', icon: '⚽', label: 'Artilheiro', config: 'artilheiro', base: false },
+            { id: 'luva-ouro', icon: '🧤', label: 'Luva Ouro', config: 'luva_ouro', base: false }
         ];
 
-        // Módulos condicionais (dependem da configuração)
-        const modulosCondicionais = [
-            { id: 'top10', icon: '🔟', label: 'Top 10', config: 'top10' },
-            { id: 'melhor-mes', icon: '📅', label: 'Melhor Mês', config: 'melhor_mes' },
-            { id: 'pontos-corridos', icon: '🔄', label: 'P. Corridos', config: 'pontos_corridos' },
-            { id: 'mata-mata', icon: '⚔️', label: 'Mata-Mata', config: 'mata_mata' },
-            { id: 'artilheiro', icon: '⚽', label: 'Artilheiro', config: 'artilheiro' },
-            { id: 'luva-ouro', icon: '🧤', label: 'Luva Ouro', config: 'luva_ouro' }
-        ];
+        // Filtrar apenas módulos ativos
+        const modulosAtivos = todosModulosDisponiveis.filter(m => this.verificarModuloAtivo(m.config));
 
-        // Filtrar módulos ativos
-        const todosModulos = [
-            ...modulosBase.filter(m => this.verificarModuloAtivo(m.config)),
-            ...modulosCondicionais.filter(m => this.verificarModuloAtivo(m.config))
-        ];
+        console.log('[PARTICIPANTE-NAV] 📋 Módulos disponíveis:', modulosAtivos.length, 'de', todosModulosDisponiveis.length);
+        console.log('[PARTICIPANTE-NAV] 🔧 Configuração da liga:', this.modulosAtivos);
 
-        // Renderizar botões
-        bottomNav.innerHTML = todosModulos.map(modulo => `
+        // Renderizar botões com scroll horizontal se necessário
+        bottomNav.innerHTML = modulosAtivos.map(modulo => `
             <button class="nav-item-modern ${modulo.id === 'boas-vindas' ? 'active' : ''}"
-                    data-module="${modulo.id}">
+                    data-module="${modulo.id}"
+                    title="${modulo.label}">
                 <span class="nav-icon-modern">${modulo.icon}</span>
                 <span class="nav-label-modern">${modulo.label}</span>
             </button>
         `).join('');
 
-        console.log('[PARTICIPANTE-NAV] ✅ Menu renderizado com', todosModulos.length, 'módulos');
+        // Adicionar estilo de scroll horizontal se houver muitos itens
+        if (modulosAtivos.length > 5) {
+            bottomNav.style.overflowX = 'auto';
+            bottomNav.style.overflowY = 'hidden';
+            bottomNav.style.whiteSpace = 'nowrap';
+            bottomNav.style.webkitOverflowScrolling = 'touch';
+            bottomNav.style.scrollbarWidth = 'thin';
+            console.log('[PARTICIPANTE-NAV] 📱 Scroll horizontal ativado para', modulosAtivos.length, 'módulos');
+        }
+
+        console.log('[PARTICIPANTE-NAV] ✅ Menu renderizado com', modulosAtivos.length, 'módulos');
     }
 
     verificarModuloAtivo(configKey) {
