@@ -420,3 +420,93 @@ export const resetarCampos = async (req, res) => {
 export const deletarCampos = async (req, res) => {
     return resetarCampos(req, res);
 };
+
+// ============================================================================
+// 🔒 FUNÇÃO PARA CONSOLIDAÇÃO DE SNAPSHOTS
+// ============================================================================
+
+export const getFluxoFinanceiroLiga = async (ligaId, rodadaNumero) => {
+    try {
+        console.log(`[FINANCEIRO-CONSOLIDAÇÃO] Processando liga ${ligaId} até R${rodadaNumero}`);
+        
+        const liga = await Liga.findById(ligaId);
+        if (!liga) throw new Error('Liga não encontrada');
+        
+        const financeiroPorTime = [];
+        
+        // Para cada participante da liga
+        for (const participante of liga.participantes) {
+            const timeId = participante.time_id;
+            
+            // Buscar ou criar cache
+            let cache = await ExtratoFinanceiroCache.findOne({
+                liga_id: ligaId,
+                time_id: timeId,
+            });
+            
+            if (!cache) {
+                cache = new ExtratoFinanceiroCache({
+                    liga_id: ligaId,
+                    time_id: timeId,
+                    ultima_rodada_consolidada: 0,
+                    saldo_consolidado: 0,
+                    historico_transacoes: [],
+                });
+            }
+            
+            // Atualizar cache até a rodada especificada
+            if (cache.ultima_rodada_consolidada < rodadaNumero) {
+                for (let r = cache.ultima_rodada_consolidada + 1; r <= rodadaNumero; r++) {
+                    const resultado = await calcularFinanceiroDaRodada(liga, timeId, r);
+                    
+                    if (resultado.transacoes.length > 0) {
+                        cache.historico_transacoes.push(...resultado.transacoes);
+                        cache.saldo_consolidado += resultado.saldo;
+                    }
+                }
+                
+                cache.ganhos_consolidados = cache.historico_transacoes
+                    .filter((t) => t.valor > 0)
+                    .reduce((acc, t) => acc + t.valor, 0);
+                
+                cache.perdas_consolidadas = cache.historico_transacoes
+                    .filter((t) => t.valor < 0)
+                    .reduce((acc, t) => acc + t.valor, 0);
+                
+                cache.ultima_rodada_consolidada = rodadaNumero;
+                cache.data_ultima_atualizacao = new Date();
+                
+                await cache.save();
+            }
+            
+            // Adicionar campos manuais
+            const camposManuais = await FluxoFinanceiroCampos.findOne({ ligaId, timeId });
+            let saldoCampos = 0;
+            
+            if (camposManuais && camposManuais.campos) {
+                camposManuais.campos.forEach((campo) => {
+                    if (campo.valor !== 0) {
+                        saldoCampos += campo.valor;
+                    }
+                });
+            }
+            
+            financeiroPorTime.push({
+                time_id: timeId,
+                nome_time: participante.nome_time,
+                nome_cartola: participante.nome_cartola,
+                saldo_total: cache.saldo_consolidado + saldoCampos,
+                ganhos: cache.ganhos_consolidados || 0,
+                perdas: cache.perdas_consolidadas || 0,
+                transacoes: cache.historico_transacoes.length,
+            });
+        }
+        
+        console.log(`[FINANCEIRO-CONSOLIDAÇÃO] ✅ ${financeiroPorTime.length} times processados`);
+        return financeiroPorTime;
+        
+    } catch (error) {
+        console.error('[FINANCEIRO-CONSOLIDAÇÃO] ❌ Erro:', error);
+        throw error;
+    }
+};
