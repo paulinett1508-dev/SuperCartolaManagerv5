@@ -1,0 +1,152 @@
+<!DOCTYPE html>
+<html class="dark" lang="pt-br"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Urubu Play F.C. Dashboard</title>
+<link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined" rel="stylesheet"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,typography"></script>
+<script>
+    tailwind.config = {
+      darkMode: "class",
+      theme: {
+        extend: {
+          colors: {
+            primary: "#C30F0A",
+            "background-light": "#F3F4F6",
+            "background-dark": "#181818",
+          },
+          fontFamily: {
+            display: ["Roboto", "sans-serif"],
+          },
+          borderRadius: {
+            DEFAULT: "0.75rem", // 12px
+          },
+        },
+      },
+    };
+  </script>
+<style>
+    .material-symbols-outlined {
+      font-variation-settings: 'FILL' 1, 'wght' 400, 'GRAD' 0, 'opsz' 48;
+    }
+  </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="bg-background-light dark:bg-background-dark text-gray-800 dark:text-gray-200 font-display">
+<div class="min-h-screen flex flex-col">
+<main class="flex-grow p-4 space-y-6">
+<header class="flex items-center justify-between">
+<div class="flex items-center space-x-3">
+<div class="flex items-center space-x-1">
+<img alt="Team logo with a red shield and a bird" class="h-10 w-10" src="https://lh3.googleusercontent.com/aida-public/AB6AXuBm5XrLX-fBAlevWN2jMzxRdXDVVm8jXMnvtcUrie8VIsXgSwf09x1xHWK-ZuORxiuEvpu-uGm20xPvnQYg_HUAzIhTGrLReeiPbFA-HPywojet0_OWCmVA6OJtzbyBX9uo0IpkDWgikZEbb7OKJm-yXGXz95_WVSaxxT7RoQwGDXvlYaq-JVEOeU60ta8lXnH5Ap0myIrbWwOrug2GCu53d1m9nygT6QUMLCTS47G2C-tQvbsJ2ofD6QijojefNoMVlSqmQZA96g"/>
+<img alt="Secondary team logo" class="h-10 w-10" src="https://lh3.googleusercontent.com/aida-public/AB6AXuA5ZlMaIDVcNoSmmbjCCNH6Sut0FAjHfik9D9hjCmBQ7553Qhy5PGjSjVLYteRRBsfv2eS7EkUyrd3MMh1QjiANrqFhLW3scmTDGePx8U9wqQgjGvg9cbbLY0mthTAYk-l-IvQz4pLwnXRhdEcucZ35C8Oh92EpExT7FyjvHfs1aMt3VP6Q_rGcJp0e3woeq-sL7EK0N6zj4GY1PopO0-FKVeHGmJrKC8br2AFHkC7_xm4LTc5eHs8C7LVSMNrt3Kta0mThDg_beg"/>
+</div>
+<div>
+<h1 class="font-bold text-lg text-gray-900 dark:text-white">Urubu Play F.C.</h1>
+<p class="text-sm text-gray-500 dark:text-gray-400">Paulinett Miranda</p>
+</div>
+</div>
+<div class="flex items-center space-x-4">
+<div class="flex items-center space-x-2">
+<span class="h-2 w-2 bg-green-500 rounded-full"></span>
+<span class="text-sm text-green-500">Online</span>
+</div>
+<button class="text-gray-900 dark:text-white">
+<span class="material-symbols-outlined text-3xl">menu</span>
+</button>
+</div>
+</header>
+<div class="text-center">
+<h2 class="text-2xl font-bold flex items-center justify-center gap-2 text-gray-900 dark:text-white">
+<span class="material-symbols-outlined">sports_soccer</span>
+          Bem-vindo(a) ao Painel
+        </h2>
+<p class="text-gray-500 dark:text-gray-400">Acompanhe seu desempenho em tempo real</p>
+</div>
+<div class="grid grid-cols-2 gap-4">
+<div class="bg-white dark:bg-zinc-800 p-4 rounded-lg flex items-center space-x-4">
+<div class="bg-yellow-100 dark:bg-yellow-900/50 p-3 rounded-lg">
+<span class="material-symbols-outlined text-yellow-500">trophy</span>
+</div>
+<div>
+<p class="text-lg font-bold text-gray-900 dark:text-white">--_º</p>
+<p class="text-xs text-gray-500 dark:text-gray-400 uppercase">POSIÇÃO</p>
+</div>
+</div>
+<div class="bg-white dark:bg-zinc-800 p-4 rounded-lg flex items-center space-x-4">
+<div class="bg-blue-100 dark:bg-blue-900/50 p-3 rounded-lg">
+<span class="material-symbols-outlined text-blue-500">bar_chart</span>
+</div>
+<div>
+<p class="text-lg font-bold text-gray-900 dark:text-white">--</p>
+<p class="text-xs text-gray-500 dark:text-gray-400 uppercase">PONTOS</p>
+</div>
+</div>
+<div class="bg-white dark:bg-zinc-800 p-4 rounded-lg flex items-center space-x-4">
+<div class="bg-green-100 dark:bg-green-900/50 p-3 rounded-lg">
+<span class="material-symbols-outlined text-green-500">paid</span>
+</div>
+<div>
+<p class="text-lg font-bold text-gray-900 dark:text-white">R$ 0</p>
+<p class="text-xs text-gray-500 dark:text-gray-400 uppercase">SALDO</p>
+</div>
+</div>
+<div class="bg-white dark:bg-zinc-800 p-4 rounded-lg flex items-center space-x-4">
+<div class="bg-orange-100 dark:bg-orange-900/50 p-3 rounded-lg">
+<span class="material-symbols-outlined text-orange-500">bolt</span>
+</div>
+<div>
+<p class="text-lg font-bold text-gray-900 dark:text-white">--</p>
+<p class="text-xs text-gray-500 dark:text-gray-400 uppercase">R--</p>
+</div>
+</div>
+</div>
+<div class="bg-white dark:bg-zinc-800 p-5 rounded-lg space-y-4">
+<h3 class="font-bold text-lg flex items-center gap-2 text-gray-900 dark:text-white">
+<span class="material-symbols-outlined text-primary">trending_up</span>
+          Seu Desempenho
+        </h3>
+<div class="space-y-3">
+<div class="flex justify-between items-center text-sm">
+<span class="text-gray-500 dark:text-gray-400">Posição anterior:</span>
+<span class="font-medium text-gray-900 dark:text-white">-</span>
+</div>
+<div class="flex justify-between items-center text-sm">
+<span class="text-gray-500 dark:text-gray-400">Variação:</span>
+<span class="font-medium text-gray-900 dark:text-white">-</span>
+</div>
+<div class="flex justify-between items-center text-sm">
+<span class="text-gray-500 dark:text-gray-400">Tendência:</span>
+<span class="material-symbols-outlined text-blue-500">bar_chart</span>
+</div>
+</div>
+</div>
+</main>
+<nav class="sticky bottom-0 bg-white dark:bg-zinc-900 border-t border-gray-200 dark:border-zinc-700">
+<div class="flex justify-around items-center h-20">
+<a class="flex flex-col items-center justify-center text-primary space-y-1" href="#">
+<span class="material-symbols-outlined">home</span>
+<span class="text-xs font-medium">Início</span>
+</a>
+<a class="flex flex-col items-center justify-center text-gray-500 dark:text-gray-400 hover:text-primary dark:hover:text-primary space-y-1" href="#">
+<span class="material-symbols-outlined">savings</span>
+<span class="text-xs">Extrato</span>
+</a>
+<a class="flex flex-col items-center justify-center text-gray-500 dark:text-gray-400 hover:text-primary dark:hover:text-primary space-y-1" href="#">
+<span class="material-symbols-outlined">leaderboard</span>
+<span class="text-xs">Ranking</span>
+</a>
+<a class="flex flex-col items-center justify-center text-gray-500 dark:text-gray-400 hover:text-primary dark:hover:text-primary space-y-1" href="#">
+<span class="material-symbols-outlined">target</span>
+<span class="text-xs">Rodadas</span>
+</a>
+</div>
+</nav>
+</div>
+
+</body></html>
