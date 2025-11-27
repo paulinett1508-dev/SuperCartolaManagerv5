@@ -421,6 +421,14 @@ body {
     font-family: 'JetBrains Mono', monospace;
     text-shadow: 0 2px 12px rgba(255, 255, 255, 0.1);
     letter-spacing: -1px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+/* Ajuste específico para saldos negativos */
+.stat-balance .stat-value-modern {
+    font-size: 24px;
 }
 
 /* Cards específicos */
