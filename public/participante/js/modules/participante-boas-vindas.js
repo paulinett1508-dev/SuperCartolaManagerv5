@@ -66,7 +66,8 @@ async function inicializarBoasVindasInterno(ligaId, timeId) {
             ultimaRodada,
             meuTime,
             timeData,
-            timeId
+            timeId,
+            minhasRodadas
         });
 
     } catch (error) {
@@ -79,12 +80,13 @@ async function inicializarBoasVindasInterno(ligaId, timeId) {
             ultimaRodada: null,
             meuTime: null,
             timeData: null,
-            timeId: timeId
+            timeId: timeId,
+            minhasRodadas: []
         });
     }
 };
 
-function renderizarBoasVindas({ posicao, totalParticipantes, pontosTotal, saldoFinanceiro, ultimaRodada, meuTime, timeData, timeId }) {
+function renderizarBoasVindas({ posicao, totalParticipantes, pontosTotal, saldoFinanceiro, ultimaRodada, meuTime, timeData, timeId, minhasRodadas }) {
     const container = document.getElementById('boas-vindas-container');
     if (!container) return;
 
