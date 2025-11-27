@@ -131,7 +131,7 @@ class ParticipanteNavigation {
         console.log('[PARTICIPANTE-NAV] 📋 Módulos disponíveis:', modulosAtivos.length, 'de', todosModulosDisponiveis.length);
         console.log('[PARTICIPANTE-NAV] 🔧 Configuração da liga:', this.modulosAtivos);
 
-        // Renderizar botões com scroll horizontal se necessário
+        // Renderizar botões com scroll horizontal
         bottomNav.innerHTML = modulosAtivos.map(modulo => `
             <button class="nav-item-modern ${modulo.id === 'boas-vindas' ? 'active' : ''}"
                     data-module="${modulo.id}"
@@ -141,15 +141,13 @@ class ParticipanteNavigation {
             </button>
         `).join('');
 
-        // Adicionar estilo de scroll horizontal se houver muitos itens
-        if (modulosAtivos.length > 5) {
-            bottomNav.style.overflowX = 'auto';
-            bottomNav.style.overflowY = 'hidden';
-            bottomNav.style.whiteSpace = 'nowrap';
-            bottomNav.style.webkitOverflowScrolling = 'touch';
-            bottomNav.style.scrollbarWidth = 'thin';
-            console.log('[PARTICIPANTE-NAV] 📱 Scroll horizontal ativado para', modulosAtivos.length, 'módulos');
-        }
+        // Sempre habilitar scroll horizontal para navegação suave
+        bottomNav.style.overflowX = 'auto';
+        bottomNav.style.overflowY = 'hidden';
+        bottomNav.style.webkitOverflowScrolling = 'touch';
+        bottomNav.style.scrollbarWidth = 'thin';
+        
+        console.log('[PARTICIPANTE-NAV] 📱 Menu renderizado com scroll horizontal para', modulosAtivos.length, 'módulos');
 
         console.log('[PARTICIPANTE-NAV] ✅ Menu renderizado com', modulosAtivos.length, 'módulos');
     }
