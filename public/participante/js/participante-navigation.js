@@ -90,7 +90,7 @@ class ParticipanteNavigation {
 
             const liga = await response.json();
             // ✅ USAR O CAMPO CORRETO: modulos_ativos
-            this.modulosAtivos = liga.modulos_ativos || {}; 
+            this.modulosAtivos = liga.modulos_ativos || {};
 
             console.log('[PARTICIPANTE-NAV] 📋 Módulos ativos recebidos:', this.modulosAtivos);
         } catch (error) {
