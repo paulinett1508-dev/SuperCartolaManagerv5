@@ -31,6 +31,7 @@ import pontosCorridosCacheRoutes from "./routes/pontosCorridosCacheRoutes.js";
 import top10CacheRoutes from "./routes/top10CacheRoutes.js";
 import mataMataCacheRoutes from "./routes/mataMataCacheRoutes.js";
 import rankingGeralCacheRoutes from "./routes/ranking-geral-cache-routes.js";
+import consolidacaoRoutes from "./routes/consolidacao-routes.js";
 
 import { getClubes } from "./controllers/cartolaController.js";
 import {
@@ -99,6 +100,7 @@ app.use("/api/fluxo-financeiro", fluxoFinanceiroRoutes);
 console.log('[SERVER] ✅ Rotas de Fluxo Financeiro registradas em /api/fluxo-financeiro');
 app.use("/api/extrato-cache", extratoFinanceiroCacheRoutes);
 app.use("/api/ranking-cache", rankingGeralCacheRoutes);
+app.use("/api/consolidacao", consolidacaoRoutes);
 app.use("/api/participante/auth", participanteAuthRoutes);
 app.use("/api/pontos-corridos", pontosCorridosCacheRoutes);
 app.use("/api/top10", top10CacheRoutes);
