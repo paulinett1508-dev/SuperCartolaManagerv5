@@ -102,26 +102,43 @@ class ParticipanteAuth {
         const nomeCartolaText = document.getElementById('nomeCartolaText');
         const escudoCoracao = document.getElementById('escudoCoracao');
         const escudoTime = document.getElementById('escudoTime');
-        const headerLogoutButton = document.getElementById('headerLogoutButton'); // Botão Sair
+        const headerLogoutButton = document.getElementById('headerLogoutButton');
 
-        console.log('[PARTICIPANTE-AUTH] Atualizando header com dados:', this.participante);
+        console.log('[PARTICIPANTE-AUTH] Atualizando header com dados da sessão:', this.participante);
 
         try {
-            // 1. Buscar dados reais do time da API
+            // ✅ PRIORIZAR DADOS DA SESSÃO (já validados no backend)
+            let nomeTimeTexto = this.participante.participante?.nome_time || 'Meu Time';
+            let nomeCartolaTexto = this.participante.participante?.nome_cartola || 'Cartoleiro';
+            let clubeId = this.participante.participante?.clube_id || null;
+            let fotoTime = this.participante.participante?.foto_time || null;
+
+            // Buscar dados atualizados do time APENAS se necessário
             const timeResponse = await fetch(`/api/times/${this.timeId}`, {
                 credentials: 'include'
             });
 
-            let timeData = null;
-            let patrimonio = 0;
-
             if (timeResponse.ok) {
-                timeData = await timeResponse.json();
-                patrimonio = timeData.patrimonio || 0;
-                console.log('[PARTICIPANTE-AUTH] Dados do time carregados:', {
-                    nome: timeData.nome_time,
-                    cartola: timeData.nome_cartoleiro,
-                    clube: timeData.clube_id
+                const timeData = await timeResponse.json();
+                
+                // Atualizar SOMENTE se dados da sessão estiverem vazios
+                if (nomeTimeTexto === 'N/D' || nomeTimeTexto === 'Meu Time') {
+                    nomeTimeTexto = timeData.nome_time || timeData.nome || nomeTimeTexto;
+                }
+                if (nomeCartolaTexto === 'N/D' || nomeCartolaTexto === 'Cartoleiro') {
+                    nomeCartolaTexto = timeData.nome_cartola || timeData.nome_cartoleiro || nomeCartolaTexto;
+                }
+                if (!clubeId) {
+                    clubeId = timeData.clube_id;
+                }
+                if (!fotoTime) {
+                    fotoTime = timeData.url_escudo_png || timeData.foto_time;
+                }
+
+                console.log('[PARTICIPANTE-AUTH] ✅ Dados do time mesclados:', {
+                    nome: nomeTimeTexto,
+                    cartola: nomeCartolaTexto,
+                    clube: clubeId
                 });
             }
 

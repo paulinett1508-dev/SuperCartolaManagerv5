@@ -87,10 +87,10 @@ class ParticipanteCache {
             const rodadaNum = parseInt(match[1]);
             
             if (rodadaNum <= this.RODADA_FECHADA_LIMITE) {
-                // Rodada fechada = cache PERMANENTE (100 anos em ms)
-                const TTL_PERMANENTE = 100 * 365 * 24 * 60 * 60 * 1000;
-                console.log(`[PARTICIPANTE-CACHE] 🔒 Rodada ${rodadaNum} FECHADA - Cache PERMANENTE`);
-                return TTL_PERMANENTE;
+                // ✅ Rodada fechada = cache de 30 DIAS (não 100 anos!)
+                const TTL_RODADA_FECHADA = 30 * 24 * 60 * 60 * 1000; // 30 dias
+                console.log(`[PARTICIPANTE-CACHE] 🔒 Rodada ${rodadaNum} FECHADA - Cache 30 dias`);
+                return TTL_RODADA_FECHADA;
             }
         }
 

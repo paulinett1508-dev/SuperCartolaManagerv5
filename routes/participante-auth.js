@@ -77,16 +77,40 @@ router.post("/login", async (req, res) => {
             });
         }
 
-        // Criar sessão (Agora persistente no MongoDB graças ao index.js)
+        // ✅ BUSCAR DADOS REAIS DO TIME DA API CARTOLA
+        let dadosReais = {
+            nome_cartola: participanteEncontrado.nome_cartola || 'N/D',
+            nome_time: participanteEncontrado.nome_time || 'N/D',
+            foto_perfil: participanteEncontrado.foto_perfil || '',
+            foto_time: participanteEncontrado.foto_time || '',
+            clube_id: participanteEncontrado.clube_id || null
+        };
+
+        try {
+            const { default: Time } = await import("../models/Time.js");
+            const timeReal = await Time.findOne({ time_id: parseInt(timeId) }).lean();
+
+            if (timeReal) {
+                dadosReais = {
+                    nome_cartola: timeReal.nome_cartola || timeReal.nome_cartoleiro || participanteEncontrado.nome_cartola || 'Cartoleiro',
+                    nome_time: timeReal.nome_time || timeReal.nome || participanteEncontrado.nome_time || 'Meu Time',
+                    foto_perfil: timeReal.foto_perfil || participanteEncontrado.foto_perfil || '',
+                    foto_time: timeReal.url_escudo_png || timeReal.foto_time || participanteEncontrado.foto_time || '',
+                    clube_id: timeReal.clube_id || participanteEncontrado.clube_id || null
+                };
+                console.log('[PARTICIPANTE-AUTH] ✅ Dados reais encontrados:', dadosReais);
+            } else {
+                console.warn('[PARTICIPANTE-AUTH] ⚠️ Time não encontrado no banco, usando dados da liga');
+            }
+        } catch (error) {
+            console.error('[PARTICIPANTE-AUTH] ❌ Erro ao buscar dados do time:', error);
+        }
+
+        // Criar sessão com dados reais
         req.session.participante = {
             timeId: timeId,
             ligaId: ligaEncontrada._id.toString(),
-            participante: {
-                nome_cartola: participanteEncontrado.nome_cartola,
-                nome_time: participanteEncontrado.nome_time,
-                foto_perfil: participanteEncontrado.foto_perfil,
-                foto_time: participanteEncontrado.foto_time,
-            },
+            participante: dadosReais,
         };
 
         console.log('[PARTICIPANTE-AUTH] 💾 Sessão criada para:', { timeId, ligaId: ligaEncontrada._id.toString() });
