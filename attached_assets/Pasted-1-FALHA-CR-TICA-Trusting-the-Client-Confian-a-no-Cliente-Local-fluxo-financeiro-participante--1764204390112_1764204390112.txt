@@ -1,0 +1,106 @@
+1. FALHA CRÍTICA: "Trusting the Client" (Confiança no Cliente)
+Local: fluxo-financeiro-participante.js (Linhas 238-262)
+
+O frontend do participante está calculando o extrato e, pior, enviando o resultado para o servidor salvar via API.
+
+O Código Problemático:
+
+JavaScript
+
+// fluxo-financeiro-participante.js
+// O frontend calcula...
+const extratoCompleto = await this.core.calcularExtratoFinanceiro(timeId, rodadaAtual, forcar);
+
+// ... e O FRONTEND manda o servidor salvar o resultado
+const payload = {
+    historico_transacoes: extratoCompleto.rodadas, 
+    saldo: extratoCompleto.resumo.saldo_final 
+};
+
+await fetch(`/api/extrato-cache/${ligaId}/times/${timeId}/cache`, {
+    method: 'POST',
+    body: JSON.stringify(payload) // <--- PERIGO EXTREMO
+});
+O Risco: Um participante com conhecimento básico de "Inspecionar Elemento" ou Postman pode interceptar essa requisição e enviar um JSON adulterado, definindo o próprio saldo como 999999. O servidor está servindo apenas como um banco de dados passivo, aceitando o que o navegador diz ser a verdade.
+
+Solução Obrigatória: O cálculo financeiro e o salvamento em cache DEVEM ocorrer estritamente no Back-end.
+
+O Frontend deve apenas pedir: POST /api/recalcular-extrato (sem corpo ou apenas com flags).
+
+O Backend deve: Calcular, Salvar no Mongo e devolver o resultado.
+
+O frontend nunca deve enviar o valor do saldo para o servidor.
+
+🔓 2. ANOMALIA DE SEGURANÇA: Middleware de Autenticação Permissivo
+Local: middleware/auth.js
+
+A função verificarAutenticacaoParticipante verifica se existe uma sessão de participante, mas não parece haver uma distinção clara no código fornecido que impeça um participante logado de acessar rotas de Admin.
+
+O Código:
+
+JavaScript
+
+export function verificarAutenticacaoParticipante(req, res, next) {
+  // ...
+  // Se tem sessão de participante, deixa passar TUDO
+  if (req.session && req.session.participante) {
+    return next();
+  }
+  // ...
+}
+O Risco: Se este middleware for aplicado globalmente ou se não houver um middleware verificarAdmin aplicado explicitamente antes das rotas definidas em ROTAS_ADMIN (como /dashboard.html), um participante comum logado pode conseguir acessar o painel administrativo simplesmente digitando a URL, pois ele tem uma req.session.participante válida e o middleware dá next().
+
+Recomendação: Verifique onde este middleware é chamado. Se um participante tentar acessar /dashboard.html, deve haver uma verificação que barra explicitamente req.session.participante se a rota for admin, ou exigir req.session.admin.
+
+🧩 3. ANOMALIA DE LÓGICA: Regra de Negócio Hardcoded ("Chumbada")
+Local: public/js/melhor-mes.js (Linha 188)
+
+O código contém IDs e regras financeiras específicas "chumbadas" no meio da lógica genérica do módulo.
+
+O Código:
+
+JavaScript
+
+const isLigaCartoleirosSobral = ligaId === "684d821cf1a7ae16d1f89572";
+
+// ... dentro do renderTabelaFallback ...
+if (isLigaCartoleirosSobral) {
+    premioHtml = `<td ...>R$ 15,00</td>`; // Valor fixo no código JS
+}
+O Problema:
+
+Se o ID da liga mudar (ex: recriarem a liga no banco), a lógica quebra.
+
+Se outra liga usar o sistema, ela não verá prêmios ou verá prêmios errados.
+
+Se o valor do prêmio mudar para R$ 20,00, precisa recompilar/editar o código.
+
+Solução: Essas configurações (valor do prêmio, se tem prêmio ou não) devem vir do objeto configuracao da Liga no banco de dados (this.participanteData.liga.configuracao_melhor_mes), e não de um if com ID específico no código fonte.
+
+⚠️ 4. ANOMALIA ESTRUTURAL: Dependência de Arquivos Ocultos/Dinâmicos
+Local: public/js/participante-navigation.js
+
+O sistema de navegação usa um loop de tentativa (while) com setTimeout para pegar a sessão, o que pode gerar condições de corrida ou loops infinitos se a API falhar silenciosamente (ex: retornar 500 em vez de 401).
+
+Além disso, o catch do carregamento de módulos assume que o erro 404 é "Módulo indisponível", mas no ambiente Replit/Web, isso também acontece por erro de case-sensitive (maiúsculas/minúsculas).
+
+Exemplo do Log anterior: O erro ReferenceError: validacaoData is not defined que você corrigiu antes mostrava que o código do frontend está complexo demais para ser mantido sem TypeScript ou uma verificação de build.
+
+🔍 5. ANOMALIA DE CONTRATO (API vs Frontend)
+Local: controllers/fluxoFinanceiroController.js
+
+Você forneceu o controller, mas não existe nele a função que trata o POST que o frontend tenta fazer (/api/extrato-cache/...).
+
+O controller exporta:
+
+getExtratoFinanceiro (GET)
+
+getCampos (GET)
+
+salvarCampo (PATCH)
+
+Mas o frontend chama:
+
+POST /api/extrato-cache/${ligaId}/times/${timeId}/cache
+
+Conclusão: Ou o frontend está chamando uma rota que não existe (gerando erro 404 silencioso ou tratado genericamente), ou existe outro controller (extratoFinanceiroCacheController.js - mencionado na lista de arquivos mas não fornecido) que está tratando isso. Se o controller não existir, o sistema de cache do frontend não está funcionando, ele recalcula tudo toda vez e falha ao tentar salvar.
