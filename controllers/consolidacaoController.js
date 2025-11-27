@@ -5,6 +5,52 @@ import { getFluxoFinanceiroLiga } from './fluxoFinanceiroController.js';
 import { obterConfrontosPontosCorridos } from './pontosCorridosCacheController.js';
 import { obterConfrontosMataMata } from './mataMataCacheController.js';
 
+// ============================================================================
+// 📊 BUSCAR HISTÓRICO COMPLETO CONSOLIDADO (Evita múltiplas requisições)
+// ============================================================================
+
+export const buscarHistoricoCompleto = async (req, res) => {
+    try {
+        const { ligaId } = req.params;
+        const { rodadaInicio = 1, rodadaFim } = req.query;
+        
+        console.log(`[CONSOLIDAÇÃO-HISTÓRICO] Buscando snapshots consolidados: R${rodadaInicio}-${rodadaFim || 'atual'}`);
+        
+        const query = {
+            liga_id: ligaId,
+            rodada: { $gte: parseInt(rodadaInicio) }
+        };
+        
+        if (rodadaFim) {
+            query.rodada.$lte = parseInt(rodadaFim);
+        }
+        
+        const snapshots = await RodadaSnapshot.find(query)
+            .sort({ rodada: 1 })
+            .lean();
+        
+        console.log(`[CONSOLIDAÇÃO-HISTÓRICO] ✅ ${snapshots.length} snapshots encontrados`);
+        
+        res.json({
+            success: true,
+            total: snapshots.length,
+            rodadas: snapshots.map(s => ({
+                rodada: s.rodada,
+                dados: s.dados_consolidados,
+                status_mercado: s.status_mercado,
+                atualizado_em: s.atualizado_em
+            }))
+        });
+        
+    } catch (error) {
+        console.error('[CONSOLIDAÇÃO-HISTÓRICO] ❌ Erro:', error);
+        res.status(500).json({ 
+            success: false, 
+            error: error.message 
+        });
+    }
+};
+
 // Consolida UMA rodada específica
 export const consolidarRodada = async (req, res) => {
     try {
