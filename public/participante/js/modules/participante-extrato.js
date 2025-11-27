@@ -153,12 +153,32 @@ export async function inicializarExtratoParticipante({ participante, ligaId, tim
         let extratoData = await fluxoFinanceiroParticipante.buscarExtratoCalculado(ligaId, timeId, ultimaRodadaCompleta, false);
 
         // ✅ NORMALIZAR ESTRUTURA DE DADOS (cache pode retornar rodadas ou data)
-        if (extratoData && Array.isArray(extratoData) && !extratoData.rodadas) {
-            console.warn('[EXTRATO-PARTICIPANTE] ⚠️ Estrutura antiga detectada, normalizando...');
+        if (!extratoData) {
+            console.error('[EXTRATO-PARTICIPANTE] ❌ extratoData é null/undefined');
+            mostrarErro('Dados do extrato não recebidos. Tente novamente.');
+            return;
+        }
+
+        // Se vier como array direto, normalizar
+        if (Array.isArray(extratoData)) {
+            console.warn('[EXTRATO-PARTICIPANTE] ⚠️ Estrutura antiga (array direto), normalizando...');
             extratoData = {
                 rodadas: extratoData,
                 resumo: { saldo: 0, totalGanhos: 0, totalPerdas: 0 }
             };
+        }
+
+        // Se não tem rodadas mas tem data, usar data
+        if (!extratoData.rodadas && extratoData.data) {
+            console.warn('[EXTRATO-PARTICIPANTE] ⚠️ Usando campo "data" ao invés de "rodadas"');
+            extratoData.rodadas = extratoData.data;
+        }
+
+        // Validar se rodadas existe e é array
+        if (!Array.isArray(extratoData.rodadas)) {
+            console.error('[EXTRATO-PARTICIPANTE] ❌ extratoData.rodadas não é array:', extratoData);
+            mostrarErro('Estrutura de dados inválida. Recarregue a página.');
+            return;
         }
 
         console.log('[EXTRATO-PARTICIPANTE] 🎨 Renderizando UI personalizada...');

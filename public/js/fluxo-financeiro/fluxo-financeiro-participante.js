@@ -150,8 +150,16 @@ class FluxoFinanceiroParticipante {
                         console.log('│ ⚡ CACHE ENCONTRADO - USANDO DADOS SALVOS!                  │');
                         console.log('└─────────────────────────────────────────────────────────────┘');
 
-                        const fim = performance.now();
-                        console.log(`[TESTE-CACHE] ⚡ Tempo de resposta: ${(fim - inicio).toFixed(2)}ms`);
+                        console.log('[TESTE-CACHE] 🔍 Estrutura recebida:', {
+                            temRodadas: !!cacheData.rodadas,
+                            qtdRodadas: cacheData.rodadas?.length || 0,
+                            primeiraRodada: cacheData.rodadas?.[0],
+                            temResumo: !!cacheData.resumo,
+                            saldo: cacheData.resumo?.saldo
+                        });
+
+                        const tempoFim = performance.now();
+                        console.log(`[TESTE-CACHE] ⚡ Tempo de resposta: ${(tempoFim - tempoInicio).toFixed(2)}ms`);
                         console.log('═══════════════════════════════════════════════════════════════');
 
                         // ✅ Normalizar estrutura de retorno

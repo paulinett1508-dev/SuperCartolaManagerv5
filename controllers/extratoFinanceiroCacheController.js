@@ -11,7 +11,7 @@ export const getExtratoCache = async (req, res) => {
         const cache = await ExtratoFinanceiroCache.findOne({
             liga_id: ligaId,
             time_id: Number(timeId),
-        }).lean();
+        }).lean(); // ✅ CRITICAL: .lean() para obter objeto JavaScript puro
 
         if (!cache) {
             // Retorna 404 silencioso para o frontend saber que precisa calcular
@@ -21,21 +21,31 @@ export const getExtratoCache = async (req, res) => {
             });
         }
 
-        // Sucesso! Retorna o JSON pronto
-        // Garantir que todos os campos sejam retornados
-        const dadosCompletos = cache.toObject ? cache.toObject() : cache;
+        console.log('[CACHE-CONTROLLER] 📦 Cache encontrado:', {
+            timeId,
+            rodadas: cache.historico_transacoes?.length || 0,
+            ultimaRodada: cache.ultima_rodada_consolidada,
+            saldo: cache.saldo_consolidado
+        });
 
+        // ✅ CORRIGIDO: Retornar rodadas do campo correto com estrutura esperada
         res.json({
             cached: true,
-            data: dadosCompletos.historico_transacoes || [], // Garante array
+            rodadas: cache.historico_transacoes || [], // ✅ MUDOU: "data" → "rodadas"
             resumo: {
-                saldo_final: dadosCompletos.saldo_consolidado,
-                ganhos: dadosCompletos.ganhos_consolidados,
-                perdas: dadosCompletos.perdas_consolidadas,
+                saldo: cache.saldo_consolidado, // ✅ MUDOU: "saldo_final" → "saldo"
+                totalGanhos: cache.ganhos_consolidados || 0,
+                totalPerdas: cache.perdas_consolidadas || 0,
+                // Campos adicionais que o frontend espera
+                bonus: 0,
+                onus: 0,
+                pontosCorridos: 0,
+                mataMata: 0,
+                top10: 0
             },
-            metadados: dadosCompletos.metadados,
-            ultimaRodadaCalculada: dadosCompletos.ultima_rodada_consolidada,
-            updatedAt: dadosCompletos.updatedAt,
+            metadados: cache.metadados,
+            ultimaRodadaCalculada: cache.ultima_rodada_consolidada,
+            updatedAt: cache.updatedAt,
         });
     } catch (error) {
         console.error("[CACHE-CONTROLLER] Erro ao buscar cache:", error);
@@ -262,10 +272,11 @@ export const verificarCacheValido = async (req, res) => {
                 : [];
 
             console.log(`  📊 Rodadas no cache: ${rodadas.length}`);
-            console.log(`  🔍 Primeira rodada (exemplo):`, rodadas[0]);
-
-            // ✅ CORRIGIDO: Usar o método .toObject() se disponível para garantir dados completos
-            const dadosCompletos = cacheExistente.toObject ? cacheExistente.toObject() : cacheExistente;
+            if (rodadas.length > 0) {
+                console.log(`  🔍 Primeira rodada:`, rodadas[0]);
+            } else {
+                console.warn('  ⚠️ Cache válido mas SEM rodadas - possível problema!');
+            }
 
             // Retornar validação + dados do cache
             return res.json({
@@ -274,15 +285,15 @@ export const verificarCacheValido = async (req, res) => {
                 motivo: validacao.motivo,
                 permanente: validacao.permanente || false,
                 mercadoStatus: validacao.mercadoStatus,
-                ultimaRodadaCalculada: dadosCompletos.ultima_rodada_consolidada,
+                ultimaRodadaCalculada: cacheExistente.ultima_rodada_consolidada,
                 rodadaAtual: rodadaAtualInt,
-                updatedAt: dadosCompletos.updatedAt,
+                updatedAt: cacheExistente.updatedAt,
                 // ✅ CORRIGIDO: Retornar 'rodadas' do campo correto
-                rodadas: dadosCompletos.historico_transacoes || [],
+                rodadas: cacheExistente.historico_transacoes || [],
                 resumo: {
-                    saldo: dadosCompletos.saldo_consolidado,
-                    totalGanhos: dadosCompletos.ganhos_consolidados || 0,
-                    totalPerdas: dadosCompletos.perdas_consolidadas || 0,
+                    saldo: cacheExistente.saldo_consolidado,
+                    totalGanhos: cacheExistente.ganhos_consolidados || 0,
+                    totalPerdas: cacheExistente.perdas_consolidadas || 0,
                     // Adicionar campos que o frontend espera
                     bonus: 0,
                     onus: 0,
@@ -290,7 +301,7 @@ export const verificarCacheValido = async (req, res) => {
                     mataMata: 0,
                     top10: 0
                 },
-                metadados: dadosCompletos.metadados
+                metadados: cacheExistente.metadados
             });
         } else {
             // Se não é válido, retorna informações da validação
