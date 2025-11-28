@@ -6,7 +6,6 @@ import {
     gerarConfrontos,
     buscarTimesLiga,
 } from "../pontos-corridos-utils.js";
-import { getResultadosMataMataFluxo, testarDadosMataMata } from "../mata-mata/mata-mata-financeiro.js";
 import { getResultadosMelhorMes } from "../melhor-mes.js";
 import { filtrarDadosPorTimesLigaEspecial } from "../filtro-liga-especial.js";
 import {
@@ -295,9 +294,9 @@ export class FluxoFinanceiroCache {
     }
 
     async carregarDadosExternos() {
-        console.log("[FLUXO-CACHE] Carregando dados externos...");
+        console.log('[FLUXO-CACHE] Carregando dados externos...');
 
-        // Carregar confrontos LPC
+        // Carregar confrontos de Pontos Corridos
         if (!this.cacheConfrontosLPC || this.cacheConfrontosLPC.length === 0) {
           await this.carregarConfrontosLPC();
         }
@@ -312,16 +311,28 @@ export class FluxoFinanceiroCache {
         }
 
         // Carregar Mata-Mata
-        const resultadosMataMata = await getResultadosMataMataFluxo(this.ligaId).catch(() => ({
-            participantes: [],
-            edicoes: [],
-        }));
+        try {
+            // ✅ INJETAR DEPENDÊNCIA ANTES DE USAR
+            const { getResultadosMataMataFluxo, setRankingFunction } = await import('../mata-mata/mata-mata-financeiro.js');
+
+            // Injetar função necessária
+            setRankingFunction(getRankingRodadaEspecifica);
+            console.log('[FLUXO-CACHE] ✅ Dependência do Mata-Mata injetada');
+
+            const resultadosMataMataFluxo = await getResultadosMataMataFluxo(this.ligaId);
+
+            // Processar resultados do mata-mata
+            this.cacheResultadosMM = this._processarResultadosMataMataCorrigido(resultadosMataMataFluxo);
+        } catch (error) {
+            console.warn('[FLUXO-CACHE] Erro ao carregar Mata-Mata:', error);
+            this.cacheResultadosMM = [];
+        }
+
         // Só buscar Melhor do Mês (passar ligaId explicitamente)
         const resultadosMelhorMes = this.ligaId ? await getResultadosMelhorMes(this.ligaId).catch(() => []) : Promise.resolve([]);
 
         // Armazenar resultados
         this.cacheConfrontosLPC = this.cacheConfrontosLPC || []; // Garantir que esta linha seja executada
-        this.cacheResultadosMM = resultadosMataMata || { participantes: [], edicoes: [] };
         this.cacheResultadosMelhorMes = Array.isArray(resultadosMelhorMes)
             ? resultadosMelhorMes
             : [];
@@ -336,8 +347,6 @@ export class FluxoFinanceiroCache {
                 console.warn("[FLUXO-CACHE] Erro ao aplicar filtro:", error);
             }
         }
-
-        this._processarResultadosMataMataCorrigido(this.cacheResultadosMM);
 
         console.log(`[FLUXO-CACHE] Dados externos carregados:`);
         console.log(`- Confrontos LPC: ${this.cacheConfrontosLPC.length}`);
@@ -356,7 +365,7 @@ export class FluxoFinanceiroCache {
     }
 
     _processarResultadosMataMataCorrigido(resultadosMM) {
-        this.cacheResultadosMM = [];
+        const processedResults = [];
 
         if (
             !resultadosMM ||
@@ -364,7 +373,7 @@ export class FluxoFinanceiroCache {
             !Array.isArray(resultadosMM.participantes)
         ) {
             console.warn("[FLUXO-CACHE] Dados do Mata-Mata inválidos");
-            return;
+            return [];
         }
 
         resultadosMM.participantes.forEach((participante) => {
@@ -380,7 +389,7 @@ export class FluxoFinanceiroCache {
                     );
 
                 if (rodadaPontos > 0) {
-                    this.cacheResultadosMM.push({
+                    processedResults.push({
                         timeId: participante.timeId,
                         fase: edicao.fase,
                         rodadaPontos: rodadaPontos,
@@ -391,8 +400,9 @@ export class FluxoFinanceiroCache {
         });
 
         console.log(
-            `[FLUXO-CACHE] Mata-Mata carregado: ${this.cacheResultadosMM.length} registros`,
+            `[FLUXO-CACHE] Mata-Mata processado: ${processedResults.length} registros`,
         );
+        return processedResults;
     }
 
     _calcularRodadaPontosCorrigido(edicao, fase) {
