@@ -147,13 +147,18 @@ export function getCachedParciais(ligaId, rodada) {
 
 // CACHE PARA STATUS DO MERCADO
 export async function getStatusMercadoCache() {
+    const STORE_NAME = 'status';
     const CACHE_KEY = 'status_mercado_global';
 
     if (window.cacheManager) {
-        const cached = await window.cacheManager.get(CACHE_KEY);
-        if (cached) {
-            console.log('[RODADAS-CACHE] Status do mercado obtido do cache');
-            return cached;
+        try {
+            const cached = await window.cacheManager.get(STORE_NAME, CACHE_KEY, null);
+            if (cached) {
+                console.log('[RODADAS-CACHE] Status do mercado obtido do cache');
+                return cached;
+            }
+        } catch (error) {
+            console.warn('[RODADAS-CACHE] Erro ao buscar do cache:', error);
         }
     }
 
@@ -161,11 +166,16 @@ export async function getStatusMercadoCache() {
 }
 
 export async function setStatusMercadoCache(data) {
+    const STORE_NAME = 'status';
     const CACHE_KEY = 'status_mercado_global';
 
     if (window.cacheManager) {
-        await window.cacheManager.set(CACHE_KEY, data, 300000); // 5 minutos
-        console.log('[RODADAS-CACHE] Status do mercado salvo no cache');
+        try {
+            await window.cacheManager.set(STORE_NAME, CACHE_KEY, data);
+            console.log('[RODADAS-CACHE] Status do mercado salvo no cache');
+        } catch (error) {
+            console.warn('[RODADAS-CACHE] Erro ao salvar no cache:', error);
+        }
     }
 }
 
