@@ -38,6 +38,7 @@ import {
   verificarStatusParticipante,
   alternarStatusParticipante,
 } from "./controllers/participanteStatusController.js";
+import { iniciarSchedulerConsolidacao } from "./utils/consolidacaoScheduler.js";
 
 // Configuração do .env
 dotenv.config();
@@ -178,6 +179,17 @@ mongoose.connection.once("open", async () => {
     if (error.codeName !== "NamespaceNotFound") {
       console.error("⚠️ Erro na verificação de índices:", error.message);
     }
+  }
+
+  // ✅ SCHEDULER DE CONSOLIDAÇÃO AUTOMÁTICA
+  if (process.env.NODE_ENV === "production") {
+    setTimeout(() => {
+      console.log("[SERVER] 🚀 Iniciando scheduler de consolidação em produção...");
+      iniciarSchedulerConsolidacao();
+    }, 10000); // Aguarda 10s após conexão para garantir estabilidade
+  } else {
+    console.log("[SERVER] ⚠️ Scheduler de consolidação desativado em desenvolvimento");
+    console.log("[SERVER] 💡 Para testar manualmente, use: POST /api/consolidacao/ligas/{ID}/consolidar-historico");
   }
 });
 
