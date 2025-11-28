@@ -9,9 +9,6 @@ let isDataLoading = false;
 let isDataLoaded = false;
 let isCalculating = false;
 
-// IMPORTAR SISTEMA DE EXPORTAÇÃO
-import "./exports/export-extrato-financeiro.js";
-
 function obterLigaId() {
     // ✅ MODO ADMIN: Verificar URL (detalhe-liga.html?id=XXX)
     const urlParams = new URLSearchParams(window.location.search);
@@ -30,41 +27,6 @@ function obterLigaId() {
 
     console.error("[FLUXO-FINANCEIRO-ADMIN] ❌ Liga ID não encontrado na URL ou localStorage");
     return null;
-}
-
-let exportsCarregados = false;
-
-async function carregarExports() {
-    if (exportsCarregados) return;
-
-    if (!window.html2canvas) {
-        console.log("[FLUXO-FINANCEIRO] Carregando html2canvas...");
-        await new Promise((resolve, reject) => {
-            const script = document.createElement("script");
-            script.src =
-                "https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js";
-            script.onload = () => {
-                console.log(
-                    "[FLUXO-FINANCEIRO] html2canvas carregado com sucesso",
-                );
-                resolve();
-            };
-            script.onerror = () =>
-                reject(new Error("Falha ao carregar html2canvas"));
-            document.head.appendChild(script);
-        });
-    }
-
-    try {
-        const exportModule = await import("./exports/export-exports.js");
-        window.exportarExtratoFinanceiroComoImagem =
-            exportModule.exportarExtratoFinanceiroComoImagem;
-        exportsCarregados = true;
-        console.log("[FLUXO-FINANCEIRO] Sistema de exportação carregado");
-    } catch (error) {
-        console.error("[FLUXO-FINANCEIRO] Erro ao carregar exports:", error);
-        throw error;
-    }
 }
 
 let FluxoFinanceiroCore = null;
@@ -234,10 +196,7 @@ async function calcularEExibirExtrato(timeId) {
 
         await fluxoFinanceiroUI.renderizarExtratoFinanceiro(
             extrato,
-            participante,
-            async () => {
-                await exportarExtrato(extrato, participante, timeId);
-            },
+            participante
         );
     } catch (error) {
         console.error("[FLUXO-FINANCEIRO] Erro ao calcular extrato:", error);
@@ -359,92 +318,6 @@ function exportarRelatorioCSV() {
     link.click();
 }
 
-async function exportarExtrato(extrato, participante, timeId) {
-    try {
-        await carregarExports();
-
-        if (!window.exportarExtratoFinanceiroComoImagem) {
-            alert("Exportação não disponível");
-            return;
-        }
-
-        const camposEditaveis =
-            await FluxoFinanceiroCampos.carregarTodosCamposEditaveis(timeId);
-        const dadosMovimentacoes = [];
-
-        extrato.rodadas.forEach((rodada) => {
-            const rodadaNumero = rodada.rodada;
-
-            if (rodada.posicao || rodada.isMito || rodada.isMico) {
-                const descricao = rodada.isMito
-                    ? `Rodada ${rodadaNumero} - MITO`
-                    : rodada.isMico
-                      ? `Rodada ${rodadaNumero} - MICO`
-                      : `Rodada ${rodadaNumero} - Posição ${rodada.posicao}°`;
-
-                dadosMovimentacoes.push({
-                    data: `R${rodadaNumero}`,
-                    descricao,
-                    valor: rodada.bonusOnus || 0,
-                    tipo: "bonus_onus",
-                });
-            }
-
-            if (
-                rodada.pontosCorridos !== null &&
-                rodada.pontosCorridos !== undefined
-            ) {
-                const descricaoPontos = rodada.posicao 
-                    ? `Rodada ${rodadaNumero} - Pontos Corridos (${rodada.posicao}°)`
-                    : `Rodada ${rodadaNumero} - Pontos Corridos`;
-
-                dadosMovimentacoes.push({
-                    data: `R${rodadaNumero}`,
-                    descricao: descricaoPontos,
-                    valor: rodada.pontosCorridos,
-                    tipo: "pontos_corridos",
-                });
-            }
-
-            if (rodada.mataMata !== null && rodada.mataMata !== undefined && rodada.mataMata !== 0) {
-                const descricaoMata = rodada.posicao
-                    ? `Rodada ${rodadaNumero} - Mata-Mata (${rodada.posicao}°)`
-                    : `Rodada ${rodadaNumero} - Mata-Mata`;
-
-                dadosMovimentacoes.push({
-                    data: `R${rodadaNumero}`,
-                    descricao: descricaoMata,
-                    valor: rodada.mataMata,
-                    tipo: "mata_mata",
-                });
-            }
-        });
-
-        ["campo1", "campo2", "campo3", "campo4"].forEach((campo) => {
-            const valorCampo = extrato.resumo[campo];
-            if (valorCampo && valorCampo !== 0) {
-                dadosMovimentacoes.push({
-                    data: "Manual",
-                    descricao:
-                        camposEditaveis[campo].nome ||
-                        `Campo ${campo.slice(-1)}`,
-                    valor: valorCampo,
-                    tipo: "campo_editavel",
-                });
-            }
-        });
-
-        await window.exportarExtratoFinanceiroComoImagem(
-            dadosMovimentacoes,
-            participante,
-            ultimaRodadaCompleta,
-        );
-    } catch (error) {
-        console.error("[FLUXO-FINANCEIRO] Erro na exportação:", error);
-        alert(`Erro ao exportar: ${error.message}`);
-    }
-}
-
 function mostrarErro(mensagem) {
     const container = document.getElementById("fluxoFinanceiroContent");
     if (container) {
@@ -473,7 +346,6 @@ window.calcularEExibirExtrato = calcularEExibirExtrato;
 window.inicializarFluxoFinanceiro = inicializarFluxoFinanceiro;
 window.selecionarParticipante = selecionarParticipante;
 window.obterLigaId = obterLigaId;
-window.exportarExtrato = exportarExtrato;
 window.gerarRelatorioFinanceiro = gerarRelatorioFinanceiro;
 window.exportarRelatorioCSV = exportarRelatorioCSV;
 
@@ -600,23 +472,3 @@ window.desfazerCampo = async (timeId, nomeCampo) => {
     }
 };
 
-window.exportarRelatorioComoImagem = async function () {
-    try {
-        if (!window.dadosRelatorio || !Array.isArray(window.dadosRelatorio)) {
-            alert("Nenhum relatório disponível para exportar");
-            return;
-        }
-
-        const { exportarRelatorioConsolidadoMobileDarkHD } = await import(
-            "./exports/export-relatorio-consolidado.js"
-        );
-
-        await exportarRelatorioConsolidadoMobileDarkHD({
-            relatorio: window.dadosRelatorio,
-            ultimaRodada: ultimaRodadaCompleta,
-        });
-    } catch (error) {
-        console.error("Erro ao exportar relatório como imagem:", error);
-        alert("Erro ao exportar relatório. Tente novamente.");
-    }
-};
