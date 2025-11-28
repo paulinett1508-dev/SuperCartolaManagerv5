@@ -422,7 +422,7 @@ window.mostrarDetalhamentoGanhos = function () {
   }
 
   const detalhes = calcularDetalhamentoGanhos(extrato);
-  mostrarPopupDetalhamento('Detalhamento: Tudo que Ganhou', detalhes, '#22c55e');
+  mostrarPopupDetalhamento('💰 Detalhamento Completo de Ganhos', detalhes, '#22c55e', 'ganhos');
 };
 
 window.mostrarDetalhamentoPerdas = function () {
@@ -433,7 +433,7 @@ window.mostrarDetalhamentoPerdas = function () {
   }
 
   const detalhes = calcularDetalhamentoPerdas(extrato);
-  mostrarPopupDetalhamento('Detalhamento: Tudo que Perdeu', detalhes, '#ef4444');
+  mostrarPopupDetalhamento('💸 Detalhamento Completo de Perdas', detalhes, '#ef4444', 'perdas');
 };
 
 function calcularDetalhamentoGanhos(extrato) {
@@ -451,21 +451,36 @@ function calcularDetalhamentoGanhos(extrato) {
       top10: [],
       melhorMes: [],
     },
+    estatisticas: {
+      totalRodadasComGanho: 0,
+      maiorGanhoRodada: { rodada: 0, valor: 0, categoria: '' },
+      mediaGanhoPorRodada: 0,
+      rodadasMito: 0,
+      rodadasTop11: 0,
+    }
   };
 
   const rodadas = extrato.rodadas || [];
   const resumo = extrato.resumo || {};
+  let somaGanhos = 0;
+  let rodadasComGanho = 0;
 
   rodadas.forEach((rodada) => {
+    let ganhoRodada = 0;
+
     if (rodada.bonusOnus > 0) {
       detalhes.bonusOnus += rodada.bonusOnus;
+      ganhoRodada += rodada.bonusOnus;
       detalhes.rodadas.bonusOnus.push({
         rodada: rodada.rodada,
         valor: rodada.bonusOnus,
+        posicao: rodada.posicao,
+        isMito: rodada.isMito
       });
     }
     if (rodada.pontosCorridos > 0) {
       detalhes.pontosCorridos += rodada.pontosCorridos;
+      ganhoRodada += rodada.pontosCorridos;
       detalhes.rodadas.pontosCorridos.push({
         rodada: rodada.rodada,
         valor: rodada.pontosCorridos,
@@ -473,6 +488,7 @@ function calcularDetalhamentoGanhos(extrato) {
     }
     if (rodada.mataMata > 0) {
       detalhes.mataMata += rodada.mataMata;
+      ganhoRodada += rodada.mataMata;
       detalhes.rodadas.mataMata.push({
         rodada: rodada.rodada,
         valor: rodada.mataMata,
@@ -480,25 +496,48 @@ function calcularDetalhamentoGanhos(extrato) {
     }
     if (rodada.top10 > 0) {
       detalhes.top10 += rodada.top10;
+      ganhoRodada += rodada.top10;
       detalhes.rodadas.top10.push({
         rodada: rodada.rodada,
         valor: rodada.top10,
         status: rodada.top10Status,
+        posicao: rodada.top10Posicao
       });
     }
     if (rodada.melhorMes > 0) {
       detalhes.melhorMes += rodada.melhorMes;
+      ganhoRodada += rodada.melhorMes;
       detalhes.rodadas.melhorMes.push({
         rodada: rodada.rodada,
         valor: rodada.melhorMes,
       });
     }
+
+    // Estatísticas
+    if (ganhoRodada > 0) {
+      rodadasComGanho++;
+      somaGanhos += ganhoRodada;
+
+      if (ganhoRodada > detalhes.estatisticas.maiorGanhoRodada.valor) {
+        detalhes.estatisticas.maiorGanhoRodada = {
+          rodada: rodada.rodada,
+          valor: ganhoRodada,
+          categoria: 'Misto'
+        };
+      }
+    }
+
+    if (rodada.isMito) detalhes.estatisticas.rodadasMito++;
+    if (rodada.posicao >= 2 && rodada.posicao <= 11) detalhes.estatisticas.rodadasTop11++;
   });
 
   if (resumo.campo1 > 0) detalhes.camposEditaveis += resumo.campo1;
   if (resumo.campo2 > 0) detalhes.camposEditaveis += resumo.campo2;
   if (resumo.campo3 > 0) detalhes.camposEditaveis += resumo.campo3;
   if (resumo.campo4 > 0) detalhes.camposEditaveis += resumo.campo4;
+
+  detalhes.estatisticas.totalRodadasComGanho = rodadasComGanho;
+  detalhes.estatisticas.mediaGanhoPorRodada = rodadasComGanho > 0 ? somaGanhos / rodadasComGanho : 0;
 
   return detalhes;
 }
@@ -518,21 +557,36 @@ function calcularDetalhamentoPerdas(extrato) {
       top10: [],
       melhorMes: [],
     },
+    estatisticas: {
+      totalRodadasComPerda: 0,
+      maiorPerdaRodada: { rodada: 0, valor: 0, categoria: '' },
+      mediaPerdaPorRodada: 0,
+      rodadasMico: 0,
+      rodadasZ4: 0,
+    }
   };
 
   const rodadas = extrato.rodadas || [];
   const resumo = extrato.resumo || {};
+  let somaPerdas = 0;
+  let rodadasComPerda = 0;
 
   rodadas.forEach((rodada) => {
+    let perdaRodada = 0;
+
     if (rodada.bonusOnus < 0) {
       detalhes.bonusOnus += rodada.bonusOnus;
+      perdaRodada += Math.abs(rodada.bonusOnus);
       detalhes.rodadas.bonusOnus.push({
         rodada: rodada.rodada,
         valor: rodada.bonusOnus,
+        posicao: rodada.posicao,
+        isMico: rodada.isMico
       });
     }
     if (rodada.pontosCorridos < 0) {
       detalhes.pontosCorridos += rodada.pontosCorridos;
+      perdaRodada += Math.abs(rodada.pontosCorridos);
       detalhes.rodadas.pontosCorridos.push({
         rodada: rodada.rodada,
         valor: rodada.pontosCorridos,
@@ -540,6 +594,7 @@ function calcularDetalhamentoPerdas(extrato) {
     }
     if (rodada.mataMata < 0) {
       detalhes.mataMata += rodada.mataMata;
+      perdaRodada += Math.abs(rodada.mataMata);
       detalhes.rodadas.mataMata.push({
         rodada: rodada.rodada,
         valor: rodada.mataMata,
@@ -547,19 +602,39 @@ function calcularDetalhamentoPerdas(extrato) {
     }
     if (rodada.top10 < 0) {
       detalhes.top10 += rodada.top10;
+      perdaRodada += Math.abs(rodada.top10);
       detalhes.rodadas.top10.push({
         rodada: rodada.rodada,
         valor: rodada.top10,
         status: rodada.top10Status,
+        posicao: rodada.top10Posicao
       });
     }
     if (rodada.melhorMes < 0) {
       detalhes.melhorMes += rodada.melhorMes;
+      perdaRodada += Math.abs(rodada.melhorMes);
       detalhes.rodadas.melhorMes.push({
         rodada: rodada.rodada,
         valor: rodada.melhorMes,
       });
     }
+
+    // Estatísticas
+    if (perdaRodada > 0) {
+      rodadasComPerda++;
+      somaPerdas += perdaRodada;
+
+      if (perdaRodada > Math.abs(detalhes.estatisticas.maiorPerdaRodada.valor)) {
+        detalhes.estatisticas.maiorPerdaRodada = {
+          rodada: rodada.rodada,
+          valor: -perdaRodada,
+          categoria: 'Misto'
+        };
+      }
+    }
+
+    if (rodada.isMico) detalhes.estatisticas.rodadasMico++;
+    if (rodada.posicao >= 22 && rodada.posicao <= 31) detalhes.estatisticas.rodadasZ4++;
   });
 
   if (resumo.campo1 < 0) detalhes.camposEditaveis += resumo.campo1;
@@ -567,10 +642,13 @@ function calcularDetalhamentoPerdas(extrato) {
   if (resumo.campo3 < 0) detalhes.camposEditaveis += resumo.campo3;
   if (resumo.campo4 < 0) detalhes.camposEditaveis += resumo.campo4;
 
+  detalhes.estatisticas.totalRodadasComPerda = rodadasComPerda;
+  detalhes.estatisticas.mediaPerdaPorRodada = rodadasComPerda > 0 ? somaPerdas / rodadasComPerda : 0;
+
   return detalhes;
 }
 
-function mostrarPopupDetalhamento(titulo, detalhes, cor) {
+function mostrarPopupDetalhamento(titulo, detalhes, cor, tipo) {
   const formatarMoeda = (valor) => {
     return (valor || 0).toLocaleString('pt-BR', {
       minimumFractionDigits: 2,
@@ -592,10 +670,11 @@ function mostrarPopupDetalhamento(titulo, detalhes, cor) {
   if (detalhes.bonusOnus !== 0) {
     categorias.push({
       nome: 'Bônus/Ônus',
-      icone: '💰',
+      icone: tipo === 'ganhos' ? '🎁' : '⚠️',
       valor: detalhes.bonusOnus,
       rodadas: detalhes.rodadas.bonusOnus,
-      percentual: Math.abs((detalhes.bonusOnus / total) * 100)
+      percentual: Math.abs((detalhes.bonusOnus / total) * 100),
+      descricao: tipo === 'ganhos' ? 'Bônus por posições de destaque' : 'Ônus por posições ruins'
     });
   }
 
@@ -605,7 +684,8 @@ function mostrarPopupDetalhamento(titulo, detalhes, cor) {
       icone: '⚽',
       valor: detalhes.pontosCorridos,
       rodadas: detalhes.rodadas.pontosCorridos,
-      percentual: Math.abs((detalhes.pontosCorridos / total) * 100)
+      percentual: Math.abs((detalhes.pontosCorridos / total) * 100),
+      descricao: tipo === 'ganhos' ? 'Vitórias em confrontos diretos' : 'Derrotas em confrontos diretos'
     });
   }
 
@@ -615,17 +695,19 @@ function mostrarPopupDetalhamento(titulo, detalhes, cor) {
       icone: '🏆',
       valor: detalhes.mataMata,
       rodadas: detalhes.rodadas.mataMata,
-      percentual: Math.abs((detalhes.mataMata / total) * 100)
+      percentual: Math.abs((detalhes.mataMata / total) * 100),
+      descricao: tipo === 'ganhos' ? 'Premiações de edições do Mata-Mata' : 'Taxas de participação no Mata-Mata'
     });
   }
 
   if (detalhes.top10 !== 0) {
     categorias.push({
       nome: 'TOP 10',
-      icone: '🔝',
+      icone: tipo === 'ganhos' ? '🌟' : '💩',
       valor: detalhes.top10,
       rodadas: detalhes.rodadas.top10,
-      percentual: Math.abs((detalhes.top10 / total) * 100)
+      percentual: Math.abs((detalhes.top10 / total) * 100),
+      descricao: tipo === 'ganhos' ? 'Maiores pontuações da rodada' : 'Piores pontuações da rodada'
     });
   }
 
@@ -635,7 +717,8 @@ function mostrarPopupDetalhamento(titulo, detalhes, cor) {
       icone: '📅',
       valor: detalhes.melhorMes,
       rodadas: detalhes.rodadas.melhorMes,
-      percentual: Math.abs((detalhes.melhorMes / total) * 100)
+      percentual: Math.abs((detalhes.melhorMes / total) * 100),
+      descricao: 'Prêmios mensais acumulados'
     });
   }
 
@@ -645,7 +728,8 @@ function mostrarPopupDetalhamento(titulo, detalhes, cor) {
       icone: '⚙️',
       valor: detalhes.camposEditaveis,
       rodadas: [],
-      percentual: Math.abs((detalhes.camposEditaveis / total) * 100)
+      percentual: Math.abs((detalhes.camposEditaveis / total) * 100),
+      descricao: 'Valores inseridos manualmente pelo administrador'
     });
   }
 
@@ -668,21 +752,32 @@ function mostrarPopupDetalhamento(titulo, detalhes, cor) {
         }
       }
 
+      @keyframes pulseGlow {
+        0%, 100% {
+          box-shadow: 0 0 10px ${cor}40;
+        }
+        50% {
+          box-shadow: 0 0 20px ${cor}80;
+        }
+      }
+
       #popupDetalhamento {
         position: fixed;
         top: 0;
         left: 0;
         width: 100%;
         height: 100%;
-        background: rgba(0,0,0,0.90);
+        background: rgba(0,0,0,0.95);
         display: flex;
         align-items: center;
         justify-content: center;
         z-index: 10000;
-        backdrop-filter: blur(8px);
+        backdrop-filter: blur(12px);
+        -webkit-backdrop-filter: blur(12px);
         padding: 16px;
         box-sizing: border-box;
         animation: fadeIn 0.3s ease;
+        overflow-y: auto;
       }
 
       @keyframes fadeIn {
@@ -691,34 +786,72 @@ function mostrarPopupDetalhamento(titulo, detalhes, cor) {
       }
 
       #popupDetalhamento .modal-content {
-        background: linear-gradient(135deg, #1a1a1a 0%, #252525 100%);
+        background: linear-gradient(135deg, #0a0a0a 0%, #1a1a1a 100%);
         border-radius: 20px;
-        max-width: 550px;
+        max-width: 650px;
         width: 100%;
-        max-height: 90vh;
+        max-height: 92vh;
         overflow-y: auto;
-        box-shadow: 0 25px 80px rgba(0,0,0,0.8);
+        box-shadow: 0 25px 80px rgba(0,0,0,0.9), 0 0 40px ${cor}30;
         border: 2px solid ${cor};
         animation: slideIn 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
       }
 
       #popupDetalhamento .modal-header {
         background: linear-gradient(135deg, ${cor} 0%, ${cor}dd 100%);
-        padding: 20px;
+        padding: 24px 20px;
         border-radius: 18px 18px 0 0;
+        display: flex;
+        flex-direction: column;
+        gap: 12px;
+        box-shadow: 0 4px 12px rgba(0,0,0,0.4);
+      }
+
+      #popupDetalhamento .modal-header-top {
         display: flex;
         justify-content: space-between;
         align-items: center;
-        box-shadow: 0 4px 12px rgba(0,0,0,0.3);
       }
 
       #popupDetalhamento .modal-header h3 {
         margin: 0;
         color: white;
-        font-size: 16px;
+        font-size: 18px;
         font-weight: 700;
         flex: 1;
         text-shadow: 0 2px 4px rgba(0,0,0,0.3);
+      }
+
+      #popupDetalhamento .stats-resumo {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+        gap: 12px;
+        padding: 12px;
+        background: rgba(0,0,0,0.2);
+        border-radius: 12px;
+        margin-top: 8px;
+      }
+
+      #popupDetalhamento .stat-resumo-item {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 4px;
+      }
+
+      #popupDetalhamento .stat-resumo-label {
+        font-size: 10px;
+        color: rgba(255,255,255,0.7);
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        font-weight: 600;
+      }
+
+      #popupDetalhamento .stat-resumo-valor {
+        font-size: 16px;
+        color: white;
+        font-weight: 800;
+        font-family: 'JetBrains Mono', monospace;
       }
 
       #popupDetalhamento .btn-close {
@@ -747,19 +880,44 @@ function mostrarPopupDetalhamento(titulo, detalhes, cor) {
       }
 
       #popupDetalhamento .categoria-item {
-        background: rgba(255,255,255,0.03);
-        border-radius: 12px;
-        padding: 14px;
-        margin-bottom: 14px;
-        border: 1px solid rgba(255,255,255,0.08);
-        transition: all 0.3s ease;
+        background: linear-gradient(135deg, rgba(255,255,255,0.05) 0%, rgba(255,255,255,0.02) 100%);
+        border-radius: 16px;
+        padding: 18px;
+        margin-bottom: 16px;
+        border: 1px solid rgba(255,255,255,0.1);
+        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
         animation: slideIn 0.5s ease both;
+        position: relative;
+        overflow: hidden;
+      }
+
+      #popupDetalhamento .categoria-item::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 4px;
+        height: 100%;
+        background: ${cor};
+        opacity: 0;
+        transition: opacity 0.3s ease;
       }
 
       #popupDetalhamento .categoria-item:active {
-        background: rgba(255,255,255,0.06);
-        border-color: ${cor}40;
+        background: rgba(255,255,255,0.08);
+        border-color: ${cor}60;
         transform: scale(0.98);
+      }
+
+      #popupDetalhamento .categoria-item:active::before {
+        opacity: 1;
+      }
+
+      #popupDetalhamento .categoria-descricao {
+        font-size: 10px;
+        color: rgba(255,255,255,0.5);
+        margin-top: 4px;
+        font-style: italic;
       }
 
       #popupDetalhamento .categoria-header {
@@ -936,8 +1094,47 @@ function mostrarPopupDetalhamento(titulo, detalhes, cor) {
       <div class="modal-content" onclick="event.stopPropagation()">
         <!-- CABEÇALHO -->
         <div class="modal-header">
-          <h3>${titulo}</h3>
-          <button class="btn-close" onclick="document.getElementById('popupDetalhamento').remove()">×</button>
+          <div class="modal-header-top">
+            <h3>${titulo}</h3>
+            <button class="btn-close" onclick="document.getElementById('popupDetalhamento').remove()">×</button>
+          </div>
+          
+          <!-- ESTATÍSTICAS GERAIS -->
+          ${detalhes.estatisticas ? `
+            <div class="stats-resumo">
+              <div class="stat-resumo-item">
+                <span class="stat-resumo-label">Rodadas</span>
+                <span class="stat-resumo-valor">${tipo === 'ganhos' ? detalhes.estatisticas.totalRodadasComGanho : detalhes.estatisticas.totalRodadasComPerda}</span>
+              </div>
+              ${tipo === 'ganhos' ? `
+                <div class="stat-resumo-item">
+                  <span class="stat-resumo-label">Média/Rodada</span>
+                  <span class="stat-resumo-valor">R$ ${formatarMoeda(detalhes.estatisticas.mediaGanhoPorRodada)}</span>
+                </div>
+                <div class="stat-resumo-item">
+                  <span class="stat-resumo-label">🎩 Mito</span>
+                  <span class="stat-resumo-valor">${detalhes.estatisticas.rodadasMito}x</span>
+                </div>
+                <div class="stat-resumo-item">
+                  <span class="stat-resumo-label">Top 11</span>
+                  <span class="stat-resumo-valor">${detalhes.estatisticas.rodadasTop11}x</span>
+                </div>
+              ` : `
+                <div class="stat-resumo-item">
+                  <span class="stat-resumo-label">Média/Rodada</span>
+                  <span class="stat-resumo-valor">R$ ${formatarMoeda(Math.abs(detalhes.estatisticas.mediaPerdaPorRodada))}</span>
+                </div>
+                <div class="stat-resumo-item">
+                  <span class="stat-resumo-label">🐵 Mico</span>
+                  <span class="stat-resumo-valor">${detalhes.estatisticas.rodadasMico}x</span>
+                </div>
+                <div class="stat-resumo-item">
+                  <span class="stat-resumo-label">Z4</span>
+                  <span class="stat-resumo-valor">${detalhes.estatisticas.rodadasZ4}x</span>
+                </div>
+              `}
+            </div>
+          ` : ''}
         </div>
 
         <!-- CONTEÚDO -->
@@ -947,9 +1144,12 @@ function mostrarPopupDetalhamento(titulo, detalhes, cor) {
               <div class="categoria-header">
                 <div class="categoria-info">
                   <div class="categoria-icone">${cat.icone}</div>
-                  <span class="categoria-nome">${cat.nome}</span>
+                  <div style="flex: 1; min-width: 0;">
+                    <span class="categoria-nome">${cat.nome}</span>
+                    ${cat.descricao ? `<div class="categoria-descricao">${cat.descricao}</div>` : ''}
+                  </div>
                 </div>
-                <span class="categoria-valor">R$ ${formatarMoeda(cat.valor)}</span>
+                <span class="categoria-valor">R$ ${formatarMoeda(Math.abs(cat.valor))}</span>
               </div>
 
               <div class="barra-container">
@@ -958,15 +1158,21 @@ function mostrarPopupDetalhamento(titulo, detalhes, cor) {
 
               <div class="categoria-detalhes">
                 <span>${cat.rodadas.length > 0 ? `${cat.rodadas.length} rodada(s)` : 'Ajuste manual'}</span>
-                <span class="percentual-badge">${cat.percentual.toFixed(1)}%</span>
+                <span class="percentual-badge">${cat.percentual.toFixed(1)}% do total</span>
               </div>
 
               ${cat.rodadas.length > 0 ? `
                 <div class="rodadas-lista">
-                  ${cat.rodadas.slice(0, 15).map(r => `
-                    <span class="rodada-chip">R${r.rodada}: ${r.valor > 0 ? '+' : ''}${formatarMoeda(r.valor)}</span>
-                  `).join('')}
-                  ${cat.rodadas.length > 15 ? `<span class="rodada-chip">+${cat.rodadas.length - 15} mais</span>` : ''}
+                  ${cat.rodadas.slice(0, 12).map(r => {
+                    const extras = [];
+                    if (r.isMito) extras.push('🎩');
+                    if (r.isMico) extras.push('🐵');
+                    if (r.status === 'MITO') extras.push(`🏆${r.posicao}º`);
+                    if (r.status === 'MICO') extras.push(`💩${r.posicao}º`);
+                    
+                    return `<span class="rodada-chip">R${r.rodada}: ${r.valor > 0 ? '+' : ''}${formatarMoeda(r.valor)} ${extras.join(' ')}</span>`;
+                  }).join('')}
+                  ${cat.rodadas.length > 12 ? `<span class="rodada-chip" style="background: rgba(255,255,255,0.15);">+${cat.rodadas.length - 12} rodadas</span>` : ''}
                 </div>
               ` : ''}
             </div>
