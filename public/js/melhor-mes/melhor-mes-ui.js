@@ -1,8 +1,7 @@
-// MELHOR DO MÊS - INTERFACE DE USUÁRIO v1.1 - BOTÃO EXPORT MOBILE HD RESTAURADO
+// MELHOR DO MÊS - INTERFACE DE USUÁRIO v1.2
 // public/js/melhor-mes/melhor-mes-ui.js
 
 import { MELHOR_MES_CONFIG, getPremiosLiga } from "./melhor-mes-config.js";
-import { criarBotaoExportacaoMelhorMes } from "../exports/export-melhor-mes.js";
 
 console.log("[MELHOR-MES-UI] Carregando interface...");
 
@@ -165,34 +164,7 @@ export class MelhorMesUI {
       </table>
     `;
 
-    // ✅ RESTAURADO: Criar botão EXPORT MOBILE HD
-    this.criarBotaoExportacao();
-  }
-
-  // ✅ CRIAR BOTÃO DE EXPORTAÇÃO MOBILE HD
-  async criarBotaoExportacao() {
-    if (this.edicaoAtiva === null) return;
-
-    const edicao = MELHOR_MES_CONFIG.edicoes[this.edicaoAtiva];
-    const dados = this.dadosCarregados?.resultados[this.edicaoAtiva];
-
-    if (!dados || dados.ranking.length === 0) return;
-
-    try {
-      await criarBotaoExportacaoMelhorMes({
-        containerId: this.containers.exportBtn,
-        rankings: dados.ranking,
-        edicao: edicao,
-        tituloPersonalizado: `Melhor do Mês - ${edicao.nome}`,
-        ligaId: window.ligaAtual?.id || "",
-      });
-    } catch (error) {
-      console.error(
-        "[MELHOR-MES-UI] Erro ao criar botão de exportação:",
-        error,
-      );
     }
-  }
 
   // CRIAR LINHA RANKING COMPACTA
   criarLinhaRankingPadrao(time, index, dados, temPremios, ligaId) {

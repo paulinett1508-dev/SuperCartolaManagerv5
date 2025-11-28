@@ -34,8 +34,6 @@ export class MelhorMesOrquestrador {
     this.core = melhorMesCore;
     this.ui = new MelhorMesUI();
     this.inicializado = false;
-    this.exportsCarregados = false;
-    this.exportFunctions = {};
   }
 
   // INICIALIZAÇÃO PRINCIPAL
@@ -59,9 +57,6 @@ export class MelhorMesOrquestrador {
       // Renderizar interface
       this.ui.renderizar(dadosProcessados);
 
-      // Carregar sistema de exports E EXPOR GLOBALMENTE
-      await this.carregarExports();
-
       this.inicializado = true;
 
       console.log("[MELHOR-MES-ORQUESTRADOR] Sistema inicializado com sucesso");
@@ -71,13 +66,6 @@ export class MelhorMesOrquestrador {
       this.ui.mostrarErro(`Erro ao carregar sistema: ${error.message}`);
       throw error;
     }
-  }
-
-  // CARREGAR SISTEMA DE EXPORTS - DESABILITADO (usar módulo Relatórios)
-  async carregarExports() {
-    console.log("[MELHOR-MES-ORQUESTRADOR] Sistema de exports desabilitado (usar Relatórios)");
-    this.exportsCarregados = true; // Retorna sucesso para não bloquear
-    return;
   }
 
   // SELECIONAR EDIÇÃO
@@ -162,14 +150,7 @@ export class MelhorMesOrquestrador {
     const diagnostico = {
       orquestrador: {
         inicializado: this.inicializado,
-        exportsCarregados: this.exportsCarregados,
         edicaoAtiva: this.ui.edicaoAtiva,
-        funcoesGlobaisExpostas: {
-          criarBotao:
-            typeof window.criarBotaoExportacaoMelhorMes === "function",
-          exportarImagem:
-            typeof window.exportarMelhorMesComoImagem === "function",
-        },
       },
       core: coreStats,
       ui: {
@@ -178,10 +159,6 @@ export class MelhorMesOrquestrador {
           id: this.ui.containers[key],
           existe: !!document.getElementById(this.ui.containers[key]),
         })),
-      },
-      exports: {
-        carregados: this.exportsCarregados,
-        funcoes: Object.keys(this.exportFunctions),
       },
       configuracao: {
         versao: MELHOR_MES_CONFIG.version,
@@ -202,12 +179,6 @@ export class MelhorMesOrquestrador {
     console.log("[MELHOR-MES-ORQUESTRADOR] Forçando reinicialização...");
 
     this.inicializado = false;
-    this.exportsCarregados = false;
-    this.exportFunctions = {};
-
-    // Limpar funções globais
-    delete window.criarBotaoExportacaoMelhorMes;
-    delete window.exportarMelhorMesComoImagem;
 
     return await this.inicializar();
   }
@@ -220,12 +191,6 @@ export class MelhorMesOrquestrador {
       interfaceRenderizada: !!document.getElementById(
         this.ui.containers.select,
       ),
-      exportsDisponiveis: this.exportsCarregados,
-      funcoesGlobais: {
-        criarBotao: typeof window.criarBotaoExportacaoMelhorMes === "function",
-        exportarImagem:
-          typeof window.exportarMelhorMesComoImagem === "function",
-      },
       edicaoAtiva: this.ui.edicaoAtiva,
       timestamp: new Date().toISOString(),
     };
