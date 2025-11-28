@@ -361,17 +361,17 @@ body {
 .stats-grid-modern {
     display: grid;
     grid-template-columns: repeat(2, 1fr);
-    gap: 16px;
-    margin-bottom: 24px;
+    gap: 12px;
+    margin-bottom: 16px;
     animation: fadeInUp 0.6s ease-out 0.2s backwards;
 }
 
 .stat-card-modern {
     background: linear-gradient(135deg, rgba(26, 26, 26, 0.95) 0%, rgba(42, 42, 42, 0.9) 100%);
-    border-radius: 16px;
-    padding: 20px 16px;
+    border-radius: 12px;
+    padding: 12px 10px;
     border: 1px solid rgba(255, 255, 255, 0.05);
-    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4), 0 2px 8px rgba(255, 69, 0, 0.1);
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.4), 0 2px 8px rgba(255, 69, 0, 0.1);
     transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
     position: relative;
     overflow: hidden;
@@ -384,7 +384,7 @@ body {
     top: 0;
     left: 0;
     right: 0;
-    height: 3px;
+    height: 2px;
     background: linear-gradient(90deg, #FF4500 0%, #FF6B35 100%);
     opacity: 0;
     transition: opacity 0.3s ease;
@@ -399,28 +399,28 @@ body {
 }
 
 .stat-icon-modern {
-    font-size: 32px;
-    margin-bottom: 12px;
+    font-size: 24px;
+    margin-bottom: 6px;
     opacity: 0.9;
     filter: drop-shadow(0 2px 8px rgba(255, 69, 0, 0.3));
 }
 
 .stat-label-modern {
-    font-size: 11px;
+    font-size: 10px;
     font-weight: 700;
     color: #999;
     text-transform: uppercase;
-    letter-spacing: 1px;
-    margin-bottom: 8px;
+    letter-spacing: 0.5px;
+    margin-bottom: 4px;
 }
 
 .stat-value-modern {
-    font-size: 28px;
+    font-size: 20px;
     font-weight: 800;
     color: #fff;
     font-family: 'JetBrains Mono', monospace;
     text-shadow: 0 2px 12px rgba(255, 255, 255, 0.1);
-    letter-spacing: -1px;
+    letter-spacing: -0.5px;
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
@@ -428,7 +428,7 @@ body {
 
 /* Ajuste específico para saldos negativos */
 .stat-balance .stat-value-modern {
-    font-size: 24px;
+    font-size: 18px;
 }
 
 /* Cards específicos */
@@ -480,10 +480,10 @@ body {
 /* Card de Performance */
 .performance-card-modern {
     background: linear-gradient(135deg, rgba(26, 26, 26, 0.95) 0%, rgba(42, 42, 42, 0.9) 100%);
-    border-radius: 16px;
-    padding: 20px;
+    border-radius: 12px;
+    padding: 12px;
     border: 1px solid rgba(255, 255, 255, 0.05);
-    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.4);
     margin-top: 8px;
     backdrop-filter: blur(10px);
     animation: fadeInUp 0.6s ease-out 0.4s backwards;
@@ -492,20 +492,20 @@ body {
 .performance-header-modern {
     display: flex;
     align-items: center;
-    gap: 12px;
-    margin-bottom: 20px;
-    padding-bottom: 16px;
+    gap: 8px;
+    margin-bottom: 12px;
+    padding-bottom: 10px;
     border-bottom: 1px solid rgba(255, 255, 255, 0.05);
 }
 
 .performance-icon-modern {
     color: #FF4500;
-    font-size: 24px;
+    font-size: 20px;
     filter: drop-shadow(0 2px 8px rgba(255, 69, 0, 0.4));
 }
 
 .performance-title-modern {
-    font-size: 18px;
+    font-size: 14px;
     font-weight: 700;
     color: #fff;
     margin: 0;
@@ -515,16 +515,16 @@ body {
 .performance-stats-modern {
     display: flex;
     flex-direction: column;
-    gap: 14px;
+    gap: 8px;
 }
 
 .performance-item-modern {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    padding: 12px 16px;
+    padding: 8px 10px;
     background: rgba(255, 255, 255, 0.02);
-    border-radius: 10px;
+    border-radius: 8px;
     border: 1px solid rgba(255, 255, 255, 0.05);
     transition: all 0.2s ease;
 }
@@ -535,18 +535,18 @@ body {
 }
 
 .performance-label-modern {
-    font-size: 13px;
+    font-size: 11px;
     color: #999;
     font-weight: 600;
 }
 
 .performance-value-modern {
-    font-size: 15px;
+    font-size: 13px;
     font-weight: 700;
     color: #fff;
     display: flex;
     align-items: center;
-    gap: 6px;
+    gap: 4px;
     font-family: 'JetBrains Mono', monospace;
 }
 
