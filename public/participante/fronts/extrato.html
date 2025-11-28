@@ -1,21 +1,20 @@
 <div id="extratoFinanceiro" class="extrato-container">
-    <!-- Header Redesenhado: Saldo Protagonista -->
+    <!-- Header Ultra Compacto: Tudo em 1 Linha -->
     <div class="extrato-header-compact">
-        <!-- Linha 1: Título + Botão Refresh -->
-        <div class="header-row-title">
-            <h2 class="extrato-title">💰 Extrato Financeiro</h2>
+        <div class="header-single-row">
+            <div class="header-left-group">
+                <h2 class="extrato-title">💰 EXTRATO</h2>
+                <div class="saldo-status-badge" id="saldoStatusBadge">
+                    <span class="status-icon">💰</span>
+                    <span class="status-text">A RECEBER</span>
+                </div>
+            </div>
+            
+            <div class="saldo-valor-header" id="saldoTotalHeader">R$ 0,00</div>
+            
             <button id="btnRefreshExtrato" class="btn-refresh-extrato" title="Atualizar dados">
                 <span class="refresh-icon">🔄</span>
             </button>
-        </div>
-        
-        <!-- Linha 2: Saldo GRANDE (Protagonista) -->
-        <div class="saldo-display-area">
-            <div class="saldo-status-badge" id="saldoStatusBadge">
-                <span class="status-icon">💰</span>
-                <span class="status-text">A RECEBER</span>
-            </div>
-            <div class="saldo-valor-header" id="saldoTotalHeader">R$ 0,00</div>
         </div>
     </div>
 
@@ -60,65 +59,98 @@
     max-width: 100%;
 }
 
-/* Header ultra-compacto */
+/* Header ultra-compacto - TUDO EM 1 LINHA */
 .extrato-header-compact {
-    background: linear-gradient(135deg, rgba(255, 69, 0, 0.12) 0%, rgba(255, 140, 0, 0.06) 100%);
-    padding: 6px 8px;
-    border-bottom: 1px solid rgba(255, 69, 0, 0.25);
+    background: linear-gradient(135deg, rgba(255, 69, 0, 0.15) 0%, rgba(255, 140, 0, 0.08) 100%);
+    padding: 8px 10px;
+    border-bottom: 2px solid rgba(255, 69, 0, 0.3);
 }
 
-/* Linha 1: Título + Refresh */
-.header-row-title {
+.header-single-row {
     display: flex;
-    justify-content: space-between;
     align-items: center;
-    margin-bottom: 4px;
+    justify-content: space-between;
+    gap: 8px;
+}
+
+.header-left-group {
+    display: flex;
+    align-items: center;
+    gap: 6px;
 }
 
 .extrato-title {
-    font-size: 10px;
-    font-weight: 700;
+    font-size: 11px;
+    font-weight: 800;
     color: var(--participante-primary);
     margin: 0;
     text-transform: uppercase;
-    letter-spacing: 0.3px;
+    letter-spacing: 0.5px;
+    white-space: nowrap;
 }
 
-/* Linha 2: Saldo PROTAGONISTA */
-.saldo-display-area {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    gap: 3px;
-    padding: 3px 0;
-}
-
-/* Botão de refresh */
+/* Botão de refresh com efeito pulsante */
 .btn-refresh-extrato {
-    width: 24px;
-    height: 24px;
+    width: 32px;
+    height: 32px;
     border-radius: 50%;
-    border: 1px solid rgba(255, 255, 255, 0.2);
-    background: rgba(0, 0, 0, 0.3);
+    border: 2px solid rgba(255, 69, 0, 0.4);
+    background: linear-gradient(135deg, rgba(255, 69, 0, 0.25) 0%, rgba(255, 140, 0, 0.15) 100%);
     color: var(--participante-primary);
     cursor: pointer;
     display: flex;
     align-items: center;
     justify-content: center;
-    transition: all 0.2s ease;
-    font-size: 11px;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    font-size: 14px;
     flex-shrink: 0;
     -webkit-tap-highlight-color: transparent;
     touch-action: manipulation;
+    position: relative;
+    box-shadow: 0 2px 8px rgba(255, 69, 0, 0.2);
+}
+
+.btn-refresh-extrato::before {
+    content: '';
+    position: absolute;
+    top: -2px;
+    left: -2px;
+    right: -2px;
+    bottom: -2px;
+    border-radius: 50%;
+    background: var(--participante-primary);
+    opacity: 0;
+    animation: pulse-ring 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+}
+
+@keyframes pulse-ring {
+    0% {
+        transform: scale(0.95);
+        opacity: 0.5;
+    }
+    50% {
+        transform: scale(1.1);
+        opacity: 0;
+    }
+    100% {
+        transform: scale(0.95);
+        opacity: 0;
+    }
+}
+
+.btn-refresh-extrato:hover {
+    transform: scale(1.05);
+    border-color: rgba(255, 69, 0, 0.6);
+    box-shadow: 0 4px 16px rgba(255, 69, 0, 0.4);
 }
 
 .btn-refresh-extrato:active {
     transform: scale(0.95);
-    background: rgba(255, 69, 0, 0.2);
+    background: rgba(255, 69, 0, 0.35);
 }
 
 .btn-refresh-extrato.loading .refresh-icon {
-    animation: spin-refresh 0.8s linear infinite;
+    animation: spin-refresh 0.6s linear infinite;
 }
 
 @keyframes spin-refresh {
@@ -129,39 +161,52 @@
 .saldo-status-badge {
     display: flex;
     align-items: center;
-    gap: 2px;
-    padding: 2px 6px;
-    border-radius: 10px;
-    background: rgba(0, 0, 0, 0.3);
-    border: 1px solid rgba(255, 255, 255, 0.15);
+    gap: 3px;
+    padding: 3px 8px;
+    border-radius: 12px;
+    background: rgba(0, 0, 0, 0.4);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    white-space: nowrap;
 }
 
 .status-icon {
-    font-size: 9px;
+    font-size: 10px;
     line-height: 1;
 }
 
 .status-text {
-    font-size: 7px;
+    font-size: 8px;
     font-weight: 700;
     text-transform: uppercase;
-    letter-spacing: 0.3px;
+    letter-spacing: 0.4px;
     line-height: 1;
-    color: rgba(255, 255, 255, 0.9);
+    color: rgba(255, 255, 255, 0.95);
 }
 
 .saldo-valor-header {
-    font-size: 18px;
-    font-weight: 800;
+    font-size: 20px;
+    font-weight: 900;
     font-family: 'JetBrains Mono', 'Courier New', monospace;
     line-height: 1;
     text-align: center;
-    text-shadow: 0 1px 4px rgba(0, 0, 0, 0.3);
+    text-shadow: 0 2px 8px rgba(0, 0, 0, 0.4);
+    flex: 1;
+    min-width: 0;
 }
 
 @media (max-width: 360px) {
     .saldo-valor-header {
         font-size: 16px;
+    }
+    
+    .extrato-title {
+        font-size: 9px;
+    }
+    
+    .btn-refresh-extrato {
+        width: 28px;
+        height: 28px;
+        font-size: 12px;
     }
 }
 
