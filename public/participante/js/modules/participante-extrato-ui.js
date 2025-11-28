@@ -668,12 +668,19 @@ function mostrarPopupDetalhamento(titulo, detalhes, cor, tipo) {
   const categorias = [];
 
   if (detalhes.bonusOnus !== 0) {
-    const rodadasInfo = detalhes.rodadas.bonusOnus.map(r => {
-      let badge = '';
-      if (r.isMito) badge = ' 🎩MITO';
-      if (r.isMico) badge = ' 🐵MICO';
-      return `R${r.rodada} (${r.posicao}º${badge})`;
-    }).join(', ');
+    const rodadasInfo = detalhes.rodadas.bonusOnus
+      .sort((a, b) => Math.abs(b.valor) - Math.abs(a.valor)) // Ordenar por valor (maior primeiro)
+      .map(r => {
+        let badge = '';
+        if (r.isMito) badge = ' 🎩';
+        if (r.isMico) badge = ' 🐵';
+        const valorFormatado = r.valor > 0 ? `+${formatarMoeda(r.valor)}` : formatarMoeda(r.valor);
+        return `<div class="rodada-detalhe-item">
+          <span class="rodada-num">R${r.rodada}</span>
+          <span class="rodada-pos">${r.posicao}º${badge}</span>
+          <span class="rodada-valor" style="color: ${r.valor > 0 ? '#22c55e' : '#ef4444'}">R$ ${valorFormatado}</span>
+        </div>`;
+      }).join('');
 
     categorias.push({
       nome: 'Bônus/Ônus',
@@ -681,13 +688,24 @@ function mostrarPopupDetalhamento(titulo, detalhes, cor, tipo) {
       valor: detalhes.bonusOnus,
       rodadas: detalhes.rodadas.bonusOnus,
       percentual: Math.abs((detalhes.bonusOnus / total) * 100),
-      descricao: tipo === 'ganhos' ? 'Bônus por posições de destaque (MITO, TOP 11)' : 'Ônus por posições ruins (MICO, Z4)',
+      descricao: tipo === 'ganhos' 
+        ? `Bônus por ${detalhes.rodadas.bonusOnus.length} posição(ões) de destaque (MITO, TOP 11)` 
+        : `Ônus por ${detalhes.rodadas.bonusOnus.length} posição(ões) ruins (MICO, Z4)`,
       detalhamentoRodadas: rodadasInfo
     });
   }
 
   if (detalhes.pontosCorridos !== 0) {
-    const rodadasInfo = detalhes.rodadas.pontosCorridos.map(r => `R${r.rodada}`).join(', ');
+    const rodadasInfo = detalhes.rodadas.pontosCorridos
+      .sort((a, b) => Math.abs(b.valor) - Math.abs(a.valor))
+      .map(r => {
+        const valorFormatado = r.valor > 0 ? `+${formatarMoeda(r.valor)}` : formatarMoeda(r.valor);
+        return `<div class="rodada-detalhe-item">
+          <span class="rodada-num">R${r.rodada}</span>
+          <span class="rodada-status">${r.valor > 0 ? '✅ Vitória' : '❌ Derrota'}</span>
+          <span class="rodada-valor" style="color: ${r.valor > 0 ? '#22c55e' : '#ef4444'}">R$ ${valorFormatado}</span>
+        </div>`;
+      }).join('');
     
     categorias.push({
       nome: 'Pontos Corridos',
@@ -695,13 +713,25 @@ function mostrarPopupDetalhamento(titulo, detalhes, cor, tipo) {
       valor: detalhes.pontosCorridos,
       rodadas: detalhes.rodadas.pontosCorridos,
       percentual: Math.abs((detalhes.pontosCorridos / total) * 100),
-      descricao: tipo === 'ganhos' ? `Vitórias em confrontos diretos (${detalhes.rodadas.pontosCorridos.length} rodadas)` : `Derrotas em confrontos diretos (${detalhes.rodadas.pontosCorridos.length} rodadas)`,
+      descricao: tipo === 'ganhos' 
+        ? `${detalhes.rodadas.pontosCorridos.length} vitória(s) em confrontos diretos` 
+        : `${detalhes.rodadas.pontosCorridos.length} derrota(s) em confrontos diretos`,
       detalhamentoRodadas: rodadasInfo
     });
   }
 
   if (detalhes.mataMata !== 0) {
-    const rodadasInfo = detalhes.rodadas.mataMata.map(r => `R${r.rodada}`).join(', ');
+    const rodadasInfo = detalhes.rodadas.mataMata
+      .sort((a, b) => Math.abs(b.valor) - Math.abs(a.valor))
+      .map(r => {
+        const valorFormatado = r.valor > 0 ? `+${formatarMoeda(r.valor)}` : formatarMoeda(r.valor);
+        const tipoMM = r.valor > 0 ? '🏆 Prêmio' : '💰 Taxa';
+        return `<div class="rodada-detalhe-item">
+          <span class="rodada-num">R${r.rodada}</span>
+          <span class="rodada-status">${tipoMM}</span>
+          <span class="rodada-valor" style="color: ${r.valor > 0 ? '#22c55e' : '#ef4444'}">R$ ${valorFormatado}</span>
+        </div>`;
+      }).join('');
     
     categorias.push({
       nome: 'Mata-Mata',
@@ -709,16 +739,26 @@ function mostrarPopupDetalhamento(titulo, detalhes, cor, tipo) {
       valor: detalhes.mataMata,
       rodadas: detalhes.rodadas.mataMata,
       percentual: Math.abs((detalhes.mataMata / total) * 100),
-      descricao: tipo === 'ganhos' ? `Premiações de edições do Mata-Mata (${detalhes.rodadas.mataMata.length} premiações)` : `Taxas de participação no Mata-Mata (${detalhes.rodadas.mataMata.length} rodadas)`,
+      descricao: tipo === 'ganhos' 
+        ? `${detalhes.rodadas.mataMata.length} premiação(ões) do Mata-Mata` 
+        : `${detalhes.rodadas.mataMata.length} taxa(s) de participação no Mata-Mata`,
       detalhamentoRodadas: rodadasInfo
     });
   }
 
   if (detalhes.top10 !== 0) {
-    const rodadasInfo = detalhes.rodadas.top10.map(r => {
-      const statusIcon = r.status === 'MITO' ? '🏆' : '💩';
-      return `R${r.rodada} (${statusIcon}${r.posicao}º ${r.status})`;
-    }).join(', ');
+    const rodadasInfo = detalhes.rodadas.top10
+      .sort((a, b) => Math.abs(b.valor) - Math.abs(a.valor))
+      .map(r => {
+        const statusIcon = r.status === 'MITO' ? '🏆' : '💩';
+        const valorFormatado = r.valor > 0 ? `+${formatarMoeda(r.valor)}` : formatarMoeda(r.valor);
+        const posicaoTexto = r.status === 'MITO' ? `${r.posicao}º Maior` : `${r.posicao}º Menor`;
+        return `<div class="rodada-detalhe-item">
+          <span class="rodada-num">R${r.rodada}</span>
+          <span class="rodada-status">${statusIcon} ${posicaoTexto}</span>
+          <span class="rodada-valor" style="color: ${r.valor > 0 ? '#22c55e' : '#ef4444'}">R$ ${valorFormatado}</span>
+        </div>`;
+      }).join('');
 
     categorias.push({
       nome: 'TOP 10',
@@ -726,13 +766,26 @@ function mostrarPopupDetalhamento(titulo, detalhes, cor, tipo) {
       valor: detalhes.top10,
       rodadas: detalhes.rodadas.top10,
       percentual: Math.abs((detalhes.top10 / total) * 100),
-      descricao: tipo === 'ganhos' ? `Maiores pontuações da rodada (${detalhes.rodadas.top10.length} vezes)` : `Piores pontuações da rodada (${detalhes.rodadas.top10.length} vezes)`,
+      descricao: tipo === 'ganhos' 
+        ? `${detalhes.rodadas.top10.length} vez(es) entre as maiores pontuações` 
+        : `${detalhes.rodadas.top10.length} vez(es) entre as piores pontuações`,
       detalhamentoRodadas: rodadasInfo
     });
   }
 
   if (detalhes.melhorMes !== 0) {
-    const rodadasInfo = detalhes.rodadas.melhorMes.map(r => `R${r.rodada}`).join(', ');
+    const rodadasInfo = detalhes.rodadas.melhorMes
+      .sort((a, b) => Math.abs(b.valor) - Math.abs(a.valor))
+      .map(r => {
+        const valorFormatado = r.valor > 0 ? `+${formatarMoeda(r.valor)}` : formatarMoeda(r.valor);
+        const mesNomes = ['Jan', 'Fev', 'Mar', 'Abr', 'Mai', 'Jun', 'Jul', 'Ago', 'Set', 'Out', 'Nov', 'Dez'];
+        const mesEstimado = Math.ceil(r.rodada / 4); // Aproximação de mês
+        return `<div class="rodada-detalhe-item">
+          <span class="rodada-num">R${r.rodada}</span>
+          <span class="rodada-status">📅 ${mesNomes[mesEstimado - 1] || 'Mês'}</span>
+          <span class="rodada-valor" style="color: ${r.valor > 0 ? '#22c55e' : '#ef4444'}">R$ ${valorFormatado}</span>
+        </div>`;
+      }).join('');
     
     categorias.push({
       nome: 'Melhor Mês',
@@ -740,7 +793,7 @@ function mostrarPopupDetalhamento(titulo, detalhes, cor, tipo) {
       valor: detalhes.melhorMes,
       rodadas: detalhes.rodadas.melhorMes,
       percentual: Math.abs((detalhes.melhorMes / total) * 100),
-      descricao: `Prêmios mensais acumulados (${detalhes.rodadas.melhorMes.length} meses)`,
+      descricao: `${detalhes.rodadas.melhorMes.length} prêmio(s) mensal(is) acumulado(s)`,
       detalhamentoRodadas: rodadasInfo
     });
   }
@@ -1040,6 +1093,44 @@ function mostrarPopupDetalhamento(titulo, detalhes, cor, tipo) {
         border: 1px solid rgba(255,255,255,0.1);
       }
 
+      #popupDetalhamento .rodada-detalhe-item {
+        display: grid;
+        grid-template-columns: 50px 1fr auto;
+        gap: 12px;
+        padding: 10px 12px;
+        background: rgba(255,255,255,0.03);
+        border-radius: 8px;
+        margin-bottom: 6px;
+        align-items: center;
+        border-left: 3px solid ${cor};
+        transition: all 0.2s ease;
+      }
+
+      #popupDetalhamento .rodada-detalhe-item:hover {
+        background: rgba(255,255,255,0.06);
+        transform: translateX(4px);
+      }
+
+      #popupDetalhamento .rodada-num {
+        font-weight: 700;
+        color: ${cor};
+        font-size: 13px;
+        font-family: 'JetBrains Mono', monospace;
+      }
+
+      #popupDetalhamento .rodada-pos,
+      #popupDetalhamento .rodada-status {
+        font-size: 11px;
+        color: rgba(255,255,255,0.7);
+      }
+
+      #popupDetalhamento .rodada-valor {
+        font-weight: 700;
+        font-size: 13px;
+        font-family: 'JetBrains Mono', monospace;
+        text-align: right;
+      }
+
       #popupDetalhamento .total-section {
         background: linear-gradient(135deg, ${cor}25 0%, ${cor}15 100%);
         padding: 18px;
@@ -1186,24 +1277,12 @@ function mostrarPopupDetalhamento(titulo, detalhes, cor, tipo) {
               </div>
 
               ${cat.detalhamentoRodadas ? `
-                <div class="rodadas-detalhamento" style="margin-top: 12px; padding: 10px; background: rgba(0,0,0,0.2); border-radius: 8px; border-left: 3px solid ${cor};">
-                  <div style="font-size: 10px; color: rgba(255,255,255,0.6); margin-bottom: 6px; text-transform: uppercase; font-weight: 600; letter-spacing: 0.5px;">📋 Rodadas com Movimentação</div>
-                  <div style="font-size: 11px; color: rgba(255,255,255,0.85); line-height: 1.6;">${cat.detalhamentoRodadas || 'Sem detalhes'}</div>
-                </div>
-              ` : ''}
-              
-              ${cat.rodadas.length > 0 ? `
-                <div class="rodadas-lista">
-                  ${cat.rodadas.slice(0, 12).map(r => {
-                    const extras = [];
-                    if (r.isMito) extras.push('🎩');
-                    if (r.isMico) extras.push('🐵');
-                    if (r.status === 'MITO') extras.push(`🏆${r.posicao}º`);
-                    if (r.status === 'MICO') extras.push(`💩${r.posicao}º`);
-                    
-                    return `<span class="rodada-chip">R${r.rodada}: ${r.valor > 0 ? '+' : ''}${formatarMoeda(r.valor)} ${extras.join(' ')}</span>`;
-                  }).join('')}
-                  ${cat.rodadas.length > 12 ? `<span class="rodada-chip" style="background: rgba(255,255,255,0.15);">+${cat.rodadas.length - 12} rodadas</span>` : ''}
+                <div class="rodadas-detalhamento" style="margin-top: 12px; padding: 12px; background: rgba(0,0,0,0.3); border-radius: 8px;">
+                  <div style="font-size: 10px; color: rgba(255,255,255,0.6); margin-bottom: 10px; text-transform: uppercase; font-weight: 600; letter-spacing: 0.5px; display: flex; align-items: center; gap: 6px;">
+                    <span>📋</span> 
+                    <span>Detalhamento de Todas as Rodadas</span>
+                  </div>
+                  <div>${cat.detalhamentoRodadas || '<div style="text-align: center; color: #999; padding: 20px;">Sem detalhes disponíveis</div>'}</div>
                 </div>
               ` : ''}
             </div>
