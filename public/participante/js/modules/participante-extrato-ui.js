@@ -674,13 +674,13 @@ function mostrarPopupDetalhamento(titulo, detalhes, cor) {
         left: 0;
         width: 100%;
         height: 100%;
-        background: rgba(0,0,0,0.85);
+        background: rgba(0,0,0,0.90);
         display: flex;
         align-items: center;
         justify-content: center;
         z-index: 10000;
-        backdrop-filter: blur(6px);
-        padding: 20px;
+        backdrop-filter: blur(8px);
+        padding: 16px;
         box-sizing: border-box;
         animation: fadeIn 0.3s ease;
       }
@@ -704,7 +704,7 @@ function mostrarPopupDetalhamento(titulo, detalhes, cor) {
 
       #popupDetalhamento .modal-header {
         background: linear-gradient(135deg, ${cor} 0%, ${cor}dd 100%);
-        padding: 24px;
+        padding: 20px;
         border-radius: 18px 18px 0 0;
         display: flex;
         justify-content: space-between;
@@ -715,7 +715,7 @@ function mostrarPopupDetalhamento(titulo, detalhes, cor) {
       #popupDetalhamento .modal-header h3 {
         margin: 0;
         color: white;
-        font-size: 18px;
+        font-size: 16px;
         font-weight: 700;
         flex: 1;
         text-shadow: 0 2px 4px rgba(0,0,0,0.3);
@@ -725,77 +725,86 @@ function mostrarPopupDetalhamento(titulo, detalhes, cor) {
         background: rgba(255,255,255,0.2);
         border: none;
         color: white;
-        width: 36px;
-        height: 36px;
+        width: 32px;
+        height: 32px;
         border-radius: 50%;
         cursor: pointer;
-        font-size: 22px;
+        font-size: 20px;
         display: flex;
         align-items: center;
         justify-content: center;
         transition: all 0.3s ease;
+        flex-shrink: 0;
       }
 
-      #popupDetalhamento .btn-close:hover {
+      #popupDetalhamento .btn-close:active {
         background: rgba(255,255,255,0.3);
-        transform: rotate(90deg);
+        transform: scale(0.9);
       }
 
       #popupDetalhamento .modal-body {
-        padding: 24px;
+        padding: 20px;
       }
 
       #popupDetalhamento .categoria-item {
         background: rgba(255,255,255,0.03);
         border-radius: 12px;
-        padding: 16px;
-        margin-bottom: 16px;
+        padding: 14px;
+        margin-bottom: 14px;
         border: 1px solid rgba(255,255,255,0.08);
         transition: all 0.3s ease;
         animation: slideIn 0.5s ease both;
       }
 
-      #popupDetalhamento .categoria-item:hover {
+      #popupDetalhamento .categoria-item:active {
         background: rgba(255,255,255,0.06);
         border-color: ${cor}40;
-        transform: translateX(4px);
+        transform: scale(0.98);
       }
 
       #popupDetalhamento .categoria-header {
         display: flex;
         justify-content: space-between;
         align-items: center;
-        margin-bottom: 12px;
+        margin-bottom: 10px;
       }
 
       #popupDetalhamento .categoria-info {
         display: flex;
         align-items: center;
         gap: 10px;
+        flex: 1;
+        min-width: 0;
       }
 
       #popupDetalhamento .categoria-icone {
-        font-size: 24px;
-        width: 40px;
-        height: 40px;
+        font-size: 22px;
+        width: 38px;
+        height: 38px;
         display: flex;
         align-items: center;
         justify-content: center;
         background: ${cor}20;
         border-radius: 8px;
+        flex-shrink: 0;
       }
 
       #popupDetalhamento .categoria-nome {
         font-weight: 600;
         color: #fff;
-        font-size: 14px;
+        font-size: 13px;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
       }
 
       #popupDetalhamento .categoria-valor {
         font-weight: 700;
-        font-size: 16px;
+        font-size: 15px;
         color: ${cor};
         text-shadow: 0 2px 8px ${cor}40;
+        white-space: nowrap;
+        margin-left: 8px;
       }
 
       #popupDetalhamento .barra-container {
@@ -803,7 +812,7 @@ function mostrarPopupDetalhamento(titulo, detalhes, cor) {
         height: 6px;
         border-radius: 3px;
         overflow: hidden;
-        margin-bottom: 8px;
+        margin-bottom: 10px;
       }
 
       #popupDetalhamento .barra-progresso {
@@ -820,6 +829,7 @@ function mostrarPopupDetalhamento(titulo, detalhes, cor) {
         display: flex;
         justify-content: space-between;
         align-items: center;
+        margin-bottom: 8px;
       }
 
       #popupDetalhamento .percentual-badge {
@@ -831,12 +841,29 @@ function mostrarPopupDetalhamento(titulo, detalhes, cor) {
         font-size: 10px;
       }
 
+      #popupDetalhamento .rodadas-lista {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 4px;
+        margin-top: 8px;
+      }
+
+      #popupDetalhamento .rodada-chip {
+        background: rgba(255,255,255,0.08);
+        color: #fff;
+        padding: 3px 8px;
+        border-radius: 12px;
+        font-size: 10px;
+        font-weight: 600;
+        border: 1px solid rgba(255,255,255,0.1);
+      }
+
       #popupDetalhamento .total-section {
         background: linear-gradient(135deg, ${cor}25 0%, ${cor}15 100%);
-        padding: 20px;
+        padding: 18px;
         border-radius: 12px;
         border: 2px solid ${cor};
-        margin-top: 20px;
+        margin-top: 18px;
         box-shadow: 0 4px 16px ${cor}20;
       }
 
@@ -849,7 +876,7 @@ function mostrarPopupDetalhamento(titulo, detalhes, cor) {
       #popupDetalhamento .total-label {
         font-weight: 700;
         color: #fff;
-        font-size: 16px;
+        font-size: 14px;
         display: flex;
         align-items: center;
         gap: 8px;
@@ -857,46 +884,50 @@ function mostrarPopupDetalhamento(titulo, detalhes, cor) {
 
       #popupDetalhamento .total-value {
         font-weight: 800;
-        font-size: 24px;
+        font-size: 22px;
         color: ${cor};
         text-shadow: 0 2px 12px ${cor}60;
       }
 
       @media (max-width: 768px) {
+        #popupDetalhamento {
+          padding: 12px;
+        }
+
         #popupDetalhamento .modal-content {
           max-width: 95vw;
-          max-height: 85vh;
+          max-height: 88vh;
           border-radius: 16px;
         }
 
         #popupDetalhamento .modal-header {
-          padding: 18px;
+          padding: 16px;
         }
 
         #popupDetalhamento .modal-header h3 {
-          font-size: 15px;
+          font-size: 14px;
         }
 
         #popupDetalhamento .modal-body {
-          padding: 18px;
+          padding: 16px;
         }
 
         #popupDetalhamento .categoria-icone {
           font-size: 20px;
-          width: 36px;
-          height: 36px;
+          width: 34px;
+          height: 34px;
         }
 
         #popupDetalhamento .categoria-nome {
-          font-size: 13px;
+          font-size: 12px;
         }
 
         #popupDetalhamento .categoria-valor {
-          font-size: 14px;
+          font-size: 13px;
         }
 
         #popupDetalhamento .total-value {
-          font-size: 20px;
+          font-size: 18px;
         }
       }
     </style>
@@ -929,6 +960,15 @@ function mostrarPopupDetalhamento(titulo, detalhes, cor) {
                 <span>${cat.rodadas.length > 0 ? `${cat.rodadas.length} rodada(s)` : 'Ajuste manual'}</span>
                 <span class="percentual-badge">${cat.percentual.toFixed(1)}%</span>
               </div>
+
+              ${cat.rodadas.length > 0 ? `
+                <div class="rodadas-lista">
+                  ${cat.rodadas.slice(0, 15).map(r => `
+                    <span class="rodada-chip">R${r.rodada}: ${r.valor > 0 ? '+' : ''}${formatarMoeda(r.valor)}</span>
+                  `).join('')}
+                  ${cat.rodadas.length > 15 ? `<span class="rodada-chip">+${cat.rodadas.length - 15} mais</span>` : ''}
+                </div>
+              ` : ''}
             </div>
           `).join('')}
 
