@@ -351,12 +351,18 @@ class ParticipanteNavigation {
                         console.log(`[PARTICIPANTE-NAV] 🚀 Executando função: ${funcName}()`);
                         try {
                             // ✅ PASSAR PARÂMETROS SEPARADOS (ligaId, timeId)
-                            await moduloJS[funcName](this.participanteData.ligaId, this.participanteData.timeId);
+                            if (this.participanteData) { // Verifica se participanteData está disponível
+                                await moduloJS[funcName](this.participanteData.ligaId, this.participanteData.timeId);
+                            } else {
+                                // Caso participanteData não esteja disponível, tenta chamar sem parâmetros
+                                await moduloJS[funcName]();
+                            }
                             console.log(`[PARTICIPANTE-NAV] ✅ Função ${funcName}() executada com sucesso`);
                             functionExecuted = true;
                             break;
                         } catch (error) {
                             console.error(`[PARTICIPANTE-NAV] ❌ Erro ao executar ${funcName}():`, error);
+                            // Tenta a próxima função se a atual falhar
                         }
                     }
                 }
