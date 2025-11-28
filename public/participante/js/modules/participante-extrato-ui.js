@@ -668,57 +668,80 @@ function mostrarPopupDetalhamento(titulo, detalhes, cor, tipo) {
   const categorias = [];
 
   if (detalhes.bonusOnus !== 0) {
+    const rodadasInfo = detalhes.rodadas.bonusOnus.map(r => {
+      let badge = '';
+      if (r.isMito) badge = ' 🎩MITO';
+      if (r.isMico) badge = ' 🐵MICO';
+      return `R${r.rodada} (${r.posicao}º${badge})`;
+    }).join(', ');
+
     categorias.push({
       nome: 'Bônus/Ônus',
       icone: tipo === 'ganhos' ? '🎁' : '⚠️',
       valor: detalhes.bonusOnus,
       rodadas: detalhes.rodadas.bonusOnus,
       percentual: Math.abs((detalhes.bonusOnus / total) * 100),
-      descricao: tipo === 'ganhos' ? 'Bônus por posições de destaque' : 'Ônus por posições ruins'
+      descricao: tipo === 'ganhos' ? 'Bônus por posições de destaque (MITO, TOP 11)' : 'Ônus por posições ruins (MICO, Z4)',
+      detalhamentoRodadas: rodadasInfo
     });
   }
 
   if (detalhes.pontosCorridos !== 0) {
+    const rodadasInfo = detalhes.rodadas.pontosCorridos.map(r => `R${r.rodada}`).join(', ');
+    
     categorias.push({
       nome: 'Pontos Corridos',
       icone: '⚽',
       valor: detalhes.pontosCorridos,
       rodadas: detalhes.rodadas.pontosCorridos,
       percentual: Math.abs((detalhes.pontosCorridos / total) * 100),
-      descricao: tipo === 'ganhos' ? 'Vitórias em confrontos diretos' : 'Derrotas em confrontos diretos'
+      descricao: tipo === 'ganhos' ? `Vitórias em confrontos diretos (${detalhes.rodadas.pontosCorridos.length} rodadas)` : `Derrotas em confrontos diretos (${detalhes.rodadas.pontosCorridos.length} rodadas)`,
+      detalhamentoRodadas: rodadasInfo
     });
   }
 
   if (detalhes.mataMata !== 0) {
+    const rodadasInfo = detalhes.rodadas.mataMata.map(r => `R${r.rodada}`).join(', ');
+    
     categorias.push({
       nome: 'Mata-Mata',
       icone: '🏆',
       valor: detalhes.mataMata,
       rodadas: detalhes.rodadas.mataMata,
       percentual: Math.abs((detalhes.mataMata / total) * 100),
-      descricao: tipo === 'ganhos' ? 'Premiações de edições do Mata-Mata' : 'Taxas de participação no Mata-Mata'
+      descricao: tipo === 'ganhos' ? `Premiações de edições do Mata-Mata (${detalhes.rodadas.mataMata.length} premiações)` : `Taxas de participação no Mata-Mata (${detalhes.rodadas.mataMata.length} rodadas)`,
+      detalhamentoRodadas: rodadasInfo
     });
   }
 
   if (detalhes.top10 !== 0) {
+    const rodadasInfo = detalhes.rodadas.top10.map(r => {
+      const statusIcon = r.status === 'MITO' ? '🏆' : '💩';
+      return `R${r.rodada} (${statusIcon}${r.posicao}º ${r.status})`;
+    }).join(', ');
+
     categorias.push({
       nome: 'TOP 10',
       icone: tipo === 'ganhos' ? '🌟' : '💩',
       valor: detalhes.top10,
       rodadas: detalhes.rodadas.top10,
       percentual: Math.abs((detalhes.top10 / total) * 100),
-      descricao: tipo === 'ganhos' ? 'Maiores pontuações da rodada' : 'Piores pontuações da rodada'
+      descricao: tipo === 'ganhos' ? `Maiores pontuações da rodada (${detalhes.rodadas.top10.length} vezes)` : `Piores pontuações da rodada (${detalhes.rodadas.top10.length} vezes)`,
+      detalhamentoRodadas: rodadasInfo
     });
   }
 
   if (detalhes.melhorMes !== 0) {
+    const rodadasInfo = detalhes.rodadas.melhorMes.map(r => `R${r.rodada}`).join(', ');
+    
     categorias.push({
       nome: 'Melhor Mês',
       icone: '📅',
       valor: detalhes.melhorMes,
       rodadas: detalhes.rodadas.melhorMes,
       percentual: Math.abs((detalhes.melhorMes / total) * 100),
-      descricao: 'Prêmios mensais acumulados'
+      descricao: `Prêmios mensais acumulados (${detalhes.rodadas.melhorMes.length} meses)`,
+      detalhamentoRodadas: rodadasInfo
     });
   }
 
@@ -729,7 +752,8 @@ function mostrarPopupDetalhamento(titulo, detalhes, cor, tipo) {
       valor: detalhes.camposEditaveis,
       rodadas: [],
       percentual: Math.abs((detalhes.camposEditaveis / total) * 100),
-      descricao: 'Valores inseridos manualmente pelo administrador'
+      descricao: 'Valores inseridos manualmente pelo administrador',
+      detalhamentoRodadas: ''
     });
   }
 
@@ -1161,6 +1185,13 @@ function mostrarPopupDetalhamento(titulo, detalhes, cor, tipo) {
                 <span class="percentual-badge">${cat.percentual.toFixed(1)}% do total</span>
               </div>
 
+              ${cat.detalhamentoRodadas ? `
+                <div class="rodadas-detalhamento" style="margin-top: 12px; padding: 10px; background: rgba(0,0,0,0.2); border-radius: 8px; border-left: 3px solid ${cor};">
+                  <div style="font-size: 10px; color: rgba(255,255,255,0.6); margin-bottom: 6px; text-transform: uppercase; font-weight: 600; letter-spacing: 0.5px;">📋 Rodadas com Movimentação</div>
+                  <div style="font-size: 11px; color: rgba(255,255,255,0.85); line-height: 1.6;">${cat.detalhamentoRodadas || 'Sem detalhes'}</div>
+                </div>
+              ` : ''}
+              
               ${cat.rodadas.length > 0 ? `
                 <div class="rodadas-lista">
                   ${cat.rodadas.slice(0, 12).map(r => {
