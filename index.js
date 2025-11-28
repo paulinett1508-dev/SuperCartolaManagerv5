@@ -95,6 +95,7 @@ app.use("/api/ligas", ligaRoutes);
 app.use("/api/cartola", cartolaRoutes);
 app.use("/api/cartola", cartolaProxyRoutes); // Proxy para evitar CORS
 app.use("/api/times", timesRoutes);
+app.use("/api/time", timesRoutes); // ✅ Alias para compatibilidade (singular)
 app.use("/api/rodadas", rodadasRoutes);
 app.use("/api/gols", golsRoutes);
 app.use("/api/artilheiro-campeao", artilheiroCampeaoRoutes);
