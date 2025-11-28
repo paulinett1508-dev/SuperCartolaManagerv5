@@ -2,20 +2,33 @@
 
 console.log('[BOAS-VINDAS] 🚀 Carregando módulo...');
 
-export async function inicializarBoasVindas(ligaIdParam, timeIdParam) {
+export async function inicializarBoasVindas(params) {
+    // ✅ ACEITAR TANTO OBJETO QUANTO PARÂMETROS SEPARADOS (retrocompatibilidade)
+    let ligaId, timeId;
+    
+    if (typeof params === 'object' && params !== null && !Array.isArray(params)) {
+        // Formato novo: objeto { participante, ligaId, timeId }
+        ligaId = params.ligaId;
+        timeId = params.timeId;
+    } else {
+        // Formato antigo: parâmetros separados (ligaId, timeId)
+        ligaId = params;
+        timeId = arguments[1];
+    }
+
     // ✅ GARANTIR que ligaId e timeId sejam strings válidas
-    const ligaId = typeof ligaIdParam === 'string' ? ligaIdParam : String(ligaIdParam || '');
-    const timeId = typeof timeIdParam === 'string' ? timeIdParam : String(timeIdParam || '');
+    ligaId = typeof ligaId === 'string' ? ligaId : String(ligaId || '');
+    timeId = typeof timeId === 'string' ? timeId : String(timeId || '');
 
     console.log(`[BOAS-VINDAS] Inicializando para time ${timeId} na liga ${ligaId}`);
 
     if (!ligaId || ligaId === '[object Object]') {
-        console.error('[BOAS-VINDAS] ❌ Liga ID inválido:', ligaIdParam);
+        console.error('[BOAS-VINDAS] ❌ Liga ID inválido:', params);
         return;
     }
 
     if (!timeId || timeId === 'undefined') {
-        console.error('[BOAS-VINDAS] ❌ Time ID inválido:', timeIdParam);
+        console.error('[BOAS-VINDAS] ❌ Time ID inválido:', params);
         return;
     }
 
@@ -51,20 +64,33 @@ function calcularRankingManual(rodadas) {
     return ranking;
 }
 
-window.inicializarBoasVindas = async function(ligaIdParam, timeIdParam) {
+window.inicializarBoasVindas = async function(params) {
+    // ✅ ACEITAR TANTO OBJETO QUANTO PARÂMETROS SEPARADOS (retrocompatibilidade)
+    let ligaId, timeId;
+    
+    if (typeof params === 'object' && params !== null && !Array.isArray(params)) {
+        // Formato novo: objeto { participante, ligaId, timeId }
+        ligaId = params.ligaId;
+        timeId = params.timeId;
+    } else {
+        // Formato antigo: parâmetros separados (ligaId, timeId)
+        ligaId = params;
+        timeId = arguments[1];
+    }
+
     // ✅ GARANTIR que ligaId e timeId sejam strings válidas
-    const ligaId = typeof ligaIdParam === 'string' ? ligaIdParam : String(ligaIdParam || '');
-    const timeId = typeof timeIdParam === 'string' ? timeIdParam : String(timeIdParam || '');
+    ligaId = typeof ligaId === 'string' ? ligaId : String(ligaId || '');
+    timeId = typeof timeId === 'string' ? timeId : String(timeId || '');
 
     console.log(`[BOAS-VINDAS] Inicializando para time ${timeId} na liga ${ligaId}`);
 
     if (!ligaId || ligaId === '[object Object]') {
-        console.error('[BOAS-VINDAS] ❌ Liga ID inválido:', ligaIdParam);
+        console.error('[BOAS-VINDAS] ❌ Liga ID inválido:', params);
         return;
     }
 
     if (!timeId || timeId === 'undefined') {
-        console.error('[BOAS-VINDAS] ❌ Time ID inválido:', timeIdParam);
+        console.error('[BOAS-VINDAS] ❌ Time ID inválido:', params);
         return;
     }
 
