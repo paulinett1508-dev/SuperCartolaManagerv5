@@ -350,9 +350,13 @@ class ParticipanteNavigation {
                     if (moduloJS[funcName]) { // Verifica se a função existe no módulo importado
                         console.log(`[PARTICIPANTE-NAV] 🚀 Executando função: ${funcName}()`);
                         try {
-                            // ✅ PASSAR PARÂMETROS SEPARADOS (ligaId, timeId)
+                            // ✅ PASSAR OBJETO COMPLETO COM participante, ligaId, timeId
                             if (this.participanteData) { // Verifica se participanteData está disponível
-                                await moduloJS[funcName](this.participanteData.ligaId, this.participanteData.timeId);
+                                await moduloJS[funcName]({
+                                    participante: this.participanteData,
+                                    ligaId: this.participanteData.ligaId,
+                                    timeId: this.participanteData.timeId
+                                });
                             } else {
                                 // Caso participanteData não esteja disponível, tenta chamar sem parâmetros
                                 await moduloJS[funcName]();
