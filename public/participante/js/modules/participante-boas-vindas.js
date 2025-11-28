@@ -25,7 +25,7 @@ export async function inicializarBoasVindas(ligaIdParam, timeIdParam) {
 // Função auxiliar para calcular ranking manualmente
 function calcularRankingManual(rodadas) {
     const timesAgrupados = {};
-    
+
     rodadas.forEach(rodada => {
         const timeId = Number(rodada.timeId) || Number(rodada.time_id);
         if (!timesAgrupados[timeId]) {
@@ -40,14 +40,14 @@ function calcularRankingManual(rodadas) {
         timesAgrupados[timeId].pontos_totais += parseFloat(rodada.pontos) || 0;
         timesAgrupados[timeId].rodadas_jogadas += 1;
     });
-    
+
     const ranking = Object.values(timesAgrupados)
         .sort((a, b) => b.pontos_totais - a.pontos_totais)
         .map((time, index) => ({
             ...time,
             posicao: index + 1
         }));
-    
+
     return ranking;
 }
 
@@ -178,7 +178,7 @@ function renderizarBoasVindas({ posicao, totalParticipantes, pontosTotal, ultima
     const posAnteriorTexto = posicaoAnterior === '--' ? '--' : `${posicaoAnterior}º`;
     let variacaoPosicao = '';
     let variacaoPosicaoClass = '';
-    
+
     if (posicao !== '--' && posicaoAnterior !== '--') {
         const diff = posicaoAnterior - posicao; // Se subiu, diff é positivo
         if (diff > 0) {
@@ -243,7 +243,7 @@ function renderizarBoasVindas({ posicao, totalParticipantes, pontosTotal, ultima
                 <div class="stat-icon-modern">
                     <span class="material-symbols-outlined" style="font-family: 'Material Symbols Outlined'; font-size: 32px; font-weight: 400;">military_tech</span>
                 </div>
-                <div class="stat-label-modern">POSIÇÃO</div>
+                <div class="stat-label-modern">RANKING GERAL</div>
                 <div class="stat-value-modern">${posTexto}</div>
             </div>
 
@@ -307,10 +307,10 @@ function renderizarBoasVindas({ posicao, totalParticipantes, pontosTotal, ultima
 
     container.innerHTML = `
         <div style="background: linear-gradient(180deg, #0a0a0a 0%, #1a1a1a 100%); min-height: 100vh; padding: 20px 16px 120px; position: relative; overflow-x: hidden;">
-            
+
             <!-- Efeito de glow sutil no topo -->
             <div style="position: absolute; top: 0; left: 50%; transform: translateX(-50%); width: 80%; height: 150px; background: radial-gradient(ellipse at center, rgba(255, 69, 0, 0.15) 0%, transparent 70%); pointer-events: none; z-index: 0;"></div>
-            
+
             <!-- Container com z-index -->
             <div style="position: relative; z-index: 1;">
                 <!-- Seção de Boas-vindas PREMIUM -->
@@ -325,7 +325,7 @@ function renderizarBoasVindas({ posicao, totalParticipantes, pontosTotal, ultima
                 ${statsHTML}
             </div>
         </div>
-        
+
         <style>
             @keyframes fadeInDown {
                 from {
@@ -337,12 +337,12 @@ function renderizarBoasVindas({ posicao, totalParticipantes, pontosTotal, ultima
                     transform: translateY(0);
                 }
             }
-            
+
             @keyframes bounce {
                 0%, 100% { transform: translateY(0); }
                 50% { transform: translateY(-5px); }
             }
-            
+
             @keyframes fadeInUp {
                 from {
                     opacity: 0;
