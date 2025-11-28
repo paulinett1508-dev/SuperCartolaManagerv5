@@ -147,23 +147,26 @@ export function getCachedParciais(ligaId, rodada) {
 
 // CACHE PARA STATUS DO MERCADO
 export async function getStatusMercadoCache() {
-  let status = getCache(cacheKeys.STATUS_MERCADO);
+    const CACHE_KEY = 'status_mercado_global';
 
-  if (!status) {
-    try {
-      const res = await fetch("/api/cartola/mercado/status");
-      if (!res.ok) throw new Error("Erro ao buscar status do mercado");
-
-      status = await res.json();
-      setCache(cacheKeys.STATUS_MERCADO, status);
-      console.log(`[RODADAS-CACHE] 📊 Rodada atual do Cartola: ${status.rodada_atual}`);
-    } catch (err) {
-      console.error("Erro ao buscar status do mercado:", err);
-      status = { rodada_atual: 1, status_mercado: 2 };
+    if (window.cacheManager) {
+        const cached = await window.cacheManager.get(CACHE_KEY);
+        if (cached) {
+            console.log('[RODADAS-CACHE] Status do mercado obtido do cache');
+            return cached;
+        }
     }
-  }
 
-  return status;
+    return null;
+}
+
+export async function setStatusMercadoCache(data) {
+    const CACHE_KEY = 'status_mercado_global';
+
+    if (window.cacheManager) {
+        await window.cacheManager.set(CACHE_KEY, data, 300000); // 5 minutos
+        console.log('[RODADAS-CACHE] Status do mercado salvo no cache');
+    }
 }
 
 // 🔒 Verificar se rodada está consolidada (nunca mais muda)
