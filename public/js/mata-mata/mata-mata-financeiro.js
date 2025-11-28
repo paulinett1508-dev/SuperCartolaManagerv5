@@ -184,17 +184,24 @@ export async function getResultadosMataMata() {
 }
 
 // Função para obter resultados consolidados para fluxo financeiro
-export async function getResultadosMataMataFluxo() {
+export async function getResultadosMataMataFluxo(ligaIdParam = null) {
   console.log('[MATA-FINANCEIRO] Calculando TODAS as edições concluídas...');
 
-    if (typeof window.getRankingRodadaEspecifica !== 'function') {
-        console.warn(' [MATA-FINANCEIRO] Função getRankingRodadaEspecifica não disponível - usando fallback.');
-        // Retornar array vazio por enquanto, pois a função será carregada depois
-        return [];
-    }
+  // ✅ USAR A FUNÇÃO INJETADA, NÃO A GLOBAL
+  if (!getRankingRodadaEspecifica) {
+    console.error('[MATA-FINANCEIRO] ❌ Função getRankingRodadaEspecifica não foi injetada via setRankingFunction()');
+    return {
+      participantes: [],
+      totalArrecadado: 0,
+      totalPago: 0,
+      saldoFinal: 0,
+      edicoes: [],
+    };
+  }
 
   try {
-    const ligaId = getLigaId();
+    // ✅ USAR O PARÂMETRO PASSADO OU FALLBACK
+    const ligaId = ligaIdParam || getLigaId();
     if (!ligaId) {
       console.error("[MATA-FINANCEIRO] ID da Liga não encontrado.");
       return {
@@ -205,6 +212,8 @@ export async function getResultadosMataMataFluxo() {
         edicoes: [],
       };
     }
+    
+    console.log(`[MATA-FINANCEIRO] Processando liga: ${ligaId}`);
 
     let rodada_atual = 1;
     try {

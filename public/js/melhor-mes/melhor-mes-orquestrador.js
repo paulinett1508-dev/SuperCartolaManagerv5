@@ -1,12 +1,34 @@
 // MELHOR DO MÊS - ORQUESTRADOR v1.1 - EXPORTAÇÃO CORRIGIDA
 // public/js/melhor-mes/melhor-mes-orquestrador.js
 
-import { MelhorMesCore, melhorMesCore } from "./melhor-mes-core.js";
-import { MelhorMesUI } from "./melhor-mes-ui.js";
-import { MELHOR_MES_CONFIG } from "./melhor-mes-config.js";
+// ✅ EVITAR REIMPORTAÇÃO SE JÁ FOI CARREGADO
+let MelhorMesConfig, MelhorMesCore, MelhorMesUI;
+
+if (!window.__melhorMesModulosCarregados) {
+  const configModule = await import("./melhor-mes-config.js");
+  const coreModule = await import("./melhor-mes-core.js");
+  const uiModule = await import("./melhor-mes-ui.js");
+
+  MelhorMesConfig = configModule.MelhorMesConfig;
+  MelhorMesCore = coreModule.MelhorMesCore;
+  MelhorMesUI = uiModule.MelhorMesUI;
+
+  window.__melhorMesModulosCarregados = true;
+} else {
+  // Reusar os módulos já carregados
+  MelhorMesConfig = window.MelhorMesConfig;
+  MelhorMesCore = window.MelhorMesCore;
+  MelhorMesUI = window.MelhorMesUI;
+}
 
 console.log("[MELHOR-MES-ORQUESTRADOR] Inicializando orquestrador...");
 
+// ✅ EXPOR CLASSES GLOBALMENTE PARA EVITAR REDECLARAÇÃO
+window.MelhorMesConfig = MelhorMesConfig;
+window.MelhorMesCore = MelhorMesCore;
+window.MelhorMesUI = MelhorMesUI;
+
+// Classe orquestradora
 export class MelhorMesOrquestrador {
   constructor() {
     this.core = melhorMesCore;
@@ -252,38 +274,37 @@ console.log(
 // MELHOR MÊS ORQUESTRADOR
 // Coordena cache, core e UI
 
-import { MelhorMesConfig } from './melhor-mes-config.js';
-import { MelhorMesCore } from './melhor-mes-core.js';
-import { MelhorMesUI } from './melhor-mes-ui.js';
-
-console.log('[MELHOR-MÊS-ORQUESTRADOR] 📦 Carregando orquestrador...');
-
-export class MelhorMesOrquestrador {
+// Classe orquestradora
+class MelhorMesOrquestradorV2 {
     constructor() {
-        this.config = new MelhorMesConfig();
-        this.core = new MelhorMesCore();
-        this.ui = new MelhorMesUI();
+        // Use as classes globais que já foram importadas
+        this.config = new window.MelhorMesConfig();
+        this.core = new window.MelhorMesCore();
+        this.ui = new window.MelhorMesUI();
     }
 
     async inicializar(ligaId) {
-        console.log('[MELHOR-MÊS-ORQUESTRADOR] 🚀 Inicializando para liga:', ligaId);
+        console.log('[MELHOR-MÊS-ORQUESTRADOR-V2] 🚀 Inicializando para liga:', ligaId);
         this.ligaId = ligaId;
     }
 
     async carregarMelhorMes() {
         try {
-            console.log('[MELHOR-MÊS-ORQUESTRADOR] 📊 Carregando dados...');
-            
+            console.log('[MELHOR-MÊS-ORQUESTRADOR-V2] 📊 Carregando dados...');
+
             const dados = await this.core.calcularMelhorMes(this.ligaId);
             await this.ui.renderizar(dados);
-            
-            console.log('[MELHOR-MÊS-ORQUESTRADOR] ✅ Dados carregados');
+
+            console.log('[MELHOR-MÊS-ORQUESTRADOR-V2] ✅ Dados carregados');
         } catch (error) {
-            console.error('[MELHOR-MÊS-ORQUESTRADOR] ❌ Erro:', error);
+            console.error('[MELHOR-MÊS-ORQUESTRADOR-V2] ❌ Erro:', error);
             throw error;
         }
     }
 }
 
-window.MelhorMesOrquestrador = MelhorMesOrquestrador;
-console.log('[MELHOR-MÊS-ORQUESTRADOR] ✅ Carregado');
+// Apenas exporta a nova instância se os módulos já foram carregados globalmente
+if (window.__melhorMesModulosCarregados) {
+  window.melhorMesOrquestradorV2 = new MelhorMesOrquestradorV2();
+  console.log('[MELHOR-MÊS-ORQUESTRADOR-V2] ✅ Carregado e exportado globalmente');
+}
