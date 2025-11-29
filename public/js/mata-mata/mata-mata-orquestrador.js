@@ -1,7 +1,13 @@
-// MATA-MATA ORQUESTRADOR - Coordenador Principal
+// MATA-MATA ORQUESTRADOR - Coordenador Principal v1.1
 // Responsável por: coordenação de módulos, carregamento dinâmico, cache
 
-import { edicoes, getFaseInfo, getLigaId, getRodadaPontosText, getEdicaoMataMata } from "./mata-mata-config.js";
+import {
+  edicoes,
+  getFaseInfo,
+  getLigaId,
+  getRodadaPontosText,
+  getEdicaoMataMata,
+} from "./mata-mata-config.js";
 import {
   setRankingFunction as setRankingConfronto,
   getPontosDaRodada,
@@ -21,18 +27,19 @@ import {
 } from "./mata-mata-ui.js";
 import { cacheManager } from "../core/cache-manager.js";
 
-// Variáveis dinâmicas para exports
-let criarBotaoExportacaoMataMata = null;
-let exportsCarregados = false;
-let exportsCarregando = false;
-
 // Variáveis dinâmicas para rodadas
 let getRankingRodadaEspecifica = null;
 let rodadasCarregados = false;
 let rodadasCarregando = false;
 
-// Cache de módulos (mantido para compatibilidade)
+// Cache de módulos
 const moduleCache = new Map();
+
+// ✅ CACHE LOCAL DE PONTOS POR RODADA (evita buscas duplicadas)
+const pontosRodadaCache = new Map();
+
+// ✅ CACHE LOCAL DE RANKING BASE POR EDIÇÃO (evita buscas duplicadas)
+const rankingBaseCache = new Map();
 
 // Configuração de cache persistente
 const CACHE_CONFIG = {
@@ -40,57 +47,50 @@ const CACHE_CONFIG = {
     confrontos: 30 * 60 * 1000, // 30 minutos
     edicao: 60 * 60 * 1000, // 1 hora
     rodadaConsolidada: Infinity, // Cache permanente para rodadas fechadas
-  }
+  },
 };
 
 // Estado atual
 let edicaoAtual = null;
 
-// Função de carregamento dinâmico dos exports
-async function carregarExports() {
-  if (exportsCarregados) return true;
-  if (exportsCarregando) {
-    return new Promise((resolve) => {
-      const controller = new AbortController();
-      const checkInterval = setInterval(() => {
-        if (exportsCarregados || !exportsCarregando) {
-          clearInterval(checkInterval);
-          controller.abort();
-          resolve(exportsCarregados);
-        }
-      }, 100);
+// ✅ FUNÇÃO PARA OBTER PONTOS COM CACHE LOCAL
+async function getPontosDaRodadaCached(ligaId, rodada) {
+  const cacheKey = `${ligaId}_${rodada}`;
 
-      setTimeout(() => {
-        clearInterval(checkInterval);
-        controller.abort();
-        resolve(false);
-      }, 5000);
-    });
+  if (pontosRodadaCache.has(cacheKey)) {
+    console.log(`[MATA-ORQUESTRADOR] 💾 Cache hit: pontos rodada ${rodada}`);
+    return pontosRodadaCache.get(cacheKey);
   }
 
-  exportsCarregando = true;
+  const pontos = await getPontosDaRodada(ligaId, rodada);
+  pontosRodadaCache.set(cacheKey, pontos);
+  return pontos;
+}
 
-  try {
-    if (moduleCache.has("exports")) {
-      const cached = moduleCache.get("exports");
-      criarBotaoExportacaoMataMata = cached.criarBotaoExportacaoMataMata;
-      exportsCarregados = true;
-      console.log("[MATA-ORQUESTRADOR] Exports carregados do cache");
-      return true;
-    }
+// ✅ FUNÇÃO PARA OBTER RANKING BASE COM CACHE LOCAL
+async function getRankingBaseCached(ligaId, rodadaDefinicao) {
+  const cacheKey = `${ligaId}_base_${rodadaDefinicao}`;
 
-    console.log("[MATA-ORQUESTRADOR] Sistema de exports não implementado (opcional)");
-    // Função de export pode ser implementada futuramente se necessário
-    exportsCarregados = true; // Retorna sucesso para não bloquear o carregamento
-    return true;
-
-  } catch (error) {
-    console.warn("[MATA-ORQUESTRADOR] Erro ao carregar exports:", error);
-    exportsCarregados = false;
-    return false;
-  } finally {
-    exportsCarregando = false;
+  if (rankingBaseCache.has(cacheKey)) {
+    console.log(
+      `[MATA-ORQUESTRADOR] 💾 Cache hit: ranking base rodada ${rodadaDefinicao}`,
+    );
+    return rankingBaseCache.get(cacheKey);
   }
+
+  console.log(
+    `[MATA-ORQUESTRADOR] Buscando ranking base da Rodada ${rodadaDefinicao}...`,
+  );
+
+  const rankingBase = await Promise.race([
+    getRankingRodadaEspecifica(ligaId, rodadaDefinicao),
+    new Promise((_, reject) =>
+      setTimeout(() => reject(new Error("Timeout ao buscar ranking")), 10000),
+    ),
+  ]);
+
+  rankingBaseCache.set(cacheKey, rankingBase);
+  return rankingBase;
 }
 
 // Função de carregamento dinâmico das rodadas
@@ -98,18 +98,15 @@ async function carregarRodadas() {
   if (rodadasCarregados) return true;
   if (rodadasCarregando) {
     return new Promise((resolve) => {
-      const controller = new AbortController();
       const checkInterval = setInterval(() => {
         if (rodadasCarregados || !rodadasCarregando) {
           clearInterval(checkInterval);
-          controller.abort();
           resolve(rodadasCarregados);
         }
       }, 100);
 
       setTimeout(() => {
         clearInterval(checkInterval);
-        controller.abort();
         resolve(false);
       }, 5000);
     });
@@ -122,7 +119,6 @@ async function carregarRodadas() {
       const cached = moduleCache.get("rodadas");
       getRankingRodadaEspecifica = cached.getRankingRodadaEspecifica;
       rodadasCarregados = true;
-      console.log("[MATA-ORQUESTRADOR] Módulo rodadas carregado do cache");
       return true;
     }
 
@@ -164,14 +160,10 @@ export async function carregarMataMata() {
 
   try {
     console.log("[MATA-ORQUESTRADOR] Pré-carregando dependências...");
-    const [rodadasOk, exportsOk] = await Promise.all([
-      carregarRodadas(),
-      carregarExports(),
-    ]);
-    if (!rodadasOk)
+    const rodadasOk = await carregarRodadas();
+    if (!rodadasOk) {
       console.warn("[MATA-ORQUESTRADOR] Módulo rodadas não carregou");
-    if (!exportsOk)
-      console.warn("[MATA-ORQUESTRADOR] Módulo exports não carregou");
+    }
   } catch (error) {
     console.warn("[MATA-ORQUESTRADOR] Erro no pré-carregamento:", error);
   }
@@ -196,7 +188,7 @@ export async function carregarMataMata() {
   } catch (error) {
     console.warn(
       "[MATA-ORQUESTRADOR] Erro ao verificar status do mercado:",
-      error,
+      error.message,
     );
   }
 
@@ -206,6 +198,9 @@ export async function carregarMataMata() {
 // Handler para mudança de edição
 function handleEdicaoChange(novaEdicao, fase, ligaId) {
   edicaoAtual = novaEdicao;
+  // ✅ Limpar caches locais ao trocar de edição
+  pontosRodadaCache.clear();
+  rankingBaseCache.clear();
   carregarFase(fase, ligaId);
 }
 
@@ -220,15 +215,18 @@ function handleFaseClick(fase, edicao) {
 async function getCachedConfrontos(ligaId, edicao, fase, rodadaPontos) {
   const cacheKey = `matamata_confrontos_${ligaId}_${edicao}_${fase}_${rodadaPontos}`;
 
-  return await cacheManager.get(
-    "rodadas",
-    cacheKey,
-    null,
-    { ttl: CACHE_CONFIG.ttl.confrontos }
-  );
+  return await cacheManager.get("rodadas", cacheKey, null, {
+    ttl: CACHE_CONFIG.ttl.confrontos,
+  });
 }
 
-async function setCachedConfrontos(ligaId, edicao, fase, rodadaPontos, confrontos) {
+async function setCachedConfrontos(
+  ligaId,
+  edicao,
+  fase,
+  rodadaPontos,
+  confrontos,
+) {
   const cacheKey = `matamata_confrontos_${ligaId}_${edicao}_${fase}_${rodadaPontos}`;
 
   await cacheManager.set("rodadas", cacheKey, confrontos);
@@ -250,12 +248,9 @@ async function carregarFase(fase, ligaId) {
   renderLoadingState(contentId, fase, edicaoAtual);
 
   try {
-    const dependenciasOk = await Promise.all([
-      carregarRodadas(),
-      carregarExports(),
-    ]);
+    const rodadasOk = await carregarRodadas();
 
-    if (!dependenciasOk[0]) {
+    if (!rodadasOk) {
       throw new Error(
         "Módulo rodadas não disponível - não é possível calcular confrontos",
       );
@@ -280,7 +275,7 @@ async function carregarFase(fase, ligaId) {
         rodada_atual = data.rodada_atual || 1;
       }
     } catch (err) {
-      console.warn("[MATA-ORQUESTRADOR] Usando rodada padrão:", err.message);
+      console.warn("[MATA-ORQUESTRADOR] Usando rodada padrão");
     }
 
     const edicaoSelecionada = edicoes.find((e) => e.id === edicaoAtual);
@@ -289,16 +284,9 @@ async function carregarFase(fase, ligaId) {
     }
 
     const rodadaDefinicao = edicaoSelecionada.rodadaDefinicao;
-    console.log(
-      `[MATA-ORQUESTRADOR] Buscando ranking base da Rodada ${rodadaDefinicao}...`,
-    );
 
-    const rankingBase = await Promise.race([
-      getRankingRodadaEspecifica(ligaId, rodadaDefinicao),
-      new Promise((_, reject) =>
-        setTimeout(() => reject(new Error("Timeout ao buscar ranking")), 10000),
-      ),
-    ]);
+    // ✅ USA CACHE LOCAL PARA RANKING BASE
+    const rankingBase = await getRankingBaseCached(ligaId, rodadaDefinicao);
 
     console.log(
       `[MATA-ORQUESTRADOR] Ranking base recebido: ${rankingBase?.length || 0} times`,
@@ -328,30 +316,31 @@ async function carregarFase(fase, ligaId) {
 
     // ✅ TENTAR CACHE PRIMEIRO (apenas para rodadas consolidadas)
     if (!isPending) {
-      const cachedConfrontos = await getCachedConfrontos(ligaId, edicaoAtual, fase, rodadaPontosNum);
+      const cachedConfrontos = await getCachedConfrontos(
+        ligaId,
+        edicaoAtual,
+        fase,
+        rodadaPontosNum,
+      );
 
       if (cachedConfrontos) {
         console.log(`[MATA-ORQUESTRADOR] 💾 Confrontos recuperados do cache`);
-        renderTabelaMataMata(cachedConfrontos, contentId, faseLabel, edicaoAtual, isPending);
-
-        if (dependenciasOk[1] && criarBotaoExportacaoMataMata) {
-          try {
-            await criarBotaoExportacaoMataMata({
-              containerId: contentId,
-              fase: faseLabel,
-              confrontos: cachedConfrontos,
-              isPending: isPending,
-              rodadaPontos: getRodadaPontosText(faseLabel, edicaoAtual),
-              edicao: getEdicaoMataMata(edicaoAtual),
-            });
-          } catch (exportError) {
-            console.warn("[MATA-ORQUESTRADOR] Erro ao adicionar botão de exportação:", exportError);
-          }
-        }
+        renderTabelaMataMata(
+          cachedConfrontos,
+          contentId,
+          faseLabel,
+          edicaoAtual,
+          isPending,
+        );
 
         if (fase === "final" && cachedConfrontos.length > 0) {
           const edicaoNome = edicaoSelecionada.nome;
-          renderBannerCampeao(contentId, cachedConfrontos[0], edicaoNome, isPending);
+          renderBannerCampeao(
+            contentId,
+            cachedConfrontos[0],
+            edicaoNome,
+            isPending,
+          );
         }
 
         return; // ✅ RETORNA CEDO COM CACHE
@@ -362,10 +351,10 @@ async function carregarFase(fase, ligaId) {
     let timesParaConfronto = rankingBase;
     if (prevFaseRodada) {
       let vencedoresAnteriores = rankingBase;
-      const rodadaInicial = edicaoSelecionada.rodadaInicial;
 
       for (let r = edicaoSelecionada.rodadaInicial; r <= prevFaseRodada; r++) {
-        const pontosDaRodadaAnterior = await getPontosDaRodada(ligaId, r);
+        // ✅ USAR CACHE LOCAL PARA EVITAR BUSCAS DUPLICADAS
+        const pontosDaRodadaAnterior = await getPontosDaRodadaCached(ligaId, r);
         const jogosFaseAnterior =
           r === edicaoSelecionada.rodadaInicial
             ? 16
@@ -383,9 +372,10 @@ async function carregarFase(fase, ligaId) {
       timesParaConfronto = vencedoresAnteriores;
     }
 
+    // ✅ USAR CACHE LOCAL PARA PONTOS DA RODADA ATUAL
     const pontosRodadaAtual = isPending
       ? {}
-      : await getPontosDaRodada(ligaId, rodadaPontosNum);
+      : await getPontosDaRodadaCached(ligaId, rodadaPontosNum);
 
     const confrontos =
       fase === "primeira"
@@ -394,7 +384,13 @@ async function carregarFase(fase, ligaId) {
 
     // ✅ SALVAR NO CACHE (apenas se rodada consolidada)
     if (!isPending) {
-      await setCachedConfrontos(ligaId, edicaoAtual, fase, rodadaPontosNum, confrontos);
+      await setCachedConfrontos(
+        ligaId,
+        edicaoAtual,
+        fase,
+        rodadaPontosNum,
+        confrontos,
+      );
     }
 
     // Calcular valores dos confrontos
@@ -409,28 +405,6 @@ async function carregarFase(fase, ligaId) {
       isPending,
     );
 
-    // Adicionar botão de exportação
-    if (dependenciasOk[1] && criarBotaoExportacaoMataMata) {
-      try {
-        await criarBotaoExportacaoMataMata({
-          containerId: contentId,
-          fase: faseLabel,
-          confrontos: confrontos,
-          isPending: isPending,
-          rodadaPontos: getRodadaPontosText(faseLabel, edicaoAtual),
-          edicao: getEdicaoMataMata(edicaoAtual),
-        });
-        console.log("[MATA-ORQUESTRADOR] Botão de exportação adicionado");
-      } catch (exportError) {
-        console.warn(
-          "[MATA-ORQUESTRADOR] Erro ao adicionar botão de exportação:",
-          exportError,
-        );
-      }
-    } else {
-      console.warn("[MATA-ORQUESTRADOR] Função de exportação não disponível");
-    }
-
     // Renderizar mensagem de rodada pendente se necessário
     if (isPending) {
       renderRodadaPendente(contentId, rodadaPontosNum);
@@ -440,7 +414,9 @@ async function carregarFase(fase, ligaId) {
     if (fase === "final" && !isPending && confrontos.length > 0) {
       const edicaoNome = edicaoSelecionada.nome;
       renderBannerCampeao(contentId, confrontos[0], edicaoNome, isPending);
-      console.log(`[MATA-ORQUESTRADOR] Banner do campeão renderizado para ${edicaoNome}`);
+      console.log(
+        `[MATA-ORQUESTRADOR] Banner do campeão renderizado para ${edicaoNome}`,
+      );
     }
 
     console.log(`[MATA-ORQUESTRADOR] Fase ${fase} carregada com sucesso`);
@@ -462,7 +438,8 @@ async function extrairVencedores(confrontos) {
 function setupCleanup() {
   window.addEventListener("beforeunload", () => {
     moduleCache.clear();
-    exportsCarregados = false;
+    pontosRodadaCache.clear();
+    rankingBaseCache.clear();
     rodadasCarregados = false;
     console.log("[MATA-ORQUESTRADOR] Cleanup executado");
   });
@@ -475,9 +452,6 @@ function setupCleanup() {
       event.reason.message.includes("message channel closed")
     ) {
       event.preventDefault();
-      console.log(
-        "[MATA-ORQUESTRADOR] Promise rejection interceptada e ignorada",
-      );
     }
   });
 }

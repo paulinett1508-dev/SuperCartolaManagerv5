@@ -230,6 +230,23 @@ export function renderTabelaMataMata(
             .map((c) => {
               const valorA = c.timeA.valor || 0;
               const valorB = c.timeB.valor || 0;
+
+              // ✅ Determinar vencedor/perdedor baseado nos pontos
+              const pontosA = c.timeA.pontos || 0;
+              const pontosB = c.timeB.pontos || 0;
+              const resultadoA =
+                !isPending && pontosA > pontosB
+                  ? "resultado-vitoria"
+                  : !isPending && pontosA < pontosB
+                    ? "resultado-derrota"
+                    : "";
+              const resultadoB =
+                !isPending && pontosB > pontosA
+                  ? "resultado-vitoria"
+                  : !isPending && pontosB < pontosA
+                    ? "resultado-derrota"
+                    : "";
+
               return `
               <tr>
                 <td class="jogo-cell">${c.jogo}</td>
@@ -242,14 +259,14 @@ export function renderTabelaMataMata(
                     </div>
                   </div>
                 </td>
-                <td class="pontos-cell ${valorA > 0 ? "valor-positivo" : valorA < 0 ? "valor-negativo" : "valor-neutro"}">
+                <td class="pontos-cell ${resultadoA} ${valorA > 0 ? "valor-positivo" : valorA < 0 ? "valor-negativo" : "valor-neutro"}">
                   <div class="pontos-valor">${formatPoints(c.timeA.pontos)}</div>
                   <div class="premio-valor">
                     ${valorA === 10 ? "R$ 10,00" : valorA === -10 ? "-R$ 10,00" : ""}
                   </div>
                 </td>
                 <td class="vs-cell">X</td>
-                <td class="pontos-cell ${valorB > 0 ? "valor-positivo" : valorB < 0 ? "valor-negativo" : "valor-neutro"}">
+                <td class="pontos-cell ${resultadoB} ${valorB > 0 ? "valor-positivo" : valorB < 0 ? "valor-negativo" : "valor-neutro"}">
                   <div class="pontos-valor">${formatPoints(c.timeB.pontos)}</div>
                   <div class="premio-valor">
                     ${valorB === 10 ? "R$ 10,00" : valorB === -10 ? "-R$ 10,00" : ""}
@@ -301,11 +318,16 @@ const TIMES_BRASILEIROS = {
   277: "Santos",
   283: "Cruzeiro",
   292: "Atlético-MG",
-  344: "Atlético-GO"
+  344: "Atlético-GO",
 };
 
 // Função para renderizar banner do campeão
-export function renderBannerCampeao(containerId, confronto, edicaoNome, isPending = false) {
+export function renderBannerCampeao(
+  containerId,
+  confronto,
+  edicaoNome,
+  isPending = false,
+) {
   const contentElement = document.getElementById(containerId);
   if (!contentElement || isPending) return;
 
@@ -317,12 +339,14 @@ export function renderBannerCampeao(containerId, confronto, edicaoNome, isPendin
 
   // Verificar se tem time do coração
   const timeCoracaoNome = TIMES_BRASILEIROS[campeao.clube_id];
-  const timeCoracaoHTML = timeCoracaoNome ? `
+  const timeCoracaoHTML = timeCoracaoNome
+    ? `
     <div class="campeao-time-coracao">
       <img src="/escudos/${campeao.clube_id}.png" onerror="this.style.display='none'">
       <span>Torcedor ${timeCoracaoNome}</span>
     </div>
-  ` : '';
+  `
+    : "";
 
   const bannerHTML = `
     <div class="campeao-banner-container" id="campeao-banner">
@@ -331,7 +355,7 @@ export function renderBannerCampeao(containerId, confronto, edicaoNome, isPendin
         <div class="campeao-trophy">🏆</div>
         <div class="campeao-title">CAMPEÃO</div>
         <div class="campeao-edicao">${edicaoNome}</div>
-        
+
         <div class="campeao-info-principal">
           <img src="/escudos/${campeao.clube_id}.png" 
                class="campeao-escudo" 
@@ -358,11 +382,11 @@ export function renderBannerCampeao(containerId, confronto, edicaoNome, isPendin
     </div>
   `;
 
-  contentElement.insertAdjacentHTML('beforeend', bannerHTML);
+  contentElement.insertAdjacentHTML("beforeend", bannerHTML);
 
   // Adicionar animação de entrada
   setTimeout(() => {
-    const banner = document.getElementById('campeao-banner');
-    if (banner) banner.classList.add('show');
+    const banner = document.getElementById("campeao-banner");
+    if (banner) banner.classList.add("show");
   }, 100);
 }

@@ -1,665 +1,384 @@
-/* LUVA DE OURO CSS - Módulo Específico - VERSÃO PADRONIZADA
-   Arquivo: public/css/modules/luva-de-ouro.css
-   Usado apenas pelo módulo Luva de Ouro
+/* =============================================
+   LUVA DE OURO - CSS v4.0.0
+   Tabela com Rodadas em Colunas Navegáveis
+   ============================================= */
 
-   ⚠️ IMPORTANTE: Este CSS deve ser referenciado no HTML que carrega o módulo
-   Exemplo: <link rel="stylesheet" href="/css/modules/luva-de-ouro.css">
-*/
-
-/* === CONTAINER PRINCIPAL === */
-#luvaDeOuroContent {
-  background: var(--bg-card);
-  border-radius: var(--border-radius-md);
-  padding: var(--spacing-lg);
-  margin: var(--spacing-md) 0;
-  border: 1px solid rgba(255, 69, 0, 0.1);
-  position: relative;
+/* Container principal */
+.luva-container {
+  background: var(--bg-card, #1a1a2e);
+  border-radius: 8px;
+  border: 1px solid rgba(74, 124, 35, 0.3);
   overflow: hidden;
 }
 
-#luvaDeOuroContent::before {
-  content: '';
-  position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  height: 3px;
-  background: linear-gradient(135deg, var(--laranja) 0%, var(--laranja-dark) 100%);
-}
-
-/* === CONTROLES === */
-.controls-section {
-  background: var(--bg-secondary);
-  border: 1px solid rgba(255, 69, 0, 0.1);
-  border-radius: var(--border-radius-md);
-  padding: var(--spacing-md);
-  margin-bottom: var(--spacing-md);
-  border-left: 4px solid var(--laranja);
-}
-
-.controls-header h3 {
-  font: 600 16px "Inter", -apple-system, sans-serif;
-  color: var(--text-primary);
-  margin: 0 0 var(--spacing-sm) 0;
-  display: flex;
-  align-items: center;
-  gap: var(--spacing-xs);
-}
-
-.controls-header h3::before {
-  content: '🥅';
-  font-size: 20px;
-}
-
-.controls-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-  gap: var(--spacing-sm);
-  margin-bottom: var(--spacing-sm);
-}
-
-.control-group {
-  display: flex;
-  flex-direction: column;
-}
-
-.control-group label {
-  font: 500 12px "Inter", -apple-system, sans-serif;
-  color: var(--text-secondary);
-  margin-bottom: 4px;
-  text-transform: uppercase;
-  letter-spacing: 0.3px;
-}
-
-.form-control {
-  width: 100%;
-  padding: 8px 12px;
-  border: 1px solid rgba(255, 69, 0, 0.2);
-  border-radius: 4px;
-  font: 500 13px "Inter", -apple-system, sans-serif;
-  color: var(--text-primary);
-  background: var(--bg-card);
-  transition: all 0.2s ease;
-}
-
-.form-control:focus {
-  outline: none;
-  border-color: var(--laranja);
-  box-shadow: 0 0 0 3px rgba(255, 69, 0, 0.1);
-}
-
-.controls-actions {
-  display: flex;
-  gap: var(--spacing-xs);
-  flex-wrap: wrap;
-  margin-bottom: var(--spacing-sm);
-}
-
-.info-box {
-  padding: var(--spacing-sm);
-  background: rgba(255, 69, 0, 0.05);
-  border: 1px solid rgba(255, 69, 0, 0.15);
-  border-radius: 4px;
-  font: 500 12px "Inter", -apple-system, sans-serif;
-  color: var(--text-primary);
-}
-
-#luvaInfoTexto {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-}
-
-/* === HEADER RANKING === */
-.ranking-header {
+/* =============================================
+   HEADER
+   ============================================= */
+.luva-header {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  flex-wrap: wrap;
-  gap: var(--spacing-sm);
-  margin-bottom: var(--spacing-md);
-  padding-bottom: var(--spacing-sm);
-  border-bottom: 2px solid rgba(255, 69, 0, 0.2);
+  padding: 10px 14px;
+  background: linear-gradient(135deg, #3d6b1e 0%, #2a4d14 100%);
 }
 
-.ranking-header h3 {
-  font: 700 20px "Inter", -apple-system, sans-serif;
-  color: var(--text-primary);
-  margin: 0;
+.luva-title {
   display: flex;
   align-items: center;
-  gap: var(--spacing-xs);
+  gap: 8px;
 }
 
-.ranking-meta {
+.luva-icon { font-size: 18px; }
+
+.luva-title h3 {
+  margin: 0;
+  font: 600 14px "Inter", sans-serif;
+  color: #fff;
+}
+
+.luva-info-rodada {
   display: flex;
-  gap: var(--spacing-xs);
-  flex-wrap: wrap;
-}
-
-.badge {
+  align-items: center;
+  gap: 5px;
+  background: rgba(0, 0, 0, 0.25);
   padding: 4px 10px;
-  background: rgba(255, 69, 0, 0.1);
-  border: 1px solid rgba(255, 69, 0, 0.2);
   border-radius: 12px;
-  font: 600 11px "Inter", -apple-system, sans-serif;
-  color: var(--laranja);
-  text-transform: uppercase;
-  letter-spacing: 0.3px;
+  font: 500 10px "Inter", sans-serif;
+  color: rgba(255, 255, 255, 0.9);
 }
 
-/* === TABELA === */
-.table-container {
+/* =============================================
+   NAVEGAÇÃO DE RODADAS
+   ============================================= */
+.luva-nav-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 12px;
+  background: rgba(0, 0, 0, 0.2);
+  border-bottom: 1px solid rgba(74, 124, 35, 0.2);
+}
+
+.luva-nav-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  background: rgba(74, 124, 35, 0.2);
+  border: 1px solid rgba(74, 124, 35, 0.4);
+  border-radius: 4px;
+  color: #5a8f2a;
+  font-size: 12px;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.luva-nav-btn:hover {
+  background: rgba(74, 124, 35, 0.4);
+  border-color: #5a8f2a;
+  color: #fff;
+}
+
+.luva-nav-info {
+  font: 600 11px "Inter", sans-serif;
+  color: #ccc;
+  min-width: 100px;
+  text-align: center;
+}
+
+/* =============================================
+   SEÇÃO DE CONTEÚDO
+   ============================================= */
+.luva-content-section { padding: 12px; }
+
+.luva-content-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 10px;
+}
+
+.luva-content-header h4 {
+  margin: 0;
+  font: 600 13px "Inter", sans-serif;
+  color: #fff;
+}
+
+.luva-subtitulo {
+  font: 500 9px "Inter", sans-serif;
+  color: #5a8f2a;
+  background: rgba(74, 124, 35, 0.15);
+  padding: 3px 8px;
+  border-radius: 8px;
+}
+
+/* =============================================
+   TABELA COM COLUNAS DE RODADAS
+   ============================================= */
+.luva-table-container {
+  border-radius: 6px;
+  border: 1px solid rgba(74, 124, 35, 0.2);
+  background: rgba(0, 0, 0, 0.1);
   overflow-x: auto;
-  border-radius: var(--border-radius-md);
-  border: 1px solid rgba(255, 69, 0, 0.1);
-  margin-bottom: var(--spacing-md);
 }
 
-.ranking-table {
+.luva-ranking-table {
   width: 100%;
-  min-width: 700px;
-  border-collapse: separate;
-  border-spacing: 0;
-  background: var(--bg-card);
+  border-collapse: collapse;
+  font-size: 12px;
 }
 
-.ranking-table thead {
-  background: linear-gradient(135deg, var(--laranja) 0%, var(--laranja-dark) 100%);
+.luva-ranking-table thead {
+  background: linear-gradient(135deg, #3d6b1e 0%, #2a4d14 100%);
   position: sticky;
   top: 0;
-  z-index: 10;
 }
 
-.ranking-table thead th {
-  padding: 10px 8px;
-  text-align: left;
-  font: 600 10px "Inter", -apple-system, sans-serif;
-  color: white;
+.luva-ranking-table thead th {
+  padding: 8px 4px;
+  text-align: center;
+  font: 600 9px "Inter", sans-serif;
+  color: rgba(255, 255, 255, 0.9);
   text-transform: uppercase;
-  letter-spacing: 0.5px;
+  letter-spacing: 0.2px;
   white-space: nowrap;
 }
 
-.ranking-table tbody td {
-  padding: 10px 8px;
-  border-top: 1px solid rgba(255, 69, 0, 0.1);
+.luva-ranking-table thead th.col-nome {
+  text-align: left;
+}
+
+/* Header de rodada parcial (em andamento) */
+.luva-ranking-table thead th.col-rodada.parcial {
+  background: rgba(230, 126, 34, 0.3);
+  color: #f39c12;
+}
+
+/* Header de rodada atual */
+.luva-ranking-table thead th.col-rodada.atual {
+  background: rgba(52, 152, 219, 0.3);
+  color: #5dade2;
+}
+
+.luva-ranking-table tbody td {
+  padding: 6px 4px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
   vertical-align: middle;
-  font: 500 12px "Inter", -apple-system, sans-serif;
-  color: var(--text-primary);
-}
-
-.ranking-table tbody tr {
-  transition: all 0.2s ease;
-}
-
-.ranking-table tbody tr:hover {
-  background: rgba(255, 69, 0, 0.03);
-}
-
-/* === POSIÇÕES ESPECIAIS === */
-.ranking-row.pos-1 {
-  background: linear-gradient(90deg, rgba(255, 215, 0, 0.15) 0%, transparent 100%);
-  border-left: 3px solid gold;
-}
-
-.ranking-row.pos-2 {
-  background: linear-gradient(90deg, rgba(192, 192, 192, 0.1) 0%, transparent 100%);
-  border-left: 3px solid silver;
-}
-
-.ranking-row.pos-3 {
-  background: linear-gradient(90deg, rgba(205, 127, 50, 0.1) 0%, transparent 100%);
-  border-left: 3px solid #cd7f32;
-}
-
-/* === COLUNAS === */
-.col-pos, 
-.col-escudo, 
-.col-pontos, 
-.col-pontos-rodada, 
-.col-acoes {
+  color: #ccc;
   text-align: center;
 }
 
-.col-pos { width: 70px; }
-.col-escudo { width: 50px; }
-.col-pontos { width: 90px; }
-.col-pontos-rodada { width: 100px; }
-.col-acoes { width: 110px; }
-
-/* === POSIÇÃO === */
-.pos-content {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 6px;
-}
-
-.pos-numero {
-  font: 700 14px "Inter", -apple-system, sans-serif;
-  color: var(--text-primary);
-}
-
-.pos-icon {
-  font-size: 18px;
-  line-height: 1;
-}
-
-/* === ESCUDO === */
-.escudo-img {
-  width: 28px;
-  height: 28px;
-  border-radius: 50%;
-  border: 2px solid rgba(255, 69, 0, 0.2);
-  object-fit: cover;
-  transition: all 0.2s ease;
-}
-
-.escudo-img:hover {
-  border-color: var(--laranja);
-  transform: scale(1.1);
-}
-
-/* === PARTICIPANTE === */
-.participante-info {
+.luva-ranking-table tbody td.col-nome {
   text-align: left;
 }
 
-.participante-nome {
-  font: 600 13px "Inter", -apple-system, sans-serif;
-  color: var(--text-primary);
-  margin-bottom: 2px;
-  line-height: 1.3;
+.luva-ranking-table tbody tr:hover {
+  background: rgba(74, 124, 35, 0.1);
 }
 
-.participante-id {
-  font: 500 10px "Inter", -apple-system, sans-serif;
-  color: var(--text-muted);
-  opacity: 0.7;
+/* Colunas fixas */
+.col-pos { width: 42px; }
+.col-escudo { width: 36px; }
+.col-nome { min-width: 110px; max-width: 130px; }
+.col-total { width: 70px; }
+
+/* Colunas de rodadas */
+.col-rodada { width: 55px; }
+.col-rodada-pts { 
+  width: 55px;
+  padding: 4px 2px !important;
+  vertical-align: middle;
 }
 
-/* === PONTOS === */
-.pontos-badge {
-  display: inline-block;
-  padding: 5px 12px;
-  background: linear-gradient(135deg, var(--success) 0%, #27ae60 100%);
-  color: white;
-  border-radius: 6px;
-  font: 700 13px "Inter", -apple-system, sans-serif;
-  box-shadow: 0 2px 8px rgba(46, 204, 113, 0.3);
+.col-rodada-pts .pts-valor {
+  display: block;
+  font: 600 11px "Inter", sans-serif;
+  line-height: 1.2;
 }
 
-/* === GOLEIRO === */
-.goleiro-info {
-  text-align: left;
-}
-
-.goleiro-nome {
-  font: 600 12px "Inter", -apple-system, sans-serif;
-  color: var(--text-primary);
-  margin-bottom: 2px;
-  line-height: 1.3;
-}
-
-.goleiro-clube {
-  font: 500 10px "Inter", -apple-system, sans-serif;
-  color: var(--text-muted);
-  opacity: 0.7;
-}
-
-/* === PONTOS RODADA === */
-.pontos-rodada {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 2px;
-}
-
-.pontos-valor {
-  font: 700 13px "Inter", -apple-system, sans-serif;
-}
-
-.pontos-rodada.positivo .pontos-valor {
-  color: var(--success);
-}
-
-.pontos-rodada.negativo .pontos-valor {
-  color: var(--danger);
-}
-
-.pontos-rodada-num {
-  font: 500 9px "Inter", -apple-system, sans-serif;
-  color: var(--text-muted);
-  opacity: 0.7;
-}
-
-/* === BOTÕES === */
-.btn-detalhes {
-  background: rgba(255, 69, 0, 0.1);
-  color: var(--laranja);
-  border: 1px solid rgba(255, 69, 0, 0.3);
-  border-radius: 4px;
-  padding: 6px 10px;
-  font: 600 10px "Inter", -apple-system, sans-serif;
-  cursor: pointer;
-  transition: all 0.2s ease;
-  display: flex;
-  align-items: center;
-  gap: 4px;
-  justify-content: center;
-  text-transform: uppercase;
-  letter-spacing: 0.3px;
-}
-
-.btn-detalhes:hover {
-  background: rgba(255, 69, 0, 0.2);
-  border-color: var(--laranja);
-  transform: translateY(-1px);
-  box-shadow: 0 2px 8px rgba(255, 69, 0, 0.3);
-}
-
-/* === ESTATÍSTICAS === */
-.stats-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-  gap: var(--spacing-sm);
-  margin-top: var(--spacing-md);
-}
-
-.stat-card {
-  background: var(--bg-secondary);
-  border: 1px solid rgba(255, 69, 0, 0.1);
-  border-radius: var(--border-radius-md);
-  padding: var(--spacing-md);
-  text-align: center;
-  transition: all 0.3s ease;
-  position: relative;
+.col-rodada-pts .pts-goleiro {
+  display: block;
+  font: 400 8px "Inter", sans-serif;
+  color: #777;
+  line-height: 1.2;
+  white-space: nowrap;
   overflow: hidden;
+  text-overflow: ellipsis;
 }
 
-.stat-card::before {
-  content: '';
-  position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  height: 2px;
-  background: linear-gradient(90deg, var(--laranja) 0%, var(--laranja-dark) 100%);
-}
+.col-rodada-pts.positivo .pts-valor { color: #5a8f2a; }
+.col-rodada-pts.negativo .pts-valor { color: #e74c3c; }
+.col-rodada-pts.zero .pts-valor { color: #888; }
+.col-rodada-pts.vazio .pts-valor { color: #444; }
+.col-rodada-pts.vazio .pts-goleiro { color: #333; }
+.col-rodada-pts.sem-goleiro .pts-valor { color: #e67e22; }
+.col-rodada-pts.sem-goleiro .pts-goleiro { color: #e67e22; font-weight: 500; }
 
-.stat-card:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 6px 20px rgba(255, 69, 0, 0.2);
-  border-color: rgba(255, 69, 0, 0.3);
-}
-
-.stat-icon {
-  font-size: 36px;
-  margin-bottom: var(--spacing-xs);
-  line-height: 1;
-}
-
-.stat-value {
-  font: 700 26px "Inter", -apple-system, sans-serif;
-  color: var(--laranja);
-  margin-bottom: 4px;
-  line-height: 1;
-}
-
-.stat-label {
-  font: 600 12px "Inter", -apple-system, sans-serif;
-  color: var(--text-secondary);
-  margin-bottom: 4px;
-  text-transform: uppercase;
-  letter-spacing: 0.5px;
-}
-
-.stat-detail {
-  font: 500 11px "Inter", -apple-system, sans-serif;
-  color: var(--text-muted);
-  opacity: 0.8;
-}
-
-/* === ESTADOS VAZIOS === */
-.empty-state {
+.loading-cell {
   text-align: center;
-  padding: var(--spacing-xl) var(--spacing-lg);
-  background: var(--bg-secondary);
-  border-radius: var(--border-radius-md);
-  border: 2px dashed rgba(255, 69, 0, 0.2);
+  padding: 40px !important;
+  color: #888;
 }
 
-.empty-state.warning {
-  border-color: var(--warning);
-  background: rgba(255, 193, 7, 0.05);
-}
-
-.empty-icon {
-  font-size: 48px;
-  color: var(--text-muted);
-  margin-bottom: var(--spacing-sm);
-  opacity: 0.5;
-}
-
-.empty-state h3,
-.empty-state h4 {
-  font: 600 18px "Inter", -apple-system, sans-serif;
-  color: var(--text-primary);
-  margin: var(--spacing-sm) 0;
-}
-
-.empty-state p {
-  font: 500 13px "Inter", -apple-system, sans-serif;
-  color: var(--text-secondary);
-  margin: var(--spacing-xs) 0;
-}
-
-.empty-details {
-  margin: var(--spacing-md) auto;
-  max-width: 400px;
-  text-align: left;
-  background: var(--bg-card);
-  padding: var(--spacing-sm);
-  border-radius: 4px;
-  border: 1px solid rgba(255, 69, 0, 0.1);
-}
-
-.empty-details ul {
-  margin: var(--spacing-xs) 0;
-  padding-left: 20px;
-}
-
-.empty-details li {
-  font: 500 12px "Inter", -apple-system, sans-serif;
-  color: var(--text-secondary);
-  margin: 4px 0;
-}
-
-.empty-stats {
-  display: flex;
-  gap: var(--spacing-md);
-  justify-content: center;
-  margin: var(--spacing-md) 0;
-}
-
-.empty-stats span {
-  font: 500 13px "Inter", -apple-system, sans-serif;
-  color: var(--text-secondary);
-}
-
-.empty-stats strong {
-  color: var(--laranja);
-  font-weight: 700;
-}
-
-.empty-actions {
-  display: flex;
-  gap: var(--spacing-xs);
-  justify-content: center;
-  margin-top: var(--spacing-md);
-}
-
-/* === LOADING === */
-.loading-state {
-  display: flex;
-  flex-direction: column;
+/* Badge de posição */
+.pos-badge {
+  display: inline-flex;
   align-items: center;
   justify-content: center;
-  gap: var(--spacing-sm);
-  padding: var(--spacing-xl);
-  color: var(--laranja);
-}
-
-.spinner {
-  width: 40px;
-  height: 40px;
-  border: 3px solid rgba(255, 69, 0, 0.2);
-  border-top: 3px solid var(--laranja);
-  border-radius: 50%;
-  animation: spin 1s linear infinite;
-}
-
-.loading-state p {
-  font: 500 14px "Inter", -apple-system, sans-serif;
-  color: var(--text-secondary);
-}
-
-/* === ERRO === */
-.error-state {
-  text-align: center;
-  padding: var(--spacing-xl) var(--spacing-lg);
-  background: rgba(231, 76, 60, 0.05);
-  border-radius: var(--border-radius-md);
-  border: 2px solid rgba(231, 76, 60, 0.2);
-}
-
-.error-icon {
-  font-size: 48px;
-  color: var(--danger);
-  margin-bottom: var(--spacing-sm);
-}
-
-.error-state h4 {
-  font: 600 18px "Inter", -apple-system, sans-serif;
-  color: var(--danger);
-  margin: var(--spacing-sm) 0;
-}
-
-.error-message {
-  font: 500 13px "Inter", -apple-system, sans-serif;
-  color: var(--text-secondary);
-  margin: var(--spacing-xs) 0;
-}
-
-.error-details {
-  font: 400 12px "Fira Code", monospace;
-  color: var(--text-muted);
-  background: var(--bg-card);
-  padding: var(--spacing-sm);
+  min-width: 24px;
+  height: 22px;
+  padding: 0 4px;
+  background: rgba(255, 255, 255, 0.08);
   border-radius: 4px;
-  margin: var(--spacing-sm) 0;
-  max-width: 600px;
-  margin-left: auto;
-  margin-right: auto;
-  overflow-x: auto;
+  font: 700 11px "Inter", sans-serif;
+  color: #fff;
 }
 
-/* Exportação removida - usar módulo Relatórios */
+/* Posições especiais */
+.luva-ranking-row.pos-1 { background: rgba(255, 215, 0, 0.1); }
+.luva-ranking-row.pos-1 .pos-badge { background: linear-gradient(135deg, #ffd700, #f0c000); color: #1a1a1a; }
 
-/* === ANIMAÇÕES === */
-@keyframes spin {
-  0% { transform: rotate(0deg); }
-  100% { transform: rotate(360deg); }
+.luva-ranking-row.pos-2 .pos-badge { background: linear-gradient(135deg, #c0c0c0, #a8a8a8); color: #1a1a1a; }
+
+.luva-ranking-row.pos-3 .pos-badge { background: linear-gradient(135deg, #cd7f32, #b87333); color: #fff; }
+
+/* Escudo */
+.escudo-img {
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  object-fit: cover;
 }
 
-/* === RESPONSIVIDADE === */
+/* Participante */
+.participante-nome {
+  font: 500 11px "Inter", sans-serif;
+  color: #fff;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  display: block;
+  max-width: 120px;
+}
+
+/* Pontos totais */
+.pontos-total {
+  display: inline-block;
+  padding: 3px 8px;
+  background: linear-gradient(135deg, #4a7c23, #3d6b1e);
+  color: #fff;
+  border-radius: 4px;
+  font: 700 11px "Inter", sans-serif;
+}
+
+/* =============================================
+   ESTATÍSTICAS
+   ============================================= */
+.luva-stats-container { margin-top: 12px; }
+
+.luva-stats-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 10px;
+}
+
+.luva-stat-card {
+  padding: 10px 8px;
+  border-radius: 6px;
+  text-align: center;
+}
+
+.luva-stat-card.gold {
+  background: linear-gradient(135deg, rgba(255, 215, 0, 0.15), rgba(255, 200, 0, 0.08));
+  border: 1px solid rgba(255, 215, 0, 0.25);
+}
+
+.luva-stat-card.blue {
+  background: linear-gradient(135deg, rgba(52, 152, 219, 0.15), rgba(41, 128, 185, 0.08));
+  border: 1px solid rgba(52, 152, 219, 0.25);
+}
+
+.luva-stat-card.green {
+  background: linear-gradient(135deg, rgba(74, 124, 35, 0.15), rgba(61, 107, 30, 0.08));
+  border: 1px solid rgba(74, 124, 35, 0.25);
+}
+
+.stat-icon { font-size: 16px; margin-bottom: 2px; }
+.stat-value { font: 700 16px "Inter", sans-serif; color: #fff; }
+.stat-label { font: 600 8px "Inter", sans-serif; color: #999; text-transform: uppercase; letter-spacing: 0.4px; }
+.stat-detail { font: 400 9px "Inter", sans-serif; color: #666; margin-top: 1px; }
+
+/* =============================================
+   LOADING E ERRO
+   ============================================= */
+.luva-loading {
+  text-align: center;
+  padding: 20px;
+  color: #4a7c23;
+}
+
+.luva-loading .spinner {
+  width: 30px;
+  height: 30px;
+  border: 2px solid rgba(74, 124, 35, 0.2);
+  border-top-color: #4a7c23;
+  border-radius: 50%;
+  animation: luva-spin 1s linear infinite;
+  margin: 0 auto 8px;
+}
+
+.luva-loading p {
+  font: 400 12px "Inter", sans-serif;
+  color: #888;
+  margin: 0;
+}
+
+.luva-erro {
+  text-align: center;
+  padding: 20px;
+}
+
+.luva-erro .erro-icon { font-size: 28px; margin-bottom: 8px; }
+.luva-erro .erro-msg { font: 600 12px "Inter", sans-serif; color: #dc3545; }
+.luva-erro .erro-detalhe { font: 400 11px "Inter", sans-serif; color: #777; margin-top: 4px; }
+
+@keyframes luva-spin {
+  to { transform: rotate(360deg); }
+}
+
+/* =============================================
+   RESPONSIVO
+   ============================================= */
 @media (max-width: 768px) {
-  #luvaDeOuroContent {
-    padding: var(--spacing-md);
-  }
-
-  .ranking-header {
+  .luva-header {
     flex-direction: column;
-    align-items: flex-start;
+    gap: 8px;
+    text-align: center;
   }
 
-  .ranking-header h3 {
-    font-size: 16px;
+  .luva-nav-container {
+    padding: 10px;
   }
 
-  .controls-grid {
-    grid-template-columns: 1fr;
+  .luva-nav-btn {
+    width: 32px;
+    height: 32px;
   }
 
-  .controls-actions {
-    flex-direction: column;
-  }
-
-  .controls-actions .btn {
-    width: 100%;
-  }
-
-  .stats-grid {
-    grid-template-columns: 1fr;
-  }
-
-  .ranking-table {
-    min-width: 600px;
-  }
-
-  .ranking-table thead th,
-  .ranking-table tbody td {
-    padding: 8px 4px;
+  .col-rodada-pts {
     font-size: 10px;
   }
 
-  .col-goleiro,
-  .col-pontos-rodada {
-    display: none;
-  }
-
-  .escudo-img {
-    width: 24px;
-    height: 24px;
-  }
-
-  .participante-nome {
-    font-size: 11px;
-  }
-
-  .pontos-badge {
-    padding: 4px 8px;
-    font-size: 11px;
+  .luva-stats-grid { 
+    grid-template-columns: 1fr 1fr 1fr;
   }
 }
 
-@media (max-width: 480px) {
-  .ranking-table {
-    min-width: 400px;
-  }
-
-  .col-acoes {
-    display: none;
-  }
-
-  .stat-icon {
-    font-size: 28px;
-  }
-
-  .stat-value {
-    font-size: 20px;
-  }
-
-  .stat-label {
-    font-size: 10px;
-  }
-
-  .empty-state {
-    padding: var(--spacing-md);
-  }
-
-  .empty-icon {
-    font-size: 36px;
+@media (max-width: 500px) {
+  .luva-stats-grid { 
+    grid-template-columns: 1fr;
   }
 }

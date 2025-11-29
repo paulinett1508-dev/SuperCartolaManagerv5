@@ -1,7 +1,5 @@
 <!-- 🎯 MÓDULO RODADAS - HTML LIMPO E MODULAR -->
-<style>
-</style>
-<div id="rodadas" class="rodadas-module"></div>
+<div id="rodadas" class="rodadas-module">
     <!-- Header do Módulo -->
     <div class="module-header-section">
         <div class="module-title-section">
@@ -26,7 +24,7 @@
         <span>Carregando dados da rodada...</span>
     </div>
 
-    <!-- Container Principal com Export Inline -->
+    <!-- Container Principal -->
     <div
         id="rodadaContentSection"
         class="rodada-content-section"
@@ -35,6 +33,15 @@
         <div class="section-header">
             <div class="section-icon">📊</div>
             <h3 id="rodadaTituloAtual">Rodada Selecionada</h3>
+            <!-- Botão de Refresh para Parciais -->
+            <button
+                id="btnRefreshParciais"
+                class="btn-refresh-parciais"
+                style="display: none"
+            >
+                <span class="refresh-icon">🔄</span>
+                <span>Atualizar</span>
+            </button>
         </div>
 
         <!-- Container da Tabela -->
@@ -72,6 +79,54 @@
     </div>
 </div>
 
+<style>
+    .btn-refresh-parciais {
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        padding: 8px 16px;
+        background: linear-gradient(135deg, #3498db, #2980b9);
+        color: white;
+        border: none;
+        border-radius: 6px;
+        cursor: pointer;
+        font-size: 13px;
+        font-weight: 600;
+        margin-left: auto;
+        transition: all 0.2s ease;
+    }
+
+    .btn-refresh-parciais:hover {
+        transform: translateY(-1px);
+        box-shadow: 0 4px 12px rgba(52, 152, 219, 0.4);
+    }
+
+    .btn-refresh-parciais:disabled {
+        opacity: 0.6;
+        cursor: not-allowed;
+    }
+
+    .btn-refresh-parciais .refresh-icon {
+        font-size: 14px;
+    }
+
+    @keyframes spin {
+        from {
+            transform: rotate(0deg);
+        }
+        to {
+            transform: rotate(360deg);
+        }
+    }
+
+    .section-header {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        margin-bottom: 15px;
+    }
+</style>
+
 <script>
-console.log('[RODADAS-HTML] ✅ HTML do módulo rodadas carregado');
+    console.log("[RODADAS-HTML] ✅ HTML do módulo rodadas carregado");
 </script>

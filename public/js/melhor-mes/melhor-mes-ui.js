@@ -1,4 +1,4 @@
-// MELHOR DO MÊS - INTERFACE DE USUÁRIO v1.2
+// MELHOR DO MÊS - INTERFACE DE USUÁRIO v1.3
 // public/js/melhor-mes/melhor-mes-ui.js
 
 import { MELHOR_MES_CONFIG, getPremiosLiga } from "./melhor-mes-config.js";
@@ -9,14 +9,14 @@ export class MelhorMesUI {
   constructor() {
     this.edicaoAtiva = null;
     this.dadosCarregados = null;
+    this.listenersAdicionados = false; // ✅ Flag para evitar duplicação
     this.containers = {
       select: "edicoesContainer",
       tabela: "melhorMesTabela",
       loading: "loadingMelhorMes",
       exportBtn: "melhorMesExportBtnContainer",
     };
-    // Carregar configuração da liga (assumindo que está disponível globalmente ou via import)
-    this.config = window.ligaConfig || MELHOR_MES_CONFIG; // Exemplo: carregar de window ou usar config default
+    this.config = window.ligaConfig || MELHOR_MES_CONFIG;
   }
 
   // RENDERIZAR INTERFACE COMPLETA
@@ -24,12 +24,13 @@ export class MelhorMesUI {
     console.log("[MELHOR-MES-UI] Renderizando interface...");
 
     this.dadosCarregados = dados;
+    this.listenersAdicionados = false; // ✅ Reset flag ao renderizar
     this.renderizarMiniCards();
 
     // Selecionar edição atual automaticamente
     const edicaoAtual = this.determinarEdicaoAtual();
     if (edicaoAtual !== null) {
-      this.selecionarEdicao(edicaoAtual);
+      this.selecionarEdicao(edicaoAtual, true); // ✅ Flag de inicialização
     }
   }
 
@@ -40,7 +41,7 @@ export class MelhorMesUI {
     // Procurar última edição com dados
     for (let i = MELHOR_MES_CONFIG.edicoes.length - 1; i >= 0; i--) {
       const dados = this.dadosCarregados.resultados[i];
-      if (dados && dados.ranking.length > 0) {
+      if (dados && dados.ranking && dados.ranking.length > 0) {
         return i;
       }
     }
@@ -52,7 +53,7 @@ export class MelhorMesUI {
   renderizarMiniCards() {
     const container = document.getElementById(this.containers.select);
     if (!container) {
-      console.error("[MELHOR-MES-UI] Container de mini-cards não encontrado");
+      console.warn("[MELHOR-MES-UI] Container de mini-cards não encontrado");
       return;
     }
 
@@ -69,7 +70,7 @@ export class MelhorMesUI {
   criarMiniCardPadrao(edicao, index) {
     const dados = this.dadosCarregados?.resultados[index];
     const isAtiva = index === this.edicaoAtiva;
-    const temDados = dados && dados.ranking.length > 0;
+    const temDados = dados && dados.ranking && dados.ranking.length > 0;
 
     // Determinar status
     let statusClass = "aguardando";
@@ -92,26 +93,45 @@ export class MelhorMesUI {
     `;
   }
 
-  // ADICIONAR EVENT LISTENERS
+  // ADICIONAR EVENT LISTENERS (COM PROTEÇÃO CONTRA DUPLICAÇÃO)
   adicionarEventListeners() {
+    // ✅ Evitar adicionar listeners duplicados
+    if (this.listenersAdicionados) {
+      return;
+    }
+
     MELHOR_MES_CONFIG.edicoes.forEach((_, index) => {
       const card = document.getElementById(`edicao-card-${index}`);
       const dados = this.dadosCarregados?.resultados[index];
 
-      if (card && dados && dados.ranking.length > 0) {
-        card.addEventListener("click", () => this.selecionarEdicao(index));
+      if (card && dados && dados.ranking && dados.ranking.length > 0) {
+        // ✅ Usar função nomeada para poder remover depois se necessário
+        const handler = (e) => {
+          e.stopPropagation(); // ✅ Evitar propagação
+          this.selecionarEdicao(index, false);
+        };
+
+        // ✅ Remover listener antigo se existir (usando clone)
+        const novoCard = card.cloneNode(true);
+        card.parentNode.replaceChild(novoCard, card);
+        novoCard.addEventListener("click", handler);
       }
     });
+
+    this.listenersAdicionados = true;
   }
 
   // SELECIONAR EDIÇÃO
-  selecionarEdicao(index) {
-    if (this.edicaoAtiva === index) return;
+  selecionarEdicao(index, isInicializacao = false) {
+    // ✅ Verificação melhorada
+    if (this.edicaoAtiva === index && !isInicializacao) {
+      return;
+    }
 
     console.log(`[MELHOR-MES-UI] Selecionando edição ${index}`);
 
     // Remover seleção anterior
-    if (this.edicaoAtiva !== null) {
+    if (this.edicaoAtiva !== null && this.edicaoAtiva !== index) {
       const cardAnterior = document.getElementById(
         `edicao-card-${this.edicaoAtiva}`,
       );
@@ -138,14 +158,18 @@ export class MelhorMesUI {
     const dados = this.dadosCarregados?.resultados[this.edicaoAtiva];
     if (!dados) return;
 
-    if (dados.ranking.length === 0) {
+    if (!dados.ranking || dados.ranking.length === 0) {
       container.innerHTML = this.criarMensagemVazia(dados);
       return;
     }
 
     // Tabela compacta seguindo padrão do sistema
-    const temPremios = dados.premios && dados.premios.primeiro.valor > 0;
-    const ligaId = window.ligaAtual?.id || ""; // Assume que ligaId está disponível globalmente
+    const temPremios =
+      dados.premios &&
+      dados.premios.primeiro &&
+      dados.premios.primeiro.valor > 0;
+    const ligaId =
+      this.dadosCarregados?.dadosBasicos?.ligaId || window.ligaAtual?.id || "";
 
     container.innerHTML = `
       <table class="tabela-melhor-mes">
@@ -163,13 +187,14 @@ export class MelhorMesUI {
         </tbody>
       </table>
     `;
-
-    }
+  }
 
   // CRIAR LINHA RANKING COMPACTA
   criarLinhaRankingPadrao(time, index, dados, temPremios, ligaId) {
     const posicao = index + 1;
     const isPrimeiro = posicao === 1;
+    const pontos =
+      typeof time.pontos === "number" ? time.pontos.toFixed(2) : "0.00";
 
     return `
       <tr>
@@ -185,12 +210,12 @@ export class MelhorMesUI {
         </td>
         <td style="text-align: left; padding-left: 12px;">
           <div>
-            <div class="time-nome">${time.nome_cartola}</div>
-            <div style="font-size: 10px; color: var(--text-muted);">${time.nome_time}</div>
+            <div class="time-nome">${time.nome_cartola || "N/D"}</div>
+            <div style="font-size: 10px; color: var(--text-muted);">${time.nome_time || "N/D"}</div>
           </div>
         </td>
         <td style="text-align: center;">
-          <span class="pontos-destaque">${time.pontos.toFixed(2)}</span>
+          <span class="pontos-destaque">${pontos}</span>
         </td>
         ${temPremios ? this.criarColunaPremio(isPrimeiro, dados, ligaId) : ""}
       </tr>
@@ -202,12 +227,13 @@ export class MelhorMesUI {
     if (!dados.premios) return "<td>-</td>";
 
     if (isPrimeiro) {
-      // ✅ Busca da configuração da liga (vinda do backend)
-      const premioConfig = this.config.premios[ligaId] || this.config.premios.default;
-
-      return `<td style="color: ${premioConfig.primeiro.cor}">
-                ${premioConfig.primeiro.label}
-            </td>`;
+      const premioConfig =
+        this.config?.premios?.[ligaId] || this.config?.premios?.default;
+      if (premioConfig?.primeiro) {
+        return `<td style="color: ${premioConfig.primeiro.cor || "#198754"}">
+                  ${premioConfig.primeiro.label || "R$ --"}
+                </td>`;
+      }
     }
 
     return "<td>-</td>";
@@ -215,11 +241,15 @@ export class MelhorMesUI {
 
   // CRIAR MENSAGEM VAZIA
   criarMensagemVazia(dados) {
+    const edicaoNome = dados?.edicao?.nome || "Edição";
+    const inicio = dados?.edicao?.inicio || "?";
+    const fim = dados?.edicao?.fim || "?";
+
     return `
       <div class="empty-state">
         <div style="font-size: 48px; margin-bottom: 16px;">⏳</div>
-        <h4>Edição ${dados.edicao.nome}</h4>
-        <p>Aguardando dados das rodadas ${dados.edicao.inicio}-${dados.edicao.fim}</p>
+        <h4>${edicaoNome}</h4>
+        <p>Aguardando dados das rodadas ${inicio}-${fim}</p>
       </div>
     `;
   }
@@ -253,29 +283,18 @@ export class MelhorMesUI {
   // OBTER INFO DE STATUS
   getStatusInfo(dados) {
     if (!dados || !dados.iniciada) {
-      return {
-        cor: "#999",
-        icone: "⏳",
-        texto: "Aguardando",
-      };
+      return { cor: "#999", icone: "⏳", texto: "Aguardando" };
     } else if (dados.concluida) {
-      return {
-        cor: "#2196f3",
-        icone: "✅",
-        texto: "Concluída",
-      };
+      return { cor: "#2196f3", icone: "✅", texto: "Concluída" };
     } else {
-      return {
-        cor: "#ff4500",
-        icone: "🔄",
-        texto: "Em Andamento",
-      };
+      return { cor: "#ff4500", icone: "🔄", texto: "Em Andamento" };
     }
   }
 
   // ATUALIZAR INTERFACE
   atualizar(novosDados) {
     this.dadosCarregados = novosDados;
+    this.listenersAdicionados = false; // ✅ Reset para permitir novos listeners
     this.renderizarMiniCards();
 
     if (this.edicaoAtiva !== null) {

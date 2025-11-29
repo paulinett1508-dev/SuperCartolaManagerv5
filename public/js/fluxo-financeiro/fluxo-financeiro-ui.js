@@ -146,6 +146,31 @@ export class FluxoFinanceiroUI {
         const container = document.getElementById(this.containerId);
         if (!container) return;
 
+        // ✅ DEBUG: Verificar estrutura do extrato
+        console.log(`[FLUXO-UI] 📊 Renderizando extrato:`, {
+            temRodadas: Array.isArray(extrato?.rodadas),
+            qtdRodadas: extrato?.rodadas?.length || 0,
+            primeiraRodada: extrato?.rodadas?.[0],
+            resumo: extrato?.resumo,
+        });
+
+        // ✅ VALIDAÇÃO: Garantir que rodadas existe e é array
+        if (!extrato || !Array.isArray(extrato.rodadas)) {
+            console.error(
+                `[FLUXO-UI] ❌ Extrato inválido - rodadas não é array`,
+            );
+            container.innerHTML = `
+                <div class="estado-inicial">
+                    <div class="estado-inicial-icon">⚠️</div>
+                    <h2 class="estado-inicial-titulo">Erro ao carregar extrato</h2>
+                    <p class="estado-inicial-subtitulo">Dados corrompidos. Tente atualizar.</p>
+                    <button onclick="window.forcarRefreshExtrato('${participante?.time_id || participante?.id}')" class="btn-modern btn-primary-gradient">
+                        🔄 Forçar Atualização
+                    </button>
+                </div>`;
+            return;
+        }
+
         window.extratoAtual = extrato;
         const camposEditaveisHTML = await this.renderizarCamposEditaveis(
             participante.time_id || participante.id,

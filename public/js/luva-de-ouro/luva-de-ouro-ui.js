@@ -1,319 +1,413 @@
-// public/js/luva-de-ouro/luva-de-ouro-ui.js - VERSÃO PADRONIZADA (SEM ESTILOS INLINE)
+// LUVA DE OURO UI - Tabela com Rodadas em Colunas Navegáveis v4.0.0
+// 8 rodadas visíveis por vez com navegação horizontal
+
 console.log("🎨 [LUVA-UI] Módulo UI carregando...");
 
-const LuvaDeOuroUI = {
-  /**
-   * Cria controles principais (seguindo padrão do sistema)
-   */
-  criarControles() {
-    const config = window.LuvaDeOuroConfig;
-    return `
-      <div class="controls-section">
-        <div class="controls-header">
-          <h3>Filtros de Rodadas</h3>
-        </div>
+// Cache de elementos DOM
+const elementsCache = new Map();
 
-        <div class="controls-grid">
-          <div class="control-group">
-            <label for="luvaRodadaInicio">Rodada Início</label>
-            <input type="number" 
-                   id="luvaRodadaInicio" 
-                   min="${config.RODADAS.MIN}" 
-                   max="${config.RODADAS.MAX}" 
-                   value="${config.RODADAS.DEFAULT_INICIO}"
-                   class="form-control">
-          </div>
+// Estado da navegação de rodadas
+let estadoNavegacao = {
+  rodadaInicio: 1,
+  rodadasVisiveis: 12, // ✅ Aumentado para 12
+  rodadaAtual: 35,
+  mercadoAberto: false,
+};
 
-          <div class="control-group">
-            <label for="luvaRodadaFim">Rodada Fim</label>
-            <input type="number" 
-                   id="luvaRodadaFim" 
-                   min="${config.RODADAS.MIN}" 
-                   max="${config.RODADAS.MAX}" 
-                   placeholder="Automático"
-                   class="form-control">
-          </div>
-        </div>
+function getElement(id) {
+  if (!elementsCache.has(id)) {
+    elementsCache.set(id, document.getElementById(id));
+  }
+  return elementsCache.get(id);
+}
 
-        <div class="controls-actions">
-          <button id="luvaRankingBtn" class="btn btn-primary">
-            <i data-lucide="trophy"></i>
-            Gerar Ranking
-          </button>
-          <button id="luvaUltimaRodadaBtn" class="btn btn-secondary">
-            <i data-lucide="calendar"></i>
-            Até Última Rodada
-          </button>
-          <button id="luvaForcarColetaBtn" class="btn btn-warning">
-            <i data-lucide="refresh-cw"></i>
-            Forçar Coleta
-          </button>
-        </div>
+export function limparCacheUI() {
+  elementsCache.clear();
+  estadoNavegacao = {
+    rodadaInicio: 1,
+    rodadasVisiveis: 12,
+    rodadaAtual: 35,
+    mercadoAberto: false,
+  };
+  console.log("[LUVA-UI] Cache de elementos limpo");
+}
 
-        <div id="luvaInfoRodada" class="info-box">
-          <span id="luvaInfoTexto">${config.MESSAGES.INFO_INICIAL}</span>
-        </div>
-      </div>
-    `;
-  },
+// ==============================
+// NAVEGAÇÃO DE RODADAS
+// ==============================
 
-  /**
-   * Renderiza tabela de ranking (padrão clean)
-   */
-  renderizarRanking(dados) {
-    if (!dados || !dados.ranking || !Array.isArray(dados.ranking)) {
-      return this.renderizarErroSemDados();
-    }
+export function configurarNavegacao(rodadaAtual, mercadoAberto) {
+  estadoNavegacao.rodadaAtual = rodadaAtual;
+  estadoNavegacao.mercadoAberto = mercadoAberto;
 
-    if (dados.ranking.length === 0) {
-      return this.renderizarRankingVazio();
-    }
+  // Posicionar para mostrar as últimas rodadas com a atual visível
+  const ultimaRodadaComDados = mercadoAberto ? rodadaAtual - 1 : rodadaAtual;
+  estadoNavegacao.rodadaInicio = Math.max(
+    1,
+    ultimaRodadaComDados - estadoNavegacao.rodadasVisiveis + 1,
+  );
 
-    const participantesComDados = dados.ranking.filter(
-      (p) => p.pontosTotais > 0 || p.totalJogos > 0,
+  console.log("[LUVA-UI] Navegação configurada:", estadoNavegacao);
+}
+
+export function navegarRodadas(direcao) {
+  const { rodadaInicio, rodadasVisiveis, rodadaAtual, mercadoAberto } =
+    estadoNavegacao;
+  const maxRodada = mercadoAberto ? rodadaAtual - 1 : rodadaAtual;
+
+  if (direcao === "esquerda") {
+    estadoNavegacao.rodadaInicio = Math.max(1, rodadaInicio - rodadasVisiveis);
+  } else {
+    estadoNavegacao.rodadaInicio = Math.min(
+      maxRodada - rodadasVisiveis + 1,
+      rodadaInicio + rodadasVisiveis,
     );
-    if (participantesComDados.length === 0) {
-      return this.renderizarDadosIncompletos(dados.ranking.length);
+    estadoNavegacao.rodadaInicio = Math.max(1, estadoNavegacao.rodadaInicio);
+  }
+
+  console.log(`[LUVA-UI] Navegando ${direcao}:`, estadoNavegacao.rodadaInicio);
+
+  // Re-renderizar com os novos dados
+  if (window.LuvaDeOuroOrquestrador?.estado?.ranking) {
+    renderizarRanking(window.LuvaDeOuroOrquestrador.estado.ranking);
+  }
+}
+
+// ==============================
+// LAYOUT PRINCIPAL
+// ==============================
+
+export function criarLayoutPrincipal() {
+  return `
+    <div class="luva-container">
+      <!-- Header -->
+      <div class="luva-header">
+        <div class="luva-title">
+          <span class="luva-icon">🧤</span>
+          <h3>Luva de Ouro</h3>
+        </div>
+        <div class="luva-info-rodada">
+          <span id="luvaInfoStatus">Carregando...</span>
+        </div>
+      </div>
+
+      <!-- Seção de conteúdo -->
+      <div id="luvaContentSection" class="luva-content-section">
+        <!-- Navegação de rodadas -->
+        <div class="luva-nav-container">
+          <button class="luva-nav-btn nav-esq" onclick="window.LuvaDeOuroUI.navegarRodadas('esquerda')" title="Rodadas anteriores">
+            ◀
+          </button>
+          <span id="luvaNavInfo" class="luva-nav-info">Rodadas 1 - 8</span>
+          <button class="luva-nav-btn nav-dir" onclick="window.LuvaDeOuroUI.navegarRodadas('direita')" title="Próximas rodadas">
+            ▶
+          </button>
+        </div>
+
+        <!-- Tabela com rodadas em colunas -->
+        <div class="luva-table-container">
+          <table class="luva-ranking-table">
+            <thead id="luvaTableHead">
+              <tr>
+                <th class="col-pos">#</th>
+                <th class="col-escudo"></th>
+                <th class="col-nome">CARTOLEIRO</th>
+                <th class="col-total">TOTAL</th>
+              </tr>
+            </thead>
+            <tbody id="luvaRankingBody">
+              <tr><td colspan="12" class="loading-cell">Carregando...</td></tr>
+            </tbody>
+          </table>
+        </div>
+
+        <!-- Stats compactos -->
+        <div id="luvaStatsContainer" class="luva-stats-container"></div>
+      </div>
+    </div>
+  `;
+}
+
+// ==============================
+// RENDERIZAÇÃO DO RANKING
+// ==============================
+
+export function renderizarRanking(dados) {
+  const tbody = getElement("luvaRankingBody");
+  const thead = getElement("luvaTableHead");
+  if (!tbody || !thead) return;
+
+  if (!dados || !dados.ranking || dados.ranking.length === 0) {
+    tbody.innerHTML = `<tr><td colspan="12" class="loading-cell" style="color:#e67e22;">Nenhum dado encontrado</td></tr>`;
+    return;
+  }
+
+  const { ranking, rodadaFim } = dados;
+  const { rodadaInicio, rodadasVisiveis, rodadaAtual, mercadoAberto } =
+    estadoNavegacao;
+
+  // Calcular rodadas a exibir
+  const rodadaFimVisivel = Math.min(
+    rodadaInicio + rodadasVisiveis - 1,
+    rodadaFim,
+  );
+  const rodadasExibir = [];
+  for (let r = rodadaInicio; r <= rodadaFimVisivel; r++) {
+    rodadasExibir.push(r);
+  }
+
+  // Atualizar header com colunas de rodadas
+  const headersRodadas = rodadasExibir
+    .map((r) => {
+      const isParcial = r === rodadaAtual && !mercadoAberto;
+      const isAtual = r === rodadaAtual;
+      const classe = isParcial
+        ? "col-rodada parcial"
+        : isAtual
+          ? "col-rodada atual"
+          : "col-rodada";
+      return `<th class="${classe}">R${r}</th>`;
+    })
+    .join("");
+
+  thead.innerHTML = `
+    <tr>
+      <th class="col-pos">#</th>
+      <th class="col-escudo"></th>
+      <th class="col-nome">CARTOLEIRO</th>
+      <th class="col-total">TOTAL</th>
+      ${headersRodadas}
+    </tr>
+  `;
+
+  // Atualizar info de navegação
+  const navInfo = getElement("luvaNavInfo");
+  if (navInfo) {
+    navInfo.textContent = `Rodadas ${rodadaInicio} - ${rodadaFimVisivel}`;
+  }
+
+  // Mapeamento de escudos
+  const ESCUDOS = {
+    1926323: 262,
+    13935277: 262,
+    14747183: 276,
+    49149009: 262,
+    49149388: 262,
+    50180257: 267,
+  };
+
+  // Renderizar linhas
+  const tableHTML = ranking
+    .map((item, index) => {
+      const posicao = index + 1;
+      const posIcon =
+        posicao === 1
+          ? "🏆"
+          : posicao === 2
+            ? "🥈"
+            : posicao === 3
+              ? "🥉"
+              : `${posicao}º`;
+      const posClass = posicao <= 3 ? `pos-${posicao}` : "";
+
+      const escudoId =
+        ESCUDOS[item.participanteId] || item.clubeId || "default";
+      const pontosTotais = parseFloat(item.pontosTotais || 0).toFixed(2);
+
+      // Criar mapa de pontos por rodada para acesso rápido (com dados do goleiro)
+      const pontosPorRodada = {};
+      if (item.rodadas && Array.isArray(item.rodadas)) {
+        item.rodadas.forEach((r) => {
+          pontosPorRodada[r.rodada] = {
+            pontos: r.pontos,
+            goleiroNome: r.goleiroNome,
+            goleiroClube: r.goleiroClube,
+          };
+        });
+      }
+
+      // Gerar células de pontos para cada rodada visível (com goleiro)
+      const celulasRodadas = rodadasExibir
+        .map((r) => {
+          const rodadaData = pontosPorRodada[r];
+          if (rodadaData !== undefined) {
+            const pontosNum = parseFloat(rodadaData.pontos || 0);
+            const goleiroNome = rodadaData.goleiroNome || "";
+            const semGoleiro =
+              !goleiroNome ||
+              goleiroNome === "Sem goleiro" ||
+              goleiroNome === "N/A";
+            const goleiroAbrev = semGoleiro
+              ? "N/Esc"
+              : goleiroNome.split(" ")[0].substring(0, 7);
+
+            // Tratar NaN
+            const pontosValidos = isNaN(pontosNum) ? 0 : pontosNum;
+            const pontosClass = semGoleiro
+              ? "sem-goleiro"
+              : pontosValidos > 0
+                ? "positivo"
+                : pontosValidos < 0
+                  ? "negativo"
+                  : "zero";
+            const pontosTexto = semGoleiro ? "—" : pontosValidos.toFixed(2);
+
+            return `<td class="col-rodada-pts ${pontosClass}">
+          <span class="pts-valor">${pontosTexto}</span>
+          <span class="pts-goleiro">${goleiroAbrev}</span>
+        </td>`;
+          }
+          return `<td class="col-rodada-pts vazio"><span class="pts-valor">—</span><span class="pts-goleiro">—</span></td>`;
+        })
+        .join("");
+
+      return `
+      <tr class="luva-ranking-row ${posClass}">
+        <td class="col-pos"><span class="pos-badge">${posIcon}</span></td>
+        <td class="col-escudo"><img src="/escudos/${escudoId}.png" alt="" class="escudo-img" onerror="this.src='/escudos/default.png'"></td>
+        <td class="col-nome"><span class="participante-nome">${item.participanteNome}</span></td>
+        <td class="col-total"><span class="pontos-total">${pontosTotais}</span></td>
+        ${celulasRodadas}
+      </tr>
+    `;
+    })
+    .join("");
+
+  tbody.innerHTML = tableHTML;
+
+  // Renderizar estatísticas
+  renderizarEstatisticas(ranking, rodadasExibir, dados);
+}
+
+// ==============================
+// ESTATÍSTICAS
+// ==============================
+
+function renderizarEstatisticas(ranking, rodadasExibir, dados) {
+  const container = getElement("luvaStatsContainer");
+  if (!container || !ranking || ranking.length === 0) return;
+
+  const lider = ranking[0];
+  const totalParticipantes = ranking.length;
+
+  // Calcular melhor pontuação individual
+  let melhorPontuacao = 0;
+  let melhorCartoleiro = "";
+  let melhorRodada = 0;
+
+  ranking.forEach((p) => {
+    if (p.rodadas) {
+      p.rodadas.forEach((r) => {
+        if (r.pontos > melhorPontuacao) {
+          melhorPontuacao = r.pontos;
+          melhorCartoleiro = p.participanteNome;
+          melhorRodada = r.rodada;
+        }
+      });
     }
+  });
 
-    return this.renderizarTabelaCompleta(dados);
-  },
-
-  renderizarErroSemDados() {
-    return `
-      <div class="empty-state">
-        <i data-lucide="alert-circle" class="empty-icon"></i>
-        <h4>Erro ao carregar dados</h4>
-        <p>Tente novamente mais tarde.</p>
+  container.innerHTML = `
+    <div class="luva-stats-grid">
+      <div class="luva-stat-card gold">
+        <div class="stat-icon">🏆</div>
+        <div class="stat-value">${parseFloat(lider.pontosTotais || 0).toFixed(1)}</div>
+        <div class="stat-label">Líder</div>
+        <div class="stat-detail">${lider.participanteNome}</div>
       </div>
-    `;
-  },
-
-  renderizarRankingVazio() {
-    return `
-      <div class="empty-state">
-        <i data-lucide="inbox" class="empty-icon"></i>
-        <h3>Nenhum dado encontrado</h3>
-        <p>Não há dados de goleiros para o período selecionado.</p>
-        <div class="empty-details">
-          <p>Isso pode acontecer se:</p>
-          <ul>
-            <li>As rodadas ainda não foram coletadas</li>
-            <li>Houve erro na API do Cartola FC</li>
-            <li>Os dados ainda estão sendo processados</li>
-          </ul>
-        </div>
-        <div class="empty-actions">
-          <button onclick="window.LuvaDeOuroOrquestrador.carregarRanking(true)" class="btn btn-primary">
-            <i data-lucide="refresh-cw"></i>
-            Forçar Coleta
-          </button>
-          <button onclick="window.LuvaDeOuroOrquestrador.carregarRanking(false)" class="btn btn-secondary">
-            <i data-lucide="rotate-ccw"></i>
-            Recarregar
-          </button>
-        </div>
+      <div class="luva-stat-card blue">
+        <div class="stat-icon">👥</div>
+        <div class="stat-value">${totalParticipantes}</div>
+        <div class="stat-label">Participantes</div>
       </div>
-    `;
-  },
-
-  renderizarDadosIncompletos(totalParticipantes) {
-    return `
-      <div class="empty-state warning">
-        <i data-lucide="alert-triangle" class="empty-icon"></i>
-        <h3>Dados Incompletos</h3>
-        <p>Os participantes foram encontrados, mas não há pontuações de goleiros registradas.</p>
-        <div class="empty-stats">
-          <span>Total de participantes: <strong>${totalParticipantes}</strong></span>
-          <span>Participantes com dados: <strong>0</strong></span>
-        </div>
-        <button onclick="window.LuvaDeOuroOrquestrador.carregarRanking(true)" class="btn btn-warning">
-          <i data-lucide="zap"></i>
-          Forçar Coleta Completa
-        </button>
+      <div class="luva-stat-card green">
+        <div class="stat-icon">⭐</div>
+        <div class="stat-value">${melhorPontuacao.toFixed(1)}</div>
+        <div class="stat-label">Melhor Rodada</div>
+        <div class="stat-detail">${melhorCartoleiro} (R${melhorRodada})</div>
       </div>
-    `;
-  },
+    </div>
+  `;
+}
 
-  renderizarTabelaCompleta(dados) {
-    const { ranking, rodadaInicio, rodadaFim, totalParticipantes } = dados;
-    const config = window.LuvaDeOuroConfig;
+// ==============================
+// ESTADOS DE LOADING E ERRO
+// ==============================
 
-    let html = `
-      <div class="ranking-header">
-        <h3>Ranking Luva de Ouro</h3>
-        <div class="ranking-meta">
-          <span class="badge">Rodadas ${rodadaInicio} a ${rodadaFim}</span>
-          <span class="badge">${totalParticipantes} participantes</span>
-        </div>
-      </div>
-
-      <div class="table-container">
-        <table class="data-table ranking-table">
-          <thead>
-            <tr>
-              <th class="col-pos">Pos</th>
-              <th class="col-escudo"></th>
-              <th class="col-nome">Cartoleiro</th>
-              <th class="col-pontos">Total</th>
-              <th class="col-goleiro">Goleiro (R${rodadaFim})</th>
-              <th class="col-pontos-rodada">Pontos</th>
-              <th class="col-acoes">Ações</th>
-            </tr>
-          </thead>
-          <tbody>
-    `;
-
-    ranking.forEach((item, index) => {
-      html += this.criarLinhaRanking(
-        item,
-        index,
-        config.ESCUDOS_PARTICIPANTES,
-        rodadaFim,
-      );
-    });
-
-    html += `
-          </tbody>
-        </table>
-      </div>
-
-      ${this.criarEstatisticas(ranking, totalParticipantes)}
-    `;
-
-    return html;
-  },
-
-  criarLinhaRanking(item, index, escudos, rodadaFim) {
-    const posicao = index + 1;
-    const posicaoClass = posicao <= 3 ? `pos-${posicao}` : "";
-    const posicaoIcon =
-      {
-        1: "🏆",
-        2: "🥈",
-        3: "🥉",
-      }[posicao] || "";
-
-    // ✅ MAPEAMENTO HARDCODED - Liga Cartoleiros do Sobral
-    const ESCUDOS_SOBRAL = {
-      1926323: 262,   // Daniel Barbosa
-      13935277: 262,  // Paulinett Miranda
-      14747183: 276,  // Carlos Henrique
-      49149009: 262,  // Matheus Coutinho
-      49149388: 262,  // Junior Brasilino
-      50180257: 267   // Hivisson
-    };
-
-    const escudoId = ESCUDOS_SOBRAL[item.participanteId] || escudos[item.participanteId] || "default";
-
-    return `
-      <tr class="ranking-row ${posicaoClass}">
-        <td class="col-pos">
-          <div class="pos-content">
-            <span class="pos-numero">${posicao}º</span>
-            ${posicaoIcon ? `<span class="pos-icon">${posicaoIcon}</span>` : ""}
+export function mostrarLoading(mensagem = "Carregando...") {
+  const tbody = getElement("luvaRankingBody");
+  if (tbody) {
+    tbody.innerHTML = `
+      <tr>
+        <td colspan="12" class="loading-cell">
+          <div class="luva-loading">
+            <div class="spinner"></div>
+            <p>${mensagem}</p>
           </div>
-        </td>
-        <td class="col-escudo">
-          <img src="/escudos/${escudoId}.png" 
-               alt="Escudo" 
-               class="escudo-img"
-               onerror="this.src='/escudos/default.png';">
-        </td>
-        <td class="col-nome">
-          <div class="participante-info">
-            <div class="participante-nome">${item.participanteNome}</div>
-            <div class="participante-id">ID: ${item.participanteId}</div>
-          </div>
-        </td>
-        <td class="col-pontos">
-          <span class="pontos-badge">${Math.floor(item.pontosTotais * 100) / 100}</span>
-        </td>
-        <td class="col-goleiro">
-          <div class="goleiro-info">
-            <div class="goleiro-nome">${item.ultimaRodada?.goleiroNome || "Sem goleiro"}</div>
-            ${item.ultimaRodada?.goleiroClube ? `<div class="goleiro-clube">${item.ultimaRodada.goleiroClube}</div>` : ""}
-          </div>
-        </td>
-        <td class="col-pontos-rodada">
-          <div class="pontos-rodada ${(item.ultimaRodada?.pontos || 0) >= 0 ? "positivo" : "negativo"}">
-            <div class="pontos-valor">${Math.floor((item.ultimaRodada?.pontos || 0) * 100) / 100}</div>
-            <div class="pontos-rodada-num">R${item.ultimaRodada?.rodada || "-"}</div>
-          </div>
-        </td>
-        <td class="col-acoes">
-          <button class="btn btn-sm btn-detalhes" 
-                  data-participante-id="${item.participanteId}" 
-                  data-participante-nome="${item.participanteNome}">
-            <i data-lucide="eye"></i>
-            Detalhes
-          </button>
         </td>
       </tr>
     `;
-  },
+  }
+}
 
-  criarEstatisticas(ranking, totalParticipantes) {
-    return `
-      <div class="stats-grid">
-        <div class="stat-card">
-          <div class="stat-icon">🏆</div>
-          <div class="stat-value">${Math.floor((ranking[0]?.pontosTotais || 0) * 100) / 100}</div>
-          <div class="stat-label">Melhor Pontuação</div>
-          <div class="stat-detail">${ranking[0]?.participanteNome || "-"}</div>
-        </div>
-
-        <div class="stat-card">
-          <div class="stat-icon">👥</div>
-          <div class="stat-value">${totalParticipantes}</div>
-          <div class="stat-label">Participantes</div>
-          <div class="stat-detail">Liga ativa</div>
-        </div>
-
-        <div class="stat-card">
-          <div class="stat-icon">🎯</div>
-          <div class="stat-value">${Math.floor(Math.max(...ranking.map((r) => r.ultimaRodada?.pontos || 0)) * 100) / 100}</div>
-          <div class="stat-label">Melhor Rodada</div>
-          <div class="stat-detail">Individual</div>
-        </div>
-      </div>
+export function mostrarErro(mensagem, detalhes = null) {
+  const tbody = getElement("luvaRankingBody");
+  if (tbody) {
+    tbody.innerHTML = `
+      <tr>
+        <td colspan="12" class="loading-cell">
+          <div class="luva-erro">
+            <span class="erro-icon">❌</span>
+            <p class="erro-msg">${mensagem}</p>
+            ${detalhes ? `<p class="erro-detalhe">${detalhes}</p>` : ""}
+            <button class="btn btn-primary" onclick="window.LuvaDeOuroOrquestrador.carregarRanking(true)">
+              🔄 Tentar Novamente
+            </button>
+          </div>
+        </td>
+      </tr>
     `;
-  },
+  }
+}
 
-  criarBotaoExport() {
-    return `
-      <button id="exportLuvaImagem" class="btn btn-export">
-        <i data-lucide="download"></i>
-        Exportar Ranking
-      </button>
-    `;
-  },
+export function atualizarInfoStatus(texto) {
+  const info = getElement("luvaInfoStatus");
+  if (info) {
+    info.innerHTML = texto;
+  }
+}
 
-  mostrarLoading(mensagem) {
-    return `
-      <div class="loading-state">
-        <div class="spinner"></div>
-        <p>${mensagem}</p>
-      </div>
-    `;
-  },
+export function atualizarTitulo(texto) {
+  // Compatibilidade - não usado mais
+}
 
-  mostrarErro(erro, detalhes = null) {
-    return `
-      <div class="error-state">
-        <i data-lucide="alert-circle" class="error-icon"></i>
-        <h4>Erro ao carregar Luva de Ouro</h4>
-        <p class="error-message"><strong>Erro:</strong> ${erro}</p>
-        ${detalhes ? `<p class="error-details">${detalhes}</p>` : ""}
-        <button onclick="window.location.reload()" class="btn btn-primary">
-          <i data-lucide="refresh-cw"></i>
-          Recarregar Página
-        </button>
-      </div>
-    `;
-  },
+// Funções de compatibilidade (mantidas para não quebrar o orquestrador)
+export function renderizarMiniCardsRodadas(
+  rodadaAtual,
+  mercadoAberto,
+  rodadasComDados = [],
+) {
+  configurarNavegacao(rodadaAtual, mercadoAberto);
+  console.log("[LUVA-UI] Navegação configurada (mini-cards substituídos)");
+}
+
+export function marcarRodadaSelecionada(rodada) {
+  // Não usado mais - navegação é por faixa
+}
+
+// Exportar para window
+window.LuvaDeOuroUI = {
+  criarLayoutPrincipal,
+  renderizarMiniCardsRodadas,
+  marcarRodadaSelecionada,
+  renderizarRanking,
+  mostrarLoading,
+  mostrarErro,
+  atualizarInfoStatus,
+  atualizarTitulo,
+  limparCacheUI,
+  navegarRodadas,
+  configurarNavegacao,
 };
 
-window.LuvaDeOuroUI = LuvaDeOuroUI;
-
-console.log("✅ [LUVA-UI] Módulo UI carregado (CSS externo)");
+console.log("✅ [LUVA-UI] Módulo carregado com colunas navegáveis v4.0.0");

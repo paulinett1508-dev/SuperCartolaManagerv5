@@ -1,4 +1,4 @@
-// MELHOR DO MÊS - SISTEMA MODULAR v1.0
+// MELHOR DO MÊS - SISTEMA MODULAR v1.2
 // Orquestrador principal seguindo arquitetura padrão do sistema
 
 console.log("[MELHOR-MES] Sistema modular carregando...");
@@ -7,12 +7,26 @@ console.log("[MELHOR-MES] Sistema modular carregando...");
 let melhorMesOrquestrador = null;
 let modulosCarregados = false;
 
+// FUNÇÃO UTILITÁRIA PARA OBTER LIGA ID
+function getLigaId() {
+  const urlParams = new URLSearchParams(window.location.search);
+  const idFromUrl = urlParams.get("id");
+  if (idFromUrl) return idFromUrl;
+
+  if (window.ligaIdAtual) return window.ligaIdAtual;
+  if (window.currentLigaId) return window.currentLigaId;
+
+  const pathMatch = window.location.pathname.match(/\/liga\/([a-f0-9]+)/i);
+  if (pathMatch) return pathMatch[1];
+
+  return null;
+}
+
 // FUNÇÃO PARA CARREGAR MÓDULOS DINAMICAMENTE
 async function carregarModulos() {
-  if (modulosCarregados) return;
+  if (modulosCarregados && melhorMesOrquestrador) return;
 
   try {
-    // Importar o orquestrador (verificar se o arquivo existe)
     const orquestradorModule = await import(
       "./melhor-mes/melhor-mes-orquestrador.js"
     );
@@ -25,7 +39,7 @@ async function carregarModulos() {
   }
 }
 
-// FUNÇÃO PRINCIPAL DE INICIALIZAÇÃO (COMPATIBILIDADE)
+// FUNÇÃO PRINCIPAL DE INICIALIZAÇÃO
 export async function inicializarMelhorMes() {
   console.log("[MELHOR-MES] Inicializando sistema...");
 
@@ -36,12 +50,11 @@ export async function inicializarMelhorMes() {
       throw new Error("Orquestrador não carregado");
     }
 
+    // ✅ SEMPRE chamar inicializar - o orquestrador decide se re-renderiza ou carrega do zero
     await melhorMesOrquestrador.inicializar();
     console.log("[MELHOR-MES] Sistema inicializado com sucesso");
   } catch (error) {
     console.error("[MELHOR-MES] Erro na inicialização:", error);
-
-    // Fallback para sistema original em caso de erro
     await inicializarMelhorMesFallback();
   }
 }
@@ -51,36 +64,33 @@ window.inicializarMelhorMes = inicializarMelhorMes;
 
 // FUNÇÃO COMPATÍVEL PARA OUTROS MÓDULOS
 export async function getResultadosMelhorMes(ligaIdParam = null) {
-    console.log("[MELHOR-MES] Obtendo resultados...");
+  console.log("[MELHOR-MES] Obtendo resultados...");
 
-    // Obter ID da liga
-    const ligaId = ligaIdParam || window.ligaIdAtual || window.currentLigaId;
+  const ligaId = ligaIdParam || getLigaId();
 
-    if (!ligaId || ligaId === 'null') {
-        console.warn("[MELHOR-MES] Liga ID não disponível, retornando vazio");
-        return [];
+  if (!ligaId || ligaId === "null") {
+    console.warn("[MELHOR-MES] Liga ID não disponível, retornando vazio");
+    return [];
+  }
+
+  try {
+    await carregarModulos();
+
+    if (melhorMesOrquestrador) {
+      return await melhorMesOrquestrador.obterVencedores();
     }
 
-    try {
-      await carregarModulos();
-
-      if (melhorMesOrquestrador) {
-        return await melhorMesOrquestrador.obterVencedores();
-      }
-
-      // Fallback
-      return await getResultadosMelhorMesFallback();
-    } catch (error) {
-      console.error("[MELHOR-MES] Erro ao obter resultados:", error);
-      return [];
-    }
+    return await getResultadosMelhorMesFallback();
+  } catch (error) {
+    console.error("[MELHOR-MES] Erro ao obter resultados:", error);
+    return [];
+  }
 }
 
 // ==============================
 // SISTEMA FALLBACK (ORIGINAL)
 // ==============================
 
-// Imports para fallback
 import { getRankingRodadaEspecifica } from "./rodadas.js";
 
 const EDICOES_FALLBACK = [
@@ -88,46 +98,26 @@ const EDICOES_FALLBACK = [
   { nome: "Edição 02", inicio: 7, fim: 10 },
   { nome: "Edição 03", inicio: 11, fim: 17 },
   { nome: "Edição 04", inicio: 18, fim: 22 },
-  { nome: "Edição 05", inicio: 23, fim: 28 },
-  { nome: "Edição 06", inicio: 29, fim: 32 },
-  { nome: "Edição 07", inicio: 33, fim: 38 },
+  { nome: "Edição 05", inicio: 23, fim: 26 },
+  { nome: "Edição 06", inicio: 27, fim: 30 },
+  { nome: "Edição 07", inicio: 31, fim: 38 },
 ];
-
-let exportsCarregados = false;
-let criarBotaoExportacaoMelhorMes = null;
-let exportarMelhorMesComoImagem = null;
 
 // FUNÇÃO FALLBACK DE INICIALIZAÇÃO
 async function inicializarMelhorMesFallback() {
   console.log("[MELHOR-MES] Inicializando sistema fallback...");
 
   try {
-    await carregarExportsFallback();
     renderSelectEdicoesFallback();
-    carregarRankingEdicaoFallback(0); // Edição 01 como padrão
+    carregarRankingEdicaoFallback(0);
   } catch (error) {
     console.error("[MELHOR-MES] Erro no fallback:", error);
     mostrarErroFallback("Sistema indisponível temporariamente");
   }
 }
 
-// CARREGAR EXPORTS FALLBACK
-async function carregarExportsFallback() {
-  if (exportsCarregados) return;
-
-  try {
-    const exportModule = await import("./exports/export-melhor-mes.js");
-    criarBotaoExportacaoMelhorMes = exportModule.criarBotaoExportacaoMelhorMes;
-    exportarMelhorMesComoImagem = exportModule.exportarMelhorMesComoImagem;
-    exportsCarregados = true;
-    console.log("[MELHOR-MES] Exports fallback carregados");
-  } catch (error) {
-    console.warn("[MELHOR-MES] Exports não disponíveis:", error);
-  }
-}
-
 // SELECT FALLBACK
-function renderSelectEdicoesFallback(containerId = "melhorMesSelect") {
+function renderSelectEdicoesFallback(containerId = "edicoesContainer") {
   const container = document.getElementById(containerId);
   if (!container) return;
 
@@ -143,7 +133,7 @@ function renderSelectEdicoesFallback(containerId = "melhorMesSelect") {
     </div>
   `;
 
-  document.getElementById("edicaoSelect").addEventListener("change", (e) => {
+  document.getElementById("edicaoSelect")?.addEventListener("change", (e) => {
     carregarRankingEdicaoFallback(Number(e.target.value));
   });
 }
@@ -163,7 +153,12 @@ async function carregarRankingEdicaoFallback(idxEdicao) {
   `;
 
   try {
-    const ligaId = getLigaId(); // Assume que getLigaId() busca o ID da URL se necessário
+    const ligaId = getLigaId();
+    if (!ligaId) {
+      mostrarErroFallback("ID da liga não encontrado");
+      return;
+    }
+
     const resMercado = await fetch("/api/cartola/mercado/status");
     const { rodada_atual } = await resMercado.json();
     const ultimaRodadaCompleta = rodada_atual - 1;
@@ -238,7 +233,7 @@ function renderTabelaFallback(ranking, edicao) {
   const container = document.getElementById("melhorMesTabela");
   if (!container) return;
 
-  const ligaId = getLigaId(); // Assume que getLigaId() busca o ID da URL se necessário
+  const ligaId = getLigaId();
   const isLigaCartoleirosSobral = ligaId === "684d821cf1a7ae16d1f89572";
 
   const tabelaBodyHtml = ranking
@@ -293,13 +288,12 @@ function renderTabelaFallback(ranking, edicao) {
 
 // FUNÇÃO COMPATÍVEL FALLBACK
 async function getResultadosMelhorMesFallback() {
-  // Implementação básica para compatibilidade
   return [];
 }
 
 // MOSTRAR ERRO FALLBACK
 function mostrarErroFallback(mensagem) {
-  const container = document.getElementById("melhorMesSelect");
+  const container = document.getElementById("edicoesContainer");
   if (container) {
     container.innerHTML = `
       <div style="text-align: center; padding: 40px; color: #dc3545;">
@@ -315,8 +309,7 @@ window.melhorMesDebug = {
   carregarModulos: () => carregarModulos(),
   orquestrador: () => melhorMesOrquestrador,
   recarregar: () => inicializarMelhorMes(),
+  getLigaId: () => getLigaId(),
 };
 
-console.log(
-  "[MELHOR-MES] Sistema modular carregado com arquitetura refatorada",
-);
+console.log("[MELHOR-MES] Sistema modular carregado");

@@ -1,8 +1,7 @@
-// MELHOR DO MÊS - CORE BUSINESS LOGIC v1.0
+// MELHOR DO MÊS - CORE BUSINESS LOGIC v1.1
 // public/js/melhor-mes/melhor-mes-core.js
 
 import { getRankingRodadaEspecifica } from "../rodadas.js";
-import { obterLigaId } from "../pontos-corridos-utils.js";
 import {
   MELHOR_MES_CONFIG,
   getPremiosLiga,
@@ -30,7 +29,7 @@ export class MelhorMesCore {
     console.log("[MELHOR-MES-CORE] Inicializando...");
 
     // ✅ CARREGAR DADOS BÁSICOS PRIMEIRO (obtém ligaId se não fornecido)
-    if (!ligaId || ligaId === 'null') {
+    if (!ligaId || ligaId === "null") {
       await this.carregarDadosBasicos();
     } else {
       this.ligaId = ligaId;
@@ -50,9 +49,10 @@ export class MelhorMesCore {
     }
 
     // ✅ VALIDAÇÃO: Verificar se conseguimos obter o ligaId
-    if (!this.ligaId || this.ligaId === 'null' || this.ligaId === null) {
-      console.error("[MELHOR-MES-CORE] ❌ Liga ID não encontrado após todas as tentativas");
-      console.error("[MELHOR-MES-CORE] Tentativas: window.obterLigaId, window.participanteData, URL params");
+    if (!this.ligaId || this.ligaId === "null" || this.ligaId === null) {
+      console.error(
+        "[MELHOR-MES-CORE] ❌ Liga ID não encontrado após todas as tentativas",
+      );
       this.dadosProcessados = { resultados: {}, dadosBasicos: null };
       return this.dadosProcessados;
     }
@@ -67,42 +67,68 @@ export class MelhorMesCore {
 
   // CARREGAR DADOS BÁSICOS DO SISTEMA
   async carregarDadosBasicos() {
-    // ✅ OBTER LIGA ID - compatível com Admin e Participante
+    // ✅ OBTER LIGA ID - múltiplas tentativas
     let ligaId = null;
 
-    // Tentar Admin
-    if (window.obterLigaId) {
+    // 1. Tentar URL primeiro (parâmetro "id")
+    const urlParams = new URLSearchParams(window.location.search);
+    ligaId = urlParams.get("id");
+
+    // 2. Tentar parâmetro alternativo "ligaId"
+    if (!ligaId) {
+      ligaId = urlParams.get("ligaId");
+    }
+
+    // 3. Tentar função global obterLigaId (Admin)
+    if (!ligaId && typeof window.obterLigaId === "function") {
       ligaId = window.obterLigaId();
     }
 
-    // Tentar Participante
+    // 4. Tentar variáveis globais
+    if (!ligaId && window.ligaIdAtual) {
+      ligaId = window.ligaIdAtual;
+    }
+    if (!ligaId && window.currentLigaId) {
+      ligaId = window.currentLigaId;
+    }
+
+    // 5. Tentar participanteData (Participante)
     if (!ligaId && window.participanteData?.ligaId) {
       ligaId = window.participanteData.ligaId;
     }
 
-    // Tentar URL
+    // 6. Tentar extrair do path da URL
     if (!ligaId) {
-      const urlParams = new URLSearchParams(window.location.search);
-      ligaId = urlParams.get('ligaId');
+      const pathMatch = window.location.pathname.match(/\/liga\/([a-f0-9]+)/i);
+      if (pathMatch) ligaId = pathMatch[1];
     }
 
     this.ligaId = ligaId;
 
     if (!this.ligaId) {
-      console.error(' [MELHOR-MES-CORE] ID da Liga não encontrado');
+      console.error("[MELHOR-MES-CORE] ID da Liga não encontrado");
+      console.error("[MELHOR-MES-CORE] URL atual:", window.location.href);
       return false;
     }
 
     console.log(`[MELHOR-MES-CORE] ✅ Liga ID obtido: ${this.ligaId}`);
 
-    const response = await fetch("/api/cartola/mercado/status");
-    if (!response.ok) {
-      throw new Error("Erro ao buscar status do mercado");
-    }
+    try {
+      const response = await fetch("/api/cartola/mercado/status");
+      if (!response.ok) {
+        throw new Error("Erro ao buscar status do mercado");
+      }
 
-    const mercadoStatus = await response.json();
-    this.ultimaRodadaCompleta =
-      mercadoStatus.rodada_atual > 0 ? mercadoStatus.rodada_atual - 1 : 0;
+      const mercadoStatus = await response.json();
+      this.ultimaRodadaCompleta =
+        mercadoStatus.rodada_atual > 0 ? mercadoStatus.rodada_atual - 1 : 0;
+    } catch (error) {
+      console.warn(
+        "[MELHOR-MES-CORE] Erro ao buscar mercado, usando rodada 35:",
+        error,
+      );
+      this.ultimaRodadaCompleta = 35;
+    }
 
     dadosBasicos = {
       ligaId: this.ligaId,
@@ -114,6 +140,7 @@ export class MelhorMesCore {
     console.log(
       `[MELHOR-MES-CORE] Liga: ${this.ligaId}, Última rodada: ${this.ultimaRodadaCompleta}`,
     );
+    return true;
   }
 
   // PROCESSAR TODAS AS EDIÇÕES
@@ -325,23 +352,22 @@ export class MelhorMesCore {
       cacheTimestamps.delete(key);
     }
 
-    // Tentar IndexedDB
+    // Tentar IndexedDB (se disponível)
     try {
-      const cached = await cacheManager.get(
-        "rodadas",
-        key,
-        null,
-        { ttl: MELHOR_MES_CONFIG.cache.ttl }
-      );
+      if (typeof cacheManager !== "undefined" && cacheManager?.get) {
+        const cached = await cacheManager.get("rodadas", key, null, {
+          ttl: MELHOR_MES_CONFIG.cache.ttl,
+        });
 
-      if (cached) {
-        // Restaurar para memória
-        cacheRankings.set(key, cached);
-        cacheTimestamps.set(key, Date.now());
-        return true;
+        if (cached) {
+          // Restaurar para memória
+          cacheRankings.set(key, cached);
+          cacheTimestamps.set(key, Date.now());
+          return true;
+        }
       }
     } catch (error) {
-      console.warn("[MELHOR-MES-CORE] Erro ao verificar cache persistente:", error);
+      // Silenciosamente ignorar erro de cache persistente
     }
 
     return false;
@@ -357,12 +383,13 @@ export class MelhorMesCore {
     cacheRankings.set(key, dados);
     cacheTimestamps.set(key, Date.now());
 
-    // Salvar em IndexedDB
+    // Salvar em IndexedDB (se disponível)
     try {
-      await cacheManager.set("rodadas", key, dados);
-      console.log(`[MELHOR-MES-CORE] Cache salvo (memória + persistente): ${key}`);
+      if (typeof cacheManager !== "undefined" && cacheManager?.set) {
+        await cacheManager.set("rodadas", key, dados);
+      }
     } catch (error) {
-      console.warn("[MELHOR-MES-CORE] Erro ao salvar cache persistente:", error);
+      // Silenciosamente ignorar erro de cache persistente
     }
   }
 
@@ -469,6 +496,6 @@ export function limparCache() {
 // AUTO-LIMPEZA DE CACHE
 setInterval(() => {
   melhorMesCore.limparCacheAntigo();
-}, MELHOR_MES_CONFIG.cache.ttl);
+}, MELHOR_MES_CONFIG.cache?.ttl || 300000);
 
 console.log("[MELHOR-MES-CORE] ✅ Core business logic carregado");

@@ -573,18 +573,48 @@
 
 /* === POSIÇÕES DE DESTAQUE === */
 .classificacao-linha.primeiro-lugar {
-  background: rgba(255, 215, 0, 0.1);
+  background: linear-gradient(135deg, rgba(255, 215, 0, 0.25) 0%, rgba(255, 193, 7, 0.15) 100%);
   border-left: 4px solid #ffd700;
 }
 
+.classificacao-linha.primeiro-lugar td {
+  color: #ffffff !important;
+}
+
+.classificacao-linha.primeiro-lugar .time-nome-principal,
+.classificacao-linha.primeiro-lugar .time-nome-secundario,
+.classificacao-linha.primeiro-lugar .pts-destaque {
+  color: #ffffff !important;
+}
+
 .classificacao-linha.segundo-lugar {
-  background: rgba(192, 192, 192, 0.1);
+  background: linear-gradient(135deg, rgba(192, 192, 192, 0.2) 0%, rgba(169, 169, 169, 0.12) 100%);
   border-left: 4px solid #c0c0c0;
 }
 
+.classificacao-linha.segundo-lugar td {
+  color: #ffffff !important;
+}
+
+.classificacao-linha.segundo-lugar .time-nome-principal,
+.classificacao-linha.segundo-lugar .time-nome-secundario,
+.classificacao-linha.segundo-lugar .pts-destaque {
+  color: #ffffff !important;
+}
+
 .classificacao-linha.terceiro-lugar {
-  background: rgba(205, 127, 50, 0.1);
+  background: linear-gradient(135deg, rgba(205, 127, 50, 0.25) 0%, rgba(184, 115, 51, 0.15) 100%);
   border-left: 4px solid #cd7f32;
+}
+
+.classificacao-linha.terceiro-lugar td {
+  color: #ffffff !important;
+}
+
+.classificacao-linha.terceiro-lugar .time-nome-principal,
+.classificacao-linha.terceiro-lugar .time-nome-secundario,
+.classificacao-linha.terceiro-lugar .pts-destaque {
+  color: #ffffff !important;
 }
 
 .time-info {

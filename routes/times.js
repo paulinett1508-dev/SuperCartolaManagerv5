@@ -1,23 +1,44 @@
 import express from "express";
-import { obterTimePorId } from "../controllers/timeController.js"; // ✅ Controller Inteligente
+import mongoose from "mongoose";
+import { obterTimePorId } from "../controllers/timeController.js";
 import {
     inativarParticipante,
     reativarParticipante,
     buscarStatusParticipante,
 } from "../controllers/participanteStatusController.js";
-import Time from "../models/Time.js";
 
 const router = express.Router();
 
+// ✅ CORREÇÃO: Função para obter o Model de forma segura
+function getTimeModel() {
+    // Tentar obter modelo existente primeiro
+    if (mongoose.models.Time) {
+        return mongoose.models.Time;
+    }
+
+    // Se não existir, criar o schema e modelo
+    const TimeSchema = new mongoose.Schema({
+        id: { type: Number, required: true, unique: true, index: true },
+        nome_time: { type: String, required: true },
+        nome_cartoleiro: { type: String, required: true },
+        url_escudo_png: { type: String },
+        clube_id: { type: Number },
+        ativo: { type: Boolean, default: true },
+        rodada_desistencia: { type: Number, default: null },
+        data_desistencia: { type: Date, default: null },
+        senha_acesso: { type: String, default: "" },
+    });
+
+    return mongoose.model("Time", TimeSchema);
+}
+
 // ==============================================================================
-// 1. ROTA INTELIGENTE (A CORREÇÃO)
-// Substitui a lógica manual antiga.
+// 1. ROTA INTELIGENTE - Busca time por ID
 // Se não achar no banco, o controller vai buscar na API da Globo e salvar.
 // ==============================================================================
 router.get(
     "/:id",
     (req, res, next) => {
-        // Log para confirmar que a rota nova está ativa
         if (process.env.NODE_ENV !== "production") {
             console.log(
                 `🔥 [ROTA INTELIGENTE] Buscando Time ID: ${req.params.id}`,
@@ -29,109 +50,141 @@ router.get(
 );
 
 // ==============================================================================
-// 2. Outras Rotas (Mantidas e Organizadas)
+// 2. ROTAS DE BATCH
 // ==============================================================================
 
 // Buscar múltiplos times (Batch)
 router.post("/batch", async (req, res) => {
     try {
+        const Time = getTimeModel();
         const { ids } = req.body;
-        if (!Array.isArray(ids))
+        if (!Array.isArray(ids)) {
             return res.status(400).json({ erro: "IDs inválidos" });
+        }
 
         const timeIds = ids
             .map((id) => parseInt(id))
             .filter((id) => !isNaN(id));
+
+        // ✅ CORREÇÃO: Buscar por 'id' (campo correto do schema)
         const times = await Time.find({ id: { $in: timeIds } });
         res.json(times);
     } catch (erro) {
+        console.error("[BATCH] Erro:", erro);
         res.status(500).json({ erro: "Erro no batch" });
     }
 });
 
-// Buscar status de múltiplos times (batch)
+// Buscar status de múltiplos times (batch) - OTIMIZADO
 router.post("/batch/status", async (req, res) => {
     try {
+        const Time = getTimeModel();
         const { timeIds } = req.body;
 
         if (!Array.isArray(timeIds) || timeIds.length === 0) {
-            return res.status(400).json({ erro: "timeIds deve ser um array não vazio" });
+            return res
+                .status(400)
+                .json({ erro: "timeIds deve ser um array não vazio" });
         }
 
+        const idsNumericos = timeIds
+            .map((id) => Number(id))
+            .filter((id) => !isNaN(id));
+
+        // ✅ CORREÇÃO: Buscar por 'id' (campo correto do schema)
         const times = await Time.find(
-            { time_id: { $in: timeIds.map(id => Number(id)) } },
-            { time_id: 1, ativo: 1, rodada_desistencia: 1, _id: 0 }
+            { id: { $in: idsNumericos } },
+            { id: 1, ativo: 1, rodada_desistencia: 1, _id: 0 },
         ).lean();
 
         // Criar mapa para acesso rápido
         const statusMap = {};
-        times.forEach(time => {
-            statusMap[time.time_id] = {
-                ativo: time.ativo !== false,
-                rodada_desistencia: time.rodada_desistencia
+
+        // Primeiro, assumir todos como ativos (padrão)
+        idsNumericos.forEach((id) => {
+            statusMap[id] = {
+                ativo: true,
+                rodada_desistencia: null,
             };
         });
 
+        // Depois, sobrescrever com dados reais do banco
+        times.forEach((time) => {
+            statusMap[time.id] = {
+                ativo: time.ativo !== false,
+                rodada_desistencia: time.rodada_desistencia || null,
+            };
+        });
+
+        console.log(
+            `[BATCH/STATUS] Consultado ${idsNumericos.length} times, ${times.length} encontrados no banco`,
+        );
+
         res.json({ success: true, status: statusMap });
     } catch (error) {
-        console.error("[TIMES-BATCH] Erro:", error);
+        console.error("[BATCH/STATUS] Erro:", error);
         res.status(500).json({ erro: "Erro ao buscar status dos times" });
     }
 });
 
-// Buscar times da liga
+// ==============================================================================
+// 3. ROTAS DE LIGA
+// ==============================================================================
+
+// Buscar times de uma liga específica
 router.get("/liga/:ligaId", async (req, res) => {
     try {
+        const Time = getTimeModel();
         const times = await Time.find({
             liga_id: parseInt(req.params.ligaId),
             ativo: true,
         });
         res.json(times);
     } catch (error) {
+        console.error("[TIMES/LIGA] Erro:", error);
         res.status(500).json({ erro: "Erro ao buscar times" });
     }
 });
 
-// Gerenciar Senha
+// ==============================================================================
+// 4. GERENCIAMENTO DE SENHA
+// ==============================================================================
+
 router.put("/:id/senha", async (req, res) => {
     try {
+        const Time = getTimeModel();
         const { senha } = req.body;
-        if (!senha || senha.length < 4)
-            return res.status(400).json({ erro: "Senha curta" });
+        if (!senha || senha.length < 4) {
+            return res
+                .status(400)
+                .json({ erro: "Senha deve ter no mínimo 4 caracteres" });
+        }
 
+        // ✅ Buscar por 'id' (campo correto do schema)
         const time = await Time.findOneAndUpdate(
             { id: parseInt(req.params.id) },
             { senha_acesso: senha.trim() },
             { new: true },
         );
 
-        if (!time) return res.status(404).json({ erro: "Time não encontrado" });
-        res.json({ success: true });
+        if (!time) {
+            return res.status(404).json({ erro: "Time não encontrado" });
+        }
+
+        console.log(`[SENHA] Senha atualizada para time ${req.params.id}`);
+        res.json({ success: true, mensagem: "Senha atualizada com sucesso" });
     } catch (error) {
+        console.error("[SENHA] Erro:", error);
         res.status(500).json({ erro: "Erro ao salvar senha" });
     }
 });
 
-// Status do Participante
+// ==============================================================================
+// 5. STATUS DO PARTICIPANTE (Inativar/Reativar)
+// ==============================================================================
+
 router.put("/:timeId/inativar", inativarParticipante);
 router.put("/:timeId/reativar", reativarParticipante);
 router.get("/:timeId/status", buscarStatusParticipante);
-
-// Rotas de compatibilidade (Legacy)
-router.put("/:id/inativar", async (req, res) => {
-    const time = await Time.findOneAndUpdate(
-        { id: parseInt(req.params.id) },
-        { ativo: false },
-    );
-    res.json({ success: !!time });
-});
-
-router.put("/:id/reativar", async (req, res) => {
-    const time = await Time.findOneAndUpdate(
-        { id: parseInt(req.params.id) },
-        { ativo: true },
-    );
-    res.json({ success: !!time });
-});
 
 export default router;

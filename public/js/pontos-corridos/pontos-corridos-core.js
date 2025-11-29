@@ -32,7 +32,9 @@ async function lerCachePersistente(ligaId, rodada) {
     );
 
     if (!response.ok) {
-      console.log(`[CORE] ℹ️ Cache não encontrado para rodada ${rodada} (será calculado)`);
+      console.log(
+        `[CORE] ℹ️ Cache não encontrado para rodada ${rodada} (será calculado)`,
+      );
       return null;
     }
 
@@ -63,8 +65,12 @@ async function salvarCachePersistente(ligaId, rodada, dados) {
 
     if (response.ok) {
       const result = await response.json();
-      console.log(`[CORE] 💾 ✅ Classificação da Rodada ${rodada} salva no MongoDB (ID: ${result.id})`);
-      console.log(`[CORE] 📊 Snapshot vitalício: ${dados.length} times preservados`);
+      console.log(
+        `[CORE] 💾 ✅ Classificação da Rodada ${rodada} salva no MongoDB (ID: ${result.id})`,
+      );
+      console.log(
+        `[CORE] 📊 Snapshot vitalício: ${dados.length} times preservados`,
+      );
     } else {
       console.warn(`[CORE] ⚠️ Falha ao salvar cache (HTTP ${response.status})`);
     }
@@ -257,91 +263,125 @@ export function calcularResultadoConfronto(pontosA, pontosB) {
 /**
  * Calcula a classificação completa com todos os critérios de desempate
  */
-export async function calcularClassificacao(ligaId, times, confrontos, rodadaAtualBrasileirao) {
+export async function calcularClassificacao(
+  ligaId,
+  times,
+  confrontos,
+  rodadaAtualBrasileirao,
+) {
   // ✅ VERIFICAR CACHE PRIMEIRO (MongoDB) - PRIORIDADE MÁXIMA
-  const rodadaLiga = rodadaAtualBrasileirao - PONTOS_CORRIDOS_CONFIG.rodadaInicial + 1;
+  const rodadaLiga =
+    rodadaAtualBrasileirao - PONTOS_CORRIDOS_CONFIG.rodadaInicial + 1;
   const statusMercado = getStatusMercado();
   const rodadaConsolidada = statusMercado.rodada_atual > rodadaLiga;
-  
+
   // 🔒 RODADA CONSOLIDADA: Só busca cache, NUNCA recalcula
   if (rodadaConsolidada) {
-    console.log(`[CORE] 🔒 Rodada ${rodadaLiga} CONSOLIDADA - buscando APENAS do MongoDB...`);
+    console.log(
+      `[CORE] 🔒 Rodada ${rodadaLiga} CONSOLIDADA - buscando APENAS do MongoDB...`,
+    );
     const cacheClassificacao = await lerCachePersistente(ligaId, rodadaLiga);
-    
-    if (cacheClassificacao && Array.isArray(cacheClassificacao) && cacheClassificacao.length > 0) {
-      console.log(`[CORE] 💾✅ Cache permanente encontrado (${cacheClassificacao.length} times)`);
+
+    if (
+      cacheClassificacao &&
+      Array.isArray(cacheClassificacao) &&
+      cacheClassificacao.length > 0
+    ) {
+      console.log(
+        `[CORE] 💾✅ Cache permanente encontrado (${cacheClassificacao.length} times)`,
+      );
       return {
         classificacao: cacheClassificacao,
         ultimaRodadaComDados: rodadaAtualBrasileirao,
         houveErro: false,
         fromCache: true,
-        isConsolidated: true
+        isConsolidated: true,
       };
     } else {
-      console.warn(`[CORE] ⚠️ Cache não encontrado para rodada consolidada ${rodadaLiga} - isso NÃO deveria acontecer!`);
+      console.warn(
+        `[CORE] ⚠️ Cache não encontrado para rodada consolidada ${rodadaLiga} - isso NÃO deveria acontecer!`,
+      );
       // Ainda assim retorna vazio ao invés de recalcular
       return {
         classificacao: [],
         ultimaRodadaComDados: rodadaAtualBrasileirao,
         houveErro: true,
         fromCache: false,
-        errorMessage: 'Cache MongoDB esperado mas não encontrado'
+        errorMessage: "Cache MongoDB esperado mas não encontrado",
       };
     }
   }
 
   // 🔄 RODADA EM ANDAMENTO: Tenta cache primeiro, senão calcula
   const cacheClassificacao = await lerCachePersistente(ligaId, rodadaLiga);
-  if (cacheClassificacao && Array.isArray(cacheClassificacao) && cacheClassificacao.length > 0) {
-    console.log(`[CORE] 💾 Cache temporário encontrado para rodada ${rodadaLiga} (${cacheClassificacao.length} times)`);
+  if (
+    cacheClassificacao &&
+    Array.isArray(cacheClassificacao) &&
+    cacheClassificacao.length > 0
+  ) {
+    console.log(
+      `[CORE] 💾 Cache temporário encontrado para rodada ${rodadaLiga} (${cacheClassificacao.length} times)`,
+    );
     return {
       classificacao: cacheClassificacao,
       ultimaRodadaComDados: rodadaAtualBrasileirao,
       houveErro: false,
       fromCache: true,
-      isConsolidated: false
+      isConsolidated: false,
     };
   }
 
-  console.log(`[CORE] ⚙️ Calculando classificação do zero para rodada ${rodadaLiga} (em andamento)...`);
+  console.log(
+    `[CORE] ⚙️ Calculando classificação do zero para rodada ${rodadaLiga} (em andamento)...`,
+  );
 
-  const classificacao = times.map(time => ({
+  const classificacao = times.map((time) => ({
     time_id: time.id || time.time_id,
-    nome_time: time.nome_time || time.nome || 'N/D',
-    nome_cartola: time.nome_cartola || 'N/D',
-    foto_perfil: time.foto_perfil || '',
-    foto_time: time.foto_time || '',
+    nome_time: time.nome_time || time.nome || "N/D",
+    nome_cartola: time.nome_cartola || "N/D",
+    foto_perfil: time.foto_perfil || "",
+    foto_time: time.foto_time || "",
     pontos: 0,
+    jogos: 0, // ✅ ADICIONADO
     vitorias: 0,
     empates: 0,
     derrotas: 0,
     gols_pro: 0,
     gols_contra: 0,
     saldo_gols: 0,
-    financeiro: 0
+    financeiro: 0,
+    pontosGoleada: 0, // ✅ ADICIONADO para coluna GP
   }));
 
   // ⚡ OTIMIZAÇÃO: Buscar TODAS as rodadas de uma vez
   const rodadaInicio = 1;
   const rodadaFim = Math.min(rodadaLiga, confrontos.length);
 
-  console.log(`[CORE] 🚀 Buscando rodadas ${rodadaInicio} a ${rodadaFim} em lote (MODO RECÁLCULO)...`);
-  console.warn(`[CORE] ⚠️ ATENÇÃO: Esta busca só deveria acontecer se cache MongoDB não existe!`);
+  console.log(
+    `[CORE] 🚀 Buscando rodadas ${rodadaInicio} a ${rodadaFim} em lote (MODO RECÁLCULO)...`,
+  );
+  console.warn(
+    `[CORE] ⚠️ ATENÇÃO: Esta busca só deveria acontecer se cache MongoDB não existe!`,
+  );
 
   let todasPontuacoes = [];
   try {
-    const response = await fetch(`/api/rodadas/${ligaId}/rodadas?inicio=${rodadaInicio}&fim=${rodadaFim}`);
+    const response = await fetch(
+      `/api/rodadas/${ligaId}/rodadas?inicio=${rodadaInicio}&fim=${rodadaFim}`,
+    );
     if (response.ok) {
       todasPontuacoes = await response.json();
-      console.log(`[CORE] ✅ ${todasPontuacoes.length} registros carregados em lote`);
+      console.log(
+        `[CORE] ✅ ${todasPontuacoes.length} registros carregados em lote`,
+      );
     }
   } catch (error) {
-    console.error('[CORE] ❌ Erro ao buscar rodadas em lote:', error);
+    console.error("[CORE] ❌ Erro ao buscar rodadas em lote:", error);
   }
 
   // Agrupar pontuações por rodada
   const pontuacoesPorRodada = {};
-  todasPontuacoes.forEach(p => {
+  todasPontuacoes.forEach((p) => {
     const rodadaNum = p.rodada;
     if (!pontuacoesPorRodada[rodadaNum]) {
       pontuacoesPorRodada[rodadaNum] = {};
@@ -364,7 +404,7 @@ export async function calcularClassificacao(ligaId, times, confrontos, rodadaAtu
     if (!jogosRodada || !Array.isArray(jogosRodada)) continue;
 
     // Usar pontuações já carregadas
-    const pontuacoesMap = pontuacoesPorRodada[rodadaNum] || {}
+    const pontuacoesMap = pontuacoesPorRodada[rodadaNum] || {};
 
     // Processar cada jogo da rodada
     for (const jogo of jogosRodada) {
@@ -381,29 +421,51 @@ export async function calcularClassificacao(ligaId, times, confrontos, rodadaAtu
       const resultado = calcularFinanceiroConfronto(pontosA, pontosB);
 
       // Atualizar estatísticas do Time A
-      const idxA = classificacao.findIndex(t => t.time_id === timeAId);
+      const idxA = classificacao.findIndex((t) => t.time_id === timeAId);
       if (idxA !== -1) {
+        classificacao[idxA].jogos += 1; // ✅ ADICIONADO
         classificacao[idxA].pontos += resultado.pontosA;
-        classificacao[idxA].vitorias += resultado.tipo === 'vitoria' ? 1 : 0;
-        classificacao[idxA].empates += resultado.tipo === 'empate' ? 1 : 0;
-        classificacao[idxA].derrotas += resultado.tipo !== 'vitoria' && resultado.tipo !== 'empate' ? 1 : 0;
+        classificacao[idxA].vitorias +=
+          resultado.tipo === "vitoria" || resultado.tipo === "goleada" ? 1 : 0;
+        classificacao[idxA].empates += resultado.tipo === "empate" ? 1 : 0;
+        classificacao[idxA].derrotas +=
+          resultado.pontosA === 0 && resultado.tipo !== "empate" ? 1 : 0;
         classificacao[idxA].financeiro += resultado.financeiroA;
         classificacao[idxA].gols_pro += pontosA || 0;
         classificacao[idxA].gols_contra += pontosB || 0;
-        classificacao[idxA].saldo_gols = (classificacao[idxA].gols_pro || 0) - (classificacao[idxA].gols_contra || 0);
+        classificacao[idxA].saldo_gols =
+          (classificacao[idxA].gols_pro || 0) -
+          (classificacao[idxA].gols_contra || 0);
+        // ✅ ADICIONADO: Pontos de goleada
+        if (resultado.tipo === "goleada" && resultado.financeiroA > 0) {
+          classificacao[idxA].pontosGoleada += 1;
+        }
       }
 
       // Atualizar estatísticas do Time B
-      const idxB = classificacao.findIndex(t => t.time_id === timeBId);
+      const idxB = classificacao.findIndex((t) => t.time_id === timeBId);
       if (idxB !== -1) {
+        classificacao[idxB].jogos += 1; // ✅ ADICIONADO
         classificacao[idxB].pontos += resultado.pontosB;
-        classificacao[idxB].vitorias += resultado.tipo !== 'vitoria' && resultado.tipo !== 'empate' ? 1 : 0;
-        classificacao[idxB].empates += resultado.tipo === 'empate' ? 1 : 0;
-        classificacao[idxB].derrotas += resultado.tipo === 'vitoria' ? 1 : 0;
+        classificacao[idxB].vitorias +=
+          resultado.tipo === "vitoria" || resultado.tipo === "goleada"
+            ? resultado.financeiroB > 0
+              ? 1
+              : 0
+            : 0;
+        classificacao[idxB].empates += resultado.tipo === "empate" ? 1 : 0;
+        classificacao[idxB].derrotas +=
+          resultado.pontosB === 0 && resultado.tipo !== "empate" ? 1 : 0;
         classificacao[idxB].financeiro += resultado.financeiroB;
         classificacao[idxB].gols_pro += pontosB || 0;
         classificacao[idxB].gols_contra += pontosA || 0;
-        classificacao[idxB].saldo_gols = (classificacao[idxB].gols_pro || 0) - (classificacao[idxB].gols_contra || 0);
+        classificacao[idxB].saldo_gols =
+          (classificacao[idxB].gols_pro || 0) -
+          (classificacao[idxB].gols_contra || 0);
+        // ✅ ADICIONADO: Pontos de goleada
+        if (resultado.tipo === "goleada" && resultado.financeiroB > 0) {
+          classificacao[idxB].pontosGoleada += 1;
+        }
       }
     }
   }
@@ -416,47 +478,62 @@ export async function calcularClassificacao(ligaId, times, confrontos, rodadaAtu
   });
 
   // Adicionar informações de escudo e foto de perfil usando os dados originais de 'times'
-  const classificacaoFinal = classificacao.map(timeClassificado => {
-    const timeOriginal = times.find(t => t && t.id === timeClassificado.time_id);
+  const classificacaoFinal = classificacao.map((timeClassificado) => {
+    const timeOriginal = times.find(
+      (t) => t && t.id === timeClassificado.time_id,
+    );
     if (!timeOriginal) {
-      console.warn(`[PONTOS-CORRIDOS-CORE] Time ${timeClassificado.time_id} não encontrado na lista de times para adicionar detalhes de imagem.`);
+      console.warn(
+        `[PONTOS-CORRIDOS-CORE] Time ${timeClassificado.time_id} não encontrado na lista de times para adicionar detalhes de imagem.`,
+      );
       return {
         ...timeClassificado,
-        foto_perfil: '',
-        foto_time: '',
-        url_escudo_png: '', // Adicionando para garantir que o campo exista
+        foto_perfil: "",
+        foto_time: "",
+        url_escudo_png: "", // Adicionando para garantir que o campo exista
       };
     }
 
     // Validar e extrair dados do time com fallbacks
-    const nome = timeOriginal.nome_time || timeOriginal.nome || `Time ${timeClassificado.time_id}`;
-    const escudo = timeOriginal.url_escudo_png || timeOriginal.escudo || timeOriginal.foto_time || "";
+    const nome =
+      timeOriginal.nome_time ||
+      timeOriginal.nome ||
+      `Time ${timeClassificado.time_id}`;
+    const escudo =
+      timeOriginal.url_escudo_png ||
+      timeOriginal.escudo ||
+      timeOriginal.foto_time ||
+      "";
 
     return {
       ...timeClassificado,
       nome_time: nome, // Garante que o nome esteja presente
-      foto_perfil: timeOriginal.foto_perfil || '',
-      foto_time: timeOriginal.foto_time || '', // Pode ser usado como fallback para escudo
+      foto_perfil: timeOriginal.foto_perfil || "",
+      foto_time: timeOriginal.foto_time || "", // Pode ser usado como fallback para escudo
       url_escudo_png: escudo, // Mapeando para o campo esperado pela UI
     };
   });
 
   // ✅ SALVAR NO CACHE MONGODB (Snapshot vitalício)
-  const statusMercado = getStatusMercado();
-  const rodadaConsolidada = statusMercado.rodada_atual > rodadaLiga; // Rodada já encerrada?
+  // statusMercado já declarado no início da função (linha 263)
+  const isRodadaConsolidada = statusMercado.rodada_atual > rodadaLiga; // Rodada já encerrada?
 
-  if (classificacaoFinal.length > 0 && rodadaConsolidada) {
-    console.log(`[CORE] 💾 Salvando classificação consolidada da rodada ${rodadaLiga} no MongoDB...`);
+  if (classificacaoFinal.length > 0 && isRodadaConsolidada) {
+    console.log(
+      `[CORE] 💾 Salvando classificação consolidada da rodada ${rodadaLiga} no MongoDB...`,
+    );
     await salvarCachePersistente(ligaId, rodadaLiga, classificacaoFinal);
   } else if (classificacaoFinal.length > 0) {
-    console.log(`[CORE] ⚠️ Rodada ${rodadaLiga} ainda em andamento, cache temporário não salvo.`);
+    console.log(
+      `[CORE] ⚠️ Rodada ${rodadaLiga} ainda em andamento, cache temporário não salvo.`,
+    );
   }
 
   return {
     classificacao: classificacaoFinal,
     ultimaRodadaComDados: rodadaAtualBrasileirao,
     houveErro: false,
-    fromCache: false
+    fromCache: false,
   };
 }
 
@@ -470,14 +547,17 @@ export async function processarDadosRodada(ligaId, rodadaCartola, jogos) {
     if (getRankingRodadaEspecifica) {
       const ranking = await getRankingRodadaEspecifica(ligaId, rodadaCartola);
       if (Array.isArray(ranking)) {
-        ranking.forEach(p => {
+        ranking.forEach((p) => {
           const timeId = p.time_id || p.timeId || p.id;
           pontuacoesMap[timeId] = p.pontos || 0;
         });
       }
     }
   } catch (error) {
-    console.warn(`[CORE] Erro ao buscar pontuações da rodada ${rodadaCartola}:`, error);
+    console.warn(
+      `[CORE] Erro ao buscar pontuações da rodada ${rodadaCartola}:`,
+      error,
+    );
   }
 
   return { pontuacoesMap };
@@ -493,20 +573,20 @@ export function normalizarDadosParaExportacao(jogo, pontuacoesMap = {}) {
   return {
     time1: {
       id: timeAId,
-      nome_time: jogo.timeA?.nome_time || jogo.timeA?.nome || 'N/D',
-      nome_cartola: jogo.timeA?.nome_cartola || 'N/D',
-      foto_perfil: jogo.timeA?.foto_perfil || '',
-      foto_time: jogo.timeA?.foto_time || ''
+      nome_time: jogo.timeA?.nome_time || jogo.timeA?.nome || "N/D",
+      nome_cartola: jogo.timeA?.nome_cartola || "N/D",
+      foto_perfil: jogo.timeA?.foto_perfil || "",
+      foto_time: jogo.timeA?.foto_time || "",
     },
     time2: {
       id: timeBId,
-      nome_time: jogo.timeB?.nome_time || jogo.timeB?.nome || 'N/D',
-      nome_cartola: jogo.timeB?.nome_cartola || 'N/D',
-      foto_perfil: jogo.timeB?.foto_perfil || '',
-      foto_time: jogo.timeB?.foto_time || ''
+      nome_time: jogo.timeB?.nome_time || jogo.timeB?.nome || "N/D",
+      nome_cartola: jogo.timeB?.nome_cartola || "N/D",
+      foto_perfil: jogo.timeB?.foto_perfil || "",
+      foto_time: jogo.timeB?.foto_time || "",
     },
     pontos1: pontuacoesMap[timeAId] || null,
-    pontos2: pontuacoesMap[timeBId] || null
+    pontos2: pontuacoesMap[timeBId] || null,
   };
 }
 
@@ -516,12 +596,12 @@ export function normalizarDadosParaExportacao(jogo, pontuacoesMap = {}) {
 export function normalizarClassificacaoParaExportacao(classificacao) {
   if (!Array.isArray(classificacao)) return [];
 
-  return classificacao.map(time => ({
+  return classificacao.map((time) => ({
     time_id: time.time_id,
-    nome_time: time.nome_time || 'N/D',
-    nome_cartola: time.nome_cartola || 'N/D',
-    foto_perfil: time.foto_perfil || '',
-    foto_time: time.foto_time || '',
+    nome_time: time.nome_time || "N/D",
+    nome_cartola: time.nome_cartola || "N/D",
+    foto_perfil: time.foto_perfil || "",
+    foto_time: time.foto_time || "",
     pontos: time.pontos || 0,
     vitorias: time.vitorias || 0,
     empates: time.empates || 0,
@@ -529,7 +609,7 @@ export function normalizarClassificacaoParaExportacao(classificacao) {
     gols_pro: time.gols_pro || 0,
     gols_contra: time.gols_contra || 0,
     saldo_gols: time.saldo_gols || 0,
-    financeiro: time.financeiro || 0
+    financeiro: time.financeiro || 0,
   }));
 }
 
@@ -538,11 +618,11 @@ export function normalizarClassificacaoParaExportacao(classificacao) {
  */
 export function validarDadosEntrada(times, confrontos) {
   if (!Array.isArray(times) || times.length === 0) {
-    throw new Error('Times inválidos ou vazios');
+    throw new Error("Times inválidos ou vazios");
   }
 
   if (!Array.isArray(confrontos) || confrontos.length === 0) {
-    throw new Error('Confrontos inválidos ou vazios');
+    throw new Error("Confrontos inválidos ou vazios");
   }
 
   return true;
@@ -551,7 +631,11 @@ export function validarDadosEntrada(times, confrontos) {
 /**
  * Calcula o resultado financeiro de um confronto
  */
-export function calcularFinanceiroConfronto(pontosA, pontosB, config = PONTOS_CORRIDOS_CONFIG) {
+export function calcularFinanceiroConfronto(
+  pontosA,
+  pontosB,
+  config = PONTOS_CORRIDOS_CONFIG,
+) {
   const A = parseFloat(pontosA || 0);
   const B = parseFloat(pontosB || 0);
   const diferenca = Math.abs(A - B);
@@ -566,7 +650,7 @@ export function calcularFinanceiroConfronto(pontosA, pontosB, config = PONTOS_CO
       financeiroB: financeiro.empate,
       pontosA: 1,
       pontosB: 1,
-      tipo: 'empate'
+      tipo: "empate",
     };
   }
 
@@ -578,7 +662,7 @@ export function calcularFinanceiroConfronto(pontosA, pontosB, config = PONTOS_CO
         financeiroB: -financeiro.goleada,
         pontosA: 3,
         pontosB: 0,
-        tipo: 'goleada'
+        tipo: "goleada",
       };
     } else {
       return {
@@ -586,7 +670,7 @@ export function calcularFinanceiroConfronto(pontosA, pontosB, config = PONTOS_CO
         financeiroB: financeiro.goleada,
         pontosA: 0,
         pontosB: 3,
-        tipo: 'goleada'
+        tipo: "goleada",
       };
     }
   }
@@ -598,7 +682,7 @@ export function calcularFinanceiroConfronto(pontosA, pontosB, config = PONTOS_CO
       financeiroB: -financeiro.vitoria,
       pontosA: 3,
       pontosB: 0,
-      tipo: 'vitoria'
+      tipo: "vitoria",
     };
   } else {
     return {
@@ -606,7 +690,7 @@ export function calcularFinanceiroConfronto(pontosA, pontosB, config = PONTOS_CO
       financeiroB: financeiro.vitoria,
       pontosA: 0,
       pontosB: 3,
-      tipo: 'vitoria'
+      tipo: "vitoria",
     };
   }
 }

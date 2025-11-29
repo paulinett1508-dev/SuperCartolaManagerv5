@@ -13,15 +13,53 @@ const RodadaSnapshotSchema = new mongoose.Schema({
     },
 
     dados_consolidados: {
+        // Ranking geral acumulado até esta rodada
         ranking_geral: { type: Array, default: [] },
+
+        // ✅ NOVO: Ranking específico DESTA rodada
+        ranking_rodada: { type: Array, default: [] },
+
+        // Estatísticas financeiras por time (resumo)
         times_stats: { type: Array, default: [] },
+
+        // ✅ NOVO: Extrato financeiro detalhado por participante
+        extratos_financeiros: { type: Array, default: [] },
+
+        // Confrontos dos módulos
         confrontos_mata_mata: { type: Array, default: [] },
         confrontos_pontos_corridos: { type: Array, default: [] },
         tabela_pontos_corridos: { type: Array, default: [] },
+
+        // Top 10 Mitos e Micos
+        top10: {
+            type: Object,
+            default: { mitos: [], micos: [] },
+        },
+
+        // ✅ NOVO: Artilheiro e Campeão da rodada
+        artilheiro_campeao: {
+            type: Object,
+            default: { artilheiro: null, campeao_rodada: null },
+        },
+
+        // ✅ NOVO: Luva de Ouro (ranking goleiros - Liga 02)
+        luva_de_ouro: {
+            type: Object,
+            default: { ranking: [], melhor_goleiro_rodada: null },
+        },
+
+        // Melhor do Mês
         melhor_mes: { type: Object, default: {} },
-        top10: { type: Array, default: [] },
+
+        // Destaques gerais
         destaques: { type: Object, default: {} },
     },
+
+    // ✅ NOVO: Data exata da consolidação
+    data_consolidacao: { type: Date, default: null },
+
+    // ✅ NOVO: Versão do schema para migrações futuras
+    versao_schema: { type: Number, default: 2 },
 
     status_mercado: {
         rodada_atual: Number,

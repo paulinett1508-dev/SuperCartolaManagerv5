@@ -1,18 +1,16 @@
-// public/js/luva-de-ouro.js - PONTO DE ENTRADA MODULAR
+// LUVA DE OURO - Ponto de Entrada (REFATORADO)
+// public/js/luva-de-ouro/luva-de-ouro.js
+
 console.log("🥅 [LUVA-DE-OURO] Sistema modular carregando...");
 
 /**
- * Arquivo de entrada do módulo Luva de Ouro
- * Carrega todos os sub-módulos e inicializa o sistema
+ * Verifica se todos os módulos foram carregados
  */
-
-// Verificar se os módulos foram carregados
 function verificarModulosCarregados() {
   const modulos = [
     "LuvaDeOuroConfig",
     "LuvaDeOuroCore",
     "LuvaDeOuroUI",
-    "LuvaDeOuroUtils",
     "LuvaDeOuroCache",
     "LuvaDeOuroOrquestrador",
   ];
@@ -20,7 +18,7 @@ function verificarModulosCarregados() {
   const faltando = modulos.filter((mod) => !window[mod]);
 
   if (faltando.length > 0) {
-    console.error("❌ [LUVA-DE-OURO] Módulos faltando:", faltando);
+    console.warn("⏳ [LUVA-DE-OURO] Módulos pendentes:", faltando);
     return false;
   }
 
@@ -63,19 +61,9 @@ window.mostrarDetalhesParticipante = (participanteId, participanteNome) => {
   }
 };
 
-window.carregarRankingGoleiros = (inicio, fim, forcarColeta) => {
+window.carregarRankingGoleiros = (forcarColeta = false) => {
   if (window.LuvaDeOuroOrquestrador) {
-    // Atualizar inputs se necessário
-    if (inicio !== undefined) {
-      const inputInicio = document.getElementById("luvaRodadaInicio");
-      if (inputInicio) inputInicio.value = inicio;
-    }
-    if (fim !== undefined) {
-      const inputFim = document.getElementById("luvaRodadaFim");
-      if (inputFim) inputFim.value = fim;
-    }
-
-    window.LuvaDeOuroOrquestrador.carregarRanking(forcarColeta || false);
+    window.LuvaDeOuroOrquestrador.carregarRanking(forcarColeta);
   }
 };
 
@@ -107,12 +95,36 @@ window.testarLuvaDeOuro = function () {
   console.log("  - Config:", !!window.LuvaDeOuroConfig);
   console.log("  - Core:", !!window.LuvaDeOuroCore);
   console.log("  - UI:", !!window.LuvaDeOuroUI);
-  console.log("  - Utils:", !!window.LuvaDeOuroUtils);
   console.log("  - Cache:", !!window.LuvaDeOuroCache);
   console.log("  - Orquestrador:", !!window.LuvaDeOuroOrquestrador);
+  console.log("  - Utils:", !!window.LuvaDeOuroUtils);
 
   if (window.LuvaDeOuroCache) {
     console.log("📊 Stats do cache:", window.LuvaDeOuroCache.stats());
+  }
+
+  if (window.LuvaDeOuroOrquestrador) {
+    console.log(
+      "📊 Estado do orquestrador:",
+      window.LuvaDeOuroOrquestrador.estado,
+    );
+  }
+};
+
+/**
+ * Diagnóstico completo
+ */
+window.diagnosticoLuvaDeOuro = async function () {
+  console.log("🔍 [DIAGNÓSTICO] Executando diagnóstico completo...");
+
+  if (window.LuvaDeOuroCore) {
+    try {
+      const resultado = await window.LuvaDeOuroCore.executarDiagnostico();
+      console.log("📊 Resultado do diagnóstico:", resultado);
+      return resultado;
+    } catch (error) {
+      console.error("❌ Erro no diagnóstico:", error);
+    }
   }
 };
 
@@ -127,7 +139,7 @@ if (!window.modulosCarregados) {
 
 window.modulosCarregados["luva-de-ouro"] = {
   nome: "Luva de Ouro",
-  versao: "2.0.0",
+  versao: "3.0.0",
   inicializar: inicializarLuvaDeOuro,
   carregado: true,
   modular: true,
@@ -135,7 +147,6 @@ window.modulosCarregados["luva-de-ouro"] = {
     "luva-de-ouro-config",
     "luva-de-ouro-core",
     "luva-de-ouro-ui",
-    "luva-de-ouro-utils",
     "luva-de-ouro-cache",
     "luva-de-ouro-orquestrador",
   ],
@@ -144,8 +155,7 @@ window.modulosCarregados["luva-de-ouro"] = {
 // ===== EXPORTAR FUNÇÃO GLOBAL =====
 window.inicializarLuvaDeOuro = inicializarLuvaDeOuro;
 
-console.log(
-  "✅ [LUVA-DE-OURO] Sistema modular carregado com arquitetura refatorada",
-);
+console.log("✅ [LUVA-DE-OURO] Sistema modular v3.0.0 carregado");
 console.log("🆘 Em caso de erro: window.forcarLuvaDeOuroAgora()");
 console.log("🧪 Para testar: window.testarLuvaDeOuro()");
+console.log("🔍 Diagnóstico: window.diagnosticoLuvaDeOuro()");

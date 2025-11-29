@@ -36,10 +36,7 @@ import {
   getRodadaPontosText,
 } from "./pontos-corridos/pontos-corridos-core.js";
 
-import {
-  criarBotaoExportacaoPontosCorridosRodada,
-  criarBotaoExportacaoPontosCorridosClassificacao,
-} from "./exports/export-pontos-corridos.js";
+// ✅ EXPORTS REMOVIDOS - Sistema não usa mais exportação como imagem
 
 // Exportar função principal
 export { carregarPontosCorridos };
@@ -58,4 +55,6 @@ window.getConfrontosLigaPontosCorridos = getConfrontosLigaPontosCorridos;
 window.calcularFinanceiroConfronto = calcularFinanceiroConfronto;
 window.getRodadaPontosText = getRodadaPontosText;
 
-console.log("[PONTOS-CORRIDOS] Sistema modular carregado com arquitetura refatorada");
+console.log(
+  "[PONTOS-CORRIDOS] Sistema modular carregado com arquitetura refatorada",
+);

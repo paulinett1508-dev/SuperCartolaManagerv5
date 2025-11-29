@@ -65,7 +65,7 @@ async function buscarDadosTimeRodada(participanteId, rodada) {
 
       for (const atleta of dados.atletas) {
         console.log(
-          `👤 [API-CARTOLA] Atleta: ${atleta.apelido || 'N/D'} - Posição: ${atleta.posicao_id} - Pontos: ${atleta.pontos_num || 0}`,
+          `👤 [API-CARTOLA] Atleta: ${atleta.apelido || "N/D"} - Posição: ${atleta.posicao_id} - Pontos: ${atleta.pontos_num || 0}`,
         );
 
         if (atleta.posicao_id === 1) {
@@ -74,7 +74,7 @@ async function buscarDadosTimeRodada(participanteId, rodada) {
 
           goleiro = {
             id: atleta.atleta_id,
-            nome: atleta.apelido || atleta.nome || 'Goleiro',
+            nome: atleta.apelido || atleta.nome || "Goleiro",
             clube: getClubeName(atleta.clube_id),
             pontos: pontosGoleiro,
             status: getStatusName(atleta.status_id),
@@ -85,7 +85,7 @@ async function buscarDadosTimeRodada(participanteId, rodada) {
             nome: goleiro.nome,
             pontos: goleiro.pontos,
             clube: goleiro.clube,
-            status: goleiro.status
+            status: goleiro.status,
           });
           break;
         }
@@ -203,19 +203,57 @@ async function obterParticipantesLiga(ligaId) {
 
   // ✅ CORREÇÃO: Fallback hardcoded para Liga Sobral
   const participantesHardcoded = {
-    '684d821cf1a7ae16d1f89572': [
-      { id: 1926323, nome: "Daniel Barbosa", nomeTime: "Daniel Barbosa", clubeId: 262, assinante: false },
-      { id: 13935277, nome: "Paulinett Miranda", nomeTime: "Paulinett Miranda", clubeId: 263, assinante: false },
-      { id: 14747183, nome: "Carlos Henrique", nomeTime: "Carlos Henrique", clubeId: 264, assinante: false },
-      { id: 49149009, nome: "Matheus Coutinho", nomeTime: "Matheus Coutinho", clubeId: 266, assinante: false },
-      { id: 49149388, nome: "Junior Brasilino", nomeTime: "Junior Brasilino", clubeId: 267, assinante: false },
-      { id: 50180257, nome: "Hivisson", nomeTime: "Hivisson", clubeId: 275, assinante: false }
-    ]
+    "684d821cf1a7ae16d1f89572": [
+      {
+        id: 1926323,
+        nome: "Daniel Barbosa",
+        nomeTime: "Daniel Barbosa",
+        clubeId: 262,
+        assinante: false,
+      },
+      {
+        id: 13935277,
+        nome: "Paulinett Miranda",
+        nomeTime: "Paulinett Miranda",
+        clubeId: 263,
+        assinante: false,
+      },
+      {
+        id: 14747183,
+        nome: "Carlos Henrique",
+        nomeTime: "Carlos Henrique",
+        clubeId: 264,
+        assinante: false,
+      },
+      {
+        id: 49149009,
+        nome: "Matheus Coutinho",
+        nomeTime: "Matheus Coutinho",
+        clubeId: 266,
+        assinante: false,
+      },
+      {
+        id: 49149388,
+        nome: "Junior Brasilino",
+        nomeTime: "Junior Brasilino",
+        clubeId: 267,
+        assinante: false,
+      },
+      {
+        id: 50180257,
+        nome: "Hivisson",
+        nomeTime: "Hivisson",
+        clubeId: 275,
+        assinante: false,
+      },
+    ],
   };
 
   // ✅ Se é Liga Sobral, usar dados hardcoded
   if (participantesHardcoded[ligaId]) {
-    console.log(`✅ [PARTICIPANTES] Usando dados hardcoded para liga ${ligaId}`);
+    console.log(
+      `✅ [PARTICIPANTES] Usando dados hardcoded para liga ${ligaId}`,
+    );
     const participantes = participantesHardcoded[ligaId];
     console.log(
       `✅ [PARTICIPANTES] ${participantes.length} participantes hardcoded:`,
@@ -240,7 +278,9 @@ async function obterParticipantesLiga(ligaId) {
     console.log(`📊 [PARTICIPANTES] Response status: ${response.status}`);
 
     if (!response.ok) {
-      console.log(`⚠️ [PARTICIPANTES] API falhou, tentando fallback hardcoded...`);
+      console.log(
+        `⚠️ [PARTICIPANTES] API falhou, tentando fallback hardcoded...`,
+      );
       if (participantesHardcoded[ligaId]) {
         return participantesHardcoded[ligaId];
       }
@@ -254,7 +294,9 @@ async function obterParticipantesLiga(ligaId) {
     });
 
     if (!dados.times || dados.times.length === 0) {
-      console.log(`⚠️ [PARTICIPANTES] Sem dados da API, usando fallback hardcoded...`);
+      console.log(
+        `⚠️ [PARTICIPANTES] Sem dados da API, usando fallback hardcoded...`,
+      );
       if (participantesHardcoded[ligaId]) {
         return participantesHardcoded[ligaId];
       }
@@ -280,7 +322,9 @@ async function obterParticipantesLiga(ligaId) {
 
     // ✅ Última tentativa: usar dados hardcoded
     if (participantesHardcoded[ligaId]) {
-      console.log(`🔄 [PARTICIPANTES] Usando dados hardcoded como último recurso`);
+      console.log(
+        `🔄 [PARTICIPANTES] Usando dados hardcoded como último recurso`,
+      );
       return participantesHardcoded[ligaId];
     }
 
@@ -531,7 +575,10 @@ async function gerarRankingGoleiros(ligaId, rodadaInicio, rodadaFim) {
           participante.melhorRodada = pontosRodada;
         }
 
-        if (pontosRodada < participante.piorRodada || participante.piorRodada === 999) {
+        if (
+          pontosRodada < participante.piorRodada ||
+          participante.piorRodada === 999
+        ) {
           participante.piorRodada = pontosRodada;
         }
       }
@@ -640,12 +687,12 @@ export async function obterRankingGoleiros(
 
     // Mapear participantes hardcoded com escudos corretos (baseado em participantes.js)
     const participantesMap = {
-      1926323: { nome: "Daniel Barbosa", clubeId: 262 },      // Flamengo
-      13935277: { nome: "Paulinett Miranda", clubeId: 263 },  // Botafogo
-      14747183: { nome: "Carlos Henrique", clubeId: 264 },    // Corinthians
-      49149009: { nome: "Matheus Coutinho", clubeId: 266 },   // Fluminense
-      49149388: { nome: "Junior Brasilino", clubeId: 267 },   // Vasco
-      50180257: { nome: "Hivisson", clubeId: 275 }            // Palmeiras
+      1926323: { nome: "Daniel Barbosa", clubeId: 262 }, // Flamengo
+      13935277: { nome: "Paulinett Miranda", clubeId: 263 }, // Botafogo
+      14747183: { nome: "Carlos Henrique", clubeId: 264 }, // Corinthians
+      49149009: { nome: "Matheus Coutinho", clubeId: 266 }, // Fluminense
+      49149388: { nome: "Junior Brasilino", clubeId: 267 }, // Vasco
+      50180257: { nome: "Hivisson", clubeId: 275 }, // Palmeiras
     };
 
     // Gerar ranking
@@ -661,13 +708,24 @@ export async function obterRankingGoleiros(
       const dadosParticipante = await Goleiros.find({
         ligaId,
         participanteId: timeId,
-        rodada: { $gte: rodadaInicio, $lte: rodadaFim }
+        rodada: { $gte: rodadaInicio, $lte: rodadaFim },
       }).sort({ rodada: 1 });
 
       // Calcular estatísticas
-      const pontosTotais = dadosParticipante.reduce((acc, item) => acc + (item.pontos || 0), 0);
+      const pontosTotais = dadosParticipante.reduce(
+        (acc, item) => acc + (item.pontos || 0),
+        0,
+      );
       const rodadasJogadas = dadosParticipante.length;
       const ultimaRodada = dadosParticipante[dadosParticipante.length - 1];
+
+      // ✅ NOVO: Mapear todas as rodadas para exibição em colunas
+      const rodadas = dadosParticipante.map((item) => ({
+        rodada: item.rodada,
+        pontos: parseFloat((item.pontos || 0).toFixed(2)),
+        goleiroNome: item.goleiroNome || "Sem goleiro",
+        goleiroClube: item.goleiroClube || "",
+      }));
 
       ranking.push({
         participanteId: timeId,
@@ -676,15 +734,20 @@ export async function obterRankingGoleiros(
         pontosTotais: parseFloat(pontosTotais.toFixed(2)),
         rodadasJogadas,
         totalJogos: rodadasJogadas,
-        ultimaRodada: ultimaRodada ? {
-          rodada: ultimaRodada.rodada,
-          goleiroNome: ultimaRodada.goleiroNome,
-          goleiroClube: ultimaRodada.goleiroClube,
-          pontos: parseFloat((ultimaRodada.pontos || 0).toFixed(2))
-        } : null
+        rodadas, // ✅ NOVO: Array completo de rodadas
+        ultimaRodada: ultimaRodada
+          ? {
+              rodada: ultimaRodada.rodada,
+              goleiroNome: ultimaRodada.goleiroNome,
+              goleiroClube: ultimaRodada.goleiroClube,
+              pontos: parseFloat((ultimaRodada.pontos || 0).toFixed(2)),
+            }
+          : null,
       });
 
-      console.log(`✅ Processado ${nome}: ${pontosTotais.toFixed(2)} pontos em ${rodadasJogadas} rodadas`);
+      console.log(
+        `✅ Processado ${nome}: ${pontosTotais.toFixed(2)} pontos em ${rodadasJogadas} rodadas`,
+      );
     }
 
     ranking.sort((a, b) => b.pontosTotais - a.pontosTotais);
@@ -748,74 +811,88 @@ export async function detectarUltimaRodadaConcluida() {
 }
 
 /**
-     * Obter detalhes completos de um participante específico
-     */
-async function obterDetalhesParticipante(ligaId, participanteId, rodadaInicio = 1, rodadaFim = null) {
-    console.log(`🔍 [GOLEIROS-SERVICE] Detalhes participante ${participanteId} rodadas ${rodadaInicio}-${rodadaFim || 'atual'}`);
+ * Obter detalhes completos de um participante específico
+ */
+async function obterDetalhesParticipante(
+  ligaId,
+  participanteId,
+  rodadaInicio = 1,
+  rodadaFim = null,
+) {
+  console.log(
+    `🔍 [GOLEIROS-SERVICE] Detalhes participante ${participanteId} rodadas ${rodadaInicio}-${rodadaFim || "atual"}`,
+  );
 
-    try {
-      
-
-        // Detectar rodada fim se não especificada
-        if (!rodadaFim) {
-            const statusRodada = await verificarStatusRodada(999);
-            rodadaFim = statusRodada.concluida ? statusRodada.rodadaAtual : Math.max(1, statusRodada.rodadaAtual - 1);
-        }
-
-        // Buscar dados do participante
-        const dadosParticipante = await Goleiros.find({
-            ligaId: ligaId,
-            participanteId: participanteId,
-            rodada: { $gte: rodadaInicio, $lte: rodadaFim },
-            rodadaConcluida: true
-        }).sort({ rodada: 1 });
-
-        if (dadosParticipante.length === 0) {
-            throw new Error(`Nenhum dado encontrado para o participante ${participanteId}`);
-        }
-
-        // Processar dados
-        let totalPontos = 0;
-        let melhorRodada = 0;
-        let piorRodada = Infinity;
-        const rodadas = [];
-
-        dadosParticipante.forEach(item => {
-            const pontos = item.pontos || 0;
-            totalPontos += pontos;
-            melhorRodada = Math.max(melhorRodada, pontos);
-            piorRodada = Math.min(piorRodada, pontos);
-
-            rodadas.push({
-                rodada: item.rodada,
-                goleiroNome: item.goleiroNome || 'Sem goleiro',
-                goleiroClube: item.goleiroClube || 'N/A',
-                pontos: Math.floor(pontos * 100) / 100
-            });
-        });
-
-        const totalRodadas = dadosParticipante.length;
-        const mediaPontos = totalRodadas > 0 ? totalPontos / totalRodadas : 0;
-
-        return {
-            participanteId,
-            participanteNome: dadosParticipante[0].participanteNome || `Participante ${participanteId}`,
-            rodadaInicio,
-            rodadaFim,
-            totalPontos: Math.floor(totalPontos * 100) / 100,
-            totalRodadas,
-            rodadas,
-            estatisticas: {
-                melhorRodada: Math.floor(melhorRodada * 100) / 100,
-                piorRodada: piorRodada === Infinity ? 0 : Math.floor(piorRodada * 100) / 100,
-                mediaPontos: Math.floor(mediaPontos * 100) / 100
-            }
-        };
-
-    } catch (error) {
-        console.error(`❌ [GOLEIROS-SERVICE] Erro ao obter detalhes do participante:`, error);
-        throw error;
+  try {
+    // Detectar rodada fim se não especificada
+    if (!rodadaFim) {
+      const statusRodada = await verificarStatusRodada(999);
+      rodadaFim = statusRodada.concluida
+        ? statusRodada.rodadaAtual
+        : Math.max(1, statusRodada.rodadaAtual - 1);
     }
+
+    // Buscar dados do participante
+    const dadosParticipante = await Goleiros.find({
+      ligaId: ligaId,
+      participanteId: participanteId,
+      rodada: { $gte: rodadaInicio, $lte: rodadaFim },
+      rodadaConcluida: true,
+    }).sort({ rodada: 1 });
+
+    if (dadosParticipante.length === 0) {
+      throw new Error(
+        `Nenhum dado encontrado para o participante ${participanteId}`,
+      );
+    }
+
+    // Processar dados
+    let totalPontos = 0;
+    let melhorRodada = 0;
+    let piorRodada = Infinity;
+    const rodadas = [];
+
+    dadosParticipante.forEach((item) => {
+      const pontos = item.pontos || 0;
+      totalPontos += pontos;
+      melhorRodada = Math.max(melhorRodada, pontos);
+      piorRodada = Math.min(piorRodada, pontos);
+
+      rodadas.push({
+        rodada: item.rodada,
+        goleiroNome: item.goleiroNome || "Sem goleiro",
+        goleiroClube: item.goleiroClube || "N/A",
+        pontos: Math.floor(pontos * 100) / 100,
+      });
+    });
+
+    const totalRodadas = dadosParticipante.length;
+    const mediaPontos = totalRodadas > 0 ? totalPontos / totalRodadas : 0;
+
+    return {
+      participanteId,
+      participanteNome:
+        dadosParticipante[0].participanteNome ||
+        `Participante ${participanteId}`,
+      rodadaInicio,
+      rodadaFim,
+      totalPontos: Math.floor(totalPontos * 100) / 100,
+      totalRodadas,
+      rodadas,
+      estatisticas: {
+        melhorRodada: Math.floor(melhorRodada * 100) / 100,
+        piorRodada:
+          piorRodada === Infinity ? 0 : Math.floor(piorRodada * 100) / 100,
+        mediaPontos: Math.floor(mediaPontos * 100) / 100,
+      },
+    };
+  } catch (error) {
+    console.error(
+      `❌ [GOLEIROS-SERVICE] Erro ao obter detalhes do participante:`,
+      error,
+    );
+    throw error;
+  }
 }
 
 console.log("[GOLEIROS-SERVICE] ✅ Serviço corrigido carregado com sucesso");

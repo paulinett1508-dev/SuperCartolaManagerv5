@@ -22,6 +22,7 @@ import {
   limparExportContainer,
   getRodadaAtualSelecionada,
   exibirRodadas,
+  limparCacheUI,
 } from "./rodadas-ui.js";
 
 import {
@@ -35,12 +36,14 @@ import {
   preloadEscudos,
   debounce,
   getElementCached,
+  clearDOMCache,
 } from "./rodadas-cache.js";
 
 // ESTADO DO ORQUESTRADOR
 let modulosCarregados = false;
 let ligaIdAtual = null;
 let exportModules = null;
+let carregamentoEmAndamento = false;
 
 // ==============================
 // CARREGAMENTO DE MÓDULOS EXTERNOS
@@ -52,7 +55,9 @@ async function carregarModulosExternos() {
   try {
     console.log("[RODADAS-ORQUESTRADOR] Carregando módulos essenciais...");
 
-    const pontosCorridosModule = await import("../pontos-corridos-utils.js").catch(() => null);
+    const pontosCorridosModule = await import(
+      "../pontos-corridos-utils.js"
+    ).catch(() => null);
 
     exportModules = {
       getMercadoStatus: pontosCorridosModule?.buscarStatusMercado,
@@ -60,7 +65,7 @@ async function carregarModulosExternos() {
     };
 
     modulosCarregados = true;
-    console.log("[RODADAS-ORQUESTRADOR] Módulos essenciais carregados (exportação desabilitada)");
+    console.log("[RODADAS-ORQUESTRADOR] Módulos essenciais carregados");
     return exportModules;
   } catch (error) {
     console.warn("[RODADAS-ORQUESTRADOR] Erro ao carregar módulos:", error);
@@ -83,11 +88,33 @@ export async function carregarRodadas(forceRefresh = false) {
     return;
   }
 
-  const rodadasContainer = getElementCached("rodadas");
-  if (!rodadasContainer || !rodadasContainer.classList.contains("active")) {
-    console.log("[RODADAS-ORQUESTRADOR] Container não ativo, saindo da função");
+  // ✅ CORREÇÃO: Debounce para evitar chamadas simultâneas
+  if (carregamentoEmAndamento) {
+    console.log(
+      "[RODADAS-ORQUESTRADOR] Carregamento já em andamento, aguardando...",
+    );
     return;
   }
+
+  // ✅ CORREÇÃO: Limpar cache de DOM para garantir elementos frescos
+  clearDOMCache();
+  limparCacheUI();
+
+  // ✅ CORREÇÃO: Verificar container de forma mais flexível
+  const rodadasContainer = document.getElementById("rodadas");
+
+  // Se não existe o container, não é a página de rodadas
+  if (!rodadasContainer) {
+    console.log(
+      "[RODADAS-ORQUESTRADOR] Container #rodadas não existe na página",
+    );
+    return;
+  }
+
+  // ✅ CORREÇÃO: Não verificar classe active - deixar o orquestrador principal controlar
+  // O módulo deve carregar sempre que for chamado explicitamente
+
+  carregamentoEmAndamento = true;
 
   try {
     await carregarModulosExternos();
@@ -107,6 +134,8 @@ export async function carregarRodadas(forceRefresh = false) {
   } catch (error) {
     console.error("[RODADAS-ORQUESTRADOR] Erro no carregamento:", error);
     mostrarMensagemRodada(`Erro ao carregar rodadas: ${error.message}`, "erro");
+  } finally {
+    carregamentoEmAndamento = false;
   }
 }
 
@@ -132,12 +161,14 @@ async function atualizarStatusMercadoComCache(forceRefresh = false) {
 // ==============================
 
 export async function carregarDadosRodada(rodadaSelecionada) {
-  const rankingBody = getElementCached("rankingBody");
-  if (!rankingBody) return;
+  const rankingBody = document.getElementById("rankingBody");
+  if (!rankingBody) {
+    console.warn("[RODADAS-ORQUESTRADOR] rankingBody não encontrado");
+    return;
+  }
 
   const { rodada_atual, status_mercado } = getStatusMercado();
   const mercadoAberto = status_mercado === 1;
-  const mercadoFechadoBolaRolando = status_mercado === 2; // Mercado fechado mas rodada em andamento
 
   try {
     mostrarLoading(true);
@@ -152,7 +183,6 @@ export async function carregarDadosRodada(rodadaSelecionada) {
           "info",
         );
       } else {
-        // Mercado fechado (status_mercado: 2) - permitir parciais
         await carregarRodadaParciais(rodadaSelecionada);
       }
     } else {
@@ -170,14 +200,21 @@ export async function carregarDadosRodada(rodadaSelecionada) {
 async function carregarRodadaFinalizada(rodada) {
   let rankingsData = await getCachedRankingRodada(ligaIdAtual, rodada);
 
-  // Validar se é array válido
-  if (!rankingsData || !Array.isArray(rankingsData) || rankingsData.length === 0) {
+  if (
+    !rankingsData ||
+    !Array.isArray(rankingsData) ||
+    rankingsData.length === 0
+  ) {
     console.log(
       `[RODADAS-ORQUESTRADOR] Buscando dados da rodada ${rodada} na API...`,
     );
     rankingsData = await fetchAndProcessRankingRodada(ligaIdAtual, rodada);
 
-    if (rankingsData && Array.isArray(rankingsData) && rankingsData.length > 0) {
+    if (
+      rankingsData &&
+      Array.isArray(rankingsData) &&
+      rankingsData.length > 0
+    ) {
       await cacheRankingRodada(ligaIdAtual, rodada, rankingsData);
       preloadEscudos(rankingsData);
     }
@@ -187,17 +224,15 @@ async function carregarRodadaFinalizada(rodada) {
     );
   }
 
-  // Garantir que sempre seja array antes de exibir
   if (!Array.isArray(rankingsData)) {
     rankingsData = [];
   }
 
   exibirRanking(rankingsData, rodada, ligaIdAtual);
 
-  // Ocultar botão de refresh para rodadas finalizadas
-  const btnRefresh = getElementCached('btnRefreshParciais');
+  const btnRefresh = document.getElementById("btnRefreshParciais");
   if (btnRefresh) {
-    btnRefresh.style.display = 'none';
+    btnRefresh.style.display = "none";
   }
 }
 
@@ -209,10 +244,14 @@ async function carregarRodadaParciais(rodada, forcarRecalculo = false) {
     rankingsParciais = getCachedParciais(ligaIdAtual, rodada);
   }
 
-  // Validar se é array válido
-  if (forcarRecalculo || !rankingsParciais || !Array.isArray(rankingsParciais) || rankingsParciais.length === 0) {
+  if (
+    forcarRecalculo ||
+    !rankingsParciais ||
+    !Array.isArray(rankingsParciais) ||
+    rankingsParciais.length === 0
+  ) {
     console.log(
-      `[RODADAS-ORQUESTRADOR] ${forcarRecalculo ? 'Forçando recalculo de' : 'Calculando'} parciais da rodada ${rodada}...`,
+      `[RODADAS-ORQUESTRADOR] ${forcarRecalculo ? "Forçando recalculo de" : "Calculando"} parciais da rodada ${rodada}...`,
     );
 
     let liga = getCachedLiga(ligaIdAtual);
@@ -229,7 +268,11 @@ async function carregarRodadaParciais(rodada, forcarRecalculo = false) {
 
     rankingsParciais = await calcularPontosParciais(liga, rodada);
 
-    if (rankingsParciais && Array.isArray(rankingsParciais) && rankingsParciais.length > 0) {
+    if (
+      rankingsParciais &&
+      Array.isArray(rankingsParciais) &&
+      rankingsParciais.length > 0
+    ) {
       cacheParciais(ligaIdAtual, rodada, rankingsParciais);
       preloadEscudos(rankingsParciais);
     }
@@ -239,79 +282,59 @@ async function carregarRodadaParciais(rodada, forcarRecalculo = false) {
     );
   }
 
-  // Garantir que sempre seja array antes de exibir
   if (!Array.isArray(rankingsParciais)) {
     rankingsParciais = [];
   }
 
-  await exibirRankingParciais(
-    rankingsParciais,
-    rodada,
-    ligaIdAtual,
-  );
-
-  // Configurar botão de refresh
+  await exibirRankingParciais(rankingsParciais, rodada, ligaIdAtual);
   configurarBotaoRefresh(rodada);
 }
 
 // CONFIGURAR BOTÃO DE REFRESH
 function configurarBotaoRefresh(rodada) {
-  const btnRefresh = getElementCached('btnRefreshParciais');
+  const btnRefresh = document.getElementById("btnRefreshParciais");
   if (!btnRefresh) return;
 
   const { rodada_atual, status_mercado } = getStatusMercado();
   const isParciais = rodada === rodada_atual && status_mercado === 2;
 
   if (isParciais) {
-    btnRefresh.style.display = 'flex';
+    btnRefresh.style.display = "flex";
     btnRefresh.onclick = async () => {
       btnRefresh.disabled = true;
-      const icon = btnRefresh.querySelector('.refresh-icon');
+      const icon = btnRefresh.querySelector(".refresh-icon");
       if (icon) {
-        icon.style.animation = 'spin 0.6s ease-in-out';
+        icon.style.animation = "spin 0.6s ease-in-out";
       }
 
       try {
         await carregarRodadaParciais(rodada, true);
 
-        // Mostrar feedback visual
-        const originalText = btnRefresh.querySelector('span:last-child')?.textContent;
-        const textSpan = btnRefresh.querySelector('span:last-child');
+        const textSpan = btnRefresh.querySelector("span:last-child");
         if (textSpan) {
-          textSpan.textContent = 'Atualizado!';
+          const originalText = textSpan.textContent;
+          textSpan.textContent = "Atualizado!";
           setTimeout(() => {
-            if (textSpan) textSpan.textContent = originalText || 'Atualizar';
+            if (textSpan) textSpan.textContent = originalText || "Atualizar";
           }, 2000);
         }
       } catch (error) {
-        console.error('[RODADAS-ORQUESTRADOR] Erro ao atualizar parciais:', error);
-        alert('Erro ao atualizar parciais. Tente novamente.');
+        console.error(
+          "[RODADAS-ORQUESTRADOR] Erro ao atualizar parciais:",
+          error,
+        );
       } finally {
         btnRefresh.disabled = false;
         if (icon) {
           setTimeout(() => {
-            icon.style.animation = '';
+            icon.style.animation = "";
           }, 600);
         }
       }
     };
   } else {
-    btnRefresh.style.display = 'none';
+    btnRefresh.style.display = "none";
   }
-}
-
-// ==============================
-// CRIAÇÃO DE BOTÃO DE EXPORTAÇÃO
-// ==============================
-
-function criarBotaoExportacao(rankings, rodada, isParciais) {
-  // Exportação removida - usar módulo Relatórios
-}
-
-// HELPER PARA VALORES DE BANCO
-function getBancoParaIndex(index, ligaId) {
-  const bancoPorLiga = getBancoPorLiga(ligaId);
-  return bancoPorLiga[index + 1] || 0.0;
 }
 
 // ==============================
@@ -386,14 +409,24 @@ export function isModulosCarregados() {
 export async function forcarRecarregamento() {
   console.log("[RODADAS-ORQUESTRADOR] Forçando recarregamento completo...");
 
-  const { limparCache, clearDOMCache } = await import("./rodadas-cache.js");
+  const { limparCache } = await import("./rodadas-cache.js");
   limparCache();
   clearDOMCache();
+  limparCacheUI();
 
   modulosCarregados = false;
   exportModules = null;
+  carregamentoEmAndamento = false;
 
   await carregarRodadas(true);
+}
+
+// ✅ NOVA FUNÇÃO: Reset de estado para re-entrada no módulo
+export function resetEstado() {
+  carregamentoEmAndamento = false;
+  clearDOMCache();
+  limparCacheUI();
+  console.log("[RODADAS-ORQUESTRADOR] Estado resetado para re-entrada");
 }
 
 // ==============================
@@ -409,6 +442,7 @@ if (typeof window !== "undefined") {
     getExportModules,
     isModulosCarregados,
     selecionarRodadaDebounced,
+    resetEstado,
   };
 }
 

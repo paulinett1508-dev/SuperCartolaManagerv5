@@ -1,29 +1,58 @@
-<!doctype html>
-<html lang="pt-br">
-  <head>
-    <meta charset="UTF-8" />
-    <title>📈 Parciais da Liga</title>
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <link rel="stylesheet" href="style.css" />
-    <style>
-      .button-container {
-        text-align: center;
-        margin-bottom: 20px;
-      }
-      .refresh-btn {
-        background-color: #3498db;
+<div id="parciais-container" class="module-content">
+  <h2 class="module-title">📊 Parciais ao Vivo</h2>
+
+  <div class="parciais-info" style="text-align: center; margin-bottom: 20px">
+    <h3 id="nomeLiga" style="color: #fff; margin: 0"></h3>
+    <p id="quantidadeTimes" style="color: #aaa; margin: 5px 0"></p>
+  </div>
+
+  <div class="button-container" style="text-align: center; margin-bottom: 20px">
+    <button
+      class="btn-primary"
+      id="btnAtualizarParciais"
+      style="
+        background: linear-gradient(135deg, #3498db, #2980b9);
         color: white;
         border: none;
-        padding: 10px 20px;
-        border-radius: 5px;
+        padding: 12px 24px;
+        border-radius: 8px;
         cursor: pointer;
-        margin-right: 10px;
-      }
-      .parciais-header {
-        text-align: center;
-        margin-bottom: 20px;
-      }
-      .ranking-table {
+        font-size: 14px;
+        font-weight: 600;
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        transition: all 0.2s ease;
+      "
+    >
+      🔄 Atualizar Parciais
+    </button>
+  </div>
+
+  <div class="parciais-header" style="text-align: center; margin-bottom: 20px">
+    <h3 id="rodadaAtualTitle" style="color: #ffd700; font-size: 18px"></h3>
+  </div>
+
+  <div
+    id="loading"
+    class="loading"
+    style="display: none; text-align: center; padding: 20px; color: #87ceeb"
+  >
+    <div style="font-size: 24px; margin-bottom: 10px">⏳</div>
+    Carregando parciais...
+  </div>
+
+  <div
+    id="error"
+    class="error"
+    style="display: none; text-align: center; padding: 20px; color: #e74c3c"
+  ></div>
+
+  <div class="table-container" style="overflow-x: auto">
+    <table
+      class="ranking-table"
+      id="rankingTable"
+      style="
         width: 100%;
         max-width: 1100px;
         margin: 0 auto;
@@ -31,375 +60,163 @@
         background: #1a2a44;
         color: white;
         box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
-      }
-      .ranking-table th,
-      .ranking-table td {
-        padding: 10px;
-        text-align: center;
-        border-bottom: 1px solid rgba(255, 255, 255, 0.1);
-      }
-      .ranking-table th {
-        background: #3498db;
-        text-transform: uppercase;
-        font-size: 14px;
-      }
-      .ranking-table td {
-        font-size: 14px;
-      }
-      .ranking-table tr:nth-child(even) {
-        background: #2a3b55;
-      }
-      .ranking-table tr:nth-child(odd) {
-        background: #1a2a44;
-      }
-      .ranking-table .position {
-        width: 50px;
-        font-weight: bold;
-      }
-      .ranking-table .position.mito {
-        background: #00ff00;
-        color: #000;
-      }
-      .ranking-table .position.g2-g11 {
-        background: #00cc00;
-        color: #000;
-      }
-      .ranking-table .position.z22-z31 {
-        background: #cc0000;
-        color: #fff;
-      }
-      .ranking-table .position.mico {
-        background: #ff3333;
-        color: #fff;
-      }
-      .ranking-table .cartoleiro,
-      .ranking-table .time {
-        text-align: left;
-      }
-      .ranking-table .time-coracao {
-        text-align: center;
-        width: 80px;
-      }
-      .ranking-table .time-coracao img {
-        width: 30px;
-        height: 30px;
-        vertical-align: middle;
-      }
-      .ranking-table .pontos {
-        color: #ffd700;
-        font-weight: bold;
-      }
-      .ranking-table .banco {
-        color: #00ff00;
-      }
-      .ranking-table .banco.negative {
-        color: #ff0000;
-      }
-      .ranking-table .escudo {
-        width: 30px;
-        height: 30px;
-        vertical-align: middle;
-        margin-right: 5px;
-      }
-      .loading,
-      .error {
-        text-align: center;
-        margin: 20px 0;
-        font-size: 16px;
-      }
-      .loading::after {
-        content: " ⏳";
-        display: inline-block;
-        animation: spin 1s linear infinite;
-      }
-      .error {
-        color: #e74c3c;
-      }
-      @keyframes spin {
-        0% {
-          transform: rotate(0deg);
-        }
-        100% {
-          transform: rotate(360deg);
-        }
-      }
-    </style>
-  </head>
-  <body>
-    <div class="button-container">
-      <button class="refresh-btn" id="btnAtualizarParciais">
-        🔄 Atualizar Parciais
-      </button>
-    </div>
-
-    <h2>📈 Parciais da Liga</h2>
-    <div style="text-align: center">
-      <h3 id="nomeLiga"></h3>
-      <p id="quantidadeTimes"></p>
-    </div>
-
-    <div class="parciais-header">
-      <h3 id="rodadaAtualTitle"></h3>
-    </div>
-    <div id="loading" class="loading" style="display: none">Carregando...</div>
-    <div id="error" class="error" style="display: none"></div>
-    <table class="ranking-table" id="rankingTable">
+        border-radius: 8px;
+        overflow: hidden;
+      "
+    >
       <thead>
-        <tr>
-          <th>P</th>
-          <th>Cartoleiro</th>
-          <th>Time Cartola</th>
-          <th>❤️</th>
-          <th>Pontos</th>
-          <th>Banco</th>
+        <tr style="background: linear-gradient(135deg, #3498db, #2980b9)">
+          <th
+            style="
+              padding: 12px 10px;
+              text-align: center;
+              font-size: 12px;
+              text-transform: uppercase;
+            "
+          >
+            P
+          </th>
+          <th
+            style="
+              padding: 12px 10px;
+              text-align: left;
+              font-size: 12px;
+              text-transform: uppercase;
+            "
+          >
+            Cartoleiro
+          </th>
+          <th
+            style="
+              padding: 12px 10px;
+              text-align: left;
+              font-size: 12px;
+              text-transform: uppercase;
+            "
+          >
+            Time Cartola
+          </th>
+          <th
+            style="
+              padding: 12px 10px;
+              text-align: center;
+              font-size: 12px;
+              text-transform: uppercase;
+            "
+          >
+            ❤️
+          </th>
+          <th
+            style="
+              padding: 12px 10px;
+              text-align: center;
+              font-size: 12px;
+              text-transform: uppercase;
+            "
+          >
+            Pontos
+          </th>
+          <th
+            style="
+              padding: 12px 10px;
+              text-align: center;
+              font-size: 12px;
+              text-transform: uppercase;
+            "
+          >
+            Banco
+          </th>
         </tr>
       </thead>
       <tbody id="rankingBody"></tbody>
     </table>
+  </div>
+</div>
 
-    <script>
-      const urlParams = new URLSearchParams(window.location.search);
-      const ligaId = urlParams.get("id");
-      if (!ligaId) {
-        document.body.innerHTML =
-          "<p style='color: red; text-align: center;'>ID da liga não fornecido.</p>";
-        throw new Error("ID da liga não fornecido");
-      }
+<style>
+  #parciais-container {
+    padding: 20px;
+  }
 
-      const bancoValores = {
-        1: 20.0,
-        2: 19.0,
-        3: 18.0,
-        4: 17.0,
-        5: 16.0,
-        6: 15.0,
-        7: 14.0,
-        8: 13.0,
-        9: 12.0,
-        10: 11.0,
-        11: 10.0,
-        12: 0.0,
-        13: 0.0,
-        14: 0.0,
-        15: 0.0,
-        16: 0.0,
-        17: 0.0,
-        18: 0.0,
-        19: 0.0,
-        20: 0.0,
-        21: 0.0,
-        22: -10.0,
-        23: -11.0,
-        24: -12.0,
-        25: -13.0,
-        26: -14.0,
-        27: -15.0,
-        28: -16.0,
-        29: -17.0,
-        30: -18.0,
-        31: -19.0,
-        32: -20.0,
-      };
+  #parciais-container .ranking-table td {
+    padding: 10px;
+    text-align: center;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+    font-size: 14px;
+  }
 
-      window.carregarParciais = async function() {
-        const rankingBody = document.getElementById("rankingBody");
-        const loading = document.getElementById("loading");
-        const error = document.getElementById("error");
-        const nomeLiga = document.getElementById("nomeLiga");
-        const quantidadeTimes = document.getElementById("quantidadeTimes");
-        const rodadaAtualTitle = document.getElementById("rodadaAtualTitle");
+  #parciais-container .ranking-table tr:nth-child(even) {
+    background: #2a3b55;
+  }
 
-        try {
-          loading.style.display = "block";
-          error.style.display = "none";
-          rankingBody.innerHTML = "";
+  #parciais-container .ranking-table tr:nth-child(odd) {
+    background: #1a2a44;
+  }
 
-          const cacheKey = `parciais_${ligaId}`;
-          const cachedData = localStorage.getItem(cacheKey);
-          if (cachedData) {
-            const { rankings, timestamp } = JSON.parse(cachedData);
-            if (Date.now() - timestamp < 5 * 60 * 1000) {
-              // 5 minutos
-              exibirRanking(rankings);
-              return;
-            }
-          }
+  #parciais-container .ranking-table .position {
+    width: 50px;
+    font-weight: bold;
+  }
 
-          const resMercado = await fetch("/api/mercado/status");
-          if (!resMercado.ok)
-            throw new Error("Erro ao buscar status do mercado");
-          const mercadoStatus = await resMercado.json();
-          const rodadaAtual = mercadoStatus.rodada_atual;
+  #parciais-container .ranking-table .position.mito {
+    background: #00ff00;
+    color: #000;
+  }
 
-          const resLiga = await fetch(`/api/ligas/${ligaId}`);
-          if (!resLiga.ok) throw new Error("Erro ao buscar dados da liga");
-          const liga = await resLiga.json();
+  #parciais-container .ranking-table .position.g2-g11 {
+    background: #00cc00;
+    color: #000;
+  }
 
-          nomeLiga.textContent = liga.nome || "Nome não disponível";
-          quantidadeTimes.textContent = `${liga.times.length} time(s) cadastrados`;
+  #parciais-container .ranking-table .position.z22-z31 {
+    background: #cc0000;
+    color: #fff;
+  }
 
-          // ✅ CORREÇÃO: Parciais só disponíveis quando mercado está FECHADO (jogos acontecendo)
-          if (mercadoStatus.mercado_aberto) {
-            loading.style.display = "none";
-            rodadaAtualTitle.textContent = `⏸️ Mercado Aberto - Rodada ${rodadaAtual}`;
-            rankingBody.innerHTML = `<tr><td colspan="6" style="text-align: center; padding: 40px; background: linear-gradient(135deg, #1e3a5f 0%, #2a4a6f 100%);">
-              <div style="font-size: 24px; margin-bottom: 15px; color: #ffd700;">⏳ Aguardando Início da Rodada ${rodadaAtual}</div>
-              <div style="font-size: 16px; color: #87ceeb; margin-bottom: 10px;">O mercado está em período de escalação</div>
-              <div style="font-size: 14px; color: #aaa;">Parciais ao vivo estarão disponíveis quando:</div>
-              <ul style="list-style: none; padding: 0; margin-top: 10px; color: #ccc; font-size: 14px;">
-                <li>✅ O mercado fechar</li>
-                <li>✅ Os jogos da rodada começarem</li>
-              </ul>
-            </td></tr>`;
-            return;
-          }
+  #parciais-container .ranking-table .position.mico {
+    background: #ff3333;
+    color: #fff;
+  }
 
-          rodadaAtualTitle.textContent = `🔥 Parciais AO VIVO - Rodada ${rodadaAtual}`;
+  #parciais-container .ranking-table .cartoleiro,
+  #parciais-container .ranking-table .time {
+    text-align: left;
+  }
 
-          const resPartials = await fetch("/api/partials", {
-            headers: {
-              "Cache-Control": "no-cache",
-              Pragma: "no-cache",
-              "If-Modified-Since": "0",
-            },
-          });
-          if (!resPartials.ok) throw new Error("Erro ao buscar parciais");
-          const partialsData = await resPartials.json();
-          if (!partialsData.atletas)
-            throw new Error("Dados de parciais não disponíveis");
+  #parciais-container .ranking-table .time-coracao {
+    text-align: center;
+    width: 50px;
+  }
 
-          const rankings = await Promise.all(
-            liga.times.map(async (time) => {
-              try {
-                const resInfo = await fetch(`/api/time/${time.id}`);
-                const resEscalacao = await fetch(
-                  `/api/time/${time.id}/${rodadaAtual}`,
-                );
-                if (!resInfo.ok || !resEscalacao.ok) return null;
+  #parciais-container .ranking-table .time-coracao img {
+    width: 24px;
+    height: 24px;
+    vertical-align: middle;
+  }
 
-                const dadosInfo = await resInfo.json();
-                const dadosEscalacao = await resEscalacao.json();
+  #parciais-container .ranking-table .pontos {
+    color: #ffd700;
+    font-weight: bold;
+  }
 
-                let pontos = 0;
-                dadosEscalacao.atletas.forEach((atleta) => {
-                  const pontuacao =
-                    partialsData.atletas[atleta.atleta_id]?.pontuacao || 0;
-                  pontos +=
-                    atleta.atleta_id === dadosEscalacao.capitao_id
-                      ? pontuacao * 2
-                      : pontuacao;
-                });
+  #parciais-container .ranking-table .banco {
+    color: #00ff00;
+  }
 
-                return {
-                  id: time.id,
-                  cartoleiro: dadosInfo.nome_cartoleiro || "N/D",
-                  time: dadosInfo.nome_time || "N/D",
-                  escudo: dadosInfo.escudo_url || "",
-                  timeDoCoracao: time.timeDoCoracao || "",
-                  pontos: pontos.toFixed(2),
-                };
-              } catch (err) {
-                console.warn(
-                  `Erro ao processar time ${time.id}: ${err.message}`,
-                );
-                return null;
-              }
-            }),
-          );
+  #parciais-container .ranking-table .banco.negative {
+    color: #ff4444;
+  }
 
-          const validRankings = rankings.filter(Boolean);
-          validRankings.sort(
-            (a, b) => parseFloat(b.pontos) - parseFloat(a.pontos),
-          );
-          validRankings.forEach((rank, index) => {
-            const position = index + 1;
-            rank.banco =
-              bancoValores[position] !== undefined
-                ? bancoValores[position].toFixed(2)
-                : "0.00";
-          });
+  #parciais-container .ranking-table .escudo {
+    width: 24px;
+    height: 24px;
+    vertical-align: middle;
+    margin-right: 8px;
+    border-radius: 4px;
+  }
 
-          localStorage.setItem(
-            cacheKey,
-            JSON.stringify({ rankings: validRankings, timestamp: Date.now() }),
-          );
-          exibirRanking(validRankings);
-        } catch (err) {
-          error.textContent = `Não foi possível carregar as parciais: ${err.message}. Tente novamente mais tarde.`;
-          error.style.display = "block";
-          rankingBody.innerHTML = "";
-        } finally {
-          loading.style.display = "none";
-        }
-      }
-
-      window.exibirRanking = function(rankings) {
-        const rankingBody = document.getElementById("rankingBody");
-        rankingBody.innerHTML =
-          rankings
-            .map((rank, index) => {
-              const position = index + 1;
-              let positionLabel = `${position}º`;
-              let positionClass = "";
-              if (position === 1) {
-                positionLabel = "MITO";
-                positionClass = "mito";
-              } else if (position >= 2 && position <= 11) {
-                positionLabel = `G${position}`;
-                positionClass = "g2-g11";
-              } else if (position >= 22 && position <= 31) {
-                positionLabel = `Z${position}`;
-                positionClass = "z22-z31";
-              } else if (position === rankings.length) {
-                positionLabel = "MICO";
-                positionClass = "mico";
-              }
-              return `
-              <tr>
-                <td class="position ${positionClass}">${positionLabel}</td>
-                <td class="cartoleiro"><img src="${rank.escudo}" class="escudo" alt="Escudo"/>${rank.cartoleiro}</td>
-                <td class="time">${rank.time}</td>
-                <td class="time-coracao">${rank.timeDoCoracao ? `<img src="${rank.timeDoCoracao}" alt="Escudo do Coração"/>` : "N/D"}</td>
-                <td class="pontos">${rank.pontos}</td>
-                <td class="banco ${rank.banco >= 0 ? "" : "negative"}">${rank.banco >= 0 ? "R$ " + rank.banco : "-R$ " + Math.abs(rank.banco)}</td>
-              </tr>
-            `;
-            })
-            .join("") ||
-          `<tr><td colspan="6">Nenhum dado disponível para exibição.</td></tr>`;
-      }
-
-      // Configurar botão de atualizar com validação
-      const btnAtualizarParciais = document.getElementById("btnAtualizarParciais");
-      if (btnAtualizarParciais) {
-        btnAtualizarParciais.addEventListener("click", async function() {
-          try {
-            // Verificar status do mercado primeiro
-            const resMercado = await fetch("/api/mercado/status");
-            if (!resMercado.ok) throw new Error("Erro ao verificar status do mercado");
-            const mercadoStatus = await resMercado.json();
-            
-            if (mercadoStatus.mercado_aberto) {
-              alert(`⏸️ Rodada ${mercadoStatus.rodada_atual} - Mercado Aberto\n\n` +
-                    `As parciais ao vivo só estarão disponíveis quando:\n` +
-                    `✅ O mercado fechar\n` +
-                    `✅ Os jogos da rodada começarem\n\n` +
-                    `Aguarde o início da rodada para visualizar as parciais.`);
-              return;
-            }
-            
-            // Se mercado fechado, limpar cache e recarregar parciais
-            const cacheKey = `parciais_${ligaId}`;
-            localStorage.removeItem(cacheKey);
-            await carregarParciais();
-          } catch (error) {
-            console.error("Erro ao atualizar:", error);
-            alert("Erro ao verificar status do mercado. Tente novamente.");
-          }
-        });
-      }
-
-      document.addEventListener("DOMContentLoaded", carregarParciais);
-    </script>
-  </body>
-</html>
+  #btnAtualizarParciais:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(52, 152, 219, 0.4);
+  }
+</style>

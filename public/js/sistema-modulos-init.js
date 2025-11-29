@@ -1,37 +1,35 @@
+// SISTEMA DE MÓDULOS - INICIALIZAÇÃO
+// Carregado ANTES de qualquer outro script
 
-// ✅ SISTEMA DE MÓDULOS - INICIALIZAÇÃO IMEDIATA
-// Este arquivo DEVE ser carregado ANTES de qualquer outro script
+(function () {
+    "use strict";
 
-(function() {
-    'use strict';
-    
-    console.log('🔧 [SISTEMA-MODULOS] Inicializando sistema de módulos...');
-
-    // ✅ CRIAR SISTEMA ANTES DE QUALQUER COISA
+    // Criar sistema se não existir
     if (!window.sistemaModulos) {
         window.sistemaModulos = {
-            registrar: function(nome, modulo) {
+            registrar: function (nome, modulo) {
                 window.modulosCarregados = window.modulosCarregados || {};
                 window.modulosCarregados[nome] = modulo;
-                console.log(`✅ [SISTEMA-MODULOS] ${nome} registrado`);
                 return modulo;
             },
-            obter: function(nome) {
-                return window.modulosCarregados && window.modulosCarregados[nome];
+            obter: function (nome) {
+                return (
+                    window.modulosCarregados && window.modulosCarregados[nome]
+                );
             },
-            listar: function() {
-                return window.modulosCarregados ? Object.keys(window.modulosCarregados) : [];
+            listar: function () {
+                return window.modulosCarregados
+                    ? Object.keys(window.modulosCarregados)
+                    : [];
             },
-            existe: function(nome) {
-                return !!(window.modulosCarregados && window.modulosCarregados[nome]);
-            }
+            existe: function (nome) {
+                return !!(
+                    window.modulosCarregados && window.modulosCarregados[nome]
+                );
+            },
         };
     }
 
-    // ✅ GARANTIR OBJETO GLOBAL
+    // Garantir objeto global
     window.modulosCarregados = window.modulosCarregados || {};
-
-    console.log('✅ [SISTEMA-MODULOS] Sistema inicializado com sucesso');
-    console.log(`📦 [SISTEMA-MODULOS] Módulos disponíveis: ${Object.keys(window.modulosCarregados).length}`);
-
 })();

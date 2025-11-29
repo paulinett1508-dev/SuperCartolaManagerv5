@@ -1,27 +1,107 @@
-<!-- public/templates/luva-de-ouro.html -->
+<!-- public/templates/luva-de-ouro.html - VERSÃO COMPACTA ADMIN -->
+<style>
+  /* Só loading inicial - resto vem do CSS externo */
+  #luvaDeOuroContent {
+    min-height: 200px;
+  }
+  .luva-init-loading {
+    text-align: center;
+    padding: 40px;
+  }
+  .luva-init-loading .spinner {
+    width: 30px;
+    height: 30px;
+    border: 2px solid rgba(74, 124, 35, 0.2);
+    border-top-color: #4a7c23;
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+    margin: 0 auto 8px;
+  }
+  @keyframes spin {
+    to {
+      transform: rotate(360deg);
+    }
+  }
+</style>
+
 <div class="module-content">
   <!-- Container principal do módulo -->
   <div id="luvaDeOuroContent">
-    <!-- Conteúdo será injetado dinamicamente pelo orquestrador -->
+    <div class="luva-init-loading">
+      <div class="spinner"></div>
+      <p>Carregando Luva de Ouro...</p>
+    </div>
   </div>
 </div>
-
-<!-- Exportação removida - usar módulo Relatórios -->
 
 <script>
   // Inicialização automática do módulo
   (function () {
     console.log("🥅 [LUVA-HTML] Inicializando módulo Luva de Ouro...");
 
-    // Aguardar DOM e módulos estarem prontos
-    function tentarInicializar() {
-      if (typeof window.inicializarLuvaDeOuro === "function") {
-        console.log("✅ [LUVA-HTML] Função encontrada, inicializando...");
-        window.inicializarLuvaDeOuro();
-      } else {
-        console.log("⏳ [LUVA-HTML] Aguardando módulos carregarem...");
-        setTimeout(tentarInicializar, 200);
+    let tentativas = 0;
+    const maxTentativas = 30; // 6 segundos
+
+    function verificarModulos() {
+      const modulosNecessarios = [
+        "LuvaDeOuroConfig",
+        "LuvaDeOuroCore",
+        "LuvaDeOuroUI",
+        "LuvaDeOuroCache",
+        "LuvaDeOuroOrquestrador",
+      ];
+
+      const faltando = modulosNecessarios.filter((mod) => !window[mod]);
+
+      if (faltando.length === 0) {
+        return true;
       }
+
+      console.log(`⏳ [LUVA-HTML] Aguardando módulos: ${faltando.join(", ")}`);
+      return false;
+    }
+
+    function tentarInicializar() {
+      tentativas++;
+
+      if (verificarModulos()) {
+        console.log(
+          "✅ [LUVA-HTML] Todos os módulos carregados, inicializando...",
+        );
+
+        // Dar um pequeno delay para garantir que tudo está pronto
+        setTimeout(() => {
+          if (window.LuvaDeOuroOrquestrador?.inicializar) {
+            window.LuvaDeOuroOrquestrador.inicializar();
+          } else {
+            console.error("❌ [LUVA-HTML] Orquestrador não disponível");
+          }
+        }, 100);
+
+        return;
+      }
+
+      if (tentativas >= maxTentativas) {
+        console.error("❌ [LUVA-HTML] Timeout aguardando módulos");
+        const container = document.getElementById("luvaDeOuroContent");
+        if (container) {
+          container.innerHTML = `
+            <div style="text-align: center; padding: 40px; color: #dc3545;">
+              <p style="font-size: 24px; margin-bottom: 12px;">❌</p>
+              <p style="font-weight: 600;">Erro ao carregar módulo</p>
+              <p style="font-size: 12px; color: #888; margin-top: 8px;">
+                Verifique o console para mais detalhes
+              </p>
+              <button onclick="location.reload()" style="margin-top: 16px; padding: 8px 20px; background: #e67e22; border: none; border-radius: 6px; color: #fff; cursor: pointer;">
+                Recarregar Página
+              </button>
+            </div>
+          `;
+        }
+        return;
+      }
+
+      setTimeout(tentarInicializar, 200);
     }
 
     // Iniciar verificação

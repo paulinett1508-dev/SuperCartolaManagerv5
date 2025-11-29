@@ -1,33 +1,10 @@
-// MÓDULO PARTICIPANTES MELHORADO - UX Aprimorada
+// MÓDULO PARTICIPANTES - VERSÃO OTIMIZADA (Performance)
 
 const urlParams = new URLSearchParams(window.location.search);
 const ligaId = urlParams.get("id");
 
-// ==============================
-// VARIÁVEIS PARA EXPORTS DINÂMICOS
-// ==============================
-let criarBotaoExportacaoParticipantes = null;
-let exportarParticipantesComoImagem = null;
-let exportsCarregados = false;
-
-// ==============================
-// CARREGAR EXPORTS DINAMICAMENTE
-// ==============================
-async function carregarExports() {
-    if (exportsCarregados) return;
-
-    try {
-        const exportModule = await import("./exports/export-exports.js");
-        criarBotaoExportacaoParticipantes =
-            exportModule.criarBotaoExportacaoParticipantes;
-        exportarParticipantesComoImagem =
-            exportModule.exportarParticipantesComoImagem;
-        exportsCarregados = true;
-        console.log("[PARTICIPANTES] ✅ Exports carregados com sucesso");
-    } catch (error) {
-        console.warn("[PARTICIPANTES] ⚠️ Erro ao carregar exports:", error);
-    }
-}
+// ✅ DEBOUNCE: Evitar cliques duplicados
+let operacaoEmAndamento = false;
 
 // CONFIGURAÇÃO DOS BRASÕES
 const CLUBES_CONFIG = {
@@ -74,34 +51,161 @@ const BrasoesHelper = {
 };
 
 // ==============================
-// FUNÇÃO PRINCIPAL MELHORADA
+// ✅ MODAL NÃO-BLOQUEANTE
+// ==============================
+function mostrarModal(config) {
+    return new Promise((resolve) => {
+        document.querySelector(".modal-custom")?.remove();
+
+        const modal = document.createElement("div");
+        modal.className = "modal-custom";
+        modal.innerHTML = `
+            <div class="modal-custom-overlay"></div>
+            <div class="modal-custom-content">
+                <div class="modal-custom-header">
+                    <h3>${config.titulo || "Confirmação"}</h3>
+                </div>
+                <div class="modal-custom-body">
+                    ${config.mensagem || ""}
+                    ${
+                        config.input
+                            ? `
+                        <div class="modal-input-group">
+                            <label>${config.input.label || ""}</label>
+                            <input type="${config.input.type || "text"}" 
+                                   id="modal-input-value"
+                                   placeholder="${config.input.placeholder || ""}"
+                                   value="${config.input.value || ""}"
+                                   ${config.input.min ? `min="${config.input.min}"` : ""}
+                                   ${config.input.max ? `max="${config.input.max}"` : ""}>
+                        </div>
+                    `
+                            : ""
+                    }
+                </div>
+                <div class="modal-custom-footer">
+                    <button class="btn-modal-cancel">Cancelar</button>
+                    <button class="btn-modal-confirm">${config.btnConfirmar || "Confirmar"}</button>
+                </div>
+            </div>
+        `;
+
+        // Estilo inline
+        modal.querySelector(".modal-custom-overlay").style.cssText = `
+            position: fixed; top: 0; left: 0; right: 0; bottom: 0;
+            background: rgba(0,0,0,0.7); z-index: 9998;
+        `;
+        modal.querySelector(".modal-custom-content").style.cssText = `
+            position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%);
+            background: #1a1a2e; border-radius: 12px; padding: 20px;
+            min-width: 320px; max-width: 90vw; z-index: 9999;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.5);
+        `;
+        modal.querySelector(".modal-custom-header h3").style.cssText = `
+            margin: 0 0 15px 0; color: #fff; font-size: 1.1em;
+        `;
+        modal.querySelector(".modal-custom-body").style.cssText = `
+            color: #ccc; margin-bottom: 20px; line-height: 1.5;
+        `;
+        if (modal.querySelector(".modal-input-group")) {
+            modal.querySelector(".modal-input-group").style.cssText =
+                `margin-top: 15px;`;
+            modal.querySelector(".modal-input-group label").style.cssText = `
+                display: block; margin-bottom: 5px; color: #aaa; font-size: 0.9em;
+            `;
+            modal.querySelector("#modal-input-value").style.cssText = `
+                width: 100%; padding: 10px; border: 1px solid #333;
+                background: #0d0d1a; color: #fff; border-radius: 6px; font-size: 1em;
+            `;
+        }
+        modal.querySelector(".modal-custom-footer").style.cssText = `
+            display: flex; gap: 10px; justify-content: flex-end;
+        `;
+        modal.querySelector(".btn-modal-cancel").style.cssText = `
+            padding: 10px 20px; border: 1px solid #444; background: transparent;
+            color: #aaa; border-radius: 6px; cursor: pointer;
+        `;
+        modal.querySelector(".btn-modal-confirm").style.cssText = `
+            padding: 10px 20px; border: none; background: #e63946;
+            color: #fff; border-radius: 6px; cursor: pointer;
+        `;
+
+        const fechar = (resultado) => {
+            modal.remove();
+            resolve(resultado);
+        };
+
+        modal.querySelector(".modal-custom-overlay").onclick = () =>
+            fechar(null);
+        modal.querySelector(".btn-modal-cancel").onclick = () => fechar(null);
+        modal.querySelector(".btn-modal-confirm").onclick = () => {
+            if (config.input) {
+                const valor =
+                    document.getElementById("modal-input-value")?.value;
+                fechar(valor);
+            } else {
+                fechar(true);
+            }
+        };
+
+        const handleEsc = (e) => {
+            if (e.key === "Escape") {
+                document.removeEventListener("keydown", handleEsc);
+                fechar(null);
+            }
+        };
+        document.addEventListener("keydown", handleEsc);
+
+        document.body.appendChild(modal);
+
+        if (config.input) {
+            setTimeout(
+                () => document.getElementById("modal-input-value")?.focus(),
+                100,
+            );
+        }
+    });
+}
+
+// ✅ TOAST NÃO-BLOQUEANTE
+function mostrarToast(mensagem, tipo = "success") {
+    const toast = document.createElement("div");
+    toast.className = `toast-notification toast-${tipo}`;
+    toast.innerHTML = `
+        <span class="toast-icon">${tipo === "success" ? "✅" : tipo === "error" ? "❌" : "ℹ️"}</span>
+        <span class="toast-message">${mensagem}</span>
+    `;
+    toast.style.cssText = `
+        position: fixed; bottom: 20px; right: 20px; z-index: 10000;
+        background: ${tipo === "success" ? "#2d5a27" : tipo === "error" ? "#8b2635" : "#1a4a6e"};
+        color: #fff; padding: 12px 20px; border-radius: 8px;
+        display: flex; align-items: center; gap: 10px;
+        box-shadow: 0 4px 20px rgba(0,0,0,0.4);
+        animation: slideIn 0.3s ease;
+    `;
+
+    document.body.appendChild(toast);
+    setTimeout(() => {
+        toast.style.opacity = "0";
+        toast.style.transition = "opacity 0.3s";
+        setTimeout(() => toast.remove(), 300);
+    }, 3000);
+}
+
+// ==============================
+// FUNÇÃO PRINCIPAL
 // ==============================
 export async function carregarDadosBasicos() {
     try {
-        if (!ligaId) {
-            console.warn("Liga ID não encontrado na URL");
-            return;
-        }
-
-        console.log(`Carregando dados básicos da liga: ${ligaId}`);
+        if (!ligaId) return;
 
         const res = await fetch(`/api/ligas/${ligaId}`);
-        if (!res.ok) {
-            console.warn(
-                `Erro ao buscar liga: ${res.status} ${res.statusText}`,
-            );
-            return;
-        }
+        if (!res.ok) return;
 
         const liga = await res.json();
-        if (!liga) {
-            console.warn("Liga não encontrada");
-            return;
-        }
+        if (!liga) return;
 
-        // Carregar participantes automaticamente
         await carregarParticipantesComBrasoes();
-
         return liga;
     } catch (err) {
         console.error("Erro ao carregar dados básicos:", err);
@@ -109,29 +213,21 @@ export async function carregarDadosBasicos() {
 }
 
 // ==============================
-// CARREGAR PARTICIPANTES COM UX MELHORADA
+// CARREGAR PARTICIPANTES
 // ==============================
 async function carregarParticipantesComBrasoes() {
     const container = document.getElementById("participantes-grid");
-    if (!container) {
-        console.log("Container participantes-grid não encontrado");
+    if (!container) return;
+
+    if (container.dataset.loading === "true") {
+        console.log("[PARTICIPANTES] ⏸️ Carregamento já em andamento");
         return;
     }
-
-    // ✅ PROTEÇÃO: Evitar múltiplas chamadas simultâneas
-    if (container.dataset.loading === 'true') {
-        console.log("[PARTICIPANTES] ⏸️ Carregamento já em andamento, aguardando...");
-        return;
-    }
-    container.dataset.loading = 'true';
-
-    // Carregar exports
-    await carregarExports();
+    container.dataset.loading = "true";
 
     try {
         console.log(`Carregando participantes da liga: ${ligaId}`);
 
-        // Buscar dados da liga
         const resLiga = await fetch(`/api/ligas/${ligaId}`);
         if (!resLiga.ok) throw new Error("Erro ao buscar liga");
         const liga = await resLiga.json();
@@ -141,40 +237,42 @@ async function carregarParticipantesComBrasoes() {
                 <div class="participantes-empty-state">
                     <div class="empty-icon">👥</div>
                     <div class="empty-title">Nenhum participante cadastrado</div>
-                    <div class="empty-message">Esta liga ainda não possui participantes</div>
                 </div>
             `;
             return;
         }
 
-        console.log(`[PARTICIPANTES] ⚡ Usando dados da liga (${liga.participantes.length} participantes)`);
+        console.log(
+            `[PARTICIPANTES] ⚡ ${liga.participantes.length} participantes`,
+        );
 
-        // ✅ SUPER OTIMIZADO: Buscar status de todos os times em UMA ÚNICA requisição batch
-        const timeIds = liga.participantes.map(p => p.time_id);
+        // Batch status
+        const timeIds = liga.participantes.map((p) => p.time_id);
         let statusMap = {};
 
         try {
-            const statusRes = await fetch('/api/times/batch/status', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ timeIds })
+            const statusRes = await fetch("/api/times/batch/status", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ timeIds }),
             });
 
             if (statusRes.ok) {
                 const statusData = await statusRes.json();
                 statusMap = statusData.status || {};
-                console.log(`[PARTICIPANTES] ✅ Status batch carregado (1 requisição para ${timeIds.length} times)`);
-            } else {
-                console.warn('[PARTICIPANTES] ⚠️ Erro ao buscar status batch, assumindo todos ativos');
+                console.log(`[PARTICIPANTES] ✅ Status batch OK`);
             }
         } catch (error) {
-            console.warn('[PARTICIPANTES] ⚠️ Falha no batch status:', error.message);
+            console.warn("[PARTICIPANTES] ⚠️ Falha batch status");
         }
 
-        // Processar participantes com dados da liga + status batch
+        // Processar participantes
         const timesData = liga.participantes.map((participante, index) => {
             const timeId = participante.time_id;
-            const status = statusMap[timeId] || { ativo: true, rodada_desistencia: null };
+            const status = statusMap[timeId] || {
+                ativo: true,
+                rodada_desistencia: null,
+            };
 
             return {
                 id: timeId,
@@ -184,11 +282,10 @@ async function carregarParticipantesComBrasoes() {
                 url_escudo_png: participante.foto_time,
                 ativo: status.ativo,
                 rodada_desistencia: status.rodada_desistencia,
-                index
+                index,
             };
         });
 
-        // Filtrar times válidos e ordenar
         const timesValidos = timesData
             .filter((t) => t !== null)
             .sort((a, b) =>
@@ -197,19 +294,16 @@ async function carregarParticipantesComBrasoes() {
                 ),
             );
 
-        // Limpar container
         container.innerHTML = "";
 
-        // Renderizar cards
         timesValidos.forEach((timeData, index) => {
-            // Verificar status do participante ANTES de criar o card
             const estaAtivo = timeData.ativo !== false;
-
             const card = document.createElement("div");
-            card.className = `participante-card ${!estaAtivo ? 'card-inativo' : ''}`;
+            card.className = `participante-card ${!estaAtivo ? "card-inativo" : ""}`;
+            card.id = `card-time-${timeData.id}`;
+            card.setAttribute("data-time-id", timeData.id);
+            card.setAttribute("data-ativo", estaAtivo);
             card.setAttribute("data-delay", index % 10);
-
-            // Adicionar dados para busca
             card.setAttribute(
                 "data-nome",
                 (timeData.nome_cartoleiro || "").toLowerCase(),
@@ -226,14 +320,14 @@ async function carregarParticipantesComBrasoes() {
             const temClubeCoracao =
                 timeData.clube_id &&
                 CLUBES_CONFIG.MAPEAMENTO[timeData.clube_id];
-            const statusClass = estaAtivo ? 'status-ativo' : 'status-inativo';
-            const statusText = estaAtivo ? 'Ativo' : `Inativo desde R${timeData.rodada_desistencia || '?'}`;
-
-            console.log(`[CARD] ${timeData.nome_cartoleiro}: estaAtivo=${estaAtivo}, classe=${statusClass}`);
+            const statusClass = estaAtivo ? "status-ativo" : "status-inativo";
+            const statusText = estaAtivo
+                ? "Ativo"
+                : `Inativo R${timeData.rodada_desistencia || "?"}`;
 
             card.innerHTML = `
                 <div class="participante-header">
-                    <div class="participante-avatar">${estaAtivo ? '👤' : '⏸️'}</div>
+                    <div class="participante-avatar">${estaAtivo ? "👤" : "⏸️"}</div>
                     <div class="participante-status ${statusClass}">
                         <span class="status-indicator"></span>
                         ${statusText}
@@ -250,7 +344,6 @@ async function carregarParticipantesComBrasoes() {
                         <div class="brasao-circle brasao-fantasy">
                             <img src="${BrasoesHelper.getTimeFantasyBrasao(timeData)}" 
                                  alt="Time no Cartola" 
-                                 title="Time no Cartola FC"
                                  class="brasao-img"
                                  onerror="this.src='${CLUBES_CONFIG.PATHS.defaultImage}'">
                         </div>
@@ -275,9 +368,18 @@ async function carregarParticipantesComBrasoes() {
 
                 <div class="participante-actions">
                     <button class="btn-action btn-status" 
-                            onclick="window.toggleStatusParticipante(${timeData.id}, ${estaAtivo})"
-                            title="${estaAtivo ? 'Inativar participante' : 'Reativar participante'}">
-                        ${estaAtivo ? '⏸️ Inativar' : '▶️ Reativar'}
+                            data-action="toggle-status"
+                            data-time-id="${timeData.id}"
+                            data-ativo="${estaAtivo}"
+                            title="${estaAtivo ? "Inativar participante" : "Reativar participante"}">
+                        ${estaAtivo ? "⏸️ Inativar" : "▶️ Reativar"}
+                    </button>
+                    <button class="btn-action btn-senha"
+                            data-action="gerenciar-senha"
+                            data-time-id="${timeData.id}"
+                            data-nome="${(timeData.nome_cartoleiro || "").replace(/"/g, "&quot;")}"
+                            title="Gerenciar senha de acesso">
+                        🔑 Senha
                     </button>
                 </div>
             `;
@@ -285,157 +387,199 @@ async function carregarParticipantesComBrasoes() {
             container.appendChild(card);
         });
 
-        // Configurar busca
-        configurarBusca(timesValidos);
+        // ✅ EVENT DELEGATION
+        container.removeEventListener("click", handleCardClick);
+        container.addEventListener("click", handleCardClick);
 
-        // Atualizar estatísticas
-        atualizarEstatisticas(timesValidos);
-
-        // Criar botão de exportação
-        if (criarBotaoExportacaoParticipantes && timesValidos.length > 0) {
-            criarBotaoExportacaoParticipantes({
-                containerId: "participantesExportBtnContainer",
-                participantes: timesValidos,
-                customExport: (dados) => exportarParticipantesComoImagem(dados),
-            });
-        }
-
-        console.log(
-            `✅ ${timesValidos.length} participantes carregados com design system aplicado`,
-        );
+        console.log(`✅ ${timesValidos.length} participantes carregados`);
     } catch (error) {
         console.error("Erro ao carregar participantes:", error);
         container.innerHTML = `
-            <div class="participantes-empty-state">
-                <div class="empty-icon">⚠️</div>
-                <div class="empty-title">Erro ao carregar participantes</div>
-                <div class="empty-message">${error.message}</div>
-                <button class="btn-voltar" onclick="carregarParticipantesComBrasoes()" style="margin-top: 15px;">
-                    🔄 Tentar Novamente
-                </button>
+            <div class="participantes-empty-state error">
+                <div class="empty-icon">❌</div>
+                <div class="empty-title">Erro ao carregar</div>
+                <button onclick="carregarParticipantesComBrasoes()" class="btn-retry">🔄 Tentar novamente</button>
             </div>
         `;
     } finally {
-        // ✅ IMPORTANTE: Remover flag de loading
-        if (container) {
-            container.dataset.loading = 'false';
-        }
+        container.dataset.loading = "false";
+    }
+}
+
+// ✅ EVENT DELEGATION HANDLER
+async function handleCardClick(e) {
+    const btn = e.target.closest("[data-action]");
+    if (!btn) return;
+
+    const action = btn.dataset.action;
+    const timeId = btn.dataset.timeId;
+
+    if (action === "toggle-status") {
+        const estaAtivo = btn.dataset.ativo === "true";
+        await toggleStatusParticipante(timeId, estaAtivo, btn);
+    } else if (action === "gerenciar-senha") {
+        const nome = btn.dataset.nome;
+        await gerenciarSenhaParticipante(timeId, nome);
     }
 }
 
 // ==============================
-// SISTEMA DE BUSCA
+// ✅ GESTÃO DE STATUS OTIMIZADA
 // ==============================
-function configurarBusca(todosParticipantes) {
-    const searchInput = document.getElementById("searchParticipantes");
-    const resultsInfo = document.getElementById("search-results-info");
-    const resultsCount = document.getElementById("results-count");
+async function toggleStatusParticipante(timeId, estaAtivo, btnElement) {
+    if (operacaoEmAndamento) {
+        console.log("[STATUS] Operação em andamento, aguarde...");
+        return;
+    }
+    operacaoEmAndamento = true;
 
-    if (!searchInput) return;
+    try {
+        const confirmado = await mostrarModal({
+            titulo: estaAtivo
+                ? "⏸️ Inativar Participante"
+                : "▶️ Reativar Participante",
+            mensagem: `Confirma ${estaAtivo ? "inativação" : "reativação"} deste participante?`,
+            btnConfirmar: estaAtivo ? "Inativar" : "Reativar",
+        });
 
-    let searchTimeout;
-
-    searchInput.addEventListener("input", (e) => {
-        clearTimeout(searchTimeout);
-        searchTimeout = setTimeout(() => {
-            filtrarParticipantes(
-                e.target.value,
-                todosParticipantes,
-                resultsInfo,
-                resultsCount,
-            );
-        }, 300);
-    });
-
-    // Limpar busca ao pressionar Escape
-    searchInput.addEventListener("keydown", (e) => {
-        if (e.key === "Escape") {
-            searchInput.value = "";
-            filtrarParticipantes(
-                "",
-                todosParticipantes,
-                resultsInfo,
-                resultsCount,
-            );
-            searchInput.blur();
+        if (!confirmado) {
+            operacaoEmAndamento = false;
+            return;
         }
-    });
+
+        let endpoint, body;
+
+        if (estaAtivo) {
+            const rodadaDesistencia = await mostrarModal({
+                titulo: "📅 Rodada de Desistência",
+                mensagem: "Em qual rodada o participante desistiu?",
+                input: {
+                    label: "Número da rodada (1-38)",
+                    type: "number",
+                    placeholder: "Ex: 15",
+                    min: 1,
+                    max: 38,
+                },
+                btnConfirmar: "Confirmar",
+            });
+
+            if (!rodadaDesistencia) {
+                operacaoEmAndamento = false;
+                return;
+            }
+
+            const rodada = parseInt(rodadaDesistencia);
+            if (isNaN(rodada) || rodada < 1 || rodada > 38) {
+                mostrarToast(
+                    "Rodada inválida! Deve ser entre 1 e 38.",
+                    "error",
+                );
+                operacaoEmAndamento = false;
+                return;
+            }
+
+            endpoint = `/api/time/${timeId}/inativar`;
+            body = { rodada_desistencia: rodada };
+        } else {
+            endpoint = `/api/time/${timeId}/reativar`;
+            body = {};
+        }
+
+        // Feedback visual
+        const textoOriginal = btnElement.innerHTML;
+        btnElement.innerHTML = "⏳...";
+        btnElement.disabled = true;
+
+        const response = await fetch(endpoint, {
+            method: "PUT",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(body),
+        });
+
+        const data = await response.json();
+
+        if (!response.ok) {
+            throw new Error(data.erro || "Erro ao alterar status");
+        }
+
+        // ✅ ATUALIZAÇÃO PARCIAL
+        atualizarCardStatus(timeId, !estaAtivo, body.rodada_desistencia);
+
+        mostrarToast(data.mensagem || "Status atualizado!", "success");
+    } catch (error) {
+        console.error("Erro ao alterar status:", error);
+        mostrarToast(`Erro: ${error.message}`, "error");
+    } finally {
+        operacaoEmAndamento = false;
+    }
 }
 
-function filtrarParticipantes(
-    termo,
-    todosParticipantes,
-    resultsInfo,
-    resultsCount,
-) {
-    const cards = document.querySelectorAll(".participante-card");
-    const termoLower = termo.toLowerCase().trim();
-
-    if (!termoLower) {
-        // Mostrar todos
-        cards.forEach((card) => {
-            card.classList.remove("filtered-hidden");
-        });
-        resultsInfo.style.display = "none";
+// ✅ ATUALIZAÇÃO PARCIAL DO CARD
+function atualizarCardStatus(timeId, novoAtivo, rodadaDesistencia) {
+    const card = document.getElementById(`card-time-${timeId}`);
+    if (!card) {
+        carregarParticipantesComBrasoes();
         return;
     }
 
-    let countVisible = 0;
+    if (novoAtivo) {
+        card.classList.remove("card-inativo");
+    } else {
+        card.classList.add("card-inativo");
+    }
+
+    const avatar = card.querySelector(".participante-avatar");
+    if (avatar) avatar.textContent = novoAtivo ? "👤" : "⏸️";
+
+    const statusDiv = card.querySelector(".participante-status");
+    if (statusDiv) {
+        statusDiv.className = `participante-status ${novoAtivo ? "status-ativo" : "status-inativo"}`;
+        statusDiv.innerHTML = `
+            <span class="status-indicator"></span>
+            ${novoAtivo ? "Ativo" : `Inativo R${rodadaDesistencia || "?"}`}
+        `;
+    }
+
+    const btnStatus = card.querySelector("[data-action='toggle-status']");
+    if (btnStatus) {
+        btnStatus.dataset.ativo = novoAtivo;
+        btnStatus.innerHTML = novoAtivo ? "⏸️ Inativar" : "▶️ Reativar";
+        btnStatus.title = novoAtivo
+            ? "Inativar participante"
+            : "Reativar participante";
+        btnStatus.disabled = false;
+    }
+
+    card.setAttribute("data-ativo", novoAtivo);
+    console.log(
+        `[STATUS] Card ${timeId} atualizado: ${novoAtivo ? "Ativo" : "Inativo"}`,
+    );
+}
+
+// ==============================
+// FUNÇÕES DE BUSCA E FILTRO
+// ==============================
+export function filtrarParticipantes(termo) {
+    const cards = document.querySelectorAll(".participante-card");
+    const termoLower = termo.toLowerCase().trim();
 
     cards.forEach((card) => {
         const nome = card.getAttribute("data-nome") || "";
         const time = card.getAttribute("data-time") || "";
         const clube = card.getAttribute("data-clube") || "";
 
-        const matches =
+        const match =
             nome.includes(termoLower) ||
             time.includes(termoLower) ||
             clube.includes(termoLower);
-
-        if (matches) {
-            card.classList.remove("filtered-hidden");
-            countVisible++;
-        } else {
-            card.classList.add("filtered-hidden");
-        }
+        card.style.display = match ? "" : "none";
     });
-
-    // Mostrar info dos resultados
-    resultsCount.textContent = countVisible;
-    resultsInfo.style.display = "block";
 }
 
 // ==============================
-// ATUALIZAR ESTATÍSTICAS
+// COMPATIBILIDADE LEGADA
 // ==============================
-function atualizarEstatisticas(timesData) {
-    const totalElement = document.getElementById("total-participantes");
-    if (totalElement) {
-        totalElement.textContent = timesData.length;
-    }
-
-    const ativosElement = document.getElementById("participantes-ativos");
-    if (ativosElement) {
-        ativosElement.textContent = timesData.length;
-    }
-
-    const clubesUnicos = new Set(
-        timesData
-            .map((t) => t.clube_id)
-            .filter((id) => id && CLUBES_CONFIG.MAPEAMENTO[id]),
-    );
-
-    const uniquesElement = document.getElementById("times-diferentes");
-    if (uniquesElement) {
-        uniquesElement.textContent = clubesUnicos.size;
-    }
-}
-
-// ==============================
-// FUNÇÕES AUXILIARES MANTIDAS
-// ==============================
-export async function carregarDetalhesLiga() {
-    // Compatibilidade com código legado
+export async function carregarParticipantes() {
     await carregarParticipantesComBrasoes();
 }
 
@@ -457,78 +601,19 @@ export function fecharModal() {
 }
 
 // ==============================
-// GESTÃO DE STATUS
-// ==============================
-async function toggleStatusParticipante(timeId, estaAtivo) {
-    if (!confirm(`Confirma ${estaAtivo ? 'inativação' : 'reativação'} deste participante?`)) {
-        return;
-    }
-
-    try {
-        let endpoint, body;
-
-        if (estaAtivo) {
-            // Inativar - pedir rodada de desistência
-            const rodadaDesistencia = prompt(
-                "Em qual rodada o participante desistiu?\n(Digite o número da rodada, ex: 15)"
-            );
-
-            if (!rodadaDesistencia) return;
-
-            const rodada = parseInt(rodadaDesistencia);
-            if (isNaN(rodada) || rodada < 1 || rodada > 38) {
-                alert("Rodada inválida! Deve ser entre 1 e 38.");
-                return;
-            }
-
-            endpoint = `/api/time/${timeId}/inativar`;
-            body = { rodada_desistencia: rodada };
-        } else {
-            // Reativar
-            endpoint = `/api/time/${timeId}/reativar`;
-            body = {};
-        }
-
-        const response = await fetch(endpoint, {
-            method: 'PUT',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(body)
-        });
-
-        const data = await response.json();
-
-        if (!response.ok) {
-            throw new Error(data.erro || 'Erro ao alterar status');
-        }
-
-        alert(data.mensagem || 'Status atualizado com sucesso!');
-
-        console.log('[STATUS] Recarregando participantes após alteração...');
-
-        // Recarregar dados para atualizar visual
-        await carregarParticipantesComBrasoes();
-
-    } catch (error) {
-        console.error('Erro ao alterar status:', error);
-        alert(`Erro: ${error.message}`);
-    }
-}
-
-// ==============================
 // GERENCIAMENTO DE SENHAS
 // ==============================
 async function gerenciarSenhaParticipante(timeId, nomeCartoleiro) {
     try {
-        // Buscar dados do participante
         const response = await fetch(`/api/time/${timeId}`);
-        if (!response.ok) throw new Error('Erro ao buscar dados do participante');
+        if (!response.ok) throw new Error("Erro ao buscar dados");
 
         const participante = await response.json();
-        const temSenha = participante.senha_acesso && participante.senha_acesso.length > 0;
+        const temSenha =
+            participante.senha_acesso && participante.senha_acesso.length > 0;
 
-        // Criar modal
-        const modal = document.createElement('div');
-        modal.className = 'modal-senha';
+        const modal = document.createElement("div");
+        modal.className = "modal-senha";
         modal.innerHTML = `
             <div class="modal-senha-content">
                 <div class="modal-senha-header">
@@ -536,13 +621,13 @@ async function gerenciarSenhaParticipante(timeId, nomeCartoleiro) {
                     <button class="modal-senha-close" onclick="this.closest('.modal-senha').remove()">×</button>
                 </div>
 
-                <div class="senha-status ${temSenha ? 'configurada' : 'nao-configurada'}">
-                    ${temSenha ? '✓ Senha configurada' : '⚠ Senha não configurada'}
+                <div class="senha-status ${temSenha ? "configurada" : "nao-configurada"}">
+                    ${temSenha ? "✓ Senha configurada" : "⚠ Senha não configurada"}
                 </div>
 
                 <div class="senha-info">
                     <p><strong>ID do Time:</strong> ${timeId}</p>
-                    <p>Configure uma senha para permitir que o participante acesse seu extrato financeiro.</p>
+                    <p>Configure uma senha para permitir acesso ao extrato financeiro.</p>
                 </div>
 
                 <div class="senha-field">
@@ -551,14 +636,14 @@ async function gerenciarSenhaParticipante(timeId, nomeCartoleiro) {
                         <input type="text" 
                                id="novaSenha" 
                                placeholder="Digite ou gere uma senha"
-                               value="${temSenha ? participante.senha_acesso : ''}"
+                               value="${temSenha ? participante.senha_acesso : ""}"
                                maxlength="20">
                         <button class="btn-gerar-senha" onclick="window.gerarSenhaAleatoria()">
                             🎲 Gerar
                         </button>
                     </div>
                     <small style="color: var(--text-muted); display: block; margin-top: 5px;">
-                        Mínimo 4 caracteres. Evite caracteres especiais.
+                        Mínimo 4 caracteres.
                     </small>
                 </div>
 
@@ -567,39 +652,33 @@ async function gerenciarSenhaParticipante(timeId, nomeCartoleiro) {
                         Cancelar
                     </button>
                     <button class="btn-modal btn-modal-salvar" onclick="window.salvarSenhaParticipante(${timeId})">
-                        💾 Salvar Senha
+                        💾 Salvar
                     </button>
                 </div>
             </div>
         `;
 
-        // Fechar com ESC
-        modal.addEventListener('keydown', (e) => {
-            if (e.key === 'Escape') modal.remove();
+        modal.addEventListener("keydown", (e) => {
+            if (e.key === "Escape") modal.remove();
         });
 
         document.body.appendChild(modal);
 
-        // Focar no input
-        setTimeout(() => {
-            document.getElementById('novaSenha')?.focus();
-        }, 100);
-
+        setTimeout(() => document.getElementById("novaSenha")?.focus(), 100);
     } catch (error) {
-        console.error('Erro ao abrir modal de senha:', error);
-        alert(`Erro: ${error.message}`);
+        console.error("Erro ao abrir modal de senha:", error);
+        mostrarToast(`Erro: ${error.message}`, "error");
     }
 }
 
 function gerarSenhaAleatoria() {
-    // Gerar senha de 8 caracteres (letras e números)
-    const chars = 'abcdefghijklmnopqrstuvwxyz0123456789';
-    let senha = '';
+    const chars = "abcdefghijklmnopqrstuvwxyz0123456789";
+    let senha = "";
     for (let i = 0; i < 8; i++) {
         senha += chars.charAt(Math.floor(Math.random() * chars.length));
     }
 
-    const input = document.getElementById('novaSenha');
+    const input = document.getElementById("novaSenha");
     if (input) {
         input.value = senha;
         input.select();
@@ -607,34 +686,31 @@ function gerarSenhaAleatoria() {
 }
 
 async function salvarSenhaParticipante(timeId) {
-    const novaSenha = document.getElementById('novaSenha')?.value.trim();
+    const novaSenha = document.getElementById("novaSenha")?.value.trim();
 
     if (!novaSenha || novaSenha.length < 4) {
-        alert('A senha deve ter no mínimo 4 caracteres!');
+        mostrarToast("A senha deve ter no mínimo 4 caracteres!", "error");
         return;
     }
 
     try {
         const response = await fetch(`/api/time/${timeId}/senha`, {
-            method: 'PUT',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ senha: novaSenha })
+            method: "PUT",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ senha: novaSenha }),
         });
 
         const data = await response.json();
 
         if (!response.ok) {
-            throw new Error(data.erro || 'Erro ao salvar senha');
+            throw new Error(data.erro || "Erro ao salvar senha");
         }
 
-        alert(`✅ Senha configurada com sucesso!\n\nCredenciais de acesso:\nID do Time: ${timeId}\nSenha: ${novaSenha}\n\nOriente o participante a acessar via menu Ferramentas > Participantes`);
-
-        // Fechar modal
-        document.querySelector('.modal-senha')?.remove();
-
+        mostrarToast(`Senha configurada! ID: ${timeId}`, "success");
+        document.querySelector(".modal-senha")?.remove();
     } catch (error) {
-        console.error('Erro ao salvar senha:', error);
-        alert(`Erro: ${error.message}`);
+        console.error("Erro ao salvar senha:", error);
+        mostrarToast(`Erro: ${error.message}`, "error");
     }
 }
 
@@ -650,15 +726,15 @@ window.salvarSenhaParticipante = salvarSenhaParticipante;
 // ==============================
 let participantesJaCarregados = false;
 
-// Auto-inicialização com proteção contra duplicação
 setTimeout(() => {
-    if (document.getElementById("participantes-grid") && !participantesJaCarregados) {
+    if (
+        document.getElementById("participantes-grid") &&
+        !participantesJaCarregados
+    ) {
         participantesJaCarregados = true;
-        console.log("[PARTICIPANTES] 🚀 Auto-inicialização disparada");
+        console.log("[PARTICIPANTES] 🚀 Auto-inicialização");
         carregarParticipantesComBrasoes();
     }
 }, 100);
 
-console.log(
-    "[PARTICIPANTES] ✅ Módulo melhorado carregado - UX aprimorada aplicada",
-);
+console.log("[PARTICIPANTES] ✅ Módulo carregado (otimizado)");

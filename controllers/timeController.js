@@ -1,13 +1,35 @@
-// controllers/timeController.js - VERSÃO OTIMIZADA
-import Time from "../models/Time.js";
+// controllers/timeController.js - VERSÃO CORRIGIDA
+import mongoose from "mongoose";
 import fetch from "node-fetch";
 import NodeCache from "node-cache";
 
 // ⚡ CACHE TRANSPARENTE (5 minutos TTL)
 const cache = new NodeCache({ stdTTL: 300, checkperiod: 60 });
 
+// ✅ CORREÇÃO: Função para obter o Model de forma segura
+function getTimeModel() {
+  if (mongoose.models.Time) {
+    return mongoose.models.Time;
+  }
+
+  const TimeSchema = new mongoose.Schema({
+    id: { type: Number, required: true, unique: true, index: true },
+    nome_time: { type: String, required: true },
+    nome_cartoleiro: { type: String, required: true },
+    url_escudo_png: { type: String },
+    clube_id: { type: Number },
+    ativo: { type: Boolean, default: true },
+    rodada_desistencia: { type: Number, default: null },
+    data_desistencia: { type: Date, default: null },
+    senha_acesso: { type: String, default: "" },
+  });
+
+  return mongoose.model("Time", TimeSchema);
+}
+
 export const salvarTime = async (timeId) => {
   try {
+    const Time = getTimeModel();
     let time = await Time.findOne({ id: timeId });
     if (time) {
       if (process.env.NODE_ENV !== "production") {
@@ -16,55 +38,53 @@ export const salvarTime = async (timeId) => {
       return time;
     }
 
-    // ⚡ CACHE DA API CARTOLA - CORRIGIDO para usar endpoint correto
+    // ⚡ CACHE DA API CARTOLA
     const cacheKey = `api_time_${timeId}`;
     let data = cache.get(cacheKey);
 
     if (!data) {
-      // A API do Cartola não tem endpoint /time/id/{timeId}
-      // Precisamos buscar da rodada atual ou criar dados básicos
       try {
-        // Tentar obter rodada atual
-        const statusRes = await fetch('https://api.cartola.globo.com/mercado/status');
+        const statusRes = await fetch(
+          "https://api.cartola.globo.com/mercado/status",
+        );
         let rodadaAtual = 1;
-        
+
         if (statusRes.ok) {
           const statusData = await statusRes.json();
           rodadaAtual = statusData.rodada_atual || 1;
         }
 
-        // Buscar dados do time na rodada atual
         const res = await fetch(
           `https://api.cartola.globo.com/time/id/${timeId}/${rodadaAtual}`,
         );
-        
+
         if (!res.ok) {
-          // Se não encontrar, criar dados básicos padrão
           data = {
             time: {
               nome: `Time ${timeId}`,
-              nome_cartola: 'N/D',
-              url_escudo_png: '',
-              clube_id: null
-            }
+              nome_cartola: "N/D",
+              url_escudo_png: "",
+              clube_id: null,
+            },
           };
         } else {
           data = await res.json();
         }
       } catch (error) {
-        console.warn(`Não foi possível buscar dados completos do time ${timeId}, usando dados padrão`);
-        // Dados padrão se tudo falhar
+        console.warn(
+          `Não foi possível buscar dados completos do time ${timeId}, usando dados padrão`,
+        );
         data = {
           time: {
             nome: `Time ${timeId}`,
-            nome_cartola: 'N/D',
-            url_escudo_png: '',
-            clube_id: null
-          }
+            nome_cartola: "N/D",
+            url_escudo_png: "",
+            clube_id: null,
+          },
         };
       }
-      
-      cache.set(cacheKey, data, 300); // Cache por 5 minutos
+
+      cache.set(cacheKey, data, 300);
     }
 
     if (process.env.NODE_ENV !== "production") {
@@ -112,7 +132,9 @@ export const obterTimePorId = async (req, res) => {
         .json({ erro: "ID de time inválido ou não fornecido" });
     }
 
-    // ⚡ CACHE DO MONGODB (mantém lógica de busca original)
+    const Time = getTimeModel();
+
+    // ⚡ CACHE DO MONGODB
     const cacheKey = `mongo_time_${id}`;
     let time = cache.get(cacheKey);
 
@@ -129,12 +151,11 @@ export const obterTimePorId = async (req, res) => {
       }
 
       if (time) {
-        cache.set(cacheKey, time, 300); // Cache por 5 minutos
+        cache.set(cacheKey, time, 300);
       }
     }
 
     if (time) {
-      // Atualiza para incluir campos de status
       return res.json({
         id: time.id,
         nome_time: time.nome_time,
@@ -149,7 +170,6 @@ export const obterTimePorId = async (req, res) => {
       });
     }
 
-    // Mantém lógica original de buscar na API se não encontrar
     const novoTime = await salvarTime(id);
     if (novoTime) {
       const resultado = {

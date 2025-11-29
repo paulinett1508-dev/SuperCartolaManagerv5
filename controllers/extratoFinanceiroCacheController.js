@@ -21,11 +21,11 @@ export const getExtratoCache = async (req, res) => {
             });
         }
 
-        console.log('[CACHE-CONTROLLER] 📦 Cache encontrado:', {
+        console.log("[CACHE-CONTROLLER] 📦 Cache encontrado:", {
             timeId,
             rodadas: cache.historico_transacoes?.length || 0,
             ultimaRodada: cache.ultima_rodada_consolidada,
-            saldo: cache.saldo_consolidado
+            saldo: cache.saldo_consolidado,
         });
 
         // ✅ CORRIGIDO: Retornar rodadas do campo correto com estrutura esperada
@@ -41,7 +41,7 @@ export const getExtratoCache = async (req, res) => {
                 onus: 0,
                 pontosCorridos: 0,
                 mataMata: 0,
-                top10: 0
+                top10: 0,
             },
             metadados: cache.metadados,
             ultimaRodadaCalculada: cache.ultima_rodada_consolidada,
@@ -78,16 +78,17 @@ export const salvarExtratoCache = async (req, res) => {
         }
 
         // ✅ CALCULAR ÚLTIMA RODADA CORRETAMENTE
-        const rodadaCalculadaReal = ultimaRodadaCalculada ||
+        const rodadaCalculadaReal =
+            ultimaRodadaCalculada ||
             (Array.isArray(rodadasArray) && rodadasArray.length > 0
-                ? Math.max(...rodadasArray.map(r => r.rodada || 0))
+                ? Math.max(...rodadasArray.map((r) => r.rodada || 0))
                 : 0);
 
         console.log(`[CACHE-CONTROLLER] 💾 Salvando cache:`, {
             timeId,
             rodadasRecebidas: rodadasArray?.length || 0,
             ultimaRodadaCalculada: rodadaCalculadaReal,
-            motivoRecalculo
+            motivoRecalculo,
         });
 
         // Mapeamento seguro para Snake Case (MongoDB)
@@ -187,7 +188,7 @@ export const verificarCacheValido = async (req, res) => {
         }
 
         const rodadaAtualNum = parseInt(rodadaAtual);
-        const mercadoEstaAberto = mercadoAberto === 'true';
+        const mercadoEstaAberto = mercadoAberto === "true";
 
         // Simula a validação que ocorreria em outro controller (para ter os mesmos resultados)
         // Esta é uma simplificação, em um cenário real, esta lógica estaria em um service/util
@@ -195,7 +196,10 @@ export const verificarCacheValido = async (req, res) => {
         const rodadaAtualInt = parseInt(rodadaAtual);
 
         // ✅ REGRA 1: Se mercado está FECHADO e cache está atualizado = VÁLIDO PERMANENTEMENTE
-        if (!mercadoEstaAberto && cacheExistente.ultima_rodada_consolidada >= rodadaAtualInt) {
+        if (
+            !mercadoEstaAberto &&
+            cacheExistente.ultima_rodada_consolidada >= rodadaAtualInt
+        ) {
             validacao = {
                 valido: true,
                 permanente: true,
@@ -212,8 +216,11 @@ export const verificarCacheValido = async (req, res) => {
             // Cache tem rodadas anteriores consolidadas? Reusar!
             if (cacheExistente.ultima_rodada_consolidada >= rodadaAnterior) {
                 // Verificar idade do cache para rodada em andamento (5 min)
-                const timestampCache = cacheExistente.updatedAt || cacheExistente.data_ultima_atualizacao;
-                const idadeCache = Date.now() - new Date(timestampCache).getTime();
+                const timestampCache =
+                    cacheExistente.updatedAt ||
+                    cacheExistente.data_ultima_atualizacao;
+                const idadeCache =
+                    Date.now() - new Date(timestampCache).getTime();
                 const TTL_RODADA_ABERTA = 5 * 60 * 1000; // 5 minutos
 
                 if (idadeCache < TTL_RODADA_ABERTA) {
@@ -222,7 +229,9 @@ export const verificarCacheValido = async (req, res) => {
                         permanente: false,
                         motivo: "rodada_aberta_cache_recente",
                         ultimaRodada: cacheExistente.ultima_rodada_consolidada,
-                        ttlRestante: Math.ceil((TTL_RODADA_ABERTA - idadeCache) / 1000),
+                        ttlRestante: Math.ceil(
+                            (TTL_RODADA_ABERTA - idadeCache) / 1000,
+                        ),
                         mercadoStatus: "aberto",
                         updatedAt: cacheExistente.updatedAt,
                     };
@@ -233,7 +242,8 @@ export const verificarCacheValido = async (req, res) => {
                         permanente: false,
                         motivo: "rodada_aberta_cache_expirado_mas_valido",
                         recalcularApenas: "rodada_atual",
-                        rodadasConsolidadas: cacheExistente.ultima_rodada_consolidada,
+                        rodadasConsolidadas:
+                            cacheExistente.ultima_rodada_consolidada,
                         usarCacheAntigo: true, // ← NOVO FLAG
                         mercadoStatus: "aberto",
                         updatedAt: cacheExistente.updatedAt,
@@ -243,13 +253,17 @@ export const verificarCacheValido = async (req, res) => {
         }
 
         // ✅ REGRA 3: Cache desatualizado - precisa recalcular rodadas faltantes
-        if (!validacao.valido && cacheExistente.ultima_rodada_consolidada < rodadaAtualInt) {
+        if (
+            !validacao.valido &&
+            cacheExistente.ultima_rodada_consolidada < rodadaAtualInt
+        ) {
             validacao = {
                 valido: false,
                 motivo: "rodadas_faltantes",
                 cacheRodada: cacheExistente.ultima_rodada_consolidada,
                 rodadaAtual: rodadaAtualInt,
-                rodadasPendentes: rodadaAtualInt - cacheExistente.ultima_rodada_consolidada,
+                rodadasPendentes:
+                    rodadaAtualInt - cacheExistente.ultima_rodada_consolidada,
             };
         } else if (!validacao.valido) {
             // Caso geral de cache inválido não coberto pelas regras anteriores
@@ -261,21 +275,24 @@ export const verificarCacheValido = async (req, res) => {
             };
         }
 
-
         // ✅ SEMPRE RETORNAR ESTRUTURA DE VALIDAÇÃO CONSISTENTE
         if (validacao.valido && cacheExistente) {
-            console.log('  ✅ Cache válido encontrado - retornando validação + dados');
+            console.log(
+                "  ✅ Cache válido encontrado - retornando validação + dados",
+            );
 
             // ✅ GARANTIR QUE historico_transacoes SEJA ARRAY VÁLIDO
-            const rodadas = Array.isArray(cacheExistente.historico_transacoes) 
-                ? cacheExistente.historico_transacoes 
+            const rodadas = Array.isArray(cacheExistente.historico_transacoes)
+                ? cacheExistente.historico_transacoes
                 : [];
 
             console.log(`  📊 Rodadas no cache: ${rodadas.length}`);
             if (rodadas.length > 0) {
                 console.log(`  🔍 Primeira rodada:`, rodadas[0]);
             } else {
-                console.warn('  ⚠️ Cache válido mas SEM rodadas - possível problema!');
+                console.warn(
+                    "  ⚠️ Cache válido mas SEM rodadas - possível problema!",
+                );
             }
 
             // Retornar validação + dados do cache
@@ -299,9 +316,9 @@ export const verificarCacheValido = async (req, res) => {
                     onus: 0,
                     pontosCorridos: 0,
                     mataMata: 0,
-                    top10: 0
+                    top10: 0,
                 },
-                metadados: cacheExistente.metadados
+                metadados: cacheExistente.metadados,
             });
         } else {
             // Se não é válido, retorna informações da validação
@@ -314,7 +331,7 @@ export const verificarCacheValido = async (req, res) => {
                 rodadaAtual: rodadaAtualInt,
                 rodadasPendentes: validacao.rodadasPendentes || 0,
                 mercadoStatus: validacao.mercadoStatus,
-                updatedAt: cacheExistente?.updatedAt
+                updatedAt: cacheExistente?.updatedAt,
             });
         }
     } catch (error) {
@@ -355,16 +372,20 @@ export const lerCacheExtratoFinanceiro = async (req, res) => {
         }
 
         if (!cacheValido) {
-            console.log(`[CACHE-EXTRATO] ❌ Cache desatualizado: calculado até R${cache.rodada_calculada}, esperado R${rodadaAtualNum}`);
+            console.log(
+                `[CACHE-EXTRATO] ❌ Cache desatualizado: calculado até R${cache.rodada_calculada}, esperado R${rodadaAtualNum}`,
+            );
             return res.status(404).json({
                 cached: false,
-                reason: 'outdated',
+                reason: "outdated",
                 cachedUntil: cache.rodada_calculada,
-                expectedUntil: rodadaAtualNum
+                expectedUntil: rodadaAtualNum,
             });
         }
 
-        console.log(`[CACHE-EXTRATO] ✅ Cache válido: R${cache.rodada_calculada} (atual: R${rodadaAtualNum})`);
+        console.log(
+            `[CACHE-EXTRATO] ✅ Cache válido: R${cache.rodada_calculada} (atual: R${rodadaAtualNum})`,
+        );
 
         res.json({
             cached: true,
@@ -376,5 +397,212 @@ export const lerCacheExtratoFinanceiro = async (req, res) => {
     } catch (error) {
         console.error("[CACHE-EXTRATO] Erro ao ler:", error);
         res.status(500).json({ error: "Erro interno" });
+    }
+};
+// =====================================================================
+// FUNÇÕES DE LIMPEZA DE CACHE
+// =====================================================================
+
+// ===== LIMPAR CACHE DE UMA LIGA ESPECÍFICA =====
+export const limparCacheLiga = async (req, res) => {
+    try {
+        const { ligaId } = req.params;
+
+        console.log(`[CACHE-LIMPEZA] 🗑️ Limpando caches da liga: ${ligaId}`);
+
+        const resultado = await ExtratoFinanceiroCache.deleteMany({
+            liga_id: ligaId,
+        });
+
+        console.log(
+            `[CACHE-LIMPEZA] ✅ ${resultado.deletedCount} caches removidos`,
+        );
+
+        res.json({
+            success: true,
+            message: `Cache da liga limpo com sucesso`,
+            deletedCount: resultado.deletedCount,
+            ligaId,
+        });
+    } catch (error) {
+        console.error("[CACHE-LIMPEZA] ❌ Erro:", error);
+        res.status(500).json({ error: "Erro ao limpar cache da liga" });
+    }
+};
+
+// ===== LIMPAR CACHE DE UM TIME ESPECÍFICO =====
+export const limparCacheTime = async (req, res) => {
+    try {
+        const { ligaId, timeId } = req.params;
+
+        console.log(
+            `[CACHE-LIMPEZA] 🗑️ Limpando cache do time ${timeId} na liga ${ligaId}`,
+        );
+
+        const resultado = await ExtratoFinanceiroCache.deleteOne({
+            liga_id: ligaId,
+            time_id: Number(timeId),
+        });
+
+        console.log(
+            `[CACHE-LIMPEZA] ✅ ${resultado.deletedCount} cache removido`,
+        );
+
+        res.json({
+            success: true,
+            message: `Cache do time limpo com sucesso`,
+            deletedCount: resultado.deletedCount,
+            ligaId,
+            timeId,
+        });
+    } catch (error) {
+        console.error("[CACHE-LIMPEZA] ❌ Erro:", error);
+        res.status(500).json({ error: "Erro ao limpar cache do time" });
+    }
+};
+
+// ===== LIMPAR TODOS OS CACHES CORROMPIDOS =====
+export const limparCachesCorrompidos = async (req, res) => {
+    try {
+        const { ligaId } = req.params;
+
+        console.log(`[CACHE-LIMPEZA] 🔍 Identificando caches corrompidos...`);
+
+        // Critérios para identificar cache corrompido:
+        // 1. historico_transacoes não é array
+        // 2. historico_transacoes está vazio
+        // 3. Primeira rodada não tem campo 'bonusOnus' (schema antigo)
+        // 4. Primeira rodada não tem campo 'posicao' (schema antigo)
+
+        const filtro = {
+            $or: [
+                { historico_transacoes: { $type: "number" } },
+                { historico_transacoes: { $exists: false } },
+                { historico_transacoes: { $size: 0 } },
+                { "historico_transacoes.0.bonusOnus": { $exists: false } },
+                { "historico_transacoes.0.posicao": { $exists: false } },
+            ],
+        };
+
+        // Se ligaId foi passado, filtrar por liga
+        if (ligaId) {
+            filtro.liga_id = ligaId;
+        }
+
+        // Primeiro, contar quantos serão afetados
+        const contagem = await ExtratoFinanceiroCache.countDocuments(filtro);
+
+        console.log(
+            `[CACHE-LIMPEZA] 📊 Encontrados ${contagem} caches corrompidos`,
+        );
+
+        if (contagem === 0) {
+            return res.json({
+                success: true,
+                message: "Nenhum cache corrompido encontrado",
+                deletedCount: 0,
+            });
+        }
+
+        // Deletar os caches corrompidos
+        const resultado = await ExtratoFinanceiroCache.deleteMany(filtro);
+
+        console.log(
+            `[CACHE-LIMPEZA] ✅ ${resultado.deletedCount} caches corrompidos removidos`,
+        );
+
+        res.json({
+            success: true,
+            message: `Caches corrompidos limpos com sucesso`,
+            deletedCount: resultado.deletedCount,
+            ligaId: ligaId || "todas",
+        });
+    } catch (error) {
+        console.error("[CACHE-LIMPEZA] ❌ Erro:", error);
+        res.status(500).json({ error: "Erro ao limpar caches corrompidos" });
+    }
+};
+
+// ===== LIMPAR TODOS OS CACHES (ADMIN) =====
+export const limparTodosCaches = async (req, res) => {
+    try {
+        // Verificar se tem confirmação (segurança)
+        const { confirmar } = req.query;
+
+        if (confirmar !== "sim") {
+            return res.status(400).json({
+                error: "Operação perigosa! Adicione ?confirmar=sim para executar",
+                message:
+                    "Esta operação irá deletar TODOS os caches de extrato financeiro",
+            });
+        }
+
+        console.log(`[CACHE-LIMPEZA] ⚠️ LIMPANDO TODOS OS CACHES!`);
+
+        const resultado = await ExtratoFinanceiroCache.deleteMany({});
+
+        console.log(
+            `[CACHE-LIMPEZA] ✅ ${resultado.deletedCount} caches removidos`,
+        );
+
+        res.json({
+            success: true,
+            message: `Todos os caches foram limpos`,
+            deletedCount: resultado.deletedCount,
+        });
+    } catch (error) {
+        console.error("[CACHE-LIMPEZA] ❌ Erro:", error);
+        res.status(500).json({ error: "Erro ao limpar todos os caches" });
+    }
+};
+
+// ===== ESTATÍSTICAS DE CACHE =====
+export const estatisticasCache = async (req, res) => {
+    try {
+        const { ligaId } = req.params;
+
+        const filtroBase = ligaId ? { liga_id: ligaId } : {};
+
+        // Total de caches
+        const total = await ExtratoFinanceiroCache.countDocuments(filtroBase);
+
+        // Caches corrompidos (sem bonusOnus ou posicao)
+        const corrompidos = await ExtratoFinanceiroCache.countDocuments({
+            ...filtroBase,
+            $or: [
+                { historico_transacoes: { $type: "number" } },
+                { historico_transacoes: { $exists: false } },
+                { historico_transacoes: { $size: 0 } },
+                { "historico_transacoes.0.bonusOnus": { $exists: false } },
+                { "historico_transacoes.0.posicao": { $exists: false } },
+            ],
+        });
+
+        // Caches válidos
+        const validos = total - corrompidos;
+
+        // Última atualização
+        const ultimoCache = await ExtratoFinanceiroCache.findOne(filtroBase)
+            .sort({ updatedAt: -1 })
+            .select("updatedAt liga_id time_id")
+            .lean();
+
+        res.json({
+            success: true,
+            estatisticas: {
+                total,
+                validos,
+                corrompidos,
+                percentualValido:
+                    total > 0
+                        ? ((validos / total) * 100).toFixed(1) + "%"
+                        : "0%",
+                ultimaAtualizacao: ultimoCache?.updatedAt || null,
+                ligaId: ligaId || "todas",
+            },
+        });
+    } catch (error) {
+        console.error("[CACHE-STATS] ❌ Erro:", error);
+        res.status(500).json({ error: "Erro ao obter estatísticas" });
     }
 };

@@ -1,21 +1,20 @@
-import mongoose from "mongoose"; // Import mongoose
+import mongoose from "mongoose";
 import Liga from "../models/Liga.js";
 import Time from "../models/Time.js";
 import Rodada from "../models/Rodada.js";
-import axios from "axios"; // Ensure axios is imported if used
+import axios from "axios";
 
 const buscarCartoleiroPorId = async (req, res) => {
   const { id } = req.params;
 
   try {
-    // Use HTTPS for Cartola API
     const { data } = await axios.get(
       `https://api.cartola.globo.com/time/id/${id}`,
     );
     res.json({
-      nome_time: data.time?.nome || "N/D", // Safer access
-      nome_cartoleiro: data.time?.nome_cartola || "N/D", // Safer access
-      escudo_url: data.time?.url_escudo_png || "", // Safer access
+      nome_time: data.time?.nome || "N/D",
+      nome_cartoleiro: data.time?.nome_cartola || "N/D",
+      escudo_url: data.time?.url_escudo_png || "",
     });
   } catch (error) {
     console.error(`Erro ao buscar time ${id}:`, error.message);
@@ -25,20 +24,10 @@ const buscarCartoleiroPorId = async (req, res) => {
 
 const listarLigas = async (req, res) => {
   try {
-    console.log("Iniciando listagem de ligas...");
-
-    // Verificar se a coleção existe e tem documentos
-    const colecoes = await mongoose.connection.db.listCollections().toArray();
-    const colecaoLigas = colecoes.find((col) => col.name === "ligas");
-    console.log("Coleção de ligas existe:", !!colecaoLigas);
-
     const ligas = await Liga.find().lean();
     if (!ligas || ligas.length === 0) {
-      console.log("Nenhuma liga encontrada no banco de dados.");
       return res.status(200).json([]);
     }
-    console.log("Ligas encontradas:", ligas.length);
-    console.log("Primeira liga:", JSON.stringify(ligas[0]));
     res.status(200).json(ligas);
   } catch (err) {
     console.error("Erro ao listar ligas:", err.message);
@@ -46,35 +35,196 @@ const listarLigas = async (req, res) => {
   }
 };
 
+// ==============================
+// SINCRONIZAÇÃO DE PARTICIPANTES
+// ==============================
+async function sincronizarParticipantesInterno(liga) {
+  if (!liga.times || liga.times.length === 0) {
+    return liga;
+  }
+
+  // Buscar dados completos dos times na coleção times
+  const timesCompletos = await Time.find({ id: { $in: liga.times } }).lean();
+
+  // Criar mapa para lookup rápido
+  const timesMap = {};
+  timesCompletos.forEach((t) => {
+    timesMap[t.id] = t;
+  });
+
+  // Atualizar participantes com dados da coleção times
+  const participantesAtualizados = liga.times.map((timeId) => {
+    const timeData = timesMap[timeId];
+
+    // Buscar participante existente para preservar dados como senha_acesso
+    const participanteExistente =
+      liga.participantes?.find((p) => p.time_id === timeId) || {};
+
+    return {
+      time_id: timeId,
+      nome_cartola:
+        timeData?.nome_cartoleiro ||
+        participanteExistente.nome_cartola ||
+        "N/D",
+      nome_time:
+        timeData?.nome_time || participanteExistente.nome_time || "N/D",
+      clube_id: timeData?.clube_id || participanteExistente.clube_id || null,
+      foto_perfil:
+        timeData?.foto_perfil || participanteExistente.foto_perfil || "",
+      foto_time:
+        timeData?.url_escudo_png || participanteExistente.foto_time || "",
+      assinante:
+        timeData?.assinante || participanteExistente.assinante || false,
+      rodada_time_id:
+        timeData?.rodada_time_id ||
+        participanteExistente.rodada_time_id ||
+        null,
+      senha_acesso: participanteExistente.senha_acesso || null, // Preservar senha existente
+    };
+  });
+
+  return participantesAtualizados;
+}
+
+// Rota para sincronização manual
+const sincronizarParticipantesLiga = async (req, res) => {
+  const { id } = req.params;
+
+  if (!mongoose.Types.ObjectId.isValid(id)) {
+    return res.status(400).json({ erro: "ID de liga inválido" });
+  }
+
+  try {
+    const liga = await Liga.findById(id);
+    if (!liga) {
+      return res.status(404).json({ erro: "Liga não encontrada" });
+    }
+
+    console.log(`[SYNC] Sincronizando participantes da liga ${liga.nome}...`);
+
+    const participantesAtualizados =
+      await sincronizarParticipantesInterno(liga);
+
+    // Atualizar no banco
+    liga.participantes = participantesAtualizados;
+    liga.atualizadaEm = new Date();
+    await liga.save();
+
+    console.log(
+      `[SYNC] ✅ ${participantesAtualizados.length} participantes sincronizados`,
+    );
+
+    res.json({
+      success: true,
+      mensagem: `${participantesAtualizados.length} participantes sincronizados`,
+      participantes: participantesAtualizados,
+    });
+  } catch (err) {
+    console.error("[SYNC] Erro ao sincronizar:", err);
+    res.status(500).json({ erro: "Erro ao sincronizar participantes" });
+  }
+};
+
+// Sincronizar TODAS as ligas
+const sincronizarTodasLigas = async (req, res) => {
+  try {
+    const ligas = await Liga.find();
+    let totalSincronizados = 0;
+
+    for (const liga of ligas) {
+      const participantesAtualizados =
+        await sincronizarParticipantesInterno(liga);
+      liga.participantes = participantesAtualizados;
+      liga.atualizadaEm = new Date();
+      await liga.save();
+      totalSincronizados += participantesAtualizados.length;
+    }
+
+    console.log(
+      `[SYNC] ✅ ${ligas.length} ligas sincronizadas, ${totalSincronizados} participantes`,
+    );
+
+    res.json({
+      success: true,
+      mensagem: `${ligas.length} ligas sincronizadas`,
+      total_participantes: totalSincronizados,
+    });
+  } catch (err) {
+    console.error("[SYNC] Erro ao sincronizar todas:", err);
+    res.status(500).json({ erro: "Erro ao sincronizar ligas" });
+  }
+};
+
 const buscarLigaPorId = async (req, res) => {
   const { id } = req.params;
 
-  // --- CORREÇÃO: Validar se o ID é um ObjectId válido ---
   if (!mongoose.Types.ObjectId.isValid(id)) {
-    console.log(`ID de liga inválido: ${id}`);
     return res.status(400).json({ erro: "ID de liga inválido" });
   }
-  // --- FIM CORREÇÃO ---
 
   try {
-    console.log(`Buscando liga com ID: ${id}`);
-
-    // Verificar se a coleção existe
-    const colecoes = await mongoose.connection.db.listCollections().toArray();
-    const colecaoLigas = colecoes.find((col) => col.name === "ligas");
-    console.log("Coleção de ligas existe:", !!colecaoLigas);
-
     const liga = await Liga.findById(id).lean();
     if (!liga) {
-      console.log(`Liga com ID ${id} não encontrada`);
       return res.status(404).json({ erro: "Liga não encontrada" });
     }
-    console.log(`Liga encontrada: ${liga.nome}`);
-    console.log("Detalhes da liga:", JSON.stringify(liga));
+
+    // ✅ AUTO-SYNC: Se participantes estão vazios ou com N/D, sincronizar automaticamente
+    const precisaSincronizar =
+      !liga.participantes ||
+      liga.participantes.length === 0 ||
+      liga.participantes.some(
+        (p) => p.nome_cartola === "N/D" || p.nome_time === "N/D",
+      );
+
+    if (precisaSincronizar && liga.times && liga.times.length > 0) {
+      console.log(
+        `[LIGA] Auto-sincronizando participantes da liga ${liga.nome}...`,
+      );
+
+      // Buscar dados completos dos times
+      const timesCompletos = await Time.find({
+        id: { $in: liga.times },
+      }).lean();
+      const timesMap = {};
+      timesCompletos.forEach((t) => {
+        timesMap[t.id] = t;
+      });
+
+      // Atualizar participantes
+      const participantesAtualizados = liga.times.map((timeId) => {
+        const timeData = timesMap[timeId];
+        const participanteExistente =
+          liga.participantes?.find((p) => p.time_id === timeId) || {};
+
+        return {
+          time_id: timeId,
+          nome_cartola: timeData?.nome_cartoleiro || "N/D",
+          nome_time: timeData?.nome_time || "N/D",
+          clube_id: timeData?.clube_id || null,
+          foto_perfil: timeData?.foto_perfil || "",
+          foto_time: timeData?.url_escudo_png || "",
+          assinante: timeData?.assinante || false,
+          rodada_time_id: timeData?.rodada_time_id || null,
+          senha_acesso: participanteExistente.senha_acesso || null,
+        };
+      });
+
+      // Salvar atualização (fire and forget para não bloquear resposta)
+      Liga.findByIdAndUpdate(id, {
+        participantes: participantesAtualizados,
+        atualizadaEm: new Date(),
+      }).catch((err) => console.error("[LIGA] Erro ao auto-sincronizar:", err));
+
+      // Retornar com dados atualizados
+      liga.participantes = participantesAtualizados;
+      console.log(
+        `[LIGA] ✅ Auto-sync concluído para ${participantesAtualizados.length} participantes`,
+      );
+    }
+
     res.status(200).json(liga);
   } catch (err) {
     console.error(`Erro ao buscar liga ${id}:`, err.message);
-    // Retornar 400 para CastError (embora a validação deva prevenir)
     if (err.name === "CastError") {
       return res.status(400).json({ erro: `ID de liga inválido: ${id}` });
     }
@@ -84,18 +234,14 @@ const buscarLigaPorId = async (req, res) => {
 
 const criarLiga = async (req, res) => {
   try {
-    // Extrai nome e times do corpo da requisição
     const { nome, times } = req.body;
 
-    // Garante que times será um array de números (IDs)
     const timesIds = Array.isArray(times)
       ? times.map((t) => Number(t.id)).filter((id) => !isNaN(id))
       : [];
 
-    // Cria a nova liga com o nome e os IDs dos times
     const novaLiga = new Liga({ nome, times: timesIds });
     const ligaSalva = await novaLiga.save();
-    console.log("Nova liga criada:", ligaSalva._id);
     res.status(201).json(ligaSalva);
   } catch (err) {
     console.error("Erro ao criar liga:", err.message);
@@ -106,20 +252,15 @@ const criarLiga = async (req, res) => {
 const excluirLiga = async (req, res) => {
   const { id } = req.params;
 
-  // --- CORREÇÃO: Validar se o ID é um ObjectId válido ---
   if (!mongoose.Types.ObjectId.isValid(id)) {
-    console.log(`ID de liga inválido para exclusão: ${id}`);
     return res.status(400).json({ erro: "ID de liga inválido" });
   }
-  // --- FIM CORREÇÃO ---
 
   try {
     const liga = await Liga.findByIdAndDelete(id);
     if (!liga) {
-      console.log(`Liga com ID ${id} não encontrada para exclusão`);
       return res.status(404).json({ erro: "Liga não encontrada" });
     }
-    console.log(`Liga com ID ${id} excluída com sucesso`);
     res.status(204).end();
   } catch (err) {
     console.error("Erro ao excluir liga:", err.message);
@@ -130,15 +271,11 @@ const excluirLiga = async (req, res) => {
   }
 };
 
-// Função auxiliar (se não existir em outro lugar)
 async function salvarTime(timeId) {
-  // Implementar lógica para buscar dados do time na API Cartola e salvar/atualizar no DB
-  // Exemplo básico:
   try {
     const timeExistente = await Time.findOne({ id: timeId });
     if (!timeExistente) {
-      // Busca na API e salva
-      console.log(`Salvando time ${timeId}... (lógica a implementar)`);
+      console.log(`Salvando time ${timeId}...`);
     }
   } catch (error) {
     console.error(`Erro ao tentar salvar time ${timeId}:`, error);
@@ -147,13 +284,11 @@ async function salvarTime(timeId) {
 
 const atualizarTimesLiga = async (req, res) => {
   const { id } = req.params;
-  const { times } = req.body; // Espera um array de IDs numéricos
+  const { times } = req.body;
 
-  // --- CORREÇÃO: Validar ID da liga ---
   if (!mongoose.Types.ObjectId.isValid(id)) {
     return res.status(400).json({ erro: "ID de liga inválido" });
   }
-  // --- FIM CORREÇÃO ---
 
   if (!Array.isArray(times)) {
     return res.status(400).json({ erro: "'times' deve ser um array" });
@@ -163,18 +298,12 @@ const atualizarTimesLiga = async (req, res) => {
     const liga = await Liga.findById(id);
     if (!liga) return res.status(404).json({ erro: "Liga não encontrada" });
 
-    // Converte IDs para número e remove duplicados/inválidos
     const timesIdsNumericos = [
       ...new Set(times.map(Number).filter((num) => !isNaN(num))),
     ];
 
-    // Opcional: Salva/verifica cada time na coleção times antes de atualizar a liga
-    // await Promise.all(timesIdsNumericos.map(timeId => salvarTime(timeId)));
-
-    // Atualiza o array de times na liga (assumindo que o schema armazena números)
     liga.times = timesIdsNumericos;
     await liga.save();
-    console.log(`Times atualizados para a liga ${id}:`, liga.times.length);
     res.status(200).json(liga);
   } catch (err) {
     console.error(`Erro ao atualizar times da liga ${id}:`, err.message);
@@ -190,11 +319,9 @@ const atualizarTimesLiga = async (req, res) => {
 const removerTimeDaLiga = async (req, res) => {
   const { id, timeId } = req.params;
 
-  // --- CORREÇÃO: Validar ID da liga ---
   if (!mongoose.Types.ObjectId.isValid(id)) {
     return res.status(400).json({ erro: "ID de liga inválido" });
   }
-  // --- FIM CORREÇÃO ---
 
   const timeIdNum = Number(timeId);
   if (isNaN(timeIdNum)) {
@@ -205,16 +332,13 @@ const removerTimeDaLiga = async (req, res) => {
     const liga = await Liga.findById(id);
     if (!liga) return res.status(404).json({ erro: "Liga não encontrada" });
 
-    // Remove o time (assumindo que liga.times armazena números)
     const initialLength = liga.times.length;
     liga.times = liga.times.filter((t) => t !== timeIdNum);
 
     if (liga.times.length < initialLength) {
       await liga.save();
-      console.log(`Time ${timeIdNum} removido da liga ${id}`);
       res.status(200).json({ mensagem: "Time removido com sucesso!" });
     } else {
-      console.log(`Time ${timeIdNum} não encontrado na liga ${id}`);
       res.status(404).json({ erro: "Time não encontrado na liga" });
     }
   } catch (err) {
@@ -228,51 +352,35 @@ const removerTimeDaLiga = async (req, res) => {
   }
 };
 
-// --- Funções de Fluxo Financeiro (Simplificadas, precisam de revisão) ---
 const atualizarFluxoFinanceiro = async (req, res) => {
-  // ... (Código original precisa de validação de ID e revisão da lógica)
   res.status(501).json({ erro: "Função não implementada completamente" });
 };
 
 const consultarFluxoFinanceiro = async (req, res) => {
-  // ... (Código original precisa de validação de ID e revisão da lógica)
   res.status(501).json({ erro: "Função não implementada completamente" });
 };
-// --- Fim Funções de Fluxo Financeiro ---
 
-// Busca os times COMPLETOS da liga (usando o array "times" da coleção "ligas")
 const buscarTimesDaLiga = async (req, res) => {
   const ligaIdParam = req.params.id;
 
-  // --- CORREÇÃO: Validar ID da liga ---
   if (!mongoose.Types.ObjectId.isValid(ligaIdParam)) {
-    console.log(`[TIMES] ID de liga inválido recebido: "${ligaIdParam}"`);
     return res.status(400).json({
       erro: "ID de liga inválido",
       recebido: ligaIdParam,
-      dica: "Verifique se o ligaId está sendo passado corretamente da sessão"
     });
   }
-  // --- FIM CORREÇÃO ---
 
   try {
-    // Verificar se o ID é válido e a liga existe
-    const liga = await Liga.findById(ligaIdParam).lean(); // Usar lean()
+    const liga = await Liga.findById(ligaIdParam).lean();
     if (!liga) {
-      console.log(`Liga com ID ${ligaIdParam} não encontrada`);
       return res.status(404).json({ erro: "Liga não encontrada" });
     }
-    console.log(`Liga encontrada: ${liga.nome}`);
 
-    // Assumindo que liga.times contém IDs numéricos e o schema de Time usa 'id' numérico
     if (!Array.isArray(liga.times) || liga.times.length === 0) {
-      console.log("Nenhum time encontrado na liga");
-      return res.json([]); // Retorna array vazio se não houver times
+      return res.json([]);
     }
 
-    console.log("IDs dos times na liga:", liga.times);
-    const times = await Time.find({ id: { $in: liga.times } }).lean(); // Usar lean()
-    console.log("Times encontrados:", times.length);
+    const times = await Time.find({ id: { $in: liga.times } }).lean();
     res.json(times);
   } catch (err) {
     console.error("Erro ao buscar times da liga:", err);
@@ -285,26 +393,21 @@ const buscarTimesDaLiga = async (req, res) => {
   }
 };
 
-// Busca rodadas da liga (filtro opcional por rodada ou intervalo)
 const buscarRodadasDaLiga = async (req, res) => {
   const ligaIdParam = req.params.id;
   const rodadaNumParam = req.params.rodadaNum;
   const { rodada, inicio, fim } = req.query;
 
-  // Validar ID da liga
   if (!mongoose.Types.ObjectId.isValid(ligaIdParam)) {
-    console.log(`[RODADAS] ID de liga inválido recebido: "${ligaIdParam}"`);
     return res.status(400).json({
       erro: "ID de liga inválido",
       recebido: ligaIdParam,
-      dica: "Certifique-se de que está usando o ID correto da liga, não o nome do arquivo"
     });
   }
 
   try {
     const ligaExiste = await Liga.findById(ligaIdParam);
     if (!ligaExiste) {
-      console.log(`Liga com ID ${ligaIdParam} não encontrada`);
       return res.status(404).json({ erro: "Liga não encontrada" });
     }
 
@@ -320,33 +423,15 @@ const buscarRodadasDaLiga = async (req, res) => {
         ligaId: new mongoose.Types.ObjectId(ligaIdParam),
         rodada: numRodada,
       };
-      console.log(
-        `Buscando dados da rodada específica: ${numRodada} para liga ${ligaIdParam}`,
-      );
-      console.log("Query para buscar dados da rodada:", JSON.stringify(query));
 
       const dadosRodada = await Rodada.find(query).lean();
-      console.log(
-        `Encontrados ${dadosRodada.length} documentos para a rodada ${numRodada}`,
-      );
       res.json(dadosRodada);
     } else {
-      console.log(
-        `Buscando números de rodadas distintas para liga ${ligaIdParam}`,
-      );
       const queryDistinct = {
         ligaId: new mongoose.Types.ObjectId(ligaIdParam),
       };
-      console.log(
-        "Query para buscar rodadas distintas:",
-        JSON.stringify(queryDistinct),
-      );
 
       const numerosRodadas = await Rodada.distinct("rodada", queryDistinct);
-      console.log(
-        `Encontradas ${numerosRodadas.length} rodadas distintas:`,
-        numerosRodadas,
-      );
       res.json(numerosRodadas.sort((a, b) => a - b));
     }
   } catch (err) {
@@ -362,12 +447,11 @@ const buscarRodadasDaLiga = async (req, res) => {
   }
 };
 
-// Função auxiliar para gerar confrontos todos contra todos
 function gerarConfrontos(times) {
   const n = times.length;
   const rodadas = [];
   const lista = [...times];
-  if (n % 2 !== 0) lista.push(null); // adiciona bye se ímpar
+  if (n % 2 !== 0) lista.push(null);
 
   for (let rodada = 0; rodada < n - 1; rodada++) {
     const jogos = [];
@@ -379,78 +463,54 @@ function gerarConfrontos(times) {
       }
     }
     rodadas.push(jogos);
-    lista.splice(1, 0, lista.pop()); // rotaciona times
+    lista.splice(1, 0, lista.pop());
   }
   return rodadas;
 }
 
-// Novo controlador para buscar confrontos da Liga Pontos Corridos
 const buscarConfrontosPontosCorridos = async (req, res) => {
   const ligaIdParam = req.params.id;
 
-  // Validar ID da liga
   if (!mongoose.Types.ObjectId.isValid(ligaIdParam)) {
-    console.log(`ID de liga inválido para buscar confrontos: ${ligaIdParam}`);
     return res.status(400).json({ erro: "ID de liga inválido" });
   }
 
   try {
-    console.log(
-      `Buscando confrontos da Liga Pontos Corridos para liga ${ligaIdParam}...`,
-    );
-
-    // Verificar se a liga existe
     const liga = await Liga.findById(ligaIdParam).lean();
     if (!liga) {
-      console.log(`Liga com ID ${ligaIdParam} não encontrada`);
       return res.status(404).json({ erro: "Liga não encontrada" });
     }
 
-    // Buscar times da liga
     const times = await Time.find({ id: { $in: liga.times } }).lean();
     if (!times || times.length === 0) {
-      console.log(`Nenhum time encontrado para a liga ${ligaIdParam}`);
-      return res.json([]); // Retorna array vazio se não houver times
+      return res.json([]);
     }
 
-    console.log(
-      `Gerando confrontos para ${times.length} times da liga ${ligaIdParam}`,
-    );
-
-    // Gerar confrontos todos contra todos
     const confrontosBase = gerarConfrontos(times);
 
-    // Buscar status do mercado para determinar rodada atual
     let rodadaAtual = 1;
     try {
-      // CORRIGIDO: Usar a rota correta /api/mercado/status
       const resStatus = await axios.get(
         "http://localhost:5000/api/mercado/status",
-      ); // Ajustar URL se necessário
+      );
       if (resStatus.data && resStatus.data.rodada_atual) {
         rodadaAtual = resStatus.data.rodada_atual;
       }
     } catch (err) {
-      console.warn(
-        "Erro ao buscar status do mercado para confrontos, usando rodada 1:",
-        err.message,
-      );
+      // Silencioso
     }
 
     const ultimaRodadaCompleta = rodadaAtual - 1;
     const confrontosComPontos = [];
 
-    // Para cada rodada de confrontos
     for (let i = 0; i < confrontosBase.length; i++) {
       const rodadaNum = i + 1;
-      const rodadaCartola = 7 + i; // RODADA_INICIAL = 7
+      const rodadaCartola = 7 + i;
       const jogosDaRodada = confrontosBase[i];
 
-      // Buscar pontuações da rodada se já foi disputada
       let pontuacoesRodada = {};
       if (rodadaCartola <= ultimaRodadaCompleta) {
         try {
-          // Buscar dados da rodada
           const queryRodada = {
             ligaId: new mongoose.Types.ObjectId(ligaIdParam),
             rodada: rodadaCartola,
@@ -458,7 +518,6 @@ const buscarConfrontosPontosCorridos = async (req, res) => {
 
           const dadosRodada = await Rodada.find(queryRodada).lean();
 
-          // Montar mapa de pontuações por time
           pontuacoesRodada = dadosRodada.reduce((acc, item) => {
             if (item.time_id && item.pontuacao !== undefined) {
               acc[item.time_id] = item.pontuacao;
@@ -473,7 +532,6 @@ const buscarConfrontosPontosCorridos = async (req, res) => {
         }
       }
 
-      // Adicionar pontuações aos jogos
       const jogosComPontos = jogosDaRodada.map((jogo) => ({
         ...jogo,
         pontosA: pontuacoesRodada[jogo.timeA.id] ?? null,
@@ -487,9 +545,6 @@ const buscarConfrontosPontosCorridos = async (req, res) => {
       });
     }
 
-    console.log(
-      `Confrontos gerados e pontuações (parciais) adicionadas para liga ${ligaIdParam}`,
-    );
     res.json(confrontosComPontos);
   } catch (err) {
     console.error("Erro ao buscar confrontos da liga:", err);
@@ -504,7 +559,6 @@ const buscarConfrontosPontosCorridos = async (req, res) => {
   }
 };
 
-// Buscar módulos ativos/configurados da liga
 const buscarModulosAtivos = async (req, res) => {
   const ligaIdParam = req.params.id;
 
@@ -518,46 +572,33 @@ const buscarModulosAtivos = async (req, res) => {
       return res.status(404).json({ erro: "Liga não encontrada" });
     }
 
-    console.log(`[LIGAS] 🔍 Buscando módulos ativos para liga ${ligaIdParam}`);
-
-    // ✅ NOVO SISTEMA: Usar campo modulos_ativos se existir, senão usar detecção automática
     let modulosAtivos;
 
     if (liga.modulos_ativos && Object.keys(liga.modulos_ativos).length > 0) {
-      // Usar configuração explícita
       modulosAtivos = liga.modulos_ativos;
-      console.log(`[LIGAS] ✅ Usando configuração explícita de módulos`);
     } else {
-      // Fallback: Detecção automática pela presença de configurações
       const config = liga.configuracoes || {};
-      
+
       modulosAtivos = {
-        // Módulos base (sempre ativos por padrão)
         extrato: true,
         ranking: true,
         rodadas: true,
-
-        // Módulos condicionais
         top10: !!config.top10,
         melhorMes: !!config.melhor_mes,
         pontosCorridos: !!config.pontos_corridos,
         mataMata: !!config.mata_mata,
         artilheiro: !!config.artilheiro,
-        luvaOuro: !!config.luva_ouro
+        luvaOuro: !!config.luva_ouro,
       };
-      console.log(`[LIGAS] ⚠️ Usando detecção automática (fallback)`);
     }
 
-    console.log(`[LIGAS] 📋 Módulos ativos:`, modulosAtivos);
     res.json({ modulos: modulosAtivos });
-
   } catch (err) {
-    console.error("[LIGAS] ❌ Erro ao buscar módulos ativos:", err);
+    console.error("[LIGAS] Erro ao buscar módulos ativos:", err);
     res.status(500).json({ erro: "Erro ao buscar módulos ativos" });
   }
 };
 
-// Atualizar módulos ativos da liga
 const atualizarModulosAtivos = async (req, res) => {
   const ligaIdParam = req.params.id;
   const { modulos } = req.body;
@@ -566,33 +607,27 @@ const atualizarModulosAtivos = async (req, res) => {
     return res.status(400).json({ erro: "ID de liga inválido" });
   }
 
-  if (!modulos || typeof modulos !== 'object') {
+  if (!modulos || typeof modulos !== "object") {
     return res.status(400).json({ erro: "Dados de módulos inválidos" });
   }
 
   try {
-    console.log(`[LIGAS] 🔧 Atualizando módulos ativos para liga ${ligaIdParam}`);
-    console.log(`[LIGAS] Novos módulos:`, modulos);
-
     const liga = await Liga.findById(ligaIdParam);
     if (!liga) {
       return res.status(404).json({ erro: "Liga não encontrada" });
     }
 
-    // Atualizar módulos ativos
     liga.modulos_ativos = modulos;
     liga.atualizadaEm = new Date();
     await liga.save();
 
-    console.log(`[LIGAS] ✅ Módulos atualizados com sucesso`);
-    res.json({ 
-      success: true, 
+    res.json({
+      success: true,
       modulos: liga.modulos_ativos,
-      mensagem: "Módulos atualizados com sucesso"
+      mensagem: "Módulos atualizados com sucesso",
     });
-
   } catch (err) {
-    console.error("[LIGAS] ❌ Erro ao atualizar módulos:", err);
+    console.error("[LIGAS] Erro ao atualizar módulos:", err);
     res.status(500).json({ erro: "Erro ao atualizar módulos ativos" });
   }
 };
@@ -612,4 +647,6 @@ export {
   buscarCartoleiroPorId,
   buscarModulosAtivos,
   atualizarModulosAtivos,
+  sincronizarParticipantesLiga,
+  sincronizarTodasLigas,
 };

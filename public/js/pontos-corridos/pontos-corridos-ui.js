@@ -6,10 +6,7 @@ import {
   calcularRodadaBrasileirao,
 } from "./pontos-corridos-config.js";
 
-import {
-  criarBotaoExportacaoPontosCorridosRodada,
-  criarBotaoExportacaoPontosCorridosClassificacao,
-} from "../exports/export-pontos-corridos.js";
+// ✅ EXPORTS REMOVIDOS - Sistema não usa mais exportação como imagem
 
 // Cache de elementos DOM
 const elementsCache = new Map();
@@ -442,24 +439,7 @@ export function renderTabelaRodada(
   `;
 }
 
-// Função para criar botão de exportação de rodada
-export function criarBotaoExportacaoRodada(
-  jogos,
-  rodadaLiga,
-  rodadaCartola,
-  times,
-) {
-  // Aguardar que o DOM seja renderizado
-  setTimeout(() => {
-    criarBotaoExportacaoPontosCorridosRodada({
-      containerId: "exportPontosCorridosRodadaBtnContainer",
-      jogos,
-      rodadaLiga,
-      rodadaCartola,
-      times,
-    });
-  }, 100);
-}
+// ✅ FUNÇÃO DE EXPORTAÇÃO REMOVIDA - Sistema não usa mais exportação como imagem
 
 // Renderizar tabela de classificação (mantida inalterada)
 export function renderTabelaClassificacao(
@@ -481,31 +461,36 @@ export function renderTabelaClassificacao(
 
   classificacao.forEach((time, index) => {
     // Validar se o objeto time existe e tem as propriedades mínimas
-    if (!time || typeof time !== 'object') {
-      console.warn('[PONTOS-CORRIDOS-UI] Time inválido na posição', index);
+    if (!time || typeof time !== "object") {
+      console.warn("[PONTOS-CORRIDOS-UI] Time inválido na posição", index);
       return;
     }
 
     const posicao = index + 1;
-    const isEmpate = index > 0 && classificacao[index - 1].pontos === time.pontos;
+    const isEmpate =
+      index > 0 && classificacao[index - 1].pontos === time.pontos;
 
-    // Determinar cor baseada na posição
-    let corPosicao = "";
-    if (!houveErro) {
-      if (posicao <= 4) {
-        corPosicao = "var(--status-success)"; // Top 4
-      } else if (posicao >= classificacao.length - 3) {
-        corPosicao = "var(--status-warning)"; // Bottom 4
-      }
+    // Determinar classe de posição para pódio (1º, 2º, 3º)
+    let classePosicao = "classificacao-linha";
+    if (posicao === 1) {
+      classePosicao += " primeiro-lugar";
+    } else if (posicao === 2) {
+      classePosicao += " segundo-lugar";
+    } else if (posicao === 3) {
+      classePosicao += " terceiro-lugar";
     }
 
     // Extrair dados com fallbacks seguros
-    const nomeTime = time.nome || time.nome_time || 'Time Desconhecido';
-    const escudoUrl = time.escudo || time.url_escudo_png || time.foto_time || 'data:image/svg+xml,%3Csvg xmlns=\'http://www.w3.org/2000/svg\' width=\'40\' height=\'40\'%3E%3Crect fill=\'%23ddd\' width=\'40\' height=\'40\'/%3E%3C/svg%3E';
+    const nomeTime = time.nome || time.nome_time || "Time Desconhecido";
+    const escudoUrl =
+      time.escudo ||
+      time.url_escudo_png ||
+      time.foto_time ||
+      "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='40' height='40'%3E%3Crect fill='%23ddd' width='40' height='40'/%3E%3C/svg%3E";
 
     linhas += `
-      <tr style="border-bottom: 1px solid var(--card-border);">
-        <td style="text-align: center; padding: 12px; font-weight: bold; color: ${corPosicao}">
+      <tr class="${classePosicao}">
+        <td style="text-align: center; padding: 12px; font-weight: bold;">
           ${posicao}º
         </td>
         <td style="padding: 12px;">
@@ -527,9 +512,15 @@ export function renderTabelaClassificacao(
         <td class="goleadas">${time.pontosGoleada || 0}</td>
         <td class="saldo ${(time.saldo_gols || 0) >= 0 ? "positivo" : "negativo"}">${(time.saldo_gols || 0) >= 0 ? "+" : ""}${(time.saldo_gols || 0).toFixed(1)}</td>
         <td class="financeiro ${(time.financeiro || 0) >= 0 ? "positivo" : "negativo"}">R$ ${(time.financeiro || 0).toFixed(2)}</td>
-        <td class="aproveitamento">${((time.vitorias + time.empates + time.derrotas) > 0
-        ? ((time.pontos / ((time.vitorias + time.empates + time.derrotas) * 3)) * 100).toFixed(1)
-        : 0)}%</td>
+        <td class="aproveitamento">${
+          time.vitorias + time.empates + time.derrotas > 0
+            ? (
+                (time.pontos /
+                  ((time.vitorias + time.empates + time.derrotas) * 3)) *
+                100
+              ).toFixed(1)
+            : 0
+        }%</td>
       </tr>
     `;
   });
@@ -583,22 +574,7 @@ export function renderTabelaClassificacao(
   `;
 }
 
-// Função para criar botão de exportação de classificação
-export function criarBotaoExportacaoClassificacao(
-  times,
-  rodadaLiga,
-  rodadaCartola,
-) {
-  // Aguardar que o DOM seja renderizado
-  setTimeout(() => {
-    criarBotaoExportacaoPontosCorridosClassificacao({
-      containerId: "exportClassificacaoPontosCorridosBtnContainer",
-      times,
-      rodadaLiga,
-      rodadaCartola,
-    });
-  }, 100);
-}
+// ✅ FUNÇÃO DE EXPORTAÇÃO REMOVIDA - Sistema não usa mais exportação como imagem
 
 // Atualizar container
 export function atualizarContainer(containerId, conteudo) {

@@ -57,7 +57,7 @@ let estadoOrquestrador = {
   ultimaRodadaComDados: 0,
   houveErro: false,
   carregando: false,
-  visualizacaoAtual: 'rodadas', // 'rodadas' ou 'classificacao'
+  visualizacaoAtual: "rodadas", // 'rodadas' ou 'classificacao'
   rodadaSelecionada: 1,
 };
 
@@ -179,7 +179,10 @@ export async function carregarPontosCorridos() {
 
     // ✅ AGORA VALIDAR COM CONFRONTOS GERADOS
     try {
-      validarDadosEntrada(estadoOrquestrador.times, estadoOrquestrador.confrontos);
+      validarDadosEntrada(
+        estadoOrquestrador.times,
+        estadoOrquestrador.confrontos,
+      );
       console.log("[PONTOS-CORRIDOS-ORQUESTRADOR] Dados validados com sucesso");
     } catch (validationError) {
       console.warn(
@@ -244,18 +247,21 @@ async function renderRodada(rodadaNum) {
   const containerId = "pontosCorridosRodada";
 
   // CORREÇÃO: Validar rodadaNum
-  if (!rodadaNum || rodadaNum < 1 || rodadaNum > estadoOrquestrador.confrontos.length) {
-    console.error(`[PONTOS-CORRIDOS-ORQUESTRADOR] Rodada inválida: ${rodadaNum}`);
+  if (
+    !rodadaNum ||
+    rodadaNum < 1 ||
+    rodadaNum > estadoOrquestrador.confrontos.length
+  ) {
+    console.error(
+      `[PONTOS-CORRIDOS-ORQUESTRADOR] Rodada inválida: ${rodadaNum}`,
+    );
     renderErrorState(containerId, new Error(`Rodada ${rodadaNum} inválida`));
     return;
   }
 
   const rodadaCartola = PONTOS_CORRIDOS_CONFIG.rodadaInicial + rodadaNum - 1; // Ajuste para índice 0
 
-  renderLoadingState(
-    containerId,
-    `Carregando dados da rodada ${rodadaNum}`,
-  );
+  renderLoadingState(containerId, `Carregando dados da rodada ${rodadaNum}`);
 
   // Limpar container de exportação do topo (usado pela classificação)
   const containerTopoExportacao = document.getElementById(
@@ -278,7 +284,8 @@ async function renderRodada(rodadaNum) {
       throw new Error(`Confrontos não encontrados para rodada ${rodadaNum}`);
     }
 
-    const isRodadaPassada = rodadaCartola < estadoOrquestrador.rodadaAtualBrasileirao;
+    const isRodadaPassada =
+      rodadaCartola < estadoOrquestrador.rodadaAtualBrasileirao;
 
     let pontuacoesMap = {};
     if (isRodadaPassada) {
@@ -299,9 +306,7 @@ async function renderRodada(rodadaNum) {
     );
     atualizarContainer(containerId, tabelaHtml);
 
-    console.log(
-      `[PONTOS-CORRIDOS-ORQUESTRADOR] Rodada ${rodadaNum} carregada`,
-    );
+    console.log(`[PONTOS-CORRIDOS-ORQUESTRADOR] Rodada ${rodadaNum} carregada`);
   } catch (error) {
     console.error(
       `[PONTOS-CORRIDOS-ORQUESTRADOR] Erro ao carregar rodada ${rodadaNum}:`,
@@ -319,7 +324,10 @@ async function renderClassificacao() {
 
   try {
     // Verificar cache primeiro
-    let resultado = getClassificacaoCache(estadoOrquestrador.ligaId, estadoOrquestrador.rodadaAtualBrasileirao);
+    let resultado = getClassificacaoCache(
+      estadoOrquestrador.ligaId,
+      estadoOrquestrador.rodadaAtualBrasileirao,
+    );
 
     if (!resultado) {
       // Calcular classificação
@@ -331,7 +339,11 @@ async function renderClassificacao() {
       );
 
       // Armazenar no cache
-      setClassificacaoCache(resultado, estadoOrquestrador.ligaId, estadoOrquestrador.rodadaAtualBrasileirao);
+      setClassificacaoCache(
+        resultado,
+        estadoOrquestrador.ligaId,
+        estadoOrquestrador.rodadaAtualBrasileirao,
+      );
     }
 
     const { classificacao, ultimaRodadaComDados, houveErro } = resultado;
@@ -378,7 +390,6 @@ function setupCleanup() {
     window.addEventListener("beforeunload", () => {
       moduleCache.clear();
       clearCache();
-      exportsCarregados = false;
       rodadasCarregados = false;
       console.log("[PONTOS-CORRIDOS-ORQUESTRADOR] Cleanup executado");
     });
@@ -415,8 +426,8 @@ async function renderizarInterfaceCompleta(container) {
         <div class="card-subtitle">Sistema de confrontos todos contra todos</div>
       </div>
       <div class="pontos-corridos-nav">
-        <button class="nav-btn ${estadoOrquestrador.visualizacaoAtual === 'rodadas' ? 'active' : ''}" data-view="rodadas">Rodadas</button>
-        <button class="nav-btn ${estadoOrquestrador.visualizacaoAtual === 'classificacao' ? 'active' : ''}" data-view="classificacao">Classificação</button>
+        <button class="nav-btn ${estadoOrquestrador.visualizacaoAtual === "rodadas" ? "active" : ""}" data-view="rodadas">Rodadas</button>
+        <button class="nav-btn ${estadoOrquestrador.visualizacaoAtual === "classificacao" ? "active" : ""}" data-view="classificacao">Classificação</button>
       </div>
       <div id="pontos-corridos-content"></div>
       ${configurarBotaoVoltar()}
@@ -429,7 +440,7 @@ async function renderizarInterfaceCompleta(container) {
   setupNavegacao();
 
   // Renderizar visualização atual
-  if (estadoOrquestrador.visualizacaoAtual === 'classificacao') {
+  if (estadoOrquestrador.visualizacaoAtual === "classificacao") {
     renderizarClassificacao();
   } else {
     await renderizarRodada(estadoOrquestrador.rodadaSelecionada);
@@ -497,13 +508,16 @@ async function renderizarRodada(rodadaNum) {
     // Configurar listeners do seletor
     setupSeletorRodada();
   } catch (error) {
-    console.error(`[ORQUESTRADOR] Erro ao renderizar rodada ${rodadaNum}:`, error);
+    console.error(
+      `[ORQUESTRADOR] Erro ao renderizar rodada ${rodadaNum}:`,
+      error,
+    );
   }
 }
 
 // Função auxiliar para calcular a rodada do Brasileirão (baseada na configuração)
 function calcularRodadaBrasileirao(indiceRodada) {
-    return PONTOS_CORRIDOS_CONFIG.rodadaInicial + indiceRodada;
+  return PONTOS_CORRIDOS_CONFIG.rodadaInicial + indiceRodada;
 }
 
 // Funções auxiliares de UI e Navegação que precisam ser definidas ou importadas
@@ -511,26 +525,43 @@ function calcularRodadaBrasileirao(indiceRodada) {
 // Estas funções devem estar presentes em 'pontos-corridos-ui.js' ou importadas de outro lugar.
 
 // Placeholder para renderSeletorRodada se não estiver importado/definido
-if (typeof renderSeletorRodada === 'undefined') {
-    globalThis.renderSeletorRodada = function(container, totalRodadas, rodadaAtual, ultimaRodadaComDados) {
-        console.warn('[PONTOS-CORRIDOS-ORQUESTRADOR] renderSeletorRodada não definida. Renderizando placeholder.');
-        container.innerHTML += '<div class="placeholder-seletor-rodada">Seletor de Rodadas (Placeholder)</div>';
-    };
+if (typeof renderSeletorRodada === "undefined") {
+  globalThis.renderSeletorRodada = function (
+    container,
+    totalRodadas,
+    rodadaAtual,
+    ultimaRodadaComDados,
+  ) {
+    console.warn(
+      "[PONTOS-CORRIDOS-ORQUESTRADOR] renderSeletorRodada não definida. Renderizando placeholder.",
+    );
+    container.innerHTML +=
+      '<div class="placeholder-seletor-rodada">Seletor de Rodadas (Placeholder)</div>';
+  };
 }
 
 // Placeholder para setupSeletorRodada se não estiver importado/definido
-if (typeof setupSeletorRodada === 'undefined') {
-    globalThis.setupSeletorRodada = function() {
-        console.warn('[PONTOS-CORRIDOS-ORQUESTRADOR] setupSeletorRodada não definida. Adicionando placeholder listener.');
-        // Adiciona um listener genérico para simular funcionalidade
-        const selectorContainer = document.querySelector('#pontos-corridos-content'); // Assumindo que o seletor está dentro do content
-        if (selectorContainer) {
-            selectorContainer.addEventListener('click', (e) => {
-                if (e.target.classList.contains('nav-btn') && e.target.dataset.view === 'rodadas') {
-                    console.log('[PONTOS-CORRIDOS-ORQUESTRADOR] Placeholder: Rodada clicada');
-                    // Aqui você simularia a troca de rodada se necessário
-                }
-            });
+if (typeof setupSeletorRodada === "undefined") {
+  globalThis.setupSeletorRodada = function () {
+    console.warn(
+      "[PONTOS-CORRIDOS-ORQUESTRADOR] setupSeletorRodada não definida. Adicionando placeholder listener.",
+    );
+    // Adiciona um listener genérico para simular funcionalidade
+    const selectorContainer = document.querySelector(
+      "#pontos-corridos-content",
+    ); // Assumindo que o seletor está dentro do content
+    if (selectorContainer) {
+      selectorContainer.addEventListener("click", (e) => {
+        if (
+          e.target.classList.contains("nav-btn") &&
+          e.target.dataset.view === "rodadas"
+        ) {
+          console.log(
+            "[PONTOS-CORRIDOS-ORQUESTRADOR] Placeholder: Rodada clicada",
+          );
+          // Aqui você simularia a troca de rodada se necessário
         }
-    };
+      });
+    }
+  };
 }

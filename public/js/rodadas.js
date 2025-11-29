@@ -1,4 +1,5 @@
 // MÓDULO RODADAS REFATORADO - Ponto de Entrada Principal
+// ✅ VERSÃO 4.0 - COM BATCH LOADING
 // Responsável por: interface pública, compatibilidade, coordenação geral
 
 // VERIFICAÇÃO DE AMBIENTE
@@ -10,6 +11,11 @@ let carregarRodadasOrquestrador = null;
 let carregarDadosRodadaOrquestrador = null;
 let inicializarRodadasOrquestrador = null;
 let getRankingRodadaEspecificaCore = null;
+
+// ✅ NOVO: Referências para batch loading
+let getRankingsEmLoteCore = null;
+let preCarregarRodadasCore = null;
+let limparCacheRankingsCore = null;
 
 // ==============================
 // CARREGAMENTO DINÂMICO DE MÓDULOS
@@ -33,7 +39,13 @@ async function carregarModulosRodadas() {
     inicializarRodadasOrquestrador = orquestradorModule.inicializarRodadas;
     getRankingRodadaEspecificaCore = coreModule.getRankingRodadaEspecifica;
 
+    // ✅ NOVO: Funções de batch loading
+    getRankingsEmLoteCore = coreModule.getRankingsEmLote;
+    preCarregarRodadasCore = coreModule.preCarregarRodadas;
+    limparCacheRankingsCore = coreModule.limparCacheRankings;
+
     console.log("[RODADAS] ✅ Módulos refatorados carregados com sucesso");
+    console.log("[RODADAS] ⚡ Batch loading disponível");
     return true;
   } catch (error) {
     console.error("[RODADAS] ❌ Erro ao carregar módulos refatorados:", error);
@@ -83,9 +95,7 @@ export async function carregarRodadas(forceRefresh = false) {
 
 // FUNÇÃO PARA OBTER RANKING ESPECÍFICO (Compatibilidade)
 export async function getRankingRodadaEspecifica(ligaId, rodadaNum) {
-  console.log(
-    `[RODADAS] Solicitado ranking para rodada ${rodadaNum} (refatorado)`,
-  );
+  const ligaIdNormalizado = String(ligaId);
 
   if (isBackend) {
     // No backend, usar implementação simplificada
@@ -93,7 +103,7 @@ export async function getRankingRodadaEspecifica(ligaId, rodadaNum) {
       const fetch = (await import("node-fetch")).default;
       const baseUrl = "http://localhost:3000";
       const response = await fetch(
-        `${baseUrl}/api/rodadas/${ligaId}/rodadas?inicio=${rodadaNum}&fim=${rodadaNum}`,
+        `${baseUrl}/api/rodadas/${ligaIdNormalizado}/rodadas?inicio=${rodadaNum}&fim=${rodadaNum}`,
       );
 
       if (!response.ok) {
@@ -121,11 +131,136 @@ export async function getRankingRodadaEspecifica(ligaId, rodadaNum) {
   }
 
   if (getRankingRodadaEspecificaCore) {
-    return await getRankingRodadaEspecificaCore(ligaId, rodadaNum);
+    return await getRankingRodadaEspecificaCore(ligaIdNormalizado, rodadaNum);
   }
 
   console.warn("[RODADAS] Core module não disponível");
   return [];
+}
+
+// ==============================
+// ✅ NOVO: FUNÇÕES DE BATCH LOADING
+// ==============================
+
+/**
+ * ✅ BUSCA TODAS AS RODADAS EM UMA ÚNICA REQUISIÇÃO
+ * @param {string} ligaId - ID da liga
+ * @param {number} rodadaInicio - Rodada inicial (default: 1)
+ * @param {number} rodadaFim - Rodada final (default: 38)
+ * @param {boolean} forcarRecarga - Ignorar cache e buscar novamente
+ * @returns {Object} - { 1: [...rankings], 2: [...rankings], ... }
+ */
+export async function getRankingsEmLote(
+  ligaId,
+  rodadaInicio = 1,
+  rodadaFim = 38,
+  forcarRecarga = false,
+) {
+  const ligaIdNormalizado = String(ligaId);
+  console.log(
+    `[RODADAS] 🚀 getRankingsEmLote(${ligaIdNormalizado}, ${rodadaInicio}-${rodadaFim})`,
+  );
+
+  if (isBackend) {
+    // Backend: buscar diretamente
+    try {
+      const fetch = (await import("node-fetch")).default;
+      const baseUrl = "http://localhost:3000";
+      const response = await fetch(
+        `${baseUrl}/api/rodadas/${ligaIdNormalizado}/rodadas?inicio=${rodadaInicio}&fim=${rodadaFim}`,
+      );
+
+      if (!response.ok) {
+        throw new Error(`Erro ${response.status} ao buscar rodadas em lote`);
+      }
+
+      const data = await response.json();
+
+      // Agrupar por rodada
+      const agrupado = {};
+      data.forEach((r) => {
+        const num = parseInt(r.rodada);
+        if (!agrupado[num]) agrupado[num] = [];
+        agrupado[num].push(r);
+      });
+
+      // Ordenar cada rodada por pontos
+      Object.keys(agrupado).forEach((rodada) => {
+        agrupado[rodada].sort(
+          (a, b) => parseFloat(b.pontos || 0) - parseFloat(a.pontos || 0),
+        );
+      });
+
+      return agrupado;
+    } catch (error) {
+      console.error("[RODADAS] Erro no backend getRankingsEmLote:", error);
+      return {};
+    }
+  }
+
+  // Frontend: usar core module
+  if (!getRankingsEmLoteCore) {
+    await carregarModulosRodadas();
+  }
+
+  if (getRankingsEmLoteCore) {
+    return await getRankingsEmLoteCore(
+      ligaIdNormalizado,
+      rodadaInicio,
+      rodadaFim,
+      forcarRecarga,
+    );
+  }
+
+  console.warn("[RODADAS] getRankingsEmLote não disponível");
+  return {};
+}
+
+/**
+ * ✅ PRÉ-CARREGAR TODAS AS RODADAS (chamado uma vez na inicialização)
+ * @param {string} ligaId - ID da liga
+ * @param {number} ultimaRodada - Última rodada a carregar
+ */
+export async function preCarregarRodadas(ligaId, ultimaRodada = 38) {
+  console.log(`[RODADAS] 📦 preCarregarRodadas(${ligaId}, ${ultimaRodada})`);
+
+  if (isBackend) {
+    // No backend, apenas buscar em lote
+    await getRankingsEmLote(ligaId, 1, ultimaRodada, false);
+    return true;
+  }
+
+  // Frontend: usar core module
+  if (!preCarregarRodadasCore) {
+    await carregarModulosRodadas();
+  }
+
+  if (preCarregarRodadasCore) {
+    return await preCarregarRodadasCore(ligaId, ultimaRodada);
+  }
+
+  // Fallback: usar getRankingsEmLote
+  await getRankingsEmLote(ligaId, 1, ultimaRodada, false);
+  return true;
+}
+
+/**
+ * ✅ LIMPAR CACHE DE RANKINGS
+ * @param {string} ligaId - ID da liga (opcional, se não passar limpa tudo)
+ */
+export function limparCacheRankings(ligaId = null) {
+  console.log(`[RODADAS] 🗑️ limparCacheRankings(${ligaId || "todos"})`);
+
+  if (isBackend) {
+    console.log("[RODADAS] Limpeza de cache não disponível no backend");
+    return;
+  }
+
+  if (limparCacheRankingsCore) {
+    limparCacheRankingsCore(ligaId);
+  } else {
+    console.warn("[RODADAS] limparCacheRankings não disponível");
+  }
 }
 
 // ==============================
@@ -203,7 +338,7 @@ if (isFrontend) {
 
 // FUNÇÃO DE DEBUG PARA DESENVOLVIMENTO
 export async function debugRodadas() {
-  console.log("[RODADAS] 🐛 Iniciando debug...");
+  console.log("[RODADAS] 🛠 Iniciando debug...");
 
   if (isBackend) {
     console.log("[RODADAS] Debug não disponível no backend");
@@ -275,6 +410,11 @@ if (isFrontend) {
     forcarRecarregamento,
     getRankingRodadaEspecifica,
 
+    // ✅ NOVO: Batch loading
+    getRankingsEmLote,
+    preCarregarRodadas,
+    limparCacheRankings,
+
     // Acesso aos módulos internos
     async getModulos() {
       await carregarModulosRodadas();
@@ -293,6 +433,7 @@ if (isFrontend) {
         isBackend,
         isFrontend,
         modulosCarregados: !!carregarRodadasOrquestrador,
+        batchLoadingDisponivel: !!getRankingsEmLoteCore,
         url: window.location.href,
         containerAtivo: document
           .getElementById("rodadas")
@@ -320,4 +461,7 @@ if (isFrontend) {
   console.log("  - rodadas-cache.js: Sistema de cache e performance");
   console.log("  - rodadas-orquestrador.js: Coordenação entre módulos");
   console.log("  - rodadas.js: Ponto de entrada refatorado (este arquivo)");
+  console.log(
+    "[RODADAS] ⚡ NOVO: Batch loading disponível via getRankingsEmLote()",
+  );
 }
