@@ -12,6 +12,7 @@ function toLigaId(ligaId) {
 // ===== FUNÇÃO AUXILIAR: Calcular resumo a partir das rodadas =====
 function calcularResumoDeRodadas(rodadas) {
     if (!Array.isArray(rodadas) || rodadas.length === 0) {
+        console.warn('[CACHE-CONTROLLER] ⚠️ calcularResumoDeRodadas: array vazio');
         return {
             saldo: 0,
             totalGanhos: 0,
@@ -23,6 +24,9 @@ function calcularResumoDeRodadas(rodadas) {
             top10: 0,
         };
     }
+
+    console.log('[CACHE-CONTROLLER] 📊 Calculando resumo de', rodadas.length, 'rodadas');
+    console.log('[CACHE-CONTROLLER] 📋 Primeira rodada:', JSON.stringify(rodadas[0]));
 
     let totalBonus = 0;
     let totalOnus = 0;
@@ -63,7 +67,7 @@ function calcularResumoDeRodadas(rodadas) {
         totalMataMata +
         totalTop10;
 
-    return {
+    const resultado = {
         saldo,
         saldo_final: saldo,
         totalGanhos,
@@ -74,6 +78,10 @@ function calcularResumoDeRodadas(rodadas) {
         mataMata: totalMataMata,
         top10: totalTop10,
     };
+
+    console.log('[CACHE-CONTROLLER] ✅ Resumo calculado:', resultado);
+
+    return resultado;
 }
 
 // ===== FUNÇÃO: Transformar transações em rodadas consolidadas =====
@@ -82,7 +90,24 @@ function transformarTransacoesEmRodadas(transacoes, ligaId) {
         return [];
     }
 
-    // Agrupar transações por rodada
+    // ✅ VERIFICAR SE JÁ ESTÁ NO FORMATO CORRETO (rodadas consolidadas)
+    const primeiroItem = transacoes[0];
+    const jaEstaConsolidado = primeiroItem.bonusOnus !== undefined || 
+                              primeiroItem.pontosCorridos !== undefined ||
+                              primeiroItem.mataMata !== undefined ||
+                              primeiroItem.top10 !== undefined;
+
+    // Se já está no formato correto, retornar direto
+    if (jaEstaConsolidado) {
+        console.log('[CACHE-CONTROLLER] ✅ Dados já estão no formato de rodadas consolidadas');
+        return transacoes.map((rodada, idx) => ({
+            ...rodada,
+            saldoAcumulado: transacoes.slice(0, idx + 1).reduce((acc, r) => acc + (r.saldo || 0), 0)
+        }));
+    }
+
+    // Agrupar transações por rodada (formato antigo)
+    console.log('[CACHE-CONTROLLER] 🔄 Convertendo formato antigo para rodadas consolidadas');
     const rodadasMap = {};
 
     transacoes.forEach((t) => {
@@ -198,7 +223,17 @@ export const getExtratoCache = async (req, res) => {
             rodadasConsolidadas: rodadasConsolidadas.length,
             ultimaRodada: cache.ultima_rodada_consolidada,
             saldo: resumoCalculado.saldo,
+            primeiraRodada: rodadasConsolidadas[0] || null,
         });
+
+        // ✅ VALIDAÇÃO: Se não tem rodadas consolidadas, retornar 404
+        if (rodadasConsolidadas.length === 0) {
+            console.warn('[CACHE-CONTROLLER] ⚠️ Cache sem rodadas consolidadas válidas');
+            return res.status(404).json({
+                cached: false,
+                message: "Cache sem dados válidos",
+            });
+        }
 
         // ✅ CORRIGIDO: Retornar rodadas consolidadas no formato esperado pelo frontend
         res.json({
