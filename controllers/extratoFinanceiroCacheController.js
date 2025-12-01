@@ -399,13 +399,21 @@ export const verificarCacheValido = async (req, res) => {
             !mercadoEstaAberto &&
             cacheExistente.ultima_rodada_consolidada >= rodadaAtualInt
         ) {
+            // ✅ TRANSFORMAR RODADAS ANTES DE RETORNAR
+            const transacoes = cacheExistente.historico_transacoes || [];
+            const rodadasConsolidadas = transformarTransacoesEmRodadas(transacoes, ligaId);
+            const resumoCalculado = calcularResumoDeRodadas(rodadasConsolidadas);
+
             validacao = {
                 valido: true,
+                cached: true,
                 permanente: true,
                 motivo: "rodada_fechada_cache_permanente",
                 ultimaRodada: cacheExistente.ultima_rodada_consolidada,
                 mercadoStatus: "fechado",
                 updatedAt: cacheExistente.updatedAt,
+                rodadas: rodadasConsolidadas, // ✅ Dados transformados
+                resumo: resumoCalculado
             };
         }
         // ✅ REGRA 2: Se mercado está ABERTO, verificar se precisa recalcular apenas rodada atual
@@ -423,14 +431,22 @@ export const verificarCacheValido = async (req, res) => {
                 const CACHE_TTL_MERCADO_ABERTO = 5 * 60 * 1000; // 5 minutos
 
                 if (idadeCache < CACHE_TTL_MERCADO_ABERTO) {
+                    // ✅ TRANSFORMAR RODADAS ANTES DE RETORNAR
+                    const transacoes = cacheExistente.historico_transacoes || [];
+                    const rodadasConsolidadas = transformarTransacoesEmRodadas(transacoes, ligaId);
+                    const resumoCalculado = calcularResumoDeRodadas(rodadasConsolidadas);
+
                     validacao = {
                         valido: true,
+                        cached: true,
                         permanente: false,
                         motivo: "cache_mercado_aberto_recente",
                         ultimaRodada: cacheExistente.ultima_rodada_consolidada,
                         mercadoStatus: "aberto",
                         idadeMinutos: Math.floor(idadeCache / 60000),
                         updatedAt: cacheExistente.updatedAt,
+                        rodadas: rodadasConsolidadas, // ✅ Dados transformados
+                        resumo: resumoCalculado
                     };
                 } else {
                     validacao = {
@@ -529,6 +545,7 @@ export const lerCacheExtratoFinanceiro = async (req, res) => {
         console.log(
             `[CACHE-EXTRATO] ✅ Cache válido: R${rodadaCache} (atual: R${rodadaAtualNum})`,
         );
+        console.log(`[CACHE-EXTRATO] 📊 Retornando ${rodadasConsolidadas.length} rodadas consolidadas`);
 
         res.json({
             cached: true,
