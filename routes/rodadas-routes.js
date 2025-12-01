@@ -3,6 +3,7 @@ import express from "express";
 import {
   buscarRodadas,
   popularRodadas,
+  criarIndiceUnico,
 } from "../controllers/rodadaController.js";
 
 // Importar o modelo Rodada para interagir com o banco de dados
@@ -91,5 +92,8 @@ router.post('/:ligaId/rodadas', async (req, res) => {
     console.log('[RODADAS-ROUTES] Body:', req.body);
     popularRodadas(req, res);
 });
+
+// Rota para criar índice único (executar uma vez)
+router.post('/criar-indice-unico', criarIndiceUnico);
 
 export default router;
