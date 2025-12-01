@@ -208,11 +208,14 @@ class DetalheLigaOrquestrador {
                     if (!this.modules.artilheiroCampeao) {
                         await carregarModuloArtilheiroCampeao();
                     }
+                    // ✅ CORRIGIDO: Usar window.inicializarArtilheiroCampeao (a função está no window, não no módulo ES6)
                     if (
-                        this.modules.artilheiroCampeao
-                            ?.inicializarArtilheiroCampeao
+                        typeof window.inicializarArtilheiroCampeao ===
+                        "function"
                     ) {
-                        await this.modules.artilheiroCampeao.inicializarArtilheiroCampeao();
+                        await window.inicializarArtilheiroCampeao();
+                    } else if (window.ArtilheiroCampeao?.inicializar) {
+                        await window.ArtilheiroCampeao.inicializar();
                     }
                     break;
 

@@ -1,402 +1,983 @@
-console.log("🏆 [ARTILHEIRO-CAMPEAO] Sistema modular carregando...");
+// ✅ ARTILHEIRO-CAMPEAO.JS v4.0.0
+// Tabela com Rodadas em Colunas Navegáveis (Estilo Luva de Ouro)
+console.log("🏆 [ARTILHEIRO] Sistema v4.0.0 carregando...");
 
-// ===== IMPORTAÇÕES MODULARES =====
-// Mantenha a arquitetura segmentada que você já tem
-import { ArtilheiroCache } from "./artilheiro-campeao/artilheiro-campeao-cache.js";
-import { ArtilheiroCore } from "./artilheiro-campeao/artilheiro-campeao-core.js";
-import { ArtilheiroUI } from "./artilheiro-campeao/artilheiro-campeao-ui.js";
-import { ArtilheiroUtils } from "./artilheiro-campeao/artilheiro-campeao-utils.js";
-import { RodadaDetector } from "./artilheiro-campeao/rodada-detector.js";
-
-// ===== CONFIGURAÇÕES =====
-const CONFIG = {
-    ligaId: "684d821cf1a7ae16d1f89572",
-    endpoints: {
-        // Usar backend como proxy para contornar CORS
-        mercadoStatus: "/api/cartola/mercado/status",
-        timeRodada: "/api/cartola/time/{timeId}/{rodada}",
-        participantes: "/api/ligas/{ligaId}/times",
-        // Backend otimizado se disponível
-        backendOptimizado:
-            "/api/artilheiro-campeao/{ligaId}/gols/{timeId}/{rodada}",
+const ArtilheiroCampeao = {
+    // Configurações
+    config: {
+        LIGA_ID: "684d821cf1a7ae16d1f89572",
+        RODADAS_VISIVEIS: 38, // ✅ Campeonato completo
+        API: {
+            RANKING: (ligaId) => `/api/artilheiro-campeao/${ligaId}/ranking`,
+            DETECTAR_RODADA: (ligaId) =>
+                `/api/artilheiro-campeao/${ligaId}/detectar-rodada`,
+        },
     },
-};
 
-// ===== COORDENADOR PRINCIPAL =====
-class ArtilheiroCoordinator {
-    constructor() {
-        this.cache = null;
-        this.core = null;
-        this.ui = null;
-        this.detector = null;
-        this.dados = [];
-        this.processando = false;
-        this.rodadaAtual = 15;
-        this.rodadaFim = 14;
-    }
+    // Estado
+    estado: {
+        ranking: [],
+        estatisticas: null,
+        rodadaAtual: 36,
+        rodadaFim: 35,
+        rodadaInicio: 1,
+        rodadaNavInicio: 1,
+        rodadaParcial: null,
+        mercadoAberto: false,
+        carregando: false,
+        inicializado: false,
+        dadosRodadas: {}, // ✅ Cache dos dados por participante/rodada
+    },
 
+    // ==============================
+    // INICIALIZAÇÃO
+    // ==============================
     async inicializar() {
-        console.log("🚀 [COORDENADOR] Inicializando sistema modular...");
-
-        try {
-            // Inicializar módulos
-            this.cache = ArtilheiroCache;
-            this.core = ArtilheiroCore;
-            this.ui = ArtilheiroUI;
-            this.detector = RodadaDetector;
-
-            // Detectar rodada atual
-            await this.detectarRodadaAtual();
-
-            // Renderizar interface inicial
-            this.atualizarInterface();
-
-            console.log("✅ [COORDENADOR] Sistema modular inicializado!");
-        } catch (error) {
-            console.error("❌ [COORDENADOR] Erro na inicialização:", error);
-            this.ui.mostrarErro("Erro ao inicializar sistema", error.message);
-        }
-    }
-
-    async detectarRodadaAtual() {
-        try {
-            console.log("🔍 [COORDENADOR] Detectando rodada atual...");
-
-            const rodadaInfo = await this.detector.detectar(CONFIG.ligaId);
-            this.rodadaAtual = rodadaInfo.rodadaAtual;
-            this.rodadaFim = Math.max(1, this.rodadaAtual - 1);
-
-            console.log(
-                `✅ Rodada detectada: ${this.rodadaAtual} (processando até: ${this.rodadaFim})`,
-            );
-        } catch (error) {
-            console.warn(
-                "⚠️ [COORDENADOR] Erro na detecção, usando padrão:",
-                error.message,
-            );
-            // Manter valores padrão
-        }
-    }
-
-    async popularGols() {
-        if (this.processando) return;
-
-        try {
-            this.processando = true;
-
-            this.ui.mostrarLoading("Iniciando processamento...");
-
-            // 1. Buscar participantes
-            const participantes = await this.buscarParticipantes();
-
-            // 2. Processar dados via core
-            this.ui.mostrarLoading("Extraindo dados via backend proxy...", {
-                atual: 0,
-                total: participantes.length,
-                porcentagem: 0,
-            });
-
-            const resultados = await this.core.processarParticipantes(
-                participantes,
-                this.rodadaFim,
-                (atual, total) => {
-                    const porcentagem = Math.round((atual / total) * 100);
-                    this.ui.mostrarLoading(
-                        `Processando ${participantes[atual - 1]?.nome_cartoleiro || "participante"}... (${atual}/${total})`,
-                        { atual, total, porcentagem },
-                    );
-                },
-            );
-
-            // 3. Calcular ranking
-            this.dados = this.core.calcularRanking(resultados);
-
-            // 4. Renderizar resultado
-            this.atualizarInterface();
-
-            console.log(
-                `✅ [COORDENADOR] Processamento concluído: ${this.dados.length} participantes`,
-            );
-        } catch (error) {
-            console.error("❌ [COORDENADOR] Erro no processamento:", error);
-            this.ui.mostrarErro("Erro ao processar dados", error.message);
-        } finally {
-            this.processando = false;
-        }
-    }
-
-    async buscarParticipantes() {
-        const estrategias = [
-            `/api/ligas/${CONFIG.ligaId}/times`,
-            `/api/ligas/${CONFIG.ligaId}/participantes`,
-            `/api/ligas/${CONFIG.ligaId}`,
-        ];
-
-        for (const url of estrategias) {
-            try {
-                console.log(`📡 [COORDENADOR] Tentando: ${url}`);
-                const response = await fetch(url);
-
-                if (response.ok) {
-                    const data = await response.json();
-                    let participantes = Array.isArray(data)
-                        ? data
-                        : data.times || data.participantes || [];
-
-                    if (participantes.length > 0) {
-                        return participantes.map((p) => ({
-                            timeId: p.time_id || p.timeId || p.id,
-                            nome_cartoleiro:
-                                p.nome_cartoleiro ||
-                                p.nome_cartola ||
-                                p.nome ||
-                                `Participante ${p.id}`,
-                            nome_time: p.nome_time || p.time || `Time ${p.id}`,
-                            url_escudo_png:
-                                p.url_escudo_png || p.escudo || null,
-                            clube_id: p.clube_id || null,
-                        }));
-                    }
-                }
-            } catch (error) {
-                console.warn(
-                    `⚠️ [COORDENADOR] Estratégia ${url} falhou:`,
-                    error.message,
-                );
-            }
-        }
-
-        throw new Error("Nenhum participante encontrado na liga");
-    }
-
-    atualizarInterface() {
-        const container = this.obterContainer();
-        if (!container) return;
-
-        if (!this.dados || this.dados.length === 0) {
-            container.innerHTML = this.renderizarInterfaceInicial();
-        } else {
-            const estatisticas = this.calcularEstatisticas();
-            this.ui.renderizarInterface(this.dados, estatisticas, {
-                rodadaAtual: this.rodadaAtual,
-                rodadaFim: this.rodadaFim,
-            });
-        }
-
-        this.ui.esconderLoading();
-        console.log("✅ [COORDENADOR] Interface atualizada");
-    }
-
-    renderizarInterfaceInicial() {
-        return `
-            <div style="text-align: center; padding: 40px; background: #fff3cd; border-radius: 8px; color: #856404;">
-                <h3>📊 Carregue os Dados do Artilheiro Campeão</h3>
-                <p>Sistema modular com backend proxy para contornar limitações CORS.</p>
-                <button onclick="coordinator.popularGols()" class="btn btn-success" style="padding: 12px 24px; font-size: 16px;">
-                    🚀 Extrair Dados da API
-                </button>
-                <div class="info-box" style="margin-top: 15px; padding: 10px; background: #e7f3ff; border-left: 4px solid #007bff; border-radius: 4px;">
-                    <strong>ℹ️ Sistema Modular:</strong><br>
-                    • Cache inteligente para performance<br>
-                    • Processamento via backend proxy<br>
-                    • Interface otimizada e responsiva<br>
-                    • Processamento até a ${this.rodadaFim}ª rodada
-                </div>
-            </div>
-        `;
-    }
-
-    calcularEstatisticas() {
-        if (!this.dados || this.dados.length === 0) {
-            return {
-                totalGolsPro: 0,
-                totalGolsContra: 0,
-                totalSaldo: 0,
-                participantesAtivos: 0,
-                mediaGolsPorParticipante: 0,
-            };
-        }
-
-        const totalGolsPro = this.dados.reduce((s, p) => s + p.golsPro, 0);
-        const totalGolsContra = this.dados.reduce(
-            (s, p) => s + p.golsContra,
-            0,
-        );
-        const participantesAtivos = this.dados.filter(
-            (p) => p.golsPro > 0 || p.golsContra > 0,
-        ).length;
-
-        return {
-            totalGolsPro,
-            totalGolsContra,
-            totalSaldo: totalGolsPro - totalGolsContra,
-            participantesAtivos,
-            mediaGolsPorParticipante:
-                participantesAtivos > 0
-                    ? (totalGolsPro / participantesAtivos).toFixed(2)
-                    : 0,
-        };
-    }
-
-    exportarDados() {
-        if (!this.dados || this.dados.length === 0) {
-            alert(
-                "📊 Nenhum dado para exportar! Execute o processamento primeiro.",
-            );
+        // ✅ Evitar inicializações simultâneas
+        if (this._isInitializing) {
+            console.log("⏳ [ARTILHEIRO] Já está inicializando, ignorando...");
             return;
         }
 
-        const csvContent = [
-            [
-                "Posição",
-                "Cartoleiro",
-                "Time",
-                "Gols Pró",
-                "Gols Contra",
-                "Saldo",
-                "Rodadas Processadas",
-            ],
-            ...this.dados.map((p) => [
-                p.posicao,
-                p.nomeCartoleiro,
-                p.nomeTime,
-                p.golsPro,
-                p.golsContra,
-                p.saldoGols,
-                this.rodadaFim,
-            ]),
-        ]
-            .map((row) => row.join(","))
-            .join("\n");
+        console.log("🚀 [ARTILHEIRO] Inicializando módulo v4.0.0...");
+        this._isInitializing = true;
 
-        const blob = new Blob([csvContent], {
-            type: "text/csv;charset=utf-8;",
-        });
-        const url = window.URL.createObjectURL(blob);
-        const a = document.createElement("a");
-        a.href = url;
-        a.download = `artilheiro_campeao_modular_${new Date().toISOString().slice(0, 10)}.csv`;
-        a.click();
-        window.URL.revokeObjectURL(url);
+        // ✅ SEMPRE resetar estado ao reinicializar
+        this.estado = {
+            ranking: [],
+            inativos: [], // ✅ Participantes inativos (calculado no frontend)
+            estatisticas: null,
+            rodadaAtual: 36,
+            rodadaFim: 35,
+            rodadaInicio: 1,
+            rodadaNavInicio: 1,
+            rodadaParcial: null,
+            mercadoAberto: false,
+            carregando: false,
+            inicializado: false,
+            dadosRodadas: {}, // ✅ Cache dos dados por participante/rodada
+            statusMap: {}, // ✅ Status de inatividade dos participantes
+        };
 
-        console.log("✅ [COORDENADOR] Exportação concluída!");
-    }
+        try {
+            // ✅ Esconder loading ANTES de tudo
+            const loading = document.getElementById("artilheiro-loading");
+            if (loading) loading.style.display = "none";
 
-    mostrarDetalhesCompletos(index) {
-        if (this.ui && this.dados[index]) {
-            this.ui.mostrarDetalhesCompletos(this.dados[index], index);
+            await this.detectarRodada();
+            this.renderizarLayout();
+
+            // ✅ AUTO-CARREGAR RANKING (igual Luva de Ouro)
+            await this.buscarRanking(false);
+
+            this.estado.inicializado = true;
+            console.log("✅ [ARTILHEIRO] Módulo inicializado!");
+        } catch (error) {
+            console.error("❌ [ARTILHEIRO] Erro na inicialização:", error);
+            this.mostrarErro("Erro na inicialização", error.message);
+        } finally {
+            this._isInitializing = false;
         }
-    }
+    },
 
+    async detectarRodada() {
+        try {
+            const response = await fetch(
+                this.config.API.DETECTAR_RODADA(this.config.LIGA_ID),
+            );
+            if (response.ok) {
+                const data = await response.json();
+                if (data.success && data.data) {
+                    this.estado.rodadaAtual = data.data.rodadaAtual || 36;
+                    this.estado.mercadoAberto =
+                        data.data.mercadoAberto || false;
+
+                    // ✅ LÓGICA IGUAL LUVA DE OURO:
+                    // Se mercado aberto: rodadaFim = rodadaAtual (parcial)
+                    // Se mercado fechado: rodadaFim = rodadaAtual (em andamento)
+                    this.estado.rodadaFim = this.estado.rodadaAtual;
+
+                    // Posicionar navegação para mostrar últimas rodadas
+                    this.estado.rodadaNavInicio = Math.max(
+                        1,
+                        this.estado.rodadaFim -
+                            this.config.RODADAS_VISIVEIS +
+                            1,
+                    );
+
+                    console.log(
+                        `📅 Rodada detectada: ${this.estado.rodadaAtual}, Mercado: ${this.estado.mercadoAberto ? "Aberto" : "Fechado"}`,
+                    );
+                }
+            }
+        } catch (error) {
+            console.warn("⚠️ Erro ao detectar rodada:", error.message);
+        }
+    },
+
+    // ==============================
+    // LAYOUT PRINCIPAL
+    // ==============================
+    renderizarLayout() {
+        // ✅ Esconder loading
+        const loading = document.getElementById("artilheiro-loading");
+        if (loading) loading.style.display = "none";
+
+        // ✅ Tentar múltiplos containers
+        let container = document.getElementById("artilheiro-container");
+        if (!container) {
+            container = document.getElementById("artilheiro-campeao-content");
+        }
+        if (!container) {
+            container = document.getElementById("modulo-content");
+        }
+
+        if (!container) {
+            console.error("❌ [ARTILHEIRO] Container não encontrado!");
+            return;
+        }
+
+        // ✅ Mostrar container
+        container.style.display = "block";
+
+        container.innerHTML = `
+            <div class="artilheiro-container">
+                <!-- Header -->
+                <div class="artilheiro-header">
+                    <div class="artilheiro-title">
+                        <span class="artilheiro-icon">🏆</span>
+                        <h3>Artilheiro Campeão</h3>
+                        <span class="artilheiro-badge">MODULAR</span>
+                    </div>
+                    <div class="artilheiro-info-rodada">
+                        <span id="artilheiroInfoStatus">📊 Dados até a ${this.estado.rodadaFim}ª rodada${!this.estado.mercadoAberto ? " (em andamento)" : ""}</span>
+                    </div>
+                </div>
+
+                <!-- Navegação de rodadas -->
+                <div class="artilheiro-nav-container">
+                    <button class="artilheiro-nav-btn" onclick="ArtilheiroCampeao.navegarRodadas('esquerda')" id="btnNavEsq">
+                        ◀
+                    </button>
+                    <span id="artilheiroNavInfo" class="artilheiro-nav-info">Rodadas 1 - ${this.config.RODADAS_VISIVEIS}</span>
+                    <button class="artilheiro-nav-btn" onclick="ArtilheiroCampeao.navegarRodadas('direita')" id="btnNavDir">
+                        ▶
+                    </button>
+                </div>
+
+                <!-- Tabela -->
+                <div class="artilheiro-table-container">
+                    <table class="artilheiro-ranking-table">
+                        <thead id="artilheiroTableHead">
+                            <tr>
+                                <th class="col-pos">#</th>
+                                <th class="col-escudo"></th>
+                                <th class="col-nome">CARTOLEIRO</th>
+                                <th class="col-total-gp">GP</th>
+                                <th class="col-total-gc">GC</th>
+                                <th class="col-total-sg">SG</th>
+                            </tr>
+                        </thead>
+                        <tbody id="artilheiroRankingBody">
+                            <tr>
+                                <td colspan="20" style="text-align: center; padding: 40px; color: #888;">
+                                    <div class="artilheiro-loading">
+                                        <div class="spinner"></div>
+                                        <p>Carregando dados...</p>
+                                    </div>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+
+                <!-- Mini Dashboard -->
+                <div class="artilheiro-mini-dashboard" id="artilheiroMiniDashboard">
+                    <div class="mini-dash-card lider">
+                        <span class="mini-dash-icon">🏆</span>
+                        <div class="mini-dash-content">
+                            <span class="mini-dash-valor" id="dashLiderSaldo">--</span>
+                            <span class="mini-dash-label">LÍDER</span>
+                            <span class="mini-dash-nome" id="dashLiderNome">--</span>
+                        </div>
+                    </div>
+                    <div class="mini-dash-card ativos">
+                        <span class="mini-dash-icon">👥</span>
+                        <div class="mini-dash-content">
+                            <span class="mini-dash-valor" id="dashAtivos">--</span>
+                            <span class="mini-dash-label">ATIVOS</span>
+                            <span class="mini-dash-nome" id="dashInativos">-- inativo(s)</span>
+                        </div>
+                    </div>
+                    <div class="mini-dash-card destaque">
+                        <span class="mini-dash-icon">⭐</span>
+                        <div class="mini-dash-content">
+                            <span class="mini-dash-valor" id="dashMelhorRodadaGols">--</span>
+                            <span class="mini-dash-label">MELHOR RODADA</span>
+                            <span class="mini-dash-nome" id="dashMelhorRodadaInfo">--</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        `;
+    },
+
+    // ==============================
+    // NAVEGAÇÃO DE RODADAS
+    // ==============================
+    navegarRodadas(direcao) {
+        const { rodadaNavInicio, rodadaFim } = this.estado;
+        const { RODADAS_VISIVEIS } = this.config;
+
+        if (direcao === "esquerda") {
+            this.estado.rodadaNavInicio = Math.max(
+                1,
+                rodadaNavInicio - RODADAS_VISIVEIS,
+            );
+        } else {
+            this.estado.rodadaNavInicio = Math.min(
+                Math.max(1, rodadaFim - RODADAS_VISIVEIS + 1),
+                rodadaNavInicio + RODADAS_VISIVEIS,
+            );
+        }
+
+        console.log(
+            `[ARTILHEIRO] Navegando ${direcao}: início=${this.estado.rodadaNavInicio}`,
+        );
+        this.renderizarTabela();
+    },
+
+    // ==============================
+    // BUSCAR RANKING
+    // ==============================
+    async buscarRanking(forcarColeta = false) {
+        if (this.estado.carregando) return;
+
+        try {
+            this.estado.carregando = true;
+            this.mostrarLoading("Buscando dados do servidor...");
+
+            const params = new URLSearchParams({
+                inicio: "1",
+                fim: this.estado.rodadaFim.toString(),
+                ...(forcarColeta && { forcar_coleta: "true" }),
+            });
+
+            const url = `${this.config.API.RANKING(this.config.LIGA_ID)}?${params}`;
+            console.log(`📡 [ARTILHEIRO] Buscando: ${url}`);
+
+            const response = await fetch(url);
+            if (!response.ok) throw new Error(`HTTP ${response.status}`);
+
+            const data = await response.json();
+            if (!data.success)
+                throw new Error(data.error || "Erro ao buscar ranking");
+
+            let ranking = data.data.ranking || [];
+            this.estado.estatisticas = data.data.estatisticas || null;
+            this.estado.rodadaParcial = data.data.rodadaParcial || null;
+
+            // ✅ Buscar status de inatividade (igual ranking.js)
+            const timeIds = ranking.map((p) => p.timeId);
+            let statusMap = {};
+
+            try {
+                const statusRes = await fetch("/api/times/batch/status", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ timeIds }),
+                });
+
+                if (statusRes.ok) {
+                    const statusData = await statusRes.json();
+                    statusMap = statusData.status || {};
+                    console.log(
+                        `✅ [ARTILHEIRO] Status de inatividade carregado`,
+                    );
+                }
+            } catch (error) {
+                console.warn(
+                    "[ARTILHEIRO] ⚠️ Falha ao buscar status:",
+                    error.message,
+                );
+            }
+
+            this.estado.statusMap = statusMap;
+
+            // ✅ Adicionar status a cada participante
+            ranking = ranking.map((p) => {
+                const status = statusMap[p.timeId] || {
+                    ativo: true,
+                    rodada_desistencia: null,
+                };
+                return {
+                    ...p,
+                    ativo: status.ativo,
+                    rodada_desistencia: status.rodada_desistencia,
+                };
+            });
+
+            // ✅ Separar ativos e inativos
+            const ativos = ranking.filter((p) => p.ativo !== false);
+            const inativos = ranking.filter((p) => p.ativo === false);
+
+            // Ordenar ativos por saldo de gols (desc), depois por gols pró (desc)
+            ativos.sort((a, b) => {
+                if (b.saldoGols !== a.saldoGols)
+                    return b.saldoGols - a.saldoGols;
+                return b.golsPro - a.golsPro;
+            });
+
+            // Ordenar inativos por rodada de desistência (mais recente primeiro)
+            inativos.sort(
+                (a, b) =>
+                    (b.rodada_desistencia || 0) - (a.rodada_desistencia || 0),
+            );
+
+            // Atribuir posições apenas aos ativos
+            ativos.forEach((p, i) => {
+                p.posicao = i + 1;
+            });
+            inativos.forEach((p) => {
+                p.posicao = null;
+            });
+
+            // Guardar no estado
+            this.estado.ranking = ativos;
+            this.estado.inativos = inativos;
+
+            console.log(
+                `✅ [ARTILHEIRO] Ranking: ${ativos.length} ativos, ${inativos.length} inativos`,
+            );
+            if (this.estado.rodadaParcial) {
+                console.log(
+                    `⏳ Rodada ${this.estado.rodadaParcial} em andamento (parcial)`,
+                );
+            }
+
+            this.renderizarTabela();
+            this.inicializarEventosModal(); // ✅ Ativar cliques nas células
+        } catch (error) {
+            console.error("❌ [ARTILHEIRO] Erro:", error);
+            this.mostrarErro("Erro ao buscar dados", error.message);
+        } finally {
+            this.estado.carregando = false;
+        }
+    },
+
+    // ==============================
+    // RENDERIZAR TABELA
+    // ==============================
+    renderizarTabela() {
+        // ✅ Esconder loading inicial do HTML
+        const loadingHTML = document.getElementById("artilheiro-loading");
+        if (loadingHTML) loadingHTML.style.display = "none";
+
+        // ✅ Garantir container visível
+        const container = document.getElementById("artilheiro-container");
+        if (container) container.style.display = "block";
+
+        const thead = document.getElementById("artilheiroTableHead");
+        const tbody = document.getElementById("artilheiroRankingBody");
+        const navInfo = document.getElementById("artilheiroNavInfo");
+
+        if (!thead || !tbody) return;
+
+        const { ranking, rodadaNavInicio, rodadaFim, rodadaParcial } =
+            this.estado;
+        const { RODADAS_VISIVEIS } = this.config;
+
+        if (!ranking || ranking.length === 0) {
+            tbody.innerHTML = `<tr><td colspan="20" style="text-align: center; padding: 40px; color: #e67e22;">Nenhum dado encontrado</td></tr>`;
+            return;
+        }
+
+        // Calcular rodadas visíveis
+        const rodadaFimVisivel = Math.min(
+            rodadaNavInicio + RODADAS_VISIVEIS - 1,
+            rodadaFim,
+        );
+        const rodadasExibir = [];
+        for (let r = rodadaNavInicio; r <= rodadaFimVisivel; r++) {
+            rodadasExibir.push(r);
+        }
+
+        // Atualizar info de navegação
+        if (navInfo) {
+            navInfo.textContent = `Rodadas ${rodadaNavInicio} - ${rodadaFimVisivel}`;
+        }
+
+        // Atualizar botões de navegação
+        const btnEsq = document.getElementById("btnNavEsq");
+        const btnDir = document.getElementById("btnNavDir");
+        if (btnEsq) btnEsq.disabled = rodadaNavInicio <= 1;
+        if (btnDir) btnDir.disabled = rodadaFimVisivel >= rodadaFim;
+
+        // ✅ Headers das rodadas (com marcação de parcial)
+        const headersRodadas = rodadasExibir
+            .map((r) => {
+                const isParcial = r === rodadaParcial;
+                const classe = isParcial ? "col-rodada parcial" : "col-rodada";
+                return `<th class="${classe}">R${r}${isParcial ? "*" : ""}</th>`;
+            })
+            .join("");
+
+        thead.innerHTML = `
+            <tr>
+                <th class="col-pos">#</th>
+                <th class="col-escudo"></th>
+                <th class="col-nome">CARTOLEIRO</th>
+                <th class="col-total-gp">GP</th>
+                <th class="col-total-gc">GC</th>
+                <th class="col-total-sg">SG</th>
+                ${headersRodadas}
+            </tr>
+        `;
+
+        // Renderizar linhas
+        tbody.innerHTML = ranking
+            .map((p, index) => {
+                const posicao = p.posicao || index + 1;
+                const posIcon =
+                    posicao === 1
+                        ? "🏆"
+                        : posicao === 2
+                          ? "🥈"
+                          : posicao === 3
+                            ? "🥉"
+                            : `${posicao}º`;
+                const posClass = posicao <= 3 ? `pos-${posicao}` : "";
+
+                const sgClass =
+                    p.saldoGols > 0
+                        ? "positivo"
+                        : p.saldoGols < 0
+                          ? "negativo"
+                          : "zero";
+
+                // Criar mapa de gols por rodada
+                const golsPorRodada = {};
+                if (p.detalhePorRodada && Array.isArray(p.detalhePorRodada)) {
+                    p.detalhePorRodada.forEach((r) => {
+                        golsPorRodada[r.rodada] = r;
+                    });
+                }
+
+                // ✅ Células de rodadas (com marcação de parcial e clique)
+                const celulasRodadas = rodadasExibir
+                    .map((r) => {
+                        const rodadaData = golsPorRodada[r];
+                        const isParcial =
+                            r === rodadaParcial || rodadaData?.parcial === true;
+                        const timeId = p.timeId;
+
+                        // ✅ Armazenar dados para o modal
+                        if (rodadaData && rodadaData.jogadores) {
+                            const key = `${timeId}-${r}`;
+                            ArtilheiroCampeao.estado.dadosRodadas[key] = {
+                                participante: p.nome,
+                                nomeTime: p.nomeTime,
+                                rodada: r,
+                                golsPro: rodadaData.golsPro || 0,
+                                golsContra: rodadaData.golsContra || 0,
+                                jogadores: rodadaData.jogadores || [],
+                                parcial: isParcial,
+                            };
+                        }
+
+                        if (rodadaData) {
+                            const gp = rodadaData.golsPro || 0;
+                            const gc = rodadaData.golsContra || 0;
+                            const saldo = gp - gc;
+                            const classe =
+                                saldo > 0
+                                    ? "positivo"
+                                    : saldo < 0
+                                      ? "negativo"
+                                      : "zero";
+                            const parcialClass = isParcial ? " parcial" : "";
+                            const temGols = gp > 0 || gc > 0;
+                            const clickClass = temGols ? " clicavel" : "";
+                            const dataAttr = temGols
+                                ? `data-time="${timeId}" data-rodada="${r}"`
+                                : "";
+
+                            // ✅ Se é parcial e não tem gols, mostrar indicador ⏳
+                            if (isParcial && gp === 0 && gc === 0) {
+                                return `<td class="col-rodada-gols parcial aguardando">
+                            <span class="gols-valor">⏳</span>
+                            <span class="gols-detalhe">aguard.</span>
+                        </td>`;
+                            }
+
+                            return `<td class="col-rodada-gols ${classe}${parcialClass}${clickClass}" ${dataAttr}>
+                        <span class="gols-valor">${saldo >= 0 ? "+" : ""}${saldo}</span>
+                        <span class="gols-detalhe">${gp}-${gc}</span>
+                    </td>`;
+                        }
+                        const parcialClass = isParcial ? " parcial" : "";
+                        return `<td class="col-rodada-gols vazio${parcialClass}"><span class="gols-valor">—</span></td>`;
+                    })
+                    .join("");
+
+                return `
+                <tr class="artilheiro-ranking-row ${posClass}">
+                    <td class="col-pos"><span class="pos-badge">${posIcon}</span></td>
+                    <td class="col-escudo">
+                        ${p.escudo ? `<img src="${p.escudo}" class="escudo-img" onerror="this.style.display='none'">` : "⚽"}
+                    </td>
+                    <td class="col-nome">
+                        <div class="participante-info">
+                            <span class="participante-nome">${p.nome}</span>
+                            <span class="participante-time">${p.nomeTime}</span>
+                        </div>
+                    </td>
+                    <td class="col-total-gp"><span class="total-gp">${p.golsPro}</span></td>
+                    <td class="col-total-gc"><span class="total-gc">${p.golsContra}</span></td>
+                    <td class="col-total-sg"><span class="total-sg ${sgClass}">${p.saldoGols >= 0 ? "+" : ""}${p.saldoGols}</span></td>
+                    ${celulasRodadas}
+                </tr>
+            `;
+            })
+            .join("");
+
+        // ✅ Renderizar seção de inativos (se houver)
+        this.renderizarSecaoInativos(rodadasExibir, rodadaParcial);
+
+        // ✅ Renderizar mini dashboard
+        this.renderizarMiniDashboard();
+    },
+
+    // ==============================
+    // RENDERIZAR SEÇÃO DE INATIVOS
+    // ==============================
+    renderizarSecaoInativos(rodadasExibir, rodadaParcial) {
+        const { inativos } = this.estado;
+
+        // Remover seção existente (se houver)
+        const secaoExistente = document.getElementById(
+            "artilheiro-inativos-section",
+        );
+        if (secaoExistente) secaoExistente.remove();
+
+        // Se não houver inativos, não renderizar
+        if (!inativos || inativos.length === 0) return;
+
+        // Criar container para a seção de inativos
+        const tableContainer = document.querySelector(
+            ".artilheiro-table-container",
+        );
+        if (!tableContainer) return;
+
+        const secaoInativos = document.createElement("div");
+        secaoInativos.id = "artilheiro-inativos-section";
+        secaoInativos.className = "artilheiro-inativos-section";
+        secaoInativos.innerHTML = `
+            <div class="inativos-header">
+                <span class="inativos-icon">🚫</span>
+                <h4>Participantes Inativos</h4>
+                <span class="inativos-badge">${inativos.length}</span>
+                <span class="inativos-info">Fora da disputa do ranking</span>
+            </div>
+            <table class="artilheiro-ranking-table inativos-table">
+                <thead>
+                    <tr>
+                        <th class="col-pos">#</th>
+                        <th class="col-escudo"></th>
+                        <th class="col-nome">CARTOLEIRO</th>
+                        <th class="col-total-gp">GP</th>
+                        <th class="col-total-gc">GC</th>
+                        <th class="col-total-sg">SG</th>
+                        ${rodadasExibir
+                            .map((r) => {
+                                const isParcial = r === rodadaParcial;
+                                return `<th class="col-rodada${isParcial ? " parcial" : ""}">R${r}${isParcial ? "*" : ""}</th>`;
+                            })
+                            .join("")}
+                    </tr>
+                </thead>
+                <tbody>
+                    ${inativos
+                        .map((p) => {
+                            const sgClass =
+                                p.saldoGols > 0
+                                    ? "positivo"
+                                    : p.saldoGols < 0
+                                      ? "negativo"
+                                      : "zero";
+
+                            // Criar mapa de gols por rodada
+                            const golsPorRodada = {};
+                            if (
+                                p.detalhePorRodada &&
+                                Array.isArray(p.detalhePorRodada)
+                            ) {
+                                p.detalhePorRodada.forEach((r) => {
+                                    golsPorRodada[r.rodada] = r;
+                                });
+                            }
+
+                            // Células de rodadas
+                            const celulasRodadas = rodadasExibir
+                                .map((r) => {
+                                    const rodadaData = golsPorRodada[r];
+                                    const isParcial =
+                                        r === rodadaParcial ||
+                                        rodadaData?.parcial === true;
+
+                                    if (rodadaData) {
+                                        const gp = rodadaData.golsPro || 0;
+                                        const gc = rodadaData.golsContra || 0;
+                                        const saldo = gp - gc;
+                                        const classe =
+                                            saldo > 0
+                                                ? "positivo"
+                                                : saldo < 0
+                                                  ? "negativo"
+                                                  : "zero";
+                                        const parcialClass = isParcial
+                                            ? " parcial"
+                                            : "";
+
+                                        return `<td class="col-rodada-gols ${classe}${parcialClass}">
+                                    <span class="gols-valor">${saldo >= 0 ? "+" : ""}${saldo}</span>
+                                    <span class="gols-detalhe">${gp}-${gc}</span>
+                                </td>`;
+                                    }
+                                    return `<td class="col-rodada-gols vazio"><span class="gols-valor">—</span></td>`;
+                                })
+                                .join("");
+
+                            return `
+                            <tr class="artilheiro-ranking-row inativo">
+                                <td class="col-pos"><span class="pos-badge">—</span></td>
+                                <td class="col-escudo">
+                                    ${p.escudo ? `<img src="${p.escudo}" class="escudo-img" onerror="this.style.display='none'">` : "⚽"}
+                                </td>
+                                <td class="col-nome">
+                                    <div class="participante-info">
+                                        <span class="participante-nome">${p.nome}</span>
+                                        <span class="participante-time">${p.nomeTime}</span>
+                                        ${p.rodada_desistencia ? `<span class="desistencia-badge">Saiu R${p.rodada_desistencia}</span>` : ""}
+                                    </div>
+                                </td>
+                                <td class="col-total-gp"><span class="total-gp">${p.golsPro}</span></td>
+                                <td class="col-total-gc"><span class="total-gc">${p.golsContra}</span></td>
+                                <td class="col-total-sg"><span class="total-sg ${sgClass}">${p.saldoGols >= 0 ? "+" : ""}${p.saldoGols}</span></td>
+                                ${celulasRodadas}
+                            </tr>
+                        `;
+                        })
+                        .join("")}
+                </tbody>
+            </table>
+        `;
+
+        tableContainer.after(secaoInativos);
+    },
+
+    // ==============================
+    // MINI DASHBOARD
+    // ==============================
+    renderizarMiniDashboard() {
+        const { ranking, inativos } = this.estado;
+
+        if (!ranking || ranking.length === 0) return;
+
+        // ✅ LÍDER: Maior saldo de gols
+        const lider = ranking[0]; // Já está ordenado por saldo
+        const dashLiderSaldo = document.getElementById("dashLiderSaldo");
+        const dashLiderNome = document.getElementById("dashLiderNome");
+        if (dashLiderSaldo && dashLiderNome && lider) {
+            const saldoFormatado =
+                lider.saldoGols >= 0 ? `+${lider.saldoGols}` : lider.saldoGols;
+            dashLiderSaldo.textContent = saldoFormatado;
+            dashLiderNome.textContent = lider.nome;
+        }
+
+        // ✅ ATIVOS
+        const dashAtivos = document.getElementById("dashAtivos");
+        const dashInativos = document.getElementById("dashInativos");
+        if (dashAtivos && dashInativos) {
+            dashAtivos.textContent = ranking.length;
+            const qtdInativos = inativos ? inativos.length : 0;
+            dashInativos.textContent = `${qtdInativos} inativo(s)`;
+        }
+
+        // ✅ MELHOR RODADA: Maior número de gols pró em uma única rodada
+        let melhorRodada = { gols: 0, rodada: 0, participante: "--" };
+
+        ranking.forEach((p) => {
+            if (p.detalhePorRodada && Array.isArray(p.detalhePorRodada)) {
+                p.detalhePorRodada.forEach((r) => {
+                    const golsPro = r.golsPro || 0;
+                    if (golsPro > melhorRodada.gols) {
+                        melhorRodada = {
+                            gols: golsPro,
+                            rodada: r.rodada,
+                            participante: p.nome,
+                        };
+                    }
+                });
+            }
+        });
+
+        const dashMelhorGols = document.getElementById("dashMelhorRodadaGols");
+        const dashMelhorInfo = document.getElementById("dashMelhorRodadaInfo");
+        if (dashMelhorGols && dashMelhorInfo) {
+            dashMelhorGols.textContent = `${melhorRodada.gols} GP`;
+            dashMelhorInfo.textContent =
+                melhorRodada.gols > 0
+                    ? `${melhorRodada.participante} (R${melhorRodada.rodada})`
+                    : "--";
+        }
+    },
+
+    // ==============================
+    // LOADING E ERRO
+    // ==============================
+    mostrarLoading(mensagem) {
+        // ✅ Esconder loading inicial do HTML
+        const loadingHTML = document.getElementById("artilheiro-loading");
+        if (loadingHTML) loadingHTML.style.display = "none";
+
+        const tbody = document.getElementById("artilheiroRankingBody");
+        if (tbody) {
+            tbody.innerHTML = `
+                <tr>
+                    <td colspan="20">
+                        <div class="artilheiro-loading">
+                            <div class="spinner"></div>
+                            <p>${mensagem}</p>
+                        </div>
+                    </td>
+                </tr>
+            `;
+        }
+    },
+
+    mostrarErro(titulo, mensagem) {
+        // ✅ Esconder loading inicial do HTML
+        const loadingHTML = document.getElementById("artilheiro-loading");
+        if (loadingHTML) loadingHTML.style.display = "none";
+
+        // ✅ Garantir container visível
+        const container = document.getElementById("artilheiro-container");
+        if (container) container.style.display = "block";
+
+        const tbody = document.getElementById("artilheiroRankingBody");
+        if (tbody) {
+            tbody.innerHTML = `
+                <tr>
+                    <td colspan="20">
+                        <div class="artilheiro-erro">
+                            <span class="erro-icon">❌</span>
+                            <p class="erro-msg">${titulo}</p>
+                            <p class="erro-detalhe">${mensagem}</p>
+                            <button class="artilheiro-btn primary" onclick="ArtilheiroCampeao.buscarRanking()">
+                                🔄 Tentar Novamente
+                            </button>
+                        </div>
+                    </td>
+                </tr>
+            `;
+        }
+    },
+
+    // ==============================
+    // UTILITÁRIOS
+    // ==============================
     obterContainer() {
         const containers = [
             "artilheiro-container",
             "artilheiro-campeao-content",
+            "modulo-content",
         ];
-
-        for (const containerId of containers) {
-            const container = document.getElementById(containerId);
-            if (container) return container;
+        for (const id of containers) {
+            const el = document.getElementById(id);
+            if (el) return el;
         }
-
-        console.error("❌ [COORDENADOR] Nenhum container encontrado");
         return null;
-    }
-}
+    },
 
-// ===== INSTÂNCIA GLOBAL DO COORDENADOR =====
-let coordinator = null;
+    // ==============================
+    // MODAL DE DETALHES DA RODADA
+    // ==============================
+    mostrarModalRodada(timeId, rodada) {
+        const key = `${timeId}-${rodada}`;
+        const dados = this.estado.dadosRodadas[key];
 
-// ===== FUNÇÃO PRINCIPAL DE INICIALIZAÇÃO =====
-async function inicializarArtilheiroCampeao() {
-    console.log("🚀 [ARTILHEIRO-CAMPEAO] Inicializando sistema modular...");
-
-    try {
-        // Criar coordenador se não existir
-        if (!coordinator) {
-            coordinator = new ArtilheiroCoordinator();
+        if (!dados) {
+            console.warn("Dados não encontrados para:", key);
+            return;
         }
 
-        // Inicializar sistema
-        await coordinator.inicializar();
-
-        console.log(
-            "✅ [ARTILHEIRO-CAMPEAO] Sistema modular inicializado com sucesso!",
-        );
-    } catch (error) {
-        console.error("❌ [ARTILHEIRO-CAMPEAO] Erro na inicialização:", error);
-    }
-}
-
-// ✅ DISPONIBILIZAR GLOBALMENTE
-if (typeof window !== "undefined") {
-  window.ArtilheiroCoordinator = ArtilheiroCoordinator;
-  window.inicializarArtilheiroCampeao = inicializarArtilheiroCampeao;
-  window.forcarArtilheiroCampeaoAgora = forcarArtilheiroCampeaoAgora;
-  window.testarArtilheiroCampeao = testarArtilheiroCampeao;
-
-  console.log('✅ [ARTILHEIRO-CAMPEAO] Função inicializarArtilheiroCampeao disponível em window');
-}
-
-console.log("✅ [ARTILHEIRO-CAMPEAO] Módulo principal carregado!");
-console.log(
-  "📋 [ARTILHEIRO-CAMPEAO] Funções disponíveis: window.inicializarArtilheiroCampeao, window.ArtilheiroCoordinator, window.forcarArtilheiroCampeaoAgora, window.testarArtilheiroCampeao",
-);
-
-export { ArtilheiroCoordinator, inicializarArtilheiroCampeao };
-export default ArtilheiroCoordinator;
-
-console.log("✅ [ARTILHEIRO-CAMPEAO] Sistema modular carregado!");
-console.log("🆘 Em caso de erro: window.forcarArtilheiroCampeaoAgora()");
-
-// ========================================
-// SISTEMA DE REGISTRO COMPATÍVEL
-// ========================================
-
-(function registroCompativel() {
-    console.log(
-        "🔧 [ARTILHEIRO-CAMPEAO] Sistema de registro compatível iniciado...",
-    );
-
-    function tentarRegistrarModulo() {
-        if (window.modulosCarregados) {
-            window.modulosCarregados["artilheiro-campeao"] = {
-                inicializarArtilheiroCampeao: inicializarArtilheiroCampeao,
-            };
-            console.log(
-                "✅ [ARTILHEIRO-CAMPEAO] Registrado em window.modulosCarregados",
-            );
-            return true;
+        // Criar modal se não existir
+        let modal = document.getElementById("artilheiro-modal");
+        if (!modal) {
+            modal = document.createElement("div");
+            modal.id = "artilheiro-modal";
+            modal.className = "artilheiro-modal-overlay";
+            document.body.appendChild(modal);
         }
-        return false;
-    }
 
-    tentarRegistrarModulo();
+        const parcialBadge = dados.parcial
+            ? '<span class="modal-badge-parcial">EM ANDAMENTO</span>'
+            : "";
 
-    let tentativas = 0;
-    const maxTentativas = 10;
+        // Listar artilheiros
+        const artilheiros = dados.jogadores.filter((j) => j.gols > 0);
+        const golsContra = dados.jogadores.filter((j) => j.golsContra > 0);
 
-    const intervalId = setInterval(() => {
-        tentativas++;
+        let listaArtilheiros = "";
+        if (artilheiros.length > 0) {
+            listaArtilheiros = `
+                <div class="modal-secao">
+                    <h4>⚽ Gols Marcados</h4>
+                    <ul class="modal-lista-gols">
+                        ${artilheiros
+                            .map(
+                                (j) => `
+                            <li class="gol-item positivo">
+                                <span class="jogador-nome">${j.nome}</span>
+                                <span class="jogador-gols">${j.gols} gol${j.gols > 1 ? "s" : ""}</span>
+                            </li>
+                        `,
+                            )
+                            .join("")}
+                    </ul>
+                </div>
+            `;
+        }
 
-        if (tentarRegistrarModulo() || tentativas >= maxTentativas) {
-            clearInterval(intervalId);
+        let listaGolsContra = "";
+        if (golsContra.length > 0) {
+            listaGolsContra = `
+                <div class="modal-secao">
+                    <h4>🥅 Gols Contra</h4>
+                    <ul class="modal-lista-gols">
+                        ${golsContra
+                            .map(
+                                (j) => `
+                            <li class="gol-item negativo">
+                                <span class="jogador-nome">${j.nome}</span>
+                                <span class="jogador-gols">${j.golsContra} gol${j.golsContra > 1 ? "s" : ""}</span>
+                            </li>
+                        `,
+                            )
+                            .join("")}
+                    </ul>
+                </div>
+            `;
+        }
 
-            if (tentativas >= maxTentativas) {
-                console.warn(
-                    "⚠️ [ARTILHEIRO-CAMPEAO] Sistema de módulos não encontrado",
-                );
+        const saldo = dados.golsPro - dados.golsContra;
+        const saldoClass =
+            saldo > 0 ? "positivo" : saldo < 0 ? "negativo" : "zero";
+
+        modal.innerHTML = `
+            <div class="artilheiro-modal-content">
+                <button class="modal-fechar" onclick="ArtilheiroCampeao.fecharModal()">✕</button>
+                <div class="modal-header">
+                    <h3>Rodada ${rodada} ${parcialBadge}</h3>
+                    <p class="modal-participante">${dados.participante}</p>
+                    <p class="modal-time">${dados.nomeTime}</p>
+                </div>
+                <div class="modal-resumo">
+                    <div class="resumo-item">
+                        <span class="resumo-label">GP</span>
+                        <span class="resumo-valor positivo">${dados.golsPro}</span>
+                    </div>
+                    <div class="resumo-item">
+                        <span class="resumo-label">GC</span>
+                        <span class="resumo-valor negativo">${dados.golsContra}</span>
+                    </div>
+                    <div class="resumo-item">
+                        <span class="resumo-label">Saldo</span>
+                        <span class="resumo-valor ${saldoClass}">${saldo >= 0 ? "+" : ""}${saldo}</span>
+                    </div>
+                </div>
+                ${listaArtilheiros}
+                ${listaGolsContra}
+                ${artilheiros.length === 0 && golsContra.length === 0 ? '<p class="modal-vazio">Nenhum gol registrado</p>' : ""}
+            </div>
+        `;
+
+        modal.classList.add("ativo");
+
+        // Fechar ao clicar fora
+        modal.onclick = (e) => {
+            if (e.target === modal) this.fecharModal();
+        };
+    },
+
+    fecharModal() {
+        const modal = document.getElementById("artilheiro-modal");
+        if (modal) {
+            modal.classList.remove("ativo");
+        }
+    },
+
+    // Inicializar event listeners do modal
+    inicializarEventosModal() {
+        const tbody = document.getElementById("artilheiroRankingBody");
+        if (!tbody) return;
+
+        tbody.addEventListener("click", (e) => {
+            const celula = e.target.closest(".col-rodada-gols.clicavel");
+            if (celula) {
+                const timeId = celula.dataset.time;
+                const rodada = parseInt(celula.dataset.rodada);
+                if (timeId && rodada) {
+                    this.mostrarModalRodada(timeId, rodada);
+                }
             }
-        }
-    }, 500);
+        });
 
-    console.log("✅ [ARTILHEIRO-CAMPEAO] Sistema de registro compatível ativo");
+        // Fechar modal com ESC
+        document.addEventListener("keydown", (e) => {
+            if (e.key === "Escape") this.fecharModal();
+        });
+    },
+};
+
+// Expor globalmente
+window.ArtilheiroCampeao = ArtilheiroCampeao;
+
+// Compatibilidade
+window.coordinator = {
+    popularGols: () => ArtilheiroCampeao.buscarRanking(),
+};
+
+// ✅ Função para inicialização externa (chamada pelo orquestrador)
+window.inicializarArtilheiroCampeao = async function () {
+    console.log("🔄 [ARTILHEIRO] Inicializando via window...");
+    // ✅ Resetar flags para garantir re-inicialização
+    ArtilheiroCampeao._isInitializing = false;
+    ArtilheiroCampeao.estado.inicializado = false;
+    await ArtilheiroCampeao.inicializar();
+};
+
+// ✅ Auto-inicialização simples (só na primeira carga do script)
+(function autoInit() {
+    setTimeout(async () => {
+        const container =
+            document.getElementById("artilheiro-container") ||
+            document.getElementById("artilheiro-campeao-content");
+
+        if (container) {
+            console.log("🚀 [ARTILHEIRO] Auto-inicializando...");
+            try {
+                await ArtilheiroCampeao.inicializar();
+            } catch (e) {
+                console.error("❌ [ARTILHEIRO] Erro na auto-inicialização:", e);
+            }
+        } else {
+            console.log(
+                "⏳ [ARTILHEIRO] Container não encontrado, aguardando...",
+            );
+        }
+    }, 300);
 })();
 
-console.log(
-    "📤 [ARTILHEIRO-CAMPEAO] Exportações ES6 adicionadas para compatibilidade",
-);
-
-if (typeof window.modulosCarregados === "undefined") {
-    console.info("ℹ️ [ARTILHEIRO-CAMPEAO] Sistema de módulos carregando...");
-}
+console.log("✅ [ARTILHEIRO] Módulo v4.0.0 carregado!");

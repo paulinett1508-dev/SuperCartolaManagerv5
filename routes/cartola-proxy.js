@@ -1,4 +1,3 @@
-
 import express from "express";
 import axios from "axios";
 
@@ -53,84 +52,128 @@ router.get("/liga/:ligaId", async (req, res) => {
 });
 
 // Rota: Status do mercado (corrigida e sem duplicação)
-router.get('/mercado/status', async (req, res) => {
+router.get("/mercado/status", async (req, res) => {
     try {
-        console.log('🔄 [CARTOLA-PROXY] Buscando status do mercado...');
-        
-        const response = await axios.get('https://api.cartola.globo.com/mercado/status', {
-            timeout: 10000,
-            headers: {
-                'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36'
-            }
-        });
+        console.log("🔄 [CARTOLA-PROXY] Buscando status do mercado...");
 
-        console.log('✅ [CARTOLA-PROXY] Status do mercado obtido:', response.data);
+        const response = await axios.get(
+            "https://api.cartola.globo.com/mercado/status",
+            {
+                timeout: 10000,
+                headers: {
+                    "User-Agent":
+                        "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36",
+                },
+            },
+        );
+
+        console.log(
+            "✅ [CARTOLA-PROXY] Status do mercado obtido:",
+            response.data,
+        );
         res.json(response.data);
     } catch (error) {
-        console.error('❌ [CARTOLA-PROXY] Erro ao buscar status do mercado:', error.message);
-        
+        console.error(
+            "❌ [CARTOLA-PROXY] Erro ao buscar status do mercado:",
+            error.message,
+        );
+
         // Retornar dados de fallback em caso de erro
         res.json({
             rodada_atual: 1,
             status_mercado: 2, // Mercado fechado (permite visualizar rodadas)
             mes: 11,
             ano: 2025,
-            aviso: 'Dados de fallback - API indisponível'
+            aviso: "Dados de fallback - API indisponível",
         });
     }
 });
 
-// Endpoint: Atletas pontuados (para cálculo de parciais)
-router.get('/atletas/pontuados', async (req, res) => {
+// Endpoint: Atletas pontuados (para cálculo de parciais) - SEM CACHE
+router.get("/atletas/pontuados", async (req, res) => {
     try {
-        const response = await axios.get('https://api.cartola.globo.com/atletas/pontuados', {
-            timeout: 10000,
-            headers: {
-                'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36'
-            }
+        console.log(
+            "🔄 [CARTOLA-PROXY] Buscando atletas pontuados (sem cache)...",
+        );
+
+        const response = await axios.get(
+            "https://api.cartola.globo.com/atletas/pontuados",
+            {
+                timeout: 10000,
+                headers: {
+                    "User-Agent":
+                        "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36",
+                    "Cache-Control": "no-cache, no-store, must-revalidate",
+                    Pragma: "no-cache",
+                    Expires: "0",
+                },
+            },
+        );
+
+        console.log(
+            `✅ [CARTOLA-PROXY] ${Object.keys(response.data.atletas || {}).length} atletas pontuados obtidos`,
+        );
+
+        // Headers anti-cache na resposta
+        res.set({
+            "Cache-Control": "no-cache, no-store, must-revalidate",
+            Pragma: "no-cache",
+            Expires: "0",
         });
-        
+
         res.json(response.data);
     } catch (error) {
-        console.error('Erro ao buscar atletas pontuados:', error.message);
-        
+        console.error(
+            "❌ [CARTOLA-PROXY] Erro ao buscar atletas pontuados:",
+            error.message,
+        );
+
         // Retornar objeto vazio em caso de erro (mercado pode estar fechado)
         res.json({
             atletas: {},
-            rodada: 1
+            rodada: 1,
         });
     }
 });
 
 // Endpoint: Escalação de um time em uma rodada específica
-router.get('/time/id/:timeId/:rodada', async (req, res) => {
+router.get("/time/id/:timeId/:rodada", async (req, res) => {
     try {
         const { timeId, rodada } = req.params;
-        console.log(`🔄 [CARTOLA-PROXY] Buscando escalação do time ${timeId} na rodada ${rodada}...`);
-        
-        const response = await axios.get(`https://api.cartola.globo.com/time/id/${timeId}/${rodada}`, {
-            timeout: 10000,
-            headers: {
-                'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36'
-            }
-        });
-        
+        console.log(
+            `🔄 [CARTOLA-PROXY] Buscando escalação do time ${timeId} na rodada ${rodada}...`,
+        );
+
+        const response = await axios.get(
+            `https://api.cartola.globo.com/time/id/${timeId}/${rodada}`,
+            {
+                timeout: 10000,
+                headers: {
+                    "User-Agent":
+                        "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36",
+                },
+            },
+        );
+
         console.log(`✅ [CARTOLA-PROXY] Escalação obtida para time ${timeId}`);
         res.json(response.data);
     } catch (error) {
-        console.error(`❌ [CARTOLA-PROXY] Erro ao buscar escalação do time ${req.params.timeId}:`, error.message);
-        
+        console.error(
+            `❌ [CARTOLA-PROXY] Erro ao buscar escalação do time ${req.params.timeId}:`,
+            error.message,
+        );
+
         // Retornar 404 se time não jogou na rodada
         if (error.response?.status === 404) {
             res.status(404).json({
-                error: 'Time não jogou nesta rodada',
+                error: "Time não jogou nesta rodada",
                 timeId: req.params.timeId,
-                rodada: req.params.rodada
+                rodada: req.params.rodada,
             });
         } else {
             res.status(error.response?.status || 500).json({
-                error: 'Erro ao buscar escalação',
-                details: error.message
+                error: "Erro ao buscar escalação",
+                details: error.message,
             });
         }
     }

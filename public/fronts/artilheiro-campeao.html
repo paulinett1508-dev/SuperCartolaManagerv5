@@ -1,87 +1,130 @@
+<!-- artilheiro-campeao.html v4.0.0 - Tabela com Rodadas Navegáveis -->
+<div id="artilheiro-campeao-wrapper" style="padding: 20px">
+    <!-- Badge de Status (Scheduler) -->
+    <div
+        id="artilheiro-status-badge"
+        style="position: absolute; top: 10px; right: 20px; z-index: 100"
+    ></div>
 
-<div id="artilheiro-campeao-wrapper" style="padding: 20px;">
     <!-- Loading inicial -->
-    <div id="artilheiro-loading" style="display: block; text-align: center; padding: 60px 20px;">
-        <div class="loading-spinner" style="border: 4px solid #f3f3f3; border-top: 4px solid #007bff; border-radius: 50%; width: 50px; height: 50px; animation: spin 1s linear infinite; margin: 0 auto;"></div>
-        <p style="margin-top: 20px; color: #666;">Carregando Artilheiro Campeão...</p>
+    <div
+        id="artilheiro-loading"
+        style="display: block; text-align: center; padding: 60px 20px"
+    >
+        <div
+            class="loading-spinner"
+            style="
+                border: 4px solid #f3f3f3;
+                border-top: 4px solid #e74c3c;
+                border-radius: 50%;
+                width: 50px;
+                height: 50px;
+                animation: spin 1s linear infinite;
+                margin: 0 auto;
+            "
+        ></div>
+        <p style="margin-top: 20px; color: #666">
+            Carregando Artilheiro Campeão...
+        </p>
     </div>
 
     <!-- Container principal -->
-    <div id="artilheiro-container" style="display: none;"></div>
+    <div id="artilheiro-container" style="display: none"></div>
 
     <!-- Container alternativo -->
-    <div id="artilheiro-campeao-content" style="display: none;"></div>
+    <div id="artilheiro-campeao-content" style="display: none"></div>
 </div>
 
-<!-- Exportação removida - usar módulo Relatórios -->
+<!-- CSS do módulo -->
+<link rel="stylesheet" href="/css/modules/artilheiro-campeao.css" />
 
 <style>
-@keyframes spin {
-    0% { transform: rotate(0deg); }
-    100% { transform: rotate(360deg); }
-}
+    @keyframes spin {
+        0% {
+            transform: rotate(0deg);
+        }
+        100% {
+            transform: rotate(360deg);
+        }
+    }
 
-.loading-container {
-    text-align: center;
-    padding: 40px;
-}
+    @keyframes pulse {
+        0%,
+        100% {
+            opacity: 1;
+        }
+        50% {
+            opacity: 0.5;
+        }
+    }
 
-.loading-spinner {
-    border: 4px solid #f3f3f3;
-    border-top: 4px solid #007bff;
-    border-radius: 50%;
-    width: 50px;
-    height: 50px;
-    animation: spin 1s linear infinite;
-    margin: 0 auto;
-}
+    .loading-container {
+        text-align: center;
+        padding: 40px;
+    }
+
+    .loading-spinner {
+        border: 4px solid #f3f3f3;
+        border-top: 4px solid #e74c3c;
+        border-radius: 50%;
+        width: 50px;
+        height: 50px;
+        animation: spin 1s linear infinite;
+        margin: 0 auto;
+    }
+
+    #artilheiro-campeao-wrapper {
+        position: relative;
+    }
 </style>
 
 <script type="module">
-    console.log('🏆 [ARTILHEIRO-CAMPEAO-HTML] Iniciando carregamento do módulo...');
-    
+    console.log(
+        "🏆 [ARTILHEIRO-CAMPEAO-HTML] Iniciando carregamento do módulo v4.0.0...",
+    );
+
     // Função para inicializar o módulo
     async function initArtilheiro() {
         try {
-            console.log('🔄 [ARTILHEIRO-CAMPEAO-HTML] Importando módulos...');
-            
-            // Importar todos os submódulos na ordem correta
-            const [utils, cache, detector, core, ui] = await Promise.all([
-                import('/js/artilheiro-campeao/artilheiro-campeao-utils.js'),
-                import('/js/artilheiro-campeao/artilheiro-campeao-cache.js'),
-                import('/js/artilheiro-campeao/artilheiro-campeao-detector.js'),
-                import('/js/artilheiro-campeao/artilheiro-campeao-core.js'),
-                import('/js/artilheiro-campeao/artilheiro-campeao-ui.js')
-            ]);
+            console.log(
+                "📦 [ARTILHEIRO-CAMPEAO-HTML] Importando módulo v4.0.0...",
+            );
 
-            console.log('✅ [ARTILHEIRO-CAMPEAO-HTML] Submódulos importados com sucesso');
+            // Importar o módulo principal v4.0.0
+            const artilheiroModule = await import("/js/artilheiro-campeao.js");
 
-            // Importar o módulo principal
-            const artilheiroModule = await import('/js/artilheiro-campeao.js');
-            
-            console.log('✅ [ARTILHEIRO-CAMPEAO-HTML] Módulo principal importado');
+            console.log(
+                "✅ [ARTILHEIRO-CAMPEAO-HTML] Módulo principal importado",
+            );
 
-            // Verificar se a função de inicialização existe
-            if (typeof window.inicializarArtilheiroCampeao === 'function') {
-                console.log('🚀 [ARTILHEIRO-CAMPEAO-HTML] Iniciando módulo...');
+            // ✅ SEMPRE forçar reinicialização ao carregar o HTML
+            if (window.ArtilheiroCampeao) {
+                console.log(
+                    "🚀 [ARTILHEIRO-CAMPEAO-HTML] Forçando reinicialização...",
+                );
+                await window.ArtilheiroCampeao.inicializar();
+            } else if (
+                typeof window.inicializarArtilheiroCampeao === "function"
+            ) {
+                console.log(
+                    "🚀 [ARTILHEIRO-CAMPEAO-HTML] Iniciando via window...",
+                );
                 await window.inicializarArtilheiroCampeao();
-            } else if (typeof artilheiroModule.inicializarArtilheiroCampeao === 'function') {
-                console.log('🚀 [ARTILHEIRO-CAMPEAO-HTML] Iniciando módulo via export...');
-                await artilheiroModule.inicializarArtilheiroCampeao();
-            } else {
-                throw new Error('Função inicializarArtilheiroCampeao não encontrada');
             }
 
+            console.log(
+                "✅ [ARTILHEIRO-CAMPEAO-HTML] Módulo inicializado com sucesso!",
+            );
         } catch (error) {
-            console.error('❌ [ARTILHEIRO-CAMPEAO-HTML] Erro fatal:', error);
-            
+            console.error("❌ [ARTILHEIRO-CAMPEAO-HTML] Erro fatal:", error);
+
             // Mostrar erro ao usuário
-            const loading = document.getElementById('artilheiro-loading');
-            const container = document.getElementById('artilheiro-container');
-            
-            if (loading) loading.style.display = 'none';
+            const loading = document.getElementById("artilheiro-loading");
+            const container = document.getElementById("artilheiro-container");
+
+            if (loading) loading.style.display = "none";
             if (container) {
-                container.style.display = 'block';
+                container.style.display = "block";
                 container.innerHTML = `
                     <div style="text-align: center; padding: 40px; background: #fff3cd; border-radius: 8px; color: #856404;">
                         <h3>⚠️ Erro ao Carregar Módulo</h3>
@@ -90,20 +133,17 @@
                             <summary style="cursor: pointer;">Ver detalhes técnicos</summary>
                             <pre style="background: white; padding: 10px; border-radius: 4px; margin-top: 10px; overflow-x: auto;">${error.stack}</pre>
                         </details>
-                        <button onclick="window.location.reload()" class="btn btn-primary" style="margin-top: 15px; padding: 10px 20px;">
-                            🔄 Recarregar Página
-                        </button>
+                        <div style="margin-top: 20px;">
+                            <button onclick="window.location.reload()" class="btn btn-primary" style="margin-right: 10px; padding: 10px 20px;">
+                                🔄 Recarregar Página
+                            </button>
+                        </div>
                     </div>
                 `;
             }
         }
     }
 
-    // Aguardar DOM estar pronto
-    if (document.readyState === 'loading') {
-        document.addEventListener('DOMContentLoaded', initArtilheiro);
-    } else {
-        // DOM já está pronto, executar imediatamente
-        setTimeout(initArtilheiro, 100);
-    }
+    // ✅ Executar imediatamente (não esperar DOMContentLoaded pois HTML já está carregado)
+    initArtilheiro();
 </script>

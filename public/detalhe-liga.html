@@ -8,11 +8,14 @@
         <!-- Suprimir warnings de extensões do navegador -->
         <script>
             // Capturar erros de extensões que não afetam o sistema
-            window.addEventListener('unhandledrejection', function(event) {
-              if (event.reason && event.reason.message && 
-                  event.reason.message.includes('message channel closed')) {
-                event.preventDefault(); // Silenciar este erro específico
-              }
+            window.addEventListener("unhandledrejection", function (event) {
+                if (
+                    event.reason &&
+                    event.reason.message &&
+                    event.reason.message.includes("message channel closed")
+                ) {
+                    event.preventDefault(); // Silenciar este erro específico
+                }
             });
         </script>
         <link rel="shortcut icon" href="favicon.ico" type="image/x-icon" />
@@ -104,7 +107,12 @@
                                     <div class="module-icon">👥</div>
                                     <h3 class="module-title">PARTICIPANTES</h3>
                                 </div>
-                                <div class="module-count" id="participantes-count">0 membros</div>
+                                <div
+                                    class="module-count"
+                                    id="participantes-count"
+                                >
+                                    0 membros
+                                </div>
                             </div>
 
                             <!-- 2. Card Classificação Geral -->
@@ -221,6 +229,10 @@
 
         <!-- Bootstrap JS -->
         <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+
+        <!-- SCHEDULERS AUTOMÁTICOS (devem carregar antes dos módulos) -->
+        <script src="js/parciais-scheduler.js"></script>
+        <script src="js/luva-de-ouro/luva-de-ouro-scheduler.js"></script>
 
         <!-- SCRIPTS MODULARES -->
         <script src="js/cards-condicionais.js"></script>

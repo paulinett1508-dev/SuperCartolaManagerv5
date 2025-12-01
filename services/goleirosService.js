@@ -8,10 +8,70 @@ console.log(
   "[GOLEIROS-SERVICE] ✅ Serviço carregado com correções da API 2025",
 );
 
+// ===== CACHE DE ATLETAS PONTUADOS (para parciais) =====
+let atletasPontuadosCache = null;
+let atletasPontuadosTimestamp = 0;
+const CACHE_TTL = 60000; // 1 minuto
+
+// ===== FUNÇÃO: Buscar atletas pontuados (parciais ao vivo) =====
+async function buscarAtletasPontuados() {
+  const agora = Date.now();
+
+  // Usar cache se ainda válido
+  if (atletasPontuadosCache && agora - atletasPontuadosTimestamp < CACHE_TTL) {
+    console.log(
+      `📦 [PONTUADOS] Usando cache (${Math.round((agora - atletasPontuadosTimestamp) / 1000)}s)`,
+    );
+    return atletasPontuadosCache;
+  }
+
+  console.log(`🔄 [PONTUADOS] Buscando atletas pontuados...`);
+
+  try {
+    const response = await fetch(
+      "https://api.cartolafc.globo.com/atletas/pontuados",
+      {
+        headers: {
+          "User-Agent":
+            "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36",
+          Accept: "application/json",
+          "Cache-Control": "no-cache",
+        },
+        timeout: 10000,
+      },
+    );
+
+    if (!response.ok) {
+      console.warn(`⚠️ [PONTUADOS] API retornou ${response.status}`);
+      return null;
+    }
+
+    const dados = await response.json();
+
+    if (dados.atletas) {
+      atletasPontuadosCache = dados.atletas;
+      atletasPontuadosTimestamp = agora;
+      console.log(
+        `✅ [PONTUADOS] ${Object.keys(dados.atletas).length} atletas pontuados carregados`,
+      );
+      return dados.atletas;
+    }
+
+    return null;
+  } catch (error) {
+    console.error(`❌ [PONTUADOS] Erro:`, error.message);
+    return null;
+  }
+}
+
 // ===== FUNÇÃO CORRIGIDA: buscarDadosTimeRodada =====
-async function buscarDadosTimeRodada(participanteId, rodada) {
+async function buscarDadosTimeRodada(
+  participanteId,
+  rodada,
+  rodadaParcial = false,
+) {
   console.log(
-    `🔍 [API-CARTOLA] Buscando time ${participanteId} rodada ${rodada}`,
+    `🔍 [API-CARTOLA] Buscando time ${participanteId} rodada ${rodada} ${rodadaParcial ? "(PARCIAL)" : ""}`,
   );
 
   try {
@@ -54,6 +114,15 @@ async function buscarDadosTimeRodada(participanteId, rodada) {
       estrutura: Array.isArray(dados.atletas) ? "ARRAY" : "OBJECT",
     });
 
+    // ✅ Se rodada parcial, buscar pontuações ao vivo
+    let atletasPontuados = null;
+    if (rodadaParcial) {
+      atletasPontuados = await buscarAtletasPontuados();
+      console.log(
+        `🔥 [API-CARTOLA] Modo PARCIAL - cruzando com atletas pontuados`,
+      );
+    }
+
     // ✅ CORREÇÃO: Procurar goleiro na estrutura ATUAL (ARRAY)
     let goleiro = null;
 
@@ -64,13 +133,20 @@ async function buscarDadosTimeRodada(participanteId, rodada) {
       );
 
       for (const atleta of dados.atletas) {
-        console.log(
-          `👤 [API-CARTOLA] Atleta: ${atleta.apelido || "N/D"} - Posição: ${atleta.posicao_id} - Pontos: ${atleta.pontos_num || 0}`,
-        );
-
         if (atleta.posicao_id === 1) {
           // Posição 1 = Goleiro
-          const pontosGoleiro = parseFloat(atleta.pontos_num) || 0;
+          let pontosGoleiro = parseFloat(atleta.pontos_num) || 0;
+
+          // ✅ Se parcial e pontos = 0, buscar nos atletas pontuados
+          if (rodadaParcial && atletasPontuados && atleta.atleta_id) {
+            const pontuado = atletasPontuados[atleta.atleta_id];
+            if (pontuado && pontuado.pontuacao !== undefined) {
+              pontosGoleiro = parseFloat(pontuado.pontuacao) || 0;
+              console.log(
+                `🔥 [API-CARTOLA] Pontuação PARCIAL do goleiro: ${pontosGoleiro}`,
+              );
+            }
+          }
 
           goleiro = {
             id: atleta.atleta_id,
@@ -86,6 +162,7 @@ async function buscarDadosTimeRodada(participanteId, rodada) {
             pontos: goleiro.pontos,
             clube: goleiro.clube,
             status: goleiro.status,
+            parcial: rodadaParcial,
           });
           break;
         }
@@ -101,11 +178,21 @@ async function buscarDadosTimeRodada(participanteId, rodada) {
 
         if (atleta.posicao_id === 1) {
           // Posição 1 = Goleiro
+          let pontosGoleiro = parseFloat(atleta.pontos_num) || 0;
+
+          // ✅ Se parcial e pontos = 0, buscar nos atletas pontuados
+          if (rodadaParcial && atletasPontuados) {
+            const pontuado = atletasPontuados[atletaId];
+            if (pontuado && pontuado.pontuacao !== undefined) {
+              pontosGoleiro = parseFloat(pontuado.pontuacao) || 0;
+            }
+          }
+
           goleiro = {
             id: parseInt(atletaId),
             nome: atleta.apelido || atleta.nome,
             clube: getClubeName(atleta.clube_id),
-            pontos: parseFloat(atleta.pontos_num) || 0,
+            pontos: pontosGoleiro,
             status: getStatusName(atleta.status_id),
             clubeId: atleta.clube_id,
           };
@@ -356,19 +443,25 @@ async function verificarStatusRodada(rodada) {
 
     const dados = await response.json();
     const rodadaAtual = dados.rodada_atual || 0;
-    const mercadoFechado = dados.fechado || false;
+    // ✅ CORREÇÃO: status_mercado === 2 significa mercado FECHADO (rodada em andamento)
+    const mercadoFechado = dados.status_mercado === 2;
+
+    // ✅ CORREÇÃO CRÍTICA:
+    // - Rodada concluída = rodada MENOR que a atual (já passou)
+    // - Rodada atual com mercado fechado = EM ANDAMENTO (parcial), NÃO concluída!
+    const concluida = rodada < rodadaAtual;
 
     console.log(`📊 [STATUS-RODADA] Status:`, {
       rodadaAtual,
       rodadaSolicitada: rodada,
+      statusMercado: dados.status_mercado,
       mercadoFechado,
-      concluida:
-        rodada < rodadaAtual || (rodada === rodadaAtual && mercadoFechado),
+      concluida,
+      parcial: rodada === rodadaAtual && mercadoFechado,
     });
 
     return {
-      concluida:
-        rodada < rodadaAtual || (rodada === rodadaAtual && mercadoFechado),
+      concluida,
       rodadaAtual,
       mercadoFechado,
     };
@@ -409,31 +502,30 @@ export async function coletarDadosGoleiros(ligaId, rodadaInicio, rodadaFim) {
       const registrosExistentes = await Goleiros.find({
         ligaId,
         rodada,
-        rodadaConcluida: true,
+        rodadaConcluida: true, // ✅ Só considera concluídas
       }).exec();
 
-      // ✅ CORREÇÃO: Só pular se TODOS os participantes foram processados E têm dados válidos
+      // ✅ CORREÇÃO: Só pular se TODOS os participantes foram processados E têm dados válidos E rodada concluída
       const participantesProcessados = registrosExistentes.filter(
         (r) => r.goleiroNome !== "Sem goleiro" || r.pontos > 0,
       );
 
-      if (participantesProcessados.length === participantes.length) {
-        console.log(
-          `✅ [GOLEIROS-SERVICE] Rodada ${rodada} já processada corretamente`,
-        );
-        continue;
-      }
-
       // Verificar se rodada está concluída
       const statusRodada = await verificarStatusRodada(rodada);
-      console.log(
-        `📊 [GOLEIROS-SERVICE] Status rodada ${rodada}:`,
-        statusRodada,
-      );
+      const rodadaParcial = !statusRodada.concluida;
+      console.log(`📊 [GOLEIROS-SERVICE] Status rodada ${rodada}:`, {
+        ...statusRodada,
+        parcial: rodadaParcial,
+      });
 
-      if (!statusRodada.concluida) {
+      // ✅ Se rodada concluída e todos processados, pular
+      // ✅ Se rodada parcial, sempre atualizar (dados podem mudar)
+      if (
+        statusRodada.concluida &&
+        participantesProcessados.length === participantes.length
+      ) {
         console.log(
-          `⏳ [GOLEIROS-SERVICE] Rodada ${rodada} não concluída, pulando`,
+          `✅ [GOLEIROS-SERVICE] Rodada ${rodada} já processada e concluída`,
         );
         continue;
       }
@@ -442,16 +534,17 @@ export async function coletarDadosGoleiros(ligaId, rodadaInicio, rodadaFim) {
       for (const participante of participantes) {
         try {
           console.log(
-            `🔍 [GOLEIROS-SERVICE] === ${participante.nome} - Rodada ${rodada} ===`,
+            `🔍 [GOLEIROS-SERVICE] === ${participante.nome} - Rodada ${rodada} ${rodadaParcial ? "(PARCIAL)" : ""} ===`,
           );
 
           // Rate limiting
           await new Promise((resolve) => setTimeout(resolve, 500));
 
-          // ✅ CORREÇÃO: Usar função corrigida
+          // ✅ CORREÇÃO: Usar função corrigida com flag de parcial
           const dadosTime = await buscarDadosTimeRodada(
             participante.id,
             rodada,
+            rodadaParcial, // ✅ Passar flag para buscar pontuação parcial
           );
 
           if (dadosTime) {
@@ -462,9 +555,10 @@ export async function coletarDadosGoleiros(ligaId, rodadaInicio, rodadaFim) {
               nomeGoleiro: dadosTime.goleiro?.nome || "Sem goleiro",
               pontosGoleiro: dadosTime.goleiro?.pontos || 0,
               pontosTime: dadosTime.pontos || 0,
+              parcial: rodadaParcial,
             });
 
-            // ✅ CORREÇÃO: Salvar dados corretos
+            // ✅ CORREÇÃO: Marcar como parcial ou concluída
             const registro = {
               ligaId,
               participanteId: participante.id,
@@ -478,7 +572,7 @@ export async function coletarDadosGoleiros(ligaId, rodadaInicio, rodadaFim) {
                 ? dadosTime.goleiro.status
                 : "sem_goleiro",
               dataColeta: new Date(),
-              rodadaConcluida: true,
+              rodadaConcluida: !rodadaParcial, // ✅ false se parcial
             };
 
             const resultado = await Goleiros.findOneAndUpdate(
@@ -489,7 +583,7 @@ export async function coletarDadosGoleiros(ligaId, rodadaInicio, rodadaFim) {
 
             totalColetados++;
             console.log(
-              `✅ [GOLEIROS-SERVICE] Salvo: ${participante.nome} R${rodada} - ${resultado._id}`,
+              `✅ [GOLEIROS-SERVICE] Salvo: ${participante.nome} R${rodada} - ${resultado._id} ${rodadaParcial ? "(PARCIAL)" : ""}`,
             );
           } else {
             console.log(
@@ -644,24 +738,42 @@ export async function obterRankingGoleiros(
 
   try {
     // Detectar rodada fim se não especificada
+    // ✅ CORREÇÃO: Se mercado fechado, incluir rodada atual (parciais)
+    let mercadoFechado = false;
+    let rodadaAtualAPI = 35;
+
     if (!rodadaFim) {
       try {
         const statusMercado = await verificarStatusRodada(999);
-        rodadaFim = Math.max(1, (statusMercado.rodadaAtual || 15) - 1);
-        console.log(`🎯 [GOLEIROS-SERVICE] Rodada fim detectada: ${rodadaFim}`);
+        rodadaAtualAPI = statusMercado.rodadaAtual || 35;
+        mercadoFechado = statusMercado.mercadoFechado || false;
+
+        // Se mercado FECHADO → incluir rodada atual (parciais ao vivo)
+        // Se mercado ABERTO → usar rodada anterior (consolidada)
+        if (mercadoFechado) {
+          rodadaFim = rodadaAtualAPI;
+          console.log(
+            `🔥 [GOLEIROS-SERVICE] Mercado FECHADO - incluindo parciais R${rodadaFim}`,
+          );
+        } else {
+          rodadaFim = Math.max(1, rodadaAtualAPI - 1);
+          console.log(
+            `📊 [GOLEIROS-SERVICE] Mercado ABERTO - até R${rodadaFim}`,
+          );
+        }
       } catch (error) {
-        rodadaFim = 14; // fallback
+        rodadaFim = 35; // fallback
         console.log(
           `⚠️ [GOLEIROS-SERVICE] Usando rodada fim padrão: ${rodadaFim}`,
         );
       }
     }
 
-    // Verificar dados existentes
+    // Verificar dados existentes (incluindo parciais)
     const registrosExistentes = await Goleiros.find({
       ligaId,
       rodada: { $gte: rodadaInicio, $lte: rodadaFim },
-      rodadaConcluida: true,
+      // ✅ Buscar todos, não só concluídos
     }).exec();
 
     console.log(`📊 [GOLEIROS-SERVICE] Registros no MongoDB:`, {
@@ -675,6 +787,7 @@ export async function obterRankingGoleiros(
       comGoleiro: registrosExistentes.filter(
         (r) => r.goleiroNome && r.goleiroNome !== "Sem goleiro",
       ).length,
+      parciais: registrosExistentes.filter((r) => !r.rodadaConcluida).length,
     });
 
     // Se não há dados suficientes, forçar coleta
@@ -683,6 +796,28 @@ export async function obterRankingGoleiros(
         `⚠️ [GOLEIROS-SERVICE] Poucos dados encontrados, iniciando coleta...`,
       );
       await coletarDadosGoleiros(ligaId, rodadaInicio, rodadaFim);
+    }
+
+    // ✅ NOVO: Se mercado fechado, SEMPRE coletar parciais da rodada atual
+    if (mercadoFechado && rodadaAtualAPI) {
+      const parciaisRodadaAtual = registrosExistentes.filter(
+        (r) => r.rodada === rodadaAtualAPI,
+      );
+
+      // Se não tem dados da rodada atual OU se são muito antigos (>2min), coletar
+      const precisaAtualizar =
+        parciaisRodadaAtual.length === 0 ||
+        parciaisRodadaAtual.some((r) => {
+          const idadeMs = Date.now() - new Date(r.dataColeta).getTime();
+          return idadeMs > 2 * 60 * 1000; // 2 minutos
+        });
+
+      if (precisaAtualizar) {
+        console.log(
+          `🔥 [GOLEIROS-SERVICE] Coletando parciais R${rodadaAtualAPI}...`,
+        );
+        await coletarDadosGoleiros(ligaId, rodadaAtualAPI, rodadaAtualAPI);
+      }
     }
 
     // Mapear participantes hardcoded com escudos corretos (baseado em participantes.js)
@@ -725,6 +860,7 @@ export async function obterRankingGoleiros(
         pontos: parseFloat((item.pontos || 0).toFixed(2)),
         goleiroNome: item.goleiroNome || "Sem goleiro",
         goleiroClube: item.goleiroClube || "",
+        parcial: !item.rodadaConcluida, // ✅ Flag para UI destacar
       }));
 
       ranking.push({
@@ -756,6 +892,8 @@ export async function obterRankingGoleiros(
       ranking,
       rodadaInicio,
       rodadaFim,
+      rodadaParcial: mercadoFechado ? rodadaAtualAPI : null, // ✅ Flag para UI
+      mercadoFechado, // ✅ Status do mercado
       totalParticipantes: ranking.length,
       dataGeracao: new Date(),
     };
@@ -764,6 +902,7 @@ export async function obterRankingGoleiros(
       totalParticipantes: ranking.length,
       lider: ranking[0]?.participanteNome || "N/D",
       pontosLider: ranking[0]?.pontosTotais || 0,
+      rodadaParcial: resultado.rodadaParcial,
     });
 
     return resultado;

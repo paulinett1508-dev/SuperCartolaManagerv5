@@ -1,4 +1,7 @@
-// MÓDULO PARCIAIS - Parciais ao Vivo (OTIMIZADO)
+// MÓDULO PARCIAIS - Parciais ao Vivo (v2.0.0 com Scheduler)
+// public/js/parciais.js
+
+console.log("🔥 [PARCIAIS] Módulo v2.0.0 carregando...");
 
 const urlParams = new URLSearchParams(window.location.search);
 const ligaId = urlParams.get("id");
@@ -107,7 +110,9 @@ function setButtonLoading(btn, loading) {
     }
 }
 
-async function carregarParciais() {
+// ✅ FUNÇÃO PRINCIPAL: Carregar Parciais
+async function carregarParciais(usarCacheParam = true) {
+    let usarCache = usarCacheParam;
     const rankingBody = document.getElementById("rankingBody");
     const loading = document.getElementById("loading");
     const error = document.getElementById("error");
@@ -125,16 +130,35 @@ async function carregarParciais() {
         if (error) error.style.display = "none";
         rankingBody.innerHTML = "";
 
-        // Verificar cache
+        // Verificar cache (NUNCA usar cache quando mercado fechado - rodada em andamento)
         const cacheKey = `parciais_${ligaId}`;
-        const cachedData = localStorage.getItem(cacheKey);
-        if (cachedData) {
-            const { rankings, timestamp } = JSON.parse(cachedData);
-            if (Date.now() - timestamp < 5 * 60 * 1000) {
-                exibirRanking(rankings);
-                if (loading) loading.style.display = "none";
-                console.log("[PARCIAIS] ✅ Dados do cache");
-                return;
+        if (usarCache) {
+            // Verificar se mercado está fechado ANTES de usar cache
+            const resMercadoPreCheck = await fetch(
+                "/api/cartola/mercado/status",
+            );
+            const mercadoPreCheck = await resMercadoPreCheck.json();
+
+            // Se mercado fechado, NÃO usar cache (dados mudam constantemente)
+            if (!mercadoPreCheck.mercado_aberto) {
+                console.log(
+                    "[PARCIAIS] 🔥 Mercado FECHADO - ignorando cache, buscando dados ao vivo",
+                );
+                localStorage.removeItem(cacheKey); // Limpar cache antigo
+                usarCache = false;
+            } else {
+                const cachedData = localStorage.getItem(cacheKey);
+                if (cachedData) {
+                    const { rankings, timestamp } = JSON.parse(cachedData);
+                    if (Date.now() - timestamp < 5 * 60 * 1000) {
+                        exibirRanking(rankings);
+                        if (loading) loading.style.display = "none";
+                        console.log(
+                            "[PARCIAIS] ✅ Dados do cache (mercado aberto)",
+                        );
+                        return;
+                    }
+                }
             }
         }
 
@@ -178,12 +202,24 @@ async function carregarParciais() {
             rodadaAtualTitle.textContent = `🔥 Parciais AO VIVO - Rodada ${rodadaAtual}`;
         }
 
-        // Buscar parciais (atletas pontuados)
-        const resPartials = await fetch("/api/cartola/atletas/pontuados", {
-            headers: { "Cache-Control": "no-cache", Pragma: "no-cache" },
-        });
+        // Buscar parciais (atletas pontuados) - COM TIMESTAMP PARA EVITAR CACHE
+        const timestamp = Date.now();
+        const resPartials = await fetch(
+            `/api/cartola/atletas/pontuados?_t=${timestamp}`,
+            {
+                cache: "no-store",
+                headers: {
+                    "Cache-Control": "no-cache, no-store, must-revalidate",
+                    Pragma: "no-cache",
+                    Expires: "0",
+                },
+            },
+        );
         if (!resPartials.ok) throw new Error("Erro ao buscar parciais");
         const partialsData = await resPartials.json();
+        console.log(
+            `[PARCIAIS] 🔥 Atletas pontuados: ${Object.keys(partialsData.atletas || {}).length} (timestamp: ${timestamp})`,
+        );
         if (!partialsData.atletas)
             throw new Error("Dados de parciais não disponíveis");
 
@@ -232,7 +268,15 @@ async function carregarParciais() {
                 try {
                     const resInfo = await fetch(`/api/times/${timeId}`);
                     const resEscalacao = await fetch(
-                        `/api/cartola/time/id/${timeId}/${rodadaAtual}`,
+                        `/api/cartola/time/id/${timeId}/${rodadaAtual}?_t=${timestamp}`,
+                        {
+                            cache: "no-store",
+                            headers: {
+                                "Cache-Control":
+                                    "no-cache, no-store, must-revalidate",
+                                Pragma: "no-cache",
+                            },
+                        },
                     );
                     if (!resInfo.ok || !resEscalacao.ok) return null;
 
@@ -240,15 +284,59 @@ async function carregarParciais() {
                     const dadosEscalacao = await resEscalacao.json();
 
                     let pontos = 0;
+
+                    // Mapa de posições que pontuaram (para saber se reserva entra)
+                    const posicoesQuePontuaram = new Set();
+
+                    // Somar pontos dos TITULARES
                     if (dadosEscalacao.atletas) {
                         dadosEscalacao.atletas.forEach((atleta) => {
                             const pontuacao =
                                 partialsData.atletas[atleta.atleta_id]
                                     ?.pontuacao || 0;
+                            const entrouEmCampo =
+                                partialsData.atletas[atleta.atleta_id]
+                                    ?.entrou_em_campo;
+
+                            // Verificar se atleta entrou em campo
+                            if (entrouEmCampo || pontuacao !== 0) {
+                                posicoesQuePontuaram.add(atleta.posicao_id);
+                            }
+
                             pontos +=
                                 atleta.atleta_id === dadosEscalacao.capitao_id
                                     ? pontuacao * 2
                                     : pontuacao;
+                        });
+                    }
+
+                    // Somar pontos dos RESERVAS (só os que substituíram titulares que não pontuaram)
+                    if (dadosEscalacao.reservas) {
+                        dadosEscalacao.reservas.forEach((atleta) => {
+                            const pontuacao =
+                                partialsData.atletas[atleta.atleta_id]
+                                    ?.pontuacao || 0;
+                            const entrouEmCampo =
+                                partialsData.atletas[atleta.atleta_id]
+                                    ?.entrou_em_campo;
+
+                            // Reserva só pontua se titular da mesma posição NÃO entrou em campo
+                            // OU se é o reserva de luxo (sempre pontua 1.5x se entrou)
+                            if (
+                                atleta.atleta_id ===
+                                    dadosEscalacao.reserva_luxo_id &&
+                                entrouEmCampo
+                            ) {
+                                // Reserva de luxo pontua 1.5x
+                                pontos += pontuacao * 1.5;
+                            } else if (
+                                !posicoesQuePontuaram.has(atleta.posicao_id) &&
+                                entrouEmCampo
+                            ) {
+                                // Reserva comum substitui titular que não pontuou
+                                pontos += pontuacao;
+                                posicoesQuePontuaram.add(atleta.posicao_id); // Só um reserva por posição
+                            }
                         });
                     }
 
@@ -333,7 +421,6 @@ function exibirRanking(rankings) {
                     positionLabel = "MITO";
                     positionClass = "mito";
                 } else if (isLigaPequena) {
-                    // Liga pequena: G2 só para 2º lugar, MICO para último
                     if (position === 2) {
                         positionLabel = "G2";
                         positionClass = "g2-g11";
@@ -342,7 +429,6 @@ function exibirRanking(rankings) {
                         positionClass = "mico";
                     }
                 } else {
-                    // Liga grande (32 participantes)
                     if (position >= 2 && position <= 11) {
                         positionLabel = `G${position}`;
                         positionClass = "g2-g11";
@@ -382,7 +468,7 @@ function exibirRanking(rankings) {
         `<tr><td colspan="6">Nenhum dado disponível para exibição.</td></tr>`;
 }
 
-// ✅ ATUALIZAR PARCIAIS OTIMIZADO
+// ✅ ATUALIZAR PARCIAIS (botão manual)
 async function atualizarParciais() {
     if (atualizacaoEmAndamento) {
         mostrarToast("Atualização em andamento, aguarde...", "info");
@@ -407,9 +493,10 @@ async function atualizarParciais() {
             return;
         }
 
+        // Limpar cache e recarregar
         const cacheKey = `parciais_${ligaId}`;
         localStorage.removeItem(cacheKey);
-        await carregarParciais();
+        await carregarParciais(false); // false = não usar cache
 
         mostrarToast("Parciais atualizadas!", "success");
     } catch (error) {
@@ -421,19 +508,20 @@ async function atualizarParciais() {
     }
 }
 
-// Inicialização do módulo
+// ✅ INICIALIZAÇÃO DO MÓDULO
 export async function inicializarParciais() {
     console.log("[PARCIAIS] Inicializando módulo...");
 
-    const btnAtualizarParciais = document.getElementById(
-        "btnAtualizarParciais",
-    );
-    if (btnAtualizarParciais) {
-        btnAtualizarParciais.addEventListener("click", atualizarParciais);
-        console.log("[PARCIAIS] Botão configurado");
+    // Carregar parciais (sem cache se scheduler vai assumir)
+    const schedulerAtivo = !!window.ParciaisScheduler;
+    await carregarParciais(!schedulerAtivo); // Se scheduler ativo, não usa cache na primeira carga
+
+    // Iniciar scheduler automático (se disponível)
+    if (window.ParciaisScheduler) {
+        window.ParciaisScheduler.iniciar();
+        console.log("[PARCIAIS] ⏰ Scheduler automático ativado");
     }
 
-    await carregarParciais();
     console.log("[PARCIAIS] ✅ Módulo inicializado");
 }
 
@@ -442,4 +530,4 @@ window.carregarParciais = carregarParciais;
 window.atualizarParciais = atualizarParciais;
 window.inicializarParciais = inicializarParciais;
 
-console.log("[PARCIAIS] ✅ Módulo carregado (otimizado)");
+console.log("✅ [PARCIAIS] Módulo v2.0.0 carregado com suporte a scheduler");

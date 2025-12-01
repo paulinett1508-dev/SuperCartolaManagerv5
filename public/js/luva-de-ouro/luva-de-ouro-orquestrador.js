@@ -1,308 +1,369 @@
-// LUVA DE OURO ORQUESTRADOR - Coordenação do módulo (REFATORADO)
-// Carregamento automático + integração com super cache
-
-console.log("🎯 [LUVA-ORQ] Módulo orquestrador carregando...");
+// public/js/luva-de-ouro/luva-de-ouro-orquestrador.js - V2 COM SUPORTE A INATIVOS
+console.log("🎯 [LUVA-ORQUESTRADOR] Módulo orquestrador carregando...");
 
 const LuvaDeOuroOrquestrador = {
-  // Estado interno
   estado: {
-    ranking: null,
-    rodadaAtual: null,
-    mercadoAberto: false,
-    rodadaSelecionada: null,
-    rodadasComDados: [],
+    ranking: [],
+    inativos: [], // ✅ Participantes inativos
+    estatisticas: {},
+    ultimaRodada: 0,
+    rodadaDetectada: null,
     carregando: false,
-    inicializado: false,
+    statusMap: {}, // ✅ Status de inatividade
   },
 
-  // ==============================
-  // INICIALIZAÇÃO AUTOMÁTICA
-  // ==============================
-
   async inicializar() {
-    console.log("🥅 [LUVA-ORQ] Inicializando módulo...");
-
-    // SEMPRE resetar estado ao inicializar
-    this.resetEstado();
+    console.log("🥅 [LUVA-ORQUESTRADOR] Inicializando módulo...");
 
     try {
       const config = window.LuvaDeOuroConfig;
-      const container = document.getElementById("luvaDeOuroContent");
+
+      // ✅ Usar ID direto do seletor (remover #)
+      const contentSelector = config.SELECTORS?.CONTENT || "#luvaDeOuroContent";
+      const container = document.getElementById(
+        contentSelector.replace("#", ""),
+      );
 
       if (!container) {
-        console.error("❌ [LUVA-ORQ] Container não encontrado");
+        console.error("❌ Container não encontrado:", contentSelector);
         return;
       }
 
-      // Renderizar layout principal
       container.innerHTML = window.LuvaDeOuroUI.criarLayoutPrincipal();
 
-      // Detectar status do mercado
-      await this.detectarStatusMercado();
+      this.configurarEventos();
 
-      // Configurar navegação de rodadas
-      window.LuvaDeOuroUI.configurarNavegacao(
-        this.estado.rodadaAtual,
-        this.estado.mercadoAberto,
-      );
-
-      // Carregar ranking automaticamente
+      // ✅ AUTO-CARREGAR RANKING (igual Artilheiro Campeão)
       await this.carregarRanking(false);
 
-      this.estado.inicializado = true;
-      console.log("✅ [LUVA-ORQ] Módulo inicializado com sucesso");
+      console.log("✅ Luva de Ouro inicializado com sucesso");
     } catch (error) {
-      console.error("❌ [LUVA-ORQ] Erro na inicialização:", error);
-      window.LuvaDeOuroUI.mostrarErro(
-        "Erro ao inicializar módulo",
-        error.message,
-      );
+      console.error("❌ Erro ao inicializar:", error);
+      this.mostrarErro("Erro na inicialização", error.message);
     }
   },
 
-  // ==============================
-  // DETECÇÃO DE STATUS
-  // ==============================
+  configurarEventos() {
+    const config = window.LuvaDeOuroConfig;
 
-  async detectarStatusMercado() {
-    console.log("[LUVA-ORQ] Detectando status do mercado...");
-
-    try {
-      const config = window.LuvaDeOuroConfig;
-      const response = await fetch(
-        config.API.DETECTAR_RODADA(config.LIGA_SOBRAL_ID),
-      );
-
-      if (!response.ok) {
-        throw new Error(`HTTP ${response.status}`);
-      }
-
-      const data = await response.json();
-
-      if (data.success) {
-        this.estado.rodadaAtual = data.data.rodadaAtualCartola || 36;
-        this.estado.mercadoAberto = !data.data.mercadoFechado;
-
-        const statusTexto = this.estado.mercadoAberto
-          ? `⏳ Mercado Aberto - Rodada ${this.estado.rodadaAtual}`
-          : `🔴 Rodada ${this.estado.rodadaAtual} em andamento`;
-
-        window.LuvaDeOuroUI.atualizarInfoStatus(statusTexto);
-
-        console.log("[LUVA-ORQ] Status detectado:", {
-          rodadaAtual: this.estado.rodadaAtual,
-          mercadoAberto: this.estado.mercadoAberto,
-        });
-      }
-    } catch (error) {
-      console.error("[LUVA-ORQ] Erro ao detectar status:", error);
-      // Fallback
-      this.estado.rodadaAtual = 36;
-      this.estado.mercadoAberto = false;
-      window.LuvaDeOuroUI.atualizarInfoStatus("⚠️ Status indisponível");
+    const btnRanking = document.getElementById("luvaRankingBtn");
+    if (btnRanking) {
+      btnRanking.addEventListener("click", () => this.carregarRanking(false));
     }
-  },
 
-  // ==============================
-  // CARREGAMENTO DE RANKING
-  // ==============================
+    const btnUltimaRodada = document.getElementById("luvaUltimaRodadaBtn");
+    if (btnUltimaRodada) {
+      btnUltimaRodada.addEventListener("click", () =>
+        this.detectarUltimaRodada(),
+      );
+    }
+
+    const btnForcarColeta = document.getElementById("luvaForcarColetaBtn");
+    if (btnForcarColeta) {
+      btnForcarColeta.addEventListener("click", () =>
+        this.carregarRanking(true),
+      );
+    }
+
+    document.addEventListener("click", (e) => {
+      if (e.target.classList.contains("btn-detalhes")) {
+        const id = e.target.dataset.participanteId;
+        const nome = e.target.dataset.participanteNome;
+        if (id && nome) {
+          this.mostrarDetalhes(parseInt(id), nome);
+        }
+      }
+    });
+
+    console.log("📋 Eventos configurados");
+  },
 
   async carregarRanking(forcarColeta = false) {
-    if (this.estado.carregando) {
-      console.log("[LUVA-ORQ] Carregamento já em andamento...");
-      return;
-    }
+    const config = window.LuvaDeOuroConfig;
 
-    this.estado.carregando = true;
-    console.log(`[LUVA-ORQ] Carregando ranking... (forçar: ${forcarColeta})`);
+    // ✅ Usar IDs diretos
+    const contentSelector = config.SELECTORS?.CONTENT || "#luvaDeOuroContent";
+    const container = document.getElementById(contentSelector.replace("#", ""));
+
+    if (!container) return;
 
     try {
-      window.LuvaDeOuroUI.mostrarLoading(
-        forcarColeta ? "Coletando dados da API..." : "Carregando ranking...",
-      );
+      this.estado.carregando = true;
 
-      const config = window.LuvaDeOuroConfig;
-      const rodadaFim = this.estado.mercadoAberto
-        ? Math.max(1, this.estado.rodadaAtual - 1)
-        : this.estado.rodadaAtual;
+      const inicio =
+        parseInt(document.getElementById("luvaRodadaInicio")?.value) ||
+        config.RODADAS.DEFAULT_INICIO;
+      const fim =
+        parseInt(document.getElementById("luvaRodadaFim")?.value) || null;
 
-      // Tentar cache primeiro (se não forçar coleta)
+      console.log(`🎯 Carregando ranking: ${inicio} a ${fim || "atual"}`);
+
+      const mensagem = forcarColeta
+        ? config.MESSAGES.LOADING_COLETA
+        : config.MESSAGES.LOADING_RANKING;
+
+      // ✅ mostrarLoading manipula DOM direto, não retorna HTML
+      window.LuvaDeOuroUI.mostrarLoading(mensagem);
+
       let dados = null;
-      if (!forcarColeta && window.LuvaDeOuroCache) {
-        dados = await window.LuvaDeOuroCache.get("ranking", {
-          inicio: 1,
-          fim: rodadaFim,
+      if (!forcarColeta) {
+        const cacheResult = window.LuvaDeOuroCache.get("ranking", {
+          inicio,
+          fim,
         });
+        // ✅ Verificar se é Promise e resolver
+        if (cacheResult instanceof Promise) {
+          dados = await cacheResult;
+        } else {
+          dados = cacheResult;
+        }
+        if (dados) {
+          console.log("[LUVA-ORQ] 📦 Dados do cache:", dados);
+        }
       }
 
       if (!dados) {
-        // Buscar da API
-        const params = new URLSearchParams({
-          inicio: "1",
-          fim: rodadaFim.toString(),
-          ...(forcarColeta && { forcar_coleta: "true" }),
-        });
-
-        const response = await fetch(
-          `${config.API.RANKING(config.LIGA_SOBRAL_ID)}?${params}`,
+        dados = await window.LuvaDeOuroCore.buscarRankingGoleiros(
+          inicio,
+          fim,
+          forcarColeta,
         );
-
-        if (!response.ok) {
-          throw new Error(`HTTP ${response.status}`);
-        }
-
-        const result = await response.json();
-
-        if (!result.success) {
-          throw new Error(result.error || "Erro ao buscar ranking");
-        }
-
-        dados = result.data;
-
-        // Salvar no cache
-        if (window.LuvaDeOuroCache) {
-          await window.LuvaDeOuroCache.set(
-            "ranking",
-            { inicio: 1, fim: rodadaFim },
-            dados,
-          );
+        console.log("[LUVA-ORQ] 📦 Dados recebidos da API:", dados);
+        if (dados && dados.ranking) {
+          window.LuvaDeOuroCache.set("ranking", { inicio, fim }, dados);
         }
       }
 
-      // Atualizar estado
-      this.estado.ranking = dados;
+      // ✅ Verificar se dados tem ranking
+      if (!dados || !dados.ranking || !Array.isArray(dados.ranking)) {
+        console.warn("[LUVA-ORQ] ⚠️ Dados inválidos ou ranking vazio");
+        window.LuvaDeOuroUI.mostrarErro(
+          "Nenhum dado encontrado",
+          "Tente forçar a coleta de dados.",
+        );
+        return;
+      }
 
-      // Renderizar ranking
-      window.LuvaDeOuroUI.renderizarRanking(dados);
+      // ✅ BUSCAR ESCUDOS CORRETOS ANTES DE RENDERIZAR
+      console.log("[LUVA-ORQ] 🎨 Buscando escudos corretos...");
+      const escudosParticipantes =
+        await window.LuvaDeOuroUtils.buscarEscudosParticipantes();
+
+      if (escudosParticipantes) {
+        console.log("[LUVA-ORQ] ✅ Aplicando escudos ao ranking...");
+        dados.ranking = dados.ranking.map((item) => ({
+          ...item,
+          clubeId:
+            escudosParticipantes[item.participanteId] ||
+            item.clubeId ||
+            "default",
+        }));
+      }
+
+      // ✅ BUSCAR STATUS DE INATIVIDADE (igual ranking.js)
+      const timeIds = dados.ranking.map((p) => p.participanteId);
+      let statusMap = {};
+
+      try {
+        const statusRes = await fetch("/api/times/batch/status", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ timeIds }),
+        });
+
+        if (statusRes.ok) {
+          const statusData = await statusRes.json();
+          statusMap = statusData.status || {};
+          console.log(`[LUVA-ORQ] ✅ Status de inatividade carregado`);
+        }
+      } catch (error) {
+        console.warn("[LUVA-ORQ] ⚠️ Falha ao buscar status:", error.message);
+      }
+
+      this.estado.statusMap = statusMap;
+
+      // ✅ Adicionar status a cada participante
+      dados.ranking = dados.ranking.map((p) => {
+        const status = statusMap[p.participanteId] || {
+          ativo: true,
+          rodada_desistencia: null,
+        };
+        return {
+          ...p,
+          ativo: status.ativo,
+          rodada_desistencia: status.rodada_desistencia,
+        };
+      });
+
+      // ✅ Separar ativos e inativos
+      const ativos = dados.ranking.filter((p) => p.ativo !== false);
+      const inativos = dados.ranking.filter((p) => p.ativo === false);
+
+      // Ordenar ativos por pontos (decrescente)
+      ativos.sort((a, b) => b.pontosTotais - a.pontosTotais);
+
+      // Ordenar inativos por rodada de desistência (mais recente primeiro)
+      inativos.sort(
+        (a, b) => (b.rodada_desistencia || 0) - (a.rodada_desistencia || 0),
+      );
+
+      // Guardar no estado
+      this.estado.ranking = { ...dados, ranking: ativos };
+      this.estado.inativos = inativos;
 
       console.log(
-        "✅ [LUVA-ORQ] Ranking carregado:",
-        dados.ranking?.length,
-        "participantes",
+        `[LUVA-ORQ] ✅ Ranking: ${ativos.length} ativos, ${inativos.length} inativos`,
+      );
+
+      // ✅ Configurar navegação com rodada atual (mercado)
+      let rodadaAtual = dados.rodadaFim || 38;
+      let mercadoAberto = true;
+
+      try {
+        const mercadoRes = await fetch("/api/cartola/mercado/status");
+        if (mercadoRes.ok) {
+          const mercadoData = await mercadoRes.json();
+          rodadaAtual = mercadoData.rodada_atual || dados.rodadaFim || 38;
+          mercadoAberto = mercadoData.mercado_aberto === true;
+          window.LuvaDeOuroUI.configurarNavegacao(rodadaAtual, mercadoAberto);
+          console.log(
+            `[LUVA-ORQ] ✅ Navegação configurada: rodada ${rodadaAtual}, mercado ${mercadoAberto ? "aberto" : "fechado"}`,
+          );
+        }
+      } catch (e) {
+        // Fallback: usar rodadaFim dos dados
+        window.LuvaDeOuroUI.configurarNavegacao(dados.rodadaFim || 38, false);
+        mercadoAberto = false;
+      }
+
+      // ✅ SIMPLIFICADO: Backend já inclui parciais automaticamente
+      // Apenas usar dados.rodadaParcial se existir (vem do backend)
+      if (dados.rodadaParcial) {
+        console.log(
+          `[LUVA-ORQ] 🔥 Dados incluem parciais da R${dados.rodadaParcial}`,
+        );
+      }
+
+      // ✅ Renderizar ranking com ativos e inativos
+      // NOTA: renderizarRanking manipula elementos DOM existentes, NÃO retorna HTML
+      window.LuvaDeOuroUI.renderizarRanking({
+        ...dados,
+        ranking: ativos,
+        inativos: inativos,
+        totalAtivos: ativos.length,
+        totalInativos: inativos.length,
+      });
+
+      // ✅ Atualizar status no header (remover "Carregando...")
+      const rodadaInfo = dados.rodadaParcial
+        ? `R1-R${dados.rodadaFim} (R${dados.rodadaParcial} em andamento)`
+        : `R1-R${dados.rodadaFim || rodadaAtual}`;
+      window.LuvaDeOuroUI.atualizarInfoStatus(rodadaInfo);
+
+      console.log(
+        "✅ Ranking carregado com escudos corretos e suporte a inativos",
       );
     } catch (error) {
-      console.error("❌ [LUVA-ORQ] Erro ao carregar ranking:", error);
-      window.LuvaDeOuroUI.mostrarErro(
-        "Erro ao carregar ranking",
-        error.message,
-      );
+      console.error("❌ Erro ao carregar ranking:", error);
+      this.mostrarErro(error.message);
     } finally {
       this.estado.carregando = false;
     }
   },
 
-  identificarRodadasComDados(dados) {
-    if (!dados || !dados.rodadaFim) return [];
-
-    const rodadas = [];
-    for (let i = 1; i <= dados.rodadaFim; i++) {
-      rodadas.push(i);
-    }
-    return rodadas;
-  },
-
-  // ==============================
-  // DETALHES DO PARTICIPANTE
-  // ==============================
-
-  async mostrarDetalhes(participanteId, participanteNome) {
-    console.log(
-      `[LUVA-ORQ] Mostrando detalhes de ${participanteNome} (${participanteId})`,
-    );
-
+  async detectarUltimaRodada() {
     try {
       const config = window.LuvaDeOuroConfig;
-      const rodadaFim = this.estado.mercadoAberto
-        ? Math.max(1, this.estado.rodadaAtual - 1)
-        : this.estado.rodadaAtual;
 
-      // Verificar cache
-      let dados = null;
-      if (window.LuvaDeOuroCache) {
-        dados = await window.LuvaDeOuroCache.get("detalhes", {
-          participanteId,
-          inicio: 1,
-          fim: rodadaFim,
-        });
+      // ✅ Usar IDs diretos
+      const infoContainer = document.getElementById("luvaInfoTexto");
+      const fimInput = document.getElementById("luvaRodadaFim");
+
+      if (infoContainer) {
+        infoContainer.textContent = config.MESSAGES.DETECTANDO_RODADA;
       }
 
-      if (!dados) {
-        // Buscar da API
-        const url = `${config.API.DETALHES_PARTICIPANTE(config.LIGA_SOBRAL_ID, participanteId)}?inicio=1&fim=${rodadaFim}`;
-        const response = await fetch(url);
+      const deteccao = await window.LuvaDeOuroCore.detectarUltimaRodada();
+      this.estado.rodadaDetectada = deteccao;
 
-        if (!response.ok) {
-          throw new Error(`HTTP ${response.status}`);
-        }
-
-        const result = await response.json();
-
-        if (!result.success) {
-          throw new Error(result.error || "Erro ao buscar detalhes");
-        }
-
-        dados = result.data;
-
-        // Salvar no cache
-        if (window.LuvaDeOuroCache) {
-          await window.LuvaDeOuroCache.set(
-            "detalhes",
-            {
-              participanteId,
-              inicio: 1,
-              fim: rodadaFim,
-            },
-            dados,
-          );
-        }
+      if (fimInput) {
+        fimInput.value = deteccao.recomendacao;
       }
 
-      // Usar o modal do Utils
-      if (window.LuvaDeOuroUtils?.criarModalDetalhes) {
-        window.LuvaDeOuroUtils.criarModalDetalhes(dados);
-      } else {
-        console.error(
-          "[LUVA-ORQ] LuvaDeOuroUtils.criarModalDetalhes não disponível",
-        );
-        alert(
-          `Detalhes de ${participanteNome}: ${dados.totalPontos} pontos em ${dados.totalRodadas} rodadas`,
-        );
+      if (infoContainer) {
+        infoContainer.innerHTML = `<strong>Rodada atual:</strong> ${deteccao.rodadaAtualCartola} | <strong>Mercado:</strong> ${deteccao.mercadoFechado ? "Fechado" : "Aberto"} | <strong>Recomendado:</strong> até rodada ${deteccao.recomendacao}`;
       }
+
+      console.log("✅ Última rodada detectada:", deteccao);
     } catch (error) {
-      console.error("[LUVA-ORQ] Erro ao carregar detalhes:", error);
-      alert(
-        `Erro ao carregar detalhes de ${participanteNome}: ${error.message}`,
-      );
+      console.error("❌ Erro ao detectar rodada:", error);
+      this.mostrarErro("Erro ao detectar rodada", error.message);
     }
   },
 
-  // ==============================
-  // RESET DE ESTADO
-  // ==============================
+  async mostrarDetalhes(participanteId, participanteNome) {
+    console.log(`📊 Buscando detalhes para ${participanteNome}...`);
 
-  resetEstado() {
-    console.log("[LUVA-ORQ] Resetando estado...");
+    try {
+      // ✅ Usar IDs diretos
+      const inicio =
+        parseInt(document.getElementById("luvaRodadaInicio")?.value) || 1;
+      const fim =
+        parseInt(document.getElementById("luvaRodadaFim")?.value) || 38;
 
-    this.estado = {
-      ranking: null,
-      rodadaAtual: null,
-      mercadoAberto: false,
-      rodadaSelecionada: null,
-      rodadasComDados: [],
-      carregando: false,
-      inicializado: false,
-    };
+      // Verificar se temos dados em cache/estado
+      let dadosParticipante = null;
 
-    // Limpar cache de elementos do UI
-    if (window.LuvaDeOuroUI?.limparCacheUI) {
-      window.LuvaDeOuroUI.limparCacheUI();
+      if (
+        this.estado.ranking &&
+        this.estado.ranking.ranking &&
+        Array.isArray(this.estado.ranking.ranking)
+      ) {
+        dadosParticipante = this.estado.ranking.ranking.find(
+          (p) => p.participanteId === participanteId,
+        );
+      }
+
+      // Se não encontrou nos ativos, procurar nos inativos
+      if (
+        !dadosParticipante &&
+        this.estado.inativos &&
+        Array.isArray(this.estado.inativos)
+      ) {
+        dadosParticipante = this.estado.inativos.find(
+          (p) => p.participanteId === participanteId,
+        );
+      }
+
+      // Chamar UI para mostrar modal
+      window.LuvaDeOuroUI.mostrarModalDetalhes({
+        participante: {
+          id: participanteId,
+          nome: participanteNome,
+          pontosTotais: dadosParticipante?.pontosTotais || 0,
+          totalJogos: dadosParticipante?.totalJogos || 0,
+          ativo: dadosParticipante?.ativo !== false,
+          rodada_desistencia: dadosParticipante?.rodada_desistencia || null,
+        },
+        rodadaInicio: inicio,
+        rodadaFim: fim,
+        historico: dadosParticipante?.historico || [],
+      });
+    } catch (error) {
+      console.error("❌ Erro ao mostrar detalhes:", error);
+      this.mostrarErro("Erro ao carregar detalhes", error.message);
     }
+  },
 
-    console.log("[LUVA-ORQ] Estado resetado");
+  mostrarErro(titulo, mensagem = "") {
+    // ✅ mostrarErro manipula DOM direto, não retorna HTML
+    window.LuvaDeOuroUI.mostrarErro(titulo, mensagem);
   },
 };
 
-// Exportar para window
+// Expor globalmente
 window.LuvaDeOuroOrquestrador = LuvaDeOuroOrquestrador;
 
-console.log("✅ [LUVA-ORQ] Módulo carregado com carregamento automático");
+console.log(
+  "✅ [LUVA-ORQUESTRADOR] Módulo orquestrador carregado com suporte a inativos",
+);

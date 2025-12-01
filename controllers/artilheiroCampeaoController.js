@@ -1,420 +1,694 @@
-// controllers/artilheiroCampeaoController.js - VERSÃO OTIMIZADA COM SISTEMA INTELIGENTE
-import golsService from "../services/golsService.js";
-import Gols from "../models/Gols.js";
+// controllers/artilheiroCampeaoController.js - VERSÃO 4.0
+// ✅ PERSISTÊNCIA MONGODB + LÓGICA DE RODADA PARCIAL (igual Luva de Ouro)
+// ✅ SUPORTE A PARTICIPANTES INATIVOS (via endpoint /api/times/batch/status)
+
 import mongoose from "mongoose";
+
+// ========================================
+// MODELO MONGODB PARA GOLS CONSOLIDADOS
+// ========================================
+const GolsConsolidadosSchema = new mongoose.Schema(
+    {
+        ligaId: { type: String, required: true, index: true },
+        timeId: { type: Number, required: true, index: true },
+        rodada: { type: Number, required: true, index: true },
+        golsPro: { type: Number, default: 0 },
+        golsContra: { type: Number, default: 0 },
+        saldo: { type: Number, default: 0 },
+        jogadores: [
+            {
+                atletaId: Number,
+                nome: String,
+                gols: Number,
+                golsContra: Number,
+            },
+        ],
+        parcial: { type: Boolean, default: false }, // ✅ IMPORTANTE: marca se é dado parcial
+        dataColeta: { type: Date, default: Date.now },
+    },
+    {
+        timestamps: true,
+    },
+);
+
+// Índice único composto
+GolsConsolidadosSchema.index(
+    { ligaId: 1, timeId: 1, rodada: 1 },
+    { unique: true },
+);
+
+// Usar modelo existente ou criar novo
+const GolsConsolidados =
+    mongoose.models.GolsConsolidados ||
+    mongoose.model("GolsConsolidados", GolsConsolidadosSchema);
+
+// ========================================
+// PARTICIPANTES DA LIGA (HARDCODED)
+// ========================================
+const PARTICIPANTES_SOBRAL = [
+    {
+        timeId: 1926323,
+        nome: "Daniel Barbosa",
+        nomeTime: "specter United",
+        clubeId: 262,
+    },
+    {
+        timeId: 13935277,
+        nome: "Paulinett Miranda",
+        nomeTime: "Urubu Play F.C.",
+        clubeId: 262,
+    },
+    {
+        timeId: 14747183,
+        nome: "Carlos Henrique",
+        nomeTime: "CHS EC",
+        clubeId: 276,
+    },
+    {
+        timeId: 49149009,
+        nome: "Matheus Coutinho",
+        nomeTime: "RB Teteux SC",
+        clubeId: 262,
+    },
+    {
+        timeId: 49149388,
+        nome: "Junior Brasilino",
+        nomeTime: "JBMENGO94 FC",
+        clubeId: 262,
+    },
+    {
+        timeId: 50180257,
+        nome: "Hivisson",
+        nomeTime: "Senhores Da Escalação",
+        clubeId: 267,
+    },
+];
+
+// ========================================
+// ESCUDOS DOS CLUBES
+// ========================================
+const ESCUDOS_CLUBES = {
+    262: "https://s.sde.globo.com/media/organizations/2024/08/12/Flamengo.svg",
+    263: "https://s.sde.globo.com/media/organizations/2018/03/11/Botafogo-RJ.svg",
+    264: "https://s.sde.globo.com/media/organizations/2018/03/11/Fluminense-RJ.svg",
+    265: "https://s.sde.globo.com/media/organizations/2018/03/11/vasco.svg",
+    266: "https://s.sde.globo.com/media/organizations/2018/03/11/sao-paulo.svg",
+    267: "https://s.sde.globo.com/media/organizations/2018/03/11/Corinthians.svg",
+    275: "https://s.sde.globo.com/media/organizations/2021/08/13/gremio.svg",
+    276: "https://s.sde.globo.com/media/organizations/2018/03/11/Internacional.svg",
+    277: "https://s.sde.globo.com/media/organizations/2018/03/11/atletico-mg.svg",
+    283: "https://s.sde.globo.com/media/organizations/2018/03/11/Cruzeiro-MG.svg",
+    285: "https://s.sde.globo.com/media/organizations/2023/03/28/palmeiras.svg",
+    354: "https://s.sde.globo.com/media/organizations/2019/02/04/bahia.svg",
+};
 
 class ArtilheiroCampeaoController {
     /**
-     * ENDPOINT PRINCIPAL: Dados agregados com coleta inteligente
-     * GET /api/artilheiro-campeao/:ligaId/gols/:timeId/agregado?inicio=X&fim=Y
+     * ✅ PRINCIPAL: Retorna ranking completo
+     * GET /api/artilheiro-campeao/:ligaId/ranking
      */
-    async getGolsAgregados(req, res) {
-        const { ligaId, timeId } = req.params;
-        const { inicio = 1, fim = 14 } = req.query;
-
+    static async obterRanking(req, res) {
         try {
+            const { ligaId } = req.params;
+            const { inicio = 1, fim = null, forcar_coleta = false } = req.query;
+
             console.log(
-                `🏆 [CONTROLLER] Dados agregados: Liga ${ligaId}, Time ${timeId}, Rodadas ${inicio}-${fim}`,
+                `🏆 [ARTILHEIRO] Solicitação de ranking - Liga: ${ligaId}`,
             );
 
-            const resultado = await golsService.obterGolsParticipante(
-                ligaId,
-                parseInt(timeId),
-                parseInt(inicio),
-                parseInt(fim),
-            );
+            // Validar liga
+            if (ligaId !== "684d821cf1a7ae16d1f89572") {
+                return res.status(400).json({
+                    success: false,
+                    error: "Liga não suportada",
+                });
+            }
 
-            res.json(resultado);
-        } catch (error) {
-            console.error(`❌ [CONTROLLER] Erro nos dados agregados:`, error);
-            res.status(500).json({
-                success: false,
-                message: "Erro ao buscar dados agregados",
-                error: error.message,
-            });
-        }
-    }
+            const rodadaInicio = parseInt(inicio);
 
-    /**
-     * ENDPOINT: Dados de rodada específica
-     * GET /api/artilheiro-campeao/:ligaId/gols/:timeId/:rodada
-     */
-    async getGolsRodada(req, res) {
-        const { ligaId, timeId, rodada } = req.params;
+            // ✅ Detectar status do mercado e rodada atual
+            const statusMercado =
+                await ArtilheiroCampeaoController.detectarStatusMercado();
+            const rodadaAtual = statusMercado.rodadaAtual;
+            const mercadoAberto = statusMercado.mercadoAberto;
 
-        try {
+            // ✅ LÓGICA IGUAL LUVA DE OURO:
+            // rodadaFim = rodadaAtual (inclui parcial se mercado fechado/em andamento)
+            let rodadaFim = fim ? parseInt(fim) : rodadaAtual;
+
             console.log(
-                `⚽ [CONTROLLER] Rodada específica: Liga ${ligaId}, Time ${timeId}, Rodada ${rodada}`,
+                `📊 Rodada ${rodadaInicio}-${rodadaFim}, Mercado: ${mercadoAberto ? "Aberto" : "Fechado"}`,
             );
 
-            const resultado = await golsService.obterGolsParticipante(
+            // Gerar ranking (retorna { ativos, inativos, ... })
+            const ranking = await ArtilheiroCampeaoController.gerarRanking(
                 ligaId,
-                parseInt(timeId),
-                parseInt(rodada),
-                parseInt(rodada),
+                rodadaInicio,
+                rodadaFim,
+                mercadoAberto,
+                forcar_coleta === "true",
             );
 
-            // Extrair dados da rodada específica
-            const dadosRodada = resultado.data.detalhePorRodada[0] || {
-                rodada: parseInt(rodada),
-                golsPro: 0,
-                golsContra: 0,
-                saldo: 0,
-                pontos: 0,
-                jogadores: [],
+            // Calcular estatísticas
+            const estatisticas = {
+                totalGolsPro: ranking.reduce((s, p) => s + p.golsPro, 0),
+                totalGolsContra: ranking.reduce((s, p) => s + p.golsContra, 0),
+                totalSaldo: ranking.reduce((s, p) => s + p.saldoGols, 0),
+                participantes: ranking.length,
+                rodadaInicio,
+                rodadaFim,
+                rodadaAtual,
+                mercadoAberto,
             };
 
             res.json({
                 success: true,
                 data: {
-                    timeId: parseInt(timeId),
-                    rodada: parseInt(rodada),
-                    golsPro: dadosRodada.golsPro,
-                    golsContra: dadosRodada.golsContra,
-                    saldo: dadosRodada.saldo,
-                    pontos: dadosRodada.pontos,
-                    jogadores: dadosRodada.jogadores,
+                    ranking, // ✅ Ranking completo (frontend fará separação ativos/inativos)
+                    estatisticas,
+                    rodadaFim,
+                    rodadaParcial: !mercadoAberto ? rodadaAtual : null, // ✅ Indica rodada em andamento
                 },
-            });
-        } catch (error) {
-            console.error(`❌ [CONTROLLER] Erro na rodada específica:`, error);
-            res.status(500).json({
-                success: false,
-                message: "Erro ao buscar dados da rodada",
-                error: error.message,
-            });
-        }
-    }
-
-    /**
-     * ENDPOINT: Detectar rodada atual
-     * GET /api/artilheiro-campeao/:ligaId/detectar-rodada
-     */
-    async detectarRodada(req, res) {
-        try {
-            console.log(`🔍 [CONTROLLER] Detectando rodada atual`);
-
-            const rodadaAtual = await golsService.detectarRodadaAtual();
-
-            res.json({
-                success: true,
-                rodadaAtual,
-                fonte: "api_cartolafc",
                 timestamp: new Date().toISOString(),
             });
         } catch (error) {
-            console.error(`❌ [CONTROLLER] Erro ao detectar rodada:`, error);
+            console.error("❌ [ARTILHEIRO] Erro ao obter ranking:", error);
             res.status(500).json({
                 success: false,
-                message: "Erro ao detectar rodada atual",
+                error: "Erro ao gerar ranking",
+                message: error.message,
+            });
+        }
+    }
+
+    /**
+     * ✅ Detectar status do mercado (igual Luva de Ouro)
+     */
+    static async detectarStatusMercado() {
+        try {
+            const response = await fetch(
+                "https://api.cartola.globo.com/mercado/status",
+            );
+            if (!response.ok) throw new Error(`HTTP ${response.status}`);
+
+            const data = await response.json();
+
+            return {
+                rodadaAtual: data.rodada_atual || 1,
+                mercadoAberto: data.status_mercado === 1, // 1 = aberto, 2 = fechado
+                statusMercado: data.status_mercado,
+            };
+        } catch (error) {
+            console.warn("⚠️ Erro ao detectar mercado:", error.message);
+            return { rodadaAtual: 36, mercadoAberto: false, statusMercado: 2 };
+        }
+    }
+
+    /**
+     * ✅ Endpoint para detectar rodada (chamado pelo frontend)
+     * GET /api/artilheiro-campeao/:ligaId/detectar-rodada
+     */
+    static async detectarRodada(req, res) {
+        try {
+            const status =
+                await ArtilheiroCampeaoController.detectarStatusMercado();
+
+            res.json({
+                success: true,
+                data: {
+                    rodadaAtual: status.rodadaAtual,
+                    mercadoAberto: status.mercadoAberto,
+                    statusMercado: status.statusMercado,
+                },
+            });
+        } catch (error) {
+            res.status(500).json({
+                success: false,
                 error: error.message,
             });
         }
     }
 
     /**
-     * ENDPOINT: Buscar ranking de uma rodada específica
-     * GET /api/artilheiro-campeao/:ligaId/ranking/rodada/:rodada
+     * ✅ Gerar ranking completo - OTIMIZADO COM PARALELISMO
+     * - Busca do MongoDB se consolidado
+     * - Busca da API se parcial ou não existe
+     * - Para rodada PARCIAL: busca /atletas/pontuados uma única vez
+     * - Status ativo/inativo: Frontend busca via /api/times/batch/status
      */
-    async obterRankingRodada(req, res) {
+    static async gerarRanking(
+        ligaId,
+        rodadaInicio,
+        rodadaFim,
+        mercadoAberto,
+        forcarColeta,
+    ) {
+        console.log(
+            `🔄 Processando ${PARTICIPANTES_SOBRAL.length} participantes em PARALELO...`,
+        );
+
+        // ✅ Se mercado fechado (rodada parcial), buscar atletas pontuados ANTES
+        let atletasPontuados = null;
+        if (!mercadoAberto) {
+            console.log(
+                `🔴 Mercado FECHADO - buscando scouts em tempo real...`,
+            );
+            atletasPontuados =
+                await ArtilheiroCampeaoController.buscarAtletasPontuados();
+            const totalAtletas = Object.keys(atletasPontuados).length;
+            console.log(`📊 ${totalAtletas} atletas com scouts em tempo real`);
+        }
+
+        // ✅ Processar TODOS os participantes em paralelo
+        const ranking = await Promise.all(
+            PARTICIPANTES_SOBRAL.map(async (participante, i) => {
+                console.log(
+                    `📊 [${i + 1}/${PARTICIPANTES_SOBRAL.length}] ${participante.nome}...`,
+                );
+
+                try {
+                    const dados =
+                        await ArtilheiroCampeaoController.obterDadosParticipante(
+                            ligaId,
+                            participante.timeId,
+                            rodadaInicio,
+                            rodadaFim,
+                            mercadoAberto,
+                            forcarColeta,
+                            atletasPontuados, // ✅ Passar atletas pontuados para rodada parcial
+                        );
+
+                    console.log(
+                        `✅ ${participante.nome}: ${dados.golsPro} GP, ${dados.golsContra} GC`,
+                    );
+
+                    return {
+                        timeId: participante.timeId,
+                        nome: participante.nome,
+                        nomeTime: participante.nomeTime,
+                        escudo: ESCUDOS_CLUBES[participante.clubeId] || null,
+                        clubeId: participante.clubeId,
+                        golsPro: dados.golsPro,
+                        golsContra: dados.golsContra,
+                        saldoGols: dados.golsPro - dados.golsContra,
+                        rodadasProcessadas: dados.rodadasProcessadas,
+                        detalhePorRodada: dados.detalhePorRodada,
+                    };
+                } catch (error) {
+                    console.error(
+                        `❌ Erro ${participante.nome}:`,
+                        error.message,
+                    );
+                    return {
+                        timeId: participante.timeId,
+                        nome: participante.nome,
+                        nomeTime: participante.nomeTime,
+                        escudo: ESCUDOS_CLUBES[participante.clubeId] || null,
+                        clubeId: participante.clubeId,
+                        golsPro: 0,
+                        golsContra: 0,
+                        saldoGols: 0,
+                        rodadasProcessadas: 0,
+                        detalhePorRodada: [],
+                    };
+                }
+            }),
+        );
+
+        // Ordenar por saldo de gols (desc), depois por gols pró (desc)
+        ranking.sort((a, b) => {
+            if (b.saldoGols !== a.saldoGols) return b.saldoGols - a.saldoGols;
+            return b.golsPro - a.golsPro;
+        });
+
+        // Atribuir posições
+        ranking.forEach((item, index) => {
+            item.posicao = index + 1;
+        });
+
+        return ranking;
+    }
+
+    /**
+     * ✅ Obter dados de um participante - OTIMIZADO
+     * LÓGICA:
+     * 1. Buscar TODAS as rodadas consolidadas do MongoDB de uma vez
+     * 2. Identificar rodadas que faltam
+     * 3. Buscar da API em paralelo
+     * 4. Para rodada PARCIAL: usar /atletas/pontuados para scouts em tempo real
+     */
+    static async obterDadosParticipante(
+        ligaId,
+        timeId,
+        rodadaInicio,
+        rodadaFim,
+        mercadoAberto,
+        forcarColeta,
+        atletasPontuados = null,
+    ) {
+        const detalhePorRodada = [];
+        const isParcialRodada = rodadaFim; // Última rodada quando mercado fechado
+
+        // ✅ PASSO 1: Buscar TODAS as rodadas consolidadas do MongoDB de uma vez
+        let dadosMongoDB = {};
+        if (!forcarColeta) {
+            const registros = await GolsConsolidados.find({
+                ligaId,
+                timeId,
+                rodada: { $gte: rodadaInicio, $lte: rodadaFim },
+                parcial: false, // ✅ Só dados consolidados
+            }).lean();
+
+            registros.forEach((r) => {
+                dadosMongoDB[r.rodada] = r;
+            });
+
+            if (registros.length > 0) {
+                console.log(`  💾 ${registros.length} rodadas do MongoDB`);
+            }
+        }
+
+        // ✅ PASSO 2: Identificar rodadas que precisam buscar da API
+        const rodadasParaBuscar = [];
+        for (let rodada = rodadaInicio; rodada <= rodadaFim; rodada++) {
+            const isParcial = !mercadoAberto && rodada === rodadaFim;
+
+            // ✅ SEMPRE buscar da API se:
+            // - Rodada parcial (última rodada com mercado fechado)
+            // - Não tem no MongoDB
+            // - Forçar coleta
+            const deveBuscarApi =
+                isParcial || !dadosMongoDB[rodada] || forcarColeta;
+
+            if (deveBuscarApi) {
+                rodadasParaBuscar.push({ rodada, isParcial });
+                if (isParcial) {
+                    console.log(
+                        `  ⚡ R${rodada}: Rodada PARCIAL - buscando scouts em tempo real`,
+                    );
+                }
+            }
+        }
+
+        // ✅ PASSO 3: Buscar da API em PARALELO (máximo 5 simultâneas)
+        if (rodadasParaBuscar.length > 0) {
+            console.log(
+                `  🌐 Buscando ${rodadasParaBuscar.length} rodadas da API...`,
+            );
+
+            // Processar em batches de 5 para não sobrecarregar a API
+            const BATCH_SIZE = 5;
+            for (let i = 0; i < rodadasParaBuscar.length; i += BATCH_SIZE) {
+                const batch = rodadasParaBuscar.slice(i, i + BATCH_SIZE);
+
+                const resultados = await Promise.all(
+                    batch.map(async ({ rodada, isParcial }) => {
+                        // ✅ Passar atletasPontuados para rodada PARCIAL
+                        const dadosApi =
+                            await ArtilheiroCampeaoController.buscarDadosApiCartola(
+                                timeId,
+                                rodada,
+                                isParcial,
+                                isParcial ? atletasPontuados : null,
+                            );
+
+                        if (dadosApi) {
+                            // Salvar no MongoDB (async, não aguardar)
+                            GolsConsolidados.findOneAndUpdate(
+                                { ligaId, timeId, rodada },
+                                {
+                                    ligaId,
+                                    timeId,
+                                    rodada,
+                                    golsPro: dadosApi.golsPro,
+                                    golsContra: dadosApi.golsContra,
+                                    saldo:
+                                        dadosApi.golsPro - dadosApi.golsContra,
+                                    jogadores: dadosApi.jogadores,
+                                    parcial: isParcial,
+                                    dataColeta: new Date(),
+                                },
+                                { upsert: true },
+                            ).exec(); // Fire and forget
+
+                            return {
+                                rodada,
+                                golsPro: dadosApi.golsPro,
+                                golsContra: dadosApi.golsContra,
+                                jogadores: dadosApi.jogadores,
+                                parcial: isParcial,
+                            };
+                        }
+                        return null;
+                    }),
+                );
+
+                // Adicionar resultados ao dadosMongoDB
+                resultados.filter(Boolean).forEach((r) => {
+                    dadosMongoDB[r.rodada] = r;
+                });
+            }
+        }
+
+        // ✅ PASSO 4: Montar resultado final
+        let golsPro = 0;
+        let golsContra = 0;
+        let rodadasProcessadas = 0;
+
+        for (let rodada = rodadaInicio; rodada <= rodadaFim; rodada++) {
+            const dados = dadosMongoDB[rodada];
+            if (dados) {
+                const gp = dados.golsPro || 0;
+                const gc = dados.golsContra || 0;
+
+                golsPro += gp;
+                golsContra += gc;
+                rodadasProcessadas++;
+
+                detalhePorRodada.push({
+                    rodada,
+                    golsPro: gp,
+                    golsContra: gc,
+                    saldo: gp - gc,
+                    parcial:
+                        dados.parcial ||
+                        (!mercadoAberto && rodada === rodadaFim),
+                    jogadores: (dados.jogadores || []).filter(
+                        (j) => j.gols > 0 || j.golsContra > 0,
+                    ),
+                });
+            }
+        }
+
+        return { golsPro, golsContra, rodadasProcessadas, detalhePorRodada };
+    }
+
+    /**
+     * ✅ Buscar atletas pontuados (dados PARCIAIS em tempo real)
+     * Este endpoint retorna os scouts atualizados durante a rodada em andamento
+     */
+    static async buscarAtletasPontuados() {
+        try {
+            const url = "https://api.cartola.globo.com/atletas/pontuados";
+            const response = await fetch(url);
+
+            if (!response.ok) {
+                console.warn(
+                    `⚠️ Erro ao buscar atletas pontuados: ${response.status}`,
+                );
+                return {};
+            }
+
+            const data = await response.json();
+            return data.atletas || {};
+        } catch (error) {
+            console.error(
+                "❌ Erro ao buscar atletas pontuados:",
+                error.message,
+            );
+            return {};
+        }
+    }
+
+    /**
+     * ✅ Buscar dados da API Cartola
+     * IMPORTANTE: Para rodada PARCIAL, precisa cruzar com /atletas/pontuados
+     */
+    static async buscarDadosApiCartola(
+        timeId,
+        rodada,
+        isParcial = false,
+        atletasPontuados = null,
+    ) {
+        try {
+            const url = `https://api.cartola.globo.com/time/id/${timeId}/${rodada}`;
+            const response = await fetch(url);
+
+            if (!response.ok) {
+                if (response.status === 404) return null;
+                throw new Error(`HTTP ${response.status}`);
+            }
+
+            const data = await response.json();
+
+            if (!data || !data.atletas) {
+                return { golsPro: 0, golsContra: 0, jogadores: [], pontos: 0 };
+            }
+
+            let golsPro = 0;
+            let golsContra = 0;
+            const jogadores = [];
+
+            for (const atleta of data.atletas) {
+                let scout = atleta.scout || {};
+
+                // ✅ Se é rodada PARCIAL, buscar scouts atualizados do endpoint /atletas/pontuados
+                if (
+                    isParcial &&
+                    atletasPontuados &&
+                    atletasPontuados[atleta.atleta_id]
+                ) {
+                    scout = atletasPontuados[atleta.atleta_id].scout || {};
+                }
+
+                const gols = scout.G || 0; // Gols feitos
+                const golsC = scout.GC || 0; // Gols contra
+
+                golsPro += gols;
+                golsContra += golsC;
+
+                if (gols > 0 || golsC > 0) {
+                    jogadores.push({
+                        atletaId: atleta.atleta_id,
+                        nome: atleta.apelido || atleta.nome,
+                        gols,
+                        golsContra: golsC,
+                    });
+                }
+            }
+
+            // ✅ Log detalhado para debug da rodada parcial
+            if (isParcial) {
+                console.log(
+                    `  📊 R${rodada} (PARCIAL): GP=${golsPro}, GC=${golsContra}`,
+                );
+                if (jogadores.length > 0) {
+                    jogadores.forEach((j) =>
+                        console.log(`     ⚽ ${j.nome}: ${j.gols} gol(s)`),
+                    );
+                }
+            }
+
+            return {
+                golsPro,
+                golsContra,
+                jogadores,
+                pontos: data.pontos || 0,
+            };
+        } catch (error) {
+            console.warn(
+                `⚠️ Erro API Cartola time ${timeId} R${rodada}:`,
+                error.message,
+            );
+            return null;
+        }
+    }
+
+    /**
+     * ✅ Consolidar rodada (marca dados como não-parciais)
+     * Chamado manualmente ou por scheduler quando rodada fecha
+     */
+    static async consolidarRodada(req, res) {
         try {
             const { ligaId, rodada } = req.params;
 
-            console.log(`📊 [CONTROLLER] Buscando ranking da rodada ${rodada} para liga ${ligaId}`);
+            console.log(`🔒 [ARTILHEIRO] Consolidando rodada ${rodada}...`);
 
-            // Validar parâmetros
-            if (!ligaId || !rodada) {
-                return res.status(400).json({
-                    success: false,
-                    message: "Liga ID e rodada são obrigatórios",
-                });
-            }
-
-            const rodadaNum = parseInt(rodada);
-            if (isNaN(rodadaNum) || rodadaNum < 1) {
-                return res.status(400).json({
-                    success: false,
-                    message: "Rodada deve ser um número válido maior que 0",
-                });
-            }
-
-            // Buscar dados da rodada
-            const resultado = await golsService.obterRankingPorRodada(
-                ligaId,
-                rodadaNum
+            // Atualizar todos os registros da rodada para parcial=false
+            const result = await GolsConsolidados.updateMany(
+                { ligaId, rodada: parseInt(rodada), parcial: true },
+                { $set: { parcial: false } },
             );
 
-            if (!resultado.success) {
-                return res.status(404).json({
-                    success: false,
-                    message: `Dados não encontrados para a rodada ${rodada}`,
-                });
-            }
+            console.log(`✅ ${result.modifiedCount} registros consolidados`);
 
             res.json({
                 success: true,
-                data: resultado.data,
+                message: `Rodada ${rodada} consolidada`,
+                registrosAtualizados: result.modifiedCount,
             });
-
         } catch (error) {
-            console.error(`❌ [CONTROLLER] Erro no ranking da rodada:`, error);
+            console.error("❌ Erro ao consolidar:", error);
             res.status(500).json({
                 success: false,
-                message: "Erro ao buscar ranking da rodada",
                 error: error.message,
             });
         }
     }
 
     /**
-     * ENDPOINT: Ranking completo da liga
-     * GET /api/artilheiro-campeao/:ligaId/ranking?inicio=X&fim=Y
+     * ✅ Estatísticas do sistema
      */
-    async getRankingLiga(req, res) {
-        const { ligaId } = req.params;
-        const { inicio = 1, fim = 14 } = req.query;
-
+    static async obterEstatisticas(req, res) {
         try {
-            console.log(
-                `🏆 [CONTROLLER] Ranking da liga: ${ligaId}, Rodadas ${inicio}-${fim}`,
+            const { ligaId } = req.params;
+
+            const totalRegistros = await GolsConsolidados.countDocuments({
+                ligaId,
+            });
+            const registrosConsolidados = await GolsConsolidados.countDocuments(
+                { ligaId, parcial: false },
             );
-
-            // Lista hardcoded dos participantes da Liga Sobral
-            const participantes = [
-                { timeId: 1926323, nome: "Daniel Barbosa" },
-                { timeId: 13935277, nome: "Paulinett Miranda" },
-                { timeId: 14747183, nome: "Carlos Henrique" },
-                { timeId: 49149009, nome: "Matheus Coutinho" },
-                { timeId: 49149388, nome: "Junior Brasilino" },
-                { timeId: 50180257, nome: "Hivisson" },
-            ];
-
-            const ranking = [];
-
-            // Processar cada participante
-            for (const participante of participantes) {
-                try {
-                    const resultado = await golsService.obterGolsParticipante(
-                        ligaId,
-                        participante.timeId,
-                        parseInt(inicio),
-                        parseInt(fim),
-                    );
-
-                    ranking.push({
-                        timeId: participante.timeId,
-                        nome: participante.nome,
-                        golsPro: resultado.data.totalGolsPro,
-                        golsContra: resultado.data.totalGolsContra,
-                        saldo: resultado.data.saldoTotal,
-                        detalhes: resultado.data.detalhePorRodada,
-                        jogadores: resultado.data.jogadoresAgregados,
-                    });
-
-                    console.log(
-                        `✅ ${participante.nome}: ${resultado.data.totalGolsPro} gols`,
-                    );
-                } catch (error) {
-                    console.error(
-                        `❌ Erro ao processar ${participante.nome}:`,
-                        error.message,
-                    );
-
-                    // Adicionar com dados vazios
-                    ranking.push({
-                        timeId: participante.timeId,
-                        nome: participante.nome,
-                        golsPro: 0,
-                        golsContra: 0,
-                        saldo: 0,
-                        detalhes: [],
-                        jogadores: [],
-                        erro: error.message,
-                    });
-                }
-
-                // Delay para não sobrecarregar
-                await new Promise((resolve) => setTimeout(resolve, 100));
-            }
-
-            // Ordenar por saldo de gols
-            ranking.sort((a, b) => b.saldo - a.saldo);
-
-            const totalGols = ranking.reduce((acc, p) => acc + p.golsPro, 0);
+            const registrosParciais = await GolsConsolidados.countDocuments({
+                ligaId,
+                parcial: true,
+            });
+            const rodadasDisponiveis = await GolsConsolidados.distinct(
+                "rodada",
+                { ligaId },
+            );
 
             res.json({
                 success: true,
                 data: {
-                    ligaId,
-                    rodadaInicio: parseInt(inicio),
-                    rodadaFim: parseInt(fim),
-                    ranking,
-                    estatisticas: {
-                        totalParticipantes: ranking.length,
-                        totalGols,
-                        mediaGolsPorTime: totalGols / ranking.length,
-                        processadoEm: new Date().toISOString(),
-                    },
+                    totalRegistros,
+                    registrosConsolidados,
+                    registrosParciais,
+                    rodadasDisponiveis: rodadasDisponiveis.sort(
+                        (a, b) => a - b,
+                    ),
+                    participantes: PARTICIPANTES_SOBRAL.length,
                 },
             });
         } catch (error) {
-            console.error(`❌ [CONTROLLER] Erro no ranking da liga:`, error);
             res.status(500).json({
                 success: false,
-                message: "Erro ao buscar ranking da liga",
                 error: error.message,
             });
         }
     }
 
     /**
-     * ENDPOINT: Estatísticas da collection gols
-     * GET /api/artilheiro-campeao/:ligaId/estatisticas
+     * ✅ Listar participantes
      */
-    async getEstatisticas(req, res) {
-        const { ligaId } = req.params;
-
+    static async listarParticipantes(req, res) {
         try {
-            console.log(
-                `📊 [CONTROLLER] Buscando estatísticas da liga ${ligaId}...`,
-            );
-
-            const objectId = new mongoose.Types.ObjectId(ligaId);
-
-            const stats = await Gols.aggregate([
-                { $match: { ligaId: objectId, ativo: true } },
-                {
-                    $group: {
-                        _id: null,
-                        totalRegistros: { $sum: 1 },
-                        totalGols: { $sum: "$gols" },
-                        totalGolsContra: { $sum: "$golsContra" },
-                        rodadas: { $addToSet: "$rodada" },
-                        times: { $addToSet: "$timeId" },
-                        ultimaColeta: { $max: "$dataColeta" },
-                    },
-                },
-            ]);
-
-            const estatisticas = stats[0] || {
-                totalRegistros: 0,
-                totalGols: 0,
-                totalGolsContra: 0,
-                rodadas: [],
-                times: [],
-                ultimaColeta: null,
-            };
-
-            // Adicionar informações do cache
-            const cacheStats = golsService.obterEstatisticasCache();
+            const participantes = PARTICIPANTES_SOBRAL.map((p) => ({
+                ...p,
+                escudo: ESCUDOS_CLUBES[p.clubeId] || null,
+            }));
 
             res.json({
                 success: true,
-                data: {
-                    ligaId,
-                    mongodb: {
-                        ...estatisticas,
-                        rodadasDisponiveis: estatisticas.rodadas.sort(
-                            (a, b) => a - b,
-                        ),
-                        totalTimes: estatisticas.times.length,
-                        timesAtivos: estatisticas.times,
-                    },
-                    cache: cacheStats,
-                    sistema: {
-                        versao: "v2.0_inteligente",
-                        coleta: "sob_demanda",
-                        fonte: "mongodb_primeiro_api_quando_necessario",
-                    },
-                },
+                data: participantes,
             });
         } catch (error) {
-            console.error(`❌ [CONTROLLER] Erro nas estatísticas:`, error);
             res.status(500).json({
                 success: false,
-                message: "Erro ao buscar estatísticas",
-                error: error.message,
-            });
-        }
-    }
-
-    /**
-     * ENDPOINT: Forçar coleta de uma rodada específica
-     * POST /api/artilheiro-campeao/:ligaId/coletar/:timeId/:rodada
-     */
-    async forcarColeta(req, res) {
-        const { ligaId, timeId, rodada } = req.params;
-
-        try {
-            console.log(
-                `🚀 [CONTROLLER] Forçando coleta: Liga ${ligaId}, Time ${timeId}, Rodada ${rodada}`,
-            );
-
-            // Remover dados existentes da rodada
-            await Gols.deleteMany({
-                ligaId: new mongoose.Types.ObjectId(ligaId),
-                timeId: parseInt(timeId),
-                rodada: parseInt(rodada),
-            });
-
-            // Forçar nova coleta
-            const resultado = await golsService.obterGolsParticipante(
-                ligaId,
-                parseInt(timeId),
-                parseInt(rodada),
-                parseInt(rodada),
-            );
-
-            res.json({
-                success: true,
-                message: `Coleta forçada concluída para rodada ${rodada}`,
-                data: resultado.data,
-            });
-        } catch (error) {
-            console.error(`❌ [CONTROLLER] Erro na coleta forçada:`, error);
-            res.status(500).json({
-                success: false,
-                message: "Erro na coleta forçada",
-                error: error.message,
-            });
-        }
-    }
-
-    /**
-     * ENDPOINT: Limpar cache
-     * DELETE /api/artilheiro-campeao/limpar-cache
-     */
-    async limparCache(req, res) {
-        try {
-            golsService.limparCache();
-
-            res.json({
-                success: true,
-                message: "Cache limpo com sucesso",
-                timestamp: new Date().toISOString(),
-            });
-        } catch (error) {
-            console.error(`❌ [CONTROLLER] Erro ao limpar cache:`, error);
-            res.status(500).json({
-                success: false,
-                message: "Erro ao limpar cache",
                 error: error.message,
             });
         }
     }
 }
 
-// Criar instância do controller
-const controller = new ArtilheiroCampeaoController();
-
-// Exportar funções
-export const getGolsAgregados = controller.getGolsAgregados.bind(controller);
-export const getGolsRodada = controller.getGolsRodada.bind(controller);
-export const detectarRodada = controller.detectarRodada.bind(controller);
-export const obterRankingRodada = controller.obterRankingRodada.bind(controller);
-export const getRankingLiga = controller.getRankingLiga.bind(controller);
-export const getEstatisticas = controller.getEstatisticas.bind(controller);
-export const forcarColeta = controller.forcarColeta.bind(controller);
-export const limparCache = controller.limparCache.bind(controller);
-
-export default controller;
+export default ArtilheiroCampeaoController;

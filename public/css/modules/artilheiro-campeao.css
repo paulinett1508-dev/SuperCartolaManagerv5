@@ -1,0 +1,869 @@
+/* =============================================
+   ARTILHEIRO CAMPEÃO - CSS v4.1.0
+   Tabela com Rodadas + Suporte a Inativos
+   ============================================= */
+
+/* Container principal */
+.artilheiro-container {
+  background: var(--bg-card, #1a1a2e);
+  border-radius: 8px;
+  border: 1px solid rgba(231, 76, 60, 0.3);
+  overflow: hidden;
+}
+
+/* =============================================
+   HEADER
+   ============================================= */
+.artilheiro-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 10px 14px;
+  background: linear-gradient(135deg, #e74c3c 0%, #c0392b 100%);
+}
+
+.artilheiro-title {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.artilheiro-icon { font-size: 18px; }
+
+.artilheiro-title h3 {
+  margin: 0;
+  font: 600 14px "Inter", sans-serif;
+  color: #fff;
+}
+
+.artilheiro-badge {
+  background: rgba(0, 0, 0, 0.25);
+  padding: 2px 8px;
+  border-radius: 4px;
+  font: 600 9px "Inter", sans-serif;
+  color: #fff;
+}
+
+.artilheiro-info-rodada {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  background: rgba(0, 0, 0, 0.25);
+  padding: 4px 10px;
+  border-radius: 12px;
+  font: 500 10px "Inter", sans-serif;
+  color: rgba(255, 255, 255, 0.9);
+}
+
+/* Botão para retry em caso de erro */
+.artilheiro-btn {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  padding: 8px 16px;
+  border: none;
+  border-radius: 5px;
+  font: 500 12px "Inter", sans-serif;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.artilheiro-btn.primary {
+  background: #e74c3c;
+  color: white;
+}
+
+.artilheiro-btn.primary:hover {
+  background: #c0392b;
+}
+
+/* =============================================
+   NAVEGAÇÃO DE RODADAS
+   ============================================= */
+.artilheiro-nav-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 12px;
+  background: rgba(0, 0, 0, 0.2);
+  border-bottom: 1px solid rgba(231, 76, 60, 0.2);
+}
+
+.artilheiro-nav-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  background: rgba(231, 76, 60, 0.2);
+  border: 1px solid rgba(231, 76, 60, 0.4);
+  border-radius: 4px;
+  color: #e74c3c;
+  font-size: 12px;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.artilheiro-nav-btn:hover {
+  background: rgba(231, 76, 60, 0.4);
+  border-color: #e74c3c;
+  color: #fff;
+}
+
+.artilheiro-nav-btn:disabled {
+  opacity: 0.3;
+  cursor: not-allowed;
+}
+
+.artilheiro-nav-info {
+  font: 600 11px "Inter", sans-serif;
+  color: #ccc;
+  min-width: 100px;
+  text-align: center;
+}
+
+/* =============================================
+   TABELA COM COLUNAS DE RODADAS
+   ============================================= */
+.artilheiro-table-container {
+  border-radius: 0;
+  background: rgba(0, 0, 0, 0.1);
+  overflow-x: auto;
+  max-height: 400px;
+  overflow-y: auto;
+}
+
+.artilheiro-ranking-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 12px;
+}
+
+.artilheiro-ranking-table thead {
+  background: linear-gradient(135deg, #e74c3c 0%, #c0392b 100%);
+  position: sticky;
+  top: 0;
+  z-index: 10;
+}
+
+.artilheiro-ranking-table thead th {
+  padding: 5px 2px;
+  text-align: center;
+  font: 600 8px "Inter", sans-serif;
+  color: rgba(255, 255, 255, 0.9);
+  text-transform: uppercase;
+  letter-spacing: 0;
+  white-space: nowrap;
+}
+
+.artilheiro-ranking-table thead th.col-nome {
+  text-align: left;
+}
+
+.artilheiro-ranking-table tbody td {
+  padding: 5px 2px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+  vertical-align: middle;
+  color: #ccc;
+  text-align: center;
+}
+
+.artilheiro-ranking-table tbody td.col-nome {
+  text-align: left;
+}
+
+.artilheiro-ranking-table tbody tr:hover {
+  background: rgba(231, 76, 60, 0.1);
+}
+
+/* Colunas fixas */
+.col-pos { width: 22px; }
+.col-escudo { width: 20px; }
+.col-nome { min-width: 70px; max-width: 85px; }
+.col-total { width: 30px; }
+.col-total-gp { width: 26px; }
+.col-total-gc { width: 26px; }
+.col-total-sg { width: 30px; }
+
+/* Colunas de rodadas - ultra compactas para 38 */
+.col-rodada { width: 22px; }
+.col-rodada-gols { 
+  width: 22px;
+  padding: 3px 0px !important;
+  vertical-align: middle;
+}
+
+.col-rodada-gols .gols-valor {
+  display: block;
+  font: 600 9px "Inter", sans-serif;
+  line-height: 1;
+}
+
+.col-rodada-gols .gols-detalhe {
+  display: block;
+  font: 400 6px "Inter", sans-serif;
+  color: #666;
+  line-height: 1;
+}
+
+.col-rodada-gols.positivo .gols-valor { color: #28a745; }
+.col-rodada-gols.negativo .gols-valor { color: #dc3545; }
+.col-rodada-gols.zero .gols-valor { color: #888; }
+.col-rodada-gols.vazio .gols-valor { color: #444; }
+
+/* =============================================
+   RODADA PARCIAL (em andamento)
+   ============================================= */
+.artilheiro-ranking-table thead th.col-rodada.parcial {
+  background: rgba(230, 126, 34, 0.3);
+  color: #f39c12;
+}
+
+.col-rodada-gols.parcial {
+  background: rgba(230, 126, 34, 0.15);
+  border-left: 2px solid rgba(230, 126, 34, 0.5);
+}
+
+.col-rodada-gols.parcial .gols-valor { 
+  color: #f39c12 !important; 
+}
+
+.col-rodada-gols.parcial .gols-detalhe { 
+  color: #e67e22; 
+}
+
+/* Rodada parcial aguardando gols */
+.col-rodada-gols.aguardando {
+  background: rgba(230, 126, 34, 0.2);
+}
+
+.col-rodada-gols.aguardando .gols-valor {
+  font-size: 10px;
+  animation: pulse 1.5s ease-in-out infinite;
+}
+
+.col-rodada-gols.aguardando .gols-detalhe {
+  color: #e67e22;
+  font-size: 5px;
+}
+
+@keyframes pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.5; }
+}
+
+/* Badge de posição */
+.pos-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 24px;
+  height: 22px;
+  padding: 0 4px;
+  background: rgba(255, 255, 255, 0.08);
+  border-radius: 4px;
+  font: 700 11px "Inter", sans-serif;
+  color: #fff;
+}
+
+/* Posições especiais */
+.artilheiro-ranking-row.pos-1 { background: rgba(255, 215, 0, 0.1); }
+.artilheiro-ranking-row.pos-1 .pos-badge { background: linear-gradient(135deg, #ffd700, #f0c000); color: #1a1a1a; }
+
+.artilheiro-ranking-row.pos-2 .pos-badge { background: linear-gradient(135deg, #c0c0c0, #a8a8a8); color: #1a1a1a; }
+
+.artilheiro-ranking-row.pos-3 .pos-badge { background: linear-gradient(135deg, #cd7f32, #b87333); color: #fff; }
+
+/* Escudo */
+.escudo-img {
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  object-fit: cover;
+}
+
+/* Participante */
+.participante-info {
+  display: flex;
+  flex-direction: column;
+}
+
+.participante-nome {
+  font: 500 10px "Inter", sans-serif;
+  color: #fff;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 80px;
+}
+
+.participante-time {
+  font: 400 7px "Inter", sans-serif;
+  color: #777;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 80px;
+}
+
+/* Totais */
+.total-gp {
+  font: 700 11px "Inter", sans-serif;
+  color: #28a745;
+}
+
+.total-gc {
+  font: 700 11px "Inter", sans-serif;
+  color: #dc3545;
+}
+
+.total-sg {
+  display: inline-block;
+  padding: 2px 6px;
+  border-radius: 4px;
+  font: 700 11px "Inter", sans-serif;
+}
+
+.total-sg.positivo {
+  background: rgba(40, 167, 69, 0.2);
+  color: #28a745;
+}
+
+.total-sg.negativo {
+  background: rgba(220, 53, 69, 0.2);
+  color: #dc3545;
+}
+
+.total-sg.zero {
+  background: rgba(108, 117, 125, 0.2);
+  color: #6c757d;
+}
+
+/* =============================================
+   LOADING E ERRO
+   ============================================= */
+.artilheiro-loading {
+  text-align: center;
+  padding: 40px 20px;
+  color: #e74c3c;
+}
+
+.artilheiro-loading .spinner {
+  width: 40px;
+  height: 40px;
+  border: 3px solid rgba(231, 76, 60, 0.2);
+  border-top-color: #e74c3c;
+  border-radius: 50%;
+  animation: artilheiro-spin 1s linear infinite;
+  margin: 0 auto 12px;
+}
+
+.artilheiro-loading p {
+  font: 400 12px "Inter", sans-serif;
+  color: #888;
+  margin: 0;
+}
+
+.artilheiro-erro {
+  text-align: center;
+  padding: 30px 20px;
+}
+
+.artilheiro-erro .erro-icon { font-size: 32px; margin-bottom: 10px; }
+.artilheiro-erro .erro-msg { font: 600 13px "Inter", sans-serif; color: #dc3545; }
+.artilheiro-erro .erro-detalhe { font: 400 11px "Inter", sans-serif; color: #777; margin-top: 5px; }
+
+@keyframes artilheiro-spin {
+  to { transform: rotate(360deg); }
+}
+
+/* =============================================
+   RESPONSIVO
+   ============================================= */
+@media (max-width: 768px) {
+  .artilheiro-header {
+    flex-direction: column;
+    gap: 10px;
+  }
+
+  .artilheiro-stats-cards {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  .artilheiro-nav-container {
+    padding: 10px;
+  }
+
+  .col-rodada-gols {
+    font-size: 10px;
+  }
+}
+
+@media (max-width: 500px) {
+  .artilheiro-stats-cards {
+    grid-template-columns: 1fr 1fr;
+  }
+}
+
+/* =============================================
+   CÉLULAS CLICÁVEIS
+   ============================================= */
+.col-rodada-gols.clicavel {
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.col-rodada-gols.clicavel:hover {
+  background: rgba(231, 76, 60, 0.3) !important;
+  transform: scale(1.1);
+  z-index: 5;
+  position: relative;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.3);
+  border-radius: 4px;
+}
+
+/* =============================================
+   MODAL DE DETALHES DA RODADA
+   ============================================= */
+.artilheiro-modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.85);
+  display: none;
+  justify-content: center;
+  align-items: center;
+  z-index: 9999;
+  backdrop-filter: blur(4px);
+}
+
+.artilheiro-modal-overlay.ativo {
+  display: flex;
+  animation: fadeIn 0.2s ease;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+.artilheiro-modal-content {
+  background: linear-gradient(145deg, #1a1a2e 0%, #16213e 100%);
+  border-radius: 16px;
+  padding: 24px;
+  min-width: 320px;
+  max-width: 400px;
+  position: relative;
+  border: 1px solid rgba(231, 76, 60, 0.3);
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
+  animation: slideUp 0.25s ease;
+}
+
+@keyframes slideUp {
+  from { 
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to { 
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.modal-fechar {
+  position: absolute;
+  top: 12px;
+  right: 12px;
+  background: rgba(255, 255, 255, 0.1);
+  border: none;
+  color: #888;
+  font-size: 18px;
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.modal-fechar:hover {
+  background: rgba(231, 76, 60, 0.3);
+  color: #e74c3c;
+}
+
+.modal-header {
+  text-align: center;
+  margin-bottom: 20px;
+  padding-bottom: 16px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.modal-header h3 {
+  font: 700 22px "Inter", sans-serif;
+  color: #fff;
+  margin: 0 0 8px 0;
+}
+
+.modal-badge-parcial {
+  display: inline-block;
+  background: linear-gradient(135deg, #e67e22, #f39c12);
+  color: #fff;
+  font: 600 9px "Inter", sans-serif;
+  padding: 3px 8px;
+  border-radius: 10px;
+  margin-left: 8px;
+  vertical-align: middle;
+  animation: pulse 2s ease-in-out infinite;
+}
+
+.modal-participante {
+  font: 600 16px "Inter", sans-serif;
+  color: #e74c3c;
+  margin: 0;
+}
+
+.modal-time {
+  font: 400 12px "Inter", sans-serif;
+  color: #888;
+  margin: 4px 0 0 0;
+}
+
+.modal-resumo {
+  display: flex;
+  justify-content: center;
+  gap: 24px;
+  margin-bottom: 20px;
+  padding: 16px;
+  background: rgba(0, 0, 0, 0.2);
+  border-radius: 12px;
+}
+
+.resumo-item {
+  text-align: center;
+}
+
+.resumo-label {
+  display: block;
+  font: 500 10px "Inter", sans-serif;
+  color: #888;
+  text-transform: uppercase;
+  margin-bottom: 4px;
+}
+
+.resumo-valor {
+  font: 700 24px "Inter", sans-serif;
+}
+
+.resumo-valor.positivo { color: #28a745; }
+.resumo-valor.negativo { color: #dc3545; }
+.resumo-valor.zero { color: #888; }
+
+.modal-secao {
+  margin-bottom: 16px;
+}
+
+.modal-secao h4 {
+  font: 600 13px "Inter", sans-serif;
+  color: #aaa;
+  margin: 0 0 10px 0;
+  padding-bottom: 6px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.modal-lista-gols {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.gol-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 10px 12px;
+  margin-bottom: 6px;
+  background: rgba(0, 0, 0, 0.2);
+  border-radius: 8px;
+  border-left: 3px solid;
+}
+
+.gol-item.positivo {
+  border-left-color: #28a745;
+}
+
+.gol-item.negativo {
+  border-left-color: #dc3545;
+}
+
+.jogador-nome {
+  font: 500 13px "Inter", sans-serif;
+  color: #fff;
+}
+
+.jogador-gols {
+  font: 700 13px "Inter", sans-serif;
+  padding: 4px 10px;
+  border-radius: 12px;
+}
+
+.gol-item.positivo .jogador-gols {
+  background: rgba(40, 167, 69, 0.2);
+  color: #28a745;
+}
+
+.gol-item.negativo .jogador-gols {
+  background: rgba(220, 53, 69, 0.2);
+  color: #dc3545;
+}
+
+.modal-vazio {
+  text-align: center;
+  color: #666;
+  font: 400 13px "Inter", sans-serif;
+  padding: 20px;
+}
+
+/* =============================================
+   PARTICIPANTES INATIVOS
+   ============================================= */
+
+/* ========================================
+   SEÇÃO DE INATIVOS
+   ======================================== */
+.artilheiro-inativos-section {
+  margin-top: 24px;
+  background: rgba(0, 0, 0, 0.3);
+  border-radius: 12px;
+  padding: 16px;
+  border: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.inativos-header {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 16px;
+  padding-bottom: 12px;
+  border-bottom: 1px dashed rgba(255, 255, 255, 0.1);
+}
+
+.inativos-icon {
+  font-size: 1.2em;
+  opacity: 0.7;
+}
+
+.inativos-header h4 {
+  margin: 0;
+  font-size: 1em;
+  font-weight: 600;
+  color: #888;
+}
+
+.inativos-badge {
+  background: rgba(255, 255, 255, 0.1);
+  color: #888;
+  font-size: 0.75em;
+  padding: 3px 8px;
+  border-radius: 10px;
+  font-weight: 600;
+}
+
+.inativos-info {
+  margin-left: auto;
+  font-size: 0.75em;
+  color: #666;
+  font-style: italic;
+}
+
+/* ========================================
+   TABELA DE INATIVOS
+   ======================================== */
+.inativos-table {
+  opacity: 0.6;
+}
+
+.inativos-table thead {
+  background: linear-gradient(135deg, #555 0%, #444 100%) !important;
+}
+
+.inativos-table thead th {
+  color: #888 !important;
+}
+
+.inativos-table tbody tr.inativo {
+  background: rgba(0, 0, 0, 0.2);
+}
+
+.inativos-table .participante-nome {
+  color: #888;
+}
+
+/* ========================================
+   BADGE DE DESISTÊNCIA
+   ======================================== */
+.desistencia-badge {
+  display: inline-block;
+  background: rgba(220, 53, 69, 0.2);
+  color: #dc3545;
+  font: 600 7px "Inter", sans-serif;
+  padding: 2px 5px;
+  border-radius: 8px;
+  margin-top: 2px;
+}
+
+/* ========================================
+   LINHA DE PARTICIPANTE INATIVO
+   ======================================== */
+.participante-inativo {
+  filter: grayscale(80%);
+  background: rgba(0, 0, 0, 0.2) !important;
+  border-left: 3px solid #555 !important;
+}
+
+.participante-inativo td {
+  color: #777 !important;
+}
+
+.participante-inativo .participante-nome {
+  color: #888 !important;
+}
+
+.participante-inativo .escudo-img {
+  opacity: 0.5;
+}
+
+.pos-inativo {
+  color: #555 !important;
+  font-style: italic;
+}
+
+/* ========================================
+   TOTAIS INATIVO (CONGELADO)
+   ======================================== */
+.inativos-table .total-gp,
+.inativos-table .total-gc {
+  opacity: 0.5;
+}
+
+.inativos-table .total-sg {
+  opacity: 0.5;
+  text-decoration: line-through;
+}
+
+/* ==========================================
+   MINI DASHBOARD - ARTILHEIRO CAMPEÃO
+   Adicionar ao final do artilheiro-campeao.css
+   ========================================== */
+
+/* Container do Mini Dashboard */
+.artilheiro-mini-dashboard {
+    display: flex;
+    gap: 15px;
+    margin-top: 20px;
+    padding: 0 10px;
+}
+
+/* Cards do Mini Dashboard */
+.artilheiro-mini-dashboard .mini-dash-card {
+    flex: 1;
+    background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+    border-radius: 12px;
+    padding: 15px 20px;
+    display: flex;
+    align-items: center;
+    gap: 15px;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    transition: transform 0.2s, box-shadow 0.2s;
+}
+
+.artilheiro-mini-dashboard .mini-dash-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+}
+
+/* Ícone do Card */
+.artilheiro-mini-dashboard .mini-dash-icon {
+    font-size: 2rem;
+    opacity: 0.9;
+}
+
+/* Conteúdo do Card */
+.artilheiro-mini-dashboard .mini-dash-content {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+}
+
+/* Valor Principal */
+.artilheiro-mini-dashboard .mini-dash-valor {
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: #fff;
+    line-height: 1.2;
+}
+
+/* Label */
+.artilheiro-mini-dashboard .mini-dash-label {
+    font-size: 0.7rem;
+    color: #888;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+}
+
+/* Nome/Info */
+.artilheiro-mini-dashboard .mini-dash-nome {
+    font-size: 0.8rem;
+    color: #aaa;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    max-width: 150px;
+}
+
+/* Cores específicas por tipo de card */
+.artilheiro-mini-dashboard .mini-dash-card.lider {
+    border-left: 3px solid #f1c40f;
+}
+
+.artilheiro-mini-dashboard .mini-dash-card.lider .mini-dash-valor {
+    color: #f1c40f;
+}
+
+.artilheiro-mini-dashboard .mini-dash-card.ativos {
+    border-left: 3px solid #3498db;
+}
+
+.artilheiro-mini-dashboard .mini-dash-card.ativos .mini-dash-valor {
+    color: #3498db;
+}
+
+.artilheiro-mini-dashboard .mini-dash-card.destaque {
+    border-left: 3px solid #e74c3c;
+}
+
+.artilheiro-mini-dashboard .mini-dash-card.destaque .mini-dash-valor {
+    color: #e74c3c;
+}
+
+/* Responsivo */
+@media (max-width: 768px) {
+    .artilheiro-mini-dashboard {
+        flex-direction: column;
+        gap: 10px;
+    }
+
+    .artilheiro-mini-dashboard .mini-dash-card {
+        padding: 12px 15px;
+    }
+
+    .artilheiro-mini-dashboard .mini-dash-valor {
+        font-size: 1.3rem;
+    }
+
+    .artilheiro-mini-dashboard .mini-dash-nome {
+        max-width: 200px;
+    }
+}

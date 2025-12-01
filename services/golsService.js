@@ -6,6 +6,8 @@ class GolsService {
     constructor() {
         this.cache = new Map();
         this.CACHE_TTL = 10 * 60 * 1000; // 10 minutos
+        // ✅ CORREÇÃO: URL base correta da API Cartola
+        this.API_BASE = "https://api.cartola.globo.com";
     }
 
     /**
@@ -164,10 +166,12 @@ class GolsService {
 
     /**
      * Buscar dados de uma rodada na API Cartola FC
+     * ✅ CORREÇÃO: URL correta api.cartola.globo.com
      */
     async buscarRodadaApiCartola(timeId, rodada) {
         try {
-            const url = `https://api.cartolafc.globo.com/time/id/${timeId}/${rodada}`;
+            // ✅ CORREÇÃO: URL correta
+            const url = `${this.API_BASE}/time/id/${timeId}/${rodada}`;
 
             const response = await fetch(url, {
                 timeout: 15000,
@@ -175,7 +179,7 @@ class GolsService {
                     "User-Agent":
                         "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36",
                     Accept: "application/json",
-                    Referer: "https://cartolafc.globo.com/",
+                    Referer: "https://cartola.globo.com/",
                 },
             });
 
@@ -193,10 +197,8 @@ class GolsService {
             if (data.atletas && Array.isArray(data.atletas)) {
                 data.atletas.forEach((atleta) => {
                     const gols = parseInt(atleta.scout?.G) || 0;
-                    const golsContra =
-                        atleta.posicao_id === 1
-                            ? parseInt(atleta.scout?.GC) || 0
-                            : 0;
+                    // ✅ CORREÇÃO: Gols contra para qualquer posição (GC é scout universal)
+                    const golsContra = parseInt(atleta.scout?.GC) || 0;
 
                     atletas.push({
                         atletaId: atleta.atleta_id,
@@ -204,7 +206,7 @@ class GolsService {
                         gols: gols,
                         golsContra: golsContra,
                         golsLiquidos: gols - golsContra,
-                        pontos: parseFloat(atleta.pontos) || 0,
+                        pontos: parseFloat(atleta.pontos_num) || 0,
                         posicao: atleta.posicao_id,
                         clube: atleta.clube_id,
                     });
@@ -239,14 +241,18 @@ class GolsService {
             console.log(`✅ ${resultado.length} registros salvos com sucesso`);
             return resultado;
         } catch (error) {
-            if (error.code === 11000) {
+            // Tratar erro de duplicatas (código 11000)
+            if (error.code === 11000 || error.writeErrors) {
+                const inseridos = error.insertedDocs?.length || 0;
+                const duplicados = error.writeErrors?.length || 0;
                 console.log(
-                    `⚠️ Alguns registros já existiam (duplicatas ignoradas)`,
+                    `⚠️ ${inseridos} inseridos, ${duplicados} duplicados ignorados`,
                 );
-            } else {
-                console.error(`❌ Erro ao salvar no MongoDB:`, error);
-                throw error;
+                return { inseridos, duplicados };
             }
+
+            console.error(`❌ Erro ao salvar no MongoDB:`, error.message);
+            throw error;
         }
     }
 
@@ -254,31 +260,27 @@ class GolsService {
      * Buscar dados completos do MongoDB
      */
     async buscarDadosCompletos(ligaId, timeId, rodadaInicio, rodadaFim) {
-        const dados = await Gols.find({
+        return await Gols.find({
             ligaId: ligaId,
             timeId: parseInt(timeId),
             rodada: { $gte: rodadaInicio, $lte: rodadaFim },
             ativo: true,
-        }).sort({ rodada: 1, nome: 1 });
-
-        console.log(`📊 Encontrados ${dados.length} registros no MongoDB`);
-        return dados;
+        }).sort({ rodada: 1, gols: -1 });
     }
 
     /**
-     * Processar dados agregados para resposta
+     * Processar dados e retornar agregados
      */
     processarDadosAgregados(dados, timeId, rodadaInicio, rodadaFim) {
-        // Agregar por rodada
-        const porRodada = {};
         let totalGolsPro = 0;
         let totalGolsContra = 0;
+        const porRodada = {};
         const jogadoresAgregados = new Map();
 
         dados.forEach((registro) => {
             const rodada = registro.rodada;
 
-            // Inicializar rodada se não existir
+            // Inicializar rodada se necessário
             if (!porRodada[rodada]) {
                 porRodada[rodada] = {
                     rodada,
@@ -290,12 +292,12 @@ class GolsService {
                 };
             }
 
-            // Agregar dados da rodada
+            // Acumular gols da rodada
             porRodada[rodada].golsPro += registro.gols || 0;
             porRodada[rodada].golsContra += registro.golsContra || 0;
             porRodada[rodada].pontos += registro.pontos || 0;
 
-            // Adicionar jogador com gols
+            // Adicionar jogador com gols à lista
             if (registro.gols > 0) {
                 porRodada[rodada].jogadores.push({
                     id: registro.atletaId,
@@ -363,6 +365,7 @@ class GolsService {
 
     /**
      * Detectar rodada atual via API Cartola FC
+     * ✅ CORREÇÃO: URL correta
      */
     async detectarRodadaAtual() {
         try {
@@ -373,17 +376,15 @@ class GolsService {
                 return cached.data;
             }
 
-            const response = await fetch(
-                "https://api.cartolafc.globo.com/mercado/status",
-                {
-                    timeout: 5000,
-                    headers: {
-                        "User-Agent":
-                            "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36",
-                        Referer: "https://cartolafc.globo.com/",
-                    },
+            // ✅ CORREÇÃO: URL correta
+            const response = await fetch(`${this.API_BASE}/mercado/status`, {
+                timeout: 5000,
+                headers: {
+                    "User-Agent":
+                        "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36",
+                    Referer: "https://cartola.globo.com/",
                 },
-            );
+            });
 
             if (response.ok) {
                 const data = await response.json();
@@ -432,7 +433,9 @@ class GolsService {
      */
     async obterParticipantesUnicos(ligaId) {
         try {
-            console.log(`🔍 [GOLS-SERVICE] Buscando participantes únicos da liga ${ligaId}`);
+            console.log(
+                `🔍 [GOLS-SERVICE] Buscando participantes únicos da liga ${ligaId}`,
+            );
 
             const pipeline = [
                 { $match: { ligaId: new mongoose.Types.ObjectId(ligaId) } },
@@ -443,13 +446,15 @@ class GolsService {
                         nomeTime: { $first: "$nomeTime" },
                         timeId: { $first: "$timeId" },
                         clubeId: { $first: "$clubeId" },
-                        totalGolsPro: { $sum: "$golsPro" },
+                        totalGolsPro: { $sum: "$gols" },
                         totalGolsContra: { $sum: "$golsContra" },
                     },
                 },
                 {
                     $addFields: {
-                        saldoGols: { $subtract: ["$totalGolsPro", "$totalGolsContra"] },
+                        saldoGols: {
+                            $subtract: ["$totalGolsPro", "$totalGolsContra"],
+                        },
                     },
                 },
                 { $sort: { saldoGols: -1, totalGolsPro: -1 } },
@@ -457,14 +462,19 @@ class GolsService {
 
             const participantes = await Gols.aggregate(pipeline);
 
-            console.log(`✅ [GOLS-SERVICE] ${participantes.length} participantes únicos encontrados`);
+            console.log(
+                `✅ [GOLS-SERVICE] ${participantes.length} participantes únicos encontrados`,
+            );
 
             return {
                 success: true,
                 data: participantes,
             };
         } catch (error) {
-            console.error("❌ [GOLS-SERVICE] Erro ao buscar participantes únicos:", error);
+            console.error(
+                "❌ [GOLS-SERVICE] Erro ao buscar participantes únicos:",
+                error,
+            );
             return {
                 success: false,
                 message: "Erro ao buscar participantes únicos",
@@ -478,14 +488,16 @@ class GolsService {
      */
     async obterRankingPorRodada(ligaId, rodada) {
         try {
-            console.log(`📊 [GOLS-SERVICE] Buscando ranking da rodada ${rodada} para liga ${ligaId}`);
+            console.log(
+                `📊 [GOLS-SERVICE] Buscando ranking da rodada ${rodada} para liga ${ligaId}`,
+            );
 
             const pipeline = [
-                { 
-                    $match: { 
+                {
+                    $match: {
                         ligaId: new mongoose.Types.ObjectId(ligaId),
-                        rodada: parseInt(rodada)
-                    } 
+                        rodada: parseInt(rodada),
+                    },
                 },
                 {
                     $group: {
@@ -495,7 +507,7 @@ class GolsService {
                         timeId: { $first: "$timeId" },
                         clubeId: { $first: "$clubeId" },
                         rodada: { $first: "$rodada" },
-                        golsPro: { $sum: "$golsPro" },
+                        golsPro: { $sum: "$gols" },
                         golsContra: { $sum: "$golsContra" },
                         pontos: { $sum: "$pontos" },
                     },
@@ -505,25 +517,30 @@ class GolsService {
                         saldo: { $subtract: ["$golsPro", "$golsContra"] },
                     },
                 },
-                { 
-                    $sort: { 
-                        saldo: -1, 
+                {
+                    $sort: {
+                        saldo: -1,
                         golsPro: -1,
-                        golsContra: 1
-                    } 
+                        golsContra: 1,
+                    },
                 },
             ];
 
             const ranking = await Gols.aggregate(pipeline);
 
-            console.log(`✅ [GOLS-SERVICE] Ranking da rodada ${rodada}: ${ranking.length} participantes`);
+            console.log(
+                `✅ [GOLS-SERVICE] Ranking da rodada ${rodada}: ${ranking.length} participantes`,
+            );
 
             return {
                 success: true,
                 data: ranking,
             };
         } catch (error) {
-            console.error(`❌ [GOLS-SERVICE] Erro ao buscar ranking da rodada ${rodada}:`, error);
+            console.error(
+                `❌ [GOLS-SERVICE] Erro ao buscar ranking da rodada ${rodada}:`,
+                error,
+            );
             return {
                 success: false,
                 message: `Erro ao buscar ranking da rodada ${rodada}`,

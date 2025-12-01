@@ -1,4 +1,4 @@
-// LUVA DE OURO - Ponto de Entrada (REFATORADO)
+// LUVA DE OURO - Ponto de Entrada (v4.0.0 com Scheduler)
 // public/js/luva-de-ouro/luva-de-ouro.js
 
 console.log("🥅 [LUVA-DE-OURO] Sistema modular carregando...");
@@ -42,6 +42,12 @@ async function inicializarLuvaDeOuro() {
   try {
     await window.LuvaDeOuroOrquestrador.inicializar();
     console.log("✅ [LUVA-DE-OURO] Sistema inicializado com sucesso");
+
+    // Iniciar scheduler de coleta automática (se disponível)
+    if (window.LuvaDeOuroScheduler) {
+      window.LuvaDeOuroScheduler.iniciar();
+      console.log("⏰ [LUVA-DE-OURO] Scheduler de coleta automática ativado");
+    }
   } catch (error) {
     console.error("❌ [LUVA-DE-OURO] Erro na inicialização:", error);
   }
@@ -98,6 +104,7 @@ window.testarLuvaDeOuro = function () {
   console.log("  - Cache:", !!window.LuvaDeOuroCache);
   console.log("  - Orquestrador:", !!window.LuvaDeOuroOrquestrador);
   console.log("  - Utils:", !!window.LuvaDeOuroUtils);
+  console.log("  - Scheduler:", !!window.LuvaDeOuroScheduler);
 
   if (window.LuvaDeOuroCache) {
     console.log("📊 Stats do cache:", window.LuvaDeOuroCache.stats());
@@ -107,6 +114,13 @@ window.testarLuvaDeOuro = function () {
     console.log(
       "📊 Estado do orquestrador:",
       window.LuvaDeOuroOrquestrador.estado,
+    );
+  }
+
+  if (window.LuvaDeOuroScheduler) {
+    console.log(
+      "⏰ Status do scheduler:",
+      window.LuvaDeOuroScheduler.getStatus(),
     );
   }
 };
@@ -139,7 +153,7 @@ if (!window.modulosCarregados) {
 
 window.modulosCarregados["luva-de-ouro"] = {
   nome: "Luva de Ouro",
-  versao: "3.0.0",
+  versao: "4.0.0",
   inicializar: inicializarLuvaDeOuro,
   carregado: true,
   modular: true,
@@ -149,13 +163,15 @@ window.modulosCarregados["luva-de-ouro"] = {
     "luva-de-ouro-ui",
     "luva-de-ouro-cache",
     "luva-de-ouro-orquestrador",
+    "luva-de-ouro-scheduler",
   ],
 };
 
 // ===== EXPORTAR FUNÇÃO GLOBAL =====
 window.inicializarLuvaDeOuro = inicializarLuvaDeOuro;
 
-console.log("✅ [LUVA-DE-OURO] Sistema modular v3.0.0 carregado");
+console.log("✅ [LUVA-DE-OURO] Sistema modular v4.0.0 carregado");
 console.log("🆘 Em caso de erro: window.forcarLuvaDeOuroAgora()");
 console.log("🧪 Para testar: window.testarLuvaDeOuro()");
 console.log("🔍 Diagnóstico: window.diagnosticoLuvaDeOuro()");
+console.log("⏰ Scheduler: window.LuvaDeOuroScheduler.getStatus()");

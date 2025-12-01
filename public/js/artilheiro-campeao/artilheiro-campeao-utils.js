@@ -1,9 +1,46 @@
-// ✅ ARTILHEIRO-CAMPEAO-UTILS.JS - Utilitários do módulo Artilheiro Campeão
-console.log("🔧 [ARTILHEIRO-UTILS] Módulo de utilitários carregando...");
+// ✅ ARTILHEIRO-CAMPEAO-UTILS.JS v1.1 - Utilitários do módulo Artilheiro Campeão
+console.log("🔧 [ARTILHEIRO-UTILS] Módulo de utilitários v1.1 carregando...");
 
 // ===== UTILITÁRIOS PARA ARTILHEIRO CAMPEÃO =====
 const ArtilheiroUtils = {
-    version: "1.0.0",
+    version: "1.1.0",
+
+    // ✅ CORREÇÃO: Logger centralizado
+    logger: {
+        info: (msg, ...args) => console.log(`ℹ️ [ARTILHEIRO]`, msg, ...args),
+        success: (msg, ...args) => console.log(`✅ [ARTILHEIRO]`, msg, ...args),
+        warn: (msg, ...args) => console.warn(`⚠️ [ARTILHEIRO]`, msg, ...args),
+        error: (msg, ...args) => console.error(`❌ [ARTILHEIRO]`, msg, ...args),
+    },
+
+    // ✅ CORREÇÃO: Função para fazer requisições HTTP
+    async fazerRequisicao(url, opcoes = {}) {
+        try {
+            const config = {
+                method: opcoes.method || "GET",
+                headers: {
+                    Accept: "application/json",
+                    "Content-Type": "application/json",
+                    ...opcoes.headers,
+                },
+                ...opcoes,
+            };
+
+            const response = await fetch(url, config);
+
+            if (!response.ok) {
+                throw new Error(
+                    `HTTP ${response.status}: ${response.statusText}`,
+                );
+            }
+
+            const data = await response.json();
+            return { success: true, data };
+        } catch (error) {
+            this.logger.error(`Erro na requisição ${url}:`, error.message);
+            return { success: false, error: error.message };
+        }
+    },
 
     // Formatar saldo de gols
     formatarSaldo(numero) {
@@ -32,7 +69,49 @@ const ArtilheiroUtils = {
     // Validar dados do participante
     validarParticipante(participante) {
         if (!participante) return false;
-        return !!(participante.nomeCartoleiro && participante.timeId);
+        return (
+            !!(participante.nomeCartoleiro || participante.nome_cartola) &&
+            !!(participante.timeId || participante.id)
+        );
+    },
+
+    // ✅ CORREÇÃO: Validar array
+    validarArray(arr, nome = "array") {
+        if (!Array.isArray(arr)) {
+            throw new Error(`${nome} deve ser um array`);
+        }
+        return true;
+    },
+
+    // ✅ CORREÇÃO: Delay utilitário
+    delay(ms) {
+        return new Promise((resolve) => setTimeout(resolve, ms));
+    },
+
+    // ✅ CORREÇÃO: Calcular média
+    calcularMedia(valores) {
+        if (!Array.isArray(valores) || valores.length === 0) return 0;
+        const soma = valores.reduce(
+            (acc, val) => acc + (parseFloat(val) || 0),
+            0,
+        );
+        return soma / valores.length;
+    },
+
+    // ✅ CORREÇÃO: Ordenar por múltiplos critérios
+    ordenarPorCriterios(array, criterios) {
+        return [...array].sort((a, b) => {
+            for (const criterio of criterios) {
+                const { campo, ordem = "asc" } = criterio;
+                const valorA = parseFloat(a[campo]) || 0;
+                const valorB = parseFloat(b[campo]) || 0;
+
+                if (valorA !== valorB) {
+                    return ordem === "desc" ? valorB - valorA : valorA - valorB;
+                }
+            }
+            return 0;
+        });
     },
 
     // Ordenar participantes por saldo de gols
@@ -107,8 +186,14 @@ const ArtilheiroUtils = {
             golsPro,
             golsContra,
             saldoGols,
-            nomeCartoleiro: this.truncarTexto(participante.nomeCartoleiro, 25),
-            nomeTime: this.truncarTexto(participante.nomeTime, 20),
+            nomeCartoleiro: this.truncarTexto(
+                participante.nomeCartoleiro || participante.nome_cartola,
+                25,
+            ),
+            nomeTime: this.truncarTexto(
+                participante.nomeTime || participante.nome_time,
+                20,
+            ),
         };
     },
 
@@ -124,7 +209,9 @@ const ArtilheiroUtils = {
 
         const ordenados = this.ordenarPorSaldoGols(todosParticipantes);
         return (
-            ordenados.length > 0 && ordenados[0].timeId === participante.timeId
+            ordenados.length > 0 &&
+            (ordenados[0].timeId === participante.timeId ||
+                ordenados[0].id === participante.id)
         );
     },
 
@@ -134,21 +221,23 @@ const ArtilheiroUtils = {
             return "Participante inválido";
         }
 
+        const nome = participante.nomeCartoleiro || participante.nome_cartola;
         const saldo = this.calcularSaldoGols(
             participante.golsPro,
             participante.golsContra,
         );
         const saldoTexto = this.formatarSaldo(saldo);
 
-        return `${participante.nomeCartoleiro}: ${participante.golsPro} gols pró, ${participante.golsContra} contra (${saldoTexto})`;
+        return `${nome}: ${participante.golsPro} gols pró, ${participante.golsContra} contra (${saldoTexto})`;
     },
 
     // Debugging - log detalhado do participante
     debugParticipante(participante, index) {
         console.log(`🔍 [DEBUG] Participante ${index}:`, {
-            nomeCartoleiro: participante.nomeCartoleiro,
-            nomeTime: participante.nomeTime,
-            timeId: participante.timeId,
+            nomeCartoleiro:
+                participante.nomeCartoleiro || participante.nome_cartola,
+            nomeTime: participante.nomeTime || participante.nome_time,
+            timeId: participante.timeId || participante.id,
             golsPro: participante.golsPro,
             golsContra: participante.golsContra,
             saldoCalculado: this.calcularSaldoGols(
@@ -211,13 +300,31 @@ const ArtilheiroUtils = {
 
     // Formatar bytes para exibição
     formatarBytes(bytes) {
-        if (bytes === 0) return '0 B';
-        
+        if (bytes === 0) return "0 B";
+
         const k = 1024;
-        const sizes = ['B', 'KB', 'MB', 'GB'];
+        const sizes = ["B", "KB", "MB", "GB"];
         const i = Math.floor(Math.log(bytes) / Math.log(k));
-        
-        return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
+
+        return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + " " + sizes[i];
+    },
+
+    // Formatar data para exibição
+    formatarData(data) {
+        if (!data) return "N/D";
+        const d = new Date(data);
+        return d.toLocaleDateString("pt-BR", {
+            day: "2-digit",
+            month: "2-digit",
+            year: "numeric",
+            hour: "2-digit",
+            minute: "2-digit",
+        });
+    },
+
+    // Gerar ID único
+    gerarId() {
+        return `${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
     },
 };
 
@@ -238,7 +345,7 @@ if (typeof window !== "undefined") {
     window.ArtilheiroUtils = ArtilheiroUtils;
 }
 
-console.log("✅ [ARTILHEIRO-UTILS] Utilitários carregados com sucesso!");
+console.log("✅ [ARTILHEIRO-UTILS] Utilitários v1.1 carregados com sucesso!");
 
 export { ArtilheiroUtils };
 export default ArtilheiroUtils;

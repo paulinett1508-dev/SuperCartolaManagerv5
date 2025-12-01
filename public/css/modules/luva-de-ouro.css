@@ -1,6 +1,6 @@
 /* =============================================
-   LUVA DE OURO - CSS v4.0.0
-   Tabela com Rodadas em Colunas Navegáveis
+   LUVA DE OURO - CSS v4.1.0
+   Tabela com Rodadas + Suporte a Inativos
    ============================================= */
 
 /* Container principal */
@@ -216,6 +216,14 @@
 .col-rodada-pts.sem-goleiro .pts-valor { color: #e67e22; }
 .col-rodada-pts.sem-goleiro .pts-goleiro { color: #e67e22; font-weight: 500; }
 
+/* Rodada parcial (em andamento) */
+.col-rodada-pts.parcial {
+  background: rgba(230, 126, 34, 0.15);
+  border-left: 2px solid rgba(230, 126, 34, 0.5);
+}
+.col-rodada-pts.parcial .pts-valor { color: #f39c12 !important; }
+.col-rodada-pts.parcial .pts-goleiro { color: #e67e22; }
+
 .loading-cell {
   text-align: center;
   padding: 40px !important;
@@ -380,5 +388,365 @@
 @media (max-width: 500px) {
   .luva-stats-grid { 
     grid-template-columns: 1fr;
+  }
+}
+
+/* =============================================
+   PARTICIPANTES INATIVOS
+   ============================================= */
+
+/* Badge de inativo no header */
+.badge-inativo {
+  background: rgba(255, 255, 255, 0.1) !important;
+  color: #888 !important;
+  border: 1px dashed #555;
+}
+
+/* ========================================
+   SEÇÃO DE INATIVOS
+   ======================================== */
+.inativos-section {
+  margin-top: 24px;
+  background: rgba(0, 0, 0, 0.3);
+  border-radius: 12px;
+  padding: 16px;
+  border: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.inativos-header {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 16px;
+  padding-bottom: 12px;
+  border-bottom: 1px dashed rgba(255, 255, 255, 0.1);
+}
+
+.inativos-icon {
+  font-size: 1.2em;
+  opacity: 0.7;
+}
+
+.inativos-header h4 {
+  margin: 0;
+  font-size: 1em;
+  font-weight: 600;
+  color: #888;
+}
+
+.inativos-badge {
+  background: rgba(255, 255, 255, 0.1);
+  color: #888;
+  font-size: 0.75em;
+  padding: 3px 8px;
+  border-radius: 10px;
+  font-weight: 600;
+}
+
+.inativos-info {
+  margin-left: auto;
+  font-size: 0.75em;
+  color: #666;
+  font-style: italic;
+}
+
+.inativos-footer {
+  text-align: center;
+  margin-top: 12px;
+  padding: 8px;
+  background: rgba(0, 0, 0, 0.2);
+  border-radius: 6px;
+}
+
+.inativos-footer span {
+  color: #666;
+  font-size: 0.8em;
+}
+
+/* ========================================
+   TABELA DE INATIVOS
+   ======================================== */
+.inativos-table {
+  opacity: 0.7;
+}
+
+.inativos-table thead {
+  background: linear-gradient(135deg, #444 0%, #333 100%) !important;
+}
+
+.inativos-table thead th {
+  color: #888 !important;
+}
+
+/* ========================================
+   LINHA DE PARTICIPANTE INATIVO
+   ======================================== */
+.participante-inativo {
+  filter: grayscale(80%);
+  background: rgba(0, 0, 0, 0.2) !important;
+  border-left: 3px solid #555 !important;
+}
+
+.participante-inativo td {
+  color: #777 !important;
+}
+
+.participante-inativo .participante-nome {
+  color: #888 !important;
+}
+
+.participante-inativo .escudo-img {
+  opacity: 0.5;
+}
+
+.pos-inativo {
+  color: #555 !important;
+  font-style: italic;
+}
+
+/* ========================================
+   BADGES DE INATIVO
+   ======================================== */
+.badge-inativo-small {
+  display: inline-block;
+  background: rgba(220, 53, 69, 0.2);
+  color: #dc3545;
+  font-size: 0.6em;
+  padding: 2px 5px;
+  border-radius: 8px;
+  margin-left: 6px;
+  vertical-align: middle;
+  font-weight: 600;
+  letter-spacing: 0.3px;
+}
+
+.badge-inativo-modal {
+  display: inline-block;
+  background: rgba(220, 53, 69, 0.2);
+  color: #dc3545;
+  font-size: 0.7em;
+  padding: 4px 8px;
+  border-radius: 8px;
+  margin-left: 10px;
+  font-weight: 600;
+}
+
+/* ========================================
+   PONTOS INATIVO (CONGELADO)
+   ======================================== */
+.pontos-inativo {
+  text-decoration: line-through !important;
+  color: #666 !important;
+  opacity: 0.7;
+}
+
+/* ========================================
+   MODAL DE DETALHES - INATIVO
+   ======================================== */
+.modal-inativo .modal-header {
+  background: linear-gradient(135deg, #333 0%, #222 100%) !important;
+  border-bottom: 1px dashed #555;
+}
+
+.modal-inativo .modal-header h3 {
+  color: #888;
+}
+
+.valor-inativo {
+  text-decoration: line-through;
+  color: #666 !important;
+}
+
+.aviso-inativo {
+  background: rgba(220, 53, 69, 0.1);
+  border: 1px dashed rgba(220, 53, 69, 0.3);
+  color: #dc3545;
+  padding: 10px 14px;
+  border-radius: 8px;
+  margin: 12px 0;
+  font-size: 0.85em;
+  text-align: center;
+}
+
+/* ========================================
+   MODAL OVERLAY (base)
+   ======================================== */
+.modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.85);
+  backdrop-filter: blur(4px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 9999;
+  animation: fadeIn 0.2s ease;
+}
+
+.modal-content {
+  background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+  border-radius: 16px;
+  width: 90%;
+  max-width: 500px;
+  max-height: 80vh;
+  overflow: hidden;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
+  animation: slideUp 0.3s ease;
+}
+
+.modal-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 16px 20px;
+  background: linear-gradient(135deg, #2d3436 0%, #1e272e 100%);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.modal-header h3 {
+  margin: 0;
+  font-size: 1.1em;
+  color: #fff;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.modal-close {
+  background: rgba(255, 255, 255, 0.1);
+  border: none;
+  color: #fff;
+  font-size: 1.5em;
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.modal-close:hover {
+  background: rgba(255, 77, 77, 0.3);
+  transform: scale(1.1);
+}
+
+.modal-body {
+  padding: 20px;
+  overflow-y: auto;
+  max-height: calc(80vh - 60px);
+}
+
+/* ========================================
+   DETALHES RESUMO
+   ======================================== */
+.detalhes-resumo {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 12px;
+  margin-bottom: 20px;
+}
+
+.resumo-item {
+  background: rgba(0, 0, 0, 0.2);
+  padding: 12px;
+  border-radius: 10px;
+  text-align: center;
+}
+
+.resumo-label {
+  display: block;
+  font-size: 0.75em;
+  color: #888;
+  margin-bottom: 4px;
+}
+
+.resumo-valor {
+  font-size: 1.2em;
+  font-weight: 700;
+  color: #fff;
+}
+
+/* ========================================
+   HISTÓRICO
+   ======================================== */
+.historico-titulo {
+  font-size: 0.9em;
+  font-weight: 600;
+  color: #aaa;
+  margin-bottom: 12px;
+  padding-bottom: 8px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.historico-lista {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.historico-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 12px;
+  background: rgba(0, 0, 0, 0.2);
+  border-radius: 8px;
+}
+
+.hist-rodada {
+  font-size: 0.8em;
+  font-weight: 600;
+  color: #888;
+  min-width: 35px;
+}
+
+.hist-goleiro {
+  flex: 1;
+  font-size: 0.9em;
+  color: #ddd;
+}
+
+.hist-pontos {
+  font-size: 0.9em;
+  font-weight: 700;
+  padding: 4px 8px;
+  border-radius: 6px;
+}
+
+.hist-pontos.positivo {
+  background: rgba(46, 204, 113, 0.2);
+  color: #2ecc71;
+}
+
+.hist-pontos.negativo {
+  background: rgba(231, 76, 60, 0.2);
+  color: #e74c3c;
+}
+
+.sem-historico {
+  text-align: center;
+  color: #666;
+  font-style: italic;
+  padding: 20px;
+}
+
+/* ========================================
+   ANIMAÇÕES
+   ======================================== */
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes slideUp {
+  from {
+    opacity: 0;
+    transform: translateY(30px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
   }
 }
