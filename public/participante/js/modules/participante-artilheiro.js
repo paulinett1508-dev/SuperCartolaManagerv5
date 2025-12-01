@@ -17,17 +17,40 @@ export async function inicializarArtilheiroParticipante({
         timeId,
     });
 
+    const container = document.getElementById("artilheiro-content");
+    if (!container) {
+        console.error("[PARTICIPANTE-ARTILHEIRO] ❌ Container não encontrado");
+        return;
+    }
+
     try {
-        const response = await fetch(`/api/ligas/${ligaId}/artilheiro`);
+        // Tentar endpoint principal
+        const response = await fetch(`/api/ligas/${ligaId}/artilheiro-campeao`);
+
         if (!response.ok) {
-            throw new Error("Erro ao buscar dados do Artilheiro");
+            // Tentar endpoint alternativo
+            const altResponse = await fetch(
+                `/api/artilheiro-campeao/${ligaId}`,
+            );
+            if (!altResponse.ok) {
+                throw new Error("Módulo não configurado");
+            }
+            const data = await altResponse.json();
+            renderizarArtilheiro(container, data, timeId);
+            return;
         }
 
         const data = await response.json();
-        renderizarArtilheiro(data, timeId);
+        renderizarArtilheiro(container, data, timeId);
     } catch (error) {
         console.error("[PARTICIPANTE-ARTILHEIRO] ❌ Erro:", error);
-        mostrarErro(error.message);
+        container.innerHTML = `
+            <div style="text-align: center; padding: 60px 20px; background: linear-gradient(135deg, rgba(34, 197, 94, 0.05) 0%, rgba(34, 197, 94, 0.02) 100%); border-radius: 12px; border: 2px dashed rgba(34, 197, 94, 0.3);">
+                <div style="font-size: 64px; margin-bottom: 16px;">⚽</div>
+                <h3 style="color: #fff; margin-bottom: 12px;">Artilheiro Campeão</h3>
+                <p style="color: #999;">Este módulo ainda não foi configurado para esta liga.</p>
+            </div>
+        `;
     }
 }
 
@@ -37,13 +60,7 @@ window.inicializarArtilheiroParticipante = inicializarArtilheiroParticipante;
 // =====================================================================
 // RENDERIZAÇÃO
 // =====================================================================
-function renderizarArtilheiro(data, meuTimeId) {
-    const container = document.getElementById("artilheiroContainer");
-    if (!container) {
-        console.error("[PARTICIPANTE-ARTILHEIRO] ❌ Container não encontrado");
-        return;
-    }
-
+function renderizarArtilheiro(container, data, meuTimeId) {
     // Verificar se há edições
     if (!data.edicoes || data.edicoes.length === 0) {
         container.innerHTML = `
@@ -161,22 +178,6 @@ function renderizarArtilheiro(data, meuTimeId) {
 
     html += "</div>";
     container.innerHTML = html;
-}
-
-// =====================================================================
-// ERRO
-// =====================================================================
-function mostrarErro(mensagem) {
-    const container = document.getElementById("artilheiroContainer");
-    if (container) {
-        container.innerHTML = `
-            <div style="text-align: center; padding: 40px; background: rgba(239, 68, 68, 0.1); border-radius: 12px; border: 1px solid rgba(239, 68, 68, 0.3);">
-                <div style="font-size: 48px; margin-bottom: 16px;">⚠️</div>
-                <h3 style="color: #ef4444; margin-bottom: 12px;">Erro ao Carregar Artilheiro</h3>
-                <p style="color: #e0e0e0;">${mensagem}</p>
-            </div>
-        `;
-    }
 }
 
 console.log("[PARTICIPANTE-ARTILHEIRO] ✅ Módulo v2.0 carregado");

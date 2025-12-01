@@ -108,7 +108,7 @@ function renderizarBoasVindas(dados) {
         rodadaAtual,
     } = dados;
 
-    const container = document.getElementById("boasVindasContainer");
+    const container = document.getElementById("boas-vindas-container");
     if (!container) {
         console.error("[PARTICIPANTE-BOAS-VINDAS] ❌ Container não encontrado");
         return;
@@ -218,17 +218,31 @@ function renderizarBoasVindas(dados) {
                 </div>
             </div>
 
-            <!-- Ações Rápidas -->
-            <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px;">
-                <button onclick="window.participanteNav?.navegarPara('ranking')" style="background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); border-radius: 12px; padding: 16px; text-align: center; cursor: pointer;">
-                    <div style="font-size: 24px; margin-bottom: 8px;">📊</div>
-                    <div style="font-size: 13px; font-weight: 600; color: #fff;">Ranking</div>
-                </button>
+            <!-- Estatísticas Rápidas -->
+            <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin-bottom: 16px;">
+                <div style="background: rgba(255,255,255,0.03); border-radius: 10px; padding: 12px; text-align: center;">
+                    <div style="font-size: 11px; color: #666; margin-bottom: 4px;">Rodadas</div>
+                    <div style="font-size: 18px; font-weight: 700; color: #fff;">${rodadaAtual - 1}</div>
+                </div>
+                <div style="background: rgba(255,255,255,0.03); border-radius: 10px; padding: 12px; text-align: center;">
+                    <div style="font-size: 11px; color: #666; margin-bottom: 4px;">Participantes</div>
+                    <div style="font-size: 18px; font-weight: 700; color: #fff;">${totalParticipantes}</div>
+                </div>
+                <div style="background: rgba(255,255,255,0.03); border-radius: 10px; padding: 12px; text-align: center;">
+                    <div style="font-size: 11px; color: #666; margin-bottom: 4px;">Faltam</div>
+                    <div style="font-size: 18px; font-weight: 700; color: #ff4500;">${38 - rodadaAtual + 1}</div>
+                </div>
+            </div>
 
-                <button onclick="window.participanteNav?.navegarPara('rodadas')" style="background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); border-radius: 12px; padding: 16px; text-align: center; cursor: pointer;">
-                    <div style="font-size: 24px; margin-bottom: 8px;">🎯</div>
-                    <div style="font-size: 13px; font-weight: 600; color: #fff;">Rodadas</div>
-                </button>
+            <!-- Dica do Dia -->
+            <div style="background: linear-gradient(135deg, rgba(59, 130, 246, 0.1) 0%, rgba(59, 130, 246, 0.05) 100%); border-radius: 10px; padding: 14px; border: 1px solid rgba(59, 130, 246, 0.2);">
+                <div style="display: flex; align-items: center; gap: 10px;">
+                    <span style="font-size: 20px;">💡</span>
+                    <div>
+                        <div style="font-size: 12px; color: #3b82f6; font-weight: 600; margin-bottom: 2px;">DICA</div>
+                        <div style="font-size: 13px; color: #ccc;">Acompanhe seu extrato financeiro para entender sua evolução na liga!</div>
+                    </div>
+                </div>
             </div>
         </div>
     `;
@@ -240,7 +254,7 @@ function renderizarBoasVindas(dados) {
 // ERRO
 // =====================================================================
 function mostrarErro(mensagem) {
-    const container = document.getElementById("boasVindasContainer");
+    const container = document.getElementById("boas-vindas-container");
     if (container) {
         container.innerHTML = `
             <div style="text-align: center; padding: 60px 20px;">

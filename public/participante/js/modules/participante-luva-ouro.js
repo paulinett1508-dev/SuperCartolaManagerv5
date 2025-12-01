@@ -17,17 +17,36 @@ export async function inicializarLuvaOuroParticipante({
         timeId,
     });
 
+    const container = document.getElementById("luvaOuroContainer");
+    if (!container) {
+        console.error("[PARTICIPANTE-LUVA-OURO] ❌ Container não encontrado");
+        return;
+    }
+
     try {
-        const response = await fetch(`/api/ligas/${ligaId}/luva-de-ouro`);
+        // Tentar endpoint principal
+        let response = await fetch(`/api/ligas/${ligaId}/luva-de-ouro`);
+
         if (!response.ok) {
-            throw new Error("Erro ao buscar dados da Luva de Ouro");
+            // Tentar endpoint alternativo
+            response = await fetch(`/api/luva-de-ouro/${ligaId}`);
+        }
+
+        if (!response.ok) {
+            throw new Error("Módulo não configurado");
         }
 
         const data = await response.json();
-        renderizarLuvaOuro(data, timeId);
+        renderizarLuvaOuro(container, data, timeId);
     } catch (error) {
         console.error("[PARTICIPANTE-LUVA-OURO] ❌ Erro:", error);
-        mostrarErro(error.message);
+        container.innerHTML = `
+            <div style="text-align: center; padding: 60px 20px; background: linear-gradient(135deg, rgba(255, 215, 0, 0.05) 0%, rgba(255, 215, 0, 0.02) 100%); border-radius: 12px; border: 2px dashed rgba(255, 215, 0, 0.3);">
+                <div style="font-size: 64px; margin-bottom: 16px;">🧤</div>
+                <h3 style="color: #fff; margin-bottom: 12px;">Luva de Ouro</h3>
+                <p style="color: #999;">Este módulo ainda não foi configurado para esta liga.</p>
+            </div>
+        `;
     }
 }
 
@@ -37,13 +56,7 @@ window.inicializarLuvaOuroParticipante = inicializarLuvaOuroParticipante;
 // =====================================================================
 // RENDERIZAÇÃO
 // =====================================================================
-function renderizarLuvaOuro(data, meuTimeId) {
-    const container = document.getElementById("luvaOuroContainer");
-    if (!container) {
-        console.error("[PARTICIPANTE-LUVA-OURO] ❌ Container não encontrado");
-        return;
-    }
-
+function renderizarLuvaOuro(container, data, meuTimeId) {
     // Verificar se há edições
     if (!data.edicoes || data.edicoes.length === 0) {
         container.innerHTML = `
@@ -161,22 +174,6 @@ function renderizarLuvaOuro(data, meuTimeId) {
 
     html += "</div>";
     container.innerHTML = html;
-}
-
-// =====================================================================
-// ERRO
-// =====================================================================
-function mostrarErro(mensagem) {
-    const container = document.getElementById("luvaOuroContainer");
-    if (container) {
-        container.innerHTML = `
-            <div style="text-align: center; padding: 40px; background: rgba(239, 68, 68, 0.1); border-radius: 12px; border: 1px solid rgba(239, 68, 68, 0.3);">
-                <div style="font-size: 48px; margin-bottom: 16px;">⚠️</div>
-                <h3 style="color: #ef4444; margin-bottom: 12px;">Erro ao Carregar Luva de Ouro</h3>
-                <p style="color: #e0e0e0;">${mensagem}</p>
-            </div>
-        `;
-    }
 }
 
 console.log("[PARTICIPANTE-LUVA-OURO] ✅ Módulo v2.0 carregado");

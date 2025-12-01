@@ -22,27 +22,38 @@ export async function inicializarTop10Participante({
 
         const dados = await response.json();
 
-        // Validar e extrair array de times
+        // Processar estrutura de dados
         let times = [];
+
         if (Array.isArray(dados)) {
+            // Formato: array direto de times
             times = dados;
-        } else if (dados && Array.isArray(dados.times)) {
-            times = dados.times;
         } else if (dados && typeof dados === "object") {
-            // Pode ser objeto com rodadas como chaves
-            console.log(
-                "[PARTICIPANTE-TOP10] Estrutura de dados:",
-                Object.keys(dados),
-            );
-            times = Object.values(dados)
-                .flat()
-                .filter((item) => item && typeof item === "object");
+            // Formato: objeto com rodadas como keys {1: [], 2: [], ..., 35: []}
+            const rodadas = Object.keys(dados)
+                .map(Number)
+                .filter((n) => !isNaN(n));
+
+            if (rodadas.length > 0) {
+                // Pegar a última rodada disponível
+                const ultimaRodada = Math.max(...rodadas);
+                times = dados[ultimaRodada] || [];
+                console.log(
+                    `[PARTICIPANTE-TOP10] 📊 Usando rodada ${ultimaRodada} com ${times.length} times`,
+                );
+            }
         }
 
-        console.log(
-            `[PARTICIPANTE-TOP10] ✅ ${times.length} times processados`,
-        );
-        renderizarTop10(times, timeId);
+        if (times.length === 0) {
+            throw new Error("Nenhum dado disponível");
+        }
+
+        // Ordenar por pontos (caso não venha ordenado) e pegar top 10
+        times.sort((a, b) => (b.pontos || 0) - (a.pontos || 0));
+        const top10 = times.slice(0, 10);
+
+        console.log(`[PARTICIPANTE-TOP10] ✅ ${top10.length} times no TOP 10`);
+        renderizarTop10(top10, timeId);
     } catch (error) {
         console.error("[PARTICIPANTE-TOP10] ❌ Erro:", error);
         mostrarErro(error.message);
@@ -69,47 +80,53 @@ function renderizarTop10(times, meuTimeId) {
         return;
     }
 
-    const top10 = times.slice(0, 10);
-    const totalTimes = top10.length;
     const meuTimeIdNum = Number(meuTimeId);
+    const totalTimes = times.length;
 
-    const html = top10
+    const html = times
         .map((time, index) => {
             const posicao = index + 1;
             const timeIdNum = Number(time.time_id || time.timeId);
-            let badgeClass = "";
-            let badge = "";
+            const isMeuTime = timeIdNum === meuTimeIdNum;
+
+            // Definir badges e zonas
+            let badgeHTML = "";
+            let cardClass = "top10-card";
 
             if (posicao === 1) {
-                badgeClass = "zona-mito";
-                badge = '<div class="badge-especial badge-mito">MITO 🔥</div>';
+                badgeHTML =
+                    '<div class="badge-especial badge-mito">🔥 MITO</div>';
+                cardClass += " podium-1 zona-mito";
+            } else if (posicao === 2) {
+                cardClass += " podium-2 zona-top3";
+            } else if (posicao === 3) {
+                cardClass += " podium-3 zona-top3";
             } else if (posicao === totalTimes && totalTimes >= 10) {
-                badgeClass = "zona-mico";
-                badge = '<div class="badge-especial badge-mico">MICO 💩</div>';
-            } else if (posicao <= 3) {
-                badgeClass = "zona-top3";
-            } else if (posicao <= 6) {
-                badgeClass = "zona-top10";
+                badgeHTML =
+                    '<div class="badge-especial badge-mico">💩 MICO</div>';
+                cardClass += " zona-mico";
+            } else {
+                cardClass += " zona-top10";
             }
 
-            const podiumClass = posicao <= 3 ? `podium-${posicao}` : "";
-            const meuTime = timeIdNum === meuTimeIdNum ? "meu-time" : "";
-            const premiacaoClick =
-                posicao <= 3
-                    ? `onclick="window.mostrarPremiacaoTop10(${posicao})"`
-                    : "";
-            const cursorStyle = posicao <= 3 ? 'style="cursor: pointer;"' : "";
+            if (isMeuTime) {
+                cardClass += " meu-time";
+            }
 
             const pontos = Number(time.pontos || 0).toLocaleString("pt-BR", {
                 minimumFractionDigits: 2,
                 maximumFractionDigits: 2,
             });
 
+            const nomeTime = time.nome || time.nome_time || "N/D";
+            const nomeCartola = time.nome_cartola || "";
+
             return `
-            <div class="top10-card ${podiumClass} ${badgeClass} ${meuTime}" ${cursorStyle}>
-                ${badge}
-                <div class="top10-posicao" ${premiacaoClick}>${posicao}º</div>
-                <div class="top10-nome">${time.nome || time.nome_time || "N/D"}</div>
+            <div class="${cardClass}">
+                ${badgeHTML}
+                <div class="top10-posicao">${posicao}º</div>
+                <div class="top10-nome">${nomeTime}</div>
+                ${nomeCartola ? `<div style="font-size: 12px; color: #999; margin-bottom: 8px;">${nomeCartola}</div>` : ""}
                 <div class="top10-pontos">${pontos} pts</div>
             </div>
         `;

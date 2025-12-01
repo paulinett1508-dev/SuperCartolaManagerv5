@@ -84,35 +84,49 @@ async function carregarExtrato(ligaId, timeId, forcarRefresh = false) {
         const cacheData = await response.json();
         console.log("[EXTRATO-PARTICIPANTE] 📦 Cache recebido:", {
             cached: cacheData.cached,
-            temData: !!cacheData.data,
-            rodadas: cacheData.data?.rodadas?.length || 0,
+            temRodadas: !!cacheData.rodadas,
+            qtdRodadas: cacheData.rodadas?.length || 0,
+            resumo: cacheData.resumo,
         });
 
-        // ✅ VALIDAR ESTRUTURA
+        // ✅ VALIDAR ESTRUTURA DO CACHE
         let extratoData = null;
 
-        if (cacheData.cached && cacheData.data) {
-            // Cache válido
-            extratoData = cacheData.data;
-        } else if (cacheData.rodadas) {
-            // Estrutura direta
-            extratoData = cacheData;
-        } else if (Array.isArray(cacheData)) {
-            // Array direto (formato antigo)
-            extratoData = {
-                rodadas: cacheData,
-                resumo: calcularResumoLocal(cacheData),
-            };
+        // O controller retorna: { cached, rodadas, resumo, metadados, ... }
+        if (
+            cacheData.cached &&
+            cacheData.rodadas &&
+            cacheData.rodadas.length > 0
+        ) {
+            // Verificar se rodadas têm campos necessários
+            const primeiraRodada = cacheData.rodadas[0];
+            const temCamposCompletos =
+                primeiraRodada.posicao !== undefined ||
+                primeiraRodada.bonusOnus !== undefined;
+
+            if (temCamposCompletos) {
+                extratoData = {
+                    rodadas: cacheData.rodadas,
+                    resumo: cacheData.resumo || {
+                        saldo: 0,
+                        totalGanhos: 0,
+                        totalPerdas: 0,
+                    },
+                };
+                console.log(
+                    "[EXTRATO-PARTICIPANTE] ✅ Cache válido com campos completos",
+                );
+            } else {
+                console.log(
+                    "[EXTRATO-PARTICIPANTE] ⚠️ Cache com campos incompletos, buscando endpoint direto...",
+                );
+            }
         }
 
-        if (
-            !extratoData ||
-            !extratoData.rodadas ||
-            extratoData.rodadas.length === 0
-        ) {
-            // Cache não existe ou está vazio - tentar endpoint alternativo
+        // Se cache não tem dados completos, tentar endpoint direto
+        if (!extratoData) {
             console.log(
-                "[EXTRATO-PARTICIPANTE] ⚠️ Cache vazio, tentando endpoint direto...",
+                "[EXTRATO-PARTICIPANTE] 📡 Buscando endpoint direto...",
             );
 
             const resDireto = await fetch(
@@ -120,15 +134,49 @@ async function carregarExtrato(ligaId, timeId, forcarRefresh = false) {
             );
             if (resDireto.ok) {
                 const dadosDireto = await resDireto.json();
-                if (dadosDireto && dadosDireto.rodadas) {
+                console.log(
+                    "[EXTRATO-PARTICIPANTE] 📦 Resposta endpoint direto:",
+                    {
+                        temRodadas: !!dadosDireto.rodadas,
+                        qtd:
+                            dadosDireto.rodadas?.length ||
+                            (Array.isArray(dadosDireto)
+                                ? dadosDireto.length
+                                : 0),
+                    },
+                );
+
+                if (
+                    dadosDireto &&
+                    dadosDireto.rodadas &&
+                    dadosDireto.rodadas.length > 0
+                ) {
                     extratoData = dadosDireto;
-                } else if (Array.isArray(dadosDireto)) {
+                } else if (
+                    Array.isArray(dadosDireto) &&
+                    dadosDireto.length > 0
+                ) {
                     extratoData = {
                         rodadas: dadosDireto,
                         resumo: calcularResumoLocal(dadosDireto),
                     };
                 }
             }
+        }
+
+        // Ainda sem dados? Usar o que tiver do cache mesmo com campos incompletos
+        if (!extratoData && cacheData.rodadas && cacheData.rodadas.length > 0) {
+            console.log(
+                "[EXTRATO-PARTICIPANTE] ⚠️ Usando cache mesmo com campos incompletos",
+            );
+            extratoData = {
+                rodadas: cacheData.rodadas,
+                resumo: cacheData.resumo || {
+                    saldo: 0,
+                    totalGanhos: 0,
+                    totalPerdas: 0,
+                },
+            };
         }
 
         if (

@@ -44,93 +44,90 @@ window.inicializarRankingParticipante = inicializarRankingParticipante;
 // RENDERIZAÇÃO
 // =====================================================================
 function renderizarRanking(ranking, meuTimeId) {
-    const tbody = document.querySelector("#rankingTable tbody");
+    const container = document.getElementById("rankingTabela");
 
-    if (!tbody) {
-        console.error("[PARTICIPANTE-RANKING] ❌ Tabela não encontrada");
+    if (!container) {
+        console.error("[PARTICIPANTE-RANKING] ❌ Container não encontrado");
         return;
     }
 
     if (!ranking || ranking.length === 0) {
-        tbody.innerHTML = `
-            <tr>
-                <td colspan="4" style="text-align: center; padding: 40px; color: #999;">
-                    Nenhum dado disponível
-                </td>
-            </tr>
+        container.innerHTML = `
+            <div style="text-align: center; padding: 40px; color: #999;">
+                Nenhum dado disponível
+            </div>
         `;
         return;
     }
 
     const meuTimeIdNum = Number(meuTimeId);
 
-    // Premiações
-    const premiacoes = {
-        1: { valor: "R$ 1.000,00", label: "🥇 CAMPEÃO" },
-        2: { valor: "R$ 700,00", label: "🥈 2º LUGAR" },
-        3: { valor: "R$ 400,00", label: "🥉 3º LUGAR" },
-    };
+    // Gerar HTML da tabela
+    const html = `
+        <table>
+            <thead>
+                <tr>
+                    <th style="width: 50px; text-align: center;">Pos</th>
+                    <th>Time</th>
+                    <th style="width: 100px; text-align: right;">Pontos</th>
+                </tr>
+            </thead>
+            <tbody>
+                ${ranking
+                    .map((time, index) => {
+                        const posicao = index + 1;
+                        const isMeuTime =
+                            Number(time.time_id || time.timeId) ===
+                            meuTimeIdNum;
+                        const isTop3 = posicao <= 3;
 
-    tbody.innerHTML = ranking
-        .map((time, index) => {
-            const posicao = index + 1;
-            const isTop3 = posicao <= 3;
-            const isMeuTime =
-                Number(time.time_id || time.timeId) === meuTimeIdNum;
-            const premiacao = premiacoes[posicao];
+                        const pontosFormatados = parseFloat(
+                            time.pontos_total || time.pontos_totais || 0,
+                        ).toLocaleString("pt-BR", {
+                            minimumFractionDigits: 2,
+                            maximumFractionDigits: 2,
+                        });
 
-            const pontosFormatados = parseFloat(
-                time.pontos_total || time.pontos_totais || 0,
-            ).toLocaleString("pt-BR", {
-                minimumFractionDigits: 2,
-                maximumFractionDigits: 2,
-            });
+                        let rowClass = "";
+                        if (isMeuTime) rowClass = "meu-time";
+                        else if (posicao === 1) rowClass = "podium-1";
+                        else if (posicao === 2) rowClass = "podium-2";
+                        else if (posicao === 3) rowClass = "podium-3";
 
-            return `
-            <tr class="${isMeuTime ? "meu-time" : ""} ${isTop3 ? "top-3" : ""}" data-posicao="${posicao}">
-                <td>
-                    ${
-                        isTop3
-                            ? `
-                        <div class="posicao-destaque posicao-${posicao}"
-                             onclick="mostrarPremiacao(${posicao}, '${premiacao.label}', '${premiacao.valor}')"
-                             style="cursor: pointer;">
-                            <span class="posicao-numero">${posicao}º</span>
-                            ${posicao === 1 ? "👑" : posicao === 2 ? "🥈" : "🥉"}
-                        </div>
-                    `
-                            : `
-                        <span class="posicao-normal">${posicao}º</span>
-                    `
-                    }
-                </td>
-                <td class="time-info">
-                    <img src="${time.url_escudo_png || `/escudos/${time.clube_id || "placeholder"}.png`}"
-                         alt="${time.nome_time}"
-                         class="escudo-time"
-                         onerror="this.src='/escudos/placeholder.png'">
-                    <div>
-                        <div class="nome-time">${time.nome_time || "Time"}</div>
-                        <div class="nome-cartola">${time.nome_cartola || "Cartoleiro"}</div>
-                    </div>
-                </td>
-                <td class="time-clube">
-                    ${
-                        time.clube_id
-                            ? `
-                        <img src="/escudos/${time.clube_id}.png"
-                             alt="Clube"
-                             class="escudo-clube"
-                             onerror="this.src='/escudos/placeholder.png'">
-                    `
-                            : "N/D"
-                    }
-                </td>
-                <td class="pontos">${pontosFormatados}</td>
-            </tr>
-        `;
-        })
-        .join("");
+                        const medalha =
+                            posicao === 1
+                                ? "🥇"
+                                : posicao === 2
+                                  ? "🥈"
+                                  : posicao === 3
+                                    ? "🥉"
+                                    : "";
+
+                        return `
+                        <tr class="${rowClass}" ${isTop3 ? `onclick="window.mostrarPremiacao(${posicao})" style="cursor: pointer;"` : ""}>
+                            <td style="text-align: center;">
+                                <span class="posicao-badge">${posicao}</span>
+                                ${medalha}
+                            </td>
+                            <td>
+                                <div style="font-weight: 600; color: #fff;">${time.nome_time || "Time"}</div>
+                                <div style="font-size: 12px; color: #999;">${time.nome_cartola || ""}</div>
+                            </td>
+                            <td class="pontos-destaque" style="text-align: right;">${pontosFormatados}</td>
+                        </tr>
+                    `;
+                    })
+                    .join("")}
+            </tbody>
+        </table>
+    `;
+
+    container.innerHTML = html;
+    console.log(
+        "[PARTICIPANTE-RANKING] ✅ Ranking renderizado:",
+        ranking.length,
+        "times",
+    );
 }
 
 // =====================================================================
