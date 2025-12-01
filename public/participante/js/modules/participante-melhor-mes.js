@@ -6,7 +6,7 @@
 // ✅ Leve e rápido
 // =====================================================================
 
-console.log('[MELHOR-MES-PARTICIPANTE] 🔄 Módulo v2.0 (consumo)');
+console.log("[MELHOR-MES-PARTICIPANTE] 🔄 Módulo v2.0 (consumo)");
 
 let ligaIdAtual = null;
 let timeIdAtual = null;
@@ -14,11 +14,18 @@ let timeIdAtual = null;
 // =====================================================================
 // FUNÇÃO PRINCIPAL - INICIALIZAR
 // =====================================================================
-window.inicializarMelhorMesParticipante = async function({ participante, ligaId, timeId }) {
-    console.log('[MELHOR-MES-PARTICIPANTE] Inicializando...', { ligaId, timeId });
+window.inicializarMelhorMesParticipante = async function ({
+    participante,
+    ligaId,
+    timeId,
+}) {
+    console.log("[MELHOR-MES-PARTICIPANTE] Inicializando...", {
+        ligaId,
+        timeId,
+    });
 
     if (!ligaId) {
-        mostrarErro('Dados da liga não encontrados');
+        mostrarErro("Dados da liga não encontrados");
         return;
     }
 
@@ -32,11 +39,12 @@ window.inicializarMelhorMesParticipante = async function({ participante, ligaId,
 // CARREGAR DADOS DO BACKEND
 // =====================================================================
 async function carregarMelhorMes(ligaId, timeId) {
-    const container = document.getElementById('melhorMesContainer') || 
-                     document.getElementById('moduleContainer');
+    const container =
+        document.getElementById("melhorMesContainer") ||
+        document.getElementById("moduleContainer");
 
     if (!container) {
-        console.error('[MELHOR-MES-PARTICIPANTE] ❌ Container não encontrado');
+        console.error("[MELHOR-MES-PARTICIPANTE] ❌ Container não encontrado");
         return;
     }
 
@@ -58,7 +66,7 @@ async function carregarMelhorMes(ligaId, timeId) {
         }
 
         const dados = await response.json();
-        console.log('[MELHOR-MES-PARTICIPANTE] ✅ Dados recebidos:', dados);
+        console.log("[MELHOR-MES-PARTICIPANTE] ✅ Dados recebidos:", dados);
 
         if (!dados.edicoes || dados.edicoes.length === 0) {
             mostrarVazio(container);
@@ -67,9 +75,8 @@ async function carregarMelhorMes(ligaId, timeId) {
 
         // Renderizar
         renderizarMelhorMes(container, dados.edicoes, timeId);
-
     } catch (error) {
-        console.error('[MELHOR-MES-PARTICIPANTE] ❌ Erro:', error);
+        console.error("[MELHOR-MES-PARTICIPANTE] ❌ Erro:", error);
         mostrarErro(error.message);
     }
 }
@@ -81,8 +88,8 @@ function renderizarMelhorMes(container, edicoes, meuTimeId) {
     const meuTimeIdNum = Number(meuTimeId);
 
     // Encontrar minhas conquistas
-    const minhasConquistas = edicoes.filter(e => 
-        e.campeao && Number(e.campeao.timeId) === meuTimeIdNum
+    const minhasConquistas = edicoes.filter(
+        (e) => e.campeao && Number(e.campeao.timeId) === meuTimeIdNum,
     );
 
     const html = `
@@ -94,21 +101,25 @@ function renderizarMelhorMes(container, edicoes, meuTimeId) {
             </div>
 
             <!-- Minhas conquistas (se houver) -->
-            ${minhasConquistas.length > 0 ? `
+            ${
+                minhasConquistas.length > 0
+                    ? `
                 <div class="mm-conquistas">
                     <div class="conquistas-header">
                         <span class="conquistas-icon">🎖️</span>
                         <span>Você foi campeão ${minhasConquistas.length}x!</span>
                     </div>
                     <div class="conquistas-meses">
-                        ${minhasConquistas.map(e => `<span class="mes-chip">${e.nome}</span>`).join('')}
+                        ${minhasConquistas.map((e) => `<span class="mes-chip">${e.nome}</span>`).join("")}
                     </div>
                 </div>
-            ` : ''}
+            `
+                    : ""
+            }
 
             <!-- Lista de edições -->
             <div class="mm-edicoes">
-                ${edicoes.map(edicao => renderizarEdicao(edicao, meuTimeIdNum)).join('')}
+                ${edicoes.map((edicao) => renderizarEdicao(edicao, meuTimeIdNum)).join("")}
             </div>
         </div>
 
@@ -355,17 +366,17 @@ function renderizarMelhorMes(container, edicoes, meuTimeId) {
     container.innerHTML = html;
 
     // Adicionar eventos de expansão
-    document.querySelectorAll('.edicao-header').forEach(header => {
-        header.addEventListener('click', function() {
-            const card = this.closest('.edicao-card');
-            const ranking = card.querySelector('.edicao-ranking');
+    document.querySelectorAll(".edicao-header").forEach((header) => {
+        header.addEventListener("click", function () {
+            const card = this.closest(".edicao-card");
+            const ranking = card.querySelector(".edicao-ranking");
 
-            card.classList.toggle('expanded');
-            ranking.classList.toggle('expanded');
+            card.classList.toggle("expanded");
+            ranking.classList.toggle("expanded");
         });
     });
 
-    console.log('[MELHOR-MES-PARTICIPANTE] ✅ Rankings renderizados');
+    console.log("[MELHOR-MES-PARTICIPANTE] ✅ Rankings renderizados");
 }
 
 // =====================================================================
@@ -376,44 +387,49 @@ function renderizarEdicao(edicao, meuTimeIdNum) {
     const souCampeao = campeao && Number(campeao.timeId) === meuTimeIdNum;
 
     const mesesIcons = {
-        'Abril': '🌸',
-        'Maio': '🌺',
-        'Junho': '🎉',
-        'Julho': '❄️',
-        'Agosto': '🌻',
-        'Setembro': '🍂',
-        'Outubro': '🎃',
-        'Novembro': '🍁'
+        Abril: "🌸",
+        Maio: "🌺",
+        Junho: "🎉",
+        Julho: "❄️",
+        Agosto: "🌻",
+        Setembro: "🍂",
+        Outubro: "🎃",
+        Novembro: "🍁",
     };
 
-    const pontosFormatados = campeao ? campeao.pontos_total.toLocaleString('pt-BR', {
-        minimumFractionDigits: 2,
-        maximumFractionDigits: 2
-    }) : '0,00';
+    const pontosFormatados = campeao
+        ? campeao.pontos_total.toLocaleString("pt-BR", {
+              minimumFractionDigits: 2,
+              maximumFractionDigits: 2,
+          })
+        : "0,00";
 
     return `
-        <div class="edicao-card ${souCampeao ? 'meu-titulo' : ''}">
+        <div class="edicao-card ${souCampeao ? "meu-titulo" : ""}">
             <div class="edicao-header">
                 <div class="edicao-info">
-                    <span class="edicao-icon">${mesesIcons[edicao.nome] || '📅'}</span>
+                    <span class="edicao-icon">${mesesIcons[edicao.nome] || "📅"}</span>
                     <span class="edicao-nome">${edicao.nome}</span>
                 </div>
                 <div style="display: flex; align-items: center; gap: 8px;">
-                    <span class="edicao-status ${edicao.status}">${edicao.status === 'concluido' ? '✓ Concluído' : '⏳ Em andamento'}</span>
+                    <span class="edicao-status ${edicao.status}">${edicao.status === "concluido" ? "✓ Concluído" : "⏳ Em andamento"}</span>
                     <span class="expand-icon">▼</span>
                 </div>
             </div>
 
-            ${campeao ? `
+            ${
+                campeao
+                    ? `
                 <div class="edicao-campeao">
-                    <span class="campeao-icon">${souCampeao ? '🎖️' : '👑'}</span>
+                    <span class="campeao-icon">${souCampeao ? "🎖️" : "👑"}</span>
                     <div class="campeao-info">
-                        <div class="campeao-label">${souCampeao ? 'VOCÊ É O CAMPEÃO!' : 'Campeão'}</div>
+                        <div class="campeao-label">${souCampeao ? "VOCÊ É O CAMPEÃO!" : "Campeão"}</div>
                         <div class="campeao-nome">${campeao.nome_time}</div>
                     </div>
                     <div class="campeao-pontos">${pontosFormatados}</div>
                 </div>
-            ` : `
+            `
+                    : `
                 <div class="edicao-campeao" style="background: rgba(255,255,255,0.02);">
                     <span class="campeao-icon">⏳</span>
                     <div class="campeao-info">
@@ -421,11 +437,14 @@ function renderizarEdicao(edicao, meuTimeIdNum) {
                         <div class="campeao-nome" style="color: #999;">Em disputa...</div>
                     </div>
                 </div>
-            `}
+            `
+            }
 
             <!-- Ranking expandível -->
             <div class="edicao-ranking">
-                ${edicao.ranking && edicao.ranking.length > 0 ? `
+                ${
+                    edicao.ranking && edicao.ranking.length > 0
+                        ? `
                     <table class="ranking-mini-table">
                         <thead>
                             <tr>
@@ -435,32 +454,46 @@ function renderizarEdicao(edicao, meuTimeIdNum) {
                             </tr>
                         </thead>
                         <tbody>
-                            ${edicao.ranking.slice(0, 10).map(time => {
-                                const isMeuTime = Number(time.timeId) === meuTimeIdNum;
-                                const pts = time.pontos_total.toLocaleString('pt-BR', {
-                                    minimumFractionDigits: 2,
-                                    maximumFractionDigits: 2
-                                });
-                                return `
-                                    <tr class="${isMeuTime ? 'meu-time' : ''}">
+                            ${edicao.ranking
+                                .slice(0, 10)
+                                .map((time) => {
+                                    const isMeuTime =
+                                        Number(time.timeId) === meuTimeIdNum;
+                                    const pts =
+                                        time.pontos_total.toLocaleString(
+                                            "pt-BR",
+                                            {
+                                                minimumFractionDigits: 2,
+                                                maximumFractionDigits: 2,
+                                            },
+                                        );
+                                    return `
+                                    <tr class="${isMeuTime ? "meu-time" : ""}">
                                         <td>${time.posicao}º</td>
                                         <td>${time.nome_time}</td>
                                         <td>${pts}</td>
                                     </tr>
                                 `;
-                            }).join('')}
+                                })
+                                .join("")}
                         </tbody>
                     </table>
-                    ${edicao.ranking.length > 10 ? `
+                    ${
+                        edicao.ranking.length > 10
+                            ? `
                         <div style="text-align: center; padding: 8px; color: #666; font-size: 11px;">
                             +${edicao.ranking.length - 10} participantes
                         </div>
-                    ` : ''}
-                ` : `
+                    `
+                            : ""
+                    }
+                `
+                        : `
                     <div style="text-align: center; padding: 20px; color: #666;">
                         Sem dados disponíveis
                     </div>
-                `}
+                `
+                }
             </div>
         </div>
     `;
@@ -480,8 +513,9 @@ function mostrarVazio(container) {
 }
 
 function mostrarErro(mensagem) {
-    const container = document.getElementById('melhorMesContainer') || 
-                     document.getElementById('moduleContainer');
+    const container =
+        document.getElementById("melhorMesContainer") ||
+        document.getElementById("moduleContainer");
     if (container) {
         container.innerHTML = `
             <div style="text-align: center; padding: 40px; color: #ef4444;">
@@ -498,7 +532,9 @@ function mostrarErro(mensagem) {
     }
 }
 
-// Export ES6
-export { window.inicializarMelhorMesParticipante as inicializarMelhorMesParticipante };
+// Export ES6 (wrapper para compatibilidade com navigation)
+export async function inicializarMelhorMesParticipante(params) {
+    return window.inicializarMelhorMesParticipante(params);
+}
 
-console.log('[MELHOR-MES-PARTICIPANTE] ✅ Módulo v2.0 carregado');
+console.log("[MELHOR-MES-PARTICIPANTE] ✅ Módulo v2.0 carregado");

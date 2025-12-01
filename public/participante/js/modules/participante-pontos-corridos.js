@@ -421,4 +421,9 @@ function mostrarErro(mensagem) {
     }
 }
 
+// Export ES6 (wrapper para compatibilidade com navigation)
+export async function inicializarPontosCorridosParticipante(params) {
+    return window.inicializarPontosCorridosParticipante(params);
+}
+
 console.log("[PONTOS-CORRIDOS-PARTICIPANTE] ✅ Módulo v2.0 carregado");

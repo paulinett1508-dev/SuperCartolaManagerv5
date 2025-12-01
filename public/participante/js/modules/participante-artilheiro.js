@@ -1,279 +1,182 @@
-console.log('🏆 [PARTICIPANTE-ARTILHEIRO] Módulo carregando...');
+// =====================================================================
+// PARTICIPANTE-ARTILHEIRO.JS - v2.0 (COM EXPORT)
+// =====================================================================
 
-// Função principal de inicialização
-async function inicializarArtilheiroParticipante(ligaId, timeId) {
-    console.log('🏆 [PARTICIPANTE-ARTILHEIRO] Inicializando módulo Artilheiro Campeão...');
-    console.log('🏆 [PARTICIPANTE-ARTILHEIRO] Liga:', ligaId, 'Time:', timeId);
+console.log("[PARTICIPANTE-ARTILHEIRO] 🔄 Carregando módulo v2.0...");
+
+// =====================================================================
+// FUNÇÃO PRINCIPAL - EXPORTADA PARA NAVIGATION
+// =====================================================================
+export async function inicializarArtilheiroParticipante({
+    participante,
+    ligaId,
+    timeId,
+}) {
+    console.log("[PARTICIPANTE-ARTILHEIRO] 🚀 Inicializando...", {
+        ligaId,
+        timeId,
+    });
 
     try {
-        // Mostrar loading
-        mostrarLoading();
+        const response = await fetch(`/api/ligas/${ligaId}/artilheiro`);
+        if (!response.ok) {
+            throw new Error("Erro ao buscar dados do Artilheiro");
+        }
 
-        // Carregar dados do artilheiro
-        const dados = await carregarDadosArtilheiro(ligaId, timeId);
-
-        // Renderizar interface
-        renderizarArtilheiro(dados);
-
-        console.log('✅ [PARTICIPANTE-ARTILHEIRO] Módulo inicializado com sucesso');
-
+        const data = await response.json();
+        renderizarArtilheiro(data, timeId);
     } catch (error) {
-        console.error('❌ [PARTICIPANTE-ARTILHEIRO] Erro ao inicializar:', error);
+        console.error("[PARTICIPANTE-ARTILHEIRO] ❌ Erro:", error);
         mostrarErro(error.message);
     }
 }
 
-// Export para compatibilidade
-export async function init() {
-    console.log('🏆 [PARTICIPANTE-ARTILHEIRO] init() chamado via export');
+// Também expor no window para compatibilidade
+window.inicializarArtilheiroParticipante = inicializarArtilheiroParticipante;
 
-    if (!window.participanteAuth) {
-        console.error('❌ [PARTICIPANTE-ARTILHEIRO] participanteAuth não disponível');
-        throw new Error('Sistema de autenticação não carregado');
-    }
-
-    const participanteData = participanteAuth.getDados();
-    console.log('🏆 [PARTICIPANTE-ARTILHEIRO] Dados do participante:', participanteData);
-
-    if (!participanteData || !participanteData.ligaId || !participanteData.timeId) {
-        console.error('❌ [PARTICIPANTE-ARTILHEIRO] Dados inválidos:', participanteData);
-        throw new Error('Dados do participante não disponíveis');
-    }
-
-    const { ligaId, timeId } = participanteData;
-    await inicializarArtilheiroParticipante(ligaId, timeId);
-}
-
-// Expor função globalmente
-if (typeof window !== 'undefined') {
-    window.inicializarArtilheiroParticipante = inicializarArtilheiroParticipante;
-    console.log('✅ [PARTICIPANTE-ARTILHEIRO] Função global inicializarArtilheiroParticipante registrada');
-}
-
-function obterContainer() {
-    // Tentar múltiplos IDs possíveis
-    const possiveisIds = ['artilheiro-content', 'artilheiroContainer', 'moduleContainer'];
-
-    for (const id of possiveisIds) {
-        const container = document.getElementById(id);
-        if (container) {
-            console.log(`🏆 [PARTICIPANTE-ARTILHEIRO] Container encontrado: ${id}`);
-            return container;
-        }
-    }
-
-    console.error('❌ [PARTICIPANTE-ARTILHEIRO] Nenhum container encontrado. IDs tentados:', possiveisIds);
-    return null;
-}
-
-function mostrarLoading() {
-    const container = obterContainer();
+// =====================================================================
+// RENDERIZAÇÃO
+// =====================================================================
+function renderizarArtilheiro(data, meuTimeId) {
+    const container = document.getElementById("artilheiroContainer");
     if (!container) {
-        console.warn('[PARTICIPANTE-ARTILHEIRO] Container não encontrado para loading');
+        console.error("[PARTICIPANTE-ARTILHEIRO] ❌ Container não encontrado");
         return;
     }
 
-    container.innerHTML = `
-        <div class="loading-participante" style="text-align: center; padding: 40px;">
-            <div class="spinner-participante" style="border: 4px solid #f3f3f3; border-top: 4px solid var(--participante-primary, #ff4500); border-radius: 50%; width: 50px; height: 50px; animation: spin 1s linear infinite; margin: 0 auto;"></div>
-            <p style="margin-top: 20px; color: #999;">Carregando dados do Artilheiro Campeão...</p>
-        </div>
-        <style>
-        @keyframes spin {
-            0% { transform: rotate(0deg); }
-            100% { transform: rotate(360deg); }
-        }
-        </style>
-    `;
-}
-
-function mostrarErro(mensagem) {
-    const container = obterContainer();
-    if (!container) return;
-
-    container.innerHTML = `
-        <div style="text-align: center; padding: 40px; background: #fff3cd; border-radius: 8px; color: #856404;">
-            <h4>❌ Erro ao Carregar Dados</h4>
-            <p>${mensagem}</p>
-            <button onclick="location.reload()" style="margin-top: 20px; padding: 10px 20px; background: var(--participante-primary, #ff4500); color: white; border: none; border-radius: 8px; cursor: pointer;">
-                🔄 Tentar Novamente
-            </button>
-        </div>
-    `;
-}
-
-async function carregarDadosArtilheiro(ligaId, timeId) {
-    console.log(`🏆 [PARTICIPANTE-ARTILHEIRO] Carregando dados da liga ${ligaId}...`);
-
-    try {
-        const response = await fetch(`/api/artilheiro-campeao/${ligaId}/ranking`);
-
-        if (!response.ok) {
-            throw new Error(`Erro ao buscar dados: ${response.status}`);
-        }
-
-        const dados = await response.json();
-        console.log('🏆 [PARTICIPANTE-ARTILHEIRO] Dados recebidos:', dados);
-
-        // Encontrar posição do participante
-        const minhaPosicao = dados.ranking.findIndex(p => p.timeId == timeId);
-
-        return {
-            ranking: dados.ranking,
-            minhaPosicao: minhaPosicao >= 0 ? minhaPosicao + 1 : null,
-            meusDados: minhaPosicao >= 0 ? dados.ranking[minhaPosicao] : null,
-            estatisticas: dados.estatisticas
-        };
-
-    } catch (error) {
-        console.error('❌ [PARTICIPANTE-ARTILHEIRO] Erro ao carregar dados:', error);
-        throw error;
-    }
-}
-
-function renderizarArtilheiro(dados) {
-    const container = obterContainer();
-    if (!container) {
-        console.error('❌ [PARTICIPANTE-ARTILHEIRO] Container não encontrado para renderização');
+    // Verificar se há edições
+    if (!data.edicoes || data.edicoes.length === 0) {
+        container.innerHTML = `
+            <div style="text-align: center; padding: 60px 20px; background: linear-gradient(135deg, rgba(34, 197, 94, 0.05) 0%, rgba(34, 197, 94, 0.02) 100%); border-radius: 12px; border: 2px dashed rgba(34, 197, 94, 0.3);">
+                <div style="font-size: 64px; margin-bottom: 16px;">⚽</div>
+                <h3 style="color: #fff; margin-bottom: 12px;">Artilheiro Não Disponível</h3>
+                <p style="color: #999;">Nenhuma edição do Artilheiro foi configurada ainda.</p>
+            </div>
+        `;
         return;
     }
 
-    console.log('🏆 [PARTICIPANTE-ARTILHEIRO] Renderizando dados:', dados);
-
-    const html = `
-        <div class="artilheiro-participante">
-            ${renderizarMinhaClassificacao(dados)}
-            ${renderizarTop5(dados)}
-            ${renderizarRankingCompleto(dados)}
-        </div>
+    // Renderizar
+    let html = `<div style="padding: 20px;">
+        <h2 style="margin: 0 0 20px 0; font-size: 22px; font-weight: 800; color: #fff;">⚽ Artilheiro Campeão</h2>
     `;
 
+    // Cards das edições
+    data.edicoes.forEach((edicao, index) => {
+        const ranking = edicao.ranking || [];
+        const campeao = ranking[0];
+        const minhaPosicao = ranking.findIndex(
+            (r) => String(r.timeId) === String(meuTimeId),
+        );
+        const minhaColocacao = minhaPosicao >= 0 ? minhaPosicao + 1 : null;
+
+        html += `
+            <div style="background: linear-gradient(135deg, rgba(34, 197, 94, 0.08) 0%, rgba(34, 197, 94, 0.03) 100%); border-radius: 12px; padding: 20px; margin-bottom: 16px; border: 1px solid rgba(34, 197, 94, 0.2);">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px;">
+                    <h3 style="margin: 0; font-size: 18px; font-weight: 700; color: #22c55e;">
+                        ⚽ ${edicao.nome || `Edição ${index + 1}`}
+                    </h3>
+                    <span style="background: ${edicao.status === "concluida" ? "rgba(34, 197, 94, 0.2)" : "rgba(59, 130, 246, 0.2)"}; color: ${edicao.status === "concluida" ? "#22c55e" : "#3b82f6"}; padding: 4px 10px; border-radius: 6px; font-size: 12px; font-weight: 600;">
+                        ${edicao.status === "concluida" ? "✓ Concluída" : "⏳ Em Andamento"}
+                    </span>
+                </div>
+
+                ${
+                    campeao
+                        ? `
+                    <div style="background: rgba(34, 197, 94, 0.1); border: 2px solid rgba(34, 197, 94, 0.3); border-radius: 10px; padding: 16px; margin-bottom: 16px;">
+                        <div style="text-align: center;">
+                            <div style="font-size: 32px; margin-bottom: 8px;">👑</div>
+                            <div style="font-size: 12px; color: #22c55e; margin-bottom: 4px; font-weight: 600;">ARTILHEIRO</div>
+                            <div style="font-size: 18px; font-weight: 700; color: #fff;">${campeao.nomeTime || campeao.nome_time || "N/D"}</div>
+                            <div style="font-size: 24px; font-weight: 900; color: #22c55e; margin-top: 8px;">
+                                ${Number(campeao.gols || campeao.pontos || 0).toLocaleString("pt-BR")} gols
+                            </div>
+                        </div>
+                    </div>
+                `
+                        : ""
+                }
+
+                ${
+                    minhaColocacao
+                        ? `
+                    <div style="background: ${minhaColocacao === 1 ? "rgba(34, 197, 94, 0.15)" : "rgba(59, 130, 246, 0.1)"}; border: 2px solid ${minhaColocacao === 1 ? "rgba(34, 197, 94, 0.4)" : "rgba(59, 130, 246, 0.3)"}; border-radius: 10px; padding: 12px; margin-bottom: 16px;">
+                        <div style="display: flex; justify-content: space-between; align-items: center;">
+                            <div>
+                                <div style="font-size: 12px; color: #3b82f6; font-weight: 600;">SUA POSIÇÃO</div>
+                                <div style="font-size: 20px; font-weight: 800; color: #fff;">${minhaColocacao}º lugar</div>
+                            </div>
+                            <div style="text-align: right;">
+                                <div style="font-size: 12px; color: #999;">Gols</div>
+                                <div style="font-size: 18px; font-weight: 700; color: #22c55e;">
+                                    ${Number(ranking[minhaPosicao]?.gols || ranking[minhaPosicao]?.pontos || 0).toLocaleString("pt-BR")}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                `
+                        : `
+                    <div style="background: rgba(255, 255, 255, 0.03); border-radius: 8px; padding: 12px; margin-bottom: 16px; text-align: center;">
+                        <span style="color: #666; font-size: 14px;">Você não participou desta edição</span>
+                    </div>
+                `
+                }
+
+                <!-- Top 5 -->
+                <div style="background: rgba(0,0,0,0.2); border-radius: 8px; overflow: hidden;">
+                    <div style="background: rgba(34, 197, 94, 0.1); padding: 10px 12px; border-bottom: 1px solid rgba(34, 197, 94, 0.2);">
+                        <span style="font-size: 13px; font-weight: 700; color: #22c55e;">🏆 TOP 5</span>
+                    </div>
+                    ${ranking
+                        .slice(0, 5)
+                        .map((time, idx) => {
+                            const isMeuTime =
+                                String(time.timeId) === String(meuTimeId);
+                            const pos = idx + 1;
+                            const medalha =
+                                pos === 1
+                                    ? "🥇"
+                                    : pos === 2
+                                      ? "🥈"
+                                      : pos === 3
+                                        ? "🥉"
+                                        : `${pos}º`;
+
+                            return `
+                            <div style="display: flex; justify-content: space-between; align-items: center; padding: 10px 12px; border-bottom: 1px solid rgba(255,255,255,0.05); ${isMeuTime ? "background: rgba(34, 197, 94, 0.1);" : ""}">
+                                <div style="display: flex; align-items: center; gap: 10px;">
+                                    <span style="font-size: 16px; width: 28px;">${medalha}</span>
+                                    <span style="color: ${isMeuTime ? "#22c55e" : "#fff"}; font-weight: ${isMeuTime ? "700" : "500"};">${time.nomeTime || time.nome_time || "N/D"}</span>
+                                </div>
+                                <span style="color: #22c55e; font-weight: 700;">${Number(time.gols || time.pontos || 0).toLocaleString("pt-BR")} gols</span>
+                            </div>
+                        `;
+                        })
+                        .join("")}
+                </div>
+            </div>
+        `;
+    });
+
+    html += "</div>";
     container.innerHTML = html;
-    console.log('✅ [PARTICIPANTE-ARTILHEIRO] Interface renderizada');
 }
 
-function renderizarMinhaClassificacao(dados) {
-    if (!dados.meusDados) {
-        return `
-            <div class="alert alert-info">
-                <p>Você ainda não possui dados no ranking do Artilheiro Campeão.</p>
+// =====================================================================
+// ERRO
+// =====================================================================
+function mostrarErro(mensagem) {
+    const container = document.getElementById("artilheiroContainer");
+    if (container) {
+        container.innerHTML = `
+            <div style="text-align: center; padding: 40px; background: rgba(239, 68, 68, 0.1); border-radius: 12px; border: 1px solid rgba(239, 68, 68, 0.3);">
+                <div style="font-size: 48px; margin-bottom: 16px;">⚠️</div>
+                <h3 style="color: #ef4444; margin-bottom: 12px;">Erro ao Carregar Artilheiro</h3>
+                <p style="color: #e0e0e0;">${mensagem}</p>
             </div>
         `;
     }
-
-    const { meusDados, minhaPosicao } = dados;
-
-    return `
-        <div class="card mb-4">
-            <div class="card-header bg-primary text-white">
-                <h5 class="mb-0">🏆 Minha Classificação</h5>
-            </div>
-            <div class="card-body">
-                <div class="row text-center">
-                    <div class="col-md-3">
-                        <h3 class="text-primary">${minhaPosicao}º</h3>
-                        <small class="text-muted">Posição</small>
-                    </div>
-                    <div class="col-md-3">
-                        <h3 class="text-success">${meusDados.golsPro || 0}</h3>
-                        <small class="text-muted">Gols Pró</small>
-                    </div>
-                    <div class="col-md-3">
-                        <h3 class="text-danger">${meusDados.golsContra || 0}</h3>
-                        <small class="text-muted">Gols Contra</small>
-                    </div>
-                    <div class="col-md-3">
-                        <h3 class="${(meusDados.saldoGols || 0) >= 0 ? 'text-success' : 'text-danger'}">
-                            ${(meusDados.saldoGols || 0) >= 0 ? '+' : ''}${meusDados.saldoGols || 0}
-                        </h3>
-                        <small class="text-muted">Saldo</small>
-                    </div>
-                </div>
-            </div>
-        </div>
-    `;
 }
 
-function renderizarTop5(dados) {
-    const top5 = dados.ranking.slice(0, 5);
-
-    return `
-        <div class="card mb-4">
-            <div class="card-header">
-                <h5 class="mb-0">👑 Top 5 Artilheiros</h5>
-            </div>
-            <div class="card-body p-0">
-                <div class="table-responsive">
-                    <table class="table table-hover mb-0">
-                        <thead class="table-light">
-                            <tr>
-                                <th class="text-center">Pos</th>
-                                <th>Cartoleiro</th>
-                                <th class="text-center">GP</th>
-                                <th class="text-center">GC</th>
-                                <th class="text-center">Saldo</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            ${top5.map((p, idx) => `
-                                <tr class="${p.timeId == window.participanteData?.timeId ? 'table-primary' : ''}">
-                                    <td class="text-center">
-                                        ${idx === 0 ? '🏆' : `${idx + 1}º`}
-                                    </td>
-                                    <td>${p.nomeCartoleiro || 'N/D'}</td>
-                                    <td class="text-center text-success fw-bold">${p.golsPro || 0}</td>
-                                    <td class="text-center text-danger fw-bold">${p.golsContra || 0}</td>
-                                    <td class="text-center ${(p.saldoGols || 0) >= 0 ? 'text-success' : 'text-danger'} fw-bold">
-                                        ${(p.saldoGols || 0) >= 0 ? '+' : ''}${p.saldoGols || 0}
-                                    </td>
-                                </tr>
-                            `).join('')}
-                        </tbody>
-                    </table>
-                </div>
-            </div>
-        </div>
-    `;
-}
-
-function renderizarRankingCompleto(dados) {
-    return `
-        <div class="card">
-            <div class="card-header">
-                <h5 class="mb-0">📊 Classificação Completa</h5>
-            </div>
-            <div class="card-body p-0">
-                <div class="table-responsive">
-                    <table class="table table-hover mb-0">
-                        <thead class="table-light">
-                            <tr>
-                                <th class="text-center">Pos</th>
-                                <th>Cartoleiro</th>
-                                <th>Time</th>
-                                <th class="text-center">GP</th>
-                                <th class="text-center">GC</th>
-                                <th class="text-center">Saldo</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            ${dados.ranking.map((p, idx) => `
-                                <tr class="${p.timeId == window.participanteData?.timeId ? 'table-primary fw-bold' : ''}">
-                                    <td class="text-center">${idx + 1}º</td>
-                                    <td>${p.nomeCartoleiro || 'N/D'}</td>
-                                    <td>${p.nomeTime || 'N/D'}</td>
-                                    <td class="text-center text-success">${p.golsPro || 0}</td>
-                                    <td class="text-center text-danger">${p.golsContra || 0}</td>
-                                    <td class="text-center ${(p.saldoGols || 0) >= 0 ? 'text-success' : 'text-danger'}">
-                                        ${(p.saldoGols || 0) >= 0 ? '+' : ''}${p.saldoGols || 0}
-                                    </td>
-                                </tr>
-                            `).join('')}
-                        </tbody>
-                    </table>
-                </div>
-            </div>
-        </div>
-    `;
-}
-
-console.log('✅ [PARTICIPANTE-ARTILHEIRO] Módulo carregado');
+console.log("[PARTICIPANTE-ARTILHEIRO] ✅ Módulo v2.0 carregado");
