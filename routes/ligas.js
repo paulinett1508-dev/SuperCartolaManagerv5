@@ -190,56 +190,8 @@ router.get("/:id/rodadas/:timeId", async (req, res) => {
   }
 });
 
-// Rota: Buscar Melhor Mês de um participante específico
-router.get("/:id/melhor-mes/:timeId", async (req, res) => {
-  const { id: ligaId, timeId } = req.params;
-
-  try {
-    const Rodada = (await import("../models/Rodada.js")).default;
-
-    const edicoes = [
-      { id: 1, nome: "Abril", rodadas: [1, 2, 3, 4] },
-      { id: 2, nome: "Maio", rodadas: [5, 6, 7, 8, 9] },
-      { id: 3, nome: "Junho", rodadas: [10, 11, 12, 13] },
-      { id: 4, nome: "Julho", rodadas: [14, 15, 16, 17, 18] },
-      { id: 5, nome: "Agosto", rodadas: [19, 20, 21, 22, 23] },
-      { id: 6, nome: "Setembro", rodadas: [24, 25, 26, 27, 28] },
-      { id: 7, nome: "Outubro", rodadas: [29, 30, 31, 32] },
-      { id: 8, nome: "Novembro", rodadas: [33, 34, 35, 36, 37, 38] },
-    ];
-
-    const resultado = [];
-
-    for (const edicao of edicoes) {
-      const dadosRodadas = await Rodada.find({
-        ligaId,
-        timeId: parseInt(timeId),
-        rodada: { $in: edicao.rodadas },
-      }).lean();
-
-      if (dadosRodadas.length > 0) {
-        const totalPontos = dadosRodadas.reduce(
-          (sum, r) => sum + (parseFloat(r.pontos) || 0),
-          0,
-        );
-        resultado.push({
-          edicao: edicao.id,
-          nome: edicao.nome,
-          rodadas: edicao.rodadas,
-          total_pontos: totalPontos,
-          rodadas_jogadas: dadosRodadas.length,
-        });
-      }
-    }
-
-    res.json(resultado);
-  } catch (error) {
-    console.error(`[LIGAS] Erro ao buscar Melhor Mês:`, error);
-    res.status(500).json({ erro: "Erro ao buscar Melhor Mês" });
-  }
-});
-
 // Rota: Buscar Melhor Mês de TODOS os participantes (ranking mensal)
+// IMPORTANTE: Esta rota DEVE vir ANTES de "/:id/melhor-mes/:timeId"
 router.get("/:id/melhor-mes", async (req, res) => {
     const { id: ligaId } = req.params;
 
@@ -344,6 +296,55 @@ router.get("/:id/melhor-mes", async (req, res) => {
         console.error(`[LIGAS] Erro ao buscar Melhor Mês geral:`, error);
         res.status(500).json({ erro: "Erro ao buscar Melhor Mês" });
     }
+});
+
+// Rota: Buscar Melhor Mês de um participante específico
+router.get("/:id/melhor-mes/:timeId", async (req, res) => {
+  const { id: ligaId, timeId } = req.params;
+
+  try {
+    const Rodada = (await import("../models/Rodada.js")).default;
+
+    const edicoes = [
+      { id: 1, nome: "Abril", rodadas: [1, 2, 3, 4] },
+      { id: 2, nome: "Maio", rodadas: [5, 6, 7, 8, 9] },
+      { id: 3, nome: "Junho", rodadas: [10, 11, 12, 13] },
+      { id: 4, nome: "Julho", rodadas: [14, 15, 16, 17, 18] },
+      { id: 5, nome: "Agosto", rodadas: [19, 20, 21, 22, 23] },
+      { id: 6, nome: "Setembro", rodadas: [24, 25, 26, 27, 28] },
+      { id: 7, nome: "Outubro", rodadas: [29, 30, 31, 32] },
+      { id: 8, nome: "Novembro", rodadas: [33, 34, 35, 36, 37, 38] },
+    ];
+
+    const resultado = [];
+
+    for (const edicao of edicoes) {
+      const dadosRodadas = await Rodada.find({
+        ligaId,
+        timeId: parseInt(timeId),
+        rodada: { $in: edicao.rodadas },
+      }).lean();
+
+      if (dadosRodadas.length > 0) {
+        const totalPontos = dadosRodadas.reduce(
+          (sum, r) => sum + (parseFloat(r.pontos) || 0),
+          0,
+        );
+        resultado.push({
+          edicao: edicao.id,
+          nome: edicao.nome,
+          rodadas: edicao.rodadas,
+          total_pontos: totalPontos,
+          rodadas_jogadas: dadosRodadas.length,
+        });
+      }
+    }
+
+    res.json(resultado);
+  } catch (error) {
+    console.error(`[LIGAS] Erro ao buscar Melhor Mês:`, error);
+    res.status(500).json({ erro: "Erro ao buscar Melhor Mês" });
+  }
 });
 
 // Rota: Buscar Pontos Corridos (Classificação)
