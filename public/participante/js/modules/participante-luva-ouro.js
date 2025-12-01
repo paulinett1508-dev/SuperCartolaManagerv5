@@ -1,8 +1,8 @@
 // =====================================================================
-// PARTICIPANTE-LUVA-OURO.JS - v2.0 (CORRIGIDO COM EXPORT)
+// PARTICIPANTE-LUVA-OURO.JS - v2.1 (VERIFICA MÓDULOS ATIVOS)
 // =====================================================================
 
-console.log("[PARTICIPANTE-LUVA-OURO] 🔄 Carregando módulo v2.0...");
+console.log("[PARTICIPANTE-LUVA-OURO] 🔄 Carregando módulo v2.1...");
 
 // =====================================================================
 // FUNÇÃO PRINCIPAL - EXPORTADA PARA NAVIGATION
@@ -24,16 +24,34 @@ export async function inicializarLuvaOuroParticipante({
     }
 
     try {
-        // Tentar endpoint principal
-        let response = await fetch(`/api/ligas/${ligaId}/luva-de-ouro`);
+        // ✅ VERIFICAR SE MÓDULO ESTÁ ATIVO NA LIGA
+        const ligaRes = await fetch(`/api/ligas/${ligaId}`);
+        if (ligaRes.ok) {
+            const liga = await ligaRes.json();
+            const modulosAtivos =
+                liga.modulosAtivos || liga.modulos_ativos || {};
+            const luvaAtiva = modulosAtivos.luvaOuro !== false; // default true
 
-        if (!response.ok) {
-            // Tentar endpoint alternativo
-            response = await fetch(`/api/luva-de-ouro/${ligaId}`);
+            if (!luvaAtiva) {
+                console.log(
+                    "[PARTICIPANTE-LUVA-OURO] ⚠️ Módulo não ativo para esta liga",
+                );
+                container.innerHTML = `
+                    <div style="text-align: center; padding: 60px 20px; background: linear-gradient(135deg, rgba(255, 215, 0, 0.05) 0%, rgba(255, 215, 0, 0.02) 100%); border-radius: 12px; border: 2px dashed rgba(255, 215, 0, 0.3);">
+                        <div style="font-size: 64px; margin-bottom: 16px;">🧤</div>
+                        <h3 style="color: #fff; margin-bottom: 12px;">Luva de Ouro</h3>
+                        <p style="color: #999;">Este módulo não está ativo para esta liga.</p>
+                    </div>
+                `;
+                return;
+            }
         }
 
+        // Endpoint correto: /api/luva-de-ouro/:ligaId/ranking
+        const response = await fetch(`/api/luva-de-ouro/${ligaId}/ranking`);
+
         if (!response.ok) {
-            throw new Error("Módulo não configurado");
+            throw new Error("Dados não disponíveis");
         }
 
         const data = await response.json();
@@ -44,7 +62,7 @@ export async function inicializarLuvaOuroParticipante({
             <div style="text-align: center; padding: 60px 20px; background: linear-gradient(135deg, rgba(255, 215, 0, 0.05) 0%, rgba(255, 215, 0, 0.02) 100%); border-radius: 12px; border: 2px dashed rgba(255, 215, 0, 0.3);">
                 <div style="font-size: 64px; margin-bottom: 16px;">🧤</div>
                 <h3 style="color: #fff; margin-bottom: 12px;">Luva de Ouro</h3>
-                <p style="color: #999;">Este módulo ainda não foi configurado para esta liga.</p>
+                <p style="color: #999;">Dados não disponíveis no momento.</p>
             </div>
         `;
     }
@@ -176,4 +194,4 @@ function renderizarLuvaOuro(container, data, meuTimeId) {
     container.innerHTML = html;
 }
 
-console.log("[PARTICIPANTE-LUVA-OURO] ✅ Módulo v2.0 carregado");
+console.log("[PARTICIPANTE-LUVA-OURO] ✅ Módulo v2.1 carregado");

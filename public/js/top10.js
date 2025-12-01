@@ -101,6 +101,14 @@ async function lerCacheTop10(ligaId, rodada) {
         if (data.cached && data.mitos && data.micos) {
             // ✅ Validar se o cache está na rodada esperada
             if (data.rodada === rodada) {
+                // ✅ CORREÇÃO: Verificar se arrays têm dados
+                if (data.mitos.length === 0 || data.micos.length === 0) {
+                    console.log(
+                        `[TOP10] ⚠️ Cache VAZIO: arrays sem dados, recalculando...`,
+                    );
+                    return null;
+                }
+
                 // ✅ CORREÇÃO: Validar se os itens têm a propriedade 'rodada'
                 const mitosValidos = data.mitos.every(
                     (item) =>
@@ -123,7 +131,7 @@ async function lerCacheTop10(ligaId, rodada) {
                 }
 
                 console.log(
-                    `[TOP10] 💾 Cache VÁLIDO encontrado para Rodada ${rodada}`,
+                    `[TOP10] 💾 Cache VÁLIDO encontrado para Rodada ${rodada} (${data.mitos.length} mitos, ${data.micos.length} micos)`,
                 );
                 return { mitos: data.mitos, micos: data.micos };
             } else {

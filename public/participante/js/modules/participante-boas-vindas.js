@@ -1,8 +1,8 @@
 // =====================================================================
-// PARTICIPANTE-BOAS-VINDAS.JS - v2.0 (CORRIGIDO COM EXPORT)
+// PARTICIPANTE-BOAS-VINDAS.JS - v2.1 (CORRIGIDO DADOS N/D)
 // =====================================================================
 
-console.log("[PARTICIPANTE-BOAS-VINDAS] 🔄 Carregando módulo v2.0...");
+console.log("[PARTICIPANTE-BOAS-VINDAS] 🔄 Carregando módulo v2.1...");
 
 // =====================================================================
 // FUNÇÃO PRINCIPAL - EXPORTADA PARA NAVIGATION
@@ -49,6 +49,18 @@ export async function inicializarBoasVindasParticipante({
                 ? await rodadaRes.value.json()
                 : { rodada_atual: 1 };
 
+        // ✅ CORREÇÃO: Buscar dados do participante DIRETAMENTE da liga
+        let dadosParticipanteLiga = null;
+        if (liga && liga.participantes) {
+            dadosParticipanteLiga = liga.participantes.find(
+                (p) => String(p.time_id) === String(timeId),
+            );
+            console.log(
+                "[PARTICIPANTE-BOAS-VINDAS] 📋 Dados da liga:",
+                dadosParticipanteLiga,
+            );
+        }
+
         // Encontrar minha posição no ranking
         let minhaPosicao = null;
         let meusDados = null;
@@ -65,7 +77,12 @@ export async function inicializarBoasVindasParticipante({
 
         // Calcular saldo do extrato
         let saldo = 0;
-        if (
+        if (extratoCache && extratoCache.resumo) {
+            saldo =
+                extratoCache.resumo.saldo ||
+                extratoCache.resumo.saldo_final ||
+                0;
+        } else if (
             extratoCache &&
             extratoCache.data &&
             extratoCache.data.saldoAtual !== undefined
@@ -78,6 +95,7 @@ export async function inicializarBoasVindasParticipante({
         // Renderizar
         renderizarBoasVindas({
             participante,
+            dadosParticipanteLiga, // ✅ NOVO: dados direto da liga
             liga,
             minhaPosicao,
             meusDados,
@@ -100,6 +118,7 @@ window.inicializarBoasVindasParticipante = inicializarBoasVindasParticipante;
 function renderizarBoasVindas(dados) {
     const {
         participante,
+        dadosParticipanteLiga, // ✅ NOVO
         liga,
         minhaPosicao,
         meusDados,
@@ -114,13 +133,33 @@ function renderizarBoasVindas(dados) {
         return;
     }
 
+    // ✅ CORREÇÃO: Prioridade de dados (liga > ranking > participante > fallback)
+    // Evita usar N/D da sessão quando temos dados reais
     const nomeTime =
-        participante?.nomeTime || meusDados?.nome_time || "Meu Time";
+        dadosParticipanteLiga?.nome_time ||
+        meusDados?.nome_time ||
+        (participante?.nomeTime && participante.nomeTime !== "N/D"
+            ? participante.nomeTime
+            : null) ||
+        "Meu Time";
+
     const nomeCartola =
-        participante?.nomeCartola || meusDados?.nome_cartola || "Cartoleiro";
+        dadosParticipanteLiga?.nome_cartola ||
+        meusDados?.nome_cartola ||
+        (participante?.nomeCartola && participante.nomeCartola !== "N/D"
+            ? participante.nomeCartola
+            : null) ||
+        "Cartoleiro";
+
     const pontosTotais =
         meusDados?.pontos_total || meusDados?.pontos_totais || 0;
     const nomeLiga = liga?.nome || "Liga";
+
+    console.log("[PARTICIPANTE-BOAS-VINDAS] ✅ Dados finais:", {
+        nomeTime,
+        nomeCartola,
+        pontosTotais,
+    });
 
     // Formatadores
     const saldoFormatado = Math.abs(saldo).toLocaleString("pt-BR", {
@@ -269,4 +308,4 @@ function mostrarErro(mensagem) {
     }
 }
 
-console.log("[PARTICIPANTE-BOAS-VINDAS] ✅ Módulo v2.0 carregado");
+console.log("[PARTICIPANTE-BOAS-VINDAS] ✅ Módulo v2.1 carregado");

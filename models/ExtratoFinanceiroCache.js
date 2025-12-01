@@ -1,61 +1,74 @@
 import mongoose from "mongoose";
 
 const ExtratoFinanceiroCacheSchema = new mongoose.Schema(
-  {
-    liga_id: {
-      type: mongoose.Schema.Types.ObjectId,
-      ref: "Liga",
-      required: true,
-      index: true,
+    {
+        liga_id: {
+            type: mongoose.Schema.Types.ObjectId,
+            ref: "Liga",
+            required: true,
+            index: true,
+        },
+        time_id: { type: Number, required: true, index: true },
+
+        // Controle de Consolidação
+        ultima_rodada_consolidada: { type: Number, default: 0 },
+        data_ultima_atualizacao: { type: Date, default: Date.now },
+
+        // Controle de Cache Permanente
+        cache_permanente: { type: Boolean, default: false },
+        versao_calculo: { type: String, default: "3.1.0" },
+        rodadas_imutaveis: [Number],
+
+        // Valores Consolidados
+        saldo_consolidado: { type: Number, default: 0 },
+        ganhos_consolidados: { type: Number, default: 0 },
+        perdas_consolidadas: { type: Number, default: 0 },
+
+        // ✅ CORRIGIDO: Histórico de Rodadas Consolidadas (formato do Admin)
+        historico_transacoes: [
+            {
+                rodada: { type: Number, required: true },
+                posicao: { type: Number, default: null },
+                bonusOnus: { type: Number, default: 0 },
+                pontosCorridos: { type: Number, default: 0 },
+                mataMata: { type: Number, default: 0 },
+                top10: { type: Number, default: 0 },
+                saldo: { type: Number, default: 0 },
+                saldoAcumulado: { type: Number, default: 0 },
+                // Campos extras para UI
+                isMito: { type: Boolean, default: false },
+                isMico: { type: Boolean, default: false },
+                top10Status: { type: String, default: null },
+                top10Posicao: { type: Number, default: null },
+                // Campos legados (para compatibilidade)
+                tipo: { type: String },
+                descricao: { type: String },
+                valor: { type: Number },
+                data: { type: Date },
+            },
+        ],
+
+        // Metadados para debug e auditoria
+        metadados: {
+            versaoCalculo: String,
+            timestampCalculo: Date,
+            motivoRecalculo: String,
+            origem: String,
+        },
     },
-    time_id: { type: Number, required: true, index: true }, // ID do time no Cartola
-
-    // Controle de Consolidação
-    ultima_rodada_consolidada: { type: Number, default: 0 }, // Até qual rodada os valores estão fechados
-    data_ultima_atualizacao: { type: Date, default: Date.now },
-    
-    // ✅ NOVO: Controle de Cache Permanente
-    cache_permanente: { type: Boolean, default: false }, // true = rodadas fechadas, nunca recalcular
-    versao_calculo: { type: String, default: "3.0.0" }, // Versionamento para migração futura
-    rodadas_imutaveis: [Number], // Array de rodadas que nunca mudam (1,2,3...N-1)
-
-    // Valores Consolidados (Soma de tudo até a última rodada consolidada)
-    saldo_consolidado: { type: Number, default: 0 },
-    ganhos_consolidados: { type: Number, default: 0 },
-    perdas_consolidadas: { type: Number, default: 0 },
-
-    // Histórico de Transações (Json estático das rodadas já fechadas para exibição rápida)
-    historico_transacoes: [
-      {
-        rodada: Number,
-        tipo: String, // 'PREMIACAO', 'MULTA', 'MENSALIDADE'
-        descricao: String,
-        valor: Number,
-        data: Date,
-      },
-    ],
-    
-    // ✅ NOVO: Metadados para debug e auditoria
-    metadados: {
-      versaoCalculo: String,
-      timestampCalculo: Date,
-      motivoRecalculo: String,
-      origem: String, // 'admin', 'participante', 'cron'
+    {
+        timestamps: true,
     },
-  },
-  {
-    timestamps: true,
-  },
 );
 
-// Índice composto para busca rápida de um time específico em uma liga
+// Índice composto para busca rápida
 ExtratoFinanceiroCacheSchema.index(
-  { liga_id: 1, time_id: 1 },
-  { unique: true },
+    { liga_id: 1, time_id: 1 },
+    { unique: true },
 );
 
 const ExtratoFinanceiroCache =
-  mongoose.models.ExtratoFinanceiroCache ||
-  mongoose.model("ExtratoFinanceiroCache", ExtratoFinanceiroCacheSchema);
+    mongoose.models.ExtratoFinanceiroCache ||
+    mongoose.model("ExtratoFinanceiroCache", ExtratoFinanceiroCacheSchema);
 
 export default ExtratoFinanceiroCache;

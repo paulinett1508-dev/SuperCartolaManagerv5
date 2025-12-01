@@ -1,4 +1,3 @@
-
 import mongoose from "mongoose";
 
 const participanteSchema = new mongoose.Schema(
@@ -11,9 +10,10 @@ const participanteSchema = new mongoose.Schema(
         foto_time: { type: String, default: "" },
         assinante: { type: Boolean, default: false },
         rodada_time_id: { type: Number, default: null },
-        senha_acesso: { type: String, default: "" }, // NOVA: Senha para acessar extrato
+        senha_acesso: { type: String, default: "" },
+        ativo: { type: Boolean, default: true }, // ✅ NOVO: Controle de participante ativo/inativo
     },
-    { _id: false }
+    { _id: false },
 );
 
 const ligaSchema = new mongoose.Schema({
@@ -30,7 +30,7 @@ const ligaSchema = new mongoose.Schema({
         artilheiro: { type: Object, default: {} },
         luva_ouro: { type: Object, default: {} },
     },
-    // ✅ NOVO: Controle granular de módulos ativos
+    // ✅ Controle granular de módulos ativos
     modulos_ativos: {
         type: Object,
         default: {
@@ -42,8 +42,8 @@ const ligaSchema = new mongoose.Schema({
             pontosCorridos: true,
             mataMata: true,
             artilheiro: true,
-            luvaOuro: true
-        }
+            luvaOuro: true,
+        },
     },
     criadaEm: { type: Date, default: Date.now },
     atualizadaEm: { type: Date, default: Date.now },

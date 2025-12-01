@@ -1,4 +1,168 @@
 import ExtratoFinanceiroCache from "../models/ExtratoFinanceiroCache.js";
+import mongoose from "mongoose";
+
+// Helper para converter ligaId para ObjectId se necessário
+function toLigaId(ligaId) {
+    if (mongoose.Types.ObjectId.isValid(ligaId)) {
+        return new mongoose.Types.ObjectId(ligaId);
+    }
+    return ligaId;
+}
+
+// ===== FUNÇÃO AUXILIAR: Calcular resumo a partir das rodadas =====
+function calcularResumoDeRodadas(rodadas) {
+    if (!Array.isArray(rodadas) || rodadas.length === 0) {
+        return {
+            saldo: 0,
+            totalGanhos: 0,
+            totalPerdas: 0,
+            bonus: 0,
+            onus: 0,
+            pontosCorridos: 0,
+            mataMata: 0,
+            top10: 0,
+        };
+    }
+
+    let totalBonus = 0;
+    let totalOnus = 0;
+    let totalPontosCorridos = 0;
+    let totalMataMata = 0;
+    let totalTop10 = 0;
+    let totalGanhos = 0;
+    let totalPerdas = 0;
+
+    rodadas.forEach((r) => {
+        // Bônus/Ônus
+        const bonusOnus = parseFloat(r.bonusOnus) || 0;
+        if (bonusOnus > 0) totalBonus += bonusOnus;
+        else totalOnus += bonusOnus;
+
+        // Pontos Corridos
+        const pc = parseFloat(r.pontosCorridos) || 0;
+        totalPontosCorridos += pc;
+
+        // Mata-Mata
+        const mm = parseFloat(r.mataMata) || 0;
+        totalMataMata += mm;
+
+        // TOP10
+        const t10 = parseFloat(r.top10) || 0;
+        totalTop10 += t10;
+
+        // Saldo da rodada para calcular ganhos/perdas
+        const saldoRodada = bonusOnus + pc + mm + t10;
+        if (saldoRodada > 0) totalGanhos += saldoRodada;
+        else totalPerdas += saldoRodada;
+    });
+
+    const saldo =
+        totalBonus +
+        totalOnus +
+        totalPontosCorridos +
+        totalMataMata +
+        totalTop10;
+
+    return {
+        saldo,
+        saldo_final: saldo,
+        totalGanhos,
+        totalPerdas,
+        bonus: totalBonus,
+        onus: totalOnus,
+        pontosCorridos: totalPontosCorridos,
+        mataMata: totalMataMata,
+        top10: totalTop10,
+    };
+}
+
+// ===== FUNÇÃO: Transformar transações em rodadas consolidadas =====
+function transformarTransacoesEmRodadas(transacoes, ligaId) {
+    if (!Array.isArray(transacoes) || transacoes.length === 0) {
+        return [];
+    }
+
+    // Agrupar transações por rodada
+    const rodadasMap = {};
+
+    transacoes.forEach((t) => {
+        const numRodada = t.rodada;
+        if (!numRodada) return; // Ignorar ajustes manuais (rodada null)
+
+        if (!rodadasMap[numRodada]) {
+            rodadasMap[numRodada] = {
+                rodada: numRodada,
+                posicao: null,
+                bonusOnus: 0,
+                pontosCorridos: 0,
+                mataMata: 0,
+                top10: 0,
+                saldo: 0,
+                isMito: false,
+                isMico: false,
+                top10Status: null,
+                top10Posicao: null,
+            };
+        }
+
+        const r = rodadasMap[numRodada];
+        const valor = parseFloat(t.valor) || 0;
+
+        // Classificar por tipo de transação
+        switch (t.tipo) {
+            case "PONTOS_CORRIDOS":
+                r.pontosCorridos += valor;
+                break;
+            case "MATA_MATA":
+                r.mataMata += valor;
+                break;
+            case "MITO":
+                r.top10 += valor;
+                r.isMito = true;
+                r.top10Status = "MITO";
+                r.posicao = 1; // Mito = 1º lugar
+                // Extrair posição do descricao se disponível
+                const matchMito = t.descricao?.match(/(\d+)º/);
+                if (matchMito) r.top10Posicao = parseInt(matchMito[1]);
+                break;
+            case "MICO":
+                r.top10 += valor;
+                r.isMico = true;
+                r.top10Status = "MICO";
+                // Extrair posição do descricao se disponível
+                const matchMico = t.descricao?.match(/(\d+)º/);
+                if (matchMico) {
+                    r.posicao = parseInt(matchMico[1]);
+                    r.top10Posicao = parseInt(matchMico[1]);
+                }
+                break;
+            case "BONUS":
+            case "ONUS":
+            case "BONUS_ONUS":
+                r.bonusOnus += valor;
+                break;
+            default:
+                // Outros tipos vão para bonusOnus
+                r.bonusOnus += valor;
+        }
+
+        r.saldo += valor;
+    });
+
+    // Converter map para array ordenado
+    const rodadasArray = Object.values(rodadasMap).sort(
+        (a, b) => a.rodada - b.rodada,
+    );
+
+    // Calcular saldo acumulado
+    let saldoAcumulado = 0;
+    rodadasArray.forEach((r) => {
+        saldoAcumulado += r.saldo;
+        r.saldoAcumulado = saldoAcumulado;
+    });
+
+    return rodadasArray;
+}
 
 // ===== BUSCAR EXTRATO EM CACHE (GET) =====
 export const getExtratoCache = async (req, res) => {
@@ -6,10 +170,9 @@ export const getExtratoCache = async (req, res) => {
         const { ligaId, timeId } = req.params;
 
         // 🛠️ CORREÇÃO DE TIPAGEM:
-        // timeId vem da URL como String, mas no banco é Number.
-        // Precisamos converter para Number() para o MongoDB encontrar.
+        // liga_id no banco é ObjectId, time_id é Number
         const cache = await ExtratoFinanceiroCache.findOne({
-            liga_id: ligaId,
+            liga_id: toLigaId(ligaId),
             time_id: Number(timeId),
         }).lean(); // ✅ CRITICAL: .lean() para obter objeto JavaScript puro
 
@@ -21,28 +184,27 @@ export const getExtratoCache = async (req, res) => {
             });
         }
 
+        // ✅ CORRIGIDO: Transformar transações em rodadas consolidadas
+        const transacoes = cache.historico_transacoes || [];
+        const rodadasConsolidadas = transformarTransacoesEmRodadas(
+            transacoes,
+            ligaId,
+        );
+        const resumoCalculado = calcularResumoDeRodadas(rodadasConsolidadas);
+
         console.log("[CACHE-CONTROLLER] 📦 Cache encontrado:", {
             timeId,
-            rodadas: cache.historico_transacoes?.length || 0,
+            transacoes: transacoes.length,
+            rodadasConsolidadas: rodadasConsolidadas.length,
             ultimaRodada: cache.ultima_rodada_consolidada,
-            saldo: cache.saldo_consolidado,
+            saldo: resumoCalculado.saldo,
         });
 
-        // ✅ CORRIGIDO: Retornar rodadas do campo correto com estrutura esperada
+        // ✅ CORRIGIDO: Retornar rodadas consolidadas no formato esperado pelo frontend
         res.json({
             cached: true,
-            rodadas: cache.historico_transacoes || [], // ✅ MUDOU: "data" → "rodadas"
-            resumo: {
-                saldo: cache.saldo_consolidado, // ✅ MUDOU: "saldo_final" → "saldo"
-                totalGanhos: cache.ganhos_consolidados || 0,
-                totalPerdas: cache.perdas_consolidadas || 0,
-                // Campos adicionais que o frontend espera
-                bonus: 0,
-                onus: 0,
-                pontosCorridos: 0,
-                mataMata: 0,
-                top10: 0,
-            },
+            rodadas: rodadasConsolidadas, // ✅ AGORA NO FORMATO CORRETO
+            resumo: resumoCalculado,
             metadados: cache.metadados,
             ultimaRodadaCalculada: cache.ultima_rodada_consolidada,
             updatedAt: cache.updatedAt,
@@ -84,29 +246,32 @@ export const salvarExtratoCache = async (req, res) => {
                 ? Math.max(...rodadasArray.map((r) => r.rodada || 0))
                 : 0);
 
+        // ✅ Calcular resumo das rodadas para salvar valores consolidados
+        const resumoCalculado = calcularResumoDeRodadas(rodadasArray);
+
         console.log(`[CACHE-CONTROLLER] 💾 Salvando cache:`, {
             timeId,
             rodadasRecebidas: rodadasArray?.length || 0,
             ultimaRodadaCalculada: rodadaCalculadaReal,
+            saldoCalculado: resumoCalculado.saldo,
             motivoRecalculo,
         });
 
         // Mapeamento seguro para Snake Case (MongoDB)
         const cacheData = {
-            liga_id: ligaId,
+            liga_id: toLigaId(ligaId),
             time_id: Number(timeId), // Garante Number
-            ultima_rodada_consolidada: rodadaCalculadaReal, // ✅ CORRIGIDO
-            historico_transacoes: rodadasArray, // ✅ Usar array correto
+            ultima_rodada_consolidada: rodadaCalculadaReal,
+            historico_transacoes: rodadasArray,
             data_ultima_atualizacao: new Date(),
 
-            // Pega do resumo se existir, ou do saldo direto
-            saldo_consolidado:
-                resumo?.saldo || resumo?.saldo_final || saldo || 0,
-            ganhos_consolidados: resumo?.totalGanhos || resumo?.ganhos || 0, // ✅ Adicionar totalGanhos
-            perdas_consolidados: resumo?.totalPerdas || resumo?.perdas || 0,
+            // ✅ CORRIGIDO: Usar valores calculados
+            saldo_consolidado: resumoCalculado.saldo,
+            ganhos_consolidados: resumoCalculado.totalGanhos,
+            perdas_consolidadas: resumoCalculado.totalPerdas,
 
             metadados: {
-                versaoCalculo: "3.0.1", // ✅ Versão atualizada
+                versaoCalculo: "3.1.0", // ✅ Versão atualizada
                 timestampCalculo: new Date(),
                 motivoRecalculo: motivoRecalculo || "atualizacao_frontend",
                 origem: "participante_app",
@@ -115,7 +280,7 @@ export const salvarExtratoCache = async (req, res) => {
 
         // Upsert: Cria se não existir, Atualiza se existir
         const cache = await ExtratoFinanceiroCache.findOneAndUpdate(
-            { liga_id: ligaId, time_id: Number(timeId) },
+            { liga_id: toLigaId(ligaId), time_id: Number(timeId) },
             cacheData,
             { new: true, upsert: true },
         );
@@ -146,7 +311,7 @@ export const invalidarCacheTime = async (req, res) => {
     try {
         const { ligaId, timeId } = req.params;
         await ExtratoFinanceiroCache.findOneAndDelete({
-            liga_id: ligaId,
+            liga_id: toLigaId(ligaId),
             time_id: Number(timeId),
         });
         res.json({ success: true, message: "Cache invalidado" });
@@ -160,7 +325,7 @@ export const invalidarCacheLiga = async (req, res) => {
     try {
         const { ligaId } = req.params;
         const result = await ExtratoFinanceiroCache.deleteMany({
-            liga_id: ligaId,
+            liga_id: toLigaId(ligaId),
         });
         res.json({
             success: true,
@@ -179,7 +344,7 @@ export const verificarCacheValido = async (req, res) => {
 
         // Buscar cache existente - COM .lean() para garantir dados completos
         const cacheExistente = await ExtratoFinanceiroCache.findOne({
-            liga_id: ligaId,
+            liga_id: toLigaId(ligaId),
             time_id: Number(timeId),
         }).lean();
 
@@ -191,7 +356,6 @@ export const verificarCacheValido = async (req, res) => {
         const mercadoEstaAberto = mercadoAberto === "true";
 
         // Simula a validação que ocorreria em outro controller (para ter os mesmos resultados)
-        // Esta é uma simplificação, em um cenário real, esta lógica estaria em um service/util
         let validacao = { valido: false, motivo: "erro_simulacao" };
         const rodadaAtualInt = parseInt(rodadaAtual);
 
@@ -221,135 +385,69 @@ export const verificarCacheValido = async (req, res) => {
                     cacheExistente.data_ultima_atualizacao;
                 const idadeCache =
                     Date.now() - new Date(timestampCache).getTime();
-                const TTL_RODADA_ABERTA = 5 * 60 * 1000; // 5 minutos
+                const CACHE_TTL_MERCADO_ABERTO = 5 * 60 * 1000; // 5 minutos
 
-                if (idadeCache < TTL_RODADA_ABERTA) {
+                if (idadeCache < CACHE_TTL_MERCADO_ABERTO) {
                     validacao = {
                         valido: true,
                         permanente: false,
-                        motivo: "rodada_aberta_cache_recente",
+                        motivo: "cache_mercado_aberto_recente",
                         ultimaRodada: cacheExistente.ultima_rodada_consolidada,
-                        ttlRestante: Math.ceil(
-                            (TTL_RODADA_ABERTA - idadeCache) / 1000,
-                        ),
                         mercadoStatus: "aberto",
+                        idadeMinutos: Math.floor(idadeCache / 60000),
                         updatedAt: cacheExistente.updatedAt,
                     };
                 } else {
-                    // ✅ CACHE EXPIRADO MAS AINDA VÁLIDO (apenas refresh parcial)
                     validacao = {
-                        valido: true, // ← MUDOU DE FALSE PARA TRUE!
-                        permanente: false,
-                        motivo: "rodada_aberta_cache_expirado_mas_valido",
-                        recalcularApenas: "rodada_atual",
-                        rodadasConsolidadas:
-                            cacheExistente.ultima_rodada_consolidada,
-                        usarCacheAntigo: true, // ← NOVO FLAG
+                        valido: false,
+                        motivo: "cache_expirado_mercado_aberto",
+                        ultimaRodada: cacheExistente.ultima_rodada_consolidada,
                         mercadoStatus: "aberto",
-                        updatedAt: cacheExistente.updatedAt,
+                        idadeMinutos: Math.floor(idadeCache / 60000),
                     };
                 }
-            }
-        }
-
-        // ✅ REGRA 3: Cache desatualizado - precisa recalcular rodadas faltantes
-        if (
-            !validacao.valido &&
-            cacheExistente.ultima_rodada_consolidada < rodadaAtualInt
-        ) {
-            validacao = {
-                valido: false,
-                motivo: "rodadas_faltantes",
-                cacheRodada: cacheExistente.ultima_rodada_consolidada,
-                rodadaAtual: rodadaAtualInt,
-                rodadasPendentes:
-                    rodadaAtualInt - cacheExistente.ultima_rodada_consolidada,
-            };
-        } else if (!validacao.valido) {
-            // Caso geral de cache inválido não coberto pelas regras anteriores
-            validacao = {
-                valido: false,
-                motivo: "cache_desatualizado_ou_invalido",
-                cacheRodada: cacheExistente.ultima_rodada_consolidada,
-                rodadaAtual: rodadaAtualInt,
-            };
-        }
-
-        // ✅ SEMPRE RETORNAR ESTRUTURA DE VALIDAÇÃO CONSISTENTE
-        if (validacao.valido && cacheExistente) {
-            console.log(
-                "  ✅ Cache válido encontrado - retornando validação + dados",
-            );
-
-            // ✅ GARANTIR QUE historico_transacoes SEJA ARRAY VÁLIDO
-            const rodadas = Array.isArray(cacheExistente.historico_transacoes)
-                ? cacheExistente.historico_transacoes
-                : [];
-
-            console.log(`  📊 Rodadas no cache: ${rodadas.length}`);
-            if (rodadas.length > 0) {
-                console.log(`  🔍 Primeira rodada:`, rodadas[0]);
             } else {
-                console.warn(
-                    "  ⚠️ Cache válido mas SEM rodadas - possível problema!",
-                );
+                validacao = {
+                    valido: false,
+                    motivo: "cache_desatualizado",
+                    ultimaRodadaCache: cacheExistente.ultima_rodada_consolidada,
+                    rodadaAtual: rodadaAtualInt,
+                };
             }
-
-            // Retornar validação + dados do cache
-            return res.json({
-                valido: true,
-                cached: true,
-                motivo: validacao.motivo,
-                permanente: validacao.permanente || false,
-                mercadoStatus: validacao.mercadoStatus,
-                ultimaRodadaCalculada: cacheExistente.ultima_rodada_consolidada,
-                rodadaAtual: rodadaAtualInt,
-                updatedAt: cacheExistente.updatedAt,
-                // ✅ CORRIGIDO: Retornar 'rodadas' do campo correto
-                rodadas: cacheExistente.historico_transacoes || [],
-                resumo: {
-                    saldo: cacheExistente.saldo_consolidado,
-                    totalGanhos: cacheExistente.ganhos_consolidados || 0,
-                    totalPerdas: cacheExistente.perdas_consolidadas || 0,
-                    // Adicionar campos que o frontend espera
-                    bonus: 0,
-                    onus: 0,
-                    pontosCorridos: 0,
-                    mataMata: 0,
-                    top10: 0,
-                },
-                metadados: cacheExistente.metadados,
-            });
-        } else {
-            // Se não é válido, retorna informações da validação
-            console.log(`  ❌ Cache inválido: ${validacao.motivo}`);
-            return res.json({
-                valido: false,
-                cached: false,
-                motivo: validacao.motivo,
-                cacheRodada: cacheExistente?.ultima_rodada_consolidada || 0,
-                rodadaAtual: rodadaAtualInt,
-                rodadasPendentes: validacao.rodadasPendentes || 0,
-                mercadoStatus: validacao.mercadoStatus,
-                updatedAt: cacheExistente?.updatedAt,
-            });
         }
+        // ✅ REGRA 3: Cache desatualizado
+        else {
+            validacao = {
+                valido: false,
+                motivo: "cache_desatualizado",
+                ultimaRodadaCache: cacheExistente.ultima_rodada_consolidada,
+                rodadaAtual: rodadaAtualInt,
+            };
+        }
+
+        res.json(validacao);
     } catch (error) {
         console.error("[CACHE-CONTROLLER] Erro ao verificar cache:", error);
         res.status(500).json({ error: "Erro ao verificar cache" });
     }
 };
 
-// ===== FUNÇÃO DE LEITURA DE CACHE COM VALIDAÇÃO INTELIGENTE =====
+// ===== BUSCAR EXTRATO PARA PARTICIPANTE (ALIAS SIMPLIFICADO) =====
+export const getExtratoParticipante = async (req, res) => {
+    // Redireciona para getExtratoCache com mesmos parâmetros
+    return getExtratoCache(req, res);
+};
+
+// ===== LER CACHE EXTRATO FINANCEIRO (VALIDAÇÃO INTELIGENTE) =====
 export const lerCacheExtratoFinanceiro = async (req, res) => {
     try {
         const { ligaId, timeId } = req.params;
         const { rodadaAtual, statusMercado } = req.query;
 
         const cache = await ExtratoFinanceiroCache.findOne({
-            liga_id: ligaId,
-            time_id: timeId,
-        });
+            liga_id: toLigaId(ligaId),
+            time_id: Number(timeId),
+        }).lean();
 
         if (!cache) {
             return res.status(404).json({ cached: false });
@@ -361,44 +459,58 @@ export const lerCacheExtratoFinanceiro = async (req, res) => {
         const rodadaAtualNum = parseInt(rodadaAtual) || 0;
         const mercadoFechado = parseInt(statusMercado) === 2;
 
+        const rodadaCache =
+            cache.ultima_rodada_consolidada || cache.rodada_calculada || 0;
         let cacheValido = false;
 
         if (mercadoFechado) {
             // Mercado FECHADO: cache deve estar na rodada atual
-            cacheValido = cache.rodada_calculada === rodadaAtualNum;
+            cacheValido = rodadaCache >= rodadaAtualNum;
         } else {
             // Mercado ABERTO: cache pode ser da rodada anterior (até consolidar)
-            cacheValido = cache.rodada_calculada >= rodadaAtualNum - 1;
+            cacheValido = rodadaCache >= rodadaAtualNum - 1;
         }
 
         if (!cacheValido) {
             console.log(
-                `[CACHE-EXTRATO] ❌ Cache desatualizado: calculado até R${cache.rodada_calculada}, esperado R${rodadaAtualNum}`,
+                `[CACHE-EXTRATO] ❌ Cache desatualizado: calculado até R${rodadaCache}, esperado R${rodadaAtualNum}`,
             );
             return res.status(404).json({
                 cached: false,
                 reason: "outdated",
-                cachedUntil: cache.rodada_calculada,
+                cachedUntil: rodadaCache,
                 expectedUntil: rodadaAtualNum,
             });
         }
 
+        // ✅ CORRIGIDO: Transformar transações em rodadas consolidadas
+        const transacoes = cache.historico_transacoes || [];
+        const rodadasConsolidadas = transformarTransacoesEmRodadas(
+            transacoes,
+            ligaId,
+        );
+        const resumoCalculado = calcularResumoDeRodadas(rodadasConsolidadas);
+
         console.log(
-            `[CACHE-EXTRATO] ✅ Cache válido: R${cache.rodada_calculada} (atual: R${rodadaAtualNum})`,
+            `[CACHE-EXTRATO] ✅ Cache válido: R${rodadaCache} (atual: R${rodadaAtualNum})`,
         );
 
         res.json({
             cached: true,
-            rodada_calculada: cache.rodada_calculada,
-            dados: cache.dados_extrato,
-            saldo_total: cache.saldo_total,
-            updatedAt: cache.ultima_atualizacao,
+            rodada_calculada: rodadaCache,
+            dados: rodadasConsolidadas,
+            dados_extrato: rodadasConsolidadas,
+            rodadas: rodadasConsolidadas,
+            saldo_total: resumoCalculado.saldo,
+            resumo: resumoCalculado,
+            updatedAt: cache.updatedAt || cache.data_ultima_atualizacao,
         });
     } catch (error) {
         console.error("[CACHE-EXTRATO] Erro ao ler:", error);
         res.status(500).json({ error: "Erro interno" });
     }
 };
+
 // =====================================================================
 // FUNÇÕES DE LIMPEZA DE CACHE
 // =====================================================================
@@ -411,7 +523,7 @@ export const limparCacheLiga = async (req, res) => {
         console.log(`[CACHE-LIMPEZA] 🗑️ Limpando caches da liga: ${ligaId}`);
 
         const resultado = await ExtratoFinanceiroCache.deleteMany({
-            liga_id: ligaId,
+            liga_id: toLigaId(ligaId),
         });
 
         console.log(
@@ -440,7 +552,7 @@ export const limparCacheTime = async (req, res) => {
         );
 
         const resultado = await ExtratoFinanceiroCache.deleteOne({
-            liga_id: ligaId,
+            liga_id: toLigaId(ligaId),
             time_id: Number(timeId),
         });
 
@@ -561,7 +673,7 @@ export const estatisticasCache = async (req, res) => {
     try {
         const { ligaId } = req.params;
 
-        const filtroBase = ligaId ? { liga_id: ligaId } : {};
+        const filtroBase = ligaId ? { liga_id: toLigaId(ligaId) } : {};
 
         // Total de caches
         const total = await ExtratoFinanceiroCache.countDocuments(filtroBase);

@@ -25,6 +25,26 @@ import Liga from "../models/Liga.js";
 const router = express.Router();
 
 // ==============================
+// FUNÇÃO AUXILIAR: Buscar IDs de participantes inativos
+// ==============================
+async function getParticipantesInativos(ligaId) {
+  try {
+    const liga = await Liga.findById(ligaId).lean();
+    if (!liga || !liga.participantes) return new Set();
+
+    // Retorna Set com time_ids dos participantes inativos (ativo === false)
+    const inativos = liga.participantes
+      .filter((p) => p.ativo === false)
+      .map((p) => p.time_id);
+
+    return new Set(inativos);
+  } catch (error) {
+    console.error("[LIGAS] Erro ao buscar participantes inativos:", error);
+    return new Set();
+  }
+}
+
+// ==============================
 // ROTAS DE SINCRONIZAÇÃO (NOVAS)
 // ==============================
 router.post("/:id/sincronizar-participantes", sincronizarParticipantesLiga);
@@ -91,6 +111,7 @@ router.put("/:ligaId/participante/:timeId/senha", async (req, res) => {
         nome_cartola: timeData?.nome_cartoleiro || "N/D",
         nome_time: timeData?.nome_time || "N/D",
         senha_acesso: senha.trim(),
+        ativo: true, // ✅ Default ativo
       };
       liga.participantes.push(participante);
     } else {
@@ -120,11 +141,16 @@ router.put("/:ligaId/participante/:timeId/senha", async (req, res) => {
 });
 
 // Rota: Buscar ranking da liga
+// ✅ ATUALIZADO: Filtra participantes inativos
 router.get("/:id/ranking", async (req, res) => {
   const { id: ligaId } = req.params;
 
   try {
     const Rodada = (await import("../models/Rodada.js")).default;
+
+    // ✅ Buscar participantes inativos
+    const inativos = await getParticipantesInativos(ligaId);
+
     const rodadas = await Rodada.find({ ligaId }).lean();
 
     if (!rodadas || rodadas.length === 0) {
@@ -135,6 +161,10 @@ router.get("/:id/ranking", async (req, res) => {
 
     rodadas.forEach((rodada) => {
       const timeId = rodada.timeId;
+
+      // ✅ Ignorar participantes inativos
+      if (inativos.has(timeId)) return;
+
       const pontos = parseFloat(rodada.pontos) || 0;
 
       if (!rankingMap[timeId]) {
@@ -191,111 +221,121 @@ router.get("/:id/rodadas/:timeId", async (req, res) => {
 });
 
 // Rota: Buscar Melhor Mês de TODOS os participantes (ranking mensal)
+// ✅ ATUALIZADO: Filtra participantes inativos
 // IMPORTANTE: Esta rota DEVE vir ANTES de "/:id/melhor-mes/:timeId"
 router.get("/:id/melhor-mes", async (req, res) => {
-    const { id: ligaId } = req.params;
+  const { id: ligaId } = req.params;
 
-    try {
-        const Rodada = (await import("../models/Rodada.js")).default;
-        const Liga = (await import("../models/Liga.js")).default;
+  try {
+    const Rodada = (await import("../models/Rodada.js")).default;
+    const Liga = (await import("../models/Liga.js")).default;
 
-        // Buscar liga para pegar lista de times
-        const liga = await Liga.findById(ligaId).lean();
-        if (!liga) {
-            return res.status(404).json({ erro: "Liga não encontrada" });
-        }
-
-        // Definição das edições mensais
-        const edicoes = [
-            { id: 1, nome: "Abril", rodadas: [1, 2, 3, 4] },
-            { id: 2, nome: "Maio", rodadas: [5, 6, 7, 8, 9] },
-            { id: 3, nome: "Junho", rodadas: [10, 11, 12, 13] },
-            { id: 4, nome: "Julho", rodadas: [14, 15, 16, 17, 18] },
-            { id: 5, nome: "Agosto", rodadas: [19, 20, 21, 22, 23] },
-            { id: 6, nome: "Setembro", rodadas: [24, 25, 26, 27, 28] },
-            { id: 7, nome: "Outubro", rodadas: [29, 30, 31, 32] },
-            { id: 8, nome: "Novembro", rodadas: [33, 34, 35, 36, 37, 38] },
-        ];
-
-        // Buscar TODAS as rodadas da liga
-        const todasRodadas = await Rodada.find({ ligaId }).lean();
-
-        if (!todasRodadas || todasRodadas.length === 0) {
-            return res.json({ edicoes: [], mensagem: "Nenhuma rodada encontrada" });
-        }
-
-        // Calcular ranking por mês
-        const resultado = edicoes.map(edicao => {
-            // Filtrar rodadas deste mês
-            const rodadasDoMes = todasRodadas.filter(r => edicao.rodadas.includes(r.rodada));
-
-            if (rodadasDoMes.length === 0) {
-                return {
-                    id: edicao.id,
-                    nome: edicao.nome,
-                    rodadas: edicao.rodadas,
-                    ranking: [],
-                    status: "pendente"
-                };
-            }
-
-            // Agrupar por time
-            const timesPontos = {};
-
-            rodadasDoMes.forEach(r => {
-                const timeId = r.timeId;
-                if (!timesPontos[timeId]) {
-                    timesPontos[timeId] = {
-                        timeId: timeId,
-                        nome_time: r.nome_time || r.nome || "N/D",
-                        nome_cartola: r.nome_cartola || "",
-                        pontos_total: 0,
-                        rodadas_jogadas: 0
-                    };
-                }
-                timesPontos[timeId].pontos_total += parseFloat(r.pontos) || 0;
-                timesPontos[timeId].rodadas_jogadas++;
-            });
-
-            // Ordenar por pontos
-            const ranking = Object.values(timesPontos)
-                .sort((a, b) => b.pontos_total - a.pontos_total)
-                .map((time, index) => ({
-                    ...time,
-                    posicao: index + 1,
-                    media: time.rodadas_jogadas > 0
-                        ? (time.pontos_total / time.rodadas_jogadas).toFixed(2)
-                        : "0.00"
-                }));
-
-            // Verificar se mês está completo (todas as rodadas jogadas)
-            const rodadasJogadas = new Set(rodadasDoMes.map(r => r.rodada));
-            const mesCompleto = edicao.rodadas.every(r => rodadasJogadas.has(r));
-
-            return {
-                id: edicao.id,
-                nome: edicao.nome,
-                rodadas: edicao.rodadas,
-                ranking: ranking,
-                campeao: ranking.length > 0 ? ranking[0] : null,
-                status: mesCompleto ? "concluido" : "em_andamento",
-                totalParticipantes: ranking.length
-            };
-        });
-
-        // Filtrar apenas meses que têm dados
-        const edicoesComDados = resultado.filter(e => e.ranking.length > 0);
-
-        res.json({
-            edicoes: edicoesComDados,
-            totalEdicoes: edicoesComDados.length,
-            ligaId: ligaId
-        });
-
-    } catch (error) {
-        console.error(`[LIGAS] Erro ao buscar Melhor Mês geral:`, error);
-        res.status(500).json({ erro: "Erro ao buscar Melhor Mês" });
+    // Buscar liga para pegar lista de times
+    const liga = await Liga.findById(ligaId).lean();
+    if (!liga) {
+      return res.status(404).json({ erro: "Liga não encontrada" });
     }
+
+    // ✅ Buscar participantes inativos
+    const inativos = await getParticipantesInativos(ligaId);
+
+    // Definição das edições mensais
+    const edicoes = [
+      { id: 1, nome: "Abril", rodadas: [1, 2, 3, 4] },
+      { id: 2, nome: "Maio", rodadas: [5, 6, 7, 8, 9] },
+      { id: 3, nome: "Junho", rodadas: [10, 11, 12, 13] },
+      { id: 4, nome: "Julho", rodadas: [14, 15, 16, 17, 18] },
+      { id: 5, nome: "Agosto", rodadas: [19, 20, 21, 22, 23] },
+      { id: 6, nome: "Setembro", rodadas: [24, 25, 26, 27, 28] },
+      { id: 7, nome: "Outubro", rodadas: [29, 30, 31, 32] },
+      { id: 8, nome: "Novembro", rodadas: [33, 34, 35, 36, 37, 38] },
+    ];
+
+    // Buscar TODAS as rodadas da liga
+    const todasRodadas = await Rodada.find({ ligaId }).lean();
+
+    if (!todasRodadas || todasRodadas.length === 0) {
+      return res.json({ edicoes: [], mensagem: "Nenhuma rodada encontrada" });
+    }
+
+    // Calcular ranking por mês
+    const resultado = edicoes.map((edicao) => {
+      // Filtrar rodadas deste mês
+      const rodadasDoMes = todasRodadas.filter((r) =>
+        edicao.rodadas.includes(r.rodada),
+      );
+
+      if (rodadasDoMes.length === 0) {
+        return {
+          id: edicao.id,
+          nome: edicao.nome,
+          rodadas: edicao.rodadas,
+          ranking: [],
+          status: "pendente",
+        };
+      }
+
+      // Agrupar por time
+      const timesPontos = {};
+
+      rodadasDoMes.forEach((r) => {
+        const timeId = r.timeId;
+
+        // ✅ Ignorar participantes inativos
+        if (inativos.has(timeId)) return;
+
+        if (!timesPontos[timeId]) {
+          timesPontos[timeId] = {
+            timeId: timeId,
+            nome_time: r.nome_time || r.nome || "N/D",
+            nome_cartola: r.nome_cartola || "",
+            pontos_total: 0,
+            rodadas_jogadas: 0,
+          };
+        }
+        timesPontos[timeId].pontos_total += parseFloat(r.pontos) || 0;
+        timesPontos[timeId].rodadas_jogadas++;
+      });
+
+      // Ordenar por pontos
+      const ranking = Object.values(timesPontos)
+        .sort((a, b) => b.pontos_total - a.pontos_total)
+        .map((time, index) => ({
+          ...time,
+          posicao: index + 1,
+          media:
+            time.rodadas_jogadas > 0
+              ? (time.pontos_total / time.rodadas_jogadas).toFixed(2)
+              : "0.00",
+        }));
+
+      // Verificar se mês está completo (todas as rodadas jogadas)
+      const rodadasJogadas = new Set(rodadasDoMes.map((r) => r.rodada));
+      const mesCompleto = edicao.rodadas.every((r) => rodadasJogadas.has(r));
+
+      return {
+        id: edicao.id,
+        nome: edicao.nome,
+        rodadas: edicao.rodadas,
+        ranking: ranking,
+        campeao: ranking.length > 0 ? ranking[0] : null,
+        status: mesCompleto ? "concluido" : "em_andamento",
+        totalParticipantes: ranking.length,
+      };
+    });
+
+    // Filtrar apenas meses que têm dados
+    const edicoesComDados = resultado.filter((e) => e.ranking.length > 0);
+
+    res.json({
+      edicoes: edicoesComDados,
+      totalEdicoes: edicoesComDados.length,
+      ligaId: ligaId,
+    });
+  } catch (error) {
+    console.error(`[LIGAS] Erro ao buscar Melhor Mês geral:`, error);
+    res.status(500).json({ erro: "Erro ao buscar Melhor Mês" });
+  }
 });
 
 // Rota: Buscar Melhor Mês de um participante específico
@@ -351,6 +391,7 @@ router.get("/:id/melhor-mes/:timeId", async (req, res) => {
 router.get("/:id/pontos-corridos", buscarConfrontosPontosCorridos);
 
 // Rota: Buscar ranking de uma rodada específica
+// ✅ ATUALIZADO: Filtra participantes inativos
 router.get("/:id/ranking/:rodada", async (req, res) => {
   const { id: ligaId, rodada } = req.params;
 
@@ -361,6 +402,9 @@ router.get("/:id/ranking/:rodada", async (req, res) => {
     if (isNaN(rodadaNum)) {
       return res.status(400).json({ erro: "Rodada inválida" });
     }
+
+    // ✅ Buscar participantes inativos
+    const inativos = await getParticipantesInativos(ligaId);
 
     const dados = await Rodada.find({
       ligaId,
@@ -374,7 +418,10 @@ router.get("/:id/ranking/:rodada", async (req, res) => {
       });
     }
 
-    const ranking = dados.sort((a, b) => (b.pontos || 0) - (a.pontos || 0));
+    // ✅ Filtrar inativos e ordenar
+    const ranking = dados
+      .filter((item) => !inativos.has(item.timeId))
+      .sort((a, b) => (b.pontos || 0) - (a.pontos || 0));
 
     res.json(ranking);
   } catch (error) {
@@ -468,11 +515,15 @@ router.get("/:id/mata-mata", async (req, res) => {
 });
 
 // Rota: Buscar TOP 10 da liga
+// ✅ ATUALIZADO: Filtra participantes inativos
 router.get("/:id/top10", async (req, res) => {
   const { id: ligaId } = req.params;
 
   try {
     const Rodada = (await import("../models/Rodada.js")).default;
+
+    // ✅ Buscar participantes inativos
+    const inativos = await getParticipantesInativos(ligaId);
 
     const rodadas = await Rodada.find({ ligaId }).lean();
 
@@ -483,6 +534,9 @@ router.get("/:id/top10", async (req, res) => {
     const rodadasAgrupadas = {};
 
     rodadas.forEach((r) => {
+      // ✅ Ignorar participantes inativos
+      if (inativos.has(r.timeId)) return;
+
       if (!rodadasAgrupadas[r.rodada]) {
         rodadasAgrupadas[r.rodada] = [];
       }

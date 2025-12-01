@@ -1,8 +1,8 @@
 // =====================================================================
-// PARTICIPANTE-ARTILHEIRO.JS - v2.0 (COM EXPORT)
+// PARTICIPANTE-ARTILHEIRO.JS - v2.1 (VERIFICA MÓDULOS ATIVOS)
 // =====================================================================
 
-console.log("[PARTICIPANTE-ARTILHEIRO] 🔄 Carregando módulo v2.0...");
+console.log("[PARTICIPANTE-ARTILHEIRO] 🔄 Carregando módulo v2.1...");
 
 // =====================================================================
 // FUNÇÃO PRINCIPAL - EXPORTADA PARA NAVIGATION
@@ -24,20 +24,36 @@ export async function inicializarArtilheiroParticipante({
     }
 
     try {
-        // Tentar endpoint principal
-        const response = await fetch(`/api/ligas/${ligaId}/artilheiro-campeao`);
+        // ✅ VERIFICAR SE MÓDULO ESTÁ ATIVO NA LIGA
+        const ligaRes = await fetch(`/api/ligas/${ligaId}`);
+        if (ligaRes.ok) {
+            const liga = await ligaRes.json();
+            const modulosAtivos =
+                liga.modulosAtivos || liga.modulos_ativos || {};
+            const artilheiroAtivo = modulosAtivos.artilheiro !== false; // default true
+
+            if (!artilheiroAtivo) {
+                console.log(
+                    "[PARTICIPANTE-ARTILHEIRO] ⚠️ Módulo não ativo para esta liga",
+                );
+                container.innerHTML = `
+                    <div style="text-align: center; padding: 60px 20px; background: linear-gradient(135deg, rgba(34, 197, 94, 0.05) 0%, rgba(34, 197, 94, 0.02) 100%); border-radius: 12px; border: 2px dashed rgba(34, 197, 94, 0.3);">
+                        <div style="font-size: 64px; margin-bottom: 16px;">⚽</div>
+                        <h3 style="color: #fff; margin-bottom: 12px;">Artilheiro Campeão</h3>
+                        <p style="color: #999;">Este módulo não está ativo para esta liga.</p>
+                    </div>
+                `;
+                return;
+            }
+        }
+
+        // Endpoint correto: /api/artilheiro-campeao/:ligaId/ranking
+        const response = await fetch(
+            `/api/artilheiro-campeao/${ligaId}/ranking`,
+        );
 
         if (!response.ok) {
-            // Tentar endpoint alternativo
-            const altResponse = await fetch(
-                `/api/artilheiro-campeao/${ligaId}`,
-            );
-            if (!altResponse.ok) {
-                throw new Error("Módulo não configurado");
-            }
-            const data = await altResponse.json();
-            renderizarArtilheiro(container, data, timeId);
-            return;
+            throw new Error("Dados não disponíveis");
         }
 
         const data = await response.json();
@@ -48,7 +64,7 @@ export async function inicializarArtilheiroParticipante({
             <div style="text-align: center; padding: 60px 20px; background: linear-gradient(135deg, rgba(34, 197, 94, 0.05) 0%, rgba(34, 197, 94, 0.02) 100%); border-radius: 12px; border: 2px dashed rgba(34, 197, 94, 0.3);">
                 <div style="font-size: 64px; margin-bottom: 16px;">⚽</div>
                 <h3 style="color: #fff; margin-bottom: 12px;">Artilheiro Campeão</h3>
-                <p style="color: #999;">Este módulo ainda não foi configurado para esta liga.</p>
+                <p style="color: #999;">Dados não disponíveis no momento.</p>
             </div>
         `;
     }
@@ -180,4 +196,4 @@ function renderizarArtilheiro(container, data, meuTimeId) {
     container.innerHTML = html;
 }
 
-console.log("[PARTICIPANTE-ARTILHEIRO] ✅ Módulo v2.0 carregado");
+console.log("[PARTICIPANTE-ARTILHEIRO] ✅ Módulo v2.1 carregado");
