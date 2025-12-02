@@ -165,7 +165,7 @@ async function calcularMitosMicos(ligaId, rodadaAtual) {
                     nome_time: mito.nome_time || "N/D",
                     pontos: parseFloat(mito.pontos) || 0,
                     escudo: mito.escudo || "",
-                    clube_id: mito.clube_id,
+                    clube_id: mito.clube_id || mito.escudo_clube_id,
                 });
             }
 
@@ -180,7 +180,7 @@ async function calcularMitosMicos(ligaId, rodadaAtual) {
                     nome_time: mico.nome_time || "N/D",
                     pontos: parseFloat(mico.pontos) || 0,
                     escudo: mico.escudo || "",
-                    clube_id: mico.clube_id,
+                    clube_id: mico.clube_id || mico.escudo_clube_id,
                 });
             }
         }
@@ -285,9 +285,10 @@ function gerarTabelaHTML(dados, tipo, meuTimeIdNum, valoresBonusOnus) {
                                 ? `+R$ ${valorBonus.toFixed(2)}`
                                 : `-R$ ${Math.abs(valorBonus).toFixed(2)}`;
 
-                        // Escudo
-                        const escudoHTML = item.clube_id
-                            ? `<img src="/escudos/${item.clube_id}.png" alt="" class="escudo-top10" onerror="this.src='/escudos/default.png'"/>`
+                        // Escudo com fallback robusto
+                        const clubeId = item.clube_id || item.escudo_clube_id;
+                        const escudoHTML = clubeId
+                            ? `<img src="/escudos/${clubeId}.png" alt="Escudo" class="escudo-top10" onerror="this.onerror=null; this.src='/escudos/default.png';" loading="lazy"/>`
                             : `<span class="escudo-placeholder">🛡️</span>`;
 
                         return `
