@@ -341,8 +341,10 @@ router.get("/:id/melhor-mes", async (req, res) => {
       };
     });
 
-    // Filtrar apenas meses que têm dados
-    const edicoesComDados = resultado.filter((e) => e.ranking.length > 0);
+    // ✅ FILTRAR APENAS EDIÇÕES COM PARTICIPANTES ATIVOS
+    const edicoesComDados = resultado.filter(
+      (e) => e.ranking && e.ranking.length > 0 && e.totalParticipantes > 0
+    );
 
     res.json({
       edicoes: edicoesComDados,
