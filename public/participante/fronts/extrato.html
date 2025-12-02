@@ -66,6 +66,67 @@
         </div>
     </div>
 
+    <!-- Gráfico de Evolução Financeira -->
+    <div class="grafico-evolucao-container">
+        <div class="grafico-header">
+            <h3 class="grafico-titulo">Evolução Financeira</h3>
+            <div class="grafico-filtros">
+                <button class="filtro-btn active" data-range="all">Tudo</button>
+                <button class="filtro-btn" data-range="10">10R</button>
+                <button class="filtro-btn" data-range="5">5R</button>
+            </div>
+        </div>
+        <div class="grafico-area" id="graficoEvolucao">
+            <svg
+                class="grafico-svg"
+                viewBox="0 0 300 160"
+                preserveAspectRatio="none"
+                fill="none"
+            >
+                <defs>
+                    <linearGradient
+                        id="chartGradient"
+                        x1="0"
+                        x2="0"
+                        y1="0"
+                        y2="1"
+                    >
+                        <stop
+                            offset="0%"
+                            stop-color="#ff5c00"
+                            stop-opacity="0.4"
+                        ></stop>
+                        <stop
+                            offset="100%"
+                            stop-color="#ff5c00"
+                            stop-opacity="0"
+                        ></stop>
+                    </linearGradient>
+                </defs>
+                <!-- Linhas de grade -->
+                <line class="grade-line" x1="0" x2="300" y1="40" y2="40"></line>
+                <line class="grade-line" x1="0" x2="300" y1="80" y2="80"></line>
+                <line
+                    class="grade-line"
+                    x1="0"
+                    x2="300"
+                    y1="120"
+                    y2="120"
+                ></line>
+                <!-- Path do gráfico (será preenchido via JS) -->
+                <path id="graficoPath" class="grafico-linha" d=""></path>
+                <path id="graficoArea" class="grafico-fill" d=""></path>
+            </svg>
+            <div class="grafico-labels" id="graficoLabels">
+                <span>1ª</span>
+                <span>5ª</span>
+                <span>10ª</span>
+                <span>15ª</span>
+                <span>20ª</span>
+            </div>
+        </div>
+    </div>
+
     <!-- Tabela de Transações -->
     <div id="fluxoFinanceiroContent" class="extrato-content-pro">
         <div class="loading-state">
@@ -302,6 +363,102 @@
     .resumo-card-pro .arrow {
         color: var(--ext-text-muted);
         font-size: 20px;
+    }
+
+    /* ===== GRÁFICO DE EVOLUÇÃO ===== */
+    .grafico-evolucao-container {
+        background: rgba(39, 39, 42, 0.5);
+        border: 1px solid rgba(63, 63, 70, 0.5);
+        border-radius: 12px;
+        padding: 16px;
+        margin: 12px;
+    }
+
+    .grafico-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 16px;
+    }
+
+    .grafico-titulo {
+        font-size: 14px;
+        font-weight: 700;
+        color: var(--ext-text);
+        margin: 0;
+    }
+
+    .grafico-filtros {
+        display: flex;
+        gap: 4px;
+        background: rgba(63, 63, 70, 0.5);
+        padding: 4px;
+        border-radius: 8px;
+    }
+
+    .filtro-btn {
+        padding: 6px 12px;
+        border: none;
+        border-radius: 6px;
+        font-size: 11px;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.2s ease;
+        background: transparent;
+        color: var(--ext-text-muted);
+    }
+
+    .filtro-btn.active {
+        background: rgba(255, 92, 0, 0.8);
+        color: var(--ext-text);
+    }
+
+    .filtro-btn:not(.active):hover {
+        color: var(--ext-text-secondary);
+    }
+
+    .grafico-area {
+        position: relative;
+        height: 140px;
+    }
+
+    .grafico-svg {
+        position: absolute;
+        inset: 0;
+        width: 100%;
+        height: 100%;
+    }
+
+    .grade-line {
+        stroke: rgba(63, 63, 70, 0.6);
+        stroke-dasharray: 2 2;
+    }
+
+    .grafico-linha {
+        stroke: var(--ext-primary);
+        stroke-width: 2.5;
+        fill: none;
+        stroke-linecap: round;
+        stroke-linejoin: round;
+    }
+
+    .grafico-fill {
+        fill: url(#chartGradient);
+    }
+
+    .grafico-labels {
+        position: absolute;
+        bottom: 0;
+        left: 0;
+        right: 0;
+        display: flex;
+        justify-content: space-between;
+        padding: 0 4px;
+    }
+
+    .grafico-labels span {
+        font-size: 10px;
+        color: var(--ext-text-muted);
     }
 
     /* ===== CONTEÚDO TABELA ===== */

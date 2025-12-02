@@ -59,6 +59,115 @@ export function renderizarExtratoParticipante(extrato, participanteId) {
 
     // Atualizar cards do header
     atualizarCardsHeader(extrato.resumo);
+
+    // Renderizar gráfico de evolução
+    renderizarGraficoEvolucao(extrato.rodadas);
+    configurarFiltrosGrafico(extrato.rodadas);
+}
+
+// ===== GRÁFICO DE EVOLUÇÃO FINANCEIRA =====
+function renderizarGraficoEvolucao(rodadas, range = "all") {
+    if (!rodadas || rodadas.length === 0) return;
+
+    // Filtrar rodadas pelo range
+    let dadosFiltrados = [...rodadas];
+    if (range === "10") {
+        dadosFiltrados = rodadas.slice(-10);
+    } else if (range === "5") {
+        dadosFiltrados = rodadas.slice(-5);
+    }
+
+    const pathEl = document.getElementById("graficoPath");
+    const areaEl = document.getElementById("graficoArea");
+    const labelsEl = document.getElementById("graficoLabels");
+
+    if (!pathEl || !areaEl) return;
+
+    // Extrair saldos
+    const saldos = dadosFiltrados.map((r) => parseFloat(r.saldo) || 0);
+
+    if (saldos.length === 0) return;
+
+    // Calcular limites
+    const minSaldo = Math.min(...saldos, 0);
+    const maxSaldo = Math.max(...saldos, 0);
+    const range_val = Math.max(maxSaldo - minSaldo, 1);
+
+    // Dimensões do SVG
+    const width = 300;
+    const height = 140;
+    const padding = 10;
+
+    // Gerar pontos
+    const pontos = saldos.map((saldo, i) => {
+        const x =
+            (i / Math.max(saldos.length - 1, 1)) * (width - padding * 2) +
+            padding;
+        const y =
+            height -
+            padding -
+            ((saldo - minSaldo) / range_val) * (height - padding * 2);
+        return { x, y };
+    });
+
+    // Criar path da linha
+    let pathD = `M${pontos[0].x} ${pontos[0].y}`;
+    for (let i = 1; i < pontos.length; i++) {
+        pathD += ` L${pontos[i].x} ${pontos[i].y}`;
+    }
+
+    // Criar path da área (com fechamento embaixo)
+    let areaD =
+        pathD +
+        ` L${pontos[pontos.length - 1].x} ${height} L${pontos[0].x} ${height} Z`;
+
+    pathEl.setAttribute("d", pathD);
+    areaEl.setAttribute("d", areaD);
+
+    // Atualizar labels
+    if (labelsEl) {
+        const numLabels = Math.min(5, dadosFiltrados.length);
+        const step = Math.floor(dadosFiltrados.length / numLabels);
+
+        let labelsHTML = "";
+        for (let i = 0; i < numLabels; i++) {
+            const idx = Math.min(i * step, dadosFiltrados.length - 1);
+            labelsHTML += `<span>${dadosFiltrados[idx].rodada}ª</span>`;
+        }
+        // Adicionar última rodada se não estiver incluída
+        if (numLabels > 1) {
+            labelsHTML = "";
+            const indices = [
+                0,
+                Math.floor(dadosFiltrados.length * 0.25),
+                Math.floor(dadosFiltrados.length * 0.5),
+                Math.floor(dadosFiltrados.length * 0.75),
+                dadosFiltrados.length - 1,
+            ];
+            indices.forEach((idx) => {
+                if (dadosFiltrados[idx]) {
+                    labelsHTML += `<span>${dadosFiltrados[idx].rodada}ª</span>`;
+                }
+            });
+        }
+        labelsEl.innerHTML = labelsHTML;
+    }
+}
+
+function configurarFiltrosGrafico(rodadas) {
+    const filtros = document.querySelectorAll(".filtro-btn");
+
+    filtros.forEach((btn) => {
+        btn.addEventListener("click", () => {
+            // Atualizar estado ativo
+            filtros.forEach((b) => b.classList.remove("active"));
+            btn.classList.add("active");
+
+            // Re-renderizar gráfico
+            const range = btn.dataset.range;
+            renderizarGraficoEvolucao(rodadas, range);
+        });
+    });
 }
 
 function renderizarErro() {
