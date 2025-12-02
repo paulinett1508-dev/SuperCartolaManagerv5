@@ -275,14 +275,29 @@ router.get("/:id/melhor-mes", async (req, res) => {
         };
       }
 
-      // Agrupar por time
+      // ✅ FILTRAR INATIVOS ANTES DE PROCESSAR
+      const rodadasAtivas = rodadasDoMes.filter(
+        (r) => !inativos.has(r.timeId)
+      );
+
+      // Se não há dados de times ativos, retornar edição vazia
+      if (rodadasAtivas.length === 0) {
+        return {
+          id: edicao.id,
+          nome: edicao.nome,
+          rodadas: edicao.rodadas,
+          ranking: [],
+          campeao: null,
+          status: "aguardando",
+          totalParticipantes: 0,
+        };
+      }
+
+      // Agrupar por time (já filtrado)
       const timesPontos = {};
 
-      rodadasDoMes.forEach((r) => {
+      rodadasAtivas.forEach((r) => {
         const timeId = r.timeId;
-
-        // ✅ Ignorar participantes inativos
-        if (inativos.has(timeId)) return;
 
         if (!timesPontos[timeId]) {
           timesPontos[timeId] = {
@@ -309,9 +324,11 @@ router.get("/:id/melhor-mes", async (req, res) => {
               : "0.00",
         }));
 
-      // Verificar se mês está completo (todas as rodadas jogadas)
-      const rodadasJogadas = new Set(rodadasDoMes.map((r) => r.rodada));
-      const mesCompleto = edicao.rodadas.every((r) => rodadasJogadas.has(r));
+      // Verificar se mês está completo (todas as rodadas jogadas POR TIMES ATIVOS)
+      const rodadasJogadasAtivas = new Set(rodadasAtivas.map((r) => r.rodada));
+      const mesCompleto = edicao.rodadas.every((r) =>
+        rodadasJogadasAtivas.has(r)
+      );
 
       return {
         id: edicao.id,
