@@ -31,6 +31,7 @@ import pontosCorridosCacheRoutes from "./routes/pontosCorridosCacheRoutes.js";
 import top10CacheRoutes from "./routes/top10CacheRoutes.js";
 import mataMataCacheRoutes from "./routes/mataMataCacheRoutes.js";
 import rankingGeralCacheRoutes from "./routes/ranking-geral-cache-routes.js";
+import rankingTurnoRoutes from "./routes/ranking-turno-routes.js";
 import consolidacaoRoutes from "./routes/consolidacao-routes.js";
 
 import { getClubes } from "./controllers/cartolaController.js";
@@ -85,10 +86,10 @@ app.use(express.static("public"));
 
 // Middleware de segurança: bloqueia participantes de acessar admin
 // Aplicado APENAS às rotas da API, não aos arquivos estáticos
-import { bloquearParticipanteDeAdmin } from './middleware/auth.js';
+import { bloquearParticipanteDeAdmin } from "./middleware/auth.js";
 
 // Aplicar bloqueio de participante apenas nas rotas da API (não em arquivos estáticos)
-app.use('/api', bloquearParticipanteDeAdmin);
+app.use("/api", bloquearParticipanteDeAdmin);
 
 // Rotas da API
 app.use("/api/ligas", ligaRoutes);
@@ -102,9 +103,12 @@ app.use("/api/artilheiro-campeao", artilheiroCampeaoRoutes);
 app.use("/api/luva-de-ouro", luvaDeOuroRoutes);
 app.use("/api/configuracao", configuracaoRoutes);
 app.use("/api/fluxo-financeiro", fluxoFinanceiroRoutes);
-console.log('[SERVER] ✅ Rotas de Fluxo Financeiro registradas em /api/fluxo-financeiro');
+console.log(
+  "[SERVER] ✅ Rotas de Fluxo Financeiro registradas em /api/fluxo-financeiro",
+);
 app.use("/api/extrato-cache", extratoFinanceiroCacheRoutes);
 app.use("/api/ranking-cache", rankingGeralCacheRoutes);
+app.use("/api/ranking-turno", rankingTurnoRoutes);
 app.use("/api/consolidacao", consolidacaoRoutes);
 app.use("/api/participante/auth", participanteAuthRoutes);
 app.use("/api/pontos-corridos", pontosCorridosCacheRoutes);
@@ -185,12 +189,18 @@ mongoose.connection.once("open", async () => {
   // ✅ SCHEDULER DE CONSOLIDAÇÃO AUTOMÁTICA
   if (process.env.NODE_ENV === "production") {
     setTimeout(() => {
-      console.log("[SERVER] 🚀 Iniciando scheduler de consolidação em produção...");
+      console.log(
+        "[SERVER] 🚀 Iniciando scheduler de consolidação em produção...",
+      );
       iniciarSchedulerConsolidacao();
     }, 10000); // Aguarda 10s após conexão para garantir estabilidade
   } else {
-    console.log("[SERVER] ⚠️ Scheduler de consolidação desativado em desenvolvimento");
-    console.log("[SERVER] 💡 Para testar manualmente, use: POST /api/consolidacao/ligas/{ID}/consolidar-historico");
+    console.log(
+      "[SERVER] ⚠️ Scheduler de consolidação desativado em desenvolvimento",
+    );
+    console.log(
+      "[SERVER] 💡 Para testar manualmente, use: POST /api/consolidacao/ligas/{ID}/consolidar-historico",
+    );
   }
 });
 

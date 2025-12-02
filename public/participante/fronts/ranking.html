@@ -1,242 +1,489 @@
-
-<!-- PARTICIPANTE RANKING - Interface -->
-<div class="ranking-participante">
-    <div class="ranking-header">
-        <h2>🏆 Ranking Geral</h2>
-        <p style="color: #999;">Classificação completa da liga</p>
+<!-- PARTICIPANTE RANKING - Interface Profissional v3.0 -->
+<div class="ranking-participante-pro">
+    <!-- Header do Ranking -->
+    <div class="ranking-header-pro">
+        <div class="header-row">
+            <div class="header-content">
+                <div class="header-title">
+                    <span class="material-icons icon-trophy">emoji_events</span>
+                    <h2>Ranking Geral</h2>
+                </div>
+                <p class="header-subtitle">Classificação completa da liga</p>
+            </div>
+            <button
+                class="btn-share"
+                onclick="compartilharRanking()"
+                title="Compartilhar"
+            >
+                <span class="material-icons">share</span>
+            </button>
+        </div>
     </div>
 
-    <div id="rankingTabela" class="ranking-tabela">
-        <div class="loading-participante">
-            <div class="spinner-participante"></div>
-            <p>Carregando ranking...</p>
+    <!-- Tabs de Filtro -->
+    <div class="ranking-tabs">
+        <div class="tabs-container">
+            <button class="tab-btn" data-turno="1">1º turno</button>
+            <button class="tab-btn" data-turno="2">2º turno</button>
+            <button class="tab-btn active" data-turno="geral">Geral</button>
+        </div>
+    </div>
+
+    <!-- Container da Tabela -->
+    <div class="ranking-card-pro">
+        <!-- Cabeçalho da Tabela -->
+        <div class="ranking-table-header">
+            <div class="col-pos">Pos</div>
+            <div class="col-time">Time</div>
+            <div class="col-pontos">Pontos</div>
+        </div>
+
+        <!-- Lista de Times -->
+        <div id="rankingLista" class="ranking-lista">
+            <div class="loading-state">
+                <div class="spinner"></div>
+                <p>Carregando ranking...</p>
+            </div>
         </div>
     </div>
 </div>
 
 <style>
-.ranking-participante {
-    padding: 20px 0;
-}
+    /* ===== RANKING PROFISSIONAL v3.0 ===== */
+    @import url("https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap");
+    @import url("https://fonts.googleapis.com/icon?family=Material+Icons");
 
-.ranking-header {
-    text-align: center;
-    margin-bottom: 30px;
-}
-
-.ranking-header h2 {
-    color: var(--participante-primary);
-    margin-bottom: 10px;
-}
-
-.ranking-tabela {
-    background: var(--participante-card);
-    border-radius: 12px;
-    overflow: hidden;
-    border: 1px solid var(--participante-border);
-}
-
-.ranking-tabela table {
-    width: 100%;
-    border-collapse: collapse;
-}
-
-.ranking-tabela thead {
-    background: rgba(255, 69, 0, 0.1);
-}
-
-.ranking-tabela th {
-    padding: 15px;
-    text-align: left;
-    color: var(--participante-primary);
-    font-weight: 600;
-    font-size: 14px;
-}
-
-.ranking-tabela td {
-    padding: 12px 15px;
-    border-top: 1px solid var(--participante-border);
-    color: #ccc;
-}
-
-.ranking-tabela tr.meu-time {
-    background: rgba(255, 69, 0, 0.15);
-    font-weight: 600;
-}
-
-.ranking-tabela tr.podium-1 {
-    background: rgba(255, 215, 0, 0.1);
-    border-left: 4px solid gold;
-}
-
-.ranking-tabela tr.podium-2 {
-    background: rgba(192, 192, 192, 0.1);
-    border-left: 4px solid silver;
-}
-
-.ranking-tabela tr.podium-3 {
-    background: rgba(205, 127, 50, 0.1);
-    border-left: 4px solid #cd7f32;
-}
-
-.posicao-badge {
-    display: inline-block;
-    width: 30px;
-    height: 30px;
-    background: var(--participante-primary);
-    color: white;
-    border-radius: 50%;
-    text-align: center;
-    line-height: 30px;
-    font-weight: 700;
-}
-
-.pontos-destaque {
-    font-weight: 700;
-    color: var(--participante-primary);
-    font-size: 16px;
-}
-
-@media (max-width: 768px) {
-    .ranking-tabela th, .ranking-tabela td {
-        padding: 10px 8px;
-        font-size: 12px;
+    /* Variáveis */
+    :root {
+        --rank-primary: #ff5c00;
+        --rank-bg: #1c1c1e;
+        --rank-surface: #2c2c2e;
+        --rank-surface-light: #3c3c3e;
+        --rank-text: #ffffff;
+        --rank-text-secondary: rgba(255, 255, 255, 0.6);
+        --rank-text-muted: rgba(255, 255, 255, 0.4);
+        --rank-gold: #facc15;
+        --rank-gold-bg: rgba(250, 204, 21, 0.1);
+        --rank-silver: #a1a1aa;
+        --rank-silver-bg: rgba(161, 161, 170, 0.1);
+        --rank-bronze: #d97706;
+        --rank-bronze-bg: rgba(217, 119, 6, 0.1);
+        --rank-danger: rgba(239, 68, 68, 0.15);
+        --rank-danger-border: #ef4444;
     }
-    
-    .posicao-badge {
-        width: 25px;
-        height: 25px;
-        line-height: 25px;
-        font-size: 12px;
+
+    .ranking-participante-pro {
+        font-family: "Poppins", sans-serif;
+        padding: 16px 0;
     }
-}
 
-/* Modal de Premiações */
-.modal-premiacao {
-    position: fixed;
-    top: 0;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    z-index: 10000;
-    display: none;
-    align-items: center;
-    justify-content: center;
-    opacity: 0;
-    transition: opacity 0.3s ease;
-}
-
-.modal-premiacao.show {
-    display: flex;
-    opacity: 1;
-}
-
-.modal-overlay {
-    position: absolute;
-    top: 0;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    background: rgba(0, 0, 0, 0.8);
-    backdrop-filter: blur(4px);
-}
-
-.modal-content-premiacao {
-    position: relative;
-    background: var(--participante-card);
-    border: 1px solid var(--participante-border);
-    border-radius: 16px;
-    padding: 32px 24px;
-    max-width: 400px;
-    width: 90%;
-    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
-    z-index: 10001;
-}
-
-.btn-fechar-modal {
-    position: absolute;
-    top: 12px;
-    right: 12px;
-    background: rgba(255, 255, 255, 0.1);
-    border: none;
-    color: white;
-    font-size: 28px;
-    width: 36px;
-    height: 36px;
-    border-radius: 50%;
-    cursor: pointer;
-    transition: all 0.3s ease;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    line-height: 1;
-}
-
-.btn-fechar-modal:hover {
-    background: rgba(255, 255, 255, 0.2);
-    transform: rotate(90deg);
-}
-
-.premiacoes-grid {
-    display: flex;
-    flex-direction: column;
-    gap: 16px;
-}
-
-.premiacao-item {
-    display: flex;
-    align-items: center;
-    gap: 16px;
-    padding: 16px;
-    background: rgba(255, 255, 255, 0.05);
-    border-radius: 12px;
-    border: 2px solid transparent;
-    transition: all 0.3s ease;
-}
-
-.premiacao-item.destaque {
-    background: rgba(255, 69, 0, 0.1);
-    border-color: var(--participante-primary);
-}
-
-.premiacao-emoji {
-    font-size: 48px;
-    line-height: 1;
-}
-
-.premiacao-info {
-    flex: 1;
-}
-
-.premiacao-titulo {
-    font-size: 16px;
-    font-weight: 700;
-    color: white;
-    margin-bottom: 4px;
-}
-
-.premiacao-valor {
-    font-size: 20px;
-    font-weight: 800;
-    color: var(--participante-primary);
-    font-family: 'JetBrains Mono', monospace;
-}
-
-@media (max-width: 768px) {
-    .modal-content-premiacao {
-        padding: 24px 16px;
+    /* ===== HEADER ===== */
+    .ranking-header-pro {
+        margin-bottom: 16px;
+        padding: 0 16px;
     }
-    
-    .premiacao-emoji {
-        font-size: 36px;
+
+    .header-row {
+        display: flex;
+        align-items: flex-start;
+        justify-content: space-between;
+        gap: 12px;
     }
-    
-    .premiacao-titulo {
+
+    .header-content {
+        flex: 1;
+    }
+
+    .header-title {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        margin-bottom: 4px;
+    }
+
+    .header-title .icon-trophy {
+        font-size: 32px;
+        color: var(--rank-gold);
+    }
+
+    .header-title h2 {
+        font-size: 24px;
+        font-weight: 700;
+        margin: 0;
+        background: linear-gradient(90deg, var(--rank-primary), #f97316);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        background-clip: text;
+    }
+
+    .header-subtitle {
         font-size: 14px;
+        color: var(--rank-text-secondary);
+        margin: 0;
     }
-    
-    .premiacao-valor {
+
+    /* Botão Share */
+    .btn-share {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        width: 44px;
+        height: 44px;
+        background: rgba(255, 92, 0, 0.15);
+        border: none;
+        border-radius: 50%;
+        cursor: pointer;
+        transition: all 0.2s ease;
+    }
+
+    .btn-share .material-icons {
+        font-size: 20px;
+        color: var(--rank-primary);
+    }
+
+    .btn-share:active {
+        transform: scale(0.95);
+        background: rgba(255, 92, 0, 0.25);
+    }
+
+    /* ===== TABS DE FILTRO ===== */
+    .ranking-tabs {
+        padding: 0 16px;
+        margin-bottom: 16px;
+    }
+
+    .tabs-container {
+        display: flex;
+        background: var(--rank-surface);
+        border-radius: 10px;
+        padding: 4px;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+    }
+
+    .tab-btn {
+        flex: 1;
+        padding: 10px 12px;
+        border: none;
+        background: transparent;
+        font-family: "Poppins", sans-serif;
+        font-size: 13px;
+        font-weight: 600;
+        color: var(--rank-text-secondary);
+        cursor: pointer;
+        border-radius: 8px;
+        transition: all 0.2s ease;
+    }
+
+    .tab-btn:active {
+        transform: scale(0.98);
+    }
+
+    .tab-btn.active {
+        background: var(--rank-primary);
+        color: white;
+        box-shadow: 0 2px 8px rgba(255, 92, 0, 0.3);
+    }
+
+    /* ===== CARD CONTAINER ===== */
+    .ranking-card-pro {
+        background: var(--rank-surface);
+        border-radius: 16px;
+        overflow: hidden;
+        margin: 0 12px;
+        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+    }
+
+    /* ===== HEADER DA TABELA ===== */
+    .ranking-table-header {
+        display: grid;
+        grid-template-columns: 70px 1fr 90px;
+        padding: 14px 16px;
+        background: var(--rank-surface-light);
+        border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+    }
+
+    .ranking-table-header div {
+        font-size: 11px;
+        font-weight: 600;
+        color: rgba(255, 92, 0, 0.8);
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+    }
+
+    .col-pontos {
+        text-align: right;
+    }
+
+    /* ===== LISTA DE TIMES ===== */
+    .ranking-lista {
+        max-height: 520px;
+        overflow-y: auto;
+    }
+
+    .ranking-lista::-webkit-scrollbar {
+        width: 4px;
+    }
+
+    .ranking-lista::-webkit-scrollbar-track {
+        background: transparent;
+    }
+
+    .ranking-lista::-webkit-scrollbar-thumb {
+        background: var(--rank-surface-light);
+        border-radius: 4px;
+    }
+
+    /* ===== ITEM DO RANKING ===== */
+    .ranking-item {
+        display: grid;
+        grid-template-columns: 70px 1fr 90px;
+        padding: 14px 16px;
+        align-items: center;
+        border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+        transition: background 0.2s ease;
+    }
+
+    .ranking-item:last-child {
+        border-bottom: none;
+    }
+
+    .ranking-item:active {
+        background: rgba(255, 255, 255, 0.05);
+    }
+
+    /* ===== PÓDIO (1º, 2º, 3º) ===== */
+    .ranking-item.podio-1 {
+        background: var(--rank-gold-bg);
+        border-left: 4px solid var(--rank-gold);
+    }
+
+    .ranking-item.podio-2 {
+        background: var(--rank-silver-bg);
+        border-left: 4px solid var(--rank-silver);
+    }
+
+    .ranking-item.podio-3 {
+        background: var(--rank-bronze-bg);
+        border-left: 4px solid var(--rank-bronze);
+    }
+
+    /* ===== MEU TIME ===== */
+    .ranking-item.meu-time {
+        background: rgba(255, 92, 0, 0.15);
+        border-left: 4px solid var(--rank-primary);
+    }
+
+    .ranking-item.meu-time .time-nome {
+        color: var(--rank-primary);
+    }
+
+    /* ===== ZONA DE REBAIXAMENTO ===== */
+    .ranking-item.zona-rebaixamento {
+        background: var(--rank-danger);
+    }
+
+    .ranking-item.zona-rebaixamento .posicao-badge {
+        background: rgba(239, 68, 68, 0.4);
+        color: #fca5a5;
+    }
+
+    .ranking-item.zona-rebaixamento .time-nome,
+    .ranking-item.zona-rebaixamento .pontos-valor {
+        opacity: 0.8;
+    }
+
+    /* ===== POSIÇÃO ===== */
+    .posicao-container {
+        display: flex;
+        align-items: center;
+        gap: 6px;
+    }
+
+    .posicao-badge {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        width: 26px;
+        height: 26px;
+        border-radius: 50%;
+        font-size: 11px;
+        font-weight: 700;
+        background: var(--rank-surface-light);
+        color: var(--rank-text-secondary);
+    }
+
+    /* Badges coloridos do pódio */
+    .podio-1 .posicao-badge {
+        background: var(--rank-gold);
+        color: #1c1c1e;
+    }
+
+    .podio-2 .posicao-badge {
+        background: var(--rank-silver);
+        color: #1c1c1e;
+    }
+
+    .podio-3 .posicao-badge {
+        background: var(--rank-bronze);
+        color: white;
+    }
+
+    /* Ícone do pódio */
+    .podio-icon {
         font-size: 18px;
     }
-}
+
+    .podio-1 .podio-icon {
+        color: var(--rank-gold);
+    }
+
+    .podio-2 .podio-icon {
+        color: var(--rank-silver);
+    }
+
+    .podio-3 .podio-icon {
+        color: var(--rank-bronze);
+    }
+
+    /* ===== INFO DO TIME ===== */
+    .time-info-container {
+        display: flex;
+        flex-direction: column;
+        gap: 2px;
+        min-width: 0;
+    }
+
+    .time-nome {
+        font-size: 14px;
+        font-weight: 600;
+        color: var(--rank-text);
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
+
+    .time-cartoleiro {
+        font-size: 12px;
+        color: var(--rank-text-secondary);
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
+
+    /* ===== PONTOS ===== */
+    .pontos-valor {
+        font-size: 14px;
+        font-weight: 600;
+        color: var(--rank-text);
+        text-align: right;
+    }
+
+    /* ===== LOADING ===== */
+    .loading-state {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        padding: 60px 20px;
+    }
+
+    .spinner {
+        width: 32px;
+        height: 32px;
+        border: 3px solid rgba(255, 92, 0, 0.2);
+        border-top-color: var(--rank-primary);
+        border-radius: 50%;
+        animation: spin 0.8s linear infinite;
+    }
+
+    @keyframes spin {
+        to {
+            transform: rotate(360deg);
+        }
+    }
+
+    .loading-state p {
+        margin-top: 16px;
+        color: var(--rank-text-muted);
+        font-size: 14px;
+    }
+
+    /* ===== EMPTY STATE ===== */
+    .empty-state {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        padding: 60px 20px;
+        text-align: center;
+    }
+
+    .empty-state .material-icons {
+        font-size: 48px;
+        color: var(--rank-text-muted);
+        margin-bottom: 12px;
+    }
+
+    .empty-state p {
+        color: var(--rank-text-secondary);
+        font-size: 14px;
+        margin: 0;
+    }
+
+    /* ===== RESPONSIVO ===== */
+    @media (max-width: 360px) {
+        .ranking-table-header,
+        .ranking-item {
+            grid-template-columns: 60px 1fr 75px;
+            padding: 12px;
+        }
+
+        .header-title h2 {
+            font-size: 20px;
+        }
+
+        .tab-btn {
+            font-size: 12px;
+            padding: 8px 10px;
+        }
+
+        .time-nome,
+        .pontos-valor {
+            font-size: 13px;
+        }
+
+        .posicao-badge {
+            width: 24px;
+            height: 24px;
+            font-size: 10px;
+        }
+    }
+
+    @media (min-width: 768px) {
+        .ranking-card-pro {
+            max-width: 600px;
+            margin: 0 auto;
+        }
+
+        .ranking-tabs {
+            max-width: 600px;
+            margin: 0 auto 16px;
+        }
+
+        .ranking-header-pro {
+            max-width: 600px;
+            margin: 0 auto 16px;
+        }
+
+        .ranking-table-header,
+        .ranking-item {
+            grid-template-columns: 80px 1fr 120px;
+            padding: 16px 20px;
+        }
+
+        .time-nome,
+        .pontos-valor {
+            font-size: 15px;
+        }
+    }
 </style>

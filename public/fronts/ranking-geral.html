@@ -1,4 +1,4 @@
-<!-- 🏅 MÓDULO RANKING GERAL - HTML LIMPO (SEM CSS INLINE) -->
+<!-- 🏅 MÓDULO RANKING GERAL - v2.0 COM FILTROS DE TURNO -->
 <div id="ranking-geral">
     <!-- Header do Ranking -->
     <div class="ranking-header">
@@ -11,9 +11,29 @@
         </div>
     </div>
 
+    <!-- Tabs de Filtro por Turno -->
+    <div class="ranking-turno-tabs">
+        <button class="turno-tab" data-turno="1">1º Turno</button>
+        <button class="turno-tab" data-turno="2">2º Turno</button>
+        <button class="turno-tab active" data-turno="geral">Geral</button>
+    </div>
+
+    <!-- Info do Turno -->
+    <div class="ranking-turno-info">
+        <span id="turnoStatus" class="turno-status"></span>
+        <span id="turnoRodadas" class="turno-rodadas"></span>
+    </div>
+
     <!-- Controles do Ranking -->
     <div class="ranking-controls">
         <div class="ranking-info">📈 Carregando participantes...</div>
+        <button
+            id="btnConsolidar"
+            class="btn-consolidar"
+            title="Forçar reconsolidação"
+        >
+            🔄 Reconsolidar
+        </button>
     </div>
 
     <!-- Tabela do Ranking -->
@@ -54,7 +74,340 @@
     </div>
 </div>
 
+<style>
+    /* ===== TABS DE TURNO ===== */
+    .ranking-turno-tabs {
+        display: flex;
+        gap: 8px;
+        margin: 16px 0;
+        padding: 4px;
+        background: #2a2a2a;
+        border-radius: 8px;
+        width: fit-content;
+    }
+
+    .turno-tab {
+        padding: 10px 20px;
+        border: none;
+        background: transparent;
+        color: #888;
+        font-size: 14px;
+        font-weight: 600;
+        cursor: pointer;
+        border-radius: 6px;
+        transition: all 0.2s ease;
+    }
+
+    .turno-tab:hover {
+        background: #333;
+        color: #fff;
+    }
+
+    .turno-tab.active {
+        background: #ff5c00;
+        color: #fff;
+    }
+
+    /* ===== INFO DO TURNO ===== */
+    .ranking-turno-info {
+        display: flex;
+        gap: 16px;
+        align-items: center;
+        margin-bottom: 12px;
+        font-size: 13px;
+    }
+
+    .turno-status {
+        padding: 4px 10px;
+        border-radius: 4px;
+        font-weight: 600;
+    }
+
+    .turno-status.consolidado {
+        background: rgba(34, 197, 94, 0.2);
+        color: #22c55e;
+    }
+
+    .turno-status.em_andamento {
+        background: rgba(250, 204, 21, 0.2);
+        color: #facc15;
+    }
+
+    .turno-rodadas {
+        color: #888;
+    }
+
+    /* ===== CONTROLES ===== */
+    .ranking-controls {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 16px;
+    }
+
+    .btn-consolidar {
+        padding: 8px 16px;
+        background: #333;
+        border: 1px solid #444;
+        color: #fff;
+        font-size: 13px;
+        border-radius: 6px;
+        cursor: pointer;
+        transition: all 0.2s ease;
+    }
+
+    .btn-consolidar:hover {
+        background: #444;
+        border-color: #ff5c00;
+    }
+
+    .btn-consolidar:disabled {
+        opacity: 0.5;
+        cursor: not-allowed;
+    }
+
+    /* ===== PÓDIO NA TABELA ===== */
+    .ranking-table tbody tr.podio-1 td:first-child {
+        background: rgba(250, 204, 21, 0.15);
+        border-left: 3px solid #facc15;
+    }
+
+    .ranking-table tbody tr.podio-2 td:first-child {
+        background: rgba(161, 161, 170, 0.15);
+        border-left: 3px solid #a1a1aa;
+    }
+
+    .ranking-table tbody tr.podio-3 td:first-child {
+        background: rgba(217, 119, 6, 0.15);
+        border-left: 3px solid #d97706;
+    }
+
+    .ranking-table tbody tr.zona-rebaixamento {
+        background: rgba(239, 68, 68, 0.1);
+    }
+
+    .ranking-table tbody tr.zona-rebaixamento td:first-child {
+        border-left: 3px solid #ef4444;
+    }
+
+    .posicao-badge {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        width: 28px;
+        height: 28px;
+        border-radius: 50%;
+        font-weight: 700;
+        font-size: 12px;
+    }
+
+    .podio-1 .posicao-badge {
+        background: #facc15;
+        color: #1c1c1e;
+    }
+
+    .podio-2 .posicao-badge {
+        background: #a1a1aa;
+        color: #1c1c1e;
+    }
+
+    .podio-3 .posicao-badge {
+        background: #d97706;
+        color: #fff;
+    }
+</style>
+
 <script>
-    // JavaScript específico do módulo ranking-geral
-    console.log("📊 Módulo Ranking Geral carregado");
+    // ===== RANKING ADMIN COM FILTROS DE TURNO =====
+    (function () {
+        console.log("📊 Módulo Ranking Geral v2.0 carregado");
+
+        let turnoAtivo = "geral";
+        let ligaId = null;
+
+        // Obter ligaId do contexto
+        function obterLigaId() {
+            // Tentar do orquestrador
+            if (window.orquestrador?.ligaAtual?._id) {
+                return window.orquestrador.ligaAtual._id;
+            }
+            // Tentar da URL
+            const urlParams = new URLSearchParams(window.location.search);
+            return urlParams.get("ligaId") || urlParams.get("id");
+        }
+
+        // Inicializar
+        async function init() {
+            ligaId = obterLigaId();
+
+            if (!ligaId) {
+                console.error("[RANKING] ❌ Liga ID não encontrado");
+                return;
+            }
+
+            configurarTabs();
+            configurarBotaoConsolidar();
+            await carregarRanking(turnoAtivo);
+        }
+
+        // Configurar tabs
+        function configurarTabs() {
+            const tabs = document.querySelectorAll(".turno-tab");
+
+            tabs.forEach((tab) => {
+                tab.addEventListener("click", async () => {
+                    tabs.forEach((t) => t.classList.remove("active"));
+                    tab.classList.add("active");
+
+                    turnoAtivo = tab.dataset.turno;
+                    await carregarRanking(turnoAtivo);
+                });
+            });
+        }
+
+        // Configurar botão consolidar
+        function configurarBotaoConsolidar() {
+            const btn = document.getElementById("btnConsolidar");
+
+            btn?.addEventListener("click", async () => {
+                if (!confirm("Deseja reconsolidar todos os turnos?")) return;
+
+                btn.disabled = true;
+                btn.textContent = "⏳ Consolidando...";
+
+                try {
+                    const response = await fetch(
+                        `/api/ranking-turno/${ligaId}/consolidar`,
+                        {
+                            method: "POST",
+                        },
+                    );
+
+                    const data = await response.json();
+
+                    if (data.success) {
+                        alert("✅ Turnos reconsolidados com sucesso!");
+                        await carregarRanking(turnoAtivo);
+                    } else {
+                        alert("❌ Erro: " + data.error);
+                    }
+                } catch (error) {
+                    console.error(error);
+                    alert("❌ Erro ao consolidar");
+                } finally {
+                    btn.disabled = false;
+                    btn.textContent = "🔄 Reconsolidar";
+                }
+            });
+        }
+
+        // Carregar ranking
+        async function carregarRanking(turno) {
+            const tbody = document.getElementById("rankingGeralTableBody");
+            const info = document.querySelector(".ranking-info");
+            const statusEl = document.getElementById("turnoStatus");
+            const rodadasEl = document.getElementById("turnoRodadas");
+
+            tbody.innerHTML = `
+                <tr>
+                    <td colspan="5" class="loading-state">
+                        <div class="ranking-loading">
+                            <div class="spinner"></div>
+                            <span>Carregando ranking do ${turno === "geral" ? "campeonato" : turno + "º turno"}...</span>
+                        </div>
+                    </td>
+                </tr>
+            `;
+
+            try {
+                const response = await fetch(
+                    `/api/ranking-turno/${ligaId}?turno=${turno}`,
+                );
+                const data = await response.json();
+
+                if (!data.success || !data.ranking) {
+                    tbody.innerHTML = `
+                        <tr>
+                            <td colspan="5" style="text-align: center; padding: 40px; color: #888;">
+                                Nenhum dado disponível para este turno
+                            </td>
+                        </tr>
+                    `;
+                    return;
+                }
+
+                // Atualizar info do turno
+                const turnoLabel =
+                    turno === "geral" ? "Geral" : turno + "º Turno";
+                statusEl.textContent =
+                    data.status === "consolidado"
+                        ? "✅ Consolidado"
+                        : "⏳ Em andamento";
+                statusEl.className = `turno-status ${data.status}`;
+                rodadasEl.textContent = `Rodadas ${data.rodada_inicio}-${data.rodada_fim} (atual: ${data.rodada_atual})`;
+
+                info.textContent = `📈 ${data.total_times} participantes - ${turnoLabel}`;
+
+                // Renderizar tabela
+                const totalTimes = data.ranking.length;
+
+                tbody.innerHTML = data.ranking
+                    .map((time, index) => {
+                        const posicao = time.posicao;
+                        const isPodio = posicao <= 3;
+                        const isZonaRebaixamento =
+                            posicao > totalTimes - 3 && totalTimes > 6;
+
+                        let rowClass = "";
+                        if (posicao === 1) rowClass = "podio-1";
+                        else if (posicao === 2) rowClass = "podio-2";
+                        else if (posicao === 3) rowClass = "podio-3";
+                        else if (isZonaRebaixamento)
+                            rowClass = "zona-rebaixamento";
+
+                        const pontosFormatados = parseFloat(
+                            time.pontos,
+                        ).toLocaleString("pt-BR", {
+                            minimumFractionDigits: 1,
+                            maximumFractionDigits: 1,
+                        });
+
+                        const escudoHtml = time.escudo
+                            ? `<img src="${time.escudo}" alt="" style="width: 30px; height: 30px; border-radius: 50%;">`
+                            : `<span style="font-size: 24px;">⚽</span>`;
+
+                        return `
+                        <tr class="${rowClass}">
+                            <td style="text-align: center;">
+                                <span class="posicao-badge">${posicao}</span>
+                            </td>
+                            <td style="text-align: center;">
+                                ${escudoHtml}
+                            </td>
+                            <td>${time.nome_cartola}</td>
+                            <td>${time.nome_time}</td>
+                            <td style="text-align: center; font-weight: 600;">${pontosFormatados}</td>
+                        </tr>
+                    `;
+                    })
+                    .join("");
+            } catch (error) {
+                console.error("[RANKING] Erro:", error);
+                tbody.innerHTML = `
+                    <tr>
+                        <td colspan="5" style="text-align: center; padding: 40px; color: #ef4444;">
+                            ❌ Erro ao carregar ranking
+                        </td>
+                    </tr>
+                `;
+            }
+        }
+
+        // Iniciar quando DOM estiver pronto
+        if (document.readyState === "loading") {
+            document.addEventListener("DOMContentLoaded", init);
+        } else {
+            init();
+        }
+    })();
 </script>

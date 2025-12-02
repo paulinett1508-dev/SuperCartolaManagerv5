@@ -1,312 +1,586 @@
-<!-- PARTICIPANTE RODADAS - Interface Grid + Detalhamento -->
-<div class="rodadas-participante">
-    <div class="rodadas-header">
-        <h2>📅 Rodadas</h2>
-        <p style="color: #999;">Selecione uma rodada para ver o ranking</p>
+<!-- PARTICIPANTE RODADAS - v3.0 Design Compacto -->
+<div class="rodadas-participante-container">
+    <!-- Header -->
+    <div class="rodadas-header-pro">
+        <div class="rodadas-title-row">
+            <span class="rodadas-emoji">📅</span>
+            <h2>Rodadas</h2>
+        </div>
+        <p class="rodadas-subtitle">Selecione uma rodada para ver o ranking</p>
     </div>
 
-    <!-- Grid de Cards das Rodadas -->
-    <div id="rodadasCardsGrid" class="rodadas-cards-grid">
-        <div class="loading-participante">
-            <div class="spinner-participante"></div>
-            <p>Carregando rodadas...</p>
+    <!-- Seletor de Ano -->
+    <div class="rodadas-ano-selector">
+        <button class="ano-btn active">2025</button>
+        <button
+            class="ano-btn disabled"
+            onclick="window.mostrarEmDesenvolvimento('Temporada 2026')"
+        >
+            2026
+        </button>
+    </div>
+
+    <!-- Loading State -->
+    <div id="rodadasLoading" class="rodadas-loading-state">
+        <div class="loading-spinner-rodadas"></div>
+        <p>Carregando rodadas...</p>
+    </div>
+
+    <!-- Grid de Cards Compacto -->
+    <div class="rodadas-grid-container">
+        <div id="rodadasCardsGrid" class="rodadas-grid-compacto"></div>
+
+        <!-- Botão Ver Jogadores -->
+        <div
+            id="btnVerJogadores"
+            class="rodadas-ver-jogadores"
+            style="display: none"
+        >
+            <button
+                onclick="window.mostrarEmDesenvolvimento('Detalhamento de jogadores')"
+            >
+                <span class="btn-emoji">👥</span>
+                <span id="btnJogadoresTexto">Ver Meus Jogadores da Rodada</span>
+            </button>
         </div>
     </div>
 
-    <!-- Detalhamento da Rodada Selecionada -->
-    <div id="rodadaDetalhamento" class="rodada-detalhamento" style="display: none;">
-        <div class="detalhamento-header">
-            <h3 id="rodadaTitulo">Rodada X</h3>
-            <button class="btn-voltar" onclick="window.voltarParaCards()">
-                ← Voltar para as Rodadas
+    <!-- Estado Vazio -->
+    <div id="rodadasEmpty" class="rodadas-empty-state" style="display: none">
+        <span class="empty-emoji">📭</span>
+        <h3>Nenhuma rodada disponível</h3>
+        <p>As rodadas aparecerão aqui quando o campeonato começar</p>
+    </div>
+
+    <!-- Detalhamento da Rodada -->
+    <div
+        id="rodadaDetalhamento"
+        class="rodada-detalhamento-pro"
+        style="display: none"
+    >
+        <div class="detalhamento-header-pro">
+            <div class="detalhamento-info">
+                <h3 id="rodadaTitulo">Rodada X</h3>
+                <p id="rodadaResumo" class="rodada-resumo"></p>
+            </div>
+            <button class="btn-voltar-pro" onclick="window.voltarParaCards()">
+                ← Voltar
             </button>
         </div>
 
-        <div class="ranking-container">
-            <table class="ranking-table">
-                <thead>
-                    <tr>
-                        <th style="width: 60px; text-align: center;">Pos</th>
-                        <th style="text-align: left;">Time</th>
-                        <th style="text-align: left;">Cartoleiro</th>
-                        <th style="width: 100px; text-align: center;">Pontos</th>
-                        <th style="width: 100px; text-align: center;">Financeiro</th>
-                    </tr>
-                </thead>
-                <tbody id="rankingBody">
-                    <!-- Será preenchido dinamicamente -->
-                </tbody>
-            </table>
+        <!-- Ranking da Rodada -->
+        <div class="ranking-container-pro">
+            <div id="rankingListPro" class="ranking-list-pro"></div>
         </div>
+    </div>
+
+    <!-- Toast de Funcionalidade em Desenvolvimento -->
+    <div id="toastDesenvolvimento" class="toast-desenvolvimento">
+        <span class="toast-emoji">🚧</span>
+        <span id="toastMensagem">Funcionalidade em desenvolvimento</span>
     </div>
 </div>
 
 <style>
-.rodadas-participante {
-    padding: 20px 0;
-}
+    /* ============================================
+   RODADAS PARTICIPANTE v3.0 - Design Compacto
+   ============================================ */
 
-.rodadas-header {
-    text-align: center;
-    margin-bottom: 30px;
-}
-
-.rodadas-header h2 {
-    color: var(--participante-primary);
-    margin-bottom: 10px;
-}
-
-/* Grid de Cards */
-.rodadas-cards-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
-    gap: 15px;
-    margin-bottom: 30px;
-}
-
-.rodada-mini-card {
-    background: var(--participante-card);
-    border: 2px solid var(--participante-border);
-    border-radius: 12px;
-    padding: 20px;
-    text-align: center;
-    cursor: pointer;
-    transition: all 0.3s ease;
-    position: relative;
-}
-
-.rodada-mini-card:hover {
-    transform: translateY(-4px);
-    border-color: var(--participante-primary);
-    box-shadow: 0 4px 12px rgba(255, 69, 0, 0.2);
-}
-
-.rodada-mini-card.jogou {
-    border-color: #10b981;
-}
-
-.rodada-mini-card.nao-jogou {
-    opacity: 0.6;
-    border-color: #6b7280;
-}
-
-.rodada-mini-card.selected {
-    background: var(--participante-primary);
-    border-color: var(--participante-primary);
-    color: white;
-}
-
-.rodada-mini-card .numero {
-    font-size: 18px;
-    font-weight: 700;
-    margin-bottom: 8px;
-}
-
-.rodada-mini-card .pontos {
-    font-size: 16px;
-    font-weight: 600;
-    color: #10b981;
-}
-
-.rodada-mini-card.selected .pontos {
-    color: white;
-}
-
-.rodada-mini-card .status {
-    font-size: 12px;
-    margin-top: 5px;
-    opacity: 0.8;
-}
-
-/* Detalhamento da Rodada */
-.rodada-detalhamento {
-    background: var(--participante-card);
-    border-radius: 12px;
-    padding: 20px;
-    margin-top: 20px;
-}
-
-.detalhamento-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-bottom: 20px;
-    padding-bottom: 15px;
-    border-bottom: 2px solid var(--participante-border);
-}
-
-.detalhamento-header h3 {
-    color: var(--participante-primary);
-    margin: 0;
-    font-size: 22px;
-}
-
-.btn-voltar {
-    background: var(--participante-primary);
-    color: white;
-    border: none;
-    padding: 10px 20px;
-    border-radius: 8px;
-    cursor: pointer;
-    font-weight: 600;
-    transition: all 0.3s ease;
-}
-
-.btn-voltar:hover {
-    opacity: 0.9;
-    transform: translateY(-2px);
-}
-
-/* Tabela de Ranking */
-.ranking-container {
-    overflow-x: auto;
-}
-
-.ranking-table {
-    width: 100%;
-    border-collapse: collapse;
-}
-
-.ranking-table thead {
-    background: var(--participante-primary);
-    color: white;
-}
-
-.ranking-table th {
-    padding: 12px;
-    font-weight: 600;
-    font-size: 14px;
-}
-
-.ranking-table tbody tr {
-    border-bottom: 1px solid var(--participante-border);
-    transition: background 0.2s ease;
-}
-
-.ranking-table tbody tr:hover {
-    background: rgba(255, 69, 0, 0.05);
-}
-
-.ranking-table tbody tr.meu-time {
-    background: rgba(16, 185, 129, 0.1);
-    font-weight: 600;
-}
-
-.ranking-table td {
-    padding: 12px;
-    font-size: 14px;
-}
-
-.posicao-badge {
-    display: inline-block;
-    background: var(--participante-primary);
-    color: white;
-    padding: 4px 10px;
-    border-radius: 6px;
-    font-weight: 700;
-    font-size: 13px;
-}
-
-.pontos-destaque {
-    color: #10b981;
-    font-weight: 700;
-    font-size: 15px;
-}
-
-/* Estilos Financeiros */
-.financeiro-positivo {
-    color: #10b981;
-    font-weight: 600;
-}
-
-.financeiro-neutro {
-    color: #e0e0e0;
-    font-weight: 500;
-}
-
-.financeiro-negativo {
-    color: #ef4444;
-    font-weight: 600;
-}
-
-.rodada-card {
-    background: linear-gradient(135deg, #1a1a1a 0%, #2a2a2a 100%);
-    border: 1px solid #333;
-    border-radius: 12px;
-    padding: 20px;
-    cursor: pointer;
-    transition: all 0.3s;
-    position: relative;
-}
-
-.rodada-card.zona-bonus {
-    border-color: #22c55e;
-    color: #22c55e;
-}
-
-.rodada-card.zona-onus {
-    border-color: #ef4444;
-    color: #ef4444;
-}
-
-.rodada-card.neutro {
-    color: #fff;
-}
-
-.rodada-card.mito::before {
-    content: '⭐ MITO';
-    position: absolute;
-    top: 10px;
-    right: 10px;
-    background: #ffd700;
-    color: #000;
-    padding: 4px 8px;
-    border-radius: 4px;
-    font-size: 10px;
-    font-weight: bold;
-}
-
-.rodada-card.mico::before {
-    content: '💩 MICO';
-    position: absolute;
-    top: 10px;
-    right: 10px;
-    background: #ef4444;
-    color: #fff;
-    padding: 4px 8px;
-    border-radius: 4px;
-    font-size: 10px;
-    font-weight: bold;
-}
-
-@media (max-width: 768px) {
-    .rodadas-cards-grid {
-        grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
-        gap: 10px;
+    .rodadas-participante-container {
+        padding: 16px;
+        padding-bottom: 100px;
     }
 
-    .rodada-mini-card {
-        padding: 15px 10px;
+    /* Header */
+    .rodadas-header-pro {
+        text-align: center;
+        margin-bottom: 16px;
     }
 
-    .rodada-mini-card .numero {
-        font-size: 16px;
+    .rodadas-title-row {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 12px;
     }
 
-    .rodada-mini-card .pontos {
+    .rodadas-emoji {
+        font-size: 32px;
+    }
+
+    .rodadas-header-pro h2 {
+        font-family: "Poppins", sans-serif;
+        font-size: 28px;
+        font-weight: 700;
+        color: #f97316;
+        margin: 0;
+    }
+
+    .rodadas-subtitle {
+        color: #9ca3af;
+        font-size: 14px;
+        margin-top: 8px;
+    }
+
+    /* Seletor de Ano */
+    .rodadas-ano-selector {
+        display: flex;
+        justify-content: center;
+        gap: 8px;
+        margin-bottom: 16px;
+    }
+
+    .ano-btn {
+        padding: 10px 24px;
+        background: #262626;
+        border: none;
+        border-radius: 8px;
+        color: #9ca3af;
+        font-size: 14px;
+        font-weight: 500;
+        cursor: pointer;
+        transition: all 0.2s ease;
+    }
+
+    .ano-btn:hover {
+        background: #333;
+    }
+
+    .ano-btn.active {
+        background: #f97316;
+        color: white;
+        font-weight: 600;
+    }
+
+    .ano-btn.disabled {
+        opacity: 0.4;
+        cursor: not-allowed;
+        pointer-events: auto;
+    }
+
+    /* Loading State */
+    .rodadas-loading-state {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        padding: 60px 20px;
+        color: #9ca3af;
+    }
+
+    .loading-spinner-rodadas {
+        width: 40px;
+        height: 40px;
+        border: 3px solid #333;
+        border-top-color: #f97316;
+        border-radius: 50%;
+        animation: spin-rodadas 0.8s linear infinite;
+        margin-bottom: 16px;
+    }
+
+    @keyframes spin-rodadas {
+        to {
+            transform: rotate(360deg);
+        }
+    }
+
+    /* Grid Container */
+    .rodadas-grid-container {
+        background: #262626;
+        border-radius: 12px;
+        padding: 16px;
+    }
+
+    /* Grid Compacto 5 colunas */
+    .rodadas-grid-compacto {
+        display: grid;
+        grid-template-columns: repeat(5, 1fr);
+        gap: 12px;
+    }
+
+    /* Card Individual */
+    .rodada-card-compacto {
+        aspect-ratio: 1;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        gap: 4px;
+        background: transparent;
+        border: 1px solid #404040;
+        border-radius: 8px;
+        cursor: pointer;
+        transition: all 0.2s ease;
+        position: relative;
+    }
+
+    .rodada-card-compacto:hover {
+        border-color: #f97316;
+        transform: scale(1.05);
+    }
+
+    .rodada-card-compacto.selected {
+        background: #f97316;
+        border-color: #f97316;
+    }
+
+    .rodada-card-compacto.selected .card-numero,
+    .rodada-card-compacto.selected .card-pontos {
+        color: white !important;
+    }
+
+    /* Card Jogou */
+    .rodada-card-compacto.jogou {
+        border-color: #22c55e;
+    }
+
+    .rodada-card-compacto.jogou .card-pontos {
+        color: #22c55e;
+    }
+
+    /* Card Não Jogou */
+    .rodada-card-compacto.nao-jogou {
+        opacity: 0.5;
+        border-color: #525252;
+    }
+
+    .rodada-card-compacto.nao-jogou .card-pontos {
+        color: #ef4444;
+        font-size: 9px;
+    }
+
+    /* Card Futuro */
+    .rodada-card-compacto.futuro {
+        opacity: 0.4;
+        cursor: default;
+    }
+
+    .rodada-card-compacto.futuro:hover {
+        transform: none;
+        border-color: #404040;
+    }
+
+    /* Conteúdo do Card */
+    .card-numero {
+        font-size: 13px;
+        font-weight: 700;
+        color: white;
+        line-height: 1;
+    }
+
+    .card-pontos {
+        font-size: 10px;
+        font-weight: 500;
+        color: #9ca3af;
+        line-height: 1;
+    }
+
+    /* Badges de Destaque */
+    .rodada-card-compacto.mito::after {
+        content: "🎩";
+        position: absolute;
+        top: -6px;
+        right: -6px;
         font-size: 14px;
     }
 
-    .detalhamento-header {
-        flex-direction: column;
-        gap: 15px;
-        align-items: flex-start;
+    .rodada-card-compacto.mico::after {
+        content: "🐵";
+        position: absolute;
+        top: -6px;
+        right: -6px;
+        font-size: 14px;
     }
 
-    .ranking-table th,
-    .ranking-table td {
-        padding: 8px;
-        font-size: 12px;
+    /* Botão Ver Jogadores */
+    .rodadas-ver-jogadores {
+        margin-top: 16px;
+        padding-top: 16px;
+        border-top: 1px solid #404040;
     }
-}
+
+    .rodadas-ver-jogadores button {
+        width: 100%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 8px;
+        padding: 12px;
+        background: rgba(249, 115, 22, 0.15);
+        border: none;
+        border-radius: 8px;
+        color: #f97316;
+        font-size: 13px;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.2s ease;
+    }
+
+    .rodadas-ver-jogadores button:hover {
+        background: rgba(249, 115, 22, 0.25);
+    }
+
+    .rodadas-ver-jogadores button .btn-emoji {
+        font-size: 18px;
+    }
+
+    /* Empty State */
+    .rodadas-empty-state {
+        text-align: center;
+        padding: 60px 20px;
+        color: #6b7280;
+    }
+
+    .rodadas-empty-state .empty-emoji {
+        font-size: 64px;
+        margin-bottom: 16px;
+        display: block;
+    }
+
+    .rodadas-empty-state h3 {
+        color: #9ca3af;
+        font-size: 18px;
+        margin-bottom: 8px;
+    }
+
+    .rodadas-empty-state p {
+        font-size: 14px;
+    }
+
+    /* ============================================
+   DETALHAMENTO DA RODADA
+   ============================================ */
+
+    .rodada-detalhamento-pro {
+        margin-top: 24px;
+        background: #262626;
+        border-radius: 16px;
+        overflow: hidden;
+    }
+
+    .detalhamento-header-pro {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 16px;
+        background: linear-gradient(135deg, #f97316 0%, #ea580c 100%);
+    }
+
+    .detalhamento-info h3 {
+        color: white;
+        font-size: 20px;
+        font-weight: 700;
+        margin: 0 0 4px 0;
+    }
+
+    .rodada-resumo {
+        color: rgba(255, 255, 255, 0.85);
+        font-size: 13px;
+        margin: 0;
+    }
+
+    .btn-voltar-pro {
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        padding: 10px 16px;
+        background: rgba(0, 0, 0, 0.2);
+        border: none;
+        border-radius: 8px;
+        color: white;
+        font-size: 13px;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.2s ease;
+    }
+
+    .btn-voltar-pro:hover {
+        background: rgba(0, 0, 0, 0.3);
+    }
+
+    /* Ranking List */
+    .ranking-container-pro {
+        padding: 16px;
+        max-height: 60vh;
+        overflow-y: auto;
+    }
+
+    .ranking-list-pro {
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+    }
+
+    /* Ranking Item */
+    .ranking-item-pro {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        padding: 12px;
+        background: #1a1a1a;
+        border-radius: 10px;
+        transition: all 0.2s ease;
+    }
+
+    .ranking-item-pro:hover {
+        background: #222;
+    }
+
+    .ranking-item-pro.meu-time {
+        background: rgba(34, 197, 94, 0.15);
+        border: 1px solid rgba(34, 197, 94, 0.3);
+    }
+
+    /* Posição Badge */
+    .posicao-badge-pro {
+        width: 36px;
+        height: 36px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        border-radius: 8px;
+        font-size: 13px;
+        font-weight: 700;
+        flex-shrink: 0;
+    }
+
+    .posicao-badge-pro.pos-1 {
+        background: linear-gradient(135deg, #fbbf24 0%, #f59e0b 100%);
+        color: #1a1a1a;
+    }
+
+    .posicao-badge-pro.pos-2 {
+        background: linear-gradient(135deg, #d1d5db 0%, #9ca3af 100%);
+        color: #1a1a1a;
+    }
+
+    .posicao-badge-pro.pos-3 {
+        background: linear-gradient(135deg, #d97706 0%, #b45309 100%);
+        color: white;
+    }
+
+    .posicao-badge-pro.pos-default {
+        background: #333;
+        color: #9ca3af;
+    }
+
+    .posicao-badge-pro.pos-danger {
+        background: rgba(239, 68, 68, 0.2);
+        color: #ef4444;
+    }
+
+    /* Info do Time */
+    .ranking-info-pro {
+        flex: 1;
+        min-width: 0;
+    }
+
+    .ranking-nome-time {
+        font-size: 14px;
+        font-weight: 600;
+        color: white;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
+
+    .ranking-nome-cartola {
+        font-size: 12px;
+        color: #9ca3af;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
+
+    /* Pontos e Financeiro */
+    .ranking-stats-pro {
+        display: flex;
+        flex-direction: column;
+        align-items: flex-end;
+        gap: 2px;
+    }
+
+    .ranking-pontos-pro {
+        font-size: 15px;
+        font-weight: 700;
+        color: #22c55e;
+    }
+
+    .ranking-financeiro-pro {
+        font-size: 12px;
+        font-weight: 600;
+    }
+
+    .ranking-financeiro-pro.positivo {
+        color: #22c55e;
+    }
+
+    .ranking-financeiro-pro.neutro {
+        color: #6b7280;
+    }
+
+    .ranking-financeiro-pro.negativo {
+        color: #ef4444;
+    }
+
+    /* ============================================
+   TOAST DE DESENVOLVIMENTO
+   ============================================ */
+
+    .toast-desenvolvimento {
+        position: fixed;
+        bottom: 100px;
+        left: 50%;
+        transform: translateX(-50%) translateY(100px);
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        padding: 14px 24px;
+        background: #1e293b;
+        border: 1px solid #334155;
+        border-radius: 12px;
+        color: white;
+        font-size: 14px;
+        font-weight: 500;
+        box-shadow: 0 10px 40px rgba(0, 0, 0, 0.4);
+        opacity: 0;
+        visibility: hidden;
+        transition: all 0.3s ease;
+        z-index: 9999;
+    }
+
+    .toast-desenvolvimento.show {
+        opacity: 1;
+        visibility: visible;
+        transform: translateX(-50%) translateY(0);
+    }
+
+    .toast-desenvolvimento .toast-emoji {
+        font-size: 22px;
+    }
+
+    /* ============================================
+   RESPONSIVO
+   ============================================ */
+
+    @media (max-width: 400px) {
+        .rodadas-grid-compacto {
+            grid-template-columns: repeat(4, 1fr);
+            gap: 10px;
+        }
+
+        .card-numero {
+            font-size: 12px;
+        }
+
+        .card-pontos {
+            font-size: 9px;
+        }
+    }
+
+    @media (max-width: 320px) {
+        .rodadas-grid-compacto {
+            grid-template-columns: repeat(3, 1fr);
+        }
+    }
 </style>

@@ -1,8 +1,8 @@
 // =====================================================================
-// PARTICIPANTE-RODADAS.JS - v2.0 (CORRIGIDO COM EXPORT)
+// PARTICIPANTE-RODADAS.JS - v3.0 (Design Compacto)
 // =====================================================================
 
-console.log("[PARTICIPANTE-RODADAS] 🔄 Carregando módulo v2.0...");
+console.log("[PARTICIPANTE-RODADAS] 📄 Carregando módulo v3.0...");
 
 // Configuração de valores por posição
 const LIGAS_CONFIG = {
@@ -65,6 +65,7 @@ let todasRodadasCache = [];
 let meuTimeId = null;
 let ligaId = null;
 let rodadaSelecionada = null;
+let rodadaAtualCartola = 38; // Será atualizado dinamicamente
 
 // =====================================================================
 // FUNÇÃO PRINCIPAL - EXPORTADA PARA NAVIGATION
@@ -74,7 +75,7 @@ export async function inicializarRodadasParticipante({
     ligaId: ligaIdParam,
     timeId,
 }) {
-    console.log("[PARTICIPANTE-RODADAS] 🚀 Inicializando...", {
+    console.log("[PARTICIPANTE-RODADAS] 🚀 Inicializando v3.0...", {
         ligaIdParam,
         timeId,
     });
@@ -82,7 +83,13 @@ export async function inicializarRodadasParticipante({
     ligaId = ligaIdParam;
     meuTimeId = timeId;
 
+    // Mostrar loading
+    mostrarLoading(true);
+
     try {
+        // Buscar rodada atual do Cartola
+        await buscarRodadaAtual();
+
         const response = await fetch(
             `/api/rodadas/${ligaId}/rodadas?inicio=1&fim=38`,
         );
@@ -99,16 +106,46 @@ export async function inicializarRodadasParticipante({
         const rodadasAgrupadas = agruparRodadasPorNumero(rodadas);
         todasRodadasCache = rodadasAgrupadas;
 
-        // Renderizar grid de cards
-        renderizarCardsRodadas(rodadasAgrupadas);
+        // Esconder loading
+        mostrarLoading(false);
+
+        // Verificar se tem dados
+        if (rodadasAgrupadas.length === 0) {
+            mostrarEstadoVazio(true);
+            return;
+        }
+
+        // Renderizar grid compacto
+        renderizarGridCompacto(rodadasAgrupadas);
     } catch (error) {
         console.error("[PARTICIPANTE-RODADAS] ❌ Erro:", error);
+        mostrarLoading(false);
         mostrarErro(error.message);
     }
 }
 
 // Também expor no window para compatibilidade
 window.inicializarRodadasParticipante = inicializarRodadasParticipante;
+
+// =====================================================================
+// BUSCAR RODADA ATUAL
+// =====================================================================
+async function buscarRodadaAtual() {
+    try {
+        const response = await fetch("/api/cartola/mercado-status");
+        if (response.ok) {
+            const data = await response.json();
+            rodadaAtualCartola = data.rodada_atual || 38;
+            console.log(
+                `[PARTICIPANTE-RODADAS] 📅 Rodada atual: ${rodadaAtualCartola}`,
+            );
+        }
+    } catch (e) {
+        console.warn(
+            "[PARTICIPANTE-RODADAS] ⚠️ Não foi possível obter rodada atual",
+        );
+    }
+}
 
 // =====================================================================
 // AGRUPAMENTO
@@ -124,6 +161,7 @@ function agruparRodadasPorNumero(rodadas) {
                 participantes: [],
                 meusPontos: null,
                 jogou: false,
+                posicaoFinanceira: null,
             });
         }
 
@@ -142,77 +180,97 @@ function agruparRodadasPorNumero(rodadas) {
 }
 
 // =====================================================================
-// RENDERIZAÇÃO DOS CARDS
+// RENDERIZAÇÃO DO GRID COMPACTO
 // =====================================================================
-function renderizarCardsRodadas(rodadas) {
+function renderizarGridCompacto(rodadas) {
     const container = document.getElementById("rodadasCardsGrid");
     if (!container) {
         console.error("[PARTICIPANTE-RODADAS] ❌ Container não encontrado");
         return;
     }
 
-    if (!rodadas || rodadas.length === 0) {
-        container.innerHTML =
-            '<p style="text-align: center; color: #999; padding: 40px;">Nenhuma rodada encontrada</p>';
-        return;
+    // Mapear rodadas existentes por número
+    const rodadasMap = new Map();
+    rodadas.forEach((r) => rodadasMap.set(r.numero, r));
+
+    // Gerar cards para todas as 38 rodadas
+    let html = "";
+    for (let i = 1; i <= 38; i++) {
+        const rodada = rodadasMap.get(i);
+        html += criarCardCompacto(i, rodada);
     }
 
-    const html = rodadas
-        .map((rodada) => {
-            const statusClass = rodada.jogou ? "jogou" : "nao-jogou";
-
-            const pontos =
-                rodada.meusPontos !== null && rodada.meusPontos > 0
-                    ? Number(rodada.meusPontos).toLocaleString("pt-BR", {
-                          minimumFractionDigits: 2,
-                          maximumFractionDigits: 2,
-                      })
-                    : "-";
-
-            let statusTexto;
-            if (rodada.participantes.length === 0) {
-                statusTexto = "⏳ Aguardando";
-            } else if (rodada.jogou) {
-                statusTexto = `${pontos} pts`;
-            } else {
-                statusTexto = "Não jogou";
-            }
-
-            // Destaque visual baseado na posição
-            let corFonte = "";
-            let icone = "";
-
-            if (rodada.jogou && rodada.posicaoFinanceira) {
-                const pos = rodada.posicaoFinanceira;
-                const totalParticipantes = rodada.participantes.length;
-
-                if (pos <= Math.ceil(totalParticipantes * 0.3)) {
-                    corFonte = "color: #10b981;";
-                    if (pos === 1) icone = " 🎩";
-                } else if (pos <= Math.ceil(totalParticipantes * 0.7)) {
-                    corFonte = "color: #fff;";
-                } else {
-                    corFonte = "color: #ef4444;";
-                    if (pos === totalParticipantes) icone = " 🐵";
-                }
-            }
-
-            return `
-            <div class="rodada-mini-card ${statusClass}" onclick="window.selecionarRodada(${rodada.numero})" data-rodada="${rodada.numero}">
-                <div class="numero">Rodada ${rodada.numero}</div>
-                <div class="pontos" style="${corFonte}">${statusTexto}${icone}</div>
-            </div>
-        `;
-        })
-        .join("");
-
     container.innerHTML = html;
+
+    // Mostrar botão de jogadores
+    const btnContainer = document.getElementById("btnVerJogadores");
+    if (btnContainer) {
+        btnContainer.style.display = "block";
+    }
+
+    // Adicionar event listeners
+    container
+        .querySelectorAll(".rodada-card-compacto:not(.futuro)")
+        .forEach((card) => {
+            card.addEventListener("click", () => {
+                const rodadaNum = parseInt(card.dataset.rodada);
+                selecionarRodada(rodadaNum);
+            });
+        });
+}
+
+function criarCardCompacto(numero, rodada) {
+    const isFuturo = numero > rodadaAtualCartola;
+    const temDados = rodada && rodada.participantes.length > 0;
+    const jogou = rodada?.jogou || false;
+    const pontos = rodada?.meusPontos;
+
+    // Determinar classes
+    let classes = ["rodada-card-compacto"];
+
+    if (isFuturo) {
+        classes.push("futuro");
+    } else if (!temDados) {
+        classes.push("futuro"); // Rodada passada sem dados = tratar como indisponível
+    } else if (jogou) {
+        classes.push("jogou");
+
+        // Verificar se é mito ou mico
+        if (rodada.posicaoFinanceira) {
+            const totalParticipantes = rodada.participantes.length;
+            if (rodada.posicaoFinanceira === 1) {
+                classes.push("mito");
+            } else if (rodada.posicaoFinanceira === totalParticipantes) {
+                classes.push("mico");
+            }
+        }
+    } else {
+        classes.push("nao-jogou");
+    }
+
+    // Formatar pontos
+    let pontosTexto = "";
+    if (temDados && jogou && pontos !== null && pontos > 0) {
+        pontosTexto = pontos.toLocaleString("pt-BR", {
+            minimumFractionDigits: 2,
+            maximumFractionDigits: 2,
+        });
+    } else if (temDados && !jogou) {
+        pontosTexto = "N/J";
+    }
+
+    return `
+        <div class="${classes.join(" ")}" data-rodada="${numero}">
+            <span class="card-numero">${numero}</span>
+            ${pontosTexto ? `<span class="card-pontos">${pontosTexto}</span>` : ""}
+        </div>
+    `;
 }
 
 // =====================================================================
 // SELEÇÃO DE RODADA
 // =====================================================================
-window.selecionarRodada = async function (numeroRodada) {
+function selecionarRodada(numeroRodada) {
     console.log(
         `[PARTICIPANTE-RODADAS] 📌 Selecionando rodada ${numeroRodada}`,
     );
@@ -220,23 +278,27 @@ window.selecionarRodada = async function (numeroRodada) {
     rodadaSelecionada = numeroRodada;
 
     // Atualizar visual dos cards
-    document.querySelectorAll(".rodada-mini-card").forEach((card) => {
+    document.querySelectorAll(".rodada-card-compacto").forEach((card) => {
         card.classList.remove("selected");
     });
 
     const cardSelecionado = document.querySelector(
-        `[data-rodada="${numeroRodada}"]`,
+        `.rodada-card-compacto[data-rodada="${numeroRodada}"]`,
     );
     if (cardSelecionado) {
         cardSelecionado.classList.add("selected");
     }
 
+    // Atualizar botão de jogadores
+    const btnTexto = document.getElementById("btnJogadoresTexto");
+    if (btnTexto) {
+        btnTexto.textContent = `Ver Meus Jogadores da Rodada ${numeroRodada}`;
+    }
+
     // Buscar dados da rodada
     const rodadaData = todasRodadasCache.find((r) => r.numero === numeroRodada);
-    if (!rodadaData) {
-        console.error(
-            "[PARTICIPANTE-RODADAS] ❌ Dados da rodada não encontrados",
-        );
+    if (!rodadaData || rodadaData.participantes.length === 0) {
+        mostrarToast("Dados desta rodada não disponíveis");
         return;
     }
 
@@ -247,9 +309,13 @@ window.selecionarRodada = async function (numeroRodada) {
     const detalhamento = document.getElementById("rodadaDetalhamento");
     if (detalhamento) {
         detalhamento.style.display = "block";
-        detalhamento.scrollIntoView({ behavior: "smooth", block: "start" });
+        setTimeout(() => {
+            detalhamento.scrollIntoView({ behavior: "smooth", block: "start" });
+        }, 100);
     }
-};
+}
+
+window.selecionarRodada = selecionarRodada;
 
 // =====================================================================
 // DETALHAMENTO DA RODADA
@@ -260,15 +326,23 @@ function renderizarDetalhamentoRodada(rodadaData) {
         titulo.textContent = `Rodada ${rodadaData.numero}`;
     }
 
+    // Resumo
+    const resumo = document.getElementById("rodadaResumo");
+    if (resumo) {
+        const total = rodadaData.participantes.length;
+        const minhaPosicao = rodadaData.posicaoFinanceira || "-";
+        resumo.textContent = `${total} participantes • Sua posição: ${minhaPosicao}º`;
+    }
+
     // Ordenar participantes por pontuação
     const participantesOrdenados = [...rodadaData.participantes].sort(
         (a, b) => (b.pontos || 0) - (a.pontos || 0),
     );
 
     const totalParticipantes = participantesOrdenados.length;
-    const tbody = document.getElementById("rankingBody");
+    const container = document.getElementById("rankingListPro");
 
-    if (!tbody) return;
+    if (!container) return;
 
     const html = participantesOrdenados
         .map((participante, index) => {
@@ -294,14 +368,18 @@ function renderizarDetalhamentoRodada(rodadaData) {
 
             const financeiroClass =
                 bonusOnus > 0
-                    ? "financeiro-positivo"
+                    ? "positivo"
                     : bonusOnus < 0
-                      ? "financeiro-negativo"
-                      : "financeiro-neutro";
+                      ? "negativo"
+                      : "neutro";
 
-            let icone = "";
-            if (posicao === 1) icone = " 🎩";
-            else if (posicao === totalParticipantes) icone = " 🐵";
+            // Classe da posição
+            let posicaoClass = "pos-default";
+            if (posicao === 1) posicaoClass = "pos-1";
+            else if (posicao === 2) posicaoClass = "pos-2";
+            else if (posicao === 3) posicaoClass = "pos-3";
+            else if (posicao > totalParticipantes - 3)
+                posicaoClass = "pos-danger";
 
             const pontosFormatados = Number(
                 participante.pontos || 0,
@@ -314,22 +392,24 @@ function renderizarDetalhamentoRodada(rodadaData) {
                 participante.nome || participante.nome_time || "N/D";
 
             return `
-            <tr class="${isMeuTime ? "meu-time" : ""}">
-                <td style="text-align: center;">
-                    <span class="posicao-badge">${posicao}º${icone}</span>
-                </td>
-                <td>${nomeTime}</td>
-                <td>${participante.nome_cartola || "N/D"}</td>
-                <td style="text-align: center;" class="pontos-destaque">${pontosFormatados}</td>
-                <td style="text-align: center;" class="${financeiroClass}">${financeiroTexto}</td>
-            </tr>
-        `;
+                <div class="ranking-item-pro ${isMeuTime ? "meu-time" : ""}">
+                    <div class="posicao-badge-pro ${posicaoClass}">${posicao}º</div>
+                    <div class="ranking-info-pro">
+                        <div class="ranking-nome-time">${nomeTime}</div>
+                        <div class="ranking-nome-cartola">${participante.nome_cartola || "N/D"}</div>
+                    </div>
+                    <div class="ranking-stats-pro">
+                        <div class="ranking-pontos-pro">${pontosFormatados}</div>
+                        <div class="ranking-financeiro-pro ${financeiroClass}">${financeiroTexto}</div>
+                    </div>
+                </div>
+            `;
         })
         .join("");
 
-    tbody.innerHTML =
+    container.innerHTML =
         html ||
-        '<tr><td colspan="5" style="text-align: center; padding: 20px;">Nenhum dado disponível</td></tr>';
+        '<div style="text-align: center; padding: 40px; color: #6b7280;">Nenhum dado disponível</div>';
 }
 
 // =====================================================================
@@ -341,27 +421,82 @@ window.voltarParaCards = function () {
         detalhamento.style.display = "none";
     }
 
-    document.querySelectorAll(".rodada-mini-card").forEach((card) => {
+    document.querySelectorAll(".rodada-card-compacto").forEach((card) => {
         card.classList.remove("selected");
     });
 
     rodadaSelecionada = null;
-    window.scrollTo({ top: 0, behavior: "smooth" });
+
+    const gridContainer = document.querySelector(".rodadas-grid-container");
+    if (gridContainer) {
+        gridContainer.scrollIntoView({ behavior: "smooth", block: "start" });
+    }
 };
 
 // =====================================================================
-// ERRO
+// TOAST - FUNCIONALIDADE EM DESENVOLVIMENTO
 // =====================================================================
+window.mostrarEmDesenvolvimento = function (funcionalidade) {
+    const toast = document.getElementById("toastDesenvolvimento");
+    const mensagem = document.getElementById("toastMensagem");
+
+    if (toast && mensagem) {
+        mensagem.textContent = `${funcionalidade} em desenvolvimento`;
+        toast.classList.add("show");
+
+        setTimeout(() => {
+            toast.classList.remove("show");
+        }, 3000);
+    }
+};
+
+function mostrarToast(msg) {
+    const toast = document.getElementById("toastDesenvolvimento");
+    const mensagem = document.getElementById("toastMensagem");
+
+    if (toast && mensagem) {
+        mensagem.textContent = msg;
+        toast.classList.add("show");
+
+        setTimeout(() => {
+            toast.classList.remove("show");
+        }, 3000);
+    }
+}
+
+// =====================================================================
+// ESTADOS
+// =====================================================================
+function mostrarLoading(show) {
+    const loading = document.getElementById("rodadasLoading");
+    const grid = document.querySelector(".rodadas-grid-container");
+
+    if (loading) loading.style.display = show ? "flex" : "none";
+    if (grid) grid.style.display = show ? "none" : "block";
+}
+
+function mostrarEstadoVazio(show) {
+    const empty = document.getElementById("rodadasEmpty");
+    const grid = document.querySelector(".rodadas-grid-container");
+
+    if (empty) empty.style.display = show ? "flex" : "none";
+    if (grid) grid.style.display = show ? "none" : "block";
+}
+
 function mostrarErro(mensagem) {
     const container = document.getElementById("rodadasCardsGrid");
     if (container) {
         container.innerHTML = `
             <div style="grid-column: 1 / -1; text-align: center; padding: 40px; color: #ef4444;">
-                <h3>❌ Erro ao Carregar Rodadas</h3>
-                <p>${mensagem}</p>
+                <span class="material-icons" style="font-size: 48px; margin-bottom: 16px;">error_outline</span>
+                <h3 style="margin-bottom: 8px;">Erro ao Carregar</h3>
+                <p style="color: #9ca3af;">${mensagem}</p>
             </div>
         `;
     }
+
+    const grid = document.querySelector(".rodadas-grid-container");
+    if (grid) grid.style.display = "block";
 }
 
-console.log("[PARTICIPANTE-RODADAS] ✅ Módulo v2.0 carregado");
+console.log("[PARTICIPANTE-RODADAS] ✅ Módulo v3.0 carregado");

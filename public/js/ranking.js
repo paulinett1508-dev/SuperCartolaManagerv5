@@ -1,16 +1,22 @@
-// 🔧 RANKING.JS - COM SUPORTE A PARTICIPANTES INATIVOS
-// Visual diferenciado para inativos + pontuação congelada na rodada de saída
+// 🔧 RANKING.JS - v2.0 COM FILTROS DE TURNO
+// Visual diferenciado para inativos + filtros 1º/2º turno/Geral
 
 // 🛡️ SISTEMA DE PROTEÇÃO CONTRA LOOP
 let rankingProcessando = false;
 let ultimoProcessamento = 0;
-const INTERVALO_MINIMO_PROCESSAMENTO = 3000; // 3 segundos
+const INTERVALO_MINIMO_PROCESSAMENTO = 3000;
+
+// 🎯 ESTADO DO MÓDULO
+let estadoRankingAdmin = {
+    ligaId: null,
+    turnoAtivo: "geral",
+    dadosOriginais: null,
+};
 
 // ==============================
-// FUNÇÃO PRINCIPAL DE RANKING (OTIMIZADA COM CACHE)
+// FUNÇÃO PRINCIPAL DE RANKING
 // ==============================
-async function carregarRankingGeral() {
-    // 🛡️ PROTEÇÃO CONTRA MÚLTIPLAS EXECUÇÕES
+async function carregarRankingGeral(turnoParam = null) {
     const agora = Date.now();
     if (rankingProcessando) {
         console.log("[RANKING] ⏳ Já está processando, ignorando nova chamada");
@@ -22,7 +28,6 @@ async function carregarRankingGeral() {
         return;
     }
 
-    // 🔒 MARCAR COMO PROCESSANDO
     rankingProcessando = true;
     ultimoProcessamento = agora;
 
@@ -32,14 +37,27 @@ async function carregarRankingGeral() {
         return;
     }
 
-    rankingContainer.innerHTML = `<div style="color:#555; text-align:center; padding:20px;">⚙️ Carregando classificação geral...</div>`;
+    // Se não tem turno definido, usar o ativo
+    const turno = turnoParam || estadoRankingAdmin.turnoAtivo;
+
+    // Mostrar loading apenas na área da tabela se já tiver estrutura
+    const tabelaBody = document.getElementById("rankingGeralTableBody");
+    if (tabelaBody) {
+        tabelaBody.innerHTML = `
+            <tr>
+                <td colspan="5" style="text-align:center; padding:40px; color:#888;">
+                    <div class="spinner" style="margin: 0 auto 10px;"></div>
+                    Carregando ${turno === "geral" ? "classificação geral" : turno + "º turno"}...
+                </td>
+            </tr>
+        `;
+    } else {
+        rankingContainer.innerHTML = `<div style="color:#555; text-align:center; padding:20px;">⚙️ Carregando classificação...</div>`;
+    }
 
     try {
-        console.log(
-            "[RANKING] 🚀 Iniciando carregamento otimizado via API de cache",
-        );
+        console.log(`[RANKING] 🚀 Carregando turno: ${turno}`);
 
-        // 1. Obter ID da liga
         const urlParams = new URLSearchParams(window.location.search);
         const ligaId = urlParams.get("id");
 
@@ -47,24 +65,42 @@ async function carregarRankingGeral() {
             throw new Error("ID da liga não encontrado na URL");
         }
 
-        // 2. Buscar ranking consolidado da API de cache (1 requisição)
-        const response = await fetch(`/api/ranking-cache/${ligaId}`);
+        estadoRankingAdmin.ligaId = ligaId;
+
+        // Buscar ranking do turno via nova API
+        const response = await fetch(
+            `/api/ranking-turno/${ligaId}?turno=${turno}`,
+        );
 
         if (!response.ok) {
+            // Fallback para API antiga se nova não existir
+            if (response.status === 404) {
+                console.log(
+                    "[RANKING] ⚠️ API de turno não encontrada, usando fallback",
+                );
+                await carregarRankingFallback(ligaId, rankingContainer);
+                return;
+            }
             throw new Error(`Erro na API: ${response.status}`);
         }
 
         const data = await response.json();
 
+        if (!data.success || !data.ranking) {
+            throw new Error("Dados inválidos da API");
+        }
+
         console.log(
-            `[RANKING] ✅ Ranking recebido via cache: ${data.ranking.length} participantes`,
+            `[RANKING] ✅ Ranking recebido: ${data.total_times} participantes`,
         );
-        console.log(`[RANKING] 📊 Rodada final: ${data.rodadaFinal}`);
         console.log(
-            `[RANKING] 💾 Cache: ${data.cached ? "HIT" : "MISS (calculado)"}`,
+            `[RANKING] 📊 Turno: ${data.turno} | Status: ${data.status}`,
+        );
+        console.log(
+            `[RANKING] 📋 Rodadas: ${data.rodada_inicio}-${data.rodada_fim} (atual: ${data.rodada_atual})`,
         );
 
-        // 3. Buscar status de inatividade de todos os participantes
+        // Buscar status de inatividade
         const timeIds = data.ranking.map((p) => p.timeId);
         let statusMap = {};
 
@@ -84,7 +120,7 @@ async function carregarRankingGeral() {
             console.warn("[RANKING] ⚠️ Falha ao buscar status:", error.message);
         }
 
-        // 4. Converter formato da API para formato esperado + adicionar status
+        // Converter formato + adicionar status
         const participantesOrdenados = data.ranking.map((p) => {
             const status = statusMap[p.timeId] || {
                 ativo: true,
@@ -96,45 +132,47 @@ async function carregarRankingGeral() {
                 nome_cartola: p.nome_cartola || "N/D",
                 nome_time: p.nome_time || "N/D",
                 clube_id: p.clube_id || null,
-                pontos: p.pontos_totais,
+                pontos: p.pontos,
                 rodadas_jogadas: p.rodadas_jogadas,
                 posicao: p.posicao,
-                // ✅ NOVO: Dados de inatividade
                 ativo: status.ativo,
                 rodada_desistencia: status.rodada_desistencia,
             };
         });
 
-        // 5. Separar ativos e inativos para ordenação especial
+        // Separar ativos e inativos
         const ativos = participantesOrdenados.filter((p) => p.ativo !== false);
         const inativos = participantesOrdenados.filter(
             (p) => p.ativo === false,
         );
 
-        // Ordenar ativos por pontos (decrescente)
         ativos.sort((a, b) => b.pontos - a.pontos);
-
-        // Ordenar inativos por rodada de desistência (mais recente primeiro)
         inativos.sort(
             (a, b) => (b.rodada_desistencia || 0) - (a.rodada_desistencia || 0),
         );
 
-        // Combinar: ativos primeiro, depois inativos
         const participantesFinais = [...ativos, ...inativos];
 
-        // 6. Armazenar dados globalmente
+        // Armazenar dados
         window.rankingData = participantesFinais;
         window.rankingGeral = participantesFinais;
         window.ultimoRanking = participantesFinais;
 
-        // 7. Gerar HTML da tabela
+        // Gerar HTML
         const tabelaHTML = criarTabelaRanking(
             participantesFinais,
-            data.rodadaFinal,
+            data.rodada_atual,
             ligaId,
-            ativos.length, // Passar quantidade de ativos para posicionamento correto
+            ativos.length,
+            turno,
+            data.status,
+            data.rodada_inicio,
+            data.rodada_fim,
         );
         rankingContainer.innerHTML = tabelaHTML;
+
+        // Configurar listeners das tabs
+        configurarTabsRanking();
 
         console.log(
             `[RANKING] ✅ Classificação renderizada: ${ativos.length} ativos, ${inativos.length} inativos`,
@@ -153,20 +191,139 @@ async function carregarRankingGeral() {
             </div>
         `;
     } finally {
-        // 🔓 SEMPRE LIBERAR O PROCESSAMENTO
         rankingProcessando = false;
         console.log("[RANKING] Processamento finalizado");
     }
 }
 
 // ==============================
-// FUNÇÃO PARA CRIAR HTML DA TABELA
+// FALLBACK PARA API ANTIGA
 // ==============================
-function criarTabelaRanking(participantes, ultimaRodada, ligaId, totalAtivos) {
+async function carregarRankingFallback(ligaId, rankingContainer) {
+    try {
+        const response = await fetch(`/api/ranking-cache/${ligaId}`);
+        if (!response.ok) throw new Error(`Erro: ${response.status}`);
+
+        const data = await response.json();
+
+        const participantes = data.ranking.map((p) => ({
+            time_id: p.timeId,
+            nome_cartola: p.nome_cartola || "N/D",
+            nome_time: p.nome_time || "N/D",
+            clube_id: p.clube_id || null,
+            pontos: p.pontos_totais,
+            rodadas_jogadas: p.rodadas_jogadas,
+            posicao: p.posicao,
+            ativo: true,
+            rodada_desistencia: null,
+        }));
+
+        const tabelaHTML = criarTabelaRanking(
+            participantes,
+            data.rodadaFinal,
+            ligaId,
+            participantes.length,
+            "geral",
+            "fallback",
+            1,
+            38,
+        );
+        rankingContainer.innerHTML = tabelaHTML;
+        configurarTabsRanking();
+    } catch (error) {
+        throw error;
+    } finally {
+        rankingProcessando = false;
+    }
+}
+
+// ==============================
+// CONFIGURAR TABS
+// ==============================
+function configurarTabsRanking() {
+    const tabs = document.querySelectorAll(".ranking-turno-tab");
+
+    tabs.forEach((tab) => {
+        tab.addEventListener("click", async (e) => {
+            e.preventDefault();
+
+            // Atualizar visual das tabs
+            tabs.forEach((t) => t.classList.remove("active"));
+            tab.classList.add("active");
+
+            // Atualizar estado e carregar
+            const turno = tab.dataset.turno;
+            estadoRankingAdmin.turnoAtivo = turno;
+
+            // Forçar novo carregamento
+            rankingProcessando = false;
+            ultimoProcessamento = 0;
+
+            await carregarRankingGeral(turno);
+        });
+    });
+}
+
+// ==============================
+// CRIAR HTML DA TABELA
+// ==============================
+function criarTabelaRanking(
+    participantes,
+    ultimaRodada,
+    ligaId,
+    totalAtivos,
+    turno = "geral",
+    status = "",
+    rodadaInicio = 1,
+    rodadaFim = 38,
+) {
     const temInativos = participantes.some((p) => p.ativo === false);
+
+    const turnoLabel = turno === "geral" ? "Geral" : `${turno}º Turno`;
+    const statusLabel =
+        status === "consolidado"
+            ? '<span style="color:#22c55e; font-size:0.8em;">✅ Consolidado</span>'
+            : status === "em_andamento"
+              ? '<span style="color:#facc15; font-size:0.8em;">⏳ Em andamento</span>'
+              : "";
 
     return `
         <style>
+            /* Tabs de Turno */
+            .ranking-turno-tabs {
+                display: flex;
+                gap: 8px;
+                margin: 0 auto 16px;
+                padding: 4px;
+                background: #2a2a2a;
+                border-radius: 8px;
+                width: fit-content;
+            }
+            .ranking-turno-tab {
+                padding: 10px 20px;
+                border: none;
+                background: transparent;
+                color: #888;
+                font-size: 14px;
+                font-weight: 600;
+                cursor: pointer;
+                border-radius: 6px;
+                transition: all 0.2s ease;
+            }
+            .ranking-turno-tab:hover {
+                background: #333;
+                color: #fff;
+            }
+            .ranking-turno-tab.active {
+                background: #ff5c00;
+                color: #fff;
+            }
+            .ranking-info-turno {
+                text-align: center;
+                margin-bottom: 12px;
+                font-size: 0.85em;
+                color: #888;
+            }
             /* Estilos para participantes inativos */
             .participante-inativo {
                 filter: grayscale(100%);
@@ -211,6 +368,17 @@ function criarTabelaRanking(participantes, ultimaRodada, ligaId, totalAtivos) {
                 color: #555 !important;
                 font-style: italic;
             }
+            .spinner {
+                width: 24px;
+                height: 24px;
+                border: 3px solid rgba(255, 92, 0, 0.2);
+                border-top-color: #ff5c00;
+                border-radius: 50%;
+                animation: spin 0.8s linear infinite;
+            }
+            @keyframes spin {
+                to { transform: rotate(360deg); }
+            }
         </style>
         <div style="max-width: 700px; margin: 0 auto;">
             <div style="text-align: center;">
@@ -219,6 +387,19 @@ function criarTabelaRanking(participantes, ultimaRodada, ligaId, totalAtivos) {
                     pontuação acumulada até a ${ultimaRodada}ª rodada
                 </div>
             </div>
+
+            <!-- TABS DE TURNO -->
+            <div class="ranking-turno-tabs">
+                <button class="ranking-turno-tab ${turno === "1" ? "active" : ""}" data-turno="1">1º Turno</button>
+                <button class="ranking-turno-tab ${turno === "2" ? "active" : ""}" data-turno="2">2º Turno</button>
+                <button class="ranking-turno-tab ${turno === "geral" ? "active" : ""}" data-turno="geral">Geral</button>
+            </div>
+
+            <!-- INFO DO TURNO -->
+            <div class="ranking-info-turno">
+                ${turnoLabel} (Rodadas ${rodadaInicio}-${rodadaFim}) ${statusLabel}
+            </div>
+
             <table id="rankingGeralTable" class="ranking-table">
                 <thead>
                     <tr>
@@ -229,7 +410,7 @@ function criarTabelaRanking(participantes, ultimaRodada, ligaId, totalAtivos) {
                         <th style="width: 80px; text-align: center">Pontos</th>
                     </tr>
                 </thead>
-                <tbody>
+                <tbody id="rankingGeralTableBody">
                     ${participantes
                         .map((participante, index) =>
                             criarLinhaParticipante(
@@ -258,35 +439,27 @@ function criarTabelaRanking(participantes, ultimaRodada, ligaId, totalAtivos) {
 }
 
 // ==============================
-// FUNÇÃO PARA CRIAR LINHA DE PARTICIPANTE
+// CRIAR LINHA DE PARTICIPANTE
 // ==============================
 function criarLinhaParticipante(participante, index, ligaId, totalAtivos) {
     const estaInativo = participante.ativo === false;
-
-    // Se é inativo, verificar se é o primeiro inativo (para separador)
     const ePrimeiroInativo = estaInativo && index === totalAtivos;
-
-    // Posição real (apenas entre ativos)
     const posicaoReal = estaInativo ? "-" : index + 1;
 
-    // Classes CSS
     const classeInativo = estaInativo ? "participante-inativo" : "";
     const classeCSS = estaInativo ? "" : obterClassePosicao(index);
     const estiloEspecial = estaInativo
         ? ""
         : obterEstiloEspecial(index, totalAtivos);
 
-    // Label da posição
     const labelPosicao = estaInativo
         ? `<span class="posicao-inativo">—</span>`
         : obterLabelPosicao(index, ligaId);
 
-    // Badge de inativo
     const badgeInativo = estaInativo
         ? `<span class="badge-inativo">INATIVO R${participante.rodada_desistencia || "?"}</span>`
         : "";
 
-    // Separador antes dos inativos
     const separador = ePrimeiroInativo
         ? `<tr class="separador-inativos">
                <td colspan="5">⏸️ Participantes que desistiram da competição</td>
@@ -358,7 +531,6 @@ function obterLabelPosicao(index, ligaId) {
 }
 
 function obterEstiloEspecial(index, totalAtivos) {
-    // Estilo especial para último lugar ativo
     const ultimoAtivo = totalAtivos - 1;
     if (index === ultimoAtivo && totalAtivos >= 10) {
         return "background:#8b0000;color:#fff;font-weight:bold;border-radius:4px;";
@@ -367,12 +539,13 @@ function obterEstiloEspecial(index, totalAtivos) {
 }
 
 // ==============================
-// FUNÇÃO PARA RESETAR SISTEMA (DEBUG)
+// FUNÇÃO PARA RESETAR SISTEMA
 // ==============================
 function resetarSistemaRanking() {
     console.log("[RANKING] 🔄 Resetando sistema de proteção...");
     rankingProcessando = false;
     ultimoProcessamento = 0;
+    estadoRankingAdmin.turnoAtivo = "geral";
     console.log("[RANKING] ✅ Sistema resetado");
 }
 
@@ -381,17 +554,10 @@ function resetarSistemaRanking() {
 // ==============================
 export { carregarRankingGeral, resetarSistemaRanking };
 
-// 🔧 DISPONIBILIZAR FUNÇÃO DE RESET GLOBALMENTE
 window.resetarSistemaRanking = resetarSistemaRanking;
-
-// ==============================
-// EXPOR FUNÇÕES GLOBALMENTE
-// ==============================
 window.carregarRankingGeral = carregarRankingGeral;
 window.criarTabelaRanking = criarTabelaRanking;
-window.resetarSistemaRanking = resetarSistemaRanking;
 
-// Garantir que módulos carregados tenha a função
 if (!window.modulosCarregados) {
     window.modulosCarregados = {};
 }
@@ -400,6 +566,4 @@ window.modulosCarregados.ranking = {
     carregarRankingGeral: carregarRankingGeral,
 };
 
-console.log(
-    "✅ [RANKING] Módulo carregado com suporte a participantes inativos",
-);
+console.log("✅ [RANKING] Módulo v2.0 carregado com filtros de turno");
