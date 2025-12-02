@@ -53,6 +53,14 @@ router.post("/:ligaId/consolidar/:rodada", async (req, res) => {
     await ArtilheiroCampeaoController.consolidarRodada(req, res);
 });
 
+/**
+ * POST /:ligaId/coletar/:rodada
+ * Força coleta de uma rodada específica (recalcula e salva no MongoDB)
+ */
+router.post("/:ligaId/coletar/:rodada", async (req, res) => {
+    await ArtilheiroCampeaoController.coletarRodada(req, res);
+});
+
 // ========================================
 // ROTAS DE COMPATIBILIDADE (v1.x/v2.x)
 // ========================================
