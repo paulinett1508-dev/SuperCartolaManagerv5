@@ -1,6 +1,6 @@
 /* =============================================
-   ARTILHEIRO CAMPEÃO - CSS v4.1.0
-   Tabela com Rodadas + Suporte a Inativos
+   ARTILHEIRO CAMPEÃO - CSS v4.2.0
+   Tabela com Rodadas + UX MELHORADA GP/GC
    ============================================= */
 
 /* Container principal */
@@ -76,6 +76,38 @@
 .artilheiro-btn.primary:hover {
   background: #c0392b;
 }
+
+/* =============================================
+   LEGENDA UX - NOVO v4.2
+   ============================================= */
+.artilheiro-legenda {
+  display: flex;
+  justify-content: center;
+  gap: 16px;
+  padding: 8px 12px;
+  background: rgba(0, 0, 0, 0.15);
+  border-bottom: 1px solid rgba(231, 76, 60, 0.15);
+  flex-wrap: wrap;
+}
+
+.legenda-item {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  font: 500 10px "Inter", sans-serif;
+  color: #888;
+}
+
+.legenda-cor {
+  width: 10px;
+  height: 10px;
+  border-radius: 2px;
+}
+
+.legenda-cor.gp { background: #28a745; }
+.legenda-cor.gc { background: #dc3545; }
+.legenda-cor.sg-pos { background: linear-gradient(135deg, #1e7e34, #28a745); }
+.legenda-cor.sg-neg { background: linear-gradient(135deg, #a71d2a, #dc3545); }
 
 /* =============================================
    NAVEGAÇÃO DE RODADAS
@@ -186,14 +218,71 @@
 .col-total-gc { width: 26px; }
 .col-total-sg { width: 30px; }
 
-/* Colunas de rodadas - ultra compactas para 38 */
-.col-rodada { width: 22px; }
+/* Colunas de rodadas - EXPANDIDAS para UX v4.2 */
+.col-rodada { width: 28px; }
 .col-rodada-gols { 
-  width: 22px;
-  padding: 3px 0px !important;
+  width: 32px;
+  min-width: 32px;
+  padding: 3px 1px !important;
   vertical-align: middle;
+  position: relative;
 }
 
+/* =============================================
+   CÉLULAS DE RODADA - UX MELHORADA v4.2
+   ============================================= */
+
+/* Container da célula */
+.gols-celula {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1px;
+}
+
+/* Saldo principal (valor em destaque) */
+.gols-saldo {
+  display: block;
+  font: 700 10px "Inter", sans-serif;
+  line-height: 1;
+}
+
+.gols-saldo.positivo { color: #28a745; }
+.gols-saldo.negativo { color: #dc3545; }
+.gols-saldo.zero { color: #888; }
+
+/* Linha com GP/GC separados */
+.gols-linha {
+  display: flex;
+  justify-content: center;
+  gap: 2px;
+  margin-top: 1px;
+}
+
+.gols-gp, .gols-gc {
+  font: 600 7px "Inter", sans-serif;
+  padding: 1px 3px;
+  border-radius: 2px;
+  min-width: 12px;
+  text-align: center;
+}
+
+.gols-gp {
+  color: #28a745;
+  background: rgba(40, 167, 69, 0.2);
+}
+
+.gols-gc {
+  color: #dc3545;
+  background: rgba(220, 53, 69, 0.2);
+}
+
+.gols-gc.zero {
+  color: #555;
+  background: transparent;
+}
+
+/* Compatibilidade com formato antigo */
 .col-rodada-gols .gols-valor {
   display: block;
   font: 600 9px "Inter", sans-serif;
@@ -210,7 +299,27 @@
 .col-rodada-gols.positivo .gols-valor { color: #28a745; }
 .col-rodada-gols.negativo .gols-valor { color: #dc3545; }
 .col-rodada-gols.zero .gols-valor { color: #888; }
-.col-rodada-gols.vazio .gols-valor { color: #444; }
+.col-rodada-gols.vazio .gols-valor,
+.col-rodada-gols.vazio .gols-saldo { color: #444; }
+
+/* =============================================
+   INDICADOR VISUAL DE GOLS CONTRA - NOVO v4.2
+   ============================================= */
+.col-rodada-gols.tem-gc {
+  position: relative;
+}
+
+.col-rodada-gols.tem-gc::after {
+  content: '';
+  position: absolute;
+  top: 2px;
+  right: 2px;
+  width: 5px;
+  height: 5px;
+  background: #dc3545;
+  border-radius: 50%;
+  box-shadow: 0 0 3px rgba(220, 53, 69, 0.5);
+}
 
 /* =============================================
    RODADA PARCIAL (em andamento)
@@ -225,7 +334,8 @@
   border-left: 2px solid rgba(230, 126, 34, 0.5);
 }
 
-.col-rodada-gols.parcial .gols-valor { 
+.col-rodada-gols.parcial .gols-valor,
+.col-rodada-gols.parcial .gols-saldo { 
   color: #f39c12 !important; 
 }
 
@@ -238,7 +348,8 @@
   background: rgba(230, 126, 34, 0.2);
 }
 
-.col-rodada-gols.aguardando .gols-valor {
+.col-rodada-gols.aguardando .gols-valor,
+.col-rodada-gols.aguardando .gols-saldo {
   font-size: 10px;
   animation: pulse 1.5s ease-in-out infinite;
 }
@@ -398,12 +509,32 @@
 
   .col-rodada-gols {
     font-size: 10px;
+    width: 28px;
+    min-width: 28px;
+  }
+
+  .gols-gp, .gols-gc {
+    font-size: 6px;
+    padding: 1px 2px;
+  }
+
+  .artilheiro-legenda {
+    gap: 10px;
+    padding: 6px 10px;
+  }
+
+  .legenda-item {
+    font-size: 9px;
   }
 }
 
 @media (max-width: 500px) {
   .artilheiro-stats-cards {
     grid-template-columns: 1fr 1fr;
+  }
+
+  .artilheiro-legenda {
+    display: none; /* Esconde legenda em telas muito pequenas */
   }
 }
 
@@ -629,10 +760,6 @@
 /* =============================================
    PARTICIPANTES INATIVOS
    ============================================= */
-
-/* ========================================
-   SEÇÃO DE INATIVOS
-   ======================================== */
 .artilheiro-inativos-section {
   margin-top: 24px;
   background: rgba(0, 0, 0, 0.3);
@@ -678,9 +805,7 @@
   font-style: italic;
 }
 
-/* ========================================
-   TABELA DE INATIVOS
-   ======================================== */
+/* Tabela de inativos */
 .inativos-table {
   opacity: 0.6;
 }
@@ -701,9 +826,7 @@
   color: #888;
 }
 
-/* ========================================
-   BADGE DE DESISTÊNCIA
-   ======================================== */
+/* Badge de desistência */
 .desistencia-badge {
   display: inline-block;
   background: rgba(220, 53, 69, 0.2);
@@ -714,9 +837,7 @@
   margin-top: 2px;
 }
 
-/* ========================================
-   LINHA DE PARTICIPANTE INATIVO
-   ======================================== */
+/* Linha de participante inativo */
 .participante-inativo {
   filter: grayscale(80%);
   background: rgba(0, 0, 0, 0.2) !important;
@@ -740,9 +861,7 @@
   font-style: italic;
 }
 
-/* ========================================
-   TOTAIS INATIVO (CONGELADO)
-   ======================================== */
+/* Totais inativo (congelado) */
 .inativos-table .total-gp,
 .inativos-table .total-gc {
   opacity: 0.5;
@@ -755,10 +874,7 @@
 
 /* ==========================================
    MINI DASHBOARD - ARTILHEIRO CAMPEÃO
-   Adicionar ao final do artilheiro-campeao.css
    ========================================== */
-
-/* Container do Mini Dashboard */
 .artilheiro-mini-dashboard {
     display: flex;
     gap: 15px;
@@ -766,7 +882,6 @@
     padding: 0 10px;
 }
 
-/* Cards do Mini Dashboard */
 .artilheiro-mini-dashboard .mini-dash-card {
     flex: 1;
     background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
@@ -784,20 +899,17 @@
     box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
 }
 
-/* Ícone do Card */
 .artilheiro-mini-dashboard .mini-dash-icon {
     font-size: 2rem;
     opacity: 0.9;
 }
 
-/* Conteúdo do Card */
 .artilheiro-mini-dashboard .mini-dash-content {
     display: flex;
     flex-direction: column;
     gap: 2px;
 }
 
-/* Valor Principal */
 .artilheiro-mini-dashboard .mini-dash-valor {
     font-size: 1.5rem;
     font-weight: 700;
@@ -805,7 +917,6 @@
     line-height: 1.2;
 }
 
-/* Label */
 .artilheiro-mini-dashboard .mini-dash-label {
     font-size: 0.7rem;
     color: #888;
@@ -813,7 +924,6 @@
     letter-spacing: 1px;
 }
 
-/* Nome/Info */
 .artilheiro-mini-dashboard .mini-dash-nome {
     font-size: 0.8rem;
     color: #aaa;
@@ -848,7 +958,7 @@
     color: #e74c3c;
 }
 
-/* Responsivo */
+/* Responsivo mini dashboard */
 @media (max-width: 768px) {
     .artilheiro-mini-dashboard {
         flex-direction: column;

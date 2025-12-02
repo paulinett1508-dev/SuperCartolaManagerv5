@@ -481,13 +481,10 @@ class ArtilheiroCampeaoController {
             for (const atleta of atletas) {
                 const atletaId = atleta.atleta_id;
                 const pontuado = atletasPontuados[atletaId];
-                const posicaoId = atleta.posicao_id;
 
                 if (pontuado && pontuado.scout) {
                     const gols = pontuado.scout.G || 0;
-                    
-                    // ✅ CORREÇÃO: GC só para jogadores de linha (não goleiros)
-                    const gc = (posicaoId !== 1 && pontuado.scout.GC) ? pontuado.scout.GC : 0;
+                    const gc = pontuado.scout.GC || 0;
 
                     if (gols > 0 || gc > 0) {
                         golsPro += gols;
@@ -495,7 +492,6 @@ class ArtilheiroCampeaoController {
                         jogadores.push({
                             atletaId,
                             nome: atleta.apelido || pontuado.apelido,
-                            posicao: posicaoId,
                             gols,
                             golsContra: gc,
                         });
@@ -584,11 +580,7 @@ class ArtilheiroCampeaoController {
             for (const atleta of atletas) {
                 const scout = atleta.scout || {};
                 const gols = scout.G || 0;
-                const posicaoId = atleta.posicao_id;
-                
-                // ✅ CORREÇÃO: GC só conta para JOGADORES DE LINHA (autogols)
-                // Goleiros (posicao_id === 1) NÃO contam GC como gol contra
-                const gc = (posicaoId !== 1 && scout.GC) ? scout.GC : 0;
+                const gc = scout.GC || 0;
 
                 if (gols > 0 || gc > 0) {
                     golsPro += gols;
@@ -596,7 +588,6 @@ class ArtilheiroCampeaoController {
                     jogadores.push({
                         atletaId: atleta.atleta_id,
                         nome: atleta.apelido,
-                        posicao: posicaoId,
                         gols,
                         golsContra: gc,
                     });

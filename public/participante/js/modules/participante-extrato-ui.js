@@ -1,95 +1,97 @@
-// MÓDULO: UI DO EXTRATO PARTICIPANTE
-// Renderização visual independente, específica para participantes
+// =====================================================
+// MÓDULO: UI DO EXTRATO PARTICIPANTE - v2.0 PRO
+// Design profissional com Material Icons
+// =====================================================
 
-console.log('[EXTRATO-UI] 🎨 Módulo de UI carregado');
+console.log("[EXTRATO-UI] 🎨 Módulo de UI v2.0 PRO carregado");
+
+// ===== CONSTANTES DE DESIGN =====
+const COLORS = {
+    primary: "#ff5c00",
+    primaryLight: "rgba(255, 92, 0, 0.15)",
+    primaryBorder: "rgba(255, 92, 0, 0.4)",
+    green: "#22c55e",
+    greenBg: "rgba(34, 197, 94, 0.15)",
+    greenBorder: "rgba(34, 197, 94, 0.4)",
+    red: "#ef4444",
+    redBg: "rgba(239, 68, 68, 0.15)",
+    redBorder: "rgba(239, 68, 68, 0.4)",
+    yellow: "#eab308",
+    text: "#ffffff",
+    textSecondary: "rgba(255, 255, 255, 0.7)",
+    textMuted: "rgba(255, 255, 255, 0.5)",
+    surface: "#1c1c1c",
+    surfaceLight: "#2a2a2a",
+    border: "rgba(255, 255, 255, 0.1)",
+};
 
 export function renderizarExtratoParticipante(extrato, participanteId) {
-  // Validação silenciosa - log apenas se houver problema
     const validacao = {
         extratoValido: !!extrato,
-        temRodadas: !!extrato.rodadas,
-        qtdRodadas: extrato.rodadas?.length || 0,
-        temResumo: !!extrato.resumo,
-        participanteValido: !!participanteId,
-        saldoFinal: extrato.resumo?.saldo_final
+        temRodadas: !!extrato?.rodadas,
+        qtdRodadas: extrato?.rodadas?.length || 0,
+        temResumo: !!extrato?.resumo,
     };
 
     if (!validacao.extratoValido || validacao.qtdRodadas === 0) {
-        console.warn('[EXTRATO-UI] ⚠️ Problema na validação:', validacao);
+        console.warn("[EXTRATO-UI] ⚠️ Problema na validação:", validacao);
     }
 
-  const container = document.getElementById('fluxoFinanceiroContent');
-
-  if (!container) {
-    console.error('[EXTRATO-UI] ❌ Container "fluxoFinanceiroContent" não encontrado!');
-    console.log('[EXTRATO-UI] 📍 Containers disponíveis:', Array.from(document.querySelectorAll('[id]')).map(el => el.id));
-    return;
-  }
-
-  console.log('[EXTRATO-UI] ✅ Container encontrado');
-
-  // Validar estrutura do extrato
-  if (!extrato || !extrato.rodadas || !Array.isArray(extrato.rodadas)) {
-    console.error('[EXTRATO-UI] ❌ Estrutura do extrato inválida:', extrato);
-    container.innerHTML = `
-            <div style="text-align: center; padding: 40px; background: rgba(239, 68, 68, 0.1); 
-                        border-radius: 12px; border: 1px solid rgba(239, 68, 68, 0.3);">
-                <div style="font-size: 48px; margin-bottom: 16px;">⚠️</div>
-                <h3 style="color: #ef4444; margin-bottom: 12px;">Dados Inválidos</h3>
-                <p style="color: #e0e0e0; margin-bottom: 20px;">A estrutura do extrato está incompleta ou corrompida.</p>
-                <button onclick="window.forcarRefreshExtratoParticipante()" 
-                        style="padding: 12px 24px; background: linear-gradient(135deg, #ff4500 0%, #e8472b 100%); 
-                               color: white; border: none; border-radius: 8px; cursor: pointer; 
-                               font-weight: 600; font-size: 14px;">
-                    🔄 Tentar Novamente
-                </button>
-            </div>
-        `;
-    return;
-  }
-
-  console.log('[EXTRATO-UI] ✅ Dados validados');
-
-  // ✅ ARMAZENAR GLOBALMENTE PARA POPUPS
-  window.extratoAtual = extrato;
-  console.log('[EXTRATO-UI] 💾 Dados armazenados globalmente');
-
-  // ✅ CONFIGURAR BOTÃO DE REFRESH
-  setTimeout(() => {
-    const btnRefresh = document.getElementById('btnRefreshExtrato');
-    if (btnRefresh) {
-      btnRefresh.onclick = async () => {
-        if (btnRefresh.classList.contains('loading')) return;
-
-        btnRefresh.classList.add('loading');
-        console.log('[EXTRATO-UI] 🔄 Refresh solicitado pelo participante');
-
-        try {
-          await window.forcarRefreshExtratoParticipante();
-        } catch (error) {
-          console.error('[EXTRATO-UI] Erro ao atualizar:', error);
-          alert('Erro ao atualizar dados. Tente novamente.');
-        } finally {
-          btnRefresh.classList.remove('loading');
-        }
-      };
+    const container = document.getElementById("fluxoFinanceiroContent");
+    if (!container) {
+        console.error("[EXTRATO-UI] ❌ Container não encontrado!");
+        return;
     }
-  }, 100);
 
-  // ===== RENDERIZAR APENAS A TABELA (sem card grande) =====
-  const html = `
-        <div class="extrato-participante-table">
-            <!-- Histórico de Rodadas -->
-            <table class="tabela-extrato">
+    if (!extrato || !extrato.rodadas || !Array.isArray(extrato.rodadas)) {
+        container.innerHTML = renderizarErro();
+        return;
+    }
+
+    // Armazenar globalmente para popups
+    window.extratoAtual = extrato;
+
+    // Configurar botão de refresh
+    setTimeout(() => configurarBotaoRefresh(), 100);
+
+    // Renderizar tabela profissional
+    container.innerHTML = renderizarTabelaPro(extrato);
+
+    // Atualizar cards do header
+    atualizarCardsHeader(extrato.resumo);
+}
+
+function renderizarErro() {
+    return `
+        <div style="text-align: center; padding: 40px 20px; background: ${COLORS.redBg}; 
+                    border-radius: 16px; border: 1px solid ${COLORS.redBorder};">
+            <span class="material-icons" style="font-size: 48px; color: ${COLORS.red}; margin-bottom: 16px;">error_outline</span>
+            <h3 style="color: ${COLORS.red}; margin-bottom: 12px; font-size: 16px;">Dados Inválidos</h3>
+            <p style="color: ${COLORS.textSecondary}; margin-bottom: 20px; font-size: 13px;">A estrutura do extrato está incompleta.</p>
+            <button onclick="window.forcarRefreshExtratoParticipante()" 
+                    style="padding: 12px 24px; background: ${COLORS.primary}; 
+                           color: white; border: none; border-radius: 8px; cursor: pointer; 
+                           font-weight: 600; font-size: 14px; display: inline-flex; align-items: center; gap: 8px;">
+                <span class="material-icons" style="font-size: 18px;">sync</span>
+                Tentar Novamente
+            </button>
+        </div>
+    `;
+}
+
+function renderizarTabelaPro(extrato) {
+    return `
+        <div class="extrato-table-pro">
+            <table class="tabela-extrato-pro">
                 <thead>
                     <tr>
-                        <th>Rod</th>
-                        <th>Pos</th>
-                        <th>Bônus/Ônus</th>
+                        <th>ROD</th>
+                        <th>POS</th>
+                        <th>BÔNUS/ÔNUS</th>
                         <th>P.C</th>
                         <th>M-M</th>
                         <th>TOP10</th>
-                        <th>Saldo</th>
+                        <th>SALDO</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -100,168 +102,250 @@ export function renderizarExtratoParticipante(extrato, participanteId) {
         </div>
 
         <style>
-        .extrato-participante-table {
+        /* ===== TABELA PROFISSIONAL ===== */
+        .extrato-table-pro {
             width: 100%;
             overflow-x: auto;
+            -webkit-overflow-scrolling: touch;
         }
 
-        .tabela-extrato {
+        .tabela-extrato-pro {
             width: 100%;
             border-collapse: collapse;
-            font-size: 11px;
+            font-size: 12px;
+            font-family: 'Roboto', sans-serif;
         }
 
-        .tabela-extrato thead {
-            background: linear-gradient(135deg, rgba(255, 69, 0, 0.15), rgba(255, 69, 0, 0.05));
+        .tabela-extrato-pro thead {
             position: sticky;
             top: 0;
             z-index: 10;
         }
 
-        .tabela-extrato th {
-            padding: 6px 4px;
+        .tabela-extrato-pro th {
+            padding: 10px 6px;
             text-align: center;
-            color: var(--participante-primary);
-            font-weight: 700;
-            font-size: 9px;
+            color: ${COLORS.primary};
+            font-weight: 600;
+            font-size: 11px;
             text-transform: uppercase;
-            border-bottom: 2px solid var(--participante-border);
-            line-height: 1.2;
+            background: ${COLORS.surface};
+            border-bottom: 2px solid ${COLORS.primaryBorder};
         }
 
-        .tabela-extrato td {
-            padding: 6px 4px;
+        .tabela-extrato-pro td {
+            padding: 12px 6px;
             text-align: center;
-            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
-            font-size: 10px;
-            line-height: 1.3;
+            border-bottom: 1px solid ${COLORS.border};
+            color: ${COLORS.textSecondary};
+            font-size: 12px;
+            vertical-align: middle;
         }
 
-        .tabela-extrato tbody tr:nth-child(even) {
+        .tabela-extrato-pro tbody tr:nth-child(even) {
             background: rgba(255, 255, 255, 0.02);
         }
 
-        .tabela-extrato tbody tr:active {
-            background: rgba(255, 69, 0, 0.1);
+        .tabela-extrato-pro tbody tr:active {
+            background: ${COLORS.primaryLight};
         }
 
-        /* Badges de posição */
-        .badge-pos {
+        /* ===== BADGES DE POSIÇÃO ===== */
+        .badge-pos-pro {
             display: inline-flex;
-            padding: 2px 5px;
-            border-radius: 4px;
+            align-items: center;
+            justify-content: center;
+            gap: 3px;
+            padding: 4px 8px;
+            border-radius: 6px;
             font-weight: 700;
-            font-size: 9px;
-            line-height: 1.2;
+            font-size: 11px;
+            white-space: nowrap;
         }
 
-        .badge-pos.mito {
-            background: linear-gradient(135deg, #2ecc71, #27ae60);
+        .badge-pos-pro .material-icons {
+            font-size: 14px;
+        }
+
+        .badge-mito {
+            background: ${COLORS.green};
             color: white;
-            border: 1px solid #f1c40f;
         }
 
-        .badge-pos.mico {
-            background: linear-gradient(135deg, #e74c3c, #c0392b);
+        .badge-mico {
+            background: ${COLORS.red};
             color: white;
-            border: 1px solid #943126;
         }
 
-        .badge-pos.top11 {
-            background: rgba(46, 204, 113, 0.15);
-            color: #2ecc71;
-            border: 1px solid #2ecc71;
+        .badge-top {
+            background: ${COLORS.greenBg};
+            color: ${COLORS.green};
+            border: 1px solid ${COLORS.greenBorder};
         }
 
-        .badge-pos.z4 {
-            background: rgba(231, 76, 60, 0.15);
-            color: #e74c3c;
-            border: 1px solid #e74c3c;
+        .badge-z4 {
+            background: ${COLORS.redBg};
+            color: ${COLORS.red};
+            border: 1px solid ${COLORS.redBorder};
         }
 
-        /* Valores monetários */
+        .badge-normal {
+            background: ${COLORS.greenBg};
+            color: ${COLORS.green};
+            border: 1px solid ${COLORS.greenBorder};
+        }
+
+        .badge-neutro {
+            background: rgba(255, 255, 255, 0.1);
+            color: ${COLORS.textMuted};
+        }
+
+        /* ===== VALORES ===== */
         .valor-positivo {
-            color: #22c55e;
-            font-weight: 700;
+            color: ${COLORS.green};
+            font-weight: 600;
         }
 
         .valor-negativo {
-            color: #ef4444;
-            font-weight: 700;
+            color: ${COLORS.red};
+            font-weight: 600;
         }
 
         .valor-zero {
-            color: #666;
+            color: ${COLORS.textMuted};
         }
 
-        /* Linha de total */
-        .linha-total {
-            background: linear-gradient(135deg, rgba(255, 69, 0, 0.1), rgba(255, 69, 0, 0.05));
-            border-top: 2px solid var(--participante-primary);
+        /* ===== TOP10 CELL ===== */
+        .top10-cell {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 2px;
+        }
+
+        .top10-label {
+            display: flex;
+            align-items: center;
+            gap: 2px;
+            font-size: 9px;
+            font-weight: 600;
+            line-height: 1;
+        }
+
+        .top10-label .material-icons {
+            font-size: 12px;
+        }
+
+        /* ===== CÉLULA DE SALDO ===== */
+        .saldo-cell-positivo {
+            background: ${COLORS.greenBg};
+        }
+
+        .saldo-cell-negativo {
+            background: ${COLORS.redBg};
+        }
+
+        /* ===== LINHA DE TOTAL ===== */
+        .linha-total-pro {
+            background: linear-gradient(135deg, ${COLORS.primaryLight} 0%, rgba(255, 92, 0, 0.05) 100%);
+            border-top: 2px solid ${COLORS.primary};
+        }
+
+        .linha-total-pro td {
             font-weight: 700;
+            color: ${COLORS.text};
+            padding: 14px 6px;
         }
 
-        /* Responsividade */
-        @media (max-width: 768px) {
-            .tabela-extrato {
+        .total-label {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
+        }
+
+        .total-label .material-icons {
+            font-size: 16px;
+            color: ${COLORS.primary};
+        }
+
+        /* ===== RESPONSIVO ===== */
+        @media (max-width: 400px) {
+            .tabela-extrato-pro th,
+            .tabela-extrato-pro td {
+                padding: 8px 4px;
                 font-size: 10px;
             }
 
-            .tabela-extrato th,
-            .tabela-extrato td {
-                padding: 5px 3px;
+            .badge-pos-pro {
+                padding: 3px 6px;
+                font-size: 10px;
+            }
+
+            .badge-pos-pro .material-icons {
+                font-size: 12px;
+            }
+        }
+
+        @media (min-width: 768px) {
+            .tabela-extrato-pro th {
+                font-size: 12px;
+                padding: 14px 10px;
+            }
+
+            .tabela-extrato-pro td {
+                padding: 16px 10px;
+                font-size: 14px;
+            }
+
+            .badge-pos-pro {
+                padding: 6px 12px;
+                font-size: 12px;
             }
         }
         </style>
     `;
-
-  console.log('[EXTRATO-UI] 📝 HTML gerado, inserindo no container...');
-  container.innerHTML = html;
-  console.log('[EXTRATO-UI] ✅ HTML inserido com sucesso');
-  console.log('[EXTRATO-UI] 📊 Rodadas renderizadas:', extrato?.rodadas?.length || 0);
-
-  // ===== ATUALIZAR CARDS DO TOPO (mantém os compactos) =====
-  console.log('[EXTRATO-UI] 🎯 Atualizando cards do header...');
-  atualizarCardsHeader(extrato.resumo);
-  console.log('[EXTRATO-UI] ✅ Cards atualizados');
 }
 
 function renderizarLinhasRodadas(rodadas) {
-  console.log('[EXTRATO-UI] 📊 Renderizando rodadas:', rodadas?.length || 0);
+    if (!rodadas || rodadas.length === 0) {
+        return `<tr><td colspan="7" style="text-align: center; padding: 30px; color: ${COLORS.textMuted};">
+            <span class="material-icons" style="font-size: 32px; margin-bottom: 8px; display: block;">inbox</span>
+            Sem dados de rodadas
+        </td></tr>`;
+    }
 
-  if (!rodadas || rodadas.length === 0) {
-    console.warn('[EXTRATO-UI] ⚠️ Nenhuma rodada para renderizar');
-    return `<tr><td colspan="7" style="text-align: center; padding: 20px; color: #999;">Sem dados de rodadas</td></tr>`;
-  }
+    return rodadas
+        .map((r) => {
+            const saldoClass =
+                r.saldo >= 0 ? "saldo-cell-positivo" : "saldo-cell-negativo";
 
-  return rodadas.map((r, idx) => {
-    console.log(`[EXTRATO-UI] Rodada ${idx + 1}/${rodadas.length}:`, {
-      rodada: r.rodada,
-      posicao: r.posicao,
-      bonusOnus: r.bonusOnus,
-      saldo: r.saldo
-    });
-
-    return `
-        <tr>
-            <td>${r.rodada}ª</td>
-            <td>${formatarPosicao(r)}</td>
-            <td>${formatarValor(r.bonusOnus)}</td>
-            <td>${formatarValor(r.pontosCorridos)}</td>
-            <td>${formatarValor(r.mataMata)}</td>
-            <td>${formatarTop10(r)}</td>
-            <td style="background: ${r.saldo >= 0 ? 'rgba(34, 197, 94, 0.1)' : 'rgba(239, 68, 68, 0.1)'};">
-                ${formatarValor(r.saldo)}
-            </td>
-        </tr>
-    `;
-  }).join('');
+            return `
+            <tr>
+                <td>${r.rodada}ª</td>
+                <td>${formatarPosicaoPro(r)}</td>
+                <td>${formatarValor(r.bonusOnus)}</td>
+                <td>${formatarValor(r.pontosCorridos)}</td>
+                <td>${formatarValor(r.mataMata)}</td>
+                <td>${formatarTop10Pro(r)}</td>
+                <td class="${saldoClass}">${formatarValor(r.saldo)}</td>
+            </tr>
+        `;
+        })
+        .join("");
 }
 
 function renderizarLinhaTotal(resumo) {
-  return `
-        <tr class="linha-total">
-            <td colspan="2">📊 TOTAIS</td>
+    if (!resumo) return "";
+
+    return `
+        <tr class="linha-total-pro">
+            <td colspan="2">
+                <div class="total-label">
+                    <span class="material-icons">analytics</span>
+                    TOTAIS
+                </div>
+            </td>
             <td>${formatarValor(resumo.bonus + resumo.onus)}</td>
             <td>${formatarValor(resumo.pontosCorridos)}</td>
             <td>${formatarValor(resumo.mataMata)}</td>
@@ -271,1036 +355,814 @@ function renderizarLinhaTotal(resumo) {
     `;
 }
 
-function formatarPosicao(rodada) {
-  if (!rodada.posicao) return '<span class="badge-pos">-</span>';
+function formatarPosicaoPro(rodada) {
+    if (!rodada.posicao) {
+        return '<span class="badge-pos-pro badge-neutro">-</span>';
+    }
 
-  if (rodada.posicao === 1 || rodada.isMito) {
-    return '<span class="badge-pos mito">🎩 MITO</span>';
-  }
+    // MITO (1º lugar)
+    if (rodada.posicao === 1 || rodada.isMito) {
+        return `
+            <span class="badge-pos-pro badge-mito">
+                <span class="material-icons">military_tech</span>
+                MITO
+            </span>
+        `;
+    }
 
-  if (rodada.posicao === rodada.totalTimes || rodada.isMico) {
-    return '<span class="badge-pos mico">🐵 MICO</span>';
-  }
+    // MICO (último lugar)
+    if (rodada.posicao === rodada.totalTimes || rodada.isMico) {
+        return `
+            <span class="badge-pos-pro badge-mico">
+                <span class="material-icons">sentiment_very_dissatisfied</span>
+                MICO
+            </span>
+        `;
+    }
 
-  if (rodada.posicao >= 2 && rodada.posicao <= 11) {
-    return `<span class="badge-pos top11">${rodada.posicao}º</span>`;
-  }
+    // Top 11 (posições 2-11)
+    if (rodada.posicao >= 2 && rodada.posicao <= 11) {
+        return `<span class="badge-pos-pro badge-top">${rodada.posicao}º</span>`;
+    }
 
-  if (rodada.posicao >= 22 && rodada.posicao <= 31) {
-    return `<span class="badge-pos z4">${rodada.posicao}º</span>`;
-  }
+    // Z4 (posições ruins)
+    if (rodada.totalTimes && rodada.posicao >= rodada.totalTimes - 3) {
+        return `<span class="badge-pos-pro badge-z4">${rodada.posicao}º</span>`;
+    }
 
-  return `<span class="badge-pos">${rodada.posicao}º</span>`;
+    // Normal
+    return `<span class="badge-pos-pro badge-normal">${rodada.posicao}º</span>`;
 }
 
 function formatarValor(valor) {
-  const num = parseFloat(valor) || 0;
+    const num = parseFloat(valor) || 0;
 
-  if (num === 0) {
-    return '<span class="valor-zero">-</span>';
-  }
+    if (num === 0) {
+        return '<span class="valor-zero">-</span>';
+    }
 
-  const classe = num > 0 ? 'valor-positivo' : 'valor-negativo';
-  const sinal = num > 0 ? '+' : '';
-  const formatado = Math.abs(num).toLocaleString('pt-BR', {
-    minimumFractionDigits: 2,
-    maximumFractionDigits: 2
-  });
+    const classe = num > 0 ? "valor-positivo" : "valor-negativo";
+    const sinal = num > 0 ? "+" : "";
+    const formatado = Math.abs(num).toLocaleString("pt-BR", {
+        minimumFractionDigits: 2,
+        maximumFractionDigits: 2,
+    });
 
-  return `<span class="${classe}">${sinal}${formatado}</span>`;
+    return `<span class="${classe}">${sinal}${formatado}</span>`;
 }
 
-function formatarTop10(rodada) {
-  if (!rodada.top10 || rodada.top10 === 0) {
-    return '<span class="valor-zero">-</span>';
-  }
+function formatarTop10Pro(rodada) {
+    if (!rodada.top10 || rodada.top10 === 0) {
+        return '<span class="valor-zero">-</span>';
+    }
 
-  const status = rodada.top10Status || (rodada.top10 > 0 ? 'MITO' : 'MICO');
-  const posicao = rodada.top10Posicao || 1;
-  const cor = status === 'MITO' ? '#2ecc71' : '#e74c3c';
-  const icone = status === 'MITO' ? '🏆' : '🐵';
+    const isMito = rodada.top10 > 0;
+    const posicao = rodada.top10Posicao || 1;
+    const cor = isMito ? COLORS.yellow : COLORS.red;
+    const icon = isMito ? "emoji_events" : "sentiment_very_dissatisfied";
+    const label = isMito ? "MAIOR" : "PIOR";
 
-  return `
-        <div style="display: flex; flex-direction: column; align-items: center; gap: 1px;">
-            <span style="font-size: 7px; color: ${cor}; font-weight: 600; line-height: 1.1;">
-                ${icone} ${posicao}º ${status === 'MITO' ? 'MAIOR' : 'PIOR'}
-            </span>
+    return `
+        <div class="top10-cell">
+            <div class="top10-label" style="color: ${cor};">
+                <span class="material-icons">${icon}</span>
+                ${posicao}º ${label}
+            </div>
             ${formatarValor(rodada.top10)}
         </div>
     `;
 }
 
 function atualizarCardsHeader(resumo) {
-  // Atualizar Saldo Total
-  const saldoEl = document.getElementById('saldoTotalHeader');
-  const statusBadgeEl = document.getElementById('saldoStatusBadge');
+    if (!resumo) return;
 
-  if (saldoEl && resumo.saldo !== undefined) {
-    const saldo = parseFloat(resumo.saldo) || 0;
+    // Saldo Total
+    const saldoEl = document.getElementById("saldoTotalHeader");
+    const statusBadgeEl = document.getElementById("saldoStatusBadge");
 
-    saldoEl.textContent = `R$ ${Math.abs(saldo).toLocaleString('pt-BR', {
-      minimumFractionDigits: 2,
-      maximumFractionDigits: 2
-    })}`;
+    if (saldoEl) {
+        const saldo = parseFloat(resumo.saldo) || 0;
 
-    // Atualizar badge de status
-    if (statusBadgeEl) {
-      const iconEl = statusBadgeEl.querySelector('.status-icon');
-      const textEl = statusBadgeEl.querySelector('.status-text');
+        saldoEl.textContent = `R$ ${Math.abs(saldo).toLocaleString("pt-BR", {
+            minimumFractionDigits: 2,
+            maximumFractionDigits: 2,
+        })}`;
 
-      if (saldo > 0) {
-        saldoEl.style.color = '#22c55e';
-        statusBadgeEl.style.borderColor = 'rgba(34, 197, 94, 0.3)';
-        statusBadgeEl.style.background = 'rgba(34, 197, 94, 0.1)';
-        if (iconEl) iconEl.textContent = '💰';
-        if (textEl) {
-          textEl.textContent = 'A Receber';
-          textEl.style.color = '#22c55e';
+        if (statusBadgeEl) {
+            const textEl = statusBadgeEl.querySelector(".status-text");
+
+            if (saldo > 0) {
+                saldoEl.style.color = COLORS.green;
+                statusBadgeEl.style.borderColor = COLORS.greenBorder;
+                statusBadgeEl.style.background = COLORS.greenBg;
+                if (textEl) {
+                    textEl.textContent = "A RECEBER";
+                    textEl.style.color = COLORS.green;
+                }
+            } else if (saldo < 0) {
+                saldoEl.style.color = COLORS.red;
+                statusBadgeEl.style.borderColor = COLORS.redBorder;
+                statusBadgeEl.style.background = COLORS.redBg;
+                if (textEl) {
+                    textEl.textContent = "A PAGAR";
+                    textEl.style.color = COLORS.red;
+                }
+            } else {
+                saldoEl.style.color = COLORS.textMuted;
+                statusBadgeEl.style.borderColor = "rgba(160, 160, 160, 0.3)";
+                statusBadgeEl.style.background = "rgba(160, 160, 160, 0.1)";
+                if (textEl) {
+                    textEl.textContent = "QUITADO";
+                    textEl.style.color = COLORS.textMuted;
+                }
+            }
         }
-      } else if (saldo < 0) {
-        saldoEl.style.color = '#ef4444';
-        statusBadgeEl.style.borderColor = 'rgba(239, 68, 68, 0.3)';
-        statusBadgeEl.style.background = 'rgba(239, 68, 68, 0.1)';
-        if (iconEl) iconEl.textContent = '💸';
-        if (textEl) {
-          textEl.textContent = 'A Pagar';
-          textEl.style.color = '#ef4444';
-        }
-      } else {
-        saldoEl.style.color = '#a0a0a0';
-        statusBadgeEl.style.borderColor = 'rgba(160, 160, 160, 0.3)';
-        statusBadgeEl.style.background = 'rgba(160, 160, 160, 0.1)';
-        if (iconEl) iconEl.textContent = '✅';
-        if (textEl) {
-          textEl.textContent = 'Quitado';
-          textEl.style.color = '#a0a0a0';
-        }
-      }
     }
-  }
 
-  // Atualizar card "Ganhou"
-  const ganhosEl = document.getElementById('totalGanhosHeader');
-  if (ganhosEl && resumo.totalGanhos !== undefined) {
-    ganhosEl.textContent = `+R$ ${resumo.totalGanhos.toLocaleString('pt-BR', {
-      minimumFractionDigits: 2,
-      maximumFractionDigits: 2
-    })}`;
-  }
+    // Card Ganhou
+    const ganhosEl = document.getElementById("totalGanhosHeader");
+    if (ganhosEl && resumo.totalGanhos !== undefined) {
+        ganhosEl.textContent = `+R$ ${resumo.totalGanhos.toLocaleString(
+            "pt-BR",
+            {
+                minimumFractionDigits: 2,
+                maximumFractionDigits: 2,
+            },
+        )}`;
+    }
 
-  // Atualizar card "Perdeu"
-  const perdeuEl = document.getElementById('totalPerdeuHeader');
-  if (perdeuEl && resumo.totalPerdas !== undefined) {
-    perdeuEl.textContent = `R$ ${Math.abs(resumo.totalPerdas).toLocaleString('pt-BR', {
-      minimumFractionDigits: 2,
-      maximumFractionDigits: 2
-    })}`;
-  }
+    // Card Perdeu
+    const perdeuEl = document.getElementById("totalPerdeuHeader");
+    if (perdeuEl && resumo.totalPerdas !== undefined) {
+        perdeuEl.textContent = `R$ ${Math.abs(
+            resumo.totalPerdas,
+        ).toLocaleString("pt-BR", {
+            minimumFractionDigits: 2,
+            maximumFractionDigits: 2,
+        })}`;
+    }
+}
+
+function configurarBotaoRefresh() {
+    const btnRefresh = document.getElementById("btnRefreshExtrato");
+    if (btnRefresh) {
+        btnRefresh.onclick = async () => {
+            if (btnRefresh.classList.contains("loading")) return;
+
+            btnRefresh.classList.add("loading");
+
+            try {
+                await window.forcarRefreshExtratoParticipante();
+            } catch (error) {
+                console.error("[EXTRATO-UI] Erro ao atualizar:", error);
+            } finally {
+                btnRefresh.classList.remove("loading");
+            }
+        };
+    }
 }
 
 export function mostrarLoading() {
-  const container = document.getElementById('fluxoFinanceiroContent');
-  if (container) {
-    container.innerHTML = `
+    const container = document.getElementById("fluxoFinanceiroContent");
+    if (container) {
+        container.innerHTML = `
             <div class="loading-state">
                 <div class="spinner"></div>
                 <p>Carregando extrato...</p>
             </div>
         `;
-  }
+    }
 }
 
-// Expor globalmente para refresh
 window.mostrarLoadingExtrato = mostrarLoading;
 
 // ===== FUNÇÕES DE DETALHAMENTO (POPUPS) =====
 window.mostrarDetalhamentoGanhos = function () {
-  const extrato = window.extratoAtual;
-  if (!extrato) {
-    console.warn('[EXTRATO-UI] Dados do extrato não disponíveis');
-    return;
-  }
+    const extrato = window.extratoAtual;
+    if (!extrato) return;
 
-  const detalhes = calcularDetalhamentoGanhos(extrato);
-  mostrarPopupDetalhamento('💰 Detalhamento Completo de Ganhos', detalhes, '#22c55e', 'ganhos');
+    const detalhes = calcularDetalhamentoGanhos(extrato);
+    mostrarPopupDetalhamentoPro(
+        "Detalhamento de Ganhos",
+        detalhes,
+        COLORS.green,
+        "ganhos",
+    );
 };
 
 window.mostrarDetalhamentoPerdas = function () {
-  const extrato = window.extratoAtual;
-  if (!extrato) {
-    console.warn('[EXTRATO-UI] Dados do extrato não disponíveis');
-    return;
-  }
+    const extrato = window.extratoAtual;
+    if (!extrato) return;
 
-  const detalhes = calcularDetalhamentoPerdas(extrato);
-  mostrarPopupDetalhamento('💸 Detalhamento Completo de Perdas', detalhes, '#ef4444', 'perdas');
+    const detalhes = calcularDetalhamentoPerdas(extrato);
+    mostrarPopupDetalhamentoPro(
+        "Detalhamento de Perdas",
+        detalhes,
+        COLORS.red,
+        "perdas",
+    );
 };
 
 function calcularDetalhamentoGanhos(extrato) {
-  const detalhes = {
-    bonusOnus: 0,
-    pontosCorridos: 0,
-    mataMata: 0,
-    top10: 0,
-    melhorMes: 0,
-    camposEditaveis: 0,
-    rodadas: {
-      bonusOnus: [],
-      pontosCorridos: [],
-      mataMata: [],
-      top10: [],
-      melhorMes: [],
-    },
-    estatisticas: {
-      totalRodadasComGanho: 0,
-      maiorGanhoRodada: { rodada: 0, valor: 0, categoria: '' },
-      mediaGanhoPorRodada: 0,
-      rodadasMito: 0,
-      rodadasTop11: 0,
-    }
-  };
+    const detalhes = {
+        bonusOnus: 0,
+        pontosCorridos: 0,
+        mataMata: 0,
+        top10: 0,
+        melhorMes: 0,
+        camposEditaveis: 0,
+        rodadas: {
+            bonusOnus: [],
+            pontosCorridos: [],
+            mataMata: [],
+            top10: [],
+            melhorMes: [],
+            camposEditaveis: [],
+        },
+        estatisticas: {
+            totalRodadasComGanho: 0,
+            mediaGanhoPorRodada: 0,
+            rodadasMito: 0,
+            rodadasTop11: 0,
+        },
+    };
 
-  const rodadas = extrato.rodadas || [];
-  const resumo = extrato.resumo || {};
-  let somaGanhos = 0;
-  let rodadasComGanho = 0;
+    extrato.rodadas.forEach((r) => {
+        // Bônus/Ônus positivo
+        if (r.bonusOnus > 0) {
+            detalhes.bonusOnus += r.bonusOnus;
+            detalhes.rodadas.bonusOnus.push({
+                rodada: r.rodada,
+                valor: r.bonusOnus,
+                posicao: r.posicao,
+            });
+        }
 
-  rodadas.forEach((rodada) => {
-    let ganhoRodada = 0;
+        // Pontos Corridos positivo
+        if (r.pontosCorridos > 0) {
+            detalhes.pontosCorridos += r.pontosCorridos;
+            detalhes.rodadas.pontosCorridos.push({
+                rodada: r.rodada,
+                valor: r.pontosCorridos,
+            });
+        }
 
-    if (rodada.bonusOnus > 0) {
-      detalhes.bonusOnus += rodada.bonusOnus;
-      ganhoRodada += rodada.bonusOnus;
-      detalhes.rodadas.bonusOnus.push({
-        rodada: rodada.rodada,
-        valor: rodada.bonusOnus,
-        posicao: rodada.posicao,
-        isMito: rodada.isMito
-      });
-    }
-    if (rodada.pontosCorridos > 0) {
-      detalhes.pontosCorridos += rodada.pontosCorridos;
-      ganhoRodada += rodada.pontosCorridos;
-      detalhes.rodadas.pontosCorridos.push({
-        rodada: rodada.rodada,
-        valor: rodada.pontosCorridos,
-      });
-    }
-    if (rodada.mataMata > 0) {
-      detalhes.mataMata += rodada.mataMata;
-      ganhoRodada += rodada.mataMata;
-      detalhes.rodadas.mataMata.push({
-        rodada: rodada.rodada,
-        valor: rodada.mataMata,
-      });
-    }
-    if (rodada.top10 > 0) {
-      detalhes.top10 += rodada.top10;
-      ganhoRodada += rodada.top10;
-      detalhes.rodadas.top10.push({
-        rodada: rodada.rodada,
-        valor: rodada.top10,
-        status: rodada.top10Status,
-        posicao: rodada.top10Posicao
-      });
-    }
-    if (rodada.melhorMes > 0) {
-      detalhes.melhorMes += rodada.melhorMes;
-      ganhoRodada += rodada.melhorMes;
-      detalhes.rodadas.melhorMes.push({
-        rodada: rodada.rodada,
-        valor: rodada.melhorMes,
-      });
+        // Mata-Mata positivo
+        if (r.mataMata > 0) {
+            detalhes.mataMata += r.mataMata;
+            detalhes.rodadas.mataMata.push({
+                rodada: r.rodada,
+                valor: r.mataMata,
+            });
+        }
+
+        // Top 10 positivo
+        if (r.top10 > 0) {
+            detalhes.top10 += r.top10;
+            detalhes.rodadas.top10.push({
+                rodada: r.rodada,
+                valor: r.top10,
+                posicao: r.top10Posicao,
+            });
+        }
+
+        // Estatísticas
+        if (r.posicao === 1 || r.isMito) detalhes.estatisticas.rodadasMito++;
+        if (r.posicao >= 1 && r.posicao <= 11)
+            detalhes.estatisticas.rodadasTop11++;
+    });
+
+    // Campos editáveis do resumo
+    if (extrato.resumo.melhorMes > 0) {
+        detalhes.melhorMes = extrato.resumo.melhorMes;
     }
 
-    // Estatísticas
-    if (ganhoRodada > 0) {
-      rodadasComGanho++;
-      somaGanhos += ganhoRodada;
+    // Calcular estatísticas finais
+    const totalGanho =
+        detalhes.bonusOnus +
+        detalhes.pontosCorridos +
+        detalhes.mataMata +
+        detalhes.top10 +
+        detalhes.melhorMes;
+    const rodadasComGanho = new Set([
+        ...detalhes.rodadas.bonusOnus.map((r) => r.rodada),
+        ...detalhes.rodadas.pontosCorridos.map((r) => r.rodada),
+        ...detalhes.rodadas.mataMata.map((r) => r.rodada),
+        ...detalhes.rodadas.top10.map((r) => r.rodada),
+    ]).size;
 
-      if (ganhoRodada > detalhes.estatisticas.maiorGanhoRodada.valor) {
-        detalhes.estatisticas.maiorGanhoRodada = {
-          rodada: rodada.rodada,
-          valor: ganhoRodada,
-          categoria: 'Misto'
-        };
-      }
-    }
+    detalhes.estatisticas.totalRodadasComGanho = rodadasComGanho;
+    detalhes.estatisticas.mediaGanhoPorRodada =
+        rodadasComGanho > 0 ? totalGanho / rodadasComGanho : 0;
 
-    if (rodada.isMito) detalhes.estatisticas.rodadasMito++;
-    if (rodada.posicao >= 2 && rodada.posicao <= 11) detalhes.estatisticas.rodadasTop11++;
-  });
-
-  if (resumo.campo1 > 0) detalhes.camposEditaveis += resumo.campo1;
-  if (resumo.campo2 > 0) detalhes.camposEditaveis += resumo.campo2;
-  if (resumo.campo3 > 0) detalhes.camposEditaveis += resumo.campo3;
-  if (resumo.campo4 > 0) detalhes.camposEditaveis += resumo.campo4;
-
-  detalhes.estatisticas.totalRodadasComGanho = rodadasComGanho;
-  detalhes.estatisticas.mediaGanhoPorRodada = rodadasComGanho > 0 ? somaGanhos / rodadasComGanho : 0;
-
-  return detalhes;
+    return detalhes;
 }
 
 function calcularDetalhamentoPerdas(extrato) {
-  const detalhes = {
-    bonusOnus: 0,
-    pontosCorridos: 0,
-    mataMata: 0,
-    top10: 0,
-    melhorMes: 0,
-    camposEditaveis: 0,
-    rodadas: {
-      bonusOnus: [],
-      pontosCorridos: [],
-      mataMata: [],
-      top10: [],
-      melhorMes: [],
-    },
-    estatisticas: {
-      totalRodadasComPerda: 0,
-      maiorPerdaRodada: { rodada: 0, valor: 0, categoria: '' },
-      mediaPerdaPorRodada: 0,
-      rodadasMico: 0,
-      rodadasZ4: 0,
-    }
-  };
+    const detalhes = {
+        bonusOnus: 0,
+        pontosCorridos: 0,
+        mataMata: 0,
+        top10: 0,
+        rodadas: {
+            bonusOnus: [],
+            pontosCorridos: [],
+            mataMata: [],
+            top10: [],
+        },
+        estatisticas: {
+            totalRodadasComPerda: 0,
+            mediaPerdaPorRodada: 0,
+            rodadasMico: 0,
+            rodadasZ4: 0,
+        },
+    };
 
-  const rodadas = extrato.rodadas || [];
-  const resumo = extrato.resumo || {};
-  let somaPerdas = 0;
-  let rodadasComPerda = 0;
+    extrato.rodadas.forEach((r) => {
+        // Bônus/Ônus negativo (ou seja, ônus)
+        if (r.bonusOnus < 0) {
+            detalhes.bonusOnus += Math.abs(r.bonusOnus);
+            detalhes.rodadas.bonusOnus.push({
+                rodada: r.rodada,
+                valor: r.bonusOnus,
+                posicao: r.posicao,
+            });
+        }
 
-  rodadas.forEach((rodada) => {
-    let perdaRodada = 0;
+        // Pontos Corridos negativo
+        if (r.pontosCorridos < 0) {
+            detalhes.pontosCorridos += Math.abs(r.pontosCorridos);
+            detalhes.rodadas.pontosCorridos.push({
+                rodada: r.rodada,
+                valor: r.pontosCorridos,
+            });
+        }
 
-    if (rodada.bonusOnus < 0) {
-      detalhes.bonusOnus += rodada.bonusOnus;
-      perdaRodada += Math.abs(rodada.bonusOnus);
-      detalhes.rodadas.bonusOnus.push({
-        rodada: rodada.rodada,
-        valor: rodada.bonusOnus,
-        posicao: rodada.posicao,
-        isMico: rodada.isMico
-      });
-    }
-    if (rodada.pontosCorridos < 0) {
-      detalhes.pontosCorridos += rodada.pontosCorridos;
-      perdaRodada += Math.abs(rodada.pontosCorridos);
-      detalhes.rodadas.pontosCorridos.push({
-        rodada: rodada.rodada,
-        valor: rodada.pontosCorridos,
-      });
-    }
-    if (rodada.mataMata < 0) {
-      detalhes.mataMata += rodada.mataMata;
-      perdaRodada += Math.abs(rodada.mataMata);
-      detalhes.rodadas.mataMata.push({
-        rodada: rodada.rodada,
-        valor: rodada.mataMata,
-      });
-    }
-    if (rodada.top10 < 0) {
-      detalhes.top10 += rodada.top10;
-      perdaRodada += Math.abs(rodada.top10);
-      detalhes.rodadas.top10.push({
-        rodada: rodada.rodada,
-        valor: rodada.top10,
-        status: rodada.top10Status,
-        posicao: rodada.top10Posicao
-      });
-    }
-    if (rodada.melhorMes < 0) {
-      detalhes.melhorMes += rodada.melhorMes;
-      perdaRodada += Math.abs(rodada.melhorMes);
-      detalhes.rodadas.melhorMes.push({
-        rodada: rodada.rodada,
-        valor: rodada.melhorMes,
-      });
-    }
+        // Mata-Mata negativo
+        if (r.mataMata < 0) {
+            detalhes.mataMata += Math.abs(r.mataMata);
+            detalhes.rodadas.mataMata.push({
+                rodada: r.rodada,
+                valor: r.mataMata,
+            });
+        }
 
-    // Estatísticas
-    if (perdaRodada > 0) {
-      rodadasComPerda++;
-      somaPerdas += perdaRodada;
+        // Top 10 negativo
+        if (r.top10 < 0) {
+            detalhes.top10 += Math.abs(r.top10);
+            detalhes.rodadas.top10.push({
+                rodada: r.rodada,
+                valor: r.top10,
+                posicao: r.top10Posicao,
+            });
+        }
 
-      if (perdaRodada > Math.abs(detalhes.estatisticas.maiorPerdaRodada.valor)) {
-        detalhes.estatisticas.maiorPerdaRodada = {
-          rodada: rodada.rodada,
-          valor: -perdaRodada,
-          categoria: 'Misto'
-        };
-      }
-    }
+        // Estatísticas
+        if (r.posicao === r.totalTimes || r.isMico)
+            detalhes.estatisticas.rodadasMico++;
+        if (r.totalTimes && r.posicao >= r.totalTimes - 3)
+            detalhes.estatisticas.rodadasZ4++;
+    });
 
-    if (rodada.isMico) detalhes.estatisticas.rodadasMico++;
-    if (rodada.posicao >= 22 && rodada.posicao <= 31) detalhes.estatisticas.rodadasZ4++;
-  });
+    // Calcular estatísticas finais
+    const totalPerda =
+        detalhes.bonusOnus +
+        detalhes.pontosCorridos +
+        detalhes.mataMata +
+        detalhes.top10;
+    const rodadasComPerda = new Set([
+        ...detalhes.rodadas.bonusOnus.map((r) => r.rodada),
+        ...detalhes.rodadas.pontosCorridos.map((r) => r.rodada),
+        ...detalhes.rodadas.mataMata.map((r) => r.rodada),
+        ...detalhes.rodadas.top10.map((r) => r.rodada),
+    ]).size;
 
-  if (resumo.campo1 < 0) detalhes.camposEditaveis += resumo.campo1;
-  if (resumo.campo2 < 0) detalhes.camposEditaveis += resumo.campo2;
-  if (resumo.campo3 < 0) detalhes.camposEditaveis += resumo.campo3;
-  if (resumo.campo4 < 0) detalhes.camposEditaveis += resumo.campo4;
+    detalhes.estatisticas.totalRodadasComPerda = rodadasComPerda;
+    detalhes.estatisticas.mediaPerdaPorRodada =
+        rodadasComPerda > 0 ? totalPerda / rodadasComPerda : 0;
 
-  detalhes.estatisticas.totalRodadasComPerda = rodadasComPerda;
-  detalhes.estatisticas.mediaPerdaPorRodada = rodadasComPerda > 0 ? somaPerdas / rodadasComPerda : 0;
-
-  return detalhes;
+    return detalhes;
 }
 
-function mostrarPopupDetalhamento(titulo, detalhes, cor, tipo) {
-  const formatarMoeda = (valor) => {
-    return (valor || 0).toLocaleString('pt-BR', {
-      minimumFractionDigits: 2,
-      maximumFractionDigits: 2,
-    });
-  };
+function mostrarPopupDetalhamentoPro(titulo, detalhes, cor, tipo) {
+    // Remover popup existente
+    const existente = document.getElementById("popupDetalhamento");
+    if (existente) existente.remove();
 
-  const total =
-    detalhes.bonusOnus +
-    detalhes.pontosCorridos +
-    detalhes.mataMata +
-    detalhes.top10 +
-    detalhes.melhorMes +
-    detalhes.camposEditaveis;
+    const isGanhos = tipo === "ganhos";
+    const icon = isGanhos ? "emoji_events" : "sentiment_very_dissatisfied";
 
-  // Criar array de categorias com valores não-zero
-  const categorias = [];
+    // Montar categorias
+    const categorias = [];
+    const total = isGanhos
+        ? detalhes.bonusOnus +
+          detalhes.pontosCorridos +
+          detalhes.mataMata +
+          detalhes.top10 +
+          (detalhes.melhorMes || 0)
+        : detalhes.bonusOnus +
+          detalhes.pontosCorridos +
+          detalhes.mataMata +
+          detalhes.top10;
 
-  if (detalhes.bonusOnus !== 0) {
-    const rodadasInfo = detalhes.rodadas.bonusOnus
-      .sort((a, b) => Math.abs(b.valor) - Math.abs(a.valor)) // Ordenar por valor (maior primeiro)
-      .map(r => {
-        let badge = '';
-        if (r.isMito) badge = ' 🎩';
-        if (r.isMico) badge = ' 🐵';
-        const valorFormatado = r.valor > 0 ? `+${formatarMoeda(r.valor)}` : formatarMoeda(r.valor);
-        return `<div class="rodada-detalhe-item">
-          <span class="rodada-num">R${r.rodada}</span>
-          <span class="rodada-pos">${r.posicao}º${badge}</span>
-          <span class="rodada-valor" style="color: ${r.valor > 0 ? '#22c55e' : '#ef4444'}">R$ ${valorFormatado}</span>
-        </div>`;
-      }).join('');
+    if (detalhes.bonusOnus > 0) {
+        categorias.push({
+            nome: isGanhos ? "Bônus por Posição" : "Ônus por Posição",
+            valor: detalhes.bonusOnus,
+            icon: isGanhos ? "military_tech" : "sentiment_very_dissatisfied",
+            rodadas: detalhes.rodadas.bonusOnus,
+            percentual: (detalhes.bonusOnus / total) * 100,
+        });
+    }
 
-    categorias.push({
-      nome: 'Bônus/Ônus',
-      icone: tipo === 'ganhos' ? '🎁' : '⚠️',
-      valor: detalhes.bonusOnus,
-      rodadas: detalhes.rodadas.bonusOnus,
-      percentual: Math.abs((detalhes.bonusOnus / total) * 100),
-      descricao: tipo === 'ganhos' 
-        ? `Bônus por ${detalhes.rodadas.bonusOnus.length} posição(ões) de destaque (MITO, TOP 11)` 
-        : `Ônus por ${detalhes.rodadas.bonusOnus.length} posição(ões) ruins (MICO, Z4)`,
-      detalhamentoRodadas: rodadasInfo
-    });
-  }
+    if (detalhes.pontosCorridos > 0) {
+        categorias.push({
+            nome: "Pontos Corridos",
+            valor: detalhes.pontosCorridos,
+            icon: "sports_soccer",
+            rodadas: detalhes.rodadas.pontosCorridos,
+            percentual: (detalhes.pontosCorridos / total) * 100,
+        });
+    }
 
-  if (detalhes.pontosCorridos !== 0) {
-    const rodadasInfo = detalhes.rodadas.pontosCorridos
-      .sort((a, b) => Math.abs(b.valor) - Math.abs(a.valor))
-      .map(r => {
-        const valorFormatado = r.valor > 0 ? `+${formatarMoeda(r.valor)}` : formatarMoeda(r.valor);
-        return `<div class="rodada-detalhe-item">
-          <span class="rodada-num">R${r.rodada}</span>
-          <span class="rodada-status">${r.valor > 0 ? '✅ Vitória' : '❌ Derrota'}</span>
-          <span class="rodada-valor" style="color: ${r.valor > 0 ? '#22c55e' : '#ef4444'}">R$ ${valorFormatado}</span>
-        </div>`;
-      }).join('');
-    
-    categorias.push({
-      nome: 'Pontos Corridos',
-      icone: '⚽',
-      valor: detalhes.pontosCorridos,
-      rodadas: detalhes.rodadas.pontosCorridos,
-      percentual: Math.abs((detalhes.pontosCorridos / total) * 100),
-      descricao: tipo === 'ganhos' 
-        ? `${detalhes.rodadas.pontosCorridos.length} vitória(s) em confrontos diretos` 
-        : `${detalhes.rodadas.pontosCorridos.length} derrota(s) em confrontos diretos`,
-      detalhamentoRodadas: rodadasInfo
-    });
-  }
+    if (detalhes.mataMata > 0) {
+        categorias.push({
+            nome: "Mata-Mata",
+            valor: detalhes.mataMata,
+            icon: "emoji_events",
+            rodadas: detalhes.rodadas.mataMata,
+            percentual: (detalhes.mataMata / total) * 100,
+        });
+    }
 
-  if (detalhes.mataMata !== 0) {
-    const rodadasInfo = detalhes.rodadas.mataMata
-      .sort((a, b) => Math.abs(b.valor) - Math.abs(a.valor))
-      .map(r => {
-        const valorFormatado = r.valor > 0 ? `+${formatarMoeda(r.valor)}` : formatarMoeda(r.valor);
-        const tipoMM = r.valor > 0 ? '🏆 Prêmio' : '💰 Taxa';
-        return `<div class="rodada-detalhe-item">
-          <span class="rodada-num">R${r.rodada}</span>
-          <span class="rodada-status">${tipoMM}</span>
-          <span class="rodada-valor" style="color: ${r.valor > 0 ? '#22c55e' : '#ef4444'}">R$ ${valorFormatado}</span>
-        </div>`;
-      }).join('');
-    
-    categorias.push({
-      nome: 'Mata-Mata',
-      icone: '🏆',
-      valor: detalhes.mataMata,
-      rodadas: detalhes.rodadas.mataMata,
-      percentual: Math.abs((detalhes.mataMata / total) * 100),
-      descricao: tipo === 'ganhos' 
-        ? `${detalhes.rodadas.mataMata.length} premiação(ões) do Mata-Mata` 
-        : `${detalhes.rodadas.mataMata.length} taxa(s) de participação no Mata-Mata`,
-      detalhamentoRodadas: rodadasInfo
-    });
-  }
+    if (detalhes.top10 > 0) {
+        categorias.push({
+            nome: "Top 10 da Rodada",
+            valor: detalhes.top10,
+            icon: "leaderboard",
+            rodadas: detalhes.rodadas.top10,
+            percentual: (detalhes.top10 / total) * 100,
+        });
+    }
 
-  if (detalhes.top10 !== 0) {
-    const rodadasInfo = detalhes.rodadas.top10
-      .sort((a, b) => Math.abs(b.valor) - Math.abs(a.valor))
-      .map(r => {
-        const statusIcon = r.status === 'MITO' ? '🏆' : '💩';
-        const valorFormatado = r.valor > 0 ? `+${formatarMoeda(r.valor)}` : formatarMoeda(r.valor);
-        const posicaoTexto = r.status === 'MITO' ? `${r.posicao}º Maior` : `${r.posicao}º Menor`;
-        return `<div class="rodada-detalhe-item">
-          <span class="rodada-num">R${r.rodada}</span>
-          <span class="rodada-status">${statusIcon} ${posicaoTexto}</span>
-          <span class="rodada-valor" style="color: ${r.valor > 0 ? '#22c55e' : '#ef4444'}">R$ ${valorFormatado}</span>
-        </div>`;
-      }).join('');
+    if (isGanhos && detalhes.melhorMes > 0) {
+        categorias.push({
+            nome: "Melhor do Mês",
+            valor: detalhes.melhorMes,
+            icon: "star",
+            rodadas: [],
+            percentual: (detalhes.melhorMes / total) * 100,
+        });
+    }
 
-    categorias.push({
-      nome: 'TOP 10',
-      icone: tipo === 'ganhos' ? '🌟' : '💩',
-      valor: detalhes.top10,
-      rodadas: detalhes.rodadas.top10,
-      percentual: Math.abs((detalhes.top10 / total) * 100),
-      descricao: tipo === 'ganhos' 
-        ? `${detalhes.rodadas.top10.length} vez(es) entre as maiores pontuações` 
-        : `${detalhes.rodadas.top10.length} vez(es) entre as piores pontuações`,
-      detalhamentoRodadas: rodadasInfo
-    });
-  }
+    const formatarMoeda = (val) =>
+        Math.abs(val).toLocaleString("pt-BR", {
+            minimumFractionDigits: 2,
+            maximumFractionDigits: 2,
+        });
 
-  if (detalhes.melhorMes !== 0) {
-    const rodadasInfo = detalhes.rodadas.melhorMes
-      .sort((a, b) => Math.abs(b.valor) - Math.abs(a.valor))
-      .map(r => {
-        const valorFormatado = r.valor > 0 ? `+${formatarMoeda(r.valor)}` : formatarMoeda(r.valor);
-        const mesNomes = ['Jan', 'Fev', 'Mar', 'Abr', 'Mai', 'Jun', 'Jul', 'Ago', 'Set', 'Out', 'Nov', 'Dez'];
-        const mesEstimado = Math.ceil(r.rodada / 4); // Aproximação de mês
-        return `<div class="rodada-detalhe-item">
-          <span class="rodada-num">R${r.rodada}</span>
-          <span class="rodada-status">📅 ${mesNomes[mesEstimado - 1] || 'Mês'}</span>
-          <span class="rodada-valor" style="color: ${r.valor > 0 ? '#22c55e' : '#ef4444'}">R$ ${valorFormatado}</span>
-        </div>`;
-      }).join('');
-    
-    categorias.push({
-      nome: 'Melhor Mês',
-      icone: '📅',
-      valor: detalhes.melhorMes,
-      rodadas: detalhes.rodadas.melhorMes,
-      percentual: Math.abs((detalhes.melhorMes / total) * 100),
-      descricao: `${detalhes.rodadas.melhorMes.length} prêmio(s) mensal(is) acumulado(s)`,
-      detalhamentoRodadas: rodadasInfo
-    });
-  }
+    const html = `
+        <style>
+            #popupDetalhamento {
+                position: fixed;
+                top: 0;
+                left: 0;
+                right: 0;
+                bottom: 0;
+                background: rgba(0, 0, 0, 0.85);
+                z-index: 10000;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                padding: 16px;
+                animation: fadeIn 0.2s ease;
+            }
 
-  if (detalhes.camposEditaveis !== 0) {
-    categorias.push({
-      nome: 'Ajustes Manuais',
-      icone: '⚙️',
-      valor: detalhes.camposEditaveis,
-      rodadas: [],
-      percentual: Math.abs((detalhes.camposEditaveis / total) * 100),
-      descricao: 'Valores inseridos manualmente pelo administrador',
-      detalhamentoRodadas: ''
-    });
-  }
+            @keyframes fadeIn {
+                from { opacity: 0; }
+                to { opacity: 1; }
+            }
 
-  const html = `
-    <style>
-      @keyframes slideIn {
-        from {
-          opacity: 0;
-          transform: translateY(-20px);
-        }
-        to {
-          opacity: 1;
-          transform: translateY(0);
-        }
-      }
+            #popupDetalhamento .modal-content {
+                background: ${COLORS.surface};
+                border-radius: 20px;
+                max-width: 420px;
+                width: 100%;
+                max-height: 85vh;
+                overflow: hidden;
+                display: flex;
+                flex-direction: column;
+                border: 1px solid ${cor}40;
+                animation: slideUp 0.3s ease;
+            }
 
-      @keyframes fillBar {
-        from {
-          width: 0%;
-        }
-      }
+            @keyframes slideUp {
+                from { transform: translateY(20px); opacity: 0; }
+                to { transform: translateY(0); opacity: 1; }
+            }
 
-      @keyframes pulseGlow {
-        0%, 100% {
-          box-shadow: 0 0 10px ${cor}40;
-        }
-        50% {
-          box-shadow: 0 0 20px ${cor}80;
-        }
-      }
+            #popupDetalhamento .modal-header {
+                background: linear-gradient(135deg, ${cor}30 0%, ${cor}10 100%);
+                padding: 20px;
+                border-bottom: 1px solid ${cor}30;
+            }
 
-      #popupDetalhamento {
-        position: fixed;
-        top: 0;
-        left: 0;
-        width: 100%;
-        height: 100%;
-        background: rgba(0,0,0,0.95);
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        z-index: 10000;
-        backdrop-filter: blur(12px);
-        -webkit-backdrop-filter: blur(12px);
-        padding: 16px;
-        box-sizing: border-box;
-        animation: fadeIn 0.3s ease;
-        overflow-y: auto;
-      }
+            #popupDetalhamento .modal-header-top {
+                display: flex;
+                justify-content: space-between;
+                align-items: center;
+                margin-bottom: 16px;
+            }
 
-      @keyframes fadeIn {
-        from { opacity: 0; }
-        to { opacity: 1; }
-      }
+            #popupDetalhamento .modal-header h3 {
+                display: flex;
+                align-items: center;
+                gap: 10px;
+                color: ${COLORS.text};
+                font-size: 18px;
+                font-weight: 700;
+                margin: 0;
+            }
 
-      #popupDetalhamento .modal-content {
-        background: linear-gradient(135deg, #0a0a0a 0%, #1a1a1a 100%);
-        border-radius: 20px;
-        max-width: 650px;
-        width: 100%;
-        max-height: 92vh;
-        overflow-y: auto;
-        box-shadow: 0 25px 80px rgba(0,0,0,0.9), 0 0 40px ${cor}30;
-        border: 2px solid ${cor};
-        animation: slideIn 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
-      }
+            #popupDetalhamento .modal-header h3 .material-icons {
+                color: ${cor};
+                font-size: 24px;
+            }
 
-      #popupDetalhamento .modal-header {
-        background: linear-gradient(135deg, ${cor} 0%, ${cor}dd 100%);
-        padding: 24px 20px;
-        border-radius: 18px 18px 0 0;
-        display: flex;
-        flex-direction: column;
-        gap: 12px;
-        box-shadow: 0 4px 12px rgba(0,0,0,0.4);
-      }
+            #popupDetalhamento .btn-close {
+                width: 32px;
+                height: 32px;
+                border-radius: 50%;
+                border: none;
+                background: rgba(255, 255, 255, 0.1);
+                color: ${COLORS.text};
+                font-size: 20px;
+                cursor: pointer;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+            }
 
-      #popupDetalhamento .modal-header-top {
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-      }
+            #popupDetalhamento .stats-grid {
+                display: grid;
+                grid-template-columns: repeat(4, 1fr);
+                gap: 8px;
+            }
 
-      #popupDetalhamento .modal-header h3 {
-        margin: 0;
-        color: white;
-        font-size: 18px;
-        font-weight: 700;
-        flex: 1;
-        text-shadow: 0 2px 4px rgba(0,0,0,0.3);
-      }
+            #popupDetalhamento .stat-item {
+                text-align: center;
+                padding: 8px 4px;
+                background: rgba(0, 0, 0, 0.2);
+                border-radius: 8px;
+            }
 
-      #popupDetalhamento .stats-resumo {
-        display: grid;
-        grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
-        gap: 12px;
-        padding: 12px;
-        background: rgba(0,0,0,0.2);
-        border-radius: 12px;
-        margin-top: 8px;
-      }
+            #popupDetalhamento .stat-label {
+                font-size: 9px;
+                color: ${COLORS.textMuted};
+                text-transform: uppercase;
+                display: block;
+                margin-bottom: 4px;
+            }
 
-      #popupDetalhamento .stat-resumo-item {
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-        gap: 4px;
-      }
+            #popupDetalhamento .stat-value {
+                font-size: 14px;
+                font-weight: 700;
+                color: ${COLORS.text};
+            }
 
-      #popupDetalhamento .stat-resumo-label {
-        font-size: 10px;
-        color: rgba(255,255,255,0.7);
-        text-transform: uppercase;
-        letter-spacing: 0.5px;
-        font-weight: 600;
-      }
+            #popupDetalhamento .modal-body {
+                padding: 16px;
+                overflow-y: auto;
+                flex: 1;
+            }
 
-      #popupDetalhamento .stat-resumo-valor {
-        font-size: 16px;
-        color: white;
-        font-weight: 800;
-        font-family: 'JetBrains Mono', monospace;
-      }
+            #popupDetalhamento .categoria-item {
+                background: ${COLORS.surfaceLight};
+                border-radius: 12px;
+                padding: 14px;
+                margin-bottom: 10px;
+                border-left: 3px solid ${cor};
+            }
 
-      #popupDetalhamento .btn-close {
-        background: rgba(255,255,255,0.2);
-        border: none;
-        color: white;
-        width: 32px;
-        height: 32px;
-        border-radius: 50%;
-        cursor: pointer;
-        font-size: 20px;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        transition: all 0.3s ease;
-        flex-shrink: 0;
-      }
+            #popupDetalhamento .categoria-header {
+                display: flex;
+                justify-content: space-between;
+                align-items: center;
+                margin-bottom: 10px;
+            }
 
-      #popupDetalhamento .btn-close:active {
-        background: rgba(255,255,255,0.3);
-        transform: scale(0.9);
-      }
+            #popupDetalhamento .categoria-info {
+                display: flex;
+                align-items: center;
+                gap: 10px;
+            }
 
-      #popupDetalhamento .modal-body {
-        padding: 20px;
-      }
+            #popupDetalhamento .categoria-icon {
+                width: 36px;
+                height: 36px;
+                border-radius: 10px;
+                background: ${cor}25;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+            }
 
-      #popupDetalhamento .categoria-item {
-        background: linear-gradient(135deg, rgba(255,255,255,0.05) 0%, rgba(255,255,255,0.02) 100%);
-        border-radius: 16px;
-        padding: 18px;
-        margin-bottom: 16px;
-        border: 1px solid rgba(255,255,255,0.1);
-        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-        animation: slideIn 0.5s ease both;
-        position: relative;
-        overflow: hidden;
-      }
+            #popupDetalhamento .categoria-icon .material-icons {
+                font-size: 20px;
+                color: ${cor};
+            }
 
-      #popupDetalhamento .categoria-item::before {
-        content: '';
-        position: absolute;
-        top: 0;
-        left: 0;
-        width: 4px;
-        height: 100%;
-        background: ${cor};
-        opacity: 0;
-        transition: opacity 0.3s ease;
-      }
+            #popupDetalhamento .categoria-nome {
+                font-size: 13px;
+                font-weight: 600;
+                color: ${COLORS.text};
+            }
 
-      #popupDetalhamento .categoria-item:active {
-        background: rgba(255,255,255,0.08);
-        border-color: ${cor}60;
-        transform: scale(0.98);
-      }
+            #popupDetalhamento .categoria-valor {
+                font-size: 16px;
+                font-weight: 700;
+                color: ${cor};
+            }
 
-      #popupDetalhamento .categoria-item:active::before {
-        opacity: 1;
-      }
+            #popupDetalhamento .barra-container {
+                height: 6px;
+                background: rgba(255, 255, 255, 0.1);
+                border-radius: 3px;
+                overflow: hidden;
+                margin-bottom: 8px;
+            }
 
-      #popupDetalhamento .categoria-descricao {
-        font-size: 10px;
-        color: rgba(255,255,255,0.5);
-        margin-top: 4px;
-        font-style: italic;
-      }
+            #popupDetalhamento .barra-progresso {
+                height: 100%;
+                background: ${cor};
+                border-radius: 3px;
+                transition: width 0.5s ease;
+            }
 
-      #popupDetalhamento .categoria-header {
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        margin-bottom: 10px;
-      }
+            #popupDetalhamento .categoria-footer {
+                display: flex;
+                justify-content: space-between;
+                align-items: center;
+            }
 
-      #popupDetalhamento .categoria-info {
-        display: flex;
-        align-items: center;
-        gap: 10px;
-        flex: 1;
-        min-width: 0;
-      }
+            #popupDetalhamento .rodadas-count {
+                font-size: 11px;
+                color: ${COLORS.textMuted};
+            }
 
-      #popupDetalhamento .categoria-icone {
-        font-size: 22px;
-        width: 38px;
-        height: 38px;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        background: ${cor}20;
-        border-radius: 8px;
-        flex-shrink: 0;
-      }
+            #popupDetalhamento .percentual-badge {
+                font-size: 10px;
+                font-weight: 600;
+                color: ${cor};
+                background: ${cor}15;
+                padding: 3px 8px;
+                border-radius: 4px;
+            }
 
-      #popupDetalhamento .categoria-nome {
-        font-weight: 600;
-        color: #fff;
-        font-size: 13px;
-        white-space: nowrap;
-        overflow: hidden;
-        text-overflow: ellipsis;
-      }
+            #popupDetalhamento .total-section {
+                background: linear-gradient(135deg, ${cor}30 0%, ${cor}15 100%);
+                padding: 16px;
+                border-radius: 12px;
+                border: 1px solid ${cor}50;
+                margin-top: 8px;
+            }
 
-      #popupDetalhamento .categoria-valor {
-        font-weight: 700;
-        font-size: 15px;
-        color: ${cor};
-        text-shadow: 0 2px 8px ${cor}40;
-        white-space: nowrap;
-        margin-left: 8px;
-      }
+            #popupDetalhamento .total-row {
+                display: flex;
+                justify-content: space-between;
+                align-items: center;
+            }
 
-      #popupDetalhamento .barra-container {
-        background: rgba(255,255,255,0.05);
-        height: 6px;
-        border-radius: 3px;
-        overflow: hidden;
-        margin-bottom: 10px;
-      }
+            #popupDetalhamento .total-label {
+                display: flex;
+                align-items: center;
+                gap: 8px;
+                font-size: 14px;
+                font-weight: 700;
+                color: ${COLORS.text};
+            }
 
-      #popupDetalhamento .barra-progresso {
-        height: 100%;
-        background: linear-gradient(90deg, ${cor} 0%, ${cor}cc 100%);
-        border-radius: 3px;
-        animation: fillBar 1s ease-out both;
-        box-shadow: 0 0 10px ${cor}80;
-      }
+            #popupDetalhamento .total-label .material-icons {
+                color: ${cor};
+            }
 
-      #popupDetalhamento .categoria-detalhes {
-        font-size: 11px;
-        color: #999;
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        margin-bottom: 8px;
-      }
+            #popupDetalhamento .total-value {
+                font-size: 22px;
+                font-weight: 800;
+                color: ${cor};
+            }
 
-      #popupDetalhamento .percentual-badge {
-        background: ${cor}20;
-        color: ${cor};
-        padding: 2px 8px;
-        border-radius: 4px;
-        font-weight: 600;
-        font-size: 10px;
-      }
+            @media (max-width: 400px) {
+                #popupDetalhamento .stats-grid {
+                    grid-template-columns: repeat(2, 1fr);
+                }
 
-      #popupDetalhamento .rodadas-lista {
-        display: flex;
-        flex-wrap: wrap;
-        gap: 4px;
-        margin-top: 8px;
-      }
+                #popupDetalhamento .modal-header h3 {
+                    font-size: 15px;
+                }
 
-      #popupDetalhamento .rodada-chip {
-        background: rgba(255,255,255,0.08);
-        color: #fff;
-        padding: 3px 8px;
-        border-radius: 12px;
-        font-size: 10px;
-        font-weight: 600;
-        border: 1px solid rgba(255,255,255,0.1);
-      }
+                #popupDetalhamento .total-value {
+                    font-size: 18px;
+                }
+            }
+        </style>
 
-      #popupDetalhamento .rodada-detalhe-item {
-        display: grid;
-        grid-template-columns: 50px 1fr auto;
-        gap: 12px;
-        padding: 10px 12px;
-        background: rgba(255,255,255,0.03);
-        border-radius: 8px;
-        margin-bottom: 6px;
-        align-items: center;
-        border-left: 3px solid ${cor};
-        transition: all 0.2s ease;
-      }
+        <div id="popupDetalhamento" onclick="this.remove()">
+            <div class="modal-content" onclick="event.stopPropagation()">
+                <div class="modal-header">
+                    <div class="modal-header-top">
+                        <h3>
+                            <span class="material-icons">${icon}</span>
+                            ${titulo}
+                        </h3>
+                        <button class="btn-close" onclick="document.getElementById('popupDetalhamento').remove()">
+                            <span class="material-icons">close</span>
+                        </button>
+                    </div>
 
-      #popupDetalhamento .rodada-detalhe-item:hover {
-        background: rgba(255,255,255,0.06);
-        transform: translateX(4px);
-      }
-
-      #popupDetalhamento .rodada-num {
-        font-weight: 700;
-        color: ${cor};
-        font-size: 13px;
-        font-family: 'JetBrains Mono', monospace;
-      }
-
-      #popupDetalhamento .rodada-pos,
-      #popupDetalhamento .rodada-status {
-        font-size: 11px;
-        color: rgba(255,255,255,0.7);
-      }
-
-      #popupDetalhamento .rodada-valor {
-        font-weight: 700;
-        font-size: 13px;
-        font-family: 'JetBrains Mono', monospace;
-        text-align: right;
-      }
-
-      #popupDetalhamento .total-section {
-        background: linear-gradient(135deg, ${cor}25 0%, ${cor}15 100%);
-        padding: 18px;
-        border-radius: 12px;
-        border: 2px solid ${cor};
-        margin-top: 18px;
-        box-shadow: 0 4px 16px ${cor}20;
-      }
-
-      #popupDetalhamento .total-row {
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-      }
-
-      #popupDetalhamento .total-label {
-        font-weight: 700;
-        color: #fff;
-        font-size: 14px;
-        display: flex;
-        align-items: center;
-        gap: 8px;
-      }
-
-      #popupDetalhamento .total-value {
-        font-weight: 800;
-        font-size: 22px;
-        color: ${cor};
-        text-shadow: 0 2px 12px ${cor}60;
-      }
-
-      @media (max-width: 768px) {
-        #popupDetalhamento {
-          padding: 12px;
-        }
-
-        #popupDetalhamento .modal-content {
-          max-width: 95vw;
-          max-height: 88vh;
-          border-radius: 16px;
-        }
-
-        #popupDetalhamento .modal-header {
-          padding: 16px;
-        }
-
-        #popupDetalhamento .modal-header h3 {
-          font-size: 14px;
-        }
-
-        #popupDetalhamento .modal-body {
-          padding: 16px;
-        }
-
-        #popupDetalhamento .categoria-icone {
-          font-size: 20px;
-          width: 34px;
-          height: 34px;
-        }
-
-        #popupDetalhamento .categoria-nome {
-          font-size: 12px;
-        }
-
-        #popupDetalhamento .categoria-valor {
-          font-size: 13px;
-        }
-
-        #popupDetalhamento .total-value {
-          font-size: 18px;
-        }
-      }
-    </style>
-
-    <div id="popupDetalhamento" onclick="this.remove()">
-      <div class="modal-content" onclick="event.stopPropagation()">
-        <!-- CABEÇALHO -->
-        <div class="modal-header">
-          <div class="modal-header-top">
-            <h3>${titulo}</h3>
-            <button class="btn-close" onclick="document.getElementById('popupDetalhamento').remove()">×</button>
-          </div>
-          
-          <!-- ESTATÍSTICAS GERAIS -->
-          ${detalhes.estatisticas ? `
-            <div class="stats-resumo">
-              <div class="stat-resumo-item">
-                <span class="stat-resumo-label">Rodadas</span>
-                <span class="stat-resumo-valor">${tipo === 'ganhos' ? detalhes.estatisticas.totalRodadasComGanho : detalhes.estatisticas.totalRodadasComPerda}</span>
-              </div>
-              ${tipo === 'ganhos' ? `
-                <div class="stat-resumo-item">
-                  <span class="stat-resumo-label">Média/Rodada</span>
-                  <span class="stat-resumo-valor">R$ ${formatarMoeda(detalhes.estatisticas.mediaGanhoPorRodada)}</span>
+                    <div class="stats-grid">
+                        <div class="stat-item">
+                            <span class="stat-label">Rodadas</span>
+                            <span class="stat-value">${isGanhos ? detalhes.estatisticas.totalRodadasComGanho : detalhes.estatisticas.totalRodadasComPerda}</span>
+                        </div>
+                        <div class="stat-item">
+                            <span class="stat-label">Média</span>
+                            <span class="stat-value">R$ ${formatarMoeda(isGanhos ? detalhes.estatisticas.mediaGanhoPorRodada : detalhes.estatisticas.mediaPerdaPorRodada)}</span>
+                        </div>
+                        ${
+                            isGanhos
+                                ? `
+                            <div class="stat-item">
+                                <span class="stat-label">Mitos</span>
+                                <span class="stat-value">${detalhes.estatisticas.rodadasMito}x</span>
+                            </div>
+                            <div class="stat-item">
+                                <span class="stat-label">Top 11</span>
+                                <span class="stat-value">${detalhes.estatisticas.rodadasTop11}x</span>
+                            </div>
+                        `
+                                : `
+                            <div class="stat-item">
+                                <span class="stat-label">Micos</span>
+                                <span class="stat-value">${detalhes.estatisticas.rodadasMico}x</span>
+                            </div>
+                            <div class="stat-item">
+                                <span class="stat-label">Z4</span>
+                                <span class="stat-value">${detalhes.estatisticas.rodadasZ4}x</span>
+                            </div>
+                        `
+                        }
+                    </div>
                 </div>
-                <div class="stat-resumo-item">
-                  <span class="stat-resumo-label">🎩 Mito</span>
-                  <span class="stat-resumo-valor">${detalhes.estatisticas.rodadasMito}x</span>
+
+                <div class="modal-body">
+                    ${
+                        categorias.length === 0
+                            ? `
+                        <div style="text-align: center; padding: 40px 20px; color: ${COLORS.textMuted};">
+                            <span class="material-icons" style="font-size: 48px; margin-bottom: 12px; display: block;">inbox</span>
+                            Nenhum registro encontrado
+                        </div>
+                    `
+                            : categorias
+                                  .map(
+                                      (cat) => `
+                        <div class="categoria-item">
+                            <div class="categoria-header">
+                                <div class="categoria-info">
+                                    <div class="categoria-icon">
+                                        <span class="material-icons">${cat.icon}</span>
+                                    </div>
+                                    <span class="categoria-nome">${cat.nome}</span>
+                                </div>
+                                <span class="categoria-valor">R$ ${formatarMoeda(cat.valor)}</span>
+                            </div>
+                            <div class="barra-container">
+                                <div class="barra-progresso" style="width: ${cat.percentual}%;"></div>
+                            </div>
+                            <div class="categoria-footer">
+                                <span class="rodadas-count">${cat.rodadas.length} rodada(s)</span>
+                                <span class="percentual-badge">${cat.percentual.toFixed(1)}%</span>
+                            </div>
+                        </div>
+                    `,
+                                  )
+                                  .join("")
+                    }
+
+                    <div class="total-section">
+                        <div class="total-row">
+                            <span class="total-label">
+                                <span class="material-icons">account_balance_wallet</span>
+                                TOTAL ${isGanhos ? "GANHO" : "PERDIDO"}
+                            </span>
+                            <span class="total-value">R$ ${formatarMoeda(total)}</span>
+                        </div>
+                    </div>
                 </div>
-                <div class="stat-resumo-item">
-                  <span class="stat-resumo-label">Top 11</span>
-                  <span class="stat-resumo-valor">${detalhes.estatisticas.rodadasTop11}x</span>
-                </div>
-              ` : `
-                <div class="stat-resumo-item">
-                  <span class="stat-resumo-label">Média/Rodada</span>
-                  <span class="stat-resumo-valor">R$ ${formatarMoeda(Math.abs(detalhes.estatisticas.mediaPerdaPorRodada))}</span>
-                </div>
-                <div class="stat-resumo-item">
-                  <span class="stat-resumo-label">🐵 Mico</span>
-                  <span class="stat-resumo-valor">${detalhes.estatisticas.rodadasMico}x</span>
-                </div>
-                <div class="stat-resumo-item">
-                  <span class="stat-resumo-label">Z4</span>
-                  <span class="stat-resumo-valor">${detalhes.estatisticas.rodadasZ4}x</span>
-                </div>
-              `}
             </div>
-          ` : ''}
         </div>
+    `;
 
-        <!-- CONTEÚDO -->
-        <div class="modal-body">
-          ${categorias.map((cat, idx) => `
-            <div class="categoria-item" style="animation-delay: ${idx * 0.1}s;">
-              <div class="categoria-header">
-                <div class="categoria-info">
-                  <div class="categoria-icone">${cat.icone}</div>
-                  <div style="flex: 1; min-width: 0;">
-                    <span class="categoria-nome">${cat.nome}</span>
-                    ${cat.descricao ? `<div class="categoria-descricao">${cat.descricao}</div>` : ''}
-                  </div>
-                </div>
-                <span class="categoria-valor">R$ ${formatarMoeda(Math.abs(cat.valor))}</span>
-              </div>
-
-              <div class="barra-container">
-                <div class="barra-progresso" style="width: ${cat.percentual}%; animation-delay: ${idx * 0.1}s;"></div>
-              </div>
-
-              <div class="categoria-detalhes">
-                <span>${cat.rodadas.length > 0 ? `${cat.rodadas.length} rodada(s)` : 'Ajuste manual'}</span>
-                <span class="percentual-badge">${cat.percentual.toFixed(1)}% do total</span>
-              </div>
-
-              ${cat.detalhamentoRodadas ? `
-                <div class="rodadas-detalhamento" style="margin-top: 12px; padding: 12px; background: rgba(0,0,0,0.3); border-radius: 8px;">
-                  <div style="font-size: 10px; color: rgba(255,255,255,0.6); margin-bottom: 10px; text-transform: uppercase; font-weight: 600; letter-spacing: 0.5px; display: flex; align-items: center; gap: 6px;">
-                    <span>📋</span> 
-                    <span>Detalhamento de Todas as Rodadas</span>
-                  </div>
-                  <div>${cat.detalhamentoRodadas || '<div style="text-align: center; color: #999; padding: 20px;">Sem detalhes disponíveis</div>'}</div>
-                </div>
-              ` : ''}
-            </div>
-          `).join('')}
-
-          <!-- TOTAL -->
-          <div class="total-section">
-            <div class="total-row">
-              <span class="total-label">
-                💵 <span>TOTAL ${titulo.includes('Ganhou') ? 'GANHO' : 'PERDIDO'}</span>
-              </span>
-              <span class="total-value">R$ ${formatarMoeda(Math.abs(total))}</span>
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
-  `;
-
-  document.body.insertAdjacentHTML('beforeend', html);
+    document.body.insertAdjacentHTML("beforeend", html);
 }

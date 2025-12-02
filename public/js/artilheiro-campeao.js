@@ -1,6 +1,6 @@
-// ✅ ARTILHEIRO-CAMPEAO.JS v4.0.0
-// Tabela com Rodadas em Colunas Navegáveis (Estilo Luva de Ouro)
-console.log("🏆 [ARTILHEIRO] Sistema v4.0.0 carregando...");
+// ✅ ARTILHEIRO-CAMPEAO.JS v4.2.0
+// Tabela com Rodadas em Colunas - UX MELHORADA (GP/GC visíveis)
+console.log("🏆 [ARTILHEIRO] Sistema v4.2.0 carregando...");
 
 const ArtilheiroCampeao = {
     // Configurações
@@ -39,7 +39,7 @@ const ArtilheiroCampeao = {
             return;
         }
 
-        console.log("🚀 [ARTILHEIRO] Inicializando módulo v4.0.0...");
+        console.log("🚀 [ARTILHEIRO] Inicializando módulo v4.2.0...");
         this._isInitializing = true;
 
         // ✅ SEMPRE resetar estado ao reinicializar
@@ -154,6 +154,14 @@ const ArtilheiroCampeao = {
                     </div>
                 </div>
 
+                <!-- ✅ LEGENDA UX - NOVO v4.2 -->
+                <div class="artilheiro-legenda">
+                    <span class="legenda-item"><span class="legenda-cor gp"></span> GP = Gols Pró</span>
+                    <span class="legenda-item"><span class="legenda-cor gc"></span> GC = Gols Contra</span>
+                    <span class="legenda-item"><span class="legenda-cor sg-pos"></span> Saldo +</span>
+                    <span class="legenda-item"><span class="legenda-cor sg-neg"></span> Saldo -</span>
+                </div>
+
                 <!-- Navegação de rodadas -->
                 <div class="artilheiro-nav-container">
                     <button class="artilheiro-nav-btn" onclick="ArtilheiroCampeao.navegarRodadas('esquerda')" id="btnNavEsq">
@@ -189,34 +197,6 @@ const ArtilheiroCampeao = {
                             </tr>
                         </tbody>
                     </table>
-                </div>
-
-                <!-- Mini Dashboard -->
-                <div class="artilheiro-mini-dashboard" id="artilheiroMiniDashboard">
-                    <div class="mini-dash-card lider">
-                        <span class="mini-dash-icon">🏆</span>
-                        <div class="mini-dash-content">
-                            <span class="mini-dash-valor" id="dashLiderSaldo">--</span>
-                            <span class="mini-dash-label">LÍDER</span>
-                            <span class="mini-dash-nome" id="dashLiderNome">--</span>
-                        </div>
-                    </div>
-                    <div class="mini-dash-card ativos">
-                        <span class="mini-dash-icon">👥</span>
-                        <div class="mini-dash-content">
-                            <span class="mini-dash-valor" id="dashAtivos">--</span>
-                            <span class="mini-dash-label">ATIVOS</span>
-                            <span class="mini-dash-nome" id="dashInativos">-- inativo(s)</span>
-                        </div>
-                    </div>
-                    <div class="mini-dash-card destaque">
-                        <span class="mini-dash-icon">⭐</span>
-                        <div class="mini-dash-content">
-                            <span class="mini-dash-valor" id="dashMelhorRodadaGols">--</span>
-                            <span class="mini-dash-label">MELHOR RODADA</span>
-                            <span class="mini-dash-nome" id="dashMelhorRodadaInfo">--</span>
-                        </div>
-                    </div>
                 </div>
             </div>
         `;
@@ -366,7 +346,7 @@ const ArtilheiroCampeao = {
     },
 
     // ==============================
-    // RENDERIZAR TABELA
+    // RENDERIZAR TABELA - UX MELHORADA v4.2
     // ==============================
     renderizarTabela() {
         // ✅ Esconder loading inicial do HTML
@@ -463,7 +443,7 @@ const ArtilheiroCampeao = {
                     });
                 }
 
-                // ✅ Células de rodadas (com marcação de parcial e clique)
+                // ✅ CÉLULAS COM UX MELHORADA v4.2
                 const celulasRodadas = rodadasExibir
                     .map((r) => {
                         const rodadaData = golsPorRodada[r];
@@ -489,7 +469,7 @@ const ArtilheiroCampeao = {
                             const gp = rodadaData.golsPro || 0;
                             const gc = rodadaData.golsContra || 0;
                             const saldo = gp - gc;
-                            const classe =
+                            const saldoClasse =
                                 saldo > 0
                                     ? "positivo"
                                     : saldo < 0
@@ -497,7 +477,9 @@ const ArtilheiroCampeao = {
                                       : "zero";
                             const parcialClass = isParcial ? " parcial" : "";
                             const temGols = gp > 0 || gc > 0;
+                            const temGC = gc > 0;
                             const clickClass = temGols ? " clicavel" : "";
+                            const gcClass = temGC ? " tem-gc" : "";
                             const dataAttr = temGols
                                 ? `data-time="${timeId}" data-rodada="${r}"`
                                 : "";
@@ -505,18 +487,25 @@ const ArtilheiroCampeao = {
                             // ✅ Se é parcial e não tem gols, mostrar indicador ⏳
                             if (isParcial && gp === 0 && gc === 0) {
                                 return `<td class="col-rodada-gols parcial aguardando">
-                            <span class="gols-valor">⏳</span>
-                            <span class="gols-detalhe">aguard.</span>
-                        </td>`;
+                                    <div class="gols-celula">
+                                        <span class="gols-saldo">⏳</span>
+                                    </div>
+                                </td>`;
                             }
 
-                            return `<td class="col-rodada-gols ${classe}${parcialClass}${clickClass}" ${dataAttr}>
-                        <span class="gols-valor">${saldo >= 0 ? "+" : ""}${saldo}</span>
-                        <span class="gols-detalhe">${gp}-${gc}</span>
-                    </td>`;
+                            // ✅ CÉLULA COM GP/GC VISÍVEIS - NOVA ESTRUTURA v4.2
+                            return `<td class="col-rodada-gols${parcialClass}${clickClass}${gcClass}" ${dataAttr} title="GP: ${gp} | GC: ${gc} | Saldo: ${saldo >= 0 ? "+" : ""}${saldo}">
+                                <div class="gols-celula">
+                                    <span class="gols-saldo ${saldoClasse}">${saldo >= 0 ? "+" : ""}${saldo}</span>
+                                    <div class="gols-linha">
+                                        <span class="gols-gp">${gp}</span>
+                                        <span class="gols-gc${gc === 0 ? " zero" : ""}">${gc}</span>
+                                    </div>
+                                </div>
+                            </td>`;
                         }
                         const parcialClass = isParcial ? " parcial" : "";
-                        return `<td class="col-rodada-gols vazio${parcialClass}"><span class="gols-valor">—</span></td>`;
+                        return `<td class="col-rodada-gols vazio${parcialClass}"><div class="gols-celula"><span class="gols-saldo">—</span></div></td>`;
                     })
                     .join("");
 
@@ -543,9 +532,6 @@ const ArtilheiroCampeao = {
 
         // ✅ Renderizar seção de inativos (se houver)
         this.renderizarSecaoInativos(rodadasExibir, rodadaParcial);
-
-        // ✅ Renderizar mini dashboard
-        this.renderizarMiniDashboard();
     },
 
     // ==============================
@@ -572,6 +558,87 @@ const ArtilheiroCampeao = {
         const secaoInativos = document.createElement("div");
         secaoInativos.id = "artilheiro-inativos-section";
         secaoInativos.className = "artilheiro-inativos-section";
+
+        // Gerar linhas dos inativos
+        const linhasInativos = inativos
+            .map((p) => {
+                const sgClass =
+                    p.saldoGols > 0
+                        ? "positivo"
+                        : p.saldoGols < 0
+                          ? "negativo"
+                          : "zero";
+
+                // Criar mapa de gols por rodada
+                const golsPorRodada = {};
+                if (p.detalhePorRodada && Array.isArray(p.detalhePorRodada)) {
+                    p.detalhePorRodada.forEach((r) => {
+                        golsPorRodada[r.rodada] = r;
+                    });
+                }
+
+                // ✅ CÉLULAS COM UX MELHORADA v4.2
+                const celulasRodadas = rodadasExibir
+                    .map((r) => {
+                        const rodadaData = golsPorRodada[r];
+                        const isParcial =
+                            r === rodadaParcial || rodadaData?.parcial === true;
+
+                        if (rodadaData) {
+                            const gp = rodadaData.golsPro || 0;
+                            const gc = rodadaData.golsContra || 0;
+                            const saldo = gp - gc;
+                            const saldoClasse =
+                                saldo > 0
+                                    ? "positivo"
+                                    : saldo < 0
+                                      ? "negativo"
+                                      : "zero";
+                            const parcialClass = isParcial ? " parcial" : "";
+                            const temGC = gc > 0;
+                            const gcClass = temGC ? " tem-gc" : "";
+
+                            return `<td class="col-rodada-gols ${saldoClasse}${parcialClass}${gcClass}">
+                                <div class="gols-celula">
+                                    <span class="gols-saldo ${saldoClasse}">${saldo >= 0 ? "+" : ""}${saldo}</span>
+                                    <div class="gols-linha">
+                                        <span class="gols-gp">${gp}</span>
+                                        <span class="gols-gc${gc === 0 ? " zero" : ""}">${gc}</span>
+                                    </div>
+                                </div>
+                            </td>`;
+                        }
+                        return `<td class="col-rodada-gols vazio"><div class="gols-celula"><span class="gols-saldo">—</span></div></td>`;
+                    })
+                    .join("");
+
+                return `
+                <tr class="artilheiro-ranking-row inativo">
+                    <td class="col-pos"><span class="pos-badge">—</span></td>
+                    <td class="col-escudo">
+                        ${p.escudo ? `<img src="${p.escudo}" class="escudo-img" onerror="this.style.display='none'">` : "⚽"}
+                    </td>
+                    <td class="col-nome">
+                        <div class="participante-info">
+                            <span class="participante-nome">${p.nome}</span>
+                            <span class="participante-time">${p.nomeTime}</span>
+                            ${p.rodada_desistencia ? `<span class="desistencia-badge">Saiu R${p.rodada_desistencia}</span>` : ""}
+                        </div>
+                    </td>
+                    <td class="col-total-gp"><span class="total-gp">${p.golsPro}</span></td>
+                    <td class="col-total-gc"><span class="total-gc">${p.golsContra}</span></td>
+                    <td class="col-total-sg"><span class="total-sg ${sgClass}">${p.saldoGols >= 0 ? "+" : ""}${p.saldoGols}</span></td>
+                    ${celulasRodadas}
+                </tr>
+            `;
+            })
+            .join("");
+
+        // Header das rodadas para a tabela de inativos
+        const headersRodadas = rodadasExibir
+            .map((r) => `<th class="col-rodada">R${r}</th>`)
+            .join("");
+
         secaoInativos.innerHTML = `
             <div class="inativos-header">
                 <span class="inativos-icon">🚫</span>
@@ -588,149 +655,16 @@ const ArtilheiroCampeao = {
                         <th class="col-total-gp">GP</th>
                         <th class="col-total-gc">GC</th>
                         <th class="col-total-sg">SG</th>
-                        ${rodadasExibir
-                            .map((r) => {
-                                const isParcial = r === rodadaParcial;
-                                return `<th class="col-rodada${isParcial ? " parcial" : ""}">R${r}${isParcial ? "*" : ""}</th>`;
-                            })
-                            .join("")}
+                        ${headersRodadas}
                     </tr>
                 </thead>
                 <tbody>
-                    ${inativos
-                        .map((p) => {
-                            const sgClass =
-                                p.saldoGols > 0
-                                    ? "positivo"
-                                    : p.saldoGols < 0
-                                      ? "negativo"
-                                      : "zero";
-
-                            // Criar mapa de gols por rodada
-                            const golsPorRodada = {};
-                            if (
-                                p.detalhePorRodada &&
-                                Array.isArray(p.detalhePorRodada)
-                            ) {
-                                p.detalhePorRodada.forEach((r) => {
-                                    golsPorRodada[r.rodada] = r;
-                                });
-                            }
-
-                            // Células de rodadas
-                            const celulasRodadas = rodadasExibir
-                                .map((r) => {
-                                    const rodadaData = golsPorRodada[r];
-                                    const isParcial =
-                                        r === rodadaParcial ||
-                                        rodadaData?.parcial === true;
-
-                                    if (rodadaData) {
-                                        const gp = rodadaData.golsPro || 0;
-                                        const gc = rodadaData.golsContra || 0;
-                                        const saldo = gp - gc;
-                                        const classe =
-                                            saldo > 0
-                                                ? "positivo"
-                                                : saldo < 0
-                                                  ? "negativo"
-                                                  : "zero";
-                                        const parcialClass = isParcial
-                                            ? " parcial"
-                                            : "";
-
-                                        return `<td class="col-rodada-gols ${classe}${parcialClass}">
-                                    <span class="gols-valor">${saldo >= 0 ? "+" : ""}${saldo}</span>
-                                    <span class="gols-detalhe">${gp}-${gc}</span>
-                                </td>`;
-                                    }
-                                    return `<td class="col-rodada-gols vazio"><span class="gols-valor">—</span></td>`;
-                                })
-                                .join("");
-
-                            return `
-                            <tr class="artilheiro-ranking-row inativo">
-                                <td class="col-pos"><span class="pos-badge">—</span></td>
-                                <td class="col-escudo">
-                                    ${p.escudo ? `<img src="${p.escudo}" class="escudo-img" onerror="this.style.display='none'">` : "⚽"}
-                                </td>
-                                <td class="col-nome">
-                                    <div class="participante-info">
-                                        <span class="participante-nome">${p.nome}</span>
-                                        <span class="participante-time">${p.nomeTime}</span>
-                                        ${p.rodada_desistencia ? `<span class="desistencia-badge">Saiu R${p.rodada_desistencia}</span>` : ""}
-                                    </div>
-                                </td>
-                                <td class="col-total-gp"><span class="total-gp">${p.golsPro}</span></td>
-                                <td class="col-total-gc"><span class="total-gc">${p.golsContra}</span></td>
-                                <td class="col-total-sg"><span class="total-sg ${sgClass}">${p.saldoGols >= 0 ? "+" : ""}${p.saldoGols}</span></td>
-                                ${celulasRodadas}
-                            </tr>
-                        `;
-                        })
-                        .join("")}
+                    ${linhasInativos}
                 </tbody>
             </table>
         `;
 
         tableContainer.after(secaoInativos);
-    },
-
-    // ==============================
-    // MINI DASHBOARD
-    // ==============================
-    renderizarMiniDashboard() {
-        const { ranking, inativos } = this.estado;
-
-        if (!ranking || ranking.length === 0) return;
-
-        // ✅ LÍDER: Maior saldo de gols
-        const lider = ranking[0]; // Já está ordenado por saldo
-        const dashLiderSaldo = document.getElementById("dashLiderSaldo");
-        const dashLiderNome = document.getElementById("dashLiderNome");
-        if (dashLiderSaldo && dashLiderNome && lider) {
-            const saldoFormatado =
-                lider.saldoGols >= 0 ? `+${lider.saldoGols}` : lider.saldoGols;
-            dashLiderSaldo.textContent = saldoFormatado;
-            dashLiderNome.textContent = lider.nome;
-        }
-
-        // ✅ ATIVOS
-        const dashAtivos = document.getElementById("dashAtivos");
-        const dashInativos = document.getElementById("dashInativos");
-        if (dashAtivos && dashInativos) {
-            dashAtivos.textContent = ranking.length;
-            const qtdInativos = inativos ? inativos.length : 0;
-            dashInativos.textContent = `${qtdInativos} inativo(s)`;
-        }
-
-        // ✅ MELHOR RODADA: Maior número de gols pró em uma única rodada
-        let melhorRodada = { gols: 0, rodada: 0, participante: "--" };
-
-        ranking.forEach((p) => {
-            if (p.detalhePorRodada && Array.isArray(p.detalhePorRodada)) {
-                p.detalhePorRodada.forEach((r) => {
-                    const golsPro = r.golsPro || 0;
-                    if (golsPro > melhorRodada.gols) {
-                        melhorRodada = {
-                            gols: golsPro,
-                            rodada: r.rodada,
-                            participante: p.nome,
-                        };
-                    }
-                });
-            }
-        });
-
-        const dashMelhorGols = document.getElementById("dashMelhorRodadaGols");
-        const dashMelhorInfo = document.getElementById("dashMelhorRodadaInfo");
-        if (dashMelhorGols && dashMelhorInfo) {
-            dashMelhorGols.textContent = `${melhorRodada.gols} GP`;
-            dashMelhorInfo.textContent =
-                melhorRodada.gols > 0
-                    ? `${melhorRodada.participante} (R${melhorRodada.rodada})`
-                    : "--";
-        }
     },
 
     // ==============================
@@ -885,11 +819,11 @@ const ArtilheiroCampeao = {
                 </div>
                 <div class="modal-resumo">
                     <div class="resumo-item">
-                        <span class="resumo-label">GP</span>
+                        <span class="resumo-label">Gols Pró</span>
                         <span class="resumo-valor positivo">${dados.golsPro}</span>
                     </div>
                     <div class="resumo-item">
-                        <span class="resumo-label">GC</span>
+                        <span class="resumo-label">Gols Contra</span>
                         <span class="resumo-valor negativo">${dados.golsContra}</span>
                     </div>
                     <div class="resumo-item">
@@ -980,4 +914,4 @@ window.inicializarArtilheiroCampeao = async function () {
     }, 300);
 })();
 
-console.log("✅ [ARTILHEIRO] Módulo v4.0.0 carregado!");
+console.log("✅ [ARTILHEIRO] Módulo v4.2.0 carregado!");
