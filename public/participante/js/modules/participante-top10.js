@@ -154,33 +154,49 @@ async function calcularMitosMicos(ligaId, rodadaAtual) {
                 (a, b) => (b.pontos || 0) - (a.pontos || 0),
             );
 
+            // Debug: ver estrutura do primeiro registro
+            if (numRodada === rodadas[0] && ordenados.length > 0) {
+                console.log(
+                    "[PARTICIPANTE-TOP10] 🔍 Estrutura do registro:",
+                    Object.keys(ordenados[0]),
+                );
+                console.log(
+                    "[PARTICIPANTE-TOP10] 🔍 Primeiro registro:",
+                    ordenados[0],
+                );
+            }
+
             // MITO = 1º lugar
             if (ordenados.length > 0) {
                 const mito = ordenados[0];
+                const clubeId = mito.clube_id || null;
+                const escudo = mito.escudo_time_do_coracao || mito.escudo || "";
+
                 mitos.push({
                     rodada: numRodada,
                     timeId: mito.timeId || mito.time_id,
-                    nome_cartola:
-                        mito.nome_cartola || mito.nome_cartoleiro || "N/D",
+                    nome_cartola: mito.nome_cartola || "N/D",
                     nome_time: mito.nome_time || "N/D",
                     pontos: parseFloat(mito.pontos) || 0,
-                    escudo: mito.escudo || "",
-                    clube_id: mito.clube_id || mito.escudo_clube_id,
+                    escudo: escudo,
+                    clube_id: clubeId,
                 });
             }
 
             // MICO = último lugar
             if (ordenados.length > 1) {
                 const mico = ordenados[ordenados.length - 1];
+                const clubeId = mico.clube_id || null;
+                const escudo = mico.escudo_time_do_coracao || mico.escudo || "";
+
                 micos.push({
                     rodada: numRodada,
                     timeId: mico.timeId || mico.time_id,
-                    nome_cartola:
-                        mico.nome_cartola || mico.nome_cartoleiro || "N/D",
+                    nome_cartola: mico.nome_cartola || "N/D",
                     nome_time: mico.nome_time || "N/D",
                     pontos: parseFloat(mico.pontos) || 0,
-                    escudo: mico.escudo || "",
-                    clube_id: mico.clube_id || mico.escudo_clube_id,
+                    escudo: escudo,
+                    clube_id: clubeId,
                 });
             }
         }
@@ -285,11 +301,15 @@ function gerarTabelaHTML(dados, tipo, meuTimeIdNum, valoresBonusOnus) {
                                 ? `+R$ ${valorBonus.toFixed(2)}`
                                 : `-R$ ${Math.abs(valorBonus).toFixed(2)}`;
 
-                        // Escudo com fallback robusto
-                        const clubeId = item.clube_id || item.escudo_clube_id;
-                        const escudoHTML = clubeId
-                            ? `<img src="/escudos/${clubeId}.png" alt="Escudo" class="escudo-top10" onerror="this.onerror=null; this.src='/escudos/default.png';" loading="lazy"/>`
-                            : `<span class="escudo-placeholder">🛡️</span>`;
+                        // Escudo: priorizar URL externa, depois clube_id local
+                        let escudoHTML = `<span class="escudo-placeholder">🛡️</span>`;
+                        if (item.escudo && item.escudo.startsWith("http")) {
+                            // URL externa (do Cartola)
+                            escudoHTML = `<img src="${item.escudo}" alt="" class="escudo-top10" onerror="this.parentElement.innerHTML='🛡️'"/>`;
+                        } else if (item.clube_id) {
+                            // ID do clube local
+                            escudoHTML = `<img src="/escudos/${item.clube_id}.png" alt="" class="escudo-top10" onerror="this.parentElement.innerHTML='🛡️'"/>`;
+                        }
 
                         return `
                         <tr class="${rowClass}">

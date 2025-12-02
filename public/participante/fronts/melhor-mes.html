@@ -1,86 +1,472 @@
-
-<!-- PARTICIPANTE MELHOR MÊS - Interface -->
-<div class="melhor-mes-participante">
-    <div class="melhor-mes-header">
-        <h2>📆 Melhor Mês</h2>
-        <p style="color: #999;">Desempenho mensal do seu time</p>
+<!-- PARTICIPANTE MELHOR MÊS - v3.0 Design PRO -->
+<div class="melhor-mes-container-pro">
+    <!-- Header -->
+    <div class="mm-header-pro">
+        <div class="mm-title-row">
+            <span class="mm-emoji">🏆</span>
+            <h2>Melhor da Edição</h2>
+        </div>
+        <span id="mmEdicoesCount" class="mm-edicoes-badge">0 edições</span>
     </div>
 
-    <div id="mesesGrid" class="meses-grid">
-        <div class="loading-participante">
-            <div class="spinner-participante"></div>
-            <p>Carregando dados...</p>
+    <!-- Minhas Conquistas (se houver) -->
+    <div id="mmConquistas" class="mm-conquistas-pro" style="display: none">
+        <div class="conquistas-header-pro">
+            <span class="conquistas-emoji">🎖️</span>
+            <span id="conquistasTexto">Você foi campeão!</span>
         </div>
+        <div id="conquistasMeses" class="conquistas-meses-pro"></div>
+    </div>
+
+    <!-- Loading State -->
+    <div id="mmLoading" class="mm-loading-state">
+        <div class="loading-spinner-mm"></div>
+        <p>Carregando rankings mensais...</p>
+    </div>
+
+    <!-- Lista de Edições -->
+    <div id="mesesGrid" class="mm-edicoes-grid"></div>
+
+    <!-- Estado Vazio -->
+    <div id="mmEmpty" class="mm-empty-state" style="display: none">
+        <span class="empty-emoji">📅</span>
+        <h3>Sem dados ainda</h3>
+        <p>Os rankings mensais serão gerados após as primeiras rodadas</p>
+    </div>
+
+    <!-- Toast -->
+    <div id="toastMM" class="toast-mm">
+        <span id="toastMMMsg">Mensagem</span>
     </div>
 </div>
 
 <style>
-.melhor-mes-participante {
-    padding: 20px 0;
-}
+    /* ============================================
+   MELHOR MÊS PARTICIPANTE v3.0 - Design PRO
+   ============================================ */
 
-.melhor-mes-header {
-    text-align: center;
-    margin-bottom: 30px;
-}
+    .melhor-mes-container-pro {
+        padding: 16px;
+        padding-bottom: 100px;
+    }
 
-.melhor-mes-header h2 {
-    color: var(--participante-primary);
-    margin-bottom: 10px;
-}
+    /* Header */
+    .mm-header-pro {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 16px;
+        background: linear-gradient(
+            135deg,
+            rgba(230, 81, 0, 0.15) 0%,
+            rgba(230, 81, 0, 0.05) 100%
+        );
+        border-bottom: 2px solid #e65100;
+        border-radius: 12px 12px 0 0;
+        margin-bottom: 16px;
+    }
 
-.meses-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-    gap: 15px;
-}
+    .mm-title-row {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+    }
 
-.mes-card {
-    background: var(--participante-card);
-    border: 1px solid var(--participante-border);
-    border-radius: 12px;
-    padding: 20px;
-    text-align: center;
-    transition: transform 0.2s ease;
-}
+    .mm-emoji {
+        font-size: 24px;
+    }
 
-.mes-card:active {
-    transform: scale(0.98);
-}
+    .mm-header-pro h2 {
+        font-family: "Poppins", sans-serif;
+        font-size: 18px;
+        font-weight: 700;
+        color: white;
+        margin: 0;
+    }
 
-.mes-card.meu-melhor {
-    border-color: var(--participante-primary);
-    background: rgba(255, 69, 0, 0.1);
-    box-shadow: 0 0 20px rgba(255, 69, 0, 0.3);
-}
+    .mm-edicoes-badge {
+        font-size: 12px;
+        color: #9ca3af;
+        background: rgba(0, 0, 0, 0.3);
+        padding: 6px 12px;
+        border-radius: 20px;
+    }
 
-.mes-nome {
-    font-size: 16px;
-    font-weight: 600;
-    color: var(--participante-primary);
-    margin-bottom: 10px;
-}
+    /* Loading State */
+    .mm-loading-state {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        padding: 60px 20px;
+        color: #9ca3af;
+    }
 
-.mes-pontos {
-    font-size: 24px;
-    font-weight: 700;
-    color: #10b981;
-}
+    .loading-spinner-mm {
+        width: 40px;
+        height: 40px;
+        border: 3px solid #333;
+        border-top-color: #e65100;
+        border-radius: 50%;
+        animation: spin-mm 0.8s linear infinite;
+        margin-bottom: 16px;
+    }
 
-.mes-rodadas {
-    font-size: 12px;
-    color: #999;
-    margin-top: 5px;
-}
+    @keyframes spin-mm {
+        to {
+            transform: rotate(360deg);
+        }
+    }
 
-@media (max-width: 768px) {
-    .meses-grid {
-        grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+    /* Minhas Conquistas */
+    .mm-conquistas-pro {
+        background: linear-gradient(
+            135deg,
+            rgba(34, 197, 94, 0.12) 0%,
+            rgba(34, 197, 94, 0.05) 100%
+        );
+        border: 1px solid rgba(34, 197, 94, 0.25);
+        border-radius: 12px;
+        padding: 16px;
+        margin-bottom: 16px;
+    }
+
+    .conquistas-header-pro {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        font-weight: 700;
+        color: #22c55e;
+        font-size: 14px;
+        margin-bottom: 12px;
+    }
+
+    .conquistas-emoji {
+        font-size: 22px;
+    }
+
+    .conquistas-meses-pro {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 8px;
+    }
+
+    .mes-chip-pro {
+        background: rgba(34, 197, 94, 0.2);
+        color: #22c55e;
+        padding: 6px 14px;
+        border-radius: 20px;
+        font-size: 12px;
+        font-weight: 600;
+    }
+
+    /* Grid de Edições */
+    .mm-edicoes-grid {
+        display: flex;
+        flex-direction: column;
         gap: 12px;
     }
-    
-    .mes-card {
-        padding: 15px;
+
+    /* Card de Edição */
+    .edicao-card-pro {
+        background: #1c1c1c;
+        border-radius: 12px;
+        overflow: hidden;
+        transition: all 0.2s ease;
     }
-}
+
+    .edicao-card-pro.meu-titulo {
+        border: 1px solid rgba(34, 197, 94, 0.3);
+        box-shadow: 0 0 20px rgba(34, 197, 94, 0.1);
+    }
+
+    /* Header do Card */
+    .edicao-header-pro {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 16px;
+        cursor: pointer;
+        transition: background 0.2s;
+    }
+
+    .edicao-header-pro:hover {
+        background: rgba(255, 255, 255, 0.03);
+    }
+
+    .edicao-info-pro {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+    }
+
+    .edicao-icon-box {
+        width: 44px;
+        height: 44px;
+        background: #2a2a2a;
+        border-radius: 10px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 20px;
+    }
+
+    .edicao-nome-pro {
+        font-size: 16px;
+        font-weight: 700;
+        color: white;
+    }
+
+    .edicao-controls {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+    }
+
+    /* Status Badges */
+    .status-badge {
+        display: flex;
+        align-items: center;
+        gap: 4px;
+        font-size: 10px;
+        font-weight: 600;
+        padding: 5px 10px;
+        border-radius: 20px;
+        text-transform: uppercase;
+    }
+
+    .status-badge.concluido {
+        background: rgba(34, 197, 94, 0.15);
+        color: #22c55e;
+    }
+
+    .status-badge.em_andamento {
+        background: rgba(59, 130, 246, 0.15);
+        color: #3b82f6;
+    }
+
+    .status-badge.aguardando {
+        background: rgba(107, 114, 128, 0.15);
+        color: #6b7280;
+    }
+
+    .expand-icon-pro {
+        font-size: 18px;
+        color: #6b7280;
+        transition: transform 0.3s ease;
+    }
+
+    .edicao-card-pro.expanded .expand-icon-pro {
+        transform: rotate(180deg);
+    }
+
+    /* Seção do Campeão */
+    .edicao-campeao-pro {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 14px 16px;
+        background: rgba(230, 81, 0, 0.12);
+    }
+
+    .edicao-campeao-pro.meu-titulo {
+        background: rgba(34, 197, 94, 0.12);
+    }
+
+    .campeao-info-pro {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+    }
+
+    .campeao-emoji {
+        font-size: 24px;
+    }
+
+    .campeao-label-pro {
+        font-size: 10px;
+        color: #e65100;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+    }
+
+    .edicao-campeao-pro.meu-titulo .campeao-label-pro {
+        color: #22c55e;
+    }
+
+    .campeao-nome-pro {
+        font-size: 15px;
+        font-weight: 700;
+        color: white;
+        margin-top: 2px;
+    }
+
+    .campeao-pontos-pro {
+        font-size: 18px;
+        font-weight: 800;
+        color: #e65100;
+    }
+
+    .edicao-campeao-pro.meu-titulo .campeao-pontos-pro {
+        color: #22c55e;
+    }
+
+    /* Aguardando */
+    .edicao-aguardando {
+        padding: 14px 16px;
+        background: rgba(255, 255, 255, 0.02);
+        display: flex;
+        align-items: center;
+        gap: 12px;
+    }
+
+    .aguardando-emoji {
+        font-size: 24px;
+        opacity: 0.5;
+    }
+
+    .aguardando-texto {
+        color: #6b7280;
+        font-size: 14px;
+    }
+
+    /* Ranking Expandido */
+    .edicao-ranking-pro {
+        display: none;
+        padding: 0 16px 16px;
+    }
+
+    .edicao-ranking-pro.expanded {
+        display: block;
+    }
+
+    .ranking-table-pro {
+        width: 100%;
+        border-collapse: collapse;
+        font-size: 12px;
+    }
+
+    .ranking-table-pro thead {
+        background: rgba(255, 255, 255, 0.03);
+    }
+
+    .ranking-table-pro th {
+        padding: 10px 8px;
+        text-align: left;
+        color: #e65100;
+        font-size: 10px;
+        text-transform: uppercase;
+        font-weight: 600;
+        border-bottom: 1px solid #333;
+    }
+
+    .ranking-table-pro th:last-child {
+        text-align: right;
+    }
+
+    .ranking-table-pro td {
+        padding: 10px 8px;
+        color: #d1d5db;
+        border-bottom: 1px solid #2a2a2a;
+    }
+
+    .ranking-table-pro td:last-child {
+        text-align: right;
+        font-weight: 600;
+    }
+
+    .ranking-table-pro tbody tr:hover {
+        background: rgba(255, 255, 255, 0.02);
+    }
+
+    .ranking-table-pro tbody tr.meu-time {
+        background: rgba(34, 197, 94, 0.1);
+    }
+
+    .ranking-table-pro tbody tr.meu-time td {
+        color: #22c55e;
+        font-weight: 600;
+    }
+
+    .ranking-mais {
+        text-align: center;
+        padding: 12px;
+        color: #6b7280;
+        font-size: 12px;
+    }
+
+    /* Empty State */
+    .mm-empty-state {
+        text-align: center;
+        padding: 60px 20px;
+        color: #6b7280;
+    }
+
+    .mm-empty-state .empty-emoji {
+        font-size: 64px;
+        display: block;
+        margin-bottom: 16px;
+        opacity: 0.5;
+    }
+
+    .mm-empty-state h3 {
+        color: #9ca3af;
+        font-size: 18px;
+        margin-bottom: 8px;
+    }
+
+    .mm-empty-state p {
+        font-size: 14px;
+    }
+
+    /* Toast */
+    .toast-mm {
+        position: fixed;
+        bottom: 100px;
+        left: 50%;
+        transform: translateX(-50%) translateY(100px);
+        padding: 14px 24px;
+        background: #1e293b;
+        border: 1px solid #334155;
+        border-radius: 12px;
+        color: white;
+        font-size: 14px;
+        font-weight: 500;
+        opacity: 0;
+        visibility: hidden;
+        transition: all 0.3s ease;
+        z-index: 9999;
+    }
+
+    .toast-mm.show {
+        opacity: 1;
+        visibility: visible;
+        transform: translateX(-50%) translateY(0);
+    }
+
+    /* Responsivo */
+    @media (max-width: 480px) {
+        .mm-header-pro h2 {
+            font-size: 16px;
+        }
+
+        .edicao-icon-box {
+            width: 38px;
+            height: 38px;
+            font-size: 18px;
+        }
+
+        .edicao-nome-pro {
+            font-size: 14px;
+        }
+
+        .status-badge {
+            font-size: 9px;
+            padding: 4px 8px;
+        }
+
+        .campeao-pontos-pro {
+            font-size: 16px;
+        }
+    }
 </style>

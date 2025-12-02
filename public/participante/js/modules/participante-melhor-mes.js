@@ -1,25 +1,35 @@
 // =====================================================================
-// PARTICIPANTE-MELHOR-MES.JS - v2.0 (APENAS CONSUMO)
-// =====================================================================
-// ✅ Consome dados prontos do backend
-// ✅ Zero import de orquestradores do admin
-// ✅ Leve e rápido
+// PARTICIPANTE-MELHOR-MES.JS - v3.0 (Design PRO)
 // =====================================================================
 
-console.log("[MELHOR-MES-PARTICIPANTE] 🔄 Módulo v2.0 (consumo)");
+console.log("[MELHOR-MES-PARTICIPANTE] 🏆 Módulo v3.0 carregando...");
 
 let ligaIdAtual = null;
 let timeIdAtual = null;
 
+// Ícones por número de edição
+const edicoesIcons = {
+    1: "1️⃣",
+    2: "2️⃣",
+    3: "3️⃣",
+    4: "4️⃣",
+    5: "5️⃣",
+    6: "6️⃣",
+    7: "7️⃣",
+    8: "8️⃣",
+    9: "9️⃣",
+    10: "🔟",
+};
+
 // =====================================================================
 // FUNÇÃO PRINCIPAL - INICIALIZAR
 // =====================================================================
-window.inicializarMelhorMesParticipante = async function ({
+export async function inicializarMelhorMesParticipante({
     participante,
     ligaId,
     timeId,
 }) {
-    console.log("[MELHOR-MES-PARTICIPANTE] Inicializando...", {
+    console.log("[MELHOR-MES-PARTICIPANTE] 🚀 Inicializando...", {
         ligaId,
         timeId,
     });
@@ -33,32 +43,18 @@ window.inicializarMelhorMesParticipante = async function ({
     timeIdAtual = timeId;
 
     await carregarMelhorMes(ligaId, timeId);
-};
+}
+
+// Expor no window para compatibilidade
+window.inicializarMelhorMesParticipante = inicializarMelhorMesParticipante;
 
 // =====================================================================
 // CARREGAR DADOS DO BACKEND
 // =====================================================================
 async function carregarMelhorMes(ligaId, timeId) {
-    const container =
-        document.getElementById("melhorMesContainer") ||
-        document.getElementById("moduleContainer");
-
-    if (!container) {
-        console.error("[MELHOR-MES-PARTICIPANTE] ❌ Container não encontrado");
-        return;
-    }
-
-    // Loading state
-    container.innerHTML = `
-        <div style="display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 60px 20px;">
-            <div style="width: 40px; height: 40px; border: 3px solid rgba(255, 69, 0, 0.2); border-top-color: #ff4500; border-radius: 50%; animation: spin 0.8s linear infinite;"></div>
-            <p style="margin-top: 16px; color: #999; font-size: 14px;">Carregando rankings mensais...</p>
-        </div>
-        <style>@keyframes spin { to { transform: rotate(360deg); } }</style>
-    `;
+    mostrarLoading(true);
 
     try {
-        // ✅ BUSCAR DO BACKEND
         const response = await fetch(`/api/ligas/${ligaId}/melhor-mes`);
 
         if (!response.ok) {
@@ -68,15 +64,17 @@ async function carregarMelhorMes(ligaId, timeId) {
         const dados = await response.json();
         console.log("[MELHOR-MES-PARTICIPANTE] ✅ Dados recebidos:", dados);
 
+        mostrarLoading(false);
+
         if (!dados.edicoes || dados.edicoes.length === 0) {
-            mostrarVazio(container);
+            mostrarEstadoVazio(true);
             return;
         }
 
-        // Renderizar
-        renderizarMelhorMes(container, dados.edicoes, timeId);
+        renderizarMelhorMes(dados.edicoes, timeId);
     } catch (error) {
         console.error("[MELHOR-MES-PARTICIPANTE] ❌ Erro:", error);
+        mostrarLoading(false);
         mostrarErro(error.message);
     }
 }
@@ -84,295 +82,53 @@ async function carregarMelhorMes(ligaId, timeId) {
 // =====================================================================
 // RENDERIZAR MELHOR MÊS
 // =====================================================================
-function renderizarMelhorMes(container, edicoes, meuTimeId) {
+function renderizarMelhorMes(edicoes, meuTimeId) {
     const meuTimeIdNum = Number(meuTimeId);
+
+    // Atualizar contador de edições
+    const countEl = document.getElementById("mmEdicoesCount");
+    if (countEl) {
+        countEl.textContent = `${edicoes.length} ${edicoes.length === 1 ? "edição" : "edições"}`;
+    }
 
     // Encontrar minhas conquistas
     const minhasConquistas = edicoes.filter(
         (e) => e.campeao && Number(e.campeao.timeId) === meuTimeIdNum,
     );
 
-    const html = `
-        <div class="melhor-mes-container">
-            <!-- Header -->
-            <div class="mm-header">
-                <h2>🏆 Melhor do Mês</h2>
-                <span class="mm-subtitle">${edicoes.length} edições</span>
-            </div>
+    // Mostrar minhas conquistas se houver
+    renderizarConquistas(minhasConquistas);
 
-            <!-- Minhas conquistas (se houver) -->
-            ${
-                minhasConquistas.length > 0
-                    ? `
-                <div class="mm-conquistas">
-                    <div class="conquistas-header">
-                        <span class="conquistas-icon">🎖️</span>
-                        <span>Você foi campeão ${minhasConquistas.length}x!</span>
-                    </div>
-                    <div class="conquistas-meses">
-                        ${minhasConquistas.map((e) => `<span class="mes-chip">${e.nome}</span>`).join("")}
-                    </div>
-                </div>
-            `
-                    : ""
-            }
+    // Renderizar edições
+    const container = document.getElementById("mesesGrid");
+    if (!container) return;
 
-            <!-- Lista de edições -->
-            <div class="mm-edicoes">
-                ${edicoes.map((edicao) => renderizarEdicao(edicao, meuTimeIdNum)).join("")}
-            </div>
-        </div>
-
-        <style>
-        .melhor-mes-container {
-            padding: 0;
-        }
-
-        .mm-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            padding: 16px;
-            background: linear-gradient(135deg, rgba(255, 69, 0, 0.1) 0%, rgba(255, 69, 0, 0.05) 100%);
-            border-bottom: 2px solid rgba(255, 69, 0, 0.2);
-        }
-
-        .mm-header h2 {
-            margin: 0;
-            font-size: 18px;
-            font-weight: 800;
-            color: #fff;
-        }
-
-        .mm-subtitle {
-            font-size: 12px;
-            color: #999;
-            background: rgba(0,0,0,0.3);
-            padding: 4px 10px;
-            border-radius: 12px;
-        }
-
-        /* Minhas conquistas */
-        .mm-conquistas {
-            background: linear-gradient(135deg, rgba(34, 197, 94, 0.15) 0%, rgba(34, 197, 94, 0.05) 100%);
-            border: 1px solid rgba(34, 197, 94, 0.3);
-            border-radius: 12px;
-            padding: 16px;
-            margin: 12px;
-        }
-
-        .conquistas-header {
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            font-weight: 700;
-            color: #22c55e;
-            font-size: 14px;
-            margin-bottom: 10px;
-        }
-
-        .conquistas-icon {
-            font-size: 20px;
-        }
-
-        .conquistas-meses {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 6px;
-        }
-
-        .mes-chip {
-            background: rgba(34, 197, 94, 0.2);
-            color: #22c55e;
-            padding: 4px 10px;
-            border-radius: 12px;
-            font-size: 11px;
-            font-weight: 600;
-        }
-
-        /* Edições */
-        .mm-edicoes {
-            display: flex;
-            flex-direction: column;
-            gap: 12px;
-            padding: 12px;
-        }
-
-        .edicao-card {
-            background: rgba(255,255,255,0.03);
-            border: 1px solid rgba(255,255,255,0.08);
-            border-radius: 12px;
-            overflow: hidden;
-        }
-
-        .edicao-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            padding: 14px 16px;
-            background: rgba(0,0,0,0.2);
-            cursor: pointer;
-        }
-
-        .edicao-header:active {
-            background: rgba(0,0,0,0.3);
-        }
-
-        .edicao-info {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-        }
-
-        .edicao-icon {
-            font-size: 24px;
-        }
-
-        .edicao-nome {
-            font-size: 16px;
-            font-weight: 700;
-            color: #fff;
-        }
-
-        .edicao-status {
-            font-size: 10px;
-            padding: 3px 8px;
-            border-radius: 10px;
-            font-weight: 600;
-            text-transform: uppercase;
-        }
-
-        .edicao-status.concluido {
-            background: rgba(34, 197, 94, 0.2);
-            color: #22c55e;
-        }
-
-        .edicao-status.em_andamento {
-            background: rgba(59, 130, 246, 0.2);
-            color: #3b82f6;
-        }
-
-        .edicao-campeao {
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            padding: 12px 16px;
-            background: linear-gradient(135deg, rgba(255, 215, 0, 0.1) 0%, rgba(255, 215, 0, 0.05) 100%);
-            border-top: 1px solid rgba(255, 215, 0, 0.2);
-        }
-
-        .campeao-icon {
-            font-size: 28px;
-        }
-
-        .campeao-info {
-            flex: 1;
-        }
-
-        .campeao-label {
-            font-size: 10px;
-            color: #ffd700;
-            text-transform: uppercase;
-            font-weight: 600;
-        }
-
-        .campeao-nome {
-            font-size: 14px;
-            font-weight: 700;
-            color: #fff;
-        }
-
-        .campeao-pontos {
-            font-size: 16px;
-            font-weight: 800;
-            color: #ffd700;
-            font-family: 'JetBrains Mono', monospace;
-        }
-
-        /* Meu time é campeão */
-        .edicao-card.meu-titulo .edicao-campeao {
-            background: linear-gradient(135deg, rgba(34, 197, 94, 0.15) 0%, rgba(34, 197, 94, 0.08) 100%);
-            border-top-color: rgba(34, 197, 94, 0.3);
-        }
-
-        .edicao-card.meu-titulo .campeao-label {
-            color: #22c55e;
-        }
-
-        .edicao-card.meu-titulo .campeao-pontos {
-            color: #22c55e;
-        }
-
-        /* Ranking expandido */
-        .edicao-ranking {
-            display: none;
-            padding: 0 12px 12px;
-        }
-
-        .edicao-ranking.expanded {
-            display: block;
-        }
-
-        .ranking-mini-table {
-            width: 100%;
-            border-collapse: collapse;
-            font-size: 11px;
-        }
-
-        .ranking-mini-table th {
-            padding: 8px 6px;
-            text-align: left;
-            color: var(--participante-primary, #ff4500);
-            font-size: 9px;
-            text-transform: uppercase;
-            border-bottom: 1px solid rgba(255,255,255,0.1);
-        }
-
-        .ranking-mini-table td {
-            padding: 8px 6px;
-            border-bottom: 1px solid rgba(255,255,255,0.03);
-            color: #ccc;
-        }
-
-        .ranking-mini-table tr.meu-time {
-            background: rgba(16, 185, 129, 0.1);
-        }
-
-        .ranking-mini-table tr.meu-time td {
-            color: #10b981;
-            font-weight: 600;
-        }
-
-        .expand-icon {
-            transition: transform 0.3s ease;
-            color: #666;
-        }
-
-        .edicao-card.expanded .expand-icon {
-            transform: rotate(180deg);
-        }
-
-        /* Responsivo */
-        @media (min-width: 768px) {
-            .mm-edicoes {
-                display: grid;
-                grid-template-columns: repeat(2, 1fr);
-                gap: 16px;
-            }
-        }
-        </style>
-    `;
-
-    container.innerHTML = html;
+    container.innerHTML = edicoes
+        .map((edicao, index) =>
+            renderizarEdicao(edicao, index + 1, meuTimeIdNum),
+        )
+        .join("");
 
     // Adicionar eventos de expansão
-    document.querySelectorAll(".edicao-header").forEach((header) => {
+    container.querySelectorAll(".edicao-header-pro").forEach((header) => {
         header.addEventListener("click", function () {
-            const card = this.closest(".edicao-card");
-            const ranking = card.querySelector(".edicao-ranking");
+            const card = this.closest(".edicao-card-pro");
+            const ranking = card.querySelector(".edicao-ranking-pro");
+
+            // Fechar outros cards
+            container
+                .querySelectorAll(".edicao-card-pro.expanded")
+                .forEach((c) => {
+                    if (c !== card) {
+                        c.classList.remove("expanded");
+                        c.querySelector(
+                            ".edicao-ranking-pro",
+                        )?.classList.remove("expanded");
+                    }
+                });
 
             card.classList.toggle("expanded");
-            ranking.classList.toggle("expanded");
+            ranking?.classList.toggle("expanded");
         });
     });
 
@@ -380,23 +136,54 @@ function renderizarMelhorMes(container, edicoes, meuTimeId) {
 }
 
 // =====================================================================
+// RENDERIZAR CONQUISTAS
+// =====================================================================
+function renderizarConquistas(conquistas) {
+    const container = document.getElementById("mmConquistas");
+    const texto = document.getElementById("conquistasTexto");
+    const meses = document.getElementById("conquistasMeses");
+
+    if (!container || !texto || !meses) return;
+
+    if (conquistas.length === 0) {
+        container.style.display = "none";
+        return;
+    }
+
+    container.style.display = "block";
+    texto.textContent = `Você foi campeão ${conquistas.length}x!`;
+
+    meses.innerHTML = conquistas
+        .map((e) => `<span class="mes-chip-pro">${e.nome}</span>`)
+        .join("");
+}
+
+// =====================================================================
 // RENDERIZAR EDIÇÃO INDIVIDUAL
 // =====================================================================
-function renderizarEdicao(edicao, meuTimeIdNum) {
+function renderizarEdicao(edicao, numero, meuTimeIdNum) {
     const campeao = edicao.campeao;
     const souCampeao = campeao && Number(campeao.timeId) === meuTimeIdNum;
 
-    const mesesIcons = {
-        Abril: "🌸",
-        Maio: "🌺",
-        Junho: "🎉",
-        Julho: "❄️",
-        Agosto: "🌻",
-        Setembro: "🍂",
-        Outubro: "🎃",
-        Novembro: "🍁",
-    };
+    // Status
+    let statusClass = "aguardando";
+    let statusIcon = "📅";
+    let statusText = "AGUARDANDO";
 
+    if (edicao.status === "concluido") {
+        statusClass = "concluido";
+        statusIcon = "✓";
+        statusText = "CONCLUÍDO";
+    } else if (edicao.status === "em_andamento") {
+        statusClass = "em_andamento";
+        statusIcon = "⏳";
+        statusText = "EM ANDAMENTO";
+    }
+
+    // Ícone da edição
+    const edicaoIcon = edicoesIcons[numero] || `📅`;
+
+    // Pontos formatados
     const pontosFormatados = campeao
         ? campeao.pontos_total.toLocaleString("pt-BR", {
               minimumFractionDigits: 2,
@@ -404,126 +191,147 @@ function renderizarEdicao(edicao, meuTimeIdNum) {
           })
         : "0,00";
 
+    // Label do campeão
+    let campeaoLabel = "CAMPEÃO";
+    let campeaoIcon = "🏆";
+    if (edicao.status === "em_andamento") {
+        campeaoLabel = "LÍDER ATUAL";
+        campeaoIcon = "📊";
+    }
+    if (souCampeao) {
+        campeaoLabel = "VOCÊ É O CAMPEÃO!";
+        campeaoIcon = "🎖️";
+    }
+
     return `
-        <div class="edicao-card ${souCampeao ? "meu-titulo" : ""}">
-            <div class="edicao-header">
-                <div class="edicao-info">
-                    <span class="edicao-icon">${mesesIcons[edicao.nome] || "📅"}</span>
-                    <span class="edicao-nome">${edicao.nome}</span>
+        <div class="edicao-card-pro ${souCampeao ? "meu-titulo" : ""}">
+            <div class="edicao-header-pro">
+                <div class="edicao-info-pro">
+                    <div class="edicao-icon-box">${edicaoIcon}</div>
+                    <span class="edicao-nome-pro">${numero}ª Edição</span>
                 </div>
-                <div style="display: flex; align-items: center; gap: 8px;">
-                    <span class="edicao-status ${edicao.status}">${edicao.status === "concluido" ? "✓ Concluído" : "⏳ Em andamento"}</span>
-                    <span class="expand-icon">▼</span>
+                <div class="edicao-controls">
+                    <span class="status-badge ${statusClass}">
+                        <span>${statusIcon}</span>
+                        <span>${statusText}</span>
+                    </span>
+                    <span class="expand-icon-pro">▼</span>
                 </div>
             </div>
 
             ${
                 campeao
                     ? `
-                <div class="edicao-campeao">
-                    <span class="campeao-icon">${souCampeao ? "🎖️" : "👑"}</span>
-                    <div class="campeao-info">
-                        <div class="campeao-label">${souCampeao ? "VOCÊ É O CAMPEÃO!" : "Campeão"}</div>
-                        <div class="campeao-nome">${campeao.nome_time}</div>
+                <div class="edicao-campeao-pro ${souCampeao ? "meu-titulo" : ""}">
+                    <div class="campeao-info-pro">
+                        <span class="campeao-emoji">${campeaoIcon}</span>
+                        <div>
+                            <div class="campeao-label-pro">${campeaoLabel}</div>
+                            <div class="campeao-nome-pro">${campeao.nome_time}</div>
+                        </div>
                     </div>
-                    <div class="campeao-pontos">${pontosFormatados}</div>
+                    <div class="campeao-pontos-pro">${pontosFormatados}</div>
                 </div>
             `
                     : `
-                <div class="edicao-campeao" style="background: rgba(255,255,255,0.02);">
-                    <span class="campeao-icon">⏳</span>
-                    <div class="campeao-info">
-                        <div class="campeao-label" style="color: #666;">Aguardando</div>
-                        <div class="campeao-nome" style="color: #999;">Em disputa...</div>
-                    </div>
+                <div class="edicao-aguardando">
+                    <span class="aguardando-emoji">⏳</span>
+                    <span class="aguardando-texto">Em disputa...</span>
                 </div>
             `
             }
 
             <!-- Ranking expandível -->
-            <div class="edicao-ranking">
-                ${
-                    edicao.ranking && edicao.ranking.length > 0
-                        ? `
-                    <table class="ranking-mini-table">
-                        <thead>
-                            <tr>
-                                <th>#</th>
-                                <th>Time</th>
-                                <th>Pts</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            ${edicao.ranking
-                                .slice(0, 10)
-                                .map((time) => {
-                                    const isMeuTime =
-                                        Number(time.timeId) === meuTimeIdNum;
-                                    const pts =
-                                        time.pontos_total.toLocaleString(
-                                            "pt-BR",
-                                            {
-                                                minimumFractionDigits: 2,
-                                                maximumFractionDigits: 2,
-                                            },
-                                        );
-                                    return `
-                                    <tr class="${isMeuTime ? "meu-time" : ""}">
-                                        <td>${time.posicao}º</td>
-                                        <td>${time.nome_time}</td>
-                                        <td>${pts}</td>
-                                    </tr>
-                                `;
-                                })
-                                .join("")}
-                        </tbody>
-                    </table>
-                    ${
-                        edicao.ranking.length > 10
-                            ? `
-                        <div style="text-align: center; padding: 8px; color: #666; font-size: 11px;">
-                            +${edicao.ranking.length - 10} participantes
-                        </div>
-                    `
-                            : ""
-                    }
-                `
-                        : `
-                    <div style="text-align: center; padding: 20px; color: #666;">
-                        Sem dados disponíveis
-                    </div>
-                `
-                }
+            <div class="edicao-ranking-pro">
+                ${renderizarRankingEdicao(edicao.ranking, meuTimeIdNum)}
             </div>
         </div>
     `;
 }
 
 // =====================================================================
-// HELPERS
+// RENDERIZAR RANKING DA EDIÇÃO
 // =====================================================================
-function mostrarVazio(container) {
-    container.innerHTML = `
-        <div style="text-align: center; padding: 60px 20px;">
-            <div style="font-size: 48px; margin-bottom: 16px; opacity: 0.5;">📅</div>
-            <h3 style="color: #ccc; margin-bottom: 8px;">Sem dados ainda</h3>
-            <p style="color: #666; font-size: 13px;">Os rankings mensais serão gerados após as primeiras rodadas.</p>
-        </div>
+function renderizarRankingEdicao(ranking, meuTimeIdNum) {
+    if (!ranking || ranking.length === 0) {
+        return `
+            <div style="text-align: center; padding: 20px; color: #6b7280;">
+                Sem dados disponíveis
+            </div>
+        `;
+    }
+
+    const top10 = ranking.slice(0, 10);
+    const restante = ranking.length - 10;
+
+    return `
+        <table class="ranking-table-pro">
+            <thead>
+                <tr>
+                    <th style="width: 40px;">#</th>
+                    <th>Time</th>
+                    <th style="width: 80px;">Pontos</th>
+                </tr>
+            </thead>
+            <tbody>
+                ${top10
+                    .map((time) => {
+                        const isMeuTime = Number(time.timeId) === meuTimeIdNum;
+                        const pts = time.pontos_total.toLocaleString("pt-BR", {
+                            minimumFractionDigits: 2,
+                            maximumFractionDigits: 2,
+                        });
+                        return `
+                        <tr class="${isMeuTime ? "meu-time" : ""}">
+                            <td>${time.posicao}º</td>
+                            <td>${time.nome_time}</td>
+                            <td>${pts}</td>
+                        </tr>
+                    `;
+                    })
+                    .join("")}
+            </tbody>
+        </table>
+        ${
+            restante > 0
+                ? `
+            <div class="ranking-mais">+${restante} participantes</div>
+        `
+                : ""
+        }
     `;
 }
 
+// =====================================================================
+// ESTADOS
+// =====================================================================
+function mostrarLoading(show) {
+    const loading = document.getElementById("mmLoading");
+    const grid = document.getElementById("mesesGrid");
+
+    if (loading) loading.style.display = show ? "flex" : "none";
+    if (grid) grid.style.display = show ? "none" : "flex";
+}
+
+function mostrarEstadoVazio(show) {
+    const empty = document.getElementById("mmEmpty");
+    const grid = document.getElementById("mesesGrid");
+
+    if (empty) empty.style.display = show ? "block" : "none";
+    if (grid) grid.style.display = show ? "none" : "flex";
+}
+
 function mostrarErro(mensagem) {
-    const container =
-        document.getElementById("melhorMesContainer") ||
-        document.getElementById("moduleContainer");
-    if (container) {
-        container.innerHTML = `
-            <div style="text-align: center; padding: 40px; color: #ef4444;">
+    const grid = document.getElementById("mesesGrid");
+    if (grid) {
+        grid.style.display = "flex";
+        grid.innerHTML = `
+            <div style="width: 100%; text-align: center; padding: 40px; color: #ef4444;">
                 <div style="font-size: 48px; margin-bottom: 16px;">⚠️</div>
-                <h3>Erro ao Carregar</h3>
-                <p style="margin: 12px 0;">${mensagem}</p>
+                <h3 style="color: #f87171; margin-bottom: 8px;">Erro ao Carregar</h3>
+                <p style="color: #9ca3af; margin: 12px 0;">${mensagem}</p>
                 <button onclick="window.inicializarMelhorMesParticipante({ligaId: '${ligaIdAtual}', timeId: '${timeIdAtual}'})" 
-                        style="margin-top: 16px; padding: 12px 24px; background: #ff4500; 
+                        style="margin-top: 16px; padding: 12px 24px; background: #E65100; 
                                color: white; border: none; border-radius: 8px; cursor: pointer; font-weight: 600;">
                     🔄 Tentar Novamente
                 </button>
@@ -532,9 +340,18 @@ function mostrarErro(mensagem) {
     }
 }
 
-// Export ES6 (wrapper para compatibilidade com navigation)
-export async function inicializarMelhorMesParticipante(params) {
-    return window.inicializarMelhorMesParticipante(params);
+function mostrarToast(msg) {
+    const toast = document.getElementById("toastMM");
+    const msgEl = document.getElementById("toastMMMsg");
+
+    if (toast && msgEl) {
+        msgEl.textContent = msg;
+        toast.classList.add("show");
+
+        setTimeout(() => {
+            toast.classList.remove("show");
+        }, 3000);
+    }
 }
 
-console.log("[MELHOR-MES-PARTICIPANTE] ✅ Módulo v2.0 carregado");
+console.log("[MELHOR-MES-PARTICIPANTE] ✅ Módulo v3.0 carregado");
