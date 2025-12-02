@@ -1,8 +1,8 @@
 // =====================================================================
-// PARTICIPANTE-ARTILHEIRO.JS - v2.1 (VERIFICA MÓDULOS ATIVOS)
+// PARTICIPANTE-ARTILHEIRO.JS - v2.2 (FORMATO CORRETO DO BACKEND)
 // =====================================================================
 
-console.log("[PARTICIPANTE-ARTILHEIRO] 🔄 Carregando módulo v2.1...");
+console.log("[PARTICIPANTE-ARTILHEIRO] 🔄 Carregando módulo v2.2...");
 
 // =====================================================================
 // FUNÇÃO PRINCIPAL - EXPORTADA PARA NAVIGATION
@@ -30,7 +30,7 @@ export async function inicializarArtilheiroParticipante({
             const liga = await ligaRes.json();
             const modulosAtivos =
                 liga.modulosAtivos || liga.modulos_ativos || {};
-            const artilheiroAtivo = modulosAtivos.artilheiro !== false; // default true
+            const artilheiroAtivo = modulosAtivos.artilheiro !== false;
 
             if (!artilheiroAtivo) {
                 console.log(
@@ -47,7 +47,7 @@ export async function inicializarArtilheiroParticipante({
             }
         }
 
-        // Endpoint correto: /api/artilheiro-campeao/:ligaId/ranking
+        // ✅ Endpoint correto: /api/artilheiro-campeao/:ligaId/ranking
         const response = await fetch(
             `/api/artilheiro-campeao/${ligaId}/ranking`,
         );
@@ -57,6 +57,8 @@ export async function inicializarArtilheiroParticipante({
         }
 
         const data = await response.json();
+        console.log("[PARTICIPANTE-ARTILHEIRO] 📦 Dados recebidos:", data);
+
         renderizarArtilheiro(container, data, timeId);
     } catch (error) {
         console.error("[PARTICIPANTE-ARTILHEIRO] ❌ Erro:", error);
@@ -74,126 +76,177 @@ export async function inicializarArtilheiroParticipante({
 window.inicializarArtilheiroParticipante = inicializarArtilheiroParticipante;
 
 // =====================================================================
-// RENDERIZAÇÃO
+// RENDERIZAÇÃO - v2.2 (FORMATO CORRETO)
 // =====================================================================
-function renderizarArtilheiro(container, data, meuTimeId) {
-    // Verificar se há edições
-    if (!data.edicoes || data.edicoes.length === 0) {
+function renderizarArtilheiro(container, response, meuTimeId) {
+    // ✅ CORREÇÃO: Backend retorna { success, data: { ranking, estatisticas } }
+    const data = response.data || response;
+    const ranking = data.ranking || [];
+    const estatisticas = data.estatisticas || {};
+
+    // Verificar se há ranking
+    if (!ranking || ranking.length === 0) {
         container.innerHTML = `
             <div style="text-align: center; padding: 60px 20px; background: linear-gradient(135deg, rgba(34, 197, 94, 0.05) 0%, rgba(34, 197, 94, 0.02) 100%); border-radius: 12px; border: 2px dashed rgba(34, 197, 94, 0.3);">
                 <div style="font-size: 64px; margin-bottom: 16px;">⚽</div>
                 <h3 style="color: #fff; margin-bottom: 12px;">Artilheiro Não Disponível</h3>
-                <p style="color: #999;">Nenhuma edição do Artilheiro foi configurada ainda.</p>
+                <p style="color: #999;">Nenhum dado de artilheiro disponível ainda.</p>
             </div>
         `;
         return;
     }
 
-    // Renderizar
-    let html = `<div style="padding: 20px;">
-        <h2 style="margin: 0 0 20px 0; font-size: 22px; font-weight: 800; color: #fff;">⚽ Artilheiro Campeão</h2>
-    `;
+    // Encontrar posição do usuário
+    const minhaPosicao = ranking.findIndex(
+        (r) => String(r.timeId) === String(meuTimeId),
+    );
+    const meusDados = minhaPosicao >= 0 ? ranking[minhaPosicao] : null;
+    const minhaColocacao = minhaPosicao >= 0 ? minhaPosicao + 1 : null;
 
-    // Cards das edições
-    data.edicoes.forEach((edicao, index) => {
-        const ranking = edicao.ranking || [];
-        const campeao = ranking[0];
-        const minhaPosicao = ranking.findIndex(
-            (r) => String(r.timeId) === String(meuTimeId),
-        );
-        const minhaColocacao = minhaPosicao >= 0 ? minhaPosicao + 1 : null;
+    // Campeão (1º lugar)
+    const campeao = ranking[0];
 
-        html += `
-            <div style="background: linear-gradient(135deg, rgba(34, 197, 94, 0.08) 0%, rgba(34, 197, 94, 0.03) 100%); border-radius: 12px; padding: 20px; margin-bottom: 16px; border: 1px solid rgba(34, 197, 94, 0.2);">
-                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px;">
-                    <h3 style="margin: 0; font-size: 18px; font-weight: 700; color: #22c55e;">
-                        ⚽ ${edicao.nome || `Edição ${index + 1}`}
-                    </h3>
-                    <span style="background: ${edicao.status === "concluida" ? "rgba(34, 197, 94, 0.2)" : "rgba(59, 130, 246, 0.2)"}; color: ${edicao.status === "concluida" ? "#22c55e" : "#3b82f6"}; padding: 4px 10px; border-radius: 6px; font-size: 12px; font-weight: 600;">
-                        ${edicao.status === "concluida" ? "✓ Concluída" : "⏳ Em Andamento"}
-                    </span>
+    // Período das rodadas
+    const rodadaInicio = estatisticas.rodadaInicio || 1;
+    const rodadaFim = estatisticas.rodadaFim || estatisticas.rodadaAtual || "?";
+
+    let html = `
+    <div style="padding: 16px;">
+        <!-- Header -->
+        <div style="text-align: center; margin-bottom: 20px;">
+            <h2 style="margin: 0 0 8px 0; font-size: 22px; font-weight: 800; color: #22c55e;">
+                ⚽ Artilheiro Campeão
+            </h2>
+            <p style="margin: 0; color: #888; font-size: 14px;">
+                Rodadas ${rodadaInicio} - ${rodadaFim}
+            </p>
+        </div>
+
+        <!-- Card do Campeão -->
+        ${
+            campeao
+                ? `
+        <div style="background: linear-gradient(135deg, rgba(34, 197, 94, 0.15) 0%, rgba(34, 197, 94, 0.05) 100%); border: 2px solid rgba(34, 197, 94, 0.4); border-radius: 16px; padding: 20px; margin-bottom: 16px; text-align: center;">
+            <div style="font-size: 40px; margin-bottom: 8px;">👑</div>
+            <div style="font-size: 12px; color: #22c55e; font-weight: 700; margin-bottom: 4px; text-transform: uppercase; letter-spacing: 1px;">Artilheiro</div>
+            <div style="font-size: 18px; font-weight: 700; color: #fff; margin-bottom: 4px;">${campeao.nomeTime || campeao.nome}</div>
+            <div style="font-size: 13px; color: #888; margin-bottom: 12px;">${campeao.nome || ""}</div>
+            <div style="display: flex; justify-content: center; gap: 24px;">
+                <div>
+                    <div style="font-size: 28px; font-weight: 900; color: #22c55e;">${campeao.golsPro || 0}</div>
+                    <div style="font-size: 11px; color: #888;">GOLS PRÓ</div>
                 </div>
-
-                ${
-                    campeao
-                        ? `
-                    <div style="background: rgba(34, 197, 94, 0.1); border: 2px solid rgba(34, 197, 94, 0.3); border-radius: 10px; padding: 16px; margin-bottom: 16px;">
-                        <div style="text-align: center;">
-                            <div style="font-size: 32px; margin-bottom: 8px;">👑</div>
-                            <div style="font-size: 12px; color: #22c55e; margin-bottom: 4px; font-weight: 600;">ARTILHEIRO</div>
-                            <div style="font-size: 18px; font-weight: 700; color: #fff;">${campeao.nomeTime || campeao.nome_time || "N/D"}</div>
-                            <div style="font-size: 24px; font-weight: 900; color: #22c55e; margin-top: 8px;">
-                                ${Number(campeao.gols || campeao.pontos || 0).toLocaleString("pt-BR")} gols
-                            </div>
-                        </div>
-                    </div>
-                `
-                        : ""
-                }
-
-                ${
-                    minhaColocacao
-                        ? `
-                    <div style="background: ${minhaColocacao === 1 ? "rgba(34, 197, 94, 0.15)" : "rgba(59, 130, 246, 0.1)"}; border: 2px solid ${minhaColocacao === 1 ? "rgba(34, 197, 94, 0.4)" : "rgba(59, 130, 246, 0.3)"}; border-radius: 10px; padding: 12px; margin-bottom: 16px;">
-                        <div style="display: flex; justify-content: space-between; align-items: center;">
-                            <div>
-                                <div style="font-size: 12px; color: #3b82f6; font-weight: 600;">SUA POSIÇÃO</div>
-                                <div style="font-size: 20px; font-weight: 800; color: #fff;">${minhaColocacao}º lugar</div>
-                            </div>
-                            <div style="text-align: right;">
-                                <div style="font-size: 12px; color: #999;">Gols</div>
-                                <div style="font-size: 18px; font-weight: 700; color: #22c55e;">
-                                    ${Number(ranking[minhaPosicao]?.gols || ranking[minhaPosicao]?.pontos || 0).toLocaleString("pt-BR")}
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                `
-                        : `
-                    <div style="background: rgba(255, 255, 255, 0.03); border-radius: 8px; padding: 12px; margin-bottom: 16px; text-align: center;">
-                        <span style="color: #666; font-size: 14px;">Você não participou desta edição</span>
-                    </div>
-                `
-                }
-
-                <!-- Top 5 -->
-                <div style="background: rgba(0,0,0,0.2); border-radius: 8px; overflow: hidden;">
-                    <div style="background: rgba(34, 197, 94, 0.1); padding: 10px 12px; border-bottom: 1px solid rgba(34, 197, 94, 0.2);">
-                        <span style="font-size: 13px; font-weight: 700; color: #22c55e;">🏆 TOP 5</span>
-                    </div>
-                    ${ranking
-                        .slice(0, 5)
-                        .map((time, idx) => {
-                            const isMeuTime =
-                                String(time.timeId) === String(meuTimeId);
-                            const pos = idx + 1;
-                            const medalha =
-                                pos === 1
-                                    ? "🥇"
-                                    : pos === 2
-                                      ? "🥈"
-                                      : pos === 3
-                                        ? "🥉"
-                                        : `${pos}º`;
-
-                            return `
-                            <div style="display: flex; justify-content: space-between; align-items: center; padding: 10px 12px; border-bottom: 1px solid rgba(255,255,255,0.05); ${isMeuTime ? "background: rgba(34, 197, 94, 0.1);" : ""}">
-                                <div style="display: flex; align-items: center; gap: 10px;">
-                                    <span style="font-size: 16px; width: 28px;">${medalha}</span>
-                                    <span style="color: ${isMeuTime ? "#22c55e" : "#fff"}; font-weight: ${isMeuTime ? "700" : "500"};">${time.nomeTime || time.nome_time || "N/D"}</span>
-                                </div>
-                                <span style="color: #22c55e; font-weight: 700;">${Number(time.gols || time.pontos || 0).toLocaleString("pt-BR")} gols</span>
-                            </div>
-                        `;
-                        })
-                        .join("")}
+                <div>
+                    <div style="font-size: 28px; font-weight: 900; color: #ef4444;">${campeao.golsContra || 0}</div>
+                    <div style="font-size: 11px; color: #888;">GOLS CONTRA</div>
+                </div>
+                <div>
+                    <div style="font-size: 28px; font-weight: 900; color: ${campeao.saldoGols >= 0 ? "#22c55e" : "#ef4444"};">${campeao.saldoGols >= 0 ? "+" : ""}${campeao.saldoGols || 0}</div>
+                    <div style="font-size: 11px; color: #888;">SALDO</div>
                 </div>
             </div>
-        `;
-    });
+        </div>
+        `
+                : ""
+        }
 
-    html += "</div>";
+        <!-- Minha Posição -->
+        ${
+            meusDados
+                ? `
+        <div style="background: ${minhaColocacao === 1 ? "linear-gradient(135deg, rgba(34, 197, 94, 0.15) 0%, rgba(34, 197, 94, 0.05) 100%)" : "linear-gradient(135deg, rgba(59, 130, 246, 0.15) 0%, rgba(59, 130, 246, 0.05) 100%)"}; border: 2px solid ${minhaColocacao === 1 ? "rgba(34, 197, 94, 0.4)" : "rgba(59, 130, 246, 0.4)"}; border-radius: 12px; padding: 16px; margin-bottom: 16px;">
+            <div style="display: flex; justify-content: space-between; align-items: center;">
+                <div>
+                    <div style="font-size: 11px; color: #3b82f6; font-weight: 700; text-transform: uppercase; letter-spacing: 1px;">Sua Posição</div>
+                    <div style="font-size: 24px; font-weight: 900; color: #fff;">${minhaColocacao}º lugar</div>
+                </div>
+                <div style="display: flex; gap: 16px; text-align: center;">
+                    <div>
+                        <div style="font-size: 20px; font-weight: 800; color: #22c55e;">${meusDados.golsPro || 0}</div>
+                        <div style="font-size: 10px; color: #888;">GP</div>
+                    </div>
+                    <div>
+                        <div style="font-size: 20px; font-weight: 800; color: #ef4444;">${meusDados.golsContra || 0}</div>
+                        <div style="font-size: 10px; color: #888;">GC</div>
+                    </div>
+                    <div>
+                        <div style="font-size: 20px; font-weight: 800; color: ${meusDados.saldoGols >= 0 ? "#22c55e" : "#ef4444"};">${meusDados.saldoGols >= 0 ? "+" : ""}${meusDados.saldoGols || 0}</div>
+                        <div style="font-size: 10px; color: #888;">SG</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        `
+                : `
+        <div style="background: rgba(255, 255, 255, 0.03); border-radius: 12px; padding: 16px; margin-bottom: 16px; text-align: center;">
+            <span style="color: #666; font-size: 14px;">Você não está no ranking</span>
+        </div>
+        `
+        }
+
+        <!-- Ranking Completo -->
+        <div style="background: rgba(0,0,0,0.3); border-radius: 12px; overflow: hidden;">
+            <div style="background: rgba(34, 197, 94, 0.1); padding: 12px 16px; border-bottom: 1px solid rgba(34, 197, 94, 0.2);">
+                <span style="font-size: 14px; font-weight: 700; color: #22c55e;">🏆 Ranking Completo</span>
+            </div>
+
+            <!-- Header da tabela -->
+            <div style="display: grid; grid-template-columns: 40px 1fr 50px 50px 50px; gap: 8px; padding: 10px 16px; background: rgba(255,255,255,0.03); border-bottom: 1px solid rgba(255,255,255,0.1); font-size: 11px; color: #888; text-transform: uppercase; font-weight: 600;">
+                <div>#</div>
+                <div>Time</div>
+                <div style="text-align: center;">GP</div>
+                <div style="text-align: center;">GC</div>
+                <div style="text-align: center;">SG</div>
+            </div>
+
+            ${ranking
+                .map((time, idx) => {
+                    const isMeuTime = String(time.timeId) === String(meuTimeId);
+                    const pos = idx + 1;
+                    const medalha =
+                        pos === 1
+                            ? "🥇"
+                            : pos === 2
+                              ? "🥈"
+                              : pos === 3
+                                ? "🥉"
+                                : `${pos}º`;
+
+                    return `
+                <div style="display: grid; grid-template-columns: 40px 1fr 50px 50px 50px; gap: 8px; padding: 12px 16px; border-bottom: 1px solid rgba(255,255,255,0.05); ${isMeuTime ? "background: rgba(34, 197, 94, 0.1);" : ""}">
+                    <div style="font-size: 14px; display: flex; align-items: center;">${medalha}</div>
+                    <div style="display: flex; flex-direction: column; justify-content: center; min-width: 0;">
+                        <span style="color: ${isMeuTime ? "#22c55e" : "#fff"}; font-weight: ${isMeuTime ? "700" : "500"}; font-size: 13px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">${time.nomeTime || time.nome}</span>
+                        <span style="color: #666; font-size: 11px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">${time.nome || ""}</span>
+                    </div>
+                    <div style="text-align: center; color: #22c55e; font-weight: 700; font-size: 14px;">${time.golsPro || 0}</div>
+                    <div style="text-align: center; color: #ef4444; font-weight: 700; font-size: 14px;">${time.golsContra || 0}</div>
+                    <div style="text-align: center; color: ${time.saldoGols >= 0 ? "#22c55e" : "#ef4444"}; font-weight: 700; font-size: 14px;">${time.saldoGols >= 0 ? "+" : ""}${time.saldoGols || 0}</div>
+                </div>
+                `;
+                })
+                .join("")}
+        </div>
+
+        <!-- Estatísticas -->
+        <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; margin-top: 16px;">
+            <div style="background: rgba(34, 197, 94, 0.1); border-radius: 10px; padding: 12px; text-align: center;">
+                <div style="font-size: 20px; font-weight: 800; color: #22c55e;">${estatisticas.totalGolsPro || 0}</div>
+                <div style="font-size: 10px; color: #888; text-transform: uppercase;">Total GP</div>
+            </div>
+            <div style="background: rgba(239, 68, 68, 0.1); border-radius: 10px; padding: 12px; text-align: center;">
+                <div style="font-size: 20px; font-weight: 800; color: #ef4444;">${estatisticas.totalGolsContra || 0}</div>
+                <div style="font-size: 10px; color: #888; text-transform: uppercase;">Total GC</div>
+            </div>
+            <div style="background: rgba(59, 130, 246, 0.1); border-radius: 10px; padding: 12px; text-align: center;">
+                <div style="font-size: 20px; font-weight: 800; color: #3b82f6;">${ranking.length}</div>
+                <div style="font-size: 10px; color: #888; text-transform: uppercase;">Participantes</div>
+            </div>
+        </div>
+    </div>
+    `;
+
     container.innerHTML = html;
 }
 
-console.log("[PARTICIPANTE-ARTILHEIRO] ✅ Módulo v2.1 carregado");
+console.log("[PARTICIPANTE-ARTILHEIRO] ✅ Módulo v2.2 carregado");

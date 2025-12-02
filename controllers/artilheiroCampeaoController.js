@@ -1,6 +1,7 @@
-// controllers/artilheiroCampeaoController.js - VERSÃO 4.0
+// controllers/artilheiroCampeaoController.js - VERSÃO 4.1
 // ✅ PERSISTÊNCIA MONGODB + LÓGICA DE RODADA PARCIAL (igual Luva de Ouro)
 // ✅ SUPORTE A PARTICIPANTES INATIVOS (via endpoint /api/times/batch/status)
+// ✅ CORREÇÃO v4.1: Não incluir rodada atual quando mercado aberto (sem scouts válidos)
 
 import mongoose from "mongoose";
 
@@ -98,46 +99,78 @@ const ESCUDOS_CLUBES = {
     276: "https://s.sde.globo.com/media/organizations/2018/03/11/Internacional.svg",
     277: "https://s.sde.globo.com/media/organizations/2018/03/11/atletico-mg.svg",
     283: "https://s.sde.globo.com/media/organizations/2018/03/11/Cruzeiro-MG.svg",
-    285: "https://s.sde.globo.com/media/organizations/2023/03/28/palmeiras.svg",
-    354: "https://s.sde.globo.com/media/organizations/2019/02/04/bahia.svg",
+    285: "https://s.sde.globo.com/media/organizations/2019/02/13/bahia.svg",
+    286: "https://s.sde.globo.com/media/organizations/2018/03/11/Vitoria-BA.svg",
+    287: "https://s.sde.globo.com/media/organizations/2020/01/30/sport.svg",
+    290: "https://s.sde.globo.com/media/organizations/2018/03/11/Goias.svg",
+    292: "https://s.sde.globo.com/media/organizations/2018/03/11/coritiba.svg",
+    293: "https://s.sde.globo.com/media/organizations/2018/03/11/Atletico-PR.svg",
+    294: "https://s.sde.globo.com/media/organizations/2018/03/12/Santos-SP.svg",
+    315: "https://s.sde.globo.com/media/organizations/2018/03/11/Palmeiras-SP.svg",
+    354: "https://s.sde.globo.com/media/organizations/2018/03/12/ceara.svg",
+    356: "https://s.sde.globo.com/media/organizations/2018/03/11/Fortaleza-CE.svg",
+    373: "https://s.sde.globo.com/media/organizations/2018/03/11/Bragantino.svg",
+    1371: "https://s.sde.globo.com/media/organizations/2018/03/11/Cuiaba_MT.svg",
+    327: "https://s.sde.globo.com/media/organizations/2020/01/30/juventude.svg",
+    1335: "https://s.sde.globo.com/media/organizations/2023/03/13/Criciuma-SC.svg",
+    1386: "https://s.sde.globo.com/media/organizations/2018/03/14/Operario-Ferroviario-PR.svg",
+    341: "https://s.sde.globo.com/media/organizations/2025/01/04/avai_A9FyNlD.svg",
+    343: "https://s.sde.globo.com/media/organizations/2025/01/02/Chapecoense.svg",
+    352: "https://s.sde.globo.com/media/organizations/2025/01/17/Paysandu_TVYU2Sn.svg",
+    364: "https://s.sde.globo.com/media/organizations/2025/01/05/Mirassol.svg",
+    1373: "https://s.sde.globo.com/media/organizations/2024/01/18/Botafogo-PB.svg",
 };
 
+// ========================================
+// CONTROLLER
+// ========================================
 class ArtilheiroCampeaoController {
     /**
-     * ✅ PRINCIPAL: Retorna ranking completo
+     * ✅ Endpoint principal: Ranking de Artilheiros
      * GET /api/artilheiro-campeao/:ligaId/ranking
      */
     static async obterRanking(req, res) {
         try {
             const { ligaId } = req.params;
-            const { inicio = 1, fim = null, forcar_coleta = false } = req.query;
+            const { inicio, fim, forcar_coleta } = req.query;
 
             console.log(
-                `🏆 [ARTILHEIRO] Solicitação de ranking - Liga: ${ligaId}`,
+                ` [ARTILHEIRO] Solicitação de ranking - Liga: ${ligaId}`,
             );
 
-            // Validar liga
-            if (ligaId !== "684d821cf1a7ae16d1f89572") {
-                return res.status(400).json({
-                    success: false,
-                    error: "Liga não suportada",
-                });
-            }
+            const rodadaInicio = inicio ? parseInt(inicio) : 1;
 
-            const rodadaInicio = parseInt(inicio);
-
-            // ✅ Detectar status do mercado e rodada atual
+            // ✅ Detectar status do mercado
             const statusMercado =
                 await ArtilheiroCampeaoController.detectarStatusMercado();
             const rodadaAtual = statusMercado.rodadaAtual;
             const mercadoAberto = statusMercado.mercadoAberto;
 
-            // ✅ LÓGICA IGUAL LUVA DE OURO:
-            // rodadaFim = rodadaAtual (inclui parcial se mercado fechado/em andamento)
-            let rodadaFim = fim ? parseInt(fim) : rodadaAtual;
+            // ✅ CORREÇÃO v4.1: LÓGICA CORRETA DE RODADA FIM
+            // - Mercado ABERTO: rodada ainda não começou, usar rodadaAtual - 1 (última consolidada)
+            // - Mercado FECHADO: bola rolando, incluir rodada atual (parcial)
+            let rodadaFim;
+            if (fim) {
+                rodadaFim = parseInt(fim);
+                // ✅ CORREÇÃO: Se mercado aberto e fim = rodadaAtual, corrigir para rodadaAtual - 1
+                // Pois não existem scouts válidos na rodada atual quando mercado está aberto
+                if (mercadoAberto && rodadaFim >= rodadaAtual) {
+                    rodadaFim = rodadaAtual - 1;
+                    console.log(
+                        `⚠️ Corrigido: fim=${fim} → ${rodadaFim} (mercado aberto, sem scouts)`,
+                    );
+                }
+            } else {
+                rodadaFim = mercadoAberto ? rodadaAtual - 1 : rodadaAtual;
+            }
+
+            // Garantir que rodadaFim não seja menor que rodadaInicio
+            if (rodadaFim < rodadaInicio) {
+                rodadaFim = rodadaInicio;
+            }
 
             console.log(
-                `📊 Rodada ${rodadaInicio}-${rodadaFim}, Mercado: ${mercadoAberto ? "Aberto" : "Fechado"}`,
+                `📊 Rodada ${rodadaInicio}-${rodadaFim}, Mercado: ${mercadoAberto ? "Aberto" : "Fechado"}, Rodada API: ${rodadaAtual}`,
             );
 
             // Gerar ranking (retorna { ativos, inativos, ... })
@@ -167,7 +200,7 @@ class ArtilheiroCampeaoController {
                     ranking, // ✅ Ranking completo (frontend fará separação ativos/inativos)
                     estatisticas,
                     rodadaFim,
-                    rodadaParcial: !mercadoAberto ? rodadaAtual : null, // ✅ Indica rodada em andamento
+                    rodadaParcial: !mercadoAberto ? rodadaAtual : null, // ✅ Indica rodada em andamento (só se mercado fechado)
                 },
                 timestamp: new Date().toISOString(),
             });
@@ -219,6 +252,10 @@ class ArtilheiroCampeaoController {
                     rodadaAtual: status.rodadaAtual,
                     mercadoAberto: status.mercadoAberto,
                     statusMercado: status.statusMercado,
+                    // ✅ NOVO: informar última rodada consolidada
+                    ultimaRodadaConsolidada: status.mercadoAberto
+                        ? status.rodadaAtual - 1
+                        : status.rodadaAtual,
                 },
             });
         } catch (error) {
@@ -310,32 +347,23 @@ class ArtilheiroCampeaoController {
                         saldoGols: 0,
                         rodadasProcessadas: 0,
                         detalhePorRodada: [],
+                        erro: error.message,
                     };
                 }
             }),
         );
 
-        // Ordenar por saldo de gols (desc), depois por gols pró (desc)
-        ranking.sort((a, b) => {
-            if (b.saldoGols !== a.saldoGols) return b.saldoGols - a.saldoGols;
-            return b.golsPro - a.golsPro;
+        // Ordenar por gols pró (maior primeiro), depois por saldo
+        return ranking.sort((a, b) => {
+            if (b.golsPro !== a.golsPro) return b.golsPro - a.golsPro;
+            return b.saldoGols - a.saldoGols;
         });
-
-        // Atribuir posições
-        ranking.forEach((item, index) => {
-            item.posicao = index + 1;
-        });
-
-        return ranking;
     }
 
     /**
-     * ✅ Obter dados de um participante - OTIMIZADO
-     * LÓGICA:
-     * 1. Buscar TODAS as rodadas consolidadas do MongoDB de uma vez
-     * 2. Identificar rodadas que faltam
-     * 3. Buscar da API em paralelo
-     * 4. Para rodada PARCIAL: usar /atletas/pontuados para scouts em tempo real
+     * ✅ Obter dados de um participante específico
+     * - Busca rodadas consolidadas do MongoDB
+     * - Busca rodada atual da API se parcial
      */
     static async obterDadosParticipante(
         ligaId,
@@ -346,248 +374,135 @@ class ArtilheiroCampeaoController {
         forcarColeta,
         atletasPontuados = null,
     ) {
+        let golsPro = 0;
+        let golsContra = 0;
+        let rodadasProcessadas = 0;
         const detalhePorRodada = [];
-        const isParcialRodada = rodadaFim; // Última rodada quando mercado fechado
 
-        // ✅ PASSO 1: Buscar TODAS as rodadas consolidadas do MongoDB de uma vez
-        let dadosMongoDB = {};
-        if (!forcarColeta) {
-            const registros = await GolsConsolidados.find({
-                ligaId,
-                timeId,
-                rodada: { $gte: rodadaInicio, $lte: rodadaFim },
-                parcial: false, // ✅ Só dados consolidados
-            }).lean();
+        // ✅ 1. Buscar rodadas consolidadas do MongoDB
+        const rodadasDB = await GolsConsolidados.find({
+            ligaId: ligaId,
+            timeId: timeId,
+            rodada: { $gte: rodadaInicio, $lte: rodadaFim },
+            parcial: false, // Apenas consolidadas
+        }).lean();
 
-            registros.forEach((r) => {
-                dadosMongoDB[r.rodada] = r;
+        console.log(`  💾 ${rodadasDB.length} rodadas do MongoDB`);
+
+        // Somar gols das rodadas consolidadas
+        for (const rodada of rodadasDB) {
+            golsPro += rodada.golsPro || 0;
+            golsContra += rodada.golsContra || 0;
+            rodadasProcessadas++;
+            detalhePorRodada.push({
+                rodada: rodada.rodada,
+                golsPro: rodada.golsPro,
+                golsContra: rodada.golsContra,
+                jogadores: rodada.jogadores || [],
+                fonte: "mongodb",
             });
-
-            if (registros.length > 0) {
-                console.log(`  💾 ${registros.length} rodadas do MongoDB`);
-            }
         }
 
-        // ✅ PASSO 2: Identificar rodadas que precisam buscar da API
-        const rodadasParaBuscar = [];
-        for (let rodada = rodadaInicio; rodada <= rodadaFim; rodada++) {
-            const isParcial = !mercadoAberto && rodada === rodadaFim;
+        // ✅ 2. Se mercado FECHADO, adicionar dados parciais da rodada atual
+        if (!mercadoAberto && atletasPontuados) {
+            const dadosParciais =
+                await ArtilheiroCampeaoController.calcularGolsRodadaParcial(
+                    timeId,
+                    rodadaFim,
+                    atletasPontuados,
+                );
 
-            // ✅ SEMPRE buscar da API se:
-            // - Rodada parcial (última rodada com mercado fechado)
-            // - Não tem no MongoDB
-            // - Forçar coleta
-            const deveBuscarApi =
-                isParcial || !dadosMongoDB[rodada] || forcarColeta;
+            if (dadosParciais) {
+                golsPro += dadosParciais.golsPro;
+                golsContra += dadosParciais.golsContra;
 
-            if (deveBuscarApi) {
-                rodadasParaBuscar.push({ rodada, isParcial });
-                if (isParcial) {
-                    console.log(
-                        `  ⚡ R${rodada}: Rodada PARCIAL - buscando scouts em tempo real`,
-                    );
+                // Verificar se já existe rodada parcial no detalhe
+                const existeParcial = detalhePorRodada.some(
+                    (d) => d.rodada === rodadaFim,
+                );
+                if (!existeParcial) {
+                    rodadasProcessadas++;
+                    detalhePorRodada.push({
+                        rodada: rodadaFim,
+                        golsPro: dadosParciais.golsPro,
+                        golsContra: dadosParciais.golsContra,
+                        jogadores: dadosParciais.jogadores,
+                        fonte: "api_parcial",
+                        parcial: true,
+                    });
                 }
             }
         }
 
-        // ✅ PASSO 3: Buscar da API em PARALELO (máximo 5 simultâneas)
-        if (rodadasParaBuscar.length > 0) {
-            console.log(
-                `  🌐 Buscando ${rodadasParaBuscar.length} rodadas da API...`,
-            );
-
-            // Processar em batches de 5 para não sobrecarregar a API
-            const BATCH_SIZE = 5;
-            for (let i = 0; i < rodadasParaBuscar.length; i += BATCH_SIZE) {
-                const batch = rodadasParaBuscar.slice(i, i + BATCH_SIZE);
-
-                const resultados = await Promise.all(
-                    batch.map(async ({ rodada, isParcial }) => {
-                        // ✅ Passar atletasPontuados para rodada PARCIAL
-                        const dadosApi =
-                            await ArtilheiroCampeaoController.buscarDadosApiCartola(
-                                timeId,
-                                rodada,
-                                isParcial,
-                                isParcial ? atletasPontuados : null,
-                            );
-
-                        if (dadosApi) {
-                            // Salvar no MongoDB (async, não aguardar)
-                            GolsConsolidados.findOneAndUpdate(
-                                { ligaId, timeId, rodada },
-                                {
-                                    ligaId,
-                                    timeId,
-                                    rodada,
-                                    golsPro: dadosApi.golsPro,
-                                    golsContra: dadosApi.golsContra,
-                                    saldo:
-                                        dadosApi.golsPro - dadosApi.golsContra,
-                                    jogadores: dadosApi.jogadores,
-                                    parcial: isParcial,
-                                    dataColeta: new Date(),
-                                },
-                                { upsert: true },
-                            ).exec(); // Fire and forget
-
-                            return {
-                                rodada,
-                                golsPro: dadosApi.golsPro,
-                                golsContra: dadosApi.golsContra,
-                                jogadores: dadosApi.jogadores,
-                                parcial: isParcial,
-                            };
-                        }
-                        return null;
-                    }),
-                );
-
-                // Adicionar resultados ao dadosMongoDB
-                resultados.filter(Boolean).forEach((r) => {
-                    dadosMongoDB[r.rodada] = r;
-                });
-            }
-        }
-
-        // ✅ PASSO 4: Montar resultado final
-        let golsPro = 0;
-        let golsContra = 0;
-        let rodadasProcessadas = 0;
-
-        for (let rodada = rodadaInicio; rodada <= rodadaFim; rodada++) {
-            const dados = dadosMongoDB[rodada];
-            if (dados) {
-                const gp = dados.golsPro || 0;
-                const gc = dados.golsContra || 0;
-
-                golsPro += gp;
-                golsContra += gc;
-                rodadasProcessadas++;
-
-                detalhePorRodada.push({
-                    rodada,
-                    golsPro: gp,
-                    golsContra: gc,
-                    saldo: gp - gc,
-                    parcial:
-                        dados.parcial ||
-                        (!mercadoAberto && rodada === rodadaFim),
-                    jogadores: (dados.jogadores || []).filter(
-                        (j) => j.gols > 0 || j.golsContra > 0,
-                    ),
-                });
-            }
-        }
-
-        return { golsPro, golsContra, rodadasProcessadas, detalhePorRodada };
+        return {
+            golsPro,
+            golsContra,
+            rodadasProcessadas,
+            detalhePorRodada,
+        };
     }
 
     /**
-     * ✅ Buscar atletas pontuados (dados PARCIAIS em tempo real)
-     * Este endpoint retorna os scouts atualizados durante a rodada em andamento
+     * ✅ Buscar atletas pontuados (para rodada parcial)
      */
     static async buscarAtletasPontuados() {
         try {
-            const url = "https://api.cartola.globo.com/atletas/pontuados";
-            const response = await fetch(url);
-
-            if (!response.ok) {
-                console.warn(
-                    `⚠️ Erro ao buscar atletas pontuados: ${response.status}`,
-                );
-                return {};
-            }
+            const response = await fetch(
+                "https://api.cartola.globo.com/atletas/pontuados",
+            );
+            if (!response.ok) return {};
 
             const data = await response.json();
             return data.atletas || {};
         } catch (error) {
-            console.error(
-                "❌ Erro ao buscar atletas pontuados:",
-                error.message,
-            );
+            console.warn("⚠️ Erro ao buscar atletas pontuados:", error.message);
             return {};
         }
     }
 
     /**
-     * ✅ Buscar dados da API Cartola
-     * IMPORTANTE: Para rodada PARCIAL, precisa cruzar com /atletas/pontuados
+     * ✅ Calcular gols de uma rodada parcial
      */
-    static async buscarDadosApiCartola(
-        timeId,
-        rodada,
-        isParcial = false,
-        atletasPontuados = null,
-    ) {
+    static async calcularGolsRodadaParcial(timeId, rodada, atletasPontuados) {
         try {
-            const url = `https://api.cartola.globo.com/time/id/${timeId}/${rodada}`;
-            const response = await fetch(url);
-
-            if (!response.ok) {
-                if (response.status === 404) return null;
-                throw new Error(`HTTP ${response.status}`);
-            }
+            // Buscar escalação do time na rodada
+            const response = await fetch(
+                `https://api.cartola.globo.com/time/id/${timeId}/${rodada}`,
+            );
+            if (!response.ok) return null;
 
             const data = await response.json();
-
-            if (!data || !data.atletas) {
-                return { golsPro: 0, golsContra: 0, jogadores: [], pontos: 0 };
-            }
+            const atletas = data.atletas || [];
 
             let golsPro = 0;
             let golsContra = 0;
             const jogadores = [];
 
-            for (const atleta of data.atletas) {
-                let scout = atleta.scout || {};
+            for (const atleta of atletas) {
+                const atletaId = atleta.atleta_id;
+                const pontuado = atletasPontuados[atletaId];
 
-                // ✅ Se é rodada PARCIAL, buscar scouts atualizados do endpoint /atletas/pontuados
-                if (
-                    isParcial &&
-                    atletasPontuados &&
-                    atletasPontuados[atleta.atleta_id]
-                ) {
-                    scout = atletasPontuados[atleta.atleta_id].scout || {};
-                }
+                if (pontuado && pontuado.scout) {
+                    const gols = pontuado.scout.G || 0;
+                    const gc = pontuado.scout.GC || 0;
 
-                const gols = scout.G || 0; // Gols feitos
-                const golsC = scout.GC || 0; // Gols contra
-
-                golsPro += gols;
-                golsContra += golsC;
-
-                if (gols > 0 || golsC > 0) {
-                    jogadores.push({
-                        atletaId: atleta.atleta_id,
-                        nome: atleta.apelido || atleta.nome,
-                        gols,
-                        golsContra: golsC,
-                    });
+                    if (gols > 0 || gc > 0) {
+                        golsPro += gols;
+                        golsContra += gc;
+                        jogadores.push({
+                            atletaId,
+                            nome: atleta.apelido || pontuado.apelido,
+                            gols,
+                            golsContra: gc,
+                        });
+                    }
                 }
             }
 
-            // ✅ Log detalhado para debug da rodada parcial
-            if (isParcial) {
-                console.log(
-                    `  📊 R${rodada} (PARCIAL): GP=${golsPro}, GC=${golsContra}`,
-                );
-                if (jogadores.length > 0) {
-                    jogadores.forEach((j) =>
-                        console.log(`     ⚽ ${j.nome}: ${j.gols} gol(s)`),
-                    );
-                }
-            }
-
-            return {
-                golsPro,
-                golsContra,
-                jogadores,
-                pontos: data.pontos || 0,
-            };
+            return { golsPro, golsContra, jogadores };
         } catch (error) {
             console.warn(
-                `⚠️ Erro API Cartola time ${timeId} R${rodada}:`,
+                `⚠️ Erro ao calcular parcial time ${timeId}:`,
                 error.message,
             );
             return null;
@@ -595,8 +510,179 @@ class ArtilheiroCampeaoController {
     }
 
     /**
+     * ✅ Endpoint para forçar coleta de uma rodada específica
+     * POST /api/artilheiro-campeao/:ligaId/coletar/:rodada
+     */
+    static async coletarRodada(req, res) {
+        try {
+            const { ligaId, rodada } = req.params;
+            const rodadaNum = parseInt(rodada);
+
+            console.log(
+                `🔄 [ARTILHEIRO] Coletando rodada ${rodadaNum} para liga ${ligaId}...`,
+            );
+
+            const resultados = [];
+
+            for (const participante of PARTICIPANTES_SOBRAL) {
+                try {
+                    const dados =
+                        await ArtilheiroCampeaoController.coletarDadosRodada(
+                            ligaId,
+                            participante.timeId,
+                            rodadaNum,
+                        );
+
+                    resultados.push({
+                        timeId: participante.timeId,
+                        nome: participante.nome,
+                        ...dados,
+                    });
+                } catch (error) {
+                    resultados.push({
+                        timeId: participante.timeId,
+                        nome: participante.nome,
+                        erro: error.message,
+                    });
+                }
+            }
+
+            res.json({
+                success: true,
+                rodada: rodadaNum,
+                resultados,
+            });
+        } catch (error) {
+            res.status(500).json({
+                success: false,
+                error: error.message,
+            });
+        }
+    }
+
+    /**
+     * ✅ Coletar dados de uma rodada específica para um time
+     */
+    static async coletarDadosRodada(ligaId, timeId, rodada) {
+        try {
+            const response = await fetch(
+                `https://api.cartola.globo.com/time/id/${timeId}/${rodada}`,
+            );
+            if (!response.ok) throw new Error(`HTTP ${response.status}`);
+
+            const data = await response.json();
+            const atletas = data.atletas || [];
+
+            let golsPro = 0;
+            let golsContra = 0;
+            const jogadores = [];
+
+            for (const atleta of atletas) {
+                const scout = atleta.scout || {};
+                const gols = scout.G || 0;
+                const gc = scout.GC || 0;
+
+                if (gols > 0 || gc > 0) {
+                    golsPro += gols;
+                    golsContra += gc;
+                    jogadores.push({
+                        atletaId: atleta.atleta_id,
+                        nome: atleta.apelido,
+                        gols,
+                        golsContra: gc,
+                    });
+                }
+            }
+
+            // ✅ Salvar no MongoDB (upsert)
+            await GolsConsolidados.findOneAndUpdate(
+                { ligaId, timeId, rodada },
+                {
+                    ligaId,
+                    timeId,
+                    rodada,
+                    golsPro,
+                    golsContra,
+                    saldo: golsPro - golsContra,
+                    jogadores,
+                    parcial: false,
+                    dataColeta: new Date(),
+                },
+                { upsert: true, new: true },
+            );
+
+            return { golsPro, golsContra, jogadores, salvo: true };
+        } catch (error) {
+            throw error;
+        }
+    }
+
+    /**
+     * ✅ Endpoint para limpar cache de uma liga
+     * DELETE /api/artilheiro-campeao/:ligaId/cache
+     */
+    static async limparCache(req, res) {
+        try {
+            const { ligaId } = req.params;
+
+            const result = await GolsConsolidados.deleteMany({ ligaId });
+
+            res.json({
+                success: true,
+                message: `Cache limpo: ${result.deletedCount} registros removidos`,
+            });
+        } catch (error) {
+            res.status(500).json({
+                success: false,
+                error: error.message,
+            });
+        }
+    }
+
+    /**
+     * ✅ Endpoint para obter detalhes de um time específico
+     * GET /api/artilheiro-campeao/:ligaId/time/:timeId
+     */
+    static async getDetalheTime(req, res) {
+        try {
+            const { ligaId, timeId } = req.params;
+
+            const rodadas = await GolsConsolidados.find({
+                ligaId,
+                timeId: parseInt(timeId),
+            })
+                .sort({ rodada: 1 })
+                .lean();
+
+            const totais = rodadas.reduce(
+                (acc, r) => {
+                    acc.golsPro += r.golsPro || 0;
+                    acc.golsContra += r.golsContra || 0;
+                    return acc;
+                },
+                { golsPro: 0, golsContra: 0 },
+            );
+
+            res.json({
+                success: true,
+                timeId: parseInt(timeId),
+                totais: {
+                    ...totais,
+                    saldo: totais.golsPro - totais.golsContra,
+                },
+                rodadas,
+            });
+        } catch (error) {
+            res.status(500).json({
+                success: false,
+                error: error.message,
+            });
+        }
+    }
+
+    /**
      * ✅ Consolidar rodada (marca dados como não-parciais)
-     * Chamado manualmente ou por scheduler quando rodada fecha
+     * POST /api/artilheiro-campeao/:ligaId/consolidar/:rodada
      */
     static async consolidarRodada(req, res) {
         try {
@@ -604,7 +690,6 @@ class ArtilheiroCampeaoController {
 
             console.log(`🔒 [ARTILHEIRO] Consolidando rodada ${rodada}...`);
 
-            // Atualizar todos os registros da rodada para parcial=false
             const result = await GolsConsolidados.updateMany(
                 { ligaId, rodada: parseInt(rodada), parcial: true },
                 { $set: { parcial: false } },
@@ -628,6 +713,7 @@ class ArtilheiroCampeaoController {
 
     /**
      * ✅ Estatísticas do sistema
+     * GET /api/artilheiro-campeao/:ligaId/estatisticas
      */
     static async obterEstatisticas(req, res) {
         try {
@@ -670,6 +756,7 @@ class ArtilheiroCampeaoController {
 
     /**
      * ✅ Listar participantes
+     * GET /api/artilheiro-campeao/:ligaId/participantes
      */
     static async listarParticipantes(req, res) {
         try {
