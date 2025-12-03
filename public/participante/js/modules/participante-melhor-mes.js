@@ -1,8 +1,8 @@
 // =====================================================================
-// PARTICIPANTE-MELHOR-MES.JS - v3.0 (Design PRO)
+// PARTICIPANTE-MELHOR-MES.JS - v3.1 (Design PRO + Config Admin)
 // =====================================================================
 
-console.log("[MELHOR-MES-PARTICIPANTE] 🏆 Módulo v3.0 carregando...");
+console.log("[MELHOR-MES-PARTICIPANTE] 🏆 Módulo v3.1 carregando...");
 
 let ligaIdAtual = null;
 let timeIdAtual = null;
@@ -104,9 +104,7 @@ function renderizarMelhorMes(edicoes, meuTimeId) {
     if (!container) return;
 
     container.innerHTML = edicoes
-        .map((edicao, index) =>
-            renderizarEdicao(edicao, index + 1, meuTimeIdNum),
-        )
+        .map((edicao) => renderizarEdicao(edicao, meuTimeIdNum))
         .join("");
 
     // Adicionar eventos de expansão
@@ -161,16 +159,16 @@ function renderizarConquistas(conquistas) {
 // =====================================================================
 // RENDERIZAR EDIÇÃO INDIVIDUAL
 // =====================================================================
-function renderizarEdicao(edicao, numero, meuTimeIdNum) {
+function renderizarEdicao(edicao, meuTimeIdNum) {
     const campeao = edicao.campeao;
     const souCampeao = campeao && Number(campeao.timeId) === meuTimeIdNum;
 
-    // Status
+    // Status - aceita tanto "consolidado" quanto "concluido"
     let statusClass = "aguardando";
     let statusIcon = "📅";
     let statusText = "AGUARDANDO";
 
-    if (edicao.status === "concluido") {
+    if (edicao.status === "consolidado" || edicao.status === "concluido") {
         statusClass = "concluido";
         statusIcon = "✓";
         statusText = "CONCLUÍDO";
@@ -181,7 +179,7 @@ function renderizarEdicao(edicao, numero, meuTimeIdNum) {
     }
 
     // Ícone da edição
-    const edicaoIcon = edicoesIcons[numero] || `📅`;
+    const edicaoIcon = edicoesIcons[edicao.id] || `📅`;
 
     // Pontos formatados
     const pontosFormatados = campeao
@@ -203,12 +201,19 @@ function renderizarEdicao(edicao, numero, meuTimeIdNum) {
         campeaoIcon = "🎖️";
     }
 
+    // Rodadas info
+    const rodadasInfo =
+        edicao.inicio && edicao.fim ? `R${edicao.inicio}-R${edicao.fim}` : "";
+
     return `
         <div class="edicao-card-pro ${souCampeao ? "meu-titulo" : ""}">
             <div class="edicao-header-pro">
                 <div class="edicao-info-pro">
                     <div class="edicao-icon-box">${edicaoIcon}</div>
-                    <span class="edicao-nome-pro">${numero}ª Edição</span>
+                    <div>
+                        <span class="edicao-nome-pro">${edicao.nome}</span>
+                        ${rodadasInfo ? `<span class="edicao-rodadas-info">${rodadasInfo}</span>` : ""}
+                    </div>
                 </div>
                 <div class="edicao-controls">
                     <span class="status-badge ${statusClass}">
@@ -354,4 +359,4 @@ function mostrarToast(msg) {
     }
 }
 
-console.log("[MELHOR-MES-PARTICIPANTE] ✅ Módulo v3.0 carregado");
+console.log("[MELHOR-MES-PARTICIPANTE] ✅ Módulo v3.1 carregado");

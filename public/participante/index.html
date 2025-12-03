@@ -1,95 +1,235 @@
-<!DOCTYPE html>
-<html lang="pt-BR">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <meta name="theme-color" content="#0a0a0a">
-    <meta name="apple-mobile-web-app-capable" content="yes">
-    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-    <title>Super Cartola - Participante</title>
-    <link rel="icon" href="../favicon.png">
+<!doctype html>
+<html lang="pt-BR" class="dark">
+    <head>
+        <meta charset="UTF-8" />
+        <meta
+            name="viewport"
+            content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"
+        />
+        <meta name="theme-color" content="#0a0a0a" />
+        <meta name="apple-mobile-web-app-capable" content="yes" />
+        <meta
+            name="apple-mobile-web-app-status-bar-style"
+            content="black-translucent"
+        />
+        <title>Super Cartola - Participante</title>
+        <link rel="icon" href="../favicon.png" />
 
-    <!-- Material Symbols -->
-    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200" />
+        <!-- ================================================== -->
+        <!-- TAILWIND CDN + CONFIG -->
+        <!-- ================================================== -->
+        <script src="https://cdn.tailwindcss.com?plugins=forms,typography"></script>
+        <script>
+            tailwind.config = {
+                darkMode: "class",
+                theme: {
+                    extend: {
+                        colors: {
+                            primary: "#ff5c00",
+                            "background-light": "#f6f8f7",
+                            "background-dark": "#101010",
+                            "surface-dark": "#1c1c1c",
+                        },
+                        fontFamily: {
+                            display: ["Roboto", "sans-serif"],
+                            mono: ["JetBrains Mono", "monospace"],
+                        },
+                    },
+                },
+            };
+        </script>
 
-    <!-- JetBrains Mono Font -->
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+        <!-- ================================================== -->
+        <!-- MATERIAL ICONS -->
+        <!-- ================================================== -->
+        <link
+            rel="stylesheet"
+            href="https://fonts.googleapis.com/icon?family=Material+Icons"
+        />
+        <link
+            rel="stylesheet"
+            href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200"
+        />
 
-    <link rel="stylesheet" href="/css/base.css">
-    <link rel="stylesheet" href="css/participante.css">
-    <style>
-        .material-symbols-outlined {
-            font-family: 'Material Symbols Outlined';
-            font-weight: normal;
-            font-style: normal;
-            font-size: 24px;
-            line-height: 1;
-            letter-spacing: normal;
-            text-transform: none;
-            display: inline-block;
-            white-space: nowrap;
-            word-wrap: normal;
-            direction: ltr;
-            font-variation-settings: 'FILL' 1, 'wght' 400, 'GRAD' 0, 'opsz' 24;
-            -webkit-font-smoothing: antialiased;
-            -moz-osx-font-smoothing: grayscale;
-        }
-    </style>
-</head>
-<body>
-    <div class="participante-container">
-        <!-- HEADER STICKY COM BACKDROP BLUR -->
-        <header class="participante-header-modern">
-            <div class="header-main-modern">
-                <!-- Info Principal -->
-                <div class="header-info-group">
-                    <div class="escudos-mini-modern">
-                        <img id="escudoTime" class="escudo-mini-modern" src="/escudos/placeholder.png" alt="Time">
-                        <img id="escudoCoracao" class="escudo-coracao-modern" src="/escudos/placeholder.png" alt="Coração">
-                    </div>
-                    <div class="info-participante-modern">
-                        <h1 id="nomeTime">Carregando...</h1>
-                        <p id="nomeCartoleiro"><span id="nomeCartolaText">Aguarde...</span></p>
-                    </div>
-                </div>
+        <!-- ================================================== -->
+        <!-- FONTS -->
+        <!-- ================================================== -->
+        <link rel="preconnect" href="https://fonts.googleapis.com" />
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+        <link
+            href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;600;700&display=swap"
+            rel="stylesheet"
+        />
+        <link
+            href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600;700;800&display=swap"
+            rel="stylesheet"
+        />
 
-                <!-- Ações Minimalistas -->
-                <div class="header-actions-modern">
-                    <!-- Status Online/Offline -->
-                    <div class="status-wrapper" style="display: flex; align-items: center; gap: 4px; margin-right: 8px;">
-                        <div id="statusIndicador" style="width: 8px; height: 8px; border-radius: 50%; background: #22c55e;"></div>
-                        <span id="statusTexto" style="font-size: 10px; color: #22c55e; font-weight: 600;">Online</span>
-                    </div>
-
-                    <!-- Menu Configurações (Seletor Liga + Logout) -->
-                    <button class="btn-icon-modern btn-menu" id="headerMenuToggle" title="Menu">
-                        <span class="material-symbols-outlined">menu</span>
-                    </button>
-                </div>
-            </div>
-
-            <!-- LINHA EXPANSÍVEL - Controles Secundários -->
-            <div id="headerSecondary" class="header-secondary">
-                <div class="secondary-content">
-                    <!-- Seletor de Liga -->
-                    <select id="seletorLiga" class="liga-selector">
-                        <option>Carregando ligas...</option>
-                    </select>
-
-                    <!-- Logout -->
-                    <button class="btn-logout" onclick="logout()">
-                        🚪 Sair
-                    </button>
-                </div>
-            </div>
-        </header>
+        <!-- ================================================== -->
+        <!-- CSS BASE -->
+        <!-- ================================================== -->
+        <link rel="stylesheet" href="/css/base.css" />
+        <link rel="stylesheet" href="css/participante.css" />
 
         <style>
+            /* Material Symbols config */
+            .material-symbols-outlined {
+                font-family: "Material Symbols Outlined";
+                font-weight: normal;
+                font-style: normal;
+                font-size: 24px;
+                line-height: 1;
+                letter-spacing: normal;
+                text-transform: none;
+                display: inline-block;
+                white-space: nowrap;
+                word-wrap: normal;
+                direction: ltr;
+                font-variation-settings:
+                    "FILL" 1,
+                    "wght" 400,
+                    "GRAD" 0,
+                    "opsz" 24;
+                -webkit-font-smoothing: antialiased;
+                -moz-osx-font-smoothing: grayscale;
+            }
+
+            /* Garantir que Material Icons funcione */
+            .material-icons {
+                font-family: "Material Icons";
+                font-weight: normal;
+                font-style: normal;
+                font-size: 24px;
+                line-height: 1;
+                letter-spacing: normal;
+                text-transform: none;
+                display: inline-block;
+                white-space: nowrap;
+                word-wrap: normal;
+                direction: ltr;
+                -webkit-font-smoothing: antialiased;
+            }
+
+            /* Scrollbar estilizada */
+            ::-webkit-scrollbar {
+                width: 4px;
+                height: 4px;
+            }
+            ::-webkit-scrollbar-track {
+                background: #1c1c1c;
+            }
+            ::-webkit-scrollbar-thumb {
+                background: #ff5c00;
+                border-radius: 2px;
+            }
+
+            /* Animação de spin para refresh */
+            @keyframes spin {
+                to {
+                    transform: rotate(360deg);
+                }
+            }
+            .animate-spin {
+                animation: spin 0.8s linear infinite;
+            }
+        </style>
+    </head>
+    <body class="bg-background-dark font-display text-white">
+        <div class="participante-container">
+            <!-- HEADER STICKY COM BACKDROP BLUR -->
+            <header class="participante-header-modern">
+                <div class="header-main-modern">
+                    <!-- Info Principal -->
+                    <div class="header-info-group">
+                        <div class="escudos-mini-modern">
+                            <img
+                                id="escudoTime"
+                                class="escudo-mini-modern"
+                                src="/escudos/placeholder.png"
+                                alt="Time"
+                            />
+                            <img
+                                id="escudoCoracao"
+                                class="escudo-coracao-modern"
+                                src="/escudos/placeholder.png"
+                                alt="Coração"
+                            />
+                        </div>
+                        <div class="info-participante-modern">
+                            <h1 id="nomeTime">Carregando...</h1>
+                            <p id="nomeCartoleiro">
+                                <span id="nomeCartolaText">Aguarde...</span>
+                            </p>
+                        </div>
+                    </div>
+
+                    <!-- Ações Minimalistas -->
+                    <div class="header-actions-modern">
+                        <!-- Status Online/Offline -->
+                        <div
+                            class="status-wrapper"
+                            style="
+                                display: flex;
+                                align-items: center;
+                                gap: 4px;
+                                margin-right: 8px;
+                            "
+                        >
+                            <div
+                                id="statusIndicador"
+                                style="
+                                    width: 8px;
+                                    height: 8px;
+                                    border-radius: 50%;
+                                    background: #22c55e;
+                                "
+                            ></div>
+                            <span
+                                id="statusTexto"
+                                style="
+                                    font-size: 10px;
+                                    color: #22c55e;
+                                    font-weight: 600;
+                                "
+                                >Online</span
+                            >
+                        </div>
+
+                        <!-- Menu Configurações (Seletor Liga + Logout) -->
+                        <button
+                            class="btn-icon-modern btn-menu"
+                            id="headerMenuToggle"
+                            title="Menu"
+                        >
+                            <span class="material-symbols-outlined">menu</span>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- LINHA EXPANSÍVEL - Controles Secundários -->
+                <div id="headerSecondary" class="header-secondary">
+                    <div class="secondary-content">
+                        <!-- Seletor de Liga -->
+                        <select id="seletorLiga" class="liga-selector">
+                            <option>Carregando ligas...</option>
+                        </select>
+
+                        <!-- Logout -->
+                        <button class="btn-logout" onclick="logout()">
+                            🚪 Sair
+                        </button>
+                    </div>
+                </div>
+            </header>
+
+            <style>
                 /* HEADER MOBILE-FIRST - 360px-414px OTIMIZADO */
                 .participante-header {
-                    background: linear-gradient(135deg, #FF6B35 0%, #FF5722 100%);
+                    background: linear-gradient(
+                        135deg,
+                        #ff6b35 0%,
+                        #ff5722 100%
+                    );
                     box-shadow: 0 2px 12px rgba(255, 107, 53, 0.4);
                     border-bottom: 2px solid rgba(255, 140, 66, 0.6);
                 }
@@ -301,47 +441,50 @@
                 }
             </style>
 
-        <!-- SCRIPT: Toggle Menu -->
-        <script>
-            document.addEventListener('DOMContentLoaded', function() {
-                const toggle = document.getElementById('headerMenuToggle');
-                const secondary = document.getElementById('headerSecondary');
-                if (toggle && secondary) {
-                    toggle.addEventListener('click', () => {
-                        secondary.classList.toggle('active');
-                        toggle.style.transform = secondary.classList.contains('active') ? 'rotate(90deg)' : 'rotate(0deg)';
-                    });
-                    secondary.querySelectorAll('button, select').forEach(btn => {
-                        btn.addEventListener('click', () => {
-                            secondary.classList.remove('active');
-                            toggle.style.transform = 'rotate(0deg)';
+            <!-- SCRIPT: Toggle Menu -->
+            <script>
+                document.addEventListener("DOMContentLoaded", function () {
+                    const toggle = document.getElementById("headerMenuToggle");
+                    const secondary =
+                        document.getElementById("headerSecondary");
+                    if (toggle && secondary) {
+                        toggle.addEventListener("click", () => {
+                            secondary.classList.toggle("active");
+                            toggle.style.transform =
+                                secondary.classList.contains("active")
+                                    ? "rotate(90deg)"
+                                    : "rotate(0deg)";
                         });
-                    });
-                }
-            });
-        </script>
+                        secondary
+                            .querySelectorAll("button, select")
+                            .forEach((btn) => {
+                                btn.addEventListener("click", () => {
+                                    secondary.classList.remove("active");
+                                    toggle.style.transform = "rotate(0deg)";
+                                });
+                            });
+                    }
+                });
+            </script>
 
+            <!-- Container para módulos -->
+            <main id="moduleContainer" class="module-container">
+                <!-- Conteúdo carregado dinamicamente -->
+            </main>
+        </div>
 
+        <!-- Core Systems com ES6 Modules -->
+        <script type="module" src="/js/core/cache-manager.js"></script>
+        <script type="module" src="/js/core/api-client.js"></script>
 
-        <!-- Container para módulos -->
-        <main id="moduleContainer" class="module-container">
-            <!-- Conteúdo carregado dinamicamente -->
-        </main>
-    </div>
+        <!-- Scripts participante (variáveis globais, não módulos ES6) -->
+        <script src="js/participante-auth.js"></script>
+        <script src="js/participante-navigation.js"></script>
+        <script src="js/participante-status.js"></script>
 
-    <!-- Core Systems com ES6 Modules -->
-    <script type="module" src="/js/core/cache-manager.js"></script>
-    <script type="module" src="/js/core/api-client.js"></script>
-
-    <!-- Scripts participante (variáveis globais, não módulos ES6) -->
-    <script src="js/participante-auth.js"></script>
-    <script src="js/participante-navigation.js"></script>
-    <script src="js/participante-status.js"></script>
-
-        <!-- BOTTOMNAVIGATION FIXO -->
+        <!-- BOTTOM NAVIGATION FIXO -->
         <nav class="bottom-nav-modern">
             <!-- Menu será renderizado dinamicamente pelo participante-navigation.js -->
         </nav>
-
-</body>
+    </body>
 </html>

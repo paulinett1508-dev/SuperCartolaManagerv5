@@ -39,7 +39,7 @@ async function getParticipantesInativos(ligaId) {
     inativos.forEach((p) => {
       mapa.set(String(p.timeId), {
         rodada_inativo: p.rodada_inativo || null,
-        status: p.status
+        status: p.status,
       });
     });
     return mapa;
@@ -116,7 +116,7 @@ router.put("/:ligaId/participante/:timeId/senha", async (req, res) => {
         nome_cartola: timeData?.nome_cartoleiro || "N/D",
         nome_time: timeData?.nome_time || "N/D",
         senha_acesso: senha.trim(),
-        ativo: true, // ✅ Default ativo
+        ativo: true,
       };
       liga.participantes.push(participante);
     } else {
@@ -168,7 +168,7 @@ router.get("/:id/ranking", async (req, res) => {
       const timeId = rodada.timeId;
 
       // ✅ Ignorar participantes inativos
-      if (inativos.has(timeId)) return;
+      if (inativos.has(String(timeId))) return;
 
       const pontos = parseFloat(rodada.pontos) || 0;
 
@@ -225,152 +225,37 @@ router.get("/:id/rodadas/:timeId", async (req, res) => {
   }
 });
 
+// =====================================================================
 // Rota: Buscar Melhor Mês de TODOS os participantes (ranking mensal)
-// ✅ ATUALIZADO: Filtra participantes inativos
+// ✅ v4.0 COM CACHE MONGODB - Edições consolidadas são imutáveis
 // IMPORTANTE: Esta rota DEVE vir ANTES de "/:id/melhor-mes/:timeId"
+// =====================================================================
 router.get("/:id/melhor-mes", async (req, res) => {
   const { id: ligaId } = req.params;
 
   try {
+    // Importar service
+    const melhorMesService = (await import("../services/melhorMesService.js"))
+      .default;
+
+    // Buscar rodada atual do sistema (última rodada processada)
     const Rodada = (await import("../models/Rodada.js")).default;
-    const Liga = (await import("../models/Liga.js")).default;
+    const ultimaRodada = await Rodada.findOne({ ligaId })
+      .sort({ rodada: -1 })
+      .select("rodada")
+      .lean();
 
-    // Buscar liga para pegar lista de times
-    const liga = await Liga.findById(ligaId).lean();
-    if (!liga) {
-      return res.status(404).json({ erro: "Liga não encontrada" });
-    }
+    const rodadaAtual = ultimaRodada?.rodada || 0;
 
-    // ✅ Buscar participantes inativos COM rodada de inativação
-    const inativos = await getParticipantesInativos(ligaId);
-
-    // Definição das edições mensais
-    const edicoes = [
-      { id: 1, nome: "Abril", rodadas: [1, 2, 3, 4] },
-      { id: 2, nome: "Maio", rodadas: [5, 6, 7, 8, 9] },
-      { id: 3, nome: "Junho", rodadas: [10, 11, 12, 13] },
-      { id: 4, nome: "Julho", rodadas: [14, 15, 16, 17, 18] },
-      { id: 5, nome: "Agosto", rodadas: [19, 20, 21, 22, 23] },
-      { id: 6, nome: "Setembro", rodadas: [24, 25, 26, 27, 28] },
-      { id: 7, nome: "Outubro", rodadas: [29, 30, 31, 32] },
-      { id: 8, nome: "Novembro", rodadas: [33, 34, 35, 36, 37, 38] },
-    ];
-
-    // Buscar TODAS as rodadas da liga
-    const todasRodadas = await Rodada.find({ ligaId }).lean();
-
-    if (!todasRodadas || todasRodadas.length === 0) {
-      return res.json({ edicoes: [], mensagem: "Nenhuma rodada encontrada" });
-    }
-
-    // Calcular ranking por mês
-    const resultado = edicoes.map((edicao) => {
-      // Filtrar rodadas deste mês
-      const rodadasDoMes = todasRodadas.filter((r) =>
-        edicao.rodadas.includes(r.rodada),
-      );
-
-      if (rodadasDoMes.length === 0) {
-        return {
-          id: edicao.id,
-          nome: edicao.nome,
-          rodadas: edicao.rodadas,
-          ranking: [],
-          status: "pendente",
-        };
-      }
-
-      // ✅ FILTRAR APENAS PARTICIPANTES INATIVOS **APÓS** A RODADA DE INATIVAÇÃO
-      const rodadasAtivas = rodadasDoMes.filter((r) => {
-        const timeIdStr = String(r.timeId);
-        const inativoData = inativos.get(timeIdStr);
-
-        // Se o participante não está na lista de inativos, ele está ativo
-        if (!inativoData) return true;
-
-        // Se o participante ficou inativo em uma rodada posterior à atual, ele ainda está ativo nesta rodada
-        if (inativoData.rodada_inativo && r.rodada < inativoData.rodada_inativo) {
-          return true;
-        }
-
-        // Se o participante está inativo ou ficou inativo nesta rodada ou antes, ele não está ativo
-        return false;
-      });
-
-
-      // Se não há dados de times ativos, retornar edição vazia
-      if (rodadasAtivas.length === 0) {
-        return {
-          id: edicao.id,
-          nome: edicao.nome,
-          rodadas: edicao.rodadas,
-          ranking: [],
-          campeao: null,
-          status: "aguardando",
-          totalParticipantes: 0,
-        };
-      }
-
-      // Agrupar por time (já filtrado)
-      const timesPontos = {};
-
-      rodadasAtivas.forEach((r) => {
-        const timeId = r.timeId;
-
-        if (!timesPontos[timeId]) {
-          timesPontos[timeId] = {
-            timeId: timeId,
-            nome_time: r.nome_time || r.nome || "N/D",
-            nome_cartola: r.nome_cartola || "",
-            pontos_total: 0,
-            rodadas_jogadas: 0,
-          };
-        }
-        timesPontos[timeId].pontos_total += parseFloat(r.pontos) || 0;
-        timesPontos[timeId].rodadas_jogadas++;
-      });
-
-      // Ordenar por pontos
-      const ranking = Object.values(timesPontos)
-        .sort((a, b) => b.pontos_total - a.pontos_total)
-        .map((time, index) => ({
-          ...time,
-          posicao: index + 1,
-          media:
-            time.rodadas_jogadas > 0
-              ? (time.pontos_total / time.rodadas_jogadas).toFixed(2)
-              : "0.00",
-        }));
-
-      // Verificar se mês está completo (todas as rodadas jogadas POR TIMES ATIVOS)
-      const rodadasJogadasAtivas = new Set(rodadasAtivas.map((r) => r.rodada));
-      const mesCompleto = edicao.rodadas.every((r) =>
-        rodadasJogadasAtivas.has(r)
-      );
-
-      return {
-        id: edicao.id,
-        nome: edicao.nome,
-        rodadas: edicao.rodadas,
-        ranking: ranking,
-        campeao: ranking.length > 0 ? ranking[0] : null,
-        status: mesCompleto ? "concluido" : "em_andamento",
-        totalParticipantes: ranking.length,
-      };
-    });
-
-    // ✅ FILTRAR APENAS EDIÇÕES COM PARTICIPANTES ATIVOS
-    const edicoesComDados = resultado.filter(
-      (e) => e.ranking && e.ranking.length > 0 && e.totalParticipantes > 0
-    );
+    // Buscar dados usando service (com cache)
+    const dados = await melhorMesService.buscarMelhorMes(ligaId, rodadaAtual);
 
     res.json({
-      edicoes: edicoesComDados,
-      totalEdicoes: edicoesComDados.length,
+      ...dados,
       ligaId: ligaId,
     });
   } catch (error) {
-    console.error(`[LIGAS] Erro ao buscar Melhor Mês geral:`, error);
+    console.error(`[LIGAS] Erro ao buscar Melhor Mês:`, error);
     res.status(500).json({ erro: "Erro ao buscar Melhor Mês" });
   }
 });
@@ -380,46 +265,29 @@ router.get("/:id/melhor-mes/:timeId", async (req, res) => {
   const { id: ligaId, timeId } = req.params;
 
   try {
+    // Importar service
+    const melhorMesService = (await import("../services/melhorMesService.js"))
+      .default;
+
+    // Buscar rodada atual
     const Rodada = (await import("../models/Rodada.js")).default;
+    const ultimaRodada = await Rodada.findOne({ ligaId })
+      .sort({ rodada: -1 })
+      .select("rodada")
+      .lean();
 
-    const edicoes = [
-      { id: 1, nome: "Abril", rodadas: [1, 2, 3, 4] },
-      { id: 2, nome: "Maio", rodadas: [5, 6, 7, 8, 9] },
-      { id: 3, nome: "Junho", rodadas: [10, 11, 12, 13] },
-      { id: 4, nome: "Julho", rodadas: [14, 15, 16, 17, 18] },
-      { id: 5, nome: "Agosto", rodadas: [19, 20, 21, 22, 23] },
-      { id: 6, nome: "Setembro", rodadas: [24, 25, 26, 27, 28] },
-      { id: 7, nome: "Outubro", rodadas: [29, 30, 31, 32] },
-      { id: 8, nome: "Novembro", rodadas: [33, 34, 35, 36, 37, 38] },
-    ];
+    const rodadaAtual = ultimaRodada?.rodada || 0;
 
-    const resultado = [];
+    // Buscar dados do participante usando service
+    const dados = await melhorMesService.buscarParticipanteMelhorMes(
+      ligaId,
+      timeId,
+      rodadaAtual,
+    );
 
-    for (const edicao of edicoes) {
-      const dadosRodadas = await Rodada.find({
-        ligaId,
-        timeId: parseInt(timeId),
-        rodada: { $in: edicao.rodadas },
-      }).lean();
-
-      if (dadosRodadas.length > 0) {
-        const totalPontos = dadosRodadas.reduce(
-          (sum, r) => sum + (parseFloat(r.pontos) || 0),
-          0,
-        );
-        resultado.push({
-          edicao: edicao.id,
-          nome: edicao.nome,
-          rodadas: edicao.rodadas,
-          total_pontos: totalPontos,
-          rodadas_jogadas: dadosRodadas.length,
-        });
-      }
-    }
-
-    res.json(resultado);
+    res.json(dados);
   } catch (error) {
-    console.error(`[LIGAS] Erro ao buscar Melhor Mês:`, error);
+    console.error(`[LIGAS] Erro ao buscar Melhor Mês do participante:`, error);
     res.status(500).json({ erro: "Erro ao buscar Melhor Mês" });
   }
 });
@@ -458,12 +326,15 @@ router.get("/:id/ranking/:rodada", async (req, res) => {
     // ✅ Filtrar inativos e ordenar
     const ranking = dados
       .filter((item) => {
-        const inativoData = inativos.get(item.timeId);
+        const inativoData = inativos.get(String(item.timeId));
         // Se não está inativo, ou se ficou inativo DEPOIS desta rodada, incluir
-        return !inativoData || (inativoData.rodada_inativo && item.rodada < inativoData.rodada_inativo);
+        return (
+          !inativoData ||
+          (inativoData.rodada_inativo &&
+            item.rodada < inativoData.rodada_inativo)
+        );
       })
       .sort((a, b) => (b.pontos || 0) - (a.pontos || 0));
-
 
     res.json(ranking);
   } catch (error) {
@@ -577,7 +448,7 @@ router.get("/:id/top10", async (req, res) => {
 
     rodadas.forEach((r) => {
       // ✅ Ignorar participantes inativos
-      if (inativos.has(r.timeId)) return;
+      if (inativos.has(String(r.timeId))) return;
 
       if (!rodadasAgrupadas[r.rodada]) {
         rodadasAgrupadas[r.rodada] = [];
@@ -626,5 +497,108 @@ router.get("/:id/rodadas/:rodadaNum", buscarRodadasDaLiga);
 // Rota de módulos ativos
 router.get("/:id/modulos-ativos", buscarModulosAtivos);
 router.put("/:id/modulos-ativos", atualizarModulosAtivos);
+
+// =====================================================================
+// ROTAS DE MANUTENÇÃO - MELHOR DO MÊS (ADMIN)
+// =====================================================================
+
+// Forçar reconsolidação do cache
+router.post("/:id/melhor-mes/reconsolidar", async (req, res) => {
+  const { id: ligaId } = req.params;
+
+  try {
+    const melhorMesService = (await import("../services/melhorMesService.js"))
+      .default;
+    const Rodada = (await import("../models/Rodada.js")).default;
+
+    // Buscar rodada atual
+    const ultimaRodada = await Rodada.findOne({ ligaId })
+      .sort({ rodada: -1 })
+      .select("rodada")
+      .lean();
+
+    const rodadaAtual = ultimaRodada?.rodada || 0;
+
+    // Forçar reconsolidação
+    const dados = await melhorMesService.forcarReconsolidacao(
+      ligaId,
+      rodadaAtual,
+    );
+
+    res.json({
+      sucesso: true,
+      mensagem: "Cache reconsolidado com sucesso",
+      edicoes: dados.edicoes?.length || 0,
+      rodada_sistema: rodadaAtual,
+      temporada_encerrada: dados.temporada_encerrada,
+    });
+  } catch (error) {
+    console.error(`[LIGAS] Erro ao reconsolidar Melhor Mês:`, error);
+    res.status(500).json({ erro: "Erro ao reconsolidar cache" });
+  }
+});
+
+// Invalidar cache (remove completamente)
+router.delete("/:id/melhor-mes/cache", async (req, res) => {
+  const { id: ligaId } = req.params;
+
+  try {
+    const melhorMesService = (await import("../services/melhorMesService.js"))
+      .default;
+
+    const resultado = await melhorMesService.invalidarCache(ligaId);
+
+    res.json({
+      sucesso: true,
+      mensagem: "Cache removido",
+      deletados: resultado.deletedCount,
+    });
+  } catch (error) {
+    console.error(`[LIGAS] Erro ao invalidar cache:`, error);
+    res.status(500).json({ erro: "Erro ao invalidar cache" });
+  }
+});
+
+// Status do cache
+router.get("/:id/melhor-mes/status", async (req, res) => {
+  const { id: ligaId } = req.params;
+
+  try {
+    const MelhorMesCache = (await import("../models/MelhorMesCache.js"))
+      .default;
+    const mongoose = (await import("mongoose")).default;
+
+    const ligaObjectId = new mongoose.Types.ObjectId(ligaId);
+    const cache = await MelhorMesCache.findOne({ ligaId: ligaObjectId }).lean();
+
+    if (!cache) {
+      return res.json({
+        existe: false,
+        mensagem: "Cache não existe para esta liga",
+      });
+    }
+
+    // Resumo das edições
+    const resumo = cache.edicoes.map((e) => ({
+      id: e.id,
+      nome: e.nome,
+      status: e.status,
+      participantes: e.total_participantes,
+      campeao: e.campeao?.nome_time || null,
+    }));
+
+    res.json({
+      existe: true,
+      rodada_sistema: cache.rodada_sistema,
+      temporada_encerrada: cache.temporada_encerrada,
+      total_edicoes: cache.edicoes.length,
+      edicoes: resumo,
+      atualizado_em: cache.atualizado_em,
+    });
+  } catch (error) {
+    console.error(`[LIGAS] Erro ao buscar status do cache:`, error);
+    res.status(500).json({ erro: "Erro ao buscar status" });
+  }
+});
 
 export default router;

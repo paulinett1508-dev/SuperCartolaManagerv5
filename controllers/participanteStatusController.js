@@ -28,6 +28,53 @@ function getTimeModel() {
     return mongoose.model("Time", TimeSchema);
 }
 
+// ✅ Função para obter o Model Liga de forma segura
+function getLigaModel() {
+    if (mongoose.models.Liga) {
+        return mongoose.models.Liga;
+    }
+    // Importar dinamicamente se necessário
+    return null;
+}
+
+/**
+ * ✅ NOVA FUNÇÃO: Obter participantes inativos de uma liga
+ * Retorna array com { timeId, rodada_inativo, status }
+ */
+export const obterParticipantesInativos = async (ligaId) => {
+    try {
+        const Time = getTimeModel();
+
+        // Buscar liga para obter lista de times
+        let Liga = getLigaModel();
+        if (!Liga) {
+            const LigaModule = await import("../models/Liga.js");
+            Liga = LigaModule.default;
+        }
+
+        const liga = await Liga.findById(ligaId).lean();
+        if (!liga || !liga.times || liga.times.length === 0) {
+            return [];
+        }
+
+        // Buscar times inativos que pertencem a esta liga
+        const timesInativos = await Time.find({
+            id: { $in: liga.times },
+            ativo: false,
+        }).lean();
+
+        // Mapear para o formato esperado
+        return timesInativos.map((time) => ({
+            timeId: time.id,
+            rodada_inativo: time.rodada_desistencia || null,
+            status: "inativo",
+        }));
+    } catch (error) {
+        console.error("[STATUS] Erro ao obter participantes inativos:", error);
+        return [];
+    }
+};
+
 /**
  * Inativa um participante a partir de uma rodada específica
  */
@@ -105,11 +152,9 @@ export const reativarParticipante = async (req, res) => {
         const time = await Time.findOne({ id: timeIdNum });
 
         if (!time) {
-            return res
-                .status(404)
-                .json({
-                    erro: "Participante não encontrado no banco de dados",
-                });
+            return res.status(404).json({
+                erro: "Participante não encontrado no banco de dados",
+            });
         }
 
         time.ativo = true;

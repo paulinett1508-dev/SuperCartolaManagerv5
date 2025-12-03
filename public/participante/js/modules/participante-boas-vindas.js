@@ -1,29 +1,8 @@
 // =====================================================================
-// PARTICIPANTE-BOAS-VINDAS.JS - v3.0 (DESIGN PROFISSIONAL)
+// PARTICIPANTE-BOAS-VINDAS.JS - v7.0 (TAILWIND)
 // =====================================================================
 
-console.log("[PARTICIPANTE-BOAS-VINDAS] 🔄 Carregando módulo v3.0...");
-
-// =====================================================================
-// CONSTANTES DE DESIGN
-// =====================================================================
-const COLORS = {
-    primary: "#ff5c00",
-    primaryLight: "rgba(255, 92, 0, 0.1)",
-    primaryBorder: "rgba(255, 92, 0, 0.2)",
-    background: "#101010",
-    surface: "#1c1c1c",
-    surfaceLight: "#2a2a2a",
-    textPrimary: "#ffffff",
-    textSecondary: "rgba(255, 255, 255, 0.7)",
-    textMuted: "rgba(255, 255, 255, 0.5)",
-    success: "#22c55e",
-    successBg: "rgba(34, 197, 94, 0.1)",
-    danger: "#ef4444",
-    dangerBg: "rgba(239, 68, 68, 0.1)",
-    warning: "#eab308",
-    warningBg: "rgba(234, 179, 8, 0.1)",
-};
+console.log("[PARTICIPANTE-BOAS-VINDAS] 🔄 Carregando módulo v7.0...");
 
 // =====================================================================
 // FUNÇÃO PRINCIPAL
@@ -66,25 +45,23 @@ export async function inicializarBoasVindasParticipante(params) {
     await carregarDadosERenderizar(ligaId, timeId, participante);
 }
 
-// Compatibilidade
 window.inicializarBoasVindasParticipante = inicializarBoasVindasParticipante;
 
 // =====================================================================
-// CARREGAR DADOS
+// CARREGAR DADOS E RENDERIZAR
 // =====================================================================
 async function carregarDadosERenderizar(ligaId, timeId, participante) {
     const container = document.getElementById("boas-vindas-container");
     if (!container) return;
 
-    // Loading state
+    // Loading
     container.innerHTML = `
-        <div style="display: flex; justify-content: center; align-items: center; min-height: 300px;">
-            <div style="text-align: center;">
-                <div style="width: 40px; height: 40px; border: 3px solid ${COLORS.surface}; border-top-color: ${COLORS.primary}; border-radius: 50%; animation: spin 1s linear infinite; margin: 0 auto 16px;"></div>
-                <p style="color: ${COLORS.textSecondary}; font-size: 14px;">Carregando...</p>
+        <div class="flex justify-center items-center min-h-[300px]">
+            <div class="text-center">
+                <div class="w-10 h-10 border-4 border-zinc-700 border-t-primary rounded-full animate-spin mx-auto mb-4"></div>
+                <p class="text-sm text-white/70">Carregando...</p>
             </div>
         </div>
-        <style>@keyframes spin { to { transform: rotate(360deg); } }</style>
     `;
 
     try {
@@ -101,11 +78,6 @@ async function carregarDadosERenderizar(ligaId, timeId, participante) {
         const ranking = resRanking.ok ? await resRanking.json() : [];
         const rodadas = resRodadas.ok ? await resRodadas.json() : [];
         const extratoData = resExtrato.ok ? await resExtrato.json() : null;
-
-        console.log(
-            "[PARTICIPANTE-BOAS-VINDAS] 📋 Dados da liga:",
-            participante,
-        );
 
         const meuTimeIdNum = Number(timeId);
         const meuTime = ranking.find((t) => Number(t.timeId) === meuTimeIdNum);
@@ -128,7 +100,7 @@ async function carregarDadosERenderizar(ligaId, timeId, participante) {
         const ultimaRodada = rodadasOrdenadas[0];
         const rodadaAtual = ultimaRodada ? ultimaRodada.rodada : 0;
 
-        // Calcular posição anterior
+        // Posição anterior
         let posicaoAnterior = null;
         if (rodadaAtual > 1 && minhasRodadas.length >= 2) {
             const rodadasAteAnterior = rodadas.filter(
@@ -138,22 +110,16 @@ async function carregarDadosERenderizar(ligaId, timeId, participante) {
             const meuTimeAnterior = rankingAnterior.find(
                 (t) => Number(t.timeId) === meuTimeIdNum,
             );
-            if (meuTimeAnterior) {
-                posicaoAnterior = meuTimeAnterior.posicao;
-            }
+            if (meuTimeAnterior) posicaoAnterior = meuTimeAnterior.posicao;
         }
 
         const saldoFinanceiro =
             extratoData?.saldo_atual ?? extratoData?.resumo?.saldo_final ?? 0;
-
-        // Dados do participante
         const nomeTime =
             participante?.nome_time || meuTime?.nome_time || "Seu Time";
         const nomeCartola =
             participante?.nome_cartola || meuTime?.nome_cartola || "Cartoleiro";
         const nomeLiga = liga?.nome || "Liga";
-        const fotoTime = participante?.foto_time || meuTime?.foto_time || "";
-        const clubeId = participante?.clube_id || meuTime?.clube_id || 262;
 
         console.log("[PARTICIPANTE-BOAS-VINDAS] ✅ Dados finais:", {
             nomeTime,
@@ -170,8 +136,6 @@ async function carregarDadosERenderizar(ligaId, timeId, participante) {
             nomeTime,
             nomeCartola,
             nomeLiga,
-            fotoTime,
-            clubeId,
             saldoFinanceiro,
             posicaoAnterior,
             minhasRodadas: rodadasOrdenadas,
@@ -179,9 +143,9 @@ async function carregarDadosERenderizar(ligaId, timeId, participante) {
     } catch (error) {
         console.error("[PARTICIPANTE-BOAS-VINDAS] ❌ Erro:", error);
         container.innerHTML = `
-            <div style="text-align: center; padding: 60px 20px;">
-                <span class="material-symbols-outlined" style="font-size: 48px; color: ${COLORS.danger};">error</span>
-                <p style="color: ${COLORS.textSecondary}; margin-top: 16px;">Erro ao carregar dados</p>
+            <div class="text-center py-16 px-5">
+                <span class="material-icons text-5xl text-red-500">error</span>
+                <p class="text-white/70 mt-4">Erro ao carregar dados</p>
             </div>
         `;
     }
@@ -195,18 +159,10 @@ function calcularRankingManual(rodadas) {
     rodadas.forEach((rodada) => {
         const timeId = Number(rodada.timeId) || Number(rodada.time_id);
         if (!timesAgrupados[timeId]) {
-            timesAgrupados[timeId] = {
-                timeId,
-                nome_time: rodada.nome_time,
-                nome_cartola: rodada.nome_cartola,
-                pontos_totais: 0,
-                rodadas_jogadas: 0,
-            };
+            timesAgrupados[timeId] = { timeId, pontos_totais: 0 };
         }
         timesAgrupados[timeId].pontos_totais += parseFloat(rodada.pontos) || 0;
-        timesAgrupados[timeId].rodadas_jogadas += 1;
     });
-
     return Object.values(timesAgrupados)
         .sort((a, b) => b.pontos_totais - a.pontos_totais)
         .map((time, index) => ({ ...time, posicao: index + 1 }));
@@ -219,37 +175,39 @@ function formatarPontos(valor) {
     });
 }
 
-function getZonaTexto(posicao, total) {
+function getZonaInfo(posicao, total) {
     if (!posicao || !total)
-        return { texto: "N/D", cor: COLORS.textMuted, icon: "help" };
+        return {
+            texto: "N/D",
+            corTexto: "text-white/50",
+            corBg: "bg-white/5",
+            icon: "help",
+        };
     const percentual = (posicao / total) * 100;
-
-    if (percentual <= 33) {
+    if (percentual <= 33)
         return {
             texto: "Zona de Premiação",
-            cor: COLORS.success,
+            corTexto: "text-green-400",
+            corBg: "bg-green-400/10",
             icon: "emoji_events",
-            bg: COLORS.successBg,
         };
-    } else if (percentual <= 66) {
+    if (percentual <= 66)
         return {
             texto: "Zona Intermediária",
-            cor: COLORS.warning,
+            corTexto: "text-yellow-400",
+            corBg: "bg-yellow-400/10",
             icon: "shield",
-            bg: COLORS.warningBg,
         };
-    } else {
-        return {
-            texto: "Zona de Risco",
-            cor: COLORS.danger,
-            icon: "warning",
-            bg: COLORS.dangerBg,
-        };
-    }
+    return {
+        texto: "Zona de Risco",
+        corTexto: "text-red-400",
+        corBg: "bg-red-400/10",
+        icon: "warning",
+    };
 }
 
 // =====================================================================
-// RENDERIZAÇÃO PRINCIPAL
+// RENDERIZAÇÃO - TAILWIND CLASSES
 // =====================================================================
 function renderizarBoasVindas(container, data) {
     const {
@@ -266,41 +224,54 @@ function renderizarBoasVindas(container, data) {
         minhasRodadas,
     } = data;
 
-    // Cálculos
-    const zona = getZonaTexto(posicao, totalParticipantes);
+    const zona = getZonaInfo(posicao, totalParticipantes);
+    const primeiroNome = nomeCartola.split(" ")[0];
+    const rodadasRestantes = Math.max(0, 38 - rodadaAtual);
+    const pontosUltimaRodada = ultimaRodada
+        ? parseFloat(ultimaRodada.pontos).toFixed(2)
+        : "0.00";
 
-    // Variação de posição
+    // Variação posição
     let variacaoPosHTML = "";
     if (posicao && posicaoAnterior) {
         const diff = posicaoAnterior - posicao;
-        if (diff > 0) {
-            variacaoPosHTML = `<span style="color: ${COLORS.success}; font-size: 12px; margin-left: 4px;">▲${diff}</span>`;
-        } else if (diff < 0) {
-            variacaoPosHTML = `<span style="color: ${COLORS.danger}; font-size: 12px; margin-left: 4px;">▼${Math.abs(diff)}</span>`;
-        }
+        if (diff > 0)
+            variacaoPosHTML = `<span class="text-green-400 text-xs ml-1">▲${diff}</span>`;
+        else if (diff < 0)
+            variacaoPosHTML = `<span class="text-red-400 text-xs ml-1">▼${Math.abs(diff)}</span>`;
     }
 
-    // Variação de pontos
-    let variacaoPontosHTML = "";
-    let tendenciaHTML = "";
+    // Variação pontos
+    let variacaoInfo = {
+        valor: "--",
+        cor: "text-white/50",
+        icon: "trending_flat",
+    };
     if (minhasRodadas.length >= 2) {
         const ultima = parseFloat(minhasRodadas[0].pontos) || 0;
         const penultima = parseFloat(minhasRodadas[1].pontos) || 0;
         const diff = ultima - penultima;
-
-        if (diff > 0) {
-            variacaoPontosHTML = `<span style="color: ${COLORS.success};">+${diff.toFixed(1)}</span>`;
-            tendenciaHTML = `<span class="material-symbols-outlined" style="color: ${COLORS.success}; font-size: 18px;">trending_up</span>`;
-        } else if (diff < 0) {
-            variacaoPontosHTML = `<span style="color: ${COLORS.danger};">${diff.toFixed(1)}</span>`;
-            tendenciaHTML = `<span class="material-symbols-outlined" style="color: ${COLORS.danger}; font-size: 18px;">trending_down</span>`;
-        } else {
-            variacaoPontosHTML = `<span style="color: ${COLORS.textMuted};">0.0</span>`;
-            tendenciaHTML = `<span class="material-symbols-outlined" style="color: ${COLORS.textMuted}; font-size: 18px;">trending_flat</span>`;
-        }
+        if (diff > 0)
+            variacaoInfo = {
+                valor: `+${diff.toFixed(1)}`,
+                cor: "text-green-400",
+                icon: "trending_up",
+            };
+        else if (diff < 0)
+            variacaoInfo = {
+                valor: diff.toFixed(1),
+                cor: "text-red-400",
+                icon: "trending_down",
+            };
+        else
+            variacaoInfo = {
+                valor: "0.0",
+                cor: "text-white/50",
+                icon: "trending_flat",
+            };
     }
 
-    // Saldo formatado
+    // Saldo
     const saldoAbs = Math.abs(saldoFinanceiro);
     const saldoFormatado =
         saldoFinanceiro >= 0
@@ -308,149 +279,114 @@ function renderizarBoasVindas(container, data) {
             : `-R$ ${saldoAbs.toFixed(0)}`;
     const saldoCor =
         saldoFinanceiro > 0
-            ? COLORS.success
+            ? "text-green-400"
             : saldoFinanceiro < 0
-              ? COLORS.danger
-              : COLORS.textMuted;
-
-    // Pontos última rodada
-    const pontosUltimaRodada = ultimaRodada
-        ? parseFloat(ultimaRodada.pontos).toFixed(2)
-        : "0.00";
-
-    // Rodadas restantes
-    const rodadasRestantes = 38 - rodadaAtual;
+              ? "text-red-400"
+              : "text-white/50";
 
     container.innerHTML = `
-        <div style="background: ${COLORS.background}; min-height: 100vh; padding-bottom: 100px; font-family: 'Lexend', sans-serif;">
+        <div class="pb-28">
 
             <!-- Saudação -->
-            <div style="padding: 20px 16px 16px;">
-                <h1 style="font-size: 24px; font-weight: 700; color: ${COLORS.textPrimary}; margin: 0 0 4px 0;">
-                    Olá, ${nomeCartola.split(" ")[0]}! 👋
-                </h1>
-                <p style="font-size: 14px; color: ${COLORS.textSecondary}; margin: 0;">
-                    ${nomeLiga} • Rodada ${rodadaAtual || "--"}
-                </p>
+            <div class="px-4 py-4">
+                <h1 class="text-xl font-bold leading-tight tracking-tight text-white">Olá, ${primeiroNome}! 👋</h1>
+                <p class="text-sm font-normal text-white/70">${nomeLiga} • Rodada ${rodadaAtual || "--"}</p>
             </div>
 
             <!-- Card Principal do Time -->
-            <div style="margin: 0 16px 16px; padding: 20px; background: ${COLORS.surface}; border-radius: 16px;">
-                <h3 style="text-align: center; font-size: 18px; font-weight: 700; color: ${COLORS.textPrimary}; margin: 0 0 20px 0;">
-                    ${nomeTime}
-                </h3>
-
-                <div style="display: flex; justify-content: space-around; align-items: center;">
-                    <!-- Posição -->
-                    <div style="text-align: center;">
-                        <p style="font-size: 12px; font-weight: 500; text-transform: uppercase; color: ${COLORS.textSecondary}; margin: 0 0 4px 0;">Posição</p>
-                        <p style="font-size: 40px; font-weight: 700; color: ${COLORS.textPrimary}; margin: 0; line-height: 1;">
-                            ${posicao ? `${posicao}º` : "--"}${variacaoPosHTML}
-                        </p>
-                        <p style="font-size: 12px; color: ${COLORS.textSecondary}; margin: 4px 0 0 0;">de ${totalParticipantes}</p>
+            <div class="mx-4 mb-4 rounded-xl bg-surface-dark p-4">
+                <h3 class="mb-4 text-center text-base font-bold leading-tight text-white">${nomeTime}</h3>
+                <div class="flex items-center justify-around">
+                    <div class="text-center">
+                        <p class="text-xs font-medium uppercase leading-normal text-white/70">Posição</p>
+                        <p class="text-4xl font-bold leading-tight tracking-tighter text-white">${posicao ? `${posicao}º` : "--"}</p>
+                        <p class="text-xs font-normal leading-normal text-white/70">de ${totalParticipantes}${variacaoPosHTML}</p>
                     </div>
-
-                    <!-- Pontos -->
-                    <div style="text-align: center;">
-                        <p style="font-size: 12px; font-weight: 500; text-transform: uppercase; color: ${COLORS.textSecondary}; margin: 0 0 4px 0;">Pontos</p>
-                        <p style="font-size: 40px; font-weight: 700; color: ${COLORS.textPrimary}; margin: 0; line-height: 1;">
-                            ${formatarPontos(pontosTotal).split(",")[0]}
-                        </p>
-                        <p style="font-size: 12px; color: ${COLORS.textSecondary}; margin: 4px 0 0 0;">total acumulado</p>
+                    <div class="text-center">
+                        <p class="text-xs font-medium uppercase leading-normal text-white/70">Pontos</p>
+                        <p class="text-4xl font-bold leading-tight tracking-tighter text-white">${formatarPontos(pontosTotal).split(",")[0]}</p>
+                        <p class="text-xs font-normal leading-normal text-white/70">total acumulado</p>
                     </div>
                 </div>
-
-                <!-- Badge da Zona -->
-                <div style="margin-top: 20px; display: flex; align-items: center; justify-content: center; gap: 8px; padding: 10px 16px; background: ${zona.bg || "rgba(255,255,255,0.05)"}; border-radius: 50px;">
-                    <span class="material-symbols-outlined" style="font-size: 18px; color: ${zona.cor};">${zona.icon}</span>
-                    <p style="font-size: 13px; font-weight: 500; color: ${COLORS.textPrimary}; margin: 0;">${zona.texto}</p>
+                <div class="mt-4 flex items-center justify-center gap-2 rounded-full ${zona.corBg} py-1.5 px-4">
+                    <span class="material-icons text-sm ${zona.corTexto}">${zona.icon}</span>
+                    <p class="text-xs font-medium text-white/90">${zona.texto}</p>
                 </div>
             </div>
 
             <!-- Card Saldo Financeiro -->
-            <div style="margin: 0 16px 16px; padding: 16px 20px; background: ${COLORS.surface}; border-radius: 16px; display: flex; align-items: center; gap: 16px;">
-                <div style="flex-shrink: 0;">
-                    <span class="material-symbols-outlined" style="font-size: 32px; color: ${COLORS.primary};">paid</span>
-                </div>
-                <div style="flex: 1;">
-                    <p style="font-size: 12px; font-weight: 500; text-transform: uppercase; color: ${COLORS.textSecondary}; margin: 0 0 2px 0;">Saldo Financeiro</p>
-                    <p style="font-size: 22px; font-weight: 700; color: ${saldoCor}; margin: 0;">${saldoFormatado}</p>
-                </div>
-                <div style="flex-shrink: 0;">
-                    <span class="material-symbols-outlined" style="color: ${COLORS.textSecondary};">arrow_forward_ios</span>
+            <div class="mx-4 mb-4 rounded-xl bg-surface-dark p-4 cursor-pointer active:scale-[0.98] transition-transform" onclick="window.participanteNav?.navegarPara('extrato')">
+                <div class="flex w-full items-center gap-4 text-left">
+                    <div class="flex-shrink-0">
+                        <span class="material-icons text-3xl text-primary">paid</span>
+                    </div>
+                    <div class="flex-1">
+                        <p class="text-xs font-medium uppercase text-white/70">Saldo Financeiro</p>
+                        <p class="text-lg font-bold ${saldoCor}">${saldoFormatado}</p>
+                    </div>
+                    <div class="flex-shrink-0">
+                        <span class="material-icons text-white/70">arrow_forward_ios</span>
+                    </div>
                 </div>
             </div>
 
             <!-- Grid de Estatísticas -->
-            <div style="margin: 0 16px 16px; display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px;">
-                <!-- Rodadas -->
-                <div style="padding: 16px 12px; background: ${COLORS.surface}; border-radius: 16px; text-align: center;">
-                    <p style="font-size: 11px; font-weight: 500; text-transform: uppercase; color: ${COLORS.textSecondary}; margin: 0 0 6px 0;">Rodadas</p>
-                    <p style="font-size: 28px; font-weight: 700; color: ${COLORS.textPrimary}; margin: 0;">${rodadaAtual || 0}</p>
+            <div class="mx-4 mb-4 grid grid-cols-3 gap-3">
+                <div class="flex flex-col items-center justify-center gap-1 rounded-xl bg-surface-dark p-3">
+                    <p class="text-xs font-medium uppercase text-white/70">Rodadas</p>
+                    <p class="text-2xl font-bold text-white">${rodadaAtual || 0}</p>
                 </div>
-
-                <!-- Participantes -->
-                <div style="padding: 16px 12px; background: ${COLORS.surface}; border-radius: 16px; text-align: center;">
-                    <p style="font-size: 11px; font-weight: 500; text-transform: uppercase; color: ${COLORS.textSecondary}; margin: 0 0 6px 0;">Participantes</p>
-                    <p style="font-size: 28px; font-weight: 700; color: ${COLORS.textPrimary}; margin: 0;">${totalParticipantes}</p>
+                <div class="flex flex-col items-center justify-center gap-1 rounded-xl bg-surface-dark p-3">
+                    <p class="text-xs font-medium uppercase text-white/70">Participantes</p>
+                    <p class="text-2xl font-bold text-white">${totalParticipantes}</p>
                 </div>
-
-                <!-- Faltam -->
-                <div style="padding: 16px 12px; background: ${COLORS.surface}; border-radius: 16px; text-align: center;">
-                    <p style="font-size: 11px; font-weight: 500; text-transform: uppercase; color: ${COLORS.textSecondary}; margin: 0 0 6px 0;">Faltam</p>
-                    <p style="font-size: 28px; font-weight: 700; color: ${COLORS.primary}; margin: 0;">${rodadasRestantes > 0 ? rodadasRestantes : 0}</p>
+                <div class="flex flex-col items-center justify-center gap-1 rounded-xl bg-surface-dark p-3">
+                    <p class="text-xs font-medium uppercase text-white/70">Faltam</p>
+                    <p class="text-2xl font-bold text-primary">${rodadasRestantes}</p>
                 </div>
             </div>
 
             <!-- Card de Desempenho -->
-            <div style="margin: 0 16px 16px; padding: 16px 20px; background: ${COLORS.surface}; border-radius: 16px;">
-                <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 16px;">
-                    <span class="material-symbols-outlined" style="font-size: 22px; color: ${COLORS.primary};">insights</span>
-                    <h3 style="font-size: 15px; font-weight: 700; color: ${COLORS.textPrimary}; margin: 0;">Seu Desempenho</h3>
+            <div class="mx-4 mb-4 rounded-xl bg-surface-dark p-4">
+                <div class="flex items-center gap-2 mb-3">
+                    <span class="material-icons text-primary">insights</span>
+                    <h3 class="text-sm font-bold text-white">Seu Desempenho</h3>
                 </div>
-
-                <div style="display: flex; flex-direction: column; gap: 12px;">
-                    <!-- Última Rodada -->
-                    <div style="display: flex; justify-content: space-between; align-items: center; padding: 12px 14px; background: ${COLORS.surfaceLight}; border-radius: 12px;">
-                        <div style="display: flex; align-items: center; gap: 10px;">
-                            <span class="material-symbols-outlined" style="font-size: 20px; color: ${COLORS.primary};">bolt</span>
-                            <span style="font-size: 13px; color: ${COLORS.textSecondary};">Rodada ${rodadaAtual}</span>
+                <div class="flex flex-col gap-2">
+                    <div class="flex justify-between items-center p-3 rounded-lg bg-white/5">
+                        <div class="flex items-center gap-2">
+                            <span class="material-icons text-primary text-xl">bolt</span>
+                            <span class="text-xs text-white/70">Rodada ${rodadaAtual}</span>
                         </div>
-                        <span style="font-size: 16px; font-weight: 700; color: ${COLORS.textPrimary};">${pontosUltimaRodada} pts</span>
+                        <span class="text-sm font-bold text-white">${pontosUltimaRodada} pts</span>
                     </div>
-
-                    <!-- Variação -->
-                    <div style="display: flex; justify-content: space-between; align-items: center; padding: 12px 14px; background: ${COLORS.surfaceLight}; border-radius: 12px;">
-                        <div style="display: flex; align-items: center; gap: 10px;">
-                            ${tendenciaHTML || `<span class="material-symbols-outlined" style="font-size: 20px; color: ${COLORS.textMuted};">trending_flat</span>`}
-                            <span style="font-size: 13px; color: ${COLORS.textSecondary};">Variação</span>
+                    <div class="flex justify-between items-center p-3 rounded-lg bg-white/5">
+                        <div class="flex items-center gap-2">
+                            <span class="material-icons ${variacaoInfo.cor} text-xl">${variacaoInfo.icon}</span>
+                            <span class="text-xs text-white/70">Variação</span>
                         </div>
-                        <span style="font-size: 16px; font-weight: 700;">${variacaoPontosHTML || `<span style="color: ${COLORS.textMuted};">--</span>`}</span>
+                        <span class="text-sm font-bold ${variacaoInfo.cor}">${variacaoInfo.valor}</span>
                     </div>
-
-                    <!-- Posição Anterior -->
-                    <div style="display: flex; justify-content: space-between; align-items: center; padding: 12px 14px; background: ${COLORS.surfaceLight}; border-radius: 12px;">
-                        <div style="display: flex; align-items: center; gap: 10px;">
-                            <span class="material-symbols-outlined" style="font-size: 20px; color: ${COLORS.primary};">history</span>
-                            <span style="font-size: 13px; color: ${COLORS.textSecondary};">Posição anterior</span>
+                    <div class="flex justify-between items-center p-3 rounded-lg bg-white/5">
+                        <div class="flex items-center gap-2">
+                            <span class="material-icons text-primary text-xl">history</span>
+                            <span class="text-xs text-white/70">Posição anterior</span>
                         </div>
-                        <span style="font-size: 16px; font-weight: 700; color: ${COLORS.textPrimary};">${posicaoAnterior ? `${posicaoAnterior}º` : "--"}</span>
+                        <span class="text-sm font-bold text-white">${posicaoAnterior ? `${posicaoAnterior}º` : "--"}</span>
                     </div>
                 </div>
             </div>
 
             <!-- Card de Dica -->
-            <div style="margin: 0 16px 16px; padding: 16px 20px; background: ${COLORS.primaryLight}; border-radius: 16px; display: flex; align-items: flex-start; gap: 12px;">
-                <span class="material-symbols-outlined" style="font-size: 22px; color: ${COLORS.primary}; margin-top: 2px;">lightbulb</span>
+            <div class="mx-4 mb-4 flex items-start gap-3 rounded-xl bg-primary/10 p-4">
+                <span class="material-icons mt-0.5 text-primary">lightbulb</span>
                 <div>
-                    <p style="font-size: 12px; font-weight: 700; text-transform: uppercase; color: ${COLORS.textPrimary}; margin: 0 0 4px 0;">Dica</p>
-                    <p style="font-size: 13px; color: ${COLORS.textSecondary}; margin: 0; line-height: 1.5;">
-                        Acompanhe seu extrato financeiro para entender sua evolução na liga!
-                    </p>
+                    <p class="text-sm font-bold uppercase text-white/90">Dica</p>
+                    <p class="text-sm font-normal text-white/70">Acompanhe seu extrato financeiro para entender sua evolução na liga!</p>
                 </div>
             </div>
         </div>
     `;
 }
 
-console.log("[PARTICIPANTE-BOAS-VINDAS] ✅ Módulo v3.0 carregado");
+console.log("[PARTICIPANTE-BOAS-VINDAS] ✅ Módulo v7.0 carregado");

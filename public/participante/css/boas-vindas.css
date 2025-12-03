@@ -1,0 +1,507 @@
+/* =====================================================================
+   BOAS-VINDAS.CSS - Design System Modular v3.0
+   Super Cartola Manager - App Participante
+   ===================================================================== */
+
+/* =====================================================================
+   DESIGN TOKENS
+   ===================================================================== */
+:root {
+    --bv-primary: #ff5c00;
+    --bv-primary-light: rgba(255, 92, 0, 0.1);
+    --bv-primary-border: rgba(255, 92, 0, 0.2);
+    --bv-background: #101010;
+    --bv-surface: #1c1c1c;
+    --bv-surface-light: #2a2a2a;
+    --bv-text-primary: #ffffff;
+    --bv-text-secondary: rgba(255, 255, 255, 0.7);
+    --bv-text-muted: rgba(255, 255, 255, 0.5);
+    --bv-success: #22c55e;
+    --bv-success-bg: rgba(34, 197, 94, 0.1);
+    --bv-danger: #ef4444;
+    --bv-danger-bg: rgba(239, 68, 68, 0.1);
+    --bv-warning: #eab308;
+    --bv-warning-bg: rgba(234, 179, 8, 0.1);
+    --bv-radius: 16px;
+    --bv-radius-sm: 12px;
+    --bv-radius-full: 50px;
+}
+
+/* =====================================================================
+   CONTAINER PRINCIPAL
+   ===================================================================== */
+.boas-vindas-wrapper {
+    background: var(--bv-background);
+    min-height: 100vh;
+    padding-bottom: 100px;
+    font-family: 'Lexend', 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+}
+
+/* =====================================================================
+   SAUDAÇÃO / GREETING
+   ===================================================================== */
+.bv-greeting {
+    padding: 20px 16px 16px;
+}
+
+.bv-greeting__title {
+    font-size: 24px;
+    font-weight: 700;
+    color: var(--bv-text-primary);
+    margin: 0 0 4px 0;
+    line-height: 1.2;
+}
+
+.bv-greeting__subtitle {
+    font-size: 14px;
+    color: var(--bv-text-secondary);
+    margin: 0;
+    font-weight: 400;
+}
+
+/* =====================================================================
+   CARD PRINCIPAL DO TIME
+   ===================================================================== */
+.bv-card-team {
+    margin: 0 16px 16px;
+    padding: 20px;
+    background: var(--bv-surface);
+    border-radius: var(--bv-radius);
+}
+
+.bv-card-team__name {
+    text-align: center;
+    font-size: 18px;
+    font-weight: 700;
+    color: var(--bv-text-primary);
+    margin: 0 0 20px 0;
+}
+
+.bv-card-team__stats {
+    display: flex;
+    justify-content: space-around;
+    align-items: center;
+}
+
+.bv-stat-block {
+    text-align: center;
+}
+
+.bv-stat-block__label {
+    font-size: 12px;
+    font-weight: 500;
+    text-transform: uppercase;
+    color: var(--bv-text-secondary);
+    margin: 0 0 4px 0;
+}
+
+.bv-stat-block__value {
+    font-size: 40px;
+    font-weight: 700;
+    color: var(--bv-text-primary);
+    margin: 0;
+    line-height: 1;
+    letter-spacing: -0.02em;
+}
+
+.bv-stat-block__hint {
+    font-size: 12px;
+    color: var(--bv-text-secondary);
+    margin: 4px 0 0 0;
+    font-weight: 400;
+}
+
+/* Variação de posição */
+.bv-variation {
+    font-size: 12px;
+    margin-left: 4px;
+    font-weight: 600;
+}
+
+.bv-variation--up {
+    color: var(--bv-success);
+}
+
+.bv-variation--down {
+    color: var(--bv-danger);
+}
+
+/* =====================================================================
+   BADGE DE ZONA
+   ===================================================================== */
+.bv-zone-badge {
+    margin-top: 20px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    padding: 10px 16px;
+    background: rgba(255, 255, 255, 0.05);
+    border-radius: var(--bv-radius-full);
+}
+
+.bv-zone-badge--success {
+    background: var(--bv-success-bg);
+}
+
+.bv-zone-badge--warning {
+    background: var(--bv-warning-bg);
+}
+
+.bv-zone-badge--danger {
+    background: var(--bv-danger-bg);
+}
+
+.bv-zone-badge__icon {
+    font-size: 18px;
+}
+
+.bv-zone-badge__icon--success {
+    color: var(--bv-success);
+}
+
+.bv-zone-badge__icon--warning {
+    color: var(--bv-warning);
+}
+
+.bv-zone-badge__icon--danger {
+    color: var(--bv-danger);
+}
+
+.bv-zone-badge__text {
+    font-size: 13px;
+    font-weight: 500;
+    color: var(--bv-text-primary);
+    margin: 0;
+}
+
+/* =====================================================================
+   CARD SALDO FINANCEIRO
+   ===================================================================== */
+.bv-card-balance {
+    margin: 0 16px 16px;
+    padding: 16px 20px;
+    background: var(--bv-surface);
+    border-radius: var(--bv-radius);
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    cursor: pointer;
+    transition: transform 0.2s ease, background 0.2s ease;
+}
+
+.bv-card-balance:active {
+    transform: scale(0.98);
+    background: var(--bv-surface-light);
+}
+
+.bv-card-balance__icon {
+    flex-shrink: 0;
+    font-size: 32px;
+    color: var(--bv-primary);
+}
+
+.bv-card-balance__content {
+    flex: 1;
+}
+
+.bv-card-balance__label {
+    font-size: 12px;
+    font-weight: 500;
+    text-transform: uppercase;
+    color: var(--bv-text-secondary);
+    margin: 0 0 2px 0;
+}
+
+.bv-card-balance__value {
+    font-size: 22px;
+    font-weight: 700;
+    margin: 0;
+}
+
+.bv-card-balance__value--positive {
+    color: var(--bv-success);
+}
+
+.bv-card-balance__value--negative {
+    color: var(--bv-danger);
+}
+
+.bv-card-balance__value--neutral {
+    color: var(--bv-text-muted);
+}
+
+.bv-card-balance__arrow {
+    flex-shrink: 0;
+    color: var(--bv-text-secondary);
+}
+
+/* =====================================================================
+   GRID DE ESTATÍSTICAS
+   ===================================================================== */
+.bv-stats-grid {
+    margin: 0 16px 16px;
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 12px;
+}
+
+.bv-stat-card {
+    padding: 16px 12px;
+    background: var(--bv-surface);
+    border-radius: var(--bv-radius);
+    text-align: center;
+}
+
+.bv-stat-card__label {
+    font-size: 11px;
+    font-weight: 500;
+    text-transform: uppercase;
+    color: var(--bv-text-secondary);
+    margin: 0 0 6px 0;
+}
+
+.bv-stat-card__value {
+    font-size: 28px;
+    font-weight: 700;
+    color: var(--bv-text-primary);
+    margin: 0;
+    line-height: 1;
+}
+
+.bv-stat-card__value--highlight {
+    color: var(--bv-primary);
+}
+
+/* =====================================================================
+   CARD DE DESEMPENHO
+   ===================================================================== */
+.bv-card-performance {
+    margin: 0 16px 16px;
+    padding: 16px 20px;
+    background: var(--bv-surface);
+    border-radius: var(--bv-radius);
+}
+
+.bv-card-performance__header {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 16px;
+}
+
+.bv-card-performance__icon {
+    font-size: 22px;
+    color: var(--bv-primary);
+}
+
+.bv-card-performance__title {
+    font-size: 15px;
+    font-weight: 700;
+    color: var(--bv-text-primary);
+    margin: 0;
+}
+
+.bv-card-performance__list {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+/* Item de performance */
+.bv-perf-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 12px 14px;
+    background: var(--bv-surface-light);
+    border-radius: var(--bv-radius-sm);
+}
+
+.bv-perf-item__left {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.bv-perf-item__icon {
+    font-size: 20px;
+    color: var(--bv-primary);
+}
+
+.bv-perf-item__icon--success {
+    color: var(--bv-success);
+}
+
+.bv-perf-item__icon--danger {
+    color: var(--bv-danger);
+}
+
+.bv-perf-item__icon--muted {
+    color: var(--bv-text-muted);
+}
+
+.bv-perf-item__label {
+    font-size: 13px;
+    color: var(--bv-text-secondary);
+}
+
+.bv-perf-item__value {
+    font-size: 16px;
+    font-weight: 700;
+    color: var(--bv-text-primary);
+}
+
+.bv-perf-item__value--success {
+    color: var(--bv-success);
+}
+
+.bv-perf-item__value--danger {
+    color: var(--bv-danger);
+}
+
+.bv-perf-item__value--muted {
+    color: var(--bv-text-muted);
+}
+
+/* =====================================================================
+   CARD DE DICA
+   ===================================================================== */
+.bv-card-tip {
+    margin: 0 16px 16px;
+    padding: 16px 20px;
+    background: var(--bv-primary-light);
+    border-radius: var(--bv-radius);
+    display: flex;
+    align-items: flex-start;
+    gap: 12px;
+}
+
+.bv-card-tip__icon {
+    font-size: 22px;
+    color: var(--bv-primary);
+    margin-top: 2px;
+    flex-shrink: 0;
+}
+
+.bv-card-tip__content {
+    flex: 1;
+}
+
+.bv-card-tip__title {
+    font-size: 12px;
+    font-weight: 700;
+    text-transform: uppercase;
+    color: var(--bv-text-primary);
+    margin: 0 0 4px 0;
+}
+
+.bv-card-tip__text {
+    font-size: 13px;
+    color: var(--bv-text-secondary);
+    margin: 0;
+    line-height: 1.5;
+}
+
+/* =====================================================================
+   LOADING STATE
+   ===================================================================== */
+.bv-loading {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 300px;
+}
+
+.bv-loading__content {
+    text-align: center;
+}
+
+.bv-loading__spinner {
+    width: 40px;
+    height: 40px;
+    border: 3px solid var(--bv-surface);
+    border-top-color: var(--bv-primary);
+    border-radius: 50%;
+    animation: bv-spin 1s linear infinite;
+    margin: 0 auto 16px;
+}
+
+.bv-loading__text {
+    color: var(--bv-text-secondary);
+    font-size: 14px;
+    margin: 0;
+}
+
+@keyframes bv-spin {
+    to {
+        transform: rotate(360deg);
+    }
+}
+
+/* =====================================================================
+   ERROR STATE
+   ===================================================================== */
+.bv-error {
+    text-align: center;
+    padding: 60px 20px;
+}
+
+.bv-error__icon {
+    font-size: 48px;
+    color: var(--bv-danger);
+}
+
+.bv-error__text {
+    color: var(--bv-text-secondary);
+    margin-top: 16px;
+    font-size: 14px;
+}
+
+/* =====================================================================
+   ANIMAÇÕES
+   ===================================================================== */
+.bv-fade-in {
+    animation: bv-fadeIn 0.3s ease-out;
+}
+
+@keyframes bv-fadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(10px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* =====================================================================
+   RESPONSIVO - TABLET+
+   ===================================================================== */
+@media (min-width: 768px) {
+    .bv-greeting {
+        padding: 24px 20px 20px;
+    }
+
+    .bv-greeting__title {
+        font-size: 28px;
+    }
+
+    .bv-card-team,
+    .bv-card-balance,
+    .bv-stats-grid,
+    .bv-card-performance,
+    .bv-card-tip {
+        margin-left: 20px;
+        margin-right: 20px;
+    }
+
+    .bv-stat-block__value {
+        font-size: 48px;
+    }
+
+    .bv-stat-card__value {
+        font-size: 32px;
+    }
+}
