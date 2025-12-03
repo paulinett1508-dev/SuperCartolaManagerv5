@@ -28,6 +28,7 @@ import fluxoFinanceiroRoutes from "./routes/fluxoFinanceiroRoutes.js";
 import extratoFinanceiroCacheRoutes from "./routes/extratoFinanceiroCacheRoutes.js";
 import participanteAuthRoutes from "./routes/participante-auth.js";
 import pontosCorridosCacheRoutes from "./routes/pontosCorridosCacheRoutes.js";
+import pontosCorridosMigracaoRoutes from "./routes/pontosCorridosMigracaoRoutes.js";
 import top10CacheRoutes from "./routes/top10CacheRoutes.js";
 import mataMataCacheRoutes from "./routes/mataMataCacheRoutes.js";
 import rankingGeralCacheRoutes from "./routes/ranking-geral-cache-routes.js";
@@ -112,6 +113,7 @@ app.use("/api/ranking-turno", rankingTurnoRoutes);
 app.use("/api/consolidacao", consolidacaoRoutes);
 app.use("/api/participante/auth", participanteAuthRoutes);
 app.use("/api/pontos-corridos", pontosCorridosCacheRoutes);
+app.use("/api/pontos-corridos", pontosCorridosMigracaoRoutes);
 app.use("/api/top10", top10CacheRoutes);
 app.use("/api/mata-mata", mataMataCacheRoutes);
 
