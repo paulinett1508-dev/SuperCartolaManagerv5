@@ -1,706 +1,632 @@
-// PONTOS CORRIDOS CORE - Versão Otimizada com Persistência (Snapshot)
+// PONTOS CORRIDOS CORE - v2.0 REFATORADO
+// Salva cada rodada INDIVIDUALMENTE no MongoDB
 // Responsável por: processamento de dados, chamadas de API e CACHE INTELIGENTE
 
-// 1. Importar configurações GERAIS do módulo de Rodadas
 import {
-  RODADAS_ENDPOINTS,
-  STATUS_MERCADO_DEFAULT,
-  valoresBancoPadrao,
-  valoresBancoCartoleirosSobral,
+    RODADAS_ENDPOINTS,
+    STATUS_MERCADO_DEFAULT,
 } from "../rodadas/rodadas-config.js";
 
-// 2. Importar configurações ESPECÍFICAS deste módulo
 import { PONTOS_CORRIDOS_CONFIG, getLigaId } from "./pontos-corridos-config.js";
-
-// VERIFICAÇÃO DE AMBIENTE
-const isBackend = typeof window === "undefined";
-const isFrontend = typeof window !== "undefined";
 
 // ESTADO GLOBAL
 let statusMercadoGlobal = STATUS_MERCADO_DEFAULT;
-let getRankingRodadaEspecifica = null; // Injetado dinamicamente
+let getRankingRodadaEspecifica = null;
 
 // ============================================================================
-// 🧠 SISTEMA DE PERSISTÊNCIA UNIFICADA (CACHE)
+// 🧠 SISTEMA DE CACHE - OPERAÇÕES INDIVIDUAIS POR RODADA
 // ============================================================================
 
-async function lerCachePersistente(ligaId, rodada) {
-  try {
-    const ts = new Date().getTime();
-    const response = await fetch(
-      `/api/pontos-corridos/cache/${ligaId}?rodada=${rodada}&_=${ts}`,
-    );
+async function lerCacheRodada(ligaId, rodadaLiga) {
+    try {
+        const response = await fetch(
+            `/api/pontos-corridos/cache/${ligaId}?rodada=${rodadaLiga}&_=${Date.now()}`,
+        );
 
-    if (!response.ok) {
-      console.log(
-        `[CORE] ℹ️ Cache não encontrado para rodada ${rodada} (será calculado)`,
-      );
-      return null;
-    }
+        if (!response.ok) return null;
 
-    const data = await response.json();
-    if (data.cached && data.classificacao) {
-      console.log(
-        `[CORE] 💾 ✅ Cache MongoDB encontrado para Rodada ${rodada} (${data.classificacao.length} times)`,
-      );
-      return data.classificacao;
+        const data = await response.json();
+        if (data.cached && data.confrontos?.length > 0) {
+            console.log(
+                `[CORE] 💾 Cache R${rodadaLiga} encontrado (${data.confrontos.length} confrontos)`,
+            );
+            return {
+                confrontos: data.confrontos,
+                classificacao: data.classificacao || [],
+                permanent: data.permanent,
+            };
+        }
+        return null;
+    } catch (error) {
+        console.warn(
+            `[CORE] ⚠️ Erro ao ler cache R${rodadaLiga}:`,
+            error.message,
+        );
+        return null;
     }
-    return null;
-  } catch (error) {
-    console.warn("[CORE] ⚠️ Erro ao ler cache persistente:", error);
-    return null;
-  }
 }
 
-async function salvarCachePersistente(ligaId, rodada, dados) {
-  try {
-    const response = await fetch(`/api/pontos-corridos/cache/${ligaId}`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        rodada: rodada,
-        classificacao: dados,
-      }),
-    });
+async function salvarCacheRodada(
+    ligaId,
+    rodadaLiga,
+    confrontos,
+    classificacao,
+    isPermanent = false,
+) {
+    try {
+        const response = await fetch(`/api/pontos-corridos/cache/${ligaId}`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+                rodada: rodadaLiga,
+                confrontos: confrontos,
+                classificacao: classificacao,
+                permanent: isPermanent,
+            }),
+        });
 
-    if (response.ok) {
-      const result = await response.json();
-      console.log(
-        `[CORE] 💾 ✅ Classificação da Rodada ${rodada} salva no MongoDB (ID: ${result.id})`,
-      );
-      console.log(
-        `[CORE] 📊 Snapshot vitalício: ${dados.length} times preservados`,
-      );
-    } else {
-      console.warn(`[CORE] ⚠️ Falha ao salvar cache (HTTP ${response.status})`);
+        if (response.ok) {
+            const tipo = isPermanent ? "PERMANENTE" : "temporário";
+            console.log(
+                `[CORE] 💾 Cache ${tipo} salvo: R${rodadaLiga} (${confrontos.length} confrontos)`,
+            );
+            return true;
+        }
+        return false;
+    } catch (error) {
+        console.error(`[CORE] ❌ Erro ao salvar cache R${rodadaLiga}:`, error);
+        return false;
     }
-  } catch (error) {
-    console.error("[CORE] ❌ Erro ao salvar cache persistente:", error);
-  }
+}
+
+async function buscarTodosOsCaches(ligaId) {
+    try {
+        const response = await fetch(`/api/pontos-corridos/${ligaId}`);
+        if (!response.ok) return [];
+        return await response.json();
+    } catch (error) {
+        console.warn("[CORE] ⚠️ Erro ao buscar caches:", error.message);
+        return [];
+    }
 }
 
 // ============================================================================
-// FUNÇÕES DO CORE (Lógica de Negócio)
+// FUNÇÕES AUXILIARES
 // ============================================================================
 
 export function setRankingFunction(rankingFunction) {
-  getRankingRodadaEspecifica = rankingFunction;
+    getRankingRodadaEspecifica = rankingFunction;
 }
 
 export async function atualizarStatusMercado() {
-  try {
-    const resMercado = await fetch(RODADAS_ENDPOINTS.mercadoStatus);
-    if (resMercado.ok) {
-      const mercadoData = await resMercado.json();
-      statusMercadoGlobal = {
-        rodada_atual: mercadoData.rodada_atual,
-        status_mercado: mercadoData.status_mercado,
-      };
+    try {
+        const res = await fetch(RODADAS_ENDPOINTS.mercadoStatus);
+        if (res.ok) {
+            const data = await res.json();
+            statusMercadoGlobal = {
+                rodada_atual: data.rodada_atual,
+                status_mercado: data.status_mercado,
+            };
+        }
+    } catch (err) {
+        console.error("[CORE] Erro ao buscar status do mercado:", err);
     }
-  } catch (err) {
-    console.error("[CORE] Erro ao buscar status do mercado:", err);
-  }
 }
 
 export function getStatusMercado() {
-  return statusMercadoGlobal;
+    return statusMercadoGlobal;
 }
 
-export function calcularRodadaBrasileirao(rodadaLiga, rodadaInicial = 1) {
-  return rodadaInicial + (rodadaLiga - 1);
-}
-
-// ✅ FUNÇÃO RESTAURADA (Era solicitada pelo Orquestrador)
 export async function buscarTimesLiga(ligaId) {
-  try {
-    const response = await fetch(`/api/ligas/${ligaId}/times`);
-    if (!response.ok) throw new Error("Falha ao carregar times");
-    return await response.json();
-  } catch (error) {
-    console.error("[CORE] Erro ao buscar times da liga:", error);
-    return [];
-  }
-}
-
-// ✅ FUNÇÃO RESTAURADA (Auxiliar de texto)
-export function getRodadaPontosText(rodadaLiga, edicao) {
-  if (!rodadaLiga) return "Rodada não definida";
-  const rodadaBrasileirao =
-    PONTOS_CORRIDOS_CONFIG.rodadaInicial + (rodadaLiga - 1);
-  return `${rodadaLiga}ª Rodada da Liga (Rodada ${rodadaBrasileirao}ª do Brasileirão)`;
-}
-
-// ============================================================================
-// ⚡ CÁLCULO DE CONFRONTOS (OTIMIZADO)
-// ============================================================================
-
-export async function getConfrontosLigaPontosCorridos(ligaId, rodadaAtual) {
-  console.log(
-    `[CORE] Iniciando processamento Pontos Corridos (Até rodada ${rodadaAtual})...`,
-  );
-
-  try {
-    // 1. Cache Rápido
-    const cache = await lerCachePersistente(ligaId, rodadaAtual);
-    if (cache) return cache;
-
-    console.log("[CORE] ⚠️ Cache Miss. Iniciando cálculo completo...");
-
-    // 2. Cálculo Pesado
-    if (!getRankingRodadaEspecifica) {
-      try {
-        const rodadasModule = await import("../rodadas.js");
-        getRankingRodadaEspecifica = rodadasModule.getRankingRodadaEspecifica;
-      } catch (e) {
-        console.error("[CORE] ERRO CRÍTICO: Ranking function indisponível");
+    try {
+        const response = await fetch(`/api/ligas/${ligaId}/times`);
+        if (!response.ok) throw new Error("Falha ao carregar times");
+        return await response.json();
+    } catch (error) {
+        console.error("[CORE] Erro ao buscar times:", error);
         return [];
-      }
     }
+}
 
-    // Usa a função interna restaurada
-    const times = await buscarTimesLiga(ligaId);
-    const confrontosBase = gerarConfrontos(times);
-    const confrontosComPontos = [];
-
-    for (let rodadaNum = 1; rodadaNum <= rodadaAtual; rodadaNum++) {
-      const jogosDaRodada = confrontosBase[rodadaNum - 1];
-      if (!jogosDaRodada) continue;
-
-      const jogosComPontos = [];
-      const pontuacoesRaw = await getRankingRodadaEspecifica(ligaId, rodadaNum);
-
-      const pontuacoesRodada = {};
-      if (pontuacoesRaw && Array.isArray(pontuacoesRaw)) {
-        pontuacoesRaw.forEach((p) => {
-          const tid = p.time_id || p.timeId || p.id;
-          pontuacoesRodada[tid] = p.pontos;
-        });
-      }
-
-      for (const jogo of jogosDaRodada) {
-        const timeAId = jogo.timeA.id || jogo.timeA.time_id;
-        const timeBId = jogo.timeB.id || jogo.timeB.time_id;
-
-        const pontosA = pontuacoesRodada[timeAId] ?? null;
-        const pontosB = pontuacoesRodada[timeBId] ?? null;
-
-        jogosComPontos.push({
-          time1: jogo.timeA,
-          time2: jogo.timeB,
-          pontos1: pontosA,
-          pontos2: pontosB,
-        });
-      }
-
-      confrontosComPontos.push({
-        rodada: rodadaNum,
-        jogos: jogosComPontos,
-      });
-    }
-
-    // 3. Salvar Cache
-    if (confrontosComPontos.length > 0) {
-      await salvarCachePersistente(ligaId, rodadaAtual, confrontosComPontos);
-    }
-
-    return confrontosComPontos;
-  } catch (error) {
-    console.error("[CORE] Erro fatal no cálculo:", error);
-    return [];
-  }
+export function getRodadaPontosText(rodadaLiga) {
+    if (!rodadaLiga) return "Rodada não definida";
+    const rodadaBr = PONTOS_CORRIDOS_CONFIG.rodadaInicial + (rodadaLiga - 1);
+    return `${rodadaLiga}ª Rodada da Liga (${rodadaBr}ª do Brasileirão)`;
 }
 
 export function gerarConfrontos(times) {
-  const n = times.length;
-  const rodadas = [];
-  const lista = [...times];
-  if (n % 2 !== 0) lista.push(null);
+    const n = times.length;
+    const rodadas = [];
+    const lista = [...times];
+    if (n % 2 !== 0) lista.push(null);
 
-  for (let rodada = 0; rodada < n - 1; rodada++) {
-    const jogos = [];
-    for (let i = 0; i < n / 2; i++) {
-      const timeA = lista[i];
-      const timeB = lista[n - 1 - i];
-      if (timeA && timeB) {
-        jogos.push({ timeA, timeB });
-      }
+    const total = lista.length - 1;
+    for (let rodada = 0; rodada < total; rodada++) {
+        const jogos = [];
+        for (let i = 0; i < lista.length / 2; i++) {
+            const timeA = lista[i];
+            const timeB = lista[lista.length - 1 - i];
+            if (timeA && timeB) jogos.push({ timeA, timeB });
+        }
+        rodadas.push(jogos);
+        lista.splice(1, 0, lista.pop());
     }
-    rodadas.push(jogos);
-    lista.splice(1, 0, lista.pop());
-  }
-  return rodadas;
+    return rodadas;
 }
 
-export function calcularResultadoConfronto(pontosA, pontosB) {
-  const A = parseFloat(pontosA || 0);
-  const B = parseFloat(pontosB || 0);
-
-  const vitoria = 10;
-  const derrota = -10;
-  const empate = 0;
-
-  if (A > B)
-    return {
-      financeiroA: vitoria,
-      financeiroB: derrota,
-      pontosA: 3,
-      pontosB: 0,
-    };
-  if (B > A)
-    return {
-      financeiroA: derrota,
-      financeiroB: vitoria,
-      pontosA: 0,
-      pontosB: 3,
-    };
-  return { financeiroA: empate, financeiroB: empate, pontosA: 1, pontsB: 1 };
-}
-
-// ============================================================================
-// 🔧 LÓGICA DE NEGÓCIO
-// ============================================================================
-
-/**
- * Calcula a classificação completa com todos os critérios de desempate
- */
-export async function calcularClassificacao(
-  ligaId,
-  times,
-  confrontos,
-  rodadaAtualBrasileirao,
+export function calcularFinanceiroConfronto(
+    pontosA,
+    pontosB,
+    config = PONTOS_CORRIDOS_CONFIG,
 ) {
-  // ✅ VERIFICAR CACHE PRIMEIRO (MongoDB) - PRIORIDADE MÁXIMA
-  const rodadaLiga =
-    rodadaAtualBrasileirao - PONTOS_CORRIDOS_CONFIG.rodadaInicial + 1;
-  const statusMercado = getStatusMercado();
-  const rodadaConsolidada = statusMercado.rodada_atual > rodadaLiga;
+    const A = parseFloat(pontosA || 0);
+    const B = parseFloat(pontosB || 0);
+    const diferenca = Math.abs(A - B);
 
-  // 🔒 RODADA CONSOLIDADA: Só busca cache, NUNCA recalcula
-  if (rodadaConsolidada) {
+    const { empateTolerancia, goleadaMinima } = config.criterios;
+    const fin = config.financeiro;
+
+    if (diferenca <= empateTolerancia) {
+        return {
+            financeiroA: fin.empate,
+            financeiroB: fin.empate,
+            pontosA: 1,
+            pontosB: 1,
+            tipo: "empate",
+        };
+    }
+
+    if (diferenca >= goleadaMinima) {
+        return A > B
+            ? {
+                  financeiroA: fin.goleada,
+                  financeiroB: -fin.goleada,
+                  pontosA: 3,
+                  pontosB: 0,
+                  tipo: "goleada",
+              }
+            : {
+                  financeiroA: -fin.goleada,
+                  financeiroB: fin.goleada,
+                  pontosA: 0,
+                  pontosB: 3,
+                  tipo: "goleada",
+              };
+    }
+
+    return A > B
+        ? {
+              financeiroA: fin.vitoria,
+              financeiroB: -fin.vitoria,
+              pontosA: 3,
+              pontosB: 0,
+              tipo: "vitoria",
+          }
+        : {
+              financeiroA: -fin.vitoria,
+              financeiroB: fin.vitoria,
+              pontosA: 0,
+              pontosB: 3,
+              tipo: "vitoria",
+          };
+}
+
+// ============================================================================
+// ⚡ FUNÇÃO PRINCIPAL - PROCESSA CONFRONTOS E SALVA CADA RODADA
+// ============================================================================
+
+export async function getConfrontosLigaPontosCorridos(ligaId, rodadaAtualLiga) {
     console.log(
-      `[CORE] 🔒 Rodada ${rodadaLiga} CONSOLIDADA - buscando APENAS do MongoDB...`,
+        `[CORE] 🚀 Processando Pontos Corridos até R${rodadaAtualLiga}...`,
     );
-    const cacheClassificacao = await lerCachePersistente(ligaId, rodadaLiga);
 
-    if (
-      cacheClassificacao &&
-      Array.isArray(cacheClassificacao) &&
-      cacheClassificacao.length > 0
-    ) {
-      console.log(
-        `[CORE] 💾✅ Cache permanente encontrado (${cacheClassificacao.length} times)`,
-      );
-      return {
-        classificacao: cacheClassificacao,
+    try {
+        // 1. Buscar todos os caches existentes
+        const cachesExistentes = await buscarTodosOsCaches(ligaId);
+        const rodadasComCache = new Set(cachesExistentes.map((c) => c.rodada));
+
+        console.log(`[CORE] 📦 ${rodadasComCache.size} rodadas já em cache`);
+
+        // 2. Identificar rodadas que faltam
+        const rodadasFaltando = [];
+        for (let r = 1; r <= rodadaAtualLiga; r++) {
+            if (!rodadasComCache.has(r)) {
+                rodadasFaltando.push(r);
+            }
+        }
+
+        // Se não falta nada, retorna do cache
+        if (rodadasFaltando.length === 0) {
+            console.log(
+                `[CORE] ✅ Todas as ${rodadaAtualLiga} rodadas em cache`,
+            );
+            return {
+                confrontos: cachesExistentes.filter(
+                    (c) => c.rodada <= rodadaAtualLiga,
+                ),
+                classificacao:
+                    cachesExistentes.find((c) => c.rodada === rodadaAtualLiga)
+                        ?.classificacao || [],
+            };
+        }
+
+        console.log(
+            `[CORE] ⚙️ Calculando ${rodadasFaltando.length} rodadas: [${rodadasFaltando.join(", ")}]`,
+        );
+
+        // 3. Buscar times e gerar confrontos base
+        const times = await buscarTimesLiga(ligaId);
+        if (!times.length) {
+            console.error("[CORE] ❌ Nenhum time encontrado");
+            return { confrontos: [], classificacao: [] };
+        }
+
+        const confrontosBase = gerarConfrontos(times);
+
+        // 4. Carregar função de ranking se necessário
+        if (!getRankingRodadaEspecifica) {
+            try {
+                const rodadasModule = await import("../rodadas.js");
+                getRankingRodadaEspecifica =
+                    rodadasModule.getRankingRodadaEspecifica;
+            } catch (e) {
+                console.error("[CORE] ❌ Função de ranking indisponível");
+                return { confrontos: [], classificacao: [] };
+            }
+        }
+
+        // 5. Inicializar classificação acumulada
+        const classificacaoAcumulada = {};
+        times.forEach((time) => {
+            const tid = String(time.id || time.time_id);
+            classificacaoAcumulada[tid] = {
+                timeId: tid,
+                nome: time.nome_time || time.nome || "N/D",
+                escudo: time.url_escudo_png || time.foto_time || "",
+                pontos: 0,
+                jogos: 0,
+                vitorias: 0,
+                empates: 0,
+                derrotas: 0,
+                gols_pro: 0,
+                gols_contra: 0,
+                saldo_gols: 0,
+                financeiro: 0,
+            };
+        });
+
+        // 6. Carregar classificação anterior se houver
+        const ultimoCache = cachesExistentes
+            .filter((c) => c.rodada < rodadasFaltando[0])
+            .sort((a, b) => b.rodada - a.rodada)[0];
+
+        if (ultimoCache?.classificacao) {
+            ultimoCache.classificacao.forEach((t) => {
+                const tid = String(t.timeId || t.time_id);
+                if (classificacaoAcumulada[tid]) {
+                    Object.assign(classificacaoAcumulada[tid], {
+                        pontos: t.pontos || 0,
+                        jogos: t.jogos || 0,
+                        vitorias: t.vitorias || 0,
+                        empates: t.empates || 0,
+                        derrotas: t.derrotas || 0,
+                        gols_pro: t.gols_pro || 0,
+                        gols_contra: t.gols_contra || 0,
+                        saldo_gols: t.saldo_gols || 0,
+                        financeiro: t.financeiro || 0,
+                    });
+                }
+            });
+            console.log(
+                `[CORE] 📊 Classificação carregada de R${ultimoCache.rodada}`,
+            );
+        }
+
+        // 7. Processar cada rodada faltante
+        const statusMercado = getStatusMercado();
+        const todosConfrontos = [
+            ...cachesExistentes.filter((c) => c.rodada < rodadasFaltando[0]),
+        ];
+
+        for (const rodadaLiga of rodadasFaltando) {
+            const jogosDaRodada = confrontosBase[rodadaLiga - 1];
+            if (!jogosDaRodada) continue;
+
+            // Buscar pontuações da rodada
+            const rodadaBr =
+                PONTOS_CORRIDOS_CONFIG.rodadaInicial + (rodadaLiga - 1);
+            let pontuacoes = {};
+
+            try {
+                const ranking = await getRankingRodadaEspecifica(
+                    ligaId,
+                    rodadaBr,
+                );
+                if (Array.isArray(ranking)) {
+                    ranking.forEach((p) => {
+                        const tid = String(p.time_id || p.timeId || p.id);
+                        pontuacoes[tid] = p.pontos;
+                    });
+                }
+            } catch (err) {
+                console.warn(
+                    `[CORE] ⚠️ Erro ao buscar R${rodadaBr}:`,
+                    err.message,
+                );
+            }
+
+            // Se não tem pontuações, pular rodada
+            if (Object.keys(pontuacoes).length === 0) {
+                console.log(
+                    `[CORE] ⏭️ R${rodadaLiga} sem pontuações, pulando...`,
+                );
+                continue;
+            }
+
+            // Processar confrontos da rodada
+            const confrontosRodada = [];
+
+            for (const jogo of jogosDaRodada) {
+                const tidA = String(jogo.timeA.id || jogo.timeA.time_id);
+                const tidB = String(jogo.timeB.id || jogo.timeB.time_id);
+
+                const pontosA = pontuacoes[tidA] ?? null;
+                const pontosB = pontuacoes[tidB] ?? null;
+
+                const resultado = calcularFinanceiroConfronto(pontosA, pontosB);
+
+                // Atualizar classificação acumulada
+                if (pontosA !== null && pontosB !== null) {
+                    // Time A
+                    if (classificacaoAcumulada[tidA]) {
+                        classificacaoAcumulada[tidA].jogos += 1;
+                        classificacaoAcumulada[tidA].pontos +=
+                            resultado.pontosA;
+                        classificacaoAcumulada[tidA].gols_pro += pontosA;
+                        classificacaoAcumulada[tidA].gols_contra += pontosB;
+                        classificacaoAcumulada[tidA].saldo_gols =
+                            classificacaoAcumulada[tidA].gols_pro -
+                            classificacaoAcumulada[tidA].gols_contra;
+                        classificacaoAcumulada[tidA].financeiro +=
+                            resultado.financeiroA;
+                        if (resultado.pontosA === 3)
+                            classificacaoAcumulada[tidA].vitorias += 1;
+                        else if (resultado.pontosA === 1)
+                            classificacaoAcumulada[tidA].empates += 1;
+                        else classificacaoAcumulada[tidA].derrotas += 1;
+                    }
+
+                    // Time B
+                    if (classificacaoAcumulada[tidB]) {
+                        classificacaoAcumulada[tidB].jogos += 1;
+                        classificacaoAcumulada[tidB].pontos +=
+                            resultado.pontosB;
+                        classificacaoAcumulada[tidB].gols_pro += pontosB;
+                        classificacaoAcumulada[tidB].gols_contra += pontosA;
+                        classificacaoAcumulada[tidB].saldo_gols =
+                            classificacaoAcumulada[tidB].gols_pro -
+                            classificacaoAcumulada[tidB].gols_contra;
+                        classificacaoAcumulada[tidB].financeiro +=
+                            resultado.financeiroB;
+                        if (resultado.pontosB === 3)
+                            classificacaoAcumulada[tidB].vitorias += 1;
+                        else if (resultado.pontosB === 1)
+                            classificacaoAcumulada[tidB].empates += 1;
+                        else classificacaoAcumulada[tidB].derrotas += 1;
+                    }
+                }
+
+                confrontosRodada.push({
+                    time1: {
+                        id: tidA,
+                        nome: jogo.timeA.nome_time || jogo.timeA.nome || "N/D",
+                        escudo:
+                            jogo.timeA.url_escudo_png ||
+                            jogo.timeA.foto_time ||
+                            "",
+                        pontos: pontosA,
+                    },
+                    time2: {
+                        id: tidB,
+                        nome: jogo.timeB.nome_time || jogo.timeB.nome || "N/D",
+                        escudo:
+                            jogo.timeB.url_escudo_png ||
+                            jogo.timeB.foto_time ||
+                            "",
+                        pontos: pontosB,
+                    },
+                    diferenca:
+                        pontosA !== null && pontosB !== null
+                            ? Math.abs(pontosA - pontosB)
+                            : null,
+                    valor: Math.max(
+                        resultado.financeiroA,
+                        resultado.financeiroB,
+                        0,
+                    ),
+                    tipo: resultado.tipo,
+                });
+            }
+
+            // Ordenar classificação
+            const classificacaoOrdenada = Object.values(classificacaoAcumulada)
+                .sort((a, b) => {
+                    if (b.pontos !== a.pontos) return b.pontos - a.pontos;
+                    if (b.saldo_gols !== a.saldo_gols)
+                        return b.saldo_gols - a.saldo_gols;
+                    return b.vitorias - a.vitorias;
+                })
+                .map((t, idx) => ({ ...t, posicao: idx + 1 }));
+
+            // Salvar cache da rodada
+            const isPermanent = statusMercado.rodada_atual > rodadaBr;
+            await salvarCacheRodada(
+                ligaId,
+                rodadaLiga,
+                confrontosRodada,
+                classificacaoOrdenada,
+                isPermanent,
+            );
+
+            // Adicionar aos resultados
+            todosConfrontos.push({
+                rodada: rodadaLiga,
+                confrontos: confrontosRodada,
+                classificacao: classificacaoOrdenada,
+            });
+        }
+
+        // Ordenar por rodada
+        todosConfrontos.sort((a, b) => a.rodada - b.rodada);
+
+        const classificacaoFinal =
+            todosConfrontos.find((c) => c.rodada === rodadaAtualLiga)
+                ?.classificacao || [];
+
+        console.log(
+            `[CORE] ✅ Processamento concluído: ${todosConfrontos.length} rodadas`,
+        );
+
+        return {
+            confrontos: todosConfrontos,
+            classificacao: classificacaoFinal,
+        };
+    } catch (error) {
+        console.error("[CORE] ❌ Erro fatal:", error);
+        return { confrontos: [], classificacao: [] };
+    }
+}
+
+// ============================================================================
+// CALCULAR CLASSIFICAÇÃO (Para compatibilidade)
+// ============================================================================
+
+export async function calcularClassificacao(
+    ligaId,
+    times,
+    confrontos,
+    rodadaAtualBrasileirao,
+) {
+    const rodadaLiga =
+        rodadaAtualBrasileirao - PONTOS_CORRIDOS_CONFIG.rodadaInicial + 1;
+
+    if (rodadaLiga < 1) {
+        console.log(
+            "[CORE] ⚠️ Rodada do Brasileirão anterior ao início do Pontos Corridos",
+        );
+        return {
+            classificacao: [],
+            confrontos: [],
+            houveErro: false,
+            fromCache: false,
+        };
+    }
+
+    // Verificar cache primeiro
+    const cache = await lerCacheRodada(ligaId, rodadaLiga);
+    if (cache?.classificacao?.length > 0) {
+        return {
+            classificacao: cache.classificacao,
+            confrontos: cache.confrontos,
+            ultimaRodadaComDados: rodadaAtualBrasileirao,
+            houveErro: false,
+            fromCache: true,
+        };
+    }
+
+    // Calcular usando função principal
+    const resultado = await getConfrontosLigaPontosCorridos(ligaId, rodadaLiga);
+
+    return {
+        classificacao: resultado.classificacao,
+        confrontos: resultado.confrontos,
         ultimaRodadaComDados: rodadaAtualBrasileirao,
         houveErro: false,
-        fromCache: true,
-        isConsolidated: true,
-      };
-    } else {
-      console.warn(
-        `[CORE] ⚠️ Cache não encontrado para rodada consolidada ${rodadaLiga} - isso NÃO deveria acontecer!`,
-      );
-      // Ainda assim retorna vazio ao invés de recalcular
-      return {
-        classificacao: [],
-        ultimaRodadaComDados: rodadaAtualBrasileirao,
-        houveErro: true,
         fromCache: false,
-        errorMessage: "Cache MongoDB esperado mas não encontrado",
-      };
-    }
-  }
-
-  // 🔄 RODADA EM ANDAMENTO: Tenta cache primeiro, senão calcula
-  const cacheClassificacao = await lerCachePersistente(ligaId, rodadaLiga);
-  if (
-    cacheClassificacao &&
-    Array.isArray(cacheClassificacao) &&
-    cacheClassificacao.length > 0
-  ) {
-    console.log(
-      `[CORE] 💾 Cache temporário encontrado para rodada ${rodadaLiga} (${cacheClassificacao.length} times)`,
-    );
-    return {
-      classificacao: cacheClassificacao,
-      ultimaRodadaComDados: rodadaAtualBrasileirao,
-      houveErro: false,
-      fromCache: true,
-      isConsolidated: false,
     };
-  }
-
-  console.log(
-    `[CORE] ⚙️ Calculando classificação do zero para rodada ${rodadaLiga} (em andamento)...`,
-  );
-
-  const classificacao = times.map((time) => ({
-    time_id: time.id || time.time_id,
-    nome_time: time.nome_time || time.nome || "N/D",
-    nome_cartola: time.nome_cartola || "N/D",
-    foto_perfil: time.foto_perfil || "",
-    foto_time: time.foto_time || "",
-    pontos: 0,
-    jogos: 0, // ✅ ADICIONADO
-    vitorias: 0,
-    empates: 0,
-    derrotas: 0,
-    gols_pro: 0,
-    gols_contra: 0,
-    saldo_gols: 0,
-    financeiro: 0,
-    pontosGoleada: 0, // ✅ ADICIONADO para coluna GP
-  }));
-
-  // ⚡ OTIMIZAÇÃO: Buscar TODAS as rodadas de uma vez
-  const rodadaInicio = 1;
-  const rodadaFim = Math.min(rodadaLiga, confrontos.length);
-
-  console.log(
-    `[CORE] 🚀 Buscando rodadas ${rodadaInicio} a ${rodadaFim} em lote (MODO RECÁLCULO)...`,
-  );
-  console.warn(
-    `[CORE] ⚠️ ATENÇÃO: Esta busca só deveria acontecer se cache MongoDB não existe!`,
-  );
-
-  let todasPontuacoes = [];
-  try {
-    const response = await fetch(
-      `/api/rodadas/${ligaId}/rodadas?inicio=${rodadaInicio}&fim=${rodadaFim}`,
-    );
-    if (response.ok) {
-      todasPontuacoes = await response.json();
-      console.log(
-        `[CORE] ✅ ${todasPontuacoes.length} registros carregados em lote`,
-      );
-    }
-  } catch (error) {
-    console.error("[CORE] ❌ Erro ao buscar rodadas em lote:", error);
-  }
-
-  // Agrupar pontuações por rodada
-  const pontuacoesPorRodada = {};
-  todasPontuacoes.forEach((p) => {
-    const rodadaNum = p.rodada;
-    if (!pontuacoesPorRodada[rodadaNum]) {
-      pontuacoesPorRodada[rodadaNum] = {};
-    }
-    const tid = p.timeId || p.time_id || p.id;
-    pontuacoesPorRodada[rodadaNum][tid] = p.pontos;
-  });
-
-  // Processar cada rodada de confrontos
-  for (let rodadaIdx = 0; rodadaIdx < confrontos.length; rodadaIdx++) {
-    const rodadaNum = rodadaIdx + 1;
-    const rodadaBrasileirao = PONTOS_CORRIDOS_CONFIG.rodadaInicial + rodadaIdx;
-
-    // Parar se já passou da rodada atual do brasileirão
-    if (rodadaBrasileirao >= rodadaAtualBrasileirao) {
-      break;
-    }
-
-    const jogosRodada = confrontos[rodadaIdx];
-    if (!jogosRodada || !Array.isArray(jogosRodada)) continue;
-
-    // Usar pontuações já carregadas
-    const pontuacoesMap = pontuacoesPorRodada[rodadaNum] || {};
-
-    // Processar cada jogo da rodada
-    for (const jogo of jogosRodada) {
-      const timeAId = jogo.timeA?.id || jogo.timeA?.time_id;
-      const timeBId = jogo.timeB?.id || jogo.timeB?.time_id;
-
-      if (!timeAId || !timeBId) continue;
-
-      const pontosA = pontuacoesMap[timeAId] || null;
-      const pontosB = pontuacoesMap[timeBId] || null;
-
-      if (pontosA === null || pontosB === null) continue;
-
-      const resultado = calcularFinanceiroConfronto(pontosA, pontosB);
-
-      // Atualizar estatísticas do Time A
-      const idxA = classificacao.findIndex((t) => t.time_id === timeAId);
-      if (idxA !== -1) {
-        classificacao[idxA].jogos += 1; // ✅ ADICIONADO
-        classificacao[idxA].pontos += resultado.pontosA;
-        classificacao[idxA].vitorias +=
-          resultado.tipo === "vitoria" || resultado.tipo === "goleada" ? 1 : 0;
-        classificacao[idxA].empates += resultado.tipo === "empate" ? 1 : 0;
-        classificacao[idxA].derrotas +=
-          resultado.pontosA === 0 && resultado.tipo !== "empate" ? 1 : 0;
-        classificacao[idxA].financeiro += resultado.financeiroA;
-        classificacao[idxA].gols_pro += pontosA || 0;
-        classificacao[idxA].gols_contra += pontosB || 0;
-        classificacao[idxA].saldo_gols =
-          (classificacao[idxA].gols_pro || 0) -
-          (classificacao[idxA].gols_contra || 0);
-        // ✅ ADICIONADO: Pontos de goleada
-        if (resultado.tipo === "goleada" && resultado.financeiroA > 0) {
-          classificacao[idxA].pontosGoleada += 1;
-        }
-      }
-
-      // Atualizar estatísticas do Time B
-      const idxB = classificacao.findIndex((t) => t.time_id === timeBId);
-      if (idxB !== -1) {
-        classificacao[idxB].jogos += 1; // ✅ ADICIONADO
-        classificacao[idxB].pontos += resultado.pontosB;
-        classificacao[idxB].vitorias +=
-          resultado.tipo === "vitoria" || resultado.tipo === "goleada"
-            ? resultado.financeiroB > 0
-              ? 1
-              : 0
-            : 0;
-        classificacao[idxB].empates += resultado.tipo === "empate" ? 1 : 0;
-        classificacao[idxB].derrotas +=
-          resultado.pontosB === 0 && resultado.tipo !== "empate" ? 1 : 0;
-        classificacao[idxB].financeiro += resultado.financeiroB;
-        classificacao[idxB].gols_pro += pontosB || 0;
-        classificacao[idxB].gols_contra += pontosA || 0;
-        classificacao[idxB].saldo_gols =
-          (classificacao[idxB].gols_pro || 0) -
-          (classificacao[idxB].gols_contra || 0);
-        // ✅ ADICIONADO: Pontos de goleada
-        if (resultado.tipo === "goleada" && resultado.financeiroB > 0) {
-          classificacao[idxB].pontosGoleada += 1;
-        }
-      }
-    }
-  }
-
-  // Ordenar a classificação (por pontos, depois saldo de gols, depois vitórias)
-  classificacao.sort((a, b) => {
-    if (b.pontos !== a.pontos) return b.pontos - a.pontos;
-    if (b.saldo_gols !== a.saldo_gols) return b.saldo_gols - a.saldo_gols;
-    return b.vitorias - a.vitorias;
-  });
-
-  // Adicionar informações de escudo e foto de perfil usando os dados originais de 'times'
-  const classificacaoFinal = classificacao.map((timeClassificado) => {
-    const timeOriginal = times.find(
-      (t) => t && t.id === timeClassificado.time_id,
-    );
-    if (!timeOriginal) {
-      console.warn(
-        `[PONTOS-CORRIDOS-CORE] Time ${timeClassificado.time_id} não encontrado na lista de times para adicionar detalhes de imagem.`,
-      );
-      return {
-        ...timeClassificado,
-        foto_perfil: "",
-        foto_time: "",
-        url_escudo_png: "", // Adicionando para garantir que o campo exista
-      };
-    }
-
-    // Validar e extrair dados do time com fallbacks
-    const nome =
-      timeOriginal.nome_time ||
-      timeOriginal.nome ||
-      `Time ${timeClassificado.time_id}`;
-    const escudo =
-      timeOriginal.url_escudo_png ||
-      timeOriginal.escudo ||
-      timeOriginal.foto_time ||
-      "";
-
-    return {
-      ...timeClassificado,
-      nome_time: nome, // Garante que o nome esteja presente
-      foto_perfil: timeOriginal.foto_perfil || "",
-      foto_time: timeOriginal.foto_time || "", // Pode ser usado como fallback para escudo
-      url_escudo_png: escudo, // Mapeando para o campo esperado pela UI
-    };
-  });
-
-  // ✅ SALVAR NO CACHE MONGODB (Snapshot vitalício)
-  // statusMercado já declarado no início da função (linha 263)
-  const isRodadaConsolidada = statusMercado.rodada_atual > rodadaLiga; // Rodada já encerrada?
-
-  if (classificacaoFinal.length > 0 && isRodadaConsolidada) {
-    console.log(
-      `[CORE] 💾 Salvando classificação consolidada da rodada ${rodadaLiga} no MongoDB...`,
-    );
-    await salvarCachePersistente(ligaId, rodadaLiga, classificacaoFinal);
-  } else if (classificacaoFinal.length > 0) {
-    console.log(
-      `[CORE] ⚠️ Rodada ${rodadaLiga} ainda em andamento, cache temporário não salvo.`,
-    );
-  }
-
-  return {
-    classificacao: classificacaoFinal,
-    ultimaRodadaComDados: rodadaAtualBrasileirao,
-    houveErro: false,
-    fromCache: false,
-  };
-}
-
-/**
- * Processa dados de uma rodada específica
- */
-export async function processarDadosRodada(ligaId, rodadaCartola, jogos) {
-  const pontuacoesMap = {};
-
-  try {
-    if (getRankingRodadaEspecifica) {
-      const ranking = await getRankingRodadaEspecifica(ligaId, rodadaCartola);
-      if (Array.isArray(ranking)) {
-        ranking.forEach((p) => {
-          const timeId = p.time_id || p.timeId || p.id;
-          pontuacoesMap[timeId] = p.pontos || 0;
-        });
-      }
-    }
-  } catch (error) {
-    console.warn(
-      `[CORE] Erro ao buscar pontuações da rodada ${rodadaCartola}:`,
-      error,
-    );
-  }
-
-  return { pontuacoesMap };
-}
-
-/**
- * Normaliza dados de jogo para exportação
- */
-export function normalizarDadosParaExportacao(jogo, pontuacoesMap = {}) {
-  const timeAId = jogo.timeA?.id || jogo.timeA?.time_id;
-  const timeBId = jogo.timeB?.id || jogo.timeB?.time_id;
-
-  return {
-    time1: {
-      id: timeAId,
-      nome_time: jogo.timeA?.nome_time || jogo.timeA?.nome || "N/D",
-      nome_cartola: jogo.timeA?.nome_cartola || "N/D",
-      foto_perfil: jogo.timeA?.foto_perfil || "",
-      foto_time: jogo.timeA?.foto_time || "",
-    },
-    time2: {
-      id: timeBId,
-      nome_time: jogo.timeB?.nome_time || jogo.timeB?.nome || "N/D",
-      nome_cartola: jogo.timeB?.nome_cartola || "N/D",
-      foto_perfil: jogo.timeB?.foto_perfil || "",
-      foto_time: jogo.timeB?.foto_time || "",
-    },
-    pontos1: pontuacoesMap[timeAId] || null,
-    pontos2: pontuacoesMap[timeBId] || null,
-  };
-}
-
-/**
- * Normaliza classificação para exportação
- */
-export function normalizarClassificacaoParaExportacao(classificacao) {
-  if (!Array.isArray(classificacao)) return [];
-
-  return classificacao.map((time) => ({
-    time_id: time.time_id,
-    nome_time: time.nome_time || "N/D",
-    nome_cartola: time.nome_cartola || "N/D",
-    foto_perfil: time.foto_perfil || "",
-    foto_time: time.foto_time || "",
-    pontos: time.pontos || 0,
-    vitorias: time.vitorias || 0,
-    empates: time.empates || 0,
-    derrotas: time.derrotas || 0,
-    gols_pro: time.gols_pro || 0,
-    gols_contra: time.gols_contra || 0,
-    saldo_gols: time.saldo_gols || 0,
-    financeiro: time.financeiro || 0,
-  }));
-}
-
-/**
- * Valida dados de entrada
- */
-export function validarDadosEntrada(times, confrontos) {
-  if (!Array.isArray(times) || times.length === 0) {
-    throw new Error("Times inválidos ou vazios");
-  }
-
-  if (!Array.isArray(confrontos) || confrontos.length === 0) {
-    throw new Error("Confrontos inválidos ou vazios");
-  }
-
-  return true;
-}
-
-/**
- * Calcula o resultado financeiro de um confronto
- */
-export function calcularFinanceiroConfronto(
-  pontosA,
-  pontosB,
-  config = PONTOS_CORRIDOS_CONFIG,
-) {
-  const A = parseFloat(pontosA || 0);
-  const B = parseFloat(pontosB || 0);
-  const diferenca = Math.abs(A - B);
-
-  const { empateTolerancia, goleadaMinima } = config.criterios;
-  const financeiro = config.financeiro;
-
-  // Empate
-  if (diferenca <= empateTolerancia) {
-    return {
-      financeiroA: financeiro.empate,
-      financeiroB: financeiro.empate,
-      pontosA: 1,
-      pontosB: 1,
-      tipo: "empate",
-    };
-  }
-
-  // Goleada
-  if (diferenca >= goleadaMinima) {
-    if (A > B) {
-      return {
-        financeiroA: financeiro.goleada,
-        financeiroB: -financeiro.goleada,
-        pontosA: 3,
-        pontosB: 0,
-        tipo: "goleada",
-      };
-    } else {
-      return {
-        financeiroA: -financeiro.goleada,
-        financeiroB: financeiro.goleada,
-        pontosA: 0,
-        pontosB: 3,
-        tipo: "goleada",
-      };
-    }
-  }
-
-  // Vitória simples
-  if (A > B) {
-    return {
-      financeiroA: financeiro.vitoria,
-      financeiroB: -financeiro.vitoria,
-      pontosA: 3,
-      pontosB: 0,
-      tipo: "vitoria",
-    };
-  } else {
-    return {
-      financeiroA: -financeiro.vitoria,
-      financeiroB: financeiro.vitoria,
-      pontosA: 0,
-      pontosB: 3,
-      tipo: "vitoria",
-    };
-  }
 }
 
 // ============================================================================
-// 🔌 EXPORTAÇÕES DE COMPATIBILIDADE
+// EXPORTS
 // ============================================================================
 
-// Alias para manter compatibilidade com código antigo
 export const buscarStatusMercado = atualizarStatusMercado;
-
-// Re-exportar getLigaId
 export { getLigaId };
+
+// Exports adicionais para compatibilidade
+export function normalizarDadosParaExportacao(jogo, pontuacoesMap = {}) {
+    const tidA = jogo.timeA?.id || jogo.timeA?.time_id;
+    const tidB = jogo.timeB?.id || jogo.timeB?.time_id;
+
+    return {
+        time1: {
+            id: tidA,
+            nome_time: jogo.timeA?.nome_time || jogo.timeA?.nome || "N/D",
+            nome_cartola: jogo.timeA?.nome_cartola || "N/D",
+            foto_perfil: jogo.timeA?.foto_perfil || "",
+            foto_time: jogo.timeA?.foto_time || "",
+        },
+        time2: {
+            id: tidB,
+            nome_time: jogo.timeB?.nome_time || jogo.timeB?.nome || "N/D",
+            nome_cartola: jogo.timeB?.nome_cartola || "N/D",
+            foto_perfil: jogo.timeB?.foto_perfil || "",
+            foto_time: jogo.timeB?.foto_time || "",
+        },
+        pontos1: pontuacoesMap[tidA] || null,
+        pontos2: pontuacoesMap[tidB] || null,
+    };
+}
+
+export function normalizarClassificacaoParaExportacao(classificacao) {
+    if (!Array.isArray(classificacao)) return [];
+    return classificacao.map((t) => ({
+        time_id: t.timeId || t.time_id,
+        nome_time: t.nome || t.nome_time || "N/D",
+        escudo: t.escudo || "",
+        pontos: t.pontos || 0,
+        vitorias: t.vitorias || 0,
+        empates: t.empates || 0,
+        derrotas: t.derrotas || 0,
+        gols_pro: t.gols_pro || 0,
+        gols_contra: t.gols_contra || 0,
+        saldo_gols: t.saldo_gols || 0,
+        financeiro: t.financeiro || 0,
+    }));
+}
+
+export async function processarDadosRodada(ligaId, rodadaCartola, jogos) {
+    const pontuacoesMap = {};
+    try {
+        if (getRankingRodadaEspecifica) {
+            const ranking = await getRankingRodadaEspecifica(
+                ligaId,
+                rodadaCartola,
+            );
+            if (Array.isArray(ranking)) {
+                ranking.forEach((p) => {
+                    const tid = p.time_id || p.timeId || p.id;
+                    pontuacoesMap[tid] = p.pontos || 0;
+                });
+            }
+        }
+    } catch (error) {
+        console.warn(
+            `[CORE] Erro ao buscar pontuações R${rodadaCartola}:`,
+            error,
+        );
+    }
+    return { pontuacoesMap };
+}
+
+export function validarDadosEntrada(times, confrontos) {
+    if (!Array.isArray(times) || times.length === 0)
+        throw new Error("Times inválidos ou vazios");
+    if (!Array.isArray(confrontos) || confrontos.length === 0)
+        throw new Error("Confrontos inválidos ou vazios");
+    return true;
+}
+
+console.log(
+    "[PONTOS-CORRIDOS-CORE] ✅ v2.0 carregado (cache individual por rodada)",
+);

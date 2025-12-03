@@ -1,451 +1,501 @@
-// =====================================================================
-// PARTICIPANTE-PONTOS-CORRIDOS.JS - v2.0 (APENAS CONSUMO)
-// =====================================================================
-// ✅ Consome dados prontos do backend
-// ✅ Zero import de orquestradores do admin
-// ✅ Leve e rápido
-// =====================================================================
+// PARTICIPANTE PONTOS CORRIDOS - v4.0
+// Apenas lógica - templates em /participante/html/pontos-corridos.html
 
-console.log("[PONTOS-CORRIDOS-PARTICIPANTE] 🔄 Módulo v2.0 (consumo)");
-
-let ligaIdAtual = null;
-let timeIdAtual = null;
-
-// =====================================================================
-// FUNÇÃO PRINCIPAL - INICIALIZAR
-// =====================================================================
-window.inicializarPontosCorridosParticipante = async function ({
-    participante,
-    ligaId,
-    timeId,
-}) {
-    console.log("[PONTOS-CORRIDOS-PARTICIPANTE] Inicializando...", {
-        ligaId,
-        timeId,
-    });
-
-    if (!ligaId) {
-        mostrarErro("Dados da liga não encontrados");
-        return;
-    }
-
-    ligaIdAtual = ligaId;
-    timeIdAtual = timeId;
-
-    await carregarPontosCorridos(ligaId, timeId);
+const estadoPC = {
+    ligaId: null,
+    timeId: null,
+    rodadaAtual: 1,
+    rodadaSelecionada: 1,
+    totalRodadas: 31,
+    dados: [],
+    viewMode: "confrontos",
 };
 
-// =====================================================================
-// CARREGAR DADOS DO BACKEND
-// =====================================================================
-async function carregarPontosCorridos(ligaId, timeId) {
-    const container =
-        document.getElementById("pontosCorridosContainer") ||
-        document.getElementById("moduleContainer");
+// ============================================
+// INICIALIZAÇÃO
+// ============================================
 
-    if (!container) {
-        console.error(
-            "[PONTOS-CORRIDOS-PARTICIPANTE] ❌ Container não encontrado",
-        );
-        return;
-    }
+export async function inicializarPontosCorridosParticipante(params = {}) {
+    console.log("[PONTOS-CORRIDOS] 🚀 Inicializando...", params);
 
-    // Loading state
-    container.innerHTML = `
-        <div style="display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 60px 20px;">
-            <div style="width: 40px; height: 40px; border: 3px solid rgba(255, 69, 0, 0.2); border-top-color: #ff4500; border-radius: 50%; animation: spin 0.8s linear infinite;"></div>
-            <p style="margin-top: 16px; color: #999; font-size: 14px;">Carregando classificação...</p>
-        </div>
-        <style>@keyframes spin { to { transform: rotate(360deg); } }</style>
-    `;
+    const participante = params.participante || window.participanteData || {};
+    estadoPC.ligaId = params.ligaId || participante.ligaId;
+    estadoPC.timeId = params.timeId || participante.timeId;
+
+    mostrarLoading();
 
     try {
-        // ✅ BUSCAR DO CACHE (prioridade)
-        let dados = null;
+        const dados = await carregarDados();
+        estadoPC.dados = dados;
 
-        // Tentar cache primeiro
-        const cacheResponse = await fetch(
-            `/api/pontos-corridos/cache/${ligaId}`,
-        );
-        if (cacheResponse.ok) {
-            const cacheData = await cacheResponse.json();
-            if (cacheData && cacheData.dados) {
-                dados = cacheData.dados;
-                console.log("[PONTOS-CORRIDOS-PARTICIPANTE] ✅ Dados do cache");
-            }
-        }
-
-        // Fallback para endpoint direto
-        if (!dados) {
-            const response = await fetch(
-                `/api/ligas/${ligaId}/pontos-corridos`,
+        if (dados.length > 0) {
+            const rodadasComConfrontos = dados.filter(
+                (r) => r.confrontos?.length > 0,
             );
-            if (response.ok) {
-                dados = await response.json();
-                console.log(
-                    "[PONTOS-CORRIDOS-PARTICIPANTE] ✅ Dados do endpoint direto",
-                );
-            }
+            estadoPC.totalRodadas = dados.length;
+            estadoPC.rodadaAtual =
+                rodadasComConfrontos.length > 0
+                    ? Math.max(...rodadasComConfrontos.map((r) => r.rodada))
+                    : 1;
+            estadoPC.rodadaSelecionada = estadoPC.rodadaAtual;
         }
 
-        if (!dados || (Array.isArray(dados) && dados.length === 0)) {
-            mostrarVazio(container);
-            return;
-        }
-
-        // Renderizar tabela
-        renderizarClassificacao(container, dados, timeId);
+        console.log(`[PONTOS-CORRIDOS] ✅ ${dados.length} rodadas carregadas`);
+        renderizarInterface();
     } catch (error) {
-        console.log("[PONTOS-CORRIDOS-PARTICIPANTE] ⚠️ Cache não encontrado, usando endpoint direto");
-        console.log(`[PONTOS-CORRIDOS-PARTICIPANTE] 🔄 Buscando: /api/pontos-corridos/${ligaId}`);
-
-        // Fallback: endpoint direto
-        const response = await fetch(`/api/pontos-corridos/${ligaId}`);
-        if (!response.ok) {
-            console.error(`[PONTOS-CORRIDOS-PARTICIPANTE] ❌ Erro HTTP ${response.status}`);
-            throw new Error("Erro ao buscar dados");
-        }
-
-        const data = await response.json();
-        console.log("[PONTOS-CORRIDOS-PARTICIPANTE] ✅ Dados do endpoint direto", {
-            rodadas: data.confrontos?.length || 0,
-            classificacao: data.classificacao?.length || 0
-        });
-
-        dados = data; // Assign fetched data to dados
-
-        if (!dados || (Array.isArray(dados) && dados.length === 0)) {
-            mostrarVazio(container);
-            return;
-        }
-
-        renderizarClassificacao(container, dados, timeId);
+        console.error("[PONTOS-CORRIDOS] ❌ Erro:", error);
+        mostrarErro(error.message);
     }
 }
 
-// =====================================================================
-// RENDERIZAR CLASSIFICAÇÃO
-// =====================================================================
-function renderizarClassificacao(container, dados, meuTimeId) {
-    // Normalizar dados (pode vir como array ou objeto com ranking)
-    let classificacao = Array.isArray(dados)
-        ? dados
-        : dados.ranking || dados.classificacao || [];
+async function carregarDados() {
+    const response = await fetch(`/api/pontos-corridos/${estadoPC.ligaId}`);
+    if (!response.ok) throw new Error("Falha ao carregar dados");
+    const data = await response.json();
+    return Array.isArray(data) ? data : [];
+}
 
-    if (!Array.isArray(classificacao) || classificacao.length === 0) {
-        mostrarVazio(container);
+// ============================================
+// CONTROLE DE ESTADOS
+// ============================================
+
+function mostrarLoading() {
+    toggleElemento("pc-loading", true);
+    toggleElemento("pc-error", false);
+    toggleElemento("pc-content", false);
+}
+
+function mostrarErro(msg) {
+    toggleElemento("pc-loading", false);
+    toggleElemento("pc-error", true);
+    toggleElemento("pc-content", false);
+    setTexto("pc-error-msg", msg);
+}
+
+function mostrarConteudo() {
+    toggleElemento("pc-loading", false);
+    toggleElemento("pc-error", false);
+    toggleElemento("pc-content", true);
+}
+
+function toggleElemento(id, mostrar) {
+    const el = document.getElementById(id);
+    if (el) el.classList.toggle("hidden", !mostrar);
+}
+
+function setTexto(id, texto) {
+    const el = document.getElementById(id);
+    if (el) el.textContent = texto;
+}
+
+// ============================================
+// RENDERIZAÇÃO
+// ============================================
+
+function renderizarInterface() {
+    mostrarConteudo();
+    atualizarHeader();
+    atualizarSeletorRodadas();
+    atualizarProgresso();
+    atualizarToggle();
+    renderizarView();
+    scrollParaRodadaSelecionada();
+}
+
+function atualizarHeader() {
+    const { dados, timeId } = estadoPC;
+    let posicao = "-";
+
+    const ultimaRodada = dados.filter((r) => r.classificacao?.length > 0).pop();
+    if (ultimaRodada?.classificacao) {
+        const meuTime = ultimaRodada.classificacao.find(
+            (t) => (t.timeId || t.time_id || t.id) == timeId,
+        );
+        if (meuTime) {
+            posicao =
+                meuTime.posicao ||
+                ultimaRodada.classificacao.indexOf(meuTime) + 1;
+        }
+    }
+
+    setTexto("pc-posicao-badge", `${posicao}º`);
+}
+
+function atualizarSeletorRodadas() {
+    const { dados, rodadaSelecionada, rodadaAtual, totalRodadas } = estadoPC;
+    const container = document.getElementById("pc-seletor-rodadas");
+    if (!container) return;
+
+    const rodadasDisputadas = dados.filter(
+        (r) => r.confrontos?.length > 0,
+    ).length;
+    setTexto(
+        "pc-rodadas-info",
+        `${rodadasDisputadas} de ${totalRodadas} rodadas disputadas`,
+    );
+
+    container.innerHTML = "";
+
+    for (let i = 1; i <= totalRodadas; i++) {
+        const rodadaData = dados.find((r) => r.rodada === i);
+        const temDados = rodadaData?.confrontos?.length > 0;
+        const isAtual = i === rodadaAtual;
+        const isSelecionada = i === rodadaSelecionada;
+
+        const btn = document.createElement("button");
+        btn.className = buildClassesBotaoRodada(
+            isSelecionada,
+            isAtual,
+            temDados,
+        );
+        btn.disabled = !temDados;
+        btn.onclick = () => selecionarRodada(i);
+
+        btn.innerHTML = `
+            <span class="font-bold text-sm ${isSelecionada ? "text-white" : isAtual ? "text-green-400" : "text-white"}">${i}</span>
+            <span class="${isSelecionada ? "text-white/80" : isAtual ? "text-green-400/80" : "text-white/50"}">RODADA</span>
+            ${isAtual && !isSelecionada ? '<span class="w-1.5 h-1.5 bg-green-500 rounded-full mt-1 animate-pulse"></span>' : ""}
+        `;
+
+        container.appendChild(btn);
+    }
+}
+
+function buildClassesBotaoRodada(selecionada, atual, temDados) {
+    let classes =
+        "flex flex-col items-center justify-center rounded-lg px-4 py-2 text-[10px] flex-shrink-0 cursor-pointer transition-all ";
+
+    if (selecionada) {
+        classes += "bg-primary border border-primary/70 scale-105";
+    } else if (atual) {
+        classes += "bg-green-500/20 border border-green-500";
+    } else if (temDados) {
+        classes +=
+            "bg-surface-dark border border-zinc-700 hover:border-zinc-500";
+    } else {
+        classes +=
+            "bg-surface-dark/50 border border-zinc-800 opacity-50 cursor-not-allowed";
+    }
+
+    return classes;
+}
+
+function atualizarProgresso() {
+    const { dados, totalRodadas } = estadoPC;
+    const disputadas = dados.filter((r) => r.confrontos?.length > 0).length;
+    const progresso = totalRodadas > 0 ? (disputadas / totalRodadas) * 100 : 0;
+
+    const bar = document.getElementById("pc-progress-bar");
+    if (bar) bar.style.width = `${progresso.toFixed(1)}%`;
+}
+
+function atualizarToggle() {
+    const { viewMode } = estadoPC;
+    const btnConfrontos = document.getElementById("pc-btn-confrontos");
+    const btnClassificacao = document.getElementById("pc-btn-classificacao");
+
+    if (btnConfrontos) {
+        btnConfrontos.className = `flex-1 flex items-center justify-center gap-2 py-3 text-sm font-medium transition-colors ${viewMode === "confrontos" ? "bg-primary text-white" : "text-white/70 hover:bg-zinc-800"}`;
+    }
+    if (btnClassificacao) {
+        btnClassificacao.className = `flex-1 flex items-center justify-center gap-2 py-3 text-sm font-medium transition-colors ${viewMode === "classificacao" ? "bg-primary text-white" : "text-white/70 hover:bg-zinc-800"}`;
+    }
+}
+
+function renderizarView() {
+    const { viewMode } = estadoPC;
+
+    toggleElemento("pc-view-confrontos", viewMode === "confrontos");
+    toggleElemento("pc-view-classificacao", viewMode === "classificacao");
+    toggleElemento("pc-sem-dados", false);
+
+    if (viewMode === "confrontos") {
+        renderizarConfrontos();
+    } else {
+        renderizarClassificacao();
+    }
+}
+
+// ============================================
+// CONFRONTOS
+// ============================================
+
+function renderizarConfrontos() {
+    const { dados, rodadaSelecionada, rodadaAtual, timeId } = estadoPC;
+    const container = document.getElementById("pc-lista-confrontos");
+    if (!container) return;
+
+    const rodadaData = dados.find((r) => r.rodada === rodadaSelecionada);
+    if (!rodadaData) {
+        mostrarSemDados("Rodada não encontrada");
         return;
     }
 
-    // Ordenar por pontos (se não estiver ordenado)
-    classificacao = classificacao.sort((a, b) => {
-        const pontosA = a.pontos_totais || a.pontos || 0;
-        const pontosB = b.pontos_totais || b.pontos || 0;
-        return pontosB - pontosA;
-    });
+    const confrontos = processarConfrontos(rodadaData);
+    if (confrontos.length === 0) {
+        mostrarSemDados("Nenhum confronto disponível");
+        return;
+    }
 
-    const totalTimes = classificacao.length;
-    const meuTimeIdNum = Number(meuTimeId);
+    // Atualizar header da rodada
+    const rodadaBrasileirao = rodadaSelecionada + 6;
+    const isEmAndamento = rodadaSelecionada === rodadaAtual;
 
-    const html = `
-        <div class="pontos-corridos-container">
-            <div class="pc-header">
-                <h2>🏆 Classificação Geral</h2>
-                <span class="pc-subtitle">${totalTimes} participantes</span>
-            </div>
+    setTexto("pc-rodada-titulo", `${rodadaSelecionada}ª Rodada da Liga`);
+    setTexto(
+        "pc-rodada-subtitulo",
+        `${rodadaBrasileirao}ª Rodada do Brasileirão`,
+    );
 
-            <div class="pc-table-wrapper">
-                <table class="pc-table">
-                    <thead>
-                        <tr>
-                            <th class="col-pos">#</th>
-                            <th class="col-time">Time</th>
-                            <th class="col-pts">Pts</th>
-                            <th class="col-media">Média</th>
-                            <th class="col-jogos">J</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        ${classificacao
-                            .map((time, index) => {
-                                const posicao = index + 1;
-                                const timeId = time.timeId || time.time_id;
-                                const isMeuTime =
-                                    Number(timeId) === meuTimeIdNum;
-                                const pontos =
-                                    time.pontos_totais || time.pontos || 0;
-                                const jogos =
-                                    time.rodadas_jogadas || time.jogos || 0;
-                                const media =
-                                    jogos > 0
-                                        ? (pontos / jogos).toFixed(2)
-                                        : "0.00";
-
-                                // Zonas
-                                let zonaClass = "";
-                                let zonaIcon = "";
-                                if (posicao === 1) {
-                                    zonaClass = "zona-campeao";
-                                    zonaIcon = "👑";
-                                } else if (posicao <= 3) {
-                                    zonaClass = "zona-podio";
-                                    zonaIcon = "🏅";
-                                } else if (
-                                    posicao <= Math.ceil(totalTimes * 0.3)
-                                ) {
-                                    zonaClass = "zona-g6";
-                                } else if (
-                                    posicao >
-                                    totalTimes - Math.ceil(totalTimes * 0.2)
-                                ) {
-                                    zonaClass = "zona-z4";
-                                }
-
-                                const pontosFormatados = pontos.toLocaleString(
-                                    "pt-BR",
-                                    {
-                                        minimumFractionDigits: 2,
-                                        maximumFractionDigits: 2,
-                                    },
-                                );
-
-                                return `
-                                <tr class="${isMeuTime ? "meu-time" : ""} ${zonaClass}">
-                                    <td class="col-pos">
-                                        <span class="pos-badge ${zonaClass}">${posicao}º ${zonaIcon}</span>
-                                    </td>
-                                    <td class="col-time">
-                                        <div class="time-info">
-                                            <span class="time-nome">${time.nome_time || time.nome || "N/D"}</span>
-                                            <span class="cartola-nome">${time.nome_cartola || ""}</span>
-                                        </div>
-                                    </td>
-                                    <td class="col-pts">${pontosFormatados}</td>
-                                    <td class="col-media">${media}</td>
-                                    <td class="col-jogos">${jogos}</td>
-                                </tr>
-                            `;
-                            })
-                            .join("")}
-                    </tbody>
-                </table>
-            </div>
-
-            <!-- Legenda -->
-            <div class="pc-legenda">
-                <span class="legenda-item zona-campeao">👑 Líder</span>
-                <span class="legenda-item zona-podio">🏅 Pódio</span>
-                <span class="legenda-item zona-g6">G6</span>
-                <span class="legenda-item zona-z4">Z4</span>
-            </div>
-        </div>
-
-        <style>
-        .pontos-corridos-container {
-            padding: 0;
-        }
-
-        .pc-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            padding: 16px;
-            background: linear-gradient(135deg, rgba(255, 69, 0, 0.1) 0%, rgba(255, 69, 0, 0.05) 100%);
-            border-bottom: 2px solid rgba(255, 69, 0, 0.2);
-        }
-
-        .pc-header h2 {
-            margin: 0;
-            font-size: 18px;
-            font-weight: 800;
-            color: #fff;
-        }
-
-        .pc-subtitle {
-            font-size: 12px;
-            color: #999;
-            background: rgba(0,0,0,0.3);
-            padding: 4px 10px;
-            border-radius: 12px;
-        }
-
-        .pc-table-wrapper {
-            overflow-x: auto;
-            -webkit-overflow-scrolling: touch;
-        }
-
-        .pc-table {
-            width: 100%;
-            border-collapse: collapse;
-            font-size: 12px;
-        }
-
-        .pc-table thead {
-            background: rgba(0,0,0,0.4);
-            position: sticky;
-            top: 0;
-            z-index: 10;
-        }
-
-        .pc-table th {
-            padding: 10px 6px;
-            text-align: center;
-            color: var(--participante-primary, #ff4500);
-            font-weight: 700;
-            font-size: 10px;
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
-        }
-
-        .pc-table td {
-            padding: 10px 6px;
-            text-align: center;
-            border-bottom: 1px solid rgba(255,255,255,0.05);
-            color: #e0e0e0;
-        }
-
-        .col-pos { width: 50px; }
-        .col-time { text-align: left !important; }
-        .col-pts { font-weight: 700; font-family: 'JetBrains Mono', monospace; }
-        .col-media { color: #999; font-size: 11px; }
-        .col-jogos { color: #666; font-size: 11px; }
-
-        .pos-badge {
-            display: inline-block;
-            padding: 3px 8px;
-            border-radius: 6px;
-            font-weight: 700;
-            font-size: 11px;
-            background: rgba(255,255,255,0.05);
-        }
-
-        .pos-badge.zona-campeao {
-            background: linear-gradient(135deg, #ffd700 0%, #ffb347 100%);
-            color: #000;
-        }
-
-        .pos-badge.zona-podio {
-            background: rgba(192, 192, 192, 0.2);
-            color: #c0c0c0;
-            border: 1px solid rgba(192, 192, 192, 0.3);
-        }
-
-        .pos-badge.zona-g6 {
-            background: rgba(34, 197, 94, 0.15);
-            color: #22c55e;
-            border: 1px solid rgba(34, 197, 94, 0.3);
-        }
-
-        .pos-badge.zona-z4 {
-            background: rgba(239, 68, 68, 0.15);
-            color: #ef4444;
-            border: 1px solid rgba(239, 68, 68, 0.3);
-        }
-
-        .time-info {
-            display: flex;
-            flex-direction: column;
-            gap: 2px;
-            text-align: left;
-        }
-
-        .time-nome {
-            font-weight: 600;
-            color: #fff;
-            font-size: 12px;
-        }
-
-        .cartola-nome {
-            font-size: 10px;
-            color: #666;
-        }
-
-        /* Meu time destacado */
-        tr.meu-time {
-            background: rgba(16, 185, 129, 0.1) !important;
-            border-left: 3px solid #10b981;
-        }
-
-        tr.meu-time .time-nome {
-            color: #10b981;
-        }
-
-        /* Hover */
-        .pc-table tbody tr:active {
-            background: rgba(255,255,255,0.05);
-        }
-
-        /* Legenda */
-        .pc-legenda {
-            display: flex;
-            justify-content: center;
-            gap: 12px;
-            padding: 12px;
-            background: rgba(0,0,0,0.2);
-            border-top: 1px solid rgba(255,255,255,0.05);
-        }
-
-        .legenda-item {
-            font-size: 10px;
-            padding: 4px 8px;
-            border-radius: 4px;
-            color: #999;
-        }
-
-        .legenda-item.zona-campeao { color: #ffd700; }
-        .legenda-item.zona-podio { color: #c0c0c0; }
-        .legenda-item.zona-g6 { color: #22c55e; }
-        .legenda-item.zona-z4 { color: #ef4444; }
-
-        /* Responsivo */
-        @media (min-width: 768px) {
-            .pc-table { font-size: 14px; }
-            .pc-table th, .pc-table td { padding: 12px 10px; }
-            .time-nome { font-size: 14px; }
-        }
-        </style>
-    `;
-
-    container.innerHTML = html;
-    console.log("[PONTOS-CORRIDOS-PARTICIPANTE] ✅ Classificação renderizada");
-}
-
-// =====================================================================
-// HELPERS
-// =====================================================================
-function mostrarVazio(container) {
-    container.innerHTML = `
-        <div style="text-align: center; padding: 60px 20px;">
-            <div style="font-size: 48px; margin-bottom: 16px; opacity: 0.5;">🏆</div>
-            <h3 style="color: #ccc; margin-bottom: 8px;">Sem dados ainda</h3>
-            <p style="color: #666; font-size: 13px;">A classificação será gerada após as primeiras rodadas.</p>
-        </div>
-    `;
-}
-
-function mostrarErro(mensagem) {
-    const container =
-        document.getElementById("pontosCorridosContainer") ||
-        document.getElementById("moduleContainer");
-    if (container) {
-        container.innerHTML = `
-            <div style="text-align: center; padding: 40px; color: #ef4444;">
-                <div style="font-size: 48px; margin-bottom: 16px;">⚠️</div>
-                <h3>Erro ao Carregar</h3>
-                <p style="margin: 12px 0;">${mensagem}</p>
-                <button onclick="window.inicializarPontosCorridosParticipante({ligaId: '${ligaIdAtual}', timeId: '${timeIdAtual}'})"
-                        style="margin-top: 16px; padding: 12px 24px; background: #ff4500;
-                               color: white; border: none; border-radius: 8px; cursor: pointer; font-weight: 600;">
-                    🔄 Tentar Novamente
-                </button>
-            </div>
+    const statusEl = document.getElementById("pc-rodada-status");
+    if (statusEl) {
+        statusEl.className = `flex items-center space-x-1.5 ${isEmAndamento ? "bg-yellow-500/10 text-yellow-400" : "bg-green-500/10 text-green-400"} px-2.5 py-1.5 rounded-full text-[10px] font-semibold`;
+        statusEl.innerHTML = `
+            <span class="w-1.5 h-1.5 ${isEmAndamento ? "bg-yellow-500 animate-pulse" : "bg-green-500"} rounded-full"></span>
+            <span>${isEmAndamento ? "EM ANDAMENTO" : "FINALIZADA"}</span>
         `;
     }
+
+    // Renderizar confrontos
+    container.innerHTML = confrontos
+        .map((c) => buildLinhaConfronto(c, timeId))
+        .join("");
 }
 
-// Export ES6 (wrapper para compatibilidade com navigation)
-export async function inicializarPontosCorridosParticipante(params) {
-    return window.inicializarPontosCorridosParticipante(params);
+function processarConfrontos(rodadaData) {
+    let confrontos = [];
+
+    if (
+        Array.isArray(rodadaData.confrontos) &&
+        rodadaData.confrontos.length > 0
+    ) {
+        const primeiro = rodadaData.confrontos[0];
+        if (primeiro?.jogos) {
+            confrontos = rodadaData.confrontos.flatMap((r) => r.jogos || []);
+        } else if (primeiro?.time1 || primeiro?.timeA) {
+            confrontos = rodadaData.confrontos.map((c) => ({
+                time1: c.time1 || c.timeA,
+                time2: c.time2 || c.timeB,
+                diferenca:
+                    c.diferenca ??
+                    (c.pontos1 != null && c.pontos2 != null
+                        ? Math.abs(c.pontos1 - c.pontos2)
+                        : null),
+                valor: c.valor || 0,
+            }));
+        }
+    }
+
+    return confrontos.filter((c) => c?.time1 && c?.time2);
 }
 
-console.log("[PONTOS-CORRIDOS-PARTICIPANTE] ✅ Módulo v2.0 carregado");
+function buildLinhaConfronto(confronto, meuTimeId) {
+    const { time1, time2, diferenca, valor } = confronto;
+
+    const t1Id = time1.id || time1.timeId || time1.time_id;
+    const t2Id = time2.id || time2.timeId || time2.time_id;
+    const isMeu1 = t1Id == meuTimeId;
+    const isMeu2 = t2Id == meuTimeId;
+
+    const p1 = time1.pontos ?? null;
+    const p2 = time2.pontos ?? null;
+
+    let vencedor = 0;
+    if (p1 !== null && p2 !== null) {
+        const diff = Math.abs(p1 - p2);
+        vencedor = diff <= 0.3 ? 0 : p1 > p2 ? 1 : 2;
+    }
+
+    const nome1 =
+        time1.nome || time1.nome_time || time1.nome_cartola || "Time 1";
+    const nome2 =
+        time2.nome || time2.nome_time || time2.nome_cartola || "Time 2";
+    const esc1 =
+        time1.escudo ||
+        time1.url_escudo_png ||
+        time1.foto_time ||
+        "/assets/escudo-placeholder.png";
+    const esc2 =
+        time2.escudo ||
+        time2.url_escudo_png ||
+        time2.foto_time ||
+        "/assets/escudo-placeholder.png";
+
+    const cor1 =
+        vencedor === 1
+            ? "text-green-500"
+            : vencedor === 2
+              ? "text-red-500"
+              : "text-white/70";
+    const cor2 =
+        vencedor === 2
+            ? "text-green-500"
+            : vencedor === 1
+              ? "text-red-500"
+              : "text-white/70";
+    const valFin = valor || (vencedor !== 0 ? 5 : 3);
+    const bg = isMeu1 || isMeu2 ? "bg-primary/5" : "";
+
+    return `
+        <div class="py-3 px-3 flex items-center justify-between ${bg}">
+            <div class="flex items-center min-w-0 flex-1 ${vencedor === 2 ? "opacity-60" : ""}">
+                <img src="${esc1}" class="w-8 h-8 rounded-full mr-2.5 shrink-0 bg-zinc-700 object-cover" onerror="this.src='/assets/escudo-placeholder.png'">
+                <div class="min-w-0">
+                    <p class="font-semibold text-sm truncate ${isMeu1 ? "text-primary" : "text-white"}">${nome1}</p>
+                    <div class="flex items-center space-x-1.5">
+                        <p class="text-sm font-bold ${cor1}">${p1 !== null ? p1.toFixed(1) : "-"}</p>
+                        ${p1 !== null ? `<span class="material-symbols-outlined text-base ${vencedor === 1 ? "text-green-500/80" : "text-red-500/80"}" style="font-size:16px">monetization_on</span>` : ""}
+                    </div>
+                </div>
+            </div>
+            <span class="text-sm text-white/30 mx-3 shrink-0">x</span>
+            <div class="flex items-center min-w-0 flex-1 justify-end ${vencedor === 1 ? "opacity-60" : ""}">
+                <div class="min-w-0 text-right">
+                    <p class="font-semibold text-sm truncate ${isMeu2 ? "text-primary" : "text-white"}">${nome2}</p>
+                    <div class="flex items-center justify-end space-x-1.5">
+                        <p class="text-sm font-bold ${cor2}">${p2 !== null ? p2.toFixed(1) : "-"}</p>
+                        ${p2 !== null ? `<span class="material-symbols-outlined text-base ${vencedor === 2 ? "text-green-500/80" : "text-red-500/80"}" style="font-size:16px">monetization_on</span>` : ""}
+                    </div>
+                </div>
+                <img src="${esc2}" class="w-8 h-8 rounded-full ml-2.5 shrink-0 bg-zinc-700 object-cover" onerror="this.src='/assets/escudo-placeholder.png'">
+            </div>
+            <div class="w-16 text-right ml-3 shrink-0">
+                <p class="font-bold text-sm text-white">${diferenca != null ? diferenca.toFixed(1) : "-"}</p>
+            </div>
+        </div>
+    `;
+}
+
+// ============================================
+// CLASSIFICAÇÃO
+// ============================================
+
+function renderizarClassificacao() {
+    const { dados, timeId } = estadoPC;
+    const container = document.getElementById("pc-lista-classificacao");
+    if (!container) return;
+
+    const ultimaRodada = dados.filter((r) => r.classificacao?.length > 0).pop();
+    if (!ultimaRodada?.classificacao?.length) {
+        mostrarSemDados("Classificação não disponível");
+        return;
+    }
+
+    setTexto(
+        "pc-classificacao-info",
+        `Atualizada até a ${ultimaRodada.rodada}ª rodada`,
+    );
+
+    const total = ultimaRodada.classificacao.length;
+    container.innerHTML = ultimaRodada.classificacao
+        .map((t, i) => buildLinhaClassificacao(t, i + 1, total, timeId))
+        .join("");
+}
+
+function buildLinhaClassificacao(time, pos, total, meuTimeId) {
+    const tId = time.timeId || time.time_id || time.id;
+    const isMeu = tId == meuTimeId;
+    const zona = getZona(pos, total);
+
+    const nome = time.nome || time.nome_time || "Time";
+    const esc =
+        time.escudo ||
+        time.url_escudo_png ||
+        time.foto_time ||
+        "/assets/escudo-placeholder.png";
+    const sg = time.saldo_gols ?? time.saldoGols ?? 0;
+
+    return `
+        <div class="flex items-center px-3 py-2.5 ${isMeu ? "bg-primary/10" : ""}">
+            <div class="w-8 flex items-center justify-center">
+                ${
+                    zona.badge
+                        ? `<div class="w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold text-white ${zona.bg}">${pos}</div>`
+                        : `<span class="text-xs font-bold text-white/70">${pos}</span>`
+                }
+            </div>
+            <div class="flex-1 flex items-center gap-2 pl-2 min-w-0">
+                <img src="${esc}" class="w-6 h-6 rounded-full bg-zinc-700 object-cover shrink-0" onerror="this.src='/assets/escudo-placeholder.png'">
+                <span class="text-xs font-medium truncate ${isMeu ? "text-primary font-bold" : "text-white"}">${nome}</span>
+            </div>
+            <div class="w-7 text-center text-white/60 text-xs">${time.jogos || 0}</div>
+            <div class="w-7 text-center text-green-400 text-xs">${time.vitorias || 0}</div>
+            <div class="w-7 text-center text-yellow-400 text-xs">${time.empates || 0}</div>
+            <div class="w-7 text-center text-red-400 text-xs">${time.derrotas || 0}</div>
+            <div class="w-9 text-center text-white/60 text-xs">${Math.round(sg)}</div>
+            <div class="w-10 text-center text-white font-bold text-sm">${time.pontos || 0}</div>
+        </div>
+    `;
+}
+
+function getZona(pos, total) {
+    if (pos === 1) return { badge: true, bg: "bg-yellow-500" };
+    if (pos === 2) return { badge: true, bg: "bg-gray-400" };
+    if (pos === 3) return { badge: true, bg: "bg-amber-600" };
+    if (pos <= Math.ceil(total * 0.25))
+        return { badge: true, bg: "bg-green-500" };
+    if (pos > Math.floor(total * 0.85))
+        return { badge: true, bg: "bg-red-500" };
+    return { badge: false };
+}
+
+// ============================================
+// UTILITÁRIOS
+// ============================================
+
+function mostrarSemDados(msg) {
+    toggleElemento("pc-view-confrontos", false);
+    toggleElemento("pc-view-classificacao", false);
+    toggleElemento("pc-sem-dados", true);
+    setTexto("pc-sem-dados-msg", msg);
+}
+
+function scrollParaRodadaSelecionada() {
+    setTimeout(() => {
+        const container = document.querySelector(
+            "#pc-seletor-rodadas",
+        )?.parentElement;
+        const selecionado = document.querySelector(
+            "#pc-seletor-rodadas .scale-105",
+        );
+        if (container && selecionado) {
+            const cRect = container.getBoundingClientRect();
+            const sRect = selecionado.getBoundingClientRect();
+            container.scrollBy({
+                left:
+                    sRect.left - cRect.left - cRect.width / 2 + sRect.width / 2,
+                behavior: "smooth",
+            });
+        }
+    }, 100);
+}
+
+function selecionarRodada(rodada) {
+    estadoPC.rodadaSelecionada = rodada;
+    estadoPC.viewMode = "confrontos";
+    renderizarInterface();
+}
+
+// ============================================
+// FUNÇÕES GLOBAIS
+// ============================================
+
+window.trocarViewPontosCorridos = function (view) {
+    estadoPC.viewMode = view;
+    atualizarToggle();
+    renderizarView();
+};
+
+window.selecionarRodadaPontosCorridos = selecionarRodada;
+
+window.recarregarPontosCorridos = function () {
+    inicializarPontosCorridosParticipante({
+        ligaId: estadoPC.ligaId,
+        timeId: estadoPC.timeId,
+    });
+};
+
+window.inicializarPontosCorridosParticipante =
+    inicializarPontosCorridosParticipante;
+
+console.log("[PONTOS-CORRIDOS] Módulo v4.0 carregado (estrutura limpa)");

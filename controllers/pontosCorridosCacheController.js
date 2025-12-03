@@ -1,42 +1,65 @@
 // controllers/pontosCorridosCacheController.js
 import PontosCorridosCache from "../models/PontosCorridosCache.js";
 
+// ✅ SALVAR CACHE (CONFRONTOS + CLASSIFICAÇÃO)
 export const salvarCachePontosCorridos = async (req, res) => {
     try {
         const { ligaId } = req.params;
-        const { rodada, classificacao, permanent } = req.body;
+        const { rodada, classificacao, confrontos, permanent } = req.body;
 
-        if (!rodada || !classificacao) {
-            return res.status(400).json({ error: "Dados incompletos" });
+        if (!rodada) {
+            return res.status(400).json({ error: "Rodada é obrigatória" });
         }
 
-        await PontosCorridosCache.findOneAndUpdate(
+        if (!classificacao && !confrontos) {
+            return res
+                .status(400)
+                .json({
+                    error: "Dados incompletos (classificação ou confrontos)",
+                });
+        }
+
+        const updateData = {
+            cache_permanente: permanent || false,
+            ultima_atualizacao: new Date(),
+        };
+
+        if (classificacao) updateData.classificacao = classificacao;
+        if (confrontos) updateData.confrontos = confrontos;
+
+        const result = await PontosCorridosCache.findOneAndUpdate(
             { liga_id: ligaId, rodada_consolidada: rodada },
-            {
-                classificacao: classificacao,
-                cache_permanente: permanent || false, // ✅ Marca como permanente
-                ultima_atualizacao: new Date(),
-            },
+            updateData,
             { new: true, upsert: true },
         );
 
-        const msg = permanent
-            ? `[CACHE-PC] Cache PERMANENTE salvo: Liga ${ligaId}, Rodada ${rodada}`
-            : `[CACHE-PC] Cache temporário salvo: Liga ${ligaId}, Rodada ${rodada}`;
-        console.log(msg);
-        res.json({ success: true, permanent });
+        const tipoCache = permanent ? "PERMANENTE" : "temporário";
+        console.log(
+            `[CACHE-PC] ✅ Cache ${tipoCache} salvo: Liga ${ligaId}, Rodada ${rodada}`,
+        );
+        console.log(
+            `[CACHE-PC] 📊 ${confrontos?.length || 0} confrontos, ${classificacao?.length || 0} times`,
+        );
+
+        res.json({
+            success: true,
+            permanent,
+            id: result._id,
+            confrontos: confrontos?.length || 0,
+            classificacao: classificacao?.length || 0,
+        });
     } catch (error) {
-        console.error("[CACHE-PC] Erro ao salvar:", error);
+        console.error("[CACHE-PC] ❌ Erro ao salvar:", error);
         res.status(500).json({ error: "Erro interno" });
     }
 };
 
+// ✅ LER CACHE (CONFRONTOS + CLASSIFICAÇÃO)
 export const lerCachePontosCorridos = async (req, res) => {
     try {
         const { ligaId } = req.params;
         const { rodada } = req.query;
 
-        // Busca o cache da rodada específica ou o mais recente
         const query = { liga_id: ligaId };
         if (rodada) query.rodada_consolidada = Number(rodada);
 
@@ -44,19 +67,15 @@ export const lerCachePontosCorridos = async (req, res) => {
             `[CACHE-PC] 🔍 Buscando cache: Liga ${ligaId}, Rodada ${rodada || "mais recente"}`,
         );
 
-        // Pega o ranking mais recente (maior rodada)
         const cache = await PontosCorridosCache.findOne(query).sort({
             rodada_consolidada: -1,
         });
 
         if (!cache) {
-            console.log(
-                `[CACHE-PC] ❌ Cache NÃO ENCONTRADO para rodada ${rodada}`,
-            );
+            console.log(`[CACHE-PC] ❌ Cache NÃO ENCONTRADO`);
             return res.status(404).json({ cached: false });
         }
 
-        // ✅ Validar se o cache está na rodada esperada (se rodada foi especificada)
         if (rodada && cache.rodada_consolidada !== Number(rodada)) {
             console.log(
                 `[CACHE-PC] ⚠️ Cache desatualizado: esperava R${rodada}, tinha R${cache.rodada_consolidada}`,
@@ -70,32 +89,34 @@ export const lerCachePontosCorridos = async (req, res) => {
         }
 
         console.log(
-            `[CACHE-PC] ✅ Cache PERMANENTE encontrado: R${cache.rodada_consolidada} (${cache.classificacao?.length || 0} times)`,
+            `[CACHE-PC] ✅ Cache encontrado: R${cache.rodada_consolidada} (${cache.confrontos?.length || 0} confrontos, ${cache.classificacao?.length || 0} times)`,
         );
 
         res.json({
             cached: true,
             rodada: cache.rodada_consolidada,
-            classificacao: cache.classificacao,
+            confrontos: cache.confrontos || [],
+            classificacao: cache.classificacao || [],
+            permanent: cache.cache_permanente,
             updatedAt: cache.ultima_atualizacao,
         });
     } catch (error) {
-        console.error("[CACHE-PC] Erro ao ler:", error);
+        console.error("[CACHE-PC] ❌ Erro ao ler:", error);
         res.status(500).json({ error: "Erro interno" });
     }
 };
 
-// ✅ FUNÇÃO PARA OBTER CONFRONTOS DE PONTOS CORRIDOS (completo com todas as rodadas)
-export const obterConfrontosPontosCorridos = async (ligaId, rodadaFiltro = null) => {
+// ✅ OBTER TODAS AS RODADAS PARA O PARTICIPANTE
+export const obterConfrontosPontosCorridos = async (
+    ligaId,
+    rodadaFiltro = null,
+) => {
     try {
         const query = { liga_id: ligaId };
-        
-        // Se rodada específica foi solicitada
         if (rodadaFiltro) {
             query.rodada_consolidada = Number(rodadaFiltro);
         }
 
-        // Buscar todos os caches ordenados por rodada
         const caches = await PontosCorridosCache.find(query)
             .sort({ rodada_consolidada: 1 })
             .lean();
@@ -107,23 +128,51 @@ export const obterConfrontosPontosCorridos = async (ligaId, rodadaFiltro = null)
             return [];
         }
 
-        // Transformar em formato de confrontos por rodada
-        const confrontosPorRodada = caches.map(cache => ({
+        // Estrutura completa por rodada
+        const dadosPorRodada = caches.map((cache) => ({
             rodada: cache.rodada_consolidada,
-            classificacao: cache.classificacao,
-            updatedAt: cache.ultima_atualizacao
+            confrontos: cache.confrontos || [],
+            classificacao: cache.classificacao || [],
+            permanent: cache.cache_permanente,
+            updatedAt: cache.ultima_atualizacao,
         }));
 
         console.log(
-            `[PONTOS-CORRIDOS] ✅ ${confrontosPorRodada.length} rodadas carregadas: Liga ${ligaId}`,
+            `[PONTOS-CORRIDOS] ✅ ${dadosPorRodada.length} rodadas carregadas: Liga ${ligaId}`,
         );
 
-        return confrontosPorRodada;
+        return dadosPorRodada;
+    } catch (error) {
+        console.error("[PONTOS-CORRIDOS] ❌ Erro ao obter dados:", error);
+        return [];
+    }
+};
+
+// ✅ OBTER CLASSIFICAÇÃO GERAL (última rodada disponível)
+export const obterClassificacaoGeral = async (ligaId) => {
+    try {
+        const cache = await PontosCorridosCache.findOne({ liga_id: ligaId })
+            .sort({ rodada_consolidada: -1 })
+            .lean();
+
+        if (!cache) {
+            console.log(
+                `[PONTOS-CORRIDOS] ⚠️ Nenhuma classificação encontrada: Liga ${ligaId}`,
+            );
+            return null;
+        }
+
+        return {
+            rodada: cache.rodada_consolidada,
+            classificacao: cache.classificacao || [],
+            permanent: cache.cache_permanente,
+            updatedAt: cache.ultima_atualizacao,
+        };
     } catch (error) {
         console.error(
-            "[PONTOS-CORRIDOS] ❌ Erro ao obter confrontos:",
+            "[PONTOS-CORRIDOS] ❌ Erro ao obter classificação:",
             error,
         );
-        return [];
+        return null;
     }
 };

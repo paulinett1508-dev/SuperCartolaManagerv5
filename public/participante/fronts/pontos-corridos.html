@@ -1,185 +1,215 @@
-
-<!-- PARTICIPANTE PONTOS CORRIDOS - Interface -->
-<div class="pontos-corridos-participante">
-    <div class="pontos-corridos-header">
-        <h2>🏁 Pontos Corridos</h2>
-        <p style="color: #999;">Sistema de confrontos</p>
-    </div>
-
+<!-- PARTICIPANTE PONTOS CORRIDOS - Template v4.0 -->
+<div id="pontosCorridosModule" class="pb-20">
     <div id="pontosCorridosContainer">
-        <div class="loading-participante">
-            <div class="spinner-participante"></div>
-            <p>Carregando confrontos...</p>
+        <!-- Loading State -->
+        <div
+            id="pc-loading"
+            class="flex justify-center items-center min-h-[300px]"
+        >
+            <div class="text-center">
+                <div
+                    class="w-10 h-10 border-4 border-zinc-700 border-t-primary rounded-full animate-spin mx-auto mb-4"
+                ></div>
+                <p class="text-sm text-white/70">Carregando confrontos...</p>
+            </div>
+        </div>
+
+        <!-- Error State (hidden by default) -->
+        <div
+            id="pc-error"
+            class="hidden flex-col items-center justify-center min-h-[300px] p-6"
+        >
+            <span class="material-symbols-outlined text-4xl text-red-500 mb-3"
+                >error</span
+            >
+            <p id="pc-error-msg" class="text-white/70 text-center">
+                Erro ao carregar dados
+            </p>
+            <button
+                onclick="window.recarregarPontosCorridos()"
+                class="mt-4 px-4 py-2 bg-primary text-white rounded-lg text-sm font-medium"
+            >
+                Tentar Novamente
+            </button>
+        </div>
+
+        <!-- Main Content (hidden by default) -->
+        <div id="pc-content" class="hidden">
+            <!-- Header com posição do usuário -->
+            <div class="text-center mb-6">
+                <div class="flex justify-center items-center mb-2">
+                    <div
+                        id="pc-posicao-badge"
+                        class="bg-primary text-white text-xs font-bold w-7 h-7 rounded-full flex items-center justify-center shadow-lg"
+                    >
+                        -º
+                    </div>
+                </div>
+                <h1 class="text-lg font-bold text-white">
+                    Liga Pontos Corridos
+                </h1>
+                <p class="text-xs text-white/50">
+                    Sistema de confrontos todos contra todos
+                </p>
+            </div>
+
+            <!-- Seletor de Rodadas -->
+            <section class="mb-6">
+                <div class="flex justify-between items-center mb-3">
+                    <h2 class="text-sm font-semibold text-white">
+                        Selecione a Rodada
+                    </h2>
+                    <p id="pc-rodadas-info" class="text-[11px] text-white/50">
+                        0 de 31 rodadas disputadas
+                    </p>
+                </div>
+
+                <div class="relative">
+                    <div class="overflow-x-auto no-scrollbar pb-2 -mb-2">
+                        <div id="pc-seletor-rodadas" class="flex space-x-2">
+                            <!-- Rodadas serão injetadas aqui -->
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Barra de progresso -->
+                <div class="w-full bg-zinc-800 h-1 rounded-full mt-3">
+                    <div
+                        id="pc-progress-bar"
+                        class="bg-primary h-1 rounded-full transition-all duration-300"
+                        style="width: 0%"
+                    ></div>
+                </div>
+            </section>
+
+            <!-- Toggle Confrontos/Classificação -->
+            <div
+                class="mb-6 bg-surface-dark border border-zinc-700 rounded-lg overflow-hidden"
+            >
+                <div class="flex">
+                    <button
+                        id="pc-btn-confrontos"
+                        onclick="window.trocarViewPontosCorridos('confrontos')"
+                        class="flex-1 flex items-center justify-center gap-2 py-3 text-sm font-medium transition-colors bg-primary text-white"
+                    >
+                        <span class="material-symbols-outlined text-lg"
+                            >sports_soccer</span
+                        >
+                        Confrontos
+                    </button>
+                    <button
+                        id="pc-btn-classificacao"
+                        onclick="window.trocarViewPontosCorridos('classificacao')"
+                        class="flex-1 flex items-center justify-center gap-2 py-3 text-sm font-medium transition-colors text-white/70 hover:bg-zinc-800"
+                    >
+                        <span class="material-symbols-outlined text-lg"
+                            >emoji_events</span
+                        >
+                        Classificação
+                    </button>
+                </div>
+            </div>
+
+            <!-- Container de Confrontos -->
+            <div
+                id="pc-view-confrontos"
+                class="bg-surface-dark rounded-lg overflow-hidden"
+            >
+                <!-- Header da Rodada -->
+                <div class="p-4 border-b border-zinc-700">
+                    <div class="flex justify-between items-center">
+                        <div>
+                            <h2
+                                id="pc-rodada-titulo"
+                                class="text-base font-bold text-white"
+                            >
+                                1ª Rodada da Liga
+                            </h2>
+                            <p
+                                id="pc-rodada-subtitulo"
+                                class="text-xs text-primary font-medium"
+                            >
+                                7ª Rodada do Brasileirão
+                            </p>
+                        </div>
+                        <div
+                            id="pc-rodada-status"
+                            class="flex items-center space-x-1.5 bg-green-500/10 text-green-400 px-2.5 py-1.5 rounded-full text-[10px] font-semibold"
+                        >
+                            <span
+                                class="w-1.5 h-1.5 bg-green-500 rounded-full"
+                            ></span>
+                            <span>FINALIZADA</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Header da Tabela -->
+                <div class="bg-primary flex text-white text-[11px] font-bold">
+                    <div class="flex-1 p-2.5 text-left">CONFRONTO</div>
+                    <div class="w-20 p-2.5 text-right">DIFERENÇA</div>
+                </div>
+
+                <!-- Lista de Confrontos -->
+                <div id="pc-lista-confrontos" class="divide-y divide-zinc-700">
+                    <!-- Confrontos serão injetados aqui -->
+                </div>
+            </div>
+
+            <!-- Container de Classificação (hidden by default) -->
+            <div
+                id="pc-view-classificacao"
+                class="hidden bg-surface-dark rounded-lg overflow-hidden"
+            >
+                <!-- Header -->
+                <div class="p-4 border-b border-zinc-700">
+                    <h2 class="text-base font-bold text-white">
+                        Classificação Geral
+                    </h2>
+                    <p id="pc-classificacao-info" class="text-xs text-white/50">
+                        Atualizada até a 1ª rodada
+                    </p>
+                </div>
+
+                <!-- Header da Tabela -->
+                <div
+                    class="bg-primary/90 flex text-white text-[10px] font-bold px-3 py-2"
+                >
+                    <div class="w-8 text-center">#</div>
+                    <div class="flex-1 pl-2">TIME</div>
+                    <div class="w-7 text-center">J</div>
+                    <div class="w-7 text-center">V</div>
+                    <div class="w-7 text-center">E</div>
+                    <div class="w-7 text-center">D</div>
+                    <div class="w-9 text-center">SG</div>
+                    <div class="w-10 text-center">PTS</div>
+                </div>
+
+                <!-- Lista de Times -->
+                <div
+                    id="pc-lista-classificacao"
+                    class="divide-y divide-zinc-700/50"
+                >
+                    <!-- Classificação será injetada aqui -->
+                </div>
+            </div>
+
+            <!-- Sem Dados State -->
+            <div
+                id="pc-sem-dados"
+                class="hidden bg-surface-dark rounded-lg p-8 text-center border border-zinc-700"
+            >
+                <span
+                    class="material-symbols-outlined text-4xl text-white/30 mb-3"
+                    >sports_soccer</span
+                >
+                <p id="pc-sem-dados-msg" class="text-white/50">
+                    Nenhum dado disponível
+                </p>
+                <p class="text-white/30 text-xs mt-2">
+                    Os dados serão gerados pelo administrador
+                </p>
+            </div>
         </div>
     </div>
 </div>
-
-<style>
-.pontos-corridos-participante {
-    padding: 20px 0;
-}
-
-.pontos-corridos-header {
-    text-align: center;
-    margin-bottom: 30px;
-}
-
-.pontos-corridos-header h2 {
-    color: var(--participante-primary);
-    margin-bottom: 10px;
-}
-
-.pontos-corridos-tabela {
-    background: var(--participante-card);
-    border-radius: 12px;
-    overflow: hidden;
-    border: 1px solid var(--participante-border);
-}
-
-.pontos-corridos-tabela table {
-    width: 100%;
-    border-collapse: collapse;
-}
-
-.pontos-corridos-tabela thead {
-    background: rgba(255, 69, 0, 0.1);
-}
-
-.pontos-corridos-tabela th {
-    padding: 12px 8px;
-    text-align: center;
-    color: var(--participante-primary);
-    font-weight: 600;
-    font-size: 12px;
-}
-
-.pontos-corridos-tabela td {
-    padding: 10px 8px;
-    border-top: 1px solid var(--participante-border);
-    color: #ccc;
-    text-align: center;
-    font-size: 12px;
-}
-
-.pontos-corridos-tabela tr.meu-time {
-    background: rgba(255, 69, 0, 0.15);
-    font-weight: 600;
-}
-
-/* ZONAS DE CLASSIFICAÇÃO */
-.classificacao-linha.zona-primeiro {
-    background: linear-gradient(90deg, rgba(255, 215, 0, 0.2), transparent);
-    border-left: 3px solid #ffd700;
-}
-
-.classificacao-linha.zona-segundo {
-    background: linear-gradient(90deg, rgba(192, 192, 192, 0.2), transparent);
-    border-left: 3px solid #c0c0c0;
-}
-
-.classificacao-linha.zona-terceiro {
-    background: linear-gradient(90deg, rgba(205, 127, 50, 0.2), transparent);
-    border-left: 3px solid #cd7f32;
-}
-
-.classificacao-linha.zona-classificacao {
-    background: linear-gradient(90deg, rgba(46, 204, 113, 0.15), transparent);
-    border-left: 3px solid #2ecc71;
-}
-
-.classificacao-linha.zona-rebaixamento {
-    background: linear-gradient(90deg, rgba(231, 76, 60, 0.15), transparent);
-    border-left: 3px solid #e74c3c;
-}
-
-/* LABELS DE ZONA */
-.label-zona {
-    display: inline-block;
-    padding: 2px 6px;
-    border-radius: 4px;
-    font-size: 9px;
-    font-weight: 700;
-    margin-left: 6px;
-    text-transform: uppercase;
-    letter-spacing: 0.5px;
-}
-
-.label-g1 {
-    background: #ffd700;
-    color: #000;
-}
-
-.label-g2 {
-    background: #c0c0c0;
-    color: #000;
-}
-
-.label-g3 {
-    background: #cd7f32;
-    color: #fff;
-}
-
-.label-g4 {
-    background: #2ecc71;
-    color: #fff;
-}
-
-.label-z4 {
-    background: #e74c3c;
-    color: #fff;
-}
-
-.posicao-badge {
-    display: inline-block;
-    width: 25px;
-    height: 25px;
-    background: var(--participante-primary);
-    color: white;
-    border-radius: 50%;
-    text-align: center;
-    line-height: 25px;
-    font-weight: 700;
-    font-size: 12px;
-}
-
-.pontos-destaque {
-    font-weight: 700;
-    color: var(--participante-primary);
-    font-size: 14px;
-}
-
-/* DESTAQUES DE VALORES */
-.saldo.positivo {
-    color: #22c55e;
-    font-weight: 700;
-}
-
-.saldo.negativo {
-    color: #ef4444;
-    font-weight: 700;
-}
-
-.vitorias {
-    color: #10b981;
-}
-
-.empates {
-    color: #3b82f6;
-}
-
-.derrotas {
-    color: #ef4444;
-}
-
-@media (max-width: 768px) {
-    .pontos-corridos-tabela th {
-        padding: 8px 4px;
-        font-size: 10px;
-    }
-    
-    .pontos-corridos-tabela td {
-        padding: 8px 4px;
-        font-size: 11px;
-    }
-}
-</style>
