@@ -96,8 +96,30 @@ async function carregarPontosCorridos(ligaId, timeId) {
         // Renderizar tabela
         renderizarClassificacao(container, dados, timeId);
     } catch (error) {
-        console.error("[PONTOS-CORRIDOS-PARTICIPANTE] ❌ Erro:", error);
-        mostrarErro(error.message);
+        console.log("[PONTOS-CORRIDOS-PARTICIPANTE] ⚠️ Cache não encontrado, usando endpoint direto");
+        console.log(`[PONTOS-CORRIDOS-PARTICIPANTE] 🔄 Buscando: /api/pontos-corridos/${ligaId}`);
+
+        // Fallback: endpoint direto
+        const response = await fetch(`/api/pontos-corridos/${ligaId}`);
+        if (!response.ok) {
+            console.error(`[PONTOS-CORRIDOS-PARTICIPANTE] ❌ Erro HTTP ${response.status}`);
+            throw new Error("Erro ao buscar dados");
+        }
+
+        const data = await response.json();
+        console.log("[PONTOS-CORRIDOS-PARTICIPANTE] ✅ Dados do endpoint direto", {
+            rodadas: data.confrontos?.length || 0,
+            classificacao: data.classificacao?.length || 0
+        });
+
+        dados = data; // Assign fetched data to dados
+
+        if (!dados || (Array.isArray(dados) && dados.length === 0)) {
+            mostrarVazio(container);
+            return;
+        }
+
+        renderizarClassificacao(container, dados, timeId);
     }
 }
 
@@ -411,8 +433,8 @@ function mostrarErro(mensagem) {
                 <div style="font-size: 48px; margin-bottom: 16px;">⚠️</div>
                 <h3>Erro ao Carregar</h3>
                 <p style="margin: 12px 0;">${mensagem}</p>
-                <button onclick="window.inicializarPontosCorridosParticipante({ligaId: '${ligaIdAtual}', timeId: '${timeIdAtual}'})" 
-                        style="margin-top: 16px; padding: 12px 24px; background: #ff4500; 
+                <button onclick="window.inicializarPontosCorridosParticipante({ligaId: '${ligaIdAtual}', timeId: '${timeIdAtual}'})"
+                        style="margin-top: 16px; padding: 12px 24px; background: #ff4500;
                                color: white; border: none; border-radius: 8px; cursor: pointer; font-weight: 600;">
                     🔄 Tentar Novamente
                 </button>
