@@ -85,28 +85,43 @@ export const lerCachePontosCorridos = async (req, res) => {
     }
 };
 
-// ✅ FUNÇÃO PARA OBTER CONFRONTOS DE PONTOS CORRIDOS (para consolidação)
-export const obterConfrontosPontosCorridos = async (ligaId, rodada) => {
+// ✅ FUNÇÃO PARA OBTER CONFRONTOS DE PONTOS CORRIDOS (completo com todas as rodadas)
+export const obterConfrontosPontosCorridos = async (ligaId, rodadaFiltro = null) => {
     try {
-        const cache = await PontosCorridosCache.findOne({
-            liga_id: ligaId,
-            rodada_consolidada: rodada,
-        });
-
-        if (cache && cache.classificacao) {
-            console.log(
-                `[CONSOLIDAÇÃO] ✅ Carregando confrontos pontos corridos: Liga ${ligaId}, R${rodada}`,
-            );
-            return cache.classificacao;
+        const query = { liga_id: ligaId };
+        
+        // Se rodada específica foi solicitada
+        if (rodadaFiltro) {
+            query.rodada_consolidada = Number(rodadaFiltro);
         }
 
+        // Buscar todos os caches ordenados por rodada
+        const caches = await PontosCorridosCache.find(query)
+            .sort({ rodada_consolidada: 1 })
+            .lean();
+
+        if (!caches || caches.length === 0) {
+            console.log(
+                `[PONTOS-CORRIDOS] ⚠️ Nenhum cache encontrado: Liga ${ligaId}`,
+            );
+            return [];
+        }
+
+        // Transformar em formato de confrontos por rodada
+        const confrontosPorRodada = caches.map(cache => ({
+            rodada: cache.rodada_consolidada,
+            classificacao: cache.classificacao,
+            updatedAt: cache.ultima_atualizacao
+        }));
+
         console.log(
-            `[CONSOLIDAÇÃO] ⚠️ Confrontos pontos corridos não encontrados: Liga ${ligaId}, R${rodada}`,
+            `[PONTOS-CORRIDOS] ✅ ${confrontosPorRodada.length} rodadas carregadas: Liga ${ligaId}`,
         );
-        return [];
+
+        return confrontosPorRodada;
     } catch (error) {
         console.error(
-            "[CONSOLIDAÇÃO] ❌ Erro ao obter confrontos pontos corridos:",
+            "[PONTOS-CORRIDOS] ❌ Erro ao obter confrontos:",
             error,
         );
         return [];
