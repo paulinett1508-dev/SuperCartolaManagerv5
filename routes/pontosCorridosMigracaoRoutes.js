@@ -2,6 +2,7 @@
 // Endpoint para popular cache histórico do Pontos Corridos
 
 import express from "express";
+import mongoose from "mongoose";
 import PontosCorridosCache from "../models/PontosCorridosCache.js";
 import Rodada from "../models/Rodada.js";
 import Liga from "../models/Liga.js";
@@ -57,9 +58,14 @@ router.post("/migrar/:ligaId", async (req, res) => {
         );
 
         // 3. Buscar todas as pontuações do histórico
-        const rodadasDB = await Rodada.find({ liga_id: ligaId })
+        const ligaObjectId = new mongoose.Types.ObjectId(ligaId);
+        const rodadasDB = await Rodada.find({ ligaId: ligaObjectId })
             .sort({ rodada: 1 })
             .lean();
+
+        console.log(
+            `[MIGRAÇÃO-PC] 🔍 Documentos encontrados no Rodada: ${rodadasDB.length}`,
+        );
 
         // Mapear pontuações por rodada do Brasileirão
         const pontuacoesPorRodada = {};
@@ -68,7 +74,7 @@ router.post("/migrar/:ligaId", async (req, res) => {
             if (!pontuacoesPorRodada[rodadaBr]) {
                 pontuacoesPorRodada[rodadaBr] = {};
             }
-            const timeId = r.time_id || r.timeId;
+            const timeId = String(r.timeId);
             pontuacoesPorRodada[rodadaBr][timeId] = r.pontos || 0;
         });
 
@@ -116,8 +122,12 @@ router.post("/migrar/:ligaId", async (req, res) => {
             const confrontosProcessados = [];
 
             for (const jogo of jogosDaRodada) {
-                const timeAId = String(jogo.timeA.time_id || jogo.timeA.id);
-                const timeBId = String(jogo.timeB.time_id || jogo.timeB.id);
+                const timeAId = String(
+                    jogo.timeA.time_id || jogo.timeA.timeId || jogo.timeA.id,
+                );
+                const timeBId = String(
+                    jogo.timeB.time_id || jogo.timeB.timeId || jogo.timeB.id,
+                );
 
                 const pontosA = pontuacoesRodada[timeAId] ?? null;
                 const pontosB = pontuacoesRodada[timeBId] ?? null;
@@ -273,11 +283,11 @@ function inicializarClassificacao(times) {
     const classificacao = {};
 
     times.forEach((time) => {
-        const timeId = String(time.time_id || time.id);
+        const timeId = String(time.time_id || time.timeId || time.id);
         classificacao[timeId] = {
             timeId: timeId,
             nome: time.nome_time || time.nome || "Time",
-            escudo: time.url_escudo_png || time.foto_time || "",
+            escudo: time.url_escudo_png || time.escudo || time.foto_time || "",
             pontos: 0,
             jogos: 0,
             vitorias: 0,

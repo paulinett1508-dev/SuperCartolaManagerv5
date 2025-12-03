@@ -287,28 +287,21 @@ router.get("/:id/melhor-mes/:timeId", async (req, res) => {
 
     res.json(dados);
   } catch (error) {
-    console.error(`[LIGAS] Erro ao buscar Melhor Mês do participante:`, error);
-    res.status(500).json({ erro: "Erro ao buscar Melhor Mês" });
+    console.error(`[LIGAS] Erro ao buscar Melhor Mês do time:`, error);
+    res.status(500).json({ erro: "Erro ao buscar Melhor Mês do participante" });
   }
 });
 
-// Rota: Buscar Pontos Corridos (Classificação)
-router.get("/:id/pontos-corridos", buscarConfrontosPontosCorridos);
-
-// Rota: Buscar ranking de uma rodada específica
+// Rota: Buscar ranking de uma rodada específica (Top 10)
 // ✅ ATUALIZADO: Filtra participantes inativos
 router.get("/:id/ranking/:rodada", async (req, res) => {
   const { id: ligaId, rodada } = req.params;
+  const rodadaNum = parseInt(rodada);
 
   try {
     const Rodada = (await import("../models/Rodada.js")).default;
 
-    const rodadaNum = parseInt(rodada);
-    if (isNaN(rodadaNum)) {
-      return res.status(400).json({ erro: "Rodada inválida" });
-    }
-
-    // ✅ Buscar participantes inativos
+    // ✅ Buscar participantes inativos com rodada de inativação
     const inativos = await getParticipantesInativos(ligaId);
 
     const dados = await Rodada.find({
@@ -343,89 +336,190 @@ router.get("/:id/ranking/:rodada", async (req, res) => {
   }
 });
 
-// Rota: Buscar Mata-Mata para participante
+// =====================================================================
+// 🔧 ROTA MATA-MATA - CORRIGIDA PARA BUSCAR DO MONGODB
+// =====================================================================
 router.get("/:id/mata-mata", async (req, res) => {
   const { id: ligaId } = req.params;
 
   try {
-    let rodada_atual = 1;
-    try {
-      const resMercado = await fetch("/api/cartola/mercado/status");
-      if (resMercado.ok) {
-        rodada_atual = (await resMercado.json()).rodada_atual;
-      }
-    } catch (err) {
-      // Silencioso
-    }
+    console.log(`[MATA-MATA] 📋 Buscando edições para liga: ${ligaId}`);
 
-    const edicoes = [
-      {
-        id: 1,
-        nome: "1ª Edição",
-        rodadaInicial: 2,
-        rodadaFinal: 7,
-        rodadaDefinicao: 2,
-      },
-      {
-        id: 2,
-        nome: "2ª Edição",
-        rodadaInicial: 9,
-        rodadaFinal: 14,
-        rodadaDefinicao: 9,
-      },
-      {
-        id: 3,
-        nome: "3ª Edição",
-        rodadaInicial: 15,
-        rodadaFinal: 21,
-        rodadaDefinicao: 15,
-      },
-      {
-        id: 4,
-        nome: "4ª Edição",
-        rodadaInicial: 22,
-        rodadaFinal: 26,
-        rodadaDefinicao: 21,
-      },
-      {
-        id: 5,
-        nome: "5ª Edição",
-        rodadaInicial: 31,
-        rodadaFinal: 35,
-        rodadaDefinicao: 30,
-      },
-    ];
+    // Importar model do cache
+    const MataMataCache = (await import("../models/MataMataCache.js")).default;
 
-    const edicoesAtivas = edicoes.filter(
-      (e) => rodada_atual >= e.rodadaDefinicao,
-    );
+    // Buscar todas as edições desta liga, ordenadas da mais recente para mais antiga
+    const caches = await MataMataCache.find({ liga_id: ligaId }).sort({
+      edicao: -1,
+    });
 
-    if (edicoesAtivas.length === 0) {
+    if (!caches || caches.length === 0) {
+      console.log(
+        `[MATA-MATA] ⚠️ Nenhuma edição encontrada para liga ${ligaId}`,
+      );
       return res.json({
         edicoes: [],
-        rodada_atual,
+        rodada_atual: 1,
         mensagem: "Nenhuma edição iniciada ainda",
       });
     }
 
-    const resultado = {
-      edicoes: edicoesAtivas.map((e) => ({
-        id: e.id,
-        nome: e.nome,
-        rodadaInicial: e.rodadaInicial,
-        rodadaFinal: e.rodadaFinal,
-        rodadaDefinicao: e.rodadaDefinicao,
-        ativo: true,
-      })),
-      rodada_atual,
-    };
+    // Transformar dados para formato esperado pelo frontend
+    const edicoes = caches.map((cache) => {
+      const dadosTorneio = cache.dados_torneio || {};
 
-    res.json(resultado);
+      // Extrair confrontos e fases
+      const fases = extrairFasesMataMata(dadosTorneio);
+      const confrontos = extrairConfrontosMataMata(dadosTorneio);
+
+      return {
+        id: cache._id,
+        edicao: cache.edicao,
+        nome: dadosTorneio.nome || `${cache.edicao}ª Edição`,
+        rodada: cache.rodada_atual,
+        rodadaInicial:
+          dadosTorneio.rodadaInicial || dadosTorneio.rodada_inicial,
+        rodadaFinal: dadosTorneio.rodadaFinal || dadosTorneio.rodada_final,
+        status:
+          dadosTorneio.status ||
+          (dadosTorneio.finalizada ? "concluida" : "em_andamento"),
+        finalizada:
+          dadosTorneio.finalizada || dadosTorneio.status === "concluida",
+        fases: fases,
+        confrontos: confrontos,
+        campeao: dadosTorneio.campeao || null,
+        ultimaAtualizacao: cache.ultima_atualizacao,
+      };
+    });
+
+    // Rodada atual = maior rodada entre as edições
+    const rodadaAtual = Math.max(...caches.map((c) => c.rodada_atual || 1));
+
+    console.log(
+      `[MATA-MATA] ✅ ${edicoes.length} edições encontradas para liga ${ligaId}`,
+    );
+
+    res.json({
+      edicoes,
+      rodada_atual: rodadaAtual,
+      total_edicoes: edicoes.length,
+    });
   } catch (error) {
-    console.error(`[LIGAS] Erro ao buscar Mata-Mata:`, error);
+    console.error(`[MATA-MATA] ❌ Erro ao buscar edições:`, error);
     res.status(500).json({ erro: "Erro ao buscar dados do Mata-Mata" });
   }
 });
+
+// =====================================================================
+// 🔧 FUNÇÕES AUXILIARES PARA MATA-MATA
+// =====================================================================
+
+function extrairConfrontosMataMata(dadosTorneio) {
+  // Tentar diferentes estruturas que o admin pode ter salvo
+  if (dadosTorneio.confrontos && Array.isArray(dadosTorneio.confrontos)) {
+    return normalizarConfrontosMataMata(dadosTorneio.confrontos);
+  }
+
+  if (dadosTorneio.jogos && Array.isArray(dadosTorneio.jogos)) {
+    return normalizarConfrontosMataMata(dadosTorneio.jogos);
+  }
+
+  // Se tem fases, pegar confrontos da fase atual/última
+  if (dadosTorneio.fases && Array.isArray(dadosTorneio.fases)) {
+    const ultimaFase = dadosTorneio.fases[dadosTorneio.fases.length - 1];
+    if (ultimaFase && ultimaFase.confrontos) {
+      return normalizarConfrontosMataMata(ultimaFase.confrontos);
+    }
+  }
+
+  // Estrutura com rounds
+  if (dadosTorneio.rounds && Array.isArray(dadosTorneio.rounds)) {
+    const allConfrontos = [];
+    dadosTorneio.rounds.forEach((round) => {
+      if (round.confrontos) {
+        allConfrontos.push(...round.confrontos);
+      }
+    });
+    return normalizarConfrontosMataMata(allConfrontos);
+  }
+
+  return [];
+}
+
+function extrairFasesMataMata(dadosTorneio) {
+  if (dadosTorneio.fases && Array.isArray(dadosTorneio.fases)) {
+    return dadosTorneio.fases.map((fase) => ({
+      nome: fase.nome || fase.fase || "Fase",
+      confrontos: normalizarConfrontosMataMata(
+        fase.confrontos || fase.jogos || [],
+      ),
+      rodada: fase.rodada,
+      status: fase.status,
+      finalizada: fase.finalizada,
+    }));
+  }
+
+  if (dadosTorneio.rounds && Array.isArray(dadosTorneio.rounds)) {
+    return dadosTorneio.rounds.map((round, idx) => ({
+      nome:
+        round.nome || getNomeFaseMataMata(round.confrontos?.length || 0, idx),
+      confrontos: normalizarConfrontosMataMata(round.confrontos || []),
+      rodada: round.rodada,
+      status: round.status,
+      finalizada: round.finalizada,
+    }));
+  }
+
+  // Se não tem fases, criar uma única com os confrontos
+  const confrontos = extrairConfrontosMataMata(dadosTorneio);
+  if (confrontos.length > 0) {
+    return [
+      {
+        nome: getNomeFaseMataMata(confrontos.length, 0),
+        confrontos: confrontos,
+        rodada: dadosTorneio.rodada || dadosTorneio.rodada_atual,
+        status: dadosTorneio.status,
+        finalizada: dadosTorneio.finalizada,
+      },
+    ];
+  }
+
+  return [];
+}
+
+function normalizarConfrontosMataMata(confrontos) {
+  if (!Array.isArray(confrontos)) return [];
+
+  return confrontos.map((c) => ({
+    timeA: normalizarTimeMataMata(c.timeA || c.time1 || c.mandante || {}),
+    timeB: normalizarTimeMataMata(c.timeB || c.time2 || c.visitante || {}),
+    vencedor: c.vencedor || c.winner || null,
+    empate: c.empate || false,
+  }));
+}
+
+function normalizarTimeMataMata(time) {
+  if (!time) return {};
+
+  return {
+    timeId: time.timeId || time.time_id || time.id,
+    nomeTime: time.nomeTime || time.nome_time || time.nome || time.name,
+    nomeCartoleiro:
+      time.nomeCartoleiro || time.nome_cartola || time.cartoleiro || time.owner,
+    escudo: time.escudo || time.url_escudo_png || time.foto || time.avatar,
+    pontos: time.pontos || time.pontos_total || time.score || 0,
+    pontos_total: time.pontos_total || time.pontos || 0,
+  };
+}
+
+function getNomeFaseMataMata(numConfrontos, idx) {
+  if (numConfrontos === 1) return "FINAL";
+  if (numConfrontos === 2) return "SEMIFINAL";
+  if (numConfrontos === 4) return "QUARTAS";
+  if (numConfrontos === 8) return "OITAVAS";
+  if (numConfrontos === 16) return "1ª FASE";
+  return `FASE ${idx + 1}`;
+}
 
 // Rota: Buscar TOP 10 da liga
 // ✅ ATUALIZADO: Filtra participantes inativos

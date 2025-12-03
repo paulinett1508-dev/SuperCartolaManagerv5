@@ -290,7 +290,7 @@ function processarConfrontos(rodadaData) {
 }
 
 function buildLinhaConfronto(confronto, meuTimeId) {
-    const { time1, time2, diferenca, valor } = confronto;
+    const { time1, time2, diferenca, valor, tipo } = confronto;
 
     const t1Id = time1.id || time1.timeId || time1.time_id;
     const t2Id = time2.id || time2.timeId || time2.time_id;
@@ -300,11 +300,26 @@ function buildLinhaConfronto(confronto, meuTimeId) {
     const p1 = time1.pontos ?? null;
     const p2 = time2.pontos ?? null;
 
+    // Determinar vencedor: 0=empate, 1=time1 venceu, 2=time2 venceu
     let vencedor = 0;
+    let tipoResultado = "empate";
     if (p1 !== null && p2 !== null) {
         const diff = Math.abs(p1 - p2);
-        vencedor = diff <= 0.3 ? 0 : p1 > p2 ? 1 : 2;
+        if (diff <= 0.3) {
+            vencedor = 0;
+            tipoResultado = "empate";
+        } else if (diff >= 50) {
+            vencedor = p1 > p2 ? 1 : 2;
+            tipoResultado = "goleada";
+        } else {
+            vencedor = p1 > p2 ? 1 : 2;
+            tipoResultado = "vitoria";
+        }
     }
+
+    // Calcular valor financeiro
+    const valorFinanceiro =
+        tipoResultado === "goleada" ? 7 : tipoResultado === "vitoria" ? 5 : 3;
 
     const nome1 =
         time1.nome || time1.nome_time || time1.nome_cartola || "Time 1";
@@ -326,15 +341,50 @@ function buildLinhaConfronto(confronto, meuTimeId) {
             ? "text-green-500"
             : vencedor === 2
               ? "text-red-500"
-              : "text-white/70";
+              : "text-yellow-500";
     const cor2 =
         vencedor === 2
             ? "text-green-500"
             : vencedor === 1
               ? "text-red-500"
-              : "text-white/70";
-    const valFin = valor || (vencedor !== 0 ? 5 : 3);
+              : "text-yellow-500";
     const bg = isMeu1 || isMeu2 ? "bg-primary/5" : "";
+
+    // Labels para o modal
+    const label1 =
+        vencedor === 1 ? "Crédito" : vencedor === 2 ? "Débito" : "Empate";
+    const label2 =
+        vencedor === 2 ? "Crédito" : vencedor === 1 ? "Débito" : "Empate";
+    const sinal1 = vencedor === 1 ? "+" : vencedor === 2 ? "-" : "";
+    const sinal2 = vencedor === 2 ? "+" : vencedor === 1 ? "-" : "";
+
+    // Mini-modal time 1
+    const modal1 =
+        p1 !== null
+            ? `
+        <div class="group relative inline-flex">
+            <button class="material-symbols-outlined text-base ${cor1}/80" style="font-size:16px">monetization_on</button>
+            <div class="modal hidden opacity-0 transition-opacity absolute bottom-full left-1/2 -translate-x-1/2 mb-2 w-max bg-primary text-white text-xs font-bold px-2.5 py-1.5 rounded-md shadow-lg z-20">
+                <span class="font-normal">${label1}:</span> ${sinal1}R$ ${valorFinanceiro.toFixed(2)}
+                <div class="absolute top-full left-1/2 -translate-x-1/2 w-0 h-0 border-x-4 border-x-transparent border-t-4 border-t-primary"></div>
+            </div>
+        </div>
+    `
+            : "";
+
+    // Mini-modal time 2
+    const modal2 =
+        p2 !== null
+            ? `
+        <div class="group relative inline-flex">
+            <button class="material-symbols-outlined text-base ${cor2}/80" style="font-size:16px">monetization_on</button>
+            <div class="modal hidden opacity-0 transition-opacity absolute bottom-full right-1/2 translate-x-1/2 mb-2 w-max bg-primary text-white text-xs font-bold px-2.5 py-1.5 rounded-md shadow-lg z-20">
+                <span class="font-normal">${label2}:</span> ${sinal2}R$ ${valorFinanceiro.toFixed(2)}
+                <div class="absolute top-full left-1/2 -translate-x-1/2 w-0 h-0 border-x-4 border-x-transparent border-t-4 border-t-primary"></div>
+            </div>
+        </div>
+    `
+            : "";
 
     return `
         <div class="py-3 px-3 flex items-center justify-between ${bg}">
@@ -344,7 +394,7 @@ function buildLinhaConfronto(confronto, meuTimeId) {
                     <p class="font-semibold text-sm truncate ${isMeu1 ? "text-primary" : "text-white"}">${nome1}</p>
                     <div class="flex items-center space-x-1.5">
                         <p class="text-sm font-bold ${cor1}">${p1 !== null ? p1.toFixed(1) : "-"}</p>
-                        ${p1 !== null ? `<span class="material-symbols-outlined text-base ${vencedor === 1 ? "text-green-500/80" : "text-red-500/80"}" style="font-size:16px">monetization_on</span>` : ""}
+                        ${modal1}
                     </div>
                 </div>
             </div>
@@ -354,7 +404,7 @@ function buildLinhaConfronto(confronto, meuTimeId) {
                     <p class="font-semibold text-sm truncate ${isMeu2 ? "text-primary" : "text-white"}">${nome2}</p>
                     <div class="flex items-center justify-end space-x-1.5">
                         <p class="text-sm font-bold ${cor2}">${p2 !== null ? p2.toFixed(1) : "-"}</p>
-                        ${p2 !== null ? `<span class="material-symbols-outlined text-base ${vencedor === 2 ? "text-green-500/80" : "text-red-500/80"}" style="font-size:16px">monetization_on</span>` : ""}
+                        ${modal2}
                     </div>
                 </div>
                 <img src="${esc2}" class="w-8 h-8 rounded-full ml-2.5 shrink-0 bg-zinc-700 object-cover" onerror="this.src='/assets/escudo-placeholder.png'">

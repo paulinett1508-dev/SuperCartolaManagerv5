@@ -1,8 +1,19 @@
 // =====================================================================
-// PARTICIPANTE-MATA-MATA.JS - v2.0 (CORRIGIDO COM EXPORT)
+// PARTICIPANTE-MATA-MATA.JS - v3.0 (VISUAL ATUALIZADO)
 // =====================================================================
 
-console.log("[PARTICIPANTE-MATA-MATA] 🔄 Carregando módulo v2.0...");
+console.log("[PARTICIPANTE-MATA-MATA] 🔄 Carregando módulo v3.0...");
+
+// =====================================================================
+// ESTADO DO MÓDULO
+// =====================================================================
+let estadoMataMata = {
+    edicoes: [],
+    edicaoSelecionada: null,
+    faseSelecionada: null,
+    timeId: null,
+    ligaId: null,
+};
 
 // =====================================================================
 // FUNÇÃO PRINCIPAL - EXPORTADA PARA NAVIGATION
@@ -12,10 +23,13 @@ export async function inicializarMataMataParticipante({
     ligaId,
     timeId,
 }) {
-    console.log("[PARTICIPANTE-MATA-MATA] 🚀 Inicializando...", {
+    console.log("[PARTICIPANTE-MATA-MATA] 🚀 Inicializando v3.0...", {
         ligaId,
         timeId,
     });
+
+    estadoMataMata.ligaId = ligaId;
+    estadoMataMata.timeId = timeId;
 
     const container = document.getElementById("mataMataContainer");
     if (!container) {
@@ -32,16 +46,32 @@ export async function inicializarMataMataParticipante({
 
         const data = await response.json();
         console.log("[PARTICIPANTE-MATA-MATA] 📦 Dados recebidos:", data);
-        renderizarMataMata(container, data, timeId);
+
+        estadoMataMata.edicoes = data.edicoes || data.fases || [];
+
+        // Atualizar contagem de times no header
+        const timesCount = document.getElementById("mmTimesCount");
+        if (timesCount) {
+            const totalTimes = contarTimesUnicos(estadoMataMata.edicoes);
+            timesCount.textContent = `${totalTimes} time(s) no mata-mata`;
+        }
+
+        if (estadoMataMata.edicoes.length === 0) {
+            renderizarEstadoVazio(container);
+            return;
+        }
+
+        // Inicializar seletor de edições
+        inicializarSeletorEdicoes();
+
+        // Selecionar última edição por padrão
+        estadoMataMata.edicaoSelecionada = estadoMataMata.edicoes[0];
+
+        // Renderizar
+        renderizarMataMata(container);
     } catch (error) {
         console.error("[PARTICIPANTE-MATA-MATA] ❌ Erro:", error);
-        container.innerHTML = `
-            <div style="text-align: center; padding: 60px 20px; background: linear-gradient(135deg, rgba(255, 69, 0, 0.05) 0%, rgba(255, 69, 0, 0.02) 100%); border-radius: 12px; border: 2px dashed rgba(255, 69, 0, 0.3);">
-                <div style="font-size: 64px; margin-bottom: 16px;">⚔️</div>
-                <h3 style="color: #fff; margin-bottom: 12px;">Mata-Mata</h3>
-                <p style="color: #999;">Este módulo ainda não foi configurado para esta liga.</p>
-            </div>
-        `;
+        renderizarEstadoVazio(container);
     }
 }
 
@@ -49,142 +79,386 @@ export async function inicializarMataMataParticipante({
 window.inicializarMataMataParticipante = inicializarMataMataParticipante;
 
 // =====================================================================
-// RENDERIZAÇÃO
+// HELPERS
 // =====================================================================
-function renderizarMataMata(container, data, timeId) {
-    // Verificar se há edições
-    const edicoes = data.edicoes || data.fases || [];
+function contarTimesUnicos(edicoes) {
+    const timesSet = new Set();
+    edicoes.forEach((edicao) => {
+        const confrontos = edicao.confrontos || edicao.jogos || [];
+        confrontos.forEach((c) => {
+            const timeA = c.timeA || c.time1 || {};
+            const timeB = c.timeB || c.time2 || {};
+            const idA = timeA.timeId || timeA.time_id;
+            const idB = timeB.timeId || timeB.time_id;
+            if (idA) timesSet.add(String(idA));
+            if (idB) timesSet.add(String(idB));
+        });
+    });
+    return timesSet.size;
+}
 
-    if (!edicoes || edicoes.length === 0) {
-        container.innerHTML = `
-            <div style="text-align: center; padding: 60px 20px; background: linear-gradient(135deg, rgba(255, 69, 0, 0.05) 0%, rgba(255, 69, 0, 0.02) 100%); border-radius: 12px; border: 2px dashed rgba(255, 69, 0, 0.3);">
-                <div style="font-size: 64px; margin-bottom: 16px;">⚔️</div>
-                <h3 style="color: #fff; margin-bottom: 12px;">Mata-Mata Não Disponível</h3>
-                <p style="color: #999;">Nenhuma edição do Mata-Mata foi configurada ainda.</p>
-            </div>
-        `;
+function inicializarSeletorEdicoes() {
+    const select = document.getElementById("mmEditionSelect");
+    if (!select) return;
+
+    select.innerHTML = estadoMataMata.edicoes
+        .map((edicao, idx) => {
+            const nome = edicao.nome || `Edição ${idx + 1}`;
+            return `<option value="${idx}">${nome}</option>`;
+        })
+        .join("");
+
+    select.addEventListener("change", (e) => {
+        const idx = parseInt(e.target.value);
+        estadoMataMata.edicaoSelecionada = estadoMataMata.edicoes[idx];
+        estadoMataMata.faseSelecionada = null;
+        renderizarMataMata(document.getElementById("mataMataContainer"));
+    });
+}
+
+function extrairFases(edicao) {
+    // Verificar se a edição tem subfases ou se ela própria é uma fase
+    if (edicao.fases && edicao.fases.length > 0) {
+        return edicao.fases;
+    }
+
+    // Se não tem subfases, a própria edição é a fase
+    const confrontos = edicao.confrontos || edicao.jogos || [];
+    const numConfrontos = confrontos.length;
+
+    // Determinar nome da fase baseado no número de confrontos
+    let nomeFase = "1ª FASE";
+    if (numConfrontos === 16) nomeFase = "1ª FASE";
+    else if (numConfrontos === 8) nomeFase = "OITAVAS";
+    else if (numConfrontos === 4) nomeFase = "QUARTAS";
+    else if (numConfrontos === 2) nomeFase = "SEMI";
+    else if (numConfrontos === 1) nomeFase = "FINAL";
+
+    return [
+        {
+            nome: edicao.faseNome || nomeFase,
+            confrontos: confrontos,
+            rodada: edicao.rodada || edicao.rodadaAtual,
+            status: edicao.status,
+            finalizada: edicao.finalizada,
+        },
+    ];
+}
+
+// =====================================================================
+// RENDERIZAÇÃO PRINCIPAL
+// =====================================================================
+function renderizarMataMata(container) {
+    const edicao = estadoMataMata.edicaoSelecionada;
+    if (!edicao) {
+        renderizarEstadoVazio(container);
         return;
     }
 
-    // Encontrar minha participação
-    let minhaParticipacao = null;
-    let edicaoAtual = null;
+    const fases = extrairFases(edicao);
 
-    for (const edicao of edicoes) {
-        const confrontos = edicao.confrontos || edicao.jogos || [];
-        if (confrontos.length > 0) {
-            const meuConfronto = confrontos.find((c) => {
-                const timeAId = String(
-                    c.timeA?.timeId ||
-                        c.timeA?.time_id ||
-                        c.time1?.timeId ||
-                        "",
-                );
-                const timeBId = String(
-                    c.timeB?.timeId ||
-                        c.timeB?.time_id ||
-                        c.time2?.timeId ||
-                        "",
-                );
-                return timeAId === String(timeId) || timeBId === String(timeId);
-            });
-
-            if (meuConfronto) {
-                minhaParticipacao = meuConfronto;
-                edicaoAtual = edicao;
-                break;
-            }
-        }
+    // Selecionar fase (última ativa ou primeira)
+    if (!estadoMataMata.faseSelecionada) {
+        estadoMataMata.faseSelecionada = fases[fases.length - 1] || fases[0];
     }
 
-    // Renderizar interface
-    let html = `<div style="padding: 20px;">`;
+    // Renderizar navegação de fases
+    renderizarNavFases(fases);
 
-    if (minhaParticipacao && edicaoAtual) {
-        // Participante está no Mata-Mata
-        const timeA = minhaParticipacao.timeA || minhaParticipacao.time1 || {};
-        const timeB = minhaParticipacao.timeB || minhaParticipacao.time2 || {};
+    // Atualizar info da fase
+    atualizarInfoFase(edicao);
 
-        const sou_timeA =
-            String(timeA.timeId || timeA.time_id) === String(timeId);
-        const eu = sou_timeA ? timeA : timeB;
-        const adversario = sou_timeA ? timeB : timeA;
+    // Encontrar meu confronto na fase atual
+    const meuConfronto = encontrarMeuConfronto(estadoMataMata.faseSelecionada);
 
-        const meusPontos = eu.pontos || eu.pontos_total || 0;
-        const pontosAdversario =
-            adversario.pontos || adversario.pontos_total || 0;
+    // Renderizar conteúdo
+    let html = "";
 
-        html += `
-            <div style="background: linear-gradient(135deg, rgba(255, 69, 0, 0.1) 0%, rgba(255, 69, 0, 0.05) 100%); border-radius: 12px; padding: 20px; margin-bottom: 20px; border: 2px solid rgba(255, 69, 0, 0.3);">
-                <h3 style="margin: 0 0 16px 0; font-size: 18px; font-weight: 700; color: #fff; text-align: center;">
-                    🎯 Seu Confronto - ${edicaoAtual.nome || "Fase Atual"}
-                </h3>
-
-                <div style="display: grid; grid-template-columns: 1fr auto 1fr; gap: 12px; align-items: center;">
-                    <!-- Você -->
-                    <div style="text-align: center; background: rgba(34, 197, 94, 0.1); padding: 16px; border-radius: 10px; border: 2px solid rgba(34, 197, 94, 0.3);">
-                        <div style="font-size: 11px; color: #22c55e; margin-bottom: 8px; font-weight: 700;">VOCÊ</div>
-                        <div style="font-size: 14px; font-weight: 700; color: #fff; margin-bottom: 4px;">${eu.nomeTime || eu.nome_time || "Seu Time"}</div>
-                        <div style="font-size: 28px; font-weight: 900; color: #22c55e;">${Number(meusPontos).toFixed(2)}</div>
-                    </div>
-
-                    <!-- VS -->
-                    <div style="font-size: 20px; font-weight: 900; color: #666;">VS</div>
-
-                    <!-- Adversário -->
-                    <div style="text-align: center; background: rgba(239, 68, 68, 0.1); padding: 16px; border-radius: 10px; border: 2px solid rgba(239, 68, 68, 0.3);">
-                        <div style="font-size: 11px; color: #ef4444; margin-bottom: 8px; font-weight: 700;">ADVERSÁRIO</div>
-                        <div style="font-size: 14px; font-weight: 700; color: #fff; margin-bottom: 4px;">${adversario.nomeTime || adversario.nome_time || "Adversário"}</div>
-                        <div style="font-size: 28px; font-weight: 900; color: #ef4444;">${Number(pontosAdversario).toFixed(2)}</div>
-                    </div>
-                </div>
-
-                <div style="margin-top: 16px; padding: 12px; background: ${meusPontos > pontosAdversario ? "rgba(34, 197, 94, 0.15)" : meusPontos < pontosAdversario ? "rgba(239, 68, 68, 0.15)" : "rgba(59, 130, 246, 0.15)"}; border-radius: 8px; text-align: center;">
-                    <strong style="color: ${meusPontos > pontosAdversario ? "#22c55e" : meusPontos < pontosAdversario ? "#ef4444" : "#3b82f6"};">
-                        ${meusPontos > pontosAdversario ? "🏆 Você está vencendo!" : meusPontos < pontosAdversario ? "😔 Você está perdendo" : "⚖️ Empate"}
-                    </strong>
-                </div>
-            </div>
-        `;
+    // Se estou no mata-mata, mostrar destaque do meu confronto
+    if (meuConfronto) {
+        html += renderizarMeuConfrontoDestaque(meuConfronto);
     } else {
-        // Participante não está no Mata-Mata
-        html += `
-            <div style="text-align: center; padding: 40px 20px; background: rgba(255, 255, 255, 0.03); border-radius: 12px; border: 2px dashed rgba(255, 255, 255, 0.1); margin-bottom: 20px;">
-                <div style="font-size: 48px; margin-bottom: 16px;">😔</div>
-                <h3 style="color: #999; margin-bottom: 12px;">Você Não Está Classificado</h3>
-                <p style="color: #666; font-size: 14px;">Você não se classificou para o Mata-Mata nesta edição.</p>
-            </div>
-        `;
+        html += renderizarNaoClassificado();
     }
 
-    // Mostrar histórico de edições
-    html += `
-        <h3 style="margin: 24px 0 16px 0; font-size: 18px; font-weight: 700; color: #fff;">📋 Fases do Mata-Mata</h3>
-        <div style="display: grid; gap: 12px;">
-    `;
-
-    edicoes.forEach((edicao) => {
-        const confrontos = edicao.confrontos || edicao.jogos || [];
-        const totalConfrontos = confrontos.length;
-
-        html += `
-            <div style="background: rgba(255,255,255,0.03); border-radius: 10px; padding: 16px; border: 1px solid rgba(255, 69, 0, 0.1);">
-                <div style="display: flex; justify-content: space-between; align-items: center;">
-                    <div>
-                        <h4 style="margin: 0 0 4px 0; font-size: 16px; font-weight: 700; color: #fff;">${edicao.nome || "Fase"}</h4>
-                        <p style="margin: 0; font-size: 13px; color: #666;">${totalConfrontos} confrontos</p>
-                    </div>
-                    <div style="background: rgba(255, 69, 0, 0.15); color: #ff4500; padding: 6px 12px; border-radius: 6px; font-size: 12px; font-weight: 700;">
-                        ${edicao.status === "concluida" || edicao.finalizada ? "✅ Concluída" : "⏳ Em Andamento"}
-                    </div>
-                </div>
-            </div>
-        `;
-    });
-
-    html += `</div></div>`;
+    // Renderizar tabela de confrontos
+    html += renderizarTabelaConfrontos(estadoMataMata.faseSelecionada);
 
     container.innerHTML = html;
 }
 
-console.log("[PARTICIPANTE-MATA-MATA] ✅ Módulo v2.0 carregado");
+function renderizarNavFases(fases) {
+    const nav = document.getElementById("mmPhasesNav");
+    if (!nav) return;
+
+    nav.innerHTML = fases
+        .map((fase, idx) => {
+            const isActive = fase === estadoMataMata.faseSelecionada;
+            const nome = fase.nome || `Fase ${idx + 1}`;
+            return `
+            <button class="mm-phase-btn ${isActive ? "active" : ""}" 
+                    data-fase-idx="${idx}">
+                ${nome}
+            </button>
+        `;
+        })
+        .join("");
+
+    // Event listeners
+    nav.querySelectorAll(".mm-phase-btn").forEach((btn) => {
+        btn.addEventListener("click", () => {
+            const idx = parseInt(btn.dataset.faseIdx);
+            estadoMataMata.faseSelecionada = fases[idx];
+            renderizarMataMata(document.getElementById("mataMataContainer"));
+        });
+    });
+}
+
+function atualizarInfoFase(edicao) {
+    const info = document.getElementById("mmPhaseInfo");
+    if (!info) return;
+
+    const fase = estadoMataMata.faseSelecionada;
+    const edicaoNome = edicao.nome || "Edição Atual";
+    const faseNome = fase?.nome || "Fase Atual";
+    const rodada = fase?.rodada || edicao.rodada || edicao.rodadaAtual || "";
+
+    info.querySelector(".mm-edition-name").textContent = edicaoNome;
+    info.querySelector(".mm-phase-name").textContent = `CONFRONTO ${faseNome}`;
+    info.querySelector(".mm-round-info").textContent = rodada
+        ? `Pontuação da Rodada ${rodada}`
+        : "";
+}
+
+function encontrarMeuConfronto(fase) {
+    if (!fase) return null;
+
+    const confrontos = fase.confrontos || fase.jogos || [];
+    return confrontos.find((c) => {
+        const timeA = c.timeA || c.time1 || {};
+        const timeB = c.timeB || c.time2 || {};
+        const idA = String(timeA.timeId || timeA.time_id || "");
+        const idB = String(timeB.timeId || timeB.time_id || "");
+        return (
+            idA === String(estadoMataMata.timeId) ||
+            idB === String(estadoMataMata.timeId)
+        );
+    });
+}
+
+// =====================================================================
+// RENDERIZAÇÃO DE COMPONENTES
+// =====================================================================
+function renderizarMeuConfrontoDestaque(confronto) {
+    const timeA = confronto.timeA || confronto.time1 || {};
+    const timeB = confronto.timeB || confronto.time2 || {};
+
+    const idA = String(timeA.timeId || timeA.time_id || "");
+    const souTimeA = idA === String(estadoMataMata.timeId);
+
+    const eu = souTimeA ? timeA : timeB;
+    const adversario = souTimeA ? timeB : timeA;
+
+    const meusPontos = Number(eu.pontos || eu.pontos_total || 0);
+    const pontosAdv = Number(adversario.pontos || adversario.pontos_total || 0);
+
+    let statusClass = "empatando";
+    let statusText = "⚖️ Empate técnico";
+    if (meusPontos > pontosAdv) {
+        statusClass = "vencendo";
+        statusText = "🏆 Você está vencendo!";
+    } else if (meusPontos < pontosAdv) {
+        statusClass = "perdendo";
+        statusText = "😔 Você está perdendo";
+    }
+
+    return `
+        <div class="mm-my-match-highlight">
+            <h3 class="mm-my-match-title">🎯 Seu Confronto</h3>
+            <div class="mm-my-match-grid">
+                <div class="mm-my-team-card eu">
+                    <div class="mm-my-team-label">VOCÊ</div>
+                    <img class="mm-my-team-escudo" 
+                         src="${eu.escudo || eu.url_escudo_png || "https://via.placeholder.com/48"}" 
+                         alt="${eu.nomeTime || eu.nome_time || "Seu Time"}"
+                         onerror="this.src='https://via.placeholder.com/48'">
+                    <div class="mm-my-team-nome">${eu.nomeTime || eu.nome_time || "Seu Time"}</div>
+                    <div class="mm-my-team-pts">${meusPontos.toFixed(2)}</div>
+                </div>
+                <div class="mm-my-match-vs">VS</div>
+                <div class="mm-my-team-card adversario">
+                    <div class="mm-my-team-label">ADVERSÁRIO</div>
+                    <img class="mm-my-team-escudo" 
+                         src="${adversario.escudo || adversario.url_escudo_png || "https://via.placeholder.com/48"}" 
+                         alt="${adversario.nomeTime || adversario.nome_time || "Adversário"}"
+                         onerror="this.src='https://via.placeholder.com/48'">
+                    <div class="mm-my-team-nome">${adversario.nomeTime || adversario.nome_time || "Adversário"}</div>
+                    <div class="mm-my-team-pts">${pontosAdv.toFixed(2)}</div>
+                </div>
+            </div>
+            <div class="mm-my-match-status ${statusClass}">${statusText}</div>
+        </div>
+    `;
+}
+
+function renderizarNaoClassificado() {
+    return `
+        <div class="mm-not-qualified">
+            <div class="mm-nq-icon">😔</div>
+            <h3>Você Não Está Nesta Fase</h3>
+            <p>Você não se classificou ou foi eliminado nesta fase do Mata-Mata.</p>
+        </div>
+    `;
+}
+
+function renderizarTabelaConfrontos(fase) {
+    if (!fase) return "";
+
+    const confrontos = fase.confrontos || fase.jogos || [];
+    if (confrontos.length === 0) {
+        return `
+            <div class="mm-empty-state">
+                <div class="mm-empty-icon">📋</div>
+                <h3>Sem Confrontos</h3>
+                <p>Nenhum confronto registrado para esta fase.</p>
+            </div>
+        `;
+    }
+
+    let rowsHtml = confrontos
+        .map((confronto, idx) => {
+            return renderizarLinhaConfronto(confronto, idx + 1);
+        })
+        .join("");
+
+    return `
+        <div class="mm-confrontos-table">
+            <div class="mm-table-header">
+                <div class="mm-th-num">#</div>
+                <div class="mm-th-time-left">Time</div>
+                <div class="mm-th-pts">Pts</div>
+                <div class="mm-th-vs"></div>
+                <div class="mm-th-pts">Pts</div>
+                <div class="mm-th-time-right">Time</div>
+            </div>
+            <div class="mm-table-body">
+                ${rowsHtml}
+            </div>
+        </div>
+    `;
+}
+
+function renderizarLinhaConfronto(confronto, numero) {
+    const timeA = confronto.timeA || confronto.time1 || {};
+    const timeB = confronto.timeB || confronto.time2 || {};
+
+    const idA = String(timeA.timeId || timeA.time_id || "");
+    const idB = String(timeB.timeId || timeB.time_id || "");
+    const isMeuConfronto =
+        idA === String(estadoMataMata.timeId) ||
+        idB === String(estadoMataMata.timeId);
+
+    const ptsA = Number(timeA.pontos || timeA.pontos_total || 0);
+    const ptsB = Number(timeB.pontos || timeB.pontos_total || 0);
+
+    // Determinar vencedor/perdedor
+    let statusA = "empate";
+    let statusB = "empate";
+    if (ptsA > ptsB) {
+        statusA = "vencedor";
+        statusB = "perdedor";
+    } else if (ptsB > ptsA) {
+        statusA = "perdedor";
+        statusB = "vencedor";
+    }
+
+    // Valor financeiro (R$ 10,00 no mata-mata)
+    const valorMM = 10;
+
+    return `
+        <div class="mm-confronto-row ${isMeuConfronto ? "meu-confronto" : ""}">
+            <div class="mm-row-num">${numero}</div>
+            <div class="mm-time-left">
+                <img class="mm-escudo" 
+                     src="${timeA.escudo || timeA.url_escudo_png || "https://via.placeholder.com/28"}" 
+                     alt="${timeA.nomeTime || timeA.nome_time || ""}"
+                     onerror="this.src='https://via.placeholder.com/28'">
+                <div class="mm-time-info">
+                    <div class="mm-time-nome">${timeA.nomeTime || timeA.nome_time || "Time A"}</div>
+                    <div class="mm-cartoleiro">${timeA.nomeCartoleiro || timeA.nome_cartola || ""}</div>
+                </div>
+            </div>
+            <div class="mm-pts-cell ${statusA}">
+                <div class="mm-pts-value ${statusA}">${ptsA.toFixed(2)}</div>
+                ${renderizarMiniModalFinanceiro(statusA, valorMM)}
+            </div>
+            <div class="mm-vs-cell">X</div>
+            <div class="mm-pts-cell ${statusB}">
+                <div class="mm-pts-value ${statusB}">${ptsB.toFixed(2)}</div>
+                ${renderizarMiniModalFinanceiro(statusB, valorMM)}
+            </div>
+            <div class="mm-time-right">
+                <div class="mm-time-info">
+                    <div class="mm-time-nome">${timeB.nomeTime || timeB.nome_time || "Time B"}</div>
+                    <div class="mm-cartoleiro">${timeB.nomeCartoleiro || timeB.nome_cartola || ""}</div>
+                </div>
+                <img class="mm-escudo" 
+                     src="${timeB.escudo || timeB.url_escudo_png || "https://via.placeholder.com/28"}" 
+                     alt="${timeB.nomeTime || timeB.nome_time || ""}"
+                     onerror="this.src='https://via.placeholder.com/28'">
+            </div>
+        </div>
+    `;
+}
+
+function renderizarMiniModalFinanceiro(status, valor) {
+    if (status === "vencedor") {
+        return `
+            <div class="mm-financial-trigger" tabindex="0">
+                <span class="material-icons ganho">monetization_on</span>
+                <div class="mm-mini-modal ganho">Crédito: +R$ ${valor.toFixed(2)}</div>
+            </div>
+        `;
+    } else if (status === "perdedor") {
+        return `
+            <div class="mm-financial-trigger" tabindex="0">
+                <span class="material-icons perda">money_off</span>
+                <div class="mm-mini-modal perda">Débito: -R$ ${valor.toFixed(2)}</div>
+            </div>
+        `;
+    } else {
+        // Empate - sem movimentação
+        return `
+            <div class="mm-financial-trigger" tabindex="0">
+                <span class="material-icons empate-icon">balance</span>
+                <div class="mm-mini-modal empate-bg">Empate: R$ 0,00</div>
+            </div>
+        `;
+    }
+}
+
+function renderizarEstadoVazio(container) {
+    // Atualizar header
+    const timesCount = document.getElementById("mmTimesCount");
+    if (timesCount) {
+        timesCount.textContent = "Não configurado";
+    }
+
+    // Esconder seletor e nav
+    const selector = document.querySelector(".mm-edition-selector");
+    const nav = document.getElementById("mmPhasesNav");
+    const info = document.getElementById("mmPhaseInfo");
+    if (selector) selector.style.display = "none";
+    if (nav) nav.style.display = "none";
+    if (info) info.style.display = "none";
+
+    container.innerHTML = `
+        <div class="mm-empty-state">
+            <div class="mm-empty-icon">⚔️</div>
+            <h3>Mata-Mata</h3>
+            <p>Este módulo ainda não foi configurado para esta liga.</p>
+        </div>
+    `;
+}
+
+console.log("[PARTICIPANTE-MATA-MATA] ✅ Módulo v3.0 carregado");

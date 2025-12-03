@@ -346,17 +346,34 @@ async function carregarParciais(usarCacheParam = true) {
                         ? `https://s.sde.globo.com/media/organizations/2024/04/10/${clubeId}_45x45.png`
                         : "";
 
+                    // Extrair nomes com múltiplos fallbacks (API local + API Cartola)
+                    const nomeCartoleiro =
+                        dadosInfo.nome_cartola ||
+                        dadosInfo.nome_cartoleiro ||
+                        dadosEscalacao.time?.nome_cartola ||
+                        dadosEscalacao.nome_cartola ||
+                        "N/D";
+
+                    const nomeTime =
+                        dadosInfo.nome_time ||
+                        dadosInfo.nome ||
+                        dadosEscalacao.time?.nome ||
+                        dadosEscalacao.nome ||
+                        "N/D";
+
+                    const escudoTime =
+                        dadosInfo.url_escudo_png ||
+                        dadosInfo.escudo_url ||
+                        dadosInfo.foto_time ||
+                        dadosEscalacao.time?.url_escudo_png ||
+                        dadosEscalacao.time?.foto_time ||
+                        "";
+
                     return {
                         id: timeId,
-                        cartoleiro:
-                            dadosInfo.nome_cartoleiro ||
-                            dadosInfo.nome_cartola ||
-                            "N/D",
-                        time: dadosInfo.nome_time || "N/D",
-                        escudo:
-                            dadosInfo.url_escudo_png ||
-                            dadosInfo.escudo_url ||
-                            "",
+                        cartoleiro: nomeCartoleiro,
+                        time: nomeTime,
+                        escudo: escudoTime,
                         timeDoCoracao: escudoTimeCoracao,
                         pontos: pontos.toFixed(2),
                     };
