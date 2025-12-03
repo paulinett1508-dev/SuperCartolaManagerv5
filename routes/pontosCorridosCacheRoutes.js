@@ -1,14 +1,16 @@
+
 // routes/pontosCorridosCacheRoutes.js
 import express from "express";
 import {
     salvarCachePontosCorridos,
     lerCachePontosCorridos,
+    obterConfrontosPontosCorridos
+} from "../controllers/pontosCorridosCacheController.js";
 
+const router = express.Router();
 
 // Rota para BUSCAR CONFRONTOS completos (GET)
 // Ex: GET /api/pontos-corridos/684cb1c8af923da7c7df51de
-import { obterConfrontosPontosCorridos } from "../controllers/pontosCorridosCacheController.js";
-
 router.get("/:ligaId", async (req, res) => {
     try {
         const { ligaId } = req.params;
@@ -23,11 +25,6 @@ router.get("/:ligaId", async (req, res) => {
         res.status(500).json({ error: "Erro ao buscar confrontos" });
     }
 });
-
-
-} from "../controllers/pontosCorridosCacheController.js";
-
-const router = express.Router();
 
 // Rota para SALVAR o snapshot (POST)
 // Ex: POST /api/pontos-corridos/cache/684d821cf1a7ae16d1f89572
