@@ -29,18 +29,23 @@ const router = express.Router();
 // ==============================
 async function getParticipantesInativos(ligaId) {
   try {
-    const liga = await Liga.findById(ligaId).lean();
-    if (!liga || !liga.participantes) return new Set();
+    const { obterParticipantesInativos } = await import(
+      "../controllers/participanteStatusController.js"
+    );
+    const inativos = await obterParticipantesInativos(ligaId);
 
-    // Retorna Set com time_ids dos participantes inativos (ativo === false)
-    const inativos = liga.participantes
-      .filter((p) => p.ativo === false)
-      .map((p) => p.time_id);
-
-    return new Set(inativos);
+    // Retornar Map com timeId -> dados (incluindo rodada_inativo)
+    const mapa = new Map();
+    inativos.forEach((p) => {
+      mapa.set(String(p.timeId), {
+        rodada_inativo: p.rodada_inativo || null,
+        status: p.status
+      });
+    });
+    return mapa;
   } catch (error) {
-    console.error("[LIGAS] Erro ao buscar participantes inativos:", error);
-    return new Set();
+    console.error("Erro ao buscar inativos:", error);
+    return new Map();
   }
 }
 
@@ -236,7 +241,7 @@ router.get("/:id/melhor-mes", async (req, res) => {
       return res.status(404).json({ erro: "Liga não encontrada" });
     }
 
-    // ✅ Buscar participantes inativos
+    // ✅ Buscar participantes inativos COM rodada de inativação
     const inativos = await getParticipantesInativos(ligaId);
 
     // Definição das edições mensais
@@ -275,10 +280,23 @@ router.get("/:id/melhor-mes", async (req, res) => {
         };
       }
 
-      // ✅ FILTRAR INATIVOS ANTES DE PROCESSAR
-      const rodadasAtivas = rodadasDoMes.filter(
-        (r) => !inativos.has(r.timeId)
-      );
+      // ✅ FILTRAR APENAS PARTICIPANTES INATIVOS **APÓS** A RODADA DE INATIVAÇÃO
+      const rodadasAtivas = rodadasDoMes.filter((r) => {
+        const timeIdStr = String(r.timeId);
+        const inativoData = inativos.get(timeIdStr);
+
+        // Se o participante não está na lista de inativos, ele está ativo
+        if (!inativoData) return true;
+
+        // Se o participante ficou inativo em uma rodada posterior à atual, ele ainda está ativo nesta rodada
+        if (inativoData.rodada_inativo && r.rodada < inativoData.rodada_inativo) {
+          return true;
+        }
+
+        // Se o participante está inativo ou ficou inativo nesta rodada ou antes, ele não está ativo
+        return false;
+      });
+
 
       // Se não há dados de times ativos, retornar edição vazia
       if (rodadasAtivas.length === 0) {
@@ -439,8 +457,13 @@ router.get("/:id/ranking/:rodada", async (req, res) => {
 
     // ✅ Filtrar inativos e ordenar
     const ranking = dados
-      .filter((item) => !inativos.has(item.timeId))
+      .filter((item) => {
+        const inativoData = inativos.get(item.timeId);
+        // Se não está inativo, ou se ficou inativo DEPOIS desta rodada, incluir
+        return !inativoData || (inativoData.rodada_inativo && item.rodada < inativoData.rodada_inativo);
+      })
       .sort((a, b) => (b.pontos || 0) - (a.pontos || 0));
+
 
     res.json(ranking);
   } catch (error) {
