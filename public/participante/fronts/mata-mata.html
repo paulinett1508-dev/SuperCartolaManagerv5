@@ -1,12 +1,12 @@
-<!-- PARTICIPANTE MATA-MATA v5.0 - Design Moderno Inspirado -->
+<!-- PARTICIPANTE MATA-MATA v6.0 - Integrado com JS -->
 <div class="mata-mata-module">
-    <!-- Header com ícone de espadas -->
+    <!-- Header -->
     <div class="mm-header">
         <div class="mm-header-left">
             <span class="material-symbols-outlined mm-swords">swords</span>
             <h1 class="mm-title">Mata-Mata</h1>
         </div>
-        <span class="mm-subtitle" id="mmTimesCount">32 participante(s)</span>
+        <span class="mm-subtitle" id="mmTimesCount">-- participante(s)</span>
     </div>
 
     <!-- Container principal -->
@@ -16,7 +16,7 @@
             <label for="mmEditionSelect">Edição:</label>
             <div class="mm-select-wrapper">
                 <select id="mmEditionSelect">
-                    <option value="">5ª Edição</option>
+                    <option value="">Carregando...</option>
                 </select>
                 <span class="material-symbols-outlined mm-select-arrow"
                     >expand_more</span
@@ -26,33 +26,37 @@
 
         <!-- Navegação de Fases -->
         <div class="mm-phases-nav" id="mmPhasesNav">
-            <button class="mm-phase-btn active">1ª FASE</button>
-            <button class="mm-phase-btn">OITAVAS</button>
-            <button class="mm-phase-btn">QUARTAS</button>
-            <button class="mm-phase-btn">SEMIFINAL</button>
-            <button class="mm-phase-btn">FINAL</button>
+            <button class="mm-phase-btn active" data-fase="primeira">
+                1ª FASE
+            </button>
+            <button class="mm-phase-btn" data-fase="oitavas">OITAVAS</button>
+            <button class="mm-phase-btn" data-fase="quartas">QUARTAS</button>
+            <button class="mm-phase-btn" data-fase="semis">SEMIFINAL</button>
+            <button class="mm-phase-btn" data-fase="final">FINAL</button>
         </div>
 
         <!-- Info da Fase Atual -->
         <div class="mm-phase-info" id="mmPhaseInfo">
-            <p class="mm-edition-name">5ª Edição</p>
-            <p class="mm-phase-name">1ª FASE</p>
-            <p class="mm-round-info">Rodada 37</p>
+            <p class="mm-edition-name">Carregando...</p>
+            <p class="mm-phase-name">--</p>
+            <p class="mm-round-info">--</p>
         </div>
 
         <!-- Container de Confrontos -->
         <div id="mata-mata-container">
-            <!-- Conteúdo carregado via JS -->
+            <div class="mm-loading">
+                <div class="mm-spinner"></div>
+                <p>Carregando confrontos...</p>
+            </div>
         </div>
     </div>
 </div>
 
 <style>
     /* =====================================================
-   MATA-MATA v5.0 - Design Moderno
+   MATA-MATA v6.0 - Design Moderno
    ===================================================== */
 
-    /* Material Symbols */
     .mata-mata-module .material-symbols-outlined {
         font-variation-settings:
             "FILL" 0,
@@ -187,7 +191,7 @@
         color: var(--participante-text-muted, #9ca3af);
     }
 
-    .mm-phase-btn:hover {
+    .mm-phase-btn:hover:not(.disabled) {
         background: rgba(255, 106, 56, 0.1);
         border-color: var(--participante-primary, #ff6a38);
         color: var(--participante-primary, #ff6a38);
@@ -231,7 +235,7 @@
     }
 
     /* =====================================================
-   CARD "SEU CONFRONTO" - DESIGN MODERNO
+   CARD "SEU CONFRONTO"
    ===================================================== */
     .mm-meu-confronto {
         background: #000;
@@ -262,9 +266,6 @@
     .mm-mc-icon.empatando {
         color: #eab308;
     }
-    .mm-mc-icon.aguardando {
-        color: #9ca3af;
-    }
 
     .mm-mc-titulo {
         font-size: 14px;
@@ -274,7 +275,6 @@
         letter-spacing: 0.5px;
     }
 
-    /* Grid 3 colunas: Você | x | Adversário */
     .mm-mc-grid {
         display: grid;
         grid-template-columns: 1fr auto 1fr;
@@ -289,8 +289,8 @@
         text-align: center;
     }
 
-    /* Time esquerdo: info + escudo */
-    .mm-mc-time.eu .mm-mc-row {
+    .mm-mc-time.eu .mm-mc-row,
+    .mm-mc-time.adv .mm-mc-row {
         display: flex;
         align-items: center;
         justify-content: center;
@@ -300,23 +300,13 @@
 
     .mm-mc-time.eu .mm-mc-info-box {
         text-align: right;
-        overflow: hidden;
         flex: 1;
+        overflow: hidden;
     }
-
-    /* Time direito: escudo + info */
-    .mm-mc-time.adv .mm-mc-row {
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        gap: 8px;
-        width: 100%;
-    }
-
     .mm-mc-time.adv .mm-mc-info-box {
         text-align: left;
-        overflow: hidden;
         flex: 1;
+        overflow: hidden;
     }
 
     .mm-mc-escudo {
@@ -325,15 +315,6 @@
         border-radius: 50%;
         object-fit: cover;
         flex-shrink: 0;
-        cursor: pointer;
-        transition:
-            transform 0.15s,
-            box-shadow 0.15s;
-    }
-
-    .mm-mc-escudo:hover {
-        transform: scale(1.1);
-        box-shadow: 0 0 10px rgba(255, 106, 56, 0.5);
     }
 
     .mm-mc-label {
@@ -341,7 +322,7 @@
         font-weight: 600;
         color: var(--participante-text-muted, #9ca3af);
         text-transform: uppercase;
-        letter-spacing: 0.3px;
+        margin: 0;
     }
 
     .mm-mc-nome {
@@ -351,9 +332,9 @@
         white-space: nowrap;
         overflow: hidden;
         text-overflow: ellipsis;
+        margin: 0;
     }
 
-    /* Pontuação + ícone financeiro */
     .mm-mc-pts-box {
         margin-top: 8px;
         text-align: center;
@@ -362,6 +343,7 @@
     .mm-mc-pts {
         font-size: 18px;
         font-weight: 800;
+        margin: 0;
     }
 
     .mm-mc-pts.vencedor {
@@ -373,82 +355,7 @@
     .mm-mc-pts.empate {
         color: #eab308;
     }
-    .mm-mc-pts.neutro {
-        color: var(--participante-text-muted, #9ca3af);
-    }
 
-    /* Mini modal financeiro */
-    .mm-financial {
-        position: relative;
-        display: inline-flex;
-        cursor: pointer;
-        margin-top: 4px;
-    }
-
-    .mm-financial .material-icons {
-        font-size: 16px;
-    }
-
-    .mm-financial .material-icons.ganho {
-        color: #22c55e;
-    }
-    .mm-financial .material-icons.perda {
-        color: #ef4444;
-    }
-    .mm-financial .material-icons.empate-icon {
-        color: #eab308;
-    }
-
-    .mm-mini-modal {
-        display: none;
-        position: absolute;
-        top: 100%;
-        left: 50%;
-        transform: translateX(-50%) translateY(6px);
-        z-index: 50;
-        padding: 6px 10px;
-        border-radius: 6px;
-        font-size: 11px;
-        font-weight: 600;
-        white-space: nowrap;
-        color: #fff;
-    }
-
-    .mm-mini-modal.ganho {
-        background: #22c55e;
-    }
-    .mm-mini-modal.perda {
-        background: #ef4444;
-    }
-    .mm-mini-modal.empate-bg {
-        background: #eab308;
-    }
-
-    .mm-mini-modal::before {
-        content: "";
-        position: absolute;
-        bottom: 100%;
-        left: 50%;
-        transform: translateX(-50%);
-        border: 5px solid transparent;
-    }
-
-    .mm-mini-modal.ganho::before {
-        border-bottom-color: #22c55e;
-    }
-    .mm-mini-modal.perda::before {
-        border-bottom-color: #ef4444;
-    }
-    .mm-mini-modal.empate-bg::before {
-        border-bottom-color: #eab308;
-    }
-
-    .mm-financial:hover .mm-mini-modal,
-    .mm-financial:focus .mm-mini-modal {
-        display: block;
-    }
-
-    /* VS central */
     .mm-mc-vs {
         padding-top: 20px;
         font-size: 12px;
@@ -456,7 +363,7 @@
         color: var(--participante-text-muted, #6b7280);
     }
 
-    /* ===== STATUS DO CONFRONTO ===== */
+    /* Status do confronto */
     .mm-mc-status {
         display: flex;
         align-items: center;
@@ -469,42 +376,16 @@
         font-size: 12px;
     }
 
-    /* Rodada consolidada - Ganhou */
-    .mm-mc-status.classificado {
-        background: rgba(34, 197, 94, 0.15);
-        border: 1px solid rgba(34, 197, 94, 0.3);
-        color: #22c55e;
-    }
-
-    .mm-mc-status.campeao {
-        background: linear-gradient(
-            135deg,
-            rgba(234, 179, 8, 0.2) 0%,
-            rgba(234, 179, 8, 0.1) 100%
-        );
-        border: 1px solid rgba(234, 179, 8, 0.4);
-        color: #fbbf24;
-    }
-
-    /* Rodada consolidada - Perdeu */
-    .mm-mc-status.eliminado {
-        background: rgba(127, 29, 29, 0.5);
-        border: 1px solid rgba(185, 28, 28, 0.6);
-        color: #fbbf24;
-    }
-
-    /* Rodada em andamento - Ganhando */
     .mm-mc-status.passando {
         background: rgba(34, 197, 94, 0.15);
         border: 1px solid rgba(34, 197, 94, 0.3);
         color: #22c55e;
     }
 
-    /* Rodada em andamento - Perdendo */
     .mm-mc-status.sendo-eliminado {
-        background: rgba(127, 29, 29, 0.5);
-        border: 1px solid rgba(185, 28, 28, 0.6);
-        color: #fbbf24;
+        background: rgba(239, 68, 68, 0.15);
+        border: 1px solid rgba(239, 68, 68, 0.3);
+        color: #ef4444;
     }
 
     .mm-mc-status.empatando {
@@ -513,13 +394,7 @@
         color: #eab308;
     }
 
-    .mm-mc-status.aguardando {
-        background: rgba(156, 163, 175, 0.1);
-        border: 1px solid rgba(156, 163, 175, 0.2);
-        color: #9ca3af;
-    }
-
-    .mm-mc-status .material-icons {
+    .mm-mc-status .material-symbols-outlined {
         font-size: 18px;
     }
 
@@ -538,7 +413,7 @@
         text-align: center;
     }
 
-    .mm-nao-classificado .material-icons {
+    .mm-nao-classificado .material-symbols-outlined {
         font-size: 28px;
         color: var(--participante-text-muted, #6b7280);
     }
@@ -550,7 +425,7 @@
     }
 
     /* =====================================================
-   TABELA DE CONFRONTOS - COM COLUNA DIF
+   TABELA DE CONFRONTOS
    ===================================================== */
     .mm-tabela {
         border-radius: 8px;
@@ -558,7 +433,6 @@
         border: 1px solid var(--participante-border, #3a3a3c);
     }
 
-    /* Header da tabela - 6 colunas */
     .mm-tabela-header {
         display: grid;
         grid-template-columns: 26px 1fr 52px 52px 1fr 44px;
@@ -591,7 +465,6 @@
         text-align: right;
     }
 
-    /* Linha de confronto - 6 colunas */
     .mm-linha {
         display: grid;
         grid-template-columns: 26px 1fr 52px 52px 1fr 44px;
@@ -613,7 +486,6 @@
         padding: 10px 6px;
     }
 
-    /* Número */
     .mm-col-num {
         text-align: center;
         color: var(--participante-text-muted, #6b7280);
@@ -621,7 +493,6 @@
         font-size: 10px;
     }
 
-    /* Time (esquerda) */
     .mm-col-time {
         display: flex;
         align-items: center;
@@ -635,15 +506,6 @@
         border-radius: 50%;
         object-fit: cover;
         flex-shrink: 0;
-        cursor: pointer;
-        transition:
-            transform 0.15s,
-            box-shadow 0.15s;
-    }
-
-    .mm-escudo:hover {
-        transform: scale(1.1);
-        box-shadow: 0 0 8px rgba(255, 106, 56, 0.4);
     }
 
     .mm-time-dados {
@@ -669,7 +531,6 @@
         text-overflow: ellipsis;
     }
 
-    /* Célula de pontos com background colorido */
     .mm-col-pts {
         text-align: center;
         display: flex;
@@ -681,7 +542,6 @@
     .mm-col-pts.vencedor {
         background: rgba(34, 197, 94, 0.1);
     }
-
     .mm-col-pts.perdedor {
         background: rgba(239, 68, 68, 0.1);
     }
@@ -701,23 +561,6 @@
         color: #eab308;
     }
 
-    /* Ícone financeiro na tabela */
-    .mm-pts-financial {
-        position: relative;
-        display: inline-flex;
-        cursor: pointer;
-    }
-
-    .mm-pts-financial .material-icons {
-        font-size: 14px;
-        line-height: 1;
-    }
-
-    .mm-pts-financial:hover .mm-mini-modal {
-        display: block;
-    }
-
-    /* Time (direita) - espelhado */
     .mm-col-time-r {
         display: flex;
         align-items: center;
@@ -731,7 +574,6 @@
         align-items: flex-end;
     }
 
-    /* Coluna diferença */
     .mm-col-dif {
         text-align: center;
         font-size: 11px;
@@ -739,7 +581,7 @@
         color: #22c55e;
     }
 
-    /* ===== ESTADOS VAZIOS E LOADING ===== */
+    /* ===== LOADING E VAZIO ===== */
     .mm-loading {
         text-align: center;
         padding: 40px 20px;
@@ -775,7 +617,7 @@
         border: 1px dashed rgba(255, 255, 255, 0.1);
     }
 
-    .mm-vazio .material-icons {
+    .mm-vazio .material-symbols-outlined {
         font-size: 40px;
         color: var(--participante-text-muted, #6b7280);
         margin-bottom: 12px;
@@ -834,96 +676,5 @@
             width: 28px;
             height: 28px;
         }
-    }
-
-    /* =====================================================
-   MODAL "EM BREVE"
-   ===================================================== */
-    .mm-modal-overlay {
-        position: fixed;
-        top: 0;
-        left: 0;
-        right: 0;
-        bottom: 0;
-        background: rgba(0, 0, 0, 0.75);
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        z-index: 9999;
-        padding: 20px;
-        animation: fadeIn 0.2s ease;
-    }
-
-    @keyframes fadeIn {
-        from {
-            opacity: 0;
-        }
-        to {
-            opacity: 1;
-        }
-    }
-
-    .mm-modal-content {
-        background: var(--participante-card, #1c1c1e);
-        border: 1px solid var(--participante-border, #3a3a3c);
-        border-radius: 12px;
-        padding: 24px;
-        text-align: center;
-        max-width: 300px;
-        width: 100%;
-        animation: slideUp 0.25s ease;
-    }
-
-    @keyframes slideUp {
-        from {
-            opacity: 0;
-            transform: translateY(20px);
-        }
-        to {
-            opacity: 1;
-            transform: translateY(0);
-        }
-    }
-
-    .mm-modal-icon {
-        font-size: 48px;
-        color: var(--participante-primary, #ff6a38);
-        margin-bottom: 12px;
-    }
-
-    .mm-modal-content h3 {
-        font-size: 18px;
-        font-weight: 700;
-        color: var(--participante-text, #f9fafb);
-        margin: 0 0 8px 0;
-    }
-
-    .mm-modal-content p {
-        font-size: 13px;
-        color: var(--participante-text-muted, #9ca3af);
-        margin: 0 0 20px 0;
-        line-height: 1.5;
-    }
-
-    .mm-modal-btn {
-        background: var(--participante-primary, #ff6a38);
-        color: #fff;
-        border: none;
-        border-radius: 8px;
-        padding: 10px 24px;
-        font-size: 13px;
-        font-weight: 600;
-        cursor: pointer;
-        transition:
-            background 0.2s,
-            transform 0.15s;
-    }
-
-    .mm-modal-btn:hover {
-        background: #e55a2b;
-    }
-
-    .mm-modal-btn:active {
-        transform: scale(0.97);
     }
 </style>

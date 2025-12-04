@@ -1,440 +1,487 @@
-// PARTICIPANTE MATA-MATA - Módulo de visualização do torneio eliminatório
-// Responsável por: renderizar confrontos do mata-mata para o participante
+// =====================================================================
+// PARTICIPANTE MATA-MATA v6.0
+// Integrado com HTML template - NÃO cria interface própria
+// =====================================================================
 
-// =====================================================================
-// CONFIGURAÇÃO DAS EDIÇÕES
-// =====================================================================
 const EDICOES_MATA_MATA = [
-  {
-    id: 1,
-    nome: "1ª Edição",
-    rodadaInicial: 2,
-    rodadaFinal: 7,
-    rodadaDefinicao: 2,
-  },
-  {
-    id: 2,
-    nome: "2ª Edição",
-    rodadaInicial: 9,
-    rodadaFinal: 14,
-    rodadaDefinicao: 9,
-  },
-  {
-    id: 3,
-    nome: "3ª Edição",
-    rodadaInicial: 15,
-    rodadaFinal: 21,
-    rodadaDefinicao: 15,
-  },
-  {
-    id: 4,
-    nome: "4ª Edição",
-    rodadaInicial: 22,
-    rodadaFinal: 26,
-    rodadaDefinicao: 21,
-  },
-  {
-    id: 5,
-    nome: "5ª Edição",
-    rodadaInicial: 31,
-    rodadaFinal: 35,
-    rodadaDefinicao: 30,
-  },
+  { id: 1, nome: "1ª Edição", rodadaInicial: 2, rodadaFinal: 7 },
+  { id: 2, nome: "2ª Edição", rodadaInicial: 9, rodadaFinal: 14 },
+  { id: 3, nome: "3ª Edição", rodadaInicial: 15, rodadaFinal: 21 },
+  { id: 4, nome: "4ª Edição", rodadaInicial: 22, rodadaFinal: 26 },
+  { id: 5, nome: "5ª Edição", rodadaInicial: 31, rodadaFinal: 35 },
 ];
 
-let rodadaAtualGlobal = 1;
-let edicaoSelecionada = null;
-let faseSelecionada = "primeira";
+const FASES = ["primeira", "oitavas", "quartas", "semis", "final"];
+
+let estado = {
+  ligaId: null,
+  timeId: null,
+  rodadaAtual: 1,
+  edicaoSelecionada: null,
+  faseSelecionada: "primeira",
+  edicoesDisponiveis: [],
+  cacheConfrontos: {},
+};
 
 // =====================================================================
 // INICIALIZAÇÃO
 // =====================================================================
 export async function inicializarMataMata(params) {
-  console.log("[PARTICIPANTE-MATA-MATA] 🚀 Módulo carregado - INÍCIO");
-  console.log("[PARTICIPANTE-MATA-MATA] Params recebidos:", params);
+  console.log("[MATA-MATA] 🚀 Inicializando v6.0...", params);
 
-  // Obter ligaId dos parâmetros ou fallback para localStorage/DOM
-  const ligaId = params?.ligaId || 
-                 localStorage.getItem("ligaId") || 
-                 document.querySelector("[data-liga-id]")?.dataset.ligaId;
-  
-  console.log("[PARTICIPANTE-MATA-MATA] Liga ID:", ligaId);
-  
-  if (!ligaId) {
-    console.error("[PARTICIPANTE-MATA-MATA] ❌ Liga ID não encontrado");
-    renderError("Sessão inválida. Faça login novamente.");
+  estado.ligaId = params?.ligaId || localStorage.getItem("ligaId");
+  estado.timeId = params?.timeId || localStorage.getItem("timeId");
+
+  if (!estado.ligaId) {
+    console.error("[MATA-MATA] ❌ Liga ID não encontrado");
+    renderErro("Sessão inválida. Faça login novamente.");
     return;
   }
 
-  const session = { ligaId };
-
   try {
-    // Buscar rodada atual
-    const resStatus = await fetch("/api/cartola/mercado/status");
-    if (resStatus.ok) {
-      const data = await resStatus.json();
-      rodadaAtualGlobal = data.rodada_atual || 1;
-    }
-
-    // Renderizar interface
-    renderInterface(session.ligaId);
-
-    // Buscar edições disponíveis no MongoDB
-    await carregarEdicoesDisponiveis(session.ligaId);
+    await carregarStatusMercado();
+    await carregarEdicoesDisponiveis();
+    setupEventListeners();
   } catch (error) {
-    console.error("[PARTICIPANTE-MATA-MATA] Erro ao inicializar:", error);
-    renderError("Erro ao carregar mata-mata: " + error.message);
+    console.error("[MATA-MATA] Erro:", error);
+    renderErro("Erro ao carregar mata-mata");
+  }
+}
+
+// Alias para compatibilidade
+export const inicializarMataMataParticipante = inicializarMataMata;
+
+// =====================================================================
+// CARREGAR STATUS DO MERCADO
+// =====================================================================
+async function carregarStatusMercado() {
+  try {
+    const res = await fetch("/api/cartola/mercado/status");
+    if (res.ok) {
+      const data = await res.json();
+      estado.rodadaAtual = data.rodada_atual || 37;
+    }
+  } catch (e) {
+    estado.rodadaAtual = 37;
   }
 }
 
 // =====================================================================
-// BUSCAR EDIÇÕES DISPONÍVEIS NO MONGODB
+// CARREGAR EDIÇÕES DISPONÍVEIS DO MONGODB
 // =====================================================================
-async function carregarEdicoesDisponiveis(ligaId) {
+async function carregarEdicoesDisponiveis() {
   try {
-    console.log(
-      "[PARTICIPANTE-MATA-MATA] Buscando edições disponíveis no MongoDB...",
-    );
-
-    const res = await fetch(`/api/mata-mata/cache/${ligaId}/edicoes`);
-    if (!res.ok) {
-      throw new Error("Erro ao buscar edições");
-    }
+    const res = await fetch(`/api/mata-mata/cache/${estado.ligaId}/edicoes`);
+    if (!res.ok) throw new Error("Erro ao buscar edições");
 
     const data = await res.json();
+    estado.edicoesDisponiveis = data.edicoes || [];
+
     console.log(
-      `[PARTICIPANTE-MATA-MATA] Encontradas ${data.total} edições salvas`,
+      `[MATA-MATA] ✅ ${estado.edicoesDisponiveis.length} edições encontradas`,
     );
 
-    // Renderizar cards das edições disponíveis
-    renderCardsEdicoes(data.edicoes, ligaId);
+    // Popular select de edições
+    popularSelectEdicoes();
 
-    // Selecionar primeira edição automaticamente
-    if (data.edicoes.length > 0) {
-      selecionarEdicao(data.edicoes[0].edicao, ligaId);
+    // Atualizar contador de participantes
+    atualizarContador();
+
+    // Selecionar última edição automaticamente
+    if (estado.edicoesDisponiveis.length > 0) {
+      const ultimaEdicao =
+        estado.edicoesDisponiveis[estado.edicoesDisponiveis.length - 1];
+      estado.edicaoSelecionada = ultimaEdicao.edicao;
+
+      // Atualizar select
+      const select = document.getElementById("mmEditionSelect");
+      if (select) select.value = ultimaEdicao.edicao;
+
+      await carregarFase(estado.edicaoSelecionada, "primeira");
     }
   } catch (error) {
-    console.error("[PARTICIPANTE-MATA-MATA] Erro ao buscar edições:", error);
-    renderCardsEdicoes([], null); // Renderizar vazio
+    console.error("[MATA-MATA] Erro ao carregar edições:", error);
+    renderErro("Nenhuma edição disponível");
   }
 }
 
 // =====================================================================
-// RENDERIZAR INTERFACE PRINCIPAL
+// POPULAR SELECT DE EDIÇÕES
 // =====================================================================
-function renderInterface(ligaId) {
-  // Tentar múltiplos IDs de container
-  const container = document.getElementById("mataMataContainer") || 
-                   document.getElementById("mata-mata-container") ||
-                   document.getElementById("moduleContainer");
-  
-  if (!container) {
-    console.error("[PARTICIPANTE-MATA-MATA] ❌ Container não encontrado");
-    return;
-  }
-  
-  console.log("[PARTICIPANTE-MATA-MATA] ✅ Container encontrado:", container.id);
+function popularSelectEdicoes() {
+  const select = document.getElementById("mmEditionSelect");
+  if (!select) return;
 
-  container.innerHTML = `
-    <div class="participante-section">
-      <div class="section-header">
-        <h2>⚔️ Mata-Mata</h2>
-        <p class="section-subtitle">Torneio eliminatório da liga</p>
-      </div>
-
-      <div id="edicoes-cards-container" class="edicoes-grid">
-        <div class="loading">Carregando edições...</div>
-      </div>
-
-      <div id="fases-nav-container" style="display:none;">
-        <div class="fases-nav">
-          <button class="fase-btn active" data-fase="primeira">1ª FASE</button>
-          <button class="fase-btn" data-fase="oitavas">OITAVAS</button>
-          <button class="fase-btn" data-fase="quartas">QUARTAS</button>
-          <button class="fase-btn" data-fase="semis">SEMIS</button>
-          <button class="fase-btn" data-fase="final">FINAL</button>
-        </div>
-      </div>
-
-      <div id="mata-mata-content">
-        <div class="info-box">
-          <p>Selecione uma edição para ver os confrontos</p>
-        </div>
-      </div>
-    </div>
-  `;
-}
-
-// =====================================================================
-// RENDERIZAR CARDS DAS EDIÇÕES
-// =====================================================================
-function renderCardsEdicoes(edicoes, ligaId) {
-  const container = document.getElementById("edicoes-cards-container");
-  if (!container) return;
-
-  if (edicoes.length === 0) {
-    container.innerHTML = `
-      <div class="info-box">
-        <p>Nenhuma edição do Mata-Mata disponível ainda.</p>
-      </div>
-    `;
-    return;
-  }
-
-  container.innerHTML = edicoes
-    .map((edicao) => {
-      const config = EDICOES_MATA_MATA.find((e) => e.id === edicao.edicao);
-      const nome = config ? config.nome : `Edição ${edicao.edicao}`;
-      const rodadas = config
-        ? `R${config.rodadaInicial}-R${config.rodadaFinal}`
-        : "";
-
-      return `
-      <div class="edicao-card" data-edicao="${edicao.edicao}">
-        <div class="edicao-nome">${nome}</div>
-        <div class="edicao-rodadas">${rodadas}</div>
-        <div class="edicao-status">
-          <span class="status-badge">Disponível</span>
-        </div>
-      </div>
-    `;
+  select.innerHTML = estado.edicoesDisponiveis
+    .map((ed) => {
+      const config = EDICOES_MATA_MATA.find((e) => e.id === ed.edicao);
+      const nome = config ? config.nome : `${ed.edicao}ª Edição`;
+      return `<option value="${ed.edicao}">${nome}</option>`;
     })
     .join("");
+}
 
-  // Adicionar event listeners
-  container.querySelectorAll(".edicao-card").forEach((card) => {
-    card.addEventListener("click", () => {
-      const edicao = parseInt(card.dataset.edicao);
-      selecionarEdicao(edicao, ligaId);
+// =====================================================================
+// ATUALIZAR CONTADOR DE PARTICIPANTES
+// =====================================================================
+function atualizarContador() {
+  const el = document.getElementById("mmTimesCount");
+  if (el) el.textContent = "32 participante(s)"; // Valor padrão
+}
+
+// =====================================================================
+// SETUP EVENT LISTENERS
+// =====================================================================
+function setupEventListeners() {
+  // Select de edições
+  const select = document.getElementById("mmEditionSelect");
+  if (select) {
+    select.addEventListener("change", async (e) => {
+      estado.edicaoSelecionada = parseInt(e.target.value);
+      estado.faseSelecionada = "primeira";
+      atualizarBotoesFases();
+      await carregarFase(estado.edicaoSelecionada, "primeira");
     });
+  }
+
+  // Botões de fases
+  const phasesNav = document.getElementById("mmPhasesNav");
+  if (phasesNav) {
+    phasesNav.addEventListener("click", async (e) => {
+      const btn = e.target.closest(".mm-phase-btn");
+      if (!btn || btn.classList.contains("disabled")) return;
+
+      const fase = btn.dataset.fase;
+      if (!fase) return;
+
+      estado.faseSelecionada = fase;
+      atualizarBotoesFases();
+      await carregarFase(estado.edicaoSelecionada, fase);
+    });
+  }
+
+  // Configurar data-fase nos botões
+  const buttons = document.querySelectorAll(".mm-phase-btn");
+  FASES.forEach((fase, i) => {
+    if (buttons[i]) buttons[i].dataset.fase = fase;
   });
 }
 
 // =====================================================================
-// SELECIONAR EDIÇÃO
+// ATUALIZAR BOTÕES DE FASES
 // =====================================================================
-function selecionarEdicao(edicao, ligaId) {
-  console.log(`[PARTICIPANTE-MATA-MATA] Selecionando edição ${edicao}`);
-
-  edicaoSelecionada = edicao;
-  faseSelecionada = "primeira";
-
-  // Atualizar visual dos cards
-  document.querySelectorAll(".edicao-card").forEach((card) => {
-    card.classList.toggle(
-      "selected",
-      parseInt(card.dataset.edicao) === edicao,
-    );
-  });
-
-  // Mostrar navegação de fases
-  const fasesNav = document.getElementById("fases-nav-container");
-  if (fasesNav) fasesNav.style.display = "block";
-
-  // Resetar seleção de fase
-  document.querySelectorAll(".fase-btn").forEach((btn) => {
+function atualizarBotoesFases() {
+  const buttons = document.querySelectorAll(".mm-phase-btn");
+  buttons.forEach((btn) => {
     btn.classList.remove("active");
-    btn.addEventListener("click", () => {
-      document.querySelectorAll(".fase-btn").forEach((b) => b.classList.remove("active"));
+    if (btn.dataset.fase === estado.faseSelecionada) {
       btn.classList.add("active");
-      faseSelecionada = btn.dataset.fase;
-      carregarFase(edicao, btn.dataset.fase, ligaId);
-    });
+    }
   });
-  document.querySelector('.fase-btn[data-fase="primeira"]').classList.add("active");
-
-  // Carregar primeira fase
-  carregarFase(edicao, "primeira", ligaId);
 }
 
 // =====================================================================
-// CARREGAR FASE ESPECÍFICA
+// ATUALIZAR INFO DA FASE
 // =====================================================================
-async function carregarFase(edicao, fase, ligaId) {
-  const contentContainer = document.getElementById("mata-mata-content");
-  if (!contentContainer) return;
+function atualizarInfoFase(fase) {
+  const infoEl = document.getElementById("mmPhaseInfo");
+  if (!infoEl) return;
 
-  contentContainer.innerHTML = `
-    <div class="loading">
-      <div class="spinner"></div>
-      <p>Carregando ${fase.toUpperCase()}...</p>
+  const config = EDICOES_MATA_MATA.find(
+    (e) => e.id === estado.edicaoSelecionada,
+  );
+  const nomeEdicao = config
+    ? config.nome
+    : `${estado.edicaoSelecionada}ª Edição`;
+
+  const nomeFase =
+    {
+      primeira: "1ª FASE",
+      oitavas: "OITAVAS",
+      quartas: "QUARTAS",
+      semis: "SEMIFINAL",
+      final: "FINAL",
+    }[fase] || fase.toUpperCase();
+
+  // Calcular rodada da fase baseado na configuração
+  let rodadaFase = estado.rodadaAtual;
+  if (config) {
+    const faseIndex = FASES.indexOf(fase);
+    rodadaFase = config.rodadaInicial + faseIndex;
+  }
+
+  infoEl.innerHTML = `
+    <p class="mm-edition-name">${nomeEdicao}</p>
+    <p class="mm-phase-name">${nomeFase}</p>
+    <p class="mm-round-info">Rodada ${rodadaFase}</p>
+  `;
+}
+
+// =====================================================================
+// CARREGAR FASE
+// =====================================================================
+async function carregarFase(edicao, fase) {
+  const container = document.getElementById("mata-mata-container");
+  if (!container) return;
+
+  // Atualizar info
+  atualizarInfoFase(fase);
+
+  // Loading
+  container.innerHTML = `
+    <div class="mm-loading">
+      <div class="mm-spinner"></div>
+      <p>Carregando confrontos...</p>
     </div>
   `;
 
   try {
-    console.log(
-      `[PARTICIPANTE-MATA-MATA] Carregando edição ${edicao}, fase ${fase}`,
-    );
+    // Verificar cache local
+    const cacheKey = `${edicao}-${fase}`;
+    let confrontos = estado.cacheConfrontos[cacheKey];
 
-    const res = await fetch(`/api/mata-mata/cache/${ligaId}/${edicao}`);
-    if (!res.ok) {
-      throw new Error("Erro ao buscar dados do mata-mata");
+    if (!confrontos) {
+      const res = await fetch(
+        `/api/mata-mata/cache/${estado.ligaId}/${edicao}`,
+      );
+      if (!res.ok) throw new Error("Erro ao buscar dados");
+
+      const data = await res.json();
+      if (!data.cached || !data.dados) throw new Error("Dados não encontrados");
+
+      // Cachear todas as fases
+      FASES.forEach((f) => {
+        if (data.dados[f]) {
+          estado.cacheConfrontos[`${edicao}-${f}`] = data.dados[f];
+        }
+      });
+
+      confrontos = data.dados[fase];
     }
 
-    const data = await res.json();
-    if (!data.cached || !data.dados) {
-      throw new Error("Dados não encontrados no cache");
-    }
-
-    const dadosFase = data.dados[fase];
-    if (!dadosFase || dadosFase.length === 0) {
-      contentContainer.innerHTML = `
-        <div class="info-box">
-          <p>Confrontos da ${fase.toUpperCase()} ainda não disponíveis.</p>
+    if (!confrontos || confrontos.length === 0) {
+      container.innerHTML = `
+        <div class="mm-vazio">
+          <span class="material-symbols-outlined">sports_mma</span>
+          <h3>Aguardando</h3>
+          <p>Confrontos desta fase ainda não disponíveis</p>
         </div>
       `;
       return;
     }
 
-    renderTabelaConfrontos(dadosFase, fase, edicao);
+    renderConfrontos(confrontos, fase);
   } catch (error) {
-    console.error("[PARTICIPANTE-MATA-MATA] Erro ao carregar fase:", error);
-    contentContainer.innerHTML = `
-      <div class="error-box">
-        <p>❌ Erro ao carregar ${fase.toUpperCase()}</p>
-        <p class="error-detail">${error.message}</p>
+    console.error("[MATA-MATA] Erro:", error);
+    container.innerHTML = `
+      <div class="mm-vazio">
+        <span class="material-symbols-outlined">error_outline</span>
+        <h3>Erro</h3>
+        <p>${error.message}</p>
       </div>
     `;
   }
 }
 
 // =====================================================================
-// RENDERIZAR TABELA DE CONFRONTOS
+// RENDERIZAR CONFRONTOS
 // =====================================================================
-function renderTabelaConfrontos(confrontos, fase, edicao) {
-  const container = document.getElementById("mata-mata-content");
+function renderConfrontos(confrontos, fase) {
+  const container = document.getElementById("mata-mata-container");
   if (!container) return;
 
-  const config = EDICOES_MATA_MATA.find((e) => e.id === edicao);
-  const edicaoNome = config ? config.nome : `Edição ${edicao}`;
+  const meuTimeId = estado.timeId ? parseInt(estado.timeId) : null;
 
-  // Obter timeId do localStorage ou DOM
-  const timeId = localStorage.getItem("timeId") || 
-                 document.querySelector("[data-time-id]")?.dataset.timeId;
-  const meuTimeId = timeId ? parseInt(timeId) : null;
+  // Encontrar meu confronto
+  const meuConfronto = confrontos.find(
+    (c) => c.timeA?.time_id === meuTimeId || c.timeB?.time_id === meuTimeId,
+  );
 
-  container.innerHTML = `
-    <div class="mata-mata-header">
-      <div class="fase-titulo">${fase.toUpperCase()}</div>
-      <div class="edicao-nome">${edicaoNome}</div>
-    </div>
+  let html = "";
 
-    <div class="confrontos-lista">
-      ${confrontos
-        .map((confronto) => {
-          const timeA = confronto.timeA || {};
-          const timeB = confronto.timeB || {};
-
-          const pontosA = parseFloat(timeA.pontos) || 0;
-          const pontosB = parseFloat(timeB.pontos) || 0;
-
-          const vencedorA = pontosA > pontosB;
-          const vencedorB = pontosB > pontosA;
-
-          const ehMeuTimeA = meuTimeId && timeA.timeId === meuTimeId;
-          const ehMeuTimeB = meuTimeId && timeB.timeId === meuTimeId;
-
-          return `
-          <div class="confronto-card ${ehMeuTimeA || ehMeuTimeB ? "meu-confronto" : ""}">
-            <div class="confronto-header">
-              <span class="jogo-numero">Jogo ${confronto.jogo || "?"}</span>
-            </div>
-
-            <div class="confronto-times">
-              <div class="time ${vencedorA ? "vencedor" : ""} ${ehMeuTimeA ? "meu-time" : ""}">
-                <img src="/escudos/${timeA.clube_id || "default"}.png" 
-                     class="escudo" 
-                     onerror="this.src='/escudos/default.png'">
-                <div class="time-info">
-                  <div class="time-nome">${timeA.nome_time || "—"}</div>
-                  <div class="cartoleiro-nome">${timeA.nome_cartoleiro || timeA.nome_cartola || "—"}</div>
-                </div>
-                <div class="pontos ${vencedorA ? "destaque" : ""}">${pontosA.toFixed(2)}</div>
-              </div>
-
-              <div class="vs">X</div>
-
-              <div class="time ${vencedorB ? "vencedor" : ""} ${ehMeuTimeB ? "meu-time" : ""}">
-                <div class="pontos ${vencedorB ? "destaque" : ""}">${pontosB.toFixed(2)}</div>
-                <div class="time-info">
-                  <div class="time-nome">${timeB.nome_time || "—"}</div>
-                  <div class="cartoleiro-nome">${timeB.nome_cartoleiro || timeB.nome_cartola || "—"}</div>
-                </div>
-                <img src="/escudos/${timeB.clube_id || "default"}.png" 
-                     class="escudo" 
-                     onerror="this.src='/escudos/default.png'">
-              </div>
-            </div>
-          </div>
-        `;
-        })
-        .join("")}
-    </div>
-  `;
-
-  // Renderizar banner do campeão se for a final
-  if (fase === "final" && confrontos.length > 0) {
-    renderBannerCampeao(confrontos[0], edicaoNome);
+  // Card "Seu Confronto"
+  if (meuConfronto) {
+    html += renderMeuConfronto(meuConfronto, meuTimeId);
+  } else {
+    html += `
+      <div class="mm-nao-classificado">
+        <span class="material-symbols-outlined">sports_soccer</span>
+        <p>Você não está nesta fase</p>
+      </div>
+    `;
   }
+
+  // Tabela de confrontos
+  html += renderTabela(confrontos, meuTimeId);
+
+  container.innerHTML = html;
 }
 
 // =====================================================================
-// RENDERIZAR BANNER DO CAMPEÃO
+// RENDER MEU CONFRONTO
 // =====================================================================
-function renderBannerCampeao(confronto, edicaoNome) {
-  const container = document.getElementById("mata-mata-content");
-  if (!container) return;
+function renderMeuConfronto(confronto, meuTimeId) {
+  const souTimeA = confronto.timeA?.time_id === meuTimeId;
+  const eu = souTimeA ? confronto.timeA : confronto.timeB;
+  const adv = souTimeA ? confronto.timeB : confronto.timeA;
 
-  const timeA = confronto.timeA || {};
-  const timeB = confronto.timeB || {};
+  const meusPts = parseFloat(eu?.pontos) || 0;
+  const advPts = parseFloat(adv?.pontos) || 0;
 
-  const pontosA = parseFloat(timeA.pontos) || 0;
-  const pontosB = parseFloat(timeB.pontos) || 0;
+  const ganhando = meusPts > advPts;
+  const perdendo = meusPts < advPts;
 
-  if (pontosA === 0 && pontosB === 0) return; // Rodada não concluída
+  const iconClass = ganhando ? "ganhando" : perdendo ? "perdendo" : "empatando";
+  const iconName = ganhando
+    ? "trending_up"
+    : perdendo
+      ? "trending_down"
+      : "remove";
 
-  const campeao = pontosA > pontosB ? timeA : timeB;
-  const vice = pontosA > pontosB ? timeB : timeA;
+  const statusText = ganhando
+    ? "Você está passando!"
+    : perdendo
+      ? "Você está sendo eliminado"
+      : "Empate técnico";
+  const statusClass = ganhando
+    ? "passando"
+    : perdendo
+      ? "sendo-eliminado"
+      : "empatando";
 
-  const bannerHTML = `
-    <div class="campeao-banner">
-      <div class="campeao-header">
-        <div class="trophy">🏆</div>
-        <div class="titulo">CAMPEÃO</div>
-        <div class="edicao">${edicaoNome}</div>
+  return `
+    <div class="mm-meu-confronto">
+      <div class="mm-mc-header">
+        <span class="material-symbols-outlined mm-mc-icon ${iconClass}">${iconName}</span>
+        <span class="mm-mc-titulo">Seu Confronto</span>
       </div>
 
-      <div class="campeao-info">
-        <img src="/escudos/${campeao.clube_id || "default"}.png" 
-             class="campeao-escudo" 
-             onerror="this.src='/escudos/default.png'">
-        <div class="campeao-detalhes">
-          <div class="campeao-nome">${campeao.nome_time || "—"}</div>
-          <div class="campeao-cartoleiro">${campeao.nome_cartoleiro || campeao.nome_cartola || "—"}</div>
-          <div class="campeao-pontos">${campeao.pontos.toFixed(2)} pts</div>
+      <div class="mm-mc-grid">
+        <div class="mm-mc-time eu">
+          <div class="mm-mc-row">
+            <div class="mm-mc-info-box">
+              <p class="mm-mc-label">Você</p>
+              <p class="mm-mc-nome">${truncate(eu?.nome_time || "Meu Time", 14)}</p>
+            </div>
+            <img class="mm-mc-escudo" src="${eu?.url_escudo_png || eu?.escudo || "/escudos/default.png"}" alt="" onerror="this.src='/escudos/default.png'">
+          </div>
+          <div class="mm-mc-pts-box">
+            <p class="mm-mc-pts ${ganhando ? "vencedor" : perdendo ? "perdedor" : "empate"}">${meusPts.toFixed(2)}</p>
+          </div>
+        </div>
+
+        <div class="mm-mc-vs">x</div>
+
+        <div class="mm-mc-time adv">
+          <div class="mm-mc-row">
+            <img class="mm-mc-escudo" src="${adv?.url_escudo_png || adv?.escudo || "/escudos/default.png"}" alt="" onerror="this.src='/escudos/default.png'">
+            <div class="mm-mc-info-box">
+              <p class="mm-mc-label">Adversário</p>
+              <p class="mm-mc-nome">${truncate(adv?.nome_time || "Adversário", 14)}</p>
+            </div>
+          </div>
+          <div class="mm-mc-pts-box">
+            <p class="mm-mc-pts ${perdendo ? "vencedor" : ganhando ? "perdedor" : "empate"}">${advPts.toFixed(2)}</p>
+          </div>
         </div>
       </div>
 
-      <div class="vice-info">
-        <div class="vice-label">Vice-Campeão</div>
-        <div class="vice-nome">${vice.nome_time || "—"} - ${vice.pontos.toFixed(2)} pts</div>
+      <div class="mm-mc-status ${statusClass}">
+        <span class="material-symbols-outlined">${ganhando ? "check_circle" : perdendo ? "warning" : "drag_handle"}</span>
+        <span>${statusText}</span>
       </div>
     </div>
   `;
-
-  container.insertAdjacentHTML("beforeend", bannerHTML);
 }
 
 // =====================================================================
-// RENDERIZAR ERRO
+// RENDER TABELA
 // =====================================================================
-function renderError(message) {
+function renderTabela(confrontos, meuTimeId) {
+  let linhas = "";
+
+  confrontos.forEach((c, idx) => {
+    const timeA = c.timeA || {};
+    const timeB = c.timeB || {};
+    const ptsA = parseFloat(timeA.pontos) || 0;
+    const ptsB = parseFloat(timeB.pontos) || 0;
+    const diff = Math.abs(ptsA - ptsB).toFixed(2);
+
+    const vencedorA = ptsA > ptsB;
+    const vencedorB = ptsB > ptsA;
+
+    const isMinha = timeA.time_id === meuTimeId || timeB.time_id === meuTimeId;
+
+    linhas += `
+      <div class="mm-linha ${isMinha ? "minha" : ""}">
+        <div class="mm-col-num">${idx + 1}</div>
+
+        <div class="mm-col-time">
+          <img class="mm-escudo" src="${timeA.url_escudo_png || timeA.escudo || "/escudos/default.png"}" alt="" onerror="this.src='/escudos/default.png'">
+          <div class="mm-time-dados">
+            <span class="mm-time-nome">${truncate(timeA.nome_time || "A definir", 10)}</span>
+            <span class="mm-cartoleiro">${truncate(timeA.nome_cartola || timeA.nome_cartoleiro || "", 12)}</span>
+          </div>
+        </div>
+
+        <div class="mm-col-pts ${vencedorA ? "vencedor" : vencedorB ? "perdedor" : ""}">
+          <span class="mm-pts-valor ${vencedorA ? "vencedor" : vencedorB ? "perdedor" : "empate"}">${ptsA.toFixed(2)}</span>
+        </div>
+
+        <div class="mm-col-pts ${vencedorB ? "vencedor" : vencedorA ? "perdedor" : ""}">
+          <span class="mm-pts-valor ${vencedorB ? "vencedor" : vencedorA ? "perdedor" : "empate"}">${ptsB.toFixed(2)}</span>
+        </div>
+
+        <div class="mm-col-time-r">
+          <div class="mm-time-dados">
+            <span class="mm-time-nome">${truncate(timeB.nome_time || "A definir", 10)}</span>
+            <span class="mm-cartoleiro">${truncate(timeB.nome_cartola || timeB.nome_cartoleiro || "", 12)}</span>
+          </div>
+          <img class="mm-escudo" src="${timeB.url_escudo_png || timeB.escudo || "/escudos/default.png"}" alt="" onerror="this.src='/escudos/default.png'">
+        </div>
+
+        <div class="mm-col-dif">${diff}</div>
+      </div>
+    `;
+  });
+
+  return `
+    <div class="mm-tabela">
+      <div class="mm-tabela-header">
+        <div class="mm-th-num">#</div>
+        <div class="mm-th-time">TIME</div>
+        <div class="mm-th-pts">PTS</div>
+        <div class="mm-th-pts">PTS</div>
+        <div class="mm-th-time-r">TIME</div>
+        <div class="mm-th-dif">DIF</div>
+      </div>
+      ${linhas}
+    </div>
+  `;
+}
+
+// =====================================================================
+// RENDER ERRO
+// =====================================================================
+function renderErro(msg) {
   const container = document.getElementById("mata-mata-container");
   if (!container) return;
 
   container.innerHTML = `
-    <div class="error-box">
-      <p>❌ ${message}</p>
+    <div class="mm-vazio">
+      <span class="material-symbols-outlined">error_outline</span>
+      <h3>Erro</h3>
+      <p>${msg}</p>
     </div>
   `;
 }
+
+// =====================================================================
+// UTILS
+// =====================================================================
+function truncate(str, len) {
+  if (!str) return "";
+  return str.length > len ? str.substring(0, len) + "..." : str;
+}
+
+console.log("[MATA-MATA] ✅ Módulo v6.0 carregado");
