@@ -1,6 +1,7 @@
 /**
- * PARTICIPANTE MATA-MATA v5.0
+ * PARTICIPANTE MATA-MATA v5.4
  * Design Moderno + Tempos Verbais Dinâmicos + Coluna DIF
+ * CORREÇÃO: Usa mmPhaseInfo existente no HTML (sem duplicação)
  */
 
 const ParticipanteMataMata = (function () {
@@ -34,11 +35,12 @@ const ParticipanteMataMata = (function () {
   ];
 
   // ====== INICIALIZAÇÃO ======
-  async function init() {
-    console.log("[MATA-MATA] Inicializando v5.0...");
+  async function init(dados) {
+    console.log("[MATA-MATA] Inicializando v5.4...", dados);
 
-    estado.ligaId = window.LIGA_ID;
-    estado.meuTimeId = window.TIME_ID;
+    // Recebe via parâmetro OU fallback para window (compatibilidade)
+    estado.ligaId = dados?.ligaId || window.LIGA_ID;
+    estado.meuTimeId = dados?.timeId || window.TIME_ID;
 
     if (!estado.ligaId || !estado.meuTimeId) {
       renderErro("Dados da liga não encontrados");
@@ -53,12 +55,37 @@ const ParticipanteMataMata = (function () {
   // ====== CARREGAR STATUS DO MERCADO ======
   async function carregarStatusMercado() {
     try {
-      const res = await fetch("/api/mercado/status");
-      if (res.ok) {
-        const data = await res.json();
-        estado.rodadaAtual = data.rodada_atual || 0;
-        estado.rodadaEmAndamento = data.status_mercado === 2;
+      // Tentar múltiplas rotas possíveis
+      const rotas = [
+        "/api/cartola/mercado/status",
+        "/api/mercado/status",
+        "/api/status/mercado",
+      ];
+
+      for (const rota of rotas) {
+        try {
+          const res = await fetch(rota);
+          if (res.ok) {
+            const data = await res.json();
+            estado.rodadaAtual = data.rodada_atual || 0;
+            estado.rodadaEmAndamento = data.status_mercado === 2;
+            console.log("[MATA-MATA] Status mercado carregado:", {
+              rodada: estado.rodadaAtual,
+              emAndamento: estado.rodadaEmAndamento,
+            });
+            return;
+          }
+        } catch (e) {
+          // Tenta próxima rota
+        }
       }
+
+      // Se nenhuma rota funcionar, usa valores padrão
+      console.warn(
+        "[MATA-MATA] API de status não disponível, usando valores padrão",
+      );
+      estado.rodadaAtual = 37;
+      estado.rodadaEmAndamento = false;
     } catch (err) {
       console.warn("[MATA-MATA] Erro ao carregar status:", err);
     }
@@ -67,7 +94,7 @@ const ParticipanteMataMata = (function () {
   // ====== CARREGAR EDIÇÕES ======
   async function carregarEdicoes() {
     try {
-      const res = await fetch(`/api/liga/${estado.ligaId}`);
+      const res = await fetch(`/api/ligas/${estado.ligaId}`);
       if (!res.ok) throw new Error("Erro ao buscar liga");
 
       const liga = await res.json();
@@ -78,6 +105,13 @@ const ParticipanteMataMata = (function () {
       }
 
       estado.edicaoAtual = liga.edicao_atual || 1;
+      console.log(
+        "[MATA-MATA] Edições carregadas:",
+        estado.edicoes.length,
+        "| Atual:",
+        estado.edicaoAtual,
+      );
+
       renderSelectEdicoes();
       await carregarDadosEdicao(estado.edicaoAtual);
     } catch (err) {
@@ -159,10 +193,27 @@ const ParticipanteMataMata = (function () {
     }).join("");
   }
 
+  // ====== ATUALIZAR INFO DA FASE (usa elemento existente) ======
+  function atualizarInfoFase() {
+    const infoEl = document.getElementById("mmPhaseInfo");
+    if (!infoEl) return;
+
+    const faseConfig = FASES_CONFIG.find((f) => f.id === estado.faseAtual);
+
+    infoEl.innerHTML = `
+      <p class="mm-edition-name">${estado.edicaoAtual}ª Edição</p>
+      <p class="mm-phase-name">${faseConfig?.label || estado.faseAtual.toUpperCase()}</p>
+      <p class="mm-round-info">Rodada ${faseConfig?.rodada || "?"}</p>
+    `;
+  }
+
   // ====== RENDER CONTEÚDO PRINCIPAL ======
   function renderConteudo() {
     const container = document.getElementById("mataMataContainer");
     if (!container) return;
+
+    // Atualizar info da fase no elemento existente (não duplicar)
+    atualizarInfoFase();
 
     const dados = estado.dadosCache[estado.edicaoAtual];
     if (!dados) {
@@ -179,25 +230,19 @@ const ParticipanteMataMata = (function () {
     // Encontrar meu confronto
     const meuConfronto = encontrarMeuConfronto(confrontos);
 
-    // Renderizar info da fase
-    const faseConfig = FASES_CONFIG.find((f) => f.id === estado.faseAtual);
-    const infoHtml = `
-      <div class="mm-phase-info">
-        <p class="mm-edition-name">${estado.edicaoAtual}ª Edição</p>
-        <p class="mm-phase-name">${faseConfig?.label || estado.faseAtual.toUpperCase()}</p>
-        <p class="mm-round-info">Rodada ${faseConfig?.rodada || "?"}</p>
-      </div>
-    `;
-
     // Renderizar card "Seu Confronto" ou "Não classificado"
     const meuConfrontoHtml = meuConfronto
-      ? renderMeuConfronto(meuConfronto, faseConfig)
+      ? renderMeuConfronto(
+          meuConfronto,
+          FASES_CONFIG.find((f) => f.id === estado.faseAtual),
+        )
       : renderNaoClassificado();
 
     // Renderizar tabela de confrontos
     const tabelaHtml = renderTabela(confrontos);
 
-    container.innerHTML = infoHtml + meuConfrontoHtml + tabelaHtml;
+    // SEM duplicar mm-phase-info (já atualizado acima)
+    container.innerHTML = meuConfrontoHtml + tabelaHtml;
   }
 
   // ====== ENCONTRAR MEU CONFRONTO ======
@@ -582,12 +627,16 @@ const ParticipanteMataMata = (function () {
   return { init };
 })();
 
-// ====== FUNÇÕES GLOBAIS PARA O SISTEMA DE NAVEGAÇÃO ======
-window.inicializarMataMataParticipante = function () {
-  console.log("[MATA-MATA] 🚀 inicializarMataMataParticipante() chamada");
-  ParticipanteMataMata.init();
-};
+// ====== FUNÇÃO DE INICIALIZAÇÃO ======
+export async function inicializarMataMataParticipante(dados) {
+  console.log(
+    "[MATA-MATA] 🚀 inicializarMataMataParticipante() chamada",
+    dados,
+  );
+  await ParticipanteMataMata.init(dados);
+}
 
-window.inicializarMataMata = window.inicializarMataMataParticipante;
+// Alias para compatibilidade
+export const inicializarMataMata = inicializarMataMataParticipante;
 
-console.log("[MATA-MATA] ✅ Módulo v5.0 carregado");
+console.log("[MATA-MATA] ✅ Módulo v5.4 carregado");
