@@ -49,14 +49,19 @@ let faseSelecionada = "primeira";
 // =====================================================================
 // INICIALIZAÇÃO
 // =====================================================================
-export async function inicializarMataMata() {
-  console.log("[PARTICIPANTE-MATA-MATA] Inicializando módulo...");
+export async function inicializarMataMata(params) {
+  console.log("[PARTICIPANTE-MATA-MATA] 🚀 Módulo carregado - INÍCIO");
+  console.log("[PARTICIPANTE-MATA-MATA] Params recebidos:", params);
 
-  // Obter sessão do localStorage ou elementos DOM
-  const ligaId = localStorage.getItem("ligaId") || 
+  // Obter ligaId dos parâmetros ou fallback para localStorage/DOM
+  const ligaId = params?.ligaId || 
+                 localStorage.getItem("ligaId") || 
                  document.querySelector("[data-liga-id]")?.dataset.ligaId;
   
+  console.log("[PARTICIPANTE-MATA-MATA] Liga ID:", ligaId);
+  
   if (!ligaId) {
+    console.error("[PARTICIPANTE-MATA-MATA] ❌ Liga ID não encontrado");
     renderError("Sessão inválida. Faça login novamente.");
     return;
   }
@@ -118,8 +123,17 @@ async function carregarEdicoesDisponiveis(ligaId) {
 // RENDERIZAR INTERFACE PRINCIPAL
 // =====================================================================
 function renderInterface(ligaId) {
-  const container = document.getElementById("mata-mata-container");
-  if (!container) return;
+  // Tentar múltiplos IDs de container
+  const container = document.getElementById("mataMataContainer") || 
+                   document.getElementById("mata-mata-container") ||
+                   document.getElementById("moduleContainer");
+  
+  if (!container) {
+    console.error("[PARTICIPANTE-MATA-MATA] ❌ Container não encontrado");
+    return;
+  }
+  
+  console.log("[PARTICIPANTE-MATA-MATA] ✅ Container encontrado:", container.id);
 
   container.innerHTML = `
     <div class="participante-section">
