@@ -2,7 +2,6 @@
 // Responsável por: renderizar confrontos do mata-mata para o participante
 
 import { getSessionData } from "../participante-auth.js";
-import { cacheParticipante } from "../participante-cache.js";
 
 // =====================================================================
 // CONFIGURAÇÃO DAS EDIÇÕES
