@@ -13,6 +13,54 @@ router.get("/cache/:ligaId/:edicao", lerCacheMataMata);
 
 
 // ============================================================================
+// 📋 ROTA PARA LISTAR TODAS AS EDIÇÕES DISPONÍVEIS NO CACHE
+// ============================================================================
+router.get("/cache/:ligaId/edicoes", async (req, res) => {
+    try {
+        const { ligaId } = req.params;
+        
+        console.log(`[MATA-CACHE] 📋 Listando edições disponíveis para liga ${ligaId}`);
+        
+        const MataMataCache = (await import("../models/MataMataCache.js")).default;
+        
+        // Buscar todas as edições desta liga
+        const edicoes = await MataMataCache.find({ liga_id: ligaId })
+            .select('edicao rodada_atual ultima_atualizacao')
+            .sort({ edicao: 1 })
+            .lean();
+        
+        if (edicoes.length === 0) {
+            return res.json({ 
+                liga_id: ligaId,
+                total: 0,
+                edicoes: [],
+                mensagem: "Nenhuma edição encontrada no cache"
+            });
+        }
+        
+        // Formatar resposta
+        const resumo = edicoes.map(ed => ({
+            edicao: ed.edicao,
+            rodada_salva: ed.rodada_atual,
+            ultima_atualizacao: ed.ultima_atualizacao,
+            cache_id: ed._id
+        }));
+        
+        console.log(`[MATA-CACHE] ✅ Encontradas ${edicoes.length} edições`);
+        
+        res.json({
+            liga_id: ligaId,
+            total: edicoes.length,
+            edicoes: resumo
+        });
+        
+    } catch (error) {
+        console.error("[MATA-CACHE] ❌ Erro ao listar edições:", error);
+        res.status(500).json({ error: error.message });
+    }
+});
+
+// ============================================================================
 // 🔍 ROTA DE DEBUG - INSPECIONAR ESTRUTURA DO MONGODB
 // ============================================================================
 router.get("/debug/:ligaId", async (req, res) => {
