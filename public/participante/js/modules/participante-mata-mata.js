@@ -49,7 +49,7 @@ let faseSelecionada = "primeira";
 // =====================================================================
 // INICIALIZAÇÃO
 // =====================================================================
-export async function initMataMata() {
+export async function inicializarMataMata() {
   console.log("[PARTICIPANTE-MATA-MATA] Inicializando módulo...");
 
   // Obter sessão do localStorage ou elementos DOM
