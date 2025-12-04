@@ -1,5 +1,6 @@
-// MATA-MATA ORQUESTRADOR - Coordenador Principal v1.1
+// MATA-MATA ORQUESTRADOR - Coordenador Principal v1.2
 // Responsável por: coordenação de módulos, carregamento dinâmico, cache
+// ✅ v1.2: Adiciona persistência no MongoDB ao calcular fases
 
 import {
   edicoes,
@@ -52,6 +53,77 @@ const CACHE_CONFIG = {
 
 // Estado atual
 let edicaoAtual = null;
+
+// =====================================================================
+// ✅ NOVA FUNÇÃO: PERSISTIR FASE NO MONGODB
+// =====================================================================
+async function salvarFaseNoMongoDB(
+  ligaId,
+  edicao,
+  fase,
+  confrontos,
+  rodadaAtual,
+) {
+  try {
+    console.log(`[MATA-ORQUESTRADOR] 💾 Salvando fase ${fase} no MongoDB...`);
+
+    // 1. Buscar dados atuais do MongoDB
+    let dadosAtuais = {};
+    try {
+      const resGet = await fetch(`/api/mata-mata/cache/${ligaId}/${edicao}`);
+      if (resGet.ok) {
+        const cacheAtual = await resGet.json();
+        if (cacheAtual.cached && cacheAtual.dados) {
+          dadosAtuais = cacheAtual.dados;
+        }
+      }
+    } catch (err) {
+      console.warn("[MATA-ORQUESTRADOR] Cache não existe ainda, criando novo");
+    }
+
+    // 2. Atualizar apenas a fase calculada
+    dadosAtuais[fase] = confrontos;
+
+    // 3. Se for a final e tiver vencedor, salvar o campeão
+    if (fase === "final" && confrontos.length > 0) {
+      const confrontoFinal = confrontos[0];
+      const pontosA = parseFloat(confrontoFinal.timeA?.pontos) || 0;
+      const pontosB = parseFloat(confrontoFinal.timeB?.pontos) || 0;
+
+      if (pontosA > 0 || pontosB > 0) {
+        const campeao =
+          pontosA > pontosB ? confrontoFinal.timeA : confrontoFinal.timeB;
+        dadosAtuais.campeao = campeao;
+      }
+    }
+
+    // 4. Salvar no MongoDB
+    const resPost = await fetch(`/api/mata-mata/cache/${ligaId}/${edicao}`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        rodada: rodadaAtual,
+        dados: dadosAtuais,
+      }),
+    });
+
+    if (resPost.ok) {
+      console.log(
+        `[MATA-ORQUESTRADOR] ✅ Fase ${fase} salva no MongoDB com sucesso`,
+      );
+    } else {
+      console.error(
+        `[MATA-ORQUESTRADOR] ❌ Erro ao salvar fase ${fase}:`,
+        await resPost.text(),
+      );
+    }
+  } catch (error) {
+    console.error(
+      `[MATA-ORQUESTRADOR] ❌ Erro ao persistir fase ${fase}:`,
+      error,
+    );
+  }
+}
 
 // ✅ FUNÇÃO PARA OBTER PONTOS COM CACHE LOCAL
 async function getPontosDaRodadaCached(ligaId, rodada) {
@@ -230,7 +302,9 @@ async function setCachedConfrontos(
   const cacheKey = `matamata_confrontos_${ligaId}_${edicao}_${fase}_${rodadaPontos}`;
 
   await cacheManager.set("rodadas", cacheKey, confrontos);
-  console.log(`[MATA-ORQUESTRADOR] Confrontos salvos em cache: ${cacheKey}`);
+  console.log(
+    `[MATA-ORQUESTRADOR] Confrontos salvos em cache local: ${cacheKey}`,
+  );
 }
 
 // Função para carregar uma fase específica
@@ -343,6 +417,15 @@ async function carregarFase(fase, ligaId) {
           );
         }
 
+        // ✅ MESMO COM CACHE LOCAL, GARANTIR QUE MONGODB TEM OS DADOS
+        await salvarFaseNoMongoDB(
+          ligaId,
+          edicaoAtual,
+          fase,
+          cachedConfrontos,
+          rodada_atual,
+        );
+
         return; // ✅ RETORNA CEDO COM CACHE
       }
     }
@@ -382,7 +465,7 @@ async function carregarFase(fase, ligaId) {
         ? montarConfrontosPrimeiraFase(rankingBase, pontosRodadaAtual)
         : montarConfrontosFase(timesParaConfronto, pontosRodadaAtual, numJogos);
 
-    // ✅ SALVAR NO CACHE (apenas se rodada consolidada)
+    // ✅ SALVAR NO CACHE LOCAL (apenas se rodada consolidada)
     if (!isPending) {
       await setCachedConfrontos(
         ligaId,
@@ -390,6 +473,15 @@ async function carregarFase(fase, ligaId) {
         fase,
         rodadaPontosNum,
         confrontos,
+      );
+
+      // ✅ NOVO: SALVAR NO MONGODB TAMBÉM
+      await salvarFaseNoMongoDB(
+        ligaId,
+        edicaoAtual,
+        fase,
+        confrontos,
+        rodada_atual,
       );
     }
 
@@ -459,4 +551,4 @@ function setupCleanup() {
 // Inicialização do módulo
 setupCleanup();
 
-console.log("[MATA-ORQUESTRADOR] Módulo carregado com arquitetura refatorada");
+console.log("[MATA-ORQUESTRADOR] Módulo v1.2 carregado - MongoDB sync ativado");

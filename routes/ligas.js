@@ -337,7 +337,7 @@ router.get("/:id/ranking/:rodada", async (req, res) => {
 });
 
 // =====================================================================
-// 🔧 ROTA MATA-MATA - CORRIGIDA PARA BUSCAR DO MONGODB
+// 🔧 ROTA MATA-MATA - LEITURA DO MONGODB (SNAPSHOTS SALVOS PELO ADMIN)
 // =====================================================================
 router.get("/:id/mata-mata", async (req, res) => {
   const { id: ligaId } = req.params;
@@ -368,25 +368,15 @@ router.get("/:id/mata-mata", async (req, res) => {
     const edicoes = caches.map((cache) => {
       const dadosTorneio = cache.dados_torneio || {};
 
-      // Extrair confrontos e fases
+      // Extrair fases da estrutura do Admin (primeira, oitavas, quartas, semis, final)
       const fases = extrairFasesMataMata(dadosTorneio);
-      const confrontos = extrairConfrontosMataMata(dadosTorneio);
 
       return {
         id: cache._id,
         edicao: cache.edicao,
-        nome: dadosTorneio.nome || `${cache.edicao}ª Edição`,
+        nome: `${cache.edicao}ª Edição`,
         rodada: cache.rodada_atual,
-        rodadaInicial:
-          dadosTorneio.rodadaInicial || dadosTorneio.rodada_inicial,
-        rodadaFinal: dadosTorneio.rodadaFinal || dadosTorneio.rodada_final,
-        status:
-          dadosTorneio.status ||
-          (dadosTorneio.finalizada ? "concluida" : "em_andamento"),
-        finalizada:
-          dadosTorneio.finalizada || dadosTorneio.status === "concluida",
         fases: fases,
-        confrontos: confrontos,
         campeao: dadosTorneio.campeao || null,
         ultimaAtualizacao: cache.ultima_atualizacao,
       };
@@ -395,9 +385,13 @@ router.get("/:id/mata-mata", async (req, res) => {
     // Rodada atual = maior rodada entre as edições
     const rodadaAtual = Math.max(...caches.map((c) => c.rodada_atual || 1));
 
-    console.log(
-      `[MATA-MATA] ✅ ${edicoes.length} edições encontradas para liga ${ligaId}`,
-    );
+    console.log(`[MATA-MATA] ✅ ${edicoes.length} edições encontradas`);
+    edicoes.forEach((ed) => {
+      const fasesComDados = ed.fases.filter((f) => f.confrontosDefinidos > 0);
+      console.log(
+        `[MATA-MATA]    Edição ${ed.edicao}: ${fasesComDados.length} fases com dados`,
+      );
+    });
 
     res.json({
       edicoes,
@@ -405,7 +399,7 @@ router.get("/:id/mata-mata", async (req, res) => {
       total_edicoes: edicoes.length,
     });
   } catch (error) {
-    console.error(`[MATA-MATA] ❌ Erro ao buscar edições:`, error);
+    console.error(`[MATA-MATA] ❌ Erro:`, error);
     res.status(500).json({ erro: "Erro ao buscar dados do Mata-Mata" });
   }
 });
@@ -414,111 +408,91 @@ router.get("/:id/mata-mata", async (req, res) => {
 // 🔧 FUNÇÕES AUXILIARES PARA MATA-MATA
 // =====================================================================
 
-function extrairConfrontosMataMata(dadosTorneio) {
-  // Tentar diferentes estruturas que o admin pode ter salvo
-  if (dadosTorneio.confrontos && Array.isArray(dadosTorneio.confrontos)) {
-    return normalizarConfrontosMataMata(dadosTorneio.confrontos);
-  }
+const FASES_MATA_MATA = {
+  primeira: { nome: "1ª FASE", ordem: 1 },
+  oitavas: { nome: "OITAVAS", ordem: 2 },
+  quartas: { nome: "QUARTAS", ordem: 3 },
+  semis: { nome: "SEMIFINAL", ordem: 4 },
+  final: { nome: "FINAL", ordem: 5 },
+};
 
-  if (dadosTorneio.jogos && Array.isArray(dadosTorneio.jogos)) {
-    return normalizarConfrontosMataMata(dadosTorneio.jogos);
-  }
+function extrairFasesMataMata(dadosTorneio) {
+  const fases = [];
 
-  // Se tem fases, pegar confrontos da fase atual/última
-  if (dadosTorneio.fases && Array.isArray(dadosTorneio.fases)) {
-    const ultimaFase = dadosTorneio.fases[dadosTorneio.fases.length - 1];
-    if (ultimaFase && ultimaFase.confrontos) {
-      return normalizarConfrontosMataMata(ultimaFase.confrontos);
+  for (const [chave, config] of Object.entries(FASES_MATA_MATA)) {
+    if (dadosTorneio[chave] && Array.isArray(dadosTorneio[chave])) {
+      const confrontos = dadosTorneio[chave];
+
+      // Filtrar confrontos válidos (não "A definir")
+      const confrontosValidos = confrontos.filter((c) => {
+        const timeA = c.timeA || {};
+        const timeB = c.timeB || {};
+        return (
+          timeA.timeId || (timeA.nome_time && timeA.nome_time !== "A definir")
+        );
+      });
+
+      fases.push({
+        chave,
+        nome: config.nome,
+        ordem: config.ordem,
+        confrontos: confrontosValidos.map((c) => ({
+          jogo: c.jogo,
+          timeA: normalizarTime(c.timeA),
+          timeB: normalizarTime(c.timeB),
+          vencedor: determinarVencedor(c),
+          empate: verificarEmpate(c),
+        })),
+        totalConfrontos: confrontos.length,
+        confrontosDefinidos: confrontosValidos.length,
+      });
     }
   }
 
-  // Estrutura com rounds
-  if (dadosTorneio.rounds && Array.isArray(dadosTorneio.rounds)) {
-    const allConfrontos = [];
-    dadosTorneio.rounds.forEach((round) => {
-      if (round.confrontos) {
-        allConfrontos.push(...round.confrontos);
-      }
-    });
-    return normalizarConfrontosMataMata(allConfrontos);
-  }
-
-  return [];
+  return fases.sort((a, b) => a.ordem - b.ordem);
 }
 
-function extrairFasesMataMata(dadosTorneio) {
-  if (dadosTorneio.fases && Array.isArray(dadosTorneio.fases)) {
-    return dadosTorneio.fases.map((fase) => ({
-      nome: fase.nome || fase.fase || "Fase",
-      confrontos: normalizarConfrontosMataMata(
-        fase.confrontos || fase.jogos || [],
-      ),
-      rodada: fase.rodada,
-      status: fase.status,
-      finalizada: fase.finalizada,
-    }));
-  }
-
-  if (dadosTorneio.rounds && Array.isArray(dadosTorneio.rounds)) {
-    return dadosTorneio.rounds.map((round, idx) => ({
-      nome:
-        round.nome || getNomeFaseMataMata(round.confrontos?.length || 0, idx),
-      confrontos: normalizarConfrontosMataMata(round.confrontos || []),
-      rodada: round.rodada,
-      status: round.status,
-      finalizada: round.finalizada,
-    }));
-  }
-
-  // Se não tem fases, criar uma única com os confrontos
-  const confrontos = extrairConfrontosMataMata(dadosTorneio);
-  if (confrontos.length > 0) {
-    return [
-      {
-        nome: getNomeFaseMataMata(confrontos.length, 0),
-        confrontos: confrontos,
-        rodada: dadosTorneio.rodada || dadosTorneio.rodada_atual,
-        status: dadosTorneio.status,
-        finalizada: dadosTorneio.finalizada,
-      },
-    ];
-  }
-
-  return [];
-}
-
-function normalizarConfrontosMataMata(confrontos) {
-  if (!Array.isArray(confrontos)) return [];
-
-  return confrontos.map((c) => ({
-    timeA: normalizarTimeMataMata(c.timeA || c.time1 || c.mandante || {}),
-    timeB: normalizarTimeMataMata(c.timeB || c.time2 || c.visitante || {}),
-    vencedor: c.vencedor || c.winner || null,
-    empate: c.empate || false,
-  }));
-}
-
-function normalizarTimeMataMata(time) {
-  if (!time) return {};
+function normalizarTime(time) {
+  if (!time)
+    return {
+      timeId: null,
+      nomeTime: "N/D",
+      nomeCartoleiro: "",
+      escudo: "",
+      pontos: 0,
+    };
 
   return {
-    timeId: time.timeId || time.time_id || time.id,
-    nomeTime: time.nomeTime || time.nome_time || time.nome || time.name,
-    nomeCartoleiro:
-      time.nomeCartoleiro || time.nome_cartola || time.cartoleiro || time.owner,
-    escudo: time.escudo || time.url_escudo_png || time.foto || time.avatar,
-    pontos: time.pontos || time.pontos_total || time.score || 0,
-    pontos_total: time.pontos_total || time.pontos || 0,
+    timeId: time.timeId || time.time_id || null,
+    nomeTime: time.nome_time || time.nomeTime || "N/D",
+    nomeCartoleiro: time.nome_cartola || time.nome_cartoleiro || "",
+    escudo:
+      time.escudo && time.escudo !== "/escudos/placeholder.png"
+        ? time.escudo
+        : "",
+    pontos: parseFloat(time.pontos) || 0,
+    rankR2: time.rankR2 || null,
   };
 }
 
-function getNomeFaseMataMata(numConfrontos, idx) {
-  if (numConfrontos === 1) return "FINAL";
-  if (numConfrontos === 2) return "SEMIFINAL";
-  if (numConfrontos === 4) return "QUARTAS";
-  if (numConfrontos === 8) return "OITAVAS";
-  if (numConfrontos === 16) return "1ª FASE";
-  return `FASE ${idx + 1}`;
+function determinarVencedor(confronto) {
+  const pontosA = parseFloat(confronto.timeA?.pontos) || 0;
+  const pontosB = parseFloat(confronto.timeB?.pontos) || 0;
+
+  if (pontosA === 0 && pontosB === 0) return null;
+  if (pontosA > pontosB) return "A";
+  if (pontosB > pontosA) return "B";
+
+  // Empate: menor rankR2 vence
+  const rankA = confronto.timeA?.rankR2 || 999;
+  const rankB = confronto.timeB?.rankR2 || 999;
+  return rankA < rankB ? "A" : "B";
+}
+
+function verificarEmpate(confronto) {
+  const pontosA = parseFloat(confronto.timeA?.pontos) || 0;
+  const pontosB = parseFloat(confronto.timeB?.pontos) || 0;
+  return pontosA > 0 && pontosB > 0 && pontosA === pontosB;
 }
 
 // Rota: Buscar TOP 10 da liga

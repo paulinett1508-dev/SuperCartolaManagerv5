@@ -1,9 +1,12 @@
-<!-- PARTICIPANTE MATA-MATA v3.0 - Visual Atualizado -->
+<!-- PARTICIPANTE MATA-MATA v5.0 - Design Moderno Inspirado -->
 <div class="mata-mata-module">
-    <!-- Header -->
+    <!-- Header com ícone de espadas -->
     <div class="mm-header">
-        <h1 class="mm-title">Mata-Mata</h1>
-        <p class="mm-subtitle" id="mmTimesCount">Carregando...</p>
+        <div class="mm-header-left">
+            <span class="material-symbols-outlined mm-swords">swords</span>
+            <h1 class="mm-title">Mata-Mata</h1>
+        </div>
+        <span class="mm-subtitle" id="mmTimesCount">32 participante(s)</span>
     </div>
 
     <!-- Container principal -->
@@ -13,87 +16,111 @@
             <label for="mmEditionSelect">Edição:</label>
             <div class="mm-select-wrapper">
                 <select id="mmEditionSelect">
-                    <option value="">Carregando...</option>
+                    <option value="">5ª Edição</option>
                 </select>
-                <span class="material-icons mm-select-arrow">expand_more</span>
+                <span class="material-symbols-outlined mm-select-arrow"
+                    >expand_more</span
+                >
             </div>
         </div>
 
         <!-- Navegação de Fases -->
         <div class="mm-phases-nav" id="mmPhasesNav">
-            <!-- Preenchido via JS -->
+            <button class="mm-phase-btn active">1ª FASE</button>
+            <button class="mm-phase-btn">OITAVAS</button>
+            <button class="mm-phase-btn">QUARTAS</button>
+            <button class="mm-phase-btn">SEMIFINAL</button>
+            <button class="mm-phase-btn">FINAL</button>
         </div>
 
         <!-- Info da Fase Atual -->
         <div class="mm-phase-info" id="mmPhaseInfo">
-            <p class="mm-edition-name"></p>
-            <p class="mm-phase-name"></p>
-            <p class="mm-round-info"></p>
+            <p class="mm-edition-name">5ª Edição</p>
+            <p class="mm-phase-name">1ª FASE</p>
+            <p class="mm-round-info">Rodada 37</p>
         </div>
 
         <!-- Container de Confrontos -->
         <div id="mataMataContainer">
-            <div class="mm-loading">
-                <div class="mm-spinner"></div>
-                <p>Carregando confrontos...</p>
-            </div>
+            <!-- Conteúdo carregado via JS -->
         </div>
     </div>
 </div>
 
 <style>
     /* =====================================================
-   MATA-MATA v3.0 - Visual Modernizado
+   MATA-MATA v5.0 - Design Moderno
    ===================================================== */
+
+    /* Material Symbols */
+    .mata-mata-module .material-symbols-outlined {
+        font-variation-settings:
+            "FILL" 0,
+            "wght" 400,
+            "GRAD" 0,
+            "opsz" 24;
+    }
 
     .mata-mata-module {
         min-height: 100%;
-        padding: 16px;
+        padding: 12px;
+        background: #0c0c0c;
     }
 
-    /* Header */
+    /* ===== HEADER ===== */
     .mm-header {
         background: var(--participante-card, #1c1c1e);
         border-radius: 8px;
-        padding: 16px;
+        padding: 10px 14px;
         border: 1px solid var(--participante-border, #3a3a3c);
         display: flex;
         justify-content: space-between;
         align-items: center;
-        margin-bottom: 16px;
+        margin-bottom: 12px;
+    }
+
+    .mm-header-left {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+    }
+
+    .mm-swords {
+        color: var(--participante-primary, #ff6a38);
+        font-size: 22px;
+        transform: rotate(-45deg);
     }
 
     .mm-title {
-        font-size: 20px;
+        font-size: 16px;
         font-weight: 700;
         color: var(--participante-text, #f9fafb);
         margin: 0;
     }
 
     .mm-subtitle {
-        font-size: 14px;
+        font-size: 12px;
         color: var(--participante-text-muted, #9ca3af);
-        margin: 0;
     }
 
-    /* Content Container */
+    /* ===== CONTENT ===== */
     .mm-content {
         background: var(--participante-card, #1c1c1e);
         border-radius: 8px;
-        padding: 16px;
+        padding: 14px;
         border: 1px solid var(--participante-border, #3a3a3c);
     }
 
-    /* Edition Selector */
+    /* ===== SELETOR DE EDIÇÃO ===== */
     .mm-edition-selector {
         display: flex;
         align-items: center;
         gap: 8px;
-        margin-bottom: 20px;
+        margin-bottom: 16px;
     }
 
     .mm-edition-selector label {
-        font-size: 14px;
+        font-size: 12px;
         font-weight: 500;
         color: var(--participante-text-muted, #9ca3af);
         white-space: nowrap;
@@ -106,10 +133,10 @@
 
     .mm-select-wrapper select {
         width: 100%;
-        background: var(--participante-bg, #000);
+        background: #000;
         border: 1px solid var(--participante-border, #3a3a3c);
         color: var(--participante-text, #f9fafb);
-        font-size: 14px;
+        font-size: 13px;
         border-radius: 8px;
         padding: 10px 36px 10px 12px;
         appearance: none;
@@ -119,6 +146,7 @@
     .mm-select-wrapper select:focus {
         outline: none;
         border-color: var(--participante-primary, #ff6a38);
+        box-shadow: 0 0 0 2px rgba(255, 106, 56, 0.15);
     }
 
     .mm-select-arrow {
@@ -128,16 +156,16 @@
         transform: translateY(-50%);
         color: var(--participante-text-muted, #9ca3af);
         pointer-events: none;
-        font-size: 20px;
+        font-size: 18px;
     }
 
-    /* Phases Navigation */
+    /* ===== NAVEGAÇÃO DE FASES ===== */
     .mm-phases-nav {
         display: flex;
         gap: 8px;
         overflow-x: auto;
         padding-bottom: 8px;
-        margin-bottom: 20px;
+        margin-bottom: 16px;
         scrollbar-width: none;
         -ms-overflow-style: none;
     }
@@ -147,9 +175,9 @@
     }
 
     .mm-phase-btn {
-        padding: 8px 16px;
+        padding: 6px 14px;
         border-radius: 20px;
-        font-size: 12px;
+        font-size: 11px;
         font-weight: 600;
         white-space: nowrap;
         cursor: pointer;
@@ -171,156 +199,153 @@
         color: #fff;
     }
 
-    /* Phase Info */
+    .mm-phase-btn.disabled {
+        opacity: 0.4;
+        cursor: not-allowed;
+    }
+
+    /* ===== INFO DA FASE ===== */
     .mm-phase-info {
         text-align: center;
-        margin-bottom: 20px;
+        margin-bottom: 16px;
     }
 
     .mm-phase-info .mm-edition-name {
-        font-size: 14px;
+        font-size: 12px;
         font-weight: 500;
-        color: var(--participante-text, #f9fafb);
-        margin: 0 0 4px 0;
-    }
-
-    .mm-phase-info .mm-phase-name {
-        font-size: 12px;
-        color: var(--participante-text-muted, #9ca3af);
-        margin: 0 0 2px 0;
-    }
-
-    .mm-phase-info .mm-round-info {
-        font-size: 12px;
         color: var(--participante-text-muted, #9ca3af);
         margin: 0;
     }
 
-    /* Confrontos Grid - Estilo Tabela */
-    .mm-confrontos-table {
-        border: 1px solid rgba(255, 106, 56, 0.3);
-        border-radius: 8px;
-        overflow: hidden;
+    .mm-phase-info .mm-phase-name {
+        font-size: 14px;
+        font-weight: 700;
+        color: var(--participante-primary, #ff6a38);
+        margin: 2px 0 0 0;
     }
 
-    .mm-table-header {
-        display: grid;
-        grid-template-columns: 32px 1fr 70px 32px 70px 1fr;
-        align-items: center;
-        background: var(--participante-primary, #ff6a38);
+    .mm-phase-info .mm-round-info {
         font-size: 11px;
+        color: var(--participante-text-muted, #6b7280);
+        margin: 2px 0 0 0;
+    }
+
+    /* =====================================================
+   CARD "SEU CONFRONTO" - DESIGN MODERNO
+   ===================================================== */
+    .mm-meu-confronto {
+        background: #000;
+        border: 1px solid var(--participante-border, #3a3a3c);
+        border-radius: 10px;
+        padding: 14px;
+        margin-bottom: 16px;
+    }
+
+    .mm-mc-header {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 8px;
+        margin-bottom: 14px;
+    }
+
+    .mm-mc-icon {
+        font-size: 22px;
+    }
+
+    .mm-mc-icon.ganhando {
+        color: #22c55e;
+    }
+    .mm-mc-icon.perdendo {
+        color: #ef4444;
+    }
+    .mm-mc-icon.empatando {
+        color: #eab308;
+    }
+    .mm-mc-icon.aguardando {
+        color: #9ca3af;
+    }
+
+    .mm-mc-titulo {
+        font-size: 14px;
         font-weight: 700;
         color: #fff;
         text-transform: uppercase;
+        letter-spacing: 0.5px;
     }
 
-    .mm-table-header > div {
-        padding: 10px 8px;
-    }
-
-    .mm-th-num {
-        text-align: center;
-    }
-    .mm-th-time-left {
-        text-align: left;
-    }
-    .mm-th-pts {
-        text-align: center;
-    }
-    .mm-th-vs {
-        text-align: center;
-    }
-    .mm-th-time-right {
-        text-align: right;
-    }
-
-    /* Linha de Confronto */
-    .mm-confronto-row {
+    /* Grid 3 colunas: Você | x | Adversário */
+    .mm-mc-grid {
         display: grid;
-        grid-template-columns: 32px 1fr 70px 32px 70px 1fr;
+        grid-template-columns: 1fr auto 1fr;
+        align-items: flex-start;
+        gap: 8px;
+    }
+
+    .mm-mc-time {
+        display: flex;
+        flex-direction: column;
         align-items: center;
-        border-top: 1px solid var(--participante-border, #3a3a3c);
-        font-size: 12px;
-        transition: background 0.2s;
-    }
-
-    .mm-confronto-row:hover {
-        background: rgba(255, 255, 255, 0.02);
-    }
-
-    .mm-confronto-row.meu-confronto {
-        background: rgba(255, 106, 56, 0.08);
-        border-left: 3px solid var(--participante-primary, #ff6a38);
-    }
-
-    .mm-confronto-row > div {
-        padding: 12px 8px;
-    }
-
-    /* Número do Confronto */
-    .mm-row-num {
         text-align: center;
-        color: var(--participante-text-muted, #9ca3af);
-        font-weight: 500;
     }
 
-    /* Time (esquerda) */
-    .mm-time-left {
+    /* Time esquerdo: info + escudo */
+    .mm-mc-time.eu .mm-mc-row {
         display: flex;
         align-items: center;
+        justify-content: center;
         gap: 8px;
+        width: 100%;
     }
 
-    .mm-time-left .mm-escudo {
-        width: 28px;
-        height: 28px;
-        border-radius: 50%;
-        object-fit: cover;
-        flex-shrink: 0;
-    }
-
-    .mm-time-left .mm-time-info {
-        min-width: 0;
-    }
-
-    .mm-time-left .mm-time-nome {
-        font-weight: 700;
-        color: var(--participante-text, #f9fafb);
-        white-space: nowrap;
-        overflow: hidden;
-        text-overflow: ellipsis;
-    }
-
-    .mm-time-left .mm-cartoleiro {
-        font-size: 11px;
-        color: var(--participante-text-muted, #9ca3af);
-        white-space: nowrap;
-        overflow: hidden;
-        text-overflow: ellipsis;
-    }
-
-    /* Time (direita) - Espelhado */
-    .mm-time-right {
-        display: flex;
-        align-items: center;
-        justify-content: flex-end;
-        gap: 8px;
+    .mm-mc-time.eu .mm-mc-info-box {
         text-align: right;
+        overflow: hidden;
+        flex: 1;
     }
 
-    .mm-time-right .mm-escudo {
-        width: 28px;
-        height: 28px;
+    /* Time direito: escudo + info */
+    .mm-mc-time.adv .mm-mc-row {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 8px;
+        width: 100%;
+    }
+
+    .mm-mc-time.adv .mm-mc-info-box {
+        text-align: left;
+        overflow: hidden;
+        flex: 1;
+    }
+
+    .mm-mc-escudo {
+        width: 32px;
+        height: 32px;
         border-radius: 50%;
         object-fit: cover;
         flex-shrink: 0;
+        cursor: pointer;
+        transition:
+            transform 0.15s,
+            box-shadow 0.15s;
     }
 
-    .mm-time-right .mm-time-info {
-        min-width: 0;
+    .mm-mc-escudo:hover {
+        transform: scale(1.1);
+        box-shadow: 0 0 10px rgba(255, 106, 56, 0.5);
     }
 
-    .mm-time-right .mm-time-nome {
+    .mm-mc-label {
+        font-size: 9px;
+        font-weight: 600;
+        color: var(--participante-text-muted, #9ca3af);
+        text-transform: uppercase;
+        letter-spacing: 0.3px;
+    }
+
+    .mm-mc-nome {
+        font-size: 12px;
         font-weight: 700;
         color: var(--participante-text, #f9fafb);
         white-space: nowrap;
@@ -328,70 +353,49 @@
         text-overflow: ellipsis;
     }
 
-    .mm-time-right .mm-cartoleiro {
-        font-size: 11px;
-        color: var(--participante-text-muted, #9ca3af);
-        white-space: nowrap;
-        overflow: hidden;
-        text-overflow: ellipsis;
-    }
-
-    /* Pontuação */
-    .mm-pts-cell {
+    /* Pontuação + ícone financeiro */
+    .mm-mc-pts-box {
+        margin-top: 8px;
         text-align: center;
     }
 
-    .mm-pts-cell.vencedor {
-        background: rgba(34, 197, 94, 0.15);
+    .mm-mc-pts {
+        font-size: 18px;
+        font-weight: 800;
     }
 
-    .mm-pts-cell.perdedor {
-        background: rgba(239, 68, 68, 0.15);
-    }
-
-    .mm-pts-cell.empate {
-        background: rgba(234, 179, 8, 0.15);
-    }
-
-    .mm-pts-value {
-        font-weight: 700;
-        font-size: 13px;
-    }
-
-    .mm-pts-value.vencedor {
+    .mm-mc-pts.vencedor {
         color: #22c55e;
     }
-
-    .mm-pts-value.perdedor {
+    .mm-mc-pts.perdedor {
+        color: #ef4444;
+    }
+    .mm-mc-pts.empate {
+        color: #eab308;
+    }
+    .mm-mc-pts.neutro {
         color: var(--participante-text-muted, #9ca3af);
     }
 
-    .mm-pts-value.empate {
-        color: #eab308;
-    }
-
-    /* Mini Modal Financeiro */
-    .mm-financial-trigger {
+    /* Mini modal financeiro */
+    .mm-financial {
         position: relative;
         display: inline-flex;
         cursor: pointer;
-        margin-top: 2px;
+        margin-top: 4px;
     }
 
-    .mm-financial-trigger .material-icons {
+    .mm-financial .material-icons {
         font-size: 16px;
-        line-height: 1;
     }
 
-    .mm-financial-trigger .material-icons.ganho {
+    .mm-financial .material-icons.ganho {
         color: #22c55e;
     }
-
-    .mm-financial-trigger .material-icons.perda {
+    .mm-financial .material-icons.perda {
         color: #ef4444;
     }
-
-    .mm-financial-trigger .material-icons.empate-icon {
+    .mm-financial .material-icons.empate-icon {
         color: #eab308;
     }
 
@@ -413,11 +417,9 @@
     .mm-mini-modal.ganho {
         background: #22c55e;
     }
-
     .mm-mini-modal.perda {
         background: #ef4444;
     }
-
     .mm-mini-modal.empate-bg {
         background: #eab308;
     }
@@ -434,41 +436,323 @@
     .mm-mini-modal.ganho::before {
         border-bottom-color: #22c55e;
     }
-
     .mm-mini-modal.perda::before {
         border-bottom-color: #ef4444;
     }
-
     .mm-mini-modal.empate-bg::before {
         border-bottom-color: #eab308;
     }
 
-    .mm-financial-trigger:hover .mm-mini-modal,
-    .mm-financial-trigger:focus .mm-mini-modal {
+    .mm-financial:hover .mm-mini-modal,
+    .mm-financial:focus .mm-mini-modal {
         display: block;
     }
 
-    /* VS */
-    .mm-vs-cell {
-        text-align: center;
-        font-weight: 700;
-        color: var(--participante-text-muted, #9ca3af);
+    /* VS central */
+    .mm-mc-vs {
+        padding-top: 20px;
+        font-size: 12px;
+        font-weight: 600;
+        color: var(--participante-text-muted, #6b7280);
     }
 
-    /* Loading */
+    /* ===== STATUS DO CONFRONTO ===== */
+    .mm-mc-status {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 8px;
+        padding: 8px 12px;
+        border-radius: 8px;
+        margin-top: 12px;
+        font-weight: 600;
+        font-size: 12px;
+    }
+
+    /* Rodada consolidada - Ganhou */
+    .mm-mc-status.classificado {
+        background: rgba(34, 197, 94, 0.15);
+        border: 1px solid rgba(34, 197, 94, 0.3);
+        color: #22c55e;
+    }
+
+    .mm-mc-status.campeao {
+        background: linear-gradient(
+            135deg,
+            rgba(234, 179, 8, 0.2) 0%,
+            rgba(234, 179, 8, 0.1) 100%
+        );
+        border: 1px solid rgba(234, 179, 8, 0.4);
+        color: #fbbf24;
+    }
+
+    /* Rodada consolidada - Perdeu */
+    .mm-mc-status.eliminado {
+        background: rgba(127, 29, 29, 0.5);
+        border: 1px solid rgba(185, 28, 28, 0.6);
+        color: #fbbf24;
+    }
+
+    /* Rodada em andamento - Ganhando */
+    .mm-mc-status.passando {
+        background: rgba(34, 197, 94, 0.15);
+        border: 1px solid rgba(34, 197, 94, 0.3);
+        color: #22c55e;
+    }
+
+    /* Rodada em andamento - Perdendo */
+    .mm-mc-status.sendo-eliminado {
+        background: rgba(127, 29, 29, 0.5);
+        border: 1px solid rgba(185, 28, 28, 0.6);
+        color: #fbbf24;
+    }
+
+    .mm-mc-status.empatando {
+        background: rgba(234, 179, 8, 0.15);
+        border: 1px solid rgba(234, 179, 8, 0.3);
+        color: #eab308;
+    }
+
+    .mm-mc-status.aguardando {
+        background: rgba(156, 163, 175, 0.1);
+        border: 1px solid rgba(156, 163, 175, 0.2);
+        color: #9ca3af;
+    }
+
+    .mm-mc-status .material-icons {
+        font-size: 18px;
+    }
+
+    /* ===== NÃO CLASSIFICADO ===== */
+    .mm-nao-classificado {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        gap: 6px;
+        padding: 20px;
+        background: rgba(255, 255, 255, 0.02);
+        border-radius: 8px;
+        border: 1px dashed rgba(255, 255, 255, 0.1);
+        margin-bottom: 16px;
+        text-align: center;
+    }
+
+    .mm-nao-classificado .material-icons {
+        font-size: 28px;
+        color: var(--participante-text-muted, #6b7280);
+    }
+
+    .mm-nao-classificado p {
+        color: var(--participante-text-muted, #6b7280);
+        font-size: 12px;
+        margin: 0;
+    }
+
+    /* =====================================================
+   TABELA DE CONFRONTOS - COM COLUNA DIF
+   ===================================================== */
+    .mm-tabela {
+        border-radius: 8px;
+        overflow: hidden;
+        border: 1px solid var(--participante-border, #3a3a3c);
+    }
+
+    /* Header da tabela - 6 colunas */
+    .mm-tabela-header {
+        display: grid;
+        grid-template-columns: 26px 1fr 52px 52px 1fr 44px;
+        align-items: center;
+        background: var(--participante-primary, #ff6a38);
+        font-size: 10px;
+        font-weight: 700;
+        color: #000;
+        text-transform: uppercase;
+        letter-spacing: 0.3px;
+    }
+
+    .mm-tabela-header > div {
+        padding: 8px 6px;
+    }
+
+    .mm-th-num {
+        text-align: center;
+    }
+    .mm-th-time {
+        text-align: left;
+    }
+    .mm-th-pts {
+        text-align: center;
+    }
+    .mm-th-dif {
+        text-align: center;
+    }
+    .mm-th-time-r {
+        text-align: right;
+    }
+
+    /* Linha de confronto - 6 colunas */
+    .mm-linha {
+        display: grid;
+        grid-template-columns: 26px 1fr 52px 52px 1fr 44px;
+        align-items: center;
+        border-top: 1px solid var(--participante-border, #2a2a2c);
+        font-size: 11px;
+        transition: background 0.15s;
+    }
+
+    .mm-linha:hover {
+        background: rgba(255, 255, 255, 0.02);
+    }
+
+    .mm-linha.minha {
+        background: rgba(255, 106, 56, 0.06);
+    }
+
+    .mm-linha > div {
+        padding: 10px 6px;
+    }
+
+    /* Número */
+    .mm-col-num {
+        text-align: center;
+        color: var(--participante-text-muted, #6b7280);
+        font-weight: 500;
+        font-size: 10px;
+    }
+
+    /* Time (esquerda) */
+    .mm-col-time {
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        min-width: 0;
+    }
+
+    .mm-escudo {
+        width: 24px;
+        height: 24px;
+        border-radius: 50%;
+        object-fit: cover;
+        flex-shrink: 0;
+        cursor: pointer;
+        transition:
+            transform 0.15s,
+            box-shadow 0.15s;
+    }
+
+    .mm-escudo:hover {
+        transform: scale(1.1);
+        box-shadow: 0 0 8px rgba(255, 106, 56, 0.4);
+    }
+
+    .mm-time-dados {
+        display: flex;
+        flex-direction: column;
+        min-width: 0;
+    }
+
+    .mm-time-nome {
+        font-size: 11px;
+        font-weight: 700;
+        color: var(--participante-text, #f9fafb);
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
+
+    .mm-cartoleiro {
+        font-size: 9px;
+        color: var(--participante-text-muted, #6b7280);
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
+
+    /* Célula de pontos com background colorido */
+    .mm-col-pts {
+        text-align: center;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 2px;
+    }
+
+    .mm-col-pts.vencedor {
+        background: rgba(34, 197, 94, 0.1);
+    }
+
+    .mm-col-pts.perdedor {
+        background: rgba(239, 68, 68, 0.1);
+    }
+
+    .mm-pts-valor {
+        font-size: 11px;
+        font-weight: 700;
+    }
+
+    .mm-pts-valor.vencedor {
+        color: #22c55e;
+    }
+    .mm-pts-valor.perdedor {
+        color: #ef4444;
+    }
+    .mm-pts-valor.empate {
+        color: #eab308;
+    }
+
+    /* Ícone financeiro na tabela */
+    .mm-pts-financial {
+        position: relative;
+        display: inline-flex;
+        cursor: pointer;
+    }
+
+    .mm-pts-financial .material-icons {
+        font-size: 14px;
+        line-height: 1;
+    }
+
+    .mm-pts-financial:hover .mm-mini-modal {
+        display: block;
+    }
+
+    /* Time (direita) - espelhado */
+    .mm-col-time-r {
+        display: flex;
+        align-items: center;
+        justify-content: flex-end;
+        gap: 6px;
+        min-width: 0;
+        text-align: right;
+    }
+
+    .mm-col-time-r .mm-time-dados {
+        align-items: flex-end;
+    }
+
+    /* Coluna diferença */
+    .mm-col-dif {
+        text-align: center;
+        font-size: 11px;
+        font-weight: 700;
+        color: #22c55e;
+    }
+
+    /* ===== ESTADOS VAZIOS E LOADING ===== */
     .mm-loading {
         text-align: center;
-        padding: 60px 20px;
+        padding: 40px 20px;
     }
 
     .mm-spinner {
-        width: 40px;
-        height: 40px;
+        width: 32px;
+        height: 32px;
         border: 3px solid rgba(255, 106, 56, 0.2);
         border-top-color: var(--participante-primary, #ff6a38);
         border-radius: 50%;
         animation: mm-spin 0.8s linear infinite;
-        margin: 0 auto 16px;
+        margin: 0 auto 12px;
     }
 
     @keyframes mm-spin {
@@ -479,224 +763,167 @@
 
     .mm-loading p {
         color: var(--participante-text-muted, #9ca3af);
-        font-size: 14px;
+        font-size: 12px;
         margin: 0;
     }
 
-    /* Estado Vazio */
-    .mm-empty-state {
-        text-align: center;
-        padding: 60px 20px;
-        background: linear-gradient(
-            135deg,
-            rgba(255, 106, 56, 0.05) 0%,
-            rgba(255, 106, 56, 0.02) 100%
-        );
-        border-radius: 12px;
-        border: 2px dashed rgba(255, 106, 56, 0.3);
-    }
-
-    .mm-empty-state .mm-empty-icon {
-        font-size: 56px;
-        margin-bottom: 16px;
-    }
-
-    .mm-empty-state h3 {
-        color: var(--participante-text, #f9fafb);
-        font-size: 18px;
-        margin: 0 0 8px 0;
-    }
-
-    .mm-empty-state p {
-        color: var(--participante-text-muted, #9ca3af);
-        font-size: 14px;
-        margin: 0;
-    }
-
-    /* Meu Confronto Destaque */
-    .mm-my-match-highlight {
-        background: linear-gradient(
-            135deg,
-            rgba(255, 106, 56, 0.1) 0%,
-            rgba(255, 106, 56, 0.05) 100%
-        );
-        border: 2px solid rgba(255, 106, 56, 0.3);
-        border-radius: 12px;
-        padding: 16px;
-        margin-bottom: 20px;
-    }
-
-    .mm-my-match-title {
-        text-align: center;
-        font-size: 16px;
-        font-weight: 700;
-        color: var(--participante-text, #f9fafb);
-        margin: 0 0 16px 0;
-    }
-
-    .mm-my-match-grid {
-        display: grid;
-        grid-template-columns: 1fr auto 1fr;
-        gap: 12px;
-        align-items: center;
-    }
-
-    .mm-my-team-card {
-        text-align: center;
-        padding: 16px 12px;
-        border-radius: 10px;
-    }
-
-    .mm-my-team-card.eu {
-        background: rgba(34, 197, 94, 0.1);
-        border: 2px solid rgba(34, 197, 94, 0.3);
-    }
-
-    .mm-my-team-card.adversario {
-        background: rgba(239, 68, 68, 0.1);
-        border: 2px solid rgba(239, 68, 68, 0.3);
-    }
-
-    .mm-my-team-label {
-        font-size: 10px;
-        font-weight: 700;
-        text-transform: uppercase;
-        margin-bottom: 8px;
-    }
-
-    .mm-my-team-card.eu .mm-my-team-label {
-        color: #22c55e;
-    }
-
-    .mm-my-team-card.adversario .mm-my-team-label {
-        color: #ef4444;
-    }
-
-    .mm-my-team-escudo {
-        width: 48px;
-        height: 48px;
-        border-radius: 50%;
-        margin: 0 auto 8px;
-        object-fit: cover;
-    }
-
-    .mm-my-team-nome {
-        font-size: 13px;
-        font-weight: 700;
-        color: var(--participante-text, #f9fafb);
-        margin-bottom: 4px;
-        white-space: nowrap;
-        overflow: hidden;
-        text-overflow: ellipsis;
-    }
-
-    .mm-my-team-pts {
-        font-size: 28px;
-        font-weight: 900;
-    }
-
-    .mm-my-team-card.eu .mm-my-team-pts {
-        color: #22c55e;
-    }
-
-    .mm-my-team-card.adversario .mm-my-team-pts {
-        color: #ef4444;
-    }
-
-    .mm-my-match-vs {
-        font-size: 18px;
-        font-weight: 900;
-        color: var(--participante-text-muted, #6b7280);
-    }
-
-    .mm-my-match-status {
-        text-align: center;
-        padding: 10px;
-        border-radius: 8px;
-        margin-top: 16px;
-        font-weight: 600;
-        font-size: 14px;
-    }
-
-    .mm-my-match-status.vencendo {
-        background: rgba(34, 197, 94, 0.15);
-        color: #22c55e;
-    }
-
-    .mm-my-match-status.perdendo {
-        background: rgba(239, 68, 68, 0.15);
-        color: #ef4444;
-    }
-
-    .mm-my-match-status.empatando {
-        background: rgba(234, 179, 8, 0.15);
-        color: #eab308;
-    }
-
-    /* Não Classificado */
-    .mm-not-qualified {
+    .mm-vazio {
         text-align: center;
         padding: 40px 20px;
         background: rgba(255, 255, 255, 0.02);
-        border-radius: 12px;
-        border: 2px dashed rgba(255, 255, 255, 0.1);
-        margin-bottom: 20px;
+        border-radius: 10px;
+        border: 1px dashed rgba(255, 255, 255, 0.1);
     }
 
-    .mm-not-qualified .mm-nq-icon {
-        font-size: 48px;
+    .mm-vazio .material-icons {
+        font-size: 40px;
+        color: var(--participante-text-muted, #6b7280);
         margin-bottom: 12px;
     }
 
-    .mm-not-qualified h3 {
-        color: var(--participante-text-muted, #9ca3af);
-        font-size: 16px;
-        margin: 0 0 8px 0;
+    .mm-vazio h3 {
+        color: var(--participante-text, #f9fafb);
+        font-size: 14px;
+        margin: 0 0 6px 0;
     }
 
-    .mm-not-qualified p {
-        color: var(--participante-text-muted, #6b7280);
-        font-size: 13px;
+    .mm-vazio p {
+        color: var(--participante-text-muted, #9ca3af);
+        font-size: 12px;
         margin: 0;
     }
 
-    /* Responsive */
-    @media (max-width: 640px) {
-        .mm-table-header,
-        .mm-confronto-row {
-            grid-template-columns: 28px 1fr 56px 28px 56px 1fr;
+    /* ===== RESPONSIVE ===== */
+    @media (max-width: 400px) {
+        .mm-tabela-header,
+        .mm-linha {
+            grid-template-columns: 22px 1fr 46px 46px 1fr 38px;
         }
 
-        .mm-time-left .mm-escudo,
-        .mm-time-right .mm-escudo {
-            width: 24px;
-            height: 24px;
+        .mm-tabela-header > div,
+        .mm-linha > div {
+            padding: 8px 4px;
         }
 
-        .mm-time-left .mm-time-nome,
-        .mm-time-right .mm-time-nome {
-            font-size: 11px;
+        .mm-escudo {
+            width: 20px;
+            height: 20px;
         }
 
-        .mm-time-left .mm-cartoleiro,
-        .mm-time-right .mm-cartoleiro {
+        .mm-time-nome {
             font-size: 10px;
         }
 
-        .mm-pts-value {
-            font-size: 12px;
+        .mm-cartoleiro {
+            display: none;
         }
 
-        .mm-my-match-grid {
-            gap: 8px;
+        .mm-pts-valor {
+            font-size: 10px;
         }
 
-        .mm-my-team-card {
-            padding: 12px 8px;
+        .mm-mc-nome {
+            font-size: 11px;
         }
 
-        .mm-my-team-pts {
-            font-size: 24px;
+        .mm-mc-pts {
+            font-size: 16px;
         }
+
+        .mm-mc-escudo {
+            width: 28px;
+            height: 28px;
+        }
+    }
+
+    /* =====================================================
+   MODAL "EM BREVE"
+   ===================================================== */
+    .mm-modal-overlay {
+        position: fixed;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: rgba(0, 0, 0, 0.75);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        z-index: 9999;
+        padding: 20px;
+        animation: fadeIn 0.2s ease;
+    }
+
+    @keyframes fadeIn {
+        from {
+            opacity: 0;
+        }
+        to {
+            opacity: 1;
+        }
+    }
+
+    .mm-modal-content {
+        background: var(--participante-card, #1c1c1e);
+        border: 1px solid var(--participante-border, #3a3a3c);
+        border-radius: 12px;
+        padding: 24px;
+        text-align: center;
+        max-width: 300px;
+        width: 100%;
+        animation: slideUp 0.25s ease;
+    }
+
+    @keyframes slideUp {
+        from {
+            opacity: 0;
+            transform: translateY(20px);
+        }
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+
+    .mm-modal-icon {
+        font-size: 48px;
+        color: var(--participante-primary, #ff6a38);
+        margin-bottom: 12px;
+    }
+
+    .mm-modal-content h3 {
+        font-size: 18px;
+        font-weight: 700;
+        color: var(--participante-text, #f9fafb);
+        margin: 0 0 8px 0;
+    }
+
+    .mm-modal-content p {
+        font-size: 13px;
+        color: var(--participante-text-muted, #9ca3af);
+        margin: 0 0 20px 0;
+        line-height: 1.5;
+    }
+
+    .mm-modal-btn {
+        background: var(--participante-primary, #ff6a38);
+        color: #fff;
+        border: none;
+        border-radius: 8px;
+        padding: 10px 24px;
+        font-size: 13px;
+        font-weight: 600;
+        cursor: pointer;
+        transition:
+            background 0.2s,
+            transform 0.15s;
+    }
+
+    .mm-modal-btn:hover {
+        background: #e55a2b;
+    }
+
+    .mm-modal-btn:active {
+        transform: scale(0.97);
     }
 </style>
