@@ -1,8 +1,8 @@
 // =====================================================================
-// PARTICIPANTE-TOP10.JS - v4.0 (Design PRO)
+// PARTICIPANTE-TOP10.JS - v4.1 (Design PRO - Destaque só 1º lugar)
 // =====================================================================
 
-console.log("[PARTICIPANTE-TOP10] 🏆 Carregando módulo v4.0...");
+console.log("[PARTICIPANTE-TOP10] 🏆 Carregando módulo v4.1...");
 
 // =====================================================================
 // CONFIGURAÇÃO DE VALORES BÔNUS/ÔNUS
@@ -279,17 +279,16 @@ function gerarTabelaHTML(dados, tipo, meuTimeIdNum, valoresBonusOnus) {
                         // Classes da linha
                         let rowClass = isMeuTime ? "meu-time" : "";
 
-                        // Badge da posição
+                        // ✅ AJUSTE: Badge da posição - DESTAQUE APENAS 1º LUGAR
                         let posicaoBadge = "";
                         if (posicao === 1 && isMitos) {
+                            // 1º MITO - destaque especial
                             posicaoBadge = `<span class="posicao-badge-top10 gold">👑</span>`;
                         } else if (posicao === 1 && !isMitos) {
+                            // 1º MICO - destaque especial
                             posicaoBadge = `<span class="posicao-badge-top10 skull">💀</span>`;
-                        } else if (posicao === 2) {
-                            posicaoBadge = `<span class="posicao-badge-top10 silver">${posicao}º</span>`;
-                        } else if (posicao === 3) {
-                            posicaoBadge = `<span class="posicao-badge-top10 bronze">${posicao}º</span>`;
                         } else {
+                            // ✅ Demais posições (2º ao 10º) - sem destaque especial
                             posicaoBadge = `<span class="posicao-badge-top10 default">${posicao}º</span>`;
                         }
 
@@ -403,4 +402,4 @@ function mostrarEstadoVazio(show) {
     if (grid) grid.style.display = show ? "none" : "flex";
 }
 
-console.log("[PARTICIPANTE-TOP10] ✅ Módulo v4.0 carregado");
+console.log("[PARTICIPANTE-TOP10] ✅ Módulo v4.1 carregado");

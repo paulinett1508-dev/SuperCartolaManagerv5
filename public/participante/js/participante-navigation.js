@@ -1,27 +1,27 @@
 // PARTICIPANTE NAVIGATION - Sistema de Navegação entre Módulos
-console.log('[PARTICIPANTE-NAV] 🚀 Carregando sistema de navegação...');
+console.log("[PARTICIPANTE-NAV] 🚀 Carregando sistema de navegação...");
 
 class ParticipanteNavigation {
     constructor() {
-        this.moduloAtual = 'boas-vindas';
+        this.moduloAtual = "boas-vindas";
         this.participanteData = null;
         this.modulosAtivos = {};
         this.modulos = {
-            'boas-vindas': '/participante/fronts/boas-vindas.html',
-            'extrato': '/participante/fronts/extrato.html',
-            'ranking': '/participante/fronts/ranking.html',
-            'rodadas': '/participante/fronts/rodadas.html',
-            'top10': '/participante/fronts/top10.html',
-            'melhor-mes': '/participante/fronts/melhor-mes.html',
-            'pontos-corridos': '/participante/fronts/pontos-corridos.html',
-            'mata-mata': '/participante/fronts/mata-mata.html',
-            'artilheiro': '/participante/fronts/artilheiro.html',
-            'luva-ouro': '/participante/fronts/luva-ouro.html'
+            "boas-vindas": "/participante/fronts/boas-vindas.html",
+            extrato: "/participante/fronts/extrato.html",
+            ranking: "/participante/fronts/ranking.html",
+            rodadas: "/participante/fronts/rodadas.html",
+            top10: "/participante/fronts/top10.html",
+            "melhor-mes": "/participante/fronts/melhor-mes.html",
+            "pontos-corridos": "/participante/fronts/pontos-corridos.html",
+            "mata-mata": "/participante/fronts/mata-mata.html",
+            artilheiro: "/participante/fronts/artilheiro.html",
+            "luva-ouro": "/participante/fronts/luva-ouro.html",
         };
     }
 
     async inicializar() {
-        console.log('[PARTICIPANTE-NAV] Inicializando navegação...');
+        console.log("[PARTICIPANTE-NAV] Inicializando navegação...");
 
         // Aguardar dados do participante
         await this.aguardarDadosParticipante();
@@ -35,12 +35,28 @@ class ParticipanteNavigation {
         // Configurar event listeners
         this.configurarEventListeners();
 
-        // Navegar para módulo inicial
-        await this.navegarPara('boas-vindas');
+        // ✅ AJUSTE REFRESH: Recuperar módulo salvo ou usar boas-vindas
+        const moduloSalvo =
+            sessionStorage.getItem("participante_modulo_atual") ||
+            "boas-vindas";
+
+        // ✅ Sincronizar botão ativo do menu com módulo salvo
+        if (moduloSalvo && moduloSalvo !== "boas-vindas") {
+            const navButtons = document.querySelectorAll(".nav-item-modern");
+            navButtons.forEach((btn) => {
+                btn.classList.remove("active");
+                if (btn.dataset.module === moduloSalvo) {
+                    btn.classList.add("active");
+                }
+            });
+        }
+
+        // Navegar para módulo (salvo ou inicial)
+        await this.navegarPara(moduloSalvo);
     }
 
     async aguardarDadosParticipante() {
-        console.log('[PARTICIPANTE-NAV] Aguardando dados do participante...');
+        console.log("[PARTICIPANTE-NAV] Aguardando dados do participante...");
 
         // Tentar obter dados da sessão
         let tentativas = 0;
@@ -48,8 +64,8 @@ class ParticipanteNavigation {
 
         while (!this.participanteData && tentativas < maxTentativas) {
             try {
-                const response = await fetch('/api/participante/auth/session', {
-                    credentials: 'include'
+                const response = await fetch("/api/participante/auth/session", {
+                    credentials: "include",
                 });
 
                 if (response.ok) {
@@ -58,43 +74,67 @@ class ParticipanteNavigation {
                         this.participanteData = {
                             timeId: data.participante.timeId,
                             ligaId: data.participante.ligaId,
-                            nomeCartola: data.participante.participante?.nome_cartola || 'Participante',
-                            nomeTime: data.participante.participante?.nome_time || 'Meu Time'
+                            nomeCartola:
+                                data.participante.participante?.nome_cartola ||
+                                "Participante",
+                            nomeTime:
+                                data.participante.participante?.nome_time ||
+                                "Meu Time",
                         };
-                        console.log('[PARTICIPANTE-NAV] ✅ Dados obtidos:', this.participanteData);
+                        console.log(
+                            "[PARTICIPANTE-NAV] ✅ Dados obtidos:",
+                            this.participanteData,
+                        );
                         return;
                     }
                 }
             } catch (error) {
-                console.warn('[PARTICIPANTE-NAV] Tentativa', tentativas + 1, 'falhou:', error);
+                console.warn(
+                    "[PARTICIPANTE-NAV] Tentativa",
+                    tentativas + 1,
+                    "falhou:",
+                    error,
+                );
             }
 
             tentativas++;
-            await new Promise(resolve => setTimeout(resolve, 200)); // Espera de 200ms entre tentativas
+            await new Promise((resolve) => setTimeout(resolve, 200)); // Espera de 200ms entre tentativas
         }
 
         if (!this.participanteData) {
-            console.error('[PARTICIPANTE-NAV] ❌ Não foi possível obter dados do participante');
-            window.location.href = '/participante-login.html'; // Redirecionar para login se falhar
+            console.error(
+                "[PARTICIPANTE-NAV] ❌ Não foi possível obter dados do participante",
+            );
+            window.location.href = "/participante-login.html"; // Redirecionar para login se falhar
         }
     }
 
     async carregarModulosAtivos() {
-        console.log('[PARTICIPANTE-NAV] 🔍 Buscando configuração de módulos...');
+        console.log(
+            "[PARTICIPANTE-NAV] 🔍 Buscando configuração de módulos...",
+        );
 
         try {
-            const response = await fetch(`/api/ligas/${this.participanteData.ligaId}`);
+            const response = await fetch(
+                `/api/ligas/${this.participanteData.ligaId}`,
+            );
             if (!response.ok) {
-                throw new Error('Erro ao buscar configuração da liga');
+                throw new Error("Erro ao buscar configuração da liga");
             }
 
             const liga = await response.json();
             // ✅ USAR O CAMPO CORRETO: modulos_ativos
             this.modulosAtivos = liga.modulos_ativos || {};
 
-            console.log('[PARTICIPANTE-NAV] 📋 Módulos ativos recebidos:', this.modulosAtivos);
+            console.log(
+                "[PARTICIPANTE-NAV] 📋 Módulos ativos recebidos:",
+                this.modulosAtivos,
+            );
         } catch (error) {
-            console.error('[PARTICIPANTE-NAV] ❌ Erro ao buscar módulos:', error);
+            console.error(
+                "[PARTICIPANTE-NAV] ❌ Erro ao buscar módulos:",
+                error,
+            );
             // Módulos padrão se falhar ao buscar configuração
             this.modulosAtivos = {
                 extrato: true,
@@ -105,63 +145,144 @@ class ParticipanteNavigation {
                 pontosCorridos: false,
                 mataMata: false,
                 artilheiro: false,
-                luvaOuro: false
+                luvaOuro: false,
             };
         }
     }
 
     renderizarMenuDinamico() {
-        const bottomNav = document.querySelector('.bottom-nav-modern');
+        const bottomNav = document.querySelector(".bottom-nav-modern");
         if (!bottomNav) {
-            console.error('[PARTICIPANTE-NAV] ❌ Bottom nav não encontrado');
+            console.error("[PARTICIPANTE-NAV] ❌ Bottom nav não encontrado");
             return;
         }
 
         // Definir TODOS os módulos disponíveis com suas propriedades e ícones Material Symbols
         const todosModulosDisponiveis = [
-            { id: 'boas-vindas', icon: 'home', label: 'Início', config: 'extrato', base: true },
-            { id: 'extrato', icon: 'payments', label: 'Extrato', config: 'extrato', base: true },
-            { id: 'ranking', icon: 'bar_chart', label: 'Ranking', config: 'ranking', base: true },
-            { id: 'rodadas', icon: 'target', label: 'Rodadas', config: 'rodadas', base: true },
-            { id: 'top10', icon: 'format_list_numbered', label: 'Top 10', config: 'top10', base: false },
-            { id: 'melhor-mes', icon: 'calendar_month', label: 'Melhor Mês', config: 'melhorMes', base: false },
-            { id: 'pontos-corridos', icon: 'sync', label: 'P. Corridos', config: 'pontosCorridos', base: false },
-            { id: 'mata-mata', icon: 'swords', label: 'Mata-Mata', config: 'mataMata', base: false },
-            { id: 'artilheiro', icon: 'sports_soccer', label: 'Artilheiro', config: 'artilheiro', base: false },
-            { id: 'luva-ouro', icon: 'front_hand', label: 'Luva Ouro', config: 'luvaOuro', base: false }
+            {
+                id: "boas-vindas",
+                icon: "home",
+                label: "Início",
+                config: "extrato",
+                base: true,
+            },
+            {
+                id: "extrato",
+                icon: "payments",
+                label: "Extrato",
+                config: "extrato",
+                base: true,
+            },
+            {
+                id: "ranking",
+                icon: "bar_chart",
+                label: "Ranking",
+                config: "ranking",
+                base: true,
+            },
+            {
+                id: "rodadas",
+                icon: "target",
+                label: "Rodadas",
+                config: "rodadas",
+                base: true,
+            },
+            {
+                id: "top10",
+                icon: "format_list_numbered",
+                label: "Top 10",
+                config: "top10",
+                base: false,
+            },
+            {
+                id: "melhor-mes",
+                icon: "calendar_month",
+                label: "Melhor Mês",
+                config: "melhorMes",
+                base: false,
+            },
+            {
+                id: "pontos-corridos",
+                icon: "sync",
+                label: "P. Corridos",
+                config: "pontosCorridos",
+                base: false,
+            },
+            {
+                id: "mata-mata",
+                icon: "swords",
+                label: "Mata-Mata",
+                config: "mataMata",
+                base: false,
+            },
+            {
+                id: "artilheiro",
+                icon: "sports_soccer",
+                label: "Artilheiro",
+                config: "artilheiro",
+                base: false,
+            },
+            {
+                id: "luva-ouro",
+                icon: "front_hand",
+                label: "Luva Ouro",
+                config: "luvaOuro",
+                base: false,
+            },
         ];
 
         // Filtrar apenas os módulos que estão ativos na configuração da liga
-        const modulosAtivos = todosModulosDisponiveis.filter(m => this.verificarModuloAtivo(m.config));
+        const modulosAtivos = todosModulosDisponiveis.filter((m) =>
+            this.verificarModuloAtivo(m.config),
+        );
 
-        console.log('[PARTICIPANTE-NAV] 📋 Módulos disponíveis para o usuário:', modulosAtivos.length, 'de', todosModulosDisponiveis.length);
-        console.log('[PARTICIPANTE-NAV] 🔧 Configuração da liga recebida:', this.modulosAtivos);
+        console.log(
+            "[PARTICIPANTE-NAV] 📋 Módulos disponíveis para o usuário:",
+            modulosAtivos.length,
+            "de",
+            todosModulosDisponiveis.length,
+        );
+        console.log(
+            "[PARTICIPANTE-NAV] 🔧 Configuração da liga recebida:",
+            this.modulosAtivos,
+        );
 
         // Renderizar os botões de navegação com ícones Material Symbols
-        bottomNav.innerHTML = modulosAtivos.map(modulo => `
-            <button class="nav-item-modern ${modulo.id === 'boas-vindas' ? 'active' : ''}"
+        bottomNav.innerHTML = modulosAtivos
+            .map(
+                (modulo) => `
+            <button class="nav-item-modern ${modulo.id === "boas-vindas" ? "active" : ""}"
                     data-module="${modulo.id}"
                     data-icon="${modulo.icon}"
                     title="${modulo.label}">
                 <span class="material-symbols-outlined nav-icon-modern">${modulo.icon}</span>
                 <span class="nav-label-modern">${modulo.label}</span>
             </button>
-        `).join('');
+        `,
+            )
+            .join("");
 
         // Habilitar scroll horizontal para navegação suave em dispositivos touch e desktop
-        bottomNav.style.overflowX = 'auto';
-        bottomNav.style.overflowY = 'hidden';
-        bottomNav.style.webkitOverflowScrolling = 'touch'; // Para melhor scroll em iOS
-        bottomNav.style.scrollbarWidth = 'thin'; // Para ocultar scrollbar em alguns navegadores
+        bottomNav.style.overflowX = "auto";
+        bottomNav.style.overflowY = "hidden";
+        bottomNav.style.webkitOverflowScrolling = "touch"; // Para melhor scroll em iOS
+        bottomNav.style.scrollbarWidth = "thin"; // Para ocultar scrollbar em alguns navegadores
 
-        console.log('[PARTICIPANTE-NAV] ✅ Menu renderizado com scroll horizontal ativado para', modulosAtivos.length, 'módulos');
+        console.log(
+            "[PARTICIPANTE-NAV] ✅ Menu renderizado com scroll horizontal ativado para",
+            modulosAtivos.length,
+            "módulos",
+        );
     }
 
     // Verifica se um módulo específico está ativo com base na configuração da liga
     verificarModuloAtivo(configKey) {
         // Se não houver configuração carregada, permitir apenas módulos base
-        if (!this.modulosAtivos || Object.keys(this.modulosAtivos).length === 0) {
-            return ['extrato', 'ranking', 'rodadas'].includes(configKey);
+        if (
+            !this.modulosAtivos ||
+            Object.keys(this.modulosAtivos).length === 0
+        ) {
+            return ["extrato", "ranking", "rodadas"].includes(configKey);
         }
 
         // Verificar configuração explícita da liga
@@ -170,33 +291,42 @@ class ParticipanteNavigation {
     }
 
     configurarEventListeners() {
-        const navButtons = document.querySelectorAll('.nav-item-modern'); // Seleciona todos os botões de navegação
+        const navButtons = document.querySelectorAll(".nav-item-modern"); // Seleciona todos os botões de navegação
 
-        navButtons.forEach(button => {
-            button.addEventListener('click', async (e) => {
+        navButtons.forEach((button) => {
+            button.addEventListener("click", async (e) => {
                 const modulo = button.dataset.module; // Obtém o ID do módulo do atributo data-module
-                console.log('[PARTICIPANTE-NAV] 🎯 Clique detectado no módulo:', modulo);
+                console.log(
+                    "[PARTICIPANTE-NAV] 🎯 Clique detectado no módulo:",
+                    modulo,
+                );
 
                 // Remove a classe 'active' de todos os botões para resetar o estilo
-                navButtons.forEach(btn => btn.classList.remove('active'));
+                navButtons.forEach((btn) => btn.classList.remove("active"));
 
                 // Adiciona a classe 'active' ao botão clicado para feedback visual
-                button.classList.add('active');
+                button.classList.add("active");
 
                 // Realiza a navegação para o módulo selecionado
                 await this.navegarPara(modulo);
             });
         });
 
-        console.log('[PARTICIPANTE-NAV] ✅ Event listeners de clique configurados nos botões de navegação');
+        console.log(
+            "[PARTICIPANTE-NAV] ✅ Event listeners de clique configurados nos botões de navegação",
+        );
     }
 
     async navegarPara(moduloId) {
-        console.log(`[PARTICIPANTE-NAV] 🧭 Iniciando navegação para o módulo: ${moduloId}`);
+        console.log(
+            `[PARTICIPANTE-NAV] 🧭 Iniciando navegação para o módulo: ${moduloId}`,
+        );
 
-        const container = document.getElementById('moduleContainer'); // Container onde o conteúdo do módulo será carregado
+        const container = document.getElementById("moduleContainer"); // Container onde o conteúdo do módulo será carregado
         if (!container) {
-            console.error('[PARTICIPANTE-NAV] ❌ Container de módulo não encontrado');
+            console.error(
+                "[PARTICIPANTE-NAV] ❌ Container de módulo não encontrado",
+            );
             return; // Sai da função se o container não existir
         }
 
@@ -223,7 +353,9 @@ class ParticipanteNavigation {
             // Busca o caminho do HTML do módulo a ser carregado
             const htmlPath = this.modulos[moduloId];
             if (!htmlPath) {
-                throw new Error(`Módulo "${moduloId}" não foi encontrado no sistema de rotas`);
+                throw new Error(
+                    `Módulo "${moduloId}" não foi encontrado no sistema de rotas`,
+                );
             }
 
             // Faz a requisição para obter o conteúdo HTML do módulo
@@ -231,10 +363,14 @@ class ParticipanteNavigation {
             if (!response.ok) {
                 // Trata erros específicos como 404
                 if (response.status === 404) {
-                    throw new Error(`O módulo "${nomeModulo}" ainda não está disponível`);
+                    throw new Error(
+                        `O módulo "${nomeModulo}" ainda não está disponível`,
+                    );
                 }
                 // Lança um erro genérico para outros status HTTP
-                throw new Error(`Erro HTTP ${response.status}: ${response.statusText}`);
+                throw new Error(
+                    `Erro HTTP ${response.status}: ${response.statusText}`,
+                );
             }
 
             const html = await response.text(); // Obtém o HTML como texto
@@ -244,10 +380,18 @@ class ParticipanteNavigation {
             await this.carregarModuloJS(moduloId);
 
             this.moduloAtual = moduloId; // Atualiza o módulo atual
-            console.log(`[PARTICIPANTE-NAV] ✅ Módulo ${moduloId} (${nomeModulo}) carregado e renderizado com sucesso`);
 
+            // ✅ AJUSTE REFRESH: Salvar módulo atual no sessionStorage
+            sessionStorage.setItem("participante_modulo_atual", moduloId);
+
+            console.log(
+                `[PARTICIPANTE-NAV] ✅ Módulo ${moduloId} (${nomeModulo}) carregado e renderizado com sucesso`,
+            );
         } catch (error) {
-            console.error(`[PARTICIPANTE-NAV] ❌ Erro crítico ao carregar o módulo ${moduloId}:`, error);
+            console.error(
+                `[PARTICIPANTE-NAV] ❌ Erro crítico ao carregar o módulo ${moduloId}:`,
+                error,
+            );
 
             // Exibe uma mensagem de erro amigável para o usuário
             const mensagemErro = this.obterMensagemErroAmigavel(error);
@@ -271,16 +415,16 @@ class ParticipanteNavigation {
     // Retorna o nome amigável de um módulo com base no seu ID
     obterNomeModulo(moduloId) {
         const nomes = {
-            'boas-vindas': 'Boas-Vindas',
-            'extrato': 'Extrato Financeiro',
-            'ranking': 'Ranking Geral',
-            'rodadas': 'Rodadas',
-            'top10': 'Top 10',
-            'melhor-mes': 'Melhor Mês',
-            'pontos-corridos': 'Pontos Corridos',
-            'mata-mata': 'Mata-Mata',
-            'artilheiro': 'Artilheiro Campeão',
-            'luva-ouro': 'Luva de Ouro'
+            "boas-vindas": "Boas-Vindas",
+            extrato: "Extrato Financeiro",
+            ranking: "Ranking Geral",
+            rodadas: "Rodadas",
+            top10: "Top 10",
+            "melhor-mes": "Melhor Mês",
+            "pontos-corridos": "Pontos Corridos",
+            "mata-mata": "Mata-Mata",
+            artilheiro: "Artilheiro Campeão",
+            "luva-ouro": "Luva de Ouro",
         };
         return nomes[moduloId] || moduloId; // Retorna o nome mapeado ou o próprio ID se não encontrado
     }
@@ -290,42 +434,53 @@ class ParticipanteNavigation {
         const mensagem = error.message.toLowerCase(); // Converte a mensagem de erro para minúsculas
 
         // Mensagens específicas para erros comuns
-        if (mensagem.includes('não foi encontrado') || mensagem.includes('404')) {
-            return 'Este módulo ainda não está disponível. Entre em contato com o administrador da liga para mais informações.';
+        if (
+            mensagem.includes("não foi encontrado") ||
+            mensagem.includes("404")
+        ) {
+            return "Este módulo ainda não está disponível. Entre em contato com o administrador da liga para mais informações.";
         }
 
-        if (mensagem.includes('network') || mensagem.includes('fetch')) {
-            return 'Falha na conexão com o servidor. Por favor, verifique sua conexão com a internet e tente novamente.';
+        if (mensagem.includes("network") || mensagem.includes("fetch")) {
+            return "Falha na conexão com o servidor. Por favor, verifique sua conexão com a internet e tente novamente.";
         }
 
-        if (mensagem.includes('timeout')) {
-            return 'A requisição para carregar o módulo demorou muito. Tente novamente em alguns instantes.';
+        if (mensagem.includes("timeout")) {
+            return "A requisição para carregar o módulo demorou muito. Tente novamente em alguns instantes.";
         }
 
         // Mensagem genérica para outros erros
-        return error.message || 'Ocorreu um erro inesperado. Por favor, tente novamente mais tarde.';
+        return (
+            error.message ||
+            "Ocorreu um erro inesperado. Por favor, tente novamente mais tarde."
+        );
     }
 
     // Carrega e executa o script JavaScript de um módulo específico
     async carregarModuloJS(modulo) {
-        console.log(`[PARTICIPANTE-NAV] 📦 Tentando importar o módulo JS: ${modulo}`);
+        console.log(
+            `[PARTICIPANTE-NAV] 📦 Tentando importar o módulo JS: ${modulo}`,
+        );
 
         // Mapeamento dos módulos para seus respectivos arquivos JS
         const modulosPaths = {
-            'boas-vindas': '/participante/js/modules/participante-boas-vindas.js',
-            'extrato': '/participante/js/modules/participante-extrato.js',
-            'ranking': '/participante/js/modules/participante-ranking.js',
-            'rodadas': '/participante/js/modules/participante-rodadas.js',
-            'top10': '/participante/js/modules/participante-top10.js',
-            'melhor-mes': '/participante/js/modules/participante-melhor-mes.js',
-            'pontos-corridos': '/participante/js/modules/participante-pontos-corridos.js',
-            'mata-mata': '/participante/js/modules/participante-mata-mata.js',
-            'artilheiro': '/participante/js/modules/participante-artilheiro.js',
-            'luva-ouro': '/participante/js/modules/participante-luva-ouro.js'
+            "boas-vindas":
+                "/participante/js/modules/participante-boas-vindas.js",
+            extrato: "/participante/js/modules/participante-extrato.js",
+            ranking: "/participante/js/modules/participante-ranking.js",
+            rodadas: "/participante/js/modules/participante-rodadas.js",
+            top10: "/participante/js/modules/participante-top10.js",
+            "melhor-mes": "/participante/js/modules/participante-melhor-mes.js",
+            "pontos-corridos":
+                "/participante/js/modules/participante-pontos-corridos.js",
+            "mata-mata": "/participante/js/modules/participante-mata-mata.js",
+            artilheiro: "/participante/js/modules/participante-artilheiro.js",
+            "luva-ouro": "/participante/js/modules/participante-luva-ouro.js",
         };
 
         const jsPath = modulosPaths[modulo]; // Obtém o caminho do arquivo JS
-        if (jsPath) { // Se o caminho for encontrado
+        if (jsPath) {
+            // Se o caminho for encontrado
             try {
                 // Importa o módulo dinamicamente
                 const moduloJS = await import(jsPath);
@@ -333,53 +488,69 @@ class ParticipanteNavigation {
                 // Tenta encontrar e executar uma função de inicialização específica para o módulo
                 // Converte "boas-vindas" -> "BoasVindas" (camelCase correto)
                 const moduloCamelCase = modulo
-                    .split('-')
-                    .map(part => part.charAt(0).toUpperCase() + part.slice(1))
-                    .join('');
+                    .split("-")
+                    .map((part) => part.charAt(0).toUpperCase() + part.slice(1))
+                    .join("");
 
                 // Tentar múltiplos padrões de nomenclatura
                 const possibleFunctionNames = [
-                    `inicializar${moduloCamelCase}Participante`,  // inicializarBoasVindasParticipante
-                    `inicializar${moduloCamelCase}`,              // inicializarBoasVindas
-                    `inicializar${modulo}Participante`,           // inicializarboas-vindasParticipante (caso original)
-                    `inicializar${modulo}`                        // inicializarboas-vindas (caso original)
+                    `inicializar${moduloCamelCase}Participante`, // inicializarBoasVindasParticipante
+                    `inicializar${moduloCamelCase}`, // inicializarBoasVindas
+                    `inicializar${modulo}Participante`, // inicializarboas-vindasParticipante (caso original)
+                    `inicializar${modulo}`, // inicializarboas-vindas (caso original)
                 ];
 
                 let functionExecuted = false;
                 for (const funcName of possibleFunctionNames) {
-                    if (moduloJS[funcName]) { // Verifica se a função existe no módulo importado
-                        console.log(`[PARTICIPANTE-NAV] 🚀 Executando função: ${funcName}()`);
+                    if (moduloJS[funcName]) {
+                        // Verifica se a função existe no módulo importado
+                        console.log(
+                            `[PARTICIPANTE-NAV] 🚀 Executando função: ${funcName}()`,
+                        );
                         try {
                             // ✅ PASSAR OBJETO COMPLETO COM participante, ligaId, timeId
-                            if (this.participanteData) { // Verifica se participanteData está disponível
+                            if (this.participanteData) {
+                                // Verifica se participanteData está disponível
                                 await moduloJS[funcName]({
                                     participante: this.participanteData,
                                     ligaId: this.participanteData.ligaId,
-                                    timeId: this.participanteData.timeId
+                                    timeId: this.participanteData.timeId,
                                 });
                             } else {
                                 // Caso participanteData não esteja disponível, tenta chamar sem parâmetros
                                 await moduloJS[funcName]();
                             }
-                            console.log(`[PARTICIPANTE-NAV] ✅ Função ${funcName}() executada com sucesso`);
+                            console.log(
+                                `[PARTICIPANTE-NAV] ✅ Função ${funcName}() executada com sucesso`,
+                            );
                             functionExecuted = true;
                             break;
                         } catch (error) {
-                            console.error(`[PARTICIPANTE-NAV] ❌ Erro ao executar ${funcName}():`, error);
+                            console.error(
+                                `[PARTICIPANTE-NAV] ❌ Erro ao executar ${funcName}():`,
+                                error,
+                            );
                             // Tenta a próxima função se a atual falhar
                         }
                     }
                 }
 
                 if (!functionExecuted) {
-                    console.log(`[PARTICIPANTE-NAV] ℹ️ Nenhuma função de inicialização encontrada para o módulo '${modulo}'. Tentativas: ${possibleFunctionNames.join(', ')}`);
+                    console.log(
+                        `[PARTICIPANTE-NAV] ℹ️ Nenhuma função de inicialização encontrada para o módulo '${modulo}'. Tentativas: ${possibleFunctionNames.join(", ")}`,
+                    );
                 }
             } catch (error) {
-                console.error(`[PARTICIPANTE-NAV] ❌ Erro ao importar ou executar o módulo JS '${jsPath}':`, error);
+                console.error(
+                    `[PARTICIPANTE-NAV] ❌ Erro ao importar ou executar o módulo JS '${jsPath}':`,
+                    error,
+                );
                 throw error; // Re-lança o erro para ser tratado pela lógica de navegação
             }
         } else {
-            console.log(`[PARTICIPANTE-NAV] ℹ️ Nenhum arquivo JS associado ao módulo '${modulo}'. Ignorando carregamento de JS.`);
+            console.log(
+                `[PARTICIPANTE-NAV] ℹ️ Nenhum arquivo JS associado ao módulo '${modulo}'. Ignorando carregamento de JS.`,
+            );
         }
     }
 }
@@ -388,15 +559,19 @@ class ParticipanteNavigation {
 const participanteNav = new ParticipanteNavigation();
 
 // Adiciona um listener para inicializar a navegação quando o DOM estiver completamente carregado
-if (document.readyState === 'loading') { // Verifica se o DOM ainda está sendo carregado
-    document.addEventListener('DOMContentLoaded', async () => {
+if (document.readyState === "loading") {
+    // Verifica se o DOM ainda está sendo carregado
+    document.addEventListener("DOMContentLoaded", async () => {
         await participanteNav.inicializar(); // Inicializa a navegação
     });
-} else { // Se o DOM já estiver pronto
+} else {
+    // Se o DOM já estiver pronto
     participanteNav.inicializar(); // Inicializa a navegação diretamente
 }
 
 // Expõe a instância globalmente para que possa ser acessada de outros scripts, se necessário
 window.participanteNav = participanteNav;
 
-console.log('[PARTICIPANTE-NAV] ✅ Sistema de navegação do participante inicializado e pronto.');
+console.log(
+    "[PARTICIPANTE-NAV] ✅ Sistema de navegação do participante inicializado e pronto.",
+);

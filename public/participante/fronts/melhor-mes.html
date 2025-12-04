@@ -1,4 +1,4 @@
-<!-- PARTICIPANTE MELHOR MÊS - v3.0 Design PRO -->
+<!-- PARTICIPANTE MELHOR MÊS - v3.2 Design PRO Cards -->
 <div class="melhor-mes-container-pro">
     <!-- Header -->
     <div class="mm-header-pro">
@@ -42,7 +42,7 @@
 
 <style>
     /* ============================================
-   MELHOR MÊS PARTICIPANTE v3.0 - Design PRO
+   MELHOR MÊS PARTICIPANTE v3.2 - Design PRO Cards
    ============================================ */
 
     .melhor-mes-container-pro {
@@ -164,233 +164,298 @@
     .mm-edicoes-grid {
         display: flex;
         flex-direction: column;
-        gap: 12px;
+        gap: 16px;
     }
 
-    /* Card de Edição */
-    .edicao-card-pro {
+    /* ============================================
+       NOVO LAYOUT: CARDS
+       ============================================ */
+
+    .mm-edicao-card {
         background: #1c1c1c;
-        border-radius: 12px;
+        border-radius: 16px;
         overflow: hidden;
+        border: 1px solid #333;
         transition: all 0.2s ease;
     }
 
-    .edicao-card-pro.meu-titulo {
-        border: 1px solid rgba(34, 197, 94, 0.3);
+    .mm-edicao-card.meu-titulo {
+        border-color: rgba(34, 197, 94, 0.4);
         box-shadow: 0 0 20px rgba(34, 197, 94, 0.1);
     }
 
     /* Header do Card */
-    .edicao-header-pro {
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        padding: 16px;
-        cursor: pointer;
-        transition: background 0.2s;
-    }
-
-    .edicao-header-pro:hover {
-        background: rgba(255, 255, 255, 0.03);
-    }
-
-    .edicao-info-pro {
+    .mm-card-header {
         display: flex;
         align-items: center;
         gap: 12px;
+        padding: 16px;
+        background: rgba(255, 255, 255, 0.02);
+        border-bottom: 1px solid #2a2a2a;
     }
 
-    .edicao-icon-box {
+    .mm-card-icon {
         width: 44px;
         height: 44px;
         background: #2a2a2a;
-        border-radius: 10px;
+        border-radius: 12px;
         display: flex;
         align-items: center;
         justify-content: center;
         font-size: 20px;
+        flex-shrink: 0;
     }
 
-    .edicao-nome-pro {
+    .mm-card-info {
+        flex: 1;
+        min-width: 0;
+    }
+
+    .mm-card-title {
         font-size: 16px;
         font-weight: 700;
         color: white;
+        margin: 0;
     }
 
-    .edicao-controls {
-        display: flex;
-        align-items: center;
-        gap: 10px;
+    .mm-card-rodadas {
+        font-size: 12px;
+        color: #6b7280;
     }
 
-    /* Status Badges */
-    .status-badge {
-        display: flex;
-        align-items: center;
-        gap: 4px;
+    .mm-card-status {
         font-size: 10px;
         font-weight: 600;
-        padding: 5px 10px;
+        padding: 4px 10px;
         border-radius: 20px;
-        text-transform: uppercase;
+        white-space: nowrap;
     }
 
-    .status-badge.concluido {
-        background: rgba(34, 197, 94, 0.15);
-        color: #22c55e;
+    /* Seção Campeão */
+    .mm-card-campeao {
+        padding: 16px;
+        background: linear-gradient(
+            135deg,
+            rgba(230, 81, 0, 0.12) 0%,
+            rgba(230, 81, 0, 0.05) 100%
+        );
+        border-bottom: 1px solid #2a2a2a;
     }
 
-    .status-badge.em_andamento {
-        background: rgba(59, 130, 246, 0.15);
-        color: #3b82f6;
+    .mm-card-campeao.meu {
+        background: linear-gradient(
+            135deg,
+            rgba(34, 197, 94, 0.12) 0%,
+            rgba(34, 197, 94, 0.05) 100%
+        );
     }
 
-    .status-badge.aguardando {
-        background: rgba(107, 114, 128, 0.15);
-        color: #6b7280;
-    }
-
-    .expand-icon-pro {
-        font-size: 18px;
-        color: #6b7280;
-        transition: transform 0.3s ease;
-    }
-
-    .edicao-card-pro.expanded .expand-icon-pro {
-        transform: rotate(180deg);
-    }
-
-    /* Seção do Campeão */
-    .edicao-campeao-pro {
+    .mm-campeao-badge {
         display: flex;
         align-items: center;
-        justify-content: space-between;
-        padding: 14px 16px;
-        background: rgba(230, 81, 0, 0.12);
+        gap: 8px;
+        margin-bottom: 8px;
     }
 
-    .edicao-campeao-pro.meu-titulo {
-        background: rgba(34, 197, 94, 0.12);
+    .mm-campeao-icon {
+        font-size: 20px;
     }
 
-    .campeao-info-pro {
-        display: flex;
-        align-items: center;
-        gap: 12px;
-    }
-
-    .campeao-emoji {
-        font-size: 24px;
-    }
-
-    .campeao-label-pro {
+    .mm-campeao-label {
         font-size: 10px;
+        font-weight: 700;
         color: #e65100;
         text-transform: uppercase;
         letter-spacing: 0.5px;
     }
 
-    .edicao-campeao-pro.meu-titulo .campeao-label-pro {
+    .mm-card-campeao.meu .mm-campeao-label {
         color: #22c55e;
     }
 
-    .campeao-nome-pro {
+    .mm-campeao-info {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
+
+    .mm-campeao-nome {
         font-size: 15px;
         font-weight: 700;
         color: white;
-        margin-top: 2px;
     }
 
-    .campeao-pontos-pro {
-        font-size: 18px;
+    .mm-campeao-pontos {
+        font-size: 16px;
         font-weight: 800;
         color: #e65100;
     }
 
-    .edicao-campeao-pro.meu-titulo .campeao-pontos-pro {
+    .mm-card-campeao.meu .mm-campeao-pontos {
         color: #22c55e;
     }
 
     /* Aguardando */
-    .edicao-aguardando {
-        padding: 14px 16px;
-        background: rgba(255, 255, 255, 0.02);
+    .mm-card-aguardando {
+        padding: 20px 16px;
         display: flex;
         align-items: center;
-        gap: 12px;
-    }
-
-    .aguardando-emoji {
-        font-size: 24px;
-        opacity: 0.5;
-    }
-
-    .aguardando-texto {
+        justify-content: center;
+        gap: 10px;
         color: #6b7280;
-        font-size: 14px;
-    }
-
-    /* Ranking Expandido */
-    .edicao-ranking-pro {
-        display: none;
-        padding: 0 16px 16px;
-    }
-
-    .edicao-ranking-pro.expanded {
-        display: block;
-    }
-
-    .ranking-table-pro {
-        width: 100%;
-        border-collapse: collapse;
-        font-size: 12px;
-    }
-
-    .ranking-table-pro thead {
-        background: rgba(255, 255, 255, 0.03);
-    }
-
-    .ranking-table-pro th {
-        padding: 10px 8px;
-        text-align: left;
-        color: #e65100;
-        font-size: 10px;
-        text-transform: uppercase;
-        font-weight: 600;
-        border-bottom: 1px solid #333;
-    }
-
-    .ranking-table-pro th:last-child {
-        text-align: right;
-    }
-
-    .ranking-table-pro td {
-        padding: 10px 8px;
-        color: #d1d5db;
         border-bottom: 1px solid #2a2a2a;
     }
 
-    .ranking-table-pro td:last-child {
-        text-align: right;
+    .mm-aguardando-icon {
+        font-size: 24px;
+        opacity: 0.6;
+    }
+
+    .mm-aguardando-text {
+        font-size: 14px;
+    }
+
+    /* Pódio Compacto */
+    .mm-card-podio {
+        display: flex;
+        gap: 8px;
+        padding: 12px 16px;
+        background: rgba(0, 0, 0, 0.2);
+    }
+
+    .mm-podio-item {
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 4px;
+        padding: 10px 6px;
+        background: rgba(255, 255, 255, 0.03);
+        border-radius: 10px;
+        transition: all 0.2s ease;
+    }
+
+    .mm-podio-item.meu {
+        background: rgba(34, 197, 94, 0.15);
+        border: 1px solid rgba(34, 197, 94, 0.3);
+    }
+
+    .mm-podio-medal {
+        font-size: 18px;
+    }
+
+    .mm-podio-nome {
+        font-size: 11px;
         font-weight: 600;
-    }
-
-    .ranking-table-pro tbody tr:hover {
-        background: rgba(255, 255, 255, 0.02);
-    }
-
-    .ranking-table-pro tbody tr.meu-time {
-        background: rgba(34, 197, 94, 0.1);
-    }
-
-    .ranking-table-pro tbody tr.meu-time td {
-        color: #22c55e;
-        font-weight: 600;
-    }
-
-    .ranking-mais {
+        color: #d1d5db;
         text-align: center;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        max-width: 100%;
+    }
+
+    .mm-podio-item.meu .mm-podio-nome {
+        color: #22c55e;
+    }
+
+    .mm-podio-pts {
+        font-size: 10px;
+        color: #6b7280;
+    }
+
+    /* Botão Expandir */
+    .mm-card-expand-btn {
+        width: 100%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 8px;
         padding: 12px;
+        background: transparent;
+        border: none;
+        border-top: 1px solid #2a2a2a;
+        color: #e65100;
+        font-size: 12px;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.2s ease;
+    }
+
+    .mm-card-expand-btn:hover {
+        background: rgba(230, 81, 0, 0.1);
+    }
+
+    .mm-card-expand-btn .expand-arrow {
+        font-size: 18px;
+        transition: transform 0.3s ease;
+    }
+
+    /* Ranking Expandido */
+    .mm-ranking-expandido {
+        padding: 12px 16px 16px;
+        background: rgba(0, 0, 0, 0.3);
+        border-top: 1px solid #2a2a2a;
+    }
+
+    .mm-ranking-cards {
+        display: flex;
+        flex-direction: column;
+        gap: 6px;
+    }
+
+    .mm-ranking-card-item {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        padding: 10px 12px;
+        background: rgba(255, 255, 255, 0.03);
+        border-radius: 8px;
+        transition: all 0.2s ease;
+    }
+
+    .mm-ranking-card-item.meu {
+        background: rgba(34, 197, 94, 0.12);
+        border: 1px solid rgba(34, 197, 94, 0.25);
+    }
+
+    .mm-rank-pos {
+        width: 28px;
+        font-size: 12px;
+        font-weight: 700;
+        color: #6b7280;
+    }
+
+    .mm-rank-nome {
+        flex: 1;
+        font-size: 13px;
+        font-weight: 600;
+        color: #d1d5db;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
+
+    .mm-ranking-card-item.meu .mm-rank-nome {
+        color: #22c55e;
+    }
+
+    .mm-rank-pts {
+        font-size: 12px;
+        font-weight: 700;
+        color: #9ca3af;
+    }
+
+    .mm-ranking-mais {
+        text-align: center;
+        padding: 10px;
+        color: #6b7280;
+        font-size: 11px;
+    }
+
+    .mm-ranking-vazio {
+        text-align: center;
+        padding: 16px;
         color: #6b7280;
         font-size: 12px;
     }
@@ -450,23 +515,30 @@
             font-size: 16px;
         }
 
-        .edicao-icon-box {
+        .mm-card-icon {
             width: 38px;
             height: 38px;
             font-size: 18px;
         }
 
-        .edicao-nome-pro {
+        .mm-card-title {
             font-size: 14px;
         }
 
-        .status-badge {
-            font-size: 9px;
-            padding: 4px 8px;
+        .mm-podio-item {
+            padding: 8px 4px;
         }
 
-        .campeao-pontos-pro {
+        .mm-podio-medal {
             font-size: 16px;
+        }
+
+        .mm-podio-nome {
+            font-size: 10px;
+        }
+
+        .mm-campeao-pontos {
+            font-size: 14px;
         }
     }
 </style>

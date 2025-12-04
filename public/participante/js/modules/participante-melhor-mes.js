@@ -1,8 +1,8 @@
 // =====================================================================
-// PARTICIPANTE-MELHOR-MES.JS - v3.1 (Design PRO + Config Admin)
+// PARTICIPANTE-MELHOR-MES.JS - v3.2 (Design PRO + Cards Layout)
 // =====================================================================
 
-console.log("[MELHOR-MES-PARTICIPANTE] 🏆 Módulo v3.1 carregando...");
+console.log("[MELHOR-MES-PARTICIPANTE] 🏆 Módulo v3.2 carregando...");
 
 let ligaIdAtual = null;
 let timeIdAtual = null;
@@ -104,33 +104,29 @@ function renderizarMelhorMes(edicoes, meuTimeId) {
     if (!container) return;
 
     container.innerHTML = edicoes
-        .map((edicao) => renderizarEdicao(edicao, meuTimeIdNum))
+        .map((edicao) => renderizarEdicaoCard(edicao, meuTimeIdNum))
         .join("");
 
-    // Adicionar eventos de expansão
-    container.querySelectorAll(".edicao-header-pro").forEach((header) => {
-        header.addEventListener("click", function () {
-            const card = this.closest(".edicao-card-pro");
-            const ranking = card.querySelector(".edicao-ranking-pro");
+    // Adicionar eventos de expansão para ver ranking
+    container.querySelectorAll(".mm-card-expand-btn").forEach((btn) => {
+        btn.addEventListener("click", function (e) {
+            e.stopPropagation();
+            const card = this.closest(".mm-edicao-card");
+            const ranking = card.querySelector(".mm-ranking-expandido");
+            const icon = this.querySelector(".expand-arrow");
 
-            // Fechar outros cards
-            container
-                .querySelectorAll(".edicao-card-pro.expanded")
-                .forEach((c) => {
-                    if (c !== card) {
-                        c.classList.remove("expanded");
-                        c.querySelector(
-                            ".edicao-ranking-pro",
-                        )?.classList.remove("expanded");
-                    }
-                });
-
-            card.classList.toggle("expanded");
-            ranking?.classList.toggle("expanded");
+            // Toggle
+            if (ranking.style.display === "none" || !ranking.style.display) {
+                ranking.style.display = "block";
+                icon.style.transform = "rotate(180deg)";
+            } else {
+                ranking.style.display = "none";
+                icon.style.transform = "rotate(0deg)";
+            }
         });
     });
 
-    console.log("[MELHOR-MES-PARTICIPANTE] ✅ Rankings renderizados");
+    console.log("[MELHOR-MES-PARTICIPANTE] ✅ Cards renderizados");
 }
 
 // =====================================================================
@@ -157,9 +153,9 @@ function renderizarConquistas(conquistas) {
 }
 
 // =====================================================================
-// RENDERIZAR EDIÇÃO INDIVIDUAL
+// ✅ RENDERIZAR EDIÇÃO EM CARD (NOVO LAYOUT)
 // =====================================================================
-function renderizarEdicao(edicao, meuTimeIdNum) {
+function renderizarEdicaoCard(edicao, meuTimeIdNum) {
     const campeao = edicao.campeao;
     const souCampeao = campeao && Number(campeao.timeId) === meuTimeIdNum;
 
@@ -167,15 +163,18 @@ function renderizarEdicao(edicao, meuTimeIdNum) {
     let statusClass = "aguardando";
     let statusIcon = "📅";
     let statusText = "AGUARDANDO";
+    let statusBgClass = "bg-zinc-700/50";
 
     if (edicao.status === "consolidado" || edicao.status === "concluido") {
         statusClass = "concluido";
         statusIcon = "✓";
         statusText = "CONCLUÍDO";
+        statusBgClass = "bg-green-500/20 text-green-400";
     } else if (edicao.status === "em_andamento") {
         statusClass = "em_andamento";
         statusIcon = "⏳";
         statusText = "EM ANDAMENTO";
+        statusBgClass = "bg-blue-500/20 text-blue-400";
     }
 
     // Ícone da edição
@@ -189,122 +188,155 @@ function renderizarEdicao(edicao, meuTimeIdNum) {
           })
         : "0,00";
 
-    // Label do campeão
-    let campeaoLabel = "CAMPEÃO";
-    let campeaoIcon = "🏆";
-    if (edicao.status === "em_andamento") {
-        campeaoLabel = "LÍDER ATUAL";
-        campeaoIcon = "📊";
-    }
-    if (souCampeao) {
-        campeaoLabel = "VOCÊ É O CAMPEÃO!";
-        campeaoIcon = "🎖️";
-    }
-
     // Rodadas info
     const rodadasInfo =
-        edicao.inicio && edicao.fim ? `R${edicao.inicio}-R${edicao.fim}` : "";
+        edicao.inicio && edicao.fim ? `R${edicao.inicio} - R${edicao.fim}` : "";
+
+    // Top 3 do ranking
+    const top3 = edicao.ranking ? edicao.ranking.slice(0, 3) : [];
 
     return `
-        <div class="edicao-card-pro ${souCampeao ? "meu-titulo" : ""}">
-            <div class="edicao-header-pro">
-                <div class="edicao-info-pro">
-                    <div class="edicao-icon-box">${edicaoIcon}</div>
-                    <div>
-                        <span class="edicao-nome-pro">${edicao.nome}</span>
-                        ${rodadasInfo ? `<span class="edicao-rodadas-info">${rodadasInfo}</span>` : ""}
-                    </div>
+        <div class="mm-edicao-card ${souCampeao ? "meu-titulo" : ""}">
+            <!-- Header do Card -->
+            <div class="mm-card-header">
+                <div class="mm-card-icon">${edicaoIcon}</div>
+                <div class="mm-card-info">
+                    <h3 class="mm-card-title">${edicao.nome}</h3>
+                    ${rodadasInfo ? `<span class="mm-card-rodadas">${rodadasInfo}</span>` : ""}
                 </div>
-                <div class="edicao-controls">
-                    <span class="status-badge ${statusClass}">
-                        <span>${statusIcon}</span>
-                        <span>${statusText}</span>
-                    </span>
-                    <span class="expand-icon-pro">▼</span>
-                </div>
+                <span class="mm-card-status ${statusBgClass}">
+                    ${statusIcon} ${statusText}
+                </span>
             </div>
 
+            <!-- Campeão ou Aguardando -->
             ${
                 campeao
                     ? `
-                <div class="edicao-campeao-pro ${souCampeao ? "meu-titulo" : ""}">
-                    <div class="campeao-info-pro">
-                        <span class="campeao-emoji">${campeaoIcon}</span>
-                        <div>
-                            <div class="campeao-label-pro">${campeaoLabel}</div>
-                            <div class="campeao-nome-pro">${campeao.nome_time}</div>
-                        </div>
+                <div class="mm-card-campeao ${souCampeao ? "meu" : ""}">
+                    <div class="mm-campeao-badge">
+                        <span class="mm-campeao-icon">${souCampeao ? "🎖️" : "🏆"}</span>
+                        <span class="mm-campeao-label">${souCampeao ? "VOCÊ É O CAMPEÃO!" : "CAMPEÃO"}</span>
                     </div>
-                    <div class="campeao-pontos-pro">${pontosFormatados}</div>
+                    <div class="mm-campeao-info">
+                        <span class="mm-campeao-nome">${campeao.nome_time}</span>
+                        <span class="mm-campeao-pontos">${pontosFormatados} pts</span>
+                    </div>
                 </div>
             `
                     : `
-                <div class="edicao-aguardando">
-                    <span class="aguardando-emoji">⏳</span>
-                    <span class="aguardando-texto">Em disputa...</span>
+                <div class="mm-card-aguardando">
+                    <span class="mm-aguardando-icon">⏳</span>
+                    <span class="mm-aguardando-text">Em disputa...</span>
                 </div>
             `
             }
 
-            <!-- Ranking expandível -->
-            <div class="edicao-ranking-pro">
-                ${renderizarRankingEdicao(edicao.ranking, meuTimeIdNum)}
-            </div>
+            <!-- Pódio Compacto -->
+            ${
+                top3.length > 0
+                    ? `
+                <div class="mm-card-podio">
+                    ${top3
+                        .map((time, idx) => {
+                            const isMeu = Number(time.timeId) === meuTimeIdNum;
+                            const medalha =
+                                idx === 0 ? "🥇" : idx === 1 ? "🥈" : "🥉";
+                            const pts = time.pontos_total.toLocaleString(
+                                "pt-BR",
+                                {
+                                    minimumFractionDigits: 1,
+                                    maximumFractionDigits: 1,
+                                },
+                            );
+                            return `
+                            <div class="mm-podio-item ${isMeu ? "meu" : ""}">
+                                <span class="mm-podio-medal">${medalha}</span>
+                                <span class="mm-podio-nome">${truncarNome(time.nome_time, 12)}</span>
+                                <span class="mm-podio-pts">${pts}</span>
+                            </div>
+                        `;
+                        })
+                        .join("")}
+                </div>
+            `
+                    : ""
+            }
+
+            <!-- Botão Expandir Ranking -->
+            ${
+                edicao.ranking && edicao.ranking.length > 3
+                    ? `
+                <button class="mm-card-expand-btn">
+                    <span>Ver ranking completo (${edicao.ranking.length})</span>
+                    <span class="expand-arrow material-icons">expand_more</span>
+                </button>
+
+                <!-- Ranking Expandido -->
+                <div class="mm-ranking-expandido" style="display: none;">
+                    ${renderizarRankingCards(edicao.ranking, meuTimeIdNum)}
+                </div>
+            `
+                    : ""
+            }
         </div>
     `;
 }
 
 // =====================================================================
-// RENDERIZAR RANKING DA EDIÇÃO
+// ✅ RENDERIZAR RANKING EM CARDS (NOVO LAYOUT)
 // =====================================================================
-function renderizarRankingEdicao(ranking, meuTimeIdNum) {
+function renderizarRankingCards(ranking, meuTimeIdNum) {
     if (!ranking || ranking.length === 0) {
         return `
-            <div style="text-align: center; padding: 20px; color: #6b7280;">
+            <div class="mm-ranking-vazio">
                 Sem dados disponíveis
             </div>
         `;
     }
 
-    const top10 = ranking.slice(0, 10);
-    const restante = ranking.length - 10;
+    // Mostrar do 4º em diante (top 3 já está no pódio)
+    const restante = ranking.slice(3, 10);
+
+    if (restante.length === 0) {
+        return `<div class="mm-ranking-vazio">Apenas ${ranking.length} participantes</div>`;
+    }
 
     return `
-        <table class="ranking-table-pro">
-            <thead>
-                <tr>
-                    <th style="width: 40px;">#</th>
-                    <th>Time</th>
-                    <th style="width: 80px;">Pontos</th>
-                </tr>
-            </thead>
-            <tbody>
-                ${top10
-                    .map((time) => {
-                        const isMeuTime = Number(time.timeId) === meuTimeIdNum;
-                        const pts = time.pontos_total.toLocaleString("pt-BR", {
-                            minimumFractionDigits: 2,
-                            maximumFractionDigits: 2,
-                        });
-                        return `
-                        <tr class="${isMeuTime ? "meu-time" : ""}">
-                            <td>${time.posicao}º</td>
-                            <td>${time.nome_time}</td>
-                            <td>${pts}</td>
-                        </tr>
-                    `;
-                    })
-                    .join("")}
-            </tbody>
-        </table>
+        <div class="mm-ranking-cards">
+            ${restante
+                .map((time) => {
+                    const isMeuTime = Number(time.timeId) === meuTimeIdNum;
+                    const pts = time.pontos_total.toLocaleString("pt-BR", {
+                        minimumFractionDigits: 1,
+                        maximumFractionDigits: 1,
+                    });
+                    return `
+                    <div class="mm-ranking-card-item ${isMeuTime ? "meu" : ""}">
+                        <span class="mm-rank-pos">${time.posicao}º</span>
+                        <span class="mm-rank-nome">${time.nome_time}</span>
+                        <span class="mm-rank-pts">${pts}</span>
+                    </div>
+                `;
+                })
+                .join("")}
+        </div>
         ${
-            restante > 0
+            ranking.length > 10
                 ? `
-            <div class="ranking-mais">+${restante} participantes</div>
+            <div class="mm-ranking-mais">+${ranking.length - 10} participantes</div>
         `
                 : ""
         }
     `;
+}
+
+// =====================================================================
+// UTILS
+// =====================================================================
+function truncarNome(nome, max) {
+    if (!nome) return "";
+    return nome.length > max ? nome.substring(0, max) + "..." : nome;
 }
 
 // =====================================================================
@@ -359,4 +391,4 @@ function mostrarToast(msg) {
     }
 }
 
-console.log("[MELHOR-MES-PARTICIPANTE] ✅ Módulo v3.1 carregado");
+console.log("[MELHOR-MES-PARTICIPANTE] ✅ Módulo v3.2 carregado");

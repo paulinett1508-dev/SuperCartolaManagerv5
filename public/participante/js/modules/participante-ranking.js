@@ -1,9 +1,9 @@
 // =====================================================
-// MÓDULO: RANKING PARTICIPANTE - v3.2 PRO
+// MÓDULO: RANKING PARTICIPANTE - v3.3 PRO
 // Usa API de snapshots /api/ranking-turno
 // =====================================================
 
-console.log("[PARTICIPANTE-RANKING] 🏆 Módulo v3.2 PRO carregando...");
+console.log("[PARTICIPANTE-RANKING] 🏆 Módulo v3.3 PRO carregando...");
 
 const RANK_COLORS = {
     gold: "#facc15",
@@ -223,24 +223,9 @@ function renderizarErro() {
     `;
 }
 
-// ===== COMPARTILHAR =====
+// ===== COMPARTILHAR - AJUSTE: Mostrar toast "em desenvolvimento" =====
 window.compartilharRanking = async function () {
-    const turnoLabel = { geral: "Geral", 1: "1º Turno", 2: "2º Turno" };
-    const texto = `🏆 Ranking ${turnoLabel[estadoRanking.turnoAtivo]} - Super Cartola Manager`;
-
-    if (navigator.share) {
-        try {
-            await navigator.share({
-                title: "Ranking da Liga",
-                text: texto,
-                url: window.location.href,
-            });
-        } catch (err) {
-            if (err.name !== "AbortError") copiarParaClipboard(texto);
-        }
-    } else {
-        copiarParaClipboard(texto);
-    }
+    mostrarToast("🚧 Função em desenvolvimento");
 };
 
 function copiarParaClipboard(texto) {
@@ -255,9 +240,10 @@ function mostrarToast(mensagem) {
     const toast = document.createElement("div");
     toast.style.cssText = `
         position: fixed; bottom: 100px; left: 50%; transform: translateX(-50%);
-        background: #22c55e; color: white; padding: 12px 24px; border-radius: 8px;
+        background: #1e293b; color: white; padding: 12px 24px; border-radius: 8px;
         font-family: 'Poppins', sans-serif; font-size: 14px; font-weight: 500;
         z-index: 10000; animation: fadeInUp 0.3s ease;
+        border: 1px solid #334155; box-shadow: 0 10px 40px rgba(0,0,0,0.4);
     `;
     toast.textContent = mensagem;
     document.body.appendChild(toast);
@@ -267,7 +253,7 @@ function mostrarToast(mensagem) {
     }, 2000);
 }
 
-// ===== MODAL DE PREMIAÇÕES =====
+// ===== MODAL DE PREMIAÇÕES - AJUSTE: Mostrar "função sendo desenvolvida" =====
 window.mostrarPremiacaoPro = function (posicaoClicada) {
     const existente = document.getElementById("modalPremiacoes");
     if (existente) existente.remove();
@@ -276,21 +262,18 @@ window.mostrarPremiacaoPro = function (posicaoClicada) {
         {
             posicao: 1,
             label: "CAMPEÃO",
-            valor: "R$ 1.000,00",
             icon: "emoji_events",
             cor: RANK_COLORS.gold,
         },
         {
             posicao: 2,
             label: "2º LUGAR",
-            valor: "R$ 700,00",
             icon: "military_tech",
             cor: RANK_COLORS.silver,
         },
         {
             posicao: 3,
             label: "3º LUGAR",
-            valor: "R$ 400,00",
             icon: "military_tech",
             cor: RANK_COLORS.bronze,
         },
@@ -325,10 +308,10 @@ window.mostrarPremiacaoPro = function (posicaoClicada) {
             #modalPremiacoes .premiacao-icon .material-icons { font-size: 28px; }
             #modalPremiacoes .premiacao-info { flex: 1; text-align: left; }
             #modalPremiacoes .premiacao-label { font-size: 14px; font-weight: 700; margin-bottom: 4px; }
-            #modalPremiacoes .premiacao-valor { font-size: 20px; font-weight: 800; color: #22c55e; }
-            #modalPremiacoes .total-section { margin-top: 20px; padding-top: 16px; border-top: 1px solid rgba(255, 255, 255, 0.1); }
-            #modalPremiacoes .total-text { font-size: 13px; color: rgba(255, 255, 255, 0.6); }
-            #modalPremiacoes .total-valor { font-size: 18px; font-weight: 700; color: #22c55e; }
+            #modalPremiacoes .premiacao-valor { font-size: 14px; font-weight: 500; color: #9ca3af; font-style: italic; }
+            #modalPremiacoes .dev-notice { margin-top: 20px; padding: 16px; background: rgba(255, 92, 0, 0.1); border: 1px solid rgba(255, 92, 0, 0.3); border-radius: 12px; }
+            #modalPremiacoes .dev-notice-icon { font-size: 32px; margin-bottom: 8px; }
+            #modalPremiacoes .dev-notice-text { font-size: 13px; color: #ff5c00; font-weight: 500; }
             #modalPremiacoes .btn-fechar { margin-top: 20px; padding: 12px 32px; background: ${RANK_COLORS.primary}; color: white; border: none; border-radius: 10px; font-size: 14px; font-weight: 600; cursor: pointer; transition: all 0.2s ease; }
             #modalPremiacoes .btn-fechar:active { transform: scale(0.98); }
         </style>
@@ -354,15 +337,15 @@ window.mostrarPremiacaoPro = function (posicaoClicada) {
                         </div>
                         <div class="premiacao-info">
                             <div class="premiacao-label" style="color: ${p.cor};">${p.label}</div>
-                            <div class="premiacao-valor">${p.valor}</div>
+                            <div class="premiacao-valor">Premiação: (função sendo desenvolvida)</div>
                         </div>
                     </div>
                 `;
                 })
                 .join("")}
-            <div class="total-section">
-                <span class="total-text">💰 Total em prêmios:</span>
-                <span class="total-valor"> R$ 2.100,00</span>
+            <div class="dev-notice">
+                <div class="dev-notice-icon">🚧</div>
+                <div class="dev-notice-text">Os valores de premiação serão configurados pelo administrador da liga</div>
             </div>
             <button class="btn-fechar" onclick="document.getElementById('modalPremiacoes').remove()">Fechar</button>
         </div>
@@ -371,4 +354,4 @@ window.mostrarPremiacaoPro = function (posicaoClicada) {
     document.body.appendChild(modal);
 };
 
-console.log("[PARTICIPANTE-RANKING] ✅ Módulo v3.2 PRO carregado");
+console.log("[PARTICIPANTE-RANKING] ✅ Módulo v3.3 PRO carregado");

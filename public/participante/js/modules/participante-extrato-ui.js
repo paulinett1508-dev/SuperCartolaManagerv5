@@ -1,8 +1,8 @@
 // =====================================================
-// MÓDULO: UI DO EXTRATO PARTICIPANTE - v5.0 TAILWIND
+// MÓDULO: UI DO EXTRATO PARTICIPANTE - v5.1 TAILWIND
 // =====================================================
 
-console.log("[EXTRATO-UI] 🎨 Módulo de UI v5.0 Tailwind carregado");
+console.log("[EXTRATO-UI] 🎨 Módulo de UI v5.1 Tailwind carregado");
 
 // ===== EXPORTAR FUNÇÃO PRINCIPAL =====
 export function renderizarExtratoParticipante(extrato, participanteId) {
@@ -141,6 +141,26 @@ function renderizarConteudoCompleto(container, extrato) {
                 </tbody>
             </table>
         </div>
+
+        <!-- Modal TOP10 Info -->
+        <div id="modalTop10Info" class="fixed inset-0 z-50 hidden items-center justify-center bg-black/70 backdrop-blur-sm p-4" onclick="this.classList.add('hidden'); this.classList.remove('flex');">
+            <div onclick="event.stopPropagation()" class="bg-zinc-900 rounded-2xl w-full max-w-sm overflow-hidden shadow-2xl border border-zinc-700">
+                <div class="p-4 border-b border-zinc-700 bg-gradient-to-br from-yellow-900/30 to-yellow-900/10">
+                    <div class="flex justify-between items-center">
+                        <h3 class="text-base font-bold text-white flex items-center gap-2">
+                            <span class="material-icons text-yellow-400">emoji_events</span>
+                            Detalhe TOP 10
+                        </h3>
+                        <button class="text-gray-400 hover:text-white" onclick="document.getElementById('modalTop10Info').classList.add('hidden'); document.getElementById('modalTop10Info').classList.remove('flex');">
+                            <span class="material-icons">close</span>
+                        </button>
+                    </div>
+                </div>
+                <div id="modalTop10Body" class="p-4">
+                    <!-- Conteúdo dinâmico -->
+                </div>
+            </div>
+        </div>
     `;
 }
 
@@ -164,7 +184,7 @@ function renderizarLinhasRodadas(rodadas) {
                 <td class="py-3 px-1 ${getCorValor(r.bonusOnus)} font-semibold">${formatarValor(r.bonusOnus)}</td>
                 <td class="py-3 px-1 ${getCorValor(r.pontosCorridos)} font-semibold">${formatarValor(r.pontosCorridos)}</td>
                 <td class="py-3 px-1 ${getCorValor(r.mataMata)} font-semibold">${formatarValor(r.mataMata)}</td>
-                <td class="py-3 px-1">${formatarTop10(r)}</td>
+                <td class="py-3 px-1">${formatarTop10Compacto(r)}</td>
                 <td class="py-3 px-1 ${saldoClass} font-bold">${formatarValorSaldo(r.saldo)}</td>
             </tr>
         `;
@@ -173,13 +193,18 @@ function renderizarLinhasRodadas(rodadas) {
 }
 
 // ===== FORMATADORES =====
+// ✅ AJUSTE: Coluna POS com cores baseadas em bônus/ônus
 function formatarPosicao(rodada) {
     if (!rodada.posicao) {
         return '<span class="bg-zinc-700 text-gray-400 text-xs px-2 py-0.5 rounded">-</span>';
     }
 
+    const posicao = rodada.posicao;
+    const totalTimes = rodada.totalTimes || 32;
+    const bonusOnus = rodada.bonusOnus || 0;
+
     // MITO (1º lugar)
-    if (rodada.posicao === 1 || rodada.isMito) {
+    if (posicao === 1 || rodada.isMito) {
         return `
             <span class="bg-green-500 text-white font-bold text-xs px-2 py-1 rounded inline-flex items-center justify-center gap-1">
                 <span class="material-icons text-sm">military_tech</span>MITO
@@ -188,7 +213,7 @@ function formatarPosicao(rodada) {
     }
 
     // MICO (último lugar)
-    if (rodada.posicao === rodada.totalTimes || rodada.isMico) {
+    if (posicao === totalTimes || rodada.isMico) {
         return `
             <span class="bg-red-600 text-white font-bold text-xs px-2 py-1 rounded inline-flex items-center justify-center gap-1">
                 <span class="material-icons text-sm">sentiment_very_dissatisfied</span>MICO
@@ -196,27 +221,86 @@ function formatarPosicao(rodada) {
         `;
     }
 
-    // Top posições (verde)
-    if (rodada.posicao <= 3) {
-        return `<span class="bg-green-500 text-white font-bold text-xs px-2 py-0.5 rounded">${rodada.posicao}º</span>`;
-    }
+    // ✅ AJUSTE: Cores baseadas no valor de bônus/ônus
+    // Verde = bônus (posições com ganho)
+    // Branco/neutro = sem bônus nem ônus
+    // Vermelho = ônus (posições com perda)
 
-    // Posições médias
-    return `<span class="bg-zinc-600 text-white font-bold text-xs px-2 py-0.5 rounded">${rodada.posicao}º</span>`;
+    if (bonusOnus > 0) {
+        // Bônus - VERDE
+        return `<span class="bg-green-500/80 text-white font-bold text-xs px-2 py-0.5 rounded">${posicao}º</span>`;
+    } else if (bonusOnus < 0) {
+        // Ônus - VERMELHO
+        return `<span class="bg-red-500/80 text-white font-bold text-xs px-2 py-0.5 rounded">${posicao}º</span>`;
+    } else {
+        // Neutro - CINZA/BRANCO
+        return `<span class="bg-zinc-600 text-white font-bold text-xs px-2 py-0.5 rounded">${posicao}º</span>`;
+    }
 }
 
-function formatarTop10(rodada) {
+// ✅ AJUSTE: TOP10 compacto - apenas valor monetário, com modal ao clicar
+function formatarTop10Compacto(rodada) {
     if (!rodada.top10 || rodada.top10 === 0) return "-";
 
-    const posTop = rodada.posicaoTop10 || "";
+    const valor = rodada.top10;
+    const valorFormatado = valor.toFixed(2).replace(".", ",");
+    const rodadaNum = rodada.rodada;
+    const posTop = rodada.posicaoTop10 || "?";
+
+    // Apenas valor monetário, clicável para abrir modal
     return `
-        <div class="text-yellow-400 text-center text-[10px] leading-tight">
-            <span class="material-icons text-xs">emoji_events</span>
-            ${posTop ? `<p>${posTop}º MAIOR</p>` : ""}
-            <p class="font-semibold">+${rodada.top10.toFixed(2).replace(".", ",")}</p>
-        </div>
+        <span class="text-yellow-400 font-semibold cursor-pointer hover:underline" 
+              onclick="window.abrirModalTop10Info(${rodadaNum}, ${valor}, '${posTop}')">
+            +${valorFormatado}
+        </span>
     `;
 }
+
+// ✅ Modal TOP10 Info
+window.abrirModalTop10Info = function (rodada, valor, posicaoTop) {
+    const modal = document.getElementById("modalTop10Info");
+    const body = document.getElementById("modalTop10Body");
+
+    if (!modal || !body) return;
+
+    const valorFormatado = valor.toFixed(2).replace(".", ",");
+
+    body.innerHTML = `
+        <div class="space-y-4">
+            <div class="bg-zinc-800 rounded-lg p-4 text-center">
+                <p class="text-gray-400 text-xs mb-1">Rodada</p>
+                <p class="text-2xl font-bold text-white">${rodada}ª</p>
+            </div>
+
+            <div class="bg-gradient-to-br from-yellow-900/20 to-yellow-900/10 border border-yellow-500/30 rounded-lg p-4">
+                <div class="flex items-center justify-between">
+                    <div class="flex items-center gap-2">
+                        <span class="material-icons text-yellow-400">emoji_events</span>
+                        <span class="text-sm text-gray-300">Posição TOP 10</span>
+                    </div>
+                    <span class="text-lg font-bold text-yellow-400">${posicaoTop}º Maior</span>
+                </div>
+            </div>
+
+            <div class="bg-green-900/20 border border-green-500/30 rounded-lg p-4">
+                <div class="flex items-center justify-between">
+                    <div class="flex items-center gap-2">
+                        <span class="material-icons text-green-400">payments</span>
+                        <span class="text-sm text-gray-300">Bônus Recebido</span>
+                    </div>
+                    <span class="text-xl font-bold text-green-400">+R$ ${valorFormatado}</span>
+                </div>
+            </div>
+
+            <p class="text-xs text-gray-500 text-center">
+                Você ficou entre as 10 maiores pontuações desta rodada!
+            </p>
+        </div>
+    `;
+
+    modal.classList.remove("hidden");
+    modal.classList.add("flex");
+};
 
 function formatarValor(valor) {
     if (valor === null || valor === undefined || valor === 0) return "-";
@@ -249,138 +333,112 @@ function renderizarGraficoEvolucao(rodadas, range = "all") {
 
     if (!pathEl || !areaEl) return;
 
-    const saldos = dadosFiltrados.map((r) => parseFloat(r.saldo) || 0);
-    if (saldos.length === 0) return;
-
-    const minSaldo = Math.min(...saldos, 0);
-    const maxSaldo = Math.max(...saldos, 0);
-    const range_val = Math.max(maxSaldo - minSaldo, 1);
-
+    const valores = dadosFiltrados.map((r) => r.saldoAcumulado || r.saldo || 0);
+    const maxVal = Math.max(...valores.map(Math.abs), 1);
+    const padding = 20;
     const width = 300;
-    const height = 140;
-    const padding = 10;
+    const height = 160 - padding;
 
-    const pontos = saldos.map((saldo, i) => {
-        const x =
-            (i / Math.max(saldos.length - 1, 1)) * (width - padding * 2) +
-            padding;
-        const y =
-            height -
-            padding -
-            ((saldo - minSaldo) / range_val) * (height - padding * 2);
-        return { x, y };
+    const pontosPath = valores.map((val, i) => {
+        const x = (i / (valores.length - 1 || 1)) * width;
+        const y = padding / 2 + height / 2 - (val / maxVal) * (height / 2);
+        return `${i === 0 ? "M" : "L"} ${x.toFixed(1)} ${y.toFixed(1)}`;
     });
 
-    let pathD = `M${pontos[0].x} ${pontos[0].y}`;
-    for (let i = 1; i < pontos.length; i++) {
-        pathD += ` L${pontos[i].x} ${pontos[i].y}`;
-    }
+    pathEl.setAttribute("d", pontosPath.join(" "));
 
-    let areaD =
-        pathD +
-        ` L${pontos[pontos.length - 1].x} ${height} L${pontos[0].x} ${height} Z`;
+    const areaPath =
+        pontosPath.join(" ") +
+        ` L ${width} ${height + padding / 2} L 0 ${height + padding / 2} Z`;
+    areaEl.setAttribute("d", areaPath);
 
-    pathEl.setAttribute("d", pathD);
-    areaEl.setAttribute("d", areaD);
-
-    // Atualizar labels
-    if (labelsEl && dadosFiltrados.length > 0) {
-        const first = dadosFiltrados[0]?.rodada || 1;
-        const mid =
-            dadosFiltrados[Math.floor(dadosFiltrados.length / 2)]?.rodada || "";
-        const last = dadosFiltrados[dadosFiltrados.length - 1]?.rodada || "";
-
+    if (labelsEl) {
+        const primeiraRodada = dadosFiltrados[0]?.rodada || 1;
+        const ultimaRodada =
+            dadosFiltrados[dadosFiltrados.length - 1]?.rodada || 38;
+        const meio = Math.floor((primeiraRodada + ultimaRodada) / 2);
         labelsEl.innerHTML = `
-            <span>${first}ª</span>
-            <span>${mid}ª</span>
-            <span>${last}ª</span>
+            <span>${primeiraRodada}ª</span>
+            <span>${meio}ª</span>
+            <span>${ultimaRodada}ª</span>
         `;
     }
 }
 
+// ===== FILTROS DO GRÁFICO =====
 function configurarFiltrosGrafico(rodadas) {
-    const filtros = document.querySelectorAll(".filtro-btn");
-
-    filtros.forEach((btn) => {
+    const btns = document.querySelectorAll(".filtro-btn");
+    btns.forEach((btn) => {
         btn.addEventListener("click", () => {
-            filtros.forEach((b) => {
-                b.classList.remove(
-                    "bg-orange-600/80",
-                    "text-white",
-                    "font-semibold",
-                );
+            btns.forEach((b) => {
+                b.classList.remove("bg-orange-600/80", "text-white");
                 b.classList.add("text-gray-400");
             });
+            btn.classList.add("bg-orange-600/80", "text-white");
             btn.classList.remove("text-gray-400");
-            btn.classList.add(
-                "bg-orange-600/80",
-                "text-white",
-                "font-semibold",
-            );
 
             renderizarGraficoEvolucao(rodadas, btn.dataset.range);
         });
     });
 }
 
+// ===== BOTÃO REFRESH =====
 function configurarBotaoRefresh() {
     const btn = document.getElementById("btnRefreshExtrato");
     if (btn) {
         btn.addEventListener("click", () => {
-            const icon = btn.querySelector(".material-icons");
-            if (icon) icon.classList.add("animate-spin");
-            window.forcarRefreshExtratoParticipante?.();
+            if (window.forcarRefreshExtratoParticipante) {
+                window.forcarRefreshExtratoParticipante();
+            }
         });
     }
 }
 
+// ===== ERRO =====
 function renderizarErro() {
     return `
-        <div class="text-center py-10 px-5 bg-red-500/10 rounded-xl border border-red-500/30">
-            <span class="material-icons text-5xl text-red-500 mb-4 block">error_outline</span>
-            <h3 class="text-red-400 mb-3 font-bold">Dados Inválidos</h3>
-            <p class="text-gray-400 mb-5 text-sm">A estrutura do extrato está incompleta.</p>
-            <button onclick="window.forcarRefreshExtratoParticipante()" 
-                    class="px-6 py-3 bg-primary text-white rounded-lg font-semibold inline-flex items-center gap-2 hover:bg-orange-600 active:scale-95 transition-all">
-                <span class="material-icons">sync</span>
+        <div class="flex flex-col items-center justify-center py-16 text-center">
+            <span class="material-icons text-red-500 text-5xl mb-4">error_outline</span>
+            <h3 class="text-lg font-bold text-red-400 mb-2">Erro ao carregar extrato</h3>
+            <p class="text-gray-500 text-sm mb-4">Não foi possível carregar os dados</p>
+            <button onclick="window.forcarRefreshExtratoParticipante && window.forcarRefreshExtratoParticipante()" 
+                    class="bg-orange-600 text-white px-6 py-2 rounded-lg font-semibold hover:bg-orange-700 transition-colors">
                 Tentar Novamente
             </button>
         </div>
     `;
 }
 
-// ===== FUNÇÕES GLOBAIS PARA POPUPS =====
+// ===== DETALHAMENTO GANHOS/PERDAS =====
 window.mostrarDetalhamentoGanhos = function () {
-    if (!window.extratoAtual) return;
-    mostrarPopupDetalhamento(window.extratoAtual, true);
+    mostrarPopupDetalhamento(true);
 };
 
 window.mostrarDetalhamentoPerdas = function () {
-    if (!window.extratoAtual) return;
-    mostrarPopupDetalhamento(window.extratoAtual, false);
+    mostrarPopupDetalhamento(false);
 };
 
-function mostrarPopupDetalhamento(extrato, isGanhos) {
-    const rodadas = extrato.rodadas || [];
-    const cor = isGanhos ? "green" : "red";
+function mostrarPopupDetalhamento(isGanhos) {
+    const extrato = window.extratoAtual;
+    if (!extrato || !extrato.rodadas) return;
+
     const titulo = isGanhos
         ? "Detalhamento de Ganhos"
         : "Detalhamento de Perdas";
-    const icon = isGanhos ? "emoji_events" : "sentiment_very_dissatisfied";
+    const icon = isGanhos ? "trending_up" : "trending_down";
 
-    // Calcular estatísticas
-    let totalMito = 0,
-        totalMico = 0,
-        totalTop11 = 0,
-        totalZ4 = 0;
-    let rodadasComGanho = 0,
-        rodadasComPerda = 0;
-    let somaGanhos = 0,
-        somaPerdas = 0;
+    let somaGanhos = 0;
+    let somaPerdas = 0;
+    let rodadasComGanho = 0;
+    let rodadasComPerda = 0;
+    let totalMito = 0;
+    let totalMico = 0;
+    let totalTop11 = 0;
+    let totalZ4 = 0;
 
     const categorias = {};
 
-    rodadas.forEach((r) => {
+    extrato.rodadas.forEach((r) => {
         const saldoRodada =
             (r.bonusOnus || 0) +
             (r.pontosCorridos || 0) +
@@ -388,24 +446,18 @@ function mostrarPopupDetalhamento(extrato, isGanhos) {
             (r.top10 || 0);
 
         if (saldoRodada > 0) {
-            rodadasComGanho++;
             somaGanhos += saldoRodada;
+            rodadasComGanho++;
         } else if (saldoRodada < 0) {
-            rodadasComPerda++;
             somaPerdas += Math.abs(saldoRodada);
+            rodadasComPerda++;
         }
 
         if (r.posicao === 1 || r.isMito) totalMito++;
         if (r.posicao === r.totalTimes || r.isMico) totalMico++;
-        if (r.posicao >= 2 && r.posicao <= 11) totalTop11++;
-        if (
-            r.totalTimes &&
-            r.posicao >= r.totalTimes - 3 &&
-            r.posicao !== r.totalTimes
-        )
-            totalZ4++;
+        if (r.posicao <= 11) totalTop11++;
+        if (r.posicao > (r.totalTimes || 32) - 4) totalZ4++;
 
-        // Agrupar por categoria
         if (isGanhos) {
             if (r.bonusOnus > 0)
                 addCategoria(
@@ -413,7 +465,7 @@ function mostrarPopupDetalhamento(extrato, isGanhos) {
                     "Bônus",
                     r.bonusOnus,
                     r.rodada,
-                    "card_giftcard",
+                    "attach_money",
                 );
             if (r.pontosCorridos > 0)
                 addCategoria(
@@ -429,7 +481,7 @@ function mostrarPopupDetalhamento(extrato, isGanhos) {
                     "Mata-Mata",
                     r.mataMata,
                     r.rodada,
-                    "emoji_events",
+                    "sports_mma",
                 );
             if (r.top10 > 0)
                 addCategoria(
@@ -578,4 +630,4 @@ function addCategoria(obj, nome, valor, rodada, icon) {
     obj[nome].rodadas.push(rodada);
 }
 
-console.log("[EXTRATO-UI] ✅ Módulo v5.0 Tailwind pronto");
+console.log("[EXTRATO-UI] ✅ Módulo v5.1 Tailwind pronto");
