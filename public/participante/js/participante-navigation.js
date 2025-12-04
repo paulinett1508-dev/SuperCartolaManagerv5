@@ -41,7 +41,7 @@ class ParticipanteNavigation {
             "boas-vindas";
 
         // ✅ Sincronizar botão ativo do menu com módulo salvo
-        if (moduloSalvo && moduloSalvo !== "boas-vindas") {
+        if (moduloSalvo) {
             const navButtons = document.querySelectorAll(".nav-item-modern");
             navButtons.forEach((btn) => {
                 btn.classList.remove("active");
