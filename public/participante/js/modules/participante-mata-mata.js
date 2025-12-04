@@ -1,8 +1,6 @@
 // PARTICIPANTE MATA-MATA - Módulo de visualização do torneio eliminatório
 // Responsável por: renderizar confrontos do mata-mata para o participante
 
-import { getSessionData } from "../participante-auth.js";
-
 // =====================================================================
 // CONFIGURAÇÃO DAS EDIÇÕES
 // =====================================================================
@@ -54,11 +52,16 @@ let faseSelecionada = "primeira";
 export async function initMataMata() {
   console.log("[PARTICIPANTE-MATA-MATA] Inicializando módulo...");
 
-  const session = getSessionData();
-  if (!session || !session.ligaId) {
+  // Obter sessão do localStorage ou elementos DOM
+  const ligaId = localStorage.getItem("ligaId") || 
+                 document.querySelector("[data-liga-id]")?.dataset.ligaId;
+  
+  if (!ligaId) {
     renderError("Sessão inválida. Faça login novamente.");
     return;
   }
+
+  const session = { ligaId };
 
   try {
     // Buscar rodada atual
@@ -291,8 +294,10 @@ function renderTabelaConfrontos(confrontos, fase, edicao) {
   const config = EDICOES_MATA_MATA.find((e) => e.id === edicao);
   const edicaoNome = config ? config.nome : `Edição ${edicao}`;
 
-  const session = getSessionData();
-  const meuTimeId = session?.timeId ? parseInt(session.timeId) : null;
+  // Obter timeId do localStorage ou DOM
+  const timeId = localStorage.getItem("timeId") || 
+                 document.querySelector("[data-time-id]")?.dataset.timeId;
+  const meuTimeId = timeId ? parseInt(timeId) : null;
 
   container.innerHTML = `
     <div class="mata-mata-header">
