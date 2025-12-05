@@ -1,8 +1,9 @@
 // =====================================================================
-// PARTICIPANTE-RODADAS.JS - v3.2 (Suporte a Inativos)
+// PARTICIPANTE-RODADAS.JS - v3.3 (Correção posição)
+// ✅ v3.3: Calcula posição localmente quando não vem do backend
 // =====================================================================
 
-console.log("[PARTICIPANTE-RODADAS] 📄 Carregando módulo v3.2...");
+console.log("[PARTICIPANTE-RODADAS] 📄 Carregando módulo v3.3...");
 
 // Importar módulo de parciais
 import * as ParciaisModule from "./participante-rodada-parcial.js";
@@ -79,7 +80,7 @@ export async function inicializarRodadasParticipante({
     ligaId: ligaIdParam,
     timeId,
 }) {
-    console.log("[PARTICIPANTE-RODADAS] 🚀 Inicializando v3.2...", {
+    console.log("[PARTICIPANTE-RODADAS] 🚀 Inicializando v3.3...", {
         ligaIdParam,
         timeId,
     });
@@ -231,6 +232,33 @@ function agruparRodadasPorNumero(rodadas, timesStatus = {}) {
             rodadaData.meusPontos = r.pontos || 0;
             rodadaData.jogou = !r.rodadaNaoJogada;
             rodadaData.posicaoFinanceira = r.posicaoFinanceira;
+        }
+    });
+
+    // ✅ v3.3: Calcular posição financeira localmente se não veio do backend
+    rodadasMap.forEach((rodadaData, rodadaNum) => {
+        if (rodadaData.posicaoFinanceira == null && rodadaData.jogou) {
+            // Filtrar apenas ativos
+            const participantesAtivos = rodadaData.participantes.filter(
+                (p) => p.ativo !== false,
+            );
+
+            // Ordenar por pontos (decrescente)
+            const ordenados = [...participantesAtivos].sort(
+                (a, b) => (b.pontos || 0) - (a.pontos || 0),
+            );
+
+            // Encontrar minha posição
+            const meuIndex = ordenados.findIndex(
+                (p) => String(p.timeId || p.time_id) === String(meuTimeId),
+            );
+
+            if (meuIndex >= 0) {
+                rodadaData.posicaoFinanceira = meuIndex + 1;
+                console.log(
+                    `[PARTICIPANTE-RODADAS] 📊 Rodada ${rodadaNum}: posição calculada = ${meuIndex + 1}º`,
+                );
+            }
         }
     });
 
@@ -572,7 +600,19 @@ function renderizarDetalhamentoRodada(
     const resumo = document.getElementById("rodadaResumo");
     if (resumo && !isParcial) {
         const totalAtivos = participantesAtivos.length;
-        const minhaPosicao = rodadaData.posicaoFinanceira || "-";
+
+        // ✅ v3.3: Calcular posição se não existir
+        let minhaPosicao = rodadaData.posicaoFinanceira;
+        if (minhaPosicao == null) {
+            const ordenados = [...participantesAtivos].sort(
+                (a, b) => (b.pontos || 0) - (a.pontos || 0),
+            );
+            const meuIndex = ordenados.findIndex(
+                (p) => String(p.timeId || p.time_id) === String(meuTimeId),
+            );
+            minhaPosicao = meuIndex >= 0 ? meuIndex + 1 : "-";
+        }
+
         const infoInativos =
             participantesInativos.length > 0
                 ? ` • ${participantesInativos.length} inativo${participantesInativos.length > 1 ? "s" : ""}`
@@ -806,4 +846,6 @@ function mostrarErro(mensagem) {
     if (grid) grid.style.display = "block";
 }
 
-console.log("[PARTICIPANTE-RODADAS] ✅ Módulo v3.2 carregado");
+console.log(
+    "[PARTICIPANTE-RODADAS] ✅ Módulo v3.3 carregado (posição corrigida)",
+);

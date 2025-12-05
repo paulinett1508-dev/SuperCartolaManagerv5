@@ -12,12 +12,23 @@ const timeSchema = new mongoose.Schema(
     },
 
     // Nome do time
-    nome: {
+    nome_time: {
       type: String,
       required: true,
     },
 
     // Nome do cartoleiro (dono do time)
+    nome_cartoleiro: {
+      type: String,
+      default: "",
+    },
+
+    // Aliases para compatibilidade
+    nome: {
+      type: String,
+      default: "",
+    },
+
     nome_cartola: {
       type: String,
       default: "",
@@ -103,6 +114,15 @@ timeSchema.index({ id: 1, liga_id: 1 });
 // ✅ Virtual para compatibilidade
 timeSchema.virtual("time_id").get(function () {
   return this.id;
+});
+
+// ✅ Virtuals de nome para compatibilidade bidirecional
+timeSchema.virtual("nome_cartola_compat").get(function () {
+  return this.nome_cartoleiro || this.nome_cartola;
+});
+
+timeSchema.virtual("nome_compat").get(function () {
+  return this.nome_time || this.nome;
 });
 
 // ✅ Garantir que virtuals apareçam no JSON

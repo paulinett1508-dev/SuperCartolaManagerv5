@@ -1,12 +1,13 @@
 // =====================================================================
-// PARTICIPANTE-EXTRATO.JS - v2.0 (APENAS CONSUMO)
+// PARTICIPANTE-EXTRATO.JS - v2.1 (APENAS CONSUMO)
 // =====================================================================
 // ✅ Consome dados prontos do backend (cache já calculado pelo admin)
 // ✅ Zero cálculo no frontend
 // ✅ Leve e rápido
+// ✅ v2.1: Suporte a campos manuais (ajustes financeiros)
 // =====================================================================
 
-console.log("[EXTRATO-PARTICIPANTE] 🔄 Módulo v2.0 (consumo)");
+console.log("[EXTRATO-PARTICIPANTE] 🔄 Módulo v2.1 (consumo)");
 
 const PARTICIPANTE_IDS = { ligaId: null, timeId: null };
 
@@ -87,12 +88,13 @@ async function carregarExtrato(ligaId, timeId, forcarRefresh = false) {
             temRodadas: !!cacheData.rodadas,
             qtdRodadas: cacheData.rodadas?.length || 0,
             resumo: cacheData.resumo,
+            camposManuais: cacheData.camposManuais?.length || 0, // ✅ LOG
         });
 
         // ✅ VALIDAR ESTRUTURA DO CACHE
         let extratoData = null;
 
-        // O controller retorna: { cached, rodadas, resumo, metadados, ... }
+        // O controller retorna: { cached, rodadas, resumo, camposManuais, metadados, ... }
         if (
             cacheData.cached &&
             cacheData.rodadas &&
@@ -112,9 +114,11 @@ async function carregarExtrato(ligaId, timeId, forcarRefresh = false) {
                         totalGanhos: 0,
                         totalPerdas: 0,
                     },
+                    camposManuais: cacheData.camposManuais || [], // ✅ NOVO
                 };
                 console.log(
                     "[EXTRATO-PARTICIPANTE] ✅ Cache válido com campos completos",
+                    { camposManuais: extratoData.camposManuais.length },
                 );
             } else {
                 console.log(
@@ -143,6 +147,7 @@ async function carregarExtrato(ligaId, timeId, forcarRefresh = false) {
                             (Array.isArray(dadosDireto)
                                 ? dadosDireto.length
                                 : 0),
+                        camposManuais: dadosDireto.camposManuais?.length || 0,
                     },
                 );
 
@@ -151,7 +156,13 @@ async function carregarExtrato(ligaId, timeId, forcarRefresh = false) {
                     dadosDireto.rodadas &&
                     dadosDireto.rodadas.length > 0
                 ) {
-                    extratoData = dadosDireto;
+                    extratoData = {
+                        ...dadosDireto,
+                        camposManuais:
+                            dadosDireto.camposManuais ||
+                            cacheData.camposManuais ||
+                            [], // ✅ NOVO
+                    };
                 } else if (
                     Array.isArray(dadosDireto) &&
                     dadosDireto.length > 0
@@ -159,6 +170,7 @@ async function carregarExtrato(ligaId, timeId, forcarRefresh = false) {
                     extratoData = {
                         rodadas: dadosDireto,
                         resumo: calcularResumoLocal(dadosDireto),
+                        camposManuais: cacheData.camposManuais || [], // ✅ NOVO
                     };
                 }
             }
@@ -176,6 +188,7 @@ async function carregarExtrato(ligaId, timeId, forcarRefresh = false) {
                     totalGanhos: 0,
                     totalPerdas: 0,
                 },
+                camposManuais: cacheData.camposManuais || [], // ✅ NOVO
             };
         }
 
@@ -192,7 +205,9 @@ async function carregarExtrato(ligaId, timeId, forcarRefresh = false) {
         console.log(
             "[EXTRATO-PARTICIPANTE] 🎨 Renderizando",
             extratoData.rodadas.length,
-            "rodadas",
+            "rodadas |",
+            extratoData.camposManuais?.length || 0,
+            "campos manuais",
         );
 
         const { renderizarExtratoParticipante } = await import(
@@ -337,4 +352,4 @@ export function initExtratoParticipante() {
     console.log("[EXTRATO-PARTICIPANTE] Módulo pronto");
 }
 
-console.log("[EXTRATO-PARTICIPANTE] ✅ Módulo v2.0 carregado");
+console.log("[EXTRATO-PARTICIPANTE] ✅ Módulo v2.1 carregado");

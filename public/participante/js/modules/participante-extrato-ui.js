@@ -1,8 +1,10 @@
 // =====================================================
-// MÓDULO: UI DO EXTRATO PARTICIPANTE - v5.1 TAILWIND
+// MÓDULO: UI DO EXTRATO PARTICIPANTE - v5.2 TAILWIND
+// =====================================================
+// ✅ Adicionado modal para campos manuais (ajustes financeiros)
 // =====================================================
 
-console.log("[EXTRATO-UI] 🎨 Módulo de UI v5.1 Tailwind carregado");
+console.log("[EXTRATO-UI] 🎨 Módulo de UI v5.2 Tailwind carregado");
 
 // ===== EXPORTAR FUNÇÃO PRINCIPAL =====
 export function renderizarExtratoParticipante(extrato, participanteId) {
@@ -39,9 +41,44 @@ function renderizarConteudoCompleto(container, extrato) {
     const totalGanhos = resumo.totalGanhos || 0;
     const totalPerdas = Math.abs(resumo.totalPerdas || 0);
 
+    // ✅ Campos manuais
+    const camposManuais = extrato.camposManuais || [];
+    const temCamposManuais = camposManuais.length > 0;
+    const totalCamposManuais = camposManuais.reduce(
+        (acc, c) => acc + (c.valor || 0),
+        0,
+    );
+
     const saldoPositivo = saldo >= 0;
     const saldoFormatado = `R$ ${Math.abs(saldo).toFixed(2).replace(".", ",")}`;
     const statusTexto = saldoPositivo ? "A RECEBER" : "A PAGAR";
+
+    // ✅ Mini card de ajustes (aparece só se tiver campos manuais)
+    const ajustesPositivo = totalCamposManuais >= 0;
+    const ajustesFormatado = `R$ ${Math.abs(totalCamposManuais).toFixed(2).replace(".", ",")}`;
+    const miniCardAjustesHTML = temCamposManuais
+        ? `
+        <!-- Mini Card Ajustes Financeiros -->
+        <div onclick="window.mostrarModalAjustes()" 
+             class="bg-gradient-to-r from-purple-900/40 to-purple-800/20 p-2.5 rounded-lg border border-purple-500/40 mb-4 cursor-pointer hover:border-purple-400/60 active:scale-[0.99] transition-all">
+            <div class="flex justify-between items-center">
+                <div class="flex items-center gap-2">
+                    <div class="bg-purple-500/30 p-1.5 rounded-lg">
+                        <span class="material-icons text-purple-400 text-base">account_balance_wallet</span>
+                    </div>
+                    <div>
+                        <p class="text-[10px] text-purple-300/80 uppercase font-medium">Ajustes Manuais</p>
+                        <p class="text-[10px] text-gray-500">${camposManuais.length} ${camposManuais.length === 1 ? "lançamento" : "lançamentos"}</p>
+                    </div>
+                </div>
+                <div class="flex items-center gap-2">
+                    <span class="text-lg font-bold ${ajustesPositivo ? "text-green-400" : "text-red-400"}">${ajustesPositivo ? "+" : "-"}${ajustesFormatado}</span>
+                    <span class="material-icons text-purple-400/60 text-base">chevron_right</span>
+                </div>
+            </div>
+        </div>
+    `
+        : "";
 
     container.innerHTML = `
         <!-- Header do Extrato -->
@@ -62,6 +99,8 @@ function renderizarConteudoCompleto(container, extrato) {
                 </div>
             </div>
         </div>
+
+        ${miniCardAjustesHTML}
 
         <!-- Cards Ganhos/Perdas -->
         <div class="grid grid-cols-2 gap-3 mb-4">
@@ -193,7 +232,6 @@ function renderizarLinhasRodadas(rodadas) {
 }
 
 // ===== FORMATADORES =====
-// ✅ AJUSTE: Coluna POS com cores baseadas em bônus/ônus
 function formatarPosicao(rodada) {
     if (!rodada.posicao) {
         return '<span class="bg-zinc-700 text-gray-400 text-xs px-2 py-0.5 rounded">-</span>';
@@ -221,24 +259,15 @@ function formatarPosicao(rodada) {
         `;
     }
 
-    // ✅ AJUSTE: Cores baseadas no valor de bônus/ônus
-    // Verde = bônus (posições com ganho)
-    // Branco/neutro = sem bônus nem ônus
-    // Vermelho = ônus (posições com perda)
-
     if (bonusOnus > 0) {
-        // Bônus - VERDE
         return `<span class="bg-green-500/80 text-white font-bold text-xs px-2 py-0.5 rounded">${posicao}º</span>`;
     } else if (bonusOnus < 0) {
-        // Ônus - VERMELHO
         return `<span class="bg-red-500/80 text-white font-bold text-xs px-2 py-0.5 rounded">${posicao}º</span>`;
     } else {
-        // Neutro - CINZA/BRANCO
         return `<span class="bg-zinc-600 text-white font-bold text-xs px-2 py-0.5 rounded">${posicao}º</span>`;
     }
 }
 
-// ✅ AJUSTE: TOP10 compacto - valor monetário diferenciando MITO/MICO
 function formatarTop10Compacto(rodada) {
     if (!rodada.top10 || rodada.top10 === 0) return "-";
 
@@ -248,7 +277,6 @@ function formatarTop10Compacto(rodada) {
     const rodadaNum = rodada.rodada;
     const posTop = rodada.posicaoTop10 || "?";
 
-    // Cor e sinal baseado no valor (MITO = verde/+, MICO = vermelho/-)
     const corClass = isPositivo ? "text-green-400" : "text-red-400";
     const sinal = isPositivo ? "+" : "-";
 
@@ -260,7 +288,6 @@ function formatarTop10Compacto(rodada) {
     `;
 }
 
-// ✅ Modal TOP10 Info - diferencia MITO/MICO
 window.abrirModalTop10Info = function (rodada, valor, posicaoTop) {
     const modal = document.getElementById("modalTop10Info");
     const body = document.getElementById("modalTop10Body");
@@ -270,7 +297,6 @@ window.abrirModalTop10Info = function (rodada, valor, posicaoTop) {
     const isPositivo = valor > 0;
     const valorAbs = Math.abs(valor).toFixed(2).replace(".", ",");
 
-    // Diferenciação MITO vs MICO
     const tipo = isPositivo ? "MITO" : "MICO";
     const tipoLabel = isPositivo ? "Bônus Recebido" : "Ônus Aplicado";
     const tipoIcon = isPositivo
@@ -285,7 +311,6 @@ window.abrirModalTop10Info = function (rodada, valor, posicaoTop) {
         : "bg-red-900/20 border-red-500/30";
     const sinal = isPositivo ? "+" : "-";
 
-    // Formatar posição - se vier como "?" usar valor baseado no bonus/ônus
     const posicaoFormatada =
         posicaoTop && posicaoTop !== "?" && posicaoTop !== "null"
             ? `${posicaoTop}º`
@@ -431,6 +456,112 @@ function renderizarErro() {
     `;
 }
 
+// ===== MODAL AJUSTES FINANCEIROS (CAMPOS MANUAIS) =====
+window.mostrarModalAjustes = function () {
+    const extrato = window.extratoAtual;
+    if (!extrato) return;
+
+    const camposManuais = extrato.camposManuais || [];
+    if (camposManuais.length === 0) return;
+
+    // Remover modal anterior se existir
+    document.getElementById("modalAjustesFinanceiros")?.remove();
+
+    // Calcular totais
+    let totalPositivo = 0;
+    let totalNegativo = 0;
+    camposManuais.forEach((c) => {
+        const val = c.valor || 0;
+        if (val > 0) totalPositivo += val;
+        else totalNegativo += Math.abs(val);
+    });
+    const saldoAjustes = totalPositivo - totalNegativo;
+    const saldoPositivo = saldoAjustes >= 0;
+
+    // Gerar linhas dos campos
+    const linhasHTML = camposManuais
+        .map((campo) => {
+            const valor = campo.valor || 0;
+            const isPositivo = valor >= 0;
+            const valorFormatado = `R$ ${Math.abs(valor).toFixed(2).replace(".", ",")}`;
+            const iconCampo =
+                valor > 0
+                    ? "add_circle"
+                    : valor < 0
+                      ? "remove_circle"
+                      : "radio_button_unchecked";
+            const corIcon =
+                valor > 0
+                    ? "text-green-400"
+                    : valor < 0
+                      ? "text-red-400"
+                      : "text-gray-500";
+
+            return `
+            <div class="bg-zinc-800 rounded-lg p-3">
+                <div class="flex justify-between items-center">
+                    <div class="flex items-center gap-3">
+                        <div class="w-10 h-10 rounded-lg flex items-center justify-center ${isPositivo ? "bg-green-500/20" : "bg-red-500/20"}">
+                            <span class="material-icons ${corIcon}">${iconCampo}</span>
+                        </div>
+                        <div>
+                            <p class="text-sm font-medium text-white">${campo.nome}</p>
+                            <p class="text-[10px] text-gray-500">Ajuste manual</p>
+                        </div>
+                    </div>
+                    <span class="text-base font-bold ${isPositivo ? "text-green-400" : "text-red-400"}">
+                        ${isPositivo ? "+" : "-"}${valorFormatado}
+                    </span>
+                </div>
+            </div>
+        `;
+        })
+        .join("");
+
+    const html = `
+        <div id="modalAjustesFinanceiros" onclick="this.remove()" class="fixed inset-0 z-50 flex items-center justify-center bg-black/70 backdrop-blur-sm p-4">
+            <div onclick="event.stopPropagation()" class="bg-zinc-900 rounded-2xl w-full max-w-md max-h-[85vh] overflow-hidden shadow-2xl border border-zinc-700">
+
+                <!-- Header -->
+                <div class="p-4 border-b border-zinc-700 bg-gradient-to-br from-purple-900/30 to-purple-900/10">
+                    <div class="flex justify-between items-start mb-3">
+                        <h3 class="text-base font-bold text-white flex items-center gap-2">
+                            <span class="material-icons text-purple-400">tune</span>
+                            Ajustes Financeiros
+                        </h3>
+                        <button class="text-gray-400 hover:text-white transition-colors" onclick="document.getElementById('modalAjustesFinanceiros').remove()">
+                            <span class="material-icons">close</span>
+                        </button>
+                    </div>
+                    <p class="text-xs text-gray-400">Valores adicionados manualmente pelo administrador da liga</p>
+                </div>
+
+                <!-- Body -->
+                <div class="p-4 overflow-y-auto max-h-[50vh] space-y-3">
+                    ${linhasHTML}
+                </div>
+
+                <!-- Footer - Total -->
+                <div class="p-4 border-t border-zinc-700">
+                    <div class="rounded-xl p-4 border ${saldoPositivo ? "bg-gradient-to-br from-green-900/20 to-green-900/10 border-green-500/50" : "bg-gradient-to-br from-red-900/20 to-red-900/10 border-red-500/50"}">
+                        <div class="flex justify-between items-center">
+                            <span class="flex items-center gap-2 text-sm font-bold text-white">
+                                <span class="material-icons ${saldoPositivo ? "text-green-400" : "text-red-400"}">account_balance_wallet</span>
+                                TOTAL AJUSTES
+                            </span>
+                            <span class="text-xl font-extrabold ${saldoPositivo ? "text-green-400" : "text-red-400"}">
+                                ${saldoPositivo ? "+" : "-"}R$ ${Math.abs(saldoAjustes).toFixed(2).replace(".", ",")}
+                            </span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    `;
+
+    document.body.insertAdjacentHTML("beforeend", html);
+};
+
 // ===== DETALHAMENTO GANHOS/PERDAS =====
 window.mostrarDetalhamentoGanhos = function () {
     mostrarPopupDetalhamento(true);
@@ -549,6 +680,23 @@ function mostrarPopupDetalhamento(isGanhos) {
         }
     });
 
+    // ✅ NOVO: Adicionar campos manuais ao detalhamento
+    const camposManuais = extrato.camposManuais || [];
+    camposManuais.forEach((campo) => {
+        const valor = campo.valor || 0;
+        if (isGanhos && valor > 0) {
+            addCategoria(categorias, campo.nome, valor, "Ajuste", "tune");
+        } else if (!isGanhos && valor < 0) {
+            addCategoria(
+                categorias,
+                campo.nome,
+                Math.abs(valor),
+                "Ajuste",
+                "tune",
+            );
+        }
+    });
+
     const total = isGanhos ? somaGanhos : somaPerdas;
     const mediaGanho = rodadasComGanho > 0 ? somaGanhos / rodadasComGanho : 0;
     const mediaPerda = rodadasComPerda > 0 ? somaPerdas / rodadasComPerda : 0;
@@ -660,4 +808,4 @@ function addCategoria(obj, nome, valor, rodada, icon) {
     obj[nome].rodadas.push(rodada);
 }
 
-console.log("[EXTRATO-UI] ✅ Módulo v5.1 Tailwind pronto");
+console.log("[EXTRATO-UI] ✅ Módulo v5.2 Tailwind pronto");

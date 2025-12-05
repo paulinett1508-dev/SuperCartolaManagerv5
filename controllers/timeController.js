@@ -81,14 +81,14 @@ async function buscarDadosApiCartola(timeId) {
  */
 function dadosIncompletos(time) {
   return (
-    !time.nome_cartola ||
-    time.nome_cartola === "N/D" ||
-    time.nome_cartola === "N/A" ||
-    time.nome_cartola === "" ||
-    !time.nome ||
-    time.nome === "N/D" ||
-    time.nome === "N/A" ||
-    time.nome.startsWith("Time ")
+    !time.nome_cartoleiro ||
+    time.nome_cartoleiro === "N/D" ||
+    time.nome_cartoleiro === "N/A" ||
+    time.nome_cartoleiro === "" ||
+    !time.nome_time ||
+    time.nome_time === "N/D" ||
+    time.nome_time === "N/A" ||
+    time.nome_time.startsWith("Time ")
   );
 }
 
@@ -132,8 +132,8 @@ export const salvarTime = async (timeId) => {
       );
       time = new Time({
         id: timeId,
-        nome: `Time ${timeId}`,
-        nome_cartola: "N/D",
+        nome_time: `Time ${timeId}`,
+        nome_cartoleiro: "N/D",
         url_escudo_png: "",
         clube_id: null,
       });
@@ -144,26 +144,26 @@ export const salvarTime = async (timeId) => {
     // Atualizar ou criar com dados da API
     if (time) {
       // Atualizar time existente
-      time.nome = dadosApi.nome_time || time.nome;
-      time.nome_cartola = dadosApi.nome_cartoleiro || time.nome_cartola;
+      time.nome_time = dadosApi.nome_time || time.nome_time;
+      time.nome_cartoleiro = dadosApi.nome_cartoleiro || time.nome_cartoleiro;
       time.url_escudo_png = dadosApi.url_escudo_png || time.url_escudo_png;
       time.clube_id = dadosApi.clube_id || time.clube_id;
       await time.save();
       console.log(
-        `[TIME-CONTROLLER] ✅ Time ${timeId} ATUALIZADO: ${time.nome_cartola} - ${time.nome}`,
+        `[TIME-CONTROLLER] ✅ Time ${timeId} ATUALIZADO: ${time.nome_cartoleiro} - ${time.nome_time}`,
       );
     } else {
       // Criar novo time
       time = new Time({
         id: timeId,
-        nome: dadosApi.nome_time || `Time ${timeId}`,
-        nome_cartola: dadosApi.nome_cartoleiro || "N/D",
+        nome_time: dadosApi.nome_time || `Time ${timeId}`,
+        nome_cartoleiro: dadosApi.nome_cartoleiro || "N/D",
         url_escudo_png: dadosApi.url_escudo_png || "",
         clube_id: dadosApi.clube_id || null,
       });
       await time.save();
       console.log(
-        `[TIME-CONTROLLER] ✅ Time ${timeId} CRIADO: ${time.nome_cartola} - ${time.nome}`,
+        `[TIME-CONTROLLER] ✅ Time ${timeId} CRIADO: ${time.nome_cartoleiro} - ${time.nome_time}`,
       );
     }
 
@@ -220,30 +220,19 @@ export const obterTimePorId = async (req, res) => {
       // Atualizar cache
       cache.set(cacheKey, time, 300);
 
-      // Debug: verificar campos do time
-      if (process.env.NODE_ENV !== "production") {
-        console.log(`[TIME-CONTROLLER] Time ${timeId} encontrado:`, {
-          id: time.id,
-          nome: time.nome,
-          nome_cartola: time.nome_cartola,
-          hasNome: !!time.nome,
-          hasNomeCartola: !!time.nome_cartola
-        });
-      }
-
       return res.json({
         id: time.id,
-        nome: time.nome || null, // ✅ Campo direto do Model
-        nome_time: time.nome || null, // ✅ Alias para compatibilidade
-        nome_cartola: time.nome_cartola || null, // ✅ Campo direto do Model
-        nome_cartoleiro: time.nome_cartola || null, // Alias para compatibilidade
-        url_escudo_png: time.url_escudo_png || null,
-        clube_id: time.clube_id || null,
-        assinante: time.assinante || false,
-        senha_acesso: time.senha_acesso || null,
+        nome_time: time.nome_time, // ✅ Campo que existe no banco
+        nome: time.nome_time, // Alias
+        nome_cartoleiro: time.nome_cartoleiro, // ✅ Campo que existe no banco
+        nome_cartola: time.nome_cartoleiro, // Alias
+        url_escudo_png: time.url_escudo_png,
+        clube_id: time.clube_id,
+        assinante: time.assinante,
+        senha_acesso: time.senha_acesso,
         ativo: time.ativo !== false,
-        rodada_desistencia: time.rodada_desistencia || null,
-        data_desistencia: time.data_desistencia || null,
+        rodada_desistencia: time.rodada_desistencia,
+        data_desistencia: time.data_desistencia,
       });
     }
 
@@ -251,24 +240,16 @@ export const obterTimePorId = async (req, res) => {
     const novoTime = await salvarTime(timeId);
 
     if (novoTime) {
-      if (process.env.NODE_ENV !== "production") {
-        console.log(`[TIME-CONTROLLER] Novo time ${timeId} criado:`, {
-          id: novoTime.id,
-          nome: novoTime.nome,
-          nome_cartola: novoTime.nome_cartola
-        });
-      }
-
       return res.status(200).json({
         id: novoTime.id,
-        nome: novoTime.nome || null, // ✅ Campo direto do Model
-        nome_time: novoTime.nome || null, // ✅ Alias para compatibilidade
-        nome_cartola: novoTime.nome_cartola || null, // ✅ Campo direto do Model
-        nome_cartoleiro: novoTime.nome_cartola || null, // Alias para compatibilidade
-        url_escudo_png: novoTime.url_escudo_png || null,
-        clube_id: novoTime.clube_id || null,
+        nome_time: novoTime.nome_time, // ✅ Campo que existe no banco
+        nome: novoTime.nome_time, // Alias
+        nome_cartoleiro: novoTime.nome_cartoleiro, // ✅ Campo que existe no banco
+        nome_cartola: novoTime.nome_cartoleiro, // Alias
+        url_escudo_png: novoTime.url_escudo_png,
+        clube_id: novoTime.clube_id,
         ativo: novoTime.ativo !== false,
-        rodada_desistencia: novoTime.rodada_desistencia || null,
+        rodada_desistencia: novoTime.rodada_desistencia,
       });
     }
 

@@ -1,5 +1,6 @@
-// PARTICIPANTE PONTOS CORRIDOS - v4.0
-// Apenas lógica - templates em /participante/html/pontos-corridos.html
+// PARTICIPANTE PONTOS CORRIDOS - v4.2
+// ✅ v4.1: Correção do status EM ANDAMENTO/FINALIZADA
+// ✅ v4.2: Visualização melhorada (nome time + cartoleiro como no Ranking)
 
 const estadoPC = {
     ligaId: null,
@@ -9,6 +10,8 @@ const estadoPC = {
     totalRodadas: 31,
     dados: [],
     viewMode: "confrontos",
+    mercadoRodada: 1,
+    mercadoAberto: true,
 };
 
 // ============================================
@@ -25,6 +28,8 @@ export async function inicializarPontosCorridosParticipante(params = {}) {
     mostrarLoading();
 
     try {
+        await buscarStatusMercado();
+
         const dados = await carregarDados();
         estadoPC.dados = dados;
 
@@ -41,10 +46,30 @@ export async function inicializarPontosCorridosParticipante(params = {}) {
         }
 
         console.log(`[PONTOS-CORRIDOS] ✅ ${dados.length} rodadas carregadas`);
+        console.log(
+            `[PONTOS-CORRIDOS] 📊 Mercado: rodada ${estadoPC.mercadoRodada}, aberto: ${estadoPC.mercadoAberto}`,
+        );
         renderizarInterface();
     } catch (error) {
         console.error("[PONTOS-CORRIDOS] ❌ Erro:", error);
         mostrarErro(error.message);
+    }
+}
+
+async function buscarStatusMercado() {
+    try {
+        const response = await fetch("/api/cartola/mercado/status");
+        if (response.ok) {
+            const status = await response.json();
+            estadoPC.mercadoRodada = status.rodada_atual || 1;
+            estadoPC.mercadoAberto = status.status_mercado === 1;
+            console.log("[PONTOS-CORRIDOS] 📡 Status mercado:", {
+                rodada: estadoPC.mercadoRodada,
+                aberto: estadoPC.mercadoAberto,
+            });
+        }
+    } catch (e) {
+        console.warn("[PONTOS-CORRIDOS] ⚠️ Falha ao buscar status do mercado");
     }
 }
 
@@ -221,7 +246,8 @@ function renderizarView() {
 // ============================================
 
 function renderizarConfrontos() {
-    const { dados, rodadaSelecionada, rodadaAtual, timeId } = estadoPC;
+    const { dados, rodadaSelecionada, timeId, mercadoRodada, mercadoAberto } =
+        estadoPC;
     const container = document.getElementById("pc-lista-confrontos");
     if (!container) return;
 
@@ -237,9 +263,21 @@ function renderizarConfrontos() {
         return;
     }
 
-    // Atualizar header da rodada
+    // Header da rodada
     const rodadaBrasileirao = rodadaSelecionada + 6;
-    const isEmAndamento = rodadaSelecionada === rodadaAtual;
+    const rodadaBrasileiraoSelecionada = rodadaSelecionada + 6;
+
+    // ✅ v4.1: Verificar se a rodada está realmente em andamento
+    let isEmAndamento = false;
+    if (mercadoAberto) {
+        isEmAndamento = rodadaBrasileiraoSelecionada >= mercadoRodada;
+    } else {
+        isEmAndamento = rodadaBrasileiraoSelecionada >= mercadoRodada;
+    }
+
+    console.log(
+        `[PONTOS-CORRIDOS] 📊 Rodada ${rodadaSelecionada} PC (${rodadaBrasileiraoSelecionada} BR) | Mercado: ${mercadoRodada} | Em andamento: ${isEmAndamento}`,
+    );
 
     setTexto("pc-rodada-titulo", `${rodadaSelecionada}ª Rodada da Liga`);
     setTexto(
@@ -289,8 +327,9 @@ function processarConfrontos(rodadaData) {
     return confrontos.filter((c) => c?.time1 && c?.time2);
 }
 
+// ✅ v4.2: Confronto com nome do time + cartoleiro
 function buildLinhaConfronto(confronto, meuTimeId) {
-    const { time1, time2, diferenca, valor, tipo } = confronto;
+    const { time1, time2, diferenca } = confronto;
 
     const t1Id = time1.id || time1.timeId || time1.time_id;
     const t2Id = time2.id || time2.timeId || time2.time_id;
@@ -300,7 +339,7 @@ function buildLinhaConfronto(confronto, meuTimeId) {
     const p1 = time1.pontos ?? null;
     const p2 = time2.pontos ?? null;
 
-    // Determinar vencedor: 0=empate, 1=time1 venceu, 2=time2 venceu
+    // Determinar vencedor
     let vencedor = 0;
     let tipoResultado = "empate";
     if (p1 !== null && p2 !== null) {
@@ -317,14 +356,17 @@ function buildLinhaConfronto(confronto, meuTimeId) {
         }
     }
 
-    // Calcular valor financeiro
     const valorFinanceiro =
         tipoResultado === "goleada" ? 7 : tipoResultado === "vitoria" ? 5 : 3;
 
+    // ✅ v4.2: Nome do time e nome do cartoleiro (como no ranking)
     const nome1 =
         time1.nome || time1.nome_time || time1.nome_cartola || "Time 1";
+    const cartoleiro1 = time1.nome_cartola || time1.cartoleiro || "";
     const nome2 =
         time2.nome || time2.nome_time || time2.nome_cartola || "Time 2";
+    const cartoleiro2 = time2.nome_cartola || time2.cartoleiro || "";
+
     const esc1 =
         time1.escudo ||
         time1.url_escudo_png ||
@@ -350,7 +392,6 @@ function buildLinhaConfronto(confronto, meuTimeId) {
               : "text-yellow-500";
     const bg = isMeu1 || isMeu2 ? "bg-primary/5" : "";
 
-    // Labels para o modal
     const label1 =
         vencedor === 1 ? "Crédito" : vencedor === 2 ? "Débito" : "Empate";
     const label2 =
@@ -358,7 +399,6 @@ function buildLinhaConfronto(confronto, meuTimeId) {
     const sinal1 = vencedor === 1 ? "+" : vencedor === 2 ? "-" : "";
     const sinal2 = vencedor === 2 ? "+" : vencedor === 1 ? "-" : "";
 
-    // Mini-modal time 1
     const modal1 =
         p1 !== null
             ? `
@@ -372,7 +412,6 @@ function buildLinhaConfronto(confronto, meuTimeId) {
     `
             : "";
 
-    // Mini-modal time 2
     const modal2 =
         p2 !== null
             ? `
@@ -386,30 +425,33 @@ function buildLinhaConfronto(confronto, meuTimeId) {
     `
             : "";
 
+    // ✅ v4.2: Layout melhorado com nome do time + cartoleiro
     return `
         <div class="py-3 px-3 flex items-center justify-between ${bg}">
             <div class="flex items-center min-w-0 flex-1 ${vencedor === 2 ? "opacity-60" : ""}">
-                <img src="${esc1}" class="w-8 h-8 rounded-full mr-2.5 shrink-0 bg-zinc-700 object-cover" onerror="this.src='/assets/escudo-placeholder.png'">
-                <div class="min-w-0">
+                <img src="${esc1}" class="w-10 h-10 rounded-full mr-3 shrink-0 bg-zinc-700 object-cover" onerror="this.src='/assets/escudo-placeholder.png'">
+                <div class="min-w-0 flex-1">
                     <p class="font-semibold text-sm truncate ${isMeu1 ? "text-primary" : "text-white"}">${nome1}</p>
-                    <div class="flex items-center space-x-1.5">
+                    <p class="text-[10px] text-gray-500 truncate">${cartoleiro1}</p>
+                    <div class="flex items-center space-x-1.5 mt-0.5">
                         <p class="text-sm font-bold ${cor1}">${p1 !== null ? p1.toFixed(1) : "-"}</p>
                         ${modal1}
                     </div>
                 </div>
             </div>
-            <span class="text-sm text-white/30 mx-3 shrink-0">x</span>
+            <span class="text-sm text-white/30 mx-2 shrink-0">x</span>
             <div class="flex items-center min-w-0 flex-1 justify-end ${vencedor === 1 ? "opacity-60" : ""}">
-                <div class="min-w-0 text-right">
+                <div class="min-w-0 flex-1 text-right">
                     <p class="font-semibold text-sm truncate ${isMeu2 ? "text-primary" : "text-white"}">${nome2}</p>
-                    <div class="flex items-center justify-end space-x-1.5">
+                    <p class="text-[10px] text-gray-500 truncate">${cartoleiro2}</p>
+                    <div class="flex items-center justify-end space-x-1.5 mt-0.5">
                         <p class="text-sm font-bold ${cor2}">${p2 !== null ? p2.toFixed(1) : "-"}</p>
                         ${modal2}
                     </div>
                 </div>
-                <img src="${esc2}" class="w-8 h-8 rounded-full ml-2.5 shrink-0 bg-zinc-700 object-cover" onerror="this.src='/assets/escudo-placeholder.png'">
+                <img src="${esc2}" class="w-10 h-10 rounded-full ml-3 shrink-0 bg-zinc-700 object-cover" onerror="this.src='/assets/escudo-placeholder.png'">
             </div>
-            <div class="w-16 text-right ml-3 shrink-0">
+            <div class="w-14 text-right ml-2 shrink-0">
                 <p class="font-bold text-sm text-white">${diferenca != null ? diferenca.toFixed(1) : "-"}</p>
             </div>
         </div>
@@ -442,12 +484,14 @@ function renderizarClassificacao() {
         .join("");
 }
 
+// ✅ v4.2: Classificação com nome do time + cartoleiro
 function buildLinhaClassificacao(time, pos, total, meuTimeId) {
     const tId = time.timeId || time.time_id || time.id;
     const isMeu = tId == meuTimeId;
     const zona = getZona(pos, total);
 
     const nome = time.nome || time.nome_time || "Time";
+    const cartoleiro = time.nome_cartola || time.cartoleiro || "";
     const esc =
         time.escudo ||
         time.url_escudo_png ||
@@ -457,23 +501,26 @@ function buildLinhaClassificacao(time, pos, total, meuTimeId) {
 
     return `
         <div class="flex items-center px-3 py-2.5 ${isMeu ? "bg-primary/10" : ""}">
-            <div class="w-8 flex items-center justify-center">
+            <div class="w-8 flex items-center justify-center shrink-0">
                 ${
                     zona.badge
                         ? `<div class="w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold text-white ${zona.bg}">${pos}</div>`
                         : `<span class="text-xs font-bold text-white/70">${pos}</span>`
                 }
             </div>
-            <div class="flex-1 flex items-center gap-2 pl-2 min-w-0">
-                <img src="${esc}" class="w-6 h-6 rounded-full bg-zinc-700 object-cover shrink-0" onerror="this.src='/assets/escudo-placeholder.png'">
-                <span class="text-xs font-medium truncate ${isMeu ? "text-primary font-bold" : "text-white"}">${nome}</span>
+            <div class="flex items-center gap-2.5 pl-2 min-w-0 flex-1">
+                <img src="${esc}" class="w-8 h-8 rounded-full bg-zinc-700 object-cover shrink-0" onerror="this.src='/assets/escudo-placeholder.png'">
+                <div class="min-w-0 flex-1">
+                    <span class="text-xs font-medium truncate block ${isMeu ? "text-primary font-bold" : "text-white"}">${nome}</span>
+                    <span class="text-[10px] text-gray-500 truncate block">${cartoleiro}</span>
+                </div>
             </div>
-            <div class="w-7 text-center text-white/60 text-xs">${time.jogos || 0}</div>
-            <div class="w-7 text-center text-green-400 text-xs">${time.vitorias || 0}</div>
-            <div class="w-7 text-center text-yellow-400 text-xs">${time.empates || 0}</div>
-            <div class="w-7 text-center text-red-400 text-xs">${time.derrotas || 0}</div>
-            <div class="w-9 text-center text-white/60 text-xs">${Math.round(sg)}</div>
-            <div class="w-10 text-center text-white font-bold text-sm">${time.pontos || 0}</div>
+            <div class="w-6 text-center text-white/60 text-[10px]">${time.jogos || 0}</div>
+            <div class="w-6 text-center text-green-400 text-[10px]">${time.vitorias || 0}</div>
+            <div class="w-6 text-center text-yellow-400 text-[10px]">${time.empates || 0}</div>
+            <div class="w-6 text-center text-red-400 text-[10px]">${time.derrotas || 0}</div>
+            <div class="w-8 text-center text-white/60 text-[10px]">${Math.round(sg)}</div>
+            <div class="w-8 text-center text-white font-bold text-xs">${time.pontos || 0}</div>
         </div>
     `;
 }
@@ -548,4 +595,4 @@ window.recarregarPontosCorridos = function () {
 window.inicializarPontosCorridosParticipante =
     inicializarPontosCorridosParticipante;
 
-console.log("[PONTOS-CORRIDOS] Módulo v4.0 carregado (estrutura limpa)");
+console.log("[PONTOS-CORRIDOS] Módulo v4.2 carregado (visualização melhorada)");

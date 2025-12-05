@@ -1,6 +1,6 @@
 # 🧬 DNA DO PROJETO: super-cartola-manager
 
-> Documentação gerada automaticamente em 04/12/2025, 14:32:34
+> Documentação gerada automaticamente em 05/12/2025, 19:16:26
 > Este documento deve ser consultado ANTES de qualquer alteração no código
 
 ---
@@ -41,9 +41,9 @@
 - ✅ Relatórios
 - ✅ Estatísticas
 - ✅ Configurações
-- ✅ Dashboard
-- ✅ Notificações
 - ✅ Financeiro
+- ✅ Notificações
+- ✅ Gols
 
 ---
 
@@ -51,7 +51,7 @@
 
 ### 👤 MODO APP (Participante)
 
-**Descrição:** Aplicativo do usuário final com 38 módulos. Funcionalidades: Rodadas, Ligas, Times, Usuários, Relatórios.
+**Descrição:** Aplicativo do usuário final com 41 módulos. Funcionalidades: Rodadas, Ligas, Times, Usuários, Relatórios.
 
 **Path base:** `public/participante`
 
@@ -63,20 +63,21 @@
 - Relatórios
 - Estatísticas
 - Configurações
-- Dashboard
-- Notificações
 - Financeiro
+- Notificações
 - Gols
 - Mata-Mata
 - Ranking
 - Autenticação
+- Escalação
+- Dashboard
 
 **Módulos Detectados:**
 | Módulo | Arquivo | Tipo |
 |--------|---------|------|
 | Status | `controllers/participanteStatusController.js` | controller |
+| Gerir senhas participantes | `public/css/gerir-senhas-participantes.css` | estilo |
 | S | `public/css/modules/participantes.css` | módulo JS |
-| Gerir senhas participantes | `public/gerir-senhas-participantes.html` | template |
 | Fluxo financeiro participante | `public/js/fluxo-financeiro/fluxo-financeiro-participante.js` | arquivo |
 | S fix.js | `public/js/participantes-fix.js.bak` | arquivo |
 | Boas vindas | `public/participante/css/boas-vindas.css` | estilo |
@@ -100,7 +101,7 @@
 │                    Path: public/participante               │
 ├─────────────────────────────┴───────────────────────────────┤
 │                     🔧 BACKEND (API)                        │
-│                     122 rotas detectadas                       │
+│                     129 rotas detectadas                       │
 │                     MongoDB + Express                       │
 └─────────────────────────────────────────────────────────────┘
 ```
@@ -168,27 +169,26 @@ npm run dev
 ### Estatísticas
 | Métrica | Valor |
 |---------|-------|
-| Total de arquivos | 282 |
-| Tamanho total | 5997 KB |
-| Módulos Frontend | 89 |
-| Módulos Backend | 42 |
-| Rotas API | 122 |
+| Total de arquivos | 280 |
+| Tamanho total | 5958 KB |
+| Módulos Frontend | 91 |
+| Módulos Backend | 43 |
+| Rotas API | 129 |
 
 ### Distribuição por Tipo
-| .js | 171 |
+| .js | 176 |
 | .html | 43 |
-| .css | 21 |
-| .png | 18 |
+| .css | 22 |
+| .png | 17 |
 | .json | 12 |
-| .md | 6 |
-| .txt | 6 |
+| .md | 5 |
 | .cjs | 2 |
 | .ico | 1 |
 | .bak | 1 |
+| .nix | 1 |
 
 ### Estrutura de Pastas
 ```
-📁 attached_assets/
 📁 backups/
 📁 config/
 📁 controllers/
@@ -218,7 +218,8 @@ npm run dev
   📁 templates/
 📁 routes/
 📁 scripts/
-  ... e mais 2 pastas
+📁 services/
+  ... e mais 1 pastas
 ```
 
 ---
@@ -340,7 +341,7 @@ npm run dev
 | `GET` | `/ligas/:ligaId/status` | routes/consolidacao-routes.js |
 | `GET` | `/:ligaId/times/:timeId/cache` | routes/extratoFinanceiroCacheRoutes.js |
 
-*... e mais 92 rotas*
+*... e mais 99 rotas*
 
 
 ---
@@ -456,10 +457,10 @@ npm run dev
 - `all 0.3s ease`
 - `width 0.5s ease`
 - `all 0.3s ease !important`
-- `all 0.15s ease`
+- `border-color 0.2s`
 
 ### Z-Index
-`10`, `5`, `9999`, `10000`, `100`, `1000`, `9998`, `1001`
+`10`, `5`, `9999`, `10000`, `100`, `1000`, `1`, `9998`
 
 ### Ícones
 **Biblioteca:** `material-symbols-outlined`
@@ -501,13 +502,13 @@ npm run dev
 ## ⚠️ PONTOS CRÍTICOS
 
 ### Arquivos Mais Importados (NÃO ALTERAR SEM CUIDADO)
-- `mongoose` (usado por 39 arquivos)
-- `express` (usado por 22 arquivos)
+- `mongoose` (usado por 42 arquivos)
+- `express` (usado por 23 arquivos)
 - `fs` (usado por 10 arquivos)
 - `dotenv` (usado por 10 arquivos)
+- `node-fetch` (usado por 10 arquivos)
 - `../models/Rodada.js` (usado por 10 arquivos)
 - `path` (usado por 9 arquivos)
-- `node-fetch` (usado por 9 arquivos)
 - `../models/Liga.js` (usado por 9 arquivos)
 - `../models/Time.js` (usado por 6 arquivos)
 - `url` (usado por 5 arquivos)
