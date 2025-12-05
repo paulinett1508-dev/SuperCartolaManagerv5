@@ -1,9 +1,10 @@
 // =====================================================================
-// PARTICIPANTE-RODADA-PARCIAL.JS - v1.2
+// PARTICIPANTE-RODADA-PARCIAL.JS - v2.0
 // Exibe ranking parcial da rodada em andamento
+// CÁLCULO REAL: Busca atletas pontuados e calcula pontuação (igual admin)
 // =====================================================================
 
-console.log("[PARCIAIS] 📊 Carregando módulo v1.2...");
+console.log("[PARCIAIS] 📊 Carregando módulo v2.0...");
 
 // Estado do módulo
 let estadoParciais = {
@@ -12,7 +13,10 @@ let estadoParciais = {
     rodadaAtual: null,
     mercadoStatus: null,
     timesLiga: [],
+    timesInativos: [],
     dadosParciais: [],
+    dadosInativos: [],
+    atletasPontuados: null, // ✅ Cache dos atletas pontuados
     isCarregando: false,
     ultimaAtualizacao: null,
 };
@@ -21,7 +25,7 @@ let estadoParciais = {
 // INICIALIZAÇÃO - Chamado pelo participante-rodadas.js
 // =====================================================================
 export async function inicializarParciais(ligaId, timeId) {
-    console.log("[PARCIAIS] 🚀 Inicializando...", { ligaId, timeId });
+    console.log("[PARCIAIS] 🚀 Inicializando v2.0...", { ligaId, timeId });
 
     estadoParciais.ligaId = ligaId;
     estadoParciais.timeId = timeId;
@@ -40,8 +44,6 @@ export async function inicializarParciais(ligaId, timeId) {
         estadoParciais.mercadoStatus = status;
 
         // 2. Verificar se há rodada em andamento
-        // status_mercado: 1 = aberto, 2 = fechado (jogos em andamento ou finalizados antes de abrir)
-        // bola_rolando: true = jogos acontecendo agora
         const rodadaEmAndamento =
             status.status_mercado === 2 || status.bola_rolando;
 
@@ -63,22 +65,53 @@ export async function inicializarParciais(ligaId, timeId) {
             return { disponivel: false, motivo: "sem_times" };
         }
 
-        estadoParciais.timesLiga = times;
+        // 4. Separar ativos e inativos
+        const { ativos, inativos } = separarTimesAtivosInativos(times);
+        estadoParciais.timesLiga = ativos;
+        estadoParciais.timesInativos = inativos;
 
         console.log(
-            `[PARCIAIS] ✅ Pronto: Rodada ${status.rodada_atual}, ${times.length} times`,
+            `[PARCIAIS] ✅ Pronto: Rodada ${status.rodada_atual}, ${ativos.length} ativos, ${inativos.length} inativos`,
         );
 
         return {
             disponivel: true,
             rodada: status.rodada_atual,
-            totalTimes: times.length,
+            totalTimes: ativos.length,
+            totalInativos: inativos.length,
             bolaRolando: status.bola_rolando,
         };
     } catch (error) {
         console.error("[PARCIAIS] ❌ Erro na inicialização:", error);
         return { disponivel: false, motivo: "erro", erro: error.message };
     }
+}
+
+// =====================================================================
+// SEPARAR TIMES ATIVOS E INATIVOS
+// =====================================================================
+function separarTimesAtivosInativos(times) {
+    const ativos = [];
+    const inativos = [];
+
+    times.forEach((time) => {
+        const isAtivo = time.ativo !== false;
+
+        if (isAtivo) {
+            ativos.push(time);
+        } else {
+            inativos.push({
+                ...time,
+                rodada_desistencia: time.rodada_desistencia || null,
+            });
+        }
+    });
+
+    inativos.sort(
+        (a, b) => (b.rodada_desistencia || 0) - (a.rodada_desistencia || 0),
+    );
+
+    return { ativos, inativos };
 }
 
 // =====================================================================
@@ -104,10 +137,13 @@ async function buscarTimesLiga(ligaId) {
         if (!response.ok) throw new Error(`HTTP ${response.status}`);
         const data = await response.json();
 
-        // Normalizar estrutura (pode vir como array ou objeto com propriedade times)
-        return Array.isArray(data)
+        const times = Array.isArray(data)
             ? data
             : data.times || data.participantes || [];
+
+        console.log(`[PARCIAIS] 📋 Times da liga: ${times.length} total`);
+
+        return times;
     } catch (error) {
         console.error("[PARCIAIS] Erro ao buscar times:", error);
         return [];
@@ -115,7 +151,44 @@ async function buscarTimesLiga(ligaId) {
 }
 
 // =====================================================================
-// CARREGAR PARCIAIS - Busca pontuação de cada time
+// BUSCAR ATLETAS PONTUADOS (tempo real)
+// =====================================================================
+async function buscarAtletasPontuados() {
+    try {
+        const timestamp = Date.now();
+        const response = await fetch(
+            `/api/cartola/atletas/pontuados?_t=${timestamp}`,
+            {
+                cache: "no-store",
+                headers: {
+                    "Cache-Control": "no-cache, no-store, must-revalidate",
+                    Pragma: "no-cache",
+                    Expires: "0",
+                },
+            },
+        );
+
+        if (!response.ok) throw new Error(`HTTP ${response.status}`);
+
+        const data = await response.json();
+
+        if (!data.atletas) {
+            console.warn("[PARCIAIS] ⚠️ Sem atletas pontuados na resposta");
+            return {};
+        }
+
+        console.log(
+            `[PARCIAIS] 🔥 ${Object.keys(data.atletas).length} atletas pontuados`,
+        );
+        return data.atletas;
+    } catch (error) {
+        console.error("[PARCIAIS] Erro ao buscar atletas pontuados:", error);
+        return {};
+    }
+}
+
+// =====================================================================
+// CARREGAR PARCIAIS - Busca e calcula pontuação real
 // =====================================================================
 export async function carregarParciais() {
     if (estadoParciais.isCarregando) {
@@ -124,56 +197,105 @@ export async function carregarParciais() {
     }
 
     if (!estadoParciais.timesLiga.length) {
-        console.warn("[PARCIAIS] ⚠️ Sem times para buscar");
+        console.warn("[PARCIAIS] ⚠️ Sem times ativos para buscar");
         return null;
     }
 
     estadoParciais.isCarregando = true;
     console.log(
-        `[PARCIAIS] 🔄 Buscando parciais de ${estadoParciais.timesLiga.length} times...`,
+        `[PARCIAIS] 🔄 Buscando parciais de ${estadoParciais.timesLiga.length} times ativos...`,
     );
 
     const rodada = estadoParciais.rodadaAtual;
-    const resultados = [];
 
-    // Buscar em paralelo com limite de concorrência
-    const BATCH_SIZE = 5;
-    const times = estadoParciais.timesLiga;
+    try {
+        // ✅ PASSO 1: Buscar TODOS os atletas pontuados (uma única requisição)
+        const atletasPontuados = await buscarAtletasPontuados();
+        estadoParciais.atletasPontuados = atletasPontuados;
 
-    for (let i = 0; i < times.length; i += BATCH_SIZE) {
-        const batch = times.slice(i, i + BATCH_SIZE);
-        const promises = batch.map((time) => buscarPontuacaoTime(time, rodada));
-        const batchResults = await Promise.all(promises);
-        resultados.push(...batchResults.filter(Boolean));
+        if (Object.keys(atletasPontuados).length === 0) {
+            console.warn("[PARCIAIS] ⚠️ Nenhum atleta pontuado ainda");
+            estadoParciais.isCarregando = false;
+            return {
+                rodada,
+                participantes: [],
+                inativos: [],
+                totalTimes: 0,
+                totalInativos: 0,
+                atualizadoEm: new Date(),
+            };
+        }
+
+        // ✅ PASSO 2: Buscar escalação de cada time e calcular pontos
+        const resultados = [];
+        const BATCH_SIZE = 5;
+        const times = estadoParciais.timesLiga;
+
+        for (let i = 0; i < times.length; i += BATCH_SIZE) {
+            const batch = times.slice(i, i + BATCH_SIZE);
+            const promises = batch.map((time) =>
+                buscarECalcularPontuacao(time, rodada, atletasPontuados),
+            );
+            const batchResults = await Promise.all(promises);
+            resultados.push(...batchResults.filter(Boolean));
+        }
+
+        // Ordenar por pontuação (maior primeiro)
+        resultados.sort((a, b) => (b.pontos || 0) - (a.pontos || 0));
+
+        // Adicionar posição
+        resultados.forEach((r, idx) => {
+            r.posicao = idx + 1;
+        });
+
+        // ✅ DEBUG: Ver ranking final
+        console.log("[PARCIAIS] 📊 Ranking Final:");
+        resultados.forEach((r) => {
+            console.log(
+                `  ${r.posicao}º ${r.nome_time}: ${r.pontos.toFixed(2)} pts`,
+            );
+        });
+
+        estadoParciais.dadosParciais = resultados;
+        estadoParciais.ultimaAtualizacao = new Date();
+
+        // Preparar dados de inativos
+        estadoParciais.dadosInativos = estadoParciais.timesInativos.map(
+            (time) => ({
+                timeId: time.id || time.time_id,
+                nome_time: time.nome_time || time.nome || "N/D",
+                nome_cartola: time.nome_cartola || time.cartoleiro || "N/D",
+                escudo: time.url_escudo_png || time.escudo || null,
+                ativo: false,
+                rodada_desistencia: time.rodada_desistencia || null,
+            }),
+        );
+
+        console.log(
+            `[PARCIAIS] ✅ ${resultados.length} ativos, ${estadoParciais.dadosInativos.length} inativos`,
+        );
+
+        return {
+            rodada,
+            participantes: resultados,
+            inativos: estadoParciais.dadosInativos,
+            totalTimes: resultados.length,
+            totalInativos: estadoParciais.dadosInativos.length,
+            atualizadoEm: estadoParciais.ultimaAtualizacao,
+        };
+    } catch (error) {
+        console.error("[PARCIAIS] ❌ Erro ao carregar parciais:", error);
+        return null;
+    } finally {
+        estadoParciais.isCarregando = false;
     }
-
-    // Ordenar por pontuação (maior primeiro)
-    resultados.sort((a, b) => (b.pontos || 0) - (a.pontos || 0));
-
-    // Adicionar posição
-    resultados.forEach((r, idx) => {
-        r.posicao = idx + 1;
-    });
-
-    estadoParciais.dadosParciais = resultados;
-    estadoParciais.ultimaAtualizacao = new Date();
-    estadoParciais.isCarregando = false;
-
-    console.log(`[PARCIAIS] ✅ ${resultados.length} times carregados`);
-
-    return {
-        rodada,
-        participantes: resultados,
-        totalTimes: resultados.length,
-        atualizadoEm: estadoParciais.ultimaAtualizacao,
-    };
 }
 
 // =====================================================================
-// BUSCAR PONTUAÇÃO DE UM TIME
+// BUSCAR ESCALAÇÃO E CALCULAR PONTUAÇÃO (mesma lógica do admin)
 // =====================================================================
-async function buscarPontuacaoTime(time, rodada) {
-    const timeId = time.time_id || time.timeId || time.id;
+async function buscarECalcularPontuacao(time, rodada, atletasPontuados) {
+    const timeId = time.id || time.time_id || time.timeId;
 
     if (!timeId) {
         console.warn("[PARCIAIS] Time sem ID:", time);
@@ -181,52 +303,123 @@ async function buscarPontuacaoTime(time, rodada) {
     }
 
     try {
-        // Usar rota do cartola-proxy montada em /api/cartola (tem /time/id/:timeId/:rodada)
-        let response = await fetch(`/api/cartola/time/id/${timeId}/${rodada}`);
+        const timestamp = Date.now();
 
-        // Se falhar, tentar a rota alternativa (tem /time/:id/:rodada sem o "id/" no meio)
-        if (!response.ok) {
-            response = await fetch(`/api/cartola/time/${timeId}/${rodada}`);
-        }
+        // Buscar escalação do time
+        const response = await fetch(
+            `/api/cartola/time/id/${timeId}/${rodada}?_t=${timestamp}`,
+            {
+                cache: "no-store",
+                headers: {
+                    "Cache-Control": "no-cache, no-store, must-revalidate",
+                    Pragma: "no-cache",
+                },
+            },
+        );
 
         if (!response.ok) {
-            // Time pode não ter escalado
             if (response.status === 404) {
                 return {
                     timeId,
                     nome_time: time.nome_time || time.nome || "N/D",
                     nome_cartola: time.nome_cartola || time.cartoleiro || "N/D",
+                    escudo: time.url_escudo_png || time.escudo || null,
                     pontos: 0,
                     rodadaNaoJogada: true,
+                    ativo: true,
                 };
             }
             throw new Error(`HTTP ${response.status}`);
         }
 
-        const data = await response.json();
+        const dadosEscalacao = await response.json();
 
-        // Estrutura do cartola-proxy: { time: {...}, pontos: X, atletas: [...] }
+        // ✅ CALCULAR PONTUAÇÃO (igual ao admin)
+        let pontos = 0;
+        const posicoesQuePontuaram = new Set();
+
+        // Somar pontos dos TITULARES
+        if (dadosEscalacao.atletas && Array.isArray(dadosEscalacao.atletas)) {
+            dadosEscalacao.atletas.forEach((atleta) => {
+                const atletaPontuado = atletasPontuados[atleta.atleta_id];
+                const pontuacao = atletaPontuado?.pontuacao || 0;
+                const entrouEmCampo = atletaPontuado?.entrou_em_campo;
+
+                // Verificar se atleta entrou em campo
+                if (entrouEmCampo || pontuacao !== 0) {
+                    posicoesQuePontuaram.add(atleta.posicao_id);
+                }
+
+                // Capitão pontua em dobro
+                if (atleta.atleta_id === dadosEscalacao.capitao_id) {
+                    pontos += pontuacao * 2;
+                } else {
+                    pontos += pontuacao;
+                }
+            });
+        }
+
+        // Somar pontos dos RESERVAS
+        if (dadosEscalacao.reservas && Array.isArray(dadosEscalacao.reservas)) {
+            dadosEscalacao.reservas.forEach((atleta) => {
+                const atletaPontuado = atletasPontuados[atleta.atleta_id];
+                const pontuacao = atletaPontuado?.pontuacao || 0;
+                const entrouEmCampo = atletaPontuado?.entrou_em_campo;
+
+                // Reserva de luxo pontua 1.5x se entrou em campo
+                if (
+                    atleta.atleta_id === dadosEscalacao.reserva_luxo_id &&
+                    entrouEmCampo
+                ) {
+                    pontos += pontuacao * 1.5;
+                }
+                // Reserva comum substitui titular que não pontuou (só um por posição)
+                else if (
+                    !posicoesQuePontuaram.has(atleta.posicao_id) &&
+                    entrouEmCampo
+                ) {
+                    pontos += pontuacao;
+                    posicoesQuePontuaram.add(atleta.posicao_id);
+                }
+            });
+        }
+
+        // Extrair dados do time
+        const nomeTime =
+            dadosEscalacao.time?.nome || time.nome_time || time.nome || "N/D";
+        const nomeCartola =
+            dadosEscalacao.time?.nome_cartola || time.nome_cartola || "N/D";
+        const escudo =
+            dadosEscalacao.time?.url_escudo_png ||
+            time.url_escudo_png ||
+            time.escudo ||
+            null;
+
         return {
             timeId,
-            nome_time: data.time?.nome || time.nome_time || time.nome || "N/D",
-            nome_cartola: data.time?.nome_cartola || time.nome_cartola || "N/D",
-            pontos: data.pontos || 0,
-            pontos_parcial: data.pontos || 0,
-            patrimonio: data.time?.patrimonio || 0,
-            rodadaNaoJogada: !data.atletas || data.atletas.length === 0,
-            escudo: data.time?.url_escudo_png || time.escudo || null,
+            nome_time: nomeTime,
+            nome_cartola: nomeCartola,
+            escudo: escudo,
+            pontos: pontos,
+            pontos_parcial: pontos,
+            patrimonio: dadosEscalacao.time?.patrimonio || 0,
+            rodadaNaoJogada:
+                !dadosEscalacao.atletas || dadosEscalacao.atletas.length === 0,
+            ativo: true,
         };
     } catch (error) {
         console.warn(
-            `[PARCIAIS] Erro ao buscar time ${timeId}:`,
+            `[PARCIAIS] Erro ao calcular time ${timeId}:`,
             error.message,
         );
         return {
             timeId,
             nome_time: time.nome_time || time.nome || "N/D",
             nome_cartola: time.nome_cartola || "N/D",
+            escudo: time.url_escudo_png || time.escudo || null,
             pontos: 0,
             erro: true,
+            ativo: true,
         };
     }
 }
@@ -238,10 +431,19 @@ export function obterDadosParciais() {
     return {
         rodada: estadoParciais.rodadaAtual,
         participantes: estadoParciais.dadosParciais,
+        inativos: estadoParciais.dadosInativos,
         totalTimes: estadoParciais.dadosParciais.length,
+        totalInativos: estadoParciais.dadosInativos.length,
         atualizadoEm: estadoParciais.ultimaAtualizacao,
         meuTimeId: estadoParciais.timeId,
     };
+}
+
+// =====================================================================
+// OBTER TIMES INATIVOS
+// =====================================================================
+export function obterTimesInativos() {
+    return estadoParciais.dadosInativos || [];
 }
 
 // =====================================================================
@@ -288,9 +490,10 @@ window.ParciaisModule = {
     inicializar: inicializarParciais,
     carregar: carregarParciais,
     obterDados: obterDadosParciais,
+    obterInativos: obterTimesInativos,
     obterMinhaPosicao: obterMinhaPosicaoParcial,
     disponivel: parciaisDisponiveis,
     rodadaAtual: obterRodadaAtual,
 };
 
-console.log("[PARCIAIS] ✅ Módulo v1.2 carregado");
+console.log("[PARCIAIS] ✅ Módulo v2.0 carregado (cálculo real como admin)");

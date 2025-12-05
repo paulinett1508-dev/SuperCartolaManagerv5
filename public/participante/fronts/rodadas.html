@@ -1,4 +1,4 @@
-<!-- PARTICIPANTE RODADAS - v3.1 Design Compacto + Parciais -->
+<!-- PARTICIPANTE RODADAS - v3.2 Suporte a Inativos -->
 <div class="rodadas-participante-container">
     <!-- Header -->
     <div class="rodadas-header-pro">
@@ -47,7 +47,7 @@
 
     <!-- Estado Vazio -->
     <div id="rodadasEmpty" class="rodadas-empty-state" style="display: none">
-        <span class="empty-emoji">🔭</span>
+        <span class="empty-emoji">📭</span>
         <h3>Nenhuma rodada disponível</h3>
         <p>As rodadas aparecerão aqui quando o campeonato começar</p>
     </div>
@@ -83,7 +83,7 @@
 
 <style>
     /* ============================================
-   RODADAS PARTICIPANTE v3.1 - Design Compacto + Parciais
+   RODADAS PARTICIPANTE v3.2 - Suporte a Inativos
    ============================================ */
 
     .rodadas-participante-container {
@@ -260,6 +260,26 @@
         border-color: #404040;
     }
 
+    /* Card Parcial (em andamento) */
+    .rodada-card-compacto.parcial {
+        border-color: #eab308;
+        animation: pulse-parcial 2s ease-in-out infinite;
+    }
+
+    .rodada-card-compacto.parcial .card-pontos {
+        color: #eab308;
+    }
+
+    @keyframes pulse-parcial {
+        0%,
+        100% {
+            box-shadow: 0 0 0 0 rgba(234, 179, 8, 0.3);
+        }
+        50% {
+            box-shadow: 0 0 0 4px rgba(234, 179, 8, 0.1);
+        }
+    }
+
     /* Conteúdo do Card */
     .card-numero {
         font-size: 13px;
@@ -291,140 +311,6 @@
         right: -6px;
         font-size: 14px;
     }
-
-    /* ============================================
-       PARCIAIS - RODADA EM ANDAMENTO
-       ============================================ */
-
-    /* Card da rodada em andamento */
-    .rodada-card-compacto.parcial,
-    .rodada-card-compacto.em-andamento {
-        background: linear-gradient(
-            135deg,
-            rgba(34, 197, 94, 0.2) 0%,
-            rgba(34, 197, 94, 0.05) 100%
-        ) !important;
-        border: 2px solid rgba(34, 197, 94, 0.5) !important;
-        animation: pulse-parcial 2s ease-in-out infinite;
-    }
-
-    @keyframes pulse-parcial {
-        0%,
-        100% {
-            box-shadow: 0 0 0 0 rgba(34, 197, 94, 0.4);
-        }
-        50% {
-            box-shadow: 0 0 0 8px rgba(34, 197, 94, 0);
-        }
-    }
-
-    .rodada-card-compacto.parcial .card-numero {
-        color: #22c55e;
-        font-weight: 700;
-    }
-
-    .rodada-card-compacto.parcial .card-pontos {
-        color: #22c55e;
-        font-size: 16px;
-    }
-
-    /* Badge "ao vivo" no card */
-    .badge-ao-vivo {
-        position: absolute;
-        top: 4px;
-        right: 4px;
-        color: #22c55e;
-        font-size: 10px;
-        animation: blink 1s ease-in-out infinite;
-    }
-
-    @keyframes blink {
-        0%,
-        100% {
-            opacity: 1;
-        }
-        50% {
-            opacity: 0.3;
-        }
-    }
-
-    /* Badge "EM ANDAMENTO" no título */
-    .badge-parcial {
-        display: inline-flex;
-        align-items: center;
-        gap: 4px;
-        background: linear-gradient(135deg, #22c55e, #16a34a);
-        color: white;
-        font-size: 10px;
-        font-weight: 700;
-        padding: 4px 10px;
-        border-radius: 20px;
-        margin-left: 8px;
-        text-transform: uppercase;
-        letter-spacing: 0.5px;
-        animation: pulse-badge 2s ease-in-out infinite;
-    }
-
-    @keyframes pulse-badge {
-        0%,
-        100% {
-            opacity: 1;
-        }
-        50% {
-            opacity: 0.7;
-        }
-    }
-
-    .badge-parcial::before {
-        content: "●";
-        font-size: 8px;
-        animation: blink 1s ease-in-out infinite;
-    }
-
-    /* Badge "N/E" (não escalou) */
-    .badge-nao-jogou {
-        display: inline-flex;
-        background: rgba(239, 68, 68, 0.2);
-        color: #ef4444;
-        font-size: 9px;
-        font-weight: 600;
-        padding: 2px 6px;
-        border-radius: 4px;
-        margin-left: 6px;
-    }
-
-    /* Botão atualizar parciais */
-    .btn-atualizar-parciais {
-        display: inline-flex;
-        align-items: center;
-        gap: 8px;
-        padding: 12px 24px;
-        background: linear-gradient(135deg, #22c55e, #16a34a);
-        color: white;
-        border: none;
-        border-radius: 10px;
-        font-size: 14px;
-        font-weight: 600;
-        cursor: pointer;
-        transition: all 0.2s ease;
-    }
-
-    .btn-atualizar-parciais:hover {
-        transform: translateY(-2px);
-        box-shadow: 0 4px 12px rgba(34, 197, 94, 0.3);
-    }
-
-    .btn-atualizar-parciais:active {
-        transform: translateY(0);
-    }
-
-    .btn-atualizar-parciais .material-icons {
-        font-size: 18px;
-    }
-
-    /* ============================================
-       FIM PARCIAIS
-       ============================================ */
 
     /* Botão Ver Jogadores */
     .rodadas-ver-jogadores {
@@ -532,6 +418,32 @@
         background: rgba(0, 0, 0, 0.3);
     }
 
+    /* Badge parcial */
+    .badge-parcial {
+        display: inline-block;
+        padding: 3px 8px;
+        background: #eab308;
+        color: #000;
+        font-size: 10px;
+        font-weight: 700;
+        border-radius: 4px;
+        margin-left: 8px;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+    }
+
+    /* Badge não escalou */
+    .badge-nao-jogou {
+        display: inline-block;
+        padding: 2px 6px;
+        background: rgba(239, 68, 68, 0.2);
+        color: #ef4444;
+        font-size: 9px;
+        font-weight: 600;
+        border-radius: 4px;
+        margin-left: 6px;
+    }
+
     /* Ranking List */
     .ranking-container-pro {
         padding: 16px;
@@ -563,6 +475,68 @@
     .ranking-item-pro.meu-time {
         background: rgba(34, 197, 94, 0.15);
         border: 1px solid rgba(34, 197, 94, 0.3);
+    }
+
+    /* ============================================
+   PARTICIPANTES INATIVOS - Escala de Cinza
+   ============================================ */
+
+    .ranking-item-pro.inativo {
+        background: #1a1a1a;
+        opacity: 0.5;
+        filter: grayscale(100%);
+    }
+
+    .ranking-item-pro.inativo:hover {
+        opacity: 0.7;
+    }
+
+    .ranking-item-pro.inativo .ranking-nome-time {
+        color: #6b7280;
+        text-decoration: line-through;
+        text-decoration-color: rgba(107, 114, 128, 0.5);
+    }
+
+    .ranking-item-pro.inativo .ranking-nome-cartola {
+        color: #525252;
+    }
+
+    .ranking-inativo-info {
+        font-size: 11px;
+        font-weight: 500;
+        color: #6b7280;
+        background: rgba(107, 114, 128, 0.15);
+        padding: 3px 8px;
+        border-radius: 4px;
+    }
+
+    .posicao-badge-pro.pos-inativo {
+        background: #333;
+        color: #6b7280;
+    }
+
+    /* Seção de Inativos */
+    .secao-inativos {
+        margin-top: 24px;
+        padding-top: 16px;
+        border-top: 1px dashed rgba(107, 114, 128, 0.3);
+    }
+
+    .secao-inativos-header {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        padding: 8px 12px;
+        margin-bottom: 12px;
+        color: #6b7280;
+        font-size: 12px;
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+    }
+
+    .secao-inativos-header .material-icons {
+        font-size: 16px;
     }
 
     /* Posição Badge */
@@ -657,6 +631,30 @@
         color: #ef4444;
     }
 
+    /* Botão Atualizar Parciais */
+    .btn-atualizar-parciais {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        padding: 12px 24px;
+        background: rgba(234, 179, 8, 0.15);
+        border: 1px solid rgba(234, 179, 8, 0.3);
+        border-radius: 8px;
+        color: #eab308;
+        font-size: 13px;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.2s ease;
+    }
+
+    .btn-atualizar-parciais:hover {
+        background: rgba(234, 179, 8, 0.25);
+    }
+
+    .btn-atualizar-parciais .material-icons {
+        font-size: 18px;
+    }
+
     /* ============================================
    TOAST DE DESENVOLVIMENTO
    ============================================ */
@@ -709,16 +707,6 @@
 
         .card-pontos {
             font-size: 9px;
-        }
-
-        .badge-parcial {
-            font-size: 9px;
-            padding: 3px 8px;
-        }
-
-        .btn-atualizar-parciais {
-            padding: 10px 20px;
-            font-size: 13px;
         }
     }
 

@@ -1,8 +1,8 @@
 // =====================================================================
-// PARTICIPANTE-RODADAS.JS - v3.1 (Integração Parciais)
+// PARTICIPANTE-RODADAS.JS - v3.2 (Suporte a Inativos)
 // =====================================================================
 
-console.log("[PARTICIPANTE-RODADAS] 📄 Carregando módulo v3.1...");
+console.log("[PARTICIPANTE-RODADAS] 📄 Carregando módulo v3.2...");
 
 // Importar módulo de parciais
 import * as ParciaisModule from "./participante-rodada-parcial.js";
@@ -79,7 +79,7 @@ export async function inicializarRodadasParticipante({
     ligaId: ligaIdParam,
     timeId,
 }) {
-    console.log("[PARTICIPANTE-RODADAS] 🚀 Inicializando v3.1...", {
+    console.log("[PARTICIPANTE-RODADAS] 🚀 Inicializando v3.2...", {
         ligaIdParam,
         timeId,
     });
@@ -97,7 +97,13 @@ export async function inicializarRodadasParticipante({
         parciaisInfo = await ParciaisModule.inicializarParciais(ligaId, timeId);
         console.log("[PARTICIPANTE-RODADAS] 📊 Parciais:", parciaisInfo);
 
-        // 3. Buscar rodadas consolidadas
+        // 3. Buscar status de ativo/inativo dos times
+        const timesStatus = await buscarTimesStatus(ligaId);
+        console.log(
+            `[PARTICIPANTE-RODADAS] 👥 ${Object.keys(timesStatus).length} times com status`,
+        );
+
+        // 4. Buscar rodadas consolidadas
         const response = await fetch(
             `/api/rodadas/${ligaId}/rodadas?inicio=1&fim=38`,
         );
@@ -110,8 +116,8 @@ export async function inicializarRodadasParticipante({
             `[PARTICIPANTE-RODADAS] 📊 ${rodadas.length} registros recebidos`,
         );
 
-        // 4. Agrupar rodadas por número
-        const rodadasAgrupadas = agruparRodadasPorNumero(rodadas);
+        // 5. Agrupar rodadas por número (com status de inativos)
+        const rodadasAgrupadas = agruparRodadasPorNumero(rodadas, timesStatus);
         todasRodadasCache = rodadasAgrupadas;
 
         mostrarLoading(false);
@@ -121,10 +127,10 @@ export async function inicializarRodadasParticipante({
             return;
         }
 
-        // 5. Renderizar grid compacto
+        // 6. Renderizar grid compacto
         renderizarGridCompacto(rodadasAgrupadas);
 
-        // 6. Se parciais disponíveis, destacar rodada atual
+        // 7. Se parciais disponíveis, destacar rodada atual
         if (parciaisInfo?.disponivel) {
             destacarRodadaEmAndamento(parciaisInfo.rodada);
         }
@@ -136,6 +142,39 @@ export async function inicializarRodadasParticipante({
 }
 
 window.inicializarRodadasParticipante = inicializarRodadasParticipante;
+
+// =====================================================================
+// BUSCAR STATUS DOS TIMES (ativo/inativo)
+// =====================================================================
+async function buscarTimesStatus(ligaId) {
+    try {
+        const response = await fetch(`/api/ligas/${ligaId}/times`);
+        if (!response.ok) return {};
+
+        const times = await response.json();
+        const statusMap = {};
+
+        (Array.isArray(times) ? times : []).forEach((time) => {
+            const id = time.id || time.time_id;
+            if (id) {
+                statusMap[id] = {
+                    ativo: time.ativo !== false,
+                    rodada_desistencia: time.rodada_desistencia || null,
+                    nome_time: time.nome_time || time.nome,
+                    nome_cartola: time.nome_cartola,
+                };
+            }
+        });
+
+        return statusMap;
+    } catch (error) {
+        console.warn(
+            "[PARTICIPANTE-RODADAS] ⚠️ Erro ao buscar status dos times:",
+            error,
+        );
+        return {};
+    }
+}
 
 // =====================================================================
 // BUSCAR RODADA ATUAL
@@ -160,7 +199,7 @@ async function buscarRodadaAtual() {
 // =====================================================================
 // AGRUPAMENTO
 // =====================================================================
-function agruparRodadasPorNumero(rodadas) {
+function agruparRodadasPorNumero(rodadas, timesStatus = {}) {
     const rodadasMap = new Map();
 
     rodadas.forEach((r) => {
@@ -176,9 +215,19 @@ function agruparRodadasPorNumero(rodadas) {
         }
 
         const rodadaData = rodadasMap.get(rodadaNum);
-        rodadaData.participantes.push(r);
 
-        if (String(r.timeId) === String(meuTimeId)) {
+        // Enriquecer com status de ativo/inativo
+        const timeId = r.timeId || r.time_id;
+        const status = timesStatus[timeId];
+        const participanteEnriquecido = {
+            ...r,
+            ativo: status ? status.ativo : true,
+            rodada_desistencia: status ? status.rodada_desistencia : null,
+        };
+
+        rodadaData.participantes.push(participanteEnriquecido);
+
+        if (String(timeId) === String(meuTimeId)) {
             rodadaData.meusPontos = r.pontos || 0;
             rodadaData.jogou = !r.rodadaNaoJogada;
             rodadaData.posicaoFinanceira = r.posicaoFinanceira;
@@ -442,7 +491,9 @@ async function carregarERenderizarParciais(numeroRodada) {
             rodadaData.meusPontos = minhaPosicao.pontos;
         }
 
-        renderizarDetalhamentoRodada(rodadaData, true);
+        // ✅ Passar inativos separadamente
+        const inativos = dados.inativos || [];
+        renderizarDetalhamentoRodada(rodadaData, true, inativos);
 
         // Atualizar resumo
         if (resumo) {
@@ -452,7 +503,11 @@ async function carregarERenderizarParciais(numeroRodada) {
                       minute: "2-digit",
                   })
                 : "--:--";
-            resumo.innerHTML = `${dados.totalTimes} participantes • Sua posição: ${minhaPosicao?.posicao || "-"}º 
+            const infoInativos =
+                inativos.length > 0
+                    ? ` • ${inativos.length} inativo${inativos.length > 1 ? "s" : ""}`
+                    : "";
+            resumo.innerHTML = `${dados.totalTimes} participantes • Sua posição: ${minhaPosicao?.posicao || "-"}º${infoInativos}
                 <span style="color: #6b7280; font-size: 11px;"> • Atualizado às ${horaAtualizacao}</span>`;
         }
     } catch (error) {
@@ -479,7 +534,11 @@ async function carregarERenderizarParciais(numeroRodada) {
 // =====================================================================
 // DETALHAMENTO DA RODADA
 // =====================================================================
-function renderizarDetalhamentoRodada(rodadaData, isParcial = false) {
+function renderizarDetalhamentoRodada(
+    rodadaData,
+    isParcial = false,
+    inativos = [],
+) {
     const titulo = document.getElementById("rodadaTitulo");
     if (titulo) {
         if (isParcial) {
@@ -489,15 +548,40 @@ function renderizarDetalhamentoRodada(rodadaData, isParcial = false) {
         }
     }
 
-    const resumo = document.getElementById("rodadaResumo");
-    if (resumo && !isParcial) {
-        const total = rodadaData.participantes.length;
-        const minhaPosicao = rodadaData.posicaoFinanceira || "-";
-        resumo.textContent = `${total} participantes • Sua posição: ${minhaPosicao}º`;
+    // Separar ativos de inativos nos dados consolidados
+    const todosParticipantes = rodadaData.participantes || [];
+
+    // Filtrar: se veio lista de inativos separada (parciais), usar ela
+    // Se não, verificar campo ativo em cada participante
+    let participantesAtivos = [];
+    let participantesInativos = inativos.length > 0 ? inativos : [];
+
+    if (inativos.length === 0) {
+        // Separar baseado no campo ativo
+        todosParticipantes.forEach((p) => {
+            if (p.ativo === false) {
+                participantesInativos.push(p);
+            } else {
+                participantesAtivos.push(p);
+            }
+        });
+    } else {
+        participantesAtivos = todosParticipantes;
     }
 
-    // Ordenar participantes por pontuação
-    const participantesOrdenados = [...rodadaData.participantes].sort(
+    const resumo = document.getElementById("rodadaResumo");
+    if (resumo && !isParcial) {
+        const totalAtivos = participantesAtivos.length;
+        const minhaPosicao = rodadaData.posicaoFinanceira || "-";
+        const infoInativos =
+            participantesInativos.length > 0
+                ? ` • ${participantesInativos.length} inativo${participantesInativos.length > 1 ? "s" : ""}`
+                : "";
+        resumo.textContent = `${totalAtivos} participantes • Sua posição: ${minhaPosicao}º${infoInativos}`;
+    }
+
+    // Ordenar participantes ativos por pontuação
+    const participantesOrdenados = [...participantesAtivos].sort(
         (a, b) => (b.pontos || 0) - (a.pontos || 0),
     );
 
@@ -506,7 +590,8 @@ function renderizarDetalhamentoRodada(rodadaData, isParcial = false) {
 
     if (!container) return;
 
-    const html = participantesOrdenados
+    // Renderizar ranking de ATIVOS
+    let html = participantesOrdenados
         .map((participante, index) => {
             const timeId = participante.timeId || participante.time_id;
             const isMeuTime = String(timeId) === String(meuTimeId);
@@ -575,6 +660,11 @@ function renderizarDetalhamentoRodada(rodadaData, isParcial = false) {
         })
         .join("");
 
+    // Adicionar seção de INATIVOS (se houver)
+    if (participantesInativos.length > 0) {
+        html += renderizarSecaoInativos(participantesInativos);
+    }
+
     container.innerHTML =
         html ||
         '<div style="text-align: center; padding: 40px; color: #6b7280;">Nenhum dado disponível</div>';
@@ -594,6 +684,49 @@ function renderizarDetalhamentoRodada(rodadaData, isParcial = false) {
         `,
         );
     }
+}
+
+// =====================================================================
+// RENDERIZAR SEÇÃO DE INATIVOS (Escala de cinza)
+// =====================================================================
+function renderizarSecaoInativos(inativos) {
+    if (!inativos || inativos.length === 0) return "";
+
+    const items = inativos
+        .map((p) => {
+            const nomeTime = p.nome || p.nome_time || "N/D";
+            const nomeCartola = p.nome_cartola || "N/D";
+            const rodadaDesist = p.rodada_desistencia;
+            const rodadaInfo = rodadaDesist
+                ? `Saiu na R${rodadaDesist}`
+                : "Inativo";
+
+            return `
+            <div class="ranking-item-pro inativo">
+                <div class="posicao-badge-pro pos-inativo">
+                    <span class="material-icons" style="font-size: 14px;">block</span>
+                </div>
+                <div class="ranking-info-pro">
+                    <div class="ranking-nome-time">${nomeTime}</div>
+                    <div class="ranking-nome-cartola">${nomeCartola}</div>
+                </div>
+                <div class="ranking-stats-pro">
+                    <div class="ranking-inativo-info">${rodadaInfo}</div>
+                </div>
+            </div>
+        `;
+        })
+        .join("");
+
+    return `
+        <div class="secao-inativos">
+            <div class="secao-inativos-header">
+                <span class="material-icons">person_off</span>
+                <span>Participantes Inativos (${inativos.length})</span>
+            </div>
+            ${items}
+        </div>
+    `;
 }
 
 // =====================================================================
@@ -673,4 +806,4 @@ function mostrarErro(mensagem) {
     if (grid) grid.style.display = "block";
 }
 
-console.log("[PARTICIPANTE-RODADAS] ✅ Módulo v3.1 carregado");
+console.log("[PARTICIPANTE-RODADAS] ✅ Módulo v3.2 carregado");
