@@ -7,6 +7,7 @@ import MongoStore from "connect-mongo"; // ADICIONADO: Persistência de sessão
 import dotenv from "dotenv";
 import cors from "cors";
 import path from "path";
+import timesAdminRoutes from "./routes/times-admin.js";
 
 // ⚡ USAR CONEXÃO OTIMIZADA
 import connectDB from "./config/database.js";
@@ -116,6 +117,7 @@ app.use("/api/pontos-corridos", pontosCorridosCacheRoutes);
 app.use("/api/pontos-corridos", pontosCorridosMigracaoRoutes);
 app.use("/api/top10", top10CacheRoutes);
 app.use("/api/mata-mata", mataMataCacheRoutes);
+app.use("/api/times-admin", timesAdminRoutes);
 
 // Rotas Adicionais (Controllers Diretos)
 app.get("/api/clubes", getClubes);

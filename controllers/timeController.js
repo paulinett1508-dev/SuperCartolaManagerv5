@@ -1,4 +1,4 @@
-// controllers/timeController.js - VERSÃO CORRIGIDA
+// controllers/timeController.js - VERSÃO CORRIGIDA v2.0
 import mongoose from "mongoose";
 import fetch from "node-fetch";
 import NodeCache from "node-cache";
@@ -6,7 +6,7 @@ import NodeCache from "node-cache";
 // ⚡ CACHE TRANSPARENTE (5 minutos TTL)
 const cache = new NodeCache({ stdTTL: 300, checkperiod: 60 });
 
-// ✅ CORREÇÃO: Função para obter o Model de forma segura
+// ✅ Função para obter o Model de forma segura
 function getTimeModel() {
   if (mongoose.models.Time) {
     return mongoose.models.Time;
@@ -27,86 +27,150 @@ function getTimeModel() {
   return mongoose.model("Time", TimeSchema);
 }
 
+/**
+ * Busca dados do time na API do Cartola
+ */
+async function buscarDadosApiCartola(timeId) {
+  try {
+    // Buscar rodada atual
+    const statusRes = await fetch(
+      "https://api.cartola.globo.com/mercado/status",
+    );
+    let rodadaAtual = 1;
+
+    if (statusRes.ok) {
+      const statusData = await statusRes.json();
+      rodadaAtual = statusData.rodada_atual || 1;
+    }
+
+    // Buscar time na rodada atual
+    const res = await fetch(
+      `https://api.cartola.globo.com/time/id/${timeId}/${rodadaAtual}`,
+    );
+
+    if (!res.ok) {
+      console.warn(
+        `[TIME-CONTROLLER] API Cartola retornou ${res.status} para time ${timeId}`,
+      );
+      return null;
+    }
+
+    const data = await res.json();
+
+    if (data.time) {
+      return {
+        nome_time: data.time.nome || null,
+        nome_cartoleiro: data.time.nome_cartola || null,
+        url_escudo_png: data.time.url_escudo_png || "",
+        clube_id: data.time.clube_id || null,
+      };
+    }
+
+    return null;
+  } catch (error) {
+    console.error(
+      `[TIME-CONTROLLER] Erro ao buscar API Cartola para time ${timeId}:`,
+      error.message,
+    );
+    return null;
+  }
+}
+
+/**
+ * Verifica se os dados do time estão incompletos (N/D)
+ */
+function dadosIncompletos(time) {
+  return (
+    !time.nome_cartola ||
+    time.nome_cartola === "N/D" ||
+    time.nome_cartola === "N/A" ||
+    time.nome_cartola === "" ||
+    !time.nome ||
+    time.nome === "N/D" ||
+    time.nome === "N/A" ||
+    time.nome.startsWith("Time ")
+  );
+}
+
 export const salvarTime = async (timeId) => {
   try {
     const Time = getTimeModel();
     let time = await Time.findOne({ id: timeId });
-    if (time) {
+
+    if (time && !dadosIncompletos(time)) {
       if (process.env.NODE_ENV !== "production") {
-        console.log(`Time ${timeId} já existe na coleção times:`, time);
+        console.log(
+          `[TIME-CONTROLLER] Time ${timeId} já existe com dados completos`,
+        );
       }
       return time;
     }
 
     // ⚡ CACHE DA API CARTOLA
     const cacheKey = `api_time_${timeId}`;
-    let data = cache.get(cacheKey);
+    let dadosApi = cache.get(cacheKey);
 
-    if (!data) {
-      try {
-        const statusRes = await fetch(
-          "https://api.cartola.globo.com/mercado/status",
-        );
-        let rodadaAtual = 1;
+    if (!dadosApi) {
+      dadosApi = await buscarDadosApiCartola(timeId);
+      if (dadosApi) {
+        cache.set(cacheKey, dadosApi, 300);
+      }
+    }
 
-        if (statusRes.ok) {
-          const statusData = await statusRes.json();
-          rodadaAtual = statusData.rodada_atual || 1;
-        }
-
-        const res = await fetch(
-          `https://api.cartola.globo.com/time/id/${timeId}/${rodadaAtual}`,
-        );
-
-        if (!res.ok) {
-          data = {
-            time: {
-              nome: `Time ${timeId}`,
-              nome_cartola: "N/D",
-              url_escudo_png: "",
-              clube_id: null,
-            },
-          };
-        } else {
-          data = await res.json();
-        }
-      } catch (error) {
+    // Se não conseguiu dados da API, retornar o que tem ou criar com padrão
+    if (!dadosApi) {
+      if (time) {
         console.warn(
-          `Não foi possível buscar dados completos do time ${timeId}, usando dados padrão`,
+          `[TIME-CONTROLLER] Mantendo dados existentes para time ${timeId} (API indisponível)`,
         );
-        data = {
-          time: {
-            nome: `Time ${timeId}`,
-            nome_cartola: "N/D",
-            url_escudo_png: "",
-            clube_id: null,
-          },
-        };
+        return time;
       }
 
-      cache.set(cacheKey, data, 300);
+      // Criar com dados padrão apenas se não existe
+      console.warn(
+        `[TIME-CONTROLLER] Criando time ${timeId} com dados padrão (API indisponível)`,
+      );
+      time = new Time({
+        id: timeId,
+        nome: `Time ${timeId}`,
+        nome_cartola: "N/D",
+        url_escudo_png: "",
+        clube_id: null,
+      });
+      await time.save();
+      return time;
     }
 
-    if (process.env.NODE_ENV !== "production") {
-      console.log(`Dados recebidos da API para time ${timeId}:`, data);
+    // Atualizar ou criar com dados da API
+    if (time) {
+      // Atualizar time existente
+      time.nome = dadosApi.nome_time || time.nome;
+      time.nome_cartola = dadosApi.nome_cartoleiro || time.nome_cartola;
+      time.url_escudo_png = dadosApi.url_escudo_png || time.url_escudo_png;
+      time.clube_id = dadosApi.clube_id || time.clube_id;
+      await time.save();
+      console.log(
+        `[TIME-CONTROLLER] ✅ Time ${timeId} ATUALIZADO: ${time.nome_cartola} - ${time.nome}`,
+      );
+    } else {
+      // Criar novo time
+      time = new Time({
+        id: timeId,
+        nome: dadosApi.nome_time || `Time ${timeId}`,
+        nome_cartola: dadosApi.nome_cartoleiro || "N/D",
+        url_escudo_png: dadosApi.url_escudo_png || "",
+        clube_id: dadosApi.clube_id || null,
+      });
+      await time.save();
+      console.log(
+        `[TIME-CONTROLLER] ✅ Time ${timeId} CRIADO: ${time.nome_cartola} - ${time.nome}`,
+      );
     }
 
-    time = new Time({
-      id: timeId,
-      nome_time: data.time?.nome || "N/D",
-      nome_cartoleiro: data.time?.nome_cartola || "N/D",
-      url_escudo_png: data.time?.url_escudo_png || "",
-      clube_id: data.time?.clube_id || null,
-    });
-
-    await time.save();
-    if (process.env.NODE_ENV !== "production") {
-      console.log(`Time ${timeId} salvo na coleção times:`, time);
-    }
     return time;
   } catch (err) {
     console.error(
-      `Erro ao salvar time ${timeId} na coleção times:`,
+      `[TIME-CONTROLLER] Erro ao salvar time ${timeId}:`,
       err.message,
     );
     throw err;
@@ -133,33 +197,34 @@ export const obterTimePorId = async (req, res) => {
     }
 
     const Time = getTimeModel();
+    const timeId = Number(id);
 
     // ⚡ CACHE DO MONGODB
     const cacheKey = `mongo_time_${id}`;
     let time = cache.get(cacheKey);
 
     if (!time) {
-      time = await Time.findOne({ id: id });
-      if (!time && !isNaN(Number(id))) {
-        time = await Time.findOne({ id: Number(id) });
+      time = await Time.findOne({ id: timeId });
+      if (!time) {
+        time = await Time.findOne({ id: id });
       }
       if (!time) {
-        time = await Time.findOne({ time_id: id });
-        if (!time && !isNaN(Number(id))) {
-          time = await Time.findOne({ time_id: Number(id) });
-        }
-      }
-
-      if (time) {
-        cache.set(cacheKey, time, 300);
+        time = await Time.findOne({ time_id: timeId });
       }
     }
 
+    // ⚠️ Revalidação automática DESABILITADA (causa rate limiting na API Cartola)
+    // Use POST /api/times-admin/repopular para atualizar times com dados incompletos
+
     if (time) {
+      // Atualizar cache
+      cache.set(cacheKey, time, 300);
+
       return res.json({
         id: time.id,
-        nome_time: time.nome_time,
-        nome_cartoleiro: time.nome_cartoleiro,
+        nome_time: time.nome, // ✅ Campo correto do Model
+        nome_cartola: time.nome_cartola, // ✅ Campo correto do Model
+        nome_cartoleiro: time.nome_cartola, // Alias para compatibilidade
         url_escudo_png: time.url_escudo_png,
         clube_id: time.clube_id,
         assinante: time.assinante,
@@ -170,21 +235,25 @@ export const obterTimePorId = async (req, res) => {
       });
     }
 
-    const novoTime = await salvarTime(id);
+    // Time não existe, criar
+    const novoTime = await salvarTime(timeId);
+
     if (novoTime) {
-      const resultado = {
-        nome_time: novoTime.nome_time || "N/D",
-        nome_cartoleiro:
-          novoTime.nome_cartoleiro || novoTime.nome_cartola || "N/D",
-        url_escudo_png: novoTime.url_escudo_png || novoTime.escudo || "",
-        clube_id: novoTime.clube_id || null,
-      };
-      return res.status(200).json(resultado);
+      return res.status(200).json({
+        id: novoTime.id,
+        nome_time: novoTime.nome, // ✅ Campo correto do Model
+        nome_cartola: novoTime.nome_cartola, // ✅ Campo correto do Model
+        nome_cartoleiro: novoTime.nome_cartola, // Alias para compatibilidade
+        url_escudo_png: novoTime.url_escudo_png,
+        clube_id: novoTime.clube_id,
+        ativo: novoTime.ativo !== false,
+        rodada_desistencia: novoTime.rodada_desistencia,
+      });
     }
 
     return res.status(404).json({ erro: "Time não encontrado" });
   } catch (err) {
-    console.error(`Erro em obterTimePorId: ${err.message}`);
+    console.error(`[TIME-CONTROLLER] Erro em obterTimePorId: ${err.message}`);
     return res.status(500).json({ erro: "Erro interno no servidor" });
   }
 };
