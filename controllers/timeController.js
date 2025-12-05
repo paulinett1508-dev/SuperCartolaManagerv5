@@ -220,18 +220,30 @@ export const obterTimePorId = async (req, res) => {
       // Atualizar cache
       cache.set(cacheKey, time, 300);
 
+      // Debug: verificar campos do time
+      if (process.env.NODE_ENV !== "production") {
+        console.log(`[TIME-CONTROLLER] Time ${timeId} encontrado:`, {
+          id: time.id,
+          nome: time.nome,
+          nome_cartola: time.nome_cartola,
+          hasNome: !!time.nome,
+          hasNomeCartola: !!time.nome_cartola
+        });
+      }
+
       return res.json({
         id: time.id,
-        nome_time: time.nome, // ✅ Campo correto do Model
-        nome_cartola: time.nome_cartola, // ✅ Campo correto do Model
-        nome_cartoleiro: time.nome_cartola, // Alias para compatibilidade
-        url_escudo_png: time.url_escudo_png,
-        clube_id: time.clube_id,
-        assinante: time.assinante,
-        senha_acesso: time.senha_acesso,
+        nome: time.nome || null, // ✅ Campo direto do Model
+        nome_time: time.nome || null, // ✅ Alias para compatibilidade
+        nome_cartola: time.nome_cartola || null, // ✅ Campo direto do Model
+        nome_cartoleiro: time.nome_cartola || null, // Alias para compatibilidade
+        url_escudo_png: time.url_escudo_png || null,
+        clube_id: time.clube_id || null,
+        assinante: time.assinante || false,
+        senha_acesso: time.senha_acesso || null,
         ativo: time.ativo !== false,
-        rodada_desistencia: time.rodada_desistencia,
-        data_desistencia: time.data_desistencia,
+        rodada_desistencia: time.rodada_desistencia || null,
+        data_desistencia: time.data_desistencia || null,
       });
     }
 
@@ -239,15 +251,24 @@ export const obterTimePorId = async (req, res) => {
     const novoTime = await salvarTime(timeId);
 
     if (novoTime) {
+      if (process.env.NODE_ENV !== "production") {
+        console.log(`[TIME-CONTROLLER] Novo time ${timeId} criado:`, {
+          id: novoTime.id,
+          nome: novoTime.nome,
+          nome_cartola: novoTime.nome_cartola
+        });
+      }
+
       return res.status(200).json({
         id: novoTime.id,
-        nome_time: novoTime.nome, // ✅ Campo correto do Model
-        nome_cartola: novoTime.nome_cartola, // ✅ Campo correto do Model
-        nome_cartoleiro: novoTime.nome_cartola, // Alias para compatibilidade
-        url_escudo_png: novoTime.url_escudo_png,
-        clube_id: novoTime.clube_id,
+        nome: novoTime.nome || null, // ✅ Campo direto do Model
+        nome_time: novoTime.nome || null, // ✅ Alias para compatibilidade
+        nome_cartola: novoTime.nome_cartola || null, // ✅ Campo direto do Model
+        nome_cartoleiro: novoTime.nome_cartola || null, // Alias para compatibilidade
+        url_escudo_png: novoTime.url_escudo_png || null,
+        clube_id: novoTime.clube_id || null,
         ativo: novoTime.ativo !== false,
-        rodada_desistencia: novoTime.rodada_desistencia,
+        rodada_desistencia: novoTime.rodada_desistencia || null,
       });
     }
 
