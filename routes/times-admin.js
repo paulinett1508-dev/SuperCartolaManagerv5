@@ -516,6 +516,49 @@ router.post("/repopular-time/:timeId", async (req, res) => {
 });
 
 /**
+ * GET /api/times-admin/debug/:timeId
+ * 🔍 DEBUG: Retorna documento RAW do MongoDB (bypassa Mongoose)
+ */
+router.get("/debug/:timeId", async (req, res) => {
+  try {
+    const timeId = Number(req.params.timeId);
+    
+    // Query direta na collection (bypassa Mongoose Schema)
+    const docRaw = await mongoose.connection.db
+      .collection("times")
+      .findOne({ id: timeId });
+    
+    if (!docRaw) {
+      return res.status(404).json({
+        success: false,
+        erro: `Time ${timeId} não encontrado no MongoDB`
+      });
+    }
+    
+    // Também buscar via Model para comparar
+    const Time = getTimeModel();
+    const docMongoose = await Time.findOne({ id: timeId }).lean();
+    
+    res.json({
+      success: true,
+      timeId,
+      documentoRaw: docRaw,
+      documentoMongoose: docMongoose,
+      camposPresentes: Object.keys(docRaw),
+      comparacao: {
+        temNome: !!docRaw.nome,
+        temNomeTime: !!docRaw.nome_time,
+        temNomeCartola: !!docRaw.nome_cartola,
+        temNomeCartoleiro: !!docRaw.nome_cartoleiro
+      }
+    });
+  } catch (error) {
+    console.error(`[TIMES-ADMIN] Erro no debug do time ${req.params.timeId}:`, error);
+    res.status(500).json({ success: false, erro: error.message });
+  }
+});
+
+/**
  * POST /api/times-admin/migrar-times-ligas
  * Popula a collection times com dados de todos os times que estão em ligas
  * Executa UMA VEZ para corrigir dados históricos
