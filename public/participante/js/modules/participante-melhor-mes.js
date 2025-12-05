@@ -295,11 +295,41 @@ function renderizarRankingCards(ranking, meuTimeIdNum) {
         `;
     }
 
-    // Mostrar do 4º em diante (top 3 já está no pódio)
+    // Mostrar do 4º ao 10º (top 3 já está no pódio)
     const restante = ranking.slice(3, 10);
+
+    // Verificar se meu time está no ranking e qual posição
+    let minhaPosicao = null;
+    let meusDados = null;
+    for (let i = 0; i < ranking.length; i++) {
+        if (Number(ranking[i].timeId) === meuTimeIdNum) {
+            minhaPosicao = i + 1; // posição 1-based
+            meusDados = ranking[i];
+            break;
+        }
+    }
 
     if (restante.length === 0) {
         return `<div class="mm-ranking-vazio">Apenas ${ranking.length} participantes</div>`;
+    }
+
+    // Card especial se usuário está fora do top 10
+    let cardMinhaPos = "";
+    if (minhaPosicao && minhaPosicao > 10 && meusDados) {
+        const pts = meusDados.pontos_total.toLocaleString("pt-BR", {
+            minimumFractionDigits: 1,
+            maximumFractionDigits: 1,
+        });
+        cardMinhaPos = `
+            <div class="mm-ranking-minha-pos">
+                <span class="mm-minha-pos-label">📍 Sua posição:</span>
+                <div class="mm-ranking-card-item meu destacado">
+                    <span class="mm-rank-pos">${minhaPosicao}º</span>
+                    <span class="mm-rank-nome">${meusDados.nome_time}</span>
+                    <span class="mm-rank-pts">${pts}</span>
+                </div>
+            </div>
+        `;
     }
 
     return `
@@ -321,6 +351,7 @@ function renderizarRankingCards(ranking, meuTimeIdNum) {
                 })
                 .join("")}
         </div>
+        ${cardMinhaPos}
         ${
             ranking.length > 10
                 ? `

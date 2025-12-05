@@ -1,5 +1,5 @@
 // =====================================================================
-// PARTICIPANTE MATA-MATA v6.1
+// PARTICIPANTE MATA-MATA v6.5
 // Integrado com HTML template - Layout Cards + Correção "não está nesta fase"
 // =====================================================================
 
@@ -12,6 +12,12 @@ const EDICOES_MATA_MATA = [
 ];
 
 const FASES = ["primeira", "oitavas", "quartas", "semis", "final"];
+
+// Helper para extrair timeId de diferentes estruturas
+function extrairTimeId(time) {
+  if (!time) return null;
+  return time.time_id || time.timeId || time.id || null;
+}
 
 let estado = {
   ligaId: null,
@@ -28,7 +34,7 @@ let estado = {
 // INICIALIZAÇÃO
 // =====================================================================
 export async function inicializarMataMata(params) {
-  console.log("[MATA-MATA] 🚀 Inicializando v6.1...", params);
+  console.log("[MATA-MATA] 🚀 Inicializando v6.5...", params);
 
   estado.ligaId = params?.ligaId || localStorage.getItem("ligaId");
   estado.timeId = params?.timeId || localStorage.getItem("timeId");
@@ -114,13 +120,22 @@ async function carregarEdicoesDisponiveis() {
 // =====================================================================
 async function carregarTodasFases(edicao) {
   try {
-    const res = await fetch(
-      `/api/mata-mata/cache/${estado.ligaId}?edicao=${edicao}`,
-    );
-    if (!res.ok) return;
+    const res = await fetch(`/api/mata-mata/cache/${estado.ligaId}/${edicao}`);
+    if (!res.ok) {
+      console.warn(`[MATA-MATA] ⚠️ Resposta não OK: ${res.status}`);
+      return;
+    }
 
     const data = await res.json();
-    if (!data.cached || !data.dados) return;
+    console.log("[MATA-MATA] 📦 Dados recebidos:", data);
+
+    // Compatibilidade: dados pode vir em 'dados' ou 'dados_torneio'
+    const dadosFases = data.dados || data.dados_torneio || data;
+
+    if (!dadosFases || typeof dadosFases !== "object") {
+      console.warn("[MATA-MATA] ⚠️ Estrutura de dados inválida");
+      return;
+    }
 
     const meuTimeId = estado.timeId ? parseInt(estado.timeId) : null;
     let ultimaFaseParticipada = null;
@@ -128,14 +143,15 @@ async function carregarTodasFases(edicao) {
 
     // Cachear todas as fases
     FASES.forEach((f) => {
-      if (data.dados[f]) {
-        estado.cacheConfrontos[`${edicao}-${f}`] = data.dados[f];
+      if (dadosFases[f]) {
+        estado.cacheConfrontos[`${edicao}-${f}`] = dadosFases[f];
 
         // ✅ Verificar se o usuário participou desta fase
-        const confrontos = data.dados[f];
+        const confrontos = dadosFases[f];
         const participou = confrontos.some(
           (c) =>
-            c.timeA?.time_id === meuTimeId || c.timeB?.time_id === meuTimeId,
+            extrairTimeId(c.timeA) === meuTimeId ||
+            extrairTimeId(c.timeB) === meuTimeId,
         );
 
         if (participou) {
@@ -144,11 +160,12 @@ async function carregarTodasFases(edicao) {
           // Verificar se foi eliminado (perdeu)
           const meuConfronto = confrontos.find(
             (c) =>
-              c.timeA?.time_id === meuTimeId || c.timeB?.time_id === meuTimeId,
+              extrairTimeId(c.timeA) === meuTimeId ||
+              extrairTimeId(c.timeB) === meuTimeId,
           );
 
           if (meuConfronto) {
-            const souTimeA = meuConfronto.timeA?.time_id === meuTimeId;
+            const souTimeA = extrairTimeId(meuConfronto.timeA) === meuTimeId;
             const meusPts =
               parseFloat(
                 souTimeA
@@ -326,21 +343,28 @@ async function carregarFase(edicao, fase) {
 
     if (!confrontos) {
       const res = await fetch(
-        `/api/mata-mata/cache/${estado.ligaId}?edicao=${edicao}`,
+        `/api/mata-mata/cache/${estado.ligaId}/${edicao}`,
       );
       if (!res.ok) throw new Error("Erro ao buscar dados");
 
       const data = await res.json();
-      if (!data.cached || !data.dados) throw new Error("Dados não encontrados");
+      console.log("[MATA-MATA] 📦 Resposta carregarFase:", Object.keys(data));
+
+      // Compatibilidade: dados pode vir em 'dados' ou 'dados_torneio'
+      const dadosFases = data.dados || data.dados_torneio || data;
+
+      if (!dadosFases || typeof dadosFases !== "object") {
+        throw new Error("Dados não encontrados");
+      }
 
       // Cachear todas as fases
       FASES.forEach((f) => {
-        if (data.dados[f]) {
-          estado.cacheConfrontos[`${edicao}-${f}`] = data.dados[f];
+        if (dadosFases[f]) {
+          estado.cacheConfrontos[`${edicao}-${f}`] = dadosFases[f];
         }
       });
 
-      confrontos = data.dados[fase];
+      confrontos = dadosFases[fase];
     }
 
     if (!confrontos || confrontos.length === 0) {
@@ -378,7 +402,9 @@ function renderConfrontosCards(confrontos, fase) {
 
   // Encontrar meu confronto
   const meuConfronto = confrontos.find(
-    (c) => c.timeA?.time_id === meuTimeId || c.timeB?.time_id === meuTimeId,
+    (c) =>
+      extrairTimeId(c.timeA) === meuTimeId ||
+      extrairTimeId(c.timeB) === meuTimeId,
   );
 
   let html = "";
@@ -402,10 +428,10 @@ function renderConfrontosCards(confrontos, fase) {
 
       html += `
         <div class="mm-eliminado-card">
-          <span class="material-symbols-outlined mm-eliminado-icon">sentiment_dissatisfied</span>
-          <div class="mm-eliminado-info">
-            <p class="mm-eliminado-titulo">Você foi eliminado</p>
-            <p class="mm-eliminado-fase">Eliminação: ${nomeFaseEliminacao}</p>
+          <span class="material-symbols-outlined">block</span>
+          <div class="mm-elim-texto">
+            <p class="mm-elim-titulo">Você foi eliminado</p>
+            <p class="mm-elim-fase">na ${nomeFaseEliminacao}</p>
           </div>
         </div>
       `;
@@ -429,7 +455,7 @@ function renderConfrontosCards(confrontos, fase) {
   }
 
   // Lista de confrontos em cards
-  html += renderConfrontosListaCards(confrontos, meuTimeId);
+  html += renderConfrontosListaCards(confrontos, meuTimeId, fase);
 
   container.innerHTML = html;
 }
@@ -438,7 +464,7 @@ function renderConfrontosCards(confrontos, fase) {
 // ✅ RENDER MEU CONFRONTO EM CARD
 // =====================================================================
 function renderMeuConfrontoCard(confronto, meuTimeId) {
-  const souTimeA = confronto.timeA?.time_id === meuTimeId;
+  const souTimeA = extrairTimeId(confronto.timeA) === meuTimeId;
   const eu = souTimeA ? confronto.timeA : confronto.timeB;
   const adv = souTimeA ? confronto.timeB : confronto.timeA;
 
@@ -506,8 +532,52 @@ function renderMeuConfrontoCard(confronto, meuTimeId) {
 // =====================================================================
 // ✅ RENDER LISTA DE CONFRONTOS EM CARDS
 // =====================================================================
-function renderConfrontosListaCards(confrontos, meuTimeId) {
-  let html = `<div class="mm-confrontos-lista">`;
+function renderConfrontosListaCards(confrontos, meuTimeId, fase) {
+  let html = "";
+
+  // ✅ SE FOR FINAL - Mostrar card do CAMPEÃO
+  if (fase === "final" && confrontos.length > 0) {
+    const finalConfronto = confrontos[0];
+    const timeA = finalConfronto.timeA || {};
+    const timeB = finalConfronto.timeB || {};
+    const ptsA = parseFloat(timeA.pontos) || 0;
+    const ptsB = parseFloat(timeB.pontos) || 0;
+
+    // Só mostrar campeão se houver vencedor definido (pontos > 0)
+    if (ptsA > 0 || ptsB > 0) {
+      const campeao = ptsA >= ptsB ? timeA : timeB;
+      const ptsCampeao = ptsA >= ptsB ? ptsA : ptsB;
+      const campeaoId = extrairTimeId(campeao);
+      const souCampeao = campeaoId === meuTimeId;
+
+      html += `
+        <div class="mm-campeao-card ${souCampeao ? "sou-eu" : ""}">
+          <div class="mm-campeao-trofeu">🏆</div>
+          <p class="mm-campeao-titulo">${souCampeao ? "Você é o Campeão!" : "Campeão"}</p>
+          <div class="mm-campeao-time">
+            <img class="mm-campeao-escudo" src="${campeao.url_escudo_png || campeao.escudo || "/escudos/default.png"}" alt="" onerror="this.src='/escudos/default.png'">
+            <div class="mm-campeao-info">
+              <p class="mm-campeao-nome">${campeao.nome_time || "Time"}</p>
+              <p class="mm-campeao-cartola">${campeao.nome_cartola || campeao.nome_cartoleiro || ""}</p>
+              <p class="mm-campeao-pts">${ptsCampeao.toFixed(2)} pts</p>
+            </div>
+          </div>
+          <div class="mm-campeao-badge">
+            <span class="material-symbols-outlined">emoji_events</span>
+            <span>${estado.edicaoSelecionada}ª Edição</span>
+          </div>
+        </div>
+      `;
+    }
+  }
+
+  // Header separador
+  html += `
+    <div class="mm-outros-header">
+      <span>${fase === "final" ? "A Grande Final" : "Todos os Confrontos"}</span>
+    </div>
+    <div class="mm-confrontos-lista">
+  `;
 
   confrontos.forEach((c, idx) => {
     const timeA = c.timeA || {};
@@ -518,7 +588,8 @@ function renderConfrontosListaCards(confrontos, meuTimeId) {
 
     const vencedorA = ptsA > ptsB;
     const vencedorB = ptsB > ptsA;
-    const isMinha = timeA.time_id === meuTimeId || timeB.time_id === meuTimeId;
+    const isMinha =
+      extrairTimeId(timeA) === meuTimeId || extrairTimeId(timeB) === meuTimeId;
 
     html += `
       <div class="mm-confronto-card ${isMinha ? "minha" : ""}">
@@ -539,19 +610,16 @@ function renderConfrontosListaCards(confrontos, meuTimeId) {
 
           <!-- Time B -->
           <div class="mm-conf-time ${vencedorB ? "vencedor" : vencedorA ? "perdedor" : ""}">
-            <span class="mm-conf-pts ${vencedorB ? "vencedor" : vencedorA ? "perdedor" : "empate"}">${ptsB.toFixed(2)}</span>
-            <div class="mm-conf-info right">
+            <img class="mm-conf-escudo" src="${timeB.url_escudo_png || timeB.escudo || "/escudos/default.png"}" alt="" onerror="this.src='/escudos/default.png'">
+            <div class="mm-conf-info">
               <span class="mm-conf-nome">${truncate(timeB.nome_time || "A definir", 14)}</span>
               <span class="mm-conf-cartola">${truncate(timeB.nome_cartola || timeB.nome_cartoleiro || "", 16)}</span>
             </div>
-            <img class="mm-conf-escudo" src="${timeB.url_escudo_png || timeB.escudo || "/escudos/default.png"}" alt="" onerror="this.src='/escudos/default.png'">
+            <span class="mm-conf-pts ${vencedorB ? "vencedor" : vencedorA ? "perdedor" : "empate"}">${ptsB.toFixed(2)}</span>
           </div>
         </div>
 
-        <div class="mm-conf-diff">
-          <span class="mm-diff-label">DIF</span>
-          <span class="mm-diff-valor">${diff}</span>
-        </div>
+        <div class="mm-conf-diff">Diferença: ${diff} pts</div>
       </div>
     `;
   });
@@ -584,4 +652,4 @@ function truncate(str, len) {
   return str.length > len ? str.substring(0, len) + "..." : str;
 }
 
-console.log("[MATA-MATA] ✅ Módulo v6.1 carregado");
+console.log("[MATA-MATA] ✅ Módulo v6.6 carregado");

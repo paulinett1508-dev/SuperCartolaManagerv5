@@ -1,4 +1,4 @@
-<!-- PARTICIPANTE MATA-MATA v6.0 - Integrado com JS -->
+<!-- PARTICIPANTE MATA-MATA v6.6 - Card discreto + Campeão -->
 <div class="mata-mata-module">
     <!-- Header -->
     <div class="mm-header">
@@ -54,7 +54,7 @@
 
 <style>
     /* =====================================================
-   MATA-MATA v6.0 - Design Moderno
+   MATA-MATA v6.5 - Design Moderno
    ===================================================== */
 
     .mata-mata-module .material-symbols-outlined {
@@ -675,6 +675,535 @@
         .mm-mc-escudo {
             width: 28px;
             height: 28px;
+        }
+    }
+
+    /* =====================================================
+       NOVO LAYOUT v6.4 - Cards de Confronto
+       ===================================================== */
+
+    /* Card "Seu Confronto" - novo layout */
+    .mm-meu-confronto-card {
+        background: linear-gradient(
+            135deg,
+            rgba(255, 106, 56, 0.08) 0%,
+            rgba(0, 0, 0, 0.5) 100%
+        );
+        border: 1px solid rgba(255, 106, 56, 0.25);
+        border-radius: 12px;
+        padding: 16px;
+        margin-bottom: 16px;
+    }
+
+    .mm-mc-header-card {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        margin-bottom: 16px;
+    }
+
+    .mm-mc-header-card .mm-mc-icon {
+        font-size: 20px;
+    }
+
+    .mm-mc-header-card .mm-mc-icon.passando {
+        color: #22c55e;
+    }
+    .mm-mc-header-card .mm-mc-icon.sendo-eliminado {
+        color: #ef4444;
+    }
+    .mm-mc-header-card .mm-mc-icon.empatando {
+        color: #eab308;
+    }
+
+    .mm-mc-header-card .mm-mc-titulo {
+        font-size: 13px;
+        font-weight: 700;
+        color: #fff;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+    }
+
+    /* Versus layout */
+    .mm-mc-versus {
+        display: flex;
+        flex-direction: column;
+        gap: 12px;
+    }
+
+    .mm-mc-time-card {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        background: rgba(0, 0, 0, 0.3);
+        border-radius: 10px;
+        padding: 12px;
+    }
+
+    .mm-mc-time-card.eu {
+        border-left: 3px solid var(--participante-primary, #ff6a38);
+    }
+
+    .mm-mc-time-card.adv {
+        border-left: 3px solid #6b7280;
+    }
+
+    .mm-mc-escudo-card {
+        width: 48px;
+        height: 48px;
+        border-radius: 8px;
+        object-fit: contain;
+        background: rgba(255, 255, 255, 0.05);
+        flex-shrink: 0;
+    }
+
+    .mm-mc-time-info {
+        flex: 1;
+        min-width: 0;
+        display: flex;
+        flex-direction: column;
+        gap: 2px;
+    }
+
+    .mm-mc-time-info .mm-mc-label {
+        font-size: 10px;
+        font-weight: 600;
+        color: var(--participante-text-muted, #9ca3af);
+        text-transform: uppercase;
+    }
+
+    .mm-mc-time-info .mm-mc-nome {
+        font-size: 13px;
+        font-weight: 700;
+        color: #fff;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
+
+    .mm-mc-time-card .mm-mc-pts {
+        font-size: 20px;
+        font-weight: 800;
+        min-width: 70px;
+        text-align: right;
+    }
+
+    .mm-mc-x {
+        text-align: center;
+        font-size: 12px;
+        font-weight: 700;
+        color: var(--participante-text-muted, #6b7280);
+        padding: 4px 0;
+    }
+
+    /* Status card */
+    .mm-mc-status-card {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 8px;
+        padding: 10px 14px;
+        border-radius: 8px;
+        margin-top: 14px;
+        font-weight: 600;
+        font-size: 12px;
+    }
+
+    .mm-mc-status-card.passando {
+        background: rgba(34, 197, 94, 0.15);
+        border: 1px solid rgba(34, 197, 94, 0.3);
+        color: #22c55e;
+    }
+
+    .mm-mc-status-card.sendo-eliminado {
+        background: rgba(239, 68, 68, 0.15);
+        border: 1px solid rgba(239, 68, 68, 0.3);
+        color: #ef4444;
+    }
+
+    .mm-mc-status-card.empatando {
+        background: rgba(234, 179, 8, 0.15);
+        border: 1px solid rgba(234, 179, 8, 0.3);
+        color: #eab308;
+    }
+
+    .mm-mc-status-card .material-symbols-outlined {
+        font-size: 18px;
+    }
+
+    /* =====================================================
+       LISTA DE CONFRONTOS - Cards
+       ===================================================== */
+    .mm-confrontos-lista {
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+    }
+
+    .mm-confronto-card {
+        background: rgba(0, 0, 0, 0.3);
+        border: 1px solid var(--participante-border, #3a3a3c);
+        border-radius: 10px;
+        padding: 12px;
+        position: relative;
+    }
+
+    .mm-confronto-card.minha {
+        background: rgba(255, 106, 56, 0.08);
+        border-color: rgba(255, 106, 56, 0.3);
+    }
+
+    .mm-conf-numero {
+        position: absolute;
+        top: 8px;
+        left: 8px;
+        width: 20px;
+        height: 20px;
+        background: var(--participante-primary, #ff6a38);
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 10px;
+        font-weight: 700;
+        color: #000;
+    }
+
+    .mm-conf-times {
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+        margin-left: 28px;
+    }
+
+    .mm-conf-time {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        padding: 8px;
+        border-radius: 8px;
+        background: rgba(255, 255, 255, 0.02);
+    }
+
+    .mm-conf-time.vencedor {
+        background: rgba(34, 197, 94, 0.1);
+    }
+
+    .mm-conf-time.perdedor {
+        background: rgba(239, 68, 68, 0.05);
+        opacity: 0.7;
+    }
+
+    .mm-conf-escudo {
+        width: 32px;
+        height: 32px;
+        border-radius: 6px;
+        object-fit: contain;
+        background: rgba(255, 255, 255, 0.05);
+        flex-shrink: 0;
+    }
+
+    .mm-conf-info {
+        flex: 1;
+        min-width: 0;
+        display: flex;
+        flex-direction: column;
+        gap: 1px;
+    }
+
+    .mm-conf-nome {
+        font-size: 12px;
+        font-weight: 700;
+        color: #fff;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
+
+    .mm-conf-cartola {
+        font-size: 10px;
+        color: var(--participante-text-muted, #9ca3af);
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
+
+    .mm-conf-pts {
+        font-size: 14px;
+        font-weight: 800;
+        min-width: 55px;
+        text-align: right;
+    }
+
+    .mm-conf-pts.vencedor {
+        color: #22c55e;
+    }
+    .mm-conf-pts.perdedor {
+        color: #ef4444;
+    }
+    .mm-conf-pts.empate {
+        color: #eab308;
+    }
+
+    .mm-conf-vs {
+        text-align: center;
+        font-size: 11px;
+        font-weight: 600;
+        color: var(--participante-text-muted, #6b7280);
+        padding: 2px 0;
+    }
+
+    .mm-conf-diff {
+        text-align: center;
+        font-size: 10px;
+        color: #22c55e;
+        margin-top: 6px;
+        padding-top: 6px;
+        border-top: 1px dashed rgba(255, 255, 255, 0.1);
+    }
+
+    /* Separador "Outros Confrontos" */
+    .mm-outros-header {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        margin: 20px 0 12px;
+    }
+
+    .mm-outros-header::before,
+    .mm-outros-header::after {
+        content: "";
+        flex: 1;
+        height: 1px;
+        background: var(--participante-border, #3a3a3c);
+    }
+
+    .mm-outros-header span {
+        font-size: 11px;
+        font-weight: 600;
+        color: var(--participante-text-muted, #9ca3af);
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        white-space: nowrap;
+    }
+
+    /* Card de eliminação - DISCRETO */
+    .mm-eliminado-card {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 10px;
+        background: rgba(239, 68, 68, 0.06);
+        border: 1px solid rgba(239, 68, 68, 0.15);
+        border-radius: 8px;
+        padding: 10px 16px;
+        margin-bottom: 16px;
+    }
+
+    .mm-eliminado-card .material-symbols-outlined {
+        font-size: 18px;
+        color: #ef4444;
+    }
+
+    .mm-eliminado-card .mm-elim-texto {
+        display: flex;
+        flex-direction: column;
+        gap: 1px;
+    }
+
+    .mm-eliminado-card .mm-elim-titulo {
+        font-size: 12px;
+        font-weight: 600;
+        color: #ef4444;
+        margin: 0;
+    }
+
+    .mm-eliminado-card .mm-elim-fase {
+        font-size: 10px;
+        color: var(--participante-text-muted, #9ca3af);
+        margin: 0;
+    }
+
+    /* =====================================================
+       CARD DO CAMPEÃO - Destaque especial na FINAL
+       ===================================================== */
+    .mm-campeao-card {
+        background: linear-gradient(
+            135deg,
+            rgba(234, 179, 8, 0.15) 0%,
+            rgba(234, 179, 8, 0.05) 100%
+        );
+        border: 2px solid rgba(234, 179, 8, 0.4);
+        border-radius: 16px;
+        padding: 20px;
+        margin-bottom: 20px;
+        text-align: center;
+        position: relative;
+        overflow: hidden;
+    }
+
+    .mm-campeao-card::before {
+        content: "";
+        position: absolute;
+        top: -50%;
+        left: -50%;
+        width: 200%;
+        height: 200%;
+        background: radial-gradient(
+            circle,
+            rgba(234, 179, 8, 0.1) 0%,
+            transparent 60%
+        );
+        animation: mm-shine 3s ease-in-out infinite;
+    }
+
+    @keyframes mm-shine {
+        0%,
+        100% {
+            transform: rotate(0deg);
+        }
+        50% {
+            transform: rotate(180deg);
+        }
+    }
+
+    .mm-campeao-trofeu {
+        font-size: 48px;
+        margin-bottom: 8px;
+        position: relative;
+        z-index: 1;
+        animation: mm-bounce 2s ease-in-out infinite;
+    }
+
+    @keyframes mm-bounce {
+        0%,
+        100% {
+            transform: translateY(0);
+        }
+        50% {
+            transform: translateY(-5px);
+        }
+    }
+
+    .mm-campeao-titulo {
+        font-size: 11px;
+        font-weight: 700;
+        color: #eab308;
+        text-transform: uppercase;
+        letter-spacing: 2px;
+        margin: 0 0 12px 0;
+        position: relative;
+        z-index: 1;
+    }
+
+    .mm-campeao-time {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 14px;
+        background: rgba(0, 0, 0, 0.4);
+        border-radius: 12px;
+        padding: 14px 20px;
+        position: relative;
+        z-index: 1;
+    }
+
+    .mm-campeao-escudo {
+        width: 56px;
+        height: 56px;
+        border-radius: 10px;
+        object-fit: contain;
+        background: rgba(255, 255, 255, 0.05);
+        border: 2px solid rgba(234, 179, 8, 0.3);
+    }
+
+    .mm-campeao-info {
+        text-align: left;
+    }
+
+    .mm-campeao-nome {
+        font-size: 16px;
+        font-weight: 800;
+        color: #fff;
+        margin: 0 0 2px 0;
+    }
+
+    .mm-campeao-cartola {
+        font-size: 12px;
+        color: var(--participante-text-muted, #9ca3af);
+        margin: 0 0 6px 0;
+    }
+
+    .mm-campeao-pts {
+        font-size: 20px;
+        font-weight: 800;
+        color: #eab308;
+        margin: 0;
+    }
+
+    .mm-campeao-badge {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        background: linear-gradient(135deg, #eab308, #ca8a04);
+        color: #000;
+        font-size: 10px;
+        font-weight: 700;
+        padding: 6px 14px;
+        border-radius: 20px;
+        margin-top: 14px;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+        position: relative;
+        z-index: 1;
+    }
+
+    .mm-campeao-badge .material-symbols-outlined {
+        font-size: 14px;
+    }
+
+    /* Campeão SOU EU - destaque extra */
+    .mm-campeao-card.sou-eu {
+        border-color: rgba(34, 197, 94, 0.5);
+        background: linear-gradient(
+            135deg,
+            rgba(34, 197, 94, 0.15) 0%,
+            rgba(234, 179, 8, 0.1) 100%
+        );
+    }
+
+    .mm-campeao-card.sou-eu .mm-campeao-titulo {
+        color: #22c55e;
+    }
+
+    .mm-campeao-card.sou-eu .mm-campeao-badge {
+        background: linear-gradient(135deg, #22c55e, #16a34a);
+    }
+
+    /* Responsive para novos cards */
+    @media (max-width: 400px) {
+        .mm-mc-escudo-card {
+            width: 40px;
+            height: 40px;
+        }
+
+        .mm-mc-time-card .mm-mc-pts {
+            font-size: 16px;
+            min-width: 60px;
+        }
+
+        .mm-conf-escudo {
+            width: 28px;
+            height: 28px;
+        }
+
+        .mm-conf-nome {
+            font-size: 11px;
+        }
+
+        .mm-conf-pts {
+            font-size: 12px;
+            min-width: 48px;
         }
     }
 </style>

@@ -238,32 +238,58 @@ function formatarPosicao(rodada) {
     }
 }
 
-// ✅ AJUSTE: TOP10 compacto - apenas valor monetário, com modal ao clicar
+// ✅ AJUSTE: TOP10 compacto - valor monetário diferenciando MITO/MICO
 function formatarTop10Compacto(rodada) {
     if (!rodada.top10 || rodada.top10 === 0) return "-";
 
     const valor = rodada.top10;
-    const valorFormatado = valor.toFixed(2).replace(".", ",");
+    const isPositivo = valor > 0;
+    const valorAbs = Math.abs(valor).toFixed(2).replace(".", ",");
     const rodadaNum = rodada.rodada;
     const posTop = rodada.posicaoTop10 || "?";
 
-    // Apenas valor monetário, clicável para abrir modal
+    // Cor e sinal baseado no valor (MITO = verde/+, MICO = vermelho/-)
+    const corClass = isPositivo ? "text-green-400" : "text-red-400";
+    const sinal = isPositivo ? "+" : "-";
+
     return `
-        <span class="text-yellow-400 font-semibold cursor-pointer hover:underline" 
+        <span class="${corClass} font-semibold cursor-pointer hover:underline" 
               onclick="window.abrirModalTop10Info(${rodadaNum}, ${valor}, '${posTop}')">
-            +${valorFormatado}
+            ${sinal}${valorAbs}
         </span>
     `;
 }
 
-// ✅ Modal TOP10 Info
+// ✅ Modal TOP10 Info - diferencia MITO/MICO
 window.abrirModalTop10Info = function (rodada, valor, posicaoTop) {
     const modal = document.getElementById("modalTop10Info");
     const body = document.getElementById("modalTop10Body");
 
     if (!modal || !body) return;
 
-    const valorFormatado = valor.toFixed(2).replace(".", ",");
+    const isPositivo = valor > 0;
+    const valorAbs = Math.abs(valor).toFixed(2).replace(".", ",");
+
+    // Diferenciação MITO vs MICO
+    const tipo = isPositivo ? "MITO" : "MICO";
+    const tipoLabel = isPositivo ? "Bônus Recebido" : "Ônus Aplicado";
+    const tipoIcon = isPositivo
+        ? "emoji_events"
+        : "sentiment_very_dissatisfied";
+    const tipoBgClass = isPositivo
+        ? "from-green-900/20 to-green-900/10 border-green-500/30"
+        : "from-red-900/20 to-red-900/10 border-red-500/30";
+    const tipoTextClass = isPositivo ? "text-green-400" : "text-red-400";
+    const valorBgClass = isPositivo
+        ? "bg-green-900/20 border-green-500/30"
+        : "bg-red-900/20 border-red-500/30";
+    const sinal = isPositivo ? "+" : "-";
+
+    // Formatar posição - se vier como "?" usar valor baseado no bonus/ônus
+    const posicaoFormatada =
+        posicaoTop && posicaoTop !== "?" && posicaoTop !== "null"
+            ? `${posicaoTop}º`
+            : "-";
 
     body.innerHTML = `
         <div class="space-y-4">
@@ -272,29 +298,25 @@ window.abrirModalTop10Info = function (rodada, valor, posicaoTop) {
                 <p class="text-2xl font-bold text-white">${rodada}ª</p>
             </div>
 
-            <div class="bg-gradient-to-br from-yellow-900/20 to-yellow-900/10 border border-yellow-500/30 rounded-lg p-4">
+            <div class="bg-gradient-to-br ${tipoBgClass} border rounded-lg p-4">
                 <div class="flex items-center justify-between">
                     <div class="flex items-center gap-2">
-                        <span class="material-icons text-yellow-400">emoji_events</span>
-                        <span class="text-sm text-gray-300">Posição TOP 10</span>
+                        <span class="material-icons ${tipoTextClass}">${tipoIcon}</span>
+                        <span class="text-sm text-gray-300">Posição TOP 10 ${tipo}</span>
                     </div>
-                    <span class="text-lg font-bold text-yellow-400">${posicaoTop}º Maior</span>
+                    <span class="text-lg font-bold ${tipoTextClass}">${posicaoFormatada} ${isPositivo ? "Maior" : "Menor"}</span>
                 </div>
             </div>
 
-            <div class="bg-green-900/20 border border-green-500/30 rounded-lg p-4">
+            <div class="${valorBgClass} border rounded-lg p-4">
                 <div class="flex items-center justify-between">
                     <div class="flex items-center gap-2">
-                        <span class="material-icons text-green-400">payments</span>
-                        <span class="text-sm text-gray-300">Bônus Recebido</span>
+                        <span class="material-icons ${tipoTextClass}">payments</span>
+                        <span class="text-sm text-gray-300">${tipoLabel}</span>
                     </div>
-                    <span class="text-xl font-bold text-green-400">+R$ ${valorFormatado}</span>
+                    <span class="text-xl font-bold ${tipoTextClass}">${sinal}R$ ${valorAbs}</span>
                 </div>
             </div>
-
-            <p class="text-xs text-gray-500 text-center">
-                Você ficou entre as 10 maiores pontuações desta rodada!
-            </p>
         </div>
     `;
 
@@ -515,6 +537,14 @@ function mostrarPopupDetalhamento(isGanhos) {
                     Math.abs(r.mataMata),
                     r.rodada,
                     "sports_mma",
+                );
+            if (r.top10 < 0)
+                addCategoria(
+                    categorias,
+                    "Top 10 (MICO)",
+                    Math.abs(r.top10),
+                    r.rodada,
+                    "sentiment_very_dissatisfied",
                 );
         }
     });

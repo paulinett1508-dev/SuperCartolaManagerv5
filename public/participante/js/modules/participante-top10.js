@@ -292,13 +292,14 @@ function gerarTabelaHTML(dados, tipo, meuTimeIdNum, valoresBonusOnus) {
                             posicaoBadge = `<span class="posicao-badge-top10 default">${posicao}º</span>`;
                         }
 
-                        // Valor formatado
-                        const valorClass =
-                            valorBonus >= 0 ? "valor-bonus" : "valor-onus";
-                        const valorFormatado =
-                            valorBonus >= 0
-                                ? `+R$ ${valorBonus.toFixed(2)}`
-                                : `-R$ ${Math.abs(valorBonus).toFixed(2)}`;
+                        // Valor formatado - SEM R$ para ganhar espaço, com cores
+                        const valorClass = isMitos
+                            ? "valor-bonus text-green-400"
+                            : "valor-onus text-red-400";
+                        const valorAbs = Math.abs(valorBonus).toFixed(2);
+                        const valorFormatado = isMitos
+                            ? `+${valorAbs}`
+                            : `-${valorAbs}`;
 
                         // Escudo: priorizar URL externa, depois clube_id local
                         let escudoHTML = `<span class="escudo-placeholder">🛡️</span>`;
