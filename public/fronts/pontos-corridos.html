@@ -1,12 +1,7 @@
-<!-- ADMIN PONTOS CORRIDOS - v1.0 -->
+<!-- ADMIN PONTOS CORRIDOS - v2.1 -->
+<!-- v2.1: Fix ID do container para pontos-corridos (compatível com orquestradores) -->
+<!-- v2.0: Removido header estático - JS renderiza interface completa dinamicamente -->
 <div class="content-card">
-    <div class="card-header">
-        <h2>Liga Pontos Corridos</h2>
-        <div class="card-subtitle">
-            Sistema de confrontos todos contra todos
-        </div>
-    </div>
-
     <button
         class="back-button"
         onclick="window.orquestrador?.voltarParaCards()"
@@ -14,7 +9,8 @@
         ← Voltar aos Cards
     </button>
 
-    <!-- Container principal que o módulo JS procura -->
+    <!-- Container principal - JS renderiza interface completa aqui -->
+    <!-- ✅ v2.1: ID corrigido de "pontos-corridos-container" para "pontos-corridos" -->
     <div id="pontos-corridos">
         <div style="padding: 40px; text-align: center">
             <div class="spinner" style="margin: 0 auto 20px"></div>

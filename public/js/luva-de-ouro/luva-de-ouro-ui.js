@@ -1,7 +1,8 @@
-// LUVA DE OURO UI - Tabela com Rodadas em Colunas Navegáveis v4.0.0
-// 8 rodadas visíveis por vez com navegação horizontal
+// LUVA DE OURO UI - Tabela com Rodadas em Colunas Navegáveis v4.1.0
+// ✅ v4.1.0: Destaque APENAS no 1º lugar + Banner Rodada Final R38 + Parcial em tempo real
+// 12 rodadas visíveis por vez com navegação horizontal
 
-console.log("🎨 [LUVA-UI] Módulo UI carregando...");
+console.log("🎨 [LUVA-UI] Módulo UI v4.1.0 carregando...");
 
 // Cache de elementos DOM
 const elementsCache = new Map();
@@ -9,18 +10,20 @@ const elementsCache = new Map();
 // Estado da navegação de rodadas
 let estadoNavegacao = {
   rodadaInicio: 1,
-  rodadasVisiveis: 12, // ✅ Aumentado para 12
-  rodadaAtual: 35,
+  rodadasVisiveis: 12,
+  rodadaAtual: 38,
   mercadoAberto: false,
 };
 
+// ✅ v4.1: Constantes da temporada
+const RODADA_FINAL = 38;
+
 function getElement(id) {
-  // ✅ SEMPRE buscar elemento fresco do DOM (evita cache de elementos destruídos)
   const element = document.getElementById(id);
   if (element) {
     elementsCache.set(id, element);
   } else {
-    elementsCache.delete(id); // Limpar referência inválida
+    elementsCache.delete(id);
   }
   return element;
 }
@@ -34,7 +37,7 @@ export function limparCacheUI() {
   estadoNavegacao = {
     rodadaInicio: 1,
     rodadasVisiveis: 12,
-    rodadaAtual: 35,
+    rodadaAtual: 38,
     mercadoAberto: false,
   };
   console.log("[LUVA-UI] Cache de elementos limpo");
@@ -48,7 +51,7 @@ export function configurarNavegacao(rodadaAtual, mercadoAberto) {
   estadoNavegacao.rodadaAtual = rodadaAtual;
   estadoNavegacao.mercadoAberto = mercadoAberto;
 
-  // Posicionar para mostrar as últimas rodadas com a atual visível (incluindo parcial)
+  // Posicionar para mostrar as últimas rodadas com a atual visível
   estadoNavegacao.rodadaInicio = Math.max(
     1,
     rodadaAtual - estadoNavegacao.rodadasVisiveis + 1,
@@ -72,7 +75,6 @@ export function navegarRodadas(direcao) {
 
   console.log(`[LUVA-UI] Navegando ${direcao}:`, estadoNavegacao.rodadaInicio);
 
-  // ✅ Re-renderizar com dados salvos na última renderização
   if (ultimaRenderizacao) {
     renderizarRanking(ultimaRenderizacao);
   }
@@ -96,6 +98,9 @@ export function criarLayoutPrincipal() {
         </div>
       </div>
 
+      <!-- ✅ v4.1: Banner Rodada Final (inserido dinamicamente) -->
+      <div id="luvaBannerRodadaFinal"></div>
+
       <!-- Seção de conteúdo -->
       <div id="luvaContentSection" class="luva-content-section">
         <!-- Navegação de rodadas -->
@@ -103,7 +108,7 @@ export function criarLayoutPrincipal() {
           <button class="luva-nav-btn nav-esq" onclick="window.LuvaDeOuroUI.navegarRodadas('esquerda')" title="Rodadas anteriores">
             ◀
           </button>
-          <span id="luvaNavInfo" class="luva-nav-info">Rodadas 1 - 8</span>
+          <span id="luvaNavInfo" class="luva-nav-info">Rodadas 1 - 12</span>
           <button class="luva-nav-btn nav-dir" onclick="window.LuvaDeOuroUI.navegarRodadas('direita')" title="Próximas rodadas">
             ▶
           </button>
@@ -125,10 +130,119 @@ export function criarLayoutPrincipal() {
             </tbody>
           </table>
         </div>
-
-        <!-- Stats e Inativos serão inseridos aqui dinamicamente -->
       </div>
     </div>
+  `;
+}
+
+// ==============================
+// ✅ v4.1: BANNER RODADA FINAL
+// ==============================
+
+function renderizarBannerRodadaFinal(rodadaAtual, mercadoAberto, lider) {
+  const bannerContainer = getElement("luvaBannerRodadaFinal");
+  if (!bannerContainer) return;
+
+  // Só mostrar banner na R38
+  if (rodadaAtual !== RODADA_FINAL) {
+    bannerContainer.innerHTML = "";
+    return;
+  }
+
+  const isParcial = !mercadoAberto; // Mercado fechado = rodada em andamento
+  const statusTexto = isParcial ? "EM ANDAMENTO" : "ÚLTIMA RODADA";
+  const liderNome = lider?.participanteNome || "---";
+
+  bannerContainer.innerHTML = `
+    <div class="rodada-final-banner ${isParcial ? "parcial-ativo" : ""}">
+      <div class="banner-content">
+        <div class="banner-icon">🏁</div>
+        <div class="banner-info">
+          <span class="banner-titulo">RODADA FINAL</span>
+          <span class="banner-status ${isParcial ? "pulsando" : ""}">${statusTexto}</span>
+        </div>
+        ${
+          isParcial
+            ? `
+          <div class="banner-lider">
+            <span class="lider-label">POSSÍVEL CAMPEÃO</span>
+            <span class="lider-nome">${liderNome}</span>
+          </div>
+        `
+            : ""
+        }
+      </div>
+    </div>
+    <style>
+      .rodada-final-banner {
+        background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+        border: 2px solid #ffd700;
+        border-radius: 12px;
+        padding: 12px 20px;
+        margin-bottom: 15px;
+        box-shadow: 0 4px 15px rgba(255, 215, 0, 0.3);
+      }
+      .rodada-final-banner.parcial-ativo {
+        animation: borderPulse 2s infinite;
+      }
+      @keyframes borderPulse {
+        0%, 100% { border-color: #ffd700; box-shadow: 0 4px 15px rgba(255, 215, 0, 0.3); }
+        50% { border-color: #ff6b6b; box-shadow: 0 4px 20px rgba(255, 107, 107, 0.5); }
+      }
+      .banner-content {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 15px;
+        flex-wrap: wrap;
+      }
+      .banner-icon {
+        font-size: 2rem;
+      }
+      .banner-info {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+      }
+      .banner-titulo {
+        color: #ffd700;
+        font-size: 1.2rem;
+        font-weight: bold;
+        letter-spacing: 2px;
+      }
+      .banner-status {
+        color: #aaa;
+        font-size: 0.8rem;
+        margin-top: 2px;
+      }
+      .banner-status.pulsando {
+        color: #ff6b6b;
+        animation: textPulse 1.5s infinite;
+      }
+      @keyframes textPulse {
+        0%, 100% { opacity: 1; }
+        50% { opacity: 0.5; }
+      }
+      .banner-lider {
+        background: linear-gradient(135deg, #ffd700, #ffaa00);
+        padding: 8px 16px;
+        border-radius: 20px;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+      }
+      .lider-label {
+        font-size: 0.65rem;
+        color: #1a1a2e;
+        font-weight: 600;
+        letter-spacing: 1px;
+      }
+      .lider-nome {
+        font-size: 0.95rem;
+        color: #1a1a2e;
+        font-weight: bold;
+      }
+    </style>
   `;
 }
 
@@ -153,10 +267,11 @@ export function renderizarRanking(dados) {
   const { rodadaInicio, rodadasVisiveis, rodadaAtual, mercadoAberto } =
     estadoNavegacao;
 
-  // ✅ Rodada parcial = rodada atual se mercado fechado E rodadaAtual > rodadaFim
-  const rodadaParcial = dados.rodadaParcial || rodadaAtual || null;
+  // ✅ v4.1: Rodada parcial = APENAS rodada atual se mercado FECHADO
+  const rodadaEmAndamento = mercadoAberto === false ? rodadaAtual : null;
+  const rodadaParcialFlag = rodadaEmAndamento;
+  const rodadaParcial = rodadaEmAndamento;
 
-  // ✅ Se temos rodada atual maior que rodadaFim, incluir na exibição
   const rodadaFimReal = Math.max(rodadaFim || 0, rodadaParcial || 0);
 
   const rodadaFimVisivel = Math.min(
@@ -168,17 +283,18 @@ export function renderizarRanking(dados) {
     rodadasExibir.push(r);
   }
 
-  // ✅ Verificar se rodada atual está em andamento (mercado fechado)
-  const rodadaEmAndamento = mercadoAberto === false ? rodadaAtual : null;
-  // Rodada parcial pode vir dos dados ou ser a rodada em andamento
-  const rodadaParcialFlag = dados.rodadaParcial || rodadaEmAndamento;
+  // ✅ v4.1: Renderizar banner de rodada final
+  renderizarBannerRodadaFinal(rodadaAtual, mercadoAberto, ranking[0]);
 
   // Atualizar header com colunas de rodadas
   const headersRodadas = rodadasExibir
     .map((r) => {
       const isParcial = r === rodadaParcialFlag;
-      const classe = isParcial ? "col-rodada parcial" : "col-rodada";
-      return `<th class="${classe}">R${r}${isParcial ? "*" : ""}</th>`;
+      const isFinal = r === RODADA_FINAL;
+      let classe = "col-rodada";
+      if (isParcial) classe += " parcial";
+      if (isFinal) classe += " rodada-final";
+      return `<th class="${classe}">R${r}${isParcial ? "*" : ""}${isFinal ? "🏁" : ""}</th>`;
     })
     .join("");
 
@@ -208,25 +324,37 @@ export function renderizarRanking(dados) {
     50180257: 267,
   };
 
+  // ✅ v4.1: Verificar se é rodada final com parcial
+  const isRodadaFinalParcial = rodadaAtual === RODADA_FINAL && !mercadoAberto;
+
   // Renderizar linhas
   const tableHTML = ranking
     .map((item, index) => {
       const posicao = index + 1;
-      const posIcon =
-        posicao === 1
-          ? "🏆"
-          : posicao === 2
-            ? "🥈"
-            : posicao === 3
-              ? "🥉"
-              : `${posicao}º`;
-      const posClass = posicao <= 3 ? `pos-${posicao}` : "";
+
+      // ✅ v4.1: DESTAQUE APENAS NO 1º LUGAR
+      let posIcon;
+      let posClass = "";
+      let rowClass = "luva-ranking-row";
+
+      if (posicao === 1) {
+        posIcon = "🏆";
+        posClass = "pos-campeao";
+        rowClass += " lider-destaque";
+
+        // Se rodada final parcial, adicionar classe de animação
+        if (isRodadaFinalParcial) {
+          rowClass += " possivel-campeao";
+        }
+      } else {
+        posIcon = `${posicao}º`;
+      }
 
       const escudoId =
         ESCUDOS[item.participanteId] || item.clubeId || "default";
       const pontosTotais = parseFloat(item.pontosTotais || 0).toFixed(2);
 
-      // Criar mapa de pontos por rodada para acesso rápido (com dados do goleiro)
+      // Criar mapa de pontos por rodada
       const pontosPorRodada = {};
       if (item.rodadas && Array.isArray(item.rodadas)) {
         item.rodadas.forEach((r) => {
@@ -239,13 +367,11 @@ export function renderizarRanking(dados) {
         });
       }
 
-      // Gerar células de pontos para cada rodada visível (com goleiro)
+      // Gerar células de pontos para cada rodada visível
       const celulasRodadas = rodadasExibir
         .map((r) => {
           const rodadaData = pontosPorRodada[r];
-          // Detectar parcial: flag nos dados OU rodada marcada como parcial
-          const isParcial =
-            rodadaData?.parcial === true || r === rodadaParcialFlag;
+          const isParcial = r === rodadaParcialFlag;
 
           if (rodadaData !== undefined) {
             const pontosNum = parseFloat(rodadaData.pontos || 0);
@@ -258,7 +384,6 @@ export function renderizarRanking(dados) {
               ? "N/Esc"
               : goleiroNome.split(" ")[0].substring(0, 7);
 
-            // Tratar NaN
             const pontosValidos = isNaN(pontosNum) ? 0 : pontosNum;
             const pontosClass = semGoleiro
               ? "sem-goleiro"
@@ -281,8 +406,8 @@ export function renderizarRanking(dados) {
         .join("");
 
       return `
-      <tr class="luva-ranking-row ${posClass}">
-        <td class="col-pos"><span class="pos-badge">${posIcon}</span></td>
+      <tr class="${rowClass}">
+        <td class="col-pos"><span class="pos-badge ${posClass}">${posIcon}</span></td>
         <td class="col-escudo"><img src="/escudos/${escudoId}.png" alt="" class="escudo-img" onerror="this.src='/escudos/default.png'"></td>
         <td class="col-nome"><span class="participante-nome">${item.participanteNome}</span></td>
         <td class="col-total"><span class="pontos-total">${pontosTotais}</span></td>
@@ -294,7 +419,10 @@ export function renderizarRanking(dados) {
 
   tbody.innerHTML = tableHTML;
 
-  // ✅ Renderizar seção de inativos (se houver)
+  // ✅ Injetar estilos de destaque
+  injetarEstilosDestaque();
+
+  // Renderizar seção de inativos
   renderizarSecaoInativos(dados, rodadasExibir, rodadaParcialFlag);
 
   // Renderizar estatísticas
@@ -302,11 +430,85 @@ export function renderizarRanking(dados) {
 }
 
 // ==============================
+// ✅ v4.1: ESTILOS DE DESTAQUE
+// ==============================
+
+function injetarEstilosDestaque() {
+  if (document.getElementById("luva-estilos-destaque")) return;
+
+  const style = document.createElement("style");
+  style.id = "luva-estilos-destaque";
+  style.textContent = `
+    /* ✅ DESTAQUE DO LÍDER/CAMPEÃO */
+    .luva-ranking-row.lider-destaque {
+      background: linear-gradient(90deg, rgba(255, 215, 0, 0.15) 0%, rgba(255, 255, 255, 0) 100%) !important;
+      border-left: 4px solid #ffd700 !important;
+    }
+
+    .luva-ranking-row.lider-destaque td:first-child {
+      position: relative;
+    }
+
+    .pos-badge.pos-campeao {
+      background: linear-gradient(135deg, #ffd700, #ffaa00) !important;
+      color: #1a1a2e !important;
+      font-size: 1.1rem !important;
+      padding: 4px 8px !important;
+      border-radius: 8px !important;
+      box-shadow: 0 2px 8px rgba(255, 215, 0, 0.5) !important;
+      animation: brilhoTrofeu 2s infinite;
+    }
+
+    @keyframes brilhoTrofeu {
+      0%, 100% { box-shadow: 0 2px 8px rgba(255, 215, 0, 0.5); }
+      50% { box-shadow: 0 2px 15px rgba(255, 215, 0, 0.8); }
+    }
+
+    /* ✅ POSSÍVEL CAMPEÃO (RODADA FINAL EM ANDAMENTO) */
+    .luva-ranking-row.possivel-campeao {
+      animation: destaqueCampeao 1.5s infinite;
+    }
+
+    @keyframes destaqueCampeao {
+      0%, 100% { 
+        background: linear-gradient(90deg, rgba(255, 215, 0, 0.15) 0%, rgba(255, 255, 255, 0) 100%);
+      }
+      50% { 
+        background: linear-gradient(90deg, rgba(255, 215, 0, 0.3) 0%, rgba(255, 255, 255, 0) 100%);
+      }
+    }
+
+    .luva-ranking-row.possivel-campeao .participante-nome::after {
+      content: " 👑";
+      animation: coroa 1s infinite;
+    }
+
+    @keyframes coroa {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0.5; }
+    }
+
+    /* ✅ COLUNA RODADA FINAL */
+    th.col-rodada.rodada-final {
+      background: linear-gradient(135deg, #ffd700, #ffaa00) !important;
+      color: #1a1a2e !important;
+      font-weight: bold !important;
+    }
+
+    /* ✅ REMOVER DESTAQUE DO 2º e 3º (era pos-2, pos-3) */
+    .pos-badge:not(.pos-campeao) {
+      background: #f4f6fa;
+      color: #666;
+    }
+  `;
+  document.head.appendChild(style);
+}
+
+// ==============================
 // ESTATÍSTICAS
 // ==============================
 
 function renderizarEstatisticas(ranking, rodadasExibir, dados) {
-  // ✅ Remover container existente
   const containerExistente = document.getElementById("luvaStatsContainer");
   if (containerExistente) containerExistente.remove();
 
@@ -333,117 +535,90 @@ function renderizarEstatisticas(ranking, rodadasExibir, dados) {
     }
   });
 
-  // ✅ Criar container dinamicamente
-  const container = document.createElement("div");
-  container.id = "luvaStatsContainer";
-  container.className = "luva-stats-container";
-  container.innerHTML = `
-    <div class="luva-stats-grid">
-      <div class="luva-stat-card gold">
-        <div class="stat-icon">🏆</div>
-        <div class="stat-value">${parseFloat(lider.pontosTotais || 0).toFixed(1)}</div>
-        <div class="stat-label">Líder</div>
-        <div class="stat-detail">${lider.participanteNome}</div>
+  const statsContainer = document.createElement("div");
+  statsContainer.id = "luvaStatsContainer";
+  statsContainer.className = "luva-stats-container";
+  statsContainer.innerHTML = `
+    <div class="stats-grid">
+      <div class="stat-card lider">
+        <span class="stat-icon">🏆</span>
+        <span class="stat-label">Líder</span>
+        <span class="stat-value">${lider.participanteNome}</span>
+        <span class="stat-detail">${parseFloat(lider.pontosTotais || 0).toFixed(2)} pts</span>
       </div>
-      <div class="luva-stat-card blue">
-        <div class="stat-icon">👥</div>
-        <div class="stat-value">${totalParticipantes}</div>
-        <div class="stat-label">Ativos</div>
-        ${totalInativos > 0 ? `<div class="stat-detail">${totalInativos} inativo(s)</div>` : ""}
+      <div class="stat-card">
+        <span class="stat-icon">⭐</span>
+        <span class="stat-label">Melhor Goleiro</span>
+        <span class="stat-value">${melhorPontuacao.toFixed(2)} pts</span>
+        <span class="stat-detail">${melhorCartoleiro} (R${melhorRodada})</span>
       </div>
-      <div class="luva-stat-card green">
-        <div class="stat-icon">⭐</div>
-        <div class="stat-value">${melhorPontuacao.toFixed(1)}</div>
-        <div class="stat-label">Melhor Rodada</div>
-        <div class="stat-detail">${melhorCartoleiro} (R${melhorRodada})</div>
+      <div class="stat-card">
+        <span class="stat-icon">👥</span>
+        <span class="stat-label">Participantes</span>
+        <span class="stat-value">${totalParticipantes}</span>
+        <span class="stat-detail">${totalInativos > 0 ? `+ ${totalInativos} inativos` : "ativos"}</span>
       </div>
     </div>
   `;
 
-  // ✅ Inserir DEPOIS da seção de inativos (ou depois da tabela se não houver inativos)
-  const secaoInativos = document.getElementById("luva-inativos-section");
-  const contentSection = document.getElementById("luvaContentSection");
-
-  if (secaoInativos) {
-    secaoInativos.after(container);
-  } else if (contentSection) {
-    contentSection.appendChild(container);
+  const contentSection = getElement("luvaContentSection");
+  if (contentSection) {
+    contentSection.appendChild(statsContainer);
   }
 }
 
 // ==============================
-// ESTADOS DE LOADING E ERRO
+// FUNÇÕES AUXILIARES
 // ==============================
 
 export function mostrarLoading(mensagem = "Carregando...") {
   const tbody = getElement("luvaRankingBody");
   if (tbody) {
-    tbody.innerHTML = `
-      <tr>
-        <td colspan="12" class="loading-cell">
-          <div class="luva-loading">
-            <div class="spinner"></div>
-            <p>${mensagem}</p>
-          </div>
-        </td>
-      </tr>
-    `;
+    tbody.innerHTML = `<tr><td colspan="12" class="loading-cell">${mensagem}</td></tr>`;
   }
 }
 
-export function mostrarErro(mensagem, detalhes = null) {
+export function mostrarErro(mensagem) {
   const tbody = getElement("luvaRankingBody");
   if (tbody) {
-    tbody.innerHTML = `
-      <tr>
-        <td colspan="12" class="loading-cell">
-          <div class="luva-erro">
-            <span class="erro-icon">❌</span>
-            <p class="erro-msg">${mensagem}</p>
-            ${detalhes ? `<p class="erro-detalhe">${detalhes}</p>` : ""}
-            <button class="btn btn-primary" onclick="window.LuvaDeOuroOrquestrador.carregarRanking(true)">
-              🔄 Tentar Novamente
-            </button>
-          </div>
-        </td>
-      </tr>
-    `;
+    tbody.innerHTML = `<tr><td colspan="12" class="loading-cell" style="color:#e74c3c;">${mensagem}</td></tr>`;
   }
 }
 
 export function atualizarInfoStatus(texto) {
-  const info = getElement("luvaInfoStatus");
-  if (info) {
-    info.innerHTML = texto;
+  const infoStatus = getElement("luvaInfoStatus");
+  if (infoStatus) {
+    infoStatus.innerHTML = texto;
   }
 }
 
-export function atualizarTitulo(texto) {
-  // Compatibilidade - não usado mais
+export function atualizarTitulo(titulo) {
+  const tituloEl = document.querySelector(".luva-title h3");
+  if (tituloEl) {
+    tituloEl.textContent = titulo;
+  }
 }
 
-// Funções de compatibilidade (mantidas para não quebrar o orquestrador)
 export function renderizarMiniCardsRodadas(
   rodadaAtual,
   mercadoAberto,
   rodadasComDados = [],
 ) {
   configurarNavegacao(rodadaAtual, mercadoAberto);
-  console.log("[LUVA-UI] Navegação configurada (mini-cards substituídos)");
+  console.log("[LUVA-UI] Navegação configurada");
 }
 
 export function marcarRodadaSelecionada(rodada) {
-  // Não usado mais - navegação é por faixa
+  // Não usado mais
 }
 
 // ==============================
-// MODAL DE DETALHES (COM SUPORTE A INATIVOS)
+// MODAL DE DETALHES
 // ==============================
 
 export function mostrarModalDetalhes(dados) {
   const { participante, rodadaInicio, rodadaFim, historico } = dados;
 
-  // Remover modal existente
   const modalExistente = document.getElementById("luva-modal-detalhes");
   if (modalExistente) modalExistente.remove();
 
@@ -509,12 +684,10 @@ export function mostrarModalDetalhes(dados) {
 
   document.body.appendChild(modal);
 
-  // Fechar ao clicar fora
   modal.addEventListener("click", (e) => {
     if (e.target === modal) modal.remove();
   });
 
-  // Fechar com ESC
   const handleEsc = (e) => {
     if (e.key === "Escape") {
       modal.remove();
@@ -531,14 +704,11 @@ export function mostrarModalDetalhes(dados) {
 export function renderizarSecaoInativos(dados, rodadasExibir, rodadaParcial) {
   const { inativos } = dados;
 
-  // Remover seção existente (se houver)
   const secaoExistente = document.getElementById("luva-inativos-section");
   if (secaoExistente) secaoExistente.remove();
 
-  // Se não houver inativos, não renderizar
   if (!inativos || inativos.length === 0) return;
 
-  // Criar container para a seção de inativos
   const tableContainer = document.querySelector(".luva-table-container");
   if (!tableContainer) return;
 
@@ -557,7 +727,6 @@ export function renderizarSecaoInativos(dados, rodadasExibir, rodadaParcial) {
         ESCUDOS[item.participanteId] || item.clubeId || "default";
       const pontosTotais = parseFloat(item.pontosTotais || 0).toFixed(2);
 
-      // Criar mapa de pontos por rodada
       const pontosPorRodada = {};
       if (item.rodadas && Array.isArray(item.rodadas)) {
         item.rodadas.forEach((r) => {
@@ -568,7 +737,6 @@ export function renderizarSecaoInativos(dados, rodadasExibir, rodadaParcial) {
         });
       }
 
-      // Células de rodadas
       const celulasRodadas = rodadasExibir
         .map((r) => {
           const rodadaData = pontosPorRodada[r];
@@ -666,5 +834,5 @@ window.LuvaDeOuroUI = {
 };
 
 console.log(
-  "✅ [LUVA-UI] Módulo carregado com colunas navegáveis v4.0.0 + suporte a inativos",
+  "✅ [LUVA-UI] Módulo v4.1.0 carregado - Destaque 1º lugar + Rodada Final",
 );

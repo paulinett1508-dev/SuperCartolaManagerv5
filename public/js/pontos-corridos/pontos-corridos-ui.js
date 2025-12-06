@@ -1,6 +1,11 @@
-// PONTOS CORRIDOS UI - v2.2 Interface Otimizada
+// PONTOS CORRIDOS UI - v2.7 Interface Otimizada
 // ✅ v2.1: Celebração do campeão quando liga encerra
 // ✅ v2.2: Banner compacto e elegante com nome do cartoleiro
+// ✅ v2.3: CORREÇÃO - Suporta time1/time2 (cache) e timeA/timeB (gerador)
+// ✅ v2.4: Alinhamento do nome do cartoleiro na classificação
+// ✅ v2.5: Renomear coluna GP → PG (Pontos Goleada)
+// ✅ v2.6: PG no banner do campeão
+// ✅ v2.7: Correção busca container (suporta ambos IDs) + fix null check
 // Responsável por: renderização, manipulação DOM, estados visuais
 
 import {
@@ -303,16 +308,22 @@ export function renderTabelaRodada(
   let confrontosHTML = "";
 
   jogos.forEach((jogo, index) => {
-    const timeA = jogo.timeA;
-    const timeB = jogo.timeB;
-    const pontosA = pontuacoesMap[timeA.id] ?? null;
-    const pontosB = pontuacoesMap[timeB.id] ?? null;
+    // ✅ v2.3: Suporta ambos formatos (time1/time2 do cache OU timeA/timeB do gerador)
+    const timeA = jogo.time1 || jogo.timeA;
+    const timeB = jogo.time2 || jogo.timeB;
 
-    const brasaoA = obterBrasaoTime(timeA);
-    const brasaoB = obterBrasaoTime(timeB);
+    if (!timeA || !timeB) {
+      console.warn(`[UI] Confronto ${index} com dados incompletos:`, jogo);
+      return;
+    }
 
-    // ✅ v2.2: Nome do time (principal) + nome do cartoleiro (secundário)
-    // Dados vêm do core com: nome (time), nome_cartola (cartoleiro)
+    const pontosA = timeA.pontos ?? pontuacoesMap[timeA.id] ?? null;
+    const pontosB = timeB.pontos ?? pontuacoesMap[timeB.id] ?? null;
+
+    const brasaoA = timeA.escudo || obterBrasaoTime(timeA);
+    const brasaoB = timeB.escudo || obterBrasaoTime(timeB);
+
+    // ✅ v2.3: Nome do time (principal) + nome do cartoleiro (secundário)
     const nomeTimeA = timeA.nome || timeA.nome_time || "Time";
     const cartolaA = timeA.nome_cartola || "";
     const nomeTimeB = timeB.nome || timeB.nome_time || "Time";
@@ -474,6 +485,7 @@ function renderizarCelebracaoCampeao(campeao) {
   const vitorias = campeao.vitorias || 0;
   const empates = campeao.empates || 0;
   const derrotas = campeao.derrotas || 0;
+  const pontosGoleada = campeao.pontosGoleada || 0; // ✅ v2.6
 
   return `
     <div class="campeao-banner">
@@ -490,6 +502,7 @@ function renderizarCelebracaoCampeao(campeao) {
           <div class="stat"><span class="valor">${vitorias}</span><span class="label">V</span></div>
           <div class="stat"><span class="valor">${empates}</span><span class="label">E</span></div>
           <div class="stat"><span class="valor">${derrotas}</span><span class="label">D</span></div>
+          <div class="stat"><span class="valor" style="color: #ff8c00;">${pontosGoleada}</span><span class="label">PG</span></div>
         </div>
       </div>
     </div>
@@ -651,9 +664,9 @@ export function renderTabelaClassificacao(
               style="width: 32px; height: 32px; border-radius: 4px; object-fit: cover;${ligaEncerrou && posicao === 1 ? " border: 2px solid #ffd700;" : ""}"
               onerror="this.src='data:image/svg+xml,%3Csvg xmlns=\\'http://www.w3.org/2000/svg\\' width=\\'40\\' height=\\'40\\'%3E%3Crect fill=\\'%23ddd\\' width=\\'40\\' height=\\'40\\'/%3E%3C/svg%3E'"
             >
-            <div style="display: flex; flex-direction: column;">
+            <div style="display: flex; flex-direction: column; align-items: flex-start; text-align: left;">
               <span style="font-weight: 500;${ligaEncerrou && posicao === 1 ? " color: #ffd700;" : ""}">${nomeTime}${badgeCampeao}</span>
-              ${nomeCartoleiro ? `<span style="font-size: 11px; color: var(--text-muted, #888);">${nomeCartoleiro}</span>` : ""}
+              ${nomeCartoleiro ? `<span style="font-size: 11px; color: var(--text-muted, #888); margin-top: 2px;">${nomeCartoleiro}</span>` : ""}
             </div>
           </div>
         </td>
@@ -735,7 +748,7 @@ export function renderTabelaClassificacao(
             <th class="col-vitorias">V</th>
             <th class="col-empates">E</th>
             <th class="col-derrotas">D</th>
-            <th class="col-goleadas">GP</th>
+            <th class="col-goleadas">PG</th>
             <th class="col-saldo">SG</th>
             <th class="col-financeiro">Financeiro</th>
             <th class="col-aproveitamento">%</th>
@@ -834,7 +847,7 @@ export function limparCacheUI() {
 }
 
 console.log(
-  "[PONTOS-CORRIDOS-UI] Módulo v2.2 carregado com celebração compacta do campeão",
+  "[PONTOS-CORRIDOS-UI] Módulo v2.7 carregado (fix container + null check)",
 );
 
 // ========================================
@@ -849,17 +862,12 @@ window.inicializarPontosCorridos = async function (ligaId) {
   try {
     const container =
       document.getElementById("pontos-corridos-container") ||
+      document.getElementById("pontos-corridos") ||
       document.getElementById("modulo-container") ||
       document.getElementById("secondary-content");
 
     if (!container) {
       console.error("[PONTOS-CORRIDOS] ❌ Container não encontrado");
-      container.innerHTML = `
-        <div style="padding: 40px; text-align: center; color: #ef4444;">
-          <h3>❌ Erro de Inicialização</h3>
-          <p>Container do módulo não encontrado</p>
-        </div>
-      `;
       return;
     }
 
@@ -882,6 +890,7 @@ window.inicializarPontosCorridos = async function (ligaId) {
 
     const container =
       document.getElementById("pontos-corridos-container") ||
+      document.getElementById("pontos-corridos") ||
       document.getElementById("modulo-container") ||
       document.getElementById("secondary-content");
 

@@ -1,7 +1,8 @@
-// controllers/artilheiroCampeaoController.js - VERSÃO 4.1
+// controllers/artilheiroCampeaoController.js - VERSÃO 4.2
 // ✅ PERSISTÊNCIA MONGODB + LÓGICA DE RODADA PARCIAL (igual Luva de Ouro)
 // ✅ SUPORTE A PARTICIPANTES INATIVOS (via endpoint /api/times/batch/status)
 // ✅ CORREÇÃO v4.1: Não incluir rodada atual quando mercado aberto (sem scouts válidos)
+// ✅ CORREÇÃO v4.2: Incluir rodadas anteriores mesmo se parcial=true (rodadas passadas são válidas)
 
 import mongoose from "mongoose";
 
@@ -379,12 +380,14 @@ class ArtilheiroCampeaoController {
         let rodadasProcessadas = 0;
         const detalhePorRodada = [];
 
-        // ✅ 1. Buscar rodadas consolidadas do MongoDB
+        // ✅ v4.2: Buscar TODAS as rodadas no intervalo (não filtrar por parcial)
+        // Rodadas passadas são válidas mesmo se marcadas como parcial=true
+        // (podem ter ficado assim por falha na consolidação)
         const rodadasDB = await GolsConsolidados.find({
             ligaId: ligaId,
             timeId: timeId,
             rodada: { $gte: rodadaInicio, $lte: rodadaFim },
-            parcial: false, // Apenas consolidadas
+            // ✅ REMOVIDO: parcial: false - rodadas passadas são sempre válidas
         }).lean();
 
         console.log(`  💾 ${rodadasDB.length} rodadas do MongoDB`);

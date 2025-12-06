@@ -1,8 +1,9 @@
-// ✅ ARTILHEIRO-CAMPEAO-SCHEDULER.JS v1.0
+// ✅ ARTILHEIRO-CAMPEAO-SCHEDULER.JS v1.1
 // Módulo de agendamento automático para atualização do ranking de artilheiros
+// v1.1: Adicionada coleta automática de rodadas finalizadas
 
 console.log(
-    "⏰ [ARTILHEIRO-SCHEDULER] Módulo de agendamento v1.0 carregando...",
+    "⏰ [ARTILHEIRO-SCHEDULER] Módulo de agendamento v1.1 carregando...",
 );
 
 const ArtilheiroScheduler = {
@@ -23,8 +24,10 @@ const ArtilheiroScheduler = {
         ultimaAtualizacao: null,
         mercadoAberto: null,
         rodadaAtual: null,
+        ultimaRodadaColetada: null, // v1.1: Rastrear última rodada coletada
         errosConsecutivos: 0,
         totalAtualizacoes: 0,
+        totalColetas: 0, // v1.1: Contador de coletas
     },
 
     // ===== INICIAR SCHEDULER =====
@@ -105,6 +108,8 @@ const ArtilheiroScheduler = {
             const data = await response.json();
 
             const mercadoAnterior = this.estado.mercadoAberto;
+            const rodadaAnterior = this.estado.rodadaAtual;
+
             this.estado.mercadoAberto =
                 data.mercado_aberto || data.status_mercado === 1;
             this.estado.rodadaAtual = data.rodada_atual;
@@ -123,6 +128,14 @@ const ArtilheiroScheduler = {
                 );
                 this.configurarIntervalo();
 
+                // ✅ v1.1: Se mercado acabou de ABRIR, coletar rodada anterior
+                if (this.estado.mercadoAberto && !mercadoAnterior) {
+                    console.log(
+                        "🚀 [ARTILHEIRO-SCHEDULER] Mercado ABRIU! Coletando rodada finalizada...",
+                    );
+                    await this.coletarRodadaAnterior();
+                }
+
                 // Se mercado acabou de fechar, fazer atualização imediata
                 if (!this.estado.mercadoAberto) {
                     console.log(
@@ -139,6 +152,114 @@ const ArtilheiroScheduler = {
                 error,
             );
             this.estado.errosConsecutivos++;
+        }
+    },
+
+    // ===== v1.1: COLETAR RODADA ANTERIOR (NOVA FUNÇÃO) =====
+    async coletarRodadaAnterior() {
+        try {
+            const ligaId = this.obterLigaAtual();
+            if (!ligaId) {
+                console.warn(
+                    "⚠️ [ARTILHEIRO-SCHEDULER] Liga não identificada para coleta",
+                );
+                return;
+            }
+
+            // Rodada que acabou = rodada atual - 1
+            const rodadaFinalizada = this.estado.rodadaAtual - 1;
+
+            // Evitar coleta duplicada
+            if (this.estado.ultimaRodadaColetada === rodadaFinalizada) {
+                console.log(
+                    `⏭️ [ARTILHEIRO-SCHEDULER] R${rodadaFinalizada} já foi coletada, pulando...`,
+                );
+                return;
+            }
+
+            console.log(
+                `📥 [ARTILHEIRO-SCHEDULER] Coletando gols da R${rodadaFinalizada}...`,
+            );
+
+            const response = await fetch(
+                `/api/artilheiro-campeao/${ligaId}/coletar/${rodadaFinalizada}`,
+                { method: "POST" },
+            );
+
+            if (response.ok) {
+                const data = await response.json();
+
+                this.estado.ultimaRodadaColetada = rodadaFinalizada;
+                this.estado.totalColetas++;
+
+                console.log(
+                    `✅ [ARTILHEIRO-SCHEDULER] R${rodadaFinalizada} coletada! ${data.resultados?.length || 0} participantes`,
+                );
+
+                // Disparar evento
+                this.dispararEvento("rodada-coletada", {
+                    ligaId,
+                    rodada: rodadaFinalizada,
+                    resultados: data.resultados,
+                    timestamp: new Date(),
+                });
+
+                // Atualizar ranking após coleta
+                await this.atualizarArtilheiros();
+            } else {
+                const errorData = await response.json().catch(() => ({}));
+                console.error(
+                    `❌ [ARTILHEIRO-SCHEDULER] Erro ao coletar R${rodadaFinalizada}:`,
+                    errorData.message || response.status,
+                );
+            }
+        } catch (error) {
+            console.error(
+                "❌ [ARTILHEIRO-SCHEDULER] Erro na coleta automática:",
+                error,
+            );
+        }
+    },
+
+    // ===== v1.1: FORÇAR COLETA DE RODADA ESPECÍFICA =====
+    async forcarColeta(rodada = null) {
+        const ligaId = this.obterLigaAtual();
+        if (!ligaId) {
+            console.error("❌ [ARTILHEIRO-SCHEDULER] Liga não identificada");
+            return;
+        }
+
+        const rodadaAlvo = rodada || this.estado.rodadaAtual - 1;
+
+        console.log(
+            `🚀 [ARTILHEIRO-SCHEDULER] Forçando coleta da R${rodadaAlvo}...`,
+        );
+
+        try {
+            const response = await fetch(
+                `/api/artilheiro-campeao/${ligaId}/coletar/${rodadaAlvo}`,
+                { method: "POST" },
+            );
+
+            if (response.ok) {
+                const data = await response.json();
+                this.estado.ultimaRodadaColetada = rodadaAlvo;
+                this.estado.totalColetas++;
+
+                console.log(
+                    `✅ [ARTILHEIRO-SCHEDULER] R${rodadaAlvo} coletada manualmente!`,
+                );
+
+                return data;
+            } else {
+                throw new Error(`HTTP ${response.status}`);
+            }
+        } catch (error) {
+            console.error(
+                `❌ [ARTILHEIRO-SCHEDULER] Erro ao coletar R${rodadaAlvo}:`,
+                error,
+            );
+            throw error;
         }
     },
 
@@ -333,7 +454,9 @@ const ArtilheiroScheduler = {
             mercadoAberto: this.estado.mercadoAberto,
             rodadaAtual: this.estado.rodadaAtual,
             ultimaAtualizacao: this.estado.ultimaAtualizacao,
+            ultimaRodadaColetada: this.estado.ultimaRodadaColetada, // v1.1
             totalAtualizacoes: this.estado.totalAtualizacoes,
+            totalColetas: this.estado.totalColetas, // v1.1
             errosConsecutivos: this.estado.errosConsecutivos,
             intervaloAtual: this.estado.mercadoAberto
                 ? `${this.config.intervaloMercadoAberto / 60000} min (mercado aberto)`
@@ -427,9 +550,9 @@ document.addEventListener("DOMContentLoaded", () => {
     }
 });
 
-console.log("✅ [ARTILHEIRO-SCHEDULER] Módulo carregado");
+console.log("✅ [ARTILHEIRO-SCHEDULER] Módulo v1.1 carregado");
 console.log(
-    "💡 Comandos: ArtilheiroScheduler.iniciar(), .parar(), .forcarAtualizacao(), .getStatus()",
+    "💡 Comandos: ArtilheiroScheduler.iniciar(), .parar(), .forcarAtualizacao(), .forcarColeta(rodada), .getStatus()",
 );
 
 export default ArtilheiroScheduler;

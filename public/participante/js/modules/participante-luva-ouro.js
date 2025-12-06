@@ -1,8 +1,10 @@
 // =====================================================================
-// PARTICIPANTE-LUVA-OURO.JS - v3.4 (APENAS CAMPEÃO DESTACADO)
+// PARTICIPANTE-LUVA-OURO.JS - v3.6 (BANNER + FILTRO INATIVOS)
 // =====================================================================
 
-console.log("[PARTICIPANTE-LUVA-OURO] 🔄 Carregando módulo v3.4...");
+console.log("[PARTICIPANTE-LUVA-OURO] 🔄 Carregando módulo v3.6...");
+
+const RODADA_FINAL = 38;
 
 // =====================================================================
 // FUNÇÃO PRINCIPAL - EXPORTADA PARA NAVIGATION
@@ -52,7 +54,7 @@ export async function inicializarLuvaOuroParticipante({
             responseData,
         );
 
-        renderizarLuvaOuro(container, responseData, timeId);
+        await renderizarLuvaOuro(container, responseData, timeId);
     } catch (error) {
         console.error("[PARTICIPANTE-LUVA-OURO] ❌ Erro:", error);
         container.innerHTML = `
@@ -88,24 +90,197 @@ function isMyTime(item, meuTimeId) {
 }
 
 // =====================================================================
+// BANNER RODADA FINAL
+// =====================================================================
+function renderizarBannerRodadaFinal(rodadaAtual, mercadoAberto, lider) {
+    if (rodadaAtual !== RODADA_FINAL) return "";
+
+    const isParcial = !mercadoAberto;
+    const liderNome = lider ? getNome(lider) : "---";
+    const liderPontos = lider ? getPontos(lider).toFixed(1) : "0";
+
+    return `
+        <style>
+            @keyframes bannerPulse {
+                0%, 100% { box-shadow: 0 0 0 0 rgba(255, 215, 0, 0.4); }
+                50% { box-shadow: 0 0 0 8px rgba(255, 215, 0, 0); }
+            }
+            @keyframes shimmer {
+                0% { background-position: -200% center; }
+                100% { background-position: 200% center; }
+            }
+            .luva-banner-final {
+                background: linear-gradient(135deg, rgba(255, 215, 0, 0.12) 0%, rgba(255, 180, 0, 0.08) 100%);
+                border: 1px solid rgba(255, 215, 0, 0.35);
+                border-radius: 12px;
+                padding: 12px 16px;
+                margin-bottom: 16px;
+                ${isParcial ? "animation: bannerPulse 2s ease-in-out infinite;" : ""}
+            }
+            .luva-banner-header {
+                display: flex;
+                align-items: center;
+                justify-content: space-between;
+                margin-bottom: 10px;
+            }
+            .luva-banner-title {
+                display: flex;
+                align-items: center;
+                gap: 8px;
+            }
+            .luva-banner-icon {
+                font-size: 18px;
+                color: #ffd700;
+            }
+            .luva-banner-text {
+                font-size: 11px;
+                font-weight: 700;
+                color: #ffd700;
+                text-transform: uppercase;
+                letter-spacing: 0.5px;
+            }
+            .luva-banner-status {
+                font-size: 9px;
+                padding: 3px 8px;
+                border-radius: 4px;
+                font-weight: 600;
+                ${
+                    isParcial
+                        ? "background: rgba(34, 197, 94, 0.2); color: #22c55e;"
+                        : "background: rgba(255, 215, 0, 0.2); color: #ffd700;"
+                }
+            }
+            .luva-banner-lider {
+                display: flex;
+                align-items: center;
+                justify-content: space-between;
+                background: rgba(0, 0, 0, 0.25);
+                border-radius: 8px;
+                padding: 10px 12px;
+            }
+            .luva-banner-lider-info {
+                display: flex;
+                align-items: center;
+                gap: 10px;
+            }
+            .luva-banner-lider-badge {
+                font-size: 9px;
+                font-weight: 700;
+                color: #ffd700;
+                text-transform: uppercase;
+                background: linear-gradient(90deg, #ffd700, #ffaa00, #ffd700);
+                background-size: 200% auto;
+                -webkit-background-clip: text;
+                -webkit-text-fill-color: transparent;
+                background-clip: text;
+                animation: shimmer 3s linear infinite;
+            }
+            .luva-banner-lider-nome {
+                font-size: 14px;
+                font-weight: 700;
+                color: #fff;
+            }
+            .luva-banner-lider-pontos {
+                text-align: right;
+            }
+            .luva-banner-lider-valor {
+                font-size: 18px;
+                font-weight: 800;
+                color: #ffd700;
+            }
+            .luva-banner-lider-label {
+                font-size: 8px;
+                color: #888;
+                text-transform: uppercase;
+            }
+        </style>
+
+        <div class="luva-banner-final">
+            <div class="luva-banner-header">
+                <div class="luva-banner-title">
+                    <span class="material-icons" style="font-size: 18px; color: #ffd700; vertical-align: middle;">emoji_events</span>
+                    <span class="luva-banner-text">Rodada Final</span>
+                </div>
+                <span class="luva-banner-status">${isParcial ? "● Em andamento" : "Última Rodada"}</span>
+            </div>
+            <div class="luva-banner-lider">
+                <div class="luva-banner-lider-info">
+                    <div>
+                        <div class="luva-banner-lider-badge">Possível Campeão</div>
+                        <div class="luva-banner-lider-nome">${liderNome}</div>
+                    </div>
+                </div>
+                <div class="luva-banner-lider-pontos">
+                    <div class="luva-banner-lider-valor">${liderPontos}</div>
+                    <div class="luva-banner-lider-label">pontos</div>
+                </div>
+            </div>
+        </div>
+    `;
+}
+
+// =====================================================================
 // RENDERIZAÇÃO
 // =====================================================================
-function renderizarLuvaOuro(container, response, meuTimeId) {
+async function renderizarLuvaOuro(container, response, meuTimeId) {
     const data = response.data || response;
 
     let ranking = [];
     let rodadaInicio = 1;
     let rodadaFim = 36;
+    let rodadaAtual = null;
+    let mercadoAberto = true;
 
     if (data.ranking && Array.isArray(data.ranking)) {
         ranking = data.ranking;
         rodadaInicio = data.rodadaInicio || 1;
         rodadaFim = data.rodadaFim || 36;
+        rodadaAtual = data.rodadaAtual || null;
+        mercadoAberto = data.mercadoAberto !== false;
     } else if (Array.isArray(data)) {
         ranking = data;
     }
 
-    if (ranking.length === 0) {
+    // ✅ BUSCAR RODADA ATUAL DA API DE MERCADO SE NÃO VEIO NOS DADOS
+    if (!rodadaAtual) {
+        try {
+            // Tentar endpoint do cartola-proxy
+            const mercadoRes = await fetch("/api/cartola/mercado");
+            if (mercadoRes.ok) {
+                const mercado = await mercadoRes.json();
+                rodadaAtual =
+                    mercado.rodada_atual || mercado.rodadaAtual || rodadaFim;
+                mercadoAberto =
+                    mercado.status_mercado === 1 ||
+                    mercado.mercadoAberto === true;
+                console.log("[PARTICIPANTE-LUVA-OURO] 📊 Mercado:", {
+                    rodadaAtual,
+                    mercadoAberto,
+                });
+            } else {
+                // Fallback: usar rodadaFim
+                rodadaAtual = rodadaFim;
+                console.warn(
+                    "[PARTICIPANTE-LUVA-OURO] ⚠️ API mercado indisponível, usando rodadaFim:",
+                    rodadaFim,
+                );
+            }
+        } catch (e) {
+            console.warn(
+                "[PARTICIPANTE-LUVA-OURO] ⚠️ Erro ao obter mercado:",
+                e.message,
+            );
+            rodadaAtual = rodadaFim;
+        }
+    }
+
+    // ✅ FILTRAR TIMES INATIVOS - NÃO PODEM FIGURAR NO RANKING
+    const rankingAtivos = ranking.filter((time) => {
+        const isInativo = time.ativo === false || time.status === "inativo";
+        return !isInativo;
+    });
+
+    if (rankingAtivos.length === 0) {
         container.innerHTML = `
             <div style="text-align: center; padding: 60px 20px; background: linear-gradient(135deg, rgba(255, 215, 0, 0.05) 0%, rgba(255, 215, 0, 0.02) 100%); border-radius: 12px; border: 2px dashed rgba(255, 215, 0, 0.3);">
                 <div style="font-size: 64px; margin-bottom: 16px;">🧤</div>
@@ -116,9 +291,9 @@ function renderizarLuvaOuro(container, response, meuTimeId) {
         return;
     }
 
-    const campeao = ranking[0];
-    const minhaPosicao = ranking.findIndex((r) => isMyTime(r, meuTimeId));
-    const meusDados = minhaPosicao >= 0 ? ranking[minhaPosicao] : null;
+    const campeao = rankingAtivos[0];
+    const minhaPosicao = rankingAtivos.findIndex((r) => isMyTime(r, meuTimeId));
+    const meusDados = minhaPosicao >= 0 ? rankingAtivos[minhaPosicao] : null;
     const minhaColocacao = minhaPosicao >= 0 ? minhaPosicao + 1 : null;
 
     const distanciaLider =
@@ -149,6 +324,13 @@ function renderizarLuvaOuro(container, response, meuTimeId) {
             .slice(0, 3);
     }
 
+    // Banner da rodada final
+    const bannerRodadaFinal = renderizarBannerRodadaFinal(
+        rodadaAtual,
+        mercadoAberto,
+        campeao,
+    );
+
     const html = `
     <div style="padding: 16px;">
         <div style="text-align: center; margin-bottom: 20px;">
@@ -160,6 +342,8 @@ function renderizarLuvaOuro(container, response, meuTimeId) {
             </p>
         </div>
 
+        ${bannerRodadaFinal}
+
         ${
             meusDados
                 ? `
@@ -170,8 +354,8 @@ function renderizarLuvaOuro(container, response, meuTimeId) {
                     <div style="font-size: 28px; font-weight: 900; color: #fff;">${minhaColocacao}º</div>
                 </div>
                 <div style="text-align: right;">
-                    <div style="font-size: 26px; font-weight: 800; color: #ffd700;">${getPontos(meusDados).toFixed(1)}</div>
-                    <div style="font-size: 10px; color: #888; text-transform: uppercase;">pontos</div>
+                    <div style="font-size: 10px; color: #888; font-weight: 600; text-transform: uppercase;">Total</div>
+                    <div style="font-size: 24px; font-weight: 800; color: #ffd700;">${getPontos(meusDados).toFixed(1)}</div>
                 </div>
             </div>
 
@@ -313,28 +497,64 @@ function renderizarLuvaOuro(container, response, meuTimeId) {
         <details style="background: rgba(0,0,0,0.3); border-radius: 12px; overflow: hidden;" open>
             <summary style="background: rgba(255, 215, 0, 0.1); padding: 12px 16px; cursor: pointer; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid rgba(255, 215, 0, 0.2);">
                 <span style="font-size: 13px; font-weight: 700; color: #ffd700;">📋 Ranking Completo</span>
-                <span style="font-size: 11px; color: #888;">${ranking.length} participantes</span>
+                <span style="font-size: 11px; color: #888;">${rankingAtivos.length} participantes</span>
             </summary>
 
             <div style="max-height: 300px; overflow-y: auto;">
-            ${ranking
-                .map((time, idx) => {
+            ${(() => {
+                // Separar ativos e inativos
+                const ativos = rankingAtivos;
+                const inativos = ranking.filter(
+                    (time) => time.ativo === false || time.status === "inativo",
+                );
+
+                let html = "";
+
+                // Renderizar ATIVOS
+                ativos.forEach((time, idx) => {
                     const isMeuTime = isMyTime(time, meuTimeId);
                     const pos = idx + 1;
-                    // ✅ APENAS CAMPEÃO COM TROFÉU
                     const posicaoDisplay = pos === 1 ? "🏆" : `${pos}º`;
 
-                    return `
-                <div style="display: flex; justify-content: space-between; align-items: center; padding: 10px 14px; border-bottom: 1px solid rgba(255,255,255,0.05); ${isMeuTime ? "background: rgba(255, 215, 0, 0.15);" : ""}">
-                    <div style="display: flex; align-items: center; gap: 10px;">
-                        <span style="font-size: ${pos === 1 ? "16px" : "12px"}; width: 26px; ${pos === 1 ? "" : "color: #888;"}">${posicaoDisplay}</span>
-                        <span style="color: ${isMeuTime ? "#ffd700" : "#fff"}; font-weight: ${isMeuTime ? "700" : "500"}; font-size: 12px;">${getNome(time)}</span>
+                    html += `
+                    <div style="display: flex; justify-content: space-between; align-items: center; padding: 10px 14px; border-bottom: 1px solid rgba(255,255,255,0.05); ${isMeuTime ? "background: rgba(255, 215, 0, 0.15);" : ""}">
+                        <div style="display: flex; align-items: center; gap: 10px;">
+                            <span style="font-size: ${pos === 1 ? "16px" : "12px"}; width: 26px; ${pos === 1 ? "" : "color: #888;"}">${posicaoDisplay}</span>
+                            <span style="color: ${isMeuTime ? "#ffd700" : "#fff"}; font-weight: ${isMeuTime ? "700" : "500"}; font-size: 12px;">${getNome(time)}</span>
+                        </div>
+                        <span style="color: #ffd700; font-weight: 700; font-size: 13px;">${getPontos(time).toFixed(1)}</span>
                     </div>
-                    <span style="color: #ffd700; font-weight: 700; font-size: 13px;">${getPontos(time).toFixed(1)}</span>
-                </div>
-                `;
-                })
-                .join("")}
+                    `;
+                });
+
+                // Renderizar INATIVOS (se houver)
+                if (inativos.length > 0) {
+                    html += `
+                    <div style="padding: 8px 14px; background: rgba(100,100,100,0.15); border-top: 1px dashed rgba(100,100,100,0.4); border-bottom: 1px dashed rgba(100,100,100,0.4);">
+                        <span style="font-size: 9px; color: #666; text-transform: uppercase; letter-spacing: 0.5px;">
+                            <span class="material-icons" style="font-size: 12px; vertical-align: middle; margin-right: 4px;">person_off</span>
+                            Participantes Inativos
+                        </span>
+                    </div>
+                    `;
+
+                    inativos.forEach((time) => {
+                        const isMeuTime = isMyTime(time, meuTimeId);
+
+                        html += `
+                        <div style="display: flex; justify-content: space-between; align-items: center; padding: 10px 14px; border-bottom: 1px solid rgba(255,255,255,0.03); opacity: 0.5; filter: grayscale(60%);">
+                            <div style="display: flex; align-items: center; gap: 10px;">
+                                <span style="font-size: 12px; width: 26px; color: #555;">—</span>
+                                <span style="color: #666; font-weight: 400; font-size: 12px;">${getNome(time)}</span>
+                            </div>
+                            <span style="color: #555; font-weight: 500; font-size: 13px;">${getPontos(time).toFixed(1)}</span>
+                        </div>
+                        `;
+                    });
+                }
+
+                return html;
+            })()}
             </div>
         </details>
     </div>
@@ -343,4 +563,4 @@ function renderizarLuvaOuro(container, response, meuTimeId) {
     container.innerHTML = html;
 }
 
-console.log("[PARTICIPANTE-LUVA-OURO] ✅ Módulo v3.4 carregado");
+console.log("[PARTICIPANTE-LUVA-OURO] ✅ Módulo v3.6 carregado");

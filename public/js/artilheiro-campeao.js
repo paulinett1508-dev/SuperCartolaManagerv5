@@ -1,12 +1,13 @@
-// ✅ ARTILHEIRO-CAMPEAO.JS v4.2.0
-// Tabela com Rodadas em Colunas - UX MELHORADA (GP/GC visíveis)
-console.log("🏆 [ARTILHEIRO] Sistema v4.2.0 carregando...");
+// ✅ ARTILHEIRO-CAMPEAO.JS v4.3.0
+// Tabela com Rodadas em Colunas - DESTAQUE 1º LUGAR + RODADA FINAL
+console.log("🏆 [ARTILHEIRO] Sistema v4.3.0 carregando...");
 
 const ArtilheiroCampeao = {
     // Configurações
     config: {
         LIGA_ID: "684d821cf1a7ae16d1f89572",
-        RODADAS_VISIVEIS: 38, // ✅ Campeonato completo
+        RODADAS_VISIVEIS: 38,
+        RODADA_FINAL: 38, // ✅ v4.3: Constante da rodada final
         API: {
             RANKING: (ligaId) => `/api/artilheiro-campeao/${ligaId}/ranking`,
             DETECTAR_RODADA: (ligaId) =>
@@ -18,56 +19,51 @@ const ArtilheiroCampeao = {
     estado: {
         ranking: [],
         estatisticas: null,
-        rodadaAtual: 36,
-        rodadaFim: 35,
+        rodadaAtual: 38,
+        rodadaFim: 37,
         rodadaInicio: 1,
         rodadaNavInicio: 1,
         rodadaParcial: null,
         mercadoAberto: false,
         carregando: false,
         inicializado: false,
-        dadosRodadas: {}, // ✅ Cache dos dados por participante/rodada
+        dadosRodadas: {},
     },
 
     // ==============================
     // INICIALIZAÇÃO
     // ==============================
     async inicializar() {
-        // ✅ Evitar inicializações simultâneas
         if (this._isInitializing) {
             console.log("⏳ [ARTILHEIRO] Já está inicializando, ignorando...");
             return;
         }
 
-        console.log("🚀 [ARTILHEIRO] Inicializando módulo v4.2.0...");
+        console.log("🚀 [ARTILHEIRO] Inicializando módulo v4.3.0...");
         this._isInitializing = true;
 
-        // ✅ SEMPRE resetar estado ao reinicializar
         this.estado = {
             ranking: [],
-            inativos: [], // ✅ Participantes inativos (calculado no frontend)
+            inativos: [],
             estatisticas: null,
-            rodadaAtual: 36,
-            rodadaFim: 35,
+            rodadaAtual: 38,
+            rodadaFim: 37,
             rodadaInicio: 1,
             rodadaNavInicio: 1,
             rodadaParcial: null,
             mercadoAberto: false,
             carregando: false,
             inicializado: false,
-            dadosRodadas: {}, // ✅ Cache dos dados por participante/rodada
-            statusMap: {}, // ✅ Status de inatividade dos participantes
+            dadosRodadas: {},
+            statusMap: {},
         };
 
         try {
-            // ✅ Esconder loading ANTES de tudo
             const loading = document.getElementById("artilheiro-loading");
             if (loading) loading.style.display = "none";
 
             await this.detectarRodada();
             this.renderizarLayout();
-
-            // ✅ AUTO-CARREGAR RANKING (igual Luva de Ouro)
             await this.buscarRanking(false);
 
             this.estado.inicializado = true;
@@ -88,16 +84,11 @@ const ArtilheiroCampeao = {
             if (response.ok) {
                 const data = await response.json();
                 if (data.success && data.data) {
-                    this.estado.rodadaAtual = data.data.rodadaAtual || 36;
+                    this.estado.rodadaAtual = data.data.rodadaAtual || 38;
                     this.estado.mercadoAberto =
                         data.data.mercadoAberto || false;
-
-                    // ✅ LÓGICA IGUAL LUVA DE OURO:
-                    // Se mercado aberto: rodadaFim = rodadaAtual (parcial)
-                    // Se mercado fechado: rodadaFim = rodadaAtual (em andamento)
                     this.estado.rodadaFim = this.estado.rodadaAtual;
 
-                    // Posicionar navegação para mostrar últimas rodadas
                     this.estado.rodadaNavInicio = Math.max(
                         1,
                         this.estado.rodadaFim -
@@ -119,11 +110,9 @@ const ArtilheiroCampeao = {
     // LAYOUT PRINCIPAL
     // ==============================
     renderizarLayout() {
-        // ✅ Esconder loading
         const loading = document.getElementById("artilheiro-loading");
         if (loading) loading.style.display = "none";
 
-        // ✅ Tentar múltiplos containers
         let container = document.getElementById("artilheiro-container");
         if (!container) {
             container = document.getElementById("artilheiro-campeao-content");
@@ -137,11 +126,18 @@ const ArtilheiroCampeao = {
             return;
         }
 
-        // ✅ Mostrar container
         container.style.display = "block";
+
+        // ✅ v4.3: Verificar se é rodada final
+        const isRodadaFinal =
+            this.estado.rodadaAtual === this.config.RODADA_FINAL;
+        const isParcial = !this.estado.mercadoAberto;
 
         container.innerHTML = `
             <div class="artilheiro-container">
+                <!-- ✅ v4.3: BANNER RODADA FINAL -->
+                <div id="artilheiroBannerRodadaFinal"></div>
+
                 <!-- Header -->
                 <div class="artilheiro-header">
                     <div class="artilheiro-title">
@@ -150,11 +146,11 @@ const ArtilheiroCampeao = {
                         <span class="artilheiro-badge">MODULAR</span>
                     </div>
                     <div class="artilheiro-info-rodada">
-                        <span id="artilheiroInfoStatus">📊 Dados até a ${this.estado.rodadaFim}ª rodada${!this.estado.mercadoAberto ? " (em andamento)" : ""}</span>
+                        <span id="artilheiroInfoStatus">📊 Dados até a ${this.estado.rodadaFim}ª rodada${isParcial ? " (em andamento)" : ""}</span>
                     </div>
                 </div>
 
-                <!-- ✅ LEGENDA UX - NOVO v4.2 -->
+                <!-- LEGENDA UX -->
                 <div class="artilheiro-legenda">
                     <span class="legenda-item"><span class="legenda-cor gp"></span> GP = Gols Pró</span>
                     <span class="legenda-item"><span class="legenda-cor gc"></span> GC = Gols Contra</span>
@@ -199,6 +195,187 @@ const ArtilheiroCampeao = {
                     </table>
                 </div>
             </div>
+
+            <!-- ✅ v4.3: ESTILOS DE DESTAQUE -->
+            ${this._injetarEstilosDestaque()}
+        `;
+    },
+
+    // ==============================
+    // ✅ v4.3: BANNER RODADA FINAL
+    // ==============================
+    _renderizarBannerRodadaFinal() {
+        const bannerContainer = document.getElementById(
+            "artilheiroBannerRodadaFinal",
+        );
+        if (!bannerContainer) return;
+
+        const { rodadaAtual, mercadoAberto, ranking } = this.estado;
+        const isRodadaFinal = rodadaAtual === this.config.RODADA_FINAL;
+
+        if (!isRodadaFinal) {
+            bannerContainer.innerHTML = "";
+            return;
+        }
+
+        const isParcial = !mercadoAberto;
+        const statusTexto = isParcial ? "EM ANDAMENTO" : "ÚLTIMA RODADA";
+        const lider = ranking[0];
+        const liderNome = lider?.nome || "---";
+        const liderGols = lider?.golsPro || 0;
+
+        bannerContainer.innerHTML = `
+            <div class="rodada-final-banner ${isParcial ? "parcial-ativo" : ""}">
+                <div class="banner-content">
+                    <div class="banner-icon">🏁</div>
+                    <div class="banner-info">
+                        <span class="banner-titulo">RODADA FINAL</span>
+                        <span class="banner-status ${isParcial ? "pulsando" : ""}">${statusTexto}</span>
+                    </div>
+                    ${
+                        lider
+                            ? `
+                        <div class="banner-lider">
+                            <span class="lider-label">POSSÍVEL ARTILHEIRO</span>
+                            <span class="lider-nome">${liderNome} (${liderGols} gols)</span>
+                        </div>
+                    `
+                            : ""
+                    }
+                </div>
+            </div>
+        `;
+    },
+
+    // ==============================
+    // ✅ v4.3: ESTILOS DE DESTAQUE
+    // ==============================
+    _injetarEstilosDestaque() {
+        return `
+            <style id="artilheiro-estilos-destaque">
+                /* ✅ BANNER RODADA FINAL */
+                .rodada-final-banner {
+                    background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+                    border: 2px solid #ffd700;
+                    border-radius: 12px;
+                    padding: 12px 20px;
+                    margin-bottom: 15px;
+                    box-shadow: 0 4px 15px rgba(255, 215, 0, 0.3);
+                }
+                .rodada-final-banner.parcial-ativo {
+                    animation: borderPulseArt 2s infinite;
+                }
+                @keyframes borderPulseArt {
+                    0%, 100% { border-color: #ffd700; box-shadow: 0 4px 15px rgba(255, 215, 0, 0.3); }
+                    50% { border-color: #ff6b6b; box-shadow: 0 4px 20px rgba(255, 107, 107, 0.5); }
+                }
+                .banner-content {
+                    display: flex;
+                    align-items: center;
+                    justify-content: center;
+                    gap: 15px;
+                    flex-wrap: wrap;
+                }
+                .banner-icon {
+                    font-size: 2rem;
+                }
+                .banner-info {
+                    display: flex;
+                    flex-direction: column;
+                    align-items: center;
+                }
+                .banner-titulo {
+                    color: #ffd700;
+                    font-size: 1.2rem;
+                    font-weight: bold;
+                    letter-spacing: 2px;
+                }
+                .banner-status {
+                    color: #aaa;
+                    font-size: 0.8rem;
+                    margin-top: 2px;
+                }
+                .banner-status.pulsando {
+                    color: #ff6b6b;
+                    animation: textPulseArt 1.5s infinite;
+                }
+                @keyframes textPulseArt {
+                    0%, 100% { opacity: 1; }
+                    50% { opacity: 0.5; }
+                }
+                .banner-lider {
+                    background: linear-gradient(135deg, #ffd700, #ffaa00);
+                    padding: 8px 16px;
+                    border-radius: 20px;
+                    display: flex;
+                    flex-direction: column;
+                    align-items: center;
+                }
+                .lider-label {
+                    font-size: 0.65rem;
+                    color: #1a1a2e;
+                    font-weight: 600;
+                    letter-spacing: 1px;
+                }
+                .lider-nome {
+                    font-size: 0.95rem;
+                    color: #1a1a2e;
+                    font-weight: bold;
+                }
+
+                /* ✅ DESTAQUE DO LÍDER/CAMPEÃO - APENAS 1º LUGAR */
+                .artilheiro-ranking-row.lider-destaque {
+                    background: linear-gradient(90deg, rgba(255, 215, 0, 0.15) 0%, rgba(255, 255, 255, 0) 100%) !important;
+                    border-left: 4px solid #ffd700 !important;
+                }
+
+                .pos-badge.pos-campeao {
+                    background: linear-gradient(135deg, #ffd700, #ffaa00) !important;
+                    color: #1a1a2e !important;
+                    font-size: 1.1rem !important;
+                    padding: 4px 8px !important;
+                    border-radius: 8px !important;
+                    box-shadow: 0 2px 8px rgba(255, 215, 0, 0.5) !important;
+                    animation: brilhoTrofeuArt 2s infinite;
+                }
+
+                @keyframes brilhoTrofeuArt {
+                    0%, 100% { box-shadow: 0 2px 8px rgba(255, 215, 0, 0.5); }
+                    50% { box-shadow: 0 2px 15px rgba(255, 215, 0, 0.8); }
+                }
+
+                /* ✅ POSSÍVEL CAMPEÃO (RODADA FINAL EM ANDAMENTO) */
+                .artilheiro-ranking-row.possivel-campeao {
+                    animation: destaqueCampeaoArt 1.5s infinite;
+                }
+
+                @keyframes destaqueCampeaoArt {
+                    0%, 100% { 
+                        background: linear-gradient(90deg, rgba(255, 215, 0, 0.15) 0%, rgba(255, 255, 255, 0) 100%);
+                    }
+                    50% { 
+                        background: linear-gradient(90deg, rgba(255, 215, 0, 0.3) 0%, rgba(255, 255, 255, 0) 100%);
+                    }
+                }
+
+                .coroa-animada {
+                    animation: coroaPulseArt 1s infinite;
+                    display: inline-block;
+                    margin-left: 4px;
+                }
+
+                @keyframes coroaPulseArt {
+                    0%, 100% { transform: scale(1); opacity: 1; }
+                    50% { transform: scale(1.2); opacity: 0.7; }
+                }
+
+                /* ✅ COLUNA RODADA FINAL */
+                th.col-rodada.rodada-final {
+                    background: linear-gradient(135deg, #ffd700, #ffaa00) !important;
+                    color: #1a1a2e !important;
+                    font-weight: bold !important;
+                }
+            </style>
         `;
     },
 
@@ -257,7 +434,7 @@ const ArtilheiroCampeao = {
             this.estado.estatisticas = data.data.estatisticas || null;
             this.estado.rodadaParcial = data.data.rodadaParcial || null;
 
-            // ✅ Buscar status de inatividade (igual ranking.js)
+            // Buscar status de inatividade
             const timeIds = ranking.map((p) => p.timeId);
             let statusMap = {};
 
@@ -284,7 +461,6 @@ const ArtilheiroCampeao = {
 
             this.estado.statusMap = statusMap;
 
-            // ✅ Adicionar status a cada participante
             ranking = ranking.map((p) => {
                 const status = statusMap[p.timeId] || {
                     ativo: true,
@@ -297,24 +473,20 @@ const ArtilheiroCampeao = {
                 };
             });
 
-            // ✅ Separar ativos e inativos
             const ativos = ranking.filter((p) => p.ativo !== false);
             const inativos = ranking.filter((p) => p.ativo === false);
 
-            // Ordenar ativos por saldo de gols (desc), depois por gols pró (desc)
             ativos.sort((a, b) => {
                 if (b.saldoGols !== a.saldoGols)
                     return b.saldoGols - a.saldoGols;
                 return b.golsPro - a.golsPro;
             });
 
-            // Ordenar inativos por rodada de desistência (mais recente primeiro)
             inativos.sort(
                 (a, b) =>
                     (b.rodada_desistencia || 0) - (a.rodada_desistencia || 0),
             );
 
-            // Atribuir posições apenas aos ativos
             ativos.forEach((p, i) => {
                 p.posicao = i + 1;
             });
@@ -322,21 +494,16 @@ const ArtilheiroCampeao = {
                 p.posicao = null;
             });
 
-            // Guardar no estado
             this.estado.ranking = ativos;
             this.estado.inativos = inativos;
 
             console.log(
                 `✅ [ARTILHEIRO] Ranking: ${ativos.length} ativos, ${inativos.length} inativos`,
             );
-            if (this.estado.rodadaParcial) {
-                console.log(
-                    `⏳ Rodada ${this.estado.rodadaParcial} em andamento (parcial)`,
-                );
-            }
 
             this.renderizarTabela();
-            this.inicializarEventosModal(); // ✅ Ativar cliques nas células
+            this._renderizarBannerRodadaFinal(); // ✅ v4.3: Renderizar banner
+            this.inicializarEventosModal();
         } catch (error) {
             console.error("❌ [ARTILHEIRO] Erro:", error);
             this.mostrarErro("Erro ao buscar dados", error.message);
@@ -346,14 +513,12 @@ const ArtilheiroCampeao = {
     },
 
     // ==============================
-    // RENDERIZAR TABELA - UX MELHORADA v4.2
+    // RENDERIZAR TABELA - v4.3 COM DESTAQUE 1º LUGAR
     // ==============================
     renderizarTabela() {
-        // ✅ Esconder loading inicial do HTML
         const loadingHTML = document.getElementById("artilheiro-loading");
         if (loadingHTML) loadingHTML.style.display = "none";
 
-        // ✅ Garantir container visível
         const container = document.getElementById("artilheiro-container");
         if (container) container.style.display = "block";
 
@@ -363,16 +528,25 @@ const ArtilheiroCampeao = {
 
         if (!thead || !tbody) return;
 
-        const { ranking, rodadaNavInicio, rodadaFim, rodadaParcial } =
-            this.estado;
-        const { RODADAS_VISIVEIS } = this.config;
+        const {
+            ranking,
+            rodadaNavInicio,
+            rodadaFim,
+            rodadaParcial,
+            rodadaAtual,
+            mercadoAberto,
+        } = this.estado;
+        const { RODADAS_VISIVEIS, RODADA_FINAL } = this.config;
 
         if (!ranking || ranking.length === 0) {
             tbody.innerHTML = `<tr><td colspan="20" style="text-align: center; padding: 40px; color: #e67e22;">Nenhum dado encontrado</td></tr>`;
             return;
         }
 
-        // Calcular rodadas visíveis
+        // ✅ v4.3: Verificar se é rodada final com parcial
+        const isRodadaFinalParcial =
+            rodadaAtual === RODADA_FINAL && !mercadoAberto;
+
         const rodadaFimVisivel = Math.min(
             rodadaNavInicio + RODADAS_VISIVEIS - 1,
             rodadaFim,
@@ -382,23 +556,24 @@ const ArtilheiroCampeao = {
             rodadasExibir.push(r);
         }
 
-        // Atualizar info de navegação
         if (navInfo) {
             navInfo.textContent = `Rodadas ${rodadaNavInicio} - ${rodadaFimVisivel}`;
         }
 
-        // Atualizar botões de navegação
         const btnEsq = document.getElementById("btnNavEsq");
         const btnDir = document.getElementById("btnNavDir");
         if (btnEsq) btnEsq.disabled = rodadaNavInicio <= 1;
         if (btnDir) btnDir.disabled = rodadaFimVisivel >= rodadaFim;
 
-        // ✅ Headers das rodadas (com marcação de parcial)
+        // ✅ v4.3: Headers das rodadas com marcação de final
         const headersRodadas = rodadasExibir
             .map((r) => {
                 const isParcial = r === rodadaParcial;
-                const classe = isParcial ? "col-rodada parcial" : "col-rodada";
-                return `<th class="${classe}">R${r}${isParcial ? "*" : ""}</th>`;
+                const isFinal = r === RODADA_FINAL;
+                let classe = "col-rodada";
+                if (isParcial) classe += " parcial";
+                if (isFinal) classe += " rodada-final";
+                return `<th class="${classe}">R${r}${isParcial ? "*" : ""}${isFinal ? "🏁" : ""}</th>`;
             })
             .join("");
 
@@ -418,15 +593,26 @@ const ArtilheiroCampeao = {
         tbody.innerHTML = ranking
             .map((p, index) => {
                 const posicao = p.posicao || index + 1;
-                const posIcon =
-                    posicao === 1
-                        ? "🏆"
-                        : posicao === 2
-                          ? "🥈"
-                          : posicao === 3
-                            ? "🥉"
-                            : `${posicao}º`;
-                const posClass = posicao <= 3 ? `pos-${posicao}` : "";
+
+                // ✅ v4.3: DESTAQUE APENAS NO 1º LUGAR
+                let posIcon;
+                let posClass = "";
+                let rowClass = "artilheiro-ranking-row";
+                let coroaHtml = "";
+
+                if (posicao === 1) {
+                    posIcon = "🏆";
+                    posClass = "pos-campeao";
+                    rowClass += " lider-destaque";
+
+                    if (isRodadaFinalParcial) {
+                        rowClass += " possivel-campeao";
+                        coroaHtml = '<span class="coroa-animada">👑</span>';
+                    }
+                } else {
+                    // ✅ v4.3: 2º e 3º lugares SEM destaque especial
+                    posIcon = `${posicao}º`;
+                }
 
                 const sgClass =
                     p.saldoGols > 0
@@ -435,7 +621,6 @@ const ArtilheiroCampeao = {
                           ? "negativo"
                           : "zero";
 
-                // Criar mapa de gols por rodada
                 const golsPorRodada = {};
                 if (p.detalhePorRodada && Array.isArray(p.detalhePorRodada)) {
                     p.detalhePorRodada.forEach((r) => {
@@ -443,7 +628,6 @@ const ArtilheiroCampeao = {
                     });
                 }
 
-                // ✅ CÉLULAS COM UX MELHORADA v4.2
                 const celulasRodadas = rodadasExibir
                     .map((r) => {
                         const rodadaData = golsPorRodada[r];
@@ -451,7 +635,6 @@ const ArtilheiroCampeao = {
                             r === rodadaParcial || rodadaData?.parcial === true;
                         const timeId = p.timeId;
 
-                        // ✅ Armazenar dados para o modal
                         if (rodadaData && rodadaData.jogadores) {
                             const key = `${timeId}-${r}`;
                             ArtilheiroCampeao.estado.dadosRodadas[key] = {
@@ -484,7 +667,6 @@ const ArtilheiroCampeao = {
                                 ? `data-time="${timeId}" data-rodada="${r}"`
                                 : "";
 
-                            // ✅ Se é parcial e não tem gols, mostrar indicador ⏳
                             if (isParcial && gp === 0 && gc === 0) {
                                 return `<td class="col-rodada-gols parcial aguardando">
                                     <div class="gols-celula">
@@ -493,7 +675,6 @@ const ArtilheiroCampeao = {
                                 </td>`;
                             }
 
-                            // ✅ CÉLULA COM GP/GC VISÍVEIS - NOVA ESTRUTURA v4.2
                             return `<td class="col-rodada-gols${parcialClass}${clickClass}${gcClass}" ${dataAttr} title="GP: ${gp} | GC: ${gc} | Saldo: ${saldo >= 0 ? "+" : ""}${saldo}">
                                 <div class="gols-celula">
                                     <span class="gols-saldo ${saldoClasse}">${saldo >= 0 ? "+" : ""}${saldo}</span>
@@ -510,14 +691,14 @@ const ArtilheiroCampeao = {
                     .join("");
 
                 return `
-                <tr class="artilheiro-ranking-row ${posClass}">
-                    <td class="col-pos"><span class="pos-badge">${posIcon}</span></td>
+                <tr class="${rowClass}">
+                    <td class="col-pos"><span class="pos-badge ${posClass}">${posIcon}</span></td>
                     <td class="col-escudo">
                         ${p.escudo ? `<img src="${p.escudo}" class="escudo-img" onerror="this.style.display='none'">` : "⚽"}
                     </td>
                     <td class="col-nome">
                         <div class="participante-info">
-                            <span class="participante-nome">${p.nome}</span>
+                            <span class="participante-nome">${p.nome}${coroaHtml}</span>
                             <span class="participante-time">${p.nomeTime}</span>
                         </div>
                     </td>
@@ -530,7 +711,6 @@ const ArtilheiroCampeao = {
             })
             .join("");
 
-        // ✅ Renderizar seção de inativos (se houver)
         this.renderizarSecaoInativos(rodadasExibir, rodadaParcial);
     },
 
@@ -540,16 +720,13 @@ const ArtilheiroCampeao = {
     renderizarSecaoInativos(rodadasExibir, rodadaParcial) {
         const { inativos } = this.estado;
 
-        // Remover seção existente (se houver)
         const secaoExistente = document.getElementById(
             "artilheiro-inativos-section",
         );
         if (secaoExistente) secaoExistente.remove();
 
-        // Se não houver inativos, não renderizar
         if (!inativos || inativos.length === 0) return;
 
-        // Criar container para a seção de inativos
         const tableContainer = document.querySelector(
             ".artilheiro-table-container",
         );
@@ -559,7 +736,6 @@ const ArtilheiroCampeao = {
         secaoInativos.id = "artilheiro-inativos-section";
         secaoInativos.className = "artilheiro-inativos-section";
 
-        // Gerar linhas dos inativos
         const linhasInativos = inativos
             .map((p) => {
                 const sgClass =
@@ -569,7 +745,6 @@ const ArtilheiroCampeao = {
                           ? "negativo"
                           : "zero";
 
-                // Criar mapa de gols por rodada
                 const golsPorRodada = {};
                 if (p.detalhePorRodada && Array.isArray(p.detalhePorRodada)) {
                     p.detalhePorRodada.forEach((r) => {
@@ -577,7 +752,6 @@ const ArtilheiroCampeao = {
                     });
                 }
 
-                // ✅ CÉLULAS COM UX MELHORADA v4.2
                 const celulasRodadas = rodadasExibir
                     .map((r) => {
                         const rodadaData = golsPorRodada[r];
@@ -634,7 +808,6 @@ const ArtilheiroCampeao = {
             })
             .join("");
 
-        // Header das rodadas para a tabela de inativos
         const headersRodadas = rodadasExibir
             .map((r) => `<th class="col-rodada">R${r}</th>`)
             .join("");
@@ -671,7 +844,6 @@ const ArtilheiroCampeao = {
     // LOADING E ERRO
     // ==============================
     mostrarLoading(mensagem) {
-        // ✅ Esconder loading inicial do HTML
         const loadingHTML = document.getElementById("artilheiro-loading");
         if (loadingHTML) loadingHTML.style.display = "none";
 
@@ -691,11 +863,9 @@ const ArtilheiroCampeao = {
     },
 
     mostrarErro(titulo, mensagem) {
-        // ✅ Esconder loading inicial do HTML
         const loadingHTML = document.getElementById("artilheiro-loading");
         if (loadingHTML) loadingHTML.style.display = "none";
 
-        // ✅ Garantir container visível
         const container = document.getElementById("artilheiro-container");
         if (container) container.style.display = "block";
 
@@ -746,7 +916,6 @@ const ArtilheiroCampeao = {
             return;
         }
 
-        // Criar modal se não existir
         let modal = document.getElementById("artilheiro-modal");
         if (!modal) {
             modal = document.createElement("div");
@@ -759,7 +928,6 @@ const ArtilheiroCampeao = {
             ? '<span class="modal-badge-parcial">EM ANDAMENTO</span>'
             : "";
 
-        // Listar artilheiros
         const artilheiros = dados.jogadores.filter((j) => j.gols > 0);
         const golsContra = dados.jogadores.filter((j) => j.golsContra > 0);
 
@@ -839,7 +1007,6 @@ const ArtilheiroCampeao = {
 
         modal.classList.add("ativo");
 
-        // Fechar ao clicar fora
         modal.onclick = (e) => {
             if (e.target === modal) this.fecharModal();
         };
@@ -852,7 +1019,6 @@ const ArtilheiroCampeao = {
         }
     },
 
-    // Inicializar event listeners do modal
     inicializarEventosModal() {
         const tbody = document.getElementById("artilheiroRankingBody");
         if (!tbody) return;
@@ -868,7 +1034,6 @@ const ArtilheiroCampeao = {
             }
         });
 
-        // Fechar modal com ESC
         document.addEventListener("keydown", (e) => {
             if (e.key === "Escape") this.fecharModal();
         });
@@ -883,16 +1048,13 @@ window.coordinator = {
     popularGols: () => ArtilheiroCampeao.buscarRanking(),
 };
 
-// ✅ Função para inicialização externa (chamada pelo orquestrador)
 window.inicializarArtilheiroCampeao = async function () {
     console.log("🔄 [ARTILHEIRO] Inicializando via window...");
-    // ✅ Resetar flags para garantir re-inicialização
     ArtilheiroCampeao._isInitializing = false;
     ArtilheiroCampeao.estado.inicializado = false;
     await ArtilheiroCampeao.inicializar();
 };
 
-// ✅ Auto-inicialização simples (só na primeira carga do script)
 (function autoInit() {
     setTimeout(async () => {
         const container =
@@ -914,4 +1076,4 @@ window.inicializarArtilheiroCampeao = async function () {
     }, 300);
 })();
 
-console.log("✅ [ARTILHEIRO] Módulo v4.2.0 carregado!");
+console.log("✅ [ARTILHEIRO] Módulo v4.3.0 carregado!");

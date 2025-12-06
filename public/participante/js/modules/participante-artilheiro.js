@@ -1,8 +1,10 @@
 // =====================================================================
-// PARTICIPANTE-ARTILHEIRO.JS - v3.1 (APENAS CAMPEÃO DESTACADO)
+// PARTICIPANTE-ARTILHEIRO.JS - v3.3 (BANNER + FILTRO INATIVOS)
 // =====================================================================
 
-console.log("[PARTICIPANTE-ARTILHEIRO] 🔄 Carregando módulo v3.1...");
+console.log("[PARTICIPANTE-ARTILHEIRO] 🔄 Carregando módulo v3.3...");
+
+const RODADA_FINAL = 38;
 
 // =====================================================================
 // FUNÇÃO PRINCIPAL - EXPORTADA PARA NAVIGATION
@@ -54,7 +56,7 @@ export async function inicializarArtilheiroParticipante({
             responseData,
         );
 
-        renderizarArtilheiro(container, responseData, timeId);
+        await renderizarArtilheiro(container, responseData, timeId);
     } catch (error) {
         console.error("[PARTICIPANTE-ARTILHEIRO] ❌ Erro:", error);
         container.innerHTML = `
@@ -85,9 +87,140 @@ function isMyTime(item, meuTimeId) {
 }
 
 // =====================================================================
+// BANNER RODADA FINAL
+// =====================================================================
+function renderizarBannerRodadaFinal(rodadaAtual, mercadoAberto, lider) {
+    if (rodadaAtual !== RODADA_FINAL) return "";
+
+    const isParcial = !mercadoAberto;
+    const liderNome = lider ? getNome(lider) : "---";
+    const getGP = (item) => item?.golsPro ?? item?.gols ?? 0;
+    const liderGols = lider ? getGP(lider) : 0;
+
+    return `
+        <style>
+            @keyframes artBannerPulse {
+                0%, 100% { box-shadow: 0 0 0 0 rgba(34, 197, 94, 0.4); }
+                50% { box-shadow: 0 0 0 8px rgba(34, 197, 94, 0); }
+            }
+            @keyframes artShimmer {
+                0% { background-position: -200% center; }
+                100% { background-position: 200% center; }
+            }
+            .art-banner-final {
+                background: linear-gradient(135deg, rgba(34, 197, 94, 0.12) 0%, rgba(34, 197, 94, 0.06) 100%);
+                border: 1px solid rgba(34, 197, 94, 0.35);
+                border-radius: 12px;
+                padding: 12px 16px;
+                margin-bottom: 16px;
+                ${isParcial ? "animation: artBannerPulse 2s ease-in-out infinite;" : ""}
+            }
+            .art-banner-header {
+                display: flex;
+                align-items: center;
+                justify-content: space-between;
+                margin-bottom: 10px;
+            }
+            .art-banner-title {
+                display: flex;
+                align-items: center;
+                gap: 8px;
+            }
+            .art-banner-icon {
+                font-size: 18px;
+                color: #22c55e;
+            }
+            .art-banner-text {
+                font-size: 11px;
+                font-weight: 700;
+                color: #22c55e;
+                text-transform: uppercase;
+                letter-spacing: 0.5px;
+            }
+            .art-banner-status {
+                font-size: 9px;
+                padding: 3px 8px;
+                border-radius: 4px;
+                font-weight: 600;
+                ${
+                    isParcial
+                        ? "background: rgba(34, 197, 94, 0.2); color: #22c55e;"
+                        : "background: rgba(34, 197, 94, 0.15); color: #22c55e;"
+                }
+            }
+            .art-banner-lider {
+                display: flex;
+                align-items: center;
+                justify-content: space-between;
+                background: rgba(0, 0, 0, 0.25);
+                border-radius: 8px;
+                padding: 10px 12px;
+            }
+            .art-banner-lider-info {
+                display: flex;
+                align-items: center;
+                gap: 10px;
+            }
+            .art-banner-lider-badge {
+                font-size: 9px;
+                font-weight: 700;
+                color: #22c55e;
+                text-transform: uppercase;
+                background: linear-gradient(90deg, #22c55e, #16a34a, #22c55e);
+                background-size: 200% auto;
+                -webkit-background-clip: text;
+                -webkit-text-fill-color: transparent;
+                background-clip: text;
+                animation: artShimmer 3s linear infinite;
+            }
+            .art-banner-lider-nome {
+                font-size: 14px;
+                font-weight: 700;
+                color: #fff;
+            }
+            .art-banner-lider-gols {
+                text-align: right;
+            }
+            .art-banner-lider-valor {
+                font-size: 18px;
+                font-weight: 800;
+                color: #22c55e;
+            }
+            .art-banner-lider-label {
+                font-size: 8px;
+                color: #888;
+                text-transform: uppercase;
+            }
+        </style>
+
+        <div class="art-banner-final">
+            <div class="art-banner-header">
+                <div class="art-banner-title">
+                    <span class="material-icons" style="font-size: 18px; color: #22c55e; vertical-align: middle;">emoji_events</span>
+                    <span class="art-banner-text">Rodada Final</span>
+                </div>
+                <span class="art-banner-status">${isParcial ? "● Em andamento" : "Última Rodada"}</span>
+            </div>
+            <div class="art-banner-lider">
+                <div class="art-banner-lider-info">
+                    <div>
+                        <div class="art-banner-lider-badge">Possível Campeão</div>
+                        <div class="art-banner-lider-nome">${liderNome}</div>
+                    </div>
+                </div>
+                <div class="art-banner-lider-gols">
+                    <div class="art-banner-lider-valor">${liderGols}</div>
+                    <div class="art-banner-lider-label">gols</div>
+                </div>
+            </div>
+        </div>
+    `;
+}
+
+// =====================================================================
 // RENDERIZAÇÃO
 // =====================================================================
-function renderizarArtilheiro(container, response, meuTimeId) {
+async function renderizarArtilheiro(container, response, meuTimeId) {
     const data = response.data || response;
 
     let ranking = [];
@@ -100,7 +233,13 @@ function renderizarArtilheiro(container, response, meuTimeId) {
         ranking = data;
     }
 
-    if (ranking.length === 0) {
+    // ✅ FILTRAR TIMES INATIVOS - NÃO PODEM FIGURAR NO RANKING
+    const rankingAtivos = ranking.filter((time) => {
+        const isInativo = time.ativo === false || time.status === "inativo";
+        return !isInativo;
+    });
+
+    if (rankingAtivos.length === 0) {
         container.innerHTML = `
             <div style="text-align: center; padding: 60px 20px; background: linear-gradient(135deg, rgba(34, 197, 94, 0.05) 0%, rgba(34, 197, 94, 0.02) 100%); border-radius: 12px; border: 2px dashed rgba(34, 197, 94, 0.3);">
                 <div style="font-size: 64px; margin-bottom: 16px;">⚽</div>
@@ -111,9 +250,9 @@ function renderizarArtilheiro(container, response, meuTimeId) {
         return;
     }
 
-    const campeao = ranking[0];
-    const minhaPosicao = ranking.findIndex((r) => isMyTime(r, meuTimeId));
-    const meusDados = minhaPosicao >= 0 ? ranking[minhaPosicao] : null;
+    const campeao = rankingAtivos[0];
+    const minhaPosicao = rankingAtivos.findIndex((r) => isMyTime(r, meuTimeId));
+    const meusDados = minhaPosicao >= 0 ? rankingAtivos[minhaPosicao] : null;
     const minhaColocacao = minhaPosicao >= 0 ? minhaPosicao + 1 : null;
 
     // Extrair dados
@@ -126,6 +265,41 @@ function renderizarArtilheiro(container, response, meuTimeId) {
 
     const rodadaInicio = estatisticas.rodadaInicio || 1;
     const rodadaFim = estatisticas.rodadaFim || estatisticas.rodadaAtual || 36;
+    let rodadaAtual = estatisticas.rodadaAtual || null;
+    let mercadoAberto = estatisticas.mercadoAberto !== false;
+
+    // ✅ BUSCAR RODADA ATUAL DA API DE MERCADO SE NÃO VEIO NOS DADOS
+    if (!rodadaAtual) {
+        try {
+            // Tentar endpoint do cartola-proxy
+            const mercadoRes = await fetch("/api/cartola/mercado");
+            if (mercadoRes.ok) {
+                const mercado = await mercadoRes.json();
+                rodadaAtual =
+                    mercado.rodada_atual || mercado.rodadaAtual || rodadaFim;
+                mercadoAberto =
+                    mercado.status_mercado === 1 ||
+                    mercado.mercadoAberto === true;
+                console.log("[PARTICIPANTE-ARTILHEIRO] 📊 Mercado:", {
+                    rodadaAtual,
+                    mercadoAberto,
+                });
+            } else {
+                // Fallback: usar rodadaFim
+                rodadaAtual = rodadaFim;
+                console.warn(
+                    "[PARTICIPANTE-ARTILHEIRO] ⚠️ API mercado indisponível, usando rodadaFim:",
+                    rodadaFim,
+                );
+            }
+        } catch (e) {
+            console.warn(
+                "[PARTICIPANTE-ARTILHEIRO] ⚠️ Erro ao obter mercado:",
+                e.message,
+            );
+            rodadaAtual = rodadaFim;
+        }
+    }
 
     // Dados ricos
     let ultimaRodada = null;
@@ -162,6 +336,13 @@ function renderizarArtilheiro(container, response, meuTimeId) {
             .slice(0, 3);
     }
 
+    // Banner da rodada final
+    const bannerRodadaFinal = renderizarBannerRodadaFinal(
+        rodadaAtual,
+        mercadoAberto,
+        campeao,
+    );
+
     const html = `
     <div style="padding: 16px;">
         <div style="text-align: center; margin-bottom: 20px;">
@@ -172,6 +353,8 @@ function renderizarArtilheiro(container, response, meuTimeId) {
                 Rodadas ${rodadaInicio} - ${rodadaFim}
             </p>
         </div>
+
+        ${bannerRodadaFinal}
 
         ${
             meusDados
@@ -207,7 +390,7 @@ function renderizarArtilheiro(container, response, meuTimeId) {
             </div>
             `
                     : `
-            <div style="background: linear-gradient(90deg, rgba(34,197,94,0.2), rgba(34,197,94,0.1)); border-radius: 8px; padding: 8px 12px; text-align: center;">
+            <div style="background: linear-gradient(90deg, rgba(34, 197, 94, 0.2), rgba(34, 197, 94, 0.1)); border-radius: 8px; padding: 8px 12px; text-align: center;">
                 <span style="color: #22c55e; font-weight: 700; font-size: 13px;">🏆 Você é o líder!</span>
             </div>
             `
@@ -356,32 +539,72 @@ function renderizarArtilheiro(container, response, meuTimeId) {
         <details style="background: rgba(0,0,0,0.3); border-radius: 12px; overflow: hidden;" open>
             <summary style="background: rgba(34, 197, 94, 0.1); padding: 12px 16px; cursor: pointer; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid rgba(34, 197, 94, 0.2);">
                 <span style="font-size: 13px; font-weight: 700; color: #22c55e;">📋 Ranking Completo</span>
-                <span style="font-size: 11px; color: #888;">${ranking.length} participantes</span>
+                <span style="font-size: 11px; color: #888;">${rankingAtivos.length} participantes</span>
             </summary>
 
             <div style="max-height: 300px; overflow-y: auto;">
-            ${ranking
-                .map((time, idx) => {
+            ${(() => {
+                // Separar ativos e inativos
+                const ativos = rankingAtivos;
+                const inativos = ranking.filter(
+                    (time) => time.ativo === false || time.status === "inativo",
+                );
+
+                let html = "";
+
+                // Renderizar ATIVOS
+                ativos.forEach((time, idx) => {
                     const isMeuTime = isMyTime(time, meuTimeId);
                     const pos = idx + 1;
-                    // ✅ APENAS CAMPEÃO COM TROFÉU
                     const posicaoDisplay = pos === 1 ? "🏆" : `${pos}º`;
                     const saldo = getSaldo(time);
 
-                    return `
-                <div style="display: flex; justify-content: space-between; align-items: center; padding: 10px 14px; border-bottom: 1px solid rgba(255,255,255,0.05); ${isMeuTime ? "background: rgba(34, 197, 94, 0.15);" : ""}">
-                    <div style="display: flex; align-items: center; gap: 10px;">
-                        <span style="font-size: ${pos === 1 ? "16px" : "12px"}; width: 26px; ${pos === 1 ? "" : "color: #888;"}">${posicaoDisplay}</span>
-                        <span style="color: ${isMeuTime ? "#22c55e" : "#fff"}; font-weight: ${isMeuTime ? "700" : "500"}; font-size: 12px;">${getNome(time)}</span>
+                    html += `
+                    <div style="display: flex; justify-content: space-between; align-items: center; padding: 10px 14px; border-bottom: 1px solid rgba(255,255,255,0.05); ${isMeuTime ? "background: rgba(34, 197, 94, 0.15);" : ""}">
+                        <div style="display: flex; align-items: center; gap: 10px;">
+                            <span style="font-size: ${pos === 1 ? "16px" : "12px"}; width: 26px; ${pos === 1 ? "" : "color: #888;"}">${posicaoDisplay}</span>
+                            <span style="color: ${isMeuTime ? "#22c55e" : "#fff"}; font-weight: ${isMeuTime ? "700" : "500"}; font-size: 12px;">${getNome(time)}</span>
+                        </div>
+                        <div style="display: flex; gap: 12px; align-items: center;">
+                            <span style="color: #888; font-size: 11px;">${getGP(time)}/${getGC(time)}</span>
+                            <span style="color: ${saldo >= 0 ? "#22c55e" : "#ef4444"}; font-weight: 700; font-size: 13px;">${saldo >= 0 ? "+" : ""}${saldo}</span>
+                        </div>
                     </div>
-                    <div style="display: flex; gap: 12px; align-items: center;">
-                        <span style="color: #888; font-size: 11px;">${getGP(time)}/${getGC(time)}</span>
-                        <span style="color: ${saldo >= 0 ? "#22c55e" : "#ef4444"}; font-weight: 700; font-size: 13px;">${saldo >= 0 ? "+" : ""}${saldo}</span>
+                    `;
+                });
+
+                // Renderizar INATIVOS (se houver)
+                if (inativos.length > 0) {
+                    html += `
+                    <div style="padding: 8px 14px; background: rgba(100,100,100,0.15); border-top: 1px dashed rgba(100,100,100,0.4); border-bottom: 1px dashed rgba(100,100,100,0.4);">
+                        <span style="font-size: 9px; color: #666; text-transform: uppercase; letter-spacing: 0.5px;">
+                            <span class="material-icons" style="font-size: 12px; vertical-align: middle; margin-right: 4px;">person_off</span>
+                            Participantes Inativos
+                        </span>
                     </div>
-                </div>
-                `;
-                })
-                .join("")}
+                    `;
+
+                    inativos.forEach((time) => {
+                        const isMeuTime = isMyTime(time, meuTimeId);
+                        const saldo = getSaldo(time);
+
+                        html += `
+                        <div style="display: flex; justify-content: space-between; align-items: center; padding: 10px 14px; border-bottom: 1px solid rgba(255,255,255,0.03); opacity: 0.5; filter: grayscale(60%);">
+                            <div style="display: flex; align-items: center; gap: 10px;">
+                                <span style="font-size: 12px; width: 26px; color: #555;">—</span>
+                                <span style="color: #666; font-weight: 400; font-size: 12px;">${getNome(time)}</span>
+                            </div>
+                            <div style="display: flex; gap: 12px; align-items: center;">
+                                <span style="color: #555; font-size: 11px;">${getGP(time)}/${getGC(time)}</span>
+                                <span style="color: #555; font-weight: 500; font-size: 13px;">${saldo >= 0 ? "+" : ""}${saldo}</span>
+                            </div>
+                        </div>
+                        `;
+                    });
+                }
+
+                return html;
+            })()}
             </div>
         </details>
     </div>
@@ -390,4 +613,4 @@ function renderizarArtilheiro(container, response, meuTimeId) {
     container.innerHTML = html;
 }
 
-console.log("[PARTICIPANTE-ARTILHEIRO] ✅ Módulo v3.1 carregado");
+console.log("[PARTICIPANTE-ARTILHEIRO] ✅ Módulo v3.3 carregado");

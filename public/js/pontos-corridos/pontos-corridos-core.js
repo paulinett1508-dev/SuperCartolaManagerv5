@@ -1,8 +1,10 @@
-// PONTOS CORRIDOS CORE - v2.2 REFATORADO
+// PONTOS CORRIDOS CORE - v2.4 REFATORADO
 // Salva cada rodada INDIVIDUALMENTE no MongoDB
 // Responsável por: processamento de dados, chamadas de API e CACHE INTELIGENTE
 // ✅ v2.1: Correção do limite de rodadas (liga encerrada)
 // ✅ v2.2: Adicionado nome_cartola em classificação e confrontos
+// ✅ v2.3: CORREÇÃO do mapeamento nome_cartola (campo correto do MongoDB)
+// ✅ v2.4: Implementação de pontosGoleada (PG) - bônus +4 por goleada aplicada
 
 import {
     RODADAS_ENDPOINTS,
@@ -123,7 +125,48 @@ export async function buscarTimesLiga(ligaId) {
     try {
         const response = await fetch(`/api/ligas/${ligaId}/times`);
         if (!response.ok) throw new Error("Falha ao carregar times");
-        return await response.json();
+        const times = await response.json();
+
+        // ✅ v2.3: Enriquecer com nome_cartola da collection rodadas
+        // A collection rodadas tem nome_cartola correto
+        try {
+            const rodadasRes = await fetch(
+                `/api/rodadas/${ligaId}/rodadas?inicio=7&fim=7`,
+            );
+            if (rodadasRes.ok) {
+                const rodadasData = await rodadasRes.json();
+                const dadosArray = Array.isArray(rodadasData)
+                    ? rodadasData
+                    : rodadasData.data || [];
+
+                // Criar mapa de nome_cartola por timeId
+                const cartolaMap = {};
+                dadosArray.forEach((r) => {
+                    if (r.timeId && r.nome_cartola) {
+                        cartolaMap[String(r.timeId)] = r.nome_cartola;
+                    }
+                });
+
+                // Enriquecer times com nome_cartola
+                times.forEach((time) => {
+                    const tid = String(time.id || time.time_id);
+                    if (cartolaMap[tid] && !time.nome_cartola) {
+                        time.nome_cartola = cartolaMap[tid];
+                    }
+                });
+
+                console.log(
+                    `[CORE] ✅ Times enriquecidos com ${Object.keys(cartolaMap).length} nomes de cartoleiros`,
+                );
+            }
+        } catch (e) {
+            console.warn(
+                "[CORE] ⚠️ Não foi possível enriquecer times com nome_cartola:",
+                e.message,
+            );
+        }
+
+        return times;
     } catch (error) {
         console.error("[CORE] Erro ao buscar times:", error);
         return [];
@@ -179,11 +222,15 @@ export function calcularFinanceiroConfronto(
     }
 
     if (diferenca >= goleadaMinima) {
+        // ✅ v2.4: Goleada = 3 pts vitória + 1 pt bônus = 4 pts
+        console.log(
+            `[CORE] ⚡ Goleada detectada! Diferença: ${diferenca.toFixed(1)} >= ${goleadaMinima}`,
+        );
         return A > B
             ? {
                   financeiroA: fin.goleada,
                   financeiroB: -fin.goleada,
-                  pontosA: 3,
+                  pontosA: 4,
                   pontosB: 0,
                   tipo: "goleada",
               }
@@ -191,7 +238,7 @@ export function calcularFinanceiroConfronto(
                   financeiroA: -fin.goleada,
                   financeiroB: fin.goleada,
                   pontosA: 0,
-                  pontosB: 3,
+                  pontosB: 4,
                   tipo: "goleada",
               };
     }
@@ -211,6 +258,34 @@ export function calcularFinanceiroConfronto(
               pontosB: 3,
               tipo: "vitoria",
           };
+}
+
+// ============================================================================
+// ✅ v2.3: Função auxiliar para extrair nome do time e cartoleiro
+// Suporta múltiplas estruturas de dados (API Cartola, MongoDB, etc)
+// ============================================================================
+
+function extrairNomes(time) {
+    // Prioridade para nome do TIME:
+    // 1. nome_time (campo correto do MongoDB)
+    // 2. nome (fallback se for o nome do time)
+    const nomeTime = time.nome_time || time.nome || "N/D";
+
+    // Prioridade para nome do CARTOLEIRO:
+    // 1. nome_cartola (campo correto do MongoDB)
+    // 2. nome (se nome_time existir, então nome pode ser cartoleiro - API Cartola)
+    // 3. Vazio se não encontrar
+    let nomeCartoleiro = "";
+
+    if (time.nome_cartola) {
+        // Campo correto do MongoDB
+        nomeCartoleiro = time.nome_cartola;
+    } else if (time.nome_time && time.nome && time.nome !== time.nome_time) {
+        // API Cartola: time.nome = cartoleiro quando time.nome_time existe
+        nomeCartoleiro = time.nome;
+    }
+
+    return { nomeTime, nomeCartoleiro };
 }
 
 // ============================================================================
@@ -278,20 +353,24 @@ export async function getConfrontosLigaPontosCorridos(ligaId, rodadaAtualLiga) {
         }
 
         // 5. Inicializar classificação acumulada
-        // API Cartola: time.nome = cartoleiro, time.nome_time = nome do time
+        // ✅ v2.3: Usando função extrairNomes para mapear corretamente
         const classificacaoAcumulada = {};
         times.forEach((time) => {
             const tid = String(time.id || time.time_id);
+            const { nomeTime, nomeCartoleiro } = extrairNomes(time);
+
             classificacaoAcumulada[tid] = {
                 timeId: tid,
-                nome: time.nome_time || "N/D",
-                nome_cartola: time.nome || "",
-                escudo: time.url_escudo_png || time.foto_time || "",
+                nome: nomeTime,
+                nome_cartola: nomeCartoleiro,
+                escudo:
+                    time.url_escudo_png || time.foto_time || time.escudo || "",
                 pontos: 0,
                 jogos: 0,
                 vitorias: 0,
                 empates: 0,
                 derrotas: 0,
+                pontosGoleada: 0, // ✅ v2.4: PG - pontos bônus por goleada aplicada
                 gols_pro: 0,
                 gols_contra: 0,
                 saldo_gols: 0,
@@ -314,6 +393,7 @@ export async function getConfrontosLigaPontosCorridos(ligaId, rodadaAtualLiga) {
                         vitorias: t.vitorias || 0,
                         empates: t.empates || 0,
                         derrotas: t.derrotas || 0,
+                        pontosGoleada: t.pontosGoleada || 0, // ✅ v2.4
                         gols_pro: t.gols_pro || 0,
                         gols_contra: t.gols_contra || 0,
                         saldo_gols: t.saldo_gols || 0,
@@ -393,11 +473,23 @@ export async function getConfrontosLigaPontosCorridos(ligaId, rodadaAtualLiga) {
                             classificacaoAcumulada[tidA].gols_contra;
                         classificacaoAcumulada[tidA].financeiro +=
                             resultado.financeiroA;
-                        if (resultado.pontosA === 3)
+                        // ✅ v2.4: Vitória = 3 pts, Goleada = 4 pts
+                        if (resultado.pontosA >= 3)
                             classificacaoAcumulada[tidA].vitorias += 1;
                         else if (resultado.pontosA === 1)
                             classificacaoAcumulada[tidA].empates += 1;
                         else classificacaoAcumulada[tidA].derrotas += 1;
+
+                        // ✅ v2.4: PG - bônus por goleada aplicada (só vencedor, +1 pt)
+                        if (
+                            resultado.tipo === "goleada" &&
+                            resultado.pontosA === 4
+                        ) {
+                            classificacaoAcumulada[tidA].pontosGoleada += 1;
+                            console.log(
+                                `[CORE] 🎯 GOLEADA! ${jogo.timeA.nome || tidA} venceu por ${Math.abs(pontosA - pontosB).toFixed(1)} pts de diferença (PG: ${classificacaoAcumulada[tidA].pontosGoleada})`,
+                            );
+                        }
                     }
 
                     // Time B
@@ -412,33 +504,50 @@ export async function getConfrontosLigaPontosCorridos(ligaId, rodadaAtualLiga) {
                             classificacaoAcumulada[tidB].gols_contra;
                         classificacaoAcumulada[tidB].financeiro +=
                             resultado.financeiroB;
-                        if (resultado.pontosB === 3)
+                        // ✅ v2.4: Vitória = 3 pts, Goleada = 4 pts
+                        if (resultado.pontosB >= 3)
                             classificacaoAcumulada[tidB].vitorias += 1;
                         else if (resultado.pontosB === 1)
                             classificacaoAcumulada[tidB].empates += 1;
                         else classificacaoAcumulada[tidB].derrotas += 1;
+
+                        // ✅ v2.4: PG - bônus por goleada aplicada (só vencedor, +1 pt)
+                        if (
+                            resultado.tipo === "goleada" &&
+                            resultado.pontosB === 4
+                        ) {
+                            classificacaoAcumulada[tidB].pontosGoleada += 1;
+                            console.log(
+                                `[CORE] 🎯 GOLEADA! ${jogo.timeB.nome || tidB} venceu por ${Math.abs(pontosA - pontosB).toFixed(1)} pts de diferença (PG: ${classificacaoAcumulada[tidB].pontosGoleada})`,
+                            );
+                        }
                     }
                 }
 
-                // API Cartola: timeA.nome = cartoleiro, timeA.nome_time = nome do time
+                // ✅ v2.3: Usando função extrairNomes para confrontos
+                const nomesA = extrairNomes(jogo.timeA);
+                const nomesB = extrairNomes(jogo.timeB);
+
                 confrontosRodada.push({
                     time1: {
                         id: tidA,
-                        nome: jogo.timeA.nome_time || "N/D",
-                        nome_cartola: jogo.timeA.nome || "",
+                        nome: nomesA.nomeTime,
+                        nome_cartola: nomesA.nomeCartoleiro,
                         escudo:
                             jogo.timeA.url_escudo_png ||
                             jogo.timeA.foto_time ||
+                            jogo.timeA.escudo ||
                             "",
                         pontos: pontosA,
                     },
                     time2: {
                         id: tidB,
-                        nome: jogo.timeB.nome_time || "N/D",
-                        nome_cartola: jogo.timeB.nome || "",
+                        nome: nomesB.nomeTime,
+                        nome_cartola: nomesB.nomeCartoleiro,
                         escudo:
                             jogo.timeB.url_escudo_png ||
                             jogo.timeB.foto_time ||
+                            jogo.timeB.escudo ||
                             "",
                         pontos: pontosB,
                     },
@@ -579,25 +688,28 @@ export const buscarStatusMercado = atualizarStatusMercado;
 export { getLigaId };
 
 // Exports adicionais para compatibilidade
-// API Cartola: jogo.timeA.nome = cartoleiro, jogo.timeA.nome_time = nome do time
+// ✅ v2.3: Usando função extrairNomes
 export function normalizarDadosParaExportacao(jogo, pontuacoesMap = {}) {
     const tidA = jogo.timeA?.id || jogo.timeA?.time_id;
     const tidB = jogo.timeB?.id || jogo.timeB?.time_id;
 
+    const nomesA = extrairNomes(jogo.timeA || {});
+    const nomesB = extrairNomes(jogo.timeB || {});
+
     return {
         time1: {
             id: tidA,
-            nome_time: jogo.timeA?.nome_time || "N/D",
-            nome_cartola: jogo.timeA?.nome || "",
+            nome_time: nomesA.nomeTime,
+            nome_cartola: nomesA.nomeCartoleiro,
             foto_perfil: jogo.timeA?.foto_perfil || "",
-            foto_time: jogo.timeA?.foto_time || "",
+            foto_time: jogo.timeA?.foto_time || jogo.timeA?.escudo || "",
         },
         time2: {
             id: tidB,
-            nome_time: jogo.timeB?.nome_time || "N/D",
-            nome_cartola: jogo.timeB?.nome || "",
+            nome_time: nomesB.nomeTime,
+            nome_cartola: nomesB.nomeCartoleiro,
             foto_perfil: jogo.timeB?.foto_perfil || "",
-            foto_time: jogo.timeB?.foto_time || "",
+            foto_time: jogo.timeB?.foto_time || jogo.timeB?.escudo || "",
         },
         pontos1: pontuacoesMap[tidA] || null,
         pontos2: pontuacoesMap[tidB] || null,
@@ -615,6 +727,7 @@ export function normalizarClassificacaoParaExportacao(classificacao) {
         vitorias: t.vitorias || 0,
         empates: t.empates || 0,
         derrotas: t.derrotas || 0,
+        pontosGoleada: t.pontosGoleada || 0, // ✅ v2.4
         gols_pro: t.gols_pro || 0,
         gols_contra: t.gols_contra || 0,
         saldo_gols: t.saldo_gols || 0,
@@ -655,5 +768,5 @@ export function validarDadosEntrada(times, confrontos) {
 }
 
 console.log(
-    "[PONTOS-CORRIDOS-CORE] ✅ v2.1 carregado (correção limite rodadas)",
+    "[PONTOS-CORRIDOS-CORE] ✅ v2.4 carregado (pontosGoleada implementado)",
 );

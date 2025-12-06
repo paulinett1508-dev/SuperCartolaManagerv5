@@ -1,7 +1,11 @@
-// PARTICIPANTE PONTOS CORRIDOS - v4.3
+// PARTICIPANTE PONTOS CORRIDOS - v4.7
 // ✅ v4.1: Correção do status EM ANDAMENTO/FINALIZADA
 // ✅ v4.2: Visualização melhorada (nome time + cartoleiro como no Ranking)
 // ✅ v4.3: Celebração do campeão quando liga encerra
+// ✅ v4.4: Nome do cartoleiro no banner do campeão
+// ✅ v4.5: Empates e Derrotas no resumo do campeão
+// ✅ v4.6: Coluna PG (Pontos Goleada) na classificação
+// ✅ v4.7: PG no banner do campeão
 
 const estadoPC = {
     ligaId: null,
@@ -162,6 +166,7 @@ function renderizarBannerCampeao() {
 
     const campeao = ultimaRodada.classificacao[0];
     const nomeCampeao = campeao.nome || campeao.nome_time || "Campeão";
+    const nomeCartoleiro = campeao.nome_cartola || campeao.cartoleiro || ""; // ✅ v4.4
     const escudoCampeao =
         campeao.escudo ||
         campeao.url_escudo_png ||
@@ -169,6 +174,9 @@ function renderizarBannerCampeao() {
         "/assets/escudo-placeholder.png";
     const pontosCampeao = campeao.pontos || 0;
     const vitoriasCampeao = campeao.vitorias || 0;
+    const empatesCampeao = campeao.empates || 0; // ✅ v4.5
+    const derrotasCampeao = campeao.derrotas || 0; // ✅ v4.5
+    const pontosGoleadaCampeao = campeao.pontosGoleada || 0; // ✅ v4.7
     const meuTimeId = estadoPC.timeId;
     const campeaoId = campeao.timeId || campeao.time_id || campeao.id;
     const souCampeao = String(campeaoId) === String(meuTimeId);
@@ -214,7 +222,8 @@ function renderizarBannerCampeao() {
                     </div>
                     <div class="text-left">
                         <p class="font-bold text-white text-base ${souCampeao ? "text-yellow-400" : ""}">${nomeCampeao}</p>
-                        ${souCampeao ? '<p class="text-yellow-400 text-xs font-semibold">🎉 Você é o campeão!</p>' : ""}
+                        ${nomeCartoleiro ? `<p class="text-white/60 text-xs">${nomeCartoleiro}</p>` : ""}
+                        ${souCampeao ? '<p class="text-yellow-400 text-xs font-semibold mt-1">🎉 Você é o campeão!</p>' : ""}
                         <div class="flex gap-3 mt-1">
                             <div class="text-center">
                                 <span class="text-yellow-400 font-bold text-lg">${pontosCampeao}</span>
@@ -223,6 +232,18 @@ function renderizarBannerCampeao() {
                             <div class="text-center">
                                 <span class="text-green-400 font-bold text-lg">${vitoriasCampeao}</span>
                                 <span class="text-white/50 text-[9px] block">V</span>
+                            </div>
+                            <div class="text-center">
+                                <span class="text-blue-400 font-bold text-lg">${empatesCampeao}</span>
+                                <span class="text-white/50 text-[9px] block">E</span>
+                            </div>
+                            <div class="text-center">
+                                <span class="text-red-400 font-bold text-lg">${derrotasCampeao}</span>
+                                <span class="text-white/50 text-[9px] block">D</span>
+                            </div>
+                            <div class="text-center">
+                                <span class="text-orange-400 font-bold text-lg">${pontosGoleadaCampeao}</span>
+                                <span class="text-white/50 text-[9px] block">PG</span>
                             </div>
                         </div>
                     </div>
@@ -756,6 +777,7 @@ function buildLinhaClassificacao(
             <div class="w-6 text-center text-green-400 text-[10px]">${time.vitorias || 0}</div>
             <div class="w-6 text-center text-yellow-400 text-[10px]">${time.empates || 0}</div>
             <div class="w-6 text-center text-red-400 text-[10px]">${time.derrotas || 0}</div>
+            <div class="w-6 text-center text-orange-400 text-[10px]">${time.pontosGoleada || 0}</div>
             <div class="w-8 text-center text-white/60 text-[10px]">${Math.round(sg)}</div>
             <div class="w-8 text-center text-white font-bold text-xs ${isCampeao ? "text-yellow-400" : ""}">${time.pontos || 0}</div>
         </div>
@@ -832,4 +854,4 @@ window.recarregarPontosCorridos = function () {
 window.inicializarPontosCorridosParticipante =
     inicializarPontosCorridosParticipante;
 
-console.log("[PONTOS-CORRIDOS] Módulo v4.3 carregado (celebração do campeão)");
+console.log("[PONTOS-CORRIDOS] Módulo v4.7 carregado (PG no banner campeão)");

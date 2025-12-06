@@ -1,4 +1,6 @@
-// PONTOS CORRIDOS ORQUESTRADOR - Coordenador Principal
+// PONTOS CORRIDOS ORQUESTRADOR - v2.4 Coordenador Principal
+// ✅ v2.4: FIX - Container IDs múltiplos + caminho absoluto rodadas.js
+// ✅ v2.3: CORREÇÃO - Usar buscarTimesLiga (enriquecido) ao invés de cache
 // Responsável por: coordenação de módulos, carregamento dinâmico, inicialização
 
 import {
@@ -83,7 +85,8 @@ async function carregarRodadas() {
     }
 
     console.log("[PONTOS-CORRIDOS-ORQUESTRADOR] Carregando módulo rodadas...");
-    const rodadasModule = await import("../rodadas.js");
+    // ✅ v2.4: Caminho absoluto para evitar erro de resolução
+    const rodadasModule = await import("/js/rodadas.js");
 
     if (rodadasModule?.getRankingRodadaEspecifica) {
       getRankingRodadaEspecifica = rodadasModule.getRankingRodadaEspecifica;
@@ -132,10 +135,22 @@ function aguardarCarregamento(checkFunction) {
 
 // ✅ FUNÇÃO PRINCIPAL CORRIGIDA - Usando nova interface
 export async function carregarPontosCorridos() {
-  const container = document.getElementById("pontos-corridos");
-  if (!container) return;
+  // ✅ v2.4: Buscar múltiplos IDs possíveis
+  const container =
+    document.getElementById("pontos-corridos") ||
+    document.getElementById("pontos-corridos-container");
 
-  console.log("[PONTOS-CORRIDOS-ORQUESTRADOR] Iniciando carregamento...");
+  if (!container) {
+    console.error(
+      "[PONTOS-CORRIDOS-ORQUESTRADOR] ❌ Container não encontrado (tentou: pontos-corridos, pontos-corridos-container)",
+    );
+    return;
+  }
+
+  console.log(
+    "[PONTOS-CORRIDOS-ORQUESTRADOR] ✅ Container encontrado:",
+    container.id,
+  );
 
   try {
     // Validar configuração
@@ -155,9 +170,10 @@ export async function carregarPontosCorridos() {
     }
 
     // Buscar dados iniciais
+    // ✅ v2.3: Usar buscarTimesLiga do core (já enriquece com nome_cartola)
     const [status, timesData] = await Promise.all([
       getStatusMercadoCache(),
-      getTimesLigaCache(estadoOrquestrador.ligaId),
+      buscarTimesLiga(estadoOrquestrador.ligaId), // ✅ Enriquecido com nome_cartola
     ]);
 
     estadoOrquestrador.rodadaAtualBrasileirao = status.rodada_atual || 1;
@@ -279,7 +295,7 @@ async function renderRodada(rodadaNum) {
 
     const jogos = estadoOrquestrador.confrontos[rodadaNum - 1]; // Ajuste para índice 0
 
-    // CORREÇÃO: Validar se jogos existe
+    // CORREt�ÃO: Validar se jogos existe
     if (!jogos || jogos.length === 0) {
       throw new Error(`Confrontos não encontrados para rodada ${rodadaNum}`);
     }
@@ -410,7 +426,7 @@ function setupCleanup() {
 setupCleanup();
 
 console.log(
-  "[PONTOS-CORRIDOS-ORQUESTRADOR] Módulo carregado com UX redesenhado",
+  "[PONTOS-CORRIDOS-ORQUESTRADOR] Módulo v2.4 carregado (fix container + rodadas path)",
 );
 
 // --- Funções de UI e Navegação ---
