@@ -129,6 +129,31 @@ function calcularTop10(pontuacaoTime, todasPontuacoes) {
     return null;
 }
 
+// ✅ v4.0: Função auxiliar para obter valores de banco contextuais
+function getBancoPorRodadaBackend(ligaId, rodada) {
+    const ID_CARTOLEIROS_SOBRAL = "684d821cf1a7ae16d1f89572";
+    
+    if (String(ligaId) === ID_CARTOLEIROS_SOBRAL) {
+        // Tabela contextual Cartoleiros Sobral
+        if (rodada < 30) {
+            // Fase 1: 6 times
+            return { 1: 7.0, 2: 4.0, 3: 0.0, 4: -2.0, 5: -5.0, 6: -10.0 };
+        } else {
+            // Fase 2: 4 times
+            return { 1: 5.0, 2: 0.0, 3: 0.0, 4: -5.0 };
+        }
+    }
+    
+    // SuperCartola 2025 (padrão)
+    return {
+        1: 10.0, 2: 7.0, 3: 5.0, 4: 3.0, 5: 1.0, 6: 0.0, 7: 0.0, 8: 0.0,
+        9: 0.0, 10: 0.0, 11: 0.0, 12: -1.0, 13: -1.0, 14: -1.0, 15: -1.0,
+        16: -1.0, 17: -1.0, 18: -1.0, 19: -1.0, 20: -1.0, 21: -1.0, 22: -3.0,
+        23: -5.0, 24: -7.0, 25: -10.0, 26: -15.0, 27: -20.0, 28: -25.0,
+        29: -30.0, 30: -35.0, 31: -40.0, 32: -50.0
+    };
+}
+
 // Processa UMA rodada para UM time
 async function calcularFinanceiroDaRodada(liga, timeId, rodadaNumero) {
     let transacoes = [];

@@ -16,7 +16,7 @@ const ExtratoFinanceiroCacheSchema = new mongoose.Schema(
 
         // Controle de Cache Permanente
         cache_permanente: { type: Boolean, default: false },
-        versao_calculo: { type: String, default: "3.1.0" },
+        versao_calculo: { type: String, default: "4.0.0" },
         rodadas_imutaveis: [Number],
 
         // Valores Consolidados

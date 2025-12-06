@@ -454,6 +454,7 @@ export class FluxoFinanceiroCore {
         const bonusOnus = this._calcularBonusOnus(
             posicaoReal,
             isCartoleirosSobral,
+            rodada,
         );
         const pontosCorridos = isSuperCartola2025
             ? this.calcularPontosCorridosParaRodada(timeId, rodada)
@@ -544,7 +545,15 @@ export class FluxoFinanceiroCore {
         };
     }
 
-    _calcularBonusOnus(posicaoReal, isCartoleirosSobral) {
+    _calcularBonusOnus(posicaoReal, isCartoleirosSobral, rodada = null) {
+        if (isCartoleirosSobral && rodada) {
+            // ✅ v4.0: Usar tabela contextual para Cartoleiros Sobral
+            const { getBancoPorRodada } = await import("../rodadas/rodadas-config.js");
+            const ligaId = obterLigaId();
+            const valoresContextuais = getBancoPorRodada(ligaId, rodada);
+            return valoresContextuais[posicaoReal] || 0;
+        }
+        
         const valores = isCartoleirosSobral
             ? valoresBancoCartoleirosSobral
             : valoresBancoPadrao;

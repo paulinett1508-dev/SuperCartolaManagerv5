@@ -561,6 +561,12 @@ export function getBancoPorLiga(ligaId) {
     : valoresBancoPadrao;
 }
 
+// ✅ v4.0: Função contextual para Cartoleiros Sobral
+export function getBancoPorRodada(ligaId, rodada) {
+  const { getBancoPorRodada: getBancoContextual } = await import('./rodadas-config.js');
+  return getBancoContextual(ligaId, rodada);
+}
+
 export async function buscarRodadas() {
   try {
     const urlParams = new URLSearchParams(window.location.search);

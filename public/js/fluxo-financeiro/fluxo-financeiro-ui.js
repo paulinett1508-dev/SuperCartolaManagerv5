@@ -129,12 +129,32 @@ export class FluxoFinanceiroUI {
             return `<span class="badge-status status-mico">🐵 MICO</span>`;
 
         if (rodada.posicao) {
-            const classe =
-                rodada.posicao <= 11
-                    ? "status-g4"
-                    : rodada.posicao >= 22
-                      ? "status-z4"
-                      : "status-neutro";
+            // ✅ v4.0: Detectar faixas contextuais para Cartoleiros Sobral
+            const ligaId = window.obterLigaId?.() || null;
+            const isCartoleirosSobral = ligaId === "684d821cf1a7ae16d1f89572";
+            
+            let classe = "status-neutro";
+            
+            if (isCartoleirosSobral && rodada.rodada >= 30) {
+                // Fase 2: 4 times (1º=crédito, 2º-3º=neutro, 4º=débito)
+                if (rodada.posicao === 1) classe = "status-g4";
+                else if (rodada.posicao >= 2 && rodada.posicao <= 3) classe = "status-neutro";
+                else if (rodada.posicao === 4) classe = "status-z4";
+            } else if (isCartoleirosSobral) {
+                // Fase 1: 6 times (1º-2º=crédito, 3º=neutro, 4º-6º=débito)
+                if (rodada.posicao >= 1 && rodada.posicao <= 2) classe = "status-g4";
+                else if (rodada.posicao === 3) classe = "status-neutro";
+                else if (rodada.posicao >= 4) classe = "status-z4";
+            } else {
+                // SuperCartola 2025 (32 times)
+                classe =
+                    rodada.posicao <= 11
+                        ? "status-g4"
+                        : rodada.posicao >= 22
+                          ? "status-z4"
+                          : "status-neutro";
+            }
+            
             return `<span class="badge-status ${classe}">${rodada.posicao}º</span>`;
         }
         return `<span class="text-muted">-</span>`;

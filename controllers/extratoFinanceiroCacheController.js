@@ -143,6 +143,7 @@ function transformarTransacoesEmRodadas(transacoes, ligaId) {
         primeiroItem.pontosCorridos !== undefined;
 
     if (jaEstaConsolidado) {
+        // ✅ v4.0: Já consolidado, apenas recalcular acumulado
         return transacoes.map((rodada, idx) => ({
             ...rodada,
             saldoAcumulado: transacoes
@@ -151,6 +152,7 @@ function transformarTransacoesEmRodadas(transacoes, ligaId) {
         }));
     }
 
+    // ✅ v4.0: Formato legado - reconstruir com valores contextuais
     const rodadasMap = {};
     transacoes.forEach((t) => {
         const numRodada = t.rodada;
@@ -203,6 +205,7 @@ function transformarTransacoesEmRodadas(transacoes, ligaId) {
         r.saldoAcumulado = saldoAcumulado;
     });
 
+    console.log(`[CACHE-CONTROLLER] ⚠️ Formato legado transformado: ${rodadasArray.length} rodadas`);
     return rodadasArray;
 }
 
