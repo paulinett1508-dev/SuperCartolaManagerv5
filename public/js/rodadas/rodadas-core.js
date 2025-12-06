@@ -1,5 +1,5 @@
 // RODADAS CORE - Lógica de Negócio e API Calls
-// ✅ VERSÃO 4.0 - OTIMIZADO COM BATCH LOADING
+// ✅ VERSÃO 4.2 - INATIVOS EM TODAS AS RODADAS
 // Responsável por: processamento de dados, chamadas de API, cálculos
 
 import {
@@ -18,9 +18,14 @@ const isFrontend = typeof window !== "undefined";
 // ESTADO GLOBAL DO MÓDULO
 let statusMercadoGlobal = STATUS_MERCADO_DEFAULT;
 
-// ✅ NOVO: CACHE DE RANKINGS EM MEMÓRIA (evita rebusca)
-const cacheRankingsLote = new Map(); // ligaId -> { rodadas: {1: [...], 2: [...], ...}, timestamp }
-const CACHE_TTL = 10 * 60 * 1000; // 10 minutos
+// ✅ CACHE DE STATUS DOS TIMES (ativo/inativo)
+let timesStatusCache = new Map();
+const TIMES_STATUS_CACHE_TTL = 5 * 60 * 1000;
+let timesStatusCacheTimestamp = new Map();
+
+// ✅ CACHE DE RANKINGS EM MEMÓRIA
+const cacheRankingsLote = new Map();
+const CACHE_TTL = 10 * 60 * 1000;
 
 // ==============================
 // FUNÇÕES DE STATUS DO MERCADO
@@ -48,17 +53,87 @@ export function getStatusMercado() {
 }
 
 // ==============================
-// ✅ NOVO: BATCH LOADING DE RANKINGS
+// BUSCAR STATUS DE ATIVO/INATIVO DOS TIMES
 // ==============================
 
-/**
- * ✅ BUSCA TODAS AS RODADAS EM UMA ÚNICA REQUISIÇÃO
- * @param {string} ligaId - ID da liga
- * @param {number} rodadaInicio - Rodada inicial (default: 1)
- * @param {number} rodadaFim - Rodada final (default: 38)
- * @param {boolean} forcarRecarga - Ignorar cache e buscar novamente
- * @returns {Object} - { 1: [...rankings], 2: [...rankings], ... }
- */
+export async function buscarTimesStatus(ligaId, forcarRecarga = false) {
+  const ligaIdNormalizado = String(ligaId);
+
+  if (!forcarRecarga && timesStatusCache.has(ligaIdNormalizado)) {
+    const timestamp = timesStatusCacheTimestamp.get(ligaIdNormalizado);
+    if (Date.now() - timestamp < TIMES_STATUS_CACHE_TTL) {
+      console.log(
+        `[RODADAS-CORE] ⚡ Cache hit para status dos times (liga: ${ligaIdNormalizado})`,
+      );
+      return timesStatusCache.get(ligaIdNormalizado);
+    }
+  }
+
+  console.log(
+    `[RODADAS-CORE] 🔄 Buscando status dos times para liga ${ligaIdNormalizado}...`,
+  );
+
+  try {
+    let fetchFunc = isBackend ? (await import("node-fetch")).default : fetch;
+    const baseUrl = isBackend ? "http://localhost:3000" : "";
+
+    const response = await fetchFunc(
+      `${baseUrl}/api/ligas/${ligaIdNormalizado}/times`,
+    );
+
+    if (!response.ok) {
+      console.warn(`[RODADAS-CORE] ⚠️ Erro ${response.status} ao buscar times`);
+      return {};
+    }
+
+    const times = await response.json();
+    const statusMap = {};
+
+    (Array.isArray(times) ? times : []).forEach((time) => {
+      const id = String(time.id || time.time_id || time.timeId);
+      if (id) {
+        statusMap[id] = {
+          ativo: time.ativo !== false,
+          rodada_desistencia: time.rodada_desistencia || null,
+          nome_time: time.nome_time || time.nome,
+          nome_cartola: time.nome_cartola,
+        };
+      }
+    });
+
+    timesStatusCache.set(ligaIdNormalizado, statusMap);
+    timesStatusCacheTimestamp.set(ligaIdNormalizado, Date.now());
+
+    console.log(
+      `[RODADAS-CORE] ✅ ${Object.keys(statusMap).length} times com status carregados`,
+    );
+    return statusMap;
+  } catch (error) {
+    console.error("[RODADAS-CORE] ❌ Erro ao buscar status dos times:", error);
+    return {};
+  }
+}
+
+export function enriquecerRankingsComStatus(rankings, timesStatus) {
+  if (!rankings || !Array.isArray(rankings)) return rankings;
+  if (!timesStatus || Object.keys(timesStatus).length === 0) return rankings;
+
+  return rankings.map((rank) => {
+    const timeId = String(rank.time_id || rank.timeId || rank.id);
+    const status = timesStatus[timeId];
+
+    return {
+      ...rank,
+      ativo: status ? status.ativo : true,
+      rodada_desistencia: status ? status.rodada_desistencia : null,
+    };
+  });
+}
+
+// ==============================
+// BATCH LOADING DE RANKINGS
+// ==============================
+
 export async function getRankingsEmLote(
   ligaId,
   rodadaInicio = 1,
@@ -67,7 +142,6 @@ export async function getRankingsEmLote(
 ) {
   const ligaIdNormalizado = String(ligaId);
 
-  // ✅ VERIFICAR CACHE EM MEMÓRIA
   if (!forcarRecarga && cacheRankingsLote.has(ligaIdNormalizado)) {
     const cached = cacheRankingsLote.get(ligaIdNormalizado);
     const idade = Date.now() - cached.timestamp;
@@ -88,20 +162,25 @@ export async function getRankingsEmLote(
     let fetchFunc = isBackend ? (await import("node-fetch")).default : fetch;
     const baseUrl = isBackend ? "http://localhost:3000" : "";
 
-    const url = `${baseUrl}/api/rodadas/${ligaIdNormalizado}/rodadas?inicio=${rodadaInicio}&fim=${rodadaFim}`;
-    const response = await fetchFunc(url);
+    const [rankingsResponse, timesStatus] = await Promise.all([
+      fetchFunc(
+        `${baseUrl}/api/rodadas/${ligaIdNormalizado}/rodadas?inicio=${rodadaInicio}&fim=${rodadaFim}`,
+      ),
+      buscarTimesStatus(ligaIdNormalizado),
+    ]);
 
-    if (!response.ok) {
-      throw new Error(`Erro HTTP ${response.status} ao buscar rodadas em lote`);
+    if (!rankingsResponse.ok) {
+      throw new Error(
+        `Erro HTTP ${rankingsResponse.status} ao buscar rodadas em lote`,
+      );
     }
 
-    const todosRankings = await response.json();
+    const todosRankings = await rankingsResponse.json();
 
     console.log(
       `[RODADAS-CORE] ✅ ${todosRankings.length} registros carregados em 1 requisição`,
     );
 
-    // ✅ AGRUPAR POR RODADA
     const rodadasAgrupadas = {};
 
     todosRankings.forEach((ranking) => {
@@ -110,24 +189,25 @@ export async function getRankingsEmLote(
         rodadasAgrupadas[rodadaNum] = [];
       }
 
-      // Normalizar IDs
       const timeId = String(ranking.time_id || ranking.timeId || ranking.id);
+      const status = timesStatus[timeId];
+
       rodadasAgrupadas[rodadaNum].push({
         ...ranking,
         time_id: timeId,
         timeId: timeId,
         id: timeId,
+        ativo: status ? status.ativo : true,
+        rodada_desistencia: status ? status.rodada_desistencia : null,
       });
     });
 
-    // ✅ ORDENAR CADA RODADA POR PONTOS
     Object.keys(rodadasAgrupadas).forEach((rodada) => {
       rodadasAgrupadas[rodada].sort(
         (a, b) => parseFloat(b.pontos || 0) - parseFloat(a.pontos || 0),
       );
     });
 
-    // ✅ SALVAR NO CACHE COM LIGAID NORMALIZADO
     cacheRankingsLote.set(ligaIdNormalizado, {
       rodadas: rodadasAgrupadas,
       timestamp: Date.now(),
@@ -144,41 +224,24 @@ export async function getRankingsEmLote(
   }
 }
 
-/**
- * ✅ BUSCA UMA RODADA ESPECÍFICA (usa cache do lote se disponível)
- * @param {string} ligaId - ID da liga
- * @param {number} rodadaNum - Número da rodada
- * @returns {Array} - Rankings da rodada
- */
 export async function getRankingRodadaEspecifica(ligaId, rodadaNum) {
   const ligaIdNormalizado = String(ligaId);
 
-  // ✅ PRIMEIRO: Verificar se já temos no cache do lote
   if (cacheRankingsLote.has(ligaIdNormalizado)) {
     const cached = cacheRankingsLote.get(ligaIdNormalizado);
     const idade = Date.now() - cached.timestamp;
 
     if (idade < CACHE_TTL && cached.rodadas[rodadaNum]) {
-      // Cache válido - retornar direto! (sem log para não poluir)
       return cached.rodadas[rodadaNum];
     }
   }
 
-  // ✅ FALLBACK: Buscar individualmente se não estiver em cache
   console.log(
     `[RODADAS-CORE] ⚠️ Cache miss para rodada ${rodadaNum} (liga: ${ligaIdNormalizado}) - buscando individual`,
-  );
-  console.log(
-    `[RODADAS-CORE] 📊 Cache status: has=${cacheRankingsLote.has(ligaIdNormalizado)}, keys=[${Array.from(cacheRankingsLote.keys()).join(", ")}]`,
   );
   return await fetchAndProcessRankingRodada(ligaId, rodadaNum);
 }
 
-/**
- * ✅ PRÉ-CARREGAR TODAS AS RODADAS (chamado uma vez na inicialização)
- * @param {string} ligaId - ID da liga
- * @param {number} ultimaRodada - Última rodada a carregar
- */
 export async function preCarregarRodadas(ligaId, ultimaRodada = 38) {
   console.log(`[RODADAS-CORE] 📦 Pré-carregando rodadas 1-${ultimaRodada}...`);
 
@@ -192,22 +255,22 @@ export async function preCarregarRodadas(ligaId, ultimaRodada = 38) {
   }
 }
 
-/**
- * ✅ LIMPAR CACHE DE RANKINGS
- * @param {string} ligaId - ID da liga (opcional, se não passar limpa tudo)
- */
 export function limparCacheRankings(ligaId = null) {
   if (ligaId) {
     cacheRankingsLote.delete(ligaId);
+    timesStatusCache.delete(ligaId);
+    timesStatusCacheTimestamp.delete(ligaId);
     console.log(`[RODADAS-CORE] 🗑️ Cache limpo para liga ${ligaId}`);
   } else {
     cacheRankingsLote.clear();
+    timesStatusCache.clear();
+    timesStatusCacheTimestamp.clear();
     console.log(`[RODADAS-CORE] 🗑️ Todo cache de rankings limpo`);
   }
 }
 
 // ==============================
-// FUNÇÕES DE API E PROCESSAMENTO (mantidas para fallback)
+// FUNÇÕES DE API E PROCESSAMENTO
 // ==============================
 
 export async function fetchAndProcessRankingRodada(ligaId, rodadaNum) {
@@ -229,7 +292,6 @@ export async function fetchAndProcessRankingRodada(ligaId, rodadaNum) {
     let rankingsDataFromApi = null;
     let lastError = null;
 
-    // Tentar endpoints até encontrar dados
     for (const endpoint of endpoints) {
       try {
         console.log(`[RODADAS-CORE] Tentando endpoint: ${endpoint}`);
@@ -267,21 +329,19 @@ export async function fetchAndProcessRankingRodada(ligaId, rodadaNum) {
     if (!rankingsDataFromApi) {
       let rodadaAtualReal = 1;
       try {
-        const mercadoStatus = await fetch("/api/cartola/mercado/status").then(
-          (r) => r.json(),
+        const mercadoRes = await fetchFunc(
+          `${baseUrl}${RODADAS_ENDPOINTS.mercadoStatus}`,
         );
-        rodadaAtualReal = mercadoStatus.rodada_atual || 1;
-      } catch (err) {
-        console.warn("[RODADAS-CORE] Erro ao buscar status do mercado:", err);
+        if (mercadoRes.ok) {
+          const mercadoData = await mercadoRes.json();
+          rodadaAtualReal = mercadoData.rodada_atual || 1;
+        }
+      } catch (e) {
+        console.warn("[RODADAS-CORE] Não foi possível obter rodada atual");
       }
 
-      if (rodadaNum > rodadaAtualReal) {
-        console.log(
-          `[RODADAS-CORE] Rodada ${rodadaNum} é futura (atual: ${rodadaAtualReal})`,
-        );
-        return [];
-      } else if (
-        rodadaNum === rodadaAtualReal &&
+      if (
+        rodadaNum >= rodadaAtualReal &&
         statusMercadoGlobal.status_mercado === 1
       ) {
         console.log(
@@ -324,11 +384,17 @@ export async function fetchAndProcessRankingRodada(ligaId, rodadaNum) {
       );
     }
 
-    rankingsDaRodada.sort(
+    const timesStatus = await buscarTimesStatus(ligaId);
+    const rankingsEnriquecidos = enriquecerRankingsComStatus(
+      rankingsDaRodada,
+      timesStatus,
+    );
+
+    rankingsEnriquecidos.sort(
       (a, b) => parseFloat(b.pontos || 0) - parseFloat(a.pontos || 0),
     );
 
-    return rankingsDaRodada;
+    return rankingsEnriquecidos;
   } catch (err) {
     console.error(
       `[RODADAS-CORE] Erro crítico em fetchAndProcessRankingRodada(${rodadaNum}):`,
@@ -387,6 +453,9 @@ export async function calcularPontosParciais(liga, rodada) {
   const atletasPontuados = await buscarPontuacoesParciais();
   const times = liga.times || [];
   const rankingsParciais = [];
+
+  const ligaId = liga._id || liga.id;
+  const timesStatus = await buscarTimesStatus(ligaId);
 
   console.log(`[RODADAS-CORE] Calculando parciais para ${times.length} times`);
 
@@ -454,6 +523,8 @@ export async function calcularPontosParciais(liga, rodada) {
       const clubeId =
         timeCompleto?.clube_id || escalacaoData.time?.clube_id || null;
 
+      const status = timesStatus[String(timeId)];
+
       rankingsParciais.push({
         time_id: timeId,
         nome_cartola: nomeCartola,
@@ -462,6 +533,8 @@ export async function calcularPontosParciais(liga, rodada) {
         escudo_url:
           escalacaoData.url_escudo_png || escalacaoData.url_escudo_svg || "",
         totalPontos: totalPontos,
+        ativo: status ? status.ativo : true,
+        rodada_desistencia: status ? status.rodada_desistencia : null,
       });
     } catch (err) {
       console.error(
@@ -515,12 +588,21 @@ export async function buscarRodadas() {
       `[RODADAS-CORE] Rodadas recebidas: ${rodadas.length} registros`,
     );
 
-    if (rodadas.length > 0) {
-      console.log("[RODADAS-CORE] Primeira rodada:", rodadas[0]);
-      console.log("[RODADAS-CORE] Última rodada:", rodadas[rodadas.length - 1]);
+    const timesStatus = await buscarTimesStatus(ligaId);
+    const rodadasEnriquecidas = enriquecerRankingsComStatus(
+      rodadas,
+      timesStatus,
+    );
+
+    if (rodadasEnriquecidas.length > 0) {
+      console.log("[RODADAS-CORE] Primeira rodada:", rodadasEnriquecidas[0]);
+      console.log(
+        "[RODADAS-CORE] Última rodada:",
+        rodadasEnriquecidas[rodadasEnriquecidas.length - 1],
+      );
 
       const rodadasAgrupadas = {};
-      rodadas.forEach((r) => {
+      rodadasEnriquecidas.forEach((r) => {
         if (!rodadasAgrupadas[r.rodada]) {
           rodadasAgrupadas[r.rodada] = 0;
         }
@@ -533,7 +615,7 @@ export async function buscarRodadas() {
       );
     }
 
-    return rodadas;
+    return rodadasEnriquecidas;
   } catch (error) {
     console.error("[RODADAS-CORE] Erro ao buscar rodadas:", error);
     return [];
@@ -552,4 +634,6 @@ export function agruparRodadasPorNumero(rodadas) {
   return grouped;
 }
 
-console.log("[RODADAS-CORE] ✅ Módulo carregado com batch loading otimizado");
+console.log(
+  "[RODADAS-CORE] ✅ Módulo v4.2 carregado (inativos em todas as rodadas)",
+);

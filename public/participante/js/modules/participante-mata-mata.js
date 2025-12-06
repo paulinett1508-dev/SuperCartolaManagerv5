@@ -1,6 +1,7 @@
 // =====================================================================
-// PARTICIPANTE MATA-MATA v6.5
+// PARTICIPANTE MATA-MATA v6.6
 // Integrado com HTML template - Layout Cards + Correção "não está nesta fase"
+// Nota: Mata-mata não requer tratamento especial de inativos pois é por eliminação
 // =====================================================================
 
 const EDICOES_MATA_MATA = [
@@ -13,7 +14,6 @@ const EDICOES_MATA_MATA = [
 
 const FASES = ["primeira", "oitavas", "quartas", "semis", "final"];
 
-// Helper para extrair timeId de diferentes estruturas
 function extrairTimeId(time) {
   if (!time) return null;
   return time.time_id || time.timeId || time.id || null;
@@ -27,14 +27,14 @@ let estado = {
   faseSelecionada: "primeira",
   edicoesDisponiveis: [],
   cacheConfrontos: {},
-  historicoParticipacao: {}, // ✅ NOVO: Armazena em qual fase o usuário foi eliminado
+  historicoParticipacao: {},
 };
 
 // =====================================================================
 // INICIALIZAÇÃO
 // =====================================================================
 export async function inicializarMataMata(params) {
-  console.log("[MATA-MATA] 🚀 Inicializando v6.5...", params);
+  console.log("[MATA-MATA] 🚀 Inicializando v6.6...", params);
 
   estado.ligaId = params?.ligaId || localStorage.getItem("ligaId");
   estado.timeId = params?.timeId || localStorage.getItem("timeId");
@@ -55,7 +55,6 @@ export async function inicializarMataMata(params) {
   }
 }
 
-// Alias para compatibilidade
 export const inicializarMataMataParticipante = inicializarMataMata;
 
 // =====================================================================
@@ -88,25 +87,18 @@ async function carregarEdicoesDisponiveis() {
       `[MATA-MATA] ✅ ${estado.edicoesDisponiveis.length} edições encontradas`,
     );
 
-    // Popular select de edições
     popularSelectEdicoes();
-
-    // Atualizar contador de participantes
     atualizarContador();
 
-    // Selecionar última edição automaticamente
     if (estado.edicoesDisponiveis.length > 0) {
       const ultimaEdicao =
         estado.edicoesDisponiveis[estado.edicoesDisponiveis.length - 1];
       estado.edicaoSelecionada = ultimaEdicao.edicao;
 
-      // Atualizar select
       const select = document.getElementById("mmEditionSelect");
       if (select) select.value = ultimaEdicao.edicao;
 
-      // ✅ CARREGAR TODAS AS FASES PARA MAPEAR PARTICIPAÇÃO
       await carregarTodasFases(estado.edicaoSelecionada);
-
       await carregarFase(estado.edicaoSelecionada, "primeira");
     }
   } catch (error) {
@@ -116,7 +108,7 @@ async function carregarEdicoesDisponiveis() {
 }
 
 // =====================================================================
-// ✅ NOVO: CARREGAR TODAS AS FASES PARA MAPEAR PARTICIPAÇÃO
+// CARREGAR TODAS AS FASES PARA MAPEAR PARTICIPAÇÃO
 // =====================================================================
 async function carregarTodasFases(edicao) {
   try {
@@ -129,7 +121,6 @@ async function carregarTodasFases(edicao) {
     const data = await res.json();
     console.log("[MATA-MATA] 📦 Dados recebidos:", data);
 
-    // Compatibilidade: dados pode vir em 'dados' ou 'dados_torneio'
     const dadosFases = data.dados || data.dados_torneio || data;
 
     if (!dadosFases || typeof dadosFases !== "object") {
@@ -141,12 +132,10 @@ async function carregarTodasFases(edicao) {
     let ultimaFaseParticipada = null;
     let foiEliminado = false;
 
-    // Cachear todas as fases
     FASES.forEach((f) => {
       if (dadosFases[f]) {
         estado.cacheConfrontos[`${edicao}-${f}`] = dadosFases[f];
 
-        // ✅ Verificar se o usuário participou desta fase
         const confrontos = dadosFases[f];
         const participou = confrontos.some(
           (c) =>
@@ -157,7 +146,6 @@ async function carregarTodasFases(edicao) {
         if (participou) {
           ultimaFaseParticipada = f;
 
-          // Verificar se foi eliminado (perdeu)
           const meuConfronto = confrontos.find(
             (c) =>
               extrairTimeId(c.timeA) === meuTimeId ||
@@ -179,15 +167,12 @@ async function carregarTodasFases(edicao) {
                   : meuConfronto.timeA?.pontos,
               ) || 0;
 
-            if (meusPts < advPts) {
-              foiEliminado = true;
-            }
+            if (meusPts < advPts) foiEliminado = true;
           }
         }
       }
     });
 
-    // Armazenar histórico
     estado.historicoParticipacao[edicao] = {
       ultimaFase: ultimaFaseParticipada,
       eliminado: foiEliminado,
@@ -223,29 +208,24 @@ function popularSelectEdicoes() {
 // =====================================================================
 function atualizarContador() {
   const el = document.getElementById("mmTimesCount");
-  if (el) el.textContent = "32 participante(s)"; // Valor padrão
+  if (el) el.textContent = "32 participante(s)";
 }
 
 // =====================================================================
 // SETUP EVENT LISTENERS
 // =====================================================================
 function setupEventListeners() {
-  // Select de edições
   const select = document.getElementById("mmEditionSelect");
   if (select) {
     select.addEventListener("change", async (e) => {
       estado.edicaoSelecionada = parseInt(e.target.value);
       estado.faseSelecionada = "primeira";
       atualizarBotoesFases();
-
-      // ✅ Carregar histórico da nova edição
       await carregarTodasFases(estado.edicaoSelecionada);
-
       await carregarFase(estado.edicaoSelecionada, "primeira");
     });
   }
 
-  // Botões de fases
   const phasesNav = document.getElementById("mmPhasesNav");
   if (phasesNav) {
     phasesNav.addEventListener("click", async (e) => {
@@ -261,7 +241,6 @@ function setupEventListeners() {
     });
   }
 
-  // Configurar data-fase nos botões
   const buttons = document.querySelectorAll(".mm-phase-btn");
   FASES.forEach((fase, i) => {
     if (buttons[i]) buttons[i].dataset.fase = fase;
@@ -304,7 +283,6 @@ function atualizarInfoFase(fase) {
       final: "FINAL",
     }[fase] || fase.toUpperCase();
 
-  // Calcular rodada da fase baseado na configuração
   let rodadaFase = estado.rodadaAtual;
   if (config) {
     const faseIndex = FASES.indexOf(fase);
@@ -325,10 +303,8 @@ async function carregarFase(edicao, fase) {
   const container = document.getElementById("mata-mata-container");
   if (!container) return;
 
-  // Atualizar info
   atualizarInfoFase(fase);
 
-  // Loading
   container.innerHTML = `
     <div class="mm-loading">
       <div class="mm-spinner"></div>
@@ -337,7 +313,6 @@ async function carregarFase(edicao, fase) {
   `;
 
   try {
-    // Verificar cache local
     const cacheKey = `${edicao}-${fase}`;
     let confrontos = estado.cacheConfrontos[cacheKey];
 
@@ -350,14 +325,12 @@ async function carregarFase(edicao, fase) {
       const data = await res.json();
       console.log("[MATA-MATA] 📦 Resposta carregarFase:", Object.keys(data));
 
-      // Compatibilidade: dados pode vir em 'dados' ou 'dados_torneio'
       const dadosFases = data.dados || data.dados_torneio || data;
 
       if (!dadosFases || typeof dadosFases !== "object") {
         throw new Error("Dados não encontrados");
       }
 
-      // Cachear todas as fases
       FASES.forEach((f) => {
         if (dadosFases[f]) {
           estado.cacheConfrontos[`${edicao}-${f}`] = dadosFases[f];
@@ -392,7 +365,7 @@ async function carregarFase(edicao, fase) {
 }
 
 // =====================================================================
-// ✅ RENDERIZAR CONFRONTOS EM CARDS (NOVO LAYOUT)
+// RENDERIZAR CONFRONTOS EM CARDS
 // =====================================================================
 function renderConfrontosCards(confrontos, fase) {
   const container = document.getElementById("mata-mata-container");
@@ -400,7 +373,6 @@ function renderConfrontosCards(confrontos, fase) {
 
   const meuTimeId = estado.timeId ? parseInt(estado.timeId) : null;
 
-  // Encontrar meu confronto
   const meuConfronto = confrontos.find(
     (c) =>
       extrairTimeId(c.timeA) === meuTimeId ||
@@ -409,11 +381,9 @@ function renderConfrontosCards(confrontos, fase) {
 
   let html = "";
 
-  // Card "Seu Confronto" ou status de eliminação
   if (meuConfronto) {
     html += renderMeuConfrontoCard(meuConfronto, meuTimeId);
   } else {
-    // ✅ AJUSTE: Verificar se foi eliminado em fase anterior
     const historico = estado.historicoParticipacao[estado.edicaoSelecionada];
 
     if (historico && historico.ultimaFase && historico.eliminado) {
@@ -436,7 +406,6 @@ function renderConfrontosCards(confrontos, fase) {
         </div>
       `;
     } else if (historico && historico.ultimaFase) {
-      // Participou mas não sabemos se perdeu (pode estar em andamento)
       html += `
         <div class="mm-nao-classificado">
           <span class="material-symbols-outlined">sports_soccer</span>
@@ -444,7 +413,6 @@ function renderConfrontosCards(confrontos, fase) {
         </div>
       `;
     } else {
-      // Nunca participou desta edição
       html += `
         <div class="mm-nao-classificado">
           <span class="material-symbols-outlined">person_off</span>
@@ -454,14 +422,13 @@ function renderConfrontosCards(confrontos, fase) {
     }
   }
 
-  // Lista de confrontos em cards
   html += renderConfrontosListaCards(confrontos, meuTimeId, fase);
 
   container.innerHTML = html;
 }
 
 // =====================================================================
-// ✅ RENDER MEU CONFRONTO EM CARD
+// RENDER MEU CONFRONTO EM CARD
 // =====================================================================
 function renderMeuConfrontoCard(confronto, meuTimeId) {
   const souTimeA = extrairTimeId(confronto.timeA) === meuTimeId;
@@ -530,12 +497,11 @@ function renderMeuConfrontoCard(confronto, meuTimeId) {
 }
 
 // =====================================================================
-// ✅ RENDER LISTA DE CONFRONTOS EM CARDS
+// RENDER LISTA DE CONFRONTOS EM CARDS
 // =====================================================================
 function renderConfrontosListaCards(confrontos, meuTimeId, fase) {
   let html = "";
 
-  // ✅ SE FOR FINAL - Mostrar card do CAMPEÃO
   if (fase === "final" && confrontos.length > 0) {
     const finalConfronto = confrontos[0];
     const timeA = finalConfronto.timeA || {};
@@ -543,7 +509,6 @@ function renderConfrontosListaCards(confrontos, meuTimeId, fase) {
     const ptsA = parseFloat(timeA.pontos) || 0;
     const ptsB = parseFloat(timeB.pontos) || 0;
 
-    // Só mostrar campeão se houver vencedor definido (pontos > 0)
     if (ptsA > 0 || ptsB > 0) {
       const campeao = ptsA >= ptsB ? timeA : timeB;
       const ptsCampeao = ptsA >= ptsB ? ptsA : ptsB;
@@ -571,7 +536,6 @@ function renderConfrontosListaCards(confrontos, meuTimeId, fase) {
     }
   }
 
-  // Header separador
   html += `
     <div class="mm-outros-header">
       <span>${fase === "final" ? "A Grande Final" : "Todos os Confrontos"}</span>

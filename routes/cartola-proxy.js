@@ -4,6 +4,24 @@ import axios from "axios";
 const router = express.Router();
 const CARTOLA_API_BASE = "https://api.cartola.globo.com";
 
+// =====================================================================
+// HELPER: Calcular rodada atual dinamicamente
+// =====================================================================
+function calcularRodadaAtual() {
+    // Temporada 2025: R1 começou em 29/03/2025
+    const inicioTemporada = new Date("2025-03-29T00:00:00-03:00");
+    const agora = new Date();
+
+    // Cada rodada dura ~7 dias em média
+    const diasPassados = Math.floor(
+        (agora - inicioTemporada) / (1000 * 60 * 60 * 24),
+    );
+    const rodadaCalculada = Math.ceil(diasPassados / 7);
+
+    // Limitar entre 1 e 38
+    return Math.max(1, Math.min(38, rodadaCalculada));
+}
+
 // Middleware para CORS
 router.use((req, res, next) => {
     res.header("Access-Control-Allow-Origin", "*");
@@ -51,7 +69,7 @@ router.get("/liga/:ligaId", async (req, res) => {
     }
 });
 
-// Rota: Status do mercado (corrigida e sem duplicação)
+// Rota: Status do mercado (corrigida com fallback dinâmico)
 router.get("/mercado/status", async (req, res) => {
     try {
         console.log("🔄 [CARTOLA-PROXY] Buscando status do mercado...");
@@ -78,13 +96,21 @@ router.get("/mercado/status", async (req, res) => {
             error.message,
         );
 
-        // Retornar dados de fallback em caso de erro
+        // ✅ FALLBACK DINÂMICO - Calcula rodada baseado na data atual
+        const rodadaCalculada = calcularRodadaAtual();
+        const agora = new Date();
+
+        console.log(
+            `⚠️ [CARTOLA-PROXY] Usando fallback dinâmico - Rodada: ${rodadaCalculada}`,
+        );
+
         res.json({
-            rodada_atual: 1,
-            status_mercado: 2, // Mercado fechado (permite visualizar rodadas)
-            mes: 11,
-            ano: 2025,
+            rodada_atual: rodadaCalculada,
+            status_mercado: 1, // ABERTO (permite banner aparecer)
+            mes: agora.getMonth() + 1,
+            ano: agora.getFullYear(),
             aviso: "Dados de fallback - API indisponível",
+            fallback: true,
         });
     }
 });
@@ -131,7 +157,7 @@ router.get("/atletas/pontuados", async (req, res) => {
         // Retornar objeto vazio em caso de erro (mercado pode estar fechado)
         res.json({
             atletas: {},
-            rodada: 1,
+            rodada: calcularRodadaAtual(),
         });
     }
 });

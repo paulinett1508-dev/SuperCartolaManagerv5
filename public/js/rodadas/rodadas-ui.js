@@ -1,4 +1,6 @@
 // RODADAS UI - Interface e Renderização
+// ✅ v2.2: Inativos aparecem como ATIVOS nas rodadas anteriores à desistência
+//         Visual de inativo SÓ aparece nas rodadas >= rodada_desistencia
 // Responsável por: renderização de componentes, manipulação DOM, eventos
 
 import {
@@ -27,7 +29,7 @@ function getElement(id) {
 // RENDERIZAÇÃO DE MINI CARDS
 // ==============================
 
-// RENDERIZAR MINI CARDS DAS RODADAS (linhas 173-207 do original)
+// RENDERIZAR MINI CARDS DAS RODADAS
 export async function renderizarMiniCardsRodadas() {
   console.log("[RODADAS-UI] renderizarMiniCardsRodadas iniciada");
 
@@ -60,21 +62,21 @@ export async function renderizarMiniCardsRodadas() {
     if (i < rodada_atual) {
       statusClass = "encerrada";
       statusText = "Encerrada";
-      isDisabled = false; // Permitir clicar em rodadas encerradas
+      isDisabled = false;
     } else if (i === rodada_atual) {
       if (mercadoAberto) {
         statusClass = "vigente";
         statusText = "Aberta";
-        isDisabled = true; // Mercado aberto = sem dados ainda
+        isDisabled = true;
       } else {
         statusClass = "parcial";
         statusText = "Parciais";
-        isDisabled = false; // Mercado fechado = tem parciais
+        isDisabled = false;
       }
     } else {
       statusClass = "futura";
       statusText = "Futura";
-      isDisabled = true; // Apenas rodadas futuras ficam desabilitadas
+      isDisabled = true;
     }
 
     cardsHTML += `
@@ -94,7 +96,6 @@ export async function renderizarMiniCardsRodadas() {
 // SELEÇÃO DE RODADA
 // ==============================
 
-// SELECIONAR RODADA (linhas 212-237 do original)
 export async function selecionarRodada(rodada, carregarDadosCallback) {
   if (rodadaAtualSelecionada === rodada) return;
 
@@ -132,7 +133,7 @@ export async function selecionarRodada(rodada, carregarDadosCallback) {
 // EXIBIÇÃO DE RANKINGS
 // ==============================
 
-// FUNÇÃO PARA OBTER LABEL DE POSIÇÃO (linhas 243-259 do original - refatorada)
+// FUNÇÃO PARA OBTER LABEL DE POSIÇÃO
 export function getPosLabel(index, total, ligaId) {
   const pos = index + 1;
   const isLigaCartoleirosSobral = ligaId === LIGAS_CONFIG.CARTOLEIROS_SOBRAL;
@@ -169,29 +170,56 @@ export function getPosLabel(index, total, ligaId) {
   }
 }
 
-// EXIBIR RANKING FINALIZADO (linhas 442-515 do original)
-export function exibirRanking(
-  rankingsDaRodada,
-  rodadaSelecionada,
-  ligaId,
-) {
+// ✅ v2.2: EXIBIR RANKING - INATIVOS CONTEXTUAIS POR RODADA
+export function exibirRanking(rankingsDaRodada, rodadaSelecionada, ligaId) {
   const rankingBody = getElement("rankingBody");
 
   // Validar se é array
-  if (!rankingsDaRodada || !Array.isArray(rankingsDaRodada) || rankingsDaRodada.length === 0) {
-    console.warn('[RODADAS-UI] Dados inválidos recebidos:', typeof rankingsDaRodada);
+  if (
+    !rankingsDaRodada ||
+    !Array.isArray(rankingsDaRodada) ||
+    rankingsDaRodada.length === 0
+  ) {
+    console.warn(
+      "[RODADAS-UI] Dados inválidos recebidos:",
+      typeof rankingsDaRodada,
+    );
     rankingBody.innerHTML = `<tr><td colspan="6">Nenhum dado encontrado para a rodada ${rodadaSelecionada}.</td></tr>`;
     limparExportContainer();
     return;
   }
 
-  const bancoValores = getBancoPorLiga(ligaId);
+  // ✅ v2.2: Separar ativos e inativos CONSIDERANDO A RODADA SELECIONADA
+  // Regra: Se rodada < rodada_desistencia, participante era ATIVO nessa rodada
+  const ativos = rankingsDaRodada.filter((r) => {
+    if (r.ativo === false && r.rodada_desistencia) {
+      // Inativo atualmente, mas era ativo ANTES da rodada de desistência
+      return rodadaSelecionada < r.rodada_desistencia;
+    }
+    return r.ativo !== false;
+  });
 
-  const tableHTML = rankingsDaRodada
+  const inativos = rankingsDaRodada.filter((r) => {
+    if (r.ativo === false && r.rodada_desistencia) {
+      // Só mostra como inativo se rodada >= rodada_desistencia
+      return rodadaSelecionada >= r.rodada_desistencia;
+    }
+    // Inativo sem rodada_desistencia definida (fallback)
+    return r.ativo === false && !r.rodada_desistencia;
+  });
+
+  // Ordenar ativos por pontos
+  ativos.sort((a, b) => parseFloat(b.pontos || 0) - parseFloat(a.pontos || 0));
+
+  const bancoValores = getBancoPorLiga(ligaId);
+  const totalAtivos = ativos.length;
+
+  // Renderizar ativos
+  let tableHTML = ativos
     .map((rank, index) => {
       const banco =
         bancoValores[index + 1] !== undefined ? bancoValores[index + 1] : 0.0;
-      const posLabel = getPosLabel(index, rankingsDaRodada.length, ligaId);
+      const posLabel = getPosLabel(index, totalAtivos, ligaId);
       const nomeCartoleiro = rank.nome_cartola || rank.nome_cartoleiro || "N/D";
       const nomeTime = rank.nome_time || "N/D";
       const pontos =
@@ -217,45 +245,117 @@ export function exibirRanking(
     })
     .join("");
 
+  // ✅ v2.1: Adicionar seção de inativos (aparecem em TODAS as rodadas)
+  if (inativos.length > 0) {
+    tableHTML += `
+      <tr class="secao-inativos-header">
+        <td colspan="6" style="background: rgba(107,114,128,0.1); padding: 8px; text-align: center; font-weight: 600; color: #6b7280; border-top: 2px solid #3f3f46;">
+          <span style="display: inline-flex; align-items: center; gap: 6px;">
+            👤 Participantes Inativos (${inativos.length})
+          </span>
+        </td>
+      </tr>
+    `;
+
+    // Ordenar inativos por pontos
+    inativos.sort(
+      (a, b) => parseFloat(b.pontos || 0) - parseFloat(a.pontos || 0),
+    );
+
+    tableHTML += inativos
+      .map((rank) => {
+        const nomeCartoleiro =
+          rank.nome_cartola || rank.nome_cartoleiro || "N/D";
+        const nomeTime = rank.nome_time || "N/D";
+        const pontos =
+          rank.pontos != null ? parseFloat(rank.pontos).toFixed(2) : "-";
+        const rodadaDesist = rank.rodada_desistencia;
+        const infoSaida = rodadaDesist ? `Saiu R${rodadaDesist}` : "Inativo";
+
+        return `
+        <tr style="opacity: 0.5; filter: grayscale(60%);">
+          <td style="text-align:center; padding:2px; font-size:11px; width:45px; color: #6b7280;">—</td>
+          <td style="text-align:center; padding:2px; width:35px;">
+            ${rank.clube_id ? `<img src="/escudos/${rank.clube_id}.png" alt="" style="width:16px; height:16px; border-radius:50%; background:#fff; border:1px solid #eee;" onerror="this.style.display='none'"/>` : "—"}
+          </td>
+          <td style="text-align:left; padding:2px 4px; font-size:11px; color: #6b7280;" title="${nomeCartoleiro}">${nomeCartoleiro}</td>
+          <td style="text-align:left; padding:2px 4px; font-size:11px; color: #6b7280;" title="${nomeTime}">${nomeTime}</td>
+          <td style="text-align:center; padding:2px; font-size:11px; color: #6b7280;">${pontos}</td>
+          <td style="text-align:center; padding:2px; font-size:10px; color: #9ca3af;">${infoSaida}</td>
+        </tr>`;
+      })
+      .join("");
+  }
+
   rankingBody.innerHTML = tableHTML;
 
-  // Exportação removida - usar módulo Relatórios
+  console.log(
+    `[RODADAS-UI] ✅ Rodada ${rodadaSelecionada}: ${ativos.length} ativos, ${inativos.length} inativos (contextuais)`,
+  );
 }
 
-// EXIBIR RANKING PARCIAIS (linhas 516-567 do original)
-export async function exibirRankingParciais(rankings, rodada, ligaId, callbackBotaoExportacao) {
+// ✅ v2.2: EXIBIR RANKING PARCIAIS - INATIVOS CONTEXTUAIS POR RODADA
+export async function exibirRankingParciais(
+  rankings,
+  rodada,
+  ligaId,
+  callbackBotaoExportacao,
+) {
   const rankingBody = getElement("rankingBody");
 
   // Validar se é array
-  if (
-    !rankings ||
-    !Array.isArray(rankings) ||
-    rankings.length === 0
-  ) {
-    console.warn('[RODADAS-UI] Dados parciais inválidos recebidos:', typeof rankings);
+  if (!rankings || !Array.isArray(rankings) || rankings.length === 0) {
+    console.warn(
+      "[RODADAS-UI] Dados parciais inválidos recebidos:",
+      typeof rankings,
+    );
     rankingBody.innerHTML = `<tr><td colspan="6">Nenhum dado parcial encontrado para a rodada ${rodada}.</td></tr>`;
     limparExportContainer();
     return;
   }
 
-  // Ordenar por pontos (maior primeiro)
-  rankings.sort(
-    (a, b) => parseFloat(b.totalPontos) - parseFloat(a.totalPontos),
+  // ✅ v2.2: Separar ativos e inativos CONSIDERANDO A RODADA SELECIONADA
+  // Regra: Se rodada < rodada_desistencia, participante era ATIVO nessa rodada
+  const ativos = rankings.filter((r) => {
+    if (r.ativo === false && r.rodada_desistencia) {
+      // Inativo atualmente, mas era ativo ANTES da rodada de desistência
+      return rodada < r.rodada_desistencia;
+    }
+    return r.ativo !== false;
+  });
+
+  const inativos = rankings.filter((r) => {
+    if (r.ativo === false && r.rodada_desistencia) {
+      // Só mostra como inativo se rodada >= rodada_desistencia
+      return rodada >= r.rodada_desistencia;
+    }
+    // Inativo sem rodada_desistencia definida (fallback)
+    return r.ativo === false && !r.rodada_desistencia;
+  });
+
+  // Ordenar ativos por pontos (maior primeiro)
+  ativos.sort(
+    (a, b) =>
+      parseFloat(b.totalPontos || b.pontos || 0) -
+      parseFloat(a.totalPontos || a.pontos || 0),
   );
 
-  // Não precisa buscar dados novamente - já vieram do calcularPontosParciais
   const bancoValores = getBancoPorLiga(ligaId);
+  const totalAtivos = ativos.length;
 
-  const tableHTML = rankings
+  let tableHTML = ativos
     .map((rank, index) => {
-      const banco = bancoValores[index + 1] !== undefined ? bancoValores[index + 1] : 0.0;
-      const posLabel = getPosLabel(index, rankings.length, ligaId);
+      const banco =
+        bancoValores[index + 1] !== undefined ? bancoValores[index + 1] : 0.0;
+      const posLabel = getPosLabel(index, totalAtivos, ligaId);
       const nomeCartoleiro = rank.nome_cartola || "N/D";
       const nomeTime = rank.nome_time || "N/D";
       const pontos =
         rank.totalPontos != null
           ? parseFloat(rank.totalPontos).toFixed(2)
-          : "-";
+          : rank.pontos != null
+            ? parseFloat(rank.pontos).toFixed(2)
+            : "-";
 
       return `
       <tr>
@@ -277,19 +377,70 @@ export async function exibirRankingParciais(rankings, rodada, ligaId, callbackBo
     })
     .join("");
 
+  // ✅ v2.2: Adicionar seção de inativos (só para rodadas >= rodada_desistencia)
+  if (inativos.length > 0) {
+    tableHTML += `
+      <tr class="secao-inativos-header">
+        <td colspan="6" style="background: rgba(107,114,128,0.1); padding: 8px; text-align: center; font-weight: 600; color: #6b7280; border-top: 2px solid #3f3f46;">
+          <span style="display: inline-flex; align-items: center; gap: 6px;">
+            👤 Participantes Inativos (${inativos.length})
+          </span>
+        </td>
+      </tr>
+    `;
+
+    // Ordenar inativos por pontos
+    inativos.sort(
+      (a, b) =>
+        parseFloat(b.totalPontos || b.pontos || 0) -
+        parseFloat(a.totalPontos || a.pontos || 0),
+    );
+
+    tableHTML += inativos
+      .map((rank) => {
+        const nomeCartoleiro = rank.nome_cartola || "N/D";
+        const nomeTime = rank.nome_time || "N/D";
+        const pontos =
+          rank.totalPontos != null
+            ? parseFloat(rank.totalPontos).toFixed(2)
+            : rank.pontos != null
+              ? parseFloat(rank.pontos).toFixed(2)
+              : "-";
+        const rodadaDesist = rank.rodada_desistencia;
+        const infoSaida = rodadaDesist ? `Saiu R${rodadaDesist}` : "Inativo";
+
+        return `
+        <tr style="opacity: 0.5; filter: grayscale(60%);">
+          <td style="text-align:center; padding:2px; font-size:11px; width:45px; color: #6b7280;">—</td>
+          <td style="text-align:center; padding:2px; width:35px;">
+            ${rank.clube_id ? `<img src="/escudos/${rank.clube_id}.png" alt="" style="width:16px; height:16px; border-radius:50%; background:#fff; border:1px solid #eee;" onerror="this.style.display='none'"/>` : "—"}
+          </td>
+          <td style="text-align:left; padding:2px 4px; font-size:11px; color: #6b7280;" title="${nomeCartoleiro}">${nomeCartoleiro}</td>
+          <td style="text-align:left; padding:2px 4px; font-size:11px; color: #6b7280;" title="${nomeTime}">${nomeTime}</td>
+          <td style="text-align:center; padding:2px; font-size:11px; color: #6b7280;">${pontos}</td>
+          <td style="text-align:center; padding:2px; font-size:10px; color: #9ca3af;">${infoSaida}</td>
+        </tr>`;
+      })
+      .join("");
+  }
+
   rankingBody.innerHTML = tableHTML;
 
   // Criar botão de exportação para parciais
   if (callbackBotaoExportacao) {
-    callbackBotaoExportacao(rankings, rodada, true);
+    callbackBotaoExportacao(ativos, rodada, true);
   }
+
+  console.log(
+    `[RODADAS-UI] ✅ Parciais rodada ${rodada}: ${ativos.length} ativos, ${inativos.length} inativos (contextuais)`,
+  );
 }
 
 // ==============================
 // FUNÇÕES DE ESTADO E LIMPEZA
 // ==============================
 
-// LIMPAR CONTAINER DE EXPORTAÇÃO (linha 600 do original)
+// LIMPAR CONTAINER DE EXPORTAÇÃO
 export function limparExportContainer() {
   const exportContainer = getElement("rodadasExportBtnContainer");
   if (exportContainer) exportContainer.innerHTML = "";
@@ -318,7 +469,7 @@ export function mostrarMensagemRodada(mensagem, tipo = "info") {
 }
 
 // ==============================
-// FUNÇÕES PARA DEBUG (linhas 816-845 do original)
+// FUNÇÕES PARA DEBUG
 // ==============================
 
 export function exibirRodadas(rodadas) {
@@ -363,5 +514,5 @@ export function limparCacheUI() {
 }
 
 console.log(
-  "[RODADAS-UI] Módulo carregado com layout compacto e seleção inteligente",
+  "[RODADAS-UI] ✅ Módulo v2.2 carregado (inativos contextuais por rodada)",
 );

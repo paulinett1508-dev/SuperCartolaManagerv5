@@ -1,10 +1,11 @@
 // =====================================================================
-// PARTICIPANTE-RODADA-PARCIAL.JS - v2.0
+// PARTICIPANTE-RODADA-PARCIAL.JS - v2.2
+// ✅ v2.2: Inativos aparecem em TODAS as rodadas
 // Exibe ranking parcial da rodada em andamento
 // CÁLCULO REAL: Busca atletas pontuados e calcula pontuação (igual admin)
 // =====================================================================
 
-console.log("[PARCIAIS] 📊 Carregando módulo v2.0...");
+console.log("[PARCIAIS] 📊 Carregando módulo v2.2...");
 
 // Estado do módulo
 let estadoParciais = {
@@ -16,7 +17,7 @@ let estadoParciais = {
     timesInativos: [],
     dadosParciais: [],
     dadosInativos: [],
-    atletasPontuados: null, // ✅ Cache dos atletas pontuados
+    atletasPontuados: null,
     isCarregando: false,
     ultimaAtualizacao: null,
 };
@@ -25,7 +26,7 @@ let estadoParciais = {
 // INICIALIZAÇÃO - Chamado pelo participante-rodadas.js
 // =====================================================================
 export async function inicializarParciais(ligaId, timeId) {
-    console.log("[PARCIAIS] 🚀 Inicializando v2.0...", { ligaId, timeId });
+    console.log("[PARCIAIS] 🚀 Inicializando v2.2...", { ligaId, timeId });
 
     estadoParciais.ligaId = ligaId;
     estadoParciais.timeId = timeId;
@@ -219,9 +220,9 @@ export async function carregarParciais() {
             return {
                 rodada,
                 participantes: [],
-                inativos: [],
+                inativos: estadoParciais.dadosInativos,
                 totalTimes: 0,
-                totalInativos: 0,
+                totalInativos: estadoParciais.timesInativos.length,
                 atualizadoEm: new Date(),
             };
         }
@@ -236,11 +237,12 @@ export async function carregarParciais() {
             const promises = batch.map((time) =>
                 buscarECalcularPontuacao(time, rodada, atletasPontuados),
             );
+
             const batchResults = await Promise.all(promises);
-            resultados.push(...batchResults.filter(Boolean));
+            resultados.push(...batchResults.filter((r) => r !== null));
         }
 
-        // Ordenar por pontuação (maior primeiro)
+        // Ordenar por pontos
         resultados.sort((a, b) => (b.pontos || 0) - (a.pontos || 0));
 
         // Adicionar posição
@@ -248,23 +250,15 @@ export async function carregarParciais() {
             r.posicao = idx + 1;
         });
 
-        // ✅ DEBUG: Ver ranking final
-        console.log("[PARCIAIS] 📊 Ranking Final:");
-        resultados.forEach((r) => {
-            console.log(
-                `  ${r.posicao}º ${r.nome_time}: ${r.pontos.toFixed(2)} pts`,
-            );
-        });
-
         estadoParciais.dadosParciais = resultados;
         estadoParciais.ultimaAtualizacao = new Date();
 
-        // Preparar dados de inativos
+        // ✅ v2.2: TODOS os inativos aparecem (sem filtro por rodada)
         estadoParciais.dadosInativos = estadoParciais.timesInativos.map(
             (time) => ({
                 timeId: time.id || time.time_id,
                 nome_time: time.nome_time || time.nome || "N/D",
-                nome_cartola: time.nome_cartola || time.cartoleiro || "N/D",
+                nome_cartola: time.nome_cartola || "N/D",
                 escudo: time.url_escudo_png || time.escudo || null,
                 ativo: false,
                 rodada_desistencia: time.rodada_desistencia || null,
@@ -496,4 +490,6 @@ window.ParciaisModule = {
     rodadaAtual: obterRodadaAtual,
 };
 
-console.log("[PARCIAIS] ✅ Módulo v2.0 carregado (cálculo real como admin)");
+console.log(
+    "[PARCIAIS] ✅ Módulo v2.2 carregado (inativos em todas as rodadas)",
+);

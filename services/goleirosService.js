@@ -1,11 +1,17 @@
-// ✅ CORREÇÃO COMPLETA - services/goleirosService.js
+// ✅ services/goleirosService.js v2.0
 // Fix baseado na estrutura REAL da API do Cartola FC 2025
+// + Suporte a participantes inativos
 
 import Goleiros from "../models/Goleiros.js";
 import fetch from "node-fetch";
+import {
+  buscarStatusParticipantes,
+  obterUltimaRodadaValida,
+  ordenarRankingComInativos,
+} from "../utils/participanteHelper.js";
 
 console.log(
-  "[GOLEIROS-SERVICE] ✅ Serviço carregado com correções da API 2025",
+  "[GOLEIROS-SERVICE] ✅ Serviço carregado com correções da API 2025 + suporte inativos",
 );
 
 // ===== CACHE DE ATLETAS PONTUADOS (para parciais) =====
@@ -830,6 +836,11 @@ export async function obterRankingGoleiros(
       50180257: { nome: "Hivisson", clubeId: 275 }, // Palmeiras
     };
 
+    // ✅ NOVO: Buscar status de participantes (ativos/inativos)
+    const timeIds = Object.keys(participantesMap).map((id) => parseInt(id));
+    const statusMap = await buscarStatusParticipantes(timeIds);
+    console.log(`👥 [GOLEIROS-SERVICE] Status participantes:`, statusMap);
+
     // Gerar ranking
     const ranking = [];
 
@@ -839,11 +850,27 @@ export async function obterRankingGoleiros(
       const nome = participanteInfo.nome;
       const clubeId = participanteInfo.clubeId;
 
-      // Buscar dados do participante
+      // ✅ NOVO: Obter status do participante
+      const statusParticipante = statusMap[String(timeId)] || { ativo: true };
+      const isAtivo = statusParticipante.ativo !== false;
+
+      // ✅ NOVO: Limitar rodadaFim para participantes inativos
+      const rodadaFimParticipante = obterUltimaRodadaValida(
+        statusParticipante,
+        rodadaFim,
+      );
+
+      if (!isAtivo) {
+        console.log(
+          `⏸️ [GOLEIROS-SERVICE] Participante inativo: ${nome} - dados até R${rodadaFimParticipante}`,
+        );
+      }
+
+      // Buscar dados do participante (limitado para inativos)
       const dadosParticipante = await Goleiros.find({
         ligaId,
         participanteId: timeId,
-        rodada: { $gte: rodadaInicio, $lte: rodadaFim },
+        rodada: { $gte: rodadaInicio, $lte: rodadaFimParticipante }, // ✅ Limitado
       }).sort({ rodada: 1 });
 
       // Calcular estatísticas
@@ -879,29 +906,57 @@ export async function obterRankingGoleiros(
               pontos: parseFloat((ultimaRodada.pontos || 0).toFixed(2)),
             }
           : null,
+        // ✅ NOVO: Campos de status
+        ativo: isAtivo,
+        rodada_desistencia: statusParticipante.rodada_desistencia || null,
       });
 
       console.log(
-        `✅ Processado ${nome}: ${pontosTotais.toFixed(2)} pontos em ${rodadasJogadas} rodadas`,
+        `✅ Processado ${nome}: ${pontosTotais.toFixed(2)} pontos em ${rodadasJogadas} rodadas ${!isAtivo ? "(INATIVO)" : ""}`,
       );
     }
 
-    ranking.sort((a, b) => b.pontosTotais - a.pontosTotais);
+    // ✅ NOVO: Ordenar com ativos primeiro, depois inativos
+    const sortFn = (a, b) => b.pontosTotais - a.pontosTotais;
+    const rankingOrdenado = ordenarRankingComInativos(ranking, sortFn);
+
+    // ✅ NOVO: Atribuir posições (null para inativos)
+    let posAtivo = 0;
+    rankingOrdenado.forEach((p) => {
+      if (p.ativo !== false) {
+        posAtivo++;
+        p.posicao = posAtivo;
+      } else {
+        p.posicao = null; // Inativos sem posição
+      }
+    });
+
+    // ✅ NOVO: Contar ativos e inativos
+    const participantesAtivos = rankingOrdenado.filter(
+      (p) => p.ativo !== false,
+    ).length;
+    const participantesInativos = rankingOrdenado.filter(
+      (p) => p.ativo === false,
+    ).length;
 
     const resultado = {
-      ranking,
+      ranking: rankingOrdenado,
       rodadaInicio,
       rodadaFim,
       rodadaParcial: mercadoFechado ? rodadaAtualAPI : null, // ✅ Flag para UI
       mercadoFechado, // ✅ Status do mercado
-      totalParticipantes: ranking.length,
+      totalParticipantes: rankingOrdenado.length,
+      participantesAtivos, // ✅ NOVO
+      participantesInativos, // ✅ NOVO
       dataGeracao: new Date(),
     };
 
     console.log(`✅ [GOLEIROS-SERVICE] RESULTADO FINAL:`, {
-      totalParticipantes: ranking.length,
-      lider: ranking[0]?.participanteNome || "N/D",
-      pontosLider: ranking[0]?.pontosTotais || 0,
+      totalParticipantes: rankingOrdenado.length,
+      participantesAtivos,
+      participantesInativos,
+      lider: rankingOrdenado[0]?.participanteNome || "N/D",
+      pontosLider: rankingOrdenado[0]?.pontosTotais || 0,
       rodadaParcial: resultado.rodadaParcial,
     });
 
@@ -971,11 +1026,24 @@ async function obterDetalhesParticipante(
         : Math.max(1, statusRodada.rodadaAtual - 1);
     }
 
+    // ✅ NOVO: Verificar se participante está ativo
+    const statusMap = await buscarStatusParticipantes([participanteId]);
+    const statusParticipante = statusMap[String(participanteId)] || {
+      ativo: true,
+    };
+    const isAtivo = statusParticipante.ativo !== false;
+
+    // ✅ NOVO: Limitar rodadaFim para participantes inativos
+    const rodadaFimEfetiva = obterUltimaRodadaValida(
+      statusParticipante,
+      rodadaFim,
+    );
+
     // Buscar dados do participante
     const dadosParticipante = await Goleiros.find({
       ligaId: ligaId,
       participanteId: participanteId,
-      rodada: { $gte: rodadaInicio, $lte: rodadaFim },
+      rodada: { $gte: rodadaInicio, $lte: rodadaFimEfetiva }, // ✅ Limitado
       rodadaConcluida: true,
     }).sort({ rodada: 1 });
 
@@ -1014,7 +1082,7 @@ async function obterDetalhesParticipante(
         dadosParticipante[0].participanteNome ||
         `Participante ${participanteId}`,
       rodadaInicio,
-      rodadaFim,
+      rodadaFim: rodadaFimEfetiva,
       totalPontos: Math.floor(totalPontos * 100) / 100,
       totalRodadas,
       rodadas,
@@ -1024,6 +1092,9 @@ async function obterDetalhesParticipante(
           piorRodada === Infinity ? 0 : Math.floor(piorRodada * 100) / 100,
         mediaPontos: Math.floor(mediaPontos * 100) / 100,
       },
+      // ✅ NOVO: Status do participante
+      ativo: isAtivo,
+      rodada_desistencia: statusParticipante.rodada_desistencia || null,
     };
   } catch (error) {
     console.error(
@@ -1034,4 +1105,6 @@ async function obterDetalhesParticipante(
   }
 }
 
-console.log("[GOLEIROS-SERVICE] ✅ Serviço corrigido carregado com sucesso");
+console.log(
+  "[GOLEIROS-SERVICE] ✅ Serviço v2.0 carregado com suporte a inativos",
+);

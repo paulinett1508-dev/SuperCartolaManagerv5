@@ -1,8 +1,8 @@
 // =====================================================================
-// PARTICIPANTE-TOP10.JS - v4.1 (Design PRO - Destaque só 1º lugar)
+// PARTICIPANTE-TOP10.JS - v4.2 (Suporte a participantes inativos)
 // =====================================================================
 
-console.log("[PARTICIPANTE-TOP10] 🏆 Carregando módulo v4.1...");
+console.log("[PARTICIPANTE-TOP10] 🏆 Carregando módulo v4.2...");
 
 // =====================================================================
 // CONFIGURAÇÃO DE VALORES BÔNUS/ÔNUS
@@ -39,7 +39,6 @@ const valoresBonusOnusCartoleirosSobral = {
     },
 };
 
-// Estado do módulo
 let meuTimeIdGlobal = null;
 
 // =====================================================================
@@ -50,15 +49,15 @@ export async function inicializarTop10Participante({
     ligaId,
     timeId,
 }) {
-    console.log("[PARTICIPANTE-TOP10] 🚀 Inicializando...", { ligaId, timeId });
+    console.log("[PARTICIPANTE-TOP10] 🚀 Inicializando v4.2...", {
+        ligaId,
+        timeId,
+    });
 
     meuTimeIdGlobal = timeId;
-
-    // Mostrar loading
     mostrarLoading(true);
 
     try {
-        // Buscar rodada atual
         let rodadaAtual = 1;
         try {
             const resStatus = await fetch("/api/cartola/mercado/status");
@@ -72,18 +71,15 @@ export async function inicializarTop10Participante({
             );
         }
 
-        // Buscar cache do TOP10
         const cacheUrl = `/api/top10/cache/${ligaId}?rodada=${rodadaAtual}`;
         console.log("[PARTICIPANTE-TOP10] 📡 Buscando cache:", cacheUrl);
 
         const response = await fetch(cacheUrl);
-
         let mitos = [];
         let micos = [];
 
         if (response.ok) {
             const data = await response.json();
-
             if (data.cached && data.mitos && data.micos) {
                 mitos = data.mitos;
                 micos = data.micos;
@@ -93,7 +89,6 @@ export async function inicializarTop10Participante({
             }
         }
 
-        // Se não tem cache, tentar buscar dados brutos e calcular
         if (mitos.length === 0 || micos.length === 0) {
             console.log("[PARTICIPANTE-TOP10] 📊 Calculando MITOS/MICOS...");
             const resultado = await calcularMitosMicos(ligaId, rodadaAtual);
@@ -101,7 +96,6 @@ export async function inicializarTop10Participante({
             micos = resultado.micos;
         }
 
-        // Esconder loading
         mostrarLoading(false);
 
         if (mitos.length === 0 && micos.length === 0) {
@@ -109,13 +103,11 @@ export async function inicializarTop10Participante({
             return;
         }
 
-        // Determinar valores de bônus/ônus
         const isLigaCartoleirosSobral = ligaId === "684d821cf1a7ae16d1f89572";
         const valoresBonusOnus = isLigaCartoleirosSobral
             ? valoresBonusOnusCartoleirosSobral
             : valoresBonusOnusPadrao;
 
-        // Renderizar tabelas
         renderizarTabelasTop10(mitos, micos, timeId, valoresBonusOnus);
 
         console.log("[PARTICIPANTE-TOP10] ✅ TOP 10 carregado com sucesso");
@@ -126,7 +118,6 @@ export async function inicializarTop10Participante({
     }
 }
 
-// Expor no window para compatibilidade
 window.inicializarTop10Participante = inicializarTop10Participante;
 
 // =====================================================================
@@ -141,7 +132,6 @@ async function calcularMitosMicos(ligaId, rodadaAtual) {
         if (!response.ok) return { mitos: [], micos: [] };
 
         const dados = await response.json();
-
         const rodadas = Object.keys(dados)
             .map(Number)
             .filter((n) => !isNaN(n) && n <= rodadaAtual);
@@ -150,53 +140,37 @@ async function calcularMitosMicos(ligaId, rodadaAtual) {
             const timesRodada = dados[numRodada];
             if (!timesRodada || timesRodada.length === 0) continue;
 
-            const ordenados = [...timesRodada].sort(
+            // ✅ v4.2: Filtrar apenas ativos para ranking
+            const timesAtivos = timesRodada.filter((t) => t.ativo !== false);
+            const ordenados = [...timesAtivos].sort(
                 (a, b) => (b.pontos || 0) - (a.pontos || 0),
             );
 
-            // Debug: ver estrutura do primeiro registro
-            if (numRodada === rodadas[0] && ordenados.length > 0) {
-                console.log(
-                    "[PARTICIPANTE-TOP10] 🔍 Estrutura do registro:",
-                    Object.keys(ordenados[0]),
-                );
-                console.log(
-                    "[PARTICIPANTE-TOP10] 🔍 Primeiro registro:",
-                    ordenados[0],
-                );
-            }
-
-            // MITO = 1º lugar
             if (ordenados.length > 0) {
                 const mito = ordenados[0];
-                const clubeId = mito.clube_id || null;
-                const escudo = mito.escudo_time_do_coracao || mito.escudo || "";
-
                 mitos.push({
                     rodada: numRodada,
                     timeId: mito.timeId || mito.time_id,
                     nome_cartola: mito.nome_cartola || "N/D",
                     nome_time: mito.nome_time || "N/D",
                     pontos: parseFloat(mito.pontos) || 0,
-                    escudo: escudo,
-                    clube_id: clubeId,
+                    escudo: mito.escudo_time_do_coracao || mito.escudo || "",
+                    clube_id: mito.clube_id || null,
+                    ativo: mito.ativo !== false,
                 });
             }
 
-            // MICO = último lugar
             if (ordenados.length > 1) {
                 const mico = ordenados[ordenados.length - 1];
-                const clubeId = mico.clube_id || null;
-                const escudo = mico.escudo_time_do_coracao || mico.escudo || "";
-
                 micos.push({
                     rodada: numRodada,
                     timeId: mico.timeId || mico.time_id,
                     nome_cartola: mico.nome_cartola || "N/D",
                     nome_time: mico.nome_time || "N/D",
                     pontos: parseFloat(mico.pontos) || 0,
-                    escudo: escudo,
-                    clube_id: clubeId,
+                    escudo: mico.escudo_time_do_coracao || mico.escudo || "",
+                    clube_id: mico.clube_id || null,
+                    ativo: mico.ativo !== false,
                 });
             }
         }
@@ -219,6 +193,12 @@ function renderizarTabelasTop10(mitos, micos, meuTimeId, valoresBonusOnus) {
 
     const meuTimeIdNum = Number(meuTimeId);
 
+    // ✅ v4.2: Separar ativos de inativos em cada lista
+    const mitosAtivos = mitos.filter((m) => m.ativo !== false);
+    const mitosInativos = mitos.filter((m) => m.ativo === false);
+    const micosAtivos = micos.filter((m) => m.ativo !== false);
+    const micosInativos = micos.filter((m) => m.ativo === false);
+
     const html = `
         <!-- TABELA MITOS -->
         <div class="top10-tabela-wrapper">
@@ -226,7 +206,17 @@ function renderizarTabelasTop10(mitos, micos, meuTimeId, valoresBonusOnus) {
                 <span class="top10-tabela-icone">🎩</span>
                 <span>TOP 10 MITOS</span>
             </div>
-            ${gerarTabelaHTML(mitos, "mitos", meuTimeIdNum, valoresBonusOnus)}
+            ${gerarTabelaHTML(mitosAtivos, "mitos", meuTimeIdNum, valoresBonusOnus, false)}
+            ${
+                mitosInativos.length > 0
+                    ? `
+                <div class="top10-divisor-inativos">
+                    <span>👤 Participantes Inativos (${mitosInativos.length})</span>
+                </div>
+                ${gerarTabelaHTML(mitosInativos, "mitos", meuTimeIdNum, valoresBonusOnus, true)}
+            `
+                    : ""
+            }
         </div>
 
         <!-- TABELA MICOS -->
@@ -235,16 +225,53 @@ function renderizarTabelasTop10(mitos, micos, meuTimeId, valoresBonusOnus) {
                 <span class="top10-tabela-icone">😢</span>
                 <span>TOP 10 MICOS</span>
             </div>
-            ${gerarTabelaHTML(micos, "micos", meuTimeIdNum, valoresBonusOnus)}
+            ${gerarTabelaHTML(micosAtivos, "micos", meuTimeIdNum, valoresBonusOnus, false)}
+            ${
+                micosInativos.length > 0
+                    ? `
+                <div class="top10-divisor-inativos">
+                    <span>👤 Participantes Inativos (${micosInativos.length})</span>
+                </div>
+                ${gerarTabelaHTML(micosInativos, "micos", meuTimeIdNum, valoresBonusOnus, true)}
+            `
+                    : ""
+            }
         </div>
+
+        <style>
+            .top10-divisor-inativos {
+                background: rgba(63, 63, 70, 0.5);
+                border-top: 1px solid #3f3f46;
+                border-bottom: 1px solid #3f3f46;
+                padding: 8px 12px;
+                font-size: 10px;
+                color: #6b7280;
+                font-weight: 500;
+            }
+            .linha-inativa {
+                opacity: 0.5;
+                filter: grayscale(60%);
+            }
+            .linha-inativa .nome-texto { color: #6b7280 !important; }
+            .linha-inativa .pontos-valor { color: #6b7280 !important; }
+            .linha-inativa .valor-bonus, .linha-inativa .valor-onus { color: #6b7280 !important; }
+        </style>
     `;
 
     container.innerHTML = html;
 }
 
-function gerarTabelaHTML(dados, tipo, meuTimeIdNum, valoresBonusOnus) {
+function gerarTabelaHTML(
+    dados,
+    tipo,
+    meuTimeIdNum,
+    valoresBonusOnus,
+    isInativo = false,
+) {
     if (!dados || dados.length === 0) {
-        return `
+        return isInativo
+            ? ""
+            : `
             <div style="text-align: center; padding: 40px; color: #6b7280;">
                 <p>Nenhum dado disponível para ${tipo === "mitos" ? "MITOS" : "MICOS"}</p>
             </div>
@@ -257,6 +284,9 @@ function gerarTabelaHTML(dados, tipo, meuTimeIdNum, valoresBonusOnus) {
 
     return `
         <table class="tabela-top10-pro">
+            ${
+                !isInativo
+                    ? `
             <thead>
                 <tr>
                     <th style="width: 45px;">Pos</th>
@@ -268,46 +298,53 @@ function gerarTabelaHTML(dados, tipo, meuTimeIdNum, valoresBonusOnus) {
                     <th style="width: 40px;">Time</th>
                 </tr>
             </thead>
+            `
+                    : ""
+            }
             <tbody>
                 ${dados
                     .map((item, index) => {
-                        const posicao = index + 1;
+                        const posicao = isInativo ? null : index + 1;
                         const timeIdNum = Number(item.timeId || item.time_id);
                         const isMeuTime = timeIdNum === meuTimeIdNum;
-                        const valorBonus = valoresBonus[posicao] ?? 0;
+                        const valorBonus = isInativo
+                            ? 0
+                            : (valoresBonus[posicao] ?? 0);
 
-                        // Classes da linha
-                        let rowClass = isMeuTime ? "meu-time" : "";
+                        let rowClass =
+                            isMeuTime && !isInativo ? "meu-time" : "";
+                        if (isInativo) rowClass += " linha-inativa";
 
-                        // ✅ AJUSTE: Badge da posição - DESTAQUE APENAS 1º LUGAR
+                        // Badge da posição
                         let posicaoBadge = "";
-                        if (posicao === 1 && isMitos) {
-                            // 1º MITO - destaque especial
+                        if (isInativo) {
+                            posicaoBadge = `<span class="posicao-badge-top10 default" style="color: #6b7280;">—</span>`;
+                        } else if (posicao === 1 && isMitos) {
                             posicaoBadge = `<span class="posicao-badge-top10 gold">👑</span>`;
                         } else if (posicao === 1 && !isMitos) {
-                            // 1º MICO - destaque especial
                             posicaoBadge = `<span class="posicao-badge-top10 skull">💀</span>`;
                         } else {
-                            // ✅ Demais posições (2º ao 10º) - sem destaque especial
                             posicaoBadge = `<span class="posicao-badge-top10 default">${posicao}º</span>`;
                         }
 
-                        // Valor formatado - SEM R$ para ganhar espaço, com cores
-                        const valorClass = isMitos
-                            ? "valor-bonus text-green-400"
-                            : "valor-onus text-red-400";
+                        // Valor formatado
+                        const valorClass = isInativo
+                            ? "text-gray-600"
+                            : isMitos
+                              ? "valor-bonus text-green-400"
+                              : "valor-onus text-red-400";
                         const valorAbs = Math.abs(valorBonus).toFixed(2);
-                        const valorFormatado = isMitos
-                            ? `+${valorAbs}`
-                            : `-${valorAbs}`;
+                        const valorFormatado = isInativo
+                            ? "—"
+                            : isMitos
+                              ? `+${valorAbs}`
+                              : `-${valorAbs}`;
 
-                        // Escudo: priorizar URL externa, depois clube_id local
+                        // Escudo
                         let escudoHTML = `<span class="escudo-placeholder">🛡️</span>`;
                         if (item.escudo && item.escudo.startsWith("http")) {
-                            // URL externa (do Cartola)
                             escudoHTML = `<img src="${item.escudo}" alt="" class="escudo-top10" onerror="this.parentElement.innerHTML='🛡️'"/>`;
                         } else if (item.clube_id) {
-                            // ID do clube local
                             escudoHTML = `<img src="/escudos/${item.clube_id}.png" alt="" class="escudo-top10" onerror="this.parentElement.innerHTML='🛡️'"/>`;
                         }
 
@@ -354,35 +391,13 @@ window.abrirModalTop10 = function (nomeTime, rodada, pontos) {
 
 window.fecharModalTop10 = function () {
     const modal = document.getElementById("modalJogadores");
-    if (modal) {
-        modal.style.display = "none";
-    }
+    if (modal) modal.style.display = "none";
 };
 
-// Fechar modal ao clicar fora
 document.addEventListener("click", (e) => {
     const modal = document.getElementById("modalJogadores");
-    if (modal && e.target === modal) {
-        modal.style.display = "none";
-    }
+    if (modal && e.target === modal) modal.style.display = "none";
 });
-
-// =====================================================================
-// TOAST
-// =====================================================================
-function mostrarToast(msg) {
-    const toast = document.getElementById("toastTop10");
-    const msgEl = document.getElementById("toastTop10Msg");
-
-    if (toast && msgEl) {
-        msgEl.textContent = msg;
-        toast.classList.add("show");
-
-        setTimeout(() => {
-            toast.classList.remove("show");
-        }, 3000);
-    }
-}
 
 // =====================================================================
 // ESTADOS
@@ -403,4 +418,6 @@ function mostrarEstadoVazio(show) {
     if (grid) grid.style.display = show ? "none" : "flex";
 }
 
-console.log("[PARTICIPANTE-TOP10] ✅ Módulo v4.1 carregado");
+console.log(
+    "[PARTICIPANTE-TOP10] ✅ Módulo v4.2 carregado (suporte a inativos)",
+);

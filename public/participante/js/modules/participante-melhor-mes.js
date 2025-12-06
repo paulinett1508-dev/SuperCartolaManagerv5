@@ -1,13 +1,12 @@
 // =====================================================================
-// PARTICIPANTE-MELHOR-MES.JS - v3.2 (Design PRO + Cards Layout)
+// PARTICIPANTE-MELHOR-MES.JS - v3.3 (Suporte a participantes inativos)
 // =====================================================================
 
-console.log("[MELHOR-MES-PARTICIPANTE] 🏆 Módulo v3.2 carregando...");
+console.log("[MELHOR-MES-PARTICIPANTE] 🏆 Módulo v3.3 carregando...");
 
 let ligaIdAtual = null;
 let timeIdAtual = null;
 
-// Ícones por número de edição
 const edicoesIcons = {
     1: "1️⃣",
     2: "2️⃣",
@@ -29,7 +28,7 @@ export async function inicializarMelhorMesParticipante({
     ligaId,
     timeId,
 }) {
-    console.log("[MELHOR-MES-PARTICIPANTE] 🚀 Inicializando...", {
+    console.log("[MELHOR-MES-PARTICIPANTE] 🚀 Inicializando v3.3...", {
         ligaId,
         timeId,
     });
@@ -45,7 +44,6 @@ export async function inicializarMelhorMesParticipante({
     await carregarMelhorMes(ligaId, timeId);
 }
 
-// Expor no window para compatibilidade
 window.inicializarMelhorMesParticipante = inicializarMelhorMesParticipante;
 
 // =====================================================================
@@ -85,21 +83,21 @@ async function carregarMelhorMes(ligaId, timeId) {
 function renderizarMelhorMes(edicoes, meuTimeId) {
     const meuTimeIdNum = Number(meuTimeId);
 
-    // Atualizar contador de edições
     const countEl = document.getElementById("mmEdicoesCount");
     if (countEl) {
         countEl.textContent = `${edicoes.length} ${edicoes.length === 1 ? "edição" : "edições"}`;
     }
 
-    // Encontrar minhas conquistas
+    // ✅ v3.3: Filtrar apenas campeões ativos
     const minhasConquistas = edicoes.filter(
-        (e) => e.campeao && Number(e.campeao.timeId) === meuTimeIdNum,
+        (e) =>
+            e.campeao &&
+            Number(e.campeao.timeId) === meuTimeIdNum &&
+            e.campeao.ativo !== false,
     );
 
-    // Mostrar minhas conquistas se houver
     renderizarConquistas(minhasConquistas);
 
-    // Renderizar edições
     const container = document.getElementById("mesesGrid");
     if (!container) return;
 
@@ -107,7 +105,6 @@ function renderizarMelhorMes(edicoes, meuTimeId) {
         .map((edicao) => renderizarEdicaoCard(edicao, meuTimeIdNum))
         .join("");
 
-    // Adicionar eventos de expansão para ver ranking
     container.querySelectorAll(".mm-card-expand-btn").forEach((btn) => {
         btn.addEventListener("click", function (e) {
             e.stopPropagation();
@@ -115,7 +112,6 @@ function renderizarMelhorMes(edicoes, meuTimeId) {
             const ranking = card.querySelector(".mm-ranking-expandido");
             const icon = this.querySelector(".expand-arrow");
 
-            // Toggle
             if (ranking.style.display === "none" || !ranking.style.display) {
                 ranking.style.display = "block";
                 icon.style.transform = "rotate(180deg)";
@@ -146,20 +142,22 @@ function renderizarConquistas(conquistas) {
 
     container.style.display = "block";
     texto.textContent = `Você foi campeão ${conquistas.length}x!`;
-
     meses.innerHTML = conquistas
         .map((e) => `<span class="mes-chip-pro">${e.nome}</span>`)
         .join("");
 }
 
 // =====================================================================
-// ✅ RENDERIZAR EDIÇÃO EM CARD (NOVO LAYOUT)
+// RENDERIZAR EDIÇÃO EM CARD
 // =====================================================================
 function renderizarEdicaoCard(edicao, meuTimeIdNum) {
     const campeao = edicao.campeao;
-    const souCampeao = campeao && Number(campeao.timeId) === meuTimeIdNum;
+    // ✅ v3.3: Só considerar "sou campeão" se estiver ativo
+    const souCampeao =
+        campeao &&
+        Number(campeao.timeId) === meuTimeIdNum &&
+        campeao.ativo !== false;
 
-    // Status - aceita tanto "consolidado" quanto "concluido"
     let statusClass = "aguardando";
     let statusIcon = "📅";
     let statusText = "AGUARDANDO";
@@ -177,23 +175,21 @@ function renderizarEdicaoCard(edicao, meuTimeIdNum) {
         statusBgClass = "bg-blue-500/20 text-blue-400";
     }
 
-    // Ícone da edição
     const edicaoIcon = edicoesIcons[edicao.id] || `📅`;
-
-    // Pontos formatados
     const pontosFormatados = campeao
         ? campeao.pontos_total.toLocaleString("pt-BR", {
               minimumFractionDigits: 2,
               maximumFractionDigits: 2,
           })
         : "0,00";
-
-    // Rodadas info
     const rodadasInfo =
         edicao.inicio && edicao.fim ? `R${edicao.inicio} - R${edicao.fim}` : "";
 
-    // Top 3 do ranking
-    const top3 = edicao.ranking ? edicao.ranking.slice(0, 3) : [];
+    // ✅ v3.3: Top 3 apenas ativos
+    const rankingAtivos = edicao.ranking
+        ? edicao.ranking.filter((t) => t.ativo !== false)
+        : [];
+    const top3 = rankingAtivos.slice(0, 3);
 
     return `
         <div class="mm-edicao-card ${souCampeao ? "meu-titulo" : ""}">
@@ -213,7 +209,7 @@ function renderizarEdicaoCard(edicao, meuTimeIdNum) {
             ${
                 campeao
                     ? `
-                <div class="mm-card-campeao ${souCampeao ? "meu" : ""}">
+                <div class="mm-card-campeao ${souCampeao ? "meu" : ""} ${campeao.ativo === false ? "inativo" : ""}">
                     <div class="mm-campeao-badge">
                         <span class="mm-campeao-icon">${souCampeao ? "🎖️" : "🏆"}</span>
                         <span class="mm-campeao-label">${souCampeao ? "VOCÊ É O CAMPEÃO!" : "CAMPEÃO"}</span>
@@ -239,7 +235,9 @@ function renderizarEdicaoCard(edicao, meuTimeIdNum) {
                 <div class="mm-card-podio">
                     ${top3
                         .map((time, idx) => {
-                            const isMeu = Number(time.timeId) === meuTimeIdNum;
+                            const isMeu =
+                                Number(time.timeId) === meuTimeIdNum &&
+                                time.ativo !== false;
                             const medalha =
                                 idx === 0 ? "🥇" : idx === 1 ? "🥈" : "🥉";
                             const pts = time.pontos_total.toLocaleString(
@@ -280,47 +278,88 @@ function renderizarEdicaoCard(edicao, meuTimeIdNum) {
                     : ""
             }
         </div>
+
+        <style>
+            .mm-card-campeao.inativo {
+                opacity: 0.5;
+                filter: grayscale(60%);
+            }
+            .mm-ranking-card-item.inativo {
+                opacity: 0.5;
+                filter: grayscale(60%);
+            }
+            .mm-ranking-card-item.inativo .mm-rank-pos { color: #6b7280; }
+            .mm-ranking-card-item.inativo .mm-rank-nome { color: #6b7280; }
+            .mm-ranking-card-item.inativo .mm-rank-pts { color: #6b7280; }
+            .mm-ranking-divisor-inativos {
+                background: rgba(63, 63, 70, 0.5);
+                border-top: 1px solid #3f3f46;
+                padding: 8px 12px;
+                font-size: 10px;
+                color: #6b7280;
+                font-weight: 500;
+                margin-top: 8px;
+            }
+        </style>
     `;
 }
 
 // =====================================================================
-// ✅ RENDERIZAR RANKING EM CARDS (NOVO LAYOUT)
+// RENDERIZAR RANKING EM CARDS
 // =====================================================================
 function renderizarRankingCards(ranking, meuTimeIdNum) {
     if (!ranking || ranking.length === 0) {
-        return `
-            <div class="mm-ranking-vazio">
-                Sem dados disponíveis
-            </div>
-        `;
+        return `<div class="mm-ranking-vazio">Sem dados disponíveis</div>`;
     }
 
-    // Mostrar do 4º ao 10º (top 3 já está no pódio)
-    const restante = ranking.slice(3, 10);
+    // ✅ v3.3: Separar ativos de inativos
+    const ativos = ranking.filter((t) => t.ativo !== false);
+    const inativos = ranking.filter((t) => t.ativo === false);
 
-    // Verificar se meu time está no ranking e qual posição
+    // Mostrar do 4º ao 10º (top 3 já está no pódio)
+    const restanteAtivos = ativos.slice(3, 10);
+
     let minhaPosicao = null;
     let meusDados = null;
-    for (let i = 0; i < ranking.length; i++) {
-        if (Number(ranking[i].timeId) === meuTimeIdNum) {
-            minhaPosicao = i + 1; // posição 1-based
-            meusDados = ranking[i];
+    for (let i = 0; i < ativos.length; i++) {
+        if (Number(ativos[i].timeId) === meuTimeIdNum) {
+            minhaPosicao = i + 1;
+            meusDados = ativos[i];
             break;
         }
     }
 
-    if (restante.length === 0) {
-        return `<div class="mm-ranking-vazio">Apenas ${ranking.length} participantes</div>`;
+    let html = "";
+
+    // Renderizar ativos (4º ao 10º)
+    if (restanteAtivos.length > 0) {
+        html += `<div class="mm-ranking-cards">`;
+        html += restanteAtivos
+            .map((time) => {
+                const isMeuTime = Number(time.timeId) === meuTimeIdNum;
+                const pts = time.pontos_total.toLocaleString("pt-BR", {
+                    minimumFractionDigits: 1,
+                    maximumFractionDigits: 1,
+                });
+                return `
+                <div class="mm-ranking-card-item ${isMeuTime ? "meu" : ""}">
+                    <span class="mm-rank-pos">${time.posicao}º</span>
+                    <span class="mm-rank-nome">${time.nome_time}</span>
+                    <span class="mm-rank-pts">${pts}</span>
+                </div>
+            `;
+            })
+            .join("");
+        html += `</div>`;
     }
 
     // Card especial se usuário está fora do top 10
-    let cardMinhaPos = "";
     if (minhaPosicao && minhaPosicao > 10 && meusDados) {
         const pts = meusDados.pontos_total.toLocaleString("pt-BR", {
             minimumFractionDigits: 1,
             maximumFractionDigits: 1,
         });
-        cardMinhaPos = `
+        html += `
             <div class="mm-ranking-minha-pos">
                 <span class="mm-minha-pos-label">📍 Sua posição:</span>
                 <div class="mm-ranking-card-item meu destacado">
@@ -332,34 +371,41 @@ function renderizarRankingCards(ranking, meuTimeIdNum) {
         `;
     }
 
-    return `
-        <div class="mm-ranking-cards">
-            ${restante
-                .map((time) => {
-                    const isMeuTime = Number(time.timeId) === meuTimeIdNum;
-                    const pts = time.pontos_total.toLocaleString("pt-BR", {
-                        minimumFractionDigits: 1,
-                        maximumFractionDigits: 1,
-                    });
-                    return `
-                    <div class="mm-ranking-card-item ${isMeuTime ? "meu" : ""}">
-                        <span class="mm-rank-pos">${time.posicao}º</span>
-                        <span class="mm-rank-nome">${time.nome_time}</span>
-                        <span class="mm-rank-pts">${pts}</span>
-                    </div>
-                `;
-                })
-                .join("")}
-        </div>
-        ${cardMinhaPos}
-        ${
-            ranking.length > 10
-                ? `
-            <div class="mm-ranking-mais">+${ranking.length - 10} participantes</div>
-        `
-                : ""
-        }
-    `;
+    // ✅ v3.3: Seção de inativos
+    if (inativos.length > 0) {
+        html += `
+            <div class="mm-ranking-divisor-inativos">
+                👤 Participantes Inativos (${inativos.length})
+            </div>
+            <div class="mm-ranking-cards">
+        `;
+        html += inativos
+            .slice(0, 5)
+            .map((time) => {
+                const pts = time.pontos_total.toLocaleString("pt-BR", {
+                    minimumFractionDigits: 1,
+                    maximumFractionDigits: 1,
+                });
+                return `
+                <div class="mm-ranking-card-item inativo">
+                    <span class="mm-rank-pos">—</span>
+                    <span class="mm-rank-nome">${time.nome_time}</span>
+                    <span class="mm-rank-pts">${pts}</span>
+                </div>
+            `;
+            })
+            .join("");
+        html += `</div>`;
+    }
+
+    if (ativos.length > 10) {
+        html += `<div class="mm-ranking-mais">+${ativos.length - 10} participantes ativos</div>`;
+    }
+
+    return (
+        html ||
+        `<div class="mm-ranking-vazio">Apenas ${ranking.length} participantes</div>`
+    );
 }
 
 // =====================================================================
@@ -408,18 +454,6 @@ function mostrarErro(mensagem) {
     }
 }
 
-function mostrarToast(msg) {
-    const toast = document.getElementById("toastMM");
-    const msgEl = document.getElementById("toastMMMsg");
-
-    if (toast && msgEl) {
-        msgEl.textContent = msg;
-        toast.classList.add("show");
-
-        setTimeout(() => {
-            toast.classList.remove("show");
-        }, 3000);
-    }
-}
-
-console.log("[MELHOR-MES-PARTICIPANTE] ✅ Módulo v3.2 carregado");
+console.log(
+    "[MELHOR-MES-PARTICIPANTE] ✅ Módulo v3.3 carregado (suporte a inativos)",
+);

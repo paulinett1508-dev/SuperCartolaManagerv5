@@ -1,8 +1,13 @@
+// =====================================================================
+// extratoFinanceiroCacheController.js v3.3 - Suporte a Inativos
+// ✅ v3.3: Trava extrato financeiro para inativos na rodada_desistencia
+// =====================================================================
+
 import ExtratoFinanceiroCache from "../models/ExtratoFinanceiroCache.js";
 import FluxoFinanceiroCampos from "../models/FluxoFinanceiroCampos.js";
+import Liga from "../models/Liga.js";
 import mongoose from "mongoose";
 
-// Helper para converter ligaId para ObjectId se necessário
 function toLigaId(ligaId) {
     if (mongoose.Types.ObjectId.isValid(ligaId)) {
         return new mongoose.Types.ObjectId(ligaId);
@@ -10,12 +15,53 @@ function toLigaId(ligaId) {
     return ligaId;
 }
 
-// ===== FUNÇÃO AUXILIAR: Calcular resumo a partir das rodadas =====
+// ✅ v3.3: BUSCAR STATUS DO TIME (ativo/rodada_desistencia)
+async function buscarStatusTime(ligaId, timeId) {
+    try {
+        const liga = await Liga.findById(toLigaId(ligaId)).lean();
+        if (!liga || !liga.times) {
+            return { ativo: true, rodada_desistencia: null };
+        }
+
+        const time = liga.times.find(
+            (t) => String(t.id || t.time_id) === String(timeId),
+        );
+
+        if (!time) {
+            return { ativo: true, rodada_desistencia: null };
+        }
+
+        return {
+            ativo: time.ativo !== false,
+            rodada_desistencia: time.rodada_desistencia || null,
+        };
+    } catch (error) {
+        console.error(
+            "[CACHE-CONTROLLER] Erro ao buscar status do time:",
+            error,
+        );
+        return { ativo: true, rodada_desistencia: null };
+    }
+}
+
+// ✅ v3.3: FILTRAR RODADAS PARA INATIVOS
+function filtrarRodadasParaInativo(rodadas, rodadaDesistencia) {
+    if (!rodadaDesistencia || !Array.isArray(rodadas)) {
+        return rodadas;
+    }
+
+    const rodadaLimite = rodadaDesistencia - 1;
+    const rodadasFiltradas = rodadas.filter((r) => r.rodada <= rodadaLimite);
+
+    console.log(
+        `[CACHE-CONTROLLER] 🔒 Inativo: filtrando até R${rodadaLimite} | ${rodadas.length} → ${rodadasFiltradas.length}`,
+    );
+
+    return rodadasFiltradas;
+}
+
 function calcularResumoDeRodadas(rodadas, camposManuais = null) {
     if (!Array.isArray(rodadas) || rodadas.length === 0) {
-        console.warn(
-            "[CACHE-CONTROLLER] ⚠️ calcularResumoDeRodadas: array vazio",
-        );
         return {
             saldo: 0,
             totalGanhos: 0,
@@ -29,19 +75,13 @@ function calcularResumoDeRodadas(rodadas, camposManuais = null) {
         };
     }
 
-    console.log(
-        "[CACHE-CONTROLLER] 📊 Calculando resumo de",
-        rodadas.length,
-        "rodadas",
-    );
-
-    let totalBonus = 0;
-    let totalOnus = 0;
-    let totalPontosCorridos = 0;
-    let totalMataMata = 0;
-    let totalTop10 = 0;
-    let totalGanhos = 0;
-    let totalPerdas = 0;
+    let totalBonus = 0,
+        totalOnus = 0,
+        totalPontosCorridos = 0,
+        totalMataMata = 0,
+        totalTop10 = 0,
+        totalGanhos = 0,
+        totalPerdas = 0;
 
     rodadas.forEach((r) => {
         const bonusOnus = parseFloat(r.bonusOnus) || 0;
@@ -62,7 +102,6 @@ function calcularResumoDeRodadas(rodadas, camposManuais = null) {
         else totalPerdas += saldoRodada;
     });
 
-    // ✅ Somar campos manuais
     let totalCamposManuais = 0;
     if (camposManuais && Array.isArray(camposManuais)) {
         camposManuais.forEach((campo) => {
@@ -81,7 +120,7 @@ function calcularResumoDeRodadas(rodadas, camposManuais = null) {
         totalTop10 +
         totalCamposManuais;
 
-    const resultado = {
+    return {
         saldo,
         saldo_final: saldo,
         totalGanhos,
@@ -93,29 +132,17 @@ function calcularResumoDeRodadas(rodadas, camposManuais = null) {
         top10: totalTop10,
         camposManuais: totalCamposManuais,
     };
-
-    console.log("[CACHE-CONTROLLER] ✅ Resumo calculado:", resultado);
-
-    return resultado;
 }
 
-// ===== FUNÇÃO: Transformar transações em rodadas consolidadas =====
 function transformarTransacoesEmRodadas(transacoes, ligaId) {
-    if (!Array.isArray(transacoes) || transacoes.length === 0) {
-        return [];
-    }
+    if (!Array.isArray(transacoes) || transacoes.length === 0) return [];
 
     const primeiroItem = transacoes[0];
     const jaEstaConsolidado =
         primeiroItem.bonusOnus !== undefined ||
-        primeiroItem.pontosCorridos !== undefined ||
-        primeiroItem.mataMata !== undefined ||
-        primeiroItem.top10 !== undefined;
+        primeiroItem.pontosCorridos !== undefined;
 
     if (jaEstaConsolidado) {
-        console.log(
-            "[CACHE-CONTROLLER] ✅ Dados já estão no formato de rodadas consolidadas",
-        );
         return transacoes.map((rodada, idx) => ({
             ...rodada,
             saldoAcumulado: transacoes
@@ -124,11 +151,7 @@ function transformarTransacoesEmRodadas(transacoes, ligaId) {
         }));
     }
 
-    console.log(
-        "[CACHE-CONTROLLER] 🔄 Convertendo formato antigo para rodadas consolidadas",
-    );
     const rodadasMap = {};
-
     transacoes.forEach((t) => {
         const numRodada = t.rodada;
         if (!numRodada) return;
@@ -144,8 +167,6 @@ function transformarTransacoesEmRodadas(transacoes, ligaId) {
                 saldo: 0,
                 isMito: false,
                 isMico: false,
-                top10Status: null,
-                top10Posicao: null,
             };
         }
 
@@ -162,37 +183,20 @@ function transformarTransacoesEmRodadas(transacoes, ligaId) {
             case "MITO":
                 r.top10 += valor;
                 r.isMito = true;
-                r.top10Status = "MITO";
-                r.posicao = 1;
-                const matchMito = t.descricao?.match(/(\d+)º/);
-                if (matchMito) r.top10Posicao = parseInt(matchMito[1]);
                 break;
             case "MICO":
                 r.top10 += valor;
                 r.isMico = true;
-                r.top10Status = "MICO";
-                const matchMico = t.descricao?.match(/(\d+)º/);
-                if (matchMico) {
-                    r.posicao = parseInt(matchMico[1]);
-                    r.top10Posicao = parseInt(matchMico[1]);
-                }
-                break;
-            case "BONUS":
-            case "ONUS":
-            case "BONUS_ONUS":
-                r.bonusOnus += valor;
                 break;
             default:
                 r.bonusOnus += valor;
         }
-
         r.saldo += valor;
     });
 
     const rodadasArray = Object.values(rodadasMap).sort(
         (a, b) => a.rodada - b.rodada,
     );
-
     let saldoAcumulado = 0;
     rodadasArray.forEach((r) => {
         saldoAcumulado += r.saldo;
@@ -202,30 +206,26 @@ function transformarTransacoesEmRodadas(transacoes, ligaId) {
     return rodadasArray;
 }
 
-// ===== BUSCAR CAMPOS MANUAIS =====
 async function buscarCamposManuais(ligaId, timeId) {
     try {
         const doc = await FluxoFinanceiroCampos.findOne({
             ligaId: String(ligaId),
             timeId: String(timeId),
         }).lean();
-
         if (!doc || !doc.campos) return [];
-
         return doc.campos.filter((c) => c.valor !== 0);
     } catch (error) {
-        console.error(
-            "[CACHE-CONTROLLER] Erro ao buscar campos manuais:",
-            error,
-        );
         return [];
     }
 }
 
-// ===== BUSCAR EXTRATO EM CACHE (GET) =====
+// ✅ v3.3: GET EXTRATO CACHE COM SUPORTE A INATIVOS
 export const getExtratoCache = async (req, res) => {
     try {
         const { ligaId, timeId } = req.params;
+        const statusTime = await buscarStatusTime(ligaId, timeId);
+        const isInativo = statusTime.ativo === false;
+        const rodadaDesistencia = statusTime.rodada_desistencia;
 
         const cache = await ExtratoFinanceiroCache.findOne({
             liga_id: toLigaId(ligaId),
@@ -233,50 +233,34 @@ export const getExtratoCache = async (req, res) => {
         }).lean();
 
         if (!cache) {
-            return res.status(404).json({
-                cached: false,
-                message: "Cache não encontrado para este time",
-            });
+            return res
+                .status(404)
+                .json({
+                    cached: false,
+                    message: "Cache não encontrado",
+                    inativo: isInativo,
+                    rodadaDesistencia,
+                    extratoTravado: isInativo && rodadaDesistencia,
+                });
         }
 
-        // ✅ Buscar campos manuais
         const camposAtivos = await buscarCamposManuais(ligaId, timeId);
+        let rodadasConsolidadas = transformarTransacoesEmRodadas(
+            cache.historico_transacoes || [],
+            ligaId,
+        );
 
-        if (camposAtivos.length > 0) {
-            console.log(
-                `[CACHE-CONTROLLER] 💰 Campos manuais para time ${timeId}:`,
-                camposAtivos.map((c) => ({ nome: c.nome, valor: c.valor })),
+        if (isInativo && rodadaDesistencia) {
+            rodadasConsolidadas = filtrarRodadasParaInativo(
+                rodadasConsolidadas,
+                rodadaDesistencia,
             );
         }
 
-        const transacoes = cache.historico_transacoes || [];
-        const rodadasConsolidadas = transformarTransacoesEmRodadas(
-            transacoes,
-            ligaId,
-        );
         const resumoCalculado = calcularResumoDeRodadas(
             rodadasConsolidadas,
             camposAtivos,
         );
-
-        console.log("[CACHE-CONTROLLER] 📦 Cache encontrado:", {
-            timeId,
-            transacoes: transacoes.length,
-            rodadasConsolidadas: rodadasConsolidadas.length,
-            ultimaRodada: cache.ultima_rodada_consolidada,
-            saldo: resumoCalculado.saldo,
-            camposManuais: resumoCalculado.camposManuais,
-        });
-
-        if (rodadasConsolidadas.length === 0) {
-            console.warn(
-                "[CACHE-CONTROLLER] ⚠️ Cache sem rodadas consolidadas válidas",
-            );
-            return res.status(404).json({
-                cached: false,
-                message: "Cache sem dados válidos",
-            });
-        }
 
         res.json({
             cached: true,
@@ -286,32 +270,39 @@ export const getExtratoCache = async (req, res) => {
             metadados: cache.metadados,
             ultimaRodadaCalculada: cache.ultima_rodada_consolidada,
             updatedAt: cache.updatedAt,
+            inativo: isInativo,
+            rodadaDesistencia,
+            extratoTravado: isInativo && rodadaDesistencia,
+            rodadaTravada: rodadaDesistencia ? rodadaDesistencia - 1 : null,
         });
     } catch (error) {
-        console.error("[CACHE-CONTROLLER] Erro ao buscar cache:", error);
-        res.status(500).json({ error: "Erro interno ao buscar cache" });
+        console.error("[CACHE-CONTROLLER] Erro:", error);
+        res.status(500).json({ error: "Erro interno" });
     }
 };
 
-// ===== SALVAR/ATUALIZAR CACHE (POST) =====
+// ✅ v3.3: SALVAR CACHE COM VALIDAÇÃO DE INATIVO
 export const salvarExtratoCache = async (req, res) => {
     try {
         const { ligaId, timeId } = req.params;
         const {
-            extrato,
             historico_transacoes,
+            extrato,
             ultimaRodadaCalculada,
             motivoRecalculo,
-            saldo,
-            resumo,
         } = req.body;
 
-        const dadosParaSalvar = historico_transacoes || extrato || [];
+        const statusTime = await buscarStatusTime(ligaId, timeId);
+        const isInativo = statusTime.ativo === false;
+        const rodadaDesistencia = statusTime.rodada_desistencia;
 
-        let rodadasArray = dadosParaSalvar;
+        let rodadasArray = historico_transacoes || extrato || [];
+        if (!Array.isArray(rodadasArray) && rodadasArray?.rodadas)
+            rodadasArray = rodadasArray.rodadas;
 
-        if (!Array.isArray(dadosParaSalvar) && dadosParaSalvar?.rodadas) {
-            rodadasArray = dadosParaSalvar.rodadas;
+        if (isInativo && rodadaDesistencia && Array.isArray(rodadasArray)) {
+            const rodadaLimite = rodadaDesistencia - 1;
+            rodadasArray = rodadasArray.filter((r) => r.rodada <= rodadaLimite);
         }
 
         const rodadaCalculadaReal =
@@ -319,16 +310,7 @@ export const salvarExtratoCache = async (req, res) => {
             (Array.isArray(rodadasArray) && rodadasArray.length > 0
                 ? Math.max(...rodadasArray.map((r) => r.rodada || 0))
                 : 0);
-
         const resumoCalculado = calcularResumoDeRodadas(rodadasArray);
-
-        console.log(`[CACHE-CONTROLLER] 💾 Salvando cache:`, {
-            timeId,
-            rodadasRecebidas: rodadasArray?.length || 0,
-            ultimaRodadaCalculada: rodadaCalculadaReal,
-            saldoCalculado: resumoCalculado.saldo,
-            motivoRecalculo,
-        });
 
         const cacheData = {
             liga_id: toLigaId(ligaId),
@@ -340,10 +322,11 @@ export const salvarExtratoCache = async (req, res) => {
             ganhos_consolidados: resumoCalculado.totalGanhos,
             perdas_consolidadas: resumoCalculado.totalPerdas,
             metadados: {
-                versaoCalculo: "3.2.0",
+                versaoCalculo: "3.3.0",
                 timestampCalculo: new Date(),
-                motivoRecalculo: motivoRecalculo || "atualizacao_frontend",
-                origem: "participante_app",
+                motivoRecalculo: motivoRecalculo || "atualizacao",
+                inativo: isInativo,
+                rodadaDesistencia,
             },
         };
 
@@ -353,62 +336,28 @@ export const salvarExtratoCache = async (req, res) => {
             { new: true, upsert: true },
         );
 
-        console.log(
-            `[CACHE] Cache salvo com sucesso: Time ${timeId} | Saldo: ${cacheData.saldo_consolidado}`,
-        );
-
         res.json({
             success: true,
-            message: "Cache atualizado com sucesso",
+            message: "Cache atualizado",
             updatedAt: cache.updatedAt,
+            inativo: isInativo,
+            extratoTravado: isInativo && rodadaDesistencia,
         });
     } catch (error) {
-        console.error("[CACHE-CONTROLLER] Erro ao salvar cache:", error);
-        if (error.name === "StrictModeError") {
-            console.error(
-                "⚠️ ERRO DE SCHEMA: Campo não permitido no Model.",
-                error.path,
-            );
-        }
-        res.status(500).json({ error: "Erro ao salvar cache do extrato" });
+        console.error("[CACHE-CONTROLLER] Erro:", error);
+        res.status(500).json({ error: "Erro ao salvar cache" });
     }
 };
 
-// ===== INVALIDAR CACHE DE UM TIME =====
-export const invalidarCacheTime = async (req, res) => {
-    try {
-        const { ligaId, timeId } = req.params;
-        await ExtratoFinanceiroCache.findOneAndDelete({
-            liga_id: toLigaId(ligaId),
-            time_id: Number(timeId),
-        });
-        res.json({ success: true, message: "Cache invalidado" });
-    } catch (error) {
-        res.status(500).json({ error: "Erro ao invalidar cache" });
-    }
-};
-
-// ===== INVALIDAR CACHE DE TODA A LIGA =====
-export const invalidarCacheLiga = async (req, res) => {
-    try {
-        const { ligaId } = req.params;
-        const result = await ExtratoFinanceiroCache.deleteMany({
-            liga_id: toLigaId(ligaId),
-        });
-        res.json({
-            success: true,
-            message: `${result.deletedCount} caches invalidados`,
-        });
-    } catch (error) {
-        res.status(500).json({ error: "Erro ao invalidar cache da liga" });
-    }
-};
-
-// ===== VERIFICAR STATUS DO CACHE (VALIDAÇÃO INTELIGENTE) =====
+// ✅ v3.3: VERIFICAR CACHE VÁLIDO COM SUPORTE A INATIVOS
 export const verificarCacheValido = async (req, res) => {
     try {
         const { ligaId, timeId } = req.params;
         const { rodadaAtual, mercadoAberto } = req.query;
+
+        const statusTime = await buscarStatusTime(ligaId, timeId);
+        const isInativo = statusTime.ativo === false;
+        const rodadaDesistencia = statusTime.rodada_desistencia;
 
         const cacheExistente = await ExtratoFinanceiroCache.findOne({
             liga_id: toLigaId(ligaId),
@@ -416,22 +365,60 @@ export const verificarCacheValido = async (req, res) => {
         }).lean();
 
         if (!cacheExistente) {
-            return res.json({ valido: false, motivo: "cache_nao_encontrado" });
+            return res.json({
+                valido: false,
+                motivo: "cache_nao_encontrado",
+                inativo: isInativo,
+                rodadaDesistencia,
+            });
         }
 
-        const rodadaAtualNum = parseInt(rodadaAtual);
         const mercadoEstaAberto = mercadoAberto === "true";
         const rodadaAtualInt = parseInt(rodadaAtual);
 
-        let validacao = { valido: false, motivo: "erro_simulacao" };
+        // Para inativos, cache é válido se tiver até rodada_desistencia - 1
+        if (isInativo && rodadaDesistencia) {
+            const rodadaLimite = rodadaDesistencia - 1;
+            if (cacheExistente.ultima_rodada_consolidada >= rodadaLimite) {
+                let rodadasConsolidadas = transformarTransacoesEmRodadas(
+                    cacheExistente.historico_transacoes || [],
+                    ligaId,
+                );
+                rodadasConsolidadas = filtrarRodadasParaInativo(
+                    rodadasConsolidadas,
+                    rodadaDesistencia,
+                );
+                const camposAtivos = await buscarCamposManuais(ligaId, timeId);
+                const resumoCalculado = calcularResumoDeRodadas(
+                    rodadasConsolidadas,
+                    camposAtivos,
+                );
 
-        if (
-            !mercadoEstaAberto &&
-            cacheExistente.ultima_rodada_consolidada >= rodadaAtualInt
-        ) {
-            const transacoes = cacheExistente.historico_transacoes || [];
+                return res.json({
+                    valido: true,
+                    cached: true,
+                    permanente: true,
+                    motivo: "inativo_extrato_travado",
+                    ultimaRodada: rodadaLimite,
+                    updatedAt: cacheExistente.updatedAt,
+                    rodadas: rodadasConsolidadas,
+                    resumo: resumoCalculado,
+                    camposManuais: camposAtivos,
+                    inativo: true,
+                    rodadaDesistencia,
+                    extratoTravado: true,
+                    rodadaTravada: rodadaLimite,
+                });
+            }
+        }
+
+        // Validação normal para ativos
+        const rodadaEsperada = mercadoEstaAberto
+            ? rodadaAtualInt - 1
+            : rodadaAtualInt;
+        if (cacheExistente.ultima_rodada_consolidada >= rodadaEsperada) {
             const rodadasConsolidadas = transformarTransacoesEmRodadas(
-                transacoes,
+                cacheExistente.historico_transacoes || [],
                 ligaId,
             );
             const camposAtivos = await buscarCamposManuais(ligaId, timeId);
@@ -440,246 +427,119 @@ export const verificarCacheValido = async (req, res) => {
                 camposAtivos,
             );
 
-            validacao = {
+            return res.json({
                 valido: true,
                 cached: true,
-                permanente: true,
-                motivo: "rodada_fechada_cache_permanente",
+                permanente: !mercadoEstaAberto,
+                motivo: mercadoEstaAberto
+                    ? "mercado_aberto_cache_valido"
+                    : "rodada_fechada_cache_permanente",
                 ultimaRodada: cacheExistente.ultima_rodada_consolidada,
-                mercadoStatus: "fechado",
                 updatedAt: cacheExistente.updatedAt,
                 rodadas: rodadasConsolidadas,
                 resumo: resumoCalculado,
                 camposManuais: camposAtivos,
-            };
-        } else if (mercadoEstaAberto) {
-            const rodadaAnterior = Math.max(1, rodadaAtualInt - 1);
-
-            if (cacheExistente.ultima_rodada_consolidada >= rodadaAnterior) {
-                const timestampCache =
-                    cacheExistente.updatedAt ||
-                    cacheExistente.data_ultima_atualizacao;
-                const idadeCache =
-                    Date.now() - new Date(timestampCache).getTime();
-                const CACHE_TTL_MERCADO_ABERTO = 5 * 60 * 1000;
-
-                if (idadeCache < CACHE_TTL_MERCADO_ABERTO) {
-                    const transacoes =
-                        cacheExistente.historico_transacoes || [];
-                    const rodadasConsolidadas = transformarTransacoesEmRodadas(
-                        transacoes,
-                        ligaId,
-                    );
-                    const camposAtivos = await buscarCamposManuais(
-                        ligaId,
-                        timeId,
-                    );
-                    const resumoCalculado = calcularResumoDeRodadas(
-                        rodadasConsolidadas,
-                        camposAtivos,
-                    );
-
-                    validacao = {
-                        valido: true,
-                        cached: true,
-                        permanente: false,
-                        motivo: "cache_mercado_aberto_recente",
-                        ultimaRodada: cacheExistente.ultima_rodada_consolidada,
-                        mercadoStatus: "aberto",
-                        idadeMinutos: Math.floor(idadeCache / 60000),
-                        updatedAt: cacheExistente.updatedAt,
-                        rodadas: rodadasConsolidadas,
-                        resumo: resumoCalculado,
-                        camposManuais: camposAtivos,
-                    };
-                } else {
-                    validacao = {
-                        valido: false,
-                        motivo: "cache_expirado_mercado_aberto",
-                        ultimaRodada: cacheExistente.ultima_rodada_consolidada,
-                        mercadoStatus: "aberto",
-                        idadeMinutos: Math.floor(idadeCache / 60000),
-                    };
-                }
-            } else {
-                validacao = {
-                    valido: false,
-                    motivo: "cache_desatualizado",
-                    ultimaRodadaCache: cacheExistente.ultima_rodada_consolidada,
-                    rodadaAtual: rodadaAtualInt,
-                };
-            }
-        } else {
-            validacao = {
-                valido: false,
-                motivo: "cache_desatualizado",
-                ultimaRodadaCache: cacheExistente.ultima_rodada_consolidada,
-                rodadaAtual: rodadaAtualInt,
-            };
-        }
-
-        res.json(validacao);
-    } catch (error) {
-        console.error("[CACHE-CONTROLLER] Erro ao verificar cache:", error);
-        res.status(500).json({ error: "Erro ao verificar cache" });
-    }
-};
-
-// ===== VERIFICAR SE CACHE EXISTE E ESTÁ ATUALIZADO =====
-export const verificarCacheExiste = async (req, res) => {
-    try {
-        const { ligaId, timeId } = req.params;
-
-        const cache = await ExtratoFinanceiroCache.findOne({
-            liga_id: toLigaId(ligaId),
-            time_id: Number(timeId),
-        })
-            .select("ultima_rodada_consolidada data_ultima_atualizacao")
-            .lean();
-
-        if (!cache) {
-            return res.json({ existe: false });
+                inativo: isInativo,
+                rodadaDesistencia,
+                extratoTravado: isInativo && rodadaDesistencia,
+            });
         }
 
         res.json({
-            existe: true,
-            ultimaRodada: cache.ultima_rodada_consolidada,
-            atualizadoEm: cache.data_ultima_atualizacao,
+            valido: false,
+            motivo: "cache_desatualizado",
+            cacheRodada: cacheExistente.ultima_rodada_consolidada,
+            rodadaEsperada,
+            inativo: isInativo,
+            rodadaDesistencia,
         });
     } catch (error) {
-        res.status(500).json({ error: "Erro ao verificar cache" });
+        console.error("[CACHE-CONTROLLER] Erro:", error);
+        res.status(500).json({ error: "Erro na validação" });
     }
 };
 
-// ===== BUSCAR EXTRATO PARA PARTICIPANTE (ALIAS SIMPLIFICADO) =====
-export const getExtratoParticipante = async (req, res) => {
-    return getExtratoCache(req, res);
-};
-
-// ===== LER CACHE EXTRATO FINANCEIRO (VALIDAÇÃO INTELIGENTE) =====
+// ✅ v3.3: LER CACHE COM SUPORTE A INATIVOS
 export const lerCacheExtratoFinanceiro = async (req, res) => {
     try {
         const { ligaId, timeId } = req.params;
-        const { rodadaAtual, statusMercado } = req.query;
-
-        const cache = await ExtratoFinanceiroCache.findOne({
-            liga_id: toLigaId(ligaId),
-            time_id: Number(timeId),
-        }).lean();
-
-        if (!cache) {
-            return res.status(404).json({ cached: false });
-        }
-
-        const rodadaAtualNum = parseInt(rodadaAtual) || 0;
-        const mercadoFechado = parseInt(statusMercado) === 2;
-
-        const rodadaCache =
-            cache.ultima_rodada_consolidada || cache.rodada_calculada || 0;
-        let cacheValido = false;
-
-        if (mercadoFechado) {
-            cacheValido = rodadaCache >= rodadaAtualNum;
-        } else {
-            cacheValido = rodadaCache >= rodadaAtualNum - 1;
-        }
-
-        if (!cacheValido) {
-            console.log(
-                `[CACHE-EXTRATO] ❌ Cache desatualizado: calculado até R${rodadaCache}, esperado R${rodadaAtualNum}`,
-            );
-            return res.status(404).json({
-                cached: false,
-                reason: "outdated",
-                cachedUntil: rodadaCache,
-                expectedUntil: rodadaAtualNum,
-            });
-        }
-
-        const transacoes = cache.historico_transacoes || [];
-        const rodadasConsolidadas = transformarTransacoesEmRodadas(
-            transacoes,
-            ligaId,
-        );
-        const camposAtivos = await buscarCamposManuais(ligaId, timeId);
-        const resumoCalculado = calcularResumoDeRodadas(
-            rodadasConsolidadas,
-            camposAtivos,
-        );
-
-        console.log(
-            `[CACHE-EXTRATO] ✅ Cache válido: R${rodadaCache} (atual: R${rodadaAtualNum})`,
-        );
-        console.log(
-            `[CACHE-EXTRATO] 📊 Retornando ${rodadasConsolidadas.length} rodadas consolidadas`,
-        );
-
-        res.json({
-            cached: true,
-            rodada_calculada: rodadaCache,
-            dados: rodadasConsolidadas,
-            dados_extrato: rodadasConsolidadas,
-            rodadas: rodadasConsolidadas,
-            saldo_total: resumoCalculado.saldo,
-            resumo: resumoCalculado,
-            camposManuais: camposAtivos,
-            updatedAt: cache.updatedAt || cache.data_ultima_atualizacao,
-        });
-    } catch (error) {
-        console.error("[CACHE-EXTRATO] Erro ao ler:", error);
-        res.status(500).json({ error: "Erro interno" });
-    }
-};
-
-// ===== LER CACHE COM VALIDAÇÃO (ENDPOINT PRINCIPAL) =====
-export const lerCacheComValidacao = async (req, res) => {
-    try {
-        const { ligaId, timeId } = req.params;
         const { rodadaAtual } = req.query;
-
         const rodadaAtualNum = parseInt(rodadaAtual) || 1;
 
+        const statusTime = await buscarStatusTime(ligaId, timeId);
+        const isInativo = statusTime.ativo === false;
+        const rodadaDesistencia = statusTime.rodada_desistencia;
+        const rodadaLimiteInativo = rodadaDesistencia
+            ? rodadaDesistencia - 1
+            : null;
+
         const cache = await ExtratoFinanceiroCache.findOne({
             liga_id: toLigaId(ligaId),
             time_id: Number(timeId),
         }).lean();
 
         if (!cache) {
-            return res.status(404).json({
-                cached: false,
-                message: "Cache não encontrado",
-                needsRecalc: true,
-            });
+            return res
+                .status(404)
+                .json({
+                    cached: false,
+                    message: "Cache não encontrado",
+                    needsRecalc: true,
+                    inativo: isInativo,
+                    rodadaDesistencia,
+                    extratoTravado: isInativo && rodadaDesistencia,
+                });
         }
 
         const rodadaCache = cache.ultima_rodada_consolidada || 0;
 
-        if (rodadaCache < rodadaAtualNum) {
-            return res.status(200).json({
-                cached: true,
-                needsRecalc: true,
-                message: `Cache desatualizado (R${rodadaCache} < R${rodadaAtualNum})`,
-                rodada_cache: rodadaCache,
-                expectedUntil: rodadaAtualNum,
-            });
+        // Verificação de cache desatualizado
+        if (
+            isInativo &&
+            rodadaLimiteInativo &&
+            rodadaCache < rodadaLimiteInativo
+        ) {
+            return res
+                .status(200)
+                .json({
+                    cached: true,
+                    needsRecalc: true,
+                    message: `Cache inativo desatualizado`,
+                    rodada_cache: rodadaCache,
+                    expectedUntil: rodadaLimiteInativo,
+                    inativo: true,
+                    rodadaDesistencia,
+                    extratoTravado: true,
+                });
+        } else if (!isInativo && rodadaCache < rodadaAtualNum) {
+            return res
+                .status(200)
+                .json({
+                    cached: true,
+                    needsRecalc: true,
+                    message: `Cache desatualizado`,
+                    rodada_cache: rodadaCache,
+                    expectedUntil: rodadaAtualNum,
+                    inativo: false,
+                });
         }
 
-        const transacoes = cache.historico_transacoes || [];
-        const rodadasConsolidadas = transformarTransacoesEmRodadas(
-            transacoes,
+        let rodadasConsolidadas = transformarTransacoesEmRodadas(
+            cache.historico_transacoes || [],
             ligaId,
         );
+
+        if (isInativo && rodadaDesistencia) {
+            rodadasConsolidadas = filtrarRodadasParaInativo(
+                rodadasConsolidadas,
+                rodadaDesistencia,
+            );
+        }
+
         const camposAtivos = await buscarCamposManuais(ligaId, timeId);
         const resumoCalculado = calcularResumoDeRodadas(
             rodadasConsolidadas,
             camposAtivos,
-        );
-
-        console.log(
-            `[CACHE-EXTRATO] ✅ Cache válido: R${rodadaCache} (atual: R${rodadaAtualNum})`,
-        );
-        console.log(
-            `[CACHE-EXTRATO] 📊 Retornando ${rodadasConsolidadas.length} rodadas consolidadas`,
         );
 
         res.json({
@@ -692,203 +552,120 @@ export const lerCacheComValidacao = async (req, res) => {
             resumo: resumoCalculado,
             camposManuais: camposAtivos,
             updatedAt: cache.updatedAt || cache.data_ultima_atualizacao,
+            inativo: isInativo,
+            rodadaDesistencia,
+            extratoTravado: isInativo && rodadaDesistencia,
+            rodadaTravada: rodadaLimiteInativo,
         });
     } catch (error) {
-        console.error("[CACHE-EXTRATO] Erro ao ler:", error);
+        console.error("[CACHE-EXTRATO] Erro:", error);
         res.status(500).json({ error: "Erro interno" });
     }
 };
 
-// =====================================================================
-// FUNÇÕES DE LIMPEZA DE CACHE
-// =====================================================================
-
-// ===== LIMPAR CACHE DE UMA LIGA ESPECÍFICA =====
+// Funções de limpeza mantidas
 export const limparCacheLiga = async (req, res) => {
     try {
         const { ligaId } = req.params;
-
-        console.log(`[CACHE-LIMPEZA] 🗑️ Limpando caches da liga: ${ligaId}`);
-
         const resultado = await ExtratoFinanceiroCache.deleteMany({
             liga_id: toLigaId(ligaId),
         });
-
-        console.log(
-            `[CACHE-LIMPEZA] ✅ ${resultado.deletedCount} caches removidos`,
-        );
-
         res.json({
             success: true,
-            message: `Cache da liga limpo com sucesso`,
+            message: `Cache limpo`,
             deletedCount: resultado.deletedCount,
             ligaId,
         });
     } catch (error) {
-        console.error("[CACHE-LIMPEZA] ❌ Erro:", error);
-        res.status(500).json({ error: "Erro ao limpar cache da liga" });
+        res.status(500).json({ error: "Erro ao limpar cache" });
     }
 };
 
-// ===== LIMPAR CACHE DE UM TIME ESPECÍFICO =====
 export const limparCacheTime = async (req, res) => {
     try {
         const { ligaId, timeId } = req.params;
-
-        console.log(
-            `[CACHE-LIMPEZA] 🗑️ Limpando cache do time ${timeId} na liga ${ligaId}`,
-        );
-
         const resultado = await ExtratoFinanceiroCache.deleteOne({
             liga_id: toLigaId(ligaId),
             time_id: Number(timeId),
         });
-
-        console.log(
-            `[CACHE-LIMPEZA] ✅ ${resultado.deletedCount} cache removido`,
-        );
-
         res.json({
             success: true,
-            message: `Cache do time limpo com sucesso`,
+            message: `Cache limpo`,
             deletedCount: resultado.deletedCount,
             ligaId,
             timeId,
         });
     } catch (error) {
-        console.error("[CACHE-LIMPEZA] ❌ Erro:", error);
-        res.status(500).json({ error: "Erro ao limpar cache do time" });
+        res.status(500).json({ error: "Erro ao limpar cache" });
     }
 };
 
-// ===== LIMPAR TODOS OS CACHES CORROMPIDOS =====
 export const limparCachesCorrompidos = async (req, res) => {
     try {
         const { ligaId } = req.params;
-
-        console.log(`[CACHE-LIMPEZA] 🔍 Identificando caches corrompidos...`);
-
         const filtro = {
             $or: [
                 { historico_transacoes: { $type: "number" } },
                 { historico_transacoes: { $exists: false } },
                 { historico_transacoes: { $size: 0 } },
-                { "historico_transacoes.0.bonusOnus": { $exists: false } },
-                { "historico_transacoes.0.posicao": { $exists: false } },
             ],
         };
-
-        if (ligaId) {
-            filtro.liga_id = ligaId;
-        }
-
-        const contagem = await ExtratoFinanceiroCache.countDocuments(filtro);
-
-        console.log(
-            `[CACHE-LIMPEZA] 📊 Encontrados ${contagem} caches corrompidos`,
-        );
-
-        if (contagem === 0) {
-            return res.json({
-                success: true,
-                message: "Nenhum cache corrompido encontrado",
-                deletedCount: 0,
-            });
-        }
-
+        if (ligaId) filtro.liga_id = ligaId;
         const resultado = await ExtratoFinanceiroCache.deleteMany(filtro);
-
-        console.log(
-            `[CACHE-LIMPEZA] ✅ ${resultado.deletedCount} caches corrompidos removidos`,
-        );
-
         res.json({
             success: true,
-            message: `Caches corrompidos limpos com sucesso`,
+            message: `Caches corrompidos limpos`,
             deletedCount: resultado.deletedCount,
-            ligaId: ligaId || "todas",
         });
     } catch (error) {
-        console.error("[CACHE-LIMPEZA] ❌ Erro:", error);
-        res.status(500).json({ error: "Erro ao limpar caches corrompidos" });
+        res.status(500).json({ error: "Erro ao limpar caches" });
     }
 };
 
-// ===== LIMPAR TODOS OS CACHES (ADMIN) =====
 export const limparTodosCaches = async (req, res) => {
     try {
         const { confirmar } = req.query;
-
-        if (confirmar !== "sim") {
-            return res.status(400).json({
-                error: "Operação perigosa! Adicione ?confirmar=sim para executar",
-                message:
-                    "Esta operação irá deletar TODOS os caches de extrato financeiro",
-            });
-        }
-
-        console.log(`[CACHE-LIMPEZA] ⚠️ LIMPANDO TODOS OS CACHES!`);
-
+        if (confirmar !== "sim")
+            return res.status(400).json({ error: "Adicione ?confirmar=sim" });
         const resultado = await ExtratoFinanceiroCache.deleteMany({});
-
-        console.log(
-            `[CACHE-LIMPEZA] ✅ ${resultado.deletedCount} caches removidos`,
-        );
-
         res.json({
             success: true,
-            message: `Todos os caches foram limpos`,
+            message: `Todos caches limpos`,
             deletedCount: resultado.deletedCount,
         });
     } catch (error) {
-        console.error("[CACHE-LIMPEZA] ❌ Erro:", error);
-        res.status(500).json({ error: "Erro ao limpar todos os caches" });
+        res.status(500).json({ error: "Erro ao limpar caches" });
     }
 };
 
-// ===== ESTATÍSTICAS DE CACHE =====
 export const estatisticasCache = async (req, res) => {
     try {
         const { ligaId } = req.params;
-
         const filtroBase = ligaId ? { liga_id: toLigaId(ligaId) } : {};
-
         const total = await ExtratoFinanceiroCache.countDocuments(filtroBase);
-
         const corrompidos = await ExtratoFinanceiroCache.countDocuments({
             ...filtroBase,
             $or: [
                 { historico_transacoes: { $type: "number" } },
-                { historico_transacoes: { $exists: false } },
                 { historico_transacoes: { $size: 0 } },
-                { "historico_transacoes.0.bonusOnus": { $exists: false } },
-                { "historico_transacoes.0.posicao": { $exists: false } },
             ],
         });
-
-        const validos = total - corrompidos;
-
-        const ultimoCache = await ExtratoFinanceiroCache.findOne(filtroBase)
-            .sort({ updatedAt: -1 })
-            .select("updatedAt liga_id time_id")
-            .lean();
-
         res.json({
             success: true,
             estatisticas: {
                 total,
-                validos,
+                validos: total - corrompidos,
                 corrompidos,
                 percentualValido:
                     total > 0
-                        ? ((validos / total) * 100).toFixed(1) + "%"
+                        ? (((total - corrompidos) / total) * 100).toFixed(1) +
+                          "%"
                         : "0%",
-                ultimaAtualizacao: ultimoCache?.updatedAt || null,
-                ligaId: ligaId || "todas",
             },
         });
     } catch (error) {
-        console.error("[CACHE-STATS] ❌ Erro:", error);
         res.status(500).json({ error: "Erro ao obter estatísticas" });
     }
 };
+
+console.log("[CACHE-CONTROLLER] ✅ v3.3 carregado (suporte a inativos)");

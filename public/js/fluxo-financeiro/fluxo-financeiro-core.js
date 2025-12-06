@@ -1,5 +1,5 @@
-// FLUXO-FINANCEIRO-CORE.JS - OTIMIZADO COM CACHE MONGODB v4.0
-// ✅ Integração completa com backend cache - Validação inteligente
+// FLUXO-FINANCEIRO-CORE.JS v4.1 - SUPORTE A INATIVOS
+// ✅ v4.1: Trava extrato para inativos na rodada_desistencia
 
 import { calcularFinanceiroConfronto } from "../pontos-corridos-utils.js";
 import { obterLigaId } from "../pontos-corridos-utils.js";
@@ -35,7 +35,7 @@ export class FluxoFinanceiroCore {
             );
             setRankingFunction(getRankingRodadaEspecifica);
             this.mataMataIntegrado = true;
-            console.log("[FLUXO-CORE] ✅ Mata-mata integrado com sucesso");
+            console.log("[FLUXO-CORE] ✅ Mata-mata integrado");
         } catch (error) {
             console.error("[FLUXO-CORE] Erro ao integrar mata-mata:", error);
             this.mataMataIntegrado = false;
@@ -58,10 +58,7 @@ export class FluxoFinanceiroCore {
                     : mercadoData.rodada_atual;
             }
         } catch (error) {
-            console.warn(
-                "[FLUXO-CORE] Erro ao verificar mercado para Map:",
-                error,
-            );
+            console.warn("[FLUXO-CORE] Erro ao verificar mercado:", error);
         }
 
         resultadosMataMata.forEach((r) => {
@@ -73,9 +70,38 @@ export class FluxoFinanceiroCore {
         });
     }
 
-    // ===================================================================
-    // ✅ MÉTODO PRINCIPAL - CALCULAR EXTRATO COM CACHE INTELIGENTE
-    // ===================================================================
+    // =====================================================================
+    // ✅ v4.1: BUSCAR STATUS DO PARTICIPANTE (ativo/rodada_desistencia)
+    // =====================================================================
+    async _buscarStatusParticipante(timeId) {
+        try {
+            const ligaId = obterLigaId();
+            const response = await fetch(`/api/ligas/${ligaId}/times`);
+            if (!response.ok) return { ativo: true, rodada_desistencia: null };
+
+            const times = await response.json();
+            const time = (Array.isArray(times) ? times : []).find(
+                (t) => String(t.id || t.time_id) === String(timeId),
+            );
+
+            if (!time) return { ativo: true, rodada_desistencia: null };
+
+            return {
+                ativo: time.ativo !== false,
+                rodada_desistencia: time.rodada_desistencia || null,
+            };
+        } catch (error) {
+            console.warn(
+                "[FLUXO-CORE] Erro ao buscar status do participante:",
+                error,
+            );
+            return { ativo: true, rodada_desistencia: null };
+        }
+    }
+
+    // =====================================================================
+    // ✅ MÉTODO PRINCIPAL - CALCULAR EXTRATO COM SUPORTE A INATIVOS
+    // =====================================================================
     async calcularExtratoFinanceiro(
         timeId,
         ultimaRodadaCompleta,
@@ -85,7 +111,21 @@ export class FluxoFinanceiroCore {
         let rodadaParaCalculo = ultimaRodadaCompleta;
         let mercadoAberto = false;
 
-        // ✅ PASSO 1: Verificar status do mercado
+        // ✅ v4.1: Buscar status do participante
+        const statusParticipante = await this._buscarStatusParticipante(timeId);
+        const isInativo = statusParticipante.ativo === false;
+        const rodadaDesistencia = statusParticipante.rodada_desistencia;
+
+        // ✅ v4.1: Limitar rodada de cálculo para inativos
+        if (isInativo && rodadaDesistencia) {
+            const rodadaLimite = rodadaDesistencia - 1;
+            rodadaParaCalculo = Math.min(rodadaParaCalculo, rodadaLimite);
+            console.log(
+                `[FLUXO-CORE] 🔒 Inativo: limitando cálculo até R${rodadaLimite}`,
+            );
+        }
+
+        // Verificar status do mercado
         try {
             const mercadoResponse = await fetch("/api/cartola/mercado/status");
             if (mercadoResponse.ok) {
@@ -94,7 +134,7 @@ export class FluxoFinanceiroCore {
                     mercadoData.mercado_aberto ||
                     mercadoData.status_mercado === 1;
                 const rodadaAtualMercado = mercadoData.rodada_atual;
-                if (mercadoAberto) {
+                if (mercadoAberto && !isInativo) {
                     rodadaParaCalculo = Math.max(1, rodadaAtualMercado - 1);
                 }
             }
@@ -103,12 +143,12 @@ export class FluxoFinanceiroCore {
         }
 
         console.log(
-            `[FLUXO-CORE] 🎯 Iniciando extrato time ${timeId} até R${rodadaParaCalculo} (forçar: ${forcarRecalculo})`,
+            `[FLUXO-CORE] 🎯 Extrato time ${timeId} até R${rodadaParaCalculo} | Inativo: ${isInativo}`,
         );
 
-        // ===================================================================
-        // ✅ PASSO 2: VERIFICAR CACHE MONGODB (PRIORIDADE MÁXIMA)
-        // ===================================================================
+        // =====================================================================
+        // VERIFICAR CACHE MONGODB
+        // =====================================================================
         if (!forcarRecalculo) {
             const cacheValido = await this._verificarCacheMongoDB(
                 ligaId,
@@ -118,61 +158,41 @@ export class FluxoFinanceiroCore {
             );
 
             if (cacheValido && cacheValido.valido) {
-                // ✅ VALIDAR QUE RODADAS É ARRAY COM DADOS
                 const rodadasArray = cacheValido.rodadas || [];
 
-                console.log(`[FLUXO-CORE] 📊 Debug cache:`, {
-                    temRodadas: Array.isArray(rodadasArray),
-                    qtdRodadas: rodadasArray.length,
-                    primeiraRodada: rodadasArray[0],
-                    ultimaRodada: rodadasArray[rodadasArray.length - 1],
-                });
+                if (Array.isArray(rodadasArray) && rodadasArray.length > 0) {
+                    const primeiraRodada = rodadasArray[0];
+                    const cacheIncompleto =
+                        !primeiraRodada ||
+                        primeiraRodada.bonusOnus === undefined;
 
-                // ✅ VALIDAÇÃO CRÍTICA: Verificar se rodadas têm campos essenciais
-                const primeiraRodada = rodadasArray[0];
-                const cacheIncompleto =
-                    !primeiraRodada ||
-                    primeiraRodada.bonusOnus === undefined ||
-                    primeiraRodada.posicao === undefined;
+                    if (!cacheIncompleto) {
+                        console.log(`[FLUXO-CORE] ⚡ CACHE VÁLIDO!`);
 
-                // Se não tiver rodadas válidas OU cache incompleto, forçar recálculo
-                if (
-                    !Array.isArray(rodadasArray) ||
-                    rodadasArray.length === 0 ||
-                    cacheIncompleto
-                ) {
-                    console.warn(
-                        `[FLUXO-CORE] ⚠️ Cache incompleto/corrompido - forçando recálculo`,
-                    );
-                    console.log(
-                        `[FLUXO-CORE] 📊 Campos da primeira rodada:`,
-                        Object.keys(primeiraRodada || {}),
-                    );
-                    // Continua para recalcular
-                } else {
-                    console.log(
-                        `[FLUXO-CORE] ⚡ CACHE MONGODB VÁLIDO - ZERO RECÁLCULO!`,
-                    );
+                        // ✅ v4.1: FILTRAR rodadas do cache para inativos
+                        let rodadasFiltradas = rodadasArray;
+                        if (isInativo && rodadaDesistencia) {
+                            const rodadaLimite = rodadaDesistencia - 1;
+                            rodadasFiltradas = rodadasArray.filter(
+                                (r) => r.rodada <= rodadaLimite,
+                            );
+                            console.log(
+                                `[FLUXO-CORE] 🔒 Inativo: filtrando cache ${rodadasArray.length} → ${rodadasFiltradas.length} rodadas (até R${rodadaLimite})`,
+                            );
+                        }
 
-                    // Carregar campos editáveis atuais (podem ter mudado)
-                    const camposEditaveis =
-                        await FluxoFinanceiroCampos.carregarTodosCamposEditaveis(
-                            timeId,
+                        const camposEditaveis =
+                            await FluxoFinanceiroCampos.carregarTodosCamposEditaveis(
+                                timeId,
+                            );
+                        const resumoRecalculado = this._recalcularResumoDoCache(
+                            rodadasFiltradas,
+                            camposEditaveis,
                         );
+                        this._calcularSaldoAcumulado(rodadasFiltradas);
 
-                    // ✅ Recalcular resumo baseado nas rodadas do cache
-                    const resumoRecalculado = this._recalcularResumoDoCache(
-                        rodadasArray,
-                        camposEditaveis,
-                    );
-
-                    // ✅ CRÍTICO: Recalcular saldo acumulado de cada rodada
-                    this._calcularSaldoAcumulado(rodadasArray);
-
-                    // Montar extrato com dados do cache + campos atuais
-                    const extratoDoCache = {
-                        rodadas: rodadasArray,
-                        resumo: {
+                        // Montar resumo com campos editáveis
+                        const resumoCompleto = {
                             ...resumoRecalculado,
                             campo1:
                                 parseFloat(camposEditaveis.campo1?.valor) || 0,
@@ -182,45 +202,50 @@ export class FluxoFinanceiroCore {
                                 parseFloat(camposEditaveis.campo3?.valor) || 0,
                             campo4:
                                 parseFloat(camposEditaveis.campo4?.valor) || 0,
-                        },
-                        camposEditaveis: camposEditaveis,
-                        totalTimes: rodadasArray[0]?.totalTimes || 32,
-                        updatedAt: cacheValido.updatedAt,
-                    };
+                        };
 
-                    // Recalcular saldo final com campos editáveis atualizados
-                    extratoDoCache.resumo.saldo = this._calcularSaldoFinal(
-                        extratoDoCache.resumo,
-                    );
+                        // ✅ v4.2: CALCULAR SALDO FINAL (estava faltando!)
+                        resumoCompleto.saldo =
+                            this._calcularSaldoFinal(resumoCompleto);
 
-                    console.log(`[FLUXO-CORE] ✅ Extrato do cache montado:`, {
-                        rodadas: extratoDoCache.rodadas.length,
-                        saldo: extratoDoCache.resumo.saldo,
-                    });
+                        const extratoDoCache = {
+                            rodadas: rodadasFiltradas,
+                            resumo: resumoCompleto,
+                            camposEditaveis: camposEditaveis,
+                            totalTimes: rodadasFiltradas[0]?.totalTimes || 32,
+                            updatedAt: cacheValido.updatedAt,
+                            // ✅ v4.1: Informações de inativo
+                            inativo: isInativo,
+                            rodadaDesistencia: rodadaDesistencia,
+                            extratoTravado: isInativo && rodadaDesistencia,
+                            rodadaTravada: rodadaDesistencia
+                                ? rodadaDesistencia - 1
+                                : null,
+                        };
 
-                    return extratoDoCache;
+                        console.log(
+                            `[FLUXO-CORE] ✅ Extrato do cache: ${rodadasFiltradas.length} rodadas | Saldo: R$ ${extratoDoCache.resumo.saldo.toFixed(2)}${isInativo ? " | TRAVADO" : ""}`,
+                        );
+
+                        return extratoDoCache;
+                    }
                 }
             }
         }
 
-        // ===================================================================
-        // ✅ PASSO 3: CACHE NÃO VÁLIDO - CALCULAR DO ZERO
-        // ===================================================================
-        console.log(
-            `[FLUXO-CORE] 🔄 Calculando extrato completo para time ${timeId}...`,
-        );
+        // =====================================================================
+        // CALCULAR DO ZERO
+        // =====================================================================
+        console.log(`[FLUXO-CORE] 🔄 Calculando extrato completo...`);
 
         const isSuperCartola2025 = ligaId === ID_SUPERCARTOLA_2025;
         const isCartoleirosSobral = ligaId === ID_CARTOLEIROS_SOBRAL;
 
-        // Garantir rankings carregados
         await this.cache.carregarCacheRankingsEmLotes(rodadaParaCalculo, null);
 
-        // Carregar campos editáveis
         const camposEditaveis =
             await FluxoFinanceiroCampos.carregarTodosCamposEditaveis(timeId);
 
-        // Carregar Mata-Mata
         const resultadosMataMata = this.mataMataIntegrado
             ? this.cache.getResultadosMataMata()
             : [];
@@ -228,7 +253,6 @@ export class FluxoFinanceiroCore {
             this._carregarMataMataMap(resultadosMataMata);
         }
 
-        // Montar estrutura do extrato
         const extrato = {
             rodadas: [],
             resumo: {
@@ -250,15 +274,17 @@ export class FluxoFinanceiroCore {
             },
             totalTimes: 0,
             camposEditaveis: camposEditaveis,
+            // ✅ v4.1: Informações de inativo
+            inativo: isInativo,
+            rodadaDesistencia: rodadaDesistencia,
+            extratoTravado: isInativo && rodadaDesistencia,
+            rodadaTravada: rodadaDesistencia ? rodadaDesistencia - 1 : null,
         };
 
-        // Buscar dados Top10 (Mitos/Micos)
         const dadosTop10 = await this.buscarDadosTop10(timeId);
         const top10Map = new Map(dadosTop10.map((item) => [item.rodada, item]));
 
-        // ===================================================================
-        // ✅ PASSO 4: PROCESSAR CADA RODADA
-        // ===================================================================
+        // ✅ v4.1: Loop até rodadaParaCalculo (já limitada para inativos)
         const rodadasProcessadas = [];
         for (let rodada = 1; rodada <= rodadaParaCalculo; rodada++) {
             const rodadaData = this._processarRodadaIntegrada(
@@ -269,7 +295,6 @@ export class FluxoFinanceiroCore {
             );
 
             if (rodadaData) {
-                // Adicionar dados Top10
                 const top10Data = top10Map.get(rodada);
                 rodadaData.top10 = top10Data ? top10Data.valor || 0 : 0;
                 rodadaData.top10Status = top10Data ? top10Data.status : null;
@@ -293,9 +318,7 @@ export class FluxoFinanceiroCore {
         extrato.resumo.saldo = this._calcularSaldoFinal(extrato.resumo);
         this._calcularTotaisConsolidados(extrato.resumo, extrato.rodadas);
 
-        // ===================================================================
-        // ✅ PASSO 5: SALVAR NO CACHE MONGODB
-        // ===================================================================
+        // Salvar no cache
         await this._salvarCacheMongoDB(
             ligaId,
             timeId,
@@ -305,83 +328,55 @@ export class FluxoFinanceiroCore {
         );
 
         console.log(
-            `[FLUXO-CORE] ✅ Extrato calculado: ${extrato.rodadas.length} rodadas | Saldo: R$ ${extrato.resumo.saldo.toFixed(2)}`,
+            `[FLUXO-CORE] ✅ Extrato: ${extrato.rodadas.length} rodadas | Saldo: R$ ${extrato.resumo.saldo.toFixed(2)}${isInativo ? " | TRAVADO" : ""}`,
         );
 
         return extrato;
     }
 
-    // ===================================================================
-    // ✅ NOVO: Verificar cache MongoDB via API de validação
-    // ===================================================================
+    // =====================================================================
+    // VERIFICAR CACHE MONGODB
+    // =====================================================================
     async _verificarCacheMongoDB(ligaId, timeId, rodadaAtual, mercadoAberto) {
         try {
             const timestamp = Date.now();
             const url = `${API_BASE_URL}/api/extrato-cache/${ligaId}/times/${timeId}/cache/valido?rodadaAtual=${rodadaAtual}&mercadoAberto=${mercadoAberto}&_=${timestamp}`;
 
-            console.log(`[FLUXO-CORE] 🔍 Verificando cache MongoDB...`);
-
             const response = await fetch(url);
-
-            if (!response.ok) {
-                console.log(
-                    `[FLUXO-CORE] ⚠️ Cache não encontrado (${response.status})`,
-                );
-                return null;
-            }
+            if (!response.ok) return null;
 
             const cacheData = await response.json();
 
-            // ✅ VALIDAÇÃO CRÍTICA: Verificar se rodadas é um ARRAY
             if (cacheData.valido && cacheData.cached) {
-                // Verificar estrutura correta
                 const temRodadasArray =
                     Array.isArray(cacheData.rodadas) ||
                     Array.isArray(cacheData.data);
+                if (!temRodadasArray) return null;
 
-                if (!temRodadasArray) {
-                    console.warn(
-                        `[FLUXO-CORE] ⚠️ Cache encontrado mas sem array de rodadas - forçando recálculo`,
-                    );
-                    console.log(
-                        `[FLUXO-CORE] 📊 Estrutura recebida:`,
-                        Object.keys(cacheData),
-                    );
-                    return null; // Forçar recálculo
-                }
-
-                // Normalizar estrutura - rodadas pode vir em 'rodadas' ou 'data'
                 const rodadasArray = Array.isArray(cacheData.rodadas)
                     ? cacheData.rodadas
                     : cacheData.data;
 
-                console.log(`[FLUXO-CORE] ⚡ Cache válido encontrado:`, {
-                    motivo: cacheData.motivo,
-                    permanente: cacheData.permanente,
-                    rodadas: rodadasArray?.length || 0,
-                    saldo: cacheData.resumo?.saldo,
-                });
+                console.log(
+                    `[FLUXO-CORE] ⚡ Cache válido: ${rodadasArray?.length || 0} rodadas${cacheData.extratoTravado ? " | TRAVADO" : ""}`,
+                );
 
-                return {
-                    ...cacheData,
-                    rodadas: rodadasArray, // Garantir que rodadas é array
-                };
+                return { ...cacheData, rodadas: rodadasArray };
             }
 
-            console.log(`[FLUXO-CORE] ⚠️ Cache inválido: ${cacheData.motivo}`);
             return null;
         } catch (error) {
             console.warn(
-                `[FLUXO-CORE] ❌ Erro ao verificar cache:`,
+                `[FLUXO-CORE] Erro ao verificar cache:`,
                 error.message,
             );
             return null;
         }
     }
 
-    // ===================================================================
-    // ✅ NOVO: Salvar cache no MongoDB
-    // ===================================================================
+    // =====================================================================
+    // SALVAR CACHE MONGODB
+    // =====================================================================
     async _salvarCacheMongoDB(
         ligaId,
         timeId,
@@ -407,10 +402,6 @@ export class FluxoFinanceiroCore {
                 saldo: extrato.resumo.saldo,
             };
 
-            console.log(
-                `[FLUXO-CORE] 💾 Salvando cache MongoDB: ${payload.historico_transacoes?.length} rodadas até R${ultimaRodadaCalculada}`,
-            );
-
             const response = await fetch(
                 `${API_BASE_URL}/api/extrato-cache/${ligaId}/times/${timeId}/cache`,
                 {
@@ -421,23 +412,16 @@ export class FluxoFinanceiroCore {
             );
 
             if (response.ok) {
-                console.log(`[FLUXO-CORE] ✅ Cache MongoDB salvo com sucesso`);
-            } else {
-                console.warn(
-                    `[FLUXO-CORE] ⚠️ Falha ao salvar cache: ${response.status}`,
-                );
+                console.log(`[FLUXO-CORE] ✅ Cache MongoDB salvo`);
             }
         } catch (error) {
-            console.warn(
-                "[FLUXO-CORE] ❌ Erro ao salvar cache:",
-                error.message,
-            );
+            console.warn("[FLUXO-CORE] Erro ao salvar cache:", error.message);
         }
     }
 
-    // ===================================================================
-    // MÉTODOS DE PROCESSAMENTO (mantidos)
-    // ===================================================================
+    // =====================================================================
+    // MÉTODOS DE PROCESSAMENTO
+    // =====================================================================
     _processarRodadaIntegrada(
         timeId,
         rodada,
@@ -513,20 +497,16 @@ export class FluxoFinanceiroCore {
         return this.mataMataMap.get(key) || 0;
     }
 
-    // ===================================================================
-    // ✅ NOVO: Recalcular resumo a partir das rodadas do cache
-    // ===================================================================
     _recalcularResumoDoCache(rodadasArray, camposEditaveis) {
-        let bonus = 0;
-        let onus = 0;
-        let pontosCorridos = 0;
-        let mataMata = 0;
-        let top10 = 0;
-        let totalGanhos = 0;
-        let totalPerdas = 0;
+        let bonus = 0,
+            onus = 0,
+            pontosCorridos = 0,
+            mataMata = 0,
+            top10 = 0,
+            totalGanhos = 0,
+            totalPerdas = 0;
 
         for (const rodada of rodadasArray) {
-            // Bônus/Ônus
             const bonusOnusValor = parseFloat(rodada.bonusOnus) || 0;
             if (bonusOnusValor > 0) {
                 bonus += bonusOnusValor;
@@ -536,19 +516,16 @@ export class FluxoFinanceiroCore {
                 totalPerdas += Math.abs(bonusOnusValor);
             }
 
-            // Pontos Corridos
             const pcValor = parseFloat(rodada.pontosCorridos) || 0;
             pontosCorridos += pcValor;
             if (pcValor > 0) totalGanhos += pcValor;
             else if (pcValor < 0) totalPerdas += Math.abs(pcValor);
 
-            // Mata-Mata
             const mmValor = parseFloat(rodada.mataMata) || 0;
             mataMata += mmValor;
             if (mmValor > 0) totalGanhos += mmValor;
             else if (mmValor < 0) totalPerdas += Math.abs(mmValor);
 
-            // Top 10
             const t10Valor = parseFloat(rodada.top10) || 0;
             top10 += t10Valor;
             if (t10Valor > 0) totalGanhos += t10Valor;
@@ -563,7 +540,7 @@ export class FluxoFinanceiroCore {
             top10,
             totalGanhos,
             totalPerdas,
-            saldo: 0, // Será recalculado depois com campos editáveis
+            saldo: 0,
         };
     }
 
@@ -625,9 +602,8 @@ export class FluxoFinanceiroCore {
     _acumularValoresIntegrados(resumo, r, isSuper) {
         if (r.bonusOnus > 0) resumo.bonus += r.bonusOnus;
         if (r.bonusOnus < 0) resumo.onus += r.bonusOnus;
-        if (isSuper && typeof r.pontosCorridos === "number") {
+        if (isSuper && typeof r.pontosCorridos === "number")
             resumo.pontosCorridos += r.pontosCorridos;
-        }
         resumo.mataMata += r.mataMata || 0;
         resumo.top10 += r.top10 || 0;
     }
@@ -716,7 +692,6 @@ export class FluxoFinanceiroCore {
                       9: 14,
                       10: 12,
                   };
-
             const valoresMicos = isCartoleirosSobral
                 ? {
                       1: -10,
@@ -785,29 +760,23 @@ export class FluxoFinanceiroCore {
     }
 }
 
-// ===================================================================
-// FUNÇÃO GLOBAL PARA FORÇAR REFRESH
-// ===================================================================
 window.forcarRefreshExtrato = async function (timeId) {
     const ligaId = window.obterLigaId();
-
     console.log(
         `[FLUXO-CORE] 🔄 Forçando refresh do extrato para time ${timeId}...`,
     );
 
-    // Invalidar cache MongoDB
     try {
         await fetch(
             `${API_BASE_URL}/api/extrato-cache/${ligaId}/times/${timeId}/cache`,
-            {
-                method: "DELETE",
-            },
+            { method: "DELETE" },
         );
-        console.log(`[FLUXO-CORE] 🗑️ Cache MongoDB invalidado`);
+        console.log(`[FLUXO-CORE] 🗑️ Cache invalidado`);
     } catch (error) {
         console.warn("[FLUXO-CORE] Erro ao invalidar cache:", error);
     }
 
-    // Recarregar página
     window.location.reload();
 };
+
+console.log("[FLUXO-CORE] ✅ v4.1 carregado (suporte a inativos)");

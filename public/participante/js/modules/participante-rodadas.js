@@ -1,9 +1,10 @@
 // =====================================================================
-// PARTICIPANTE-RODADAS.JS - v3.3 (Correção posição)
-// ✅ v3.3: Calcula posição localmente quando não vem do backend
+// PARTICIPANTE-RODADAS.JS - v3.6 (Inativos contextuais por rodada)
+// ✅ v3.6: Inativos aparecem como ATIVOS nas rodadas anteriores à desistência
+//         Visual de inativo SÓ aparece nas rodadas >= rodada_desistencia
 // =====================================================================
 
-console.log("[PARTICIPANTE-RODADAS] 📄 Carregando módulo v3.3...");
+console.log("[PARTICIPANTE-RODADAS] 📄 Carregando módulo v3.6...");
 
 // Importar módulo de parciais
 import * as ParciaisModule from "./participante-rodada-parcial.js";
@@ -70,7 +71,7 @@ let meuTimeId = null;
 let ligaId = null;
 let rodadaSelecionada = null;
 let rodadaAtualCartola = 38;
-let parciaisInfo = null; // Info sobre parciais disponíveis
+let parciaisInfo = null;
 
 // =====================================================================
 // FUNÇÃO PRINCIPAL - EXPORTADA PARA NAVIGATION
@@ -80,7 +81,7 @@ export async function inicializarRodadasParticipante({
     ligaId: ligaIdParam,
     timeId,
 }) {
-    console.log("[PARTICIPANTE-RODADAS] 🚀 Inicializando v3.3...", {
+    console.log("[PARTICIPANTE-RODADAS] 🚀 Inicializando v3.6...", {
         ligaIdParam,
         timeId,
     });
@@ -235,13 +236,17 @@ function agruparRodadasPorNumero(rodadas, timesStatus = {}) {
         }
     });
 
-    // ✅ v3.3: Calcular posição financeira localmente se não veio do backend
+    // ✅ v3.6: Calcular posição financeira considerando ATIVOS NAQUELA RODADA
     rodadasMap.forEach((rodadaData, rodadaNum) => {
         if (rodadaData.posicaoFinanceira == null && rodadaData.jogou) {
-            // Filtrar apenas ativos
-            const participantesAtivos = rodadaData.participantes.filter(
-                (p) => p.ativo !== false,
-            );
+            // Filtrar participantes que eram ATIVOS nessa rodada específica
+            const participantesAtivos = rodadaData.participantes.filter((p) => {
+                if (p.ativo === false && p.rodada_desistencia) {
+                    // Era ativo se rodada < rodada_desistencia
+                    return rodadaNum < p.rodada_desistencia;
+                }
+                return p.ativo !== false;
+            });
 
             // Ordenar por pontos (decrescente)
             const ordenados = [...participantesAtivos].sort(
@@ -256,7 +261,7 @@ function agruparRodadasPorNumero(rodadas, timesStatus = {}) {
             if (meuIndex >= 0) {
                 rodadaData.posicaoFinanceira = meuIndex + 1;
                 console.log(
-                    `[PARTICIPANTE-RODADAS] 📊 Rodada ${rodadaNum}: posição calculada = ${meuIndex + 1}º`,
+                    `[PARTICIPANTE-RODADAS] 📊 Rodada ${rodadaNum}: posição calculada = ${meuIndex + 1}º (${participantesAtivos.length} ativos)`,
                 );
             }
         }
@@ -313,7 +318,6 @@ function criarCardCompacto(numero, rodada, isParcial = false) {
     let classes = ["rodada-card-compacto"];
 
     if (isParcial) {
-        // Rodada em andamento com parciais
         classes.push("parcial", "em-andamento");
     } else if (isFuturo) {
         classes.push("futuro");
@@ -322,7 +326,9 @@ function criarCardCompacto(numero, rodada, isParcial = false) {
     } else if (jogou) {
         classes.push("jogou");
         if (rodada.posicaoFinanceira) {
-            const totalParticipantes = rodada.participantes.length;
+            const totalParticipantes = rodada.participantes.filter(
+                (p) => p.ativo !== false,
+            ).length;
             if (rodada.posicaoFinanceira === 1) {
                 classes.push("mito");
             } else if (rodada.posicaoFinanceira === totalParticipantes) {
@@ -336,7 +342,7 @@ function criarCardCompacto(numero, rodada, isParcial = false) {
     // Formatar pontos
     let pontosTexto = "";
     if (isParcial) {
-        pontosTexto = "⏳"; // Ícone de parcial
+        pontosTexto = "⏳";
     } else if (temDados && jogou && pontos !== null && pontos > 0) {
         pontosTexto = pontos.toLocaleString("pt-BR", {
             minimumFractionDigits: 2,
@@ -346,7 +352,6 @@ function criarCardCompacto(numero, rodada, isParcial = false) {
         pontosTexto = "N/J";
     }
 
-    // Badge de "AO VIVO" para rodada em andamento
     const badgeAoVivo = isParcial ? '<span class="badge-ao-vivo">●</span>' : "";
 
     return `
@@ -368,7 +373,6 @@ function destacarRodadaEmAndamento(rodada) {
     if (card) {
         card.classList.add("parcial", "em-andamento");
 
-        // Adicionar badge se não existir
         if (!card.querySelector(".badge-ao-vivo")) {
             const badge = document.createElement("span");
             badge.className = "badge-ao-vivo";
@@ -376,7 +380,6 @@ function destacarRodadaEmAndamento(rodada) {
             card.prepend(badge);
         }
 
-        // Atualizar texto
         const pontosEl = card.querySelector(".card-pontos");
         if (pontosEl) {
             pontosEl.textContent = "⏳";
@@ -399,7 +402,6 @@ async function selecionarRodada(numeroRodada, isParcial = false) {
 
     rodadaSelecionada = numeroRodada;
 
-    // Atualizar visual dos cards
     document.querySelectorAll(".rodada-card-compacto").forEach((card) => {
         card.classList.remove("selected");
     });
@@ -411,13 +413,11 @@ async function selecionarRodada(numeroRodada, isParcial = false) {
         cardSelecionado.classList.add("selected");
     }
 
-    // Atualizar botão de jogadores
     const btnTexto = document.getElementById("btnJogadoresTexto");
     if (btnTexto) {
         btnTexto.textContent = `Ver Meus Jogadores da Rodada ${numeroRodada}`;
     }
 
-    // Mostrar loading no detalhamento
     const detalhamento = document.getElementById("rodadaDetalhamento");
     if (detalhamento) {
         detalhamento.style.display = "block";
@@ -433,15 +433,12 @@ async function selecionarRodada(numeroRodada, isParcial = false) {
         `;
     }
 
-    // Verificar se é rodada com parciais
     const isRodadaParcial =
         parciaisInfo?.disponivel && numeroRodada === parciaisInfo.rodada;
 
     if (isRodadaParcial) {
-        // Carregar parciais
         await carregarERenderizarParciais(numeroRodada);
     } else {
-        // Usar dados consolidados
         const rodadaData = todasRodadasCache.find(
             (r) => r.numero === numeroRodada,
         );
@@ -460,7 +457,6 @@ async function selecionarRodada(numeroRodada, isParcial = false) {
         renderizarDetalhamentoRodada(rodadaData, false);
     }
 
-    // Scroll para detalhamento
     setTimeout(() => {
         detalhamento?.scrollIntoView({ behavior: "smooth", block: "start" });
     }, 100);
@@ -483,7 +479,6 @@ async function carregarERenderizarParciais(numeroRodada) {
     }
 
     try {
-        // Carregar dados parciais
         const dados = await ParciaisModule.carregarParciais();
 
         if (
@@ -504,7 +499,6 @@ async function carregarERenderizarParciais(numeroRodada) {
             return;
         }
 
-        // Converter para formato compatível
         const rodadaData = {
             numero: numeroRodada,
             participantes: dados.participantes,
@@ -512,18 +506,16 @@ async function carregarERenderizarParciais(numeroRodada) {
             atualizadoEm: dados.atualizadoEm,
         };
 
-        // Encontrar minha posição
         const minhaPosicao = ParciaisModule.obterMinhaPosicaoParcial();
         if (minhaPosicao) {
             rodadaData.posicaoFinanceira = minhaPosicao.posicao;
             rodadaData.meusPontos = minhaPosicao.pontos;
         }
 
-        // ✅ Passar inativos separadamente
+        // ✅ v3.5: Passar TODOS os inativos
         const inativos = dados.inativos || [];
         renderizarDetalhamentoRodada(rodadaData, true, inativos);
 
-        // Atualizar resumo
         if (resumo) {
             const horaAtualizacao = dados.atualizadoEm
                 ? new Date(dados.atualizadoEm).toLocaleTimeString("pt-BR", {
@@ -576,18 +568,28 @@ function renderizarDetalhamentoRodada(
         }
     }
 
-    // Separar ativos de inativos nos dados consolidados
     const todosParticipantes = rodadaData.participantes || [];
 
-    // Filtrar: se veio lista de inativos separada (parciais), usar ela
-    // Se não, verificar campo ativo em cada participante
+    // ✅ v3.6: Separar ativos de inativos CONSIDERANDO A RODADA SELECIONADA
+    // Regra: Se rodada < rodada_desistencia, participante era ATIVO nessa rodada
     let participantesAtivos = [];
     let participantesInativos = inativos.length > 0 ? inativos : [];
+    const rodadaNum = rodadaData.numero;
 
     if (inativos.length === 0) {
-        // Separar baseado no campo ativo
+        // Separar baseado no campo ativo E na rodada
         todosParticipantes.forEach((p) => {
-            if (p.ativo === false) {
+            if (p.ativo === false && p.rodada_desistencia) {
+                // Inativo atualmente, mas verifica se era ativo NESTA rodada
+                if (rodadaNum < p.rodada_desistencia) {
+                    // Era ativo nessa rodada (antes de desistir)
+                    participantesAtivos.push(p);
+                } else {
+                    // Já era inativo nessa rodada
+                    participantesInativos.push(p);
+                }
+            } else if (p.ativo === false && !p.rodada_desistencia) {
+                // Inativo sem rodada definida (fallback)
                 participantesInativos.push(p);
             } else {
                 participantesAtivos.push(p);
@@ -601,7 +603,6 @@ function renderizarDetalhamentoRodada(
     if (resumo && !isParcial) {
         const totalAtivos = participantesAtivos.length;
 
-        // ✅ v3.3: Calcular posição se não existir
         let minhaPosicao = rodadaData.posicaoFinanceira;
         if (minhaPosicao == null) {
             const ordenados = [...participantesAtivos].sort(
@@ -637,7 +638,6 @@ function renderizarDetalhamentoRodada(
             const isMeuTime = String(timeId) === String(meuTimeId);
             const posicao = participante.posicao || index + 1;
 
-            // Calcular financeiro
             const valoresBanco = getBancoPorLiga(ligaId);
             const bonusOnus = valoresBanco[posicao] || 0;
 
@@ -661,7 +661,6 @@ function renderizarDetalhamentoRodada(
                       ? "negativo"
                       : "neutro";
 
-            // Classe da posição
             let posicaoClass = "pos-default";
             if (posicao === 1) posicaoClass = "pos-1";
             else if (posicao === 2) posicaoClass = "pos-2";
@@ -679,7 +678,6 @@ function renderizarDetalhamentoRodada(
             const nomeTime =
                 participante.nome || participante.nome_time || "N/D";
 
-            // Badge de não escalou
             const naoJogouBadge = participante.rodadaNaoJogada
                 ? '<span class="badge-nao-jogou">N/E</span>'
                 : "";
@@ -700,9 +698,12 @@ function renderizarDetalhamentoRodada(
         })
         .join("");
 
-    // Adicionar seção de INATIVOS (se houver)
+    // ✅ v3.6: Adicionar seção de INATIVOS (só para rodadas >= rodada_desistencia)
     if (participantesInativos.length > 0) {
-        html += renderizarSecaoInativos(participantesInativos);
+        html += renderizarSecaoInativos(
+            participantesInativos,
+            rodadaData.numero,
+        );
     }
 
     container.innerHTML =
@@ -729,10 +730,15 @@ function renderizarDetalhamentoRodada(
 // =====================================================================
 // RENDERIZAR SEÇÃO DE INATIVOS (Escala de cinza)
 // =====================================================================
-function renderizarSecaoInativos(inativos) {
+function renderizarSecaoInativos(inativos, rodadaNum) {
     if (!inativos || inativos.length === 0) return "";
 
-    const items = inativos
+    // Ordenar por pontos (decrescente)
+    const inativosOrdenados = [...inativos].sort(
+        (a, b) => (b.pontos || 0) - (a.pontos || 0),
+    );
+
+    const items = inativosOrdenados
         .map((p) => {
             const nomeTime = p.nome || p.nome_time || "N/D";
             const nomeCartola = p.nome_cartola || "N/D";
@@ -741,16 +747,25 @@ function renderizarSecaoInativos(inativos) {
                 ? `Saiu na R${rodadaDesist}`
                 : "Inativo";
 
+            const pontosFormatados = Number(p.pontos || 0).toLocaleString(
+                "pt-BR",
+                {
+                    minimumFractionDigits: 2,
+                    maximumFractionDigits: 2,
+                },
+            );
+
             return `
             <div class="ranking-item-pro inativo">
                 <div class="posicao-badge-pro pos-inativo">
-                    <span class="material-icons" style="font-size: 14px;">block</span>
+                    <span class="material-icons" style="font-size: 14px;">person_off</span>
                 </div>
                 <div class="ranking-info-pro">
                     <div class="ranking-nome-time">${nomeTime}</div>
                     <div class="ranking-nome-cartola">${nomeCartola}</div>
                 </div>
                 <div class="ranking-stats-pro">
+                    <div class="ranking-pontos-pro" style="color: #6b7280;">${pontosFormatados}</div>
                     <div class="ranking-inativo-info">${rodadaInfo}</div>
                 </div>
             </div>
@@ -847,5 +862,5 @@ function mostrarErro(mensagem) {
 }
 
 console.log(
-    "[PARTICIPANTE-RODADAS] ✅ Módulo v3.3 carregado (posição corrigida)",
+    "[PARTICIPANTE-RODADAS] ✅ Módulo v3.6 carregado (inativos contextuais por rodada)",
 );

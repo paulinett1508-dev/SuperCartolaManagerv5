@@ -1,13 +1,11 @@
 // =====================================================================
-// PARTICIPANTE-EXTRATO.JS - v2.1 (APENAS CONSUMO)
+// PARTICIPANTE-EXTRATO.JS - v2.2 (SUPORTE A INATIVOS)
 // =====================================================================
-// ✅ Consome dados prontos do backend (cache já calculado pelo admin)
-// ✅ Zero cálculo no frontend
-// ✅ Leve e rápido
-// ✅ v2.1: Suporte a campos manuais (ajustes financeiros)
+// ✅ v2.2: Suporte a extrato travado para inativos
+// ✅ Consome dados prontos do backend (cache já calculado)
 // =====================================================================
 
-console.log("[EXTRATO-PARTICIPANTE] 🔄 Módulo v2.1 (consumo)");
+console.log("[EXTRATO-PARTICIPANTE] 📄 Módulo v2.2 (suporte a inativos)");
 
 const PARTICIPANTE_IDS = { ligaId: null, timeId: null };
 
@@ -29,11 +27,9 @@ export async function inicializarExtratoParticipante({
         return;
     }
 
-    // Armazenar IDs para refresh
     PARTICIPANTE_IDS.ligaId = ligaId;
     PARTICIPANTE_IDS.timeId = timeId;
 
-    // Expor globalmente
     window.participanteData = { ligaId, timeId, participante };
 
     await carregarExtrato(ligaId, timeId);
@@ -49,7 +45,6 @@ async function carregarExtrato(ligaId, timeId, forcarRefresh = false) {
         return;
     }
 
-    // Loading state
     container.innerHTML = `
         <div class="loading-state">
             <div class="spinner"></div>
@@ -58,7 +53,7 @@ async function carregarExtrato(ligaId, timeId, forcarRefresh = false) {
     `;
 
     try {
-        // ✅ BUSCAR RODADA ATUAL (para contexto)
+        // Buscar rodada atual
         let rodadaAtual = 1;
         try {
             const resStatus = await fetch("/api/cartola/mercado/status");
@@ -72,7 +67,7 @@ async function carregarExtrato(ligaId, timeId, forcarRefresh = false) {
             );
         }
 
-        // ✅ BUSCAR EXTRATO DO CACHE (PRONTO DO BACKEND)
+        // Buscar extrato do cache
         const url = `/api/extrato-cache/${ligaId}/times/${timeId}/cache?rodadaAtual=${rodadaAtual}`;
         console.log("[EXTRATO-PARTICIPANTE] 📡 Buscando:", url);
 
@@ -88,19 +83,21 @@ async function carregarExtrato(ligaId, timeId, forcarRefresh = false) {
             temRodadas: !!cacheData.rodadas,
             qtdRodadas: cacheData.rodadas?.length || 0,
             resumo: cacheData.resumo,
-            camposManuais: cacheData.camposManuais?.length || 0, // ✅ LOG
+            camposManuais: cacheData.camposManuais?.length || 0,
+            // ✅ v2.2: Logs de inativo
+            inativo: cacheData.inativo,
+            extratoTravado: cacheData.extratoTravado,
+            rodadaTravada: cacheData.rodadaTravada,
         });
 
-        // ✅ VALIDAR ESTRUTURA DO CACHE
+        // Validar estrutura do cache
         let extratoData = null;
 
-        // O controller retorna: { cached, rodadas, resumo, camposManuais, metadados, ... }
         if (
             cacheData.cached &&
             cacheData.rodadas &&
             cacheData.rodadas.length > 0
         ) {
-            // Verificar se rodadas têm campos necessários
             const primeiraRodada = cacheData.rodadas[0];
             const temCamposCompletos =
                 primeiraRodada.posicao !== undefined ||
@@ -114,15 +111,18 @@ async function carregarExtrato(ligaId, timeId, forcarRefresh = false) {
                         totalGanhos: 0,
                         totalPerdas: 0,
                     },
-                    camposManuais: cacheData.camposManuais || [], // ✅ NOVO
+                    camposManuais: cacheData.camposManuais || [],
+                    // ✅ v2.2: Dados de inativo
+                    inativo: cacheData.inativo || false,
+                    extratoTravado: cacheData.extratoTravado || false,
+                    rodadaTravada: cacheData.rodadaTravada || null,
+                    rodadaDesistencia: cacheData.rodadaDesistencia || null,
                 };
                 console.log(
-                    "[EXTRATO-PARTICIPANTE] ✅ Cache válido com campos completos",
-                    { camposManuais: extratoData.camposManuais.length },
-                );
-            } else {
-                console.log(
-                    "[EXTRATO-PARTICIPANTE] ⚠️ Cache com campos incompletos, buscando endpoint direto...",
+                    "[EXTRATO-PARTICIPANTE] ✅ Cache válido",
+                    extratoData.extratoTravado
+                        ? `| TRAVADO na R${extratoData.rodadaTravada}`
+                        : "",
                 );
             }
         }
@@ -138,18 +138,6 @@ async function carregarExtrato(ligaId, timeId, forcarRefresh = false) {
             );
             if (resDireto.ok) {
                 const dadosDireto = await resDireto.json();
-                console.log(
-                    "[EXTRATO-PARTICIPANTE] 📦 Resposta endpoint direto:",
-                    {
-                        temRodadas: !!dadosDireto.rodadas,
-                        qtd:
-                            dadosDireto.rodadas?.length ||
-                            (Array.isArray(dadosDireto)
-                                ? dadosDireto.length
-                                : 0),
-                        camposManuais: dadosDireto.camposManuais?.length || 0,
-                    },
-                );
 
                 if (
                     dadosDireto &&
@@ -161,7 +149,21 @@ async function carregarExtrato(ligaId, timeId, forcarRefresh = false) {
                         camposManuais:
                             dadosDireto.camposManuais ||
                             cacheData.camposManuais ||
-                            [], // ✅ NOVO
+                            [],
+                        inativo:
+                            dadosDireto.inativo || cacheData.inativo || false,
+                        extratoTravado:
+                            dadosDireto.extratoTravado ||
+                            cacheData.extratoTravado ||
+                            false,
+                        rodadaTravada:
+                            dadosDireto.rodadaTravada ||
+                            cacheData.rodadaTravada ||
+                            null,
+                        rodadaDesistencia:
+                            dadosDireto.rodadaDesistencia ||
+                            cacheData.rodadaDesistencia ||
+                            null,
                     };
                 } else if (
                     Array.isArray(dadosDireto) &&
@@ -170,17 +172,18 @@ async function carregarExtrato(ligaId, timeId, forcarRefresh = false) {
                     extratoData = {
                         rodadas: dadosDireto,
                         resumo: calcularResumoLocal(dadosDireto),
-                        camposManuais: cacheData.camposManuais || [], // ✅ NOVO
+                        camposManuais: cacheData.camposManuais || [],
+                        inativo: cacheData.inativo || false,
+                        extratoTravado: cacheData.extratoTravado || false,
+                        rodadaTravada: cacheData.rodadaTravada || null,
+                        rodadaDesistencia: cacheData.rodadaDesistencia || null,
                     };
                 }
             }
         }
 
-        // Ainda sem dados? Usar o que tiver do cache mesmo com campos incompletos
+        // Usar cache mesmo com campos incompletos
         if (!extratoData && cacheData.rodadas && cacheData.rodadas.length > 0) {
-            console.log(
-                "[EXTRATO-PARTICIPANTE] ⚠️ Usando cache mesmo com campos incompletos",
-            );
             extratoData = {
                 rodadas: cacheData.rodadas,
                 resumo: cacheData.resumo || {
@@ -188,7 +191,11 @@ async function carregarExtrato(ligaId, timeId, forcarRefresh = false) {
                     totalGanhos: 0,
                     totalPerdas: 0,
                 },
-                camposManuais: cacheData.camposManuais || [], // ✅ NOVO
+                camposManuais: cacheData.camposManuais || [],
+                inativo: cacheData.inativo || false,
+                extratoTravado: cacheData.extratoTravado || false,
+                rodadaTravada: cacheData.rodadaTravada || null,
+                rodadaDesistencia: cacheData.rodadaDesistencia || null,
             };
         }
 
@@ -201,13 +208,16 @@ async function carregarExtrato(ligaId, timeId, forcarRefresh = false) {
             return;
         }
 
-        // ✅ RENDERIZAR
+        // Renderizar
         console.log(
             "[EXTRATO-PARTICIPANTE] 🎨 Renderizando",
             extratoData.rodadas.length,
             "rodadas |",
             extratoData.camposManuais?.length || 0,
             "campos manuais",
+            extratoData.extratoTravado
+                ? `| TRAVADO R${extratoData.rodadaTravada}`
+                : "",
         );
 
         const { renderizarExtratoParticipante } = await import(
@@ -260,7 +270,6 @@ function mostrarVazio() {
         </div>
     `;
 
-    // Atualizar header com zeros
     atualizarHeaderZerado();
 }
 
@@ -303,7 +312,7 @@ function atualizarHeaderZerado() {
 }
 
 // =====================================================================
-// REFRESH (SIMPLES - RECARREGA DO CACHE)
+// REFRESH
 // =====================================================================
 window.forcarRefreshExtratoParticipante = async function () {
     console.log("[EXTRATO-PARTICIPANTE] 🔄 Refresh solicitado");
@@ -313,7 +322,6 @@ window.forcarRefreshExtratoParticipante = async function () {
         return;
     }
 
-    // Mostrar loading no botão
     const btn = document.getElementById("btnRefreshExtrato");
     if (btn) btn.classList.add("loading");
 
@@ -328,9 +336,6 @@ window.forcarRefreshExtratoParticipante = async function () {
     }
 };
 
-// =====================================================================
-// LOADING HELPER (para UI)
-// =====================================================================
 window.mostrarLoadingExtrato = function () {
     const container = document.getElementById("fluxoFinanceiroContent");
     if (container) {
@@ -352,4 +357,6 @@ export function initExtratoParticipante() {
     console.log("[EXTRATO-PARTICIPANTE] Módulo pronto");
 }
 
-console.log("[EXTRATO-PARTICIPANTE] ✅ Módulo v2.1 carregado");
+console.log(
+    "[EXTRATO-PARTICIPANTE] ✅ Módulo v2.2 carregado (suporte a inativos)",
+);

@@ -271,21 +271,18 @@ async function renderizarArtilheiro(container, response, meuTimeId) {
     // ✅ BUSCAR RODADA ATUAL DA API DE MERCADO SE NÃO VEIO NOS DADOS
     if (!rodadaAtual) {
         try {
-            // Tentar endpoint do cartola-proxy
-            const mercadoRes = await fetch("/api/cartola/mercado");
+            // Endpoint correto: /api/cartola/mercado/status
+            const mercadoRes = await fetch("/api/cartola/mercado/status");
             if (mercadoRes.ok) {
                 const mercado = await mercadoRes.json();
                 rodadaAtual =
                     mercado.rodada_atual || mercado.rodadaAtual || rodadaFim;
-                mercadoAberto =
-                    mercado.status_mercado === 1 ||
-                    mercado.mercadoAberto === true;
+                mercadoAberto = mercado.status_mercado === 1;
                 console.log("[PARTICIPANTE-ARTILHEIRO] 📊 Mercado:", {
                     rodadaAtual,
                     mercadoAberto,
                 });
             } else {
-                // Fallback: usar rodadaFim
                 rodadaAtual = rodadaFim;
                 console.warn(
                     "[PARTICIPANTE-ARTILHEIRO] ⚠️ API mercado indisponível, usando rodadaFim:",
