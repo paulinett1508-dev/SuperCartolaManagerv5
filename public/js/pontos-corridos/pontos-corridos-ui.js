@@ -1,12 +1,12 @@
-// PONTOS CORRIDOS UI - Interface Otimizada (Preservando Funcionalidades Imersivas)
+// PONTOS CORRIDOS UI - v2.2 Interface Otimizada
+// ✅ v2.1: Celebração do campeão quando liga encerra
+// ✅ v2.2: Banner compacto e elegante com nome do cartoleiro
 // Responsável por: renderização, manipulação DOM, estados visuais
 
 import {
   PONTOS_CORRIDOS_CONFIG,
   calcularRodadaBrasileirao,
 } from "./pontos-corridos-config.js";
-
-// ✅ EXPORTS REMOVIDOS - Sistema não usa mais exportação como imagem
 
 // Cache de elementos DOM
 const elementsCache = new Map();
@@ -116,31 +116,49 @@ export function renderizarSeletorRodadasModerno(
     rodadaAtual - PONTOS_CORRIDOS_CONFIG.rodadaInicial,
   );
 
+  // ✅ v2.1: Verificar se a liga encerrou
+  const ligaEncerrou = rodadasPassadas >= totalRodadas;
+
   // CORREÇÃO: Encontrar a rodada anterior à vigente para destacar em verde
   let rodadaParaSelecionar = 0;
   for (let i = confrontos.length - 1; i >= 0; i--) {
     const rodadaBrasileirao = calcularRodadaBrasileirao(i);
     if (rodadaBrasileirao === rodadaAtual - 1) {
-      // Rodada anterior à vigente (verde)
       rodadaParaSelecionar = i;
       break;
     } else if (rodadaBrasileirao < rodadaAtual - 1) {
-      // Se não encontrar a anterior exata, pegar a mais recente finalizada
       rodadaParaSelecionar = i;
       break;
     }
   }
 
+  // ✅ v2.1: Se a liga encerrou, selecionar última rodada
+  if (ligaEncerrou) {
+    rodadaParaSelecionar = totalRodadas - 1;
+  }
+
   // Renderizar informações de progresso
   if (progresso) {
-    progresso.innerHTML = `
-      <div class="progresso-info">
-        <span class="progresso-texto">${rodadasPassadas} de ${totalRodadas} rodadas disputadas</span>
-        <div class="progresso-bar">
-          <div class="progresso-fill" style="width: ${(rodadasPassadas / totalRodadas) * 100}%"></div>
+    // ✅ v2.1: Mensagem diferente se encerrou
+    if (ligaEncerrou) {
+      progresso.innerHTML = `
+        <div class="progresso-info liga-encerrada">
+          <span class="progresso-texto">🏆 Liga Encerrada! ${totalRodadas} rodadas disputadas</span>
+          <div class="progresso-bar">
+            <div class="progresso-fill completo" style="width: 100%"></div>
+          </div>
         </div>
-      </div>
-    `;
+      `;
+    } else {
+      progresso.innerHTML = `
+        <div class="progresso-info">
+          <span class="progresso-texto">${rodadasPassadas} de ${totalRodadas} rodadas disputadas</span>
+          <div class="progresso-bar">
+            <div class="progresso-fill" style="width: ${(rodadasPassadas / totalRodadas) * 100}%"></div>
+          </div>
+        </div>
+      `;
+    }
   }
 
   // Limpar grid
@@ -157,9 +175,14 @@ export function renderizarSeletorRodadasModerno(
     if (rodadaBrasileirao < rodadaAtual) {
       estadoClasse = "passada";
     } else if (rodadaBrasileirao === rodadaAtual) {
-      estadoClasse = "atual"; // Rodada vigente - destaque laranja
+      estadoClasse = "atual";
     } else {
-      estadoClasse = "futura"; // Rodadas futuras - pontinho vermelho
+      estadoClasse = "futura";
+    }
+
+    // ✅ v2.1: Se encerrou, última rodada é especial
+    if (ligaEncerrou && index === totalRodadas - 1) {
+      estadoClasse = "passada campeao";
     }
 
     // Configurar classes
@@ -177,25 +200,25 @@ export function renderizarSeletorRodadasModerno(
       <div class="rodada-label">Rodada</div>
       <div class="rodada-brasileirao">R${rodadaBrasileirao}</div>
       ${estadoClasse === "futura" ? '<div class="pontinho-vermelho"></div>' : ""}
+      ${ligaEncerrou && index === totalRodadas - 1 ? '<div class="badge-final">🏆</div>' : ""}
     `;
 
     // CORREÇÃO: Todas as rodadas acessíveis, incluindo futuras
     card.addEventListener("click", function () {
-      // Remover seleção anterior
       document.querySelectorAll(".rodada-card").forEach((c) => {
         c.classList.remove("selecionada");
       });
 
-      // Adicionar seleção atual
       card.classList.add("selecionada");
       rodadaSelecionadaInterface = index;
 
-      // Executar callback com número da rodada (index + 1)
       handleRodadaChange(numeroRodada);
     });
 
     // Tooltip informativo
-    if (estadoClasse === "futura") {
+    if (ligaEncerrou && index === totalRodadas - 1) {
+      card.title = `Rodada ${numeroRodada} - RODADA FINAL 🏆`;
+    } else if (estadoClasse === "futura") {
       card.title = `Rodada ${numeroRodada} - Aguardando rodada ${rodadaBrasileirao} do Brasileirão`;
     } else if (estadoClasse === "atual") {
       card.title = `Rodada ${numeroRodada} - Em andamento`;
@@ -217,7 +240,6 @@ export function renderSeletorRodada(
   handleRodadaChange,
   handleClassificacaoClick,
 ) {
-  // Buscar rodada atual via API ou usar padrão
   const rodadaAtual = rodadaAtualInterface || 15;
   renderizarSeletorRodadasModerno(
     confrontos,
@@ -264,9 +286,8 @@ export function renderTabelaRodada(
   pontuacoesMap,
   rodadaAtualBrasileirao,
 ) {
-  // CORREÇÃO: idxRodada agora é o número da rodada da liga (1-31), não índice
   const numeroRodada = idxRodada;
-  const rodadaBrasileirao = calcularRodadaBrasileirao(idxRodada - 1); // Subtrair 1 para índice
+  const rodadaBrasileirao = calcularRodadaBrasileirao(idxRodada - 1);
   const isRodadaPassada = rodadaBrasileirao < rodadaAtualBrasileirao;
   const isRodadaAtual = rodadaBrasileirao === rodadaAtualBrasileirao;
 
@@ -279,7 +300,6 @@ export function renderTabelaRodada(
     statusTexto = "Aguardando Rodada";
   }
 
-  // Usar tabela tradicional com classes existentes
   let confrontosHTML = "";
 
   jogos.forEach((jogo, index) => {
@@ -291,10 +311,12 @@ export function renderTabelaRodada(
     const brasaoA = obterBrasaoTime(timeA);
     const brasaoB = obterBrasaoTime(timeB);
 
-    const nomeA = timeA.nome_cartoleiro || timeA.nome || "N/D";
-    const timeNomeA = timeA.nome_time || "Time";
-    const nomeB = timeB.nome_cartoleiro || timeB.nome || "N/D";
-    const timeNomeB = timeB.nome_time || "Time";
+    // ✅ v2.2: Nome do time (principal) + nome do cartoleiro (secundário)
+    // Dados vêm do core com: nome (time), nome_cartola (cartoleiro)
+    const nomeTimeA = timeA.nome || timeA.nome_time || "Time";
+    const cartolaA = timeA.nome_cartola || "";
+    const nomeTimeB = timeB.nome || timeB.nome_time || "Time";
+    const cartolaB = timeB.nome_cartola || "";
 
     let financeiroA = "R$ 0,00";
     let financeiroB = "R$ 0,00";
@@ -315,9 +337,9 @@ export function renderTabelaRodada(
         financeiroB = `+R$ ${PONTOS_CORRIDOS_CONFIG.financeiro.empate.toFixed(2)}`;
         resultadoTexto = "Empate";
         classeConfronto = "empate";
-        corPlacarA = "color: #3b82f6;"; // Azul para empate
+        corPlacarA = "color: #3b82f6;";
         corPlacarB = "color: #3b82f6;";
-        corFinanceiroA = "color: #22c55e;"; // Verde para positivo
+        corFinanceiroA = "color: #22c55e;";
         corFinanceiroB = "color: #22c55e;";
       } else if (diferenca >= goleadaMinima) {
         if (pontosA > pontosB) {
@@ -325,19 +347,19 @@ export function renderTabelaRodada(
           financeiroB = `-R$ ${PONTOS_CORRIDOS_CONFIG.financeiro.goleada.toFixed(2)}`;
           resultadoTexto = "Goleada A";
           classeConfronto = "goleada";
-          corPlacarA = "color: #ffd700; font-weight: 700;"; // Dourado para goleada
-          corPlacarB = "color: #ef4444;"; // Vermelho para perdedor
-          corFinanceiroA = "color: #22c55e;"; // Verde para positivo
-          corFinanceiroB = "color: #ef4444;"; // Vermelho para negativo
+          corPlacarA = "color: #ffd700; font-weight: 700;";
+          corPlacarB = "color: #ef4444;";
+          corFinanceiroA = "color: #22c55e;";
+          corFinanceiroB = "color: #ef4444;";
         } else {
           financeiroA = `-R$ ${PONTOS_CORRIDOS_CONFIG.financeiro.goleada.toFixed(2)}`;
           financeiroB = `+R$ ${PONTOS_CORRIDOS_CONFIG.financeiro.goleada.toFixed(2)}`;
           resultadoTexto = "Goleada B";
           classeConfronto = "goleada";
-          corPlacarA = "color: #ef4444;"; // Vermelho para perdedor
-          corPlacarB = "color: #ffd700; font-weight: 700;"; // Dourado para goleada
-          corFinanceiroA = "color: #ef4444;"; // Vermelho para negativo
-          corFinanceiroB = "color: #22c55e;"; // Verde para positivo
+          corPlacarA = "color: #ef4444;";
+          corPlacarB = "color: #ffd700; font-weight: 700;";
+          corFinanceiroA = "color: #ef4444;";
+          corFinanceiroB = "color: #22c55e;";
         }
       } else {
         if (pontosA > pontosB) {
@@ -345,19 +367,19 @@ export function renderTabelaRodada(
           financeiroB = `-R$ ${PONTOS_CORRIDOS_CONFIG.financeiro.vitoria.toFixed(2)}`;
           resultadoTexto = "Vitória A";
           classeConfronto = "vitoria";
-          corPlacarA = "color: #22c55e;"; // Verde para vencedor
-          corPlacarB = "color: #ef4444;"; // Vermelho para perdedor
-          corFinanceiroA = "color: #22c55e;"; // Verde para positivo
-          corFinanceiroB = "color: #ef4444;"; // Vermelho para negativo
+          corPlacarA = "color: #22c55e;";
+          corPlacarB = "color: #ef4444;";
+          corFinanceiroA = "color: #22c55e;";
+          corFinanceiroB = "color: #ef4444;";
         } else {
           financeiroA = `-R$ ${PONTOS_CORRIDOS_CONFIG.financeiro.vitoria.toFixed(2)}`;
           financeiroB = `+R$ ${PONTOS_CORRIDOS_CONFIG.financeiro.vitoria.toFixed(2)}`;
           resultadoTexto = "Vitória B";
           classeConfronto = "vitoria";
-          corPlacarA = "color: #ef4444;"; // Vermelho para perdedor
-          corPlacarB = "color: #22c55e;"; // Verde para vencedor
-          corFinanceiroA = "color: #ef4444;"; // Vermelho para negativo
-          corFinanceiroB = "color: #22c55e;"; // Verde para positivo
+          corPlacarA = "color: #ef4444;";
+          corPlacarB = "color: #22c55e;";
+          corFinanceiroA = "color: #ef4444;";
+          corFinanceiroB = "color: #22c55e;";
         }
       }
     }
@@ -370,8 +392,8 @@ export function renderTabelaRodada(
             <div style="display: flex; align-items: center; gap: 12px; flex: 1; justify-content: flex-start;">
               <img src="${brasaoA}" style="width: 32px; height: 32px; border-radius: 50%; object-fit: contain;" alt="Time A" onerror="this.src='/escudos/default.png'">
               <div style="text-align: left;">
-                <div style="font-weight: 600; font-size: 14px; color: var(--text-primary);">${nomeA}</div>
-                <div style="font-size: 11px; color: var(--text-muted);">${timeNomeA}</div>
+                <div style="font-weight: 600; font-size: 14px; color: var(--text-primary);">${nomeTimeA}</div>
+                ${cartolaA ? `<div style="font-size: 11px; color: var(--text-muted);">${cartolaA}</div>` : ""}
               </div>
             </div>
 
@@ -392,8 +414,8 @@ export function renderTabelaRodada(
             <!-- Time B - Alinhado à direita -->
             <div style="display: flex; align-items: center; gap: 12px; flex: 1; justify-content: flex-end;">
               <div style="text-align: right;">
-                <div style="font-weight: 600; font-size: 14px; color: var(--text-primary);">${nomeB}</div>
-                <div style="font-size: 11px; color: var(--text-muted);">${timeNomeB}</div>
+                <div style="font-weight: 600; font-size: 14px; color: var(--text-primary);">${nomeTimeB}</div>
+                ${cartolaB ? `<div style="font-size: 11px; color: var(--text-muted);">${cartolaB}</div>` : ""}
               </div>
               <img src="${brasaoB}" style="width: 32px; height: 32px; border-radius: 50%; object-fit: contain;" alt="Time B" onerror="this.src='/escudos/default.png'">
             </div>
@@ -439,13 +461,124 @@ export function renderTabelaRodada(
   `;
 }
 
-// ✅ FUNÇÃO DE EXPORTAÇÃO REMOVIDA - Sistema não usa mais exportação como imagem
+// ============================================================================
+// ✅ v2.2: CELEBRAÇÃO DO CAMPEÃO - Compacto e Elegante
+// ============================================================================
 
-// Renderizar tabela de classificação (mantida inalterada)
+function renderizarCelebracaoCampeao(campeao) {
+  const nomeTime = campeao.nome || campeao.nome_time || "Campeão";
+  const nomeCartoleiro = campeao.nome_cartola || campeao.cartoleiro || "";
+  const escudoUrl =
+    campeao.escudo || campeao.url_escudo_png || campeao.foto_time || "";
+  const pontos = campeao.pontos || 0;
+  const vitorias = campeao.vitorias || 0;
+  const empates = campeao.empates || 0;
+  const derrotas = campeao.derrotas || 0;
+
+  return `
+    <div class="campeao-banner">
+      <div class="campeao-content">
+        <div class="campeao-trofeu">🏆</div>
+        <img src="${escudoUrl}" alt="${nomeTime}" class="campeao-escudo" onerror="this.style.display='none'">
+        <div class="campeao-info">
+          <span class="campeao-label">CAMPEÃO 2025</span>
+          <h3 class="campeao-nome">${nomeTime}</h3>
+          ${nomeCartoleiro ? `<span class="campeao-cartoleiro">${nomeCartoleiro}</span>` : ""}
+        </div>
+        <div class="campeao-stats">
+          <div class="stat"><span class="valor">${pontos}</span><span class="label">PTS</span></div>
+          <div class="stat"><span class="valor">${vitorias}</span><span class="label">V</span></div>
+          <div class="stat"><span class="valor">${empates}</span><span class="label">E</span></div>
+          <div class="stat"><span class="valor">${derrotas}</span><span class="label">D</span></div>
+        </div>
+      </div>
+    </div>
+
+    <style>
+      .campeao-banner {
+        background: linear-gradient(135deg, rgba(255,215,0,0.15) 0%, rgba(255,215,0,0.05) 100%);
+        border: 1px solid rgba(255,215,0,0.4);
+        border-radius: 12px;
+        padding: 16px 20px;
+        margin-bottom: 20px;
+      }
+      .campeao-content {
+        display: flex;
+        align-items: center;
+        gap: 16px;
+      }
+      .campeao-trofeu {
+        font-size: 32px;
+        flex-shrink: 0;
+      }
+      .campeao-escudo {
+        width: 48px;
+        height: 48px;
+        border-radius: 50%;
+        border: 2px solid #ffd700;
+        object-fit: cover;
+        flex-shrink: 0;
+      }
+      .campeao-info {
+        flex: 1;
+        min-width: 0;
+      }
+      .campeao-label {
+        font-size: 10px;
+        font-weight: 700;
+        color: #ffd700;
+        letter-spacing: 1px;
+      }
+      .campeao-nome {
+        font-size: 18px;
+        font-weight: 700;
+        color: #fff;
+        margin: 2px 0;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+      }
+      .campeao-cartoleiro {
+        font-size: 12px;
+        color: #a0aec0;
+      }
+      .campeao-stats {
+        display: flex;
+        gap: 12px;
+        flex-shrink: 0;
+      }
+      .campeao-stats .stat {
+        text-align: center;
+        background: rgba(255,215,0,0.1);
+        border-radius: 8px;
+        padding: 8px 12px;
+        min-width: 44px;
+      }
+      .campeao-stats .valor {
+        display: block;
+        font-size: 16px;
+        font-weight: 700;
+        color: #ffd700;
+      }
+      .campeao-stats .label {
+        display: block;
+        font-size: 9px;
+        color: #a0aec0;
+        margin-top: 2px;
+      }
+    </style>
+  `;
+}
+
+// ============================================================================
+// RENDERIZAR TABELA DE CLASSIFICAÇÃO (ATUALIZADO v2.1)
+// ============================================================================
+
 export function renderTabelaClassificacao(
   classificacao,
   ultimaRodadaComDados,
   houveErro,
+  totalRodadasLiga = 31,
 ) {
   if (classificacao.length === 0) {
     return `
@@ -457,10 +590,19 @@ export function renderTabelaClassificacao(
     `;
   }
 
-  let linhas = ""; // Variável para acumular as linhas da tabela
+  // ✅ v2.1: Detectar se a liga encerrou
+  // Última rodada do BR = rodadaInicial + totalRodadasLiga - 1
+  // Ex: 7 + 31 - 1 = 37
+  const rodadaFinalBr =
+    PONTOS_CORRIDOS_CONFIG.rodadaInicial + totalRodadasLiga - 1;
+  const ligaEncerrou = ultimaRodadaComDados >= rodadaFinalBr;
+
+  // Campeão é o 1º da classificação
+  const campeao = classificacao[0];
+
+  let linhas = "";
 
   classificacao.forEach((time, index) => {
-    // Validar se o objeto time existe e tem as propriedades mínimas
     if (!time || typeof time !== "object") {
       console.warn("[PONTOS-CORRIDOS-UI] Time inválido na posição", index);
       return;
@@ -470,23 +612,31 @@ export function renderTabelaClassificacao(
     const isEmpate =
       index > 0 && classificacao[index - 1].pontos === time.pontos;
 
-    // Determinar classe de posição para pódio (1º, 2º, 3º)
     let classePosicao = "classificacao-linha";
     if (posicao === 1) {
       classePosicao += " primeiro-lugar";
+      if (ligaEncerrou) classePosicao += " campeao-final";
     } else if (posicao === 2) {
       classePosicao += " segundo-lugar";
     } else if (posicao === 3) {
       classePosicao += " terceiro-lugar";
     }
 
-    // Extrair dados com fallbacks seguros
+    // ✅ v2.2: Nome do time (principal) + nome do cartoleiro (secundário)
+    // Dados vêm do core com: nome (time), nome_cartola (cartoleiro)
     const nomeTime = time.nome || time.nome_time || "Time Desconhecido";
+    const nomeCartoleiro = time.nome_cartola || time.cartoleiro || "";
     const escudoUrl =
       time.escudo ||
       time.url_escudo_png ||
       time.foto_time ||
       "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='40' height='40'%3E%3Crect fill='%23ddd' width='40' height='40'/%3E%3C/svg%3E";
+
+    // ✅ v2.1: Badge de campeão se encerrou
+    const badgeCampeao =
+      ligaEncerrou && posicao === 1
+        ? '<span style="margin-left: 8px; font-size: 16px;">🏆</span>'
+        : "";
 
     linhas += `
       <tr class="${classePosicao}">
@@ -498,10 +648,13 @@ export function renderTabelaClassificacao(
             <img 
               src="${escudoUrl}" 
               alt="${nomeTime}" 
-              style="width: 32px; height: 32px; border-radius: 4px; object-fit: cover;"
-              onerror="this.src='data:image/svg+xml,%3Csvg xmlns=\'http://www.w3.org/2000/svg\' width=\'40\' height=\'40\'%3E%3Crect fill=\'%23ddd\' width=\'40\' height=\'40\'/%3E%3C/svg%3E'"
+              style="width: 32px; height: 32px; border-radius: 4px; object-fit: cover;${ligaEncerrou && posicao === 1 ? " border: 2px solid #ffd700;" : ""}"
+              onerror="this.src='data:image/svg+xml,%3Csvg xmlns=\\'http://www.w3.org/2000/svg\\' width=\\'40\\' height=\\'40\\'%3E%3Crect fill=\\'%23ddd\\' width=\\'40\\' height=\\'40\\'/%3E%3C/svg%3E'"
             >
-            <span style="font-weight: 500;">${nomeTime}</span>
+            <div style="display: flex; flex-direction: column;">
+              <span style="font-weight: 500;${ligaEncerrou && posicao === 1 ? " color: #ffd700;" : ""}">${nomeTime}${badgeCampeao}</span>
+              ${nomeCartoleiro ? `<span style="font-size: 11px; color: var(--text-muted, #888);">${nomeCartoleiro}</span>` : ""}
+            </div>
           </div>
         </td>
         <td class="pts-destaque">${time.pontos}</td>
@@ -525,22 +678,51 @@ export function renderTabelaClassificacao(
     `;
   });
 
+  // ✅ v2.1: Renderizar celebração se encerrou
+  const celebracaoHTML = ligaEncerrou
+    ? renderizarCelebracaoCampeao(campeao)
+    : "";
+
+  // ✅ v2.1: Header diferente se encerrou
+  const headerHTML = ligaEncerrou
+    ? `
+      <div class="classificacao-header liga-encerrada">
+        <div class="classificacao-info-principal">
+          <h3 class="classificacao-titulo">🏆 Classificação Final</h3>
+          <p class="classificacao-subtitulo">
+            Liga Pontos Corridos 2025 - Encerrada!
+          </p>
+        </div>
+        <div class="classificacao-legenda">
+          <span class="legenda-item primeiro campeao">🥇</span>
+          <span class="legenda-item segundo">🥈</span>
+          <span class="legenda-item terceiro">🥉</span>
+          <span class="legenda-texto">Pódio Final</span>
+        </div>
+      </div>
+    `
+    : `
+      <div class="classificacao-header">
+        <div class="classificacao-info-principal">
+          <h3 class="classificacao-titulo">Classificação Geral</h3>
+          <p class="classificacao-subtitulo">
+            Atualizada até a ${ultimaRodadaComDados}ª rodada
+            ${houveErro ? " (alguns dados podem estar indisponíveis)" : ""}
+          </p>
+        </div>
+        <div class="classificacao-legenda">
+          <span class="legenda-item primeiro">1º</span>
+          <span class="legenda-item segundo">2º</span>
+          <span class="legenda-item terceiro">3º</span>
+          <span class="legenda-texto">Pódio</span>
+        </div>
+      </div>
+    `;
+
   return `
-    <div class="classificacao-header">
-      <div class="classificacao-info-principal">
-        <h3 class="classificacao-titulo">Classificação Geral</h3>
-        <p class="classificacao-subtitulo">
-          Atualizada até a ${ultimaRodadaComDados}ª rodada
-          ${houveErro ? " (alguns dados podem estar indisponíveis)" : ""}
-        </p>
-      </div>
-      <div class="classificacao-legenda">
-        <span class="legenda-item primeiro">1º</span>
-        <span class="legenda-item segundo">2º</span>
-        <span class="legenda-item terceiro">3º</span>
-        <span class="legenda-texto">Pódio</span>
-      </div>
-    </div>
+    ${celebracaoHTML}
+
+    ${headerHTML}
 
     <div class="classificacao-container">
       <table class="classificacao-table">
@@ -571,10 +753,56 @@ export function renderTabelaClassificacao(
         ← Voltar às Rodadas
       </button>
     </div>
+
+    <style>
+      .classificacao-linha.campeao-final td:first-child {
+        background: linear-gradient(90deg, rgba(255, 215, 0, 0.2), transparent);
+      }
+      .classificacao-header.liga-encerrada {
+        background: linear-gradient(135deg, rgba(255, 215, 0, 0.1), rgba(255, 215, 0, 0.05));
+        border: 1px solid rgba(255, 215, 0, 0.3);
+        border-radius: 12px;
+        padding: 16px;
+        margin-bottom: 16px;
+      }
+      .classificacao-header.liga-encerrada .classificacao-titulo {
+        color: #ffd700;
+      }
+      .legenda-item.campeao {
+        background: linear-gradient(135deg, #ffd700, #ffed4a);
+        animation: campeaoGlow 2s ease-in-out infinite;
+      }
+      @keyframes campeaoGlow {
+        0%, 100% { box-shadow: 0 0 5px rgba(255, 215, 0, 0.5); }
+        50% { box-shadow: 0 0 15px rgba(255, 215, 0, 0.8); }
+      }
+      .badge-final {
+        position: absolute;
+        top: -5px;
+        right: -5px;
+        font-size: 12px;
+        background: #ffd700;
+        border-radius: 50%;
+        width: 20px;
+        height: 20px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+      }
+      .rodada-card.campeao {
+        border-color: #ffd700 !important;
+        box-shadow: 0 0 10px rgba(255, 215, 0, 0.3);
+      }
+      .progresso-info.liga-encerrada .progresso-texto {
+        color: #ffd700;
+        font-weight: 600;
+      }
+      .progresso-fill.completo {
+        background: linear-gradient(90deg, #ffd700, #ffed4a);
+      }
+    </style>
   `;
 }
-
-// ✅ FUNÇÃO DE EXPORTAÇÃO REMOVIDA - Sistema não usa mais exportação como imagem
 
 // Atualizar container
 export function atualizarContainer(containerId, conteudo) {
@@ -588,7 +816,6 @@ export function atualizarContainer(containerId, conteudo) {
 
   container.innerHTML = conteudo;
 
-  // Limpar cache do elemento atualizado
   elementsCache.delete(containerId);
 }
 
@@ -607,21 +834,19 @@ export function limparCacheUI() {
 }
 
 console.log(
-  "[PONTOS-CORRIDOS-UI] Módulo carregado com layout compacto e seleção inteligente",
+  "[PONTOS-CORRIDOS-UI] Módulo v2.2 carregado com celebração compacta do campeão",
 );
 
 // ========================================
 // PATCH: ADICIONAR AO FINAL DE pontos-corridos-ui.js
 // ========================================
 
-// ✅ EXPOR FUNÇÃO GLOBAL DE INICIALIZAÇÃO PARA O ORQUESTRADOR
 window.inicializarPontosCorridos = async function (ligaId) {
   console.log("[PONTOS-CORRIDOS] Inicializando módulo via orquestrador...", {
     ligaId,
   });
 
   try {
-    // Buscar container principal
     const container =
       document.getElementById("pontos-corridos-container") ||
       document.getElementById("modulo-container") ||
@@ -640,17 +865,14 @@ window.inicializarPontosCorridos = async function (ligaId) {
 
     console.log("[PONTOS-CORRIDOS] ✅ Container encontrado:", container.id);
 
-    // Renderizar interface do módulo
     renderizarInterface(
       container,
       ligaId,
       (rodada) => {
         console.log("[PONTOS-CORRIDOS] Rodada selecionada:", rodada);
-        // Handler será conectado ao orquestrador
       },
       () => {
         console.log("[PONTOS-CORRIDOS] Visualizar classificação");
-        // Handler será conectado ao orquestrador
       },
     );
 
@@ -658,7 +880,6 @@ window.inicializarPontosCorridos = async function (ligaId) {
   } catch (error) {
     console.error("[PONTOS-CORRIDOS] ❌ Erro ao inicializar:", error);
 
-    // Mostrar erro na tela
     const container =
       document.getElementById("pontos-corridos-container") ||
       document.getElementById("modulo-container") ||

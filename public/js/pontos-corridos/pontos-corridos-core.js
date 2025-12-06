@@ -1,6 +1,8 @@
-// PONTOS CORRIDOS CORE - v2.0 REFATORADO
+// PONTOS CORRIDOS CORE - v2.2 REFATORADO
 // Salva cada rodada INDIVIDUALMENTE no MongoDB
 // Responsável por: processamento de dados, chamadas de API e CACHE INTELIGENTE
+// ✅ v2.1: Correção do limite de rodadas (liga encerrada)
+// ✅ v2.2: Adicionado nome_cartola em classificação e confrontos
 
 import {
     RODADAS_ENDPOINTS,
@@ -276,12 +278,14 @@ export async function getConfrontosLigaPontosCorridos(ligaId, rodadaAtualLiga) {
         }
 
         // 5. Inicializar classificação acumulada
+        // API Cartola: time.nome = cartoleiro, time.nome_time = nome do time
         const classificacaoAcumulada = {};
         times.forEach((time) => {
             const tid = String(time.id || time.time_id);
             classificacaoAcumulada[tid] = {
                 timeId: tid,
-                nome: time.nome_time || time.nome || "N/D",
+                nome: time.nome_time || "N/D",
+                nome_cartola: time.nome || "",
                 escudo: time.url_escudo_png || time.foto_time || "",
                 pontos: 0,
                 jogos: 0,
@@ -416,10 +420,12 @@ export async function getConfrontosLigaPontosCorridos(ligaId, rodadaAtualLiga) {
                     }
                 }
 
+                // API Cartola: timeA.nome = cartoleiro, timeA.nome_time = nome do time
                 confrontosRodada.push({
                     time1: {
                         id: tidA,
-                        nome: jogo.timeA.nome_time || jogo.timeA.nome || "N/D",
+                        nome: jogo.timeA.nome_time || "N/D",
+                        nome_cartola: jogo.timeA.nome || "",
                         escudo:
                             jogo.timeA.url_escudo_png ||
                             jogo.timeA.foto_time ||
@@ -428,7 +434,8 @@ export async function getConfrontosLigaPontosCorridos(ligaId, rodadaAtualLiga) {
                     },
                     time2: {
                         id: tidB,
-                        nome: jogo.timeB.nome_time || jogo.timeB.nome || "N/D",
+                        nome: jogo.timeB.nome_time || "N/D",
+                        nome_cartola: jogo.timeB.nome || "",
                         escudo:
                             jogo.timeB.url_escudo_png ||
                             jogo.timeB.foto_time ||
@@ -499,6 +506,7 @@ export async function getConfrontosLigaPontosCorridos(ligaId, rodadaAtualLiga) {
 
 // ============================================================================
 // CALCULAR CLASSIFICAÇÃO (Para compatibilidade)
+// ✅ v2.1: Correção do limite de rodadas
 // ============================================================================
 
 export async function calcularClassificacao(
@@ -507,8 +515,21 @@ export async function calcularClassificacao(
     confrontos,
     rodadaAtualBrasileirao,
 ) {
-    const rodadaLiga =
+    // ✅ v2.1: Calcular máximo de rodadas baseado no número de times
+    const totalTimes = Array.isArray(times) ? times.length : 0;
+    const maxRodadasLiga = totalTimes > 1 ? totalTimes - 1 : 31; // fallback para 31
+
+    // Calcular rodada da liga (limitada ao máximo)
+    let rodadaLiga =
         rodadaAtualBrasileirao - PONTOS_CORRIDOS_CONFIG.rodadaInicial + 1;
+
+    // ✅ v2.1: Limitar ao máximo de rodadas da liga
+    if (rodadaLiga > maxRodadasLiga) {
+        console.log(
+            `[CORE] ⚠️ Rodada calculada (${rodadaLiga}) excede máximo (${maxRodadasLiga}). Usando última rodada.`,
+        );
+        rodadaLiga = maxRodadasLiga;
+    }
 
     if (rodadaLiga < 1) {
         console.log(
@@ -521,6 +542,10 @@ export async function calcularClassificacao(
             fromCache: false,
         };
     }
+
+    console.log(
+        `[CORE] 📊 Buscando classificação: R${rodadaLiga} Liga (R${rodadaAtualBrasileirao} BR, max: ${maxRodadasLiga})`,
+    );
 
     // Verificar cache primeiro
     const cache = await lerCacheRodada(ligaId, rodadaLiga);
@@ -554,6 +579,7 @@ export const buscarStatusMercado = atualizarStatusMercado;
 export { getLigaId };
 
 // Exports adicionais para compatibilidade
+// API Cartola: jogo.timeA.nome = cartoleiro, jogo.timeA.nome_time = nome do time
 export function normalizarDadosParaExportacao(jogo, pontuacoesMap = {}) {
     const tidA = jogo.timeA?.id || jogo.timeA?.time_id;
     const tidB = jogo.timeB?.id || jogo.timeB?.time_id;
@@ -561,15 +587,15 @@ export function normalizarDadosParaExportacao(jogo, pontuacoesMap = {}) {
     return {
         time1: {
             id: tidA,
-            nome_time: jogo.timeA?.nome_time || jogo.timeA?.nome || "N/D",
-            nome_cartola: jogo.timeA?.nome_cartola || "N/D",
+            nome_time: jogo.timeA?.nome_time || "N/D",
+            nome_cartola: jogo.timeA?.nome || "",
             foto_perfil: jogo.timeA?.foto_perfil || "",
             foto_time: jogo.timeA?.foto_time || "",
         },
         time2: {
             id: tidB,
-            nome_time: jogo.timeB?.nome_time || jogo.timeB?.nome || "N/D",
-            nome_cartola: jogo.timeB?.nome_cartola || "N/D",
+            nome_time: jogo.timeB?.nome_time || "N/D",
+            nome_cartola: jogo.timeB?.nome || "",
             foto_perfil: jogo.timeB?.foto_perfil || "",
             foto_time: jogo.timeB?.foto_time || "",
         },
@@ -583,6 +609,7 @@ export function normalizarClassificacaoParaExportacao(classificacao) {
     return classificacao.map((t) => ({
         time_id: t.timeId || t.time_id,
         nome_time: t.nome || t.nome_time || "N/D",
+        nome_cartola: t.nome_cartola || "",
         escudo: t.escudo || "",
         pontos: t.pontos || 0,
         vitorias: t.vitorias || 0,
@@ -628,5 +655,5 @@ export function validarDadosEntrada(times, confrontos) {
 }
 
 console.log(
-    "[PONTOS-CORRIDOS-CORE] ✅ v2.0 carregado (cache individual por rodada)",
+    "[PONTOS-CORRIDOS-CORE] ✅ v2.1 carregado (correção limite rodadas)",
 );

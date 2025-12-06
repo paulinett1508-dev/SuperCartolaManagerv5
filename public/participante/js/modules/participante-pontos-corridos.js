@@ -1,6 +1,7 @@
-// PARTICIPANTE PONTOS CORRIDOS - v4.2
+// PARTICIPANTE PONTOS CORRIDOS - v4.3
 // ✅ v4.1: Correção do status EM ANDAMENTO/FINALIZADA
 // ✅ v4.2: Visualização melhorada (nome time + cartoleiro como no Ranking)
+// ✅ v4.3: Celebração do campeão quando liga encerra
 
 const estadoPC = {
     ligaId: null,
@@ -12,6 +13,7 @@ const estadoPC = {
     viewMode: "confrontos",
     mercadoRodada: 1,
     mercadoAberto: true,
+    ligaEncerrou: false, // ✅ v4.3
 };
 
 // ============================================
@@ -43,11 +45,23 @@ export async function inicializarPontosCorridosParticipante(params = {}) {
                     ? Math.max(...rodadasComConfrontos.map((r) => r.rodada))
                     : 1;
             estadoPC.rodadaSelecionada = estadoPC.rodadaAtual;
+
+            // ✅ v4.3: Detectar se liga encerrou
+            const ultimaRodadaPossivel = estadoPC.totalRodadas;
+            const ultimaRodadaDisputada = dados.find(
+                (r) => r.rodada === ultimaRodadaPossivel,
+            );
+            estadoPC.ligaEncerrou =
+                ultimaRodadaDisputada?.confrontos?.length > 0 &&
+                ultimaRodadaDisputada?.classificacao?.length > 0;
         }
 
         console.log(`[PONTOS-CORRIDOS] ✅ ${dados.length} rodadas carregadas`);
         console.log(
             `[PONTOS-CORRIDOS] 📊 Mercado: rodada ${estadoPC.mercadoRodada}, aberto: ${estadoPC.mercadoAberto}`,
+        );
+        console.log(
+            `[PONTOS-CORRIDOS] 🏆 Liga encerrou: ${estadoPC.ligaEncerrou}`,
         );
         renderizarInterface();
     } catch (error) {
@@ -119,6 +133,7 @@ function setTexto(id, texto) {
 
 function renderizarInterface() {
     mostrarConteudo();
+    renderizarBannerCampeao(); // ✅ v4.3
     atualizarHeader();
     atualizarSeletorRodadas();
     atualizarProgresso();
@@ -127,8 +142,137 @@ function renderizarInterface() {
     scrollParaRodadaSelecionada();
 }
 
+// ✅ v4.3: Banner de celebração do campeão
+function renderizarBannerCampeao() {
+    const container = document.getElementById("pc-banner-campeao");
+
+    if (!estadoPC.ligaEncerrou) {
+        if (container) container.innerHTML = "";
+        return;
+    }
+
+    // Buscar campeão (1º da classificação da última rodada)
+    const ultimaRodada = estadoPC.dados.find(
+        (r) => r.rodada === estadoPC.totalRodadas,
+    );
+    if (!ultimaRodada?.classificacao?.length) {
+        if (container) container.innerHTML = "";
+        return;
+    }
+
+    const campeao = ultimaRodada.classificacao[0];
+    const nomeCampeao = campeao.nome || campeao.nome_time || "Campeão";
+    const escudoCampeao =
+        campeao.escudo ||
+        campeao.url_escudo_png ||
+        campeao.foto_time ||
+        "/assets/escudo-placeholder.png";
+    const pontosCampeao = campeao.pontos || 0;
+    const vitoriasCampeao = campeao.vitorias || 0;
+    const meuTimeId = estadoPC.timeId;
+    const campeaoId = campeao.timeId || campeao.time_id || campeao.id;
+    const souCampeao = String(campeaoId) === String(meuTimeId);
+
+    // Se não tiver container, criar um antes do seletor
+    if (!container) {
+        const seletorContainer = document
+            .getElementById("pc-seletor-rodadas")
+            ?.closest(".overflow-x-auto")?.parentElement;
+        if (seletorContainer) {
+            const bannerDiv = document.createElement("div");
+            bannerDiv.id = "pc-banner-campeao";
+            seletorContainer.parentElement.insertBefore(
+                bannerDiv,
+                seletorContainer,
+            );
+        }
+    }
+
+    const bannerEl = document.getElementById("pc-banner-campeao");
+    if (!bannerEl) return;
+
+    bannerEl.innerHTML = `
+        <div class="campeao-banner mx-4 mb-4 rounded-2xl overflow-hidden relative">
+            <!-- Background animado -->
+            <div class="absolute inset-0 bg-gradient-to-r from-yellow-600/20 via-yellow-500/30 to-yellow-600/20"></div>
+            <div class="confetti-bg absolute inset-0 opacity-30"></div>
+
+            <!-- Conteúdo -->
+            <div class="relative z-10 p-4">
+                <!-- Header -->
+                <div class="text-center mb-3">
+                    <div class="text-3xl mb-1 animate-bounce-slow">🏆</div>
+                    <h3 class="text-yellow-400 font-bold text-sm tracking-wider">CAMPEÃO DA LIGA!</h3>
+                    <p class="text-white/50 text-[10px]">Pontos Corridos 2025</p>
+                </div>
+
+                <!-- Card do campeão -->
+                <div class="flex items-center justify-center gap-4 bg-black/30 rounded-xl p-3">
+                    <div class="relative">
+                        <img src="${escudoCampeao}" class="w-16 h-16 rounded-full border-2 border-yellow-500 shadow-lg shadow-yellow-500/30" onerror="this.src='/assets/escudo-placeholder.png'">
+                        <span class="absolute -bottom-1 -right-1 text-xl">🥇</span>
+                    </div>
+                    <div class="text-left">
+                        <p class="font-bold text-white text-base ${souCampeao ? "text-yellow-400" : ""}">${nomeCampeao}</p>
+                        ${souCampeao ? '<p class="text-yellow-400 text-xs font-semibold">🎉 Você é o campeão!</p>' : ""}
+                        <div class="flex gap-3 mt-1">
+                            <div class="text-center">
+                                <span class="text-yellow-400 font-bold text-lg">${pontosCampeao}</span>
+                                <span class="text-white/50 text-[9px] block">PTS</span>
+                            </div>
+                            <div class="text-center">
+                                <span class="text-green-400 font-bold text-lg">${vitoriasCampeao}</span>
+                                <span class="text-white/50 text-[9px] block">V</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                ${
+                    souCampeao
+                        ? `
+                <div class="text-center mt-3">
+                    <p class="text-white/80 text-xs">🎉 Parabéns pela conquista! 🎉</p>
+                </div>
+                `
+                        : ""
+                }
+            </div>
+        </div>
+
+        <style>
+            .campeao-banner {
+                background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%);
+                border: 1px solid rgba(255, 215, 0, 0.3);
+                box-shadow: 0 0 20px rgba(255, 215, 0, 0.15);
+            }
+            .confetti-bg {
+                background-image: 
+                    radial-gradient(circle at 10% 20%, #ffd700 1px, transparent 1px),
+                    radial-gradient(circle at 90% 30%, #ff6b6b 1px, transparent 1px),
+                    radial-gradient(circle at 30% 80%, #4ecdc4 1px, transparent 1px),
+                    radial-gradient(circle at 70% 60%, #fff 1px, transparent 1px),
+                    radial-gradient(circle at 50% 40%, #ffd700 1px, transparent 1px);
+                background-size: 80px 80px;
+                animation: confettiMove 4s ease-in-out infinite;
+            }
+            @keyframes confettiMove {
+                0%, 100% { transform: translateY(0); }
+                50% { transform: translateY(-5px); }
+            }
+            @keyframes bounce-slow {
+                0%, 100% { transform: translateY(0); }
+                50% { transform: translateY(-8px); }
+            }
+            .animate-bounce-slow {
+                animation: bounce-slow 2s ease-in-out infinite;
+            }
+        </style>
+    `;
+}
+
 function atualizarHeader() {
-    const { dados, timeId } = estadoPC;
+    const { dados, timeId, ligaEncerrou } = estadoPC;
     let posicao = "-";
 
     const ultimaRodada = dados.filter((r) => r.classificacao?.length > 0).pop();
@@ -143,21 +287,43 @@ function atualizarHeader() {
         }
     }
 
-    setTexto("pc-posicao-badge", `${posicao}º`);
+    // ✅ v4.3: Badge especial se for campeão
+    const badgeEl = document.getElementById("pc-posicao-badge");
+    if (badgeEl) {
+        if (ligaEncerrou && posicao === 1) {
+            badgeEl.textContent = "🏆";
+            badgeEl.classList.add("text-yellow-400");
+        } else {
+            badgeEl.textContent = `${posicao}º`;
+            badgeEl.classList.remove("text-yellow-400");
+        }
+    }
 }
 
 function atualizarSeletorRodadas() {
-    const { dados, rodadaSelecionada, rodadaAtual, totalRodadas } = estadoPC;
+    const {
+        dados,
+        rodadaSelecionada,
+        rodadaAtual,
+        totalRodadas,
+        ligaEncerrou,
+    } = estadoPC;
     const container = document.getElementById("pc-seletor-rodadas");
     if (!container) return;
 
     const rodadasDisputadas = dados.filter(
         (r) => r.confrontos?.length > 0,
     ).length;
-    setTexto(
-        "pc-rodadas-info",
-        `${rodadasDisputadas} de ${totalRodadas} rodadas disputadas`,
-    );
+
+    // ✅ v4.3: Texto especial se encerrou
+    const infoEl = document.getElementById("pc-rodadas-info");
+    if (infoEl) {
+        if (ligaEncerrou) {
+            infoEl.innerHTML = `<span class="text-yellow-400">🏆 Liga Encerrada!</span> ${rodadasDisputadas} rodadas`;
+        } else {
+            infoEl.textContent = `${rodadasDisputadas} de ${totalRodadas} rodadas disputadas`;
+        }
+    }
 
     container.innerHTML = "";
 
@@ -166,32 +332,42 @@ function atualizarSeletorRodadas() {
         const temDados = rodadaData?.confrontos?.length > 0;
         const isAtual = i === rodadaAtual;
         const isSelecionada = i === rodadaSelecionada;
+        const isUltima = i === totalRodadas && ligaEncerrou;
 
         const btn = document.createElement("button");
         btn.className = buildClassesBotaoRodada(
             isSelecionada,
             isAtual,
             temDados,
+            isUltima,
         );
         btn.disabled = !temDados;
         btn.onclick = () => selecionarRodada(i);
 
         btn.innerHTML = `
-            <span class="font-bold text-sm ${isSelecionada ? "text-white" : isAtual ? "text-green-400" : "text-white"}">${i}</span>
-            <span class="${isSelecionada ? "text-white/80" : isAtual ? "text-green-400/80" : "text-white/50"}">RODADA</span>
-            ${isAtual && !isSelecionada ? '<span class="w-1.5 h-1.5 bg-green-500 rounded-full mt-1 animate-pulse"></span>' : ""}
+            <span class="font-bold text-sm ${isSelecionada ? "text-white" : isAtual ? "text-green-400" : isUltima ? "text-yellow-400" : "text-white"}">${i}</span>
+            <span class="${isSelecionada ? "text-white/80" : isAtual ? "text-green-400/80" : isUltima ? "text-yellow-400/80" : "text-white/50"}">${isUltima ? "FINAL" : "RODADA"}</span>
+            ${isAtual && !isSelecionada && !ligaEncerrou ? '<span class="w-1.5 h-1.5 bg-green-500 rounded-full mt-1 animate-pulse"></span>' : ""}
+            ${isUltima ? '<span class="text-[8px] mt-0.5">🏆</span>' : ""}
         `;
 
         container.appendChild(btn);
     }
 }
 
-function buildClassesBotaoRodada(selecionada, atual, temDados) {
+function buildClassesBotaoRodada(
+    selecionada,
+    atual,
+    temDados,
+    isUltima = false,
+) {
     let classes =
         "flex flex-col items-center justify-center rounded-lg px-4 py-2 text-[10px] flex-shrink-0 cursor-pointer transition-all ";
 
     if (selecionada) {
         classes += "bg-primary border border-primary/70 scale-105";
+    } else if (isUltima && temDados) {
+        classes += "bg-yellow-500/20 border border-yellow-500";
     } else if (atual) {
         classes += "bg-green-500/20 border border-green-500";
     } else if (temDados) {
@@ -206,12 +382,23 @@ function buildClassesBotaoRodada(selecionada, atual, temDados) {
 }
 
 function atualizarProgresso() {
-    const { dados, totalRodadas } = estadoPC;
+    const { dados, totalRodadas, ligaEncerrou } = estadoPC;
     const disputadas = dados.filter((r) => r.confrontos?.length > 0).length;
     const progresso = totalRodadas > 0 ? (disputadas / totalRodadas) * 100 : 0;
 
     const bar = document.getElementById("pc-progress-bar");
-    if (bar) bar.style.width = `${progresso.toFixed(1)}%`;
+    if (bar) {
+        bar.style.width = `${progresso.toFixed(1)}%`;
+        // ✅ v4.3: Cor dourada se encerrou
+        if (ligaEncerrou) {
+            bar.classList.add(
+                "bg-gradient-to-r",
+                "from-yellow-500",
+                "to-yellow-400",
+            );
+            bar.classList.remove("bg-primary");
+        }
+    }
 }
 
 function atualizarToggle() {
@@ -246,8 +433,15 @@ function renderizarView() {
 // ============================================
 
 function renderizarConfrontos() {
-    const { dados, rodadaSelecionada, timeId, mercadoRodada, mercadoAberto } =
-        estadoPC;
+    const {
+        dados,
+        rodadaSelecionada,
+        timeId,
+        mercadoRodada,
+        mercadoAberto,
+        ligaEncerrou,
+        totalRodadas,
+    } = estadoPC;
     const container = document.getElementById("pc-lista-confrontos");
     if (!container) return;
 
@@ -267,19 +461,29 @@ function renderizarConfrontos() {
     const rodadaBrasileirao = rodadaSelecionada + 6;
     const rodadaBrasileiraoSelecionada = rodadaSelecionada + 6;
 
-    // ✅ v4.1: Verificar se a rodada está realmente em andamento
+    // ✅ v4.3: Se é a última rodada e liga encerrou, mostrar FINALIZADA
     let isEmAndamento = false;
-    if (mercadoAberto) {
+    if (ligaEncerrou) {
+        isEmAndamento = false;
+    } else if (mercadoAberto) {
         isEmAndamento = rodadaBrasileiraoSelecionada >= mercadoRodada;
     } else {
         isEmAndamento = rodadaBrasileiraoSelecionada >= mercadoRodada;
     }
 
+    const isRodadaFinal = rodadaSelecionada === totalRodadas && ligaEncerrou;
+
     console.log(
-        `[PONTOS-CORRIDOS] 📊 Rodada ${rodadaSelecionada} PC (${rodadaBrasileiraoSelecionada} BR) | Mercado: ${mercadoRodada} | Em andamento: ${isEmAndamento}`,
+        `[PONTOS-CORRIDOS] 📊 Rodada ${rodadaSelecionada} PC (${rodadaBrasileiraoSelecionada} BR) | Mercado: ${mercadoRodada} | Em andamento: ${isEmAndamento} | Final: ${isRodadaFinal}`,
     );
 
-    setTexto("pc-rodada-titulo", `${rodadaSelecionada}ª Rodada da Liga`);
+    // ✅ v4.3: Título especial para rodada final
+    setTexto(
+        "pc-rodada-titulo",
+        isRodadaFinal
+            ? `🏆 Rodada Final da Liga`
+            : `${rodadaSelecionada}ª Rodada da Liga`,
+    );
     setTexto(
         "pc-rodada-subtitulo",
         `${rodadaBrasileirao}ª Rodada do Brasileirão`,
@@ -287,11 +491,20 @@ function renderizarConfrontos() {
 
     const statusEl = document.getElementById("pc-rodada-status");
     if (statusEl) {
-        statusEl.className = `flex items-center space-x-1.5 ${isEmAndamento ? "bg-yellow-500/10 text-yellow-400" : "bg-green-500/10 text-green-400"} px-2.5 py-1.5 rounded-full text-[10px] font-semibold`;
-        statusEl.innerHTML = `
-            <span class="w-1.5 h-1.5 ${isEmAndamento ? "bg-yellow-500 animate-pulse" : "bg-green-500"} rounded-full"></span>
-            <span>${isEmAndamento ? "EM ANDAMENTO" : "FINALIZADA"}</span>
-        `;
+        if (isRodadaFinal) {
+            statusEl.className =
+                "flex items-center space-x-1.5 bg-yellow-500/20 text-yellow-400 px-2.5 py-1.5 rounded-full text-[10px] font-semibold";
+            statusEl.innerHTML = `
+                <span class="text-sm">🏆</span>
+                <span>ENCERRADA</span>
+            `;
+        } else {
+            statusEl.className = `flex items-center space-x-1.5 ${isEmAndamento ? "bg-yellow-500/10 text-yellow-400" : "bg-green-500/10 text-green-400"} px-2.5 py-1.5 rounded-full text-[10px] font-semibold`;
+            statusEl.innerHTML = `
+                <span class="w-1.5 h-1.5 ${isEmAndamento ? "bg-yellow-500 animate-pulse" : "bg-green-500"} rounded-full"></span>
+                <span>${isEmAndamento ? "EM ANDAMENTO" : "FINALIZADA"}</span>
+            `;
+        }
     }
 
     // Renderizar confrontos
@@ -359,13 +572,12 @@ function buildLinhaConfronto(confronto, meuTimeId) {
     const valorFinanceiro =
         tipoResultado === "goleada" ? 7 : tipoResultado === "vitoria" ? 5 : 3;
 
-    // ✅ v4.2: Nome do time e nome do cartoleiro (como no ranking)
-    const nome1 =
-        time1.nome || time1.nome_time || time1.nome_cartola || "Time 1";
-    const cartoleiro1 = time1.nome_cartola || time1.cartoleiro || "";
-    const nome2 =
-        time2.nome || time2.nome_time || time2.nome_cartola || "Time 2";
-    const cartoleiro2 = time2.nome_cartola || time2.cartoleiro || "";
+    // ✅ v4.3: Nome do time (principal) + nome do cartoleiro (secundário)
+    // Dados vêm do core com: nome (time), nome_cartola (cartoleiro)
+    const nome1 = time1.nome || time1.nome_time || "Time 1";
+    const cartoleiro1 = time1.nome_cartola || "";
+    const nome2 = time2.nome || time2.nome_time || "Time 2";
+    const cartoleiro2 = time2.nome_cartola || "";
 
     const esc1 =
         time1.escudo ||
@@ -463,7 +675,7 @@ function buildLinhaConfronto(confronto, meuTimeId) {
 // ============================================
 
 function renderizarClassificacao() {
-    const { dados, timeId } = estadoPC;
+    const { dados, timeId, ligaEncerrou } = estadoPC;
     const container = document.getElementById("pc-lista-classificacao");
     if (!container) return;
 
@@ -473,25 +685,41 @@ function renderizarClassificacao() {
         return;
     }
 
-    setTexto(
-        "pc-classificacao-info",
-        `Atualizada até a ${ultimaRodada.rodada}ª rodada`,
-    );
+    // ✅ v4.3: Info especial se encerrou
+    const infoEl = document.getElementById("pc-classificacao-info");
+    if (infoEl) {
+        if (ligaEncerrou) {
+            infoEl.innerHTML = `<span class="text-yellow-400">🏆 Classificação Final</span>`;
+        } else {
+            infoEl.textContent = `Atualizada até a ${ultimaRodada.rodada}ª rodada`;
+        }
+    }
 
     const total = ultimaRodada.classificacao.length;
     container.innerHTML = ultimaRodada.classificacao
-        .map((t, i) => buildLinhaClassificacao(t, i + 1, total, timeId))
+        .map((t, i) =>
+            buildLinhaClassificacao(t, i + 1, total, timeId, ligaEncerrou),
+        )
         .join("");
 }
 
-// ✅ v4.2: Classificação com nome do time + cartoleiro
-function buildLinhaClassificacao(time, pos, total, meuTimeId) {
+// ✅ v4.3: Classificação com destaque do campeão
+function buildLinhaClassificacao(
+    time,
+    pos,
+    total,
+    meuTimeId,
+    ligaEncerrou = false,
+) {
     const tId = time.timeId || time.time_id || time.id;
     const isMeu = tId == meuTimeId;
     const zona = getZona(pos, total);
+    const isCampeao = pos === 1 && ligaEncerrou;
 
+    // ✅ v4.3: Nome do time (principal) + nome do cartoleiro (secundário)
+    // Dados vêm do core com: nome (time), nome_cartola (cartoleiro)
     const nome = time.nome || time.nome_time || "Time";
-    const cartoleiro = time.nome_cartola || time.cartoleiro || "";
+    const cartoleiro = time.nome_cartola || "";
     const esc =
         time.escudo ||
         time.url_escudo_png ||
@@ -499,19 +727,28 @@ function buildLinhaClassificacao(time, pos, total, meuTimeId) {
         "/assets/escudo-placeholder.png";
     const sg = time.saldo_gols ?? time.saldoGols ?? 0;
 
+    // ✅ v4.3: Estilo especial para campeão
+    const bgClass = isCampeao
+        ? "bg-gradient-to-r from-yellow-500/20 to-yellow-600/10 border-l-2 border-yellow-500"
+        : isMeu
+          ? "bg-primary/10"
+          : "";
+
     return `
-        <div class="flex items-center px-3 py-2.5 ${isMeu ? "bg-primary/10" : ""}">
+        <div class="flex items-center px-3 py-2.5 ${bgClass}">
             <div class="w-8 flex items-center justify-center shrink-0">
                 ${
-                    zona.badge
-                        ? `<div class="w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold text-white ${zona.bg}">${pos}</div>`
-                        : `<span class="text-xs font-bold text-white/70">${pos}</span>`
+                    isCampeao
+                        ? `<div class="text-xl">🏆</div>`
+                        : zona.badge
+                          ? `<div class="w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold text-white ${zona.bg}">${pos}</div>`
+                          : `<span class="text-xs font-bold text-white/70">${pos}</span>`
                 }
             </div>
             <div class="flex items-center gap-2.5 pl-2 min-w-0 flex-1">
-                <img src="${esc}" class="w-8 h-8 rounded-full bg-zinc-700 object-cover shrink-0" onerror="this.src='/assets/escudo-placeholder.png'">
+                <img src="${esc}" class="w-8 h-8 rounded-full bg-zinc-700 object-cover shrink-0 ${isCampeao ? "ring-2 ring-yellow-500" : ""}" onerror="this.src='/assets/escudo-placeholder.png'">
                 <div class="min-w-0 flex-1">
-                    <span class="text-xs font-medium truncate block ${isMeu ? "text-primary font-bold" : "text-white"}">${nome}</span>
+                    <span class="text-xs font-medium truncate block ${isCampeao ? "text-yellow-400 font-bold" : isMeu ? "text-primary font-bold" : "text-white"}">${nome}${isCampeao ? " 🎉" : ""}</span>
                     <span class="text-[10px] text-gray-500 truncate block">${cartoleiro}</span>
                 </div>
             </div>
@@ -520,7 +757,7 @@ function buildLinhaClassificacao(time, pos, total, meuTimeId) {
             <div class="w-6 text-center text-yellow-400 text-[10px]">${time.empates || 0}</div>
             <div class="w-6 text-center text-red-400 text-[10px]">${time.derrotas || 0}</div>
             <div class="w-8 text-center text-white/60 text-[10px]">${Math.round(sg)}</div>
-            <div class="w-8 text-center text-white font-bold text-xs">${time.pontos || 0}</div>
+            <div class="w-8 text-center text-white font-bold text-xs ${isCampeao ? "text-yellow-400" : ""}">${time.pontos || 0}</div>
         </div>
     `;
 }
@@ -595,4 +832,4 @@ window.recarregarPontosCorridos = function () {
 window.inicializarPontosCorridosParticipante =
     inicializarPontosCorridosParticipante;
 
-console.log("[PONTOS-CORRIDOS] Módulo v4.2 carregado (visualização melhorada)");
+console.log("[PONTOS-CORRIDOS] Módulo v4.3 carregado (celebração do campeão)");
