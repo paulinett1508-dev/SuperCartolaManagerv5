@@ -1,5 +1,5 @@
 // RODADAS CORE - Lógica de Negócio e API Calls
-// ✅ VERSÃO 4.2 - INATIVOS EM TODAS AS RODADAS
+// ✅ VERSÃO 4.3 - CORREÇÃO SINTAXE + TABELAS CONTEXTUAIS
 // Responsável por: processamento de dados, chamadas de API, cálculos
 
 import {
@@ -9,6 +9,13 @@ import {
   valoresBancoPadrao,
   valoresBancoCartoleirosSobral,
   TIMEOUTS_CONFIG,
+  // ✅ v4.3: Imports contextuais para Cartoleiros Sobral
+  RODADA_TRANSICAO_SOBRAL,
+  valoresFase1_6times,
+  valoresFase2_4times,
+  getBancoPorRodada,
+  getFaixasPorRodada,
+  getTotalTimesPorRodada,
 } from "./rodadas-config.js";
 
 // VERIFICAÇÃO DE AMBIENTE
@@ -554,6 +561,7 @@ export async function calcularPontosParciais(liga, rodada) {
 // FUNÇÕES DE UTILIDADE
 // ==============================
 
+// Função legada - usa tabela atual (fase2 para Cartoleiros Sobral)
 export function getBancoPorLiga(ligaId) {
   const isLigaCartoleirosSobral = ligaId === LIGAS_CONFIG.CARTOLEIROS_SOBRAL;
   return isLigaCartoleirosSobral
@@ -561,11 +569,9 @@ export function getBancoPorLiga(ligaId) {
     : valoresBancoPadrao;
 }
 
-// ✅ v4.0: Função contextual para Cartoleiros Sobral
-export function getBancoPorRodada(ligaId, rodada) {
-  const { getBancoPorRodada: getBancoContextual } = await import('./rodadas-config.js');
-  return getBancoContextual(ligaId, rodada);
-}
+// ✅ v4.3: getBancoPorRodada já importado do rodadas-config.js
+// Re-exportar para compatibilidade com outros módulos
+export { getBancoPorRodada, getFaixasPorRodada, getTotalTimesPorRodada };
 
 export async function buscarRodadas() {
   try {
@@ -640,6 +646,4 @@ export function agruparRodadasPorNumero(rodadas) {
   return grouped;
 }
 
-console.log(
-  "[RODADAS-CORE] ✅ Módulo v4.2 carregado (inativos em todas as rodadas)",
-);
+console.log("[RODADAS-CORE] ✅ Módulo v4.3 carregado (tabelas contextuais)");

@@ -43,73 +43,51 @@ export const valoresBancoPadrao = {
 
 // =====================================================
 // ✅ CARTOLEIROS SOBRAL - CONFIGURAÇÃO TEMPORAL
-// Rodadas 1-29: 6 times ativos
-// Rodadas 30+: 4 times ativos (2 inativos)
+//
+// HISTÓRICO:
+// - Rodadas 1-29: 6 times ativos (inativos ainda figuravam no ranking)
+// - Rodadas 30-38: 4 times ativos (2 times desistiram e foram removidos)
+//
+// REGRA: rodada < 30 = fase1 | rodada >= 30 = fase2
 // =====================================================
-export const CONFIG_TEMPORAL_SOBRAL = {
-  rodadaTransicao: 30,
-  motivo: "2 times ficaram inativos a partir da rodada 30",
+export const RODADA_TRANSICAO_SOBRAL = 30;
 
-  // Retorna qual fase usar baseado na rodada
-  getFaseAtual(rodada) {
-    return rodada < this.rodadaTransicao ? "fase1" : "fase2";
-  },
+// FASE 1: Rodadas 1-29 (6 times - antes da desistência)
+export const valoresFase1_6times = {
+  1: 7.0, // MITO
+  2: 4.0, // G2
+  3: 0.0, // Neutro
+  4: -2.0, // Z3
+  5: -5.0, // Z2
+  6: -10.0, // MICO
+};
 
-  // Retorna valores de banco corretos para a rodada
-  getValoresBanco(rodada) {
-    const fase = this.getFaseAtual(rodada);
-    return fase === "fase1"
-      ? this.valoresFase1_6times
-      : this.valoresFase2_4times;
-  },
+// FASE 2: Rodadas 30-38 (4 times - após desistência de 2 participantes)
+export const valoresFase2_4times = {
+  1: 5.0, // MITO
+  2: 0.0, // Neutro
+  3: 0.0, // Neutro
+  4: -5.0, // MICO
+};
 
-  // Retorna total de times ativos na rodada
-  getTotalTimes(rodada) {
-    return rodada < this.rodadaTransicao ? 6 : 4;
-  },
+// Faixas de premiação - FASE 1 (rodadas 1-29)
+export const faixasFase1 = {
+  totalTimes: 6,
+  credito: { inicio: 1, fim: 2 }, // Posições 1-2 ganham
+  neutro: { inicio: 3, fim: 3 }, // Posição 3 empata
+  debito: { inicio: 4, fim: 6 }, // Posições 4-6 perdem
+};
 
-  // FASE 1: Rodadas 1-29 (6 times)
-  valoresFase1_6times: {
-    1: 7.0,
-    2: 4.0,
-    3: 0.0,
-    4: -2.0,
-    5: -5.0,
-    6: -10.0,
-  },
-
-  // FASE 2: Rodadas 30+ (4 times)
-  valoresFase2_4times: {
-    1: 5.0,
-    2: 0.0,
-    3: 0.0,
-    4: -5.0,
-  },
-
-  // Faixas de premiação por fase
-  faixasFase1: {
-    totalTimes: 6,
-    credito: { inicio: 1, fim: 2 },
-    neutro: { inicio: 3, fim: 3 },
-    debito: { inicio: 4, fim: 6 },
-  },
-
-  faixasFase2: {
-    totalTimes: 4,
-    credito: { inicio: 1, fim: 1 },
-    neutro: { inicio: 2, fim: 3 },
-    debito: { inicio: 4, fim: 4 },
-  },
-
-  // Retorna faixas corretas para a rodada
-  getFaixas(rodada) {
-    return rodada < this.rodadaTransicao ? this.faixasFase1 : this.faixasFase2;
-  },
+// Faixas de premiação - FASE 2 (rodadas 30-38)
+export const faixasFase2 = {
+  totalTimes: 4,
+  credito: { inicio: 1, fim: 1 }, // Só posição 1 ganha (MITO)
+  neutro: { inicio: 2, fim: 3 }, // Posições 2-3 empatam
+  debito: { inicio: 4, fim: 4 }, // Só posição 4 perde (MICO)
 };
 
 // Manter compatibilidade com código legado (usa fase atual = fase2)
-export const valoresBancoCartoleirosSobral =
-  CONFIG_TEMPORAL_SOBRAL.valoresFase2_4times;
+export const valoresBancoCartoleirosSobral = valoresFase2_4times;
 
 // CONFIGURAÇÃO DE LIGAS
 export const LIGAS_CONFIG = {
@@ -123,7 +101,9 @@ export const LIGAS_CONFIG = {
 // =====================================================
 export function getBancoPorRodada(ligaId, rodada) {
   if (ligaId === LIGAS_CONFIG.CARTOLEIROS_SOBRAL) {
-    return CONFIG_TEMPORAL_SOBRAL.getValoresBanco(rodada);
+    return rodada < RODADA_TRANSICAO_SOBRAL
+      ? valoresFase1_6times
+      : valoresFase2_4times;
   }
   return valoresBancoPadrao;
 }
@@ -139,7 +119,7 @@ export function getBancoPorLiga(ligaId) {
 // ✅ FUNÇÃO: Obter faixas de premiação por rodada
 export function getFaixasPorRodada(ligaId, rodada) {
   if (ligaId === LIGAS_CONFIG.CARTOLEIROS_SOBRAL) {
-    return CONFIG_TEMPORAL_SOBRAL.getFaixas(rodada);
+    return rodada < RODADA_TRANSICAO_SOBRAL ? faixasFase1 : faixasFase2;
   }
   // SuperCartola - faixas fixas
   return {
@@ -153,7 +133,7 @@ export function getFaixasPorRodada(ligaId, rodada) {
 // ✅ FUNÇÃO: Obter total de times ativos por rodada
 export function getTotalTimesPorRodada(ligaId, rodada) {
   if (ligaId === LIGAS_CONFIG.CARTOLEIROS_SOBRAL) {
-    return CONFIG_TEMPORAL_SOBRAL.getTotalTimes(rodada);
+    return rodada < RODADA_TRANSICAO_SOBRAL ? 6 : 4;
   }
   return 32; // SuperCartola
 }
@@ -203,14 +183,34 @@ export const POSICAO_CONFIG = {
       className: "pos-mico",
     },
   },
-  // ✅ Cartoleiros Sobral - Configuração por fase
+  // ✅ Cartoleiros Sobral - Estrutura compatível (usa fase atual = fase2)
+  // Para compatibilidade com rodadas-ui.js que não passa rodada
   CARTOLEIROS_SOBRAL: {
-    // Função para obter config baseado na rodada
-    getPorRodada(rodada) {
-      const fase = CONFIG_TEMPORAL_SOBRAL.getFaseAtual(rodada);
-      return fase === "fase1" ? this.fase1 : this.fase2;
+    mito: {
+      pos: 1,
+      label: "MITO",
+      style:
+        "color:#fff; font-weight:bold; background:#198754; border-radius:4px; padding:1px 8px; font-size:12px;",
     },
-    // Fase 1: Rodadas 1-29 (6 times)
+    g2: {
+      pos: 2,
+      label: "2º",
+      className: "pos-neutro",
+    },
+    neutro: {
+      pos: 3,
+      label: "3º",
+      className: "pos-neutro",
+    },
+    mico: {
+      pos: 4,
+      label: "MICO",
+      style:
+        "color:#fff; font-weight:bold; background:#dc3545; border-radius:4px; padding:1px 8px; font-size:12px;",
+    },
+  },
+  // Configurações por fase para uso contextual
+  CARTOLEIROS_SOBRAL_FASES: {
     fase1: {
       totalTimes: 6,
       mito: { pos: 1, label: "MITO" },
@@ -220,7 +220,6 @@ export const POSICAO_CONFIG = {
       z2: { pos: 5, label: "Z2", className: "pos-z" },
       mico: { pos: 6, label: "MICO", className: "pos-mico" },
     },
-    // Fase 2: Rodadas 30+ (4 times)
     fase2: {
       totalTimes: 4,
       mito: { pos: 1, label: "MITO" },
@@ -230,6 +229,16 @@ export const POSICAO_CONFIG = {
     },
   },
 };
+
+// Função para obter config de posição por rodada (para uso contextual)
+export function getPosicaoConfigPorRodada(ligaId, rodada) {
+  if (ligaId === LIGAS_CONFIG.CARTOLEIROS_SOBRAL) {
+    return rodada < RODADA_TRANSICAO_SOBRAL
+      ? POSICAO_CONFIG.CARTOLEIROS_SOBRAL_FASES.fase1
+      : POSICAO_CONFIG.CARTOLEIROS_SOBRAL_FASES.fase2;
+  }
+  return POSICAO_CONFIG.SUPERCARTOLA;
+}
 
 // CONFIGURAÇÃO DE TIMEOUTS E DELAYS
 export const TIMEOUTS_CONFIG = {

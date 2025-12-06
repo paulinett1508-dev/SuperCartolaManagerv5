@@ -13,6 +13,8 @@ import {
 import {
     valoresBancoPadrao,
     valoresBancoCartoleirosSobral,
+    getBancoPorRodada,
+    LIGAS_CONFIG,
 } from "../rodadas/rodadas-config.js";
 
 const API_BASE_URL = window.location.origin;
@@ -548,12 +550,11 @@ export class FluxoFinanceiroCore {
     _calcularBonusOnus(posicaoReal, isCartoleirosSobral, rodada = null) {
         if (isCartoleirosSobral && rodada) {
             // ✅ v4.0: Usar tabela contextual para Cartoleiros Sobral
-            const { getBancoPorRodada } = await import("../rodadas/rodadas-config.js");
             const ligaId = obterLigaId();
             const valoresContextuais = getBancoPorRodada(ligaId, rodada);
             return valoresContextuais[posicaoReal] || 0;
         }
-        
+
         const valores = isCartoleirosSobral
             ? valoresBancoCartoleirosSobral
             : valoresBancoPadrao;
@@ -788,4 +789,4 @@ window.forcarRefreshExtrato = async function (timeId) {
     window.location.reload();
 };
 
-console.log("[FLUXO-CORE] ✅ v4.1 carregado (suporte a inativos)");
+console.log("[FLUXO-CORE] ✅ v4.2 carregado (tabelas contextuais corrigidas)");

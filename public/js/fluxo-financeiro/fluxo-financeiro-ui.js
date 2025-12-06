@@ -1,7 +1,8 @@
 import { FluxoFinanceiroCampos } from "./fluxo-financeiro-campos.js";
 
 /**
- * FLUXO-FINANCEIRO-UI.JS - Refatorado (Sessão 2 - Clean Code)
+ * FLUXO-FINANCEIRO-UI.JS - v4.1 (MITO/MICO Contextual)
+ * ✅ v4.1: MICO mostra badge para último lugar da fase (4º na fase2, 6º na fase1)
  * Objetivo: Renderização Pura + Classes CSS
  */
 export class FluxoFinanceiroUI {
@@ -120,31 +121,39 @@ export class FluxoFinanceiroUI {
     }
 
     formatarPosicao(rodada) {
+        // ✅ v4.1: MITO/MICO contextual por rodada
+        const ligaId = window.obterLigaId?.() || null;
+        const isCartoleirosSobral = ligaId === "684d821cf1a7ae16d1f89572";
+
+        // Determinar total de times da fase
+        let totalTimesFase = 32; // SuperCartola padrão
+        if (isCartoleirosSobral) {
+            totalTimesFase = rodada.rodada >= 30 ? 4 : 6;
+        }
+
+        // MITO: 1º lugar
         if (rodada.isMito || rodada.posicao === 1)
             return `<span class="badge-status status-mito">🎩 MITO</span>`;
-        if (
-            rodada.isMico ||
-            (rodada.totalTimes && rodada.posicao === rodada.totalTimes)
-        )
+
+        // MICO: último lugar (contextual)
+        if (rodada.isMico || rodada.posicao === totalTimesFase)
             return `<span class="badge-status status-mico">🐵 MICO</span>`;
 
         if (rodada.posicao) {
-            // ✅ v4.0: Detectar faixas contextuais para Cartoleiros Sobral
-            const ligaId = window.obterLigaId?.() || null;
-            const isCartoleirosSobral = ligaId === "684d821cf1a7ae16d1f89572";
-            
             let classe = "status-neutro";
-            
+
             if (isCartoleirosSobral && rodada.rodada >= 30) {
-                // Fase 2: 4 times (1º=crédito, 2º-3º=neutro, 4º=débito)
+                // Fase 2: 4 times (1º=crédito, 2º-3º=neutro, 4º=MICO já tratado acima)
                 if (rodada.posicao === 1) classe = "status-g4";
-                else if (rodada.posicao >= 2 && rodada.posicao <= 3) classe = "status-neutro";
-                else if (rodada.posicao === 4) classe = "status-z4";
+                else if (rodada.posicao >= 2 && rodada.posicao <= 3)
+                    classe = "status-neutro";
             } else if (isCartoleirosSobral) {
-                // Fase 1: 6 times (1º-2º=crédito, 3º=neutro, 4º-6º=débito)
-                if (rodada.posicao >= 1 && rodada.posicao <= 2) classe = "status-g4";
+                // Fase 1: 6 times (1º-2º=crédito, 3º=neutro, 4º-5º=débito, 6º=MICO já tratado)
+                if (rodada.posicao >= 1 && rodada.posicao <= 2)
+                    classe = "status-g4";
                 else if (rodada.posicao === 3) classe = "status-neutro";
-                else if (rodada.posicao >= 4) classe = "status-z4";
+                else if (rodada.posicao >= 4 && rodada.posicao <= 5)
+                    classe = "status-z4";
             } else {
                 // SuperCartola 2025 (32 times)
                 classe =
@@ -154,7 +163,7 @@ export class FluxoFinanceiroUI {
                           ? "status-z4"
                           : "status-neutro";
             }
-            
+
             return `<span class="badge-status ${classe}">${rodada.posicao}º</span>`;
         }
         return `<span class="text-muted">-</span>`;
@@ -346,13 +355,97 @@ export class FluxoFinanceiroUI {
         `;
     }
 
-    // Mantido simplificado
-    renderizarRelatorioConsolidado(relatorio) {
+    renderizarRelatorioConsolidado(relatorio, ultimaRodada) {
         const container = document.getElementById(this.containerId);
         if (!container) return;
-        // ... (código similar, usando as classes .table-modern, .btn-modern etc.)
-        // Para economizar espaço na resposta, a lógica é a mesma, só trocando inline styles por classes.
-        // Se quiser este bloco detalhado também, me avise!
+
+        if (!relatorio || relatorio.length === 0) {
+            container.innerHTML = `
+                <div class="estado-inicial">
+                    <div class="estado-inicial-icon">⚠️</div>
+                    <h2 class="estado-inicial-titulo">Sem dados</h2>
+                    <p class="estado-inicial-subtitulo">Nenhum participante encontrado para o relatório.</p>
+                </div>`;
+            return;
+        }
+
+        const html = `
+            <div class="card-padrao">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+                    <h3 class="card-titulo" style="margin: 0;">📊 Relatório Consolidado - Rodada ${ultimaRodada}</h3>
+                    <button onclick="window.exportarRelatorioCSV()" class="btn-modern btn-success-gradient">
+                        📥 Exportar CSV
+                    </button>
+                </div>
+
+                <div class="table-responsive">
+                    <table class="table-modern">
+                        <thead>
+                            <tr>
+                                <th style="width: 40px;">#</th>
+                                <th>Participante</th>
+                                <th class="text-center">Bônus</th>
+                                <th class="text-center">Ônus</th>
+                                <th class="text-center">P.C</th>
+                                <th class="text-center">M-M</th>
+                                <th class="text-center">Melhor Mês</th>
+                                <th class="text-center">Ajustes</th>
+                                <th class="text-center">Saldo</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            ${relatorio
+                                .map(
+                                    (p, i) => `
+                                <tr class="${i % 2 === 0 ? "bg-zebra" : ""}">
+                                    <td class="font-bold text-center">${i + 1}º</td>
+                                    <td>
+                                        <div style="display: flex; align-items: center; gap: 10px;">
+                                            ${
+                                                p.escudo
+                                                    ? `<img src="${p.escudo}" alt="" style="width: 28px; height: 28px; border-radius: 50%;">`
+                                                    : `<div style="width: 28px; height: 28px; border-radius: 50%; background: #333; display: flex; align-items: center; justify-content: center;">⚽</div>`
+                                            }
+                                            <div>
+                                                <div class="font-semibold">${p.nome}</div>
+                                                <div class="text-muted" style="font-size: 11px;">${p.time}</div>
+                                            </div>
+                                        </div>
+                                    </td>
+                                    <td class="text-center">${this.formatarMoeda(p.bonus)}</td>
+                                    <td class="text-center">${this.formatarMoeda(p.onus)}</td>
+                                    <td class="text-center">${this.formatarMoeda(p.pontosCorridos)}</td>
+                                    <td class="text-center">${this.formatarMoeda(p.mataMata)}</td>
+                                    <td class="text-center">${this.formatarMoeda(p.melhorMes)}</td>
+                                    <td class="text-center">${this.formatarMoeda(p.ajustes)}</td>
+                                    <td class="text-center font-bold ${p.saldoFinal >= 0 ? "text-success" : "text-danger"}">
+                                        ${p.saldoFinal >= 0 ? "+" : ""}R$ ${p.saldoFinal.toLocaleString("pt-BR", { minimumFractionDigits: 2 })}
+                                    </td>
+                                </tr>
+                            `,
+                                )
+                                .join("")}
+                        </tbody>
+                        <tfoot>
+                            <tr class="row-total">
+                                <td colspan="2" class="text-right font-bold">TOTAIS:</td>
+                                <td class="text-center">${this.formatarMoeda(relatorio.reduce((s, p) => s + (p.bonus || 0), 0))}</td>
+                                <td class="text-center">${this.formatarMoeda(relatorio.reduce((s, p) => s + (p.onus || 0), 0))}</td>
+                                <td class="text-center">${this.formatarMoeda(relatorio.reduce((s, p) => s + (p.pontosCorridos || 0), 0))}</td>
+                                <td class="text-center">${this.formatarMoeda(relatorio.reduce((s, p) => s + (p.mataMata || 0), 0))}</td>
+                                <td class="text-center">${this.formatarMoeda(relatorio.reduce((s, p) => s + (p.melhorMes || 0), 0))}</td>
+                                <td class="text-center">${this.formatarMoeda(relatorio.reduce((s, p) => s + (p.ajustes || 0), 0))}</td>
+                                <td class="text-center font-bold">
+                                    R$ ${relatorio.reduce((s, p) => s + (p.saldoFinal || 0), 0).toLocaleString("pt-BR", { minimumFractionDigits: 2 })}
+                                </td>
+                            </tr>
+                        </tfoot>
+                    </table>
+                </div>
+            </div>
+        `;
+
+        container.innerHTML = html;
     }
 }
 

@@ -1,12 +1,13 @@
 // RODADAS UI - Interface e Renderização
-// ✅ v2.2: Inativos aparecem como ATIVOS nas rodadas anteriores à desistência
-//         Visual de inativo SÓ aparece nas rodadas >= rodada_desistencia
+// ✅ v2.3: Tabelas contextuais por rodada (valores de banco e labels de posição)
+//         Rodadas 1-29: 6 times | Rodadas 30+: 4 times
 // Responsável por: renderização de componentes, manipulação DOM, eventos
 
 import {
   POSICAO_CONFIG,
   LIGAS_CONFIG,
-  getBancoPorLiga,
+  getBancoPorRodada,
+  RODADA_TRANSICAO_SOBRAL,
 } from "./rodadas-config.js";
 
 import { getStatusMercado } from "./rodadas-core.js";
@@ -133,25 +134,50 @@ export async function selecionarRodada(rodada, carregarDadosCallback) {
 // EXIBIÇÃO DE RANKINGS
 // ==============================
 
-// FUNÇÃO PARA OBTER LABEL DE POSIÇÃO
-export function getPosLabel(index, total, ligaId) {
+// ✅ v2.3: FUNÇÃO PARA OBTER LABEL DE POSIÇÃO (contextual por rodada)
+export function getPosLabel(index, total, ligaId, rodada) {
   const pos = index + 1;
   const isLigaCartoleirosSobral = ligaId === LIGAS_CONFIG.CARTOLEIROS_SOBRAL;
 
   if (isLigaCartoleirosSobral) {
-    const config = POSICAO_CONFIG.CARTOLEIROS_SOBRAL;
+    // ✅ v2.3: Determinar fase baseada na rodada
+    const isFase1 = rodada < RODADA_TRANSICAO_SOBRAL; // Rodadas 1-29: 6 times
 
-    if (pos === config.mito.pos) {
-      return `<span style="${config.mito.style}">${config.mito.label}</span>`;
-    }
-    if (pos === config.mico.pos) {
-      return `<span style="${config.mico.style}">${config.mico.label}</span>`;
-    }
-    if (pos === config.g2.pos) {
-      return `<span class="${config.g2.className}">${config.g2.label}</span>`;
+    if (isFase1) {
+      // FASE 1: 6 times (rodadas 1-29)
+      if (pos === 1) {
+        return `<span style="color:#fff; font-weight:bold; background:#198754; border-radius:4px; padding:1px 8px; font-size:12px;">MITO</span>`;
+      }
+      if (pos === 2) {
+        return `<span class="pos-g">G2</span>`;
+      }
+      if (pos === 3) {
+        return `<span class="pos-neutro">3º</span>`;
+      }
+      if (pos === 4) {
+        return `<span class="pos-z">Z3</span>`;
+      }
+      if (pos === 5) {
+        return `<span class="pos-z">Z2</span>`;
+      }
+      if (pos === 6) {
+        return `<span style="color:#fff; font-weight:bold; background:#dc3545; border-radius:4px; padding:1px 8px; font-size:12px;">MICO</span>`;
+      }
+    } else {
+      // FASE 2: 4 times (rodadas 30+)
+      if (pos === 1) {
+        return `<span style="color:#fff; font-weight:bold; background:#198754; border-radius:4px; padding:1px 8px; font-size:12px;">MITO</span>`;
+      }
+      if (pos === 2 || pos === 3) {
+        return `<span class="pos-neutro">${pos}º</span>`;
+      }
+      if (pos === 4) {
+        return `<span style="color:#fff; font-weight:bold; background:#dc3545; border-radius:4px; padding:1px 8px; font-size:12px;">MICO</span>`;
+      }
     }
     return `${pos}°`;
   } else {
+    // SUPERCARTOLA - Lógica original
     const config = POSICAO_CONFIG.SUPERCARTOLA;
 
     if (pos === config.mito.pos) {
@@ -170,7 +196,7 @@ export function getPosLabel(index, total, ligaId) {
   }
 }
 
-// ✅ v2.2: EXIBIR RANKING - INATIVOS CONTEXTUAIS POR RODADA
+// ✅ v2.3: EXIBIR RANKING - TABELAS CONTEXTUAIS POR RODADA
 export function exibirRanking(rankingsDaRodada, rodadaSelecionada, ligaId) {
   const rankingBody = getElement("rankingBody");
 
@@ -211,15 +237,26 @@ export function exibirRanking(rankingsDaRodada, rodadaSelecionada, ligaId) {
   // Ordenar ativos por pontos
   ativos.sort((a, b) => parseFloat(b.pontos || 0) - parseFloat(a.pontos || 0));
 
-  const bancoValores = getBancoPorLiga(ligaId);
+  // ✅ v2.3: Usar valores de banco contextuais por rodada
+  const bancoValores = getBancoPorRodada(ligaId, rodadaSelecionada);
   const totalAtivos = ativos.length;
+
+  console.log(
+    `[RODADAS-UI] Rodada ${rodadaSelecionada}: usando tabela de ${Object.keys(bancoValores).length} posições`,
+  );
 
   // Renderizar ativos
   let tableHTML = ativos
     .map((rank, index) => {
       const banco =
         bancoValores[index + 1] !== undefined ? bancoValores[index + 1] : 0.0;
-      const posLabel = getPosLabel(index, totalAtivos, ligaId);
+      // ✅ v2.3: Passar rodada para getPosLabel
+      const posLabel = getPosLabel(
+        index,
+        totalAtivos,
+        ligaId,
+        rodadaSelecionada,
+      );
       const nomeCartoleiro = rank.nome_cartola || rank.nome_cartoleiro || "N/D";
       const nomeTime = rank.nome_time || "N/D";
       const pontos =
@@ -245,7 +282,7 @@ export function exibirRanking(rankingsDaRodada, rodadaSelecionada, ligaId) {
     })
     .join("");
 
-  // ✅ v2.1: Adicionar seção de inativos (aparecem em TODAS as rodadas)
+  // ✅ v2.2: Adicionar seção de inativos (só para rodadas >= rodada_desistencia)
   if (inativos.length > 0) {
     tableHTML += `
       <tr class="secao-inativos-header">
@@ -288,13 +325,14 @@ export function exibirRanking(rankingsDaRodada, rodadaSelecionada, ligaId) {
   }
 
   rankingBody.innerHTML = tableHTML;
+  limparExportContainer();
 
   console.log(
     `[RODADAS-UI] ✅ Rodada ${rodadaSelecionada}: ${ativos.length} ativos, ${inativos.length} inativos (contextuais)`,
   );
 }
 
-// ✅ v2.2: EXIBIR RANKING PARCIAIS - INATIVOS CONTEXTUAIS POR RODADA
+// ✅ v2.3: EXIBIR RANKING PARCIAIS - TABELAS CONTEXTUAIS POR RODADA
 export async function exibirRankingParciais(
   rankings,
   rodada,
@@ -340,14 +378,20 @@ export async function exibirRankingParciais(
       parseFloat(a.totalPontos || a.pontos || 0),
   );
 
-  const bancoValores = getBancoPorLiga(ligaId);
+  // ✅ v2.3: Usar valores de banco contextuais por rodada
+  const bancoValores = getBancoPorRodada(ligaId, rodada);
   const totalAtivos = ativos.length;
+
+  console.log(
+    `[RODADAS-UI] Parciais rodada ${rodada}: usando tabela de ${Object.keys(bancoValores).length} posições`,
+  );
 
   let tableHTML = ativos
     .map((rank, index) => {
       const banco =
         bancoValores[index + 1] !== undefined ? bancoValores[index + 1] : 0.0;
-      const posLabel = getPosLabel(index, totalAtivos, ligaId);
+      // ✅ v2.3: Passar rodada para getPosLabel
+      const posLabel = getPosLabel(index, totalAtivos, ligaId, rodada);
       const nomeCartoleiro = rank.nome_cartola || "N/D";
       const nomeTime = rank.nome_time || "N/D";
       const pontos =
@@ -514,5 +558,5 @@ export function limparCacheUI() {
 }
 
 console.log(
-  "[RODADAS-UI] ✅ Módulo v2.2 carregado (inativos contextuais por rodada)",
+  "[RODADAS-UI] ✅ Módulo v2.3 carregado (tabelas contextuais por rodada)",
 );

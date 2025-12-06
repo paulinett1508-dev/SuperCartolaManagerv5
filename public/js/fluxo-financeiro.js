@@ -14,18 +14,23 @@ function obterLigaId() {
     const urlParams = new URLSearchParams(window.location.search);
     const ligaIdFromUrl = urlParams.get("id") || urlParams.get("ligaId");
     if (ligaIdFromUrl) {
-        console.log('[FLUXO-FINANCEIRO-ADMIN] Liga ID da URL:', ligaIdFromUrl);
+        console.log("[FLUXO-FINANCEIRO-ADMIN] Liga ID da URL:", ligaIdFromUrl);
         return ligaIdFromUrl;
     }
 
     // ✅ FALLBACK: localStorage
     const ligaIdSelecionada = localStorage.getItem("ligaIdSelecionada");
     if (ligaIdSelecionada) {
-        console.log('[FLUXO-FINANCEIRO-ADMIN] Usando ligaId do localStorage:', ligaIdSelecionada);
+        console.log(
+            "[FLUXO-FINANCEIRO-ADMIN] Usando ligaId do localStorage:",
+            ligaIdSelecionada,
+        );
         return ligaIdSelecionada;
     }
 
-    console.error("[FLUXO-FINANCEIRO-ADMIN] ❌ Liga ID não encontrado na URL ou localStorage");
+    console.error(
+        "[FLUXO-FINANCEIRO-ADMIN] ❌ Liga ID não encontrado na URL ou localStorage",
+    );
     return null;
 }
 
@@ -85,8 +90,8 @@ async function carregarModulos() {
 
 // ===== FUNÇÃO DE INICIALIZAÇÃO =====
 async function inicializarFluxoFinanceiro() {
-    console.log('[FLUXO-ADMIN] 🚀 Inicializando módulo ADMIN');
-    
+    console.log("[FLUXO-ADMIN] 🚀 Inicializando módulo ADMIN");
+
     try {
         await carregarModulos();
 
@@ -94,11 +99,14 @@ async function inicializarFluxoFinanceiro() {
             const status = await getMercadoStatus();
             rodadaAtual = status.rodada_atual || 1;
             ultimaRodadaCompleta = Math.max(1, rodadaAtual - 1);
-            console.log('[FLUXO-ADMIN] Rodada atual:', rodadaAtual);
+            console.log("[FLUXO-ADMIN] Rodada atual:", rodadaAtual);
         } catch (error) {
             rodadaAtual = 21;
             ultimaRodadaCompleta = 20;
-            console.warn('[FLUXO-ADMIN] Usando rodada padrão:', ultimaRodadaCompleta);
+            console.warn(
+                "[FLUXO-ADMIN] Usando rodada padrão:",
+                ultimaRodadaCompleta,
+            );
         }
 
         if (!fluxoFinanceiroCache && FluxoFinanceiroCache) {
@@ -196,7 +204,7 @@ async function calcularEExibirExtrato(timeId) {
 
         await fluxoFinanceiroUI.renderizarExtratoFinanceiro(
             extrato,
-            participante
+            participante,
         );
     } catch (error) {
         console.error("[FLUXO-FINANCEIRO] Erro ao calcular extrato:", error);
@@ -218,28 +226,16 @@ async function gerarRelatorioFinanceiro() {
             const timeId = participante.time_id || participante.id;
 
             try {
-                const extrato = await fluxoFinanceiroCore.calcularExtratoFinanceiro(
-                    timeId,
-                    ultimaRodadaCompleta,
-                );
+                const extrato =
+                    await fluxoFinanceiroCore.calcularExtratoFinanceiro(
+                        timeId,
+                        ultimaRodadaCompleta,
+                    );
 
                 const camposAtualizados =
                     await FluxoFinanceiroCampos.carregarTodosCamposEditaveis(
                         timeId,
                     );
-
-                const disputasAtivas = await fluxoFinanceiroCore.buscarDisputasAtivas(timeId);
-
-                const saldoFinal =
-                    extrato.resumo.bonus +
-                    extrato.resumo.onus +
-                    extrato.resumo.pontosCorridos +
-                    extrato.resumo.mataMata +
-                    extrato.resumo.melhorMes +
-                    (camposAtualizados.campo1?.valor || 0) +
-                    (camposAtualizados.campo2?.valor || 0) +
-                    (camposAtualizados.campo3?.valor || 0) +
-                    (camposAtualizados.campo4?.valor || 0);
 
                 relatorio.push({
                     timeId,
@@ -250,13 +246,13 @@ async function gerarRelatorioFinanceiro() {
                     onus: extrato.resumo.onus,
                     pontosCorridos: extrato.resumo.pontosCorridos || 0,
                     mataMata: extrato.resumo.mataMata,
+                    melhorMes: extrato.resumo.melhorMes || 0,
                     ajustes:
                         (camposAtualizados.campo1?.valor || 0) +
                         (camposAtualizados.campo2?.valor || 0) +
                         (camposAtualizados.campo3?.valor || 0) +
                         (camposAtualizados.campo4?.valor || 0),
                     saldoFinal: extrato.resumo.saldo,
-                    disputasAtivas: disputasAtivas,
                 });
             } catch (error) {
                 console.error(
@@ -350,11 +346,11 @@ window.gerarRelatorioFinanceiro = gerarRelatorioFinanceiro;
 window.exportarRelatorioCSV = exportarRelatorioCSV;
 
 // ===== EXPORTAR APENAS PARA ES6 MODULES (SEM DUPLICAÇÃO) =====
-export { 
-    calcularEExibirExtrato, 
+export {
+    calcularEExibirExtrato,
     inicializarFluxoFinanceiro,
     selecionarParticipante,
-    obterLigaId 
+    obterLigaId,
 };
 
 // ===== VARIÁVEL GLOBAL PARA ARMAZENAR PARTICIPANTE ATUAL (ADMIN) =====
@@ -363,44 +359,62 @@ window.participanteAtualCache = null;
 // ===== FUNÇÃO PARA RECARREGAR EXTRATO ATUAL (ADMIN) =====
 window.recarregarExtratoAtual = async () => {
     if (!window.participanteAtualCache) {
-        console.warn('[FLUXO-ADMIN] Nenhum participante selecionado para recarregar');
+        console.warn(
+            "[FLUXO-ADMIN] Nenhum participante selecionado para recarregar",
+        );
         return;
     }
 
-    console.log('[FLUXO-ADMIN] Recarregando extrato:', window.participanteAtualCache.time_id || window.participanteAtualCache.id);
-    await selecionarParticipante(window.participanteAtualCache.time_id || window.participanteAtualCache.id);
+    console.log(
+        "[FLUXO-ADMIN] Recarregando extrato:",
+        window.participanteAtualCache.time_id ||
+            window.participanteAtualCache.id,
+    );
+    await selecionarParticipante(
+        window.participanteAtualCache.time_id ||
+            window.participanteAtualCache.id,
+    );
 };
 
 // ===== FUNÇÃO PARA RECALCULAR E ATUALIZAR SALDO NA TELA =====
 async function recalcularSaldoNaTela(timeId) {
     try {
-        console.log('[FLUXO] Iniciando recálculo de saldo para time:', timeId);
+        console.log("[FLUXO] Iniciando recálculo de saldo para time:", timeId);
 
-        const camposAtualizados = await FluxoFinanceiroCampos.carregarTodosCamposEditaveis(timeId);
-        console.log('[FLUXO] Campos atualizados do MongoDB:', camposAtualizados);
+        const camposAtualizados =
+            await FluxoFinanceiroCampos.carregarTodosCamposEditaveis(timeId);
+        console.log(
+            "[FLUXO] Campos atualizados do MongoDB:",
+            camposAtualizados,
+        );
 
-        const extrato = await fluxoFinanceiroCore.calcularExtratoFinanceiro(timeId, ultimaRodadaCompleta);
+        const extrato = await fluxoFinanceiroCore.calcularExtratoFinanceiro(
+            timeId,
+            ultimaRodadaCompleta,
+        );
 
-        const saldoDisplay = document.getElementById('saldoTotalDisplay');
+        const saldoDisplay = document.getElementById("saldoTotalDisplay");
         if (saldoDisplay) {
             const saldoFinal = extrato.resumo.saldo;
-            const cor = saldoFinal >= 0 ? '#2ecc71' : '#e74c3c';
+            const cor = saldoFinal >= 0 ? "#2ecc71" : "#e74c3c";
 
             saldoDisplay.style.color = cor;
-            saldoDisplay.textContent = `R$ ${parseFloat(saldoFinal).toLocaleString('pt-BR', {
+            saldoDisplay.textContent = `R$ ${parseFloat(
+                saldoFinal,
+            ).toLocaleString("pt-BR", {
                 minimumFractionDigits: 2,
                 maximumFractionDigits: 2,
             })}`;
 
-            saldoDisplay.style.transform = 'scale(1.1)';
+            saldoDisplay.style.transform = "scale(1.1)";
             setTimeout(() => {
-                saldoDisplay.style.transform = 'scale(1)';
+                saldoDisplay.style.transform = "scale(1)";
             }, 200);
         }
 
-        console.log('[FLUXO] Saldo recalculado:', extrato.resumo.saldo);
+        console.log("[FLUXO] Saldo recalculado:", extrato.resumo.saldo);
     } catch (error) {
-        console.error('[FLUXO] Erro ao recalcular saldo:', error);
+        console.error("[FLUXO] Erro ao recalcular saldo:", error);
     }
 }
 
@@ -411,43 +425,53 @@ window.salvarCampoEditavelComRecalculo = async (timeId, nomeCampo, valor) => {
 
         const input = document.getElementById(`input_${nomeCampo}`);
         if (input) {
-            input.style.borderColor = 'var(--laranja)';
-            input.style.boxShadow = '0 0 8px rgba(255, 69, 0, 0.3)';
+            input.style.borderColor = "var(--laranja)";
+            input.style.boxShadow = "0 0 8px rgba(255, 69, 0, 0.3)";
             input.disabled = true;
         }
 
-        await FluxoFinanceiroCampos.salvarValorCampo(timeId, nomeCampo, valorNumerico);
+        await FluxoFinanceiroCampos.salvarValorCampo(
+            timeId,
+            nomeCampo,
+            valorNumerico,
+        );
 
         await recalcularSaldoNaTela(timeId);
 
         if (input) {
-            const cor = valorNumerico >= 0 ? '#2ecc71' : '#e74c3c';
+            const cor = valorNumerico >= 0 ? "#2ecc71" : "#e74c3c";
             input.style.color = cor;
             input.disabled = false;
 
             setTimeout(() => {
-                input.style.borderColor = 'var(--border-primary)';
-                input.style.boxShadow = 'none';
+                input.style.borderColor = "var(--border-primary)";
+                input.style.boxShadow = "none";
             }, 500);
         }
 
-        console.log(`[FLUXO] Campo ${nomeCampo} salvo: R$ ${valorNumerico.toFixed(2)}`);
+        console.log(
+            `[FLUXO] Campo ${nomeCampo} salvo: R$ ${valorNumerico.toFixed(2)}`,
+        );
     } catch (error) {
-        console.error('[FLUXO] Erro ao salvar campo:', error);
-        alert('Erro ao salvar campo: ' + error.message);
+        console.error("[FLUXO] Erro ao salvar campo:", error);
+        alert("Erro ao salvar campo: " + error.message);
 
         const input = document.getElementById(`input_${nomeCampo}`);
         if (input) {
             input.disabled = false;
-            input.style.borderColor = 'var(--border-primary)';
-            input.style.boxShadow = 'none';
+            input.style.borderColor = "var(--border-primary)";
+            input.style.boxShadow = "none";
         }
     }
 };
 
 // ===== FUNÇÕES GLOBAIS PARA CAMPOS EDITÁVEIS =====
 window.salvarCampoEditavel = async (timeId, nomeCampo, valor) => {
-    await FluxoFinanceiroCampos.salvarValorCampo(timeId, nomeCampo, parseFloat(valor) || 0);
+    await FluxoFinanceiroCampos.salvarValorCampo(
+        timeId,
+        nomeCampo,
+        parseFloat(valor) || 0,
+    );
     await recalcularSaldoNaTela(timeId);
 };
 
@@ -459,16 +483,15 @@ window.desfazerCampo = async (timeId, nomeCampo) => {
 
         const input = document.getElementById(`input_${nomeCampo}`);
         if (input) {
-            input.value = '+R$ 0,00';
-            input.style.color = '#2ecc71';
-            input.style.borderColor = 'var(--border-primary)';
-            input.style.boxShadow = 'none';
+            input.value = "+R$ 0,00";
+            input.style.color = "#2ecc71";
+            input.style.borderColor = "var(--border-primary)";
+            input.style.boxShadow = "none";
         }
 
         console.log(`[FLUXO] Campo ${nomeCampo} resetado`);
     } catch (error) {
-        console.error('[FLUXO] Erro ao resetar campo:', error);
-        alert('Erro ao resetar campo: ' + error.message);
+        console.error("[FLUXO] Erro ao resetar campo:", error);
+        alert("Erro ao resetar campo: " + error.message);
     }
 };
-

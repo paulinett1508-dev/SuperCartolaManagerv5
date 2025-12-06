@@ -1,12 +1,13 @@
 // =====================================================
-// MÓDULO: UI DO EXTRATO PARTICIPANTE - v6.2 FAIXAS CONTEXTUAIS
+// MÓDULO: UI DO EXTRATO PARTICIPANTE - v6.3 POSIÇÃO MITO/MICO
 // =====================================================
-// ✅ v6.2: Faixas contextuais por rodada
-//    - Cartoleiros Sobral: Rodadas 1-29 (6 times) vs 30+ (4 times)
-//    - Cores baseadas na posição dentro das faixas DA RODADA
+// ✅ v6.3: Posição mostra badge MITO/MICO em vez de número
+//    - 1º lugar → badge MITO
+//    - Último lugar (contextual por rodada) → badge MICO
+//    - Demais posições → número (ex: 2º, 3º)
 // =====================================================
 
-console.log("[EXTRATO-UI] 🎨 Módulo de UI v6.2 Faixas Contextuais por Rodada");
+console.log("[EXTRATO-UI] 🎨 Módulo de UI v6.3 Posição MITO/MICO");
 
 // ===== CONFIGURAÇÃO DE FAIXAS POR LIGA (COM SUPORTE TEMPORAL) =====
 const FAIXAS_PREMIACAO = {
@@ -309,7 +310,26 @@ function renderizarCardsRodadas(rodadasArray, ligaId) {
             }
 
             // Badges MITO/MICO (baseado na faixa contextual)
-            const badgesHtml = renderizarBadges(r, faixas);
+            const totalTimesFaixa = faixas?.totalTimes || 32;
+            const isMito = posicao === 1;
+            const isMico = posicao === totalTimesFaixa;
+
+            // Label de posição (MITO/MICO ou número)
+            let posicaoHtml = "";
+            if (isMito) {
+                posicaoHtml = `<span class="bg-yellow-500 text-black text-[10px] font-bold px-1.5 py-0.5 rounded flex items-center gap-0.5">
+                <span class="material-icons" style="font-size:12px">military_tech</span>MITO
+            </span>`;
+            } else if (isMico) {
+                posicaoHtml = `<span class="bg-purple-600 text-white text-[10px] font-bold px-1.5 py-0.5 rounded flex items-center gap-0.5">
+                <span class="material-icons" style="font-size:12px">sentiment_very_dissatisfied</span>MICO
+            </span>`;
+            } else if (posicao) {
+                posicaoHtml = `<span class="${posicaoBgClass} text-[10px] font-bold px-1.5 py-0.5 rounded">${posicao}º</span>`;
+            }
+
+            // Badges adicionais (Top10 MITO/MICO)
+            const badgesAdicionaisHtml = renderizarBadgesAdicionais(r);
 
             // Detalhamento dos valores
             const detalhamentoHtml = renderizarDetalhamento(r);
@@ -324,8 +344,8 @@ function renderizarCardsRodadas(rodadasArray, ligaId) {
                 <div class="flex justify-between items-center">
                     <div class="flex items-center gap-2">
                         <span class="text-white font-bold text-base">${rodadaNum}</span>
-                        ${posicao ? `<span class="${posicaoBgClass} text-[10px] font-bold px-1.5 py-0.5 rounded">${posicao}º</span>` : ""}
-                        ${badgesHtml}
+                        ${posicaoHtml}
+                        ${badgesAdicionaisHtml}
                     </div>
                     <span class="${saldoClass} font-bold text-base">${saldoFormatado}</span>
                 </div>
@@ -337,13 +357,12 @@ function renderizarCardsRodadas(rodadasArray, ligaId) {
         .join("");
 }
 
-// ===== RENDERIZAR BADGES (MITO/MICO) =====
-function renderizarBadges(r, faixas) {
+// ===== RENDERIZAR BADGES ADICIONAIS (Top10 MITO/MICO) =====
+function renderizarBadgesAdicionais(r) {
     const badges = [];
-    const totalTimes = faixas?.totalTimes || 32;
 
-    // MITO (1º lugar ou top10 positivo)
-    if (r.isMito || r.posicao === 1 || (r.top10 && r.top10 > 0)) {
+    // Top10 MITO (positivo)
+    if (r.top10 && r.top10 > 0) {
         badges.push(`
             <span class="bg-yellow-500 text-black text-[10px] font-bold px-1.5 py-0.5 rounded flex items-center gap-0.5">
                 <span class="material-icons" style="font-size:12px">military_tech</span>MITO
@@ -351,8 +370,8 @@ function renderizarBadges(r, faixas) {
         `);
     }
 
-    // MICO (último lugar ou top10 negativo)
-    if (r.isMico || r.posicao === totalTimes || (r.top10 && r.top10 < 0)) {
+    // Top10 MICO (negativo)
+    if (r.top10 && r.top10 < 0) {
         badges.push(`
             <span class="bg-purple-600 text-white text-[10px] font-bold px-1.5 py-0.5 rounded flex items-center gap-0.5">
                 <span class="material-icons" style="font-size:12px">sentiment_very_dissatisfied</span>MICO
@@ -361,6 +380,11 @@ function renderizarBadges(r, faixas) {
     }
 
     return badges.join("");
+}
+
+// Função legada para compatibilidade
+function renderizarBadges(r, faixas) {
+    return renderizarBadgesAdicionais(r);
 }
 
 // ===== RENDERIZAR DETALHAMENTO =====
