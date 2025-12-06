@@ -13,12 +13,14 @@ const PontosCorridosCacheSchema = new mongoose.Schema(
                 time1: {
                     id: Number,
                     nome: String,
+                    nome_cartola: String,
                     escudo: String,
                     pontos: Number,
                 },
                 time2: {
                     id: Number,
                     nome: String,
+                    nome_cartola: String,
                     escudo: String,
                     pontos: Number,
                 },
@@ -33,6 +35,7 @@ const PontosCorridosCacheSchema = new mongoose.Schema(
                 posicao: Number,
                 timeId: Number,
                 nome: String,
+                nome_cartola: String,
                 escudo: String,
                 pontos: Number,
                 jogos: Number,

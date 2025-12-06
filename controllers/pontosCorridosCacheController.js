@@ -266,9 +266,13 @@ async function calcularRodadaComParciais(
                     // Guardar dados do time para uso posterior
                     timesDataMap[String(timeId)] = {
                         nome:
+                            escalacao.time?.nome_time ||
+                            escalacao.nome_time ||
+                            `Time ${timeId}`,
+                        nome_cartola:
                             escalacao.time?.nome ||
                             escalacao.nome ||
-                            `Time ${timeId}`,
+                            "",
                         escudo:
                             escalacao.time?.url_escudo_png ||
                             escalacao.time?.foto_time ||
@@ -383,12 +387,14 @@ async function calcularRodadaComParciais(
                 time1: {
                     id: timeAId,
                     nome: dadosTimeA.nome || `Time ${timeAId}`,
+                    nome_cartola: dadosTimeA.nome_cartola || "",
                     escudo: dadosTimeA.escudo || "",
                     pontos: pontosA,
                 },
                 time2: {
                     id: timeBId,
                     nome: dadosTimeB.nome || `Time ${timeBId}`,
+                    nome_cartola: dadosTimeB.nome_cartola || "",
                     escudo: dadosTimeB.escudo || "",
                     pontos: pontosB,
                 },
@@ -526,6 +532,7 @@ function calcularClassificacaoAcumulada(
         classificacao[tid] = {
             timeId: tid,
             nome: dadosTime.nome || `Time ${tid}`,
+            nome_cartola: dadosTime.nome_cartola || "",
             escudo: dadosTime.escudo || "",
             pontos: 0,
             jogos: 0,
