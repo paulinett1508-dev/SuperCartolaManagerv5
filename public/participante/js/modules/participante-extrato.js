@@ -1,11 +1,12 @@
 // =====================================================================
-// PARTICIPANTE-EXTRATO.JS - v2.2 (SUPORTE A INATIVOS)
+// PARTICIPANTE-EXTRATO.JS - v2.4 (REFRESH COM RECÁLCULO)
 // =====================================================================
+// ✅ v2.4: Botão Atualizar limpa cache + chama endpoint de cálculo
+// ✅ v2.3: Botão Atualizar limpa cache MongoDB + nova requisição
 // ✅ v2.2: Suporte a extrato travado para inativos
-// ✅ Consome dados prontos do backend (cache já calculado)
 // =====================================================================
 
-console.log("[EXTRATO-PARTICIPANTE] 📄 Módulo v2.2 (suporte a inativos)");
+console.log("[EXTRATO-PARTICIPANTE] 📄 Módulo v2.4 (refresh com recálculo)");
 
 const PARTICIPANTE_IDS = { ligaId: null, timeId: null };
 
@@ -38,7 +39,7 @@ export async function inicializarExtratoParticipante({
 // =====================================================================
 // CARREGAR EXTRATO DO CACHE (BACKEND)
 // =====================================================================
-async function carregarExtrato(ligaId, timeId, forcarRefresh = false) {
+async function carregarExtrato(ligaId, timeId) {
     const container = document.getElementById("fluxoFinanceiroContent");
     if (!container) {
         console.error("[EXTRATO-PARTICIPANTE] ❌ Container não encontrado");
@@ -67,43 +68,28 @@ async function carregarExtrato(ligaId, timeId, forcarRefresh = false) {
             );
         }
 
-        // Buscar extrato do cache
-        const url = `/api/extrato-cache/${ligaId}/times/${timeId}/cache?rodadaAtual=${rodadaAtual}`;
-        console.log("[EXTRATO-PARTICIPANTE] 📡 Buscando:", url);
-
-        const response = await fetch(url);
-
-        if (!response.ok) {
-            throw new Error(`Erro ao buscar extrato: ${response.status}`);
-        }
-
-        const cacheData = await response.json();
-        console.log("[EXTRATO-PARTICIPANTE] 📦 Cache recebido:", {
-            cached: cacheData.cached,
-            temRodadas: !!cacheData.rodadas,
-            qtdRodadas: cacheData.rodadas?.length || 0,
-            resumo: cacheData.resumo,
-            camposManuais: cacheData.camposManuais?.length || 0,
-            // ✅ v2.2: Logs de inativo
-            inativo: cacheData.inativo,
-            extratoTravado: cacheData.extratoTravado,
-            rodadaTravada: cacheData.rodadaTravada,
-        });
-
-        // Validar estrutura do cache
         let extratoData = null;
 
-        if (
-            cacheData.cached &&
-            cacheData.rodadas &&
-            cacheData.rodadas.length > 0
-        ) {
-            const primeiraRodada = cacheData.rodadas[0];
-            const temCamposCompletos =
-                primeiraRodada.posicao !== undefined ||
-                primeiraRodada.bonusOnus !== undefined;
+        // ✅ PASSO 1: Tentar buscar do cache
+        const urlCache = `/api/extrato-cache/${ligaId}/times/${timeId}/cache?rodadaAtual=${rodadaAtual}`;
+        console.log("[EXTRATO-PARTICIPANTE] 📡 Buscando cache:", urlCache);
 
-            if (temCamposCompletos) {
+        const responseCache = await fetch(urlCache);
+
+        if (responseCache.ok) {
+            const cacheData = await responseCache.json();
+            console.log("[EXTRATO-PARTICIPANTE] 📦 Cache recebido:", {
+                cached: cacheData.cached,
+                qtdRodadas: cacheData.rodadas?.length || 0,
+                inativo: cacheData.inativo,
+                extratoTravado: cacheData.extratoTravado,
+            });
+
+            if (
+                cacheData.cached &&
+                cacheData.rodadas &&
+                cacheData.rodadas.length > 0
+            ) {
                 extratoData = {
                     rodadas: cacheData.rodadas,
                     resumo: cacheData.resumo || {
@@ -112,7 +98,6 @@ async function carregarExtrato(ligaId, timeId, forcarRefresh = false) {
                         totalPerdas: 0,
                     },
                     camposManuais: cacheData.camposManuais || [],
-                    // ✅ v2.2: Dados de inativo
                     inativo: cacheData.inativo || false,
                     extratoTravado: cacheData.extratoTravado || false,
                     rodadaTravada: cacheData.rodadaTravada || null,
@@ -121,82 +106,40 @@ async function carregarExtrato(ligaId, timeId, forcarRefresh = false) {
                 console.log(
                     "[EXTRATO-PARTICIPANTE] ✅ Cache válido",
                     extratoData.extratoTravado
-                        ? `| TRAVADO na R${extratoData.rodadaTravada}`
+                        ? `| TRAVADO R${extratoData.rodadaTravada}`
                         : "",
                 );
             }
+        } else {
+            console.log(
+                "[EXTRATO-PARTICIPANTE] ⚠️ Cache não encontrado (status:",
+                responseCache.status,
+                ")",
+            );
         }
 
-        // Se cache não tem dados completos, tentar endpoint direto
+        // ✅ PASSO 2: Se cache não existe ou inválido, chamar endpoint de cálculo
         if (!extratoData) {
             console.log(
-                "[EXTRATO-PARTICIPANTE] 📡 Buscando endpoint direto...",
+                "[EXTRATO-PARTICIPANTE] 📡 Buscando endpoint de cálculo...",
             );
+            const urlCalculo = `/api/fluxo-financeiro/${ligaId}/extrato/${timeId}`;
 
-            const resDireto = await fetch(
-                `/api/fluxo-financeiro/${ligaId}/extrato/${timeId}`,
-            );
-            if (resDireto.ok) {
-                const dadosDireto = await resDireto.json();
+            const resCalculo = await fetch(urlCalculo);
 
-                if (
-                    dadosDireto &&
-                    dadosDireto.rodadas &&
-                    dadosDireto.rodadas.length > 0
-                ) {
-                    extratoData = {
-                        ...dadosDireto,
-                        camposManuais:
-                            dadosDireto.camposManuais ||
-                            cacheData.camposManuais ||
-                            [],
-                        inativo:
-                            dadosDireto.inativo || cacheData.inativo || false,
-                        extratoTravado:
-                            dadosDireto.extratoTravado ||
-                            cacheData.extratoTravado ||
-                            false,
-                        rodadaTravada:
-                            dadosDireto.rodadaTravada ||
-                            cacheData.rodadaTravada ||
-                            null,
-                        rodadaDesistencia:
-                            dadosDireto.rodadaDesistencia ||
-                            cacheData.rodadaDesistencia ||
-                            null,
-                    };
-                } else if (
-                    Array.isArray(dadosDireto) &&
-                    dadosDireto.length > 0
-                ) {
-                    extratoData = {
-                        rodadas: dadosDireto,
-                        resumo: calcularResumoLocal(dadosDireto),
-                        camposManuais: cacheData.camposManuais || [],
-                        inativo: cacheData.inativo || false,
-                        extratoTravado: cacheData.extratoTravado || false,
-                        rodadaTravada: cacheData.rodadaTravada || null,
-                        rodadaDesistencia: cacheData.rodadaDesistencia || null,
-                    };
+            if (resCalculo.ok) {
+                const dadosCalculados = await resCalculo.json();
+                console.log("[EXTRATO-PARTICIPANTE] ✅ Dados calculados:", {
+                    success: dadosCalculados.success,
+                    extrato: dadosCalculados.extrato?.length || 0,
+                    saldo: dadosCalculados.saldo_atual,
+                });
+
+                // Transformar formato do controller para o formato esperado pela UI
+                if (dadosCalculados.success && dadosCalculados.extrato) {
+                    extratoData = transformarDadosController(dadosCalculados);
                 }
             }
-        }
-
-        // Usar cache mesmo com campos incompletos
-        if (!extratoData && cacheData.rodadas && cacheData.rodadas.length > 0) {
-            extratoData = {
-                rodadas: cacheData.rodadas,
-                resumo: cacheData.resumo || {
-                    saldo: 0,
-                    totalGanhos: 0,
-                    totalPerdas: 0,
-                },
-                camposManuais: cacheData.camposManuais || [],
-                inativo: cacheData.inativo || false,
-                extratoTravado: cacheData.extratoTravado || false,
-                rodadaTravada: cacheData.rodadaTravada || null,
-                rodadaDesistencia: cacheData.rodadaDesistencia || null,
-            };
         }
 
         if (
@@ -230,6 +173,86 @@ async function carregarExtrato(ligaId, timeId, forcarRefresh = false) {
         console.error("[EXTRATO-PARTICIPANTE] ❌ Erro:", error);
         mostrarErro(error.message);
     }
+}
+
+// =====================================================================
+// TRANSFORMAR DADOS DO CONTROLLER PARA FORMATO UI
+// =====================================================================
+function transformarDadosController(dados) {
+    // O controller retorna { extrato: [...transacoes], saldo_atual, resumo }
+    // Precisamos agrupar por rodada
+
+    const transacoes = dados.extrato || [];
+    const rodadasMap = {};
+
+    transacoes.forEach((t) => {
+        if (t.rodada === null) return; // Ignora ajustes manuais aqui
+
+        const numRodada = t.rodada;
+        if (!rodadasMap[numRodada]) {
+            rodadasMap[numRodada] = {
+                rodada: numRodada,
+                bonusOnus: 0,
+                pontosCorridos: 0,
+                mataMata: 0,
+                top10: 0,
+                saldo: 0,
+            };
+        }
+
+        const r = rodadasMap[numRodada];
+        const valor = parseFloat(t.valor) || 0;
+
+        switch (t.tipo) {
+            case "PONTOS_CORRIDOS":
+                r.pontosCorridos += valor;
+                break;
+            case "MATA_MATA":
+                r.mataMata += valor;
+                break;
+            case "MITO":
+                r.top10 += valor;
+                break;
+            case "MICO":
+                r.top10 += valor;
+                break;
+            default:
+                r.bonusOnus += valor;
+        }
+        r.saldo += valor;
+    });
+
+    // Ordenar por rodada e calcular acumulado
+    const rodadasArray = Object.values(rodadasMap).sort(
+        (a, b) => a.rodada - b.rodada,
+    );
+    let saldoAcumulado = 0;
+    rodadasArray.forEach((r) => {
+        saldoAcumulado += r.saldo;
+        r.saldoAcumulado = saldoAcumulado;
+    });
+
+    // Extrair campos manuais
+    const camposManuais = transacoes
+        .filter((t) => t.tipo === "AJUSTE_MANUAL")
+        .map((t, idx) => ({
+            nome: t.descricao,
+            valor: t.valor,
+        }));
+
+    return {
+        rodadas: rodadasArray,
+        resumo: dados.resumo || {
+            saldo: dados.saldo_atual,
+            totalGanhos: 0,
+            totalPerdas: 0,
+        },
+        camposManuais: camposManuais,
+        inativo: false,
+        extratoTravado: false,
+        rodadaTravada: null,
+        rodadaDesistencia: null,
+    };
 }
 
 // =====================================================================
@@ -312,10 +335,10 @@ function atualizarHeaderZerado() {
 }
 
 // =====================================================================
-// REFRESH
+// ✅ v2.3: REFRESH COM LIMPEZA DE CACHE
 // =====================================================================
 window.forcarRefreshExtratoParticipante = async function () {
-    console.log("[EXTRATO-PARTICIPANTE] 🔄 Refresh solicitado");
+    console.log("[EXTRATO-PARTICIPANTE] 🔄 Refresh solicitado (com limpeza)");
 
     if (!PARTICIPANTE_IDS.ligaId || !PARTICIPANTE_IDS.timeId) {
         console.error("[EXTRATO-PARTICIPANTE] IDs não disponíveis");
@@ -323,16 +346,108 @@ window.forcarRefreshExtratoParticipante = async function () {
     }
 
     const btn = document.getElementById("btnRefreshExtrato");
-    if (btn) btn.classList.add("loading");
+    if (btn) {
+        btn.classList.add("loading");
+        btn.disabled = true;
+    }
+
+    const container = document.getElementById("fluxoFinanceiroContent");
+    if (container) {
+        container.innerHTML = `
+            <div class="loading-state">
+                <div class="spinner"></div>
+                <p>Recalculando extrato...</p>
+            </div>
+        `;
+    }
 
     try {
-        await carregarExtrato(
-            PARTICIPANTE_IDS.ligaId,
-            PARTICIPANTE_IDS.timeId,
-            true,
+        // ✅ PASSO 1: Limpar cache no MongoDB
+        const urlLimpeza = `/api/extrato-cache/${PARTICIPANTE_IDS.ligaId}/times/${PARTICIPANTE_IDS.timeId}/limpar`;
+        console.log("[EXTRATO-PARTICIPANTE] 🗑️ Limpando cache:", urlLimpeza);
+
+        const resLimpeza = await fetch(urlLimpeza, { method: "DELETE" });
+
+        if (resLimpeza.ok) {
+            const resultado = await resLimpeza.json();
+            console.log("[EXTRATO-PARTICIPANTE] ✅ Cache limpo:", resultado);
+        } else {
+            console.warn(
+                "[EXTRATO-PARTICIPANTE] ⚠️ Falha ao limpar cache:",
+                resLimpeza.status,
+            );
+        }
+
+        // ✅ PASSO 2: Chamar endpoint DIRETO que calcula do zero
+        const urlCalculo = `/api/fluxo-financeiro/${PARTICIPANTE_IDS.ligaId}/extrato/${PARTICIPANTE_IDS.timeId}`;
+        console.log("[EXTRATO-PARTICIPANTE] 🔄 Recalculando:", urlCalculo);
+
+        const resCalculo = await fetch(urlCalculo);
+
+        if (!resCalculo.ok) {
+            throw new Error(`Erro ao recalcular: ${resCalculo.status}`);
+        }
+
+        const dadosCalculados = await resCalculo.json();
+        console.log("[EXTRATO-PARTICIPANTE] ✅ Extrato recalculado:", {
+            success: dadosCalculados.success,
+            extrato: dadosCalculados.extrato?.length || 0,
+            saldo: dadosCalculados.saldo_atual,
+        });
+
+        // ✅ PASSO 3: Transformar e renderizar dados novos
+        let extratoData = null;
+
+        if (dadosCalculados.success && dadosCalculados.extrato) {
+            extratoData = transformarDadosController(dadosCalculados);
+        } else if (
+            dadosCalculados.rodadas &&
+            dadosCalculados.rodadas.length > 0
+        ) {
+            extratoData = {
+                rodadas: dadosCalculados.rodadas,
+                resumo: dadosCalculados.resumo || {
+                    saldo: 0,
+                    totalGanhos: 0,
+                    totalPerdas: 0,
+                },
+                camposManuais: dadosCalculados.camposManuais || [],
+                inativo: dadosCalculados.inativo || false,
+                extratoTravado: dadosCalculados.extratoTravado || false,
+                rodadaTravada: dadosCalculados.rodadaTravada || null,
+                rodadaDesistencia: dadosCalculados.rodadaDesistencia || null,
+            };
+        }
+
+        if (
+            !extratoData ||
+            !extratoData.rodadas ||
+            extratoData.rodadas.length === 0
+        ) {
+            mostrarVazio();
+            return;
+        }
+
+        console.log(
+            "[EXTRATO-PARTICIPANTE] 🎨 Renderizando",
+            extratoData.rodadas.length,
+            "rodadas recalculadas",
         );
+
+        const { renderizarExtratoParticipante } = await import(
+            "./participante-extrato-ui.js"
+        );
+        renderizarExtratoParticipante(extratoData, PARTICIPANTE_IDS.timeId);
+
+        console.log("[EXTRATO-PARTICIPANTE] ✅ Refresh completo!");
+    } catch (error) {
+        console.error("[EXTRATO-PARTICIPANTE] ❌ Erro no refresh:", error);
+        mostrarErro("Erro ao atualizar. Tente novamente.");
     } finally {
-        if (btn) btn.classList.remove("loading");
+        if (btn) {
+            btn.classList.remove("loading");
+            btn.disabled = false;
+        }
     }
 };
 
@@ -358,5 +473,5 @@ export function initExtratoParticipante() {
 }
 
 console.log(
-    "[EXTRATO-PARTICIPANTE] ✅ Módulo v2.2 carregado (suporte a inativos)",
+    "[EXTRATO-PARTICIPANTE] ✅ Módulo v2.4 carregado (refresh com recálculo)",
 );
