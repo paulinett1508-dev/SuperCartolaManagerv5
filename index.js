@@ -83,12 +83,14 @@ app.use(
   }),
 );
 
-// Servir arquivos estáticos (Frontend) - ANTES de qualquer autenticação
-app.use(express.static("public"));
-
 // Middleware de segurança: bloqueia participantes de acessar admin
-// Aplicado APENAS às rotas da API, não aos arquivos estáticos
-import { bloquearParticipanteDeAdmin } from "./middleware/auth.js";
+import { bloquearParticipanteDeAdmin, bloquearPaginasAdminParaParticipantes } from "./middleware/auth.js";
+
+// BLOQUEIO DE PÁGINAS HTML ANTES DE SERVIR ARQUIVOS ESTÁTICOS
+app.use(bloquearPaginasAdminParaParticipantes);
+
+// Servir arquivos estáticos (Frontend)
+app.use(express.static("public"));
 
 // Aplicar bloqueio de participante apenas nas rotas da API (não em arquivos estáticos)
 app.use("/api", bloquearParticipanteDeAdmin);

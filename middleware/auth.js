@@ -45,7 +45,10 @@ export const ROTAS_ADMIN = [
   '/criar-liga.html',
   '/editar-liga.html',
   '/ferramentas.html',
+  '/ferramentas-rodadas.html',
   '/gerir-senhas-participantes.html',
+  '/admin-consolidacao.html',
+  '/gerenciar-modulos.html',
   '/index.html',
   '/layout.html',
 ];
@@ -55,6 +58,8 @@ export const ROTAS_ADMIN = [
  */
 export const ROTAS_PARTICIPANTE = [
   '/participante-dashboard.html',
+  '/participante-login.html',
+  '/participante/',
 ];
 
 /**
@@ -88,6 +93,44 @@ export function bloquearParticipanteDeAdmin(req, res, next) {
   if (isRotaAdmin && req.session?.participante) {
     console.log('[AUTH] 🚫 Participante tentou acessar rota admin:', req.path);
     return res.redirect('/participante-login.html');
+  }
+  
+  next();
+}
+
+/**
+ * Middleware que BLOQUEIA acesso direto a páginas HTML admin
+ * Deve ser aplicado ANTES de servir arquivos estáticos
+ */
+export function bloquearPaginasAdminParaParticipantes(req, res, next) {
+  // Verificar se é uma requisição HTML
+  const isHtmlRequest = req.path.endsWith('.html') || (!req.path.includes('.') && req.path !== '/');
+  
+  if (!isHtmlRequest) {
+    return next();
+  }
+  
+  // Se é participante autenticado e está tentando acessar página admin
+  if (req.session?.participante) {
+    const isRotaAdmin = ROTAS_ADMIN.some(rota => req.path.includes(rota));
+    const isRotaParticipante = ROTAS_PARTICIPANTE.some(rota => req.path.includes(rota)) || req.path.includes('/participante');
+    
+    // Se está tentando acessar admin, bloquear
+    if (isRotaAdmin) {
+      console.log('[AUTH] 🚫 Participante bloqueado de acessar:', req.path);
+      return res.redirect('/participante/');
+    }
+    
+    // Se está na raiz, redirecionar para dashboard participante
+    if (req.path === '/' || req.path === '/index.html') {
+      console.log('[AUTH] ↪️ Participante redirecionado de raiz para dashboard');
+      return res.redirect('/participante/');
+    }
+    
+    // Permitir rotas de participante
+    if (isRotaParticipante) {
+      return next();
+    }
   }
   
   next();
