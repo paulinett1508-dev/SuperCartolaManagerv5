@@ -1,17 +1,27 @@
 
 import mongoose from 'mongoose';
+import dotenv from 'dotenv';
 import ExtratoFinanceiroCache from './models/ExtratoFinanceiroCache.js';
 import FluxoFinanceiroCampos from './models/FluxoFinanceiroCampos.js';
 import Liga from './models/Liga.js';
 import Rodada from './models/Rodada.js';
 
-const MONGODB_URI = process.env.MONGODB_URI || 'mongodb+srv://lucaseduardobarbosa:19841984@cluster0.fjcat.mongodb.net/super_cartola?retryWrites=true&w=majority';
+// ✅ Carregar variáveis de ambiente
+dotenv.config();
 
 async function debugParticipante1926323() {
     try {
         console.log('🔍 Iniciando investigação do participante 1926323...\n');
         
-        await mongoose.connect(MONGODB_URI);
+        // ✅ Usar a mesma URI do sistema
+        if (!process.env.MONGODB_URI) {
+            throw new Error('❌ MONGODB_URI não encontrada no .env');
+        }
+
+        await mongoose.connect(process.env.MONGODB_URI, {
+            maxPoolSize: 10,
+            serverSelectionTimeoutMS: 5000,
+        });
         console.log('✅ MongoDB conectado\n');
 
         const timeId = 1926323;
@@ -162,18 +172,22 @@ async function debugParticipante1926323() {
                 console.log('⚠️ VALOR ATÍPICO: Saldo muito alto!');
             }
 
-            if (saldo !== (ganhos - perdas)) {
+            if (Math.abs(saldo - (ganhos - perdas)) > 0.01) {
                 console.log('⚠️ INCONSISTÊNCIA: Saldo não bate com ganhos - perdas');
+                console.log(`   Diferença: R$ ${saldo - (ganhos - perdas)}`);
             }
         }
 
         console.log('\n✅ Investigação concluída!');
 
     } catch (error) {
-        console.error('❌ Erro na investigação:', error);
+        console.error('❌ Erro na investigação:', error.message);
+        console.error('Stack:', error.stack);
     } finally {
-        await mongoose.disconnect();
-        console.log('\n🔌 MongoDB desconectado');
+        if (mongoose.connection.readyState === 1) {
+            await mongoose.disconnect();
+            console.log('\n🔌 MongoDB desconectado');
+        }
     }
 }
 
