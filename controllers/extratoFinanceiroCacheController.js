@@ -1,6 +1,7 @@
 // =====================================================================
-// extratoFinanceiroCacheController.js v3.3 - Suporte a Inativos
+// extratoFinanceiroCacheController.js v3.4 - Fix detecção de cache corrompido
 // ✅ v3.3: Trava extrato financeiro para inativos na rodada_desistencia
+// ✅ v3.4: Corrige detecção de dados consolidados vs legados
 // =====================================================================
 
 import ExtratoFinanceiroCache from "../models/ExtratoFinanceiroCache.js";
@@ -134,22 +135,44 @@ function calcularResumoDeRodadas(rodadas, camposManuais = null) {
     };
 }
 
+// ✅ v3.4: FUNÇÃO MELHORADA - Detecta corretamente cache corrompido
 function transformarTransacoesEmRodadas(transacoes, ligaId) {
     if (!Array.isArray(transacoes) || transacoes.length === 0) return [];
 
     const primeiroItem = transacoes[0];
-    const jaEstaConsolidado =
-        primeiroItem.bonusOnus !== undefined ||
-        primeiroItem.pontosCorridos !== undefined;
 
-    if (jaEstaConsolidado) {
-        // ✅ v4.0: Já consolidado, apenas recalcular acumulado
+    // ✅ v3.4: Verificar se tem dados legados (tipo/valor)
+    const temDadosLegados =
+        primeiroItem.tipo !== undefined && primeiroItem.valor !== undefined;
+
+    // ✅ v3.4: Verificar se os dados consolidados estão REALMENTE preenchidos
+    const temDadosConsolidadosReais = transacoes.some(
+        (r) =>
+            (parseFloat(r.bonusOnus) || 0) !== 0 ||
+            (parseFloat(r.pontosCorridos) || 0) !== 0 ||
+            (parseFloat(r.mataMata) || 0) !== 0 ||
+            (parseFloat(r.top10) || 0) !== 0 ||
+            (parseFloat(r.saldo) || 0) !== 0,
+    );
+
+    // ✅ v3.4: Só considera consolidado se TEM valores reais OU não tem dados legados
+    const jaEstaConsolidado = temDadosConsolidadosReais || !temDadosLegados;
+
+    if (jaEstaConsolidado && !temDadosLegados) {
+        // ✅ v4.0: Já consolidado corretamente, apenas recalcular acumulado
         return transacoes.map((rodada, idx) => ({
             ...rodada,
             saldoAcumulado: transacoes
                 .slice(0, idx + 1)
-                .reduce((acc, r) => acc + (r.saldo || 0), 0),
+                .reduce((acc, r) => acc + (parseFloat(r.saldo) || 0), 0),
         }));
+    }
+
+    // ✅ v3.4: Se tem dados legados E consolidados zerados = reconstruir
+    if (temDadosLegados && !temDadosConsolidadosReais) {
+        console.log(
+            `[CACHE-CONTROLLER] ⚠️ Cache corrompido detectado - reconstruindo de dados legados`,
+        );
     }
 
     // ✅ v4.0: Formato legado - reconstruir com valores contextuais
@@ -161,7 +184,7 @@ function transformarTransacoesEmRodadas(transacoes, ligaId) {
         if (!rodadasMap[numRodada]) {
             rodadasMap[numRodada] = {
                 rodada: numRodada,
-                posicao: null,
+                posicao: t.posicao || null,
                 bonusOnus: 0,
                 pontosCorridos: 0,
                 mataMata: 0,
@@ -169,6 +192,8 @@ function transformarTransacoesEmRodadas(transacoes, ligaId) {
                 saldo: 0,
                 isMito: false,
                 isMico: false,
+                top10Status: null,
+                top10Posicao: null,
             };
         }
 
@@ -185,15 +210,36 @@ function transformarTransacoesEmRodadas(transacoes, ligaId) {
             case "MITO":
                 r.top10 += valor;
                 r.isMito = true;
+                r.top10Status = "MITO";
+                // Extrair posição do top10 da descrição se disponível
+                if (t.descricao) {
+                    const match = t.descricao.match(/(\d+)º/);
+                    if (match) r.top10Posicao = parseInt(match[1]);
+                }
                 break;
             case "MICO":
                 r.top10 += valor;
                 r.isMico = true;
+                r.top10Status = "MICO";
+                if (t.descricao) {
+                    const match = t.descricao.match(/(\d+)º/);
+                    if (match) r.top10Posicao = parseInt(match[1]);
+                }
+                break;
+            case "BONUS":
+            case "BANCO_RODADA":
+                r.bonusOnus += valor;
+                break;
+            case "ONUS":
+                r.bonusOnus += valor; // valor já é negativo
                 break;
             default:
-                r.bonusOnus += valor;
+                // Tipo desconhecido ou genérico vai para bonusOnus
+                if (valor !== 0) {
+                    r.bonusOnus += valor;
+                }
         }
-        r.saldo += valor;
+        r.saldo = r.bonusOnus + r.pontosCorridos + r.mataMata + r.top10;
     });
 
     const rodadasArray = Object.values(rodadasMap).sort(
@@ -205,7 +251,9 @@ function transformarTransacoesEmRodadas(transacoes, ligaId) {
         r.saldoAcumulado = saldoAcumulado;
     });
 
-    console.log(`[CACHE-CONTROLLER] ⚠️ Formato legado transformado: ${rodadasArray.length} rodadas`);
+    console.log(
+        `[CACHE-CONTROLLER] ✅ Dados reconstruídos: ${rodadasArray.length} rodadas | Saldo: R$ ${saldoAcumulado.toFixed(2)}`,
+    );
     return rodadasArray;
 }
 
@@ -236,15 +284,13 @@ export const getExtratoCache = async (req, res) => {
         }).lean();
 
         if (!cache) {
-            return res
-                .status(404)
-                .json({
-                    cached: false,
-                    message: "Cache não encontrado",
-                    inativo: isInativo,
-                    rodadaDesistencia,
-                    extratoTravado: isInativo && rodadaDesistencia,
-                });
+            return res.status(404).json({
+                cached: false,
+                message: "Cache não encontrado",
+                inativo: isInativo,
+                rodadaDesistencia,
+                extratoTravado: isInativo && rodadaDesistencia,
+            });
         }
 
         const camposAtivos = await buscarCamposManuais(ligaId, timeId);
@@ -265,8 +311,10 @@ export const getExtratoCache = async (req, res) => {
             camposAtivos,
         );
 
+        // ✅ v3.4: Adicionar qtdRodadas para debug
         res.json({
             cached: true,
+            qtdRodadas: rodadasConsolidadas.length,
             rodadas: rodadasConsolidadas,
             resumo: resumoCalculado,
             camposManuais: camposAtivos,
@@ -325,7 +373,7 @@ export const salvarExtratoCache = async (req, res) => {
             ganhos_consolidados: resumoCalculado.totalGanhos,
             perdas_consolidadas: resumoCalculado.totalPerdas,
             metadados: {
-                versaoCalculo: "3.3.0",
+                versaoCalculo: "3.4.0",
                 timestampCalculo: new Date(),
                 motivoRecalculo: motivoRecalculo || "atualizacao",
                 inativo: isInativo,
@@ -482,16 +530,14 @@ export const lerCacheExtratoFinanceiro = async (req, res) => {
         }).lean();
 
         if (!cache) {
-            return res
-                .status(404)
-                .json({
-                    cached: false,
-                    message: "Cache não encontrado",
-                    needsRecalc: true,
-                    inativo: isInativo,
-                    rodadaDesistencia,
-                    extratoTravado: isInativo && rodadaDesistencia,
-                });
+            return res.status(404).json({
+                cached: false,
+                message: "Cache não encontrado",
+                needsRecalc: true,
+                inativo: isInativo,
+                rodadaDesistencia,
+                extratoTravado: isInativo && rodadaDesistencia,
+            });
         }
 
         const rodadaCache = cache.ultima_rodada_consolidada || 0;
@@ -502,29 +548,25 @@ export const lerCacheExtratoFinanceiro = async (req, res) => {
             rodadaLimiteInativo &&
             rodadaCache < rodadaLimiteInativo
         ) {
-            return res
-                .status(200)
-                .json({
-                    cached: true,
-                    needsRecalc: true,
-                    message: `Cache inativo desatualizado`,
-                    rodada_cache: rodadaCache,
-                    expectedUntil: rodadaLimiteInativo,
-                    inativo: true,
-                    rodadaDesistencia,
-                    extratoTravado: true,
-                });
+            return res.status(200).json({
+                cached: true,
+                needsRecalc: true,
+                message: `Cache inativo desatualizado`,
+                rodada_cache: rodadaCache,
+                expectedUntil: rodadaLimiteInativo,
+                inativo: true,
+                rodadaDesistencia,
+                extratoTravado: true,
+            });
         } else if (!isInativo && rodadaCache < rodadaAtualNum) {
-            return res
-                .status(200)
-                .json({
-                    cached: true,
-                    needsRecalc: true,
-                    message: `Cache desatualizado`,
-                    rodada_cache: rodadaCache,
-                    expectedUntil: rodadaAtualNum,
-                    inativo: false,
-                });
+            return res.status(200).json({
+                cached: true,
+                needsRecalc: true,
+                message: `Cache desatualizado`,
+                rodada_cache: rodadaCache,
+                expectedUntil: rodadaAtualNum,
+                inativo: false,
+            });
         }
 
         let rodadasConsolidadas = transformarTransacoesEmRodadas(
@@ -547,6 +589,7 @@ export const lerCacheExtratoFinanceiro = async (req, res) => {
 
         res.json({
             cached: true,
+            qtdRodadas: rodadasConsolidadas.length,
             rodada_calculada: rodadaCache,
             dados: rodadasConsolidadas,
             dados_extrato: rodadasConsolidadas,
@@ -671,4 +714,4 @@ export const estatisticasCache = async (req, res) => {
     }
 };
 
-console.log("[CACHE-CONTROLLER] ✅ v3.3 carregado (suporte a inativos)");
+console.log("[CACHE-CONTROLLER] ✅ v3.4 carregado (fix cache corrompido)");

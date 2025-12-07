@@ -132,7 +132,7 @@ function calcularTop10(pontuacaoTime, todasPontuacoes) {
 // ✅ v4.0: Função auxiliar para obter valores de banco contextuais
 function getBancoPorRodadaBackend(ligaId, rodada) {
     const ID_CARTOLEIROS_SOBRAL = "684d821cf1a7ae16d1f89572";
-    
+
     if (String(ligaId) === ID_CARTOLEIROS_SOBRAL) {
         // Tabela contextual Cartoleiros Sobral
         if (rodada < 30) {
@@ -143,18 +143,72 @@ function getBancoPorRodadaBackend(ligaId, rodada) {
             return { 1: 5.0, 2: 0.0, 3: 0.0, 4: -5.0 };
         }
     }
-    
+
     // SuperCartola 2025 (padrão)
     return {
-        1: 10.0, 2: 7.0, 3: 5.0, 4: 3.0, 5: 1.0, 6: 0.0, 7: 0.0, 8: 0.0,
-        9: 0.0, 10: 0.0, 11: 0.0, 12: -1.0, 13: -1.0, 14: -1.0, 15: -1.0,
-        16: -1.0, 17: -1.0, 18: -1.0, 19: -1.0, 20: -1.0, 21: -1.0, 22: -3.0,
-        23: -5.0, 24: -7.0, 25: -10.0, 26: -15.0, 27: -20.0, 28: -25.0,
-        29: -30.0, 30: -35.0, 31: -40.0, 32: -50.0
+        1: 10.0,
+        2: 7.0,
+        3: 5.0,
+        4: 3.0,
+        5: 1.0,
+        6: 0.0,
+        7: 0.0,
+        8: 0.0,
+        9: 0.0,
+        10: 0.0,
+        11: 0.0,
+        12: -1.0,
+        13: -1.0,
+        14: -1.0,
+        15: -1.0,
+        16: -1.0,
+        17: -1.0,
+        18: -1.0,
+        19: -1.0,
+        20: -1.0,
+        21: -1.0,
+        22: -3.0,
+        23: -5.0,
+        24: -7.0,
+        25: -10.0,
+        26: -15.0,
+        27: -20.0,
+        28: -25.0,
+        29: -30.0,
+        30: -35.0,
+        31: -40.0,
+        32: -50.0,
     };
 }
 
-// Processa UMA rodada para UM time
+// ✅ v5.0: Calcula BANCO (bonusOnus) baseado na posição do time na rodada
+function calcularBanco(liga, timeId, rodadaNumero, pontuacoes) {
+    // Criar ranking da rodada (maior pontuação primeiro)
+    const ranking = [...pontuacoes].sort((a, b) => b.pontos - a.pontos);
+
+    // Encontrar posição do time (1-based)
+    const posicao =
+        ranking.findIndex((p) => String(p.timeId) === String(timeId)) + 1;
+
+    if (posicao <= 0) return null;
+
+    const totalTimes = ranking.length;
+    const banco = getBancoPorRodadaBackend(liga._id, rodadaNumero);
+
+    // ✅ v5.0: Usar posição diretamente como chave (banco é OBJETO, não array)
+    const valorBanco = banco[posicao];
+
+    if (valorBanco === undefined || valorBanco === 0) return null;
+
+    return {
+        valor: valorBanco,
+        descricao: `Banco R${rodadaNumero}: ${posicao}º lugar (${totalTimes} times)`,
+        posicao: posicao,
+        totalTimes: totalTimes,
+    };
+}
+
+// ✅ v5.0: Processa UMA rodada para UM time - AGORA COM BANCO
 async function calcularFinanceiroDaRodada(liga, timeId, rodadaNumero) {
     let transacoes = [];
     let saldoRodada = 0;
@@ -172,6 +226,7 @@ async function calcularFinanceiroDaRodada(liga, timeId, rodadaNumero) {
 
     const meusPontos = minhaPontuacaoObj.pontos;
 
+    // 1. PONTOS CORRIDOS
     if (liga.modulos_ativos?.pontosCorridos) {
         const resultadoPC = await calcularConfrontoPontosCorridos(
             liga,
@@ -192,6 +247,7 @@ async function calcularFinanceiroDaRodada(liga, timeId, rodadaNumero) {
         }
     }
 
+    // 2. TOP 10 (MITO/MICO)
     if (liga.modulos_ativos?.top10) {
         const resultadoTop10 = calcularTop10(meusPontos, pontuacoes);
         if (resultadoTop10) {
@@ -203,6 +259,27 @@ async function calcularFinanceiroDaRodada(liga, timeId, rodadaNumero) {
                 data: new Date(),
             });
             saldoRodada += resultadoTop10.valor;
+        }
+    }
+
+    // ✅ v5.0: 3. BANCO (bonusOnus) - NOVO!
+    if (liga.modulos_ativos?.banco !== false) {
+        const resultadoBanco = calcularBanco(
+            liga,
+            timeId,
+            rodadaNumero,
+            pontuacoes,
+        );
+        if (resultadoBanco) {
+            transacoes.push({
+                rodada: rodadaNumero,
+                tipo: resultadoBanco.valor > 0 ? "BONUS" : "ONUS",
+                descricao: resultadoBanco.descricao,
+                valor: resultadoBanco.valor,
+                posicao: resultadoBanco.posicao,
+                data: new Date(),
+            });
+            saldoRodada += resultadoBanco.valor;
         }
     }
 
@@ -356,7 +433,9 @@ export const getCampos = async (req, res) => {
 
         // ✅ CRIAR AUTOMATICAMENTE SE NÃO EXISTIR
         if (!campos) {
-            console.log(`[FLUXO-CONTROLLER] Criando campos padrão para time ${timeId}`);
+            console.log(
+                `[FLUXO-CONTROLLER] Criando campos padrão para time ${timeId}`,
+            );
             campos = await FluxoFinanceiroCampos.create({
                 ligaId,
                 timeId,
@@ -452,23 +531,25 @@ export const deletarCampos = async (req, res) => {
 
 export const getFluxoFinanceiroLiga = async (ligaId, rodadaNumero) => {
     try {
-        console.log(`[FINANCEIRO-CONSOLIDAÇÃO] Processando liga ${ligaId} até R${rodadaNumero}`);
-        
+        console.log(
+            `[FINANCEIRO-CONSOLIDAÇÃO] Processando liga ${ligaId} até R${rodadaNumero}`,
+        );
+
         const liga = await Liga.findById(ligaId);
-        if (!liga) throw new Error('Liga não encontrada');
-        
+        if (!liga) throw new Error("Liga não encontrada");
+
         const financeiroPorTime = [];
-        
+
         // Para cada participante da liga
         for (const participante of liga.participantes) {
             const timeId = participante.time_id;
-            
+
             // Buscar ou criar cache
             let cache = await ExtratoFinanceiroCache.findOne({
                 liga_id: ligaId,
                 time_id: timeId,
             });
-            
+
             if (!cache) {
                 cache = new ExtratoFinanceiroCache({
                     liga_id: ligaId,
@@ -478,36 +559,49 @@ export const getFluxoFinanceiroLiga = async (ligaId, rodadaNumero) => {
                     historico_transacoes: [],
                 });
             }
-            
+
             // Atualizar cache até a rodada especificada
             if (cache.ultima_rodada_consolidada < rodadaNumero) {
-                for (let r = cache.ultima_rodada_consolidada + 1; r <= rodadaNumero; r++) {
-                    const resultado = await calcularFinanceiroDaRodada(liga, timeId, r);
-                    
+                for (
+                    let r = cache.ultima_rodada_consolidada + 1;
+                    r <= rodadaNumero;
+                    r++
+                ) {
+                    const resultado = await calcularFinanceiroDaRodada(
+                        liga,
+                        timeId,
+                        r,
+                    );
+
                     if (resultado.transacoes.length > 0) {
-                        cache.historico_transacoes.push(...resultado.transacoes);
+                        cache.historico_transacoes.push(
+                            ...resultado.transacoes,
+                        );
                         cache.saldo_consolidado += resultado.saldo;
                     }
                 }
-                
+
                 cache.ganhos_consolidados = cache.historico_transacoes
                     .filter((t) => t.valor > 0)
                     .reduce((acc, t) => acc + t.valor, 0);
-                
+
                 cache.perdas_consolidadas = cache.historico_transacoes
                     .filter((t) => t.valor < 0)
                     .reduce((acc, t) => acc + t.valor, 0);
-                
+
                 cache.ultima_rodada_consolidada = rodadaNumero;
                 cache.data_ultima_atualizacao = new Date();
-                
+
                 await cache.save();
             }
-            
+
             // Adicionar campos manuais
-            const camposManuais = await FluxoFinanceiroCampos.findOne({ ligaId, timeId });
+            const camposManuais = await FluxoFinanceiroCampos.findOne({
+                ligaId,
+                timeId,
+            });
             let saldoCampos = 0;
-            
+
             if (camposManuais && camposManuais.campos) {
                 camposManuais.campos.forEach((campo) => {
                     if (campo.valor !== 0) {
@@ -515,7 +609,7 @@ export const getFluxoFinanceiroLiga = async (ligaId, rodadaNumero) => {
                     }
                 });
             }
-            
+
             financeiroPorTime.push({
                 time_id: timeId,
                 nome_time: participante.nome_time,
@@ -526,12 +620,15 @@ export const getFluxoFinanceiroLiga = async (ligaId, rodadaNumero) => {
                 transacoes: cache.historico_transacoes.length,
             });
         }
-        
-        console.log(`[FINANCEIRO-CONSOLIDAÇÃO] ✅ ${financeiroPorTime.length} times processados`);
+
+        console.log(
+            `[FINANCEIRO-CONSOLIDAÇÃO] ✅ ${financeiroPorTime.length} times processados`,
+        );
         return financeiroPorTime;
-        
     } catch (error) {
-        console.error('[FINANCEIRO-CONSOLIDAÇÃO] ❌ Erro:', error);
+        console.error("[FINANCEIRO-CONSOLIDAÇÃO] ❌ Erro:", error);
         throw error;
     }
 };
+
+console.log("[FLUXO-FINANCEIRO] ✅ v5.0 carregado (fix BANCO bonusOnus)");
