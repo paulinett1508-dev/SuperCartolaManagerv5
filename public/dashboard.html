@@ -114,7 +114,6 @@
         </div>
 
         <script type="module">
-            import { carregarLigas } from "./js/gerenciar-ligas.js";
             import { cacheManager } from "./js/core/cache-manager.js";
 
             let ligasData = [];
@@ -177,9 +176,9 @@
                                 timesDetalhados.push({
                                     id: timeId,
                                     nome_time: `Time ${timeId}`,
-                                    nome_cartoleiro: 'N/D',
+                                    nome_cartoleiro: "N/D",
                                     clube_id: null,
-                                    url_escudo_png: '',
+                                    url_escudo_png: "",
                                     ligaNome: liga.nome,
                                     ligaId: liga._id,
                                 });
@@ -189,9 +188,9 @@
                             timesDetalhados.push({
                                 id: timeId,
                                 nome_time: `Time ${timeId}`,
-                                nome_cartoleiro: 'N/D',
+                                nome_cartoleiro: "N/D",
                                 clube_id: null,
-                                url_escudo_png: '',
+                                url_escudo_png: "",
                                 ligaNome: liga.nome,
                                 ligaId: liga._id,
                             });
@@ -331,9 +330,14 @@
                     // Tenta carregar dados do cache primeiro
                     const cacheKey = 'dashboard_ligas_{"all":true}';
 
-                    ligasData = await cacheManager.get('ligas', cacheKey, async () => {
-                        return await carregarLigas();
-                    }, { ttl: 86400000 }); // Cache por 1 dia (em ms)
+                    ligasData = await cacheManager.get(
+                        "ligas",
+                        cacheKey,
+                        async () => {
+                            return await carregarLigas();
+                        },
+                        { ttl: 86400000 },
+                    ); // Cache por 1 dia (em ms)
 
                     if (ligasData.length === 0) {
                         container.innerHTML = "";
@@ -469,9 +473,9 @@
                                     return {
                                         id: timeId,
                                         nome_time: `Time ${timeId}`,
-                                        nome_cartoleiro: 'N/D',
+                                        nome_cartoleiro: "N/D",
                                         clube_id: null,
-                                        url_escudo_png: ''
+                                        url_escudo_png: "",
                                     };
                                 }
                                 return null;
@@ -480,9 +484,9 @@
                                 return {
                                     id: timeId,
                                     nome_time: `Time ${timeId}`,
-                                    nome_cartoleiro: 'N/D',
+                                    nome_cartoleiro: "N/D",
                                     clube_id: null,
-                                    url_escudo_png: ''
+                                    url_escudo_png: "",
                                 };
                             }
                         }),
@@ -605,16 +609,17 @@
 
             // === Funções auxiliares para gerenciar estados da UI ===
             function mostrarEstado(estado) {
-                const container = document.getElementById('ligasContainer');
-                const errorContainer = document.getElementById('errorContainer');
-                const emptyState = document.getElementById('emptyState');
+                const container = document.getElementById("ligasContainer");
+                const errorContainer =
+                    document.getElementById("errorContainer");
+                const emptyState = document.getElementById("emptyState");
 
-                container.style.display = 'none';
-                errorContainer.style.display = 'none';
-                emptyState.style.display = 'none';
+                container.style.display = "none";
+                errorContainer.style.display = "none";
+                emptyState.style.display = "none";
 
                 switch (estado) {
-                    case 'loading':
+                    case "loading":
                         container.innerHTML = `
                             <div class="loading-container">
                                 <div class="loading-spinner-pro"></div>
@@ -625,16 +630,16 @@
                                 </div>
                             </div>
                         `;
-                        container.style.display = 'block';
+                        container.style.display = "block";
                         break;
-                    case 'empty':
-                        emptyState.style.display = 'block';
+                    case "empty":
+                        emptyState.style.display = "block";
                         break;
-                    case 'error':
-                        errorContainer.style.display = 'block';
+                    case "error":
+                        errorContainer.style.display = "block";
                         break;
-                    case 'loaded':
-                        container.style.display = 'block';
+                    case "loaded":
+                        container.style.display = "block";
                         break;
                 }
             }
@@ -642,39 +647,48 @@
             // === VERIFICAR AUTENTICAÇÃO ===
             async function verificarAutenticacao() {
                 try {
-                    console.log('[DASHBOARD] Verificando autenticação...');
-                    const response = await fetch('/api/admin/auth/session', {
-                        credentials: 'include'
+                    console.log("[DASHBOARD] Verificando autenticação...");
+                    const response = await fetch("/api/admin/auth/session", {
+                        credentials: "include",
                     });
 
-                    console.log('[DASHBOARD] Response status:', response.status);
+                    console.log(
+                        "[DASHBOARD] Response status:",
+                        response.status,
+                    );
 
                     if (!response.ok) {
-                        console.log('[DASHBOARD] Não autenticado, redirecionando para login');
-                        window.location.href = '/';
+                        console.log(
+                            "[DASHBOARD] Não autenticado, redirecionando para login",
+                        );
+                        window.location.href = "/";
                         return false;
                     }
 
                     const data = await response.json();
-                    console.log('[DASHBOARD] Auth data:', data);
+                    console.log("[DASHBOARD] Auth data:", data);
 
                     if (!data.authenticated) {
-                        console.log('[DASHBOARD] Usuário não autenticado');
-                        window.location.href = '/';
+                        console.log("[DASHBOARD] Usuário não autenticado");
+                        window.location.href = "/";
                         return false;
                     }
 
                     // Atualizar UI com dados do usuário
-                    const userNameElement = document.getElementById('userName');
+                    const userNameElement = document.getElementById("userName");
                     if (userNameElement && data.admin) {
-                        userNameElement.textContent = data.admin.nome || 'Admin';
+                        userNameElement.textContent =
+                            data.admin.nome || "Admin";
                     }
 
-                    console.log('[DASHBOARD] ✅ Autenticação confirmada');
+                    console.log("[DASHBOARD] ✅ Autenticação confirmada");
                     return true;
                 } catch (error) {
-                    console.error('[DASHBOARD] Erro ao verificar autenticação:', error);
-                    window.location.href = '/';
+                    console.error(
+                        "[DASHBOARD] Erro ao verificar autenticação:",
+                        error,
+                    );
+                    window.location.href = "/";
                     return false;
                 }
             }
@@ -682,51 +696,61 @@
             // === CARREGAR LIGAS ===
             // Carregar ligas
             async function carregarLigas() {
-                console.log('[DASHBOARD] Carregando ligas...');
-                mostrarEstado('loading');
+                console.log("[DASHBOARD] Carregando ligas...");
+                mostrarEstado("loading");
 
                 try {
-                    const response = await fetch('/api/ligas', {
-                        credentials: 'include'
+                    const response = await fetch("/api/ligas", {
+                        credentials: "include",
                     });
 
-                    console.log('[DASHBOARD] Ligas response status:', response.status);
+                    console.log(
+                        "[DASHBOARD] Ligas response status:",
+                        response.status,
+                    );
 
                     if (!response.ok) {
                         const errorText = await response.text();
-                        console.error('[DASHBOARD] Erro na resposta:', errorText);
-                        throw new Error(`Erro ao carregar ligas: ${response.status}`);
+                        console.error(
+                            "[DASHBOARD] Erro na resposta:",
+                            errorText,
+                        );
+                        throw new Error(
+                            `Erro ao carregar ligas: ${response.status}`,
+                        );
                     }
 
                     const ligas = await response.json();
-                    console.log('[DASHBOARD] Ligas recebidas:', ligas.length);
+                    console.log("[DASHBOARD] Ligas recebidas:", ligas.length);
 
                     if (!ligas || ligas.length === 0) {
-                        console.log('[DASHBOARD] Nenhuma liga encontrada');
-                        mostrarEstado('empty');
+                        console.log("[DASHBOARD] Nenhuma liga encontrada");
+                        mostrarEstado("empty");
                         return;
                     }
 
-                    console.log('[DASHBOARD] Exibindo', ligas.length, 'ligas');
+                    console.log("[DASHBOARD] Exibindo", ligas.length, "ligas");
                     exibirLigas(ligas);
                     atualizarCards(ligas);
                 } catch (error) {
-                    console.error('[DASHBOARD] Erro ao carregar ligas:', error);
-                    mostrarEstado('error');
+                    console.error("[DASHBOARD] Erro ao carregar ligas:", error);
+                    mostrarEstado("error");
                 }
             }
 
             // === Inicializar quando a página carregar ===
-            document.addEventListener('DOMContentLoaded', async () => {
-                console.log('[DASHBOARD] 🚀 Inicializando dashboard...');
+            document.addEventListener("DOMContentLoaded", async () => {
+                console.log("[DASHBOARD] 🚀 Inicializando dashboard...");
 
                 const autenticado = await verificarAutenticacao();
 
                 if (autenticado) {
-                    console.log('[DASHBOARD] Usuário autenticado, carregando ligas...');
+                    console.log(
+                        "[DASHBOARD] Usuário autenticado, carregando ligas...",
+                    );
                     await carregarLigas();
                 } else {
-                    console.log('[DASHBOARD] Autenticação falhou');
+                    console.log("[DASHBOARD] Autenticação falhou");
                 }
             });
 
