@@ -141,7 +141,7 @@ class LayoutSystem {
             'parciais': 'Resultados Parciais'
         };
 
-        if (this.currentPage !== 'dashboard') {
+        if (this.currentPage !== 'painel') {
             breadcrumbHtml += ' <span class="separator">›</span> ';
 
             if (this.ligaId && ['detalhe-liga', 'editar-liga', 'admin', 'parciais'].includes(this.currentPage)) {
@@ -161,7 +161,7 @@ class LayoutSystem {
         if (!pageTitle || !pageSubtitle) return;
 
         const pageInfo = {
-            'dashboard': {
+            'painel': {
                 title: 'Dashboard Geral',
                 subtitle: 'Visão geral das suas ligas e estatísticas'
             },
@@ -191,7 +191,7 @@ class LayoutSystem {
             }
         };
 
-        const info = pageInfo[this.currentPage] || pageInfo['dashboard'];
+        const info = pageInfo[this.currentPage] || pageInfo['painel'];
         pageTitle.textContent = info.title;
         pageSubtitle.textContent = info.subtitle;
     }
