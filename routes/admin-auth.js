@@ -103,32 +103,25 @@ router.post("/logout", (req, res) => {
 
 /**
  * GET /api/admin/auth/check
- * Check rápido de autenticação (sem detalhes)
+ * Verifica autenticação do admin
  */
 router.get("/check", (req, res) => {
-  res.json({
-    authenticated: !!req.session?.admin,
-    isAdmin: !!req.session?.admin?.isAdmin,
-  });
-});
-
-// Rota de verificação de autenticação (usado pelo dashboard)
-router.get('/check', (req, res) => {
-    if (req.isAuthenticated && req.isAuthenticated()) {
-        res.json({
-            authenticated: true,
-            user: {
-                email: req.user.email,
-                name: req.user.name,
-                picture: req.user.picture
-            }
-        });
-    } else {
-        res.status(401).json({
-            authenticated: false,
-            message: 'Não autenticado'
-        });
-    }
+  if (req.session?.admin) {
+    res.json({
+      authenticated: true,
+      isAdmin: true,
+      user: {
+        email: req.session.admin.email,
+        name: req.session.admin.nome,
+        picture: req.session.admin.foto
+      }
+    });
+  } else {
+    res.status(401).json({
+      authenticated: false,
+      message: 'Não autenticado'
+    });
+  }
 });
 
 export default router;

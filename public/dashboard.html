@@ -640,11 +640,10 @@
             }
 
             // === VERIFICAR AUTENTICAÇÃO ===
-            // Verificar autenticação ao carregar
             async function verificarAutenticacao() {
                 try {
                     console.log('[DASHBOARD] Verificando autenticação...');
-                    const response = await fetch('/api/admin/auth/check', {
+                    const response = await fetch('/api/admin/auth/session', {
                         credentials: 'include'
                     });
 
@@ -652,7 +651,7 @@
 
                     if (!response.ok) {
                         console.log('[DASHBOARD] Não autenticado, redirecionando para login');
-                        window.location.href = '/admin.html';
+                        window.location.href = '/';
                         return false;
                     }
 
@@ -661,21 +660,21 @@
 
                     if (!data.authenticated) {
                         console.log('[DASHBOARD] Usuário não autenticado');
-                        window.location.href = '/admin.html';
+                        window.location.href = '/';
                         return false;
                     }
 
                     // Atualizar UI com dados do usuário
                     const userNameElement = document.getElementById('userName');
-                    if (userNameElement && data.user) {
-                        userNameElement.textContent = data.user.name || 'Admin';
+                    if (userNameElement && data.admin) {
+                        userNameElement.textContent = data.admin.nome || 'Admin';
                     }
 
                     console.log('[DASHBOARD] ✅ Autenticação confirmada');
                     return true;
                 } catch (error) {
                     console.error('[DASHBOARD] Erro ao verificar autenticação:', error);
-                    window.location.href = '/admin.html';
+                    window.location.href = '/';
                     return false;
                 }
             }
