@@ -35,37 +35,6 @@ router.get(
 );
 
 /**
- * GET /api/admin/auth/google/callback
- * Callback após autenticação Google
- */
-router.get(
-  "/google/callback",
-  (req, res, next) => {
-    console.log("[ADMIN-AUTH] 🔄 Callback recebido!");
-    console.log("[ADMIN-AUTH] Query params:", req.query);
-    next();
-  },
-  passport.authenticate("google", {
-    failureRedirect: "/?error=unauthorized",
-    failureMessage: true,
-  }),
-  (req, res) => {
-    console.log("[ADMIN-AUTH] ✅ Autenticação bem sucedida, user:", req.user);
-    req.session.admin = req.user;
-
-    req.session.save((err) => {
-      if (err) {
-        console.error("[ADMIN-AUTH] ❌ Erro ao salvar sessão:", err);
-        return res.redirect("/?error=session");
-      }
-
-      console.log("[ADMIN-AUTH] ✅ Sessão admin criada:", req.user.email);
-      res.redirect("/painel.html");
-    });
-  },
-);
-
-/**
  * GET /api/admin/auth/session
  * Verifica sessão atual do admin
  */

@@ -77,21 +77,27 @@ app.use(express.urlencoded({ extended: true, limit: "50mb" }));
 app.use(cors());
 
 // ====================================================================
-// DEBUG - DEVE SER O PRIMEIRO MIDDLEWARE PARA CAPTURAR TUDO
+// DESABILITAR CACHE PARA HTML (evita problema de CDN/proxy)
+// ====================================================================
+app.use((req, res, next) => {
+  if (req.path.endsWith(".html") || req.path === "/") {
+    res.setHeader(
+      "Cache-Control",
+      "no-store, no-cache, must-revalidate, proxy-revalidate",
+    );
+    res.setHeader("Pragma", "no-cache");
+    res.setHeader("Expires", "0");
+    res.setHeader("Surrogate-Control", "no-store");
+  }
+  next();
+});
+
+// ====================================================================
+// DEBUG - CAPTURAR TODAS AS REQUISIÇÕES
 // ====================================================================
 app.use((req, res, next) => {
   console.log(`[REQUEST] ${req.method} ${req.path}`);
   next();
-});
-
-// TESTE DIRETO - sem router
-app.get("/api/teste-direto", (req, res) => {
-  res.json({ teste: "ok", timestamp: new Date() });
-});
-
-// TESTE DIRETO - com path admin
-app.get("/api/admin/teste-admin", (req, res) => {
-  res.json({ testeAdmin: "ok", timestamp: new Date() });
 });
 
 // Configuração de Sessão com MongoDB Store (Persistência Real)
@@ -129,6 +135,36 @@ if (verificarConfigOAuth()) {
     "[SERVER] ⚠️ Google OAuth desativado (credenciais não configuradas)",
   );
 }
+
+// ====================================================================
+// 🔐 CALLBACK OAUTH - ROTA NOVA (fora do /api/admin/auth)
+// ====================================================================
+app.get(
+  "/api/oauth/callback",
+  (req, res, next) => {
+    console.log("[OAUTH] 🔄 Callback recebido!");
+    console.log("[OAUTH] Query params:", req.query);
+    next();
+  },
+  passport.authenticate("google", {
+    failureRedirect: "/?error=unauthorized",
+    failureMessage: true,
+  }),
+  (req, res) => {
+    console.log("[OAUTH] ✅ Autenticação bem sucedida, user:", req.user);
+    req.session.admin = req.user;
+
+    req.session.save((err) => {
+      if (err) {
+        console.error("[OAUTH] ❌ Erro ao salvar sessão:", err);
+        return res.redirect("/?error=session");
+      }
+
+      console.log("[OAUTH] ✅ Sessão admin criada:", req.user.email);
+      res.redirect("/painel.html");
+    });
+  },
+);
 
 // 🔐 Rotas de autenticação admin (Google OAuth) - ANTES do protegerRotas
 app.use("/api/admin/auth", adminAuthRoutes);
@@ -190,10 +226,10 @@ app.get("/api/version", (req, res) => {
 // Primeiro: capturar rotas de API não encontradas
 app.use("/api/*", (req, res) => {
   console.log(`[404] API endpoint não encontrado: ${req.method} ${req.path}`);
-  res.status(404).json({ 
+  res.status(404).json({
     error: "API endpoint not found",
     path: req.path,
-    method: req.method
+    method: req.method,
   });
 });
 

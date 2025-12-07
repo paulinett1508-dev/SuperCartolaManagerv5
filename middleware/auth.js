@@ -15,6 +15,7 @@ export const ROTAS_PUBLICAS = [
   "/img/",
   "/api/admin/auth/",
   "/api/participante/auth/",
+  "/api/oauth/callback",
   "/api/cartola/",
   "/api/configuracao/",
   "/api/version",
@@ -24,7 +25,7 @@ export const ROTAS_PUBLICAS = [
  * Lista de páginas HTML ADMIN (requerem sessão admin)
  */
 export const PAGINAS_ADMIN = [
-  "/painel.html", // Renomeado de /dashboard.html para /painel.html
+  "/painel.html",
   "/detalhe-liga.html",
   "/gerenciar.html",
   "/admin.html",
@@ -83,7 +84,7 @@ export function protegerRotas(req, res, next) {
   if (url === "/" || url === "/index.html") {
     // Se admin logado, redirecionar para painel
     if (req.session?.admin) {
-      return res.redirect("/painel.html"); // Alterado de /dashboard.html para /painel.html
+      return res.redirect("/painel.html");
     }
     // Se participante logado, redirecionar para área participante
     if (req.session?.participante) {
