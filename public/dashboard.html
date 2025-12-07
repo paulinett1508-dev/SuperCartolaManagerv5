@@ -1,0 +1,681 @@
+<!doctype html>
+<html lang="pt-BR">
+    <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <title>Dashboard - Super Cartola Manager</title>
+        <link rel="stylesheet" href="style.css" />
+        <link rel="stylesheet" href="css/modules/dashboard.css" />
+    </head>
+    <body>
+        <div class="app-container">
+            <!-- Sidebar será injetado aqui -->
+            <div id="sidebar-placeholder"></div>
+
+            <!-- Conteúdo principal -->
+            <main class="app-main">
+                <!-- Conteúdo da página -->
+                <div class="page-content">
+                    <!-- Estatísticas Globais -->
+                    <div class="dashboard-stats">
+                        <div class="stat-card primary">
+                            <div class="stat-icon">🏆</div>
+                            <div class="stat-number" id="totalLigas">0</div>
+                            <div class="stat-label">Ligas Ativas</div>
+                        </div>
+
+                        <div class="stat-card success">
+                            <div class="stat-icon">👥</div>
+                            <div class="stat-number" id="totalParticipantes">
+                                0
+                            </div>
+                            <div class="stat-label">Total Participantes</div>
+                        </div>
+
+                        <div class="stat-card warning">
+                            <div class="stat-icon">⚽</div>
+                            <div class="stat-number" id="clubeMaisPopular">
+                                -
+                            </div>
+                            <div class="stat-label">Clube Mais Popular</div>
+                        </div>
+
+                        <div class="stat-card danger">
+                            <div class="stat-icon">⚽</div>
+                            <div class="stat-number" id="clubesUnicos">0</div>
+                            <div class="stat-label">Clubes Diferentes</div>
+                        </div>
+                    </div>
+
+                    <!-- Seção de Busca -->
+                    <div class="search-section">
+                        <div class="search-container">
+                            <div class="search-icon">🔍</div>
+                            <input
+                                type="text"
+                                id="searchInput"
+                                class="search-input"
+                                placeholder="Buscar liga por nome, ID, participantes ou clube..."
+                                oninput="filtrarLigas()"
+                            />
+                        </div>
+                    </div>
+
+                    <!-- Container de Ligas -->
+                    <div id="ligasContainer">
+                        <div class="loading-container">
+                            <div class="loading-spinner-pro"></div>
+                            <div class="loading-text">
+                                Carregando suas ligas
+                            </div>
+                            <div class="loading-subtitle">
+                                Aguarde enquanto sincronizamos os dados<br />
+                                do Super Cartola Manager...
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Estado de erro -->
+                    <div
+                        id="errorContainer"
+                        class="error-container"
+                        style="display: none"
+                    >
+                        <div class="error-icon">⚠️</div>
+                        <div class="error-title">Erro ao Carregar Ligas</div>
+                        <div class="error-message" id="errorMessage"></div>
+                        <button
+                            class="retry-btn"
+                            onclick="carregarDadosLigas()"
+                        >
+                            🔄 Tentar Novamente
+                        </button>
+                    </div>
+
+                    <!-- Estado vazio -->
+                    <div
+                        id="emptyState"
+                        class="empty-state"
+                        style="display: none"
+                    >
+                        <div class="empty-icon">🏆</div>
+                        <div class="empty-title">Nenhuma Liga Encontrada</div>
+                        <div class="empty-subtitle">
+                            Você ainda não criou nenhuma liga.<br />
+                            Comece criando sua primeira liga do Cartola FC e<br />
+                            experimente todas as funcionalidades do sistema!
+                        </div>
+                        <a href="preencher-liga.html" class="empty-action">
+                            ➕ Criar Primeira Liga
+                        </a>
+                    </div>
+                </div>
+            </main>
+        </div>
+
+        <script type="module">
+            import { carregarLigas as carregarLigasAPI } from "./js/gerenciar-ligas.js";
+            import { cacheManager } from "./js/core/cache-manager.js";
+
+            let ligasData = [];
+            let estatisticasGlobais = {
+                clubesDistribuicao: {},
+                temposCadastro: [],
+                totalParticipantes: 0,
+            };
+
+            // === CARREGAR LAYOUT ===
+            async function loadLayout() {
+                try {
+                    const response = await fetch("layout.html");
+                    const layoutHtml = await response.text();
+
+                    const parser = new DOMParser();
+                    const doc = parser.parseFromString(layoutHtml, "text/html");
+
+                    // Injetar sidebar
+                    const sidebar = doc.querySelector(".app-sidebar");
+                    if (sidebar) {
+                        document
+                            .getElementById("sidebar-placeholder")
+                            .replaceWith(sidebar);
+                    }
+
+                    // Executar scripts do layout
+                    const scripts = doc.querySelectorAll("script");
+                    scripts.forEach((script) => {
+                        if (script.textContent.trim()) {
+                            const newScript = document.createElement("script");
+                            newScript.textContent = script.textContent;
+                            document.head.appendChild(newScript);
+                        }
+                    });
+                } catch (error) {
+                    console.error("Erro ao carregar layout:", error);
+                }
+            }
+
+            // === BUSCAR DETALHES DOS TIMES ===
+            async function buscarDetalhesCompletos(ligas) {
+                const timesDetalhados = [];
+
+                for (const liga of ligas) {
+                    const times = liga.times || [];
+
+                    for (const timeId of times) {
+                        try {
+                            const res = await fetch(`/api/time/${timeId}`);
+                            if (res.ok) {
+                                const dadosTime = await res.json();
+                                timesDetalhados.push({
+                                    ...dadosTime,
+                                    ligaNome: liga.nome,
+                                    ligaId: liga._id,
+                                });
+                            } else if (res.status === 404) {
+                                timesDetalhados.push({
+                                    id: timeId,
+                                    nome_time: `Time ${timeId}`,
+                                    nome_cartoleiro: "N/D",
+                                    clube_id: null,
+                                    url_escudo_png: "",
+                                    ligaNome: liga.nome,
+                                    ligaId: liga._id,
+                                });
+                            }
+                        } catch (error) {
+                            timesDetalhados.push({
+                                id: timeId,
+                                nome_time: `Time ${timeId}`,
+                                nome_cartoleiro: "N/D",
+                                clube_id: null,
+                                url_escudo_png: "",
+                                ligaNome: liga.nome,
+                                ligaId: liga._id,
+                            });
+                        }
+                    }
+                }
+
+                return timesDetalhados;
+            }
+
+            // === CALCULAR ESTATÍSTICAS AVANÇADAS ===
+            async function calcularEstatisticasAvancadas(ligas) {
+                const timesDetalhados = await buscarDetalhesCompletos(ligas);
+
+                const clubesCount = {};
+                const tempos = [];
+
+                timesDetalhados.forEach((time) => {
+                    if (time.clube_id) {
+                        const clubeNome = obterNomeClube(time.clube_id);
+                        clubesCount[clubeNome] =
+                            (clubesCount[clubeNome] || 0) + 1;
+                    }
+
+                    if (
+                        time.cadastrado_em ||
+                        time.created_at ||
+                        time.data_criacao
+                    ) {
+                        const dataCadastro = new Date(
+                            time.cadastrado_em ||
+                                time.created_at ||
+                                time.data_criacao,
+                        );
+                        const agora = new Date();
+                        const diasAtras = Math.floor(
+                            (agora - dataCadastro) / (1000 * 60 * 60 * 24),
+                        );
+                        tempos.push(diasAtras);
+                    }
+                });
+
+                const clubeMaisPopular =
+                    Object.keys(clubesCount).length > 0
+                        ? Object.entries(clubesCount).sort(
+                              (a, b) => b[1] - a[1],
+                          )[0]
+                        : ["Nenhum", 0];
+
+                return {
+                    clubesDistribuicao: clubesCount,
+                    clubeMaisPopular: clubeMaisPopular,
+                    clubesUnicos: Object.keys(clubesCount).length,
+                    totalParticipantes: timesDetalhados.length,
+                };
+            }
+
+            // === HELPER PARA NOMES DOS CLUBES ===
+            function obterNomeClube(clubeId) {
+                const clubes = {
+                    262: "Flamengo",
+                    263: "Botafogo",
+                    264: "Corinthians",
+                    266: "Fluminense",
+                    267: "Vasco",
+                    275: "Palmeiras",
+                    276: "São Paulo",
+                    277: "Santos",
+                    283: "Cruzeiro",
+                    292: "Atlético-MG",
+                    344: "Atlético-GO",
+                };
+                return clubes[clubeId] || `Clube ${clubeId}`;
+            }
+
+            // === RENDERIZAR INSIGHTS ===
+            function renderizarInsights(stats) {
+                const clubesContainer =
+                    document.getElementById("clubesDistribuicao");
+                if (clubesContainer) {
+                    const todosOsClubes = Object.entries(
+                        stats.clubesDistribuicao,
+                    ).sort((a, b) => b[1] - a[1]);
+
+                    if (todosOsClubes.length === 0) {
+                        clubesContainer.innerHTML = `
+                            <div class="clube-stat-item vazio">
+                                <span class="clube-nome">Nenhum clube do coração definido ainda</span>
+                            </div>
+                        `;
+                        return;
+                    }
+
+                    clubesContainer.innerHTML = todosOsClubes
+                        .map(
+                            ([clube, count], index) => `
+                        <div class="clube-stat-item">
+                            <span class="clube-posicao">${index + 1}º</span>
+                            <span class="clube-nome">${clube}</span>
+                            <span class="clube-count">${count}</span>
+                        </div>
+                    `,
+                        )
+                        .join("");
+                }
+            }
+
+            // === CARREGAR DADOS DAS LIGAS ===
+            async function carregarDadosLigas() {
+                const container = document.getElementById("ligasContainer");
+                const errorContainer =
+                    document.getElementById("errorContainer");
+                const emptyState = document.getElementById("emptyState");
+
+                errorContainer.style.display = "none";
+                emptyState.style.display = "none";
+
+                container.innerHTML = `
+                    <div class="loading-container">
+                        <div class="loading-spinner-pro"></div>
+                        <div class="loading-text">Carregando suas ligas</div>
+                        <div class="loading-subtitle">
+                            Aguarde enquanto sincronizamos os dados<br>
+                            do Super Cartola Manager...
+                        </div>
+                    </div>
+                `;
+
+                try {
+                    const cacheKey = 'dashboard_ligas_{"all":true}';
+
+                    ligasData = await cacheManager.get(
+                        "ligas",
+                        cacheKey,
+                        async () => {
+                            return await carregarLigasAPI();
+                        },
+                        { ttl: 86400000 },
+                    );
+
+                    if (ligasData.length === 0) {
+                        container.innerHTML = "";
+                        emptyState.style.display = "block";
+                        atualizarEstatisticas(0, 0);
+                        return;
+                    }
+
+                    estatisticasGlobais =
+                        await calcularEstatisticasAvancadas(ligasData);
+
+                    renderizarLigas(ligasData);
+                    atualizarEstatisticasGlobais(estatisticasGlobais);
+                } catch (error) {
+                    console.error("Erro ao carregar ligas:", error);
+                    container.innerHTML = "";
+                    document.getElementById("errorMessage").textContent =
+                        `Falha ao carregar ligas: ${error.message}`;
+                    errorContainer.style.display = "block";
+                    atualizarEstatisticas(0, 0);
+                }
+            }
+
+            // === ATUALIZAR ESTATÍSTICAS GLOBAIS ===
+            function atualizarEstatisticasGlobais(stats) {
+                document.getElementById("totalLigas").textContent =
+                    ligasData.length;
+                document.getElementById("totalParticipantes").textContent =
+                    stats.totalParticipantes;
+
+                document.getElementById("clubesUnicos").textContent =
+                    stats.clubesUnicos;
+
+                const clubeElement =
+                    document.getElementById("clubeMaisPopular");
+                if (stats.clubeMaisPopular[0] !== "Nenhum") {
+                    clubeElement.textContent = stats.clubeMaisPopular[0];
+                    clubeElement.title = `${stats.clubeMaisPopular[1]} participantes`;
+                } else {
+                    clubeElement.textContent = "-";
+                }
+            }
+
+            // === ATUALIZAR ESTATÍSTICAS (COMPATIBILIDADE) ===
+            function atualizarEstatisticas(totalLigas, totalTimes) {
+                console.log(
+                    `Dashboard: ${totalLigas} ligas, ${totalTimes} participantes`,
+                );
+            }
+
+            // === RENDERIZAR LIGAS ===
+            function renderizarLigas(ligas) {
+                const container = document.getElementById("ligasContainer");
+
+                if (ligas.length === 0) {
+                    container.innerHTML = "";
+                    document.getElementById("emptyState").style.display =
+                        "block";
+                    return;
+                }
+
+                const ligasHtml = `
+                    <div class="ligas-grid">
+                        ${ligas
+                            .map((liga) => {
+                                const timesCount =
+                                    liga.times?.length ||
+                                    liga.participantes?.length ||
+                                    0;
+                                const ligaId = liga._id;
+
+                                return `
+                                <div class="liga-card" data-liga-id="${ligaId}" data-participantes="${timesCount}">
+                                    <div class="liga-header">
+                                        <div class="liga-info">
+                                            <h3>${liga.nome}</h3>
+                                        </div>
+                                        <div class="liga-badge">
+                                            ${timesCount} times
+                                        </div>
+                                    </div>
+
+                                    <div class="liga-meta">
+                                        <div class="meta-item">
+                                            <div class="meta-label">Participantes</div>
+                                            <div class="meta-value">${timesCount}</div>
+                                        </div>
+                                        <div class="meta-item" id="clube-predominante-${ligaId}">
+                                            <div class="meta-label">Clube Top</div>
+                                            <div class="meta-value">...</div>
+                                        </div>
+                                        <div class="meta-item" id="tempo-liga-${ligaId}">
+                                            <div class="meta-label">Criada há</div>
+                                            <div class="meta-value">...</div>
+                                        </div>
+                                    </div>
+
+                                    <div class="liga-actions">
+                                        <a href="detalhe-liga.html?id=${ligaId}" class="action-btn-card btn-details">
+                                            Ver Liga
+                                        </a>
+                                    </div>
+                                </div>
+                            `;
+                            })
+                            .join("")}
+                    </div>
+                `;
+
+                container.innerHTML = ligasHtml;
+                carregarDetalhesEspecificosLigas(ligas);
+            }
+
+            // === CARREGAR DETALHES ESPECÍFICOS ===
+            async function carregarDetalhesEspecificosLigas(ligas) {
+                for (const liga of ligas) {
+                    const ligaId = liga._id;
+                    const times = liga.times || [];
+
+                    if (times.length === 0) continue;
+
+                    const timesData = await Promise.all(
+                        times.map(async (timeId) => {
+                            try {
+                                const res = await fetch(`/api/time/${timeId}`);
+                                if (res.ok) {
+                                    return await res.json();
+                                } else if (res.status === 404) {
+                                    return {
+                                        id: timeId,
+                                        nome_time: `Time ${timeId}`,
+                                        nome_cartoleiro: "N/D",
+                                        clube_id: null,
+                                        url_escudo_png: "",
+                                    };
+                                }
+                                return null;
+                            } catch {
+                                return {
+                                    id: timeId,
+                                    nome_time: `Time ${timeId}`,
+                                    nome_cartoleiro: "N/D",
+                                    clube_id: null,
+                                    url_escudo_png: "",
+                                };
+                            }
+                        }),
+                    );
+
+                    const timesValidos = timesData.filter((t) => t !== null);
+
+                    const clubesLiga = {};
+                    timesValidos.forEach((time) => {
+                        if (time.clube_id) {
+                            const clube = obterNomeClube(time.clube_id);
+                            clubesLiga[clube] = (clubesLiga[clube] || 0) + 1;
+                        }
+                    });
+
+                    const clubePredominante =
+                        Object.keys(clubesLiga).length > 0
+                            ? Object.entries(clubesLiga).sort(
+                                  (a, b) => b[1] - a[1],
+                              )[0]
+                            : null;
+
+                    const temposCadastro = timesValidos
+                        .map((time) => {
+                            const data =
+                                time.cadastrado_em ||
+                                time.created_at ||
+                                time.data_criacao;
+                            return data ? new Date(data) : null;
+                        })
+                        .filter((data) => data !== null);
+
+                    let tempoMedioLiga = "N/D";
+                    if (temposCadastro.length > 0) {
+                        const agora = new Date();
+                        const somaTempos = temposCadastro.reduce(
+                            (soma, data) => {
+                                return soma + (agora - data);
+                            },
+                            0,
+                        );
+                        const mediaMs = somaTempos / temposCadastro.length;
+                        const mediaDias = Math.floor(
+                            mediaMs / (1000 * 60 * 60 * 24),
+                        );
+                        tempoMedioLiga = `${mediaDias}d`;
+                    }
+
+                    const clubeElement = document.getElementById(
+                        `clube-predominante-${ligaId}`,
+                    );
+                    if (clubeElement && clubePredominante) {
+                        clubeElement.querySelector(".meta-value").textContent =
+                            `${clubePredominante[0]} (${clubePredominante[1]})`;
+                    }
+
+                    const tempoElement = document.getElementById(
+                        `tempo-liga-${ligaId}`,
+                    );
+                    if (tempoElement) {
+                        tempoElement.querySelector(".meta-value").textContent =
+                            tempoMedioLiga;
+                    }
+                }
+            }
+
+            // === FILTRO DE BUSCA ===
+            window.filtrarLigas = function () {
+                const searchTerm = document
+                    .getElementById("searchInput")
+                    .value.toLowerCase()
+                    .trim();
+                const ligaCards = document.querySelectorAll(".liga-card");
+
+                ligaCards.forEach((card) => {
+                    const nomeLiga = card
+                        .querySelector("h3")
+                        .textContent.toLowerCase();
+                    const idLiga = card
+                        .getAttribute("data-liga-id")
+                        .toLowerCase();
+                    const timesCount = card.getAttribute("data-participantes");
+                    const clubeTop =
+                        card
+                            .querySelector(
+                                '[id^="clube-predominante-"] .meta-value',
+                            )
+                            ?.textContent.toLowerCase() || "";
+
+                    const isVisible =
+                        nomeLiga.includes(searchTerm) ||
+                        idLiga.includes(searchTerm) ||
+                        timesCount.includes(searchTerm) ||
+                        clubeTop.includes(searchTerm);
+
+                    card.style.display = isVisible ? "block" : "none";
+                });
+            };
+
+            // === Funções auxiliares para gerenciar estados da UI ===
+            function mostrarEstado(estado) {
+                const container = document.getElementById("ligasContainer");
+                const errorContainer =
+                    document.getElementById("errorContainer");
+                const emptyState = document.getElementById("emptyState");
+
+                container.style.display = "none";
+                errorContainer.style.display = "none";
+                emptyState.style.display = "none";
+
+                switch (estado) {
+                    case "loading":
+                        container.innerHTML = `
+                            <div class="loading-container">
+                                <div class="loading-spinner-pro"></div>
+                                <div class="loading-text">Carregando suas ligas</div>
+                                <div class="loading-subtitle">
+                                    Aguarde enquanto sincronizamos os dados<br>
+                                    do Super Cartola Manager...
+                                </div>
+                            </div>
+                        `;
+                        container.style.display = "block";
+                        break;
+                    case "empty":
+                        emptyState.style.display = "block";
+                        break;
+                    case "error":
+                        errorContainer.style.display = "block";
+                        break;
+                    case "loaded":
+                        container.style.display = "block";
+                        break;
+                }
+            }
+
+            // === VERIFICAR AUTENTICAÇÃO ===
+            async function verificarAutenticacao() {
+                try {
+                    console.log("[DASHBOARD] Verificando autenticação...");
+                    const response = await fetch("/api/admin/auth/session", {
+                        credentials: "include",
+                    });
+
+                    console.log(
+                        "[DASHBOARD] Response status:",
+                        response.status,
+                    );
+
+                    if (!response.ok) {
+                        console.log(
+                            "[DASHBOARD] Não autenticado, redirecionando para login",
+                        );
+                        window.location.href = "/";
+                        return false;
+                    }
+
+                    const data = await response.json();
+                    console.log("[DASHBOARD] Auth data:", data);
+
+                    if (!data.authenticated) {
+                        console.log("[DASHBOARD] Usuário não autenticado");
+                        window.location.href = "/";
+                        return false;
+                    }
+
+                    const userNameElement = document.getElementById("userName");
+                    if (userNameElement && data.admin) {
+                        userNameElement.textContent =
+                            data.admin.nome || "Admin";
+                    }
+
+                    console.log("[DASHBOARD] ✅ Autenticação confirmada");
+                    return true;
+                } catch (error) {
+                    console.error(
+                        "[DASHBOARD] Erro ao verificar autenticação:",
+                        error,
+                    );
+                    window.location.href = "/";
+                    return false;
+                }
+            }
+
+            // === Inicializar quando a página carregar ===
+            document.addEventListener("DOMContentLoaded", async () => {
+                console.log("[DASHBOARD] 🚀 Inicializando dashboard...");
+
+                const autenticado = await verificarAutenticacao();
+
+                if (autenticado) {
+                    console.log(
+                        "[DASHBOARD] Usuário autenticado, carregando ligas...",
+                    );
+                    await loadLayout();
+                    await carregarDadosLigas();
+                } else {
+                    console.log("[DASHBOARD] Autenticação falhou");
+                }
+            });
+
+            // Função global para retry
+            window.carregarDadosLigas = carregarDadosLigas;
+        </script>
+    </body>
+</html>
