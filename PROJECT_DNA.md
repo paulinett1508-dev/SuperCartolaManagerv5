@@ -1,6 +1,6 @@
 # 🧬 DNA DO PROJETO: super-cartola-manager
 
-> Documentação gerada automaticamente em 05/12/2025, 19:16:26
+> Documentação gerada automaticamente em 07/12/2025, 11:34:39
 > Este documento deve ser consultado ANTES de qualquer alteração no código
 
 ---
@@ -39,9 +39,9 @@
 - ✅ Times
 - ✅ Usuários
 - ✅ Relatórios
-- ✅ Estatísticas
-- ✅ Configurações
 - ✅ Financeiro
+- ✅ Configurações
+- ✅ Estatísticas
 - ✅ Notificações
 - ✅ Gols
 
@@ -51,7 +51,7 @@
 
 ### 👤 MODO APP (Participante)
 
-**Descrição:** Aplicativo do usuário final com 41 módulos. Funcionalidades: Rodadas, Ligas, Times, Usuários, Relatórios.
+**Descrição:** Aplicativo do usuário final com 44 módulos. Funcionalidades: Rodadas, Ligas, Times, Usuários, Relatórios.
 
 **Path base:** `public/participante`
 
@@ -61,9 +61,9 @@
 - Times
 - Usuários
 - Relatórios
-- Estatísticas
-- Configurações
 - Financeiro
+- Configurações
+- Estatísticas
 - Notificações
 - Gols
 - Mata-Mata
@@ -76,6 +76,8 @@
 | Módulo | Arquivo | Tipo |
 |--------|---------|------|
 | Status | `controllers/participanteStatusController.js` | controller |
+| Corrigir participante 1926323 | `corrigir-participante-1926323.js` | arquivo |
+| Debug participante 1926323 | `debug-participante-1926323.js` | arquivo |
 | Gerir senhas participantes | `public/css/gerir-senhas-participantes.css` | estilo |
 | S | `public/css/modules/participantes.css` | módulo JS |
 | Fluxo financeiro participante | `public/js/fluxo-financeiro/fluxo-financeiro-participante.js` | arquivo |
@@ -88,8 +90,6 @@
 | Melhor mes | `public/participante/fronts/melhor-mes.html` | template |
 | Pontos corridos | `public/participante/fronts/pontos-corridos.html` | template |
 | Ranking | `public/participante/fronts/ranking.html` | template |
-| Rodadas | `public/participante/fronts/rodadas.html` | template |
-| Top10 | `public/participante/fronts/top10.html` | template |
 
 ### 📊 Diagrama de Modos
 
@@ -169,14 +169,14 @@ npm run dev
 ### Estatísticas
 | Métrica | Valor |
 |---------|-------|
-| Total de arquivos | 280 |
-| Tamanho total | 5958 KB |
+| Total de arquivos | 284 |
+| Tamanho total | 6104 KB |
 | Módulos Frontend | 91 |
 | Módulos Backend | 43 |
 | Rotas API | 129 |
 
 ### Distribuição por Tipo
-| .js | 176 |
+| .js | 180 |
 | .html | 43 |
 | .css | 22 |
 | .png | 17 |
@@ -240,6 +240,8 @@ npm run dev
 
 **public/js/artilheiro-campeao/artilheiro-campeao-scheduler.js** chama:
   - `/api/cartola/mercado/status`
+  - `/api/artilheiro-campeao/${ligaId}/coletar/${rodadaFinalizada}`
+  - `/api/artilheiro-campeao/${ligaId}/coletar/${rodadaAlvo}`
   - `/api/artilheiro-campeao/${ligaId}/ranking?inicio=1&fim=${rodadaFim}`
 
 **public/js/artilheiro-campeao.js** chama:
@@ -466,7 +468,7 @@ npm run dev
 **Biblioteca:** `material-symbols-outlined`
 
 **Ícones utilizados:**
-`swords`, `expand_more`, `error`, `sports_soccer`, `emoji_events`, `share`, `menu`, `undefined`, `diff`
+`swords`, `expand_more`, `error`, `sports_soccer`, `emoji_events`, `share`, `analytics`, `thumb_down`, `bar_chart`, `close`, `construction`, `menu`, `undefined`, `diff`
 
 ---
 
@@ -502,14 +504,14 @@ npm run dev
 ## ⚠️ PONTOS CRÍTICOS
 
 ### Arquivos Mais Importados (NÃO ALTERAR SEM CUIDADO)
-- `mongoose` (usado por 42 arquivos)
+- `mongoose` (usado por 46 arquivos)
 - `express` (usado por 23 arquivos)
+- `dotenv` (usado por 13 arquivos)
 - `fs` (usado por 10 arquivos)
-- `dotenv` (usado por 10 arquivos)
 - `node-fetch` (usado por 10 arquivos)
+- `../models/Liga.js` (usado por 10 arquivos)
 - `../models/Rodada.js` (usado por 10 arquivos)
 - `path` (usado por 9 arquivos)
-- `../models/Liga.js` (usado por 9 arquivos)
 - `../models/Time.js` (usado por 6 arquivos)
 - `url` (usado por 5 arquivos)
 
@@ -521,6 +523,7 @@ npm run dev
 - `window.RodadaDetector (public/js/artilheiro-campeao/artilheiro-campeao-detector.js)`
 - `window.ArtilheiroScheduler (public/js/artilheiro-campeao/artilheiro-campeao-scheduler.js)`
 - `window._dadosArtilheiros (public/js/artilheiro-campeao/artilheiro-campeao-ui.js)`
+- `window.ArtilheiroUI (public/js/artilheiro-campeao/artilheiro-campeao-ui.js)`
 - `window.calcularSaldoGols (public/js/artilheiro-campeao/artilheiro-campeao-utils.js)`
 - `window.formatarSaldoGols (public/js/artilheiro-campeao/artilheiro-campeao-utils.js)`
 - `window.ArtilheiroUtils (public/js/artilheiro-campeao/artilheiro-campeao-utils.js)`
@@ -531,7 +534,6 @@ npm run dev
 - `window.cacheManager (public/js/core/cache-manager.js)`
 - `window.carregarRankingGeral (public/js/detalhe-liga-orquestrador.js)`
 - `window.carregarRodadas (public/js/detalhe-liga-orquestrador.js)`
-- `window.inicializarArtilheiroCampeao (public/js/detalhe-liga-orquestrador.js)`
 
 ---
 

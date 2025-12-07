@@ -1,137 +1,183 @@
 /**
- * Middleware de Autenticação para Participantes
- * Protege APENAS as páginas específicas de participantes
+ * Middleware de Autenticação - Super Cartola Manager
+ * Protege rotas Admin (Google OAuth) e Participante (senha time)
  */
 
 /**
- * Verifica se o participante está autenticado via sessão
- */
-export function verificarAutenticacaoParticipante(req, res, next) {
-  // Permitir rotas de API sem autenticação de participante
-  if (req.url.startsWith('/api/')) {
-    return next();
-  }
-
-  // Verificar se há sessão de participante
-  if (req.session && req.session.participante) {
-    return next();
-  }
-
-  // Se não está autenticado, redirecionar para login de participante
-  res.redirect('/participante-login.html');
-}
-
-/**
- * Lista de rotas que NÃO precisam de autenticação (públicas e admin)
+ * Lista de rotas/recursos PÚBLICOS (sem autenticação)
  */
 export const ROTAS_PUBLICAS = [
-  '/participante-login.html',
-  '/favicon.ico',
-  '/favicon.png',
-  '/escudos/',
-  '/css/',
-  '/js/',
-  '/img/',
+  "/favicon.ico",
+  "/favicon.png",
+  "/escudos/",
+  "/css/",
+  "/js/",
+  "/img/",
+  "/api/admin/auth/",
+  "/api/participante/auth/",
+  "/api/cartola/",
+  "/api/configuracao/",
+  "/api/version",
 ];
 
 /**
- * Lista de rotas ADMIN que NÃO devem ter bloqueio
+ * Lista de páginas HTML ADMIN (requerem sessão admin)
  */
-export const ROTAS_ADMIN = [
-  '/dashboard.html',
-  '/detalhe-liga.html',
-  '/gerenciar.html',
-  '/admin.html',
-  '/criar-liga.html',
-  '/editar-liga.html',
-  '/ferramentas.html',
-  '/ferramentas-rodadas.html',
-  '/gerir-senhas-participantes.html',
-  '/admin-consolidacao.html',
-  '/gerenciar-modulos.html',
-  '/index.html',
-  '/layout.html',
+export const PAGINAS_ADMIN = [
+  "/dashboard.html",
+  "/detalhe-liga.html",
+  "/gerenciar.html",
+  "/admin.html",
+  "/criar-liga.html",
+  "/editar-liga.html",
+  "/ferramentas.html",
+  "/ferramentas-rodadas.html",
+  "/gerir-senhas-participantes.html",
+  "/admin-consolidacao.html",
+  "/gerenciar-modulos.html",
+  "/layout.html",
 ];
 
 /**
- * Lista de rotas que PRECISAM de autenticação de participante
+ * Lista de páginas/rotas PARTICIPANTE (requerem sessão participante)
  */
-export const ROTAS_PARTICIPANTE = [
-  '/participante-dashboard.html',
-  '/participante-login.html',
-  '/participante/',
+export const PAGINAS_PARTICIPANTE = [
+  "/participante/",
+  "/participante-dashboard.html",
 ];
 
 /**
- * Verifica se a rota é pública
+ * Verifica se a URL é um recurso público
  */
 export function isRotaPublica(url) {
-  return ROTAS_PUBLICAS.some(rota => url.startsWith(rota));
+  return ROTAS_PUBLICAS.some((rota) => url.startsWith(rota));
 }
 
 /**
- * Verifica se a rota é admin
+ * Verifica se a URL é uma página admin
  */
-export function isRotaAdmin(url) {
-  return ROTAS_ADMIN.some(rota => url.includes(rota));
+export function isPaginaAdmin(url) {
+  return PAGINAS_ADMIN.some((pagina) => url.includes(pagina));
 }
 
 /**
- * Verifica se a rota é de participante
+ * Verifica se a URL é uma página de participante
  */
-export function isRotaParticipante(url) {
-  return ROTAS_PARTICIPANTE.some(rota => url.includes(rota));
-}
-
-
-/**
- * Middleware que BLOQUEIA participantes de acessar rotas admin
- */
-export function bloquearParticipanteDeAdmin(req, res, next) {
-  const isRotaAdmin = ROTAS_ADMIN.some(rota => req.path.includes(rota));
-  
-  if (isRotaAdmin && req.session?.participante) {
-    console.log('[AUTH] 🚫 Participante tentou acessar rota admin:', req.path);
-    return res.redirect('/participante-login.html');
-  }
-  
-  next();
+export function isPaginaParticipante(url) {
+  return PAGINAS_PARTICIPANTE.some((pagina) => url.includes(pagina));
 }
 
 /**
- * Middleware que BLOQUEIA acesso direto a páginas HTML admin
- * Deve ser aplicado ANTES de servir arquivos estáticos
+ * Middleware principal de proteção de rotas
+ * Aplica ANTES de servir arquivos estáticos
  */
-export function bloquearPaginasAdminParaParticipantes(req, res, next) {
-  // Verificar se é uma requisição HTML
-  const isHtmlRequest = req.path.endsWith('.html') || (!req.path.includes('.') && req.path !== '/');
-  
-  if (!isHtmlRequest) {
+export function protegerRotas(req, res, next) {
+  const url = req.path;
+
+  // 1. Recursos públicos - liberar
+  if (isRotaPublica(url)) {
     return next();
   }
-  
-  // Se é participante autenticado e está tentando acessar página admin
-  if (req.session?.participante) {
-    const isRotaAdmin = ROTAS_ADMIN.some(rota => req.path.includes(rota));
-    const isRotaParticipante = ROTAS_PARTICIPANTE.some(rota => req.path.includes(rota)) || req.path.includes('/participante');
-    
-    // Se está tentando acessar admin, bloquear
-    if (isRotaAdmin) {
-      console.log('[AUTH] 🚫 Participante bloqueado de acessar:', req.path);
-      return res.redirect('/participante/');
+
+  // 2. Landing page (index.html ou /) - liberar
+  if (url === "/" || url === "/index.html") {
+    // Se admin logado, redirecionar para dashboard
+    if (req.session?.admin) {
+      return res.redirect("/dashboard.html");
     }
-    
-    // Se está na raiz, redirecionar para dashboard participante
-    if (req.path === '/' || req.path === '/index.html') {
-      console.log('[AUTH] ↪️ Participante redirecionado de raiz para dashboard');
-      return res.redirect('/participante/');
+    // Se participante logado, redirecionar para área participante
+    if (req.session?.participante) {
+      return res.redirect("/participante/");
     }
-    
-    // Permitir rotas de participante
-    if (isRotaParticipante) {
-      return next();
+    return next();
+  }
+
+  // 3. Login participante - liberar
+  if (url === "/participante-login.html") {
+    // Se já logado como participante, redirecionar
+    if (req.session?.participante) {
+      return res.redirect("/participante/");
+    }
+    return next();
+  }
+
+  // 4. Páginas ADMIN - verificar sessão admin
+  if (isPaginaAdmin(url)) {
+    if (!req.session?.admin) {
+      console.log(`[AUTH] 🚫 Acesso admin negado (não autenticado): ${url}`);
+      return res.redirect("/?error=admin_required");
+    }
+
+    // Bloquear participante de acessar admin
+    if (req.session?.participante && !req.session?.admin) {
+      console.log(`[AUTH] 🚫 Participante bloqueado de admin: ${url}`);
+      return res.redirect("/participante/");
+    }
+
+    return next();
+  }
+
+  // 5. Páginas PARTICIPANTE - verificar sessão participante
+  if (isPaginaParticipante(url)) {
+    if (!req.session?.participante) {
+      console.log(`[AUTH] 🚫 Acesso participante negado: ${url}`);
+      return res.redirect("/participante-login.html");
+    }
+    return next();
+  }
+
+  // 6. Demais rotas - liberar (APIs são protegidas individualmente)
+  next();
+}
+
+/**
+ * Middleware para proteger rotas de API admin
+ * Usar em rotas específicas que só admin pode acessar
+ */
+export function verificarAdmin(req, res, next) {
+  if (!req.session?.admin) {
+    return res.status(401).json({
+      error: "Não autorizado",
+      message: "Autenticação de administrador necessária",
+      needsLogin: true,
+    });
+  }
+  next();
+}
+
+/**
+ * Middleware para proteger rotas de API participante
+ */
+export function verificarParticipante(req, res, next) {
+  if (!req.session?.participante) {
+    return res.status(401).json({
+      error: "Sessão expirada",
+      message: "Faça login novamente",
+      needsLogin: true,
+    });
+  }
+  next();
+}
+
+/**
+ * Middleware legado - bloquear participante de admin
+ * @deprecated Use protegerRotas no lugar
+ */
+export function bloquearParticipanteDeAdmin(req, res, next) {
+  if (req.session?.participante && !req.session?.admin) {
+    const isAdmin = PAGINAS_ADMIN.some((rota) => req.path.includes(rota));
+    if (isAdmin) {
+      console.log("[AUTH] 🚫 Participante bloqueado (legado):", req.path);
+      return res.redirect("/participante/");
     }
   }
-  
   next();
+}
+
+/**
+ * Middleware legado - manter compatibilidade
+ * @deprecated Use protegerRotas no lugar
+ */
+export function bloquearPaginasAdminParaParticipantes(req, res, next) {
+  return protegerRotas(req, res, next);
 }
