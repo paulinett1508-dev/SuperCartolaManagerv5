@@ -557,6 +557,182 @@ export function limparCacheUI() {
   console.log("[RODADAS-UI] Cache de elementos limpo");
 }
 
+// ==============================
+// RELATÓRIO MITOS/MICOS
+// ==============================
+
+export function exibirRelatorioMitosMicos(dadosRelatorio) {
+  const relatorioSection = getElement("relatorioMitosMicos");
+  const contentSection = getElement("rodadaContentSection");
+  const cardsContainer = getElement("rodadasCards");
+
+  if (!relatorioSection) return;
+
+  // Esconder outras seções
+  if (contentSection) contentSection.style.display = "none";
+  if (cardsContainer?.parentElement) {
+    cardsContainer.parentElement.style.display = "none";
+  }
+
+  // Mostrar relatório
+  relatorioSection.style.display = "block";
+
+  // Renderizar estatísticas
+  renderizarEstatisticasResumo(dadosRelatorio);
+
+  // Renderizar conteúdo
+  renderizarConteudoRelatorio(dadosRelatorio, "todos");
+}
+
+function renderizarEstatisticasResumo(dados) {
+  const container = getElement("estatisticasResumo");
+  if (!container) return;
+
+  const { mitos, micos, estatisticas } = dados;
+
+  // Calcular estatísticas
+  const mitoMaisVezes = calcularMaisVezes(mitos);
+  const micoMaisVezes = calcularMaisVezes(micos);
+
+  const html = `
+    <div class="stat-card">
+      <div class="stat-card-title">Total de Rodadas</div>
+      <div class="stat-card-value">${estatisticas.totalRodadas}</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-card-title">🏆 Maior MITO</div>
+      <div class="stat-card-value">${mitoMaisVezes.count}x</div>
+      <div class="stat-card-subtitle">${mitoMaisVezes.nome}</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-card-title">💩 Maior MICO</div>
+      <div class="stat-card-value">${micoMaisVezes.count}x</div>
+      <div class="stat-card-subtitle">${micoMaisVezes.nome}</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-card-title">Média Pontos MITO</div>
+      <div class="stat-card-value">${estatisticas.mediaMito.toFixed(1)}</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-card-title">Média Pontos MICO</div>
+      <div class="stat-card-value">${estatisticas.mediaMico.toFixed(1)}</div>
+    </div>
+  `;
+
+  container.innerHTML = html;
+}
+
+function calcularMaisVezes(lista) {
+  const contagem = {};
+  
+  lista.forEach(item => {
+    const nome = item.nome_cartola || item.nome_time || "N/D";
+    contagem[nome] = (contagem[nome] || 0) + 1;
+  });
+
+  let maxNome = "N/D";
+  let maxCount = 0;
+
+  Object.entries(contagem).forEach(([nome, count]) => {
+    if (count > maxCount) {
+      maxCount = count;
+      maxNome = nome;
+    }
+  });
+
+  return { nome: maxNome, count: maxCount };
+}
+
+function renderizarConteudoRelatorio(dados, filtro) {
+  const container = getElement("relatorioContent");
+  if (!container) return;
+
+  const { mitos, micos } = dados;
+
+  // Agrupar por rodada
+  const rodadas = {};
+
+  mitos.forEach(item => {
+    if (!rodadas[item.rodada]) {
+      rodadas[item.rodada] = { mito: null, mico: null };
+    }
+    rodadas[item.rodada].mito = item;
+  });
+
+  micos.forEach(item => {
+    if (!rodadas[item.rodada]) {
+      rodadas[item.rodada] = { mito: null, mico: null };
+    }
+    rodadas[item.rodada].mico = item;
+  });
+
+  // Ordenar por rodada
+  const rodadasOrdenadas = Object.keys(rodadas)
+    .map(Number)
+    .sort((a, b) => a - b);
+
+  let html = "";
+
+  rodadasOrdenadas.forEach(numRodada => {
+    const { mito, mico } = rodadas[numRodada];
+
+    // Aplicar filtro
+    if (filtro === "mitos" && !mito) return;
+    if (filtro === "micos" && !mico) return;
+
+    html += `
+      <div class="rodada-card">
+        <div class="rodada-card-header">Rodada ${numRodada}</div>
+    `;
+
+    if (mito && filtro !== "micos") {
+      html += `
+        <div class="resultado-row mito">
+          <div class="resultado-badge mito">🏆 MITO</div>
+          <div class="resultado-info">
+            <div>${mito.nome_cartola || "N/D"}</div>
+            <div style="font-size: 9px; color: var(--text-muted);">${mito.nome_time || "N/D"}</div>
+          </div>
+          <div class="resultado-pontos">${parseFloat(mito.pontos || 0).toFixed(2)}</div>
+        </div>
+      `;
+    }
+
+    if (mico && filtro !== "mitos") {
+      html += `
+        <div class="resultado-row mico">
+          <div class="resultado-badge mico">💩 MICO</div>
+          <div class="resultado-info">
+            <div>${mico.nome_cartola || "N/D"}</div>
+            <div style="font-size: 9px; color: var(--text-muted);">${mico.nome_time || "N/D"}</div>
+          </div>
+          <div class="resultado-pontos">${parseFloat(mico.pontos || 0).toFixed(2)}</div>
+        </div>
+      `;
+    }
+
+    html += `</div>`;
+  });
+
+  container.innerHTML = html;
+}
+
+export function fecharRelatorioMitosMicos() {
+  const relatorioSection = getElement("relatorioMitosMicos");
+  const contentSection = getElement("rodadaContentSection");
+  const cardsContainer = getElement("rodadasCards");
+
+  if (relatorioSection) relatorioSection.style.display = "none";
+  if (contentSection) contentSection.style.display = "block";
+  if (cardsContainer?.parentElement) {
+    cardsContainer.parentElement.style.display = "block";
+  }
+}
+
+export function aplicarFiltroRelatorio(filtro, dados) {
+  renderizarConteudoRelatorio(dados, filtro);
+}
+
 console.log(
   "[RODADAS-UI] ✅ Módulo v2.3 carregado (tabelas contextuais por rodada)",
 );
