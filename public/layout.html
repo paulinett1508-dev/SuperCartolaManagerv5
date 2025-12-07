@@ -284,7 +284,7 @@
             }
 
             function retryLoadLigas() {
-                carregarLigasSimples();
+                carregarLigasLayout();
             }
 
             // === GERENCIAMENTO DA LOGO ===
@@ -325,7 +325,7 @@
                     setTimeout(() => {
                         window.navigationSystem = new NavigationSystem();
                         // Carregar ligas extra após 500ms
-                        setTimeout(carregarLigasSimples, 500);
+                        setTimeout(carregarLigasLayout, 500);
                     }, 100);
                 });
             } else {
@@ -333,14 +333,14 @@
                 setTimeout(() => {
                     window.navigationSystem = new NavigationSystem();
                     // Carregar ligas extra após 500ms
-                    setTimeout(carregarLigasSimples, 500);
+                    setTimeout(carregarLigasLayout, 500);
                 }, 100);
             }
 
             // Recarregar ao voltar para página
             window.addEventListener("pageshow", (event) => {
                 if (event.persisted) {
-                    setTimeout(carregarLigasSimples, 200);
+                    setTimeout(carregarLigasLayout, 200);
                 }
             });
         </script>
