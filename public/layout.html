@@ -75,8 +75,8 @@
         </header>
 
         <script>
-            // === CARREGAMENTO DIRETO DAS LIGAS ===
-            async function carregarLigasSimples() {
+            // === CARREGAMENTO DIRETO DAS LIGAS (renomeado para evitar conflito) ===
+            async function carregarLigasLayout() {
                 const ligasList = document.getElementById("ligasList");
                 if (!ligasList) return;
 
@@ -124,7 +124,7 @@
                     ligasList.innerHTML = `
                     <div class="ligas-empty">
                         ⚠️ Erro ao carregar<br>
-                        <button onclick="carregarLigasSimples()" style="
+                        <button onclick="carregarLigasLayout()" style="
                             margin-top: 8px; 
                             padding: 6px 10px; 
                             background: #ff4500; 
@@ -169,7 +169,7 @@
 
                 // Usar função simplificada
                 async loadLigas() {
-                    await carregarLigasSimples();
+                    await carregarLigasLayout();
                 }
 
                 // Atualizar estatísticas do header
