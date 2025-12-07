@@ -63,21 +63,10 @@ const AppVersion = {
 
     // ✅ Atualizar badge no header
     atualizarBadgeHeader(version) {
-        let badge = document.getElementById("app-version-badge");
-
-        if (!badge) {
-            const header = document.querySelector(
-                ".app-header, header, .navbar",
-            );
-            if (!header) return;
-
-            badge = document.createElement("span");
-            badge.id = "app-version-badge";
-            badge.className = "app-version-badge";
-            header.appendChild(badge);
+        const badge = document.getElementById("app-version-badge");
+        if (badge) {
+            badge.textContent = `v${version}`;
         }
-
-        badge.textContent = `v${version}`;
     },
 
     // ✅ Modal de atualização obrigatória

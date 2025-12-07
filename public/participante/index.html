@@ -70,6 +70,11 @@
         <!-- ================================================== -->
         <link rel="stylesheet" href="css/participante.css" />
 
+        <!-- ================================================== -->
+        <!-- 📦 CSS VERSIONAMENTO -->
+        <!-- ================================================== -->
+        <link rel="stylesheet" href="css/app/app-version.css" />
+
         <style>
             /* Material Symbols config */
             .material-symbols-outlined {
@@ -164,6 +169,12 @@
 
                     <!-- Ações Minimalistas -->
                     <div class="header-actions-modern">
+                        <!-- 📦 Badge de versão (inserido via JS) -->
+                        <span
+                            id="app-version-badge"
+                            class="app-version-badge"
+                        ></span>
+
                         <!-- Status Online/Offline -->
                         <div
                             class="status-wrapper"
@@ -214,68 +225,86 @@
                         </select>
 
                         <!-- Logout -->
-                        <button class="btn-logout" onclick="logout()">
-                            🚪 Sair
+                        <button class="btn-logout" id="btnLogout">
+                            <span
+                                class="material-symbols-outlined"
+                                style="font-size: 16px; margin-right: 4px"
+                                >logout</span
+                            >
+                            Sair
                         </button>
                     </div>
                 </div>
             </header>
 
             <style>
-                /* HEADER MOBILE-FIRST - 360px-414px OTIMIZADO */
-                .participante-header {
+                /* HEADER MODERNO - MOBILE-FIRST */
+                .participante-header-modern {
+                    position: sticky;
+                    top: 0;
+                    z-index: 100;
                     background: linear-gradient(
                         135deg,
-                        #ff6b35 0%,
-                        #ff5722 100%
+                        rgba(255, 92, 0, 0.95) 0%,
+                        rgba(255, 69, 0, 0.9) 100%
                     );
-                    box-shadow: 0 2px 12px rgba(255, 107, 53, 0.4);
-                    border-bottom: 2px solid rgba(255, 140, 66, 0.6);
+                    backdrop-filter: blur(10px);
+                    -webkit-backdrop-filter: blur(10px);
+                    box-shadow: 0 2px 20px rgba(0, 0, 0, 0.3);
                 }
 
-                .header-main {
+                .header-main-modern {
                     display: flex;
                     align-items: center;
                     justify-content: space-between;
                     padding: 10px 12px;
-                    gap: 10px;
-                    min-height: 56px;
+                    gap: 12px;
                 }
 
-                /* ESCUDOS MINI - COMPACTOS */
-                .escudos-mini {
+                /* GRUPO INFO (Escudos + Textos) */
+                .header-info-group {
                     display: flex;
-                    gap: 6px;
+                    align-items: center;
+                    gap: 10px;
+                    flex: 1;
+                    min-width: 0;
+                }
+
+                .escudos-mini-modern {
+                    position: relative;
                     flex-shrink: 0;
                 }
 
-                .escudo-mini {
-                    width: 36px;
-                    height: 36px;
-                    border-radius: 50%;
-                    border: 2px solid white;
-                    object-fit: cover;
-                    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.3);
-                    transition: transform 0.2s;
+                .escudo-mini-modern {
+                    width: 38px;
+                    height: 38px;
+                    border-radius: 8px;
+                    border: 2px solid rgba(255, 255, 255, 0.9);
+                    background: white;
+                    object-fit: contain;
+                    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
                 }
 
-                .escudo-mini:active {
-                    transform: scale(0.92);
+                .escudo-coracao-modern {
+                    position: absolute;
+                    bottom: -4px;
+                    right: -8px;
+                    width: 20px;
+                    height: 20px;
+                    border-radius: 4px;
+                    border: 1.5px solid white;
+                    background: white;
+                    object-fit: contain;
+                    box-shadow: 0 1px 4px rgba(0, 0, 0, 0.3);
                 }
 
-                .escudo-coracao-badge {
-                    opacity: 0.85;
-                    filter: brightness(1.1);
-                }
-
-                /* INFO PARTICIPANTE */
-                .info-participante {
+                .info-participante-modern {
                     flex: 1;
                     min-width: 0;
                     padding: 0 8px;
                 }
 
-                .info-participante h1 {
+                .info-participante-modern h1 {
                     margin: 0;
                     font-size: 15px;
                     font-weight: 700;
@@ -286,7 +315,7 @@
                     white-space: nowrap;
                 }
 
-                .info-participante p {
+                .info-participante-modern p {
                     margin: 2px 0 0 0;
                     font-size: 11px;
                     color: rgba(255, 255, 255, 0.85);
@@ -296,13 +325,14 @@
                 }
 
                 /* AÇÕES DO HEADER */
-                .header-actions {
+                .header-actions-modern {
                     display: flex;
+                    align-items: center;
                     gap: 6px;
                     flex-shrink: 0;
                 }
 
-                .btn-icon {
+                .btn-icon-modern {
                     width: 38px;
                     height: 38px;
                     border-radius: 8px;
@@ -318,14 +348,9 @@
                     -webkit-tap-highlight-color: transparent;
                 }
 
-                .btn-icon:active {
+                .btn-icon-modern:active {
                     transform: scale(0.9);
                     background: rgba(255, 255, 255, 0.2);
-                }
-
-                .btn-home {
-                    background: rgba(59, 130, 246, 0.2);
-                    border-color: rgba(59, 130, 246, 0.5);
                 }
 
                 .btn-menu {
@@ -376,6 +401,8 @@
                     white-space: nowrap;
                     transition: all 0.2s;
                     -webkit-tap-highlight-color: transparent;
+                    display: flex;
+                    align-items: center;
                 }
 
                 .btn-logout:active {
@@ -385,25 +412,25 @@
 
                 /* RESPONSIVO - TELAS MENORES (360px) */
                 @media (max-width: 380px) {
-                    .header-main {
+                    .header-main-modern {
                         padding: 8px 10px;
                         gap: 8px;
                     }
 
-                    .escudo-mini {
+                    .escudo-mini-modern {
                         width: 32px;
                         height: 32px;
                     }
 
-                    .info-participante h1 {
+                    .info-participante-modern h1 {
                         font-size: 14px;
                     }
 
-                    .info-participante p {
+                    .info-participante-modern p {
                         font-size: 10px;
                     }
 
-                    .btn-icon {
+                    .btn-icon-modern {
                         width: 36px;
                         height: 36px;
                         font-size: 16px;
@@ -416,24 +443,24 @@
 
                 /* TABLETS E MAIORES */
                 @media (min-width: 768px) {
-                    .header-main {
+                    .header-main-modern {
                         padding: 12px 20px;
                     }
 
-                    .escudo-mini {
+                    .escudo-mini-modern {
                         width: 42px;
                         height: 42px;
                     }
 
-                    .info-participante h1 {
+                    .info-participante-modern h1 {
                         font-size: 18px;
                     }
 
-                    .info-participante p {
+                    .info-participante-modern p {
                         font-size: 13px;
                     }
 
-                    .btn-icon {
+                    .btn-icon-modern {
                         width: 44px;
                         height: 44px;
                     }
@@ -480,6 +507,11 @@
         <script src="js/participante-auth.js"></script>
         <script src="js/participante-navigation.js"></script>
         <script src="js/participante-status.js"></script>
+
+        <!-- ================================================== -->
+        <!-- 📦 VERSIONAMENTO (deve ser o último) -->
+        <!-- ================================================== -->
+        <script src="js/app/app-version.js"></script>
 
         <!-- BOTTOM NAVIGATION FIXO -->
         <nav class="bottom-nav-modern">

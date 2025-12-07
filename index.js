@@ -17,6 +17,9 @@ import passport, { setupReplitAuthRoutes } from "./config/replit-auth.js";
 // 🛡️ SEGURANÇA
 import { setupSecurity, authRateLimiter } from "./middleware/security.js";
 
+// 📦 VERSIONAMENTO AUTO
+import { APP_VERSION } from "./config/appVersion.js";
+
 // Importar package.json para versão
 const pkg = JSON.parse(readFileSync("./package.json", "utf8"));
 
@@ -149,6 +152,13 @@ console.log("[DEBUG] Rota /api/admin/auth registrada");
 app.use("/api/participante/auth/login", authRateLimiter);
 app.use("/api/participante/auth", participanteAuthRoutes);
 
+// ====================================================================
+// 📦 ROTA DE VERSÃO DO APP (antes do protegerRotas)
+// ====================================================================
+app.get("/api/app/versao", (req, res) => {
+  res.json(APP_VERSION);
+});
+
 // 🛡️ MIDDLEWARE DE PROTEÇÃO DE ROTAS (antes de servir estáticos)
 app.use(protegerRotas);
 
@@ -223,6 +233,9 @@ if (process.env.NODE_ENV !== "test") {
       console.log(`🔐 Autenticação Admin: Replit Auth`);
       console.log(`🔐 Autenticação Participante: Senha do Time`);
       console.log(`🛡️ Segurança: Headers + Rate Limiting ATIVADOS`);
+      console.log(
+        `📦 Versão App: ${APP_VERSION.version} (build ${APP_VERSION.build})`,
+      );
     });
   } catch (err) {
     console.error("❌ Erro ao conectar ao MongoDB:", err.message);
