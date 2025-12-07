@@ -7,7 +7,7 @@ class LayoutSystem {
 
     getCurrentPage() {
         const path = window.location.pathname;
-        const filename = path.split('/').pop() || 'dashboard.html';
+        const filename = path.split('/').pop() || 'painel.html';
         return filename.replace('.html', '');
     }
 
@@ -56,7 +56,7 @@ class LayoutSystem {
             <div class="sidebar-section">
                 <h3>Navegação</h3>
                 <ul class="sidebar-menu">
-                    <li><a href="dashboard.html" data-nav="dashboard"><span class="icon">📊</span>Dashboard</a></li>
+                    <li><a href="painel.html" data-nav="dashboard"><span class="icon">📊</span>Dashboard</a></li>
                     <li><a href="criar-liga.html" data-nav="criar-liga"><span class="icon">➕</span>Criar Liga</a></li>
                     <li><a href="buscar-times.html" data-nav="buscar-times"><span class="icon">🔍</span>Buscar Times</a></li>
                     <li><a href="admin.html" data-nav="admin"><span class="icon">🛠️</span>Administração</a></li>
@@ -130,7 +130,7 @@ class LayoutSystem {
         const breadcrumb = document.getElementById('breadcrumb');
         if (!breadcrumb) return;
 
-        let breadcrumbHtml = '<a href="dashboard.html">Dashboard</a>';
+        let breadcrumbHtml = '<a href="painel.html">Dashboard</a>';
 
         const pageMap = {
             'criar-liga': 'Criar Liga',
@@ -145,7 +145,7 @@ class LayoutSystem {
             breadcrumbHtml += ' <span class="separator">›</span> ';
 
             if (this.ligaId && ['detalhe-liga', 'editar-liga', 'admin', 'parciais'].includes(this.currentPage)) {
-                breadcrumbHtml += '<a href="dashboard.html">Ligas</a> <span class="separator">›</span> ';
+                breadcrumbHtml += '<a href="painel.html">Ligas</a> <span class="separator">›</span> ';
             }
 
             breadcrumbHtml += `<span class="current">${pageMap[this.currentPage] || this.currentPage}</span>`;
@@ -206,7 +206,7 @@ window.initLayout = async function() {
 
 // Auto-inicializar se não for o dashboard
 document.addEventListener('DOMContentLoaded', () => {
-    if (!window.location.pathname.includes('dashboard.html')) {
+    if (!window.location.pathname.includes('painel.html')) {
         window.initLayout();
     }
 

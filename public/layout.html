@@ -164,7 +164,7 @@
 
                 // Dashboard como home padrão
                 goToDashboard() {
-                    window.location.href = "dashboard.html";
+                    window.location.href = "painel.html";
                 }
 
                 // Usar função simplificada
@@ -200,10 +200,10 @@
 
                     const currentPage =
                         window.location.pathname.split("/").pop() ||
-                        "dashboard.html";
+                        "painel.html";
 
                     const titles = {
-                        "dashboard.html": {
+                        "painel.html": {
                             title: "📊 Dashboard",
                             subtitle: "Visão Geral do Sistema",
                         },
@@ -252,7 +252,7 @@
                 setActiveNavigation() {
                     const currentPage =
                         window.location.pathname.split("/").pop() ||
-                        "dashboard.html";
+                        "painel.html";
                     const menuLinks = document.querySelectorAll(
                         ".sidebar-menu a, .liga-item",
                     );
@@ -280,7 +280,7 @@
 
             // === FUNÇÕES GLOBAIS ===
             function goToDashboard() {
-                window.location.href = "dashboard.html";
+                window.location.href = "painel.html";
             }
 
             function retryLoadLigas() {

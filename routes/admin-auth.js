@@ -60,7 +60,7 @@ router.get(
       }
 
       console.log("[ADMIN-AUTH] ✅ Sessão admin criada:", req.user.email);
-      res.redirect("/dashboard.html");
+      res.redirect("/painel.html");
     });
   },
 );
@@ -118,13 +118,13 @@ router.get("/check", (req, res) => {
       user: {
         email: req.session.admin.email,
         name: req.session.admin.nome,
-        picture: req.session.admin.foto
-      }
+        picture: req.session.admin.foto,
+      },
     });
   } else {
     res.status(401).json({
       authenticated: false,
-      message: 'Não autenticado'
+      message: "Não autenticado",
     });
   }
 });

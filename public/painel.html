@@ -114,6 +114,7 @@
         </div>
 
         <script type="module">
+            import { carregarLigas as carregarLigasAPI } from "./js/gerenciar-ligas.js";
             import { cacheManager } from "./js/core/cache-manager.js";
 
             let ligasData = [];
@@ -172,7 +173,6 @@
                                     ligaId: liga._id,
                                 });
                             } else if (res.status === 404) {
-                                // Time não encontrado - adicionar dados padrão
                                 timesDetalhados.push({
                                     id: timeId,
                                     nome_time: `Time ${timeId}`,
@@ -184,7 +184,6 @@
                                 });
                             }
                         } catch (error) {
-                            // Erro de rede - adicionar dados padrão silenciosamente
                             timesDetalhados.push({
                                 id: timeId,
                                 nome_time: `Time ${timeId}`,
@@ -205,19 +204,16 @@
             async function calcularEstatisticasAvancadas(ligas) {
                 const timesDetalhados = await buscarDetalhesCompletos(ligas);
 
-                // Distribuição por clubes
                 const clubesCount = {};
                 const tempos = [];
 
                 timesDetalhados.forEach((time) => {
-                    // Contar clubes
                     if (time.clube_id) {
                         const clubeNome = obterNomeClube(time.clube_id);
                         clubesCount[clubeNome] =
                             (clubesCount[clubeNome] || 0) + 1;
                     }
 
-                    // Calcular tempo de cadastro
                     if (
                         time.cadastrado_em ||
                         time.created_at ||
@@ -236,7 +232,6 @@
                     }
                 });
 
-                // Estatísticas calculadas
                 const clubeMaisPopular =
                     Object.keys(clubesCount).length > 0
                         ? Object.entries(clubesCount).sort(
@@ -272,7 +267,6 @@
 
             // === RENDERIZAR INSIGHTS ===
             function renderizarInsights(stats) {
-                // Distribuição completa por clubes
                 const clubesContainer =
                     document.getElementById("clubesDistribuicao");
                 if (clubesContainer) {
@@ -310,11 +304,9 @@
                     document.getElementById("errorContainer");
                 const emptyState = document.getElementById("emptyState");
 
-                // Reset states
                 errorContainer.style.display = "none";
                 emptyState.style.display = "none";
 
-                // Loading state
                 container.innerHTML = `
                     <div class="loading-container">
                         <div class="loading-spinner-pro"></div>
@@ -327,17 +319,16 @@
                 `;
 
                 try {
-                    // Tenta carregar dados do cache primeiro
                     const cacheKey = 'dashboard_ligas_{"all":true}';
 
                     ligasData = await cacheManager.get(
                         "ligas",
                         cacheKey,
                         async () => {
-                            return await carregarLigas();
+                            return await carregarLigasAPI();
                         },
                         { ttl: 86400000 },
-                    ); // Cache por 1 dia (em ms)
+                    );
 
                     if (ligasData.length === 0) {
                         container.innerHTML = "";
@@ -346,7 +337,6 @@
                         return;
                     }
 
-                    // Calcular estatísticas avançadas
                     estatisticasGlobais =
                         await calcularEstatisticasAvancadas(ligasData);
 
@@ -449,8 +439,6 @@
                 `;
 
                 container.innerHTML = ligasHtml;
-
-                // Carregar detalhes específicos de cada liga
                 carregarDetalhesEspecificosLigas(ligas);
             }
 
@@ -469,7 +457,6 @@
                                 if (res.ok) {
                                     return await res.json();
                                 } else if (res.status === 404) {
-                                    // Retornar dados padrão ao invés de null
                                     return {
                                         id: timeId,
                                         nome_time: `Time ${timeId}`,
@@ -480,7 +467,6 @@
                                 }
                                 return null;
                             } catch {
-                                // Retornar dados padrão em caso de erro
                                 return {
                                     id: timeId,
                                     nome_time: `Time ${timeId}`,
@@ -494,7 +480,6 @@
 
                     const timesValidos = timesData.filter((t) => t !== null);
 
-                    // Clube predominante
                     const clubesLiga = {};
                     timesValidos.forEach((time) => {
                         if (time.clube_id) {
@@ -510,7 +495,6 @@
                               )[0]
                             : null;
 
-                    // Tempo da liga (média dos cadastros)
                     const temposCadastro = timesValidos
                         .map((time) => {
                             const data =
@@ -537,7 +521,6 @@
                         tempoMedioLiga = `${mediaDias}d`;
                     }
 
-                    // Atualizar elementos específicos
                     const clubeElement = document.getElementById(
                         `clube-predominante-${ligaId}`,
                     );
@@ -556,25 +539,7 @@
                 }
             }
 
-            // === HELPER PARA NOMES DOS CLUBES ===
-            function getClubeNome(clubeId) {
-                const clubes = {
-                    262: "Flamengo",
-                    263: "Botafogo",
-                    264: "Corinthians",
-                    266: "Fluminense",
-                    267: "Vasco",
-                    275: "Palmeiras",
-                    276: "São Paulo",
-                    277: "Santos",
-                    283: "Cruzeiro",
-                    292: "Atlético-MG",
-                    344: "Atlético-GO",
-                };
-                return clubes[clubeId] || `Clube ${clubeId}`;
-            }
-
-            // === FILTRO DE BUSCA MELHORADO ===
+            // === FILTRO DE BUSCA ===
             window.filtrarLigas = function () {
                 const searchTerm = document
                     .getElementById("searchInput")
@@ -674,7 +639,6 @@
                         return false;
                     }
 
-                    // Atualizar UI com dados do usuário
                     const userNameElement = document.getElementById("userName");
                     if (userNameElement && data.admin) {
                         userNameElement.textContent =
@@ -703,29 +667,8 @@
                     console.log(
                         "[DASHBOARD] Usuário autenticado, carregando ligas...",
                     );
-                    
-                    // Importar módulo gerenciar-ligas.js
-                    const moduloLigas = await import('./js/gerenciar-ligas.js');
-                    
-                    try {
-                        const ligas = await moduloLigas.carregarLigas();
-                        
-                        if (!ligas || ligas.length === 0) {
-                            console.log("[DASHBOARD] Nenhuma liga encontrada");
-                            mostrarEstado("empty");
-                            return;
-                        }
-
-                        console.log("[DASHBOARD] Exibindo", ligas.length, "ligas");
-                        renderizarLigas(ligas);
-                        
-                        // Calcular e exibir estatísticas
-                        const stats = await calcularEstatisticasAvancadas(ligas);
-                        atualizarEstatisticasGlobais(stats);
-                    } catch (error) {
-                        console.error("[DASHBOARD] Erro ao carregar ligas:", error);
-                        mostrarEstado("error");
-                    }
+                    await loadLayout();
+                    await carregarDadosLigas();
                 } else {
                     console.log("[DASHBOARD] Autenticação falhou");
                 }
