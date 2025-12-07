@@ -1,9 +1,8 @@
 /**
- * Rotas de Autenticação Admin (Google OAuth)
+ * Rotas de Autenticação Admin (Replit Auth)
  * Super Cartola Manager
  */
 import express from "express";
-import passport from "passport";
 
 const router = express.Router();
 
@@ -19,22 +18,6 @@ router.get("/test", (req, res) => {
 });
 
 /**
- * GET /api/admin/auth/google
- * Inicia fluxo de autenticação Google
- */
-router.get(
-  "/google",
-  (req, res, next) => {
-    console.log("[ADMIN-AUTH] 🔑 Iniciando autenticação Google...");
-    next();
-  },
-  passport.authenticate("google", {
-    scope: ["profile", "email"],
-    prompt: "select_account",
-  }),
-);
-
-/**
  * GET /api/admin/auth/session
  * Verifica sessão atual do admin
  */
@@ -43,6 +26,7 @@ router.get("/session", (req, res) => {
     res.json({
       authenticated: true,
       admin: {
+        id: req.session.admin.id,
         email: req.session.admin.email,
         nome: req.session.admin.nome,
         foto: req.session.admin.foto,
@@ -58,21 +42,10 @@ router.get("/session", (req, res) => {
 
 /**
  * POST /api/admin/auth/logout
- * Logout do admin
+ * Logout do admin (legacy POST endpoint - redirects to GET)
  */
 router.post("/logout", (req, res) => {
-  const email = req.session?.admin?.email || "desconhecido";
-
-  req.session.destroy((err) => {
-    if (err) {
-      console.error("[ADMIN-AUTH] ❌ Erro ao destruir sessão:", err);
-      return res.status(500).json({ error: "Erro ao fazer logout" });
-    }
-
-    res.clearCookie("connect.sid");
-    console.log("[ADMIN-AUTH] 👋 Admin deslogado:", email);
-    res.json({ success: true, message: "Logout realizado" });
-  });
+  res.redirect("/api/admin/auth/logout");
 });
 
 /**
@@ -85,6 +58,7 @@ router.get("/check", (req, res) => {
       authenticated: true,
       isAdmin: true,
       user: {
+        id: req.session.admin.id,
         email: req.session.admin.email,
         name: req.session.admin.nome,
         picture: req.session.admin.foto,

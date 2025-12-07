@@ -32,7 +32,7 @@ The system operates in two distinct modes: Admin and Participant, each tailored 
 -   **Backend:** Node.js with Express (ES Modules) for API handling and business logic.
 -   **Database:** MongoDB + Mongoose for data persistence, with optimized indices and connection pooling.
 -   **Frontend:** HTML5, CSS3, and JavaScript Vanilla (modular approach) for a lightweight and performant client-side.
--   **Authentication:** Express Session for participant login, with middleware protecting routes and client-side session caching. Admin access is direct without specific authentication.
+-   **Authentication:** Replit Auth (OpenID Connect) for admin login, Express Session for participant login, with middleware protecting routes and client-side session caching.
 -   **Caching:** NodeCache for server-side in-memory caching and client-side caching (IndexedDB + Memory Cache with localStorage fallback) for performance and offline capabilities.
 -   **Modularity:** Code is organized into functional modules, with dynamic imports for lazy loading in the participant mode to reduce initial payload.
 

@@ -11,11 +11,8 @@ import path from "path";
 // ⚡ USAR CONEXÃO OTIMIZADA
 import connectDB from "./config/database.js";
 
-// 🔐 GOOGLE OAUTH
-import passport, {
-  configurarGoogleOAuth,
-  verificarConfigOAuth,
-} from "./config/google-oauth.js";
+// 🔐 REPLIT AUTH
+import passport, { setupReplitAuthRoutes } from "./config/replit-auth.js";
 
 // Importar package.json para versão
 const pkg = JSON.parse(readFileSync("./package.json", "utf8"));
@@ -124,49 +121,16 @@ app.use(
   }),
 );
 
-// 🔐 Inicializar Passport (Google OAuth)
-if (verificarConfigOAuth()) {
-  configurarGoogleOAuth();
-  app.use(passport.initialize());
-  app.use(passport.session());
-  console.log("[SERVER] 🔐 Google OAuth ativado");
-} else {
-  console.warn(
-    "[SERVER] ⚠️ Google OAuth desativado (credenciais não configuradas)",
-  );
-}
+// 🔐 Inicializar Passport (Replit Auth)
+app.use(passport.initialize());
+app.use(passport.session());
 
-// ====================================================================
-// 🔐 CALLBACK OAUTH - ROTA NOVA (fora do /api/admin/auth)
-// ====================================================================
-app.get(
-  "/api/oauth/callback",
-  (req, res, next) => {
-    console.log("[OAUTH] 🔄 Callback recebido!");
-    console.log("[OAUTH] Query params:", req.query);
-    next();
-  },
-  passport.authenticate("google", {
-    failureRedirect: "/?error=unauthorized",
-    failureMessage: true,
-  }),
-  (req, res) => {
-    console.log("[OAUTH] ✅ Autenticação bem sucedida, user:", req.user);
-    req.session.admin = req.user;
+// Setup Replit Auth routes (synchronous registration with lazy OIDC discovery)
+setupReplitAuthRoutes(app);
+console.log("[SERVER] 🔐 Replit Auth ativado");
 
-    req.session.save((err) => {
-      if (err) {
-        console.error("[OAUTH] ❌ Erro ao salvar sessão:", err);
-        return res.redirect("/?error=session");
-      }
 
-      console.log("[OAUTH] ✅ Sessão admin criada:", req.user.email);
-      res.redirect("/painel.html");
-    });
-  },
-);
-
-// 🔐 Rotas de autenticação admin (Google OAuth) - ANTES do protegerRotas
+// 🔐 Rotas de autenticação admin (Replit Auth) - ANTES do protegerRotas
 app.use("/api/admin/auth", adminAuthRoutes);
 console.log("[DEBUG] Rota /api/admin/auth registrada");
 
@@ -244,7 +208,7 @@ if (process.env.NODE_ENV !== "test") {
     app.listen(PORT, () => {
       console.log(`🚀 SUPER CARTOLA MANAGER RODANDO NA PORTA ${PORT}`);
       console.log(`💾 Sessões persistentes: ATIVADAS (MongoDB Store)`);
-      console.log(`🔐 Autenticação Admin: Google OAuth`);
+      console.log(`🔐 Autenticação Admin: Replit Auth`);
       console.log(`🔐 Autenticação Participante: Senha do Time`);
     });
   } catch (err) {
