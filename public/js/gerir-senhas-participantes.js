@@ -14,7 +14,7 @@
     document.addEventListener("DOMContentLoaded", init);
 
     function init() {
-        carregarLigas();
+        carregarLigasParaSenhas();
         configurarEventos();
     }
 
@@ -36,10 +36,10 @@
     }
 
     // ============================================
-    // CARREGAR LIGAS
+    // CARREGAR LIGAS (renomeado para evitar conflito)
     // ============================================
 
-    async function carregarLigas() {
+    async function carregarLigasParaSenhas() {
         try {
             const response = await fetch("/api/ligas");
             const ligas = await response.json();
