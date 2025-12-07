@@ -693,51 +693,6 @@
                 }
             }
 
-            // === CARREGAR LIGAS ===
-            // Carregar ligas
-            async function carregarLigas() {
-                console.log("[DASHBOARD] Carregando ligas...");
-                mostrarEstado("loading");
-
-                try {
-                    const response = await fetch("/api/ligas", {
-                        credentials: "include",
-                    });
-
-                    console.log(
-                        "[DASHBOARD] Ligas response status:",
-                        response.status,
-                    );
-
-                    if (!response.ok) {
-                        const errorText = await response.text();
-                        console.error(
-                            "[DASHBOARD] Erro na resposta:",
-                            errorText,
-                        );
-                        throw new Error(
-                            `Erro ao carregar ligas: ${response.status}`,
-                        );
-                    }
-
-                    const ligas = await response.json();
-                    console.log("[DASHBOARD] Ligas recebidas:", ligas.length);
-
-                    if (!ligas || ligas.length === 0) {
-                        console.log("[DASHBOARD] Nenhuma liga encontrada");
-                        mostrarEstado("empty");
-                        return;
-                    }
-
-                    console.log("[DASHBOARD] Exibindo", ligas.length, "ligas");
-                    exibirLigas(ligas);
-                    atualizarCards(ligas);
-                } catch (error) {
-                    console.error("[DASHBOARD] Erro ao carregar ligas:", error);
-                    mostrarEstado("error");
-                }
-            }
-
             // === Inicializar quando a página carregar ===
             document.addEventListener("DOMContentLoaded", async () => {
                 console.log("[DASHBOARD] 🚀 Inicializando dashboard...");
@@ -748,7 +703,29 @@
                     console.log(
                         "[DASHBOARD] Usuário autenticado, carregando ligas...",
                     );
-                    await carregarLigas();
+                    
+                    // Importar e usar função do módulo gerenciar-ligas.js
+                    const { carregarLigas } = await import('./js/gerenciar-ligas.js');
+                    
+                    try {
+                        const ligas = await carregarLigas();
+                        
+                        if (!ligas || ligas.length === 0) {
+                            console.log("[DASHBOARD] Nenhuma liga encontrada");
+                            mostrarEstado("empty");
+                            return;
+                        }
+
+                        console.log("[DASHBOARD] Exibindo", ligas.length, "ligas");
+                        renderizarLigas(ligas);
+                        
+                        // Calcular e exibir estatísticas
+                        const stats = await calcularEstatisticasAvancadas(ligas);
+                        atualizarEstatisticasGlobais(stats);
+                    } catch (error) {
+                        console.error("[DASHBOARD] Erro ao carregar ligas:", error);
+                        mostrarEstado("error");
+                    }
                 } else {
                     console.log("[DASHBOARD] Autenticação falhou");
                 }
