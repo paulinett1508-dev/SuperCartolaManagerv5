@@ -603,19 +603,131 @@
                 });
             };
 
-            // === INICIALIZAÇÃO ===
-            document.addEventListener("DOMContentLoaded", async () => {
-                await loadLayout();
-                await carregarDadosLigas();
+            // === Funções auxiliares para gerenciar estados da UI ===
+            function mostrarEstado(estado) {
+                const container = document.getElementById('ligasContainer');
+                const errorContainer = document.getElementById('errorContainer');
+                const emptyState = document.getElementById('emptyState');
 
-                // Adicionar listener para o botão de limpar cache
-                const btnLimparCache = document.getElementById("btn-limpar-cache");
-                if (btnLimparCache) {
-                    btnLimparCache.addEventListener("click", async () => {
-                        await cacheManager.clearAll();
-                        alert("Cache limpo com sucesso! A página será recarregada.");
-                        window.location.reload();
+                container.style.display = 'none';
+                errorContainer.style.display = 'none';
+                emptyState.style.display = 'none';
+
+                switch (estado) {
+                    case 'loading':
+                        container.innerHTML = `
+                            <div class="loading-container">
+                                <div class="loading-spinner-pro"></div>
+                                <div class="loading-text">Carregando suas ligas</div>
+                                <div class="loading-subtitle">
+                                    Aguarde enquanto sincronizamos os dados<br>
+                                    do Super Cartola Manager...
+                                </div>
+                            </div>
+                        `;
+                        container.style.display = 'block';
+                        break;
+                    case 'empty':
+                        emptyState.style.display = 'block';
+                        break;
+                    case 'error':
+                        errorContainer.style.display = 'block';
+                        break;
+                    case 'loaded':
+                        container.style.display = 'block';
+                        break;
+                }
+            }
+
+            // === VERIFICAR AUTENTICAÇÃO ===
+            // Verificar autenticação ao carregar
+            async function verificarAutenticacao() {
+                try {
+                    console.log('[DASHBOARD] Verificando autenticação...');
+                    const response = await fetch('/api/admin/auth/check', {
+                        credentials: 'include'
                     });
+
+                    console.log('[DASHBOARD] Response status:', response.status);
+
+                    if (!response.ok) {
+                        console.log('[DASHBOARD] Não autenticado, redirecionando para login');
+                        window.location.href = '/admin.html';
+                        return false;
+                    }
+
+                    const data = await response.json();
+                    console.log('[DASHBOARD] Auth data:', data);
+
+                    if (!data.authenticated) {
+                        console.log('[DASHBOARD] Usuário não autenticado');
+                        window.location.href = '/admin.html';
+                        return false;
+                    }
+
+                    // Atualizar UI com dados do usuário
+                    const userNameElement = document.getElementById('userName');
+                    if (userNameElement && data.user) {
+                        userNameElement.textContent = data.user.name || 'Admin';
+                    }
+
+                    console.log('[DASHBOARD] ✅ Autenticação confirmada');
+                    return true;
+                } catch (error) {
+                    console.error('[DASHBOARD] Erro ao verificar autenticação:', error);
+                    window.location.href = '/admin.html';
+                    return false;
+                }
+            }
+
+            // === CARREGAR LIGAS ===
+            // Carregar ligas
+            async function carregarLigas() {
+                console.log('[DASHBOARD] Carregando ligas...');
+                mostrarEstado('loading');
+
+                try {
+                    const response = await fetch('/api/ligas', {
+                        credentials: 'include'
+                    });
+
+                    console.log('[DASHBOARD] Ligas response status:', response.status);
+
+                    if (!response.ok) {
+                        const errorText = await response.text();
+                        console.error('[DASHBOARD] Erro na resposta:', errorText);
+                        throw new Error(`Erro ao carregar ligas: ${response.status}`);
+                    }
+
+                    const ligas = await response.json();
+                    console.log('[DASHBOARD] Ligas recebidas:', ligas.length);
+
+                    if (!ligas || ligas.length === 0) {
+                        console.log('[DASHBOARD] Nenhuma liga encontrada');
+                        mostrarEstado('empty');
+                        return;
+                    }
+
+                    console.log('[DASHBOARD] Exibindo', ligas.length, 'ligas');
+                    exibirLigas(ligas);
+                    atualizarCards(ligas);
+                } catch (error) {
+                    console.error('[DASHBOARD] Erro ao carregar ligas:', error);
+                    mostrarEstado('error');
+                }
+            }
+
+            // === Inicializar quando a página carregar ===
+            document.addEventListener('DOMContentLoaded', async () => {
+                console.log('[DASHBOARD] 🚀 Inicializando dashboard...');
+
+                const autenticado = await verificarAutenticacao();
+
+                if (autenticado) {
+                    console.log('[DASHBOARD] Usuário autenticado, carregando ligas...');
+                    await carregarLigas();
+                } else {
+                    console.log('[DASHBOARD] Autenticação falhou');
                 }
             });
 

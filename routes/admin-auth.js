@@ -112,4 +112,23 @@ router.get("/check", (req, res) => {
   });
 });
 
+// Rota de verificação de autenticação (usado pelo dashboard)
+router.get('/check', (req, res) => {
+    if (req.isAuthenticated && req.isAuthenticated()) {
+        res.json({
+            authenticated: true,
+            user: {
+                email: req.user.email,
+                name: req.user.name,
+                picture: req.user.picture
+            }
+        });
+    } else {
+        res.status(401).json({
+            authenticated: false,
+            message: 'Não autenticado'
+        });
+    }
+});
+
 export default router;
