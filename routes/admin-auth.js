@@ -14,6 +14,7 @@ console.log("[ADMIN-AUTH] ✅ Rotas de autenticação admin carregadas");
  * Rota de teste
  */
 router.get("/test", (req, res) => {
+  console.log("[ADMIN-AUTH] 🧪 Rota /test acessada!");
   res.json({ message: "Admin auth routes working!", timestamp: new Date() });
 });
 
@@ -23,6 +24,10 @@ router.get("/test", (req, res) => {
  */
 router.get(
   "/google",
+  (req, res, next) => {
+    console.log("[ADMIN-AUTH] 🔑 Iniciando autenticação Google...");
+    next();
+  },
   passport.authenticate("google", {
     scope: ["profile", "email"],
     prompt: "select_account",

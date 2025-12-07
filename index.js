@@ -76,6 +76,14 @@ app.use(express.urlencoded({ extended: true, limit: "50mb" }));
 // Configuração CORS
 app.use(cors());
 
+// ====================================================================
+// DEBUG - DEVE SER O PRIMEIRO MIDDLEWARE PARA CAPTURAR TUDO
+// ====================================================================
+app.use((req, res, next) => {
+  console.log(`[REQUEST] ${req.method} ${req.path}`);
+  next();
+});
+
 // TESTE DIRETO - sem router
 app.get("/api/teste-direto", (req, res) => {
   res.json({ teste: "ok", timestamp: new Date() });
@@ -84,12 +92,6 @@ app.get("/api/teste-direto", (req, res) => {
 // TESTE DIRETO - com path admin
 app.get("/api/admin/teste-admin", (req, res) => {
   res.json({ testeAdmin: "ok", timestamp: new Date() });
-});
-
-// DEBUG - ver todas as requisições
-app.use((req, res, next) => {
-  console.log(`[REQUEST] ${req.method} ${req.path}`);
-  next();
 });
 
 // Configuração de Sessão com MongoDB Store (Persistência Real)
@@ -182,11 +184,21 @@ app.get("/api/version", (req, res) => {
   res.json({ version: pkg.version });
 });
 
-// Rota de fallback para o Frontend (SPA)
+// ====================================================================
+// FALLBACK - DEVE SER A ÚLTIMA ROTA REGISTRADA
+// ====================================================================
+// Primeiro: capturar rotas de API não encontradas
+app.use("/api/*", (req, res) => {
+  console.log(`[404] API endpoint não encontrado: ${req.method} ${req.path}`);
+  res.status(404).json({ 
+    error: "API endpoint not found",
+    path: req.path,
+    method: req.method
+  });
+});
+
+// Depois: servir o frontend para qualquer outra rota
 app.get("*", (req, res) => {
-  if (req.path.startsWith("/api")) {
-    return res.status(404).json({ error: "API endpoint not found" });
-  }
   res.sendFile(path.resolve("public/index.html"));
 });
 
