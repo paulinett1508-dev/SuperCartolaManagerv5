@@ -1,5 +1,9 @@
 import { buscarStatusMercado as getMercadoStatus } from "./pontos-corridos-utils.js";
 import { FluxoFinanceiroCampos } from "./fluxo-financeiro/fluxo-financeiro-campos.js";
+import {
+    FluxoFinanceiroAuditoria,
+    injetarEstilosAuditoria,
+} from "./fluxo-financeiro/fluxo-financeiro-auditoria.js";
 
 // VARIÁVEIS GLOBAIS
 let rodadaAtual = 0;
@@ -43,6 +47,7 @@ let fluxoFinanceiroCore = null;
 let fluxoFinanceiroUI = null;
 let fluxoFinanceiroUtils = null;
 let fluxoFinanceiroCache = null;
+let fluxoFinanceiroAuditoria = null;
 
 async function carregarModulos() {
     const modulosParaCarregar = [
@@ -122,9 +127,21 @@ async function inicializarFluxoFinanceiro() {
             fluxoFinanceiroUtils = new FluxoFinanceiroUtils();
         }
 
+        // ===== INTEGRAÇÃO AUDITORIA FINANCEIRA =====
+        if (!fluxoFinanceiroAuditoria) {
+            fluxoFinanceiroAuditoria = new FluxoFinanceiroAuditoria(
+                fluxoFinanceiroCache,
+                fluxoFinanceiroCore,
+            );
+            fluxoFinanceiroUI.setAuditoria(fluxoFinanceiroAuditoria);
+            injetarEstilosAuditoria();
+            console.log("[FLUXO-ADMIN] ✅ Auditoria Financeira integrada");
+        }
+
         window.fluxoFinanceiroCache = fluxoFinanceiroCache;
         window.fluxoFinanceiroCore = fluxoFinanceiroCore;
         window.fluxoFinanceiroUI = fluxoFinanceiroUI;
+        window.fluxoFinanceiroAuditoria = fluxoFinanceiroAuditoria;
 
         const ligaId = obterLigaId();
         if (!ligaId) {
@@ -336,6 +353,61 @@ function renderizarErroCalculo(error) {
 async function selecionarParticipante(timeId) {
     await calcularEExibirExtrato(timeId);
 }
+
+// ===== FUNÇÃO GLOBAL: ABRIR AUDITORIA =====
+window.abrirAuditoria = async function (timeId) {
+    if (!fluxoFinanceiroAuditoria) {
+        console.error("[AUDITORIA] Módulo não inicializado");
+        return;
+    }
+
+    // Loading overlay
+    const loadingOverlay = document.createElement("div");
+    loadingOverlay.id = "auditoria-loading";
+    loadingOverlay.innerHTML = `
+        <div style="position:fixed; inset:0; background:rgba(0,0,0,0.7); display:flex; align-items:center; justify-content:center; z-index:10000;">
+            <div style="background:#1e293b; padding:30px 50px; border-radius:12px; text-align:center;">
+                <div style="width:40px; height:40px; border:4px solid #334155; border-top-color:#f97316; border-radius:50%; animation:spin 1s linear infinite; margin:0 auto;"></div>
+                <p style="color:#e2e8f0; margin-top:16px;">Gerando auditoria...</p>
+            </div>
+        </div>
+    `;
+    document.body.appendChild(loadingOverlay);
+
+    try {
+        const participante =
+            await fluxoFinanceiroCore.buscarParticipante(timeId);
+        if (!participante) {
+            throw new Error("Participante não encontrado");
+        }
+
+        const extrato = await fluxoFinanceiroCore.calcularExtratoFinanceiro(
+            timeId,
+            ultimaRodadaCompleta,
+        );
+
+        const relatorio = fluxoFinanceiroAuditoria.gerarAuditoriaLinhaALinha(
+            timeId,
+            extrato,
+        );
+
+        fluxoFinanceiroAuditoria.renderizarModal(
+            participante,
+            relatorio,
+            extrato,
+        );
+
+        console.log(
+            "[AUDITORIA] ✅ Modal aberto para:",
+            participante.nome_cartola,
+        );
+    } catch (error) {
+        console.error("[AUDITORIA] Erro:", error);
+        alert("Erro ao gerar auditoria: " + error.message);
+    } finally {
+        loadingOverlay.remove();
+    }
+};
 
 // ===== EXPORTAR PARA WINDOW (COMPATIBILIDADE GLOBAL) =====
 window.calcularEExibirExtrato = calcularEExibirExtrato;

@@ -1,4 +1,4 @@
-// index.js - Super Cartola Manager OTIMIZADO (Sessões Persistentes + Auth Admin)
+// index.js - Super Cartola Manager OTIMIZADO (Sessões Persistentes + Auth Admin + Segurança)
 import mongoose from "mongoose";
 import { readFileSync } from "fs";
 import express from "express";
@@ -13,6 +13,9 @@ import connectDB from "./config/database.js";
 
 // 🔐 REPLIT AUTH
 import passport, { setupReplitAuthRoutes } from "./config/replit-auth.js";
+
+// 🛡️ SEGURANÇA
+import { setupSecurity, authRateLimiter } from "./middleware/security.js";
 
 // Importar package.json para versão
 const pkg = JSON.parse(readFileSync("./package.json", "utf8"));
@@ -65,6 +68,14 @@ const PORT = process.env.PORT || 3000;
 
 // Conectar ao Banco de Dados (Otimizado)
 connectDB();
+
+// ====================================================================
+// 🛡️ MIDDLEWARES DE SEGURANÇA (PRIMEIRO!)
+// ====================================================================
+setupSecurity(app);
+
+// Trust proxy (necessário para rate limiting correto no Replit)
+app.set("trust proxy", 1);
 
 // Middleware para Parsing do Body (JSON e URL-encoded)
 app.use(express.json({ limit: "50mb" }));
@@ -129,12 +140,13 @@ app.use(passport.session());
 setupReplitAuthRoutes(app);
 console.log("[SERVER] 🔐 Replit Auth ativado");
 
-
 // 🔐 Rotas de autenticação admin (Replit Auth) - ANTES do protegerRotas
 app.use("/api/admin/auth", adminAuthRoutes);
 console.log("[DEBUG] Rota /api/admin/auth registrada");
 
 // 🔐 Rotas de autenticação participante - ANTES do protegerRotas
+// Aplicar rate limiting específico para login
+app.use("/api/participante/auth/login", authRateLimiter);
 app.use("/api/participante/auth", participanteAuthRoutes);
 
 // 🛡️ MIDDLEWARE DE PROTEÇÃO DE ROTAS (antes de servir estáticos)
@@ -210,6 +222,7 @@ if (process.env.NODE_ENV !== "test") {
       console.log(`💾 Sessões persistentes: ATIVADAS (MongoDB Store)`);
       console.log(`🔐 Autenticação Admin: Replit Auth`);
       console.log(`🔐 Autenticação Participante: Senha do Time`);
+      console.log(`🛡️ Segurança: Headers + Rate Limiting ATIVADOS`);
     });
   } catch (err) {
     console.error("❌ Erro ao conectar ao MongoDB:", err.message);

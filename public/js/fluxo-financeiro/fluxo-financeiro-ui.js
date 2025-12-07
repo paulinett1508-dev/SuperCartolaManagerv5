@@ -1,14 +1,25 @@
 import { FluxoFinanceiroCampos } from "./fluxo-financeiro-campos.js";
+import {
+    FluxoFinanceiroAuditoria,
+    injetarEstilosAuditoria,
+} from "./fluxo-financeiro-auditoria.js";
 
 /**
- * FLUXO-FINANCEIRO-UI.JS - v4.1 (MITO/MICO Contextual)
+ * FLUXO-FINANCEIRO-UI.JS - v4.2 (Auditoria Financeira)
  * ✅ v4.1: MICO mostra badge para último lugar da fase (4º na fase2, 6º na fase1)
+ * ✅ v4.2: Botão "Auditar" para cada participante
  * Objetivo: Renderização Pura + Classes CSS
  */
 export class FluxoFinanceiroUI {
     constructor() {
         this.containerId = "fluxoFinanceiroContent";
         this.buttonsContainerId = "fluxoFinanceiroButtons";
+        this.auditoria = null;
+        injetarEstilosAuditoria();
+    }
+
+    setAuditoria(auditoria) {
+        this.auditoria = auditoria;
     }
 
     renderizarBotoesParticipantes(participantes) {
@@ -35,30 +46,58 @@ export class FluxoFinanceiroUI {
                 ${participantes
                     .map(
                         (p) => `
-                    <button onclick="window.selecionarParticipante('${p.time_id || p.id}')"
-                            class="participante-card"
-                            data-nome="${(p.nome_cartola || "").toLowerCase()}"
-                            data-time="${(p.nome_time || "").toLowerCase()}">
-                        <div class="participante-header">
-                            <div class="participante-avatar">
-                                ${
-                                    p.url_escudo_png
-                                        ? `<img src="${p.url_escudo_png}" alt="${p.nome_cartola}">`
-                                        : `<div class="avatar-placeholder">⚽</div>`
-                                }
+                    <div class="participante-card-wrapper">
+                        <button onclick="window.selecionarParticipante('${p.time_id || p.id}')"
+                                class="participante-card"
+                                data-nome="${(p.nome_cartola || "").toLowerCase()}"
+                                data-time="${(p.nome_time || "").toLowerCase()}">
+                            <div class="participante-header">
+                                <div class="participante-avatar">
+                                    ${
+                                        p.url_escudo_png
+                                            ? `<img src="${p.url_escudo_png}" alt="${p.nome_cartola}">`
+                                            : `<div class="avatar-placeholder">⚽</div>`
+                                    }
+                                </div>
+                                <div class="participante-info">
+                                    <p class="participante-nome">${p.nome_cartola}</p>
+                                    <p class="participante-time">${p.nome_time}</p>
+                                </div>
                             </div>
-                            <div class="participante-info">
-                                <p class="participante-nome">${p.nome_cartola}</p>
-                                <p class="participante-time">${p.nome_time}</p>
-                            </div>
-                        </div>
-                    </button>
+                        </button>
+                        <button onclick="window.abrirAuditoria('${p.time_id || p.id}')" 
+                                class="btn-auditar" title="Auditar financeiro">
+                            🔍 Auditar
+                        </button>
+                    </div>
                 `,
                     )
                     .join("")}
             </div>
         `;
         window.totalParticipantes = participantes.length;
+
+        // Injetar estilos extras para wrapper
+        this._injetarEstilosWrapper();
+    }
+
+    _injetarEstilosWrapper() {
+        if (document.getElementById("participante-wrapper-styles")) return;
+
+        const style = document.createElement("style");
+        style.id = "participante-wrapper-styles";
+        style.textContent = `
+            .participante-card-wrapper {
+                display: flex;
+                flex-direction: column;
+                gap: 6px;
+            }
+            .participante-card-wrapper .btn-auditar {
+                width: 100%;
+                justify-content: center;
+            }
+        `;
+        document.head.appendChild(style);
     }
 
     renderizarMensagemInicial() {
@@ -496,3 +535,73 @@ window.mostrarDetalhamentoPerdas = function () {
         `Total de Perdas: R$ ${(window.extratoAtual.resumo.totalPerdas || 0).toFixed(2)}`,
     );
 };
+
+// =========================================================================
+// FUNÇÃO GLOBAL PARA ABRIR AUDITORIA
+// =========================================================================
+window.abrirAuditoria = async function (timeId) {
+    try {
+        // Verificar se existe instância global
+        if (!window.fluxoFinanceiroUI || !window.fluxoFinanceiroUI.auditoria) {
+            console.warn("[UI] Instância de auditoria não disponível");
+            alert("Sistema de auditoria não inicializado. Atualize a página.");
+            return;
+        }
+
+        const auditoria = window.fluxoFinanceiroUI.auditoria;
+        const core = window.fluxoFinanceiroCore;
+        const cache = window.fluxoFinanceiroCache;
+
+        // Mostrar loading
+        const loadingDiv = document.createElement("div");
+        loadingDiv.id = "auditoria-loading";
+        loadingDiv.innerHTML = `
+            <div class="modal-auditoria-overlay">
+                <div style="text-align: center; color: #fff;">
+                    <div class="loading-spinner"></div>
+                    <p style="margin-top: 16px;">Gerando auditoria...</p>
+                </div>
+            </div>
+        `;
+        document.body.appendChild(loadingDiv);
+
+        // Buscar extrato do participante
+        const extrato = await core.calcularExtratoFinanceiro(
+            timeId,
+            cache.ultimaRodadaCompleta || 38,
+        );
+
+        // Buscar dados do participante
+        const participante = await core.buscarParticipante(timeId);
+
+        if (!participante) {
+            document.getElementById("auditoria-loading")?.remove();
+            alert("Participante não encontrado.");
+            return;
+        }
+
+        // Gerar relatório completo (nível 3 = todos os detalhes)
+        const relatorio = await auditoria.gerarRelatorioCompleto(
+            timeId,
+            extrato,
+            3,
+        );
+
+        // Remover loading
+        document.getElementById("auditoria-loading")?.remove();
+
+        // Renderizar modal
+        auditoria.renderizarModal(participante, relatorio);
+
+        console.log(
+            "[UI] ✅ Auditoria aberta para:",
+            participante.nome_cartola,
+        );
+    } catch (error) {
+        document.getElementById("auditoria-loading")?.remove();
+        console.error("[UI] Erro ao abrir auditoria:", error);
+        alert("Erro ao gerar auditoria: " + error.message);
+    }
+};
+
+console.log("[FLUXO-UI] ✅ v4.2 carregado (Auditoria Financeira)");

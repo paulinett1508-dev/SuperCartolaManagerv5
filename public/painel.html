@@ -745,5 +745,99 @@
             // Função global para retry
             window.carregarDadosLigas = carregarDadosLigas;
         </script>
+
+        <!-- 🛡️ PROTEÇÃO CLIENT-SIDE -->
+        <script>
+            (function () {
+                "use strict";
+                var isMobile =
+                    /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(
+                        navigator.userAgent,
+                    );
+                if (!isMobile) {
+                    document.addEventListener("keydown", function (e) {
+                        if (e.key === "F12" || e.keyCode === 123) {
+                            e.preventDefault();
+                            return false;
+                        }
+                        if (
+                            e.ctrlKey &&
+                            e.shiftKey &&
+                            (e.key === "I" || e.key === "i" || e.keyCode === 73)
+                        ) {
+                            e.preventDefault();
+                            return false;
+                        }
+                        if (
+                            e.ctrlKey &&
+                            e.shiftKey &&
+                            (e.key === "J" || e.key === "j" || e.keyCode === 74)
+                        ) {
+                            e.preventDefault();
+                            return false;
+                        }
+                        if (
+                            e.ctrlKey &&
+                            e.shiftKey &&
+                            (e.key === "C" || e.key === "c" || e.keyCode === 67)
+                        ) {
+                            e.preventDefault();
+                            return false;
+                        }
+                        if (
+                            e.ctrlKey &&
+                            (e.key === "U" || e.key === "u" || e.keyCode === 85)
+                        ) {
+                            e.preventDefault();
+                            return false;
+                        }
+                        if (
+                            e.ctrlKey &&
+                            (e.key === "S" || e.key === "s" || e.keyCode === 83)
+                        ) {
+                            e.preventDefault();
+                            return false;
+                        }
+                    });
+                    document.addEventListener("contextmenu", function (e) {
+                        e.preventDefault();
+                        return false;
+                    });
+                }
+                if (
+                    window.location.hostname !== "localhost" &&
+                    !window.location.hostname.includes("127.0.0.1")
+                ) {
+                    var noop = function () {};
+                    window.console = {
+                        log: noop,
+                        warn: noop,
+                        info: noop,
+                        debug: noop,
+                        table: noop,
+                        trace: noop,
+                        dir: noop,
+                        dirxml: noop,
+                        group: noop,
+                        groupCollapsed: noop,
+                        groupEnd: noop,
+                        clear: noop,
+                        count: noop,
+                        countReset: noop,
+                        assert: noop,
+                        profile: noop,
+                        profileEnd: noop,
+                        time: noop,
+                        timeLog: noop,
+                        timeEnd: noop,
+                        timeStamp: noop,
+                        error: noop,
+                    };
+                }
+                if (window.self !== window.top) {
+                    window.top.location = window.self.location;
+                }
+            })();
+        </script>
     </body>
 </html>

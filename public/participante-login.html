@@ -1,277 +1,403 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="pt-BR">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-  <meta name="apple-mobile-web-app-capable" content="yes">
-  <meta name="mobile-web-app-capable" content="yes">
-  <title>Login - Participante</title>
-  <style>
-    * {
-      margin: 0;
-      padding: 0;
-      box-sizing: border-box;
-    }
-
-    body {
-      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-      background: linear-gradient(135deg, #1a1a1a 0%, #2a2a2a 100%);
-      min-height: 100vh;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      padding: 20px;
-    }
-
-    .login-container {
-      background: linear-gradient(135deg, #2a2a2a 0%, #1e1e1e 100%);
-      border-radius: 20px;
-      box-shadow: 0 20px 60px rgba(0, 0, 0, 0.6);
-      padding: 40px 30px;
-      max-width: 400px;
-      width: 100%;
-      text-align: center;
-      border: 1px solid rgba(255, 69, 0, 0.3);
-      position: relative;
-      overflow: hidden;
-    }
-
-    .login-container::before {
-      content: '';
-      position: absolute;
-      top: 0;
-      left: 0;
-      right: 0;
-      height: 4px;
-      background: linear-gradient(135deg, #ff4500 0%, #e8472b 100%);
-      box-shadow: 0 0 15px rgba(255, 69, 0, 0.6);
-    }
-
-    .logo {
-      width: 100px;
-      height: 100px;
-      margin: 0 auto 20px;
-      border-radius: 50%;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      overflow: hidden;
-      background: #fff;
-      border: 3px solid rgba(255, 69, 0, 0.3);
-      box-shadow: 0 4px 20px rgba(255, 69, 0, 0.4);
-    }
-
-    .logo img {
-      width: 100%;
-      height: 100%;
-      object-fit: cover;
-    }
-
-    h1 {
-      color: #ffffff;
-      font-size: 24px;
-      margin-bottom: 10px;
-      font-weight: 800;
-      text-shadow: 0 2px 10px rgba(255, 255, 255, 0.3);
-      letter-spacing: -0.5px;
-    }
-
-    p {
-      color: #a0a0a0;
-      font-size: 14px;
-      margin-bottom: 30px;
-      font-weight: 500;
-    }
-
-    .btn-replit {
-      background: linear-gradient(135deg, #ff4500 0%, #e8472b 100%);
-      color: white;
-      border: 2px solid rgba(255, 69, 0, 0.3);
-      padding: 16px 32px;
-      border-radius: 12px;
-      font-size: 16px;
-      font-weight: 700;
-      cursor: pointer;
-      width: 100%;
-      transition: transform 0.2s, box-shadow 0.2s;
-      touch-action: manipulation;
-      -webkit-tap-highlight-color: transparent;
-      box-shadow: 0 4px 15px rgba(255, 69, 0, 0.4);
-      text-transform: uppercase;
-      letter-spacing: 0.5px;
-    }
-
-    .btn-replit:active {
-      transform: scale(0.98);
-      box-shadow: 0 5px 15px rgba(255, 69, 0, 0.6);
-    }
-
-    .btn-replit:hover {
-      transform: translateY(-2px);
-      box-shadow: 0 10px 25px rgba(255, 69, 0, 0.5);
-      background: linear-gradient(135deg, #e8472b 0%, #d63920 100%);
-      border-color: #ff4500;
-    }
-
-    .info-box {
-      display: none;
-    }
-
-    .loading {
-      display: none;
-      margin-top: 20px;
-      color: #a0a0a0;
-      font-size: 14px;
-      font-weight: 500;
-    }
-
-    .loading.show {
-      display: block;
-    }
-
-    input::placeholder {
-      color: #666;
-    }
-
-    input:focus {
-      outline: none;
-      border-color: #ff4500;
-      box-shadow: 0 0 0 3px rgba(255, 69, 0, 0.1);
-    }
-
-    /* Mobile optimizations */
-    @media (max-width: 480px) {
-      .login-container {
-        padding: 30px 20px;
+  <head>
+    <meta charset="UTF-8" />
+    <meta
+      name="viewport"
+      content="width=device-width, initial-scale=1.0, user-scalable=no"
+    />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="mobile-web-app-capable" content="yes" />
+    <title>Login - Participante</title>
+    <style>
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
       }
 
-      h1 {
-        font-size: 18px;
+      body {
+        font-family:
+          -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+        background: linear-gradient(135deg, #1a1a1a 0%, #2a2a2a 100%);
+        min-height: 100vh;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 20px;
+      }
+
+      .login-container {
+        background: linear-gradient(135deg, #2a2a2a 0%, #1e1e1e 100%);
+        border-radius: 20px;
+        box-shadow: 0 20px 60px rgba(0, 0, 0, 0.6);
+        padding: 40px 30px;
+        max-width: 400px;
+        width: 100%;
+        text-align: center;
+        border: 1px solid rgba(255, 69, 0, 0.3);
+        position: relative;
+        overflow: hidden;
+      }
+
+      .login-container::before {
+        content: "";
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        height: 4px;
+        background: linear-gradient(135deg, #ff4500 0%, #e8472b 100%);
+        box-shadow: 0 0 15px rgba(255, 69, 0, 0.6);
       }
 
       .logo {
-        width: 80px;
-        height: 80px;
+        width: 100px;
+        height: 100px;
+        margin: 0 auto 20px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        overflow: hidden;
+        background: #fff;
+        border: 3px solid rgba(255, 69, 0, 0.3);
+        box-shadow: 0 4px 20px rgba(255, 69, 0, 0.4);
+      }
+
+      .logo img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+      }
+
+      h1 {
+        color: #ffffff;
+        font-size: 24px;
+        margin-bottom: 10px;
+        font-weight: 800;
+        text-shadow: 0 2px 10px rgba(255, 255, 255, 0.3);
+        letter-spacing: -0.5px;
+      }
+
+      p {
+        color: #a0a0a0;
+        font-size: 14px;
+        margin-bottom: 30px;
+        font-weight: 500;
       }
 
       .btn-replit {
-        padding: 18px 32px;
-        font-size: 18px;
+        background: linear-gradient(135deg, #ff4500 0%, #e8472b 100%);
+        color: white;
+        border: 2px solid rgba(255, 69, 0, 0.3);
+        padding: 16px 32px;
+        border-radius: 12px;
+        font-size: 16px;
+        font-weight: 700;
+        cursor: pointer;
+        width: 100%;
+        transition:
+          transform 0.2s,
+          box-shadow 0.2s;
+        touch-action: manipulation;
+        -webkit-tap-highlight-color: transparent;
+        box-shadow: 0 4px 15px rgba(255, 69, 0, 0.4);
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
       }
-    }
 
-    /* Touch improvements */
-    @media (hover: none) and (pointer: coarse) {
-      .btn-replit {
-        padding: 20px 32px;
+      .btn-replit:active {
+        transform: scale(0.98);
+        box-shadow: 0 5px 15px rgba(255, 69, 0, 0.6);
       }
-    }
-  </style>
-</head>
-<body>
-  <div class="login-container">
-    <div class="logo">
-      <img src="/escudos/default.png" alt="Super Cartola Logo">
-    </div>
-    <h1>SUPER CARTOLA 2025 - ano XI</h1>
-    <p>O melhor fantasy game</p>
 
-    <form id="loginForm" onsubmit="fazerLogin(event)">
-      <input 
-        type="number" 
-        id="timeId" 
-        placeholder="ID do seu time no Cartola" 
-        required
-        autocomplete="off"
-        style="width: 100%; padding: 16px; margin-bottom: 15px; border: 2px solid rgba(255, 69, 0, 0.3); border-radius: 10px; font-size: 16px; background: rgba(26, 26, 26, 0.8); color: #ffffff;"
-      >
+      .btn-replit:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 10px 25px rgba(255, 69, 0, 0.5);
+        background: linear-gradient(135deg, #e8472b 0%, #d63920 100%);
+        border-color: #ff4500;
+      }
 
-      <input 
-        type="password" 
-        id="senha" 
-        placeholder="Senha de acesso" 
-        required
-        autocomplete="off"
-        style="width: 100%; padding: 16px; margin-bottom: 20px; border: 2px solid rgba(255, 69, 0, 0.3); border-radius: 10px; font-size: 16px; background: rgba(26, 26, 26, 0.8); color: #ffffff;"
-      >
+      .info-box {
+        display: none;
+      }
 
-      <button type="submit" class="btn-replit">
-        🔐 Acessar
-      </button>
-    </form>
+      .loading {
+        display: none;
+        margin-top: 20px;
+        color: #a0a0a0;
+        font-size: 14px;
+        font-weight: 500;
+      }
 
-    <div class="loading" id="loading">
-      Aguarde, validando...
-    </div>
+      .loading.show {
+        display: block;
+      }
 
-    <div id="errorMessage" style="display: none; background: rgba(244, 67, 54, 0.15); color: #f44336; padding: 15px; border-radius: 8px; margin-top: 15px; border-left: 4px solid #f44336; text-align: left; font-size: 14px;"></div>
-  </div>
+      input::placeholder {
+        color: #666;
+      }
 
-  <script>
-    async function fazerLogin(event) {
-      event.preventDefault();
+      input:focus {
+        outline: none;
+        border-color: #ff4500;
+        box-shadow: 0 0 0 3px rgba(255, 69, 0, 0.1);
+      }
 
-      const loading = document.getElementById('loading');
-      const errorMessage = document.getElementById('errorMessage');
-      const timeId = document.getElementById('timeId').value;
-      const senha = document.getElementById('senha').value;
-
-      loading.classList.add('show');
-      errorMessage.style.display = 'none';
-
-      try {
-        const response = await fetch('/api/participante/auth/login', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json'
-          },
-          credentials: 'include',
-          body: JSON.stringify({ timeId, senha })
-        });
-
-        const data = await response.json();
-
-        if (!response.ok) {
-          throw new Error(data.error || 'Erro ao fazer login');
+      /* Mobile optimizations */
+      @media (max-width: 480px) {
+        .login-container {
+          padding: 30px 20px;
         }
 
-        // Login bem-sucedido
-        window.location.href = '/participante/';
+        h1 {
+          font-size: 18px;
+        }
 
-      } catch (error) {
-        errorMessage.textContent = error.message;
-        errorMessage.style.display = 'block';
-        loading.classList.remove('show');
+        .logo {
+          width: 80px;
+          height: 80px;
+        }
+
+        .btn-replit {
+          padding: 18px 32px;
+          font-size: 18px;
+        }
       }
-    }
 
-    // Verificar se já está autenticado ao carregar a página
-    let verificandoSessao = false;
-    
-    window.addEventListener('load', async () => {
-      if (verificandoSessao) return;
-      verificandoSessao = true;
+      /* Touch improvements */
+      @media (hover: none) and (pointer: coarse) {
+        .btn-replit {
+          padding: 20px 32px;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="login-container">
+      <div class="logo">
+        <img src="/escudos/default.png" alt="Super Cartola Logo" />
+      </div>
+      <h1>SUPER CARTOLA 2025 - ano XI</h1>
+      <p>O melhor fantasy game</p>
 
-      try {
-        const response = await fetch('/api/participante/auth/session', {
-          credentials: 'include'
-        });
+      <form id="loginForm" onsubmit="fazerLogin(event)">
+        <input
+          type="number"
+          id="timeId"
+          placeholder="ID do seu time no Cartola"
+          required
+          autocomplete="off"
+          style="
+            width: 100%;
+            padding: 16px;
+            margin-bottom: 15px;
+            border: 2px solid rgba(255, 69, 0, 0.3);
+            border-radius: 10px;
+            font-size: 16px;
+            background: rgba(26, 26, 26, 0.8);
+            color: #ffffff;
+          "
+        />
 
-        if (response.ok) {
+        <input
+          type="password"
+          id="senha"
+          placeholder="Senha de acesso"
+          required
+          autocomplete="off"
+          style="
+            width: 100%;
+            padding: 16px;
+            margin-bottom: 20px;
+            border: 2px solid rgba(255, 69, 0, 0.3);
+            border-radius: 10px;
+            font-size: 16px;
+            background: rgba(26, 26, 26, 0.8);
+            color: #ffffff;
+          "
+        />
+
+        <button type="submit" class="btn-replit">🔐 Acessar</button>
+      </form>
+
+      <div class="loading" id="loading">Aguarde, validando...</div>
+
+      <div
+        id="errorMessage"
+        style="
+          display: none;
+          background: rgba(244, 67, 54, 0.15);
+          color: #f44336;
+          padding: 15px;
+          border-radius: 8px;
+          margin-top: 15px;
+          border-left: 4px solid #f44336;
+          text-align: left;
+          font-size: 14px;
+        "
+      ></div>
+    </div>
+
+    <script>
+      async function fazerLogin(event) {
+        event.preventDefault();
+
+        const loading = document.getElementById("loading");
+        const errorMessage = document.getElementById("errorMessage");
+        const timeId = document.getElementById("timeId").value;
+        const senha = document.getElementById("senha").value;
+
+        loading.classList.add("show");
+        errorMessage.style.display = "none";
+
+        try {
+          const response = await fetch("/api/participante/auth/login", {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+            },
+            credentials: "include",
+            body: JSON.stringify({ timeId, senha }),
+          });
+
           const data = await response.json();
-          if (data.authenticated && data.participante) {
-            console.log('Sessão válida detectada, redirecionando...');
-            // Usar replace para evitar loop de navegação
-            window.location.replace('/participante/');
-            return;
+
+          if (!response.ok) {
+            throw new Error(data.error || "Erro ao fazer login");
           }
+
+          // Login bem-sucedido
+          window.location.href = "/participante/";
+        } catch (error) {
+          errorMessage.textContent = error.message;
+          errorMessage.style.display = "block";
+          loading.classList.remove("show");
         }
-      } catch (error) {
-        console.log('Usuário não autenticado');
-      } finally {
-        verificandoSessao = false;
       }
-    });
-  </script>
-</body>
+
+      // Verificar se já está autenticado ao carregar a página
+      let verificandoSessao = false;
+
+      window.addEventListener("load", async () => {
+        if (verificandoSessao) return;
+        verificandoSessao = true;
+
+        try {
+          const response = await fetch("/api/participante/auth/session", {
+            credentials: "include",
+          });
+
+          if (response.ok) {
+            const data = await response.json();
+            if (data.authenticated && data.participante) {
+              console.log("Sessão válida detectada, redirecionando...");
+              // Usar replace para evitar loop de navegação
+              window.location.replace("/participante/");
+              return;
+            }
+          }
+        } catch (error) {
+          console.log("Usuário não autenticado");
+        } finally {
+          verificandoSessao = false;
+        }
+      });
+    </script>
+
+    <!-- 🛡️ PROTEÇÃO CLIENT-SIDE -->
+    <script>
+      (function () {
+        "use strict";
+        var isMobile =
+          /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(
+            navigator.userAgent,
+          );
+        if (!isMobile) {
+          document.addEventListener("keydown", function (e) {
+            if (e.key === "F12" || e.keyCode === 123) {
+              e.preventDefault();
+              return false;
+            }
+            if (
+              e.ctrlKey &&
+              e.shiftKey &&
+              (e.key === "I" || e.key === "i" || e.keyCode === 73)
+            ) {
+              e.preventDefault();
+              return false;
+            }
+            if (
+              e.ctrlKey &&
+              e.shiftKey &&
+              (e.key === "J" || e.key === "j" || e.keyCode === 74)
+            ) {
+              e.preventDefault();
+              return false;
+            }
+            if (
+              e.ctrlKey &&
+              e.shiftKey &&
+              (e.key === "C" || e.key === "c" || e.keyCode === 67)
+            ) {
+              e.preventDefault();
+              return false;
+            }
+            if (
+              e.ctrlKey &&
+              (e.key === "U" || e.key === "u" || e.keyCode === 85)
+            ) {
+              e.preventDefault();
+              return false;
+            }
+            if (
+              e.ctrlKey &&
+              (e.key === "S" || e.key === "s" || e.keyCode === 83)
+            ) {
+              e.preventDefault();
+              return false;
+            }
+          });
+          document.addEventListener("contextmenu", function (e) {
+            e.preventDefault();
+            return false;
+          });
+        }
+        if (
+          window.location.hostname !== "localhost" &&
+          !window.location.hostname.includes("127.0.0.1")
+        ) {
+          var noop = function () {};
+          window.console = {
+            log: noop,
+            warn: noop,
+            info: noop,
+            debug: noop,
+            table: noop,
+            trace: noop,
+            dir: noop,
+            dirxml: noop,
+            group: noop,
+            groupCollapsed: noop,
+            groupEnd: noop,
+            clear: noop,
+            count: noop,
+            countReset: noop,
+            assert: noop,
+            profile: noop,
+            profileEnd: noop,
+            time: noop,
+            timeLog: noop,
+            timeEnd: noop,
+            timeStamp: noop,
+            error: noop,
+          };
+        }
+        if (window.self !== window.top) {
+          window.top.location = window.self.location;
+        }
+      })();
+    </script>
+  </body>
 </html>

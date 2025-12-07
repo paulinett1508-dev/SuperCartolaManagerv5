@@ -149,6 +149,58 @@ function aplicarNavegacaoCondicional() {
     ); // useCapture = true para interceptar antes de outros listeners
 }
 
+// =============================================
+// ✅ FUNÇÃO VOLTAR UNIVERSAL - CORRIGIDA
+// =============================================
+
+/**
+ * Função universal para voltar aos cards de módulos
+ * Funciona para TODOS os módulos (Rodadas, Melhor do Mês, etc.)
+ */
+function voltarParaCards() {
+    console.log("[CARDS-CONDICIONAIS] Executando voltarParaCards universal...");
+
+    const mainScreen = document.getElementById("main-screen");
+    const secondaryScreen = document.getElementById("secondary-screen");
+
+    // Esconder tela secundária
+    if (secondaryScreen) {
+        secondaryScreen.classList.remove("active");
+        secondaryScreen.style.display = "none";
+    }
+
+    // Mostrar tela principal com cards
+    if (mainScreen) {
+        mainScreen.classList.add("active");
+        mainScreen.style.display = "block";
+    }
+
+    // Limpar conteúdo dinâmico para evitar conflitos ao recarregar
+    const dynamicContent = document.getElementById("dynamic-content-area");
+    if (dynamicContent) {
+        // Não limpar - preservar estado do módulo
+    }
+
+    // ✅ COMPATIBILIDADE: Também esconder elementos específicos de módulos
+    // Rodadas
+    const rodadaContentSection = document.getElementById(
+        "rodadaContentSection",
+    );
+    const rodadasCards = document.getElementById("rodadasCards");
+    const relatorioMitosMicos = document.getElementById("relatorioMitosMicos");
+
+    if (rodadaContentSection) rodadaContentSection.style.display = "none";
+    if (relatorioMitosMicos) relatorioMitosMicos.style.display = "none";
+    if (rodadasCards && rodadasCards.parentElement) {
+        rodadasCards.parentElement.style.display = "block";
+    }
+
+    console.log("✅ [CARDS-CONDICIONAIS] Voltou para visualização de cards");
+}
+
+// ✅ REGISTRAR GLOBALMENTE IMEDIATAMENTE
+window.voltarParaCards = voltarParaCards;
+
 /**
  * Controlar visibilidade do botão voltar de forma inteligente
  */
@@ -168,11 +220,7 @@ function controlarBotaoVoltar() {
         backButton = document.createElement("button");
         backButton.className = "back-button";
         backButton.innerHTML = "← Voltar aos Módulos";
-        backButton.onclick = () => {
-            if (typeof voltarParaCards === "function") {
-                voltarParaCards();
-            }
-        };
+        backButton.onclick = voltarParaCards; // ✅ Usar função direta
 
         const contentArea = document.getElementById("dynamic-content-area");
         if (contentArea) {
@@ -196,10 +244,16 @@ function interceptarNavegacao() {
     // Observer simplificado apenas para mudanças de classe
     const observer = new MutationObserver((mutations) => {
         for (const mutation of mutations) {
-            if (mutation.type === "attributes" && mutation.attributeName === "class") {
+            if (
+                mutation.type === "attributes" &&
+                mutation.attributeName === "class"
+            ) {
                 const target = mutation.target;
-                
-                if (target.id === "secondary-screen" && target.classList.contains("active")) {
+
+                if (
+                    target.id === "secondary-screen" &&
+                    target.classList.contains("active")
+                ) {
                     requestAnimationFrame(() => {
                         if (!target.querySelector(".back-button")) {
                             controlarBotaoVoltar();
@@ -222,11 +276,11 @@ function interceptarNavegacao() {
  */
 function melhorarExperienciaCards() {
     const cards = document.querySelectorAll(".module-card:not(.disabled)");
-    
+
     // Usar CSS classes ao invés de inline styles para melhor performance
     cards.forEach((card, index) => {
-        card.classList.add('card-animated');
-        card.style.setProperty('--card-delay', `${index * 50}ms`);
+        card.classList.add("card-animated");
+        card.style.setProperty("--card-delay", `${index * 50}ms`);
     });
 }
 
@@ -235,10 +289,10 @@ function melhorarExperienciaCards() {
  */
 function adicionarAnimacoes() {
     // Verificar se já existe para evitar duplicação
-    if (document.getElementById('cards-animations')) return;
-    
+    if (document.getElementById("cards-animations")) return;
+
     const style = document.createElement("style");
-    style.id = 'cards-animations';
+    style.id = "cards-animations";
     style.textContent = `
         @keyframes cardEntrance {
             from {
@@ -266,6 +320,9 @@ function inicializar() {
     console.log("🚀 [CARDS-CONDICIONAIS] Inicializando...");
 
     try {
+        // ✅ Garantir que voltarParaCards está disponível globalmente
+        window.voltarParaCards = voltarParaCards;
+
         // Aplicar configurações visuais
         aplicarConfiguracaoCards();
 
@@ -298,6 +355,7 @@ window.cardsCondicionais = {
     isModuleDisabled: isModuleDisabled,
     verificarBloqueado: verificarCardBloqueado,
     controlarBotaoVoltar: controlarBotaoVoltar,
+    voltarParaCards: voltarParaCards,
     melhorarUX: melhorarExperienciaCards,
     CARDS_CONFIG: CARDS_CONFIG,
 };
