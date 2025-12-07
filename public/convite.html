@@ -1,0 +1,539 @@
+<!doctype html>
+<html lang="pt-BR">
+    <head>
+        <meta charset="UTF-8" />
+        <meta
+            name="viewport"
+            content="width=device-width, initial-scale=1.0, user-scalable=no"
+        />
+        <title>Super Cartola - Bem-vindo!</title>
+        <link rel="preconnect" href="https://fonts.googleapis.com" />
+        <link
+            href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800;900&display=swap"
+            rel="stylesheet"
+        />
+        <style>
+            * {
+                margin: 0;
+                padding: 0;
+                box-sizing: border-box;
+            }
+
+            body {
+                font-family: "Inter", sans-serif;
+                background: linear-gradient(
+                    135deg,
+                    #0a0a0a 0%,
+                    #1a1a2e 50%,
+                    #0f0f23 100%
+                );
+                min-height: 100vh;
+                color: #fff;
+                overflow-x: hidden;
+            }
+
+            .particles {
+                position: fixed;
+                top: 0;
+                left: 0;
+                width: 100%;
+                height: 100%;
+                pointer-events: none;
+                overflow: hidden;
+                z-index: 0;
+            }
+
+            .particle {
+                position: absolute;
+                width: 4px;
+                height: 4px;
+                background: #ff4500;
+                border-radius: 50%;
+                opacity: 0.3;
+                animation: float 15s infinite;
+            }
+
+            .particle:nth-child(odd) {
+                background: #ffa500;
+            }
+
+            @keyframes float {
+                0%,
+                100% {
+                    transform: translateY(100vh) rotate(0deg);
+                    opacity: 0;
+                }
+                10% {
+                    opacity: 0.3;
+                }
+                90% {
+                    opacity: 0.3;
+                }
+                100% {
+                    transform: translateY(-100vh) rotate(720deg);
+                    opacity: 0;
+                }
+            }
+
+            .container {
+                position: relative;
+                z-index: 1;
+                max-width: 500px;
+                margin: 0 auto;
+                padding: 20px;
+                min-height: 100vh;
+                display: flex;
+                flex-direction: column;
+                justify-content: center;
+            }
+
+            .invite-card {
+                background: linear-gradient(
+                    145deg,
+                    rgba(255, 69, 0, 0.1) 0%,
+                    rgba(20, 20, 40, 0.95) 100%
+                );
+                border-radius: 24px;
+                padding: 40px 30px;
+                border: 1px solid rgba(255, 69, 0, 0.3);
+                box-shadow:
+                    0 20px 60px rgba(0, 0, 0, 0.5),
+                    0 0 100px rgba(255, 69, 0, 0.1),
+                    inset 0 1px 0 rgba(255, 255, 255, 0.1);
+                text-align: center;
+                animation: cardEntry 0.8s ease-out;
+                position: relative;
+            }
+
+            @keyframes cardEntry {
+                from {
+                    opacity: 0;
+                    transform: translateY(30px) scale(0.95);
+                }
+                to {
+                    opacity: 1;
+                    transform: translateY(0) scale(1);
+                }
+            }
+
+            .invite-card::before {
+                content: "";
+                position: absolute;
+                top: 0;
+                left: 0;
+                right: 0;
+                height: 1px;
+                background: linear-gradient(
+                    90deg,
+                    transparent,
+                    rgba(255, 69, 0, 0.5),
+                    transparent
+                );
+            }
+
+            .logo-section {
+                margin-bottom: 30px;
+            }
+
+            .logo-image {
+                width: 140px;
+                height: auto;
+                animation: pulse 3s ease-in-out infinite;
+                filter: drop-shadow(0 0 30px rgba(255, 69, 0, 0.4));
+            }
+
+            @keyframes pulse {
+                0%,
+                100% {
+                    transform: scale(1);
+                }
+                50% {
+                    transform: scale(1.05);
+                }
+            }
+
+            .brand-name {
+                font-size: 36px;
+                font-weight: 900;
+                background: linear-gradient(
+                    135deg,
+                    #ff4500 0%,
+                    #ffa500 50%,
+                    #ff6b35 100%
+                );
+                -webkit-background-clip: text;
+                -webkit-text-fill-color: transparent;
+                background-clip: text;
+                letter-spacing: -1px;
+                margin-top: 15px;
+            }
+
+            .tagline {
+                color: #888;
+                font-size: 14px;
+                margin-top: 5px;
+                letter-spacing: 2px;
+                text-transform: uppercase;
+            }
+
+            .invite-message {
+                margin: 30px 0;
+            }
+
+            .invite-title {
+                font-size: 22px;
+                font-weight: 700;
+                color: #fff;
+                margin-bottom: 15px;
+                line-height: 1.3;
+            }
+
+            .invite-title span {
+                color: #ff4500;
+            }
+
+            .invite-text {
+                color: #aaa;
+                font-size: 15px;
+                line-height: 1.6;
+            }
+
+            .what-expect {
+                background: rgba(255, 255, 255, 0.03);
+                border-radius: 16px;
+                padding: 20px;
+                margin: 25px 0;
+                border: 1px solid rgba(255, 255, 255, 0.05);
+                text-align: left;
+            }
+
+            .what-expect-title {
+                font-size: 14px;
+                font-weight: 700;
+                color: #ff4500;
+                margin-bottom: 12px;
+                text-align: center;
+            }
+
+            .what-expect-item {
+                display: flex;
+                align-items: flex-start;
+                gap: 10px;
+                margin-bottom: 10px;
+                font-size: 13px;
+                color: #ccc;
+                line-height: 1.4;
+            }
+
+            .what-expect-item:last-child {
+                margin-bottom: 0;
+            }
+
+            .what-expect-icon {
+                font-size: 16px;
+                flex-shrink: 0;
+            }
+
+            .cta-section {
+                margin-top: 25px;
+            }
+
+            .cta-button {
+                display: block;
+                width: 100%;
+                padding: 18px 30px;
+                font-size: 18px;
+                font-weight: 700;
+                color: #fff;
+                background: linear-gradient(135deg, #ff4500 0%, #ff6b35 100%);
+                border: none;
+                border-radius: 16px;
+                cursor: pointer;
+                text-decoration: none;
+                transition: all 0.3s ease;
+                box-shadow:
+                    0 10px 30px rgba(255, 69, 0, 0.4),
+                    inset 0 1px 0 rgba(255, 255, 255, 0.2);
+                position: relative;
+                overflow: hidden;
+            }
+
+            .cta-button::before {
+                content: "";
+                position: absolute;
+                top: 0;
+                left: -100%;
+                width: 100%;
+                height: 100%;
+                background: linear-gradient(
+                    90deg,
+                    transparent,
+                    rgba(255, 255, 255, 0.2),
+                    transparent
+                );
+                transition: left 0.5s ease;
+            }
+
+            .cta-button:hover::before {
+                left: 100%;
+            }
+
+            .cta-button:hover {
+                transform: translateY(-3px);
+                box-shadow: 0 15px 40px rgba(255, 69, 0, 0.5);
+            }
+
+            .cta-button:active {
+                transform: translateY(0);
+            }
+
+            .cta-subtitle {
+                margin-top: 15px;
+                font-size: 13px;
+                color: #666;
+            }
+
+            .cta-subtitle span {
+                color: #ff4500;
+            }
+
+            .install-tip {
+                margin-top: 30px;
+                padding: 20px;
+                background: rgba(255, 165, 0, 0.1);
+                border-radius: 16px;
+                border: 1px solid rgba(255, 165, 0, 0.3);
+                text-align: left;
+            }
+
+            .install-tip-title {
+                font-size: 14px;
+                font-weight: 700;
+                color: #ffa500;
+                margin-bottom: 15px;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                gap: 8px;
+            }
+
+            .install-steps {
+                font-size: 13px;
+                color: #ccc;
+                line-height: 1.6;
+            }
+
+            .install-step {
+                display: flex;
+                align-items: flex-start;
+                gap: 10px;
+                margin-bottom: 12px;
+            }
+
+            .install-step:last-child {
+                margin-bottom: 0;
+            }
+
+            .step-number {
+                background: #ff4500;
+                color: #fff;
+                width: 22px;
+                height: 22px;
+                border-radius: 50%;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                font-size: 12px;
+                font-weight: 700;
+                flex-shrink: 0;
+            }
+
+            .step-text {
+                flex: 1;
+            }
+
+            .step-text strong {
+                color: #fff;
+            }
+
+            .dots-icon {
+                display: inline-block;
+                background: #444;
+                padding: 2px 6px;
+                border-radius: 4px;
+                font-size: 11px;
+                vertical-align: middle;
+                margin: 0 2px;
+            }
+
+            .footer {
+                margin-top: 30px;
+                padding-top: 20px;
+                border-top: 1px solid rgba(255, 255, 255, 0.05);
+            }
+
+            .footer-text {
+                font-size: 11px;
+                color: #444;
+                text-align: center;
+            }
+
+            @media (max-width: 380px) {
+                .container {
+                    padding: 15px;
+                }
+                .invite-card {
+                    padding: 30px 20px;
+                }
+                .brand-name {
+                    font-size: 28px;
+                }
+                .logo-image {
+                    width: 120px;
+                }
+            }
+        </style>
+    </head>
+    <body>
+        <div class="particles" id="particles"></div>
+
+        <div class="container">
+            <div class="invite-card">
+                <!-- Logo -->
+                <div class="logo-section">
+                    <img
+                        src="img/logo-supercartola.png"
+                        alt="Super Cartola"
+                        class="logo-image"
+                        onerror="this.src='https://www.supercartolamanager.com.br/img/logo-supercartola.png'"
+                    />
+                    <div class="brand-name">SUPER CARTOLA</div>
+                    <div class="tagline">Manager Profissional</div>
+                </div>
+
+                <!-- Mensagem -->
+                <div class="invite-message">
+                    <h1 class="invite-title">
+                        Você foi convidado para a
+                        <span>experiência definitiva</span> do Cartola FC!
+                    </h1>
+                    <p class="invite-text">
+                        Acompanhe sua liga com rankings em tempo real, disputas
+                        mata-mata, controle financeiro e muito mais!
+                    </p>
+                </div>
+
+                <!-- O que vai encontrar -->
+                <div class="what-expect">
+                    <div class="what-expect-title">
+                        📋 AO ACESSAR, VOCÊ VAI:
+                    </div>
+                    <div class="what-expect-item">
+                        <span class="what-expect-icon">1️⃣</span>
+                        <span
+                            >Informar o <strong>ID do seu time</strong> do
+                            Cartola FC</span
+                        >
+                    </div>
+                    <div class="what-expect-item">
+                        <span class="what-expect-icon">2️⃣</span>
+                        <span
+                            >Digitar a <strong>senha da liga</strong> que você
+                            recebeu</span
+                        >
+                    </div>
+                    <div class="what-expect-item">
+                        <span class="what-expect-icon">3️⃣</span>
+                        <span
+                            >Ter acesso completo à sua
+                            <strong>área de participante</strong></span
+                        >
+                    </div>
+                </div>
+
+                <!-- CTA -->
+                <div class="cta-section">
+                    <a
+                        href="participante-login.html"
+                        class="cta-button"
+                        id="ctaButton"
+                    >
+                        🚀 ACESSAR AGORA
+                    </a>
+                    <p class="cta-subtitle">
+                        Use seu <span>ID do time</span> +
+                        <span>senha da liga</span>
+                    </p>
+                </div>
+
+                <!-- Dica de instalação -->
+                <div class="install-tip">
+                    <div class="install-tip-title">
+                        📱 INSTALE COMO APP NO SEU CELULAR
+                    </div>
+                    <div class="install-steps">
+                        <div class="install-step">
+                            <span class="step-number">1</span>
+                            <span class="step-text"
+                                >Acesse o link acima pelo
+                                <strong>navegador do celular</strong></span
+                            >
+                        </div>
+                        <div class="install-step">
+                            <span class="step-number">2</span>
+                            <span class="step-text"
+                                >Toque nos <strong>3 pontinhos</strong>
+                                <span class="dots-icon">⋮</span> no canto
+                                superior do navegador</span
+                            >
+                        </div>
+                        <div class="install-step">
+                            <span class="step-number">3</span>
+                            <span class="step-text"
+                                >Selecione
+                                <strong>"Adicionar à tela inicial"</strong> ou
+                                <strong>"Instalar aplicativo"</strong></span
+                            >
+                        </div>
+                        <div class="install-step">
+                            <span class="step-number">4</span>
+                            <span class="step-text"
+                                >Pronto! O <strong>Super Cartola</strong> vai
+                                aparecer como um app no seu celular 🎉</span
+                            >
+                        </div>
+                        <div class="install-step">
+                            <span class="step-number">5</span>
+                            <span class="step-text"
+                                >Fique de olho nas
+                                <strong>atualizações do sistema</strong>. Quando
+                                sugerido, sempre instale a nova versão!</span
+                            >
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Footer -->
+                <div class="footer">
+                    <p class="footer-text">Super Cartola Manager © 2025</p>
+                </div>
+            </div>
+        </div>
+
+        <script>
+            function createParticles() {
+                const container = document.getElementById("particles");
+                for (let i = 0; i < 20; i++) {
+                    const particle = document.createElement("div");
+                    particle.className = "particle";
+                    particle.style.left = Math.random() * 100 + "%";
+                    particle.style.animationDelay = Math.random() * 15 + "s";
+                    particle.style.animationDuration =
+                        10 + Math.random() * 10 + "s";
+                    container.appendChild(particle);
+                }
+            }
+            createParticles();
+        </script>
+    </body>
+</html>

@@ -140,9 +140,87 @@
                             .getElementById("sidebar-placeholder")
                             .replaceWith(sidebar);
                     }
+
+                    // Definir funções de logo após injetar sidebar
+                    definirFuncoesLogo();
+
+                    // Carregar ligas no sidebar
+                    carregarLigasSidebar();
                 } catch (error) {
                     console.error("Erro ao carregar layout:", error);
                 }
+            }
+
+            // === CARREGAR LIGAS NO SIDEBAR ===
+            async function carregarLigasSidebar() {
+                const ligasList = document.getElementById("ligasList");
+                if (!ligasList) return;
+
+                try {
+                    const response = await fetch("/api/ligas");
+                    const ligas = await response.json();
+
+                    if (!Array.isArray(ligas) || ligas.length === 0) {
+                        ligasList.innerHTML = `
+                            <div class="ligas-empty">
+                                📂 Nenhuma liga criada
+                            </div>
+                        `;
+                        return;
+                    }
+
+                    ligasList.innerHTML = ligas
+                        .map((liga) => {
+                            const ligaId = liga._id || liga.id;
+                            return `
+                            <a href="detalhe-liga.html?id=${ligaId}" class="liga-item">
+                                <div class="liga-info">
+                                    <div class="liga-name">${liga.nome || "Liga sem nome"}</div>
+                                    <div class="liga-details">${liga.times?.length || 0} times</div>
+                                </div>
+                            </a>
+                        `;
+                        })
+                        .join("");
+                } catch (error) {
+                    ligasList.innerHTML = `
+                        <div class="ligas-empty">
+                            ⚠️ Erro ao carregar
+                        </div>
+                    `;
+                }
+            }
+
+            // === FUNÇÕES DE LOGO ===
+            function definirFuncoesLogo() {
+                const logoTentativas = [
+                    "img/logo-supercartola.png",
+                    "../public/img/logo-supercartola.png",
+                    "./public/img/logo-supercartola.png",
+                ];
+                let logoIndiceAtual = 0;
+
+                window.tentarProximoCaminho = function (img) {
+                    logoIndiceAtual++;
+                    if (logoIndiceAtual < logoTentativas.length) {
+                        img.src = logoTentativas[logoIndiceAtual];
+                    } else {
+                        const fallback =
+                            document.getElementById("logoFallback");
+                        if (fallback) fallback.style.display = "inline-block";
+                        img.style.display = "none";
+                    }
+                };
+
+                window.logoCarregada = function (img) {
+                    const fallback = document.getElementById("logoFallback");
+                    if (fallback) fallback.style.display = "none";
+                    img.style.display = "block";
+                };
+
+                window.goToDashboard = function () {
+                    window.location.href = "painel.html";
+                };
             }
 
             // === BUSCAR DETALHES DOS TIMES ===
