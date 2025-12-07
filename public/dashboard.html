@@ -704,11 +704,11 @@
                         "[DASHBOARD] Usuário autenticado, carregando ligas...",
                     );
                     
-                    // Importar e usar função do módulo gerenciar-ligas.js
-                    const { carregarLigas } = await import('./js/gerenciar-ligas.js');
+                    // Importar módulo gerenciar-ligas.js
+                    const moduloLigas = await import('./js/gerenciar-ligas.js');
                     
                     try {
-                        const ligas = await carregarLigas();
+                        const ligas = await moduloLigas.carregarLigas();
                         
                         if (!ligas || ligas.length === 0) {
                             console.log("[DASHBOARD] Nenhuma liga encontrada");
