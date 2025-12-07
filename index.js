@@ -76,6 +76,12 @@ app.use(express.urlencoded({ extended: true, limit: "50mb" }));
 // Configuração CORS
 app.use(cors());
 
+// DEBUG - ver todas as requisições
+app.use((req, res, next) => {
+  console.log(`[REQUEST] ${req.method} ${req.path}`);
+  next();
+});
+
 // Configuração de Sessão com MongoDB Store (Persistência Real)
 app.use(
   session({
