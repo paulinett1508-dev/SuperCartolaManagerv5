@@ -294,7 +294,7 @@
 
         <script type="module">
             import {
-                carregarLigas,
+                carregarLigas as carregarLigasAPI,
                 deletarLiga,
             } from "./js/gerenciar-ligas.js";
 
@@ -310,23 +310,13 @@
                     const parser = new DOMParser();
                     const doc = parser.parseFromString(layoutHtml, "text/html");
 
-                    // Injetar apenas sidebar
+                    // Injetar apenas sidebar (sem scripts para evitar conflitos)
                     const sidebar = doc.querySelector(".app-sidebar");
                     if (sidebar) {
                         document
                             .getElementById("sidebar-placeholder")
                             .replaceWith(sidebar);
                     }
-
-                    // Executar scripts do layout
-                    const scripts = doc.querySelectorAll("script");
-                    scripts.forEach((script) => {
-                        if (script.textContent.trim()) {
-                            const newScript = document.createElement("script");
-                            newScript.textContent = script.textContent;
-                            document.head.appendChild(newScript);
-                        }
-                    });
                 } catch (error) {
                     console.error("Erro ao carregar layout:", error);
                 }
@@ -338,7 +328,7 @@
 
                 try {
                     // Usar função do módulo que tem cache e tratamento de erros
-                    const ligas = await carregarLigas();
+                    const ligas = await carregarLigasAPI();
                     window.ligasData = ligas;
 
                     console.log(`${ligas.length} ligas carregadas com sucesso`);

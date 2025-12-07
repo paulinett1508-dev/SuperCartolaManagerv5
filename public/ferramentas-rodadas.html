@@ -142,7 +142,7 @@
     </div>
 
     <script type="module">
-        import { carregarLigas } from './js/gerenciar-ligas.js';
+        import { carregarLigas as carregarLigasAPI } from './js/gerenciar-ligas.js';
 
         let ligasDisponiveis = [];
         let logoCarregada = false;
@@ -166,7 +166,7 @@
         // Carregar ligas disponíveis
         async function carregarLigasDisponiveis() {
             try {
-                ligasDisponiveis = await carregarLigas();
+                ligasDisponiveis = await carregarLigasAPI();
                 const select = document.getElementById('ligaSelect');
                 
                 if (ligasDisponiveis.length === 0) {
