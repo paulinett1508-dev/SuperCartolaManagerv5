@@ -69,29 +69,26 @@
     </div>
 
     <!-- Seção de Relatório MITOS/MICOS -->
-    <div id="relatorioMitosMicos" class="relatorio-section" style="display: none">
+    <div
+        id="relatorioMitosMicos"
+        class="relatorio-section"
+        style="display: none"
+    >
         <div class="section-header">
             <div class="section-icon">📊</div>
             <h3>Histórico Completo: MITOS e MICOS</h3>
             <button
                 id="btnFecharRelatorio"
                 class="btn-fechar-relatorio"
+                onclick="window.voltarParaCards ? window.voltarParaCards() : document.getElementById('relatorioMitosMicos').style.display='none'"
             >
                 ✕ Fechar
             </button>
         </div>
 
-        <!-- Filtros -->
+        <!-- Filtros (renderizados dinamicamente) -->
         <div class="relatorio-filtros">
-            <button class="filtro-btn active" data-tipo="todos">
-                Todos
-            </button>
-            <button class="filtro-btn" data-tipo="mitos">
-                🏆 Apenas MITOS
-            </button>
-            <button class="filtro-btn" data-tipo="micos">
-                💩 Apenas MICOS
-            </button>
+            <!-- Será preenchido via JavaScript -->
         </div>
 
         <!-- Estatísticas Resumidas -->
@@ -110,6 +107,7 @@
         <button
             id="btnGerarRelatorioMitosMicos"
             class="btn-relatorio"
+            onclick="window.gerarRelatorioMitosMicos && window.gerarRelatorioMitosMicos()"
         >
             📊 Gerar Relatório MITOS/MICOS
         </button>

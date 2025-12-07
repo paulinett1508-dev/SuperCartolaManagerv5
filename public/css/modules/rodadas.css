@@ -409,6 +409,94 @@
   border-color: var(--laranja);
 }
 
+/* Filtro Select por Participante */
+.filtro-select {
+  padding: 6px 12px;
+  border: 1px solid rgba(255, 69, 0, 0.3);
+  background: var(--bg-card);
+  color: var(--text-primary);
+  border-radius: 4px;
+  cursor: pointer;
+  font: 500 11px "Inter", -apple-system, sans-serif;
+  transition: all 0.2s ease;
+  min-width: 180px;
+}
+
+.filtro-select:hover {
+  background: rgba(255, 69, 0, 0.1);
+  border-color: rgba(255, 69, 0, 0.5);
+}
+
+.filtro-select:focus {
+  outline: none;
+  border-color: var(--laranja);
+  box-shadow: 0 0 0 2px rgba(255, 69, 0, 0.2);
+}
+
+/* Resumo do Participante */
+.participante-resumo {
+  grid-column: 1 / -1;
+  background: linear-gradient(135deg, rgba(255, 69, 0, 0.1), rgba(255, 69, 0, 0.05));
+  border: 1px solid rgba(255, 69, 0, 0.3);
+  border-radius: 8px;
+  padding: 16px;
+  margin-bottom: 12px;
+  text-align: center;
+}
+
+.participante-nome {
+  font: 700 16px "Inter", -apple-system, sans-serif;
+  color: var(--laranja);
+  margin-bottom: 8px;
+}
+
+.participante-stats {
+  display: flex;
+  justify-content: center;
+  gap: 20px;
+  flex-wrap: wrap;
+}
+
+.participante-stats span {
+  font: 600 13px "Inter", -apple-system, sans-serif;
+  padding: 4px 12px;
+  border-radius: 4px;
+}
+
+.stat-mito {
+  background: rgba(76, 175, 80, 0.2);
+  color: #4CAF50;
+}
+
+.stat-mico {
+  background: rgba(244, 67, 54, 0.2);
+  color: #f44336;
+}
+
+.saldo-positivo {
+  background: rgba(76, 175, 80, 0.2);
+  color: #4CAF50;
+}
+
+.saldo-negativo {
+  background: rgba(244, 67, 54, 0.2);
+  color: #f44336;
+}
+
+.saldo-neutro {
+  background: rgba(158, 158, 158, 0.2);
+  color: #9e9e9e;
+}
+
+/* Empty State */
+.empty-relatorio {
+  grid-column: 1 / -1;
+  text-align: center;
+  padding: 40px 20px;
+  color: var(--text-muted);
+  font: 500 14px "Inter", -apple-system, sans-serif;
+}
+
 .estatisticas-resumo {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
@@ -448,7 +536,7 @@
   padding: 8px;
   background: var(--bg-card);
   border-radius: 6px;
-  
+
   /* Scrollbar customizada */
   scrollbar-width: thin;
   scrollbar-color: var(--laranja) transparent;

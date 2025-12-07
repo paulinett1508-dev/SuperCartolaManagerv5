@@ -30,6 +30,102 @@
     <div class="rodadas-grid-container">
         <div id="rodadasCardsGrid" class="rodadas-grid-compacto"></div>
 
+        <!-- Card Desempenho MITOS/MICOS -->
+        <div
+            id="cardDesempenhoMitosMicos"
+            class="card-desempenho-opt"
+            style="display: none"
+        >
+            <div class="desemp-header">
+                <div class="desemp-title">
+                    <span class="material-symbols-outlined">analytics</span>
+                    Seu Desempenho
+                </div>
+                <span id="desempBadgeRodadas" class="desemp-badge"
+                    >0 RODADAS</span
+                >
+            </div>
+
+            <div class="stats-compact">
+                <div class="stat-mini mito">
+                    <span class="material-symbols-outlined">emoji_events</span>
+                    <div>
+                        <div id="desempMitosCount" class="stat-mini-value">
+                            0
+                        </div>
+                        <div class="stat-mini-label">Mitos</div>
+                    </div>
+                </div>
+                <div class="stat-mini mico">
+                    <span class="material-symbols-outlined">thumb_down</span>
+                    <div>
+                        <div id="desempMicosCount" class="stat-mini-value">
+                            0
+                        </div>
+                        <div class="stat-mini-label">Micos</div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="progress-compact">
+                <div class="progress-labels">
+                    <span>
+                        <span class="material-symbols-outlined mito"
+                            >emoji_events</span
+                        >
+                        <span id="desempMitoPercent" class="mito">0%</span>
+                    </span>
+                    <span>
+                        <span id="desempMicoPercent" class="mico">0%</span>
+                        <span class="material-symbols-outlined mico"
+                            >thumb_down</span
+                        >
+                    </span>
+                </div>
+                <div class="progress-bar">
+                    <div
+                        id="progressMito"
+                        class="progress-mito"
+                        style="width: 0%"
+                    ></div>
+                    <div
+                        id="progressMico"
+                        class="progress-mico"
+                        style="width: 0%"
+                    ></div>
+                </div>
+            </div>
+
+            <div class="ultimas-compact">
+                <div class="ultima-mini mito">
+                    <div class="ultima-mini-icon">
+                        <span class="material-symbols-outlined"
+                            >emoji_events</span
+                        >
+                    </div>
+                    <div class="ultima-mini-info">
+                        <div class="ultima-mini-label">Último Mito</div>
+                        <div id="desempUltimoMito" class="ultima-mini-value">
+                            -
+                        </div>
+                    </div>
+                </div>
+                <div class="ultima-mini mico">
+                    <div class="ultima-mini-icon">
+                        <span class="material-symbols-outlined"
+                            >thumb_down</span
+                        >
+                    </div>
+                    <div class="ultima-mini-info">
+                        <div class="ultima-mini-label">Último Mico</div>
+                        <div id="desempUltimoMico" class="ultima-mini-value">
+                            -
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
         <!-- Botão Ver Jogadores -->
         <div
             id="btnVerJogadores"
@@ -694,6 +790,246 @@
     /* ============================================
    RESPONSIVO
    ============================================ */
+
+    /* ============================================
+   CARD DESEMPENHO MITOS/MICOS
+   ============================================ */
+
+    .card-desempenho-opt {
+        background: rgba(0, 0, 0, 0.35);
+        border-radius: 10px;
+        padding: 12px;
+        border: 1px solid rgba(255, 255, 255, 0.06);
+        position: relative;
+        overflow: hidden;
+        margin-top: 16px;
+        border-top: 1px solid #404040;
+        padding-top: 16px;
+    }
+
+    .card-desempenho-opt::before {
+        content: "";
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        height: 2px;
+        background: linear-gradient(
+            90deg,
+            #22c55e 0%,
+            #f97316 50%,
+            #ef4444 100%
+        );
+    }
+
+    .desemp-header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        margin-bottom: 10px;
+    }
+
+    .desemp-title {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        font-size: 13px;
+        font-weight: 700;
+        color: #fff;
+    }
+
+    .desemp-title .material-symbols-outlined {
+        color: #f97316;
+        font-size: 18px;
+        font-variation-settings:
+            "FILL" 1,
+            "wght" 500;
+    }
+
+    .desemp-badge {
+        font-size: 9px;
+        padding: 3px 8px;
+        border-radius: 12px;
+        background: rgba(249, 115, 22, 0.2);
+        color: #f97316;
+        font-weight: 700;
+    }
+
+    .stats-compact {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 8px;
+        margin-bottom: 10px;
+    }
+
+    .stat-mini {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 8px;
+        padding: 10px 8px;
+        background: rgba(0, 0, 0, 0.4);
+        border-radius: 8px;
+        border: 1px solid transparent;
+    }
+
+    .stat-mini.mito {
+        border-color: rgba(34, 197, 94, 0.2);
+    }
+
+    .stat-mini.mico {
+        border-color: rgba(239, 68, 68, 0.2);
+    }
+
+    .stat-mini .material-symbols-outlined {
+        font-size: 20px;
+        font-variation-settings:
+            "FILL" 1,
+            "wght" 500;
+    }
+
+    .stat-mini.mito .material-symbols-outlined {
+        color: #22c55e;
+    }
+    .stat-mini.mico .material-symbols-outlined {
+        color: #ef4444;
+    }
+
+    .stat-mini-value {
+        font-size: 22px;
+        font-weight: 800;
+        line-height: 1;
+    }
+
+    .stat-mini.mito .stat-mini-value {
+        color: #22c55e;
+    }
+    .stat-mini.mico .stat-mini-value {
+        color: #ef4444;
+    }
+
+    .stat-mini-label {
+        font-size: 10px;
+        color: #9ca3af;
+        text-transform: uppercase;
+        font-weight: 600;
+    }
+
+    .progress-compact {
+        margin-bottom: 10px;
+    }
+
+    .progress-labels {
+        display: flex;
+        justify-content: space-between;
+        font-size: 9px;
+        color: #9ca3af;
+        margin-bottom: 4px;
+        font-weight: 600;
+    }
+
+    .progress-labels span {
+        display: flex;
+        align-items: center;
+        gap: 3px;
+    }
+
+    .progress-labels .material-symbols-outlined {
+        font-size: 12px;
+        font-variation-settings: "FILL" 1;
+    }
+
+    .progress-labels .mito {
+        color: #22c55e;
+    }
+    .progress-labels .mico {
+        color: #ef4444;
+    }
+
+    .progress-bar {
+        height: 6px;
+        background: rgba(0, 0, 0, 0.5);
+        border-radius: 3px;
+        overflow: hidden;
+        display: flex;
+    }
+
+    .progress-mito {
+        background: linear-gradient(90deg, #166534, #22c55e);
+        transition: width 0.5s ease;
+    }
+
+    .progress-mico {
+        background: linear-gradient(90deg, #ef4444, #b91c1c);
+        transition: width 0.5s ease;
+    }
+
+    .ultimas-compact {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 8px;
+        padding-top: 10px;
+        border-top: 1px solid rgba(255, 255, 255, 0.06);
+    }
+
+    .ultima-mini {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        padding: 8px;
+        background: rgba(0, 0, 0, 0.25);
+        border-radius: 6px;
+    }
+
+    .ultima-mini-icon {
+        width: 28px;
+        height: 28px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+
+    .ultima-mini-icon .material-symbols-outlined {
+        font-size: 14px;
+        font-variation-settings:
+            "FILL" 1,
+            "wght" 500;
+    }
+
+    .ultima-mini.mito .ultima-mini-icon {
+        background: rgba(34, 197, 94, 0.15);
+    }
+
+    .ultima-mini.mito .material-symbols-outlined {
+        color: #22c55e;
+    }
+
+    .ultima-mini.mico .ultima-mini-icon {
+        background: rgba(239, 68, 68, 0.15);
+    }
+
+    .ultima-mini.mico .material-symbols-outlined {
+        color: #ef4444;
+    }
+
+    .ultima-mini-info {
+        flex: 1;
+    }
+
+    .ultima-mini-label {
+        font-size: 8px;
+        color: #9ca3af;
+        text-transform: uppercase;
+        letter-spacing: 0.3px;
+        font-weight: 600;
+    }
+
+    .ultima-mini-value {
+        font-size: 12px;
+        font-weight: 700;
+        color: #fff;
+    }
 
     @media (max-width: 400px) {
         .rodadas-grid-compacto {

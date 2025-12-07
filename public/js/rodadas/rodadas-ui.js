@@ -561,6 +561,9 @@ export function limparCacheUI() {
 // RELATÓRIO MITOS/MICOS
 // ==============================
 
+// Estado do filtro atual
+let filtroAtual = { tipo: "todos", participante: "" };
+
 export function exibirRelatorioMitosMicos(dadosRelatorio) {
   const relatorioSection = getElement("relatorioMitosMicos");
   const contentSection = getElement("rodadaContentSection");
@@ -577,11 +580,49 @@ export function exibirRelatorioMitosMicos(dadosRelatorio) {
   // Mostrar relatório
   relatorioSection.style.display = "block";
 
+  // Reset filtro
+  filtroAtual = { tipo: "todos", participante: "" };
+
+  // Renderizar filtros (incluindo dropdown de participantes)
+  renderizarFiltros(dadosRelatorio);
+
   // Renderizar estatísticas
   renderizarEstatisticasResumo(dadosRelatorio);
 
   // Renderizar conteúdo
-  renderizarConteudoRelatorio(dadosRelatorio, "todos");
+  renderizarConteudoRelatorio(dadosRelatorio, filtroAtual);
+}
+
+function renderizarFiltros(dados) {
+  const container = document.querySelector(".relatorio-filtros");
+  if (!container) return;
+
+  // Extrair lista única de participantes
+  const participantes = new Set();
+  dados.mitos.forEach((m) =>
+    participantes.add(m.nome_cartola || m.nome_time || "N/D"),
+  );
+  dados.micos.forEach((m) =>
+    participantes.add(m.nome_cartola || m.nome_time || "N/D"),
+  );
+
+  const participantesOrdenados = [...participantes].sort();
+
+  container.innerHTML = `
+    <button class="filtro-btn active" data-tipo="todos" onclick="window.aplicarFiltroTipo('todos')">
+      Todos
+    </button>
+    <button class="filtro-btn" data-tipo="mitos" onclick="window.aplicarFiltroTipo('mitos')">
+      🏆 Apenas MITOS
+    </button>
+    <button class="filtro-btn" data-tipo="micos" onclick="window.aplicarFiltroTipo('micos')">
+      💩 Apenas MICOS
+    </button>
+    <select id="filtroParticipante" class="filtro-select" onchange="window.aplicarFiltroParticipante(this.value)">
+      <option value="">👤 Todos os Participantes</option>
+      ${participantesOrdenados.map((p) => `<option value="${p}">${p}</option>`).join("")}
+    </select>
+  `;
 }
 
 function renderizarEstatisticasResumo(dados) {
@@ -593,6 +634,10 @@ function renderizarEstatisticasResumo(dados) {
   // Calcular estatísticas
   const mitoMaisVezes = calcularMaisVezes(mitos);
   const micoMaisVezes = calcularMaisVezes(micos);
+
+  // Ranking completo de mitos e micos
+  const rankingMitos = calcularRankingCompleto(mitos);
+  const rankingMicos = calcularRankingCompleto(micos);
 
   const html = `
     <div class="stat-card">
@@ -624,8 +669,8 @@ function renderizarEstatisticasResumo(dados) {
 
 function calcularMaisVezes(lista) {
   const contagem = {};
-  
-  lista.forEach(item => {
+
+  lista.forEach((item) => {
     const nome = item.nome_cartola || item.nome_time || "N/D";
     contagem[nome] = (contagem[nome] || 0) + 1;
   });
@@ -643,23 +688,50 @@ function calcularMaisVezes(lista) {
   return { nome: maxNome, count: maxCount };
 }
 
+function calcularRankingCompleto(lista) {
+  const contagem = {};
+
+  lista.forEach((item) => {
+    const nome = item.nome_cartola || item.nome_time || "N/D";
+    contagem[nome] = (contagem[nome] || 0) + 1;
+  });
+
+  return Object.entries(contagem)
+    .map(([nome, count]) => ({ nome, count }))
+    .sort((a, b) => b.count - a.count);
+}
+
 function renderizarConteudoRelatorio(dados, filtro) {
   const container = getElement("relatorioContent");
   if (!container) return;
 
   const { mitos, micos } = dados;
+  const { tipo, participante } = filtro;
+
+  // Filtrar por participante se selecionado
+  let mitosFiltrados = mitos;
+  let micosFiltrados = micos;
+
+  if (participante) {
+    mitosFiltrados = mitos.filter(
+      (m) => (m.nome_cartola || m.nome_time || "N/D") === participante,
+    );
+    micosFiltrados = micos.filter(
+      (m) => (m.nome_cartola || m.nome_time || "N/D") === participante,
+    );
+  }
 
   // Agrupar por rodada
   const rodadas = {};
 
-  mitos.forEach(item => {
+  mitosFiltrados.forEach((item) => {
     if (!rodadas[item.rodada]) {
       rodadas[item.rodada] = { mito: null, mico: null };
     }
     rodadas[item.rodada].mito = item;
   });
 
-  micos.forEach(item => {
+  micosFiltrados.forEach((item) => {
     if (!rodadas[item.rodada]) {
       rodadas[item.rodada] = { mito: null, mico: null };
     }
@@ -671,21 +743,53 @@ function renderizarConteudoRelatorio(dados, filtro) {
     .map(Number)
     .sort((a, b) => a - b);
 
+  // Se filtro por participante ativo, mostrar resumo primeiro
   let html = "";
 
-  rodadasOrdenadas.forEach(numRodada => {
+  if (participante) {
+    const totalMitos = mitosFiltrados.length;
+    const totalMicos = micosFiltrados.length;
+    const saldo = totalMitos - totalMicos;
+    const saldoClass =
+      saldo > 0
+        ? "saldo-positivo"
+        : saldo < 0
+          ? "saldo-negativo"
+          : "saldo-neutro";
+
+    html += `
+      <div class="participante-resumo">
+        <div class="participante-nome">📊 ${participante}</div>
+        <div class="participante-stats">
+          <span class="stat-mito">🏆 ${totalMitos} MITO${totalMitos !== 1 ? "S" : ""}</span>
+          <span class="stat-mico">💩 ${totalMicos} MICO${totalMicos !== 1 ? "S" : ""}</span>
+          <span class="${saldoClass}">Saldo: ${saldo > 0 ? "+" : ""}${saldo}</span>
+        </div>
+      </div>
+    `;
+  }
+
+  if (rodadasOrdenadas.length === 0) {
+    html += `<div class="empty-relatorio">Nenhum resultado encontrado para os filtros selecionados.</div>`;
+    container.innerHTML = html;
+    return;
+  }
+
+  rodadasOrdenadas.forEach((numRodada) => {
     const { mito, mico } = rodadas[numRodada];
 
-    // Aplicar filtro
-    if (filtro === "mitos" && !mito) return;
-    if (filtro === "micos" && !mico) return;
+    // Aplicar filtro de tipo
+    const mostrarMito = mito && tipo !== "micos";
+    const mostrarMico = mico && tipo !== "mitos";
+
+    if (!mostrarMito && !mostrarMico) return;
 
     html += `
       <div class="rodada-card">
         <div class="rodada-card-header">Rodada ${numRodada}</div>
     `;
 
-    if (mito && filtro !== "micos") {
+    if (mostrarMito) {
       html += `
         <div class="resultado-row mito">
           <div class="resultado-badge mito">🏆 MITO</div>
@@ -698,7 +802,7 @@ function renderizarConteudoRelatorio(dados, filtro) {
       `;
     }
 
-    if (mico && filtro !== "mitos") {
+    if (mostrarMico) {
       html += `
         <div class="resultado-row mico">
           <div class="resultado-badge mico">💩 MICO</div>
@@ -731,6 +835,36 @@ export function fecharRelatorioMitosMicos() {
 
 export function aplicarFiltroRelatorio(filtro, dados) {
   renderizarConteudoRelatorio(dados, filtro);
+}
+
+// Funções expostas globalmente para os filtros
+export function aplicarFiltroTipo(tipo) {
+  filtroAtual.tipo = tipo;
+
+  // Atualizar visual dos botões
+  document.querySelectorAll(".filtro-btn").forEach((btn) => {
+    btn.classList.toggle("active", btn.dataset.tipo === tipo);
+  });
+
+  // Re-renderizar com novo filtro
+  if (window._relatorioMitosMicosData) {
+    renderizarConteudoRelatorio(window._relatorioMitosMicosData, filtroAtual);
+  }
+}
+
+export function aplicarFiltroParticipante(participante) {
+  filtroAtual.participante = participante;
+
+  // Re-renderizar com novo filtro
+  if (window._relatorioMitosMicosData) {
+    renderizarConteudoRelatorio(window._relatorioMitosMicosData, filtroAtual);
+  }
+}
+
+// Expor funções de filtro no window
+if (typeof window !== "undefined") {
+  window.aplicarFiltroTipo = aplicarFiltroTipo;
+  window.aplicarFiltroParticipante = aplicarFiltroParticipante;
 }
 
 console.log(

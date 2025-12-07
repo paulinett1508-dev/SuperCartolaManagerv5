@@ -297,6 +297,9 @@ function renderizarGridCompacto(rodadas) {
         btnContainer.style.display = "block";
     }
 
+    // Renderizar card de desempenho MITOS/MICOS
+    renderizarCardDesempenho(rodadas);
+
     // Event listeners
     container
         .querySelectorAll(".rodada-card-compacto:not(.futuro)")
@@ -361,6 +364,84 @@ function criarCardCompacto(numero, rodada, isParcial = false) {
             ${pontosTexto ? `<span class="card-pontos">${pontosTexto}</span>` : ""}
         </div>
     `;
+}
+
+// =====================================================================
+// CARD DE DESEMPENHO MITOS/MICOS
+// =====================================================================
+function renderizarCardDesempenho(rodadas) {
+    const card = document.getElementById("cardDesempenhoMitosMicos");
+    if (!card) return;
+
+    // Calcular estatísticas
+    let totalMitos = 0;
+    let totalMicos = 0;
+    let ultimoMito = null;
+    let ultimoMico = null;
+    let rodadasJogadas = 0;
+
+    rodadas.forEach((rodada) => {
+        if (!rodada.jogou || !rodada.participantes?.length) return;
+
+        rodadasJogadas++;
+
+        // Filtrar participantes ativos na rodada
+        const participantesAtivos = rodada.participantes.filter((p) => {
+            if (p.ativo === false && p.rodada_desistencia) {
+                return rodada.numero < p.rodada_desistencia;
+            }
+            return p.ativo !== false;
+        });
+
+        const totalParticipantes = participantesAtivos.length;
+
+        if (rodada.posicaoFinanceira === 1) {
+            totalMitos++;
+            ultimoMito = rodada.numero;
+        } else if (
+            rodada.posicaoFinanceira === totalParticipantes &&
+            totalParticipantes > 1
+        ) {
+            totalMicos++;
+            ultimoMico = rodada.numero;
+        }
+    });
+
+    // Calcular percentuais
+    const totalOcorrencias = totalMitos + totalMicos;
+    const percentMito =
+        totalOcorrencias > 0
+            ? Math.round((totalMitos / totalOcorrencias) * 100)
+            : 0;
+    const percentMico =
+        totalOcorrencias > 0
+            ? Math.round((totalMicos / totalOcorrencias) * 100)
+            : 0;
+
+    // Atualizar DOM
+    document.getElementById("desempBadgeRodadas").textContent =
+        `${rodadasJogadas} RODADAS`;
+    document.getElementById("desempMitosCount").textContent = totalMitos;
+    document.getElementById("desempMicosCount").textContent = totalMicos;
+    document.getElementById("desempMitoPercent").textContent =
+        `${percentMito}%`;
+    document.getElementById("desempMicoPercent").textContent =
+        `${percentMico}%`;
+    document.getElementById("progressMito").style.width = `${percentMito}%`;
+    document.getElementById("progressMico").style.width = `${percentMico}%`;
+    document.getElementById("desempUltimoMito").textContent = ultimoMito
+        ? `Rodada ${ultimoMito}`
+        : "Nenhum";
+    document.getElementById("desempUltimoMico").textContent = ultimoMico
+        ? `Rodada ${ultimoMico}`
+        : "Nenhum";
+
+    // Mostrar card
+    card.style.display = "block";
+
+    console.log(
+        `[PARTICIPANTE-RODADAS] 📊 Desempenho: ${totalMitos} MITOS, ${totalMicos} MICOS em ${rodadasJogadas} rodadas`,
+    );
 }
 
 // =====================================================================

@@ -405,7 +405,12 @@ export async function gerarRelatorioMitosMicos() {
     }
 
     // Buscar todas as rodadas (assumindo 38 rodadas como padrão)
-    const todasRodadas = await RodadasCore.getRankingsEmLote(ligaId, 1, 38, false);
+    const todasRodadas = await RodadasCore.getRankingsEmLote(
+      ligaId,
+      1,
+      38,
+      false,
+    );
 
     const mitos = [];
     const micos = [];
@@ -413,19 +418,19 @@ export async function gerarRelatorioMitosMicos() {
     let somaPontosMico = 0;
 
     // Processar cada rodada
-    Object.keys(todasRodadas).forEach(numRodada => {
+    Object.keys(todasRodadas).forEach((numRodada) => {
       const rankings = todasRodadas[numRodada];
 
       if (!rankings || rankings.length === 0) return;
 
       // Filtrar apenas participantes ativos (considerando que 'ativo: false' desativa)
-      const ativos = rankings.filter(r => r.ativo !== false);
+      const ativos = rankings.filter((r) => r.ativo !== false);
 
       if (ativos.length === 0) return;
 
       // Ordenar por pontos para identificar Mitos e Micos
-      const ordenados = [...ativos].sort((a, b) => 
-        parseFloat(b.pontos || 0) - parseFloat(a.pontos || 0)
+      const ordenados = [...ativos].sort(
+        (a, b) => parseFloat(b.pontos || 0) - parseFloat(a.pontos || 0),
       );
 
       // MITO (primeiro colocado na rodada)
@@ -434,7 +439,10 @@ export async function gerarRelatorioMitosMicos() {
       somaPontosMito += parseFloat(mito.pontos || 0);
 
       // MICO (último colocado na rodada)
-      const mico = { ...ordenados[ordenados.length - 1], rodada: parseInt(numRodada) };
+      const mico = {
+        ...ordenados[ordenados.length - 1],
+        rodada: parseInt(numRodada),
+      };
       micos.push(mico);
       somaPontosMico += parseFloat(mico.pontos || 0);
     });
@@ -445,8 +453,8 @@ export async function gerarRelatorioMitosMicos() {
       estatisticas: {
         totalRodadas: mitos.length,
         mediaMito: mitos.length > 0 ? somaPontosMito / mitos.length : 0,
-        mediaMico: micos.length > 0 ? somaPontosMico / micos.length : 0
-      }
+        mediaMico: micos.length > 0 ? somaPontosMico / micos.length : 0,
+      },
     };
 
     // Salvar dados no escopo global para uso posterior pelos filtros da UI
@@ -454,8 +462,9 @@ export async function gerarRelatorioMitosMicos() {
 
     RodadasUI.exibirRelatorioMitosMicos(dadosRelatorio);
 
-    console.log(`[RODADAS-ORQUESTRADOR] ✅ Relatório gerado: ${mitos.length} MITOS, ${micos.length} MICOS`);
-
+    console.log(
+      `[RODADAS-ORQUESTRADOR] ✅ Relatório gerado: ${mitos.length} MITOS, ${micos.length} MICOS`,
+    );
   } catch (error) {
     console.error("[RODADAS-ORQUESTRADOR] Erro ao gerar relatório:", error);
     // Usar alert nativo para feedback imediato em caso de erro crítico
@@ -490,39 +499,13 @@ async function selecionarRodadaWrapper(rodada) {
   await selecionarRodada(rodada, carregarDadosRodada);
 }
 
-// Adiciona os event listeners necessários para os botões e filtros do relatório
+// Adiciona os event listeners necessários para os botões do relatório
 function adicionarEventListenersRelatorio() {
-  // Event listener para botão de gerar relatório
-  const btnGerarRelatorio = document.getElementById("btnGerarRelatorioMitosMicos");
-  if (btnGerarRelatorio) {
-    btnGerarRelatorio.addEventListener("click", gerarRelatorioMitosMicos);
-  }
-
-  // Event listener para fechar relatório
-  const btnFecharRelatorio = document.getElementById("btnFecharRelatorio");
-  if (btnFecharRelatorio) {
-    btnFecharRelatorio.addEventListener("click", () => {
-      RodadasUI.fecharRelatorioMitosMicos();
-    });
-  }
-
-  // Event listeners para filtros
-  document.addEventListener("click", (e) => {
-    // Verifica se o clique foi em um botão de filtro
-    if (e.target.classList.contains("filtro-btn")) {
-      // Atualiza a classe 'active' nos botões de filtro
-      document.querySelectorAll(".filtro-btn").forEach(btn => {
-        btn.classList.remove("active");
-      });
-      e.target.classList.add("active");
-
-      // Aplica o filtro selecionado aos dados do relatório
-      const filtro = e.target.dataset.tipo;
-      if (window._relatorioMitosMicosData) {
-        RodadasUI.aplicarFiltroRelatorio(filtro, window._relatorioMitosMicosData);
-      }
-    }
-  });
+  // Os filtros agora usam onclick direto no HTML (renderizados em rodadas-ui.js)
+  // Mantido apenas para compatibilidade
+  console.log(
+    "[RODADAS-ORQUESTRADOR] Event listeners do relatório configurados via onclick",
+  );
 }
 
 // ==============================
@@ -539,6 +522,9 @@ if (typeof window !== "undefined") {
   // Exposição da função de gerar relatório
   window.gerarRelatorioMitosMicos = gerarRelatorioMitosMicos;
 
+  // Exposição da função de voltar para cards
+  window.voltarParaCards = voltarParaCards;
+
   // Objeto para debug
   window.rodadasOrquestradorDebug = {
     carregarRodadas,
@@ -547,14 +533,18 @@ if (typeof window !== "undefined") {
     getLigaAtual,
     getExportModules,
     isModulosCarregados,
-    selecionarRodadaDebounced: debounce(async (rodada) => { // Expondo o debounced também
+    voltarParaCards,
+    selecionarRodadaDebounced: debounce(async (rodada) => {
+      // Expondo o debounced também
       await selecionarRodadaWrapper(rodada);
     }, 300),
     resetEstado,
     adicionarEventListenersRelatorio, // Expondo para testes
   };
 
-  console.log("[RODADAS-ORQUESTRADOR] ✅ Orquestrador inicializado com UI redesenhada e Relatório Mitos/Micos");
+  console.log(
+    "[RODADAS-ORQUESTRADOR] ✅ Orquestrador inicializado com UI redesenhada e Relatório Mitos/Micos",
+  );
 }
 
 // ==============================
@@ -577,7 +567,7 @@ export async function forcarRecarregamento() {
   console.log("[RODADAS-ORQUESTRADOR] Forçando recarregamento completo...");
 
   // Importar dinamicamente para evitar dependência circular se rodadas-cache.js importar algo daqui
-  const { limparCache } = await import("./rodadas-cache.js"); 
+  const { limparCache } = await import("./rodadas-cache.js");
   limparCache(); // Limpa o cache específico do rodadas-cache
   clearDOMCache(); // Limpa o cache de elementos DOM
   limparCacheUI(); // Limpa caches específicos da UI
@@ -600,9 +590,10 @@ export function resetEstado() {
   // Não resetar modulosCarregados, ligaIdAtual ou exportModules aqui, pois podem ser necessários
   // para outras partes do app que podem chamar resetEstado e depois querer continuar.
   // Se for necessário um reset completo, forcarRecarregamento é a função apropriada.
-  console.log("[RODADAS-ORQUESTRADOR] Estado de carregamento e UI resetado para re-entrada");
+  console.log(
+    "[RODADAS-ORQUESTRADOR] Estado de carregamento e UI resetado para re-entrada",
+  );
 }
 
-
-// Exportações principais
-export { selecionarRodadaWrapper as selecionarRodada, carregarDadosRodada, gerarRelatorioMitosMicos };
+// Exportação do wrapper com alias
+export { selecionarRodadaWrapper as selecionarRodada };
