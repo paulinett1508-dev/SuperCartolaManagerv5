@@ -76,6 +76,16 @@ app.use(express.urlencoded({ extended: true, limit: "50mb" }));
 // Configuração CORS
 app.use(cors());
 
+// TESTE DIRETO - sem router
+app.get("/api/teste-direto", (req, res) => {
+  res.json({ teste: "ok", timestamp: new Date() });
+});
+
+// TESTE DIRETO - com path admin
+app.get("/api/admin/teste-admin", (req, res) => {
+  res.json({ testeAdmin: "ok", timestamp: new Date() });
+});
+
 // DEBUG - ver todas as requisições
 app.use((req, res, next) => {
   console.log(`[REQUEST] ${req.method} ${req.path}`);
