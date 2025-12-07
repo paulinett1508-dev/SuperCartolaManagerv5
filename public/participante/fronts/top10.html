@@ -1,9 +1,11 @@
-<!-- PARTICIPANTE TOP10 - v3.0 Design PRO -->
+<!-- PARTICIPANTE TOP10 - v3.1 Design PRO (Material Icons) -->
 <div class="top10-participante-container">
     <!-- Header -->
     <div class="top10-header-pro">
         <div class="top10-title-row">
-            <span class="top10-emoji">🏆</span>
+            <span class="material-symbols-outlined top10-icon-header"
+                >emoji_events</span
+            >
             <h2>TOP 10 MITOS E MICOS</h2>
         </div>
         <p class="top10-subtitle">As melhores e piores pontuações do ano</p>
@@ -18,9 +20,59 @@
     <!-- Container das Tabelas -->
     <div id="top10Grid" class="top10-tabelas-grid"></div>
 
+    <!-- Card Resumo Desempenho -->
+    <div id="top10ResumoCard" class="top10-resumo-card" style="display: none">
+        <div class="top10-resumo-header">
+            <span class="material-symbols-outlined">analytics</span>
+            <span class="top10-resumo-title">Seu Desempenho no TOP 10</span>
+        </div>
+        <div class="top10-resumo-grid">
+            <div class="top10-resumo-stat mito">
+                <span class="material-symbols-outlined">emoji_events</span>
+                <div class="top10-resumo-info">
+                    <span id="resumoMitosCount" class="top10-resumo-value"
+                        >0</span
+                    >
+                    <span class="top10-resumo-label">Aparições MITOS</span>
+                </div>
+            </div>
+            <div class="top10-resumo-stat mico">
+                <span class="material-symbols-outlined">thumb_down</span>
+                <div class="top10-resumo-info">
+                    <span id="resumoMicosCount" class="top10-resumo-value"
+                        >0</span
+                    >
+                    <span class="top10-resumo-label">Aparições MICOS</span>
+                </div>
+            </div>
+        </div>
+        <div class="top10-resumo-totais">
+            <div class="top10-resumo-total">
+                <span class="top10-resumo-total-label">Total Bônus</span>
+                <span
+                    id="resumoBonusTotal"
+                    class="top10-resumo-total-value bonus"
+                    >+R$ 0,00</span
+                >
+            </div>
+            <div class="top10-resumo-total">
+                <span class="top10-resumo-total-label">Total Ônus</span>
+                <span id="resumoOnusTotal" class="top10-resumo-total-value onus"
+                    >-R$ 0,00</span
+                >
+            </div>
+            <div class="top10-resumo-total saldo">
+                <span class="top10-resumo-total-label">Saldo</span>
+                <span id="resumoSaldo" class="top10-resumo-total-value"
+                    >R$ 0,00</span
+                >
+            </div>
+        </div>
+    </div>
+
     <!-- Estado Vazio -->
     <div id="top10Empty" class="top10-empty-state" style="display: none">
-        <span class="empty-emoji">📊</span>
+        <span class="material-symbols-outlined empty-icon">bar_chart</span>
         <h3>TOP 10 Indisponível</h3>
         <p>Os dados estarão disponíveis após a primeira rodada</p>
     </div>
@@ -37,12 +89,14 @@
                     class="modal-close-btn"
                     onclick="window.fecharModalTop10()"
                 >
-                    ✕
+                    <span class="material-symbols-outlined">close</span>
                 </button>
             </div>
             <div class="top10-modal-body">
                 <div class="modal-em-desenvolvimento">
-                    <span class="dev-emoji">🚧</span>
+                    <span class="material-symbols-outlined dev-icon"
+                        >construction</span
+                    >
                     <h4>Funcionalidade em desenvolvimento</h4>
                     <p>Em breve você poderá ver os jogadores escalados</p>
                 </div>
@@ -59,14 +113,14 @@
 
     <!-- Toast -->
     <div id="toastTop10" class="toast-top10">
-        <span class="toast-emoji">🚧</span>
+        <span class="material-symbols-outlined toast-icon">construction</span>
         <span id="toastTop10Msg">Funcionalidade em desenvolvimento</span>
     </div>
 </div>
 
 <style>
     /* ============================================
-   TOP10 PARTICIPANTE v3.0 - Design PRO
+   TOP10 PARTICIPANTE v3.1 - Design PRO (Material Icons)
    ============================================ */
 
     .top10-participante-container {
@@ -87,8 +141,12 @@
         gap: 10px;
     }
 
-    .top10-emoji {
+    .top10-icon-header {
         font-size: 28px;
+        color: #f97316;
+        font-variation-settings:
+            "FILL" 1,
+            "wght" 600;
     }
 
     .top10-header-pro h2 {
@@ -157,28 +215,31 @@
         font-size: 15px;
     }
 
+    .top10-tabela-header .material-symbols-outlined {
+        font-size: 22px;
+        font-variation-settings:
+            "FILL" 1,
+            "wght" 500;
+    }
+
     .top10-tabela-header.mitos {
         background: linear-gradient(
             135deg,
-            rgba(46, 204, 113, 0.15) 0%,
-            rgba(46, 204, 113, 0.05) 100%
+            rgba(34, 197, 94, 0.15) 0%,
+            rgba(34, 197, 94, 0.05) 100%
         );
-        color: #2ecc71;
-        border-bottom: 3px solid #2ecc71;
+        color: #22c55e;
+        border-bottom: 3px solid #22c55e;
     }
 
     .top10-tabela-header.micos {
         background: linear-gradient(
             135deg,
-            rgba(231, 76, 60, 0.15) 0%,
-            rgba(231, 76, 60, 0.05) 100%
+            rgba(239, 68, 68, 0.15) 0%,
+            rgba(239, 68, 68, 0.05) 100%
         );
-        color: #e74c3c;
-        border-bottom: 3px solid #e74c3c;
-    }
-
-    .top10-tabela-icone {
-        font-size: 22px;
+        color: #ef4444;
+        border-bottom: 3px solid #ef4444;
     }
 
     /* Tabela */
@@ -208,6 +269,12 @@
         padding-left: 12px;
     }
 
+    .tabela-top10-pro th .material-symbols-outlined {
+        font-size: 16px;
+        vertical-align: middle;
+        font-variation-settings: "FILL" 1;
+    }
+
     .tabela-top10-pro tbody tr {
         border-bottom: 1px solid #2a2a2a;
         transition: background 0.2s ease;
@@ -227,13 +294,23 @@
         color: #e5e7eb;
     }
 
-    /* Linha MEU TIME */
-    .tabela-top10-pro tbody tr.meu-time {
-        background: rgba(249, 115, 22, 0.12);
+    /* Linha MEU TIME - MITOS (verde) */
+    .tabela-top10-pro tbody tr.meu-time-mitos {
+        background: rgba(34, 197, 94, 0.12);
     }
 
-    .tabela-top10-pro tbody tr.meu-time td {
-        color: #f97316;
+    .tabela-top10-pro tbody tr.meu-time-mitos td {
+        color: #22c55e;
+        font-weight: 600;
+    }
+
+    /* Linha MEU TIME - MICOS (vermelho) */
+    .tabela-top10-pro tbody tr.meu-time-micos {
+        background: rgba(239, 68, 68, 0.12);
+    }
+
+    .tabela-top10-pro tbody tr.meu-time-micos td {
+        color: #ef4444;
         font-weight: 600;
     }
 
@@ -247,6 +324,13 @@
         border-radius: 6px;
         font-weight: 700;
         font-size: 12px;
+    }
+
+    .posicao-badge-top10 .material-symbols-outlined {
+        font-size: 16px;
+        font-variation-settings:
+            "FILL" 1,
+            "wght" 600;
     }
 
     .posicao-badge-top10.gold {
@@ -267,7 +351,6 @@
     .posicao-badge-top10.skull {
         background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
         color: white;
-        font-size: 14px;
     }
 
     .posicao-badge-top10.default {
@@ -308,9 +391,10 @@
         transform: scale(1.15);
     }
 
-    .escudo-placeholder {
-        font-size: 18px;
-        opacity: 0.5;
+    .escudo-placeholder .material-symbols-outlined {
+        font-size: 20px;
+        color: #6b7280;
+        font-variation-settings: "FILL" 0;
     }
 
     /* Pontos */
@@ -328,12 +412,12 @@
     /* Bônus/Ônus */
     .valor-bonus {
         font-weight: 700;
-        color: #2ecc71;
+        color: #22c55e;
     }
 
     .valor-onus {
         font-weight: 700;
-        color: #e74c3c;
+        color: #ef4444;
     }
 
     /* Botão Ver Time */
@@ -342,13 +426,193 @@
         border: none;
         color: #f97316;
         cursor: pointer;
-        font-size: 16px;
         padding: 4px;
         transition: transform 0.2s;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+
+    .btn-ver-time .material-symbols-outlined {
+        font-size: 18px;
+        font-variation-settings: "FILL" 0;
     }
 
     .btn-ver-time:hover {
         transform: scale(1.2);
+    }
+
+    .btn-ver-time:hover .material-symbols-outlined {
+        font-variation-settings: "FILL" 1;
+    }
+
+    /* ============================================
+   CARD RESUMO DESEMPENHO
+   ============================================ */
+
+    .top10-resumo-card {
+        background: rgba(0, 0, 0, 0.35);
+        border-radius: 12px;
+        padding: 16px;
+        margin-top: 20px;
+        border: 1px solid rgba(255, 255, 255, 0.06);
+        position: relative;
+        overflow: hidden;
+    }
+
+    .top10-resumo-card::before {
+        content: "";
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        height: 2px;
+        background: linear-gradient(
+            90deg,
+            #22c55e 0%,
+            #f97316 50%,
+            #ef4444 100%
+        );
+    }
+
+    .top10-resumo-header {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        margin-bottom: 16px;
+    }
+
+    .top10-resumo-header .material-symbols-outlined {
+        font-size: 20px;
+        color: #f97316;
+        font-variation-settings:
+            "FILL" 1,
+            "wght" 500;
+    }
+
+    .top10-resumo-title {
+        font-size: 14px;
+        font-weight: 700;
+        color: #fff;
+    }
+
+    .top10-resumo-grid {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 12px;
+        margin-bottom: 16px;
+    }
+
+    .top10-resumo-stat {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        padding: 12px;
+        background: rgba(0, 0, 0, 0.3);
+        border-radius: 8px;
+        border: 1px solid transparent;
+    }
+
+    .top10-resumo-stat.mito {
+        border-color: rgba(34, 197, 94, 0.2);
+    }
+
+    .top10-resumo-stat.mico {
+        border-color: rgba(239, 68, 68, 0.2);
+    }
+
+    .top10-resumo-stat .material-symbols-outlined {
+        font-size: 24px;
+        font-variation-settings:
+            "FILL" 1,
+            "wght" 500;
+    }
+
+    .top10-resumo-stat.mito .material-symbols-outlined {
+        color: #22c55e;
+    }
+
+    .top10-resumo-stat.mico .material-symbols-outlined {
+        color: #ef4444;
+    }
+
+    .top10-resumo-info {
+        display: flex;
+        flex-direction: column;
+    }
+
+    .top10-resumo-value {
+        font-size: 24px;
+        font-weight: 800;
+        line-height: 1;
+    }
+
+    .top10-resumo-stat.mito .top10-resumo-value {
+        color: #22c55e;
+    }
+
+    .top10-resumo-stat.mico .top10-resumo-value {
+        color: #ef4444;
+    }
+
+    .top10-resumo-label {
+        font-size: 10px;
+        color: #9ca3af;
+        text-transform: uppercase;
+        margin-top: 4px;
+    }
+
+    .top10-resumo-totais {
+        display: flex;
+        gap: 12px;
+        padding-top: 16px;
+        border-top: 1px solid rgba(255, 255, 255, 0.06);
+    }
+
+    .top10-resumo-total {
+        flex: 1;
+        text-align: center;
+        padding: 10px 8px;
+        background: rgba(0, 0, 0, 0.2);
+        border-radius: 8px;
+    }
+
+    .top10-resumo-total.saldo {
+        background: rgba(249, 115, 22, 0.1);
+        border: 1px solid rgba(249, 115, 22, 0.2);
+    }
+
+    .top10-resumo-total-label {
+        display: block;
+        font-size: 9px;
+        color: #6b7280;
+        text-transform: uppercase;
+        margin-bottom: 4px;
+    }
+
+    .top10-resumo-total-value {
+        font-size: 14px;
+        font-weight: 700;
+    }
+
+    .top10-resumo-total-value.bonus {
+        color: #22c55e;
+    }
+
+    .top10-resumo-total-value.onus {
+        color: #ef4444;
+    }
+
+    .top10-resumo-total.saldo .top10-resumo-total-value {
+        color: #f97316;
+    }
+
+    .top10-resumo-total.saldo .top10-resumo-total-value.positivo {
+        color: #22c55e;
+    }
+
+    .top10-resumo-total.saldo .top10-resumo-total-value.negativo {
+        color: #ef4444;
     }
 
     /* ============================================
@@ -413,6 +677,10 @@
         transition: all 0.2s;
     }
 
+    .modal-close-btn .material-symbols-outlined {
+        font-size: 18px;
+    }
+
     .modal-close-btn:hover {
         background: #444;
         color: white;
@@ -429,10 +697,12 @@
         padding: 40px 20px;
     }
 
-    .modal-em-desenvolvimento .dev-emoji {
+    .modal-em-desenvolvimento .dev-icon {
         font-size: 48px;
+        color: #f97316;
         display: block;
         margin-bottom: 16px;
+        font-variation-settings: "FILL" 0;
     }
 
     .modal-em-desenvolvimento h4 {
@@ -486,10 +756,12 @@
         color: #6b7280;
     }
 
-    .top10-empty-state .empty-emoji {
+    .top10-empty-state .empty-icon {
         font-size: 64px;
         display: block;
         margin-bottom: 16px;
+        color: #4b5563;
+        font-variation-settings: "FILL" 0;
     }
 
     .top10-empty-state h3 {
@@ -534,8 +806,50 @@
         transform: translateX(-50%) translateY(0);
     }
 
-    .toast-top10 .toast-emoji {
+    .toast-top10 .toast-icon {
         font-size: 20px;
+        color: #f97316;
+        font-variation-settings: "FILL" 0;
+    }
+
+    /* ============================================
+   INATIVOS
+   ============================================ */
+
+    .top10-divisor-inativos {
+        background: rgba(63, 63, 70, 0.5);
+        border-top: 1px solid #3f3f46;
+        border-bottom: 1px solid #3f3f46;
+        padding: 8px 12px;
+        font-size: 10px;
+        color: #6b7280;
+        font-weight: 500;
+        display: flex;
+        align-items: center;
+        gap: 6px;
+    }
+
+    .top10-divisor-inativos .material-symbols-outlined {
+        font-size: 14px;
+        font-variation-settings: "FILL" 0;
+    }
+
+    .linha-inativa {
+        opacity: 0.5;
+        filter: grayscale(60%);
+    }
+
+    .linha-inativa .nome-texto {
+        color: #6b7280 !important;
+    }
+
+    .linha-inativa .pontos-valor {
+        color: #6b7280 !important;
+    }
+
+    .linha-inativa .valor-bonus,
+    .linha-inativa .valor-onus {
+        color: #6b7280 !important;
     }
 
     /* ============================================
@@ -569,6 +883,27 @@
             width: 24px;
             height: 24px;
             font-size: 10px;
+        }
+
+        .top10-resumo-grid {
+            gap: 8px;
+        }
+
+        .top10-resumo-stat {
+            padding: 10px 8px;
+            gap: 8px;
+        }
+
+        .top10-resumo-value {
+            font-size: 20px;
+        }
+
+        .top10-resumo-totais {
+            gap: 8px;
+        }
+
+        .top10-resumo-total-value {
+            font-size: 12px;
         }
     }
 </style>

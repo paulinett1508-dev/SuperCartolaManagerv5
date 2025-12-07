@@ -391,21 +391,40 @@
         line-height: 1;
     }
 
-    /* Badges de Destaque */
-    .rodada-card-compacto.mito::after {
-        content: "🎩";
+    /* Badges de Destaque - MITO/MICO */
+    .rodada-card-compacto .badge-destaque {
         position: absolute;
         top: -6px;
         right: -6px;
-        font-size: 14px;
+        width: 18px;
+        height: 18px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
     }
 
-    .rodada-card-compacto.mico::after {
-        content: "🐵";
-        position: absolute;
-        top: -6px;
-        right: -6px;
-        font-size: 14px;
+    .rodada-card-compacto .badge-destaque .material-symbols-outlined {
+        font-size: 12px;
+        font-variation-settings:
+            "FILL" 1,
+            "wght" 600;
+    }
+
+    .rodada-card-compacto.mito .badge-destaque {
+        background: rgba(34, 197, 94, 0.9);
+    }
+
+    .rodada-card-compacto.mito .badge-destaque .material-symbols-outlined {
+        color: #fff;
+    }
+
+    .rodada-card-compacto.mico .badge-destaque {
+        background: rgba(239, 68, 68, 0.9);
+    }
+
+    .rodada-card-compacto.mico .badge-destaque .material-symbols-outlined {
+        color: #fff;
     }
 
     /* Botão Ver Jogadores */

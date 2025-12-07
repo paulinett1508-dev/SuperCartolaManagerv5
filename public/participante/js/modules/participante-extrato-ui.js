@@ -1,13 +1,20 @@
 // =====================================================
-// MÓDULO: UI DO EXTRATO PARTICIPANTE - v6.3 POSIÇÃO MITO/MICO
+// MÓDULO: UI DO EXTRATO PARTICIPANTE - v7.1 CARD DESEMPENHO
 // =====================================================
-// ✅ v6.3: Posição mostra badge MITO/MICO em vez de número
-//    - 1º lugar → badge MITO
-//    - Último lugar (contextual por rodada) → badge MICO
-//    - Demais posições → número (ex: 2º, 3º)
+// ✅ v7.1: Card "Seu Desempenho" com métricas completas
+//    - Mitos, Micos, Mata-Mata (V-D), P.Corridos (V-D)
+//    - Zona +/-, Goleadas, Aproveitamento %
+//    - Recordes: Maior Ganho e Maior Perda
+// ✅ v7.0: Sistema de cores por tipo de premiação
+//    - MITO: verde | MICO: vermelho
+//    - Top 10 MITOS: azul | Top 10 MICOS: vermelho
+//    - Mata-Mata ganhou: azul | perdeu: vermelho
+//    - P.Corridos ganhou: laranja | perdeu: vermelho | goleada: amarelo
+//    - Valores monetários com vírgula (ex: 5,00)
+//    - Rodadas com "ª" (ex: 35ª)
 // =====================================================
 
-console.log("[EXTRATO-UI] 🎨 Módulo de UI v6.3 Posição MITO/MICO");
+console.log("[EXTRATO-UI] 🎨 Módulo de UI v7.1 Card Desempenho");
 
 // ===== CONFIGURAÇÃO DE FAIXAS POR LIGA (COM SUPORTE TEMPORAL) =====
 const FAIXAS_PREMIACAO = {
@@ -151,12 +158,21 @@ function renderizarConteudoCompleto(container, extrato) {
     const saldoFormatado = `R$ ${Math.abs(saldo).toFixed(2).replace(".", ",")}`;
     const statusTexto = saldoPositivo ? "A RECEBER" : "A PAGAR";
 
-    // Detectar liga
+    // Detectar liga - múltiplas fontes
     const ligaId =
         extrato.liga_id ||
         extrato.ligaId ||
         window.PARTICIPANTE_IDS?.ligaId ||
+        window.participanteData?.ligaId ||
         "";
+
+    // Debug: verificar se ligaId está chegando
+    console.log(
+        "[EXTRATO-UI] 🔍 LigaId detectado:",
+        ligaId,
+        "| Config existe:",
+        !!FAIXAS_PREMIACAO[ligaId],
+    );
 
     // Salvar para uso global
     window.ligaIdAtual = ligaId;
@@ -243,6 +259,9 @@ function renderizarConteudoCompleto(container, extrato) {
             </div>
         </div>
 
+        <!-- Card Seu Desempenho (após rodadas) -->
+        ${renderizarCardDesempenho(rodadasOrdenadas, ligaId)}
+
         <!-- Modal TOP10 Info -->
         <div id="modalTop10Info" class="fixed inset-0 z-50 hidden items-center justify-center bg-black/70 backdrop-blur-sm p-4" onclick="this.classList.add('hidden'); this.classList.remove('flex');">
             <div onclick="event.stopPropagation()" class="bg-zinc-900 rounded-2xl w-full max-w-sm overflow-hidden shadow-2xl border border-zinc-700">
@@ -263,6 +282,148 @@ function renderizarConteudoCompleto(container, extrato) {
     `;
 }
 
+// ===== RENDERIZAR CARD SEU DESEMPENHO =====
+function renderizarCardDesempenho(rodadas, ligaId) {
+    if (!rodadas || rodadas.length === 0) return "";
+
+    // Calcular métricas
+    let mitos = 0,
+        micos = 0;
+    let zonaCredito = 0,
+        zonaDebito = 0;
+    let mmVitorias = 0,
+        mmDerrotas = 0;
+    let pcVitorias = 0,
+        pcDerrotas = 0;
+    let goleadas = 0;
+    let rodadasPositivas = 0;
+    let maiorGanho = { valor: 0, rodada: 0 };
+    let maiorPerda = { valor: 0, rodada: 0 };
+
+    rodadas.forEach((r) => {
+        const faixas = getFaixasParaRodada(ligaId, r.rodada);
+        const totalTimes = faixas?.totalTimes || 6;
+
+        // MITO/MICO
+        if (r.posicao === 1) mitos++;
+        if (r.posicao === totalTimes) micos++;
+
+        // Zonas
+        if (r.posicao && r.posicao <= faixas.credito.fim) zonaCredito++;
+        if (r.posicao && r.posicao >= faixas.debito.inicio) zonaDebito++;
+
+        // Mata-Mata
+        if (r.mataMata && r.mataMata > 0) mmVitorias++;
+        if (r.mataMata && r.mataMata < 0) mmDerrotas++;
+
+        // Pontos Corridos
+        if (r.pontosCorridos && r.pontosCorridos > 0) pcVitorias++;
+        if (r.pontosCorridos && r.pontosCorridos < 0) pcDerrotas++;
+
+        // Goleadas
+        if (r.goleada && r.goleada > 0) goleadas++;
+
+        // Saldo da rodada
+        const saldoRodada =
+            (r.bonusOnus || 0) +
+            (r.pontosCorridos || 0) +
+            (r.mataMata || 0) +
+            (r.top10 || 0) +
+            (r.goleada || 0);
+        if (saldoRodada > 0) rodadasPositivas++;
+
+        // Recordes
+        if (saldoRodada > maiorGanho.valor) {
+            maiorGanho = { valor: saldoRodada, rodada: r.rodada };
+        }
+        if (saldoRodada < maiorPerda.valor) {
+            maiorPerda = { valor: saldoRodada, rodada: r.rodada };
+        }
+    });
+
+    const aproveitamento =
+        rodadas.length > 0
+            ? Math.round((rodadasPositivas / rodadas.length) * 100)
+            : 0;
+
+    return `
+        <div class="bg-gradient-to-br from-zinc-800/90 to-zinc-900/95 rounded-xl border border-orange-500/30 p-4 mb-4">
+            <div class="flex items-center gap-2 mb-4">
+                <span class="material-icons text-orange-400 text-xl">analytics</span>
+                <h3 class="text-sm font-bold text-white">Seu Desempenho</h3>
+            </div>
+
+            <!-- Linha 1: Mitos, Micos, Mata-Mata, P.Corridos -->
+            <div class="grid grid-cols-4 gap-2 mb-3">
+                <div class="text-center p-2 bg-black/30 rounded-lg">
+                    <span class="material-icons text-green-400 text-base">military_tech</span>
+                    <span class="block text-base font-extrabold text-green-400">${mitos}x</span>
+                    <span class="text-[8px] text-gray-400 uppercase">Mitos</span>
+                </div>
+                <div class="text-center p-2 bg-black/30 rounded-lg">
+                    <span class="material-icons text-red-400 text-base">thumb_down</span>
+                    <span class="block text-base font-extrabold text-red-400">${micos}x</span>
+                    <span class="text-[8px] text-gray-400 uppercase">Micos</span>
+                </div>
+                <div class="text-center p-2 bg-black/30 rounded-lg">
+                    <span class="material-icons text-blue-400 text-base">emoji_events</span>
+                    <span class="block text-base font-extrabold text-blue-400">${mmVitorias}-${mmDerrotas}</span>
+                    <span class="text-[8px] text-gray-400 uppercase">Mata-Mata</span>
+                </div>
+                <div class="text-center p-2 bg-black/30 rounded-lg">
+                    <span class="material-icons text-orange-400 text-base">sports_soccer</span>
+                    <span class="block text-base font-extrabold text-orange-400">${pcVitorias}-${pcDerrotas}</span>
+                    <span class="text-[8px] text-gray-400 uppercase">P. Corridos</span>
+                </div>
+            </div>
+
+            <!-- Linha 2: Zona+, Zona-, Goleadas, Aproveitamento -->
+            <div class="grid grid-cols-4 gap-2 mb-3">
+                <div class="text-center p-2 bg-black/30 rounded-lg">
+                    <span class="material-icons text-green-400 text-base">trending_up</span>
+                    <span class="block text-base font-extrabold text-green-400">${zonaCredito}x</span>
+                    <span class="text-[8px] text-gray-400 uppercase">Zona +</span>
+                </div>
+                <div class="text-center p-2 bg-black/30 rounded-lg">
+                    <span class="material-icons text-red-400 text-base">trending_down</span>
+                    <span class="block text-base font-extrabold text-red-400">${zonaDebito}x</span>
+                    <span class="text-[8px] text-gray-400 uppercase">Zona -</span>
+                </div>
+                <div class="text-center p-2 bg-black/30 rounded-lg">
+                    <span class="material-icons text-yellow-400 text-base">whatshot</span>
+                    <span class="block text-base font-extrabold text-yellow-400">${goleadas}x</span>
+                    <span class="text-[8px] text-gray-400 uppercase">Goleadas</span>
+                </div>
+                <div class="text-center p-2 bg-black/30 rounded-lg">
+                    <span class="material-icons text-orange-400 text-base">percent</span>
+                    <span class="block text-base font-extrabold text-orange-400">${aproveitamento}%</span>
+                    <span class="text-[8px] text-gray-400 uppercase">Aproveit.</span>
+                </div>
+            </div>
+
+            <!-- Recordes -->
+            <div class="grid grid-cols-2 gap-2 pt-3 border-t border-white/10">
+                <div class="flex items-center gap-2 p-2 bg-black/20 rounded-lg">
+                    <span class="material-icons text-green-400 text-base">arrow_upward</span>
+                    <div class="flex-1">
+                        <span class="text-[8px] text-gray-400 uppercase block">Maior Ganho</span>
+                        <span class="text-xs font-bold text-green-400">+R$ ${maiorGanho.valor.toFixed(2).replace(".", ",")}</span>
+                        <span class="text-[8px] text-gray-500 block">Rodada ${maiorGanho.rodada}ª</span>
+                    </div>
+                </div>
+                <div class="flex items-center gap-2 p-2 bg-black/20 rounded-lg">
+                    <span class="material-icons text-red-400 text-base">arrow_downward</span>
+                    <div class="flex-1">
+                        <span class="text-[8px] text-gray-400 uppercase block">Maior Perda</span>
+                        <span class="text-xs font-bold text-red-400">-R$ ${Math.abs(maiorPerda.valor).toFixed(2).replace(".", ",")}</span>
+                        <span class="text-[8px] text-gray-500 block">Rodada ${maiorPerda.rodada}ª</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    `;
+}
+
 // ===== RENDERIZAR CARDS DAS RODADAS =====
 function renderizarCardsRodadas(rodadasArray, ligaId) {
     if (!rodadasArray || rodadasArray.length === 0) {
@@ -272,6 +433,16 @@ function renderizarCardsRodadas(rodadasArray, ligaId) {
                 Sem dados de rodadas
             </div>
         `;
+    }
+
+    // Debug: log da primeira rodada para verificar dados
+    if (rodadasArray.length > 0) {
+        const primeiraRodada = rodadasArray[0];
+        console.log("[EXTRATO-UI] 🔍 Amostra rodada:", {
+            rodada: primeiraRodada.rodada,
+            posicao: primeiraRodada.posicao,
+            temPosicao: primeiraRodada.posicao !== undefined,
+        });
     }
 
     return rodadasArray
@@ -317,12 +488,12 @@ function renderizarCardsRodadas(rodadasArray, ligaId) {
             // Label de posição (MITO/MICO ou número)
             let posicaoHtml = "";
             if (isMito) {
-                posicaoHtml = `<span class="bg-yellow-500 text-black text-[10px] font-bold px-1.5 py-0.5 rounded flex items-center gap-0.5">
+                posicaoHtml = `<span class="bg-green-500 text-white text-[10px] font-bold px-1.5 py-0.5 rounded flex items-center gap-0.5">
                 <span class="material-icons" style="font-size:12px">military_tech</span>MITO
             </span>`;
             } else if (isMico) {
-                posicaoHtml = `<span class="bg-purple-600 text-white text-[10px] font-bold px-1.5 py-0.5 rounded flex items-center gap-0.5">
-                <span class="material-icons" style="font-size:12px">sentiment_very_dissatisfied</span>MICO
+                posicaoHtml = `<span class="bg-red-500 text-white text-[10px] font-bold px-1.5 py-0.5 rounded flex items-center gap-0.5">
+                <span class="material-icons" style="font-size:12px">thumb_down</span>MICO
             </span>`;
             } else if (posicao) {
                 posicaoHtml = `<span class="${posicaoBgClass} text-[10px] font-bold px-1.5 py-0.5 rounded">${posicao}º</span>`;
@@ -343,7 +514,7 @@ function renderizarCardsRodadas(rodadasArray, ligaId) {
                 <!-- Linha 1: Rodada + Posição + Badges + Saldo -->
                 <div class="flex justify-between items-center">
                     <div class="flex items-center gap-2">
-                        <span class="text-white font-bold text-base">${rodadaNum}</span>
+                        <span class="text-white font-bold text-base">${rodadaNum}ª</span>
                         ${posicaoHtml}
                         ${badgesAdicionaisHtml}
                     </div>
@@ -361,20 +532,24 @@ function renderizarCardsRodadas(rodadasArray, ligaId) {
 function renderizarBadgesAdicionais(r) {
     const badges = [];
 
-    // Top10 MITO (positivo)
+    // Top10 MITO (positivo) - AZUL com posição no ranking (se disponível)
     if (r.top10 && r.top10 > 0) {
+        const valorFormatado = r.top10.toFixed(2).replace(".", ",");
+        const posicaoTexto = r.top10Posicao ? `${r.top10Posicao}º ` : "";
         badges.push(`
-            <span class="bg-yellow-500 text-black text-[10px] font-bold px-1.5 py-0.5 rounded flex items-center gap-0.5">
-                <span class="material-icons" style="font-size:12px">military_tech</span>MITO
+            <span class="inline-flex items-center gap-0.5 bg-blue-500/20 border border-blue-500/30 text-blue-400 text-[10px] font-bold px-1.5 py-0.5 rounded">
+                <span class="material-icons" style="font-size:12px">star</span>Top 10: ${posicaoTexto}+${valorFormatado}
             </span>
         `);
     }
 
-    // Top10 MICO (negativo)
+    // Top10 MICO (negativo) - VERMELHO com posição no ranking (se disponível)
     if (r.top10 && r.top10 < 0) {
+        const valorFormatado = Math.abs(r.top10).toFixed(2).replace(".", ",");
+        const posicaoTexto = r.top10Posicao ? `${r.top10Posicao}º ` : "";
         badges.push(`
-            <span class="bg-purple-600 text-white text-[10px] font-bold px-1.5 py-0.5 rounded flex items-center gap-0.5">
-                <span class="material-icons" style="font-size:12px">sentiment_very_dissatisfied</span>MICO
+            <span class="inline-flex items-center gap-0.5 bg-red-500/20 border border-red-500/30 text-red-400 text-[10px] font-bold px-1.5 py-0.5 rounded">
+                <span class="material-icons" style="font-size:12px">star</span>Top 10: ${posicaoTexto}-${valorFormatado}
             </span>
         `);
     }
@@ -391,13 +566,13 @@ function renderizarBadges(r, faixas) {
 function renderizarDetalhamento(r) {
     const items = [];
 
-    // Crédito/Débito (antigo Bônus/Ônus)
+    // Crédito/Débito posição - VERDE ganho, VERMELHO perda
     if (r.bonusOnus && r.bonusOnus !== 0) {
         if (r.bonusOnus > 0) {
-            items.push(criarTagCredito("Crédito", r.bonusOnus, "add_circle"));
+            items.push(criarTagVerde("Crédito", r.bonusOnus, "add_circle"));
         } else {
             items.push(
-                criarTagDebito(
+                criarTagVermelho(
                     "Débito",
                     Math.abs(r.bonusOnus),
                     "remove_circle",
@@ -406,20 +581,20 @@ function renderizarDetalhamento(r) {
         }
     }
 
-    // Pontos Corridos
+    // Pontos Corridos - LARANJA ganho, VERMELHO perda
     if (r.pontosCorridos && r.pontosCorridos !== 0) {
         if (r.pontosCorridos > 0) {
             items.push(
-                criarTagCredito(
-                    "Pontos Corridos",
+                criarTagLaranja(
+                    "P.Corridos",
                     r.pontosCorridos,
                     "sports_soccer",
                 ),
             );
         } else {
             items.push(
-                criarTagDebito(
-                    "Pontos Corridos",
+                criarTagVermelho(
+                    "P.Corridos",
                     Math.abs(r.pontosCorridos),
                     "sports_soccer",
                 ),
@@ -427,33 +602,27 @@ function renderizarDetalhamento(r) {
         }
     }
 
-    // Mata-Mata
+    // Goleada - AMARELO (sempre positivo)
+    if (r.goleada && r.goleada > 0) {
+        items.push(criarTagAmarelo("Goleada", r.goleada, "whatshot"));
+    }
+
+    // Mata-Mata - AZUL ganho, VERMELHO perda
     if (r.mataMata && r.mataMata !== 0) {
         if (r.mataMata > 0) {
-            items.push(
-                criarTagCredito("Mata-Mata", r.mataMata, "emoji_events"),
-            );
+            items.push(criarTagAzul("Mata-Mata", r.mataMata, "emoji_events"));
         } else {
             items.push(
-                criarTagDebito(
+                criarTagVermelho(
                     "Mata-Mata",
                     Math.abs(r.mataMata),
-                    "emoji_events",
+                    "sports_mma",
                 ),
             );
         }
     }
 
-    // Top 10
-    if (r.top10 && r.top10 !== 0) {
-        if (r.top10 > 0) {
-            items.push(criarTagCredito("Top 10", r.top10, "star"));
-        } else {
-            items.push(
-                criarTagDebito("Top 10", Math.abs(r.top10), "star_border"),
-            );
-        }
-    }
+    // Top 10 - já renderizado nos badges adicionais, não duplicar aqui
 
     // Se não tem movimentação
     if (items.length === 0) {
@@ -463,9 +632,9 @@ function renderizarDetalhamento(r) {
     return items.join("");
 }
 
-// ===== TAGS DE CRÉDITO (VERDE) =====
-function criarTagCredito(nome, valor, icone) {
-    const valorFormatado = valor.toFixed(0);
+// ===== TAG VERDE (Crédito posição) =====
+function criarTagVerde(nome, valor, icone) {
+    const valorFormatado = valor.toFixed(2).replace(".", ",");
     return `
         <span class="inline-flex items-center gap-1 bg-green-500/15 border border-green-500/30 text-green-400 text-[10px] font-medium px-1.5 py-0.5 rounded">
             <span class="material-icons" style="font-size:11px">${icone}</span>
@@ -475,14 +644,50 @@ function criarTagCredito(nome, valor, icone) {
     `;
 }
 
-// ===== TAGS DE DÉBITO (VERMELHO) =====
-function criarTagDebito(nome, valor, icone) {
-    const valorFormatado = valor.toFixed(0);
+// ===== TAG VERMELHO (Débito, PC perdeu, MM perdeu) =====
+function criarTagVermelho(nome, valor, icone) {
+    const valorFormatado = valor.toFixed(2).replace(".", ",");
     return `
         <span class="inline-flex items-center gap-1 bg-red-500/15 border border-red-500/30 text-red-400 text-[10px] font-medium px-1.5 py-0.5 rounded">
             <span class="material-icons" style="font-size:11px">${icone}</span>
             <span>${nome}:</span>
             <span class="font-bold">-${valorFormatado}</span>
+        </span>
+    `;
+}
+
+// ===== TAG AZUL (Mata-Mata ganhou) =====
+function criarTagAzul(nome, valor, icone) {
+    const valorFormatado = valor.toFixed(2).replace(".", ",");
+    return `
+        <span class="inline-flex items-center gap-1 bg-blue-500/15 border border-blue-500/30 text-blue-400 text-[10px] font-medium px-1.5 py-0.5 rounded">
+            <span class="material-icons" style="font-size:11px">${icone}</span>
+            <span>${nome}:</span>
+            <span class="font-bold">+${valorFormatado}</span>
+        </span>
+    `;
+}
+
+// ===== TAG LARANJA (Pontos Corridos ganhou) =====
+function criarTagLaranja(nome, valor, icone) {
+    const valorFormatado = valor.toFixed(2).replace(".", ",");
+    return `
+        <span class="inline-flex items-center gap-1 bg-orange-500/15 border border-orange-500/30 text-orange-400 text-[10px] font-medium px-1.5 py-0.5 rounded">
+            <span class="material-icons" style="font-size:11px">${icone}</span>
+            <span>${nome}:</span>
+            <span class="font-bold">+${valorFormatado}</span>
+        </span>
+    `;
+}
+
+// ===== TAG AMARELO (Goleada) =====
+function criarTagAmarelo(nome, valor, icone) {
+    const valorFormatado = valor.toFixed(2).replace(".", ",");
+    return `
+        <span class="inline-flex items-center gap-1 bg-yellow-500/15 border border-yellow-500/30 text-yellow-400 text-[10px] font-medium px-1.5 py-0.5 rounded">
+            <span class="material-icons" style="font-size:11px">${icone}</span>
+            <span>${nome}:</span>
+            <span class="font-bold">+${valorFormatado}</span>
         </span>
     `;
 }
@@ -787,7 +992,7 @@ function mostrarDetalhamento(isGanhos) {
                         </div>
                         <div class="text-center">
                             <p class="text-[10px] text-gray-400">Média</p>
-                            <p class="text-lg font-bold text-white">R$ ${(isGanhos ? mediaGanho : mediaPerda).toFixed(0)}</p>
+                            <p class="text-lg font-bold text-white">R$ ${(isGanhos ? mediaGanho : mediaPerda).toFixed(2).replace(".", ",")}</p>
                         </div>
                         <div class="text-center">
                             <p class="text-[10px] text-gray-400">${isGanhos ? "Mitos" : "Micos"}</p>
@@ -858,4 +1063,4 @@ function addCategoria(obj, nome, valor, rodada, icon) {
     obj[nome].rodadas.push(rodada);
 }
 
-console.log("[EXTRATO-UI] ✅ Módulo v6.2 Faixas Contextuais pronto");
+console.log("[EXTRATO-UI] ✅ Módulo v7.1 Card Desempenho pronto");

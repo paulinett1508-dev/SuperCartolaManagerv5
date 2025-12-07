@@ -1,12 +1,13 @@
 // =====================================================================
-// PARTICIPANTE-EXTRATO.JS - v2.4 (REFRESH COM RECÁLCULO)
+// PARTICIPANTE-EXTRATO.JS - v2.5 (LIGAID PARA UI)
 // =====================================================================
+// ✅ v2.5: Passa ligaId no extratoData para UI classificar zonas corretamente
 // ✅ v2.4: Botão Atualizar limpa cache + chama endpoint de cálculo
 // ✅ v2.3: Botão Atualizar limpa cache MongoDB + nova requisição
 // ✅ v2.2: Suporte a extrato travado para inativos
 // =====================================================================
 
-console.log("[EXTRATO-PARTICIPANTE] 📄 Módulo v2.4 (refresh com recálculo)");
+console.log("[EXTRATO-PARTICIPANTE] 📄 Módulo v2.5 (ligaId para UI)");
 
 const PARTICIPANTE_IDS = { ligaId: null, timeId: null };
 
@@ -91,6 +92,7 @@ async function carregarExtrato(ligaId, timeId) {
                 cacheData.rodadas.length > 0
             ) {
                 extratoData = {
+                    ligaId: ligaId, // ✅ Passar ligaId para UI
                     rodadas: cacheData.rodadas,
                     resumo: cacheData.resumo || {
                         saldo: 0,
@@ -241,6 +243,7 @@ function transformarDadosController(dados) {
         }));
 
     return {
+        ligaId: PARTICIPANTE_IDS.ligaId, // ✅ Passar ligaId para UI
         rodadas: rodadasArray,
         resumo: dados.resumo || {
             saldo: dados.saldo_atual,
@@ -405,6 +408,7 @@ window.forcarRefreshExtratoParticipante = async function () {
             dadosCalculados.rodadas.length > 0
         ) {
             extratoData = {
+                ligaId: PARTICIPANTE_IDS.ligaId, // ✅ Passar ligaId para UI
                 rodadas: dadosCalculados.rodadas,
                 resumo: dadosCalculados.resumo || {
                     saldo: 0,
@@ -472,6 +476,4 @@ export function initExtratoParticipante() {
     console.log("[EXTRATO-PARTICIPANTE] Módulo pronto");
 }
 
-console.log(
-    "[EXTRATO-PARTICIPANTE] ✅ Módulo v2.4 carregado (refresh com recálculo)",
-);
+console.log("[EXTRATO-PARTICIPANTE] ✅ Módulo v2.5 carregado (ligaId para UI)");

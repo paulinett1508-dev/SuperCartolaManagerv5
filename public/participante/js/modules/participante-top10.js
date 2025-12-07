@@ -1,8 +1,8 @@
 // =====================================================================
-// PARTICIPANTE-TOP10.JS - v4.2 (Suporte a participantes inativos)
+// PARTICIPANTE-TOP10.JS - v4.3 (Material Icons + Card Resumo)
 // =====================================================================
 
-console.log("[PARTICIPANTE-TOP10] 🏆 Carregando módulo v4.2...");
+console.log("[PARTICIPANTE-TOP10] 🏆 Carregando módulo v4.3...");
 
 // =====================================================================
 // CONFIGURAÇÃO DE VALORES BÔNUS/ÔNUS
@@ -49,7 +49,7 @@ export async function inicializarTop10Participante({
     ligaId,
     timeId,
 }) {
-    console.log("[PARTICIPANTE-TOP10] 🚀 Inicializando v4.2...", {
+    console.log("[PARTICIPANTE-TOP10] 🚀 Inicializando v4.3...", {
         ligaId,
         timeId,
     });
@@ -109,6 +109,9 @@ export async function inicializarTop10Participante({
             : valoresBonusOnusPadrao;
 
         renderizarTabelasTop10(mitos, micos, timeId, valoresBonusOnus);
+
+        // Renderizar card de resumo
+        renderizarCardResumo(mitos, micos, timeId, valoresBonusOnus);
 
         console.log("[PARTICIPANTE-TOP10] ✅ TOP 10 carregado com sucesso");
     } catch (error) {
@@ -203,7 +206,7 @@ function renderizarTabelasTop10(mitos, micos, meuTimeId, valoresBonusOnus) {
         <!-- TABELA MITOS -->
         <div class="top10-tabela-wrapper">
             <div class="top10-tabela-header mitos">
-                <span class="top10-tabela-icone">🎩</span>
+                <span class="material-symbols-outlined">emoji_events</span>
                 <span>TOP 10 MITOS</span>
             </div>
             ${gerarTabelaHTML(mitosAtivos, "mitos", meuTimeIdNum, valoresBonusOnus, false)}
@@ -211,7 +214,8 @@ function renderizarTabelasTop10(mitos, micos, meuTimeId, valoresBonusOnus) {
                 mitosInativos.length > 0
                     ? `
                 <div class="top10-divisor-inativos">
-                    <span>👤 Participantes Inativos (${mitosInativos.length})</span>
+                    <span class="material-symbols-outlined">person_off</span>
+                    <span>Participantes Inativos (${mitosInativos.length})</span>
                 </div>
                 ${gerarTabelaHTML(mitosInativos, "mitos", meuTimeIdNum, valoresBonusOnus, true)}
             `
@@ -222,7 +226,7 @@ function renderizarTabelasTop10(mitos, micos, meuTimeId, valoresBonusOnus) {
         <!-- TABELA MICOS -->
         <div class="top10-tabela-wrapper">
             <div class="top10-tabela-header micos">
-                <span class="top10-tabela-icone">😢</span>
+                <span class="material-symbols-outlined">thumb_down</span>
                 <span>TOP 10 MICOS</span>
             </div>
             ${gerarTabelaHTML(micosAtivos, "micos", meuTimeIdNum, valoresBonusOnus, false)}
@@ -230,32 +234,14 @@ function renderizarTabelasTop10(mitos, micos, meuTimeId, valoresBonusOnus) {
                 micosInativos.length > 0
                     ? `
                 <div class="top10-divisor-inativos">
-                    <span>👤 Participantes Inativos (${micosInativos.length})</span>
+                    <span class="material-symbols-outlined">person_off</span>
+                    <span>Participantes Inativos (${micosInativos.length})</span>
                 </div>
                 ${gerarTabelaHTML(micosInativos, "micos", meuTimeIdNum, valoresBonusOnus, true)}
             `
                     : ""
             }
         </div>
-
-        <style>
-            .top10-divisor-inativos {
-                background: rgba(63, 63, 70, 0.5);
-                border-top: 1px solid #3f3f46;
-                border-bottom: 1px solid #3f3f46;
-                padding: 8px 12px;
-                font-size: 10px;
-                color: #6b7280;
-                font-weight: 500;
-            }
-            .linha-inativa {
-                opacity: 0.5;
-                filter: grayscale(60%);
-            }
-            .linha-inativa .nome-texto { color: #6b7280 !important; }
-            .linha-inativa .pontos-valor { color: #6b7280 !important; }
-            .linha-inativa .valor-bonus, .linha-inativa .valor-onus { color: #6b7280 !important; }
-        </style>
     `;
 
     container.innerHTML = html;
@@ -291,7 +277,7 @@ function gerarTabelaHTML(
                 <tr>
                     <th style="width: 45px;">Pos</th>
                     <th class="col-nome">Cartoleiro</th>
-                    <th style="width: 36px;">🏠</th>
+                    <th style="width: 36px;"><span class="material-symbols-outlined">home</span></th>
                     <th style="width: 65px;">Pts</th>
                     <th style="width: 45px;">Rod</th>
                     <th style="width: 70px;">${isMitos ? "Bônus" : "Ônus"}</th>
@@ -311,18 +297,23 @@ function gerarTabelaHTML(
                             ? 0
                             : (valoresBonus[posicao] ?? 0);
 
-                        let rowClass =
-                            isMeuTime && !isInativo ? "meu-time" : "";
+                        // Classe diferente para MITOS (verde) e MICOS (vermelho)
+                        let rowClass = "";
+                        if (isMeuTime && !isInativo) {
+                            rowClass = isMitos
+                                ? "meu-time-mitos"
+                                : "meu-time-micos";
+                        }
                         if (isInativo) rowClass += " linha-inativa";
 
-                        // Badge da posição
+                        // Badge da posição com Material Icons
                         let posicaoBadge = "";
                         if (isInativo) {
                             posicaoBadge = `<span class="posicao-badge-top10 default" style="color: #6b7280;">—</span>`;
                         } else if (posicao === 1 && isMitos) {
-                            posicaoBadge = `<span class="posicao-badge-top10 gold">👑</span>`;
+                            posicaoBadge = `<span class="posicao-badge-top10 gold"><span class="material-symbols-outlined">trophy</span></span>`;
                         } else if (posicao === 1 && !isMitos) {
-                            posicaoBadge = `<span class="posicao-badge-top10 skull">💀</span>`;
+                            posicaoBadge = `<span class="posicao-badge-top10 skull"><span class="material-symbols-outlined">skull</span></span>`;
                         } else {
                             posicaoBadge = `<span class="posicao-badge-top10 default">${posicao}º</span>`;
                         }
@@ -331,8 +322,8 @@ function gerarTabelaHTML(
                         const valorClass = isInativo
                             ? "text-gray-600"
                             : isMitos
-                              ? "valor-bonus text-green-400"
-                              : "valor-onus text-red-400";
+                              ? "valor-bonus"
+                              : "valor-onus";
                         const valorAbs = Math.abs(valorBonus).toFixed(2);
                         const valorFormatado = isInativo
                             ? "—"
@@ -340,12 +331,12 @@ function gerarTabelaHTML(
                               ? `+${valorAbs}`
                               : `-${valorAbs}`;
 
-                        // Escudo
-                        let escudoHTML = `<span class="escudo-placeholder">🛡️</span>`;
+                        // Escudo com Material Icon fallback
+                        let escudoHTML = `<span class="escudo-placeholder"><span class="material-symbols-outlined">shield</span></span>`;
                         if (item.escudo && item.escudo.startsWith("http")) {
-                            escudoHTML = `<img src="${item.escudo}" alt="" class="escudo-top10" onerror="this.parentElement.innerHTML='🛡️'"/>`;
+                            escudoHTML = `<img src="${item.escudo}" alt="" class="escudo-top10" onerror="this.parentElement.innerHTML='<span class=\\'material-symbols-outlined\\'>shield</span>'"/>`;
                         } else if (item.clube_id) {
-                            escudoHTML = `<img src="/escudos/${item.clube_id}.png" alt="" class="escudo-top10" onerror="this.parentElement.innerHTML='🛡️'"/>`;
+                            escudoHTML = `<img src="/escudos/${item.clube_id}.png" alt="" class="escudo-top10" onerror="this.parentElement.innerHTML='<span class=\\'material-symbols-outlined\\'>shield</span>'"/>`;
                         }
 
                         return `
@@ -360,7 +351,7 @@ function gerarTabelaHTML(
                             <td class="${valorClass}">${valorFormatado}</td>
                             <td>
                                 <button class="btn-ver-time" onclick="window.abrirModalTop10('${item.nome_time}', ${item.rodada}, ${item.pontos})">
-                                    👁️
+                                    <span class="material-symbols-outlined">visibility</span>
                                 </button>
                             </td>
                         </tr>
@@ -370,6 +361,71 @@ function gerarTabelaHTML(
             </tbody>
         </table>
     `;
+}
+
+// =====================================================================
+// CARD RESUMO DESEMPENHO
+// =====================================================================
+function renderizarCardResumo(mitos, micos, meuTimeId, valoresBonusOnus) {
+    const card = document.getElementById("top10ResumoCard");
+    if (!card) return;
+
+    const meuTimeIdNum = Number(meuTimeId);
+
+    // Contar aparições do meu time
+    let countMitos = 0;
+    let totalBonus = 0;
+    let countMicos = 0;
+    let totalOnus = 0;
+
+    // Verificar MITOS
+    mitos.forEach((item, index) => {
+        const timeIdNum = Number(item.timeId || item.time_id);
+        if (timeIdNum === meuTimeIdNum && item.ativo !== false) {
+            countMitos++;
+            const posicao = index + 1;
+            totalBonus += valoresBonusOnus.mitos[posicao] || 0;
+        }
+    });
+
+    // Verificar MICOS
+    micos.forEach((item, index) => {
+        const timeIdNum = Number(item.timeId || item.time_id);
+        if (timeIdNum === meuTimeIdNum && item.ativo !== false) {
+            countMicos++;
+            const posicao = index + 1;
+            totalOnus += Math.abs(valoresBonusOnus.micos[posicao] || 0);
+        }
+    });
+
+    // Calcular saldo
+    const saldo = totalBonus - totalOnus;
+
+    // Atualizar DOM
+    document.getElementById("resumoMitosCount").textContent = countMitos;
+    document.getElementById("resumoMicosCount").textContent = countMicos;
+    document.getElementById("resumoBonusTotal").textContent =
+        `+R$ ${totalBonus.toFixed(2)}`;
+    document.getElementById("resumoOnusTotal").textContent =
+        `-R$ ${totalOnus.toFixed(2)}`;
+
+    const saldoEl = document.getElementById("resumoSaldo");
+    if (saldo >= 0) {
+        saldoEl.textContent = `+R$ ${saldo.toFixed(2)}`;
+        saldoEl.className = "top10-resumo-total-value positivo";
+    } else {
+        saldoEl.textContent = `-R$ ${Math.abs(saldo).toFixed(2)}`;
+        saldoEl.className = "top10-resumo-total-value negativo";
+    }
+
+    // Mostrar card apenas se tiver alguma aparição
+    if (countMitos > 0 || countMicos > 0) {
+        card.style.display = "block";
+    }
+
+    console.log(
+        `[PARTICIPANTE-TOP10] 📊 Resumo: ${countMitos} MITOS (+R$${totalBonus}), ${countMicos} MICOS (-R$${totalOnus}), Saldo: R$${saldo}`,
+    );
 }
 
 // =====================================================================
@@ -419,5 +475,5 @@ function mostrarEstadoVazio(show) {
 }
 
 console.log(
-    "[PARTICIPANTE-TOP10] ✅ Módulo v4.2 carregado (suporte a inativos)",
+    "[PARTICIPANTE-TOP10] ✅ Módulo v4.3 carregado (Material Icons + Card Resumo)",
 );

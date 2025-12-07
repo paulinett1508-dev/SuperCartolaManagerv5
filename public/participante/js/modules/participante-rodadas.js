@@ -319,6 +319,7 @@ function criarCardCompacto(numero, rodada, isParcial = false) {
     const pontos = rodada?.meusPontos;
 
     let classes = ["rodada-card-compacto"];
+    let tipoDestaque = null; // 'mito' ou 'mico'
 
     if (isParcial) {
         classes.push("parcial", "em-andamento");
@@ -329,13 +330,24 @@ function criarCardCompacto(numero, rodada, isParcial = false) {
     } else if (jogou) {
         classes.push("jogou");
         if (rodada.posicaoFinanceira) {
-            const totalParticipantes = rodada.participantes.filter(
-                (p) => p.ativo !== false,
-            ).length;
+            // Filtrar participantes que eram ATIVOS nessa rodada específica
+            const participantesAtivos = rodada.participantes.filter((p) => {
+                if (p.ativo === false && p.rodada_desistencia) {
+                    return numero < p.rodada_desistencia;
+                }
+                return p.ativo !== false;
+            });
+            const totalParticipantes = participantesAtivos.length;
+
             if (rodada.posicaoFinanceira === 1) {
                 classes.push("mito");
-            } else if (rodada.posicaoFinanceira === totalParticipantes) {
+                tipoDestaque = "mito";
+            } else if (
+                rodada.posicaoFinanceira === totalParticipantes &&
+                totalParticipantes > 1
+            ) {
                 classes.push("mico");
+                tipoDestaque = "mico";
             }
         }
     } else {
@@ -357,9 +369,20 @@ function criarCardCompacto(numero, rodada, isParcial = false) {
 
     const badgeAoVivo = isParcial ? '<span class="badge-ao-vivo">●</span>' : "";
 
+    // Badge de destaque MITO/MICO com Material Icon
+    let badgeDestaque = "";
+    if (tipoDestaque === "mito") {
+        badgeDestaque =
+            '<span class="badge-destaque"><span class="material-symbols-outlined">emoji_events</span></span>';
+    } else if (tipoDestaque === "mico") {
+        badgeDestaque =
+            '<span class="badge-destaque"><span class="material-symbols-outlined">thumb_down</span></span>';
+    }
+
     return `
         <div class="${classes.join(" ")}" data-rodada="${numero}">
             ${badgeAoVivo}
+            ${badgeDestaque}
             <span class="card-numero">${numero}</span>
             ${pontosTexto ? `<span class="card-pontos">${pontosTexto}</span>` : ""}
         </div>
