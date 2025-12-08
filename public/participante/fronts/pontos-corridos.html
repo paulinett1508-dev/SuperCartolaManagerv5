@@ -1,224 +1,58 @@
-<!-- PARTICIPANTE PONTOS CORRIDOS - Template v4.0 -->
-<style>
-    .group:focus-within .modal,
-    .group:focus .modal,
-    .group:hover .modal {
-        display: block !important;
-        opacity: 1 !important;
-    }
-</style>
-<div id="pontosCorridosModule" class="pb-20">
-    <div id="pontosCorridosContainer">
-        <!-- Loading State -->
-        <div
-            id="pc-loading"
-            class="flex justify-center items-center min-h-[300px]"
-        >
-            <div class="text-center">
-                <div
-                    class="w-10 h-10 border-4 border-zinc-700 border-t-primary rounded-full animate-spin mx-auto mb-4"
-                ></div>
-                <p class="text-sm text-white/70">Carregando confrontos...</p>
-            </div>
-        </div>
+<!doctype html>
+<html lang="pt-BR">
+    <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <title>Pontos Corridos - Super Cartola Manager</title>
 
-        <!-- Error State (hidden by default) -->
-        <div
-            id="pc-error"
-            class="hidden flex-col items-center justify-center min-h-[300px] p-6"
-        >
-            <span class="material-symbols-outlined text-4xl text-red-500 mb-3"
-                >error</span
-            >
-            <p id="pc-error-msg" class="text-white/70 text-center">
-                Erro ao carregar dados
-            </p>
-            <button
-                onclick="window.recarregarPontosCorridos()"
-                class="mt-4 px-4 py-2 bg-primary text-white rounded-lg text-sm font-medium"
-            >
-                Tentar Novamente
-            </button>
-        </div>
+        <!-- Fonts -->
+        <link rel="preconnect" href="https://fonts.googleapis.com" />
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+        <link
+            href="https://fonts.googleapis.com/css2?family=Lexend:wght@100..900&display=swap"
+            rel="stylesheet"
+        />
 
-        <!-- Main Content (hidden by default) -->
-        <div id="pc-content" class="hidden">
-            <!-- Header com posição do usuário -->
-            <div class="text-center mb-6">
-                <div class="flex justify-center items-center mb-2">
-                    <div
-                        id="pc-posicao-badge"
-                        class="bg-primary text-white text-xs font-bold w-7 h-7 rounded-full flex items-center justify-center shadow-lg"
-                    >
-                        -º
-                    </div>
-                </div>
-                <h1 class="text-lg font-bold text-white">
-                    Liga Pontos Corridos
-                </h1>
-                <p class="text-xs text-white/50">
-                    Sistema de confrontos todos contra todos
-                </p>
-            </div>
+        <!-- Material Symbols -->
+        <link
+            rel="stylesheet"
+            href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200"
+        />
 
-            <!-- Seletor de Rodadas -->
-            <section class="mb-6">
-                <div class="flex justify-between items-center mb-3">
-                    <h2 class="text-sm font-semibold text-white">
-                        Selecione a Rodada
-                    </h2>
-                    <p id="pc-rodadas-info" class="text-[11px] text-white/50">
-                        0 de 31 rodadas disputadas
-                    </p>
-                </div>
+        <!-- CSS Base + Módulo - PATHS ABSOLUTOS -->
+        <link rel="stylesheet" href="/participante/css/participante.css" />
 
-                <div class="relative">
-                    <div class="overflow-x-auto no-scrollbar pb-2 -mb-2">
-                        <div id="pc-seletor-rodadas" class="flex space-x-2">
-                            <!-- Rodadas serão injetadas aqui -->
-                        </div>
-                    </div>
-                </div>
+        <style>
+            * {
+                box-sizing: border-box;
+                margin: 0;
+                padding: 0;
+            }
 
-                <!-- Barra de progresso -->
-                <div class="w-full bg-zinc-800 h-1 rounded-full mt-3">
-                    <div
-                        id="pc-progress-bar"
-                        class="bg-primary h-1 rounded-full transition-all duration-300"
-                        style="width: 0%"
-                    ></div>
-                </div>
-            </section>
+            body {
+                font-family: "Lexend", sans-serif;
+                background: #101010;
+                color: #ffffff;
+                min-height: 100vh;
+                -webkit-font-smoothing: antialiased;
+                -moz-osx-font-smoothing: grayscale;
+            }
 
-            <!-- Toggle Confrontos/Classificação -->
-            <div
-                class="mb-6 bg-surface-dark border border-zinc-700 rounded-lg overflow-hidden"
-            >
-                <div class="flex">
-                    <button
-                        id="pc-btn-confrontos"
-                        onclick="window.trocarViewPontosCorridos('confrontos')"
-                        class="flex-1 flex items-center justify-center gap-2 py-3 text-sm font-medium transition-colors bg-primary text-white"
-                    >
-                        <span class="material-symbols-outlined text-lg"
-                            >sports_soccer</span
-                        >
-                        Confrontos
-                    </button>
-                    <button
-                        id="pc-btn-classificacao"
-                        onclick="window.trocarViewPontosCorridos('classificacao')"
-                        class="flex-1 flex items-center justify-center gap-2 py-3 text-sm font-medium transition-colors text-white/70 hover:bg-zinc-800"
-                    >
-                        <span class="material-symbols-outlined text-lg"
-                            >emoji_events</span
-                        >
-                        Classificação
-                    </button>
-                </div>
-            </div>
-
-            <!-- Container de Confrontos -->
-            <div
-                id="pc-view-confrontos"
-                class="bg-surface-dark rounded-lg overflow-hidden"
-            >
-                <!-- Header da Rodada -->
-                <div class="p-4 border-b border-zinc-700">
-                    <div class="flex justify-between items-center">
-                        <div>
-                            <h2
-                                id="pc-rodada-titulo"
-                                class="text-base font-bold text-white"
-                            >
-                                1ª Rodada da Liga
-                            </h2>
-                            <p
-                                id="pc-rodada-subtitulo"
-                                class="text-xs text-primary font-medium"
-                            >
-                                7ª Rodada do Brasileirão
-                            </p>
-                        </div>
-                        <div
-                            id="pc-rodada-status"
-                            class="flex items-center space-x-1.5 bg-green-500/10 text-green-400 px-2.5 py-1.5 rounded-full text-[10px] font-semibold"
-                        >
-                            <span
-                                class="w-1.5 h-1.5 bg-green-500 rounded-full"
-                            ></span>
-                            <span>FINALIZADA</span>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Header da Tabela -->
-                <div class="bg-primary flex text-white text-[11px] font-bold">
-                    <div class="flex-1 p-2.5 text-left">CONFRONTO</div>
-                    <div class="w-20 p-2.5 text-right">DIFERENÇA</div>
-                </div>
-
-                <!-- Lista de Confrontos -->
-                <div id="pc-lista-confrontos" class="divide-y divide-zinc-700">
-                    <!-- Confrontos serão injetados aqui -->
-                </div>
-            </div>
-
-            <!-- Container de Classificação (hidden by default) -->
-            <div
-                id="pc-view-classificacao"
-                class="hidden bg-surface-dark rounded-lg overflow-hidden"
-            >
-                <!-- Header -->
-                <div class="p-4 border-b border-zinc-700">
-                    <h2 class="text-base font-bold text-white">
-                        Classificação Geral
-                    </h2>
-                    <p id="pc-classificacao-info" class="text-xs text-white/50">
-                        Atualizada até a 1ª rodada
-                    </p>
-                </div>
-
-                <!-- Header da Tabela -->
-                <div
-                    class="bg-primary/90 flex text-white text-[10px] font-bold px-3 py-2"
-                >
-                    <div class="w-8 text-center">#</div>
-                    <div class="flex-1 pl-2">TIME</div>
-                    <div class="w-6 text-center">J</div>
-                    <div class="w-6 text-center">V</div>
-                    <div class="w-6 text-center">E</div>
-                    <div class="w-6 text-center">D</div>
-                    <div class="w-6 text-center">PG</div>
-                    <div class="w-8 text-center">SG</div>
-                    <div class="w-8 text-center">PTS</div>
-                </div>
-
-                <!-- Lista de Times -->
-                <div
-                    id="pc-lista-classificacao"
-                    class="divide-y divide-zinc-700/50"
-                >
-                    <!-- Classificação será injetada aqui -->
-                </div>
-            </div>
-
-            <!-- Sem Dados State -->
-            <div
-                id="pc-sem-dados"
-                class="hidden bg-surface-dark rounded-lg p-8 text-center border border-zinc-700"
-            >
-                <span
-                    class="material-symbols-outlined text-4xl text-white/30 mb-3"
-                    >sports_soccer</span
-                >
-                <p id="pc-sem-dados-msg" class="text-white/50">
-                    Nenhum dado disponível
-                </p>
-                <p class="text-white/30 text-xs mt-2">
-                    Os dados serão gerados pelo administrador
-                </p>
-            </div>
-        </div>
-    </div>
-</div>
+            .material-symbols-outlined {
+                font-variation-settings:
+                    "FILL" 0,
+                    "wght" 400,
+                    "GRAD" 0,
+                    "opsz" 24;
+                vertical-align: middle;
+            }
+        </style>
+    </head>
+    <body class="dark">
+        <div id="pontos-corridos-container"></div>
+        <script
+            type="module"
+            src="/participante/js/modules/participante-pontos-corridos.js"
+        ></script>
+    </body>
+</html>
