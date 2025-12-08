@@ -1,8 +1,8 @@
 // =====================================================================
-// PARTICIPANTE-BOAS-VINDAS.JS - v7.0 (TAILWIND)
+// PARTICIPANTE-BOAS-VINDAS.JS - v7.2 (TAILWIND)
 // =====================================================================
 
-console.log("[PARTICIPANTE-BOAS-VINDAS] 🔄 Carregando módulo v7.0...");
+console.log("[PARTICIPANTE-BOAS-VINDAS] 🔄 Carregando módulo v7.2...");
 
 // =====================================================================
 // FUNÇÃO PRINCIPAL
@@ -271,18 +271,22 @@ function renderizarBoasVindas(container, data) {
             };
     }
 
-    // Saldo
+    // Saldo - v7.2: Cores dinâmicas com style inline
     const saldoAbs = Math.abs(saldoFinanceiro);
+    const saldoFormatadoNumero = saldoAbs.toLocaleString("pt-BR", {
+        minimumFractionDigits: 2,
+        maximumFractionDigits: 2,
+    });
     const saldoFormatado =
         saldoFinanceiro >= 0
-            ? `+R$ ${saldoAbs.toFixed(0)}`
-            : `-R$ ${saldoAbs.toFixed(0)}`;
-    const saldoCor =
+            ? `R$ ${saldoFormatadoNumero}`
+            : `-R$ ${saldoFormatadoNumero}`;
+    const saldoCorStyle =
         saldoFinanceiro > 0
-            ? "text-green-400"
+            ? "color: #4ade80;"
             : saldoFinanceiro < 0
-              ? "text-red-400"
-              : "text-white/50";
+              ? "color: #f87171;"
+              : "color: rgba(255,255,255,0.5);";
 
     container.innerHTML = `
         <div class="pb-28">
@@ -322,7 +326,7 @@ function renderizarBoasVindas(container, data) {
                     </div>
                     <div class="flex-1">
                         <p class="text-xs font-medium uppercase text-white/70">Saldo Financeiro</p>
-                        <p class="text-lg font-bold ${saldoCor}">${saldoFormatado}</p>
+                        <p class="text-lg font-bold" style="${saldoCorStyle}">${saldoFormatado}</p>
                     </div>
                     <div class="flex-shrink-0">
                         <span class="material-icons text-white/70">arrow_forward_ios</span>
@@ -389,4 +393,4 @@ function renderizarBoasVindas(container, data) {
     `;
 }
 
-console.log("[PARTICIPANTE-BOAS-VINDAS] ✅ Módulo v7.0 carregado");
+console.log("[PARTICIPANTE-BOAS-VINDAS] ✅ Módulo v7.2 carregado");
