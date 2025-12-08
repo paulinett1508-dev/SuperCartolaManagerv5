@@ -1,3 +1,4 @@
+
 <!doctype html>
 <html lang="pt-BR">
     <head>
@@ -19,7 +20,7 @@
             href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200"
         />
 
-        <!-- CSS Base + Módulo - PATHS ABSOLUTOS -->
+        <!-- CSS Base + Módulo -->
         <link rel="stylesheet" href="/participante/css/participante.css" />
 
         <style>
@@ -49,7 +50,11 @@
         </style>
     </head>
     <body class="dark">
-        <div id="top10-container"></div>
+        <!-- Container Principal -->
+        <div id="top10-container" class="module-container">
+            <!-- Conteúdo será renderizado aqui pelo JS -->
+        </div>
+        
         <script
             type="module"
             src="/participante/js/modules/participante-top10.js"
