@@ -87,11 +87,12 @@
                 margin-top: 8px;
             }
 
+            /* ✅ v4.4: Card movido para o final */
             .top10-resumo-card {
                 background: linear-gradient(135deg, #1a1a1a 0%, #262626 100%);
                 border-radius: 16px;
                 padding: 16px;
-                margin-bottom: 20px;
+                margin-top: 20px;
                 border: 1px solid #333;
             }
 
@@ -513,6 +514,27 @@
                 </p>
             </div>
 
+            <div id="top10Loading" class="top10-loading-state">
+                <div class="loading-spinner-top10"></div>
+                <p>Carregando TOP 10...</p>
+            </div>
+
+            <div
+                id="top10Empty"
+                class="top10-empty-state"
+                style="display: none"
+            >
+                <span class="material-symbols-outlined">emoji_events</span>
+                <h3>Nenhum dado disponível</h3>
+                <p>
+                    Os dados do TOP 10 aparecerão quando houver rodadas
+                    finalizadas
+                </p>
+            </div>
+
+            <div id="top10Grid" style="display: none"></div>
+
+            <!-- ✅ v4.4: Card Resumo movido para o final -->
             <div
                 id="top10ResumoCard"
                 class="top10-resumo-card"
@@ -567,26 +589,6 @@
                     >
                 </div>
             </div>
-
-            <div id="top10Loading" class="top10-loading-state">
-                <div class="loading-spinner-top10"></div>
-                <p>Carregando TOP 10...</p>
-            </div>
-
-            <div
-                id="top10Empty"
-                class="top10-empty-state"
-                style="display: none"
-            >
-                <span class="material-symbols-outlined">emoji_events</span>
-                <h3>Nenhum dado disponível</h3>
-                <p>
-                    Os dados do TOP 10 aparecerão quando houver rodadas
-                    finalizadas
-                </p>
-            </div>
-
-            <div id="top10Grid" style="display: none"></div>
 
             <div id="modalJogadores" class="modal-top10" style="display: none">
                 <div class="modal-content-top10">

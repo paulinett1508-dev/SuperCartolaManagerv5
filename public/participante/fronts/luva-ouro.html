@@ -1,4 +1,5 @@
-<!-- PARTICIPANTE LUVA DE OURO - Interface v2.0 -->
+<!-- PARTICIPANTE LUVA DE OURO - Interface v3.7 -->
+<!-- ✅ v3.7: Container para card "Seu Desempenho" ao final -->
 <div class="luva-ouro-participante">
     <!-- Container para conteúdo dinâmico -->
     <div id="luvaOuroContainer">
@@ -21,6 +22,9 @@
             <p style="margin-top: 20px; color: #888">Carregando goleiros...</p>
         </div>
     </div>
+
+    <!-- ✅ v3.7: Container para card "Seu Desempenho" ao final -->
+    <div id="luva-ouro-card-desempenho"></div>
 </div>
 
 <style>
@@ -55,22 +59,18 @@
     .goleiro-card:active {
         transform: scale(0.98);
     }
-
     .goleiro-card.podium-1 {
         border-color: gold;
         box-shadow: 0 0 15px rgba(255, 215, 0, 0.3);
     }
-
     .goleiro-card.podium-2 {
         border-color: silver;
         box-shadow: 0 0 15px rgba(192, 192, 192, 0.3);
     }
-
     .goleiro-card.podium-3 {
         border-color: #cd7f32;
         box-shadow: 0 0 15px rgba(205, 127, 50, 0.3);
     }
-
     .goleiro-card.meu-goleiro {
         background: rgba(255, 215, 0, 0.15);
         border-color: #ffd700;
@@ -82,14 +82,12 @@
         color: #ffd700;
         margin-bottom: 10px;
     }
-
     .goleiro-nome {
         font-size: 16px;
         font-weight: 600;
         color: white;
         margin-bottom: 5px;
     }
-
     .goleiro-time {
         font-size: 14px;
         color: #999;
@@ -101,23 +99,25 @@
         justify-content: space-around;
         gap: 15px;
     }
-
     .stat {
         flex: 1;
     }
-
     .stat-label {
         display: block;
         font-size: 12px;
         color: #999;
         margin-bottom: 5px;
     }
-
     .stat-value {
         display: block;
         font-size: 20px;
         font-weight: 700;
-        color: #10b981;
+        color: #ffd700;
+    }
+
+    /* ✅ v3.7: Estilos do card desempenho ao final */
+    #luva-ouro-card-desempenho {
+        margin-top: 16px;
     }
 
     @media (max-width: 768px) {
@@ -125,7 +125,6 @@
             grid-template-columns: 1fr;
             gap: 15px;
         }
-
         .goleiro-card {
             padding: 15px;
         }

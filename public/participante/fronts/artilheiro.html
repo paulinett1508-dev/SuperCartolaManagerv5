@@ -1,4 +1,5 @@
-<!-- PARTICIPANTE ARTILHEIRO - Interface v2.0 -->
+<!-- PARTICIPANTE ARTILHEIRO - Interface v3.4 -->
+<!-- ✅ v3.4: Container para card "Seu Desempenho" ao final -->
 <div class="artilheiro-participante">
     <!-- Container para conteúdo dinâmico -->
     <div id="artilheiro-content">
@@ -10,7 +11,7 @@
                 class="spinner-participante"
                 style="
                     border: 4px solid #f3f3f3;
-                    border-top: 4px solid var(--participante-primary, #ff4500);
+                    border-top: 4px solid var(--participante-primary, #22c55e);
                     border-radius: 50%;
                     width: 50px;
                     height: 50px;
@@ -23,6 +24,9 @@
             </p>
         </div>
     </div>
+
+    <!-- ✅ v3.4: Container para card "Seu Desempenho" ao final -->
+    <div id="artilheiro-card-desempenho"></div>
 </div>
 
 <style>
@@ -65,39 +69,38 @@
     }
 
     th {
-        background: rgba(255, 69, 0, 0.1);
+        background: rgba(34, 197, 94, 0.1);
         font-weight: 600;
     }
 
     .text-success {
-        color: #10b981;
+        color: #22c55e;
     }
-
     .text-danger {
         color: #ef4444;
     }
-
     .text-primary {
-        color: var(--participante-primary, #ff4500);
+        color: var(--participante-primary, #22c55e);
     }
-
     .fw-bold {
         font-weight: 700;
     }
-
     .table-primary {
-        background: rgba(255, 69, 0, 0.15);
+        background: rgba(34, 197, 94, 0.15);
     }
-
     .text-center {
         text-align: center;
+    }
+
+    /* ✅ v3.4: Estilos do card desempenho ao final */
+    #artilheiro-card-desempenho {
+        margin-top: 16px;
     }
 
     @media (max-width: 768px) {
         .artilheiro-participante {
             padding: 10px;
         }
-
         th,
         td {
             padding: 8px 4px;

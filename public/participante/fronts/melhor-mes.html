@@ -1,6 +1,6 @@
-<!-- PARTICIPANTE MELHOR MÊS - v3.2 Design PRO Cards -->
+<!-- PARTICIPANTE MELHOR MÊS - v3.5 Header Padronizado + Card Desempenho ao final -->
 <div class="melhor-mes-container-pro">
-    <!-- Header -->
+    <!-- Header PADRONIZADO (sem gradiente laranja) -->
     <div class="mm-header-pro">
         <div class="mm-title-row">
             <span class="mm-emoji">🏆</span>
@@ -42,26 +42,22 @@
 
 <style>
     /* ============================================
-   MELHOR MÊS PARTICIPANTE v3.2 - Design PRO Cards
-   ============================================ */
+       MELHOR MÊS v3.5 - HEADER PADRONIZADO
+       ============================================ */
 
     .melhor-mes-container-pro {
         padding: 16px;
         padding-bottom: 100px;
     }
 
-    /* Header */
+    /* ✅ HEADER PADRONIZADO (SEM GRADIENTE LARANJA) */
     .mm-header-pro {
         display: flex;
         justify-content: space-between;
         align-items: center;
         padding: 16px;
-        background: linear-gradient(
-            135deg,
-            rgba(230, 81, 0, 0.15) 0%,
-            rgba(230, 81, 0, 0.05) 100%
-        );
-        border-bottom: 2px solid #e65100;
+        background: rgba(255, 255, 255, 0.03);
+        border-bottom: 1px solid rgba(255, 255, 255, 0.1);
         border-radius: 12px 12px 0 0;
         margin-bottom: 16px;
     }
@@ -76,6 +72,7 @@
         font-size: 24px;
     }
 
+    /* ✅ TÍTULO SEM GRADIENTE - Cor sólida branca */
     .mm-header-pro h2 {
         font-family: "Poppins", sans-serif;
         font-size: 18px;
@@ -87,9 +84,10 @@
     .mm-edicoes-badge {
         font-size: 12px;
         color: #9ca3af;
-        background: rgba(0, 0, 0, 0.3);
+        background: rgba(255, 255, 255, 0.05);
         padding: 6px 12px;
         border-radius: 20px;
+        border: 1px solid rgba(255, 255, 255, 0.1);
     }
 
     /* Loading State */
@@ -106,7 +104,7 @@
         width: 40px;
         height: 40px;
         border: 3px solid #333;
-        border-top-color: #e65100;
+        border-top-color: #ff5c00;
         border-radius: 50%;
         animation: spin-mm 0.8s linear infinite;
         margin-bottom: 16px;
@@ -167,10 +165,7 @@
         gap: 16px;
     }
 
-    /* ============================================
-       NOVO LAYOUT: CARDS
-       ============================================ */
-
+    /* CARDS */
     .mm-edicao-card {
         background: #1c1c1c;
         border-radius: 16px;
@@ -184,7 +179,6 @@
         box-shadow: 0 0 20px rgba(34, 197, 94, 0.1);
     }
 
-    /* Header do Card */
     .mm-card-header {
         display: flex;
         align-items: center;
@@ -210,14 +204,12 @@
         flex: 1;
         min-width: 0;
     }
-
     .mm-card-title {
         font-size: 16px;
         font-weight: 700;
         color: white;
         margin: 0;
     }
-
     .mm-card-rodadas {
         font-size: 12px;
         color: #6b7280;
@@ -231,14 +223,10 @@
         white-space: nowrap;
     }
 
-    /* Seção Campeão */
+    /* Seção Campeão - ✅ SEM GRADIENTE LARANJA */
     .mm-card-campeao {
         padding: 16px;
-        background: linear-gradient(
-            135deg,
-            rgba(230, 81, 0, 0.12) 0%,
-            rgba(230, 81, 0, 0.05) 100%
-        );
+        background: rgba(255, 255, 255, 0.03);
         border-bottom: 1px solid #2a2a2a;
     }
 
@@ -256,41 +244,34 @@
         gap: 8px;
         margin-bottom: 8px;
     }
-
     .mm-campeao-icon {
         font-size: 20px;
     }
-
     .mm-campeao-label {
         font-size: 10px;
         font-weight: 700;
-        color: #e65100;
+        color: #ff5c00;
         text-transform: uppercase;
         letter-spacing: 0.5px;
     }
-
     .mm-card-campeao.meu .mm-campeao-label {
         color: #22c55e;
     }
-
     .mm-campeao-info {
         display: flex;
         justify-content: space-between;
         align-items: center;
     }
-
     .mm-campeao-nome {
         font-size: 15px;
         font-weight: 700;
         color: white;
     }
-
     .mm-campeao-pontos {
         font-size: 16px;
         font-weight: 800;
-        color: #e65100;
+        color: #ff5c00;
     }
-
     .mm-card-campeao.meu .mm-campeao-pontos {
         color: #22c55e;
     }
@@ -310,12 +291,11 @@
         font-size: 24px;
         opacity: 0.6;
     }
-
     .mm-aguardando-text {
         font-size: 14px;
     }
 
-    /* Pódio Compacto */
+    /* Pódio */
     .mm-card-podio {
         display: flex;
         gap: 8px;
@@ -343,7 +323,6 @@
     .mm-podio-medal {
         font-size: 18px;
     }
-
     .mm-podio-nome {
         font-size: 11px;
         font-weight: 600;
@@ -354,11 +333,9 @@
         text-overflow: ellipsis;
         max-width: 100%;
     }
-
     .mm-podio-item.meu .mm-podio-nome {
         color: #22c55e;
     }
-
     .mm-podio-pts {
         font-size: 10px;
         color: #6b7280;
@@ -375,7 +352,7 @@
         background: transparent;
         border: none;
         border-top: 1px solid #2a2a2a;
-        color: #e65100;
+        color: #ff5c00;
         font-size: 12px;
         font-weight: 600;
         cursor: pointer;
@@ -383,9 +360,8 @@
     }
 
     .mm-card-expand-btn:hover {
-        background: rgba(230, 81, 0, 0.1);
+        background: rgba(255, 92, 0, 0.1);
     }
-
     .mm-card-expand-btn .expand-arrow {
         font-size: 18px;
         transition: transform 0.3s ease;
@@ -425,7 +401,6 @@
         font-weight: 700;
         color: #6b7280;
     }
-
     .mm-rank-nome {
         flex: 1;
         font-size: 13px;
@@ -435,17 +410,14 @@
         overflow: hidden;
         text-overflow: ellipsis;
     }
-
     .mm-ranking-card-item.meu .mm-rank-nome {
         color: #22c55e;
     }
-
     .mm-rank-pts {
         font-size: 12px;
         font-weight: 700;
         color: #9ca3af;
     }
-
     .mm-ranking-mais {
         text-align: center;
         padding: 10px;
@@ -453,7 +425,7 @@
         font-size: 11px;
     }
 
-    /* Minha posição (fora do top 10) */
+    /* Minha posição */
     .mm-ranking-minha-pos {
         margin-top: 12px;
         padding-top: 12px;
@@ -499,20 +471,17 @@
         padding: 60px 20px;
         color: #6b7280;
     }
-
     .mm-empty-state .empty-emoji {
         font-size: 64px;
         display: block;
         margin-bottom: 16px;
         opacity: 0.5;
     }
-
     .mm-empty-state h3 {
         color: #9ca3af;
         font-size: 18px;
         margin-bottom: 8px;
     }
-
     .mm-empty-state p {
         font-size: 14px;
     }
@@ -547,31 +516,108 @@
         .mm-header-pro h2 {
             font-size: 16px;
         }
-
         .mm-card-icon {
             width: 38px;
             height: 38px;
             font-size: 18px;
         }
-
         .mm-card-title {
             font-size: 14px;
         }
-
         .mm-podio-item {
             padding: 8px 4px;
         }
-
         .mm-podio-medal {
             font-size: 16px;
         }
-
         .mm-podio-nome {
             font-size: 10px;
         }
-
         .mm-campeao-pontos {
             font-size: 14px;
         }
+    }
+
+    /* ✅ Card Seu Desempenho */
+    .mm-desempenho-card {
+        background: linear-gradient(
+            135deg,
+            rgba(255, 92, 0, 0.1) 0%,
+            rgba(255, 92, 0, 0.05) 100%
+        );
+        border-radius: 12px;
+        border: 1px solid rgba(255, 92, 0, 0.2);
+        overflow: hidden;
+    }
+    .mm-desempenho-header {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        padding: 12px 16px;
+        border-bottom: 1px solid rgba(255, 92, 0, 0.2);
+        font-weight: 700;
+        font-size: 14px;
+        color: #ff5c00;
+    }
+    .mm-desempenho-content {
+        padding: 16px;
+        display: flex;
+        flex-direction: column;
+        gap: 12px;
+    }
+    .mm-desempenho-row {
+        display: flex;
+        gap: 12px;
+    }
+    .mm-desempenho-row-3 {
+        display: flex;
+        gap: 8px;
+    }
+    .mm-desempenho-stat {
+        flex: 1;
+        background: rgba(0, 0, 0, 0.2);
+        border-radius: 10px;
+        padding: 12px;
+        display: flex;
+        align-items: center;
+        gap: 12px;
+    }
+    .mm-desempenho-stat.empty {
+        opacity: 0.5;
+    }
+    .mm-desempenho-valor {
+        font-size: 24px;
+        font-weight: 800;
+        color: white;
+        line-height: 1;
+    }
+    .mm-desempenho-stat.empty .mm-desempenho-valor {
+        color: #6b7280;
+    }
+    .mm-desempenho-label {
+        font-size: 10px;
+        color: #9ca3af;
+        margin-top: 2px;
+    }
+    .mm-desempenho-pos {
+        flex: 1;
+        background: rgba(0, 0, 0, 0.2);
+        border-radius: 10px;
+        padding: 10px;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+    }
+    .mm-desempenho-pos-icon {
+        display: flex;
+        align-items: center;
+        gap: 4px;
+        font-size: 11px;
+        color: #9ca3af;
+    }
+    .mm-desempenho-pos-valor {
+        font-size: 16px;
+        font-weight: 700;
+        color: white;
     }
 </style>

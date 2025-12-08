@@ -1,4 +1,5 @@
-<!-- PARTICIPANTE PONTOS CORRIDOS - Template v4.0 -->
+<!-- PARTICIPANTE PONTOS CORRIDOS - Template v4.2 -->
+<!-- ✅ v4.2: Card "Seu Desempenho" ao final com posição na liga integrada -->
 <style>
     .group:focus-within .modal,
     .group:focus .modal,
@@ -43,16 +44,8 @@
 
         <!-- Main Content (hidden by default) -->
         <div id="pc-content" class="hidden">
-            <!-- Header com posição do usuário -->
+            <!-- Header simplificado -->
             <div class="text-center mb-6">
-                <div class="flex justify-center items-center mb-2">
-                    <div
-                        id="pc-posicao-badge"
-                        class="bg-primary text-white text-xs font-bold w-7 h-7 rounded-full flex items-center justify-center shadow-lg"
-                    >
-                        -º
-                    </div>
-                </div>
                 <h1 class="text-lg font-bold text-white">
                     Liga Pontos Corridos
                 </h1>
@@ -60,6 +53,9 @@
                     Sistema de confrontos todos contra todos
                 </p>
             </div>
+
+            <!-- ✅ v4.2: Banner Campeão (preenchido pelo JS quando liga encerrar) -->
+            <div id="pc-banner-campeao"></div>
 
             <!-- Seletor de Rodadas -->
             <section class="mb-6">
@@ -219,6 +215,9 @@
                     Os dados serão gerados pelo administrador
                 </p>
             </div>
+
+            <!-- ✅ v4.2: Card "Seu Desempenho" ao final (preenchido pelo JS) -->
+            <div id="pc-card-desempenho" class="mx-4 mt-6"></div>
         </div>
     </div>
 </div>

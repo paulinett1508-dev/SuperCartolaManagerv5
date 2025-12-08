@@ -1,5 +1,8 @@
-// PARTICIPANTE PONTOS CORRIDOS - v4.8
-// ✅ v4.8: Suporte a participantes inativos (separados, acinzentados, sem posição)
+// PARTICIPANTE PONTOS CORRIDOS - v5.0
+// ✅ v4.9: Emojis substituídos por Material Icons + Card "Seu Desempenho"
+// ✅ v5.0: Posição na liga integrada no card + card ao final da página
+
+console.log("[PONTOS-CORRIDOS] 📊 Módulo v5.0 carregando...");
 
 const estadoPC = {
     ligaId: null,
@@ -19,7 +22,7 @@ const estadoPC = {
 // ============================================
 
 export async function inicializarPontosCorridosParticipante(params = {}) {
-    console.log("[PONTOS-CORRIDOS] 🚀 Inicializando v4.8...", params);
+    console.log("[PONTOS-CORRIDOS] 🚀 Inicializando v4.9...", params);
 
     const participante = params.participante || window.participanteData || {};
     estadoPC.ligaId = params.ligaId || participante.ligaId;
@@ -120,6 +123,7 @@ function setTexto(id, texto) {
 function renderizarInterface() {
     mostrarConteudo();
     renderizarBannerCampeao();
+    renderizarCardDesempenho(); // ✅ v4.9: Card Seu Desempenho
     atualizarHeader();
     atualizarSeletorRodadas();
     atualizarProgresso();
@@ -128,11 +132,232 @@ function renderizarInterface() {
     scrollParaRodadaSelecionada();
 }
 
+// ============================================
+// CARD SEU DESEMPENHO - v5.0 (com posição na liga)
+// ============================================
+
+function renderizarCardDesempenho() {
+    const cardEl = document.getElementById("pc-card-desempenho");
+    if (!cardEl) return;
+
+    const { dados, timeId, totalRodadas, ligaEncerrou } = estadoPC;
+
+    // Calcular posição atual na liga
+    let posicaoAtual = "-";
+    let totalParticipantes = 0;
+    const ultimaRodadaComDados = [...dados]
+        .reverse()
+        .find((r) => r.classificacao?.length > 0);
+
+    if (ultimaRodadaComDados?.classificacao?.length > 0) {
+        const classificacaoAtivos = ultimaRodadaComDados.classificacao.filter(
+            (t) => t.ativo !== false,
+        );
+        totalParticipantes = classificacaoAtivos.length;
+        const meuTime = classificacaoAtivos.find(
+            (t) => String(t.timeId || t.time_id || t.id) === String(timeId),
+        );
+        if (meuTime) {
+            posicaoAtual = classificacaoAtivos.indexOf(meuTime) + 1;
+        }
+    }
+
+    // Calcular estatísticas do usuário
+    let vitorias = 0,
+        empates = 0,
+        derrotas = 0,
+        goleadasDadas = 0,
+        goleadasSofridas = 0;
+    let totalConfrontos = 0;
+    let saldoFinanceiro = 0;
+
+    dados.forEach((rodadaData) => {
+        if (!rodadaData.confrontos?.length) return;
+
+        const confrontos = processarConfrontos(rodadaData);
+        confrontos.forEach((confronto) => {
+            const { time1, time2 } = confronto;
+            const t1Id = time1.id || time1.timeId || time1.time_id;
+            const t2Id = time2.id || time2.timeId || time2.time_id;
+            const isMeu1 = String(t1Id) === String(timeId);
+            const isMeu2 = String(t2Id) === String(timeId);
+
+            if (!isMeu1 && !isMeu2) return;
+
+            const p1 = time1.pontos ?? null;
+            const p2 = time2.pontos ?? null;
+
+            if (p1 === null || p2 === null) return;
+
+            totalConfrontos++;
+
+            const diff = Math.abs(p1 - p2);
+            const isGoleada = diff >= 50;
+            const isEmpate = diff <= 0.3;
+
+            let meusPontos = isMeu1 ? p1 : p2;
+            let pontosAdversario = isMeu1 ? p2 : p1;
+
+            if (isEmpate) {
+                empates++;
+                saldoFinanceiro += 3; // Empate = R$3
+            } else if (meusPontos > pontosAdversario) {
+                vitorias++;
+                if (isGoleada) {
+                    goleadasDadas++;
+                    saldoFinanceiro += 7; // Goleada = R$7
+                } else {
+                    saldoFinanceiro += 5; // Vitória = R$5
+                }
+            } else {
+                derrotas++;
+                if (isGoleada) {
+                    goleadasSofridas++;
+                    saldoFinanceiro -= 7;
+                } else {
+                    saldoFinanceiro -= 5;
+                }
+            }
+        });
+    });
+
+    if (totalConfrontos === 0) {
+        cardEl.innerHTML = "";
+        return;
+    }
+
+    // Calcular percentuais
+    const aproveitamento =
+        totalConfrontos > 0
+            ? Math.round((vitorias / totalConfrontos) * 100)
+            : 0;
+    const percentDerrotas =
+        totalConfrontos > 0
+            ? Math.round((derrotas / totalConfrontos) * 100)
+            : 0;
+
+    // Saldo formatado
+    const saldoAbs = Math.abs(saldoFinanceiro);
+    const saldoTexto =
+        saldoFinanceiro >= 0
+            ? `+R$ ${saldoAbs.toFixed(2)}`
+            : `-R$ ${saldoAbs.toFixed(2)}`;
+    const saldoClass = saldoFinanceiro >= 0 ? "text-green-400" : "text-red-400";
+
+    // Posição badge com cor
+    const isCampeao = ligaEncerrou && posicaoAtual === 1;
+    const posicaoBadgeColor =
+        posicaoAtual === 1
+            ? "bg-yellow-500"
+            : posicaoAtual <= 3
+              ? "bg-green-500"
+              : posicaoAtual <= 10
+                ? "bg-blue-500"
+                : "bg-zinc-600";
+
+    cardEl.innerHTML = `
+        <div class="card-desempenho-pc bg-surface-dark rounded-2xl overflow-hidden border border-zinc-800">
+            <!-- Header com Posição -->
+            <div class="flex items-center justify-between px-4 py-3 bg-white/[0.02] border-b border-zinc-800">
+                <div class="flex items-center gap-2.5">
+                    <span class="material-symbols-outlined text-primary" style="font-size: 22px;">analytics</span>
+                    <span class="text-sm font-semibold text-white">Seu Desempenho</span>
+                </div>
+                <div class="flex items-center gap-2">
+                    <span class="text-[10px] font-semibold text-gray-400 bg-white/5 px-2.5 py-1 rounded-full border border-white/10">${totalConfrontos} CONFRONTOS</span>
+                </div>
+            </div>
+
+            <!-- Posição na Liga -->
+            <div class="flex items-center justify-center gap-4 px-4 py-4 bg-gradient-to-r from-white/[0.02] to-transparent">
+                <div class="flex items-center gap-3">
+                    ${
+                        isCampeao
+                            ? `<span class="material-symbols-outlined text-yellow-400 animate-pulse" style="font-size: 36px;">emoji_events</span>`
+                            : `<div class="w-12 h-12 ${posicaoBadgeColor} rounded-full flex items-center justify-center shadow-lg">
+                            <span class="text-lg font-bold text-white">${posicaoAtual}º</span>
+                          </div>`
+                    }
+                    <div>
+                        <div class="text-xs text-gray-400">${isCampeao ? "Você é o" : "Posição na Liga"}</div>
+                        <div class="text-base font-bold ${isCampeao ? "text-yellow-400" : "text-white"}">${isCampeao ? "CAMPEÃO!" : `${posicaoAtual}º de ${totalParticipantes}`}</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Stats Grid -->
+            <div class="grid grid-cols-4 gap-px bg-zinc-800">
+                <div class="bg-surface-dark py-4 text-center">
+                    <span class="material-symbols-outlined text-green-500" style="font-size: 24px;">check_circle</span>
+                    <div class="text-2xl font-bold text-white mt-1">${vitorias}</div>
+                    <div class="text-[9px] font-semibold text-gray-500 uppercase tracking-wide">Vitórias</div>
+                </div>
+                <div class="bg-surface-dark py-4 text-center">
+                    <span class="material-symbols-outlined text-yellow-500" style="font-size: 24px;">drag_handle</span>
+                    <div class="text-2xl font-bold text-white mt-1">${empates}</div>
+                    <div class="text-[9px] font-semibold text-gray-500 uppercase tracking-wide">Empates</div>
+                </div>
+                <div class="bg-surface-dark py-4 text-center">
+                    <span class="material-symbols-outlined text-red-500" style="font-size: 24px;">cancel</span>
+                    <div class="text-2xl font-bold text-white mt-1">${derrotas}</div>
+                    <div class="text-[9px] font-semibold text-gray-500 uppercase tracking-wide">Derrotas</div>
+                </div>
+                <div class="bg-surface-dark py-4 text-center">
+                    <span class="material-symbols-outlined text-orange-500" style="font-size: 24px;">local_fire_department</span>
+                    <div class="text-2xl font-bold text-white mt-1">${goleadasDadas}</div>
+                    <div class="text-[9px] font-semibold text-gray-500 uppercase tracking-wide">Goleadas</div>
+                </div>
+            </div>
+
+            <!-- Progress Bars -->
+            <div class="px-4 py-4 space-y-3">
+                <div class="flex items-center gap-3">
+                    <div class="flex items-center gap-1.5 min-w-[90px]">
+                        <span class="material-symbols-outlined text-green-500" style="font-size: 18px;">trending_up</span>
+                        <span class="text-[11px] font-semibold text-gray-400">Aproveit.</span>
+                    </div>
+                    <div class="flex-1 h-2 bg-zinc-800 rounded-full overflow-hidden">
+                        <div class="h-full bg-gradient-to-r from-green-500 to-green-600 rounded-full" style="width: ${aproveitamento}%;"></div>
+                    </div>
+                    <span class="text-xs font-bold text-green-500 min-w-[40px] text-right">${aproveitamento}%</span>
+                </div>
+                <div class="flex items-center gap-3">
+                    <div class="flex items-center gap-1.5 min-w-[90px]">
+                        <span class="material-symbols-outlined text-red-500" style="font-size: 18px;">trending_down</span>
+                        <span class="text-[11px] font-semibold text-gray-400">Derrotas</span>
+                    </div>
+                    <div class="flex-1 h-2 bg-zinc-800 rounded-full overflow-hidden">
+                        <div class="h-full bg-gradient-to-r from-red-500 to-red-600 rounded-full" style="width: ${percentDerrotas}%;"></div>
+                    </div>
+                    <span class="text-xs font-bold text-red-500 min-w-[40px] text-right">${percentDerrotas}%</span>
+                </div>
+            </div>
+
+            <!-- Footer Saldo -->
+            <div class="px-4 py-3 bg-white/[0.02] border-t border-zinc-800 flex items-center justify-between">
+                <div class="flex items-center gap-2">
+                    <span class="material-symbols-outlined text-gray-500" style="font-size: 18px;">account_balance_wallet</span>
+                    <span class="text-[11px] text-gray-500">Saldo Confrontos:</span>
+                </div>
+                <span class="text-sm font-bold ${saldoClass}">${saldoTexto}</span>
+            </div>
+        </div>
+    `;
+
+    console.log(
+        `[PONTOS-CORRIDOS] 📊 Desempenho: ${vitorias}V ${empates}E ${derrotas}D em ${totalConfrontos} confrontos | Posição: ${posicaoAtual}º`,
+    );
+}
+
+// ============================================
+// BANNER CAMPEÃO
+// ============================================
+
 function renderizarBannerCampeao() {
-    const container = document.getElementById("pc-banner-campeao");
+    const bannerEl = document.getElementById("pc-banner-campeao");
 
     if (!estadoPC.ligaEncerrou) {
-        if (container) container.innerHTML = "";
+        if (bannerEl) bannerEl.innerHTML = "";
         return;
     }
 
@@ -140,16 +365,16 @@ function renderizarBannerCampeao() {
         (r) => r.rodada === estadoPC.totalRodadas,
     );
     if (!ultimaRodada?.classificacao?.length) {
-        if (container) container.innerHTML = "";
+        if (bannerEl) bannerEl.innerHTML = "";
         return;
     }
 
-    // ✅ v4.8: Filtrar apenas ativos para o campeão
+    // Filtrar apenas ativos para o campeão
     const classificacaoAtivos = ultimaRodada.classificacao.filter(
         (t) => t.ativo !== false,
     );
     if (classificacaoAtivos.length === 0) {
-        if (container) container.innerHTML = "";
+        if (bannerEl) bannerEl.innerHTML = "";
         return;
     }
 
@@ -168,42 +393,25 @@ function renderizarBannerCampeao() {
     const campeaoId = campeao.timeId || campeao.time_id || campeao.id;
     const souCampeao = String(campeaoId) === String(estadoPC.timeId);
 
-    if (!container) {
-        const seletorContainer = document
-            .getElementById("pc-seletor-rodadas")
-            ?.closest(".overflow-x-auto")?.parentElement;
-        if (seletorContainer) {
-            const bannerDiv = document.createElement("div");
-            bannerDiv.id = "pc-banner-campeao";
-            seletorContainer.parentElement.insertBefore(
-                bannerDiv,
-                seletorContainer,
-            );
-        }
-    }
-
-    const bannerEl = document.getElementById("pc-banner-campeao");
-    if (!bannerEl) return;
-
     bannerEl.innerHTML = `
         <div class="campeao-banner mx-4 mb-4 rounded-2xl overflow-hidden relative">
             <div class="absolute inset-0 bg-gradient-to-r from-yellow-600/20 via-yellow-500/30 to-yellow-600/20"></div>
             <div class="confetti-bg absolute inset-0 opacity-30"></div>
             <div class="relative z-10 p-4">
                 <div class="text-center mb-3">
-                    <div class="text-3xl mb-1 animate-bounce-slow">🏆</div>
+                    <span class="material-symbols-outlined text-yellow-400 animate-bounce-slow" style="font-size: 32px;">emoji_events</span>
                     <h3 class="text-yellow-400 font-bold text-sm tracking-wider">CAMPEÃO DA LIGA!</h3>
                     <p class="text-white/50 text-[10px]">Pontos Corridos 2025</p>
                 </div>
                 <div class="flex items-center justify-center gap-4 bg-black/30 rounded-xl p-3">
                     <div class="relative">
                         <img src="${escudoCampeao}" class="w-16 h-16 rounded-full border-2 border-yellow-500 shadow-lg shadow-yellow-500/30" onerror="this.src='/assets/escudo-placeholder.png'">
-                        <span class="absolute -bottom-1 -right-1 text-xl">🥇</span>
+                        <span class="material-symbols-outlined absolute -bottom-1 -right-1 text-yellow-400" style="font-size: 20px;">military_tech</span>
                     </div>
                     <div class="text-left">
                         <p class="font-bold text-white text-base ${souCampeao ? "text-yellow-400" : ""}">${nomeCampeao}</p>
                         ${nomeCartoleiro ? `<p class="text-white/60 text-xs">${nomeCartoleiro}</p>` : ""}
-                        ${souCampeao ? '<p class="text-yellow-400 text-xs font-semibold mt-1">🎉 Você é o campeão!</p>' : ""}
+                        ${souCampeao ? '<p class="text-yellow-400 text-xs font-semibold mt-1"><span class="material-symbols-outlined" style="font-size: 14px; vertical-align: middle;">celebration</span> Você é o campeão!</p>' : ""}
                         <div class="flex gap-3 mt-1">
                             <div class="text-center"><span class="text-yellow-400 font-bold text-lg">${pontosCampeao}</span><span class="text-white/50 text-[9px] block">PTS</span></div>
                             <div class="text-center"><span class="text-green-400 font-bold text-lg">${vitoriasCampeao}</span><span class="text-white/50 text-[9px] block">V</span></div>
@@ -213,7 +421,7 @@ function renderizarBannerCampeao() {
                         </div>
                     </div>
                 </div>
-                ${souCampeao ? '<div class="text-center mt-3"><p class="text-white/80 text-xs">🎉 Parabéns pela conquista! 🎉</p></div>' : ""}
+                ${souCampeao ? '<div class="text-center mt-3"><p class="text-white/80 text-xs"><span class="material-symbols-outlined" style="font-size: 14px; vertical-align: middle;">celebration</span> Parabéns pela conquista! <span class="material-symbols-outlined" style="font-size: 14px; vertical-align: middle;">celebration</span></p></div>' : ""}
             </div>
         </div>
         <style>
@@ -241,16 +449,7 @@ function atualizarHeader() {
         if (meuTime) posicao = ativos.indexOf(meuTime) + 1;
     }
 
-    const badgeEl = document.getElementById("pc-posicao-badge");
-    if (badgeEl) {
-        if (ligaEncerrou && posicao === 1) {
-            badgeEl.textContent = "🏆";
-            badgeEl.classList.add("text-yellow-400");
-        } else {
-            badgeEl.textContent = `${posicao}º`;
-            badgeEl.classList.remove("text-yellow-400");
-        }
-    }
+    // Badge removido do header - posição agora está no card Seu Desempenho
 }
 
 function atualizarSeletorRodadas() {
@@ -271,7 +470,7 @@ function atualizarSeletorRodadas() {
     const infoEl = document.getElementById("pc-rodadas-info");
     if (infoEl) {
         infoEl.innerHTML = ligaEncerrou
-            ? `<span class="text-yellow-400">🏆 Liga Encerrada!</span> ${rodadasDisputadas} rodadas`
+            ? `<span class="text-yellow-400"><span class="material-symbols-outlined" style="font-size: 14px; vertical-align: middle;">emoji_events</span> Liga Encerrada!</span> ${rodadasDisputadas} rodadas`
             : `${rodadasDisputadas} de ${totalRodadas} rodadas disputadas`;
     }
 
@@ -298,7 +497,7 @@ function atualizarSeletorRodadas() {
             <span class="font-bold text-sm ${isSelecionada ? "text-white" : isAtual ? "text-green-400" : isUltima ? "text-yellow-400" : "text-white"}">${i}</span>
             <span class="${isSelecionada ? "text-white/80" : isAtual ? "text-green-400/80" : isUltima ? "text-yellow-400/80" : "text-white/50"}">${isUltima ? "FINAL" : "RODADA"}</span>
             ${isAtual && !isSelecionada && !ligaEncerrou ? '<span class="w-1.5 h-1.5 bg-green-500 rounded-full mt-1 animate-pulse"></span>' : ""}
-            ${isUltima ? '<span class="text-[8px] mt-0.5">🏆</span>' : ""}
+            ${isUltima ? '<span class="material-symbols-outlined text-yellow-400 mt-0.5" style="font-size: 12px;">emoji_events</span>' : ""}
         `;
         container.appendChild(btn);
     }
@@ -403,7 +602,7 @@ function renderizarConfrontos() {
     setTexto(
         "pc-rodada-titulo",
         isRodadaFinal
-            ? `🏆 Rodada Final da Liga`
+            ? `Rodada Final da Liga`
             : `${rodadaSelecionada}ª Rodada da Liga`,
     );
     setTexto(
@@ -411,12 +610,18 @@ function renderizarConfrontos() {
         `${rodadaBrasileirao}ª Rodada do Brasileirão`,
     );
 
+    // ✅ Material Icon no título da rodada final
+    const tituloEl = document.getElementById("pc-rodada-titulo");
+    if (tituloEl && isRodadaFinal) {
+        tituloEl.innerHTML = `<span class="material-symbols-outlined text-yellow-400 mr-1" style="font-size: 18px; vertical-align: middle;">emoji_events</span> Rodada Final da Liga`;
+    }
+
     const statusEl = document.getElementById("pc-rodada-status");
     if (statusEl) {
         if (isRodadaFinal) {
             statusEl.className =
                 "flex items-center space-x-1.5 bg-yellow-500/20 text-yellow-400 px-2.5 py-1.5 rounded-full text-[10px] font-semibold";
-            statusEl.innerHTML = `<span class="text-sm">🏆</span><span>ENCERRADA</span>`;
+            statusEl.innerHTML = `<span class="material-symbols-outlined" style="font-size: 14px;">emoji_events</span><span>ENCERRADA</span>`;
         } else {
             statusEl.className = `flex items-center space-x-1.5 ${isEmAndamento ? "bg-yellow-500/10 text-yellow-400" : "bg-green-500/10 text-green-400"} px-2.5 py-1.5 rounded-full text-[10px] font-semibold`;
             statusEl.innerHTML = `<span class="w-1.5 h-1.5 ${isEmAndamento ? "bg-yellow-500 animate-pulse" : "bg-green-500"} rounded-full"></span><span>${isEmAndamento ? "EM ANDAMENTO" : "FINALIZADA"}</span>`;
@@ -564,10 +769,10 @@ function renderizarClassificacao() {
     const infoEl = document.getElementById("pc-classificacao-info");
     if (infoEl)
         infoEl.innerHTML = ligaEncerrou
-            ? `<span class="text-yellow-400">🏆 Classificação Final</span>`
+            ? `<span class="text-yellow-400"><span class="material-symbols-outlined" style="font-size: 14px; vertical-align: middle;">emoji_events</span> Classificação Final</span>`
             : `Atualizada até a ${ultimaRodada.rodada}ª rodada`;
 
-    // ✅ v4.8: Separar ativos de inativos
+    // Separar ativos de inativos
     const classificacao = ultimaRodada.classificacao;
     const ativos = classificacao.filter((t) => t.ativo !== false);
     const inativos = classificacao.filter((t) => t.ativo === false);
@@ -586,9 +791,9 @@ function renderizarClassificacao() {
         )
         .join("");
 
-    // ✅ v4.8: Divisória de inativos
+    // Divisória de inativos
     if (inativos.length > 0) {
-        html += `<div class="flex items-center px-3 py-2 bg-zinc-800/50 border-t border-b border-zinc-700"><span class="text-[10px] text-gray-500 font-medium">👤 Participantes Inativos (${inativos.length})</span></div>`;
+        html += `<div class="flex items-center px-3 py-2 bg-zinc-800/50 border-t border-b border-zinc-700"><span class="material-symbols-outlined text-gray-500 mr-1.5" style="font-size: 14px;">person_off</span><span class="text-[10px] text-gray-500 font-medium">Participantes Inativos (${inativos.length})</span></div>`;
         html += inativos
             .map((t) =>
                 buildLinhaClassificacao(
@@ -637,11 +842,17 @@ function buildLinhaClassificacao(
     let posicaoBadge = "";
     if (isInativo)
         posicaoBadge = `<span class="text-xs text-gray-600">—</span>`;
-    else if (isCampeao) posicaoBadge = `<div class="text-xl">🏆</div>`;
+    else if (isCampeao)
+        posicaoBadge = `<span class="material-symbols-outlined text-yellow-400" style="font-size: 20px;">emoji_events</span>`;
     else if (zona.badge)
         posicaoBadge = `<div class="w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold text-white ${zona.bg}">${pos}</div>`;
     else
         posicaoBadge = `<span class="text-xs font-bold text-white/70">${pos}</span>`;
+
+    // ✅ Material Icon no nome do campeão
+    const nomeSufixo = isCampeao
+        ? ` <span class="material-symbols-outlined text-yellow-400" style="font-size: 14px; vertical-align: middle;">celebration</span>`
+        : "";
 
     return `
         <div class="flex items-center px-3 py-2.5 ${bgClass} ${inativoStyle}">
@@ -649,7 +860,7 @@ function buildLinhaClassificacao(
             <div class="flex items-center gap-2.5 pl-2 min-w-0 flex-1">
                 <img src="${esc}" class="w-8 h-8 rounded-full bg-zinc-700 object-cover shrink-0 ${isCampeao ? "ring-2 ring-yellow-500" : ""}" onerror="this.src='/assets/escudo-placeholder.png'">
                 <div class="min-w-0 flex-1">
-                    <span class="text-xs font-medium truncate block ${isCampeao ? "text-yellow-400 font-bold" : isMeu && !isInativo ? "text-primary font-bold" : isInativo ? "text-gray-500" : "text-white"}">${nome}${isCampeao ? " 🎉" : ""}</span>
+                    <span class="text-xs font-medium truncate block ${isCampeao ? "text-yellow-400 font-bold" : isMeu && !isInativo ? "text-primary font-bold" : isInativo ? "text-gray-500" : "text-white"}">${nome}${nomeSufixo}</span>
                     <span class="text-[10px] ${isInativo ? "text-gray-600" : "text-gray-500"} truncate block">${cartoleiro}</span>
                 </div>
             </div>
@@ -731,4 +942,6 @@ window.recarregarPontosCorridos = function () {
 window.inicializarPontosCorridosParticipante =
     inicializarPontosCorridosParticipante;
 
-console.log("[PONTOS-CORRIDOS] ✅ Módulo v4.8 carregado (suporte a inativos)");
+console.log(
+    "[PONTOS-CORRIDOS] ✅ Módulo v4.9 carregado (Material Icons + Card Desempenho)",
+);

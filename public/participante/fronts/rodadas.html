@@ -119,11 +119,12 @@
                 cursor: not-allowed;
             }
 
+            /* ✅ v3.7: Card movido para o final */
             .card-desempenho-mitos-micos {
                 background: linear-gradient(135deg, #1a1a1a 0%, #262626 100%);
                 border-radius: 16px;
                 padding: 16px;
-                margin-bottom: 16px;
+                margin-top: 16px;
                 border: 1px solid #333;
             }
 
@@ -625,6 +626,66 @@
                 </button>
             </div>
 
+            <div id="rodadasLoading" class="rodadas-loading-state">
+                <div class="loading-spinner-rodadas"></div>
+                <p>Carregando rodadas...</p>
+            </div>
+
+            <div class="rodadas-grid-container" style="display: none">
+                <div id="rodadasCardsGrid" class="rodadas-grid-compacto"></div>
+
+                <div
+                    id="btnVerJogadores"
+                    class="rodadas-ver-jogadores"
+                    style="display: none"
+                >
+                    <button
+                        onclick="window.mostrarEmDesenvolvimento('Detalhamento de jogadores')"
+                    >
+                        <span class="material-symbols-outlined">groups</span>
+                        <span id="btnJogadoresTexto"
+                            >Ver Meus Jogadores da Rodada</span
+                        >
+                    </button>
+                </div>
+            </div>
+
+            <div
+                id="rodadasEmpty"
+                class="rodadas-empty-state"
+                style="display: none"
+            >
+                <span class="material-symbols-outlined">calendar_today</span>
+                <h3>Nenhuma rodada disponível</h3>
+                <p>As rodadas aparecerão aqui quando o campeonato começar</p>
+            </div>
+
+            <div
+                id="rodadaDetalhamento"
+                class="rodada-detalhamento-pro"
+                style="display: none"
+            >
+                <div class="detalhamento-header-pro">
+                    <div class="detalhamento-info">
+                        <h3 id="rodadaTitulo">Rodada X</h3>
+                        <p id="rodadaResumo" class="rodada-resumo"></p>
+                    </div>
+                    <button
+                        class="btn-voltar-pro"
+                        onclick="window.voltarParaCards()"
+                    >
+                        <span class="material-symbols-outlined"
+                            >arrow_back</span
+                        >
+                        Voltar
+                    </button>
+                </div>
+                <div class="ranking-container-pro">
+                    <div id="rankingListPro" class="ranking-list-pro"></div>
+                </div>
+            </div>
+
+            <!-- ✅ v3.7: Card Desempenho movido para o final -->
             <div
                 id="cardDesempenhoMitosMicos"
                 class="card-desempenho-mitos-micos"
@@ -694,65 +755,6 @@
                             >Nenhum</span
                         >
                     </div>
-                </div>
-            </div>
-
-            <div id="rodadasLoading" class="rodadas-loading-state">
-                <div class="loading-spinner-rodadas"></div>
-                <p>Carregando rodadas...</p>
-            </div>
-
-            <div class="rodadas-grid-container" style="display: none">
-                <div id="rodadasCardsGrid" class="rodadas-grid-compacto"></div>
-
-                <div
-                    id="btnVerJogadores"
-                    class="rodadas-ver-jogadores"
-                    style="display: none"
-                >
-                    <button
-                        onclick="window.mostrarEmDesenvolvimento('Detalhamento de jogadores')"
-                    >
-                        <span class="material-symbols-outlined">groups</span>
-                        <span id="btnJogadoresTexto"
-                            >Ver Meus Jogadores da Rodada</span
-                        >
-                    </button>
-                </div>
-            </div>
-
-            <div
-                id="rodadasEmpty"
-                class="rodadas-empty-state"
-                style="display: none"
-            >
-                <span class="material-symbols-outlined">calendar_today</span>
-                <h3>Nenhuma rodada disponível</h3>
-                <p>As rodadas aparecerão aqui quando o campeonato começar</p>
-            </div>
-
-            <div
-                id="rodadaDetalhamento"
-                class="rodada-detalhamento-pro"
-                style="display: none"
-            >
-                <div class="detalhamento-header-pro">
-                    <div class="detalhamento-info">
-                        <h3 id="rodadaTitulo">Rodada X</h3>
-                        <p id="rodadaResumo" class="rodada-resumo"></p>
-                    </div>
-                    <button
-                        class="btn-voltar-pro"
-                        onclick="window.voltarParaCards()"
-                    >
-                        <span class="material-symbols-outlined"
-                            >arrow_back</span
-                        >
-                        Voltar
-                    </button>
-                </div>
-                <div class="ranking-container-pro">
-                    <div id="rankingListPro" class="ranking-list-pro"></div>
                 </div>
             </div>
 

@@ -1,8 +1,8 @@
 // =====================================================================
-// PARTICIPANTE-LUVA-OURO.JS - v3.6 (BANNER + FILTRO INATIVOS)
+// PARTICIPANTE-LUVA-OURO.JS - v3.7 (Card Desempenho ao final)
 // =====================================================================
 
-console.log("[PARTICIPANTE-LUVA-OURO] 🔄 Carregando módulo v3.6...");
+console.log("[PARTICIPANTE-LUVA-OURO] 🔄 Carregando módulo v3.7...");
 
 const RODADA_FINAL = 38;
 
@@ -558,6 +558,35 @@ async function renderizarLuvaOuro(container, response, meuTimeId) {
     `;
 
     container.innerHTML = html;
+
+    // ✅ v3.7: Mover o card "Meus Dados" para o container externo ao final
+    setTimeout(() => {
+        const cardDesempenhoContainer = document.getElementById(
+            "luva-ouro-card-desempenho",
+        );
+        const cardMeusDados = container.querySelector(
+            '[style*="linear-gradient(135deg, rgba(255, 215, 0, 0.15)"]',
+        );
+
+        if (cardDesempenhoContainer && cardMeusDados) {
+            // Criar wrapper com estilos do card Seu Desempenho
+            const wrapper = document.createElement("div");
+            wrapper.innerHTML = `
+                <div style="background: linear-gradient(135deg, #1a1a1a 0%, #262626 100%); border-radius: 16px; padding: 16px; border: 1px solid rgba(255, 215, 0, 0.3);">
+                    <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 16px; color: #ffd700; font-weight: 600; font-size: 14px;">
+                        <span class="material-icons" style="font-size: 20px;">insights</span>
+                        <span>Seu Desempenho</span>
+                    </div>
+                    ${cardMeusDados.innerHTML}
+                </div>
+            `;
+            cardDesempenhoContainer.innerHTML = "";
+            cardDesempenhoContainer.appendChild(wrapper);
+
+            // Remover o card original
+            cardMeusDados.remove();
+        }
+    }, 100);
 }
 
-console.log("[PARTICIPANTE-LUVA-OURO] ✅ Módulo v3.6 carregado");
+console.log("[PARTICIPANTE-LUVA-OURO] ✅ Módulo v3.7 carregado");

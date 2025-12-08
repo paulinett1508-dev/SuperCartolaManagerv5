@@ -1,10 +1,10 @@
 // =====================================================
-// MÓDULO: RANKING PARTICIPANTE - v3.4 PRO
+// MÓDULO: RANKING PARTICIPANTE - v3.5 PRO
 // Usa API de snapshots /api/ranking-turno
-// ✅ NOVO: Card do Líder + Card Seu Desempenho + Posições por Turno
+// ✅ v3.5: Card Seu Desempenho ao final + Vezes Líder
 // =====================================================
 
-console.log("[PARTICIPANTE-RANKING] Módulo v3.4 PRO carregando...");
+console.log("[PARTICIPANTE-RANKING] Módulo v3.5 PRO carregando...");
 
 // ==============================
 // CARREGAR MATERIAL ICONS (IMEDIATO + FORÇADO)
@@ -82,6 +82,7 @@ let estadoRanking = {
         turno2: null,
         geral: null,
     },
+    vezesLider: 0, // ✅ v3.5: Contador de rodadas como líder
 };
 
 export async function inicializarRankingParticipante(params, timeIdParam) {
@@ -191,13 +192,18 @@ async function carregarPosicoesTurnos() {
     if (!ligaId || !timeId) return;
 
     try {
-        // Buscar 1º e 2º turno em paralelo
-        const [resp1, resp2] = await Promise.all([
+        // Buscar 1º e 2º turno + rodadas em paralelo
+        const [resp1, resp2, respRodadas] = await Promise.all([
             fetch("/api/ranking-turno/" + ligaId + "?turno=1"),
             fetch("/api/ranking-turno/" + ligaId + "?turno=2"),
+            fetch("/api/rodadas/" + ligaId + "/rodadas?inicio=1&fim=38"),
         ]);
 
-        const [data1, data2] = await Promise.all([resp1.json(), resp2.json()]);
+        const [data1, data2, dataRodadas] = await Promise.all([
+            resp1.json(),
+            resp2.json(),
+            respRodadas.json(),
+        ]);
 
         // Extrair posição do participante em cada turno
         if (data1.success && data1.ranking) {
@@ -218,6 +224,18 @@ async function carregarPosicoesTurnos() {
                 : null;
         }
 
+        // ✅ v3.5: Contar vezes que foi líder
+        if (dataRodadas.success && dataRodadas.rodadas) {
+            estadoRanking.vezesLider = contarVezesLider(
+                dataRodadas.rodadas,
+                timeId,
+            );
+            console.log(
+                "[PARTICIPANTE-RANKING] 🏆 Vezes líder:",
+                estadoRanking.vezesLider,
+            );
+        }
+
         console.log(
             "[PARTICIPANTE-RANKING] Posições por turno:",
             estadoRanking.posicoesPorTurno,
@@ -225,6 +243,44 @@ async function carregarPosicoesTurnos() {
     } catch (error) {
         console.error("[PARTICIPANTE-RANKING] Erro ao buscar turnos:", error);
     }
+}
+
+// ===== CONTAR QUANTAS VEZES FOI LÍDER =====
+function contarVezesLider(rodadas, meuTimeId) {
+    // Agrupar por rodada
+    const rodadasMap = new Map();
+
+    rodadas.forEach((r) => {
+        const rodadaNum = r.rodada || r.rodada_atual;
+        if (!rodadaNum) return;
+
+        if (!rodadasMap.has(rodadaNum)) {
+            rodadasMap.set(rodadaNum, []);
+        }
+        rodadasMap.get(rodadaNum).push(r);
+    });
+
+    let vezesLider = 0;
+
+    // Para cada rodada, verificar se o participante foi líder
+    rodadasMap.forEach((participantes, rodadaNum) => {
+        // Ordenar por pontos (decrescente)
+        const ordenados = [...participantes]
+            .filter((p) => p.pontos != null && !p.rodadaNaoJogada)
+            .sort((a, b) => (b.pontos || 0) - (a.pontos || 0));
+
+        if (ordenados.length === 0) return;
+
+        // Verificar se meu time foi o líder (posição 1)
+        const lider = ordenados[0];
+        const liderTimeId = String(lider.time_id || lider.timeId);
+
+        if (liderTimeId === String(meuTimeId)) {
+            vezesLider++;
+        }
+    });
+
+    return vezesLider;
 }
 
 // ===== CONFIGURAR TABS =====
@@ -354,6 +410,21 @@ function criarCardSeuDesempenho(ranking, turnoLabel) {
             "</div>";
     }
 
+    // ✅ v3.5: Linha de vezes líder (se tiver pelo menos 1)
+    let vezesLiderHTML = "";
+    const vezesLider = estadoRanking.vezesLider || 0;
+    if (vezesLider > 0) {
+        vezesLiderHTML =
+            '<div class="seu-vezes-lider">' +
+            '<span class="material-icons">workspace_premium</span>' +
+            "<span>Você foi líder em <strong>" +
+            vezesLider +
+            "</strong> rodada" +
+            (vezesLider > 1 ? "s" : "") +
+            "</span>" +
+            "</div>";
+    }
+
     // Footer diferente se for líder ou não
     let footerHTML = "";
     if (posicao === 1) {
@@ -416,6 +487,7 @@ function criarCardSeuDesempenho(ranking, turnoLabel) {
         "</div>" +
         "</div>" +
         turnosHTML +
+        vezesLiderHTML +
         footerHTML +
         "</div>"
     );
@@ -522,21 +594,29 @@ function renderizarRankingPro(container, ranking, rodadaAtual) {
         el.remove();
     });
 
-    // Montar HTML: cards + lista
+    // ✅ v3.5: Montar HTML - Líder no topo, Seu Desempenho ao final
     let htmlFinal = "";
 
-    if (cardLiderHTML || cardSeuDesempenhoHTML) {
+    // Card Líder permanece no topo
+    if (cardLiderHTML) {
         htmlFinal +=
-            '<div class="cards-destaque-container">' +
-            cardLiderHTML +
-            cardSeuDesempenhoHTML +
-            "</div>";
+            '<div class="cards-destaque-container">' + cardLiderHTML + "</div>";
     }
 
     htmlFinal += '<div class="ranking-lista-items">' + listaHTML + "</div>";
 
     // Inserir no container
     container.innerHTML = htmlFinal;
+
+    // ✅ v3.5: Renderizar card Seu Desempenho no container externo (final)
+    const cardDesempenhoContainer = document.getElementById(
+        "rankingCardDesempenho",
+    );
+    if (cardDesempenhoContainer && cardSeuDesempenhoHTML) {
+        cardDesempenhoContainer.innerHTML = cardSeuDesempenhoHTML;
+    } else if (cardDesempenhoContainer) {
+        cardDesempenhoContainer.innerHTML = "";
+    }
 
     // Scroll para meu time
     setTimeout(function () {
@@ -851,6 +931,29 @@ function injetarEstilosCards() {
             color: #ef4444;
         }
 
+        /* ✅ v3.5: Vezes Líder */
+        .seu-vezes-lider {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            margin-top: 12px;
+            padding: 10px 14px;
+            background: linear-gradient(135deg, rgba(255, 215, 0, 0.15) 0%, rgba(255, 170, 0, 0.1) 100%);
+            border: 1px solid rgba(255, 215, 0, 0.3);
+            border-radius: 10px;
+            font-size: 0.8rem;
+            color: #ffd700;
+        }
+        .seu-vezes-lider .material-icons {
+            font-size: 18px;
+            color: #ffd700;
+        }
+        .seu-vezes-lider strong {
+            font-weight: 700;
+            color: #fff;
+        }
+
         /* Tag VOCÊ na lista */
         .tag-voce {
             color: #3b82f6;
@@ -1043,5 +1146,5 @@ window.mostrarPremiacaoPro = function (posicaoClicada) {
 };
 
 console.log(
-    "[PARTICIPANTE-RANKING] Módulo v3.4 PRO carregado com Card Líder + Seu Desempenho",
+    "[PARTICIPANTE-RANKING] ✅ Módulo v3.5 PRO carregado (Card ao final + Vezes Líder)",
 );

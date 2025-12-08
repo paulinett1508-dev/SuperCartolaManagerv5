@@ -1,8 +1,8 @@
 // =====================================================================
-// PARTICIPANTE-ARTILHEIRO.JS - v3.3 (BANNER + FILTRO INATIVOS)
+// PARTICIPANTE-ARTILHEIRO.JS - v3.4 (Card Desempenho ao final)
 // =====================================================================
 
-console.log("[PARTICIPANTE-ARTILHEIRO] 🔄 Carregando módulo v3.3...");
+console.log("[PARTICIPANTE-ARTILHEIRO] 🔄 Carregando módulo v3.4...");
 
 const RODADA_FINAL = 38;
 
@@ -608,6 +608,35 @@ async function renderizarArtilheiro(container, response, meuTimeId) {
     `;
 
     container.innerHTML = html;
+
+    // ✅ v3.4: Mover o card "Meus Dados" para o container externo ao final
+    setTimeout(() => {
+        const cardDesempenhoContainer = document.getElementById(
+            "artilheiro-card-desempenho",
+        );
+        const cardMeusDados = container.querySelector(
+            '[style*="linear-gradient(135deg, rgba(34, 197, 94, 0.15)"]',
+        );
+
+        if (cardDesempenhoContainer && cardMeusDados) {
+            // Criar wrapper com estilos do card Seu Desempenho
+            const wrapper = document.createElement("div");
+            wrapper.innerHTML = `
+                <div style="background: linear-gradient(135deg, #1a1a1a 0%, #262626 100%); border-radius: 16px; padding: 16px; border: 1px solid rgba(34, 197, 94, 0.3);">
+                    <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 16px; color: #22c55e; font-weight: 600; font-size: 14px;">
+                        <span class="material-icons" style="font-size: 20px;">insights</span>
+                        <span>Seu Desempenho</span>
+                    </div>
+                    ${cardMeusDados.innerHTML}
+                </div>
+            `;
+            cardDesempenhoContainer.innerHTML = "";
+            cardDesempenhoContainer.appendChild(wrapper);
+
+            // Remover o card original
+            cardMeusDados.remove();
+        }
+    }, 100);
 }
 
-console.log("[PARTICIPANTE-ARTILHEIRO] ✅ Módulo v3.3 carregado");
+console.log("[PARTICIPANTE-ARTILHEIRO] ✅ Módulo v3.4 carregado");

@@ -1,10 +1,10 @@
 // =====================================================================
-// PARTICIPANTE-RODADAS.JS - v3.6 (Inativos contextuais por rodada)
+// PARTICIPANTE-RODADAS.JS - v3.7 (Card Desempenho ao final)
 // ✅ v3.6: Inativos aparecem como ATIVOS nas rodadas anteriores à desistência
-//         Visual de inativo SÓ aparece nas rodadas >= rodada_desistencia
+// ✅ v3.7: Card "Seu Desempenho" movido para o final da página
 // =====================================================================
 
-console.log("[PARTICIPANTE-RODADAS] 📄 Carregando módulo v3.6...");
+console.log("[PARTICIPANTE-RODADAS] 📄 Carregando módulo v3.7...");
 
 // Importar módulo de parciais
 import * as ParciaisModule from "./participante-rodada-parcial.js";
@@ -966,5 +966,5 @@ function mostrarErro(mensagem) {
 }
 
 console.log(
-    "[PARTICIPANTE-RODADAS] ✅ Módulo v3.6 carregado (inativos contextuais por rodada)",
+    "[PARTICIPANTE-RODADAS] ✅ Módulo v3.7 carregado (card desempenho ao final)",
 );

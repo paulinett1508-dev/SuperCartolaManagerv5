@@ -48,8 +48,11 @@
     </div>
 </div>
 
+<!-- ✅ v3.2: Container para card Seu Desempenho ao final -->
+<div id="rankingCardDesempenho" class="ranking-card-desempenho-container"></div>
+
 <style>
-    /* ===== RANKING PROFISSIONAL v3.0 ===== */
+    /* ===== RANKING PROFISSIONAL v3.2 ===== */
     @import url("https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap");
     @import url("https://fonts.googleapis.com/icon?family=Material+Icons");
 
@@ -484,6 +487,19 @@
         .time-nome,
         .pontos-valor {
             font-size: 15px;
+        }
+    }
+
+    /* ✅ v3.2: Card Desempenho ao final */
+    .ranking-card-desempenho-container {
+        padding: 0 12px;
+        margin-top: 16px;
+    }
+
+    @media (min-width: 768px) {
+        .ranking-card-desempenho-container {
+            max-width: 600px;
+            margin: 16px auto 0;
         }
     }
 </style>

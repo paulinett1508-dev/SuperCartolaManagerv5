@@ -1,8 +1,8 @@
 // =====================================================================
-// PARTICIPANTE-TOP10.JS - v4.3 (Material Icons + Card Resumo)
+// PARTICIPANTE-TOP10.JS - v4.4 (Card Resumo ao final)
 // =====================================================================
 
-console.log("[PARTICIPANTE-TOP10] 🏆 Carregando módulo v4.3...");
+console.log("[PARTICIPANTE-TOP10] 🏆 Carregando módulo v4.4...");
 
 // =====================================================================
 // CONFIGURAÇÃO DE VALORES BÔNUS/ÔNUS
