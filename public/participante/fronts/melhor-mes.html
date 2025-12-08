@@ -1,58 +1,577 @@
-<!doctype html>
-<html lang="pt-BR">
-    <head>
-        <meta charset="UTF-8" />
-        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-        <title>Melhor do Mês - Super Cartola Manager</title>
+<!-- PARTICIPANTE MELHOR MÊS - v3.2 Design PRO Cards -->
+<div class="melhor-mes-container-pro">
+    <!-- Header -->
+    <div class="mm-header-pro">
+        <div class="mm-title-row">
+            <span class="mm-emoji">🏆</span>
+            <h2>Melhor do Mês</h2>
+        </div>
+        <span id="mmEdicoesCount" class="mm-edicoes-badge">0 edições</span>
+    </div>
 
-        <!-- Fonts -->
-        <link rel="preconnect" href="https://fonts.googleapis.com" />
-        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-        <link
-            href="https://fonts.googleapis.com/css2?family=Lexend:wght@100..900&display=swap"
-            rel="stylesheet"
-        />
+    <!-- Minhas Conquistas (se houver) -->
+    <div id="mmConquistas" class="mm-conquistas-pro" style="display: none">
+        <div class="conquistas-header-pro">
+            <span class="conquistas-emoji">🎖️</span>
+            <span id="conquistasTexto">Você foi campeão!</span>
+        </div>
+        <div id="conquistasMeses" class="conquistas-meses-pro"></div>
+    </div>
 
-        <!-- Material Symbols -->
-        <link
-            rel="stylesheet"
-            href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200"
-        />
+    <!-- Loading State -->
+    <div id="mmLoading" class="mm-loading-state">
+        <div class="loading-spinner-mm"></div>
+        <p>Carregando rankings mensais...</p>
+    </div>
 
-        <!-- CSS Base + Módulo - PATHS ABSOLUTOS -->
-        <link rel="stylesheet" href="/participante/css/participante.css" />
+    <!-- Lista de Edições -->
+    <div id="mesesGrid" class="mm-edicoes-grid"></div>
 
-        <style>
-            * {
-                box-sizing: border-box;
-                margin: 0;
-                padding: 0;
-            }
+    <!-- Estado Vazio -->
+    <div id="mmEmpty" class="mm-empty-state" style="display: none">
+        <span class="empty-emoji">📅</span>
+        <h3>Sem dados ainda</h3>
+        <p>Os rankings mensais serão gerados após as primeiras rodadas</p>
+    </div>
 
-            body {
-                font-family: "Lexend", sans-serif;
-                background: #101010;
-                color: #ffffff;
-                min-height: 100vh;
-                -webkit-font-smoothing: antialiased;
-                -moz-osx-font-smoothing: grayscale;
-            }
+    <!-- Toast -->
+    <div id="toastMM" class="toast-mm">
+        <span id="toastMMMsg">Mensagem</span>
+    </div>
+</div>
 
-            .material-symbols-outlined {
-                font-variation-settings:
-                    "FILL" 0,
-                    "wght" 400,
-                    "GRAD" 0,
-                    "opsz" 24;
-                vertical-align: middle;
-            }
-        </style>
-    </head>
-    <body class="dark">
-        <div id="melhor-mes-container"></div>
-        <script
-            type="module"
-            src="/participante/js/modules/participante-melhor-mes.js"
-        ></script>
-    </body>
-</html>
+<style>
+    /* ============================================
+   MELHOR MÊS PARTICIPANTE v3.2 - Design PRO Cards
+   ============================================ */
+
+    .melhor-mes-container-pro {
+        padding: 16px;
+        padding-bottom: 100px;
+    }
+
+    /* Header */
+    .mm-header-pro {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 16px;
+        background: linear-gradient(
+            135deg,
+            rgba(230, 81, 0, 0.15) 0%,
+            rgba(230, 81, 0, 0.05) 100%
+        );
+        border-bottom: 2px solid #e65100;
+        border-radius: 12px 12px 0 0;
+        margin-bottom: 16px;
+    }
+
+    .mm-title-row {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+    }
+
+    .mm-emoji {
+        font-size: 24px;
+    }
+
+    .mm-header-pro h2 {
+        font-family: "Poppins", sans-serif;
+        font-size: 18px;
+        font-weight: 700;
+        color: white;
+        margin: 0;
+    }
+
+    .mm-edicoes-badge {
+        font-size: 12px;
+        color: #9ca3af;
+        background: rgba(0, 0, 0, 0.3);
+        padding: 6px 12px;
+        border-radius: 20px;
+    }
+
+    /* Loading State */
+    .mm-loading-state {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        padding: 60px 20px;
+        color: #9ca3af;
+    }
+
+    .loading-spinner-mm {
+        width: 40px;
+        height: 40px;
+        border: 3px solid #333;
+        border-top-color: #e65100;
+        border-radius: 50%;
+        animation: spin-mm 0.8s linear infinite;
+        margin-bottom: 16px;
+    }
+
+    @keyframes spin-mm {
+        to {
+            transform: rotate(360deg);
+        }
+    }
+
+    /* Minhas Conquistas */
+    .mm-conquistas-pro {
+        background: linear-gradient(
+            135deg,
+            rgba(34, 197, 94, 0.12) 0%,
+            rgba(34, 197, 94, 0.05) 100%
+        );
+        border: 1px solid rgba(34, 197, 94, 0.25);
+        border-radius: 12px;
+        padding: 16px;
+        margin-bottom: 16px;
+    }
+
+    .conquistas-header-pro {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        font-weight: 700;
+        color: #22c55e;
+        font-size: 14px;
+        margin-bottom: 12px;
+    }
+
+    .conquistas-emoji {
+        font-size: 22px;
+    }
+
+    .conquistas-meses-pro {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 8px;
+    }
+
+    .mes-chip-pro {
+        background: rgba(34, 197, 94, 0.2);
+        color: #22c55e;
+        padding: 6px 14px;
+        border-radius: 20px;
+        font-size: 12px;
+        font-weight: 600;
+    }
+
+    /* Grid de Edições */
+    .mm-edicoes-grid {
+        display: flex;
+        flex-direction: column;
+        gap: 16px;
+    }
+
+    /* ============================================
+       NOVO LAYOUT: CARDS
+       ============================================ */
+
+    .mm-edicao-card {
+        background: #1c1c1c;
+        border-radius: 16px;
+        overflow: hidden;
+        border: 1px solid #333;
+        transition: all 0.2s ease;
+    }
+
+    .mm-edicao-card.meu-titulo {
+        border-color: rgba(34, 197, 94, 0.4);
+        box-shadow: 0 0 20px rgba(34, 197, 94, 0.1);
+    }
+
+    /* Header do Card */
+    .mm-card-header {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        padding: 16px;
+        background: rgba(255, 255, 255, 0.02);
+        border-bottom: 1px solid #2a2a2a;
+    }
+
+    .mm-card-icon {
+        width: 44px;
+        height: 44px;
+        background: #2a2a2a;
+        border-radius: 12px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 20px;
+        flex-shrink: 0;
+    }
+
+    .mm-card-info {
+        flex: 1;
+        min-width: 0;
+    }
+
+    .mm-card-title {
+        font-size: 16px;
+        font-weight: 700;
+        color: white;
+        margin: 0;
+    }
+
+    .mm-card-rodadas {
+        font-size: 12px;
+        color: #6b7280;
+    }
+
+    .mm-card-status {
+        font-size: 10px;
+        font-weight: 600;
+        padding: 4px 10px;
+        border-radius: 20px;
+        white-space: nowrap;
+    }
+
+    /* Seção Campeão */
+    .mm-card-campeao {
+        padding: 16px;
+        background: linear-gradient(
+            135deg,
+            rgba(230, 81, 0, 0.12) 0%,
+            rgba(230, 81, 0, 0.05) 100%
+        );
+        border-bottom: 1px solid #2a2a2a;
+    }
+
+    .mm-card-campeao.meu {
+        background: linear-gradient(
+            135deg,
+            rgba(34, 197, 94, 0.12) 0%,
+            rgba(34, 197, 94, 0.05) 100%
+        );
+    }
+
+    .mm-campeao-badge {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        margin-bottom: 8px;
+    }
+
+    .mm-campeao-icon {
+        font-size: 20px;
+    }
+
+    .mm-campeao-label {
+        font-size: 10px;
+        font-weight: 700;
+        color: #e65100;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+    }
+
+    .mm-card-campeao.meu .mm-campeao-label {
+        color: #22c55e;
+    }
+
+    .mm-campeao-info {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
+
+    .mm-campeao-nome {
+        font-size: 15px;
+        font-weight: 700;
+        color: white;
+    }
+
+    .mm-campeao-pontos {
+        font-size: 16px;
+        font-weight: 800;
+        color: #e65100;
+    }
+
+    .mm-card-campeao.meu .mm-campeao-pontos {
+        color: #22c55e;
+    }
+
+    /* Aguardando */
+    .mm-card-aguardando {
+        padding: 20px 16px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 10px;
+        color: #6b7280;
+        border-bottom: 1px solid #2a2a2a;
+    }
+
+    .mm-aguardando-icon {
+        font-size: 24px;
+        opacity: 0.6;
+    }
+
+    .mm-aguardando-text {
+        font-size: 14px;
+    }
+
+    /* Pódio Compacto */
+    .mm-card-podio {
+        display: flex;
+        gap: 8px;
+        padding: 12px 16px;
+        background: rgba(0, 0, 0, 0.2);
+    }
+
+    .mm-podio-item {
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 4px;
+        padding: 10px 6px;
+        background: rgba(255, 255, 255, 0.03);
+        border-radius: 10px;
+        transition: all 0.2s ease;
+    }
+
+    .mm-podio-item.meu {
+        background: rgba(34, 197, 94, 0.15);
+        border: 1px solid rgba(34, 197, 94, 0.3);
+    }
+
+    .mm-podio-medal {
+        font-size: 18px;
+    }
+
+    .mm-podio-nome {
+        font-size: 11px;
+        font-weight: 600;
+        color: #d1d5db;
+        text-align: center;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        max-width: 100%;
+    }
+
+    .mm-podio-item.meu .mm-podio-nome {
+        color: #22c55e;
+    }
+
+    .mm-podio-pts {
+        font-size: 10px;
+        color: #6b7280;
+    }
+
+    /* Botão Expandir */
+    .mm-card-expand-btn {
+        width: 100%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 8px;
+        padding: 12px;
+        background: transparent;
+        border: none;
+        border-top: 1px solid #2a2a2a;
+        color: #e65100;
+        font-size: 12px;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.2s ease;
+    }
+
+    .mm-card-expand-btn:hover {
+        background: rgba(230, 81, 0, 0.1);
+    }
+
+    .mm-card-expand-btn .expand-arrow {
+        font-size: 18px;
+        transition: transform 0.3s ease;
+    }
+
+    /* Ranking Expandido */
+    .mm-ranking-expandido {
+        padding: 12px 16px 16px;
+        background: rgba(0, 0, 0, 0.3);
+        border-top: 1px solid #2a2a2a;
+    }
+
+    .mm-ranking-cards {
+        display: flex;
+        flex-direction: column;
+        gap: 6px;
+    }
+
+    .mm-ranking-card-item {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        padding: 10px 12px;
+        background: rgba(255, 255, 255, 0.03);
+        border-radius: 8px;
+        transition: all 0.2s ease;
+    }
+
+    .mm-ranking-card-item.meu {
+        background: rgba(34, 197, 94, 0.12);
+        border: 1px solid rgba(34, 197, 94, 0.25);
+    }
+
+    .mm-rank-pos {
+        width: 28px;
+        font-size: 12px;
+        font-weight: 700;
+        color: #6b7280;
+    }
+
+    .mm-rank-nome {
+        flex: 1;
+        font-size: 13px;
+        font-weight: 600;
+        color: #d1d5db;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
+
+    .mm-ranking-card-item.meu .mm-rank-nome {
+        color: #22c55e;
+    }
+
+    .mm-rank-pts {
+        font-size: 12px;
+        font-weight: 700;
+        color: #9ca3af;
+    }
+
+    .mm-ranking-mais {
+        text-align: center;
+        padding: 10px;
+        color: #6b7280;
+        font-size: 11px;
+    }
+
+    /* Minha posição (fora do top 10) */
+    .mm-ranking-minha-pos {
+        margin-top: 12px;
+        padding-top: 12px;
+        border-top: 1px dashed rgba(34, 197, 94, 0.3);
+    }
+
+    .mm-minha-pos-label {
+        display: block;
+        font-size: 11px;
+        font-weight: 600;
+        color: #22c55e;
+        margin-bottom: 8px;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+    }
+
+    .mm-ranking-card-item.meu.destacado {
+        background: rgba(34, 197, 94, 0.15);
+        border: 1px solid rgba(34, 197, 94, 0.4);
+        animation: pulse-minha-pos 2s ease-in-out infinite;
+    }
+
+    @keyframes pulse-minha-pos {
+        0%,
+        100% {
+            box-shadow: 0 0 0 0 rgba(34, 197, 94, 0.2);
+        }
+        50% {
+            box-shadow: 0 0 0 4px rgba(34, 197, 94, 0);
+        }
+    }
+
+    .mm-ranking-vazio {
+        text-align: center;
+        padding: 16px;
+        color: #6b7280;
+        font-size: 12px;
+    }
+
+    /* Empty State */
+    .mm-empty-state {
+        text-align: center;
+        padding: 60px 20px;
+        color: #6b7280;
+    }
+
+    .mm-empty-state .empty-emoji {
+        font-size: 64px;
+        display: block;
+        margin-bottom: 16px;
+        opacity: 0.5;
+    }
+
+    .mm-empty-state h3 {
+        color: #9ca3af;
+        font-size: 18px;
+        margin-bottom: 8px;
+    }
+
+    .mm-empty-state p {
+        font-size: 14px;
+    }
+
+    /* Toast */
+    .toast-mm {
+        position: fixed;
+        bottom: 100px;
+        left: 50%;
+        transform: translateX(-50%) translateY(100px);
+        padding: 14px 24px;
+        background: #1e293b;
+        border: 1px solid #334155;
+        border-radius: 12px;
+        color: white;
+        font-size: 14px;
+        font-weight: 500;
+        opacity: 0;
+        visibility: hidden;
+        transition: all 0.3s ease;
+        z-index: 9999;
+    }
+
+    .toast-mm.show {
+        opacity: 1;
+        visibility: visible;
+        transform: translateX(-50%) translateY(0);
+    }
+
+    /* Responsivo */
+    @media (max-width: 480px) {
+        .mm-header-pro h2 {
+            font-size: 16px;
+        }
+
+        .mm-card-icon {
+            width: 38px;
+            height: 38px;
+            font-size: 18px;
+        }
+
+        .mm-card-title {
+            font-size: 14px;
+        }
+
+        .mm-podio-item {
+            padding: 8px 4px;
+        }
+
+        .mm-podio-medal {
+            font-size: 16px;
+        }
+
+        .mm-podio-nome {
+            font-size: 10px;
+        }
+
+        .mm-campeao-pontos {
+            font-size: 14px;
+        }
+    }
+</style>

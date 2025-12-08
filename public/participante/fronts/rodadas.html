@@ -1,4 +1,3 @@
-
 <!doctype html>
 <html lang="pt-BR">
     <head>
@@ -20,7 +19,7 @@
             href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200"
         />
 
-        <!-- CSS Base + Módulo -->
+        <!-- CSS Base -->
         <link rel="stylesheet" href="/participante/css/participante.css" />
 
         <style>
@@ -47,14 +46,724 @@
                     "opsz" 24;
                 vertical-align: middle;
             }
+
+            /* ============================================
+               RODADAS PARTICIPANTE v3.6 - CSS Completo
+               ============================================ */
+
+            .rodadas-participante-container {
+                padding: 16px;
+                padding-bottom: 100px;
+            }
+
+            .rodadas-header-pro {
+                text-align: center;
+                margin-bottom: 16px;
+            }
+
+            .rodadas-title-row {
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                gap: 12px;
+            }
+
+            .rodadas-icon {
+                font-size: 32px;
+                color: #f97316;
+            }
+
+            .rodadas-header-pro h2 {
+                font-family: "Lexend", sans-serif;
+                font-size: 28px;
+                font-weight: 700;
+                color: #f97316;
+                margin: 0;
+            }
+
+            .rodadas-subtitle {
+                color: #9ca3af;
+                font-size: 14px;
+                margin-top: 8px;
+            }
+
+            .rodadas-ano-selector {
+                display: flex;
+                justify-content: center;
+                gap: 8px;
+                margin-bottom: 16px;
+            }
+
+            .ano-btn {
+                padding: 10px 24px;
+                background: #262626;
+                border: none;
+                border-radius: 8px;
+                color: #9ca3af;
+                font-size: 14px;
+                font-weight: 500;
+                cursor: pointer;
+                transition: all 0.2s ease;
+            }
+
+            .ano-btn:hover {
+                background: #333;
+            }
+            .ano-btn.active {
+                background: #f97316;
+                color: white;
+                font-weight: 600;
+            }
+            .ano-btn.disabled {
+                opacity: 0.4;
+                cursor: not-allowed;
+            }
+
+            .card-desempenho-mitos-micos {
+                background: linear-gradient(135deg, #1a1a1a 0%, #262626 100%);
+                border-radius: 16px;
+                padding: 16px;
+                margin-bottom: 16px;
+                border: 1px solid #333;
+            }
+
+            .desempenho-header {
+                display: flex;
+                align-items: center;
+                gap: 8px;
+                margin-bottom: 16px;
+                color: #f97316;
+                font-weight: 600;
+                font-size: 14px;
+            }
+
+            .desempenho-header .material-symbols-outlined {
+                font-size: 20px;
+            }
+
+            .badge-rodadas {
+                margin-left: auto;
+                background: rgba(249, 115, 22, 0.2);
+                color: #f97316;
+                padding: 4px 10px;
+                border-radius: 12px;
+                font-size: 11px;
+                font-weight: 600;
+            }
+
+            .desempenho-stats {
+                display: flex;
+                gap: 12px;
+            }
+
+            .stat-mito,
+            .stat-mico {
+                flex: 1;
+                background: rgba(0, 0, 0, 0.3);
+                border-radius: 12px;
+                padding: 12px;
+                display: flex;
+                flex-direction: column;
+                gap: 8px;
+            }
+
+            .stat-icon-wrapper {
+                width: 36px;
+                height: 36px;
+                border-radius: 10px;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+            }
+
+            .stat-icon-wrapper.mito {
+                background: rgba(234, 179, 8, 0.2);
+                color: #eab308;
+            }
+            .stat-icon-wrapper.mico {
+                background: rgba(239, 68, 68, 0.2);
+                color: #ef4444;
+            }
+            .stat-icon-wrapper .material-symbols-outlined {
+                font-size: 20px;
+            }
+            .stat-info {
+                display: flex;
+                align-items: baseline;
+                gap: 8px;
+            }
+            .stat-label {
+                color: #6b7280;
+                font-size: 11px;
+                font-weight: 600;
+            }
+            .stat-value {
+                color: white;
+                font-size: 24px;
+                font-weight: 700;
+            }
+            .stat-progress {
+                display: flex;
+                align-items: center;
+                gap: 8px;
+            }
+            .progress-bar {
+                flex: 1;
+                height: 4px;
+                background: rgba(255, 255, 255, 0.1);
+                border-radius: 2px;
+                overflow: hidden;
+            }
+            .progress-bar.mito .progress-fill {
+                background: #eab308;
+            }
+            .progress-bar.mico .progress-fill {
+                background: #ef4444;
+            }
+            .progress-fill {
+                height: 100%;
+                transition: width 0.5s ease;
+            }
+            .progress-text {
+                color: #6b7280;
+                font-size: 11px;
+                min-width: 32px;
+            }
+            .stat-ultimo {
+                color: #6b7280;
+                font-size: 11px;
+            }
+
+            .rodadas-loading-state {
+                display: flex;
+                flex-direction: column;
+                align-items: center;
+                justify-content: center;
+                padding: 60px 20px;
+                color: #9ca3af;
+            }
+
+            .loading-spinner-rodadas {
+                width: 40px;
+                height: 40px;
+                border: 3px solid #333;
+                border-top-color: #f97316;
+                border-radius: 50%;
+                animation: spin-rodadas 0.8s linear infinite;
+            }
+
+            @keyframes spin-rodadas {
+                to {
+                    transform: rotate(360deg);
+                }
+            }
+
+            .rodadas-grid-container {
+                display: block;
+            }
+
+            .rodadas-grid-compacto {
+                display: grid;
+                grid-template-columns: repeat(5, 1fr);
+                gap: 8px;
+            }
+
+            @media (min-width: 480px) {
+                .rodadas-grid-compacto {
+                    grid-template-columns: repeat(8, 1fr);
+                }
+            }
+
+            .rodada-card-compacto {
+                aspect-ratio: 1;
+                display: flex;
+                flex-direction: column;
+                align-items: center;
+                justify-content: center;
+                background: #262626;
+                border-radius: 10px;
+                cursor: pointer;
+                transition: all 0.2s ease;
+                position: relative;
+                border: 2px solid transparent;
+            }
+
+            .rodada-card-compacto:hover:not(.futuro) {
+                transform: scale(1.05);
+                background: #333;
+            }
+            .rodada-card-compacto.selected {
+                border-color: #f97316;
+                background: rgba(249, 115, 22, 0.15);
+            }
+            .rodada-card-compacto.futuro {
+                opacity: 0.3;
+                cursor: not-allowed;
+            }
+            .rodada-card-compacto.jogou {
+                border-color: #22c55e;
+            }
+            .rodada-card-compacto.mito {
+                background: linear-gradient(
+                    135deg,
+                    rgba(234, 179, 8, 0.2) 0%,
+                    rgba(234, 179, 8, 0.05) 100%
+                );
+                border-color: #eab308;
+            }
+            .rodada-card-compacto.mico {
+                background: linear-gradient(
+                    135deg,
+                    rgba(239, 68, 68, 0.2) 0%,
+                    rgba(239, 68, 68, 0.05) 100%
+                );
+                border-color: #ef4444;
+            }
+            .rodada-card-compacto.parcial {
+                background: linear-gradient(
+                    135deg,
+                    rgba(34, 197, 94, 0.2) 0%,
+                    rgba(34, 197, 94, 0.05) 100%
+                );
+                border-color: #22c55e;
+                animation: pulse-parcial 2s infinite;
+            }
+
+            @keyframes pulse-parcial {
+                0%,
+                100% {
+                    opacity: 1;
+                }
+                50% {
+                    opacity: 0.7;
+                }
+            }
+
+            .card-numero {
+                font-size: 16px;
+                font-weight: 700;
+                color: white;
+            }
+            .card-pontos {
+                font-size: 10px;
+                color: #9ca3af;
+                margin-top: 2px;
+            }
+            .badge-destaque {
+                position: absolute;
+                top: -4px;
+                right: -4px;
+                font-size: 12px;
+            }
+            .badge-ao-vivo {
+                position: absolute;
+                top: 2px;
+                left: 2px;
+                color: #22c55e;
+                font-size: 8px;
+                animation: blink 1s infinite;
+            }
+
+            @keyframes blink {
+                0%,
+                100% {
+                    opacity: 1;
+                }
+                50% {
+                    opacity: 0.3;
+                }
+            }
+
+            .rodadas-ver-jogadores {
+                margin-top: 16px;
+            }
+
+            .rodadas-ver-jogadores button {
+                width: 100%;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                gap: 8px;
+                padding: 14px;
+                background: rgba(249, 115, 22, 0.15);
+                border: 1px solid rgba(249, 115, 22, 0.3);
+                border-radius: 12px;
+                color: #f97316;
+                font-size: 14px;
+                font-weight: 600;
+                cursor: pointer;
+                transition: all 0.2s ease;
+            }
+
+            .rodadas-ver-jogadores button:hover {
+                background: rgba(249, 115, 22, 0.25);
+            }
+            .rodadas-ver-jogadores button .material-symbols-outlined {
+                font-size: 20px;
+            }
+
+            .rodadas-empty-state {
+                text-align: center;
+                padding: 60px 20px;
+                color: #6b7280;
+            }
+
+            .rodadas-empty-state .material-symbols-outlined {
+                font-size: 64px;
+                color: #404040;
+                margin-bottom: 16px;
+                display: block;
+            }
+            .rodadas-empty-state h3 {
+                color: #9ca3af;
+                font-size: 18px;
+                margin-bottom: 8px;
+            }
+            .rodadas-empty-state p {
+                font-size: 14px;
+            }
+
+            .rodada-detalhamento-pro {
+                margin-top: 24px;
+                background: #1a1a1a;
+                border-radius: 16px;
+                overflow: hidden;
+                border: 1px solid #333;
+            }
+
+            .detalhamento-header-pro {
+                display: flex;
+                justify-content: space-between;
+                align-items: center;
+                padding: 16px;
+                background: linear-gradient(135deg, #f97316 0%, #ea580c 100%);
+            }
+
+            .detalhamento-info h3 {
+                color: white;
+                font-size: 20px;
+                font-weight: 700;
+                margin: 0 0 4px 0;
+            }
+            .rodada-resumo {
+                color: rgba(255, 255, 255, 0.85);
+                font-size: 13px;
+                margin: 0;
+            }
+
+            .btn-voltar-pro {
+                display: flex;
+                align-items: center;
+                gap: 6px;
+                padding: 10px 16px;
+                background: rgba(0, 0, 0, 0.2);
+                border: none;
+                border-radius: 8px;
+                color: white;
+                font-size: 13px;
+                font-weight: 600;
+                cursor: pointer;
+                transition: all 0.2s ease;
+            }
+
+            .btn-voltar-pro:hover {
+                background: rgba(0, 0, 0, 0.3);
+            }
+            .btn-voltar-pro .material-symbols-outlined {
+                font-size: 18px;
+            }
+
+            .ranking-container-pro {
+                padding: 16px;
+                max-height: 60vh;
+                overflow-y: auto;
+            }
+            .ranking-list-pro {
+                display: flex;
+                flex-direction: column;
+                gap: 8px;
+            }
+
+            .ranking-item-pro {
+                display: flex;
+                align-items: center;
+                gap: 12px;
+                padding: 12px;
+                background: #262626;
+                border-radius: 12px;
+                transition: background 0.2s;
+            }
+
+            .ranking-item-pro:hover {
+                background: #333;
+            }
+            .ranking-item-pro.meu-time {
+                background: rgba(249, 115, 22, 0.15);
+                border: 1px solid rgba(249, 115, 22, 0.3);
+            }
+            .ranking-item-pro.inativo {
+                opacity: 0.5;
+            }
+
+            .posicao-badge-pro {
+                width: 36px;
+                height: 36px;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                border-radius: 8px;
+                font-weight: 700;
+                font-size: 14px;
+                background: #333;
+                color: white;
+            }
+
+            .posicao-badge-pro.pos-1 {
+                background: linear-gradient(135deg, #ffd700, #ffb700);
+                color: #000;
+            }
+            .posicao-badge-pro.pos-2 {
+                background: linear-gradient(135deg, #c0c0c0, #a0a0a0);
+                color: #000;
+            }
+            .posicao-badge-pro.pos-3 {
+                background: linear-gradient(135deg, #cd7f32, #b06c2a);
+                color: #000;
+            }
+            .posicao-badge-pro.pos-danger {
+                background: rgba(239, 68, 68, 0.2);
+                color: #ef4444;
+            }
+
+            .ranking-info-pro {
+                flex: 1;
+                min-width: 0;
+            }
+            .ranking-nome-time {
+                font-weight: 600;
+                color: white;
+                font-size: 14px;
+                white-space: nowrap;
+                overflow: hidden;
+                text-overflow: ellipsis;
+            }
+            .ranking-nome-cartola {
+                font-size: 12px;
+                color: #9ca3af;
+            }
+            .ranking-stats-pro {
+                text-align: right;
+            }
+            .ranking-pontos-pro {
+                font-weight: 700;
+                color: white;
+                font-size: 14px;
+            }
+            .ranking-financeiro-pro {
+                font-size: 12px;
+            }
+            .ranking-financeiro-pro.positivo {
+                color: #22c55e;
+            }
+            .ranking-financeiro-pro.negativo {
+                color: #ef4444;
+            }
+            .ranking-financeiro-pro.neutro {
+                color: #6b7280;
+            }
+
+            .toast-desenvolvimento {
+                position: fixed;
+                bottom: 100px;
+                left: 50%;
+                transform: translateX(-50%);
+                display: flex;
+                align-items: center;
+                gap: 8px;
+                background: #333;
+                color: white;
+                padding: 12px 20px;
+                border-radius: 12px;
+                font-size: 14px;
+                opacity: 0;
+                visibility: hidden;
+                transition: all 0.3s ease;
+                z-index: 1000;
+            }
+
+            .toast-desenvolvimento.show {
+                opacity: 1;
+                visibility: visible;
+            }
+            .toast-desenvolvimento .material-symbols-outlined {
+                font-size: 18px;
+                color: #f97316;
+            }
         </style>
     </head>
     <body class="dark">
-        <!-- Container Principal -->
-        <div id="rodadas-container" class="module-container">
-            <!-- Conteúdo será renderizado aqui pelo JS -->
+        <div class="rodadas-participante-container">
+            <div class="rodadas-header-pro">
+                <div class="rodadas-title-row">
+                    <span class="material-symbols-outlined rodadas-icon"
+                        >calendar_month</span
+                    >
+                    <h2>Rodadas</h2>
+                </div>
+                <p class="rodadas-subtitle">
+                    Acompanhe seu desempenho em cada rodada
+                </p>
+            </div>
+
+            <div class="rodadas-ano-selector">
+                <button class="ano-btn active">2025</button>
+                <button
+                    class="ano-btn disabled"
+                    onclick="window.mostrarEmDesenvolvimento('Temporada 2026')"
+                >
+                    2026
+                </button>
+            </div>
+
+            <div
+                id="cardDesempenhoMitosMicos"
+                class="card-desempenho-mitos-micos"
+                style="display: none"
+            >
+                <div class="desempenho-header">
+                    <span class="material-symbols-outlined">insights</span>
+                    <span>Seu Desempenho</span>
+                    <span id="desempBadgeRodadas" class="badge-rodadas"
+                        >0 RODADAS</span
+                    >
+                </div>
+                <div class="desempenho-stats">
+                    <div class="stat-mito">
+                        <div class="stat-icon-wrapper mito">
+                            <span class="material-symbols-outlined"
+                                >emoji_events</span
+                            >
+                        </div>
+                        <div class="stat-info">
+                            <span class="stat-label">MITOS</span>
+                            <span id="desempMitosCount" class="stat-value"
+                                >0</span
+                            >
+                        </div>
+                        <div class="stat-progress">
+                            <div class="progress-bar mito">
+                                <div
+                                    id="progressMito"
+                                    class="progress-fill"
+                                    style="width: 0%"
+                                ></div>
+                            </div>
+                            <span id="desempMitoPercent" class="progress-text"
+                                >0%</span
+                            >
+                        </div>
+                        <span id="desempUltimoMito" class="stat-ultimo"
+                            >Nenhum</span
+                        >
+                    </div>
+                    <div class="stat-mico">
+                        <div class="stat-icon-wrapper mico">
+                            <span class="material-symbols-outlined"
+                                >sentiment_very_dissatisfied</span
+                            >
+                        </div>
+                        <div class="stat-info">
+                            <span class="stat-label">MICOS</span>
+                            <span id="desempMicosCount" class="stat-value"
+                                >0</span
+                            >
+                        </div>
+                        <div class="stat-progress">
+                            <div class="progress-bar mico">
+                                <div
+                                    id="progressMico"
+                                    class="progress-fill"
+                                    style="width: 0%"
+                                ></div>
+                            </div>
+                            <span id="desempMicoPercent" class="progress-text"
+                                >0%</span
+                            >
+                        </div>
+                        <span id="desempUltimoMico" class="stat-ultimo"
+                            >Nenhum</span
+                        >
+                    </div>
+                </div>
+            </div>
+
+            <div id="rodadasLoading" class="rodadas-loading-state">
+                <div class="loading-spinner-rodadas"></div>
+                <p>Carregando rodadas...</p>
+            </div>
+
+            <div class="rodadas-grid-container" style="display: none">
+                <div id="rodadasCardsGrid" class="rodadas-grid-compacto"></div>
+
+                <div
+                    id="btnVerJogadores"
+                    class="rodadas-ver-jogadores"
+                    style="display: none"
+                >
+                    <button
+                        onclick="window.mostrarEmDesenvolvimento('Detalhamento de jogadores')"
+                    >
+                        <span class="material-symbols-outlined">groups</span>
+                        <span id="btnJogadoresTexto"
+                            >Ver Meus Jogadores da Rodada</span
+                        >
+                    </button>
+                </div>
+            </div>
+
+            <div
+                id="rodadasEmpty"
+                class="rodadas-empty-state"
+                style="display: none"
+            >
+                <span class="material-symbols-outlined">calendar_today</span>
+                <h3>Nenhuma rodada disponível</h3>
+                <p>As rodadas aparecerão aqui quando o campeonato começar</p>
+            </div>
+
+            <div
+                id="rodadaDetalhamento"
+                class="rodada-detalhamento-pro"
+                style="display: none"
+            >
+                <div class="detalhamento-header-pro">
+                    <div class="detalhamento-info">
+                        <h3 id="rodadaTitulo">Rodada X</h3>
+                        <p id="rodadaResumo" class="rodada-resumo"></p>
+                    </div>
+                    <button
+                        class="btn-voltar-pro"
+                        onclick="window.voltarParaCards()"
+                    >
+                        <span class="material-symbols-outlined"
+                            >arrow_back</span
+                        >
+                        Voltar
+                    </button>
+                </div>
+                <div class="ranking-container-pro">
+                    <div id="rankingListPro" class="ranking-list-pro"></div>
+                </div>
+            </div>
+
+            <div id="toastDesenvolvimento" class="toast-desenvolvimento">
+                <span class="material-symbols-outlined">construction</span>
+                <span id="toastMensagem"
+                    >Funcionalidade em desenvolvimento</span
+                >
+            </div>
         </div>
-        
+
         <script
             type="module"
             src="/participante/js/modules/participante-rodadas.js"
