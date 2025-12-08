@@ -179,10 +179,10 @@ function renderizarConteudoCompleto(container, extrato) {
 
     container.innerHTML = `
         <!-- Card Saldo Principal -->
-        <div class="bg-surface-dark rounded-xl p-4 mb-4">
+        <div class="bg-surface-dark rounded-xl p-4 mb-4 border border-white/5">
             <div class="flex items-center justify-between">
                 <div class="flex items-center gap-3">
-                    <span class="material-icons text-3xl ${saldoPositivo ? "text-green-400" : "text-red-400"}">account_balance_wallet</span>
+                    <span class="material-symbols-outlined text-3xl ${saldoPositivo ? "text-green-400" : "text-red-400"}">account_balance_wallet</span>
                     <div>
                         <p class="text-xs font-medium uppercase text-white/70">Saldo Financeiro</p>
                         <p class="text-2xl font-bold ${saldoPositivo ? "text-green-400" : "text-red-400"}">${saldoPositivo ? "+" : "-"}${saldoFormatado}</p>
@@ -191,7 +191,7 @@ function renderizarConteudoCompleto(container, extrato) {
                 <div class="flex items-center gap-2">
                     <span class="${saldoPositivo ? "bg-green-500/20 text-green-400" : "bg-red-500/20 text-red-400"} text-[10px] font-semibold px-2 py-1 rounded-full">${statusTexto}</span>
                     <button id="btnRefreshExtrato" class="p-2 rounded-full bg-white/10 text-white/70 hover:bg-white/20 active:scale-95 transition-all">
-                        <span class="material-icons text-lg">sync</span>
+                        <span class="material-symbols-outlined text-lg">sync</span>
                     </button>
                 </div>
             </div>
@@ -216,10 +216,10 @@ function renderizarConteudoCompleto(container, extrato) {
         </div>
 
         <!-- Gráfico de Evolução -->
-        <div class="bg-surface-dark p-4 rounded-xl mb-4">
+        <div class="bg-surface-dark p-4 rounded-xl mb-4 border border-white/5">
             <div class="flex justify-between items-center mb-4">
                 <div class="flex items-center gap-2">
-                    <span class="material-icons text-primary">show_chart</span>
+                    <span class="material-symbols-outlined text-primary">show_chart</span>
                     <h3 class="text-sm font-bold text-white">Evolução Financeira</h3>
                 </div>
                 <div class="flex items-center gap-1 bg-white/5 p-1 rounded-lg text-xs">
@@ -247,9 +247,9 @@ function renderizarConteudoCompleto(container, extrato) {
         </div>
 
         <!-- Histórico por Rodada -->
-        <div class="bg-surface-dark rounded-xl p-4 mb-4">
+        <div class="bg-surface-dark rounded-xl p-4 mb-4 border border-white/5">
             <div class="flex items-center gap-2 mb-3">
-                <span class="material-icons text-primary">history</span>
+                <span class="material-symbols-outlined text-primary">history</span>
                 <h3 class="text-sm font-bold text-white">Histórico por Rodada</h3>
                 <span class="text-xs text-white/50 ml-auto">${rodadasOrdenadas.length} rodadas</span>
             </div>

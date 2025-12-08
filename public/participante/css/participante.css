@@ -43,6 +43,78 @@
     border-color: #FF4500;
 }
 
+/* === PADRONIZAÇÃO GLOBAL DE MÓDULOS === */
+.module-container {
+    background: #0a0a0a;
+    color: #ffffff;
+}
+
+.module-container h1,
+.module-container h2,
+.module-container h3 {
+    color: #ffffff;
+    font-weight: 700;
+}
+
+.module-container p {
+    color: rgba(255, 255, 255, 0.7);
+}
+
+/* Cards padrão */
+.card-padrao {
+    background: #1c1c1c;
+    border-radius: 12px;
+    padding: 16px;
+    border: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+/* Títulos de seção */
+.secao-titulo {
+    font-size: 14px;
+    font-weight: 700;
+    color: #ffffff;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    margin-bottom: 12px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.secao-titulo .material-symbols-outlined {
+    color: #FF4500;
+    font-size: 20px;
+}
+
+/* Valores destacados */
+.valor-destaque {
+    font-size: 24px;
+    font-weight: 700;
+    color: #ffffff;
+    font-family: 'JetBrains Mono', monospace;
+}
+
+.valor-positivo {
+    color: #22C55E;
+}
+
+.valor-negativo {
+    color: #EF4444;
+}
+
+.valor-neutro {
+    color: rgba(255, 255, 255, 0.5);
+}
+
+/* Labels pequenos */
+.label-pequeno {
+    font-size: 10px;
+    font-weight: 700;
+    color: rgba(255, 255, 255, 0.5);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
 html, body {
     width: 100%;
     height: 100%;
