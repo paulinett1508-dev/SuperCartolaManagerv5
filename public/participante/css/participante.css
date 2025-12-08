@@ -18,6 +18,31 @@
     --font-mini: 11px;
 }
 
+/* ====== CLASSES TAILWIND CUSTOMIZADAS ====== */
+.bg-surface-dark {
+    background-color: #1c1c1c;
+}
+
+.text-primary {
+    color: #FF4500;
+}
+
+.bg-primary {
+    background-color: #FF4500;
+}
+
+.bg-primary\/10 {
+    background-color: rgba(255, 69, 0, 0.1);
+}
+
+.bg-primary\/80 {
+    background-color: rgba(255, 69, 0, 0.8);
+}
+
+.border-primary {
+    border-color: #FF4500;
+}
+
 html, body {
     width: 100%;
     height: 100%;

@@ -1,20 +1,15 @@
 // =====================================================
-// MÓDULO: UI DO EXTRATO PARTICIPANTE - v7.1 CARD DESEMPENHO
+// MÓDULO: UI DO EXTRATO PARTICIPANTE - v8.0 DESIGN CONSISTENTE
 // =====================================================
+// ✅ v8.0: Design system consistente com boas-vindas
+//    - Fundo escuro uniforme (bg-surface-dark)
+//    - Cores neutras (white/XX ao invés de zinc/gray)
+//    - Primary color (text-primary ao invés de text-orange-XXX)
+//    - Cards arredondados (rounded-xl)
+//    - Sem bordas e gradientes excessivos
 // ✅ v7.1: Card "Seu Desempenho" com métricas completas
-//    - Mitos, Micos, Mata-Mata (V-D), P.Corridos (V-D)
-//    - Zona +/-, Goleadas, Aproveitamento %
-//    - Recordes: Maior Ganho e Maior Perda
-// ✅ v7.0: Sistema de cores por tipo de premiação
-//    - MITO: verde | MICO: vermelho
-//    - Top 10 MITOS: azul | Top 10 MICOS: vermelho
-//    - Mata-Mata ganhou: azul | perdeu: vermelho
-//    - P.Corridos ganhou: laranja | perdeu: vermelho | goleada: amarelo
-//    - Valores monetários com vírgula (ex: 5,00)
-//    - Rodadas com "ª" (ex: 35ª)
-// =====================================================
 
-console.log("[EXTRATO-UI] 🎨 Módulo de UI v7.1 Card Desempenho");
+console.log("[EXTRATO-UI] 🎨 Módulo de UI v8.0 Design Consistente");
 
 // ===== CONFIGURAÇÃO DE FAIXAS POR LIGA (COM SUPORTE TEMPORAL) =====
 const FAIXAS_PREMIACAO = {
@@ -183,19 +178,19 @@ function renderizarConteudoCompleto(container, extrato) {
     );
 
     container.innerHTML = `
-        <!-- Header do Extrato -->
-        <div class="bg-gradient-to-br from-orange-900/40 to-orange-900/10 p-3 rounded-lg border border-orange-800/50 mb-4">
-            <div class="flex justify-between items-center">
-                <div class="flex flex-col">
-                    <div class="flex items-center space-x-2">
-                        <span class="material-icons text-orange-400 text-lg">monetization_on</span>
-                        <h2 class="text-xs font-bold text-orange-400 uppercase tracking-wide">EXTRATO</h2>
+        <!-- Card Saldo Principal -->
+        <div class="bg-surface-dark rounded-xl p-4 mb-4">
+            <div class="flex items-center justify-between">
+                <div class="flex items-center gap-3">
+                    <span class="material-icons text-3xl ${saldoPositivo ? "text-green-400" : "text-red-400"}">account_balance_wallet</span>
+                    <div>
+                        <p class="text-xs font-medium uppercase text-white/70">Saldo Financeiro</p>
+                        <p class="text-2xl font-bold ${saldoPositivo ? "text-green-400" : "text-red-400"}">${saldoPositivo ? "+" : "-"}${saldoFormatado}</p>
                     </div>
-                    <span class="${saldoPositivo ? "bg-green-500/20 text-green-400" : "bg-red-500/20 text-red-400"} text-[10px] font-semibold px-2 py-0.5 rounded-full mt-1 w-fit">${statusTexto}</span>
                 </div>
-                <div class="flex items-center space-x-2">
-                    <span class="text-2xl font-bold ${saldoPositivo ? "text-green-400" : "text-red-400"} whitespace-nowrap">${saldoPositivo ? "+" : "-"}${saldoFormatado}</span>
-                    <button id="btnRefreshExtrato" class="bg-orange-600/50 p-1.5 rounded-full text-white hover:bg-orange-600/70 active:scale-95 transition-all">
+                <div class="flex items-center gap-2">
+                    <span class="${saldoPositivo ? "bg-green-500/20 text-green-400" : "bg-red-500/20 text-red-400"} text-[10px] font-semibold px-2 py-1 rounded-full">${statusTexto}</span>
+                    <button id="btnRefreshExtrato" class="p-2 rounded-full bg-white/10 text-white/70 hover:bg-white/20 active:scale-95 transition-all">
                         <span class="material-icons text-lg">sync</span>
                     </button>
                 </div>
@@ -204,30 +199,33 @@ function renderizarConteudoCompleto(container, extrato) {
 
         <!-- Cards Ganhos/Perdas -->
         <div class="grid grid-cols-2 gap-3 mb-4">
-            <div onclick="window.mostrarDetalhamentoGanhos()" class="bg-zinc-800 p-2.5 rounded-lg flex items-center justify-between border border-zinc-700/50 cursor-pointer hover:bg-zinc-700/50 active:scale-[0.98] transition-all">
-                <div class="flex items-center space-x-1.5">
-                    <span class="material-icons text-green-400 text-sm">arrow_upward</span>
-                    <p class="text-[10px] text-gray-300 uppercase">CRÉDITOS</p>
+            <div onclick="window.mostrarDetalhamentoGanhos()" class="bg-surface-dark p-3 rounded-xl flex items-center justify-between cursor-pointer hover:bg-white/10 active:scale-[0.98] transition-all">
+                <div class="flex items-center gap-2">
+                    <span class="material-icons text-green-400 text-base">arrow_upward</span>
+                    <p class="text-xs text-white/70 uppercase">Créditos</p>
                 </div>
                 <span class="text-sm font-bold text-green-400">+R$ ${totalGanhos.toFixed(2).replace(".", ",")}</span>
             </div>
-            <div onclick="window.mostrarDetalhamentoPerdas()" class="bg-zinc-800 p-2.5 rounded-lg flex items-center justify-between border border-zinc-700/50 cursor-pointer hover:bg-zinc-700/50 active:scale-[0.98] transition-all">
-                <div class="flex items-center space-x-1.5">
-                    <span class="material-icons text-red-500 text-sm">arrow_downward</span>
-                    <p class="text-[10px] text-gray-300 uppercase">DÉBITOS</p>
+            <div onclick="window.mostrarDetalhamentoPerdas()" class="bg-surface-dark p-3 rounded-xl flex items-center justify-between cursor-pointer hover:bg-white/10 active:scale-[0.98] transition-all">
+                <div class="flex items-center gap-2">
+                    <span class="material-icons text-red-400 text-base">arrow_downward</span>
+                    <p class="text-xs text-white/70 uppercase">Débitos</p>
                 </div>
                 <span class="text-sm font-bold text-red-400">-R$ ${totalPerdas.toFixed(2).replace(".", ",")}</span>
             </div>
         </div>
 
         <!-- Gráfico de Evolução -->
-        <div class="bg-zinc-800/50 p-4 rounded-lg border border-zinc-700/50 mb-4">
+        <div class="bg-surface-dark p-4 rounded-xl mb-4">
             <div class="flex justify-between items-center mb-4">
-                <h3 class="text-sm font-bold text-white">Evolução Financeira</h3>
-                <div class="flex items-center space-x-1 bg-zinc-700/50 p-1 rounded-md text-xs">
-                    <button class="filtro-btn px-2 py-1 rounded-md bg-orange-600/80 text-white font-semibold" data-range="all">Tudo</button>
-                    <button class="filtro-btn px-2 py-1 rounded-md text-gray-400 hover:text-white transition-colors" data-range="10">10R</button>
-                    <button class="filtro-btn px-2 py-1 rounded-md text-gray-400 hover:text-white transition-colors" data-range="5">5R</button>
+                <div class="flex items-center gap-2">
+                    <span class="material-icons text-primary">show_chart</span>
+                    <h3 class="text-sm font-bold text-white">Evolução Financeira</h3>
+                </div>
+                <div class="flex items-center gap-1 bg-white/5 p-1 rounded-lg text-xs">
+                    <button class="filtro-btn px-2 py-1 rounded-md bg-primary/80 text-white font-semibold" data-range="all">Tudo</button>
+                    <button class="filtro-btn px-2 py-1 rounded-md text-white/50 hover:text-white transition-colors" data-range="10">10R</button>
+                    <button class="filtro-btn px-2 py-1 rounded-md text-white/50 hover:text-white transition-colors" data-range="5">5R</button>
                 </div>
             </div>
             <div class="relative h-40">
@@ -249,12 +247,13 @@ function renderizarConteudoCompleto(container, extrato) {
         </div>
 
         <!-- Histórico por Rodada -->
-        <div class="mb-4">
-            <div class="flex justify-between items-center mb-3">
+        <div class="bg-surface-dark rounded-xl p-4 mb-4">
+            <div class="flex items-center gap-2 mb-3">
+                <span class="material-icons text-primary">history</span>
                 <h3 class="text-sm font-bold text-white">Histórico por Rodada</h3>
-                <span class="text-xs text-gray-500">${rodadasOrdenadas.length} rodadas</span>
+                <span class="text-xs text-white/50 ml-auto">${rodadasOrdenadas.length} rodadas</span>
             </div>
-            <div class="space-y-1.5">
+            <div class="space-y-2">
                 ${renderizarCardsRodadas(rodadasOrdenadas, ligaId)}
             </div>
         </div>
@@ -264,14 +263,14 @@ function renderizarConteudoCompleto(container, extrato) {
 
         <!-- Modal TOP10 Info -->
         <div id="modalTop10Info" class="fixed inset-0 z-50 hidden items-center justify-center bg-black/70 backdrop-blur-sm p-4" onclick="this.classList.add('hidden'); this.classList.remove('flex');">
-            <div onclick="event.stopPropagation()" class="bg-zinc-900 rounded-2xl w-full max-w-sm overflow-hidden shadow-2xl border border-zinc-700">
-                <div class="p-4 border-b border-zinc-700 bg-gradient-to-br from-yellow-900/30 to-yellow-900/10">
+            <div onclick="event.stopPropagation()" class="bg-surface-dark rounded-2xl w-full max-w-sm overflow-hidden shadow-2xl">
+                <div class="p-4 border-b border-white/10">
                     <div class="flex justify-between items-center">
                         <h3 class="text-base font-bold text-white flex items-center gap-2">
                             <span class="material-icons text-yellow-400">emoji_events</span>
                             Detalhe TOP 10
                         </h3>
-                        <button class="text-gray-400 hover:text-white" onclick="document.getElementById('modalTop10Info').classList.add('hidden'); document.getElementById('modalTop10Info').classList.remove('flex');">
+                        <button class="text-white/50 hover:text-white" onclick="document.getElementById('modalTop10Info').classList.add('hidden'); document.getElementById('modalTop10Info').classList.remove('flex');">
                             <span class="material-icons">close</span>
                         </button>
                     </div>
@@ -347,76 +346,76 @@ function renderizarCardDesempenho(rodadas, ligaId) {
             : 0;
 
     return `
-        <div class="bg-gradient-to-br from-zinc-800/90 to-zinc-900/95 rounded-xl border border-orange-500/30 p-4 mb-4">
+        <div class="bg-surface-dark rounded-xl p-4 mb-4">
             <div class="flex items-center gap-2 mb-4">
-                <span class="material-icons text-orange-400 text-xl">analytics</span>
+                <span class="material-icons text-primary text-xl">insights</span>
                 <h3 class="text-sm font-bold text-white">Seu Desempenho</h3>
             </div>
 
             <!-- Linha 1: Mitos, Micos, Mata-Mata, P.Corridos -->
             <div class="grid grid-cols-4 gap-2 mb-3">
-                <div class="text-center p-2 bg-black/30 rounded-lg">
+                <div class="text-center p-2 bg-white/5 rounded-lg">
                     <span class="material-icons text-green-400 text-base">military_tech</span>
                     <span class="block text-base font-extrabold text-green-400">${mitos}x</span>
-                    <span class="text-[8px] text-gray-400 uppercase">Mitos</span>
+                    <span class="text-[8px] text-white/50 uppercase">Mitos</span>
                 </div>
-                <div class="text-center p-2 bg-black/30 rounded-lg">
+                <div class="text-center p-2 bg-white/5 rounded-lg">
                     <span class="material-icons text-red-400 text-base">thumb_down</span>
                     <span class="block text-base font-extrabold text-red-400">${micos}x</span>
-                    <span class="text-[8px] text-gray-400 uppercase">Micos</span>
+                    <span class="text-[8px] text-white/50 uppercase">Micos</span>
                 </div>
-                <div class="text-center p-2 bg-black/30 rounded-lg">
+                <div class="text-center p-2 bg-white/5 rounded-lg">
                     <span class="material-icons text-blue-400 text-base">emoji_events</span>
                     <span class="block text-base font-extrabold text-blue-400">${mmVitorias}-${mmDerrotas}</span>
-                    <span class="text-[8px] text-gray-400 uppercase">Mata-Mata</span>
+                    <span class="text-[8px] text-white/50 uppercase">Mata-Mata</span>
                 </div>
-                <div class="text-center p-2 bg-black/30 rounded-lg">
-                    <span class="material-icons text-orange-400 text-base">sports_soccer</span>
-                    <span class="block text-base font-extrabold text-orange-400">${pcVitorias}-${pcDerrotas}</span>
-                    <span class="text-[8px] text-gray-400 uppercase">P. Corridos</span>
+                <div class="text-center p-2 bg-white/5 rounded-lg">
+                    <span class="material-icons text-primary text-base">sports_soccer</span>
+                    <span class="block text-base font-extrabold text-primary">${pcVitorias}-${pcDerrotas}</span>
+                    <span class="text-[8px] text-white/50 uppercase">P. Corridos</span>
                 </div>
             </div>
 
             <!-- Linha 2: Zona+, Zona-, Goleadas, Aproveitamento -->
             <div class="grid grid-cols-4 gap-2 mb-3">
-                <div class="text-center p-2 bg-black/30 rounded-lg">
+                <div class="text-center p-2 bg-white/5 rounded-lg">
                     <span class="material-icons text-green-400 text-base">trending_up</span>
                     <span class="block text-base font-extrabold text-green-400">${zonaCredito}x</span>
-                    <span class="text-[8px] text-gray-400 uppercase">Zona +</span>
+                    <span class="text-[8px] text-white/50 uppercase">Zona +</span>
                 </div>
-                <div class="text-center p-2 bg-black/30 rounded-lg">
+                <div class="text-center p-2 bg-white/5 rounded-lg">
                     <span class="material-icons text-red-400 text-base">trending_down</span>
                     <span class="block text-base font-extrabold text-red-400">${zonaDebito}x</span>
-                    <span class="text-[8px] text-gray-400 uppercase">Zona -</span>
+                    <span class="text-[8px] text-white/50 uppercase">Zona -</span>
                 </div>
-                <div class="text-center p-2 bg-black/30 rounded-lg">
+                <div class="text-center p-2 bg-white/5 rounded-lg">
                     <span class="material-icons text-yellow-400 text-base">whatshot</span>
                     <span class="block text-base font-extrabold text-yellow-400">${goleadas}x</span>
-                    <span class="text-[8px] text-gray-400 uppercase">Goleadas</span>
+                    <span class="text-[8px] text-white/50 uppercase">Goleadas</span>
                 </div>
-                <div class="text-center p-2 bg-black/30 rounded-lg">
-                    <span class="material-icons text-orange-400 text-base">percent</span>
-                    <span class="block text-base font-extrabold text-orange-400">${aproveitamento}%</span>
-                    <span class="text-[8px] text-gray-400 uppercase">Aproveit.</span>
+                <div class="text-center p-2 bg-white/5 rounded-lg">
+                    <span class="material-icons text-primary text-base">percent</span>
+                    <span class="block text-base font-extrabold text-primary">${aproveitamento}%</span>
+                    <span class="text-[8px] text-white/50 uppercase">Aproveit.</span>
                 </div>
             </div>
 
             <!-- Recordes -->
             <div class="grid grid-cols-2 gap-2 pt-3 border-t border-white/10">
-                <div class="flex items-center gap-2 p-2 bg-black/20 rounded-lg">
+                <div class="flex items-center gap-2 p-2 bg-white/5 rounded-lg">
                     <span class="material-icons text-green-400 text-base">arrow_upward</span>
                     <div class="flex-1">
-                        <span class="text-[8px] text-gray-400 uppercase block">Maior Ganho</span>
+                        <span class="text-[8px] text-white/50 uppercase block">Maior Ganho</span>
                         <span class="text-xs font-bold text-green-400">+R$ ${maiorGanho.valor.toFixed(2).replace(".", ",")}</span>
-                        <span class="text-[8px] text-gray-500 block">Rodada ${maiorGanho.rodada}ª</span>
+                        <span class="text-[8px] text-white/40 block">Rodada ${maiorGanho.rodada}ª</span>
                     </div>
                 </div>
-                <div class="flex items-center gap-2 p-2 bg-black/20 rounded-lg">
+                <div class="flex items-center gap-2 p-2 bg-white/5 rounded-lg">
                     <span class="material-icons text-red-400 text-base">arrow_downward</span>
                     <div class="flex-1">
-                        <span class="text-[8px] text-gray-400 uppercase block">Maior Perda</span>
+                        <span class="text-[8px] text-white/50 uppercase block">Maior Perda</span>
                         <span class="text-xs font-bold text-red-400">-R$ ${Math.abs(maiorPerda.valor).toFixed(2).replace(".", ",")}</span>
-                        <span class="text-[8px] text-gray-500 block">Rodada ${maiorPerda.rodada}ª</span>
+                        <span class="text-[8px] text-white/40 block">Rodada ${maiorPerda.rodada}ª</span>
                     </div>
                 </div>
             </div>
@@ -461,23 +460,19 @@ function renderizarCardsRodadas(rodadasArray, ligaId) {
             let bgClass, borderClass, posicaoBgClass;
             switch (classificacao) {
                 case "credito":
-                    bgClass =
-                        "bg-gradient-to-r from-green-900/25 to-zinc-800/80";
-                    borderClass =
-                        "border-l-4 border-l-green-500 border-y border-r border-zinc-700/30";
+                    bgClass = "bg-green-500/10";
+                    borderClass = "border-l-4 border-l-green-500";
                     posicaoBgClass = "bg-green-500 text-white";
                     break;
                 case "debito":
-                    bgClass = "bg-gradient-to-r from-red-900/25 to-zinc-800/80";
-                    borderClass =
-                        "border-l-4 border-l-red-500 border-y border-r border-zinc-700/30";
+                    bgClass = "bg-red-500/10";
+                    borderClass = "border-l-4 border-l-red-500";
                     posicaoBgClass = "bg-red-500 text-white";
                     break;
                 default: // neutro
-                    bgClass = "bg-zinc-800/60";
-                    borderClass =
-                        "border-l-4 border-l-zinc-500 border-y border-r border-zinc-700/30";
-                    posicaoBgClass = "bg-zinc-500 text-white";
+                    bgClass = "bg-white/5";
+                    borderClass = "border-l-4 border-l-white/30";
+                    posicaoBgClass = "bg-white/30 text-white";
             }
 
             // Badges MITO/MICO (baseado na faixa contextual)
@@ -974,32 +969,32 @@ function mostrarDetalhamento(isGanhos) {
 
     const html = `
         <div id="popupDetalhamento" onclick="this.remove()" class="fixed inset-0 z-50 flex items-center justify-center bg-black/70 backdrop-blur-sm p-4">
-            <div onclick="event.stopPropagation()" class="bg-zinc-900 rounded-2xl w-full max-w-md max-h-[85vh] overflow-hidden shadow-2xl border border-zinc-700">
-                <div class="p-4 border-b border-zinc-700 bg-gradient-to-br ${isGanhos ? "from-green-900/30 to-green-900/10" : "from-red-900/30 to-red-900/10"}">
+            <div onclick="event.stopPropagation()" class="bg-surface-dark rounded-2xl w-full max-w-md max-h-[85vh] overflow-hidden shadow-2xl">
+                <div class="p-4 border-b border-white/10">
                     <div class="flex justify-between items-start mb-3">
                         <h3 class="text-base font-bold text-white flex items-center gap-2">
                             <span class="material-icons ${isGanhos ? "text-green-400" : "text-red-400"}">${icon}</span>
                             ${titulo}
                         </h3>
-                        <button class="text-gray-400 hover:text-white transition-colors" onclick="document.getElementById('popupDetalhamento').remove()">
+                        <button class="text-white/50 hover:text-white transition-colors" onclick="document.getElementById('popupDetalhamento').remove()">
                             <span class="material-icons">close</span>
                         </button>
                     </div>
                     <div class="grid grid-cols-4 gap-2">
                         <div class="text-center">
-                            <p class="text-[10px] text-gray-400">Rodadas</p>
+                            <p class="text-[10px] text-white/50">Rodadas</p>
                             <p class="text-lg font-bold text-white">${isGanhos ? rodadasComGanho : rodadasComPerda}</p>
                         </div>
                         <div class="text-center">
-                            <p class="text-[10px] text-gray-400">Média</p>
+                            <p class="text-[10px] text-white/50">Média</p>
                             <p class="text-lg font-bold text-white">R$ ${(isGanhos ? mediaGanho : mediaPerda).toFixed(2).replace(".", ",")}</p>
                         </div>
                         <div class="text-center">
-                            <p class="text-[10px] text-gray-400">${isGanhos ? "Mitos" : "Micos"}</p>
+                            <p class="text-[10px] text-white/50">${isGanhos ? "Mitos" : "Micos"}</p>
                             <p class="text-lg font-bold text-white">${isGanhos ? totalMito : totalMico}x</p>
                         </div>
                         <div class="text-center">
-                            <p class="text-[10px] text-gray-400">${isGanhos ? "Zona +" : "Zona -"}</p>
+                            <p class="text-[10px] text-white/50">${isGanhos ? "Zona +" : "Zona -"}</p>
                             <p class="text-lg font-bold text-white">${isGanhos ? totalZonaCredito : totalZonaDebito}x</p>
                         </div>
                     </div>
@@ -1008,7 +1003,7 @@ function mostrarDetalhamento(isGanhos) {
                     ${
                         categoriasArray.length === 0
                             ? `
-                        <div class="text-center py-8 text-gray-500">
+                        <div class="text-center py-8 text-white/50">
                             <span class="material-icons text-4xl mb-2 block">inbox</span>
                             Nenhum registro encontrado
                         </div>
@@ -1016,7 +1011,7 @@ function mostrarDetalhamento(isGanhos) {
                             : categoriasArray
                                   .map(
                                       (cat) => `
-                        <div class="bg-zinc-800 rounded-lg p-3">
+                        <div class="bg-white/5 rounded-xl p-3">
                             <div class="flex justify-between items-center mb-2">
                                 <div class="flex items-center gap-2">
                                     <div class="w-8 h-8 rounded-lg flex items-center justify-center ${isGanhos ? "bg-green-500/20" : "bg-red-500/20"}">
@@ -1026,10 +1021,10 @@ function mostrarDetalhamento(isGanhos) {
                                 </div>
                                 <span class="text-base font-bold ${isGanhos ? "text-green-400" : "text-red-400"}">R$ ${cat.valor.toFixed(2).replace(".", ",")}</span>
                             </div>
-                            <div class="h-1.5 bg-zinc-700 rounded-full overflow-hidden mb-1">
+                            <div class="h-1.5 bg-white/10 rounded-full overflow-hidden mb-1">
                                 <div class="h-full rounded-full ${isGanhos ? "bg-green-500" : "bg-red-500"}" style="width: ${cat.percentual}%;"></div>
                             </div>
-                            <div class="flex justify-between text-[10px] text-gray-500">
+                            <div class="flex justify-between text-[10px] text-white/40">
                                 <span>${cat.rodadas.length} rodada(s)</span>
                                 <span>${cat.percentual.toFixed(1)}%</span>
                             </div>
@@ -1038,7 +1033,7 @@ function mostrarDetalhamento(isGanhos) {
                                   )
                                   .join("")
                     }
-                    <div class="rounded-xl p-4 border ${isGanhos ? "bg-gradient-to-br from-green-900/20 to-green-900/10 border-green-500/50" : "bg-gradient-to-br from-red-900/20 to-red-900/10 border-red-500/50"}">
+                    <div class="rounded-xl p-4 ${isGanhos ? "bg-green-500/10" : "bg-red-500/10"}">
                         <div class="flex justify-between items-center">
                             <span class="flex items-center gap-2 text-sm font-bold text-white">
                                 <span class="material-icons ${isGanhos ? "text-green-400" : "text-red-400"}">account_balance_wallet</span>
@@ -1063,4 +1058,4 @@ function addCategoria(obj, nome, valor, rodada, icon) {
     obj[nome].rodadas.push(rodada);
 }
 
-console.log("[EXTRATO-UI] ✅ Módulo v7.1 Card Desempenho pronto");
+console.log("[EXTRATO-UI] ✅ Módulo v8.0 Design Consistente pronto");

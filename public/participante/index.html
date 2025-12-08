@@ -169,40 +169,51 @@
 
                     <!-- Ações Minimalistas -->
                     <div class="header-actions-modern">
-                        <!-- 📦 Badge de versão (inserido via JS) -->
-                        <span
-                            id="app-version-badge"
-                            class="app-version-badge"
-                        ></span>
-
-                        <!-- Status Online/Offline -->
+                        <!-- Status Online/Offline + Versão embaixo -->
                         <div
                             class="status-wrapper"
                             style="
                                 display: flex;
+                                flex-direction: column;
                                 align-items: center;
-                                gap: 4px;
                                 margin-right: 8px;
+                                gap: 1px;
                             "
                         >
                             <div
-                                id="statusIndicador"
                                 style="
-                                    width: 8px;
-                                    height: 8px;
-                                    border-radius: 50%;
-                                    background: #22c55e;
+                                    display: flex;
+                                    align-items: center;
+                                    gap: 4px;
                                 "
-                            ></div>
-                            <span
-                                id="statusTexto"
-                                style="
-                                    font-size: 10px;
-                                    color: #22c55e;
-                                    font-weight: 600;
-                                "
-                                >Online</span
                             >
+                                <div
+                                    id="statusIndicador"
+                                    style="
+                                        width: 6px;
+                                        height: 6px;
+                                        border-radius: 50%;
+                                        background: #22c55e;
+                                    "
+                                ></div>
+                                <span
+                                    id="statusTexto"
+                                    style="
+                                        font-size: 9px;
+                                        color: #22c55e;
+                                        font-weight: 500;
+                                    "
+                                    >Online</span
+                                >
+                            </div>
+                            <span
+                                id="app-version-badge"
+                                style="
+                                    font-size: 7px;
+                                    color: rgba(255, 255, 255, 0.35);
+                                    font-weight: 400;
+                                "
+                            ></span>
                         </div>
 
                         <!-- Menu Configurações (Seletor Liga + Logout) -->
