@@ -1,0 +1,300 @@
+?plugins=forms,typography:66  cdn.tailwindcss.com should not be used in production. To use Tailwind CSS in production, install it as a PostCSS plugin or use the Tailwind CLI: https://tailwindcss.com/docs/installation
+(anônimo) @ ?plugins=forms,typography:66
+(anônimo) @ ?plugins=forms,typography:66
+participante-auth.js:3 [PARTICIPANTE-AUTH] Carregando sistema de autenticação...
+participante-auth.js:552 [PARTICIPANTE-AUTH] ✅ Sistema carregado
+participante-navigation.js:2 [PARTICIPANTE-NAV] 🚀 Carregando sistema de navegação...
+participante-navigation.js:575 [PARTICIPANTE-NAV] ✅ Sistema de navegação do participante inicializado e pronto.
+participante-status.js:3 [PARTICIPANTE-STATUS] Carregando sistema de status...
+participante-status.js:144 [PARTICIPANTE-STATUS] ✅ Sistema carregado
+app-version.js:138 [APP-VERSION] ✅ Sistema de versionamento carregado
+cache-manager.js:439 ✅ [CACHE-MANAGER] Sistema de cache inteligente carregado
+participante-auth.js:46 [PARTICIPANTE-AUTH] Verificando autenticação...
+participante-navigation.js:24 [PARTICIPANTE-NAV] Inicializando navegação...
+participante-navigation.js:59 [PARTICIPANTE-NAV] Aguardando dados do participante...
+cache-manager.js:50 ✅ [CACHE-MANAGER] IndexedDB inicializado
+participante-auth.js:115 [PARTICIPANTE-AUTH] Atualizando header com dados da sessão: {timeId: '3027272', ligaId: '684cb1c8af923da7c7df51de', participante: {…}, time: null}
+participante-auth.js:294 [PARTICIPANTE-AUTH] 🔍 Verificando múltiplas ligas para timeId: 3027272
+participante-auth.js:156 [PARTICIPANTE-AUTH] ✅ Dados do time mesclados: {nome: 'Vitim 10 FC', cartola: 'Vitim', clube: 262}
+participante-navigation.js:84 [PARTICIPANTE-NAV] ✅ Dados obtidos: {timeId: '3027272', ligaId: '684cb1c8af923da7c7df51de', nomeCartola: 'Vitim', nomeTime: 'Vitim 10 FC'}
+participante-navigation.js:113 [PARTICIPANTE-NAV] 🔍 Buscando configuração de módulos...
+participante-auth.js:317 [PARTICIPANTE-AUTH] 📊 Resposta da API: {success: true, ligas: Array(1)}
+participante-auth.js:320 [PARTICIPANTE-AUTH] 📋 Total de ligas encontradas: 1
+participante-auth.js:326 [PARTICIPANTE-AUTH] 📝 Ligas: Super Cartola 2025 (684cb1c8af923da7c7df51de)
+participante-auth.js:353 [PARTICIPANTE-AUTH] ℹ️ Participante em apenas 1 liga - carregando automaticamente
+participante-auth.js:437 [PARTICIPANTE-AUTH] ℹ️ Seletor de ligas ocultado (uma liga apenas)
+participante-auth.js:185 [PARTICIPANTE-AUTH] Dados do participante na liga: {time_id: 3027272, nome_cartola: 'Vitim', nome_time: 'Vitim 10 FC', clube_id: 262, foto_perfil: '', …}
+participante-auth.js:263 [PARTICIPANTE-AUTH] ✅ Header atualizado com sucesso: {nome: 'Vitim 10 FC', cartola: 'Vitim', clube: 262, patrimonio: undefined}
+participante-auth.js:88 [PARTICIPANTE-AUTH] ✅ Autenticação válida (cache atualizado)
+participante-status.js:106 [PARTICIPANTE-STATUS] 🟢 Online
+participante-navigation.js:129 [PARTICIPANTE-NAV] 📋 Módulos ativos recebidos: {extrato: true, ranking: true, rodadas: true, top10: true, melhorMes: true, …}
+participante-navigation.js:239 [PARTICIPANTE-NAV] 📋 Módulos disponíveis para o usuário: 8 de 10
+participante-navigation.js:245 [PARTICIPANTE-NAV] 🔧 Configuração da liga recebida: {extrato: true, ranking: true, rodadas: true, top10: true, melhorMes: true, …}
+participante-navigation.js:271 [PARTICIPANTE-NAV] ✅ Menu renderizado com scroll horizontal ativado para 8 módulos
+participante-navigation.js:315 [PARTICIPANTE-NAV] ✅ Event listeners de clique configurados nos botões de navegação
+participante-navigation.js:321 [PARTICIPANTE-NAV] 🧭 Iniciando navegação para o módulo: ranking
+participante-navigation.js:461 [PARTICIPANTE-NAV] 📦 Tentando importar o módulo JS: ranking
+participante-ranking.js:7 [PARTICIPANTE-RANKING] Módulo v3.4 PRO carregando...
+participante-ranking.js:1045 [PARTICIPANTE-RANKING] Módulo v3.4 PRO carregado com Card Líder + Seu Desempenho
+participante-navigation.js:507 [PARTICIPANTE-NAV] 🚀 Executando função: inicializarRankingParticipante()
+participante-ranking.js:88 [PARTICIPANTE-RANKING] Inicializando módulo... {participante: {…}, ligaId: '684cb1c8af923da7c7df51de', timeId: '3027272'}
+participante-ranking.js:108 [PARTICIPANTE-RANKING] Dados: {ligaId: '684cb1c8af923da7c7df51de', timeId: '3027272'}
+participante-ranking.js:147 [PARTICIPANTE-RANKING] Buscando turno geral...
+participante-ranking.js:221 [PARTICIPANTE-RANKING] Posições por turno: {turno1: 1, turno2: 5, geral: null}
+participante-ranking.js:172 [PARTICIPANTE-RANKING] 32 times - Status: em_andamento
+participante-ranking.js:123 [PARTICIPANTE-RANKING] Ranking carregado
+participante-navigation.js:523 [PARTICIPANTE-NAV] ✅ Função inicializarRankingParticipante() executada com sucesso
+participante-navigation.js:387 [PARTICIPANTE-NAV] ✅ Módulo ranking (Ranking Geral) carregado e renderizado com sucesso
+participante-navigation.js:299 [PARTICIPANTE-NAV] 🎯 Clique detectado no módulo: boas-vindas
+participante-navigation.js:321 [PARTICIPANTE-NAV] 🧭 Iniciando navegação para o módulo: boas-vindas
+participante-navigation.js:461 [PARTICIPANTE-NAV] 📦 Tentando importar o módulo JS: boas-vindas
+participante-boas-vindas.js:5 [PARTICIPANTE-BOAS-VINDAS] 🔄 Carregando módulo v7.0...
+participante-boas-vindas.js:392 [PARTICIPANTE-BOAS-VINDAS] ✅ Módulo v7.0 carregado
+participante-navigation.js:507 [PARTICIPANTE-NAV] 🚀 Executando função: inicializarBoasVindasParticipante()
+participante-boas-vindas.js:29 [PARTICIPANTE-BOAS-VINDAS] 🚀 Inicializando... {ligaId: '684cb1c8af923da7c7df51de', timeId: '3027272', participante: {…}}
+participante-boas-vindas.js:124 [PARTICIPANTE-BOAS-VINDAS] ✅ Dados finais: {nomeTime: 'Vitim 10 FC', nomeCartola: 'Vitim', pontosTotais: 3479.779296875}
+participante-navigation.js:523 [PARTICIPANTE-NAV] ✅ Função inicializarBoasVindasParticipante() executada com sucesso
+participante-navigation.js:387 [PARTICIPANTE-NAV] ✅ Módulo boas-vindas (Boas-Vindas) carregado e renderizado com sucesso
+participante-navigation.js:299 [PARTICIPANTE-NAV] 🎯 Clique detectado no módulo: extrato
+participante-navigation.js:321 [PARTICIPANTE-NAV] 🧭 Iniciando navegação para o módulo: extrato
+participante/:1  Uncaught (in promise) Error: A listener indicated an asynchronous response by returning true, but the message channel closed before a response was received
+participante/:1  Uncaught (in promise) Error: A listener indicated an asynchronous response by returning true, but the message channel closed before a response was received
+participante/:1  Uncaught (in promise) Error: A listener indicated an asynchronous response by returning true, but the message channel closed before a response was received
+participante-navigation.js:461 [PARTICIPANTE-NAV] 📦 Tentando importar o módulo JS: extrato
+participante-extrato.js:10 [EXTRATO-PARTICIPANTE] 📄 Módulo v2.5 (ligaId para UI)
+participante-extrato.js:479 [EXTRATO-PARTICIPANTE] ✅ Módulo v2.5 carregado (ligaId para UI)
+participante-navigation.js:507 [PARTICIPANTE-NAV] 🚀 Executando função: inicializarExtratoParticipante()
+participante-extrato.js:22 [EXTRATO-PARTICIPANTE] 🔄 Inicializando... {ligaId: '684cb1c8af923da7c7df51de', timeId: '3027272'}
+participante-extrato.js:76 [EXTRATO-PARTICIPANTE] 📡 Buscando cache: /api/extrato-cache/684cb1c8af923da7c7df51de/times/3027272/cache?rodadaAtual=38
+participante-extrato.js:82 [EXTRATO-PARTICIPANTE] 📦 Cache recebido: {cached: true, qtdRodadas: 38, inativo: false, extratoTravado: false}
+participante-extrato.js:108 [EXTRATO-PARTICIPANTE] ✅ Cache válido 
+participante-extrato.js:157 [EXTRATO-PARTICIPANTE] 🎨 Renderizando 38 rodadas | 3 campos manuais 
+participante-extrato-ui.js:12 [EXTRATO-UI] 🎨 Módulo de UI v8.0 Design Consistente
+participante-extrato-ui.js:1061 [EXTRATO-UI] ✅ Módulo v8.0 Design Consistente pronto
+participante-extrato-ui.js:165 [EXTRATO-UI] 🔍 LigaId detectado: 684cb1c8af923da7c7df51de | Config existe: true
+participante-extrato-ui.js:440 [EXTRATO-UI] 🔍 Amostra rodada: {rodada: 38, posicao: null, temPosicao: true}
+participante-extrato.js:173 [EXTRATO-PARTICIPANTE] ✅ Extrato carregado com sucesso
+participante-navigation.js:523 [PARTICIPANTE-NAV] ✅ Função inicializarExtratoParticipante() executada com sucesso
+participante-navigation.js:387 [PARTICIPANTE-NAV] ✅ Módulo extrato (Extrato Financeiro) carregado e renderizado com sucesso
+participante-navigation.js:299 [PARTICIPANTE-NAV] 🎯 Clique detectado no módulo: ranking
+participante-navigation.js:321 [PARTICIPANTE-NAV] 🧭 Iniciando navegação para o módulo: ranking
+participante-navigation.js:461 [PARTICIPANTE-NAV] 📦 Tentando importar o módulo JS: ranking
+participante-navigation.js:507 [PARTICIPANTE-NAV] 🚀 Executando função: inicializarRankingParticipante()
+participante-ranking.js:88 [PARTICIPANTE-RANKING] Inicializando módulo... {participante: {…}, ligaId: '684cb1c8af923da7c7df51de', timeId: '3027272'}
+participante-ranking.js:108 [PARTICIPANTE-RANKING] Dados: {ligaId: '684cb1c8af923da7c7df51de', timeId: '3027272'}
+participante-ranking.js:147 [PARTICIPANTE-RANKING] Buscando turno geral...
+participante-ranking.js:221 [PARTICIPANTE-RANKING] Posições por turno: {turno1: 1, turno2: 5, geral: null}
+participante-ranking.js:172 [PARTICIPANTE-RANKING] 32 times - Status: em_andamento
+participante-ranking.js:123 [PARTICIPANTE-RANKING] Ranking carregado
+participante-navigation.js:523 [PARTICIPANTE-NAV] ✅ Função inicializarRankingParticipante() executada com sucesso
+participante-navigation.js:387 [PARTICIPANTE-NAV] ✅ Módulo ranking (Ranking Geral) carregado e renderizado com sucesso
+participante-navigation.js:299 [PARTICIPANTE-NAV] 🎯 Clique detectado no módulo: rodadas
+participante-navigation.js:321 [PARTICIPANTE-NAV] 🧭 Iniciando navegação para o módulo: rodadas
+participante-navigation.js:461 [PARTICIPANTE-NAV] 📦 Tentando importar o módulo JS: rodadas
+participante-rodada-parcial.js:8 [PARCIAIS] 📊 Carregando módulo v2.2...
+participante-rodada-parcial.js:493 [PARCIAIS] ✅ Módulo v2.2 carregado (inativos em todas as rodadas)
+participante-rodadas.js:7 [PARTICIPANTE-RODADAS] 📄 Carregando módulo v3.6...
+participante-rodadas.js:968 [PARTICIPANTE-RODADAS] ✅ Módulo v3.6 carregado (inativos contextuais por rodada)
+participante-navigation.js:507 [PARTICIPANTE-NAV] 🚀 Executando função: inicializarRodadasParticipante()
+participante-rodadas.js:84 [PARTICIPANTE-RODADAS] 🚀 Inicializando v3.6... {ligaIdParam: '684cb1c8af923da7c7df51de', timeId: '3027272'}
+participante-status.js:106 [PARTICIPANTE-STATUS] 🟢 Online
+participante-rodadas.js:190 [PARTICIPANTE-RODADAS] 📅 Rodada atual: 38
+participante-rodada-parcial.js:29 [PARCIAIS] 🚀 Inicializando v2.2... {ligaId: '684cb1c8af923da7c7df51de', timeId: '3027272'}
+participante-rodada-parcial.js:145 [PARCIAIS] 📋 Times da liga: 32 total
+participante-rodada-parcial.js:74 [PARCIAIS] ✅ Pronto: Rodada 38, 32 ativos, 0 inativos
+participante-rodadas.js:100 [PARTICIPANTE-RODADAS] 📊 Parciais: {disponivel: true, rodada: 38, totalTimes: 32, totalInativos: 0, bolaRolando: false}
+participante-rodadas.js:104 [PARTICIPANTE-RODADAS] 👥 32 times com status
+participante-rodadas.js:117 [PARTICIPANTE-RODADAS] 📊 1184 registros recebidos
+participante-rodadas.js:263 [PARTICIPANTE-RODADAS] 📊 Rodada 1: posição calculada = 1º (32 ativos)
+participante-rodadas.js:263 [PARTICIPANTE-RODADAS] 📊 Rodada 2: posição calculada = 3º (32 ativos)
+participante-rodadas.js:263 [PARTICIPANTE-RODADAS] 📊 Rodada 3: posição calculada = 17º (32 ativos)
+participante-rodadas.js:263 [PARTICIPANTE-RODADAS] 📊 Rodada 4: posição calculada = 1º (32 ativos)
+participante-rodadas.js:263 [PARTICIPANTE-RODADAS] 📊 Rodada 5: posição calculada = 4º (32 ativos)
+participante-rodadas.js:263 [PARTICIPANTE-RODADAS] 📊 Rodada 6: posição calculada = 8º (32 ativos)
+participante-rodadas.js:263 [PARTICIPANTE-RODADAS] 📊 Rodada 7: posição calculada = 6º (32 ativos)
+participante-rodadas.js:263 [PARTICIPANTE-RODADAS] 📊 Rodada 8: posição calculada = 1º (32 ativos)
+participante-rodadas.js:263 [PARTICIPANTE-RODADAS] 📊 Rodada 9: posição calculada = 30º (32 ativos)
+participante-rodadas.js:263 [PARTICIPANTE-RODADAS] 📊 Rodada 10: posição calculada = 19º (32 ativos)
+participante-rodadas.js:263 [PARTICIPANTE-RODADAS] 📊 Rodada 11: posição calculada = 26º (32 ativos)
+participante-rodadas.js:263 [PARTICIPANTE-RODADAS] 📊 Rodada 12: posição calculada = 4º (32 ativos)
+participante-rodadas.js:263 [PARTICIPANTE-RODADAS] 📊 Rodada 13: posição calculada = 23º (32 ativos)
+participante-rodadas.js:263 [PARTICIPANTE-RODADAS] 📊 Rodada 14: posição calculada = 2º (32 ativos)
+participante-rodadas.js:263 [PARTICIPANTE-RODADAS] 📊 Rodada 15: posição calculada = 12º (32 ativos)
+participante-rodadas.js:263 [PARTICIPANTE-RODADAS] 📊 Rodada 16: posição calculada = 6º (32 ativos)
+participante-rodadas.js:263 [PARTICIPANTE-RODADAS] 📊 Rodada 17: posição calculada = 17º (32 ativos)
+participante-rodadas.js:263 [PARTICIPANTE-RODADAS] 📊 Rodada 18: posição calculada = 8º (32 ativos)
+participante-rodadas.js:263 [PARTICIPANTE-RODADAS] 📊 Rodada 19: posição calculada = 8º (32 ativos)
+participante-rodadas.js:263 [PARTICIPANTE-RODADAS] 📊 Rodada 20: posição calculada = 32º (32 ativos)
+participante-rodadas.js:263 [PARTICIPANTE-RODADAS] 📊 Rodada 21: posição calculada = 6º (32 ativos)
+participante-rodadas.js:263 [PARTICIPANTE-RODADAS] 📊 Rodada 22: posição calculada = 12º (32 ativos)
+participante-rodadas.js:263 [PARTICIPANTE-RODADAS] 📊 Rodada 23: posição calculada = 6º (32 ativos)
+participante-rodadas.js:263 [PARTICIPANTE-RODADAS] 📊 Rodada 24: posição calculada = 17º (32 ativos)
+participante-rodadas.js:263 [PARTICIPANTE-RODADAS] 📊 Rodada 25: posição calculada = 1º (32 ativos)
+participante-rodadas.js:263 [PARTICIPANTE-RODADAS] 📊 Rodada 26: posição calculada = 20º (32 ativos)
+participante-rodadas.js:263 [PARTICIPANTE-RODADAS] 📊 Rodada 27: posição calculada = 13º (32 ativos)
+participante-rodadas.js:263 [PARTICIPANTE-RODADAS] 📊 Rodada 28: posição calculada = 23º (32 ativos)
+participante-rodadas.js:263 [PARTICIPANTE-RODADAS] 📊 Rodada 29: posição calculada = 30º (32 ativos)
+participante-rodadas.js:263 [PARTICIPANTE-RODADAS] 📊 Rodada 30: posição calculada = 6º (32 ativos)
+participante-rodadas.js:263 [PARTICIPANTE-RODADAS] 📊 Rodada 32: posição calculada = 4º (32 ativos)
+participante-rodadas.js:263 [PARTICIPANTE-RODADAS] 📊 Rodada 31: posição calculada = 19º (32 ativos)
+participante-rodadas.js:263 [PARTICIPANTE-RODADAS] 📊 Rodada 33: posição calculada = 31º (32 ativos)
+participante-rodadas.js:263 [PARTICIPANTE-RODADAS] 📊 Rodada 34: posição calculada = 25º (32 ativos)
+participante-rodadas.js:263 [PARTICIPANTE-RODADAS] 📊 Rodada 35: posição calculada = 16º (32 ativos)
+participante-rodadas.js:263 [PARTICIPANTE-RODADAS] 📊 Rodada 36: posição calculada = 1º (32 ativos)
+participante-rodadas.js:263 [PARTICIPANTE-RODADAS] 📊 Rodada 37: posição calculada = 5º (32 ativos)
+participante-rodadas.js:279  [PARTICIPANTE-RODADAS] ❌ Container não encontrado
+renderizarGridCompacto @ participante-rodadas.js:279
+inicializarRodadasParticipante @ participante-rodadas.js:133
+await in inicializarRodadasParticipante
+carregarModuloJS @ participante-navigation.js:514
+await in carregarModuloJS
+navegarPara @ participante-navigation.js:380
+await in navegarPara
+(anônimo) @ participante-navigation.js:311
+participante-navigation.js:523 [PARTICIPANTE-NAV] ✅ Função inicializarRodadasParticipante() executada com sucesso
+participante-navigation.js:387 [PARTICIPANTE-NAV] ✅ Módulo rodadas (Rodadas) carregado e renderizado com sucesso
+participante-navigation.js:299 [PARTICIPANTE-NAV] 🎯 Clique detectado no módulo: top10
+participante-navigation.js:321 [PARTICIPANTE-NAV] 🧭 Iniciando navegação para o módulo: top10
+participante-navigation.js:461 [PARTICIPANTE-NAV] 📦 Tentando importar o módulo JS: top10
+participante-top10.js:5 [PARTICIPANTE-TOP10] 🏆 Carregando módulo v4.3...
+participante-top10.js:477 [PARTICIPANTE-TOP10] ✅ Módulo v4.3 carregado (Material Icons + Card Resumo)
+participante-navigation.js:507 [PARTICIPANTE-NAV] 🚀 Executando função: inicializarTop10Participante()
+participante-top10.js:52 [PARTICIPANTE-TOP10] 🚀 Inicializando v4.3... {ligaId: '684cb1c8af923da7c7df51de', timeId: '3027272'}
+participante-top10.js:75 [PARTICIPANTE-TOP10] 📡 Buscando cache: /api/top10/cache/684cb1c8af923da7c7df51de?rodada=38
+participante-top10.js:77   GET https://e1034b6e-dfb9-401a-8e7f-80ffa6030f79-00-2dc692elmitoe.spock.replit.dev/api/top10/cache/684cb1c8af923da7c7df51de?rodada=38 404 (Not Found)
+inicializarTop10Participante @ participante-top10.js:77
+await in inicializarTop10Participante
+carregarModuloJS @ participante-navigation.js:514
+await in carregarModuloJS
+navegarPara @ participante-navigation.js:380
+await in navegarPara
+(anônimo) @ participante-navigation.js:311
+participante-top10.js:93 [PARTICIPANTE-TOP10] 📊 Calculando MITOS/MICOS...
+participante-top10.js:116 [PARTICIPANTE-TOP10] ✅ TOP 10 carregado com sucesso
+participante-navigation.js:523 [PARTICIPANTE-NAV] ✅ Função inicializarTop10Participante() executada com sucesso
+participante-navigation.js:387 [PARTICIPANTE-NAV] ✅ Módulo top10 (Top 10) carregado e renderizado com sucesso
+participante-navigation.js:299 [PARTICIPANTE-NAV] 🎯 Clique detectado no módulo: melhor-mes
+participante-navigation.js:321 [PARTICIPANTE-NAV] 🧭 Iniciando navegação para o módulo: melhor-mes
+participante-navigation.js:461 [PARTICIPANTE-NAV] 📦 Tentando importar o módulo JS: melhor-mes
+participante-melhor-mes.js:5 [MELHOR-MES-PARTICIPANTE] 🏆 Módulo v3.3 carregando...
+participante-melhor-mes.js:457 [MELHOR-MES-PARTICIPANTE] ✅ Módulo v3.3 carregado (suporte a inativos)
+participante-navigation.js:507 [PARTICIPANTE-NAV] 🚀 Executando função: inicializarMelhorMesParticipante()
+participante-melhor-mes.js:31 [MELHOR-MES-PARTICIPANTE] 🚀 Inicializando v3.3... {ligaId: '684cb1c8af923da7c7df51de', timeId: '3027272'}
+participante-melhor-mes.js:63 [MELHOR-MES-PARTICIPANTE] ✅ Dados recebidos: {edicoes: Array(7), totalEdicoes: 7, ligaId: '684cb1c8af923da7c7df51de', rodada_sistema: 37, temporada_encerrada: false, …}
+participante-navigation.js:523 [PARTICIPANTE-NAV] ✅ Função inicializarMelhorMesParticipante() executada com sucesso
+participante-navigation.js:387 [PARTICIPANTE-NAV] ✅ Módulo melhor-mes (Melhor Mês) carregado e renderizado com sucesso
+participante-navigation.js:299 [PARTICIPANTE-NAV] 🎯 Clique detectado no módulo: pontos-corridos
+participante-navigation.js:321 [PARTICIPANTE-NAV] 🧭 Iniciando navegação para o módulo: pontos-corridos
+participante-navigation.js:461 [PARTICIPANTE-NAV] 📦 Tentando importar o módulo JS: pontos-corridos
+participante-pontos-corridos.js:734 [PONTOS-CORRIDOS] ✅ Módulo v4.8 carregado (suporte a inativos)
+participante-navigation.js:507 [PARTICIPANTE-NAV] 🚀 Executando função: inicializarPontosCorridosParticipante()
+participante-pontos-corridos.js:22 [PONTOS-CORRIDOS] 🚀 Inicializando v4.8... {participante: {…}, ligaId: '684cb1c8af923da7c7df51de', timeId: '3027272'}
+participante-navigation.js:299 [PARTICIPANTE-NAV] 🎯 Clique detectado no módulo: mata-mata
+participante-navigation.js:321 [PARTICIPANTE-NAV] 🧭 Iniciando navegação para o módulo: mata-mata
+participante-navigation.js:461 [PARTICIPANTE-NAV] 📦 Tentando importar o módulo JS: mata-mata
+participante-mata-mata.js:619 [MATA-MATA] ✅ Módulo v6.6 carregado
+participante-navigation.js:507 [PARTICIPANTE-NAV] 🚀 Executando função: inicializarMataMataParticipante()
+participante-mata-mata.js:37 [MATA-MATA] 🚀 Inicializando v6.6... {participante: {…}, ligaId: '684cb1c8af923da7c7df51de', timeId: '3027272'}
+participante-pontos-corridos.js:55 [PONTOS-CORRIDOS] ✅ 31 rodadas carregadas
+participante-navigation.js:523 [PARTICIPANTE-NAV] ✅ Função inicializarPontosCorridosParticipante() executada com sucesso
+participante-navigation.js:387 [PARTICIPANTE-NAV] ✅ Módulo pontos-corridos (Pontos Corridos) carregado e renderizado com sucesso
+participante-mata-mata.js:86 [MATA-MATA] ✅ 5 edições encontradas
+participante-mata-mata.js:122 [MATA-MATA] 📦 Dados recebidos: {cached: true, rodada: 38, dados: {…}, updatedAt: '2025-12-06T00:08:04.868Z'}
+participante-mata-mata.js:181 [MATA-MATA] 📊 Histórico edição 5: {ultimaFase: 'primeira', eliminado: true}
+participante-navigation.js:523 [PARTICIPANTE-NAV] ✅ Função inicializarMataMataParticipante() executada com sucesso
+participante-navigation.js:387 [PARTICIPANTE-NAV] ✅ Módulo mata-mata (Mata-Mata) carregado e renderizado com sucesso
+participante-navigation.js:299 [PARTICIPANTE-NAV] 🎯 Clique detectado no módulo: boas-vindas
+participante-navigation.js:321 [PARTICIPANTE-NAV] 🧭 Iniciando navegação para o módulo: boas-vindas
+participante-navigation.js:461 [PARTICIPANTE-NAV] 📦 Tentando importar o módulo JS: boas-vindas
+participante-navigation.js:507 [PARTICIPANTE-NAV] 🚀 Executando função: inicializarBoasVindasParticipante()
+participante-boas-vindas.js:29 [PARTICIPANTE-BOAS-VINDAS] 🚀 Inicializando... {ligaId: '684cb1c8af923da7c7df51de', timeId: '3027272', participante: {…}}
+participante-status.js:106 [PARTICIPANTE-STATUS] 🟢 Online
+participante-boas-vindas.js:124 [PARTICIPANTE-BOAS-VINDAS] ✅ Dados finais: {nomeTime: 'Vitim 10 FC', nomeCartola: 'Vitim', pontosTotais: 3479.779296875}
+participante-navigation.js:523 [PARTICIPANTE-NAV] ✅ Função inicializarBoasVindasParticipante() executada com sucesso
+participante-navigation.js:387 [PARTICIPANTE-NAV] ✅ Módulo boas-vindas (Boas-Vindas) carregado e renderizado com sucesso
+participante-navigation.js:299 [PARTICIPANTE-NAV] 🎯 Clique detectado no módulo: extrato
+participante-navigation.js:321 [PARTICIPANTE-NAV] 🧭 Iniciando navegação para o módulo: extrato
+participante-navigation.js:461 [PARTICIPANTE-NAV] 📦 Tentando importar o módulo JS: extrato
+participante-navigation.js:507 [PARTICIPANTE-NAV] 🚀 Executando função: inicializarExtratoParticipante()
+participante-extrato.js:22 [EXTRATO-PARTICIPANTE] 🔄 Inicializando... {ligaId: '684cb1c8af923da7c7df51de', timeId: '3027272'}
+participante-extrato.js:76 [EXTRATO-PARTICIPANTE] 📡 Buscando cache: /api/extrato-cache/684cb1c8af923da7c7df51de/times/3027272/cache?rodadaAtual=38
+participante-extrato.js:82 [EXTRATO-PARTICIPANTE] 📦 Cache recebido: {cached: true, qtdRodadas: 38, inativo: false, extratoTravado: false}
+participante-extrato.js:108 [EXTRATO-PARTICIPANTE] ✅ Cache válido 
+participante-extrato.js:157 [EXTRATO-PARTICIPANTE] 🎨 Renderizando 38 rodadas | 3 campos manuais 
+participante-extrato-ui.js:165 [EXTRATO-UI] 🔍 LigaId detectado: 684cb1c8af923da7c7df51de | Config existe: true
+participante-extrato-ui.js:440 [EXTRATO-UI] 🔍 Amostra rodada: {rodada: 38, posicao: null, temPosicao: true}
+participante-extrato.js:173 [EXTRATO-PARTICIPANTE] ✅ Extrato carregado com sucesso
+participante-navigation.js:523 [PARTICIPANTE-NAV] ✅ Função inicializarExtratoParticipante() executada com sucesso
+participante-navigation.js:387 [PARTICIPANTE-NAV] ✅ Módulo extrato (Extrato Financeiro) carregado e renderizado com sucesso
+participante-navigation.js:299 [PARTICIPANTE-NAV] 🎯 Clique detectado no módulo: ranking
+participante-navigation.js:321 [PARTICIPANTE-NAV] 🧭 Iniciando navegação para o módulo: ranking
+participante-navigation.js:461 [PARTICIPANTE-NAV] 📦 Tentando importar o módulo JS: ranking
+participante-navigation.js:507 [PARTICIPANTE-NAV] 🚀 Executando função: inicializarRankingParticipante()
+participante-ranking.js:88 [PARTICIPANTE-RANKING] Inicializando módulo... {participante: {…}, ligaId: '684cb1c8af923da7c7df51de', timeId: '3027272'}
+participante-ranking.js:108 [PARTICIPANTE-RANKING] Dados: {ligaId: '684cb1c8af923da7c7df51de', timeId: '3027272'}
+participante-ranking.js:147 [PARTICIPANTE-RANKING] Buscando turno geral...
+participante-ranking.js:221 [PARTICIPANTE-RANKING] Posições por turno: {turno1: 1, turno2: 5, geral: null}
+participante-ranking.js:172 [PARTICIPANTE-RANKING] 32 times - Status: em_andamento
+participante-ranking.js:123 [PARTICIPANTE-RANKING] Ranking carregado
+participante-navigation.js:523 [PARTICIPANTE-NAV] ✅ Função inicializarRankingParticipante() executada com sucesso
+participante-navigation.js:387 [PARTICIPANTE-NAV] ✅ Módulo ranking (Ranking Geral) carregado e renderizado com sucesso
+participante-navigation.js:299 [PARTICIPANTE-NAV] 🎯 Clique detectado no módulo: rodadas
+participante-navigation.js:321 [PARTICIPANTE-NAV] 🧭 Iniciando navegação para o módulo: rodadas
+participante-navigation.js:461 [PARTICIPANTE-NAV] 📦 Tentando importar o módulo JS: rodadas
+participante-navigation.js:507 [PARTICIPANTE-NAV] 🚀 Executando função: inicializarRodadasParticipante()
+participante-rodadas.js:84 [PARTICIPANTE-RODADAS] 🚀 Inicializando v3.6... {ligaIdParam: '684cb1c8af923da7c7df51de', timeId: '3027272'}
+participante-rodadas.js:190 [PARTICIPANTE-RODADAS] 📅 Rodada atual: 38
+participante-rodada-parcial.js:29 [PARCIAIS] 🚀 Inicializando v2.2... {ligaId: '684cb1c8af923da7c7df51de', timeId: '3027272'}
+participante-rodada-parcial.js:145 [PARCIAIS] 📋 Times da liga: 32 total
+participante-rodada-parcial.js:74 [PARCIAIS] ✅ Pronto: Rodada 38, 32 ativos, 0 inativos
+participante-rodadas.js:100 [PARTICIPANTE-RODADAS] 📊 Parciais: {disponivel: true, rodada: 38, totalTimes: 32, totalInativos: 0, bolaRolando: false}
+participante-rodadas.js:104 [PARTICIPANTE-RODADAS] 👥 32 times com status
+participante-rodadas.js:117 [PARTICIPANTE-RODADAS] 📊 1184 registros recebidos
+participante-rodadas.js:263 [PARTICIPANTE-RODADAS] 📊 Rodada 1: posição calculada = 1º (32 ativos)
+participante-rodadas.js:263 [PARTICIPANTE-RODADAS] 📊 Rodada 2: posição calculada = 3º (32 ativos)
+participante-rodadas.js:263 [PARTICIPANTE-RODADAS] 📊 Rodada 3: posição calculada = 17º (32 ativos)
+participante-rodadas.js:263 [PARTICIPANTE-RODADAS] 📊 Rodada 4: posição calculada = 1º (32 ativos)
+participante-rodadas.js:263 [PARTICIPANTE-RODADAS] 📊 Rodada 5: posição calculada = 4º (32 ativos)
+participante-rodadas.js:263 [PARTICIPANTE-RODADAS] 📊 Rodada 6: posição calculada = 8º (32 ativos)
+participante-rodadas.js:263 [PARTICIPANTE-RODADAS] 📊 Rodada 7: posição calculada = 6º (32 ativos)
+participante-rodadas.js:263 [PARTICIPANTE-RODADAS] 📊 Rodada 8: posição calculada = 1º (32 ativos)
+participante-rodadas.js:263 [PARTICIPANTE-RODADAS] 📊 Rodada 9: posição calculada = 30º (32 ativos)
+participante-rodadas.js:263 [PARTICIPANTE-RODADAS] 📊 Rodada 10: posição calculada = 19º (32 ativos)
+participante-rodadas.js:263 [PARTICIPANTE-RODADAS] 📊 Rodada 11: posição calculada = 26º (32 ativos)
+participante-rodadas.js:263 [PARTICIPANTE-RODADAS] 📊 Rodada 12: posição calculada = 4º (32 ativos)
+participante-rodadas.js:263 [PARTICIPANTE-RODADAS] 📊 Rodada 13: posição calculada = 23º (32 ativos)
+participante-rodadas.js:263 [PARTICIPANTE-RODADAS] 📊 Rodada 14: posição calculada = 2º (32 ativos)
+participante-rodadas.js:263 [PARTICIPANTE-RODADAS] 📊 Rodada 15: posição calculada = 12º (32 ativos)
+participante-rodadas.js:263 [PARTICIPANTE-RODADAS] 📊 Rodada 16: posição calculada = 6º (32 ativos)
+participante-rodadas.js:263 [PARTICIPANTE-RODADAS] 📊 Rodada 17: posição calculada = 17º (32 ativos)
+participante-rodadas.js:263 [PARTICIPANTE-RODADAS] 📊 Rodada 18: posição calculada = 8º (32 ativos)
+participante-rodadas.js:263 [PARTICIPANTE-RODADAS] 📊 Rodada 19: posição calculada = 8º (32 ativos)
+participante-rodadas.js:263 [PARTICIPANTE-RODADAS] 📊 Rodada 20: posição calculada = 32º (32 ativos)
+participante-rodadas.js:263 [PARTICIPANTE-RODADAS] 📊 Rodada 21: posição calculada = 6º (32 ativos)
+participante-rodadas.js:263 [PARTICIPANTE-RODADAS] 📊 Rodada 22: posição calculada = 12º (32 ativos)
+participante-rodadas.js:263 [PARTICIPANTE-RODADAS] 📊 Rodada 23: posição calculada = 6º (32 ativos)
+participante-rodadas.js:263 [PARTICIPANTE-RODADAS] 📊 Rodada 24: posição calculada = 17º (32 ativos)
+participante-rodadas.js:263 [PARTICIPANTE-RODADAS] 📊 Rodada 25: posição calculada = 1º (32 ativos)
+participante-rodadas.js:263 [PARTICIPANTE-RODADAS] 📊 Rodada 26: posição calculada = 20º (32 ativos)
+participante-rodadas.js:263 [PARTICIPANTE-RODADAS] 📊 Rodada 27: posição calculada = 13º (32 ativos)
+participante-rodadas.js:263 [PARTICIPANTE-RODADAS] 📊 Rodada 28: posição calculada = 23º (32 ativos)
+participante-rodadas.js:263 [PARTICIPANTE-RODADAS] 📊 Rodada 29: posição calculada = 30º (32 ativos)
+participante-rodadas.js:263 [PARTICIPANTE-RODADAS] 📊 Rodada 30: posição calculada = 6º (32 ativos)
+participante-rodadas.js:263 [PARTICIPANTE-RODADAS] 📊 Rodada 32: posição calculada = 4º (32 ativos)
+participante-rodadas.js:263 [PARTICIPANTE-RODADAS] 📊 Rodada 31: posição calculada = 19º (32 ativos)
+participante-rodadas.js:263 [PARTICIPANTE-RODADAS] 📊 Rodada 33: posição calculada = 31º (32 ativos)
+participante-rodadas.js:263 [PARTICIPANTE-RODADAS] 📊 Rodada 34: posição calculada = 25º (32 ativos)
+participante-rodadas.js:263 [PARTICIPANTE-RODADAS] 📊 Rodada 35: posição calculada = 16º (32 ativos)
+participante-rodadas.js:263 [PARTICIPANTE-RODADAS] 📊 Rodada 36: posição calculada = 1º (32 ativos)
+participante-rodadas.js:263 [PARTICIPANTE-RODADAS] 📊 Rodada 37: posição calculada = 5º (32 ativos)
+participante-rodadas.js:279  [PARTICIPANTE-RODADAS] ❌ Container não encontrado
+renderizarGridCompacto @ participante-rodadas.js:279
+inicializarRodadasParticipante @ participante-rodadas.js:133
+await in inicializarRodadasParticipante
+carregarModuloJS @ participante-navigation.js:514
+await in carregarModuloJS
+navegarPara @ participante-navigation.js:380
+await in navegarPara
+(anônimo) @ participante-navigation.js:311
+participante-navigation.js:523 [PARTICIPANTE-NAV] ✅ Função inicializarRodadasParticipante() executada com sucesso
+participante-navigation.js:387 [PARTICIPANTE-NAV] ✅ Módulo rodadas (Rodadas) carregado e renderizado com sucesso
