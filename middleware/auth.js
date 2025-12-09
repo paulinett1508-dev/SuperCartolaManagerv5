@@ -1,5 +1,6 @@
 /**
  * Middleware de Autenticação - Super Cartola Manager
+ * Destino: /middlewares/auth.js
  * Protege rotas Admin (Google OAuth) e Participante (senha time)
  */
 
@@ -19,6 +20,9 @@ export const ROTAS_PUBLICAS = [
   "/api/cartola/",
   "/api/configuracao/",
   "/api/version",
+  // ✅ PWA - Arquivos que precisam ser públicos
+  "/participante/manifest.json",
+  "/participante/service-worker.js",
 ];
 
 /**
@@ -51,7 +55,7 @@ export const PAGINAS_PARTICIPANTE = [
  * Verifica se a URL é um recurso público
  */
 export function isRotaPublica(url) {
-  return ROTAS_PUBLICAS.some((rota) => url.startsWith(rota));
+  return ROTAS_PUBLICAS.some((rota) => url.startsWith(rota) || url === rota);
 }
 
 /**
