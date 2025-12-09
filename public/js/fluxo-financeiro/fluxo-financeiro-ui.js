@@ -5,10 +5,14 @@ import {
 } from "./fluxo-financeiro-auditoria.js";
 
 /**
- * FLUXO-FINANCEIRO-UI.JS - v4.3 (Campos Editáveis + Material Icons)
- * ✅ v4.1: MICO mostra badge para último lugar da fase (4º na fase2, 6º na fase1)
- * ✅ v4.2: Botão "Auditar" para cada participante
+ * FLUXO-FINANCEIRO-UI.JS - v4.5 (Cache em Lote)
+ * ✅ v4.5: Botão "Limpar Cache" + "Recalcular Todos" + auto-popular ao visualizar
+ * ✅ v4.4.2: Botão só limpa cache, sem chamar recálculo do backend
+ * ✅ v4.4.1: Botão "Limpar Cache" + removido botão duplicado dos campos
+ * ✅ v4.4: Botão para limpar cache MongoDB do participante
  * ✅ v4.3: Campos editáveis SEMPRE visíveis para admin + Material Icons
+ * ✅ v4.2: Botão "Auditar" para cada participante
+ * ✅ v4.1: MICO mostra badge para último lugar da fase
  * Objetivo: Renderização Pura + Classes CSS
  */
 
@@ -50,6 +54,12 @@ export class FluxoFinanceiroUI {
             <div class="fluxo-controls">
                 <button onclick="window.gerarRelatorioFinanceiro()" class="btn-modern btn-primary-gradient">
                     <span class="material-icons" style="font-size: 16px;">assessment</span> Relatório Consolidado
+                </button>
+                <button onclick="window.limparCacheLiga()" class="btn-modern btn-limpar-liga" title="Limpar cache de todos os participantes">
+                    <span class="material-icons" style="font-size: 16px;">delete_sweep</span> Limpar Cache
+                </button>
+                <button onclick="window.recalcularTodosCache()" class="btn-modern btn-recalcular-todos" title="Recalcular cache de todos os participantes">
+                    <span class="material-icons" style="font-size: 16px;">sync</span> Recalcular Todos
                 </button>
                 <div class="search-wrapper">
                     <input type="text" id="searchParticipante" placeholder="Pesquisar participante..."
@@ -113,6 +123,91 @@ export class FluxoFinanceiroUI {
             .participante-card-wrapper .btn-auditar {
                 width: 100%;
                 justify-content: center;
+            }
+            /* ✅ v4.4.1: Estilos para botão limpar cache */
+            .btn-recalc-cache {
+                background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
+                color: white;
+                border: none;
+                padding: 8px 12px;
+                border-radius: 8px;
+                cursor: pointer;
+                font-size: 12px;
+                font-weight: 600;
+                display: flex;
+                align-items: center;
+                gap: 4px;
+                transition: all 0.2s ease;
+            }
+            .btn-recalc-cache:hover {
+                transform: translateY(-1px);
+                box-shadow: 0 4px 12px rgba(245, 158, 11, 0.4);
+            }
+            .btn-recalc-cache:disabled {
+                opacity: 0.6;
+                cursor: not-allowed;
+                transform: none;
+            }
+            .btn-recalc-cache.loading .material-icons {
+                animation: spin 1s linear infinite;
+            }
+            @keyframes spin {
+                from { transform: rotate(0deg); }
+                to { transform: rotate(360deg); }
+            }
+            /* ✅ v4.5: Estilos para botão limpar cache da liga */
+            .btn-limpar-liga {
+                background: linear-gradient(135deg, #dc2626 0%, #b91c1c 100%) !important;
+                color: white !important;
+                border: none;
+                padding: 10px 16px;
+                border-radius: 8px;
+                cursor: pointer;
+                font-size: 13px;
+                font-weight: 600;
+                display: flex;
+                align-items: center;
+                gap: 6px;
+                transition: all 0.2s ease;
+            }
+            .btn-limpar-liga:hover {
+                transform: translateY(-1px);
+                box-shadow: 0 4px 12px rgba(220, 38, 38, 0.4);
+            }
+            .btn-limpar-liga:disabled {
+                opacity: 0.6;
+                cursor: not-allowed;
+                transform: none;
+            }
+            .btn-limpar-liga.loading .material-icons {
+                animation: spin 1s linear infinite;
+            }
+            /* ✅ v4.5: Estilos para botão recalcular todos */
+            .btn-recalcular-todos {
+                background: linear-gradient(135deg, #059669 0%, #047857 100%) !important;
+                color: white !important;
+                border: none;
+                padding: 10px 16px;
+                border-radius: 8px;
+                cursor: pointer;
+                font-size: 13px;
+                font-weight: 600;
+                display: flex;
+                align-items: center;
+                gap: 6px;
+                transition: all 0.2s ease;
+            }
+            .btn-recalcular-todos:hover {
+                transform: translateY(-1px);
+                box-shadow: 0 4px 12px rgba(5, 150, 105, 0.4);
+            }
+            .btn-recalcular-todos:disabled {
+                opacity: 0.6;
+                cursor: not-allowed;
+                transform: none;
+            }
+            .btn-recalcular-todos.loading .material-icons {
+                animation: spin 1s linear infinite;
             }
         `;
         document.head.appendChild(style);
@@ -264,6 +359,10 @@ export class FluxoFinanceiroUI {
             participante.time_id || participante.id,
         );
 
+        // ✅ v4.5: Popular cache no backend quando admin visualiza (silencioso)
+        const timeId = participante.time_id || participante.id;
+        this.popularCacheBackend(timeId, extrato);
+
         const saldoFinal = parseFloat(extrato.resumo.saldo) || 0;
         const classeSaldo = saldoFinal >= 0 ? "text-success" : "text-danger";
         const labelSaldo =
@@ -284,9 +383,13 @@ export class FluxoFinanceiroUI {
                     }
                 </div>
 
-                <div style="position: absolute; top: 16px; right: 16px;">
-                    <button onclick="window.forcarRefreshExtrato('${participante.time_id || participante.id}')" class="btn-modern btn-secondary-gradient">
+                <!-- ✅ v4.4: Botões Atualizar + Recalcular Cache -->
+                <div style="position: absolute; top: 16px; right: 16px; display: flex; gap: 8px; flex-wrap: wrap; justify-content: flex-end;">
+                    <button onclick="window.forcarRefreshExtrato('${timeId}')" class="btn-modern btn-secondary-gradient" title="Atualizar dados">
                         <span class="material-icons" style="font-size: 14px;">refresh</span> Atualizar
+                    </button>
+                    <button id="btnRecalcCache-${timeId}" onclick="window.recalcularCacheParticipante('${timeId}')" class="btn-recalc-cache" title="Limpar cache MongoDB e recalcular do zero">
+                        <span class="material-icons" style="font-size: 14px;">delete_sweep</span> Limpar Cache
                     </button>
                 </div>
 
@@ -421,13 +524,12 @@ export class FluxoFinanceiroUI {
                                 </div>
                             `
                                     : `
-                                <input type="number" step="0.01" value="${c.valor}" 
-                                       class="input-modern ${c.valor >= 0 ? "text-success" : "text-danger"}"
-                                       onchange="window.salvarCampoEditavel('${timeId}', '${c.id}', this.value)"
-                                       placeholder="R$ 0,00">
-                                <button class="btn-editar-nome" onclick="window.editarNomeCampo('${timeId}', '${c.id}')" title="Renomear campo">
-                                    <span class="material-icons" style="font-size: 12px;">edit</span>
-                                </button>
+                                <input type="number" step="0.01" value="${c.valor}"
+                                       class="input-modern input-campo-editavel ${c.valor > 0 ? "campo-positivo" : c.valor < 0 ? "campo-negativo" : ""}"
+                                       data-campo="${c.id}"
+                                       data-time-id="${timeId}"
+                                       onchange="window.salvarCampoEditavel(this)"
+                                       onclick="this.select()">
                             `
                             }
                         </div>
@@ -435,159 +537,321 @@ export class FluxoFinanceiroUI {
                         )
                         .join("")}
                 </div>
-                ${
-                    !readOnly
-                        ? `
-                <div class="text-right mt-16">
-                    <button onclick="window.calcularEExibirExtrato('${timeId}')" class="btn-modern btn-primary-gradient">
-                        <span class="material-icons" style="font-size: 14px;">refresh</span> Recalcular
-                    </button>
-                </div>
-                `
-                        : ""
-                }
+
             </div>
         `;
     }
 
-    renderizarRelatorioConsolidado(relatorio, ultimaRodada) {
-        const container = document.getElementById(this.containerId);
-        if (!container) return;
+    // =========================================================================
+    // ✅ v4.5: Popular cache no backend quando admin visualiza extrato
+    // =========================================================================
+    async popularCacheBackend(timeId, extrato) {
+        try {
+            const ligaId = window.obterLigaId?.();
+            if (!ligaId || !timeId || !extrato) return;
 
-        if (!relatorio || relatorio.length === 0) {
-            container.innerHTML = `
-                <div class="estado-inicial">
-                    <div class="estado-inicial-icon"><span class="material-icons" style="font-size: 48px; color: #f59e0b;">warning</span></div>
-                    <h2 class="estado-inicial-titulo">Sem dados</h2>
-                    <p class="estado-inicial-subtitulo">Nenhum participante encontrado para o relatório.</p>
-                </div>`;
-            return;
+            console.log(
+                `[FLUXO-UI] 📤 Populando cache backend para time ${timeId}...`,
+            );
+
+            // Enviar extrato calculado pelo frontend para o cache do backend
+            const response = await fetch(
+                `/api/extrato-cache/${ligaId}/times/${timeId}/cache`,
+                {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({
+                        extrato: extrato,
+                        origem: "admin-frontend",
+                        versao: "4.5",
+                    }),
+                },
+            );
+
+            if (response.ok) {
+                console.log(`[FLUXO-UI] ✅ Cache populado para time ${timeId}`);
+            } else {
+                console.warn(
+                    `[FLUXO-UI] ⚠️ Falha ao popular cache: ${response.status}`,
+                );
+            }
+        } catch (error) {
+            // Silencioso - não bloqueia o admin
+            console.warn(`[FLUXO-UI] ⚠️ Erro ao popular cache:`, error.message);
         }
-
-        const html = `
-            <div class="card-padrao">
-                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
-                    <h3 class="card-titulo" style="margin: 0;"><span class="material-icons" style="font-size: 16px;">assessment</span> Relatório Consolidado - Rodada ${ultimaRodada}</h3>
-                    <button onclick="window.exportarRelatorioCSV()" class="btn-modern btn-success-gradient">
-                        <span class="material-icons" style="font-size: 14px;">file_download</span> Exportar CSV
-                    </button>
-                </div>
-
-                <div class="table-responsive">
-                    <table class="table-modern">
-                        <thead>
-                            <tr>
-                                <th style="width: 40px;">#</th>
-                                <th>Participante</th>
-                                <th class="text-center">Bônus</th>
-                                <th class="text-center">Ônus</th>
-                                <th class="text-center">P.C</th>
-                                <th class="text-center">M-M</th>
-                                <th class="text-center">Melhor Mês</th>
-                                <th class="text-center">Ajustes</th>
-                                <th class="text-center">Saldo</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            ${relatorio
-                                .map(
-                                    (p, i) => `
-                                <tr class="${i % 2 === 0 ? "bg-zebra" : ""}">
-                                    <td class="font-bold text-center">${i + 1}º</td>
-                                    <td>
-                                        <div style="display: flex; align-items: center; gap: 10px;">
-                                            ${
-                                                p.escudo
-                                                    ? `<img src="${p.escudo}" alt="" style="width: 28px; height: 28px; border-radius: 50%;">`
-                                                    : `<div style="width: 28px; height: 28px; border-radius: 50%; background: #333; display: flex; align-items: center; justify-content: center;"><span class="material-icons" style="font-size: 16px; color: #666;">sports_soccer</span></div>`
-                                            }
-                                            <div>
-                                                <div class="font-semibold">${p.nome}</div>
-                                                <div class="text-muted" style="font-size: 11px;">${p.time}</div>
-                                            </div>
-                                        </div>
-                                    </td>
-                                    <td class="text-center">${this.formatarMoeda(p.bonus)}</td>
-                                    <td class="text-center">${this.formatarMoeda(p.onus)}</td>
-                                    <td class="text-center">${this.formatarMoeda(p.pontosCorridos)}</td>
-                                    <td class="text-center">${this.formatarMoeda(p.mataMata)}</td>
-                                    <td class="text-center">${this.formatarMoeda(p.melhorMes)}</td>
-                                    <td class="text-center">${this.formatarMoeda(p.ajustes)}</td>
-                                    <td class="text-center font-bold ${p.saldoFinal >= 0 ? "text-success" : "text-danger"}">
-                                        ${p.saldoFinal >= 0 ? "+" : ""}R$ ${p.saldoFinal.toLocaleString("pt-BR", { minimumFractionDigits: 2 })}
-                                    </td>
-                                </tr>
-                            `,
-                                )
-                                .join("")}
-                        </tbody>
-                        <tfoot>
-                            <tr class="row-total">
-                                <td colspan="2" class="text-right font-bold">TOTAIS:</td>
-                                <td class="text-center">${this.formatarMoeda(relatorio.reduce((s, p) => s + (p.bonus || 0), 0))}</td>
-                                <td class="text-center">${this.formatarMoeda(relatorio.reduce((s, p) => s + (p.onus || 0), 0))}</td>
-                                <td class="text-center">${this.formatarMoeda(relatorio.reduce((s, p) => s + (p.pontosCorridos || 0), 0))}</td>
-                                <td class="text-center">${this.formatarMoeda(relatorio.reduce((s, p) => s + (p.mataMata || 0), 0))}</td>
-                                <td class="text-center">${this.formatarMoeda(relatorio.reduce((s, p) => s + (p.melhorMes || 0), 0))}</td>
-                                <td class="text-center">${this.formatarMoeda(relatorio.reduce((s, p) => s + (p.ajustes || 0), 0))}</td>
-                                <td class="text-center font-bold">
-                                    R$ ${relatorio.reduce((s, p) => s + (p.saldoFinal || 0), 0).toLocaleString("pt-BR", { minimumFractionDigits: 2 })}
-                                </td>
-                            </tr>
-                        </tfoot>
-                    </table>
-                </div>
-            </div>
-        `;
-
-        container.innerHTML = html;
     }
 }
 
 // =========================================================================
-// FUNÇÕES GLOBAIS (Mantidas para compatibilidade com onclick)
+// ✅ v4.4.2: FUNÇÃO GLOBAL PARA LIMPAR CACHE DO PARTICIPANTE
 // =========================================================================
+window.recalcularCacheParticipante = async function (timeId) {
+    const btn = document.getElementById(`btnRecalcCache-${timeId}`);
+    const ligaId = window.obterLigaId?.();
 
-window.salvarCampoEditavel = async function (timeId, nomeCampo, valor) {
-    try {
-        await FluxoFinanceiroCampos.salvarValorCampo(
-            timeId,
-            nomeCampo,
-            parseFloat(valor) || 0,
-        );
-        console.log(`[UI] Campo salvo: ${nomeCampo}`);
-
-        // ✅ v4.3: Recalcular e permanecer no extrato do participante
-        await window.calcularEExibirExtrato(timeId);
-    } catch (error) {
-        console.error("Erro ao salvar:", error);
-        alert("Erro ao salvar campo.");
+    if (!ligaId) {
+        alert("Liga não identificada. Recarregue a página.");
+        return;
     }
-};
 
-window.editarNomeCampo = async function (timeId, nomeCampo) {
-    const nomeAtual = await FluxoFinanceiroCampos.obterNomeCampo(
-        timeId,
-        nomeCampo,
+    // Confirmar ação
+    const confirmacao = confirm(
+        `🗑️ Limpar Cache\n\nIsso irá limpar o cache MongoDB do participante.\nNa próxima vez que ele acessar, os dados serão recalculados.\n\nContinuar?`,
     );
-    const novoNome = prompt("Novo nome:", nomeAtual);
-    if (novoNome && novoNome.trim()) {
-        await FluxoFinanceiroCampos.salvarNomeCampo(
-            timeId,
-            nomeCampo,
-            novoNome.trim(),
+
+    if (!confirmacao) return;
+
+    // UI: Loading
+    if (btn) {
+        btn.classList.add("loading");
+        btn.disabled = true;
+        btn.innerHTML = `<span class="material-icons" style="font-size: 14px;">sync</span> Aguarde...`;
+    }
+
+    try {
+        console.log(`[FLUXO-UI] 🗑️ Limpando cache do time ${timeId}...`);
+
+        // APENAS limpar cache no MongoDB - NÃO chamar endpoint de recálculo
+        // O recálculo acontecerá quando o participante acessar
+        const urlLimpeza = `/api/extrato-cache/${ligaId}/times/${timeId}/limpar`;
+        const resLimpeza = await fetch(urlLimpeza, { method: "DELETE" });
+
+        if (!resLimpeza.ok) {
+            throw new Error(`Falha ao limpar cache: ${resLimpeza.status}`);
+        }
+
+        const resultadoLimpeza = await resLimpeza.json();
+        console.log(`[FLUXO-UI] ✅ Cache limpo:`, resultadoLimpeza);
+
+        // Feedback simples
+        alert(
+            `✅ Cache limpo!\n\nO participante verá dados atualizados na próxima vez que acessar.`,
         );
-        window.calcularEExibirExtrato(timeId);
+
+        // NÃO recarregar - admin continua vendo os dados calculados pelo frontend
+    } catch (error) {
+        console.error(`[FLUXO-UI] ❌ Erro ao limpar cache:`, error);
+        alert(`❌ Erro ao limpar cache:\n${error.message}`);
+    } finally {
+        // UI: Restaurar botão
+        if (btn) {
+            btn.classList.remove("loading");
+            btn.disabled = false;
+            btn.innerHTML = `<span class="material-icons" style="font-size: 14px;">delete_sweep</span> Limpar Cache`;
+        }
     }
 };
 
+// =========================================================================
+// ✅ v4.5: FUNÇÃO GLOBAL PARA LIMPAR CACHE DE TODA A LIGA
+// =========================================================================
+window.limparCacheLiga = async function () {
+    const ligaId = window.obterLigaId?.();
+
+    if (!ligaId) {
+        alert("Liga não identificada. Recarregue a página.");
+        return;
+    }
+
+    // Confirmação com aviso forte
+    const confirmacao = confirm(
+        `⚠️ LIMPAR CACHE DA LIGA\n\nIsso irá apagar o cache de TODOS os participantes.\nTodos terão os dados recalculados no próximo acesso.\n\nEssa ação é recomendada após atualizações nas regras de cálculo.\n\nContinuar?`,
+    );
+
+    if (!confirmacao) return;
+
+    // Buscar botão e colocar em loading
+    const btn = document.querySelector(".btn-limpar-liga");
+    if (btn) {
+        btn.classList.add("loading");
+        btn.disabled = true;
+        btn.innerHTML = `<span class="material-icons" style="font-size: 16px;">sync</span> Limpando...`;
+    }
+
+    try {
+        console.log(`[FLUXO-UI] 🗑️ Limpando cache de toda a liga ${ligaId}...`);
+
+        const urlLimpeza = `/api/extrato-cache/${ligaId}/limpar`;
+        const resLimpeza = await fetch(urlLimpeza, { method: "DELETE" });
+
+        if (!resLimpeza.ok) {
+            throw new Error(`Falha ao limpar cache: ${resLimpeza.status}`);
+        }
+
+        const resultado = await resLimpeza.json();
+        console.log(`[FLUXO-UI] ✅ Cache da liga limpo:`, resultado);
+
+        alert(
+            `✅ Cache da Liga Limpo!\n\n${resultado.deletedCount || 0} registros removidos.\n\nTodos os participantes terão dados recalculados no próximo acesso.`,
+        );
+    } catch (error) {
+        console.error(`[FLUXO-UI] ❌ Erro ao limpar cache da liga:`, error);
+        alert(`❌ Erro ao limpar cache:\n${error.message}`);
+    } finally {
+        // Restaurar botão
+        if (btn) {
+            btn.classList.remove("loading");
+            btn.disabled = false;
+            btn.innerHTML = `<span class="material-icons" style="font-size: 16px;">delete_sweep</span> Limpar Cache`;
+        }
+    }
+};
+
+// =========================================================================
+// ✅ v4.5: FUNÇÃO GLOBAL PARA RECALCULAR CACHE DE TODOS OS PARTICIPANTES
+// =========================================================================
+window.recalcularTodosCache = async function () {
+    const ligaId = window.obterLigaId?.();
+
+    if (!ligaId) {
+        alert("Liga não identificada. Recarregue a página.");
+        return;
+    }
+
+    // Verificar se core está disponível
+    if (!window.fluxoFinanceiroCore) {
+        alert("Módulo de cálculo não carregado. Recarregue a página.");
+        return;
+    }
+
+    const core = window.fluxoFinanceiroCore;
+    const cache = window.fluxoFinanceiroCache;
+
+    // Obter lista de participantes
+    const participantes = cache?.participantes || [];
+    if (participantes.length === 0) {
+        alert("Nenhum participante encontrado. Recarregue a página.");
+        return;
+    }
+
+    const confirmacao = confirm(
+        `🔄 RECALCULAR TODOS OS CACHES\n\nIsso irá recalcular o extrato de ${participantes.length} participantes e salvar no cache.\n\nPode demorar alguns segundos.\n\nContinuar?`,
+    );
+
+    if (!confirmacao) return;
+
+    // Buscar botão e colocar em loading
+    const btn = document.querySelector(".btn-recalcular-todos");
+    if (btn) {
+        btn.classList.add("loading");
+        btn.disabled = true;
+    }
+
+    const rodadaAtual = cache?.ultimaRodadaCompleta || 38;
+    let sucesso = 0;
+    let falha = 0;
+
+    try {
+        console.log(
+            `[FLUXO-UI] 🔄 Recalculando cache de ${participantes.length} participantes...`,
+        );
+
+        for (let i = 0; i < participantes.length; i++) {
+            const p = participantes[i];
+            const timeId = p.time_id || p.id;
+
+            // Atualizar botão com progresso
+            if (btn) {
+                btn.innerHTML = `<span class="material-icons" style="font-size: 16px;">sync</span> ${i + 1}/${participantes.length}`;
+            }
+
+            try {
+                // Calcular extrato usando o core do frontend
+                const extrato = await core.calcularExtratoFinanceiro(
+                    timeId,
+                    rodadaAtual,
+                );
+
+                if (extrato && extrato.rodadas) {
+                    // Enviar para o cache do backend
+                    const response = await fetch(
+                        `/api/extrato-cache/${ligaId}/times/${timeId}/cache`,
+                        {
+                            method: "POST",
+                            headers: { "Content-Type": "application/json" },
+                            body: JSON.stringify({
+                                extrato: extrato,
+                                origem: "admin-recalculo-todos",
+                                versao: "4.5",
+                            }),
+                        },
+                    );
+
+                    if (response.ok) {
+                        sucesso++;
+                        console.log(
+                            `[FLUXO-UI] ✅ ${i + 1}/${participantes.length} - ${p.nome_cartola}`,
+                        );
+                    } else {
+                        falha++;
+                        console.warn(
+                            `[FLUXO-UI] ⚠️ Falha ao salvar cache de ${p.nome_cartola}`,
+                        );
+                    }
+                } else {
+                    falha++;
+                    console.warn(
+                        `[FLUXO-UI] ⚠️ Extrato inválido para ${p.nome_cartola}`,
+                    );
+                }
+            } catch (err) {
+                falha++;
+                console.error(
+                    `[FLUXO-UI] ❌ Erro em ${p.nome_cartola}:`,
+                    err.message,
+                );
+            }
+
+            // Pequena pausa para não sobrecarregar
+            await new Promise((r) => setTimeout(r, 100));
+        }
+
+        console.log(
+            `[FLUXO-UI] ✅ Recálculo concluído: ${sucesso} ok, ${falha} falhas`,
+        );
+        alert(
+            `✅ Recálculo Concluído!\n\n✓ ${sucesso} caches atualizados\n✗ ${falha} falhas\n\nTodos os participantes verão dados atualizados.`,
+        );
+    } catch (error) {
+        console.error(`[FLUXO-UI] ❌ Erro ao recalcular:`, error);
+        alert(`❌ Erro ao recalcular:\n${error.message}`);
+    } finally {
+        // Restaurar botão
+        if (btn) {
+            btn.classList.remove("loading");
+            btn.disabled = false;
+            btn.innerHTML = `<span class="material-icons" style="font-size: 16px;">sync</span> Recalcular Todos`;
+        }
+    }
+};
+
+// =========================================================================
+// FUNÇÃO GLOBAL PARA SALVAR CAMPO EDITÁVEL
+// =========================================================================
+window.salvarCampoEditavel = async function (input) {
+    const campo = input.dataset.campo;
+    const timeId = input.dataset.timeId;
+    const valor = parseFloat(input.value) || 0;
+
+    // Atualizar classe visual
+    input.classList.remove("campo-positivo", "campo-negativo");
+    if (valor > 0) input.classList.add("campo-positivo");
+    else if (valor < 0) input.classList.add("campo-negativo");
+
+    // Salvar no backend
+    await FluxoFinanceiroCampos.salvarCampo(timeId, campo, valor);
+};
+
+// =========================================================================
+// FUNÇÃO GLOBAL PARA MOSTRAR DETALHAMENTO DE GANHOS
+// =========================================================================
 window.mostrarDetalhamentoGanhos = function () {
     if (!window.extratoAtual) return;
 
     const resumo = window.extratoAtual.resumo;
     const campos = window.extratoAtual.camposEditaveis || {};
 
-    // Coletar todos os ganhos
+    // Coletar todos os ganhos (valores positivos)
     const itens = [];
 
     if (resumo.bonus > 0)
@@ -623,6 +887,9 @@ window.mostrarDetalhamentoGanhos = function () {
         });
 
     const total = itens.reduce((acc, item) => acc + item.valor, 0);
+
+    // Remover modal existente
+    document.getElementById("modal-detalhamento")?.remove();
 
     const modal = document.createElement("div");
     modal.id = "modal-detalhamento";
@@ -712,6 +979,9 @@ window.mostrarDetalhamentoPerdas = function () {
         });
 
     const total = itens.reduce((acc, item) => acc + item.valor, 0);
+
+    // Remover modal existente
+    document.getElementById("modal-detalhamento")?.remove();
 
     const modal = document.createElement("div");
     modal.id = "modal-detalhamento";
@@ -820,4 +1090,4 @@ window.abrirAuditoria = async function (timeId) {
     }
 };
 
-console.log("[FLUXO-UI] ✅ v4.3 carregado (Campos Editáveis + Material Icons)");
+console.log("[FLUXO-UI] ✅ v4.5 carregado (Cache em Lote)");

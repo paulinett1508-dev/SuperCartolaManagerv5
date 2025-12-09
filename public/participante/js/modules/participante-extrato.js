@@ -1,7 +1,8 @@
 // =====================================================================
-// PARTICIPANTE-EXTRATO.JS - v2.7 (CORRIGIDO)
+// PARTICIPANTE-EXTRATO.JS - v2.8 (CACHE INTELIGENTE)
 // Destino: /participante/js/modules/participante-extrato.js
 // =====================================================================
+// ✅ v2.8: Detecta cache incompleto e força recálculo automático
 // ✅ v2.7: Correção URL campos editáveis (/times/ ao invés de /campos/)
 // ✅ v2.6: Busca campos editáveis do endpoint específico para UI
 // ✅ v2.5: Passa ligaId no extratoData para UI classificar zonas corretamente
@@ -11,7 +12,7 @@
 // =====================================================================
 
 if (window.Log)
-    Log.info("EXTRATO-PARTICIPANTE", "📄 Módulo v2.7 (URL corrigida)");
+    Log.info("EXTRATO-PARTICIPANTE", "📄 Módulo v2.8 (Cache Inteligente)");
 
 const PARTICIPANTE_IDS = { ligaId: null, timeId: null };
 
@@ -42,6 +43,72 @@ export async function inicializarExtratoParticipante({
     window.participanteData = { ligaId, timeId, participante };
 
     await carregarExtrato(ligaId, timeId);
+}
+
+// =====================================================================
+// ✅ v2.8: DETECTAR CACHE INCOMPLETO
+// =====================================================================
+function detectarCacheIncompleto(rodadas) {
+    if (!Array.isArray(rodadas) || rodadas.length === 0) return false;
+
+    // Contadores para análise
+    let rodadasSemDados = 0;
+    let rodadasApenasBonus = 0;
+    let totalRodadas = rodadas.length;
+
+    rodadas.forEach((r) => {
+        const temBonus = (r.bonusOnus || 0) !== 0;
+        const temPC = (r.pontosCorridos || 0) !== 0;
+        const temMM = (r.mataMata || 0) !== 0;
+        const temTop10 = (r.top10 || 0) !== 0;
+        const saldo = r.saldo || 0;
+
+        // Rodada completamente zerada
+        if (!temBonus && !temPC && !temMM && !temTop10 && saldo === 0) {
+            rodadasSemDados++;
+        }
+        // Rodada só com bonusOnus (cache antigo sem PC/MM/Top10)
+        else if (temBonus && !temPC && !temMM && !temTop10) {
+            rodadasApenasBonus++;
+        }
+    });
+
+    // ✅ Heurísticas de cache incompleto:
+    // 1. Mais de 50% das rodadas zeradas = suspeito
+    // 2. Mais de 80% das rodadas só com bonusOnus = cache antigo
+    // 3. Últimas 5 rodadas todas zeradas = muito suspeito
+
+    const percentualZeradas = (rodadasSemDados / totalRodadas) * 100;
+    const percentualApenasBonus = (rodadasApenasBonus / totalRodadas) * 100;
+
+    // Verificar últimas 5 rodadas
+    const ultimasRodadas = rodadas.slice(-5);
+    const ultimasZeradas = ultimasRodadas.filter((r) => {
+        const saldo =
+            (r.bonusOnus || 0) +
+            (r.pontosCorridos || 0) +
+            (r.mataMata || 0) +
+            (r.top10 || 0);
+        return saldo === 0;
+    }).length;
+
+    const cacheIncompleto =
+        percentualZeradas > 50 ||
+        percentualApenasBonus > 80 ||
+        (ultimasZeradas >= 4 && totalRodadas > 10);
+
+    if (cacheIncompleto && window.Log) {
+        Log.warn("EXTRATO-PARTICIPANTE", "⚠️ Cache incompleto detectado:", {
+            totalRodadas,
+            rodadasSemDados,
+            rodadasApenasBonus,
+            percentualZeradas: percentualZeradas.toFixed(1) + "%",
+            percentualApenasBonus: percentualApenasBonus.toFixed(1) + "%",
+            ultimasZeradas,
+        });
+    }
+
+    return cacheIncompleto;
 }
 
 // =====================================================================
@@ -121,6 +188,8 @@ async function carregarExtrato(ligaId, timeId) {
         }
 
         let extratoData = null;
+        let usouCache = false;
+        let precisaRecalculo = false;
 
         // ✅ PASSO 1: Tentar buscar do cache
         const urlCache = `/api/extrato-cache/${ligaId}/times/${timeId}/cache?rodadaAtual=${rodadaAtual}`;
@@ -144,28 +213,40 @@ async function carregarExtrato(ligaId, timeId) {
                 cacheData.rodadas &&
                 cacheData.rodadas.length > 0
             ) {
-                extratoData = {
-                    ligaId: ligaId,
-                    rodadas: cacheData.rodadas,
-                    resumo: cacheData.resumo || {
-                        saldo: 0,
-                        totalGanhos: 0,
-                        totalPerdas: 0,
-                    },
-                    camposManuais: cacheData.camposManuais || [],
-                    inativo: cacheData.inativo || false,
-                    extratoTravado: cacheData.extratoTravado || false,
-                    rodadaTravada: cacheData.rodadaTravada || null,
-                    rodadaDesistencia: cacheData.rodadaDesistencia || null,
-                };
-                if (window.Log)
-                    Log.info(
-                        "EXTRATO-PARTICIPANTE",
-                        "✅ Cache válido",
-                        extratoData.extratoTravado
-                            ? `| TRAVADO R${extratoData.rodadaTravada}`
-                            : "",
-                    );
+                // ✅ v2.8: Verificar se cache parece completo
+                precisaRecalculo = detectarCacheIncompleto(cacheData.rodadas);
+
+                if (!precisaRecalculo) {
+                    extratoData = {
+                        ligaId: ligaId,
+                        rodadas: cacheData.rodadas,
+                        resumo: cacheData.resumo || {
+                            saldo: 0,
+                            totalGanhos: 0,
+                            totalPerdas: 0,
+                        },
+                        camposManuais: cacheData.camposManuais || [],
+                        inativo: cacheData.inativo || false,
+                        extratoTravado: cacheData.extratoTravado || false,
+                        rodadaTravada: cacheData.rodadaTravada || null,
+                        rodadaDesistencia: cacheData.rodadaDesistencia || null,
+                    };
+                    usouCache = true;
+                    if (window.Log)
+                        Log.info(
+                            "EXTRATO-PARTICIPANTE",
+                            "✅ Cache válido e completo",
+                            extratoData.extratoTravado
+                                ? `| TRAVADO R${extratoData.rodadaTravada}`
+                                : "",
+                        );
+                } else {
+                    if (window.Log)
+                        Log.warn(
+                            "EXTRATO-PARTICIPANTE",
+                            "🔄 Cache incompleto, forçando recálculo...",
+                        );
+                }
             }
         } else {
             if (window.Log)
@@ -177,15 +258,32 @@ async function carregarExtrato(ligaId, timeId) {
                 );
         }
 
-        // ✅ PASSO 2: Se cache não existe ou inválido, chamar endpoint de cálculo
-        if (!extratoData) {
+        // ✅ PASSO 2: Se cache não existe, inválido OU INCOMPLETO, chamar endpoint de cálculo
+        if (!extratoData || precisaRecalculo) {
             if (window.Log)
                 Log.debug(
                     "EXTRATO-PARTICIPANTE",
-                    "📡 Buscando endpoint de cálculo...",
+                    precisaRecalculo
+                        ? "🔄 Recalculando (cache incompleto)..."
+                        : "📡 Buscando endpoint de cálculo...",
                 );
-            const urlCalculo = `/api/fluxo-financeiro/${ligaId}/extrato/${timeId}`;
 
+            // ✅ v2.8: Se cache incompleto, limpar antes de recalcular
+            if (precisaRecalculo) {
+                try {
+                    const urlLimpeza = `/api/extrato-cache/${ligaId}/times/${timeId}/limpar`;
+                    await fetch(urlLimpeza, { method: "DELETE" });
+                    if (window.Log)
+                        Log.debug(
+                            "EXTRATO-PARTICIPANTE",
+                            "🗑️ Cache antigo limpo",
+                        );
+                } catch (e) {
+                    // Ignora erro de limpeza
+                }
+            }
+
+            const urlCalculo = `/api/fluxo-financeiro/${ligaId}/extrato/${timeId}`;
             const resCalculo = await fetch(urlCalculo);
 
             if (resCalculo.ok) {
@@ -234,6 +332,7 @@ async function carregarExtrato(ligaId, timeId) {
                 extratoData.extratoTravado
                     ? `| TRAVADO R${extratoData.rodadaTravada}`
                     : "",
+                usouCache ? "| (cache)" : "| (calculado)",
             );
 
         const { renderizarExtratoParticipante } = await import(
@@ -269,11 +368,14 @@ function transformarDadosController(dados) {
         if (!rodadasMap[numRodada]) {
             rodadasMap[numRodada] = {
                 rodada: numRodada,
+                posicao: t.posicao || null,
                 bonusOnus: 0,
                 pontosCorridos: 0,
                 mataMata: 0,
                 top10: 0,
                 saldo: 0,
+                isMito: false,
+                isMico: false,
             };
         }
 
@@ -289,14 +391,28 @@ function transformarDadosController(dados) {
                 break;
             case "MITO":
                 r.top10 += valor;
+                r.isMito = true;
                 break;
             case "MICO":
                 r.top10 += valor;
+                r.isMico = true;
+                break;
+            case "BONUS":
+            case "BANCO_RODADA":
+                r.bonusOnus += valor;
+                break;
+            case "ONUS":
+                r.bonusOnus += valor;
                 break;
             default:
                 r.bonusOnus += valor;
         }
-        r.saldo += valor;
+        r.saldo = r.bonusOnus + r.pontosCorridos + r.mataMata + r.top10;
+
+        // Atualizar posição se veio na transação
+        if (t.posicao && !r.posicao) {
+            r.posicao = t.posicao;
+        }
     });
 
     // Ordenar por rodada e calcular acumulado
@@ -317,13 +433,22 @@ function transformarDadosController(dados) {
             valor: t.valor,
         }));
 
+    // Calcular resumo
+    let totalGanhos = 0;
+    let totalPerdas = 0;
+    rodadasArray.forEach((r) => {
+        if (r.saldo > 0) totalGanhos += r.saldo;
+        else totalPerdas += r.saldo;
+    });
+
     return {
         ligaId: PARTICIPANTE_IDS.ligaId,
         rodadas: rodadasArray,
         resumo: dados.resumo || {
-            saldo: dados.saldo_atual,
-            totalGanhos: 0,
-            totalPerdas: 0,
+            saldo: dados.saldo_atual || saldoAcumulado,
+            saldo_final: dados.saldo_atual || saldoAcumulado,
+            totalGanhos: totalGanhos,
+            totalPerdas: totalPerdas,
         },
         camposManuais: camposManuais,
         inativo: false,
@@ -579,5 +704,5 @@ export function initExtratoParticipante() {
 if (window.Log)
     Log.info(
         "EXTRATO-PARTICIPANTE",
-        "✅ Módulo v2.7 carregado (URL corrigida)",
+        "✅ Módulo v2.8 carregado (Cache Inteligente)",
     );
