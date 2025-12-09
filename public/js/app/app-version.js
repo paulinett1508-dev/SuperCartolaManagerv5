@@ -1,20 +1,40 @@
 // =====================================================================
-// app-version.js - Sistema de versionamento do App
+// app-version.js - Sistema de versionamento do App (OTIMIZADO)
 // Destino: /public/js/app/app-version.js
 // =====================================================================
 
 const AppVersion = {
     LOCAL_KEY: "app_version",
-    checkInterval: null,
 
-    // ✅ Inicializar verificação de versão
+    // ✅ Inicializar (sem setInterval)
     async init() {
+        // Registrar Service Worker do PWA
+        this.registrarServiceWorker();
+        
+        // Verificar versão apenas na inicialização
         await this.verificarVersao();
-        // Verificar a cada 5 minutos
-        this.checkInterval = setInterval(
-            () => this.verificarVersao(),
-            5 * 60 * 1000,
-        );
+    },
+
+    // ✅ Registrar Service Worker
+    async registrarServiceWorker() {
+        if ('serviceWorker' in navigator) {
+            try {
+                const registration = await navigator.serviceWorker.register('/participante/service-worker.js');
+                if (window.Log) Log.info('APP-VERSION', 'Service Worker registrado');
+                
+                // Detectar atualização do SW
+                registration.addEventListener('updatefound', () => {
+                    const newWorker = registration.installing;
+                    newWorker.addEventListener('statechange', () => {
+                        if (newWorker.state === 'installed' && navigator.serviceWorker.controller) {
+                            if (window.Log) Log.info('APP-VERSION', 'Nova versão do SW disponível');
+                        }
+                    });
+                });
+            } catch (error) {
+                if (window.Log) Log.warn('APP-VERSION', 'Erro ao registrar SW:', error);
+            }
+        }
     },
 
     // ✅ Buscar versão do servidor
@@ -24,7 +44,7 @@ const AppVersion = {
             if (!response.ok) throw new Error("Falha ao buscar versão");
             return await response.json();
         } catch (error) {
-            console.warn("[APP-VERSION] Erro ao buscar versão:", error);
+            if (window.Log) Log.warn('APP-VERSION', 'Erro ao buscar versão:', error);
             return null;
         }
     },
@@ -42,7 +62,7 @@ const AppVersion = {
     // ✅ Verificar se precisa atualizar
     async verificarVersao() {
         const servidor = await this.getVersaoServidor();
-        if (!servidor) return;
+        if (!servidor) return false;
 
         const chaveServidor = `${servidor.version}-${servidor.build}`;
         const local = this.getVersaoLocal();
@@ -51,13 +71,15 @@ const AppVersion = {
         if (!local) {
             this.salvarVersaoLocal(servidor.version, servidor.build);
             this.atualizarBadgeHeader(servidor.version);
-            return;
+            return false;
         }
 
         if (local !== chaveServidor) {
             this.mostrarModalAtualizacao(servidor);
+            return true; // Há atualização
         } else {
             this.atualizarBadgeHeader(servidor.version);
+            return false;
         }
     },
 
@@ -135,4 +157,4 @@ if (document.readyState === "loading") {
     AppVersion.init();
 }
 
-console.log("[APP-VERSION] ✅ Sistema de versionamento carregado");
+if (window.Log) Log.info('APP-VERSION', '✅ Sistema de versionamento carregado');

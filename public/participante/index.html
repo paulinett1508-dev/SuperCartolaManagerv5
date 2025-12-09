@@ -8,12 +8,19 @@
         />
         <meta name="theme-color" content="#0a0a0a" />
         <meta name="mobile-web-app-capable" content="yes" />
+        <meta name="apple-mobile-web-app-capable" content="yes" />
         <meta
             name="apple-mobile-web-app-status-bar-style"
             content="black-translucent"
         />
+        <meta name="apple-mobile-web-app-title" content="Super Cartola" />
+        
         <title>Super Cartola - Participante</title>
         <link rel="icon" href="../favicon.png" />
+        
+        <!-- ✅ PWA Manifest -->
+        <link rel="manifest" href="manifest.json" />
+        <link rel="apple-touch-icon" href="/escudos/default.png" />
 
         <!-- TAILWIND CDN + CONFIG -->
         <script src="https://cdn.tailwindcss.com?plugins=forms,typography"></script>
@@ -61,6 +68,9 @@
 
         <!-- CSS BASE -->
         <link rel="stylesheet" href="css/participante.css" />
+        
+        <!-- ✅ Splash Screen CSS -->
+        <link rel="stylesheet" href="css/splash-screen.css" />
 
         <!-- ✅ Sistema de Versionamento -->
         <link rel="stylesheet" href="/css/app/app-version.css" />
@@ -175,6 +185,69 @@
         </style>
     </head>
     <body class="bg-background-dark font-display text-white">
+        
+        <!-- ✅ SPLASH SCREEN -->
+        <div id="splashScreen" class="splash-screen hidden">
+            <!-- Fundo Tático -->
+            <div class="splash-tactical-bg">
+                <svg viewBox="0 0 320 640" preserveAspectRatio="xMidYMid slice">
+                    <defs>
+                        <pattern id="grid" width="32" height="32" patternUnits="userSpaceOnUse">
+                            <rect width="32" height="32" fill="none" stroke="rgba(255,255,255,0.03)" stroke-width="0.5"/>
+                        </pattern>
+                        <marker id="arrow" markerWidth="8" markerHeight="8" refX="7" refY="3" orient="auto">
+                            <path d="M0,0 L0,6 L8,3 z" fill="#FF4500"/>
+                        </marker>
+                    </defs>
+                    <rect width="100%" height="100%" fill="url(#grid)"/>
+                    <!-- Centro do campo -->
+                    <circle cx="160" cy="320" r="40" fill="none" stroke="rgba(255,255,255,0.08)" stroke-width="1.5"/>
+                    <line x1="0" y1="320" x2="320" y2="320" stroke="rgba(255,255,255,0.08)" stroke-width="1.5"/>
+                    <!-- Jogadas táticas -->
+                    <text x="40" y="480" fill="rgba(255,255,255,0.2)" font-size="16" font-weight="bold" class="splash-tactical-x delay-1">X</text>
+                    <path class="splash-tactical-line delay-1" d="M50 470 Q 90 400 130 360" fill="none" stroke="#FF4500" stroke-width="2" stroke-dasharray="4,4" marker-end="url(#arrow)"/>
+                    <circle cx="160" cy="520" r="6" fill="none" stroke="rgba(255,255,255,0.2)" stroke-width="1.5" class="splash-tactical-x delay-2"/>
+                    <path class="splash-tactical-line delay-2" d="M160 510 L160 420" fill="none" stroke="rgba(255,255,255,0.15)" stroke-width="1.5"/>
+                    <text x="260" y="400" fill="rgba(255,255,255,0.2)" font-size="16" font-weight="bold" class="splash-tactical-x delay-3">X</text>
+                    <path class="splash-tactical-line delay-3" d="M250 390 Q 200 350 170 300" fill="none" stroke="#FF4500" stroke-width="2" stroke-dasharray="4,4" marker-end="url(#arrow)"/>
+                </svg>
+            </div>
+
+            <!-- Brilho -->
+            <div class="splash-glow"></div>
+
+            <!-- Conteúdo -->
+            <div class="splash-content">
+                <div class="splash-greeting">
+                    <h2>Fala aí Parça!</h2>
+                </div>
+
+                <div class="splash-logo-container">
+                    <div class="splash-logo-glow"></div>
+                    <img 
+                        src="/escudos/default.png" 
+                        alt="Super Cartola Logo" 
+                        class="splash-logo-img"
+                    >
+                </div>
+
+                <div class="splash-loader">
+                    <div class="splash-ball-container">
+                        <div class="splash-ball">
+                            <span class="material-icons">sports_soccer</span>
+                        </div>
+                        <div class="splash-ball-shadow"></div>
+                    </div>
+                    <span class="splash-loader-text">Carregando meu time...</span>
+                </div>
+            </div>
+
+            <div class="splash-footer">
+                <p>Ano 11 • Super Cartola</p>
+            </div>
+        </div>
+        <!-- FIM SPLASH SCREEN -->
+
         <div class="participante-container">
             <!-- HEADER STICKY -->
             <header class="participante-header-modern">
@@ -198,99 +271,41 @@
                             <h1 id="nomeTime">Carregando...</h1>
                             <p id="nomeCartoleiro">
                                 <span id="nomeCartolaText">Aguarde...</span>
+                                <span
+                                    id="app-version-badge"
+                                    class="text-[9px] bg-white/10 px-1.5 py-0.5 rounded ml-1"
+                                    >v--</span
+                                >
                             </p>
                         </div>
                     </div>
 
-                    <div class="header-actions-modern">
-                        <div
-                            class="status-wrapper"
-                            style="
-                                display: flex;
-                                align-items: center;
-                                gap: 4px;
-                                margin-right: 8px;
-                            "
-                        >
-                            <div
-                                id="statusIndicador"
-                                style="
-                                    width: 8px;
-                                    height: 8px;
-                                    border-radius: 50%;
-                                    background: #22c55e;
-                                "
-                            ></div>
-                            <span
-                                id="statusTexto"
-                                style="
-                                    font-size: 10px;
-                                    color: #22c55e;
-                                    font-weight: 600;
-                                "
-                                >Online</span
-                            >
-                        </div>
-                        <button
-                            class="btn-icon-modern btn-menu"
-                            id="headerMenuToggle"
-                            title="Menu"
-                        >
-                            <span class="material-symbols-outlined">menu</span>
-                        </button>
-                    </div>
+                    <button
+                        id="headerMenuToggle"
+                        class="header-toggle-btn"
+                        title="Menu"
+                    >
+                        <span class="material-icons">more_vert</span>
+                    </button>
                 </div>
 
-                <!-- LINHA EXPANSÍVEL -->
+                <!-- HEADER SECUNDÁRIO (COLLAPSED) -->
                 <div id="headerSecondary" class="header-secondary">
                     <div class="secondary-content">
                         <select id="seletorLiga" class="liga-selector">
                             <option>Carregando ligas...</option>
                         </select>
-                        <span id="app-version-badge" class="app-version-badge"
-                            >v--</span
-                        >
-                        <button class="btn-logout" id="btnLogout">
-                            🚪 Sair
+                        <button id="btnLogout" class="btn-logout">
+                            <span class="material-icons text-sm mr-1"
+                                >logout</span
+                            >
+                            Sair
                         </button>
                     </div>
                 </div>
             </header>
 
-            <!-- SCRIPT: Toggle Menu + LOGOUT CORRIGIDO -->
             <script>
-                // ✅ Função global logout() - CORRIGIDA
-                async function logout() {
-                    const btnLogout = document.getElementById("btnLogout");
-                    if (btnLogout) {
-                        btnLogout.disabled = true;
-                        btnLogout.textContent = "Saindo...";
-                    }
-
-                    try {
-                        const response = await fetch(
-                            "/api/participante/auth/logout",
-                            {
-                                method: "POST",
-                                credentials: "include",
-                                headers: { "Content-Type": "application/json" },
-                            },
-                        );
-                        if (window.Log) {
-                            Log.debug("LOGOUT", "Resposta:", response.status);
-                        }
-                    } catch (e) {
-                        if (window.Log) {
-                            Log.error("LOGOUT", "Erro:", e);
-                        }
-                    }
-
-                    // Limpar storage e redirecionar
-                    sessionStorage.clear();
-                    localStorage.removeItem("participante_session");
-                    window.location.href = "/participante-login.html";
-                }
-
                 document.addEventListener("DOMContentLoaded", function () {
                     const toggle = document.getElementById("headerMenuToggle");
                     const secondary =
@@ -321,19 +336,22 @@
             </main>
         </div>
 
-        <!-- ✅ LOG MANAGER - Carregado PRIMEIRO (antes de qualquer outro script) -->
+        <!-- ✅ LogManager PRIMEIRO (antes de todos os outros scripts) -->
         <script src="/js/core/log-manager.js"></script>
 
         <!-- Core Systems -->
         <script type="module" src="/js/core/cache-manager.js"></script>
         <script type="module" src="/js/core/api-client.js"></script>
 
+        <!-- ✅ Splash Screen JS -->
+        <script src="js/splash-screen.js"></script>
+
         <!-- Scripts participante -->
         <script src="js/participante-auth.js"></script>
         <script src="js/participante-navigation.js"></script>
         <script src="js/participante-status.js"></script>
 
-        <!-- ✅ Sistema de Versionamento -->
+        <!-- ✅ Sistema de Versionamento (com PWA) -->
         <script src="/js/app/app-version.js"></script>
 
         <!-- BOTTOM NAVIGATION FIXO -->

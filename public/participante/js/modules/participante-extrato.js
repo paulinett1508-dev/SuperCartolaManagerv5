@@ -1,6 +1,8 @@
 // =====================================================================
-// PARTICIPANTE-EXTRATO.JS - v2.6 (CAMPOS EDITÁVEIS)
+// PARTICIPANTE-EXTRATO.JS - v2.7 (CORRIGIDO)
+// Destino: /participante/js/modules/participante-extrato.js
 // =====================================================================
+// ✅ v2.7: Correção URL campos editáveis (/times/ ao invés de /campos/)
 // ✅ v2.6: Busca campos editáveis do endpoint específico para UI
 // ✅ v2.5: Passa ligaId no extratoData para UI classificar zonas corretamente
 // ✅ v2.4: Botão Atualizar limpa cache + chama endpoint de cálculo
@@ -9,7 +11,7 @@
 // =====================================================================
 
 if (window.Log)
-    Log.info("EXTRATO-PARTICIPANTE", "📄 Módulo v2.6 (campos editáveis)");
+    Log.info("EXTRATO-PARTICIPANTE", "📄 Módulo v2.7 (URL corrigida)");
 
 const PARTICIPANTE_IDS = { ligaId: null, timeId: null };
 
@@ -22,7 +24,7 @@ export async function inicializarExtratoParticipante({
     timeId,
 }) {
     if (window.Log)
-        Log.debug("EXTRATO-PARTICIPANTE", "🔄 Inicializando...", {
+        Log.info("EXTRATO-PARTICIPANTE", "🔄 Inicializando...", {
             ligaId,
             timeId,
         });
@@ -43,11 +45,12 @@ export async function inicializarExtratoParticipante({
 }
 
 // =====================================================================
-// ✅ v2.6: BUSCAR CAMPOS EDITÁVEIS
+// ✅ v2.7: BUSCAR CAMPOS EDITÁVEIS (URL CORRIGIDA)
 // =====================================================================
 async function buscarCamposEditaveis(ligaId, timeId) {
     try {
-        const url = `/api/fluxo-financeiro/${ligaId}/campos/${timeId}`;
+        // ✅ CORREÇÃO: /times/ ao invés de /campos/
+        const url = `/api/fluxo-financeiro/${ligaId}/times/${timeId}`;
         if (window.Log)
             Log.debug(
                 "EXTRATO-PARTICIPANTE",
@@ -142,7 +145,7 @@ async function carregarExtrato(ligaId, timeId) {
                 cacheData.rodadas.length > 0
             ) {
                 extratoData = {
-                    ligaId: ligaId, // ✅ Passar ligaId para UI
+                    ligaId: ligaId,
                     rodadas: cacheData.rodadas,
                     resumo: cacheData.resumo || {
                         saldo: 0,
@@ -156,7 +159,7 @@ async function carregarExtrato(ligaId, timeId) {
                     rodadaDesistencia: cacheData.rodadaDesistencia || null,
                 };
                 if (window.Log)
-                    Log.debug(
+                    Log.info(
                         "EXTRATO-PARTICIPANTE",
                         "✅ Cache válido",
                         extratoData.extratoTravado
@@ -210,7 +213,7 @@ async function carregarExtrato(ligaId, timeId) {
             return;
         }
 
-        // ✅ v2.6: Buscar campos editáveis do endpoint específico
+        // ✅ v2.7: Buscar campos editáveis do endpoint específico (URL corrigida)
         const camposEditaveis = await buscarCamposEditaveis(ligaId, timeId);
 
         // Mesclar campos: priorizar campos editáveis se existirem
@@ -221,7 +224,7 @@ async function carregarExtrato(ligaId, timeId) {
 
         // Renderizar
         if (window.Log)
-            Log.debug(
+            Log.info(
                 "EXTRATO-PARTICIPANTE",
                 "🎨 Renderizando",
                 extratoData.rodadas.length,
@@ -315,7 +318,7 @@ function transformarDadosController(dados) {
         }));
 
     return {
-        ligaId: PARTICIPANTE_IDS.ligaId, // ✅ Passar ligaId para UI
+        ligaId: PARTICIPANTE_IDS.ligaId,
         rodadas: rodadasArray,
         resumo: dados.resumo || {
             saldo: dados.saldo_atual,
@@ -488,7 +491,7 @@ window.forcarRefreshExtratoParticipante = async function () {
             dadosCalculados.rodadas.length > 0
         ) {
             extratoData = {
-                ligaId: PARTICIPANTE_IDS.ligaId, // ✅ Passar ligaId para UI
+                ligaId: PARTICIPANTE_IDS.ligaId,
                 rodadas: dadosCalculados.rodadas,
                 resumo: dadosCalculados.resumo || {
                     saldo: 0,
@@ -512,7 +515,7 @@ window.forcarRefreshExtratoParticipante = async function () {
             return;
         }
 
-        // ✅ v2.6: Buscar campos editáveis após recálculo
+        // ✅ v2.7: Buscar campos editáveis após recálculo (URL corrigida)
         const camposEditaveis = await buscarCamposEditaveis(
             PARTICIPANTE_IDS.ligaId,
             PARTICIPANTE_IDS.timeId,
@@ -524,7 +527,7 @@ window.forcarRefreshExtratoParticipante = async function () {
         }
 
         if (window.Log)
-            Log.debug(
+            Log.info(
                 "EXTRATO-PARTICIPANTE",
                 "🎨 Renderizando",
                 extratoData.rodadas.length,
@@ -576,5 +579,5 @@ export function initExtratoParticipante() {
 if (window.Log)
     Log.info(
         "EXTRATO-PARTICIPANTE",
-        "✅ Módulo v2.6 carregado (campos editáveis)",
+        "✅ Módulo v2.7 carregado (URL corrigida)",
     );

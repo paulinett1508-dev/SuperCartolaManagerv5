@@ -1,0 +1,279 @@
+/* =====================================================================
+   splash-screen.css - Estilos da Splash Screen
+   Destino: /participante/css/splash-screen.css
+   ===================================================================== */
+
+/* ========== OVERLAY PRINCIPAL ========== */
+.splash-screen {
+    position: fixed;
+    inset: 0;
+    z-index: 99999;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    background: radial-gradient(circle at center, #1e1e1e 0%, #0a0a0a 100%);
+    overflow: hidden;
+    opacity: 1;
+    visibility: visible;
+    transition: opacity 0.5s ease-out, visibility 0.5s ease-out;
+}
+
+.splash-screen.hidden {
+    opacity: 0;
+    visibility: hidden;
+    pointer-events: none;
+}
+
+/* ========== FUNDO TÁTICO ========== */
+.splash-tactical-bg {
+    position: absolute;
+    inset: 0;
+    opacity: 0.15;
+    pointer-events: none;
+}
+
+.splash-tactical-bg svg {
+    width: 100%;
+    height: 100%;
+}
+
+/* ========== BRILHO LARANJA ========== */
+.splash-glow {
+    position: absolute;
+    width: 140%;
+    height: 50%;
+    top: 25%;
+    left: -20%;
+    background: #FF4500;
+    border-radius: 50%;
+    filter: blur(80px);
+    opacity: 0;
+    transform: scale(0.5);
+    transition: all 2s ease-out;
+}
+
+.splash-screen.animate .splash-glow {
+    opacity: 0.2;
+    transform: scale(1);
+}
+
+/* ========== CONTEÚDO CENTRAL ========== */
+.splash-content {
+    position: relative;
+    z-index: 10;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 0 24px;
+}
+
+/* ========== SAUDAÇÃO ========== */
+.splash-greeting {
+    margin-bottom: 40px;
+    opacity: 0;
+    transform: translateY(-20px);
+    transition: all 0.8s ease-out;
+}
+
+.splash-screen.animate .splash-greeting {
+    opacity: 1;
+    transform: translateY(0);
+    transition-delay: 0.2s;
+}
+
+.splash-greeting h2 {
+    font-size: 12px;
+    font-weight: 700;
+    letter-spacing: 0.3em;
+    color: rgba(255, 255, 255, 0.9);
+    text-transform: uppercase;
+    text-shadow: 0 2px 10px rgba(0, 0, 0, 0.5);
+    margin: 0;
+}
+
+/* ========== LOGO ========== */
+.splash-logo-container {
+    position: relative;
+    opacity: 0;
+    transform: translateY(30px) scale(0.8);
+    transition: all 1s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+.splash-screen.animate .splash-logo-container {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+    transition-delay: 0.3s;
+}
+
+.splash-logo-glow {
+    position: absolute;
+    inset: -20px;
+    background: #FF4500;
+    border-radius: 50%;
+    filter: blur(40px);
+    opacity: 0.25;
+    animation: splash-pulse-glow 3s ease-in-out infinite;
+}
+
+@keyframes splash-pulse-glow {
+    0%, 100% { opacity: 0.2; transform: scale(1); }
+    50% { opacity: 0.35; transform: scale(1.1); }
+}
+
+.splash-logo-img {
+    position: relative;
+    z-index: 1;
+    width: 180px;
+    height: 180px;
+    object-fit: contain;
+    filter: drop-shadow(0 10px 30px rgba(0, 0, 0, 0.5));
+}
+
+/* ========== LOADER ========== */
+.splash-loader {
+    margin-top: 50px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 8px;
+    opacity: 0;
+    transition: opacity 0.8s ease-out;
+}
+
+.splash-screen.animate .splash-loader {
+    opacity: 1;
+    transition-delay: 0.7s;
+}
+
+/* Bola quicando */
+.splash-ball-container {
+    position: relative;
+    width: 40px;
+    height: 40px;
+    display: flex;
+    justify-content: center;
+    align-items: flex-end;
+    padding-bottom: 4px;
+}
+
+.splash-ball {
+    width: 28px;
+    height: 28px;
+    animation: splash-bounce-ball 0.6s infinite;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.splash-ball .material-icons {
+    font-size: 28px;
+    color: white;
+    animation: splash-spin-ball 1.2s linear infinite;
+}
+
+.splash-ball-shadow {
+    position: absolute;
+    bottom: 4px;
+    width: 20px;
+    height: 6px;
+    background: rgba(0, 0, 0, 0.5);
+    border-radius: 50%;
+    filter: blur(2px);
+    animation: splash-shadow-ball 0.6s infinite;
+}
+
+@keyframes splash-bounce-ball {
+    0%, 100% { 
+        transform: translateY(0); 
+        animation-timing-function: cubic-bezier(0, 0, 0.2, 1); 
+    }
+    50% { 
+        transform: translateY(-14px); 
+        animation-timing-function: cubic-bezier(0.8, 0, 1, 1); 
+    }
+}
+
+@keyframes splash-spin-ball {
+    from { transform: rotate(0deg); }
+    to { transform: rotate(360deg); }
+}
+
+@keyframes splash-shadow-ball {
+    0%, 100% { transform: scale(1); opacity: 0.5; }
+    50% { transform: scale(0.6); opacity: 0.2; }
+}
+
+.splash-loader-text {
+    font-size: 10px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.15em;
+    color: #666;
+    animation: splash-pulse-text 1.5s ease-in-out infinite;
+}
+
+@keyframes splash-pulse-text {
+    0%, 100% { opacity: 0.5; }
+    50% { opacity: 1; }
+}
+
+/* ========== FOOTER ========== */
+.splash-footer {
+    position: absolute;
+    bottom: 32px;
+    opacity: 0;
+    transition: opacity 0.8s ease-out;
+}
+
+.splash-screen.animate .splash-footer {
+    opacity: 0.4;
+    transition-delay: 1s;
+}
+
+.splash-footer p {
+    font-size: 9px;
+    color: #666;
+    text-transform: uppercase;
+    letter-spacing: 0.2em;
+    font-weight: 600;
+    border-top: 1px solid #333;
+    padding-top: 8px;
+    margin: 0;
+}
+
+/* ========== TÁTICAS ANIMADAS ========== */
+.splash-tactical-line {
+    stroke-dasharray: 200;
+    stroke-dashoffset: 200;
+    transition: stroke-dashoffset 2s ease-out;
+}
+
+.splash-screen.animate .splash-tactical-line {
+    stroke-dashoffset: 0;
+}
+
+.splash-tactical-line.delay-1 { transition-delay: 0.5s; }
+.splash-tactical-line.delay-2 { transition-delay: 0.8s; }
+.splash-tactical-line.delay-3 { transition-delay: 1.2s; }
+
+/* ========== TÁTICAS - ELEMENTOS X ========== */
+.splash-tactical-x {
+    opacity: 0;
+    transition: opacity 0.7s ease-out;
+}
+
+.splash-screen.animate .splash-tactical-x.delay-1 {
+    opacity: 1;
+    transition-delay: 0.3s;
+}
+
+.splash-screen.animate .splash-tactical-x.delay-2 {
+    opacity: 1;
+    transition-delay: 0.5s;
+}
+
+.splash-screen.animate .splash-tactical-x.delay-3 {
+    opacity: 1;
+    transition-delay: 0.7s;
+}
