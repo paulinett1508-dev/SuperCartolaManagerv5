@@ -7,7 +7,7 @@
 // ✅ v3.4: Card Desempenho ao final
 // =====================================================================
 
-console.log("[PARTICIPANTE-ARTILHEIRO] 🔄 Carregando módulo v3.5...");
+if (window.Log) Log.info("[PARTICIPANTE-ARTILHEIRO] 🔄 Carregando módulo v3.5...");
 
 const RODADA_FINAL = 38;
 
@@ -26,14 +26,14 @@ export async function inicializarArtilheiroParticipante({
     ligaId,
     timeId,
 }) {
-    console.log("[PARTICIPANTE-ARTILHEIRO] 🚀 Inicializando...", {
+    if (window.Log) Log.info("[PARTICIPANTE-ARTILHEIRO] 🚀 Inicializando...", {
         ligaId,
         timeId,
     });
 
     const container = document.getElementById("artilheiro-content");
     if (!container) {
-        console.error("[PARTICIPANTE-ARTILHEIRO] ❌ Container não encontrado");
+        if (window.Log) Log.error("[PARTICIPANTE-ARTILHEIRO] ❌ Container não encontrado");
         return;
     }
 
@@ -63,14 +63,14 @@ export async function inicializarArtilheiroParticipante({
         if (!response.ok) throw new Error("Dados não disponíveis");
 
         const responseData = await response.json();
-        console.log(
+        if (window.Log) Log.info(
             "[PARTICIPANTE-ARTILHEIRO] 📦 Dados recebidos:",
             responseData,
         );
 
         await renderizarArtilheiro(container, responseData, timeId);
     } catch (error) {
-        console.error("[PARTICIPANTE-ARTILHEIRO] ❌ Erro:", error);
+        if (window.Log) Log.error("[PARTICIPANTE-ARTILHEIRO] ❌ Erro:", error);
         container.innerHTML = `
             <div style="text-align: center; padding: 60px 20px; background: linear-gradient(135deg, rgba(34, 197, 94, 0.05) 0%, rgba(34, 197, 94, 0.02) 100%); border-radius: 12px; border: 2px dashed rgba(34, 197, 94, 0.3);">
                 <div style="font-size: 64px; margin-bottom: 16px;">⚽</div>
@@ -398,7 +398,7 @@ async function renderizarArtilheiro(container, response, meuTimeId) {
             estadoArtilheiro.mercadoAberto = mercadoAberto;
             estadoArtilheiro.temporadaEncerrada = temporadaEncerrada;
 
-            console.log("[PARTICIPANTE-ARTILHEIRO] 📊 Status:", {
+            if (window.Log) Log.info("[PARTICIPANTE-ARTILHEIRO] 📊 Status:", {
                 rodadaAtual,
                 mercadoAberto,
                 temporadaEncerrada,
@@ -406,13 +406,13 @@ async function renderizarArtilheiro(container, response, meuTimeId) {
             });
         } else {
             rodadaAtual = rodadaFim;
-            console.warn(
+            if (window.Log) Log.warn(
                 "[PARTICIPANTE-ARTILHEIRO] ⚠️ API mercado indisponível, usando rodadaFim:",
                 rodadaFim,
             );
         }
     } catch (e) {
-        console.warn(
+        if (window.Log) Log.warn(
             "[PARTICIPANTE-ARTILHEIRO] ⚠️ Erro ao obter mercado:",
             e.message,
         );
@@ -748,4 +748,4 @@ async function renderizarArtilheiro(container, response, meuTimeId) {
     }, 100);
 }
 
-console.log("[PARTICIPANTE-ARTILHEIRO] ✅ Módulo v3.5 carregado (Campeão)");
+if (window.Log) Log.info("[PARTICIPANTE-ARTILHEIRO] ✅ Módulo v3.5 carregado (Campeão)");

@@ -4,7 +4,7 @@
 // ✅ v3.5: Card "Seu Desempenho" com estatísticas do participante
 // =====================================================================
 
-console.log("[MELHOR-MES-PARTICIPANTE] 🏆 Módulo v3.5 carregando...");
+if (window.Log) Log.info("[MELHOR-MES-PARTICIPANTE] 🏆 Módulo v3.5 carregando...");
 
 let ligaIdAtual = null;
 let timeIdAtual = null;
@@ -30,7 +30,7 @@ export async function inicializarMelhorMesParticipante({
     ligaId,
     timeId,
 }) {
-    console.log("[MELHOR-MES-PARTICIPANTE] 🚀 Inicializando v3.5...", {
+    if (window.Log) Log.info("[MELHOR-MES-PARTICIPANTE] 🚀 Inicializando v3.5...", {
         ligaId,
         timeId,
     });
@@ -62,7 +62,7 @@ async function carregarMelhorMes(ligaId, timeId) {
         }
 
         const dados = await response.json();
-        console.log("[MELHOR-MES-PARTICIPANTE] ✅ Dados recebidos:", dados);
+        if (window.Log) Log.info("[MELHOR-MES-PARTICIPANTE] ✅ Dados recebidos:", dados);
 
         mostrarLoading(false);
 
@@ -76,7 +76,7 @@ async function carregarMelhorMes(ligaId, timeId) {
         // ✅ v3.4: Scroll para última edição com dados após renderização
         setTimeout(() => scrollParaUltimaEdicao(dados.edicoes), 150);
     } catch (error) {
-        console.error("[MELHOR-MES-PARTICIPANTE] ❌ Erro:", error);
+        if (window.Log) Log.error("[MELHOR-MES-PARTICIPANTE] ❌ Erro:", error);
         mostrarLoading(false);
         mostrarErro(error.message);
     }
@@ -97,7 +97,7 @@ function scrollParaUltimaEdicao(edicoes) {
     }
 
     if (ultimaEdicaoIndex === -1) {
-        console.log(
+        if (window.Log) Log.info(
             "[MELHOR-MES-PARTICIPANTE] ⚠️ Nenhuma edição com dados para scroll",
         );
         return;
@@ -125,7 +125,7 @@ function scrollParaUltimaEdicao(edicoes) {
             targetCard.style.boxShadow = "";
         }, 1500);
 
-        console.log(
+        if (window.Log) Log.info(
             `[MELHOR-MES-PARTICIPANTE] ✅ Scroll para Edição ${ultimaEdicaoIndex + 1}`,
         );
     }
@@ -179,7 +179,7 @@ function renderizarMelhorMes(edicoes, meuTimeId) {
     // ✅ v3.5: Renderizar card "Seu Desempenho" ao final
     renderizarCardDesempenho(edicoes, meuTimeIdNum, container);
 
-    console.log("[MELHOR-MES-PARTICIPANTE] ✅ Cards renderizados");
+    if (window.Log) Log.info("[MELHOR-MES-PARTICIPANTE] ✅ Cards renderizados");
 }
 
 // =====================================================================
@@ -643,6 +643,6 @@ function mostrarErro(mensagem) {
     }
 }
 
-console.log(
+if (window.Log) Log.info(
     "[MELHOR-MES-PARTICIPANTE] ✅ Módulo v3.5 carregado (card desempenho + scroll automático)",
 );

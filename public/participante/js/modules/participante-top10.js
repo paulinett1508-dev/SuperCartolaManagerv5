@@ -2,7 +2,7 @@
 // PARTICIPANTE-TOP10.JS - v4.4 (Card Resumo ao final)
 // =====================================================================
 
-console.log("[PARTICIPANTE-TOP10] 🏆 Carregando módulo v4.4...");
+if (window.Log) Log.info("[PARTICIPANTE-TOP10] 🏆 Carregando módulo v4.4...");
 
 // =====================================================================
 // CONFIGURAÇÃO DE VALORES BÔNUS/ÔNUS
@@ -49,7 +49,7 @@ export async function inicializarTop10Participante({
     ligaId,
     timeId,
 }) {
-    console.log("[PARTICIPANTE-TOP10] 🚀 Inicializando v4.3...", {
+    if (window.Log) Log.info("[PARTICIPANTE-TOP10] 🚀 Inicializando v4.3...", {
         ligaId,
         timeId,
     });
@@ -66,13 +66,13 @@ export async function inicializarTop10Participante({
                 rodadaAtual = status.rodada_atual || 1;
             }
         } catch (e) {
-            console.warn(
+            if (window.Log) Log.warn(
                 "[PARTICIPANTE-TOP10] ⚠️ Falha ao buscar rodada atual",
             );
         }
 
         const cacheUrl = `/api/top10/cache/${ligaId}?rodada=${rodadaAtual}`;
-        console.log("[PARTICIPANTE-TOP10] 📡 Buscando cache:", cacheUrl);
+        if (window.Log) Log.info("[PARTICIPANTE-TOP10] 📡 Buscando cache:", cacheUrl);
 
         const response = await fetch(cacheUrl);
         let mitos = [];
@@ -83,14 +83,14 @@ export async function inicializarTop10Participante({
             if (data.cached && data.mitos && data.micos) {
                 mitos = data.mitos;
                 micos = data.micos;
-                console.log(
+                if (window.Log) Log.info(
                     `[PARTICIPANTE-TOP10] 💾 Cache encontrado: ${mitos.length} mitos, ${micos.length} micos`,
                 );
             }
         }
 
         if (mitos.length === 0 || micos.length === 0) {
-            console.log("[PARTICIPANTE-TOP10] 📊 Calculando MITOS/MICOS...");
+            if (window.Log) Log.info("[PARTICIPANTE-TOP10] 📊 Calculando MITOS/MICOS...");
             const resultado = await calcularMitosMicos(ligaId, rodadaAtual);
             mitos = resultado.mitos;
             micos = resultado.micos;
@@ -113,9 +113,9 @@ export async function inicializarTop10Participante({
         // Renderizar card de resumo
         renderizarCardResumo(mitos, micos, timeId, valoresBonusOnus);
 
-        console.log("[PARTICIPANTE-TOP10] ✅ TOP 10 carregado com sucesso");
+        if (window.Log) Log.info("[PARTICIPANTE-TOP10] ✅ TOP 10 carregado com sucesso");
     } catch (error) {
-        console.error("[PARTICIPANTE-TOP10] ❌ Erro:", error);
+        if (window.Log) Log.error("[PARTICIPANTE-TOP10] ❌ Erro:", error);
         mostrarLoading(false);
         mostrarEstadoVazio(true);
     }
@@ -181,7 +181,7 @@ async function calcularMitosMicos(ligaId, rodadaAtual) {
         mitos.sort((a, b) => b.pontos - a.pontos);
         micos.sort((a, b) => a.pontos - b.pontos);
     } catch (error) {
-        console.error("[PARTICIPANTE-TOP10] Erro ao calcular:", error);
+        if (window.Log) Log.error("[PARTICIPANTE-TOP10] Erro ao calcular:", error);
     }
 
     return { mitos: mitos.slice(0, 10), micos: micos.slice(0, 10) };
@@ -423,7 +423,7 @@ function renderizarCardResumo(mitos, micos, meuTimeId, valoresBonusOnus) {
         card.style.display = "block";
     }
 
-    console.log(
+    if (window.Log) Log.info(
         `[PARTICIPANTE-TOP10] 📊 Resumo: ${countMitos} MITOS (+R$${totalBonus}), ${countMicos} MICOS (-R$${totalOnus}), Saldo: R$${saldo}`,
     );
 }
@@ -474,6 +474,6 @@ function mostrarEstadoVazio(show) {
     if (grid) grid.style.display = show ? "none" : "flex";
 }
 
-console.log(
+if (window.Log) Log.info(
     "[PARTICIPANTE-TOP10] ✅ Módulo v4.3 carregado (Material Icons + Card Resumo)",
 );

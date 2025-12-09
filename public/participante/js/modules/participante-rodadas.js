@@ -4,7 +4,7 @@
 // ✅ v3.7: Card "Seu Desempenho" movido para o final da página
 // =====================================================================
 
-console.log("[PARTICIPANTE-RODADAS] 📄 Carregando módulo v3.7...");
+if (window.Log) Log.info("[PARTICIPANTE-RODADAS] 📄 Carregando módulo v3.7...");
 
 // Importar módulo de parciais
 import * as ParciaisModule from "./participante-rodada-parcial.js";
@@ -81,7 +81,7 @@ export async function inicializarRodadasParticipante({
     ligaId: ligaIdParam,
     timeId,
 }) {
-    console.log("[PARTICIPANTE-RODADAS] 🚀 Inicializando v3.6...", {
+    if (window.Log) Log.info("[PARTICIPANTE-RODADAS] 🚀 Inicializando v3.6...", {
         ligaIdParam,
         timeId,
     });
@@ -97,11 +97,11 @@ export async function inicializarRodadasParticipante({
 
         // 2. Inicializar módulo de parciais
         parciaisInfo = await ParciaisModule.inicializarParciais(ligaId, timeId);
-        console.log("[PARTICIPANTE-RODADAS] 📊 Parciais:", parciaisInfo);
+        if (window.Log) Log.info("[PARTICIPANTE-RODADAS] 📊 Parciais:", parciaisInfo);
 
         // 3. Buscar status de ativo/inativo dos times
         const timesStatus = await buscarTimesStatus(ligaId);
-        console.log(
+        if (window.Log) Log.info(
             `[PARTICIPANTE-RODADAS] 👥 ${Object.keys(timesStatus).length} times com status`,
         );
 
@@ -114,7 +114,7 @@ export async function inicializarRodadasParticipante({
         }
 
         const rodadas = await response.json();
-        console.log(
+        if (window.Log) Log.info(
             `[PARTICIPANTE-RODADAS] 📊 ${rodadas.length} registros recebidos`,
         );
 
@@ -137,7 +137,7 @@ export async function inicializarRodadasParticipante({
             destacarRodadaEmAndamento(parciaisInfo.rodada);
         }
     } catch (error) {
-        console.error("[PARTICIPANTE-RODADAS] ❌ Erro:", error);
+        if (window.Log) Log.error("[PARTICIPANTE-RODADAS] ❌ Erro:", error);
         mostrarLoading(false);
         mostrarErro(error.message);
     }
@@ -170,7 +170,7 @@ async function buscarTimesStatus(ligaId) {
 
         return statusMap;
     } catch (error) {
-        console.warn(
+        if (window.Log) Log.warn(
             "[PARTICIPANTE-RODADAS] ⚠️ Erro ao buscar status dos times:",
             error,
         );
@@ -187,12 +187,12 @@ async function buscarRodadaAtual() {
         if (response.ok) {
             const data = await response.json();
             rodadaAtualCartola = data.rodada_atual || 38;
-            console.log(
+            if (window.Log) Log.info(
                 `[PARTICIPANTE-RODADAS] 📅 Rodada atual: ${rodadaAtualCartola}`,
             );
         }
     } catch (e) {
-        console.warn(
+        if (window.Log) Log.warn(
             "[PARTICIPANTE-RODADAS] ⚠️ Não foi possível obter rodada atual",
         );
     }
@@ -260,7 +260,7 @@ function agruparRodadasPorNumero(rodadas, timesStatus = {}) {
 
             if (meuIndex >= 0) {
                 rodadaData.posicaoFinanceira = meuIndex + 1;
-                console.log(
+                if (window.Log) Log.info(
                     `[PARTICIPANTE-RODADAS] 📊 Rodada ${rodadaNum}: posição calculada = ${meuIndex + 1}º (${participantesAtivos.length} ativos)`,
                 );
             }
@@ -276,7 +276,7 @@ function agruparRodadasPorNumero(rodadas, timesStatus = {}) {
 function renderizarGridCompacto(rodadas) {
     const container = document.getElementById("rodadasCardsGrid");
     if (!container) {
-        console.error("[PARTICIPANTE-RODADAS] ❌ Container não encontrado");
+        if (window.Log) Log.error("[PARTICIPANTE-RODADAS] ❌ Container não encontrado");
         return;
     }
 
@@ -462,7 +462,7 @@ function renderizarCardDesempenho(rodadas) {
     // Mostrar card
     card.style.display = "block";
 
-    console.log(
+    if (window.Log) Log.info(
         `[PARTICIPANTE-RODADAS] 📊 Desempenho: ${totalMitos} MITOS, ${totalMicos} MICOS em ${rodadasJogadas} rodadas`,
     );
 }
@@ -500,7 +500,7 @@ function destacarRodadaEmAndamento(rodada) {
 // SELEÇÃO DE RODADA
 // =====================================================================
 async function selecionarRodada(numeroRodada, isParcial = false) {
-    console.log(
+    if (window.Log) Log.info(
         `[PARTICIPANTE-RODADAS] 📌 Selecionando rodada ${numeroRodada} (parcial: ${isParcial})`,
     );
 
@@ -635,7 +635,7 @@ async function carregarERenderizarParciais(numeroRodada) {
                 <span style="color: #6b7280; font-size: 11px;"> • Atualizado às ${horaAtualizacao}</span>`;
         }
     } catch (error) {
-        console.error(
+        if (window.Log) Log.error(
             "[PARTICIPANTE-RODADAS] Erro ao carregar parciais:",
             error,
         );
@@ -965,6 +965,6 @@ function mostrarErro(mensagem) {
     if (grid) grid.style.display = "block";
 }
 
-console.log(
+if (window.Log) Log.info(
     "[PARTICIPANTE-RODADAS] ✅ Módulo v3.7 carregado (card desempenho ao final)",
 );

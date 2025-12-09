@@ -22,11 +22,13 @@ export class ApiClient {
         try {
             const response = await fetch(url, config);
 
-            // Log para debug - remover em produção
-            console.log(
-                `API ${config.method || "GET"} ${endpoint}:`,
-                response.status,
-            );
+            // Log para debug
+            if (window.Log)
+                Log.debug(
+                    "API-CLIENT",
+                    `${config.method || "GET"} ${endpoint}:`,
+                    response.status,
+                );
 
             if (!response.ok) {
                 const errorData = await this._extractError(response);
@@ -43,7 +45,7 @@ export class ApiClient {
                 throw error;
             }
 
-            console.error(`API Error ${endpoint}:`, error);
+            if (window.Log) Log.error("API-CLIENT", `Erro ${endpoint}:`, error);
             throw new ApiError("Network error", 0, {
                 originalError: error.message,
             });

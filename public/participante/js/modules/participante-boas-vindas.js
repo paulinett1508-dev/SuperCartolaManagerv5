@@ -2,7 +2,8 @@
 // PARTICIPANTE-BOAS-VINDAS.JS - v7.2 (TAILWIND)
 // =====================================================================
 
-console.log("[PARTICIPANTE-BOAS-VINDAS] 🔄 Carregando módulo v7.2...");
+if (window.Log)
+    Log.info("PARTICIPANTE-BOAS-VINDAS", "🔄 Carregando módulo v7.2...");
 
 // =====================================================================
 // FUNÇÃO PRINCIPAL
@@ -26,19 +27,22 @@ export async function inicializarBoasVindasParticipante(params) {
     ligaId = typeof ligaId === "string" ? ligaId : String(ligaId || "");
     timeId = typeof timeId === "string" ? timeId : String(timeId || "");
 
-    console.log("[PARTICIPANTE-BOAS-VINDAS] 🚀 Inicializando...", {
-        ligaId,
-        timeId,
-        participante,
-    });
+    if (window.Log)
+        Log.debug("PARTICIPANTE-BOAS-VINDAS", "🚀 Inicializando...", {
+            ligaId,
+            timeId,
+            participante,
+        });
 
     if (!ligaId || ligaId === "[object Object]") {
-        console.error("[PARTICIPANTE-BOAS-VINDAS] ❌ Liga ID inválido");
+        if (window.Log)
+            Log.error("PARTICIPANTE-BOAS-VINDAS", "❌ Liga ID inválido");
         return;
     }
 
     if (!timeId || timeId === "undefined") {
-        console.error("[PARTICIPANTE-BOAS-VINDAS] ❌ Time ID inválido");
+        if (window.Log)
+            Log.error("PARTICIPANTE-BOAS-VINDAS", "❌ Time ID inválido");
         return;
     }
 
@@ -121,11 +125,12 @@ async function carregarDadosERenderizar(ligaId, timeId, participante) {
             participante?.nome_cartola || meuTime?.nome_cartola || "Cartoleiro";
         const nomeLiga = liga?.nome || "Liga";
 
-        console.log("[PARTICIPANTE-BOAS-VINDAS] ✅ Dados finais:", {
-            nomeTime,
-            nomeCartola,
-            pontosTotais: pontosTotal,
-        });
+        if (window.Log)
+            Log.info("PARTICIPANTE-BOAS-VINDAS", "✅ Dados finais:", {
+                nomeTime,
+                nomeCartola,
+                pontosTotais: pontosTotal,
+            });
 
         renderizarBoasVindas(container, {
             posicao,
@@ -141,7 +146,8 @@ async function carregarDadosERenderizar(ligaId, timeId, participante) {
             minhasRodadas: rodadasOrdenadas,
         });
     } catch (error) {
-        console.error("[PARTICIPANTE-BOAS-VINDAS] ❌ Erro:", error);
+        if (window.Log)
+            Log.error("PARTICIPANTE-BOAS-VINDAS", "❌ Erro:", error);
         container.innerHTML = `
             <div class="text-center py-16 px-5">
                 <span class="material-icons text-5xl text-red-500">error</span>
@@ -193,10 +199,10 @@ function getZonaInfo(posicao, total) {
         };
     if (percentual <= 66)
         return {
-            texto: "Zona Intermediária",
+            texto: "Zona Neutra",
             corTexto: "text-yellow-400",
             corBg: "bg-yellow-400/10",
-            icon: "shield",
+            icon: "remove",
         };
     return {
         texto: "Zona de Risco",
@@ -393,4 +399,5 @@ function renderizarBoasVindas(container, data) {
     `;
 }
 
-console.log("[PARTICIPANTE-BOAS-VINDAS] ✅ Módulo v7.2 carregado");
+if (window.Log)
+    Log.info("PARTICIPANTE-BOAS-VINDAS", "✅ Módulo v7.2 carregado");

@@ -7,7 +7,7 @@
 // ✅ v3.7: Card Desempenho ao final
 // =====================================================================
 
-console.log("[PARTICIPANTE-LUVA-OURO] 🔄 Carregando módulo v3.8...");
+if (window.Log) Log.info("[PARTICIPANTE-LUVA-OURO] 🔄 Carregando módulo v3.8...");
 
 const RODADA_FINAL = 38;
 
@@ -26,14 +26,14 @@ export async function inicializarLuvaOuroParticipante({
     ligaId,
     timeId,
 }) {
-    console.log("[PARTICIPANTE-LUVA-OURO] 🚀 Inicializando...", {
+    if (window.Log) Log.info("[PARTICIPANTE-LUVA-OURO] 🚀 Inicializando...", {
         ligaId,
         timeId,
     });
 
     const container = document.getElementById("luvaOuroContainer");
     if (!container) {
-        console.error("[PARTICIPANTE-LUVA-OURO] ❌ Container não encontrado");
+        if (window.Log) Log.error("[PARTICIPANTE-LUVA-OURO] ❌ Container não encontrado");
         return;
     }
 
@@ -61,14 +61,14 @@ export async function inicializarLuvaOuroParticipante({
         if (!response.ok) throw new Error("Dados não disponíveis");
 
         const responseData = await response.json();
-        console.log(
+        if (window.Log) Log.info(
             "[PARTICIPANTE-LUVA-OURO] 📦 Dados recebidos:",
             responseData,
         );
 
         await renderizarLuvaOuro(container, responseData, timeId);
     } catch (error) {
-        console.error("[PARTICIPANTE-LUVA-OURO] ❌ Erro:", error);
+        if (window.Log) Log.error("[PARTICIPANTE-LUVA-OURO] ❌ Erro:", error);
         container.innerHTML = `
             <div style="text-align: center; padding: 60px 20px; background: linear-gradient(135deg, rgba(255, 215, 0, 0.05) 0%, rgba(255, 215, 0, 0.02) 100%); border-radius: 12px; border: 2px dashed rgba(255, 215, 0, 0.3);">
                 <div style="font-size: 64px; margin-bottom: 16px;">🧤</div>
@@ -371,7 +371,7 @@ async function renderizarLuvaOuro(container, response, meuTimeId) {
             estadoLuva.mercadoAberto = mercadoAberto;
             estadoLuva.temporadaEncerrada = temporadaEncerrada;
 
-            console.log("[PARTICIPANTE-LUVA-OURO] 📊 Status:", {
+            if (window.Log) Log.info("[PARTICIPANTE-LUVA-OURO] 📊 Status:", {
                 rodadaAtual,
                 mercadoAberto,
                 temporadaEncerrada,
@@ -379,13 +379,13 @@ async function renderizarLuvaOuro(container, response, meuTimeId) {
             });
         } else {
             rodadaAtual = rodadaFim;
-            console.warn(
+            if (window.Log) Log.warn(
                 "[PARTICIPANTE-LUVA-OURO] ⚠️ API mercado indisponível, usando rodadaFim:",
                 rodadaFim,
             );
         }
     } catch (e) {
-        console.warn(
+        if (window.Log) Log.warn(
             "[PARTICIPANTE-LUVA-OURO] ⚠️ Erro ao obter mercado:",
             e.message,
         );
@@ -686,4 +686,4 @@ async function renderizarLuvaOuro(container, response, meuTimeId) {
     }, 100);
 }
 
-console.log("[PARTICIPANTE-LUVA-OURO] ✅ Módulo v3.8 carregado (Campeão)");
+if (window.Log) Log.info("[PARTICIPANTE-LUVA-OURO] ✅ Módulo v3.8 carregado (Campeão)");

@@ -276,9 +276,13 @@
                                 headers: { "Content-Type": "application/json" },
                             },
                         );
-                        console.log("[LOGOUT] Resposta:", response.status);
+                        if (window.Log) {
+                            Log.debug("LOGOUT", "Resposta:", response.status);
+                        }
                     } catch (e) {
-                        console.error("[LOGOUT] Erro:", e);
+                        if (window.Log) {
+                            Log.error("LOGOUT", "Erro:", e);
+                        }
                     }
 
                     // Limpar storage e redirecionar
@@ -316,6 +320,9 @@
                 <!-- Conteúdo carregado dinamicamente -->
             </main>
         </div>
+
+        <!-- ✅ LOG MANAGER - Carregado PRIMEIRO (antes de qualquer outro script) -->
+        <script src="/js/core/log-manager.js"></script>
 
         <!-- Core Systems -->
         <script type="module" src="/js/core/cache-manager.js"></script>

@@ -34,13 +34,13 @@ let estado = {
 // INICIALIZAÇÃO
 // =====================================================================
 export async function inicializarMataMata(params) {
-  console.log("[MATA-MATA] 🚀 Inicializando v6.6...", params);
+  if (window.Log) Log.info("[MATA-MATA] 🚀 Inicializando v6.6...", params);
 
   estado.ligaId = params?.ligaId || localStorage.getItem("ligaId");
   estado.timeId = params?.timeId || localStorage.getItem("timeId");
 
   if (!estado.ligaId) {
-    console.error("[MATA-MATA] ❌ Liga ID não encontrado");
+    if (window.Log) Log.error("[MATA-MATA] ❌ Liga ID não encontrado");
     renderErro("Sessão inválida. Faça login novamente.");
     return;
   }
@@ -50,7 +50,7 @@ export async function inicializarMataMata(params) {
     await carregarEdicoesDisponiveis();
     setupEventListeners();
   } catch (error) {
-    console.error("[MATA-MATA] Erro:", error);
+    if (window.Log) Log.error("[MATA-MATA] Erro:", error);
     renderErro("Erro ao carregar mata-mata");
   }
 }
@@ -83,7 +83,7 @@ async function carregarEdicoesDisponiveis() {
     const data = await res.json();
     estado.edicoesDisponiveis = data.edicoes || [];
 
-    console.log(
+    if (window.Log) Log.info(
       `[MATA-MATA] ✅ ${estado.edicoesDisponiveis.length} edições encontradas`,
     );
 
@@ -102,7 +102,7 @@ async function carregarEdicoesDisponiveis() {
       await carregarFase(estado.edicaoSelecionada, "primeira");
     }
   } catch (error) {
-    console.error("[MATA-MATA] Erro ao carregar edições:", error);
+    if (window.Log) Log.error("[MATA-MATA] Erro ao carregar edições:", error);
     renderErro("Nenhuma edição disponível");
   }
 }
@@ -114,17 +114,17 @@ async function carregarTodasFases(edicao) {
   try {
     const res = await fetch(`/api/mata-mata/cache/${estado.ligaId}/${edicao}`);
     if (!res.ok) {
-      console.warn(`[MATA-MATA] ⚠️ Resposta não OK: ${res.status}`);
+      if (window.Log) Log.warn(`[MATA-MATA] ⚠️ Resposta não OK: ${res.status}`);
       return;
     }
 
     const data = await res.json();
-    console.log("[MATA-MATA] 📦 Dados recebidos:", data);
+    if (window.Log) Log.info("[MATA-MATA] 📦 Dados recebidos:", data);
 
     const dadosFases = data.dados || data.dados_torneio || data;
 
     if (!dadosFases || typeof dadosFases !== "object") {
-      console.warn("[MATA-MATA] ⚠️ Estrutura de dados inválida");
+      if (window.Log) Log.warn("[MATA-MATA] ⚠️ Estrutura de dados inválida");
       return;
     }
 
@@ -178,12 +178,12 @@ async function carregarTodasFases(edicao) {
       eliminado: foiEliminado,
     };
 
-    console.log(
+    if (window.Log) Log.info(
       `[MATA-MATA] 📊 Histórico edição ${edicao}:`,
       estado.historicoParticipacao[edicao],
     );
   } catch (error) {
-    console.error("[MATA-MATA] Erro ao carregar histórico:", error);
+    if (window.Log) Log.error("[MATA-MATA] Erro ao carregar histórico:", error);
   }
 }
 
@@ -323,7 +323,7 @@ async function carregarFase(edicao, fase) {
       if (!res.ok) throw new Error("Erro ao buscar dados");
 
       const data = await res.json();
-      console.log("[MATA-MATA] 📦 Resposta carregarFase:", Object.keys(data));
+      if (window.Log) Log.info("[MATA-MATA] 📦 Resposta carregarFase:", Object.keys(data));
 
       const dadosFases = data.dados || data.dados_torneio || data;
 
@@ -353,7 +353,7 @@ async function carregarFase(edicao, fase) {
 
     renderConfrontosCards(confrontos, fase);
   } catch (error) {
-    console.error("[MATA-MATA] Erro:", error);
+    if (window.Log) Log.error("[MATA-MATA] Erro:", error);
     container.innerHTML = `
       <div class="mm-vazio">
         <span class="material-symbols-outlined">error_outline</span>
@@ -616,4 +616,4 @@ function truncate(str, len) {
   return str.length > len ? str.substring(0, len) + "..." : str;
 }
 
-console.log("[MATA-MATA] ✅ Módulo v6.6 carregado");
+if (window.Log) Log.info("[MATA-MATA] ✅ Módulo v6.6 carregado");

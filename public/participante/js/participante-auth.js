@@ -1,6 +1,7 @@
 // PARTICIPANTE AUTH - Sistema de Autenticação
 
-console.log("[PARTICIPANTE-AUTH] Carregando sistema de autenticação...");
+if (window.Log)
+    Log.info("PARTICIPANTE-AUTH", "Carregando sistema de autenticação...");
 
 class ParticipanteAuth {
     constructor() {
@@ -16,7 +17,11 @@ class ParticipanteAuth {
     async verificarAutenticacao() {
         // Evitar múltiplas verificações simultâneas
         if (this.verificandoAuth) {
-            console.log("[PARTICIPANTE-AUTH] Verificação já em andamento...");
+            if (window.Log)
+                Log.debug(
+                    "PARTICIPANTE-AUTH",
+                    "Verificação já em andamento...",
+                );
             return false;
         }
 
@@ -27,7 +32,8 @@ class ParticipanteAuth {
             this.sessionCacheTime &&
             now - this.sessionCacheTime < this.CACHE_DURATION
         ) {
-            console.log("[PARTICIPANTE-AUTH] 💾 Usando sessão em cache");
+            if (window.Log)
+                Log.debug("PARTICIPANTE-AUTH", "💾 Usando sessão em cache");
             const { participante } = this.sessionCache;
             this.ligaId = participante.ligaId;
             this.timeId = participante.timeId;
@@ -43,7 +49,8 @@ class ParticipanteAuth {
         }
 
         this.verificandoAuth = true;
-        console.log("[PARTICIPANTE-AUTH] Verificando autenticação...");
+        if (window.Log)
+            Log.info("PARTICIPANTE-AUTH", "Verificando autenticação...");
 
         try {
             // Verificar sessão no servidor
@@ -52,9 +59,11 @@ class ParticipanteAuth {
             });
 
             if (!response.ok) {
-                console.log(
-                    "[PARTICIPANTE-AUTH] Sem sessão válida no servidor",
-                );
+                if (window.Log)
+                    Log.debug(
+                        "PARTICIPANTE-AUTH",
+                        "Sem sessão válida no servidor",
+                    );
                 this.verificandoAuth = false;
                 this.redirecionarLogin();
                 return false;
@@ -63,7 +72,8 @@ class ParticipanteAuth {
             const data = await response.json();
 
             if (!data.authenticated || !data.participante) {
-                console.log("[PARTICIPANTE-AUTH] Sessão inválida");
+                if (window.Log)
+                    Log.debug("PARTICIPANTE-AUTH", "Sessão inválida");
                 this.verificandoAuth = false;
                 this.redirecionarLogin();
                 return false;
@@ -85,13 +95,20 @@ class ParticipanteAuth {
                 this.verificarMultiplasLigas(),
             ]);
 
-            console.log(
-                "[PARTICIPANTE-AUTH] ✅ Autenticação válida (cache atualizado)",
-            );
+            if (window.Log)
+                Log.info(
+                    "PARTICIPANTE-AUTH",
+                    "✅ Autenticação válida (cache atualizado)",
+                );
             this.verificandoAuth = false;
             return true;
         } catch (error) {
-            console.error("[PARTICIPANTE-AUTH] Erro ao verificar auth:", error);
+            if (window.Log)
+                Log.error(
+                    "PARTICIPANTE-AUTH",
+                    "Erro ao verificar auth:",
+                    error,
+                );
             this.verificandoAuth = false;
             this.redirecionarLogin();
             return false;
@@ -112,10 +129,12 @@ class ParticipanteAuth {
         const headerLogoutButton =
             document.getElementById("headerLogoutButton");
 
-        console.log(
-            "[PARTICIPANTE-AUTH] Atualizando header com dados da sessão:",
-            this.participante,
-        );
+        if (window.Log)
+            Log.debug(
+                "PARTICIPANTE-AUTH",
+                "Atualizando header com dados da sessão:",
+                this.participante,
+            );
 
         try {
             // ✅ PRIORIZAR DADOS DA SESSÃO (já validados no backend)
@@ -153,17 +172,24 @@ class ParticipanteAuth {
                     fotoTime = timeData.url_escudo_png || timeData.foto_time;
                 }
 
-                console.log("[PARTICIPANTE-AUTH] ✅ Dados do time mesclados:", {
-                    nome: nomeTimeTexto,
-                    cartola: nomeCartolaTexto,
-                    clube: clubeId,
-                });
+                if (window.Log)
+                    Log.debug(
+                        "PARTICIPANTE-AUTH",
+                        "✅ Dados do time mesclados:",
+                        {
+                            nome: nomeTimeTexto,
+                            cartola: nomeCartolaTexto,
+                            clube: clubeId,
+                        },
+                    );
             } else {
-                console.warn(
-                    "[PARTICIPANTE-AUTH] ⚠️ Não foi possível buscar dados atualizados do time (ID:",
-                    this.timeId,
-                    ")",
-                );
+                if (window.Log)
+                    Log.warn(
+                        "PARTICIPANTE-AUTH",
+                        "⚠️ Não foi possível buscar dados atualizados do time (ID:",
+                        this.timeId,
+                        ")",
+                    );
             }
 
             // 2. Buscar dados da liga para obter posição e pontos
@@ -182,10 +208,12 @@ class ParticipanteAuth {
                 (p) => String(p.time_id) === String(this.timeId),
             );
 
-            console.log(
-                "[PARTICIPANTE-AUTH] Dados do participante na liga:",
-                participanteDataNaLiga,
-            );
+            if (window.Log)
+                Log.debug(
+                    "PARTICIPANTE-AUTH",
+                    "Dados do participante na liga:",
+                    participanteDataNaLiga,
+                );
 
             // Priorizar dados reais do time sobre dados da liga (que podem estar desatualizados)
             const nomeTimeTextoFinal =
@@ -260,23 +288,27 @@ class ParticipanteAuth {
                     : "none";
             }
 
-            console.log(
-                "[PARTICIPANTE-AUTH] ✅ Header atualizado com sucesso:",
-                {
-                    nome: nomeTimeTextoFinal,
-                    cartola: nomeCartolaTextoFinal,
-                    clube: clubeIdFinal,
-                    patrimonio: patrimonio, // Inclui patrimônio no log
-                },
-            );
+            if (window.Log)
+                Log.info(
+                    "PARTICIPANTE-AUTH",
+                    "✅ Header atualizado com sucesso:",
+                    {
+                        nome: nomeTimeTextoFinal,
+                        cartola: nomeCartolaTextoFinal,
+                        clube: clubeIdFinal,
+                        patrimonio: patrimonio,
+                    },
+                );
 
             this._atualizandoHeader = false;
         } catch (error) {
             this._atualizandoHeader = false;
-            console.error(
-                "[PARTICIPANTE-AUTH] Erro ao atualizar header:",
-                error,
-            );
+            if (window.Log)
+                Log.error(
+                    "PARTICIPANTE-AUTH",
+                    "Erro ao atualizar header:",
+                    error,
+                );
 
             // Fallback para dados básicos
             if (nomeTimeEl) nomeTimeEl.textContent = "Meu Time";
@@ -291,10 +323,12 @@ class ParticipanteAuth {
     }
 
     async verificarMultiplasLigas() {
-        console.log(
-            "[PARTICIPANTE-AUTH] 🔍 Verificando múltiplas ligas para timeId:",
-            this.timeId,
-        );
+        if (window.Log)
+            Log.debug(
+                "PARTICIPANTE-AUTH",
+                "🔍 Verificando múltiplas ligas para timeId:",
+                this.timeId,
+            );
 
         try {
             const response = await fetch(
@@ -305,67 +339,86 @@ class ParticipanteAuth {
             );
 
             if (!response.ok) {
-                console.warn(
-                    "[PARTICIPANTE-AUTH] ❌ Erro ao buscar ligas (status:",
-                    response.status,
-                    ")",
-                );
+                if (window.Log)
+                    Log.warn(
+                        "PARTICIPANTE-AUTH",
+                        "❌ Erro ao buscar ligas (status:",
+                        response.status,
+                        ")",
+                    );
                 return;
             }
 
             const data = await response.json();
-            console.log("[PARTICIPANTE-AUTH] 📊 Resposta da API:", data);
+            if (window.Log)
+                Log.debug("PARTICIPANTE-AUTH", "📊 Resposta da API:", data);
 
             const ligas = data.ligas || [];
-            console.log(
-                "[PARTICIPANTE-AUTH] 📋 Total de ligas encontradas:",
-                ligas.length,
-            );
+            if (window.Log)
+                Log.debug(
+                    "PARTICIPANTE-AUTH",
+                    "📋 Total de ligas encontradas:",
+                    ligas.length,
+                );
 
             if (ligas.length > 0) {
-                console.log(
-                    "[PARTICIPANTE-AUTH] 📝 Ligas:",
-                    ligas.map((l) => `${l.nome} (${l.id})`).join(", "),
-                );
+                if (window.Log)
+                    Log.debug(
+                        "PARTICIPANTE-AUTH",
+                        "📝 Ligas:",
+                        ligas.map((l) => `${l.nome} (${l.id})`).join(", "),
+                    );
             }
 
             // ✅ SEMPRE mostrar seletor se tiver múltiplas ligas
             if (ligas.length > 1) {
-                console.log(
-                    "[PARTICIPANTE-AUTH] 🏆 Participante em múltiplas ligas:",
-                    ligas.length,
-                );
+                if (window.Log)
+                    Log.info(
+                        "PARTICIPANTE-AUTH",
+                        "🏆 Participante em múltiplas ligas:",
+                        ligas.length,
+                    );
                 this.renderizarSeletorLigas(ligas);
 
                 // 🎯 SÓ PAUSAR se NÃO houver liga selecionada
                 if (!this.ligaId) {
-                    console.log(
-                        "[PARTICIPANTE-AUTH] ⏸️ Sem liga selecionada - pausando navegação",
-                    );
+                    if (window.Log)
+                        Log.debug(
+                            "PARTICIPANTE-AUTH",
+                            "⏸️ Sem liga selecionada - pausando navegação",
+                        );
                     this.pausarNavegacaoAteSelecao = true;
                 } else {
-                    console.log(
-                        "[PARTICIPANTE-AUTH] ✅ Liga já selecionada - permitindo navegação",
-                    );
+                    if (window.Log)
+                        Log.debug(
+                            "PARTICIPANTE-AUTH",
+                            "✅ Liga já selecionada - permitindo navegação",
+                        );
                     this.pausarNavegacaoAteSelecao = false;
                 }
             } else if (ligas.length === 1) {
-                console.log(
-                    "[PARTICIPANTE-AUTH] ℹ️ Participante em apenas 1 liga - carregando automaticamente",
-                );
+                if (window.Log)
+                    Log.debug(
+                        "PARTICIPANTE-AUTH",
+                        "ℹ️ Participante em apenas 1 liga - carregando automaticamente",
+                    );
                 this.ocultarSeletorLigas();
                 this.pausarNavegacaoAteSelecao = false;
             } else {
-                console.warn(
-                    "[PARTICIPANTE-AUTH] ⚠️ Nenhuma liga encontrada para este participante",
-                );
+                if (window.Log)
+                    Log.warn(
+                        "PARTICIPANTE-AUTH",
+                        "⚠️ Nenhuma liga encontrada para este participante",
+                    );
                 this.pausarNavegacaoAteSelecao = true;
             }
         } catch (error) {
-            console.error(
-                "[PARTICIPANTE-AUTH] ❌ Erro ao verificar múltiplas ligas:",
-                error,
-            );
+            if (window.Log)
+                Log.error(
+                    "PARTICIPANTE-AUTH",
+                    "❌ Erro ao verificar múltiplas ligas:",
+                    error,
+                );
         }
     }
 
@@ -373,17 +426,21 @@ class ParticipanteAuth {
         const select = document.getElementById("seletorLiga");
 
         if (!select) {
-            console.error(
-                "[PARTICIPANTE-AUTH] ❌ Elemento #seletorLiga não encontrado no DOM",
-            );
+            if (window.Log)
+                Log.error(
+                    "PARTICIPANTE-AUTH",
+                    "❌ Elemento #seletorLiga não encontrado no DOM",
+                );
             return;
         }
 
-        console.log(
-            "[PARTICIPANTE-AUTH] 📝 Renderizando seletor com",
-            ligas.length,
-            "ligas",
-        );
+        if (window.Log)
+            Log.debug(
+                "PARTICIPANTE-AUTH",
+                "📝 Renderizando seletor com",
+                ligas.length,
+                "ligas",
+            );
 
         // Limpar opções anteriores
         select.innerHTML = "";
@@ -403,9 +460,11 @@ class ParticipanteAuth {
             option.textContent = liga.nome;
             option.selected = liga.id === this.ligaId;
             select.appendChild(option);
-            console.log(
-                `[PARTICIPANTE-AUTH] ➕ Adicionada liga: ${liga.nome} (${liga.id})`,
-            );
+            if (window.Log)
+                Log.debug(
+                    "PARTICIPANTE-AUTH",
+                    `➕ Adicionada liga: ${liga.nome} (${liga.id})`,
+                );
         });
 
         // Event listener para trocar de liga (remover listeners anteriores)
@@ -414,7 +473,12 @@ class ParticipanteAuth {
 
         novoSelect.addEventListener("change", async (e) => {
             const novaLigaId = e.target.value;
-            console.log("[PARTICIPANTE-AUTH] 🔄 Liga selecionada:", novaLigaId);
+            if (window.Log)
+                Log.info(
+                    "PARTICIPANTE-AUTH",
+                    "🔄 Liga selecionada:",
+                    novaLigaId,
+                );
             if (novaLigaId) {
                 await this.trocarLiga(novaLigaId);
             }
@@ -425,18 +489,22 @@ class ParticipanteAuth {
         novoSelect.style.visibility = "visible";
         novoSelect.style.opacity = "1";
 
-        console.log(
-            "[PARTICIPANTE-AUTH] ✅ Seletor de ligas renderizado e visível",
-        );
+        if (window.Log)
+            Log.info(
+                "PARTICIPANTE-AUTH",
+                "✅ Seletor de ligas renderizado e visível",
+            );
     }
 
     ocultarSeletorLigas() {
         const select = document.getElementById("seletorLiga");
         if (select) {
             select.style.display = "none";
-            console.log(
-                "[PARTICIPANTE-AUTH] ℹ️ Seletor de ligas ocultado (uma liga apenas)",
-            );
+            if (window.Log)
+                Log.debug(
+                    "PARTICIPANTE-AUTH",
+                    "ℹ️ Seletor de ligas ocultado (uma liga apenas)",
+                );
         }
 
         const container = select?.closest(".header-secondary");
@@ -451,10 +519,12 @@ class ParticipanteAuth {
         }
 
         try {
-            console.log(
-                "[PARTICIPANTE-AUTH] 🔄 Trocando para liga:",
-                novaLigaId,
-            );
+            if (window.Log)
+                Log.info(
+                    "PARTICIPANTE-AUTH",
+                    "🔄 Trocando para liga:",
+                    novaLigaId,
+                );
 
             const response = await fetch("/api/participante/auth/trocar-liga", {
                 method: "POST",
@@ -470,7 +540,12 @@ class ParticipanteAuth {
             }
 
             const data = await response.json();
-            console.log("[PARTICIPANTE-AUTH] ✅ Liga alterada:", data.ligaNome);
+            if (window.Log)
+                Log.info(
+                    "PARTICIPANTE-AUTH",
+                    "✅ Liga alterada:",
+                    data.ligaNome,
+                );
 
             // Limpar cache de sessão e cache do navegador
             this.sessionCache = null;
@@ -485,7 +560,12 @@ class ParticipanteAuth {
             // Recarregar página para carregar configuração da nova liga
             window.location.reload();
         } catch (error) {
-            console.error("[PARTICIPANTE-AUTH] ❌ Erro ao trocar liga:", error);
+            if (window.Log)
+                Log.error(
+                    "PARTICIPANTE-AUTH",
+                    "❌ Erro ao trocar liga:",
+                    error,
+                );
             alert("Erro ao trocar de liga. Tente novamente.");
         }
     }
@@ -498,7 +578,8 @@ class ParticipanteAuth {
     redirecionarLogin() {
         // Evitar loop: só redirecionar se NÃO estiver na página de login
         if (window.location.pathname !== "/participante-login.html") {
-            console.log("[PARTICIPANTE-AUTH] Redirecionando para login...");
+            if (window.Log)
+                Log.debug("PARTICIPANTE-AUTH", "Redirecionando para login...");
             window.location.href = "/participante-login.html";
         }
     }
@@ -549,4 +630,4 @@ function logout() {
 }
 
 // Header simplificado - não precisa mais de toggle
-console.log("[PARTICIPANTE-AUTH] ✅ Sistema carregado");
+if (window.Log) Log.info("PARTICIPANTE-AUTH", "✅ Sistema carregado");

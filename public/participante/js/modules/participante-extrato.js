@@ -8,7 +8,8 @@
 // ✅ v2.2: Suporte a extrato travado para inativos
 // =====================================================================
 
-console.log("[EXTRATO-PARTICIPANTE] 📄 Módulo v2.6 (campos editáveis)");
+if (window.Log)
+    Log.info("EXTRATO-PARTICIPANTE", "📄 Módulo v2.6 (campos editáveis)");
 
 const PARTICIPANTE_IDS = { ligaId: null, timeId: null };
 
@@ -20,10 +21,11 @@ export async function inicializarExtratoParticipante({
     ligaId,
     timeId,
 }) {
-    console.log("[EXTRATO-PARTICIPANTE] 🔄 Inicializando...", {
-        ligaId,
-        timeId,
-    });
+    if (window.Log)
+        Log.debug("EXTRATO-PARTICIPANTE", "🔄 Inicializando...", {
+            ligaId,
+            timeId,
+        });
 
     if (!ligaId || !timeId) {
         mostrarErro("Dados inválidos para carregar extrato");
@@ -46,27 +48,36 @@ export async function inicializarExtratoParticipante({
 async function buscarCamposEditaveis(ligaId, timeId) {
     try {
         const url = `/api/fluxo-financeiro/${ligaId}/campos/${timeId}`;
-        console.log(
-            "[EXTRATO-PARTICIPANTE] 📡 Buscando campos editáveis:",
-            url,
-        );
+        if (window.Log)
+            Log.debug(
+                "EXTRATO-PARTICIPANTE",
+                "📡 Buscando campos editáveis:",
+                url,
+            );
 
         const response = await fetch(url);
 
         if (response.ok) {
             const data = await response.json();
             if (data.success && data.campos) {
-                console.log(
-                    "[EXTRATO-PARTICIPANTE] ✅ Campos editáveis:",
-                    data.campos.length,
-                );
+                if (window.Log)
+                    Log.debug(
+                        "EXTRATO-PARTICIPANTE",
+                        "✅ Campos editáveis:",
+                        data.campos.length,
+                    );
                 return data.campos;
             }
         }
 
         return [];
     } catch (error) {
-        console.warn("[EXTRATO-PARTICIPANTE] ⚠️ Erro ao buscar campos:", error);
+        if (window.Log)
+            Log.warn(
+                "EXTRATO-PARTICIPANTE",
+                "⚠️ Erro ao buscar campos:",
+                error,
+            );
         return [];
     }
 }
@@ -77,7 +88,8 @@ async function buscarCamposEditaveis(ligaId, timeId) {
 async function carregarExtrato(ligaId, timeId) {
     const container = document.getElementById("fluxoFinanceiroContent");
     if (!container) {
-        console.error("[EXTRATO-PARTICIPANTE] ❌ Container não encontrado");
+        if (window.Log)
+            Log.error("EXTRATO-PARTICIPANTE", "❌ Container não encontrado");
         return;
     }
 
@@ -98,27 +110,31 @@ async function carregarExtrato(ligaId, timeId) {
                 rodadaAtual = status.rodada_atual || 1;
             }
         } catch (e) {
-            console.warn(
-                "[EXTRATO-PARTICIPANTE] ⚠️ Falha ao buscar rodada atual",
-            );
+            if (window.Log)
+                Log.warn(
+                    "EXTRATO-PARTICIPANTE",
+                    "⚠️ Falha ao buscar rodada atual",
+                );
         }
 
         let extratoData = null;
 
         // ✅ PASSO 1: Tentar buscar do cache
         const urlCache = `/api/extrato-cache/${ligaId}/times/${timeId}/cache?rodadaAtual=${rodadaAtual}`;
-        console.log("[EXTRATO-PARTICIPANTE] 📡 Buscando cache:", urlCache);
+        if (window.Log)
+            Log.debug("EXTRATO-PARTICIPANTE", "📡 Buscando cache:", urlCache);
 
         const responseCache = await fetch(urlCache);
 
         if (responseCache.ok) {
             const cacheData = await responseCache.json();
-            console.log("[EXTRATO-PARTICIPANTE] 📦 Cache recebido:", {
-                cached: cacheData.cached,
-                qtdRodadas: cacheData.rodadas?.length || 0,
-                inativo: cacheData.inativo,
-                extratoTravado: cacheData.extratoTravado,
-            });
+            if (window.Log)
+                Log.debug("EXTRATO-PARTICIPANTE", "📦 Cache recebido:", {
+                    cached: cacheData.cached,
+                    qtdRodadas: cacheData.rodadas?.length || 0,
+                    inativo: cacheData.inativo,
+                    extratoTravado: cacheData.extratoTravado,
+                });
 
             if (
                 cacheData.cached &&
@@ -139,37 +155,44 @@ async function carregarExtrato(ligaId, timeId) {
                     rodadaTravada: cacheData.rodadaTravada || null,
                     rodadaDesistencia: cacheData.rodadaDesistencia || null,
                 };
-                console.log(
-                    "[EXTRATO-PARTICIPANTE] ✅ Cache válido",
-                    extratoData.extratoTravado
-                        ? `| TRAVADO R${extratoData.rodadaTravada}`
-                        : "",
-                );
+                if (window.Log)
+                    Log.debug(
+                        "EXTRATO-PARTICIPANTE",
+                        "✅ Cache válido",
+                        extratoData.extratoTravado
+                            ? `| TRAVADO R${extratoData.rodadaTravada}`
+                            : "",
+                    );
             }
         } else {
-            console.log(
-                "[EXTRATO-PARTICIPANTE] ⚠️ Cache não encontrado (status:",
-                responseCache.status,
-                ")",
-            );
+            if (window.Log)
+                Log.debug(
+                    "EXTRATO-PARTICIPANTE",
+                    "⚠️ Cache não encontrado (status:",
+                    responseCache.status,
+                    ")",
+                );
         }
 
         // ✅ PASSO 2: Se cache não existe ou inválido, chamar endpoint de cálculo
         if (!extratoData) {
-            console.log(
-                "[EXTRATO-PARTICIPANTE] 📡 Buscando endpoint de cálculo...",
-            );
+            if (window.Log)
+                Log.debug(
+                    "EXTRATO-PARTICIPANTE",
+                    "📡 Buscando endpoint de cálculo...",
+                );
             const urlCalculo = `/api/fluxo-financeiro/${ligaId}/extrato/${timeId}`;
 
             const resCalculo = await fetch(urlCalculo);
 
             if (resCalculo.ok) {
                 const dadosCalculados = await resCalculo.json();
-                console.log("[EXTRATO-PARTICIPANTE] ✅ Dados calculados:", {
-                    success: dadosCalculados.success,
-                    extrato: dadosCalculados.extrato?.length || 0,
-                    saldo: dadosCalculados.saldo_atual,
-                });
+                if (window.Log)
+                    Log.debug("EXTRATO-PARTICIPANTE", "✅ Dados calculados:", {
+                        success: dadosCalculados.success,
+                        extrato: dadosCalculados.extrato?.length || 0,
+                        saldo: dadosCalculados.saldo_atual,
+                    });
 
                 // Transformar formato do controller para o formato esperado pela UI
                 if (dadosCalculados.success && dadosCalculados.extrato) {
@@ -197,25 +220,31 @@ async function carregarExtrato(ligaId, timeId) {
         }
 
         // Renderizar
-        console.log(
-            "[EXTRATO-PARTICIPANTE] 🎨 Renderizando",
-            extratoData.rodadas.length,
-            "rodadas |",
-            extratoData.camposManuais?.length || 0,
-            "campos manuais",
-            extratoData.extratoTravado
-                ? `| TRAVADO R${extratoData.rodadaTravada}`
-                : "",
-        );
+        if (window.Log)
+            Log.debug(
+                "EXTRATO-PARTICIPANTE",
+                "🎨 Renderizando",
+                extratoData.rodadas.length,
+                "rodadas |",
+                extratoData.camposManuais?.length || 0,
+                "campos manuais",
+                extratoData.extratoTravado
+                    ? `| TRAVADO R${extratoData.rodadaTravada}`
+                    : "",
+            );
 
         const { renderizarExtratoParticipante } = await import(
             "./participante-extrato-ui.js"
         );
         renderizarExtratoParticipante(extratoData, timeId);
 
-        console.log("[EXTRATO-PARTICIPANTE] ✅ Extrato carregado com sucesso");
+        if (window.Log)
+            Log.info(
+                "EXTRATO-PARTICIPANTE",
+                "✅ Extrato carregado com sucesso",
+            );
     } catch (error) {
-        console.error("[EXTRATO-PARTICIPANTE] ❌ Erro:", error);
+        if (window.Log) Log.error("EXTRATO-PARTICIPANTE", "❌ Erro:", error);
         mostrarErro(error.message);
     }
 }
@@ -384,10 +413,12 @@ function atualizarHeaderZerado() {
 // ✅ v2.3: REFRESH COM LIMPEZA DE CACHE
 // =====================================================================
 window.forcarRefreshExtratoParticipante = async function () {
-    console.log("[EXTRATO-PARTICIPANTE] 🔄 Refresh solicitado (com limpeza)");
+    if (window.Log)
+        Log.info("EXTRATO-PARTICIPANTE", "🔄 Refresh solicitado (com limpeza)");
 
     if (!PARTICIPANTE_IDS.ligaId || !PARTICIPANTE_IDS.timeId) {
-        console.error("[EXTRATO-PARTICIPANTE] IDs não disponíveis");
+        if (window.Log)
+            Log.error("EXTRATO-PARTICIPANTE", "IDs não disponíveis");
         return;
     }
 
@@ -410,23 +441,28 @@ window.forcarRefreshExtratoParticipante = async function () {
     try {
         // ✅ PASSO 1: Limpar cache no MongoDB
         const urlLimpeza = `/api/extrato-cache/${PARTICIPANTE_IDS.ligaId}/times/${PARTICIPANTE_IDS.timeId}/limpar`;
-        console.log("[EXTRATO-PARTICIPANTE] 🗑️ Limpando cache:", urlLimpeza);
+        if (window.Log)
+            Log.debug("EXTRATO-PARTICIPANTE", "🗑️ Limpando cache:", urlLimpeza);
 
         const resLimpeza = await fetch(urlLimpeza, { method: "DELETE" });
 
         if (resLimpeza.ok) {
             const resultado = await resLimpeza.json();
-            console.log("[EXTRATO-PARTICIPANTE] ✅ Cache limpo:", resultado);
+            if (window.Log)
+                Log.debug("EXTRATO-PARTICIPANTE", "✅ Cache limpo:", resultado);
         } else {
-            console.warn(
-                "[EXTRATO-PARTICIPANTE] ⚠️ Falha ao limpar cache:",
-                resLimpeza.status,
-            );
+            if (window.Log)
+                Log.warn(
+                    "EXTRATO-PARTICIPANTE",
+                    "⚠️ Falha ao limpar cache:",
+                    resLimpeza.status,
+                );
         }
 
         // ✅ PASSO 2: Chamar endpoint DIRETO que calcula do zero
         const urlCalculo = `/api/fluxo-financeiro/${PARTICIPANTE_IDS.ligaId}/extrato/${PARTICIPANTE_IDS.timeId}`;
-        console.log("[EXTRATO-PARTICIPANTE] 🔄 Recalculando:", urlCalculo);
+        if (window.Log)
+            Log.debug("EXTRATO-PARTICIPANTE", "🔄 Recalculando:", urlCalculo);
 
         const resCalculo = await fetch(urlCalculo);
 
@@ -435,11 +471,12 @@ window.forcarRefreshExtratoParticipante = async function () {
         }
 
         const dadosCalculados = await resCalculo.json();
-        console.log("[EXTRATO-PARTICIPANTE] ✅ Extrato recalculado:", {
-            success: dadosCalculados.success,
-            extrato: dadosCalculados.extrato?.length || 0,
-            saldo: dadosCalculados.saldo_atual,
-        });
+        if (window.Log)
+            Log.debug("EXTRATO-PARTICIPANTE", "✅ Extrato recalculado:", {
+                success: dadosCalculados.success,
+                extrato: dadosCalculados.extrato?.length || 0,
+                saldo: dadosCalculados.saldo_atual,
+            });
 
         // ✅ PASSO 3: Transformar e renderizar dados novos
         let extratoData = null;
@@ -486,22 +523,26 @@ window.forcarRefreshExtratoParticipante = async function () {
             extratoData.camposEditaveis = camposEditaveis;
         }
 
-        console.log(
-            "[EXTRATO-PARTICIPANTE] 🎨 Renderizando",
-            extratoData.rodadas.length,
-            "rodadas recalculadas |",
-            extratoData.camposManuais?.length || 0,
-            "campos manuais",
-        );
+        if (window.Log)
+            Log.debug(
+                "EXTRATO-PARTICIPANTE",
+                "🎨 Renderizando",
+                extratoData.rodadas.length,
+                "rodadas recalculadas |",
+                extratoData.camposManuais?.length || 0,
+                "campos manuais",
+            );
 
         const { renderizarExtratoParticipante } = await import(
             "./participante-extrato-ui.js"
         );
         renderizarExtratoParticipante(extratoData, PARTICIPANTE_IDS.timeId);
 
-        console.log("[EXTRATO-PARTICIPANTE] ✅ Refresh completo!");
+        if (window.Log)
+            Log.info("EXTRATO-PARTICIPANTE", "✅ Refresh completo!");
     } catch (error) {
-        console.error("[EXTRATO-PARTICIPANTE] ❌ Erro no refresh:", error);
+        if (window.Log)
+            Log.error("EXTRATO-PARTICIPANTE", "❌ Erro no refresh:", error);
         mostrarErro("Erro ao atualizar. Tente novamente.");
     } finally {
         if (btn) {
@@ -529,9 +570,11 @@ window.mostrarLoadingExtrato = function () {
 window.inicializarExtratoParticipante = inicializarExtratoParticipante;
 
 export function initExtratoParticipante() {
-    console.log("[EXTRATO-PARTICIPANTE] Módulo pronto");
+    if (window.Log) Log.debug("EXTRATO-PARTICIPANTE", "Módulo pronto");
 }
 
-console.log(
-    "[EXTRATO-PARTICIPANTE] ✅ Módulo v2.6 carregado (campos editáveis)",
-);
+if (window.Log)
+    Log.info(
+        "EXTRATO-PARTICIPANTE",
+        "✅ Módulo v2.6 carregado (campos editáveis)",
+    );

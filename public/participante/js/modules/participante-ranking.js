@@ -5,7 +5,7 @@
 // ✅ v3.5: Card Seu Desempenho ao final + Vezes Líder
 // =====================================================
 
-console.log("[PARTICIPANTE-RANKING] Módulo v3.6 PRO carregando...");
+if (window.Log) Log.info('PARTICIPANTE-RANKING', 'Módulo v3.6 PRO carregando...');
 
 // ==============================
 // CONSTANTES
@@ -31,7 +31,7 @@ const RODADA_FINAL = 38;
         } else {
             document.head.appendChild(link);
         }
-        console.log("[PARTICIPANTE-RANKING] Material Icons link adicionado");
+        if (window.Log) Log.debug('PARTICIPANTE-RANKING', 'Material Icons link adicionado');
     }
 
     if (!document.getElementById("material-icons-css")) {
@@ -94,7 +94,7 @@ let estadoRanking = {
 };
 
 export async function inicializarRankingParticipante(params, timeIdParam) {
-    console.log("[PARTICIPANTE-RANKING] Inicializando módulo...", params);
+    if (window.Log) Log.info('PARTICIPANTE-RANKING', 'Inicializando módulo...', params);
 
     let ligaId, timeId;
 
@@ -107,18 +107,18 @@ export async function inicializarRankingParticipante(params, timeIdParam) {
     }
 
     if (!ligaId) {
-        console.error("[PARTICIPANTE-RANKING] Liga ID inválido");
+        if (window.Log) Log.error('PARTICIPANTE-RANKING', 'Liga ID inválido');
         return;
     }
 
     estadoRanking.ligaId = ligaId;
     estadoRanking.timeId = timeId;
 
-    console.log("[PARTICIPANTE-RANKING] Dados:", { ligaId, timeId });
+    if (window.Log) Log.debug('PARTICIPANTE-RANKING', 'Dados:', { ligaId, timeId });
 
     const container = document.getElementById("rankingLista");
     if (!container) {
-        console.error("[PARTICIPANTE-RANKING] Container não encontrado");
+        if (window.Log) Log.error('PARTICIPANTE-RANKING', 'Container não encontrado');
         return;
     }
 
@@ -132,9 +132,9 @@ export async function inicializarRankingParticipante(params, timeIdParam) {
 
     try {
         await carregarRanking(estadoRanking.turnoAtivo);
-        console.log("[PARTICIPANTE-RANKING] Ranking carregado");
+        if (window.Log) Log.info('PARTICIPANTE-RANKING', 'Ranking carregado');
     } catch (error) {
-        console.error("[PARTICIPANTE-RANKING] Erro:", error);
+        if (window.Log) Log.error('PARTICIPANTE-RANKING', 'Erro:', error);
         container.innerHTML = renderizarErro();
     }
 }
@@ -158,17 +158,14 @@ async function detectarStatusTemporada() {
                 statusMercado === 6 ||
                 (rodadaAtual >= RODADA_FINAL && statusMercado !== 1);
 
-            console.log("[PARTICIPANTE-RANKING] 📊 Status:", {
+            if (window.Log) Log.debug('PARTICIPANTE-RANKING', '📊 Status:', {
                 rodadaAtual,
                 statusMercado,
                 temporadaEncerrada: estadoRanking.temporadaEncerrada,
             });
         }
     } catch (error) {
-        console.warn(
-            "[PARTICIPANTE-RANKING] ⚠️ Erro ao detectar status:",
-            error,
-        );
+        if (window.Log) Log.warn('PARTICIPANTE-RANKING', '⚠️ Erro ao detectar status:', error);
     }
 }
 
@@ -187,7 +184,7 @@ async function carregarRanking(turno) {
     `;
 
     try {
-        console.log("[PARTICIPANTE-RANKING] Buscando turno " + turno + "...");
+        if (window.Log) Log.debug('PARTICIPANTE-RANKING', 'Buscando turno ' + turno + '...');
 
         // Buscar turno principal
         const response = await fetch(
@@ -212,16 +209,11 @@ async function carregarRanking(turno) {
             await carregarPosicoesTurnos();
         }
 
-        console.log(
-            "[PARTICIPANTE-RANKING] " +
-                data.total_times +
-                " times - Status: " +
-                data.status,
-        );
+        if (window.Log) Log.debug('PARTICIPANTE-RANKING', data.total_times + ' times - Status: ' + data.status);
 
         renderizarRankingPro(container, data.ranking, data.rodada_atual);
     } catch (error) {
-        console.error("[PARTICIPANTE-RANKING] Erro:", error);
+        if (window.Log) Log.error('PARTICIPANTE-RANKING', 'Erro:', error);
         container.innerHTML = renderizarErro();
     }
 }
@@ -272,18 +264,12 @@ async function carregarPosicoesTurnos() {
                 dataRodadas.rodadas,
                 timeId,
             );
-            console.log(
-                "[PARTICIPANTE-RANKING] 🏆 Vezes líder:",
-                estadoRanking.vezesLider,
-            );
+            if (window.Log) Log.debug('PARTICIPANTE-RANKING', '🏆 Vezes líder:', estadoRanking.vezesLider);
         }
 
-        console.log(
-            "[PARTICIPANTE-RANKING] Posições por turno:",
-            estadoRanking.posicoesPorTurno,
-        );
+        if (window.Log) Log.debug('PARTICIPANTE-RANKING', 'Posições por turno:', estadoRanking.posicoesPorTurno);
     } catch (error) {
-        console.error("[PARTICIPANTE-RANKING] Erro ao buscar turnos:", error);
+        if (window.Log) Log.error('PARTICIPANTE-RANKING', 'Erro ao buscar turnos:', error);
     }
 }
 
@@ -599,53 +585,44 @@ function renderizarRankingPro(container, ranking, rodadaAtual) {
             if (isZonaRebaixamento && !isPodio)
                 classes.push("zona-rebaixamento");
 
+            // Ícone de posição
+            let iconePosicao = posicao + "º";
+            if (posicao === 1)
+                iconePosicao =
+                    '<span class="material-icons" style="font-size:18px; color:#ffd700;">emoji_events</span>';
+            else if (posicao === 2)
+                iconePosicao =
+                    '<span class="material-icons" style="font-size:16px; color:#c0c0c0;">military_tech</span>';
+            else if (posicao === 3)
+                iconePosicao =
+                    '<span class="material-icons" style="font-size:16px; color:#cd7f32;">military_tech</span>';
+
             const pontosFormatados = parseFloat(time.pontos).toLocaleString(
                 "pt-BR",
-                {
-                    minimumFractionDigits: 1,
-                    maximumFractionDigits: 1,
-                },
+                { minimumFractionDigits: 2 },
             );
-
-            const podioIcon = isPodio
-                ? '<span class="material-icons podio-icon">military_tech</span>'
-                : "";
-
-            // Tag "VOCÊ" se for meu time
-            const tagVoce = isMeuTime
-                ? ' <span class="tag-voce"><span class="material-icons">person</span> VOCÊ</span>'
-                : "";
 
             return (
                 '<div class="' +
                 classes.join(" ") +
-                '" ' +
-                'data-posicao="' +
+                '" onclick="mostrarPremiacaoPro(' +
                 posicao +
-                '" ' +
-                'data-time-id="' +
-                time.timeId +
-                '" ' +
-                (isPodio
-                    ? 'onclick="mostrarPremiacaoPro(' + posicao + ')"'
+                ')">' +
+                '<div class="ranking-posicao">' +
+                iconePosicao +
+                "</div>" +
+                '<div class="ranking-info">' +
+                '<div class="ranking-cartola">' +
+                (time.nome_cartola || "N/D") +
+                (isMeuTime
+                    ? '<span class="tag-voce"><span class="material-icons">person</span>VOCÊ</span>'
                     : "") +
-                ">" +
-                '<div class="posicao-container">' +
-                '<span class="posicao-badge">' +
-                posicao +
-                "</span>" +
-                podioIcon +
                 "</div>" +
-                '<div class="time-info-container">' +
-                '<span class="time-nome">' +
-                (time.nome_time || "Time") +
-                tagVoce +
-                "</span>" +
-                '<span class="time-cartoleiro">' +
-                (time.nome_cartola || "Cartoleiro") +
-                "</span>" +
+                '<div class="ranking-time">' +
+                (time.nome_time || "N/D") +
                 "</div>" +
-                '<div class="pontos-valor">' +
+                "</div>" +
+                '<div class="ranking-pontos">' +
                 pontosFormatados +
                 "</div>" +
                 "</div>"
@@ -653,95 +630,32 @@ function renderizarRankingPro(container, ranking, rodadaAtual) {
         })
         .join("");
 
-    // Remover cards anteriores se existirem
-    const cardsAnteriores = document.querySelectorAll(
-        ".cards-destaque-container",
-    );
-    cardsAnteriores.forEach(function (el) {
-        el.remove();
-    });
-
-    // Montar HTML - Líder no topo, Seu Desempenho ao final
-    let htmlFinal = "";
-
-    // Card Líder permanece no topo
-    if (cardLiderHTML) {
-        htmlFinal +=
-            '<div class="cards-destaque-container">' + cardLiderHTML + "</div>";
-    }
-
-    htmlFinal += '<div class="ranking-lista-items">' + listaHTML + "</div>";
-
-    // Inserir no container
-    container.innerHTML = htmlFinal;
-
-    // Renderizar card Seu Desempenho no container externo (final)
-    const cardDesempenhoContainer = document.getElementById(
-        "rankingCardDesempenho",
-    );
-    if (cardDesempenhoContainer && cardSeuDesempenhoHTML) {
-        cardDesempenhoContainer.innerHTML = cardSeuDesempenhoHTML;
-    } else if (cardDesempenhoContainer) {
-        cardDesempenhoContainer.innerHTML = "";
-    }
-
-    // Scroll para meu time
-    setTimeout(function () {
-        const meuTimeEl = container.querySelector(".meu-time");
-        if (meuTimeEl) {
-            const containerRect = container.getBoundingClientRect();
-            const itemRect = meuTimeEl.getBoundingClientRect();
-
-            if (
-                itemRect.top > containerRect.bottom ||
-                itemRect.bottom < containerRect.top
-            ) {
-                meuTimeEl.scrollIntoView({
-                    behavior: "smooth",
-                    block: "center",
-                });
-            }
-        }
-    }, 100);
+    container.innerHTML =
+        '<div class="cards-destaque-container">' +
+        cardLiderHTML +
+        "</div>" +
+        '<div class="ranking-lista">' +
+        listaHTML +
+        "</div>" +
+        '<div class="card-desempenho-container">' +
+        cardSeuDesempenhoHTML +
+        "</div>";
 }
 
-// ===== INJETAR ESTILOS DOS CARDS =====
+// ===== INJETAR ESTILOS =====
 function injetarEstilosCards() {
     if (document.getElementById("ranking-cards-styles")) return;
 
     const style = document.createElement("style");
     style.id = "ranking-cards-styles";
     style.textContent = `
-        /* Container da lista de items */
-        .ranking-lista-items {
-            display: flex;
-            flex-direction: column;
-            gap: 8px;
-        }
-
-        /* Container dos cards */
-        .cards-destaque-container {
-            padding: 0 12px;
-            margin-bottom: 12px;
-        }
-
-        /* ✅ v3.6: Card Líder/Campeão COMPACTO */
+        /* Card Líder Compacto */
         .card-lider-compacto {
-            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
-            border: 1px solid rgba(255, 215, 0, 0.4);
-            border-radius: 12px;
-            padding: 12px;
-            position: relative;
-            overflow: hidden;
-        }
-        .card-lider-compacto::before {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: 0;
-            right: 0;
-            height: 2px;
-            background: linear-gradient(90deg, #ffd700, #ffaa00, #ffd700);
+            background: linear-gradient(135deg, rgba(250, 204, 21, 0.08) 0%, rgba(250, 204, 21, 0.03) 100%);
+            border: 1px solid rgba(250, 204, 21, 0.25);
+            border-radius: 14px;
+            padding: 14px;
+            margin-bottom: 12px;
         }
         .lider-header {
             display: flex;
@@ -749,73 +663,70 @@ function injetarEstilosCards() {
             gap: 10px;
         }
         .lider-icon-box {
-            width: 36px;
-            height: 36px;
-            background: rgba(255, 215, 0, 0.15);
-            border-radius: 8px;
+            width: 40px;
+            height: 40px;
+            background: linear-gradient(135deg, #ffd700 0%, #ffaa00 100%);
+            border-radius: 10px;
             display: flex;
             align-items: center;
             justify-content: center;
-            flex-shrink: 0;
         }
         .lider-icon-box .material-icons {
-            font-size: 20px;
-            color: #ffd700;
+            font-size: 22px;
+            color: #1a1a1a;
         }
         .lider-header-info {
             flex: 1;
-            min-width: 0;
         }
         .lider-titulo {
-            font-size: 10px;
+            font-size: 0.7rem;
             font-weight: 700;
             color: #ffd700;
-            letter-spacing: 1.5px;
             text-transform: uppercase;
+            letter-spacing: 0.5px;
         }
         .lider-subtitulo {
-            font-size: 9px;
-            color: #888;
+            font-size: 0.65rem;
+            color: rgba(255,255,255,0.5);
+            margin-top: 1px;
         }
         .lider-pontos-box {
             text-align: right;
-            flex-shrink: 0;
         }
         .lider-pontos-valor {
-            font-size: 16px;
+            font-size: 1.2rem;
             font-weight: 800;
-            color: #ffd700;
-            display: block;
+            color: #fff;
         }
         .lider-pontos-label {
-            font-size: 9px;
-            color: #888;
+            font-size: 0.6rem;
+            color: rgba(255,255,255,0.5);
+            display: block;
         }
         .lider-body {
-            margin-top: 8px;
-            padding-top: 8px;
-            border-top: 1px solid rgba(255, 255, 255, 0.08);
+            margin-top: 10px;
+            padding-top: 10px;
+            border-top: 1px solid rgba(255,255,255,0.1);
         }
         .lider-nome {
-            font-size: 13px;
-            font-weight: 600;
+            font-size: 0.95rem;
+            font-weight: 700;
             color: #fff;
         }
         .lider-time {
-            font-size: 11px;
-            color: #aaa;
+            font-size: 0.75rem;
+            color: rgba(255,255,255,0.6);
         }
         .lider-badge-campeao {
-            margin-top: 8px;
-            padding: 6px 10px;
-            background: rgba(255, 215, 0, 0.12);
-            border-radius: 6px;
-            font-size: 10px;
-            font-weight: 600;
+            margin-top: 10px;
+            padding: 8px 12px;
+            background: linear-gradient(135deg, rgba(255,215,0,0.2) 0%, rgba(255,170,0,0.1) 100%);
+            border-radius: 8px;
+            font-size: 0.7rem;
             color: #ffd700;
             display: flex;
             align-items: center;
-            gap: 4px;
+            gap: 6px;
         }
         .lider-badge-campeao .material-icons {
             font-size: 14px;
@@ -825,131 +736,118 @@ function injetarEstilosCards() {
         .card-seu-desempenho {
             background: linear-gradient(135deg, #1c1c1e 0%, #2c2c2e 100%);
             border: 1px solid rgba(255, 92, 0, 0.3);
-            border-radius: 16px;
-            padding: 16px;
-            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+            border-radius: 14px;
+            padding: 14px;
+            margin-top: 16px;
         }
         .seu-header {
             display: flex;
             justify-content: space-between;
             align-items: center;
-            margin-bottom: 14px;
-            padding-bottom: 10px;
-            border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+            margin-bottom: 12px;
         }
         .seu-titulo {
             display: flex;
             align-items: center;
-            gap: 8px;
-            font-size: 0.9rem;
-            font-weight: 600;
+            gap: 6px;
+            font-size: 0.8rem;
+            font-weight: 700;
             color: #ff5c00;
         }
         .seu-titulo .material-icons {
-            font-size: 20px;
+            font-size: 18px;
         }
         .seu-turno {
-            font-size: 0.7rem;
-            color: #888;
-            background: rgba(255, 255, 255, 0.05);
-            padding: 4px 10px;
-            border-radius: 12px;
+            font-size: 0.65rem;
+            color: rgba(255,255,255,0.5);
+            background: rgba(255,255,255,0.1);
+            padding: 4px 8px;
+            border-radius: 4px;
         }
         .seu-body {
             display: flex;
             align-items: center;
-            gap: 14px;
+            gap: 12px;
         }
         .seu-posicao {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            min-width: 60px;
-            padding: 10px;
-            background: rgba(255, 92, 0, 0.1);
-            border-radius: 12px;
-            border: 1px solid rgba(255, 92, 0, 0.2);
-        }
-        .seu-posicao.posicao-ouro {
-            background: rgba(255, 215, 0, 0.15);
-            border-color: rgba(255, 215, 0, 0.3);
-        }
-        .seu-posicao.posicao-prata {
-            background: rgba(192, 192, 192, 0.15);
-            border-color: rgba(192, 192, 192, 0.3);
-        }
-        .seu-posicao.posicao-bronze {
-            background: rgba(205, 127, 50, 0.15);
-            border-color: rgba(205, 127, 50, 0.3);
-        }
-        .seu-posicao.posicao-ultimo {
-            background: rgba(239, 68, 68, 0.1);
-            border-color: rgba(239, 68, 68, 0.2);
+            width: 50px;
+            text-align: center;
         }
         .seu-posicao-valor {
-            font-size: 1.6rem;
+            font-size: 1.5rem;
             font-weight: 800;
-            color: #ff5c00;
+            color: #fff;
+            display: block;
         }
-        .posicao-ouro .seu-posicao-valor { color: #ffd700; }
-        .posicao-prata .seu-posicao-valor { color: #c0c0c0; }
-        .posicao-bronze .seu-posicao-valor { color: #cd7f32; }
-        .posicao-ultimo .seu-posicao-valor { color: #ef4444; }
         .seu-posicao-label {
-            font-size: 0.65rem;
-            color: #888;
-            margin-top: 2px;
+            font-size: 0.6rem;
+            color: rgba(255,255,255,0.5);
         }
+        .seu-posicao.posicao-ouro .seu-posicao-valor { color: #ffd700; }
+        .seu-posicao.posicao-prata .seu-posicao-valor { color: #c0c0c0; }
+        .seu-posicao.posicao-bronze .seu-posicao-valor { color: #cd7f32; }
+        .seu-posicao.posicao-ultimo .seu-posicao-valor { color: #ef4444; }
         .seu-info {
             flex: 1;
-            min-width: 0;
         }
         .seu-nome {
-            font-size: 0.95rem;
-            font-weight: 600;
+            font-size: 0.9rem;
+            font-weight: 700;
             color: #fff;
-            white-space: nowrap;
-            overflow: hidden;
-            text-overflow: ellipsis;
         }
         .seu-time {
-            font-size: 0.8rem;
-            color: #888;
-            white-space: nowrap;
-            overflow: hidden;
-            text-overflow: ellipsis;
+            font-size: 0.75rem;
+            color: rgba(255,255,255,0.6);
         }
         .seu-pontos {
             text-align: right;
-            flex-shrink: 0;
         }
         .seu-pontos-valor {
-            font-size: 1.3rem;
+            font-size: 1.1rem;
             font-weight: 800;
             color: #ff5c00;
         }
         .seu-pontos-label {
-            font-size: 0.7rem;
-            color: #888;
+            font-size: 0.6rem;
+            color: rgba(255,255,255,0.5);
             display: block;
         }
-        .seu-footer {
+        .seu-turnos {
+            display: flex;
+            gap: 16px;
             margin-top: 12px;
-            padding-top: 10px;
-            border-top: 1px solid rgba(255, 255, 255, 0.08);
+            padding-top: 12px;
+            border-top: 1px solid rgba(255,255,255,0.1);
         }
-        .seu-footer.lider {
-            background: linear-gradient(90deg, rgba(255, 215, 0, 0.1), transparent);
-            border-radius: 8px;
-            padding: 10px 12px;
-            margin-top: 12px;
-            border-top: none;
-        }
-        .lider-badge {
+        .turno-item {
             display: flex;
             align-items: center;
             gap: 6px;
+        }
+        .turno-label {
+            font-size: 0.7rem;
+            color: rgba(255,255,255,0.5);
+        }
+        .turno-pos {
+            font-size: 0.8rem;
+            font-weight: 700;
+            color: #fff;
+        }
+        .seu-footer {
+            margin-top: 12px;
+            padding-top: 12px;
+            border-top: 1px solid rgba(255,255,255,0.1);
+        }
+        .seu-footer.lider {
+            text-align: center;
+        }
+        .lider-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            background: linear-gradient(135deg, rgba(255,215,0,0.2) 0%, rgba(255,170,0,0.1) 100%);
+            padding: 8px 16px;
+            border-radius: 8px;
             font-size: 0.75rem;
             font-weight: 600;
             color: #ffd700;
@@ -963,42 +861,16 @@ function injetarEstilosCards() {
             align-items: center;
         }
         .diff-label {
-            font-size: 0.75rem;
-            color: #888;
+            font-size: 0.7rem;
+            color: rgba(255,255,255,0.5);
         }
         .diff-valor {
-            font-size: 0.9rem;
+            font-size: 0.85rem;
             font-weight: 700;
         }
         .diff-valor.negativo {
             color: #ef4444;
         }
-
-        /* Posições por turno */
-        .seu-turnos {
-            display: flex;
-            gap: 12px;
-            margin-top: 12px;
-            padding: 10px 12px;
-            background: rgba(255, 255, 255, 0.03);
-            border-radius: 8px;
-        }
-        .turno-item {
-            display: flex;
-            align-items: center;
-            gap: 6px;
-        }
-        .turno-label {
-            font-size: 0.7rem;
-            color: #888;
-        }
-        .turno-pos {
-            font-size: 0.85rem;
-            font-weight: 700;
-            color: #ff5c00;
-        }
-
-        /* Vezes líder */
         .seu-vezes-lider {
             display: flex;
             align-items: center;
@@ -1212,6 +1084,4 @@ window.mostrarPremiacaoPro = function (posicaoClicada) {
     document.body.appendChild(modal);
 };
 
-console.log(
-    "[PARTICIPANTE-RANKING] ✅ Módulo v3.6 PRO carregado (Campeão + Card Compacto)",
-);
+if (window.Log) Log.info('PARTICIPANTE-RANKING', '✅ Módulo v3.6 PRO carregado (Campeão + Card Compacto)');

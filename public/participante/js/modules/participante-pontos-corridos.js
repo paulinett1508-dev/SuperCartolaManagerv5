@@ -2,7 +2,7 @@
 // ✅ v4.9: Emojis substituídos por Material Icons + Card "Seu Desempenho"
 // ✅ v5.0: Posição na liga integrada no card + card ao final da página
 
-console.log("[PONTOS-CORRIDOS] 📊 Módulo v5.0 carregando...");
+if (window.Log) Log.info("[PONTOS-CORRIDOS] 📊 Módulo v5.0 carregando...");
 
 const estadoPC = {
     ligaId: null,
@@ -22,7 +22,7 @@ const estadoPC = {
 // ============================================
 
 export async function inicializarPontosCorridosParticipante(params = {}) {
-    console.log("[PONTOS-CORRIDOS] 🚀 Inicializando v4.9...", params);
+    if (window.Log) Log.info("[PONTOS-CORRIDOS] 🚀 Inicializando v4.9...", params);
 
     const participante = params.participante || window.participanteData || {};
     estadoPC.ligaId = params.ligaId || participante.ligaId;
@@ -55,10 +55,10 @@ export async function inicializarPontosCorridosParticipante(params = {}) {
                 ultimaRodadaDisputada?.classificacao?.length > 0;
         }
 
-        console.log(`[PONTOS-CORRIDOS] ✅ ${dados.length} rodadas carregadas`);
+        if (window.Log) Log.info(`[PONTOS-CORRIDOS] ✅ ${dados.length} rodadas carregadas`);
         renderizarInterface();
     } catch (error) {
-        console.error("[PONTOS-CORRIDOS] ❌ Erro:", error);
+        if (window.Log) Log.error("[PONTOS-CORRIDOS] ❌ Erro:", error);
         mostrarErro(error.message);
     }
 }
@@ -72,7 +72,7 @@ async function buscarStatusMercado() {
             estadoPC.mercadoAberto = status.status_mercado === 1;
         }
     } catch (e) {
-        console.warn("[PONTOS-CORRIDOS] ⚠️ Falha ao buscar status do mercado");
+        if (window.Log) Log.warn("[PONTOS-CORRIDOS] ⚠️ Falha ao buscar status do mercado");
     }
 }
 
@@ -344,7 +344,7 @@ function renderizarCardDesempenho() {
         </div>
     `;
 
-    console.log(
+    if (window.Log) Log.info(
         `[PONTOS-CORRIDOS] 📊 Desempenho: ${vitorias}V ${empates}E ${derrotas}D em ${totalConfrontos} confrontos | Posição: ${posicaoAtual}º`,
     );
 }
@@ -942,6 +942,6 @@ window.recarregarPontosCorridos = function () {
 window.inicializarPontosCorridosParticipante =
     inicializarPontosCorridosParticipante;
 
-console.log(
+if (window.Log) Log.info(
     "[PONTOS-CORRIDOS] ✅ Módulo v4.9 carregado (Material Icons + Card Desempenho)",
 );

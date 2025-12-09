@@ -13,7 +13,7 @@
 //    - Sem bordas e gradientes excessivos
 // ✅ v7.1: Card "Seu Desempenho" com métricas completas
 
-console.log("[EXTRATO-UI] 🎨 Módulo de UI v8.1 Campos Manuais");
+if (window.Log) Log.info("[EXTRATO-UI] 🎨 Módulo de UI v8.1 Campos Manuais");
 
 // ===== CONFIGURAÇÃO DE FAIXAS POR LIGA (COM SUPORTE TEMPORAL) =====
 const FAIXAS_PREMIACAO = {
@@ -122,7 +122,7 @@ function classificarPosicao(posicao, faixas) {
 export function renderizarExtratoParticipante(extrato, participanteId) {
     const container = document.getElementById("fluxoFinanceiroContent");
     if (!container) {
-        console.error("[EXTRATO-UI] ❌ Container não encontrado!");
+        if (window.Log) Log.error("[EXTRATO-UI] ❌ Container não encontrado!");
         return;
     }
 
@@ -189,7 +189,7 @@ function renderizarConteudoCompleto(container, extrato) {
         "";
 
     // Debug: verificar se ligaId está chegando
-    console.log(
+    if (window.Log) Log.info(
         "[EXTRATO-UI] 🔍 LigaId detectado:",
         ligaId,
         "| Config existe:",
@@ -844,4 +844,4 @@ function addCategoria(obj, nome, valor, rodada, icon) {
     }
 }
 
-console.log("[EXTRATO-UI] ✅ Módulo v8.1 Campos Manuais pronto");
+if (window.Log) Log.info("[EXTRATO-UI] ✅ Módulo v8.1 Campos Manuais pronto");

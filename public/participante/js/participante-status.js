@@ -1,6 +1,7 @@
 // PARTICIPANTE STATUS - Sistema de Verificação de Conectividade
 
-console.log('[PARTICIPANTE-STATUS] Carregando sistema de status...');
+if (window.Log)
+    Log.info("PARTICIPANTE-STATUS", "Carregando sistema de status...");
 
 class ParticipanteStatus {
     constructor() {
@@ -15,11 +16,15 @@ class ParticipanteStatus {
     }
 
     inicializar() {
-        this.statusIndicador = document.getElementById('statusIndicador');
-        this.statusTexto = document.getElementById('statusTexto');
+        this.statusIndicador = document.getElementById("statusIndicador");
+        this.statusTexto = document.getElementById("statusTexto");
 
         if (!this.statusIndicador || !this.statusTexto) {
-            console.warn('[PARTICIPANTE-STATUS] Elementos de status não encontrados no DOM');
+            if (window.Log)
+                Log.warn(
+                    "PARTICIPANTE-STATUS",
+                    "Elementos de status não encontrados no DOM",
+                );
             return;
         }
 
@@ -32,8 +37,8 @@ class ParticipanteStatus {
         this.iniciarVerificacoesPeriodicas();
 
         // Listener para mudanças de conectividade do navegador
-        window.addEventListener('online', () => this.marcarOnline());
-        window.addEventListener('offline', () => this.marcarOffline());
+        window.addEventListener("online", () => this.marcarOnline());
+        window.addEventListener("offline", () => this.marcarOffline());
     }
 
     iniciarVerificacoesPeriodicas() {
@@ -59,13 +64,16 @@ class ParticipanteStatus {
         try {
             // Usar HEAD request para ser mais leve
             const controller = new AbortController();
-            const timeoutId = setTimeout(() => controller.abort(), this.timeoutVerificacao);
+            const timeoutId = setTimeout(
+                () => controller.abort(),
+                this.timeoutVerificacao,
+            );
 
-            const response = await fetch('/api/participante/auth/session', {
-                method: 'HEAD',
-                credentials: 'include',
+            const response = await fetch("/api/participante/auth/session", {
+                method: "HEAD",
+                credentials: "include",
                 signal: controller.signal,
-                cache: 'no-store'
+                cache: "no-store",
             });
 
             clearTimeout(timeoutId);
@@ -83,10 +91,19 @@ class ParticipanteStatus {
             }
         } catch (error) {
             // Ignorar erros de abort (timeout)
-            if (error.name === 'AbortError') {
-                console.warn('[PARTICIPANTE-STATUS] Timeout na verificação de status');
+            if (error.name === "AbortError") {
+                if (window.Log)
+                    Log.warn(
+                        "PARTICIPANTE-STATUS",
+                        "Timeout na verificação de status",
+                    );
             } else {
-                console.warn('[PARTICIPANTE-STATUS] Erro na verificação:', error.message);
+                if (window.Log)
+                    Log.warn(
+                        "PARTICIPANTE-STATUS",
+                        "Erro na verificação:",
+                        error.message,
+                    );
             }
 
             this.tentativasFalhadas++;
@@ -103,19 +120,19 @@ class ParticipanteStatus {
     marcarOnline() {
         if (!this.statusIndicador || !this.statusTexto) return;
 
-        console.log('[PARTICIPANTE-STATUS] 🟢 Online');
-        this.statusIndicador.style.background = '#22c55e';
-        this.statusTexto.textContent = 'Online';
-        this.statusTexto.style.color = '#22c55e';
+        if (window.Log) Log.debug("PARTICIPANTE-STATUS", "🟢 Online");
+        this.statusIndicador.style.background = "#22c55e";
+        this.statusTexto.textContent = "Online";
+        this.statusTexto.style.color = "#22c55e";
     }
 
     marcarOffline() {
         if (!this.statusIndicador || !this.statusTexto) return;
 
-        console.log('[PARTICIPANTE-STATUS] 🔴 Offline');
-        this.statusIndicador.style.background = '#ef4444';
-        this.statusTexto.textContent = 'Offline';
-        this.statusTexto.style.color = '#ef4444';
+        if (window.Log) Log.warn("PARTICIPANTE-STATUS", "🔴 Offline");
+        this.statusIndicador.style.background = "#ef4444";
+        this.statusTexto.textContent = "Offline";
+        this.statusTexto.style.color = "#ef4444";
     }
 
     destruir() {
@@ -124,8 +141,8 @@ class ParticipanteStatus {
             this.timerId = null;
         }
 
-        window.removeEventListener('online', () => this.marcarOnline());
-        window.removeEventListener('offline', () => this.marcarOffline());
+        window.removeEventListener("online", () => this.marcarOnline());
+        window.removeEventListener("offline", () => this.marcarOffline());
     }
 }
 
@@ -133,12 +150,12 @@ class ParticipanteStatus {
 const participanteStatus = new ParticipanteStatus();
 
 // Inicializar quando DOM estiver pronto
-if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', () => {
+if (document.readyState === "loading") {
+    document.addEventListener("DOMContentLoaded", () => {
         participanteStatus.inicializar();
     });
 } else {
     participanteStatus.inicializar();
 }
 
-console.log('[PARTICIPANTE-STATUS] ✅ Sistema carregado');
+if (window.Log) Log.info("PARTICIPANTE-STATUS", "✅ Sistema carregado");

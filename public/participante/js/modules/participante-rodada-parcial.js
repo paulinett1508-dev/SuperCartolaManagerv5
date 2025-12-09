@@ -5,7 +5,7 @@
 // CÁLCULO REAL: Busca atletas pontuados e calcula pontuação (igual admin)
 // =====================================================================
 
-console.log("[PARCIAIS] 📊 Carregando módulo v2.2...");
+if (window.Log) Log.info("[PARCIAIS] 📊 Carregando módulo v2.2...");
 
 // Estado do módulo
 let estadoParciais = {
@@ -26,7 +26,7 @@ let estadoParciais = {
 // INICIALIZAÇÃO - Chamado pelo participante-rodadas.js
 // =====================================================================
 export async function inicializarParciais(ligaId, timeId) {
-    console.log("[PARCIAIS] 🚀 Inicializando v2.2...", { ligaId, timeId });
+    if (window.Log) Log.info("[PARCIAIS] 🚀 Inicializando v2.2...", { ligaId, timeId });
 
     estadoParciais.ligaId = ligaId;
     estadoParciais.timeId = timeId;
@@ -35,7 +35,7 @@ export async function inicializarParciais(ligaId, timeId) {
         // 1. Buscar status do mercado
         const status = await buscarStatusMercado();
         if (!status) {
-            console.warn(
+            if (window.Log) Log.warn(
                 "[PARCIAIS] ⚠️ Não foi possível obter status do mercado",
             );
             return { disponivel: false, motivo: "status_indisponivel" };
@@ -49,7 +49,7 @@ export async function inicializarParciais(ligaId, timeId) {
             status.status_mercado === 2 || status.bola_rolando;
 
         if (!rodadaEmAndamento) {
-            console.log(
+            if (window.Log) Log.info(
                 "[PARCIAIS] ℹ️ Mercado aberto, sem parciais disponíveis",
             );
             return {
@@ -62,7 +62,7 @@ export async function inicializarParciais(ligaId, timeId) {
         // 3. Buscar times da liga
         const times = await buscarTimesLiga(ligaId);
         if (!times || times.length === 0) {
-            console.warn("[PARCIAIS] ⚠️ Nenhum time encontrado na liga");
+            if (window.Log) Log.warn("[PARCIAIS] ⚠️ Nenhum time encontrado na liga");
             return { disponivel: false, motivo: "sem_times" };
         }
 
@@ -71,7 +71,7 @@ export async function inicializarParciais(ligaId, timeId) {
         estadoParciais.timesLiga = ativos;
         estadoParciais.timesInativos = inativos;
 
-        console.log(
+        if (window.Log) Log.info(
             `[PARCIAIS] ✅ Pronto: Rodada ${status.rodada_atual}, ${ativos.length} ativos, ${inativos.length} inativos`,
         );
 
@@ -83,7 +83,7 @@ export async function inicializarParciais(ligaId, timeId) {
             bolaRolando: status.bola_rolando,
         };
     } catch (error) {
-        console.error("[PARCIAIS] ❌ Erro na inicialização:", error);
+        if (window.Log) Log.error("[PARCIAIS] ❌ Erro na inicialização:", error);
         return { disponivel: false, motivo: "erro", erro: error.message };
     }
 }
@@ -124,7 +124,7 @@ async function buscarStatusMercado() {
         if (!response.ok) throw new Error(`HTTP ${response.status}`);
         return await response.json();
     } catch (error) {
-        console.error("[PARCIAIS] Erro ao buscar status:", error);
+        if (window.Log) Log.error("[PARCIAIS] Erro ao buscar status:", error);
         return null;
     }
 }
@@ -142,11 +142,11 @@ async function buscarTimesLiga(ligaId) {
             ? data
             : data.times || data.participantes || [];
 
-        console.log(`[PARCIAIS] 📋 Times da liga: ${times.length} total`);
+        if (window.Log) Log.info(`[PARCIAIS] 📋 Times da liga: ${times.length} total`);
 
         return times;
     } catch (error) {
-        console.error("[PARCIAIS] Erro ao buscar times:", error);
+        if (window.Log) Log.error("[PARCIAIS] Erro ao buscar times:", error);
         return [];
     }
 }
@@ -174,16 +174,16 @@ async function buscarAtletasPontuados() {
         const data = await response.json();
 
         if (!data.atletas) {
-            console.warn("[PARCIAIS] ⚠️ Sem atletas pontuados na resposta");
+            if (window.Log) Log.warn("[PARCIAIS] ⚠️ Sem atletas pontuados na resposta");
             return {};
         }
 
-        console.log(
+        if (window.Log) Log.info(
             `[PARCIAIS] 🔥 ${Object.keys(data.atletas).length} atletas pontuados`,
         );
         return data.atletas;
     } catch (error) {
-        console.error("[PARCIAIS] Erro ao buscar atletas pontuados:", error);
+        if (window.Log) Log.error("[PARCIAIS] Erro ao buscar atletas pontuados:", error);
         return {};
     }
 }
@@ -193,17 +193,17 @@ async function buscarAtletasPontuados() {
 // =====================================================================
 export async function carregarParciais() {
     if (estadoParciais.isCarregando) {
-        console.log("[PARCIAIS] ⏳ Já está carregando...");
+        if (window.Log) Log.info("[PARCIAIS] ⏳ Já está carregando...");
         return null;
     }
 
     if (!estadoParciais.timesLiga.length) {
-        console.warn("[PARCIAIS] ⚠️ Sem times ativos para buscar");
+        if (window.Log) Log.warn("[PARCIAIS] ⚠️ Sem times ativos para buscar");
         return null;
     }
 
     estadoParciais.isCarregando = true;
-    console.log(
+    if (window.Log) Log.info(
         `[PARCIAIS] 🔄 Buscando parciais de ${estadoParciais.timesLiga.length} times ativos...`,
     );
 
@@ -215,7 +215,7 @@ export async function carregarParciais() {
         estadoParciais.atletasPontuados = atletasPontuados;
 
         if (Object.keys(atletasPontuados).length === 0) {
-            console.warn("[PARCIAIS] ⚠️ Nenhum atleta pontuado ainda");
+            if (window.Log) Log.warn("[PARCIAIS] ⚠️ Nenhum atleta pontuado ainda");
             estadoParciais.isCarregando = false;
             return {
                 rodada,
@@ -265,7 +265,7 @@ export async function carregarParciais() {
             }),
         );
 
-        console.log(
+        if (window.Log) Log.info(
             `[PARCIAIS] ✅ ${resultados.length} ativos, ${estadoParciais.dadosInativos.length} inativos`,
         );
 
@@ -278,7 +278,7 @@ export async function carregarParciais() {
             atualizadoEm: estadoParciais.ultimaAtualizacao,
         };
     } catch (error) {
-        console.error("[PARCIAIS] ❌ Erro ao carregar parciais:", error);
+        if (window.Log) Log.error("[PARCIAIS] ❌ Erro ao carregar parciais:", error);
         return null;
     } finally {
         estadoParciais.isCarregando = false;
@@ -292,7 +292,7 @@ async function buscarECalcularPontuacao(time, rodada, atletasPontuados) {
     const timeId = time.id || time.time_id || time.timeId;
 
     if (!timeId) {
-        console.warn("[PARCIAIS] Time sem ID:", time);
+        if (window.Log) Log.warn("[PARCIAIS] Time sem ID:", time);
         return null;
     }
 
@@ -402,7 +402,7 @@ async function buscarECalcularPontuacao(time, rodada, atletasPontuados) {
             ativo: true,
         };
     } catch (error) {
-        console.warn(
+        if (window.Log) Log.warn(
             `[PARCIAIS] Erro ao calcular time ${timeId}:`,
             error.message,
         );
@@ -490,6 +490,6 @@ window.ParciaisModule = {
     rodadaAtual: obterRodadaAtual,
 };
 
-console.log(
+if (window.Log) Log.info(
     "[PARCIAIS] ✅ Módulo v2.2 carregado (inativos em todas as rodadas)",
 );

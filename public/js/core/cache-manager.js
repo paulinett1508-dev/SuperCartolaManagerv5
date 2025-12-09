@@ -38,16 +38,17 @@ class CacheManager {
     return new Promise((resolve, reject) => {
       const request = indexedDB.open(
         CACHE_CONFIG.dbName,
-        CACHE_CONFIG.dbVersion
+        CACHE_CONFIG.dbVersion,
       );
 
       request.onerror = () => {
-        console.error("[CACHE-MANAGER] Erro ao abrir IndexedDB:", request.error);
+        if (window.Log)
+          Log.error("CACHE-MANAGER", "Erro ao abrir IndexedDB:", request.error);
         reject(request.error);
       };
       request.onsuccess = () => {
         this.db = request.result;
-        console.log("✅ [CACHE-MANAGER] IndexedDB inicializado");
+        if (window.Log) Log.info("CACHE-MANAGER", "✅ IndexedDB inicializado");
         resolve();
       };
 
@@ -61,7 +62,7 @@ class CacheManager {
           }
         });
 
-        console.log("🔧 [CACHE-MANAGER] Database upgraded");
+        if (window.Log) Log.debug("CACHE-MANAGER", "🔧 Database upgraded");
       };
     });
   }
@@ -87,7 +88,7 @@ class CacheManager {
     if (!force && this.memoryCache.has(key)) {
       const entry = this.memoryCache.get(key);
       if (this._isValid(entry, ttl)) {
-        console.log(`💾 [CACHE-MANAGER] Memory hit: ${key}`);
+        if (window.Log) Log.debug("CACHE-MANAGER", `💾 Memory hit: ${key}`);
         return entry.data;
       }
     }
@@ -97,7 +98,7 @@ class CacheManager {
     const dbEntry = await this._getFromDB(storeName, key);
 
     if (!force && dbEntry && this._isValid(dbEntry, ttl)) {
-      console.log(`💿 [CACHE-MANAGER] IndexedDB hit: ${key}`);
+      if (window.Log) Log.debug("CACHE-MANAGER", `💿 IndexedDB hit: ${key}`);
       // Atualizar memory cache
       this.memoryCache.set(key, dbEntry);
       return dbEntry.data;
@@ -105,7 +106,7 @@ class CacheManager {
 
     // 3. Cache miss - executar fetch
     if (fetchFn) {
-      console.log(`🌐 [CACHE-MANAGER] Fetching: ${key}`);
+      if (window.Log) Log.debug("CACHE-MANAGER", `🌐 Fetching: ${key}`);
       try {
         const data = await fetchFn();
 
@@ -113,19 +114,25 @@ class CacheManager {
         await this.set(storeName, key, data);
         return data;
       } catch (error) {
-        console.error(`[CACHE-MANAGER] Erro ao buscar ${key}:`, error);
+        if (window.Log)
+          Log.error("CACHE-MANAGER", `Erro ao buscar ${key}:`, error);
         // Tentar buscar do localStorage como fallback
         try {
           const stored = localStorage.getItem(`cache_${key}`);
           if (stored) {
             const data = JSON.parse(stored);
             if (data.expiry > Date.now()) {
-              console.log(`🛋️ [CACHE-MANAGER] Fallback localStorage hit: ${key}`);
+              if (window.Log)
+                Log.debug(
+                  "CACHE-MANAGER",
+                  `🛋️ Fallback localStorage hit: ${key}`,
+                );
               return data.value;
             }
           }
         } catch (e) {
-          console.warn('[CACHE-MANAGER] Fallback localStorage falhou:', e);
+          if (window.Log)
+            Log.warn("CACHE-MANAGER", "Fallback localStorage falhou:", e);
         }
         return null; // Retorna null se fetchFn falhar e fallback não ajudar
       }
@@ -149,15 +156,26 @@ class CacheManager {
     await this.initPromise;
     try {
       await this._saveToDB(storeName, entry);
-      console.log(`✅ [CACHE-MANAGER] Saved to IndexedDB: ${key}`);
+      if (window.Log)
+        Log.debug("CACHE-MANAGER", `✅ Saved to IndexedDB: ${key}`);
     } catch (error) {
-      console.warn(`[CACHE-MANAGER] Erro ao salvar em IndexedDB ${key}:`, error);
+      if (window.Log)
+        Log.warn("CACHE-MANAGER", `Erro ao salvar em IndexedDB ${key}:`, error);
       // Fallback para localStorage se IndexedDB falhar
       try {
         localStorage.setItem(`cache_${key}`, JSON.stringify(entry));
-        console.log(`💾 [CACHE-MANAGER] Saved to localStorage as fallback: ${key}`);
+        if (window.Log)
+          Log.debug(
+            "CACHE-MANAGER",
+            `💾 Saved to localStorage as fallback: ${key}`,
+          );
       } catch (e) {
-        console.warn('[CACHE-MANAGER] Fallback localStorage falhou ao salvar:', e);
+        if (window.Log)
+          Log.warn(
+            "CACHE-MANAGER",
+            "Fallback localStorage falhou ao salvar:",
+            e,
+          );
       }
     }
   }
@@ -169,15 +187,30 @@ class CacheManager {
     await this.initPromise;
     try {
       await this._deleteFromDB(storeName, key);
-      console.log(`🗑️ [CACHE-MANAGER] Invalidated in IndexedDB: ${key}`);
+      if (window.Log)
+        Log.debug("CACHE-MANAGER", `🗑️ Invalidated in IndexedDB: ${key}`);
     } catch (error) {
-      console.warn(`[CACHE-MANAGER] Erro ao invalidar em IndexedDB ${key}:`, error);
+      if (window.Log)
+        Log.warn(
+          "CACHE-MANAGER",
+          `Erro ao invalidar em IndexedDB ${key}:`,
+          error,
+        );
       // Tentar invalidar do localStorage como fallback
       try {
         localStorage.removeItem(`cache_${key}`);
-        console.log(`🗑️ [CACHE-MANAGER] Invalidated in localStorage fallback: ${key}`);
+        if (window.Log)
+          Log.debug(
+            "CACHE-MANAGER",
+            `🗑️ Invalidated in localStorage fallback: ${key}`,
+          );
       } catch (e) {
-        console.warn('[CACHE-MANAGER] Fallback localStorage falhou ao invalidar:', e);
+        if (window.Log)
+          Log.warn(
+            "CACHE-MANAGER",
+            "Fallback localStorage falhou ao invalidar:",
+            e,
+          );
       }
     }
   }
@@ -195,16 +228,36 @@ class CacheManager {
     await this.initPromise;
     try {
       await this._clearStore(storeName);
-      console.log(`🗑️ [CACHE-MANAGER] Store cleared in IndexedDB: ${storeName}`);
+      if (window.Log)
+        Log.debug(
+          "CACHE-MANAGER",
+          `🗑️ Store cleared in IndexedDB: ${storeName}`,
+        );
     } catch (error) {
-      console.warn(`[CACHE-MANAGER] Erro ao limpar store ${storeName} em IndexedDB:`, error);
+      if (window.Log)
+        Log.warn(
+          "CACHE-MANAGER",
+          `Erro ao limpar store ${storeName} em IndexedDB:`,
+          error,
+        );
       // Tentar limpar do localStorage como fallback
       try {
-        const keysToRemove = Object.keys(localStorage).filter(key => key.startsWith(`cache_${storeName}_`));
-        keysToRemove.forEach(key => localStorage.removeItem(key));
-        console.log(`🗑️ [CACHE-MANAGER] Store cleared in localStorage fallback: ${storeName}`);
+        const keysToRemove = Object.keys(localStorage).filter((key) =>
+          key.startsWith(`cache_${storeName}_`),
+        );
+        keysToRemove.forEach((key) => localStorage.removeItem(key));
+        if (window.Log)
+          Log.debug(
+            "CACHE-MANAGER",
+            `🗑️ Store cleared in localStorage fallback: ${storeName}`,
+          );
       } catch (e) {
-        console.warn('[CACHE-MANAGER] Fallback localStorage falhou ao limpar store:', e);
+        if (window.Log)
+          Log.warn(
+            "CACHE-MANAGER",
+            "Fallback localStorage falhou ao limpar store:",
+            e,
+          );
       }
     }
   }
@@ -217,21 +270,41 @@ class CacheManager {
     for (const storeName of Object.values(CACHE_CONFIG.stores)) {
       try {
         await this._clearStore(storeName);
-        console.log(`🗑️ [CACHE-MANAGER] Store cleared in IndexedDB: ${storeName}`);
+        if (window.Log)
+          Log.debug(
+            "CACHE-MANAGER",
+            `🗑️ Store cleared in IndexedDB: ${storeName}`,
+          );
       } catch (error) {
-        console.warn(`[CACHE-MANAGER] Erro ao limpar store ${storeName} em IndexedDB:`, error);
+        if (window.Log)
+          Log.warn(
+            "CACHE-MANAGER",
+            `Erro ao limpar store ${storeName} em IndexedDB:`,
+            error,
+          );
       }
     }
     // Limpar também o localStorage como fallback
     try {
-      const keysToRemove = Object.keys(localStorage).filter(key => key.startsWith('cache_'));
-      keysToRemove.forEach(key => localStorage.removeItem(key));
-      console.log("🗑️ [CACHE-MANAGER] All cache cleared from localStorage fallback");
+      const keysToRemove = Object.keys(localStorage).filter((key) =>
+        key.startsWith("cache_"),
+      );
+      keysToRemove.forEach((key) => localStorage.removeItem(key));
+      if (window.Log)
+        Log.debug(
+          "CACHE-MANAGER",
+          "All cache cleared from localStorage fallback",
+        );
     } catch (e) {
-      console.warn('[CACHE-MANAGER] Fallback localStorage falhou ao limpar tudo:', e);
+      if (window.Log)
+        Log.warn(
+          "CACHE-MANAGER",
+          "Fallback localStorage falhou ao limpar tudo:",
+          e,
+        );
     }
 
-    console.log("🗑️ [CACHE-MANAGER] All cache cleared");
+    if (window.Log) Log.info("CACHE-MANAGER", "🗑️ All cache cleared");
   }
 
   // Limpar cache expirado
@@ -247,19 +320,31 @@ class CacheManager {
 
         for (const entry of entries) {
           if (!this._isValid(entry, ttl)) {
-            await this._deleteFromDB(storeName, entry.key).catch(err => {
-              console.warn('[CACHE-MANAGER] Erro ao deletar cache expirado do IndexedDB:', err);
+            await this._deleteFromDB(storeName, entry.key).catch((err) => {
+              if (window.Log)
+                Log.warn(
+                  "CACHE-MANAGER",
+                  "Erro ao deletar cache expirado do IndexedDB:",
+                  err,
+                );
             });
             this.memoryCache.delete(entry.key);
             cleaned++;
           }
         }
       } catch (error) {
-        console.warn(`[CACHE-MANAGER] Erro ao limpar cache expirado do store ${storeName}:`, error);
+        if (window.Log)
+          Log.warn(
+            "CACHE-MANAGER",
+            `Erro ao limpar cache expirado do store ${storeName}:`,
+            error,
+          );
         // Tentar limpar do localStorage como fallback
         try {
-          const keysToRemove = Object.keys(localStorage).filter(key => key.startsWith(`cache_${storeName}_`));
-          keysToRemove.forEach(key => {
+          const keysToRemove = Object.keys(localStorage).filter((key) =>
+            key.startsWith(`cache_${storeName}_`),
+          );
+          keysToRemove.forEach((key) => {
             const storedData = JSON.parse(localStorage.getItem(key));
             if (storedData && storedData.expiry <= Date.now()) {
               localStorage.removeItem(key);
@@ -267,12 +352,18 @@ class CacheManager {
             }
           });
         } catch (e) {
-          console.warn('[CACHE-MANAGER] Fallback localStorage falhou ao limpar cache expirado:', e);
+          if (window.Log)
+            Log.warn(
+              "CACHE-MANAGER",
+              "Fallback localStorage falhou ao limpar cache expirado:",
+              e,
+            );
         }
       }
     }
 
-    console.log(`🧹 [CACHE-MANAGER] Cleaned ${cleaned} expired entries`);
+    if (window.Log)
+      Log.debug("CACHE-MANAGER", `🧹 Cleaned ${cleaned} expired entries`);
     return cleaned;
   }
 
@@ -289,7 +380,12 @@ class CacheManager {
 
       request.onsuccess = () => resolve(request.result);
       request.onerror = (event) => {
-        console.error(`[CACHE-MANAGER] Erro em _getFromDB (${storeName}, ${key}):`, event.target.error);
+        if (window.Log)
+          Log.error(
+            "CACHE-MANAGER",
+            `Erro em _getFromDB (${storeName}, ${key}):`,
+            event.target.error,
+          );
         reject(event.target.error);
       };
     });
@@ -306,7 +402,12 @@ class CacheManager {
 
       request.onsuccess = () => resolve();
       request.onerror = (event) => {
-        console.error(`[CACHE-MANAGER] Erro em _saveToDB (${storeName}, ${entry.key}):`, event.target.error);
+        if (window.Log)
+          Log.error(
+            "CACHE-MANAGER",
+            `Erro em _saveToDB (${storeName}, ${entry.key}):`,
+            event.target.error,
+          );
         reject(event.target.error);
       };
     });
@@ -323,7 +424,12 @@ class CacheManager {
 
       request.onsuccess = () => resolve();
       request.onerror = (event) => {
-        console.error(`[CACHE-MANAGER] Erro em _deleteFromDB (${storeName}, ${key}):`, event.target.error);
+        if (window.Log)
+          Log.error(
+            "CACHE-MANAGER",
+            `Erro em _deleteFromDB (${storeName}, ${key}):`,
+            event.target.error,
+          );
         reject(event.target.error);
       };
     });
@@ -340,7 +446,12 @@ class CacheManager {
 
       request.onsuccess = () => resolve();
       request.onerror = (event) => {
-        console.error(`[CACHE-MANAGER] Erro em _clearStore (${storeName}):`, event.target.error);
+        if (window.Log)
+          Log.error(
+            "CACHE-MANAGER",
+            `Erro em _clearStore (${storeName}):`,
+            event.target.error,
+          );
         reject(event.target.error);
       };
     });
@@ -357,7 +468,12 @@ class CacheManager {
 
       request.onsuccess = () => resolve(request.result || []);
       request.onerror = (event) => {
-        console.error(`[CACHE-MANAGER] Erro em _getAllFromStore (${storeName}):`, event.target.error);
+        if (window.Log)
+          Log.error(
+            "CACHE-MANAGER",
+            `Erro em _getAllFromStore (${storeName}):`,
+            event.target.error,
+          );
         reject(event.target.error);
       };
     });
@@ -373,8 +489,8 @@ class CacheManager {
     };
 
     if (!this.db) {
-        console.warn("[CACHE-MANAGER] DB not available for stats.");
-        return stats;
+      if (window.Log) Log.warn("CACHE-MANAGER", "DB not available for stats.");
+      return stats;
     }
 
     for (const storeName of Object.values(CACHE_CONFIG.stores)) {
@@ -382,58 +498,68 @@ class CacheManager {
         const entries = await this._getAllFromStore(storeName);
         stats.stores[storeName] = entries.length;
       } catch (error) {
-        console.warn(`[CACHE-MANAGER] Erro ao obter estatísticas para ${storeName}:`, error);
-        stats.stores[storeName] = 'Error';
+        if (window.Log)
+          Log.warn(
+            "CACHE-MANAGER",
+            `Erro ao obter estatísticas para ${storeName}:`,
+            error,
+          );
+        stats.stores[storeName] = "Error";
       }
     }
 
     return stats;
   }
 
-    /**
-     * Busca múltiplos times de uma vez (otimização)
-     * @param {Array<number>} timeIds - IDs dos times
-     * @returns {Promise<Array>} Lista de times
-     */
-    async buscarTimesBatch(timeIds) {
-        try {
-            const response = await fetch('/api/times/batch', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify({ ids: timeIds })
-            });
+  /**
+   * Busca múltiplos times de uma vez (otimização)
+   * @param {Array<number>} timeIds - IDs dos times
+   * @returns {Promise<Array>} Lista de times
+   */
+  async buscarTimesBatch(timeIds) {
+    try {
+      const response = await fetch("/api/times/batch", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ ids: timeIds }),
+      });
 
-            if (!response.ok) {
-                throw new Error(`Erro HTTP: ${response.status}`);
-            }
+      if (!response.ok) {
+        throw new Error(`Erro HTTP: ${response.status}`);
+      }
 
-            const times = await response.json();
+      const times = await response.json();
 
-            // Cachear cada time individualmente para uso futuro
-            for (const time of times) {
-                const cacheKey = `time_${time.id}`;
-                await this.save(cacheKey, time, 300000); // 5 minutos
-            }
+      // Cachear cada time individualmente para uso futuro
+      for (const time of times) {
+        const cacheKey = `time_${time.id}`;
+        await this.save(cacheKey, time, 300000); // 5 minutos
+      }
 
-            return times;
-        } catch (error) {
-            console.error('[CACHE-MANAGER] Erro ao buscar times em lote:', error);
-            return [];
-        }
+      return times;
+    } catch (error) {
+      if (window.Log)
+        Log.error("CACHE-MANAGER", "Erro ao buscar times em lote:", error);
+      return [];
     }
+  }
 }
 
 // Instância singleton
 export const cacheManager = new CacheManager();
 
 // Limpeza automática a cada 10 minutos
-setInterval(() => {
-  cacheManager.cleanExpired();
-}, 10 * 60 * 1000);
+setInterval(
+  () => {
+    cacheManager.cleanExpired();
+  },
+  10 * 60 * 1000,
+);
 
 // Expor no window para debug
 window.cacheManager = cacheManager;
 
-console.log("✅ [CACHE-MANAGER] Sistema de cache inteligente carregado");
+if (window.Log)
+  Log.info("CACHE-MANAGER", "✅ Sistema de cache inteligente carregado");
