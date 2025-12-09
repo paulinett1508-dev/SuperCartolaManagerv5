@@ -67,7 +67,7 @@ import { protegerRotas } from "./middleware/auth.js";
 dotenv.config();
 
 const app = express();
-const PORT = process.env.PORT || 3000;
+const PORT = process.env.PORT || 5000;
 
 // Conectar ao Banco de Dados (Otimizado)
 connectDB();
@@ -227,7 +227,7 @@ app.get("*", (req, res) => {
 // Inicialização do Servidor
 if (process.env.NODE_ENV !== "test") {
   try {
-    app.listen(PORT, () => {
+    app.listen(PORT, '0.0.0.0', () => {
       console.log(`🚀 SUPER CARTOLA MANAGER RODANDO NA PORTA ${PORT}`);
       console.log(`💾 Sessões persistentes: ATIVADAS (MongoDB Store)`);
       console.log(`🔐 Autenticação Admin: Replit Auth`);
