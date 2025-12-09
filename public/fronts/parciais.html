@@ -1,196 +1,195 @@
+<!-- MÓDULO PARCIAIS - v3.0 (Temporada Encerrada) -->
 <div id="parciais-container" class="module-content">
-  <h2 class="module-title">📊 Parciais ao Vivo</h2>
+    <!-- Card Temporada Encerrada -->
+    <div class="parciais-encerrado">
+        <div class="parciais-encerrado-icon">
+            <span class="material-icons">emoji_events</span>
+        </div>
 
-  <div class="parciais-info" style="text-align: center; margin-bottom: 20px">
-    <h3 id="nomeLiga" style="color: #fff; margin: 0"></h3>
-    <p id="quantidadeTimes" style="color: #aaa; margin: 5px 0"></p>
-  </div>
+        <h2 class="parciais-encerrado-title">Temporada 2025 Encerrada</h2>
 
-  <!-- Indicador de atualização automática inserido pelo scheduler -->
+        <p class="parciais-encerrado-subtitle">
+            As 38 rodadas foram concluídas com sucesso
+        </p>
 
-  <div class="parciais-header" style="text-align: center; margin-bottom: 20px">
-    <h3 id="rodadaAtualTitle" style="color: #ffd700; font-size: 18px"></h3>
-  </div>
+        <div class="parciais-encerrado-stats">
+            <div class="parciais-stat">
+                <span class="material-icons">flag</span>
+                <span>38 Rodadas</span>
+            </div>
+            <div class="parciais-stat">
+                <span class="material-icons">check_circle</span>
+                <span>Consolidado</span>
+            </div>
+        </div>
 
-  <div
-    id="loading"
-    class="loading"
-    style="display: none; text-align: center; padding: 20px; color: #87ceeb"
-  >
-    <div style="font-size: 24px; margin-bottom: 10px">⏳</div>
-    Carregando parciais...
-  </div>
+        <div class="parciais-encerrado-info">
+            <span class="material-icons">info</span>
+            <p>
+                Confira a classificação final e os premiados nos módulos de
+                Ranking e Premiações.
+            </p>
+        </div>
 
-  <div
-    id="error"
-    class="error"
-    style="display: none; text-align: center; padding: 20px; color: #e74c3c"
-  ></div>
+        <div class="parciais-encerrado-actions">
+            <button
+                class="parciais-btn-ranking"
+                onclick="window.orquestrador?.showModule('ranking-geral')"
+            >
+                <span class="material-icons">leaderboard</span>
+                Ver Classificação Final
+            </button>
+        </div>
 
-  <div class="table-container" style="overflow-x: auto">
-    <table
-      class="ranking-table"
-      id="rankingTable"
-      style="
-        width: 100%;
-        max-width: 1100px;
-        margin: 0 auto;
-        border-collapse: collapse;
-        background: #1a2a44;
-        color: white;
-        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
-        border-radius: 8px;
-        overflow: hidden;
-      "
-    >
-      <thead>
-        <tr style="background: linear-gradient(135deg, #3498db, #2980b9)">
-          <th
-            style="
-              padding: 12px 10px;
-              text-align: center;
-              font-size: 12px;
-              text-transform: uppercase;
-            "
-          >
-            P
-          </th>
-          <th
-            style="
-              padding: 12px 10px;
-              text-align: left;
-              font-size: 12px;
-              text-transform: uppercase;
-            "
-          >
-            Cartoleiro
-          </th>
-          <th
-            style="
-              padding: 12px 10px;
-              text-align: left;
-              font-size: 12px;
-              text-transform: uppercase;
-            "
-          >
-            Time Cartola
-          </th>
-          <th
-            style="
-              padding: 12px 10px;
-              text-align: center;
-              font-size: 12px;
-              text-transform: uppercase;
-            "
-          >
-            ❤️
-          </th>
-          <th
-            style="
-              padding: 12px 10px;
-              text-align: center;
-              font-size: 12px;
-              text-transform: uppercase;
-            "
-          >
-            Pontos
-          </th>
-          <th
-            style="
-              padding: 12px 10px;
-              text-align: center;
-              font-size: 12px;
-              text-transform: uppercase;
-            "
-          >
-            Banco
-          </th>
-        </tr>
-      </thead>
-      <tbody id="rankingBody"></tbody>
-    </table>
-  </div>
+        <div class="parciais-encerrado-footer">
+            <span class="material-icons">schedule</span>
+            <span>Nova temporada em breve</span>
+        </div>
+    </div>
 </div>
 
 <style>
-  #parciais-container {
-    padding: 20px;
-  }
+    /* ===== TEMPORADA ENCERRADA - CLEAN DESIGN ===== */
+    #parciais-container {
+        padding: 20px;
+        min-height: 400px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
 
-  #parciais-container .ranking-table td {
-    padding: 10px;
-    text-align: center;
-    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
-    font-size: 14px;
-  }
+    .parciais-encerrado {
+        text-align: center;
+        max-width: 420px;
+        padding: 40px 30px;
+        background: linear-gradient(145deg, #1a1a2e 0%, #16213e 100%);
+        border-radius: 20px;
+        border: 1px solid rgba(255, 215, 0, 0.2);
+        box-shadow: 0 20px 60px rgba(0, 0, 0, 0.4);
+    }
 
-  #parciais-container .ranking-table tr:nth-child(even) {
-    background: #2a3b55;
-  }
+    .parciais-encerrado-icon {
+        width: 80px;
+        height: 80px;
+        margin: 0 auto 20px;
+        background: linear-gradient(135deg, #ffd700 0%, #ffaa00 100%);
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        box-shadow: 0 8px 30px rgba(255, 215, 0, 0.3);
+    }
 
-  #parciais-container .ranking-table tr:nth-child(odd) {
-    background: #1a2a44;
-  }
+    .parciais-encerrado-icon .material-icons {
+        font-size: 40px;
+        color: #1a1a2e;
+    }
 
-  #parciais-container .ranking-table .position {
-    width: 50px;
-    font-weight: bold;
-  }
+    .parciais-encerrado-title {
+        font-size: 1.5rem;
+        font-weight: 700;
+        color: #fff;
+        margin: 0 0 8px;
+    }
 
-  #parciais-container .ranking-table .position.mito {
-    background: #00ff00;
-    color: #000;
-  }
+    .parciais-encerrado-subtitle {
+        font-size: 0.95rem;
+        color: rgba(255, 255, 255, 0.6);
+        margin: 0 0 24px;
+    }
 
-  #parciais-container .ranking-table .position.g2-g11 {
-    background: #00cc00;
-    color: #000;
-  }
+    .parciais-encerrado-stats {
+        display: flex;
+        justify-content: center;
+        gap: 24px;
+        margin-bottom: 24px;
+    }
 
-  #parciais-container .ranking-table .position.z22-z31 {
-    background: #cc0000;
-    color: #fff;
-  }
+    .parciais-stat {
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        padding: 8px 16px;
+        background: rgba(255, 255, 255, 0.05);
+        border-radius: 20px;
+        font-size: 0.85rem;
+        color: rgba(255, 255, 255, 0.8);
+    }
 
-  #parciais-container .ranking-table .position.mico {
-    background: #ff3333;
-    color: #fff;
-  }
+    .parciais-stat .material-icons {
+        font-size: 18px;
+        color: #ffd700;
+    }
 
-  #parciais-container .ranking-table .cartoleiro,
-  #parciais-container .ranking-table .time {
-    text-align: left;
-  }
+    .parciais-encerrado-info {
+        display: flex;
+        align-items: flex-start;
+        gap: 10px;
+        padding: 14px 16px;
+        background: rgba(255, 255, 255, 0.03);
+        border-radius: 10px;
+        border-left: 3px solid #3b82f6;
+        margin-bottom: 24px;
+        text-align: left;
+    }
 
-  #parciais-container .ranking-table .time-coracao {
-    text-align: center;
-    width: 50px;
-  }
+    .parciais-encerrado-info .material-icons {
+        font-size: 20px;
+        color: #3b82f6;
+        flex-shrink: 0;
+        margin-top: 2px;
+    }
 
-  #parciais-container .ranking-table .time-coracao img {
-    width: 24px;
-    height: 24px;
-    vertical-align: middle;
-  }
+    .parciais-encerrado-info p {
+        margin: 0;
+        font-size: 0.85rem;
+        color: rgba(255, 255, 255, 0.7);
+        line-height: 1.5;
+    }
 
-  #parciais-container .ranking-table .pontos {
-    color: #ffd700;
-    font-weight: bold;
-  }
+    .parciais-encerrado-actions {
+        margin-bottom: 20px;
+    }
 
-  #parciais-container .ranking-table .banco {
-    color: #00ff00;
-  }
+    .parciais-btn-ranking {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        padding: 12px 24px;
+        background: linear-gradient(135deg, #ff5c00 0%, #ff8c00 100%);
+        color: #fff;
+        border: none;
+        border-radius: 10px;
+        font-size: 0.95rem;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.2s ease;
+        box-shadow: 0 4px 15px rgba(255, 92, 0, 0.3);
+    }
 
-  #parciais-container .ranking-table .banco.negative {
-    color: #ff4444;
-  }
+    .parciais-btn-ranking:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 6px 20px rgba(255, 92, 0, 0.4);
+    }
 
-  #parciais-container .ranking-table .escudo {
-    width: 24px;
-    height: 24px;
-    vertical-align: middle;
-    margin-right: 8px;
-    border-radius: 4px;
-  }
+    .parciais-btn-ranking:active {
+        transform: translateY(0);
+    }
+
+    .parciais-btn-ranking .material-icons {
+        font-size: 20px;
+    }
+
+    .parciais-encerrado-footer {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 6px;
+        font-size: 0.8rem;
+        color: rgba(255, 255, 255, 0.4);
+    }
+
+    .parciais-encerrado-footer .material-icons {
+        font-size: 16px;
+    }
 </style>

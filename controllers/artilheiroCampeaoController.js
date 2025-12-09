@@ -1,9 +1,10 @@
-// controllers/artilheiroCampeaoController.js - VERSÃO 4.3
+// controllers/artilheiroCampeaoController.js - VERSÃO 4.4
 // ✅ PERSISTÊNCIA MONGODB + LÓGICA DE RODADA PARCIAL (igual Luva de Ouro)
 // ✅ SUPORTE A PARTICIPANTES INATIVOS - FILTRO INTEGRADO
 // ✅ CORREÇÃO v4.1: Não incluir rodada atual quando mercado aberto (sem scouts válidos)
 // ✅ CORREÇÃO v4.2: Incluir rodadas anteriores mesmo se parcial=true (rodadas passadas são válidas)
 // ✅ CORREÇÃO v4.3: Integração com participanteHelper para filtrar inativos
+// ✅ CORREÇÃO v4.4: COLETA AUTOMÁTICA de rodadas faltantes no MongoDB
 
 import mongoose from "mongoose";
 import {
@@ -145,13 +146,15 @@ class ArtilheiroCampeaoController {
 
             const rodadaInicio = inicio ? parseInt(inicio) : 1;
 
-            // ✅ Detectar status do mercado
+            // ✅ v4.4: Detectar status do mercado COM temporada encerrada
             const statusMercado =
                 await ArtilheiroCampeaoController.detectarStatusMercado();
             const rodadaAtual = statusMercado.rodadaAtual;
             const mercadoAberto = statusMercado.mercadoAberto;
+            const temporadaEncerrada = statusMercado.temporadaEncerrada;
+            const rodadaEmAndamento = statusMercado.rodadaEmAndamento;
 
-            // ✅ CORREÇÃO v4.1: LÓGICA CORRETA DE RODADA FIM
+            // ✅ v4.4: LÓGICA CORRETA DE RODADA FIM
             let rodadaFim;
             if (fim) {
                 rodadaFim = parseInt(fim);
@@ -162,6 +165,9 @@ class ArtilheiroCampeaoController {
                     );
                 }
             } else {
+                // Se temporada encerrada, usa rodada atual (38)
+                // Se mercado aberto, usa rodada atual - 1
+                // Se rodada em andamento, usa rodada atual
                 rodadaFim = mercadoAberto ? rodadaAtual - 1 : rodadaAtual;
             }
 
@@ -170,15 +176,15 @@ class ArtilheiroCampeaoController {
             }
 
             console.log(
-                `📊 Rodada ${rodadaInicio}-${rodadaFim}, Mercado: ${mercadoAberto ? "Aberto" : "Fechado"}, Rodada API: ${rodadaAtual}`,
+                `📊 Rodada ${rodadaInicio}-${rodadaFim}, Mercado: ${mercadoAberto ? "Aberto" : "Fechado"}, Temporada: ${temporadaEncerrada ? "ENCERRADA" : "ATIVA"}, Rodada API: ${rodadaAtual}`,
             );
 
-            // ✅ v4.3: Gerar ranking com filtro de inativos
+            // ✅ v4.4: Gerar ranking - só busca parciais se rodada em andamento
             const ranking = await ArtilheiroCampeaoController.gerarRanking(
                 ligaId,
                 rodadaInicio,
                 rodadaFim,
-                mercadoAberto,
+                !rodadaEmAndamento, // Se NÃO está em andamento, considera como "mercado aberto" (não busca parciais)
                 forcar_coleta === "true",
             );
 
@@ -195,15 +201,18 @@ class ArtilheiroCampeaoController {
                 rodadaFim,
                 rodadaAtual,
                 mercadoAberto,
+                temporadaEncerrada,
             };
 
             res.json({
                 success: true,
                 data: {
-                    ranking, // ✅ Ranking com campo 'ativo' em cada participante
+                    ranking,
                     estatisticas,
                     rodadaFim,
-                    rodadaParcial: !mercadoAberto ? rodadaAtual : null,
+                    // ✅ v4.4: Só marca como parcial se rodada EM ANDAMENTO
+                    rodadaParcial: rodadaEmAndamento ? rodadaAtual : null,
+                    temporadaEncerrada: temporadaEncerrada,
                 },
                 timestamp: new Date().toISOString(),
             });
@@ -218,7 +227,7 @@ class ArtilheiroCampeaoController {
     }
 
     /**
-     * ✅ Detectar status do mercado
+     * ✅ v4.4: Detectar status do mercado COM DETECÇÃO DE TEMPORADA ENCERRADA
      */
     static async detectarStatusMercado() {
         try {
@@ -229,14 +238,36 @@ class ArtilheiroCampeaoController {
 
             const data = await response.json();
 
+            // ✅ v4.4: Detectar temporada encerrada
+            // status_mercado: 1 = aberto, 2 = fechado (em andamento), 6 = temporada encerrada
+            const statusMercado = data.status_mercado;
+            const temporadaEncerrada =
+                statusMercado === 6 || statusMercado === 4;
+            const mercadoAberto = statusMercado === 1;
+
+            // Se temporada encerrada, considerar como consolidado (não parcial)
+            const rodadaEmAndamento = !mercadoAberto && !temporadaEncerrada;
+
+            console.log(
+                `📊 [MERCADO] Status: ${statusMercado}, Rodada: ${data.rodada_atual}, Temporada: ${temporadaEncerrada ? "ENCERRADA" : "ATIVA"}`,
+            );
+
             return {
                 rodadaAtual: data.rodada_atual || 1,
-                mercadoAberto: data.status_mercado === 1,
-                statusMercado: data.status_mercado,
+                mercadoAberto: mercadoAberto,
+                temporadaEncerrada: temporadaEncerrada,
+                rodadaEmAndamento: rodadaEmAndamento,
+                statusMercado: statusMercado,
             };
         } catch (error) {
             console.warn("⚠️ Erro ao detectar mercado:", error.message);
-            return { rodadaAtual: 36, mercadoAberto: false, statusMercado: 2 };
+            return {
+                rodadaAtual: 38,
+                mercadoAberto: false,
+                temporadaEncerrada: true, // Assume encerrada em caso de erro
+                rodadaEmAndamento: false,
+                statusMercado: 6,
+            };
         }
     }
 
@@ -254,10 +285,10 @@ class ArtilheiroCampeaoController {
                 data: {
                     rodadaAtual: status.rodadaAtual,
                     mercadoAberto: status.mercadoAberto,
+                    temporadaEncerrada: status.temporadaEncerrada,
+                    rodadaEmAndamento: status.rodadaEmAndamento,
                     statusMercado: status.statusMercado,
-                    ultimaRodadaConsolidada: status.mercadoAberto
-                        ? status.rodadaAtual - 1
-                        : status.rodadaAtual,
+                    ultimaRodadaConsolidada: status.rodadaAtual, // Sempre a atual se temporada encerrada
                 },
             });
         } catch (error) {
@@ -392,7 +423,7 @@ class ArtilheiroCampeaoController {
     }
 
     /**
-     * ✅ Obter dados de um participante específico
+     * ✅ v4.4: Obter dados de um participante específico COM COLETA AUTOMÁTICA DE FALTANTES
      */
     static async obterDadosParticipante(
         ligaId,
@@ -408,12 +439,65 @@ class ArtilheiroCampeaoController {
         let rodadasProcessadas = 0;
         const detalhePorRodada = [];
 
+        // ✅ v4.4: Buscar rodadas existentes no MongoDB
         const rodadasDB = await GolsConsolidados.find({
             ligaId: ligaId,
             timeId: timeId,
             rodada: { $gte: rodadaInicio, $lte: rodadaFim },
         }).lean();
 
+        // ✅ v4.4: Identificar rodadas que já existem
+        const rodadasExistentes = new Set(rodadasDB.map((r) => r.rodada));
+
+        // ✅ v4.4: Identificar rodadas faltantes (consolidadas, não parciais)
+        const rodadasFaltantes = [];
+
+        for (let r = rodadaInicio; r <= rodadaFim; r++) {
+            if (!rodadasExistentes.has(r)) {
+                rodadasFaltantes.push(r);
+            }
+        }
+
+        // ✅ v4.4: Coletar rodadas faltantes da API e salvar no MongoDB
+        if (rodadasFaltantes.length > 0) {
+            console.log(
+                `  📥 Coletando ${rodadasFaltantes.length} rodadas faltantes para time ${timeId}: [${rodadasFaltantes.join(", ")}]`,
+            );
+
+            for (const rodada of rodadasFaltantes) {
+                try {
+                    const dadosColetados =
+                        await ArtilheiroCampeaoController.coletarDadosRodada(
+                            ligaId,
+                            timeId,
+                            rodada,
+                        );
+
+                    // Adicionar aos dados coletados
+                    golsPro += dadosColetados.golsPro || 0;
+                    golsContra += dadosColetados.golsContra || 0;
+                    rodadasProcessadas++;
+                    detalhePorRodada.push({
+                        rodada: rodada,
+                        golsPro: dadosColetados.golsPro,
+                        golsContra: dadosColetados.golsContra,
+                        jogadores: dadosColetados.jogadores || [],
+                        fonte: "api_coletada",
+                    });
+
+                    console.log(
+                        `    ✅ R${rodada}: ${dadosColetados.golsPro} GP, ${dadosColetados.golsContra} GC (salvo no MongoDB)`,
+                    );
+                } catch (error) {
+                    console.warn(
+                        `    ⚠️ Erro ao coletar R${rodada} para time ${timeId}:`,
+                        error.message,
+                    );
+                }
+            }
+        }
+
+        // ✅ Processar rodadas que já estavam no MongoDB
         console.log(`  💾 ${rodadasDB.length} rodadas do MongoDB`);
 
         for (const rodada of rodadasDB) {
@@ -429,23 +513,27 @@ class ArtilheiroCampeaoController {
             });
         }
 
-        // ✅ Se mercado FECHADO, adicionar dados parciais da rodada atual
+        // ✅ Se mercado FECHADO, adicionar dados parciais da rodada atual (se não existir já)
         if (!mercadoAberto && atletasPontuados) {
-            const dadosParciais =
-                await ArtilheiroCampeaoController.calcularGolsRodadaParcial(
-                    timeId,
-                    rodadaFim,
-                    atletasPontuados,
-                );
+            // ✅ v4.4: Verificar ANTES se a rodada já foi processada
+            const jaExisteRodadaFim = detalhePorRodada.some(
+                (d) => d.rodada === rodadaFim,
+            );
 
-            if (dadosParciais) {
-                golsPro += dadosParciais.golsPro;
-                golsContra += dadosParciais.golsContra;
+            if (!jaExisteRodadaFim) {
+                const dadosParciais =
+                    await ArtilheiroCampeaoController.calcularGolsRodadaParcial(
+                        timeId,
+                        rodadaFim,
+                        atletasPontuados,
+                    );
 
-                const existeParcial = detalhePorRodada.some(
-                    (d) => d.rodada === rodadaFim,
-                );
-                if (!existeParcial) {
+                if (
+                    dadosParciais &&
+                    (dadosParciais.golsPro > 0 || dadosParciais.golsContra > 0)
+                ) {
+                    golsPro += dadosParciais.golsPro;
+                    golsContra += dadosParciais.golsContra;
                     rodadasProcessadas++;
                     detalhePorRodada.push({
                         rodada: rodadaFim,

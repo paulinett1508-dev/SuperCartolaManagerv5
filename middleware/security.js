@@ -122,8 +122,8 @@ export function securityHeaders(req, res, next) {
       [
         "default-src 'self'",
         "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://fonts.googleapis.com https://cdn.jsdelivr.net https://cdn.tailwindcss.com",
-        "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://fonts.gstatic.com",
-        "font-src 'self' https://fonts.gstatic.com https://fonts.googleapis.com",
+        "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://fonts.gstatic.com https://cdn.tailwindcss.com",
+        "font-src 'self' https://fonts.gstatic.com https://fonts.googleapis.com data:",
         "img-src 'self' data: https: blob:",
         "connect-src 'self' https://api.cartolafc.globo.com https://*.globo.com",
         "frame-ancestors 'self'",

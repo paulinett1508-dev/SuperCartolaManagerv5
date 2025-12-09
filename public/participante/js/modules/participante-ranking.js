@@ -1,10 +1,16 @@
 // =====================================================
-// MÓDULO: RANKING PARTICIPANTE - v3.5 PRO
+// MÓDULO: RANKING PARTICIPANTE - v3.6 PRO
 // Usa API de snapshots /api/ranking-turno
+// ✅ v3.6: Detecção de CAMPEÃO (R38 encerrada) + Card menor
 // ✅ v3.5: Card Seu Desempenho ao final + Vezes Líder
 // =====================================================
 
-console.log("[PARTICIPANTE-RANKING] Módulo v3.5 PRO carregando...");
+console.log("[PARTICIPANTE-RANKING] Módulo v3.6 PRO carregando...");
+
+// ==============================
+// CONSTANTES
+// ==============================
+const RODADA_FINAL = 38;
 
 // ==============================
 // CARREGAR MATERIAL ICONS (IMEDIATO + FORÇADO)
@@ -82,7 +88,9 @@ let estadoRanking = {
         turno2: null,
         geral: null,
     },
-    vezesLider: 0, // ✅ v3.5: Contador de rodadas como líder
+    vezesLider: 0,
+    temporadaEncerrada: false, // ✅ v3.6: Flag de temporada encerrada
+    rodadaAtual: null,
 };
 
 export async function inicializarRankingParticipante(params, timeIdParam) {
@@ -114,6 +122,9 @@ export async function inicializarRankingParticipante(params, timeIdParam) {
         return;
     }
 
+    // ✅ v3.6: Detectar status do mercado antes de carregar
+    await detectarStatusTemporada();
+
     // Injetar estilos dos cards uma única vez
     injetarEstilosCards();
 
@@ -129,6 +140,37 @@ export async function inicializarRankingParticipante(params, timeIdParam) {
 }
 
 window.inicializarRankingParticipante = inicializarRankingParticipante;
+
+// ✅ v3.6: DETECTAR STATUS DA TEMPORADA
+async function detectarStatusTemporada() {
+    try {
+        const response = await fetch("/api/cartola/mercado/status");
+        if (response.ok) {
+            const mercado = await response.json();
+            const rodadaAtual =
+                mercado.rodada_atual || mercado.rodadaAtual || 1;
+            const statusMercado = mercado.status_mercado;
+
+            estadoRanking.rodadaAtual = rodadaAtual;
+
+            // Temporada encerrada: status_mercado = 6 OU (rodada >= 38 E mercado fechado)
+            estadoRanking.temporadaEncerrada =
+                statusMercado === 6 ||
+                (rodadaAtual >= RODADA_FINAL && statusMercado !== 1);
+
+            console.log("[PARTICIPANTE-RANKING] 📊 Status:", {
+                rodadaAtual,
+                statusMercado,
+                temporadaEncerrada: estadoRanking.temporadaEncerrada,
+            });
+        }
+    } catch (error) {
+        console.warn(
+            "[PARTICIPANTE-RANKING] ⚠️ Erro ao detectar status:",
+            error,
+        );
+    }
+}
 
 // ===== CARREGAR RANKING VIA API =====
 async function carregarRanking(turno) {
@@ -224,7 +266,7 @@ async function carregarPosicoesTurnos() {
                 : null;
         }
 
-        // ✅ v3.5: Contar vezes que foi líder
+        // Contar vezes que foi líder
         if (dataRodadas.success && dataRodadas.rodadas) {
             estadoRanking.vezesLider = contarVezesLider(
                 dataRodadas.rodadas,
@@ -298,7 +340,7 @@ function configurarTabs() {
     });
 }
 
-// ===== CRIAR CARD DO LÍDER =====
+// ✅ v3.6: CRIAR CARD DO LÍDER/CAMPEÃO (COMPACTO)
 function criarCardLider(lider, turnoLabel, rodadaAtual) {
     if (!lider) return "";
 
@@ -306,16 +348,41 @@ function criarCardLider(lider, turnoLabel, rodadaAtual) {
         minimumFractionDigits: 2,
     });
 
+    // ✅ v3.6: Determinar se é CAMPEÃO ou LÍDER
+    const isCampeao =
+        estadoRanking.temporadaEncerrada &&
+        estadoRanking.turnoAtivo === "geral";
+    const titulo = isCampeao ? "CAMPEÃO" : "LÍDER " + turnoLabel.toUpperCase();
+    const subtitulo = isCampeao
+        ? "Temporada 2025 encerrada"
+        : "até a " + (rodadaAtual || "?") + "ª rodada";
+    const mensagem = isCampeao
+        ? lider.nome_time + " é o grande campeão do Super Cartola!"
+        : lider.nome_time + " lidera o Super Cartola";
+
+    // ✅ v3.6: Card compacto
     return (
-        '<div class="card-lider-destaque">' +
-        '<div class="lider-crown">' +
-        '<span class="material-icons">workspace_premium</span>' +
+        '<div class="card-lider-compacto">' +
+        '<div class="lider-header">' +
+        '<div class="lider-icon-box">' +
+        '<span class="material-icons">emoji_events</span>' +
         "</div>" +
-        '<div class="lider-titulo">LÍDER ' +
-        turnoLabel.toUpperCase() +
+        '<div class="lider-header-info">' +
+        '<div class="lider-titulo">' +
+        titulo +
         "</div>" +
-        '<div class="lider-info">' +
-        '<div class="lider-dados">' +
+        '<div class="lider-subtitulo">' +
+        subtitulo +
+        "</div>" +
+        "</div>" +
+        '<div class="lider-pontos-box">' +
+        '<span class="lider-pontos-valor">' +
+        pontosFormatados +
+        "</span>" +
+        '<span class="lider-pontos-label">pts</span>' +
+        "</div>" +
+        "</div>" +
+        '<div class="lider-body">' +
         '<div class="lider-nome">' +
         (lider.nome_cartola || lider.nome_time) +
         "</div>" +
@@ -323,21 +390,11 @@ function criarCardLider(lider, turnoLabel, rodadaAtual) {
         lider.nome_time +
         "</div>" +
         "</div>" +
-        "</div>" +
-        '<div class="lider-pontos">' +
-        '<span class="lider-pontos-valor">' +
-        pontosFormatados +
-        "</span>" +
-        '<span class="lider-pontos-label">pontos</span>' +
-        "</div>" +
-        '<div class="lider-rodada">até a ' +
-        (rodadaAtual || "?") +
-        "ª rodada</div>" +
-        '<div class="lider-mensagem">' +
-        '<span class="material-icons">emoji_events</span>' +
-        lider.nome_time +
-        " está sendo o grande campeão do Super Cartola" +
-        "</div>" +
+        (isCampeao
+            ? '<div class="lider-badge-campeao"><span class="material-icons">verified</span> ' +
+              mensagem +
+              "</div>"
+            : "") +
         "</div>"
     );
 }
@@ -358,6 +415,11 @@ function criarCardSeuDesempenho(ranking, turnoLabel) {
     // Calcular diferença para o líder
     const lider = ranking[0];
     const diffLider = lider ? lider.pontos - meusDados.pontos : 0;
+
+    // ✅ v3.6: Verificar se é campeão
+    const isCampeao =
+        estadoRanking.temporadaEncerrada &&
+        estadoRanking.turnoAtivo === "geral";
 
     // Definir cor da posição
     let posicaoClass = "";
@@ -410,7 +472,7 @@ function criarCardSeuDesempenho(ranking, turnoLabel) {
             "</div>";
     }
 
-    // ✅ v3.5: Linha de vezes líder (se tiver pelo menos 1)
+    // Linha de vezes líder (se tiver pelo menos 1)
     let vezesLiderHTML = "";
     const vezesLider = estadoRanking.vezesLider || 0;
     if (vezesLider > 0) {
@@ -425,21 +487,26 @@ function criarCardSeuDesempenho(ranking, turnoLabel) {
             "</div>";
     }
 
-    // Footer diferente se for líder ou não
+    // ✅ v3.6: Footer diferente se for campeão, líder ou não
     let footerHTML = "";
     if (posicao === 1) {
+        const textoFooter = isCampeao
+            ? "🏆 Você é o CAMPEÃO do Super Cartola!"
+            : "Você está liderando o Super Cartola";
         footerHTML =
             '<div class="seu-footer lider">' +
             '<span class="lider-badge">' +
             '<span class="material-icons">emoji_events</span>' +
-            "Você está sendo o grande campeão do Super Cartola" +
+            textoFooter +
             "</span>" +
             "</div>";
     } else {
         footerHTML =
             '<div class="seu-footer">' +
             '<div class="seu-diff">' +
-            '<span class="diff-label">Atrás do líder:</span>' +
+            '<span class="diff-label">Atrás do ' +
+            (isCampeao ? "campeão" : "líder") +
+            ":</span>" +
             '<span class="diff-valor negativo">-' +
             diffLider.toFixed(2) +
             "</span>" +
@@ -594,7 +661,7 @@ function renderizarRankingPro(container, ranking, rodadaAtual) {
         el.remove();
     });
 
-    // ✅ v3.5: Montar HTML - Líder no topo, Seu Desempenho ao final
+    // Montar HTML - Líder no topo, Seu Desempenho ao final
     let htmlFinal = "";
 
     // Card Líder permanece no topo
@@ -608,7 +675,7 @@ function renderizarRankingPro(container, ranking, rodadaAtual) {
     // Inserir no container
     container.innerHTML = htmlFinal;
 
-    // ✅ v3.5: Renderizar card Seu Desempenho no container externo (final)
+    // Renderizar card Seu Desempenho no container externo (final)
     const cardDesempenhoContainer = document.getElementById(
         "rankingCardDesempenho",
     );
@@ -655,180 +722,191 @@ function injetarEstilosCards() {
         /* Container dos cards */
         .cards-destaque-container {
             padding: 0 12px;
-            margin-bottom: 16px;
+            margin-bottom: 12px;
         }
 
-        /* Card Destaque do Líder */
-        .card-lider-destaque {
-            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%);
-            border: 2px solid #ffd700;
-            border-radius: 16px;
-            padding: 20px;
-            margin-bottom: 12px;
-            text-align: center;
+        /* ✅ v3.6: Card Líder/Campeão COMPACTO */
+        .card-lider-compacto {
+            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+            border: 1px solid rgba(255, 215, 0, 0.4);
+            border-radius: 12px;
+            padding: 12px;
             position: relative;
             overflow: hidden;
-            box-shadow: 0 8px 32px rgba(255, 215, 0, 0.2);
         }
-        .card-lider-destaque::before {
+        .card-lider-compacto::before {
             content: '';
             position: absolute;
             top: 0;
             left: 0;
             right: 0;
-            height: 4px;
-            background: linear-gradient(90deg, #ffd700, #ffec8b, #ffd700);
+            height: 2px;
+            background: linear-gradient(90deg, #ffd700, #ffaa00, #ffd700);
         }
-        .lider-crown {
-            margin-bottom: 4px;
+        .lider-header {
+            display: flex;
+            align-items: center;
+            gap: 10px;
         }
-        .lider-crown .material-icons {
-            font-size: 48px;
-            color: #ffd700;
-            animation: float 3s ease-in-out infinite;
-        }
-        @keyframes float {
-            0%, 100% { transform: translateY(0); }
-            50% { transform: translateY(-5px); }
-        }
-        .lider-titulo {
-            font-size: 11px;
-            font-weight: 700;
-            color: #ffd700;
-            letter-spacing: 3px;
-            margin-bottom: 12px;
-        }
-        .lider-info {
+        .lider-icon-box {
+            width: 36px;
+            height: 36px;
+            background: rgba(255, 215, 0, 0.15);
+            border-radius: 8px;
             display: flex;
             align-items: center;
             justify-content: center;
-            gap: 12px;
-            margin-bottom: 8px;
+            flex-shrink: 0;
         }
-        .lider-dados {
-            text-align: center;
+        .lider-icon-box .material-icons {
+            font-size: 20px;
+            color: #ffd700;
+        }
+        .lider-header-info {
+            flex: 1;
+            min-width: 0;
+        }
+        .lider-titulo {
+            font-size: 10px;
+            font-weight: 700;
+            color: #ffd700;
+            letter-spacing: 1.5px;
+            text-transform: uppercase;
+        }
+        .lider-subtitulo {
+            font-size: 9px;
+            color: #888;
+        }
+        .lider-pontos-box {
+            text-align: right;
+            flex-shrink: 0;
+        }
+        .lider-pontos-valor {
+            font-size: 16px;
+            font-weight: 800;
+            color: #ffd700;
+            display: block;
+        }
+        .lider-pontos-label {
+            font-size: 9px;
+            color: #888;
+        }
+        .lider-body {
+            margin-top: 8px;
+            padding-top: 8px;
+            border-top: 1px solid rgba(255, 255, 255, 0.08);
         }
         .lider-nome {
-            font-size: 1.1rem;
-            font-weight: 700;
+            font-size: 13px;
+            font-weight: 600;
             color: #fff;
         }
         .lider-time {
-            font-size: 0.8rem;
+            font-size: 11px;
             color: #aaa;
         }
-        .lider-pontos {
-            display: flex;
-            align-items: baseline;
-            justify-content: center;
-            gap: 6px;
+        .lider-badge-campeao {
             margin-top: 8px;
-        }
-        .lider-pontos-valor {
-            font-size: 1.8rem;
-            font-weight: 800;
-            color: #ffd700;
-            text-shadow: 0 2px 8px rgba(255, 215, 0, 0.4);
-        }
-        .lider-pontos-label {
-            font-size: 0.85rem;
-            color: #888;
-        }
-        .lider-rodada {
-            font-size: 0.7rem;
-            color: #666;
-            margin-top: 6px;
-        }
-        .lider-mensagem {
-            margin-top: 12px;
-            padding: 10px 16px;
-            background: rgba(255, 215, 0, 0.15);
-            border-radius: 8px;
-            font-size: 0.75rem;
+            padding: 6px 10px;
+            background: rgba(255, 215, 0, 0.12);
+            border-radius: 6px;
+            font-size: 10px;
             font-weight: 600;
             color: #ffd700;
             display: flex;
             align-items: center;
-            justify-content: center;
-            gap: 6px;
+            gap: 4px;
         }
-        .lider-mensagem .material-icons {
-            font-size: 16px;
+        .lider-badge-campeao .material-icons {
+            font-size: 14px;
         }
 
         /* Card Seu Desempenho */
         .card-seu-desempenho {
-            background: linear-gradient(135deg, #1e3a5f 0%, #1a2d47 100%);
-            border: 1px solid #3b82f6;
-            border-radius: 12px;
-            padding: 14px;
-            margin-bottom: 12px;
-            box-shadow: 0 4px 16px rgba(59, 130, 246, 0.15);
+            background: linear-gradient(135deg, #1c1c1e 0%, #2c2c2e 100%);
+            border: 1px solid rgba(255, 92, 0, 0.3);
+            border-radius: 16px;
+            padding: 16px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
         }
         .seu-header {
             display: flex;
             justify-content: space-between;
             align-items: center;
-            margin-bottom: 12px;
-            padding-bottom: 8px;
-            border-bottom: 1px solid #334155;
+            margin-bottom: 14px;
+            padding-bottom: 10px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.08);
         }
         .seu-titulo {
-            font-size: 0.85rem;
-            font-weight: 600;
-            color: #fff;
             display: flex;
             align-items: center;
-            gap: 6px;
+            gap: 8px;
+            font-size: 0.9rem;
+            font-weight: 600;
+            color: #ff5c00;
         }
         .seu-titulo .material-icons {
-            font-size: 18px;
-            color: #3b82f6;
+            font-size: 20px;
         }
         .seu-turno {
-            font-size: 0.65rem;
-            background: #3b82f6;
-            color: #fff;
-            padding: 3px 8px;
-            border-radius: 4px;
+            font-size: 0.7rem;
+            color: #888;
+            background: rgba(255, 255, 255, 0.05);
+            padding: 4px 10px;
+            border-radius: 12px;
         }
         .seu-body {
             display: flex;
             align-items: center;
-            gap: 12px;
+            gap: 14px;
         }
         .seu-posicao {
             display: flex;
             flex-direction: column;
             align-items: center;
-            min-width: 50px;
+            justify-content: center;
+            min-width: 60px;
+            padding: 10px;
+            background: rgba(255, 92, 0, 0.1);
+            border-radius: 12px;
+            border: 1px solid rgba(255, 92, 0, 0.2);
+        }
+        .seu-posicao.posicao-ouro {
+            background: rgba(255, 215, 0, 0.15);
+            border-color: rgba(255, 215, 0, 0.3);
+        }
+        .seu-posicao.posicao-prata {
+            background: rgba(192, 192, 192, 0.15);
+            border-color: rgba(192, 192, 192, 0.3);
+        }
+        .seu-posicao.posicao-bronze {
+            background: rgba(205, 127, 50, 0.15);
+            border-color: rgba(205, 127, 50, 0.3);
+        }
+        .seu-posicao.posicao-ultimo {
+            background: rgba(239, 68, 68, 0.1);
+            border-color: rgba(239, 68, 68, 0.2);
         }
         .seu-posicao-valor {
-            font-size: 1.4rem;
+            font-size: 1.6rem;
             font-weight: 800;
-            color: #fff;
+            color: #ff5c00;
         }
+        .posicao-ouro .seu-posicao-valor { color: #ffd700; }
+        .posicao-prata .seu-posicao-valor { color: #c0c0c0; }
+        .posicao-bronze .seu-posicao-valor { color: #cd7f32; }
+        .posicao-ultimo .seu-posicao-valor { color: #ef4444; }
         .seu-posicao-label {
-            font-size: 0.6rem;
-            color: #64748b;
+            font-size: 0.65rem;
+            color: #888;
+            margin-top: 2px;
         }
-        .seu-posicao.posicao-ouro .seu-posicao-valor { color: #ffd700; }
-        .seu-posicao.posicao-prata .seu-posicao-valor { color: #c0c0c0; }
-        .seu-posicao.posicao-bronze .seu-posicao-valor { color: #cd7f32; }
-        .seu-posicao.posicao-ultimo .seu-posicao-valor { color: #ef4444; }
         .seu-info {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            flex: 1;
-            min-width: 0;
-        }
-        .seu-dados {
             flex: 1;
             min-width: 0;
         }
         .seu-nome {
-            font-size: 0.9rem;
+            font-size: 0.95rem;
             font-weight: 600;
             color: #fff;
             white-space: nowrap;
@@ -836,34 +914,74 @@ function injetarEstilosCards() {
             text-overflow: ellipsis;
         }
         .seu-time {
-            font-size: 0.7rem;
-            color: #94a3b8;
+            font-size: 0.8rem;
+            color: #888;
             white-space: nowrap;
             overflow: hidden;
             text-overflow: ellipsis;
         }
         .seu-pontos {
             text-align: right;
-            min-width: 70px;
+            flex-shrink: 0;
         }
         .seu-pontos-valor {
-            font-size: 1.2rem;
-            font-weight: 700;
-            color: #3b82f6;
+            font-size: 1.3rem;
+            font-weight: 800;
+            color: #ff5c00;
         }
         .seu-pontos-label {
-            font-size: 0.6rem;
-            color: #64748b;
+            font-size: 0.7rem;
+            color: #888;
             display: block;
         }
+        .seu-footer {
+            margin-top: 12px;
+            padding-top: 10px;
+            border-top: 1px solid rgba(255, 255, 255, 0.08);
+        }
+        .seu-footer.lider {
+            background: linear-gradient(90deg, rgba(255, 215, 0, 0.1), transparent);
+            border-radius: 8px;
+            padding: 10px 12px;
+            margin-top: 12px;
+            border-top: none;
+        }
+        .lider-badge {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            font-size: 0.75rem;
+            font-weight: 600;
+            color: #ffd700;
+        }
+        .lider-badge .material-icons {
+            font-size: 16px;
+        }
+        .seu-diff {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .diff-label {
+            font-size: 0.75rem;
+            color: #888;
+        }
+        .diff-valor {
+            font-size: 0.9rem;
+            font-weight: 700;
+        }
+        .diff-valor.negativo {
+            color: #ef4444;
+        }
+
+        /* Posições por turno */
         .seu-turnos {
             display: flex;
-            justify-content: center;
-            gap: 24px;
+            gap: 12px;
             margin-top: 12px;
-            padding: 10px 0;
-            border-top: 1px solid #334155;
-            border-bottom: 1px solid #334155;
+            padding: 10px 12px;
+            background: rgba(255, 255, 255, 0.03);
+            border-radius: 8px;
         }
         .turno-item {
             display: flex;
@@ -872,66 +990,15 @@ function injetarEstilosCards() {
         }
         .turno-label {
             font-size: 0.7rem;
-            color: #64748b;
+            color: #888;
         }
         .turno-pos {
             font-size: 0.85rem;
             font-weight: 700;
-            color: #fff;
-            background: rgba(59, 130, 246, 0.2);
-            padding: 2px 8px;
-            border-radius: 4px;
-        }
-        .seu-footer {
-            margin-top: 12px;
-            padding-top: 10px;
-            border-top: 1px solid #334155;
-            display: flex;
-            justify-content: space-between;
-            gap: 16px;
-        }
-        .card-seu-desempenho .seu-turnos + .seu-footer {
-            border-top: none;
-            padding-top: 0;
-        }
-        .seu-footer.lider {
-            justify-content: center;
-        }
-        .lider-badge {
-            background: linear-gradient(135deg, #ffd700, #ffaa00);
-            color: #1a1a1a;
-            padding: 8px 14px;
-            border-radius: 20px;
-            font-size: 0.7rem;
-            font-weight: 700;
-            text-align: center;
-            line-height: 1.3;
-            display: flex;
-            align-items: center;
-            gap: 6px;
-        }
-        .lider-badge .material-icons {
-            font-size: 16px;
-        }
-        .seu-diff {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-        }
-        .diff-label {
-            font-size: 0.6rem;
-            color: #64748b;
-        }
-        .diff-valor {
-            font-size: 0.85rem;
-            font-weight: 600;
-            color: #94a3b8;
-        }
-        .diff-valor.negativo {
-            color: #ef4444;
+            color: #ff5c00;
         }
 
-        /* ✅ v3.5: Vezes Líder */
+        /* Vezes líder */
         .seu-vezes-lider {
             display: flex;
             align-items: center;
@@ -972,7 +1039,7 @@ function injetarEstilosCards() {
         @media (min-width: 768px) {
             .cards-destaque-container {
                 max-width: 600px;
-                margin: 0 auto 16px;
+                margin: 0 auto 12px;
             }
         }
     `;
@@ -1146,5 +1213,5 @@ window.mostrarPremiacaoPro = function (posicaoClicada) {
 };
 
 console.log(
-    "[PARTICIPANTE-RANKING] ✅ Módulo v3.5 PRO carregado (Card ao final + Vezes Líder)",
+    "[PARTICIPANTE-RANKING] ✅ Módulo v3.6 PRO carregado (Campeão + Card Compacto)",
 );

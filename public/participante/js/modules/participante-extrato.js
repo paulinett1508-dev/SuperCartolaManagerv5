@@ -1,13 +1,14 @@
 // =====================================================================
-// PARTICIPANTE-EXTRATO.JS - v2.5 (LIGAID PARA UI)
+// PARTICIPANTE-EXTRATO.JS - v2.6 (CAMPOS EDITÁVEIS)
 // =====================================================================
+// ✅ v2.6: Busca campos editáveis do endpoint específico para UI
 // ✅ v2.5: Passa ligaId no extratoData para UI classificar zonas corretamente
 // ✅ v2.4: Botão Atualizar limpa cache + chama endpoint de cálculo
 // ✅ v2.3: Botão Atualizar limpa cache MongoDB + nova requisição
 // ✅ v2.2: Suporte a extrato travado para inativos
 // =====================================================================
 
-console.log("[EXTRATO-PARTICIPANTE] 📄 Módulo v2.5 (ligaId para UI)");
+console.log("[EXTRATO-PARTICIPANTE] 📄 Módulo v2.6 (campos editáveis)");
 
 const PARTICIPANTE_IDS = { ligaId: null, timeId: null };
 
@@ -32,9 +33,42 @@ export async function inicializarExtratoParticipante({
     PARTICIPANTE_IDS.ligaId = ligaId;
     PARTICIPANTE_IDS.timeId = timeId;
 
+    // ✅ Expor globalmente para a UI
+    window.PARTICIPANTE_IDS = PARTICIPANTE_IDS;
     window.participanteData = { ligaId, timeId, participante };
 
     await carregarExtrato(ligaId, timeId);
+}
+
+// =====================================================================
+// ✅ v2.6: BUSCAR CAMPOS EDITÁVEIS
+// =====================================================================
+async function buscarCamposEditaveis(ligaId, timeId) {
+    try {
+        const url = `/api/fluxo-financeiro/${ligaId}/campos/${timeId}`;
+        console.log(
+            "[EXTRATO-PARTICIPANTE] 📡 Buscando campos editáveis:",
+            url,
+        );
+
+        const response = await fetch(url);
+
+        if (response.ok) {
+            const data = await response.json();
+            if (data.success && data.campos) {
+                console.log(
+                    "[EXTRATO-PARTICIPANTE] ✅ Campos editáveis:",
+                    data.campos.length,
+                );
+                return data.campos;
+            }
+        }
+
+        return [];
+    } catch (error) {
+        console.warn("[EXTRATO-PARTICIPANTE] ⚠️ Erro ao buscar campos:", error);
+        return [];
+    }
 }
 
 // =====================================================================
@@ -153,6 +187,15 @@ async function carregarExtrato(ligaId, timeId) {
             return;
         }
 
+        // ✅ v2.6: Buscar campos editáveis do endpoint específico
+        const camposEditaveis = await buscarCamposEditaveis(ligaId, timeId);
+
+        // Mesclar campos: priorizar campos editáveis se existirem
+        if (camposEditaveis.length > 0) {
+            extratoData.camposManuais = camposEditaveis;
+            extratoData.camposEditaveis = camposEditaveis;
+        }
+
         // Renderizar
         console.log(
             "[EXTRATO-PARTICIPANTE] 🎨 Renderizando",
@@ -234,11 +277,11 @@ function transformarDadosController(dados) {
         r.saldoAcumulado = saldoAcumulado;
     });
 
-    // Extrair campos manuais
+    // Extrair campos manuais do extrato
     const camposManuais = transacoes
         .filter((t) => t.tipo === "AJUSTE_MANUAL")
         .map((t, idx) => ({
-            nome: t.descricao,
+            nome: t.descricao || `Campo ${idx + 1}`,
             valor: t.valor,
         }));
 
@@ -432,10 +475,23 @@ window.forcarRefreshExtratoParticipante = async function () {
             return;
         }
 
+        // ✅ v2.6: Buscar campos editáveis após recálculo
+        const camposEditaveis = await buscarCamposEditaveis(
+            PARTICIPANTE_IDS.ligaId,
+            PARTICIPANTE_IDS.timeId,
+        );
+
+        if (camposEditaveis.length > 0) {
+            extratoData.camposManuais = camposEditaveis;
+            extratoData.camposEditaveis = camposEditaveis;
+        }
+
         console.log(
             "[EXTRATO-PARTICIPANTE] 🎨 Renderizando",
             extratoData.rodadas.length,
-            "rodadas recalculadas",
+            "rodadas recalculadas |",
+            extratoData.camposManuais?.length || 0,
+            "campos manuais",
         );
 
         const { renderizarExtratoParticipante } = await import(
@@ -476,4 +532,6 @@ export function initExtratoParticipante() {
     console.log("[EXTRATO-PARTICIPANTE] Módulo pronto");
 }
 
-console.log("[EXTRATO-PARTICIPANTE] ✅ Módulo v2.5 carregado (ligaId para UI)");
+console.log(
+    "[EXTRATO-PARTICIPANTE] ✅ Módulo v2.6 carregado (campos editáveis)",
+);

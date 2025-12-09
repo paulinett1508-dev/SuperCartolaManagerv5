@@ -46,7 +46,7 @@ class DetalheLigaOrquestrador {
 
     async loadModuleCSS(moduleName) {
         // Módulos que não precisam de CSS próprio
-        const modulosSemCSS = ["artilheiro-campeao"];
+        const modulosSemCSS = [];
         if (modulosSemCSS.includes(moduleName)) return;
 
         const cssPaths = [

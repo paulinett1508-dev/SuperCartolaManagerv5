@@ -1,7 +1,26 @@
 /* =============================================
-   ARTILHEIRO CAMPEÃO - CSS v4.2.0
-   Tabela com Rodadas + UX MELHORADA GP/GC
+   ARTILHEIRO CAMPEÃO - CSS v4.4.0
+   Tabela com Rodadas + UX MELHORADA GP/GC + Material Icons
    ============================================= */
+
+/* =============================================
+   MATERIAL ICONS SUPPORT - v4.4
+   ============================================= */
+.artilheiro-container .material-icons {
+  font-family: 'Material Icons';
+  font-weight: normal;
+  font-style: normal;
+  font-size: 24px;
+  line-height: 1;
+  letter-spacing: normal;
+  text-transform: none;
+  display: inline-block;
+  white-space: nowrap;
+  word-wrap: normal;
+  direction: ltr;
+  -webkit-font-smoothing: antialiased;
+  vertical-align: middle;
+}
 
 /* Container principal */
 .artilheiro-container {
@@ -12,7 +31,7 @@
 }
 
 /* =============================================
-   HEADER
+   HEADER - v4.4 Material Icons
    ============================================= */
 .artilheiro-header {
   display: flex;
@@ -28,7 +47,11 @@
   gap: 8px;
 }
 
-.artilheiro-icon { font-size: 18px; }
+.artilheiro-icon { 
+  font-size: 20px; 
+  display: flex;
+  align-items: center;
+}
 
 .artilheiro-title h3 {
   margin: 0;
@@ -55,6 +78,10 @@
   color: rgba(255, 255, 255, 0.9);
 }
 
+.artilheiro-info-rodada .material-icons {
+  font-size: 14px;
+}
+
 /* Botão para retry em caso de erro */
 .artilheiro-btn {
   display: flex;
@@ -77,8 +104,12 @@
   background: #c0392b;
 }
 
+.artilheiro-btn .material-icons {
+  font-size: 16px;
+}
+
 /* =============================================
-   LEGENDA UX - NOVO v4.2
+   LEGENDA UX - v4.2
    ============================================= */
 .artilheiro-legenda {
   display: flex;
@@ -110,7 +141,7 @@
 .legenda-cor.sg-neg { background: linear-gradient(135deg, #a71d2a, #dc3545); }
 
 /* =============================================
-   NAVEGAÇÃO DE RODADAS
+   NAVEGAÇÃO DE RODADAS - v4.4 Material Icons
    ============================================= */
 .artilheiro-nav-container {
   display: flex;
@@ -135,6 +166,10 @@
   font-size: 12px;
   cursor: pointer;
   transition: all 0.2s;
+}
+
+.artilheiro-nav-btn .material-icons {
+  font-size: 16px;
 }
 
 .artilheiro-nav-btn:hover {
@@ -187,6 +222,11 @@
   text-transform: uppercase;
   letter-spacing: 0;
   white-space: nowrap;
+}
+
+.artilheiro-ranking-table thead th .material-icons {
+  font-size: 10px;
+  vertical-align: middle;
 }
 
 .artilheiro-ranking-table thead th.col-nome {
@@ -251,6 +291,11 @@
 .gols-saldo.negativo { color: #dc3545; }
 .gols-saldo.zero { color: #888; }
 
+/* Material Icons dentro de gols-saldo */
+.gols-celula .material-icons {
+  font-size: 14px;
+}
+
 /* Linha com GP/GC separados */
 .gols-linha {
   display: flex;
@@ -303,7 +348,7 @@
 .col-rodada-gols.vazio .gols-saldo { color: #444; }
 
 /* =============================================
-   INDICADOR VISUAL DE GOLS CONTRA - NOVO v4.2
+   INDICADOR VISUAL DE GOLS CONTRA - v4.2
    ============================================= */
 .col-rodada-gols.tem-gc {
   position: relative;
@@ -349,8 +394,9 @@
 }
 
 .col-rodada-gols.aguardando .gols-valor,
-.col-rodada-gols.aguardando .gols-saldo {
-  font-size: 10px;
+.col-rodada-gols.aguardando .gols-saldo,
+.col-rodada-gols.aguardando .material-icons {
+  font-size: 14px;
   animation: pulse 1.5s ease-in-out infinite;
 }
 
@@ -378,6 +424,10 @@
   color: #fff;
 }
 
+.pos-badge .material-icons {
+  font-size: 16px;
+}
+
 /* Posições especiais */
 .artilheiro-ranking-row.pos-1 { background: rgba(255, 215, 0, 0.1); }
 .artilheiro-ranking-row.pos-1 .pos-badge { background: linear-gradient(135deg, #ffd700, #f0c000); color: #1a1a1a; }
@@ -395,6 +445,12 @@
   object-fit: cover;
 }
 
+/* Escudo fallback com Material Icons */
+.col-escudo .material-icons {
+  font-size: 20px;
+  color: #666;
+}
+
 /* Participante */
 .participante-info {
   display: flex;
@@ -408,6 +464,13 @@
   overflow: hidden;
   text-overflow: ellipsis;
   max-width: 80px;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.participante-nome .material-icons {
+  font-size: 14px;
 }
 
 .participante-time {
@@ -453,7 +516,7 @@
 }
 
 /* =============================================
-   LOADING E ERRO
+   LOADING E ERRO - v4.4 Material Icons
    ============================================= */
 .artilheiro-loading {
   text-align: center;
@@ -482,9 +545,23 @@
   padding: 30px 20px;
 }
 
-.artilheiro-erro .erro-icon { font-size: 32px; margin-bottom: 10px; }
-.artilheiro-erro .erro-msg { font: 600 13px "Inter", sans-serif; color: #dc3545; }
-.artilheiro-erro .erro-detalhe { font: 400 11px "Inter", sans-serif; color: #777; margin-top: 5px; }
+.artilheiro-erro .erro-icon,
+.artilheiro-erro .material-icons.erro-icon { 
+  font-size: 32px; 
+  margin-bottom: 10px;
+  display: block;
+}
+
+.artilheiro-erro .erro-msg { 
+  font: 600 13px "Inter", sans-serif; 
+  color: #dc3545; 
+}
+
+.artilheiro-erro .erro-detalhe { 
+  font: 400 11px "Inter", sans-serif; 
+  color: #777; 
+  margin-top: 5px; 
+}
 
 @keyframes artilheiro-spin {
   to { transform: rotate(360deg); }
@@ -556,7 +633,7 @@
 }
 
 /* =============================================
-   MODAL DE DETALHES DA RODADA
+   MODAL DE DETALHES DA RODADA - v4.4 Material Icons
    ============================================= */
 .artilheiro-modal-overlay {
   position: fixed;
@@ -618,6 +695,13 @@
   border-radius: 50%;
   cursor: pointer;
   transition: all 0.2s;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.modal-fechar .material-icons {
+  font-size: 18px;
 }
 
 .modal-fechar:hover {
@@ -702,6 +786,13 @@
   margin: 0 0 10px 0;
   padding-bottom: 6px;
   border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+  display: flex;
+  align-items: center;
+}
+
+.modal-secao h4 .material-icons {
+  font-size: 16px;
+  margin-right: 5px;
 }
 
 .modal-lista-gols {
@@ -758,7 +849,7 @@
 }
 
 /* =============================================
-   PARTICIPANTES INATIVOS
+   PARTICIPANTES INATIVOS - v4.4 Material Icons
    ============================================= */
 .artilheiro-inativos-section {
   margin-top: 24px;
@@ -780,6 +871,10 @@
 .inativos-icon {
   font-size: 1.2em;
   opacity: 0.7;
+}
+
+.inativos-icon.material-icons {
+  font-size: 20px;
 }
 
 .inativos-header h4 {
@@ -902,6 +997,10 @@
 .artilheiro-mini-dashboard .mini-dash-icon {
     font-size: 2rem;
     opacity: 0.9;
+}
+
+.artilheiro-mini-dashboard .mini-dash-icon.material-icons {
+    font-size: 32px;
 }
 
 .artilheiro-mini-dashboard .mini-dash-content {

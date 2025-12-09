@@ -1,403 +1,827 @@
 <!doctype html>
-<html lang="pt-BR">
-  <head>
-    <meta charset="UTF-8" />
-    <meta
-      name="viewport"
-      content="width=device-width, initial-scale=1.0, user-scalable=no"
-    />
-    <meta name="apple-mobile-web-app-capable" content="yes" />
-    <meta name="mobile-web-app-capable" content="yes" />
-    <title>Login - Participante</title>
-    <style>
-      * {
-        margin: 0;
-        padding: 0;
-        box-sizing: border-box;
-      }
+<html class="dark" lang="pt-BR">
+    <head>
+        <meta charset="utf-8" />
+        <meta
+            name="viewport"
+            content="width=device-width, initial-scale=1.0, user-scalable=no"
+        />
+        <meta name="apple-mobile-web-app-capable" content="yes" />
+        <meta name="mobile-web-app-capable" content="yes" />
+        <title>Login - Super Cartola</title>
 
-      body {
-        font-family:
-          -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-        background: linear-gradient(135deg, #1a1a1a 0%, #2a2a2a 100%);
-        min-height: 100vh;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        padding: 20px;
-      }
-
-      .login-container {
-        background: linear-gradient(135deg, #2a2a2a 0%, #1e1e1e 100%);
-        border-radius: 20px;
-        box-shadow: 0 20px 60px rgba(0, 0, 0, 0.6);
-        padding: 40px 30px;
-        max-width: 400px;
-        width: 100%;
-        text-align: center;
-        border: 1px solid rgba(255, 69, 0, 0.3);
-        position: relative;
-        overflow: hidden;
-      }
-
-      .login-container::before {
-        content: "";
-        position: absolute;
-        top: 0;
-        left: 0;
-        right: 0;
-        height: 4px;
-        background: linear-gradient(135deg, #ff4500 0%, #e8472b 100%);
-        box-shadow: 0 0 15px rgba(255, 69, 0, 0.6);
-      }
-
-      .logo {
-        width: 100px;
-        height: 100px;
-        margin: 0 auto 20px;
-        border-radius: 50%;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        overflow: hidden;
-        background: #fff;
-        border: 3px solid rgba(255, 69, 0, 0.3);
-        box-shadow: 0 4px 20px rgba(255, 69, 0, 0.4);
-      }
-
-      .logo img {
-        width: 100%;
-        height: 100%;
-        object-fit: cover;
-      }
-
-      h1 {
-        color: #ffffff;
-        font-size: 24px;
-        margin-bottom: 10px;
-        font-weight: 800;
-        text-shadow: 0 2px 10px rgba(255, 255, 255, 0.3);
-        letter-spacing: -0.5px;
-      }
-
-      p {
-        color: #a0a0a0;
-        font-size: 14px;
-        margin-bottom: 30px;
-        font-weight: 500;
-      }
-
-      .btn-replit {
-        background: linear-gradient(135deg, #ff4500 0%, #e8472b 100%);
-        color: white;
-        border: 2px solid rgba(255, 69, 0, 0.3);
-        padding: 16px 32px;
-        border-radius: 12px;
-        font-size: 16px;
-        font-weight: 700;
-        cursor: pointer;
-        width: 100%;
-        transition:
-          transform 0.2s,
-          box-shadow 0.2s;
-        touch-action: manipulation;
-        -webkit-tap-highlight-color: transparent;
-        box-shadow: 0 4px 15px rgba(255, 69, 0, 0.4);
-        text-transform: uppercase;
-        letter-spacing: 0.5px;
-      }
-
-      .btn-replit:active {
-        transform: scale(0.98);
-        box-shadow: 0 5px 15px rgba(255, 69, 0, 0.6);
-      }
-
-      .btn-replit:hover {
-        transform: translateY(-2px);
-        box-shadow: 0 10px 25px rgba(255, 69, 0, 0.5);
-        background: linear-gradient(135deg, #e8472b 0%, #d63920 100%);
-        border-color: #ff4500;
-      }
-
-      .info-box {
-        display: none;
-      }
-
-      .loading {
-        display: none;
-        margin-top: 20px;
-        color: #a0a0a0;
-        font-size: 14px;
-        font-weight: 500;
-      }
-
-      .loading.show {
-        display: block;
-      }
-
-      input::placeholder {
-        color: #666;
-      }
-
-      input:focus {
-        outline: none;
-        border-color: #ff4500;
-        box-shadow: 0 0 0 3px rgba(255, 69, 0, 0.1);
-      }
-
-      /* Mobile optimizations */
-      @media (max-width: 480px) {
-        .login-container {
-          padding: 30px 20px;
-        }
-
-        h1 {
-          font-size: 18px;
-        }
-
-        .logo {
-          width: 80px;
-          height: 80px;
-        }
-
-        .btn-replit {
-          padding: 18px 32px;
-          font-size: 18px;
-        }
-      }
-
-      /* Touch improvements */
-      @media (hover: none) and (pointer: coarse) {
-        .btn-replit {
-          padding: 20px 32px;
-        }
-      }
-    </style>
-  </head>
-  <body>
-    <div class="login-container">
-      <div class="logo">
-        <img src="/escudos/default.png" alt="Super Cartola Logo" />
-      </div>
-      <h1>SUPER CARTOLA 2025 - ano XI</h1>
-      <p>O melhor fantasy game</p>
-
-      <form id="loginForm" onsubmit="fazerLogin(event)">
-        <input
-          type="number"
-          id="timeId"
-          placeholder="ID do seu time no Cartola"
-          required
-          autocomplete="off"
-          style="
-            width: 100%;
-            padding: 16px;
-            margin-bottom: 15px;
-            border: 2px solid rgba(255, 69, 0, 0.3);
-            border-radius: 10px;
-            font-size: 16px;
-            background: rgba(26, 26, 26, 0.8);
-            color: #ffffff;
-          "
+        <!-- Fonts -->
+        <link href="https://fonts.googleapis.com" rel="preconnect" />
+        <link
+            crossorigin=""
+            href="https://fonts.gstatic.com"
+            rel="preconnect"
+        />
+        <link
+            href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap"
+            rel="stylesheet"
+        />
+        <link
+            href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap"
+            rel="stylesheet"
         />
 
-        <input
-          type="password"
-          id="senha"
-          placeholder="Senha de acesso"
-          required
-          autocomplete="off"
-          style="
-            width: 100%;
-            padding: 16px;
-            margin-bottom: 20px;
-            border: 2px solid rgba(255, 69, 0, 0.3);
-            border-radius: 10px;
-            font-size: 16px;
-            background: rgba(26, 26, 26, 0.8);
-            color: #ffffff;
-          "
-        />
-
-        <button type="submit" class="btn-replit">🔐 Acessar</button>
-      </form>
-
-      <div class="loading" id="loading">Aguarde, validando...</div>
-
-      <div
-        id="errorMessage"
-        style="
-          display: none;
-          background: rgba(244, 67, 54, 0.15);
-          color: #f44336;
-          padding: 15px;
-          border-radius: 8px;
-          margin-top: 15px;
-          border-left: 4px solid #f44336;
-          text-align: left;
-          font-size: 14px;
-        "
-      ></div>
-    </div>
-
-    <script>
-      async function fazerLogin(event) {
-        event.preventDefault();
-
-        const loading = document.getElementById("loading");
-        const errorMessage = document.getElementById("errorMessage");
-        const timeId = document.getElementById("timeId").value;
-        const senha = document.getElementById("senha").value;
-
-        loading.classList.add("show");
-        errorMessage.style.display = "none";
-
-        try {
-          const response = await fetch("/api/participante/auth/login", {
-            method: "POST",
-            headers: {
-              "Content-Type": "application/json",
-            },
-            credentials: "include",
-            body: JSON.stringify({ timeId, senha }),
-          });
-
-          const data = await response.json();
-
-          if (!response.ok) {
-            throw new Error(data.error || "Erro ao fazer login");
-          }
-
-          // Login bem-sucedido
-          window.location.href = "/participante/";
-        } catch (error) {
-          errorMessage.textContent = error.message;
-          errorMessage.style.display = "block";
-          loading.classList.remove("show");
-        }
-      }
-
-      // Verificar se já está autenticado ao carregar a página
-      let verificandoSessao = false;
-
-      window.addEventListener("load", async () => {
-        if (verificandoSessao) return;
-        verificandoSessao = true;
-
-        try {
-          const response = await fetch("/api/participante/auth/session", {
-            credentials: "include",
-          });
-
-          if (response.ok) {
-            const data = await response.json();
-            if (data.authenticated && data.participante) {
-              console.log("Sessão válida detectada, redirecionando...");
-              // Usar replace para evitar loop de navegação
-              window.location.replace("/participante/");
-              return;
+        <style>
+            * {
+                margin: 0;
+                padding: 0;
+                box-sizing: border-box;
             }
-          }
-        } catch (error) {
-          console.log("Usuário não autenticado");
-        } finally {
-          verificandoSessao = false;
-        }
-      });
-    </script>
 
-    <!-- 🛡️ PROTEÇÃO CLIENT-SIDE -->
-    <script>
-      (function () {
-        "use strict";
-        var isMobile =
-          /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(
-            navigator.userAgent,
-          );
-        if (!isMobile) {
-          document.addEventListener("keydown", function (e) {
-            if (e.key === "F12" || e.keyCode === 123) {
-              e.preventDefault();
-              return false;
+            :root {
+                --primary: #ff4500;
+                --primary-light: #ff6a33;
+                --background-dark: #0d0d0d;
+                --surface: #1c1c1e;
             }
-            if (
-              e.ctrlKey &&
-              e.shiftKey &&
-              (e.key === "I" || e.key === "i" || e.keyCode === 73)
-            ) {
-              e.preventDefault();
-              return false;
+
+            .material-symbols-outlined {
+                font-variation-settings:
+                    "FILL" 0,
+                    "wght" 400,
+                    "GRAD" 0,
+                    "opsz" 24;
             }
-            if (
-              e.ctrlKey &&
-              e.shiftKey &&
-              (e.key === "J" || e.key === "j" || e.keyCode === 74)
-            ) {
-              e.preventDefault();
-              return false;
+
+            body {
+                font-family:
+                    "Inter",
+                    -apple-system,
+                    BlinkMacSystemFont,
+                    "Segoe UI",
+                    Roboto,
+                    sans-serif;
+                min-height: 100dvh;
+                background: linear-gradient(180deg, #0d0d0d 0%, #1a1a1a 100%);
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                padding: 16px;
+                color: #fff;
             }
-            if (
-              e.ctrlKey &&
-              e.shiftKey &&
-              (e.key === "C" || e.key === "c" || e.keyCode === 67)
-            ) {
-              e.preventDefault();
-              return false;
+
+            /* Logo Glow Effect */
+            .logo-glow {
+                box-shadow:
+                    0 0 60px rgba(255, 69, 0, 0.3),
+                    0 0 100px rgba(255, 69, 0, 0.1);
             }
-            if (
-              e.ctrlKey &&
-              (e.key === "U" || e.key === "u" || e.keyCode === 85)
-            ) {
-              e.preventDefault();
-              return false;
+
+            /* Float Animation */
+            @keyframes float {
+                0%,
+                100% {
+                    transform: translateY(0);
+                }
+                50% {
+                    transform: translateY(-4px);
+                }
             }
-            if (
-              e.ctrlKey &&
-              (e.key === "S" || e.key === "s" || e.keyCode === 83)
-            ) {
-              e.preventDefault();
-              return false;
+            .logo-float {
+                animation: float 3s ease-in-out infinite;
             }
-          });
-          document.addEventListener("contextmenu", function (e) {
-            e.preventDefault();
-            return false;
-          });
-        }
-        if (
-          window.location.hostname !== "localhost" &&
-          !window.location.hostname.includes("127.0.0.1")
-        ) {
-          var noop = function () {};
-          window.console = {
-            log: noop,
-            warn: noop,
-            info: noop,
-            debug: noop,
-            table: noop,
-            trace: noop,
-            dir: noop,
-            dirxml: noop,
-            group: noop,
-            groupCollapsed: noop,
-            groupEnd: noop,
-            clear: noop,
-            count: noop,
-            countReset: noop,
-            assert: noop,
-            profile: noop,
-            profileEnd: noop,
-            time: noop,
-            timeLog: noop,
-            timeEnd: noop,
-            timeStamp: noop,
-            error: noop,
-          };
-        }
-        if (window.self !== window.top) {
-          window.top.location = window.self.location;
-        }
-      })();
-    </script>
-  </body>
+
+            /* Input Focus Glow */
+            .input-glow:focus {
+                box-shadow: 0 0 0 3px rgba(255, 69, 0, 0.2);
+            }
+
+            /* Gradient Button */
+            .btn-gradient {
+                background: linear-gradient(135deg, #ff4500 0%, #ff6a33 100%);
+                box-shadow: 0 4px 20px rgba(255, 69, 0, 0.4);
+                transition: all 0.2s ease;
+            }
+            .btn-gradient:hover {
+                box-shadow: 0 6px 30px rgba(255, 69, 0, 0.5);
+            }
+            .btn-gradient:active {
+                transform: scale(0.98);
+            }
+            .btn-gradient:disabled {
+                opacity: 0.7;
+                cursor: not-allowed;
+            }
+
+            /* Line Decoration */
+            .line-decoration {
+                background: linear-gradient(
+                    90deg,
+                    transparent,
+                    rgba(255, 69, 0, 0.3),
+                    transparent
+                );
+            }
+
+            /* Container */
+            .login-container {
+                width: 100%;
+                max-width: 380px;
+                text-align: center;
+            }
+
+            /* Logo Section */
+            .logo-section {
+                margin-bottom: 32px;
+                display: flex;
+                flex-direction: column;
+                align-items: center;
+            }
+
+            .logo-box {
+                position: relative;
+                width: 112px;
+                height: 112px;
+                border-radius: 50%;
+                background: var(--surface);
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                margin-bottom: 16px;
+            }
+
+            .logo-badge {
+                position: absolute;
+                bottom: -4px;
+                right: -4px;
+                width: 40px;
+                height: 40px;
+                border-radius: 50%;
+                background: var(--primary);
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                box-shadow: 0 4px 12px rgba(255, 69, 0, 0.4);
+            }
+
+            .title {
+                font-size: 28px;
+                font-weight: 700;
+                letter-spacing: -0.5px;
+            }
+
+            .title-white {
+                color: #fff;
+            }
+            .title-primary {
+                color: var(--primary);
+            }
+
+            .subtitle {
+                margin-top: 8px;
+                font-size: 14px;
+                color: rgba(255, 255, 255, 0.5);
+            }
+
+            .line-divider {
+                margin-top: 16px;
+                height: 1px;
+                width: 128px;
+            }
+
+            /* Form */
+            .login-form {
+                margin-top: 32px;
+                display: flex;
+                flex-direction: column;
+                gap: 16px;
+            }
+
+            .input-wrapper {
+                position: relative;
+                display: flex;
+                align-items: center;
+            }
+
+            .input-icon {
+                position: absolute;
+                left: 16px;
+                color: rgba(255, 255, 255, 0.4);
+                font-size: 22px;
+                pointer-events: none;
+            }
+
+            .input-field {
+                width: 100%;
+                height: 56px;
+                padding: 16px 48px 16px 52px;
+                border-radius: 12px;
+                border: 1px solid rgba(255, 255, 255, 0.1);
+                background: var(--surface);
+                font-family: inherit;
+                font-size: 16px;
+                color: #fff;
+                transition: all 0.2s ease;
+            }
+
+            .input-field::placeholder {
+                color: rgba(255, 255, 255, 0.3);
+            }
+
+            .input-field:focus {
+                outline: none;
+                border-color: rgba(255, 69, 0, 0.5);
+            }
+
+            .toggle-password {
+                position: absolute;
+                right: 16px;
+                background: none;
+                border: none;
+                color: rgba(255, 255, 255, 0.4);
+                cursor: pointer;
+                padding: 4px;
+                transition: color 0.2s;
+            }
+
+            .toggle-password:hover {
+                color: rgba(255, 255, 255, 0.6);
+            }
+
+            /* Options Row */
+            .options-row {
+                display: flex;
+                align-items: center;
+                justify-content: space-between;
+                padding: 0 4px;
+                margin-top: 4px;
+            }
+
+            .remember-me {
+                display: flex;
+                align-items: center;
+                gap: 8px;
+                cursor: pointer;
+            }
+
+            .remember-me input {
+                width: 16px;
+                height: 16px;
+                accent-color: var(--primary);
+                cursor: pointer;
+            }
+
+            .remember-me span {
+                font-size: 14px;
+                color: rgba(255, 255, 255, 0.5);
+            }
+
+            /* Tooltip */
+            .tooltip-container {
+                position: relative;
+            }
+
+            .tooltip-trigger {
+                background: none;
+                border: none;
+                font-family: inherit;
+                font-size: 14px;
+                color: rgba(255, 69, 0, 0.8);
+                cursor: pointer;
+                transition: color 0.2s;
+            }
+
+            .tooltip-trigger:hover {
+                color: var(--primary);
+            }
+
+            .tooltip-content {
+                visibility: hidden;
+                opacity: 0;
+                position: absolute;
+                bottom: 100%;
+                right: 0;
+                margin-bottom: 8px;
+                padding: 12px 14px;
+                background: var(--surface);
+                border: 1px solid rgba(255, 69, 0, 0.3);
+                border-radius: 10px;
+                width: 240px;
+                text-align: left;
+                box-shadow: 0 8px 30px rgba(0, 0, 0, 0.5);
+                transition: all 0.2s ease;
+                z-index: 100;
+            }
+
+            .tooltip-content::after {
+                content: "";
+                position: absolute;
+                top: 100%;
+                right: 20px;
+                border: 6px solid transparent;
+                border-top-color: rgba(255, 69, 0, 0.3);
+            }
+
+            .tooltip-container:hover .tooltip-content,
+            .tooltip-container:focus-within .tooltip-content {
+                visibility: visible;
+                opacity: 1;
+            }
+
+            .tooltip-header {
+                display: flex;
+                align-items: flex-start;
+                gap: 8px;
+            }
+
+            .tooltip-icon {
+                flex-shrink: 0;
+                margin-top: 2px;
+                font-size: 18px;
+                color: var(--primary);
+            }
+
+            .tooltip-title {
+                font-size: 12px;
+                font-weight: 600;
+                color: var(--primary);
+                margin-bottom: 4px;
+            }
+
+            .tooltip-text {
+                font-size: 12px;
+                color: rgba(255, 255, 255, 0.6);
+                line-height: 1.5;
+            }
+
+            /* Submit Button */
+            .submit-btn {
+                display: flex;
+                width: 100%;
+                height: 56px;
+                align-items: center;
+                justify-content: center;
+                gap: 8px;
+                border-radius: 12px;
+                border: none;
+                font-family: inherit;
+                font-size: 18px;
+                font-weight: 700;
+                color: #fff;
+                cursor: pointer;
+                margin-top: 16px;
+                letter-spacing: 0.5px;
+            }
+
+            /* Error Message */
+            .error-message {
+                display: none;
+                background: rgba(239, 68, 68, 0.1);
+                border: 1px solid rgba(239, 68, 68, 0.3);
+                border-left: 4px solid #ef4444;
+                border-radius: 8px;
+                padding: 12px 14px;
+                margin-top: 16px;
+                text-align: left;
+            }
+
+            .error-message.show {
+                display: block;
+            }
+
+            .error-text {
+                font-size: 14px;
+                color: #ef4444;
+            }
+
+            /* Loading */
+            .loading-text {
+                display: none;
+                margin-top: 16px;
+                font-size: 14px;
+                color: rgba(255, 255, 255, 0.5);
+            }
+
+            .loading-text.show {
+                display: block;
+            }
+
+            /* Footer */
+            .footer {
+                margin-top: 64px;
+                display: flex;
+                flex-direction: column;
+                align-items: center;
+                gap: 8px;
+            }
+
+            .footer-brand {
+                display: flex;
+                align-items: center;
+                gap: 8px;
+                font-size: 14px;
+                color: rgba(255, 255, 255, 0.3);
+            }
+
+            .footer-brand .material-symbols-outlined {
+                font-size: 16px;
+                color: rgba(255, 69, 0, 0.6);
+            }
+
+            .footer-brand-name {
+                font-weight: 500;
+            }
+
+            .footer-version {
+                color: rgba(255, 255, 255, 0.2);
+            }
+
+            .footer-copy {
+                display: flex;
+                align-items: center;
+                gap: 12px;
+                font-size: 12px;
+                color: rgba(255, 255, 255, 0.2);
+            }
+
+            .footer-badge {
+                padding: 2px 8px;
+                border-radius: 4px;
+                background: rgba(255, 69, 0, 0.1);
+                color: rgba(255, 69, 0, 0.7);
+                font-weight: 600;
+                font-size: 11px;
+            }
+
+            /* Responsive */
+            @media (max-width: 400px) {
+                .title {
+                    font-size: 24px;
+                }
+
+                .logo-box {
+                    width: 96px;
+                    height: 96px;
+                }
+
+                .logo-badge {
+                    width: 36px;
+                    height: 36px;
+                }
+            }
+        </style>
+    </head>
+
+    <body>
+        <div class="login-container">
+            <!-- Logo Section -->
+            <div class="logo-section">
+                <div class="logo-box logo-glow">
+                    <div class="logo-float">
+                        <span
+                            class="material-symbols-outlined"
+                            style="
+                                font-size: 64px;
+                                color: var(--primary);
+                                font-variation-settings:
+                                    &quot;FILL&quot; 1,
+                                    &quot;wght&quot; 300,
+                                    &quot;opsz&quot; 48;
+                            "
+                        >
+                            sports_soccer
+                        </span>
+                    </div>
+                    <div class="logo-badge">
+                        <span
+                            class="material-symbols-outlined"
+                            style="
+                                font-size: 20px;
+                                color: #fff;
+                                font-variation-settings:
+                                    &quot;FILL&quot; 1,
+                                    &quot;wght&quot; 500;
+                            "
+                        >
+                            emoji_events
+                        </span>
+                    </div>
+                </div>
+
+                <h1 class="title">
+                    <span class="title-white">Super</span>
+                    <span class="title-primary">Cartola</span>
+                </h1>
+                <p class="subtitle">O melhor fantasy game do Cartola FC</p>
+
+                <div class="line-divider line-decoration"></div>
+            </div>
+
+            <!-- Login Form -->
+            <form
+                class="login-form"
+                id="loginForm"
+                onsubmit="fazerLogin(event)"
+            >
+                <!-- ID do Time -->
+                <div class="input-wrapper">
+                    <span class="material-symbols-outlined input-icon"
+                        >badge</span
+                    >
+                    <input
+                        type="number"
+                        id="timeId"
+                        class="input-field input-glow"
+                        placeholder="ID do Time Cartola"
+                        required
+                        autocomplete="off"
+                    />
+                </div>
+
+                <!-- Senha -->
+                <div class="input-wrapper">
+                    <span class="material-symbols-outlined input-icon"
+                        >lock</span
+                    >
+                    <input
+                        type="password"
+                        id="senha"
+                        class="input-field input-glow"
+                        placeholder="Senha"
+                        required
+                        autocomplete="off"
+                    />
+                    <button
+                        type="button"
+                        class="toggle-password"
+                        onclick="togglePassword()"
+                    >
+                        <span class="material-symbols-outlined" id="toggleIcon"
+                            >visibility_off</span
+                        >
+                    </button>
+                </div>
+
+                <!-- Options -->
+                <div class="options-row">
+                    <label class="remember-me">
+                        <input type="checkbox" id="lembrarMe" />
+                        <span>Lembrar-me</span>
+                    </label>
+
+                    <div class="tooltip-container">
+                        <button type="button" class="tooltip-trigger">
+                            Esqueci a senha
+                        </button>
+                        <div class="tooltip-content">
+                            <div class="tooltip-header">
+                                <span
+                                    class="material-symbols-outlined tooltip-icon"
+                                    style="
+                                        font-variation-settings: &quot;FILL&quot;
+                                            1;
+                                    "
+                                    >engineering</span
+                                >
+                                <div>
+                                    <p class="tooltip-title">
+                                        Em Desenvolvimento
+                                    </p>
+                                    <p class="tooltip-text">
+                                        Se esqueceu sua senha, contate o
+                                        administrador da liga.
+                                    </p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Submit Button -->
+                <button
+                    type="submit"
+                    class="submit-btn btn-gradient"
+                    id="submitBtn"
+                >
+                    <span
+                        class="material-symbols-outlined"
+                        style="
+                            font-variation-settings:
+                                &quot;FILL&quot; 1,
+                                &quot;wght&quot; 500;
+                        "
+                        >login</span
+                    >
+                    <span>ENTRAR</span>
+                </button>
+            </form>
+
+            <!-- Loading -->
+            <p class="loading-text" id="loading">Aguarde, validando...</p>
+
+            <!-- Error Message -->
+            <div class="error-message" id="errorMessage">
+                <p class="error-text" id="errorText"></p>
+            </div>
+
+            <!-- Footer -->
+            <div class="footer">
+                <div class="footer-brand">
+                    <span
+                        class="material-symbols-outlined"
+                        style="font-variation-settings: &quot;FILL&quot; 1"
+                        >verified</span
+                    >
+                    <span class="footer-brand-name">Super Cartola Manager</span>
+                    <span class="footer-version">v2.0</span>
+                </div>
+                <div class="footer-copy">
+                    <span class="footer-badge">ANO XI</span>
+                    <span>© 2025 Todos os direitos reservados</span>
+                </div>
+            </div>
+        </div>
+
+        <script>
+            // Toggle Password Visibility
+            function togglePassword() {
+                const senhaInput = document.getElementById("senha");
+                const toggleIcon = document.getElementById("toggleIcon");
+
+                if (senhaInput.type === "password") {
+                    senhaInput.type = "text";
+                    toggleIcon.textContent = "visibility";
+                } else {
+                    senhaInput.type = "password";
+                    toggleIcon.textContent = "visibility_off";
+                }
+            }
+
+            // Login Function
+            async function fazerLogin(event) {
+                event.preventDefault();
+
+                const loading = document.getElementById("loading");
+                const errorMessage = document.getElementById("errorMessage");
+                const errorText = document.getElementById("errorText");
+                const submitBtn = document.getElementById("submitBtn");
+                const timeId = document.getElementById("timeId").value;
+                const senha = document.getElementById("senha").value;
+
+                // Show loading
+                loading.classList.add("show");
+                errorMessage.classList.remove("show");
+                submitBtn.disabled = true;
+
+                try {
+                    const response = await fetch(
+                        "/api/participante/auth/login",
+                        {
+                            method: "POST",
+                            headers: {
+                                "Content-Type": "application/json",
+                            },
+                            credentials: "include",
+                            body: JSON.stringify({ timeId, senha }),
+                        },
+                    );
+
+                    const data = await response.json();
+
+                    if (!response.ok) {
+                        throw new Error(data.error || "Erro ao fazer login");
+                    }
+
+                    // Login successful
+                    window.location.href = "/participante/";
+                } catch (error) {
+                    errorText.textContent = error.message;
+                    errorMessage.classList.add("show");
+                    loading.classList.remove("show");
+                    submitBtn.disabled = false;
+                }
+            }
+
+            // Check if already authenticated
+            let verificandoSessao = false;
+
+            window.addEventListener("load", async () => {
+                if (verificandoSessao) return;
+                verificandoSessao = true;
+
+                try {
+                    const response = await fetch(
+                        "/api/participante/auth/session",
+                        {
+                            credentials: "include",
+                        },
+                    );
+
+                    if (response.ok) {
+                        const data = await response.json();
+                        if (data.authenticated && data.participante) {
+                            console.log(
+                                "Sessão válida detectada, redirecionando...",
+                            );
+                            window.location.replace("/participante/");
+                            return;
+                        }
+                    }
+                } catch (error) {
+                    console.log("Usuário não autenticado");
+                } finally {
+                    verificandoSessao = false;
+                }
+            });
+        </script>
+
+        <!-- 🛡️ PROTEÇÃO CLIENT-SIDE -->
+        <script>
+            (function () {
+                "use strict";
+                var isMobile =
+                    /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(
+                        navigator.userAgent,
+                    );
+                if (!isMobile) {
+                    document.addEventListener("keydown", function (e) {
+                        if (e.key === "F12" || e.keyCode === 123) {
+                            e.preventDefault();
+                            return false;
+                        }
+                        if (
+                            e.ctrlKey &&
+                            e.shiftKey &&
+                            (e.key === "I" || e.key === "i" || e.keyCode === 73)
+                        ) {
+                            e.preventDefault();
+                            return false;
+                        }
+                        if (
+                            e.ctrlKey &&
+                            e.shiftKey &&
+                            (e.key === "J" || e.key === "j" || e.keyCode === 74)
+                        ) {
+                            e.preventDefault();
+                            return false;
+                        }
+                        if (
+                            e.ctrlKey &&
+                            e.shiftKey &&
+                            (e.key === "C" || e.key === "c" || e.keyCode === 67)
+                        ) {
+                            e.preventDefault();
+                            return false;
+                        }
+                        if (
+                            e.ctrlKey &&
+                            (e.key === "U" || e.key === "u" || e.keyCode === 85)
+                        ) {
+                            e.preventDefault();
+                            return false;
+                        }
+                        if (
+                            e.ctrlKey &&
+                            (e.key === "S" || e.key === "s" || e.keyCode === 83)
+                        ) {
+                            e.preventDefault();
+                            return false;
+                        }
+                    });
+                    document.addEventListener("contextmenu", function (e) {
+                        e.preventDefault();
+                        return false;
+                    });
+                }
+                if (
+                    window.location.hostname !== "localhost" &&
+                    !window.location.hostname.includes("127.0.0.1")
+                ) {
+                    var noop = function () {};
+                    window.console = {
+                        log: noop,
+                        warn: noop,
+                        info: noop,
+                        debug: noop,
+                        table: noop,
+                        trace: noop,
+                        dir: noop,
+                        dirxml: noop,
+                        group: noop,
+                        groupCollapsed: noop,
+                        groupEnd: noop,
+                        clear: noop,
+                        count: noop,
+                        countReset: noop,
+                        assert: noop,
+                        profile: noop,
+                        profileEnd: noop,
+                        time: noop,
+                        timeLog: noop,
+                        timeEnd: noop,
+                        timeStamp: noop,
+                        error: noop,
+                    };
+                }
+                if (window.self !== window.top) {
+                    window.top.location = window.self.location;
+                }
+            })();
+        </script>
+    </body>
 </html>

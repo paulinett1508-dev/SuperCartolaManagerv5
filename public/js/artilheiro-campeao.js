@@ -1,6 +1,7 @@
-// ✅ ARTILHEIRO-CAMPEAO.JS v4.3.0
-// Tabela com Rodadas em Colunas - DESTAQUE 1º LUGAR + RODADA FINAL
-console.log("🏆 [ARTILHEIRO] Sistema v4.3.0 carregando...");
+// ✅ ARTILHEIRO-CAMPEAO.JS v4.4.1
+// Tabela com Rodadas em Colunas - DESTAQUE 1º LUGAR + RODADA FINAL + Material Icons
+// v4.4.1: Fix temporada encerrada (não mostrar como parcial após R38)
+console.log("🏆 [ARTILHEIRO] Sistema v4.4.1 carregando...");
 
 const ArtilheiroCampeao = {
     // Configurações
@@ -25,6 +26,7 @@ const ArtilheiroCampeao = {
         rodadaNavInicio: 1,
         rodadaParcial: null,
         mercadoAberto: false,
+        temporadaEncerrada: true, // v4.4.1: Flag para temporada encerrada
         carregando: false,
         inicializado: false,
         dadosRodadas: {},
@@ -39,7 +41,7 @@ const ArtilheiroCampeao = {
             return;
         }
 
-        console.log("🚀 [ARTILHEIRO] Inicializando módulo v4.3.0...");
+        console.log("🚀 [ARTILHEIRO] Inicializando módulo v4.4.1...");
         this._isInitializing = true;
 
         this.estado = {
@@ -52,6 +54,7 @@ const ArtilheiroCampeao = {
             rodadaNavInicio: 1,
             rodadaParcial: null,
             mercadoAberto: false,
+            temporadaEncerrada: true, // v4.4.1: Flag para temporada encerrada
             carregando: false,
             inicializado: false,
             dadosRodadas: {},
@@ -87,6 +90,8 @@ const ArtilheiroCampeao = {
                     this.estado.rodadaAtual = data.data.rodadaAtual || 38;
                     this.estado.mercadoAberto =
                         data.data.mercadoAberto || false;
+                    this.estado.temporadaEncerrada =
+                        data.data.temporadaEncerrada || false;
                     this.estado.rodadaFim = this.estado.rodadaAtual;
 
                     this.estado.rodadaNavInicio = Math.max(
@@ -97,7 +102,7 @@ const ArtilheiroCampeao = {
                     );
 
                     console.log(
-                        `📅 Rodada detectada: ${this.estado.rodadaAtual}, Mercado: ${this.estado.mercadoAberto ? "Aberto" : "Fechado"}`,
+                        `📅 Rodada detectada: ${this.estado.rodadaAtual}, Mercado: ${this.estado.mercadoAberto ? "Aberto" : "Fechado"}, Temporada: ${this.estado.temporadaEncerrada ? "ENCERRADA" : "ATIVA"}`,
                     );
                 }
             }
@@ -107,7 +112,7 @@ const ArtilheiroCampeao = {
     },
 
     // ==============================
-    // LAYOUT PRINCIPAL
+    // LAYOUT PRINCIPAL - v4.4 Material Icons
     // ==============================
     renderizarLayout() {
         const loading = document.getElementById("artilheiro-loading");
@@ -120,33 +125,41 @@ const ArtilheiroCampeao = {
         if (!container) {
             container = document.getElementById("modulo-content");
         }
+        if (!container) {
+            container = document.getElementById("dynamic-content-area");
+        }
 
         if (!container) {
             console.error("❌ [ARTILHEIRO] Container não encontrado!");
             return;
         }
 
+        console.log("✅ [ARTILHEIRO] Container encontrado:", container.id);
+
         container.style.display = "block";
 
-        // ✅ v4.3: Verificar se é rodada final
+        // ✅ v4.4.1: Verificar se é rodada final E se é parcial
         const isRodadaFinal =
             this.estado.rodadaAtual === this.config.RODADA_FINAL;
-        const isParcial = !this.estado.mercadoAberto;
+        // ✅ v4.4.1: Só é parcial se mercado fechado E temporada NÃO encerrada
+        const isParcial =
+            !this.estado.mercadoAberto && !this.estado.temporadaEncerrada;
 
         container.innerHTML = `
-            <div class="artilheiro-container">
+            <div id="artilheiro-container" class="artilheiro-container">
                 <!-- ✅ v4.3: BANNER RODADA FINAL -->
                 <div id="artilheiroBannerRodadaFinal"></div>
 
                 <!-- Header -->
                 <div class="artilheiro-header">
                     <div class="artilheiro-title">
-                        <span class="artilheiro-icon">🏆</span>
+                        <span class="material-icons artilheiro-icon" style="font-size: 20px; color: #ffd700;">emoji_events</span>
                         <h3>Artilheiro Campeão</h3>
-                        <span class="artilheiro-badge">MODULAR</span>
+                        <span class="artilheiro-badge">${this.estado.temporadaEncerrada ? "CONSOLIDADO" : "MODULAR"}</span>
                     </div>
                     <div class="artilheiro-info-rodada">
-                        <span id="artilheiroInfoStatus">📊 Dados até a ${this.estado.rodadaFim}ª rodada${isParcial ? " (em andamento)" : ""}</span>
+                        <span class="material-icons" style="font-size: 14px;">leaderboard</span>
+                        <span id="artilheiroInfoStatus">Dados até a ${this.estado.rodadaFim}ª rodada${isParcial ? " (em andamento)" : this.estado.temporadaEncerrada ? " (TEMPORADA ENCERRADA)" : ""}</span>
                     </div>
                 </div>
 
@@ -161,11 +174,11 @@ const ArtilheiroCampeao = {
                 <!-- Navegação de rodadas -->
                 <div class="artilheiro-nav-container">
                     <button class="artilheiro-nav-btn" onclick="ArtilheiroCampeao.navegarRodadas('esquerda')" id="btnNavEsq">
-                        ◀
+                        <span class="material-icons" style="font-size: 16px;">chevron_left</span>
                     </button>
                     <span id="artilheiroNavInfo" class="artilheiro-nav-info">Rodadas 1 - ${this.config.RODADAS_VISIVEIS}</span>
                     <button class="artilheiro-nav-btn" onclick="ArtilheiroCampeao.navegarRodadas('direita')" id="btnNavDir">
-                        ▶
+                        <span class="material-icons" style="font-size: 16px;">chevron_right</span>
                     </button>
                 </div>
 
@@ -202,7 +215,7 @@ const ArtilheiroCampeao = {
     },
 
     // ==============================
-    // ✅ v4.3: BANNER RODADA FINAL
+    // ✅ v4.4: BANNER RODADA FINAL - Material Icons
     // ==============================
     _renderizarBannerRodadaFinal() {
         const bannerContainer = document.getElementById(
@@ -210,7 +223,8 @@ const ArtilheiroCampeao = {
         );
         if (!bannerContainer) return;
 
-        const { rodadaAtual, mercadoAberto, ranking } = this.estado;
+        const { rodadaAtual, mercadoAberto, temporadaEncerrada, ranking } =
+            this.estado;
         const isRodadaFinal = rodadaAtual === this.config.RODADA_FINAL;
 
         if (!isRodadaFinal) {
@@ -218,16 +232,26 @@ const ArtilheiroCampeao = {
             return;
         }
 
-        const isParcial = !mercadoAberto;
-        const statusTexto = isParcial ? "EM ANDAMENTO" : "ÚLTIMA RODADA";
+        // ✅ v4.4.1: Só é parcial se mercado fechado E temporada NÃO encerrada
+        const isParcial = !mercadoAberto && !temporadaEncerrada;
+        const statusTexto = temporadaEncerrada
+            ? "TEMPORADA ENCERRADA"
+            : isParcial
+              ? "EM ANDAMENTO"
+              : "ÚLTIMA RODADA";
         const lider = ranking[0];
         const liderNome = lider?.nome || "---";
         const liderGols = lider?.golsPro || 0;
 
+        // ✅ v4.4.1: Se temporada encerrada, mostrar CAMPEÃO ao invés de POSSÍVEL
+        const liderLabel = temporadaEncerrada
+            ? "🏆 ARTILHEIRO CAMPEÃO"
+            : "POSSÍVEL ARTILHEIRO";
+
         bannerContainer.innerHTML = `
-            <div class="rodada-final-banner ${isParcial ? "parcial-ativo" : ""}">
+            <div class="rodada-final-banner ${isParcial ? "parcial-ativo" : ""} ${temporadaEncerrada ? "temporada-encerrada" : ""}">
                 <div class="banner-content">
-                    <div class="banner-icon">🏁</div>
+                    <span class="material-icons banner-icon" style="font-size: 2rem; color: #ffd700;">${temporadaEncerrada ? "emoji_events" : "sports_score"}</span>
                     <div class="banner-info">
                         <span class="banner-titulo">RODADA FINAL</span>
                         <span class="banner-status ${isParcial ? "pulsando" : ""}">${statusTexto}</span>
@@ -235,8 +259,8 @@ const ArtilheiroCampeao = {
                     ${
                         lider
                             ? `
-                        <div class="banner-lider">
-                            <span class="lider-label">POSSÍVEL ARTILHEIRO</span>
+                        <div class="banner-lider ${temporadaEncerrada ? "campeao" : ""}">
+                            <span class="lider-label">${liderLabel}</span>
                             <span class="lider-nome">${liderNome} (${liderGols} gols)</span>
                         </div>
                     `
@@ -248,7 +272,7 @@ const ArtilheiroCampeao = {
     },
 
     // ==============================
-    // ✅ v4.3: ESTILOS DE DESTAQUE
+    // ✅ v4.4: ESTILOS DE DESTAQUE
     // ==============================
     _injetarEstilosDestaque() {
         return `
@@ -362,6 +386,9 @@ const ArtilheiroCampeao = {
                     animation: coroaPulseArt 1s infinite;
                     display: inline-block;
                     margin-left: 4px;
+                    color: #ffd700;
+                    font-size: 14px;
+                    vertical-align: middle;
                 }
 
                 @keyframes coroaPulseArt {
@@ -433,6 +460,9 @@ const ArtilheiroCampeao = {
             let ranking = data.data.ranking || [];
             this.estado.estatisticas = data.data.estatisticas || null;
             this.estado.rodadaParcial = data.data.rodadaParcial || null;
+            // ✅ v4.4.1: Capturar temporadaEncerrada da resposta
+            this.estado.temporadaEncerrada =
+                data.data.temporadaEncerrada || false;
 
             // Buscar status de inatividade
             const timeIds = ranking.map((p) => p.timeId);
@@ -513,7 +543,7 @@ const ArtilheiroCampeao = {
     },
 
     // ==============================
-    // RENDERIZAR TABELA - v4.3 COM DESTAQUE 1º LUGAR
+    // RENDERIZAR TABELA - v4.4 COM Material Icons
     // ==============================
     renderizarTabela() {
         const loadingHTML = document.getElementById("artilheiro-loading");
@@ -535,6 +565,7 @@ const ArtilheiroCampeao = {
             rodadaParcial,
             rodadaAtual,
             mercadoAberto,
+            temporadaEncerrada,
         } = this.estado;
         const { RODADAS_VISIVEIS, RODADA_FINAL } = this.config;
 
@@ -543,9 +574,11 @@ const ArtilheiroCampeao = {
             return;
         }
 
-        // ✅ v4.3: Verificar se é rodada final com parcial
+        // ✅ v4.4.1: Só é parcial se mercado fechado E temporada NÃO encerrada
         const isRodadaFinalParcial =
-            rodadaAtual === RODADA_FINAL && !mercadoAberto;
+            rodadaAtual === RODADA_FINAL &&
+            !mercadoAberto &&
+            !temporadaEncerrada;
 
         const rodadaFimVisivel = Math.min(
             rodadaNavInicio + RODADAS_VISIVEIS - 1,
@@ -565,7 +598,7 @@ const ArtilheiroCampeao = {
         if (btnEsq) btnEsq.disabled = rodadaNavInicio <= 1;
         if (btnDir) btnDir.disabled = rodadaFimVisivel >= rodadaFim;
 
-        // ✅ v4.3: Headers das rodadas com marcação de final
+        // ✅ v4.4: Headers das rodadas com Material Icons
         const headersRodadas = rodadasExibir
             .map((r) => {
                 const isParcial = r === rodadaParcial;
@@ -573,7 +606,10 @@ const ArtilheiroCampeao = {
                 let classe = "col-rodada";
                 if (isParcial) classe += " parcial";
                 if (isFinal) classe += " rodada-final";
-                return `<th class="${classe}">R${r}${isParcial ? "*" : ""}${isFinal ? "🏁" : ""}</th>`;
+                const finalIcon = isFinal
+                    ? '<span class="material-icons" style="font-size: 10px; vertical-align: middle;">sports_score</span>'
+                    : "";
+                return `<th class="${classe}">R${r}${isParcial ? "*" : ""}${finalIcon}</th>`;
             })
             .join("");
 
@@ -594,20 +630,22 @@ const ArtilheiroCampeao = {
             .map((p, index) => {
                 const posicao = p.posicao || index + 1;
 
-                // ✅ v4.3: DESTAQUE APENAS NO 1º LUGAR
+                // ✅ v4.4: DESTAQUE APENAS NO 1º LUGAR - Material Icons
                 let posIcon;
                 let posClass = "";
                 let rowClass = "artilheiro-ranking-row";
                 let coroaHtml = "";
 
                 if (posicao === 1) {
-                    posIcon = "🏆";
+                    posIcon =
+                        '<span class="material-icons" style="font-size: 16px; color: #1a1a2e;">emoji_events</span>';
                     posClass = "pos-campeao";
                     rowClass += " lider-destaque";
 
                     if (isRodadaFinalParcial) {
                         rowClass += " possivel-campeao";
-                        coroaHtml = '<span class="coroa-animada">👑</span>';
+                        coroaHtml =
+                            '<span class="material-icons coroa-animada">workspace_premium</span>';
                     }
                 } else {
                     // ✅ v4.3: 2º e 3º lugares SEM destaque especial
@@ -670,7 +708,7 @@ const ArtilheiroCampeao = {
                             if (isParcial && gp === 0 && gc === 0) {
                                 return `<td class="col-rodada-gols parcial aguardando">
                                     <div class="gols-celula">
-                                        <span class="gols-saldo">⏳</span>
+                                        <span class="material-icons gols-saldo" style="font-size: 14px; color: #f39c12;">hourglass_empty</span>
                                     </div>
                                 </td>`;
                             }
@@ -690,11 +728,16 @@ const ArtilheiroCampeao = {
                     })
                     .join("");
 
+                // ✅ v4.4: Escudo fallback com Material Icons
+                const escudoHtml = p.escudo
+                    ? `<img src="${p.escudo}" class="escudo-img" onerror="this.style.display='none'; this.nextElementSibling.style.display='inline'"><span class="material-icons" style="display: none; font-size: 20px; color: #666;">sports_soccer</span>`
+                    : '<span class="material-icons" style="font-size: 20px; color: #666;">sports_soccer</span>';
+
                 return `
                 <tr class="${rowClass}">
                     <td class="col-pos"><span class="pos-badge ${posClass}">${posIcon}</span></td>
                     <td class="col-escudo">
-                        ${p.escudo ? `<img src="${p.escudo}" class="escudo-img" onerror="this.style.display='none'">` : "⚽"}
+                        ${escudoHtml}
                     </td>
                     <td class="col-nome">
                         <div class="participante-info">
@@ -715,7 +758,7 @@ const ArtilheiroCampeao = {
     },
 
     // ==============================
-    // RENDERIZAR SEÇÃO DE INATIVOS
+    // RENDERIZAR SEÇÃO DE INATIVOS - v4.4 Material Icons
     // ==============================
     renderizarSecaoInativos(rodadasExibir, rodadaParcial) {
         const { inativos } = this.estado;
@@ -786,11 +829,16 @@ const ArtilheiroCampeao = {
                     })
                     .join("");
 
+                // ✅ v4.4: Escudo fallback com Material Icons
+                const escudoHtml = p.escudo
+                    ? `<img src="${p.escudo}" class="escudo-img" onerror="this.style.display='none'; this.nextElementSibling.style.display='inline'"><span class="material-icons" style="display: none; font-size: 20px; color: #555;">sports_soccer</span>`
+                    : '<span class="material-icons" style="font-size: 20px; color: #555;">sports_soccer</span>';
+
                 return `
                 <tr class="artilheiro-ranking-row inativo">
                     <td class="col-pos"><span class="pos-badge">—</span></td>
                     <td class="col-escudo">
-                        ${p.escudo ? `<img src="${p.escudo}" class="escudo-img" onerror="this.style.display='none'">` : "⚽"}
+                        ${escudoHtml}
                     </td>
                     <td class="col-nome">
                         <div class="participante-info">
@@ -814,7 +862,7 @@ const ArtilheiroCampeao = {
 
         secaoInativos.innerHTML = `
             <div class="inativos-header">
-                <span class="inativos-icon">🚫</span>
+                <span class="material-icons inativos-icon" style="font-size: 20px; color: #888;">block</span>
                 <h4>Participantes Inativos</h4>
                 <span class="inativos-badge">${inativos.length}</span>
                 <span class="inativos-info">Fora da disputa do ranking</span>
@@ -841,7 +889,7 @@ const ArtilheiroCampeao = {
     },
 
     // ==============================
-    // LOADING E ERRO
+    // LOADING E ERRO - v4.4 Material Icons
     // ==============================
     mostrarLoading(mensagem) {
         const loadingHTML = document.getElementById("artilheiro-loading");
@@ -875,11 +923,12 @@ const ArtilheiroCampeao = {
                 <tr>
                     <td colspan="20">
                         <div class="artilheiro-erro">
-                            <span class="erro-icon">❌</span>
+                            <span class="material-icons erro-icon" style="font-size: 32px; color: #e74c3c;">cancel</span>
                             <p class="erro-msg">${titulo}</p>
                             <p class="erro-detalhe">${mensagem}</p>
                             <button class="artilheiro-btn primary" onclick="ArtilheiroCampeao.buscarRanking()">
-                                🔄 Tentar Novamente
+                                <span class="material-icons" style="font-size: 16px; margin-right: 5px;">refresh</span>
+                                Tentar Novamente
                             </button>
                         </div>
                     </td>
@@ -905,7 +954,7 @@ const ArtilheiroCampeao = {
     },
 
     // ==============================
-    // MODAL DE DETALHES DA RODADA
+    // MODAL DE DETALHES DA RODADA - v4.4 Material Icons
     // ==============================
     mostrarModalRodada(timeId, rodada) {
         const key = `${timeId}-${rodada}`;
@@ -935,7 +984,7 @@ const ArtilheiroCampeao = {
         if (artilheiros.length > 0) {
             listaArtilheiros = `
                 <div class="modal-secao">
-                    <h4>⚽ Gols Marcados</h4>
+                    <h4><span class="material-icons" style="font-size: 16px; vertical-align: middle; margin-right: 5px; color: #28a745;">sports_soccer</span> Gols Marcados</h4>
                     <ul class="modal-lista-gols">
                         ${artilheiros
                             .map(
@@ -956,7 +1005,7 @@ const ArtilheiroCampeao = {
         if (golsContra.length > 0) {
             listaGolsContra = `
                 <div class="modal-secao">
-                    <h4>🥅 Gols Contra</h4>
+                    <h4><span class="material-icons" style="font-size: 16px; vertical-align: middle; margin-right: 5px; color: #dc3545;">sports_handball</span> Gols Contra</h4>
                     <ul class="modal-lista-gols">
                         ${golsContra
                             .map(
@@ -979,7 +1028,9 @@ const ArtilheiroCampeao = {
 
         modal.innerHTML = `
             <div class="artilheiro-modal-content">
-                <button class="modal-fechar" onclick="ArtilheiroCampeao.fecharModal()">✕</button>
+                <button class="modal-fechar" onclick="ArtilheiroCampeao.fecharModal()">
+                    <span class="material-icons" style="font-size: 18px;">close</span>
+                </button>
                 <div class="modal-header">
                     <h3>Rodada ${rodada} ${parcialBadge}</h3>
                     <p class="modal-participante">${dados.participante}</p>
@@ -1055,25 +1106,7 @@ window.inicializarArtilheiroCampeao = async function () {
     await ArtilheiroCampeao.inicializar();
 };
 
-(function autoInit() {
-    setTimeout(async () => {
-        const container =
-            document.getElementById("artilheiro-container") ||
-            document.getElementById("artilheiro-campeao-content");
+// ✅ v4.4: Auto-init removido - módulo será inicializado pelo orquestrador
+// Evita erro "Container não encontrado" no carregamento
 
-        if (container) {
-            console.log("🚀 [ARTILHEIRO] Auto-inicializando...");
-            try {
-                await ArtilheiroCampeao.inicializar();
-            } catch (e) {
-                console.error("❌ [ARTILHEIRO] Erro na auto-inicialização:", e);
-            }
-        } else {
-            console.log(
-                "⏳ [ARTILHEIRO] Container não encontrado, aguardando...",
-            );
-        }
-    }, 300);
-})();
-
-console.log("✅ [ARTILHEIRO] Módulo v4.3.0 carregado!");
+console.log("✅ [ARTILHEIRO] Módulo v4.4.1 carregado!");

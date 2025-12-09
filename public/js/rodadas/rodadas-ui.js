@@ -1,4 +1,5 @@
 // RODADAS UI - Interface e Renderização
+// ✅ v2.4: FIX - Rodada 38 mostra "Encerrada" quando campeonato acabou
 // ✅ v2.3: Tabelas contextuais por rodada (valores de banco e labels de posição)
 //         Rodadas 1-29: 6 times | Rodadas 30+: 4 times
 // Responsável por: renderização de componentes, manipulação DOM, eventos
@@ -27,6 +28,54 @@ function getElement(id) {
 }
 
 // ==============================
+// ✅ v2.4: VERIFICAÇÃO DE TEMPORADA ENCERRADA
+// ==============================
+
+/**
+ * Verifica se a temporada do Cartola está encerrada
+ * @param {number} rodada_atual - Rodada atual da API
+ * @param {number} status_mercado - Status do mercado (1=aberto, 2=fechado em andamento, 4/6=encerrado)
+ * @returns {boolean} - True se temporada encerrada
+ */
+function isTemporadaEncerrada(rodada_atual, status_mercado) {
+  // Se não é a última rodada, temporada não encerrou
+  if (rodada_atual < 38) return false;
+
+  // Status do mercado Cartola FC:
+  // 1 = Mercado aberto
+  // 2 = Mercado fechado (rodada em andamento - jogos acontecendo)
+  // 3 = Rodada em processamento
+  // 4 = Mercado fechado (aguardando próxima rodada)
+  // 6 = Final de temporada / Temporada encerrada
+
+  // Se é rodada 38 e mercado não está em andamento (status != 2), temporada encerrou
+  // Status 2 significa "jogos em andamento", então ainda é parcial
+  // Qualquer outro status (4, 6, etc) na rodada 38 significa temporada encerrada
+  const mercadoEmAndamento = status_mercado === 2;
+
+  return !mercadoEmAndamento;
+}
+
+/**
+ * Verifica se uma rodada específica está consolidada (finalizada)
+ * @param {number} rodada - Número da rodada
+ * @param {number} rodada_atual - Rodada atual da API
+ * @param {number} status_mercado - Status do mercado
+ * @returns {boolean} - True se rodada está consolidada
+ */
+export function isRodadaConsolidada(rodada, rodada_atual, status_mercado) {
+  // Rodadas anteriores à atual sempre estão consolidadas
+  if (rodada < rodada_atual) return true;
+
+  // Rodada atual só está consolidada se temporada encerrou
+  if (rodada === rodada_atual && rodada === 38) {
+    return isTemporadaEncerrada(rodada_atual, status_mercado);
+  }
+
+  return false;
+}
+
+// ==============================
 // RENDERIZAÇÃO DE MINI CARDS
 // ==============================
 
@@ -52,6 +101,9 @@ export async function renderizarMiniCardsRodadas() {
   });
 
   const mercadoAberto = status_mercado === 1;
+  const temporadaEncerrada = isTemporadaEncerrada(rodada_atual, status_mercado);
+
+  console.log("[RODADAS-UI] Temporada encerrada:", temporadaEncerrada);
 
   let cardsHTML = "";
 
@@ -60,21 +112,31 @@ export async function renderizarMiniCardsRodadas() {
     let statusText = "";
     let isDisabled = false;
 
+    // ✅ v2.4: Lógica corrigida para última rodada
     if (i < rodada_atual) {
+      // Rodadas anteriores sempre encerradas
       statusClass = "encerrada";
       statusText = "Encerrada";
       isDisabled = false;
     } else if (i === rodada_atual) {
       if (mercadoAberto) {
+        // Mercado aberto = rodada ainda não começou
         statusClass = "vigente";
         statusText = "Aberta";
         isDisabled = true;
+      } else if (temporadaEncerrada && i === 38) {
+        // ✅ FIX: Rodada 38 com temporada encerrada = ENCERRADA
+        statusClass = "encerrada";
+        statusText = "Encerrada";
+        isDisabled = false;
       } else {
+        // Mercado fechado mas jogos em andamento = Parciais
         statusClass = "parcial";
         statusText = "Parciais";
         isDisabled = false;
       }
     } else {
+      // Rodadas futuras
       statusClass = "futura";
       statusText = "Futura";
       isDisabled = true;
@@ -257,244 +319,164 @@ export function exibirRanking(rankingsDaRodada, rodadaSelecionada, ligaId) {
         ligaId,
         rodadaSelecionada,
       );
-      const nomeCartoleiro = rank.nome_cartola || rank.nome_cartoleiro || "N/D";
-      const nomeTime = rank.nome_time || "N/D";
-      const pontos =
-        rank.pontos != null ? parseFloat(rank.pontos).toFixed(2) : "-";
+
+      const escudoUrl = rank.clube_id
+        ? `/escudos/${rank.clube_id}.png`
+        : rank.escudo_url || "";
 
       return `
-      <tr>
-        <td style="text-align:center; padding:2px; font-size:11px; width:45px;">${posLabel}</td>
-        <td style="text-align:center; padding:2px; width:35px;">
-          ${rank.clube_id ? `<img src="/escudos/${rank.clube_id}.png" alt="" title="${rank.clube_id}" style="width:16px; height:16px; border-radius:50%; background:#fff; border:1px solid #eee;" onerror="this.style.display='none'"/>` : "—"}
-        </td>
-        <td style="text-align:left; padding:2px 4px; font-size:11px; max-width:150px; overflow:hidden; text-overflow:ellipsis;" title="${nomeCartoleiro}">${nomeCartoleiro}</td>
-        <td style="text-align:left; padding:2px 4px; font-size:11px; max-width:150px; overflow:hidden; text-overflow:ellipsis;" title="${nomeTime}">${nomeTime}</td>
-        <td style="text-align:center; padding:2px; font-size:11px;">
-          <span style="font-weight:600; color:${pontos > 0 ? "#198754" : pontos < 0 ? "#dc3545" : "#333"};">${pontos}</span>
-        </td>
-        <td style="text-align:center; padding:2px; font-size:10px;">
-          <span style="font-weight:600; color:${banco > 0 ? "#198754" : banco < 0 ? "#dc3545" : "#333"};">
-            ${banco >= 0 ? `R$ ${banco.toFixed(2)}` : `-R$ ${Math.abs(banco).toFixed(2)}`}
-          </span>
-        </td>
-      </tr>`;
+        <tr>
+          <td>${posLabel}</td>
+          <td>${escudoUrl ? `<img src="${escudoUrl}" alt="Escudo" class="escudo-pequeno" onerror="this.style.display='none'">` : ""}</td>
+          <td>${rank.nome_cartola || "N/D"}</td>
+          <td>${rank.nome_time || "N/D"}</td>
+          <td><strong>${parseFloat(rank.pontos || 0).toFixed(2)}</strong></td>
+          <td class="${banco > 0 ? "banco-positivo" : banco < 0 ? "banco-negativo" : "banco-neutro"}">
+            ${banco > 0 ? "+" : ""}${banco.toFixed(2)}
+          </td>
+        </tr>
+      `;
     })
     .join("");
 
-  // ✅ v2.2: Adicionar seção de inativos (só para rodadas >= rodada_desistencia)
+  // Renderizar inativos (se houver)
   if (inativos.length > 0) {
     tableHTML += `
-      <tr class="secao-inativos-header">
-        <td colspan="6" style="background: rgba(107,114,128,0.1); padding: 8px; text-align: center; font-weight: 600; color: #6b7280; border-top: 2px solid #3f3f46;">
-          <span style="display: inline-flex; align-items: center; gap: 6px;">
-            👤 Participantes Inativos (${inativos.length})
-          </span>
+      <tr class="separador-inativos">
+        <td colspan="6" style="text-align: center; font-style: italic; color: #666; background: #1a1a1a;">
+          ⚠️ Participantes inativos na rodada ${rodadaSelecionada}
         </td>
       </tr>
     `;
 
-    // Ordenar inativos por pontos
-    inativos.sort(
-      (a, b) => parseFloat(b.pontos || 0) - parseFloat(a.pontos || 0),
-    );
+    inativos.forEach((rank) => {
+      const escudoUrl = rank.clube_id
+        ? `/escudos/${rank.clube_id}.png`
+        : rank.escudo_url || "";
 
-    tableHTML += inativos
-      .map((rank) => {
-        const nomeCartoleiro =
-          rank.nome_cartola || rank.nome_cartoleiro || "N/D";
-        const nomeTime = rank.nome_time || "N/D";
-        const pontos =
-          rank.pontos != null ? parseFloat(rank.pontos).toFixed(2) : "-";
-        const rodadaDesist = rank.rodada_desistencia;
-        const infoSaida = rodadaDesist ? `Saiu R${rodadaDesist}` : "Inativo";
-
-        return `
-        <tr style="opacity: 0.5; filter: grayscale(60%);">
-          <td style="text-align:center; padding:2px; font-size:11px; width:45px; color: #6b7280;">—</td>
-          <td style="text-align:center; padding:2px; width:35px;">
-            ${rank.clube_id ? `<img src="/escudos/${rank.clube_id}.png" alt="" style="width:16px; height:16px; border-radius:50%; background:#fff; border:1px solid #eee;" onerror="this.style.display='none'"/>` : "—"}
-          </td>
-          <td style="text-align:left; padding:2px 4px; font-size:11px; color: #6b7280;" title="${nomeCartoleiro}">${nomeCartoleiro}</td>
-          <td style="text-align:left; padding:2px 4px; font-size:11px; color: #6b7280;" title="${nomeTime}">${nomeTime}</td>
-          <td style="text-align:center; padding:2px; font-size:11px; color: #6b7280;">${pontos}</td>
-          <td style="text-align:center; padding:2px; font-size:10px; color: #9ca3af;">${infoSaida}</td>
-        </tr>`;
-      })
-      .join("");
+      tableHTML += `
+        <tr class="participante-inativo">
+          <td>—</td>
+          <td>${escudoUrl ? `<img src="${escudoUrl}" alt="Escudo" class="escudo-pequeno" onerror="this.style.display='none'">` : ""}</td>
+          <td>${rank.nome_cartola || "N/D"} <span class="badge-inativo">INATIVO R${rank.rodada_desistencia || "?"}</span></td>
+          <td>${rank.nome_time || "N/D"}</td>
+          <td><strong>${parseFloat(rank.pontos || 0).toFixed(2)}</strong></td>
+          <td class="banco-neutro">—</td>
+        </tr>
+      `;
+    });
   }
 
   rankingBody.innerHTML = tableHTML;
-  limparExportContainer();
 
-  console.log(
-    `[RODADAS-UI] ✅ Rodada ${rodadaSelecionada}: ${ativos.length} ativos, ${inativos.length} inativos (contextuais)`,
-  );
+  // Renderizar container de export
+  renderizarExportContainer(ativos, rodadaSelecionada, ligaId);
 }
 
-// ✅ v2.3: EXIBIR RANKING PARCIAIS - TABELAS CONTEXTUAIS POR RODADA
-export async function exibirRankingParciais(
-  rankings,
-  rodada,
+// EXIBIR RANKING COM PARCIAIS
+export function exibirRankingParciais(
+  rankingsParciais,
+  rodadaSelecionada,
   ligaId,
-  callbackBotaoExportacao,
 ) {
   const rankingBody = getElement("rankingBody");
 
-  // Validar se é array
-  if (!rankings || !Array.isArray(rankings) || rankings.length === 0) {
-    console.warn(
-      "[RODADAS-UI] Dados parciais inválidos recebidos:",
-      typeof rankings,
-    );
-    rankingBody.innerHTML = `<tr><td colspan="6">Nenhum dado parcial encontrado para a rodada ${rodada}.</td></tr>`;
+  if (!rankingsParciais || rankingsParciais.length === 0) {
+    rankingBody.innerHTML = `<tr><td colspan="6">Aguardando dados parciais...</td></tr>`;
     limparExportContainer();
     return;
   }
 
-  // ✅ v2.2: Separar ativos e inativos CONSIDERANDO A RODADA SELECIONADA
-  // Regra: Se rodada < rodada_desistencia, participante era ATIVO nessa rodada
-  const ativos = rankings.filter((r) => {
-    if (r.ativo === false && r.rodada_desistencia) {
-      // Inativo atualmente, mas era ativo ANTES da rodada de desistência
-      return rodada < r.rodada_desistencia;
-    }
-    return r.ativo !== false;
-  });
+  // Separar ativos e inativos
+  const ativos = rankingsParciais.filter((r) => r.ativo !== false);
+  const inativos = rankingsParciais.filter((r) => r.ativo === false);
 
-  const inativos = rankings.filter((r) => {
-    if (r.ativo === false && r.rodada_desistencia) {
-      // Só mostra como inativo se rodada >= rodada_desistencia
-      return rodada >= r.rodada_desistencia;
-    }
-    // Inativo sem rodada_desistencia definida (fallback)
-    return r.ativo === false && !r.rodada_desistencia;
-  });
-
-  // Ordenar ativos por pontos (maior primeiro)
   ativos.sort(
-    (a, b) =>
-      parseFloat(b.totalPontos || b.pontos || 0) -
-      parseFloat(a.totalPontos || a.pontos || 0),
+    (a, b) => parseFloat(b.totalPontos || 0) - parseFloat(a.totalPontos || 0),
   );
 
-  // ✅ v2.3: Usar valores de banco contextuais por rodada
-  const bancoValores = getBancoPorRodada(ligaId, rodada);
+  const bancoValores = getBancoPorRodada(ligaId, rodadaSelecionada);
   const totalAtivos = ativos.length;
-
-  console.log(
-    `[RODADAS-UI] Parciais rodada ${rodada}: usando tabela de ${Object.keys(bancoValores).length} posições`,
-  );
 
   let tableHTML = ativos
     .map((rank, index) => {
       const banco =
         bancoValores[index + 1] !== undefined ? bancoValores[index + 1] : 0.0;
-      // ✅ v2.3: Passar rodada para getPosLabel
-      const posLabel = getPosLabel(index, totalAtivos, ligaId, rodada);
-      const nomeCartoleiro = rank.nome_cartola || "N/D";
-      const nomeTime = rank.nome_time || "N/D";
-      const pontos =
-        rank.totalPontos != null
-          ? parseFloat(rank.totalPontos).toFixed(2)
-          : rank.pontos != null
-            ? parseFloat(rank.pontos).toFixed(2)
-            : "-";
+      const posLabel = getPosLabel(
+        index,
+        totalAtivos,
+        ligaId,
+        rodadaSelecionada,
+      );
+
+      const escudoUrl = rank.clube_id
+        ? `/escudos/${rank.clube_id}.png`
+        : rank.escudo_url || "";
 
       return `
-      <tr>
-        <td style="text-align:center; padding:2px; font-size:11px; width:45px;">${posLabel}</td>
-        <td style="text-align:center; padding:2px; width:35px;">
-          ${rank.clube_id ? `<img src="/escudos/${rank.clube_id}.png" alt="" title="${rank.clube_id}" style="width:16px; height:16px; border-radius:50%; background:#fff; border:1px solid #eee;" onerror="this.style.display='none'"/>` : "—"}
-        </td>
-        <td style="text-align:left; padding:2px 4px; font-size:11px; max-width:150px; overflow:hidden; text-overflow:ellipsis;" title="${nomeCartoleiro}">${nomeCartoleiro}</td>
-        <td style="text-align:left; padding:2px 4px; font-size:11px; max-width:150px; overflow:hidden; text-overflow:ellipsis;" title="${nomeTime}">${nomeTime}</td>
-        <td style="text-align:center; padding:2px; font-size:11px;">
-          <span style="font-weight:600; color:${pontos > 0 ? "#198754" : pontos < 0 ? "#dc3545" : "#333"};">${pontos}</span>
-        </td>
-        <td style="text-align:center; padding:2px; font-size:10px;">
-          <span style="font-weight:600; color:${banco > 0 ? "#198754" : banco < 0 ? "#dc3545" : "#333"};">
-            ${banco >= 0 ? `R$ ${banco.toFixed(2)}` : `-R$ ${Math.abs(banco).toFixed(2)}`}
-          </span>
-        </td>
-      </tr>`;
+        <tr>
+          <td>${posLabel}</td>
+          <td>${escudoUrl ? `<img src="${escudoUrl}" alt="Escudo" class="escudo-pequeno" onerror="this.style.display='none'">` : ""}</td>
+          <td>${rank.nome_cartola || "N/D"}</td>
+          <td>${rank.nome_time || "N/D"}</td>
+          <td><strong>${parseFloat(rank.totalPontos || 0).toFixed(2)}</strong> <span style="color:#facc15; font-size:10px;">⏳</span></td>
+          <td class="${banco > 0 ? "banco-positivo" : banco < 0 ? "banco-negativo" : "banco-neutro"}">
+            ${banco > 0 ? "+" : ""}${banco.toFixed(2)}
+          </td>
+        </tr>
+      `;
     })
     .join("");
 
-  // ✅ v2.2: Adicionar seção de inativos (só para rodadas >= rodada_desistencia)
+  // Inativos
   if (inativos.length > 0) {
     tableHTML += `
-      <tr class="secao-inativos-header">
-        <td colspan="6" style="background: rgba(107,114,128,0.1); padding: 8px; text-align: center; font-weight: 600; color: #6b7280; border-top: 2px solid #3f3f46;">
-          <span style="display: inline-flex; align-items: center; gap: 6px;">
-            👤 Participantes Inativos (${inativos.length})
-          </span>
+      <tr class="separador-inativos">
+        <td colspan="6" style="text-align: center; font-style: italic; color: #666; background: #1a1a1a;">
+          ⚠️ Participantes inativos
         </td>
       </tr>
     `;
 
-    // Ordenar inativos por pontos
-    inativos.sort(
-      (a, b) =>
-        parseFloat(b.totalPontos || b.pontos || 0) -
-        parseFloat(a.totalPontos || a.pontos || 0),
-    );
+    inativos.forEach((rank) => {
+      const escudoUrl = rank.clube_id
+        ? `/escudos/${rank.clube_id}.png`
+        : rank.escudo_url || "";
 
-    tableHTML += inativos
-      .map((rank) => {
-        const nomeCartoleiro = rank.nome_cartola || "N/D";
-        const nomeTime = rank.nome_time || "N/D";
-        const pontos =
-          rank.totalPontos != null
-            ? parseFloat(rank.totalPontos).toFixed(2)
-            : rank.pontos != null
-              ? parseFloat(rank.pontos).toFixed(2)
-              : "-";
-        const rodadaDesist = rank.rodada_desistencia;
-        const infoSaida = rodadaDesist ? `Saiu R${rodadaDesist}` : "Inativo";
-
-        return `
-        <tr style="opacity: 0.5; filter: grayscale(60%);">
-          <td style="text-align:center; padding:2px; font-size:11px; width:45px; color: #6b7280;">—</td>
-          <td style="text-align:center; padding:2px; width:35px;">
-            ${rank.clube_id ? `<img src="/escudos/${rank.clube_id}.png" alt="" style="width:16px; height:16px; border-radius:50%; background:#fff; border:1px solid #eee;" onerror="this.style.display='none'"/>` : "—"}
-          </td>
-          <td style="text-align:left; padding:2px 4px; font-size:11px; color: #6b7280;" title="${nomeCartoleiro}">${nomeCartoleiro}</td>
-          <td style="text-align:left; padding:2px 4px; font-size:11px; color: #6b7280;" title="${nomeTime}">${nomeTime}</td>
-          <td style="text-align:center; padding:2px; font-size:11px; color: #6b7280;">${pontos}</td>
-          <td style="text-align:center; padding:2px; font-size:10px; color: #9ca3af;">${infoSaida}</td>
-        </tr>`;
-      })
-      .join("");
+      tableHTML += `
+        <tr class="participante-inativo">
+          <td>—</td>
+          <td>${escudoUrl ? `<img src="${escudoUrl}" alt="Escudo" class="escudo-pequeno" onerror="this.style.display='none'">` : ""}</td>
+          <td>${rank.nome_cartola || "N/D"} <span class="badge-inativo">INATIVO</span></td>
+          <td>${rank.nome_time || "N/D"}</td>
+          <td><strong>${parseFloat(rank.totalPontos || 0).toFixed(2)}</strong></td>
+          <td class="banco-neutro">—</td>
+        </tr>
+      `;
+    });
   }
 
   rankingBody.innerHTML = tableHTML;
-
-  // Criar botão de exportação para parciais
-  if (callbackBotaoExportacao) {
-    callbackBotaoExportacao(ativos, rodada, true);
-  }
-
-  console.log(
-    `[RODADAS-UI] ✅ Parciais rodada ${rodada}: ${ativos.length} ativos, ${inativos.length} inativos (contextuais)`,
-  );
+  limparExportContainer();
 }
 
 // ==============================
-// FUNÇÕES DE ESTADO E LIMPEZA
+// FUNÇÕES DE UI AUXILIARES
 // ==============================
 
-// LIMPAR CONTAINER DE EXPORTAÇÃO
-export function limparExportContainer() {
-  const exportContainer = getElement("rodadasExportBtnContainer");
-  if (exportContainer) exportContainer.innerHTML = "";
-}
+export function mostrarLoading(show) {
+  const rankingBody = getElement("rankingBody");
+  if (!rankingBody) return;
 
-// MOSTRAR ESTADOS DE LOADING E ERRO
-export function mostrarLoading(show = true) {
-  const loading = getElement("loading");
-  if (loading) {
-    loading.style.display = show ? "block" : "none";
+  if (show) {
+    rankingBody.innerHTML = `
+      <tr>
+        <td colspan="6" style="text-align: center; padding: 40px;">
+          <div class="spinner" style="margin: 0 auto 10px;"></div>
+          Carregando dados...
+        </td>
+      </tr>
+    `;
   }
 }
 
@@ -502,51 +484,29 @@ export function mostrarMensagemRodada(mensagem, tipo = "info") {
   const rankingBody = getElement("rankingBody");
   if (!rankingBody) return;
 
-  const cores = {
-    info: "#e67e22",
-    erro: "red",
-    aviso: "#bbb",
+  const estilos = {
+    info: "color: #3b82f6; background: rgba(59, 130, 246, 0.1);",
+    aviso: "color: #facc15; background: rgba(250, 204, 21, 0.1);",
+    erro: "color: #ef4444; background: rgba(239, 68, 68, 0.1);",
   };
 
-  rankingBody.innerHTML = `<tr><td colspan="6" style="color: ${cores[tipo] || cores.info}; text-align: center; padding: 20px;">${mensagem}</td></tr>`;
+  rankingBody.innerHTML = `
+    <tr>
+      <td colspan="6" style="text-align: center; padding: 30px; ${estilos[tipo] || estilos.info} border-radius: 8px;">
+        ${mensagem}
+      </td>
+    </tr>
+  `;
+
   limparExportContainer();
 }
 
-// ==============================
-// FUNÇÕES PARA DEBUG
-// ==============================
-
-export function exibirRodadas(rodadas) {
-  console.log("[RODADAS-UI] Iniciando exibição de rodadas...");
-  console.log("[RODADAS-UI] Dados recebidos:", rodadas);
-
-  const container = getElement("rodadas-lista");
-  if (!container) {
-    console.error(
-      "[RODADAS-UI] Container 'rodadas-lista' não encontrado no DOM",
-    );
-    return;
+export function limparExportContainer() {
+  const container = getElement("rodadaExportContainer");
+  if (container) {
+    container.innerHTML = "";
   }
-
-  console.log("[RODADAS-UI] Container encontrado:", container);
-
-  if (!rodadas || rodadas.length === 0) {
-    console.warn("[RODADAS-UI] Nenhuma rodada para exibir");
-    container.innerHTML = `
-      <div class="alert alert-info">
-        <i class="fas fa-info-circle"></i>
-        Nenhuma rodada encontrada. Use o botão "Popular Rodadas" para carregar os dados.
-      </div>
-    `;
-    return;
-  }
-
-  console.log(`[RODADAS-UI] Exibindo ${rodadas.length} registros de rodadas`);
 }
-
-// ==============================
-// GETTERS E UTILITÁRIOS
-// ==============================
 
 export function getRodadaAtualSelecionada() {
   return rodadaAtualSelecionada;
@@ -554,47 +514,113 @@ export function getRodadaAtualSelecionada() {
 
 export function limparCacheUI() {
   elementsCache.clear();
-  console.log("[RODADAS-UI] Cache de elementos limpo");
+  rodadaAtualSelecionada = null;
+  console.log("[RODADAS-UI] Cache de UI limpo");
+}
+
+// ==============================
+// RENDERIZAÇÃO DE EXPORT
+// ==============================
+
+function renderizarExportContainer(rankings, rodada, ligaId) {
+  const container = getElement("rodadaExportContainer");
+  if (!container) return;
+
+  container.innerHTML = `
+    <div style="margin-top: 20px; text-align: center;">
+      <button onclick="window.exportarRodadaImagem && window.exportarRodadaImagem(${rodada})" 
+              class="btn-export" 
+              style="background: linear-gradient(135deg, #ff4500, #e8472b); color: white; border: none; padding: 10px 20px; border-radius: 8px; cursor: pointer; font-weight: 600;">
+        📸 Exportar Imagem
+      </button>
+    </div>
+  `;
+}
+
+// ==============================
+// EXIBIÇÃO DE RODADAS (DEBUG)
+// ==============================
+
+export function exibirRodadas(rodadasAgrupadas) {
+  console.log("[RODADAS-UI] exibirRodadas chamada com:", rodadasAgrupadas);
+
+  if (!rodadasAgrupadas || Object.keys(rodadasAgrupadas).length === 0) {
+    console.warn("[RODADAS-UI] Nenhuma rodada para exibir");
+    return;
+  }
+
+  const totalRodadas = Object.keys(rodadasAgrupadas).length;
+  const totalRegistros = Object.values(rodadasAgrupadas).reduce(
+    (acc, arr) => acc + arr.length,
+    0,
+  );
+
+  console.log(
+    `[RODADAS-UI] 📊 Total: ${totalRodadas} rodadas, ${totalRegistros} registros`,
+  );
 }
 
 // ==============================
 // RELATÓRIO MITOS/MICOS
 // ==============================
 
-// Estado do filtro atual
 let filtroAtual = { tipo: "todos", participante: "" };
 
-export function exibirRelatorioMitosMicos(dadosRelatorio) {
-  const relatorioSection = getElement("relatorioMitosMicos");
+export function exibirRelatorioMitosMicos(dados) {
+  console.log("[RODADAS-UI] Exibindo relatório MITOS/MICOS");
+
+  // Esconder seção de conteúdo normal e cards
   const contentSection = getElement("rodadaContentSection");
   const cardsContainer = getElement("rodadasCards");
 
-  if (!relatorioSection) return;
-
-  // Esconder outras seções
   if (contentSection) contentSection.style.display = "none";
   if (cardsContainer?.parentElement) {
     cardsContainer.parentElement.style.display = "none";
   }
 
-  // Mostrar relatório
+  // Mostrar seção do relatório
+  let relatorioSection = getElement("relatorioMitosMicos");
+
+  if (!relatorioSection) {
+    // Criar seção se não existir
+    const rodadasContainer = document.getElementById("rodadas");
+    if (rodadasContainer) {
+      relatorioSection = document.createElement("div");
+      relatorioSection.id = "relatorioMitosMicos";
+      relatorioSection.className = "relatorio-mitos-micos";
+      rodadasContainer.appendChild(relatorioSection);
+      elementsCache.set("relatorioMitosMicos", relatorioSection);
+    }
+  }
+
+  if (!relatorioSection) {
+    console.error("[RODADAS-UI] Não foi possível criar seção do relatório");
+    return;
+  }
+
   relatorioSection.style.display = "block";
 
-  // Reset filtro
-  filtroAtual = { tipo: "todos", participante: "" };
+  // Renderizar estrutura do relatório
+  relatorioSection.innerHTML = `
+    <div class="relatorio-header">
+      <button onclick="window.voltarParaCards()" class="btn-voltar">
+        ← Voltar
+      </button>
+      <h2>🏆 Relatório MITOS & MICOS 💩</h2>
+    </div>
+    <div class="relatorio-filtros" id="relatorioFiltros"></div>
+    <div class="relatorio-estatisticas" id="estatisticasResumo"></div>
+    <div class="relatorio-conteudo" id="relatorioContent"></div>
+  `;
 
-  // Renderizar filtros (incluindo dropdown de participantes)
-  renderizarFiltros(dadosRelatorio);
-
-  // Renderizar estatísticas
-  renderizarEstatisticasResumo(dadosRelatorio);
-
-  // Renderizar conteúdo
-  renderizarConteudoRelatorio(dadosRelatorio, filtroAtual);
+  // Renderizar componentes
+  renderizarFiltrosRelatorio(dados);
+  renderizarEstatisticasResumo(dados);
+  renderizarConteudoRelatorio(dados, filtroAtual);
 }
 
-function renderizarFiltros(dados) {
-  const container = document.querySelector(".relatorio-filtros");
+function renderizarFiltrosRelatorio(dados) {
+  const container = getElement("relatorioFiltros");
   if (!container) return;
 
   // Extrair lista única de participantes
@@ -606,11 +632,11 @@ function renderizarFiltros(dados) {
     participantes.add(m.nome_cartola || m.nome_time || "N/D"),
   );
 
-  const participantesOrdenados = [...participantes].sort();
+  const participantesOrdenados = Array.from(participantes).sort();
 
   container.innerHTML = `
     <button class="filtro-btn active" data-tipo="todos" onclick="window.aplicarFiltroTipo('todos')">
-      Todos
+      📊 Todos
     </button>
     <button class="filtro-btn" data-tipo="mitos" onclick="window.aplicarFiltroTipo('mitos')">
       🏆 Apenas MITOS
@@ -867,6 +893,4 @@ if (typeof window !== "undefined") {
   window.aplicarFiltroParticipante = aplicarFiltroParticipante;
 }
 
-console.log(
-  "[RODADAS-UI] ✅ Módulo v2.3 carregado (tabelas contextuais por rodada)",
-);
+console.log("[RODADAS-UI] ✅ Módulo v2.4 carregado (fix rodada 38 encerrada)");

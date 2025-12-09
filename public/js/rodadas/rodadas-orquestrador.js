@@ -1,4 +1,5 @@
 // RODADAS ORQUESTRADOR - Coordenação entre Módulos
+// ✅ v2.1: FIX - Rodada 38 carrega como finalizada quando temporada encerrou
 // Responsável por: coordenação, fluxo principal, integração de módulos
 
 import {
@@ -23,9 +24,10 @@ import {
   getRodadaAtualSelecionada,
   exibirRodadas,
   limparCacheUI,
-  exibirRelatorioMitosMicos, // Importado para o novo relatório
-  fecharRelatorioMitosMicos, // Importado para o novo relatório
-  aplicarFiltroRelatorio, // Importado para o novo relatório
+  exibirRelatorioMitosMicos,
+  fecharRelatorioMitosMicos,
+  aplicarFiltroRelatorio,
+  isRodadaConsolidada, // ✅ v2.1: Importar função de verificação
 } from "./rodadas-ui.js";
 
 import {
@@ -40,7 +42,7 @@ import {
   debounce,
   getElementCached,
   clearDOMCache,
-  limparCache, // Importado para forcarRecarregamento
+  limparCache,
 } from "./rodadas-cache.js";
 
 // Renomeado para evitar conflito com função importada de rodadas-ui.js
@@ -119,9 +121,6 @@ export async function carregarRodadas(forceRefresh = false) {
     return;
   }
 
-  // ✅ CORREÇÃO: Não verificar classe active - deixar o orquestrador principal controlar
-  // O módulo deve carregar sempre que for chamado explicitamente
-
   carregamentoEmAndamento = true;
 
   try {
@@ -178,11 +177,24 @@ export async function carregarDadosRodada(rodadaSelecionada) {
   const { rodada_atual, status_mercado } = getStatusMercado();
   const mercadoAberto = status_mercado === 1;
 
+  // ✅ v2.1: Usar função de verificação de consolidação
+  const rodadaConsolidada = isRodadaConsolidada(
+    rodadaSelecionada,
+    rodada_atual,
+    status_mercado,
+  );
+
+  console.log(
+    `[RODADAS-ORQUESTRADOR] Rodada ${rodadaSelecionada}: consolidada=${rodadaConsolidada}, rodada_atual=${rodada_atual}, status=${status_mercado}`,
+  );
+
   try {
     mostrarLoading(true);
     limparExportContainer();
 
-    if (rodadaSelecionada < rodada_atual) {
+    // ✅ v2.1: Lógica corrigida para última rodada
+    if (rodadaConsolidada) {
+      // Rodada finalizada (inclui rodada 38 quando temporada encerrou)
       await carregarRodadaFinalizada(rodadaSelecionada);
     } else if (rodadaSelecionada === rodada_atual) {
       if (mercadoAberto) {
@@ -191,10 +203,14 @@ export async function carregarDadosRodada(rodadaSelecionada) {
           "info",
         );
       } else {
+        // Rodada em andamento (jogos acontecendo)
         await carregarRodadaParciais(rodadaSelecionada);
       }
-    } else {
+    } else if (rodadaSelecionada > rodada_atual) {
       mostrarMensagemRodada("Esta rodada ainda não aconteceu.", "aviso");
+    } else {
+      // Fallback: carregar como finalizada
+      await carregarRodadaFinalizada(rodadaSelecionada);
     }
   } catch (err) {
     console.error("[RODADAS-ORQUESTRADOR] Erro em carregarDadosRodada:", err);
@@ -304,6 +320,8 @@ function configurarBotaoRefresh(rodada) {
   if (!btnRefresh) return;
 
   const { rodada_atual, status_mercado } = getStatusMercado();
+
+  // ✅ v2.1: Só mostrar botão se rodada está realmente em andamento (jogos acontecendo)
   const isParciais = rodada === rodada_atual && status_mercado === 2;
 
   if (isParciais) {
@@ -543,7 +561,7 @@ if (typeof window !== "undefined") {
   };
 
   console.log(
-    "[RODADAS-ORQUESTRADOR] ✅ Orquestrador inicializado com UI redesenhada e Relatório Mitos/Micos",
+    "[RODADAS-ORQUESTRADOR] ✅ Orquestrador v2.1 inicializado (fix rodada 38)",
   );
 }
 

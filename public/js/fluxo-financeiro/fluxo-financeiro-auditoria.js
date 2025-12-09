@@ -127,7 +127,9 @@ export class FluxoFinanceiroAuditoria {
             saldoCalculado: saldoFinal,
             saldoRegistrado: saldoRegistrado,
             divergencia: divergencia,
-            status: divergencia ? "⚠️ DIVERGÊNCIA" : "✅ OK",
+            status: divergencia
+                ? '<span class="material-icons" style="font-size: 12px;">warning</span> DIVERGÊNCIA'
+                : '<span class="material-icons" style="font-size: 12px;">check_circle</span> OK',
         };
     }
 
@@ -299,7 +301,10 @@ export class FluxoFinanceiroAuditoria {
                     registrado: r.saldo || 0,
                 },
                 divergencias,
-                status: divergencias.length === 0 ? "✅" : "⚠️",
+                status:
+                    divergencias.length === 0
+                        ? '<span class="material-icons" style="font-size: 12px;">check_circle</span>'
+                        : '<span class="material-icons" style="font-size: 12px;">warning</span>',
             });
         }
 
@@ -372,7 +377,7 @@ export class FluxoFinanceiroAuditoria {
         modal.innerHTML = `
             <div class="modal-auditoria-content">
                 <div class="modal-auditoria-header">
-                    <h2>🔍 Auditoria Financeira</h2>
+                    <h2><span class="material-icons" style="font-size: 20px;">search</span> Auditoria Financeira</h2>
                     <button class="modal-close-btn" onclick="window.fecharModalAuditoria()">✕</button>
                 </div>
 
@@ -381,7 +386,7 @@ export class FluxoFinanceiroAuditoria {
                         ${
                             participante.url_escudo_png
                                 ? `<img src="${participante.url_escudo_png}" alt="" class="audit-escudo">`
-                                : '<div class="audit-escudo-placeholder">⚽</div>'
+                                : '<div class="audit-escudo-placeholder"><span class="material-icons" style="font-size: 24px;">sports_soccer</span></div>'
                         }
                         <div>
                             <div class="audit-nome">${participante.nome_cartola}</div>
@@ -397,8 +402,8 @@ export class FluxoFinanceiroAuditoria {
                 </div>
 
                 <div class="modal-auditoria-tabs">
-                    <button class="audit-tab active" data-tab="resumo">📊 Resumo</button>
-                    <button class="audit-tab" data-tab="detalhado">📋 Detalhado</button>
+                    <button class="audit-tab active" data-tab="resumo"><span class="material-icons" style="font-size: 14px;">assessment</span> Resumo</button>
+                    <button class="audit-tab" data-tab="detalhado"><span class="material-icons" style="font-size: 14px;">list_alt</span> Detalhado</button>
                     <button class="audit-tab" data-tab="linhaAlinha">🔎 Linha a Linha</button>
                 </div>
 
@@ -424,7 +429,7 @@ export class FluxoFinanceiroAuditoria {
                         📄 Exportar PDF
                     </button>
                     <button onclick="window.exportarAuditoriaExcel('${participante.time_id}')" class="btn-modern btn-success-gradient">
-                        📊 Exportar Excel
+                        <span class="material-icons" style="font-size: 14px;">file_download</span> Exportar Excel
                     </button>
                     <button onclick="window.fecharModalAuditoria()" class="btn-modern btn-secondary">
                         Fechar
@@ -440,7 +445,7 @@ export class FluxoFinanceiroAuditoria {
     _renderizarResumo(resumo) {
         return `
             <div class="audit-section">
-                <h3>💰 Valores Automáticos</h3>
+                <h3><span class="material-icons" style="font-size: 16px;">calculate</span> Valores Automáticos</h3>
                 <table class="audit-table">
                     <thead>
                         <tr>
@@ -481,7 +486,7 @@ export class FluxoFinanceiroAuditoria {
                             </td>
                         </tr>
                         <tr>
-                            <td>🏆 TOP 10</td>
+                            <td><span class="material-icons" style="font-size: 14px;">emoji_events</span> TOP 10</td>
                             <td class="text-center">
                                 ${resumo.automatico.top10.mitos} Mitos / ${resumo.automatico.top10.micos} Micos
                             </td>
@@ -500,7 +505,7 @@ export class FluxoFinanceiroAuditoria {
             </div>
 
             <div class="audit-section">
-                <h3>✏️ Ajustes Manuais</h3>
+                <h3><span class="material-icons" style="font-size: 16px;">edit</span> Ajustes Manuais</h3>
                 <table class="audit-table">
                     <tbody>
                         ${["campo1", "campo2", "campo3", "campo4"]
@@ -542,12 +547,12 @@ export class FluxoFinanceiroAuditoria {
                     resumo.divergencia
                         ? `
                     <div class="audit-divergencia">
-                        ⚠️ Diferença: R$ ${Math.abs(resumo.saldoCalculado - resumo.saldoRegistrado).toFixed(2)}
+                        <span class="material-icons" style="font-size: 14px; color: #f59e0b;">warning</span> Diferença: R$ ${Math.abs(resumo.saldoCalculado - resumo.saldoRegistrado).toFixed(2)}
                     </div>
                 `
                         : `
                     <div class="audit-ok">
-                        ✅ Valores conferem!
+                        <span class="material-icons" style="font-size: 14px; color: #22c55e;">check_circle</span> Valores conferem!
                     </div>
                 `
                 }
@@ -574,7 +579,7 @@ export class FluxoFinanceiroAuditoria {
             },
             {
                 key: "top10",
-                nome: "🏆 TOP 10",
+                nome: '<span class="material-icons" style="font-size: 14px;">emoji_events</span> TOP 10',
                 cols: ["Rodada", "Posição", "Tipo", "Valor"],
             },
         ];
@@ -657,11 +662,11 @@ export class FluxoFinanceiroAuditoria {
         return `
             <div class="audit-section">
                 <div class="audit-summary-bar">
-                    <span>📊 ${linhaALinha.totalRodadas} rodadas auditadas</span>
+                    <span><span class="material-icons" style="font-size: 14px;">assessment</span> ${linhaALinha.totalRodadas} rodadas auditadas</span>
                     ${
                         linhaALinha.rodadasComDivergencia > 0
-                            ? `<span class="badge-warning">⚠️ ${linhaALinha.rodadasComDivergencia} com divergência</span>`
-                            : '<span class="badge-success">✅ Sem divergências</span>'
+                            ? `<span class="badge-warning"><span class="material-icons" style="font-size: 12px;">warning</span> ${linhaALinha.rodadasComDivergencia} com divergência</span>`
+                            : '<span class="badge-success"><span class="material-icons" style="font-size: 12px;">check_circle</span> Sem divergências</span>'
                     }
                 </div>
                 <div class="audit-table-scroll" style="max-height: 400px;">
@@ -715,7 +720,7 @@ export class FluxoFinanceiroAuditoria {
                                                 .map(
                                                     (d) => `
                                                 <span class="divergencia-item">
-                                                    ⚠️ ${d.campo}: esperado ${d.esperado.toFixed(2)}, 
+                                                    <span class="material-icons" style="font-size: 12px;">warning</span> ${d.campo}: esperado ${d.esperado.toFixed(2)}, 
                                                     registrado ${d.registrado.toFixed(2)} 
                                                     (dif: ${d.diferenca.toFixed(2)})
                                                 </span>

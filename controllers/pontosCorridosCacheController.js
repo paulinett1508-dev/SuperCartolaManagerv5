@@ -1,7 +1,9 @@
 // controllers/pontosCorridosCacheController.js
+// ✅ v2.1: Enriquecimento de dados ao ler cache (fix undefined)
 // ✅ v2.0: Integração com filtro de participantes inativos
 import PontosCorridosCache from "../models/PontosCorridosCache.js";
 import Liga from "../models/Liga.js";
+import Rodada from "../models/Rodada.js";
 import axios from "axios";
 import {
     buscarStatusParticipantes,
@@ -10,7 +12,7 @@ import {
 
 // Configuração do Pontos Corridos
 const PONTOS_CORRIDOS_CONFIG = {
-    rodadaInicial: 7, // Rodada do Brasileirão que inicia o Pontos Corridos
+    rodadaInicial: 7,
     criterios: {
         empateTolerancia: 0.3,
         goleadaMinima: 50.0,
@@ -21,6 +23,164 @@ const PONTOS_CORRIDOS_CONFIG = {
         goleada: 7.0,
     },
 };
+
+// ✅ v2.1: Função para buscar dados enriquecidos dos times
+async function buscarDadosTimesEnriquecidos(ligaId) {
+    try {
+        // Buscar dados da liga
+        const liga = await Liga.findById(ligaId).lean();
+        if (!liga) return {};
+
+        const participantes = liga.participantes || [];
+        const timesMap = {};
+
+        // Mapear participantes
+        participantes.forEach((p) => {
+            const tid = String(p.time_id || p.timeId || p.id || p);
+            if (tid && tid !== "undefined") {
+                timesMap[tid] = {
+                    nome: p.nome_time || p.nome || `Time ${tid}`,
+                    nome_cartola: p.nome_cartola || "",
+                    escudo: p.url_escudo_png || p.foto_time || p.escudo || "",
+                };
+            }
+        });
+
+        // Enriquecer com dados da collection Rodada (tem nome_cartola correto)
+        try {
+            const rodadas = await Rodada.find({ ligaId: ligaId })
+                .sort({ rodada: -1 })
+                .limit(100)
+                .lean();
+
+            rodadas.forEach((r) => {
+                const tid = String(r.timeId);
+                if (tid && timesMap[tid]) {
+                    // Atualizar apenas se tiver dados melhores
+                    if (r.nome_cartola && !timesMap[tid].nome_cartola) {
+                        timesMap[tid].nome_cartola = r.nome_cartola;
+                    }
+                    if (
+                        r.nome_time &&
+                        (!timesMap[tid].nome ||
+                            timesMap[tid].nome.startsWith("Time "))
+                    ) {
+                        timesMap[tid].nome = r.nome_time;
+                    }
+                } else if (tid) {
+                    // Time não estava no mapa, adicionar
+                    timesMap[tid] = {
+                        nome: r.nome_time || `Time ${tid}`,
+                        nome_cartola: r.nome_cartola || "",
+                        escudo: r.foto_time || "",
+                    };
+                }
+            });
+        } catch (e) {
+            console.warn(
+                "[CACHE-PC] ⚠️ Erro ao enriquecer com rodadas:",
+                e.message,
+            );
+        }
+
+        return timesMap;
+    } catch (error) {
+        console.error("[CACHE-PC] ❌ Erro ao buscar dados dos times:", error);
+        return {};
+    }
+}
+
+// ✅ v2.1: Função para enriquecer classificação com dados corretos
+function enriquecerClassificacao(classificacao, timesMap) {
+    if (!Array.isArray(classificacao)) return [];
+
+    return classificacao.map((t, idx) => {
+        const tid = String(t.timeId || t.time_id || t.id);
+        const dadosTime = timesMap[tid] || {};
+
+        return {
+            // IDs
+            timeId: tid,
+            time_id: tid,
+            id: tid,
+            posicao: t.posicao || idx + 1,
+
+            // Nomes (com fallbacks robustos)
+            nome: dadosTime.nome || t.nome || t.nome_time || `Time ${tid}`,
+            nome_time: dadosTime.nome || t.nome || t.nome_time || `Time ${tid}`,
+            nome_cartola:
+                dadosTime.nome_cartola || t.nome_cartola || t.cartoleiro || "",
+
+            // Visual
+            escudo:
+                dadosTime.escudo ||
+                t.escudo ||
+                t.url_escudo_png ||
+                t.foto_time ||
+                "",
+
+            // Estatísticas (com fallbacks para 0)
+            pontos: Number(t.pontos) || 0,
+            jogos: Number(t.jogos) || 0,
+            vitorias: Number(t.vitorias) || 0,
+            empates: Number(t.empates) || 0,
+            derrotas: Number(t.derrotas) || 0,
+            pontosGoleada: Number(t.pontosGoleada) || 0,
+            gols_pro: Number(t.gols_pro) || 0,
+            gols_contra: Number(t.gols_contra) || 0,
+            saldo_gols: Number(t.saldo_gols) || 0,
+            financeiro: Number(t.financeiro) || 0,
+
+            // Status
+            ativo: t.ativo !== false,
+            rodada_desistencia: t.rodada_desistencia || null,
+        };
+    });
+}
+
+// ✅ v2.1: Função para enriquecer confrontos
+function enriquecerConfrontos(confrontos, timesMap) {
+    if (!Array.isArray(confrontos)) return [];
+
+    return confrontos.map((c) => {
+        const tid1 = String(c.time1?.id || c.time1?.timeId || c.time1);
+        const tid2 = String(c.time2?.id || c.time2?.timeId || c.time2);
+        const dados1 = timesMap[tid1] || {};
+        const dados2 = timesMap[tid2] || {};
+
+        return {
+            time1: {
+                id: tid1,
+                nome: dados1.nome || c.time1?.nome || `Time ${tid1}`,
+                nome_cartola:
+                    dados1.nome_cartola || c.time1?.nome_cartola || "",
+                escudo: dados1.escudo || c.time1?.escudo || "",
+                pontos: Number(c.time1?.pontos) || 0,
+                ativo: c.time1?.ativo !== false,
+            },
+            time2: {
+                id: tid2,
+                nome: dados2.nome || c.time2?.nome || `Time ${tid2}`,
+                nome_cartola:
+                    dados2.nome_cartola || c.time2?.nome_cartola || "",
+                escudo: dados2.escudo || c.time2?.escudo || "",
+                pontos: Number(c.time2?.pontos) || 0,
+                ativo: c.time2?.ativo !== false,
+            },
+            diferenca:
+                c.diferenca ??
+                (c.time1?.pontos != null && c.time2?.pontos != null
+                    ? Math.abs(Number(c.time1.pontos) - Number(c.time2.pontos))
+                    : null),
+            valor: Number(c.valor) || 0,
+            tipo: c.tipo || "pendente",
+            pontos1: c.pontos1,
+            pontos2: c.pontos2,
+            financeiro1: c.financeiro1,
+            financeiro2: c.financeiro2,
+        };
+    });
+}
 
 // ✅ SALVAR CACHE (CONFRONTOS + CLASSIFICAÇÃO)
 export const salvarCachePontosCorridos = async (req, res) => {
@@ -70,7 +230,7 @@ export const salvarCachePontosCorridos = async (req, res) => {
     }
 };
 
-// ✅ LER CACHE (CONFRONTOS + CLASSIFICAÇÃO)
+// ✅ v2.1: LER CACHE COM ENRIQUECIMENTO
 export const lerCachePontosCorridos = async (req, res) => {
     try {
         const { ligaId } = req.params;
@@ -87,33 +247,65 @@ export const lerCachePontosCorridos = async (req, res) => {
             return res.status(404).json({ cached: false });
         }
 
-        // ✅ v2.0: Adicionar status de ativos/inativos à classificação
-        let classificacaoComStatus = cache.classificacao || [];
-        if (classificacaoComStatus.length > 0) {
-            const timeIds = classificacaoComStatus
-                .map((t) => t.timeId || t.time_id || t.id)
+        // ✅ v2.1: Buscar dados enriquecidos dos times
+        const timesMap = await buscarDadosTimesEnriquecidos(ligaId);
+        console.log(
+            `[CACHE-PC] 📋 Dados de ${Object.keys(timesMap).length} times carregados para enriquecimento`,
+        );
+
+        // ✅ v2.1: Enriquecer classificação
+        let classificacaoEnriquecida = enriquecerClassificacao(
+            cache.classificacao || [],
+            timesMap,
+        );
+
+        // Adicionar status de ativos/inativos
+        if (classificacaoEnriquecida.length > 0) {
+            const timeIds = classificacaoEnriquecida
+                .map((t) => t.timeId)
                 .filter(Boolean);
 
             if (timeIds.length > 0) {
-                const statusMap = await buscarStatusParticipantes(timeIds);
+                try {
+                    const statusMap = await buscarStatusParticipantes(timeIds);
 
-                classificacaoComStatus = classificacaoComStatus.map((t) => {
-                    const tid = String(t.timeId || t.time_id || t.id);
-                    const status = statusMap[tid] || { ativo: true };
-                    return {
-                        ...t,
-                        ativo: status.ativo !== false,
-                        rodada_desistencia: status.rodada_desistencia || null,
-                    };
-                });
+                    classificacaoEnriquecida = classificacaoEnriquecida.map(
+                        (t) => {
+                            const status = statusMap[t.timeId] || {
+                                ativo: true,
+                            };
+                            return {
+                                ...t,
+                                ativo: status.ativo !== false,
+                                rodada_desistencia:
+                                    status.rodada_desistencia || null,
+                            };
+                        },
+                    );
+                } catch (statusError) {
+                    console.warn(
+                        "[CACHE-PC] ⚠️ Erro ao buscar status:",
+                        statusError.message,
+                    );
+                }
             }
         }
+
+        // ✅ v2.1: Enriquecer confrontos
+        const confrontosEnriquecidos = enriquecerConfrontos(
+            cache.confrontos || [],
+            timesMap,
+        );
+
+        console.log(
+            `[CACHE-PC] ✅ Cache R${cache.rodada_consolidada} enriquecido: ${classificacaoEnriquecida.length} times, ${confrontosEnriquecidos.length} confrontos`,
+        );
 
         res.json({
             cached: true,
             rodada: cache.rodada_consolidada,
-            confrontos: cache.confrontos || [],
-            classificacao: classificacaoComStatus,
+            confrontos: confrontosEnriquecidos,
+            classificacao: classificacaoEnriquecida,
             permanent: cache.cache_permanente,
             updatedAt: cache.ultima_atualizacao,
         });
@@ -154,6 +346,9 @@ export const obterConfrontosPontosCorridos = async (
             `[PONTOS-CORRIDOS] 📊 Mercado: ${mercadoFechado ? "FECHADO" : "ABERTO"}, Rodada BR: ${rodadaAtualBrasileirao}, Rodada Liga: ${rodadaAtualLiga}`,
         );
 
+        // ✅ v2.1: Buscar dados dos times para enriquecimento
+        const timesMap = await buscarDadosTimesEnriquecidos(ligaId);
+
         // 2. Buscar rodadas consolidadas do cache
         const query = { liga_id: ligaId };
         if (rodadaFiltro) {
@@ -164,11 +359,14 @@ export const obterConfrontosPontosCorridos = async (
             .sort({ rodada_consolidada: 1 })
             .lean();
 
-        // Estrutura completa por rodada
+        // ✅ v2.1: Estrutura completa por rodada COM ENRIQUECIMENTO
         let dadosPorRodada = caches.map((cache) => ({
             rodada: cache.rodada_consolidada,
-            confrontos: cache.confrontos || [],
-            classificacao: cache.classificacao || [],
+            confrontos: enriquecerConfrontos(cache.confrontos || [], timesMap),
+            classificacao: enriquecerClassificacao(
+                cache.classificacao || [],
+                timesMap,
+            ),
             permanent: cache.cache_permanente,
             updatedAt: cache.ultima_atualizacao,
         }));
@@ -237,7 +435,7 @@ async function calcularRodadaComParciais(
             return null;
         }
 
-        const times = liga.times || [];
+        const times = liga.participantes || [];
         if (times.length === 0) {
             console.error("[PONTOS-CORRIDOS] ❌ Nenhum time na liga");
             return null;
@@ -283,9 +481,9 @@ async function calcularRodadaComParciais(
                     console.log(
                         `⏭️ [PONTOS-CORRIDOS] Pulando time inativo: ${timeId}`,
                     );
-                    // Ainda adiciona ao mapa para manter estrutura, mas com flag
                     timesDataMap[String(timeId)] = {
                         nome: `Time ${timeId}`,
+                        nome_cartola: "",
                         escudo: "",
                         ativo: false,
                         rodada_desistencia: status.rodada_desistencia,
@@ -326,6 +524,7 @@ async function calcularRodadaComParciais(
                     parciaisMap[String(timeId)] = 0;
                     timesDataMap[String(timeId)] = {
                         nome: `Time ${timeId}`,
+                        nome_cartola: "",
                         escudo: "",
                         ativo: true,
                     };
@@ -352,6 +551,7 @@ async function calcularRodadaComParciais(
                 time1: {
                     id: tid1,
                     nome: timesDataMap[tid1]?.nome || `Time ${tid1}`,
+                    nome_cartola: timesDataMap[tid1]?.nome_cartola || "",
                     escudo: timesDataMap[tid1]?.escudo || "",
                     pontos: Math.round(p1 * 100) / 100,
                     ativo: status1.ativo !== false,
@@ -359,6 +559,7 @@ async function calcularRodadaComParciais(
                 time2: {
                     id: tid2,
                     nome: timesDataMap[tid2]?.nome || `Time ${tid2}`,
+                    nome_cartola: timesDataMap[tid2]?.nome_cartola || "",
                     escudo: timesDataMap[tid2]?.escudo || "",
                     pontos: Math.round(p2 * 100) / 100,
                     ativo: status2.ativo !== false,
@@ -378,7 +579,7 @@ async function calcularRodadaComParciais(
             dadosAnteriores,
             confrontos,
             rodadaLiga,
-            statusMap, // ✅ v2.0: Passar statusMap
+            statusMap,
         );
 
         return {
@@ -478,7 +679,7 @@ function calcularClassificacaoAcumulada(
     dadosAnteriores,
     confrontosRodadaAtual,
     rodadaAtual,
-    statusMap = {}, // ✅ v2.0: Novo parâmetro
+    statusMap = {},
 ) {
     // Inicializar classificação
     const classificacao = {};
@@ -504,11 +705,11 @@ function calcularClassificacaoAcumulada(
             vitorias: 0,
             empates: 0,
             derrotas: 0,
+            pontosGoleada: 0,
             gols_pro: 0,
             gols_contra: 0,
             saldo_gols: 0,
             financeiro: 0,
-            // ✅ v2.0: Campos de status
             ativo: status.ativo !== false,
             rodada_desistencia: status.rodada_desistencia || null,
         };
@@ -523,15 +724,16 @@ function calcularClassificacaoAcumulada(
             const tid = String(t.timeId || t.time_id || t.id);
             if (tid && classificacao[tid]) {
                 Object.assign(classificacao[tid], {
-                    pontos: t.pontos || 0,
-                    jogos: t.jogos || 0,
-                    vitorias: t.vitorias || 0,
-                    empates: t.empates || 0,
-                    derrotas: t.derrotas || 0,
-                    gols_pro: t.gols_pro || 0,
-                    gols_contra: t.gols_contra || 0,
-                    saldo_gols: t.saldo_gols || 0,
-                    financeiro: t.financeiro || 0,
+                    pontos: Number(t.pontos) || 0,
+                    jogos: Number(t.jogos) || 0,
+                    vitorias: Number(t.vitorias) || 0,
+                    empates: Number(t.empates) || 0,
+                    derrotas: Number(t.derrotas) || 0,
+                    pontosGoleada: Number(t.pontosGoleada) || 0,
+                    gols_pro: Number(t.gols_pro) || 0,
+                    gols_contra: Number(t.gols_contra) || 0,
+                    saldo_gols: Number(t.saldo_gols) || 0,
+                    financeiro: Number(t.financeiro) || 0,
                 });
             }
         });
@@ -541,8 +743,8 @@ function calcularClassificacaoAcumulada(
     for (const confronto of confrontosRodadaAtual) {
         const tid1 = String(confronto.time1.id);
         const tid2 = String(confronto.time2.id);
-        const p1 = confronto.time1.pontos;
-        const p2 = confronto.time2.pontos;
+        const p1 = Number(confronto.time1.pontos) || 0;
+        const p2 = Number(confronto.time2.pontos) || 0;
 
         const resultado = calcularResultado(p1, p2);
 
@@ -555,9 +757,16 @@ function calcularClassificacaoAcumulada(
             classificacao[tid1].saldo_gols =
                 classificacao[tid1].gols_pro - classificacao[tid1].gols_contra;
             classificacao[tid1].financeiro += resultado.financeiroA;
-            if (resultado.pontosA === 3) classificacao[tid1].vitorias += 1;
-            else if (resultado.pontosA === 1) classificacao[tid1].empates += 1;
-            else classificacao[tid1].derrotas += 1;
+            if (resultado.pontosA === 3) {
+                classificacao[tid1].vitorias += 1;
+                if (resultado.tipo === "goleada") {
+                    classificacao[tid1].pontosGoleada += 1;
+                }
+            } else if (resultado.pontosA === 1) {
+                classificacao[tid1].empates += 1;
+            } else {
+                classificacao[tid1].derrotas += 1;
+            }
         }
 
         // Time 2
@@ -569,9 +778,16 @@ function calcularClassificacaoAcumulada(
             classificacao[tid2].saldo_gols =
                 classificacao[tid2].gols_pro - classificacao[tid2].gols_contra;
             classificacao[tid2].financeiro += resultado.financeiroB;
-            if (resultado.pontosB === 3) classificacao[tid2].vitorias += 1;
-            else if (resultado.pontosB === 1) classificacao[tid2].empates += 1;
-            else classificacao[tid2].derrotas += 1;
+            if (resultado.pontosB === 3) {
+                classificacao[tid2].vitorias += 1;
+                if (resultado.tipo === "goleada") {
+                    classificacao[tid2].pontosGoleada += 1;
+                }
+            } else if (resultado.pontosB === 1) {
+                classificacao[tid2].empates += 1;
+            } else {
+                classificacao[tid2].derrotas += 1;
+            }
         }
     }
 
@@ -594,7 +810,7 @@ function calcularClassificacaoAcumulada(
 
     return resultado.map((t, idx) => ({
         ...t,
-        posicao: t.ativo !== false ? ativos.indexOf(t) + 1 : null, // ✅ Inativos sem posição
+        posicao: t.ativo !== false ? ativos.indexOf(t) + 1 : null,
     }));
 }
 
@@ -612,31 +828,47 @@ export const obterClassificacaoGeral = async (ligaId) => {
             return null;
         }
 
-        // ✅ v2.0: Adicionar status à classificação
-        let classificacaoComStatus = cache.classificacao || [];
-        if (classificacaoComStatus.length > 0) {
-            const timeIds = classificacaoComStatus
-                .map((t) => t.timeId || t.time_id || t.id)
+        // ✅ v2.1: Buscar dados dos times para enriquecimento
+        const timesMap = await buscarDadosTimesEnriquecidos(ligaId);
+
+        // ✅ v2.1: Enriquecer classificação
+        let classificacaoEnriquecida = enriquecerClassificacao(
+            cache.classificacao || [],
+            timesMap,
+        );
+
+        // Adicionar status
+        if (classificacaoEnriquecida.length > 0) {
+            const timeIds = classificacaoEnriquecida
+                .map((t) => t.timeId)
                 .filter(Boolean);
 
             if (timeIds.length > 0) {
-                const statusMap = await buscarStatusParticipantes(timeIds);
+                try {
+                    const statusMap = await buscarStatusParticipantes(timeIds);
 
-                classificacaoComStatus = classificacaoComStatus.map((t) => {
-                    const tid = String(t.timeId || t.time_id || t.id);
-                    const status = statusMap[tid] || { ativo: true };
-                    return {
-                        ...t,
-                        ativo: status.ativo !== false,
-                        rodada_desistencia: status.rodada_desistencia || null,
-                    };
-                });
+                    classificacaoEnriquecida = classificacaoEnriquecida.map(
+                        (t) => {
+                            const status = statusMap[t.timeId] || {
+                                ativo: true,
+                            };
+                            return {
+                                ...t,
+                                ativo: status.ativo !== false,
+                                rodada_desistencia:
+                                    status.rodada_desistencia || null,
+                            };
+                        },
+                    );
+                } catch (e) {
+                    // Ignorar erro de status
+                }
             }
         }
 
         return {
             rodada: cache.rodada_consolidada,
-            classificacao: classificacaoComStatus,
+            classificacao: classificacaoEnriquecida,
             permanent: cache.cache_permanente,
             updatedAt: cache.ultima_atualizacao,
         };
@@ -648,3 +880,7 @@ export const obterClassificacaoGeral = async (ligaId) => {
         return null;
     }
 };
+
+console.log(
+    "[CACHE-PC] ✅ Controller v2.1 carregado (enriquecimento de dados)",
+);

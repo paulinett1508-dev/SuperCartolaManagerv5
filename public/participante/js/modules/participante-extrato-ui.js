@@ -1,6 +1,10 @@
 // =====================================================
-// MÓDULO: UI DO EXTRATO PARTICIPANTE - v8.0 DESIGN CONSISTENTE
+// MÓDULO: UI DO EXTRATO PARTICIPANTE - v8.1 CAMPOS MANUAIS
 // =====================================================
+// ✅ v8.1: Campos manuais incluídos no detalhamento CRÉDITOS/DÉBITOS
+//    - camposEditaveis integrados no popup de detalhamento
+//    - Cards compactos sem quebra de linha
+//    - Cálculo do resumo inclui campos manuais
 // ✅ v8.0: Design system consistente com boas-vindas
 //    - Fundo escuro uniforme (bg-surface-dark)
 //    - Cores neutras (white/XX ao invés de zinc/gray)
@@ -9,7 +13,7 @@
 //    - Sem bordas e gradientes excessivos
 // ✅ v7.1: Card "Seu Desempenho" com métricas completas
 
-console.log("[EXTRATO-UI] 🎨 Módulo de UI v8.0 Design Consistente");
+console.log("[EXTRATO-UI] 🎨 Módulo de UI v8.1 Campos Manuais");
 
 // ===== CONFIGURAÇÃO DE FAIXAS POR LIGA (COM SUPORTE TEMPORAL) =====
 const FAIXAS_PREMIACAO = {
@@ -140,14 +144,37 @@ export function renderizarExtratoParticipante(extrato, participanteId) {
 
 // ===== RENDERIZAR CONTEÚDO COMPLETO =====
 function renderizarConteudoCompleto(container, extrato) {
-    const resumo = extrato.resumo || {
+    // ✅ v8.1: Calcular resumo incluindo campos manuais
+    const resumoBase = extrato.resumo || {
         saldo: 0,
         totalGanhos: 0,
         totalPerdas: 0,
     };
-    const saldo = resumo.saldo_final || resumo.saldo || 0;
-    const totalGanhos = resumo.totalGanhos || 0;
-    const totalPerdas = Math.abs(resumo.totalPerdas || 0);
+
+    // Processar campos manuais (podem vir como camposManuais ou camposEditaveis)
+    const camposManuais =
+        extrato.camposManuais || extrato.camposEditaveis || [];
+    let totalCamposManuaisPositivos = 0;
+    let totalCamposManuaisNegativos = 0;
+
+    if (Array.isArray(camposManuais)) {
+        camposManuais.forEach((campo) => {
+            const valor = parseFloat(campo.valor) || 0;
+            if (valor > 0) totalCamposManuaisPositivos += valor;
+            if (valor < 0) totalCamposManuaisNegativos += valor;
+        });
+    }
+
+    // Calcular totais incluindo campos manuais
+    const totalGanhos =
+        (resumoBase.totalGanhos || 0) + totalCamposManuaisPositivos;
+    const totalPerdas =
+        Math.abs(resumoBase.totalPerdas || 0) +
+        Math.abs(totalCamposManuaisNegativos);
+    const saldo =
+        (resumoBase.saldo_final || resumoBase.saldo || 0) +
+        totalCamposManuaisPositivos +
+        totalCamposManuaisNegativos;
 
     const saldoPositivo = saldo >= 0;
     const saldoFormatado = `R$ ${Math.abs(saldo).toFixed(2).replace(".", ",")}`;
@@ -167,6 +194,8 @@ function renderizarConteudoCompleto(container, extrato) {
         ligaId,
         "| Config existe:",
         !!FAIXAS_PREMIACAO[ligaId],
+        "| Campos manuais:",
+        camposManuais.length,
     );
 
     // Salvar para uso global
@@ -197,21 +226,21 @@ function renderizarConteudoCompleto(container, extrato) {
             </div>
         </div>
 
-        <!-- Cards Ganhos/Perdas -->
+        <!-- Cards Ganhos/Perdas - v8.1: Layout compacto sem quebra -->
         <div class="grid grid-cols-2 gap-3 mb-4">
             <div onclick="window.mostrarDetalhamentoGanhos()" class="bg-surface-dark p-3 rounded-xl flex items-center justify-between cursor-pointer hover:bg-white/10 active:scale-[0.98] transition-all">
-                <div class="flex items-center gap-2">
-                    <span class="material-icons text-green-400 text-base">arrow_upward</span>
-                    <p class="text-xs text-white/70 uppercase">Créditos</p>
+                <div class="flex items-center gap-2 min-w-0">
+                    <span class="material-icons text-green-400 text-base flex-shrink-0">arrow_upward</span>
+                    <p class="text-xs text-white/70 uppercase truncate">Créditos</p>
                 </div>
-                <span class="text-sm font-bold text-green-400">+R$ ${totalGanhos.toFixed(2).replace(".", ",")}</span>
+                <span class="text-sm font-bold text-green-400 whitespace-nowrap ml-1">+${totalGanhos.toFixed(2).replace(".", ",")}</span>
             </div>
             <div onclick="window.mostrarDetalhamentoPerdas()" class="bg-surface-dark p-3 rounded-xl flex items-center justify-between cursor-pointer hover:bg-white/10 active:scale-[0.98] transition-all">
-                <div class="flex items-center gap-2">
-                    <span class="material-icons text-red-400 text-base">arrow_downward</span>
-                    <p class="text-xs text-white/70 uppercase">Débitos</p>
+                <div class="flex items-center gap-2 min-w-0">
+                    <span class="material-icons text-red-400 text-base flex-shrink-0">arrow_downward</span>
+                    <p class="text-xs text-white/70 uppercase truncate">Débitos</p>
                 </div>
-                <span class="text-sm font-bold text-red-400">-R$ ${totalPerdas.toFixed(2).replace(".", ",")}</span>
+                <span class="text-sm font-bold text-red-400 whitespace-nowrap ml-1">-${totalPerdas.toFixed(2).replace(".", ",")}</span>
             </div>
         </div>
 
@@ -281,496 +310,253 @@ function renderizarConteudoCompleto(container, extrato) {
     `;
 }
 
-// ===== RENDERIZAR CARD SEU DESEMPENHO =====
-function renderizarCardDesempenho(rodadas, ligaId) {
-    if (!rodadas || rodadas.length === 0) return "";
-
-    // Calcular métricas
-    let mitos = 0,
-        micos = 0;
-    let zonaCredito = 0,
-        zonaDebito = 0;
-    let mmVitorias = 0,
-        mmDerrotas = 0;
-    let pcVitorias = 0,
-        pcDerrotas = 0;
-    let goleadas = 0;
-    let rodadasPositivas = 0;
-    let maiorGanho = { valor: 0, rodada: 0 };
-    let maiorPerda = { valor: 0, rodada: 0 };
-
-    rodadas.forEach((r) => {
-        const faixas = getFaixasParaRodada(ligaId, r.rodada);
-        const totalTimes = faixas?.totalTimes || 6;
-
-        // MITO/MICO
-        if (r.posicao === 1) mitos++;
-        if (r.posicao === totalTimes) micos++;
-
-        // Zonas
-        if (r.posicao && r.posicao <= faixas.credito.fim) zonaCredito++;
-        if (r.posicao && r.posicao >= faixas.debito.inicio) zonaDebito++;
-
-        // Mata-Mata
-        if (r.mataMata && r.mataMata > 0) mmVitorias++;
-        if (r.mataMata && r.mataMata < 0) mmDerrotas++;
-
-        // Pontos Corridos
-        if (r.pontosCorridos && r.pontosCorridos > 0) pcVitorias++;
-        if (r.pontosCorridos && r.pontosCorridos < 0) pcDerrotas++;
-
-        // Goleadas
-        if (r.goleada && r.goleada > 0) goleadas++;
-
-        // Saldo da rodada
-        const saldoRodada =
-            (r.bonusOnus || 0) +
-            (r.pontosCorridos || 0) +
-            (r.mataMata || 0) +
-            (r.top10 || 0) +
-            (r.goleada || 0);
-        if (saldoRodada > 0) rodadasPositivas++;
-
-        // Recordes
-        if (saldoRodada > maiorGanho.valor) {
-            maiorGanho = { valor: saldoRodada, rodada: r.rodada };
-        }
-        if (saldoRodada < maiorPerda.valor) {
-            maiorPerda = { valor: saldoRodada, rodada: r.rodada };
-        }
-    });
-
-    const aproveitamento =
-        rodadas.length > 0
-            ? Math.round((rodadasPositivas / rodadas.length) * 100)
-            : 0;
-
-    return `
-        <div class="bg-surface-dark rounded-xl p-4 mb-4">
-            <div class="flex items-center gap-2 mb-4">
-                <span class="material-icons text-primary text-xl">insights</span>
-                <h3 class="text-sm font-bold text-white">Seu Desempenho</h3>
-            </div>
-
-            <!-- Linha 1: Mitos, Micos, Mata-Mata, P.Corridos -->
-            <div class="grid grid-cols-4 gap-2 mb-3">
-                <div class="text-center p-2 bg-white/5 rounded-lg">
-                    <span class="material-icons text-green-400 text-base">military_tech</span>
-                    <span class="block text-base font-extrabold text-green-400">${mitos}x</span>
-                    <span class="text-[8px] text-white/50 uppercase">Mitos</span>
-                </div>
-                <div class="text-center p-2 bg-white/5 rounded-lg">
-                    <span class="material-icons text-red-400 text-base">thumb_down</span>
-                    <span class="block text-base font-extrabold text-red-400">${micos}x</span>
-                    <span class="text-[8px] text-white/50 uppercase">Micos</span>
-                </div>
-                <div class="text-center p-2 bg-white/5 rounded-lg">
-                    <span class="material-icons text-blue-400 text-base">emoji_events</span>
-                    <span class="block text-base font-extrabold text-blue-400">${mmVitorias}-${mmDerrotas}</span>
-                    <span class="text-[8px] text-white/50 uppercase">Mata-Mata</span>
-                </div>
-                <div class="text-center p-2 bg-white/5 rounded-lg">
-                    <span class="material-icons text-primary text-base">sports_soccer</span>
-                    <span class="block text-base font-extrabold text-primary">${pcVitorias}-${pcDerrotas}</span>
-                    <span class="text-[8px] text-white/50 uppercase">P. Corridos</span>
-                </div>
-            </div>
-
-            <!-- Linha 2: Zona+, Zona-, Goleadas, Aproveitamento -->
-            <div class="grid grid-cols-4 gap-2 mb-3">
-                <div class="text-center p-2 bg-white/5 rounded-lg">
-                    <span class="material-icons text-green-400 text-base">trending_up</span>
-                    <span class="block text-base font-extrabold text-green-400">${zonaCredito}x</span>
-                    <span class="text-[8px] text-white/50 uppercase">Zona +</span>
-                </div>
-                <div class="text-center p-2 bg-white/5 rounded-lg">
-                    <span class="material-icons text-red-400 text-base">trending_down</span>
-                    <span class="block text-base font-extrabold text-red-400">${zonaDebito}x</span>
-                    <span class="text-[8px] text-white/50 uppercase">Zona -</span>
-                </div>
-                <div class="text-center p-2 bg-white/5 rounded-lg">
-                    <span class="material-icons text-yellow-400 text-base">whatshot</span>
-                    <span class="block text-base font-extrabold text-yellow-400">${goleadas}x</span>
-                    <span class="text-[8px] text-white/50 uppercase">Goleadas</span>
-                </div>
-                <div class="text-center p-2 bg-white/5 rounded-lg">
-                    <span class="material-icons text-primary text-base">percent</span>
-                    <span class="block text-base font-extrabold text-primary">${aproveitamento}%</span>
-                    <span class="text-[8px] text-white/50 uppercase">Aproveit.</span>
-                </div>
-            </div>
-
-            <!-- Recordes -->
-            <div class="grid grid-cols-2 gap-2 pt-3 border-t border-white/10">
-                <div class="flex items-center gap-2 p-2 bg-white/5 rounded-lg">
-                    <span class="material-icons text-green-400 text-base">arrow_upward</span>
-                    <div class="flex-1">
-                        <span class="text-[8px] text-white/50 uppercase block">Maior Ganho</span>
-                        <span class="text-xs font-bold text-green-400">+R$ ${maiorGanho.valor.toFixed(2).replace(".", ",")}</span>
-                        <span class="text-[8px] text-white/40 block">Rodada ${maiorGanho.rodada}ª</span>
-                    </div>
-                </div>
-                <div class="flex items-center gap-2 p-2 bg-white/5 rounded-lg">
-                    <span class="material-icons text-red-400 text-base">arrow_downward</span>
-                    <div class="flex-1">
-                        <span class="text-[8px] text-white/50 uppercase block">Maior Perda</span>
-                        <span class="text-xs font-bold text-red-400">-R$ ${Math.abs(maiorPerda.valor).toFixed(2).replace(".", ",")}</span>
-                        <span class="text-[8px] text-white/40 block">Rodada ${maiorPerda.rodada}ª</span>
-                    </div>
-                </div>
-            </div>
-        </div>
-    `;
-}
-
-// ===== RENDERIZAR CARDS DAS RODADAS =====
-function renderizarCardsRodadas(rodadasArray, ligaId) {
-    if (!rodadasArray || rodadasArray.length === 0) {
+// ===== CARDS DE RODADAS =====
+function renderizarCardsRodadas(rodadas, ligaId) {
+    if (!rodadas || rodadas.length === 0) {
         return `
-            <div class="text-center py-8 text-gray-500">
-                <span class="material-icons block mb-2 text-3xl">inbox</span>
-                Sem dados de rodadas
+            <div class="text-center py-4 text-white/50">
+                <span class="material-icons text-3xl mb-2 block">inbox</span>
+                Nenhuma rodada registrada
             </div>
         `;
     }
 
-    // Debug: log da primeira rodada para verificar dados
-    if (rodadasArray.length > 0) {
-        const primeiraRodada = rodadasArray[0];
-        console.log("[EXTRATO-UI] 🔍 Amostra rodada:", {
-            rodada: primeiraRodada.rodada,
-            posicao: primeiraRodada.posicao,
-            temPosicao: primeiraRodada.posicao !== undefined,
-        });
-    }
-
-    return rodadasArray
+    return rodadas
         .map((r) => {
-            const saldo = r.saldo || 0;
-            const posicao = r.posicao;
-            const rodadaNum = r.rodada;
+            const faixas = getFaixasParaRodada(ligaId, r.rodada);
+            const tipoFaixa = classificarPosicao(r.posicao, faixas);
 
-            // ✅ OBTER FAIXAS CORRETAS PARA ESTA RODADA ESPECÍFICA
-            const faixas = getFaixasParaRodada(ligaId, rodadaNum);
+            const saldo =
+                (r.bonusOnus || 0) +
+                (r.pontosCorridos || 0) +
+                (r.mataMata || 0) +
+                (r.top10 || 0);
+            const saldoFormatado = saldo.toFixed(2).replace(".", ",");
+            const positivo = saldo >= 0;
 
-            // Classificar pela POSIÇÃO na faixa da rodada
-            const classificacao = classificarPosicao(posicao, faixas);
+            // Ícone e cor por faixa
+            let faixaIcon = "remove";
+            let faixaColor = "text-white/40";
+            let bgColor = "bg-white/5";
 
-            // Cores do card baseadas na faixa
-            let bgClass, borderClass, posicaoBgClass;
-            switch (classificacao) {
-                case "credito":
-                    bgClass = "bg-green-500/10";
-                    borderClass = "border-l-4 border-l-green-500";
-                    posicaoBgClass = "bg-green-500 text-white";
-                    break;
-                case "debito":
-                    bgClass = "bg-red-500/10";
-                    borderClass = "border-l-4 border-l-red-500";
-                    posicaoBgClass = "bg-red-500 text-white";
-                    break;
-                default: // neutro
-                    bgClass = "bg-white/5";
-                    borderClass = "border-l-4 border-l-white/30";
-                    posicaoBgClass = "bg-white/30 text-white";
+            if (tipoFaixa === "credito") {
+                faixaIcon = "arrow_upward";
+                faixaColor = "text-green-400";
+                bgColor = "bg-green-500/10";
+            } else if (tipoFaixa === "debito") {
+                faixaIcon = "arrow_downward";
+                faixaColor = "text-red-400";
+                bgColor = "bg-red-500/10";
             }
 
-            // Badges MITO/MICO (baseado na faixa contextual)
-            const totalTimesFaixa = faixas?.totalTimes || 32;
-            const isMito = posicao === 1;
-            const isMico = posicao === totalTimesFaixa;
-
-            // Label de posição (MITO/MICO ou número)
-            let posicaoHtml = "";
-            if (isMito) {
-                posicaoHtml = `<span class="bg-green-500 text-white text-[10px] font-bold px-1.5 py-0.5 rounded flex items-center gap-0.5">
-                <span class="material-icons" style="font-size:12px">military_tech</span>MITO
-            </span>`;
-            } else if (isMico) {
-                posicaoHtml = `<span class="bg-red-500 text-white text-[10px] font-bold px-1.5 py-0.5 rounded flex items-center gap-0.5">
-                <span class="material-icons" style="font-size:12px">thumb_down</span>MICO
-            </span>`;
-            } else if (posicao) {
-                posicaoHtml = `<span class="${posicaoBgClass} text-[10px] font-bold px-1.5 py-0.5 rounded">${posicao}º</span>`;
+            // Badge TOP10
+            let badgeTop10 = "";
+            if (r.top10 > 0) {
+                badgeTop10 = `<span class="text-[9px] bg-yellow-500/20 text-yellow-400 px-1.5 py-0.5 rounded-full font-semibold">MITO</span>`;
+            } else if (r.top10 < 0) {
+                badgeTop10 = `<span class="text-[9px] bg-red-500/20 text-red-400 px-1.5 py-0.5 rounded-full font-semibold">MICO</span>`;
             }
-
-            // Badges adicionais (Top10 MITO/MICO)
-            const badgesAdicionaisHtml = renderizarBadgesAdicionais(r);
-
-            // Detalhamento dos valores
-            const detalhamentoHtml = renderizarDetalhamento(r);
-
-            // Saldo formatado
-            const saldoFormatado = formatarSaldo(saldo);
-            const saldoClass = saldo >= 0 ? "text-green-400" : "text-red-400";
 
             return `
-            <div class="${bgClass} ${borderClass} rounded-lg px-3 py-2">
-                <!-- Linha 1: Rodada + Posição + Badges + Saldo -->
-                <div class="flex justify-between items-center">
-                    <div class="flex items-center gap-2">
-                        <span class="text-white font-bold text-base">${rodadaNum}ª</span>
-                        ${posicaoHtml}
-                        ${badgesAdicionaisHtml}
+                <div class="${bgColor} rounded-lg p-3 flex items-center justify-between">
+                    <div class="flex items-center gap-3">
+                        <div class="w-8 h-8 rounded-lg flex items-center justify-center bg-white/10">
+                            <span class="material-icons ${faixaColor} text-sm">${faixaIcon}</span>
+                        </div>
+                        <div>
+                            <div class="flex items-center gap-2">
+                                <span class="text-sm font-semibold text-white">R${r.rodada}</span>
+                                ${r.posicao ? `<span class="text-[10px] text-white/50">${r.posicao}º</span>` : ""}
+                                ${badgeTop10}
+                            </div>
+                            <p class="text-[10px] text-white/40">${formatarDetalhesRodada(r)}</p>
+                        </div>
                     </div>
-                    <span class="${saldoClass} font-bold text-base">${saldoFormatado}</span>
+                    <span class="text-sm font-bold ${positivo ? "text-green-400" : "text-red-400"}">${positivo ? "+" : ""}${saldoFormatado}</span>
                 </div>
-                <!-- Linha 2: Detalhamento (se houver) -->
-                ${detalhamentoHtml ? `<div class="flex flex-wrap gap-1.5 mt-1.5">${detalhamentoHtml}</div>` : ""}
-            </div>
-        `;
+            `;
         })
         .join("");
 }
 
-// ===== RENDERIZAR BADGES ADICIONAIS (Top10 MITO/MICO) =====
-function renderizarBadgesAdicionais(r) {
-    const badges = [];
-
-    // Top10 MITO (positivo) - AZUL com posição no ranking (se disponível)
-    if (r.top10 && r.top10 > 0) {
-        const valorFormatado = r.top10.toFixed(2).replace(".", ",");
-        const posicaoTexto = r.top10Posicao ? `${r.top10Posicao}º ` : "";
-        badges.push(`
-            <span class="inline-flex items-center gap-0.5 bg-blue-500/20 border border-blue-500/30 text-blue-400 text-[10px] font-bold px-1.5 py-0.5 rounded">
-                <span class="material-icons" style="font-size:12px">star</span>Top 10: ${posicaoTexto}+${valorFormatado}
-            </span>
-        `);
-    }
-
-    // Top10 MICO (negativo) - VERMELHO com posição no ranking (se disponível)
-    if (r.top10 && r.top10 < 0) {
-        const valorFormatado = Math.abs(r.top10).toFixed(2).replace(".", ",");
-        const posicaoTexto = r.top10Posicao ? `${r.top10Posicao}º ` : "";
-        badges.push(`
-            <span class="inline-flex items-center gap-0.5 bg-red-500/20 border border-red-500/30 text-red-400 text-[10px] font-bold px-1.5 py-0.5 rounded">
-                <span class="material-icons" style="font-size:12px">star</span>Top 10: ${posicaoTexto}-${valorFormatado}
-            </span>
-        `);
-    }
-
-    return badges.join("");
+function formatarDetalhesRodada(r) {
+    const partes = [];
+    if (r.bonusOnus && r.bonusOnus !== 0) partes.push("Posição");
+    if (r.pontosCorridos && r.pontosCorridos !== 0) partes.push("PC");
+    if (r.mataMata && r.mataMata !== 0) partes.push("MM");
+    if (r.top10 && r.top10 !== 0) partes.push("TOP10");
+    return partes.length > 0 ? partes.join(" · ") : "Sem movimentação";
 }
 
-// Função legada para compatibilidade
-function renderizarBadges(r, faixas) {
-    return renderizarBadgesAdicionais(r);
-}
+// ===== CARD DE DESEMPENHO =====
+function renderizarCardDesempenho(rodadas, ligaId) {
+    if (!rodadas || rodadas.length === 0) return "";
 
-// ===== RENDERIZAR DETALHAMENTO =====
-function renderizarDetalhamento(r) {
-    const items = [];
+    let totalMito = 0,
+        totalMico = 0;
+    let zonaCredito = 0,
+        zonaDebito = 0;
+    let melhorRodada = { rodada: 0, saldo: -Infinity };
+    let piorRodada = { rodada: 0, saldo: Infinity };
 
-    // Crédito/Débito posição - VERDE ganho, VERMELHO perda
-    if (r.bonusOnus && r.bonusOnus !== 0) {
-        if (r.bonusOnus > 0) {
-            items.push(criarTagVerde("Crédito", r.bonusOnus, "add_circle"));
-        } else {
-            items.push(
-                criarTagVermelho(
-                    "Débito",
-                    Math.abs(r.bonusOnus),
-                    "remove_circle",
-                ),
-            );
-        }
-    }
+    rodadas.forEach((r) => {
+        const faixas = getFaixasParaRodada(ligaId, r.rodada);
+        const saldo =
+            (r.bonusOnus || 0) +
+            (r.pontosCorridos || 0) +
+            (r.mataMata || 0) +
+            (r.top10 || 0);
 
-    // Pontos Corridos - LARANJA ganho, VERMELHO perda
-    if (r.pontosCorridos && r.pontosCorridos !== 0) {
-        if (r.pontosCorridos > 0) {
-            items.push(
-                criarTagLaranja(
-                    "P.Corridos",
-                    r.pontosCorridos,
-                    "sports_soccer",
-                ),
-            );
-        } else {
-            items.push(
-                criarTagVermelho(
-                    "P.Corridos",
-                    Math.abs(r.pontosCorridos),
-                    "sports_soccer",
-                ),
-            );
-        }
-    }
+        if (r.top10 > 0) totalMito++;
+        if (r.top10 < 0) totalMico++;
 
-    // Goleada - AMARELO (sempre positivo)
-    if (r.goleada && r.goleada > 0) {
-        items.push(criarTagAmarelo("Goleada", r.goleada, "whatshot"));
-    }
+        if (r.posicao && r.posicao <= faixas.credito.fim) zonaCredito++;
+        if (r.posicao && r.posicao >= faixas.debito.inicio) zonaDebito++;
 
-    // Mata-Mata - AZUL ganho, VERMELHO perda
-    if (r.mataMata && r.mataMata !== 0) {
-        if (r.mataMata > 0) {
-            items.push(criarTagAzul("Mata-Mata", r.mataMata, "emoji_events"));
-        } else {
-            items.push(
-                criarTagVermelho(
-                    "Mata-Mata",
-                    Math.abs(r.mataMata),
-                    "sports_mma",
-                ),
-            );
-        }
-    }
+        if (saldo > melhorRodada.saldo)
+            melhorRodada = { rodada: r.rodada, saldo };
+        if (saldo < piorRodada.saldo) piorRodada = { rodada: r.rodada, saldo };
+    });
 
-    // Top 10 - já renderizado nos badges adicionais, não duplicar aqui
-
-    // Se não tem movimentação
-    if (items.length === 0) {
-        return `<span class="text-gray-500 text-[10px] italic">Sem movimentação</span>`;
-    }
-
-    return items.join("");
-}
-
-// ===== TAG VERDE (Crédito posição) =====
-function criarTagVerde(nome, valor, icone) {
-    const valorFormatado = valor.toFixed(2).replace(".", ",");
     return `
-        <span class="inline-flex items-center gap-1 bg-green-500/15 border border-green-500/30 text-green-400 text-[10px] font-medium px-1.5 py-0.5 rounded">
-            <span class="material-icons" style="font-size:11px">${icone}</span>
-            <span>${nome}:</span>
-            <span class="font-bold">+${valorFormatado}</span>
-        </span>
-    `;
-}
-
-// ===== TAG VERMELHO (Débito, PC perdeu, MM perdeu) =====
-function criarTagVermelho(nome, valor, icone) {
-    const valorFormatado = valor.toFixed(2).replace(".", ",");
-    return `
-        <span class="inline-flex items-center gap-1 bg-red-500/15 border border-red-500/30 text-red-400 text-[10px] font-medium px-1.5 py-0.5 rounded">
-            <span class="material-icons" style="font-size:11px">${icone}</span>
-            <span>${nome}:</span>
-            <span class="font-bold">-${valorFormatado}</span>
-        </span>
-    `;
-}
-
-// ===== TAG AZUL (Mata-Mata ganhou) =====
-function criarTagAzul(nome, valor, icone) {
-    const valorFormatado = valor.toFixed(2).replace(".", ",");
-    return `
-        <span class="inline-flex items-center gap-1 bg-blue-500/15 border border-blue-500/30 text-blue-400 text-[10px] font-medium px-1.5 py-0.5 rounded">
-            <span class="material-icons" style="font-size:11px">${icone}</span>
-            <span>${nome}:</span>
-            <span class="font-bold">+${valorFormatado}</span>
-        </span>
-    `;
-}
-
-// ===== TAG LARANJA (Pontos Corridos ganhou) =====
-function criarTagLaranja(nome, valor, icone) {
-    const valorFormatado = valor.toFixed(2).replace(".", ",");
-    return `
-        <span class="inline-flex items-center gap-1 bg-orange-500/15 border border-orange-500/30 text-orange-400 text-[10px] font-medium px-1.5 py-0.5 rounded">
-            <span class="material-icons" style="font-size:11px">${icone}</span>
-            <span>${nome}:</span>
-            <span class="font-bold">+${valorFormatado}</span>
-        </span>
-    `;
-}
-
-// ===== TAG AMARELO (Goleada) =====
-function criarTagAmarelo(nome, valor, icone) {
-    const valorFormatado = valor.toFixed(2).replace(".", ",");
-    return `
-        <span class="inline-flex items-center gap-1 bg-yellow-500/15 border border-yellow-500/30 text-yellow-400 text-[10px] font-medium px-1.5 py-0.5 rounded">
-            <span class="material-icons" style="font-size:11px">${icone}</span>
-            <span>${nome}:</span>
-            <span class="font-bold">+${valorFormatado}</span>
-        </span>
-    `;
-}
-
-// ===== FORMATAR SALDO =====
-function formatarSaldo(valor) {
-    if (valor === null || valor === undefined) return "R$ 0,00";
-    const abs = Math.abs(valor).toFixed(2).replace(".", ",");
-    return valor >= 0 ? `+R$ ${abs}` : `-R$ ${abs}`;
-}
-
-// ===== ERRO =====
-function renderizarErro() {
-    return `
-        <div class="text-center py-8 text-gray-500">
-            <span class="material-icons block mb-2 text-4xl">error_outline</span>
-            <p>Erro ao carregar extrato</p>
+        <div class="bg-surface-dark rounded-xl p-4 mb-4 border border-white/5">
+            <div class="flex items-center gap-2 mb-3">
+                <span class="material-symbols-outlined text-primary">analytics</span>
+                <h3 class="text-sm font-bold text-white">Seu Desempenho</h3>
+            </div>
+            <div class="grid grid-cols-2 gap-3">
+                <div class="bg-white/5 rounded-lg p-3 text-center">
+                    <span class="material-icons text-yellow-400 text-lg">star</span>
+                    <p class="text-lg font-bold text-white">${totalMito}</p>
+                    <p class="text-[10px] text-white/50">Mitos</p>
+                </div>
+                <div class="bg-white/5 rounded-lg p-3 text-center">
+                    <span class="material-icons text-red-400 text-lg">sentiment_very_dissatisfied</span>
+                    <p class="text-lg font-bold text-white">${totalMico}</p>
+                    <p class="text-[10px] text-white/50">Micos</p>
+                </div>
+                <div class="bg-white/5 rounded-lg p-3 text-center">
+                    <span class="material-icons text-green-400 text-lg">trending_up</span>
+                    <p class="text-lg font-bold text-white">${zonaCredito}</p>
+                    <p class="text-[10px] text-white/50">Zona Crédito</p>
+                </div>
+                <div class="bg-white/5 rounded-lg p-3 text-center">
+                    <span class="material-icons text-red-400 text-lg">trending_down</span>
+                    <p class="text-lg font-bold text-white">${zonaDebito}</p>
+                    <p class="text-[10px] text-white/50">Zona Débito</p>
+                </div>
+            </div>
+            <div class="mt-3 grid grid-cols-2 gap-3">
+                <div class="bg-green-500/10 rounded-lg p-2 text-center">
+                    <p class="text-[10px] text-white/50">Melhor Rodada</p>
+                    <p class="text-sm font-bold text-green-400">R${melhorRodada.rodada} (+${melhorRodada.saldo.toFixed(2).replace(".", ",")})</p>
+                </div>
+                <div class="bg-red-500/10 rounded-lg p-2 text-center">
+                    <p class="text-[10px] text-white/50">Pior Rodada</p>
+                    <p class="text-sm font-bold text-red-400">R${piorRodada.rodada} (${piorRodada.saldo.toFixed(2).replace(".", ",")})</p>
+                </div>
+            </div>
         </div>
     `;
 }
 
 // ===== GRÁFICO DE EVOLUÇÃO =====
 function renderizarGraficoEvolucao(rodadas, range = "all") {
-    if (!rodadas || rodadas.length === 0) return;
+    const svg = document.getElementById("graficoSVG");
+    const path = document.getElementById("graficoPath");
+    const area = document.getElementById("graficoArea");
+    const labels = document.getElementById("graficoLabels");
 
-    let dadosFiltrados = [...rodadas].sort((a, b) => a.rodada - b.rodada);
-    if (range === "10") dadosFiltrados = dadosFiltrados.slice(-10);
-    else if (range === "5") dadosFiltrados = dadosFiltrados.slice(-5);
+    if (!svg || !path || !area || !labels) return;
 
-    const saldos = dadosFiltrados.map((r) => r.saldoAcumulado || r.saldo || 0);
-    const maxSaldo = Math.max(...saldos, 1);
-    const minSaldo = Math.min(...saldos, 0);
-    const rangeVal = maxSaldo - minSaldo || 1;
+    // Ordenar por rodada (crescente para o gráfico)
+    let dadosOrdenados = [...rodadas].sort((a, b) => a.rodada - b.rodada);
 
-    const pontos = saldos.map((s, i) => {
-        const x = (i / (saldos.length - 1 || 1)) * 300;
-        const y = 150 - ((s - minSaldo) / rangeVal) * 140;
-        return { x, y };
+    // Aplicar filtro de range
+    if (range !== "all") {
+        const n = parseInt(range);
+        dadosOrdenados = dadosOrdenados.slice(-n);
+    }
+
+    if (dadosOrdenados.length === 0) {
+        path.setAttribute("d", "");
+        area.setAttribute("d", "");
+        labels.innerHTML = "";
+        return;
+    }
+
+    // Calcular saldo acumulado
+    let saldoAcumulado = 0;
+    const pontos = dadosOrdenados.map((r) => {
+        const saldo =
+            (r.bonusOnus || 0) +
+            (r.pontosCorridos || 0) +
+            (r.mataMata || 0) +
+            (r.top10 || 0);
+        saldoAcumulado += saldo;
+        return { rodada: r.rodada, saldo: saldoAcumulado };
     });
 
-    const pathD = pontos
-        .map(
-            (p, i) =>
-                `${i === 0 ? "M" : "L"} ${p.x.toFixed(1)} ${p.y.toFixed(1)}`,
-        )
-        .join(" ");
-    const areaD = `${pathD} L 300 160 L 0 160 Z`;
+    // Calcular escala
+    const valores = pontos.map((p) => p.saldo);
+    const minVal = Math.min(...valores, 0);
+    const maxVal = Math.max(...valores, 0);
+    const range_val = maxVal - minVal || 1;
 
-    const pathEl = document.getElementById("graficoPath");
-    const areaEl = document.getElementById("graficoArea");
-    const labelsEl = document.getElementById("graficoLabels");
+    const width = 300;
+    const height = 140;
+    const padding = 10;
 
-    if (pathEl) pathEl.setAttribute("d", pathD);
-    if (areaEl) areaEl.setAttribute("d", areaD);
+    // Gerar path
+    const pathPoints = pontos.map((p, i) => {
+        const x =
+            padding +
+            (i / Math.max(pontos.length - 1, 1)) * (width - 2 * padding);
+        const y =
+            height -
+            padding -
+            ((p.saldo - minVal) / range_val) * (height - 2 * padding);
+        return `${i === 0 ? "M" : "L"} ${x.toFixed(1)} ${y.toFixed(1)}`;
+    });
 
-    if (labelsEl) {
-        const primeiraRodada = dadosFiltrados[0]?.rodada || 1;
-        const ultimaRodada =
-            dadosFiltrados[dadosFiltrados.length - 1]?.rodada || 1;
-        const meioRodada = Math.round((primeiraRodada + ultimaRodada) / 2);
-        labelsEl.innerHTML = `
-            <span>${primeiraRodada}ª</span>
-            <span>${meioRodada}ª</span>
-            <span>${ultimaRodada}ª</span>
-        `;
+    path.setAttribute("d", pathPoints.join(" "));
+
+    // Área preenchida
+    if (pontos.length > 0) {
+        const firstX = padding;
+        const lastX =
+            padding +
+            ((pontos.length - 1) / Math.max(pontos.length - 1, 1)) *
+                (width - 2 * padding);
+        area.setAttribute(
+            "d",
+            `${pathPoints.join(" ")} L ${lastX.toFixed(1)} ${height - padding} L ${firstX.toFixed(1)} ${height - padding} Z`,
+        );
     }
+
+    // Labels
+    const labelRodadas = [
+        pontos[0],
+        pontos[Math.floor(pontos.length / 2)],
+        pontos[pontos.length - 1],
+    ].filter((p, i, arr) => arr.indexOf(p) === i);
+
+    labels.innerHTML = labelRodadas
+        .map((p) => `<span>R${p.rodada}</span>`)
+        .join("");
 }
 
 function configurarFiltrosGrafico(rodadas) {
     document.querySelectorAll(".filtro-btn").forEach((btn) => {
         btn.addEventListener("click", () => {
             document.querySelectorAll(".filtro-btn").forEach((b) => {
-                b.classList.remove(
-                    "bg-orange-600/80",
-                    "text-white",
-                    "font-semibold",
-                );
-                b.classList.add("text-gray-400");
+                b.classList.remove("bg-primary/80", "font-semibold");
+                b.classList.add("text-white/50");
             });
-            btn.classList.add(
-                "bg-orange-600/80",
-                "text-white",
-                "font-semibold",
-            );
-            btn.classList.remove("text-gray-400");
+            btn.classList.add("bg-primary/80", "font-semibold");
+            btn.classList.remove("text-white/50");
 
-            const range = btn.dataset.range;
-            renderizarGraficoEvolucao(rodadas, range);
+            renderizarGraficoEvolucao(rodadas, btn.dataset.range);
         });
     });
 }
@@ -779,61 +565,27 @@ function configurarBotaoRefresh() {
     const btn = document.getElementById("btnRefreshExtrato");
     if (btn) {
         btn.addEventListener("click", () => {
-            if (window.forcarRefreshExtratoParticipante) {
+            if (typeof window.forcarRefreshExtratoParticipante === "function") {
                 window.forcarRefreshExtratoParticipante();
             }
         });
     }
 }
 
-// ===== MODAL TOP10 INFO =====
-window.abrirModalTop10Info = function (rodada, valor, posicaoTop) {
-    const modal = document.getElementById("modalTop10Info");
-    const body = document.getElementById("modalTop10Body");
-
-    if (!modal || !body) return;
-
-    const isPositivo = valor > 0;
-    const valorAbs = Math.abs(valor).toFixed(2).replace(".", ",");
-    const tipo = isPositivo ? "MITO" : "MICO";
-    const tipoLabel = isPositivo ? "Crédito Recebido" : "Débito Aplicado";
-    const tipoIcon = isPositivo
-        ? "emoji_events"
-        : "sentiment_very_dissatisfied";
-    const tipoBgClass = isPositivo
-        ? "from-green-900/20 to-green-900/10 border-green-500/30"
-        : "from-red-900/20 to-red-900/10 border-red-500/30";
-    const tipoTextClass = isPositivo ? "text-green-400" : "text-red-400";
-    const sinal = isPositivo ? "+" : "-";
-
-    body.innerHTML = `
-        <div class="space-y-4">
-            <div class="bg-zinc-800 rounded-lg p-4 text-center">
-                <p class="text-gray-400 text-xs mb-1">Rodada</p>
-                <p class="text-2xl font-bold text-white">${rodada}ª</p>
-            </div>
-            <div class="bg-gradient-to-br ${tipoBgClass} border rounded-lg p-4">
-                <div class="flex items-center justify-between">
-                    <div class="flex items-center gap-2">
-                        <span class="material-icons ${tipoTextClass}">${tipoIcon}</span>
-                        <span class="text-sm text-gray-300">TOP 10 ${tipo}</span>
-                    </div>
-                </div>
-            </div>
-            <div class="bg-zinc-800 border border-zinc-700 rounded-lg p-4">
-                <div class="flex items-center justify-between">
-                    <span class="text-sm text-gray-300">${tipoLabel}</span>
-                    <span class="text-xl font-bold ${tipoTextClass}">${sinal}R$ ${valorAbs}</span>
-                </div>
-            </div>
+// ===== ERRO =====
+function renderizarErro() {
+    return `
+        <div class="text-center py-8">
+            <span class="material-icons text-4xl text-red-400 mb-2 block">error_outline</span>
+            <p class="text-white/70">Erro ao carregar extrato</p>
+            <button onclick="window.forcarRefreshExtratoParticipante()" class="mt-4 px-4 py-2 bg-primary rounded-lg text-white text-sm">
+                Tentar novamente
+            </button>
         </div>
     `;
+}
 
-    modal.classList.remove("hidden");
-    modal.classList.add("flex");
-};
-
-// ===== DETALHAMENTO GANHOS/PERDAS =====
+// ===== DETALHAMENTO (CRÉDITOS/DÉBITOS) =====
 window.mostrarDetalhamentoGanhos = function () {
     mostrarDetalhamento(true);
 };
@@ -954,6 +706,33 @@ function mostrarDetalhamento(isGanhos) {
         }
     });
 
+    // ✅ v8.1: Incluir campos manuais no detalhamento
+    const camposManuais =
+        extrato.camposManuais || extrato.camposEditaveis || [];
+
+    if (Array.isArray(camposManuais) && camposManuais.length > 0) {
+        camposManuais.forEach((campo) => {
+            const valor = parseFloat(campo.valor) || 0;
+            const nome = campo.nome || "Campo Manual";
+
+            if (isGanhos && valor > 0) {
+                // Adicionar ao total de ganhos
+                somaGanhos += valor;
+                addCategoria(categorias, nome, valor, "Manual", "edit");
+            } else if (!isGanhos && valor < 0) {
+                // Adicionar ao total de perdas
+                somaPerdas += Math.abs(valor);
+                addCategoria(
+                    categorias,
+                    nome,
+                    Math.abs(valor),
+                    "Manual",
+                    "edit",
+                );
+            }
+        });
+    }
+
     const total = isGanhos ? somaGanhos : somaPerdas;
     const mediaGanho = rodadasComGanho > 0 ? somaGanhos / rodadasComGanho : 0;
     const mediaPerda = rodadasComPerda > 0 ? somaPerdas / rodadasComPerda : 0;
@@ -987,7 +766,7 @@ function mostrarDetalhamento(isGanhos) {
                         </div>
                         <div class="text-center">
                             <p class="text-[10px] text-white/50">Média</p>
-                            <p class="text-lg font-bold text-white">R$ ${(isGanhos ? mediaGanho : mediaPerda).toFixed(2).replace(".", ",")}</p>
+                            <p class="text-lg font-bold text-white">${(isGanhos ? mediaGanho : mediaPerda).toFixed(2).replace(".", ",")}</p>
                         </div>
                         <div class="text-center">
                             <p class="text-[10px] text-white/50">${isGanhos ? "Mitos" : "Micos"}</p>
@@ -1025,7 +804,7 @@ function mostrarDetalhamento(isGanhos) {
                                 <div class="h-full rounded-full ${isGanhos ? "bg-green-500" : "bg-red-500"}" style="width: ${cat.percentual}%;"></div>
                             </div>
                             <div class="flex justify-between text-[10px] text-white/40">
-                                <span>${cat.rodadas.length} rodada(s)</span>
+                                <span>${Array.isArray(cat.rodadas) ? cat.rodadas.length + " rodada(s)" : cat.rodadas}</span>
                                 <span>${cat.percentual.toFixed(1)}%</span>
                             </div>
                         </div>
@@ -1055,7 +834,14 @@ function addCategoria(obj, nome, valor, rodada, icon) {
         obj[nome] = { nome, valor: 0, rodadas: [], icon };
     }
     obj[nome].valor += valor;
-    obj[nome].rodadas.push(rodada);
+
+    // Se rodada for "Manual", não adiciona ao array
+    if (rodada !== "Manual") {
+        obj[nome].rodadas.push(rodada);
+    } else {
+        // Para campos manuais, usar label especial
+        obj[nome].rodadas = "Ajuste manual";
+    }
 }
 
-console.log("[EXTRATO-UI] ✅ Módulo v8.0 Design Consistente pronto");
+console.log("[EXTRATO-UI] ✅ Módulo v8.1 Campos Manuais pronto");

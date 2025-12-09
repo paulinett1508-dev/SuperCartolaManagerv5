@@ -5,17 +5,35 @@ import {
 } from "./fluxo-financeiro-auditoria.js";
 
 /**
- * FLUXO-FINANCEIRO-UI.JS - v4.2 (Auditoria Financeira)
+ * FLUXO-FINANCEIRO-UI.JS - v4.3 (Campos Editáveis + Material Icons)
  * ✅ v4.1: MICO mostra badge para último lugar da fase (4º na fase2, 6º na fase1)
  * ✅ v4.2: Botão "Auditar" para cada participante
+ * ✅ v4.3: Campos editáveis SEMPRE visíveis para admin + Material Icons
  * Objetivo: Renderização Pura + Classes CSS
  */
+
 export class FluxoFinanceiroUI {
     constructor() {
         this.containerId = "fluxoFinanceiroContent";
         this.buttonsContainerId = "fluxoFinanceiroButtons";
         this.auditoria = null;
         injetarEstilosAuditoria();
+
+        // ✅ v4.3: Detectar modo admin
+        this.detectarModoAdmin();
+    }
+
+    detectarModoAdmin() {
+        const isAdminPage = window.location.pathname.includes("detalhe-liga");
+        const hasAdminSession =
+            document.cookie.includes("adminSession") ||
+            document.cookie.includes("connect.sid");
+        window.adminLogado = isAdminPage || hasAdminSession;
+        window.isAdminMode = window.adminLogado;
+        console.log(
+            "[FLUXO-UI] Modo Admin:",
+            window.adminLogado ? "ATIVO" : "INATIVO",
+        );
     }
 
     setAuditoria(auditoria) {
@@ -31,10 +49,10 @@ export class FluxoFinanceiroUI {
         container.innerHTML = `
             <div class="fluxo-controls">
                 <button onclick="window.gerarRelatorioFinanceiro()" class="btn-modern btn-primary-gradient">
-                    <span>📊</span> Relatório Consolidado
+                    <span class="material-icons" style="font-size: 16px;">assessment</span> Relatório Consolidado
                 </button>
                 <div class="search-wrapper">
-                    <input type="text" id="searchParticipante" placeholder="🔍 Pesquisar participante..."
+                    <input type="text" id="searchParticipante" placeholder="Pesquisar participante..."
                            class="input-modern"
                            onkeyup="window.filtrarParticipantes(this.value)">
                 </div>
@@ -56,7 +74,7 @@ export class FluxoFinanceiroUI {
                                     ${
                                         p.url_escudo_png
                                             ? `<img src="${p.url_escudo_png}" alt="${p.nome_cartola}">`
-                                            : `<div class="avatar-placeholder">⚽</div>`
+                                            : `<div class="avatar-placeholder"><span class="material-icons" style="font-size: 24px; color: #666;">sports_soccer</span></div>`
                                     }
                                 </div>
                                 <div class="participante-info">
@@ -67,7 +85,7 @@ export class FluxoFinanceiroUI {
                         </button>
                         <button onclick="window.abrirAuditoria('${p.time_id || p.id}')" 
                                 class="btn-auditar" title="Auditar financeiro">
-                            🔍 Auditar
+                            <span class="material-icons" style="font-size: 14px;">search</span> Auditar
                         </button>
                     </div>
                 `,
@@ -105,7 +123,7 @@ export class FluxoFinanceiroUI {
         if (container)
             container.innerHTML = `
             <div class="estado-inicial">
-                <div class="estado-inicial-icon">💰</div>
+                <div class="estado-inicial-icon"><span class="material-icons" style="font-size: 48px; color: #ffd700;">account_balance_wallet</span></div>
                 <h2 class="estado-inicial-titulo">Extrato Financeiro</h2>
                 <p class="estado-inicial-subtitulo">Selecione um participante para visualizar.</p>
             </div>`;
@@ -146,7 +164,9 @@ export class FluxoFinanceiroUI {
             ? "cell-top10 is-mito"
             : "cell-top10 is-mico";
         const classeTexto = isMito ? "text-success" : "text-danger";
-        const icone = isMito ? "🏆" : "🐵";
+        const icone = isMito
+            ? '<span class="material-icons" style="font-size: 10px;">emoji_events</span>'
+            : '<span class="material-icons" style="font-size: 10px;">sentiment_very_dissatisfied</span>';
 
         let ordinal = `${posicao}º`;
         if (posicao <= 3) ordinal = `${posicao}${isMito ? "º" : "ª"}`;
@@ -172,11 +192,11 @@ export class FluxoFinanceiroUI {
 
         // MITO: 1º lugar
         if (rodada.isMito || rodada.posicao === 1)
-            return `<span class="badge-status status-mito">🎩 MITO</span>`;
+            return `<span class="badge-status status-mito"><span class="material-icons" style="font-size: 10px;">emoji_events</span> MITO</span>`;
 
         // MICO: último lugar (contextual)
         if (rodada.isMico || rodada.posicao === totalTimesFase)
-            return `<span class="badge-status status-mico">🐵 MICO</span>`;
+            return `<span class="badge-status status-mico"><span class="material-icons" style="font-size: 10px;">sentiment_very_dissatisfied</span> MICO</span>`;
 
         if (rodada.posicao) {
             let classe = "status-neutro";
@@ -229,11 +249,11 @@ export class FluxoFinanceiroUI {
             );
             container.innerHTML = `
                 <div class="estado-inicial">
-                    <div class="estado-inicial-icon">⚠️</div>
+                    <div class="estado-inicial-icon"><span class="material-icons" style="font-size: 48px; color: #f59e0b;">warning</span></div>
                     <h2 class="estado-inicial-titulo">Erro ao carregar extrato</h2>
                     <p class="estado-inicial-subtitulo">Dados corrompidos. Tente atualizar.</p>
                     <button onclick="window.forcarRefreshExtrato('${participante?.time_id || participante?.id}')" class="btn-modern btn-primary-gradient">
-                        🔄 Forçar Atualização
+                        <span class="material-icons" style="font-size: 14px;">refresh</span> Forçar Atualização
                     </button>
                 </div>`;
             return;
@@ -248,10 +268,10 @@ export class FluxoFinanceiroUI {
         const classeSaldo = saldoFinal >= 0 ? "text-success" : "text-danger";
         const labelSaldo =
             saldoFinal >= 0
-                ? "💰 Saldo a Receber"
+                ? '<span class="material-icons" style="font-size: 16px; vertical-align: middle;">savings</span> Saldo a Receber'
                 : saldoFinal < 0
-                  ? "💸 Saldo a Pagar"
-                  : "✅ Saldo Quitado";
+                  ? '<span class="material-icons" style="font-size: 16px; vertical-align: middle;">payments</span> Saldo a Pagar'
+                  : '<span class="material-icons" style="font-size: 16px; vertical-align: middle;">check_circle</span> Saldo Quitado';
 
         let html = `
         <div class="extrato-container fadeIn">
@@ -260,13 +280,13 @@ export class FluxoFinanceiroUI {
                     ${
                         participante.url_escudo_png
                             ? `<img src="${participante.url_escudo_png}" class="avatar-lg">`
-                            : `<div class="avatar-placeholder-lg">⚽</div>`
+                            : `<div class="avatar-placeholder-lg"><span class="material-icons" style="font-size: 32px; color: #666;">sports_soccer</span></div>`
                     }
                 </div>
 
                 <div style="position: absolute; top: 16px; right: 16px;">
                     <button onclick="window.forcarRefreshExtrato('${participante.time_id || participante.id}')" class="btn-modern btn-secondary-gradient">
-                        🔄 Atualizar
+                        <span class="material-icons" style="font-size: 14px;">refresh</span> Atualizar
                     </button>
                 </div>
 
@@ -279,8 +299,8 @@ export class FluxoFinanceiroUI {
                     ${extrato.updatedAt ? `<div class="text-muted" style="font-size: 9px; margin-top: 8px;">Atualizado: ${new Date(extrato.updatedAt).toLocaleString()}</div>` : ""}
 
                     <div style="display: flex; justify-content: center; gap: 12px; margin-top: 16px;">
-                        <button onclick="window.mostrarDetalhamentoGanhos()" class="btn-modern btn-success-gradient">💰 GANHOS</button>
-                        <button onclick="window.mostrarDetalhamentoPerdas()" class="btn-modern btn-danger-gradient">💸 PERDAS</button>
+                        <button onclick="window.mostrarDetalhamentoGanhos()" class="btn-modern btn-success-gradient"><span class="material-icons" style="font-size: 14px;">trending_up</span> GANHOS</button>
+                        <button onclick="window.mostrarDetalhamentoPerdas()" class="btn-modern btn-danger-gradient"><span class="material-icons" style="font-size: 14px;">trending_down</span> PERDAS</button>
                     </div>
                 </div>
             </div>
@@ -288,7 +308,7 @@ export class FluxoFinanceiroUI {
             ${camposEditaveisHTML}
 
             <div class="card-padrao">
-                <h3 class="card-titulo">📋 Detalhamento</h3>
+                <h3 class="card-titulo"><span class="material-icons" style="font-size: 16px;">receipt_long</span> Detalhamento</h3>
                 <div class="table-responsive">
                     <table class="table-modern">
                         <thead>
@@ -365,31 +385,67 @@ export class FluxoFinanceiroUI {
             },
         ];
 
-        if (!lista.some((c) => c.valor !== 0)) return "";
+        // ✅ v4.3: VERIFICAR SE É ADMIN para mostrar campos editáveis
+        const isAdmin =
+            window.adminLogado === true ||
+            window.isAdminMode === true ||
+            document.querySelector('[data-admin-mode="true"]') !== null;
+
+        const temValorPreenchido = lista.some((c) => c.valor !== 0);
+
+        // Se não é admin E não tem valor preenchido, não mostrar seção
+        if (!isAdmin && !temValorPreenchido) return "";
+
+        // Se é participante (não admin), mostrar apenas visualização
+        const readOnly = !isAdmin;
 
         return `
             <div class="card-padrao mb-20">
+                <h4 class="card-titulo" style="font-size: 13px; margin-bottom: 12px; display: flex; align-items: center; gap: 8px;">
+                    <span class="material-icons" style="font-size: 16px; color: var(--laranja);">tune</span>
+                    Lançamentos Manuais
+                    ${readOnly ? '<span class="badge-readonly" style="font-size: 9px; background: rgba(255,255,255,0.1); padding: 2px 6px; border-radius: 4px; color: #888;">SOMENTE LEITURA</span>' : ""}
+                </h4>
                 <div class="grid-responsive">
                     ${lista
                         .map(
                             (c) => `
                         <div class="campo-item">
                             <label class="campo-label-permanente">${c.nome}</label>
-                            <input type="number" step="0.01" value="${c.valor}" 
-                                   class="input-modern ${c.valor >= 0 ? "text-success" : "text-danger"}"
-                                   onchange="window.salvarCampoEditavel('${timeId}', '${c.id}', this.value)"
-                                   placeholder="R$ 0,00">
-                            <button class="btn-editar-nome" onclick="window.editarNomeCampo('${timeId}', '${c.id}')" title="Renomear campo">
-                                ✏️
-                            </button>
+                            ${
+                                readOnly
+                                    ? `
+                                <div class="input-modern ${c.valor >= 0 ? "text-success" : "text-danger"}" 
+                                     style="background: rgba(255,255,255,0.05); padding: 10px; border-radius: 8px; text-align: center;">
+                                    ${c.valor !== 0 ? `R$ ${c.valor.toLocaleString("pt-BR", { minimumFractionDigits: 2 })}` : "-"}
+                                </div>
+                            `
+                                    : `
+                                <input type="number" step="0.01" value="${c.valor}" 
+                                       class="input-modern ${c.valor >= 0 ? "text-success" : "text-danger"}"
+                                       onchange="window.salvarCampoEditavel('${timeId}', '${c.id}', this.value)"
+                                       placeholder="R$ 0,00">
+                                <button class="btn-editar-nome" onclick="window.editarNomeCampo('${timeId}', '${c.id}')" title="Renomear campo">
+                                    <span class="material-icons" style="font-size: 12px;">edit</span>
+                                </button>
+                            `
+                            }
                         </div>
                     `,
                         )
                         .join("")}
                 </div>
+                ${
+                    !readOnly
+                        ? `
                 <div class="text-right mt-16">
-                    <button onclick="window.calcularEExibirExtrato('${timeId}')" class="btn-modern btn-primary-gradient">🔄 Recalcular</button>
+                    <button onclick="window.calcularEExibirExtrato('${timeId}')" class="btn-modern btn-primary-gradient">
+                        <span class="material-icons" style="font-size: 14px;">refresh</span> Recalcular
+                    </button>
                 </div>
+                `
+                        : ""
+                }
             </div>
         `;
     }
@@ -401,7 +457,7 @@ export class FluxoFinanceiroUI {
         if (!relatorio || relatorio.length === 0) {
             container.innerHTML = `
                 <div class="estado-inicial">
-                    <div class="estado-inicial-icon">⚠️</div>
+                    <div class="estado-inicial-icon"><span class="material-icons" style="font-size: 48px; color: #f59e0b;">warning</span></div>
                     <h2 class="estado-inicial-titulo">Sem dados</h2>
                     <p class="estado-inicial-subtitulo">Nenhum participante encontrado para o relatório.</p>
                 </div>`;
@@ -411,9 +467,9 @@ export class FluxoFinanceiroUI {
         const html = `
             <div class="card-padrao">
                 <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
-                    <h3 class="card-titulo" style="margin: 0;">📊 Relatório Consolidado - Rodada ${ultimaRodada}</h3>
+                    <h3 class="card-titulo" style="margin: 0;"><span class="material-icons" style="font-size: 16px;">assessment</span> Relatório Consolidado - Rodada ${ultimaRodada}</h3>
                     <button onclick="window.exportarRelatorioCSV()" class="btn-modern btn-success-gradient">
-                        📥 Exportar CSV
+                        <span class="material-icons" style="font-size: 14px;">file_download</span> Exportar CSV
                     </button>
                 </div>
 
@@ -443,7 +499,7 @@ export class FluxoFinanceiroUI {
                                             ${
                                                 p.escudo
                                                     ? `<img src="${p.escudo}" alt="" style="width: 28px; height: 28px; border-radius: 50%;">`
-                                                    : `<div style="width: 28px; height: 28px; border-radius: 50%; background: #333; display: flex; align-items: center; justify-content: center;">⚽</div>`
+                                                    : `<div style="width: 28px; height: 28px; border-radius: 50%; background: #333; display: flex; align-items: center; justify-content: center;"><span class="material-icons" style="font-size: 16px; color: #666;">sports_soccer</span></div>`
                                             }
                                             <div>
                                                 <div class="font-semibold">${p.nome}</div>
@@ -500,6 +556,9 @@ window.salvarCampoEditavel = async function (timeId, nomeCampo, valor) {
             parseFloat(valor) || 0,
         );
         console.log(`[UI] Campo salvo: ${nomeCampo}`);
+
+        // ✅ v4.3: Recalcular e permanecer no extrato do participante
+        await window.calcularEExibirExtrato(timeId);
     } catch (error) {
         console.error("Erro ao salvar:", error);
         alert("Erro ao salvar campo.");
@@ -524,16 +583,173 @@ window.editarNomeCampo = async function (timeId, nomeCampo) {
 
 window.mostrarDetalhamentoGanhos = function () {
     if (!window.extratoAtual) return;
-    alert(
-        `Total de Ganhos: R$ ${(window.extratoAtual.resumo.totalGanhos || 0).toFixed(2)}`,
-    );
+
+    const resumo = window.extratoAtual.resumo;
+    const campos = window.extratoAtual.camposEditaveis || {};
+
+    // Coletar todos os ganhos
+    const itens = [];
+
+    if (resumo.bonus > 0)
+        itens.push({ nome: "Bônus MITO", valor: resumo.bonus });
+    if (resumo.pontosCorridos > 0)
+        itens.push({ nome: "Pontos Corridos", valor: resumo.pontosCorridos });
+    if (resumo.mataMata > 0)
+        itens.push({ nome: "Mata-Mata", valor: resumo.mataMata });
+    if (resumo.top10 > 0) itens.push({ nome: "TOP 10", valor: resumo.top10 });
+    if (resumo.melhorMes > 0)
+        itens.push({ nome: "Melhor do Mês", valor: resumo.melhorMes });
+
+    // Campos manuais positivos
+    if (campos.campo1?.valor > 0)
+        itens.push({
+            nome: campos.campo1.nome || "Campo 1",
+            valor: campos.campo1.valor,
+        });
+    if (campos.campo2?.valor > 0)
+        itens.push({
+            nome: campos.campo2.nome || "Campo 2",
+            valor: campos.campo2.valor,
+        });
+    if (campos.campo3?.valor > 0)
+        itens.push({
+            nome: campos.campo3.nome || "Campo 3",
+            valor: campos.campo3.valor,
+        });
+    if (campos.campo4?.valor > 0)
+        itens.push({
+            nome: campos.campo4.nome || "Campo 4",
+            valor: campos.campo4.valor,
+        });
+
+    const total = itens.reduce((acc, item) => acc + item.valor, 0);
+
+    const modal = document.createElement("div");
+    modal.id = "modal-detalhamento";
+    modal.innerHTML = `
+        <div style="position: fixed; inset: 0; background: rgba(0,0,0,0.8); display: flex; align-items: center; justify-content: center; z-index: 10000;">
+            <div style="background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%); border-radius: 16px; padding: 24px; max-width: 400px; width: 90%; max-height: 80vh; overflow-y: auto; border: 1px solid rgba(34,197,94,0.3);">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+                    <h3 style="color: #22c55e; margin: 0; display: flex; align-items: center; gap: 8px;">
+                        <span class="material-icons">trending_up</span> TUDO QUE GANHOU
+                    </h3>
+                    <button onclick="document.getElementById('modal-detalhamento').remove()" style="background: none; border: none; color: #94a3b8; cursor: pointer; font-size: 24px;">&times;</button>
+                </div>
+
+                <div style="display: flex; flex-direction: column; gap: 12px;">
+                    ${
+                        itens.length > 0
+                            ? itens
+                                  .map(
+                                      (item) => `
+                        <div style="display: flex; justify-content: space-between; padding: 12px; background: rgba(34,197,94,0.1); border-radius: 8px; border-left: 3px solid #22c55e;">
+                            <span style="color: #e2e8f0;">${item.nome}</span>
+                            <span style="color: #22c55e; font-weight: 600;">+R$ ${item.valor.toLocaleString("pt-BR", { minimumFractionDigits: 2 })}</span>
+                        </div>
+                    `,
+                                  )
+                                  .join("")
+                            : '<p style="color: #94a3b8; text-align: center;">Nenhum ganho registrado</p>'
+                    }
+                </div>
+
+                <div style="margin-top: 20px; padding-top: 16px; border-top: 1px solid rgba(255,255,255,0.1); display: flex; justify-content: space-between;">
+                    <span style="color: #94a3b8; font-weight: 600;">TOTAL GANHOS:</span>
+                    <span style="color: #22c55e; font-weight: 700; font-size: 18px;">+R$ ${total.toLocaleString("pt-BR", { minimumFractionDigits: 2 })}</span>
+                </div>
+            </div>
+        </div>
+    `;
+    document.body.appendChild(modal);
 };
 
 window.mostrarDetalhamentoPerdas = function () {
     if (!window.extratoAtual) return;
-    alert(
-        `Total de Perdas: R$ ${(window.extratoAtual.resumo.totalPerdas || 0).toFixed(2)}`,
-    );
+
+    const resumo = window.extratoAtual.resumo;
+    const campos = window.extratoAtual.camposEditaveis || {};
+
+    // Coletar todas as perdas (valores negativos)
+    const itens = [];
+
+    if (resumo.onus < 0)
+        itens.push({ nome: "Ônus MICO", valor: Math.abs(resumo.onus) });
+    if (resumo.pontosCorridos < 0)
+        itens.push({
+            nome: "Pontos Corridos",
+            valor: Math.abs(resumo.pontosCorridos),
+        });
+    if (resumo.mataMata < 0)
+        itens.push({ nome: "Mata-Mata", valor: Math.abs(resumo.mataMata) });
+    if (resumo.top10 < 0)
+        itens.push({ nome: "TOP 10", valor: Math.abs(resumo.top10) });
+    if (resumo.melhorMes < 0)
+        itens.push({
+            nome: "Melhor do Mês",
+            valor: Math.abs(resumo.melhorMes),
+        });
+
+    // Campos manuais negativos
+    if (campos.campo1?.valor < 0)
+        itens.push({
+            nome: campos.campo1.nome || "Campo 1",
+            valor: Math.abs(campos.campo1.valor),
+        });
+    if (campos.campo2?.valor < 0)
+        itens.push({
+            nome: campos.campo2.nome || "Campo 2",
+            valor: Math.abs(campos.campo2.valor),
+        });
+    if (campos.campo3?.valor < 0)
+        itens.push({
+            nome: campos.campo3.nome || "Campo 3",
+            valor: Math.abs(campos.campo3.valor),
+        });
+    if (campos.campo4?.valor < 0)
+        itens.push({
+            nome: campos.campo4.nome || "Campo 4",
+            valor: Math.abs(campos.campo4.valor),
+        });
+
+    const total = itens.reduce((acc, item) => acc + item.valor, 0);
+
+    const modal = document.createElement("div");
+    modal.id = "modal-detalhamento";
+    modal.innerHTML = `
+        <div style="position: fixed; inset: 0; background: rgba(0,0,0,0.8); display: flex; align-items: center; justify-content: center; z-index: 10000;">
+            <div style="background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%); border-radius: 16px; padding: 24px; max-width: 400px; width: 90%; max-height: 80vh; overflow-y: auto; border: 1px solid rgba(239,68,68,0.3);">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+                    <h3 style="color: #ef4444; margin: 0; display: flex; align-items: center; gap: 8px;">
+                        <span class="material-icons">trending_down</span> TUDO QUE PERDEU
+                    </h3>
+                    <button onclick="document.getElementById('modal-detalhamento').remove()" style="background: none; border: none; color: #94a3b8; cursor: pointer; font-size: 24px;">&times;</button>
+                </div>
+
+                <div style="display: flex; flex-direction: column; gap: 12px;">
+                    ${
+                        itens.length > 0
+                            ? itens
+                                  .map(
+                                      (item) => `
+                        <div style="display: flex; justify-content: space-between; padding: 12px; background: rgba(239,68,68,0.1); border-radius: 8px; border-left: 3px solid #ef4444;">
+                            <span style="color: #e2e8f0;">${item.nome}</span>
+                            <span style="color: #ef4444; font-weight: 600;">-R$ ${item.valor.toLocaleString("pt-BR", { minimumFractionDigits: 2 })}</span>
+                        </div>
+                    `,
+                                  )
+                                  .join("")
+                            : '<p style="color: #94a3b8; text-align: center;">Nenhuma perda registrada</p>'
+                    }
+                </div>
+
+                <div style="margin-top: 20px; padding-top: 16px; border-top: 1px solid rgba(255,255,255,0.1); display: flex; justify-content: space-between;">
+                    <span style="color: #94a3b8; font-weight: 600;">TOTAL PERDAS:</span>
+                    <span style="color: #ef4444; font-weight: 700; font-size: 18px;">-R$ ${total.toLocaleString("pt-BR", { minimumFractionDigits: 2 })}</span>
+                </div>
+            </div>
+        </div>
+    `;
+    document.body.appendChild(modal);
 };
 
 // =========================================================================
@@ -604,4 +820,4 @@ window.abrirAuditoria = async function (timeId) {
     }
 };
 
-console.log("[FLUXO-UI] ✅ v4.2 carregado (Auditoria Financeira)");
+console.log("[FLUXO-UI] ✅ v4.3 carregado (Campos Editáveis + Material Icons)");

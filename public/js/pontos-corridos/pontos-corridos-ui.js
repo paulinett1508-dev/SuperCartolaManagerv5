@@ -1,4 +1,4 @@
-// PONTOS CORRIDOS UI - v2.7 Interface Otimizada
+// PONTOS CORRIDOS UI - v2.9 Interface Otimizada
 // ✅ v2.1: Celebração do campeão quando liga encerra
 // ✅ v2.2: Banner compacto e elegante com nome do cartoleiro
 // ✅ v2.3: CORREÇÃO - Suporta time1/time2 (cache) e timeA/timeB (gerador)
@@ -6,6 +6,8 @@
 // ✅ v2.5: Renomear coluna GP → PG (Pontos Goleada)
 // ✅ v2.6: PG no banner do campeão
 // ✅ v2.7: Correção busca container (suporta ambos IDs) + fix null check
+// ✅ v2.8: Fallbacks robustos para campos undefined - fix classificação
+// ✅ v2.9: Material Icons + estrutura HTML original dos confrontos restaurada
 // Responsável por: renderização, manipulação DOM, estados visuais
 
 import {
@@ -20,9 +22,94 @@ const elementsCache = new Map();
 let rodadaAtualInterface = 1;
 let rodadaSelecionadaInterface = 0;
 
+// ✅ v2.8: Função para garantir valor numérico seguro
+function safeNumber(value, defaultValue = 0) {
+  const num = Number(value);
+  return isNaN(num) ? defaultValue : num;
+}
+
+// ✅ v2.8: Função para garantir string segura
+function safeString(value, defaultValue = "") {
+  if (value === null || value === undefined) return defaultValue;
+  return String(value);
+}
+
+// ✅ v2.8: Função para extrair dados do time de forma segura
+function extractTimeData(time, fallbackId = "0") {
+  if (!time || typeof time !== "object") {
+    return {
+      id: fallbackId,
+      nome: `Time ${fallbackId}`,
+      nome_cartola: "",
+      escudo: "",
+      pontos: 0,
+    };
+  }
+
+  return {
+    id: safeString(time.id || time.timeId || time.time_id, fallbackId),
+    nome: safeString(
+      time.nome || time.nome_time,
+      `Time ${time.id || fallbackId}`,
+    ),
+    nome_cartola: safeString(time.nome_cartola || time.cartoleiro, ""),
+    escudo: safeString(
+      time.escudo || time.url_escudo_png || time.foto_time,
+      "",
+    ),
+    pontos: safeNumber(time.pontos, null),
+  };
+}
+
+// ✅ v2.8: Função para extrair dados de classificação de forma segura
+function extractClassificacaoData(item, index) {
+  if (!item || typeof item !== "object") {
+    return {
+      timeId: `unknown_${index}`,
+      nome: `Time ${index + 1}`,
+      nome_cartola: "",
+      escudo: "",
+      pontos: 0,
+      jogos: 0,
+      vitorias: 0,
+      empates: 0,
+      derrotas: 0,
+      pontosGoleada: 0,
+      saldo_gols: 0,
+      financeiro: 0,
+      ativo: true,
+    };
+  }
+
+  return {
+    timeId: safeString(
+      item.timeId || item.time_id || item.id,
+      `unknown_${index}`,
+    ),
+    nome: safeString(item.nome || item.nome_time, `Time ${index + 1}`),
+    nome_cartola: safeString(item.nome_cartola || item.cartoleiro, ""),
+    escudo: safeString(
+      item.escudo || item.url_escudo_png || item.foto_time,
+      "",
+    ),
+    pontos: safeNumber(item.pontos, 0),
+    jogos: safeNumber(item.jogos, 0),
+    vitorias: safeNumber(item.vitorias, 0),
+    empates: safeNumber(item.empates, 0),
+    derrotas: safeNumber(item.derrotas, 0),
+    pontosGoleada: safeNumber(item.pontosGoleada, 0),
+    gols_pro: safeNumber(item.gols_pro, 0),
+    gols_contra: safeNumber(item.gols_contra, 0),
+    saldo_gols: safeNumber(item.saldo_gols, 0),
+    financeiro: safeNumber(item.financeiro, 0),
+    ativo: item.ativo !== false,
+    rodada_desistencia: item.rodada_desistencia || null,
+  };
+}
+
 // Função simplificada para brasões (CORREÇÃO APLICADA)
 function obterBrasaoTime(time) {
-  const clubeId = time.clube_id || "default";
+  const clubeId = time?.clube_id || "default";
   return `/escudos/${clubeId}.png`;
 }
 
@@ -67,7 +154,7 @@ export function renderizarInterface(
     <!-- Ações Principais -->
     <div class="acoes-container">
       <button class="btn-acao btn-primary" id="btnClassificacaoGeral">
-        📊 Classificação Geral
+        <span class="material-icons" style="vertical-align: middle; margin-right: 8px;">leaderboard</span> Classificação Geral
       </button>
       <div class="btn-group-exportacao" id="exportPontosCorridosContainer">
         <!-- Botões de exportação serão adicionados dinamicamente -->
@@ -148,7 +235,7 @@ export function renderizarSeletorRodadasModerno(
     if (ligaEncerrou) {
       progresso.innerHTML = `
         <div class="progresso-info liga-encerrada">
-          <span class="progresso-texto">🏆 Liga Encerrada! ${totalRodadas} rodadas disputadas</span>
+          <span class="progresso-texto"><span class="material-icons" style="font-size: 16px; vertical-align: middle; color: #ffd700;">emoji_events</span> Liga Encerrada! ${totalRodadas} rodadas disputadas</span>
           <div class="progresso-bar">
             <div class="progresso-fill completo" style="width: 100%"></div>
           </div>
@@ -205,7 +292,7 @@ export function renderizarSeletorRodadasModerno(
       <div class="rodada-label">Rodada</div>
       <div class="rodada-brasileirao">R${rodadaBrasileirao}</div>
       ${estadoClasse === "futura" ? '<div class="pontinho-vermelho"></div>' : ""}
-      ${ligaEncerrou && index === totalRodadas - 1 ? '<div class="badge-final">🏆</div>' : ""}
+      ${ligaEncerrou && index === totalRodadas - 1 ? '<div class="badge-final"><span class="material-icons" style="font-size: 12px; color: #1a1a1a;">emoji_events</span></div>' : ""}
     `;
 
     // CORREÇÃO: Todas as rodadas acessíveis, incluindo futuras
@@ -222,7 +309,7 @@ export function renderizarSeletorRodadasModerno(
 
     // Tooltip informativo
     if (ligaEncerrou && index === totalRodadas - 1) {
-      card.title = `Rodada ${numeroRodada} - RODADA FINAL 🏆`;
+      card.title = `Rodada ${numeroRodada} - RODADA FINAL`;
     } else if (estadoClasse === "futura") {
       card.title = `Rodada ${numeroRodada} - Aguardando rodada ${rodadaBrasileirao} do Brasileirão`;
     } else if (estadoClasse === "atual") {
@@ -276,7 +363,7 @@ export function renderErrorState(containerId, error) {
     <div class="error-state">
       <div class="error-icon">⚠️</div>
       <h3 class="error-title">Erro ao carregar dados</h3>
-      <p class="error-message">${error.message || error}</p>
+      <p class="error-message">${error?.message || error || "Erro desconhecido"}</p>
       <button class="btn-retry" onclick="window.location.reload()">
         🔄 Tentar Novamente
       </button>
@@ -284,54 +371,63 @@ export function renderErrorState(containerId, error) {
   `;
 }
 
-// Layout simples usando classes CSS existentes
+// ✅ v2.9: Layout usando estrutura original (table) + fallbacks robustos + Material Icons
 export function renderTabelaRodada(
   jogos,
   idxRodada,
   pontuacoesMap,
   rodadaAtualBrasileirao,
 ) {
-  const numeroRodada = idxRodada;
-  const rodadaBrasileirao = calcularRodadaBrasileirao(idxRodada - 1);
+  // Validação de entrada
+  if (!Array.isArray(jogos) || jogos.length === 0) {
+    return `
+      <div class="empty-state">
+        <span class="material-icons" style="font-size: 48px; color: var(--text-muted);">assignment</span>
+        <h3 class="empty-title">Nenhum confronto</h3>
+        <p class="empty-message">Não há jogos para esta rodada</p>
+      </div>
+    `;
+  }
+
+  const numeroRodada = safeNumber(idxRodada, 1);
+  const rodadaBrasileirao = calcularRodadaBrasileirao(numeroRodada - 1);
   const isRodadaPassada = rodadaBrasileirao < rodadaAtualBrasileirao;
   const isRodadaAtual = rodadaBrasileirao === rodadaAtualBrasileirao;
 
   let statusTexto = "";
   if (isRodadaPassada) {
-    statusTexto = "Rodada Finalizada";
+    statusTexto = "RODADA FINALIZADA";
   } else if (isRodadaAtual) {
-    statusTexto = "Rodada em Andamento";
+    statusTexto = "RODADA EM ANDAMENTO";
   } else {
-    statusTexto = "Aguardando Rodada";
+    statusTexto = "RODADA AINDA NÃO ACONTECEU";
   }
 
   let confrontosHTML = "";
 
   jogos.forEach((jogo, index) => {
-    // ✅ v2.3: Suporta ambos formatos (time1/time2 do cache OU timeA/timeB do gerador)
-    const timeA = jogo.time1 || jogo.timeA;
-    const timeB = jogo.time2 || jogo.timeB;
+    // ✅ v2.8: Extrair dados de forma segura - suporta time1/time2 e timeA/timeB
+    const rawTimeA = jogo.time1 || jogo.timeA || {};
+    const rawTimeB = jogo.time2 || jogo.timeB || {};
 
-    if (!timeA || !timeB) {
-      console.warn(`[UI] Confronto ${index} com dados incompletos:`, jogo);
-      return;
-    }
+    const timeA = extractTimeData(rawTimeA, `A${index}`);
+    const timeB = extractTimeData(rawTimeB, `B${index}`);
 
-    const pontosA = timeA.pontos ?? pontuacoesMap[timeA.id] ?? null;
-    const pontosB = timeB.pontos ?? pontuacoesMap[timeB.id] ?? null;
+    // Pontos com fallback para pontuacoesMap
+    const pontosA =
+      timeA.pontos !== null
+        ? timeA.pontos
+        : (pontuacoesMap?.[timeA.id] ?? null);
+    const pontosB =
+      timeB.pontos !== null
+        ? timeB.pontos
+        : (pontuacoesMap?.[timeB.id] ?? null);
 
-    const brasaoA = timeA.escudo || obterBrasaoTime(timeA);
-    const brasaoB = timeB.escudo || obterBrasaoTime(timeB);
-
-    // ✅ v2.3: Nome do time (principal) + nome do cartoleiro (secundário)
-    const nomeTimeA = timeA.nome || timeA.nome_time || "Time";
-    const cartolaA = timeA.nome_cartola || "";
-    const nomeTimeB = timeB.nome || timeB.nome_time || "Time";
-    const cartolaB = timeB.nome_cartola || "";
+    const brasaoA = timeA.escudo || obterBrasaoTime(rawTimeA);
+    const brasaoB = timeB.escudo || obterBrasaoTime(rawTimeB);
 
     let financeiroA = "R$ 0,00";
     let financeiroB = "R$ 0,00";
-    let resultadoTexto = "Aguardando";
     let classeConfronto = "";
     let corPlacarA = "";
     let corPlacarB = "";
@@ -346,7 +442,6 @@ export function renderTabelaRodada(
       if (diferenca <= empateTolerancia) {
         financeiroA = `+R$ ${PONTOS_CORRIDOS_CONFIG.financeiro.empate.toFixed(2)}`;
         financeiroB = `+R$ ${PONTOS_CORRIDOS_CONFIG.financeiro.empate.toFixed(2)}`;
-        resultadoTexto = "Empate";
         classeConfronto = "empate";
         corPlacarA = "color: #3b82f6;";
         corPlacarB = "color: #3b82f6;";
@@ -356,7 +451,6 @@ export function renderTabelaRodada(
         if (pontosA > pontosB) {
           financeiroA = `+R$ ${PONTOS_CORRIDOS_CONFIG.financeiro.goleada.toFixed(2)}`;
           financeiroB = `-R$ ${PONTOS_CORRIDOS_CONFIG.financeiro.goleada.toFixed(2)}`;
-          resultadoTexto = "Goleada A";
           classeConfronto = "goleada";
           corPlacarA = "color: #ffd700; font-weight: 700;";
           corPlacarB = "color: #ef4444;";
@@ -365,7 +459,6 @@ export function renderTabelaRodada(
         } else {
           financeiroA = `-R$ ${PONTOS_CORRIDOS_CONFIG.financeiro.goleada.toFixed(2)}`;
           financeiroB = `+R$ ${PONTOS_CORRIDOS_CONFIG.financeiro.goleada.toFixed(2)}`;
-          resultadoTexto = "Goleada B";
           classeConfronto = "goleada";
           corPlacarA = "color: #ef4444;";
           corPlacarB = "color: #ffd700; font-weight: 700;";
@@ -376,7 +469,6 @@ export function renderTabelaRodada(
         if (pontosA > pontosB) {
           financeiroA = `+R$ ${PONTOS_CORRIDOS_CONFIG.financeiro.vitoria.toFixed(2)}`;
           financeiroB = `-R$ ${PONTOS_CORRIDOS_CONFIG.financeiro.vitoria.toFixed(2)}`;
-          resultadoTexto = "Vitória A";
           classeConfronto = "vitoria";
           corPlacarA = "color: #22c55e;";
           corPlacarB = "color: #ef4444;";
@@ -385,7 +477,6 @@ export function renderTabelaRodada(
         } else {
           financeiroA = `-R$ ${PONTOS_CORRIDOS_CONFIG.financeiro.vitoria.toFixed(2)}`;
           financeiroB = `+R$ ${PONTOS_CORRIDOS_CONFIG.financeiro.vitoria.toFixed(2)}`;
-          resultadoTexto = "Vitória B";
           classeConfronto = "vitoria";
           corPlacarA = "color: #ef4444;";
           corPlacarB = "color: #22c55e;";
@@ -395,16 +486,17 @@ export function renderTabelaRodada(
       }
     }
 
+    // ✅ v2.8: Estrutura original com <tr> para compatibilidade CSS
     confrontosHTML += `
       <tr class="confronto-linha ${classeConfronto}">
         <td style="padding: 16px;">
           <div style="display: flex; align-items: center; justify-content: space-between;">
             <!-- Time A - Alinhado à esquerda -->
             <div style="display: flex; align-items: center; gap: 12px; flex: 1; justify-content: flex-start;">
-              <img src="${brasaoA}" style="width: 32px; height: 32px; border-radius: 50%; object-fit: contain;" alt="Time A" onerror="this.src='/escudos/default.png'">
+              <img src="${brasaoA}" style="width: 32px; height: 32px; border-radius: 50%; object-fit: contain;" alt="${timeA.nome}" onerror="this.src='/escudos/default.png'">
               <div style="text-align: left;">
-                <div style="font-weight: 600; font-size: 14px; color: var(--text-primary);">${nomeTimeA}</div>
-                ${cartolaA ? `<div style="font-size: 11px; color: var(--text-muted);">${cartolaA}</div>` : ""}
+                <div style="font-weight: 600; font-size: 14px; color: var(--text-primary);">${timeA.nome}</div>
+                ${timeA.nome_cartola ? `<div style="font-size: 11px; color: var(--text-muted);">${timeA.nome_cartola}</div>` : ""}
               </div>
             </div>
 
@@ -425,10 +517,10 @@ export function renderTabelaRodada(
             <!-- Time B - Alinhado à direita -->
             <div style="display: flex; align-items: center; gap: 12px; flex: 1; justify-content: flex-end;">
               <div style="text-align: right;">
-                <div style="font-weight: 600; font-size: 14px; color: var(--text-primary);">${nomeTimeB}</div>
-                ${cartolaB ? `<div style="font-size: 11px; color: var(--text-muted);">${cartolaB}</div>` : ""}
+                <div style="font-weight: 600; font-size: 14px; color: var(--text-primary);">${timeB.nome}</div>
+                ${timeB.nome_cartola ? `<div style="font-size: 11px; color: var(--text-muted);">${timeB.nome_cartola}</div>` : ""}
               </div>
-              <img src="${brasaoB}" style="width: 32px; height: 32px; border-radius: 50%; object-fit: contain;" alt="Time B" onerror="this.src='/escudos/default.png'">
+              <img src="${brasaoB}" style="width: 32px; height: 32px; border-radius: 50%; object-fit: contain;" alt="${timeB.nome}" onerror="this.src='/escudos/default.png'">
             </div>
           </div>
         </td>
@@ -447,7 +539,7 @@ export function renderTabelaRodada(
       </div>
       <div class="rodada-status ${isRodadaPassada ? "finalizada" : isRodadaAtual ? "andamento" : "aguardando"}">
         <span class="status-indicador"></span>
-        ${isRodadaPassada ? statusTexto : !isRodadaPassada && !isRodadaAtual ? "RODADA AINDA NÃO ACONTECEU" : statusTexto}
+        ${statusTexto}
       </div>
     </div>
 
@@ -468,115 +560,139 @@ export function renderTabelaRodada(
     <div class="exportacao-container">
       <div id="exportPontosCorridosRodadaBtnContainer"></div>
     </div>
-
   `;
 }
 
 // ============================================================================
-// ✅ v2.2: CELEBRAÇÃO DO CAMPEÃO - Compacto e Elegante
+// ✅ v2.1 CELEBRAÇÃO DO CAMPEÃO
 // ============================================================================
 
 function renderizarCelebracaoCampeao(campeao) {
-  const nomeTime = campeao.nome || campeao.nome_time || "Campeão";
-  const nomeCartoleiro = campeao.nome_cartola || campeao.cartoleiro || "";
-  const escudoUrl =
-    campeao.escudo || campeao.url_escudo_png || campeao.foto_time || "";
-  const pontos = campeao.pontos || 0;
-  const vitorias = campeao.vitorias || 0;
-  const empates = campeao.empates || 0;
-  const derrotas = campeao.derrotas || 0;
-  const pontosGoleada = campeao.pontosGoleada || 0; // ✅ v2.6
+  if (!campeao) return "";
+
+  // ✅ v2.8: Extrair dados do campeão de forma segura
+  const dados = extractClassificacaoData(campeao, 0);
+
+  const escudoFallback =
+    "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='80' height='80'%3E%3Crect fill='%23ffd700' width='80' height='80' rx='8'/%3E%3C/svg%3E";
 
   return `
-    <div class="campeao-banner">
+    <div class="celebracao-campeao">
+      <div class="confetti-container"></div>
       <div class="campeao-content">
-        <div class="campeao-trofeu">🏆</div>
-        <img src="${escudoUrl}" alt="${nomeTime}" class="campeao-escudo" onerror="this.style.display='none'">
-        <div class="campeao-info">
-          <span class="campeao-label">CAMPEÃO 2025</span>
-          <h3 class="campeao-nome">${nomeTime}</h3>
-          ${nomeCartoleiro ? `<span class="campeao-cartoleiro">${nomeCartoleiro}</span>` : ""}
+        <span class="material-icons campeao-trofeu">emoji_events</span>
+        <h2 class="campeao-titulo">CAMPEÃO!</h2>
+        <div class="campeao-time">
+          <img 
+            src="${dados.escudo || escudoFallback}" 
+            alt="${dados.nome}"
+            class="campeao-escudo"
+            onerror="this.src='${escudoFallback}'"
+          >
+          <div class="campeao-info">
+            <span class="campeao-nome">${dados.nome}</span>
+            ${dados.nome_cartola ? `<span class="campeao-cartola">${dados.nome_cartola}</span>` : ""}
+          </div>
         </div>
         <div class="campeao-stats">
-          <div class="stat"><span class="valor">${pontos}</span><span class="label">PTS</span></div>
-          <div class="stat"><span class="valor">${vitorias}</span><span class="label">V</span></div>
-          <div class="stat"><span class="valor">${empates}</span><span class="label">E</span></div>
-          <div class="stat"><span class="valor">${derrotas}</span><span class="label">D</span></div>
-          <div class="stat"><span class="valor" style="color: #ff8c00;">${pontosGoleada}</span><span class="label">PG</span></div>
+          <div class="stat">
+            <span class="stat-valor">${dados.pontos}</span>
+            <span class="stat-label">Pontos</span>
+          </div>
+          <div class="stat">
+            <span class="stat-valor">${dados.vitorias}</span>
+            <span class="stat-label">Vitórias</span>
+          </div>
+          <div class="stat">
+            <span class="stat-valor">${dados.pontosGoleada}</span>
+            <span class="stat-label">PG</span>
+          </div>
+          <div class="stat">
+            <span class="stat-valor">R$ ${dados.financeiro.toFixed(2)}</span>
+            <span class="stat-label">Financeiro</span>
+          </div>
         </div>
       </div>
     </div>
 
     <style>
-      .campeao-banner {
-        background: linear-gradient(135deg, rgba(255,215,0,0.15) 0%, rgba(255,215,0,0.05) 100%);
-        border: 1px solid rgba(255,215,0,0.4);
-        border-radius: 12px;
-        padding: 16px 20px;
-        margin-bottom: 20px;
-      }
-      .campeao-content {
-        display: flex;
-        align-items: center;
-        gap: 16px;
+      .celebracao-campeao {
+        background: linear-gradient(135deg, rgba(255, 215, 0, 0.15), rgba(255, 215, 0, 0.05));
+        border: 2px solid rgba(255, 215, 0, 0.4);
+        border-radius: 16px;
+        padding: 24px;
+        margin-bottom: 24px;
+        text-align: center;
+        position: relative;
+        overflow: hidden;
       }
       .campeao-trofeu {
-        font-size: 32px;
-        flex-shrink: 0;
+        font-size: 48px;
+        color: #ffd700;
+        margin-bottom: 8px;
+        animation: bounce 1s ease-in-out infinite;
+        display: block;
+      }
+      @keyframes bounce {
+        0%, 100% { transform: translateY(0); }
+        50% { transform: translateY(-10px); }
+      }
+      .campeao-titulo {
+        color: #ffd700;
+        font-size: 1.8rem;
+        font-weight: 700;
+        margin-bottom: 16px;
+        text-shadow: 0 2px 10px rgba(255, 215, 0, 0.3);
+      }
+      .campeao-time {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 16px;
+        margin-bottom: 20px;
       }
       .campeao-escudo {
-        width: 48px;
-        height: 48px;
-        border-radius: 50%;
-        border: 2px solid #ffd700;
-        object-fit: cover;
-        flex-shrink: 0;
+        width: 64px;
+        height: 64px;
+        border-radius: 8px;
+        border: 3px solid #ffd700;
+        box-shadow: 0 4px 15px rgba(255, 215, 0, 0.3);
       }
       .campeao-info {
-        flex: 1;
-        min-width: 0;
-      }
-      .campeao-label {
-        font-size: 10px;
-        font-weight: 700;
-        color: #ffd700;
-        letter-spacing: 1px;
+        display: flex;
+        flex-direction: column;
+        align-items: flex-start;
+        text-align: left;
       }
       .campeao-nome {
-        font-size: 18px;
-        font-weight: 700;
-        color: #fff;
-        margin: 2px 0;
-        white-space: nowrap;
-        overflow: hidden;
-        text-overflow: ellipsis;
+        font-size: 1.4rem;
+        font-weight: 600;
+        color: #ffd700;
       }
-      .campeao-cartoleiro {
-        font-size: 12px;
-        color: #a0aec0;
+      .campeao-cartola {
+        font-size: 0.9rem;
+        color: var(--text-muted, #888);
+        margin-top: 2px;
       }
       .campeao-stats {
         display: flex;
-        gap: 12px;
-        flex-shrink: 0;
+        justify-content: center;
+        gap: 24px;
+        flex-wrap: wrap;
       }
       .campeao-stats .stat {
-        text-align: center;
-        background: rgba(255,215,0,0.1);
-        border-radius: 8px;
-        padding: 8px 12px;
-        min-width: 44px;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
       }
-      .campeao-stats .valor {
-        display: block;
-        font-size: 16px;
+      .campeao-stats .stat-valor {
+        font-size: 1.3rem;
         font-weight: 700;
         color: #ffd700;
       }
-      .campeao-stats .label {
-        display: block;
-        font-size: 9px;
-        color: #a0aec0;
+      .campeao-stats .stat-label {
+        font-size: 0.75rem;
+        color: var(--text-muted, #888);
         margin-top: 2px;
       }
     </style>
@@ -584,7 +700,7 @@ function renderizarCelebracaoCampeao(campeao) {
 }
 
 // ============================================================================
-// RENDERIZAR TABELA DE CLASSIFICAÇÃO (ATUALIZADO v2.1)
+// ✅ v2.8: RENDERIZAR TABELA DE CLASSIFICAÇÃO - COM FALLBACKS ROBUSTOS
 // ============================================================================
 
 export function renderTabelaClassificacao(
@@ -593,10 +709,11 @@ export function renderTabelaClassificacao(
   houveErro,
   totalRodadasLiga = 31,
 ) {
-  if (classificacao.length === 0) {
+  // ✅ v2.8: Validação de entrada
+  if (!Array.isArray(classificacao) || classificacao.length === 0) {
     return `
       <div class="empty-state">
-        <div class="empty-icon">📊</div>
+        <span class="material-icons empty-icon" style="font-size: 48px; color: var(--text-muted);">leaderboard</span>
         <h3 class="empty-title">Classificação não disponível</h3>
         <p class="empty-message">Dados insuficientes para gerar a classificação</p>
       </div>
@@ -604,26 +721,21 @@ export function renderTabelaClassificacao(
   }
 
   // ✅ v2.1: Detectar se a liga encerrou
-  // Última rodada do BR = rodadaInicial + totalRodadasLiga - 1
-  // Ex: 7 + 31 - 1 = 37
   const rodadaFinalBr =
     PONTOS_CORRIDOS_CONFIG.rodadaInicial + totalRodadasLiga - 1;
-  const ligaEncerrou = ultimaRodadaComDados >= rodadaFinalBr;
+  const ligaEncerrou = safeNumber(ultimaRodadaComDados, 0) >= rodadaFinalBr;
 
-  // Campeão é o 1º da classificação
-  const campeao = classificacao[0];
+  // ✅ v2.8: Extrair dados do campeão de forma segura
+  const campeaoRaw = classificacao[0];
+  const campeao = extractClassificacaoData(campeaoRaw, 0);
 
   let linhas = "";
 
-  classificacao.forEach((time, index) => {
-    if (!time || typeof time !== "object") {
-      console.warn("[PONTOS-CORRIDOS-UI] Time inválido na posição", index);
-      return;
-    }
+  classificacao.forEach((item, index) => {
+    // ✅ v2.8: Extrair dados de forma segura
+    const time = extractClassificacaoData(item, index);
 
     const posicao = index + 1;
-    const isEmpate =
-      index > 0 && classificacao[index - 1].pontos === time.pontos;
 
     let classePosicao = "classificacao-linha";
     if (posicao === 1) {
@@ -635,21 +747,23 @@ export function renderTabelaClassificacao(
       classePosicao += " terceiro-lugar";
     }
 
-    // ✅ v2.2: Nome do time (principal) + nome do cartoleiro (secundário)
-    // Dados vêm do core com: nome (time), nome_cartola (cartoleiro)
-    const nomeTime = time.nome || time.nome_time || "Time Desconhecido";
-    const nomeCartoleiro = time.nome_cartola || time.cartoleiro || "";
-    const escudoUrl =
-      time.escudo ||
-      time.url_escudo_png ||
-      time.foto_time ||
+    // ✅ v2.8: Fallback para escudo
+    const escudoFallback =
       "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='40' height='40'%3E%3Crect fill='%23ddd' width='40' height='40'/%3E%3C/svg%3E";
+    const escudoUrl = time.escudo || escudoFallback;
 
     // ✅ v2.1: Badge de campeão se encerrou
     const badgeCampeao =
       ligaEncerrou && posicao === 1
-        ? '<span style="margin-left: 8px; font-size: 16px;">🏆</span>'
+        ? '<span class="material-icons" style="margin-left: 8px; font-size: 16px; color: #ffd700; vertical-align: middle;">emoji_events</span>'
         : "";
+
+    // ✅ v2.8: Calcular aproveitamento de forma segura
+    const totalJogos = time.vitorias + time.empates + time.derrotas;
+    const aproveitamento =
+      totalJogos > 0
+        ? ((time.pontos / (totalJogos * 3)) * 100).toFixed(1)
+        : "0.0";
 
     linhas += `
       <tr class="${classePosicao}">
@@ -660,13 +774,13 @@ export function renderTabelaClassificacao(
           <div style="display: flex; align-items: center; gap: 10px;">
             <img 
               src="${escudoUrl}" 
-              alt="${nomeTime}" 
+              alt="${time.nome}" 
               style="width: 32px; height: 32px; border-radius: 4px; object-fit: cover;${ligaEncerrou && posicao === 1 ? " border: 2px solid #ffd700;" : ""}"
-              onerror="this.src='data:image/svg+xml,%3Csvg xmlns=\\'http://www.w3.org/2000/svg\\' width=\\'40\\' height=\\'40\\'%3E%3Crect fill=\\'%23ddd\\' width=\\'40\\' height=\\'40\\'/%3E%3C/svg%3E'"
+              onerror="this.src='${escudoFallback}'"
             >
             <div style="display: flex; flex-direction: column; align-items: flex-start; text-align: left;">
-              <span style="font-weight: 500;${ligaEncerrou && posicao === 1 ? " color: #ffd700;" : ""}">${nomeTime}${badgeCampeao}</span>
-              ${nomeCartoleiro ? `<span style="font-size: 11px; color: var(--text-muted, #888); margin-top: 2px;">${nomeCartoleiro}</span>` : ""}
+              <span style="font-weight: 500;${ligaEncerrou && posicao === 1 ? " color: #ffd700;" : ""}">${time.nome}${badgeCampeao}</span>
+              ${time.nome_cartola ? `<span style="font-size: 11px; color: var(--text-muted, #888); margin-top: 2px;">${time.nome_cartola}</span>` : ""}
             </div>
           </div>
         </td>
@@ -675,25 +789,17 @@ export function renderTabelaClassificacao(
         <td class="vitorias">${time.vitorias}</td>
         <td class="empates">${time.empates}</td>
         <td class="derrotas">${time.derrotas}</td>
-        <td class="goleadas">${time.pontosGoleada || 0}</td>
-        <td class="saldo ${(time.saldo_gols || 0) >= 0 ? "positivo" : "negativo"}">${(time.saldo_gols || 0) >= 0 ? "+" : ""}${(time.saldo_gols || 0).toFixed(1)}</td>
-        <td class="financeiro ${(time.financeiro || 0) >= 0 ? "positivo" : "negativo"}">R$ ${(time.financeiro || 0).toFixed(2)}</td>
-        <td class="aproveitamento">${
-          time.vitorias + time.empates + time.derrotas > 0
-            ? (
-                (time.pontos /
-                  ((time.vitorias + time.empates + time.derrotas) * 3)) *
-                100
-              ).toFixed(1)
-            : 0
-        }%</td>
+        <td class="goleadas">${time.pontosGoleada}</td>
+        <td class="saldo ${time.saldo_gols >= 0 ? "positivo" : "negativo"}">${time.saldo_gols >= 0 ? "+" : ""}${time.saldo_gols.toFixed(1)}</td>
+        <td class="financeiro ${time.financeiro >= 0 ? "positivo" : "negativo"}">R$ ${time.financeiro.toFixed(2)}</td>
+        <td class="aproveitamento">${aproveitamento}%</td>
       </tr>
     `;
   });
 
   // ✅ v2.1: Renderizar celebração se encerrou
   const celebracaoHTML = ligaEncerrou
-    ? renderizarCelebracaoCampeao(campeao)
+    ? renderizarCelebracaoCampeao(campeaoRaw)
     : "";
 
   // ✅ v2.1: Header diferente se encerrou
@@ -701,15 +807,15 @@ export function renderTabelaClassificacao(
     ? `
       <div class="classificacao-header liga-encerrada">
         <div class="classificacao-info-principal">
-          <h3 class="classificacao-titulo">🏆 Classificação Final</h3>
+          <h3 class="classificacao-titulo"><span class="material-icons" style="vertical-align: middle; margin-right: 8px; color: #ffd700;">emoji_events</span> Classificação Final</h3>
           <p class="classificacao-subtitulo">
             Liga Pontos Corridos 2025 - Encerrada!
           </p>
         </div>
         <div class="classificacao-legenda">
-          <span class="legenda-item primeiro campeao">🥇</span>
-          <span class="legenda-item segundo">🥈</span>
-          <span class="legenda-item terceiro">🥉</span>
+          <span class="legenda-item primeiro campeao"><span class="material-icons" style="color: #ffd700; font-size: 18px;">military_tech</span></span>
+          <span class="legenda-item segundo"><span class="material-icons" style="color: #c0c0c0; font-size: 18px;">military_tech</span></span>
+          <span class="legenda-item terceiro"><span class="material-icons" style="color: #cd7f32; font-size: 18px;">military_tech</span></span>
           <span class="legenda-texto">Pódio Final</span>
         </div>
       </div>
@@ -719,7 +825,7 @@ export function renderTabelaClassificacao(
         <div class="classificacao-info-principal">
           <h3 class="classificacao-titulo">Classificação Geral</h3>
           <p class="classificacao-subtitulo">
-            Atualizada até a ${ultimaRodadaComDados}ª rodada
+            Atualizada até a ${safeNumber(ultimaRodadaComDados, 0)}ª rodada
             ${houveErro ? " (alguns dados podem estar indisponíveis)" : ""}
           </p>
         </div>
@@ -847,7 +953,7 @@ export function limparCacheUI() {
 }
 
 console.log(
-  "[PONTOS-CORRIDOS-UI] Módulo v2.7 carregado (fix container + null check)",
+  "[PONTOS-CORRIDOS-UI] Módulo v2.8 carregado (fallbacks robustos para undefined)",
 );
 
 // ========================================
@@ -898,7 +1004,7 @@ window.inicializarPontosCorridos = async function (ligaId) {
       container.innerHTML = `
         <div style="padding: 40px; text-align: center; color: #ef4444;">
           <h3>❌ Erro ao Carregar Módulo</h3>
-          <p>${error.message}</p>
+          <p>${error?.message || error}</p>
           <button onclick="window.location.reload()" style="
             margin-top: 20px;
             padding: 12px 24px;

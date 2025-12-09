@@ -1,6 +1,7 @@
-// 🔧 RANKING.JS - v2.2 COM DESTAQUES VISUAIS
+// 🔧 RANKING.JS - v2.3 COM MATERIAL ICONS FORÇADO
 // Visual diferenciado para inativos + filtros 1º/2º turno/Geral
 // ✅ NOVO: Card destaque do líder + Card "Seu Desempenho" + Posições por turno
+// ✅ FIX: Material Icons via FontFace API
 
 // 🛡️ SISTEMA DE PROTEÇÃO CONTRA LOOP
 let rankingProcessando = false;
@@ -20,41 +21,41 @@ let estadoRankingAdmin = {
 };
 
 // ==============================
-// CARREGAR MATERIAL ICONS (IMEDIATO + FORÇADO)
+// CARREGAR MATERIAL ICONS (FORÇADO VIA FONTFACE API)
 // ==============================
-(function () {
-    // Verificar se já existe no head
-    const existente = document.querySelector(
-        'link[href*="fonts.googleapis.com"][href*="Material"]',
-    );
+(async function () {
+    // 1. Adicionar preconnect para acelerar
+    if (
+        !document.querySelector(
+            'link[href*="fonts.gstatic.com"][rel="preconnect"]',
+        )
+    ) {
+        const preconnect = document.createElement("link");
+        preconnect.rel = "preconnect";
+        preconnect.href = "https://fonts.gstatic.com";
+        preconnect.crossOrigin = "anonymous";
+        document.head.insertBefore(preconnect, document.head.firstChild);
+    }
 
-    if (!existente) {
-        // Criar link da fonte
+    // 2. Adicionar link do Google Fonts
+    if (
+        !document.querySelector(
+            'link[href*="fonts.googleapis.com"][href*="Material"]',
+        )
+    ) {
         const link = document.createElement("link");
         link.href = "https://fonts.googleapis.com/icon?family=Material+Icons";
         link.rel = "stylesheet";
         link.crossOrigin = "anonymous";
-
-        // Inserir no início do head para carregar primeiro
-        if (document.head.firstChild) {
-            document.head.insertBefore(link, document.head.firstChild);
-        } else {
-            document.head.appendChild(link);
-        }
+        document.head.appendChild(link);
         console.log("[RANKING] Material Icons link adicionado");
     }
 
-    // Sempre adicionar CSS de fallback para garantir renderização
-    if (!document.getElementById("material-icons-css")) {
+    // 3. CSS de estilo obrigatório
+    if (!document.getElementById("material-icons-css-ranking")) {
         const style = document.createElement("style");
-        style.id = "material-icons-css";
+        style.id = "material-icons-css-ranking";
         style.textContent = `
-            @font-face {
-                font-family: 'Material Icons';
-                font-style: normal;
-                font-weight: 400;
-                src: url(https://fonts.gstatic.com/s/materialicons/v140/flUhRq6tzZclQEJ-Vdg-IuiaDsNc.woff2) format('woff2');
-            }
             .material-icons {
                 font-family: 'Material Icons' !important;
                 font-weight: normal;
@@ -74,7 +75,34 @@ let estadoRankingAdmin = {
             }
         `;
         document.head.appendChild(style);
-        console.log("[RANKING] Material Icons CSS inline adicionado");
+    }
+
+    // 4. Forçar carregamento via FontFace API
+    try {
+        if (document.fonts && document.fonts.load) {
+            await document.fonts.load("24px Material Icons");
+            console.log(
+                "[RANKING] ✅ Material Icons carregado via FontFace API",
+            );
+        }
+    } catch (e) {
+        console.warn("[RANKING] FontFace API não disponível, usando fallback");
+
+        // 5. Fallback: @font-face direto
+        if (!document.getElementById("material-icons-fontface")) {
+            const fontStyle = document.createElement("style");
+            fontStyle.id = "material-icons-fontface";
+            fontStyle.textContent = `
+                @font-face {
+                    font-family: 'Material Icons';
+                    font-style: normal;
+                    font-weight: 400;
+                    font-display: block;
+                    src: url(https://fonts.gstatic.com/s/materialicons/v140/flUhRq6tzZclQEJ-Vdg-IuiaDsNc.woff2) format('woff2');
+                }
+            `;
+            document.head.insertBefore(fontStyle, document.head.firstChild);
+        }
     }
 })();
 
@@ -798,146 +826,138 @@ function criarTabelaRanking(
                 font-size: 0.9rem;
                 font-weight: 700;
                 color: #fff;
-                background: rgba(59, 130, 246, 0.2);
-                padding: 2px 8px;
-                border-radius: 4px;
             }
             .seu-footer {
-                margin-top: 12px;
+                margin-top: 10px;
                 padding-top: 10px;
                 border-top: 1px solid #334155;
-                display: flex;
-                justify-content: space-between;
-                gap: 16px;
-            }
-            .card-seu-desempenho .seu-turnos + .seu-footer {
-                border-top: none;
-                padding-top: 0;
-            }
-            .seu-footer.lider {
-                justify-content: center;
-            }
-            .lider-badge {
-                background: linear-gradient(135deg, #ffd700, #ffaa00);
-                color: #1a1a1a;
-                padding: 6px 16px;
-                border-radius: 20px;
-                font-size: 0.8rem;
-                font-weight: 700;
             }
             .seu-diff {
                 display: flex;
-                flex-direction: column;
                 align-items: center;
+                justify-content: space-between;
             }
             .diff-label {
-                font-size: 0.65rem;
+                font-size: 0.75rem;
                 color: #64748b;
             }
             .diff-valor {
-                font-size: 0.85rem;
+                font-size: 0.9rem;
                 font-weight: 600;
-                color: #94a3b8;
             }
             .diff-valor.negativo {
                 color: #ef4444;
             }
+            .seu-footer.lider {
+                text-align: center;
+            }
+            .lider-badge {
+                font-size: 0.8rem;
+                color: #ffd700;
+                font-weight: 600;
+            }
 
-            /* Tabs de Turno */
+            /* TABS DE TURNO */
             .ranking-turno-tabs {
                 display: flex;
+                justify-content: center;
                 gap: 8px;
-                margin: 0 auto 16px;
-                padding: 4px;
-                background: #2a2a2a;
-                border-radius: 8px;
-                width: fit-content;
+                margin-bottom: 16px;
             }
             .ranking-turno-tab {
-                padding: 10px 20px;
-                border: none;
-                background: transparent;
+                padding: 8px 20px;
+                border: 1px solid #333;
+                background: #1a1a1a;
                 color: #888;
-                font-size: 14px;
-                font-weight: 600;
-                cursor: pointer;
                 border-radius: 6px;
-                transition: all 0.2s ease;
+                cursor: pointer;
+                font-size: 0.85rem;
+                transition: all 0.2s;
             }
             .ranking-turno-tab:hover {
-                background: #333;
+                background: #252525;
                 color: #fff;
             }
             .ranking-turno-tab.active {
-                background: #ff5c00;
+                background: linear-gradient(135deg, #ff4500, #ff6b3d);
+                border-color: #ff4500;
                 color: #fff;
+                font-weight: 600;
             }
             .ranking-info-turno {
                 text-align: center;
-                margin-bottom: 12px;
-                font-size: 0.85em;
+                margin-bottom: 16px;
+                font-size: 0.85rem;
                 color: #888;
             }
-            /* Estilos para participantes inativos */
+
+            /* TABELA */
+            .ranking-table {
+                width: 100%;
+                border-collapse: collapse;
+                font-size: 0.9rem;
+            }
+            .ranking-table thead th {
+                padding: 10px 4px;
+                background: #1a1a1a;
+                border-bottom: 2px solid #333;
+                color: #888;
+                font-weight: 600;
+                font-size: 0.75rem;
+                text-transform: uppercase;
+            }
+            .ranking-table tbody tr {
+                border-bottom: 1px solid #222;
+                transition: background 0.2s;
+            }
+            .ranking-table tbody tr:hover {
+                background: #1a1a1a;
+            }
+
+            /* POSIÇÕES ESPECIAIS */
+            .ranking-primeiro {
+                background: linear-gradient(90deg, rgba(255,215,0,0.15) 0%, transparent 100%);
+            }
+            .ranking-segundo {
+                background: linear-gradient(90deg, rgba(192,192,192,0.1) 0%, transparent 100%);
+            }
+            .ranking-terceiro {
+                background: linear-gradient(90deg, rgba(205,127,50,0.1) 0%, transparent 100%);
+            }
+
+            /* INATIVOS */
             .participante-inativo {
-                filter: grayscale(100%);
-                opacity: 0.6;
-                font-size: 0.85em !important;
-                background: linear-gradient(to right, #2a2a2a, #1a1a1a) !important;
-                border-left: 3px solid #555 !important;
-            }
-            .participante-inativo td {
-                color: #888 !important;
-                font-weight: 400 !important;
-            }
-            .participante-inativo .pontos-valor {
-                color: #666 !important;
-                text-decoration: line-through;
-                font-weight: 400 !important;
+                opacity: 0.5;
+                background: #0a0a0a !important;
             }
             .badge-inativo {
-                display: inline-block;
-                background: #444;
-                color: #999;
-                font-size: 0.65em;
-                padding: 2px 6px;
+                font-size: 0.6rem;
+                background: #dc2626;
+                color: #fff;
+                padding: 1px 4px;
                 border-radius: 3px;
                 margin-left: 6px;
                 vertical-align: middle;
-                font-weight: 500;
-                letter-spacing: 0.5px;
-            }
-            .separador-inativos {
-                background: #333 !important;
-                border-top: 2px dashed #555;
-            }
-            .separador-inativos td {
-                padding: 8px !important;
-                text-align: center !important;
-                color: #777 !important;
-                font-size: 0.8em !important;
-                font-style: italic;
             }
             .posicao-inativo {
-                color: #555 !important;
+                color: #444;
                 font-style: italic;
             }
-            .spinner {
-                width: 24px;
-                height: 24px;
-                border: 3px solid rgba(255, 92, 0, 0.2);
-                border-top-color: #ff5c00;
-                border-radius: 50%;
-                animation: spin 0.8s linear infinite;
+            .separador-inativos {
+                background: #1a1a1a !important;
             }
-            @keyframes spin {
-                to { transform: rotate(360deg); }
+            .separador-inativos td {
+                text-align: center;
+                padding: 8px;
+                color: #666;
+                font-size: 0.75rem;
+                font-style: italic;
             }
 
-            /* ✅ Destaque visual na linha do participante logado */
+            /* MINHA LINHA */
             .minha-linha {
-                background: linear-gradient(90deg, rgba(59, 130, 246, 0.15), transparent) !important;
-                border-left: 3px solid #3b82f6 !important;
+                background: linear-gradient(90deg, rgba(59,130,246,0.2) 0%, transparent 100%) !important;
+                border-left: 3px solid #3b82f6;
             }
             .minha-linha td {
                 font-weight: 600 !important;
@@ -1151,5 +1171,5 @@ window.modulosCarregados.ranking = {
 };
 
 console.log(
-    "✅ [RANKING] Módulo v2.2 carregado com destaque do líder + Seu Desempenho + Posições por turno",
+    "✅ [RANKING] Módulo v2.3 carregado com Material Icons forçado via FontFace API",
 );

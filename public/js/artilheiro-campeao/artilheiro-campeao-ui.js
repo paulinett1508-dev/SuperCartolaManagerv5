@@ -1,6 +1,7 @@
-// ✅ ARTILHEIRO-CAMPEAO-UI.JS v2.1 - Interface com Destaque Campeão + Rodada Final
+// ✅ ARTILHEIRO-CAMPEAO-UI.JS v2.2 - Interface com Destaque Campeão + Rodada Final + Material Icons
 // v2.1: Destaque APENAS no 1º lugar + Banner Rodada Final R38 + Parcial em tempo real
-console.log("🎨 [ARTILHEIRO-UI] Módulo v2.1 carregando...");
+// v2.2: Material Icons substituindo emojis
+console.log("🎨 [ARTILHEIRO-UI] Módulo v2.2 carregando...");
 
 // ===== CONFIGURAÇÕES DE INTERFACE =====
 const UI_CONFIG = {
@@ -36,7 +37,7 @@ const RODADA_FINAL = 38;
 
 // ===== INTERFACE OTIMIZADA =====
 export const ArtilheiroUI = {
-    version: "2.1.0",
+    version: "2.2.0",
 
     // ✅ v2.1: Estado para controle de rodada
     estado: {
@@ -99,7 +100,7 @@ export const ArtilheiroUI = {
         }
     },
 
-    // Mostrar erro
+    // Mostrar erro - v2.2 Material Icons
     mostrarErro(mensagem, detalhes = null) {
         const artilheiroContainer = document.getElementById(
             "artilheiro-container",
@@ -109,12 +110,14 @@ export const ArtilheiroUI = {
         if (artilheiroContainer) {
             artilheiroContainer.innerHTML = `
                 <div class="error-message" style="text-align: center; padding: 40px 20px;">
-                    <div style="font-size: 3rem; margin-bottom: 15px;">❌</div>
+                    <span class="material-icons" style="font-size: 48px; color: #dc3545; display: block; margin-bottom: 15px;">cancel</span>
                     <h3 style="margin: 0 0 10px 0;">Erro ao carregar dados</h3>
                     <p style="margin: 0 0 15px 0;">${mensagem}</p>
-                    ${detalhes ? `<details style="margin: 15px 0; text-align: left;"><summary>🔍 Ver detalhes técnicos</summary><pre style="background: #fff; border: 1px solid #ddd; padding: 10px; font-size: 0.8rem;">${detalhes}</pre></details>` : ""}
+                    ${detalhes ? `<details style="margin: 15px 0; text-align: left;"><summary><span class="material-icons" style="font-size: 14px; vertical-align: middle;">search</span> Ver detalhes técnicos</summary><pre style="background: #fff; border: 1px solid #ddd; padding: 10px; font-size: 0.8rem;">${detalhes}</pre></details>` : ""}
                     <div style="margin-top: 20px;">
-                        <button onclick="window.location.reload()" class="btn" style="background: #dc3545; color: white; margin-right: 10px;">🔄 Tentar Novamente</button>
+                        <button onclick="window.location.reload()" class="btn" style="background: #dc3545; color: white; margin-right: 10px; display: inline-flex; align-items: center; gap: 5px;">
+                            <span class="material-icons" style="font-size: 16px;">refresh</span> Tentar Novamente
+                        </button>
                     </div>
                 </div>
             `;
@@ -171,10 +174,10 @@ export const ArtilheiroUI = {
         this.esconderLoading();
         window._dadosArtilheiros = dados;
 
-        console.log("✅ [ARTILHEIRO-UI] Interface v2.1 renderizada");
+        console.log("✅ [ARTILHEIRO-UI] Interface v2.2 renderizada");
     },
 
-    // ✅ v2.1: Banner Rodada Final
+    // ✅ v2.2: Banner Rodada Final - Material Icons
     _renderizarBannerRodadaFinal(rodadaAtual, mercadoAberto, lider) {
         if (rodadaAtual !== RODADA_FINAL) return "";
 
@@ -195,7 +198,7 @@ export const ArtilheiroUI = {
                 ${isParcial ? "animation: borderPulse 2s infinite;" : ""}
             ">
                 <div style="display: flex; align-items: center; justify-content: center; gap: 15px; flex-wrap: wrap;">
-                    <div style="font-size: 2rem;">🏁</div>
+                    <span class="material-icons" style="font-size: 2rem; color: #ffd700;">sports_score</span>
                     <div style="display: flex; flex-direction: column; align-items: center;">
                         <span style="color: #ffd700; font-size: 1.2rem; font-weight: bold; letter-spacing: 2px;">RODADA FINAL</span>
                         <span style="color: ${isParcial ? "#ff6b6b" : "#aaa"}; font-size: 0.8rem; ${isParcial ? "animation: textPulse 1.5s infinite;" : ""}">${statusTexto}</span>
@@ -215,55 +218,63 @@ export const ArtilheiroUI = {
         `;
     },
 
-    // Header compacto
+    // Header compacto - v2.2 Material Icons
     _renderizarHeaderCompacto(rodadaAtual, rodadaFim) {
         return `
             <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; flex-wrap: wrap;">
                 <div>
-                    <h2 style="margin: 0; color: ${UI_CONFIG.colors.primary}; font-size: 1.5rem;">
-                        🏆 Artilheiro Campeão
+                    <h2 style="margin: 0; color: ${UI_CONFIG.colors.primary}; font-size: 1.5rem; display: flex; align-items: center; gap: 8px;">
+                        <span class="material-icons" style="color: #ffd700;">emoji_events</span> Artilheiro Campeão
                     </h2>
-                    <p style="margin: 5px 0 0 0; color: #6c757d; font-size: 0.85rem;">
-                        📊 Dados até a ${rodadaFim}ª rodada (atual: ${rodadaAtual})
+                    <p style="margin: 5px 0 0 0; color: #6c757d; font-size: 0.85rem; display: flex; align-items: center; gap: 5px;">
+                        <span class="material-icons" style="font-size: 16px;">leaderboard</span> Dados até a ${rodadaFim}ª rodada (atual: ${rodadaAtual})
                     </p>
                 </div>
                 <div style="display: flex; gap: 8px;">
-                    <button onclick="window.coordinator?.exportarDados()" class="btn" style="padding: 6px 12px; background: ${UI_CONFIG.colors.info}; color: white; font-size: 0.8rem;">
-                        📤 Exportar
+                    <button onclick="window.coordinator?.exportarDados()" class="btn" style="padding: 6px 12px; background: ${UI_CONFIG.colors.info}; color: white; font-size: 0.8rem; display: inline-flex; align-items: center; gap: 4px;">
+                        <span class="material-icons" style="font-size: 14px;">file_upload</span> Exportar
                     </button>
-                    <button onclick="window.coordinator?.popularGols()" class="btn" style="padding: 6px 12px; background: ${UI_CONFIG.colors.primary}; color: white; font-size: 0.8rem;">
-                        🔄 Atualizar
+                    <button onclick="window.coordinator?.popularGols()" class="btn" style="padding: 6px 12px; background: ${UI_CONFIG.colors.primary}; color: white; font-size: 0.8rem; display: inline-flex; align-items: center; gap: 4px;">
+                        <span class="material-icons" style="font-size: 14px;">refresh</span> Atualizar
                     </button>
                 </div>
             </div>
         `;
     },
 
-    // Estatísticas compactas
+    // Estatísticas compactas - v2.2 Material Icons
     _renderizarEstatisticasCompactas(estatisticas) {
         return `
             <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(120px, 1fr)); gap: 12px; margin-bottom: 15px;">
                 <div style="background: linear-gradient(135deg, #e8f5e8, #c8e6c9); padding: 12px; border-radius: 6px; text-align: center; border: 1px solid #81c784;">
                     <div style="font-size: 1.3rem; font-weight: bold; color: #2e7d32; margin-bottom: 3px;">${estatisticas.totalGolsPro || 0}</div>
-                    <div style="font-size: 0.75rem; color: #424242;">⚽ Gols Pró</div>
+                    <div style="font-size: 0.75rem; color: #424242; display: flex; align-items: center; justify-content: center; gap: 4px;">
+                        <span class="material-icons" style="font-size: 14px; color: #2e7d32;">sports_soccer</span> Gols Pró
+                    </div>
                 </div>
                 <div style="background: linear-gradient(135deg, #ffebee, #ffcdd2); padding: 12px; border-radius: 6px; text-align: center; border: 1px solid #f48fb1;">
                     <div style="font-size: 1.3rem; font-weight: bold; color: #d32f2f; margin-bottom: 3px;">${estatisticas.totalGolsContra || 0}</div>
-                    <div style="font-size: 0.75rem; color: #424242;">🔴 Gols Contra</div>
+                    <div style="font-size: 0.75rem; color: #424242; display: flex; align-items: center; justify-content: center; gap: 4px;">
+                        <span class="material-icons" style="font-size: 14px; color: #d32f2f;">block</span> Gols Contra
+                    </div>
                 </div>
                 <div style="background: linear-gradient(135deg, #e3f2fd, #bbdefb); padding: 12px; border-radius: 6px; text-align: center; border: 1px solid #90caf9;">
                     <div style="font-size: 1.3rem; font-weight: bold; color: ${estatisticas.totalSaldo >= 0 ? "#1976d2" : "#d32f2f"}; margin-bottom: 3px;">${this._formatarSaldo(estatisticas.totalSaldo || 0)}</div>
-                    <div style="font-size: 0.75rem; color: #424242;">📊 Saldo Total</div>
+                    <div style="font-size: 0.75rem; color: #424242; display: flex; align-items: center; justify-content: center; gap: 4px;">
+                        <span class="material-icons" style="font-size: 14px; color: #1976d2;">leaderboard</span> Saldo Total
+                    </div>
                 </div>
                 <div style="background: linear-gradient(135deg, #fff3e0, #ffcc80); padding: 12px; border-radius: 6px; text-align: center; border: 1px solid #ffb74d;">
                     <div style="font-size: 1.3rem; font-weight: bold; color: #f57c00; margin-bottom: 3px;">${estatisticas.participantesAtivos || 0}</div>
-                    <div style="font-size: 0.75rem; color: #424242;">👥 Participantes</div>
+                    <div style="font-size: 0.75rem; color: #424242; display: flex; align-items: center; justify-content: center; gap: 4px;">
+                        <span class="material-icons" style="font-size: 14px; color: #f57c00;">group</span> Participantes
+                    </div>
                 </div>
             </div>
         `;
     },
 
-    // Tabela otimizada
+    // Tabela otimizada - v2.2 Material Icons
     _renderizarTabelaOtimizada(dados) {
         return `
             <div style="background: white; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); overflow: hidden;">
@@ -271,7 +282,7 @@ export const ArtilheiroUI = {
                     <thead style="background: #f4f6fa;">
                         <tr>
                             <th style="${UI_CONFIG.spacing.headerPadding}; text-align: center; width: 45px; font-weight: 600;">Pos</th>
-                            <th style="${UI_CONFIG.spacing.headerPadding}; text-align: center; width: 30px; font-weight: 600;">❤️</th>
+                            <th style="${UI_CONFIG.spacing.headerPadding}; text-align: center; width: 30px; font-weight: 600;"><span class="material-icons" style="font-size: 14px; color: #e74c3c;">favorite</span></th>
                             <th style="${UI_CONFIG.spacing.headerPadding}; text-align: left; min-width: 150px; font-weight: 600;">Cartoleiro</th>
                             <th style="${UI_CONFIG.spacing.headerPadding}; text-align: left; min-width: 120px; font-weight: 600;">Time</th>
                             <th style="${UI_CONFIG.spacing.headerPadding}; text-align: center; width: 50px; font-weight: 600;">GP</th>
@@ -288,7 +299,7 @@ export const ArtilheiroUI = {
         `;
     },
 
-    // ✅ v2.1: Linhas com destaque APENAS no 1º lugar
+    // ✅ v2.2: Linhas com destaque APENAS no 1º lugar - Material Icons
     _renderizarLinhasOtimizadas(dados) {
         const isRodadaFinalParcial =
             this.estado.rodadaAtual === RODADA_FINAL && this.estado.isParcial;
@@ -299,7 +310,7 @@ export const ArtilheiroUI = {
                 let labelPosicao = `${index + 1}º`;
                 let classeExtra = "";
 
-                // ✅ v2.1: DESTAQUE APENAS NO 1º LUGAR
+                // ✅ v2.2: DESTAQUE APENAS NO 1º LUGAR - Material Icons
                 if (index === 0) {
                     estiloLinha = `
                         background: linear-gradient(90deg, rgba(255, 215, 0, 0.2) 0%, rgba(255, 255, 255, 0) 100%);
@@ -317,7 +328,7 @@ export const ArtilheiroUI = {
                         gap: 4px;
                         box-shadow: 0 2px 8px rgba(255, 215, 0, 0.5);
                         animation: brilhoTrofeu 2s infinite;
-                    ">🏆</span>`;
+                    "><span class="material-icons" style="font-size: 16px;">emoji_events</span></span>`;
 
                     // Se rodada final parcial, adicionar indicador
                     if (isRodadaFinalParcial) {
@@ -329,24 +340,24 @@ export const ArtilheiroUI = {
                         "background: linear-gradient(to right, #ffebee, #fff);";
                 }
 
-                // Escudos
+                // Escudos - v2.2 Material Icons fallback
                 const escudoClube = participante.clube_id
-                    ? `<img src="/escudos/${participante.clube_id}.png" alt="❤️" style="width: 16px; height: 16px; border-radius: 50%; border: 1px solid #ddd;" onerror="this.style.display='none'">`
+                    ? `<img src="/escudos/${participante.clube_id}.png" alt="" style="width: 16px; height: 16px; border-radius: 50%; border: 1px solid #ddd;" onerror="this.outerHTML='<span class=\\'material-icons\\' style=\\'font-size: 16px; color: #ddd;\\'>favorite</span>'">`
                     : "—";
 
                 const escudoTime = participante.url_escudo_png
-                    ? `<img src="${participante.url_escudo_png}" alt="Escudo" style="width: 18px; height: 18px; border-radius: 50%; border: 1px solid #ddd;" onerror="this.style.display='none'">`
-                    : `<div style="width: 18px; height: 18px; border-radius: 50%; background: #e9ecef; display: flex; align-items: center; justify-content: center; font-size: 8px;">👤</div>`;
+                    ? `<img src="${participante.url_escudo_png}" alt="Escudo" style="width: 18px; height: 18px; border-radius: 50%; border: 1px solid #ddd;" onerror="this.outerHTML='<span class=\\'material-icons\\' style=\\'font-size: 18px; color: #e9ecef;\\'>account_circle</span>'">`
+                    : `<span class="material-icons" style="font-size: 18px; color: #e9ecef;">account_circle</span>`;
 
                 const nomeCartoleiro =
                     participante.nomeCartoleiro || participante.nome_cartoleiro;
                 const nomeTime =
                     participante.nomeTime || participante.nome_time;
 
-                // ✅ v2.1: Adicionar coroa se for possível campeão
+                // ✅ v2.2: Adicionar coroa se for possível campeão - Material Icons
                 const coroaPossivelCampeao =
                     index === 0 && isRodadaFinalParcial
-                        ? '<span class="coroa-animada" style="margin-left: 4px;">👑</span>'
+                        ? '<span class="material-icons coroa-animada" style="margin-left: 4px; font-size: 14px; color: #ffd700;">workspace_premium</span>'
                         : "";
 
                 return `
@@ -405,8 +416,8 @@ export const ArtilheiroUI = {
                     <!-- Detalhes -->
                     <td style="${UI_CONFIG.spacing.tablePadding}; text-align: center;">
                         <button onclick="window.coordinator?.mostrarDetalhesCompletos(${index})" 
-                                style="padding: 3px 6px; background: #007bff; color: white; border: none; border-radius: 3px; cursor: pointer; font-size: 0.7rem;">
-                            👁️ Ver
+                                style="padding: 3px 6px; background: #007bff; color: white; border: none; border-radius: 3px; cursor: pointer; font-size: 0.7rem; display: inline-flex; align-items: center; gap: 3px;">
+                            <span class="material-icons" style="font-size: 12px;">visibility</span> Ver
                         </button>
                     </td>
                 </tr>
@@ -456,7 +467,7 @@ export const ArtilheiroUI = {
         `;
     },
 
-    // Footer simples
+    // Footer simples - v2.2 Material Icons
     _renderizarFooterSimples(estatisticas, rodadaFim) {
         const agora = new Date();
         const horaAtualizacao = agora.toLocaleTimeString("pt-BR", {
@@ -465,8 +476,9 @@ export const ArtilheiroUI = {
         });
 
         return `
-            <div style="margin-top: 15px; padding: 10px; background: #f8f9fa; border-radius: 6px; font-size: 0.75rem; color: #6c757d; text-align: center;">
-                📈 ${estatisticas.participantesAtivos || 0} participantes ativos
+            <div style="margin-top: 15px; padding: 10px; background: #f8f9fa; border-radius: 6px; font-size: 0.75rem; color: #6c757d; text-align: center; display: flex; align-items: center; justify-content: center; gap: 8px; flex-wrap: wrap;">
+                <span class="material-icons" style="font-size: 14px;">trending_up</span>
+                ${estatisticas.participantesAtivos || 0} participantes ativos
                 • Atualizado às ${horaAtualizacao}
                 • Rodadas: 1 a ${rodadaFim}
             </div>
@@ -498,5 +510,5 @@ if (typeof window !== "undefined") {
 }
 
 console.log(
-    "✅ [ARTILHEIRO-UI] Módulo v2.1 carregado - Destaque 1º lugar + Rodada Final",
+    "✅ [ARTILHEIRO-UI] Módulo v2.2 carregado - Material Icons + Destaque 1º lugar",
 );

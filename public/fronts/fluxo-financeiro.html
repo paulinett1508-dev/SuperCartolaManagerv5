@@ -1,5 +1,5 @@
-<!-- FLUXO FINANCEIRO FRONT - Interface Principal -->
-<div id="fluxo-financeiro" class="module-content">
+<!-- FLUXO FINANCEIRO FRONT - Interface Principal v4.3 -->
+<div id="fluxo-financeiro" class="module-content" data-admin-mode="true">
   <!-- Header do Módulo -->
   <div class="fluxo-financeiro-header">
     <h2 class="fluxo-financeiro-titulo">Extrato Financeiro</h2>
@@ -18,8 +18,6 @@
     <!-- Será preenchido via JavaScript -->
   </div>
 
-  <!-- Exportação removida - usar módulo Relatórios -->
-
   <!-- Estado Inicial -->
   <div
     id="fluxoFinanceiroInicial"
@@ -34,9 +32,12 @@
   <!-- Botão Voltar -->
   <div class="fluxo-financeiro-footer">
     <button class="btn-voltar" onclick="window.voltarParaCards()">
-      ← Voltar aos Cards
+      <span
+        class="material-icons"
+        style="font-size: 16px; vertical-align: middle"
+        >arrow_back</span
+      >
+      Voltar aos Cards
     </button>
-  </div>
-</div>
   </div>
 </div>

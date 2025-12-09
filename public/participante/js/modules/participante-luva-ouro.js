@@ -1,10 +1,22 @@
 // =====================================================================
-// PARTICIPANTE-LUVA-OURO.JS - v3.7 (Card Desempenho ao final)
+// PARTICIPANTE-LUVA-OURO.JS - v3.8 (Detecção CAMPEÃO)
+// =====================================================================
+// ✅ v3.8: Detecção de temporada encerrada (R38 + mercado fechado)
+//    - Badge "CAMPEÃO" quando temporada encerrada
+//    - Banner ajustado para "CAMPEÃO CONFIRMADO"
+// ✅ v3.7: Card Desempenho ao final
 // =====================================================================
 
-console.log("[PARTICIPANTE-LUVA-OURO] 🔄 Carregando módulo v3.7...");
+console.log("[PARTICIPANTE-LUVA-OURO] 🔄 Carregando módulo v3.8...");
 
 const RODADA_FINAL = 38;
+
+// Estado do módulo
+let estadoLuva = {
+    temporadaEncerrada: false,
+    rodadaAtual: null,
+    mercadoAberto: true,
+};
 
 // =====================================================================
 // FUNÇÃO PRINCIPAL - EXPORTADA PARA NAVIGATION
@@ -90,14 +102,124 @@ function isMyTime(item, meuTimeId) {
 }
 
 // =====================================================================
-// BANNER RODADA FINAL
+// ✅ v3.8: BANNER RODADA FINAL / CAMPEÃO
 // =====================================================================
-function renderizarBannerRodadaFinal(rodadaAtual, mercadoAberto, lider) {
+function renderizarBannerRodadaFinal(
+    rodadaAtual,
+    mercadoAberto,
+    lider,
+    temporadaEncerrada,
+) {
     if (rodadaAtual !== RODADA_FINAL) return "";
 
-    const isParcial = !mercadoAberto;
     const liderNome = lider ? getNome(lider) : "---";
     const liderPontos = lider ? getPontos(lider).toFixed(1) : "0";
+
+    // ✅ v3.8: Detectar se é campeão confirmado
+    if (temporadaEncerrada) {
+        return `
+            <style>
+                @keyframes luvaCampeaoShine {
+                    0% { background-position: -200% center; }
+                    100% { background-position: 200% center; }
+                }
+                .luva-banner-campeao {
+                    background: linear-gradient(135deg, rgba(255, 215, 0, 0.15) 0%, rgba(255, 180, 0, 0.08) 100%);
+                    border: 2px solid rgba(255, 215, 0, 0.5);
+                    border-radius: 12px;
+                    padding: 14px 16px;
+                    margin-bottom: 16px;
+                }
+                .luva-campeao-header {
+                    display: flex;
+                    align-items: center;
+                    justify-content: space-between;
+                    margin-bottom: 12px;
+                }
+                .luva-campeao-title {
+                    display: flex;
+                    align-items: center;
+                    gap: 8px;
+                }
+                .luva-campeao-badge {
+                    font-size: 10px;
+                    font-weight: 700;
+                    color: #ffd700;
+                    text-transform: uppercase;
+                    letter-spacing: 1px;
+                    background: linear-gradient(90deg, #ffd700, #ffaa00, #ffd700);
+                    background-size: 200% auto;
+                    -webkit-background-clip: text;
+                    -webkit-text-fill-color: transparent;
+                    background-clip: text;
+                    animation: luvaCampeaoShine 3s linear infinite;
+                }
+                .luva-campeao-status {
+                    font-size: 9px;
+                    padding: 4px 10px;
+                    border-radius: 4px;
+                    font-weight: 600;
+                    background: rgba(255, 215, 0, 0.25);
+                    color: #ffd700;
+                }
+                .luva-campeao-info {
+                    display: flex;
+                    align-items: center;
+                    justify-content: space-between;
+                    background: rgba(0, 0, 0, 0.25);
+                    border-radius: 10px;
+                    padding: 12px 14px;
+                }
+                .luva-campeao-nome {
+                    font-size: 15px;
+                    font-weight: 700;
+                    color: #fff;
+                }
+                .luva-campeao-label {
+                    font-size: 9px;
+                    color: #ffd700;
+                    font-weight: 600;
+                    text-transform: uppercase;
+                    margin-bottom: 2px;
+                }
+                .luva-campeao-pontos {
+                    text-align: right;
+                }
+                .luva-campeao-pontos-valor {
+                    font-size: 20px;
+                    font-weight: 800;
+                    color: #ffd700;
+                }
+                .luva-campeao-pontos-label {
+                    font-size: 8px;
+                    color: #888;
+                    text-transform: uppercase;
+                }
+            </style>
+            <div class="luva-banner-campeao">
+                <div class="luva-campeao-header">
+                    <div class="luva-campeao-title">
+                        <span class="material-icons" style="font-size: 22px; color: #ffd700;">emoji_events</span>
+                        <span class="luva-campeao-badge">🏆 CAMPEÃO LUVA DE OURO</span>
+                    </div>
+                    <span class="luva-campeao-status">✓ CONSOLIDADO</span>
+                </div>
+                <div class="luva-campeao-info">
+                    <div>
+                        <div class="luva-campeao-label">Campeão</div>
+                        <div class="luva-campeao-nome">${liderNome}</div>
+                    </div>
+                    <div class="luva-campeao-pontos">
+                        <div class="luva-campeao-pontos-valor">${liderPontos}</div>
+                        <div class="luva-campeao-pontos-label">pontos</div>
+                    </div>
+                </div>
+            </div>
+        `;
+    }
+
+    // Rodada 38 em andamento
+    const isParcial = !mercadoAberto;
 
     return `
         <style>
@@ -128,10 +250,6 @@ function renderizarBannerRodadaFinal(rodadaAtual, mercadoAberto, lider) {
                 align-items: center;
                 gap: 8px;
             }
-            .luva-banner-icon {
-                font-size: 18px;
-                color: #ffd700;
-            }
             .luva-banner-text {
                 font-size: 11px;
                 font-weight: 700;
@@ -157,11 +275,6 @@ function renderizarBannerRodadaFinal(rodadaAtual, mercadoAberto, lider) {
                 background: rgba(0, 0, 0, 0.25);
                 border-radius: 8px;
                 padding: 10px 12px;
-            }
-            .luva-banner-lider-info {
-                display: flex;
-                align-items: center;
-                gap: 10px;
             }
             .luva-banner-lider-badge {
                 font-size: 9px;
@@ -204,11 +317,9 @@ function renderizarBannerRodadaFinal(rodadaAtual, mercadoAberto, lider) {
                 <span class="luva-banner-status">${isParcial ? "● Em andamento" : "Última Rodada"}</span>
             </div>
             <div class="luva-banner-lider">
-                <div class="luva-banner-lider-info">
-                    <div>
-                        <div class="luva-banner-lider-badge">Possível Campeão</div>
-                        <div class="luva-banner-lider-nome">${liderNome}</div>
-                    </div>
+                <div>
+                    <div class="luva-banner-lider-badge">Possível Campeão</div>
+                    <div class="luva-banner-lider-nome">${liderNome}</div>
                 </div>
                 <div class="luva-banner-lider-pontos">
                     <div class="luva-banner-lider-valor">${liderPontos}</div>
@@ -230,6 +341,7 @@ async function renderizarLuvaOuro(container, response, meuTimeId) {
     let rodadaFim = 36;
     let rodadaAtual = null;
     let mercadoAberto = true;
+    let temporadaEncerrada = false;
 
     if (data.ranking && Array.isArray(data.ranking)) {
         ranking = data.ranking;
@@ -241,34 +353,43 @@ async function renderizarLuvaOuro(container, response, meuTimeId) {
         ranking = data;
     }
 
-    // ✅ BUSCAR RODADA ATUAL DA API DE MERCADO SE NÃO VEIO NOS DADOS
-    if (!rodadaAtual) {
-        try {
-            // Endpoint correto: /api/cartola/mercado/status
-            const mercadoRes = await fetch("/api/cartola/mercado/status");
-            if (mercadoRes.ok) {
-                const mercado = await mercadoRes.json();
-                rodadaAtual =
-                    mercado.rodada_atual || mercado.rodadaAtual || rodadaFim;
-                mercadoAberto = mercado.status_mercado === 1;
-                console.log("[PARTICIPANTE-LUVA-OURO] 📊 Mercado:", {
-                    rodadaAtual,
-                    mercadoAberto,
-                });
-            } else {
-                rodadaAtual = rodadaFim;
-                console.warn(
-                    "[PARTICIPANTE-LUVA-OURO] ⚠️ API mercado indisponível, usando rodadaFim:",
-                    rodadaFim,
-                );
-            }
-        } catch (e) {
-            console.warn(
-                "[PARTICIPANTE-LUVA-OURO] ⚠️ Erro ao obter mercado:",
-                e.message,
-            );
+    // ✅ v3.8: BUSCAR STATUS DO MERCADO PARA DETECTAR TEMPORADA ENCERRADA
+    try {
+        const mercadoRes = await fetch("/api/cartola/mercado/status");
+        if (mercadoRes.ok) {
+            const mercado = await mercadoRes.json();
+            rodadaAtual =
+                mercado.rodada_atual || mercado.rodadaAtual || rodadaFim;
+            mercadoAberto = mercado.status_mercado === 1;
+
+            // Temporada encerrada: status_mercado = 6 OU (rodada >= 38 E mercado fechado)
+            temporadaEncerrada =
+                mercado.status_mercado === 6 ||
+                (rodadaAtual >= RODADA_FINAL && mercado.status_mercado !== 1);
+
+            estadoLuva.rodadaAtual = rodadaAtual;
+            estadoLuva.mercadoAberto = mercadoAberto;
+            estadoLuva.temporadaEncerrada = temporadaEncerrada;
+
+            console.log("[PARTICIPANTE-LUVA-OURO] 📊 Status:", {
+                rodadaAtual,
+                mercadoAberto,
+                temporadaEncerrada,
+                statusMercado: mercado.status_mercado,
+            });
+        } else {
             rodadaAtual = rodadaFim;
+            console.warn(
+                "[PARTICIPANTE-LUVA-OURO] ⚠️ API mercado indisponível, usando rodadaFim:",
+                rodadaFim,
+            );
         }
+    } catch (e) {
+        console.warn(
+            "[PARTICIPANTE-LUVA-OURO] ⚠️ Erro ao obter mercado:",
+            e.message,
+        );
+        rodadaAtual = rodadaFim;
     }
 
     // ✅ FILTRAR TIMES INATIVOS - NÃO PODEM FIGURAR NO RANKING
@@ -321,12 +442,19 @@ async function renderizarLuvaOuro(container, response, meuTimeId) {
             .slice(0, 3);
     }
 
-    // Banner da rodada final
+    // ✅ v3.8: Banner da rodada final com detecção de campeão
     const bannerRodadaFinal = renderizarBannerRodadaFinal(
         rodadaAtual,
         mercadoAberto,
         campeao,
+        temporadaEncerrada,
     );
+
+    // ✅ v3.8: Labels dinâmicos
+    const labelLider = temporadaEncerrada ? "Campeão" : "Líder";
+    const textoVoceELider = temporadaEncerrada
+        ? "🏆 Você é o CAMPEÃO!"
+        : "🏆 Você é o líder!";
 
     const html = `
     <div style="padding: 16px;">
@@ -350,9 +478,9 @@ async function renderizarLuvaOuro(container, response, meuTimeId) {
                     <div style="font-size: 10px; color: #ffd700; font-weight: 700; text-transform: uppercase; letter-spacing: 1px;">Sua Posição</div>
                     <div style="font-size: 28px; font-weight: 900; color: #fff;">${minhaColocacao}º</div>
                 </div>
-                <div style="text-align: right;">
-                    <div style="font-size: 10px; color: #888; font-weight: 600; text-transform: uppercase;">Total</div>
-                    <div style="font-size: 24px; font-weight: 800; color: #ffd700;">${getPontos(meusDados).toFixed(1)}</div>
+                <div style="text-align: center;">
+                    <div style="font-size: 26px; font-weight: 800; color: #ffd700;">${getPontos(meusDados).toFixed(1)}</div>
+                    <div style="font-size: 9px; color: #888;">pontos</div>
                 </div>
             </div>
 
@@ -360,61 +488,30 @@ async function renderizarLuvaOuro(container, response, meuTimeId) {
                 minhaColocacao > 1
                     ? `
             <div style="background: rgba(0,0,0,0.3); border-radius: 8px; padding: 8px 12px; display: flex; justify-content: space-between; align-items: center;">
-                <span style="color: #888; font-size: 11px;">Distância p/ líder</span>
+                <span style="color: #888; font-size: 11px;">Distância p/ ${labelLider.toLowerCase()}</span>
                 <span style="color: #f59e0b; font-weight: 700; font-size: 13px;">-${distanciaLider.toFixed(1)} pts</span>
             </div>
             `
                     : `
-            <div style="background: linear-gradient(90deg, rgba(255,215,0,0.2), rgba(255,215,0,0.1)); border-radius: 8px; padding: 8px 12px; text-align: center;">
-                <span style="color: #ffd700; font-weight: 700; font-size: 13px;">🏆 Você é o líder!</span>
+            <div style="background: linear-gradient(90deg, rgba(255, 215, 0, 0.2), rgba(255, 215, 0, 0.1)); border-radius: 8px; padding: 8px 12px; text-align: center;">
+                <span style="color: #ffd700; font-weight: 700; font-size: 13px;">${textoVoceELider}</span>
             </div>
             `
             }
         </div>
-
-        ${
-            ultimaRodadaInfo
-                ? `
-        <div style="background: rgba(59, 130, 246, 0.1); border: 1px solid rgba(59, 130, 246, 0.3); border-radius: 12px; padding: 12px; margin-bottom: 16px;">
-            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
-                <span style="color: #3b82f6; font-size: 11px; font-weight: 700; text-transform: uppercase;">📅 Rodada ${ultimaRodadaInfo.rodada}</span>
-                <span style="color: #666; font-size: 10px;">Última atualização</span>
-            </div>
-            <div style="display: flex; gap: 12px; justify-content: center;">
-                <div style="background: rgba(255, 215, 0, 0.15); padding: 10px 20px; border-radius: 8px; text-align: center; flex: 1;">
-                    <div style="font-size: 24px; font-weight: 800; color: #ffd700;">${(ultimaRodadaInfo.pontos || 0).toFixed(1)}</div>
-                    <div style="font-size: 9px; color: #888; text-transform: uppercase;">Pontos</div>
-                </div>
-            </div>
-            ${
-                ultimaRodadaInfo.goleiroNome &&
-                ultimaRodadaInfo.goleiroNome !== "Sem goleiro"
-                    ? `
-            <div style="margin-top: 10px; padding-top: 10px; border-top: 1px solid rgba(255,255,255,0.1); text-align: center;">
-                <span style="background: rgba(255, 215, 0, 0.2); color: #ffd700; padding: 4px 10px; border-radius: 6px; font-size: 11px; font-weight: 600;">
-                    🧤 ${ultimaRodadaInfo.goleiroNome}
-                </span>
-            </div>
-            `
-                    : ""
-            }
-        </div>
-        `
-                : ""
-        }
 
         ${
             meusGoleiros.length > 0
                 ? `
-        <div style="background: rgba(255,255,255,0.03); border-radius: 12px; padding: 12px; margin-bottom: 16px;">
-            <div style="font-size: 11px; color: #888; font-weight: 700; text-transform: uppercase; margin-bottom: 8px;">🎯 Seus Goleiros</div>
+        <div style="background: rgba(255, 255, 255, 0.03); border-radius: 12px; padding: 12px; margin-bottom: 16px;">
+            <div style="font-size: 11px; color: #888; font-weight: 700; text-transform: uppercase; margin-bottom: 8px;">🧤 Seus Goleiros</div>
             <div style="display: flex; flex-direction: column; gap: 6px;">
                 ${meusGoleiros
                     .map(
                         (g, idx) => `
-                <div style="display: flex; justify-content: space-between; align-items: center; background: rgba(0,0,0,0.3); padding: 8px 12px; border-radius: 8px;">
+                <div style="display: flex; justify-content: space-between; align-items: center; padding: 8px 10px; background: rgba(0,0,0,0.2); border-radius: 8px;">
                     <div style="display: flex; align-items: center; gap: 10px;">
-                        <span style="color: #888; font-size: 12px; width: 20px;">${idx + 1}º</span>
+                        <span style="font-size: 12px; width: 20px; color: #888;">${idx + 1}º</span>
                         <span style="color: #fff; font-size: 12px; font-weight: 500;">${g.nome}</span>
                     </div>
                     <span style="color: #ffd700; font-weight: 800; font-size: 14px;">${g.pontos.toFixed(1)} pts</span>
@@ -478,7 +575,7 @@ async function renderizarLuvaOuro(container, response, meuTimeId) {
             <div style="display: flex; align-items: center; gap: 10px;">
                 <span style="font-size: 24px;">🏆</span>
                 <div>
-                    <div style="font-size: 10px; color: #ffd700; font-weight: 700; text-transform: uppercase;">Líder</div>
+                    <div style="font-size: 10px; color: #ffd700; font-weight: 700; text-transform: uppercase;">${labelLider}</div>
                     <div style="font-size: 14px; font-weight: 700; color: #fff;">${getNome(campeao)}</div>
                 </div>
             </div>
@@ -589,4 +686,4 @@ async function renderizarLuvaOuro(container, response, meuTimeId) {
     }, 100);
 }
 
-console.log("[PARTICIPANTE-LUVA-OURO] ✅ Módulo v3.7 carregado");
+console.log("[PARTICIPANTE-LUVA-OURO] ✅ Módulo v3.8 carregado (Campeão)");

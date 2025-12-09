@@ -1,10 +1,22 @@
 // =====================================================================
-// PARTICIPANTE-ARTILHEIRO.JS - v3.4 (Card Desempenho ao final)
+// PARTICIPANTE-ARTILHEIRO.JS - v3.5 (Detecção CAMPEÃO)
+// =====================================================================
+// ✅ v3.5: Detecção de temporada encerrada (R38 + mercado fechado)
+//    - Badge "CAMPEÃO" quando temporada encerrada
+//    - Banner ajustado para "CAMPEÃO CONFIRMADO"
+// ✅ v3.4: Card Desempenho ao final
 // =====================================================================
 
-console.log("[PARTICIPANTE-ARTILHEIRO] 🔄 Carregando módulo v3.4...");
+console.log("[PARTICIPANTE-ARTILHEIRO] 🔄 Carregando módulo v3.5...");
 
 const RODADA_FINAL = 38;
+
+// Estado do módulo
+let estadoArtilheiro = {
+    temporadaEncerrada: false,
+    rodadaAtual: null,
+    mercadoAberto: true,
+};
 
 // =====================================================================
 // FUNÇÃO PRINCIPAL - EXPORTADA PARA NAVIGATION
@@ -87,15 +99,125 @@ function isMyTime(item, meuTimeId) {
 }
 
 // =====================================================================
-// BANNER RODADA FINAL
+// ✅ v3.5: BANNER RODADA FINAL / CAMPEÃO
 // =====================================================================
-function renderizarBannerRodadaFinal(rodadaAtual, mercadoAberto, lider) {
+function renderizarBannerRodadaFinal(
+    rodadaAtual,
+    mercadoAberto,
+    lider,
+    temporadaEncerrada,
+) {
     if (rodadaAtual !== RODADA_FINAL) return "";
 
-    const isParcial = !mercadoAberto;
     const liderNome = lider ? getNome(lider) : "---";
     const getGP = (item) => item?.golsPro ?? item?.gols ?? 0;
     const liderGols = lider ? getGP(lider) : 0;
+
+    // ✅ v3.5: Detectar se é campeão confirmado
+    if (temporadaEncerrada) {
+        return `
+            <style>
+                @keyframes artCampeaoShine {
+                    0% { background-position: -200% center; }
+                    100% { background-position: 200% center; }
+                }
+                .art-banner-campeao {
+                    background: linear-gradient(135deg, rgba(34, 197, 94, 0.15) 0%, rgba(34, 197, 94, 0.08) 100%);
+                    border: 2px solid rgba(34, 197, 94, 0.5);
+                    border-radius: 12px;
+                    padding: 14px 16px;
+                    margin-bottom: 16px;
+                }
+                .art-campeao-header {
+                    display: flex;
+                    align-items: center;
+                    justify-content: space-between;
+                    margin-bottom: 12px;
+                }
+                .art-campeao-title {
+                    display: flex;
+                    align-items: center;
+                    gap: 8px;
+                }
+                .art-campeao-badge {
+                    font-size: 10px;
+                    font-weight: 700;
+                    color: #22c55e;
+                    text-transform: uppercase;
+                    letter-spacing: 1px;
+                    background: linear-gradient(90deg, #22c55e, #16a34a, #22c55e);
+                    background-size: 200% auto;
+                    -webkit-background-clip: text;
+                    -webkit-text-fill-color: transparent;
+                    background-clip: text;
+                    animation: artCampeaoShine 3s linear infinite;
+                }
+                .art-campeao-status {
+                    font-size: 9px;
+                    padding: 4px 10px;
+                    border-radius: 4px;
+                    font-weight: 600;
+                    background: rgba(34, 197, 94, 0.25);
+                    color: #22c55e;
+                }
+                .art-campeao-info {
+                    display: flex;
+                    align-items: center;
+                    justify-content: space-between;
+                    background: rgba(0, 0, 0, 0.25);
+                    border-radius: 10px;
+                    padding: 12px 14px;
+                }
+                .art-campeao-nome {
+                    font-size: 15px;
+                    font-weight: 700;
+                    color: #fff;
+                }
+                .art-campeao-label {
+                    font-size: 9px;
+                    color: #22c55e;
+                    font-weight: 600;
+                    text-transform: uppercase;
+                    margin-bottom: 2px;
+                }
+                .art-campeao-gols {
+                    text-align: right;
+                }
+                .art-campeao-gols-valor {
+                    font-size: 20px;
+                    font-weight: 800;
+                    color: #22c55e;
+                }
+                .art-campeao-gols-label {
+                    font-size: 8px;
+                    color: #888;
+                    text-transform: uppercase;
+                }
+            </style>
+            <div class="art-banner-campeao">
+                <div class="art-campeao-header">
+                    <div class="art-campeao-title">
+                        <span class="material-icons" style="font-size: 22px; color: #22c55e;">emoji_events</span>
+                        <span class="art-campeao-badge">🏆 CAMPEÃO ARTILHEIRO</span>
+                    </div>
+                    <span class="art-campeao-status">✓ CONSOLIDADO</span>
+                </div>
+                <div class="art-campeao-info">
+                    <div>
+                        <div class="art-campeao-label">Campeão</div>
+                        <div class="art-campeao-nome">${liderNome}</div>
+                    </div>
+                    <div class="art-campeao-gols">
+                        <div class="art-campeao-gols-valor">${liderGols}</div>
+                        <div class="art-campeao-gols-label">gols</div>
+                    </div>
+                </div>
+            </div>
+        `;
+    }
+
+    // Rodada 38 em andamento
+    const isParcial = !mercadoAberto;
 
     return `
         <style>
@@ -126,10 +248,6 @@ function renderizarBannerRodadaFinal(rodadaAtual, mercadoAberto, lider) {
                 align-items: center;
                 gap: 8px;
             }
-            .art-banner-icon {
-                font-size: 18px;
-                color: #22c55e;
-            }
             .art-banner-text {
                 font-size: 11px;
                 font-weight: 700;
@@ -155,11 +273,6 @@ function renderizarBannerRodadaFinal(rodadaAtual, mercadoAberto, lider) {
                 background: rgba(0, 0, 0, 0.25);
                 border-radius: 8px;
                 padding: 10px 12px;
-            }
-            .art-banner-lider-info {
-                display: flex;
-                align-items: center;
-                gap: 10px;
             }
             .art-banner-lider-badge {
                 font-size: 9px;
@@ -202,11 +315,9 @@ function renderizarBannerRodadaFinal(rodadaAtual, mercadoAberto, lider) {
                 <span class="art-banner-status">${isParcial ? "● Em andamento" : "Última Rodada"}</span>
             </div>
             <div class="art-banner-lider">
-                <div class="art-banner-lider-info">
-                    <div>
-                        <div class="art-banner-lider-badge">Possível Campeão</div>
-                        <div class="art-banner-lider-nome">${liderNome}</div>
-                    </div>
+                <div>
+                    <div class="art-banner-lider-badge">Possível Campeão</div>
+                    <div class="art-banner-lider-nome">${liderNome}</div>
                 </div>
                 <div class="art-banner-lider-gols">
                     <div class="art-banner-lider-valor">${liderGols}</div>
@@ -267,35 +378,45 @@ async function renderizarArtilheiro(container, response, meuTimeId) {
     const rodadaFim = estatisticas.rodadaFim || estatisticas.rodadaAtual || 36;
     let rodadaAtual = estatisticas.rodadaAtual || null;
     let mercadoAberto = estatisticas.mercadoAberto !== false;
+    let temporadaEncerrada = false;
 
-    // ✅ BUSCAR RODADA ATUAL DA API DE MERCADO SE NÃO VEIO NOS DADOS
-    if (!rodadaAtual) {
-        try {
-            // Endpoint correto: /api/cartola/mercado/status
-            const mercadoRes = await fetch("/api/cartola/mercado/status");
-            if (mercadoRes.ok) {
-                const mercado = await mercadoRes.json();
-                rodadaAtual =
-                    mercado.rodada_atual || mercado.rodadaAtual || rodadaFim;
-                mercadoAberto = mercado.status_mercado === 1;
-                console.log("[PARTICIPANTE-ARTILHEIRO] 📊 Mercado:", {
-                    rodadaAtual,
-                    mercadoAberto,
-                });
-            } else {
-                rodadaAtual = rodadaFim;
-                console.warn(
-                    "[PARTICIPANTE-ARTILHEIRO] ⚠️ API mercado indisponível, usando rodadaFim:",
-                    rodadaFim,
-                );
-            }
-        } catch (e) {
-            console.warn(
-                "[PARTICIPANTE-ARTILHEIRO] ⚠️ Erro ao obter mercado:",
-                e.message,
-            );
+    // ✅ v3.5: BUSCAR STATUS DO MERCADO PARA DETECTAR TEMPORADA ENCERRADA
+    try {
+        const mercadoRes = await fetch("/api/cartola/mercado/status");
+        if (mercadoRes.ok) {
+            const mercado = await mercadoRes.json();
+            rodadaAtual =
+                mercado.rodada_atual || mercado.rodadaAtual || rodadaFim;
+            mercadoAberto = mercado.status_mercado === 1;
+
+            // Temporada encerrada: status_mercado = 6 OU (rodada >= 38 E mercado fechado)
+            temporadaEncerrada =
+                mercado.status_mercado === 6 ||
+                (rodadaAtual >= RODADA_FINAL && mercado.status_mercado !== 1);
+
+            estadoArtilheiro.rodadaAtual = rodadaAtual;
+            estadoArtilheiro.mercadoAberto = mercadoAberto;
+            estadoArtilheiro.temporadaEncerrada = temporadaEncerrada;
+
+            console.log("[PARTICIPANTE-ARTILHEIRO] 📊 Status:", {
+                rodadaAtual,
+                mercadoAberto,
+                temporadaEncerrada,
+                statusMercado: mercado.status_mercado,
+            });
+        } else {
             rodadaAtual = rodadaFim;
+            console.warn(
+                "[PARTICIPANTE-ARTILHEIRO] ⚠️ API mercado indisponível, usando rodadaFim:",
+                rodadaFim,
+            );
         }
+    } catch (e) {
+        console.warn(
+            "[PARTICIPANTE-ARTILHEIRO] ⚠️ Erro ao obter mercado:",
+            e.message,
+        );
+        rodadaAtual = rodadaFim;
     }
 
     // Dados ricos
@@ -333,12 +454,19 @@ async function renderizarArtilheiro(container, response, meuTimeId) {
             .slice(0, 3);
     }
 
-    // Banner da rodada final
+    // ✅ v3.5: Banner da rodada final com detecção de campeão
     const bannerRodadaFinal = renderizarBannerRodadaFinal(
         rodadaAtual,
         mercadoAberto,
         campeao,
+        temporadaEncerrada,
     );
+
+    // ✅ v3.5: Labels dinâmicos
+    const labelLider = temporadaEncerrada ? "Campeão" : "Líder";
+    const textoVoceELider = temporadaEncerrada
+        ? "🏆 Você é o CAMPEÃO!"
+        : "🏆 Você é o líder!";
 
     const html = `
     <div style="padding: 16px;">
@@ -382,13 +510,13 @@ async function renderizarArtilheiro(container, response, meuTimeId) {
                 minhaColocacao > 1
                     ? `
             <div style="background: rgba(0,0,0,0.3); border-radius: 8px; padding: 8px 12px; display: flex; justify-content: space-between; align-items: center;">
-                <span style="color: #888; font-size: 11px;">Distância p/ líder</span>
+                <span style="color: #888; font-size: 11px;">Distância p/ ${labelLider.toLowerCase()}</span>
                 <span style="color: #f59e0b; font-weight: 700; font-size: 13px;">-${distanciaLider} gols</span>
             </div>
             `
                     : `
             <div style="background: linear-gradient(90deg, rgba(34, 197, 94, 0.2), rgba(34, 197, 94, 0.1)); border-radius: 8px; padding: 8px 12px; text-align: center;">
-                <span style="color: #22c55e; font-weight: 700; font-size: 13px;">🏆 Você é o líder!</span>
+                <span style="color: #22c55e; font-weight: 700; font-size: 13px;">${textoVoceELider}</span>
             </div>
             `
             }
@@ -421,25 +549,6 @@ async function renderizarArtilheiro(container, response, meuTimeId) {
                     <div style="font-size: 9px; color: #888;">SG</div>
                 </div>
             </div>
-            ${
-                ultimaRodada.jogadores &&
-                ultimaRodada.jogadores.filter((j) => j.gols > 0).length > 0
-                    ? `
-            <div style="margin-top: 10px; padding-top: 10px; border-top: 1px solid rgba(255,255,255,0.1); display: flex; flex-wrap: wrap; gap: 6px; justify-content: center;">
-                ${ultimaRodada.jogadores
-                    .filter((j) => j.gols > 0)
-                    .map(
-                        (j) => `
-                    <span style="background: rgba(34, 197, 94, 0.2); color: #22c55e; padding: 4px 8px; border-radius: 6px; font-size: 10px; font-weight: 600;">
-                        ⚽ ${j.nome} (${j.gols})
-                    </span>
-                `,
-                    )
-                    .join("")}
-            </div>
-            `
-                    : ""
-            }
         </div>
         `
                 : ""
@@ -448,15 +557,15 @@ async function renderizarArtilheiro(container, response, meuTimeId) {
         ${
             meusArtilheiros.length > 0
                 ? `
-        <div style="background: rgba(255,255,255,0.03); border-radius: 12px; padding: 12px; margin-bottom: 16px;">
-            <div style="font-size: 11px; color: #888; font-weight: 700; text-transform: uppercase; margin-bottom: 8px;">🎯 Seus Artilheiros</div>
+        <div style="background: rgba(255, 255, 255, 0.03); border-radius: 12px; padding: 12px; margin-bottom: 16px;">
+            <div style="font-size: 11px; color: #888; font-weight: 700; text-transform: uppercase; margin-bottom: 8px;">⚽ Seus Artilheiros</div>
             <div style="display: flex; flex-direction: column; gap: 6px;">
                 ${meusArtilheiros
                     .map(
                         (j, idx) => `
-                <div style="display: flex; justify-content: space-between; align-items: center; background: rgba(0,0,0,0.3); padding: 8px 12px; border-radius: 8px;">
-                    <div style="display: flex; align-items: center; gap: 10px;">
-                        <span style="color: #888; font-size: 12px; width: 20px;">${idx + 1}º</span>
+                <div style="display: flex; justify-content: space-between; align-items: center; padding: 8px 10px; background: rgba(0,0,0,0.2); border-radius: 8px;">
+                    <div style="display: flex; align-items: center; gap: 8px;">
+                        <span style="font-size: 14px;">${idx === 0 ? "🥇" : idx === 1 ? "🥈" : "🥉"}</span>
                         <span style="color: #fff; font-size: 12px; font-weight: 500;">${j.nome}</span>
                     </div>
                     <span style="color: #22c55e; font-weight: 800; font-size: 14px;">${j.gols} gols</span>
@@ -520,7 +629,7 @@ async function renderizarArtilheiro(container, response, meuTimeId) {
             <div style="display: flex; align-items: center; gap: 10px;">
                 <span style="font-size: 24px;">🏆</span>
                 <div>
-                    <div style="font-size: 10px; color: #22c55e; font-weight: 700; text-transform: uppercase;">Líder</div>
+                    <div style="font-size: 10px; color: #22c55e; font-weight: 700; text-transform: uppercase;">${labelLider}</div>
                     <div style="font-size: 14px; font-weight: 700; color: #fff;">${getNome(campeao)}</div>
                 </div>
             </div>
@@ -639,4 +748,4 @@ async function renderizarArtilheiro(container, response, meuTimeId) {
     }, 100);
 }
 
-console.log("[PARTICIPANTE-ARTILHEIRO] ✅ Módulo v3.4 carregado");
+console.log("[PARTICIPANTE-ARTILHEIRO] ✅ Módulo v3.5 carregado (Campeão)");
