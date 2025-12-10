@@ -1,32 +1,43 @@
 // =====================================================================
-// PARTICIPANTE-TOP10.JS - v4.5 (Fix busca cache + fallback robusto)
+// PARTICIPANTE-TOP10.JS - v4.5 (Destaque Visual TOP 10)
 // =====================================================================
-// ✅ v4.5: Fix rodada do cache (ultimaRodadaCompleta) + fallback via rodadas API
-
-// ============================================================================
-// ⚽ CONFIGURAÇÃO DO CAMPEONATO 2025
-// ============================================================================
-const RODADA_FINAL_CAMPEONATO = 38; // Última rodada do Brasileirão 2025
-const CAMPEONATO_ENCERRADO = true; // Flag: temporada finalizada
+// ✅ v4.5: Destaque visual para os 10 primeiros (verdadeiro TOP 10)
+//    - Borda dourada/vermelha nos 10 primeiros
+//    - Separador visual entre TOP 10 e demais
+//    - Badge "TOP 10" nos campeões
+// ✅ v4.4: Card Resumo ao final
+// ✅ v4.3: Filtro de times ativos
+// ✅ v4.2: Cache batch
 
 if (window.Log) Log.info("[PARTICIPANTE-TOP10] 🏆 Carregando módulo v4.5...");
 
 // =====================================================================
 // CONFIGURAÇÃO DE VALORES BÔNUS/ÔNUS
 // =====================================================================
-const valoresBonusOnusPadrao = {
-    mitos: { 1: 10, 2: 9, 3: 8, 4: 7, 5: 6, 6: 5, 7: 4, 8: 3, 9: 2, 10: 1 },
+const valoresBonusOnusSuperCartola = {
+    mitos: {
+        1: 30,
+        2: 28,
+        3: 26,
+        4: 24,
+        5: 22,
+        6: 20,
+        7: 18,
+        8: 16,
+        9: 14,
+        10: 12,
+    },
     micos: {
-        1: -10,
-        2: -9,
-        3: -8,
-        4: -7,
-        5: -6,
-        6: -5,
-        7: -4,
-        8: -3,
-        9: -2,
-        10: -1,
+        1: -30,
+        2: -28,
+        3: -26,
+        4: -24,
+        5: -22,
+        6: -20,
+        7: -18,
+        8: -16,
+        9: -14,
+        10: -12,
     },
 };
 
@@ -66,17 +77,12 @@ export async function inicializarTop10Participante({
     mostrarLoading(true);
 
     try {
-        // ✅ v4.5: Obter status do mercado
         let rodadaAtual = 1;
-        let mercadoAberto = false;
-
         try {
             const resStatus = await fetch("/api/cartola/mercado/status");
             if (resStatus.ok) {
                 const status = await resStatus.json();
                 rodadaAtual = status.rodada_atual || 1;
-                mercadoAberto =
-                    status.mercado_aberto || status.status_mercado === 1;
             }
         } catch (e) {
             if (window.Log)
@@ -85,25 +91,7 @@ export async function inicializarTop10Participante({
                 );
         }
 
-        // ✅ v4.5: FIX - Usar última rodada COMPLETA (igual ao top10.js)
-        // ✅ Se campeonato encerrado, usar RODADA_FINAL_CAMPEONATO
-        let ultimaRodadaCompleta;
-
-        if (CAMPEONATO_ENCERRADO) {
-            ultimaRodadaCompleta = RODADA_FINAL_CAMPEONATO;
-        } else {
-            ultimaRodadaCompleta = mercadoAberto
-                ? Math.max(1, rodadaAtual - 1)
-                : rodadaAtual;
-        }
-
-        if (window.Log)
-            Log.info(
-                `[PARTICIPANTE-TOP10] 📊 Rodada atual: ${rodadaAtual}, Última completa: ${ultimaRodadaCompleta}, Campeonato encerrado: ${CAMPEONATO_ENCERRADO}`,
-            );
-
-        // ✅ v4.5: FIX - Buscar cache com a rodada COMPLETA
-        const cacheUrl = `/api/top10/cache/${ligaId}?rodada=${ultimaRodadaCompleta}`;
+        const cacheUrl = `/api/top10/cache/${ligaId}?rodada=${rodadaAtual}`;
         if (window.Log)
             Log.info("[PARTICIPANTE-TOP10] 📡 Buscando cache:", cacheUrl);
 
@@ -114,56 +102,21 @@ export async function inicializarTop10Participante({
         if (response.ok) {
             const data = await response.json();
             if (data.cached && data.mitos && data.micos) {
-                // ✅ v4.5: Validar se cache tem dados
-                if (data.mitos.length > 0 && data.micos.length > 0) {
-                    mitos = data.mitos;
-                    micos = data.micos;
-                    if (window.Log)
-                        Log.info(
-                            `[PARTICIPANTE-TOP10] 💾 Cache encontrado: ${mitos.length} mitos, ${micos.length} micos`,
-                        );
-                } else {
-                    if (window.Log)
-                        Log.warn(
-                            "[PARTICIPANTE-TOP10] ⚠️ Cache vazio, recalculando...",
-                        );
-                }
+                mitos = data.mitos;
+                micos = data.micos;
+                if (window.Log)
+                    Log.info(
+                        `[PARTICIPANTE-TOP10] 💾 Cache encontrado: ${mitos.length} mitos, ${micos.length} micos`,
+                    );
             }
         }
 
-        // ✅ v4.5: Se não encontrou cache, calcular
         if (mitos.length === 0 || micos.length === 0) {
             if (window.Log)
                 Log.info("[PARTICIPANTE-TOP10] 📊 Calculando MITOS/MICOS...");
-            const resultado = await calcularMitosMicos(
-                ligaId,
-                ultimaRodadaCompleta,
-            );
+            const resultado = await calcularMitosMicos(ligaId, rodadaAtual);
             mitos = resultado.mitos;
             micos = resultado.micos;
-
-            // ✅ v4.5: Salvar no cache para próximas consultas
-            if (mitos.length > 0 && micos.length > 0) {
-                try {
-                    await fetch(`/api/top10/cache/${ligaId}`, {
-                        method: "POST",
-                        headers: { "Content-Type": "application/json" },
-                        body: JSON.stringify({
-                            rodada: ultimaRodadaCompleta,
-                            mitos: mitos,
-                            micos: micos,
-                            permanent: true,
-                        }),
-                    });
-                    if (window.Log)
-                        Log.info("[PARTICIPANTE-TOP10] 💾 Cache salvo");
-                } catch (e) {
-                    if (window.Log)
-                        Log.warn(
-                            "[PARTICIPANTE-TOP10] ⚠️ Erro ao salvar cache",
-                        );
-                }
-            }
         }
 
         mostrarLoading(false);
@@ -173,14 +126,17 @@ export async function inicializarTop10Participante({
             return;
         }
 
-        const isLigaCartoleirosSobral = ligaId === "684d821cf1a7ae16d1f89572";
-        const valoresBonusOnus = isLigaCartoleirosSobral
-            ? valoresBonusOnusCartoleirosSobral
-            : valoresBonusOnusPadrao;
+        // Selecionar valores corretos por liga
+        let valoresBonusOnus;
+        if (ligaId === "684cb1c8af923da7c7df51de") {
+            valoresBonusOnus = valoresBonusOnusSuperCartola;
+        } else if (ligaId === "684d821cf1a7ae16d1f89572") {
+            valoresBonusOnus = valoresBonusOnusCartoleirosSobral;
+        } else {
+            valoresBonusOnus = valoresBonusOnusCartoleirosSobral; // Fallback
+        }
 
         renderizarTabelasTop10(mitos, micos, timeId, valoresBonusOnus);
-
-        // Renderizar card de resumo
         renderizarCardResumo(mitos, micos, timeId, valoresBonusOnus);
 
         if (window.Log)
@@ -195,114 +151,71 @@ export async function inicializarTop10Participante({
 window.inicializarTop10Participante = inicializarTop10Participante;
 
 // =====================================================================
-// CALCULAR MITOS/MICOS - v4.5 (Fallback robusto)
+// CALCULAR MITOS/MICOS (FALLBACK)
 // =====================================================================
-async function calcularMitosMicos(ligaId, ultimaRodadaCompleta) {
+async function calcularMitosMicos(ligaId, rodadaAtual) {
     const mitos = [];
     const micos = [];
 
     try {
-        if (window.Log)
-            Log.info(
-                `[PARTICIPANTE-TOP10] 🔄 Calculando Top10 para rodadas 1-${ultimaRodadaCompleta}...`,
-            );
-
-        // ✅ v4.5: Usar API de rodadas em lote (mais confiável)
-        const response = await fetch(
-            `/api/rodadas/${ligaId}/rodadas?inicio=1&fim=${ultimaRodadaCompleta}`,
-        );
-
-        if (!response.ok) {
-            if (window.Log)
-                Log.error("[PARTICIPANTE-TOP10] ❌ Erro ao buscar rodadas");
-            return { mitos: [], micos: [] };
-        }
+        const response = await fetch(`/api/ligas/${ligaId}/top10`);
+        if (!response.ok) return { mitos: [], micos: [] };
 
         const dados = await response.json();
+        const rodadas = Object.keys(dados)
+            .map(Number)
+            .filter((n) => !isNaN(n) && n <= rodadaAtual);
 
-        if (!Array.isArray(dados) || dados.length === 0) {
-            if (window.Log)
-                Log.warn(
-                    "[PARTICIPANTE-TOP10] ⚠️ Nenhum dado de rodadas encontrado",
-                );
-            return { mitos: [], micos: [] };
-        }
-
-        // ✅ v4.5: Agrupar por rodada
-        const rodadasMap = new Map();
-        dados.forEach((item) => {
-            const numRodada = parseInt(item.rodada);
-            if (!rodadasMap.has(numRodada)) {
-                rodadasMap.set(numRodada, []);
-            }
-            rodadasMap.get(numRodada).push(item);
-        });
-
-        if (window.Log)
-            Log.info(
-                `[PARTICIPANTE-TOP10] 📊 ${rodadasMap.size} rodadas encontradas`,
-            );
-
-        // ✅ v4.5: Processar cada rodada
-        for (const [numRodada, timesRodada] of rodadasMap) {
-            if (numRodada > ultimaRodadaCompleta) continue;
+        for (const numRodada of rodadas) {
+            const timesRodada = dados[numRodada];
             if (!timesRodada || timesRodada.length === 0) continue;
 
-            // Filtrar apenas ativos para ranking
             const timesAtivos = timesRodada.filter((t) => t.ativo !== false);
-
-            if (timesAtivos.length < 2) continue;
-
             const ordenados = [...timesAtivos].sort(
-                (a, b) =>
-                    (parseFloat(b.pontos) || 0) - (parseFloat(a.pontos) || 0),
+                (a, b) => (b.pontos || 0) - (a.pontos || 0),
             );
 
-            // MITO (primeiro lugar)
-            const mito = ordenados[0];
-            mitos.push({
-                rodada: numRodada,
-                timeId: mito.timeId || mito.time_id,
-                nome_cartola: mito.nome_cartola || "N/D",
-                nome_time: mito.nome_time || "N/D",
-                pontos: parseFloat(mito.pontos) || 0,
-                escudo: mito.escudo_time_do_coracao || mito.escudo || "",
-                clube_id: mito.clube_id || null,
-                ativo: mito.ativo !== false,
-            });
+            if (ordenados.length > 0) {
+                const mito = ordenados[0];
+                mitos.push({
+                    rodada: numRodada,
+                    timeId: mito.timeId || mito.time_id,
+                    nome_cartola: mito.nome_cartola || "N/D",
+                    nome_time: mito.nome_time || "N/D",
+                    pontos: parseFloat(mito.pontos) || 0,
+                    escudo: mito.escudo_time_do_coracao || mito.escudo || "",
+                    clube_id: mito.clube_id || null,
+                    ativo: mito.ativo !== false,
+                });
+            }
 
-            // MICO (último lugar)
-            const mico = ordenados[ordenados.length - 1];
-            micos.push({
-                rodada: numRodada,
-                timeId: mico.timeId || mico.time_id,
-                nome_cartola: mico.nome_cartola || "N/D",
-                nome_time: mico.nome_time || "N/D",
-                pontos: parseFloat(mico.pontos) || 0,
-                escudo: mico.escudo_time_do_coracao || mico.escudo || "",
-                clube_id: mico.clube_id || null,
-                ativo: mico.ativo !== false,
-            });
+            if (ordenados.length > 1) {
+                const mico = ordenados[ordenados.length - 1];
+                micos.push({
+                    rodada: numRodada,
+                    timeId: mico.timeId || mico.time_id,
+                    nome_cartola: mico.nome_cartola || "N/D",
+                    nome_time: mico.nome_time || "N/D",
+                    pontos: parseFloat(mico.pontos) || 0,
+                    escudo: mico.escudo_time_do_coracao || mico.escudo || "",
+                    clube_id: mico.clube_id || null,
+                    ativo: mico.ativo !== false,
+                });
+            }
         }
 
-        // Ordenar: Mitos por maior pontuação, Micos por menor pontuação
         mitos.sort((a, b) => b.pontos - a.pontos);
         micos.sort((a, b) => a.pontos - b.pontos);
-
-        if (window.Log)
-            Log.info(
-                `[PARTICIPANTE-TOP10] ✅ Calculado: ${mitos.length} mitos, ${micos.length} micos`,
-            );
     } catch (error) {
         if (window.Log)
-            Log.error("[PARTICIPANTE-TOP10] ❌ Erro ao calcular:", error);
+            Log.error("[PARTICIPANTE-TOP10] Erro ao calcular:", error);
     }
 
-    return { mitos: mitos.slice(0, 10), micos: micos.slice(0, 10) };
+    return { mitos, micos };
 }
 
 // =====================================================================
-// RENDERIZAÇÃO - TABELAS MITOS E MICOS
+// RENDERIZAÇÃO - TABELAS MITOS E MICOS (v4.5 com destaque TOP 10)
 // =====================================================================
 function renderizarTabelasTop10(mitos, micos, meuTimeId, valoresBonusOnus) {
     const container = document.getElementById("top10Grid");
@@ -310,170 +223,194 @@ function renderizarTabelasTop10(mitos, micos, meuTimeId, valoresBonusOnus) {
 
     const meuTimeIdNum = Number(meuTimeId);
 
-    // Separar ativos de inativos em cada lista
+    // Separar ativos de inativos
     const mitosAtivos = mitos.filter((m) => m.ativo !== false);
     const mitosInativos = mitos.filter((m) => m.ativo === false);
     const micosAtivos = micos.filter((m) => m.ativo !== false);
     const micosInativos = micos.filter((m) => m.ativo === false);
 
-    const html = `
-        <!-- TABELA MITOS -->
-        <div class="top10-tabela-wrapper">
-            <div class="top10-tabela-header mitos">
-                <span class="material-symbols-outlined">emoji_events</span>
-                <span>TOP 10 MITOS</span>
-            </div>
-            ${gerarTabelaHTML(mitosAtivos, "mitos", meuTimeIdNum, valoresBonusOnus, false)}
+    container.innerHTML = `
+        <!-- MITOS -->
+        <div class="top10-section">
+            ${gerarTabelaTop10(mitosAtivos, true, meuTimeIdNum, valoresBonusOnus.mitos)}
             ${
                 mitosInativos.length > 0
                     ? `
-                <div class="top10-divisor-inativos">
+                <div class="inativos-separator">
                     <span class="material-symbols-outlined">person_off</span>
-                    <span>Participantes Inativos (${mitosInativos.length})</span>
+                    Times Inativos (${mitosInativos.length})
                 </div>
-                ${gerarTabelaHTML(mitosInativos, "mitos", meuTimeIdNum, valoresBonusOnus, true)}
+                ${gerarTabelaTop10(mitosInativos, true, meuTimeIdNum, valoresBonusOnus.mitos, true)}
             `
                     : ""
             }
         </div>
 
-        <!-- TABELA MICOS -->
-        <div class="top10-tabela-wrapper">
-            <div class="top10-tabela-header micos">
-                <span class="material-symbols-outlined">thumb_down</span>
-                <span>TOP 10 MICOS</span>
-            </div>
-            ${gerarTabelaHTML(micosAtivos, "micos", meuTimeIdNum, valoresBonusOnus, false)}
+        <!-- MICOS -->
+        <div class="top10-section">
+            ${gerarTabelaTop10(micosAtivos, false, meuTimeIdNum, valoresBonusOnus.micos)}
             ${
                 micosInativos.length > 0
                     ? `
-                <div class="top10-divisor-inativos">
+                <div class="inativos-separator">
                     <span class="material-symbols-outlined">person_off</span>
-                    <span>Participantes Inativos (${micosInativos.length})</span>
+                    Times Inativos (${micosInativos.length})
                 </div>
-                ${gerarTabelaHTML(micosInativos, "micos", meuTimeIdNum, valoresBonusOnus, true)}
+                ${gerarTabelaTop10(micosInativos, false, meuTimeIdNum, valoresBonusOnus.micos, true)}
             `
                     : ""
             }
         </div>
     `;
-
-    container.innerHTML = html;
 }
 
-function gerarTabelaHTML(
+// =====================================================================
+// GERAR TABELA TOP10 (v4.5 com destaque visual)
+// =====================================================================
+function gerarTabelaTop10(
     dados,
-    tipo,
+    isMitos,
     meuTimeIdNum,
-    valoresBonusOnus,
+    valoresBonus,
     isInativo = false,
 ) {
     if (!dados || dados.length === 0) {
-        return isInativo
-            ? ""
-            : `
-            <div style="text-align: center; padding: 40px; color: #6b7280;">
-                <p>Nenhum dado disponível para ${tipo === "mitos" ? "MITOS" : "MICOS"}</p>
+        return `<div class="top10-empty">Nenhum registro</div>`;
+    }
+
+    // ✅ v4.5: Separar TOP 10 dos demais
+    const top10 = dados.slice(0, 10);
+    const restante = dados.slice(10);
+
+    let html = "";
+
+    // === SEÇÃO TOP 10 (com destaque) ===
+    if (top10.length > 0) {
+        html += `
+            <div class="top10-destaque-wrapper ${isMitos ? "mitos" : "micos"}">
+                <div class="top10-badge-header">
+                    <span class="material-symbols-outlined">${isMitos ? "military_tech" : "dangerous"}</span>
+                    <span>TOP 10 ${isMitos ? "MITOS" : "MICOS"}</span>
+                </div>
+                <table class="top10-table destaque">
+                    <thead>
+                        <tr>
+                            <th style="width: 40px;">Pos</th>
+                            <th class="col-nome">Nome</th>
+                            <th style="width: 32px;"></th>
+                            <th style="width: 60px;">Pts</th>
+                            <th style="width: 40px;">Rod</th>
+                            <th style="width: 65px;">${isMitos ? "Bônus" : "Ônus"}</th>
+                            <th style="width: 36px;"></th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        ${top10.map((item, index) => gerarLinhaTabela(item, index, isMitos, meuTimeIdNum, valoresBonus, isInativo, true)).join("")}
+                    </tbody>
+                </table>
             </div>
         `;
     }
 
-    const valoresBonus =
-        tipo === "mitos" ? valoresBonusOnus.mitos : valoresBonusOnus.micos;
-    const isMitos = tipo === "mitos";
+    // === SEÇÃO RESTANTE (sem destaque) ===
+    if (restante.length > 0 && !isInativo) {
+        html += `
+            <div class="top10-restante-wrapper">
+                <div class="top10-restante-header" onclick="this.parentElement.classList.toggle('expanded')">
+                    <span class="material-symbols-outlined chevron-icon">expand_more</span>
+                    <span>Mais ${restante.length} ${isMitos ? "mitos" : "micos"} (11º ao ${10 + restante.length}º)</span>
+                </div>
+                <div class="top10-restante-content">
+                    <table class="top10-table secundaria">
+                        <tbody>
+                            ${restante.map((item, index) => gerarLinhaTabela(item, index + 10, isMitos, meuTimeIdNum, {}, false, false)).join("")}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        `;
+    }
+
+    return html;
+}
+
+// =====================================================================
+// GERAR LINHA DA TABELA
+// =====================================================================
+function gerarLinhaTabela(
+    item,
+    index,
+    isMitos,
+    meuTimeIdNum,
+    valoresBonus,
+    isInativo,
+    isTop10,
+) {
+    const posicao = isInativo ? null : index + 1;
+    const timeIdNum = Number(item.timeId || item.time_id);
+    const isMeuTime = timeIdNum === meuTimeIdNum;
+    const valorBonus = isTop10 && !isInativo ? (valoresBonus[posicao] ?? 0) : 0;
+
+    // Classes da linha
+    let rowClass = "";
+    if (isMeuTime && !isInativo) {
+        rowClass = isMitos ? "meu-time-mitos" : "meu-time-micos";
+    }
+    if (isInativo) rowClass += " linha-inativa";
+    if (isTop10 && !isInativo) rowClass += " linha-top10";
+
+    // Badge da posição
+    let posicaoBadge = "";
+    if (isInativo) {
+        posicaoBadge = `<span class="posicao-badge-top10 default" style="color: #6b7280;">—</span>`;
+    } else if (posicao === 1 && isMitos) {
+        posicaoBadge = `<span class="posicao-badge-top10 gold"><span class="material-symbols-outlined">trophy</span></span>`;
+    } else if (posicao === 1 && !isMitos) {
+        posicaoBadge = `<span class="posicao-badge-top10 skull"><span class="material-symbols-outlined">skull</span></span>`;
+    } else if (posicao <= 3 && isTop10) {
+        const medalColor = posicao === 2 ? "#C0C0C0" : "#CD7F32";
+        posicaoBadge = `<span class="posicao-badge-top10 medal" style="color: ${medalColor};">${posicao}º</span>`;
+    } else {
+        posicaoBadge = `<span class="posicao-badge-top10 default">${posicao}º</span>`;
+    }
+
+    // Valor formatado
+    const valorClass = isInativo
+        ? "text-gray-600"
+        : isMitos
+          ? "valor-bonus"
+          : "valor-onus";
+    const valorAbs = Math.abs(valorBonus).toFixed(2);
+    const valorFormatado =
+        isInativo || !isTop10 ? "—" : isMitos ? `+${valorAbs}` : `-${valorAbs}`;
+
+    // Escudo
+    let escudoHTML = `<span class="escudo-placeholder"><span class="material-symbols-outlined">shield</span></span>`;
+    if (item.escudo && item.escudo.startsWith("http")) {
+        escudoHTML = `<img src="${item.escudo}" alt="" class="escudo-top10" onerror="this.parentElement.innerHTML='<span class=\\'material-symbols-outlined\\'>shield</span>'"/>`;
+    } else if (item.clube_id) {
+        escudoHTML = `<img src="/escudos/${item.clube_id}.png" alt="" class="escudo-top10" onerror="this.parentElement.innerHTML='<span class=\\'material-symbols-outlined\\'>shield</span>'"/>`;
+    }
 
     return `
-        <table class="tabela-top10-pro">
-            ${
-                !isInativo
-                    ? `
-            <thead>
-                <tr>
-                    <th style="width: 45px;">Pos</th>
-                    <th class="col-nome">Cartoleiro</th>
-                    <th style="width: 36px;"><span class="material-symbols-outlined">home</span></th>
-                    <th style="width: 65px;">Pts</th>
-                    <th style="width: 45px;">Rod</th>
-                    <th style="width: 70px;">${isMitos ? "Bônus" : "Ônus"}</th>
-                    <th style="width: 40px;">Time</th>
-                </tr>
-            </thead>
-            `
-                    : ""
-            }
-            <tbody>
-                ${dados
-                    .map((item, index) => {
-                        const posicao = isInativo ? null : index + 1;
-                        const timeIdNum = Number(item.timeId || item.time_id);
-                        const isMeuTime = timeIdNum === meuTimeIdNum;
-                        const valorBonus = isInativo
-                            ? 0
-                            : (valoresBonus[posicao] ?? 0);
-
-                        // Classe diferente para MITOS (verde) e MICOS (vermelho)
-                        let rowClass = "";
-                        if (isMeuTime && !isInativo) {
-                            rowClass = isMitos
-                                ? "meu-time-mitos"
-                                : "meu-time-micos";
-                        }
-                        if (isInativo) rowClass += " linha-inativa";
-
-                        // Badge da posição com Material Icons
-                        let posicaoBadge = "";
-                        if (isInativo) {
-                            posicaoBadge = `<span class="posicao-badge-top10 default" style="color: #6b7280;">—</span>`;
-                        } else if (posicao === 1 && isMitos) {
-                            posicaoBadge = `<span class="posicao-badge-top10 gold"><span class="material-symbols-outlined">trophy</span></span>`;
-                        } else if (posicao === 1 && !isMitos) {
-                            posicaoBadge = `<span class="posicao-badge-top10 skull"><span class="material-symbols-outlined">skull</span></span>`;
-                        } else {
-                            posicaoBadge = `<span class="posicao-badge-top10 default">${posicao}º</span>`;
-                        }
-
-                        // Valor formatado
-                        const valorClass = isInativo
-                            ? "text-gray-600"
-                            : isMitos
-                              ? "valor-bonus"
-                              : "valor-onus";
-                        const valorAbs = Math.abs(valorBonus).toFixed(2);
-                        const valorFormatado = isInativo
-                            ? "—"
-                            : isMitos
-                              ? `+${valorAbs}`
-                              : `-${valorAbs}`;
-
-                        // Escudo com Material Icon fallback
-                        let escudoHTML = `<span class="escudo-placeholder"><span class="material-symbols-outlined">shield</span></span>`;
-                        if (item.escudo && item.escudo.startsWith("http")) {
-                            escudoHTML = `<img src="${item.escudo}" alt="" class="escudo-top10" onerror="this.parentElement.innerHTML='<span class=\\'material-symbols-outlined\\'>shield</span>'"/>`;
-                        } else if (item.clube_id) {
-                            escudoHTML = `<img src="/escudos/${item.clube_id}.png" alt="" class="escudo-top10" onerror="this.parentElement.innerHTML='<span class=\\'material-symbols-outlined\\'>shield</span>'"/>`;
-                        }
-
-                        return `
-                        <tr class="${rowClass}">
-                            <td>${posicaoBadge}</td>
-                            <td class="nome-cell-top10">
-                                <span class="nome-texto">${item.nome_cartola || "N/D"}</span>
-                            </td>
-                            <td class="escudo-cell">${escudoHTML}</td>
-                            <td class="pontos-valor">${(item.pontos ?? 0).toFixed(2)}</td>
-                            <td class="rodada-badge">R${item.rodada ?? "?"}</td>
-                            <td class="${valorClass}">${valorFormatado}</td>
-                            <td>
-                                <button class="btn-ver-time" onclick="window.abrirModalTop10('${item.nome_time}', ${item.rodada}, ${item.pontos})">
-                                    <span class="material-symbols-outlined">visibility</span>
-                                </button>
-                            </td>
-                        </tr>
-                    `;
-                    })
-                    .join("")}
-            </tbody>
-        </table>
+        <tr class="${rowClass}">
+            <td>${posicaoBadge}</td>
+            <td class="nome-cell-top10">
+                <div class="nome-wrapper-top10">
+                    <span class="nome-cartoleiro">${item.nome_cartola || "N/D"}</span>
+                    <span class="nome-time">${item.nome_time || "Time sem nome"}</span>
+                </div>
+            </td>
+            <td class="escudo-cell">${escudoHTML}</td>
+            <td class="pontos-valor">${(item.pontos ?? 0).toFixed(2)}</td>
+            <td class="rodada-badge">R${item.rodada ?? "?"}</td>
+            <td class="${valorClass}">${valorFormatado}</td>
+            <td>
+                <button class="btn-ver-time" onclick="window.abrirModalTop10('${item.nome_time}', ${item.rodada}, ${item.pontos})">
+                    <span class="material-symbols-outlined">visibility</span>
+                </button>
+            </td>
+        </tr>
     `;
 }
 
@@ -486,14 +423,13 @@ function renderizarCardResumo(mitos, micos, meuTimeId, valoresBonusOnus) {
 
     const meuTimeIdNum = Number(meuTimeId);
 
-    // Contar aparições do meu time
     let countMitos = 0;
     let totalBonus = 0;
     let countMicos = 0;
     let totalOnus = 0;
 
-    // Verificar MITOS
-    mitos.forEach((item, index) => {
+    // Verificar MITOS (apenas TOP 10)
+    mitos.slice(0, 10).forEach((item, index) => {
         const timeIdNum = Number(item.timeId || item.time_id);
         if (timeIdNum === meuTimeIdNum && item.ativo !== false) {
             countMitos++;
@@ -502,8 +438,8 @@ function renderizarCardResumo(mitos, micos, meuTimeId, valoresBonusOnus) {
         }
     });
 
-    // Verificar MICOS
-    micos.forEach((item, index) => {
+    // Verificar MICOS (apenas TOP 10)
+    micos.slice(0, 10).forEach((item, index) => {
         const timeIdNum = Number(item.timeId || item.time_id);
         if (timeIdNum === meuTimeIdNum && item.ativo !== false) {
             countMicos++;
@@ -512,7 +448,6 @@ function renderizarCardResumo(mitos, micos, meuTimeId, valoresBonusOnus) {
         }
     });
 
-    // Calcular saldo
     const saldo = totalBonus - totalOnus;
 
     // Atualizar DOM
@@ -532,10 +467,8 @@ function renderizarCardResumo(mitos, micos, meuTimeId, valoresBonusOnus) {
         saldoEl.className = "top10-resumo-total-value negativo";
     }
 
-    // Mostrar card apenas se tiver alguma aparição
-    if (countMitos > 0 || countMicos > 0) {
-        card.style.display = "block";
-    }
+    // Sempre mostrar o card
+    card.style.display = "block";
 
     if (window.Log)
         Log.info(
@@ -591,5 +524,5 @@ function mostrarEstadoVazio(show) {
 
 if (window.Log)
     Log.info(
-        "[PARTICIPANTE-TOP10] ✅ Módulo v4.5 carregado (Fix cache + fallback robusto)",
+        "[PARTICIPANTE-TOP10] ✅ Módulo v4.5 carregado (Destaque Visual TOP 10)",
     );

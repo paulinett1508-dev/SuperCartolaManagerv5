@@ -1,0 +1,307 @@
+/* ================================================
+   TOP 10 - Destaque Visual (v4.5)
+   ================================================ */
+
+/* === WRAPPER DO TOP 10 COM DESTAQUE === */
+.top10-destaque-wrapper {
+    background: linear-gradient(135deg, rgba(26, 26, 26, 0.95) 0%, rgba(20, 20, 20, 0.98) 100%);
+    border-radius: 12px;
+    overflow: hidden;
+    margin-bottom: 12px;
+    position: relative;
+}
+
+/* Borda dourada para MITOS */
+.top10-destaque-wrapper.mitos {
+    border: 2px solid rgba(255, 215, 0, 0.4);
+    box-shadow: 
+        0 4px 20px rgba(255, 215, 0, 0.15),
+        inset 0 1px 0 rgba(255, 215, 0, 0.1);
+}
+
+/* Borda vermelha para MICOS */
+.top10-destaque-wrapper.micos {
+    border: 2px solid rgba(239, 68, 68, 0.4);
+    box-shadow: 
+        0 4px 20px rgba(239, 68, 68, 0.15),
+        inset 0 1px 0 rgba(239, 68, 68, 0.1);
+}
+
+/* === BADGE HEADER DO TOP 10 === */
+.top10-badge-header {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 10px 14px;
+    font-size: 11px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+}
+
+.top10-destaque-wrapper.mitos .top10-badge-header {
+    background: linear-gradient(90deg, rgba(255, 215, 0, 0.15) 0%, transparent 100%);
+    color: #FFD700;
+    border-bottom: 1px solid rgba(255, 215, 0, 0.2);
+}
+
+.top10-destaque-wrapper.mitos .top10-badge-header .material-symbols-outlined {
+    color: #FFD700;
+    font-size: 18px;
+}
+
+.top10-destaque-wrapper.micos .top10-badge-header {
+    background: linear-gradient(90deg, rgba(239, 68, 68, 0.15) 0%, transparent 100%);
+    color: #EF4444;
+    border-bottom: 1px solid rgba(239, 68, 68, 0.2);
+}
+
+.top10-destaque-wrapper.micos .top10-badge-header .material-symbols-outlined {
+    color: #EF4444;
+    font-size: 18px;
+}
+
+/* === TABELA COM DESTAQUE === */
+.top10-table.destaque {
+    background: transparent;
+}
+
+.top10-table.destaque tbody tr {
+    transition: background 0.2s ease;
+}
+
+.top10-table.destaque tbody tr:hover {
+    background: rgba(255, 255, 255, 0.03);
+}
+
+/* Linha TOP 10 com brilho sutil */
+.linha-top10 {
+    position: relative;
+}
+
+.top10-destaque-wrapper.mitos .linha-top10::before {
+    content: '';
+    position: absolute;
+    left: 0;
+    top: 0;
+    bottom: 0;
+    width: 3px;
+    background: linear-gradient(180deg, #FFD700 0%, #FFA500 100%);
+    opacity: 0.6;
+}
+
+.top10-destaque-wrapper.micos .linha-top10::before {
+    content: '';
+    position: absolute;
+    left: 0;
+    top: 0;
+    bottom: 0;
+    width: 3px;
+    background: linear-gradient(180deg, #EF4444 0%, #DC2626 100%);
+    opacity: 0.6;
+}
+
+/* === MEDALHAS ESPECIAIS (2º e 3º) === */
+.posicao-badge-top10.medal {
+    font-weight: 800;
+    font-size: 13px;
+    text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
+}
+
+/* === SEÇÃO RESTANTE (colapsável) === */
+.top10-restante-wrapper {
+    margin-top: 8px;
+    background: rgba(255, 255, 255, 0.02);
+    border-radius: 8px;
+    overflow: hidden;
+    border: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.top10-restante-header {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 12px 14px;
+    font-size: 12px;
+    font-weight: 600;
+    color: rgba(255, 255, 255, 0.5);
+    cursor: pointer;
+    transition: all 0.2s ease;
+    user-select: none;
+    -webkit-tap-highlight-color: transparent;
+}
+
+.top10-restante-header:hover {
+    background: rgba(255, 255, 255, 0.03);
+    color: rgba(255, 255, 255, 0.7);
+}
+
+.top10-restante-header:active {
+    transform: scale(0.99);
+}
+
+.top10-restante-header .chevron-icon {
+    font-size: 20px;
+    transition: transform 0.3s ease;
+}
+
+.top10-restante-wrapper.expanded .top10-restante-header .chevron-icon {
+    transform: rotate(180deg);
+}
+
+.top10-restante-content {
+    max-height: 0;
+    overflow: hidden;
+    transition: max-height 0.3s ease;
+}
+
+.top10-restante-wrapper.expanded .top10-restante-content {
+    max-height: 2000px;
+}
+
+/* === TABELA SECUNDÁRIA (restante) === */
+.top10-table.secundaria {
+    opacity: 0.7;
+}
+
+.top10-table.secundaria tbody tr {
+    background: transparent;
+}
+
+.top10-table.secundaria tbody tr:hover {
+    background: rgba(255, 255, 255, 0.02);
+    opacity: 1;
+}
+
+/* === EMPTY STATE === */
+.top10-empty {
+    text-align: center;
+    padding: 24px;
+    color: rgba(255, 255, 255, 0.4);
+    font-size: 13px;
+}
+
+/* === ESTILO DOS NOMES (CARTOLEIRO + TIME) === */
+.nome-cell-top10 {
+    text-align: left !important;
+    padding: 8px 6px !important;
+}
+
+.nome-wrapper-top10 {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+}
+
+.nome-cartoleiro {
+    display: block;
+    font-size: 11px;
+    font-weight: 600;
+    color: #ffffff;
+    line-height: 1.2;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.nome-time {
+    display: block;
+    font-size: 9px;
+    font-weight: 400;
+    color: rgba(255, 255, 255, 0.5);
+    line-height: 1.2;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+/* === AJUSTES DE TAMANHO DE FONTE GERAL === */
+.top10-table {
+    font-size: 11px;
+}
+
+.top10-table th {
+    font-size: 9px;
+    padding: 8px 6px;
+}
+
+.top10-table td {
+    padding: 8px 6px;
+    font-size: 11px;
+}
+
+.pontos-valor {
+    font-size: 12px;
+    font-weight: 700;
+}
+
+.rodada-badge {
+    font-size: 9px;
+    padding: 2px 6px;
+}
+
+.posicao-badge-top10 {
+    font-size: 11px;
+}
+
+.escudo-top10 {
+    width: 20px;
+    height: 20px;
+}
+
+.btn-ver-time .material-symbols-outlined {
+    font-size: 16px;
+}
+
+/* === SEPARADOR DE INATIVOS === */
+.inativos-separator {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 10px 14px;
+    margin-top: 12px;
+    font-size: 11px;
+    font-weight: 600;
+    color: rgba(255, 255, 255, 0.4);
+    background: rgba(255, 255, 255, 0.02);
+    border-radius: 8px 8px 0 0;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.inativos-separator .material-symbols-outlined {
+    font-size: 16px;
+    opacity: 0.6;
+}
+
+/* === ANIMAÇÃO DE ENTRADA === */
+.top10-destaque-wrapper {
+    animation: fadeInScale 0.4s ease-out;
+}
+
+@keyframes fadeInScale {
+    from {
+        opacity: 0;
+        transform: scale(0.98) translateY(10px);
+    }
+    to {
+        opacity: 1;
+        transform: scale(1) translateY(0);
+    }
+}
+
+/* === RESPONSIVIDADE === */
+@media (max-width: 480px) {
+    .top10-badge-header {
+        padding: 8px 12px;
+        font-size: 10px;
+    }
+
+    .top10-badge-header .material-symbols-outlined {
+        font-size: 16px;
+    }
+
+    .top10-restante-header {
+        padding: 10px 12px;
+        font-size: 11px;
+    }
+}

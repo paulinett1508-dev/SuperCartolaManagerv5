@@ -1,6 +1,6 @@
 # 🧬 DNA DO PROJETO: super-cartola-manager
 
-> Documentação gerada automaticamente em 07/12/2025, 11:34:39
+> Documentação gerada automaticamente em 10/12/2025, 11:00:17
 > Este documento deve ser consultado ANTES de qualquer alteração no código
 
 ---
@@ -34,13 +34,13 @@
 | **Stack** | Express.js, MongoDB, REST API |
 
 ### Funcionalidades Principais
+- ✅ Times
+- ✅ Configurações
+- ✅ Relatórios
 - ✅ Rodadas
 - ✅ Ligas
-- ✅ Times
 - ✅ Usuários
-- ✅ Relatórios
 - ✅ Financeiro
-- ✅ Configurações
 - ✅ Estatísticas
 - ✅ Notificações
 - ✅ Gols
@@ -51,18 +51,18 @@
 
 ### 👤 MODO APP (Participante)
 
-**Descrição:** Aplicativo do usuário final com 44 módulos. Funcionalidades: Rodadas, Ligas, Times, Usuários, Relatórios.
+**Descrição:** Aplicativo do usuário final com 55 módulos. Funcionalidades: Times, Configurações, Relatórios, Rodadas, Ligas.
 
-**Path base:** `public/participante`
+**Path base:** `public/css/app`
 
 **Funcionalidades:**
+- Times
+- Configurações
+- Relatórios
 - Rodadas
 - Ligas
-- Times
 - Usuários
-- Relatórios
 - Financeiro
-- Configurações
 - Estatísticas
 - Notificações
 - Gols
@@ -75,21 +75,21 @@
 **Módulos Detectados:**
 | Módulo | Arquivo | Tipo |
 |--------|---------|------|
+| Pasted  GET https super cartola manager paulinett replit app a 1765115521580 | `attached_assets/Pasted--GET-https-super-cartola-manager-paulinett-replit-app-a_1765115521580.txt` | arquivo |
+| Pasted  TAREFA PADRONIZA O DE M DULOS DO APP PARTICIPANTE CONT 1765152576370 | `attached_assets/Pasted--TAREFA-PADRONIZA-O-DE-M-DULOS-DO-APP-PARTICIPANTE-CONT_1765152576370.txt` | arquivo |
+| App Version | `config/appVersion.js` | arquivo |
 | Status | `controllers/participanteStatusController.js` | controller |
 | Corrigir participante 1926323 | `corrigir-participante-1926323.js` | arquivo |
 | Debug participante 1926323 | `debug-participante-1926323.js` | arquivo |
+| App version | `public/css/app/app-version.css` | estilo |
 | Gerir senhas participantes | `public/css/gerir-senhas-participantes.css` | estilo |
 | S | `public/css/modules/participantes.css` | módulo JS |
 | Fluxo financeiro participante | `public/js/fluxo-financeiro/fluxo-financeiro-participante.js` | arquivo |
 | S fix.js | `public/js/participantes-fix.js.bak` | arquivo |
+| DESIGN SYSTEM | `public/participante/DESIGN_SYSTEM.md` | arquivo |
 | Boas vindas | `public/participante/css/boas-vindas.css` | estilo |
+| Splash screen | `public/participante/css/splash-screen.css` | estilo |
 | Artilheiro | `public/participante/fronts/artilheiro.html` | template |
-| Extrato | `public/participante/fronts/extrato.html` | template |
-| Luva ouro | `public/participante/fronts/luva-ouro.html` | template |
-| Mata mata | `public/participante/fronts/mata-mata.html` | template |
-| Melhor mes | `public/participante/fronts/melhor-mes.html` | template |
-| Pontos corridos | `public/participante/fronts/pontos-corridos.html` | template |
-| Ranking | `public/participante/fronts/ranking.html` | template |
 
 ### 📊 Diagrama de Modos
 
@@ -98,10 +98,10 @@
 │                        SISTEMA                              │
 ├─────────────────────────────┬───────────────────────────────┤
 │                    👤 MODO APP                             │
-│                    Path: public/participante               │
+│                    Path: public/css/app               │
 ├─────────────────────────────┴───────────────────────────────┤
 │                     🔧 BACKEND (API)                        │
-│                     129 rotas detectadas                       │
+│                     134 rotas detectadas                       │
 │                     MongoDB + Express                       │
 └─────────────────────────────────────────────────────────────┘
 ```
@@ -120,10 +120,17 @@ npm install
 Crie um arquivo `.env` com as seguintes variáveis:
 ```env
 MONGODB_URI=
+ADMIN_EMAILS=
+BASE_URL=
 NODE_ENV=
+REPL_SLUG=
+REPL_OWNER=
+GOOGLE_CLIENT_ID=
+GOOGLE_CLIENT_SECRET=
+ISSUER_URL=
+REPL_ID=
 PORT=
 SESSION_SECRET=
-BASE_URL=
 API_URL=
 LIGA_ID_PRINCIPAL=
 ```
@@ -152,10 +159,12 @@ npm run dev
 - express
 - express-session
 - googleapis
+- memoizee
 - mongodb
 - mongoose
 - node-cache
 - node-fetch
+- openid-client
 
 ### DevDependencies
 - eslint
@@ -169,26 +178,27 @@ npm run dev
 ### Estatísticas
 | Métrica | Valor |
 |---------|-------|
-| Total de arquivos | 284 |
-| Tamanho total | 6104 KB |
-| Módulos Frontend | 91 |
-| Módulos Backend | 43 |
-| Rotas API | 129 |
+| Total de arquivos | 314 |
+| Tamanho total | 6585 KB |
+| Módulos Frontend | 96 |
+| Módulos Backend | 46 |
+| Rotas API | 134 |
 
 ### Distribuição por Tipo
-| .js | 180 |
-| .html | 43 |
-| .css | 22 |
-| .png | 17 |
-| .json | 12 |
-| .md | 5 |
+| .js | 192 |
+| .html | 45 |
+| .css | 24 |
+| .png | 20 |
+| .json | 13 |
+| .md | 11 |
+| .txt | 4 |
 | .cjs | 2 |
 | .ico | 1 |
 | .bak | 1 |
-| .nix | 1 |
 
 ### Estrutura de Pastas
 ```
+📁 attached_assets/
 📁 backups/
 📁 config/
 📁 controllers/
@@ -196,11 +206,13 @@ npm run dev
 📁 models/
 📁 public/
   📁 css/
+    📁 app/
     📁 modules/
   📁 escudos/
   📁 fronts/
   📁 img/
   📁 js/
+    📁 app/
     📁 artilheiro-campeao/
     📁 core/
     📁 ferramentas/
@@ -216,10 +228,7 @@ npm run dev
     📁 js/
       📁 modules/
   📁 templates/
-📁 routes/
-📁 scripts/
-📁 services/
-  ... e mais 1 pastas
+  ... e mais 4 pastas
 ```
 
 ---
@@ -227,6 +236,9 @@ npm run dev
 ## 🔗 FLUXO DE DADOS
 
 ### Frontend → Backend
+**public/js/app/app-version.js** chama:
+  - `/api/app/versao`
+
 **public/js/artilheiro-campeao/artilheiro-campeao-core.js** chama:
   - `/api/artilheiro-campeao`
   - `/api/ligas/${ligaId}/times`
@@ -298,13 +310,6 @@ npm run dev
   - `${API_BASE_URL}/api/fluxo-financeiro/${ligaId}/times/${timeId}/campo/${campoIndex}`
   - `${API_BASE_URL}/api/fluxo-financeiro/${ligaId}/times/${timeId}/reset`
 
-**public/js/fluxo-financeiro/fluxo-financeiro-cache.js** chama:
-  - `/api/ligas/${this.ligaId}/configuracoes`
-  - `${API_BASE_URL}/api/extrato-cache/${this.ligaId}/times/${timeId}/cache`
-  - `${API_BASE_URL}/api/extrato-cache/${this.ligaId}/times/${timeId}/cache`
-  - `/api/cartola/mercado/status`
-  - `/api/ligas/${ligaId}/times`
-
 ---
 
 ## 🛣️ API ROUTES
@@ -312,6 +317,11 @@ npm run dev
 
 | Método | Path | Arquivo |
 |--------|------|---------|
+| `GET` | `/test` | routes/admin-auth.js |
+| `GET` | `/session` | routes/admin-auth.js |
+| `POST` | `/logout` | routes/admin-auth.js |
+| `GET` | `/check` | routes/admin-auth.js |
+| `GET` | `/versao` | routes/appVersionRoutes.js |
 | `GET` | `/:ligaId/ranking` | routes/artilheiro-campeao-routes.js |
 | `GET` | `/:ligaId/detectar-rodada` | routes/artilheiro-campeao-routes.js |
 | `GET` | `/:ligaId/estatisticas` | routes/artilheiro-campeao-routes.js |
@@ -337,13 +347,8 @@ npm run dev
 | `GET` | `/rodadas-info` | routes/configuracao-routes.js |
 | `GET` | `/status-sistema` | routes/configuracao-routes.js |
 | `POST` | `/limpar-cache` | routes/configuracao-routes.js |
-| `POST` | `/ligas/:ligaId/rodadas/:rodada/consolidar` | routes/consolidacao-routes.js |
-| `POST` | `/ligas/:ligaId/consolidar-historico` | routes/consolidacao-routes.js |
-| `GET` | `/ligas/:ligaId/historico-completo` | routes/consolidacao-routes.js |
-| `GET` | `/ligas/:ligaId/status` | routes/consolidacao-routes.js |
-| `GET` | `/:ligaId/times/:timeId/cache` | routes/extratoFinanceiroCacheRoutes.js |
 
-*... e mais 99 rotas*
+*... e mais 104 rotas*
 
 
 ---
@@ -423,13 +428,13 @@ npm run dev
 - monospace
 - 'Fira Code', monospace
 - "JetBrains Mono", monospace
-- "Inter", -apple-system, sans-serif
+- "Inter", sans-serif
 
 **Tamanhos:**
 `2em`, `0.5em`, `1.3em`, `0.75em`, `1.8em`, `0.85em`, `1em`, `0.9em`, `0.95em`, `0.8em`
 
 **Pesos:**
-`600`, `bold`, `500`, `700`, `700 !important`, `600 !important`
+`600`, `bold`, `500`, `700`, `900`, `700 !important`
 
 ### Espaçamento
 **Paddings comuns:**
@@ -444,7 +449,7 @@ npm run dev
 - `max-width: 1023px`
 
 ### Border Radius
-`20px`, `16px`, `8px`, `4px`, `12px`, `50%`, `8px !important`, `6px`
+`20px`, `16px`, `8px`, `4px`, `12px`, `50%`, `24px`, `10px`
 
 ### Shadows
 - `var(--shadow-lg)`
@@ -458,17 +463,17 @@ npm run dev
 - `width 0.3s`
 - `all 0.3s ease`
 - `width 0.5s ease`
-- `all 0.3s ease !important`
-- `border-color 0.2s`
+- `left 0.5s ease`
+- `opacity 0.3s ease`
 
 ### Z-Index
-`10`, `5`, `9999`, `10000`, `100`, `1000`, `1`, `9998`
+`0`, `1`, `99999`, `10`, `5`, `9999`, `10000`, `100`
 
 ### Ícones
 **Biblioteca:** `material-symbols-outlined`
 
 **Ícones utilizados:**
-`swords`, `expand_more`, `error`, `sports_soccer`, `emoji_events`, `share`, `analytics`, `thumb_down`, `bar_chart`, `close`, `construction`, `menu`, `undefined`, `diff`
+`arrow_back`, `emoji_events`, `flag`, `check_circle`, `info`, `leaderboard`, `schedule`, `admin_panel_settings`, `login`, `person`, `swords`, `expand_more`, `error`, `sports_soccer`, `share`, `calendar_month`, `groups`, `calendar_today`, `insights`, `sentiment_very_dissatisfied`, `construction`, `analytics`, `close`, `pontos`, `more_vert`, `logout`, `badge`, `lock`, `visibility_off`, `engineering`
 
 ---
 
@@ -504,21 +509,23 @@ npm run dev
 ## ⚠️ PONTOS CRÍTICOS
 
 ### Arquivos Mais Importados (NÃO ALTERAR SEM CUIDADO)
-- `mongoose` (usado por 46 arquivos)
-- `express` (usado por 23 arquivos)
+- `mongoose` (usado por 47 arquivos)
+- `express` (usado por 25 arquivos)
 - `dotenv` (usado por 13 arquivos)
+- `../models/Rodada.js` (usado por 12 arquivos)
 - `fs` (usado por 10 arquivos)
 - `node-fetch` (usado por 10 arquivos)
 - `../models/Liga.js` (usado por 10 arquivos)
-- `../models/Rodada.js` (usado por 10 arquivos)
 - `path` (usado por 9 arquivos)
 - `../models/Time.js` (usado por 6 arquivos)
 - `url` (usado por 5 arquivos)
 
 ### Módulos Core do Sistema
+- `routes/appVersionRoutes.js`
 - `routes/configuracao-routes.js`
 
 ### Funções Globais (window.*)
+- `window.AppVersion (public/js/app/app-version.js)`
 - `window.ArtilheiroCore (public/js/artilheiro-campeao/artilheiro-campeao-core.js)`
 - `window.RodadaDetector (public/js/artilheiro-campeao/artilheiro-campeao-detector.js)`
 - `window.ArtilheiroScheduler (public/js/artilheiro-campeao/artilheiro-campeao-scheduler.js)`
@@ -530,16 +537,21 @@ npm run dev
 - `window.ArtilheiroCampeao (public/js/artilheiro-campeao.js)`
 - `window.coordinator (public/js/artilheiro-campeao.js)`
 - `window.inicializarArtilheiroCampeao (public/js/artilheiro-campeao.js)`
+- `window.voltarParaCards (public/js/cards-condicionais.js)`
+- `window.voltarParaCards (public/js/cards-condicionais.js)`
 - `window.cardsCondicionais (public/js/cards-condicionais.js)`
-- `window.cacheManager (public/js/core/cache-manager.js)`
-- `window.carregarRankingGeral (public/js/detalhe-liga-orquestrador.js)`
-- `window.carregarRodadas (public/js/detalhe-liga-orquestrador.js)`
 
 ---
 
 ## 📋 DÉBITOS TÉCNICOS
 
-✅ Nenhum TODO/FIXME encontrado.
+
+| Tipo | Arquivo | Linha | Descrição |
+|------|---------|-------|-----------|
+| TODO | public/js/fluxo-financeiro/fluxo-financeiro-auditoria.js | 1140 | Implementar com jsPDF ou similar |
+| TODO | public/js/fluxo-financeiro/fluxo-financeiro-auditoria.js | 1145 | Implementar com SheetJS ou similar |
+
+
 
 ---
 
