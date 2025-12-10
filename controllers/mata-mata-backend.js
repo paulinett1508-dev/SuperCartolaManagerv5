@@ -1,10 +1,19 @@
 /**
- * MATA-MATA-BACKEND.JS v1.0
+ * MATA-MATA-BACKEND.JS v1.1
  * Lógica de Mata-Mata para Node.js - Espelho do frontend
  * Calcula todas as fases: primeira, oitavas, quartas, semis, final
+ *
+ * v1.1: Fix conversão ligaId + logging detalhado
  */
 
+import mongoose from "mongoose";
 import Rodada from "../models/Rodada.js";
+
+// ============================================================================
+// ⚽ CONFIGURAÇÃO DO CAMPEONATO 2025
+// ============================================================================
+const RODADA_FINAL_CAMPEONATO = 38; // Última rodada do Brasileirão 2025
+const CAMPEONATO_ENCERRADO = true; // Flag: temporada finalizada
 
 // ============================================================================
 // CONFIGURAÇÃO DAS EDIÇÕES (sincronizado com mata-mata-config.js)
@@ -57,12 +66,30 @@ const EDICOES_MATA_MATA = [
  */
 async function getRankingRodada(ligaId, rodada) {
     try {
+        // Converter ligaId para ObjectId se necessário
+        let ligaIdQuery;
+        if (typeof ligaId === "string") {
+            ligaIdQuery = new mongoose.Types.ObjectId(ligaId);
+        } else if (ligaId instanceof mongoose.Types.ObjectId) {
+            ligaIdQuery = ligaId;
+        } else {
+            ligaIdQuery = ligaId;
+        }
+
+        console.log(
+            `[MATA-BACKEND] Buscando ranking: liga=${ligaId}, rodada=${rodada}`,
+        );
+
         const registros = await Rodada.find({
-            ligaId: ligaId,
+            ligaId: ligaIdQuery,
             rodada: rodada,
         })
             .select("timeId pontos nome_time nome_cartola")
             .lean();
+
+        console.log(
+            `[MATA-BACKEND] Encontrados ${registros?.length || 0} registros para R${rodada}`,
+        );
 
         if (!registros || registros.length === 0) {
             console.warn(`[MATA-BACKEND] Sem dados para rodada ${rodada}`);
@@ -84,7 +111,7 @@ async function getRankingRodada(ligaId, rodada) {
     } catch (error) {
         console.error(
             `[MATA-BACKEND] Erro ao buscar ranking rodada ${rodada}:`,
-            error,
+            error.message,
         );
         return [];
     }
@@ -242,12 +269,17 @@ async function calcularResultadosEdicao(ligaId, edicao, rodadaAtual) {
             edicao.rodadaDefinicao,
         );
 
+        // Exigir pelo menos 32 times para 1ª fase completa
         if (!rankingBase || rankingBase.length < 32) {
             console.warn(
-                `[MATA-BACKEND] Ranking base insuficiente para ${edicao.nome}: ${rankingBase?.length || 0} times`,
+                `[MATA-BACKEND] Ranking base insuficiente para ${edicao.nome}: ${rankingBase?.length || 0} times (esperado: 32)`,
             );
             return [];
         }
+
+        console.log(
+            `[MATA-BACKEND] ${edicao.nome}: Ranking base com ${rankingBase.length} times`,
+        );
 
         // Mapear rodadas de cada fase
         const rodadasFases = {
@@ -402,10 +434,22 @@ export async function calcularMataMataParaTime(
         (e) => rodadaNumero >= e.rodadaInicial && rodadaNumero <= e.rodadaFinal,
     );
 
-    if (!edicao) return null;
+    if (!edicao) {
+        // Não logar para cada rodada - só para rodadas de MM
+        return null;
+    }
+
+    console.log(
+        `[MATA-BACKEND] Calculando R${rodadaNumero} para time ${timeId} (${edicao.nome})`,
+    );
 
     // Verificar se rodada já foi concluída
-    if (rodadaNumero >= rodadaAtual) return null;
+    if (rodadaNumero >= rodadaAtual) {
+        console.log(
+            `[MATA-BACKEND] R${rodadaNumero} ainda não concluída (atual: ${rodadaAtual})`,
+        );
+        return null;
+    }
 
     // Calcular resultados da edição
     const resultados = await calcularResultadosEdicao(
@@ -414,12 +458,21 @@ export async function calcularMataMataParaTime(
         rodadaAtual,
     );
 
+    console.log(
+        `[MATA-BACKEND] Resultados da edição: ${resultados.length} transações`,
+    );
+
     // Encontrar resultado do time na rodada específica
     const resultado = resultados.find(
         (r) => r.timeId === String(timeId) && r.rodadaPontos === rodadaNumero,
     );
 
-    if (!resultado) return null;
+    if (!resultado) {
+        console.log(
+            `[MATA-BACKEND] Nenhum resultado para time ${timeId} na R${rodadaNumero}`,
+        );
+        return null;
+    }
 
     const faseLabel =
         {
@@ -429,6 +482,10 @@ export async function calcularMataMataParaTime(
             semis: "Semis",
             final: "Final",
         }[resultado.fase] || resultado.fase;
+
+    console.log(
+        `[MATA-BACKEND] ✅ Time ${timeId}: ${resultado.valor > 0 ? "Vitória" : "Derrota"} (${faseLabel})`,
+    );
 
     return {
         valor: resultado.valor,
@@ -460,4 +517,4 @@ export async function criarMapaMataMata(ligaId, rodadaAtual) {
     return mapa;
 }
 
-console.log("[MATA-BACKEND] ✅ Módulo v1.0 carregado");
+console.log("[MATA-BACKEND] ✅ Módulo v1.1 carregado");

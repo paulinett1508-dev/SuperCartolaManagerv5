@@ -1,5 +1,12 @@
-// TOP10.JS - MÓDULO DE MITOS E MICOS
-// ✅ CORRIGIDO: Usando imports dinâmicos para compatibilidade com rodadas.js
+// TOP10.JS - MÓDULO DE MITOS E MICOS v2.0
+// ✅ v2.0: Fix rodada 38 (CAMPEONATO_ENCERRADO)
+// ✅ Usando imports dinâmicos para compatibilidade com rodadas.js
+
+// ============================================================================
+// ⚽ CONFIGURAÇÃO DO CAMPEONATO 2025
+// ============================================================================
+const RODADA_FINAL_CAMPEONATO = 38; // Última rodada do Brasileirão 2025
+const CAMPEONATO_ENCERRADO = true; // Flag: temporada finalizada
 
 // ==============================
 // VARIÁVEIS GLOBAIS E DE ESTADO
@@ -64,7 +71,7 @@ async function getMercadoStatus() {
         return await res.json();
     } catch (err) {
         console.error("[TOP10] Erro ao buscar status do mercado:", err);
-        return { rodada_atual: 1, status_mercado: 2 };
+        return { rodada_atual: RODADA_FINAL_CAMPEONATO, status_mercado: 2 };
     }
 }
 
@@ -158,7 +165,8 @@ async function salvarCacheTop10(ligaId, rodada, mitos, micos) {
     try {
         // ✅ Determinar se é cache permanente (rodada consolidada)
         const status = await getMercadoStatus();
-        const isPermanent = status && status.rodada_atual > rodada;
+        const isPermanent =
+            CAMPEONATO_ENCERRADO || (status && status.rodada_atual > rodada);
 
         const response = await fetch(`/api/top10/cache/${ligaId}`, {
             method: "POST",
@@ -275,13 +283,34 @@ async function carregarDadosTop10() {
         if (!status || !status.rodada_atual)
             throw new Error("Não foi possível obter a rodada atual");
 
-        const ultimaRodadaCompleta =
-            status.rodada_atual > 1 ? status.rodada_atual - 1 : 0;
+        // ✅ v2.0: FIX - Considerar CAMPEONATO_ENCERRADO
+        let ultimaRodadaCompleta;
+
+        if (CAMPEONATO_ENCERRADO) {
+            // Campeonato encerrado: última rodada = RODADA_FINAL_CAMPEONATO
+            ultimaRodadaCompleta = RODADA_FINAL_CAMPEONATO;
+            console.log(
+                `[TOP10] 🏁 Campeonato ENCERRADO - usando rodada ${RODADA_FINAL_CAMPEONATO}`,
+            );
+        } else {
+            // Campeonato em andamento: verificar mercado
+            const mercadoAberto =
+                status.mercado_aberto || status.status_mercado === 1;
+            if (mercadoAberto) {
+                ultimaRodadaCompleta = Math.max(1, status.rodada_atual - 1);
+            } else {
+                ultimaRodadaCompleta = status.rodada_atual;
+            }
+        }
 
         if (ultimaRodadaCompleta === 0) {
             console.log("[TOP10] Nenhuma rodada completa ainda.");
             return;
         }
+
+        console.log(
+            `[TOP10] 📊 Calculando Top10 até rodada ${ultimaRodadaCompleta}`,
+        );
 
         // ============================================================
         // 🚀 OTIMIZAÇÃO: Tentar ler do Cache primeiro
@@ -351,7 +380,7 @@ async function carregarDadosTop10() {
         }
 
         console.log(
-            `[TOP10] Dados calculados e salvos: ${todosOsMitos.length} mitos`,
+            `[TOP10] Dados calculados e salvos: ${todosOsMitos.length} mitos, ${todosOsMicos.length} micos`,
         );
     } catch (error) {
         console.error("[TOP10] Erro ao carregar dados:", error);
@@ -510,4 +539,4 @@ if (typeof window !== "undefined") {
     window.getTop10Data = getTop10Data;
 }
 
-console.log("[TOP10] Módulo carregado e pronto");
+console.log("[TOP10] ✅ Módulo v2.0 carregado (fix rodada 38)");

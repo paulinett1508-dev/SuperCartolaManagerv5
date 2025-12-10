@@ -1,8 +1,15 @@
 // =====================================================================
-// PARTICIPANTE-TOP10.JS - v4.4 (Card Resumo ao final)
+// PARTICIPANTE-TOP10.JS - v4.5 (Fix busca cache + fallback robusto)
 // =====================================================================
+// ✅ v4.5: Fix rodada do cache (ultimaRodadaCompleta) + fallback via rodadas API
 
-if (window.Log) Log.info("[PARTICIPANTE-TOP10] 🏆 Carregando módulo v4.4...");
+// ============================================================================
+// ⚽ CONFIGURAÇÃO DO CAMPEONATO 2025
+// ============================================================================
+const RODADA_FINAL_CAMPEONATO = 38; // Última rodada do Brasileirão 2025
+const CAMPEONATO_ENCERRADO = true; // Flag: temporada finalizada
+
+if (window.Log) Log.info("[PARTICIPANTE-TOP10] 🏆 Carregando módulo v4.5...");
 
 // =====================================================================
 // CONFIGURAÇÃO DE VALORES BÔNUS/ÔNUS
@@ -49,30 +56,56 @@ export async function inicializarTop10Participante({
     ligaId,
     timeId,
 }) {
-    if (window.Log) Log.info("[PARTICIPANTE-TOP10] 🚀 Inicializando v4.3...", {
-        ligaId,
-        timeId,
-    });
+    if (window.Log)
+        Log.info("[PARTICIPANTE-TOP10] 🚀 Inicializando v4.5...", {
+            ligaId,
+            timeId,
+        });
 
     meuTimeIdGlobal = timeId;
     mostrarLoading(true);
 
     try {
+        // ✅ v4.5: Obter status do mercado
         let rodadaAtual = 1;
+        let mercadoAberto = false;
+
         try {
             const resStatus = await fetch("/api/cartola/mercado/status");
             if (resStatus.ok) {
                 const status = await resStatus.json();
                 rodadaAtual = status.rodada_atual || 1;
+                mercadoAberto =
+                    status.mercado_aberto || status.status_mercado === 1;
             }
         } catch (e) {
-            if (window.Log) Log.warn(
-                "[PARTICIPANTE-TOP10] ⚠️ Falha ao buscar rodada atual",
-            );
+            if (window.Log)
+                Log.warn(
+                    "[PARTICIPANTE-TOP10] ⚠️ Falha ao buscar rodada atual",
+                );
         }
 
-        const cacheUrl = `/api/top10/cache/${ligaId}?rodada=${rodadaAtual}`;
-        if (window.Log) Log.info("[PARTICIPANTE-TOP10] 📡 Buscando cache:", cacheUrl);
+        // ✅ v4.5: FIX - Usar última rodada COMPLETA (igual ao top10.js)
+        // ✅ Se campeonato encerrado, usar RODADA_FINAL_CAMPEONATO
+        let ultimaRodadaCompleta;
+
+        if (CAMPEONATO_ENCERRADO) {
+            ultimaRodadaCompleta = RODADA_FINAL_CAMPEONATO;
+        } else {
+            ultimaRodadaCompleta = mercadoAberto
+                ? Math.max(1, rodadaAtual - 1)
+                : rodadaAtual;
+        }
+
+        if (window.Log)
+            Log.info(
+                `[PARTICIPANTE-TOP10] 📊 Rodada atual: ${rodadaAtual}, Última completa: ${ultimaRodadaCompleta}, Campeonato encerrado: ${CAMPEONATO_ENCERRADO}`,
+            );
+
+        // ✅ v4.5: FIX - Buscar cache com a rodada COMPLETA
+        const cacheUrl = `/api/top10/cache/${ligaId}?rodada=${ultimaRodadaCompleta}`;
+        if (window.Log)
+            Log.info("[PARTICIPANTE-TOP10] 📡 Buscando cache:", cacheUrl);
 
         const response = await fetch(cacheUrl);
         let mitos = [];
@@ -81,19 +114,56 @@ export async function inicializarTop10Participante({
         if (response.ok) {
             const data = await response.json();
             if (data.cached && data.mitos && data.micos) {
-                mitos = data.mitos;
-                micos = data.micos;
-                if (window.Log) Log.info(
-                    `[PARTICIPANTE-TOP10] 💾 Cache encontrado: ${mitos.length} mitos, ${micos.length} micos`,
-                );
+                // ✅ v4.5: Validar se cache tem dados
+                if (data.mitos.length > 0 && data.micos.length > 0) {
+                    mitos = data.mitos;
+                    micos = data.micos;
+                    if (window.Log)
+                        Log.info(
+                            `[PARTICIPANTE-TOP10] 💾 Cache encontrado: ${mitos.length} mitos, ${micos.length} micos`,
+                        );
+                } else {
+                    if (window.Log)
+                        Log.warn(
+                            "[PARTICIPANTE-TOP10] ⚠️ Cache vazio, recalculando...",
+                        );
+                }
             }
         }
 
+        // ✅ v4.5: Se não encontrou cache, calcular
         if (mitos.length === 0 || micos.length === 0) {
-            if (window.Log) Log.info("[PARTICIPANTE-TOP10] 📊 Calculando MITOS/MICOS...");
-            const resultado = await calcularMitosMicos(ligaId, rodadaAtual);
+            if (window.Log)
+                Log.info("[PARTICIPANTE-TOP10] 📊 Calculando MITOS/MICOS...");
+            const resultado = await calcularMitosMicos(
+                ligaId,
+                ultimaRodadaCompleta,
+            );
             mitos = resultado.mitos;
             micos = resultado.micos;
+
+            // ✅ v4.5: Salvar no cache para próximas consultas
+            if (mitos.length > 0 && micos.length > 0) {
+                try {
+                    await fetch(`/api/top10/cache/${ligaId}`, {
+                        method: "POST",
+                        headers: { "Content-Type": "application/json" },
+                        body: JSON.stringify({
+                            rodada: ultimaRodadaCompleta,
+                            mitos: mitos,
+                            micos: micos,
+                            permanent: true,
+                        }),
+                    });
+                    if (window.Log)
+                        Log.info("[PARTICIPANTE-TOP10] 💾 Cache salvo");
+                } catch (e) {
+                    if (window.Log)
+                        Log.warn(
+                            "[PARTICIPANTE-TOP10] ⚠️ Erro ao salvar cache",
+                        );
+                }
+            }
         }
 
         mostrarLoading(false);
@@ -113,7 +183,8 @@ export async function inicializarTop10Participante({
         // Renderizar card de resumo
         renderizarCardResumo(mitos, micos, timeId, valoresBonusOnus);
 
-        if (window.Log) Log.info("[PARTICIPANTE-TOP10] ✅ TOP 10 carregado com sucesso");
+        if (window.Log)
+            Log.info("[PARTICIPANTE-TOP10] ✅ TOP 10 carregado com sucesso");
     } catch (error) {
         if (window.Log) Log.error("[PARTICIPANTE-TOP10] ❌ Erro:", error);
         mostrarLoading(false);
@@ -124,64 +195,107 @@ export async function inicializarTop10Participante({
 window.inicializarTop10Participante = inicializarTop10Participante;
 
 // =====================================================================
-// CALCULAR MITOS/MICOS (FALLBACK)
+// CALCULAR MITOS/MICOS - v4.5 (Fallback robusto)
 // =====================================================================
-async function calcularMitosMicos(ligaId, rodadaAtual) {
+async function calcularMitosMicos(ligaId, ultimaRodadaCompleta) {
     const mitos = [];
     const micos = [];
 
     try {
-        const response = await fetch(`/api/ligas/${ligaId}/top10`);
-        if (!response.ok) return { mitos: [], micos: [] };
-
-        const dados = await response.json();
-        const rodadas = Object.keys(dados)
-            .map(Number)
-            .filter((n) => !isNaN(n) && n <= rodadaAtual);
-
-        for (const numRodada of rodadas) {
-            const timesRodada = dados[numRodada];
-            if (!timesRodada || timesRodada.length === 0) continue;
-
-            // ✅ v4.2: Filtrar apenas ativos para ranking
-            const timesAtivos = timesRodada.filter((t) => t.ativo !== false);
-            const ordenados = [...timesAtivos].sort(
-                (a, b) => (b.pontos || 0) - (a.pontos || 0),
+        if (window.Log)
+            Log.info(
+                `[PARTICIPANTE-TOP10] 🔄 Calculando Top10 para rodadas 1-${ultimaRodadaCompleta}...`,
             );
 
-            if (ordenados.length > 0) {
-                const mito = ordenados[0];
-                mitos.push({
-                    rodada: numRodada,
-                    timeId: mito.timeId || mito.time_id,
-                    nome_cartola: mito.nome_cartola || "N/D",
-                    nome_time: mito.nome_time || "N/D",
-                    pontos: parseFloat(mito.pontos) || 0,
-                    escudo: mito.escudo_time_do_coracao || mito.escudo || "",
-                    clube_id: mito.clube_id || null,
-                    ativo: mito.ativo !== false,
-                });
-            }
+        // ✅ v4.5: Usar API de rodadas em lote (mais confiável)
+        const response = await fetch(
+            `/api/rodadas/${ligaId}/rodadas?inicio=1&fim=${ultimaRodadaCompleta}`,
+        );
 
-            if (ordenados.length > 1) {
-                const mico = ordenados[ordenados.length - 1];
-                micos.push({
-                    rodada: numRodada,
-                    timeId: mico.timeId || mico.time_id,
-                    nome_cartola: mico.nome_cartola || "N/D",
-                    nome_time: mico.nome_time || "N/D",
-                    pontos: parseFloat(mico.pontos) || 0,
-                    escudo: mico.escudo_time_do_coracao || mico.escudo || "",
-                    clube_id: mico.clube_id || null,
-                    ativo: mico.ativo !== false,
-                });
-            }
+        if (!response.ok) {
+            if (window.Log)
+                Log.error("[PARTICIPANTE-TOP10] ❌ Erro ao buscar rodadas");
+            return { mitos: [], micos: [] };
         }
 
+        const dados = await response.json();
+
+        if (!Array.isArray(dados) || dados.length === 0) {
+            if (window.Log)
+                Log.warn(
+                    "[PARTICIPANTE-TOP10] ⚠️ Nenhum dado de rodadas encontrado",
+                );
+            return { mitos: [], micos: [] };
+        }
+
+        // ✅ v4.5: Agrupar por rodada
+        const rodadasMap = new Map();
+        dados.forEach((item) => {
+            const numRodada = parseInt(item.rodada);
+            if (!rodadasMap.has(numRodada)) {
+                rodadasMap.set(numRodada, []);
+            }
+            rodadasMap.get(numRodada).push(item);
+        });
+
+        if (window.Log)
+            Log.info(
+                `[PARTICIPANTE-TOP10] 📊 ${rodadasMap.size} rodadas encontradas`,
+            );
+
+        // ✅ v4.5: Processar cada rodada
+        for (const [numRodada, timesRodada] of rodadasMap) {
+            if (numRodada > ultimaRodadaCompleta) continue;
+            if (!timesRodada || timesRodada.length === 0) continue;
+
+            // Filtrar apenas ativos para ranking
+            const timesAtivos = timesRodada.filter((t) => t.ativo !== false);
+
+            if (timesAtivos.length < 2) continue;
+
+            const ordenados = [...timesAtivos].sort(
+                (a, b) =>
+                    (parseFloat(b.pontos) || 0) - (parseFloat(a.pontos) || 0),
+            );
+
+            // MITO (primeiro lugar)
+            const mito = ordenados[0];
+            mitos.push({
+                rodada: numRodada,
+                timeId: mito.timeId || mito.time_id,
+                nome_cartola: mito.nome_cartola || "N/D",
+                nome_time: mito.nome_time || "N/D",
+                pontos: parseFloat(mito.pontos) || 0,
+                escudo: mito.escudo_time_do_coracao || mito.escudo || "",
+                clube_id: mito.clube_id || null,
+                ativo: mito.ativo !== false,
+            });
+
+            // MICO (último lugar)
+            const mico = ordenados[ordenados.length - 1];
+            micos.push({
+                rodada: numRodada,
+                timeId: mico.timeId || mico.time_id,
+                nome_cartola: mico.nome_cartola || "N/D",
+                nome_time: mico.nome_time || "N/D",
+                pontos: parseFloat(mico.pontos) || 0,
+                escudo: mico.escudo_time_do_coracao || mico.escudo || "",
+                clube_id: mico.clube_id || null,
+                ativo: mico.ativo !== false,
+            });
+        }
+
+        // Ordenar: Mitos por maior pontuação, Micos por menor pontuação
         mitos.sort((a, b) => b.pontos - a.pontos);
         micos.sort((a, b) => a.pontos - b.pontos);
+
+        if (window.Log)
+            Log.info(
+                `[PARTICIPANTE-TOP10] ✅ Calculado: ${mitos.length} mitos, ${micos.length} micos`,
+            );
     } catch (error) {
-        if (window.Log) Log.error("[PARTICIPANTE-TOP10] Erro ao calcular:", error);
+        if (window.Log)
+            Log.error("[PARTICIPANTE-TOP10] ❌ Erro ao calcular:", error);
     }
 
     return { mitos: mitos.slice(0, 10), micos: micos.slice(0, 10) };
@@ -196,7 +310,7 @@ function renderizarTabelasTop10(mitos, micos, meuTimeId, valoresBonusOnus) {
 
     const meuTimeIdNum = Number(meuTimeId);
 
-    // ✅ v4.2: Separar ativos de inativos em cada lista
+    // Separar ativos de inativos em cada lista
     const mitosAtivos = mitos.filter((m) => m.ativo !== false);
     const mitosInativos = mitos.filter((m) => m.ativo === false);
     const micosAtivos = micos.filter((m) => m.ativo !== false);
@@ -423,9 +537,10 @@ function renderizarCardResumo(mitos, micos, meuTimeId, valoresBonusOnus) {
         card.style.display = "block";
     }
 
-    if (window.Log) Log.info(
-        `[PARTICIPANTE-TOP10] 📊 Resumo: ${countMitos} MITOS (+R$${totalBonus}), ${countMicos} MICOS (-R$${totalOnus}), Saldo: R$${saldo}`,
-    );
+    if (window.Log)
+        Log.info(
+            `[PARTICIPANTE-TOP10] 📊 Resumo: ${countMitos} MITOS (+R$${totalBonus}), ${countMicos} MICOS (-R$${totalOnus}), Saldo: R$${saldo}`,
+        );
 }
 
 // =====================================================================
@@ -474,6 +589,7 @@ function mostrarEstadoVazio(show) {
     if (grid) grid.style.display = show ? "none" : "flex";
 }
 
-if (window.Log) Log.info(
-    "[PARTICIPANTE-TOP10] ✅ Módulo v4.3 carregado (Material Icons + Card Resumo)",
-);
+if (window.Log)
+    Log.info(
+        "[PARTICIPANTE-TOP10] ✅ Módulo v4.5 carregado (Fix cache + fallback robusto)",
+    );

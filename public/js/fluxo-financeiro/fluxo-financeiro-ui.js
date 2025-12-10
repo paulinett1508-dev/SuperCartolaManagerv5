@@ -51,24 +51,30 @@ export class FluxoFinanceiroUI {
         // Nota: Mantivemos classes inline mínimas aqui pois é um grid flexível que pode variar,
         // mas o ideal seria mover .participante-card para o CSS também.
         container.innerHTML = `
-            <div class="fluxo-controls">
-                <button onclick="window.gerarRelatorioFinanceiro()" class="btn-modern btn-primary-gradient">
-                    <span class="material-icons" style="font-size: 16px;">assessment</span> Relatório Consolidado
-                </button>
-                <button onclick="window.limparCacheLiga()" class="btn-modern btn-limpar-liga" title="Limpar cache de todos os participantes">
-                    <span class="material-icons" style="font-size: 16px;">delete_sweep</span> Limpar Cache
-                </button>
-                <button onclick="window.recalcularTodosCache()" class="btn-modern btn-recalcular-todos" title="Recalcular cache de todos os participantes">
-                    <span class="material-icons" style="font-size: 16px;">sync</span> Recalcular Todos
-                </button>
-                <div class="search-wrapper">
-                    <input type="text" id="searchParticipante" placeholder="Pesquisar participante..."
-                           class="input-modern"
-                           onkeyup="window.filtrarParticipantes(this.value)">
+            <div class="fluxo-controls-header">
+                <div class="fluxo-controls-row">
+                    <button onclick="window.gerarRelatorioFinanceiro()" class="btn-fluxo btn-relatorio">
+                        <span class="material-icons">assessment</span>
+                        <span>Relatório</span>
+                    </button>
+                    <button onclick="window.limparCacheLiga()" class="btn-fluxo btn-limpar" title="Limpar cache de todos os participantes">
+                        <span class="material-icons">delete_sweep</span>
+                        <span>Limpar Cache</span>
+                    </button>
+                    <button onclick="window.recalcularTodosCache()" class="btn-fluxo btn-recalcular" title="Recalcular cache de todos os participantes">
+                        <span class="material-icons">sync</span>
+                        <span>Recalcular</span>
+                    </button>
                 </div>
-            </div>
-            <div id="resultadosCount" class="text-muted text-right text-small">
-                ${participantes.length} participantes
+                <div class="fluxo-search-row">
+                    <div class="search-container">
+                        <span class="material-icons search-icon">search</span>
+                        <input type="text" id="searchParticipante" placeholder="Pesquisar participante..."
+                               class="input-search"
+                               onkeyup="window.filtrarParticipantes(this.value)">
+                    </div>
+                    <span class="participantes-count">${participantes.length} participantes</span>
+                </div>
             </div>
             <div class="participantes-grid" id="participantesGrid">
                 ${participantes
@@ -115,6 +121,150 @@ export class FluxoFinanceiroUI {
         const style = document.createElement("style");
         style.id = "participante-wrapper-styles";
         style.textContent = `
+            /* ✅ v4.5: Layout profissional do header */
+            .fluxo-controls-header {
+                background: linear-gradient(135deg, rgba(30, 30, 35, 0.95) 0%, rgba(25, 25, 30, 0.98) 100%);
+                border: 1px solid rgba(255, 255, 255, 0.08);
+                border-radius: 12px;
+                padding: 16px;
+                margin-bottom: 16px;
+                display: flex;
+                flex-direction: column;
+                gap: 12px;
+            }
+            .fluxo-controls-row {
+                display: flex;
+                gap: 10px;
+                flex-wrap: wrap;
+            }
+            .fluxo-search-row {
+                display: flex;
+                align-items: center;
+                gap: 12px;
+                flex-wrap: wrap;
+            }
+            .search-container {
+                flex: 1;
+                min-width: 200px;
+                position: relative;
+                display: flex;
+                align-items: center;
+            }
+            .search-container .search-icon {
+                position: absolute;
+                left: 12px;
+                color: #888;
+                font-size: 18px;
+                pointer-events: none;
+            }
+            .input-search {
+                width: 100%;
+                padding: 10px 12px 10px 40px;
+                background: rgba(255, 255, 255, 0.05);
+                border: 1px solid rgba(255, 255, 255, 0.1);
+                border-radius: 8px;
+                color: #fff;
+                font-size: 14px;
+                transition: all 0.2s ease;
+            }
+            .input-search:focus {
+                outline: none;
+                border-color: var(--laranja, #ff6b35);
+                background: rgba(255, 255, 255, 0.08);
+            }
+            .input-search::placeholder {
+                color: #666;
+            }
+            .participantes-count {
+                color: #888;
+                font-size: 13px;
+                white-space: nowrap;
+            }
+
+            /* ✅ v4.5: Botões profissionais */
+            .btn-fluxo {
+                display: inline-flex;
+                align-items: center;
+                gap: 6px;
+                padding: 10px 16px;
+                border: none;
+                border-radius: 8px;
+                font-size: 13px;
+                font-weight: 600;
+                cursor: pointer;
+                transition: all 0.2s ease;
+                white-space: nowrap;
+            }
+            .btn-fluxo .material-icons {
+                font-size: 18px;
+            }
+            .btn-fluxo:hover {
+                transform: translateY(-2px);
+            }
+            .btn-fluxo:active {
+                transform: translateY(0);
+            }
+            .btn-fluxo:disabled {
+                opacity: 0.6;
+                cursor: not-allowed;
+                transform: none !important;
+            }
+            .btn-fluxo.loading .material-icons {
+                animation: spin 1s linear infinite;
+            }
+
+            /* Cores dos botões */
+            .btn-relatorio {
+                background: linear-gradient(135deg, #ff6b35 0%, #f54d00 100%);
+                color: white;
+                box-shadow: 0 2px 8px rgba(255, 107, 53, 0.3);
+            }
+            .btn-relatorio:hover {
+                box-shadow: 0 4px 16px rgba(255, 107, 53, 0.4);
+            }
+
+            .btn-limpar {
+                background: linear-gradient(135deg, #dc2626 0%, #b91c1c 100%);
+                color: white;
+                box-shadow: 0 2px 8px rgba(220, 38, 38, 0.3);
+            }
+            .btn-limpar:hover {
+                box-shadow: 0 4px 16px rgba(220, 38, 38, 0.4);
+            }
+
+            .btn-recalcular {
+                background: linear-gradient(135deg, #059669 0%, #047857 100%);
+                color: white;
+                box-shadow: 0 2px 8px rgba(5, 150, 105, 0.3);
+            }
+            .btn-recalcular:hover {
+                box-shadow: 0 4px 16px rgba(5, 150, 105, 0.4);
+            }
+
+            @keyframes spin {
+                from { transform: rotate(0deg); }
+                to { transform: rotate(360deg); }
+            }
+
+            /* Responsivo */
+            @media (max-width: 600px) {
+                .fluxo-controls-row {
+                    flex-direction: column;
+                }
+                .btn-fluxo {
+                    width: 100%;
+                    justify-content: center;
+                }
+                .fluxo-search-row {
+                    flex-direction: column;
+                    align-items: stretch;
+                }
+                .participantes-count {
+                    text-align: center;
+                }
+            }
+
+            /* Cards de participante */
             .participante-card-wrapper {
                 display: flex;
                 flex-direction: column;
@@ -124,7 +274,8 @@ export class FluxoFinanceiroUI {
                 width: 100%;
                 justify-content: center;
             }
-            /* ✅ v4.4.1: Estilos para botão limpar cache */
+
+            /* Botão limpar cache individual */
             .btn-recalc-cache {
                 background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
                 color: white;
@@ -149,64 +300,6 @@ export class FluxoFinanceiroUI {
                 transform: none;
             }
             .btn-recalc-cache.loading .material-icons {
-                animation: spin 1s linear infinite;
-            }
-            @keyframes spin {
-                from { transform: rotate(0deg); }
-                to { transform: rotate(360deg); }
-            }
-            /* ✅ v4.5: Estilos para botão limpar cache da liga */
-            .btn-limpar-liga {
-                background: linear-gradient(135deg, #dc2626 0%, #b91c1c 100%) !important;
-                color: white !important;
-                border: none;
-                padding: 10px 16px;
-                border-radius: 8px;
-                cursor: pointer;
-                font-size: 13px;
-                font-weight: 600;
-                display: flex;
-                align-items: center;
-                gap: 6px;
-                transition: all 0.2s ease;
-            }
-            .btn-limpar-liga:hover {
-                transform: translateY(-1px);
-                box-shadow: 0 4px 12px rgba(220, 38, 38, 0.4);
-            }
-            .btn-limpar-liga:disabled {
-                opacity: 0.6;
-                cursor: not-allowed;
-                transform: none;
-            }
-            .btn-limpar-liga.loading .material-icons {
-                animation: spin 1s linear infinite;
-            }
-            /* ✅ v4.5: Estilos para botão recalcular todos */
-            .btn-recalcular-todos {
-                background: linear-gradient(135deg, #059669 0%, #047857 100%) !important;
-                color: white !important;
-                border: none;
-                padding: 10px 16px;
-                border-radius: 8px;
-                cursor: pointer;
-                font-size: 13px;
-                font-weight: 600;
-                display: flex;
-                align-items: center;
-                gap: 6px;
-                transition: all 0.2s ease;
-            }
-            .btn-recalcular-todos:hover {
-                transform: translateY(-1px);
-                box-shadow: 0 4px 12px rgba(5, 150, 105, 0.4);
-            }
-            .btn-recalcular-todos:disabled {
-                opacity: 0.6;
-                cursor: not-allowed;
-                transform: none;
-            }
-            .btn-recalcular-todos.loading .material-icons {
                 animation: spin 1s linear infinite;
             }
         `;
@@ -661,11 +754,11 @@ window.limparCacheLiga = async function () {
     if (!confirmacao) return;
 
     // Buscar botão e colocar em loading
-    const btn = document.querySelector(".btn-limpar-liga");
+    const btn = document.querySelector(".btn-limpar");
     if (btn) {
         btn.classList.add("loading");
         btn.disabled = true;
-        btn.innerHTML = `<span class="material-icons" style="font-size: 16px;">sync</span> Limpando...`;
+        btn.innerHTML = `<span class="material-icons">sync</span><span>Limpando...</span>`;
     }
 
     try {
@@ -692,7 +785,7 @@ window.limparCacheLiga = async function () {
         if (btn) {
             btn.classList.remove("loading");
             btn.disabled = false;
-            btn.innerHTML = `<span class="material-icons" style="font-size: 16px;">delete_sweep</span> Limpar Cache`;
+            btn.innerHTML = `<span class="material-icons">delete_sweep</span><span>Limpar Cache</span>`;
         }
     }
 };
@@ -731,7 +824,7 @@ window.recalcularTodosCache = async function () {
     if (!confirmacao) return;
 
     // Buscar botão e colocar em loading
-    const btn = document.querySelector(".btn-recalcular-todos");
+    const btn = document.querySelector(".btn-recalcular");
     if (btn) {
         btn.classList.add("loading");
         btn.disabled = true;
@@ -752,7 +845,7 @@ window.recalcularTodosCache = async function () {
 
             // Atualizar botão com progresso
             if (btn) {
-                btn.innerHTML = `<span class="material-icons" style="font-size: 16px;">sync</span> ${i + 1}/${participantes.length}`;
+                btn.innerHTML = `<span class="material-icons">sync</span><span>${i + 1}/${participantes.length}</span>`;
             }
 
             try {
@@ -820,7 +913,7 @@ window.recalcularTodosCache = async function () {
         if (btn) {
             btn.classList.remove("loading");
             btn.disabled = false;
-            btn.innerHTML = `<span class="material-icons" style="font-size: 16px;">sync</span> Recalcular Todos`;
+            btn.innerHTML = `<span class="material-icons">sync</span><span>Recalcular</span>`;
         }
     }
 };

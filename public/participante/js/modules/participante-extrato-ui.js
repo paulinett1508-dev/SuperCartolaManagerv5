@@ -1,19 +1,14 @@
 // =====================================================
-// MÓDULO: UI DO EXTRATO PARTICIPANTE - v8.1 CAMPOS MANUAIS
+// MÓDULO: UI DO EXTRATO PARTICIPANTE - v8.4 ZONAS G/Z
 // =====================================================
-// ✅ v8.1: Campos manuais incluídos no detalhamento CRÉDITOS/DÉBITOS
-//    - camposEditaveis integrados no popup de detalhamento
-//    - Cards compactos sem quebra de linha
-//    - Cálculo do resumo inclui campos manuais
-// ✅ v8.0: Design system consistente com boas-vindas
-//    - Fundo escuro uniforme (bg-surface-dark)
-//    - Cores neutras (white/XX ao invés de zinc/gray)
-//    - Primary color (text-primary ao invés de text-orange-XXX)
-//    - Cards arredondados (rounded-xl)
-//    - Sem bordas e gradientes excessivos
-// ✅ v7.1: Card "Seu Desempenho" com métricas completas
+// ✅ v8.4: Sistema de zonas G1-G11 (ganho) e Z10-Z1 (perda)
+//    - Zona neutra (12º-21º) sem badge de posição
+//    - Cores elegantes: esmeralda (ganho) e rose (perda)
+// ✅ v8.3: Casas decimais, cores nas legendas, nomes completos
+// ✅ v8.2: Valores detalhados por componente em cada rodada
+// ✅ v8.1: Campos manuais incluídos no detalhamento
 
-if (window.Log) Log.info("[EXTRATO-UI] 🎨 Módulo de UI v8.1 Campos Manuais");
+if (window.Log) Log.info("[EXTRATO-UI] 🎨 Módulo de UI v8.4 Zonas G/Z");
 
 // ===== CONFIGURAÇÃO DE FAIXAS POR LIGA (COM SUPORTE TEMPORAL) =====
 const FAIXAS_PREMIACAO = {
@@ -31,21 +26,17 @@ const FAIXAS_PREMIACAO = {
         nome: "Cartoleiros Sobral",
         temporal: true,
         rodadaTransicao: 30,
-
-        // Fase 1: Rodadas 1-29 (6 times)
         fase1: {
             totalTimes: 6,
-            credito: { inicio: 1, fim: 2 }, // 1º=+7, 2º=+4
-            neutro: { inicio: 3, fim: 3 }, // 3º=0
-            debito: { inicio: 4, fim: 6 }, // 4º=-2, 5º=-5, 6º=-10
+            credito: { inicio: 1, fim: 2 },
+            neutro: { inicio: 3, fim: 3 },
+            debito: { inicio: 4, fim: 6 },
         },
-
-        // Fase 2: Rodadas 30+ (4 times)
         fase2: {
             totalTimes: 4,
-            credito: { inicio: 1, fim: 1 }, // 1º=+5 (MITO)
-            neutro: { inicio: 2, fim: 3 }, // 2º=0, 3º=0
-            debito: { inicio: 4, fim: 4 }, // 4º=-5 (MICO)
+            credito: { inicio: 1, fim: 1 },
+            neutro: { inicio: 2, fim: 3 },
+            debito: { inicio: 4, fim: 4 },
         },
     },
 };
@@ -53,22 +44,11 @@ const FAIXAS_PREMIACAO = {
 // Obter faixas corretas para liga E rodada
 function getFaixasParaRodada(ligaId, rodada) {
     const config = FAIXAS_PREMIACAO[ligaId];
-
-    if (!config) {
-        // Fallback genérico
-        return detectarFaixasPorTotal(32);
-    }
-
-    // Liga com configuração temporal
+    if (!config) return detectarFaixasPorTotal(32);
     if (config.temporal) {
         const fase = rodada < config.rodadaTransicao ? "fase1" : "fase2";
-        return {
-            nome: config.nome,
-            ...config[fase],
-        };
+        return { nome: config.nome, ...config[fase] };
     }
-
-    // Liga com configuração fixa
     return config;
 }
 
@@ -91,23 +71,6 @@ function detectarFaixasPorTotal(totalTimes) {
     };
 }
 
-// Obter faixas da liga (para uso geral - pega config base)
-function getFaixasLiga(ligaId, totalTimes) {
-    const config = FAIXAS_PREMIACAO[ligaId];
-    if (config) {
-        // Se temporal, retorna fase2 como padrão
-        if (config.temporal) {
-            return { nome: config.nome, ...config.fase2 };
-        }
-        return config;
-    }
-    return {
-        nome: "Liga",
-        totalTimes: totalTimes || 32,
-        ...detectarFaixasPorTotal(totalTimes || 32),
-    };
-}
-
 // Classificar posição na faixa
 function classificarPosicao(posicao, faixas) {
     if (!posicao) return "neutro";
@@ -116,6 +79,26 @@ function classificarPosicao(posicao, faixas) {
     if (posicao >= faixas.debito.inicio && posicao <= faixas.debito.fim)
         return "debito";
     return "neutro";
+}
+
+// ✅ v8.4: Converter posição para label de zona (G1-G11 ou Z10-Z1)
+function getPosicaoZonaLabel(posicao, faixas) {
+    if (!posicao) return { label: null, tipo: "neutro" };
+
+    // Zona de Ganho: G1, G2, G3...
+    if (posicao >= faixas.credito.inicio && posicao <= faixas.credito.fim) {
+        return { label: `G${posicao}`, tipo: "ganho" };
+    }
+
+    // Zona de Perda: Z10 (22º) até Z1 (32º) - inversão elegante
+    if (posicao >= faixas.debito.inicio && posicao <= faixas.debito.fim) {
+        const totalZona = faixas.debito.fim - faixas.debito.inicio + 1;
+        const zNum = faixas.debito.fim - posicao + 1;
+        return { label: `Z${zNum}`, tipo: "perda" };
+    }
+
+    // Zona Neutra: sem label
+    return { label: null, tipo: "neutro" };
 }
 
 // ===== EXPORTAR FUNÇÃO PRINCIPAL =====
@@ -132,7 +115,6 @@ export function renderizarExtratoParticipante(extrato, participanteId) {
     }
 
     window.extratoAtual = extrato;
-
     renderizarConteudoCompleto(container, extrato);
 
     setTimeout(() => {
@@ -144,16 +126,14 @@ export function renderizarExtratoParticipante(extrato, participanteId) {
 
 // ===== RENDERIZAR CONTEÚDO COMPLETO =====
 function renderizarConteudoCompleto(container, extrato) {
-    // ✅ v8.1: Calcular resumo incluindo campos manuais
     const resumoBase = extrato.resumo || {
         saldo: 0,
         totalGanhos: 0,
         totalPerdas: 0,
     };
-
-    // Processar campos manuais (podem vir como camposManuais ou camposEditaveis)
     const camposManuais =
         extrato.camposManuais || extrato.camposEditaveis || [];
+
     let totalCamposManuaisPositivos = 0;
     let totalCamposManuaisNegativos = 0;
 
@@ -165,7 +145,6 @@ function renderizarConteudoCompleto(container, extrato) {
         });
     }
 
-    // Calcular totais incluindo campos manuais
     const totalGanhos =
         (resumoBase.totalGanhos || 0) + totalCamposManuaisPositivos;
     const totalPerdas =
@@ -180,7 +159,6 @@ function renderizarConteudoCompleto(container, extrato) {
     const saldoFormatado = `R$ ${Math.abs(saldo).toFixed(2).replace(".", ",")}`;
     const statusTexto = saldoPositivo ? "A RECEBER" : "A PAGAR";
 
-    // Detectar liga - múltiplas fontes
     const ligaId =
         extrato.liga_id ||
         extrato.ligaId ||
@@ -188,20 +166,16 @@ function renderizarConteudoCompleto(container, extrato) {
         window.participanteData?.ligaId ||
         "";
 
-    // Debug: verificar se ligaId está chegando
-    if (window.Log) Log.info(
-        "[EXTRATO-UI] 🔍 LigaId detectado:",
-        ligaId,
-        "| Config existe:",
-        !!FAIXAS_PREMIACAO[ligaId],
-        "| Campos manuais:",
-        camposManuais.length,
-    );
+    if (window.Log)
+        Log.info(
+            "[EXTRATO-UI] 🔍 LigaId:",
+            ligaId,
+            "| Campos manuais:",
+            camposManuais.length,
+        );
 
-    // Salvar para uso global
     window.ligaIdAtual = ligaId;
 
-    // Ordenar rodadas decrescente (mais recente primeiro)
     const rodadasOrdenadas = [...extrato.rodadas].sort(
         (a, b) => b.rodada - a.rodada,
     );
@@ -211,14 +185,14 @@ function renderizarConteudoCompleto(container, extrato) {
         <div class="bg-surface-dark rounded-xl p-4 mb-4 border border-white/5">
             <div class="flex items-center justify-between">
                 <div class="flex items-center gap-3">
-                    <span class="material-symbols-outlined text-3xl ${saldoPositivo ? "text-green-400" : "text-red-400"}">account_balance_wallet</span>
+                    <span class="material-symbols-outlined text-3xl ${saldoPositivo ? "text-emerald-400" : "text-rose-400"}">account_balance_wallet</span>
                     <div>
                         <p class="text-xs font-medium uppercase text-white/70">Saldo Financeiro</p>
-                        <p class="text-2xl font-bold ${saldoPositivo ? "text-green-400" : "text-red-400"}">${saldoPositivo ? "+" : "-"}${saldoFormatado}</p>
+                        <p class="text-2xl font-bold ${saldoPositivo ? "text-emerald-400" : "text-rose-400"}">${saldoPositivo ? "+" : "-"}${saldoFormatado}</p>
                     </div>
                 </div>
                 <div class="flex items-center gap-2">
-                    <span class="${saldoPositivo ? "bg-green-500/20 text-green-400" : "bg-red-500/20 text-red-400"} text-[10px] font-semibold px-2 py-1 rounded-full">${statusTexto}</span>
+                    <span class="${saldoPositivo ? "bg-emerald-500/20 text-emerald-400" : "bg-rose-500/20 text-rose-400"} text-[10px] font-semibold px-2 py-1 rounded-full">${statusTexto}</span>
                     <button id="btnRefreshExtrato" class="p-2 rounded-full bg-white/10 text-white/70 hover:bg-white/20 active:scale-95 transition-all">
                         <span class="material-symbols-outlined text-lg">sync</span>
                     </button>
@@ -226,21 +200,21 @@ function renderizarConteudoCompleto(container, extrato) {
             </div>
         </div>
 
-        <!-- Cards Ganhos/Perdas - v8.1: Layout compacto sem quebra -->
+        <!-- Cards Ganhos/Perdas -->
         <div class="grid grid-cols-2 gap-3 mb-4">
             <div onclick="window.mostrarDetalhamentoGanhos()" class="bg-surface-dark p-3 rounded-xl flex items-center justify-between cursor-pointer hover:bg-white/10 active:scale-[0.98] transition-all">
                 <div class="flex items-center gap-2 min-w-0">
-                    <span class="material-icons text-green-400 text-base flex-shrink-0">arrow_upward</span>
+                    <span class="material-icons text-emerald-400 text-base flex-shrink-0">arrow_upward</span>
                     <p class="text-xs text-white/70 uppercase truncate">Créditos</p>
                 </div>
-                <span class="text-sm font-bold text-green-400 whitespace-nowrap ml-1">+${totalGanhos.toFixed(2).replace(".", ",")}</span>
+                <span class="text-sm font-bold text-emerald-400 whitespace-nowrap ml-1">+${totalGanhos.toFixed(2).replace(".", ",")}</span>
             </div>
             <div onclick="window.mostrarDetalhamentoPerdas()" class="bg-surface-dark p-3 rounded-xl flex items-center justify-between cursor-pointer hover:bg-white/10 active:scale-[0.98] transition-all">
                 <div class="flex items-center gap-2 min-w-0">
-                    <span class="material-icons text-red-400 text-base flex-shrink-0">arrow_downward</span>
+                    <span class="material-icons text-rose-400 text-base flex-shrink-0">arrow_downward</span>
                     <p class="text-xs text-white/70 uppercase truncate">Débitos</p>
                 </div>
-                <span class="text-sm font-bold text-red-400 whitespace-nowrap ml-1">-${totalPerdas.toFixed(2).replace(".", ",")}</span>
+                <span class="text-sm font-bold text-rose-400 whitespace-nowrap ml-1">-${totalPerdas.toFixed(2).replace(".", ",")}</span>
             </div>
         </div>
 
@@ -287,7 +261,7 @@ function renderizarConteudoCompleto(container, extrato) {
             </div>
         </div>
 
-        <!-- Card Seu Desempenho (após rodadas) -->
+        <!-- Card Seu Desempenho -->
         ${renderizarCardDesempenho(rodadasOrdenadas, ligaId)}
 
         <!-- Modal TOP10 Info -->
@@ -310,7 +284,7 @@ function renderizarConteudoCompleto(container, extrato) {
     `;
 }
 
-// ===== CARDS DE RODADAS =====
+// ===== v8.4: CARDS DE RODADAS COM ZONAS G/Z =====
 function renderizarCardsRodadas(rodadas, ligaId) {
     if (!rodadas || rodadas.length === 0) {
         return `
@@ -324,68 +298,135 @@ function renderizarCardsRodadas(rodadas, ligaId) {
     return rodadas
         .map((r) => {
             const faixas = getFaixasParaRodada(ligaId, r.rodada);
-            const tipoFaixa = classificarPosicao(r.posicao, faixas);
+            const { label: zonaLabel, tipo: tipoZona } = getPosicaoZonaLabel(
+                r.posicao,
+                faixas,
+            );
 
-            const saldo =
-                (r.bonusOnus || 0) +
-                (r.pontosCorridos || 0) +
-                (r.mataMata || 0) +
-                (r.top10 || 0);
+            const bonusOnus = r.bonusOnus || 0;
+            const pontosCorridos = r.pontosCorridos || 0;
+            const mataMata = r.mataMata || 0;
+            const top10 = r.top10 || 0;
+
+            const saldo = bonusOnus + pontosCorridos + mataMata + top10;
             const saldoFormatado = saldo.toFixed(2).replace(".", ",");
             const positivo = saldo >= 0;
 
-            // Ícone e cor por faixa
+            // Cores do card baseado na zona
+            let bgColor = "bg-zinc-800/30";
+            let borderColor = "border-zinc-700/20";
             let faixaIcon = "remove";
-            let faixaColor = "text-white/40";
-            let bgColor = "bg-white/5";
+            let faixaColor = "text-zinc-500";
 
-            if (tipoFaixa === "credito") {
+            if (tipoZona === "ganho") {
+                bgColor = "bg-emerald-950/40";
+                borderColor = "border-emerald-500/20";
                 faixaIcon = "arrow_upward";
-                faixaColor = "text-green-400";
-                bgColor = "bg-green-500/10";
-            } else if (tipoFaixa === "debito") {
+                faixaColor = "text-emerald-400";
+            } else if (tipoZona === "perda") {
+                bgColor = "bg-rose-950/40";
+                borderColor = "border-rose-500/20";
                 faixaIcon = "arrow_downward";
-                faixaColor = "text-red-400";
-                bgColor = "bg-red-500/10";
+                faixaColor = "text-rose-400";
             }
 
             // Badge TOP10
             let badgeTop10 = "";
-            if (r.top10 > 0) {
-                badgeTop10 = `<span class="text-[9px] bg-yellow-500/20 text-yellow-400 px-1.5 py-0.5 rounded-full font-semibold">MITO</span>`;
-            } else if (r.top10 < 0) {
-                badgeTop10 = `<span class="text-[9px] bg-red-500/20 text-red-400 px-1.5 py-0.5 rounded-full font-semibold">MICO</span>`;
+            if (top10 > 0) {
+                badgeTop10 = `<span class="text-[9px] bg-amber-500/20 text-amber-400 px-1.5 py-0.5 rounded-full font-semibold">MITO</span>`;
+            } else if (top10 < 0) {
+                badgeTop10 = `<span class="text-[9px] bg-rose-500/20 text-rose-400 px-1.5 py-0.5 rounded-full font-semibold">MICO</span>`;
             }
 
+            // Badge da zona (G1-G11 ou Z10-Z1)
+            let badgeZona = "";
+            if (zonaLabel) {
+                const corBadge =
+                    tipoZona === "ganho"
+                        ? "bg-emerald-500/20 text-emerald-400"
+                        : "bg-rose-500/20 text-rose-400";
+                badgeZona = `<span class="text-[10px] font-bold px-1.5 py-0.5 rounded ${corBadge}">${zonaLabel}</span>`;
+            }
+
+            // Gerar breakdown com zonas G/Z
+            const breakdownItems = [];
+
+            // Posição com label de zona (só se não for neutro)
+            if (bonusOnus !== 0 && zonaLabel) {
+                const corValor =
+                    bonusOnus > 0 ? "text-emerald-400" : "text-rose-400";
+                const corLabel =
+                    tipoZona === "ganho" ? "text-emerald-300" : "text-rose-300";
+                const sinal = bonusOnus > 0 ? "+" : "";
+                breakdownItems.push(
+                    `<span class="${corValor}">${sinal}${bonusOnus.toFixed(2).replace(".", ",")} <span class="${corLabel} font-semibold">${zonaLabel}</span></span>`,
+                );
+            }
+
+            // Pontos Corridos - legenda amarela
+            if (pontosCorridos !== 0) {
+                const corValor =
+                    pontosCorridos > 0 ? "text-emerald-400" : "text-rose-400";
+                const sinal = pontosCorridos > 0 ? "+" : "";
+                breakdownItems.push(
+                    `<span class="${corValor}">${sinal}${pontosCorridos.toFixed(2).replace(".", ",")} <span class="text-amber-400">Pontos Corridos</span></span>`,
+                );
+            }
+
+            // Mata-Mata - legenda azul
+            if (mataMata !== 0) {
+                const corValor =
+                    mataMata > 0 ? "text-emerald-400" : "text-rose-400";
+                const sinal = mataMata > 0 ? "+" : "";
+                breakdownItems.push(
+                    `<span class="${corValor}">${sinal}${mataMata.toFixed(2).replace(".", ",")} <span class="text-sky-400">Mata-Mata</span></span>`,
+                );
+            }
+
+            // Top 10 - legenda laranja
+            if (top10 !== 0) {
+                const corValor =
+                    top10 > 0 ? "text-emerald-400" : "text-rose-400";
+                const sinal = top10 > 0 ? "+" : "";
+                breakdownItems.push(
+                    `<span class="${corValor}">${sinal}${top10.toFixed(2).replace(".", ",")} <span class="text-orange-400">Top 10</span></span>`,
+                );
+            }
+
+            const breakdownHTML =
+                breakdownItems.length > 0
+                    ? `<div class="flex flex-wrap gap-x-3 gap-y-1 text-[11px] font-medium mt-1.5">${breakdownItems.join("")}</div>`
+                    : `<p class="text-[10px] text-white/30 mt-1">Sem movimentação</p>`;
+
             return `
-                <div class="${bgColor} rounded-lg p-3 flex items-center justify-between">
-                    <div class="flex items-center gap-3">
-                        <div class="w-8 h-8 rounded-lg flex items-center justify-center bg-white/10">
-                            <span class="material-icons ${faixaColor} text-sm">${faixaIcon}</span>
+            <div class="${bgColor} ${borderColor} border rounded-xl p-3 transition-all">
+                <div class="flex items-start justify-between">
+                    <div class="flex items-start gap-3">
+                        <div class="w-9 h-9 rounded-lg flex items-center justify-center flex-shrink-0 ${
+                            tipoZona === "ganho"
+                                ? "bg-emerald-500/20"
+                                : tipoZona === "perda"
+                                  ? "bg-rose-500/20"
+                                  : "bg-zinc-700/50"
+                        }">
+                            <span class="material-icons ${faixaColor} text-base">${faixaIcon}</span>
                         </div>
-                        <div>
-                            <div class="flex items-center gap-2">
-                                <span class="text-sm font-semibold text-white">R${r.rodada}</span>
-                                ${r.posicao ? `<span class="text-[10px] text-white/50">${r.posicao}º</span>` : ""}
+                        <div class="min-w-0">
+                            <div class="flex items-center gap-2 flex-wrap">
+                                <span class="text-sm font-bold text-white">R${r.rodada}</span>
+                                ${r.posicao ? `<span class="text-[10px] text-white/40">${r.posicao}º lugar</span>` : ""}
+                                ${badgeZona}
                                 ${badgeTop10}
                             </div>
-                            <p class="text-[10px] text-white/40">${formatarDetalhesRodada(r)}</p>
+                            ${breakdownHTML}
                         </div>
                     </div>
-                    <span class="text-sm font-bold ${positivo ? "text-green-400" : "text-red-400"}">${positivo ? "+" : ""}${saldoFormatado}</span>
+                    <span class="text-sm font-bold ${positivo ? "text-emerald-400" : "text-rose-400"} whitespace-nowrap ml-2">${positivo ? "+" : ""}${saldoFormatado}</span>
                 </div>
-            `;
+            </div>
+        `;
         })
         .join("");
-}
-
-function formatarDetalhesRodada(r) {
-    const partes = [];
-    if (r.bonusOnus && r.bonusOnus !== 0) partes.push("Posição");
-    if (r.pontosCorridos && r.pontosCorridos !== 0) partes.push("PC");
-    if (r.mataMata && r.mataMata !== 0) partes.push("MM");
-    if (r.top10 && r.top10 !== 0) partes.push("TOP10");
-    return partes.length > 0 ? partes.join(" · ") : "Sem movimentação";
 }
 
 // ===== CARD DE DESEMPENHO =====
@@ -426,34 +467,34 @@ function renderizarCardDesempenho(rodadas, ligaId) {
             </div>
             <div class="grid grid-cols-2 gap-3">
                 <div class="bg-white/5 rounded-lg p-3 text-center">
-                    <span class="material-icons text-yellow-400 text-lg">star</span>
+                    <span class="material-icons text-amber-400 text-lg">star</span>
                     <p class="text-lg font-bold text-white">${totalMito}</p>
                     <p class="text-[10px] text-white/50">Mitos</p>
                 </div>
                 <div class="bg-white/5 rounded-lg p-3 text-center">
-                    <span class="material-icons text-red-400 text-lg">sentiment_very_dissatisfied</span>
+                    <span class="material-icons text-rose-400 text-lg">sentiment_very_dissatisfied</span>
                     <p class="text-lg font-bold text-white">${totalMico}</p>
                     <p class="text-[10px] text-white/50">Micos</p>
                 </div>
                 <div class="bg-white/5 rounded-lg p-3 text-center">
-                    <span class="material-icons text-green-400 text-lg">trending_up</span>
+                    <span class="material-icons text-emerald-400 text-lg">trending_up</span>
                     <p class="text-lg font-bold text-white">${zonaCredito}</p>
-                    <p class="text-[10px] text-white/50">Zona Crédito</p>
+                    <p class="text-[10px] text-white/50">Zona Ganho</p>
                 </div>
                 <div class="bg-white/5 rounded-lg p-3 text-center">
-                    <span class="material-icons text-red-400 text-lg">trending_down</span>
+                    <span class="material-icons text-rose-400 text-lg">trending_down</span>
                     <p class="text-lg font-bold text-white">${zonaDebito}</p>
-                    <p class="text-[10px] text-white/50">Zona Débito</p>
+                    <p class="text-[10px] text-white/50">Zona Perda</p>
                 </div>
             </div>
             <div class="mt-3 grid grid-cols-2 gap-3">
-                <div class="bg-green-500/10 rounded-lg p-2 text-center">
+                <div class="bg-emerald-500/10 rounded-lg p-2 text-center">
                     <p class="text-[10px] text-white/50">Melhor Rodada</p>
-                    <p class="text-sm font-bold text-green-400">R${melhorRodada.rodada} (+${melhorRodada.saldo.toFixed(2).replace(".", ",")})</p>
+                    <p class="text-sm font-bold text-emerald-400">R${melhorRodada.rodada} (+${melhorRodada.saldo.toFixed(2).replace(".", ",")})</p>
                 </div>
-                <div class="bg-red-500/10 rounded-lg p-2 text-center">
+                <div class="bg-rose-500/10 rounded-lg p-2 text-center">
                     <p class="text-[10px] text-white/50">Pior Rodada</p>
-                    <p class="text-sm font-bold text-red-400">R${piorRodada.rodada} (${piorRodada.saldo.toFixed(2).replace(".", ",")})</p>
+                    <p class="text-sm font-bold text-rose-400">R${piorRodada.rodada} (${piorRodada.saldo.toFixed(2).replace(".", ",")})</p>
                 </div>
             </div>
         </div>
@@ -469,10 +510,8 @@ function renderizarGraficoEvolucao(rodadas, range = "all") {
 
     if (!svg || !path || !area || !labels) return;
 
-    // Ordenar por rodada (crescente para o gráfico)
     let dadosOrdenados = [...rodadas].sort((a, b) => a.rodada - b.rodada);
 
-    // Aplicar filtro de range
     if (range !== "all") {
         const n = parseInt(range);
         dadosOrdenados = dadosOrdenados.slice(-n);
@@ -485,7 +524,6 @@ function renderizarGraficoEvolucao(rodadas, range = "all") {
         return;
     }
 
-    // Calcular saldo acumulado
     let saldoAcumulado = 0;
     const pontos = dadosOrdenados.map((r) => {
         const saldo =
@@ -497,104 +535,101 @@ function renderizarGraficoEvolucao(rodadas, range = "all") {
         return { rodada: r.rodada, saldo: saldoAcumulado };
     });
 
-    // Calcular escala
     const valores = pontos.map((p) => p.saldo);
-    const minVal = Math.min(...valores, 0);
-    const maxVal = Math.max(...valores, 0);
-    const range_val = maxVal - minVal || 1;
+    const min = Math.min(...valores, 0);
+    const max = Math.max(...valores, 0);
+    const range2 = Math.max(Math.abs(max), Math.abs(min)) || 1;
 
     const width = 300;
     const height = 140;
-    const padding = 10;
+    const paddingY = 10;
 
-    // Gerar path
-    const pathPoints = pontos.map((p, i) => {
-        const x =
-            padding +
-            (i / Math.max(pontos.length - 1, 1)) * (width - 2 * padding);
-        const y =
-            height -
-            padding -
-            ((p.saldo - minVal) / range_val) * (height - 2 * padding);
-        return `${i === 0 ? "M" : "L"} ${x.toFixed(1)} ${y.toFixed(1)}`;
+    const mapY = (val) => {
+        const normalized = (val - min) / (range2 * 2 || 1);
+        return height - paddingY - normalized * (height - paddingY * 2);
+    };
+
+    let pathD = "";
+    let areaD = "";
+
+    pontos.forEach((p, i) => {
+        const x = (i / (pontos.length - 1 || 1)) * width;
+        const y = mapY(p.saldo);
+
+        if (i === 0) {
+            pathD = `M ${x} ${y}`;
+            areaD = `M ${x} ${height - paddingY}`;
+        }
+        pathD += ` L ${x} ${y}`;
+        areaD += ` L ${x} ${y}`;
     });
 
-    path.setAttribute("d", pathPoints.join(" "));
-
-    // Área preenchida
     if (pontos.length > 0) {
-        const firstX = padding;
-        const lastX =
-            padding +
-            ((pontos.length - 1) / Math.max(pontos.length - 1, 1)) *
-                (width - 2 * padding);
-        area.setAttribute(
-            "d",
-            `${pathPoints.join(" ")} L ${lastX.toFixed(1)} ${height - padding} L ${firstX.toFixed(1)} ${height - padding} Z`,
-        );
+        const lastX = width;
+        areaD += ` L ${lastX} ${height - paddingY} Z`;
     }
 
-    // Labels
-    const labelRodadas = [
-        pontos[0],
-        pontos[Math.floor(pontos.length / 2)],
-        pontos[pontos.length - 1],
-    ].filter((p, i, arr) => arr.indexOf(p) === i);
+    path.setAttribute("d", pathD);
+    area.setAttribute("d", areaD);
 
-    labels.innerHTML = labelRodadas
+    const step = Math.ceil(pontos.length / 6);
+    labels.innerHTML = pontos
+        .filter((_, i) => i % step === 0 || i === pontos.length - 1)
         .map((p) => `<span>R${p.rodada}</span>`)
         .join("");
 }
 
+// ===== CONFIGURAR FILTROS DO GRÁFICO =====
 function configurarFiltrosGrafico(rodadas) {
-    document.querySelectorAll(".filtro-btn").forEach((btn) => {
+    const btns = document.querySelectorAll(".filtro-btn");
+    btns.forEach((btn) => {
         btn.addEventListener("click", () => {
-            document.querySelectorAll(".filtro-btn").forEach((b) => {
+            btns.forEach((b) => {
                 b.classList.remove("bg-primary/80", "font-semibold");
                 b.classList.add("text-white/50");
             });
             btn.classList.add("bg-primary/80", "font-semibold");
             btn.classList.remove("text-white/50");
-
             renderizarGraficoEvolucao(rodadas, btn.dataset.range);
         });
     });
 }
 
+// ===== CONFIGURAR BOTÃO REFRESH =====
 function configurarBotaoRefresh() {
     const btn = document.getElementById("btnRefreshExtrato");
     if (btn) {
         btn.addEventListener("click", () => {
-            if (typeof window.forcarRefreshExtratoParticipante === "function") {
+            if (window.forcarRefreshExtratoParticipante) {
                 window.forcarRefreshExtratoParticipante();
             }
         });
     }
 }
 
-// ===== ERRO =====
+// ===== RENDERIZAR ERRO =====
 function renderizarErro() {
     return `
-        <div class="text-center py-8">
-            <span class="material-icons text-4xl text-red-400 mb-2 block">error_outline</span>
-            <p class="text-white/70">Erro ao carregar extrato</p>
+        <div class="text-center py-8 text-white/50">
+            <span class="material-icons text-4xl mb-2 block">error_outline</span>
+            <p>Erro ao carregar extrato</p>
             <button onclick="window.forcarRefreshExtratoParticipante()" class="mt-4 px-4 py-2 bg-primary rounded-lg text-white text-sm">
-                Tentar novamente
+                Tentar Novamente
             </button>
         </div>
     `;
 }
 
-// ===== DETALHAMENTO (CRÉDITOS/DÉBITOS) =====
+// ===== DETALHAMENTO DE GANHOS/PERDAS =====
 window.mostrarDetalhamentoGanhos = function () {
-    mostrarDetalhamento(true);
+    mostrarPopupDetalhamento(true);
 };
 
 window.mostrarDetalhamentoPerdas = function () {
-    mostrarDetalhamento(false);
+    mostrarPopupDetalhamento(false);
 };
 
-function mostrarDetalhamento(isGanhos) {
+function mostrarPopupDetalhamento(isGanhos) {
     const extrato = window.extratoAtual;
     if (!extrato || !extrato.rodadas) return;
 
@@ -602,24 +637,27 @@ function mostrarDetalhamento(isGanhos) {
         ? "Detalhamento de Créditos"
         : "Detalhamento de Débitos";
     const icon = isGanhos ? "arrow_upward" : "arrow_downward";
-    const ligaId = window.ligaIdAtual || "";
 
+    const ligaId = window.ligaIdAtual || "";
     const categorias = {};
+
     let somaGanhos = 0,
         somaPerdas = 0;
     let rodadasComGanho = 0,
         rodadasComPerda = 0;
     let totalMito = 0,
-        totalMico = 0,
-        totalZonaCredito = 0,
+        totalMico = 0;
+    let totalZonaCredito = 0,
         totalZonaDebito = 0;
 
     extrato.rodadas.forEach((r) => {
+        const faixas = getFaixasParaRodada(ligaId, r.rodada);
         const saldo =
             (r.bonusOnus || 0) +
             (r.pontosCorridos || 0) +
             (r.mataMata || 0) +
             (r.top10 || 0);
+
         if (saldo > 0) {
             somaGanhos += saldo;
             rodadasComGanho++;
@@ -628,9 +666,6 @@ function mostrarDetalhamento(isGanhos) {
             somaPerdas += Math.abs(saldo);
             rodadasComPerda++;
         }
-
-        // ✅ Usar faixas contextuais por rodada
-        const faixas = getFaixasParaRodada(ligaId, r.rodada);
 
         if (r.top10 > 0) totalMito++;
         if (r.top10 < 0) totalMico++;
@@ -641,7 +676,7 @@ function mostrarDetalhamento(isGanhos) {
             if (r.bonusOnus > 0)
                 addCategoria(
                     categorias,
-                    "Crédito Posição",
+                    "Zona de Ganho",
                     r.bonusOnus,
                     r.rodada,
                     "add_circle",
@@ -674,7 +709,7 @@ function mostrarDetalhamento(isGanhos) {
             if (r.bonusOnus < 0)
                 addCategoria(
                     categorias,
-                    "Débito Posição",
+                    "Zona de Perda",
                     Math.abs(r.bonusOnus),
                     r.rodada,
                     "remove_circle",
@@ -706,21 +741,17 @@ function mostrarDetalhamento(isGanhos) {
         }
     });
 
-    // ✅ v8.1: Incluir campos manuais no detalhamento
+    // Campos manuais
     const camposManuais =
         extrato.camposManuais || extrato.camposEditaveis || [];
-
     if (Array.isArray(camposManuais) && camposManuais.length > 0) {
         camposManuais.forEach((campo) => {
             const valor = parseFloat(campo.valor) || 0;
             const nome = campo.nome || "Campo Manual";
-
             if (isGanhos && valor > 0) {
-                // Adicionar ao total de ganhos
                 somaGanhos += valor;
                 addCategoria(categorias, nome, valor, "Manual", "edit");
             } else if (!isGanhos && valor < 0) {
-                // Adicionar ao total de perdas
                 somaPerdas += Math.abs(valor);
                 addCategoria(
                     categorias,
@@ -752,7 +783,7 @@ function mostrarDetalhamento(isGanhos) {
                 <div class="p-4 border-b border-white/10">
                     <div class="flex justify-between items-start mb-3">
                         <h3 class="text-base font-bold text-white flex items-center gap-2">
-                            <span class="material-icons ${isGanhos ? "text-green-400" : "text-red-400"}">${icon}</span>
+                            <span class="material-icons ${isGanhos ? "text-emerald-400" : "text-rose-400"}">${icon}</span>
                             ${titulo}
                         </h3>
                         <button class="text-white/50 hover:text-white transition-colors" onclick="document.getElementById('popupDetalhamento').remove()">
@@ -773,7 +804,7 @@ function mostrarDetalhamento(isGanhos) {
                             <p class="text-lg font-bold text-white">${isGanhos ? totalMito : totalMico}x</p>
                         </div>
                         <div class="text-center">
-                            <p class="text-[10px] text-white/50">${isGanhos ? "Zona +" : "Zona -"}</p>
+                            <p class="text-[10px] text-white/50">${isGanhos ? "Zona G" : "Zona Z"}</p>
                             <p class="text-lg font-bold text-white">${isGanhos ? totalZonaCredito : totalZonaDebito}x</p>
                         </div>
                     </div>
@@ -793,15 +824,15 @@ function mostrarDetalhamento(isGanhos) {
                         <div class="bg-white/5 rounded-xl p-3">
                             <div class="flex justify-between items-center mb-2">
                                 <div class="flex items-center gap-2">
-                                    <div class="w-8 h-8 rounded-lg flex items-center justify-center ${isGanhos ? "bg-green-500/20" : "bg-red-500/20"}">
-                                        <span class="material-icons text-sm ${isGanhos ? "text-green-400" : "text-red-400"}">${cat.icon}</span>
+                                    <div class="w-8 h-8 rounded-lg flex items-center justify-center ${isGanhos ? "bg-emerald-500/20" : "bg-rose-500/20"}">
+                                        <span class="material-icons text-sm ${isGanhos ? "text-emerald-400" : "text-rose-400"}">${cat.icon}</span>
                                     </div>
                                     <span class="text-sm font-medium text-white">${cat.nome}</span>
                                 </div>
-                                <span class="text-base font-bold ${isGanhos ? "text-green-400" : "text-red-400"}">R$ ${cat.valor.toFixed(2).replace(".", ",")}</span>
+                                <span class="text-base font-bold ${isGanhos ? "text-emerald-400" : "text-rose-400"}">R$ ${cat.valor.toFixed(2).replace(".", ",")}</span>
                             </div>
                             <div class="h-1.5 bg-white/10 rounded-full overflow-hidden mb-1">
-                                <div class="h-full rounded-full ${isGanhos ? "bg-green-500" : "bg-red-500"}" style="width: ${cat.percentual}%;"></div>
+                                <div class="h-full rounded-full ${isGanhos ? "bg-emerald-500" : "bg-rose-500"}" style="width: ${cat.percentual}%;"></div>
                             </div>
                             <div class="flex justify-between text-[10px] text-white/40">
                                 <span>${Array.isArray(cat.rodadas) ? cat.rodadas.length + " rodada(s)" : cat.rodadas}</span>
@@ -812,13 +843,13 @@ function mostrarDetalhamento(isGanhos) {
                                   )
                                   .join("")
                     }
-                    <div class="rounded-xl p-4 ${isGanhos ? "bg-green-500/10" : "bg-red-500/10"}">
+                    <div class="rounded-xl p-4 ${isGanhos ? "bg-emerald-500/10" : "bg-rose-500/10"}">
                         <div class="flex justify-between items-center">
                             <span class="flex items-center gap-2 text-sm font-bold text-white">
-                                <span class="material-icons ${isGanhos ? "text-green-400" : "text-red-400"}">account_balance_wallet</span>
+                                <span class="material-icons ${isGanhos ? "text-emerald-400" : "text-rose-400"}">account_balance_wallet</span>
                                 TOTAL ${isGanhos ? "CRÉDITOS" : "DÉBITOS"}
                             </span>
-                            <span class="text-xl font-extrabold ${isGanhos ? "text-green-400" : "text-red-400"}">R$ ${total.toFixed(2).replace(".", ",")}</span>
+                            <span class="text-xl font-extrabold ${isGanhos ? "text-emerald-400" : "text-rose-400"}">R$ ${total.toFixed(2).replace(".", ",")}</span>
                         </div>
                     </div>
                 </div>
@@ -834,14 +865,11 @@ function addCategoria(obj, nome, valor, rodada, icon) {
         obj[nome] = { nome, valor: 0, rodadas: [], icon };
     }
     obj[nome].valor += valor;
-
-    // Se rodada for "Manual", não adiciona ao array
     if (rodada !== "Manual") {
         obj[nome].rodadas.push(rodada);
     } else {
-        // Para campos manuais, usar label especial
         obj[nome].rodadas = "Ajuste manual";
     }
 }
 
-if (window.Log) Log.info("[EXTRATO-UI] ✅ Módulo v8.1 Campos Manuais pronto");
+if (window.Log) Log.info("[EXTRATO-UI] ✅ Módulo v8.4 Zonas G/Z pronto");

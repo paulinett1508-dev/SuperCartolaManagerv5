@@ -1,5 +1,13 @@
-// FLUXO-FINANCEIRO-CORE.JS v4.1 - SUPORTE A INATIVOS
+// FLUXO-FINANCEIRO-CORE.JS v4.3 - FIX MATA-MATA
 // ✅ v4.1: Trava extrato para inativos na rodada_desistencia
+// ✅ v4.2: Tabelas contextuais corrigidas
+// ✅ v4.3: Fix await no _carregarMataMataMap + logs debug
+
+// ============================================================================
+// ⚽ CONFIGURAÇÃO DO CAMPEONATO 2025
+// ============================================================================
+const RODADA_FINAL_CAMPEONATO = 38; // Última rodada do Brasileirão 2025
+const CAMPEONATO_ENCERRADO = true; // Flag: temporada finalizada
 
 import { calcularFinanceiroConfronto } from "../pontos-corridos-utils.js";
 import { obterLigaId } from "../pontos-corridos-utils.js";
@@ -63,13 +71,23 @@ export class FluxoFinanceiroCore {
             console.warn("[FLUXO-CORE] Erro ao verificar mercado:", error);
         }
 
+        console.log(
+            `[FLUXO-CORE] 🎯 Carregando MataMataMap: ${resultadosMataMata.length} registros, até R${ultimaRodadaConsolidada}`,
+        );
+
+        let carregados = 0;
         resultadosMataMata.forEach((r) => {
             if (r.rodadaPontos <= ultimaRodadaConsolidada) {
                 const timeIdNormalizado = normalizarTimeId(r.timeId);
                 const key = `${timeIdNormalizado}_${r.rodadaPontos}`;
                 this.mataMataMap.set(key, r.valor);
+                carregados++;
             }
         });
+
+        console.log(
+            `[FLUXO-CORE] ✅ MataMataMap: ${carregados} entradas carregadas (Map size: ${this.mataMataMap.size})`,
+        );
     }
 
     // =====================================================================
@@ -248,11 +266,21 @@ export class FluxoFinanceiroCore {
         const camposEditaveis =
             await FluxoFinanceiroCampos.carregarTodosCamposEditaveis(timeId);
 
+        // ✅ v4.3: AWAIT no _carregarMataMataMap
         const resultadosMataMata = this.mataMataIntegrado
             ? this.cache.getResultadosMataMata()
             : [];
+
+        console.log(
+            `[FLUXO-CORE] 📊 Mata-Mata do cache: ${resultadosMataMata.length} registros`,
+        );
+
         if (resultadosMataMata.length > 0) {
-            this._carregarMataMataMap(resultadosMataMata);
+            await this._carregarMataMataMap(resultadosMataMata); // ✅ FIX: adicionado await
+        } else {
+            console.warn(
+                `[FLUXO-CORE] ⚠️ Nenhum resultado de Mata-Mata encontrado no cache`,
+            );
         }
 
         const extrato = {
@@ -319,6 +347,15 @@ export class FluxoFinanceiroCore {
         this._calcularSaldoAcumulado(extrato.rodadas, camposEditaveis);
         extrato.resumo.saldo = this._calcularSaldoFinal(extrato.resumo);
         this._calcularTotaisConsolidados(extrato.resumo, extrato.rodadas);
+
+        // ✅ v4.3: Log de debug para verificar valores de Mata-Mata
+        const totalMataMata = rodadasProcessadas.reduce(
+            (sum, r) => sum + (r.mataMata || 0),
+            0,
+        );
+        console.log(
+            `[FLUXO-CORE] 📊 Total Mata-Mata calculado: R$ ${totalMataMata.toFixed(2)}`,
+        );
 
         // Salvar no cache
         await this._salvarCacheMongoDB(
@@ -401,7 +438,11 @@ export class FluxoFinanceiroCore {
                     mataMata: extrato.resumo.mataMata,
                     top10: extrato.resumo.top10,
                 },
-                saldo: extrato.resumo.saldo,
+                // ✅ v4.1: Salvar info de inativo no cache
+                inativo: extrato.inativo,
+                rodadaDesistencia: extrato.rodadaDesistencia,
+                extratoTravado: extrato.extratoTravado,
+                rodadaTravada: extrato.rodadaTravada,
             };
 
             const response = await fetch(
@@ -414,15 +455,17 @@ export class FluxoFinanceiroCore {
             );
 
             if (response.ok) {
-                console.log(`[FLUXO-CORE] ✅ Cache MongoDB salvo`);
+                console.log(
+                    `[FLUXO-CORE] 💾 Cache salvo: R${ultimaRodadaCalculada}`,
+                );
             }
         } catch (error) {
-            console.warn("[FLUXO-CORE] Erro ao salvar cache:", error.message);
+            console.warn(`[FLUXO-CORE] Erro ao salvar cache:`, error.message);
         }
     }
 
     // =====================================================================
-    // MÉTODOS DE PROCESSAMENTO
+    // PROCESSAR RODADA
     // =====================================================================
     _processarRodadaIntegrada(
         timeId,
@@ -495,9 +538,20 @@ export class FluxoFinanceiroCore {
     }
 
     _calcularMataMataOtimizado(timeId, rodada) {
-        if (!this.mataMataIntegrado || this.mataMataMap.size === 0) return 0;
+        if (!this.mataMataIntegrado || this.mataMataMap.size === 0) {
+            return 0;
+        }
         const key = `${normalizarTimeId(timeId)}_${rodada}`;
-        return this.mataMataMap.get(key) || 0;
+        const valor = this.mataMataMap.get(key) || 0;
+
+        // ✅ v4.3: Log apenas quando encontrar valor
+        if (valor !== 0) {
+            console.log(
+                `[FLUXO-CORE] 🎯 MM R${rodada}: ${valor > 0 ? "+" : ""}${valor}`,
+            );
+        }
+
+        return valor;
     }
 
     _recalcularResumoDoCache(rodadasArray, camposEditaveis) {
@@ -568,7 +622,7 @@ export class FluxoFinanceiroCore {
         if (!confrontos || idxRodada >= confrontos.length) return null;
 
         const jogos = confrontos[idxRodada];
-        if (!jogos) return null;
+        if (!jogos || jogos.length === 0) return null;
 
         const timeIdNorm = normalizarTimeId(timeId);
         const confronto = jogos.find(
@@ -789,4 +843,4 @@ window.forcarRefreshExtrato = async function (timeId) {
     window.location.reload();
 };
 
-console.log("[FLUXO-CORE] ✅ v4.2 carregado (tabelas contextuais corrigidas)");
+console.log("[FLUXO-CORE] ✅ v4.3 carregado (fix await MataMataMap)");
