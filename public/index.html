@@ -326,37 +326,6 @@
           });
         }
 
-        if (
-          window.location.hostname !== "localhost" &&
-          !window.location.hostname.includes("127.0.0.1")
-        ) {
-          var noop = function () {};
-          window.console = {
-            log: noop,
-            warn: noop,
-            info: noop,
-            debug: noop,
-            table: noop,
-            trace: noop,
-            dir: noop,
-            dirxml: noop,
-            group: noop,
-            groupCollapsed: noop,
-            groupEnd: noop,
-            clear: noop,
-            count: noop,
-            countReset: noop,
-            assert: noop,
-            profile: noop,
-            profileEnd: noop,
-            time: noop,
-            timeLog: noop,
-            timeEnd: noop,
-            timeStamp: noop,
-            error: noop,
-          };
-        }
-
         if (window.self !== window.top) {
           window.top.location = window.self.location;
         }
