@@ -431,10 +431,8 @@ async function renderizarArtilheiro(container, response, meuTimeId) {
         const rodadasOrdenadas = [...meusDados.detalhePorRodada].sort(
             (a, b) => b.rodada - a.rodada,
         );
-        ultimaRodada =
-            rodadasOrdenadas.find(
-                (r) => (r.golsPro || 0) > 0 || (r.golsContra || 0) > 0,
-            ) || rodadasOrdenadas[0];
+        // ✅ v3.7: Sempre mostrar a rodada mais recente, independente de ter gols
+        ultimaRodada = rodadasOrdenadas[0];
         historicoRecente = rodadasOrdenadas.slice(0, 5);
 
         const jogadoresMap = {};

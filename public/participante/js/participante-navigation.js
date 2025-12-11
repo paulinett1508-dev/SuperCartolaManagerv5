@@ -425,6 +425,12 @@ class ParticipanteNavigation {
             return;
         }
 
+        // ✅ CORREÇÃO: Timeout de segurança para evitar tela preta
+        const timeoutId = setTimeout(() => {
+            if (window.Log) Log.warn('PARTICIPANTE-NAV', '⏱️ Timeout de carregamento atingido');
+            this.mostrarErroCarregamento(container, moduloId, 'Timeout de carregamento');
+        }, 15000); // 15 segundos
+
         // Gerenciar histórico de navegação (se não estiver voltando)
         if (!voltandoHistorico && this.moduloAtual && this.moduloAtual !== moduloId) {
             this.historicoNavegacao.push(this.moduloAtual);
@@ -438,7 +444,7 @@ class ParticipanteNavigation {
                     <div style="position: absolute; width: 80px; height: 80px; border: 4px solid rgba(255, 69, 0, 0.1); border-top: 4px solid #ff4500; border-radius: 50%; animation: spin 1s linear infinite;"></div>
                     <div style="position: absolute; width: 60px; height: 60px; top: 10px; left: 10px; border: 3px solid rgba(255, 69, 0, 0.05); border-bottom: 3px solid #ff4500; border-radius: 50%; animation: spin 1.5s linear infinite reverse;"></div>
                 </div>
-                <h3 style="color: #333; margin-bottom: 8px; font-weight: 600;">Carregando ${nomeModulo}</h3>
+                <h3 style="color: white; margin-bottom: 8px; font-weight: 600;">Carregando ${nomeModulo}</h3>
                 <p style="color: #999; font-size: 14px;">Aguarde um momento...</p>
                 <style>@keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }</style>
             </div>
@@ -459,6 +465,10 @@ class ParticipanteNavigation {
             }
 
             const html = await response.text();
+
+            // ✅ CORREÇÃO: Limpar timeout de segurança
+            clearTimeout(timeoutId);
+
             container.innerHTML = html;
 
             await this.carregarModuloJS(moduloId);
@@ -474,6 +484,9 @@ class ParticipanteNavigation {
             }
 
         } catch (error) {
+            // ✅ CORREÇÃO: Limpar timeout de segurança
+            clearTimeout(timeoutId);
+
             if (window.Log) Log.error('PARTICIPANTE-NAV', `❌ Erro ao carregar ${moduloId}:`, error);
 
             // ✅ SPLASH: Esconder mesmo em caso de erro
@@ -481,20 +494,38 @@ class ParticipanteNavigation {
                 window.SplashScreen.hide();
             }
 
-            const mensagemErro = this.obterMensagemErroAmigavel(error);
-            container.innerHTML = `
-                <div style="text-align: center; padding: 60px 20px; max-width: 500px; margin: 0 auto;">
-                    <div style="background: linear-gradient(135deg, rgba(239, 68, 68, 0.1), rgba(239, 68, 68, 0.05)); border-radius: 16px; padding: 40px; border: 2px solid rgba(239, 68, 68, 0.2);">
-                        <div style="font-size: 64px; margin-bottom: 20px;">⚠️</div>
-                        <h3 style="color: #dc2626; margin-bottom: 16px; font-size: 20px; font-weight: 600;">Ops! Algo deu errado</h3>
-                        <p style="color: #666; margin-bottom: 24px; line-height: 1.6;">${mensagemErro}</p>
+            this.mostrarErroCarregamento(container, moduloId, error.message);
+        }
+    }
+
+    // ✅ NOVO: Função para mostrar erro de carregamento
+    mostrarErroCarregamento(container, moduloId, mensagem) {
+        const mensagemErro = this.obterMensagemErroAmigavel({ message: mensagem });
+        container.innerHTML = `
+            <div style="text-align: center; padding: 60px 20px; max-width: 500px; margin: 0 auto;">
+                <div style="background: linear-gradient(135deg, rgba(239, 68, 68, 0.1), rgba(239, 68, 68, 0.05)); border-radius: 16px; padding: 40px; border: 2px solid rgba(239, 68, 68, 0.2);">
+                    <span class="material-symbols-outlined" style="font-size: 64px; color: #facc15; margin-bottom: 20px; display: block;">warning</span>
+                    <h3 style="color: #dc2626; margin-bottom: 16px; font-size: 20px; font-weight: 600;">Ops! Algo deu errado</h3>
+                    <p style="color: #999; margin-bottom: 24px; line-height: 1.6;">${mensagemErro}</p>
+                    <div style="display: flex; gap: 12px; justify-content: center; flex-wrap: wrap;">
+                        <button onclick="window.participanteNav.navegarPara('${moduloId}', true)"
+                                style="background: rgba(255, 255, 255, 0.1); color: white; border: 1px solid rgba(255, 255, 255, 0.2); padding: 12px 20px; border-radius: 8px; cursor: pointer; font-weight: 600; display: flex; align-items: center; gap: 6px;">
+                            <span class="material-symbols-outlined" style="font-size: 18px;">refresh</span>
+                            Tentar Novamente
+                        </button>
                         <button onclick="window.participanteNav.navegarPara('boas-vindas')"
-                                style="background: #ff4500; color: white; border: none; padding: 12px 24px; border-radius: 8px; cursor: pointer; font-weight: 600;">
+                                style="background: #ff4500; color: white; border: none; padding: 12px 20px; border-radius: 8px; cursor: pointer; font-weight: 600; display: flex; align-items: center; gap: 6px;">
+                            <span class="material-symbols-outlined" style="font-size: 18px;">home</span>
                             Voltar ao Início
                         </button>
                     </div>
                 </div>
-            `;
+            </div>
+        `;
+
+        // ✅ Esconder splash se ainda visível
+        if (window.SplashScreen) {
+            window.SplashScreen.hide();
         }
     }
 

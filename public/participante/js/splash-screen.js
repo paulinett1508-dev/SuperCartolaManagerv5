@@ -90,22 +90,39 @@ const SplashScreen = {
         // Se ficou mais de 5 minutos fora
         if (tempoAusente >= this.INACTIVITY_THRESHOLD) {
             if (window.Log) Log.info('SPLASH', 'Inatividade detectada (>5min) - recarregando');
-            
+
             // Mostrar splash
             this.show('inatividade');
 
-            // Verificar versão (integrado com app-version.js)
-            if (window.AppVersion) {
-                await window.AppVersion.verificarVersao();
+            try {
+                // Verificar versão (integrado com app-version.js)
+                if (window.AppVersion) {
+                    await window.AppVersion.verificarVersao();
+                }
+
+                // Recarregar módulo atual
+                if (window.participanteNavigation || window.participanteNav) {
+                    const nav = window.participanteNavigation || window.participanteNav;
+                    const moduloAtual = nav.moduloAtual || 'boas-vindas';
+                    await nav.navegarPara(moduloAtual, true);
+                } else {
+                    // Fallback: se navigation não disponível, apenas esconder splash
+                    if (window.Log) Log.warn('SPLASH', 'Navigation não disponível, escondendo splash');
+                    this.hide();
+                }
+            } catch (error) {
+                // ✅ CORREÇÃO: Garantir que splash esconde mesmo em caso de erro
+                if (window.Log) Log.error('SPLASH', 'Erro ao recarregar:', error);
+                this.hide();
             }
 
-            // Recarregar módulo atual
-            if (window.participanteNavigation) {
-                const moduloAtual = window.participanteNavigation.moduloAtual || 'boas-vindas';
-                await window.participanteNavigation.navegarPara(moduloAtual, true);
-            }
-
-            // Splash será ocultada pelo navigation após carregar módulo
+            // ✅ CORREÇÃO: Timeout de segurança - esconde splash após 10s se ainda visível
+            setTimeout(() => {
+                if (this.isVisible) {
+                    if (window.Log) Log.warn('SPLASH', 'Timeout de segurança - forçando esconder splash');
+                    this.hide();
+                }
+            }, 10000);
         }
     },
 

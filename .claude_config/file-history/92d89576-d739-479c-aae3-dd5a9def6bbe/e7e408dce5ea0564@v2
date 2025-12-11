@@ -1,0 +1,519 @@
+<!doctype html>
+<html lang="pt-BR" class="dark">
+    <head>
+        <meta charset="UTF-8" />
+        <meta
+            name="viewport"
+            content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"
+        />
+        <meta name="theme-color" content="#0a0a0a" />
+        <meta name="mobile-web-app-capable" content="yes" />
+        <meta name="apple-mobile-web-app-capable" content="yes" />
+        <meta
+            name="apple-mobile-web-app-status-bar-style"
+            content="black-translucent"
+        />
+        <meta name="apple-mobile-web-app-title" content="Super Cartola" />
+        
+        <title>Super Cartola - Participante</title>
+        <link rel="icon" href="../favicon.png" />
+        
+        <!-- ✅ PWA Manifest -->
+        <link rel="manifest" href="manifest.json" />
+        <link rel="apple-touch-icon" href="/escudos/default.png" />
+
+        <!-- TAILWIND CDN + CONFIG -->
+        <script src="https://cdn.tailwindcss.com?plugins=forms,typography"></script>
+        <script>
+            tailwind.config = {
+                darkMode: "class",
+                theme: {
+                    extend: {
+                        colors: {
+                            primary: "#ff5c00",
+                            "background-light": "#f6f8f7",
+                            "background-dark": "#101010",
+                            "surface-dark": "#1c1c1c",
+                        },
+                        fontFamily: {
+                            display: ["Roboto", "sans-serif"],
+                            mono: ["JetBrains Mono", "monospace"],
+                        },
+                    },
+                },
+            };
+        </script>
+
+        <!-- MATERIAL ICONS -->
+        <link
+            rel="stylesheet"
+            href="https://fonts.googleapis.com/icon?family=Material+Icons"
+        />
+        <link
+            rel="stylesheet"
+            href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200"
+        />
+
+        <!-- FONTS -->
+        <link rel="preconnect" href="https://fonts.googleapis.com" />
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+        <link
+            href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;600;700&display=swap"
+            rel="stylesheet"
+        />
+        <link
+            href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600;700;800&display=swap"
+            rel="stylesheet"
+        />
+
+        <!-- CSS BASE -->
+        <link rel="stylesheet" href="css/participante.css" />
+        
+        <!-- ✅ Splash Screen CSS -->
+        <link rel="stylesheet" href="css/splash-screen.css" />
+
+        <!-- ✅ Sistema de Versionamento -->
+        <link rel="stylesheet" href="/css/app/app-version.css" />
+
+        <style>
+            .material-symbols-outlined {
+                font-family: "Material Symbols Outlined";
+                font-weight: normal;
+                font-style: normal;
+                font-size: 24px;
+                line-height: 1;
+                letter-spacing: normal;
+                text-transform: none;
+                display: inline-block;
+                white-space: nowrap;
+                word-wrap: normal;
+                direction: ltr;
+                font-variation-settings:
+                    "FILL" 1,
+                    "wght" 400,
+                    "GRAD" 0,
+                    "opsz" 24;
+                -webkit-font-smoothing: antialiased;
+                -moz-osx-font-smoothing: grayscale;
+            }
+
+            .material-icons {
+                font-family: "Material Icons";
+                font-weight: normal;
+                font-style: normal;
+                font-size: 24px;
+                line-height: 1;
+                letter-spacing: normal;
+                text-transform: none;
+                display: inline-block;
+                white-space: nowrap;
+                word-wrap: normal;
+                direction: ltr;
+                -webkit-font-smoothing: antialiased;
+            }
+
+            ::-webkit-scrollbar {
+                width: 4px;
+                height: 4px;
+            }
+            ::-webkit-scrollbar-track {
+                background: #1c1c1c;
+            }
+            ::-webkit-scrollbar-thumb {
+                background: #ff5c00;
+                border-radius: 2px;
+            }
+
+            @keyframes spin {
+                to {
+                    transform: rotate(360deg);
+                }
+            }
+            .animate-spin {
+                animation: spin 0.8s linear infinite;
+            }
+
+            /* HEADER STYLES */
+            .header-secondary {
+                max-height: 0;
+                overflow: hidden;
+                transition: max-height 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+                background: rgba(0, 0, 0, 0.2);
+            }
+            .header-secondary.active {
+                max-height: 70px;
+            }
+            .secondary-content {
+                display: flex;
+                align-items: center;
+                justify-content: space-between;
+                padding: 10px 12px;
+                gap: 10px;
+            }
+            .liga-selector {
+                flex: 1;
+                padding: 8px 12px;
+                border-radius: 6px;
+                border: 1px solid rgba(255, 255, 255, 0.2);
+                background: rgba(0, 0, 0, 0.3);
+                color: white;
+                font-size: 12px;
+                font-weight: 600;
+                cursor: pointer;
+            }
+            .btn-logout {
+                padding: 8px 14px;
+                border-radius: 6px;
+                border: 2px solid rgba(255, 69, 0, 0.4);
+                background: rgba(255, 69, 0, 0.15);
+                color: white;
+                font-size: 12px;
+                font-weight: 600;
+                cursor: pointer;
+                white-space: nowrap;
+                transition: all 0.2s;
+                -webkit-tap-highlight-color: transparent;
+            }
+            .btn-logout:active {
+                transform: scale(0.95);
+                background: rgba(255, 69, 0, 0.25);
+            }
+            .btn-logout:disabled {
+                opacity: 0.6;
+                cursor: not-allowed;
+            }
+
+            /* LIGA BADGE - Seletor de liga inline */
+            .liga-badge-container {
+                margin-top: 4px;
+            }
+            .liga-badge {
+                display: inline-flex;
+                align-items: center;
+                gap: 4px;
+                padding: 4px 10px;
+                background: linear-gradient(135deg, rgba(255, 69, 0, 0.2), rgba(255, 69, 0, 0.1));
+                border: 1px solid rgba(255, 69, 0, 0.4);
+                border-radius: 20px;
+                color: #ff8c42;
+                font-size: 11px;
+                font-weight: 600;
+                cursor: pointer;
+                transition: all 0.2s ease;
+                -webkit-tap-highlight-color: transparent;
+            }
+            .liga-badge:active {
+                transform: scale(0.95);
+                background: linear-gradient(135deg, rgba(255, 69, 0, 0.3), rgba(255, 69, 0, 0.2));
+            }
+            .liga-badge .swap-icon {
+                opacity: 0.7;
+                animation: pulse-swap 2s infinite;
+            }
+            @keyframes pulse-swap {
+                0%, 100% { opacity: 0.5; }
+                50% { opacity: 1; }
+            }
+
+            /* Modal de seleção de liga */
+            .liga-modal-overlay {
+                position: fixed;
+                top: 0;
+                left: 0;
+                right: 0;
+                bottom: 0;
+                background: rgba(0, 0, 0, 0.85);
+                backdrop-filter: blur(4px);
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                z-index: 10000;
+                animation: fadeIn 0.2s ease;
+            }
+            .liga-modal-content {
+                background: #1c1c1c;
+                border-radius: 16px;
+                padding: 20px;
+                max-width: 340px;
+                width: 90%;
+                border: 1px solid rgba(255, 255, 255, 0.1);
+                box-shadow: 0 20px 40px rgba(0, 0, 0, 0.5);
+                animation: slideUp 0.3s ease;
+            }
+            .liga-modal-header {
+                display: flex;
+                align-items: center;
+                justify-content: space-between;
+                margin-bottom: 16px;
+            }
+            .liga-modal-title {
+                display: flex;
+                align-items: center;
+                gap: 8px;
+                color: white;
+                font-size: 16px;
+                font-weight: 600;
+            }
+            .liga-modal-close {
+                background: none;
+                border: none;
+                color: #666;
+                cursor: pointer;
+                padding: 4px;
+                border-radius: 50%;
+                transition: all 0.2s;
+            }
+            .liga-modal-close:active {
+                background: rgba(255, 255, 255, 0.1);
+                color: white;
+            }
+            .liga-option {
+                display: flex;
+                align-items: center;
+                gap: 12px;
+                padding: 14px 16px;
+                background: rgba(255, 255, 255, 0.05);
+                border: 1px solid rgba(255, 255, 255, 0.1);
+                border-radius: 12px;
+                margin-bottom: 8px;
+                cursor: pointer;
+                transition: all 0.2s;
+            }
+            .liga-option:active {
+                transform: scale(0.98);
+                background: rgba(255, 69, 0, 0.2);
+                border-color: #ff4500;
+            }
+            .liga-option.atual {
+                background: rgba(255, 69, 0, 0.15);
+                border-color: rgba(255, 69, 0, 0.5);
+            }
+            .liga-option-icon {
+                width: 40px;
+                height: 40px;
+                background: linear-gradient(135deg, #ff4500, #ff6b35);
+                border-radius: 10px;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+            }
+            .liga-option-icon .material-symbols-outlined {
+                color: white;
+                font-size: 20px;
+            }
+            .liga-option-info {
+                flex: 1;
+            }
+            .liga-option-nome {
+                color: white;
+                font-weight: 600;
+                font-size: 14px;
+            }
+            .liga-option-atual-badge {
+                display: inline-block;
+                margin-left: 6px;
+                padding: 2px 6px;
+                background: #ff4500;
+                color: white;
+                font-size: 9px;
+                font-weight: 700;
+                border-radius: 4px;
+            }
+            .liga-option-times {
+                color: #888;
+                font-size: 11px;
+                margin-top: 2px;
+            }
+            .liga-option-check {
+                color: #22c55e;
+                opacity: 0;
+            }
+            .liga-option.atual .liga-option-check {
+                opacity: 1;
+            }
+        </style>
+    </head>
+    <body class="bg-background-dark font-display text-white">
+        
+        <!-- ✅ SPLASH SCREEN -->
+        <div id="splashScreen" class="splash-screen hidden">
+            <!-- Fundo Tático -->
+            <div class="splash-tactical-bg">
+                <svg viewBox="0 0 320 640" preserveAspectRatio="xMidYMid slice">
+                    <defs>
+                        <pattern id="grid" width="32" height="32" patternUnits="userSpaceOnUse">
+                            <rect width="32" height="32" fill="none" stroke="rgba(255,255,255,0.03)" stroke-width="0.5"/>
+                        </pattern>
+                        <marker id="arrow" markerWidth="8" markerHeight="8" refX="7" refY="3" orient="auto">
+                            <path d="M0,0 L0,6 L8,3 z" fill="#FF4500"/>
+                        </marker>
+                    </defs>
+                    <rect width="100%" height="100%" fill="url(#grid)"/>
+                    <!-- Centro do campo -->
+                    <circle cx="160" cy="320" r="40" fill="none" stroke="rgba(255,255,255,0.08)" stroke-width="1.5"/>
+                    <line x1="0" y1="320" x2="320" y2="320" stroke="rgba(255,255,255,0.08)" stroke-width="1.5"/>
+                    <!-- Jogadas táticas -->
+                    <text x="40" y="480" fill="rgba(255,255,255,0.2)" font-size="16" font-weight="bold" class="splash-tactical-x delay-1">X</text>
+                    <path class="splash-tactical-line delay-1" d="M50 470 Q 90 400 130 360" fill="none" stroke="#FF4500" stroke-width="2" stroke-dasharray="4,4" marker-end="url(#arrow)"/>
+                    <circle cx="160" cy="520" r="6" fill="none" stroke="rgba(255,255,255,0.2)" stroke-width="1.5" class="splash-tactical-x delay-2"/>
+                    <path class="splash-tactical-line delay-2" d="M160 510 L160 420" fill="none" stroke="rgba(255,255,255,0.15)" stroke-width="1.5"/>
+                    <text x="260" y="400" fill="rgba(255,255,255,0.2)" font-size="16" font-weight="bold" class="splash-tactical-x delay-3">X</text>
+                    <path class="splash-tactical-line delay-3" d="M250 390 Q 200 350 170 300" fill="none" stroke="#FF4500" stroke-width="2" stroke-dasharray="4,4" marker-end="url(#arrow)"/>
+                </svg>
+            </div>
+
+            <!-- Brilho -->
+            <div class="splash-glow"></div>
+
+            <!-- Conteúdo -->
+            <div class="splash-content">
+                <div class="splash-greeting">
+                    <h2>Fala aí Parça!</h2>
+                </div>
+
+                <div class="splash-logo-container">
+                    <div class="splash-logo-glow"></div>
+                    <img 
+                        src="/escudos/default.png" 
+                        alt="Super Cartola Logo" 
+                        class="splash-logo-img"
+                    >
+                </div>
+
+                <div class="splash-loader">
+                    <div class="splash-ball-container">
+                        <div class="splash-ball">
+                            <span class="material-icons">sports_soccer</span>
+                        </div>
+                        <div class="splash-ball-shadow"></div>
+                    </div>
+                    <span class="splash-loader-text">Carregando meu time...</span>
+                </div>
+            </div>
+
+            <div class="splash-footer">
+                <p>Ano 11 • Super Cartola</p>
+            </div>
+        </div>
+        <!-- FIM SPLASH SCREEN -->
+
+        <div class="participante-container">
+            <!-- HEADER STICKY -->
+            <header class="participante-header-modern">
+                <div class="header-main-modern">
+                    <div class="header-info-group">
+                        <div class="escudos-mini-modern">
+                            <img
+                                id="escudoTime"
+                                class="escudo-mini-modern"
+                                src="/escudos/placeholder.png"
+                                alt="Time"
+                            />
+                            <img
+                                id="escudoCoracao"
+                                class="escudo-coracao-modern"
+                                src="/escudos/placeholder.png"
+                                alt="Coração"
+                            />
+                        </div>
+                        <div class="info-participante-modern">
+                            <h1 id="nomeTime">Carregando...</h1>
+                            <p id="nomeCartoleiro">
+                                <span id="nomeCartolaText">Aguarde...</span>
+                                <span
+                                    id="app-version-badge"
+                                    class="text-[9px] bg-white/10 px-1.5 py-0.5 rounded ml-1"
+                                    >v--</span
+                                >
+                            </p>
+                            <!-- Badge de Liga Clicável -->
+                            <div id="ligaBadgeContainer" class="liga-badge-container" style="display: none;">
+                                <button id="ligaBadge" class="liga-badge" title="Clique para trocar de liga">
+                                    <span class="material-symbols-outlined" style="font-size: 14px;">emoji_events</span>
+                                    <span id="ligaBadgeNome">Liga</span>
+                                    <span class="material-symbols-outlined swap-icon" style="font-size: 12px;">swap_horiz</span>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <button
+                        id="headerMenuToggle"
+                        class="header-toggle-btn"
+                        title="Menu"
+                    >
+                        <span class="material-icons">more_vert</span>
+                    </button>
+                </div>
+
+                <!-- HEADER SECUNDÁRIO (COLLAPSED) -->
+                <div id="headerSecondary" class="header-secondary">
+                    <div class="secondary-content">
+                        <select id="seletorLiga" class="liga-selector">
+                            <option>Carregando ligas...</option>
+                        </select>
+                        <button id="btnLogout" class="btn-logout">
+                            <span class="material-icons text-sm mr-1"
+                                >logout</span
+                            >
+                            Sair
+                        </button>
+                    </div>
+                </div>
+            </header>
+
+            <script>
+                document.addEventListener("DOMContentLoaded", function () {
+                    const toggle = document.getElementById("headerMenuToggle");
+                    const secondary =
+                        document.getElementById("headerSecondary");
+                    const btnLogout = document.getElementById("btnLogout");
+
+                    // Toggle menu
+                    if (toggle && secondary) {
+                        toggle.addEventListener("click", () => {
+                            secondary.classList.toggle("active");
+                            toggle.style.transform =
+                                secondary.classList.contains("active")
+                                    ? "rotate(90deg)"
+                                    : "rotate(0deg)";
+                        });
+                    }
+
+                    // ✅ LOGOUT - Event listener no botão
+                    if (btnLogout) {
+                        btnLogout.addEventListener("click", logout);
+                    }
+                });
+            </script>
+
+            <!-- Container para módulos -->
+            <main id="moduleContainer" class="module-container">
+                <!-- Conteúdo carregado dinamicamente -->
+            </main>
+        </div>
+
+        <!-- ✅ LogManager PRIMEIRO (antes de todos os outros scripts) -->
+        <script src="/js/core/log-manager.js"></script>
+
+        <!-- Core Systems -->
+        <script type="module" src="/js/core/cache-manager.js"></script>
+        <script type="module" src="/js/core/api-client.js"></script>
+
+        <!-- ✅ Splash Screen JS -->
+        <script src="js/splash-screen.js"></script>
+
+        <!-- Scripts participante -->
+        <script src="js/participante-auth.js"></script>
+        <script src="js/participante-navigation.js"></script>
+        <script src="js/participante-status.js"></script>
+
+        <!-- ✅ Sistema de Versionamento (com PWA) -->
+        <script src="/js/app/app-version.js"></script>
+
+        <!-- BOTTOM NAVIGATION FIXO -->
+        <nav class="bottom-nav-modern">
+            <!-- Menu será renderizado dinamicamente -->
+        </nav>
+    </body>
+</html>

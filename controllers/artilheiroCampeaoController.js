@@ -154,21 +154,27 @@ class ArtilheiroCampeaoController {
             const temporadaEncerrada = statusMercado.temporadaEncerrada;
             const rodadaEmAndamento = statusMercado.rodadaEmAndamento;
 
-            // ✅ v4.4: LÓGICA CORRETA DE RODADA FIM
+            // ✅ v4.5: LÓGICA CORRETA DE RODADA FIM
             let rodadaFim;
             if (fim) {
                 rodadaFim = parseInt(fim);
-                if (mercadoAberto && rodadaFim >= rodadaAtual) {
+                // ✅ v4.5: Se temporada encerrada (R38), não subtrair
+                if (mercadoAberto && rodadaFim >= rodadaAtual && rodadaAtual < 38) {
                     rodadaFim = rodadaAtual - 1;
                     console.log(
                         `⚠️ Corrigido: fim=${fim} → ${rodadaFim} (mercado aberto, sem scouts)`,
                     );
                 }
             } else {
-                // Se temporada encerrada, usa rodada atual (38)
-                // Se mercado aberto, usa rodada atual - 1
-                // Se rodada em andamento, usa rodada atual
-                rodadaFim = mercadoAberto ? rodadaAtual - 1 : rodadaAtual;
+                // ✅ v4.5: Se rodada >= 38, sempre usar 38 (temporada encerrada)
+                if (rodadaAtual >= 38) {
+                    rodadaFim = 38;
+                    console.log(`🏁 Temporada encerrada - usando R38`);
+                } else if (mercadoAberto) {
+                    rodadaFim = rodadaAtual - 1;
+                } else {
+                    rodadaFim = rodadaAtual;
+                }
             }
 
             if (rodadaFim < rodadaInicio) {

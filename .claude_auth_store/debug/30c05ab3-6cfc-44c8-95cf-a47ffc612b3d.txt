@@ -1,0 +1,319 @@
+2025-12-11T17:48:27.614Z [DEBUG] Watching for changes in setting files /home/runner/workspace/.claude/settings.local.json...
+2025-12-11T17:48:27.618Z [ERROR] Failed to save config with lock: Error: ENOENT: no such file or directory, lstat '/home/runner/.claude.json'
+2025-12-11T17:48:27.619Z [DEBUG] Writing to temp file: /home/runner/.claude.json.tmp.551.1765475307619
+2025-12-11T17:48:27.619Z [DEBUG] Setting permissions for new file: 600
+2025-12-11T17:48:27.619Z [DEBUG] Temp file written successfully, size: 82 bytes
+2025-12-11T17:48:27.619Z [DEBUG] Renaming /home/runner/.claude.json.tmp.551.1765475307619 to /home/runner/.claude.json
+2025-12-11T17:48:27.620Z [DEBUG] File /home/runner/.claude.json written atomically
+2025-12-11T17:48:27.632Z [DEBUG] Writing to temp file: /home/runner/.claude.json.tmp.551.1765475307632
+2025-12-11T17:48:27.632Z [DEBUG] Preserving file permissions: 100600
+2025-12-11T17:48:27.632Z [DEBUG] Temp file written successfully, size: 130 bytes
+2025-12-11T17:48:27.633Z [DEBUG] Applied original permissions to temp file
+2025-12-11T17:48:27.633Z [DEBUG] Renaming /home/runner/.claude.json.tmp.551.1765475307632 to /home/runner/.claude.json
+2025-12-11T17:48:27.633Z [DEBUG] File /home/runner/.claude.json written atomically
+2025-12-11T17:48:27.644Z [DEBUG] [LSP MANAGER] initializeLspServerManager() called
+2025-12-11T17:48:27.644Z [DEBUG] [LSP MANAGER] Created manager instance, state=pending
+2025-12-11T17:48:27.644Z [DEBUG] [LSP MANAGER] Starting async initialization (generation 1)
+2025-12-11T17:48:27.644Z [DEBUG] [LSP SERVER MANAGER] initialize() called
+2025-12-11T17:48:27.644Z [DEBUG] [LSP SERVER MANAGER] Calling getAllLspServers()
+2025-12-11T17:48:27.646Z [DEBUG] Writing to temp file: /home/runner/.claude.json.tmp.551.1765475307646
+2025-12-11T17:48:27.646Z [DEBUG] Preserving file permissions: 100600
+2025-12-11T17:48:27.646Z [DEBUG] Temp file written successfully, size: 167 bytes
+2025-12-11T17:48:27.646Z [DEBUG] Applied original permissions to temp file
+2025-12-11T17:48:27.646Z [DEBUG] Renaming /home/runner/.claude.json.tmp.551.1765475307646 to /home/runner/.claude.json
+2025-12-11T17:48:27.646Z [DEBUG] File /home/runner/.claude.json written atomically
+2025-12-11T17:48:27.647Z [DEBUG] Writing to temp file: /home/runner/.claude.json.tmp.551.1765475307647
+2025-12-11T17:48:27.647Z [DEBUG] Preserving file permissions: 100600
+2025-12-11T17:48:27.647Z [DEBUG] Temp file written successfully, size: 202 bytes
+2025-12-11T17:48:27.647Z [DEBUG] Applied original permissions to temp file
+2025-12-11T17:48:27.647Z [DEBUG] Renaming /home/runner/.claude.json.tmp.551.1765475307647 to /home/runner/.claude.json
+2025-12-11T17:48:27.647Z [DEBUG] File /home/runner/.claude.json written atomically
+2025-12-11T17:48:27.655Z [DEBUG] Applying permission update: Adding 15 allow rule(s) to destination 'localSettings': ["Bash(tree:*)","Bash(find:*)","Bash(wc:*)","Bash(grep:*)","Bash(npm install:*)","Bash(node -e:*)","Bash(/mcp add mongo:*)","Bash(node investigar-rodada38-paulinett.js:*)","Bash(node investigar-snapshots-sobral.js:*)","Bash(node:*)","Bash(git push:*)","Bash(curl:*)","Bash(python3:*)","Bash(cat:*)","Bash(pgrep:*)"]
+2025-12-11T17:48:27.661Z [DEBUG] Found 0 plugins (0 enabled, 0 disabled)
+2025-12-11T17:48:27.681Z [DEBUG] Total LSP servers loaded: 0
+2025-12-11T17:48:27.681Z [DEBUG] [LSP SERVER MANAGER] getAllLspServers returned 0 server(s)
+2025-12-11T17:48:27.681Z [DEBUG] LSP manager initialized with 0 servers
+2025-12-11T17:48:27.681Z [DEBUG] LSP server manager initialized successfully
+2025-12-11T17:48:27.682Z [DEBUG] LSP notification handlers registered successfully for all 0 server(s)
+2025-12-11T17:48:27.713Z [DEBUG] [SLOW OPERATION DETECTED] execSyncWithDefaults (28.6ms): ldd /bin/ls 2>/dev/null
+2025-12-11T17:48:27.722Z [DEBUG] Loading skills from directories: managed=/etc/claude-code/.claude/skills, user=/home/runner/.claude/skills, project=[]
+2025-12-11T17:48:27.723Z [DEBUG] >>>>> getPluginSkills CALLED <<<<<
+2025-12-11T17:48:27.751Z [DEBUG] [SLOW OPERATION DETECTED] execSyncWithDefaults (18.0ms): ps aux | grep -E "code|cursor|windsurf|idea|pycharm|webstorm|phpstorm|rubymine|clion|goland|rider|da
+2025-12-11T17:48:27.752Z [DEBUG] installed_plugins.json doesn't exist yet at /home/runner/.claude/plugins/installed_plugins.json, returning empty object
+2025-12-11T17:48:27.832Z [DEBUG] Creating shell snapshot for bash (/bin/bash)
+2025-12-11T17:48:27.832Z [DEBUG] Looking for shell config file: /home/runner/.bashrc
+2025-12-11T17:48:27.832Z [DEBUG] Snapshots directory: /home/runner/.claude/shell-snapshots
+2025-12-11T17:48:27.833Z [DEBUG] Creating snapshot at: /home/runner/.claude/shell-snapshots/snapshot-bash-1765475307832-5zug4g.sh
+2025-12-11T17:48:27.833Z [DEBUG] Shell binary exists: true
+2025-12-11T17:48:27.833Z [DEBUG] Execution timeout: 10000ms
+2025-12-11T17:48:27.841Z [DEBUG] Writing to temp file: /home/runner/.claude/todos/30c05ab3-6cfc-44c8-95cf-a47ffc612b3d-agent-30c05ab3-6cfc-44c8-95cf-a47ffc612b3d.json.tmp.551.1765475307841
+2025-12-11T17:48:27.851Z [DEBUG] [SLOW OPERATION DETECTED] fs.writeFileSync (9.7ms)
+2025-12-11T17:48:27.851Z [DEBUG] Temp file written successfully, size: 2 bytes
+2025-12-11T17:48:27.851Z [DEBUG] Renaming /home/runner/.claude/todos/30c05ab3-6cfc-44c8-95cf-a47ffc612b3d-agent-30c05ab3-6cfc-44c8-95cf-a47ffc612b3d.json.tmp.551.1765475307841 to /home/runner/.claude/todos/30c05ab3-6cfc-44c8-95cf-a47ffc612b3d-agent-30c05ab3-6cfc-44c8-95cf-a47ffc612b3d.json
+2025-12-11T17:48:27.851Z [DEBUG] File /home/runner/.claude/todos/30c05ab3-6cfc-44c8-95cf-a47ffc612b3d-agent-30c05ab3-6cfc-44c8-95cf-a47ffc612b3d.json written atomically
+2025-12-11T17:48:27.861Z [DEBUG] getPluginSkills: Processing 0 enabled plugins
+2025-12-11T17:48:27.861Z [DEBUG] Total plugin skills loaded: 0
+2025-12-11T17:48:27.861Z [DEBUG] Total plugin commands loaded: 0
+2025-12-11T17:48:27.861Z [DEBUG] Registered 0 hooks from 0 plugins
+2025-12-11T17:48:28.071Z [DEBUG] Loaded 0 unique skills (managed: 0, user: 0, project: 0, duplicates removed: 0)
+2025-12-11T17:48:28.087Z [DEBUG] Attempting to auto-install official marketplace
+2025-12-11T17:48:28.129Z [DEBUG] getSkills returning: 0 skill dir commands, 0 plugin skills
+2025-12-11T17:48:28.132Z [DEBUG] Total plugin agents loaded: 0
+2025-12-11T17:48:28.222Z [DEBUG] Git remote URL: https://github.com/paulinett1508-dev/SuperCartolaManagerv5
+2025-12-11T17:48:28.224Z [DEBUG] Parsed repository: paulinett1508-dev/SuperCartolaManagerv5 from https://github.com/paulinett1508-dev/SuperCartolaManagerv5
+2025-12-11T17:48:28.224Z [DEBUG] Parsed repository: paulinett1508-dev/SuperCartolaManagerv5 from URL: https://github.com/paulinett1508-dev/SuperCartolaManagerv5
+2025-12-11T17:48:28.225Z [DEBUG] Writing to temp file: /home/runner/.claude.json.tmp.551.1765475308225
+2025-12-11T17:48:28.225Z [DEBUG] Preserving file permissions: 100600
+2025-12-11T17:48:28.225Z [DEBUG] Temp file written successfully, size: 316 bytes
+2025-12-11T17:48:28.225Z [DEBUG] Applied original permissions to temp file
+2025-12-11T17:48:28.225Z [DEBUG] Renaming /home/runner/.claude.json.tmp.551.1765475308225 to /home/runner/.claude.json
+2025-12-11T17:48:28.225Z [DEBUG] File /home/runner/.claude.json written atomically
+2025-12-11T17:48:28.225Z [DEBUG] Added /home/runner/workspace to tracked paths for repo paulinett1508-dev/supercartolamanagerv5
+2025-12-11T17:48:28.245Z [DEBUG] Ripgrep first use test: PASSED (mode=builtin, path=/home/runner/workspace/.config/npm/node_global/lib/node_modules/@anthropic-ai/claude-code/vendor/ripgrep/x64-linux/rg)
+2025-12-11T17:48:28.248Z [DEBUG] Shell snapshot created successfully (19021 bytes)
+2025-12-11T17:48:28.249Z [INFO] SSH not configured for GitHub, using HTTPS for anthropics/claude-plugins-official
+2025-12-11T17:48:28.436Z [DEBUG] Writing to temp file: /home/runner/.claude.json.tmp.551.1765475308436
+2025-12-11T17:48:28.436Z [DEBUG] Preserving file permissions: 100600
+2025-12-11T17:48:28.437Z [DEBUG] Temp file written successfully, size: 379 bytes
+2025-12-11T17:48:28.437Z [DEBUG] Applied original permissions to temp file
+2025-12-11T17:48:28.437Z [DEBUG] Renaming /home/runner/.claude.json.tmp.551.1765475308436 to /home/runner/.claude.json
+2025-12-11T17:48:28.437Z [DEBUG] File /home/runner/.claude.json written atomically
+2025-12-11T17:48:28.438Z [DEBUG] Writing to temp file: /home/runner/.claude.json.tmp.551.1765475308438
+2025-12-11T17:48:28.438Z [DEBUG] Preserving file permissions: 100600
+2025-12-11T17:48:28.438Z [DEBUG] Temp file written successfully, size: 431 bytes
+2025-12-11T17:48:28.438Z [DEBUG] Applied original permissions to temp file
+2025-12-11T17:48:28.438Z [DEBUG] Renaming /home/runner/.claude.json.tmp.551.1765475308438 to /home/runner/.claude.json
+2025-12-11T17:48:28.438Z [DEBUG] File /home/runner/.claude.json written atomically
+2025-12-11T17:48:28.439Z [DEBUG] Writing to temp file: /home/runner/.claude.json.tmp.551.1765475308439
+2025-12-11T17:48:28.439Z [DEBUG] Preserving file permissions: 100600
+2025-12-11T17:48:28.439Z [DEBUG] Temp file written successfully, size: 475 bytes
+2025-12-11T17:48:28.439Z [DEBUG] Applied original permissions to temp file
+2025-12-11T17:48:28.439Z [DEBUG] Renaming /home/runner/.claude.json.tmp.551.1765475308439 to /home/runner/.claude.json
+2025-12-11T17:48:28.439Z [DEBUG] File /home/runner/.claude.json written atomically
+2025-12-11T17:48:28.440Z [DEBUG] Writing to temp file: /home/runner/.claude.json.tmp.551.1765475308440
+2025-12-11T17:48:28.440Z [DEBUG] Preserving file permissions: 100600
+2025-12-11T17:48:28.440Z [DEBUG] Temp file written successfully, size: 505 bytes
+2025-12-11T17:48:28.440Z [DEBUG] Applied original permissions to temp file
+2025-12-11T17:48:28.440Z [DEBUG] Renaming /home/runner/.claude.json.tmp.551.1765475308440 to /home/runner/.claude.json
+2025-12-11T17:48:28.440Z [DEBUG] File /home/runner/.claude.json written atomically
+2025-12-11T17:48:28.441Z [DEBUG] Writing to temp file: /home/runner/.claude.json.tmp.551.1765475308441
+2025-12-11T17:48:28.441Z [DEBUG] Preserving file permissions: 100600
+2025-12-11T17:48:28.442Z [DEBUG] Temp file written successfully, size: 530 bytes
+2025-12-11T17:48:28.442Z [DEBUG] Applied original permissions to temp file
+2025-12-11T17:48:28.442Z [DEBUG] Renaming /home/runner/.claude.json.tmp.551.1765475308441 to /home/runner/.claude.json
+2025-12-11T17:48:28.443Z [DEBUG] File /home/runner/.claude.json written atomically
+2025-12-11T17:48:28.464Z [DEBUG] Writing to temp file: /home/runner/.claude.json.tmp.551.1765475308464
+2025-12-11T17:48:28.464Z [DEBUG] Preserving file permissions: 100600
+2025-12-11T17:48:28.464Z [DEBUG] Temp file written successfully, size: 45847 bytes
+2025-12-11T17:48:28.464Z [DEBUG] Applied original permissions to temp file
+2025-12-11T17:48:28.464Z [DEBUG] Renaming /home/runner/.claude.json.tmp.551.1765475308464 to /home/runner/.claude.json
+2025-12-11T17:48:28.464Z [DEBUG] File /home/runner/.claude.json written atomically
+2025-12-11T17:48:28.961Z [DEBUG] [SLOW OPERATION DETECTED] fs.rmSync (36.9ms)
+2025-12-11T17:48:28.961Z [ERROR] Failed to auto-install official marketplace: Invalid schema: name: Marketplace name cannot impersonate official Anthropic/Claude marketplaces. Names containing "official", "anthropic", or "claude" in official-sounding combinations are reserved.
+2025-12-11T17:48:28.961Z [ERROR] ConfigParseError: ConfigParseError: Invalid schema: name: Marketplace name cannot impersonate official Anthropic/Claude marketplaces. Names containing "official", "anthropic", or "claude" in official-sounding combinations are reserved.
+    at DSB (file:///home/runner/workspace/.config/npm/node_global/lib/node_modules/@anthropic-ai/claude-code/cli.js:1057:842)
+    at Ri1 (file:///home/runner/workspace/.config/npm/node_global/lib/node_modules/@anthropic-ai/claude-code/cli.js:1057:2880)
+    at process.processTicksAndRejections (node:internal/process/task_queues:95:5)
+    at async Sf (file:///home/runner/workspace/.config/npm/node_global/lib/node_modules/@anthropic-ai/claude-code/cli.js:1059:592)
+    at async Pd2 (file:///home/runner/workspace/.config/npm/node_global/lib/node_modules/@anthropic-ai/claude-code/cli.js:4540:1620)
+2025-12-11T17:48:28.963Z [DEBUG] Writing to temp file: /home/runner/.claude.json.tmp.551.1765475308963
+2025-12-11T17:48:28.963Z [DEBUG] Preserving file permissions: 100600
+2025-12-11T17:48:28.963Z [DEBUG] Temp file written successfully, size: 46000 bytes
+2025-12-11T17:48:28.963Z [DEBUG] Applied original permissions to temp file
+2025-12-11T17:48:28.963Z [DEBUG] Renaming /home/runner/.claude.json.tmp.551.1765475308963 to /home/runner/.claude.json
+2025-12-11T17:48:28.964Z [DEBUG] File /home/runner/.claude.json written atomically
+2025-12-11T17:48:29.008Z [ERROR] Error streaming, falling back to non-streaming mode: Could not resolve authentication method. Expected either apiKey or authToken to be set. Or for one of the "X-Api-Key" or "Authorization" headers to be explicitly omitted
+2025-12-11T17:48:29.016Z [ERROR] Error in non-streaming fallback: Could not resolve authentication method. Expected either apiKey or authToken to be set. Or for one of the "X-Api-Key" or "Authorization" headers to be explicitly omitted
+2025-12-11T17:48:29.017Z [ERROR] Error: Error: Could not resolve authentication method. Expected either apiKey or authToken to be set. Or for one of the "X-Api-Key" or "Authorization" headers to be explicitly omitted
+    at MR.validateHeaders (file:///home/runner/workspace/.config/npm/node_global/lib/node_modules/@anthropic-ai/claude-code/cli.js:860:1008)
+    at MR.buildHeaders (file:///home/runner/workspace/.config/npm/node_global/lib/node_modules/@anthropic-ai/claude-code/cli.js:860:8501)
+    at process.processTicksAndRejections (node:internal/process/task_queues:95:5)
+    at async MR.buildRequest (file:///home/runner/workspace/.config/npm/node_global/lib/node_modules/@anthropic-ai/claude-code/cli.js:860:7559)
+    at async MR.makeRequest (file:///home/runner/workspace/.config/npm/node_global/lib/node_modules/@anthropic-ai/claude-code/cli.js:860:3387)
+    at async dsA.model (file:///home/runner/workspace/.config/npm/node_global/lib/node_modules/@anthropic-ai/claude-code/cli.js:4026:11283)
+    at async dsA (file:///home/runner/workspace/.config/npm/node_global/lib/node_modules/@anthropic-ai/claude-code/cli.js:1009:34744)
+    at async mg2 (file:///home/runner/workspace/.config/npm/node_global/lib/node_modules/@anthropic-ai/claude-code/cli.js:4026:11437)
+    at async file:///home/runner/workspace/.config/npm/node_global/lib/node_modules/@anthropic-ai/claude-code/cli.js:4026:3622
+    at async An1 (file:///home/runner/workspace/.config/npm/node_global/lib/node_modules/@anthropic-ai/claude-code/cli.js:1411:2037)
+2025-12-11T17:48:34.786Z [DEBUG] Writing to temp file: /home/runner/.claude.json.tmp.551.1765475314786
+2025-12-11T17:48:34.786Z [DEBUG] Preserving file permissions: 100600
+2025-12-11T17:48:34.787Z [DEBUG] Temp file written successfully, size: 46000 bytes
+2025-12-11T17:48:34.787Z [DEBUG] Applied original permissions to temp file
+2025-12-11T17:48:34.787Z [DEBUG] Renaming /home/runner/.claude.json.tmp.551.1765475314786 to /home/runner/.claude.json
+2025-12-11T17:48:34.787Z [DEBUG] File /home/runner/.claude.json written atomically
+2025-12-11T17:48:34.788Z [DEBUG] Writing to temp file: /home/runner/.claude.json.tmp.551.1765475314788
+2025-12-11T17:48:34.788Z [DEBUG] Preserving file permissions: 100600
+2025-12-11T17:48:34.789Z [DEBUG] Temp file written successfully, size: 46000 bytes
+2025-12-11T17:48:34.789Z [DEBUG] Applied original permissions to temp file
+2025-12-11T17:48:34.789Z [DEBUG] Renaming /home/runner/.claude.json.tmp.551.1765475314788 to /home/runner/.claude.json
+2025-12-11T17:48:34.789Z [DEBUG] File /home/runner/.claude.json written atomically
+2025-12-11T17:50:52.750Z [DEBUG] BigQuery metrics exporter flush complete
+2025-12-11T17:50:52.751Z [DEBUG] Telemetry flushed successfully
+2025-12-11T17:50:52.754Z [DEBUG] Writing to temp file: /home/runner/.claude.json.tmp.551.1765475452754
+2025-12-11T17:50:52.754Z [DEBUG] Preserving file permissions: 100600
+2025-12-11T17:50:52.754Z [DEBUG] Temp file written successfully, size: 46000 bytes
+2025-12-11T17:50:52.754Z [DEBUG] Applied original permissions to temp file
+2025-12-11T17:50:52.754Z [DEBUG] Renaming /home/runner/.claude.json.tmp.551.1765475452754 to /home/runner/.claude.json
+2025-12-11T17:50:52.755Z [DEBUG] File /home/runner/.claude.json written atomically
+2025-12-11T17:50:52.763Z [DEBUG] Writing to temp file: /home/runner/.claude.json.tmp.551.1765475452763
+2025-12-11T17:50:52.764Z [DEBUG] Preserving file permissions: 100600
+2025-12-11T17:50:52.765Z [DEBUG] Temp file written successfully, size: 46000 bytes
+2025-12-11T17:50:52.765Z [DEBUG] Applied original permissions to temp file
+2025-12-11T17:50:52.765Z [DEBUG] Renaming /home/runner/.claude.json.tmp.551.1765475452763 to /home/runner/.claude.json
+2025-12-11T17:50:52.765Z [DEBUG] File /home/runner/.claude.json written atomically
+2025-12-11T17:50:53.009Z [DEBUG] Writing to temp file: /home/runner/.claude.json.tmp.551.1765475453009
+2025-12-11T17:50:53.009Z [DEBUG] Preserving file permissions: 100600
+2025-12-11T17:50:53.010Z [DEBUG] Temp file written successfully, size: 46277 bytes
+2025-12-11T17:50:53.010Z [DEBUG] Applied original permissions to temp file
+2025-12-11T17:50:53.010Z [DEBUG] Renaming /home/runner/.claude.json.tmp.551.1765475453009 to /home/runner/.claude.json
+2025-12-11T17:50:53.011Z [DEBUG] File /home/runner/.claude.json written atomically
+2025-12-11T17:50:53.434Z [DEBUG] Writing to temp file: /home/runner/.claude.json.tmp.551.1765475453434
+2025-12-11T17:50:53.434Z [DEBUG] Preserving file permissions: 100600
+2025-12-11T17:50:53.436Z [DEBUG] Temp file written successfully, size: 46415 bytes
+2025-12-11T17:50:53.436Z [DEBUG] Applied original permissions to temp file
+2025-12-11T17:50:53.436Z [DEBUG] Renaming /home/runner/.claude.json.tmp.551.1765475453434 to /home/runner/.claude.json
+2025-12-11T17:50:53.436Z [DEBUG] File /home/runner/.claude.json written atomically
+2025-12-11T17:50:53.890Z [DEBUG] Writing to temp file: /home/runner/.claude.json.tmp.551.1765475453890
+2025-12-11T17:50:53.891Z [DEBUG] Preserving file permissions: 100600
+2025-12-11T17:50:53.891Z [DEBUG] Temp file written successfully, size: 46476 bytes
+2025-12-11T17:50:53.891Z [DEBUG] Applied original permissions to temp file
+2025-12-11T17:50:53.891Z [DEBUG] Renaming /home/runner/.claude.json.tmp.551.1765475453890 to /home/runner/.claude.json
+2025-12-11T17:50:53.891Z [DEBUG] File /home/runner/.claude.json written atomically
+2025-12-11T17:50:53.895Z [DEBUG] Skipping Notification:auth_success hook execution - workspace trust not accepted
+2025-12-11T17:50:54.114Z [DEBUG] Metrics opt-out API response: enabled=true, vcsLinking=false
+2025-12-11T17:51:01.710Z [DEBUG] Writing to temp file: /home/runner/.claude.json.tmp.551.1765475461710
+2025-12-11T17:51:01.710Z [DEBUG] Preserving file permissions: 100600
+2025-12-11T17:51:01.710Z [DEBUG] Temp file written successfully, size: 46547 bytes
+2025-12-11T17:51:01.710Z [DEBUG] Applied original permissions to temp file
+2025-12-11T17:51:01.710Z [DEBUG] Renaming /home/runner/.claude.json.tmp.551.1765475461710 to /home/runner/.claude.json
+2025-12-11T17:51:01.710Z [DEBUG] File /home/runner/.claude.json written atomically
+2025-12-11T17:51:21.011Z [DEBUG] Writing to temp file: /home/runner/.claude.json.tmp.551.1765475481011
+2025-12-11T17:51:21.012Z [DEBUG] Preserving file permissions: 100600
+2025-12-11T17:51:21.012Z [DEBUG] Temp file written successfully, size: 46965 bytes
+2025-12-11T17:51:21.012Z [DEBUG] Applied original permissions to temp file
+2025-12-11T17:51:21.012Z [DEBUG] Renaming /home/runner/.claude.json.tmp.551.1765475481011 to /home/runner/.claude.json
+2025-12-11T17:51:21.013Z [DEBUG] File /home/runner/.claude.json written atomically
+2025-12-11T17:51:22.750Z [DEBUG] Passes: No cache, fetching eligibility
+2025-12-11T17:51:22.767Z [DEBUG] Creating installed_plugins_v2.json from V1 and settings.json files
+2025-12-11T17:51:22.783Z [DEBUG] [SLOW OPERATION DETECTED] fs.writeFileSync (14.1ms)
+2025-12-11T17:51:22.783Z [DEBUG] Saved 0 installed plugins to V2 file at /home/runner/.claude/plugins/installed_plugins_v2.json
+2025-12-11T17:51:22.783Z [DEBUG] Sync completed: 0 added, 0 updated in installed_plugins_v2.json
+2025-12-11T17:51:22.785Z [DEBUG] Saved 0 installed plugins to /home/runner/.claude/plugins/installed_plugins.json (schema version 1)
+2025-12-11T17:51:22.785Z [DEBUG] V1 file updated with 0 user-scope plugins
+2025-12-11T17:51:22.806Z [DEBUG] Initialized versioned plugins system with 0 plugins
+2025-12-11T17:51:22.814Z [DEBUG] Writing to temp file: /home/runner/.claude.json.tmp.551.1765475482814
+2025-12-11T17:51:22.814Z [DEBUG] Preserving file permissions: 100600
+2025-12-11T17:51:22.815Z [DEBUG] Temp file written successfully, size: 46985 bytes
+2025-12-11T17:51:22.815Z [DEBUG] Applied original permissions to temp file
+2025-12-11T17:51:22.815Z [DEBUG] Renaming /home/runner/.claude.json.tmp.551.1765475482814 to /home/runner/.claude.json
+2025-12-11T17:51:22.815Z [DEBUG] File /home/runner/.claude.json written atomically
+2025-12-11T17:51:22.829Z [DEBUG] Getting matching hook commands for SessionStart with query: startup
+2025-12-11T17:51:22.829Z [DEBUG] Found 0 hook matchers in settings
+2025-12-11T17:51:22.829Z [DEBUG] Matched 0 unique hooks for query "startup" (0 before deduplication)
+2025-12-11T17:51:22.880Z [DEBUG] Skills and commands included in Skill tool:
+2025-12-11T17:51:22.880Z [DEBUG] Slash commands included in SlashCommand tool:
+2025-12-11T17:51:22.979Z [DEBUG] Writing to temp file: /home/runner/.claude.json.tmp.551.1765475482979
+2025-12-11T17:51:22.979Z [DEBUG] Preserving file permissions: 100600
+2025-12-11T17:51:22.979Z [DEBUG] Temp file written successfully, size: 47021 bytes
+2025-12-11T17:51:22.979Z [DEBUG] Applied original permissions to temp file
+2025-12-11T17:51:22.979Z [DEBUG] Renaming /home/runner/.claude.json.tmp.551.1765475482979 to /home/runner/.claude.json
+2025-12-11T17:51:22.979Z [DEBUG] File /home/runner/.claude.json written atomically
+2025-12-11T17:51:22.985Z [DEBUG] Writing to temp file: /home/runner/.claude.json.tmp.551.1765475482985
+2025-12-11T17:51:22.985Z [DEBUG] Preserving file permissions: 100600
+2025-12-11T17:51:22.986Z [DEBUG] Temp file written successfully, size: 47103 bytes
+2025-12-11T17:51:22.986Z [DEBUG] Applied original permissions to temp file
+2025-12-11T17:51:22.986Z [DEBUG] Renaming /home/runner/.claude.json.tmp.551.1765475482985 to /home/runner/.claude.json
+2025-12-11T17:51:22.987Z [DEBUG] File /home/runner/.claude.json written atomically
+2025-12-11T17:51:22.992Z [DEBUG] performStartupChecks called
+2025-12-11T17:51:22.993Z [DEBUG] Starting background plugin installations
+2025-12-11T17:51:22.993Z [DEBUG] performBackgroundPluginInstallations called
+2025-12-11T17:51:23.005Z [DEBUG] AutoUpdaterWrapper: Installation type: npm-global
+2025-12-11T17:51:23.013Z [DEBUG] Writing to temp file: /home/runner/.claude.json.tmp.551.1765475483013
+2025-12-11T17:51:23.013Z [DEBUG] Preserving file permissions: 100600
+2025-12-11T17:51:23.014Z [DEBUG] Temp file written successfully, size: 47208 bytes
+2025-12-11T17:51:23.014Z [DEBUG] Applied original permissions to temp file
+2025-12-11T17:51:23.014Z [DEBUG] Renaming /home/runner/.claude.json.tmp.551.1765475483013 to /home/runner/.claude.json
+2025-12-11T17:51:23.015Z [DEBUG] File /home/runner/.claude.json written atomically
+2025-12-11T17:51:23.016Z [DEBUG] Writing to temp file: /home/runner/.claude.json.tmp.551.1765475483016
+2025-12-11T17:51:23.016Z [DEBUG] Preserving file permissions: 100600
+2025-12-11T17:51:23.016Z [DEBUG] Temp file written successfully, size: 47256 bytes
+2025-12-11T17:51:23.016Z [DEBUG] Applied original permissions to temp file
+2025-12-11T17:51:23.016Z [DEBUG] Renaming /home/runner/.claude.json.tmp.551.1765475483016 to /home/runner/.claude.json
+2025-12-11T17:51:23.017Z [DEBUG] File /home/runner/.claude.json written atomically
+2025-12-11T17:51:23.019Z [DEBUG] Setting installation status: 0 marketplaces, 0 installable plugins, 0 uninstallable plugins
+2025-12-11T17:51:23.019Z [DEBUG] Loaded plugins - Enabled: 0, Disabled: 0, Commands: 0, Agents: 0, Errors: 0
+2025-12-11T17:51:23.034Z [DEBUG] Getting matching hook commands for SubagentStart with query: Explore
+2025-12-11T17:51:23.034Z [DEBUG] Found 0 hook matchers in settings
+2025-12-11T17:51:23.034Z [DEBUG] Matched 0 unique hooks for query "Explore" (0 before deduplication)
+2025-12-11T17:51:23.050Z [DEBUG] Getting matching hook commands for SubagentStart with query: Plan
+2025-12-11T17:51:23.050Z [DEBUG] Found 0 hook matchers in settings
+2025-12-11T17:51:23.050Z [DEBUG] Matched 0 unique hooks for query "Plan" (0 before deduplication)
+2025-12-11T17:51:23.143Z [DEBUG] Writing to temp file: /home/runner/.claude.json.tmp.551.1765475483143
+2025-12-11T17:51:23.143Z [DEBUG] Preserving file permissions: 100600
+2025-12-11T17:51:23.144Z [DEBUG] Temp file written successfully, size: 47437 bytes
+2025-12-11T17:51:23.144Z [DEBUG] Applied original permissions to temp file
+2025-12-11T17:51:23.144Z [DEBUG] Renaming /home/runner/.claude.json.tmp.551.1765475483143 to /home/runner/.claude.json
+2025-12-11T17:51:23.144Z [DEBUG] File /home/runner/.claude.json written atomically
+2025-12-11T17:51:23.157Z [DEBUG] Writing to temp file: /home/runner/.claude.json.tmp.551.1765475483157
+2025-12-11T17:51:23.157Z [DEBUG] Preserving file permissions: 100600
+2025-12-11T17:51:23.157Z [DEBUG] Temp file written successfully, size: 47437 bytes
+2025-12-11T17:51:23.157Z [DEBUG] Applied original permissions to temp file
+2025-12-11T17:51:23.157Z [DEBUG] Renaming /home/runner/.claude.json.tmp.551.1765475483157 to /home/runner/.claude.json
+2025-12-11T17:51:23.158Z [DEBUG] File /home/runner/.claude.json written atomically
+2025-12-11T17:51:23.319Z [DEBUG] Writing to temp file: /home/runner/.claude.json.tmp.551.1765475483319
+2025-12-11T17:51:23.319Z [DEBUG] Preserving file permissions: 100600
+2025-12-11T17:51:23.319Z [DEBUG] Temp file written successfully, size: 47619 bytes
+2025-12-11T17:51:23.319Z [DEBUG] Applied original permissions to temp file
+2025-12-11T17:51:23.319Z [DEBUG] Renaming /home/runner/.claude.json.tmp.551.1765475483319 to /home/runner/.claude.json
+2025-12-11T17:51:23.319Z [DEBUG] File /home/runner/.claude.json written atomically
+2025-12-11T17:51:23.319Z [DEBUG] Passes eligibility cached for org 6f90af47-f888-4814-a177-026e3e17d185: false
+2025-12-11T17:51:23.680Z [DEBUG] Stream started - received first chunk
+2025-12-11T17:51:23.796Z [DEBUG] Writing to temp file: /home/runner/.claude.json.tmp.551.1765475483796
+2025-12-11T17:51:23.796Z [DEBUG] Preserving file permissions: 100600
+2025-12-11T17:51:23.796Z [DEBUG] Temp file written successfully, size: 47795 bytes
+2025-12-11T17:51:23.796Z [DEBUG] Applied original permissions to temp file
+2025-12-11T17:51:23.796Z [DEBUG] Renaming /home/runner/.claude.json.tmp.551.1765475483796 to /home/runner/.claude.json
+2025-12-11T17:51:23.796Z [DEBUG] File /home/runner/.claude.json written atomically
+2025-12-11T17:51:25.432Z [DEBUG] Stream started - received first chunk
+2025-12-11T17:51:26.378Z [DEBUG] Getting matching hook commands for SubagentStop with query: undefined
+2025-12-11T17:51:26.378Z [DEBUG] Found 0 hook matchers in settings
+2025-12-11T17:51:26.378Z [DEBUG] Matched 0 unique hooks for query "no match query" (0 before deduplication)
+2025-12-11T17:52:01.959Z [DEBUG] Getting matching hook commands for SubagentStop with query: undefined
+2025-12-11T17:52:01.959Z [DEBUG] Found 0 hook matchers in settings
+2025-12-11T17:52:01.959Z [DEBUG] Matched 0 unique hooks for query "no match query" (0 before deduplication)
+2025-12-11T17:53:06.692Z [DEBUG] [SLOW OPERATION DETECTED] fs.writeFileSync (13.7ms)
+2025-12-11T17:53:06.712Z [DEBUG] FileHistory: Added snapshot for 514c86ee-5f40-40dd-8304-31874ac03b9e, tracking 0 files
+2025-12-11T17:53:06.715Z [DEBUG] UserCommandMessage rendering: "mcp" (args: "add mongo node mongo-server.js")
+2025-12-11T17:53:06.715Z [DEBUG] isSkillFormat: false, prefix: "/"
+2025-12-11T17:53:06.758Z [DEBUG] Writing to temp file: /home/runner/.claude.json.tmp.551.1765475586758
+2025-12-11T17:53:06.758Z [DEBUG] Preserving file permissions: 100600
+2025-12-11T17:53:06.759Z [DEBUG] Temp file written successfully, size: 47840 bytes
+2025-12-11T17:53:06.759Z [DEBUG] Applied original permissions to temp file
+2025-12-11T17:53:06.759Z [DEBUG] Renaming /home/runner/.claude.json.tmp.551.1765475586758 to /home/runner/.claude.json
+2025-12-11T17:53:06.760Z [DEBUG] File /home/runner/.claude.json written atomically
+2025-12-11T17:53:06.789Z [DEBUG] [SLOW OPERATION DETECTED] execSyncWithDefaults (18.8ms): ps aux | grep -E "code|cursor|windsurf|idea|pycharm|webstorm|phpstorm|rubymine|clion|goland|rider|da
+2025-12-11T17:53:06.790Z [DEBUG] AutoUpdaterWrapper: Installation type: npm-global
+2025-12-11T17:53:06.817Z [DEBUG] [SLOW OPERATION DETECTED] execSyncWithDefaults (15.4ms): ps aux | grep -E "code|cursor|windsurf|idea|pycharm|webstorm|phpstorm|rubymine|clion|goland|rider|da
+2025-12-11T17:53:06.826Z [DEBUG] Writing to temp file: /home/runner/.claude.json.tmp.551.1765475586826
+2025-12-11T17:53:06.826Z [DEBUG] Preserving file permissions: 100600
+2025-12-11T17:53:06.826Z [DEBUG] Temp file written successfully, size: 47889 bytes
+2025-12-11T17:53:06.826Z [DEBUG] Applied original permissions to temp file
+2025-12-11T17:53:06.826Z [DEBUG] Renaming /home/runner/.claude.json.tmp.551.1765475586826 to /home/runner/.claude.json
+2025-12-11T17:53:06.827Z [DEBUG] File /home/runner/.claude.json written atomically
+2025-12-11T17:53:06.833Z [DEBUG] Writing to temp file: /home/runner/.claude.json.tmp.551.1765475586833
+2025-12-11T17:53:06.833Z [DEBUG] Preserving file permissions: 100600
+2025-12-11T17:53:06.833Z [DEBUG] Temp file written successfully, size: 47927 bytes
+2025-12-11T17:53:06.833Z [DEBUG] Applied original permissions to temp file
+2025-12-11T17:53:06.833Z [DEBUG] Renaming /home/runner/.claude.json.tmp.551.1765475586833 to /home/runner/.claude.json
+2025-12-11T17:53:06.834Z [DEBUG] File /home/runner/.claude.json written atomically
+2025-12-11T17:53:27.867Z [DEBUG] BigQuery metrics exported successfully
+2025-12-11T17:53:27.867Z [DEBUG] BigQuery API Response: {
+  "accepted_count": 12,
+  "rejected_count": 0
+}
+2025-12-11T17:54:06.860Z [DEBUG] Getting matching hook commands for Notification with query: idle_prompt
+2025-12-11T17:54:06.860Z [DEBUG] Found 0 hook matchers in settings
+2025-12-11T17:54:06.860Z [DEBUG] Matched 0 unique hooks for query "idle_prompt" (0 before deduplication)
+2025-12-11T17:57:59.196Z [DEBUG] Getting matching hook commands for SessionEnd with query: prompt_input_exit
+2025-12-11T17:57:59.196Z [DEBUG] Found 0 hook matchers in settings
+2025-12-11T17:57:59.196Z [DEBUG] Matched 0 unique hooks for query "prompt_input_exit" (0 before deduplication)

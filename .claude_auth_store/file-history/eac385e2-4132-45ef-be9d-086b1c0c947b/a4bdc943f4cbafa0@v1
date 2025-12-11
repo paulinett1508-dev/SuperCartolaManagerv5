@@ -1,0 +1,87 @@
+# Super Cartola Manager - Diretrizes de Desenvolvimento
+
+## 🛠️ Comandos Principais
+- **Start Dev:** `npm run dev` (Nodemon + Hot Reload)
+- **Start Prod:** `npm start`
+- **Testes:** `npm test` (Roda todos os testes via Jest)
+- **Lint:** `npm run lint` e `npm run lint:fix`
+- **Consolidação Manual:** `npm run consolidar` (Processa rodadas pendentes)
+- **MCP Database:** O arquivo `.mcp.json` configura o servidor MCP para consultas ao Mongo.
+
+## 🏗️ Arquitetura e Tech Stack
+- **Runtime:** Node.js (ES Modules habilitado).
+- **Backend:** Express.js (MVC Pattern).
+- **Database:** MongoDB + Mongoose. Use o servidor MCP para inspecionar schemas reais.
+- **Frontend Admin:** HTML/CSS/Vanilla JS (Desktop) - `public/admin/`.
+- **Frontend App:** Mobile-First Modular JS - `public/participante/`.
+- **Auth:** Replit Auth (Admin) e Express Session (Participantes).
+
+## 🧠 Regras de Negócio Críticas (Cartola)
+1.  **Pontuação:** Baseada na API oficial do Cartola FC.
+2.  **Ligas:**
+    - *SuperCartola:* 32 times. Regra financeira complexa (Top/Bottom tier).
+    - *Cartoleiros Sobral:* 6 times. Regra simplificada + Luva de Ouro.
+3.  **Formatos de Disputa:**
+    - *Pontos Corridos:* Todos contra todos. Vitória (+5), Empate (+3), Derrota (-5).
+    - *Mata-Mata:* Chaveamento (1º vs 32º). 5 edições por temporada.
+    - *Mitos/Micos:* Top 10 e Bottom 10 da rodada geram bônus/multa financeira.
+4.  **Consolidação:** Os dados de rodada tornam-se imutáveis após processados (`RodadaSnapshot`). Nunca recalcule uma rodada consolidada sem backup.
+5.  **Participantes Inativos:** Times que desistem têm `ativo: false` e `rodada_desistencia` definidos. Seus dados são travados até `rodada_desistencia - 1`.
+
+## 📊 Regras de Arredondamento e Precisão
+- **Pontuação:** Sempre usar `toFixed(2)` para exibição de valores decimais.
+- **Médias:** Calcular com `parseFloat((valor).toFixed(2))` para manter 2 casas decimais.
+- **Saldos Financeiros:** Arredondar para 2 casas em todas as operações (PC, Mata-Mata, Top10).
+
+## 🚫 Gestão de Participantes Inativos
+O sistema trata participantes que desistiram da liga de forma especial:
+- **Modelo Time:** Campos `ativo` (boolean) e `rodada_desistencia` (número).
+- **Helper Centralizado:** `utils/participanteHelper.js` com funções:
+  - `buscarStatusParticipantes()` - Busca status em batch
+  - `obterUltimaRodadaValida()` - Retorna `min(rodadaFim, rodada_desistencia - 1)`
+  - `ordenarRankingComInativos()` - Ativos primeiro, depois inativos
+- **Regra de Travamento:** Extrato financeiro, artilheiro, goleiros - dados travados na rodada anterior à desistência.
+- **Exibição:** Inativos aparecem no final dos rankings com indicador visual.
+
+## 🎯 Correções Críticas Implementadas (2024-2025)
+
+### Temporada Encerrada (R38)
+- **Problema:** Quando `rodadaAtual >= 38`, mercado permanece "aberto" mas dados são finais.
+- **Solução:** Controllers verificam `if (rodadaAtual >= 38)` e usam R38 como rodadaFim sem subtrair.
+- **Arquivos:** `artilheiroCampeaoController.js:154-175`, `goleirosService.js:756-763`
+
+### Top 10 (Mitos/Micos)
+- **Estrutura:** Cache em `Top10Cache` com `mitos[]` e `micos[]` por rodada.
+- **Valores SuperCartola:** Mitos: 30→12 (posições 1-10), Micos: -30→-12 (posições 23-32).
+- **Valores Sobral:** Mitos: 10→1, Micos: -10→-1.
+- **Controller:** `fluxoFinanceiroController.js:125-225` - função `calcularTop10()`.
+
+## 💻 Diretrizes de Código (Style Guide)
+- **Idioma:** Comentários e documentação em **Português (PT-BR)**. Nomes de variáveis/funções em camelCase (híbrido PT/EN aceito, ex: `rodadaController`, `getTeamStats`).
+- **Banco de Dados:**
+    - NÃO adivinhe nomes de campos. Use a tool `get_collection_schema` do MCP para verificar a estrutura antes de criar queries complexas.
+    - Use `async/await` para todas as chamadas de banco.
+- **Frontend:**
+    - Evite frameworks complexos (React/Vue) neste projeto. Mantenha Vanilla JS modular.
+    - Use `fetch` para API calls.
+- **Tratamento de Erros:** Sempre envolva chamadas de API externa e Banco em `try/catch`. Logs de erro devem ser descritivos.
+
+## 📂 Estrutura de Pastas Relevante
+- `controllers/`: Lógica de negócio (~20 arquivos).
+- `services/`: Integrações externas (API Cartola) e lógica pura.
+- `models/`: Schemas do Mongoose (17 coleções).
+- `utils/`: Helpers como `participanteHelper.js`, `participanteUtils.js`.
+- `public/participante/js/modules/`: Lógica do frontend mobile (carregamento preguiçoso).
+
+## 🗄️ Coleções MongoDB
+```
+times, ligas, rodadas, rodadasnapshots, gols, golsconsolidados, goleiros,
+artilheirocampeaos, sessions, rankingturnos, top10caches, matamatacaches,
+pontoscorridoscaches, rankinggeralcaches, extratofinanceirocaches,
+fluxofinanceirocampos, melhor_mes_cache
+```
+
+## ⚠️ Restrições do Ambiente (Replit)
+- Não tente usar `sudo` ou instalar pacotes de sistema globalmente.
+- Use a variável `MONGODB_URI` dos Secrets.
+- Respeite o rate-limit da API do Cartola FC.

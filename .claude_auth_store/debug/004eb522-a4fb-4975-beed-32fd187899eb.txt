@@ -1,0 +1,120 @@
+2025-12-11T18:02:04.247Z [DEBUG] Watching for changes in setting files /home/runner/workspace/.claude/settings.local.json...
+2025-12-11T18:02:04.304Z [DEBUG] [LSP MANAGER] initializeLspServerManager() called
+2025-12-11T18:02:04.304Z [DEBUG] [LSP MANAGER] Created manager instance, state=pending
+2025-12-11T18:02:04.304Z [DEBUG] [LSP MANAGER] Starting async initialization (generation 1)
+2025-12-11T18:02:04.305Z [DEBUG] [LSP SERVER MANAGER] initialize() called
+2025-12-11T18:02:04.305Z [DEBUG] [LSP SERVER MANAGER] Calling getAllLspServers()
+2025-12-11T18:02:04.314Z [DEBUG] Applying permission update: Adding 15 allow rule(s) to destination 'localSettings': ["Bash(tree:*)","Bash(find:*)","Bash(wc:*)","Bash(grep:*)","Bash(npm install:*)","Bash(node -e:*)","Bash(/mcp add mongo:*)","Bash(node investigar-rodada38-paulinett.js:*)","Bash(node investigar-snapshots-sobral.js:*)","Bash(node:*)","Bash(git push:*)","Bash(curl:*)","Bash(python3:*)","Bash(cat:*)","Bash(pgrep:*)"]
+2025-12-11T18:02:04.323Z [DEBUG] Found 0 plugins (0 enabled, 0 disabled)
+2025-12-11T18:02:04.325Z [DEBUG] Total LSP servers loaded: 0
+2025-12-11T18:02:04.325Z [DEBUG] [LSP SERVER MANAGER] getAllLspServers returned 0 server(s)
+2025-12-11T18:02:04.325Z [DEBUG] LSP manager initialized with 0 servers
+2025-12-11T18:02:04.326Z [DEBUG] LSP server manager initialized successfully
+2025-12-11T18:02:04.326Z [DEBUG] LSP notification handlers registered successfully for all 0 server(s)
+2025-12-11T18:02:04.346Z [DEBUG] [SLOW OPERATION DETECTED] execSyncWithDefaults (16.4ms): ldd /bin/ls 2>/dev/null
+2025-12-11T18:02:04.353Z [DEBUG] Loading skills from directories: managed=/etc/claude-code/.claude/skills, user=/home/runner/.claude/skills, project=[]
+2025-12-11T18:02:04.353Z [DEBUG] >>>>> getPluginSkills CALLED <<<<<
+2025-12-11T18:02:04.354Z [DEBUG] Passes: Using fresh cached eligibility data
+2025-12-11T18:02:04.380Z [DEBUG] [SLOW OPERATION DETECTED] execSyncWithDefaults (17.2ms): ps aux | grep -E "code|cursor|windsurf|idea|pycharm|webstorm|phpstorm|rubymine|clion|goland|rider|da
+2025-12-11T18:02:04.381Z [DEBUG] Loaded 0 installed plugins from /home/runner/.claude/plugins/installed_plugins.json (schema version 1)
+2025-12-11T18:02:04.382Z [DEBUG] Official marketplace auto-install already attempted, skipping
+2025-12-11T18:02:04.448Z [DEBUG] Creating shell snapshot for bash (/bin/bash)
+2025-12-11T18:02:04.448Z [DEBUG] Looking for shell config file: /home/runner/.bashrc
+2025-12-11T18:02:04.448Z [DEBUG] Snapshots directory: /home/runner/.claude/shell-snapshots
+2025-12-11T18:02:04.449Z [DEBUG] Creating snapshot at: /home/runner/.claude/shell-snapshots/snapshot-bash-1765476124448-pzj0ws.sh
+2025-12-11T18:02:04.449Z [DEBUG] Shell binary exists: true
+2025-12-11T18:02:04.449Z [DEBUG] Execution timeout: 10000ms
+2025-12-11T18:02:04.455Z [DEBUG] Writing to temp file: /home/runner/.claude/todos/004eb522-a4fb-4975-beed-32fd187899eb-agent-004eb522-a4fb-4975-beed-32fd187899eb.json.tmp.1295.1765476124455
+2025-12-11T18:02:04.465Z [DEBUG] [SLOW OPERATION DETECTED] fs.writeFileSync (9.8ms)
+2025-12-11T18:02:04.465Z [DEBUG] Temp file written successfully, size: 2 bytes
+2025-12-11T18:02:04.465Z [DEBUG] Renaming /home/runner/.claude/todos/004eb522-a4fb-4975-beed-32fd187899eb-agent-004eb522-a4fb-4975-beed-32fd187899eb.json.tmp.1295.1765476124455 to /home/runner/.claude/todos/004eb522-a4fb-4975-beed-32fd187899eb-agent-004eb522-a4fb-4975-beed-32fd187899eb.json
+2025-12-11T18:02:04.465Z [DEBUG] File /home/runner/.claude/todos/004eb522-a4fb-4975-beed-32fd187899eb-agent-004eb522-a4fb-4975-beed-32fd187899eb.json written atomically
+2025-12-11T18:02:04.473Z [DEBUG] getPluginSkills: Processing 0 enabled plugins
+2025-12-11T18:02:04.473Z [DEBUG] Total plugin skills loaded: 0
+2025-12-11T18:02:04.473Z [DEBUG] Total plugin commands loaded: 0
+2025-12-11T18:02:04.473Z [DEBUG] Registered 0 hooks from 0 plugins
+2025-12-11T18:02:04.489Z [DEBUG] Loaded 0 unique skills (managed: 0, user: 0, project: 0, duplicates removed: 0)
+2025-12-11T18:02:04.490Z [DEBUG] getSkills returning: 0 skill dir commands, 0 plugin skills
+2025-12-11T18:02:04.501Z [DEBUG] Total plugin agents loaded: 0
+2025-12-11T18:02:04.538Z [DEBUG] Git remote URL: https://github.com/paulinett1508-dev/SuperCartolaManagerv5
+2025-12-11T18:02:04.538Z [DEBUG] Parsed repository: paulinett1508-dev/SuperCartolaManagerv5 from https://github.com/paulinett1508-dev/SuperCartolaManagerv5
+2025-12-11T18:02:04.538Z [DEBUG] Parsed repository: paulinett1508-dev/SuperCartolaManagerv5 from URL: https://github.com/paulinett1508-dev/SuperCartolaManagerv5
+2025-12-11T18:02:04.538Z [DEBUG] Path /home/runner/workspace already tracked for repo paulinett1508-dev/supercartolamanagerv5
+2025-12-11T18:02:04.592Z [DEBUG] Ripgrep first use test: PASSED (mode=builtin, path=/home/runner/workspace/.config/npm/node_global/lib/node_modules/@anthropic-ai/claude-code/vendor/ripgrep/x64-linux/rg)
+2025-12-11T18:02:04.717Z [DEBUG] Shell snapshot created successfully (19021 bytes)
+2025-12-11T18:02:05.269Z [DEBUG] Passes: Using fresh cached eligibility data
+2025-12-11T18:02:05.305Z [DEBUG] Loaded 0 installed plugins from V2 file at /home/runner/.claude/plugins/installed_plugins_v2.json
+2025-12-11T18:02:05.305Z [DEBUG] Initialized versioned plugins system with 0 plugins
+2025-12-11T18:02:05.311Z [DEBUG] Writing to temp file: /home/runner/.claude.json.tmp.1295.1765476125311
+2025-12-11T18:02:05.311Z [DEBUG] Preserving file permissions: 100600
+2025-12-11T18:02:05.312Z [DEBUG] Temp file written successfully, size: 49516 bytes
+2025-12-11T18:02:05.312Z [DEBUG] Applied original permissions to temp file
+2025-12-11T18:02:05.312Z [DEBUG] Renaming /home/runner/.claude.json.tmp.1295.1765476125311 to /home/runner/.claude.json
+2025-12-11T18:02:05.312Z [DEBUG] File /home/runner/.claude.json written atomically
+2025-12-11T18:02:05.325Z [DEBUG] Getting matching hook commands for SessionStart with query: startup
+2025-12-11T18:02:05.325Z [DEBUG] Found 0 hook matchers in settings
+2025-12-11T18:02:05.325Z [DEBUG] Matched 0 unique hooks for query "startup" (0 before deduplication)
+2025-12-11T18:02:05.358Z [DEBUG] Skills and commands included in Skill tool:
+2025-12-11T18:02:05.358Z [DEBUG] Slash commands included in SlashCommand tool:
+2025-12-11T18:02:05.430Z [DEBUG] Writing to temp file: /home/runner/.claude.json.tmp.1295.1765476125430
+2025-12-11T18:02:05.430Z [DEBUG] Preserving file permissions: 100600
+2025-12-11T18:02:05.433Z [DEBUG] Temp file written successfully, size: 49443 bytes
+2025-12-11T18:02:05.433Z [DEBUG] Applied original permissions to temp file
+2025-12-11T18:02:05.433Z [DEBUG] Renaming /home/runner/.claude.json.tmp.1295.1765476125430 to /home/runner/.claude.json
+2025-12-11T18:02:05.433Z [DEBUG] File /home/runner/.claude.json written atomically
+2025-12-11T18:02:05.438Z [DEBUG] performStartupChecks called
+2025-12-11T18:02:05.439Z [DEBUG] Starting background plugin installations
+2025-12-11T18:02:05.439Z [DEBUG] performBackgroundPluginInstallations called
+2025-12-11T18:02:05.455Z [DEBUG] AutoUpdaterWrapper: Installation type: npm-global
+2025-12-11T18:02:05.458Z [DEBUG] Writing to temp file: /home/runner/.claude.json.tmp.1295.1765476125458
+2025-12-11T18:02:05.458Z [DEBUG] Preserving file permissions: 100600
+2025-12-11T18:02:05.458Z [DEBUG] Temp file written successfully, size: 49516 bytes
+2025-12-11T18:02:05.458Z [DEBUG] Applied original permissions to temp file
+2025-12-11T18:02:05.458Z [DEBUG] Renaming /home/runner/.claude.json.tmp.1295.1765476125458 to /home/runner/.claude.json
+2025-12-11T18:02:05.459Z [DEBUG] File /home/runner/.claude.json written atomically
+2025-12-11T18:02:05.460Z [DEBUG] Setting installation status: 0 marketplaces, 0 installable plugins, 0 uninstallable plugins
+2025-12-11T18:02:05.460Z [DEBUG] Loaded plugins - Enabled: 0, Disabled: 0, Commands: 0, Agents: 0, Errors: 0
+2025-12-11T18:02:05.476Z [DEBUG] Getting matching hook commands for SubagentStart with query: Explore
+2025-12-11T18:02:05.476Z [DEBUG] Found 0 hook matchers in settings
+2025-12-11T18:02:05.476Z [DEBUG] Matched 0 unique hooks for query "Explore" (0 before deduplication)
+2025-12-11T18:02:05.487Z [DEBUG] Getting matching hook commands for SubagentStart with query: Plan
+2025-12-11T18:02:05.487Z [DEBUG] Found 0 hook matchers in settings
+2025-12-11T18:02:05.487Z [DEBUG] Matched 0 unique hooks for query "Plan" (0 before deduplication)
+2025-12-11T18:02:05.568Z [DEBUG] Writing to temp file: /home/runner/.claude.json.tmp.1295.1765476125568
+2025-12-11T18:02:05.568Z [DEBUG] Preserving file permissions: 100600
+2025-12-11T18:02:05.569Z [DEBUG] Temp file written successfully, size: 49516 bytes
+2025-12-11T18:02:05.569Z [DEBUG] Applied original permissions to temp file
+2025-12-11T18:02:05.569Z [DEBUG] Renaming /home/runner/.claude.json.tmp.1295.1765476125568 to /home/runner/.claude.json
+2025-12-11T18:02:05.569Z [DEBUG] File /home/runner/.claude.json written atomically
+2025-12-11T18:02:06.172Z [DEBUG] Stream started - received first chunk
+2025-12-11T18:02:07.745Z [DEBUG] Stream started - received first chunk
+2025-12-11T18:02:08.601Z [DEBUG] Getting matching hook commands for SubagentStop with query: undefined
+2025-12-11T18:02:08.601Z [DEBUG] Found 0 hook matchers in settings
+2025-12-11T18:02:08.601Z [DEBUG] Matched 0 unique hooks for query "no match query" (0 before deduplication)
+2025-12-11T18:02:08.620Z [DEBUG] Getting matching hook commands for SubagentStop with query: undefined
+2025-12-11T18:02:08.620Z [DEBUG] Found 0 hook matchers in settings
+2025-12-11T18:02:08.620Z [DEBUG] Matched 0 unique hooks for query "no match query" (0 before deduplication)
+2025-12-11T18:02:14.369Z [DEBUG] FileHistory: Added snapshot for 82e624bf-88bd-4fb8-a553-fc444c115e73, tracking 0 files
+2025-12-11T18:02:14.373Z [DEBUG] UserCommandMessage rendering: "mcp" (args: "add mongo node mongo-server.js")
+2025-12-11T18:02:14.373Z [DEBUG] isSkillFormat: false, prefix: "/"
+2025-12-11T18:02:14.439Z [DEBUG] [SLOW OPERATION DETECTED] execSyncWithDefaults (22.2ms): ps aux | grep -E "code|cursor|windsurf|idea|pycharm|webstorm|phpstorm|rubymine|clion|goland|rider|da
+2025-12-11T18:02:14.440Z [DEBUG] AutoUpdaterWrapper: Installation type: npm-global
+2025-12-11T18:02:14.471Z [DEBUG] [SLOW OPERATION DETECTED] execSyncWithDefaults (19.6ms): ps aux | grep -E "code|cursor|windsurf|idea|pycharm|webstorm|phpstorm|rubymine|clion|goland|rider|da
+2025-12-11T18:02:14.481Z [DEBUG] Writing to temp file: /home/runner/.claude.json.tmp.1295.1765476134481
+2025-12-11T18:02:14.481Z [DEBUG] Preserving file permissions: 100600
+2025-12-11T18:02:14.482Z [DEBUG] Temp file written successfully, size: 49540 bytes
+2025-12-11T18:02:14.482Z [DEBUG] Applied original permissions to temp file
+2025-12-11T18:02:14.482Z [DEBUG] Renaming /home/runner/.claude.json.tmp.1295.1765476134481 to /home/runner/.claude.json
+2025-12-11T18:02:14.482Z [DEBUG] File /home/runner/.claude.json written atomically
+2025-12-11T18:02:14.487Z [DEBUG] Writing to temp file: /home/runner/.claude.json.tmp.1295.1765476134487
+2025-12-11T18:02:14.487Z [DEBUG] Preserving file permissions: 100600
+2025-12-11T18:02:14.487Z [DEBUG] Temp file written successfully, size: 49562 bytes
+2025-12-11T18:02:14.487Z [DEBUG] Applied original permissions to temp file
+2025-12-11T18:02:14.487Z [DEBUG] Renaming /home/runner/.claude.json.tmp.1295.1765476134487 to /home/runner/.claude.json
+2025-12-11T18:02:14.487Z [DEBUG] File /home/runner/.claude.json written atomically
+2025-12-11T18:03:14.517Z [DEBUG] Getting matching hook commands for Notification with query: idle_prompt
+2025-12-11T18:03:14.517Z [DEBUG] Found 0 hook matchers in settings
+2025-12-11T18:03:14.517Z [DEBUG] Matched 0 unique hooks for query "idle_prompt" (0 before deduplication)
+2025-12-11T18:08:05.104Z [DEBUG] Getting matching hook commands for SessionEnd with query: prompt_input_exit
+2025-12-11T18:08:05.104Z [DEBUG] Found 0 hook matchers in settings
+2025-12-11T18:08:05.104Z [DEBUG] Matched 0 unique hooks for query "prompt_input_exit" (0 before deduplication)

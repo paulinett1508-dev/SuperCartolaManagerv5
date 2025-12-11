@@ -756,7 +756,13 @@ export async function obterRankingGoleiros(
 
         // Se mercado FECHADO → incluir rodada atual (parciais ao vivo)
         // Se mercado ABERTO → usar rodada anterior (consolidada)
-        if (mercadoFechado) {
+        // ✅ CORREÇÃO: Se rodada >= 38, sempre usar 38 (temporada encerrada)
+        if (rodadaAtualAPI >= 38) {
+          rodadaFim = 38;
+          console.log(
+            `🏁 [GOLEIROS-SERVICE] Temporada encerrada - usando R38`,
+          );
+        } else if (mercadoFechado) {
           rodadaFim = rodadaAtualAPI;
           console.log(
             `🔥 [GOLEIROS-SERVICE] Mercado FECHADO - incluindo parciais R${rodadaFim}`,

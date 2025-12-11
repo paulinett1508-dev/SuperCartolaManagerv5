@@ -92,31 +92,43 @@
         const startTime = Date.now();
 
         try {
-            // Recarregar módulo atual via navigation
-            if (window.participanteNav && window.participanteNav.moduloAtual) {
-                const moduloAtual = window.participanteNav.moduloAtual;
+            // ✅ CORREÇÃO: Verificar ambas as referências do navigation
+            const nav = window.participanteNav || window.participanteNavigation;
+
+            if (nav && nav.moduloAtual) {
+                const moduloAtual = nav.moduloAtual;
                 console.log(
                     `[PULL-REFRESH] 📦 Recarregando módulo: ${moduloAtual}`,
                 );
 
-                // Recarregar o módulo
-                await window.participanteNav.navegarPara(moduloAtual);
+                // Recarregar o módulo com força
+                await nav.navegarPara(moduloAtual, true);
+            } else if (nav) {
+                // Nav existe mas sem módulo atual - navegar para boas-vindas
+                console.log("[PULL-REFRESH] 📦 Navegando para boas-vindas");
+                await nav.navegarPara('boas-vindas', true);
             } else {
-                // Fallback: reload suave da página
+                // ✅ CORREÇÃO: Fallback melhor - recarregar a página inteira
                 console.log(
-                    "[PULL-REFRESH] ⚠️ Nav não encontrado, fazendo reload suave",
+                    "[PULL-REFRESH] ⚠️ Nav não encontrado, recarregando página",
                 );
 
-                // Simular delay mínimo
+                // Atualizar texto do status
+                statusText.textContent = "Recarregando...";
+
+                // Simular delay mínimo antes do reload
                 await new Promise((resolve) =>
                     setTimeout(resolve, CONFIG.refreshDelay),
                 );
 
-                // Disparar evento customizado para módulos que queiram reagir
-                window.dispatchEvent(new CustomEvent("pullRefresh"));
+                // Reload suave (mantém scroll position)
+                window.location.reload();
+                return; // Não chama finishRefresh porque a página vai recarregar
             }
         } catch (error) {
             console.error("[PULL-REFRESH] ❌ Erro ao atualizar:", error);
+            statusText.textContent = "Erro!";
+            statusText.style.color = "#ef4444";
         }
 
         // Garantir tempo mínimo de animação

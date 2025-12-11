@@ -15,7 +15,9 @@
       "Bash(curl:*)",
       "Bash(python3:*)",
       "Bash(cat:*)",
-      "Bash(pgrep:*)"
+      "Bash(pgrep:*)",
+      "Bash(git add:*)",
+      "Bash(git commit:*)"
     ]
   }
 }
