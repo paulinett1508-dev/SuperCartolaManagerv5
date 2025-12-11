@@ -19,5 +19,9 @@
       "Bash(git add:*)",
       "Bash(git commit:*)"
     ]
-  }
+  },
+  "enabledMcpjsonServers": [
+    "mongo"
+  ],
+  "enableAllProjectMcpServers": true
 }

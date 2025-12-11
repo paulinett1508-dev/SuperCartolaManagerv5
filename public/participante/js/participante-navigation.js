@@ -483,6 +483,11 @@ class ParticipanteNavigation {
                 window.SplashScreen.hide();
             }
 
+            // ✅ LOADING OVERLAY: Esconder também (para pull-to-refresh)
+            if (window.LoadingOverlay) {
+                window.LoadingOverlay.hide();
+            }
+
         } catch (error) {
             // ✅ CORREÇÃO: Limpar timeout de segurança
             clearTimeout(timeoutId);
@@ -492,6 +497,11 @@ class ParticipanteNavigation {
             // ✅ SPLASH: Esconder mesmo em caso de erro
             if (window.SplashScreen) {
                 window.SplashScreen.hide();
+            }
+
+            // ✅ LOADING OVERLAY: Esconder também em caso de erro
+            if (window.LoadingOverlay) {
+                window.LoadingOverlay.hide();
             }
 
             this.mostrarErroCarregamento(container, moduloId, error.message);
