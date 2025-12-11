@@ -233,8 +233,8 @@
 
         updateIndicator(progress);
 
-        // Prevenir scroll se estiver puxando
-        if (pullDistance > 10) {
+        // Prevenir scroll se estiver puxando (verificar se é cancelável)
+        if (pullDistance > 10 && e.cancelable) {
             e.preventDefault();
         }
     }

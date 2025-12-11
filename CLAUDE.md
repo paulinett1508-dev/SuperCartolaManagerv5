@@ -30,6 +30,14 @@
     - Quando `rodadaAtual >= 38`, a temporada é considerada encerrada.
     - Use a flag `CAMPEONATO_ENCERRADO = true` nos módulos de frontend.
     - **NÃO subtraia 1** da rodada quando a temporada encerrou (use R38 diretamente).
+6.  **Diferenciação Financeira - Mitos/Micos (CRÍTICO):**
+    - **"Mico da Rodada"** (módulo Rodadas) = Último colocado da semana (32º de 32). Aplica ônus da tabela de posições (-R$20).
+    - **"Top 10 Micos"** (módulo Top 10) = Ranking histórico das 10 MENORES pontuações do campeonato inteiro. Aplica ônus de bônus/ônus separado.
+    - **NÃO CONFUNDIR:** Ser "Mico da Rodada" várias vezes **NÃO** significa aparecer no "Top 10 Micos". São métricas independentes.
+    - Exemplo: Um time pode ser último (mico) em 5 rodadas, mas suas pontuações baixas podem não estar entre as 10 piores do campeonato.
+7.  **Cálculo de Posições (Backend):**
+    - O endpoint `GET /api/rodadas/:ligaId/rodadas` recalcula `posicao`, `valorFinanceiro` e `totalParticipantesAtivos` em tempo real.
+    - Isso garante que dados legados (sem esses campos no banco) funcionem corretamente.
 
 ---
 
@@ -64,18 +72,30 @@
   - Interceptação do botão hardware "Voltar" via History API (`popstate`).
   - Modal de confirmação exibido em telas raiz (Home, Bem-vindo).
 
-### Sistema de Loading (Mobile)
-O sistema distingue dois tipos de carregamento:
+### Sistema de Loading (Mobile) - CRÍTICO
+O sistema distingue **três** tipos de carregamento:
 
-1. **Splash Screen** (`splash-screen.js`):
+1. **Splash Screen** (`splash-screen.js` v4.0):
    - Tela de abertura completa com logo e animações.
-   - Exibida **APENAS** no carregamento inicial do app.
-   - Flag `isInitialLoad` controla exibição.
+   - Exibida **APENAS** no carregamento inicial do app (primeira visita da sessão).
+   - Controlada via `sessionStorage.getItem('app_session_active')`.
 
-2. **Loading Overlay** (`pull-refresh.js`):
+2. **Reload Glass Overlay** (`index.html` inline):
+   - Overlay "Vidro Fosco" com bolinha quicando.
+   - **OBRIGATÓRIO** para Reload (F5) e Pull-to-Refresh.
+   - CSS: `backdrop-filter: blur(15px)`, `background: rgba(20,20,20,0.5)`, `z-index: 999999`.
+   - Script inline no `<body>` detecta `sessionStorage` e ativa imediatamente.
+   - **NÃO** mostrar Splash Screen em reloads - apenas o overlay com blur.
+
+3. **Loading Overlay** (`pull-refresh.js`):
    - Bolinha quicando com `backdrop-filter: blur(8px)`.
-   - Usado para navegação entre módulos e refresh de dados.
+   - Usado para navegação entre módulos.
    - API global: `window.LoadingOverlay.show(texto)` / `window.LoadingOverlay.hide()`
+
+**Regra de Ouro (UX Mobile):**
+- Primeira visita → Splash Screen completa
+- Reload/Pull-to-Refresh → Overlay Vidro Fosco (pula splash)
+- Navegação interna → Loading Overlay simples
 
 ### Paleta de Cores (Theme)
 | Variável | Cor | Uso |

@@ -442,7 +442,11 @@ function gerarLinhaTabela(
 }
 
 // =====================================================================
-// CARD RESUMO DESEMPENHO
+// CARD RESUMO DESEMPENHO (TOP 10 Histórico - Bônus/Ônus)
+// =====================================================================
+// NOTA: Este card mostra quantas vezes o usuário aparece no TOP 10 HISTÓRICO
+// de maiores/menores pontuações do campeonato (gera bônus/ônus financeiro).
+// É DIFERENTE do módulo Rodadas que conta quantas vezes foi 1º/último na rodada.
 // =====================================================================
 function renderizarCardResumo(mitos, micos, meuTimeId, valoresBonusOnus) {
     const card = document.getElementById("top10ResumoCard");
@@ -455,23 +459,29 @@ function renderizarCardResumo(mitos, micos, meuTimeId, valoresBonusOnus) {
     let countMicos = 0;
     let totalOnus = 0;
 
-    // Verificar MITOS (apenas TOP 10)
-    mitos.slice(0, 10).forEach((item, index) => {
+    // Verificar MITOS - apenas TOP 10 gera bônus
+    mitos.forEach((item, index) => {
         const timeIdNum = Number(item.timeId || item.time_id);
         if (timeIdNum === meuTimeIdNum && item.ativo !== false) {
-            countMitos++;
             const posicao = index + 1;
-            totalBonus += valoresBonusOnus.mitos[posicao] || 0;
+            // Só conta para bônus se estiver no TOP 10
+            if (posicao <= 10) {
+                countMitos++;
+                totalBonus += valoresBonusOnus.mitos[posicao] || 0;
+            }
         }
     });
 
-    // Verificar MICOS (apenas TOP 10)
-    micos.slice(0, 10).forEach((item, index) => {
+    // Verificar MICOS - apenas TOP 10 gera ônus
+    micos.forEach((item, index) => {
         const timeIdNum = Number(item.timeId || item.time_id);
         if (timeIdNum === meuTimeIdNum && item.ativo !== false) {
-            countMicos++;
             const posicao = index + 1;
-            totalOnus += Math.abs(valoresBonusOnus.micos[posicao] || 0);
+            // Só conta para ônus se estiver no TOP 10
+            if (posicao <= 10) {
+                countMicos++;
+                totalOnus += Math.abs(valoresBonusOnus.micos[posicao] || 0);
+            }
         }
     });
 
@@ -499,7 +509,7 @@ function renderizarCardResumo(mitos, micos, meuTimeId, valoresBonusOnus) {
 
     if (window.Log)
         Log.info(
-            `[PARTICIPANTE-TOP10] 📊 Resumo: ${countMitos} MITOS (+R$${totalBonus}), ${countMicos} MICOS (-R$${totalOnus}), Saldo: R$${saldo}`,
+            `[PARTICIPANTE-TOP10] 📊 Resumo TOP 10 Histórico: ${countMitos} MITOS (+R$${totalBonus}), ${countMicos} MICOS (-R$${totalOnus}), Saldo: R$${saldo}`,
         );
 }
 

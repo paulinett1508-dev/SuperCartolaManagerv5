@@ -1,6 +1,7 @@
 // =====================================================================
-// rodadaController.js v2.4 - FIX: clube_id herdado de rodadas anteriores
+// rodadaController.js v2.9.2 - FIX: Posições recalculadas em tempo real
 // Busca dados da API do Cartola e calcula posições
+// v2.9.2: SuperCartola recalcula posições no GET para dados legados
 // =====================================================================
 
 import Rodada from "../models/Rodada.js";
@@ -446,8 +447,9 @@ export const obterRodadas = async (req, res) => {
     const isCartoleriosSobral = ligaId === CARTOLEIROS_SOBRAL_CONFIG.ligaId;
 
     if (!isCartoleriosSobral) {
-      // ✅ v2.9.1: Adicionar totalParticipantesAtivos para outras ligas (ex: SuperCartola)
-      // Agrupar por rodada e contar participantes ativos
+      // ✅ v2.9.2: Calcular posições e totalParticipantesAtivos para SuperCartola
+      // Necessário porque dados antigos podem não ter esses campos
+      const tabelaValores = VALORES_FINANCEIROS[ligaId] || {};
       const rodadasComTotal = [];
       const rodadasAgrupadas = new Map();
 
@@ -459,16 +461,45 @@ export const obterRodadas = async (req, res) => {
       });
 
       rodadasAgrupadas.forEach((participantes, numRodada) => {
-        const totalAtivos = participantes.filter(p => p.rodadaNaoJogada !== true).length;
-        participantes.forEach((p) => {
+        // Filtrar participantes que jogaram (ativos na rodada)
+        const jogadores = participantes.filter(p => p.rodadaNaoJogada !== true);
+        const naoJogaram = participantes.filter(p => p.rodadaNaoJogada === true);
+        const totalAtivos = jogadores.length;
+
+        // Ordenar por pontos (decrescente) para calcular posição
+        jogadores.sort((a, b) => (b.pontos || 0) - (a.pontos || 0));
+
+        // Atribuir posições e valores financeiros aos que jogaram
+        jogadores.forEach((p, index) => {
+          const posicao = index + 1;
+          const valorFinanceiro = tabelaValores[posicao] || 0;
+
           rodadasComTotal.push({
             ...p,
+            posicao: posicao,
+            valorFinanceiro: valorFinanceiro,
+            totalParticipantesAtivos: totalAtivos,
+          });
+        });
+
+        // Participantes que não jogaram ficam no final sem posição financeira
+        naoJogaram.forEach((p, index) => {
+          rodadasComTotal.push({
+            ...p,
+            posicao: totalAtivos + index + 1,
+            valorFinanceiro: 0,
             totalParticipantesAtivos: totalAtivos,
           });
         });
       });
 
-      console.log(`[OBTER-RODADAS] Retornando: ${rodadasComTotal.length} rodadas (com totalParticipantesAtivos)`);
+      // Ordenar resultado final
+      rodadasComTotal.sort((a, b) => {
+        if (a.rodada !== b.rodada) return a.rodada - b.rodada;
+        return (a.posicao || 999) - (b.posicao || 999);
+      });
+
+      console.log(`[OBTER-RODADAS] Retornando: ${rodadasComTotal.length} rodadas (SuperCartola - posições recalculadas)`);
       return res.json(rodadasComTotal);
     }
 
@@ -589,4 +620,4 @@ export const criarIndiceUnico = async (req, res) => {
   }
 };
 
-console.log("[RODADA-CONTROLLER] ✅ v2.9 carregado (lógica por fase: FASE1 original, FASE2 recalculada)");
+console.log("[RODADA-CONTROLLER] ✅ v2.9.2 carregado (SuperCartola: posições recalculadas em tempo real)");

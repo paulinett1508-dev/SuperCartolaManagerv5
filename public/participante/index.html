@@ -334,10 +334,123 @@
             .liga-option.atual .liga-option-check {
                 opacity: 1;
             }
+
+            /* ============================================
+               OVERLAY DE RELOAD (Vidro Fosco) - DEFINITIVO
+               ============================================ */
+            #reload-glass-overlay {
+                position: fixed !important;
+                inset: 0;
+                width: 100vw;
+                height: 100vh;
+                background-color: rgba(20, 20, 20, 0.5);
+                backdrop-filter: blur(15px);
+                -webkit-backdrop-filter: blur(15px);
+                z-index: 999999;
+                display: flex;
+                justify-content: center;
+                align-items: center;
+                opacity: 0;
+                pointer-events: none;
+                transition: opacity 0.15s ease-out;
+            }
+
+            #reload-glass-overlay.is-active {
+                opacity: 1;
+                pointer-events: all;
+            }
+
+            /* Bolinha Quicando CSS */
+            .reload-ball-container {
+                display: flex;
+                flex-direction: column;
+                align-items: center;
+            }
+
+            .reload-ball {
+                width: 56px;
+                height: 56px;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                animation: reloadBounce 0.5s infinite;
+            }
+
+            .reload-ball .material-icons {
+                font-size: 56px;
+                color: white;
+                animation: reloadSpin 1s linear infinite;
+            }
+
+            .reload-ball-shadow {
+                width: 40px;
+                height: 10px;
+                background: rgba(255, 69, 0, 0.6);
+                border-radius: 50%;
+                filter: blur(4px);
+                margin-top: 8px;
+                animation: reloadShadow 0.5s infinite;
+            }
+
+            @keyframes reloadBounce {
+                0%, 100% {
+                    transform: translateY(0);
+                    animation-timing-function: cubic-bezier(0, 0, 0.2, 1);
+                }
+                50% {
+                    transform: translateY(-25px);
+                    animation-timing-function: cubic-bezier(0.8, 0, 1, 1);
+                }
+            }
+
+            @keyframes reloadSpin {
+                from { transform: rotate(0deg); }
+                to { transform: rotate(360deg); }
+            }
+
+            @keyframes reloadShadow {
+                0%, 100% { transform: scale(1); opacity: 0.6; }
+                50% { transform: scale(0.5); opacity: 0.2; }
+            }
         </style>
     </head>
     <body class="bg-background-dark font-display text-white">
-        
+
+        <!-- ✅ OVERLAY DE RELOAD (Vidro Fosco) - ANTES DE TUDO -->
+        <div id="reload-glass-overlay">
+            <div class="reload-ball-container">
+                <div class="reload-ball">
+                    <span class="material-icons">sports_soccer</span>
+                </div>
+                <div class="reload-ball-shadow"></div>
+            </div>
+        </div>
+
+        <!-- ✅ SCRIPT IMEDIATO - Detecção Ultra-Rápida de Reload -->
+        <script>
+            (function() {
+                var isSessionActive = sessionStorage.getItem('app_session_active');
+                var glassOverlay = document.getElementById('reload-glass-overlay');
+                var splashScreen = document.getElementById('splashScreen');
+
+                if (isSessionActive) {
+                    // É RELOAD: Esconde Splash antiga, mostra Vidro Fosco
+                    if (splashScreen) splashScreen.style.display = 'none';
+                    if (glassOverlay) glassOverlay.classList.add('is-active');
+
+                    // Remove o overlay assim que o conteúdo carregar
+                    window.addEventListener('load', function() {
+                        setTimeout(function() {
+                            if (glassOverlay) glassOverlay.classList.remove('is-active');
+                        }, 800);
+                    });
+                } else {
+                    // É PRIMEIRA VISITA: Marca a sessão
+                    sessionStorage.setItem('app_session_active', 'true');
+                }
+            })();
+        </script>
+
         <!-- ✅ SPLASH SCREEN -->
         <div id="splashScreen" class="splash-screen hidden">
             <!-- Fundo Tático -->
