@@ -1,4 +1,4 @@
-<!-- TOP 10 FRONT - Interface Principal v2.0 (Material Icons) -->
+<!-- TOP 10 FRONT - Interface Principal -->
 <div id="top10" class="module-content">
   <!-- Header do Módulo -->
   <div class="top10-header">
@@ -17,7 +17,7 @@
     <!-- Seção Mitos -->
     <div class="top10-section mitos-section">
       <div class="section-header">
-        <div class="section-icon"><span class="material-icons" style="color: #ffd700;">emoji_events</span></div>
+        <div class="section-icon">👑</div>
         <h3>Mitos</h3>
       </div>
       <div id="top10MitosTable" class="top10-content"></div>
@@ -26,7 +26,7 @@
     <!-- Seção Micos -->
     <div class="top10-section micos-section">
       <div class="section-header">
-        <div class="section-icon"><span class="material-icons" style="color: #ef4444;">thumb_down</span></div>
+        <div class="section-icon">💀</div>
         <h3>Micos</h3>
       </div>
       <div id="top10MicosTable" class="top10-content"></div>

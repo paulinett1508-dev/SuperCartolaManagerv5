@@ -1,11 +1,11 @@
-<!-- MELHOR MÊS FRONT - Interface Padronizada (Mini-Cards) v2.0
+<!-- MELHOR MÊS FRONT - Interface Padronizada (Mini-Cards)
      Seguindo padrão dos outros módulos (pontos-corridos/mata-mata)
 -->
 <div id="melhor-mes" class="module-content">
   <!-- Header do Módulo -->
   <div class="melhor-mes-header">
     <div class="melhor-mes-title-section">
-      <div class="melhor-mes-icon"><span class="material-icons" style="color: #ffd700; font-size: 28px;">military_tech</span></div>
+      <div class="melhor-mes-icon">🏆</div>
       <h2 class="melhor-mes-titulo">Melhor do Mês</h2>
     </div>
     <p class="melhor-mes-subtitulo">
@@ -41,7 +41,7 @@
   <div class="melhor-mes-main-container">
     <div class="melhor-mes-section">
       <div class="section-header">
-        <div class="section-icon"><span class="material-icons" style="color: var(--laranja, #ff4500);">leaderboard</span></div>
+        <div class="section-icon">📊</div>
         <h3>Ranking da Edição</h3>
       </div>
 
