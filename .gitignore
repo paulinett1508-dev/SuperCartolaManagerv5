@@ -7,3 +7,4 @@ build/
 .replit
 .config/
 .breakpoints
+.claude_auth_store/

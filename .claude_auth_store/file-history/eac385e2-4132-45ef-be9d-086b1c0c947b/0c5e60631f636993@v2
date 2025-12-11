@@ -1,9 +1,0 @@
-{
-  "mcpServers": {
-    "mongo": {
-      "command": "node",
-      "args": ["mongo-server.js"],
-      "cwd": "/home/runner/workspace"
-    }
-  }
-}
