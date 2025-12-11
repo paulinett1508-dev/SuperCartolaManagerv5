@@ -1,0 +1,61 @@
+<!-- MELHOR MÊS FRONT - Interface Padronizada (Mini-Cards) v2.0
+     Seguindo padrão dos outros módulos (pontos-corridos/mata-mata)
+-->
+<div id="melhor-mes" class="module-content">
+  <!-- Header do Módulo -->
+  <div class="melhor-mes-header">
+    <div class="melhor-mes-title-section">
+      <div class="melhor-mes-icon"><span class="material-icons" style="color: #ffd700; font-size: 28px;">military_tech</span></div>
+      <h2 class="melhor-mes-titulo">Melhor do Mês</h2>
+    </div>
+    <p class="melhor-mes-subtitulo">
+      Competição mensal baseada na soma de pontos por edição
+    </p>
+  </div>
+
+  <!-- Seletor de Edições (Mini-Cards) -->
+  <div class="edicoes-selector-container">
+    <div class="edicoes-header">
+      <div class="edicoes-title">Selecione uma Edição</div>
+      <div class="edicoes-progresso">
+        <span class="progresso-texto">Progresso das Edições</span>
+        <div class="progresso-bar">
+          <div class="progresso-fill" style="width: 57%"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Grid de Mini-Cards das Edições -->
+    <div id="edicoesContainer" class="edicoes-grid">
+      <!-- Será preenchido via JavaScript com mini-cards -->
+    </div>
+  </div>
+
+  <!-- Loading Indicator -->
+  <div id="loadingMelhorMes" class="loading-state" style="display: none">
+    <div class="loading-spinner"></div>
+    <p class="loading-message">Carregando ranking da edição...</p>
+  </div>
+
+  <!-- Container Principal -->
+  <div class="melhor-mes-main-container">
+    <div class="melhor-mes-section">
+      <div class="section-header">
+        <div class="section-icon"><span class="material-icons" style="color: var(--laranja, #ff4500);">leaderboard</span></div>
+        <h3>Ranking da Edição</h3>
+      </div>
+
+      <!-- Conteúdo Principal -->
+      <div id="melhorMesTabela" class="melhor-mes-content">
+        <!-- Será preenchido via JavaScript -->
+      </div>
+    </div>
+  </div>
+
+  <!-- Exportação removida - usar módulo Relatórios -->
+
+  <!-- Estado Inicial -->
+  <div id="melhorMesInicial" class="instrucao-inicial">
+    <p>Selecione uma edição para ver o ranking completo do Melhor do Mês</p>
+  </div>
+</div>
