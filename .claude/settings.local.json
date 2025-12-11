@@ -13,7 +13,9 @@
       "Bash(node:*)",
       "Bash(git push:*)",
       "Bash(curl:*)",
-      "Bash(python3:*)"
+      "Bash(python3:*)",
+      "Bash(cat:*)",
+      "Bash(pgrep:*)"
     ]
   }
 }

@@ -182,6 +182,155 @@
                 opacity: 0.6;
                 cursor: not-allowed;
             }
+
+            /* LIGA BADGE - Seletor de liga inline */
+            .liga-badge-container {
+                margin-top: 4px;
+            }
+            .liga-badge {
+                display: inline-flex;
+                align-items: center;
+                gap: 4px;
+                padding: 4px 10px;
+                background: linear-gradient(135deg, rgba(255, 69, 0, 0.2), rgba(255, 69, 0, 0.1));
+                border: 1px solid rgba(255, 69, 0, 0.4);
+                border-radius: 20px;
+                color: #ff8c42;
+                font-size: 11px;
+                font-weight: 600;
+                cursor: pointer;
+                transition: all 0.2s ease;
+                -webkit-tap-highlight-color: transparent;
+            }
+            .liga-badge:active {
+                transform: scale(0.95);
+                background: linear-gradient(135deg, rgba(255, 69, 0, 0.3), rgba(255, 69, 0, 0.2));
+            }
+            .liga-badge .swap-icon {
+                opacity: 0.7;
+                animation: pulse-swap 2s infinite;
+            }
+            @keyframes pulse-swap {
+                0%, 100% { opacity: 0.5; }
+                50% { opacity: 1; }
+            }
+
+            /* Modal de seleção de liga */
+            .liga-modal-overlay {
+                position: fixed;
+                top: 0;
+                left: 0;
+                right: 0;
+                bottom: 0;
+                background: rgba(0, 0, 0, 0.85);
+                backdrop-filter: blur(4px);
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                z-index: 10000;
+                animation: fadeIn 0.2s ease;
+            }
+            .liga-modal-content {
+                background: #1c1c1c;
+                border-radius: 16px;
+                padding: 20px;
+                max-width: 340px;
+                width: 90%;
+                border: 1px solid rgba(255, 255, 255, 0.1);
+                box-shadow: 0 20px 40px rgba(0, 0, 0, 0.5);
+                animation: slideUp 0.3s ease;
+            }
+            .liga-modal-header {
+                display: flex;
+                align-items: center;
+                justify-content: space-between;
+                margin-bottom: 16px;
+            }
+            .liga-modal-title {
+                display: flex;
+                align-items: center;
+                gap: 8px;
+                color: white;
+                font-size: 16px;
+                font-weight: 600;
+            }
+            .liga-modal-close {
+                background: none;
+                border: none;
+                color: #666;
+                cursor: pointer;
+                padding: 4px;
+                border-radius: 50%;
+                transition: all 0.2s;
+            }
+            .liga-modal-close:active {
+                background: rgba(255, 255, 255, 0.1);
+                color: white;
+            }
+            .liga-option {
+                display: flex;
+                align-items: center;
+                gap: 12px;
+                padding: 14px 16px;
+                background: rgba(255, 255, 255, 0.05);
+                border: 1px solid rgba(255, 255, 255, 0.1);
+                border-radius: 12px;
+                margin-bottom: 8px;
+                cursor: pointer;
+                transition: all 0.2s;
+            }
+            .liga-option:active {
+                transform: scale(0.98);
+                background: rgba(255, 69, 0, 0.2);
+                border-color: #ff4500;
+            }
+            .liga-option.atual {
+                background: rgba(255, 69, 0, 0.15);
+                border-color: rgba(255, 69, 0, 0.5);
+            }
+            .liga-option-icon {
+                width: 40px;
+                height: 40px;
+                background: linear-gradient(135deg, #ff4500, #ff6b35);
+                border-radius: 10px;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+            }
+            .liga-option-icon .material-symbols-outlined {
+                color: white;
+                font-size: 20px;
+            }
+            .liga-option-info {
+                flex: 1;
+            }
+            .liga-option-nome {
+                color: white;
+                font-weight: 600;
+                font-size: 14px;
+            }
+            .liga-option-atual-badge {
+                display: inline-block;
+                margin-left: 6px;
+                padding: 2px 6px;
+                background: #ff4500;
+                color: white;
+                font-size: 9px;
+                font-weight: 700;
+                border-radius: 4px;
+            }
+            .liga-option-times {
+                color: #888;
+                font-size: 11px;
+                margin-top: 2px;
+            }
+            .liga-option-check {
+                color: #22c55e;
+                opacity: 0;
+            }
+            .liga-option.atual .liga-option-check {
+                opacity: 1;
+            }
         </style>
     </head>
     <body class="bg-background-dark font-display text-white">
@@ -277,6 +426,14 @@
                                     >v--</span
                                 >
                             </p>
+                            <!-- Badge de Liga Clicável -->
+                            <div id="ligaBadgeContainer" class="liga-badge-container" style="display: none;">
+                                <button id="ligaBadge" class="liga-badge" title="Clique para trocar de liga">
+                                    <span class="material-symbols-outlined" style="font-size: 14px;">emoji_events</span>
+                                    <span id="ligaBadgeNome">Liga</span>
+                                    <span class="material-symbols-outlined swap-icon" style="font-size: 12px;">swap_horiz</span>
+                                </button>
+                            </div>
                         </div>
                     </div>
 

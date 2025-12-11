@@ -1,0 +1,896 @@
+// RODADAS UI - Interface e Renderização
+// ✅ v2.4: FIX - Rodada 38 mostra "Encerrada" quando campeonato acabou
+// ✅ v2.3: Tabelas contextuais por rodada (valores de banco e labels de posição)
+//         Rodadas 1-29: 6 times | Rodadas 30+: 4 times
+// Responsável por: renderização de componentes, manipulação DOM, eventos
+
+import {
+  POSICAO_CONFIG,
+  LIGAS_CONFIG,
+  getBancoPorRodada,
+  RODADA_TRANSICAO_SOBRAL,
+} from "./rodadas-config.js";
+
+import { getStatusMercado } from "./rodadas-core.js";
+
+// Cache de elementos DOM para performance
+const elementsCache = new Map();
+
+// Estado da interface
+let rodadaAtualSelecionada = null;
+
+// Função para cache de elementos DOM
+function getElement(id) {
+  if (!elementsCache.has(id)) {
+    elementsCache.set(id, document.getElementById(id));
+  }
+  return elementsCache.get(id);
+}
+
+// ==============================
+// ✅ v2.4: VERIFICAÇÃO DE TEMPORADA ENCERRADA
+// ==============================
+
+/**
+ * Verifica se a temporada do Cartola está encerrada
+ * @param {number} rodada_atual - Rodada atual da API
+ * @param {number} status_mercado - Status do mercado (1=aberto, 2=fechado em andamento, 4/6=encerrado)
+ * @returns {boolean} - True se temporada encerrada
+ */
+function isTemporadaEncerrada(rodada_atual, status_mercado) {
+  // Se não é a última rodada, temporada não encerrou
+  if (rodada_atual < 38) return false;
+
+  // Status do mercado Cartola FC:
+  // 1 = Mercado aberto
+  // 2 = Mercado fechado (rodada em andamento - jogos acontecendo)
+  // 3 = Rodada em processamento
+  // 4 = Mercado fechado (aguardando próxima rodada)
+  // 6 = Final de temporada / Temporada encerrada
+
+  // Se é rodada 38 e mercado não está em andamento (status != 2), temporada encerrou
+  // Status 2 significa "jogos em andamento", então ainda é parcial
+  // Qualquer outro status (4, 6, etc) na rodada 38 significa temporada encerrada
+  const mercadoEmAndamento = status_mercado === 2;
+
+  return !mercadoEmAndamento;
+}
+
+/**
+ * Verifica se uma rodada específica está consolidada (finalizada)
+ * @param {number} rodada - Número da rodada
+ * @param {number} rodada_atual - Rodada atual da API
+ * @param {number} status_mercado - Status do mercado
+ * @returns {boolean} - True se rodada está consolidada
+ */
+export function isRodadaConsolidada(rodada, rodada_atual, status_mercado) {
+  // Rodadas anteriores à atual sempre estão consolidadas
+  if (rodada < rodada_atual) return true;
+
+  // Rodada atual só está consolidada se temporada encerrou
+  if (rodada === rodada_atual && rodada === 38) {
+    return isTemporadaEncerrada(rodada_atual, status_mercado);
+  }
+
+  return false;
+}
+
+// ==============================
+// RENDERIZAÇÃO DE MINI CARDS
+// ==============================
+
+// RENDERIZAR MINI CARDS DAS RODADAS
+export async function renderizarMiniCardsRodadas() {
+  console.log("[RODADAS-UI] renderizarMiniCardsRodadas iniciada");
+
+  const cardsContainer = getElement("rodadasCards");
+  console.log(
+    "[RODADAS-UI] Container rodadasCards encontrado:",
+    !!cardsContainer,
+  );
+
+  if (!cardsContainer) {
+    console.error("[RODADAS-UI] Container rodadasCards não encontrado!");
+    return;
+  }
+
+  const { rodada_atual, status_mercado } = getStatusMercado();
+  console.log("[RODADAS-UI] Status do mercado:", {
+    rodada_atual,
+    status_mercado,
+  });
+
+  const mercadoAberto = status_mercado === 1;
+  const temporadaEncerrada = isTemporadaEncerrada(rodada_atual, status_mercado);
+
+  console.log("[RODADAS-UI] Temporada encerrada:", temporadaEncerrada);
+
+  let cardsHTML = "";
+
+  for (let i = 1; i <= 38; i++) {
+    let statusClass = "";
+    let statusText = "";
+    let isDisabled = false;
+
+    // ✅ v2.4: Lógica corrigida para última rodada
+    if (i < rodada_atual) {
+      // Rodadas anteriores sempre encerradas
+      statusClass = "encerrada";
+      statusText = "Encerrada";
+      isDisabled = false;
+    } else if (i === rodada_atual) {
+      if (mercadoAberto) {
+        // Mercado aberto = rodada ainda não começou
+        statusClass = "vigente";
+        statusText = "Aberta";
+        isDisabled = true;
+      } else if (temporadaEncerrada && i === 38) {
+        // ✅ FIX: Rodada 38 com temporada encerrada = ENCERRADA
+        statusClass = "encerrada";
+        statusText = "Encerrada";
+        isDisabled = false;
+      } else {
+        // Mercado fechado mas jogos em andamento = Parciais
+        statusClass = "parcial";
+        statusText = "Parciais";
+        isDisabled = false;
+      }
+    } else {
+      // Rodadas futuras
+      statusClass = "futura";
+      statusText = "Futura";
+      isDisabled = true;
+    }
+
+    cardsHTML += `
+      <div class="rodada-mini-card ${isDisabled ? "disabled" : ""}"
+           data-rodada="${i}"
+           onclick="${isDisabled ? "" : `selecionarRodada(${i})`}">
+        <div class="rodada-numero">${i}</div>
+        <div class="rodada-status ${statusClass}">${statusText}</div>
+      </div>
+    `;
+  }
+
+  cardsContainer.innerHTML = cardsHTML;
+}
+
+// ==============================
+// SELEÇÃO DE RODADA
+// ==============================
+
+export async function selecionarRodada(rodada, carregarDadosCallback) {
+  if (rodadaAtualSelecionada === rodada) return;
+
+  // Atualizar seleção visual
+  document.querySelectorAll(".rodada-mini-card").forEach((card) => {
+    card.classList.remove("selected");
+  });
+
+  const cardSelecionado = document.querySelector(`[data-rodada="${rodada}"]`);
+  if (cardSelecionado) {
+    cardSelecionado.classList.add("selected");
+  }
+
+  rodadaAtualSelecionada = rodada;
+
+  // Mostrar seção de conteúdo
+  const contentSection = getElement("rodadaContentSection");
+  if (contentSection) {
+    contentSection.style.display = "block";
+  }
+
+  // Atualizar título
+  const titulo = getElement("rodadaTituloAtual");
+  if (titulo) {
+    titulo.textContent = `Rodada ${rodada}`;
+  }
+
+  // Carregar dados da rodada via callback
+  if (carregarDadosCallback) {
+    await carregarDadosCallback(rodada);
+  }
+}
+
+// ==============================
+// EXIBIÇÃO DE RANKINGS
+// ==============================
+
+// ✅ v2.3: FUNÇÃO PARA OBTER LABEL DE POSIÇÃO (contextual por rodada)
+export function getPosLabel(index, total, ligaId, rodada) {
+  const pos = index + 1;
+  const isLigaCartoleirosSobral = ligaId === LIGAS_CONFIG.CARTOLEIROS_SOBRAL;
+
+  if (isLigaCartoleirosSobral) {
+    // ✅ v2.3: Determinar fase baseada na rodada
+    const isFase1 = rodada < RODADA_TRANSICAO_SOBRAL; // Rodadas 1-29: 6 times
+
+    if (isFase1) {
+      // FASE 1: 6 times (rodadas 1-29)
+      if (pos === 1) {
+        return `<span style="color:#fff; font-weight:bold; background:#198754; border-radius:4px; padding:1px 8px; font-size:12px;">MITO</span>`;
+      }
+      if (pos === 2) {
+        return `<span class="pos-g">G2</span>`;
+      }
+      if (pos === 3) {
+        return `<span class="pos-neutro">3º</span>`;
+      }
+      if (pos === 4) {
+        return `<span class="pos-z">Z3</span>`;
+      }
+      if (pos === 5) {
+        return `<span class="pos-z">Z2</span>`;
+      }
+      if (pos === 6) {
+        return `<span style="color:#fff; font-weight:bold; background:#dc3545; border-radius:4px; padding:1px 8px; font-size:12px;">MICO</span>`;
+      }
+    } else {
+      // FASE 2: 4 times (rodadas 30+)
+      if (pos === 1) {
+        return `<span style="color:#fff; font-weight:bold; background:#198754; border-radius:4px; padding:1px 8px; font-size:12px;">MITO</span>`;
+      }
+      if (pos === 2 || pos === 3) {
+        return `<span class="pos-neutro">${pos}º</span>`;
+      }
+      if (pos === 4) {
+        return `<span style="color:#fff; font-weight:bold; background:#dc3545; border-radius:4px; padding:1px 8px; font-size:12px;">MICO</span>`;
+      }
+    }
+    return `${pos}°`;
+  } else {
+    // SUPERCARTOLA - Lógica original
+    const config = POSICAO_CONFIG.SUPERCARTOLA;
+
+    if (pos === config.mito.pos) {
+      return `<span style="${config.mito.style}">${config.mito.label}</span>`;
+    }
+    if (config.g2_g11.range[0] <= pos && pos <= config.g2_g11.range[1]) {
+      return `<span class="${config.g2_g11.className}">${config.g2_g11.getLabel(pos)}</span>`;
+    }
+    if (config.zona.condition(pos, total)) {
+      return `<span class="${config.zona.className}">${config.zona.getLabel(pos, total)}</span>`;
+    }
+    if (config.mico.condition(pos, total)) {
+      return `<span class="${config.mico.className}">${config.mico.label}</span>`;
+    }
+    return `${pos}°`;
+  }
+}
+
+// ✅ v2.3: EXIBIR RANKING - TABELAS CONTEXTUAIS POR RODADA
+export function exibirRanking(rankingsDaRodada, rodadaSelecionada, ligaId) {
+  const rankingBody = getElement("rankingBody");
+
+  // Validar se é array
+  if (
+    !rankingsDaRodada ||
+    !Array.isArray(rankingsDaRodada) ||
+    rankingsDaRodada.length === 0
+  ) {
+    console.warn(
+      "[RODADAS-UI] Dados inválidos recebidos:",
+      typeof rankingsDaRodada,
+    );
+    rankingBody.innerHTML = `<tr><td colspan="6">Nenhum dado encontrado para a rodada ${rodadaSelecionada}.</td></tr>`;
+    limparExportContainer();
+    return;
+  }
+
+  // ✅ v2.2: Separar ativos e inativos CONSIDERANDO A RODADA SELECIONADA
+  // Regra: Se rodada < rodada_desistencia, participante era ATIVO nessa rodada
+  const ativos = rankingsDaRodada.filter((r) => {
+    if (r.ativo === false && r.rodada_desistencia) {
+      // Inativo atualmente, mas era ativo ANTES da rodada de desistência
+      return rodadaSelecionada < r.rodada_desistencia;
+    }
+    return r.ativo !== false;
+  });
+
+  const inativos = rankingsDaRodada.filter((r) => {
+    if (r.ativo === false && r.rodada_desistencia) {
+      // Só mostra como inativo se rodada >= rodada_desistencia
+      return rodadaSelecionada >= r.rodada_desistencia;
+    }
+    // Inativo sem rodada_desistencia definida (fallback)
+    return r.ativo === false && !r.rodada_desistencia;
+  });
+
+  // Ordenar ativos por pontos
+  ativos.sort((a, b) => parseFloat(b.pontos || 0) - parseFloat(a.pontos || 0));
+
+  // ✅ v2.3: Usar valores de banco contextuais por rodada
+  const bancoValores = getBancoPorRodada(ligaId, rodadaSelecionada);
+  const totalAtivos = ativos.length;
+
+  console.log(
+    `[RODADAS-UI] Rodada ${rodadaSelecionada}: usando tabela de ${Object.keys(bancoValores).length} posições`,
+  );
+
+  // Renderizar ativos
+  let tableHTML = ativos
+    .map((rank, index) => {
+      const banco =
+        bancoValores[index + 1] !== undefined ? bancoValores[index + 1] : 0.0;
+      // ✅ v2.3: Passar rodada para getPosLabel
+      const posLabel = getPosLabel(
+        index,
+        totalAtivos,
+        ligaId,
+        rodadaSelecionada,
+      );
+
+      const escudoUrl = rank.clube_id
+        ? `/escudos/${rank.clube_id}.png`
+        : rank.escudo_url || "";
+
+      return `
+        <tr>
+          <td>${posLabel}</td>
+          <td>${escudoUrl ? `<img src="${escudoUrl}" alt="Escudo" class="escudo-pequeno" onerror="this.style.display='none'">` : ""}</td>
+          <td>${rank.nome_cartola || "N/D"}</td>
+          <td>${rank.nome_time || "N/D"}</td>
+          <td><strong>${parseFloat(rank.pontos || 0).toFixed(2)}</strong></td>
+          <td class="${banco > 0 ? "banco-positivo" : banco < 0 ? "banco-negativo" : "banco-neutro"}">
+            ${banco > 0 ? "+" : ""}${banco.toFixed(2)}
+          </td>
+        </tr>
+      `;
+    })
+    .join("");
+
+  // Renderizar inativos (se houver)
+  if (inativos.length > 0) {
+    tableHTML += `
+      <tr class="separador-inativos">
+        <td colspan="6" style="text-align: center; font-style: italic; color: #666; background: #1a1a1a;">
+          <span class="material-symbols-outlined" style="font-size: 16px; vertical-align: middle;">warning</span> Participantes inativos na rodada ${rodadaSelecionada}
+        </td>
+      </tr>
+    `;
+
+    inativos.forEach((rank) => {
+      const escudoUrl = rank.clube_id
+        ? `/escudos/${rank.clube_id}.png`
+        : rank.escudo_url || "";
+
+      tableHTML += `
+        <tr class="participante-inativo">
+          <td>—</td>
+          <td>${escudoUrl ? `<img src="${escudoUrl}" alt="Escudo" class="escudo-pequeno" onerror="this.style.display='none'">` : ""}</td>
+          <td>${rank.nome_cartola || "N/D"} <span class="badge-inativo">INATIVO R${rank.rodada_desistencia || "?"}</span></td>
+          <td>${rank.nome_time || "N/D"}</td>
+          <td><strong>${parseFloat(rank.pontos || 0).toFixed(2)}</strong></td>
+          <td class="banco-neutro">—</td>
+        </tr>
+      `;
+    });
+  }
+
+  rankingBody.innerHTML = tableHTML;
+
+  // Renderizar container de export
+  renderizarExportContainer(ativos, rodadaSelecionada, ligaId);
+}
+
+// EXIBIR RANKING COM PARCIAIS
+export function exibirRankingParciais(
+  rankingsParciais,
+  rodadaSelecionada,
+  ligaId,
+) {
+  const rankingBody = getElement("rankingBody");
+
+  if (!rankingsParciais || rankingsParciais.length === 0) {
+    rankingBody.innerHTML = `<tr><td colspan="6">Aguardando dados parciais...</td></tr>`;
+    limparExportContainer();
+    return;
+  }
+
+  // Separar ativos e inativos
+  const ativos = rankingsParciais.filter((r) => r.ativo !== false);
+  const inativos = rankingsParciais.filter((r) => r.ativo === false);
+
+  ativos.sort(
+    (a, b) => parseFloat(b.totalPontos || 0) - parseFloat(a.totalPontos || 0),
+  );
+
+  const bancoValores = getBancoPorRodada(ligaId, rodadaSelecionada);
+  const totalAtivos = ativos.length;
+
+  let tableHTML = ativos
+    .map((rank, index) => {
+      const banco =
+        bancoValores[index + 1] !== undefined ? bancoValores[index + 1] : 0.0;
+      const posLabel = getPosLabel(
+        index,
+        totalAtivos,
+        ligaId,
+        rodadaSelecionada,
+      );
+
+      const escudoUrl = rank.clube_id
+        ? `/escudos/${rank.clube_id}.png`
+        : rank.escudo_url || "";
+
+      return `
+        <tr>
+          <td>${posLabel}</td>
+          <td>${escudoUrl ? `<img src="${escudoUrl}" alt="Escudo" class="escudo-pequeno" onerror="this.style.display='none'">` : ""}</td>
+          <td>${rank.nome_cartola || "N/D"}</td>
+          <td>${rank.nome_time || "N/D"}</td>
+          <td><strong>${parseFloat(rank.totalPontos || 0).toFixed(2)}</strong> <span style="color:#facc15; font-size:10px;">⏳</span></td>
+          <td class="${banco > 0 ? "banco-positivo" : banco < 0 ? "banco-negativo" : "banco-neutro"}">
+            ${banco > 0 ? "+" : ""}${banco.toFixed(2)}
+          </td>
+        </tr>
+      `;
+    })
+    .join("");
+
+  // Inativos
+  if (inativos.length > 0) {
+    tableHTML += `
+      <tr class="separador-inativos">
+        <td colspan="6" style="text-align: center; font-style: italic; color: #666; background: #1a1a1a;">
+          ⚠️ Participantes inativos
+        </td>
+      </tr>
+    `;
+
+    inativos.forEach((rank) => {
+      const escudoUrl = rank.clube_id
+        ? `/escudos/${rank.clube_id}.png`
+        : rank.escudo_url || "";
+
+      tableHTML += `
+        <tr class="participante-inativo">
+          <td>—</td>
+          <td>${escudoUrl ? `<img src="${escudoUrl}" alt="Escudo" class="escudo-pequeno" onerror="this.style.display='none'">` : ""}</td>
+          <td>${rank.nome_cartola || "N/D"} <span class="badge-inativo">INATIVO</span></td>
+          <td>${rank.nome_time || "N/D"}</td>
+          <td><strong>${parseFloat(rank.totalPontos || 0).toFixed(2)}</strong></td>
+          <td class="banco-neutro">—</td>
+        </tr>
+      `;
+    });
+  }
+
+  rankingBody.innerHTML = tableHTML;
+  limparExportContainer();
+}
+
+// ==============================
+// FUNÇÕES DE UI AUXILIARES
+// ==============================
+
+export function mostrarLoading(show) {
+  const rankingBody = getElement("rankingBody");
+  if (!rankingBody) return;
+
+  if (show) {
+    rankingBody.innerHTML = `
+      <tr>
+        <td colspan="6" style="text-align: center; padding: 40px;">
+          <div class="spinner" style="margin: 0 auto 10px;"></div>
+          Carregando dados...
+        </td>
+      </tr>
+    `;
+  }
+}
+
+export function mostrarMensagemRodada(mensagem, tipo = "info") {
+  const rankingBody = getElement("rankingBody");
+  if (!rankingBody) return;
+
+  const estilos = {
+    info: "color: #3b82f6; background: rgba(59, 130, 246, 0.1);",
+    aviso: "color: #facc15; background: rgba(250, 204, 21, 0.1);",
+    erro: "color: #ef4444; background: rgba(239, 68, 68, 0.1);",
+  };
+
+  rankingBody.innerHTML = `
+    <tr>
+      <td colspan="6" style="text-align: center; padding: 30px; ${estilos[tipo] || estilos.info} border-radius: 8px;">
+        ${mensagem}
+      </td>
+    </tr>
+  `;
+
+  limparExportContainer();
+}
+
+export function limparExportContainer() {
+  const container = getElement("rodadaExportContainer");
+  if (container) {
+    container.innerHTML = "";
+  }
+}
+
+export function getRodadaAtualSelecionada() {
+  return rodadaAtualSelecionada;
+}
+
+export function limparCacheUI() {
+  elementsCache.clear();
+  rodadaAtualSelecionada = null;
+  console.log("[RODADAS-UI] Cache de UI limpo");
+}
+
+// ==============================
+// RENDERIZAÇÃO DE EXPORT
+// ==============================
+
+function renderizarExportContainer(rankings, rodada, ligaId) {
+  const container = getElement("rodadaExportContainer");
+  if (!container) return;
+
+  container.innerHTML = `
+    <div style="margin-top: 20px; text-align: center;">
+      <button onclick="window.exportarRodadaImagem && window.exportarRodadaImagem(${rodada})" 
+              class="btn-export" 
+              style="background: linear-gradient(135deg, #ff4500, #e8472b); color: white; border: none; padding: 10px 20px; border-radius: 8px; cursor: pointer; font-weight: 600;">
+        📸 Exportar Imagem
+      </button>
+    </div>
+  `;
+}
+
+// ==============================
+// EXIBIÇÃO DE RODADAS (DEBUG)
+// ==============================
+
+export function exibirRodadas(rodadasAgrupadas) {
+  console.log("[RODADAS-UI] exibirRodadas chamada com:", rodadasAgrupadas);
+
+  if (!rodadasAgrupadas || Object.keys(rodadasAgrupadas).length === 0) {
+    console.warn("[RODADAS-UI] Nenhuma rodada para exibir");
+    return;
+  }
+
+  const totalRodadas = Object.keys(rodadasAgrupadas).length;
+  const totalRegistros = Object.values(rodadasAgrupadas).reduce(
+    (acc, arr) => acc + arr.length,
+    0,
+  );
+
+  console.log(
+    `[RODADAS-UI] 📊 Total: ${totalRodadas} rodadas, ${totalRegistros} registros`,
+  );
+}
+
+// ==============================
+// RELATÓRIO MITOS/MICOS
+// ==============================
+
+let filtroAtual = { tipo: "todos", participante: "" };
+
+export function exibirRelatorioMitosMicos(dados) {
+  console.log("[RODADAS-UI] Exibindo relatório MITOS/MICOS");
+
+  // Esconder seção de conteúdo normal e cards
+  const contentSection = getElement("rodadaContentSection");
+  const cardsContainer = getElement("rodadasCards");
+
+  if (contentSection) contentSection.style.display = "none";
+  if (cardsContainer?.parentElement) {
+    cardsContainer.parentElement.style.display = "none";
+  }
+
+  // Mostrar seção do relatório
+  let relatorioSection = getElement("relatorioMitosMicos");
+
+  if (!relatorioSection) {
+    // Criar seção se não existir
+    const rodadasContainer = document.getElementById("rodadas");
+    if (rodadasContainer) {
+      relatorioSection = document.createElement("div");
+      relatorioSection.id = "relatorioMitosMicos";
+      relatorioSection.className = "relatorio-mitos-micos";
+      rodadasContainer.appendChild(relatorioSection);
+      elementsCache.set("relatorioMitosMicos", relatorioSection);
+    }
+  }
+
+  if (!relatorioSection) {
+    console.error("[RODADAS-UI] Não foi possível criar seção do relatório");
+    return;
+  }
+
+  relatorioSection.style.display = "block";
+
+  // Renderizar estrutura do relatório
+  relatorioSection.innerHTML = `
+    <div class="relatorio-header">
+      <button onclick="window.voltarParaCards()" class="btn-voltar">
+        ← Voltar
+      </button>
+      <h2>🏆 Relatório MITOS & MICOS 💩</h2>
+    </div>
+    <div class="relatorio-filtros" id="relatorioFiltros"></div>
+    <div class="relatorio-estatisticas" id="estatisticasResumo"></div>
+    <div class="relatorio-conteudo" id="relatorioContent"></div>
+  `;
+
+  // Renderizar componentes
+  renderizarFiltrosRelatorio(dados);
+  renderizarEstatisticasResumo(dados);
+  renderizarConteudoRelatorio(dados, filtroAtual);
+}
+
+function renderizarFiltrosRelatorio(dados) {
+  const container = getElement("relatorioFiltros");
+  if (!container) return;
+
+  // Extrair lista única de participantes
+  const participantes = new Set();
+  dados.mitos.forEach((m) =>
+    participantes.add(m.nome_cartola || m.nome_time || "N/D"),
+  );
+  dados.micos.forEach((m) =>
+    participantes.add(m.nome_cartola || m.nome_time || "N/D"),
+  );
+
+  const participantesOrdenados = Array.from(participantes).sort();
+
+  container.innerHTML = `
+    <button class="filtro-btn active" data-tipo="todos" onclick="window.aplicarFiltroTipo('todos')">
+      📊 Todos
+    </button>
+    <button class="filtro-btn" data-tipo="mitos" onclick="window.aplicarFiltroTipo('mitos')">
+      🏆 Apenas MITOS
+    </button>
+    <button class="filtro-btn" data-tipo="micos" onclick="window.aplicarFiltroTipo('micos')">
+      💩 Apenas MICOS
+    </button>
+    <select id="filtroParticipante" class="filtro-select" onchange="window.aplicarFiltroParticipante(this.value)">
+      <option value="">👤 Todos os Participantes</option>
+      ${participantesOrdenados.map((p) => `<option value="${p}">${p}</option>`).join("")}
+    </select>
+  `;
+}
+
+function renderizarEstatisticasResumo(dados) {
+  const container = getElement("estatisticasResumo");
+  if (!container) return;
+
+  const { mitos, micos, estatisticas } = dados;
+
+  // Calcular estatísticas
+  const mitoMaisVezes = calcularMaisVezes(mitos);
+  const micoMaisVezes = calcularMaisVezes(micos);
+
+  // Ranking completo de mitos e micos
+  const rankingMitos = calcularRankingCompleto(mitos);
+  const rankingMicos = calcularRankingCompleto(micos);
+
+  const html = `
+    <div class="stat-card">
+      <div class="stat-card-title">Total de Rodadas</div>
+      <div class="stat-card-value">${estatisticas.totalRodadas}</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-card-title">🏆 Maior MITO</div>
+      <div class="stat-card-value">${mitoMaisVezes.count}x</div>
+      <div class="stat-card-subtitle">${mitoMaisVezes.nome}</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-card-title">💩 Maior MICO</div>
+      <div class="stat-card-value">${micoMaisVezes.count}x</div>
+      <div class="stat-card-subtitle">${micoMaisVezes.nome}</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-card-title">Média Pontos MITO</div>
+      <div class="stat-card-value">${estatisticas.mediaMito.toFixed(1)}</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-card-title">Média Pontos MICO</div>
+      <div class="stat-card-value">${estatisticas.mediaMico.toFixed(1)}</div>
+    </div>
+  `;
+
+  container.innerHTML = html;
+}
+
+function calcularMaisVezes(lista) {
+  const contagem = {};
+
+  lista.forEach((item) => {
+    const nome = item.nome_cartola || item.nome_time || "N/D";
+    contagem[nome] = (contagem[nome] || 0) + 1;
+  });
+
+  let maxNome = "N/D";
+  let maxCount = 0;
+
+  Object.entries(contagem).forEach(([nome, count]) => {
+    if (count > maxCount) {
+      maxCount = count;
+      maxNome = nome;
+    }
+  });
+
+  return { nome: maxNome, count: maxCount };
+}
+
+function calcularRankingCompleto(lista) {
+  const contagem = {};
+
+  lista.forEach((item) => {
+    const nome = item.nome_cartola || item.nome_time || "N/D";
+    contagem[nome] = (contagem[nome] || 0) + 1;
+  });
+
+  return Object.entries(contagem)
+    .map(([nome, count]) => ({ nome, count }))
+    .sort((a, b) => b.count - a.count);
+}
+
+function renderizarConteudoRelatorio(dados, filtro) {
+  const container = getElement("relatorioContent");
+  if (!container) return;
+
+  const { mitos, micos } = dados;
+  const { tipo, participante } = filtro;
+
+  // Filtrar por participante se selecionado
+  let mitosFiltrados = mitos;
+  let micosFiltrados = micos;
+
+  if (participante) {
+    mitosFiltrados = mitos.filter(
+      (m) => (m.nome_cartola || m.nome_time || "N/D") === participante,
+    );
+    micosFiltrados = micos.filter(
+      (m) => (m.nome_cartola || m.nome_time || "N/D") === participante,
+    );
+  }
+
+  // Agrupar por rodada
+  const rodadas = {};
+
+  mitosFiltrados.forEach((item) => {
+    if (!rodadas[item.rodada]) {
+      rodadas[item.rodada] = { mito: null, mico: null };
+    }
+    rodadas[item.rodada].mito = item;
+  });
+
+  micosFiltrados.forEach((item) => {
+    if (!rodadas[item.rodada]) {
+      rodadas[item.rodada] = { mito: null, mico: null };
+    }
+    rodadas[item.rodada].mico = item;
+  });
+
+  // Ordenar por rodada
+  const rodadasOrdenadas = Object.keys(rodadas)
+    .map(Number)
+    .sort((a, b) => a - b);
+
+  // Se filtro por participante ativo, mostrar resumo primeiro
+  let html = "";
+
+  if (participante) {
+    const totalMitos = mitosFiltrados.length;
+    const totalMicos = micosFiltrados.length;
+    const saldo = totalMitos - totalMicos;
+    const saldoClass =
+      saldo > 0
+        ? "saldo-positivo"
+        : saldo < 0
+          ? "saldo-negativo"
+          : "saldo-neutro";
+
+    html += `
+      <div class="participante-resumo">
+        <div class="participante-nome">📊 ${participante}</div>
+        <div class="participante-stats">
+          <span class="stat-mito">🏆 ${totalMitos} MITO${totalMitos !== 1 ? "S" : ""}</span>
+          <span class="stat-mico">💩 ${totalMicos} MICO${totalMicos !== 1 ? "S" : ""}</span>
+          <span class="${saldoClass}">Saldo: ${saldo > 0 ? "+" : ""}${saldo}</span>
+        </div>
+      </div>
+    `;
+  }
+
+  if (rodadasOrdenadas.length === 0) {
+    html += `<div class="empty-relatorio">Nenhum resultado encontrado para os filtros selecionados.</div>`;
+    container.innerHTML = html;
+    return;
+  }
+
+  rodadasOrdenadas.forEach((numRodada) => {
+    const { mito, mico } = rodadas[numRodada];
+
+    // Aplicar filtro de tipo
+    const mostrarMito = mito && tipo !== "micos";
+    const mostrarMico = mico && tipo !== "mitos";
+
+    if (!mostrarMito && !mostrarMico) return;
+
+    html += `
+      <div class="rodada-card">
+        <div class="rodada-card-header">Rodada ${numRodada}</div>
+    `;
+
+    if (mostrarMito) {
+      html += `
+        <div class="resultado-row mito">
+          <div class="resultado-badge mito">🏆 MITO</div>
+          <div class="resultado-info">
+            <div>${mito.nome_cartola || "N/D"}</div>
+            <div style="font-size: 9px; color: var(--text-muted);">${mito.nome_time || "N/D"}</div>
+          </div>
+          <div class="resultado-pontos">${parseFloat(mito.pontos || 0).toFixed(2)}</div>
+        </div>
+      `;
+    }
+
+    if (mostrarMico) {
+      html += `
+        <div class="resultado-row mico">
+          <div class="resultado-badge mico">💩 MICO</div>
+          <div class="resultado-info">
+            <div>${mico.nome_cartola || "N/D"}</div>
+            <div style="font-size: 9px; color: var(--text-muted);">${mico.nome_time || "N/D"}</div>
+          </div>
+          <div class="resultado-pontos">${parseFloat(mico.pontos || 0).toFixed(2)}</div>
+        </div>
+      `;
+    }
+
+    html += `</div>`;
+  });
+
+  container.innerHTML = html;
+}
+
+export function fecharRelatorioMitosMicos() {
+  const relatorioSection = getElement("relatorioMitosMicos");
+  const contentSection = getElement("rodadaContentSection");
+  const cardsContainer = getElement("rodadasCards");
+
+  if (relatorioSection) relatorioSection.style.display = "none";
+  if (contentSection) contentSection.style.display = "block";
+  if (cardsContainer?.parentElement) {
+    cardsContainer.parentElement.style.display = "block";
+  }
+}
+
+export function aplicarFiltroRelatorio(filtro, dados) {
+  renderizarConteudoRelatorio(dados, filtro);
+}
+
+// Funções expostas globalmente para os filtros
+export function aplicarFiltroTipo(tipo) {
+  filtroAtual.tipo = tipo;
+
+  // Atualizar visual dos botões
+  document.querySelectorAll(".filtro-btn").forEach((btn) => {
+    btn.classList.toggle("active", btn.dataset.tipo === tipo);
+  });
+
+  // Re-renderizar com novo filtro
+  if (window._relatorioMitosMicosData) {
+    renderizarConteudoRelatorio(window._relatorioMitosMicosData, filtroAtual);
+  }
+}
+
+export function aplicarFiltroParticipante(participante) {
+  filtroAtual.participante = participante;
+
+  // Re-renderizar com novo filtro
+  if (window._relatorioMitosMicosData) {
+    renderizarConteudoRelatorio(window._relatorioMitosMicosData, filtroAtual);
+  }
+}
+
+// Expor funções de filtro no window
+if (typeof window !== "undefined") {
+  window.aplicarFiltroTipo = aplicarFiltroTipo;
+  window.aplicarFiltroParticipante = aplicarFiltroParticipante;
+}
+
+console.log("[RODADAS-UI] ✅ Módulo v2.4 carregado (fix rodada 38 encerrada)");

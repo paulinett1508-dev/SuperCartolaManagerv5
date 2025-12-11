@@ -1,0 +1,1186 @@
+import { FluxoFinanceiroCampos } from "./fluxo-financeiro-campos.js";
+import {
+    FluxoFinanceiroAuditoria,
+    injetarEstilosAuditoria,
+} from "./fluxo-financeiro-auditoria.js";
+
+/**
+ * FLUXO-FINANCEIRO-UI.JS - v4.5 (Cache em Lote)
+ * ✅ v4.5: Botão "Limpar Cache" + "Recalcular Todos" + auto-popular ao visualizar
+ * ✅ v4.4.2: Botão só limpa cache, sem chamar recálculo do backend
+ * ✅ v4.4.1: Botão "Limpar Cache" + removido botão duplicado dos campos
+ * ✅ v4.4: Botão para limpar cache MongoDB do participante
+ * ✅ v4.3: Campos editáveis SEMPRE visíveis para admin + Material Icons
+ * ✅ v4.2: Botão "Auditar" para cada participante
+ * ✅ v4.1: MICO mostra badge para último lugar da fase
+ * Objetivo: Renderização Pura + Classes CSS
+ */
+
+export class FluxoFinanceiroUI {
+    constructor() {
+        this.containerId = "fluxoFinanceiroContent";
+        this.buttonsContainerId = "fluxoFinanceiroButtons";
+        this.auditoria = null;
+        injetarEstilosAuditoria();
+
+        // ✅ v4.3: Detectar modo admin
+        this.detectarModoAdmin();
+    }
+
+    detectarModoAdmin() {
+        const isAdminPage = window.location.pathname.includes("detalhe-liga");
+        const hasAdminSession =
+            document.cookie.includes("adminSession") ||
+            document.cookie.includes("connect.sid");
+        window.adminLogado = isAdminPage || hasAdminSession;
+        window.isAdminMode = window.adminLogado;
+        console.log(
+            "[FLUXO-UI] Modo Admin:",
+            window.adminLogado ? "ATIVO" : "INATIVO",
+        );
+    }
+
+    setAuditoria(auditoria) {
+        this.auditoria = auditoria;
+    }
+
+    renderizarBotoesParticipantes(participantes) {
+        const container = document.getElementById(this.buttonsContainerId);
+        if (!container) return;
+
+        // Nota: Mantivemos classes inline mínimas aqui pois é um grid flexível que pode variar,
+        // mas o ideal seria mover .participante-card para o CSS também.
+        container.innerHTML = `
+            <div class="fluxo-controls-header">
+                <div class="fluxo-controls-row">
+                    <button onclick="window.gerarRelatorioFinanceiro()" class="btn-fluxo btn-relatorio">
+                        <span class="material-icons">assessment</span>
+                        <span>Relatório</span>
+                    </button>
+                    <button onclick="window.limparCacheLiga()" class="btn-fluxo btn-limpar" title="Limpar cache de todos os participantes">
+                        <span class="material-icons">delete_sweep</span>
+                        <span>Limpar Cache</span>
+                    </button>
+                    <button onclick="window.recalcularTodosCache()" class="btn-fluxo btn-recalcular" title="Recalcular cache de todos os participantes">
+                        <span class="material-icons">sync</span>
+                        <span>Recalcular</span>
+                    </button>
+                </div>
+                <div class="fluxo-search-row">
+                    <div class="search-container">
+                        <span class="material-icons search-icon">search</span>
+                        <input type="text" id="searchParticipante" placeholder="Pesquisar participante..."
+                               class="input-search"
+                               onkeyup="window.filtrarParticipantes(this.value)">
+                    </div>
+                    <span class="participantes-count">${participantes.length} participantes</span>
+                </div>
+            </div>
+            <div class="participantes-grid" id="participantesGrid">
+                ${participantes
+                    .map(
+                        (p) => `
+                    <div class="participante-card-wrapper">
+                        <button onclick="window.selecionarParticipante('${p.time_id || p.id}')"
+                                class="participante-card"
+                                data-nome="${(p.nome_cartola || "").toLowerCase()}"
+                                data-time="${(p.nome_time || "").toLowerCase()}">
+                            <div class="participante-header">
+                                <div class="participante-avatar">
+                                    ${
+                                        p.url_escudo_png
+                                            ? `<img src="${p.url_escudo_png}" alt="${p.nome_cartola}">`
+                                            : `<div class="avatar-placeholder"><span class="material-icons" style="font-size: 24px; color: #666;">sports_soccer</span></div>`
+                                    }
+                                </div>
+                                <div class="participante-info">
+                                    <p class="participante-nome">${p.nome_cartola}</p>
+                                    <p class="participante-time">${p.nome_time}</p>
+                                </div>
+                            </div>
+                        </button>
+                        <button onclick="window.abrirAuditoria('${p.time_id || p.id}')" 
+                                class="btn-auditar" title="Auditar financeiro">
+                            <span class="material-icons" style="font-size: 14px;">search</span> Auditar
+                        </button>
+                    </div>
+                `,
+                    )
+                    .join("")}
+            </div>
+        `;
+        window.totalParticipantes = participantes.length;
+
+        // Injetar estilos extras para wrapper
+        this._injetarEstilosWrapper();
+    }
+
+    _injetarEstilosWrapper() {
+        if (document.getElementById("participante-wrapper-styles")) return;
+
+        const style = document.createElement("style");
+        style.id = "participante-wrapper-styles";
+        style.textContent = `
+            /* ✅ v4.5: Layout profissional do header */
+            .fluxo-controls-header {
+                background: linear-gradient(135deg, rgba(30, 30, 35, 0.95) 0%, rgba(25, 25, 30, 0.98) 100%);
+                border: 1px solid rgba(255, 255, 255, 0.08);
+                border-radius: 12px;
+                padding: 16px;
+                margin-bottom: 16px;
+                display: flex;
+                flex-direction: column;
+                gap: 12px;
+            }
+            .fluxo-controls-row {
+                display: flex;
+                gap: 10px;
+                flex-wrap: wrap;
+            }
+            .fluxo-search-row {
+                display: flex;
+                align-items: center;
+                gap: 12px;
+                flex-wrap: wrap;
+            }
+            .search-container {
+                flex: 1;
+                min-width: 200px;
+                position: relative;
+                display: flex;
+                align-items: center;
+            }
+            .search-container .search-icon {
+                position: absolute;
+                left: 12px;
+                color: #888;
+                font-size: 18px;
+                pointer-events: none;
+            }
+            .input-search {
+                width: 100%;
+                padding: 10px 12px 10px 40px;
+                background: rgba(255, 255, 255, 0.05);
+                border: 1px solid rgba(255, 255, 255, 0.1);
+                border-radius: 8px;
+                color: #fff;
+                font-size: 14px;
+                transition: all 0.2s ease;
+            }
+            .input-search:focus {
+                outline: none;
+                border-color: var(--laranja, #ff6b35);
+                background: rgba(255, 255, 255, 0.08);
+            }
+            .input-search::placeholder {
+                color: #666;
+            }
+            .participantes-count {
+                color: #888;
+                font-size: 13px;
+                white-space: nowrap;
+            }
+
+            /* ✅ v4.5: Botões profissionais */
+            .btn-fluxo {
+                display: inline-flex;
+                align-items: center;
+                gap: 6px;
+                padding: 10px 16px;
+                border: none;
+                border-radius: 8px;
+                font-size: 13px;
+                font-weight: 600;
+                cursor: pointer;
+                transition: all 0.2s ease;
+                white-space: nowrap;
+            }
+            .btn-fluxo .material-icons {
+                font-size: 18px;
+            }
+            .btn-fluxo:hover {
+                transform: translateY(-2px);
+            }
+            .btn-fluxo:active {
+                transform: translateY(0);
+            }
+            .btn-fluxo:disabled {
+                opacity: 0.6;
+                cursor: not-allowed;
+                transform: none !important;
+            }
+            .btn-fluxo.loading .material-icons {
+                animation: spin 1s linear infinite;
+            }
+
+            /* Cores dos botões */
+            .btn-relatorio {
+                background: linear-gradient(135deg, #ff6b35 0%, #f54d00 100%);
+                color: white;
+                box-shadow: 0 2px 8px rgba(255, 107, 53, 0.3);
+            }
+            .btn-relatorio:hover {
+                box-shadow: 0 4px 16px rgba(255, 107, 53, 0.4);
+            }
+
+            .btn-limpar {
+                background: linear-gradient(135deg, #dc2626 0%, #b91c1c 100%);
+                color: white;
+                box-shadow: 0 2px 8px rgba(220, 38, 38, 0.3);
+            }
+            .btn-limpar:hover {
+                box-shadow: 0 4px 16px rgba(220, 38, 38, 0.4);
+            }
+
+            .btn-recalcular {
+                background: linear-gradient(135deg, #059669 0%, #047857 100%);
+                color: white;
+                box-shadow: 0 2px 8px rgba(5, 150, 105, 0.3);
+            }
+            .btn-recalcular:hover {
+                box-shadow: 0 4px 16px rgba(5, 150, 105, 0.4);
+            }
+
+            @keyframes spin {
+                from { transform: rotate(0deg); }
+                to { transform: rotate(360deg); }
+            }
+
+            /* Responsivo */
+            @media (max-width: 600px) {
+                .fluxo-controls-row {
+                    flex-direction: column;
+                }
+                .btn-fluxo {
+                    width: 100%;
+                    justify-content: center;
+                }
+                .fluxo-search-row {
+                    flex-direction: column;
+                    align-items: stretch;
+                }
+                .participantes-count {
+                    text-align: center;
+                }
+            }
+
+            /* Cards de participante */
+            .participante-card-wrapper {
+                display: flex;
+                flex-direction: column;
+                gap: 6px;
+            }
+            .participante-card-wrapper .btn-auditar {
+                width: 100%;
+                justify-content: center;
+            }
+
+            /* Botão limpar cache individual */
+            .btn-recalc-cache {
+                background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
+                color: white;
+                border: none;
+                padding: 8px 12px;
+                border-radius: 8px;
+                cursor: pointer;
+                font-size: 12px;
+                font-weight: 600;
+                display: flex;
+                align-items: center;
+                gap: 4px;
+                transition: all 0.2s ease;
+            }
+            .btn-recalc-cache:hover {
+                transform: translateY(-1px);
+                box-shadow: 0 4px 12px rgba(245, 158, 11, 0.4);
+            }
+            .btn-recalc-cache:disabled {
+                opacity: 0.6;
+                cursor: not-allowed;
+                transform: none;
+            }
+            .btn-recalc-cache.loading .material-icons {
+                animation: spin 1s linear infinite;
+            }
+        `;
+        document.head.appendChild(style);
+    }
+
+    renderizarMensagemInicial() {
+        const container = document.getElementById(this.containerId);
+        if (container)
+            container.innerHTML = `
+            <div class="estado-inicial">
+                <div class="estado-inicial-icon"><span class="material-icons" style="font-size: 48px; color: #ffd700;">account_balance_wallet</span></div>
+                <h2 class="estado-inicial-titulo">Extrato Financeiro</h2>
+                <p class="estado-inicial-subtitulo">Selecione um participante para visualizar.</p>
+            </div>`;
+    }
+
+    renderizarLoading(mensagem = "Carregando...") {
+        const container = document.getElementById(this.containerId);
+        if (container)
+            container.innerHTML = `
+            <div class="loading-container">
+                <div class="loading-spinner"></div>
+                <p>${mensagem}</p>
+            </div>`;
+    }
+
+    // --- HELPERS VISUAIS ---
+
+    formatarMoeda(valor) {
+        const valorNum = parseFloat(valor) || 0;
+        if (valorNum === 0) return `<span class="text-muted">-</span>`;
+
+        const classeCor = valorNum > 0 ? "text-success" : "text-danger";
+        const sinal = valorNum > 0 ? "+" : "";
+        return `<span class="${classeCor} font-semibold">${sinal}R$ ${valorNum.toLocaleString("pt-BR", { minimumFractionDigits: 2 })}</span>`;
+    }
+
+    formatarTop10Cell(rodada) {
+        if (!rodada.top10 || rodada.top10 === 0)
+            return `<span class="text-muted">-</span>`;
+
+        const valor = parseFloat(rodada.top10);
+        const status = rodada.top10Status || (valor > 0 ? "MITO" : "MICO");
+        const posicao = parseInt(rodada.top10Posicao) || 1;
+        const isMito = status === "MITO";
+
+        // Classes CSS
+        const classeContainer = isMito
+            ? "cell-top10 is-mito"
+            : "cell-top10 is-mico";
+        const classeTexto = isMito ? "text-success" : "text-danger";
+        const icone = isMito
+            ? '<span class="material-icons" style="font-size: 10px;">emoji_events</span>'
+            : '<span class="material-icons" style="font-size: 10px;">sentiment_very_dissatisfied</span>';
+
+        let ordinal = `${posicao}º`;
+        if (posicao <= 3) ordinal = `${posicao}${isMito ? "º" : "ª"}`;
+
+        return `
+            <div class="${classeContainer}">
+                <span class="${classeTexto} font-bold" style="font-size: 8px;">${icone} ${ordinal} ${isMito ? "MAIOR" : "PIOR"}</span>
+                <span class="${classeTexto} font-semibold" style="font-size: 10px;">${valor > 0 ? "+" : ""}R$ ${Math.abs(valor).toFixed(2)}</span>
+            </div>
+        `;
+    }
+
+    formatarPosicao(rodada) {
+        // ✅ v4.1: MITO/MICO contextual por rodada
+        const ligaId = window.obterLigaId?.() || null;
+        const isCartoleirosSobral = ligaId === "684d821cf1a7ae16d1f89572";
+
+        // Determinar total de times da fase
+        let totalTimesFase = 32; // SuperCartola padrão
+        if (isCartoleirosSobral) {
+            totalTimesFase = rodada.rodada >= 29 ? 4 : 6; // FASE2 a partir R29
+        }
+
+        // MITO: 1º lugar
+        if (rodada.isMito || rodada.posicao === 1)
+            return `<span class="badge-status status-mito"><span class="material-icons" style="font-size: 10px;">emoji_events</span> MITO</span>`;
+
+        // MICO: último lugar (contextual)
+        if (rodada.isMico || rodada.posicao === totalTimesFase)
+            return `<span class="badge-status status-mico"><span class="material-icons" style="font-size: 10px;">sentiment_very_dissatisfied</span> MICO</span>`;
+
+        if (rodada.posicao) {
+            let classe = "status-neutro";
+
+            if (isCartoleirosSobral && rodada.rodada >= 30) {
+                // Fase 2: 4 times (1º=crédito, 2º-3º=neutro, 4º=MICO já tratado acima)
+                if (rodada.posicao === 1) classe = "status-g4";
+                else if (rodada.posicao >= 2 && rodada.posicao <= 3)
+                    classe = "status-neutro";
+            } else if (isCartoleirosSobral) {
+                // Fase 1: 6 times (1º-2º=crédito, 3º=neutro, 4º-5º=débito, 6º=MICO já tratado)
+                if (rodada.posicao >= 1 && rodada.posicao <= 2)
+                    classe = "status-g4";
+                else if (rodada.posicao === 3) classe = "status-neutro";
+                else if (rodada.posicao >= 4 && rodada.posicao <= 5)
+                    classe = "status-z4";
+            } else {
+                // SuperCartola 2025 (32 times)
+                classe =
+                    rodada.posicao <= 11
+                        ? "status-g4"
+                        : rodada.posicao >= 22
+                          ? "status-z4"
+                          : "status-neutro";
+            }
+
+            return `<span class="badge-status ${classe}">${rodada.posicao}º</span>`;
+        }
+        return `<span class="text-muted">-</span>`;
+    }
+
+    // --- RENDER PRINCIPAL ---
+
+    async renderizarExtratoFinanceiro(extrato, participante = null) {
+        const container = document.getElementById(this.containerId);
+        if (!container) return;
+
+        // ✅ DEBUG: Verificar estrutura do extrato
+        console.log(`[FLUXO-UI] 📊 Renderizando extrato:`, {
+            temRodadas: Array.isArray(extrato?.rodadas),
+            qtdRodadas: extrato?.rodadas?.length || 0,
+            primeiraRodada: extrato?.rodadas?.[0],
+            resumo: extrato?.resumo,
+        });
+
+        // ✅ VALIDAÇÃO: Garantir que rodadas existe e é array
+        if (!extrato || !Array.isArray(extrato.rodadas)) {
+            console.error(
+                `[FLUXO-UI] ❌ Extrato inválido - rodadas não é array`,
+            );
+            container.innerHTML = `
+                <div class="estado-inicial">
+                    <div class="estado-inicial-icon"><span class="material-icons" style="font-size: 48px; color: #f59e0b;">warning</span></div>
+                    <h2 class="estado-inicial-titulo">Erro ao carregar extrato</h2>
+                    <p class="estado-inicial-subtitulo">Dados corrompidos. Tente atualizar.</p>
+                    <button onclick="window.forcarRefreshExtrato('${participante?.time_id || participante?.id}')" class="btn-modern btn-primary-gradient">
+                        <span class="material-icons" style="font-size: 14px;">refresh</span> Forçar Atualização
+                    </button>
+                </div>`;
+            return;
+        }
+
+        window.extratoAtual = extrato;
+        const camposEditaveisHTML = await this.renderizarCamposEditaveis(
+            participante.time_id || participante.id,
+        );
+
+        // ✅ v4.5: Popular cache no backend quando admin visualiza (silencioso)
+        const timeId = participante.time_id || participante.id;
+        this.popularCacheBackend(timeId, extrato);
+
+        const saldoFinal = parseFloat(extrato.resumo.saldo) || 0;
+        const classeSaldo = saldoFinal >= 0 ? "text-success" : "text-danger";
+        const labelSaldo =
+            saldoFinal >= 0
+                ? '<span class="material-icons" style="font-size: 16px; vertical-align: middle;">savings</span> Saldo a Receber'
+                : saldoFinal < 0
+                  ? '<span class="material-icons" style="font-size: 16px; vertical-align: middle;">payments</span> Saldo a Pagar'
+                  : '<span class="material-icons" style="font-size: 16px; vertical-align: middle;">check_circle</span> Saldo Quitado';
+
+        let html = `
+        <div class="extrato-container fadeIn">
+            <div class="extrato-header-card">
+                <div style="position: absolute; top: 16px; left: 16px;">
+                    ${
+                        participante.url_escudo_png
+                            ? `<img src="${participante.url_escudo_png}" class="avatar-lg">`
+                            : `<div class="avatar-placeholder-lg"><span class="material-icons" style="font-size: 32px; color: #666;">sports_soccer</span></div>`
+                    }
+                </div>
+
+                <!-- ✅ v4.4: Botões Atualizar + Recalcular Cache -->
+                <div style="position: absolute; top: 16px; right: 16px; display: flex; gap: 8px; flex-wrap: wrap; justify-content: flex-end;">
+                    <button onclick="window.forcarRefreshExtrato('${timeId}')" class="btn-modern btn-secondary-gradient" title="Atualizar dados">
+                        <span class="material-icons" style="font-size: 14px;">refresh</span> Atualizar
+                    </button>
+                    <button id="btnRecalcCache-${timeId}" onclick="window.recalcularCacheParticipante('${timeId}')" class="btn-recalc-cache" title="Limpar cache MongoDB e recalcular do zero">
+                        <span class="material-icons" style="font-size: 14px;">delete_sweep</span> Limpar Cache
+                    </button>
+                </div>
+
+                <div style="padding: 20px 0;">
+                    <div class="text-muted font-bold text-uppercase" style="font-size: 11px;">${labelSaldo}</div>
+                    <div class="saldo-display ${classeSaldo}">
+                        R$ ${Math.abs(saldoFinal).toLocaleString("pt-BR", { minimumFractionDigits: 2 })}
+                    </div>
+
+                    ${extrato.updatedAt ? `<div class="text-muted" style="font-size: 9px; margin-top: 8px;">Atualizado: ${new Date(extrato.updatedAt).toLocaleString()}</div>` : ""}
+
+                    <div style="display: flex; justify-content: center; gap: 12px; margin-top: 16px;">
+                        <button onclick="window.mostrarDetalhamentoGanhos()" class="btn-modern btn-success-gradient"><span class="material-icons" style="font-size: 14px;">trending_up</span> GANHOS</button>
+                        <button onclick="window.mostrarDetalhamentoPerdas()" class="btn-modern btn-danger-gradient"><span class="material-icons" style="font-size: 14px;">trending_down</span> PERDAS</button>
+                    </div>
+                </div>
+            </div>
+
+            ${camposEditaveisHTML}
+
+            <div class="card-padrao">
+                <h3 class="card-titulo"><span class="material-icons" style="font-size: 16px;">receipt_long</span> Detalhamento</h3>
+                <div class="table-responsive">
+                    <table class="table-modern">
+                        <thead>
+                            <tr>
+                                <th>Rod</th>
+                                <th>Pos</th>
+                                <th class="text-center">Bônus/Ônus</th>
+                                <th class="text-center">P.C</th>
+                                <th class="text-center">M-M</th>
+                                <th class="text-center">TOP10</th>
+                                <th class="text-center">Saldo</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            ${extrato.rodadas
+                                .map(
+                                    (r, i) => `
+                                <tr class="${i % 2 === 0 ? "bg-zebra" : ""}">
+                                    <td class="font-semibold">${r.rodada}ª</td>
+                                    <td>${this.formatarPosicao(r)}</td>
+                                    <td class="text-center">${this.formatarMoeda(r.bonusOnus)}</td>
+                                    <td class="text-center">${this.formatarMoeda(r.pontosCorridos)}</td>
+                                    <td class="text-center">${this.formatarMoeda(r.mataMata)}</td>
+                                    <td>${this.formatarTop10Cell(r)}</td>
+                                    <td class="cell-saldo ${r.saldo >= 0 ? "bg-positive-light text-success" : "bg-negative-light text-danger"}">
+                                        ${this.formatarMoeda(r.saldo)}
+                                    </td>
+                                </tr>
+                            `,
+                                )
+                                .join("")}
+
+                            <tr class="row-total">
+                                <td colspan="2" class="text-right font-bold">TOTAIS:</td>
+                                <td class="text-center">${this.formatarMoeda(extrato.resumo.bonus + extrato.resumo.onus)}</td>
+                                <td class="text-center">${this.formatarMoeda(extrato.resumo.pontosCorridos)}</td>
+                                <td class="text-center">${this.formatarMoeda(extrato.resumo.mataMata)}</td>
+                                <td class="text-center">${this.formatarMoeda(extrato.resumo.top10)}</td>
+                                <td class="text-center text-muted">-</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+        `;
+
+        container.innerHTML = html;
+    }
+
+    async renderizarCamposEditaveis(timeId) {
+        const campos =
+            await FluxoFinanceiroCampos.carregarTodosCamposEditaveis(timeId);
+        const lista = [
+            {
+                id: "campo1",
+                nome: campos.campo1?.nome || "Campo 1",
+                valor: campos.campo1?.valor || 0,
+            },
+            {
+                id: "campo2",
+                nome: campos.campo2?.nome || "Campo 2",
+                valor: campos.campo2?.valor || 0,
+            },
+            {
+                id: "campo3",
+                nome: campos.campo3?.nome || "Campo 3",
+                valor: campos.campo3?.valor || 0,
+            },
+            {
+                id: "campo4",
+                nome: campos.campo4?.nome || "Campo 4",
+                valor: campos.campo4?.valor || 0,
+            },
+        ];
+
+        // ✅ v4.3: VERIFICAR SE É ADMIN para mostrar campos editáveis
+        const isAdmin =
+            window.adminLogado === true ||
+            window.isAdminMode === true ||
+            document.querySelector('[data-admin-mode="true"]') !== null;
+
+        const temValorPreenchido = lista.some((c) => c.valor !== 0);
+
+        // Se não é admin E não tem valor preenchido, não mostrar seção
+        if (!isAdmin && !temValorPreenchido) return "";
+
+        // Se é participante (não admin), mostrar apenas visualização
+        const readOnly = !isAdmin;
+
+        return `
+            <div class="card-padrao mb-20">
+                <h4 class="card-titulo" style="font-size: 13px; margin-bottom: 12px; display: flex; align-items: center; gap: 8px;">
+                    <span class="material-icons" style="font-size: 16px; color: var(--laranja);">tune</span>
+                    Lançamentos Manuais
+                    ${readOnly ? '<span class="badge-readonly" style="font-size: 9px; background: rgba(255,255,255,0.1); padding: 2px 6px; border-radius: 4px; color: #888;">SOMENTE LEITURA</span>' : ""}
+                </h4>
+                <div class="grid-responsive">
+                    ${lista
+                        .map(
+                            (c) => `
+                        <div class="campo-item">
+                            <label class="campo-label-permanente">${c.nome}</label>
+                            ${
+                                readOnly
+                                    ? `
+                                <div class="input-modern ${c.valor >= 0 ? "text-success" : "text-danger"}" 
+                                     style="background: rgba(255,255,255,0.05); padding: 10px; border-radius: 8px; text-align: center;">
+                                    ${c.valor !== 0 ? `R$ ${c.valor.toLocaleString("pt-BR", { minimumFractionDigits: 2 })}` : "-"}
+                                </div>
+                            `
+                                    : `
+                                <input type="number" step="0.01" value="${c.valor}"
+                                       class="input-modern input-campo-editavel ${c.valor > 0 ? "campo-positivo" : c.valor < 0 ? "campo-negativo" : ""}"
+                                       data-campo="${c.id}"
+                                       data-time-id="${timeId}"
+                                       onchange="window.salvarCampoEditavel(this)"
+                                       onclick="this.select()">
+                            `
+                            }
+                        </div>
+                    `,
+                        )
+                        .join("")}
+                </div>
+
+            </div>
+        `;
+    }
+
+    // =========================================================================
+    // ✅ v4.5: Popular cache no backend quando admin visualiza extrato
+    // =========================================================================
+    async popularCacheBackend(timeId, extrato) {
+        try {
+            const ligaId = window.obterLigaId?.();
+            if (!ligaId || !timeId || !extrato) return;
+
+            console.log(
+                `[FLUXO-UI] 📤 Populando cache backend para time ${timeId}...`,
+            );
+
+            // Enviar extrato calculado pelo frontend para o cache do backend
+            const response = await fetch(
+                `/api/extrato-cache/${ligaId}/times/${timeId}/cache`,
+                {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({
+                        extrato: extrato,
+                        origem: "admin-frontend",
+                        versao: "4.5",
+                    }),
+                },
+            );
+
+            if (response.ok) {
+                console.log(`[FLUXO-UI] ✅ Cache populado para time ${timeId}`);
+            } else {
+                console.warn(
+                    `[FLUXO-UI] ⚠️ Falha ao popular cache: ${response.status}`,
+                );
+            }
+        } catch (error) {
+            // Silencioso - não bloqueia o admin
+            console.warn(`[FLUXO-UI] ⚠️ Erro ao popular cache:`, error.message);
+        }
+    }
+}
+
+// =========================================================================
+// ✅ v4.4.2: FUNÇÃO GLOBAL PARA LIMPAR CACHE DO PARTICIPANTE
+// =========================================================================
+window.recalcularCacheParticipante = async function (timeId) {
+    const btn = document.getElementById(`btnRecalcCache-${timeId}`);
+    const ligaId = window.obterLigaId?.();
+
+    if (!ligaId) {
+        alert("Liga não identificada. Recarregue a página.");
+        return;
+    }
+
+    // Confirmar ação
+    const confirmacao = confirm(
+        `🗑️ Limpar Cache\n\nIsso irá limpar o cache MongoDB do participante.\nNa próxima vez que ele acessar, os dados serão recalculados.\n\nContinuar?`,
+    );
+
+    if (!confirmacao) return;
+
+    // UI: Loading
+    if (btn) {
+        btn.classList.add("loading");
+        btn.disabled = true;
+        btn.innerHTML = `<span class="material-icons" style="font-size: 14px;">sync</span> Aguarde...`;
+    }
+
+    try {
+        console.log(`[FLUXO-UI] 🗑️ Limpando cache do time ${timeId}...`);
+
+        // APENAS limpar cache no MongoDB - NÃO chamar endpoint de recálculo
+        // O recálculo acontecerá quando o participante acessar
+        const urlLimpeza = `/api/extrato-cache/${ligaId}/times/${timeId}/limpar`;
+        const resLimpeza = await fetch(urlLimpeza, { method: "DELETE" });
+
+        if (!resLimpeza.ok) {
+            throw new Error(`Falha ao limpar cache: ${resLimpeza.status}`);
+        }
+
+        const resultadoLimpeza = await resLimpeza.json();
+        console.log(`[FLUXO-UI] ✅ Cache limpo:`, resultadoLimpeza);
+
+        // Feedback simples
+        alert(
+            `✅ Cache limpo!\n\nO participante verá dados atualizados na próxima vez que acessar.`,
+        );
+
+        // NÃO recarregar - admin continua vendo os dados calculados pelo frontend
+    } catch (error) {
+        console.error(`[FLUXO-UI] ❌ Erro ao limpar cache:`, error);
+        alert(`❌ Erro ao limpar cache:\n${error.message}`);
+    } finally {
+        // UI: Restaurar botão
+        if (btn) {
+            btn.classList.remove("loading");
+            btn.disabled = false;
+            btn.innerHTML = `<span class="material-icons" style="font-size: 14px;">delete_sweep</span> Limpar Cache`;
+        }
+    }
+};
+
+// =========================================================================
+// ✅ v4.5: FUNÇÃO GLOBAL PARA LIMPAR CACHE DE TODA A LIGA
+// =========================================================================
+window.limparCacheLiga = async function () {
+    const ligaId = window.obterLigaId?.();
+
+    if (!ligaId) {
+        alert("Liga não identificada. Recarregue a página.");
+        return;
+    }
+
+    // Confirmação com aviso forte
+    const confirmacao = confirm(
+        `⚠️ LIMPAR CACHE DA LIGA\n\nIsso irá apagar o cache de TODOS os participantes.\nTodos terão os dados recalculados no próximo acesso.\n\nEssa ação é recomendada após atualizações nas regras de cálculo.\n\nContinuar?`,
+    );
+
+    if (!confirmacao) return;
+
+    // Buscar botão e colocar em loading
+    const btn = document.querySelector(".btn-limpar");
+    if (btn) {
+        btn.classList.add("loading");
+        btn.disabled = true;
+        btn.innerHTML = `<span class="material-icons">sync</span><span>Limpando...</span>`;
+    }
+
+    try {
+        console.log(`[FLUXO-UI] 🗑️ Limpando cache de toda a liga ${ligaId}...`);
+
+        const urlLimpeza = `/api/extrato-cache/${ligaId}/limpar`;
+        const resLimpeza = await fetch(urlLimpeza, { method: "DELETE" });
+
+        if (!resLimpeza.ok) {
+            throw new Error(`Falha ao limpar cache: ${resLimpeza.status}`);
+        }
+
+        const resultado = await resLimpeza.json();
+        console.log(`[FLUXO-UI] ✅ Cache da liga limpo:`, resultado);
+
+        alert(
+            `✅ Cache da Liga Limpo!\n\n${resultado.deletedCount || 0} registros removidos.\n\nTodos os participantes terão dados recalculados no próximo acesso.`,
+        );
+    } catch (error) {
+        console.error(`[FLUXO-UI] ❌ Erro ao limpar cache da liga:`, error);
+        alert(`❌ Erro ao limpar cache:\n${error.message}`);
+    } finally {
+        // Restaurar botão
+        if (btn) {
+            btn.classList.remove("loading");
+            btn.disabled = false;
+            btn.innerHTML = `<span class="material-icons">delete_sweep</span><span>Limpar Cache</span>`;
+        }
+    }
+};
+
+// =========================================================================
+// ✅ v4.5: FUNÇÃO GLOBAL PARA RECALCULAR CACHE DE TODOS OS PARTICIPANTES
+// =========================================================================
+window.recalcularTodosCache = async function () {
+    const ligaId = window.obterLigaId?.();
+
+    if (!ligaId) {
+        alert("Liga não identificada. Recarregue a página.");
+        return;
+    }
+
+    // Verificar se core está disponível
+    if (!window.fluxoFinanceiroCore) {
+        alert("Módulo de cálculo não carregado. Recarregue a página.");
+        return;
+    }
+
+    const core = window.fluxoFinanceiroCore;
+    const cache = window.fluxoFinanceiroCache;
+
+    // Obter lista de participantes
+    const participantes = cache?.participantes || [];
+    if (participantes.length === 0) {
+        alert("Nenhum participante encontrado. Recarregue a página.");
+        return;
+    }
+
+    const confirmacao = confirm(
+        `🔄 RECALCULAR TODOS OS CACHES\n\nIsso irá recalcular o extrato de ${participantes.length} participantes e salvar no cache.\n\nPode demorar alguns segundos.\n\nContinuar?`,
+    );
+
+    if (!confirmacao) return;
+
+    // Buscar botão e colocar em loading
+    const btn = document.querySelector(".btn-recalcular");
+    if (btn) {
+        btn.classList.add("loading");
+        btn.disabled = true;
+    }
+
+    const rodadaAtual = cache?.ultimaRodadaCompleta || 38;
+    let sucesso = 0;
+    let falha = 0;
+
+    try {
+        console.log(
+            `[FLUXO-UI] 🔄 Recalculando cache de ${participantes.length} participantes...`,
+        );
+
+        for (let i = 0; i < participantes.length; i++) {
+            const p = participantes[i];
+            const timeId = p.time_id || p.id;
+
+            // Atualizar botão com progresso
+            if (btn) {
+                btn.innerHTML = `<span class="material-icons">sync</span><span>${i + 1}/${participantes.length}</span>`;
+            }
+
+            try {
+                // Calcular extrato usando o core do frontend
+                const extrato = await core.calcularExtratoFinanceiro(
+                    timeId,
+                    rodadaAtual,
+                );
+
+                if (extrato && extrato.rodadas) {
+                    // Enviar para o cache do backend
+                    const response = await fetch(
+                        `/api/extrato-cache/${ligaId}/times/${timeId}/cache`,
+                        {
+                            method: "POST",
+                            headers: { "Content-Type": "application/json" },
+                            body: JSON.stringify({
+                                extrato: extrato,
+                                origem: "admin-recalculo-todos",
+                                versao: "4.5",
+                            }),
+                        },
+                    );
+
+                    if (response.ok) {
+                        sucesso++;
+                        console.log(
+                            `[FLUXO-UI] ✅ ${i + 1}/${participantes.length} - ${p.nome_cartola}`,
+                        );
+                    } else {
+                        falha++;
+                        console.warn(
+                            `[FLUXO-UI] ⚠️ Falha ao salvar cache de ${p.nome_cartola}`,
+                        );
+                    }
+                } else {
+                    falha++;
+                    console.warn(
+                        `[FLUXO-UI] ⚠️ Extrato inválido para ${p.nome_cartola}`,
+                    );
+                }
+            } catch (err) {
+                falha++;
+                console.error(
+                    `[FLUXO-UI] ❌ Erro em ${p.nome_cartola}:`,
+                    err.message,
+                );
+            }
+
+            // Pequena pausa para não sobrecarregar
+            await new Promise((r) => setTimeout(r, 100));
+        }
+
+        console.log(
+            `[FLUXO-UI] ✅ Recálculo concluído: ${sucesso} ok, ${falha} falhas`,
+        );
+        alert(
+            `✅ Recálculo Concluído!\n\n✓ ${sucesso} caches atualizados\n✗ ${falha} falhas\n\nTodos os participantes verão dados atualizados.`,
+        );
+    } catch (error) {
+        console.error(`[FLUXO-UI] ❌ Erro ao recalcular:`, error);
+        alert(`❌ Erro ao recalcular:\n${error.message}`);
+    } finally {
+        // Restaurar botão
+        if (btn) {
+            btn.classList.remove("loading");
+            btn.disabled = false;
+            btn.innerHTML = `<span class="material-icons">sync</span><span>Recalcular</span>`;
+        }
+    }
+};
+
+// =========================================================================
+// FUNÇÃO GLOBAL PARA SALVAR CAMPO EDITÁVEL
+// =========================================================================
+window.salvarCampoEditavel = async function (input) {
+    const campo = input.dataset.campo;
+    const timeId = input.dataset.timeId;
+    const valor = parseFloat(input.value) || 0;
+
+    // Atualizar classe visual
+    input.classList.remove("campo-positivo", "campo-negativo");
+    if (valor > 0) input.classList.add("campo-positivo");
+    else if (valor < 0) input.classList.add("campo-negativo");
+
+    // Salvar no backend
+    await FluxoFinanceiroCampos.salvarCampo(timeId, campo, valor);
+};
+
+// =========================================================================
+// FUNÇÃO GLOBAL PARA MOSTRAR DETALHAMENTO DE GANHOS
+// =========================================================================
+window.mostrarDetalhamentoGanhos = function () {
+    if (!window.extratoAtual) return;
+
+    const resumo = window.extratoAtual.resumo;
+    const campos = window.extratoAtual.camposEditaveis || {};
+
+    // Coletar todos os ganhos (valores positivos)
+    const itens = [];
+
+    if (resumo.bonus > 0)
+        itens.push({ nome: "Bônus MITO", valor: resumo.bonus });
+    if (resumo.pontosCorridos > 0)
+        itens.push({ nome: "Pontos Corridos", valor: resumo.pontosCorridos });
+    if (resumo.mataMata > 0)
+        itens.push({ nome: "Mata-Mata", valor: resumo.mataMata });
+    if (resumo.top10 > 0) itens.push({ nome: "TOP 10", valor: resumo.top10 });
+    if (resumo.melhorMes > 0)
+        itens.push({ nome: "Melhor do Mês", valor: resumo.melhorMes });
+
+    // Campos manuais positivos
+    if (campos.campo1?.valor > 0)
+        itens.push({
+            nome: campos.campo1.nome || "Campo 1",
+            valor: campos.campo1.valor,
+        });
+    if (campos.campo2?.valor > 0)
+        itens.push({
+            nome: campos.campo2.nome || "Campo 2",
+            valor: campos.campo2.valor,
+        });
+    if (campos.campo3?.valor > 0)
+        itens.push({
+            nome: campos.campo3.nome || "Campo 3",
+            valor: campos.campo3.valor,
+        });
+    if (campos.campo4?.valor > 0)
+        itens.push({
+            nome: campos.campo4.nome || "Campo 4",
+            valor: campos.campo4.valor,
+        });
+
+    const total = itens.reduce((acc, item) => acc + item.valor, 0);
+
+    // Remover modal existente
+    document.getElementById("modal-detalhamento")?.remove();
+
+    const modal = document.createElement("div");
+    modal.id = "modal-detalhamento";
+    modal.innerHTML = `
+        <div style="position: fixed; inset: 0; background: rgba(0,0,0,0.8); display: flex; align-items: center; justify-content: center; z-index: 10000;">
+            <div style="background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%); border-radius: 16px; padding: 24px; max-width: 400px; width: 90%; max-height: 80vh; overflow-y: auto; border: 1px solid rgba(34,197,94,0.3);">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+                    <h3 style="color: #22c55e; margin: 0; display: flex; align-items: center; gap: 8px;">
+                        <span class="material-icons">trending_up</span> TUDO QUE GANHOU
+                    </h3>
+                    <button onclick="document.getElementById('modal-detalhamento').remove()" style="background: none; border: none; color: #94a3b8; cursor: pointer; font-size: 24px;">&times;</button>
+                </div>
+
+                <div style="display: flex; flex-direction: column; gap: 12px;">
+                    ${
+                        itens.length > 0
+                            ? itens
+                                  .map(
+                                      (item) => `
+                        <div style="display: flex; justify-content: space-between; padding: 12px; background: rgba(34,197,94,0.1); border-radius: 8px; border-left: 3px solid #22c55e;">
+                            <span style="color: #e2e8f0;">${item.nome}</span>
+                            <span style="color: #22c55e; font-weight: 600;">+R$ ${item.valor.toLocaleString("pt-BR", { minimumFractionDigits: 2 })}</span>
+                        </div>
+                    `,
+                                  )
+                                  .join("")
+                            : '<p style="color: #94a3b8; text-align: center;">Nenhum ganho registrado</p>'
+                    }
+                </div>
+
+                <div style="margin-top: 20px; padding-top: 16px; border-top: 1px solid rgba(255,255,255,0.1); display: flex; justify-content: space-between;">
+                    <span style="color: #94a3b8; font-weight: 600;">TOTAL GANHOS:</span>
+                    <span style="color: #22c55e; font-weight: 700; font-size: 18px;">+R$ ${total.toLocaleString("pt-BR", { minimumFractionDigits: 2 })}</span>
+                </div>
+            </div>
+        </div>
+    `;
+    document.body.appendChild(modal);
+};
+
+window.mostrarDetalhamentoPerdas = function () {
+    if (!window.extratoAtual) return;
+
+    const resumo = window.extratoAtual.resumo;
+    const campos = window.extratoAtual.camposEditaveis || {};
+
+    // Coletar todas as perdas (valores negativos)
+    const itens = [];
+
+    if (resumo.onus < 0)
+        itens.push({ nome: "Ônus MICO", valor: Math.abs(resumo.onus) });
+    if (resumo.pontosCorridos < 0)
+        itens.push({
+            nome: "Pontos Corridos",
+            valor: Math.abs(resumo.pontosCorridos),
+        });
+    if (resumo.mataMata < 0)
+        itens.push({ nome: "Mata-Mata", valor: Math.abs(resumo.mataMata) });
+    if (resumo.top10 < 0)
+        itens.push({ nome: "TOP 10", valor: Math.abs(resumo.top10) });
+    if (resumo.melhorMes < 0)
+        itens.push({
+            nome: "Melhor do Mês",
+            valor: Math.abs(resumo.melhorMes),
+        });
+
+    // Campos manuais negativos
+    if (campos.campo1?.valor < 0)
+        itens.push({
+            nome: campos.campo1.nome || "Campo 1",
+            valor: Math.abs(campos.campo1.valor),
+        });
+    if (campos.campo2?.valor < 0)
+        itens.push({
+            nome: campos.campo2.nome || "Campo 2",
+            valor: Math.abs(campos.campo2.valor),
+        });
+    if (campos.campo3?.valor < 0)
+        itens.push({
+            nome: campos.campo3.nome || "Campo 3",
+            valor: Math.abs(campos.campo3.valor),
+        });
+    if (campos.campo4?.valor < 0)
+        itens.push({
+            nome: campos.campo4.nome || "Campo 4",
+            valor: Math.abs(campos.campo4.valor),
+        });
+
+    const total = itens.reduce((acc, item) => acc + item.valor, 0);
+
+    // Remover modal existente
+    document.getElementById("modal-detalhamento")?.remove();
+
+    const modal = document.createElement("div");
+    modal.id = "modal-detalhamento";
+    modal.innerHTML = `
+        <div style="position: fixed; inset: 0; background: rgba(0,0,0,0.8); display: flex; align-items: center; justify-content: center; z-index: 10000;">
+            <div style="background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%); border-radius: 16px; padding: 24px; max-width: 400px; width: 90%; max-height: 80vh; overflow-y: auto; border: 1px solid rgba(239,68,68,0.3);">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+                    <h3 style="color: #ef4444; margin: 0; display: flex; align-items: center; gap: 8px;">
+                        <span class="material-icons">trending_down</span> TUDO QUE PERDEU
+                    </h3>
+                    <button onclick="document.getElementById('modal-detalhamento').remove()" style="background: none; border: none; color: #94a3b8; cursor: pointer; font-size: 24px;">&times;</button>
+                </div>
+
+                <div style="display: flex; flex-direction: column; gap: 12px;">
+                    ${
+                        itens.length > 0
+                            ? itens
+                                  .map(
+                                      (item) => `
+                        <div style="display: flex; justify-content: space-between; padding: 12px; background: rgba(239,68,68,0.1); border-radius: 8px; border-left: 3px solid #ef4444;">
+                            <span style="color: #e2e8f0;">${item.nome}</span>
+                            <span style="color: #ef4444; font-weight: 600;">-R$ ${item.valor.toLocaleString("pt-BR", { minimumFractionDigits: 2 })}</span>
+                        </div>
+                    `,
+                                  )
+                                  .join("")
+                            : '<p style="color: #94a3b8; text-align: center;">Nenhuma perda registrada</p>'
+                    }
+                </div>
+
+                <div style="margin-top: 20px; padding-top: 16px; border-top: 1px solid rgba(255,255,255,0.1); display: flex; justify-content: space-between;">
+                    <span style="color: #94a3b8; font-weight: 600;">TOTAL PERDAS:</span>
+                    <span style="color: #ef4444; font-weight: 700; font-size: 18px;">-R$ ${total.toLocaleString("pt-BR", { minimumFractionDigits: 2 })}</span>
+                </div>
+            </div>
+        </div>
+    `;
+    document.body.appendChild(modal);
+};
+
+// =========================================================================
+// FUNÇÃO GLOBAL PARA ABRIR AUDITORIA
+// =========================================================================
+window.abrirAuditoria = async function (timeId) {
+    try {
+        // Verificar se existe instância global
+        if (!window.fluxoFinanceiroUI || !window.fluxoFinanceiroUI.auditoria) {
+            console.warn("[UI] Instância de auditoria não disponível");
+            alert("Sistema de auditoria não inicializado. Atualize a página.");
+            return;
+        }
+
+        const auditoria = window.fluxoFinanceiroUI.auditoria;
+        const core = window.fluxoFinanceiroCore;
+        const cache = window.fluxoFinanceiroCache;
+
+        // Mostrar loading
+        const loadingDiv = document.createElement("div");
+        loadingDiv.id = "auditoria-loading";
+        loadingDiv.innerHTML = `
+            <div class="modal-auditoria-overlay">
+                <div style="text-align: center; color: #fff;">
+                    <div class="loading-spinner"></div>
+                    <p style="margin-top: 16px;">Gerando auditoria...</p>
+                </div>
+            </div>
+        `;
+        document.body.appendChild(loadingDiv);
+
+        // Buscar extrato do participante
+        const extrato = await core.calcularExtratoFinanceiro(
+            timeId,
+            cache.ultimaRodadaCompleta || 38,
+        );
+
+        // Buscar dados do participante
+        const participante = await core.buscarParticipante(timeId);
+
+        if (!participante) {
+            document.getElementById("auditoria-loading")?.remove();
+            alert("Participante não encontrado.");
+            return;
+        }
+
+        // Gerar relatório completo (nível 3 = todos os detalhes)
+        const relatorio = await auditoria.gerarRelatorioCompleto(
+            timeId,
+            extrato,
+            3,
+        );
+
+        // Remover loading
+        document.getElementById("auditoria-loading")?.remove();
+
+        // Renderizar modal
+        auditoria.renderizarModal(participante, relatorio);
+
+        console.log(
+            "[UI] ✅ Auditoria aberta para:",
+            participante.nome_cartola,
+        );
+    } catch (error) {
+        document.getElementById("auditoria-loading")?.remove();
+        console.error("[UI] Erro ao abrir auditoria:", error);
+        alert("Erro ao gerar auditoria: " + error.message);
+    }
+};
+
+console.log("[FLUXO-UI] ✅ v4.5 carregado (Cache em Lote)");

@@ -1,0 +1,269 @@
+// =====================================================================
+// RODADAS CACHE CONTROLLER v1.1 - SEGURO
+// Sistema de recálculo SEGURO - NUNCA deleta dados
+// =====================================================================
+
+import Rodada from "../models/Rodada.js";
+import Liga from "../models/Liga.js";
+import mongoose from "mongoose";
+
+// Configuração de valores financeiros por liga
+const LIGAS_CONFIG = {
+  SUPERCARTOLA: "684cb1c8af923da7c7df51de",
+  CARTOLEIROS_SOBRAL: "684d821cf1a7ae16d1f89572",
+};
+
+const VALORES_BANCO = {
+  [LIGAS_CONFIG.SUPERCARTOLA]: {
+    1: 20.0,
+    2: 19.0,
+    3: 18.0,
+    4: 17.0,
+    5: 16.0,
+    6: 15.0,
+    7: 14.0,
+    8: 13.0,
+    9: 12.0,
+    10: 11.0,
+    11: 10.0,
+    12: 0.0,
+    13: 0.0,
+    14: 0.0,
+    15: 0.0,
+    16: 0.0,
+    17: 0.0,
+    18: 0.0,
+    19: 0.0,
+    20: 0.0,
+    21: 0.0,
+    22: -10.0,
+    23: -11.0,
+    24: -12.0,
+    25: -13.0,
+    26: -14.0,
+    27: -15.0,
+    28: -16.0,
+    29: -17.0,
+    30: -18.0,
+    31: -19.0,
+    32: -20.0,
+  },
+  // Cartoleiros do Sobral - FASE 2 (rodadas 30+): 4 participantes ativos
+  [LIGAS_CONFIG.CARTOLEIROS_SOBRAL]: {
+    1: 5.0,   // MITO
+    2: 0.0,
+    3: 0.0,
+    4: -5.0,  // MICO
+  },
+};
+
+function getValoresBanco(ligaId) {
+  return VALORES_BANCO[ligaId] || VALORES_BANCO[LIGAS_CONFIG.SUPERCARTOLA];
+}
+
+function toLigaId(ligaId) {
+  if (mongoose.Types.ObjectId.isValid(ligaId)) {
+    return new mongoose.Types.ObjectId(ligaId);
+  }
+  return ligaId;
+}
+
+// =====================================================================
+// RECALCULAR RODADAS - ÚNICA FUNÇÃO PERMITIDA (APENAS ATUALIZA)
+// =====================================================================
+export const recalcularRodadas = async (req, res) => {
+  try {
+    const { ligaId } = req.params;
+    const { rodadaInicio, rodadaFim } = req.body;
+
+    console.log(
+      `[RODADAS-CACHE] 🔄 Recalculando rodadas ${rodadaInicio} a ${rodadaFim} da liga ${ligaId}`,
+    );
+
+    // Validações
+    if (!rodadaInicio || !rodadaFim) {
+      return res.status(400).json({
+        success: false,
+        erro: "Parâmetros rodadaInicio e rodadaFim são obrigatórios",
+      });
+    }
+
+    const inicio = parseInt(rodadaInicio);
+    const fim = parseInt(rodadaFim);
+
+    if (inicio < 1 || fim > 38 || inicio > fim) {
+      return res.status(400).json({
+        success: false,
+        erro: "Valores de rodada inválidos (1-38)",
+      });
+    }
+
+    // Buscar dados da liga
+    const liga = await Liga.findById(toLigaId(ligaId)).populate("times");
+    if (!liga) {
+      return res.status(404).json({
+        success: false,
+        erro: "Liga não encontrada",
+      });
+    }
+
+    const valoresBanco = getValoresBanco(ligaId);
+    let totalRecalculados = 0;
+    let rodadasProcessadas = [];
+
+    // Iterar sobre cada rodada
+    for (let rodada = inicio; rodada <= fim; rodada++) {
+      console.log(`[RODADAS-CACHE] 📊 Processando rodada ${rodada}...`);
+
+      // Buscar documentos existentes desta rodada
+      const documentosRodada = await Rodada.find({
+        ligaId: toLigaId(ligaId),
+        rodada,
+      });
+
+      if (documentosRodada.length === 0) {
+        console.log(`[RODADAS-CACHE] ⚠️ Rodada ${rodada} sem dados - pulando`);
+        rodadasProcessadas.push({
+          rodada,
+          status: "sem_dados",
+          recalculados: 0,
+        });
+        continue;
+      }
+
+      // Enriquecer com status de ativo/inativo
+      const timesComStatus = documentosRodada.map((doc) => {
+        const timeNaLiga = liga.times.find(
+          (t) => (t.id || t.time_id) === doc.timeId,
+        );
+
+        const rodadaDesistencia = timeNaLiga?.rodada_desistencia || null;
+        const ativoNestaRodada =
+          !rodadaDesistencia || rodada < rodadaDesistencia;
+
+        return {
+          _id: doc._id,
+          timeId: doc.timeId,
+          pontos: doc.pontos,
+          rodadaNaoJogada: doc.rodadaNaoJogada,
+          nome_cartola: doc.nome_cartola,
+          nome_time: doc.nome_time,
+          escudo: doc.escudo,
+          clube_id: doc.clube_id,
+          escudo_time_do_coracao: doc.escudo_time_do_coracao,
+          ativoNestaRodada,
+        };
+      });
+
+      // Filtrar apenas ATIVOS nesta rodada
+      const timesAtivos = timesComStatus.filter((t) => t.ativoNestaRodada);
+
+      // Ordenar por pontos
+      const timesOrdenados = [...timesAtivos].sort(
+        (a, b) => (b.pontos || 0) - (a.pontos || 0),
+      );
+
+      // Recalcular posições e valores financeiros (APENAS ATUALIZA, NÃO DELETA)
+      let recalculadosRodada = 0;
+      for (let i = 0; i < timesOrdenados.length; i++) {
+        const time = timesOrdenados[i];
+        const posicao = i + 1;
+        const valorFinanceiro = valoresBanco[posicao] || 0;
+
+        await Rodada.findByIdAndUpdate(time._id, {
+          posicao,
+          valorFinanceiro,
+          totalParticipantesAtivos: timesOrdenados.length,
+        });
+
+        recalculadosRodada++;
+        totalRecalculados++;
+      }
+
+      rodadasProcessadas.push({
+        rodada,
+        status: "recalculado",
+        ativos: timesOrdenados.length,
+        total: documentosRodada.length,
+        recalculados: recalculadosRodada,
+      });
+
+      console.log(
+        `[RODADAS-CACHE] ✅ Rodada ${rodada}: ${recalculadosRodada} registros recalculados`,
+      );
+    }
+
+    res.json({
+      success: true,
+      message: `Recálculo concluído com sucesso`,
+      ligaId,
+      rodadaInicio: inicio,
+      rodadaFim: fim,
+      totalRecalculados,
+      rodadasProcessadas,
+      participantesAtivos: liga.times.filter((t) => t.ativo !== false).length,
+      participantesTotal: liga.times.length,
+    });
+  } catch (error) {
+    console.error("[RODADAS-CACHE] ❌ Erro ao recalcular:", error);
+    res.status(500).json({
+      success: false,
+      erro: error.message,
+    });
+  }
+};
+
+// =====================================================================
+// ESTATÍSTICAS
+// =====================================================================
+export const estatisticasCache = async (req, res) => {
+  try {
+    const { ligaId } = req.params;
+    const filtroBase = ligaId ? { ligaId: toLigaId(ligaId) } : {};
+
+    const total = await Rodada.countDocuments(filtroBase);
+
+    const corrompidos = await Rodada.countDocuments({
+      ...filtroBase,
+      $or: [
+        { posicao: { $exists: false } },
+        { posicao: null },
+        { valorFinanceiro: { $exists: false } },
+      ],
+    });
+
+    const validos = total - corrompidos;
+
+    let porRodada = null;
+    if (ligaId) {
+      const pipeline = [
+        { $match: { ligaId: toLigaId(ligaId) } },
+        { $group: { _id: "$rodada", count: { $sum: 1 } } },
+        { $sort: { _id: 1 } },
+      ];
+      porRodada = await Rodada.aggregate(pipeline);
+    }
+
+    res.json({
+      success: true,
+      estatisticas: {
+        total,
+        validos,
+        corrompidos,
+        percentualValido:
+          total > 0 ? ((validos / total) * 100).toFixed(1) + "%" : "0%",
+        porRodada: porRodada || "disponível apenas para liga específica",
+      },
+    });
+  } catch (error) {
+    console.error("[RODADAS-CACHE] ❌ Erro ao obter estatísticas:", error);
+    res.status(500).json({
+      success: false,
+      erro: "Erro ao obter estatísticas",
+    });
+  }
+};
+
+console.log(
+  "[RODADAS-CACHE] ✅ Controller v1.1 carregado (FUNÇÕES DESTRUTIVAS REMOVIDAS)",
+);

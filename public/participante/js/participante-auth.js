@@ -328,6 +328,13 @@ class ParticipanteAuth {
     }
 
     renderizarSeletorLigas(ligas) {
+        // Guardar ligas para uso no modal
+        this.ligasDisponiveis = ligas;
+
+        // ✅ NOVO: Mostrar badge de liga no header principal
+        this.mostrarBadgeLiga(ligas);
+
+        // ===== SELECT TRADICIONAL (mantido para compatibilidade) =====
         const select = document.getElementById("seletorLiga");
 
         if (!select) {
@@ -339,14 +346,6 @@ class ParticipanteAuth {
 
         // Limpar opções anteriores
         select.innerHTML = "";
-
-        // ✅ SEMPRE ADICIONAR PLACEHOLDER quando houver múltiplas ligas
-        const placeholder = document.createElement("option");
-        placeholder.value = "";
-        placeholder.textContent = "🏆 Selecione uma Liga";
-        placeholder.disabled = true;
-        placeholder.selected = !this.ligaId; // Selecionar se não houver liga atual
-        select.appendChild(placeholder);
 
         // Adicionar opções de ligas
         ligas.forEach((liga) => {
@@ -375,6 +374,105 @@ class ParticipanteAuth {
         novoSelect.style.opacity = "1";
 
         if (window.Log) Log.debug('PARTICIPANTE-AUTH', '✅ Seletor de ligas renderizado e visível');
+    }
+
+    // ✅ NOVO: Mostrar badge de liga clicável no header
+    mostrarBadgeLiga(ligas) {
+        const badgeContainer = document.getElementById("ligaBadgeContainer");
+        const badgeNome = document.getElementById("ligaBadgeNome");
+        const badge = document.getElementById("ligaBadge");
+
+        if (!badgeContainer || !badge) {
+            if (window.Log) Log.warn('PARTICIPANTE-AUTH', 'Badge de liga não encontrado no DOM');
+            return;
+        }
+
+        // Encontrar liga atual
+        const ligaAtual = ligas.find(l => l.id === this.ligaId);
+        if (ligaAtual && badgeNome) {
+            // Truncar nome se muito longo
+            const nomeExibir = ligaAtual.nome.length > 18
+                ? ligaAtual.nome.substring(0, 16) + '...'
+                : ligaAtual.nome;
+            badgeNome.textContent = nomeExibir;
+        }
+
+        // Mostrar badge
+        badgeContainer.style.display = "block";
+
+        // Configurar clique para abrir modal
+        badge.onclick = () => this.abrirModalLigas();
+
+        if (window.Log) Log.debug('PARTICIPANTE-AUTH', '✅ Badge de liga configurado');
+    }
+
+    // ✅ NOVO: Modal de seleção de liga
+    abrirModalLigas() {
+        if (window.Log) Log.info('PARTICIPANTE-AUTH', '📋 Abrindo modal de ligas');
+
+        // Remover modal existente se houver
+        const existente = document.getElementById("modalSeletorLiga");
+        if (existente) existente.remove();
+
+        const ligas = this.ligasDisponiveis || [];
+        if (ligas.length === 0) {
+            if (window.Log) Log.warn('PARTICIPANTE-AUTH', 'Sem ligas disponíveis');
+            return;
+        }
+
+        const modal = document.createElement("div");
+        modal.id = "modalSeletorLiga";
+        modal.innerHTML = `
+            <div class="liga-modal-overlay" onclick="participanteAuth.fecharModalLigas()">
+                <div class="liga-modal-content" onclick="event.stopPropagation()">
+                    <div class="liga-modal-header">
+                        <div class="liga-modal-title">
+                            <span class="material-symbols-outlined" style="color: #ffd700;">emoji_events</span>
+                            Trocar de Liga
+                        </div>
+                        <button class="liga-modal-close" onclick="participanteAuth.fecharModalLigas()">
+                            <span class="material-symbols-outlined">close</span>
+                        </button>
+                    </div>
+                    <div class="liga-modal-body">
+                        ${ligas.map(liga => `
+                            <div class="liga-option ${liga.id === this.ligaId ? 'atual' : ''}"
+                                 onclick="participanteAuth.selecionarLigaModal('${liga.id}')">
+                                <div class="liga-option-icon">
+                                    <span class="material-symbols-outlined">emoji_events</span>
+                                </div>
+                                <div class="liga-option-info">
+                                    <div class="liga-option-nome">
+                                        ${liga.nome}
+                                        ${liga.id === this.ligaId ? '<span class="liga-option-atual-badge">ATUAL</span>' : ''}
+                                    </div>
+                                    <div class="liga-option-times">${liga.times || '?'} participantes</div>
+                                </div>
+                                <span class="material-symbols-outlined liga-option-check">check_circle</span>
+                            </div>
+                        `).join('')}
+                    </div>
+                </div>
+            </div>
+        `;
+
+        document.body.appendChild(modal);
+    }
+
+    fecharModalLigas() {
+        const modal = document.getElementById("modalSeletorLiga");
+        if (modal) modal.remove();
+    }
+
+    async selecionarLigaModal(ligaId) {
+        this.fecharModalLigas();
+
+        if (ligaId === this.ligaId) {
+            if (window.Log) Log.debug('PARTICIPANTE-AUTH', 'Mesma liga selecionada, ignorando');
+            return;
+        }
+
+        await this.trocarLiga(ligaId);
     }
 
     ocultarSeletorLigas() {
@@ -418,11 +516,12 @@ class ParticipanteAuth {
             this.sessionCache = null;
             this.sessionCacheTime = null;
 
-            // Limpar sessionStorage para forçar carregamento dos novos módulos
+            // ✅ Limpar TODOS os storages para forçar carregamento dos novos módulos
             sessionStorage.clear();
+            localStorage.clear();  // ✅ NOVO: Limpar localStorage para evitar dados cruzados entre ligas
 
-            // ✅ CORREÇÃO: Aguardar sessão ser salva no MongoDB antes de recarregar
-            await new Promise((resolve) => setTimeout(resolve, 300));
+            // ✅ CORREÇÃO: Aguardar sessão ser salva no MongoDB antes de recarregar (aumentado para 800ms)
+            await new Promise((resolve) => setTimeout(resolve, 800));
 
             // Recarregar página para carregar configuração da nova liga
             window.location.reload();

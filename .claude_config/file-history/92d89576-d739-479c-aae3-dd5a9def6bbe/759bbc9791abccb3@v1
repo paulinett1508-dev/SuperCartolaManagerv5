@@ -1,0 +1,649 @@
+// =====================================================================
+// PARTICIPANTE-MELHOR-MES.JS - v3.5 (Card "Seu Desempenho" + Scroll automático)
+// ✅ v3.4: Scroll automático para última edição com dados
+// ✅ v3.5: Card "Seu Desempenho" com estatísticas do participante
+// =====================================================================
+
+if (window.Log) Log.info("[MELHOR-MES-PARTICIPANTE] 🏆 Módulo v3.5 carregando...");
+
+let ligaIdAtual = null;
+let timeIdAtual = null;
+
+// Ícones numéricos usando Material Icons (consistência visual)
+const edicoesIcons = {
+    1: '<span class="material-symbols-outlined mm-edicao-num" style="font-size: 20px; color: #ff5c00;">looks_one</span>',
+    2: '<span class="material-symbols-outlined mm-edicao-num" style="font-size: 20px; color: #ff5c00;">looks_two</span>',
+    3: '<span class="material-symbols-outlined mm-edicao-num" style="font-size: 20px; color: #ff5c00;">looks_3</span>',
+    4: '<span class="material-symbols-outlined mm-edicao-num" style="font-size: 20px; color: #ff5c00;">looks_4</span>',
+    5: '<span class="material-symbols-outlined mm-edicao-num" style="font-size: 20px; color: #ff5c00;">looks_5</span>',
+    6: '<span class="material-symbols-outlined mm-edicao-num" style="font-size: 20px; color: #ff5c00;">looks_6</span>',
+    7: '<span class="material-symbols-outlined mm-edicao-num" style="font-size: 20px; color: #ff5c00;">filter_7</span>',
+    8: '<span class="material-symbols-outlined mm-edicao-num" style="font-size: 20px; color: #ff5c00;">filter_8</span>',
+    9: '<span class="material-symbols-outlined mm-edicao-num" style="font-size: 20px; color: #ff5c00;">filter_9</span>',
+    10: '<span class="material-symbols-outlined mm-edicao-num" style="font-size: 20px; color: #ff5c00;">filter_9_plus</span>',
+};
+
+// =====================================================================
+// FUNÇÃO PRINCIPAL - INICIALIZAR
+// =====================================================================
+export async function inicializarMelhorMesParticipante({
+    participante,
+    ligaId,
+    timeId,
+}) {
+    if (window.Log) Log.info("[MELHOR-MES-PARTICIPANTE] 🚀 Inicializando v3.5...", {
+        ligaId,
+        timeId,
+    });
+
+    if (!ligaId) {
+        mostrarErro("Dados da liga não encontrados");
+        return;
+    }
+
+    ligaIdAtual = ligaId;
+    timeIdAtual = timeId;
+
+    await carregarMelhorMes(ligaId, timeId);
+}
+
+window.inicializarMelhorMesParticipante = inicializarMelhorMesParticipante;
+
+// =====================================================================
+// CARREGAR DADOS DO BACKEND
+// =====================================================================
+async function carregarMelhorMes(ligaId, timeId) {
+    mostrarLoading(true);
+
+    try {
+        const response = await fetch(`/api/ligas/${ligaId}/melhor-mes`);
+
+        if (!response.ok) {
+            throw new Error(`Erro ao buscar dados: ${response.status}`);
+        }
+
+        const dados = await response.json();
+        if (window.Log) Log.info("[MELHOR-MES-PARTICIPANTE] ✅ Dados recebidos:", dados);
+
+        mostrarLoading(false);
+
+        if (!dados.edicoes || dados.edicoes.length === 0) {
+            mostrarEstadoVazio(true);
+            return;
+        }
+
+        renderizarMelhorMes(dados.edicoes, timeId);
+
+        // ✅ v3.4: Scroll para última edição com dados após renderização
+        setTimeout(() => scrollParaUltimaEdicao(dados.edicoes), 150);
+    } catch (error) {
+        if (window.Log) Log.error("[MELHOR-MES-PARTICIPANTE] ❌ Erro:", error);
+        mostrarLoading(false);
+        mostrarErro(error.message);
+    }
+}
+
+// =====================================================================
+// ✅ v3.4: SCROLL AUTOMÁTICO PARA ÚLTIMA EDIÇÃO COM DADOS
+// =====================================================================
+function scrollParaUltimaEdicao(edicoes) {
+    // Encontrar última edição com dados (campeão definido)
+    let ultimaEdicaoIndex = -1;
+
+    for (let i = edicoes.length - 1; i >= 0; i--) {
+        if (edicoes[i].campeao || edicoes[i].ranking?.length > 0) {
+            ultimaEdicaoIndex = i;
+            break;
+        }
+    }
+
+    if (ultimaEdicaoIndex === -1) {
+        if (window.Log) Log.info(
+            "[MELHOR-MES-PARTICIPANTE] ⚠️ Nenhuma edição com dados para scroll",
+        );
+        return;
+    }
+
+    // Encontrar o card correspondente
+    const container = document.getElementById("mesesGrid");
+    if (!container) return;
+
+    const cards = container.querySelectorAll(".mm-edicao-card");
+    const targetCard = cards[ultimaEdicaoIndex];
+
+    if (targetCard) {
+        // Scroll suave para o card
+        targetCard.scrollIntoView({
+            behavior: "smooth",
+            block: "center",
+        });
+
+        // Highlight temporário para indicar foco
+        targetCard.style.transition = "box-shadow 0.3s ease";
+        targetCard.style.boxShadow = "0 0 0 2px #ff5c00";
+
+        setTimeout(() => {
+            targetCard.style.boxShadow = "";
+        }, 1500);
+
+        if (window.Log) Log.info(
+            `[MELHOR-MES-PARTICIPANTE] ✅ Scroll para Edição ${ultimaEdicaoIndex + 1}`,
+        );
+    }
+}
+
+// =====================================================================
+// RENDERIZAR MELHOR MÊS
+// =====================================================================
+function renderizarMelhorMes(edicoes, meuTimeId) {
+    const meuTimeIdNum = Number(meuTimeId);
+
+    const countEl = document.getElementById("mmEdicoesCount");
+    if (countEl) {
+        countEl.textContent = `${edicoes.length} ${edicoes.length === 1 ? "edição" : "edições"}`;
+    }
+
+    // Filtrar apenas campeões ativos
+    const minhasConquistas = edicoes.filter(
+        (e) =>
+            e.campeao &&
+            Number(e.campeao.timeId) === meuTimeIdNum &&
+            e.campeao.ativo !== false,
+    );
+
+    renderizarConquistas(minhasConquistas);
+
+    const container = document.getElementById("mesesGrid");
+    if (!container) return;
+
+    container.innerHTML = edicoes
+        .map((edicao) => renderizarEdicaoCard(edicao, meuTimeIdNum))
+        .join("");
+
+    container.querySelectorAll(".mm-card-expand-btn").forEach((btn) => {
+        btn.addEventListener("click", function (e) {
+            e.stopPropagation();
+            const card = this.closest(".mm-edicao-card");
+            const ranking = card.querySelector(".mm-ranking-expandido");
+            const icon = this.querySelector(".expand-arrow");
+
+            if (ranking.style.display === "none" || !ranking.style.display) {
+                ranking.style.display = "block";
+                icon.style.transform = "rotate(180deg)";
+            } else {
+                ranking.style.display = "none";
+                icon.style.transform = "rotate(0deg)";
+            }
+        });
+    });
+
+    // ✅ v3.5: Renderizar card "Seu Desempenho" ao final
+    renderizarCardDesempenho(edicoes, meuTimeIdNum, container);
+
+    if (window.Log) Log.info("[MELHOR-MES-PARTICIPANTE] ✅ Cards renderizados");
+}
+
+// =====================================================================
+// ✅ v3.5: CARD "SEU DESEMPENHO"
+// =====================================================================
+function calcularDesempenho(edicoes, meuTimeIdNum) {
+    let titulos = 0;
+    let podios = 0;
+    let posicoes = [];
+    let mesesTitulo = [];
+    let edicoesParticipadas = 0;
+
+    edicoes.forEach((edicao) => {
+        if (!edicao.ranking || edicao.ranking.length === 0) return;
+
+        // Encontrar minha posição nesta edição
+        const rankingAtivos = edicao.ranking.filter((t) => t.ativo !== false);
+        const minhaPosicao = rankingAtivos.findIndex(
+            (t) => Number(t.timeId) === meuTimeIdNum,
+        );
+
+        if (minhaPosicao === -1) return; // Não participei desta edição
+
+        edicoesParticipadas++;
+        const posicao = minhaPosicao + 1;
+        posicoes.push(posicao);
+
+        if (posicao === 1) {
+            titulos++;
+            mesesTitulo.push(
+                edicao.nome?.replace("Edição ", "").replace(" - ", " ") ||
+                    `Ed. ${edicao.id}`,
+            );
+        }
+        if (posicao <= 3) {
+            podios++;
+        }
+    });
+
+    const posicaoMedia =
+        posicoes.length > 0
+            ? (posicoes.reduce((a, b) => a + b, 0) / posicoes.length).toFixed(1)
+            : 0;
+    const melhorPosicao = posicoes.length > 0 ? Math.min(...posicoes) : 0;
+    const piorPosicao = posicoes.length > 0 ? Math.max(...posicoes) : 0;
+    const taxaPodio =
+        edicoesParticipadas > 0
+            ? Math.round((podios / edicoesParticipadas) * 100)
+            : 0;
+
+    return {
+        titulos,
+        podios,
+        posicaoMedia,
+        melhorPosicao,
+        piorPosicao,
+        taxaPodio,
+        edicoesParticipadas,
+        mesesTitulo,
+    };
+}
+
+function renderizarCardDesempenho(edicoes, meuTimeIdNum, gridContainer) {
+    // Remove card anterior se existir
+    const existente = document.getElementById("mm-card-desempenho");
+    if (existente) existente.remove();
+
+    const stats = calcularDesempenho(edicoes, meuTimeIdNum);
+
+    // Se não participou de nenhuma edição, não mostra o card
+    if (stats.edicoesParticipadas === 0) {
+        return;
+    }
+
+    const cardHTML = `
+        <div id="mm-card-desempenho" class="mm-desempenho-card">
+            <!-- Header -->
+            <div class="mm-desempenho-header">
+                <span class="material-symbols-outlined" style="font-size: 22px; color: #ff5c00;">insights</span>
+                <span>Seu Desempenho em ${stats.edicoesParticipadas} ${stats.edicoesParticipadas === 1 ? "edição" : "edições"}</span>
+            </div>
+
+            <!-- Stats -->
+            <div class="mm-desempenho-content">
+                <!-- Linha 1: Títulos e Pódios -->
+                <div class="mm-desempenho-row">
+                    <div class="mm-desempenho-stat ${stats.titulos === 0 ? "empty" : ""}">
+                        <span class="material-symbols-outlined ${stats.titulos > 0 ? "text-yellow-400" : "text-zinc-600"}" style="font-size: 28px;">emoji_events</span>
+                        <div>
+                            <div class="mm-desempenho-valor">${stats.titulos}</div>
+                            <div class="mm-desempenho-label">Títulos</div>
+                        </div>
+                    </div>
+                    <div class="mm-desempenho-stat ${stats.podios === 0 ? "empty" : ""}">
+                        <span class="material-symbols-outlined ${stats.podios > 0 ? "text-orange-400" : "text-zinc-600"}" style="font-size: 28px;">military_tech</span>
+                        <div>
+                            <div class="mm-desempenho-valor">${stats.podios}</div>
+                            <div class="mm-desempenho-label">Pódios</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Linha 2: Posições -->
+                <div class="mm-desempenho-row-3">
+                    <div class="mm-desempenho-pos">
+                        <div class="mm-desempenho-pos-icon">
+                            <span class="material-symbols-outlined text-green-400" style="font-size: 18px;">arrow_upward</span>
+                            <span>Melhor</span>
+                        </div>
+                        <span class="mm-desempenho-pos-valor">${stats.melhorPosicao}º</span>
+                    </div>
+                    <div class="mm-desempenho-pos">
+                        <div class="mm-desempenho-pos-icon">
+                            <span class="material-symbols-outlined text-blue-400" style="font-size: 18px;">functions</span>
+                            <span>Média</span>
+                        </div>
+                        <span class="mm-desempenho-pos-valor">${stats.posicaoMedia}º</span>
+                    </div>
+                    <div class="mm-desempenho-pos">
+                        <div class="mm-desempenho-pos-icon">
+                            <span class="material-symbols-outlined text-red-400" style="font-size: 18px;">arrow_downward</span>
+                            <span>Pior</span>
+                        </div>
+                        <span class="mm-desempenho-pos-valor">${stats.piorPosicao}º</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    `;
+
+    // Inserir ao final do grid
+    gridContainer.insertAdjacentHTML("beforeend", cardHTML);
+}
+
+// =====================================================================
+// RENDERIZAR CONQUISTAS
+// =====================================================================
+function renderizarConquistas(conquistas) {
+    const container = document.getElementById("mmConquistas");
+    const texto = document.getElementById("conquistasTexto");
+    const meses = document.getElementById("conquistasMeses");
+
+    if (!container || !texto || !meses) return;
+
+    if (conquistas.length === 0) {
+        container.style.display = "none";
+        return;
+    }
+
+    container.style.display = "block";
+    texto.textContent = `Você foi campeão ${conquistas.length}x!`;
+    meses.innerHTML = conquistas
+        .map((e) => `<span class="mes-chip-pro">${e.nome}</span>`)
+        .join("");
+}
+
+// =====================================================================
+// RENDERIZAR EDIÇÃO EM CARD
+// =====================================================================
+function renderizarEdicaoCard(edicao, meuTimeIdNum) {
+    const campeao = edicao.campeao;
+    // Só considerar "sou campeão" se estiver ativo
+    const souCampeao =
+        campeao &&
+        Number(campeao.timeId) === meuTimeIdNum &&
+        campeao.ativo !== false;
+
+    let statusClass = "aguardando";
+    let statusIcon = "📅";
+    let statusText = "AGUARDANDO";
+    let statusBgClass = "bg-zinc-700/50";
+
+    if (edicao.status === "consolidado" || edicao.status === "concluido") {
+        statusClass = "concluido";
+        statusIcon = "✓";
+        statusText = "CONCLUÍDO";
+        statusBgClass = "bg-green-500/20 text-green-400";
+    } else if (edicao.status === "em_andamento") {
+        statusClass = "em_andamento";
+        statusIcon = "⏳";
+        statusText = "EM ANDAMENTO";
+        statusBgClass = "bg-blue-500/20 text-blue-400";
+    }
+
+    const edicaoIcon = edicoesIcons[edicao.id] || `📅`;
+    const pontosFormatados = campeao
+        ? campeao.pontos_total.toLocaleString("pt-BR", {
+              minimumFractionDigits: 2,
+              maximumFractionDigits: 2,
+          })
+        : "0,00";
+    const rodadasInfo =
+        edicao.inicio && edicao.fim ? `R${edicao.inicio} - R${edicao.fim}` : "";
+
+    // Top 3 apenas ativos
+    const rankingAtivos = edicao.ranking
+        ? edicao.ranking.filter((t) => t.ativo !== false)
+        : [];
+    const top3 = rankingAtivos.slice(0, 3);
+
+    return `
+        <div class="mm-edicao-card ${souCampeao ? "meu-titulo" : ""}">
+            <!-- Header do Card -->
+            <div class="mm-card-header">
+                <div class="mm-card-icon">${edicaoIcon}</div>
+                <div class="mm-card-info">
+                    <h3 class="mm-card-title">${edicao.nome}</h3>
+                    ${rodadasInfo ? `<span class="mm-card-rodadas">${rodadasInfo}</span>` : ""}
+                </div>
+                <span class="mm-card-status ${statusBgClass}">
+                    ${statusIcon} ${statusText}
+                </span>
+            </div>
+
+            <!-- Campeão ou Aguardando -->
+            ${
+                campeao
+                    ? `
+                <div class="mm-card-campeao ${souCampeao ? "meu" : ""} ${campeao.ativo === false ? "inativo" : ""}">
+                    <div class="mm-campeao-badge">
+                        <span class="mm-campeao-icon">${souCampeao ? "🎖️" : "🏆"}</span>
+                        <span class="mm-campeao-label">${souCampeao ? "VOCÊ É O CAMPEÃO!" : "CAMPEÃO"}</span>
+                    </div>
+                    <div class="mm-campeao-info">
+                        <span class="mm-campeao-nome">${campeao.nome_time}</span>
+                        <span class="mm-campeao-pontos">${pontosFormatados} pts</span>
+                    </div>
+                </div>
+            `
+                    : `
+                <div class="mm-card-aguardando">
+                    <span class="mm-aguardando-icon">⏳</span>
+                    <span class="mm-aguardando-text">Aguardando resultado...</span>
+                </div>
+            `
+            }
+
+            <!-- Pódio (Top 3) -->
+            ${
+                top3.length > 0
+                    ? `
+                <div class="mm-card-podio">
+                    ${top3
+                        .map((time, idx) => {
+                            const isMeu =
+                                Number(time.timeId) === meuTimeIdNum &&
+                                time.ativo !== false;
+                            const medalha =
+                                idx === 0 ? "🥇" : idx === 1 ? "🥈" : "🥉";
+                            const pts = time.pontos_total.toLocaleString(
+                                "pt-BR",
+                                {
+                                    minimumFractionDigits: 1,
+                                    maximumFractionDigits: 1,
+                                },
+                            );
+                            return `
+                            <div class="mm-podio-item ${isMeu ? "meu" : ""}">
+                                <span class="mm-podio-medal">${medalha}</span>
+                                <span class="mm-podio-nome">${truncarNome(time.nome_time, 12)}</span>
+                                <span class="mm-podio-pts">${pts}</span>
+                            </div>
+                        `;
+                        })
+                        .join("")}
+                </div>
+            `
+                    : ""
+            }
+
+            <!-- Botão Expandir Ranking -->
+            ${
+                edicao.ranking && edicao.ranking.length > 3
+                    ? `
+                <button class="mm-card-expand-btn">
+                    <span>Ver ranking completo (${edicao.ranking.length})</span>
+                    <span class="expand-arrow material-icons">expand_more</span>
+                </button>
+
+                <!-- Ranking Expandido -->
+                <div class="mm-ranking-expandido" style="display: none;">
+                    ${renderizarRankingCards(edicao.ranking, meuTimeIdNum)}
+                </div>
+            `
+                    : ""
+            }
+        </div>
+
+        <style>
+            .mm-card-campeao.inativo {
+                opacity: 0.5;
+                filter: grayscale(60%);
+            }
+            .mm-ranking-card-item.inativo {
+                opacity: 0.5;
+                filter: grayscale(60%);
+            }
+            .mm-ranking-card-item.inativo .mm-rank-pos { color: #6b7280; }
+            .mm-ranking-card-item.inativo .mm-rank-nome { color: #6b7280; }
+            .mm-ranking-card-item.inativo .mm-rank-pts { color: #6b7280; }
+            .mm-ranking-divisor-inativos {
+                background: rgba(63, 63, 70, 0.5);
+                border-top: 1px solid #3f3f46;
+                padding: 8px 12px;
+                font-size: 10px;
+                color: #6b7280;
+                font-weight: 500;
+                margin-top: 8px;
+            }
+        </style>
+    `;
+}
+
+// =====================================================================
+// RENDERIZAR RANKING EM CARDS
+// =====================================================================
+function renderizarRankingCards(ranking, meuTimeIdNum) {
+    if (!ranking || ranking.length === 0) {
+        return `<div class="mm-ranking-vazio">Sem dados disponíveis</div>`;
+    }
+
+    // Separar ativos de inativos
+    const ativos = ranking.filter((t) => t.ativo !== false);
+    const inativos = ranking.filter((t) => t.ativo === false);
+
+    // Mostrar do 4º ao 10º (top 3 já está no pódio)
+    const restanteAtivos = ativos.slice(3, 10);
+
+    let minhaPosicao = null;
+    let meusDados = null;
+    for (let i = 0; i < ativos.length; i++) {
+        if (Number(ativos[i].timeId) === meuTimeIdNum) {
+            minhaPosicao = i + 1;
+            meusDados = ativos[i];
+            break;
+        }
+    }
+
+    let html = "";
+
+    // Renderizar ativos (4º ao 10º)
+    if (restanteAtivos.length > 0) {
+        html += `<div class="mm-ranking-cards">`;
+        html += restanteAtivos
+            .map((time) => {
+                const isMeuTime = Number(time.timeId) === meuTimeIdNum;
+                const pts = time.pontos_total.toLocaleString("pt-BR", {
+                    minimumFractionDigits: 1,
+                    maximumFractionDigits: 1,
+                });
+                return `
+                <div class="mm-ranking-card-item ${isMeuTime ? "meu" : ""}">
+                    <span class="mm-rank-pos">${time.posicao}º</span>
+                    <span class="mm-rank-nome">${time.nome_time}</span>
+                    <span class="mm-rank-pts">${pts}</span>
+                </div>
+            `;
+            })
+            .join("");
+        html += `</div>`;
+    }
+
+    // Card especial se usuário está fora do top 10
+    if (minhaPosicao && minhaPosicao > 10 && meusDados) {
+        const pts = meusDados.pontos_total.toLocaleString("pt-BR", {
+            minimumFractionDigits: 1,
+            maximumFractionDigits: 1,
+        });
+        html += `
+            <div class="mm-ranking-minha-pos">
+                <span class="mm-minha-pos-label">📍 Sua posição:</span>
+                <div class="mm-ranking-card-item meu destacado">
+                    <span class="mm-rank-pos">${minhaPosicao}º</span>
+                    <span class="mm-rank-nome">${meusDados.nome_time}</span>
+                    <span class="mm-rank-pts">${pts}</span>
+                </div>
+            </div>
+        `;
+    }
+
+    // Seção de inativos
+    if (inativos.length > 0) {
+        html += `
+            <div class="mm-ranking-divisor-inativos">
+                👤 Participantes Inativos (${inativos.length})
+            </div>
+            <div class="mm-ranking-cards">
+        `;
+        html += inativos
+            .slice(0, 5)
+            .map((time) => {
+                const pts = time.pontos_total.toLocaleString("pt-BR", {
+                    minimumFractionDigits: 1,
+                    maximumFractionDigits: 1,
+                });
+                return `
+                <div class="mm-ranking-card-item inativo">
+                    <span class="mm-rank-pos">—</span>
+                    <span class="mm-rank-nome">${time.nome_time}</span>
+                    <span class="mm-rank-pts">${pts}</span>
+                </div>
+            `;
+            })
+            .join("");
+        html += `</div>`;
+    }
+
+    if (ativos.length > 10) {
+        html += `<div class="mm-ranking-mais">+${ativos.length - 10} participantes ativos</div>`;
+    }
+
+    return (
+        html ||
+        `<div class="mm-ranking-vazio">Apenas ${ranking.length} participantes</div>`
+    );
+}
+
+// =====================================================================
+// UTILS
+// =====================================================================
+function truncarNome(nome, max) {
+    if (!nome) return "";
+    return nome.length > max ? nome.substring(0, max) + "..." : nome;
+}
+
+// =====================================================================
+// ESTADOS
+// =====================================================================
+function mostrarLoading(show) {
+    const loading = document.getElementById("mmLoading");
+    const grid = document.getElementById("mesesGrid");
+
+    if (loading) loading.style.display = show ? "flex" : "none";
+    if (grid) grid.style.display = show ? "none" : "flex";
+}
+
+function mostrarEstadoVazio(show) {
+    const empty = document.getElementById("mmEmpty");
+    const grid = document.getElementById("mesesGrid");
+
+    if (empty) empty.style.display = show ? "block" : "none";
+    if (grid) grid.style.display = show ? "none" : "flex";
+}
+
+function mostrarErro(mensagem) {
+    const grid = document.getElementById("mesesGrid");
+    if (grid) {
+        grid.style.display = "flex";
+        grid.innerHTML = `
+            <div style="width: 100%; text-align: center; padding: 40px; color: #ef4444;">
+                <div style="font-size: 48px; margin-bottom: 16px;">⚠️</div>
+                <h3 style="color: #f87171; margin-bottom: 8px;">Erro ao Carregar</h3>
+                <p style="color: #9ca3af; margin: 12px 0;">${mensagem}</p>
+                <button onclick="window.inicializarMelhorMesParticipante({ligaId: '${ligaIdAtual}', timeId: '${timeIdAtual}'})" 
+                        style="margin-top: 16px; padding: 12px 24px; background: #E65100; 
+                               color: white; border: none; border-radius: 8px; cursor: pointer; font-weight: 600;">
+                    🔄 Tentar Novamente
+                </button>
+            </div>
+        `;
+    }
+}
+
+if (window.Log) Log.info(
+    "[MELHOR-MES-PARTICIPANTE] ✅ Módulo v3.5 carregado (card desempenho + scroll automático)",
+);
