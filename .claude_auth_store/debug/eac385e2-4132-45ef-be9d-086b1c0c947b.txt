@@ -977,3 +977,1209 @@
 2025-12-11T18:33:36.773Z [DEBUG] Getting matching hook commands for Notification with query: idle_prompt
 2025-12-11T18:33:36.773Z [DEBUG] Found 0 hook matchers in settings
 2025-12-11T18:33:36.773Z [DEBUG] Matched 0 unique hooks for query "idle_prompt" (0 before deduplication)
+2025-12-11T19:03:25.916Z [DEBUG] LSP Diagnostics: getLSPDiagnosticAttachments called
+2025-12-11T19:03:25.916Z [DEBUG] LSP Diagnostics: Checking registry - 0 pending
+2025-12-11T19:03:25.917Z [DEBUG] Hooks: Found 0 total hooks in registry
+2025-12-11T19:03:25.917Z [DEBUG] Hooks: checkForNewResponses returning 0 responses
+2025-12-11T19:03:25.967Z [DEBUG] [TeammateMailbox] getTeammateMailboxAttachments called: envAgentName=undefined, isTeamLead=false, resolved agentName=undefined, teamName=undefined
+2025-12-11T19:03:25.967Z [DEBUG] [TeammateMailbox] Not checking inbox - not a teammate or team lead
+2025-12-11T19:03:26.008Z [DEBUG] Getting matching hook commands for UserPromptSubmit with query: undefined
+2025-12-11T19:03:26.008Z [DEBUG] Found 0 hook matchers in settings
+2025-12-11T19:03:26.008Z [DEBUG] Matched 0 unique hooks for query "no match query" (0 before deduplication)
+2025-12-11T19:03:26.011Z [DEBUG] FileHistory: Making snapshot for message 77ebbb73-b12e-4b6e-a244-7d75a14d67c6
+2025-12-11T19:03:26.012Z [DEBUG] FileHistory: Added snapshot for 77ebbb73-b12e-4b6e-a244-7d75a14d67c6, tracking 2 files
+2025-12-11T19:03:26.767Z [DEBUG] Stream started - received first chunk
+2025-12-11T19:03:29.371Z [DEBUG] Stream started - received first chunk
+2025-12-11T19:03:34.953Z [DEBUG] executePreToolHooks called for tool: TodoWrite
+2025-12-11T19:03:34.961Z [DEBUG] Getting matching hook commands for PreToolUse with query: TodoWrite
+2025-12-11T19:03:34.961Z [DEBUG] Found 0 hook matchers in settings
+2025-12-11T19:03:34.961Z [DEBUG] Matched 0 unique hooks for query "TodoWrite" (0 before deduplication)
+2025-12-11T19:03:34.993Z [DEBUG] Writing to temp file: /home/runner/.claude/todos/eac385e2-4132-45ef-be9d-086b1c0c947b-agent-eac385e2-4132-45ef-be9d-086b1c0c947b.json.tmp.1628.1765479814993
+2025-12-11T19:03:34.993Z [DEBUG] Preserving file permissions: 100600
+2025-12-11T19:03:35.009Z [DEBUG] [SLOW OPERATION DETECTED] fs.writeFileSync (15.7ms)
+2025-12-11T19:03:35.009Z [DEBUG] Temp file written successfully, size: 630 bytes
+2025-12-11T19:03:35.009Z [DEBUG] Applied original permissions to temp file
+2025-12-11T19:03:35.009Z [DEBUG] Renaming /home/runner/.claude/todos/eac385e2-4132-45ef-be9d-086b1c0c947b-agent-eac385e2-4132-45ef-be9d-086b1c0c947b.json.tmp.1628.1765479814993 to /home/runner/.claude/todos/eac385e2-4132-45ef-be9d-086b1c0c947b-agent-eac385e2-4132-45ef-be9d-086b1c0c947b.json
+2025-12-11T19:03:35.009Z [DEBUG] File /home/runner/.claude/todos/eac385e2-4132-45ef-be9d-086b1c0c947b-agent-eac385e2-4132-45ef-be9d-086b1c0c947b.json written atomically
+2025-12-11T19:03:35.032Z [DEBUG] Getting matching hook commands for PostToolUse with query: TodoWrite
+2025-12-11T19:03:35.032Z [DEBUG] Found 0 hook matchers in settings
+2025-12-11T19:03:35.032Z [DEBUG] Matched 0 unique hooks for query "TodoWrite" (0 before deduplication)
+2025-12-11T19:03:35.045Z [DEBUG] executePreToolHooks called for tool: Glob
+2025-12-11T19:03:35.067Z [DEBUG] Getting matching hook commands for PreToolUse with query: Glob
+2025-12-11T19:03:35.067Z [DEBUG] Found 0 hook matchers in settings
+2025-12-11T19:03:35.067Z [DEBUG] Matched 0 unique hooks for query "Glob" (0 before deduplication)
+2025-12-11T19:03:35.067Z [DEBUG] executePreToolHooks called for tool: Read
+2025-12-11T19:03:35.077Z [DEBUG] Getting matching hook commands for PreToolUse with query: Read
+2025-12-11T19:03:35.077Z [DEBUG] Found 0 hook matchers in settings
+2025-12-11T19:03:35.077Z [DEBUG] Matched 0 unique hooks for query "Read" (0 before deduplication)
+2025-12-11T19:03:35.204Z [DEBUG] Getting matching hook commands for PostToolUse with query: Glob
+2025-12-11T19:03:35.204Z [DEBUG] Found 0 hook matchers in settings
+2025-12-11T19:03:35.204Z [DEBUG] Matched 0 unique hooks for query "Glob" (0 before deduplication)
+2025-12-11T19:03:35.345Z [DEBUG] Getting matching hook commands for PostToolUse with query: Read
+2025-12-11T19:03:35.345Z [DEBUG] Found 0 hook matchers in settings
+2025-12-11T19:03:35.345Z [DEBUG] Matched 0 unique hooks for query "Read" (0 before deduplication)
+2025-12-11T19:03:35.377Z [DEBUG] LSP Diagnostics: getLSPDiagnosticAttachments called
+2025-12-11T19:03:35.377Z [DEBUG] LSP Diagnostics: Checking registry - 0 pending
+2025-12-11T19:03:35.377Z [DEBUG] Hooks: Found 0 total hooks in registry
+2025-12-11T19:03:35.377Z [DEBUG] Hooks: checkForNewResponses returning 0 responses
+2025-12-11T19:03:35.394Z [DEBUG] [TeammateMailbox] getTeammateMailboxAttachments called: envAgentName=undefined, isTeamLead=false, resolved agentName=undefined, teamName=undefined
+2025-12-11T19:03:35.394Z [DEBUG] [TeammateMailbox] Not checking inbox - not a teammate or team lead
+2025-12-11T19:03:38.422Z [DEBUG] Stream started - received first chunk
+2025-12-11T19:03:40.722Z [DEBUG] executePreToolHooks called for tool: Read
+2025-12-11T19:03:40.722Z [DEBUG] executePreToolHooks called for tool: Read
+2025-12-11T19:03:40.738Z [DEBUG] Getting matching hook commands for PreToolUse with query: Read
+2025-12-11T19:03:40.738Z [DEBUG] Found 0 hook matchers in settings
+2025-12-11T19:03:40.738Z [DEBUG] Matched 0 unique hooks for query "Read" (0 before deduplication)
+2025-12-11T19:03:40.738Z [DEBUG] Getting matching hook commands for PreToolUse with query: Read
+2025-12-11T19:03:40.738Z [DEBUG] Found 0 hook matchers in settings
+2025-12-11T19:03:40.738Z [DEBUG] Matched 0 unique hooks for query "Read" (0 before deduplication)
+2025-12-11T19:03:40.808Z [DEBUG] Getting matching hook commands for PostToolUse with query: Read
+2025-12-11T19:03:40.808Z [DEBUG] Found 0 hook matchers in settings
+2025-12-11T19:03:40.808Z [DEBUG] Matched 0 unique hooks for query "Read" (0 before deduplication)
+2025-12-11T19:03:40.808Z [DEBUG] Getting matching hook commands for PostToolUse with query: Read
+2025-12-11T19:03:40.808Z [DEBUG] Found 0 hook matchers in settings
+2025-12-11T19:03:40.808Z [DEBUG] Matched 0 unique hooks for query "Read" (0 before deduplication)
+2025-12-11T19:03:40.840Z [DEBUG] LSP Diagnostics: getLSPDiagnosticAttachments called
+2025-12-11T19:03:40.840Z [DEBUG] LSP Diagnostics: Checking registry - 0 pending
+2025-12-11T19:03:40.840Z [DEBUG] Hooks: Found 0 total hooks in registry
+2025-12-11T19:03:40.840Z [DEBUG] Hooks: checkForNewResponses returning 0 responses
+2025-12-11T19:03:40.863Z [DEBUG] [TeammateMailbox] getTeammateMailboxAttachments called: envAgentName=undefined, isTeamLead=false, resolved agentName=undefined, teamName=undefined
+2025-12-11T19:03:40.863Z [DEBUG] [TeammateMailbox] Not checking inbox - not a teammate or team lead
+2025-12-11T19:03:43.666Z [DEBUG] Stream started - received first chunk
+2025-12-11T19:03:45.966Z [DEBUG] executePreToolHooks called for tool: Read
+2025-12-11T19:03:45.967Z [DEBUG] executePreToolHooks called for tool: Read
+2025-12-11T19:03:45.967Z [DEBUG] executePreToolHooks called for tool: Read
+2025-12-11T19:03:45.976Z [DEBUG] Getting matching hook commands for PreToolUse with query: Read
+2025-12-11T19:03:45.976Z [DEBUG] Found 0 hook matchers in settings
+2025-12-11T19:03:45.976Z [DEBUG] Matched 0 unique hooks for query "Read" (0 before deduplication)
+2025-12-11T19:03:45.976Z [DEBUG] Getting matching hook commands for PreToolUse with query: Read
+2025-12-11T19:03:45.976Z [DEBUG] Found 0 hook matchers in settings
+2025-12-11T19:03:45.976Z [DEBUG] Matched 0 unique hooks for query "Read" (0 before deduplication)
+2025-12-11T19:03:45.976Z [DEBUG] Getting matching hook commands for PreToolUse with query: Read
+2025-12-11T19:03:45.976Z [DEBUG] Found 0 hook matchers in settings
+2025-12-11T19:03:45.976Z [DEBUG] Matched 0 unique hooks for query "Read" (0 before deduplication)
+2025-12-11T19:03:46.059Z [DEBUG] Getting matching hook commands for PostToolUse with query: Read
+2025-12-11T19:03:46.060Z [DEBUG] Found 0 hook matchers in settings
+2025-12-11T19:03:46.060Z [DEBUG] Matched 0 unique hooks for query "Read" (0 before deduplication)
+2025-12-11T19:03:46.060Z [DEBUG] Getting matching hook commands for PostToolUse with query: Read
+2025-12-11T19:03:46.060Z [DEBUG] Found 0 hook matchers in settings
+2025-12-11T19:03:46.060Z [DEBUG] Matched 0 unique hooks for query "Read" (0 before deduplication)
+2025-12-11T19:03:46.060Z [DEBUG] Getting matching hook commands for PostToolUse with query: Read
+2025-12-11T19:03:46.060Z [DEBUG] Found 0 hook matchers in settings
+2025-12-11T19:03:46.060Z [DEBUG] Matched 0 unique hooks for query "Read" (0 before deduplication)
+2025-12-11T19:03:46.091Z [DEBUG] LSP Diagnostics: getLSPDiagnosticAttachments called
+2025-12-11T19:03:46.091Z [DEBUG] LSP Diagnostics: Checking registry - 0 pending
+2025-12-11T19:03:46.091Z [DEBUG] Hooks: Found 0 total hooks in registry
+2025-12-11T19:03:46.091Z [DEBUG] Hooks: checkForNewResponses returning 0 responses
+2025-12-11T19:03:46.107Z [DEBUG] [TeammateMailbox] getTeammateMailboxAttachments called: envAgentName=undefined, isTeamLead=false, resolved agentName=undefined, teamName=undefined
+2025-12-11T19:03:46.107Z [DEBUG] [TeammateMailbox] Not checking inbox - not a teammate or team lead
+2025-12-11T19:03:49.508Z [DEBUG] Stream started - received first chunk
+2025-12-11T19:03:51.292Z [DEBUG] executePreToolHooks called for tool: Read
+2025-12-11T19:03:51.302Z [DEBUG] Getting matching hook commands for PreToolUse with query: Read
+2025-12-11T19:03:51.302Z [DEBUG] Found 0 hook matchers in settings
+2025-12-11T19:03:51.302Z [DEBUG] Matched 0 unique hooks for query "Read" (0 before deduplication)
+2025-12-11T19:03:51.542Z [DEBUG] Getting matching hook commands for PostToolUse with query: Read
+2025-12-11T19:03:51.542Z [DEBUG] Found 0 hook matchers in settings
+2025-12-11T19:03:51.542Z [DEBUG] Matched 0 unique hooks for query "Read" (0 before deduplication)
+2025-12-11T19:03:51.570Z [DEBUG] LSP Diagnostics: getLSPDiagnosticAttachments called
+2025-12-11T19:03:51.570Z [DEBUG] LSP Diagnostics: Checking registry - 0 pending
+2025-12-11T19:03:51.570Z [DEBUG] Hooks: Found 0 total hooks in registry
+2025-12-11T19:03:51.570Z [DEBUG] Hooks: checkForNewResponses returning 0 responses
+2025-12-11T19:03:51.592Z [DEBUG] [TeammateMailbox] getTeammateMailboxAttachments called: envAgentName=undefined, isTeamLead=false, resolved agentName=undefined, teamName=undefined
+2025-12-11T19:03:51.592Z [DEBUG] [TeammateMailbox] Not checking inbox - not a teammate or team lead
+2025-12-11T19:03:54.757Z [DEBUG] Stream started - received first chunk
+2025-12-11T19:03:56.343Z [DEBUG] executePreToolHooks called for tool: Read
+2025-12-11T19:03:56.359Z [DEBUG] Getting matching hook commands for PreToolUse with query: Read
+2025-12-11T19:03:56.359Z [DEBUG] Found 0 hook matchers in settings
+2025-12-11T19:03:56.359Z [DEBUG] Matched 0 unique hooks for query "Read" (0 before deduplication)
+2025-12-11T19:03:56.425Z [DEBUG] Getting matching hook commands for PostToolUse with query: Read
+2025-12-11T19:03:56.425Z [DEBUG] Found 0 hook matchers in settings
+2025-12-11T19:03:56.425Z [DEBUG] Matched 0 unique hooks for query "Read" (0 before deduplication)
+2025-12-11T19:03:56.519Z [DEBUG] LSP Diagnostics: getLSPDiagnosticAttachments called
+2025-12-11T19:03:56.519Z [DEBUG] LSP Diagnostics: Checking registry - 0 pending
+2025-12-11T19:03:56.519Z [DEBUG] Hooks: Found 0 total hooks in registry
+2025-12-11T19:03:56.519Z [DEBUG] Hooks: checkForNewResponses returning 0 responses
+2025-12-11T19:03:56.536Z [DEBUG] [TeammateMailbox] getTeammateMailboxAttachments called: envAgentName=undefined, isTeamLead=false, resolved agentName=undefined, teamName=undefined
+2025-12-11T19:03:56.536Z [DEBUG] [TeammateMailbox] Not checking inbox - not a teammate or team lead
+2025-12-11T19:04:00.355Z [DEBUG] Stream started - received first chunk
+2025-12-11T19:04:02.043Z [DEBUG] executePreToolHooks called for tool: Glob
+2025-12-11T19:04:02.043Z [DEBUG] executePreToolHooks called for tool: Glob
+2025-12-11T19:04:02.052Z [DEBUG] Getting matching hook commands for PreToolUse with query: Glob
+2025-12-11T19:04:02.052Z [DEBUG] Found 0 hook matchers in settings
+2025-12-11T19:04:02.052Z [DEBUG] Matched 0 unique hooks for query "Glob" (0 before deduplication)
+2025-12-11T19:04:02.052Z [DEBUG] Getting matching hook commands for PreToolUse with query: Glob
+2025-12-11T19:04:02.052Z [DEBUG] Found 0 hook matchers in settings
+2025-12-11T19:04:02.052Z [DEBUG] Matched 0 unique hooks for query "Glob" (0 before deduplication)
+2025-12-11T19:04:02.212Z [DEBUG] Getting matching hook commands for PostToolUse with query: Glob
+2025-12-11T19:04:02.212Z [DEBUG] Found 0 hook matchers in settings
+2025-12-11T19:04:02.212Z [DEBUG] Matched 0 unique hooks for query "Glob" (0 before deduplication)
+2025-12-11T19:04:02.259Z [DEBUG] Getting matching hook commands for PostToolUse with query: Glob
+2025-12-11T19:04:02.259Z [DEBUG] Found 0 hook matchers in settings
+2025-12-11T19:04:02.259Z [DEBUG] Matched 0 unique hooks for query "Glob" (0 before deduplication)
+2025-12-11T19:04:02.291Z [DEBUG] LSP Diagnostics: getLSPDiagnosticAttachments called
+2025-12-11T19:04:02.291Z [DEBUG] LSP Diagnostics: Checking registry - 0 pending
+2025-12-11T19:04:02.291Z [DEBUG] Hooks: Found 0 total hooks in registry
+2025-12-11T19:04:02.291Z [DEBUG] Hooks: checkForNewResponses returning 0 responses
+2025-12-11T19:04:02.302Z [DEBUG] [TeammateMailbox] getTeammateMailboxAttachments called: envAgentName=undefined, isTeamLead=false, resolved agentName=undefined, teamName=undefined
+2025-12-11T19:04:02.302Z [DEBUG] [TeammateMailbox] Not checking inbox - not a teammate or team lead
+2025-12-11T19:04:05.255Z [DEBUG] Stream started - received first chunk
+2025-12-11T19:04:05.578Z [DEBUG] executePreToolHooks called for tool: Glob
+2025-12-11T19:04:05.591Z [DEBUG] Getting matching hook commands for PreToolUse with query: Glob
+2025-12-11T19:04:05.591Z [DEBUG] Found 0 hook matchers in settings
+2025-12-11T19:04:05.591Z [DEBUG] Matched 0 unique hooks for query "Glob" (0 before deduplication)
+2025-12-11T19:04:05.797Z [DEBUG] Getting matching hook commands for PostToolUse with query: Glob
+2025-12-11T19:04:05.797Z [DEBUG] Found 0 hook matchers in settings
+2025-12-11T19:04:05.797Z [DEBUG] Matched 0 unique hooks for query "Glob" (0 before deduplication)
+2025-12-11T19:04:05.839Z [DEBUG] LSP Diagnostics: getLSPDiagnosticAttachments called
+2025-12-11T19:04:05.839Z [DEBUG] LSP Diagnostics: Checking registry - 0 pending
+2025-12-11T19:04:05.839Z [DEBUG] Hooks: Found 0 total hooks in registry
+2025-12-11T19:04:05.839Z [DEBUG] Hooks: checkForNewResponses returning 0 responses
+2025-12-11T19:04:05.862Z [DEBUG] [TeammateMailbox] getTeammateMailboxAttachments called: envAgentName=undefined, isTeamLead=false, resolved agentName=undefined, teamName=undefined
+2025-12-11T19:04:05.862Z [DEBUG] [TeammateMailbox] Not checking inbox - not a teammate or team lead
+2025-12-11T19:04:08.791Z [DEBUG] Stream started - received first chunk
+2025-12-11T19:04:09.972Z [DEBUG] executePreToolHooks called for tool: Glob
+2025-12-11T19:04:09.972Z [DEBUG] executePreToolHooks called for tool: Bash
+2025-12-11T19:04:10.000Z [DEBUG] Getting matching hook commands for PreToolUse with query: Glob
+2025-12-11T19:04:10.000Z [DEBUG] Found 0 hook matchers in settings
+2025-12-11T19:04:10.000Z [DEBUG] Matched 0 unique hooks for query "Glob" (0 before deduplication)
+2025-12-11T19:04:10.000Z [DEBUG] Getting matching hook commands for PreToolUse with query: Bash
+2025-12-11T19:04:10.000Z [DEBUG] Found 0 hook matchers in settings
+2025-12-11T19:04:10.000Z [DEBUG] Matched 0 unique hooks for query "Bash" (0 before deduplication)
+2025-12-11T19:04:10.199Z [DEBUG] Getting matching hook commands for PostToolUse with query: Glob
+2025-12-11T19:04:10.199Z [DEBUG] Found 0 hook matchers in settings
+2025-12-11T19:04:10.199Z [DEBUG] Matched 0 unique hooks for query "Glob" (0 before deduplication)
+2025-12-11T19:04:10.359Z [DEBUG] Getting matching hook commands for PostToolUse with query: Bash
+2025-12-11T19:04:10.359Z [DEBUG] Found 0 hook matchers in settings
+2025-12-11T19:04:10.359Z [DEBUG] Matched 0 unique hooks for query "Bash" (0 before deduplication)
+2025-12-11T19:04:10.392Z [DEBUG] LSP Diagnostics: getLSPDiagnosticAttachments called
+2025-12-11T19:04:10.392Z [DEBUG] LSP Diagnostics: Checking registry - 0 pending
+2025-12-11T19:04:10.392Z [DEBUG] Hooks: Found 0 total hooks in registry
+2025-12-11T19:04:10.392Z [DEBUG] Hooks: checkForNewResponses returning 0 responses
+2025-12-11T19:04:10.410Z [DEBUG] [TeammateMailbox] getTeammateMailboxAttachments called: envAgentName=undefined, isTeamLead=false, resolved agentName=undefined, teamName=undefined
+2025-12-11T19:04:10.410Z [DEBUG] [TeammateMailbox] Not checking inbox - not a teammate or team lead
+2025-12-11T19:04:10.873Z [DEBUG] Stream started - received first chunk
+2025-12-11T19:04:14.021Z [DEBUG] Stream started - received first chunk
+2025-12-11T19:04:15.508Z [DEBUG] executePreToolHooks called for tool: Grep
+2025-12-11T19:04:15.516Z [DEBUG] Getting matching hook commands for PreToolUse with query: Grep
+2025-12-11T19:04:15.516Z [DEBUG] Found 0 hook matchers in settings
+2025-12-11T19:04:15.516Z [DEBUG] Matched 0 unique hooks for query "Grep" (0 before deduplication)
+2025-12-11T19:04:15.637Z [DEBUG] Getting matching hook commands for PostToolUse with query: Grep
+2025-12-11T19:04:15.637Z [DEBUG] Found 0 hook matchers in settings
+2025-12-11T19:04:15.637Z [DEBUG] Matched 0 unique hooks for query "Grep" (0 before deduplication)
+2025-12-11T19:04:15.674Z [DEBUG] LSP Diagnostics: getLSPDiagnosticAttachments called
+2025-12-11T19:04:15.674Z [DEBUG] LSP Diagnostics: Checking registry - 0 pending
+2025-12-11T19:04:15.674Z [DEBUG] Hooks: Found 0 total hooks in registry
+2025-12-11T19:04:15.674Z [DEBUG] Hooks: checkForNewResponses returning 0 responses
+2025-12-11T19:04:15.693Z [DEBUG] [TeammateMailbox] getTeammateMailboxAttachments called: envAgentName=undefined, isTeamLead=false, resolved agentName=undefined, teamName=undefined
+2025-12-11T19:04:15.693Z [DEBUG] [TeammateMailbox] Not checking inbox - not a teammate or team lead
+2025-12-11T19:04:20.013Z [DEBUG] Stream started - received first chunk
+2025-12-11T19:04:21.482Z [DEBUG] executePreToolHooks called for tool: Grep
+2025-12-11T19:04:21.490Z [DEBUG] Getting matching hook commands for PreToolUse with query: Grep
+2025-12-11T19:04:21.490Z [DEBUG] Found 0 hook matchers in settings
+2025-12-11T19:04:21.490Z [DEBUG] Matched 0 unique hooks for query "Grep" (0 before deduplication)
+2025-12-11T19:04:21.568Z [DEBUG] Getting matching hook commands for PostToolUse with query: Grep
+2025-12-11T19:04:21.568Z [DEBUG] Found 0 hook matchers in settings
+2025-12-11T19:04:21.568Z [DEBUG] Matched 0 unique hooks for query "Grep" (0 before deduplication)
+2025-12-11T19:04:21.616Z [DEBUG] LSP Diagnostics: getLSPDiagnosticAttachments called
+2025-12-11T19:04:21.616Z [DEBUG] LSP Diagnostics: Checking registry - 0 pending
+2025-12-11T19:04:21.617Z [DEBUG] Hooks: Found 0 total hooks in registry
+2025-12-11T19:04:21.617Z [DEBUG] Hooks: checkForNewResponses returning 0 responses
+2025-12-11T19:04:21.639Z [DEBUG] [TeammateMailbox] getTeammateMailboxAttachments called: envAgentName=undefined, isTeamLead=false, resolved agentName=undefined, teamName=undefined
+2025-12-11T19:04:21.639Z [DEBUG] [TeammateMailbox] Not checking inbox - not a teammate or team lead
+2025-12-11T19:04:24.414Z [DEBUG] Stream started - received first chunk
+2025-12-11T19:04:25.363Z [DEBUG] executePreToolHooks called for tool: Read
+2025-12-11T19:04:25.378Z [DEBUG] Getting matching hook commands for PreToolUse with query: Read
+2025-12-11T19:04:25.378Z [DEBUG] Found 0 hook matchers in settings
+2025-12-11T19:04:25.378Z [DEBUG] Matched 0 unique hooks for query "Read" (0 before deduplication)
+2025-12-11T19:04:25.430Z [DEBUG] Getting matching hook commands for PostToolUse with query: Read
+2025-12-11T19:04:25.430Z [DEBUG] Found 0 hook matchers in settings
+2025-12-11T19:04:25.430Z [DEBUG] Matched 0 unique hooks for query "Read" (0 before deduplication)
+2025-12-11T19:04:25.472Z [DEBUG] LSP Diagnostics: getLSPDiagnosticAttachments called
+2025-12-11T19:04:25.472Z [DEBUG] LSP Diagnostics: Checking registry - 0 pending
+2025-12-11T19:04:25.472Z [DEBUG] Hooks: Found 0 total hooks in registry
+2025-12-11T19:04:25.472Z [DEBUG] Hooks: checkForNewResponses returning 0 responses
+2025-12-11T19:04:25.488Z [DEBUG] [TeammateMailbox] getTeammateMailboxAttachments called: envAgentName=undefined, isTeamLead=false, resolved agentName=undefined, teamName=undefined
+2025-12-11T19:04:25.488Z [DEBUG] [TeammateMailbox] Not checking inbox - not a teammate or team lead
+2025-12-11T19:04:28.256Z [DEBUG] Stream started - received first chunk
+2025-12-11T19:04:31.073Z [DEBUG] executePreToolHooks called for tool: TodoWrite
+2025-12-11T19:04:31.102Z [DEBUG] Getting matching hook commands for PreToolUse with query: TodoWrite
+2025-12-11T19:04:31.102Z [DEBUG] Found 0 hook matchers in settings
+2025-12-11T19:04:31.102Z [DEBUG] Matched 0 unique hooks for query "TodoWrite" (0 before deduplication)
+2025-12-11T19:04:31.137Z [DEBUG] Writing to temp file: /home/runner/.claude/todos/eac385e2-4132-45ef-be9d-086b1c0c947b-agent-eac385e2-4132-45ef-be9d-086b1c0c947b.json.tmp.1628.1765479871137
+2025-12-11T19:04:31.137Z [DEBUG] Preserving file permissions: 100600
+2025-12-11T19:04:31.150Z [DEBUG] [SLOW OPERATION DETECTED] fs.writeFileSync (12.9ms)
+2025-12-11T19:04:31.150Z [DEBUG] Temp file written successfully, size: 632 bytes
+2025-12-11T19:04:31.151Z [DEBUG] Applied original permissions to temp file
+2025-12-11T19:04:31.151Z [DEBUG] Renaming /home/runner/.claude/todos/eac385e2-4132-45ef-be9d-086b1c0c947b-agent-eac385e2-4132-45ef-be9d-086b1c0c947b.json.tmp.1628.1765479871137 to /home/runner/.claude/todos/eac385e2-4132-45ef-be9d-086b1c0c947b-agent-eac385e2-4132-45ef-be9d-086b1c0c947b.json
+2025-12-11T19:04:31.151Z [DEBUG] File /home/runner/.claude/todos/eac385e2-4132-45ef-be9d-086b1c0c947b-agent-eac385e2-4132-45ef-be9d-086b1c0c947b.json written atomically
+2025-12-11T19:04:31.167Z [DEBUG] Getting matching hook commands for PostToolUse with query: TodoWrite
+2025-12-11T19:04:31.167Z [DEBUG] Found 0 hook matchers in settings
+2025-12-11T19:04:31.167Z [DEBUG] Matched 0 unique hooks for query "TodoWrite" (0 before deduplication)
+2025-12-11T19:04:31.198Z [DEBUG] LSP Diagnostics: getLSPDiagnosticAttachments called
+2025-12-11T19:04:31.198Z [DEBUG] LSP Diagnostics: Checking registry - 0 pending
+2025-12-11T19:04:31.198Z [DEBUG] Hooks: Found 0 total hooks in registry
+2025-12-11T19:04:31.198Z [DEBUG] Hooks: checkForNewResponses returning 0 responses
+2025-12-11T19:04:31.214Z [DEBUG] [TeammateMailbox] getTeammateMailboxAttachments called: envAgentName=undefined, isTeamLead=false, resolved agentName=undefined, teamName=undefined
+2025-12-11T19:04:31.214Z [DEBUG] [TeammateMailbox] Not checking inbox - not a teammate or team lead
+2025-12-11T19:04:33.828Z [DEBUG] Stream started - received first chunk
+2025-12-11T19:04:48.469Z [DEBUG] executePreToolHooks called for tool: Edit
+2025-12-11T19:04:48.481Z [DEBUG] Getting matching hook commands for PreToolUse with query: Edit
+2025-12-11T19:04:48.481Z [DEBUG] Found 0 hook matchers in settings
+2025-12-11T19:04:48.481Z [DEBUG] Matched 0 unique hooks for query "Edit" (0 before deduplication)
+2025-12-11T19:04:48.517Z [DEBUG] Writing to temp file: /home/runner/workspace/public/participante/css/pull-refresh.css.tmp.1628.1765479888517
+2025-12-11T19:04:48.517Z [DEBUG] Preserving file permissions: 100644
+2025-12-11T19:04:48.538Z [DEBUG] [SLOW OPERATION DETECTED] fs.writeFileSync (21.5ms)
+2025-12-11T19:04:48.538Z [DEBUG] Temp file written successfully, size: 5823 bytes
+2025-12-11T19:04:48.538Z [DEBUG] Applied original permissions to temp file
+2025-12-11T19:04:48.538Z [DEBUG] Renaming /home/runner/workspace/public/participante/css/pull-refresh.css.tmp.1628.1765479888517 to /home/runner/workspace/public/participante/css/pull-refresh.css
+2025-12-11T19:04:48.543Z [DEBUG] File /home/runner/workspace/public/participante/css/pull-refresh.css written atomically
+2025-12-11T19:04:48.560Z [DEBUG] [SLOW OPERATION DETECTED] fs.writeFileSync (6.2ms)
+2025-12-11T19:04:48.562Z [DEBUG] FileHistory: Tracked file modification for /home/runner/workspace/public/participante/css/pull-refresh.css
+2025-12-11T19:04:48.583Z [DEBUG] Getting matching hook commands for PostToolUse with query: Edit
+2025-12-11T19:04:48.584Z [DEBUG] Found 0 hook matchers in settings
+2025-12-11T19:04:48.584Z [DEBUG] Matched 0 unique hooks for query "Edit" (0 before deduplication)
+2025-12-11T19:04:48.667Z [DEBUG] LSP Diagnostics: getLSPDiagnosticAttachments called
+2025-12-11T19:04:48.667Z [DEBUG] LSP Diagnostics: Checking registry - 0 pending
+2025-12-11T19:04:48.667Z [DEBUG] Hooks: Found 0 total hooks in registry
+2025-12-11T19:04:48.667Z [DEBUG] Hooks: checkForNewResponses returning 0 responses
+2025-12-11T19:04:48.717Z [DEBUG] [TeammateMailbox] getTeammateMailboxAttachments called: envAgentName=undefined, isTeamLead=false, resolved agentName=undefined, teamName=undefined
+2025-12-11T19:04:48.717Z [DEBUG] [TeammateMailbox] Not checking inbox - not a teammate or team lead
+2025-12-11T19:04:51.914Z [DEBUG] Stream started - received first chunk
+2025-12-11T19:05:06.441Z [DEBUG] executePreToolHooks called for tool: Edit
+2025-12-11T19:05:06.455Z [DEBUG] Getting matching hook commands for PreToolUse with query: Edit
+2025-12-11T19:05:06.455Z [DEBUG] Found 0 hook matchers in settings
+2025-12-11T19:05:06.455Z [DEBUG] Matched 0 unique hooks for query "Edit" (0 before deduplication)
+2025-12-11T19:05:06.493Z [DEBUG] Writing to temp file: /home/runner/workspace/public/participante/js/pull-refresh.js.tmp.1628.1765479906493
+2025-12-11T19:05:06.493Z [DEBUG] Preserving file permissions: 100644
+2025-12-11T19:05:06.511Z [DEBUG] [SLOW OPERATION DETECTED] fs.writeFileSync (17.8ms)
+2025-12-11T19:05:06.511Z [DEBUG] Temp file written successfully, size: 9786 bytes
+2025-12-11T19:05:06.511Z [DEBUG] Applied original permissions to temp file
+2025-12-11T19:05:06.511Z [DEBUG] Renaming /home/runner/workspace/public/participante/js/pull-refresh.js.tmp.1628.1765479906493 to /home/runner/workspace/public/participante/js/pull-refresh.js
+2025-12-11T19:05:06.513Z [DEBUG] File /home/runner/workspace/public/participante/js/pull-refresh.js written atomically
+2025-12-11T19:05:06.537Z [DEBUG] [SLOW OPERATION DETECTED] fs.writeFileSync (7.2ms)
+2025-12-11T19:05:06.538Z [DEBUG] FileHistory: Tracked file modification for /home/runner/workspace/public/participante/js/pull-refresh.js
+2025-12-11T19:05:06.565Z [DEBUG] Getting matching hook commands for PostToolUse with query: Edit
+2025-12-11T19:05:06.565Z [DEBUG] Found 0 hook matchers in settings
+2025-12-11T19:05:06.565Z [DEBUG] Matched 0 unique hooks for query "Edit" (0 before deduplication)
+2025-12-11T19:05:06.682Z [DEBUG] LSP Diagnostics: getLSPDiagnosticAttachments called
+2025-12-11T19:05:06.682Z [DEBUG] LSP Diagnostics: Checking registry - 0 pending
+2025-12-11T19:05:06.682Z [DEBUG] Hooks: Found 0 total hooks in registry
+2025-12-11T19:05:06.682Z [DEBUG] Hooks: checkForNewResponses returning 0 responses
+2025-12-11T19:05:06.720Z [DEBUG] [TeammateMailbox] getTeammateMailboxAttachments called: envAgentName=undefined, isTeamLead=false, resolved agentName=undefined, teamName=undefined
+2025-12-11T19:05:06.720Z [DEBUG] [TeammateMailbox] Not checking inbox - not a teammate or team lead
+2025-12-11T19:05:11.123Z [DEBUG] Stream started - received first chunk
+2025-12-11T19:05:18.400Z [DEBUG] executePreToolHooks called for tool: Edit
+2025-12-11T19:05:18.417Z [DEBUG] Getting matching hook commands for PreToolUse with query: Edit
+2025-12-11T19:05:18.417Z [DEBUG] Found 0 hook matchers in settings
+2025-12-11T19:05:18.417Z [DEBUG] Matched 0 unique hooks for query "Edit" (0 before deduplication)
+2025-12-11T19:05:18.469Z [DEBUG] Writing to temp file: /home/runner/workspace/public/participante/js/pull-refresh.js.tmp.1628.1765479918469
+2025-12-11T19:05:18.469Z [DEBUG] Preserving file permissions: 100644
+2025-12-11T19:05:18.528Z [DEBUG] [SLOW OPERATION DETECTED] fs.writeFileSync (58.4ms)
+2025-12-11T19:05:18.528Z [DEBUG] Temp file written successfully, size: 10063 bytes
+2025-12-11T19:05:18.528Z [DEBUG] Applied original permissions to temp file
+2025-12-11T19:05:18.528Z [DEBUG] Renaming /home/runner/workspace/public/participante/js/pull-refresh.js.tmp.1628.1765479918469 to /home/runner/workspace/public/participante/js/pull-refresh.js
+2025-12-11T19:05:18.528Z [DEBUG] File /home/runner/workspace/public/participante/js/pull-refresh.js written atomically
+2025-12-11T19:05:18.593Z [DEBUG] Getting matching hook commands for PostToolUse with query: Edit
+2025-12-11T19:05:18.593Z [DEBUG] Found 0 hook matchers in settings
+2025-12-11T19:05:18.593Z [DEBUG] Matched 0 unique hooks for query "Edit" (0 before deduplication)
+2025-12-11T19:05:18.686Z [DEBUG] LSP Diagnostics: getLSPDiagnosticAttachments called
+2025-12-11T19:05:18.686Z [DEBUG] LSP Diagnostics: Checking registry - 0 pending
+2025-12-11T19:05:18.686Z [DEBUG] Hooks: Found 0 total hooks in registry
+2025-12-11T19:05:18.686Z [DEBUG] Hooks: checkForNewResponses returning 0 responses
+2025-12-11T19:05:18.762Z [DEBUG] [TeammateMailbox] getTeammateMailboxAttachments called: envAgentName=undefined, isTeamLead=false, resolved agentName=undefined, teamName=undefined
+2025-12-11T19:05:18.762Z [DEBUG] [TeammateMailbox] Not checking inbox - not a teammate or team lead
+2025-12-11T19:05:21.617Z [DEBUG] Stream started - received first chunk
+2025-12-11T19:05:34.115Z [DEBUG] executePreToolHooks called for tool: Edit
+2025-12-11T19:05:34.122Z [DEBUG] Getting matching hook commands for PreToolUse with query: Edit
+2025-12-11T19:05:34.122Z [DEBUG] Found 0 hook matchers in settings
+2025-12-11T19:05:34.122Z [DEBUG] Matched 0 unique hooks for query "Edit" (0 before deduplication)
+2025-12-11T19:05:34.147Z [DEBUG] Writing to temp file: /home/runner/workspace/public/participante/js/splash-screen.js.tmp.1628.1765479934147
+2025-12-11T19:05:34.147Z [DEBUG] Preserving file permissions: 100600
+2025-12-11T19:05:34.160Z [DEBUG] [SLOW OPERATION DETECTED] fs.writeFileSync (13.0ms)
+2025-12-11T19:05:34.160Z [DEBUG] Temp file written successfully, size: 5440 bytes
+2025-12-11T19:05:34.160Z [DEBUG] Applied original permissions to temp file
+2025-12-11T19:05:34.160Z [DEBUG] Renaming /home/runner/workspace/public/participante/js/splash-screen.js.tmp.1628.1765479934147 to /home/runner/workspace/public/participante/js/splash-screen.js
+2025-12-11T19:05:34.160Z [DEBUG] File /home/runner/workspace/public/participante/js/splash-screen.js written atomically
+2025-12-11T19:05:34.175Z [DEBUG] [SLOW OPERATION DETECTED] fs.writeFileSync (5.2ms)
+2025-12-11T19:05:34.176Z [DEBUG] FileHistory: Tracked file modification for /home/runner/workspace/public/participante/js/splash-screen.js
+2025-12-11T19:05:34.198Z [DEBUG] Getting matching hook commands for PostToolUse with query: Edit
+2025-12-11T19:05:34.198Z [DEBUG] Found 0 hook matchers in settings
+2025-12-11T19:05:34.198Z [DEBUG] Matched 0 unique hooks for query "Edit" (0 before deduplication)
+2025-12-11T19:05:34.272Z [DEBUG] LSP Diagnostics: getLSPDiagnosticAttachments called
+2025-12-11T19:05:34.272Z [DEBUG] LSP Diagnostics: Checking registry - 0 pending
+2025-12-11T19:05:34.272Z [DEBUG] Hooks: Found 0 total hooks in registry
+2025-12-11T19:05:34.272Z [DEBUG] Hooks: checkForNewResponses returning 0 responses
+2025-12-11T19:05:34.295Z [DEBUG] [TeammateMailbox] getTeammateMailboxAttachments called: envAgentName=undefined, isTeamLead=false, resolved agentName=undefined, teamName=undefined
+2025-12-11T19:05:34.295Z [DEBUG] [TeammateMailbox] Not checking inbox - not a teammate or team lead
+2025-12-11T19:05:37.369Z [DEBUG] Stream started - received first chunk
+2025-12-11T19:05:41.593Z [DEBUG] executePreToolHooks called for tool: Edit
+2025-12-11T19:05:41.603Z [DEBUG] Getting matching hook commands for PreToolUse with query: Edit
+2025-12-11T19:05:41.603Z [DEBUG] Found 0 hook matchers in settings
+2025-12-11T19:05:41.603Z [DEBUG] Matched 0 unique hooks for query "Edit" (0 before deduplication)
+2025-12-11T19:05:41.635Z [DEBUG] Writing to temp file: /home/runner/workspace/public/participante/js/splash-screen.js.tmp.1628.1765479941635
+2025-12-11T19:05:41.635Z [DEBUG] Preserving file permissions: 100600
+2025-12-11T19:05:41.656Z [DEBUG] [SLOW OPERATION DETECTED] fs.writeFileSync (21.6ms)
+2025-12-11T19:05:41.656Z [DEBUG] Temp file written successfully, size: 5523 bytes
+2025-12-11T19:05:41.657Z [DEBUG] Applied original permissions to temp file
+2025-12-11T19:05:41.657Z [DEBUG] Renaming /home/runner/workspace/public/participante/js/splash-screen.js.tmp.1628.1765479941635 to /home/runner/workspace/public/participante/js/splash-screen.js
+2025-12-11T19:05:41.657Z [DEBUG] File /home/runner/workspace/public/participante/js/splash-screen.js written atomically
+2025-12-11T19:05:41.682Z [DEBUG] Getting matching hook commands for PostToolUse with query: Edit
+2025-12-11T19:05:41.682Z [DEBUG] Found 0 hook matchers in settings
+2025-12-11T19:05:41.682Z [DEBUG] Matched 0 unique hooks for query "Edit" (0 before deduplication)
+2025-12-11T19:05:41.733Z [DEBUG] LSP Diagnostics: getLSPDiagnosticAttachments called
+2025-12-11T19:05:41.733Z [DEBUG] LSP Diagnostics: Checking registry - 0 pending
+2025-12-11T19:05:41.733Z [DEBUG] Hooks: Found 0 total hooks in registry
+2025-12-11T19:05:41.733Z [DEBUG] Hooks: checkForNewResponses returning 0 responses
+2025-12-11T19:05:41.759Z [DEBUG] [TeammateMailbox] getTeammateMailboxAttachments called: envAgentName=undefined, isTeamLead=false, resolved agentName=undefined, teamName=undefined
+2025-12-11T19:05:41.759Z [DEBUG] [TeammateMailbox] Not checking inbox - not a teammate or team lead
+2025-12-11T19:05:44.943Z [DEBUG] Stream started - received first chunk
+2025-12-11T19:06:05.955Z [DEBUG] executePreToolHooks called for tool: Edit
+2025-12-11T19:06:05.967Z [DEBUG] Getting matching hook commands for PreToolUse with query: Edit
+2025-12-11T19:06:05.967Z [DEBUG] Found 0 hook matchers in settings
+2025-12-11T19:06:05.967Z [DEBUG] Matched 0 unique hooks for query "Edit" (0 before deduplication)
+2025-12-11T19:06:06.002Z [DEBUG] Writing to temp file: /home/runner/workspace/public/participante/js/splash-screen.js.tmp.1628.1765479966002
+2025-12-11T19:06:06.002Z [DEBUG] Preserving file permissions: 100600
+2025-12-11T19:06:06.022Z [DEBUG] [SLOW OPERATION DETECTED] fs.writeFileSync (19.8ms)
+2025-12-11T19:06:06.022Z [DEBUG] Temp file written successfully, size: 5714 bytes
+2025-12-11T19:06:06.022Z [DEBUG] Applied original permissions to temp file
+2025-12-11T19:06:06.022Z [DEBUG] Renaming /home/runner/workspace/public/participante/js/splash-screen.js.tmp.1628.1765479966002 to /home/runner/workspace/public/participante/js/splash-screen.js
+2025-12-11T19:06:06.022Z [DEBUG] File /home/runner/workspace/public/participante/js/splash-screen.js written atomically
+2025-12-11T19:06:06.067Z [DEBUG] Getting matching hook commands for PostToolUse with query: Edit
+2025-12-11T19:06:06.067Z [DEBUG] Found 0 hook matchers in settings
+2025-12-11T19:06:06.067Z [DEBUG] Matched 0 unique hooks for query "Edit" (0 before deduplication)
+2025-12-11T19:06:06.150Z [DEBUG] LSP Diagnostics: getLSPDiagnosticAttachments called
+2025-12-11T19:06:06.150Z [DEBUG] LSP Diagnostics: Checking registry - 0 pending
+2025-12-11T19:06:06.150Z [DEBUG] Hooks: Found 0 total hooks in registry
+2025-12-11T19:06:06.150Z [DEBUG] Hooks: checkForNewResponses returning 0 responses
+2025-12-11T19:06:06.182Z [DEBUG] [TeammateMailbox] getTeammateMailboxAttachments called: envAgentName=undefined, isTeamLead=false, resolved agentName=undefined, teamName=undefined
+2025-12-11T19:06:06.182Z [DEBUG] [TeammateMailbox] Not checking inbox - not a teammate or team lead
+2025-12-11T19:06:09.158Z [DEBUG] Stream started - received first chunk
+2025-12-11T19:06:12.819Z [DEBUG] executePreToolHooks called for tool: TodoWrite
+2025-12-11T19:06:12.858Z [DEBUG] Getting matching hook commands for PreToolUse with query: TodoWrite
+2025-12-11T19:06:12.858Z [DEBUG] Found 0 hook matchers in settings
+2025-12-11T19:06:12.858Z [DEBUG] Matched 0 unique hooks for query "TodoWrite" (0 before deduplication)
+2025-12-11T19:06:12.913Z [DEBUG] Writing to temp file: /home/runner/.claude/todos/eac385e2-4132-45ef-be9d-086b1c0c947b-agent-eac385e2-4132-45ef-be9d-086b1c0c947b.json.tmp.1628.1765479972913
+2025-12-11T19:06:12.913Z [DEBUG] Preserving file permissions: 100600
+2025-12-11T19:06:12.925Z [DEBUG] [SLOW OPERATION DETECTED] fs.writeFileSync (12.3ms)
+2025-12-11T19:06:12.925Z [DEBUG] Temp file written successfully, size: 634 bytes
+2025-12-11T19:06:12.925Z [DEBUG] Applied original permissions to temp file
+2025-12-11T19:06:12.925Z [DEBUG] Renaming /home/runner/.claude/todos/eac385e2-4132-45ef-be9d-086b1c0c947b-agent-eac385e2-4132-45ef-be9d-086b1c0c947b.json.tmp.1628.1765479972913 to /home/runner/.claude/todos/eac385e2-4132-45ef-be9d-086b1c0c947b-agent-eac385e2-4132-45ef-be9d-086b1c0c947b.json
+2025-12-11T19:06:12.926Z [DEBUG] File /home/runner/.claude/todos/eac385e2-4132-45ef-be9d-086b1c0c947b-agent-eac385e2-4132-45ef-be9d-086b1c0c947b.json written atomically
+2025-12-11T19:06:12.951Z [DEBUG] Getting matching hook commands for PostToolUse with query: TodoWrite
+2025-12-11T19:06:12.951Z [DEBUG] Found 0 hook matchers in settings
+2025-12-11T19:06:12.951Z [DEBUG] Matched 0 unique hooks for query "TodoWrite" (0 before deduplication)
+2025-12-11T19:06:12.995Z [DEBUG] LSP Diagnostics: getLSPDiagnosticAttachments called
+2025-12-11T19:06:12.995Z [DEBUG] LSP Diagnostics: Checking registry - 0 pending
+2025-12-11T19:06:12.995Z [DEBUG] Hooks: Found 0 total hooks in registry
+2025-12-11T19:06:12.995Z [DEBUG] Hooks: checkForNewResponses returning 0 responses
+2025-12-11T19:06:13.013Z [DEBUG] [TeammateMailbox] getTeammateMailboxAttachments called: envAgentName=undefined, isTeamLead=false, resolved agentName=undefined, teamName=undefined
+2025-12-11T19:06:13.013Z [DEBUG] [TeammateMailbox] Not checking inbox - not a teammate or team lead
+2025-12-11T19:06:15.775Z [DEBUG] Stream started - received first chunk
+2025-12-11T19:06:18.368Z [DEBUG] executePreToolHooks called for tool: Grep
+2025-12-11T19:06:18.394Z [DEBUG] Getting matching hook commands for PreToolUse with query: Grep
+2025-12-11T19:06:18.394Z [DEBUG] Found 0 hook matchers in settings
+2025-12-11T19:06:18.394Z [DEBUG] Matched 0 unique hooks for query "Grep" (0 before deduplication)
+2025-12-11T19:06:18.478Z [DEBUG] Getting matching hook commands for PostToolUse with query: Grep
+2025-12-11T19:06:18.478Z [DEBUG] Found 0 hook matchers in settings
+2025-12-11T19:06:18.478Z [DEBUG] Matched 0 unique hooks for query "Grep" (0 before deduplication)
+2025-12-11T19:06:18.514Z [DEBUG] LSP Diagnostics: getLSPDiagnosticAttachments called
+2025-12-11T19:06:18.514Z [DEBUG] LSP Diagnostics: Checking registry - 0 pending
+2025-12-11T19:06:18.514Z [DEBUG] Hooks: Found 0 total hooks in registry
+2025-12-11T19:06:18.514Z [DEBUG] Hooks: checkForNewResponses returning 0 responses
+2025-12-11T19:06:18.533Z [DEBUG] [TeammateMailbox] getTeammateMailboxAttachments called: envAgentName=undefined, isTeamLead=false, resolved agentName=undefined, teamName=undefined
+2025-12-11T19:06:18.533Z [DEBUG] [TeammateMailbox] Not checking inbox - not a teammate or team lead
+2025-12-11T19:06:21.835Z [DEBUG] Stream started - received first chunk
+2025-12-11T19:06:22.355Z [DEBUG] executePreToolHooks called for tool: Read
+2025-12-11T19:06:22.367Z [DEBUG] Getting matching hook commands for PreToolUse with query: Read
+2025-12-11T19:06:22.367Z [DEBUG] Found 0 hook matchers in settings
+2025-12-11T19:06:22.367Z [DEBUG] Matched 0 unique hooks for query "Read" (0 before deduplication)
+2025-12-11T19:06:22.429Z [DEBUG] Getting matching hook commands for PostToolUse with query: Read
+2025-12-11T19:06:22.429Z [DEBUG] Found 0 hook matchers in settings
+2025-12-11T19:06:22.429Z [DEBUG] Matched 0 unique hooks for query "Read" (0 before deduplication)
+2025-12-11T19:06:22.457Z [DEBUG] LSP Diagnostics: getLSPDiagnosticAttachments called
+2025-12-11T19:06:22.457Z [DEBUG] LSP Diagnostics: Checking registry - 0 pending
+2025-12-11T19:06:22.457Z [DEBUG] Hooks: Found 0 total hooks in registry
+2025-12-11T19:06:22.457Z [DEBUG] Hooks: checkForNewResponses returning 0 responses
+2025-12-11T19:06:22.471Z [DEBUG] [TeammateMailbox] getTeammateMailboxAttachments called: envAgentName=undefined, isTeamLead=false, resolved agentName=undefined, teamName=undefined
+2025-12-11T19:06:22.471Z [DEBUG] [TeammateMailbox] Not checking inbox - not a teammate or team lead
+2025-12-11T19:06:26.026Z [DEBUG] Stream started - received first chunk
+2025-12-11T19:06:27.931Z [DEBUG] executePreToolHooks called for tool: Grep
+2025-12-11T19:06:27.941Z [DEBUG] Getting matching hook commands for PreToolUse with query: Grep
+2025-12-11T19:06:27.941Z [DEBUG] Found 0 hook matchers in settings
+2025-12-11T19:06:27.941Z [DEBUG] Matched 0 unique hooks for query "Grep" (0 before deduplication)
+2025-12-11T19:06:28.025Z [DEBUG] Getting matching hook commands for PostToolUse with query: Grep
+2025-12-11T19:06:28.025Z [DEBUG] Found 0 hook matchers in settings
+2025-12-11T19:06:28.025Z [DEBUG] Matched 0 unique hooks for query "Grep" (0 before deduplication)
+2025-12-11T19:06:28.061Z [DEBUG] LSP Diagnostics: getLSPDiagnosticAttachments called
+2025-12-11T19:06:28.061Z [DEBUG] LSP Diagnostics: Checking registry - 0 pending
+2025-12-11T19:06:28.061Z [DEBUG] Hooks: Found 0 total hooks in registry
+2025-12-11T19:06:28.061Z [DEBUG] Hooks: checkForNewResponses returning 0 responses
+2025-12-11T19:06:28.078Z [DEBUG] [TeammateMailbox] getTeammateMailboxAttachments called: envAgentName=undefined, isTeamLead=false, resolved agentName=undefined, teamName=undefined
+2025-12-11T19:06:28.078Z [DEBUG] [TeammateMailbox] Not checking inbox - not a teammate or team lead
+2025-12-11T19:06:31.598Z [DEBUG] Stream started - received first chunk
+2025-12-11T19:06:32.395Z [DEBUG] executePreToolHooks called for tool: Read
+2025-12-11T19:06:32.403Z [DEBUG] Getting matching hook commands for PreToolUse with query: Read
+2025-12-11T19:06:32.403Z [DEBUG] Found 0 hook matchers in settings
+2025-12-11T19:06:32.403Z [DEBUG] Matched 0 unique hooks for query "Read" (0 before deduplication)
+2025-12-11T19:06:32.476Z [DEBUG] Getting matching hook commands for PostToolUse with query: Read
+2025-12-11T19:06:32.476Z [DEBUG] Found 0 hook matchers in settings
+2025-12-11T19:06:32.476Z [DEBUG] Matched 0 unique hooks for query "Read" (0 before deduplication)
+2025-12-11T19:06:32.504Z [DEBUG] LSP Diagnostics: getLSPDiagnosticAttachments called
+2025-12-11T19:06:32.504Z [DEBUG] LSP Diagnostics: Checking registry - 0 pending
+2025-12-11T19:06:32.504Z [DEBUG] Hooks: Found 0 total hooks in registry
+2025-12-11T19:06:32.504Z [DEBUG] Hooks: checkForNewResponses returning 0 responses
+2025-12-11T19:06:32.522Z [DEBUG] [TeammateMailbox] getTeammateMailboxAttachments called: envAgentName=undefined, isTeamLead=false, resolved agentName=undefined, teamName=undefined
+2025-12-11T19:06:32.522Z [DEBUG] [TeammateMailbox] Not checking inbox - not a teammate or team lead
+2025-12-11T19:06:35.729Z [DEBUG] Stream started - received first chunk
+2025-12-11T19:06:38.808Z [DEBUG] executePreToolHooks called for tool: Read
+2025-12-11T19:06:38.830Z [DEBUG] Getting matching hook commands for PreToolUse with query: Read
+2025-12-11T19:06:38.830Z [DEBUG] Found 0 hook matchers in settings
+2025-12-11T19:06:38.830Z [DEBUG] Matched 0 unique hooks for query "Read" (0 before deduplication)
+2025-12-11T19:06:38.894Z [DEBUG] Getting matching hook commands for PostToolUse with query: Read
+2025-12-11T19:06:38.894Z [DEBUG] Found 0 hook matchers in settings
+2025-12-11T19:06:38.894Z [DEBUG] Matched 0 unique hooks for query "Read" (0 before deduplication)
+2025-12-11T19:06:38.916Z [DEBUG] LSP Diagnostics: getLSPDiagnosticAttachments called
+2025-12-11T19:06:38.916Z [DEBUG] LSP Diagnostics: Checking registry - 0 pending
+2025-12-11T19:06:38.916Z [DEBUG] Hooks: Found 0 total hooks in registry
+2025-12-11T19:06:38.916Z [DEBUG] Hooks: checkForNewResponses returning 0 responses
+2025-12-11T19:06:38.929Z [DEBUG] [TeammateMailbox] getTeammateMailboxAttachments called: envAgentName=undefined, isTeamLead=false, resolved agentName=undefined, teamName=undefined
+2025-12-11T19:06:38.929Z [DEBUG] [TeammateMailbox] Not checking inbox - not a teammate or team lead
+2025-12-11T19:06:41.287Z [DEBUG] [SLOW OPERATION DETECTED] fs.existsSync (7.9ms)
+2025-12-11T19:06:41.768Z [DEBUG] Stream started - received first chunk
+2025-12-11T19:06:44.368Z [DEBUG] executePreToolHooks called for tool: Read
+2025-12-11T19:06:44.379Z [DEBUG] Getting matching hook commands for PreToolUse with query: Read
+2025-12-11T19:06:44.379Z [DEBUG] Found 0 hook matchers in settings
+2025-12-11T19:06:44.379Z [DEBUG] Matched 0 unique hooks for query "Read" (0 before deduplication)
+2025-12-11T19:06:44.446Z [DEBUG] Getting matching hook commands for PostToolUse with query: Read
+2025-12-11T19:06:44.446Z [DEBUG] Found 0 hook matchers in settings
+2025-12-11T19:06:44.446Z [DEBUG] Matched 0 unique hooks for query "Read" (0 before deduplication)
+2025-12-11T19:06:44.483Z [DEBUG] LSP Diagnostics: getLSPDiagnosticAttachments called
+2025-12-11T19:06:44.483Z [DEBUG] LSP Diagnostics: Checking registry - 0 pending
+2025-12-11T19:06:44.483Z [DEBUG] Hooks: Found 0 total hooks in registry
+2025-12-11T19:06:44.483Z [DEBUG] Hooks: checkForNewResponses returning 0 responses
+2025-12-11T19:06:44.500Z [DEBUG] [TeammateMailbox] getTeammateMailboxAttachments called: envAgentName=undefined, isTeamLead=false, resolved agentName=undefined, teamName=undefined
+2025-12-11T19:06:44.500Z [DEBUG] [TeammateMailbox] Not checking inbox - not a teammate or team lead
+2025-12-11T19:06:47.896Z [DEBUG] Stream started - received first chunk
+2025-12-11T19:07:00.485Z [DEBUG] executePreToolHooks called for tool: Edit
+2025-12-11T19:07:00.497Z [DEBUG] Getting matching hook commands for PreToolUse with query: Edit
+2025-12-11T19:07:00.497Z [DEBUG] Found 0 hook matchers in settings
+2025-12-11T19:07:00.497Z [DEBUG] Matched 0 unique hooks for query "Edit" (0 before deduplication)
+2025-12-11T19:07:00.540Z [DEBUG] Writing to temp file: /home/runner/workspace/public/participante/js/modules/participante-rodadas.js.tmp.1628.1765480020540
+2025-12-11T19:07:00.540Z [DEBUG] Preserving file permissions: 100600
+2025-12-11T19:07:00.557Z [DEBUG] [SLOW OPERATION DETECTED] fs.writeFileSync (17.2ms)
+2025-12-11T19:07:00.557Z [DEBUG] Temp file written successfully, size: 31160 bytes
+2025-12-11T19:07:00.557Z [DEBUG] Applied original permissions to temp file
+2025-12-11T19:07:00.557Z [DEBUG] Renaming /home/runner/workspace/public/participante/js/modules/participante-rodadas.js.tmp.1628.1765480020540 to /home/runner/workspace/public/participante/js/modules/participante-rodadas.js
+2025-12-11T19:07:00.558Z [DEBUG] File /home/runner/workspace/public/participante/js/modules/participante-rodadas.js written atomically
+2025-12-11T19:07:00.581Z [DEBUG] [SLOW OPERATION DETECTED] fs.writeFileSync (6.8ms)
+2025-12-11T19:07:00.582Z [DEBUG] FileHistory: Tracked file modification for /home/runner/workspace/public/participante/js/modules/participante-rodadas.js
+2025-12-11T19:07:00.629Z [DEBUG] Getting matching hook commands for PostToolUse with query: Edit
+2025-12-11T19:07:00.629Z [DEBUG] Found 0 hook matchers in settings
+2025-12-11T19:07:00.629Z [DEBUG] Matched 0 unique hooks for query "Edit" (0 before deduplication)
+2025-12-11T19:07:00.689Z [DEBUG] LSP Diagnostics: getLSPDiagnosticAttachments called
+2025-12-11T19:07:00.689Z [DEBUG] LSP Diagnostics: Checking registry - 0 pending
+2025-12-11T19:07:00.689Z [DEBUG] Hooks: Found 0 total hooks in registry
+2025-12-11T19:07:00.689Z [DEBUG] Hooks: checkForNewResponses returning 0 responses
+2025-12-11T19:07:00.731Z [DEBUG] [TeammateMailbox] getTeammateMailboxAttachments called: envAgentName=undefined, isTeamLead=false, resolved agentName=undefined, teamName=undefined
+2025-12-11T19:07:00.731Z [DEBUG] [TeammateMailbox] Not checking inbox - not a teammate or team lead
+2025-12-11T19:07:03.410Z [DEBUG] Stream started - received first chunk
+2025-12-11T19:07:10.640Z [DEBUG] executePreToolHooks called for tool: Edit
+2025-12-11T19:07:10.670Z [DEBUG] Getting matching hook commands for PreToolUse with query: Edit
+2025-12-11T19:07:10.671Z [DEBUG] Found 0 hook matchers in settings
+2025-12-11T19:07:10.671Z [DEBUG] Matched 0 unique hooks for query "Edit" (0 before deduplication)
+2025-12-11T19:07:10.715Z [DEBUG] Writing to temp file: /home/runner/workspace/controllers/rodadaController.js.tmp.1628.1765480030715
+2025-12-11T19:07:10.715Z [DEBUG] Preserving file permissions: 100644
+2025-12-11T19:07:10.731Z [DEBUG] [SLOW OPERATION DETECTED] fs.writeFileSync (16.2ms)
+2025-12-11T19:07:10.731Z [DEBUG] Temp file written successfully, size: 18306 bytes
+2025-12-11T19:07:10.731Z [DEBUG] Applied original permissions to temp file
+2025-12-11T19:07:10.731Z [DEBUG] Renaming /home/runner/workspace/controllers/rodadaController.js.tmp.1628.1765480030715 to /home/runner/workspace/controllers/rodadaController.js
+2025-12-11T19:07:10.732Z [DEBUG] File /home/runner/workspace/controllers/rodadaController.js written atomically
+2025-12-11T19:07:10.752Z [DEBUG] [SLOW OPERATION DETECTED] fs.writeFileSync (8.2ms)
+2025-12-11T19:07:10.753Z [DEBUG] FileHistory: Tracked file modification for /home/runner/workspace/controllers/rodadaController.js
+2025-12-11T19:07:10.792Z [DEBUG] Getting matching hook commands for PostToolUse with query: Edit
+2025-12-11T19:07:10.792Z [DEBUG] Found 0 hook matchers in settings
+2025-12-11T19:07:10.792Z [DEBUG] Matched 0 unique hooks for query "Edit" (0 before deduplication)
+2025-12-11T19:07:10.869Z [DEBUG] LSP Diagnostics: getLSPDiagnosticAttachments called
+2025-12-11T19:07:10.869Z [DEBUG] LSP Diagnostics: Checking registry - 0 pending
+2025-12-11T19:07:10.869Z [DEBUG] Hooks: Found 0 total hooks in registry
+2025-12-11T19:07:10.869Z [DEBUG] Hooks: checkForNewResponses returning 0 responses
+2025-12-11T19:07:10.903Z [DEBUG] [SLOW OPERATION DETECTED] fs.appendFileSync (5.4ms)
+2025-12-11T19:07:10.919Z [DEBUG] [TeammateMailbox] getTeammateMailboxAttachments called: envAgentName=undefined, isTeamLead=false, resolved agentName=undefined, teamName=undefined
+2025-12-11T19:07:10.919Z [DEBUG] [TeammateMailbox] Not checking inbox - not a teammate or team lead
+2025-12-11T19:07:14.020Z [DEBUG] Stream started - received first chunk
+2025-12-11T19:07:15.608Z [DEBUG] executePreToolHooks called for tool: Read
+2025-12-11T19:07:15.621Z [DEBUG] Getting matching hook commands for PreToolUse with query: Read
+2025-12-11T19:07:15.621Z [DEBUG] Found 0 hook matchers in settings
+2025-12-11T19:07:15.621Z [DEBUG] Matched 0 unique hooks for query "Read" (0 before deduplication)
+2025-12-11T19:07:15.670Z [DEBUG] Getting matching hook commands for PostToolUse with query: Read
+2025-12-11T19:07:15.670Z [DEBUG] Found 0 hook matchers in settings
+2025-12-11T19:07:15.670Z [DEBUG] Matched 0 unique hooks for query "Read" (0 before deduplication)
+2025-12-11T19:07:15.694Z [DEBUG] LSP Diagnostics: getLSPDiagnosticAttachments called
+2025-12-11T19:07:15.694Z [DEBUG] LSP Diagnostics: Checking registry - 0 pending
+2025-12-11T19:07:15.694Z [DEBUG] Hooks: Found 0 total hooks in registry
+2025-12-11T19:07:15.694Z [DEBUG] Hooks: checkForNewResponses returning 0 responses
+2025-12-11T19:07:15.711Z [DEBUG] [TeammateMailbox] getTeammateMailboxAttachments called: envAgentName=undefined, isTeamLead=false, resolved agentName=undefined, teamName=undefined
+2025-12-11T19:07:15.711Z [DEBUG] [TeammateMailbox] Not checking inbox - not a teammate or team lead
+2025-12-11T19:07:18.578Z [DEBUG] Stream started - received first chunk
+2025-12-11T19:07:23.992Z [DEBUG] executePreToolHooks called for tool: Edit
+2025-12-11T19:07:24.009Z [DEBUG] Getting matching hook commands for PreToolUse with query: Edit
+2025-12-11T19:07:24.009Z [DEBUG] Found 0 hook matchers in settings
+2025-12-11T19:07:24.009Z [DEBUG] Matched 0 unique hooks for query "Edit" (0 before deduplication)
+2025-12-11T19:07:24.048Z [DEBUG] Writing to temp file: /home/runner/workspace/public/participante/fronts/rodadas.html.tmp.1628.1765480044048
+2025-12-11T19:07:24.048Z [DEBUG] Preserving file permissions: 100644
+2025-12-11T19:07:24.069Z [DEBUG] [SLOW OPERATION DETECTED] fs.writeFileSync (20.4ms)
+2025-12-11T19:07:24.069Z [DEBUG] Temp file written successfully, size: 25910 bytes
+2025-12-11T19:07:24.069Z [DEBUG] Applied original permissions to temp file
+2025-12-11T19:07:24.069Z [DEBUG] Renaming /home/runner/workspace/public/participante/fronts/rodadas.html.tmp.1628.1765480044048 to /home/runner/workspace/public/participante/fronts/rodadas.html
+2025-12-11T19:07:24.076Z [DEBUG] [SLOW OPERATION DETECTED] fs.renameSync (7.0ms)
+2025-12-11T19:07:24.076Z [DEBUG] File /home/runner/workspace/public/participante/fronts/rodadas.html written atomically
+2025-12-11T19:07:24.102Z [DEBUG] [SLOW OPERATION DETECTED] fs.writeFileSync (7.1ms)
+2025-12-11T19:07:24.103Z [DEBUG] FileHistory: Tracked file modification for /home/runner/workspace/public/participante/fronts/rodadas.html
+2025-12-11T19:07:24.159Z [DEBUG] Getting matching hook commands for PostToolUse with query: Edit
+2025-12-11T19:07:24.159Z [DEBUG] Found 0 hook matchers in settings
+2025-12-11T19:07:24.159Z [DEBUG] Matched 0 unique hooks for query "Edit" (0 before deduplication)
+2025-12-11T19:07:24.246Z [DEBUG] LSP Diagnostics: getLSPDiagnosticAttachments called
+2025-12-11T19:07:24.246Z [DEBUG] LSP Diagnostics: Checking registry - 0 pending
+2025-12-11T19:07:24.246Z [DEBUG] Hooks: Found 0 total hooks in registry
+2025-12-11T19:07:24.246Z [DEBUG] Hooks: checkForNewResponses returning 0 responses
+2025-12-11T19:07:24.264Z [DEBUG] [TeammateMailbox] getTeammateMailboxAttachments called: envAgentName=undefined, isTeamLead=false, resolved agentName=undefined, teamName=undefined
+2025-12-11T19:07:24.264Z [DEBUG] [TeammateMailbox] Not checking inbox - not a teammate or team lead
+2025-12-11T19:07:28.551Z [DEBUG] Stream started - received first chunk
+2025-12-11T19:07:33.376Z [DEBUG] executePreToolHooks called for tool: TodoWrite
+2025-12-11T19:07:33.387Z [DEBUG] Getting matching hook commands for PreToolUse with query: TodoWrite
+2025-12-11T19:07:33.387Z [DEBUG] Found 0 hook matchers in settings
+2025-12-11T19:07:33.387Z [DEBUG] Matched 0 unique hooks for query "TodoWrite" (0 before deduplication)
+2025-12-11T19:07:33.430Z [DEBUG] Writing to temp file: /home/runner/.claude/todos/eac385e2-4132-45ef-be9d-086b1c0c947b-agent-eac385e2-4132-45ef-be9d-086b1c0c947b.json.tmp.1628.1765480053430
+2025-12-11T19:07:33.430Z [DEBUG] Preserving file permissions: 100600
+2025-12-11T19:07:33.449Z [DEBUG] [SLOW OPERATION DETECTED] fs.writeFileSync (18.8ms)
+2025-12-11T19:07:33.449Z [DEBUG] Temp file written successfully, size: 636 bytes
+2025-12-11T19:07:33.449Z [DEBUG] Applied original permissions to temp file
+2025-12-11T19:07:33.449Z [DEBUG] Renaming /home/runner/.claude/todos/eac385e2-4132-45ef-be9d-086b1c0c947b-agent-eac385e2-4132-45ef-be9d-086b1c0c947b.json.tmp.1628.1765480053430 to /home/runner/.claude/todos/eac385e2-4132-45ef-be9d-086b1c0c947b-agent-eac385e2-4132-45ef-be9d-086b1c0c947b.json
+2025-12-11T19:07:33.449Z [DEBUG] File /home/runner/.claude/todos/eac385e2-4132-45ef-be9d-086b1c0c947b-agent-eac385e2-4132-45ef-be9d-086b1c0c947b.json written atomically
+2025-12-11T19:07:33.467Z [DEBUG] Getting matching hook commands for PostToolUse with query: TodoWrite
+2025-12-11T19:07:33.467Z [DEBUG] Found 0 hook matchers in settings
+2025-12-11T19:07:33.467Z [DEBUG] Matched 0 unique hooks for query "TodoWrite" (0 before deduplication)
+2025-12-11T19:07:33.488Z [DEBUG] LSP Diagnostics: getLSPDiagnosticAttachments called
+2025-12-11T19:07:33.488Z [DEBUG] LSP Diagnostics: Checking registry - 0 pending
+2025-12-11T19:07:33.488Z [DEBUG] Hooks: Found 0 total hooks in registry
+2025-12-11T19:07:33.488Z [DEBUG] Hooks: checkForNewResponses returning 0 responses
+2025-12-11T19:07:33.500Z [DEBUG] [TeammateMailbox] getTeammateMailboxAttachments called: envAgentName=undefined, isTeamLead=false, resolved agentName=undefined, teamName=undefined
+2025-12-11T19:07:33.500Z [DEBUG] [TeammateMailbox] Not checking inbox - not a teammate or team lead
+2025-12-11T19:07:36.708Z [DEBUG] Stream started - received first chunk
+2025-12-11T19:07:38.005Z [DEBUG] executePreToolHooks called for tool: Read
+2025-12-11T19:07:38.018Z [DEBUG] Getting matching hook commands for PreToolUse with query: Read
+2025-12-11T19:07:38.018Z [DEBUG] Found 0 hook matchers in settings
+2025-12-11T19:07:38.018Z [DEBUG] Matched 0 unique hooks for query "Read" (0 before deduplication)
+2025-12-11T19:07:38.070Z [DEBUG] Getting matching hook commands for PostToolUse with query: Read
+2025-12-11T19:07:38.070Z [DEBUG] Found 0 hook matchers in settings
+2025-12-11T19:07:38.070Z [DEBUG] Matched 0 unique hooks for query "Read" (0 before deduplication)
+2025-12-11T19:07:38.104Z [DEBUG] LSP Diagnostics: getLSPDiagnosticAttachments called
+2025-12-11T19:07:38.104Z [DEBUG] LSP Diagnostics: Checking registry - 0 pending
+2025-12-11T19:07:38.104Z [DEBUG] Hooks: Found 0 total hooks in registry
+2025-12-11T19:07:38.104Z [DEBUG] Hooks: checkForNewResponses returning 0 responses
+2025-12-11T19:07:38.120Z [DEBUG] [TeammateMailbox] getTeammateMailboxAttachments called: envAgentName=undefined, isTeamLead=false, resolved agentName=undefined, teamName=undefined
+2025-12-11T19:07:38.120Z [DEBUG] [TeammateMailbox] Not checking inbox - not a teammate or team lead
+2025-12-11T19:07:41.656Z [DEBUG] Stream started - received first chunk
+2025-12-11T19:07:48.524Z [DEBUG] executePreToolHooks called for tool: Edit
+2025-12-11T19:07:48.547Z [DEBUG] Getting matching hook commands for PreToolUse with query: Edit
+2025-12-11T19:07:48.547Z [DEBUG] Found 0 hook matchers in settings
+2025-12-11T19:07:48.547Z [DEBUG] Matched 0 unique hooks for query "Edit" (0 before deduplication)
+2025-12-11T19:07:48.578Z [DEBUG] Writing to temp file: /home/runner/workspace/public/fronts/rodadas.html.tmp.1628.1765480068578
+2025-12-11T19:07:48.578Z [DEBUG] Preserving file permissions: 100644
+2025-12-11T19:07:48.655Z [DEBUG] [SLOW OPERATION DETECTED] fs.writeFileSync (76.8ms)
+2025-12-11T19:07:48.655Z [DEBUG] Temp file written successfully, size: 6767 bytes
+2025-12-11T19:07:48.655Z [DEBUG] Applied original permissions to temp file
+2025-12-11T19:07:48.655Z [DEBUG] Renaming /home/runner/workspace/public/fronts/rodadas.html.tmp.1628.1765480068578 to /home/runner/workspace/public/fronts/rodadas.html
+2025-12-11T19:07:48.662Z [DEBUG] [SLOW OPERATION DETECTED] fs.renameSync (7.0ms)
+2025-12-11T19:07:48.662Z [DEBUG] File /home/runner/workspace/public/fronts/rodadas.html written atomically
+2025-12-11T19:07:48.680Z [DEBUG] [SLOW OPERATION DETECTED] fs.writeFileSync (7.8ms)
+2025-12-11T19:07:48.680Z [DEBUG] FileHistory: Tracked file modification for /home/runner/workspace/public/fronts/rodadas.html
+2025-12-11T19:07:48.698Z [DEBUG] Getting matching hook commands for PostToolUse with query: Edit
+2025-12-11T19:07:48.698Z [DEBUG] Found 0 hook matchers in settings
+2025-12-11T19:07:48.698Z [DEBUG] Matched 0 unique hooks for query "Edit" (0 before deduplication)
+2025-12-11T19:07:48.736Z [DEBUG] LSP Diagnostics: getLSPDiagnosticAttachments called
+2025-12-11T19:07:48.736Z [DEBUG] LSP Diagnostics: Checking registry - 0 pending
+2025-12-11T19:07:48.736Z [DEBUG] Hooks: Found 0 total hooks in registry
+2025-12-11T19:07:48.736Z [DEBUG] Hooks: checkForNewResponses returning 0 responses
+2025-12-11T19:07:48.761Z [DEBUG] [TeammateMailbox] getTeammateMailboxAttachments called: envAgentName=undefined, isTeamLead=false, resolved agentName=undefined, teamName=undefined
+2025-12-11T19:07:48.761Z [DEBUG] [TeammateMailbox] Not checking inbox - not a teammate or team lead
+2025-12-11T19:07:52.225Z [DEBUG] Stream started - received first chunk
+2025-12-11T19:07:56.128Z [DEBUG] executePreToolHooks called for tool: Edit
+2025-12-11T19:07:56.137Z [DEBUG] Getting matching hook commands for PreToolUse with query: Edit
+2025-12-11T19:07:56.137Z [DEBUG] Found 0 hook matchers in settings
+2025-12-11T19:07:56.137Z [DEBUG] Matched 0 unique hooks for query "Edit" (0 before deduplication)
+2025-12-11T19:07:56.157Z [DEBUG] Writing to temp file: /home/runner/workspace/public/fronts/rodadas.html.tmp.1628.1765480076157
+2025-12-11T19:07:56.157Z [DEBUG] Preserving file permissions: 100644
+2025-12-11T19:07:56.205Z [DEBUG] [SLOW OPERATION DETECTED] fs.writeFileSync (47.9ms)
+2025-12-11T19:07:56.205Z [DEBUG] Temp file written successfully, size: 6832 bytes
+2025-12-11T19:07:56.205Z [DEBUG] Applied original permissions to temp file
+2025-12-11T19:07:56.205Z [DEBUG] Renaming /home/runner/workspace/public/fronts/rodadas.html.tmp.1628.1765480076157 to /home/runner/workspace/public/fronts/rodadas.html
+2025-12-11T19:07:56.205Z [DEBUG] File /home/runner/workspace/public/fronts/rodadas.html written atomically
+2025-12-11T19:07:56.233Z [DEBUG] Getting matching hook commands for PostToolUse with query: Edit
+2025-12-11T19:07:56.233Z [DEBUG] Found 0 hook matchers in settings
+2025-12-11T19:07:56.233Z [DEBUG] Matched 0 unique hooks for query "Edit" (0 before deduplication)
+2025-12-11T19:07:56.278Z [DEBUG] LSP Diagnostics: getLSPDiagnosticAttachments called
+2025-12-11T19:07:56.278Z [DEBUG] LSP Diagnostics: Checking registry - 0 pending
+2025-12-11T19:07:56.278Z [DEBUG] Hooks: Found 0 total hooks in registry
+2025-12-11T19:07:56.278Z [DEBUG] Hooks: checkForNewResponses returning 0 responses
+2025-12-11T19:07:56.297Z [DEBUG] [TeammateMailbox] getTeammateMailboxAttachments called: envAgentName=undefined, isTeamLead=false, resolved agentName=undefined, teamName=undefined
+2025-12-11T19:07:56.297Z [DEBUG] [TeammateMailbox] Not checking inbox - not a teammate or team lead
+2025-12-11T19:07:59.398Z [DEBUG] Stream started - received first chunk
+2025-12-11T19:08:03.067Z [DEBUG] executePreToolHooks called for tool: Edit
+2025-12-11T19:08:03.082Z [DEBUG] Getting matching hook commands for PreToolUse with query: Edit
+2025-12-11T19:08:03.082Z [DEBUG] Found 0 hook matchers in settings
+2025-12-11T19:08:03.082Z [DEBUG] Matched 0 unique hooks for query "Edit" (0 before deduplication)
+2025-12-11T19:08:03.121Z [DEBUG] Writing to temp file: /home/runner/workspace/public/fronts/rodadas.html.tmp.1628.1765480083121
+2025-12-11T19:08:03.121Z [DEBUG] Preserving file permissions: 100644
+2025-12-11T19:08:03.141Z [DEBUG] [SLOW OPERATION DETECTED] fs.writeFileSync (19.8ms)
+2025-12-11T19:08:03.141Z [DEBUG] Temp file written successfully, size: 6915 bytes
+2025-12-11T19:08:03.141Z [DEBUG] Applied original permissions to temp file
+2025-12-11T19:08:03.141Z [DEBUG] Renaming /home/runner/workspace/public/fronts/rodadas.html.tmp.1628.1765480083121 to /home/runner/workspace/public/fronts/rodadas.html
+2025-12-11T19:08:03.142Z [DEBUG] File /home/runner/workspace/public/fronts/rodadas.html written atomically
+2025-12-11T19:08:03.169Z [DEBUG] Getting matching hook commands for PostToolUse with query: Edit
+2025-12-11T19:08:03.169Z [DEBUG] Found 0 hook matchers in settings
+2025-12-11T19:08:03.169Z [DEBUG] Matched 0 unique hooks for query "Edit" (0 before deduplication)
+2025-12-11T19:08:03.221Z [DEBUG] LSP Diagnostics: getLSPDiagnosticAttachments called
+2025-12-11T19:08:03.221Z [DEBUG] LSP Diagnostics: Checking registry - 0 pending
+2025-12-11T19:08:03.221Z [DEBUG] Hooks: Found 0 total hooks in registry
+2025-12-11T19:08:03.221Z [DEBUG] Hooks: checkForNewResponses returning 0 responses
+2025-12-11T19:08:03.248Z [DEBUG] [TeammateMailbox] getTeammateMailboxAttachments called: envAgentName=undefined, isTeamLead=false, resolved agentName=undefined, teamName=undefined
+2025-12-11T19:08:03.248Z [DEBUG] [TeammateMailbox] Not checking inbox - not a teammate or team lead
+2025-12-11T19:08:06.647Z [DEBUG] Stream started - received first chunk
+2025-12-11T19:08:10.021Z [DEBUG] executePreToolHooks called for tool: Edit
+2025-12-11T19:08:10.040Z [DEBUG] Getting matching hook commands for PreToolUse with query: Edit
+2025-12-11T19:08:10.040Z [DEBUG] Found 0 hook matchers in settings
+2025-12-11T19:08:10.040Z [DEBUG] Matched 0 unique hooks for query "Edit" (0 before deduplication)
+2025-12-11T19:08:10.064Z [DEBUG] Writing to temp file: /home/runner/workspace/public/fronts/rodadas.html.tmp.1628.1765480090064
+2025-12-11T19:08:10.064Z [DEBUG] Preserving file permissions: 100644
+2025-12-11T19:08:10.067Z [DEBUG] Temp file written successfully, size: 7004 bytes
+2025-12-11T19:08:10.067Z [DEBUG] Applied original permissions to temp file
+2025-12-11T19:08:10.067Z [DEBUG] Renaming /home/runner/workspace/public/fronts/rodadas.html.tmp.1628.1765480090064 to /home/runner/workspace/public/fronts/rodadas.html
+2025-12-11T19:08:10.067Z [DEBUG] File /home/runner/workspace/public/fronts/rodadas.html written atomically
+2025-12-11T19:08:10.101Z [DEBUG] Getting matching hook commands for PostToolUse with query: Edit
+2025-12-11T19:08:10.101Z [DEBUG] Found 0 hook matchers in settings
+2025-12-11T19:08:10.101Z [DEBUG] Matched 0 unique hooks for query "Edit" (0 before deduplication)
+2025-12-11T19:08:10.143Z [DEBUG] LSP Diagnostics: getLSPDiagnosticAttachments called
+2025-12-11T19:08:10.143Z [DEBUG] LSP Diagnostics: Checking registry - 0 pending
+2025-12-11T19:08:10.143Z [DEBUG] Hooks: Found 0 total hooks in registry
+2025-12-11T19:08:10.143Z [DEBUG] Hooks: checkForNewResponses returning 0 responses
+2025-12-11T19:08:10.156Z [DEBUG] [TeammateMailbox] getTeammateMailboxAttachments called: envAgentName=undefined, isTeamLead=false, resolved agentName=undefined, teamName=undefined
+2025-12-11T19:08:10.156Z [DEBUG] [TeammateMailbox] Not checking inbox - not a teammate or team lead
+2025-12-11T19:08:13.177Z [DEBUG] Stream started - received first chunk
+2025-12-11T19:08:15.296Z [DEBUG] executePreToolHooks called for tool: Grep
+2025-12-11T19:08:15.306Z [DEBUG] Getting matching hook commands for PreToolUse with query: Grep
+2025-12-11T19:08:15.306Z [DEBUG] Found 0 hook matchers in settings
+2025-12-11T19:08:15.306Z [DEBUG] Matched 0 unique hooks for query "Grep" (0 before deduplication)
+2025-12-11T19:08:15.397Z [DEBUG] Getting matching hook commands for PostToolUse with query: Grep
+2025-12-11T19:08:15.398Z [DEBUG] Found 0 hook matchers in settings
+2025-12-11T19:08:15.398Z [DEBUG] Matched 0 unique hooks for query "Grep" (0 before deduplication)
+2025-12-11T19:08:15.429Z [DEBUG] LSP Diagnostics: getLSPDiagnosticAttachments called
+2025-12-11T19:08:15.429Z [DEBUG] LSP Diagnostics: Checking registry - 0 pending
+2025-12-11T19:08:15.429Z [DEBUG] Hooks: Found 0 total hooks in registry
+2025-12-11T19:08:15.429Z [DEBUG] Hooks: checkForNewResponses returning 0 responses
+2025-12-11T19:08:15.449Z [DEBUG] [TeammateMailbox] getTeammateMailboxAttachments called: envAgentName=undefined, isTeamLead=false, resolved agentName=undefined, teamName=undefined
+2025-12-11T19:08:15.449Z [DEBUG] [TeammateMailbox] Not checking inbox - not a teammate or team lead
+2025-12-11T19:08:18.350Z [DEBUG] Stream started - received first chunk
+2025-12-11T19:08:19.662Z [DEBUG] executePreToolHooks called for tool: Read
+2025-12-11T19:08:19.673Z [DEBUG] Getting matching hook commands for PreToolUse with query: Read
+2025-12-11T19:08:19.673Z [DEBUG] Found 0 hook matchers in settings
+2025-12-11T19:08:19.673Z [DEBUG] Matched 0 unique hooks for query "Read" (0 before deduplication)
+2025-12-11T19:08:19.743Z [DEBUG] Getting matching hook commands for PostToolUse with query: Read
+2025-12-11T19:08:19.743Z [DEBUG] Found 0 hook matchers in settings
+2025-12-11T19:08:19.743Z [DEBUG] Matched 0 unique hooks for query "Read" (0 before deduplication)
+2025-12-11T19:08:19.763Z [DEBUG] LSP Diagnostics: getLSPDiagnosticAttachments called
+2025-12-11T19:08:19.763Z [DEBUG] LSP Diagnostics: Checking registry - 0 pending
+2025-12-11T19:08:19.763Z [DEBUG] Hooks: Found 0 total hooks in registry
+2025-12-11T19:08:19.763Z [DEBUG] Hooks: checkForNewResponses returning 0 responses
+2025-12-11T19:08:19.776Z [DEBUG] [TeammateMailbox] getTeammateMailboxAttachments called: envAgentName=undefined, isTeamLead=false, resolved agentName=undefined, teamName=undefined
+2025-12-11T19:08:19.776Z [DEBUG] [TeammateMailbox] Not checking inbox - not a teammate or team lead
+2025-12-11T19:08:24.602Z [DEBUG] Stream started - received first chunk
+2025-12-11T19:08:26.431Z [DEBUG] executePreToolHooks called for tool: Grep
+2025-12-11T19:08:26.440Z [DEBUG] Getting matching hook commands for PreToolUse with query: Grep
+2025-12-11T19:08:26.440Z [DEBUG] Found 0 hook matchers in settings
+2025-12-11T19:08:26.440Z [DEBUG] Matched 0 unique hooks for query "Grep" (0 before deduplication)
+2025-12-11T19:08:26.542Z [DEBUG] Getting matching hook commands for PostToolUse with query: Grep
+2025-12-11T19:08:26.542Z [DEBUG] Found 0 hook matchers in settings
+2025-12-11T19:08:26.542Z [DEBUG] Matched 0 unique hooks for query "Grep" (0 before deduplication)
+2025-12-11T19:08:26.577Z [DEBUG] LSP Diagnostics: getLSPDiagnosticAttachments called
+2025-12-11T19:08:26.577Z [DEBUG] LSP Diagnostics: Checking registry - 0 pending
+2025-12-11T19:08:26.577Z [DEBUG] Hooks: Found 0 total hooks in registry
+2025-12-11T19:08:26.577Z [DEBUG] Hooks: checkForNewResponses returning 0 responses
+2025-12-11T19:08:26.593Z [DEBUG] [TeammateMailbox] getTeammateMailboxAttachments called: envAgentName=undefined, isTeamLead=false, resolved agentName=undefined, teamName=undefined
+2025-12-11T19:08:26.593Z [DEBUG] [TeammateMailbox] Not checking inbox - not a teammate or team lead
+2025-12-11T19:08:29.979Z [DEBUG] Stream started - received first chunk
+2025-12-11T19:08:33.524Z [DEBUG] executePreToolHooks called for tool: Edit
+2025-12-11T19:08:33.540Z [DEBUG] Getting matching hook commands for PreToolUse with query: Edit
+2025-12-11T19:08:33.540Z [DEBUG] Found 0 hook matchers in settings
+2025-12-11T19:08:33.540Z [DEBUG] Matched 0 unique hooks for query "Edit" (0 before deduplication)
+2025-12-11T19:08:33.580Z [DEBUG] Writing to temp file: /home/runner/workspace/public/css/modules/rodadas.css.tmp.1628.1765480113580
+2025-12-11T19:08:33.580Z [DEBUG] Preserving file permissions: 100644
+2025-12-11T19:08:33.602Z [DEBUG] [SLOW OPERATION DETECTED] fs.writeFileSync (21.8ms)
+2025-12-11T19:08:33.602Z [DEBUG] Temp file written successfully, size: 14352 bytes
+2025-12-11T19:08:33.602Z [DEBUG] Applied original permissions to temp file
+2025-12-11T19:08:33.602Z [DEBUG] Renaming /home/runner/workspace/public/css/modules/rodadas.css.tmp.1628.1765480113580 to /home/runner/workspace/public/css/modules/rodadas.css
+2025-12-11T19:08:33.602Z [DEBUG] File /home/runner/workspace/public/css/modules/rodadas.css written atomically
+2025-12-11T19:08:33.620Z [DEBUG] [SLOW OPERATION DETECTED] fs.writeFileSync (6.1ms)
+2025-12-11T19:08:33.622Z [DEBUG] FileHistory: Tracked file modification for /home/runner/workspace/public/css/modules/rodadas.css
+2025-12-11T19:08:33.655Z [DEBUG] Getting matching hook commands for PostToolUse with query: Edit
+2025-12-11T19:08:33.655Z [DEBUG] Found 0 hook matchers in settings
+2025-12-11T19:08:33.655Z [DEBUG] Matched 0 unique hooks for query "Edit" (0 before deduplication)
+2025-12-11T19:08:33.682Z [DEBUG] [SLOW OPERATION DETECTED] fs.existsSync (7.4ms)
+2025-12-11T19:08:33.727Z [DEBUG] LSP Diagnostics: getLSPDiagnosticAttachments called
+2025-12-11T19:08:33.727Z [DEBUG] LSP Diagnostics: Checking registry - 0 pending
+2025-12-11T19:08:33.727Z [DEBUG] Hooks: Found 0 total hooks in registry
+2025-12-11T19:08:33.727Z [DEBUG] Hooks: checkForNewResponses returning 0 responses
+2025-12-11T19:08:33.744Z [DEBUG] [TeammateMailbox] getTeammateMailboxAttachments called: envAgentName=undefined, isTeamLead=false, resolved agentName=undefined, teamName=undefined
+2025-12-11T19:08:33.744Z [DEBUG] [TeammateMailbox] Not checking inbox - not a teammate or team lead
+2025-12-11T19:08:38.096Z [DEBUG] Stream started - received first chunk
+2025-12-11T19:08:40.685Z [DEBUG] executePreToolHooks called for tool: Edit
+2025-12-11T19:08:40.697Z [DEBUG] Getting matching hook commands for PreToolUse with query: Edit
+2025-12-11T19:08:40.697Z [DEBUG] Found 0 hook matchers in settings
+2025-12-11T19:08:40.697Z [DEBUG] Matched 0 unique hooks for query "Edit" (0 before deduplication)
+2025-12-11T19:08:40.727Z [DEBUG] Writing to temp file: /home/runner/workspace/public/css/modules/rodadas.css.tmp.1628.1765480120727
+2025-12-11T19:08:40.727Z [DEBUG] Preserving file permissions: 100644
+2025-12-11T19:08:40.735Z [DEBUG] [SLOW OPERATION DETECTED] fs.writeFileSync (7.3ms)
+2025-12-11T19:08:40.735Z [DEBUG] Temp file written successfully, size: 14466 bytes
+2025-12-11T19:08:40.735Z [DEBUG] Applied original permissions to temp file
+2025-12-11T19:08:40.735Z [DEBUG] Renaming /home/runner/workspace/public/css/modules/rodadas.css.tmp.1628.1765480120727 to /home/runner/workspace/public/css/modules/rodadas.css
+2025-12-11T19:08:40.735Z [DEBUG] File /home/runner/workspace/public/css/modules/rodadas.css written atomically
+2025-12-11T19:08:40.760Z [DEBUG] Getting matching hook commands for PostToolUse with query: Edit
+2025-12-11T19:08:40.760Z [DEBUG] Found 0 hook matchers in settings
+2025-12-11T19:08:40.760Z [DEBUG] Matched 0 unique hooks for query "Edit" (0 before deduplication)
+2025-12-11T19:08:40.804Z [DEBUG] LSP Diagnostics: getLSPDiagnosticAttachments called
+2025-12-11T19:08:40.804Z [DEBUG] LSP Diagnostics: Checking registry - 0 pending
+2025-12-11T19:08:40.804Z [DEBUG] Hooks: Found 0 total hooks in registry
+2025-12-11T19:08:40.804Z [DEBUG] Hooks: checkForNewResponses returning 0 responses
+2025-12-11T19:08:40.822Z [DEBUG] [TeammateMailbox] getTeammateMailboxAttachments called: envAgentName=undefined, isTeamLead=false, resolved agentName=undefined, teamName=undefined
+2025-12-11T19:08:40.822Z [DEBUG] [TeammateMailbox] Not checking inbox - not a teammate or team lead
+2025-12-11T19:08:43.609Z [DEBUG] Stream started - received first chunk
+2025-12-11T19:08:47.052Z [DEBUG] executePreToolHooks called for tool: Edit
+2025-12-11T19:08:47.072Z [DEBUG] Getting matching hook commands for PreToolUse with query: Edit
+2025-12-11T19:08:47.072Z [DEBUG] Found 0 hook matchers in settings
+2025-12-11T19:08:47.072Z [DEBUG] Matched 0 unique hooks for query "Edit" (0 before deduplication)
+2025-12-11T19:08:47.109Z [DEBUG] Writing to temp file: /home/runner/workspace/public/css/modules/rodadas.css.tmp.1628.1765480127109
+2025-12-11T19:08:47.109Z [DEBUG] Preserving file permissions: 100644
+2025-12-11T19:08:47.116Z [DEBUG] [SLOW OPERATION DETECTED] fs.writeFileSync (7.6ms)
+2025-12-11T19:08:47.116Z [DEBUG] Temp file written successfully, size: 14587 bytes
+2025-12-11T19:08:47.116Z [DEBUG] Applied original permissions to temp file
+2025-12-11T19:08:47.116Z [DEBUG] Renaming /home/runner/workspace/public/css/modules/rodadas.css.tmp.1628.1765480127109 to /home/runner/workspace/public/css/modules/rodadas.css
+2025-12-11T19:08:47.117Z [DEBUG] File /home/runner/workspace/public/css/modules/rodadas.css written atomically
+2025-12-11T19:08:47.139Z [DEBUG] Getting matching hook commands for PostToolUse with query: Edit
+2025-12-11T19:08:47.139Z [DEBUG] Found 0 hook matchers in settings
+2025-12-11T19:08:47.139Z [DEBUG] Matched 0 unique hooks for query "Edit" (0 before deduplication)
+2025-12-11T19:08:47.173Z [DEBUG] LSP Diagnostics: getLSPDiagnosticAttachments called
+2025-12-11T19:08:47.173Z [DEBUG] LSP Diagnostics: Checking registry - 0 pending
+2025-12-11T19:08:47.173Z [DEBUG] Hooks: Found 0 total hooks in registry
+2025-12-11T19:08:47.173Z [DEBUG] Hooks: checkForNewResponses returning 0 responses
+2025-12-11T19:08:47.187Z [DEBUG] [TeammateMailbox] getTeammateMailboxAttachments called: envAgentName=undefined, isTeamLead=false, resolved agentName=undefined, teamName=undefined
+2025-12-11T19:08:47.187Z [DEBUG] [TeammateMailbox] Not checking inbox - not a teammate or team lead
+2025-12-11T19:08:49.781Z [DEBUG] Stream started - received first chunk
+2025-12-11T19:08:53.859Z [DEBUG] executePreToolHooks called for tool: Edit
+2025-12-11T19:08:53.870Z [DEBUG] Getting matching hook commands for PreToolUse with query: Edit
+2025-12-11T19:08:53.870Z [DEBUG] Found 0 hook matchers in settings
+2025-12-11T19:08:53.870Z [DEBUG] Matched 0 unique hooks for query "Edit" (0 before deduplication)
+2025-12-11T19:08:53.901Z [DEBUG] Writing to temp file: /home/runner/workspace/public/css/modules/rodadas.css.tmp.1628.1765480133901
+2025-12-11T19:08:53.901Z [DEBUG] Preserving file permissions: 100644
+2025-12-11T19:08:53.904Z [DEBUG] Temp file written successfully, size: 14662 bytes
+2025-12-11T19:08:53.904Z [DEBUG] Applied original permissions to temp file
+2025-12-11T19:08:53.904Z [DEBUG] Renaming /home/runner/workspace/public/css/modules/rodadas.css.tmp.1628.1765480133901 to /home/runner/workspace/public/css/modules/rodadas.css
+2025-12-11T19:08:53.905Z [DEBUG] File /home/runner/workspace/public/css/modules/rodadas.css written atomically
+2025-12-11T19:08:53.937Z [DEBUG] Getting matching hook commands for PostToolUse with query: Edit
+2025-12-11T19:08:53.937Z [DEBUG] Found 0 hook matchers in settings
+2025-12-11T19:08:53.937Z [DEBUG] Matched 0 unique hooks for query "Edit" (0 before deduplication)
+2025-12-11T19:08:53.983Z [DEBUG] LSP Diagnostics: getLSPDiagnosticAttachments called
+2025-12-11T19:08:53.983Z [DEBUG] LSP Diagnostics: Checking registry - 0 pending
+2025-12-11T19:08:53.983Z [DEBUG] Hooks: Found 0 total hooks in registry
+2025-12-11T19:08:53.983Z [DEBUG] Hooks: checkForNewResponses returning 0 responses
+2025-12-11T19:08:54.001Z [DEBUG] [TeammateMailbox] getTeammateMailboxAttachments called: envAgentName=undefined, isTeamLead=false, resolved agentName=undefined, teamName=undefined
+2025-12-11T19:08:54.001Z [DEBUG] [TeammateMailbox] Not checking inbox - not a teammate or team lead
+2025-12-11T19:08:57.245Z [DEBUG] Stream started - received first chunk
+2025-12-11T19:08:59.374Z [DEBUG] executePreToolHooks called for tool: Grep
+2025-12-11T19:08:59.384Z [DEBUG] Getting matching hook commands for PreToolUse with query: Grep
+2025-12-11T19:08:59.384Z [DEBUG] Found 0 hook matchers in settings
+2025-12-11T19:08:59.384Z [DEBUG] Matched 0 unique hooks for query "Grep" (0 before deduplication)
+2025-12-11T19:08:59.469Z [DEBUG] Getting matching hook commands for PostToolUse with query: Grep
+2025-12-11T19:08:59.469Z [DEBUG] Found 0 hook matchers in settings
+2025-12-11T19:08:59.469Z [DEBUG] Matched 0 unique hooks for query "Grep" (0 before deduplication)
+2025-12-11T19:08:59.492Z [DEBUG] LSP Diagnostics: getLSPDiagnosticAttachments called
+2025-12-11T19:08:59.492Z [DEBUG] LSP Diagnostics: Checking registry - 0 pending
+2025-12-11T19:08:59.492Z [DEBUG] Hooks: Found 0 total hooks in registry
+2025-12-11T19:08:59.492Z [DEBUG] Hooks: checkForNewResponses returning 0 responses
+2025-12-11T19:08:59.511Z [DEBUG] [TeammateMailbox] getTeammateMailboxAttachments called: envAgentName=undefined, isTeamLead=false, resolved agentName=undefined, teamName=undefined
+2025-12-11T19:08:59.511Z [DEBUG] [TeammateMailbox] Not checking inbox - not a teammate or team lead
+2025-12-11T19:09:02.665Z [DEBUG] Stream started - received first chunk
+2025-12-11T19:09:04.841Z [DEBUG] executePreToolHooks called for tool: Edit
+2025-12-11T19:09:04.852Z [DEBUG] Getting matching hook commands for PreToolUse with query: Edit
+2025-12-11T19:09:04.852Z [DEBUG] Found 0 hook matchers in settings
+2025-12-11T19:09:04.852Z [DEBUG] Matched 0 unique hooks for query "Edit" (0 before deduplication)
+2025-12-11T19:09:04.876Z [DEBUG] Writing to temp file: /home/runner/workspace/public/css/modules/rodadas.css.tmp.1628.1765480144876
+2025-12-11T19:09:04.876Z [DEBUG] Preserving file permissions: 100644
+2025-12-11T19:09:04.897Z [DEBUG] [SLOW OPERATION DETECTED] fs.writeFileSync (21.5ms)
+2025-12-11T19:09:04.897Z [DEBUG] Temp file written successfully, size: 14808 bytes
+2025-12-11T19:09:04.897Z [DEBUG] Applied original permissions to temp file
+2025-12-11T19:09:04.897Z [DEBUG] Renaming /home/runner/workspace/public/css/modules/rodadas.css.tmp.1628.1765480144876 to /home/runner/workspace/public/css/modules/rodadas.css
+2025-12-11T19:09:04.898Z [DEBUG] File /home/runner/workspace/public/css/modules/rodadas.css written atomically
+2025-12-11T19:09:04.919Z [DEBUG] Getting matching hook commands for PostToolUse with query: Edit
+2025-12-11T19:09:04.919Z [DEBUG] Found 0 hook matchers in settings
+2025-12-11T19:09:04.919Z [DEBUG] Matched 0 unique hooks for query "Edit" (0 before deduplication)
+2025-12-11T19:09:04.957Z [DEBUG] LSP Diagnostics: getLSPDiagnosticAttachments called
+2025-12-11T19:09:04.957Z [DEBUG] LSP Diagnostics: Checking registry - 0 pending
+2025-12-11T19:09:04.957Z [DEBUG] Hooks: Found 0 total hooks in registry
+2025-12-11T19:09:04.957Z [DEBUG] Hooks: checkForNewResponses returning 0 responses
+2025-12-11T19:09:04.976Z [DEBUG] [TeammateMailbox] getTeammateMailboxAttachments called: envAgentName=undefined, isTeamLead=false, resolved agentName=undefined, teamName=undefined
+2025-12-11T19:09:04.976Z [DEBUG] [TeammateMailbox] Not checking inbox - not a teammate or team lead
+2025-12-11T19:09:07.862Z [DEBUG] Stream started - received first chunk
+2025-12-11T19:09:10.821Z [DEBUG] executePreToolHooks called for tool: TodoWrite
+2025-12-11T19:09:10.847Z [DEBUG] Getting matching hook commands for PreToolUse with query: TodoWrite
+2025-12-11T19:09:10.847Z [DEBUG] Found 0 hook matchers in settings
+2025-12-11T19:09:10.847Z [DEBUG] Matched 0 unique hooks for query "TodoWrite" (0 before deduplication)
+2025-12-11T19:09:10.888Z [DEBUG] Writing to temp file: /home/runner/.claude/todos/eac385e2-4132-45ef-be9d-086b1c0c947b-agent-eac385e2-4132-45ef-be9d-086b1c0c947b.json.tmp.1628.1765480150888
+2025-12-11T19:09:10.888Z [DEBUG] Preserving file permissions: 100600
+2025-12-11T19:09:10.890Z [DEBUG] Temp file written successfully, size: 2 bytes
+2025-12-11T19:09:10.890Z [DEBUG] Applied original permissions to temp file
+2025-12-11T19:09:10.890Z [DEBUG] Renaming /home/runner/.claude/todos/eac385e2-4132-45ef-be9d-086b1c0c947b-agent-eac385e2-4132-45ef-be9d-086b1c0c947b.json.tmp.1628.1765480150888 to /home/runner/.claude/todos/eac385e2-4132-45ef-be9d-086b1c0c947b-agent-eac385e2-4132-45ef-be9d-086b1c0c947b.json
+2025-12-11T19:09:10.890Z [DEBUG] File /home/runner/.claude/todos/eac385e2-4132-45ef-be9d-086b1c0c947b-agent-eac385e2-4132-45ef-be9d-086b1c0c947b.json written atomically
+2025-12-11T19:09:10.915Z [DEBUG] Getting matching hook commands for PostToolUse with query: TodoWrite
+2025-12-11T19:09:10.915Z [DEBUG] Found 0 hook matchers in settings
+2025-12-11T19:09:10.915Z [DEBUG] Matched 0 unique hooks for query "TodoWrite" (0 before deduplication)
+2025-12-11T19:09:10.943Z [DEBUG] LSP Diagnostics: getLSPDiagnosticAttachments called
+2025-12-11T19:09:10.943Z [DEBUG] LSP Diagnostics: Checking registry - 0 pending
+2025-12-11T19:09:10.943Z [DEBUG] Hooks: Found 0 total hooks in registry
+2025-12-11T19:09:10.943Z [DEBUG] Hooks: checkForNewResponses returning 0 responses
+2025-12-11T19:09:10.956Z [DEBUG] [TeammateMailbox] getTeammateMailboxAttachments called: envAgentName=undefined, isTeamLead=false, resolved agentName=undefined, teamName=undefined
+2025-12-11T19:09:10.956Z [DEBUG] [TeammateMailbox] Not checking inbox - not a teammate or team lead
+2025-12-11T19:09:14.060Z [DEBUG] Stream started - received first chunk
+2025-12-11T19:09:30.738Z [DEBUG] Getting matching hook commands for Stop with query: undefined
+2025-12-11T19:09:30.738Z [DEBUG] Found 0 hook matchers in settings
+2025-12-11T19:09:30.738Z [DEBUG] Matched 0 unique hooks for query "no match query" (0 before deduplication)
+2025-12-11T19:09:30.773Z [DEBUG] [SLOW OPERATION DETECTED] execSyncWithDefaults (22.7ms): ps aux | grep -E "code|cursor|windsurf|idea|pycharm|webstorm|phpstorm|rubymine|clion|goland|rider|da
+2025-12-11T19:09:30.822Z [DEBUG] [SLOW OPERATION DETECTED] execSyncWithDefaults (31.8ms): ps aux | grep -E "code|cursor|windsurf|idea|pycharm|webstorm|phpstorm|rubymine|clion|goland|rider|da
+2025-12-11T19:09:30.831Z [DEBUG] Writing to temp file: /home/runner/.claude.json.tmp.1628.1765480170831
+2025-12-11T19:09:30.831Z [DEBUG] Preserving file permissions: 100600
+2025-12-11T19:09:30.831Z [DEBUG] Temp file written successfully, size: 49946 bytes
+2025-12-11T19:09:30.831Z [DEBUG] Applied original permissions to temp file
+2025-12-11T19:09:30.831Z [DEBUG] Renaming /home/runner/.claude.json.tmp.1628.1765480170831 to /home/runner/.claude.json
+2025-12-11T19:09:30.832Z [DEBUG] File /home/runner/.claude.json written atomically
+2025-12-11T19:09:30.839Z [DEBUG] Writing to temp file: /home/runner/.claude.json.tmp.1628.1765480170839
+2025-12-11T19:09:30.840Z [DEBUG] Preserving file permissions: 100600
+2025-12-11T19:09:30.840Z [DEBUG] Temp file written successfully, size: 49979 bytes
+2025-12-11T19:09:30.840Z [DEBUG] Applied original permissions to temp file
+2025-12-11T19:09:30.840Z [DEBUG] Renaming /home/runner/.claude.json.tmp.1628.1765480170839 to /home/runner/.claude.json
+2025-12-11T19:09:30.841Z [DEBUG] File /home/runner/.claude.json written atomically
+2025-12-11T19:10:29.309Z [DEBUG] LSP Diagnostics: getLSPDiagnosticAttachments called
+2025-12-11T19:10:29.309Z [DEBUG] LSP Diagnostics: Checking registry - 0 pending
+2025-12-11T19:10:29.309Z [DEBUG] Hooks: Found 0 total hooks in registry
+2025-12-11T19:10:29.309Z [DEBUG] Hooks: checkForNewResponses returning 0 responses
+2025-12-11T19:10:29.332Z [DEBUG] [TeammateMailbox] getTeammateMailboxAttachments called: envAgentName=undefined, isTeamLead=false, resolved agentName=undefined, teamName=undefined
+2025-12-11T19:10:29.332Z [DEBUG] [TeammateMailbox] Not checking inbox - not a teammate or team lead
+2025-12-11T19:10:29.353Z [DEBUG] Getting matching hook commands for UserPromptSubmit with query: undefined
+2025-12-11T19:10:29.353Z [DEBUG] Found 0 hook matchers in settings
+2025-12-11T19:10:29.353Z [DEBUG] Matched 0 unique hooks for query "no match query" (0 before deduplication)
+2025-12-11T19:10:29.358Z [DEBUG] FileHistory: Making snapshot for message 3416c3be-b59d-4313-8533-d2a0f1e36c33
+2025-12-11T19:10:29.370Z [DEBUG] [SLOW OPERATION DETECTED] fs.writeFileSync (11.1ms)
+2025-12-11T19:10:29.378Z [DEBUG] [SLOW OPERATION DETECTED] fs.writeFileSync (5.3ms)
+2025-12-11T19:10:29.381Z [DEBUG] FileHistory: Added snapshot for 3416c3be-b59d-4313-8533-d2a0f1e36c33, tracking 10 files
+2025-12-11T19:10:30.428Z [DEBUG] Stream started - received first chunk
+2025-12-11T19:10:32.836Z [DEBUG] Stream started - received first chunk
+2025-12-11T19:10:35.456Z [DEBUG] executePreToolHooks called for tool: TodoWrite
+2025-12-11T19:10:35.470Z [DEBUG] Getting matching hook commands for PreToolUse with query: TodoWrite
+2025-12-11T19:10:35.470Z [DEBUG] Found 0 hook matchers in settings
+2025-12-11T19:10:35.470Z [DEBUG] Matched 0 unique hooks for query "TodoWrite" (0 before deduplication)
+2025-12-11T19:10:35.506Z [DEBUG] Writing to temp file: /home/runner/.claude/todos/eac385e2-4132-45ef-be9d-086b1c0c947b-agent-eac385e2-4132-45ef-be9d-086b1c0c947b.json.tmp.1628.1765480235506
+2025-12-11T19:10:35.506Z [DEBUG] Preserving file permissions: 100600
+2025-12-11T19:10:35.522Z [DEBUG] [SLOW OPERATION DETECTED] fs.writeFileSync (16.4ms)
+2025-12-11T19:10:35.522Z [DEBUG] Temp file written successfully, size: 156 bytes
+2025-12-11T19:10:35.522Z [DEBUG] Applied original permissions to temp file
+2025-12-11T19:10:35.522Z [DEBUG] Renaming /home/runner/.claude/todos/eac385e2-4132-45ef-be9d-086b1c0c947b-agent-eac385e2-4132-45ef-be9d-086b1c0c947b.json.tmp.1628.1765480235506 to /home/runner/.claude/todos/eac385e2-4132-45ef-be9d-086b1c0c947b-agent-eac385e2-4132-45ef-be9d-086b1c0c947b.json
+2025-12-11T19:10:35.523Z [DEBUG] File /home/runner/.claude/todos/eac385e2-4132-45ef-be9d-086b1c0c947b-agent-eac385e2-4132-45ef-be9d-086b1c0c947b.json written atomically
+2025-12-11T19:10:35.537Z [DEBUG] Getting matching hook commands for PostToolUse with query: TodoWrite
+2025-12-11T19:10:35.537Z [DEBUG] Found 0 hook matchers in settings
+2025-12-11T19:10:35.537Z [DEBUG] Matched 0 unique hooks for query "TodoWrite" (0 before deduplication)
+2025-12-11T19:10:35.547Z [DEBUG] executePreToolHooks called for tool: Grep
+2025-12-11T19:10:35.572Z [DEBUG] Getting matching hook commands for PreToolUse with query: Grep
+2025-12-11T19:10:35.572Z [DEBUG] Found 0 hook matchers in settings
+2025-12-11T19:10:35.572Z [DEBUG] Matched 0 unique hooks for query "Grep" (0 before deduplication)
+2025-12-11T19:10:35.659Z [DEBUG] Getting matching hook commands for PostToolUse with query: Grep
+2025-12-11T19:10:35.659Z [DEBUG] Found 0 hook matchers in settings
+2025-12-11T19:10:35.659Z [DEBUG] Matched 0 unique hooks for query "Grep" (0 before deduplication)
+2025-12-11T19:10:35.701Z [DEBUG] LSP Diagnostics: getLSPDiagnosticAttachments called
+2025-12-11T19:10:35.701Z [DEBUG] LSP Diagnostics: Checking registry - 0 pending
+2025-12-11T19:10:35.701Z [DEBUG] Hooks: Found 0 total hooks in registry
+2025-12-11T19:10:35.701Z [DEBUG] Hooks: checkForNewResponses returning 0 responses
+2025-12-11T19:10:35.740Z [DEBUG] [TeammateMailbox] getTeammateMailboxAttachments called: envAgentName=undefined, isTeamLead=false, resolved agentName=undefined, teamName=undefined
+2025-12-11T19:10:35.740Z [DEBUG] [TeammateMailbox] Not checking inbox - not a teammate or team lead
+2025-12-11T19:10:38.692Z [DEBUG] Stream started - received first chunk
+2025-12-11T19:10:39.397Z [DEBUG] executePreToolHooks called for tool: Read
+2025-12-11T19:10:39.409Z [DEBUG] Getting matching hook commands for PreToolUse with query: Read
+2025-12-11T19:10:39.409Z [DEBUG] Found 0 hook matchers in settings
+2025-12-11T19:10:39.409Z [DEBUG] Matched 0 unique hooks for query "Read" (0 before deduplication)
+2025-12-11T19:10:39.473Z [DEBUG] Getting matching hook commands for PostToolUse with query: Read
+2025-12-11T19:10:39.473Z [DEBUG] Found 0 hook matchers in settings
+2025-12-11T19:10:39.473Z [DEBUG] Matched 0 unique hooks for query "Read" (0 before deduplication)
+2025-12-11T19:10:39.506Z [DEBUG] LSP Diagnostics: getLSPDiagnosticAttachments called
+2025-12-11T19:10:39.506Z [DEBUG] LSP Diagnostics: Checking registry - 0 pending
+2025-12-11T19:10:39.506Z [DEBUG] Hooks: Found 0 total hooks in registry
+2025-12-11T19:10:39.506Z [DEBUG] Hooks: checkForNewResponses returning 0 responses
+2025-12-11T19:10:39.519Z [DEBUG] [TeammateMailbox] getTeammateMailboxAttachments called: envAgentName=undefined, isTeamLead=false, resolved agentName=undefined, teamName=undefined
+2025-12-11T19:10:39.519Z [DEBUG] [TeammateMailbox] Not checking inbox - not a teammate or team lead
+2025-12-11T19:10:42.606Z [DEBUG] Stream started - received first chunk
+2025-12-11T19:10:45.088Z [DEBUG] executePreToolHooks called for tool: Grep
+2025-12-11T19:10:45.097Z [DEBUG] Getting matching hook commands for PreToolUse with query: Grep
+2025-12-11T19:10:45.097Z [DEBUG] Found 0 hook matchers in settings
+2025-12-11T19:10:45.097Z [DEBUG] Matched 0 unique hooks for query "Grep" (0 before deduplication)
+2025-12-11T19:10:45.172Z [DEBUG] Getting matching hook commands for PostToolUse with query: Grep
+2025-12-11T19:10:45.172Z [DEBUG] Found 0 hook matchers in settings
+2025-12-11T19:10:45.172Z [DEBUG] Matched 0 unique hooks for query "Grep" (0 before deduplication)
+2025-12-11T19:10:45.197Z [DEBUG] LSP Diagnostics: getLSPDiagnosticAttachments called
+2025-12-11T19:10:45.197Z [DEBUG] LSP Diagnostics: Checking registry - 0 pending
+2025-12-11T19:10:45.197Z [DEBUG] Hooks: Found 0 total hooks in registry
+2025-12-11T19:10:45.197Z [DEBUG] Hooks: checkForNewResponses returning 0 responses
+2025-12-11T19:10:45.217Z [DEBUG] [TeammateMailbox] getTeammateMailboxAttachments called: envAgentName=undefined, isTeamLead=false, resolved agentName=undefined, teamName=undefined
+2025-12-11T19:10:45.217Z [DEBUG] [TeammateMailbox] Not checking inbox - not a teammate or team lead
+2025-12-11T19:10:48.665Z [DEBUG] Stream started - received first chunk
+2025-12-11T19:10:49.368Z [DEBUG] executePreToolHooks called for tool: Read
+2025-12-11T19:10:49.376Z [DEBUG] Getting matching hook commands for PreToolUse with query: Read
+2025-12-11T19:10:49.376Z [DEBUG] Found 0 hook matchers in settings
+2025-12-11T19:10:49.376Z [DEBUG] Matched 0 unique hooks for query "Read" (0 before deduplication)
+2025-12-11T19:10:49.420Z [DEBUG] Getting matching hook commands for PostToolUse with query: Read
+2025-12-11T19:10:49.420Z [DEBUG] Found 0 hook matchers in settings
+2025-12-11T19:10:49.420Z [DEBUG] Matched 0 unique hooks for query "Read" (0 before deduplication)
+2025-12-11T19:10:49.444Z [DEBUG] LSP Diagnostics: getLSPDiagnosticAttachments called
+2025-12-11T19:10:49.444Z [DEBUG] LSP Diagnostics: Checking registry - 0 pending
+2025-12-11T19:10:49.444Z [DEBUG] Hooks: Found 0 total hooks in registry
+2025-12-11T19:10:49.444Z [DEBUG] Hooks: checkForNewResponses returning 0 responses
+2025-12-11T19:10:49.461Z [DEBUG] [TeammateMailbox] getTeammateMailboxAttachments called: envAgentName=undefined, isTeamLead=false, resolved agentName=undefined, teamName=undefined
+2025-12-11T19:10:49.462Z [DEBUG] [TeammateMailbox] Not checking inbox - not a teammate or team lead
+2025-12-11T19:10:52.590Z [DEBUG] Stream started - received first chunk
+2025-12-11T19:10:55.505Z [DEBUG] executePreToolHooks called for tool: Read
+2025-12-11T19:10:55.517Z [DEBUG] Getting matching hook commands for PreToolUse with query: Read
+2025-12-11T19:10:55.517Z [DEBUG] Found 0 hook matchers in settings
+2025-12-11T19:10:55.517Z [DEBUG] Matched 0 unique hooks for query "Read" (0 before deduplication)
+2025-12-11T19:10:55.594Z [DEBUG] Getting matching hook commands for PostToolUse with query: Read
+2025-12-11T19:10:55.594Z [DEBUG] Found 0 hook matchers in settings
+2025-12-11T19:10:55.594Z [DEBUG] Matched 0 unique hooks for query "Read" (0 before deduplication)
+2025-12-11T19:10:55.661Z [DEBUG] LSP Diagnostics: getLSPDiagnosticAttachments called
+2025-12-11T19:10:55.661Z [DEBUG] LSP Diagnostics: Checking registry - 0 pending
+2025-12-11T19:10:55.661Z [DEBUG] Hooks: Found 0 total hooks in registry
+2025-12-11T19:10:55.661Z [DEBUG] Hooks: checkForNewResponses returning 0 responses
+2025-12-11T19:10:55.676Z [DEBUG] [TeammateMailbox] getTeammateMailboxAttachments called: envAgentName=undefined, isTeamLead=false, resolved agentName=undefined, teamName=undefined
+2025-12-11T19:10:55.676Z [DEBUG] [TeammateMailbox] Not checking inbox - not a teammate or team lead
+2025-12-11T19:10:59.326Z [DEBUG] Stream started - received first chunk
+2025-12-11T19:11:10.655Z [DEBUG] executePreToolHooks called for tool: Edit
+2025-12-11T19:11:10.665Z [DEBUG] Getting matching hook commands for PreToolUse with query: Edit
+2025-12-11T19:11:10.665Z [DEBUG] Found 0 hook matchers in settings
+2025-12-11T19:11:10.665Z [DEBUG] Matched 0 unique hooks for query "Edit" (0 before deduplication)
+2025-12-11T19:11:10.689Z [DEBUG] Writing to temp file: /home/runner/workspace/public/participante/js/modules/participante-top10.js.tmp.1628.1765480270689
+2025-12-11T19:11:10.689Z [DEBUG] Preserving file permissions: 100600
+2025-12-11T19:11:10.760Z [DEBUG] [SLOW OPERATION DETECTED] fs.writeFileSync (70.2ms)
+2025-12-11T19:11:10.760Z [DEBUG] Temp file written successfully, size: 19749 bytes
+2025-12-11T19:11:10.760Z [DEBUG] Applied original permissions to temp file
+2025-12-11T19:11:10.760Z [DEBUG] Renaming /home/runner/workspace/public/participante/js/modules/participante-top10.js.tmp.1628.1765480270689 to /home/runner/workspace/public/participante/js/modules/participante-top10.js
+2025-12-11T19:11:10.762Z [DEBUG] File /home/runner/workspace/public/participante/js/modules/participante-top10.js written atomically
+2025-12-11T19:11:10.784Z [DEBUG] [SLOW OPERATION DETECTED] fs.writeFileSync (8.1ms)
+2025-12-11T19:11:10.785Z [DEBUG] FileHistory: Tracked file modification for /home/runner/workspace/public/participante/js/modules/participante-top10.js
+2025-12-11T19:11:10.811Z [DEBUG] Getting matching hook commands for PostToolUse with query: Edit
+2025-12-11T19:11:10.811Z [DEBUG] Found 0 hook matchers in settings
+2025-12-11T19:11:10.811Z [DEBUG] Matched 0 unique hooks for query "Edit" (0 before deduplication)
+2025-12-11T19:11:10.863Z [DEBUG] LSP Diagnostics: getLSPDiagnosticAttachments called
+2025-12-11T19:11:10.863Z [DEBUG] LSP Diagnostics: Checking registry - 0 pending
+2025-12-11T19:11:10.863Z [DEBUG] Hooks: Found 0 total hooks in registry
+2025-12-11T19:11:10.863Z [DEBUG] Hooks: checkForNewResponses returning 0 responses
+2025-12-11T19:11:10.883Z [DEBUG] [TeammateMailbox] getTeammateMailboxAttachments called: envAgentName=undefined, isTeamLead=false, resolved agentName=undefined, teamName=undefined
+2025-12-11T19:11:10.884Z [DEBUG] [TeammateMailbox] Not checking inbox - not a teammate or team lead
+2025-12-11T19:11:14.077Z [DEBUG] Stream started - received first chunk
+2025-12-11T19:11:22.959Z [DEBUG] executePreToolHooks called for tool: Edit
+2025-12-11T19:11:22.970Z [DEBUG] Getting matching hook commands for PreToolUse with query: Edit
+2025-12-11T19:11:22.970Z [DEBUG] Found 0 hook matchers in settings
+2025-12-11T19:11:22.970Z [DEBUG] Matched 0 unique hooks for query "Edit" (0 before deduplication)
+2025-12-11T19:11:23.007Z [DEBUG] Writing to temp file: /home/runner/workspace/public/participante/js/modules/participante-top10.js.tmp.1628.1765480283007
+2025-12-11T19:11:23.007Z [DEBUG] Preserving file permissions: 100600
+2025-12-11T19:11:23.028Z [DEBUG] [SLOW OPERATION DETECTED] fs.writeFileSync (20.6ms)
+2025-12-11T19:11:23.028Z [DEBUG] Temp file written successfully, size: 20695 bytes
+2025-12-11T19:11:23.028Z [DEBUG] Applied original permissions to temp file
+2025-12-11T19:11:23.028Z [DEBUG] Renaming /home/runner/workspace/public/participante/js/modules/participante-top10.js.tmp.1628.1765480283007 to /home/runner/workspace/public/participante/js/modules/participante-top10.js
+2025-12-11T19:11:23.028Z [DEBUG] File /home/runner/workspace/public/participante/js/modules/participante-top10.js written atomically
+2025-12-11T19:11:23.069Z [DEBUG] Getting matching hook commands for PostToolUse with query: Edit
+2025-12-11T19:11:23.069Z [DEBUG] Found 0 hook matchers in settings
+2025-12-11T19:11:23.069Z [DEBUG] Matched 0 unique hooks for query "Edit" (0 before deduplication)
+2025-12-11T19:11:23.156Z [DEBUG] LSP Diagnostics: getLSPDiagnosticAttachments called
+2025-12-11T19:11:23.156Z [DEBUG] LSP Diagnostics: Checking registry - 0 pending
+2025-12-11T19:11:23.156Z [DEBUG] Hooks: Found 0 total hooks in registry
+2025-12-11T19:11:23.156Z [DEBUG] Hooks: checkForNewResponses returning 0 responses
+2025-12-11T19:11:23.171Z [DEBUG] [TeammateMailbox] getTeammateMailboxAttachments called: envAgentName=undefined, isTeamLead=false, resolved agentName=undefined, teamName=undefined
+2025-12-11T19:11:23.171Z [DEBUG] [TeammateMailbox] Not checking inbox - not a teammate or team lead
+2025-12-11T19:11:26.011Z [DEBUG] Stream started - received first chunk
+2025-12-11T19:11:29.556Z [DEBUG] executePreToolHooks called for tool: Edit
+2025-12-11T19:11:29.565Z [DEBUG] Getting matching hook commands for PreToolUse with query: Edit
+2025-12-11T19:11:29.565Z [DEBUG] Found 0 hook matchers in settings
+2025-12-11T19:11:29.565Z [DEBUG] Matched 0 unique hooks for query "Edit" (0 before deduplication)
+2025-12-11T19:11:29.595Z [DEBUG] Writing to temp file: /home/runner/workspace/public/participante/js/modules/participante-top10.js.tmp.1628.1765480289595
+2025-12-11T19:11:29.595Z [DEBUG] Preserving file permissions: 100600
+2025-12-11T19:11:29.623Z [DEBUG] [SLOW OPERATION DETECTED] fs.writeFileSync (27.6ms)
+2025-12-11T19:11:29.623Z [DEBUG] Temp file written successfully, size: 20704 bytes
+2025-12-11T19:11:29.623Z [DEBUG] Applied original permissions to temp file
+2025-12-11T19:11:29.623Z [DEBUG] Renaming /home/runner/workspace/public/participante/js/modules/participante-top10.js.tmp.1628.1765480289595 to /home/runner/workspace/public/participante/js/modules/participante-top10.js
+2025-12-11T19:11:29.623Z [DEBUG] File /home/runner/workspace/public/participante/js/modules/participante-top10.js written atomically
+2025-12-11T19:11:29.653Z [DEBUG] Getting matching hook commands for PostToolUse with query: Edit
+2025-12-11T19:11:29.653Z [DEBUG] Found 0 hook matchers in settings
+2025-12-11T19:11:29.653Z [DEBUG] Matched 0 unique hooks for query "Edit" (0 before deduplication)
+2025-12-11T19:11:29.698Z [DEBUG] LSP Diagnostics: getLSPDiagnosticAttachments called
+2025-12-11T19:11:29.698Z [DEBUG] LSP Diagnostics: Checking registry - 0 pending
+2025-12-11T19:11:29.698Z [DEBUG] Hooks: Found 0 total hooks in registry
+2025-12-11T19:11:29.698Z [DEBUG] Hooks: checkForNewResponses returning 0 responses
+2025-12-11T19:11:29.721Z [DEBUG] [TeammateMailbox] getTeammateMailboxAttachments called: envAgentName=undefined, isTeamLead=false, resolved agentName=undefined, teamName=undefined
+2025-12-11T19:11:29.721Z [DEBUG] [TeammateMailbox] Not checking inbox - not a teammate or team lead
+2025-12-11T19:11:32.739Z [DEBUG] Stream started - received first chunk
+2025-12-11T19:11:35.330Z [DEBUG] executePreToolHooks called for tool: Edit
+2025-12-11T19:11:35.338Z [DEBUG] Getting matching hook commands for PreToolUse with query: Edit
+2025-12-11T19:11:35.338Z [DEBUG] Found 0 hook matchers in settings
+2025-12-11T19:11:35.338Z [DEBUG] Matched 0 unique hooks for query "Edit" (0 before deduplication)
+2025-12-11T19:11:35.361Z [DEBUG] Writing to temp file: /home/runner/workspace/public/participante/js/modules/participante-top10.js.tmp.1628.1765480295361
+2025-12-11T19:11:35.361Z [DEBUG] Preserving file permissions: 100600
+2025-12-11T19:11:35.380Z [DEBUG] [SLOW OPERATION DETECTED] fs.writeFileSync (18.8ms)
+2025-12-11T19:11:35.380Z [DEBUG] Temp file written successfully, size: 20695 bytes
+2025-12-11T19:11:35.380Z [DEBUG] Applied original permissions to temp file
+2025-12-11T19:11:35.380Z [DEBUG] Renaming /home/runner/workspace/public/participante/js/modules/participante-top10.js.tmp.1628.1765480295361 to /home/runner/workspace/public/participante/js/modules/participante-top10.js
+2025-12-11T19:11:35.380Z [DEBUG] File /home/runner/workspace/public/participante/js/modules/participante-top10.js written atomically
+2025-12-11T19:11:35.423Z [DEBUG] Getting matching hook commands for PostToolUse with query: Edit
+2025-12-11T19:11:35.423Z [DEBUG] Found 0 hook matchers in settings
+2025-12-11T19:11:35.423Z [DEBUG] Matched 0 unique hooks for query "Edit" (0 before deduplication)
+2025-12-11T19:11:35.466Z [DEBUG] LSP Diagnostics: getLSPDiagnosticAttachments called
+2025-12-11T19:11:35.466Z [DEBUG] LSP Diagnostics: Checking registry - 0 pending
+2025-12-11T19:11:35.466Z [DEBUG] Hooks: Found 0 total hooks in registry
+2025-12-11T19:11:35.466Z [DEBUG] Hooks: checkForNewResponses returning 0 responses
+2025-12-11T19:11:35.497Z [DEBUG] [TeammateMailbox] getTeammateMailboxAttachments called: envAgentName=undefined, isTeamLead=false, resolved agentName=undefined, teamName=undefined
+2025-12-11T19:11:35.497Z [DEBUG] [TeammateMailbox] Not checking inbox - not a teammate or team lead
+2025-12-11T19:11:38.473Z [DEBUG] Stream started - received first chunk
+2025-12-11T19:11:40.931Z [DEBUG] executePreToolHooks called for tool: Grep
+2025-12-11T19:11:40.948Z [DEBUG] Getting matching hook commands for PreToolUse with query: Grep
+2025-12-11T19:11:40.948Z [DEBUG] Found 0 hook matchers in settings
+2025-12-11T19:11:40.948Z [DEBUG] Matched 0 unique hooks for query "Grep" (0 before deduplication)
+2025-12-11T19:11:41.071Z [DEBUG] Getting matching hook commands for PostToolUse with query: Grep
+2025-12-11T19:11:41.071Z [DEBUG] Found 0 hook matchers in settings
+2025-12-11T19:11:41.072Z [DEBUG] Matched 0 unique hooks for query "Grep" (0 before deduplication)
+2025-12-11T19:11:41.118Z [DEBUG] LSP Diagnostics: getLSPDiagnosticAttachments called
+2025-12-11T19:11:41.118Z [DEBUG] LSP Diagnostics: Checking registry - 0 pending
+2025-12-11T19:11:41.118Z [DEBUG] Hooks: Found 0 total hooks in registry
+2025-12-11T19:11:41.118Z [DEBUG] Hooks: checkForNewResponses returning 0 responses
+2025-12-11T19:11:41.155Z [DEBUG] [TeammateMailbox] getTeammateMailboxAttachments called: envAgentName=undefined, isTeamLead=false, resolved agentName=undefined, teamName=undefined
+2025-12-11T19:11:41.155Z [DEBUG] [TeammateMailbox] Not checking inbox - not a teammate or team lead
+2025-12-11T19:11:44.175Z [DEBUG] Stream started - received first chunk
+2025-12-11T19:11:46.428Z [DEBUG] executePreToolHooks called for tool: Read
+2025-12-11T19:11:46.438Z [DEBUG] Getting matching hook commands for PreToolUse with query: Read
+2025-12-11T19:11:46.438Z [DEBUG] Found 0 hook matchers in settings
+2025-12-11T19:11:46.439Z [DEBUG] Matched 0 unique hooks for query "Read" (0 before deduplication)
+2025-12-11T19:11:46.502Z [DEBUG] Getting matching hook commands for PostToolUse with query: Read
+2025-12-11T19:11:46.502Z [DEBUG] Found 0 hook matchers in settings
+2025-12-11T19:11:46.502Z [DEBUG] Matched 0 unique hooks for query "Read" (0 before deduplication)
+2025-12-11T19:11:46.529Z [DEBUG] LSP Diagnostics: getLSPDiagnosticAttachments called
+2025-12-11T19:11:46.529Z [DEBUG] LSP Diagnostics: Checking registry - 0 pending
+2025-12-11T19:11:46.529Z [DEBUG] Hooks: Found 0 total hooks in registry
+2025-12-11T19:11:46.529Z [DEBUG] Hooks: checkForNewResponses returning 0 responses
+2025-12-11T19:11:46.546Z [DEBUG] [TeammateMailbox] getTeammateMailboxAttachments called: envAgentName=undefined, isTeamLead=false, resolved agentName=undefined, teamName=undefined
+2025-12-11T19:11:46.546Z [DEBUG] [TeammateMailbox] Not checking inbox - not a teammate or team lead
+2025-12-11T19:11:49.383Z [DEBUG] Stream started - received first chunk
+2025-12-11T19:11:51.854Z [DEBUG] executePreToolHooks called for tool: Read
+2025-12-11T19:11:51.863Z [DEBUG] Getting matching hook commands for PreToolUse with query: Read
+2025-12-11T19:11:51.863Z [DEBUG] Found 0 hook matchers in settings
+2025-12-11T19:11:51.863Z [DEBUG] Matched 0 unique hooks for query "Read" (0 before deduplication)
+2025-12-11T19:11:51.927Z [DEBUG] Getting matching hook commands for PostToolUse with query: Read
+2025-12-11T19:11:51.927Z [DEBUG] Found 0 hook matchers in settings
+2025-12-11T19:11:51.927Z [DEBUG] Matched 0 unique hooks for query "Read" (0 before deduplication)
+2025-12-11T19:11:51.970Z [DEBUG] LSP Diagnostics: getLSPDiagnosticAttachments called
+2025-12-11T19:11:51.970Z [DEBUG] LSP Diagnostics: Checking registry - 0 pending
+2025-12-11T19:11:51.971Z [DEBUG] Hooks: Found 0 total hooks in registry
+2025-12-11T19:11:51.971Z [DEBUG] Hooks: checkForNewResponses returning 0 responses
+2025-12-11T19:11:51.988Z [DEBUG] [TeammateMailbox] getTeammateMailboxAttachments called: envAgentName=undefined, isTeamLead=false, resolved agentName=undefined, teamName=undefined
+2025-12-11T19:11:51.988Z [DEBUG] [TeammateMailbox] Not checking inbox - not a teammate or team lead
+2025-12-11T19:11:54.901Z [DEBUG] Stream started - received first chunk
+2025-12-11T19:11:57.578Z [DEBUG] executePreToolHooks called for tool: Grep
+2025-12-11T19:11:57.595Z [DEBUG] Getting matching hook commands for PreToolUse with query: Grep
+2025-12-11T19:11:57.595Z [DEBUG] Found 0 hook matchers in settings
+2025-12-11T19:11:57.595Z [DEBUG] Matched 0 unique hooks for query "Grep" (0 before deduplication)
+2025-12-11T19:11:57.707Z [DEBUG] Getting matching hook commands for PostToolUse with query: Grep
+2025-12-11T19:11:57.707Z [DEBUG] Found 0 hook matchers in settings
+2025-12-11T19:11:57.707Z [DEBUG] Matched 0 unique hooks for query "Grep" (0 before deduplication)
+2025-12-11T19:11:57.731Z [DEBUG] LSP Diagnostics: getLSPDiagnosticAttachments called
+2025-12-11T19:11:57.731Z [DEBUG] LSP Diagnostics: Checking registry - 0 pending
+2025-12-11T19:11:57.731Z [DEBUG] Hooks: Found 0 total hooks in registry
+2025-12-11T19:11:57.731Z [DEBUG] Hooks: checkForNewResponses returning 0 responses
+2025-12-11T19:11:57.756Z [DEBUG] [TeammateMailbox] getTeammateMailboxAttachments called: envAgentName=undefined, isTeamLead=false, resolved agentName=undefined, teamName=undefined
+2025-12-11T19:11:57.756Z [DEBUG] [TeammateMailbox] Not checking inbox - not a teammate or team lead
+2025-12-11T19:12:01.576Z [DEBUG] Stream started - received first chunk
+2025-12-11T19:12:02.238Z [DEBUG] executePreToolHooks called for tool: Read
+2025-12-11T19:12:02.247Z [DEBUG] Getting matching hook commands for PreToolUse with query: Read
+2025-12-11T19:12:02.247Z [DEBUG] Found 0 hook matchers in settings
+2025-12-11T19:12:02.247Z [DEBUG] Matched 0 unique hooks for query "Read" (0 before deduplication)
+2025-12-11T19:12:02.309Z [DEBUG] Getting matching hook commands for PostToolUse with query: Read
+2025-12-11T19:12:02.309Z [DEBUG] Found 0 hook matchers in settings
+2025-12-11T19:12:02.309Z [DEBUG] Matched 0 unique hooks for query "Read" (0 before deduplication)
+2025-12-11T19:12:02.337Z [DEBUG] LSP Diagnostics: getLSPDiagnosticAttachments called
+2025-12-11T19:12:02.337Z [DEBUG] LSP Diagnostics: Checking registry - 0 pending
+2025-12-11T19:12:02.337Z [DEBUG] Hooks: Found 0 total hooks in registry
+2025-12-11T19:12:02.337Z [DEBUG] Hooks: checkForNewResponses returning 0 responses
+2025-12-11T19:12:02.354Z [DEBUG] [TeammateMailbox] getTeammateMailboxAttachments called: envAgentName=undefined, isTeamLead=false, resolved agentName=undefined, teamName=undefined
+2025-12-11T19:12:02.354Z [DEBUG] [TeammateMailbox] Not checking inbox - not a teammate or team lead
+2025-12-11T19:12:05.489Z [DEBUG] Stream started - received first chunk
+2025-12-11T19:12:10.457Z [DEBUG] executePreToolHooks called for tool: Bash
+2025-12-11T19:12:10.472Z [DEBUG] Getting matching hook commands for PreToolUse with query: Bash
+2025-12-11T19:12:10.472Z [DEBUG] Found 0 hook matchers in settings
+2025-12-11T19:12:10.472Z [DEBUG] Matched 0 unique hooks for query "Bash" (0 before deduplication)
+2025-12-11T19:12:12.923Z [DEBUG] Getting matching hook commands for PostToolUse with query: Bash
+2025-12-11T19:12:12.923Z [DEBUG] Found 0 hook matchers in settings
+2025-12-11T19:12:12.923Z [DEBUG] Matched 0 unique hooks for query "Bash" (0 before deduplication)
+2025-12-11T19:12:12.968Z [DEBUG] LSP Diagnostics: getLSPDiagnosticAttachments called
+2025-12-11T19:12:12.968Z [DEBUG] LSP Diagnostics: Checking registry - 0 pending
+2025-12-11T19:12:12.968Z [DEBUG] Hooks: Found 0 total hooks in registry
+2025-12-11T19:12:12.968Z [DEBUG] Hooks: checkForNewResponses returning 0 responses
+2025-12-11T19:12:12.986Z [DEBUG] [TeammateMailbox] getTeammateMailboxAttachments called: envAgentName=undefined, isTeamLead=false, resolved agentName=undefined, teamName=undefined
+2025-12-11T19:12:12.986Z [DEBUG] [TeammateMailbox] Not checking inbox - not a teammate or team lead
+2025-12-11T19:12:13.683Z [DEBUG] Stream started - received first chunk
+2025-12-11T19:12:16.081Z [DEBUG] Stream started - received first chunk
+2025-12-11T19:12:21.282Z [DEBUG] executePreToolHooks called for tool: Bash
+2025-12-11T19:12:21.296Z [DEBUG] Getting matching hook commands for PreToolUse with query: Bash
+2025-12-11T19:12:21.296Z [DEBUG] Found 0 hook matchers in settings
+2025-12-11T19:12:21.296Z [DEBUG] Matched 0 unique hooks for query "Bash" (0 before deduplication)
+2025-12-11T19:12:24.006Z [DEBUG] Getting matching hook commands for PostToolUse with query: Bash
+2025-12-11T19:12:24.006Z [DEBUG] Found 0 hook matchers in settings
+2025-12-11T19:12:24.006Z [DEBUG] Matched 0 unique hooks for query "Bash" (0 before deduplication)
+2025-12-11T19:12:24.037Z [DEBUG] LSP Diagnostics: getLSPDiagnosticAttachments called
+2025-12-11T19:12:24.037Z [DEBUG] LSP Diagnostics: Checking registry - 0 pending
+2025-12-11T19:12:24.037Z [DEBUG] Hooks: Found 0 total hooks in registry
+2025-12-11T19:12:24.037Z [DEBUG] Hooks: checkForNewResponses returning 0 responses
+2025-12-11T19:12:24.069Z [DEBUG] [TeammateMailbox] getTeammateMailboxAttachments called: envAgentName=undefined, isTeamLead=false, resolved agentName=undefined, teamName=undefined
+2025-12-11T19:12:24.069Z [DEBUG] [TeammateMailbox] Not checking inbox - not a teammate or team lead
+2025-12-11T19:12:26.090Z [DEBUG] Stream started - received first chunk
+2025-12-11T19:12:28.854Z [DEBUG] Stream started - received first chunk
+2025-12-11T19:12:31.044Z [DEBUG] executePreToolHooks called for tool: TodoWrite
+2025-12-11T19:12:31.055Z [DEBUG] Getting matching hook commands for PreToolUse with query: TodoWrite
+2025-12-11T19:12:31.055Z [DEBUG] Found 0 hook matchers in settings
+2025-12-11T19:12:31.055Z [DEBUG] Matched 0 unique hooks for query "TodoWrite" (0 before deduplication)
+2025-12-11T19:12:31.083Z [DEBUG] Writing to temp file: /home/runner/.claude/todos/eac385e2-4132-45ef-be9d-086b1c0c947b-agent-eac385e2-4132-45ef-be9d-086b1c0c947b.json.tmp.1628.1765480351083
+2025-12-11T19:12:31.083Z [DEBUG] Preserving file permissions: 100600
+2025-12-11T19:12:31.094Z [DEBUG] [SLOW OPERATION DETECTED] fs.writeFileSync (11.4ms)
+2025-12-11T19:12:31.094Z [DEBUG] Temp file written successfully, size: 2 bytes
+2025-12-11T19:12:31.094Z [DEBUG] Applied original permissions to temp file
+2025-12-11T19:12:31.094Z [DEBUG] Renaming /home/runner/.claude/todos/eac385e2-4132-45ef-be9d-086b1c0c947b-agent-eac385e2-4132-45ef-be9d-086b1c0c947b.json.tmp.1628.1765480351083 to /home/runner/.claude/todos/eac385e2-4132-45ef-be9d-086b1c0c947b-agent-eac385e2-4132-45ef-be9d-086b1c0c947b.json
+2025-12-11T19:12:31.094Z [DEBUG] File /home/runner/.claude/todos/eac385e2-4132-45ef-be9d-086b1c0c947b-agent-eac385e2-4132-45ef-be9d-086b1c0c947b.json written atomically
+2025-12-11T19:12:31.109Z [DEBUG] Getting matching hook commands for PostToolUse with query: TodoWrite
+2025-12-11T19:12:31.109Z [DEBUG] Found 0 hook matchers in settings
+2025-12-11T19:12:31.109Z [DEBUG] Matched 0 unique hooks for query "TodoWrite" (0 before deduplication)
+2025-12-11T19:12:31.141Z [DEBUG] LSP Diagnostics: getLSPDiagnosticAttachments called
+2025-12-11T19:12:31.141Z [DEBUG] LSP Diagnostics: Checking registry - 0 pending
+2025-12-11T19:12:31.141Z [DEBUG] Hooks: Found 0 total hooks in registry
+2025-12-11T19:12:31.141Z [DEBUG] Hooks: checkForNewResponses returning 0 responses
+2025-12-11T19:12:31.172Z [DEBUG] [TeammateMailbox] getTeammateMailboxAttachments called: envAgentName=undefined, isTeamLead=false, resolved agentName=undefined, teamName=undefined
+2025-12-11T19:12:31.172Z [DEBUG] [TeammateMailbox] Not checking inbox - not a teammate or team lead
+2025-12-11T19:12:34.915Z [DEBUG] Stream started - received first chunk
+2025-12-11T19:12:48.497Z [DEBUG] Getting matching hook commands for Stop with query: undefined
+2025-12-11T19:12:48.497Z [DEBUG] Found 0 hook matchers in settings
+2025-12-11T19:12:48.497Z [DEBUG] Matched 0 unique hooks for query "no match query" (0 before deduplication)
+2025-12-11T19:12:48.539Z [DEBUG] [SLOW OPERATION DETECTED] execSyncWithDefaults (24.7ms): ps aux | grep -E "code|cursor|windsurf|idea|pycharm|webstorm|phpstorm|rubymine|clion|goland|rider|da
+2025-12-11T19:12:48.573Z [DEBUG] [SLOW OPERATION DETECTED] execSyncWithDefaults (20.9ms): ps aux | grep -E "code|cursor|windsurf|idea|pycharm|webstorm|phpstorm|rubymine|clion|goland|rider|da
+2025-12-11T19:12:48.583Z [DEBUG] Writing to temp file: /home/runner/.claude.json.tmp.1628.1765480368583
+2025-12-11T19:12:48.583Z [DEBUG] Preserving file permissions: 100600
+2025-12-11T19:12:48.583Z [DEBUG] Temp file written successfully, size: 49979 bytes
+2025-12-11T19:12:48.583Z [DEBUG] Applied original permissions to temp file
+2025-12-11T19:12:48.583Z [DEBUG] Renaming /home/runner/.claude.json.tmp.1628.1765480368583 to /home/runner/.claude.json
+2025-12-11T19:12:48.584Z [DEBUG] File /home/runner/.claude.json written atomically

@@ -84,41 +84,21 @@ export async function inicializarTop10Participante({
     mostrarLoading(true);
 
     try {
-        // ✅ v4.6: Determinar rodada correta considerando fim do campeonato
-        let ultimaRodadaCompleta = 1;
-
-        if (CAMPEONATO_ENCERRADO) {
-            // Campeonato encerrado: última rodada = RODADA_FINAL_CAMPEONATO (38)
-            ultimaRodadaCompleta = RODADA_FINAL_CAMPEONATO;
-            if (window.Log)
-                Log.info(
-                    `[PARTICIPANTE-TOP10] 🏁 Campeonato ENCERRADO - usando rodada ${RODADA_FINAL_CAMPEONATO}`,
-                );
-        } else {
-            // Campeonato em andamento: verificar mercado
-            try {
-                const resStatus = await fetch("/api/cartola/mercado/status");
-                if (resStatus.ok) {
-                    const status = await resStatus.json();
-                    const rodadaAtual = status.rodada_atual || 1;
-                    const mercadoAberto =
-                        status.mercado_aberto || status.status_mercado === 1;
-
-                    if (mercadoAberto) {
-                        ultimaRodadaCompleta = Math.max(1, rodadaAtual - 1);
-                    } else {
-                        ultimaRodadaCompleta = rodadaAtual;
-                    }
-                }
-            } catch (e) {
-                if (window.Log)
-                    Log.warn(
-                        "[PARTICIPANTE-TOP10] ⚠️ Falha ao buscar rodada atual",
-                    );
+        let rodadaAtual = 1;
+        try {
+            const resStatus = await fetch("/api/cartola/mercado/status");
+            if (resStatus.ok) {
+                const status = await resStatus.json();
+                rodadaAtual = status.rodada_atual || 1;
             }
+        } catch (e) {
+            if (window.Log)
+                Log.warn(
+                    "[PARTICIPANTE-TOP10] ⚠️ Falha ao buscar rodada atual",
+                );
         }
 
-        const cacheUrl = `/api/top10/cache/${ligaId}?rodada=${ultimaRodadaCompleta}`;
+        const cacheUrl = `/api/top10/cache/${ligaId}?rodada=${rodadaAtual}`;
         if (window.Log)
             Log.info("[PARTICIPANTE-TOP10] 📡 Buscando cache:", cacheUrl);
 
@@ -141,7 +121,7 @@ export async function inicializarTop10Participante({
         if (mitos.length === 0 || micos.length === 0) {
             if (window.Log)
                 Log.info("[PARTICIPANTE-TOP10] 📊 Calculando MITOS/MICOS...");
-            const resultado = await calcularMitosMicos(ligaId, ultimaRodadaCompleta);
+            const resultado = await calcularMitosMicos(ligaId, rodadaAtual);
             mitos = resultado.mitos;
             micos = resultado.micos;
         }
@@ -551,5 +531,5 @@ function mostrarEstadoVazio(show) {
 
 if (window.Log)
     Log.info(
-        "[PARTICIPANTE-TOP10] ✅ Módulo v4.6 carregado (Fix Rodada 38)",
+        "[PARTICIPANTE-TOP10] ✅ Módulo v4.5 carregado (Destaque Visual TOP 10)",
     );

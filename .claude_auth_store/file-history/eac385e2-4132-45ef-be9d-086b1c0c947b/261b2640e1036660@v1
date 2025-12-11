@@ -69,10 +69,7 @@ const SplashScreen = {
             this.element.classList.add('hidden');
             this.element.classList.remove('animate');
             this.isVisible = false;
-
-            // Marcar que o load inicial já foi feito
-            this.isInitialLoad = false;
-
+            
             if (window.Log) Log.info('SPLASH', 'Splash ocultada');
         }, tempoRestante);
     },
@@ -104,11 +101,8 @@ const SplashScreen = {
         if (tempoAusente >= this.INACTIVITY_THRESHOLD) {
             if (window.Log) Log.info('SPLASH', 'Inatividade detectada (>5min) - recarregando');
 
-            // ✅ v2.0: Usar Loading Overlay (bolinha com blur) em vez de Splash completa
-            // A splash completa só aparece no load inicial
-            if (window.LoadingOverlay) {
-                window.LoadingOverlay.show('Atualizando dados...');
-            }
+            // Mostrar splash
+            this.show('inatividade');
 
             try {
                 // Verificar versão (integrado com app-version.js)
@@ -122,23 +116,21 @@ const SplashScreen = {
                     const moduloAtual = nav.moduloAtual || 'boas-vindas';
                     await nav.navegarPara(moduloAtual, true);
                 } else {
-                    // Fallback: se navigation não disponível
-                    if (window.Log) Log.warn('SPLASH', 'Navigation não disponível');
+                    // Fallback: se navigation não disponível, apenas esconder splash
+                    if (window.Log) Log.warn('SPLASH', 'Navigation não disponível, escondendo splash');
+                    this.hide();
                 }
             } catch (error) {
+                // ✅ CORREÇÃO: Garantir que splash esconde mesmo em caso de erro
                 if (window.Log) Log.error('SPLASH', 'Erro ao recarregar:', error);
+                this.hide();
             }
 
-            // ✅ Esconder Loading Overlay
-            if (window.LoadingOverlay) {
-                window.LoadingOverlay.hide();
-            }
-
-            // ✅ Timeout de segurança - esconde loading após 10s se ainda visível
+            // ✅ CORREÇÃO: Timeout de segurança - esconde splash após 10s se ainda visível
             setTimeout(() => {
-                if (window.LoadingOverlay?.isVisible()) {
-                    if (window.Log) Log.warn('SPLASH', 'Timeout de segurança - forçando esconder loading');
-                    window.LoadingOverlay.hide();
+                if (this.isVisible) {
+                    if (window.Log) Log.warn('SPLASH', 'Timeout de segurança - forçando esconder splash');
+                    this.hide();
                 }
             }, 10000);
         }

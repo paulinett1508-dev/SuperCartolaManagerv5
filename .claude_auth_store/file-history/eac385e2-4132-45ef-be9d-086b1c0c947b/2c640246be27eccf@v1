@@ -52,11 +52,6 @@
   box-shadow: 0 4px 20px rgba(255, 69, 0, 0.4);
 }
 
-.module-title-icon .material-icons {
-  font-size: 20px;
-  color: white;
-}
-
 .module-title-section h2 {
   font: 700 22px "Inter", -apple-system, sans-serif;
   color: var(--text-primary);
@@ -203,14 +198,6 @@
   font-size: 18px;
   min-width: 24px;
   text-align: center;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-
-.section-icon .material-icons {
-  font-size: 20px;
-  color: var(--laranja);
 }
 
 .section-header h3 {
@@ -378,13 +365,6 @@
   cursor: pointer;
   transition: all 0.3s ease;
   margin-right: 8px;
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-}
-
-.btn-relatorio .material-icons {
-  font-size: 18px;
 }
 
 .btn-relatorio:hover {
@@ -401,13 +381,6 @@
   font: 600 12px "Inter", -apple-system, sans-serif;
   cursor: pointer;
   transition: all 0.2s ease;
-  display: inline-flex;
-  align-items: center;
-  gap: 4px;
-}
-
-.btn-fechar-relatorio .material-icons {
-  font-size: 14px;
 }
 
 .btn-fechar-relatorio:hover {

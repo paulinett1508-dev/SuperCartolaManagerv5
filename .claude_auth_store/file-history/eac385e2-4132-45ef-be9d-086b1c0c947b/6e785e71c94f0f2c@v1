@@ -43,7 +43,7 @@
         style="display: none"
     >
         <div class="section-header">
-            <div class="section-icon"><span class="material-icons">leaderboard</span></div>
+            <div class="section-icon">📊</div>
             <h3 id="rodadaTituloAtual">Rodada Selecionada</h3>
             <!-- Botão de Refresh para Parciais -->
             <button
@@ -51,7 +51,7 @@
                 class="btn-refresh-parciais"
                 style="display: none"
             >
-                <span class="material-icons refresh-icon">refresh</span>
+                <span class="refresh-icon">🔄</span>
                 <span>Atualizar</span>
             </button>
         </div>
@@ -87,14 +87,14 @@
         style="display: none"
     >
         <div class="section-header">
-            <div class="section-icon"><span class="material-icons">analytics</span></div>
+            <div class="section-icon">📊</div>
             <h3>Histórico Completo: MITOS e MICOS</h3>
             <button
                 id="btnFecharRelatorio"
                 class="btn-fechar-relatorio"
                 onclick="window.voltarParaCards ? window.voltarParaCards() : document.getElementById('relatorioMitosMicos').style.display='none'"
             >
-                <span class="material-icons">close</span> Fechar
+                ✕ Fechar
             </button>
         </div>
 
@@ -121,13 +121,13 @@
             class="btn-relatorio"
             onclick="window.gerarRelatorioMitosMicos && window.gerarRelatorioMitosMicos()"
         >
-            <span class="material-icons">assessment</span> Gerar Relatório MITOS/MICOS
+            📊 Gerar Relatório MITOS/MICOS
         </button>
         <button
             class="back-button"
             onclick="window.orquestrador?.voltarParaCards()"
         >
-            <span class="material-icons">arrow_back</span> Voltar aos Cards
+            ← Voltar aos Cards
         </button>
     </div>
 </div>

@@ -260,7 +260,6 @@
     // Inicializar
     function init() {
         createIndicator();
-        createLoadingOverlay();
 
         // Usar passive: false para poder prevenir scroll
         document.addEventListener("touchstart", onTouchStart, {
@@ -272,20 +271,13 @@
         // Prevenir comportamento nativo de overscroll
         document.body.style.overscrollBehaviorY = "contain";
 
-        console.log("[PULL-REFRESH] ✅ Sistema v2.0 inicializado (com Loading Overlay)");
+        console.log("[PULL-REFRESH] ✅ Sistema inicializado");
     }
 
     // Expor API global
     window.PullRefresh = {
         refresh: startRefresh,
         isRefreshing: () => isRefreshing,
-    };
-
-    // Expor Loading Overlay API globalmente
-    window.LoadingOverlay = {
-        show: showLoading,
-        hide: hideLoading,
-        isVisible: () => loadingOverlay?.classList.contains("visible") || false,
     };
 
     // Inicializar quando DOM estiver pronto
