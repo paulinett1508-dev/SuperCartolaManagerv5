@@ -1,6 +1,6 @@
 # Super Cartola Manager - Diretrizes de Desenvolvimento
 
-## 🛠️ Comandos Principais
+## Comandos Principais
 - **Start Dev:** `npm run dev` (Nodemon + Hot Reload)
 - **Start Prod:** `npm start`
 - **Testes:** `npm test` (Roda todos os testes via Jest)
@@ -8,15 +8,15 @@
 - **Consolidação Manual:** `npm run consolidar` (Processa rodadas pendentes)
 - **MCP Database:** Certifique-se de que o servidor MCP está ativo (`/mcp add mongo node mongo-server.js`) para consultas seguras.
 
-## 🏗️ Arquitetura e Tech Stack
+## Arquitetura e Tech Stack
 - **Runtime:** Node.js (ES Modules habilitado).
 - **Backend:** Express.js (MVC Pattern).
 - **Database:** MongoDB + Mongoose.
-- **Frontend Admin:** HTML/CSS/Vanilla JS (Desktop) - `public/admin/`.
+- **Frontend Admin:** HTML/CSS/Vanilla JS (Desktop) - `public/fronts/`.
 - **Frontend App:** Mobile-First Modular JS - `public/participante/`.
 - **Auth:** Replit Auth (Admin) e Express Session (Participantes).
 
-## 🧠 Regras de Negócio Críticas (Cartola)
+## Regras de Negócio Críticas (Cartola)
 1.  **Precisão Numérica (CRÍTICO):**
     - Todas as exibições de pontuação e valores financeiros devem ser truncadas em **2 casas decimais** (ex: `105.40`). Nunca exiba dízimas longas.
 2.  **Lógica de Inativos (Liga Cartoleiros):**
@@ -26,23 +26,117 @@
     - *Cartoleiros Sobral:* 6 times, regras simplificadas.
     - *Mitos/Micos:* Top 10 e Bottom 10. (Atenção: O join de times deve ser feito via `lookup` robusto para evitar nomes "N/D").
 4.  **Consolidação:** Dados processados (`RodadaSnapshot`) são imutáveis.
+5.  **Fim de Temporada (Rodada 38):**
+    - Quando `rodadaAtual >= 38`, a temporada é considerada encerrada.
+    - Use a flag `CAMPEONATO_ENCERRADO = true` nos módulos de frontend.
+    - **NÃO subtraia 1** da rodada quando a temporada encerrou (use R38 diretamente).
 
-## 💻 Diretrizes de Código (Style Guide)
-- **Frontend Visual:**
-    - **Ícones:** Use **Material Icons** (Google) para todos os ícones do app. **PROIBIDO** usar Emojis (🚫) em interfaces oficiais (Pontos Corridos, Melhor do Mês, etc) para manter consistência visual.
-    - **UX Mobile:** Intercepte o botão "Voltar" do navegador nas telas Home/Bem-Vindo para mostrar modal de confirmação.
-- **Banco de Dados:**
-    - Use a ferramenta MCP `get_collection_schema` antes de criar queries.
-    - Garanta que queries de agregação (Top 10) tratem campos nulos corretamente.
-- **Idioma:** Comentários e documentação em **Português (PT-BR)**.
-- **Tratamento de Erros:** Sempre envolva chamadas de API externa e Banco em `try/catch`.
+---
 
-## 📂 Estrutura de Pastas Relevante
-- `controllers/`: Lógica de negócio (19 arquivos).
-- `services/`: Integrações externas e lógica pura.
-- `models/`: Schemas do Mongoose.
-- `public/participante/js/modules/`: Lógica do frontend mobile (carregamento preguiçoso).
+## Diretrizes de Interface (UI/UX)
 
-## ⚠️ Restrições do Ambiente (Replit)
+### Ícones - Material Icons (OBRIGATÓRIO)
+- **PROIBIDO usar Emojis** em interfaces oficiais para manter consistência visual.
+- Use apenas **Material Icons** (Google) ou **Material Symbols Outlined**.
+- Referência: https://fonts.google.com/icons
+
+**Mapeamento de ícones padrão:**
+| Contexto | Ícone Material | Cor |
+|----------|---------------|-----|
+| Mitos/Campeão | `emoji_events` ou `military_tech` | `#ffd700` (dourado) |
+| Micos/Último | `thumb_down` ou `dangerous` | `#ef4444` (vermelho) |
+| Ranking | `leaderboard` | `var(--laranja)` |
+| Rodadas | `track_changes` | `var(--laranja)` |
+| Mata-Mata | `swords` | `var(--laranja)` |
+| Voltar | `arrow_back` | - |
+| Fechar | `close` | - |
+| Refresh | `refresh` | - |
+| Relatórios | `assessment` ou `analytics` | - |
+
+### Navegação - Botões "Voltar"
+**REGRA IMPORTANTE:** Cada módulo deve ter **apenas UM** botão de navegação de retorno.
+
+- **Admin (Desktop):** Usar apenas o botão "Voltar aos Módulos" na **barra superior**.
+  - **NÃO adicionar** botões "Voltar aos Cards" no footer dos módulos.
+  - Módulos já limpos: `top10.html`, `fluxo-financeiro.html`, `melhor-mes.html`, `mata-mata.html`
+
+- **Participante (Mobile):** O sistema de navegação está em `participante-navigation.js`.
+  - Interceptação do botão hardware "Voltar" via History API (`popstate`).
+  - Modal de confirmação exibido em telas raiz (Home, Bem-vindo).
+
+### Sistema de Loading (Mobile)
+O sistema distingue dois tipos de carregamento:
+
+1. **Splash Screen** (`splash-screen.js`):
+   - Tela de abertura completa com logo e animações.
+   - Exibida **APENAS** no carregamento inicial do app.
+   - Flag `isInitialLoad` controla exibição.
+
+2. **Loading Overlay** (`pull-refresh.js`):
+   - Bolinha quicando com `backdrop-filter: blur(8px)`.
+   - Usado para navegação entre módulos e refresh de dados.
+   - API global: `window.LoadingOverlay.show(texto)` / `window.LoadingOverlay.hide()`
+
+### Paleta de Cores (Theme)
+| Variável | Cor | Uso |
+|----------|-----|-----|
+| `--laranja` | `#ff4500` | Primária (botões, destaques) |
+| `--success` / Verde | `#10b981` | Positivo, bônus, vitória |
+| `--danger` / Vermelho | `#ef4444` | Negativo, ônus, derrota |
+| `--bg-card` | `#1a1a1a` | Fundo de cards (dark mode) |
+| `--text-primary` | `#ffffff` | Texto principal |
+
+**PROIBIDO:** Usar cores fora da paleta (ex: roxo `#8b5cf6` foi removido do botão "Auditar").
+
+---
+
+## Estrutura de Pastas Relevante
+```
+controllers/           # Lógica de negócio (19 arquivos)
+services/              # Integrações externas e lógica pura
+models/                # Schemas do Mongoose
+public/
+├── fronts/            # Templates HTML dos módulos Admin
+│   ├── top10.html
+│   ├── rodadas.html
+│   ├── mata-mata.html
+│   ├── melhor-mes.html
+│   └── fluxo-financeiro.html
+├── css/modules/       # CSS específico por módulo
+├── js/                # JavaScript Admin (desktop)
+└── participante/      # App Mobile-First
+    ├── js/
+    │   ├── modules/   # Módulos lazy-loaded
+    │   ├── participante-navigation.js  # Sistema de navegação + History API
+    │   ├── pull-refresh.js             # Pull-to-refresh + Loading Overlay
+    │   └── splash-screen.js            # Splash Screen inicial
+    ├── css/
+    │   └── pull-refresh.css            # Estilos do loading overlay
+    └── fronts/        # Templates HTML dos módulos
+```
+
+---
+
+## Regras de Código (Backend)
+
+### Gestão de Participantes Inativos
+Helper centralizado em `utils/participanteHelper.js`:
+- `buscarStatusParticipantes(timeIds)` - Busca status em batch
+- `obterUltimaRodadaValida(status, rodadaFim)` - Calcula última rodada válida
+- `ordenarRankingComInativos(ranking, sortFn)` - Ativos primeiro, inativos depois
+
+### Arredondamento e Precisão
+Usar `toFixed(2)` para exibição de valores numéricos:
+```javascript
+const pontosFormatados = pontos.toFixed(2); // "105.40"
+```
+
+### Tratamento de Erros
+Sempre envolva chamadas de API externa e Banco em `try/catch`.
+
+---
+
+## Restrições do Ambiente (Replit)
 - Use a variável `MONGODB_URI` dos Secrets.
 - Configuração de persistência de login (`.claude_auth_store`) já está ativa. Não delete a pasta.
+- Para deploy, verificar se os Secrets estão configurados em **Deployments > Settings**.
