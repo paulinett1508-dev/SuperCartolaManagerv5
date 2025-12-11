@@ -83,14 +83,20 @@ async function carregarEdicoesDisponiveis() {
     const data = await res.json();
     estado.edicoesDisponiveis = data.edicoes || [];
 
-    if (window.Log) Log.info(
-      `[MATA-MATA] ✅ ${estado.edicoesDisponiveis.length} edições encontradas`,
-    );
+    if (window.Log)
+      Log.info(
+        `[MATA-MATA] ✅ ${estado.edicoesDisponiveis.length} edições encontradas`,
+      );
 
     popularSelectEdicoes();
     atualizarContador();
 
     if (estado.edicoesDisponiveis.length > 0) {
+      // Carregar histórico de TODAS as edições
+      for (const ed of estado.edicoesDisponiveis) {
+        await carregarTodasFases(ed.edicao);
+      }
+
       const ultimaEdicao =
         estado.edicoesDisponiveis[estado.edicoesDisponiveis.length - 1];
       estado.edicaoSelecionada = ultimaEdicao.edicao;
@@ -98,7 +104,6 @@ async function carregarEdicoesDisponiveis() {
       const select = document.getElementById("mmEditionSelect");
       if (select) select.value = ultimaEdicao.edicao;
 
-      await carregarTodasFases(estado.edicaoSelecionada);
       await carregarFase(estado.edicaoSelecionada, "primeira");
     }
   } catch (error) {
@@ -178,10 +183,11 @@ async function carregarTodasFases(edicao) {
       eliminado: foiEliminado,
     };
 
-    if (window.Log) Log.info(
-      `[MATA-MATA] 📊 Histórico edição ${edicao}:`,
-      estado.historicoParticipacao[edicao],
-    );
+    if (window.Log)
+      Log.info(
+        `[MATA-MATA] 📊 Histórico edição ${edicao}:`,
+        estado.historicoParticipacao[edicao],
+      );
   } catch (error) {
     if (window.Log) Log.error("[MATA-MATA] Erro ao carregar histórico:", error);
   }
@@ -323,7 +329,8 @@ async function carregarFase(edicao, fase) {
       if (!res.ok) throw new Error("Erro ao buscar dados");
 
       const data = await res.json();
-      if (window.Log) Log.info("[MATA-MATA] 📦 Resposta carregarFase:", Object.keys(data));
+      if (window.Log)
+        Log.info("[MATA-MATA] 📦 Resposta carregarFase:", Object.keys(data));
 
       const dadosFases = data.dados || data.dados_torneio || data;
 
@@ -423,6 +430,7 @@ function renderConfrontosCards(confrontos, fase) {
   }
 
   html += renderConfrontosListaCards(confrontos, meuTimeId, fase);
+  html += renderCardDesempenho();
 
   container.innerHTML = html;
 }
@@ -470,6 +478,7 @@ function renderMeuConfrontoCard(confronto, meuTimeId) {
           <img class="mm-mc-escudo-card" src="${eu?.url_escudo_png || eu?.escudo || "/escudos/default.png"}" alt="" onerror="this.src='/escudos/default.png'">
           <div class="mm-mc-time-info">
             <span class="mm-mc-label">Você</span>
+            <span class="mm-mc-nome-cartoleiro">${truncate(eu?.nome_cartola || eu?.nome_cartoleiro || "", 14)}</span>
             <span class="mm-mc-nome">${truncate(eu?.nome_time || "Meu Time", 16)}</span>
           </div>
           <span class="mm-mc-pts ${ganhando ? "vencedor" : perdendo ? "perdedor" : "empate"}">${meusPts.toFixed(2)}</span>
@@ -482,6 +491,7 @@ function renderMeuConfrontoCard(confronto, meuTimeId) {
           <img class="mm-mc-escudo-card" src="${adv?.url_escudo_png || adv?.escudo || "/escudos/default.png"}" alt="" onerror="this.src='/escudos/default.png'">
           <div class="mm-mc-time-info">
             <span class="mm-mc-label">Adversário</span>
+            <span class="mm-mc-nome-cartoleiro">${truncate(adv?.nome_cartola || adv?.nome_cartoleiro || "", 14)}</span>
             <span class="mm-mc-nome">${truncate(adv?.nome_time || "Adversário", 16)}</span>
           </div>
           <span class="mm-mc-pts ${perdendo ? "vencedor" : ganhando ? "perdedor" : "empate"}">${advPts.toFixed(2)}</span>
@@ -590,6 +600,187 @@ function renderConfrontosListaCards(confrontos, meuTimeId, fase) {
 
   html += `</div>`;
   return html;
+}
+
+// =====================================================================
+// RENDER CARD "SEU DESEMPENHO" - VERSÃO 2
+// =====================================================================
+function renderCardDesempenho() {
+  if (window.Log) Log.info("[MATA-MATA] 🎯 Renderizando card de desempenho...");
+
+  const meuTimeId = estado.timeId ? parseInt(estado.timeId) : null;
+  if (!meuTimeId) {
+    if (window.Log) Log.warn("[MATA-MATA] ⚠️ TimeId não encontrado");
+    return "";
+  }
+
+  if (window.Log) Log.info("[MATA-MATA] 📊 TimeId:", meuTimeId);
+
+  let vitoriasTotal = 0;
+  let derrotasTotal = 0;
+  let pontosTotal = 0;
+  const historicoEdicoes = [];
+
+  // Percorrer todas as edições para montar histórico completo
+  Object.keys(estado.historicoParticipacao).forEach((edicao) => {
+    const historico = estado.historicoParticipacao[edicao];
+
+    if (historico && historico.ultimaFase) {
+      let vitoriasEdicao = 0;
+      let derrotasEdicao = 0;
+      let pontosEdicao = 0;
+
+      // Calcular stats da edição
+      FASES.forEach((f) => {
+        const chaveCache = `${edicao}-${f}`;
+        const confrontos = estado.cacheConfrontos[chaveCache];
+
+        if (confrontos) {
+          const meuConfronto = confrontos.find(
+            (c) =>
+              extrairTimeId(c.timeA) === meuTimeId ||
+              extrairTimeId(c.timeB) === meuTimeId,
+          );
+
+          if (meuConfronto) {
+            const souTimeA = extrairTimeId(meuConfronto.timeA) === meuTimeId;
+            const meusPts =
+              parseFloat(
+                souTimeA
+                  ? meuConfronto.timeA?.pontos
+                  : meuConfronto.timeB?.pontos,
+              ) || 0;
+            const advPts =
+              parseFloat(
+                souTimeA
+                  ? meuConfronto.timeB?.pontos
+                  : meuConfronto.timeA?.pontos,
+              ) || 0;
+
+            pontosEdicao += meusPts;
+
+            if (meusPts > advPts) vitoriasEdicao++;
+            else if (meusPts < advPts) derrotasEdicao++;
+          }
+        }
+      });
+
+      // Mapear fase para badge
+      const faseMap = {
+        primeira: { label: "1ª Fase", class: "primeira" },
+        oitavas: { label: "Oitavas", class: "oitavas" },
+        quartas: { label: "Quartas", class: "quartas" },
+        semis: { label: "Semis", class: "semis" },
+        final: { label: "Campeão", class: "campeao" },
+      };
+
+      const faseInfo = faseMap[historico.ultimaFase] || {
+        label: historico.ultimaFase,
+        class: "primeira",
+      };
+
+      historicoEdicoes.push({
+        edicao: edicao,
+        vitorias: vitoriasEdicao,
+        derrotas: derrotasEdicao,
+        pontos: pontosEdicao,
+        fase: faseInfo.label,
+        faseClass: faseInfo.class,
+      });
+
+      vitoriasTotal += vitoriasEdicao;
+      derrotasTotal += derrotasEdicao;
+      pontosTotal += pontosEdicao;
+    }
+  });
+
+  // Ordenar edições por número
+  historicoEdicoes.sort((a, b) => parseInt(a.edicao) - parseInt(b.edicao));
+
+  if (window.Log)
+    Log.info("[MATA-MATA] 📊 Stats Totais:", {
+      vitoriasTotal,
+      derrotasTotal,
+      pontosTotal,
+      edicoes: historicoEdicoes.length,
+    });
+
+  const aproveitamento =
+    vitoriasTotal + derrotasTotal > 0
+      ? ((vitoriasTotal / (vitoriasTotal + derrotasTotal)) * 100).toFixed(0)
+      : 0;
+
+  // Renderizar histórico de edições
+  let historicoHTML = "";
+  if (historicoEdicoes.length > 0) {
+    historicoHTML = `
+      <div class="mm-desemp-history">
+        <div class="mm-desemp-history-title">
+          <span class="material-symbols-outlined">history</span>
+          <span>Histórico por Edição</span>
+        </div>
+        <div class="mm-desemp-edition-list">
+          ${historicoEdicoes
+            .map(
+              (ed) => `
+            <div class="mm-desemp-edition-item">
+              <span class="mm-desemp-edition-name">${ed.edicao}ª Edição</span>
+              <div class="mm-desemp-edition-stats">
+                <span class="mm-desemp-edition-record">${ed.vitorias}V-${ed.derrotas}D</span>
+                <span class="mm-desemp-edition-phase ${ed.faseClass}">${ed.fase}</span>
+              </div>
+            </div>
+          `,
+            )
+            .join("")}
+        </div>
+      </div>
+    `;
+  }
+
+  return `
+    <div class="mm-desempenho-card">
+      <div class="mm-desemp-header">
+        <span class="material-symbols-outlined">bar_chart</span>
+        <span>Seu Desempenho</span>
+      </div>
+
+      <div class="mm-desemp-main-stats">
+        <div class="mm-desemp-main-stat">
+          <span class="mm-desemp-main-icon win material-symbols-outlined">emoji_events</span>
+          <div class="mm-desemp-main-info">
+            <span class="mm-desemp-main-label">Vitórias</span>
+            <span class="mm-desemp-main-value">${vitoriasTotal}</span>
+          </div>
+        </div>
+
+        <div class="mm-desemp-main-stat">
+          <span class="mm-desemp-main-icon loss material-symbols-outlined">close</span>
+          <div class="mm-desemp-main-info">
+            <span class="mm-desemp-main-label">Derrotas</span>
+            <span class="mm-desemp-main-value">${derrotasTotal}</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="mm-desemp-secondary-stats">
+        <div class="mm-desemp-secondary-stat">
+          <div class="mm-desemp-secondary-value success">${aproveitamento}%</div>
+          <div class="mm-desemp-secondary-label">Aproveit.</div>
+        </div>
+        <div class="mm-desemp-secondary-stat">
+          <div class="mm-desemp-secondary-value">${pontosTotal.toFixed(2)}</div>
+          <div class="mm-desemp-secondary-label">Pts Total</div>
+        </div>
+        <div class="mm-desemp-secondary-stat">
+          <div class="mm-desemp-secondary-value highlight">${historicoEdicoes.length}</div>
+          <div class="mm-desemp-secondary-label">Edições</div>
+        </div>
+      </div>
+
+      ${historicoHTML}
+    </div>
+  `;
 }
 
 // =====================================================================

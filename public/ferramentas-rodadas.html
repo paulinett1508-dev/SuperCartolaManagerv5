@@ -1,281 +1,363 @@
-
 <!doctype html>
 <html lang="pt-BR">
-<head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Popular Rodadas - Super Cartola Manager</title>
-    <link rel="stylesheet" href="style.css" />
-    <link rel="stylesheet" href="detalhe-liga.css" />
-    <link rel="stylesheet" href="css/base.css" />
-    <style>
-        .form-container {
-            max-width: 800px;
-            margin: 0 auto;
-            background: var(--bg-card);
-            border-radius: 12px;
-            padding: 30px;
-            box-shadow: var(--shadow-md);
-        }
-        .form-group {
-            margin-bottom: 20px;
-        }
-        .form-group label {
-            display: block;
-            margin-bottom: 8px;
-            font-weight: 600;
-            color: var(--text-primary);
-        }
-        .form-group select,
-        .form-group input {
-            width: 100%;
-            padding: 12px;
-            border: 1px solid var(--border-primary);
-            border-radius: 8px;
-            background: var(--bg-primary);
-            color: var(--text-primary);
-            font-size: 14px;
-        }
-        .form-row {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 15px;
-        }
-        .checkbox-group {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            margin-top: 10px;
-        }
-        .checkbox-group input[type="checkbox"] {
-            width: auto;
-        }
-        .btn-primary {
-            width: 100%;
-            padding: 15px;
-            background: var(--gradient-primary);
-            color: white;
-            border: none;
-            border-radius: 8px;
-            font-size: 16px;
-            font-weight: 600;
-            cursor: pointer;
-            transition: all 0.3s ease;
-        }
-        .btn-primary:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 4px 12px rgba(255, 69, 0, 0.4);
-        }
-        .btn-primary:disabled {
-            opacity: 0.5;
-            cursor: not-allowed;
-        }
-        #log-container {
-            margin-top: 20px;
-            padding: 20px;
-            background: #f5f5f5;
-            border-radius: 8px;
-            max-height: 400px;
-            overflow-y: auto;
-            font-family: monospace;
-            font-size: 13px;
-            display: none;
-        }
-        .log-entry {
-            padding: 5px 0;
-            border-bottom: 1px solid #e0e0e0;
-        }
-        .log-success { color: #059669; }
-        .log-error { color: #dc2626; }
-        .log-info { color: #3b82f6; }
-    </style>
-</head>
-<body>
-    <div class="app-container">
-        <div id="sidebar-placeholder"></div>
-
-        <main class="app-main">
-            <div class="page-content">
-                <div class="voltar-button" style="margin-bottom: 20px;">
-                    <a href="ferramentas.html" style="padding: 10px 20px; background: var(--bg-card); color: var(--text-secondary); border: 1px solid var(--border-primary); border-radius: 8px; text-decoration: none; display: inline-flex; align-items: center; gap: 8px;">
-                        ← Voltar para Ferramentas
-                    </a>
-                </div>
-
-                <div class="liga-header">
-                    <h2 class="liga-titulo">Popular Rodadas Encerradas</h2>
-                    <p class="liga-info">Preencha automaticamente os dados de rodadas do Cartola FC</p>
-                </div>
-
-                <div class="form-container">
-                    <div class="form-group">
-                        <label for="ligaSelect">Selecione a Liga:</label>
-                        <select id="ligaSelect">
-                            <option value="">Carregando ligas...</option>
-                        </select>
-                    </div>
-
-                    <div class="form-row">
-                        <div class="form-group">
-                            <label for="rodadaInicial">Rodada Inicial:</label>
-                            <input type="number" id="rodadaInicial" min="1" max="38" value="1" />
-                        </div>
-                        <div class="form-group">
-                            <label for="rodadaFinal">Rodada Final:</label>
-                            <input type="number" id="rodadaFinal" min="1" max="38" value="38" />
-                        </div>
-                    </div>
-
-                    <div class="checkbox-group">
-                        <input type="checkbox" id="forcarRepopular" />
-                        <label for="forcarRepopular">Repopular rodadas já existentes (substituir dados)</label>
-                    </div>
-
-                    <button id="btnPopular" class="btn-primary">
-                        📥 Popular Rodadas
-                    </button>
-
-                    <div id="log-container"></div>
-                </div>
-            </div>
-        </main>
-    </div>
-
-    <script type="module">
-        import { carregarLigas as carregarLigasAPI } from './js/gerenciar-ligas.js';
-
-        let ligasDisponiveis = [];
-        let logoCarregada = false;
-
-        // Carregar layout
-        async function loadLayout() {
-            try {
-                const response = await fetch('layout.html');
-                const layoutHtml = await response.text();
-                const parser = new DOMParser();
-                const doc = parser.parseFromString(layoutHtml, 'text/html');
-                const sidebar = doc.querySelector('.app-sidebar');
-                if (sidebar) {
-                    document.getElementById('sidebar-placeholder')?.replaceWith(sidebar);
-                }
-            } catch (error) {
-                console.error('Erro ao carregar layout:', error);
+    <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <title>Popular Rodadas - Super Cartola Manager</title>
+        <link rel="stylesheet" href="style.css" />
+        <link rel="stylesheet" href="detalhe-liga.css" />
+        <link rel="stylesheet" href="css/base.css" />
+        <style>
+            .form-container {
+                max-width: 800px;
+                margin: 0 auto;
+                background: var(--bg-card);
+                border-radius: 12px;
+                padding: 30px;
+                box-shadow: var(--shadow-md);
             }
-        }
+            .form-group {
+                margin-bottom: 20px;
+            }
+            .form-group label {
+                display: block;
+                margin-bottom: 8px;
+                font-weight: 600;
+                color: var(--text-primary);
+            }
+            .form-group select,
+            .form-group input {
+                width: 100%;
+                padding: 12px;
+                border: 1px solid var(--border-primary);
+                border-radius: 8px;
+                background: var(--bg-primary);
+                color: var(--text-primary);
+                font-size: 14px;
+            }
+            .form-row {
+                display: grid;
+                grid-template-columns: 1fr 1fr;
+                gap: 15px;
+            }
+            .checkbox-group {
+                display: flex;
+                align-items: center;
+                gap: 10px;
+                margin-top: 10px;
+            }
+            .checkbox-group input[type="checkbox"] {
+                width: auto;
+            }
+            .btn-primary {
+                width: 100%;
+                padding: 15px;
+                background: var(--gradient-primary);
+                color: white;
+                border: none;
+                border-radius: 8px;
+                font-size: 16px;
+                font-weight: 600;
+                cursor: pointer;
+                transition: all 0.3s ease;
+            }
+            .btn-primary:hover {
+                transform: translateY(-2px);
+                box-shadow: 0 4px 12px rgba(255, 69, 0, 0.4);
+            }
+            .btn-primary:disabled {
+                opacity: 0.5;
+                cursor: not-allowed;
+            }
+            #log-container {
+                margin-top: 20px;
+                padding: 20px;
+                background: #f5f5f5;
+                border-radius: 8px;
+                max-height: 400px;
+                overflow-y: auto;
+                font-family: monospace;
+                font-size: 13px;
+                display: none;
+            }
+            .log-entry {
+                padding: 5px 0;
+                border-bottom: 1px solid #e0e0e0;
+            }
+            .log-success {
+                color: #059669;
+            }
+            .log-error {
+                color: #dc2626;
+            }
+            .log-info {
+                color: #3b82f6;
+            }
+        </style>
+    </head>
+    <body>
+        <div class="app-container">
+            <div id="sidebar-placeholder"></div>
 
-        // Carregar ligas disponíveis
-        async function carregarLigasDisponiveis() {
-            try {
-                ligasDisponiveis = await carregarLigasAPI();
-                const select = document.getElementById('ligaSelect');
-                
-                if (ligasDisponiveis.length === 0) {
-                    select.innerHTML = '<option value="">Nenhuma liga encontrada</option>';
+            <main class="app-main">
+                <div class="page-content">
+                    <div class="voltar-button" style="margin-bottom: 20px">
+                        <a
+                            href="ferramentas.html"
+                            style="
+                                padding: 10px 20px;
+                                background: var(--bg-card);
+                                color: var(--text-secondary);
+                                border: 1px solid var(--border-primary);
+                                border-radius: 8px;
+                                text-decoration: none;
+                                display: inline-flex;
+                                align-items: center;
+                                gap: 8px;
+                            "
+                        >
+                            ← Voltar para Ferramentas
+                        </a>
+                    </div>
+
+                    <div class="liga-header">
+                        <h2 class="liga-titulo">Popular Rodadas Encerradas</h2>
+                        <p class="liga-info">
+                            Preencha automaticamente os dados de rodadas do
+                            Cartola FC
+                        </p>
+                    </div>
+
+                    <div class="form-container">
+                        <div class="form-group">
+                            <label for="ligaSelect">Selecione a Liga:</label>
+                            <select id="ligaSelect">
+                                <option value="">Carregando ligas...</option>
+                            </select>
+                        </div>
+
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label for="rodadaInicial"
+                                    >Rodada Inicial:</label
+                                >
+                                <input
+                                    type="number"
+                                    id="rodadaInicial"
+                                    min="1"
+                                    max="38"
+                                    value="1"
+                                />
+                            </div>
+                            <div class="form-group">
+                                <label for="rodadaFinal">Rodada Final:</label>
+                                <input
+                                    type="number"
+                                    id="rodadaFinal"
+                                    min="1"
+                                    max="38"
+                                    value="38"
+                                />
+                            </div>
+                        </div>
+
+                        <div class="checkbox-group">
+                            <input type="checkbox" id="forcarRepopular" />
+                            <label for="forcarRepopular"
+                                >Repopular rodadas já existentes (substituir
+                                dados)</label
+                            >
+                        </div>
+
+                        <button id="btnPopular" class="btn-primary">
+                            📥 Popular Rodadas
+                        </button>
+
+                        <div id="log-container"></div>
+                    </div>
+                </div>
+            </main>
+        </div>
+
+        <script type="module">
+            import { carregarLigas as carregarLigasAPI } from "./js/gerenciar-ligas.js";
+
+            let ligasDisponiveis = [];
+
+            // Função placeholder para layout externo (se necessário)
+            window.logoCarregada = function () {
+                console.log("[FERRAMENTAS-RODADAS] Logo carregada");
+            };
+
+            // Carregar layout
+            async function loadLayout() {
+                try {
+                    const response = await fetch("layout.html");
+                    const layoutHtml = await response.text();
+                    const parser = new DOMParser();
+                    const doc = parser.parseFromString(layoutHtml, "text/html");
+                    const sidebar = doc.querySelector(".app-sidebar");
+                    if (sidebar) {
+                        document
+                            .getElementById("sidebar-placeholder")
+                            ?.replaceWith(sidebar);
+                    }
+                } catch (error) {
+                    console.error("Erro ao carregar layout:", error);
+                }
+            }
+
+            // Carregar ligas disponíveis
+            async function carregarLigasDisponiveis() {
+                try {
+                    ligasDisponiveis = await carregarLigasAPI();
+                    const select = document.getElementById("ligaSelect");
+
+                    if (ligasDisponiveis.length === 0) {
+                        select.innerHTML =
+                            '<option value="">Nenhuma liga encontrada</option>';
+                        return;
+                    }
+
+                    select.innerHTML =
+                        '<option value="">Selecione uma liga...</option>';
+                    ligasDisponiveis.forEach((liga) => {
+                        const option = document.createElement("option");
+                        option.value = liga._id;
+                        option.textContent = `${liga.nome} (${liga.timesCount || 0} participantes)`;
+                        select.appendChild(option);
+                    });
+                } catch (error) {
+                    console.error("Erro ao carregar ligas:", error);
+                    document.getElementById("ligaSelect").innerHTML =
+                        '<option value="">Erro ao carregar ligas</option>';
+                }
+            }
+
+            // Adicionar log
+            function addLog(message, type = "info") {
+                const logContainer = document.getElementById("log-container");
+                logContainer.style.display = "block";
+
+                const entry = document.createElement("div");
+                entry.className = `log-entry log-${type}`;
+                entry.textContent = `[${new Date().toLocaleTimeString()}] ${message}`;
+
+                logContainer.appendChild(entry);
+                logContainer.scrollTop = logContainer.scrollHeight;
+            }
+
+            // Popular rodadas
+            async function popularRodadas() {
+                const ligaId = document.getElementById("ligaSelect").value;
+                const rodadaInicial = parseInt(
+                    document.getElementById("rodadaInicial").value,
+                );
+                const rodadaFinal = parseInt(
+                    document.getElementById("rodadaFinal").value,
+                );
+                const forcarRepopular =
+                    document.getElementById("forcarRepopular").checked;
+
+                if (!ligaId) {
+                    alert("Selecione uma liga!");
                     return;
                 }
 
-                select.innerHTML = '<option value="">Selecione uma liga...</option>';
-                ligasDisponiveis.forEach(liga => {
-                    const option = document.createElement('option');
-                    option.value = liga._id;
-                    option.textContent = `${liga.nome} (${liga.timesCount || 0} participantes)`;
-                    select.appendChild(option);
-                });
-            } catch (error) {
-                console.error('Erro ao carregar ligas:', error);
-                document.getElementById('ligaSelect').innerHTML = '<option value="">Erro ao carregar ligas</option>';
-            }
-        }
-
-        // Adicionar log
-        function addLog(message, type = 'info') {
-            const logContainer = document.getElementById('log-container');
-            logContainer.style.display = 'block';
-            
-            const entry = document.createElement('div');
-            entry.className = `log-entry log-${type}`;
-            entry.textContent = `[${new Date().toLocaleTimeString()}] ${message}`;
-            
-            logContainer.appendChild(entry);
-            logContainer.scrollTop = logContainer.scrollHeight;
-        }
-
-        // Popular rodadas
-        async function popularRodadas() {
-            const ligaId = document.getElementById('ligaSelect').value;
-            const rodadaInicial = parseInt(document.getElementById('rodadaInicial').value);
-            const rodadaFinal = parseInt(document.getElementById('rodadaFinal').value);
-            const forcarRepopular = document.getElementById('forcarRepopular').checked;
-
-            if (!ligaId) {
-                alert('Selecione uma liga!');
-                return;
-            }
-
-            if (rodadaInicial < 1 || rodadaFinal > 38 || rodadaInicial > rodadaFinal) {
-                alert('Intervalo de rodadas inválido!');
-                return;
-            }
-
-            const btn = document.getElementById('btnPopular');
-            btn.disabled = true;
-            btn.textContent = '⏳ Processando...';
-
-            document.getElementById('log-container').innerHTML = '';
-            addLog(`Iniciando população de rodadas ${rodadaInicial} a ${rodadaFinal}...`, 'info');
-
-            try {
-                const response = await fetch(`/api/rodadas/${ligaId}/rodadas`, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({
-                        inicio: rodadaInicial,
-                        fim: rodadaFinal,
-                        repopular: forcarRepopular
-                    })
-                });
-
-                if (!response.ok) {
-                    const errorText = await response.text();
-                    throw new Error(`HTTP ${response.status}: ${errorText}`);
+                if (
+                    rodadaInicial < 1 ||
+                    rodadaFinal > 38 ||
+                    rodadaInicial > rodadaFinal
+                ) {
+                    alert("Intervalo de rodadas inválido!");
+                    return;
                 }
 
-                const resultado = await response.json();
+                const btn = document.getElementById("btnPopular");
+                btn.disabled = true;
+                btn.textContent = "⏳ Processando...";
 
-                addLog(`✅ Processo concluído!`, 'success');
-                
-                if (resultado.mensagem) {
-                    addLog(`📊 ${resultado.mensagem}`, 'success');
+                document.getElementById("log-container").innerHTML = "";
+                addLog(
+                    `Iniciando população de rodadas ${rodadaInicial} a ${rodadaFinal}...`,
+                    "info",
+                );
+
+                try {
+                    const response = await fetch(
+                        `/api/rodadas/${ligaId}/rodadas`,
+                        {
+                            method: "POST",
+                            headers: { "Content-Type": "application/json" },
+                            body: JSON.stringify({
+                                inicio: rodadaInicial,
+                                fim: rodadaFinal,
+                                repopular: forcarRepopular,
+                            }),
+                        },
+                    );
+
+                    if (!response.ok) {
+                        const errorText = await response.text();
+                        throw new Error(
+                            `HTTP ${response.status}: ${errorText}`,
+                        );
+                    }
+
+                    const resultado = await response.json();
+
+                    addLog(`✅ Processo concluído!`, "success");
+
+                    if (resultado.mensagem) {
+                        addLog(`📊 ${resultado.mensagem}`, "success");
+                    }
+
+                    if (resultado.resumo) {
+                        const { processadas, inseridas, atualizadas, erros } =
+                            resultado.resumo;
+                        if (processadas)
+                            addLog(
+                                `   Rodadas processadas: ${processadas}`,
+                                "info",
+                            );
+                        if (inseridas)
+                            addLog(
+                                `   Registros inseridos: ${inseridas}`,
+                                "success",
+                            );
+                        if (atualizadas)
+                            addLog(
+                                `   Registros atualizados: ${atualizadas}`,
+                                "success",
+                            );
+                        if (erros && erros > 0)
+                            addLog(`   ⚠️ Erros: ${erros}`, "error");
+                    }
+
+                    if (resultado.detalhes && resultado.detalhes.length > 0) {
+                        addLog(`📋 Detalhes:`, "info");
+                        resultado.detalhes.forEach((d) =>
+                            addLog(`   - ${d}`, "info"),
+                        );
+                    }
+                } catch (error) {
+                    addLog(`❌ Erro na requisição: ${error.message}`, "error");
+                } finally {
+                    btn.disabled = false;
+                    btn.textContent = "📥 Popular Rodadas";
                 }
-                
-                if (resultado.resumo) {
-                    const { processadas, inseridas, atualizadas, erros } = resultado.resumo;
-                    if (processadas) addLog(`   Rodadas processadas: ${processadas}`, 'info');
-                    if (inseridas) addLog(`   Registros inseridos: ${inseridas}`, 'success');
-                    if (atualizadas) addLog(`   Registros atualizados: ${atualizadas}`, 'success');
-                    if (erros && erros > 0) addLog(`   ⚠️ Erros: ${erros}`, 'error');
-                }
-                
-                if (resultado.detalhes && resultado.detalhes.length > 0) {
-                    addLog(`📋 Detalhes:`, 'info');
-                    resultado.detalhes.forEach(d => addLog(`   - ${d}`, 'info'));
-                }
-            } catch (error) {
-                addLog(`❌ Erro na requisição: ${error.message}`, 'error');
-            } finally {
-                btn.disabled = false;
-                btn.textContent = '📥 Popular Rodadas';
             }
-        }
 
-        // Event listeners
-        document.getElementById('btnPopular').addEventListener('click', popularRodadas);
+            // Event listeners
+            document
+                .getElementById("btnPopular")
+                .addEventListener("click", popularRodadas);
 
-        // Inicialização
-        document.addEventListener('DOMContentLoaded', async () => {
-            await loadLayout();
-            await carregarLigasDisponiveis();
-        });
-    </script>
-</body>
+            // Inicialização
+            document.addEventListener("DOMContentLoaded", async () => {
+                await loadLayout();
+                await carregarLigasDisponiveis();
+            });
+        </script>
+    </body>
 </html>

@@ -313,13 +313,20 @@ export async function fetchAndProcessRankingRodada(ligaId, rodadaNum) {
 
         const data = await resRodadas.json();
 
-        if (
-          data &&
-          (Array.isArray(data) ? data.length > 0 : Object.keys(data).length > 0)
-        ) {
+        // Array vazio é válido (rodada sem dados ainda)
+        if (data && Array.isArray(data)) {
           rankingsDataFromApi = data;
           console.log(
-            `[RODADAS-CORE] Dados encontrados no endpoint: ${endpoint}`,
+            `[RODADAS-CORE] Dados encontrados no endpoint: ${endpoint} (${data.length} registros)`,
+          );
+          break;
+        }
+
+        // Objeto com propriedade data
+        if (data && typeof data === "object" && data.data) {
+          rankingsDataFromApi = data.data;
+          console.log(
+            `[RODADAS-CORE] Dados encontrados no endpoint: ${endpoint} (${data.data.length} registros)`,
           );
           break;
         }
@@ -378,6 +385,19 @@ export async function fetchAndProcessRankingRodada(ligaId, rodadaNum) {
       );
       return [];
     }
+
+    // DEBUG: Ver estrutura dos dados
+    console.log(`[RODADAS-CORE] 🔍 DEBUG Rodada ${rodadaNum}:`, {
+      totalRecebidos: dataArray.length,
+      primeiroItem: dataArray[0],
+      temRodada: dataArray[0]?.hasOwnProperty("rodada"),
+      valorRodada: dataArray[0]?.rodada,
+      tipoRodada: typeof dataArray[0]?.rodada,
+    });
+    console.log(
+      `[RODADAS-CORE] 🔍 ESTRUTURA COMPLETA:`,
+      JSON.stringify(dataArray[0], null, 2),
+    );
 
     const rankingsDaRodada = dataArray.filter((rank) => {
       if (!rank || typeof rank !== "object") return false;

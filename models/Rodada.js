@@ -13,6 +13,11 @@ const RodadaSchema = new mongoose.Schema({
   escudo_time_do_coracao: { type: String }, // URL do escudo 30x30
   pontos: { type: Number, default: 0 },
   rodadaNaoJogada: { type: Boolean, default: false },
+
+  // ✅ NOVOS CAMPOS - Calculados pelo backend
+  posicao: { type: Number }, // Posição no ranking (considerando ativos)
+  valorFinanceiro: { type: Number, default: 0 }, // Valor de bônus/ônus
+  totalParticipantesAtivos: { type: Number }, // Total de ativos nesta rodada
 });
 
 export default mongoose.model("Rodada", RodadaSchema);

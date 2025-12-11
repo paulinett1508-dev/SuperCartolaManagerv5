@@ -30,6 +30,7 @@ import cartolaProxyRoutes from "./routes/cartola-proxy.js";
 import timesRoutes from "./routes/times.js";
 import timesAdminRoutes from "./routes/times-admin.js";
 import rodadasRoutes from "./routes/rodadas-routes.js";
+import rodadasCacheRoutes from "./routes/rodadasCacheRoutes.js";
 import golsRoutes from "./routes/gols.js";
 import artilheiroCampeaoRoutes from "./routes/artilheiro-campeao-routes.js";
 import luvaDeOuroRoutes from "./routes/luva-de-ouro-routes.js";
@@ -172,6 +173,7 @@ app.use("/api/cartola", cartolaProxyRoutes);
 app.use("/api/times", timesRoutes);
 app.use("/api/time", timesRoutes);
 app.use("/api/rodadas", rodadasRoutes);
+app.use("/api/rodadas-cache", rodadasCacheRoutes);
 app.use("/api/gols", golsRoutes);
 app.use("/api/artilheiro-campeao", artilheiroCampeaoRoutes);
 app.use("/api/luva-de-ouro", luvaDeOuroRoutes);
@@ -227,7 +229,7 @@ app.get("*", (req, res) => {
 // Inicialização do Servidor
 if (process.env.NODE_ENV !== "test") {
   try {
-    app.listen(PORT, '0.0.0.0', () => {
+    app.listen(PORT, "0.0.0.0", () => {
       console.log(`🚀 SUPER CARTOLA MANAGER RODANDO NA PORTA ${PORT}`);
       console.log(`💾 Sessões persistentes: ATIVADAS (MongoDB Store)`);
       console.log(`🔐 Autenticação Admin: Replit Auth`);

@@ -11,6 +11,8 @@
             !hostname.includes("localhost") &&
             !hostname.includes("127.0.0.1") &&
             !hostname.includes(".repl.co") &&
+            !hostname.includes("replit.dev") &&
+            !hostname.includes("replit.app") &&
             !hostname.includes("webcontainer")
         );
     })();
