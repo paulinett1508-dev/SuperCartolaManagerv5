@@ -1,13 +1,35 @@
 // =====================================================================
-// extratoFinanceiroCacheController.js v3.4 - Fix detecção de cache corrompido
+// extratoFinanceiroCacheController.js v4.0 - Suporte a temporada finalizada
 // ✅ v3.3: Trava extrato financeiro para inativos na rodada_desistencia
 // ✅ v3.4: Corrige detecção de dados consolidados vs legados
+// ✅ v4.0: Cache permanente para temporadas finalizadas (sem recálculos)
 // =====================================================================
 
 import ExtratoFinanceiroCache from "../models/ExtratoFinanceiroCache.js";
 import FluxoFinanceiroCampos from "../models/FluxoFinanceiroCampos.js";
 import Liga from "../models/Liga.js";
 import mongoose from "mongoose";
+
+// ✅ v4.0: Verificar se temporada está finalizada
+async function verificarTemporadaFinalizada(ligaId) {
+    try {
+        const liga = await Liga.findById(toLigaId(ligaId)).lean();
+        if (!liga) return { finalizada: false };
+
+        const temporada2025 = liga.configuracoes?.temporada_2025;
+        if (temporada2025?.status === 'finalizada') {
+            return {
+                finalizada: true,
+                rodadaFinal: temporada2025.rodada_final || 38,
+                dataEncerramento: temporada2025.data_encerramento
+            };
+        }
+        return { finalizada: false };
+    } catch (error) {
+        console.error('[CACHE-CONTROLLER] Erro ao verificar temporada:', error);
+        return { finalizada: false };
+    }
+}
 
 function toLigaId(ligaId) {
     if (mongoose.Types.ObjectId.isValid(ligaId)) {
@@ -400,7 +422,7 @@ export const salvarExtratoCache = async (req, res) => {
     }
 };
 
-// ✅ v3.3: VERIFICAR CACHE VÁLIDO COM SUPORTE A INATIVOS
+// ✅ v4.0: VERIFICAR CACHE VÁLIDO COM SUPORTE A TEMPORADA FINALIZADA
 export const verificarCacheValido = async (req, res) => {
     try {
         const { ligaId, timeId } = req.params;
@@ -409,6 +431,9 @@ export const verificarCacheValido = async (req, res) => {
         const statusTime = await buscarStatusTime(ligaId, timeId);
         const isInativo = statusTime.ativo === false;
         const rodadaDesistencia = statusTime.rodada_desistencia;
+
+        // ✅ v4.0: Verificar se temporada está finalizada
+        const statusTemporada = await verificarTemporadaFinalizada(ligaId);
 
         const cacheExistente = await ExtratoFinanceiroCache.findOne({
             liga_id: toLigaId(ligaId),
@@ -421,6 +446,47 @@ export const verificarCacheValido = async (req, res) => {
                 motivo: "cache_nao_encontrado",
                 inativo: isInativo,
                 rodadaDesistencia,
+                temporadaFinalizada: statusTemporada.finalizada,
+            });
+        }
+
+        // ✅ v4.0: Se temporada finalizada E cache permanente, retorna imediatamente
+        if (statusTemporada.finalizada && cacheExistente.cache_permanente) {
+            console.log(`[CACHE-CONTROLLER] 🏁 Temporada finalizada - retornando cache permanente para time ${timeId}`);
+
+            let rodadasConsolidadas = transformarTransacoesEmRodadas(
+                cacheExistente.historico_transacoes || [],
+                ligaId,
+            );
+
+            if (isInativo && rodadaDesistencia) {
+                rodadasConsolidadas = filtrarRodadasParaInativo(
+                    rodadasConsolidadas,
+                    rodadaDesistencia,
+                );
+            }
+
+            const camposAtivos = await buscarCamposManuais(ligaId, timeId);
+            const resumoCalculado = calcularResumoDeRodadas(
+                rodadasConsolidadas,
+                camposAtivos,
+            );
+
+            return res.json({
+                valido: true,
+                cached: true,
+                permanente: true,
+                temporadaFinalizada: true,
+                motivo: "temporada_finalizada_cache_permanente",
+                ultimaRodada: cacheExistente.ultima_rodada_consolidada,
+                rodadaFinal: statusTemporada.rodadaFinal,
+                updatedAt: cacheExistente.updatedAt,
+                rodadas: rodadasConsolidadas,
+                resumo: resumoCalculado,
+                camposManuais: camposAtivos,
+                inativo: isInativo,
+                rodadaDesistencia,
+                extratoTravado: isInativo && rodadaDesistencia,
             });
         }
 
@@ -714,4 +780,4 @@ export const estatisticasCache = async (req, res) => {
     }
 };
 
-console.log("[CACHE-CONTROLLER] ✅ v3.4 carregado (fix cache corrompido)");
+console.log("[CACHE-CONTROLLER] ✅ v4.0 carregado (suporte temporada finalizada)");

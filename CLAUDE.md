@@ -1,125 +1,49 @@
-# CLAUDE.md
+# Super Cartola Manager - Diretrizes de Desenvolvimento
 
-This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
+## 🛠️ Comandos Principais
+- **Start Dev:** `npm run dev` (Nodemon + Hot Reload)
+- **Start Prod:** `npm start`
+- **Testes:** `npm test` (Roda todos os testes via Jest)
+- **Lint:** `npm run lint` e `npm run lint:fix`
+- **Consolidação Manual:** `npm run consolidar` (Processa rodadas pendentes)
+- **MCP Database:** Certifique-se de que o servidor MCP está ativo para consultas ao Mongo (`/mcp add mongo node mongo-server.js`).
 
-## Project Overview
+## 🏗️ Arquitetura e Tech Stack
+- **Runtime:** Node.js (ES Modules habilitado).
+- **Backend:** Express.js (MVC Pattern).
+- **Database:** MongoDB + Mongoose. Use o servidor MCP para inspecionar schemas reais.
+- **Frontend Admin:** HTML/CSS/Vanilla JS (Desktop) - `public/admin/`.
+- **Frontend App:** Mobile-First Modular JS - `public/participante/`.
+- **Auth:** Replit Auth (Admin) e Express Session (Participantes).
 
-Super Cartola Manager is a Node.js/Express fantasy football league management system for Cartola FC (Brazilian fantasy game). It features two distinct interfaces: Admin (desktop) for league management and Participant (mobile-first) for player experience.
+## 🧠 Regras de Negócio Críticas (Cartola)
+1.  **Pontuação:** Baseada na API oficial do Cartola FC.
+2.  **Ligas:**
+    - *SuperCartola:* 32 times. Regra financeira complexa (Top/Bottom tier).
+    - *Cartoleiros Sobral:* 6 times. Regra simplificada + Luva de Ouro.
+3.  **Formatos de Disputa:**
+    - *Pontos Corridos:* Todos contra todos. Vitória (+5), Empate (+3), Derrota (-5).
+    - *Mata-Mata:* Chaveamento (1º vs 32º). 5 edições por temporada.
+    - *Mitos/Micos:* Top 10 e Bottom 10 da rodada geram bônus/multa financeira.
+4.  **Consolidação:** Os dados de rodada tornam-se imutáveis após processados (`RodadaSnapshot`). Nunca recalcule uma rodada consolidada sem backup.
 
-## Commands
+## 💻 Diretrizes de Código (Style Guide)
+- **Idioma:** Comentários e documentação em **Português (PT-BR)**. Nomes de variáveis/funções em camelCase (híbrido PT/EN aceito, ex: `rodadaController`, `getTeamStats`).
+- **Banco de Dados:**
+    - NÃO adivinhe nomes de campos. Use a tool `get_collection_schema` do MCP para verificar a estrutura antes de criar queries complexas.
+    - Use `async/await` para todas as chamadas de banco.
+- **Frontend:**
+    - Evite frameworks complexos (React/Vue) neste projeto. Mantenha Vanilla JS modular.
+    - Use `fetch` para API calls.
+- **Tratamento de Erros:** Sempre envolva chamadas de API externa e Banco em `try/catch`. Logs de erro devem ser descritivos.
 
-```bash
-# Development
-npm install          # Install dependencies
-npm run dev          # Start with nodemon (hot reload)
-npm start            # Production mode
+## 📂 Estrutura de Pastas Relevante
+- `controllers/`: Lógica de negócio (19 arquivos).
+- `services/`: Integrações externas (API Cartola) e lógica pura.
+- `models/`: Schemas do Mongoose.
+- `public/participante/js/modules/`: Lógica do frontend mobile (carregamento preguiçoso).
 
-# Testing
-npm test                        # Run all tests
-npm run test:watch              # Watch mode
-npm run test:coverage           # With coverage report
-npm run test:artilheiro         # Single test file
-
-# Linting
-npm run lint          # Check code quality
-npm run lint:fix      # Auto-fix issues
-
-# Utilities
-npm run consolidar    # Consolidate historical data
-npm run predeploy     # Bump version before deploy
-node project-dna.js   # Regenerate PROJECT_DNA.md documentation
-```
-
-## Architecture
-
-### Stack
-- **Backend**: Node.js + Express (ES Modules)
-- **Database**: MongoDB + Mongoose
-- **Frontend**: Vanilla JavaScript (modular)
-- **Caching**: NodeCache (server) + IndexedDB (client)
-
-### Directory Structure
-```
-config/          # Database, auth, app configuration
-controllers/     # Business logic (17 controllers)
-middleware/      # Auth guards, security, route protection
-models/          # MongoDB/Mongoose schemas
-routes/          # API route definitions (129+ endpoints)
-services/        # Business services (Cartola API, gols, goleiros)
-utils/           # Helper utilities
-scripts/         # Standalone scripts (cron, consolidation)
-public/
-  ├── admin/         # Admin interface
-  ├── participante/  # Mobile-first participant app
-  ├── js/            # Frontend modules by feature
-  └── css/           # Stylesheets
-```
-
-### Two Operating Modes
-
-**Admin Mode** (Desktop): League CRUD, round consolidation, financial management, participant administration, reports
-
-**Participant Mode** (Mobile-first): Financial statements, rankings, rounds, top 10, knockout brackets, top scorer, golden glove
-
-### Authentication
-- **Admin**: Replit Auth (OpenID Connect)
-- **Participant**: Express Session + team password
-- Protected routes use middleware guards in `middleware/auth.js`
-
-### Key Controllers
-- `ligaController.js` - League management
-- `rodadaController.js` - Round management
-- `consolidacaoController.js` - Data consolidation
-- `fluxoFinanceiroController.js` - Financial flows
-- `artilheiroCampeaoController.js` - Top scorer tracking
-- `pontosCorridosCacheController.js` - Points standings
-- `extratoFinanceiroCacheController.js` - Statement caching
-
-### Frontend Module Pattern
-Participant app uses lazy-loaded modules in `public/participante/js/modules/`:
-- `participante-extrato.js`, `participante-ranking.js`, `participante-rodadas.js`
-- `participante-top10.js`, `participante-pontos-corridos.js`, `participante-mata-mata.js`
-- `participante-artilheiro.js`, `participante-luva-ouro.js`, `participante-melhor-mes.js`
-
-## Development Constraints
-
-**From user preferences (replit.md):**
-- Ask before making major changes
-- Do not modify the `backups/` folder
-- Do not alter existing database structure
-- Maintain compatibility with existing APIs
-- Keep admin mode 100% intact
-- Test each change in isolation
-- Format numbers/currency in Brazilian Portuguese (pt-BR)
-- Use modal overlays instead of alert() boxes
-
-**Performance:**
-- MongoDB connection pooling (50 max, 10 min)
-- Multi-level caching (NodeCache server-side, IndexedDB client-side)
-- Lazy-loaded frontend modules
-
-## Environment Variables
-
-Required in `.env`:
-```
-MONGODB_URI=         # MongoDB connection string
-NODE_ENV=            # development/production
-PORT=                # Server port (default 5000)
-SESSION_SECRET=      # Session encryption key
-BASE_URL=            # Base URL for deployment
-API_URL=             # API base URL
-LIGA_ID_PRINCIPAL=   # Main league ID
-```
-
-Optional for OAuth:
-```
-GOOGLE_CLIENT_ID=
-GOOGLE_CLIENT_SECRET=
-ADMIN_EMAILS=
-```
-
-## Entry Points
-
-- **Backend**: `index.js`
-- **Admin Frontend**: `public/index.html`
-- **Participant Frontend**: `public/participante/index.html`
+## ⚠️ Restrições do Ambiente (Replit)
+- Não tente usar `sudo` ou instalar pacotes de sistema globalmente.
+- Use a variável `MONGODB_URI` dos Secrets.
+- Respeite o rate-limit da API do Cartola FC.

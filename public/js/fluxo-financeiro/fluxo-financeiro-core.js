@@ -1,13 +1,16 @@
-// FLUXO-FINANCEIRO-CORE.JS v4.3 - FIX MATA-MATA
+// FLUXO-FINANCEIRO-CORE.JS v5.0 - SUPORTE TEMPORADA FINALIZADA
 // ✅ v4.1: Trava extrato para inativos na rodada_desistencia
 // ✅ v4.2: Tabelas contextuais corrigidas
 // ✅ v4.3: Fix await no _carregarMataMataMap + logs debug
+// ✅ v4.4: Fix posição usando apenas ranking de ativos
+// ✅ v4.5: Filtrar registros antigos de inativos via posicao > totalParticipantesAtivos
+// ✅ v5.0: Cache permanente para temporadas finalizadas (sem recálculos no app)
 
 // ============================================================================
 // ⚽ CONFIGURAÇÃO DO CAMPEONATO 2025
 // ============================================================================
 const RODADA_FINAL_CAMPEONATO = 38; // Última rodada do Brasileirão 2025
-const CAMPEONATO_ENCERRADO = true; // Flag: temporada finalizada
+const CAMPEONATO_ENCERRADO = true; // Flag: temporada 2025 finalizada
 
 import { calcularFinanceiroConfronto } from "../pontos-corridos-utils.js";
 import { obterLigaId } from "../pontos-corridos-utils.js";
@@ -374,7 +377,7 @@ export class FluxoFinanceiroCore {
     }
 
     // =====================================================================
-    // VERIFICAR CACHE MONGODB
+    // ✅ v5.0: VERIFICAR CACHE MONGODB COM SUPORTE A TEMPORADA FINALIZADA
     // =====================================================================
     async _verificarCacheMongoDB(ligaId, timeId, rodadaAtual, mercadoAberto) {
         try {
@@ -396,11 +399,15 @@ export class FluxoFinanceiroCore {
                     ? cacheData.rodadas
                     : cacheData.data;
 
+                // ✅ v5.0: Detectar cache permanente de temporada finalizada
+                const isPermanente = cacheData.permanente || cacheData.temporadaFinalizada;
+                const statusMsg = isPermanente ? " | PERMANENTE" : (cacheData.extratoTravado ? " | TRAVADO" : "");
+
                 console.log(
-                    `[FLUXO-CORE] ⚡ Cache válido: ${rodadasArray?.length || 0} rodadas${cacheData.extratoTravado ? " | TRAVADO" : ""}`,
+                    `[FLUXO-CORE] ⚡ Cache válido: ${rodadasArray?.length || 0} rodadas${statusMsg}`,
                 );
 
-                return { ...cacheData, rodadas: rodadasArray };
+                return { ...cacheData, rodadas: rodadasArray, permanente: isPermanente };
             }
 
             return null;
@@ -478,21 +485,48 @@ export class FluxoFinanceiroCore {
             return this._criarRodadaVazia(rodada, isSuperCartola2025);
         }
 
-        const posicaoIndex = ranking.findIndex((r) => {
-            const rTimeId = normalizarTimeId(r.timeId || r.time_id || r.id);
-            return rTimeId === normalizarTimeId(timeId);
+        // ✅ v4.5: Obter totalParticipantesAtivos do primeiro registro (calculado pelo backend)
+        const totalParticipantesAtivos =
+            ranking[0]?.totalParticipantesAtivos || ranking.length;
+
+        // ✅ v4.5: Filtrar apenas registros de participantes ATIVOS
+        // Registros antigos de inativos têm posicao > totalParticipantesAtivos ou rodadaNaoJogada === true
+        const rankingAtivos = ranking.filter((r) => {
+            // Se tem rodadaNaoJogada true, é inativo
+            if (r.rodadaNaoJogada === true) return false;
+            // Se tem posicao definida e é maior que total de ativos, é registro antigo de inativo
+            if (r.posicao && r.posicao > totalParticipantesAtivos) return false;
+            return true;
         });
 
-        if (posicaoIndex === -1) {
+        // ✅ v4.5: Usar totalParticipantesAtivos como referência
+        const totalTimes = totalParticipantesAtivos;
+
+        // ✅ v4.5: Buscar o time no ranking de ativos
+        const timeIdNorm = normalizarTimeId(timeId);
+        const registroTime = rankingAtivos.find((r) => {
+            const rTimeId = normalizarTimeId(r.timeId || r.time_id || r.id);
+            return rTimeId === timeIdNorm;
+        });
+
+        if (!registroTime) {
+            // Time não encontrado entre ativos (provavelmente inativo)
             return this._criarRodadaVazia(
                 rodada,
                 isSuperCartola2025,
-                ranking.length,
+                totalTimes,
             );
         }
 
-        const totalTimes = ranking.length;
-        const posicaoReal = posicaoIndex + 1;
+        // ✅ v4.5: Usar posição já calculada pelo backend quando disponível
+        const posicaoReal =
+            registroTime.posicao ||
+            rankingAtivos.findIndex(
+                (r) =>
+                    normalizarTimeId(r.timeId || r.time_id || r.id) ===
+                    timeIdNorm,
+            ) + 1;
+
         const isMito = posicaoReal === 1;
         const isMico = posicaoReal === totalTimes;
 
@@ -843,4 +877,4 @@ window.forcarRefreshExtrato = async function (timeId) {
     window.location.reload();
 };
 
-console.log("[FLUXO-CORE] ✅ v4.3 carregado (fix await MataMataMap)");
+console.log("[FLUXO-CORE] ✅ v5.0 carregado (suporte temporada finalizada)");

@@ -4,7 +4,13 @@
       "Bash(tree:*)",
       "Bash(find:*)",
       "Bash(wc:*)",
-      "Bash(grep:*)"
+      "Bash(grep:*)",
+      "Bash(npm install:*)",
+      "Bash(node -e:*)",
+      "Bash(/mcp add mongo:*)",
+      "Bash(node investigar-rodada38-paulinett.js:*)",
+      "Bash(node investigar-snapshots-sobral.js:*)",
+      "Bash(node:*)"
     ]
   }
 }

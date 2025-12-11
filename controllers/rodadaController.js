@@ -1,12 +1,14 @@
 // =====================================================================
-// rodadasCorrecaoController.js
-// Controller para corrigir rodadas com dados corrompidos
-// Rota: POST /api/rodadas/:ligaId/corrigir
+// rodadaController.js v2.4 - FIX: clube_id herdado de rodadas anteriores
+// Busca dados da API do Cartola e calcula posições
 // =====================================================================
 
 import Rodada from "../models/Rodada.js";
+import Time from "../models/Time.js";
+import Liga from "../models/Liga.js";
 import mongoose from "mongoose";
 
+// ✅ Converter ligaId para ObjectId
 function toLigaId(ligaId) {
   if (mongoose.Types.ObjectId.isValid(ligaId)) {
     return new mongoose.Types.ObjectId(ligaId);
@@ -14,8 +16,8 @@ function toLigaId(ligaId) {
   return ligaId;
 }
 
-// Tabelas de valores por liga
-const VALORES_BANCO = {
+// Tabelas de valores financeiros por liga
+const VALORES_FINANCEIROS = {
   // SuperCartola (32 participantes)
   "684cb1c8af923da7c7df51de": {
     1: 20.0,
@@ -51,255 +53,405 @@ const VALORES_BANCO = {
     31: -19.0,
     32: -20.0,
   },
-  // Cartoleiros do Sobral (4 times ativos nas rodadas 30+)
+  // Cartoleiros do Sobral - FASE 1 (rodadas 1-29): 6 participantes
+  // FASE 2 (rodadas 30+): 4 participantes
   "684d821cf1a7ae16d1f89572": {
-    1: 5.0, // MITO
-    2: 0.0, // Neutro
-    3: 0.0, // Neutro
-    4: -5.0, // MICO
+    1: 5.0,
+    2: 0.0,
+    3: 0.0,
+    4: -5.0,
   },
 };
 
 // =====================================================================
-// CORRIGIR RODADAS CORROMPIDAS
-// POST /api/rodadas/:ligaId/corrigir
-// Body: { rodadaInicio: 36, rodadaFim: 38 }
+// ✅ v2.4: BUSCAR MAPA DE clube_id EXISTENTES
 // =====================================================================
-export const corrigirRodadas = async (req, res) => {
+async function obterMapaClubeId(ligaIdObj) {
+  // Busca o clube_id mais recente de cada time nas rodadas já salvas
+  const registros = await Rodada.aggregate([
+    { $match: { ligaId: ligaIdObj, clube_id: { $ne: null, $exists: true } } },
+    { $sort: { rodada: -1 } },
+    { $group: { _id: "$timeId", clube_id: { $first: "$clube_id" } } },
+  ]);
+
+  const mapa = {};
+  registros.forEach((r) => {
+    mapa[r._id] = r.clube_id;
+  });
+
+  console.log(`[MAPA-CLUBE-ID] ${Object.keys(mapa).length} times mapeados`);
+  return mapa;
+}
+
+// =====================================================================
+// POPULAR RODADAS
+// =====================================================================
+export const popularRodadas = async (req, res) => {
   const { ligaId } = req.params;
-  const { rodadaInicio, rodadaFim } = req.body;
+  const { rodada, inicio, fim, repopular } = req.body;
 
   try {
-    console.log(`[CORRIGIR-RODADAS] Iniciando correção para liga ${ligaId}`);
-    console.log(`[CORRIGIR-RODADAS] Rodadas: ${rodadaInicio} a ${rodadaFim}`);
-
-    const ligaIdObj = toLigaId(ligaId);
-    const inicio = parseInt(rodadaInicio) || 36;
-    const fim = parseInt(rodadaFim) || 38;
-
-    // ETAPA 1: Identificar times válidos de uma rodada anterior
-    const timesValidos = await Rodada.distinct("timeId", {
-      ligaId: ligaIdObj,
-      rodada: { $lt: inicio },
-      timeId: { $ne: null, $exists: true },
-      nome_cartola: { $ne: "N/D" },
+    console.log(`[POPULAR-RODADAS] Iniciando para liga ${ligaId}`, {
+      rodada,
+      inicio,
+      fim,
+      repopular,
     });
 
-    if (timesValidos.length === 0) {
+    // Determinar range de rodadas
+    let rodadaInicio, rodadaFim;
+
+    if (rodada !== undefined) {
+      rodadaInicio = rodadaFim = Number(rodada);
+    } else if (inicio !== undefined && fim !== undefined) {
+      rodadaInicio = Number(inicio);
+      rodadaFim = Number(fim);
+    } else {
       return res.status(400).json({
-        success: false,
-        error:
-          "Não foi possível identificar times válidos em rodadas anteriores",
+        error: "Parâmetros inválidos. Use 'rodada' OU 'inicio' e 'fim'",
+      });
+    }
+
+    // Validação
+    if (rodadaInicio < 1 || rodadaFim > 38 || rodadaInicio > rodadaFim) {
+      return res.status(400).json({
+        error: "Intervalo de rodadas inválido (1-38)",
+      });
+    }
+
+    // ✅ FIX: Converter ligaId para ObjectId
+    const ligaIdObj = toLigaId(ligaId);
+    console.log(`[POPULAR-RODADAS] ligaId convertido: ${ligaIdObj}`);
+
+    // 1. BUSCAR TODOS OS TIMES DA LIGA
+    // ✅ v2.6: Buscar via Liga.times (array de IDs numéricos)
+    const liga = await Liga.findById(ligaIdObj).lean();
+
+    if (!liga) {
+      console.error(`[POPULAR-RODADAS] Liga não encontrada: ${ligaId}`);
+      return res.status(404).json({
+        error: "Liga não encontrada",
+        ligaId: ligaId,
+      });
+    }
+
+    if (!Array.isArray(liga.times) || liga.times.length === 0) {
+      console.error(`[POPULAR-RODADAS] Liga sem times cadastrados: ${ligaId}`);
+      return res.status(404).json({
+        error: "Nenhum time cadastrado na liga",
+        ligaId: ligaId,
       });
     }
 
     console.log(
-      `[CORRIGIR-RODADAS] Times válidos encontrados: ${timesValidos.length}`,
+      `[POPULAR-RODADAS] Liga tem ${liga.times.length} times cadastrados`,
     );
-    console.log(`[CORRIGIR-RODADAS] IDs: ${timesValidos.join(", ")}`);
 
-    const resultados = [];
-    const valoresBanco =
-      VALORES_BANCO[ligaId] || VALORES_BANCO["684cb1c8af923da7c7df51de"];
-
-    // ETAPA 2: Para cada rodada a corrigir
-    for (let rodada = inicio; rodada <= fim; rodada++) {
-      console.log(`[CORRIGIR-RODADAS] Processando rodada ${rodada}...`);
-
-      // 2.1: Limpar registros corrompidos
-      const deletados = await Rodada.deleteMany({
-        ligaId: ligaIdObj,
-        rodada,
-        $or: [
-          { timeId: null },
-          { timeId: { $exists: false } },
-          { nome_cartola: "N/D", pontos: 0 },
-        ],
-      });
-
-      console.log(
-        `[CORRIGIR-RODADAS] Rodada ${rodada}: ${deletados.deletedCount} corrompidos removidos`,
-      );
-
-      // 2.2: Buscar dados da API do Cartola
-      const dadosRodada = [];
-
-      for (const timeId of timesValidos) {
-        try {
-          const url = `https://api.cartolafc.globo.com/time/id/${timeId}/${rodada}`;
-          const response = await fetch(url);
-
-          if (response.ok) {
-            const dados = await response.json();
-
-            dadosRodada.push({
-              timeId,
-              nome_cartola: dados.time?.nome_cartola || "N/D",
-              nome_time: dados.time?.nome || "N/D",
-              escudo: dados.time?.url_escudo_png || "",
-              clube_id: dados.time?.time_id_do_coracao || null,
-              pontos: dados.pontos || 0,
-            });
-
-            console.log(
-              `[CORRIGIR-RODADAS] Time ${timeId}: ${dados.pontos} pts`,
-            );
-          } else {
-            console.warn(
-              `[CORRIGIR-RODADAS] API retornou ${response.status} para time ${timeId}`,
-            );
-          }
-
-          // Rate limiting
-          await new Promise((r) => setTimeout(r, 200));
-        } catch (error) {
-          console.error(
-            `[CORRIGIR-RODADAS] Erro ao buscar time ${timeId}:`,
-            error.message,
-          );
-        }
-      }
-
-      // 2.3: Ordenar e calcular posições
-      dadosRodada.sort((a, b) => b.pontos - a.pontos);
-
-      // 2.4: Salvar no banco
-      let salvos = 0;
-      for (let i = 0; i < dadosRodada.length; i++) {
-        const time = dadosRodada[i];
-        const posicao = i + 1;
-        const valorFinanceiro = valoresBanco[posicao] || 0;
-
-        await Rodada.findOneAndUpdate(
-          { ligaId: ligaIdObj, rodada, timeId: time.timeId },
-          {
-            ligaId: ligaIdObj,
-            rodada,
-            timeId: time.timeId,
-            nome_cartola: time.nome_cartola,
-            nome_time: time.nome_time,
-            escudo: time.escudo,
-            clube_id: time.clube_id,
-            pontos: time.pontos,
-            posicao,
-            valorFinanceiro,
-            totalParticipantesAtivos: dadosRodada.length,
-            rodadaNaoJogada: false,
-          },
-          { upsert: true, new: true },
-        );
-        salvos++;
-      }
-
-      resultados.push({
-        rodada,
-        corrompidosRemovidos: deletados.deletedCount,
-        timesBuscados: dadosRodada.length,
-        registrosSalvos: salvos,
-        ranking: dadosRodada.map((t, i) => ({
-          posicao: i + 1,
-          nome: t.nome_cartola,
-          pontos: t.pontos,
-          banco: valoresBanco[i + 1] || 0,
-        })),
-      });
-    }
-
-    // ETAPA 3: Verificação final
-    const verificacao = {};
-    for (let rodada = inicio; rodada <= fim; rodada++) {
-      const count = await Rodada.countDocuments({
-        ligaId: ligaIdObj,
-        rodada,
-        timeId: { $ne: null },
-      });
-      verificacao[`rodada_${rodada}`] = count;
-    }
-
-    res.json({
-      success: true,
-      mensagem: `Correção concluída para rodadas ${inicio} a ${fim}`,
-      timesIdentificados: timesValidos.length,
-      resultados,
-      verificacao,
-    });
-  } catch (error) {
-    console.error("[CORRIGIR-RODADAS] Erro:", error);
-    res.status(500).json({
-      success: false,
-      error: error.message,
-    });
-  }
-};
-
-// =====================================================================
-// VERIFICAR RODADAS CORROMPIDAS
-// GET /api/rodadas/:ligaId/verificar-corrompidos
-// =====================================================================
-export const verificarCorrompidos = async (req, res) => {
-  const { ligaId } = req.params;
-
-  try {
-    const ligaIdObj = toLigaId(ligaId);
-
-    // Buscar rodadas com dados corrompidos
-    const corrompidos = await Rodada.find({
-      ligaId: ligaIdObj,
-      $or: [
-        { timeId: null },
-        { timeId: { $exists: false } },
-        { nome_cartola: "N/D", pontos: 0 },
-      ],
-    })
-      .select("rodada timeId nome_cartola pontos")
+    // Buscar dados completos dos times
+    const timesCompletos = await Time.find({ id: { $in: liga.times } })
+      .select("id ativo rodada_desistencia")
       .lean();
 
-    // Agrupar por rodada
-    const porRodada = {};
-    corrompidos.forEach((r) => {
-      if (!porRodada[r.rodada]) porRodada[r.rodada] = 0;
-      porRodada[r.rodada]++;
-    });
+    // ✅ v2.6: Mapear campo 'id' para 'timeId' para compatibilidade
+    const times = timesCompletos.map((t) => ({
+      timeId: t.id,
+      ativo: t.ativo,
+      rodada_desistencia: t.rodada_desistencia,
+    }));
 
-    // Contar registros válidos por rodada (1-38)
-    const contagem = {};
-    for (let i = 1; i <= 38; i++) {
-      contagem[i] = await Rodada.countDocuments({
-        ligaId: ligaIdObj,
-        rodada: i,
-        timeId: { $ne: null },
-      });
+    console.log(`[POPULAR-RODADAS] ${times.length} times encontrados na liga`);
+
+    // ✅ v2.4: Buscar mapa de clube_id existentes
+    const mapaClubeId = await obterMapaClubeId(ligaIdObj);
+
+    // 2. PROCESSAR CADA RODADA
+    const resumo = {
+      processadas: 0,
+      inseridas: 0,
+      atualizadas: 0,
+      erros: 0,
+    };
+    const detalhes = [];
+
+    for (let numRodada = rodadaInicio; numRodada <= rodadaFim; numRodada++) {
+      console.log(`[POPULAR-RODADAS] Processando rodada ${numRodada}...`);
+
+      try {
+        const resultadoRodada = await processarRodada(
+          ligaIdObj,
+          ligaId,
+          numRodada,
+          times,
+          repopular,
+          mapaClubeId, // ✅ v2.4: Passar mapa de clube_id
+        );
+
+        resumo.processadas++;
+        resumo.inseridas += resultadoRodada.inseridas;
+        resumo.atualizadas += resultadoRodada.atualizadas;
+
+        detalhes.push(
+          `Rodada ${numRodada}: ${resultadoRodada.inseridas} inseridas, ${resultadoRodada.atualizadas} atualizadas`,
+        );
+      } catch (error) {
+        console.error(
+          `[POPULAR-RODADAS] Erro na rodada ${numRodada}:`,
+          error.message,
+        );
+        resumo.erros++;
+        detalhes.push(`Rodada ${numRodada}: ERRO - ${error.message}`);
+      }
     }
 
-    // Identificar rodadas problemáticas (menos registros que o esperado)
-    const mediaRegistros = Object.values(contagem).filter((v) => v > 0);
-    const esperado =
-      mediaRegistros.length > 0 ? Math.max(...mediaRegistros) : 0;
-
-    const rodadasProblematicas = Object.entries(contagem)
-      .filter(([rodada, count]) => count < esperado && count >= 0)
-      .map(([rodada, count]) => ({
-        rodada: parseInt(rodada),
-        registros: count,
-        esperado,
-        faltando: esperado - count,
-      }));
+    // 3. RESPOSTA
+    const mensagem =
+      rodadaInicio === rodadaFim
+        ? `Rodada ${rodadaInicio} populada com sucesso`
+        : `Rodadas ${rodadaInicio} a ${rodadaFim} populadas`;
 
     res.json({
       success: true,
-      totalCorrompidos: corrompidos.length,
-      corrompidosPorRodada: porRodada,
-      registrosPorRodada: contagem,
-      registrosEsperados: esperado,
-      rodadasProblematicas,
+      mensagem,
+      resumo,
+      detalhes,
+      participantesAtivos: times.filter((t) => t.ativo !== false).length,
+      participantesTotal: times.length,
     });
   } catch (error) {
-    console.error("[VERIFICAR-CORROMPIDOS] Erro:", error);
+    console.error("[POPULAR-RODADAS] Erro geral:", error);
     res.status(500).json({
-      success: false,
-      error: error.message,
+      error: "Erro ao popular rodadas",
+      detalhes: error.message,
     });
   }
 };
 
-console.log("[RODADAS-CORRECAO] ✅ Controller carregado");
+// =====================================================================
+// PROCESSAR UMA RODADA - ✅ v2.4: Recebe mapaClubeId
+// =====================================================================
+async function processarRodada(
+  ligaIdObj,
+  ligaIdStr,
+  rodada,
+  times,
+  repopular,
+  mapaClubeId = {},
+) {
+  const tabelaValores = VALORES_FINANCEIROS[ligaIdStr] || {};
+  let inseridas = 0;
+  let atualizadas = 0;
+
+  // 1. VERIFICAR SE JÁ EXISTE
+  if (!repopular) {
+    const existente = await Rodada.findOne({ ligaId: ligaIdObj, rodada });
+    if (existente) {
+      console.log(`[PROCESSAR-RODADA] Rodada ${rodada} já existe (pulando)`);
+      return { inseridas: 0, atualizadas: 0 };
+    }
+  }
+
+  // 2. BUSCAR DADOS DE CADA TIME DA API DO CARTOLA
+  const dadosRodada = [];
+
+  for (const time of times) {
+    // ✅ Verificar se o time estava ativo nesta rodada
+    const rodadaDesistencia = time.rodada_desistencia || null;
+    const ativoNestaRodada = !rodadaDesistencia || rodada < rodadaDesistencia;
+
+    // Se time já tinha desistido antes desta rodada, pular
+    if (!ativoNestaRodada) {
+      console.log(
+        `[PROCESSAR-RODADA] Time ${time.timeId} inativo na rodada ${rodada} (desistência: ${rodadaDesistencia})`,
+      );
+      continue;
+    }
+
+    try {
+      // Buscar da API do Cartola FC
+      const url = `https://api.cartolafc.globo.com/time/id/${time.timeId}/${rodada}`;
+      const response = await fetch(url);
+
+      if (response.ok) {
+        const dados = await response.json();
+
+        // ✅ v2.4: clube_id da API OU do mapa de rodadas anteriores
+        const clubeIdApi = dados.time?.time_id_do_coracao || null;
+        const clubeIdHerdado = mapaClubeId[time.timeId] || null;
+        const clubeIdFinal = clubeIdApi || clubeIdHerdado;
+
+        // ✅ v2.4: Atualizar mapa se conseguiu um novo clube_id
+        if (clubeIdApi && !mapaClubeId[time.timeId]) {
+          mapaClubeId[time.timeId] = clubeIdApi;
+        }
+
+        dadosRodada.push({
+          timeId: time.timeId,
+          nome_cartola: dados.time?.nome_cartola || "N/D",
+          nome_time: dados.time?.nome || "N/D",
+          escudo: dados.time?.url_escudo_png || "",
+          clube_id: clubeIdFinal,
+          pontos: dados.pontos || 0,
+          ativo: time.ativo !== false,
+        });
+
+        console.log(
+          `[PROCESSAR-RODADA] Time ${time.timeId} rodada ${rodada}: ${dados.pontos} pontos (clube_id: ${clubeIdFinal})`,
+        );
+      } else {
+        // API falhou - criar registro com clube_id herdado
+        console.warn(
+          `[PROCESSAR-RODADA] API falhou para time ${time.timeId} rodada ${rodada} (status: ${response.status})`,
+        );
+
+        dadosRodada.push({
+          timeId: time.timeId,
+          nome_cartola: "N/D",
+          nome_time: "N/D",
+          escudo: "",
+          clube_id: mapaClubeId[time.timeId] || null, // ✅ v2.4: Herdar clube_id
+          pontos: 0,
+          ativo: time.ativo !== false,
+          rodadaNaoJogada: true,
+        });
+      }
+    } catch (error) {
+      console.error(
+        `[PROCESSAR-RODADA] Erro ao buscar time ${time.timeId}:`,
+        error.message,
+      );
+
+      // Erro na requisição - criar registro com clube_id herdado
+      dadosRodada.push({
+        timeId: time.timeId,
+        nome_cartola: "N/D",
+        nome_time: "N/D",
+        escudo: "",
+        clube_id: mapaClubeId[time.timeId] || null, // ✅ v2.4: Herdar clube_id
+        pontos: 0,
+        ativo: time.ativo !== false,
+        rodadaNaoJogada: true,
+      });
+    }
+  }
+
+  // 3. CALCULAR POSIÇÕES (considerando apenas times ativos)
+  const timesAtivos = dadosRodada.filter((t) => t.ativo);
+  const timesInativos = dadosRodada.filter((t) => !t.ativo);
+
+  // Ordenar ativos por pontos (decrescente)
+  timesAtivos.sort((a, b) => b.pontos - a.pontos);
+
+  // Atribuir posições aos ativos
+  timesAtivos.forEach((time, index) => {
+    time.posicao = index + 1;
+    time.valorFinanceiro = tabelaValores[time.posicao] || 0;
+  });
+
+  // Inativos ficam nas últimas posições (sem valor financeiro)
+  timesInativos.forEach((time, index) => {
+    time.posicao = timesAtivos.length + index + 1;
+    time.valorFinanceiro = 0;
+  });
+
+  // 4. SALVAR NO BANCO
+  const todosTimes = [...timesAtivos, ...timesInativos];
+
+  for (const time of todosTimes) {
+    try {
+      const resultado = await Rodada.findOneAndUpdate(
+        { ligaId: ligaIdObj, rodada, timeId: time.timeId },
+        {
+          ligaId: ligaIdObj,
+          rodada,
+          timeId: time.timeId,
+          nome_cartola: time.nome_cartola,
+          nome_time: time.nome_time,
+          escudo: time.escudo,
+          clube_id: time.clube_id,
+          pontos: time.pontos,
+          posicao: time.posicao,
+          valorFinanceiro: time.valorFinanceiro,
+          totalParticipantesAtivos: timesAtivos.length,
+          rodadaNaoJogada: time.rodadaNaoJogada || false,
+        },
+        { upsert: true, new: true, setDefaultsOnInsert: true },
+      );
+
+      if (resultado) {
+        atualizadas++;
+      }
+    } catch (saveError) {
+      console.error(
+        `[PROCESSAR-RODADA] Erro ao salvar time ${time.timeId}:`,
+        saveError.message,
+      );
+    }
+  }
+
+  console.log(
+    `[PROCESSAR-RODADA] Rodada ${rodada}: ${atualizadas} registros processados (${timesAtivos.length} ativos)`,
+  );
+
+  return { inseridas, atualizadas };
+}
+
+// =====================================================================
+// OBTER RODADAS (GET) - ✅ FIX: Conversão de ligaId
+// =====================================================================
+export const obterRodadas = async (req, res) => {
+  const { ligaId } = req.params;
+  const { rodada, inicio, fim } = req.query;
+
+  try {
+    // ✅ FIX: Converter ligaId para ObjectId
+    const ligaIdObj = toLigaId(ligaId);
+    let filtro = { ligaId: ligaIdObj };
+
+    if (rodada) {
+      filtro.rodada = Number(rodada);
+    } else if (inicio && fim) {
+      filtro.rodada = { $gte: Number(inicio), $lte: Number(fim) };
+    }
+
+    console.log(`[OBTER-RODADAS] Filtro:`, JSON.stringify(filtro));
+
+    const rodadas = await Rodada.find(filtro)
+      .sort({ rodada: 1, posicao: 1 })
+      .lean();
+
+    console.log(`[OBTER-RODADAS] Encontradas: ${rodadas.length} rodadas`);
+
+    res.json(rodadas);
+  } catch (error) {
+    console.error("[OBTER-RODADAS] Erro:", error);
+    res.status(500).json({
+      error: "Erro ao obter rodadas",
+      detalhes: error.message,
+    });
+  }
+};
+
+// =====================================================================
+// CRIAR ÍNDICE ÚNICO
+// =====================================================================
+export const criarIndiceUnico = async (req, res) => {
+  try {
+    await Rodada.collection.createIndex(
+      { ligaId: 1, rodada: 1, timeId: 1 },
+      { unique: true },
+    );
+
+    res.json({
+      success: true,
+      mensagem: "Índice único criado com sucesso",
+    });
+  } catch (error) {
+    console.error("[CRIAR-INDICE] Erro:", error);
+    res.status(500).json({
+      error: "Erro ao criar índice",
+      detalhes: error.message,
+    });
+  }
+};
+
+console.log("[RODADA-CONTROLLER] ✅ v2.6 carregado (fix busca via Liga.times)");
