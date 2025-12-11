@@ -1,11 +1,12 @@
 // =====================================================
-// MÓDULO: RANKING PARTICIPANTE - v3.6 PRO
+// MÓDULO: RANKING PARTICIPANTE - v3.7 PRO
 // Usa API de snapshots /api/ranking-turno
+// ✅ v3.7: Separação de participantes inativos (desistentes)
 // ✅ v3.6: Detecção de CAMPEÃO (R38 encerrada) + Card menor
 // ✅ v3.5: Card Seu Desempenho ao final + Vezes Líder
 // =====================================================
 
-if (window.Log) Log.info('PARTICIPANTE-RANKING', 'Módulo v3.6 PRO carregando...');
+if (window.Log) Log.info('PARTICIPANTE-RANKING', 'Módulo v3.7 PRO carregando...');
 
 // ==============================
 // CONSTANTES
@@ -557,25 +558,34 @@ function renderizarRankingPro(container, ranking, rodadaAtual) {
         return;
     }
 
-    const totalTimes = ranking.length;
+    // ✅ v3.7: Separar ativos e inativos
+    const ativos = ranking.filter(function (t) {
+        return t.ativo !== false && !t.inativo;
+    });
+    const inativos = ranking.filter(function (t) {
+        return t.ativo === false || t.inativo;
+    });
+
+    const totalAtivos = ativos.length;
     const timeId = estadoRanking.timeId;
     const turnoLabel =
         estadoRanking.turnoAtivo === "geral"
             ? "Geral"
             : estadoRanking.turnoAtivo + "º Turno";
 
-    // Criar cards de destaque
-    const lider = ranking[0];
+    // Criar cards de destaque (usando apenas ativos)
+    const lider = ativos[0];
     const cardLiderHTML = criarCardLider(lider, turnoLabel, rodadaAtual);
-    const cardSeuDesempenhoHTML = criarCardSeuDesempenho(ranking, turnoLabel);
+    const cardSeuDesempenhoHTML = criarCardSeuDesempenho(ativos, turnoLabel);
 
-    const listaHTML = ranking
-        .map(function (time) {
-            const posicao = time.posicao;
+    // ✅ v3.7: Renderizar lista de ativos
+    const listaAtivosHTML = ativos
+        .map(function (time, index) {
+            const posicao = index + 1; // Reordenar posições para ativos
             const isMeuTime = String(time.timeId) === String(timeId);
             const isPodio = posicao <= 3;
             const isZonaRebaixamento =
-                posicao > totalTimes - 3 && totalTimes > 6;
+                posicao > totalAtivos - 3 && totalAtivos > 6;
 
             let classes = ["ranking-item"];
             if (posicao === 1) classes.push("podio-1");
@@ -630,13 +640,72 @@ function renderizarRankingPro(container, ranking, rodadaAtual) {
         })
         .join("");
 
+    // ✅ v3.7: Renderizar seção de inativos (se houver)
+    let secaoInativosHTML = "";
+    if (inativos.length > 0) {
+        const listaInativosHTML = inativos
+            .map(function (time, index) {
+                const posicaoGrupo = index + 1;
+                const isMeuTime = String(time.timeId) === String(timeId);
+                const rodadaDesistencia = time.rodada_desistencia || "?";
+
+                const pontosFormatados = parseFloat(time.pontos).toLocaleString(
+                    "pt-BR",
+                    { minimumFractionDigits: 2 },
+                );
+
+                return (
+                    '<div class="ranking-item inativo' +
+                    (isMeuTime ? " meu-time" : "") +
+                    '">' +
+                    '<div class="ranking-posicao inativo-pos">' +
+                    posicaoGrupo +
+                    "º" +
+                    "</div>" +
+                    '<div class="ranking-info">' +
+                    '<div class="ranking-cartola">' +
+                    (time.nome_cartola || "N/D") +
+                    (isMeuTime
+                        ? '<span class="tag-voce"><span class="material-icons">person</span>VOCÊ</span>'
+                        : "") +
+                    "</div>" +
+                    '<div class="ranking-time">' +
+                    (time.nome_time || "N/D") +
+                    '<span class="tag-inativo">Saiu na R' +
+                    rodadaDesistencia +
+                    "</span>" +
+                    "</div>" +
+                    "</div>" +
+                    '<div class="ranking-pontos inativo-pontos">' +
+                    pontosFormatados +
+                    "</div>" +
+                    "</div>"
+                );
+            })
+            .join("");
+
+        secaoInativosHTML =
+            '<div class="secao-inativos">' +
+            '<div class="inativos-header">' +
+            '<span class="material-icons">person_off</span>' +
+            "<span>Participantes Inativos (" +
+            inativos.length +
+            ")</span>" +
+            "</div>" +
+            '<div class="ranking-lista inativos-lista">' +
+            listaInativosHTML +
+            "</div>" +
+            "</div>";
+    }
+
     container.innerHTML =
         '<div class="cards-destaque-container">' +
         cardLiderHTML +
         "</div>" +
         '<div class="ranking-lista">' +
-        listaHTML +
+        listaAtivosHTML +
         "</div>" +
+        secaoInativosHTML +
         '<div class="card-desempenho-container">' +
         cardSeuDesempenhoHTML +
         "</div>";
@@ -907,6 +976,57 @@ function injetarEstilosCards() {
             font-size: 12px;
         }
 
+        /* ✅ v3.7: Seção de Inativos */
+        .secao-inativos {
+            margin-top: 24px;
+            padding-top: 16px;
+            border-top: 1px dashed rgba(255, 255, 255, 0.15);
+        }
+        .inativos-header {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 10px 14px;
+            margin-bottom: 10px;
+            background: rgba(107, 114, 128, 0.15);
+            border: 1px solid rgba(107, 114, 128, 0.3);
+            border-radius: 10px;
+            font-size: 0.8rem;
+            font-weight: 600;
+            color: #9ca3af;
+        }
+        .inativos-header .material-icons {
+            font-size: 18px;
+            color: #9ca3af;
+        }
+        .inativos-lista .ranking-item.inativo {
+            opacity: 0.7;
+            background: rgba(107, 114, 128, 0.08);
+            border-left: 3px solid #6b7280;
+        }
+        .inativos-lista .ranking-item.inativo:hover {
+            opacity: 0.85;
+        }
+        .ranking-posicao.inativo-pos {
+            color: #9ca3af;
+            font-weight: 600;
+        }
+        .ranking-pontos.inativo-pontos {
+            color: #9ca3af;
+        }
+        .tag-inativo {
+            display: inline-block;
+            margin-left: 8px;
+            padding: 2px 6px;
+            background: rgba(239, 68, 68, 0.15);
+            border: 1px solid rgba(239, 68, 68, 0.3);
+            border-radius: 4px;
+            font-size: 0.6rem;
+            font-weight: 600;
+            color: #f87171;
+            vertical-align: middle;
+        }
+
         /* Responsivo */
         @media (min-width: 768px) {
             .cards-destaque-container {
@@ -1084,4 +1204,4 @@ window.mostrarPremiacaoPro = function (posicaoClicada) {
     document.body.appendChild(modal);
 };
 
-if (window.Log) Log.info('PARTICIPANTE-RANKING', '✅ Módulo v3.6 PRO carregado (Campeão + Card Compacto)');
+if (window.Log) Log.info('PARTICIPANTE-RANKING', '✅ Módulo v3.7 PRO carregado (Separação Inativos + Campeão)');

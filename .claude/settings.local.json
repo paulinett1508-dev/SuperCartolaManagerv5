@@ -10,7 +10,10 @@
       "Bash(/mcp add mongo:*)",
       "Bash(node investigar-rodada38-paulinett.js:*)",
       "Bash(node investigar-snapshots-sobral.js:*)",
-      "Bash(node:*)"
+      "Bash(node:*)",
+      "Bash(git push:*)",
+      "Bash(curl:*)",
+      "Bash(python3:*)"
     ]
   }
 }

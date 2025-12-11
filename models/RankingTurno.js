@@ -1,4 +1,5 @@
 // models/RankingTurno.js
+// ✅ v2.0: Adicionado suporte a participantes inativos
 import mongoose from "mongoose";
 
 const RankingTurnoSchema = new mongoose.Schema(
@@ -33,6 +34,7 @@ const RankingTurnoSchema = new mongoose.Schema(
         ranking: [
             {
                 posicao: { type: Number, required: true },
+                posicao_grupo: { type: Number }, // ✅ v2.0: Posição dentro do grupo (ativos ou inativos)
                 timeId: { type: Number, required: true },
                 nome_cartola: { type: String, default: "N/D" },
                 nome_time: { type: String, default: "N/D" },
@@ -40,6 +42,10 @@ const RankingTurnoSchema = new mongoose.Schema(
                 clube_id: { type: Number },
                 pontos: { type: Number, default: 0 },
                 rodadas_jogadas: { type: Number, default: 0 },
+                // ✅ v2.0: Campos de status do participante
+                ativo: { type: Boolean, default: true },
+                inativo: { type: Boolean, default: false },
+                rodada_desistencia: { type: Number, default: null },
             },
         ],
         consolidado_em: {

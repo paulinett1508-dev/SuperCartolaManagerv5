@@ -1,6 +1,8 @@
 // services/rankingTurnoService.js
+// ✅ v2.0: Suporte a participantes inativos (separação no ranking)
 import RankingTurno from "../models/RankingTurno.js";
 import Rodada from "../models/Rodada.js";
+import Liga from "../models/Liga.js";
 import mongoose from "mongoose";
 
 const LOG_PREFIX = "[RANKING-TURNO-SERVICE]";
@@ -65,6 +67,7 @@ export async function buscarRankingTurno(ligaId, turno) {
 
 /**
  * Consolida ranking de um turno calculando pontos das rodadas
+ * ✅ v2.0: Inclui informações de participantes inativos
  */
 export async function consolidarRankingTurno(ligaId, turno, rodadaAtualGeral) {
     const { inicio, fim } = RankingTurno.getRodadasTurno(turno);
@@ -72,6 +75,18 @@ export async function consolidarRankingTurno(ligaId, turno, rodadaAtualGeral) {
     console.log(
         `${LOG_PREFIX} Consolidando turno ${turno} (rodadas ${inicio}-${fim})`,
     );
+
+    // ✅ v2.0: Buscar liga para obter status de participantes
+    const liga = await Liga.findById(ligaId).lean();
+    const participantesMap = new Map();
+    if (liga && liga.participantes) {
+        liga.participantes.forEach((p) => {
+            participantesMap.set(p.time_id, {
+                rodada_desistencia: p.rodada_desistencia || null,
+                ativo: p.ativo !== false && !p.rodada_desistencia,
+            });
+        });
+    }
 
     // Buscar todas as rodadas do turno
     const rodadas = await Rodada.find({
@@ -95,6 +110,9 @@ export async function consolidarRankingTurno(ligaId, turno, rodadaAtualGeral) {
         const timeId = registro.timeId;
         const pontos = registro.rodadaNaoJogada ? 0 : registro.pontos || 0;
 
+        // ✅ v2.0: Obter status do participante
+        const statusPart = participantesMap.get(timeId) || { ativo: true, rodada_desistencia: null };
+
         if (!timesPontos[timeId]) {
             timesPontos[timeId] = {
                 timeId,
@@ -104,6 +122,10 @@ export async function consolidarRankingTurno(ligaId, turno, rodadaAtualGeral) {
                 clube_id: registro.clube_id,
                 pontos: 0,
                 rodadas_jogadas: 0,
+                // ✅ v2.0: Campos de status
+                ativo: statusPart.ativo,
+                rodada_desistencia: statusPart.rodada_desistencia,
+                inativo: !statusPart.ativo,
             };
         }
 
@@ -113,13 +135,32 @@ export async function consolidarRankingTurno(ligaId, turno, rodadaAtualGeral) {
         }
     });
 
-    // Converter para array e ordenar por pontos
-    const ranking = Object.values(timesPontos)
-        .sort((a, b) => b.pontos - a.pontos)
-        .map((time, index) => ({
-            posicao: index + 1,
-            ...time,
-        }));
+    // ✅ v2.0: Separar ativos e inativos
+    const todosParticipantes = Object.values(timesPontos);
+    const ativos = todosParticipantes.filter((t) => t.ativo);
+    const inativos = todosParticipantes.filter((t) => !t.ativo);
+
+    // Ordenar cada grupo por pontos
+    ativos.sort((a, b) => b.pontos - a.pontos);
+    inativos.sort((a, b) => b.pontos - a.pontos);
+
+    // ✅ v2.0: Atribuir posições separadas
+    // Ativos: posição normal de 1 a N
+    ativos.forEach((time, index) => {
+        time.posicao = index + 1;
+        time.posicao_grupo = index + 1;
+    });
+
+    // Inativos: posição após os ativos (apenas para ordenação visual)
+    inativos.forEach((time, index) => {
+        time.posicao = ativos.length + index + 1;
+        time.posicao_grupo = index + 1;
+    });
+
+    // ✅ v2.0: Combinar ranking (ativos primeiro, depois inativos)
+    const ranking = [...ativos, ...inativos];
+
+    console.log(`${LOG_PREFIX} 📊 Ranking: ${ativos.length} ativos, ${inativos.length} inativos`);
 
     // Determinar rodada atual do turno
     const rodadaAtualTurno = Math.min(
