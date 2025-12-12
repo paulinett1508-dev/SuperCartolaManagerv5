@@ -1,17 +1,18 @@
 // =====================================================
-// MÓDULO: UI DO EXTRATO PARTICIPANTE - v8.7 FIX DUPLICAÇÃO
+// MÓDULO: UI DO EXTRATO PARTICIPANTE - v8.8 VISUAL MELHORADO
 // =====================================================
+// ✅ v8.8: Melhorias visuais no Histórico por Rodada
+//    - Cards com padding aumentado (p-4)
+//    - Textos e badges maiores para legibilidade
+//    - Ícones proporcionais (w-10 h-10)
 // ✅ v8.7: CORREÇÃO CRÍTICA - Campos manuais não duplicados
 //    - Backend já soma campos em resumo.saldo
 //    - Frontend NÃO soma novamente (estava duplicando!)
 // ✅ v8.4: Sistema de zonas G1-G11 (ganho) e Z10-Z1 (perda)
-//    - Zona neutra (12º-21º) sem badge de posição
-//    - Cores elegantes: esmeralda (ganho) e rose (perda)
 // ✅ v8.3: Casas decimais, cores nas legendas, nomes completos
 // ✅ v8.2: Valores detalhados por componente em cada rodada
-// ✅ v8.1: Campos manuais incluídos no detalhamento
 
-if (window.Log) Log.info("[EXTRATO-UI] 🎨 Módulo de UI v8.7 FIX DUPLICAÇÃO");
+if (window.Log) Log.info("[EXTRATO-UI] 🎨 Módulo de UI v8.8 VISUAL MELHORADO");
 
 // ===== CONFIGURAÇÃO DE FAIXAS POR LIGA (COM SUPORTE TEMPORAL) =====
 const FAIXAS_PREMIACAO = {
@@ -104,6 +105,38 @@ function getPosicaoZonaLabel(posicao, faixas) {
     return { label: null, tipo: "neutro" };
 }
 
+// ===== v8.8: PREENCHER TODAS AS 38 RODADAS =====
+// Garante que todas as rodadas apareçam no histórico, mesmo as neutras
+function preencherTodasRodadas(rodadasExistentes, totalRodadas = 38) {
+    const rodadasMap = new Map();
+
+    // Indexar rodadas existentes
+    rodadasExistentes.forEach(r => {
+        rodadasMap.set(r.rodada, r);
+    });
+
+    // Criar array completo (1 a totalRodadas)
+    const todasRodadas = [];
+    for (let i = 1; i <= totalRodadas; i++) {
+        if (rodadasMap.has(i)) {
+            todasRodadas.push(rodadasMap.get(i));
+        } else {
+            // Rodada neutra sem movimentação
+            todasRodadas.push({
+                rodada: i,
+                posicao: null,
+                bonusOnus: 0,
+                pontosCorridos: 0,
+                mataMata: 0,
+                top10: 0,
+                _preenchida: true // Flag para identificar
+            });
+        }
+    }
+
+    return todasRodadas;
+}
+
 // ===== EXPORTAR FUNÇÃO PRINCIPAL =====
 export function renderizarExtratoParticipante(extrato, participanteId) {
     const container = document.getElementById("fluxoFinanceiroContent");
@@ -178,7 +211,9 @@ function renderizarConteudoCompleto(container, extrato) {
 
     window.ligaIdAtual = ligaId;
 
-    const rodadasOrdenadas = [...extrato.rodadas].sort(
+    // v8.8: Preencher todas as 38 rodadas (mesmo neutras) e ordenar decrescente
+    const rodadasCompletas = preencherTodasRodadas(extrato.rodadas, 38);
+    const rodadasOrdenadas = rodadasCompletas.sort(
         (a, b) => b.rodada - a.rodada,
     );
 
@@ -251,14 +286,14 @@ function renderizarConteudoCompleto(container, extrato) {
             </div>
         </div>
 
-        <!-- Histórico por Rodada -->
+        <!-- Histórico por Rodada - v8.8: Espaçamento melhorado -->
         <div class="bg-surface-dark rounded-xl p-4 mb-4 border border-white/5">
-            <div class="flex items-center gap-2 mb-3">
-                <span class="material-symbols-outlined text-primary">history</span>
-                <h3 class="text-sm font-bold text-white">Histórico por Rodada</h3>
+            <div class="flex items-center gap-2 mb-4">
+                <span class="material-symbols-outlined text-primary text-xl">history</span>
+                <h3 class="text-base font-bold text-white">Histórico por Rodada</h3>
                 <span class="text-xs text-white/50 ml-auto">${rodadasOrdenadas.length} rodadas</span>
             </div>
-            <div class="space-y-2">
+            <div class="space-y-3">
                 ${renderizarCardsRodadas(rodadasOrdenadas, ligaId)}
             </div>
         </div>
@@ -332,22 +367,22 @@ function renderizarCardsRodadas(rodadas, ligaId) {
                 faixaColor = "text-rose-400";
             }
 
-            // Badge TOP10
+            // Badge TOP10 - v8.8: Aumentado para melhor legibilidade
             let badgeTop10 = "";
             if (top10 > 0) {
-                badgeTop10 = `<span class="text-[9px] bg-amber-500/20 text-amber-400 px-1.5 py-0.5 rounded-full font-semibold">MITO</span>`;
+                badgeTop10 = `<span class="text-[10px] bg-amber-500/20 text-amber-400 px-2 py-0.5 rounded-full font-semibold">MITO</span>`;
             } else if (top10 < 0) {
-                badgeTop10 = `<span class="text-[9px] bg-rose-500/20 text-rose-400 px-1.5 py-0.5 rounded-full font-semibold">MICO</span>`;
+                badgeTop10 = `<span class="text-[10px] bg-rose-500/20 text-rose-400 px-2 py-0.5 rounded-full font-semibold">MICO</span>`;
             }
 
-            // Badge da zona (G1-G11 ou Z10-Z1)
+            // Badge da zona (G1-G11 ou Z10-Z1) - v8.8: Aumentado
             let badgeZona = "";
             if (zonaLabel) {
                 const corBadge =
                     tipoZona === "ganho"
                         ? "bg-emerald-500/20 text-emerald-400"
                         : "bg-rose-500/20 text-rose-400";
-                badgeZona = `<span class="text-[10px] font-bold px-1.5 py-0.5 rounded ${corBadge}">${zonaLabel}</span>`;
+                badgeZona = `<span class="text-[11px] font-bold px-2 py-0.5 rounded ${corBadge}">${zonaLabel}</span>`;
             }
 
             // Gerar breakdown com zonas G/Z
@@ -395,35 +430,36 @@ function renderizarCardsRodadas(rodadas, ligaId) {
                 );
             }
 
+            // v8.8: Espaçamento vertical aumentado entre itens do breakdown
             const breakdownHTML =
                 breakdownItems.length > 0
-                    ? `<div class="flex flex-wrap gap-x-3 gap-y-1 text-[11px] font-medium mt-1.5">${breakdownItems.join("")}</div>`
-                    : `<p class="text-[10px] text-white/30 mt-1">Sem movimentação</p>`;
+                    ? `<div class="flex flex-col gap-1 text-xs font-medium mt-2">${breakdownItems.join("")}</div>`
+                    : `<p class="text-[11px] text-white/40 mt-2">Rodada neutra (sem movimentação)</p>`;
 
             return `
-            <div class="${bgColor} ${borderColor} border rounded-xl p-3 transition-all">
+            <div class="${bgColor} ${borderColor} border rounded-xl p-4 transition-all">
                 <div class="flex items-start justify-between">
                     <div class="flex items-start gap-3">
-                        <div class="w-9 h-9 rounded-lg flex items-center justify-center flex-shrink-0 ${
+                        <div class="w-10 h-10 rounded-lg flex items-center justify-center flex-shrink-0 ${
                             tipoZona === "ganho"
                                 ? "bg-emerald-500/20"
                                 : tipoZona === "perda"
                                   ? "bg-rose-500/20"
                                   : "bg-zinc-700/50"
                         }">
-                            <span class="material-icons ${faixaColor} text-base">${faixaIcon}</span>
+                            <span class="material-icons ${faixaColor} text-lg">${faixaIcon}</span>
                         </div>
                         <div class="min-w-0">
                             <div class="flex items-center gap-2 flex-wrap">
-                                <span class="text-sm font-bold text-white">R${r.rodada}</span>
-                                ${r.posicao ? `<span class="text-[10px] text-white/40">${r.posicao}º lugar</span>` : ""}
+                                <span class="text-base font-bold text-white">R${r.rodada}</span>
+                                ${r.posicao ? `<span class="text-[11px] text-white/50">${r.posicao}º lugar</span>` : ""}
                                 ${badgeZona}
                                 ${badgeTop10}
                             </div>
                             ${breakdownHTML}
                         </div>
                     </div>
-                    <span class="text-sm font-bold ${positivo ? "text-emerald-400" : "text-rose-400"} whitespace-nowrap ml-2">${positivo ? "+" : ""}${saldoFormatado}</span>
+                    <span class="text-base font-bold ${saldo === 0 ? "text-white/40" : positivo ? "text-emerald-400" : "text-rose-400"} whitespace-nowrap ml-3">${saldo > 0 ? "+" : ""}${saldoFormatado}</span>
                 </div>
             </div>
         `;
