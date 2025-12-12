@@ -367,17 +367,34 @@ function renderizarCardsRodadas(rodadas, ligaId) {
                 faixaColor = "text-rose-400";
             }
 
-            // Badge TOP10 - v8.8: Aumentado para melhor legibilidade
-            let badgeTop10 = "";
-            if (top10 > 0) {
-                badgeTop10 = `<span class="text-[10px] bg-amber-500/20 text-amber-400 px-2 py-0.5 rounded-full font-semibold">MITO</span>`;
-            } else if (top10 < 0) {
-                badgeTop10 = `<span class="text-[10px] bg-rose-500/20 text-rose-400 px-2 py-0.5 rounded-full font-semibold">MICO</span>`;
+            // v8.8: Badge MITO/MICO da rodada (1º e último lugar)
+            // Ícones iguais ao módulo Rodadas: emoji_events (MITO) e pest_control (MICO)
+            const ultimaPosicao = faixas.debito?.fim || faixas.totalTimes;
+            let badgePosicaoDestaque = "";
+
+            if (r.posicao === 1) {
+                // 1º lugar = MITO da rodada
+                badgePosicaoDestaque = `<span class="inline-flex items-center gap-1 text-[11px] bg-amber-500/20 text-amber-400 px-2 py-0.5 rounded font-bold">
+                    <span class="material-symbols-outlined text-sm" style="color: #ffd700;">emoji_events</span>MITO
+                </span>`;
+            } else if (r.posicao === ultimaPosicao) {
+                // Último lugar = MICO da rodada
+                badgePosicaoDestaque = `<span class="inline-flex items-center gap-1 text-[11px] bg-rose-500/20 text-rose-400 px-2 py-0.5 rounded font-bold">
+                    <span class="material-symbols-outlined text-sm" style="color: #ef4444;">pest_control</span>MICO
+                </span>`;
             }
 
-            // Badge da zona (G1-G11 ou Z10-Z1) - v8.8: Aumentado
+            // Badge TOP10 histórico (separado do MITO/MICO de rodada)
+            let badgeTop10 = "";
+            if (top10 > 0) {
+                badgeTop10 = `<span class="text-[10px] bg-orange-500/20 text-orange-400 px-2 py-0.5 rounded-full font-semibold">TOP10</span>`;
+            } else if (top10 < 0) {
+                badgeTop10 = `<span class="text-[10px] bg-rose-500/20 text-rose-300 px-2 py-0.5 rounded-full font-semibold">BTM10</span>`;
+            }
+
+            // Badge da zona (G2-G11 ou Z2-Z10) - não mostrar se já tem MITO/MICO
             let badgeZona = "";
-            if (zonaLabel) {
+            if (zonaLabel && !badgePosicaoDestaque) {
                 const corBadge =
                     tipoZona === "ganho"
                         ? "bg-emerald-500/20 text-emerald-400"
@@ -434,7 +451,7 @@ function renderizarCardsRodadas(rodadas, ligaId) {
             const breakdownHTML =
                 breakdownItems.length > 0
                     ? `<div class="flex flex-col gap-1 text-xs font-medium mt-2">${breakdownItems.join("")}</div>`
-                    : `<p class="text-[11px] text-white/40 mt-2">Rodada neutra (sem movimentação)</p>`;
+                    : `<p class="text-[11px] text-white/40 mt-2">Sem movimentação</p>`;
 
             return `
             <div class="${bgColor} ${borderColor} border rounded-xl p-4 transition-all">
@@ -453,6 +470,7 @@ function renderizarCardsRodadas(rodadas, ligaId) {
                             <div class="flex items-center gap-2 flex-wrap">
                                 <span class="text-base font-bold text-white">R${r.rodada}</span>
                                 ${r.posicao ? `<span class="text-[11px] text-white/50">${r.posicao}º lugar</span>` : ""}
+                                ${badgePosicaoDestaque}
                                 ${badgeZona}
                                 ${badgeTop10}
                             </div>
