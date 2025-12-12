@@ -20,7 +20,9 @@
       "Bash(git commit:*)",
       "Bash(printenv:*)",
       "Bash(source .env)",
-      "Bash(timeout 3 node:*)"
+      "Bash(timeout 3 node:*)",
+      "Bash(npm audit:*)",
+      "Bash(ls:*)"
     ]
   },
   "enableAllProjectMcpServers": true,

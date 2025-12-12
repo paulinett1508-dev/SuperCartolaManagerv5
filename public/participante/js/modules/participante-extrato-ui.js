@@ -1,6 +1,9 @@
 // =====================================================
-// MÓDULO: UI DO EXTRATO PARTICIPANTE - v8.4 ZONAS G/Z
+// MÓDULO: UI DO EXTRATO PARTICIPANTE - v8.7 FIX DUPLICAÇÃO
 // =====================================================
+// ✅ v8.7: CORREÇÃO CRÍTICA - Campos manuais não duplicados
+//    - Backend já soma campos em resumo.saldo
+//    - Frontend NÃO soma novamente (estava duplicando!)
 // ✅ v8.4: Sistema de zonas G1-G11 (ganho) e Z10-Z1 (perda)
 //    - Zona neutra (12º-21º) sem badge de posição
 //    - Cores elegantes: esmeralda (ganho) e rose (perda)
@@ -8,7 +11,7 @@
 // ✅ v8.2: Valores detalhados por componente em cada rodada
 // ✅ v8.1: Campos manuais incluídos no detalhamento
 
-if (window.Log) Log.info("[EXTRATO-UI] 🎨 Módulo de UI v8.4 Zonas G/Z");
+if (window.Log) Log.info("[EXTRATO-UI] 🎨 Módulo de UI v8.7 FIX DUPLICAÇÃO");
 
 // ===== CONFIGURAÇÃO DE FAIXAS POR LIGA (COM SUPORTE TEMPORAL) =====
 const FAIXAS_PREMIACAO = {
@@ -134,9 +137,12 @@ function renderizarConteudoCompleto(container, extrato) {
     const camposManuais =
         extrato.camposManuais || extrato.camposEditaveis || [];
 
+    // ✅ v8.7: CORREÇÃO CRÍTICA - Backend já inclui campos manuais no resumo!
+    // NÃO somar campos manuais novamente (estava causando duplicação)
     let totalCamposManuaisPositivos = 0;
     let totalCamposManuaisNegativos = 0;
 
+    // Calcular totais apenas para exibição separada (se necessário)
     if (Array.isArray(camposManuais)) {
         camposManuais.forEach((campo) => {
             const valor = parseFloat(campo.valor) || 0;
@@ -145,15 +151,11 @@ function renderizarConteudoCompleto(container, extrato) {
         });
     }
 
-    const totalGanhos =
-        (resumoBase.totalGanhos || 0) + totalCamposManuaisPositivos;
-    const totalPerdas =
-        Math.abs(resumoBase.totalPerdas || 0) +
-        Math.abs(totalCamposManuaisNegativos);
-    const saldo =
-        (resumoBase.saldo_final || resumoBase.saldo || 0) +
-        totalCamposManuaisPositivos +
-        totalCamposManuaisNegativos;
+    // ✅ v8.7: resumo.saldo/totalGanhos/totalPerdas JÁ incluem campos manuais
+    // Não duplicar somando novamente!
+    const totalGanhos = resumoBase.totalGanhos || 0;
+    const totalPerdas = Math.abs(resumoBase.totalPerdas || 0);
+    const saldo = resumoBase.saldo_final || resumoBase.saldo || 0;
 
     const saldoPositivo = saldo >= 0;
     const saldoFormatado = `R$ ${Math.abs(saldo).toFixed(2).replace(".", ",")}`;
@@ -202,14 +204,14 @@ function renderizarConteudoCompleto(container, extrato) {
 
         <!-- Cards Ganhos/Perdas -->
         <div class="grid grid-cols-2 gap-3 mb-4">
-            <div onclick="window.mostrarDetalhamentoGanhos()" class="bg-surface-dark p-3 rounded-xl flex items-center justify-between cursor-pointer hover:bg-white/10 active:scale-[0.98] transition-all">
+            <div onclick="window.mostrarDetalhamentoGanhos(event)" class="bg-surface-dark p-3 rounded-xl flex items-center justify-between cursor-pointer hover:bg-white/10 active:scale-[0.98] transition-all">
                 <div class="flex items-center gap-2 min-w-0">
                     <span class="material-icons text-emerald-400 text-base flex-shrink-0">arrow_upward</span>
                     <p class="text-xs text-white/70 uppercase truncate">Créditos</p>
                 </div>
                 <span class="text-sm font-bold text-emerald-400 whitespace-nowrap ml-1">+${totalGanhos.toFixed(2).replace(".", ",")}</span>
             </div>
-            <div onclick="window.mostrarDetalhamentoPerdas()" class="bg-surface-dark p-3 rounded-xl flex items-center justify-between cursor-pointer hover:bg-white/10 active:scale-[0.98] transition-all">
+            <div onclick="window.mostrarDetalhamentoPerdas(event)" class="bg-surface-dark p-3 rounded-xl flex items-center justify-between cursor-pointer hover:bg-white/10 active:scale-[0.98] transition-all">
                 <div class="flex items-center gap-2 min-w-0">
                     <span class="material-icons text-rose-400 text-base flex-shrink-0">arrow_downward</span>
                     <p class="text-xs text-white/70 uppercase truncate">Débitos</p>
@@ -621,17 +623,53 @@ function renderizarErro() {
 }
 
 // ===== DETALHAMENTO DE GANHOS/PERDAS =====
-window.mostrarDetalhamentoGanhos = function () {
-    mostrarPopupDetalhamento(true);
+// ✅ v8.6: Prevenção de propagação de eventos + feedback visual
+window.mostrarDetalhamentoGanhos = function (event) {
+    if (event) {
+        event.preventDefault();
+        event.stopPropagation();
+    }
+    try {
+        mostrarPopupDetalhamento(true);
+    } catch (error) {
+        if (window.Log) Log.error('[EXTRATO-UI] ❌ Erro ao mostrar créditos:', error);
+        mostrarToastErro('Erro ao carregar detalhamento');
+    }
 };
 
-window.mostrarDetalhamentoPerdas = function () {
-    mostrarPopupDetalhamento(false);
+window.mostrarDetalhamentoPerdas = function (event) {
+    if (event) {
+        event.preventDefault();
+        event.stopPropagation();
+    }
+    try {
+        mostrarPopupDetalhamento(false);
+    } catch (error) {
+        if (window.Log) Log.error('[EXTRATO-UI] ❌ Erro ao mostrar débitos:', error);
+        mostrarToastErro('Erro ao carregar detalhamento');
+    }
 };
+
+// ✅ v8.6: Toast de feedback para erros
+function mostrarToastErro(mensagem) {
+    const toast = document.createElement('div');
+    toast.className = 'fixed bottom-20 left-1/2 transform -translate-x-1/2 bg-rose-500 text-white px-4 py-2 rounded-full text-sm font-medium z-[9999] animate-fade-in';
+    toast.textContent = mensagem;
+    document.body.appendChild(toast);
+    setTimeout(() => toast.remove(), 3000);
+}
 
 function mostrarPopupDetalhamento(isGanhos) {
     const extrato = window.extratoAtual;
-    if (!extrato || !extrato.rodadas) return;
+
+    // ✅ v8.6: Log de debug e feedback visual melhorado
+    if (window.Log) Log.debug('[EXTRATO-UI] 📊 Abrindo popup:', { isGanhos, temExtrato: !!extrato, temRodadas: extrato?.rodadas?.length });
+
+    if (!extrato || !extrato.rodadas) {
+        if (window.Log) Log.warn('[EXTRATO-UI] ⚠️ Extrato não disponível para detalhamento');
+        mostrarToastErro('Aguarde o carregamento do extrato');
+        return;
+    }
 
     const titulo = isGanhos
         ? "Detalhamento de Créditos"
@@ -872,4 +910,4 @@ function addCategoria(obj, nome, valor, rodada, icon) {
     }
 }
 
-if (window.Log) Log.info("[EXTRATO-UI] ✅ Módulo v8.4 Zonas G/Z pronto");
+if (window.Log) Log.info("[EXTRATO-UI] ✅ Módulo v8.5 (tratamento de erros melhorado)");

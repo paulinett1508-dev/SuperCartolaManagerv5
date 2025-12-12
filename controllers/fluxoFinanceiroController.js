@@ -1,11 +1,10 @@
 /**
- * FLUXO-FINANCEIRO-CONTROLLER v6.1
+ * FLUXO-FINANCEIRO-CONTROLLER v7.0
+ * ✅ v7.0: CORREÇÃO CRÍTICA - TOP10 é ranking HISTÓRICO, não por rodada!
+ *   - TOP10 agora busca do cache de Top10 (ranking histórico de todo o campeonato)
+ *   - BANCO continua por rodada (bônus/ônus por posição)
  * ✅ v6.1: MATA-MATA COMPLETO (todas as fases)
  * ✅ v6.0: Alinhamento completo com frontend
- *   - MATA-MATA implementado (+10/-10 por confronto)
- *   - TOP10 por liga (SuperCartola: 30→12, Cartoleiros: 10→1)
- *   - BANCO contextual por liga e rodada
- *   - Suporte a inativos (rodada_desistencia)
  */
 
 import fetch from "node-fetch";
@@ -15,6 +14,7 @@ import Time from "../models/Time.js";
 import Rodada from "../models/Rodada.js";
 import ExtratoFinanceiroCache from "../models/ExtratoFinanceiroCache.js";
 import FluxoFinanceiroCampos from "../models/FluxoFinanceiroCampos.js";
+import Top10Cache from "../models/Top10Cache.js";
 import { calcularMataMataParaTime } from "./mata-mata-backend.js";
 
 // ============================================================================
@@ -185,40 +185,78 @@ function getValoresTop10(ligaId) {
     };
 }
 
-function calcularTop10(ligaId, timeId, pontuacoes) {
-    const ranking = [...pontuacoes].sort((a, b) => b.pontos - a.pontos);
-    const posicao =
-        ranking.findIndex((p) => String(p.timeId) === String(timeId)) + 1;
-    const totalJogadores = ranking.length;
-
-    if (posicao <= 0) return null;
-
-    const valores = getValoresTop10(ligaId);
-
-    // Verificar MITO (top 10)
-    if (posicao <= 10) {
-        const premio = valores.mitos[posicao];
-        return {
-            valor: premio,
-            descricao: `MITO: ${posicao}º lugar na rodada`,
-            tipo: "MITO",
-            posicao: posicao,
-        };
-    }
-
-    // Verificar MICO (últimos 10)
-    const posicaoInversa = totalJogadores - posicao + 1;
-    if (posicaoInversa <= 10) {
-        const multa = valores.micos[posicaoInversa];
-        return {
-            valor: multa,
-            descricao: `MICO: ${posicao}º lugar na rodada`,
-            tipo: "MICO",
-            posicao: posicao,
-        };
-    }
-
+/**
+ * ❌ FUNÇÃO DESATIVADA - Lógica estava ERRADA!
+ * Esta função calculava TOP10 POR RODADA, mas o correto é:
+ * TOP10 = ranking HISTÓRICO das 10 maiores/menores pontuações do campeonato
+ *
+ * Usar calcularTop10Historico() no lugar.
+ */
+function calcularTop10_DESATIVADA(ligaId, timeId, pontuacoes) {
+    // ❌ DESATIVADA - retorna null sempre
+    // A lógica correta está em calcularTop10Historico()
     return null;
+}
+
+/**
+ * ✅ v7.0: Calcula TOP10 baseado no ranking HISTÓRICO (cache de Top10)
+ * - Busca o cache de Top10 que contém os 10 maiores mitos e 10 menores micos
+ * - Verifica se o time aparece nesse ranking histórico
+ * - Retorna array de transações de TOP10 (pode ter múltiplas aparições)
+ */
+async function calcularTop10Historico(ligaId, timeId) {
+    try {
+        const cache = await Top10Cache.findOne({ liga_id: String(ligaId) })
+            .sort({ rodada_consolidada: -1 })
+            .lean();
+
+        if (!cache || !cache.mitos || !cache.micos) {
+            console.log(`[FLUXO-CONTROLLER] Top10 cache não encontrado para liga ${ligaId}`);
+            return [];
+        }
+
+        const valores = getValoresTop10(ligaId);
+        const transacoes = [];
+
+        // Verificar aparições nos TOP 10 MITOS (10 maiores pontuações históricas)
+        cache.mitos.slice(0, 10).forEach((m, i) => {
+            const mTimeId = m.timeId || m.time_id;
+            if (String(mTimeId) === String(timeId)) {
+                const pos = i + 1;
+                const valor = valores.mitos[pos] || 0;
+                transacoes.push({
+                    rodada: m.rodada,
+                    tipo: "MITO",
+                    descricao: `Top10 Mito: ${pos}º maior pontuação histórica (R${m.rodada})`,
+                    valor: valor,
+                    posicao: pos,
+                    data: new Date(),
+                });
+            }
+        });
+
+        // Verificar aparições nos TOP 10 MICOS (10 menores pontuações históricas)
+        cache.micos.slice(0, 10).forEach((m, i) => {
+            const mTimeId = m.timeId || m.time_id;
+            if (String(mTimeId) === String(timeId)) {
+                const pos = i + 1;
+                const valor = valores.micos[pos] || 0;
+                transacoes.push({
+                    rodada: m.rodada,
+                    tipo: "MICO",
+                    descricao: `Top10 Mico: ${pos}º menor pontuação histórica (R${m.rodada})`,
+                    valor: valor,
+                    posicao: pos,
+                    data: new Date(),
+                });
+            }
+        });
+
+        return transacoes;
+    } catch (error) {
+        console.error(`[FLUXO-CONTROLLER] Erro ao calcular Top10 histórico:`, error);
+        return [];
+    }
 }
 
 // ============================================================================
@@ -365,20 +403,9 @@ async function calcularFinanceiroDaRodada(
     }
 
     // 2. TOP10 (MITO/MICO)
-    if (liga.modulos_ativos?.top10 !== false) {
-        const resultadoTop10 = calcularTop10(ligaId, timeId, pontuacoes);
-        if (resultadoTop10) {
-            transacoes.push({
-                rodada: rodadaNumero,
-                tipo: resultadoTop10.tipo,
-                descricao: resultadoTop10.descricao,
-                valor: resultadoTop10.valor,
-                posicao: resultadoTop10.posicao,
-                data: new Date(),
-            });
-            saldoRodada += resultadoTop10.valor;
-        }
-    }
+    // ✅ v7.0: TOP10 é calculado SEPARADAMENTE (ranking histórico)
+    // NÃO calcular por rodada! Ver calcularTop10Historico()
+    // if (liga.modulos_ativos?.top10 !== false) { ... }
 
     // 3. PONTOS CORRIDOS (apenas SuperCartola)
     if (
@@ -521,6 +548,32 @@ export const getExtratoFinanceiro = async (req, res) => {
                     novasTransacoes.push(...resultado.transacoes);
                     novoSaldo += resultado.saldo;
                     cacheModificado = true;
+                }
+            }
+        }
+
+        // ✅ v7.0: Calcular TOP10 histórico (separado do loop de rodadas)
+        if (liga.modulos_ativos?.top10 !== false) {
+            // Verificar se já tem transações de TOP10 no cache
+            const temTop10NoCache = cache.historico_transacoes.some(
+                (t) => t.tipo === "MITO" || t.tipo === "MICO"
+            );
+
+            if (!temTop10NoCache || forcarRecalculo) {
+                // Remover transações de TOP10 antigas (se houver)
+                cache.historico_transacoes = cache.historico_transacoes.filter(
+                    (t) => t.tipo !== "MITO" && t.tipo !== "MICO"
+                );
+
+                // Calcular TOP10 histórico
+                const transacoesTop10 = await calcularTop10Historico(ligaId, timeId);
+                if (transacoesTop10.length > 0) {
+                    novasTransacoes.push(...transacoesTop10);
+                    transacoesTop10.forEach((t) => (novoSaldo += t.valor));
+                    cacheModificado = true;
+                    console.log(
+                        `[FLUXO-CONTROLLER] TOP10 histórico: ${transacoesTop10.length} transações`
+                    );
                 }
             }
         }
@@ -750,6 +803,21 @@ export const getFluxoFinanceiroLiga = async (ligaId, rodadaNumero) => {
                     }
                 }
 
+                // ✅ v7.0: Calcular TOP10 histórico na consolidação
+                if (liga.modulos_ativos?.top10 !== false) {
+                    // Remover TOP10 antigos
+                    cache.historico_transacoes = cache.historico_transacoes.filter(
+                        (t) => t.tipo !== "MITO" && t.tipo !== "MICO"
+                    );
+
+                    // Calcular TOP10 histórico
+                    const transacoesTop10 = await calcularTop10Historico(ligaId, timeId);
+                    if (transacoesTop10.length > 0) {
+                        cache.historico_transacoes.push(...transacoesTop10);
+                        transacoesTop10.forEach((t) => (cache.saldo_consolidado += t.valor));
+                    }
+                }
+
                 cache.ganhos_consolidados = cache.historico_transacoes
                     .filter((t) => t.valor > 0)
                     .reduce((acc, t) => acc + t.valor, 0);
@@ -797,4 +865,4 @@ export const getFluxoFinanceiroLiga = async (ligaId, rodadaNumero) => {
     }
 };
 
-console.log("[FLUXO-CONTROLLER] ✅ v6.1 carregado (MATA-MATA COMPLETO)");
+console.log("[FLUXO-CONTROLLER] ✅ v7.0 carregado (TOP10 HISTÓRICO CORRIGIDO)");

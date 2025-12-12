@@ -1,18 +1,20 @@
 // =====================================================================
-// PARTICIPANTE-EXTRATO.JS - v2.8 (CACHE INTELIGENTE)
+// PARTICIPANTE-EXTRATO.JS - v3.0 (TEMPORADA ENCERRADA)
 // Destino: /participante/js/modules/participante-extrato.js
 // =====================================================================
+// ✅ v3.0: TEMPORADA ENCERRADA - dados são perpétuos, sem recálculos
 // ✅ v2.8: Detecta cache incompleto e força recálculo automático
 // ✅ v2.7: Correção URL campos editáveis (/times/ ao invés de /campos/)
 // ✅ v2.6: Busca campos editáveis do endpoint específico para UI
 // ✅ v2.5: Passa ligaId no extratoData para UI classificar zonas corretamente
-// ✅ v2.4: Botão Atualizar limpa cache + chama endpoint de cálculo
-// ✅ v2.3: Botão Atualizar limpa cache MongoDB + nova requisição
-// ✅ v2.2: Suporte a extrato travado para inativos
 // =====================================================================
 
+// ⚽ CONFIGURAÇÃO DO CAMPEONATO 2025
+const RODADA_FINAL_CAMPEONATO = 38;
+const CAMPEONATO_ENCERRADO = true; // ✅ v3.0: Temporada 2025 finalizada
+
 if (window.Log)
-    Log.info("EXTRATO-PARTICIPANTE", "📄 Módulo v2.8 (Cache Inteligente)");
+    Log.info("EXTRATO-PARTICIPANTE", `📄 Módulo v3.0 (Temporada ${CAMPEONATO_ENCERRADO ? 'ENCERRADA' : 'em andamento'})`);
 
 const PARTICIPANTE_IDS = { ligaId: null, timeId: null };
 
@@ -46,9 +48,15 @@ export async function inicializarExtratoParticipante({
 }
 
 // =====================================================================
-// ✅ v2.8: DETECTAR CACHE INCOMPLETO
+// ✅ v3.0: DETECTAR CACHE INCOMPLETO (respeitando temporada encerrada)
 // =====================================================================
 function detectarCacheIncompleto(rodadas) {
+    // ✅ v3.0: TEMPORADA ENCERRADA = NUNCA recalcular (dados são perpétuos)
+    if (CAMPEONATO_ENCERRADO) {
+        if (window.Log) Log.debug("EXTRATO-PARTICIPANTE", "🔒 Temporada encerrada - dados perpétuos, sem recálculo");
+        return false;
+    }
+
     if (!Array.isArray(rodadas) || rodadas.length === 0) return false;
 
     // Contadores para análise
@@ -538,9 +546,21 @@ function atualizarHeaderZerado() {
 }
 
 // =====================================================================
-// ✅ v2.3: REFRESH COM LIMPEZA DE CACHE
+// ✅ v3.0: REFRESH - BLOQUEADO QUANDO TEMPORADA ENCERRADA
 // =====================================================================
 window.forcarRefreshExtratoParticipante = async function () {
+    // ✅ v3.0: BLOQUEAR recálculo quando temporada encerrada
+    if (CAMPEONATO_ENCERRADO) {
+        if (window.Log)
+            Log.info("EXTRATO-PARTICIPANTE", "🔒 Temporada encerrada - recálculo bloqueado (dados perpétuos)");
+
+        // Apenas recarregar dados do cache (sem limpar/recalcular)
+        if (PARTICIPANTE_IDS.ligaId && PARTICIPANTE_IDS.timeId) {
+            await carregarExtrato(PARTICIPANTE_IDS.ligaId, PARTICIPANTE_IDS.timeId);
+        }
+        return;
+    }
+
     if (window.Log)
         Log.info("EXTRATO-PARTICIPANTE", "🔄 Refresh solicitado (com limpeza)");
 

@@ -560,8 +560,8 @@
                 <!-- Options -->
                 <div class="options-row">
                     <label class="remember-me">
-                        <input type="checkbox" id="lembrarMe" />
-                        <span>Lembrar-me</span>
+                        <input type="checkbox" id="lembrarMe" checked />
+                        <span>Manter conectado</span>
                     </label>
 
                     <div class="tooltip-container">
@@ -662,6 +662,7 @@
                 const submitBtn = document.getElementById("submitBtn");
                 const timeId = document.getElementById("timeId").value;
                 const senha = document.getElementById("senha").value;
+                const lembrar = document.getElementById("lembrarMe").checked;
 
                 // Show loading
                 loading.classList.add("show");
@@ -677,7 +678,7 @@
                                 "Content-Type": "application/json",
                             },
                             credentials: "include",
-                            body: JSON.stringify({ timeId, senha }),
+                            body: JSON.stringify({ timeId, senha, lembrar }),
                         },
                     );
 
@@ -686,6 +687,9 @@
                     if (!response.ok) {
                         throw new Error(data.error || "Erro ao fazer login");
                     }
+
+                    // ✅ Limpar chave do app para garantir que a Splash apareça
+                    sessionStorage.removeItem('participante_app_loaded');
 
                     // Login successful
                     window.location.href = "/participante/";

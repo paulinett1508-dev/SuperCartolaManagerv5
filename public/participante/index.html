@@ -429,12 +429,14 @@
         <!-- ✅ SCRIPT IMEDIATO - Detecção Ultra-Rápida de Reload -->
         <script>
             (function() {
-                var isSessionActive = sessionStorage.getItem('app_session_active');
+                // ✅ CHAVE ESPECÍFICA do app participante (não compartilhada com login)
+                var PARTICIPANTE_LOADED_KEY = 'participante_app_loaded';
+                var isReload = sessionStorage.getItem(PARTICIPANTE_LOADED_KEY);
                 var glassOverlay = document.getElementById('reload-glass-overlay');
                 var splashScreen = document.getElementById('splashScreen');
 
-                if (isSessionActive) {
-                    // É RELOAD: Esconde Splash antiga, mostra Vidro Fosco
+                if (isReload) {
+                    // É RELOAD/PULL-REFRESH: Esconde Splash, mostra Vidro Fosco
                     if (splashScreen) splashScreen.style.display = 'none';
                     if (glassOverlay) glassOverlay.classList.add('is-active');
 
@@ -444,10 +446,9 @@
                             if (glassOverlay) glassOverlay.classList.remove('is-active');
                         }, 800);
                     });
-                } else {
-                    // É PRIMEIRA VISITA: Marca a sessão
-                    sessionStorage.setItem('app_session_active', 'true');
                 }
+                // NÃO marcar aqui! A marcação acontece APÓS a página carregar completamente
+                // Isso garante que a primeira visita (vindo do login) mostre a Splash
             })();
         </script>
 

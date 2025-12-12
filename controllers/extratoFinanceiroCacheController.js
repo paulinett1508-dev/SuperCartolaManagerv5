@@ -1,14 +1,16 @@
 // =====================================================================
-// extratoFinanceiroCacheController.js v4.0 - Suporte a temporada finalizada
-// ✅ v3.3: Trava extrato financeiro para inativos na rodada_desistencia
-// ✅ v3.4: Corrige detecção de dados consolidados vs legados
+// extratoFinanceiroCacheController.js v5.0 - Fallback para snapshots
+// ✅ v5.0: Busca extrato de snapshots quando cache não existe
 // ✅ v4.0: Cache permanente para temporadas finalizadas (sem recálculos)
+// ✅ v3.4: Corrige detecção de dados consolidados vs legados
+// ✅ v3.3: Trava extrato financeiro para inativos na rodada_desistencia
 // =====================================================================
 
 import ExtratoFinanceiroCache from "../models/ExtratoFinanceiroCache.js";
 import FluxoFinanceiroCampos from "../models/FluxoFinanceiroCampos.js";
 import Liga from "../models/Liga.js";
 import Time from "../models/Time.js";
+import RodadaSnapshot from "../models/RodadaSnapshot.js";
 import mongoose from "mongoose";
 
 // ✅ v4.0: Verificar se temporada está finalizada
@@ -79,6 +81,131 @@ function filtrarRodadasParaInativo(rodadas, rodadaDesistencia) {
     );
 
     return rodadasFiltradas;
+}
+
+// ✅ v5.0: BUSCAR EXTRATO DIRETAMENTE DOS SNAPSHOTS (fallback quando não há cache)
+async function buscarExtratoDeSnapshots(ligaId, timeId) {
+    try {
+        console.log(`[CACHE-CONTROLLER] 📸 Buscando extrato de snapshots para time ${timeId}`);
+
+        // Buscar o último snapshot com dados do time
+        const snapshots = await RodadaSnapshot.find({
+            liga_id: String(ligaId)
+        }).sort({ rodada: -1 }).limit(1).lean();
+
+        if (!snapshots || snapshots.length === 0) {
+            console.log(`[CACHE-CONTROLLER] ⚠️ Nenhum snapshot encontrado para liga ${ligaId}`);
+            return null;
+        }
+
+        const ultimoSnapshot = snapshots[0];
+        const timesStats = ultimoSnapshot.dados_consolidados?.times_stats || [];
+        const extratosFinanceiros = ultimoSnapshot.dados_consolidados?.extratos_financeiros || [];
+
+        // Buscar dados do time nos stats
+        const timeStats = timesStats.find(t => t.time_id === Number(timeId));
+        const timeExtrato = extratosFinanceiros.find(t => t.time_id === Number(timeId));
+
+        if (!timeStats) {
+            console.log(`[CACHE-CONTROLLER] ⚠️ Time ${timeId} não encontrado nos snapshots`);
+            return null;
+        }
+
+        console.log(`[CACHE-CONTROLLER] ✅ Encontrado nos snapshots: saldo=${timeStats.saldo_total}, ganhos=${timeStats.ganhos}`);
+
+        // Construir array de rodadas baseado nas transações do extrato
+        const rodadasArray = [];
+        const transacoes = timeExtrato?.transacoes || [];
+
+        // Agrupar transações por rodada
+        const rodadasMap = {};
+        transacoes.forEach(t => {
+            const numRodada = t.rodada;
+            if (!numRodada) return;
+
+            if (!rodadasMap[numRodada]) {
+                rodadasMap[numRodada] = {
+                    rodada: numRodada,
+                    posicao: null,
+                    bonusOnus: 0,
+                    pontosCorridos: 0,
+                    mataMata: 0,
+                    top10: 0,
+                    saldo: 0,
+                    isMito: false,
+                    isMico: false,
+                    top10Status: null,
+                    top10Posicao: null,
+                };
+            }
+
+            const r = rodadasMap[numRodada];
+            const valor = parseFloat(t.valor) || 0;
+            const tipo = t.tipo || '';
+
+            switch (tipo) {
+                case 'PONTOS_CORRIDOS':
+                    r.pontosCorridos += valor;
+                    break;
+                case 'MATA_MATA':
+                    r.mataMata += valor;
+                    break;
+                case 'MITO':
+                    r.top10 += valor;
+                    r.isMito = true;
+                    r.top10Status = 'MITO';
+                    break;
+                case 'MICO':
+                    r.top10 += valor;
+                    r.isMico = true;
+                    r.top10Status = 'MICO';
+                    break;
+                case 'BONUS':
+                case 'BANCO_RODADA':
+                    r.bonusOnus += valor;
+                    break;
+                case 'ONUS':
+                    r.bonusOnus += valor;
+                    break;
+                default:
+                    if (valor !== 0) {
+                        r.bonusOnus += valor;
+                    }
+            }
+            r.saldo = r.bonusOnus + r.pontosCorridos + r.mataMata + r.top10;
+        });
+
+        // Converter mapa para array e calcular acumulado
+        const rodadasSorted = Object.values(rodadasMap).sort((a, b) => a.rodada - b.rodada);
+        let saldoAcumulado = 0;
+        rodadasSorted.forEach(r => {
+            saldoAcumulado += r.saldo;
+            r.saldoAcumulado = saldoAcumulado;
+        });
+
+        // Se não tem transações detalhadas, criar resumo básico
+        if (rodadasSorted.length === 0 && timeStats.saldo_total) {
+            console.log(`[CACHE-CONTROLLER] 📊 Usando resumo geral (sem transações detalhadas)`);
+        }
+
+        return {
+            rodadas: rodadasSorted,
+            resumo: {
+                saldo: timeStats.saldo_total || 0,
+                saldo_final: timeStats.saldo_total || 0,
+                totalGanhos: timeStats.ganhos || 0,
+                totalPerdas: timeStats.perdas || 0,
+            },
+            metadados: {
+                fonte: 'snapshot',
+                rodadaSnapshot: ultimoSnapshot.rodada,
+                dataSnapshot: ultimoSnapshot.data_consolidacao,
+            }
+        };
+    } catch (error) {
+        console.error('[CACHE-CONTROLLER] ❌ Erro ao buscar de snapshots:', error);
+        return null;
+    }
 }
 
 function calcularResumoDeRodadas(rodadas, camposManuais = null) {
@@ -290,7 +417,7 @@ async function buscarCamposManuais(ligaId, timeId) {
     }
 }
 
-// ✅ v3.3: GET EXTRATO CACHE COM SUPORTE A INATIVOS
+// ✅ v5.0: GET EXTRATO CACHE COM FALLBACK PARA SNAPSHOTS
 export const getExtratoCache = async (req, res) => {
     try {
         const { ligaId, timeId } = req.params;
@@ -303,7 +430,43 @@ export const getExtratoCache = async (req, res) => {
             time_id: Number(timeId),
         }).lean();
 
+        // ✅ v5.0: Se não tem cache, tentar buscar dos snapshots
         if (!cache) {
+            console.log(`[CACHE-CONTROLLER] Cache não encontrado para time ${timeId}, tentando snapshots...`);
+
+            const dadosSnapshot = await buscarExtratoDeSnapshots(ligaId, timeId);
+
+            if (dadosSnapshot) {
+                const camposAtivos = await buscarCamposManuais(ligaId, timeId);
+
+                // Calcular resumo incluindo campos manuais
+                let resumoFinal = dadosSnapshot.resumo;
+                if (camposAtivos.length > 0) {
+                    const totalCampos = camposAtivos.reduce((acc, c) => acc + (parseFloat(c.valor) || 0), 0);
+                    resumoFinal = {
+                        ...dadosSnapshot.resumo,
+                        saldo: dadosSnapshot.resumo.saldo + totalCampos,
+                        saldo_final: dadosSnapshot.resumo.saldo_final + totalCampos,
+                        camposManuais: totalCampos,
+                    };
+                }
+
+                return res.json({
+                    cached: true,
+                    fonte: 'snapshot',
+                    qtdRodadas: dadosSnapshot.rodadas.length,
+                    rodadas: dadosSnapshot.rodadas,
+                    resumo: resumoFinal,
+                    camposManuais: camposAtivos,
+                    metadados: dadosSnapshot.metadados,
+                    inativo: isInativo,
+                    rodadaDesistencia,
+                    extratoTravado: isInativo && rodadaDesistencia,
+                    rodadaTravada: rodadaDesistencia ? rodadaDesistencia - 1 : null,
+                });
+            }
+
+            // Se não tem cache nem snapshot, retorna 404
             return res.status(404).json({
                 cached: false,
                 message: "Cache não encontrado",
@@ -334,6 +497,7 @@ export const getExtratoCache = async (req, res) => {
         // ✅ v3.4: Adicionar qtdRodadas para debug
         res.json({
             cached: true,
+            fonte: 'cache',
             qtdRodadas: rodadasConsolidadas.length,
             rodadas: rodadasConsolidadas,
             resumo: resumoCalculado,
@@ -778,4 +942,4 @@ export const estatisticasCache = async (req, res) => {
     }
 };
 
-console.log("[CACHE-CONTROLLER] ✅ v4.0 carregado (suporte temporada finalizada)");
+console.log("[CACHE-CONTROLLER] ✅ v5.0 carregado (fallback para snapshots)");

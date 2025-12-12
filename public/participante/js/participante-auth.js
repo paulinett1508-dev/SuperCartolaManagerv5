@@ -580,6 +580,9 @@ if (document.readyState === "loading") {
 function logout() {
     participanteAuth.limpar();
 
+    // ✅ Limpar chave do app para que a splash apareça no próximo login
+    sessionStorage.removeItem('participante_app_loaded');
+
     // Fazer logout no servidor
     fetch("/api/participante/auth/logout", {
         method: "POST",

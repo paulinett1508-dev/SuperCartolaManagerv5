@@ -16,6 +16,26 @@ const LIGA_01_ID = "684cb1c8af923da7c7df51de";
 const LIGA_02_ID = "684d821cf1a7ae16d1f89572"; // Luva de Ouro ativa apenas aqui
 
 // ============================================================================
+// 💰 ESCALAS TOP10 POR LIGA (v2.1 - Fix escala Sobral)
+// ============================================================================
+
+function getValoresTop10PorLiga(ligaId) {
+    // Cartoleiros do Sobral: valores 10→1
+    if (String(ligaId) === LIGA_02_ID) {
+        return {
+            mitos: { 1: 10, 2: 9, 3: 8, 4: 7, 5: 6, 6: 5, 7: 4, 8: 3, 9: 2, 10: 1 },
+            micos: { 1: -10, 2: -9, 3: -8, 4: -7, 5: -6, 6: -5, 7: -4, 8: -3, 9: -2, 10: -1 }
+        };
+    }
+
+    // SuperCartola 2025: valores 30→12
+    return {
+        mitos: { 1: 30, 2: 28, 3: 26, 4: 24, 5: 22, 6: 20, 7: 18, 8: 16, 9: 14, 10: 12 },
+        micos: { 1: -30, 2: -28, 3: -26, 4: -24, 5: -22, 6: -20, 7: -18, 8: -16, 9: -14, 10: -12 }
+    };
+}
+
+// ============================================================================
 // 📊 BUSCAR HISTÓRICO COMPLETO CONSOLIDADO (Evita múltiplas requisições)
 // ============================================================================
 
@@ -144,8 +164,12 @@ export const consolidarRodada = async (req, res) => {
         const financeiro = await getFluxoFinanceiroLiga(ligaId, rodadaNum);
         
         // Buscar extratos individuais detalhados
+        // ✅ v2.2: Buscar com ObjectId E String para compatibilidade
         const extratosDetalhados = await ExtratoFinanceiroCache.find({
-            liga_id: ligaId
+            $or: [
+                { liga_id: ligaId },
+                { liga_id: new mongoose.Types.ObjectId(ligaId) }
+            ]
         }).lean();
         
         const extratosFinanceiros = extratosDetalhados.map(e => ({
@@ -176,23 +200,22 @@ export const consolidarRodada = async (req, res) => {
             }
         }
         
-        // 6. TOP 10 (Mitos e Micos da RODADA)
+        // 6. TOP 10 (Mitos e Micos da RODADA) - v2.1: Escala por liga
         console.log(`[CONSOLIDAÇÃO] Calculando Top 10...`);
-        const PREMIO_BASE = 30.0;
-        const DECREMENTO = 2.0;
-        
+        const valoresTop10 = getValoresTop10PorLiga(ligaId);
+
         const mitos = rankingRodada.slice(0, 10).map((t, i) => ({
             ...t,
-            premio: PREMIO_BASE - (i * DECREMENTO)
+            premio: valoresTop10.mitos[i + 1] || 0
         }));
-        
+
         const micos = [...rankingRodada]
             .reverse()
             .slice(0, 10)
             .map((t, i) => ({
                 ...t,
                 posicao: rankingRodada.length - i,
-                multa: -(PREMIO_BASE - (i * DECREMENTO))
+                multa: valoresTop10.micos[i + 1] || 0
             }));
         
         // 7. ARTILHEIRO E CAMPEÃO (se módulo ativo)

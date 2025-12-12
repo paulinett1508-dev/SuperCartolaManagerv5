@@ -30,9 +30,9 @@ function verificarSessaoParticipante(req, res, next) {
 // LOGIN OTIMIZADO - Busca Direta no MongoDB (Sem carregar tudo na memória)
 router.post("/login", async (req, res) => {
     try {
-        const { timeId, senha } = req.body;
+        const { timeId, senha, lembrar } = req.body;
 
-        console.log('[PARTICIPANTE-AUTH] 🔐 Tentativa de login:', { timeId });
+        console.log('[PARTICIPANTE-AUTH] 🔐 Tentativa de login:', { timeId, lembrar });
 
         if (!timeId || !senha) {
             return res.status(400).json({
@@ -105,6 +105,16 @@ router.post("/login", async (req, res) => {
         } catch (error) {
             console.error('[PARTICIPANTE-AUTH] ❌ Erro ao buscar dados do time:', error);
         }
+
+        // 🔐 LÓGICA DE SESSÃO DINÂMICA (Manter Conectado)
+        // Se o usuário marcou "Manter conectado": 365 dias
+        // Se não marcou: 24 horas (padrão de segurança)
+        const ONE_YEAR = 1000 * 60 * 60 * 24 * 365;
+        const ONE_DAY = 1000 * 60 * 60 * 24;
+
+        req.session.cookie.maxAge = lembrar ? ONE_YEAR : ONE_DAY;
+
+        console.log('[PARTICIPANTE-AUTH] ⏰ Cookie maxAge definido:', lembrar ? '365 dias' : '24 horas');
 
         // Criar sessão com dados reais
         req.session.participante = {

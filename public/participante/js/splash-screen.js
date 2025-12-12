@@ -1,7 +1,9 @@
 // =====================================================================
-// splash-screen.js - Gerenciador da Splash Screen v4.0 (SIMPLIFICADO)
+// splash-screen.js - Gerenciador da Splash Screen v4.1
 // Destino: /participante/js/splash-screen.js
 // =====================================================================
+// v4.1: Usa chave específica 'participante_app_loaded' para distinguir
+//       primeira visita (vindo do login) de reload/pull-refresh
 // v4.0: Lógica de reload movida para index.html (script inline imediato)
 //       Este arquivo agora gerencia APENAS a splash da primeira visita
 //       e a detecção de inatividade
@@ -11,6 +13,7 @@ const SplashScreen = {
     // Configurações
     INACTIVITY_THRESHOLD: 5 * 60 * 1000, // 5 minutos
     MIN_DISPLAY_TIME: 1500, // Tempo mínimo de exibição (1.5s)
+    STORAGE_KEY: 'participante_app_loaded', // ✅ Chave específica do app participante
 
     // Estado
     element: null,
@@ -30,21 +33,24 @@ const SplashScreen = {
         // Configurar listener de visibilidade (inatividade)
         this.setupVisibilityListener();
 
-        // Verificar se é primeira visita (reload é gerenciado pelo index.html)
-        const isReload = sessionStorage.getItem('app_session_active');
+        // ✅ Verificar se é primeira visita usando chave específica do participante
+        const isReload = sessionStorage.getItem(this.STORAGE_KEY);
 
         if (!isReload) {
-            // Primeira vez na sessão: mostrar splash completa
+            // Primeira vez na sessão (vindo do login): mostrar splash completa
             this.show('inicial');
-            if (window.Log) Log.info('SPLASH', '✅ Exibindo splash (primeira vez na sessão)');
+            if (window.Log) Log.info('SPLASH', '✅ Exibindo splash (primeira entrada no app)');
+
+            // ✅ Marcar que o app foi carregado (para próximos reloads)
+            sessionStorage.setItem(this.STORAGE_KEY, 'true');
         } else {
-            // Reload: NÃO TOCAR na splash - o script inline do index.html já escondeu
+            // Reload/Pull-refresh: NÃO TOCAR na splash - o script inline do index.html já escondeu
             // Apenas garantir que o estado interno está correto
             this.isVisible = false;
-            if (window.Log) Log.info('SPLASH', '✅ Reload detectado - splash permanece oculta');
+            if (window.Log) Log.info('SPLASH', '✅ Reload detectado - splash permanece oculta (vidro fosco ativo)');
         }
 
-        if (window.Log) Log.info('SPLASH', '✅ Sistema v4.0 inicializado');
+        if (window.Log) Log.info('SPLASH', '✅ Sistema v4.1 inicializado');
     },
 
     // ✅ Mostrar splash screen
@@ -52,7 +58,7 @@ const SplashScreen = {
         if (!this.element) return;
 
         // PROTEÇÃO: Em reloads, NUNCA mostrar splash (apenas vidro fosco)
-        const isReload = sessionStorage.getItem('app_session_active');
+        const isReload = sessionStorage.getItem(this.STORAGE_KEY);
         if (isReload && motivo !== 'inatividade-forcada') {
             if (window.Log) Log.info('SPLASH', `Bloqueado: tentativa de mostrar splash em reload (${motivo})`);
             return;
@@ -185,4 +191,4 @@ if (document.readyState === 'loading') {
     SplashScreen.init();
 }
 
-if (window.Log) Log.info('SPLASH', '✅ Módulo v4.0 carregado');
+if (window.Log) Log.info('SPLASH', '✅ Módulo v4.1 carregado');
