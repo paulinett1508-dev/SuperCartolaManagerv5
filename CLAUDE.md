@@ -156,6 +156,71 @@ Sempre envolva chamadas de API externa e Banco em `try/catch`.
 
 ---
 
+## Hardening de Produção (CRÍTICO)
+
+### Ambientes e Scripts NPM
+O sistema diferencia automaticamente entre **desenvolvimento** e **produção**:
+
+| Script | Comando | NODE_ENV | Comportamento |
+|--------|---------|----------|---------------|
+| `npm run dev` | `nodemon index.js` | `development` | Logs ATIVOS, erros detalhados |
+| `npm start` | `NODE_ENV=production node index.js` | `production` | Logs SILENCIADOS, erros genéricos |
+
+**Backend (`index.js`):**
+- Em produção: `console.log` e `console.info` são substituídos por funções vazias
+- Erros retornam apenas `{ msg: "Erro interno", code: "INTERNAL_ERROR" }` (sem stack trace)
+- Log de startup usa `originalConsole.log` para sempre aparecer
+
+**Frontend (`public/js/core/log-manager.js` v2.0):**
+- Detecta ambiente via `window.location.hostname`
+- Em produção: TODOS os `console.*` são sobrescritos (`log`, `warn`, `error`, `info`, `debug`, `table`, `group`, `trace`)
+- Expõe `window.__criticalLog` para erros fatais do sistema
+
+### Circuit Breaker de Temporada (`utils/seasonGuard.js` v2.0)
+Bloqueia chamadas à API externa da Globo quando a temporada está encerrada.
+
+**Configuração:**
+```javascript
+// Prioridade: ENV > Default
+// Para reativar em 2026: SEASON_ACTIVE=true no .env
+const SEASON_FINISHED_DEFAULT = true; // Temporada 2025 encerrada
+```
+
+**Funções exportadas:**
+- `isSeasonFinished()` - Retorna `true` se temporada encerrada
+- `seasonBlockMiddleware` - Middleware Express que retorna 403
+- `guardedApiCall(apiFn, fallbackFn, context)` - Wrapper com fallback
+- `shouldUseCache()` / `shouldUseCacheForRound(rodada)` - Helpers de cache
+
+**Rotas protegidas:**
+- `routes/times-admin.js` - POST routes bloqueadas
+- `routes/cartola-proxy.js` - `/mercado/status`, `/atletas/pontuados`
+- `controllers/rodadaController.js` - Sincronização bloqueada
+- `services/cartolaService.js` - Chamadas à API Globo
+
+### Mobile UX - Pull-to-Refresh Nativo Desabilitado
+O refresh nativo do navegador é **desabilitado** em favor do sistema customizado:
+
+**CSS (`public/participante/css/participante.css`):**
+```css
+html, body {
+    overscroll-behavior-y: contain; /* Mata refresh nativo */
+}
+```
+
+**Fluxo customizado (`pull-refresh.js` v3.1):**
+1. Usuário puxa tela para baixo → Bolinha sutil aparece
+2. Ao soltar (se puxou >80px) → Ativa Overlay Vidro Fosco (`#reload-glass-overlay`)
+3. Reload completo da página
+
+**Overlay Vidro Fosco:**
+- `backdrop-filter: blur(15px)`
+- `background: rgba(20,20,20,0.5)`
+- `z-index: 999999`
+- Bolinha quicando centralizada
+
+---
+
 ## Restrições do Ambiente (Replit)
 - Use a variável `MONGODB_URI` dos Secrets.
 - Configuração de persistência de login (`.claude_auth_store`) já está ativa. Não delete a pasta.
