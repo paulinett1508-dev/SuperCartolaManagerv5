@@ -105,6 +105,27 @@ function getPosicaoZonaLabel(posicao, faixas) {
     return { label: null, tipo: "neutro" };
 }
 
+// ===== v8.8: CALCULAR POSIÇÃO NO TOP10 PELO VALOR =====
+// Deriva a posição no ranking histórico baseado no valor financeiro
+function calcularPosicaoTop10(valor, ligaId) {
+    const absValor = Math.abs(valor);
+
+    // SuperCartola: 30, 28, 26, 24, 22, 20, 18, 16, 14, 12
+    const LIGA_SUPERCARTOLA = "684cb1c8af923da7c7df51de";
+    // Sobral: 10, 9, 8, 7, 6, 5, 4, 3, 2, 1
+    const LIGA_SOBRAL = "684d821cf1a7ae16d1f89572";
+
+    if (ligaId === LIGA_SUPERCARTOLA) {
+        // SuperCartola: valor = 30 - (pos-1)*2 → pos = (30 - valor)/2 + 1
+        const pos = Math.round((30 - absValor) / 2) + 1;
+        return Math.min(Math.max(pos, 1), 10);
+    } else {
+        // Sobral: valor = 11 - pos → pos = 11 - valor
+        const pos = 11 - absValor;
+        return Math.min(Math.max(pos, 1), 10);
+    }
+}
+
 // ===== v8.8: PREENCHER TODAS AS 38 RODADAS =====
 // Garante que todas as rodadas apareçam no histórico, mesmo as neutras
 function preencherTodasRodadas(rodadasExistentes, totalRodadas = 38) {
@@ -380,16 +401,19 @@ function renderizarCardsRodadas(rodadas, ligaId) {
             } else if (r.posicao === ultimaPosicao) {
                 // Último lugar = MICO da rodada
                 badgePosicaoDestaque = `<span class="inline-flex items-center gap-1 text-[11px] bg-rose-500/20 text-rose-400 px-2 py-0.5 rounded font-bold">
-                    <span class="material-symbols-outlined text-sm" style="color: #ef4444;">pest_control</span>MICO
+                    <span class="material-symbols-outlined text-sm" style="color: #ef4444;">thumb_down</span>MICO
                 </span>`;
             }
 
-            // Badge TOP10 histórico (separado do MITO/MICO de rodada)
+            // Badge TOP10 histórico - mostra posição no ranking (ex: "1º Mito", "5º Mico")
             let badgeTop10 = "";
-            if (top10 > 0) {
-                badgeTop10 = `<span class="text-[10px] bg-orange-500/20 text-orange-400 px-2 py-0.5 rounded-full font-semibold">TOP10</span>`;
-            } else if (top10 < 0) {
-                badgeTop10 = `<span class="text-[10px] bg-rose-500/20 text-rose-300 px-2 py-0.5 rounded-full font-semibold">BTM10</span>`;
+            if (top10 !== 0) {
+                const posTop10 = calcularPosicaoTop10(top10, ligaId);
+                if (top10 > 0) {
+                    badgeTop10 = `<span class="text-[10px] bg-amber-500/20 text-amber-300 px-2 py-0.5 rounded-full font-semibold">${posTop10}º Mito</span>`;
+                } else {
+                    badgeTop10 = `<span class="text-[10px] bg-rose-500/20 text-rose-300 px-2 py-0.5 rounded-full font-semibold">${posTop10}º Mico</span>`;
+                }
             }
 
             // Badge da zona (G2-G11 ou Z2-Z10) - não mostrar se já tem MITO/MICO

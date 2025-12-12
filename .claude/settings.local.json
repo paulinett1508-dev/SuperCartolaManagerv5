@@ -22,7 +22,8 @@
       "Bash(source .env)",
       "Bash(timeout 3 node:*)",
       "Bash(npm audit:*)",
-      "Bash(ls:*)"
+      "Bash(ls:*)",
+      "Bash(export:*)"
     ]
   },
   "enableAllProjectMcpServers": true,

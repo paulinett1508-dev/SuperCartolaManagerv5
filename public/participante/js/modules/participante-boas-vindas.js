@@ -1,11 +1,12 @@
 // =====================================================================
-// PARTICIPANTE-BOAS-VINDAS.JS - v7.3 (FIX DUPLICAÇÃO SALDO)
+// PARTICIPANTE-BOAS-VINDAS.JS - v7.4 (CACHE OTIMIZADO)
 // =====================================================================
+// ✅ v7.4: Usa ParticipanteCache para evitar recarregamentos
 // ✅ v7.3: CORREÇÃO - Saldo já inclui campos manuais do backend
 //    NÃO somar extratoData.camposManuais novamente
 
 if (window.Log)
-    Log.info("PARTICIPANTE-BOAS-VINDAS", "🔄 Carregando módulo v7.3...");
+    Log.info("PARTICIPANTE-BOAS-VINDAS", "🔄 Carregando módulo v7.4...");
 
 // =====================================================================
 // FUNÇÃO PRINCIPAL
@@ -71,16 +72,45 @@ async function carregarDadosERenderizar(ligaId, timeId, participante) {
     `;
 
     try {
-        // ✅ Buscar rodada atual primeiro para usar no cache
-        const [resLiga, resRanking, resRodadas] = await Promise.all([
-            fetch(`/api/ligas/${ligaId}`),
-            fetch(`/api/ligas/${ligaId}/ranking`),
-            fetch(`/api/rodadas/${ligaId}/rodadas?inicio=1&fim=38`),
-        ]);
+        // ✅ v7.4: Usar ParticipanteCache para evitar recarregamentos
+        const cache = window.ParticipanteCache;
 
-        const liga = resLiga.ok ? await resLiga.json() : null;
-        const ranking = resRanking.ok ? await resRanking.json() : [];
-        const rodadas = resRodadas.ok ? await resRodadas.json() : [];
+        // Buscar dados com cache (só faz fetch se não tiver cache válido)
+        const liga = await (async () => {
+            const cached = cache?.getLiga(ligaId);
+            if (cached) {
+                if (window.Log) Log.debug("PARTICIPANTE-BOAS-VINDAS", "📦 Liga do cache");
+                return cached;
+            }
+            const res = await fetch(`/api/ligas/${ligaId}`);
+            const data = res.ok ? await res.json() : null;
+            cache?.setLiga(ligaId, data);
+            return data;
+        })();
+
+        const ranking = await (async () => {
+            const cached = cache?.getRanking(ligaId);
+            if (cached) {
+                if (window.Log) Log.debug("PARTICIPANTE-BOAS-VINDAS", "📦 Ranking do cache");
+                return cached;
+            }
+            const res = await fetch(`/api/ligas/${ligaId}/ranking`);
+            const data = res.ok ? await res.json() : [];
+            cache?.setRanking(ligaId, data);
+            return data;
+        })();
+
+        const rodadas = await (async () => {
+            const cached = cache?.getRodadas(ligaId);
+            if (cached) {
+                if (window.Log) Log.debug("PARTICIPANTE-BOAS-VINDAS", "📦 Rodadas do cache");
+                return cached;
+            }
+            const res = await fetch(`/api/rodadas/${ligaId}/rodadas?inicio=1&fim=38`);
+            const data = res.ok ? await res.json() : [];
+            cache?.setRodadas(ligaId, data);
+            return data;
+        })();
 
         // ✅ Determinar rodada atual para buscar extrato com o mesmo endpoint que o módulo Extrato usa
         const minhasRodadasTemp = rodadas.filter(
@@ -90,25 +120,31 @@ async function carregarDadosERenderizar(ligaId, timeId, participante) {
             ? Math.max(...minhasRodadasTemp.map(r => r.rodada))
             : 1;
 
-        // ✅ Usar o MESMO endpoint de cache que o Extrato usa para consistência
-        let extratoData = null;
-        try {
-            const resCache = await fetch(`/api/extrato-cache/${ligaId}/times/${timeId}/cache?rodadaAtual=${ultimaRodadaNum}`);
-            if (resCache.ok) {
-                const cacheData = await resCache.json();
-                extratoData = {
-                    saldo_atual: cacheData?.resumo?.saldo_final ?? cacheData?.resumo?.saldo ?? 0,
-                    resumo: cacheData?.resumo || {}
-                };
+        // ✅ v7.4: Buscar extrato com cache local
+        let extratoData = cache?.getExtrato(ligaId, timeId);
+        if (extratoData) {
+            if (window.Log) Log.debug("PARTICIPANTE-BOAS-VINDAS", "📦 Extrato do cache");
+        } else {
+            try {
+                const resCache = await fetch(`/api/extrato-cache/${ligaId}/times/${timeId}/cache?rodadaAtual=${ultimaRodadaNum}`);
+                if (resCache.ok) {
+                    const cacheData = await resCache.json();
+                    extratoData = {
+                        saldo_atual: cacheData?.resumo?.saldo_final ?? cacheData?.resumo?.saldo ?? 0,
+                        resumo: cacheData?.resumo || {}
+                    };
+                    cache?.setExtrato(ligaId, timeId, extratoData);
+                }
+            } catch (e) {
+                if (window.Log) Log.warn("PARTICIPANTE-BOAS-VINDAS", "Cache não disponível, usando fallback");
             }
-        } catch (e) {
-            if (window.Log) Log.warn("PARTICIPANTE-BOAS-VINDAS", "Cache não disponível, usando fallback");
-        }
 
-        // Fallback para endpoint de cálculo se cache não existir
-        if (!extratoData || extratoData.saldo_atual === undefined) {
-            const resFallback = await fetch(`/api/fluxo-financeiro/${ligaId}/extrato/${timeId}`);
-            extratoData = resFallback.ok ? await resFallback.json() : null;
+            // Fallback para endpoint de cálculo se cache não existir
+            if (!extratoData || extratoData.saldo_atual === undefined) {
+                const resFallback = await fetch(`/api/fluxo-financeiro/${ligaId}/extrato/${timeId}`);
+                extratoData = resFallback.ok ? await resFallback.json() : null;
+                if (extratoData) cache?.setExtrato(ligaId, timeId, extratoData);
+            }
         }
 
         // ✅ CORREÇÃO: Buscar campos manuais (igual ao Extrato faz)
