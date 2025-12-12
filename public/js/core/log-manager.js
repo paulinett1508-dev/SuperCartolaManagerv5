@@ -1,21 +1,56 @@
-// LOG MANAGER - Sistema de Controle de Logs por Ambiente
-// Carregado APÓS sistema-modulos-init.js e ANTES dos demais módulos
+// LOG MANAGER v2.0 - Sistema de Controle de Logs por Ambiente
+// Carregado ANTES de todos os outros scripts
+// Em PRODUÇÃO: Silencia TODOS os console.* (log, warn, error, info, debug)
+// Em DEV (localhost/127.0.0.1): Mantém logs normais
 (function () {
     "use strict";
 
     // Detectar ambiente automaticamente
-    const isProduction = (function () {
-        const hostname = window.location.hostname;
-        // Produção: domínios sem localhost/127.0.0.1/replit dev
-        return (
-            !hostname.includes("localhost") &&
-            !hostname.includes("127.0.0.1") &&
-            !hostname.includes(".repl.co") &&
-            !hostname.includes("replit.dev") &&
-            !hostname.includes("replit.app") &&
-            !hostname.includes("webcontainer")
-        );
-    })();
+    const hostname = window.location.hostname;
+    const isDevelopment = (
+        hostname === "localhost" ||
+        hostname === "127.0.0.1" ||
+        hostname.includes(".repl.co") ||
+        hostname.includes("replit.dev") ||
+        hostname.includes("replit.app") ||
+        hostname.includes("webcontainer")
+    );
+    const isProduction = !isDevelopment;
+
+    // =========================================================================
+    // SILENCIAMENTO TOTAL EM PRODUÇÃO
+    // =========================================================================
+    if (isProduction) {
+        // Guardar referências originais (para uso interno se necessário)
+        const originalConsole = {
+            log: console.log.bind(console),
+            warn: console.warn.bind(console),
+            error: console.error.bind(console),
+            info: console.info.bind(console),
+            debug: console.debug.bind(console),
+            table: console.table.bind(console),
+            group: console.group.bind(console),
+            groupEnd: console.groupEnd.bind(console),
+            trace: console.trace.bind(console),
+        };
+
+        // Função vazia (no-op)
+        const noop = function() {};
+
+        // Sobrescrever TODOS os métodos de console
+        console.log = noop;
+        console.warn = noop;
+        console.error = noop;
+        console.info = noop;
+        console.debug = noop;
+        console.table = noop;
+        console.group = noop;
+        console.groupEnd = noop;
+        console.trace = noop;
+
+        // Expor método para logs críticos (apenas erros fatais do sistema)
+        window.__criticalLog = originalConsole.error;
+    }
 
     // Níveis de log
     const LOG_LEVELS = {
@@ -123,8 +158,9 @@
     // Auto-log de inicialização (só em dev)
     if (!isProduction) {
         console.log(
-            `%c[LOG-MANAGER] ✅ Ambiente: ${isProduction ? "PRODUÇÃO" : "DESENVOLVIMENTO"} | Nível: ${Object.keys(LOG_LEVELS).find((k) => LOG_LEVELS[k] === config.level)}`,
+            `%c[LOG-MANAGER] v2.0 | Ambiente: DESENVOLVIMENTO | Logs: ATIVOS`,
             "color: #10b981; font-weight: bold;",
         );
     }
+    // Em produção: Silêncio total (console.* já foi sobrescrito acima)
 })();

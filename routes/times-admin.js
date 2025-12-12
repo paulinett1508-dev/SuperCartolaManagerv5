@@ -1,8 +1,10 @@
 // routes/times-admin.js
 // Rotas administrativas para gerenciamento de times
+// v2.0: Circuit Breaker de Fim de Temporada aplicado
 import express from "express";
 import mongoose from "mongoose";
 import fetch from "node-fetch";
+import { isSeasonFinished, seasonBlockMiddleware, SEASON_CONFIG, logBlockedOperation } from "../utils/seasonGuard.js";
 
 const router = express.Router();
 
@@ -125,8 +127,9 @@ router.get("/incompletos", async (req, res) => {
 /**
  * POST /api/times-admin/corrigir-vazios
  * Corrige times com strings vazias buscando da API Cartola
+ * ⛔ BLOQUEADO se temporada encerrada
  */
-router.post("/corrigir-vazios", async (req, res) => {
+router.post("/corrigir-vazios", seasonBlockMiddleware, async (req, res) => {
   try {
     const Time = getTimeModel();
     const { limite = 10, delayMs = 1000 } = req.body;
@@ -264,8 +267,9 @@ router.post("/corrigir-vazios", async (req, res) => {
 /**
  * POST /api/times-admin/repopular
  * Repopula times com dados incompletos (com rate limiting)
+ * ⛔ BLOQUEADO se temporada encerrada
  */
-router.post("/repopular", async (req, res) => {
+router.post("/repopular", seasonBlockMiddleware, async (req, res) => {
   try {
     const Time = getTimeModel();
     const { limite = 10, delayMs = 500 } = req.body;
@@ -423,8 +427,9 @@ router.post("/repopular", async (req, res) => {
 /**
  * POST /api/times-admin/repopular-time/:timeId
  * Repopula um time específico
+ * ⛔ BLOQUEADO se temporada encerrada
  */
-router.post("/repopular-time/:timeId", async (req, res) => {
+router.post("/repopular-time/:timeId", seasonBlockMiddleware, async (req, res) => {
   try {
     const Time = getTimeModel();
     const { timeId } = req.params;
@@ -562,8 +567,9 @@ router.get("/debug/:timeId", async (req, res) => {
  * POST /api/times-admin/migrar-times-ligas
  * Popula a collection times com dados de todos os times que estão em ligas
  * Executa UMA VEZ para corrigir dados históricos
+ * ⛔ BLOQUEADO se temporada encerrada
  */
-router.post("/migrar-times-ligas", async (req, res) => {
+router.post("/migrar-times-ligas", seasonBlockMiddleware, async (req, res) => {
   try {
     const Time = getTimeModel();
     const Liga =

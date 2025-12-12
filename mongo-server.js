@@ -12,6 +12,9 @@
  * - get_collection_schema: Analisa a estrutura de uma coleção
  */
 
+// Carregar variáveis de ambiente do .env
+import 'dotenv/config';
+
 import { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
 import { StdioServerTransport } from '@modelcontextprotocol/sdk/server/stdio.js';
 import { MongoClient } from 'mongodb';

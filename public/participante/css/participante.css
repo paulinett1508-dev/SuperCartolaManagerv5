@@ -120,6 +120,8 @@ html, body {
     height: 100%;
     margin: 0;
     padding: 0;
+    /* CRÍTICO: Desabilitar refresh nativo do navegador (Chrome/Android) */
+    overscroll-behavior-y: contain !important;
 }
 
 body {

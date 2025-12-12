@@ -38,10 +38,10 @@ const SplashScreen = {
             this.show('inicial');
             if (window.Log) Log.info('SPLASH', '✅ Exibindo splash (primeira vez na sessão)');
         } else {
-            // Reload: splash já foi escondida pelo script inline do index.html
-            this.element.style.display = 'none';
+            // Reload: NÃO TOCAR na splash - o script inline do index.html já escondeu
+            // Apenas garantir que o estado interno está correto
             this.isVisible = false;
-            if (window.Log) Log.info('SPLASH', '✅ Reload detectado - splash já oculta');
+            if (window.Log) Log.info('SPLASH', '✅ Reload detectado - splash permanece oculta');
         }
 
         if (window.Log) Log.info('SPLASH', '✅ Sistema v4.0 inicializado');
@@ -50,6 +50,13 @@ const SplashScreen = {
     // ✅ Mostrar splash screen
     show(motivo = 'inicializacao') {
         if (!this.element) return;
+
+        // PROTEÇÃO: Em reloads, NUNCA mostrar splash (apenas vidro fosco)
+        const isReload = sessionStorage.getItem('app_session_active');
+        if (isReload && motivo !== 'inatividade-forcada') {
+            if (window.Log) Log.info('SPLASH', `Bloqueado: tentativa de mostrar splash em reload (${motivo})`);
+            return;
+        }
 
         this.isVisible = true;
         this.showTimestamp = Date.now();

@@ -9,6 +9,7 @@ import { calcularRankingCompleto } from './rankingGeralCacheController.js';
 import { getFluxoFinanceiroLiga } from './fluxoFinanceiroController.js';
 import { obterConfrontosMataMata } from './mataMataCacheController.js';
 import { calcularConfrontosDaRodada, getRankingArtilheiroCampeao } from '../utils/consolidacaoHelpers.js';
+import { isSeasonFinished, SEASON_CONFIG } from '../utils/seasonGuard.js';
 
 // IDs das ligas conhecidas
 const LIGA_01_ID = "684cb1c8af923da7c7df51de";
@@ -235,10 +236,13 @@ export const consolidarRodada = async (req, res) => {
             }
         }
         
-        // 9. Buscar status do mercado
-        const statusMercado = await fetch('https://api.cartolafc.globo.com/mercado/status')
-            .then(r => r.json())
-            .catch(() => ({ rodada_atual: 38, mes_atual: 12 }));
+        // 9. Buscar status do mercado (SEASON GUARD: usar valores fixos se temporada encerrada)
+        let statusMercado = { rodada_atual: 38, mes_atual: 12 };
+        if (!isSeasonFinished()) {
+            statusMercado = await fetch('https://api.cartolafc.globo.com/mercado/status')
+                .then(r => r.json())
+                .catch(() => ({ rodada_atual: 38, mes_atual: 12 }));
+        }
         
         // 10. MONTAR SNAPSHOT COMPLETO
         const snapshot = {

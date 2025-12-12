@@ -1,6 +1,7 @@
 import fetch from "node-fetch";
 import NodeCache from "node-cache";
 import Time from "../models/Time.js";
+import { isSeasonFinished, logBlockedOperation, SEASON_CONFIG } from "../utils/seasonGuard.js";
 
 const cache = new NodeCache({ stdTTL: 300 });
 
@@ -43,6 +44,13 @@ async function fetchWithRetry(url, options, retries = 5, delay = 2000) {
 
 export async function buscarClubes() {
   try {
+    // ⛔ SEASON GUARD: Temporada encerrada - retornar cache ou vazio
+    if (isSeasonFinished()) {
+      logBlockedOperation('buscarClubes', { reason: 'Dados estáticos de clubes' });
+      if (cache.has("clubes")) return cache.get("clubes");
+      return {}; // Clubes não mudam, pode retornar vazio
+    }
+
     if (cache.has("clubes")) return cache.get("clubes");
     const response = await fetchWithRetry(
       "https://api.cartola.globo.com/clubes",
@@ -104,6 +112,12 @@ export async function buscarTimePorId(id) {
       return timeData;
     }
 
+    // ⛔ SEASON GUARD: Temporada encerrada - NÃO buscar API externa
+    if (isSeasonFinished()) {
+      logBlockedOperation('buscarTimePorId', { timeId, reason: 'Time não encontrado localmente' });
+      throw new Error(`Time ${timeId} não encontrado. ${SEASON_CONFIG.BLOCK_MESSAGE}`);
+    }
+
     console.log(
       `Time ${timeId} não encontrado localmente. Buscando na API externa...`,
     );
@@ -150,6 +164,12 @@ export async function buscarTimePorId(id) {
 }
 
 export async function buscarPontuacaoPorRodada(id, rodada) {
+  // ⛔ SEASON GUARD: Temporada encerrada - bloquear chamada
+  if (isSeasonFinished()) {
+    logBlockedOperation('buscarPontuacaoPorRodada', { timeId: id, rodada });
+    throw new Error(`buscarPontuacaoPorRodada: ${SEASON_CONFIG.BLOCK_MESSAGE}`);
+  }
+
   try {
     const response = await fetchWithRetry(
       `https://api.cartola.globo.com/time/mercado/${id}/pontuacao/${rodada}`,

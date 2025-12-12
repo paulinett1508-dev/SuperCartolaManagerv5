@@ -1,5 +1,6 @@
 import express from "express";
 import axios from "axios";
+import { isSeasonFinished, SEASON_CONFIG, logBlockedOperation } from "../utils/seasonGuard.js";
 
 const router = express.Router();
 const CARTOLA_API_BASE = "https://api.cartola.globo.com";
@@ -70,7 +71,21 @@ router.get("/liga/:ligaId", async (req, res) => {
 });
 
 // Rota: Status do mercado (corrigida com fallback dinâmico)
+// ⛔ SEASON GUARD: Retorna status fixo se temporada encerrada
 router.get("/mercado/status", async (req, res) => {
+    // Se temporada encerrada, retornar status fixo imediatamente
+    if (isSeasonFinished()) {
+        logBlockedOperation('cartola-proxy/mercado/status');
+        return res.json({
+            rodada_atual: SEASON_CONFIG.LAST_ROUND,
+            status_mercado: 6, // 6 = Temporada Encerrada
+            mercado_aberto: false,
+            temporada_encerrada: true,
+            season: SEASON_CONFIG.SEASON_YEAR,
+            message: SEASON_CONFIG.BLOCK_MESSAGE
+        });
+    }
+
     try {
         console.log("🔄 [CARTOLA-PROXY] Buscando status do mercado...");
 
@@ -116,7 +131,19 @@ router.get("/mercado/status", async (req, res) => {
 });
 
 // Endpoint: Atletas pontuados (para cálculo de parciais) - SEM CACHE
+// ⛔ SEASON GUARD: Retorna vazio se temporada encerrada
 router.get("/atletas/pontuados", async (req, res) => {
+    // Se temporada encerrada, retornar vazio imediatamente
+    if (isSeasonFinished()) {
+        logBlockedOperation('cartola-proxy/atletas/pontuados');
+        return res.json({
+            atletas: {},
+            rodada: SEASON_CONFIG.LAST_ROUND,
+            temporada_encerrada: true,
+            message: SEASON_CONFIG.BLOCK_MESSAGE
+        });
+    }
+
     try {
         console.log(
             "🔄 [CARTOLA-PROXY] Buscando atletas pontuados (sem cache)...",

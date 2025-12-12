@@ -1,4 +1,5 @@
 // index.js - Super Cartola Manager OTIMIZADO (Sessões Persistentes + Auth Admin + Segurança)
+// v2.0: Hardening de Produção - Logs e Erros por ambiente
 import mongoose from "mongoose";
 import { readFileSync } from "fs";
 import express from "express";
@@ -7,6 +8,32 @@ import MongoStore from "connect-mongo";
 import dotenv from "dotenv";
 import cors from "cors";
 import path from "path";
+
+// Carregar .env ANTES de tudo
+dotenv.config();
+
+// =========================================================================
+// 🔇 SILENCIAMENTO DE LOGS EM PRODUÇÃO
+// =========================================================================
+const IS_PRODUCTION = process.env.NODE_ENV === 'production';
+const IS_DEVELOPMENT = process.env.NODE_ENV === 'development' || !process.env.NODE_ENV;
+
+// Guardar console original
+const originalConsole = {
+    log: console.log.bind(console),
+    warn: console.warn.bind(console),
+    error: console.error.bind(console),
+    info: console.info.bind(console),
+};
+
+// Em produção: silenciar logs normais (manter apenas erros críticos)
+if (IS_PRODUCTION) {
+    console.log = () => {};
+    console.info = () => {};
+    // Manter warn e error para monitoramento
+    console.warn = originalConsole.warn;
+    console.error = originalConsole.error;
+}
 
 // ⚡ USAR CONEXÃO OTIMIZADA
 import connectDB from "./config/database.js";
@@ -65,8 +92,7 @@ import { iniciarSchedulerConsolidacao } from "./utils/consolidacaoScheduler.js";
 // Middleware de proteção
 import { protegerRotas } from "./middleware/auth.js";
 
-// Configuração do .env
-dotenv.config();
+// dotenv já foi carregado no início do arquivo
 
 const app = express();
 const PORT = process.env.PORT || 5000;
@@ -106,12 +132,14 @@ app.use((req, res, next) => {
 });
 
 // ====================================================================
-// DEBUG - CAPTURAR TODAS AS REQUISIÇÕES
+// DEBUG - CAPTURAR TODAS AS REQUISIÇÕES (apenas em desenvolvimento)
 // ====================================================================
-app.use((req, res, next) => {
-  console.log(`[REQUEST] ${req.method} ${req.path}`);
-  next();
-});
+if (IS_DEVELOPMENT) {
+  app.use((req, res, next) => {
+    console.log(`[REQUEST] ${req.method} ${req.path}`);
+    next();
+  });
+}
 
 // Configuração de Sessão com MongoDB Store (Persistência Real)
 app.use(
@@ -228,21 +256,57 @@ app.get("*", (req, res) => {
   res.sendFile(path.resolve("public/index.html"));
 });
 
+// ====================================================================
+// 🛡️ MIDDLEWARE DE ERRO GLOBAL (HARDENING DE PRODUÇÃO)
+// ====================================================================
+app.use((err, req, res, next) => {
+  // Em produção: Ocultar stack trace e detalhes
+  if (IS_PRODUCTION) {
+    // Log interno para monitoramento (mantém console.error original)
+    originalConsole.error(`[ERROR] ${req.method} ${req.path}:`, err.message);
+
+    // Resposta genérica ao cliente
+    return res.status(err.status || 500).json({
+      msg: "Erro interno",
+      code: err.code || "INTERNAL_ERROR"
+    });
+  }
+
+  // Em desenvolvimento: Mostrar detalhes completos
+  console.error(`[ERROR] ${req.method} ${req.path}:`, err);
+
+  res.status(err.status || 500).json({
+    msg: err.message,
+    code: err.code || "INTERNAL_ERROR",
+    stack: err.stack,
+    details: err.details || null
+  });
+});
+
 // Inicialização do Servidor
 if (process.env.NODE_ENV !== "test") {
   try {
     app.listen(PORT, "0.0.0.0", () => {
-      console.log(`🚀 SUPER CARTOLA MANAGER RODANDO NA PORTA ${PORT}`);
-      console.log(`💾 Sessões persistentes: ATIVADAS (MongoDB Store)`);
-      console.log(`🔐 Autenticação Admin: Replit Auth`);
-      console.log(`🔐 Autenticação Participante: Senha do Time`);
-      console.log(`🛡️ Segurança: Headers + Rate Limiting ATIVADOS`);
-      console.log(
-        `📦 Versão App: ${APP_VERSION.version} (build ${APP_VERSION.build})`,
-      );
+      // Log de inicialização sempre visível (usa console original)
+      const startupLog = IS_PRODUCTION ? originalConsole.log : console.log;
+
+      startupLog(`🚀 SUPER CARTOLA MANAGER RODANDO NA PORTA ${PORT}`);
+      startupLog(`🌍 Ambiente: ${IS_PRODUCTION ? 'PRODUÇÃO' : 'DESENVOLVIMENTO'}`);
+      startupLog(`📦 Versão: ${APP_VERSION.version} (build ${APP_VERSION.build})`);
+
+      if (IS_DEVELOPMENT) {
+        console.log(`💾 Sessões persistentes: ATIVADAS (MongoDB Store)`);
+        console.log(`🔐 Autenticação Admin: Replit Auth`);
+        console.log(`🔐 Autenticação Participante: Senha do Time`);
+        console.log(`🛡️ Segurança: Headers + Rate Limiting ATIVADOS`);
+        console.log(`📝 Logs: VERBOSE (desenvolvimento)`);
+      } else {
+        startupLog(`🔇 Logs: SILENCIADOS (produção)`);
+        startupLog(`🛡️ Erros: Mensagens genéricas (sem stack trace)`);
+      }
     });
   } catch (err) {
-    console.error("❌ Erro ao conectar ao MongoDB:", err.message);
+    originalConsole.error("❌ Erro ao conectar ao MongoDB:", err.message);
     process.exit(1);
   }
 }

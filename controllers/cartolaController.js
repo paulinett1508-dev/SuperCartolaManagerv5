@@ -4,6 +4,7 @@ import {
   buscarTimePorId,
   buscarPontuacaoPorRodada,
 } from "../services/cartolaService.js";
+import { isSeasonFinished, getSeasonStatus, logBlockedOperation, SEASON_CONFIG } from "../utils/seasonGuard.js";
 
 // Retorna todos os clubes disponíveis
 export async function listarClubes(req, res) {
@@ -93,6 +94,20 @@ export async function obterEscalacao(req, res) {
 
 // Função para buscar o status do mercado
 export async function getMercadoStatus(req, res) {
+  // ⛔ SEASON GUARD: Temporada encerrada - retornar status fixo
+  if (isSeasonFinished()) {
+    logBlockedOperation('getMercadoStatus', { reason: 'Temporada encerrada' });
+    return res.status(200).json({
+      rodada_atual: SEASON_CONFIG.LAST_ROUND,
+      status_mercado: 6, // 6 = Temporada Encerrada
+      mercado_aberto: false,
+      fechamento: null,
+      temporada_encerrada: true,
+      season: SEASON_CONFIG.SEASON_YEAR,
+      message: SEASON_CONFIG.BLOCK_MESSAGE
+    });
+  }
+
   try {
     console.log("[CARTOLA-CONTROLLER] Buscando status do mercado...");
     const response = await fetch(
@@ -130,9 +145,9 @@ export async function getMercadoStatus(req, res) {
     );
 
     // Retornar dados de fallback em vez de erro 503
-    console.log("[CARTOLA-CONTROLLER] Retornando fallback (rodada 1)");
+    console.log("[CARTOLA-CONTROLLER] Retornando fallback (rodada 38)");
     res.status(200).json({
-      rodada_atual: 1,
+      rodada_atual: SEASON_CONFIG.LAST_ROUND,
       status_mercado: 2,
       mercado_aberto: false,
       fechamento: null,
@@ -140,6 +155,11 @@ export async function getMercadoStatus(req, res) {
       message: "API Cartola indisponível, usando dados padrão"
     });
   }
+}
+
+// Retorna status da temporada (para frontend)
+export async function getSeasonStatusEndpoint(req, res) {
+  res.status(200).json(getSeasonStatus());
 }
 
 // Nova função para buscar os dados de parciais

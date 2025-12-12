@@ -1,13 +1,14 @@
 // =====================================================================
-// rodadaController.js v2.9.2 - FIX: Posições recalculadas em tempo real
+// rodadaController.js v2.9.3 - SEASON GUARD: Bloqueia API em fim de temporada
 // Busca dados da API do Cartola e calcula posições
-// v2.9.2: SuperCartola recalcula posições no GET para dados legados
+// v2.9.3: Circuit Breaker de fim de temporada implementado
 // =====================================================================
 
 import Rodada from "../models/Rodada.js";
 import Time from "../models/Time.js";
 import Liga from "../models/Liga.js";
 import mongoose from "mongoose";
+import { isSeasonFinished, logBlockedOperation, SEASON_CONFIG } from "../utils/seasonGuard.js";
 
 // ✅ Converter ligaId para ObjectId
 function toLigaId(ligaId) {
@@ -111,6 +112,17 @@ async function obterMapaClubeId(ligaIdObj) {
 export const popularRodadas = async (req, res) => {
   const { ligaId } = req.params;
   const { rodada, inicio, fim, repopular } = req.body;
+
+  // ⛔ SEASON GUARD: Bloquear população de rodadas se temporada encerrada
+  if (isSeasonFinished()) {
+    logBlockedOperation('popularRodadas', { ligaId, rodada, inicio, fim });
+    return res.status(403).json({
+      error: 'Operação bloqueada',
+      message: SEASON_CONFIG.BLOCK_MESSAGE,
+      hint: 'A temporada está encerrada. Dados são imutáveis.',
+      season: SEASON_CONFIG.SEASON_YEAR
+    });
+  }
 
   try {
     console.log(`[POPULAR-RODADAS] Iniciando para liga ${ligaId}`, {
@@ -620,4 +632,4 @@ export const criarIndiceUnico = async (req, res) => {
   }
 };
 
-console.log("[RODADA-CONTROLLER] ✅ v2.9.2 carregado (SuperCartola: posições recalculadas em tempo real)");
+console.log("[RODADA-CONTROLLER] ✅ v2.9.3 carregado (SEASON GUARD ativo: API bloqueada)");

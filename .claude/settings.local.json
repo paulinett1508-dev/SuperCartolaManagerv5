@@ -17,11 +17,14 @@
       "Bash(cat:*)",
       "Bash(pgrep:*)",
       "Bash(git add:*)",
-      "Bash(git commit:*)"
+      "Bash(git commit:*)",
+      "Bash(printenv:*)",
+      "Bash(source .env)",
+      "Bash(timeout 3 node:*)"
     ]
   },
+  "enableAllProjectMcpServers": true,
   "enabledMcpjsonServers": [
     "mongo"
-  ],
-  "enableAllProjectMcpServers": true
+  ]
 }

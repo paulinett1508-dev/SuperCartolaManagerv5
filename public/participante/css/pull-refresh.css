@@ -1,9 +1,15 @@
 /* ================================================
-   PULL-TO-REFRESH - Bola Quicando (v2.0)
-   + LOADING OVERLAY com Blur
-   ================================================ */
+   PULL-TO-REFRESH v3.0 - CSS LIMPO
+   + LOADING OVERLAY com Blur (navegação entre módulos)
+   ================================================
+
+   NOTA: O indicador visual de pull foi REMOVIDO.
+   O overlay de Vidro Fosco (#reload-glass-overlay) está no index.html.
+   Este arquivo mantém apenas o Loading Overlay para navegação interna.
+*/
 
 /* ========== LOADING OVERLAY GLOBAL ========== */
+/* Usado para navegação entre módulos (NÃO para pull-to-refresh) */
 .loading-overlay {
     position: fixed;
     inset: 0;
@@ -91,164 +97,4 @@
 @keyframes loading-shadow {
     0%, 100% { transform: scale(1); opacity: 0.4; }
     50% { transform: scale(0.5); opacity: 0.2; }
-}
-
-/* ========== PULL-TO-REFRESH ========== */
-/* Container do indicador de refresh */
-.pull-refresh-indicator {
-    position: fixed;
-    top: 0;
-    left: 0;
-    right: 0;
-    height: 80px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    background: linear-gradient(to bottom, rgba(10, 10, 10, 0.95), transparent);
-    z-index: 9999;
-    transform: translateY(-100%);
-    transition: transform 0.3s ease;
-    pointer-events: none;
-}
-
-.pull-refresh-indicator.visible {
-    transform: translateY(0);
-}
-
-.pull-refresh-indicator.refreshing {
-    transform: translateY(0);
-}
-
-/* Bola de futebol quicando */
-.refresh-ball {
-    width: 32px;
-    height: 32px;
-    position: relative;
-}
-
-.refresh-ball-icon {
-    width: 32px;
-    height: 32px;
-    background: radial-gradient(circle at 30% 30%, #fff 0%, #e0e0e0 50%, #bbb 100%);
-    border-radius: 50%;
-    position: relative;
-    box-shadow: 
-        inset -2px -2px 4px rgba(0,0,0,0.2),
-        0 4px 8px rgba(0,0,0,0.3);
-}
-
-/* Padrão de bola de futebol */
-.refresh-ball-icon::before {
-    content: '';
-    position: absolute;
-    top: 50%;
-    left: 50%;
-    transform: translate(-50%, -50%);
-    width: 12px;
-    height: 12px;
-    background: #1a1a1a;
-    clip-path: polygon(50% 0%, 100% 38%, 82% 100%, 18% 100%, 0% 38%);
-}
-
-.refresh-ball-icon::after {
-    content: '';
-    position: absolute;
-    top: 4px;
-    left: 4px;
-    right: 4px;
-    bottom: 4px;
-    border: 1px solid rgba(0,0,0,0.1);
-    border-radius: 50%;
-}
-
-/* Animação de quicar */
-@keyframes bounce-ball {
-    0%, 100% {
-        transform: translateY(0) scaleY(1);
-        animation-timing-function: cubic-bezier(0.8, 0, 1, 1);
-    }
-    50% {
-        transform: translateY(-20px) scaleY(1);
-        animation-timing-function: cubic-bezier(0, 0, 0.2, 1);
-    }
-    90% {
-        transform: translateY(0) scaleY(0.9) scaleX(1.1);
-    }
-}
-
-/* Sombra da bola */
-.refresh-ball-shadow {
-    position: absolute;
-    bottom: -8px;
-    left: 50%;
-    transform: translateX(-50%);
-    width: 24px;
-    height: 6px;
-    background: rgba(0, 0, 0, 0.3);
-    border-radius: 50%;
-    filter: blur(2px);
-}
-
-@keyframes shadow-pulse {
-    0%, 100% {
-        transform: translateX(-50%) scale(1);
-        opacity: 0.3;
-    }
-    50% {
-        transform: translateX(-50%) scale(0.6);
-        opacity: 0.15;
-    }
-}
-
-/* Estado: Puxando */
-.pull-refresh-indicator.pulling .refresh-ball-icon {
-    animation: none;
-    transform: translateY(var(--pull-progress, 0));
-}
-
-/* Estado: Refreshing (quicando) */
-.pull-refresh-indicator.refreshing .refresh-ball-icon {
-    animation: bounce-ball 0.5s infinite;
-}
-
-.pull-refresh-indicator.refreshing .refresh-ball-shadow {
-    animation: shadow-pulse 0.5s infinite;
-}
-
-/* Texto de status */
-.refresh-status-text {
-    position: absolute;
-    bottom: 8px;
-    left: 50%;
-    transform: translateX(-50%);
-    font-size: 10px;
-    font-weight: 600;
-    color: rgba(255, 255, 255, 0.5);
-    text-transform: uppercase;
-    letter-spacing: 0.5px;
-    white-space: nowrap;
-}
-
-/* Versão alternativa: Spinner laranja (mais sutil) */
-.refresh-spinner-alt {
-    width: 28px;
-    height: 28px;
-    border: 3px solid rgba(255, 69, 0, 0.2);
-    border-top-color: #FF4500;
-    border-radius: 50%;
-    animation: spin-refresh 0.8s linear infinite;
-}
-
-@keyframes spin-refresh {
-    to { transform: rotate(360deg); }
-}
-
-/* Prevenir overscroll nativo quando ativo */
-body.pull-refresh-active {
-    overscroll-behavior-y: contain;
-}
-
-/* Estilos para quando está puxando */
-.module-container.pulling {
-    transition: transform 0.1s ease-out;
 }
