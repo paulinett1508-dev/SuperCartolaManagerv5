@@ -1,10 +1,12 @@
 // =====================================================
-// MÓDULO: UI DO EXTRATO PARTICIPANTE - v8.8 VISUAL MELHORADO
+// MÓDULO: UI DO EXTRATO PARTICIPANTE - v9.1 LAYOUT HORIZONTAL
 // =====================================================
-// ✅ v8.8: Melhorias visuais no Histórico por Rodada
-//    - Cards com padding aumentado (p-4)
-//    - Textos e badges maiores para legibilidade
-//    - Ícones proporcionais (w-10 h-10)
+// ✅ v9.1: Layout 100% horizontal e nomes completos
+//    - Tudo em uma linha: R## | Badges | Extras | Total
+//    - TOP10: "1º MELHOR MITO +30,00" ou "10º PIOR MICO -12,00"
+//    - Nomes completos: "Pontos Corridos" e "Mata-Mata"
+//    - Wrap natural apenas em telas muito pequenas
+// ✅ v9.0: Redesign - Badge BANCO unificado com valor
 // ✅ v8.7: CORREÇÃO CRÍTICA - Campos manuais não duplicados
 //    - Backend já soma campos em resumo.saldo
 //    - Frontend NÃO soma novamente (estava duplicando!)
@@ -388,120 +390,93 @@ function renderizarCardsRodadas(rodadas, ligaId) {
                 faixaColor = "text-rose-400";
             }
 
-            // v8.8: Badge MITO/MICO da rodada (1º e último lugar)
-            // Ícones iguais ao módulo Rodadas: emoji_events (MITO) e pest_control (MICO)
+            // ===== v9.0: DESIGN INTELIGENTE - BADGE ÚNICO COM VALOR =====
             const ultimaPosicao = faixas.debito?.fim || faixas.totalTimes;
-            let badgePosicaoDestaque = "";
+            const bonusFormatado = Math.abs(bonusOnus).toFixed(2).replace(".", ",");
+            const sinalBonus = bonusOnus > 0 ? "+" : "-";
 
-            if (r.posicao === 1) {
-                // 1º lugar = MITO da rodada
-                badgePosicaoDestaque = `<span class="inline-flex items-center gap-1 text-[11px] bg-amber-500/20 text-amber-400 px-2 py-0.5 rounded font-bold">
-                    <span class="material-symbols-outlined text-sm" style="color: #ffd700;">emoji_events</span>MITO
+            // Badge BANCO: Posição + Valor (MITO/MICO para 1º/último, ou G/Z para demais)
+            let badgeBanco = "";
+            if (r.posicao === 1 && bonusOnus !== 0) {
+                // 1º lugar = MITO da rodada com valor
+                badgeBanco = `<span class="inline-flex items-center gap-1 text-[11px] bg-gradient-to-r from-amber-500/30 to-yellow-500/20 text-amber-300 px-2.5 py-1 rounded-lg font-bold border border-amber-500/30">
+                    <span class="material-symbols-outlined text-sm" style="color: #ffd700;">emoji_events</span>
+                    MITO ${sinalBonus}${bonusFormatado}
                 </span>`;
-            } else if (r.posicao === ultimaPosicao) {
-                // Último lugar = MICO da rodada
-                badgePosicaoDestaque = `<span class="inline-flex items-center gap-1 text-[11px] bg-rose-500/20 text-rose-400 px-2 py-0.5 rounded font-bold">
-                    <span class="material-symbols-outlined text-sm" style="color: #ef4444;">thumb_down</span>MICO
+            } else if (r.posicao === ultimaPosicao && bonusOnus !== 0) {
+                // Último lugar = MICO da rodada com valor
+                badgeBanco = `<span class="inline-flex items-center gap-1 text-[11px] bg-gradient-to-r from-rose-500/30 to-red-500/20 text-rose-300 px-2.5 py-1 rounded-lg font-bold border border-rose-500/30">
+                    <span class="material-symbols-outlined text-sm" style="color: #ef4444;">thumb_down</span>
+                    MICO ${sinalBonus}${bonusFormatado}
+                </span>`;
+            } else if (zonaLabel && bonusOnus !== 0) {
+                // Zona G/Z com valor
+                const corBadge = tipoZona === "ganho"
+                    ? "bg-emerald-500/20 text-emerald-300 border-emerald-500/30"
+                    : "bg-rose-500/20 text-rose-300 border-rose-500/30";
+                badgeBanco = `<span class="inline-flex items-center gap-1 text-[11px] ${corBadge} px-2.5 py-1 rounded-lg font-bold border">
+                    ${zonaLabel} ${sinalBonus}${bonusFormatado}
                 </span>`;
             }
 
-            // Badge TOP10 histórico - mostra posição no ranking (ex: "1º Mito", "5º Mico")
+            // Badge TOP10 histórico (separado do banco) - "1º MELHOR MITO" ou "10º PIOR MICO"
             let badgeTop10 = "";
             if (top10 !== 0) {
                 const posTop10 = calcularPosicaoTop10(top10, ligaId);
+                const valorTop10 = Math.abs(top10).toFixed(2).replace(".", ",");
                 if (top10 > 0) {
-                    badgeTop10 = `<span class="text-[10px] bg-amber-500/20 text-amber-300 px-2 py-0.5 rounded-full font-semibold">${posTop10}º Mito</span>`;
+                    badgeTop10 = `<span class="inline-flex items-center gap-1 text-[10px] bg-gradient-to-r from-amber-600/30 to-orange-500/20 text-amber-200 px-2 py-0.5 rounded-full font-semibold border border-amber-500/40">
+                        <span class="material-symbols-outlined text-xs" style="color: #ffd700;">military_tech</span>
+                        ${posTop10}º MELHOR MITO +${valorTop10}
+                    </span>`;
                 } else {
-                    badgeTop10 = `<span class="text-[10px] bg-rose-500/20 text-rose-300 px-2 py-0.5 rounded-full font-semibold">${posTop10}º Mico</span>`;
+                    badgeTop10 = `<span class="inline-flex items-center gap-1 text-[10px] bg-gradient-to-r from-rose-600/30 to-red-500/20 text-rose-200 px-2 py-0.5 rounded-full font-semibold border border-rose-500/40">
+                        <span class="material-symbols-outlined text-xs" style="color: #ef4444;">sentiment_sad</span>
+                        ${posTop10}º PIOR MICO -${valorTop10}
+                    </span>`;
                 }
             }
 
-            // Badge da zona (G2-G11 ou Z2-Z10) - não mostrar se já tem MITO/MICO
-            let badgeZona = "";
-            if (zonaLabel && !badgePosicaoDestaque) {
-                const corBadge =
-                    tipoZona === "ganho"
-                        ? "bg-emerald-500/20 text-emerald-400"
-                        : "bg-rose-500/20 text-rose-400";
-                badgeZona = `<span class="text-[11px] font-bold px-2 py-0.5 rounded ${corBadge}">${zonaLabel}</span>`;
-            }
+            // Itens extras inline (Pontos Corridos e Mata-Mata) - nomes completos
+            const extrasInline = [];
 
-            // Gerar breakdown com zonas G/Z
-            const breakdownItems = [];
-
-            // Posição com label de zona (só se não for neutro)
-            if (bonusOnus !== 0 && zonaLabel) {
-                const corValor =
-                    bonusOnus > 0 ? "text-emerald-400" : "text-rose-400";
-                const corLabel =
-                    tipoZona === "ganho" ? "text-emerald-300" : "text-rose-300";
-                const sinal = bonusOnus > 0 ? "+" : "";
-                breakdownItems.push(
-                    `<span class="${corValor}">${sinal}${bonusOnus.toFixed(2).replace(".", ",")} <span class="${corLabel} font-semibold">${zonaLabel}</span></span>`,
-                );
-            }
-
-            // Pontos Corridos - legenda amarela
             if (pontosCorridos !== 0) {
-                const corValor =
-                    pontosCorridos > 0 ? "text-emerald-400" : "text-rose-400";
-                const sinal = pontosCorridos > 0 ? "+" : "";
-                breakdownItems.push(
-                    `<span class="${corValor}">${sinal}${pontosCorridos.toFixed(2).replace(".", ",")} <span class="text-amber-400">Pontos Corridos</span></span>`,
+                const corPC = pontosCorridos > 0 ? "text-emerald-400" : "text-rose-400";
+                const sinalPC = pontosCorridos > 0 ? "+" : "";
+                extrasInline.push(
+                    `<span class="inline-flex items-center gap-1 text-[10px] ${corPC}">
+                        <span class="w-1 h-1 rounded-full bg-amber-400"></span>
+                        <span class="text-amber-300">Pontos Corridos</span> ${sinalPC}${pontosCorridos.toFixed(2).replace(".", ",")}
+                    </span>`
                 );
             }
 
-            // Mata-Mata - legenda azul
             if (mataMata !== 0) {
-                const corValor =
-                    mataMata > 0 ? "text-emerald-400" : "text-rose-400";
-                const sinal = mataMata > 0 ? "+" : "";
-                breakdownItems.push(
-                    `<span class="${corValor}">${sinal}${mataMata.toFixed(2).replace(".", ",")} <span class="text-sky-400">Mata-Mata</span></span>`,
+                const corMM = mataMata > 0 ? "text-emerald-400" : "text-rose-400";
+                const sinalMM = mataMata > 0 ? "+" : "";
+                extrasInline.push(
+                    `<span class="inline-flex items-center gap-1 text-[10px] ${corMM}">
+                        <span class="w-1 h-1 rounded-full bg-sky-400"></span>
+                        <span class="text-sky-300">Mata-Mata</span> ${sinalMM}${mataMata.toFixed(2).replace(".", ",")}
+                    </span>`
                 );
             }
 
-            // Top 10 - legenda laranja
-            if (top10 !== 0) {
-                const corValor =
-                    top10 > 0 ? "text-emerald-400" : "text-rose-400";
-                const sinal = top10 > 0 ? "+" : "";
-                breakdownItems.push(
-                    `<span class="${corValor}">${sinal}${top10.toFixed(2).replace(".", ",")} <span class="text-orange-400">Top 10</span></span>`,
-                );
-            }
-
-            // v8.8: Espaçamento vertical aumentado entre itens do breakdown
-            const breakdownHTML =
-                breakdownItems.length > 0
-                    ? `<div class="flex flex-col gap-1 text-xs font-medium mt-2">${breakdownItems.join("")}</div>`
-                    : `<p class="text-[11px] text-white/40 mt-2">Sem movimentação</p>`;
+            // Texto "Sem movimentação" para rodadas neutras
+            const semMovimentacao = (saldo === 0 && !badgeBanco && !badgeTop10 && extrasInline.length === 0)
+                ? `<span class="text-[10px] text-white/30">Sem movimentação</span>` : "";
 
             return `
-            <div class="${bgColor} ${borderColor} border rounded-xl p-4 transition-all">
-                <div class="flex items-start justify-between">
-                    <div class="flex items-start gap-3">
-                        <div class="w-10 h-10 rounded-lg flex items-center justify-center flex-shrink-0 ${
-                            tipoZona === "ganho"
-                                ? "bg-emerald-500/20"
-                                : tipoZona === "perda"
-                                  ? "bg-rose-500/20"
-                                  : "bg-zinc-700/50"
-                        }">
-                            <span class="material-icons ${faixaColor} text-lg">${faixaIcon}</span>
-                        </div>
-                        <div class="min-w-0">
-                            <div class="flex items-center gap-2 flex-wrap">
-                                <span class="text-base font-bold text-white">R${r.rodada}</span>
-                                ${r.posicao ? `<span class="text-[11px] text-white/50">${r.posicao}º lugar</span>` : ""}
-                                ${badgePosicaoDestaque}
-                                ${badgeZona}
-                                ${badgeTop10}
-                            </div>
-                            ${breakdownHTML}
-                        </div>
+            <div class="${bgColor} ${borderColor} border rounded-xl p-3 transition-all hover:border-white/10">
+                <div class="flex items-center justify-between gap-2">
+                    <div class="flex items-center gap-2 min-w-0 flex-1 flex-wrap">
+                        <span class="text-sm font-bold text-white/90 flex-shrink-0">R${r.rodada}</span>
+                        ${badgeBanco}
+                        ${badgeTop10}
+                        ${extrasInline.join("")}
+                        ${semMovimentacao}
                     </div>
-                    <span class="text-base font-bold ${saldo === 0 ? "text-white/40" : positivo ? "text-emerald-400" : "text-rose-400"} whitespace-nowrap ml-3">${saldo > 0 ? "+" : ""}${saldoFormatado}</span>
+                    <span class="text-base font-bold ${saldo === 0 ? "text-white/30" : positivo ? "text-emerald-400" : "text-rose-400"} flex-shrink-0">${saldo > 0 ? "+" : ""}${saldoFormatado}</span>
                 </div>
             </div>
         `;
