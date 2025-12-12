@@ -1,9 +1,11 @@
 // =====================================================================
-// PARTICIPANTE-BOAS-VINDAS.JS - v7.2 (TAILWIND)
+// PARTICIPANTE-BOAS-VINDAS.JS - v7.3 (FIX DUPLICAÇÃO SALDO)
 // =====================================================================
+// ✅ v7.3: CORREÇÃO - Saldo já inclui campos manuais do backend
+//    NÃO somar extratoData.camposManuais novamente
 
 if (window.Log)
-    Log.info("PARTICIPANTE-BOAS-VINDAS", "🔄 Carregando módulo v7.2...");
+    Log.info("PARTICIPANTE-BOAS-VINDAS", "🔄 Carregando módulo v7.3...");
 
 // =====================================================================
 // FUNÇÃO PRINCIPAL
@@ -168,9 +170,9 @@ async function carregarDadosERenderizar(ligaId, timeId, participante) {
             if (meuTimeAnterior) posicaoAnterior = meuTimeAnterior.posicao;
         }
 
-        // ✅ Saldo financeiro = saldo do extrato + campos manuais (adicionados no admin)
-        const saldoBase = extratoData?.saldo_atual ?? extratoData?.resumo?.saldo_final ?? 0;
-        const saldoFinanceiro = saldoBase + (extratoData?.camposManuais || 0);
+        // ✅ v7.3: CORREÇÃO - Backend já inclui campos manuais em resumo.saldo_final
+        // NÃO somar extratoData.camposManuais novamente (estava duplicando!)
+        const saldoFinanceiro = extratoData?.saldo_atual ?? extratoData?.resumo?.saldo_final ?? 0;
         const nomeTime =
             participante?.nome_time || meuTime?.nome_time || "Seu Time";
         const nomeCartola =
