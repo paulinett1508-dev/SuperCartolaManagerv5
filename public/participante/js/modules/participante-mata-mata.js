@@ -8,9 +8,9 @@
 // =====================================================================
 
 const EDICOES_MATA_MATA = [
-  { id: 1, nome: "1ª Edição", rodadaInicial: 2, rodadaFinal: 7 },
-  { id: 2, nome: "2ª Edição", rodadaInicial: 9, rodadaFinal: 14 },
-  { id: 3, nome: "3ª Edição", rodadaInicial: 15, rodadaFinal: 21 },
+  { id: 1, nome: "1ª Edição", rodadaInicial: 3, rodadaFinal: 7 },   // FIX: R2 é definição, competição começa R3
+  { id: 2, nome: "2ª Edição", rodadaInicial: 10, rodadaFinal: 14 }, // FIX: R9 é definição, competição começa R10
+  { id: 3, nome: "3ª Edição", rodadaInicial: 16, rodadaFinal: 21 }, // FIX: R15 é definição, competição começa R16
   { id: 4, nome: "4ª Edição", rodadaInicial: 22, rodadaFinal: 26 },
   { id: 5, nome: "5ª Edição", rodadaInicial: 31, rodadaFinal: 35 },
 ];

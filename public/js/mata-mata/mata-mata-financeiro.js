@@ -71,19 +71,18 @@ export async function getResultadosMataMata() {
       throw new Error(`Ranking base da Rodada ${rodadaDefinicao} inválido.`);
     }
 
+    // Rodadas de cada fase baseadas no rodadaInicial (já corrigido no config)
+    // Estrutura: 1ªFase=R[inicial], Oitavas=R[inicial+1], Quartas=R[inicial+2], Semis=R[inicial+3], Final=R[inicial+4]
     const rodadasFases = {
-      primeira: edicaoAtiva.rodadaInicial + (edicaoAtiva.id === 5 ? 0 : 1),
-      oitavas: edicaoAtiva.rodadaInicial + (edicaoAtiva.id === 5 ? 1 : 2),
-      quartas: edicaoAtiva.rodadaInicial + (edicaoAtiva.id === 5 ? 2 : 3),
-      semis: edicaoAtiva.rodadaInicial + 4,
-      final: edicaoAtiva.rodadaInicial + (edicaoAtiva.id === 5 ? 4 : 5),
+      primeira: edicaoAtiva.rodadaInicial,
+      oitavas: edicaoAtiva.rodadaInicial + 1,
+      quartas: edicaoAtiva.rodadaInicial + 2,
+      semis: edicaoAtiva.rodadaInicial + 3,
+      final: edicaoAtiva.rodadaInicial + 4,
     };
 
     let vencedoresAnteriores = rankingBase;
     for (const fase of fases) {
-      // Pular semis para edição 5
-      if (fase === "semis" && edicaoAtiva.id === 5) continue;
-
       const rodadaPontosNum = rodadasFases[fase];
       const numJogos =
         fase === "primeira"

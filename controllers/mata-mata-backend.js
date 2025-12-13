@@ -23,35 +23,35 @@ const EDICOES_MATA_MATA = [
     {
         id: 1,
         nome: "1ª Edição",
-        rodadaInicial: 2,
+        rodadaInicial: 3,  // ✅ FIX: Era 2, mas R2 é só definição. Competição começa R3
         rodadaFinal: 7,
         rodadaDefinicao: 2,
     },
     {
         id: 2,
         nome: "2ª Edição",
-        rodadaInicial: 9,
+        rodadaInicial: 10, // ✅ FIX: Era 9, mas R9 é só definição. Competição começa R10
         rodadaFinal: 14,
         rodadaDefinicao: 9,
     },
     {
         id: 3,
         nome: "3ª Edição",
-        rodadaInicial: 15,
+        rodadaInicial: 16, // ✅ FIX: Era 15, mas R15 é só definição. Competição começa R16
         rodadaFinal: 21,
         rodadaDefinicao: 15,
     },
     {
         id: 4,
         nome: "4ª Edição",
-        rodadaInicial: 22,
+        rodadaInicial: 22, // ✅ OK: R21 é definição, R22 é início
         rodadaFinal: 26,
         rodadaDefinicao: 21,
     },
     {
         id: 5,
         nome: "5ª Edição",
-        rodadaInicial: 31,
+        rodadaInicial: 31, // ✅ OK: R30 é definição, R31 é início
         rodadaFinal: 35,
         rodadaDefinicao: 30,
     },
