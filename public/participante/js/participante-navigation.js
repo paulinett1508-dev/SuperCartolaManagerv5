@@ -1,19 +1,19 @@
 // =====================================================================
-// PARTICIPANTE NAVIGATION v2.8 - Sistema de Navegação entre Módulos
+// PARTICIPANTE NAVIGATION v3.0 - Sistema de Navegação entre Módulos
 // =====================================================================
+// v3.0: REFATORAÇÃO COMPLETA - Remove flag _navegando que travava
+//       Usa apenas debounce por tempo (mais confiável)
+//       Navegação NUNCA trava, sempre responde a cliques
 // v2.8: Permite recarregar mesmo módulo (cache-first é instantâneo)
-//       Remove bloqueio de "mesmo módulo" que causava cliques ignorados
 // v2.7: Fix transição suave com cache-first (não limpar container)
-//       Evita clique duplo necessário para navegar
 // v2.6: Fix primeira navegação - não ignorar se container está vazio
-//       Garante SplashScreen.hide() mesmo quando navegação é ignorada
 // v2.5: Loading inteligente (só primeira vez ou após 24h)
 // v2.4: Integração com RefreshButton (temporada encerrada)
 // v2.3: Polling fallback para auth
 // v2.2: Debounce e controle de navegações duplicadas
 // =====================================================================
 
-if (window.Log) Log.info('PARTICIPANTE-NAV', '🚀 Carregando sistema de navegação...');
+if (window.Log) Log.info('PARTICIPANTE-NAV', '🚀 Carregando sistema de navegação v3.0...');
 
 class ParticipanteNavigation {
     constructor() {
@@ -34,11 +34,11 @@ class ParticipanteNavigation {
             "luva-ouro": "/participante/fronts/luva-ouro.html",
         };
 
-        // ✅ v2.2: Controles para evitar operações duplicadas
+        // ✅ v3.0: Controles simplificados (apenas debounce por tempo)
         this._inicializando = false;
-        this._navegando = false;
         this._ultimaNavegacao = 0;
-        this._debounceMs = 150; // ✅ v2.7: Reduzido para 150ms (mais responsivo com cache-first)
+        this._debounceMs = 100; // ✅ v3.0: Reduzido para 100ms (super responsivo)
+        this._navegacaoEmAndamento = null; // ID da navegação atual (para cancelar se necessário)
     }
 
     async inicializar() {
@@ -485,31 +485,27 @@ class ParticipanteNavigation {
     }
 
     async navegarPara(moduloId, forcarReload = false, voltandoHistorico = false) {
-        // ✅ v2.2: Debounce para evitar navegações duplicadas
+        // ✅ v3.0: APENAS debounce por tempo (sem flag que pode travar)
         const agora = Date.now();
-        if (this._navegando) {
-            if (window.Log) Log.debug('PARTICIPANTE-NAV', '⏸️ Navegação já em andamento, ignorando...');
-            return;
-        }
+        const navegacaoId = `nav_${agora}_${moduloId}`;
+
+        // Debounce simples: ignorar cliques muito rápidos (< 100ms)
         if (agora - this._ultimaNavegacao < this._debounceMs) {
-            if (window.Log) Log.debug('PARTICIPANTE-NAV', '⏸️ Debounce: navegação muito rápida, ignorando...');
+            if (window.Log) Log.debug('PARTICIPANTE-NAV', '⏸️ Debounce: ignorando clique muito rápido');
             return;
         }
 
-        // ✅ v2.8: REMOVIDO bloqueio de "mesmo módulo"
-        // Com cache-first, recarregar é instantâneo e dá feedback visual ao usuário
-        // Isso evita o problema de cliques ignorados que pareciam "não funcionar"
-        const container = document.getElementById("moduleContainer");
-
-        this._navegando = true;
+        // Registrar esta navegação
         this._ultimaNavegacao = agora;
+        this._navegacaoEmAndamento = navegacaoId;
+
+        const container = document.getElementById("moduleContainer");
 
         if (window.Log) Log.info('PARTICIPANTE-NAV', `🧭 Navegando para: ${moduloId}`);
 
         // container já foi obtido acima para verificar isFirstLoad
         if (!container) {
             if (window.Log) Log.error('PARTICIPANTE-NAV', '❌ Container não encontrado');
-            this._navegando = false;
             return;
         }
 
@@ -589,9 +585,6 @@ class ParticipanteNavigation {
                 window.RefreshButton.addTo(container, { text: 'Atualizar Dados' });
             }
 
-            // ✅ v2.2: Liberar flag de navegação
-            this._navegando = false;
-
         } catch (error) {
             // ✅ CORREÇÃO: Limpar timeout de segurança
             clearTimeout(timeoutId);
@@ -607,9 +600,6 @@ class ParticipanteNavigation {
             if (window.LoadingOverlay) {
                 window.LoadingOverlay.hide();
             }
-
-            // ✅ v2.2: Liberar flag de navegação mesmo em erro
-            this._navegando = false;
 
             this.mostrarErroCarregamento(container, moduloId, error.message);
         }
@@ -762,4 +752,4 @@ if (document.readyState === "loading") {
     participanteNav.inicializar();
 }
 
-if (window.Log) Log.info('PARTICIPANTE-NAV', '✅ Sistema v2.8 pronto.');
+if (window.Log) Log.info('PARTICIPANTE-NAV', '✅ Sistema v3.0 pronto (navegação sem travamento)');
