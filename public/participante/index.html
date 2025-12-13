@@ -84,20 +84,35 @@
         <!-- ✅ Sistema de Versionamento -->
         <link rel="stylesheet" href="/css/app/app-version.css" />
 
-        <!-- ✅ CSS CRÍTICO INLINE v3 - Corrigido para permitir failsafe -->
+        <!-- ✅ CSS CRÍTICO INLINE v4 - Splash Hardening Total -->
         <style id="critical-splash-fix">
+            /* ============================================
+               CAMADA SUPREMA - SPLASH COBRE TUDO
+               ============================================ */
+            #splashScreen {
+                position: fixed !important;
+                top: 0 !important;
+                left: 0 !important;
+                width: 100vw !important;
+                height: 100vh !important;
+                z-index: 999999 !important;
+                background-color: #0a0a0a !important;
+            }
+
             /* Splash screen SEMPRE começa oculta */
             #splashScreen:not(.animate) {
                 opacity: 0 !important;
                 visibility: hidden !important;
                 pointer-events: none !important;
             }
-            /* ⚠️ SEM !important aqui - permite failsafe CSS funcionar */
+
+            /* Quando ativa - tudo visível e sólido */
             #splashScreen.animate {
-                opacity: 1;
-                visibility: visible;
-                pointer-events: all;
+                opacity: 1 !important;
+                visibility: visible !important;
+                pointer-events: all !important;
             }
+
             /* Garante que .hidden sempre oculta (prioridade máxima) */
             #splashScreen.hidden {
                 opacity: 0 !important;
@@ -105,22 +120,55 @@
                 pointer-events: none !important;
                 animation: none !important;
             }
-            /* Logo glow é APENAS cor sólida laranja blur, NUNCA imagem */
+
+            /* ============================================
+               ESCONDER APP ATÉ SPLASH TERMINAR
+               ============================================ */
+            /* Container principal começa INVISÍVEL */
+            .participante-container {
+                opacity: 0;
+                visibility: hidden;
+                transition: opacity 0.3s ease, visibility 0.3s ease;
+            }
+
+            /* Quando splash está hidden, mostra o app */
+            body.app-ready .participante-container {
+                opacity: 1;
+                visibility: visible;
+            }
+
+            /* Bottom nav também começa escondida */
+            .bottom-nav-modern {
+                opacity: 0;
+                visibility: hidden;
+                transition: opacity 0.3s ease, visibility 0.3s ease;
+            }
+
+            body.app-ready .bottom-nav-modern {
+                opacity: 1;
+                visibility: visible;
+            }
+
+            /* ============================================
+               LOGO - SEM DUPLICAÇÃO
+               ============================================ */
             .splash-logo-glow {
                 background: #FF4500 !important;
                 background-image: none !important;
                 z-index: 0 !important;
             }
-            /* Apenas UM logo visível - sem filtros que causam duplicação */
+
             .splash-logo-container {
                 position: relative !important;
             }
+
             .splash-logo-container img,
             .splash-logo-img {
                 position: relative !important;
                 z-index: 1 !important;
                 filter: none !important;
             }
+
             /* Bloquear pseudo-elementos */
             .splash-logo-container::before,
             .splash-logo-container::after,
@@ -511,7 +559,7 @@
             </div>
         </div>
 
-        <!-- ✅ SCRIPT IMEDIATO - Detecção Ultra-Rápida de Reload -->
+        <!-- ✅ SCRIPT IMEDIATO - Detecção Ultra-Rápida de Reload v2 -->
         <script>
             (function() {
                 // ✅ CHAVE ESPECÍFICA do app participante (não compartilhada com login)
@@ -525,6 +573,9 @@
                     if (splashScreen) splashScreen.style.display = 'none';
                     if (glassOverlay) glassOverlay.classList.add('is-active');
 
+                    // ✅ v2: Em reload, mostrar app IMEDIATAMENTE
+                    document.body.classList.add('app-ready');
+
                     // Remove o overlay assim que o conteúdo carregar
                     window.addEventListener('load', function() {
                         setTimeout(function() {
@@ -537,7 +588,7 @@
             })();
         </script>
 
-        <!-- ✅ FAILSAFE JS DE EMERGÊNCIA - Força splash esconder após 6s -->
+        <!-- ✅ FAILSAFE JS DE EMERGÊNCIA v2 - Força splash esconder após 6s -->
         <script>
             (function() {
                 // Failsafe: Se após 6 segundos a splash ainda estiver visível, força esconder
@@ -557,6 +608,12 @@
                     if (overlay && overlay.classList.contains('is-active')) {
                         console.warn('[FAILSAFE] Forçando overlay a esconder após 6s');
                         overlay.classList.remove('is-active');
+                    }
+
+                    // ✅ v2: Garantir que app-ready está ativado
+                    if (!document.body.classList.contains('app-ready')) {
+                        console.warn('[FAILSAFE] Ativando app-ready forçado');
+                        document.body.classList.add('app-ready');
                     }
                 }, 6000);
             })();
@@ -644,13 +701,13 @@
                             />
                         </div>
                         <div class="info-participante-modern">
-                            <h1 id="nomeTime">Carregando...</h1>
+                            <h1 id="nomeTime">&nbsp;</h1>
                             <p id="nomeCartoleiro">
-                                <span id="nomeCartolaText">Aguarde...</span>
+                                <span id="nomeCartolaText">&nbsp;</span>
                                 <span
                                     id="app-version-badge"
                                     class="text-[9px] bg-white/10 px-1.5 py-0.5 rounded ml-1"
-                                    >v--</span
+                                    ></span
                                 >
                             </p>
                             <!-- Badge de Liga Clicável -->
@@ -677,7 +734,7 @@
                 <div id="headerSecondary" class="header-secondary">
                     <div class="secondary-content">
                         <select id="seletorLiga" class="liga-selector">
-                            <option>Carregando ligas...</option>
+                            <option></option>
                         </select>
                         <button id="btnLogout" class="btn-logout">
                             <span class="material-icons text-sm mr-1"
@@ -716,12 +773,9 @@
 
             <!-- Container para módulos -->
             <main id="moduleContainer" class="module-container">
-                <!-- ✅ Estado inicial de loading (será substituído pelo módulo) -->
+                <!-- Estado inicial vazio (será substituído pelo módulo) -->
                 <div id="initial-loading" class="flex justify-center items-center min-h-[400px]">
-                    <div class="text-center">
-                        <div class="w-10 h-10 border-4 border-zinc-700 border-t-orange-500 rounded-full animate-spin mx-auto mb-4"></div>
-                        <p class="text-sm text-white/70">Carregando módulo...</p>
-                    </div>
+                    <!-- Vazio - evita flash de conteúdo durante splash -->
                 </div>
             </main>
         </div>

@@ -1,12 +1,10 @@
 // =====================================================================
-// splash-screen.js - Gerenciador da Splash Screen v4.1
-// Destino: /participante/js/splash-screen.js
+// splash-screen.js - Gerenciador da Splash Screen v4.2
 // =====================================================================
+// v4.2: Classe 'app-ready' no body para revelar app após splash
 // v4.1: Usa chave específica 'participante_app_loaded' para distinguir
 //       primeira visita (vindo do login) de reload/pull-refresh
 // v4.0: Lógica de reload movida para index.html (script inline imediato)
-//       Este arquivo agora gerencia APENAS a splash da primeira visita
-//       e a detecção de inatividade
 // =====================================================================
 
 const SplashScreen = {
@@ -47,7 +45,11 @@ const SplashScreen = {
             // Reload/Pull-refresh: NÃO TOCAR na splash - o script inline do index.html já escondeu
             // Apenas garantir que o estado interno está correto
             this.isVisible = false;
-            if (window.Log) Log.info('SPLASH', '✅ Reload detectado - splash permanece oculta (vidro fosco ativo)');
+
+            // ✅ v4.2: Em reload, mostrar app imediatamente
+            document.body.classList.add('app-ready');
+
+            if (window.Log) Log.info('SPLASH', '✅ Reload detectado - app-ready ativado imediatamente');
         }
 
         if (window.Log) Log.info('SPLASH', '✅ Sistema v4.1 inicializado');
@@ -96,7 +98,10 @@ const SplashScreen = {
             this.element.classList.remove('animate');
             this.isVisible = false;
 
-            if (window.Log) Log.info('SPLASH', 'Splash ocultada');
+            // ✅ v4.2: Adicionar classe app-ready para mostrar o app
+            document.body.classList.add('app-ready');
+
+            if (window.Log) Log.info('SPLASH', 'Splash ocultada - app-ready ativado');
         }, tempoRestante);
     },
 
