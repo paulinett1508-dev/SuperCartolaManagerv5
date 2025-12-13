@@ -546,10 +546,12 @@ export const PARTICIPANTE_VERSION = {
 };
 ```
 
-**Regra de Ouro:**
-- Mudou algo no **app do participante**? → Incrementar `PARTICIPANTE_VERSION`
-- Mudou algo **apenas no admin**? → Incrementar só `ADMIN_VERSION`
+**Regra de Ouro (OBRIGATÓRIO para Claude):**
+- Mudou algo no **app do participante** (`public/participante/`)? → Incrementar `PARTICIPANTE_VERSION`
+- Mudou algo **apenas no admin** (`public/js/`, `public/fronts/`)? → Incrementar só `ADMIN_VERSION`
 - O participante **NÃO verá modal** se apenas Admin mudou
+
+**⚠️ IMPORTANTE:** Claude DEVE incrementar a versão correta em `config/appVersion.js` automaticamente em todo commit que altere código do participante ou admin. Isso é automático - não perguntar ao usuário.
 
 ---
 
