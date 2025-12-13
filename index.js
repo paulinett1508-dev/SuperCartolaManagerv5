@@ -46,6 +46,12 @@ import { setupSecurity, authRateLimiter } from "./middleware/security.js";
 
 // 📦 VERSIONAMENTO AUTO
 import { APP_VERSION } from "./config/appVersion.js";
+import { readFile } from "fs/promises";
+import { fileURLToPath } from "url";
+import { dirname } from "path";
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = dirname(__filename);
 
 // Importar package.json para versão
 const pkg = JSON.parse(readFileSync("./package.json", "utf8"));
@@ -129,6 +135,59 @@ app.use((req, res, next) => {
     res.setHeader("Surrogate-Control", "no-store");
   }
   next();
+});
+
+// ====================================================================
+// 📦 CACHE BUSTING - Injetar versão em CSS/JS (evita White Screen of Death)
+// ====================================================================
+app.get(["/participante/", "/participante/index.html"], async (req, res, next) => {
+  try {
+    const htmlPath = path.join(__dirname, "public", "participante", "index.html");
+    let html = await readFile(htmlPath, "utf8");
+
+    const version = APP_VERSION.version;
+
+    // Injetar versão em arquivos CSS locais (não CDNs)
+    html = html.replace(
+      /<link\s+rel=["']stylesheet["']\s+href=["']([^"']+\.css)["']/gi,
+      (match, href) => {
+        // Ignorar CDNs (começam com http:// ou https:// ou //)
+        if (href.startsWith("http") || href.startsWith("//")) {
+          return match;
+        }
+        // Adicionar versão
+        const separator = href.includes("?") ? "&" : "?";
+        return `<link rel="stylesheet" href="${href}${separator}v=${version}"`;
+      }
+    );
+
+    // Injetar versão em arquivos JS locais (não CDNs)
+    html = html.replace(
+      /<script\s+(?:type=["']module["']\s+)?src=["']([^"']+\.js)["']/gi,
+      (match, src) => {
+        // Ignorar CDNs
+        if (src.startsWith("http") || src.startsWith("//")) {
+          return match;
+        }
+        // Preservar type="module" se existir
+        const hasModule = match.includes('type="module"') || match.includes("type='module'");
+        const separator = src.includes("?") ? "&" : "?";
+        const typeAttr = hasModule ? 'type="module" ' : "";
+        return `<script ${typeAttr}src="${src}${separator}v=${version}"`;
+      }
+    );
+
+    // Headers anti-cache
+    res.setHeader("Cache-Control", "no-store, no-cache, must-revalidate, proxy-revalidate");
+    res.setHeader("Pragma", "no-cache");
+    res.setHeader("Expires", "0");
+    res.setHeader("Content-Type", "text/html; charset=utf-8");
+
+    res.send(html);
+  } catch (error) {
+    // Fallback: servir arquivo original
+    next();
+  }
 });
 
 // ====================================================================
