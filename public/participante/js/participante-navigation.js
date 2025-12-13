@@ -1,6 +1,8 @@
 // =====================================================================
-// PARTICIPANTE NAVIGATION v2.6 - Sistema de Navegação entre Módulos
+// PARTICIPANTE NAVIGATION v2.7 - Sistema de Navegação entre Módulos
 // =====================================================================
+// v2.7: Fix transição suave com cache-first (não limpar container)
+//       Evita clique duplo necessário para navegar
 // v2.6: Fix primeira navegação - não ignorar se container está vazio
 //       Garante SplashScreen.hide() mesmo quando navegação é ignorada
 // v2.5: Loading inteligente (só primeira vez ou após 24h)
@@ -34,7 +36,7 @@ class ParticipanteNavigation {
         this._inicializando = false;
         this._navegando = false;
         this._ultimaNavegacao = 0;
-        this._debounceMs = 300; // Mínimo entre navegações
+        this._debounceMs = 150; // ✅ v2.7: Reduzido para 150ms (mais responsivo com cache-first)
     }
 
     async inicializar() {
@@ -495,8 +497,8 @@ class ParticipanteNavigation {
         // ✅ v2.6: Se está navegando para o mesmo módulo, ignorar (exceto forçar reload)
         // MAS: Na primeira navegação (container vazio), sempre carregar
         const container = document.getElementById("moduleContainer");
+        // ✅ v2.7: Verificar se é primeira carga (container vazio ou com loading)
         const isFirstLoad = !container || !container.innerHTML.trim() ||
-                            container.innerHTML.includes('min-height: 300px') ||
                             container.querySelector('#initial-loading');
 
         if (moduloId === this.moduloAtual && !forcarReload && !isFirstLoad) {
@@ -539,15 +541,15 @@ class ParticipanteNavigation {
         const TTL_24H = 24 * 60 * 60 * 1000;
         const temCacheRecente = lastLoaded && (agora - parseInt(lastLoaded)) < TTL_24H;
 
-        // Só mostra loading se não tem cache recente
+        // ✅ v2.7: NÃO limpar container durante navegação (cache-first renderiza instantâneo)
+        // Apenas mostrar loading se não tem cache recente
         if (!temCacheRecente && window.LoadingOverlay) {
             window.LoadingOverlay.show(`Carregando ${nomeModulo}...`);
         }
 
-        // Manter container com conteúdo mínimo durante carregamento
-        container.innerHTML = `
-            <div style="min-height: 300px;"></div>
-        `;
+        // ✅ v2.7: REMOVIDO - Não limpar container antes de carregar
+        // Isso causava tela em branco e necessidade de clique duplo
+        // O conteúdo antigo permanece visível até o novo ser carregado
 
         try {
             const htmlPath = this.modulos[moduloId];
@@ -768,4 +770,4 @@ if (document.readyState === "loading") {
     participanteNav.inicializar();
 }
 
-if (window.Log) Log.info('PARTICIPANTE-NAV', '✅ Sistema pronto.');
+if (window.Log) Log.info('PARTICIPANTE-NAV', '✅ Sistema v2.7 pronto.');
