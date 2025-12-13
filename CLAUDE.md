@@ -272,6 +272,8 @@ O sistema distingue **três** tipos de carregamento:
 ## Estrutura de Pastas Relevante
 ```
 controllers/           # Lógica de negócio (19 arquivos)
+├── fluxoFinanceiroController.js  # v7.1 - Extrato financeiro (fix MM histórico)
+├── mata-mata-backend.js          # v1.1 - Cálculo server-side de MM
 services/              # Integrações externas e lógica pura
 models/                # Schemas do Mongoose
 utils/
@@ -292,19 +294,20 @@ public/
     ├── js/
     │   ├── modules/                          # ✅ TODOS com Cache-First
     │   │   ├── participante-boas-vindas.js   # v8.0 cache-first
-    │   │   ├── participante-extrato.js       # v3.1 cache-first
+    │   │   ├── participante-extrato.js       # v3.2 fix mata-mata
     │   │   ├── participante-extrato-ui.js    # v9.1 renderização
     │   │   ├── participante-ranking.js       # cache-first
     │   │   ├── participante-rodadas.js       # cache-first
     │   │   ├── participante-top10.js         # v4.7 cache-first
     │   │   ├── participante-pontos-corridos.js # v5.1 cache-first
-    │   │   ├── participante-mata-mata.js     # v6.7 cache-first
+    │   │   ├── participante-mata-mata.js     # v6.9 escudo placeholder
     │   │   ├── participante-artilheiro.js    # v3.7 cache-first
     │   │   ├── participante-luva-ouro.js     # v4.0 cache-first
     │   │   └── participante-melhor-mes.js    # v3.6 cache-first
     │   ├── participante-navigation.js        # v3.0 - Navegação sem travamento
-    │   ├── participante-offline-cache.js     # v2.1 - IndexedDB (12 stores)
+    │   ├── participante-offline-cache.js     # v2.2 - IndexedDB (12 stores)
     │   ├── participante-cache-manager.js     # v2.0 - Cache 2 camadas
+    │   ├── participante-refresh-button.js    # v2.1 - Botão atualizar (anti-duplicação)
     │   ├── participante-auth.js              # v2.2 - Autenticação
     │   ├── pull-refresh.js                   # v3.1 - Pull-to-refresh + Loading
     │   └── splash-screen.js                  # v4.1 - Splash Screen inicial
@@ -408,12 +411,12 @@ await OfflineCache.cleanExpired(); // Manutenção automática
 | Módulo | Arquivo | Store IndexedDB |
 |--------|---------|-----------------|
 | Boas-Vindas | `participante-boas-vindas.js` v8.0 | `liga`, `ranking`, `rodadas` |
-| Extrato | `participante-extrato.js` v3.1 | `extrato` |
+| Extrato | `participante-extrato.js` v3.2 | `extrato` |
 | Ranking | `participante-ranking.js` | `ranking` |
 | Rodadas | `participante-rodadas.js` | `rodadas` |
 | Top 10 | `participante-top10.js` v4.7 | `top10` |
 | Pontos Corridos | `participante-pontos-corridos.js` v5.1 | `pontosCorridos` |
-| Mata-Mata | `participante-mata-mata.js` v6.7 | `mataMata` |
+| Mata-Mata | `participante-mata-mata.js` v6.9 | `mataMata` |
 | Artilheiro | `participante-artilheiro.js` v3.7 | `artilheiro` |
 | Luva de Ouro | `participante-luva-ouro.js` v4.0 | `luvaOuro` |
 | Melhor do Mês | `participante-melhor-mes.js` v3.6 | `melhorMes` |
@@ -609,3 +612,95 @@ html, body {
 |------|------------|
 | SuperCartola | `684cb1c8af923da7c7df51de` |
 | Cartoleiros Sobral | `684d821cf1a7ae16d1f89572` |
+
+---
+
+## Correções Recentes (Dezembro 2025)
+
+### RefreshButton - Prevenção de Duplicação (v2.1)
+
+O componente `participante-refresh-button.js` agora verifica se o botão já existe antes de adicionar:
+
+```javascript
+// ✅ v2.1: Evitar duplicação
+addTo(container, options = {}) {
+    const existingButton = containerEl.querySelector('.refresh-button-container');
+    if (existingButton) {
+        return existingButton; // Não duplica
+    }
+    // ... criar botão
+}
+```
+
+**Uso:** Chamadas múltiplas de `RefreshButton.addTo()` são seguras - não criam botões duplicados.
+
+### Escudo Placeholder (Mata-Mata v6.9)
+
+Quando um time não tem escudo definido, o sistema usa um **SVG placeholder** ao invés da logo do sistema:
+
+```javascript
+// ✅ v6.9: Placeholder de escudo (círculo cinza com ícone de escudo)
+const ESCUDO_PLACEHOLDER = "data:image/svg+xml,%3Csvg...";
+
+function getEscudoUrl(time) {
+    const escudo = time?.url_escudo_png || time?.escudo;
+    if (escudo && escudo.trim() !== '') {
+        return escudo;
+    }
+    return ESCUDO_PLACEHOLDER;
+}
+```
+
+**Arquivos afetados:** `participante-mata-mata.js` v6.9
+
+### Mata-Mata no Extrato Financeiro (FIX CRÍTICO)
+
+**Problema:** As transações de MATA_MATA não apareciam no extrato dos participantes.
+
+**Causa raiz:** O cache `ExtratoFinanceiroCache` foi populado ANTES da integração do Mata-Mata. O loop de cálculo só processava rodadas NOVAS (`ultima_rodada_consolidada < rodadaNumero`), então as transações de MM nunca eram criadas.
+
+**Solução (v7.1):** Cálculo histórico de MATA_MATA fora do loop, similar ao TOP10:
+
+```javascript
+// controllers/fluxoFinanceiroController.js v7.1
+
+// ✅ Se cache não tem MATA_MATA, calcular retroativamente
+if (!temMataMataNcache) {
+    const resultadosMM = await getResultadosMataMataCompleto(ligaId, rodadaAtual);
+    // Filtrar resultados do time e adicionar ao cache
+}
+```
+
+**Arquivos corrigidos:**
+| Arquivo | Versão | Alteração |
+|---------|--------|-----------|
+| `fluxoFinanceiroController.js` | v7.0 → v7.1 | Cálculo histórico de MM fora do loop |
+| `participante-extrato.js` | v3.1 → v3.2 | Detecta ausência de MM e força recálculo |
+
+**Fluxo corrigido:**
+1. Frontend detecta cache sem MM → `detectarCacheIncompleto()` retorna `true`
+2. Chama endpoint de cálculo
+3. Backend calcula MM retroativamente e salva no cache
+4. Frontend re-renderiza com dados completos
+
+### Admin vs Participante - Cálculos Independentes
+
+| Aspecto | Admin (Desktop) | Participante (Mobile) |
+|---------|-----------------|----------------------|
+| **Onde calcula MM** | Client-side (`mata-mata-financeiro.js`) | Server-side (`mata-mata-backend.js`) |
+| **Cache** | `localStorage` + memória | `ExtratoFinanceiroCache` (MongoDB) |
+| **Impacto das correções** | Nenhum (independente) | Corrigido na v7.1 |
+
+### Edições do Mata-Mata 2025
+
+Rodadas onde ocorrem confrontos de Mata-Mata (importante para detecção de cache incompleto):
+
+| Edição | Rodadas | Rodada Definição |
+|--------|---------|------------------|
+| 1ª Edição | R2-R7 | R2 |
+| 2ª Edição | R9-R14 | R9 |
+| 3ª Edição | R15-R21 | R15 |
+| 4ª Edição | R22-R26 | R21 |
+| 5ª Edição | R31-R35 | R30 |
+
+**Valores financeiros:** Vitória = +R$10 | Derrota = -R$10
