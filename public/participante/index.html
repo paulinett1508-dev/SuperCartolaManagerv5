@@ -526,7 +526,56 @@
             })();
         </script>
 
-        <!-- ✅ OVERLAY DE RELOAD (Vidro Fosco) - ANTES DE TUDO -->
+        <!-- ✅ SPLASH SCREEN - PRIMEIRO ELEMENTO DO BODY (para scripts poderem manipulá-lo) -->
+        <div id="splashScreen" class="splash-screen hidden">
+            <!-- Fundo Tático -->
+            <div class="splash-tactical-bg">
+                <svg viewBox="0 0 320 640" preserveAspectRatio="xMidYMid slice">
+                    <defs>
+                        <pattern id="grid" width="32" height="32" patternUnits="userSpaceOnUse">
+                            <rect width="32" height="32" fill="none" stroke="rgba(255,255,255,0.03)" stroke-width="0.5"/>
+                        </pattern>
+                        <marker id="arrow" markerWidth="8" markerHeight="8" refX="7" refY="3" orient="auto">
+                            <path d="M0,0 L0,6 L8,3 z" fill="#FF4500"/>
+                        </marker>
+                    </defs>
+                    <rect width="100%" height="100%" fill="url(#grid)"/>
+                    <circle cx="160" cy="320" r="40" fill="none" stroke="rgba(255,255,255,0.08)" stroke-width="1.5"/>
+                    <line x1="0" y1="320" x2="320" y2="320" stroke="rgba(255,255,255,0.08)" stroke-width="1.5"/>
+                    <text x="40" y="480" fill="rgba(255,255,255,0.2)" font-size="16" font-weight="bold" class="splash-tactical-x delay-1">X</text>
+                    <path class="splash-tactical-line delay-1" d="M50 470 Q 90 400 130 360" fill="none" stroke="#FF4500" stroke-width="2" stroke-dasharray="4,4" marker-end="url(#arrow)"/>
+                    <circle cx="160" cy="520" r="6" fill="none" stroke="rgba(255,255,255,0.2)" stroke-width="1.5" class="splash-tactical-x delay-2"/>
+                    <path class="splash-tactical-line delay-2" d="M160 510 L160 420" fill="none" stroke="rgba(255,255,255,0.15)" stroke-width="1.5"/>
+                    <text x="260" y="400" fill="rgba(255,255,255,0.2)" font-size="16" font-weight="bold" class="splash-tactical-x delay-3">X</text>
+                    <path class="splash-tactical-line delay-3" d="M250 390 Q 200 350 170 300" fill="none" stroke="#FF4500" stroke-width="2" stroke-dasharray="4,4" marker-end="url(#arrow)"/>
+                </svg>
+            </div>
+            <div class="splash-glow"></div>
+            <div class="splash-content">
+                <div class="splash-greeting">
+                    <h2>Fala aí Parça!</h2>
+                </div>
+                <div class="splash-logo-container">
+                    <div class="splash-logo-glow"></div>
+                    <img src="/escudos/default.png" alt="Super Cartola Logo" class="splash-logo-img">
+                </div>
+                <div class="splash-loader">
+                    <div class="splash-ball-container">
+                        <div class="splash-ball">
+                            <span class="material-icons">sports_soccer</span>
+                        </div>
+                        <div class="splash-ball-shadow"></div>
+                    </div>
+                    <span class="splash-loader-text">Carregando meu time...</span>
+                </div>
+            </div>
+            <div class="splash-footer">
+                <p>Ano 11 • Super Cartola</p>
+            </div>
+        </div>
+        <!-- FIM SPLASH SCREEN -->
+
+        <!-- ✅ OVERLAY DE RELOAD (Vidro Fosco) -->
         <div id="reload-glass-overlay">
             <div class="reload-ball-container">
                 <div class="reload-ball">
@@ -536,7 +585,7 @@
             </div>
         </div>
 
-        <!-- ✅ SCRIPT IMEDIATO - Detecção Ultra-Rápida de Reload v3 -->
+        <!-- ✅ SCRIPT IMEDIATO - Detecção Ultra-Rápida de Reload v4 (AGORA SPLASH JÁ EXISTE NO DOM) -->
         <script>
             (function() {
                 // ✅ CHAVE ESPECÍFICA do app participante (não compartilhada com login)
@@ -628,69 +677,6 @@
                 }, 6000);
             })();
         </script>
-
-        <!-- ✅ SPLASH SCREEN -->
-        <div id="splashScreen" class="splash-screen hidden">
-            <!-- Fundo Tático -->
-            <div class="splash-tactical-bg">
-                <svg viewBox="0 0 320 640" preserveAspectRatio="xMidYMid slice">
-                    <defs>
-                        <pattern id="grid" width="32" height="32" patternUnits="userSpaceOnUse">
-                            <rect width="32" height="32" fill="none" stroke="rgba(255,255,255,0.03)" stroke-width="0.5"/>
-                        </pattern>
-                        <marker id="arrow" markerWidth="8" markerHeight="8" refX="7" refY="3" orient="auto">
-                            <path d="M0,0 L0,6 L8,3 z" fill="#FF4500"/>
-                        </marker>
-                    </defs>
-                    <rect width="100%" height="100%" fill="url(#grid)"/>
-                    <!-- Centro do campo -->
-                    <circle cx="160" cy="320" r="40" fill="none" stroke="rgba(255,255,255,0.08)" stroke-width="1.5"/>
-                    <line x1="0" y1="320" x2="320" y2="320" stroke="rgba(255,255,255,0.08)" stroke-width="1.5"/>
-                    <!-- Jogadas táticas -->
-                    <text x="40" y="480" fill="rgba(255,255,255,0.2)" font-size="16" font-weight="bold" class="splash-tactical-x delay-1">X</text>
-                    <path class="splash-tactical-line delay-1" d="M50 470 Q 90 400 130 360" fill="none" stroke="#FF4500" stroke-width="2" stroke-dasharray="4,4" marker-end="url(#arrow)"/>
-                    <circle cx="160" cy="520" r="6" fill="none" stroke="rgba(255,255,255,0.2)" stroke-width="1.5" class="splash-tactical-x delay-2"/>
-                    <path class="splash-tactical-line delay-2" d="M160 510 L160 420" fill="none" stroke="rgba(255,255,255,0.15)" stroke-width="1.5"/>
-                    <text x="260" y="400" fill="rgba(255,255,255,0.2)" font-size="16" font-weight="bold" class="splash-tactical-x delay-3">X</text>
-                    <path class="splash-tactical-line delay-3" d="M250 390 Q 200 350 170 300" fill="none" stroke="#FF4500" stroke-width="2" stroke-dasharray="4,4" marker-end="url(#arrow)"/>
-                </svg>
-            </div>
-
-            <!-- Brilho -->
-            <div class="splash-glow"></div>
-
-            <!-- Conteúdo -->
-            <div class="splash-content">
-                <div class="splash-greeting">
-                    <h2>Fala aí Parça!</h2>
-                </div>
-
-                <div class="splash-logo-container">
-                    <div class="splash-logo-glow"></div>
-                    <img 
-                        src="/escudos/default.png" 
-                        alt="Super Cartola Logo" 
-                        class="splash-logo-img"
-                    >
-                </div>
-
-                <div class="splash-loader">
-                    <div class="splash-ball-container">
-                        <div class="splash-ball">
-                            <span class="material-icons">sports_soccer</span>
-                        </div>
-                        <div class="splash-ball-shadow"></div>
-                    </div>
-                    <span class="splash-loader-text">Carregando meu time...</span>
-                </div>
-            </div>
-
-            <div class="splash-footer">
-                <p>Ano 11 • Super Cartola</p>
-            </div>
-        </div>
-        <!-- FIM SPLASH SCREEN -->
-
         <!-- ✅ FALLBACK: Estilos inline garantem que app fique oculto até estar pronto -->
         <div class="participante-container" style="display:none !important;">
             <!-- HEADER STICKY -->
