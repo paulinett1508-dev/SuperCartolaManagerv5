@@ -1,5 +1,9 @@
 /**
- * FLUXO-FINANCEIRO-CONTROLLER v7.2
+ * FLUXO-FINANCEIRO-CONTROLLER v7.3
+ * ✅ v7.3: FIX TABELA BANCO - Valores corretos para SuperCartola
+ *   - G1-G11: +R$20 a +R$10 (posições 1-11)
+ *   - Neutro: R$0 (posições 12-21)
+ *   - Z1-Z10: -R$10 a -R$20 (posições 22-32)
  * ✅ v7.2: FIX DUPLICAÇÃO - MATA-MATA removido do loop de rodadas
  *   - Estava calculando MM por rodada E histórico (duplicando valores)
  *   - Agora só calcula via getResultadosMataMataCompleto() (histórico)
@@ -68,40 +72,43 @@ function getBancoPorRodada(ligaId, rodada) {
         }
     }
 
-    // SuperCartola 2025 (32 times) - tabela padrão
+    // SuperCartola 2025 (32 times) - tabela correta
+    // G1-G11: Zona de ganho (posições 1-11)
+    // 12-21: Zona neutra (sem impacto)
+    // Z1-Z10: Zona de perda (posições 22-32)
     return {
-        1: 10.0,
-        2: 7.0,
-        3: 5.0,
-        4: 3.0,
-        5: 1.0,
-        6: 0.0,
-        7: 0.0,
-        8: 0.0,
-        9: 0.0,
-        10: 0.0,
-        11: 0.0,
-        12: -1.0,
-        13: -1.0,
-        14: -1.0,
-        15: -1.0,
-        16: -1.0,
-        17: -1.0,
-        18: -1.0,
-        19: -1.0,
-        20: -1.0,
-        21: -1.0,
-        22: -3.0,
-        23: -5.0,
-        24: -7.0,
-        25: -10.0,
-        26: -15.0,
-        27: -20.0,
-        28: -25.0,
-        29: -30.0,
-        30: -35.0,
-        31: -40.0,
-        32: -50.0,
+        1: 20.0,
+        2: 19.0,
+        3: 18.0,
+        4: 17.0,
+        5: 16.0,
+        6: 15.0,
+        7: 14.0,
+        8: 13.0,
+        9: 12.0,
+        10: 11.0,
+        11: 10.0,
+        12: 0.0,
+        13: 0.0,
+        14: 0.0,
+        15: 0.0,
+        16: 0.0,
+        17: 0.0,
+        18: 0.0,
+        19: 0.0,
+        20: 0.0,
+        21: 0.0,
+        22: -10.0,
+        23: -11.0,
+        24: -12.0,
+        25: -13.0,
+        26: -14.0,
+        27: -15.0,
+        28: -16.0,
+        29: -17.0,
+        30: -18.0,
+        31: -19.0,
+        32: -20.0,
     };
 }
 
@@ -937,4 +944,4 @@ export const getFluxoFinanceiroLiga = async (ligaId, rodadaNumero) => {
     }
 };
 
-console.log("[FLUXO-CONTROLLER] ✅ v7.2 carregado (FIX DUPLICAÇÃO MM)");
+console.log("[FLUXO-CONTROLLER] ✅ v7.3 carregado (FIX TABELA BANCO)");

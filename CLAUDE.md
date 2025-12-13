@@ -51,21 +51,44 @@
 
 | Conceito | Módulo | Descrição | Impacto Financeiro |
 |----------|--------|-----------|-------------------|
-| **Mito da Rodada** | Rodadas | 1º colocado da semana (1º de 32) | Bônus da tabela de posições (+R$30) |
+| **Mito da Rodada** | Rodadas | 1º colocado da semana (1º de 32) | Bônus da tabela de posições (+R$20) |
 | **Mico da Rodada** | Rodadas | Último colocado da semana (32º de 32) | Ônus da tabela de posições (-R$20) |
 | **Top 10 Mitos** | Top 10 | Ranking histórico das 10 MAIORES pontuações do campeonato | Bônus separado (escala 1º-10º) |
 | **Top 10 Micos** | Top 10 | Ranking histórico das 10 MENORES pontuações do campeonato | Ônus separado (escala 1º-10º) |
 
 **NÃO CONFUNDIR:** Ser "Mico da Rodada" várias vezes **NÃO** significa aparecer no "Top 10 Micos". São métricas independentes.
 
-### 7. Sistema de Zonas Financeiras
+### 7. Sistema de Zonas Financeiras (BANCO)
 
 O sistema de posições é dividido em zonas de ganho (G) e perda (Z):
 
-**SuperCartola (32 times):**
-- **G1-G11:** Posições 1-11 (zona de ganho, valores positivos)
-- **Z1-Z10:** Posições 23-32 (zona de perda, valores negativos)
-- **Posições 12-22:** Zona neutra (sem impacto financeiro)
+**SuperCartola (32 times) - Tabela Oficial:**
+
+| Posição | Valor | Zona |
+|---------|-------|------|
+| 1º | +R$20 | G1 (MITO) |
+| 2º | +R$19 | G2 |
+| 3º | +R$18 | G3 |
+| 4º | +R$17 | G4 |
+| 5º | +R$16 | G5 |
+| 6º | +R$15 | G6 |
+| 7º | +R$14 | G7 |
+| 8º | +R$13 | G8 |
+| 9º | +R$12 | G9 |
+| 10º | +R$11 | G10 |
+| 11º | +R$10 | G11 |
+| 12º-21º | R$0 | Neutra |
+| 22º | -R$10 | Z1 |
+| 23º | -R$11 | Z2 |
+| 24º | -R$12 | Z3 |
+| 25º | -R$13 | Z4 |
+| 26º | -R$14 | Z5 |
+| 27º | -R$15 | Z6 |
+| 28º | -R$16 | Z7 |
+| 29º | -R$17 | Z8 |
+| 30º | -R$18 | Z9 |
+| 31º | -R$19 | Z10 |
+| 32º | -R$20 | Z11 (MICO) |
 
 **Sobral (6 times → 4 times R30+):**
 - Antes R30: G1-G3 (ganho), Z1-Z3 (perda)
@@ -127,10 +150,10 @@ O módulo `participante-extrato-ui.js` renderiza o histórico financeiro por rod
 
 **Componentes:**
 1. **Badge BANCO** (posição na rodada):
-   - 1º lugar: `MITO +30,00` (gradiente dourado)
+   - 1º lugar: `MITO +20,00` (gradiente dourado)
    - Último: `MICO -20,00` (gradiente vermelho)
-   - Ganho: `G5 +20,00` (gradiente verde)
-   - Perda: `Z3 -15,00` (gradiente vermelho)
+   - Ganho: `G5 +16,00` (gradiente verde)
+   - Perda: `Z3 -12,00` (gradiente vermelho)
 
 2. **Badge TOP10** (ranking histórico):
    - Mito: `1º MELHOR MITO +30,00` (gradiente âmbar)
