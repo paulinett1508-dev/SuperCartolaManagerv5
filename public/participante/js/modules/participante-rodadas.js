@@ -1,5 +1,6 @@
 // =====================================================================
-// PARTICIPANTE-RODADAS.JS - v4.3 (Cores por Saldo Financeiro)
+// PARTICIPANTE-RODADAS.JS - v4.4 (CACHE-FIRST + Cores por Saldo)
+// ✅ v4.4: CACHE-FIRST - Carregamento instantâneo do IndexedDB
 // ✅ v4.3: Cards coloridos por saldo financeiro
 //    - VERDE: valorFinanceiro > 0 (ganhou na rodada)
 //    - VERMELHO: valorFinanceiro < 0 (perdeu na rodada)
@@ -9,7 +10,7 @@
 // ✅ v4.0: Todos os cálculos movidos para o backend
 // =====================================================================
 
-if (window.Log) Log.info("[PARTICIPANTE-RODADAS] 📄 Carregando módulo v4.3...");
+if (window.Log) Log.info("[PARTICIPANTE-RODADAS] 📄 Carregando módulo v4.4 (CACHE-FIRST)...");
 
 // Importar módulo de parciais
 import * as ParciaisModule from "./participante-rodada-parcial.js";
@@ -30,7 +31,7 @@ let rodadaAtualCartola = 38;
 let parciaisInfo = null;
 
 // =====================================================================
-// FUNÇÃO PRINCIPAL - EXPORTADA PARA NAVIGATION
+// FUNÇÃO PRINCIPAL - EXPORTADA PARA NAVIGATION (v4.4 CACHE-FIRST)
 // =====================================================================
 export async function inicializarRodadasParticipante({
     participante,
@@ -38,7 +39,7 @@ export async function inicializarRodadasParticipante({
     timeId,
 }) {
     if (window.Log)
-        Log.info("[PARTICIPANTE-RODADAS] 🚀 Inicializando v4.0...", {
+        Log.info("[PARTICIPANTE-RODADAS] 🚀 Inicializando v4.4 (CACHE-FIRST)...", {
             ligaIdParam,
             timeId,
         });
@@ -46,8 +47,36 @@ export async function inicializarRodadasParticipante({
     ligaId = ligaIdParam;
     meuTimeId = timeId;
 
-    mostrarLoading(true);
+    const cache = window.ParticipanteCache;
+    let usouCache = false;
 
+    // =========================================================================
+    // FASE 1: CARREGAMENTO INSTANTÂNEO (Cache IndexedDB)
+    // =========================================================================
+    if (cache) {
+        const rodadasCache = await (cache.getRodadasAsync ? cache.getRodadasAsync(ligaId) : cache.getRodadas(ligaId));
+
+        if (rodadasCache && Array.isArray(rodadasCache) && rodadasCache.length > 0) {
+            usouCache = true;
+            if (window.Log) Log.info("[PARTICIPANTE-RODADAS] ⚡ INSTANT LOAD - dados do cache!");
+
+            // Agrupar e renderizar IMEDIATAMENTE
+            const rodadasAgrupadas = agruparRodadasPorNumero(rodadasCache);
+            todasRodadasCache = rodadasAgrupadas;
+
+            mostrarLoading(false);
+            renderizarGridCompacto(rodadasAgrupadas);
+        }
+    }
+
+    // Se não tem cache, mostrar loading
+    if (!usouCache) {
+        mostrarLoading(true);
+    }
+
+    // =========================================================================
+    // FASE 2: ATUALIZAÇÃO EM BACKGROUND (Fetch API)
+    // =========================================================================
     try {
         // 1. Buscar rodada atual e verificar parciais
         await buscarRodadaAtual();
@@ -62,7 +91,8 @@ export async function inicializarRodadasParticipante({
             `/api/rodadas/${ligaId}/rodadas?inicio=1&fim=38`,
         );
         if (!response.ok) {
-            throw new Error(`Erro HTTP ${response.status}`);
+            if (!usouCache) throw new Error(`Erro HTTP ${response.status}`);
+            return; // Se já usou cache, não mostrar erro
         }
 
         const rodadas = await response.json();
@@ -71,28 +101,37 @@ export async function inicializarRodadasParticipante({
                 `[PARTICIPANTE-RODADAS] 📊 ${rodadas.length} registros recebidos (backend calculado)`,
             );
 
-        // 4. Agrupar rodadas por número (SEM recalcular - dados vêm do backend)
+        // 4. Atualizar cache com dados frescos
+        if (cache) {
+            cache.setRodadas(ligaId, rodadas);
+        }
+
+        // 5. Agrupar rodadas por número (SEM recalcular - dados vêm do backend)
         const rodadasAgrupadas = agruparRodadasPorNumero(rodadas);
         todasRodadasCache = rodadasAgrupadas;
 
         mostrarLoading(false);
 
         if (rodadasAgrupadas.length === 0 && !parciaisInfo?.disponivel) {
-            mostrarEstadoVazio(true);
+            if (!usouCache) mostrarEstadoVazio(true);
             return;
         }
 
-        // 5. Renderizar grid compacto
-        renderizarGridCompacto(rodadasAgrupadas);
+        // 6. Só re-renderizar se não usou cache (ou pode re-renderizar sempre para garantir dados frescos)
+        if (!usouCache) {
+            renderizarGridCompacto(rodadasAgrupadas);
+        }
 
-        // 6. Se parciais disponíveis, destacar rodada atual
+        // 7. Se parciais disponíveis, destacar rodada atual
         if (parciaisInfo?.disponivel) {
             destacarRodadaEmAndamento(parciaisInfo.rodada);
         }
     } catch (error) {
         if (window.Log) Log.error("[PARTICIPANTE-RODADAS] ❌ Erro:", error);
-        mostrarLoading(false);
-        mostrarErro(error.message);
+        if (!usouCache) {
+            mostrarLoading(false);
+            mostrarErro(error.message);
+        }
     }
 }
 
@@ -880,5 +919,5 @@ function mostrarErro(mensagem) {
 
 if (window.Log)
     Log.info(
-        "[PARTICIPANTE-RODADAS] ✅ Módulo v4.3 carregado (Cores por Saldo Financeiro)",
+        "[PARTICIPANTE-RODADAS] ✅ Módulo v4.4 carregado (CACHE-FIRST + Cores por Saldo)",
     );

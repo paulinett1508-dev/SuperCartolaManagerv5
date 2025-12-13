@@ -1,7 +1,8 @@
 // =====================================================================
-// PARTICIPANTE-EXTRATO.JS - v3.0 (TEMPORADA ENCERRADA)
+// PARTICIPANTE-EXTRATO.JS - v3.1 (CACHE-FIRST + TEMPORADA ENCERRADA)
 // Destino: /participante/js/modules/participante-extrato.js
 // =====================================================================
+// ✅ v3.1: CACHE-FIRST - Carregamento instantâneo do IndexedDB
 // ✅ v3.0: TEMPORADA ENCERRADA - dados são perpétuos, sem recálculos
 // ✅ v2.8: Detecta cache incompleto e força recálculo automático
 // ✅ v2.7: Correção URL campos editáveis (/times/ ao invés de /campos/)
@@ -14,7 +15,7 @@ const RODADA_FINAL_CAMPEONATO = 38;
 const CAMPEONATO_ENCERRADO = true; // ✅ v3.0: Temporada 2025 finalizada
 
 if (window.Log)
-    Log.info("EXTRATO-PARTICIPANTE", `📄 Módulo v3.0 (Temporada ${CAMPEONATO_ENCERRADO ? 'ENCERRADA' : 'em andamento'})`);
+    Log.info("EXTRATO-PARTICIPANTE", `📄 Módulo v3.1 CACHE-FIRST (Temporada ${CAMPEONATO_ENCERRADO ? 'ENCERRADA' : 'em andamento'})`);
 
 const PARTICIPANTE_IDS = { ligaId: null, timeId: null };
 
@@ -161,7 +162,7 @@ async function buscarCamposEditaveis(ligaId, timeId) {
 }
 
 // =====================================================================
-// CARREGAR EXTRATO DO CACHE (BACKEND)
+// CARREGAR EXTRATO (v3.1 CACHE-FIRST)
 // =====================================================================
 async function carregarExtrato(ligaId, timeId) {
     const container = document.getElementById("fluxoFinanceiroContent");
@@ -171,13 +172,41 @@ async function carregarExtrato(ligaId, timeId) {
         return;
     }
 
-    container.innerHTML = `
-        <div class="loading-state">
-            <div class="spinner"></div>
-            <p>Carregando extrato...</p>
-        </div>
-    `;
+    const cache = window.ParticipanteCache;
+    let usouCache = false;
+    let extratoDataCache = null;
 
+    // =========================================================================
+    // FASE 1: CARREGAMENTO INSTANTÂNEO (Cache IndexedDB)
+    // =========================================================================
+    if (cache) {
+        extratoDataCache = await (cache.getExtratoAsync ? cache.getExtratoAsync(ligaId, timeId) : cache.getExtrato(ligaId, timeId));
+
+        if (extratoDataCache && extratoDataCache.rodadas && extratoDataCache.rodadas.length > 0) {
+            usouCache = true;
+            if (window.Log) Log.info("EXTRATO-PARTICIPANTE", "⚡ INSTANT LOAD - dados do cache!");
+
+            // Renderizar IMEDIATAMENTE com dados do cache
+            const { renderizarExtratoParticipante } = await import(
+                "./participante-extrato-ui.js"
+            );
+            renderizarExtratoParticipante(extratoDataCache, timeId);
+        }
+    }
+
+    // Se não tem cache, mostrar loading
+    if (!usouCache) {
+        container.innerHTML = `
+            <div class="loading-state">
+                <div class="spinner"></div>
+                <p>Carregando extrato...</p>
+            </div>
+        `;
+    }
+
+    // =========================================================================
+    // FASE 2: ATUALIZAÇÃO EM BACKGROUND (Fetch API)
+    // =========================================================================
     try {
         // Buscar rodada atual
         let rodadaAtual = 1;
@@ -196,7 +225,7 @@ async function carregarExtrato(ligaId, timeId) {
         }
 
         let extratoData = null;
-        let usouCache = false;
+        let usouCacheBackend = false;
         let precisaRecalculo = false;
 
         // ✅ PASSO 1: Tentar buscar do cache
@@ -239,11 +268,11 @@ async function carregarExtrato(ligaId, timeId) {
                         rodadaTravada: cacheData.rodadaTravada || null,
                         rodadaDesistencia: cacheData.rodadaDesistencia || null,
                     };
-                    usouCache = true;
+                    usouCacheBackend = true;
                     if (window.Log)
                         Log.info(
                             "EXTRATO-PARTICIPANTE",
-                            "✅ Cache válido e completo",
+                            "✅ Cache backend válido e completo",
                             extratoData.extratoTravado
                                 ? `| TRAVADO R${extratoData.rodadaTravada}`
                                 : "",
@@ -315,7 +344,7 @@ async function carregarExtrato(ligaId, timeId) {
             !extratoData.rodadas ||
             extratoData.rodadas.length === 0
         ) {
-            mostrarVazio();
+            if (!usouCache) mostrarVazio();
             return;
         }
 
@@ -328,25 +357,34 @@ async function carregarExtrato(ligaId, timeId) {
             extratoData.camposEditaveis = camposEditaveis;
         }
 
-        // Renderizar
-        if (window.Log)
-            Log.info(
-                "EXTRATO-PARTICIPANTE",
-                "🎨 Renderizando",
-                extratoData.rodadas.length,
-                "rodadas |",
-                extratoData.camposManuais?.length || 0,
-                "campos manuais",
-                extratoData.extratoTravado
-                    ? `| TRAVADO R${extratoData.rodadaTravada}`
-                    : "",
-                usouCache ? "| (cache)" : "| (calculado)",
-            );
+        // ✅ v3.1: Salvar no cache local (IndexedDB)
+        if (cache) {
+            cache.setExtrato(ligaId, timeId, extratoData);
+            if (window.Log) Log.debug("EXTRATO-PARTICIPANTE", "💾 Dados salvos no cache local");
+        }
 
-        const { renderizarExtratoParticipante } = await import(
-            "./participante-extrato-ui.js"
-        );
-        renderizarExtratoParticipante(extratoData, timeId);
+        // Só re-renderizar se não usou cache local instantâneo
+        if (!usouCache) {
+            // Renderizar
+            if (window.Log)
+                Log.info(
+                    "EXTRATO-PARTICIPANTE",
+                    "🎨 Renderizando",
+                    extratoData.rodadas.length,
+                    "rodadas |",
+                    extratoData.camposManuais?.length || 0,
+                    "campos manuais",
+                    extratoData.extratoTravado
+                        ? `| TRAVADO R${extratoData.rodadaTravada}`
+                        : "",
+                    usouCacheBackend ? "| (cache backend)" : "| (calculado)",
+                );
+
+            const { renderizarExtratoParticipante } = await import(
+                "./participante-extrato-ui.js"
+            );
+            renderizarExtratoParticipante(extratoData, timeId);
+        }
 
         if (window.Log)
             Log.info(
@@ -355,7 +393,7 @@ async function carregarExtrato(ligaId, timeId) {
             );
     } catch (error) {
         if (window.Log) Log.error("EXTRATO-PARTICIPANTE", "❌ Erro:", error);
-        mostrarErro(error.message);
+        if (!usouCache) mostrarErro(error.message);
     }
 }
 
@@ -724,5 +762,5 @@ export function initExtratoParticipante() {
 if (window.Log)
     Log.info(
         "EXTRATO-PARTICIPANTE",
-        "✅ Módulo v2.8 carregado (Cache Inteligente)",
+        "✅ Módulo v3.1 carregado (CACHE-FIRST + Temporada Encerrada)",
     );

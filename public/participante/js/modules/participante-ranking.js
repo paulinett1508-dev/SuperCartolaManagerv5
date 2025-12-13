@@ -1,12 +1,13 @@
 // =====================================================
-// MÓDULO: RANKING PARTICIPANTE - v3.7 PRO
+// MÓDULO: RANKING PARTICIPANTE - v3.8 PRO (CACHE-FIRST)
 // Usa API de snapshots /api/ranking-turno
+// ✅ v3.8: CACHE-FIRST - Carregamento instantâneo do IndexedDB
 // ✅ v3.7: Separação de participantes inativos (desistentes)
 // ✅ v3.6: Detecção de CAMPEÃO (R38 encerrada) + Card menor
 // ✅ v3.5: Card Seu Desempenho ao final + Vezes Líder
 // =====================================================
 
-if (window.Log) Log.info('PARTICIPANTE-RANKING', 'Módulo v3.7 PRO carregando...');
+if (window.Log) Log.info('PARTICIPANTE-RANKING', 'Módulo v3.8 PRO (CACHE-FIRST) carregando...');
 
 // ==============================
 // CONSTANTES
@@ -183,22 +184,61 @@ async function detectarStatusTemporada() {
     }
 }
 
-// ===== CARREGAR RANKING VIA API =====
+// ===== CARREGAR RANKING VIA API - v3.8 CACHE-FIRST =====
 async function carregarRanking(turno) {
     const container = document.getElementById("rankingLista");
     const ligaId = estadoRanking.ligaId;
     const timeId = estadoRanking.timeId;
+    const cache = window.ParticipanteCache;
+    const cacheKey = `ranking_turno_${turno}`;
 
-    // Loading
-    container.innerHTML = `
-        <div class="loading-state">
-            <div class="spinner"></div>
-            <p>Carregando ranking...</p>
-        </div>
-    `;
+    // =========================================================================
+    // FASE 1: CARREGAMENTO INSTANTÂNEO (Cache IndexedDB)
+    // =========================================================================
+    let usouCache = false;
+    let dadosCache = null;
 
+    if (cache && turno === "geral") {
+        // Tentar buscar do cache persistente
+        const rankingCache = await (cache.getRankingAsync ? cache.getRankingAsync(ligaId) : cache.getRanking(ligaId));
+
+        if (rankingCache && Array.isArray(rankingCache) && rankingCache.length > 0) {
+            usouCache = true;
+            dadosCache = {
+                success: true,
+                ranking: rankingCache,
+                rodada_atual: rankingCache[0]?.rodada_atual || 38,
+                total_times: rankingCache.length
+            };
+
+            if (window.Log) Log.info('PARTICIPANTE-RANKING', '⚡ INSTANT LOAD - dados do cache!');
+
+            // Renderizar IMEDIATAMENTE com dados do cache
+            estadoRanking.dadosAtuais = dadosCache;
+            renderizarRankingPro(container, dadosCache.ranking, dadosCache.rodada_atual);
+
+            // Carregar posições de turnos em background
+            if (timeId) {
+                carregarPosicoesTurnos();
+            }
+        }
+    }
+
+    // Se não tem cache, mostrar loading
+    if (!usouCache) {
+        container.innerHTML = `
+            <div class="loading-state">
+                <div class="spinner"></div>
+                <p>Carregando ranking...</p>
+            </div>
+        `;
+    }
+
+    // =========================================================================
+    // FASE 2: ATUALIZAÇÃO EM BACKGROUND (Fetch API)
+    // =========================================================================
     try {
-        if (window.Log) Log.debug('PARTICIPANTE-RANKING', 'Buscando turno ' + turno + '...');
+        if (window.Log) Log.debug('PARTICIPANTE-RANKING', 'Buscando turno ' + turno + ' da API...');
 
         // Buscar turno principal
         const response = await fetch(
@@ -207,28 +247,51 @@ async function carregarRanking(turno) {
         const data = await response.json();
 
         if (!data.success || !data.ranking) {
-            container.innerHTML = `
-                <div class="empty-state">
-                    <span class="material-icons">event_busy</span>
-                    <p>Sem dados para este turno</p>
-                </div>
-            `;
+            if (!usouCache) {
+                container.innerHTML = `
+                    <div class="empty-state">
+                        <span class="material-icons">event_busy</span>
+                        <p>Sem dados para este turno</p>
+                    </div>
+                `;
+            }
             return;
+        }
+
+        // Atualizar cache com dados frescos (apenas turno geral)
+        if (cache && turno === "geral") {
+            cache.setRanking(ligaId, data.ranking);
         }
 
         estadoRanking.dadosAtuais = data;
 
         // Se for turno "geral", buscar posições nos outros turnos em paralelo
-        if (turno === "geral" && timeId) {
+        if (turno === "geral" && timeId && !usouCache) {
             await carregarPosicoesTurnos();
         }
 
         if (window.Log) Log.debug('PARTICIPANTE-RANKING', data.total_times + ' times - Status: ' + data.status);
 
-        renderizarRankingPro(container, data.ranking, data.rodada_atual);
+        // Só re-renderizar se não usou cache OU se dados mudaram
+        if (!usouCache) {
+            renderizarRankingPro(container, data.ranking, data.rodada_atual);
+        } else {
+            // Verificar se posição do meu time mudou
+            const meuTimeCache = dadosCache?.ranking?.find(t => String(t.timeId) === String(timeId));
+            const meuTimeFresh = data.ranking?.find(t => String(t.timeId) === String(timeId));
+
+            if (meuTimeCache?.posicao !== meuTimeFresh?.posicao ||
+                meuTimeCache?.pontos !== meuTimeFresh?.pontos) {
+                if (window.Log) Log.info('PARTICIPANTE-RANKING', '🔄 Atualizando UI com dados frescos');
+                renderizarRankingPro(container, data.ranking, data.rodada_atual);
+            }
+        }
     } catch (error) {
         if (window.Log) Log.error('PARTICIPANTE-RANKING', 'Erro:', error);
-        container.innerHTML = renderizarErro();
+        // Só mostrar erro se não tiver dados do cache
+        if (!usouCache) {
+            container.innerHTML = renderizarErro();
+        }
     }
 }
 
@@ -1206,4 +1269,4 @@ window.mostrarPremiacaoPro = function (posicaoClicada) {
     document.body.appendChild(modal);
 };
 
-if (window.Log) Log.info('PARTICIPANTE-RANKING', '✅ Módulo v3.7 PRO carregado (Separação Inativos + Campeão)');
+if (window.Log) Log.info('PARTICIPANTE-RANKING', '✅ Módulo v3.8 PRO carregado (CACHE-FIRST + Separação Inativos + Campeão)');
