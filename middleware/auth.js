@@ -23,6 +23,12 @@ export const ROTAS_PUBLICAS = [
   // ✅ PWA - Arquivos que precisam ser públicos
   "/participante/manifest.json",
   "/participante/service-worker.js",
+  // ✅ CRÍTICO: Assets estáticos do participante (JS, CSS, imagens)
+  // Sem isso, o auth middleware redireciona para login e retorna HTML
+  "/participante/js/",
+  "/participante/css/",
+  "/participante/img/",
+  "/participante/fronts/",
 ];
 
 /**
