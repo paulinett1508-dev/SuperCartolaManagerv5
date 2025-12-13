@@ -1,5 +1,7 @@
 /**
- * FLUXO-FINANCEIRO-CONTROLLER v7.0
+ * FLUXO-FINANCEIRO-CONTROLLER v7.1
+ * ✅ v7.1: FIX - MATA-MATA histórico calculado fora do loop (mesmo padrão TOP10)
+ *   - Transações de MM são adicionadas mesmo que cache já esteja atualizado
  * ✅ v7.0: CORREÇÃO CRÍTICA - TOP10 é ranking HISTÓRICO, não por rodada!
  *   - TOP10 agora busca do cache de Top10 (ranking histórico de todo o campeonato)
  *   - BANCO continua por rodada (bônus/ônus por posição)
@@ -15,7 +17,7 @@ import Rodada from "../models/Rodada.js";
 import ExtratoFinanceiroCache from "../models/ExtratoFinanceiroCache.js";
 import FluxoFinanceiroCampos from "../models/FluxoFinanceiroCampos.js";
 import Top10Cache from "../models/Top10Cache.js";
-import { calcularMataMataParaTime } from "./mata-mata-backend.js";
+import { calcularMataMataParaTime, getResultadosMataMataCompleto } from "./mata-mata-backend.js";
 
 // ============================================================================
 // 🔧 CONSTANTES E CONFIGURAÇÕES
@@ -578,6 +580,60 @@ export const getExtratoFinanceiro = async (req, res) => {
             }
         }
 
+        // ✅ v7.1: Calcular MATA-MATA histórico (separado do loop de rodadas)
+        // Fix: Se cache foi populado antes da integração de MM, transações não existem
+        if (liga.modulos_ativos?.mataMata !== false && String(ligaId) === ID_SUPERCARTOLA_2025) {
+            const temMataMataNcache = cache.historico_transacoes.some(
+                (t) => t.tipo === "MATA_MATA"
+            );
+
+            if (!temMataMataNcache || forcarRecalculo) {
+                // Remover transações de MATA_MATA antigas (se houver, para recálculo)
+                if (forcarRecalculo) {
+                    cache.historico_transacoes = cache.historico_transacoes.filter(
+                        (t) => t.tipo !== "MATA_MATA"
+                    );
+                }
+
+                console.log(`[FLUXO-CONTROLLER] Calculando MATA-MATA histórico para time ${timeId}`);
+
+                // Calcular TODOS os resultados de Mata-Mata
+                const resultadosMM = await getResultadosMataMataCompleto(ligaId, rodadaAtualCartola + 1);
+
+                // Filtrar apenas resultados deste time
+                const transacoesMM = resultadosMM
+                    .filter((r) => String(r.timeId) === String(timeId))
+                    .map((r) => {
+                        const faseLabel = {
+                            primeira: "1ª Fase",
+                            oitavas: "Oitavas",
+                            quartas: "Quartas",
+                            semis: "Semis",
+                            final: "Final",
+                        }[r.fase] || r.fase;
+
+                        return {
+                            rodada: r.rodadaPontos,
+                            tipo: "MATA_MATA",
+                            descricao: `${r.valor > 0 ? "Vitória" : "Derrota"} M-M ${faseLabel}`,
+                            valor: r.valor,
+                            fase: r.fase,
+                            edicao: r.edicao,
+                            data: new Date(),
+                        };
+                    });
+
+                if (transacoesMM.length > 0) {
+                    novasTransacoes.push(...transacoesMM);
+                    transacoesMM.forEach((t) => (novoSaldo += t.valor));
+                    cacheModificado = true;
+                    console.log(
+                        `[FLUXO-CONTROLLER] MATA-MATA histórico: ${transacoesMM.length} transações`
+                    );
+                }
+            }
+        }
+
         // Atualizar cache
         if (cacheModificado) {
             cache.historico_transacoes.push(...novasTransacoes);
@@ -818,6 +874,52 @@ export const getFluxoFinanceiroLiga = async (ligaId, rodadaNumero) => {
                     }
                 }
 
+                // ✅ v7.1: Calcular MATA-MATA histórico na consolidação (mesmo padrão do TOP10)
+                // Fix: Se cache foi populado antes da integração de MM, transações não existem
+                if (liga.modulos_ativos?.mataMata !== false && String(ligaId) === ID_SUPERCARTOLA_2025) {
+                    // Verificar se já tem transações de MATA_MATA no cache
+                    const temMataMataNcache = cache.historico_transacoes.some(
+                        (t) => t.tipo === "MATA_MATA"
+                    );
+
+                    if (!temMataMataNcache) {
+                        console.log(`[FLUXO-CONSOLIDAÇÃO] Recalculando MATA-MATA histórico para time ${timeId}`);
+
+                        // Calcular TODOS os resultados de Mata-Mata
+                        const { getResultadosMataMataCompleto } = await import("./mata-mata-backend.js");
+                        const resultadosMM = await getResultadosMataMataCompleto(ligaId, rodadaNumero + 1);
+
+                        // Filtrar apenas resultados deste time
+                        const transacoesMM = resultadosMM
+                            .filter((r) => String(r.timeId) === String(timeId))
+                            .map((r) => {
+                                const faseLabel = {
+                                    primeira: "1ª Fase",
+                                    oitavas: "Oitavas",
+                                    quartas: "Quartas",
+                                    semis: "Semis",
+                                    final: "Final",
+                                }[r.fase] || r.fase;
+
+                                return {
+                                    rodada: r.rodadaPontos,
+                                    tipo: "MATA_MATA",
+                                    descricao: `${r.valor > 0 ? "Vitória" : "Derrota"} M-M ${faseLabel}`,
+                                    valor: r.valor,
+                                    fase: r.fase,
+                                    edicao: r.edicao,
+                                    data: new Date(),
+                                };
+                            });
+
+                        if (transacoesMM.length > 0) {
+                            cache.historico_transacoes.push(...transacoesMM);
+                            transacoesMM.forEach((t) => (cache.saldo_consolidado += t.valor));
+                            console.log(`[FLUXO-CONSOLIDAÇÃO] ✅ MATA-MATA: ${transacoesMM.length} transações adicionadas para time ${timeId}`);
+                        }
+                    }
+                }
+
                 cache.ganhos_consolidados = cache.historico_transacoes
                     .filter((t) => t.valor > 0)
                     .reduce((acc, t) => acc + t.valor, 0);
@@ -865,4 +967,4 @@ export const getFluxoFinanceiroLiga = async (ligaId, rodadaNumero) => {
     }
 };
 
-console.log("[FLUXO-CONTROLLER] ✅ v7.0 carregado (TOP10 HISTÓRICO CORRIGIDO)");
+console.log("[FLUXO-CONTROLLER] ✅ v7.1 carregado (MATA-MATA HISTÓRICO + TOP10)");

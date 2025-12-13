@@ -1,11 +1,12 @@
 // =====================================================================
-// PARTICIPANTE-REFRESH-BUTTON.JS - Botão de Atualização Manual v1.0
+// PARTICIPANTE-REFRESH-BUTTON.JS - Botão de Atualização Manual v2.1
 // =====================================================================
+// v2.1: Fix duplicação de botão (verifica existência antes de adicionar)
 // Componente global para atualização de cache quando temporada encerrada
 // Substitui o pull-to-refresh quando os dados são estáticos
 // =====================================================================
 
-if (window.Log) Log.info('REFRESH-BUTTON', 'Carregando componente v1.0...');
+if (window.Log) Log.info('REFRESH-BUTTON', 'Carregando componente v2.1...');
 
 const RefreshButton = {
     // Modal HTML
@@ -377,6 +378,13 @@ const RefreshButton = {
         if (!containerEl) {
             if (window.Log) Log.warn('REFRESH-BUTTON', 'Container não encontrado');
             return null;
+        }
+
+        // ✅ v2.1: Evitar duplicação - verificar se já existe botão no container
+        const existingButton = containerEl.querySelector('.refresh-button-container');
+        if (existingButton) {
+            if (window.Log) Log.debug('REFRESH-BUTTON', 'Botão já existe no container, ignorando duplicação');
+            return existingButton;
         }
 
         // Criar container para o botão

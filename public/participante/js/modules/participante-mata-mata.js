@@ -1,5 +1,6 @@
 // =====================================================================
-// PARTICIPANTE MATA-MATA v6.8 (Cache-First IndexedDB)
+// PARTICIPANTE MATA-MATA v6.9 (Cache-First IndexedDB)
+// ✅ v6.9: FIX Escudo placeholder não usa mais logo do sistema
 // ✅ v6.8: FIX Comparação de tipos (string vs number) em timeId
 // ✅ v6.7: Cache-first com IndexedDB para carregamento instantâneo
 // Integrado com HTML template - Layout Cards + Correção "não está nesta fase"
@@ -22,6 +23,20 @@ function extrairTimeId(time) {
   if (!time) return null;
   const id = time.time_id || time.timeId || time.id || null;
   return id ? parseInt(id, 10) : null;
+}
+
+// ✅ v6.9: FIX - Fallback de escudo não usa logo do sistema
+// Placeholder: círculo cinza com ícone de escudo (data URI SVG)
+const ESCUDO_PLACEHOLDER = "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ccircle cx='50' cy='50' r='48' fill='%232a2a2a' stroke='%233a3a3a' stroke-width='2'/%3E%3Cpath d='M50 20 L70 30 L70 50 C70 65 60 75 50 80 C40 75 30 65 30 50 L30 30 Z' fill='%234a4a4a' stroke='%235a5a5a' stroke-width='1'/%3E%3C/svg%3E";
+
+function getEscudoUrl(time) {
+  const escudo = time?.url_escudo_png || time?.escudo;
+  // Se escudo existe e não é string vazia, usar
+  if (escudo && escudo.trim() !== '') {
+    return escudo;
+  }
+  // Fallback: placeholder SVG
+  return ESCUDO_PLACEHOLDER;
 }
 
 // ✅ v6.8: Recalcular historico de participação a partir do cache em memória
@@ -613,7 +628,7 @@ function renderMeuConfrontoCard(confronto, meuTimeId) {
       <div class="mm-mc-versus">
         <!-- Meu Time -->
         <div class="mm-mc-time-card eu">
-          <img class="mm-mc-escudo-card" src="${eu?.url_escudo_png || eu?.escudo || "/escudos/default.png"}" alt="" onerror="this.src='/escudos/default.png'">
+          <img class="mm-mc-escudo-card" src="${getEscudoUrl(eu)}" alt="" onerror="this.src='${ESCUDO_PLACEHOLDER}'">
           <div class="mm-mc-time-info">
             <span class="mm-mc-label">Você</span>
             <span class="mm-mc-nome-cartoleiro">${truncate(eu?.nome_cartola || eu?.nome_cartoleiro || "", 14)}</span>
@@ -626,7 +641,7 @@ function renderMeuConfrontoCard(confronto, meuTimeId) {
 
         <!-- Adversário -->
         <div class="mm-mc-time-card adv">
-          <img class="mm-mc-escudo-card" src="${adv?.url_escudo_png || adv?.escudo || "/escudos/default.png"}" alt="" onerror="this.src='/escudos/default.png'">
+          <img class="mm-mc-escudo-card" src="${getEscudoUrl(adv)}" alt="" onerror="this.src='${ESCUDO_PLACEHOLDER}'">
           <div class="mm-mc-time-info">
             <span class="mm-mc-label">Adversário</span>
             <span class="mm-mc-nome-cartoleiro">${truncate(adv?.nome_cartola || adv?.nome_cartoleiro || "", 14)}</span>
@@ -668,7 +683,7 @@ function renderConfrontosListaCards(confrontos, meuTimeId, fase) {
           <div class="mm-campeao-trofeu">🏆</div>
           <p class="mm-campeao-titulo">${souCampeao ? "Você é o Campeão!" : "Campeão"}</p>
           <div class="mm-campeao-time">
-            <img class="mm-campeao-escudo" src="${campeao.url_escudo_png || campeao.escudo || "/escudos/default.png"}" alt="" onerror="this.src='/escudos/default.png'">
+            <img class="mm-campeao-escudo" src="${getEscudoUrl(campeao)}" alt="" onerror="this.src='${ESCUDO_PLACEHOLDER}'">
             <div class="mm-campeao-info">
               <p class="mm-campeao-nome">${campeao.nome_time || "Time"}</p>
               <p class="mm-campeao-cartola">${campeao.nome_cartola || campeao.nome_cartoleiro || ""}</p>
@@ -710,7 +725,7 @@ function renderConfrontosListaCards(confrontos, meuTimeId, fase) {
         <div class="mm-conf-times">
           <!-- Time A -->
           <div class="mm-conf-time ${vencedorA ? "vencedor" : vencedorB ? "perdedor" : ""}">
-            <img class="mm-conf-escudo" src="${timeA.url_escudo_png || timeA.escudo || "/escudos/default.png"}" alt="" onerror="this.src='/escudos/default.png'">
+            <img class="mm-conf-escudo" src="${getEscudoUrl(timeA)}" alt="" onerror="this.src='${ESCUDO_PLACEHOLDER}'">
             <div class="mm-conf-info">
               <span class="mm-conf-nome">${truncate(timeA.nome_time || "A definir", 14)}</span>
               <span class="mm-conf-cartola">${truncate(timeA.nome_cartola || timeA.nome_cartoleiro || "", 16)}</span>
@@ -722,7 +737,7 @@ function renderConfrontosListaCards(confrontos, meuTimeId, fase) {
 
           <!-- Time B -->
           <div class="mm-conf-time ${vencedorB ? "vencedor" : vencedorA ? "perdedor" : ""}">
-            <img class="mm-conf-escudo" src="${timeB.url_escudo_png || timeB.escudo || "/escudos/default.png"}" alt="" onerror="this.src='/escudos/default.png'">
+            <img class="mm-conf-escudo" src="${getEscudoUrl(timeB)}" alt="" onerror="this.src='${ESCUDO_PLACEHOLDER}'">
             <div class="mm-conf-info">
               <span class="mm-conf-nome">${truncate(timeB.nome_time || "A definir", 14)}</span>
               <span class="mm-conf-cartola">${truncate(timeB.nome_cartola || timeB.nome_cartoleiro || "", 16)}</span>

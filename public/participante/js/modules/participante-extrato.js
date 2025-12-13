@@ -1,7 +1,8 @@
 // =====================================================================
-// PARTICIPANTE-EXTRATO.JS - v3.1 (CACHE-FIRST + TEMPORADA ENCERRADA)
+// PARTICIPANTE-EXTRATO.JS - v3.2 (FIX MATA-MATA no Extrato)
 // Destino: /participante/js/modules/participante-extrato.js
 // =====================================================================
+// ✅ v3.2: FIX - Detecta ausência de MATA_MATA mesmo com temporada encerrada
 // ✅ v3.1: CACHE-FIRST - Carregamento instantâneo do IndexedDB
 // ✅ v3.0: TEMPORADA ENCERRADA - dados são perpétuos, sem recálculos
 // ✅ v2.8: Detecta cache incompleto e força recálculo automático
@@ -15,7 +16,7 @@ const RODADA_FINAL_CAMPEONATO = 38;
 const CAMPEONATO_ENCERRADO = true; // ✅ v3.0: Temporada 2025 finalizada
 
 if (window.Log)
-    Log.info("EXTRATO-PARTICIPANTE", `📄 Módulo v3.1 CACHE-FIRST (Temporada ${CAMPEONATO_ENCERRADO ? 'ENCERRADA' : 'em andamento'})`);
+    Log.info("EXTRATO-PARTICIPANTE", `📄 Módulo v3.2 FIX-MATAMATA (Temporada ${CAMPEONATO_ENCERRADO ? 'ENCERRADA' : 'em andamento'})`);
 
 const PARTICIPANTE_IDS = { ligaId: null, timeId: null };
 
@@ -49,10 +50,30 @@ export async function inicializarExtratoParticipante({
 }
 
 // =====================================================================
-// ✅ v3.0: DETECTAR CACHE INCOMPLETO (respeitando temporada encerrada)
+// ✅ v3.2: DETECTAR CACHE INCOMPLETO (com verificação de MATA_MATA)
 // =====================================================================
 function detectarCacheIncompleto(rodadas) {
+    if (!Array.isArray(rodadas) || rodadas.length === 0) return false;
+
+    // ✅ v3.2 FIX: Verificar se falta MATA_MATA mesmo com temporada encerrada
+    // Edições de Mata-Mata ocorrem em rodadas específicas (2-7, 9-14, 15-21, 22-26, 31-35)
+    const rodadasMataMata = [2, 3, 4, 5, 6, 7, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 31, 32, 33, 34, 35];
+
+    // Verificar se existe pelo menos uma transação de MATA_MATA nas rodadas que deveriam ter
+    const rodadasComMM = rodadas.filter(r => {
+        const temMM = (r.mataMata || 0) !== 0;
+        const ehRodadaMM = rodadasMataMata.includes(r.rodada);
+        return ehRodadaMM && temMM;
+    });
+
+    // Se não tem NENHUMA transação de MM nas rodadas de MM, cache está incompleto
+    if (rodadasComMM.length === 0) {
+        if (window.Log) Log.warn("EXTRATO-PARTICIPANTE", "⚠️ Cache sem transações de Mata-Mata - forçando recálculo");
+        return true;
+    }
+
     // ✅ v3.0: TEMPORADA ENCERRADA = NUNCA recalcular (dados são perpétuos)
+    // Exceto se detectou falta de MATA_MATA acima
     if (CAMPEONATO_ENCERRADO) {
         if (window.Log) Log.debug("EXTRATO-PARTICIPANTE", "🔒 Temporada encerrada - dados perpétuos, sem recálculo");
         return false;
@@ -363,9 +384,22 @@ async function carregarExtrato(ligaId, timeId) {
             if (window.Log) Log.debug("EXTRATO-PARTICIPANTE", "💾 Dados salvos no cache local");
         }
 
-        // Só re-renderizar se não usou cache local instantâneo
-        if (!usouCache) {
-            // Renderizar
+        // ✅ v3.2: Verificar se dados novos têm MM que cache local não tinha
+        let deveReRenderizar = !usouCache;
+        if (usouCache && extratoDataCache) {
+            // Cache local tinha MM?
+            const cacheLocalTinhaMM = extratoDataCache.rodadas?.some(r => (r.mataMata || 0) !== 0);
+            // Dados novos têm MM?
+            const dadosNovosTemMM = extratoData.rodadas?.some(r => (r.mataMata || 0) !== 0);
+
+            if (!cacheLocalTinhaMM && dadosNovosTemMM) {
+                if (window.Log) Log.info("EXTRATO-PARTICIPANTE", "🔄 Dados novos têm MATA_MATA - re-renderizando!");
+                deveReRenderizar = true;
+            }
+        }
+
+        // Renderizar se necessário
+        if (deveReRenderizar) {
             if (window.Log)
                 Log.info(
                     "EXTRATO-PARTICIPANTE",
