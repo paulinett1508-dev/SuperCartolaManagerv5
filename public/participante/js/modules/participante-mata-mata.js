@@ -24,6 +24,59 @@ function extrairTimeId(time) {
   return id ? parseInt(id, 10) : null;
 }
 
+// ✅ v6.8: Recalcular historico de participação a partir do cache em memória
+// Isso corrige o bug onde historicoParticipacao foi salvo com comparação de tipos errada
+function recalcularHistoricoEdicao(edicao) {
+  const meuTimeId = estado.timeId ? parseInt(estado.timeId) : null;
+  if (!meuTimeId) return;
+
+  let ultimaFaseParticipada = null;
+  let foiEliminado = false;
+
+  FASES.forEach((f) => {
+    const cacheKey = `${edicao}-${f}`;
+    const confrontos = estado.cacheConfrontos[cacheKey];
+
+    if (confrontos && Array.isArray(confrontos)) {
+      const participou = confrontos.some(
+        (c) =>
+          extrairTimeId(c.timeA) === meuTimeId ||
+          extrairTimeId(c.timeB) === meuTimeId,
+      );
+
+      if (participou) {
+        ultimaFaseParticipada = f;
+
+        const meuConfronto = confrontos.find(
+          (c) =>
+            extrairTimeId(c.timeA) === meuTimeId ||
+            extrairTimeId(c.timeB) === meuTimeId,
+        );
+
+        if (meuConfronto) {
+          const souTimeA = extrairTimeId(meuConfronto.timeA) === meuTimeId;
+          const meusPts = parseFloat(
+            souTimeA ? meuConfronto.timeA?.pontos : meuConfronto.timeB?.pontos,
+          ) || 0;
+          const advPts = parseFloat(
+            souTimeA ? meuConfronto.timeB?.pontos : meuConfronto.timeA?.pontos,
+          ) || 0;
+
+          if (meusPts < advPts) foiEliminado = true;
+        }
+      }
+    }
+  });
+
+  estado.historicoParticipacao[edicao] = {
+    ultimaFase: ultimaFaseParticipada,
+    eliminado: foiEliminado,
+  };
+
+  if (window.Log)
+    Log.debug(`[MATA-MATA] 📊 Historico recalculado edição ${edicao}:`, estado.historicoParticipacao[edicao]);
+}
+
 let estado = {
   ligaId: null,
   timeId: null,
@@ -51,7 +104,8 @@ export async function inicializarMataMata(params) {
     return;
   }
 
-  // ✅ v6.7: CACHE-FIRST - Tentar carregar do IndexedDB primeiro
+  // ✅ v6.8: CACHE-FIRST - Tentar carregar do IndexedDB primeiro
+  // ⚠️ v6.8: NÃO usar historicoParticipacao do cache (pode estar com bug de tipos antigo)
   let usouCache = false;
 
   if (window.OfflineCache) {
@@ -61,7 +115,8 @@ export async function inicializarMataMata(params) {
         usouCache = true;
         estado.edicoesDisponiveis = mmCache.edicoes;
         estado.cacheConfrontos = mmCache.confrontos;
-        estado.historicoParticipacao = mmCache.historico || {};
+        // ✅ v6.8: IGNORAR historico do cache - será recalculado com fix de tipos
+        estado.historicoParticipacao = {};
 
         // Renderizar IMEDIATAMENTE com dados do cache
         if (window.Log)
@@ -71,7 +126,12 @@ export async function inicializarMataMata(params) {
         atualizarContador();
         setupEventListeners();
 
+        // ✅ v6.8: Recalcular historicoParticipacao ANTES de renderizar
         if (estado.edicoesDisponiveis.length > 0) {
+          for (const ed of estado.edicoesDisponiveis) {
+            await recalcularHistoricoEdicao(ed.edicao);
+          }
+
           const ultimaEdicao = estado.edicoesDisponiveis[estado.edicoesDisponiveis.length - 1];
           estado.edicaoSelecionada = ultimaEdicao.edicao;
 
