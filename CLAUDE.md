@@ -157,6 +157,78 @@ O módulo `participante-extrato-ui.js` renderiza o histórico financeiro por rod
   - Interceptação do botão hardware "Voltar" via History API (`popstate`).
   - Modal de confirmação exibido em telas raiz (Home, Bem-vindo).
 
+### Sistema de Navegação Mobile v3.0 (CRÍTICO)
+
+O arquivo `participante-navigation.js` v3.0 controla toda navegação entre módulos:
+
+**Arquitetura:**
+```javascript
+// ❌ REMOVIDO na v3.0 - causava travamento
+this._navegando = true/false; // FLAG PROBLEMÁTICA
+
+// ✅ v3.0 - Apenas debounce por tempo (100ms)
+this._ultimaNavegacao = Date.now();
+this._debounceMs = 100;
+```
+
+**Por que v3.0?**
+- Versões anteriores usavam flag `_navegando` para evitar cliques duplicados
+- Se um módulo desse erro durante carregamento, a flag ficava `true` PARA SEMPRE
+- Resultado: usuário precisava clicar 2x, 3x... ou recarregar a página
+- v3.0 usa apenas debounce por tempo: simples, confiável, NUNCA trava
+
+**Fluxo de Navegação:**
+```
+1. Usuário clica no botão do menu
+2. Debounce: ignora se < 100ms desde último clique
+3. Fetch do template HTML (fragmento)
+4. innerHTML no container
+5. Import dinâmico do módulo JS
+6. Executa função inicializar*()
+```
+
+**Importante para DEVs:**
+- Módulos JS devem exportar função `inicializar{NomeModulo}Participante()`
+- Templates HTML devem ser **FRAGMENTOS** (sem `<!doctype>`, `<html>`, `<body>`)
+- Erros no módulo JS são capturados e exibem tela de erro amigável
+
+### Templates HTML - FRAGMENTOS (CRÍTICO)
+
+Os arquivos em `public/participante/fronts/` são **FRAGMENTOS HTML**, não documentos completos.
+
+**✅ CORRETO (Fragmento):**
+```html
+<!-- PARTICIPANTE EXTRATO - Template v2.0 -->
+<!-- Fragmento HTML para inserção via navegação -->
+<link rel="stylesheet" href="/participante/css/extrato.css" />
+<style>
+/* CSS inline do módulo */
+</style>
+
+<div class="extrato-container">
+    <!-- Conteúdo do módulo -->
+</div>
+```
+
+**❌ ERRADO (Documento completo):**
+```html
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <title>Extrato</title>
+</head>
+<body>
+    <div class="extrato-container">...</div>
+</body>
+</html>
+```
+
+**Por que fragmentos?**
+- Navegação usa `container.innerHTML = html` para inserir conteúdo
+- Documentos completos causam comportamento inesperado no DOM
+- CSS pode ser inline (dentro de `<style>`) ou link externo
+- JS é carregado separadamente via `import()` dinâmico
+
 ### Sistema de Loading (Mobile) - CRÍTICO
 O sistema distingue **três** tipos de carregamento:
 
@@ -329,31 +401,72 @@ await OfflineCache.clearAll();
 await OfflineCache.cleanExpired(); // Manutenção automática
 ```
 
-### Integração com Módulos
+### Padrão Cache-First - TODOS os Módulos (CRÍTICO)
 
-O módulo `participante-boas-vindas.js` (v8.0) implementa o padrão cache-first:
+**TODOS** os módulos do participante implementam o padrão Cache-First para carregamento instantâneo:
+
+| Módulo | Arquivo | Store IndexedDB |
+|--------|---------|-----------------|
+| Boas-Vindas | `participante-boas-vindas.js` v8.0 | `liga`, `ranking`, `rodadas` |
+| Extrato | `participante-extrato.js` v3.1 | `extrato` |
+| Ranking | `participante-ranking.js` | `ranking` |
+| Rodadas | `participante-rodadas.js` | `rodadas` |
+| Top 10 | `participante-top10.js` v4.7 | `top10` |
+| Pontos Corridos | `participante-pontos-corridos.js` v5.1 | `pontosCorridos` |
+| Mata-Mata | `participante-mata-mata.js` v6.7 | `mataMata` |
+| Artilheiro | `participante-artilheiro.js` v3.7 | `artilheiro` |
+| Luva de Ouro | `participante-luva-ouro.js` v4.0 | `luvaOuro` |
+| Melhor do Mês | `participante-melhor-mes.js` v3.6 | `melhorMes` |
+
+**Implementação padrão (copie para novos módulos):**
 
 ```javascript
-// FASE 1: Carregamento instantâneo do IndexedDB
-const [liga, ranking, rodadas] = await Promise.all([
-    cache.getLigaAsync(ligaId),
-    cache.getRankingAsync(ligaId),
-    cache.getRodadasAsync(ligaId)
-]);
+async function carregarDados(ligaId, timeId) {
+    const cache = window.ParticipanteCache;
+    let usouCache = false;
 
-if (liga && ranking?.length) {
-    renderizarBoasVindas(container, dados); // INSTANTÂNEO
-}
+    // =========================================================
+    // FASE 1: CARREGAMENTO INSTANTÂNEO (IndexedDB)
+    // =========================================================
+    if (cache) {
+        const dadosCache = await cache.getTop10Async(ligaId); // ou outro store
 
-// FASE 2: Atualização em background
-const [ligaFresh, rankingFresh] = await Promise.all([...fetches...]);
-cache.setLiga(ligaId, ligaFresh); // Atualiza cache
+        if (dadosCache && dadosCache.length > 0) {
+            usouCache = true;
+            renderizarDados(dadosCache); // INSTANTÂNEO!
+        }
+    }
 
-// Só re-renderiza se dados mudaram
-if (dadosFresh.posicao !== dadosCache.posicao) {
-    renderizarBoasVindas(container, dadosFresh);
+    // Se não tem cache, mostrar loading
+    if (!usouCache) {
+        container.innerHTML = '<div class="loading-state">...</div>';
+    }
+
+    // =========================================================
+    // FASE 2: ATUALIZAÇÃO EM BACKGROUND (API)
+    // =========================================================
+    try {
+        const response = await fetch(`/api/...`);
+        const dadosFresh = await response.json();
+
+        // Salvar no cache
+        if (cache) {
+            cache.setTop10(ligaId, dadosFresh);
+        }
+
+        // Só re-renderiza se não usou cache (evita flicker)
+        if (!usouCache) {
+            renderizarDados(dadosFresh);
+        }
+    } catch (error) {
+        if (!usouCache) mostrarErro(error.message);
+    }
 }
 ```
+
+**Benefícios:**
+- 1ª abertura: Loading normal → API → Renderiza → Salva cache
+- 2ª+ abertura: **INSTANTÂNEO** (IndexedDB) → API atualiza em background
 
 ### Ordem de Carregamento (index.html)
 
