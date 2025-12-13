@@ -1,15 +1,13 @@
 /* =====================================================================
-   splash-screen.css - Estilos da Splash Screen v2.0
+   splash-screen.css - Estilos da Splash Screen v2.1
    Destino: /participante/css/splash-screen.css
-   ✅ v2.0: Failsafe CSS - força fechamento após 5s (evita tela branca)
+   ✅ v2.1: Failsafe CSS corrigido - só ativa quando splash visível
    ===================================================================== */
 
 /* ========== FAILSAFE - ANIMAÇÃO DE SEGURANÇA (5 segundos) ========== */
 @keyframes splash-failsafe-fadeout {
-    0%, 90% {
+    0%, 85% {
         opacity: 1;
-        visibility: visible;
-        pointer-events: all;
     }
     100% {
         opacity: 0;
@@ -29,19 +27,28 @@
     justify-content: center;
     background: radial-gradient(circle at center, #1e1e1e 0%, #0a0a0a 100%);
     overflow: hidden;
-    opacity: 1;
-    visibility: visible;
-    transition: opacity 0.5s ease-out, visibility 0.5s ease-out;
-    /* ✅ FAILSAFE: Força fechamento após 5 segundos (caso JS falhe) */
-    animation: splash-failsafe-fadeout 5s ease-out forwards;
-}
-
-.splash-screen.hidden {
     opacity: 0;
     visibility: hidden;
     pointer-events: none;
-    /* Cancelar animação quando escondido via JS */
-    animation: none;
+    transition: opacity 0.5s ease-out, visibility 0.5s ease-out;
+}
+
+/* ✅ Estado ESCONDIDO (padrão inicial) */
+.splash-screen.hidden {
+    opacity: 0 !important;
+    visibility: hidden !important;
+    pointer-events: none !important;
+    animation: none !important;
+}
+
+/* ✅ Estado ANIMADO (quando JS ativa) - inclui failsafe */
+.splash-screen.animate {
+    opacity: 1;
+    visibility: visible;
+    pointer-events: all;
+    /* ✅ FAILSAFE: Força fechamento após 5 segundos (caso JS falhe) */
+    animation: splash-failsafe-fadeout 5s ease-out forwards;
+    animation-delay: 0s;
 }
 
 /* ========== FUNDO TÁTICO ========== */
@@ -129,10 +136,12 @@
     position: absolute;
     inset: -20px;
     background: #FF4500;
+    background-image: none !important; /* Garantir que não exiba imagem */
     border-radius: 50%;
     filter: blur(40px);
     opacity: 0.25;
     animation: splash-pulse-glow 3s ease-in-out infinite;
+    z-index: 0; /* Ficar atrás do logo */
 }
 
 @keyframes splash-pulse-glow {
@@ -147,6 +156,16 @@
     height: 180px;
     object-fit: contain;
     filter: drop-shadow(0 10px 30px rgba(0, 0, 0, 0.5));
+    display: block; /* Evitar espaço extra de inline */
+}
+
+/* Garantir que não haja pseudo-elementos duplicando o logo */
+.splash-logo-img::before,
+.splash-logo-img::after,
+.splash-logo-container::before,
+.splash-logo-container::after {
+    display: none !important;
+    content: none !important;
 }
 
 /* ========== LOADER ========== */

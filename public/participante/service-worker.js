@@ -4,7 +4,7 @@
 // ✅ v2.0: Cache First para assets, Network Only para HTML/APIs
 // =====================================================================
 
-const CACHE_NAME = "super-cartola-v2";
+const CACHE_NAME = "super-cartola-v3";
 
 // Arquivos essenciais para cache inicial
 const STATIC_ASSETS = [
