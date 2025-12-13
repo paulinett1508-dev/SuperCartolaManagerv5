@@ -1,6 +1,8 @@
 // =====================================================================
-// PARTICIPANTE NAVIGATION v2.7 - Sistema de Navegação entre Módulos
+// PARTICIPANTE NAVIGATION v2.8 - Sistema de Navegação entre Módulos
 // =====================================================================
+// v2.8: Permite recarregar mesmo módulo (cache-first é instantâneo)
+//       Remove bloqueio de "mesmo módulo" que causava cliques ignorados
 // v2.7: Fix transição suave com cache-first (não limpar container)
 //       Evita clique duplo necessário para navegar
 // v2.6: Fix primeira navegação - não ignorar se container está vazio
@@ -494,20 +496,10 @@ class ParticipanteNavigation {
             return;
         }
 
-        // ✅ v2.6: Se está navegando para o mesmo módulo, ignorar (exceto forçar reload)
-        // MAS: Na primeira navegação (container vazio), sempre carregar
+        // ✅ v2.8: REMOVIDO bloqueio de "mesmo módulo"
+        // Com cache-first, recarregar é instantâneo e dá feedback visual ao usuário
+        // Isso evita o problema de cliques ignorados que pareciam "não funcionar"
         const container = document.getElementById("moduleContainer");
-        // ✅ v2.7: Verificar se é primeira carga (container vazio ou com loading)
-        const isFirstLoad = !container || !container.innerHTML.trim() ||
-                            container.querySelector('#initial-loading');
-
-        if (moduloId === this.moduloAtual && !forcarReload && !isFirstLoad) {
-            if (window.Log) Log.debug('PARTICIPANTE-NAV', '⏸️ Já está no módulo, ignorando...');
-            // ✅ v2.6: Mesmo ignorando navegação, garantir que splash/overlay sejam escondidos
-            if (window.SplashScreen) window.SplashScreen.hide();
-            if (window.LoadingOverlay) window.LoadingOverlay.hide();
-            return;
-        }
 
         this._navegando = true;
         this._ultimaNavegacao = agora;
@@ -770,4 +762,4 @@ if (document.readyState === "loading") {
     participanteNav.inicializar();
 }
 
-if (window.Log) Log.info('PARTICIPANTE-NAV', '✅ Sistema v2.7 pronto.');
+if (window.Log) Log.info('PARTICIPANTE-NAV', '✅ Sistema v2.8 pronto.');
