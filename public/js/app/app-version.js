@@ -1,21 +1,20 @@
 // =====================================================================
-// app-version.js - Sistema de Versionamento v2.0
+// app-version.js - Sistema de Versionamento v3.0
 // =====================================================================
-// v2.0: Versionamento separado (Participante vs Admin)
-//       App participante só atualiza quando PARTICIPANTE_VERSION muda
-//       Mudanças no admin NÃO afetam o app do participante
+// v3.0: Modo arquivo - Versão automática, sem modal de atualização
+//       Apenas exibe a versão no badge do header
 // =====================================================================
 
 const AppVersion = {
-    LOCAL_KEY: "app_participante_version", // Chave específica para participante
+    LOCAL_KEY: "app_version",
 
-    // ✅ Inicializar (sem setInterval)
+    // ✅ Inicializar
     async init() {
         // Registrar Service Worker do PWA
         this.registrarServiceWorker();
 
-        // Verificar versão apenas na inicialização
-        await this.verificarVersao();
+        // Buscar e exibir versão (sem modal)
+        await this.atualizarBadge();
     },
 
     // ✅ Registrar Service Worker
@@ -24,66 +23,25 @@ const AppVersion = {
             try {
                 const registration = await navigator.serviceWorker.register('/participante/service-worker.js');
                 if (window.Log) Log.info('APP-VERSION', 'Service Worker registrado');
-
-                // Detectar atualização do SW
-                registration.addEventListener('updatefound', () => {
-                    const newWorker = registration.installing;
-                    newWorker.addEventListener('statechange', () => {
-                        if (newWorker.state === 'installed' && navigator.serviceWorker.controller) {
-                            if (window.Log) Log.info('APP-VERSION', 'Nova versão do SW disponível');
-                        }
-                    });
-                });
             } catch (error) {
                 if (window.Log) Log.warn('APP-VERSION', 'Erro ao registrar SW:', error);
             }
         }
     },
 
-    // ✅ Buscar versão do PARTICIPANTE no servidor
-    async getVersaoServidor() {
+    // ✅ Buscar versão do servidor e atualizar badge
+    async atualizarBadge() {
         try {
-            // Busca versão específica do participante
-            const response = await fetch("/api/app/versao/participante");
-            if (!response.ok) throw new Error("Falha ao buscar versão");
-            return await response.json();
+            const response = await fetch("/api/app/versao");
+            if (!response.ok) return;
+
+            const servidor = await response.json();
+            this.atualizarBadgeHeader(servidor.version);
+            localStorage.setItem(this.LOCAL_KEY, servidor.version);
         } catch (error) {
-            if (window.Log) Log.warn('APP-VERSION', 'Erro ao buscar versão:', error);
-            return null;
-        }
-    },
-
-    // ✅ Obter versão local (version + build)
-    getVersaoLocal() {
-        return localStorage.getItem(this.LOCAL_KEY);
-    },
-
-    // ✅ Salvar versão local (version + build)
-    salvarVersaoLocal(version, build) {
-        localStorage.setItem(this.LOCAL_KEY, `${version}-${build}`);
-    },
-
-    // ✅ Verificar se precisa atualizar
-    async verificarVersao() {
-        const servidor = await this.getVersaoServidor();
-        if (!servidor) return false;
-
-        const chaveServidor = `${servidor.version}-${servidor.build}`;
-        const local = this.getVersaoLocal();
-
-        // Primeira vez ou versão diferente
-        if (!local) {
-            this.salvarVersaoLocal(servidor.version, servidor.build);
-            this.atualizarBadgeHeader(servidor.version);
-            return false;
-        }
-
-        if (local !== chaveServidor) {
-            this.mostrarModalAtualizacao(servidor);
-            return true; // Há atualização
-        } else {
-            this.atualizarBadgeHeader(servidor.version);
-            return false;
+            // Usar versão do cache se falhar
+            const cached = localStorage.getItem(this.LOCAL_KEY);
+            if (cached) this.atualizarBadgeHeader(cached);
         }
     },
 
@@ -93,61 +51,6 @@ const AppVersion = {
         if (badge) {
             badge.textContent = `v${version}`;
         }
-    },
-
-    // ✅ Modal de atualização obrigatória
-    mostrarModalAtualizacao(servidor) {
-        // Remover modal existente se houver
-        const existente = document.getElementById("app-update-modal");
-        if (existente) existente.remove();
-
-        const modal = document.createElement("div");
-        modal.id = "app-update-modal";
-        modal.className = "app-update-overlay";
-        modal.innerHTML = `
-            <div class="app-update-modal">
-                <div class="app-update-icon">
-                    <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                        <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
-                        <polyline points="7 10 12 15 17 10"/>
-                        <line x1="12" y1="15" x2="12" y2="3"/>
-                    </svg>
-                </div>
-                <h3>Nova versão disponível</h3>
-                <p class="app-update-version">v${servidor.version}</p>
-                <p class="app-update-notes">${servidor.releaseNotes || "Melhorias e correções"}</p>
-                <button class="app-update-btn" onclick="AppVersion.aplicarAtualizacao('${servidor.version}', '${servidor.build}')">
-                    Atualizar agora
-                </button>
-            </div>
-        `;
-
-        document.body.appendChild(modal);
-
-        // Forçar reflow para animação
-        requestAnimationFrame(() => modal.classList.add("visible"));
-    },
-
-    // ✅ Aplicar atualização (reload forçado)
-    aplicarAtualizacao(version, build) {
-        this.salvarVersaoLocal(version, build);
-
-        // Limpar cache do service worker se existir
-        if ("serviceWorker" in navigator) {
-            navigator.serviceWorker.getRegistrations().then((registrations) => {
-                registrations.forEach((reg) => reg.unregister());
-            });
-        }
-
-        // Limpar caches
-        if ("caches" in window) {
-            caches.keys().then((names) => {
-                names.forEach((name) => caches.delete(name));
-            });
-        }
-
-        // Reload forçado (bypass cache)
-        window.location.reload(true);
     },
 };
 
