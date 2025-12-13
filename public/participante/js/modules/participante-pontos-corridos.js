@@ -1,8 +1,9 @@
-// PARTICIPANTE PONTOS CORRIDOS - v5.0
+// PARTICIPANTE PONTOS CORRIDOS - v5.1
+// ✅ v5.1: Cache-first com IndexedDB para carregamento instantâneo
 // ✅ v4.9: Emojis substituídos por Material Icons + Card "Seu Desempenho"
 // ✅ v5.0: Posição na liga integrada no card + card ao final da página
 
-if (window.Log) Log.info("[PONTOS-CORRIDOS] 📊 Módulo v5.0 carregando...");
+if (window.Log) Log.info("[PONTOS-CORRIDOS] 📊 Módulo v5.1 carregando...");
 
 const estadoPC = {
     ligaId: null,
@@ -22,20 +23,62 @@ const estadoPC = {
 // ============================================
 
 export async function inicializarPontosCorridosParticipante(params = {}) {
-    if (window.Log) Log.info("[PONTOS-CORRIDOS] 🚀 Inicializando v4.9...", params);
+    if (window.Log) Log.info("[PONTOS-CORRIDOS] 🚀 Inicializando v5.1...", params);
 
     const participante = params.participante || window.participanteData || {};
     estadoPC.ligaId = params.ligaId || participante.ligaId;
     estadoPC.timeId = params.timeId || participante.timeId;
 
-    mostrarLoading();
+    // ✅ v5.1: CACHE-FIRST - Tentar carregar do IndexedDB primeiro
+    let usouCache = false;
+    let dadosCache = null;
+
+    // FASE 1: CARREGAMENTO INSTANTÂNEO (Cache IndexedDB)
+    if (window.OfflineCache) {
+        try {
+            const pcCache = await window.OfflineCache.get('pontosCorridos', estadoPC.ligaId, true);
+            if (pcCache && Array.isArray(pcCache) && pcCache.length > 0) {
+                usouCache = true;
+                dadosCache = pcCache;
+                estadoPC.dados = pcCache;
+
+                // Processar dados do cache
+                const rodadasComConfrontos = pcCache.filter((r) => r.confrontos?.length > 0);
+                estadoPC.totalRodadas = pcCache.length;
+                estadoPC.rodadaAtual = rodadasComConfrontos.length > 0
+                    ? Math.max(...rodadasComConfrontos.map((r) => r.rodada))
+                    : 1;
+                estadoPC.rodadaSelecionada = estadoPC.rodadaAtual;
+
+                const ultimaRodadaPossivel = estadoPC.totalRodadas;
+                const ultimaRodadaDisputada = pcCache.find((r) => r.rodada === ultimaRodadaPossivel);
+                estadoPC.ligaEncerrou = ultimaRodadaDisputada?.confrontos?.length > 0 &&
+                    ultimaRodadaDisputada?.classificacao?.length > 0;
+
+                // Renderizar IMEDIATAMENTE com dados do cache
+                if (window.Log)
+                    Log.info(`[PONTOS-CORRIDOS] ⚡ Cache IndexedDB: ${pcCache.length} rodadas`);
+
+                renderizarInterface();
+            }
+        } catch (e) {
+            if (window.Log) Log.warn("[PONTOS-CORRIDOS] ⚠️ Erro ao ler cache:", e);
+        }
+    }
+
+    // Se não tem cache, mostrar loading
+    if (!usouCache) {
+        mostrarLoading();
+    }
 
     try {
+        // FASE 2: ATUALIZAÇÃO EM BACKGROUND (Fetch API)
         await buscarStatusMercado();
         const dados = await carregarDados();
-        estadoPC.dados = dados;
 
         if (dados.length > 0) {
+            estadoPC.dados = dados;
+
             const rodadasComConfrontos = dados.filter(
                 (r) => r.confrontos?.length > 0,
             );
@@ -53,13 +96,40 @@ export async function inicializarPontosCorridosParticipante(params = {}) {
             estadoPC.ligaEncerrou =
                 ultimaRodadaDisputada?.confrontos?.length > 0 &&
                 ultimaRodadaDisputada?.classificacao?.length > 0;
-        }
 
-        if (window.Log) Log.info(`[PONTOS-CORRIDOS] ✅ ${dados.length} rodadas carregadas`);
-        renderizarInterface();
+            // ✅ v5.1: Salvar no IndexedDB para próxima visita
+            if (window.OfflineCache) {
+                try {
+                    await window.OfflineCache.set('pontosCorridos', estadoPC.ligaId, dados);
+                    if (window.Log) Log.info("[PONTOS-CORRIDOS] 💾 Cache IndexedDB atualizado");
+                } catch (e) {
+                    if (window.Log) Log.warn("[PONTOS-CORRIDOS] ⚠️ Erro ao salvar cache:", e);
+                }
+            }
+
+            // Só re-renderizar se dados mudaram ou se não usou cache antes
+            const dadosMudaram = !usouCache ||
+                !dadosCache ||
+                dadosCache.length !== dados.length ||
+                JSON.stringify(dadosCache[0]?.classificacao?.slice(0,3)) !== JSON.stringify(dados[0]?.classificacao?.slice(0,3));
+
+            if (dadosMudaram) {
+                if (window.Log) Log.info(`[PONTOS-CORRIDOS] ✅ ${dados.length} rodadas carregadas`);
+                renderizarInterface();
+                if (usouCache && window.Log) {
+                    Log.info("[PONTOS-CORRIDOS] 🔄 Re-renderizado com dados frescos");
+                }
+            } else if (window.Log) {
+                Log.info("[PONTOS-CORRIDOS] ✅ Dados iguais, mantendo renderização do cache");
+            }
+        } else if (!usouCache) {
+            mostrarErro("Nenhum dado encontrado");
+        }
     } catch (error) {
         if (window.Log) Log.error("[PONTOS-CORRIDOS] ❌ Erro:", error);
-        mostrarErro(error.message);
+        if (!usouCache) {
+            mostrarErro(error.message);
+        }
     }
 }
 
@@ -943,5 +1013,5 @@ window.inicializarPontosCorridosParticipante =
     inicializarPontosCorridosParticipante;
 
 if (window.Log) Log.info(
-    "[PONTOS-CORRIDOS] ✅ Módulo v4.9 carregado (Material Icons + Card Desempenho)",
+    "[PONTOS-CORRIDOS] ✅ Módulo v5.1 carregado (Cache-First IndexedDB)",
 );

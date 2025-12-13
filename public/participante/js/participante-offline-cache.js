@@ -1,16 +1,17 @@
 // =====================================================================
-// PARTICIPANTE-OFFLINE-CACHE.JS - Sistema de Cache Persistente v2.0
+// PARTICIPANTE-OFFLINE-CACHE.JS - Sistema de Cache Persistente v2.1
 // =====================================================================
+// v2.1: Novos stores para artilheiro, luvaOuro, melhorMes
 // v2.0: Temporada encerrada = Cache PERMANENTE (dados imutáveis)
 // v1.0: Cache offline usando IndexedDB para carregamento instantâneo
 // Estratégia: Stale-While-Revalidate (mostra cache, atualiza em background)
 // =====================================================================
 
-if (window.Log) Log.info('OFFLINE-CACHE', 'Carregando sistema v2.0...');
+if (window.Log) Log.info('OFFLINE-CACHE', 'Carregando sistema v2.1...');
 
 const OfflineCache = {
     DB_NAME: 'SuperCartolaOffline',
-    DB_VERSION: 1,
+    DB_VERSION: 2, // v2.1: Novos stores
     db: null,
 
     // =====================================================================
@@ -32,6 +33,9 @@ const OfflineCache = {
         top10: { ttl: 60 * 60 * 1000 },              // 1 hora
         pontosCorridos: { ttl: 60 * 60 * 1000 },     // 1 hora
         mataMata: { ttl: 60 * 60 * 1000 },           // 1 hora
+        artilheiro: { ttl: 60 * 60 * 1000 },         // 1 hora (v2.1)
+        luvaOuro: { ttl: 60 * 60 * 1000 },           // 1 hora (v2.1)
+        melhorMes: { ttl: 60 * 60 * 1000 },          // 1 hora (v2.1)
         config: { ttl: 24 * 60 * 60 * 1000 },        // 24 horas
     },
 

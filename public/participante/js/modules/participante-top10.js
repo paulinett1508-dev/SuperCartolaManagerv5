@@ -1,6 +1,7 @@
 // =====================================================================
-// PARTICIPANTE-TOP10.JS - v4.6 (Fix Rodada 38)
+// PARTICIPANTE-TOP10.JS - v4.7 (Cache-First IndexedDB)
 // =====================================================================
+// ✅ v4.7: Cache-first com IndexedDB para carregamento instantâneo
 // ✅ v4.6: Fix rodada 38 (CAMPEONATO_ENCERRADO)
 // ✅ v4.5: Destaque visual para os 10 primeiros (verdadeiro TOP 10)
 //    - Borda dourada/vermelha nos 10 primeiros
@@ -10,7 +11,7 @@
 // ✅ v4.3: Filtro de times ativos
 // ✅ v4.2: Cache batch
 
-if (window.Log) Log.info("[PARTICIPANTE-TOP10] 🏆 Carregando módulo v4.6...");
+if (window.Log) Log.info("[PARTICIPANTE-TOP10] 🏆 Carregando módulo v4.7...");
 
 // =====================================================================
 // CONFIGURAÇÃO DO CAMPEONATO 2025
@@ -75,13 +76,52 @@ export async function inicializarTop10Participante({
     timeId,
 }) {
     if (window.Log)
-        Log.info("[PARTICIPANTE-TOP10] 🚀 Inicializando v4.5...", {
+        Log.info("[PARTICIPANTE-TOP10] 🚀 Inicializando v4.7...", {
             ligaId,
             timeId,
         });
 
     meuTimeIdGlobal = timeId;
-    mostrarLoading(true);
+
+    // ✅ v4.7: CACHE-FIRST - Tentar carregar do IndexedDB primeiro
+    const cache = window.ParticipanteCache;
+    let usouCache = false;
+    let dadosCache = null;
+
+    // Selecionar valores corretos por liga (necessário para renderização)
+    let valoresBonusOnus;
+    if (ligaId === "684cb1c8af923da7c7df51de") {
+        valoresBonusOnus = valoresBonusOnusSuperCartola;
+    } else if (ligaId === "684d821cf1a7ae16d1f89572") {
+        valoresBonusOnus = valoresBonusOnusCartoleirosSobral;
+    } else {
+        valoresBonusOnus = valoresBonusOnusCartoleirosSobral; // Fallback
+    }
+
+    // FASE 1: CARREGAMENTO INSTANTÂNEO (Cache IndexedDB)
+    if (cache && window.OfflineCache) {
+        try {
+            const top10Cache = await window.OfflineCache.get('top10', ligaId, true);
+            if (top10Cache && top10Cache.mitos && top10Cache.micos) {
+                usouCache = true;
+                dadosCache = top10Cache;
+
+                // Renderizar IMEDIATAMENTE com dados do cache
+                if (window.Log)
+                    Log.info(`[PARTICIPANTE-TOP10] ⚡ Cache IndexedDB: ${top10Cache.mitos.length} mitos, ${top10Cache.micos.length} micos`);
+
+                renderizarTabelasTop10(top10Cache.mitos, top10Cache.micos, timeId, valoresBonusOnus);
+                renderizarCardResumo(top10Cache.mitos, top10Cache.micos, timeId, valoresBonusOnus);
+            }
+        } catch (e) {
+            if (window.Log) Log.warn("[PARTICIPANTE-TOP10] ⚠️ Erro ao ler cache:", e);
+        }
+    }
+
+    // Se não tem cache, mostrar loading
+    if (!usouCache) {
+        mostrarLoading(true);
+    }
 
     try {
         // ✅ v4.6: Determinar rodada correta considerando fim do campeonato
@@ -118,9 +158,10 @@ export async function inicializarTop10Participante({
             }
         }
 
+        // FASE 2: ATUALIZAÇÃO EM BACKGROUND (Fetch API)
         const cacheUrl = `/api/top10/cache/${ligaId}?rodada=${ultimaRodadaCompleta}`;
         if (window.Log)
-            Log.info("[PARTICIPANTE-TOP10] 📡 Buscando cache:", cacheUrl);
+            Log.info("[PARTICIPANTE-TOP10] 📡 Buscando API:", cacheUrl);
 
         const response = await fetch(cacheUrl);
         let mitos = [];
@@ -133,7 +174,7 @@ export async function inicializarTop10Participante({
                 micos = data.micos;
                 if (window.Log)
                     Log.info(
-                        `[PARTICIPANTE-TOP10] 💾 Cache encontrado: ${mitos.length} mitos, ${micos.length} micos`,
+                        `[PARTICIPANTE-TOP10] 💾 API: ${mitos.length} mitos, ${micos.length} micos`,
                     );
             }
         }
@@ -149,29 +190,46 @@ export async function inicializarTop10Participante({
         mostrarLoading(false);
 
         if (mitos.length === 0 && micos.length === 0) {
-            mostrarEstadoVazio(true);
+            if (!usouCache) {
+                mostrarEstadoVazio(true);
+            }
             return;
         }
 
-        // Selecionar valores corretos por liga
-        let valoresBonusOnus;
-        if (ligaId === "684cb1c8af923da7c7df51de") {
-            valoresBonusOnus = valoresBonusOnusSuperCartola;
-        } else if (ligaId === "684d821cf1a7ae16d1f89572") {
-            valoresBonusOnus = valoresBonusOnusCartoleirosSobral;
-        } else {
-            valoresBonusOnus = valoresBonusOnusCartoleirosSobral; // Fallback
+        // ✅ v4.7: Salvar no IndexedDB para próxima visita
+        if (window.OfflineCache && mitos.length > 0) {
+            try {
+                await window.OfflineCache.set('top10', ligaId, { mitos, micos });
+                if (window.Log) Log.info("[PARTICIPANTE-TOP10] 💾 Cache IndexedDB atualizado");
+            } catch (e) {
+                if (window.Log) Log.warn("[PARTICIPANTE-TOP10] ⚠️ Erro ao salvar cache:", e);
+            }
         }
 
-        renderizarTabelasTop10(mitos, micos, timeId, valoresBonusOnus);
-        renderizarCardResumo(mitos, micos, timeId, valoresBonusOnus);
+        // Só re-renderizar se dados mudaram ou se não usou cache antes
+        const dadosMudaram = !usouCache ||
+            !dadosCache ||
+            JSON.stringify(dadosCache.mitos?.slice(0,3)) !== JSON.stringify(mitos.slice(0,3)) ||
+            JSON.stringify(dadosCache.micos?.slice(0,3)) !== JSON.stringify(micos.slice(0,3));
+
+        if (dadosMudaram) {
+            renderizarTabelasTop10(mitos, micos, timeId, valoresBonusOnus);
+            renderizarCardResumo(mitos, micos, timeId, valoresBonusOnus);
+            if (usouCache && window.Log) {
+                Log.info("[PARTICIPANTE-TOP10] 🔄 Re-renderizado com dados frescos");
+            }
+        } else if (window.Log) {
+            Log.info("[PARTICIPANTE-TOP10] ✅ Dados iguais, mantendo renderização do cache");
+        }
 
         if (window.Log)
             Log.info("[PARTICIPANTE-TOP10] ✅ TOP 10 carregado com sucesso");
     } catch (error) {
         if (window.Log) Log.error("[PARTICIPANTE-TOP10] ❌ Erro:", error);
         mostrarLoading(false);
-        mostrarEstadoVazio(true);
+        if (!usouCache) {
+            mostrarEstadoVazio(true);
+        }
     }
 }
 
@@ -561,5 +619,5 @@ function mostrarEstadoVazio(show) {
 
 if (window.Log)
     Log.info(
-        "[PARTICIPANTE-TOP10] ✅ Módulo v4.6 carregado (Fix Rodada 38)",
+        "[PARTICIPANTE-TOP10] ✅ Módulo v4.7 carregado (Cache-First IndexedDB)",
     );

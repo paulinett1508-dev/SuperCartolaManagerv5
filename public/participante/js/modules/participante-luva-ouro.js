@@ -1,13 +1,14 @@
 // =====================================================================
-// PARTICIPANTE-LUVA-OURO.JS - v3.8 (Detecção CAMPEÃO)
+// PARTICIPANTE-LUVA-OURO.JS - v4.0 (Cache-First IndexedDB)
 // =====================================================================
+// ✅ v4.0: Cache-first com IndexedDB para carregamento instantâneo
 // ✅ v3.8: Detecção de temporada encerrada (R38 + mercado fechado)
 //    - Badge "CAMPEÃO" quando temporada encerrada
 //    - Banner ajustado para "CAMPEÃO CONFIRMADO"
 // ✅ v3.7: Card Desempenho ao final
 // =====================================================================
 
-if (window.Log) Log.info("[PARTICIPANTE-LUVA-OURO] Carregando módulo v3.9...");
+if (window.Log) Log.info("[PARTICIPANTE-LUVA-OURO] Carregando módulo v4.0...");
 
 const RODADA_FINAL = 38;
 
@@ -26,7 +27,7 @@ export async function inicializarLuvaOuroParticipante({
     ligaId,
     timeId,
 }) {
-    if (window.Log) Log.info("[PARTICIPANTE-LUVA-OURO] 🚀 Inicializando...", {
+    if (window.Log) Log.info("[PARTICIPANTE-LUVA-OURO] 🚀 Inicializando v4.0...", {
         ligaId,
         timeId,
     });
@@ -35,6 +36,28 @@ export async function inicializarLuvaOuroParticipante({
     if (!container) {
         if (window.Log) Log.error("[PARTICIPANTE-LUVA-OURO] ❌ Container não encontrado");
         return;
+    }
+
+    // ✅ v4.0: CACHE-FIRST - Tentar carregar do IndexedDB primeiro
+    let usouCache = false;
+    let dadosCache = null;
+
+    if (window.OfflineCache) {
+        try {
+            const luvaCache = await window.OfflineCache.get('luvaOuro', ligaId, true);
+            if (luvaCache && (luvaCache.ranking || luvaCache.data)) {
+                usouCache = true;
+                dadosCache = luvaCache;
+
+                // Renderizar IMEDIATAMENTE com dados do cache
+                if (window.Log)
+                    Log.info("[PARTICIPANTE-LUVA-OURO] ⚡ Cache IndexedDB encontrado");
+
+                await renderizarLuvaOuro(container, luvaCache, timeId);
+            }
+        } catch (e) {
+            if (window.Log) Log.warn("[PARTICIPANTE-LUVA-OURO] ⚠️ Erro ao ler cache:", e);
+        }
     }
 
     try {
@@ -62,20 +85,43 @@ export async function inicializarLuvaOuroParticipante({
 
         const responseData = await response.json();
         if (window.Log) Log.info(
-            "[PARTICIPANTE-LUVA-OURO] 📦 Dados recebidos:",
-            responseData,
+            "[PARTICIPANTE-LUVA-OURO] 📦 Dados recebidos da API",
         );
 
-        await renderizarLuvaOuro(container, responseData, timeId);
+        // ✅ v4.0: Salvar no IndexedDB para próxima visita
+        if (window.OfflineCache) {
+            try {
+                await window.OfflineCache.set('luvaOuro', ligaId, responseData);
+                if (window.Log) Log.info("[PARTICIPANTE-LUVA-OURO] 💾 Cache IndexedDB atualizado");
+            } catch (e) {
+                if (window.Log) Log.warn("[PARTICIPANTE-LUVA-OURO] ⚠️ Erro ao salvar cache:", e);
+            }
+        }
+
+        // Só re-renderizar se dados mudaram ou se não usou cache antes
+        const dadosMudaram = !usouCache ||
+            !dadosCache ||
+            JSON.stringify(dadosCache.ranking?.slice(0,3)) !== JSON.stringify(responseData.ranking?.slice(0,3));
+
+        if (dadosMudaram) {
+            await renderizarLuvaOuro(container, responseData, timeId);
+            if (usouCache && window.Log) {
+                Log.info("[PARTICIPANTE-LUVA-OURO] 🔄 Re-renderizado com dados frescos");
+            }
+        } else if (window.Log) {
+            Log.info("[PARTICIPANTE-LUVA-OURO] ✅ Dados iguais, mantendo renderização do cache");
+        }
     } catch (error) {
         if (window.Log) Log.error("[PARTICIPANTE-LUVA-OURO] ❌ Erro:", error);
-        container.innerHTML = `
-            <div style="text-align: center; padding: 60px 20px; background: linear-gradient(135deg, rgba(255, 215, 0, 0.05) 0%, rgba(255, 215, 0, 0.02) 100%); border-radius: 12px; border: 2px dashed rgba(255, 215, 0, 0.3);">
-                <span class="material-symbols-outlined" style="font-size: 64px; margin-bottom: 16px; color: #ffd700;">sports_handball</span>
-                <h3 style="color: #fff; margin-bottom: 12px;">Luva de Ouro</h3>
-                <p style="color: #999;">Dados não disponíveis no momento.</p>
-            </div>
-        `;
+        if (!usouCache) {
+            container.innerHTML = `
+                <div style="text-align: center; padding: 60px 20px; background: linear-gradient(135deg, rgba(255, 215, 0, 0.05) 0%, rgba(255, 215, 0, 0.02) 100%); border-radius: 12px; border: 2px dashed rgba(255, 215, 0, 0.3);">
+                    <span class="material-symbols-outlined" style="font-size: 64px; margin-bottom: 16px; color: #ffd700;">sports_handball</span>
+                    <h3 style="color: #fff; margin-bottom: 12px;">Luva de Ouro</h3>
+                    <p style="color: #999;">Dados não disponíveis no momento.</p>
+                </div>
+            `;
+        }
     }
 }
 
@@ -686,4 +732,4 @@ async function renderizarLuvaOuro(container, response, meuTimeId) {
     }, 100);
 }
 
-if (window.Log) Log.info("[PARTICIPANTE-LUVA-OURO] Módulo v3.9 carregado (Material Icons)");
+if (window.Log) Log.info("[PARTICIPANTE-LUVA-OURO] Módulo v4.0 carregado (Cache-First IndexedDB)");

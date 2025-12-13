@@ -1,5 +1,6 @@
 // =====================================================================
-// PARTICIPANTE MATA-MATA v6.6
+// PARTICIPANTE MATA-MATA v6.7 (Cache-First IndexedDB)
+// ✅ v6.7: Cache-first com IndexedDB para carregamento instantâneo
 // Integrado com HTML template - Layout Cards + Correção "não está nesta fase"
 // Nota: Mata-mata não requer tratamento especial de inativos pois é por eliminação
 // =====================================================================
@@ -34,7 +35,7 @@ let estado = {
 // INICIALIZAÇÃO
 // =====================================================================
 export async function inicializarMataMata(params) {
-  if (window.Log) Log.info("[MATA-MATA] 🚀 Inicializando v6.6...", params);
+  if (window.Log) Log.info("[MATA-MATA] 🚀 Inicializando v6.7...", params);
 
   // ✅ CORREÇÃO: Usar participanteAuth como fallback em vez de localStorage (evita dados cruzados entre ligas)
   estado.ligaId = params?.ligaId || window.participanteAuth?.ligaId;
@@ -46,13 +47,52 @@ export async function inicializarMataMata(params) {
     return;
   }
 
+  // ✅ v6.7: CACHE-FIRST - Tentar carregar do IndexedDB primeiro
+  let usouCache = false;
+
+  if (window.OfflineCache) {
+    try {
+      const mmCache = await window.OfflineCache.get('mataMata', estado.ligaId, true);
+      if (mmCache && mmCache.edicoes && mmCache.confrontos) {
+        usouCache = true;
+        estado.edicoesDisponiveis = mmCache.edicoes;
+        estado.cacheConfrontos = mmCache.confrontos;
+        estado.historicoParticipacao = mmCache.historico || {};
+
+        // Renderizar IMEDIATAMENTE com dados do cache
+        if (window.Log)
+          Log.info(`[MATA-MATA] ⚡ Cache IndexedDB: ${mmCache.edicoes.length} edições`);
+
+        popularSelectEdicoes();
+        atualizarContador();
+        setupEventListeners();
+
+        if (estado.edicoesDisponiveis.length > 0) {
+          const ultimaEdicao = estado.edicoesDisponiveis[estado.edicoesDisponiveis.length - 1];
+          estado.edicaoSelecionada = ultimaEdicao.edicao;
+
+          const select = document.getElementById("mmEditionSelect");
+          if (select) select.value = ultimaEdicao.edicao;
+
+          await carregarFase(estado.edicaoSelecionada, "primeira");
+        }
+      }
+    } catch (e) {
+      if (window.Log) Log.warn("[MATA-MATA] ⚠️ Erro ao ler cache:", e);
+    }
+  }
+
   try {
     await carregarStatusMercado();
-    await carregarEdicoesDisponiveis();
-    setupEventListeners();
+    await carregarEdicoesDisponiveis(usouCache);
+    if (!usouCache) {
+      setupEventListeners();
+    }
   } catch (error) {
     if (window.Log) Log.error("[MATA-MATA] Erro:", error);
-    renderErro("Erro ao carregar mata-mata");
+    if (!usouCache) {
+      renderErro("Erro ao carregar mata-mata");
+    }
   }
 }
 
@@ -76,21 +116,29 @@ async function carregarStatusMercado() {
 // =====================================================================
 // CARREGAR EDIÇÕES DISPONÍVEIS DO MONGODB
 // =====================================================================
-async function carregarEdicoesDisponiveis() {
+async function carregarEdicoesDisponiveis(usouCache = false) {
   try {
     const res = await fetch(`/api/mata-mata/cache/${estado.ligaId}/edicoes`);
     if (!res.ok) throw new Error("Erro ao buscar edições");
 
     const data = await res.json();
-    estado.edicoesDisponiveis = data.edicoes || [];
+    const edicoesNovas = data.edicoes || [];
+
+    // Verificar se dados mudaram
+    const dadosMudaram = !usouCache ||
+      estado.edicoesDisponiveis.length !== edicoesNovas.length;
+
+    estado.edicoesDisponiveis = edicoesNovas;
 
     if (window.Log)
       Log.info(
         `[MATA-MATA] ✅ ${estado.edicoesDisponiveis.length} edições encontradas`,
       );
 
-    popularSelectEdicoes();
-    atualizarContador();
+    if (!usouCache) {
+      popularSelectEdicoes();
+      atualizarContador();
+    }
 
     if (estado.edicoesDisponiveis.length > 0) {
       // Carregar histórico de TODAS as edições
@@ -98,18 +146,43 @@ async function carregarEdicoesDisponiveis() {
         await carregarTodasFases(ed.edicao);
       }
 
-      const ultimaEdicao =
-        estado.edicoesDisponiveis[estado.edicoesDisponiveis.length - 1];
-      estado.edicaoSelecionada = ultimaEdicao.edicao;
+      // ✅ v6.7: Salvar no IndexedDB para próxima visita
+      if (window.OfflineCache) {
+        try {
+          await window.OfflineCache.set('mataMata', estado.ligaId, {
+            edicoes: estado.edicoesDisponiveis,
+            confrontos: estado.cacheConfrontos,
+            historico: estado.historicoParticipacao
+          });
+          if (window.Log) Log.info("[MATA-MATA] 💾 Cache IndexedDB atualizado");
+        } catch (e) {
+          if (window.Log) Log.warn("[MATA-MATA] ⚠️ Erro ao salvar cache:", e);
+        }
+      }
 
-      const select = document.getElementById("mmEditionSelect");
-      if (select) select.value = ultimaEdicao.edicao;
+      if (!usouCache) {
+        const ultimaEdicao =
+          estado.edicoesDisponiveis[estado.edicoesDisponiveis.length - 1];
+        estado.edicaoSelecionada = ultimaEdicao.edicao;
 
-      await carregarFase(estado.edicaoSelecionada, "primeira");
+        const select = document.getElementById("mmEditionSelect");
+        if (select) select.value = ultimaEdicao.edicao;
+
+        await carregarFase(estado.edicaoSelecionada, "primeira");
+      } else if (dadosMudaram) {
+        // Re-renderizar se dados mudaram
+        popularSelectEdicoes();
+        const ultimaEdicao =
+          estado.edicoesDisponiveis[estado.edicoesDisponiveis.length - 1];
+        await carregarFase(ultimaEdicao.edicao, estado.faseSelecionada);
+        if (window.Log) Log.info("[MATA-MATA] 🔄 Re-renderizado com dados frescos");
+      }
     }
   } catch (error) {
     if (window.Log) Log.error("[MATA-MATA] Erro ao carregar edições:", error);
-    renderErro("Nenhuma edição disponível");
+    if (!usouCache) {
+      renderErro("Nenhuma edição disponível");
+    }
   }
 }
 
@@ -808,4 +881,4 @@ function truncate(str, len) {
   return str.length > len ? str.substring(0, len) + "..." : str;
 }
 
-if (window.Log) Log.info("[MATA-MATA] ✅ Módulo v6.6 carregado");
+if (window.Log) Log.info("[MATA-MATA] ✅ Módulo v6.7 carregado (Cache-First IndexedDB)");

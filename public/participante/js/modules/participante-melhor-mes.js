@@ -1,10 +1,11 @@
 // =====================================================================
-// PARTICIPANTE-MELHOR-MES.JS - v3.5 (Card "Seu Desempenho" + Scroll automático)
+// PARTICIPANTE-MELHOR-MES.JS - v3.6 (Cache-First IndexedDB)
+// ✅ v3.6: Cache-first com IndexedDB para carregamento instantâneo
 // ✅ v3.4: Scroll automático para última edição com dados
 // ✅ v3.5: Card "Seu Desempenho" com estatísticas do participante
 // =====================================================================
 
-if (window.Log) Log.info("[MELHOR-MES-PARTICIPANTE] 🏆 Módulo v3.5 carregando...");
+if (window.Log) Log.info("[MELHOR-MES-PARTICIPANTE] 🏆 Módulo v3.6 carregando...");
 
 let ligaIdAtual = null;
 let timeIdAtual = null;
@@ -31,7 +32,7 @@ export async function inicializarMelhorMesParticipante({
     ligaId,
     timeId,
 }) {
-    if (window.Log) Log.info("[MELHOR-MES-PARTICIPANTE] 🚀 Inicializando v3.5...", {
+    if (window.Log) Log.info("[MELHOR-MES-PARTICIPANTE] 🚀 Inicializando v3.6...", {
         ligaId,
         timeId,
     });
@@ -44,7 +45,30 @@ export async function inicializarMelhorMesParticipante({
     ligaIdAtual = ligaId;
     timeIdAtual = timeId;
 
-    await carregarMelhorMes(ligaId, timeId);
+    // ✅ v3.6: CACHE-FIRST - Tentar carregar do IndexedDB primeiro
+    let usouCache = false;
+    let dadosCache = null;
+
+    if (window.OfflineCache) {
+        try {
+            const mmCache = await window.OfflineCache.get('melhorMes', ligaId, true);
+            if (mmCache && mmCache.edicoes && mmCache.edicoes.length > 0) {
+                usouCache = true;
+                dadosCache = mmCache;
+
+                // Renderizar IMEDIATAMENTE com dados do cache
+                if (window.Log)
+                    Log.info(`[MELHOR-MES-PARTICIPANTE] ⚡ Cache IndexedDB: ${mmCache.edicoes.length} edições`);
+
+                renderizarMelhorMes(mmCache.edicoes, timeId);
+                setTimeout(() => scrollParaUltimaEdicao(mmCache.edicoes), 150);
+            }
+        } catch (e) {
+            if (window.Log) Log.warn("[MELHOR-MES-PARTICIPANTE] ⚠️ Erro ao ler cache:", e);
+        }
+    }
+
+    await carregarMelhorMes(ligaId, timeId, usouCache, dadosCache);
 }
 
 window.inicializarMelhorMesParticipante = inicializarMelhorMesParticipante;
@@ -52,8 +76,11 @@ window.inicializarMelhorMesParticipante = inicializarMelhorMesParticipante;
 // =====================================================================
 // CARREGAR DADOS DO BACKEND
 // =====================================================================
-async function carregarMelhorMes(ligaId, timeId) {
-    mostrarLoading(true);
+async function carregarMelhorMes(ligaId, timeId, usouCache = false, dadosCache = null) {
+    // Se não tem cache, mostrar loading
+    if (!usouCache) {
+        mostrarLoading(true);
+    }
 
     try {
         const response = await fetch(`/api/ligas/${ligaId}/melhor-mes`);
@@ -63,23 +90,49 @@ async function carregarMelhorMes(ligaId, timeId) {
         }
 
         const dados = await response.json();
-        if (window.Log) Log.info("[MELHOR-MES-PARTICIPANTE] ✅ Dados recebidos:", dados);
+        if (window.Log) Log.info("[MELHOR-MES-PARTICIPANTE] ✅ Dados recebidos da API");
 
         mostrarLoading(false);
 
         if (!dados.edicoes || dados.edicoes.length === 0) {
-            mostrarEstadoVazio(true);
+            if (!usouCache) {
+                mostrarEstadoVazio(true);
+            }
             return;
         }
 
-        renderizarMelhorMes(dados.edicoes, timeId);
+        // ✅ v3.6: Salvar no IndexedDB para próxima visita
+        if (window.OfflineCache) {
+            try {
+                await window.OfflineCache.set('melhorMes', ligaId, dados);
+                if (window.Log) Log.info("[MELHOR-MES-PARTICIPANTE] 💾 Cache IndexedDB atualizado");
+            } catch (e) {
+                if (window.Log) Log.warn("[MELHOR-MES-PARTICIPANTE] ⚠️ Erro ao salvar cache:", e);
+            }
+        }
 
-        // ✅ v3.4: Scroll para última edição com dados após renderização
-        setTimeout(() => scrollParaUltimaEdicao(dados.edicoes), 150);
+        // Só re-renderizar se dados mudaram ou se não usou cache antes
+        const dadosMudaram = !usouCache ||
+            !dadosCache ||
+            dadosCache.edicoes?.length !== dados.edicoes?.length ||
+            JSON.stringify(dadosCache.edicoes?.[0]?.campeao) !== JSON.stringify(dados.edicoes?.[0]?.campeao);
+
+        if (dadosMudaram) {
+            renderizarMelhorMes(dados.edicoes, timeId);
+            // ✅ v3.4: Scroll para última edição com dados após renderização
+            setTimeout(() => scrollParaUltimaEdicao(dados.edicoes), 150);
+            if (usouCache && window.Log) {
+                Log.info("[MELHOR-MES-PARTICIPANTE] 🔄 Re-renderizado com dados frescos");
+            }
+        } else if (window.Log) {
+            Log.info("[MELHOR-MES-PARTICIPANTE] ✅ Dados iguais, mantendo renderização do cache");
+        }
     } catch (error) {
         if (window.Log) Log.error("[MELHOR-MES-PARTICIPANTE] ❌ Erro:", error);
         mostrarLoading(false);
-        mostrarErro(error.message);
+        if (!usouCache) {
+            mostrarErro(error.message);
+        }
     }
 }
 
@@ -649,5 +702,5 @@ function mostrarErro(mensagem) {
 }
 
 if (window.Log) Log.info(
-    "[MELHOR-MES-PARTICIPANTE] ✅ Módulo v3.5 carregado (card desempenho + scroll automático)",
+    "[MELHOR-MES-PARTICIPANTE] ✅ Módulo v3.6 carregado (Cache-First IndexedDB)",
 );
