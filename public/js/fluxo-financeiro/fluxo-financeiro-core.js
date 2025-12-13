@@ -874,7 +874,14 @@ window.forcarRefreshExtrato = async function (timeId) {
         console.warn("[FLUXO-CORE] Erro ao invalidar cache:", error);
     }
 
-    window.location.reload();
+    // ✅ v5.1: Recarrega apenas o extrato, sem reload da página
+    if (window.selecionarParticipante) {
+        await window.selecionarParticipante(timeId);
+        console.log(`[FLUXO-CORE] ✅ Extrato recarregado para time ${timeId}`);
+    } else {
+        // Fallback: reload da página se função não disponível
+        window.location.reload();
+    }
 };
 
-console.log("[FLUXO-CORE] ✅ v5.0 carregado (suporte temporada finalizada)");
+console.log("[FLUXO-CORE] ✅ v5.1 carregado (refresh sem reload)");

@@ -1,39 +1,46 @@
 // =====================================================================
-// appVersion.js - Versão automática a cada deploy
+// appVersion.js - Versões fixas separadas para Participante e Admin
+// =====================================================================
+// v3.0: Versões MANUAIS e SEPARADAS
+//       - Só incrementar PARTICIPANTE quando houver mudança no app mobile
+//       - Só incrementar ADMIN quando houver mudança no painel admin
+//       - Evita notificações desnecessárias
 // =====================================================================
 
 const startupTime = new Date();
 
-// ✅ Converter para horário de Brasília (America/Sao_Paulo)
-const brDate = new Date(
-    startupTime.toLocaleString("en-US", { timeZone: "America/Sao_Paulo" }),
-);
+// =====================================================================
+// 🔧 VERSÕES MANUAIS - INCREMENTAR APENAS QUANDO NECESSÁRIO
+// =====================================================================
 
-// Formato brasileiro: DD.MM.YY (dia.mês.ano)
-const version = [
-    String(brDate.getDate()).padStart(2, "0"),
-    String(brDate.getMonth() + 1).padStart(2, "0"),
-    String(brDate.getFullYear()).slice(-2),
-].join(".");
-
-// Build: HHmm (hora e minuto) - diferencia múltiplos deploys no mesmo dia
-const build = [
-    String(brDate.getHours()).padStart(2, "0"),
-    String(brDate.getMinutes()).padStart(2, "0"),
-].join("");
-
-// ✅ Versão única para todo o sistema (formato automático)
-export const APP_VERSION = {
-    version: `${version}.${build}`,
-    build,
-    deployedAt: startupTime.toISOString(),
-    releaseNotes: "Atualização do sistema",
+// ✅ PARTICIPANTE: Incrementar quando houver mudanças no app mobile
+// Última atualização: Correção de valores Mata-Mata no extrato
+export const PARTICIPANTE_VERSION = {
+    version: "2025.12.1", // Formato: YYYY.MM.release
+    build: "1",
+    deployedAt: "2025-12-13T00:00:00.000Z",
+    releaseNotes: "Correção de valores financeiros no extrato",
 };
 
-// Aliases para compatibilidade com rotas separadas
-export const PARTICIPANTE_VERSION = APP_VERSION;
-export const ADMIN_VERSION = APP_VERSION;
+// ✅ ADMIN: Incrementar quando houver mudanças no painel administrativo
+// Última atualização: Títulos editáveis nos campos manuais
+export const ADMIN_VERSION = {
+    version: "2025.12.2", // Formato: YYYY.MM.release
+    build: "2",
+    deployedAt: startupTime.toISOString(),
+    releaseNotes: "Títulos dos campos editáveis no extrato",
+};
 
-console.log(`[APP-VERSION] ✅ v${APP_VERSION.version} (Horário de Brasília)`);
+// =====================================================================
+// Versão geral do sistema (para logs e debug)
+// =====================================================================
+export const APP_VERSION = {
+    version: `P${PARTICIPANTE_VERSION.version}/A${ADMIN_VERSION.version}`,
+    participante: PARTICIPANTE_VERSION.version,
+    admin: ADMIN_VERSION.version,
+    deployedAt: startupTime.toISOString(),
+};
+
+console.log(`[APP-VERSION] ✅ Participante: v${PARTICIPANTE_VERSION.version} | Admin: v${ADMIN_VERSION.version}`);
 
 export default APP_VERSION;

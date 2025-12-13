@@ -523,16 +523,33 @@ Para forçar limpeza de cache em todos os clientes:
 1. Incrementar `CACHE_NAME` no `service-worker.js`
 2. Incrementar `FORCE_CLEAR_KEY` no `index.html` (ex: `sw_force_clear_v7`)
 
-### Versionamento do App
+### Versionamento do App (v3.0 - Versões Manuais Separadas)
 
-Versão automática baseada na data/hora do deploy:
-- **Formato:** `DD.MM.YY.HHmm` (ex: `13.12.25.1430`)
-- **Endpoint:** `GET /api/app/versao`
-- **Badge:** Exibido no header do app (ex: `v13.12.25.1430`)
+O sistema usa versões **MANUAIS e SEPARADAS** para Participante e Admin, evitando notificações desnecessárias.
 
-**Modo Arquivo (Temporada Encerrada):**
-- Não há modal de "nova versão disponível"
-- Apenas o badge é atualizado automaticamente
+**Arquivo de configuração:** `config/appVersion.js`
+
+| Versão | Endpoint | Quando Incrementar |
+|--------|----------|-------------------|
+| **PARTICIPANTE_VERSION** | `GET /api/app/versao` | Mudanças no app mobile |
+| **ADMIN_VERSION** | `GET /api/app/versao/admin` | Mudanças no painel admin |
+
+**Formato:** `YYYY.MM.release` (ex: `2025.12.1`, `2025.12.2`)
+
+**Como incrementar (exemplo):**
+```javascript
+// config/appVersion.js
+export const PARTICIPANTE_VERSION = {
+    version: "2025.12.2", // Incrementar de .1 para .2
+    build: "2",
+    releaseNotes: "Nova funcionalidade X",
+};
+```
+
+**Regra de Ouro:**
+- Mudou algo no **app do participante**? → Incrementar `PARTICIPANTE_VERSION`
+- Mudou algo **apenas no admin**? → Incrementar só `ADMIN_VERSION`
+- O participante **NÃO verá modal** se apenas Admin mudou
 
 ---
 
