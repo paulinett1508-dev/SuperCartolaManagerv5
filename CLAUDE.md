@@ -218,18 +218,27 @@ public/
 │       └── log-manager.js  # Silenciamento de logs em produção
 └── participante/      # App Mobile-First
     ├── js/
-    │   ├── modules/
-    │   │   ├── participante-extrato-ui.js    # Extrato financeiro (v9.1)
-    │   │   └── participante-boas-vindas.js   # Tela inicial (v8.0 cache-first)
-    │   ├── participante-navigation.js        # Navegação + History API (v2.3)
-    │   ├── participante-offline-cache.js     # IndexedDB persistente (v1.0)
-    │   ├── participante-cache-manager.js     # Cache 2 camadas (v2.0)
-    │   ├── participante-auth.js              # Autenticação (v2.2)
-    │   ├── pull-refresh.js                   # Pull-to-refresh + Loading
-    │   └── splash-screen.js                  # Splash Screen inicial (v4.1)
+    │   ├── modules/                          # ✅ TODOS com Cache-First
+    │   │   ├── participante-boas-vindas.js   # v8.0 cache-first
+    │   │   ├── participante-extrato.js       # v3.1 cache-first
+    │   │   ├── participante-extrato-ui.js    # v9.1 renderização
+    │   │   ├── participante-ranking.js       # cache-first
+    │   │   ├── participante-rodadas.js       # cache-first
+    │   │   ├── participante-top10.js         # v4.7 cache-first
+    │   │   ├── participante-pontos-corridos.js # v5.1 cache-first
+    │   │   ├── participante-mata-mata.js     # v6.7 cache-first
+    │   │   ├── participante-artilheiro.js    # v3.7 cache-first
+    │   │   ├── participante-luva-ouro.js     # v4.0 cache-first
+    │   │   └── participante-melhor-mes.js    # v3.6 cache-first
+    │   ├── participante-navigation.js        # v3.0 - Navegação sem travamento
+    │   ├── participante-offline-cache.js     # v2.1 - IndexedDB (12 stores)
+    │   ├── participante-cache-manager.js     # v2.0 - Cache 2 camadas
+    │   ├── participante-auth.js              # v2.2 - Autenticação
+    │   ├── pull-refresh.js                   # v3.1 - Pull-to-refresh + Loading
+    │   └── splash-screen.js                  # v4.1 - Splash Screen inicial
     ├── css/
     │   └── pull-refresh.css
-    └── fronts/        # Templates HTML dos módulos
+    └── fronts/        # ⚠️ Templates HTML (FRAGMENTOS, não documentos completos!)
 ```
 
 ---
@@ -257,7 +266,7 @@ O app mobile utiliza **cache persistente em 2 camadas** para carregamento instan
 
 | Arquivo | Versão | Responsabilidade |
 |---------|--------|------------------|
-| `participante-offline-cache.js` | v1.0 | Gerenciador IndexedDB (baixo nível) |
+| `participante-offline-cache.js` | v2.1 | Gerenciador IndexedDB (baixo nível) |
 | `participante-cache-manager.js` | v2.0 | Cache 2 camadas (API de alto nível) |
 
 ### TTLs Configurados (`OfflineCache.STORES`)
@@ -272,6 +281,9 @@ O app mobile utiliza **cache persistente em 2 camadas** para carregamento instan
 | `top10` | 1h | Top 10 Mitos/Micos |
 | `pontosCorridos` | 1h | Pontos Corridos |
 | `mataMata` | 1h | Mata-Mata |
+| `artilheiro` | 1h | Artilheiro Campeão (v2.1) |
+| `luvaOuro` | 1h | Luva de Ouro (v2.1) |
+| `melhorMes` | 1h | Melhor do Mês (v2.1) |
 | `config` | 24h | Configurações gerais |
 
 ### Estratégia: Cache-First + Stale-While-Revalidate
