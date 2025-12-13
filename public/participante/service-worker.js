@@ -1,10 +1,11 @@
 // =====================================================================
-// service-worker.js - Service Worker do PWA v2.0 (OTIMIZADO)
+// service-worker.js - Service Worker do PWA v3.0 (OTIMIZADO)
 // Destino: /participante/service-worker.js
-// ✅ v2.0: Cache First para assets, Network Only para HTML/APIs
+// ✅ v3.0: Cache First para assets, Network Only para HTML/APIs
+// ✅ v3.0: Força limpeza de caches antigos
 // =====================================================================
 
-const CACHE_NAME = "super-cartola-v3";
+const CACHE_NAME = "super-cartola-v4";
 
 // Arquivos essenciais para cache inicial
 const STATIC_ASSETS = [

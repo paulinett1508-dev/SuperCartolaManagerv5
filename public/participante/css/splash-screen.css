@@ -155,8 +155,8 @@
     width: 180px;
     height: 180px;
     object-fit: contain;
-    filter: drop-shadow(0 10px 30px rgba(0, 0, 0, 0.5));
     display: block; /* Evitar espaço extra de inline */
+    /* Removido drop-shadow que pode causar duplicação em mobile */
 }
 
 /* Garantir que não haja pseudo-elementos duplicando o logo */
@@ -166,6 +166,7 @@
 .splash-logo-container::after {
     display: none !important;
     content: none !important;
+    background: none !important;
 }
 
 /* ========== LOADER ========== */

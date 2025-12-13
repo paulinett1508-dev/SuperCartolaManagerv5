@@ -84,6 +84,52 @@
         <!-- ✅ Sistema de Versionamento -->
         <link rel="stylesheet" href="/css/app/app-version.css" />
 
+        <!-- ✅ CSS CRÍTICO INLINE - Previne duplicação de logo (anti-cache) -->
+        <style id="critical-splash-fix">
+            /* Splash screen SEMPRE começa oculta */
+            #splashScreen {
+                opacity: 0 !important;
+                visibility: hidden !important;
+                pointer-events: none !important;
+            }
+            /* Só mostra quando JS adiciona classe .animate */
+            #splashScreen.animate {
+                opacity: 1 !important;
+                visibility: visible !important;
+                pointer-events: all !important;
+            }
+            /* Garante que .hidden sempre oculta */
+            #splashScreen.hidden {
+                opacity: 0 !important;
+                visibility: hidden !important;
+                display: none !important;
+            }
+            /* Logo glow é APENAS cor sólida laranja blur, NUNCA imagem */
+            .splash-logo-glow {
+                background: #FF4500 !important;
+                background-image: none !important;
+                z-index: 0 !important;
+            }
+            /* Apenas UM logo visível - sem filtros que causam duplicação */
+            .splash-logo-container {
+                position: relative !important;
+            }
+            .splash-logo-container img,
+            .splash-logo-img {
+                position: relative !important;
+                z-index: 1 !important;
+                filter: none !important; /* Remove drop-shadow problemático */
+            }
+            /* Bloquear pseudo-elementos */
+            .splash-logo-container::before,
+            .splash-logo-container::after,
+            .splash-logo-img::before,
+            .splash-logo-img::after {
+                display: none !important;
+                content: none !important;
+            }
+        </style>
+
         <style>
             .material-symbols-outlined {
                 font-family: "Material Symbols Outlined";
@@ -421,6 +467,37 @@
         </style>
     </head>
     <body class="bg-background-dark font-display text-white">
+
+        <!-- ✅ FORCE CACHE CLEAR - Limpa TODOS os caches antigos -->
+        <script>
+            (function() {
+                var FORCE_CLEAR_KEY = 'sw_force_clear_v4';
+
+                // Se ainda não limpou nesta versão, LIMPA TUDO
+                if (!localStorage.getItem(FORCE_CLEAR_KEY) && 'caches' in window) {
+                    // Deletar TODOS os caches para garantir CSS novo
+                    caches.keys().then(function(names) {
+                        return Promise.all(names.map(function(name) {
+                            console.log('[CACHE] Limpando:', name);
+                            return caches.delete(name);
+                        }));
+                    }).then(function() {
+                        console.log('[CACHE] Todos os caches limpos!');
+                        localStorage.setItem(FORCE_CLEAR_KEY, Date.now().toString());
+                    });
+
+                    // Desregistrar Service Workers antigos
+                    if ('serviceWorker' in navigator) {
+                        navigator.serviceWorker.getRegistrations().then(function(registrations) {
+                            registrations.forEach(function(reg) {
+                                console.log('[SW] Desregistrando:', reg.scope);
+                                reg.unregister();
+                            });
+                        });
+                    }
+                }
+            })();
+        </script>
 
         <!-- ✅ OVERLAY DE RELOAD (Vidro Fosco) - ANTES DE TUDO -->
         <div id="reload-glass-overlay">
