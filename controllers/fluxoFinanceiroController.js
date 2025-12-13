@@ -1,5 +1,8 @@
 /**
- * FLUXO-FINANCEIRO-CONTROLLER v7.1
+ * FLUXO-FINANCEIRO-CONTROLLER v7.2
+ * ✅ v7.2: FIX DUPLICAÇÃO - MATA-MATA removido do loop de rodadas
+ *   - Estava calculando MM por rodada E histórico (duplicando valores)
+ *   - Agora só calcula via getResultadosMataMataCompleto() (histórico)
  * ✅ v7.1: FIX - MATA-MATA histórico calculado fora do loop (mesmo padrão TOP10)
  *   - Transações de MM são adicionadas mesmo que cache já esteja atualizado
  * ✅ v7.0: CORREÇÃO CRÍTICA - TOP10 é ranking HISTÓRICO, não por rodada!
@@ -17,7 +20,7 @@ import Rodada from "../models/Rodada.js";
 import ExtratoFinanceiroCache from "../models/ExtratoFinanceiroCache.js";
 import FluxoFinanceiroCampos from "../models/FluxoFinanceiroCampos.js";
 import Top10Cache from "../models/Top10Cache.js";
-import { calcularMataMataParaTime, getResultadosMataMataCompleto } from "./mata-mata-backend.js";
+import { getResultadosMataMataCompleto } from "./mata-mata-backend.js";
 
 // ============================================================================
 // 🔧 CONSTANTES E CONFIGURAÇÕES
@@ -340,21 +343,8 @@ async function calcularConfrontoPontosCorridos(
 // 🥊 MATA-MATA (via módulo mata-mata-backend.js)
 // ============================================================================
 
-// Função integrada - usa o módulo completo
-async function calcularMataMataRodada(
-    ligaId,
-    timeId,
-    rodadaNumero,
-    rodadaAtual,
-) {
-    // Delega para o módulo que implementa a lógica completa do frontend
-    return await calcularMataMataParaTime(
-        ligaId,
-        timeId,
-        rodadaNumero,
-        rodadaAtual,
-    );
-}
+// ✅ v7.2: MATA-MATA é calculado via getResultadosMataMataCompleto() em getExtratoFinanceiro()
+// Não há mais função por rodada - cálculo é feito historicamente (mesmo padrão TOP10)
 
 // ============================================================================
 // 🎯 CÁLCULO PRINCIPAL DE UMA RODADA
@@ -434,29 +424,9 @@ async function calcularFinanceiroDaRodada(
     }
 
     // 4. MATA-MATA (apenas SuperCartola)
-    if (
-        liga.modulos_ativos?.mataMata !== false &&
-        String(ligaId) === ID_SUPERCARTOLA_2025
-    ) {
-        const resultadoMM = await calcularMataMataRodada(
-            ligaId,
-            timeId,
-            rodadaNumero,
-            rodadaAtual,
-        );
-        if (resultadoMM) {
-            transacoes.push({
-                rodada: rodadaNumero,
-                tipo: "MATA_MATA",
-                descricao: resultadoMM.descricao,
-                valor: resultadoMM.valor,
-                fase: resultadoMM.fase,
-                edicao: resultadoMM.edicao,
-                data: new Date(),
-            });
-            saldoRodada += resultadoMM.valor;
-        }
-    }
+    // ✅ v7.2: MATA-MATA é calculado SEPARADAMENTE (histórico completo)
+    // NÃO calcular por rodada! Ver cálculo histórico em getExtratoFinanceiro()
+    // Mesmo padrão aplicado ao TOP10
 
     return { transacoes, saldo: saldoRodada };
 }
@@ -967,4 +937,4 @@ export const getFluxoFinanceiroLiga = async (ligaId, rodadaNumero) => {
     }
 };
 
-console.log("[FLUXO-CONTROLLER] ✅ v7.1 carregado (MATA-MATA HISTÓRICO + TOP10)");
+console.log("[FLUXO-CONTROLLER] ✅ v7.2 carregado (FIX DUPLICAÇÃO MM)");
