@@ -1,5 +1,6 @@
 // =====================================================================
-// PARTICIPANTE MATA-MATA v6.7 (Cache-First IndexedDB)
+// PARTICIPANTE MATA-MATA v6.8 (Cache-First IndexedDB)
+// ✅ v6.8: FIX Comparação de tipos (string vs number) em timeId
 // ✅ v6.7: Cache-first com IndexedDB para carregamento instantâneo
 // Integrado com HTML template - Layout Cards + Correção "não está nesta fase"
 // Nota: Mata-mata não requer tratamento especial de inativos pois é por eliminação
@@ -15,9 +16,12 @@ const EDICOES_MATA_MATA = [
 
 const FASES = ["primeira", "oitavas", "quartas", "semis", "final"];
 
+// ✅ v6.8: FIX - Sempre retorna number para comparação consistente
+// Banco tem timeId inconsistente: às vezes string "1323370", às vezes number 1323370
 function extrairTimeId(time) {
   if (!time) return null;
-  return time.time_id || time.timeId || time.id || null;
+  const id = time.time_id || time.timeId || time.id || null;
+  return id ? parseInt(id, 10) : null;
 }
 
 let estado = {
@@ -35,7 +39,7 @@ let estado = {
 // INICIALIZAÇÃO
 // =====================================================================
 export async function inicializarMataMata(params) {
-  if (window.Log) Log.info("[MATA-MATA] 🚀 Inicializando v6.7...", params);
+  if (window.Log) Log.info("[MATA-MATA] 🚀 Inicializando v6.8...", params);
 
   // ✅ CORREÇÃO: Usar participanteAuth como fallback em vez de localStorage (evita dados cruzados entre ligas)
   estado.ligaId = params?.ligaId || window.participanteAuth?.ligaId;
