@@ -178,8 +178,8 @@
             }
 
             .stat-icon-wrapper.mito {
-                background: rgba(234, 179, 8, 0.2);
-                color: #eab308;
+                background: rgba(34, 197, 94, 0.2);
+                color: #22c55e;
             }
             .stat-icon-wrapper.mico {
                 background: rgba(239, 68, 68, 0.2);
@@ -216,7 +216,7 @@
                 overflow: hidden;
             }
             .progress-bar.mito .progress-fill {
-                background: #eab308;
+                background: #22c55e;
             }
             .progress-bar.mico .progress-fill {
                 background: #ef4444;
@@ -301,24 +301,62 @@
                 opacity: 0.3;
                 cursor: not-allowed;
             }
+            /* ✅ v4.3: Cores baseadas APENAS no saldo financeiro */
+            /* Jogou sem destaque especial - cor definida pela classe de saldo */
             .rodada-card-compacto.jogou {
+                /* Base - será sobrescrito pelas classes de saldo */
+            }
+            /* Saldo NEUTRO = Cinza (não ganhou nem perdeu) */
+            .rodada-card-compacto.saldo-neutro {
+                background: #262626;
+                border-color: transparent;
+            }
+            .rodada-card-compacto.saldo-neutro:hover:not(.futuro) {
+                background: #333;
+            }
+            /* Saldo POSITIVO = Verde (ganhou mais do que perdeu) */
+            .rodada-card-compacto.saldo-positivo {
+                background: #0D1F18;
                 border-color: #22c55e;
             }
+            .rodada-card-compacto.saldo-positivo:hover:not(.futuro) {
+                background: #0F2B1F;
+                border-color: #4ade80;
+            }
+            /* Saldo NEGATIVO = Vermelho (perdeu mais do que ganhou) */
+            .rodada-card-compacto.saldo-negativo {
+                background: #1F0D0D;
+                border-color: #ef4444;
+            }
+            .rodada-card-compacto.saldo-negativo:hover:not(.futuro) {
+                background: #2B0F0F;
+                border-color: #f87171;
+            }
+            /* MITO = Verde INTENSO (1º lugar, sempre ganhou) */
             .rodada-card-compacto.mito {
                 background: linear-gradient(
                     135deg,
-                    rgba(234, 179, 8, 0.2) 0%,
-                    rgba(234, 179, 8, 0.05) 100%
+                    rgba(34, 197, 94, 0.3) 0%,
+                    rgba(34, 197, 94, 0.1) 100%
                 );
-                border-color: #eab308;
+                border-color: #22c55e;
+                box-shadow: 0 0 12px rgba(34, 197, 94, 0.3);
             }
+            .rodada-card-compacto.mito:hover {
+                box-shadow: 0 0 16px rgba(34, 197, 94, 0.5);
+            }
+            /* MICO = Vermelho INTENSO (último lugar, sempre perdeu) */
             .rodada-card-compacto.mico {
                 background: linear-gradient(
                     135deg,
-                    rgba(239, 68, 68, 0.2) 0%,
-                    rgba(239, 68, 68, 0.05) 100%
+                    rgba(239, 68, 68, 0.3) 0%,
+                    rgba(239, 68, 68, 0.1) 100%
                 );
                 border-color: #ef4444;
+                box-shadow: 0 0 12px rgba(239, 68, 68, 0.3);
+            }
+            .rodada-card-compacto.mico:hover {
+                box-shadow: 0 0 16px rgba(239, 68, 68, 0.5);
             }
             .rodada-card-compacto.parcial {
                 background: linear-gradient(
@@ -365,13 +403,13 @@
             .badge-destaque .material-symbols-outlined {
                 font-size: 14px;
             }
-            /* Badge MITO (troféu dourado) */
+            /* Badge MITO (troféu verde) */
             .rodada-card-compacto.mito .badge-destaque {
-                background: linear-gradient(135deg, #ffd700, #ffb700);
-                box-shadow: 0 2px 6px rgba(255, 215, 0, 0.5);
+                background: linear-gradient(135deg, #22c55e, #16a34a);
+                box-shadow: 0 2px 6px rgba(34, 197, 94, 0.5);
             }
             .rodada-card-compacto.mito .badge-destaque .material-symbols-outlined {
-                color: #1a1a1a;
+                color: #fff;
             }
             /* Badge MICO (polegar vermelho) */
             .rodada-card-compacto.mico .badge-destaque {

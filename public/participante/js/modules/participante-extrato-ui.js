@@ -1,20 +1,18 @@
 // =====================================================
-// MÓDULO: UI DO EXTRATO PARTICIPANTE - v9.1 LAYOUT HORIZONTAL
+// MÓDULO: UI DO EXTRATO PARTICIPANTE - v10.0 NOVO DESIGN
 // =====================================================
-// ✅ v9.1: Layout 100% horizontal e nomes completos
-//    - Tudo em uma linha: R## | Badges | Extras | Total
-//    - TOP10: "1º MELHOR MITO +30,00" ou "10º PIOR MICO -12,00"
-//    - Nomes completos: "Pontos Corridos" e "Mata-Mata"
-//    - Wrap natural apenas em telas muito pequenas
+// ✅ v10.0: Novo design visual baseado em referência
+//    - Cards com cores de fundo distintas: #0D1F18 (ganho), #1F0D0D (perda), #1c1c1e (neutro)
+//    - Barra lateral esquerda como indicador visual (verde/vermelho)
+//    - Badges com novo estilo: MITO (amarelo), MICO (vermelho), G/Z
+//    - Layout em 2 linhas quando tem Top10
+//    - Saldo com cores: text-green-400 / text-red-400 / text-zinc-500
+// ✅ v9.1: Layout horizontal e nomes completos
 // ✅ v9.0: Redesign - Badge BANCO unificado com valor
 // ✅ v8.7: CORREÇÃO CRÍTICA - Campos manuais não duplicados
-//    - Backend já soma campos em resumo.saldo
-//    - Frontend NÃO soma novamente (estava duplicando!)
 // ✅ v8.4: Sistema de zonas G1-G11 (ganho) e Z10-Z1 (perda)
-// ✅ v8.3: Casas decimais, cores nas legendas, nomes completos
-// ✅ v8.2: Valores detalhados por componente em cada rodada
 
-if (window.Log) Log.info("[EXTRATO-UI] 🎨 Módulo de UI v8.8 VISUAL MELHORADO");
+if (window.Log) Log.info("[EXTRATO-UI] 🎨 Módulo de UI v10.0 NOVO DESIGN");
 
 // ===== CONFIGURAÇÃO DE FAIXAS POR LIGA (COM SUPORTE TEMPORAL) =====
 const FAIXAS_PREMIACAO = {
@@ -344,7 +342,7 @@ function renderizarConteudoCompleto(container, extrato) {
     `;
 }
 
-// ===== v8.4: CARDS DE RODADAS COM ZONAS G/Z =====
+// ===== v10.0: CARDS DE RODADAS - NOVO DESIGN COM BARRA LATERAL =====
 function renderizarCardsRodadas(rodadas, ligaId) {
     if (!rodadas || rodadas.length === 0) {
         return `
@@ -372,76 +370,87 @@ function renderizarCardsRodadas(rodadas, ligaId) {
             const saldoFormatado = saldo.toFixed(2).replace(".", ",");
             const positivo = saldo >= 0;
 
-            // Cores do card baseado na zona
-            let bgColor = "bg-zinc-800/30";
-            let borderColor = "border-zinc-700/20";
-            let faixaIcon = "remove";
-            let faixaColor = "text-zinc-500";
+            // ===== v10.0: CORES DO CARD E BARRA LATERAL =====
+            const ultimaPosicao = faixas.debito?.fim || faixas.totalTimes;
+            const isMito = r.posicao === 1;
+            const isMico = r.posicao === ultimaPosicao;
 
-            if (tipoZona === "ganho") {
-                bgColor = "bg-emerald-950/40";
-                borderColor = "border-emerald-500/20";
-                faixaIcon = "arrow_upward";
-                faixaColor = "text-emerald-400";
-            } else if (tipoZona === "perda") {
-                bgColor = "bg-rose-950/40";
-                borderColor = "border-rose-500/20";
-                faixaIcon = "arrow_downward";
-                faixaColor = "text-rose-400";
+            // Cores de fundo e borda baseadas no tipo
+            let cardBg, cardBorder, barraLateral;
+
+            if (tipoZona === "ganho" || saldo > 0) {
+                // Card positivo - fundo verde escuro
+                cardBg = "bg-[#0D1F18]";
+                cardBorder = "border-green-900/30";
+                // Barra: sólida para MITO, semi-transparente para G2+
+                barraLateral = isMito ? "bg-green-500" : "bg-green-500/50";
+            } else if (tipoZona === "perda" || saldo < 0) {
+                // Card negativo - fundo vermelho escuro
+                cardBg = "bg-[#1F0D0D]";
+                cardBorder = "border-red-900/30";
+                // Barra: sólida para MICO, semi-transparente para Z2+
+                barraLateral = isMico ? "bg-red-600" : "bg-red-800/50";
+            } else {
+                // Card neutro
+                cardBg = "bg-[#1c1c1e]";
+                cardBorder = "border-zinc-800";
+                barraLateral = null; // Sem barra
             }
 
-            // ===== v9.0: DESIGN INTELIGENTE - BADGE ÚNICO COM VALOR =====
-            const ultimaPosicao = faixas.debito?.fim || faixas.totalTimes;
+            // ===== v10.0: BADGES COM NOVO ESTILO =====
             const bonusFormatado = Math.abs(bonusOnus).toFixed(2).replace(".", ",");
             const sinalBonus = bonusOnus > 0 ? "+" : "-";
 
-            // Badge BANCO: Posição + Valor (MITO/MICO para 1º/último, ou G/Z para demais)
+            // Badge BANCO: MITO/MICO ou G/Z
             let badgeBanco = "";
-            if (r.posicao === 1 && bonusOnus !== 0) {
-                // 1º lugar = MITO da rodada com valor
-                badgeBanco = `<span class="inline-flex items-center gap-1 text-[11px] bg-gradient-to-r from-amber-500/30 to-yellow-500/20 text-amber-300 px-2.5 py-1 rounded-lg font-bold border border-amber-500/30">
-                    <span class="material-symbols-outlined text-sm" style="color: #ffd700;">emoji_events</span>
+            if (isMito && bonusOnus !== 0) {
+                // MITO - amarelo/dourado
+                badgeBanco = `<span class="inline-flex items-center gap-1 text-[10px] bg-yellow-900/40 text-yellow-400 border border-yellow-700/30 px-2 py-1 rounded font-bold">
+                    <span class="material-symbols-outlined text-[12px]">emoji_events</span>
                     MITO ${sinalBonus}${bonusFormatado}
                 </span>`;
-            } else if (r.posicao === ultimaPosicao && bonusOnus !== 0) {
-                // Último lugar = MICO da rodada com valor
-                badgeBanco = `<span class="inline-flex items-center gap-1 text-[11px] bg-gradient-to-r from-rose-500/30 to-red-500/20 text-rose-300 px-2.5 py-1 rounded-lg font-bold border border-rose-500/30">
-                    <span class="material-symbols-outlined text-sm" style="color: #ef4444;">thumb_down</span>
+            } else if (isMico && bonusOnus !== 0) {
+                // MICO - vermelho
+                badgeBanco = `<span class="inline-flex items-center gap-1 text-[10px] bg-red-900/40 text-red-400 border border-red-700/30 px-2 py-1 rounded font-bold">
+                    <span class="material-symbols-outlined text-[12px]">thumb_down</span>
                     MICO ${sinalBonus}${bonusFormatado}
                 </span>`;
             } else if (zonaLabel && bonusOnus !== 0) {
-                // Zona G/Z com valor
-                const corBadge = tipoZona === "ganho"
-                    ? "bg-emerald-500/20 text-emerald-300 border-emerald-500/30"
-                    : "bg-rose-500/20 text-rose-300 border-rose-500/30";
-                badgeBanco = `<span class="inline-flex items-center gap-1 text-[11px] ${corBadge} px-2.5 py-1 rounded-lg font-bold border">
-                    ${zonaLabel} ${sinalBonus}${bonusFormatado}
-                </span>`;
+                // Zona G/Z
+                if (tipoZona === "ganho") {
+                    badgeBanco = `<span class="inline-flex items-center text-[10px] bg-green-900/40 text-green-400 border border-green-700/30 px-2 py-1 rounded font-bold">
+                        ${zonaLabel} ${sinalBonus}${bonusFormatado}
+                    </span>`;
+                } else {
+                    badgeBanco = `<span class="inline-flex items-center text-[10px] bg-red-900/30 text-red-300 border border-red-800/30 px-2 py-1 rounded font-bold">
+                        ${zonaLabel} ${sinalBonus}${bonusFormatado}
+                    </span>`;
+                }
             }
 
-            // Badge TOP10 histórico (separado do banco) - "1º MELHOR MITO" ou "10º PIOR MICO"
+            // Badge TOP10 histórico - "Xº MELHOR MITO" ou "Xº PIOR MICO"
             let badgeTop10 = "";
             if (top10 !== 0) {
                 const posTop10 = calcularPosicaoTop10(top10, ligaId);
                 const valorTop10 = Math.abs(top10).toFixed(2).replace(".", ",");
                 if (top10 > 0) {
-                    badgeTop10 = `<span class="inline-flex items-center gap-1 text-[10px] bg-gradient-to-r from-amber-600/30 to-orange-500/20 text-amber-200 px-2 py-0.5 rounded-full font-semibold border border-amber-500/40">
-                        <span class="material-symbols-outlined text-xs" style="color: #ffd700;">military_tech</span>
+                    badgeTop10 = `<span class="inline-flex items-center gap-1 text-[10px] bg-yellow-900/20 text-yellow-500 border border-yellow-800/20 px-2 py-0.5 rounded font-medium">
+                        <span class="material-symbols-outlined text-[12px]">military_tech</span>
                         ${posTop10}º MELHOR MITO +${valorTop10}
                     </span>`;
                 } else {
-                    badgeTop10 = `<span class="inline-flex items-center gap-1 text-[10px] bg-gradient-to-r from-rose-600/30 to-red-500/20 text-rose-200 px-2 py-0.5 rounded-full font-semibold border border-rose-500/40">
-                        <span class="material-symbols-outlined text-xs" style="color: #ef4444;">sentiment_sad</span>
+                    badgeTop10 = `<span class="inline-flex items-center gap-1 text-[10px] bg-rose-900/20 text-rose-400 border border-rose-800/20 px-2 py-0.5 rounded font-medium">
+                        <span class="material-symbols-outlined text-[12px]">sentiment_sad</span>
                         ${posTop10}º PIOR MICO -${valorTop10}
                     </span>`;
                 }
             }
 
-            // Itens extras inline (Pontos Corridos e Mata-Mata) - nomes completos
+            // Itens extras inline (Pontos Corridos e Mata-Mata)
             const extrasInline = [];
 
             if (pontosCorridos !== 0) {
-                const corPC = pontosCorridos > 0 ? "text-emerald-400" : "text-rose-400";
+                const corPC = pontosCorridos > 0 ? "text-green-400" : "text-red-400";
                 const sinalPC = pontosCorridos > 0 ? "+" : "";
                 extrasInline.push(
                     `<span class="inline-flex items-center gap-1 text-[10px] ${corPC}">
@@ -452,7 +461,7 @@ function renderizarCardsRodadas(rodadas, ligaId) {
             }
 
             if (mataMata !== 0) {
-                const corMM = mataMata > 0 ? "text-emerald-400" : "text-rose-400";
+                const corMM = mataMata > 0 ? "text-green-400" : "text-red-400";
                 const sinalMM = mataMata > 0 ? "+" : "";
                 extrasInline.push(
                     `<span class="inline-flex items-center gap-1 text-[10px] ${corMM}">
@@ -464,22 +473,49 @@ function renderizarCardsRodadas(rodadas, ligaId) {
 
             // Texto "Sem movimentação" para rodadas neutras
             const semMovimentacao = (saldo === 0 && !badgeBanco && !badgeTop10 && extrasInline.length === 0)
-                ? `<span class="text-[10px] text-white/30">Sem movimentação</span>` : "";
+                ? `<span class="text-xs text-zinc-500">Sem movimentação</span>` : "";
 
-            return `
-            <div class="${bgColor} ${borderColor} border rounded-xl p-3 transition-all hover:border-white/10">
-                <div class="flex items-center justify-between gap-2">
-                    <div class="flex items-center gap-2 min-w-0 flex-1 flex-wrap">
-                        <span class="text-sm font-bold text-white/90 flex-shrink-0">R${r.rodada}</span>
-                        ${badgeBanco}
-                        ${badgeTop10}
-                        ${extrasInline.join("")}
-                        ${semMovimentacao}
+            // ===== v10.0: LAYOUT COM BARRA LATERAL =====
+            // Se tem Top10, usar layout em 2 linhas
+            const temTop10 = badgeTop10 !== "";
+
+            if (temTop10) {
+                // Layout 2 linhas para cards com Top10
+                return `
+                <div class="${cardBg} rounded-xl border ${cardBorder} p-4 relative overflow-hidden">
+                    ${barraLateral ? `<div class="absolute left-0 top-0 bottom-0 w-1 ${barraLateral}"></div>` : ""}
+                    <div class="flex justify-between items-start">
+                        <div class="flex flex-col space-y-2">
+                            <div class="flex items-center space-x-3">
+                                <span class="text-white font-bold text-sm w-8">R${r.rodada}</span>
+                                ${badgeBanco}
+                            </div>
+                            <div class="ml-11">
+                                ${badgeTop10}
+                            </div>
+                            ${extrasInline.length > 0 ? `<div class="flex items-center gap-2 ml-11 flex-wrap">${extrasInline.join("")}</div>` : ""}
+                        </div>
+                        <span class="text-lg font-bold ${saldo === 0 ? "text-zinc-500" : positivo ? "text-green-400" : "text-red-400"}">${saldo > 0 ? "+" : ""}${saldoFormatado}</span>
                     </div>
-                    <span class="text-base font-bold ${saldo === 0 ? "text-white/30" : positivo ? "text-emerald-400" : "text-rose-400"} flex-shrink-0">${saldo > 0 ? "+" : ""}${saldoFormatado}</span>
                 </div>
-            </div>
-        `;
+            `;
+            } else {
+                // Layout 1 linha para cards simples
+                return `
+                <div class="${cardBg} rounded-xl border ${cardBorder} p-4 relative overflow-hidden">
+                    ${barraLateral ? `<div class="absolute left-0 top-0 bottom-0 w-1 ${barraLateral}"></div>` : ""}
+                    <div class="flex justify-between items-center">
+                        <div class="flex items-center space-x-3 flex-wrap gap-y-1">
+                            <span class="text-white font-bold text-sm w-8">R${r.rodada}</span>
+                            ${badgeBanco}
+                            ${semMovimentacao}
+                            ${extrasInline.join("")}
+                        </div>
+                        <span class="text-lg font-bold ${saldo === 0 ? "text-zinc-500" : positivo ? "text-green-400" : "text-red-400"}">${saldo > 0 ? "+" : ""}${saldoFormatado}</span>
+                    </div>
+                </div>
+            `;
+            }
         })
         .join("");
 }
@@ -963,4 +999,4 @@ function addCategoria(obj, nome, valor, rodada, icon) {
     }
 }
 
-if (window.Log) Log.info("[EXTRATO-UI] ✅ Módulo v8.5 (tratamento de erros melhorado)");
+if (window.Log) Log.info("[EXTRATO-UI] ✅ Módulo v10.0 carregado com sucesso");

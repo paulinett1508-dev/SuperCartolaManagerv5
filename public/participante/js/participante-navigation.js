@@ -23,9 +23,22 @@ class ParticipanteNavigation {
             artilheiro: "/participante/fronts/artilheiro.html",
             "luva-ouro": "/participante/fronts/luva-ouro.html",
         };
+
+        // ✅ v2.2: Controles para evitar operações duplicadas
+        this._inicializando = false;
+        this._navegando = false;
+        this._ultimaNavegacao = 0;
+        this._debounceMs = 300; // Mínimo entre navegações
     }
 
     async inicializar() {
+        // ✅ v2.2: Evitar inicialização duplicada
+        if (this._inicializando) {
+            if (window.Log) Log.debug('PARTICIPANTE-NAV', '⏸️ Inicialização já em andamento, ignorando...');
+            return;
+        }
+        this._inicializando = true;
+
         if (window.Log) Log.info('PARTICIPANTE-NAV', 'Inicializando navegação...');
 
         // Aguardar dados do participante
@@ -63,51 +76,66 @@ class ParticipanteNavigation {
     async aguardarDadosParticipante() {
         if (window.Log) Log.debug('PARTICIPANTE-NAV', 'Aguardando dados do participante...');
 
-        // Tentar obter dados da sessão
-        let tentativas = 0;
-        const maxTentativas = 10;
+        // ✅ v2.0: PRIMEIRO tentar obter dados do participanteAuth (já carregado)
+        if (window.participanteAuth && window.participanteAuth.participante) {
+            this.participanteData = {
+                timeId: window.participanteAuth.timeId,
+                ligaId: window.participanteAuth.ligaId,
+                nomeCartola: window.participanteAuth.participante.participante?.nome_cartola || "Participante",
+                nomeTime: window.participanteAuth.participante.participante?.nome_time || "Meu Time",
+            };
+            if (window.Log) Log.info('PARTICIPANTE-NAV', '✅ Dados obtidos do Auth (sem requisição extra)');
+            return;
+        }
 
-        while (!this.participanteData && tentativas < maxTentativas) {
-            try {
-                const response = await fetch("/api/participante/auth/session", {
-                    credentials: "include",
-                });
+        // ✅ v2.0: Se Auth ainda não terminou, aguardar evento
+        return new Promise((resolve, reject) => {
+            const timeout = setTimeout(() => {
+                if (window.Log) Log.error('PARTICIPANTE-NAV', '❌ Timeout aguardando auth');
+                window.location.href = "/participante-login.html";
+                reject(new Error('Timeout'));
+            }, 5000);
 
-                if (response.ok) {
-                    const data = await response.json();
-                    if (data.authenticated && data.participante) {
-                        this.participanteData = {
-                            timeId: data.participante.timeId,
-                            ligaId: data.participante.ligaId,
-                            nomeCartola:
-                                data.participante.participante?.nome_cartola ||
-                                "Participante",
-                            nomeTime:
-                                data.participante.participante?.nome_time ||
-                                "Meu Time",
-                        };
-                        if (window.Log) Log.info('PARTICIPANTE-NAV', '✅ Dados obtidos');
-                        return;
-                    }
+            window.addEventListener('participante-auth-ready', (event) => {
+                clearTimeout(timeout);
+                const { participante, ligaId, timeId, ligaData } = event.detail;
+                this.participanteData = {
+                    timeId: timeId,
+                    ligaId: ligaId,
+                    nomeCartola: participante.participante?.nome_cartola || "Participante",
+                    nomeTime: participante.participante?.nome_time || "Meu Time",
+                };
+                // ✅ v2.1: Guardar dados da liga para evitar requisição extra
+                if (ligaData) {
+                    this._ligaDataFromEvent = ligaData;
                 }
-            } catch (error) {
-                if (window.Log) Log.warn('PARTICIPANTE-NAV', 'Tentativa', tentativas + 1, 'falhou:', error);
-            }
-
-            tentativas++;
-            await new Promise((resolve) => setTimeout(resolve, 200));
-        }
-
-        if (!this.participanteData) {
-            if (window.Log) Log.error('PARTICIPANTE-NAV', '❌ Não foi possível obter dados do participante');
-            window.location.href = "/participante-login.html";
-        }
+                if (window.Log) Log.info('PARTICIPANTE-NAV', '✅ Dados obtidos via evento Auth');
+                resolve();
+            }, { once: true });
+        });
     }
 
     async carregarModulosAtivos() {
         if (window.Log) Log.debug('PARTICIPANTE-NAV', '🔍 Buscando configuração de módulos...');
 
         try {
+            // ✅ v2.1: PRIMEIRO tentar usar dados da liga do Auth (já carregados)
+            if (window.participanteAuth && window.participanteAuth.ligaDataCache) {
+                const liga = window.participanteAuth.ligaDataCache;
+                this.modulosAtivos = liga.modulos_ativos || {};
+                if (window.Log) Log.debug('PARTICIPANTE-NAV', '💾 Módulos obtidos do cache Auth (sem requisição)');
+                return;
+            }
+
+            // ✅ v2.1: Se Auth já passou os dados via evento, usar ligaData
+            if (this._ligaDataFromEvent) {
+                this.modulosAtivos = this._ligaDataFromEvent.modulos_ativos || {};
+                if (window.Log) Log.debug('PARTICIPANTE-NAV', '💾 Módulos obtidos via evento Auth');
+                return;
+            }
+
+            // Fallback: buscar da API (só se cache não disponível)
+            if (window.Log) Log.debug('PARTICIPANTE-NAV', '📡 Buscando módulos da API (fallback)...');
             const response = await fetch(
                 `/api/ligas/${this.participanteData.ligaId}`,
             );
@@ -118,7 +146,7 @@ class ParticipanteNavigation {
             const liga = await response.json();
             this.modulosAtivos = liga.modulos_ativos || {};
 
-            if (window.Log) Log.debug('PARTICIPANTE-NAV', '📋 Módulos ativos recebidos');
+            if (window.Log) Log.debug('PARTICIPANTE-NAV', '📋 Módulos ativos recebidos (API)');
         } catch (error) {
             if (window.Log) Log.error('PARTICIPANTE-NAV', '❌ Erro ao buscar módulos:', error);
             this.modulosAtivos = {
@@ -417,11 +445,32 @@ class ParticipanteNavigation {
     }
 
     async navegarPara(moduloId, forcarReload = false, voltandoHistorico = false) {
+        // ✅ v2.2: Debounce para evitar navegações duplicadas
+        const agora = Date.now();
+        if (this._navegando) {
+            if (window.Log) Log.debug('PARTICIPANTE-NAV', '⏸️ Navegação já em andamento, ignorando...');
+            return;
+        }
+        if (agora - this._ultimaNavegacao < this._debounceMs) {
+            if (window.Log) Log.debug('PARTICIPANTE-NAV', '⏸️ Debounce: navegação muito rápida, ignorando...');
+            return;
+        }
+
+        // ✅ v2.2: Se está navegando para o mesmo módulo, ignorar (exceto forçar reload)
+        if (moduloId === this.moduloAtual && !forcarReload) {
+            if (window.Log) Log.debug('PARTICIPANTE-NAV', '⏸️ Já está no módulo, ignorando...');
+            return;
+        }
+
+        this._navegando = true;
+        this._ultimaNavegacao = agora;
+
         if (window.Log) Log.info('PARTICIPANTE-NAV', `🧭 Navegando para: ${moduloId}`);
 
         const container = document.getElementById("moduleContainer");
         if (!container) {
             if (window.Log) Log.error('PARTICIPANTE-NAV', '❌ Container não encontrado');
+            this._navegando = false;
             return;
         }
 
@@ -438,16 +487,15 @@ class ParticipanteNavigation {
         }
 
         const nomeModulo = this.obterNomeModulo(moduloId);
+
+        // ✅ v2.2: Usar APENAS o LoadingOverlay global (evita múltiplos loadings)
+        if (window.LoadingOverlay) {
+            window.LoadingOverlay.show(`Carregando ${nomeModulo}...`);
+        }
+
+        // Manter container com conteúdo mínimo durante carregamento
         container.innerHTML = `
-            <div class="loading-state" style="text-align: center; padding: 80px 20px; min-height: 400px; display: flex; flex-direction: column; align-items: center; justify-content: center;">
-                <div style="position: relative; width: 80px; height: 80px; margin-bottom: 24px;">
-                    <div style="position: absolute; width: 80px; height: 80px; border: 4px solid rgba(255, 69, 0, 0.1); border-top: 4px solid #ff4500; border-radius: 50%; animation: spin 1s linear infinite;"></div>
-                    <div style="position: absolute; width: 60px; height: 60px; top: 10px; left: 10px; border: 3px solid rgba(255, 69, 0, 0.05); border-bottom: 3px solid #ff4500; border-radius: 50%; animation: spin 1.5s linear infinite reverse;"></div>
-                </div>
-                <h3 style="color: white; margin-bottom: 8px; font-weight: 600;">Carregando ${nomeModulo}</h3>
-                <p style="color: #999; font-size: 14px;">Aguarde um momento...</p>
-                <style>@keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }</style>
-            </div>
+            <div style="min-height: 300px;"></div>
         `;
 
         try {
@@ -488,6 +536,9 @@ class ParticipanteNavigation {
                 window.LoadingOverlay.hide();
             }
 
+            // ✅ v2.2: Liberar flag de navegação
+            this._navegando = false;
+
         } catch (error) {
             // ✅ CORREÇÃO: Limpar timeout de segurança
             clearTimeout(timeoutId);
@@ -503,6 +554,9 @@ class ParticipanteNavigation {
             if (window.LoadingOverlay) {
                 window.LoadingOverlay.hide();
             }
+
+            // ✅ v2.2: Liberar flag de navegação mesmo em erro
+            this._navegando = false;
 
             this.mostrarErroCarregamento(container, moduloId, error.message);
         }

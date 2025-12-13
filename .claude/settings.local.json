@@ -23,7 +23,8 @@
       "Bash(timeout 3 node:*)",
       "Bash(npm audit:*)",
       "Bash(ls:*)",
-      "Bash(export:*)"
+      "Bash(export:*)",
+      "mcp__mongo__list_collections"
     ]
   },
   "enableAllProjectMcpServers": true,

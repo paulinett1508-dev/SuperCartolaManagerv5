@@ -1,10 +1,15 @@
 // =====================================================================
-// PARTICIPANTE-RODADAS.JS - v4.0 (Backend-First Architecture)
+// PARTICIPANTE-RODADAS.JS - v4.3 (Cores por Saldo Financeiro)
+// ✅ v4.3: Cards coloridos por saldo financeiro
+//    - VERDE: valorFinanceiro > 0 (ganhou na rodada)
+//    - VERMELHO: valorFinanceiro < 0 (perdeu na rodada)
+//    - NEUTRO: valorFinanceiro = 0 (não ganhou nem perdeu)
+//    - MITO: Verde intenso com brilho (1º lugar)
+//    - MICO: Vermelho intenso com brilho (último lugar)
 // ✅ v4.0: Todos os cálculos movidos para o backend
-// ✅ Frontend apenas EXIBE dados já calculados pelo servidor
 // =====================================================================
 
-if (window.Log) Log.info("[PARTICIPANTE-RODADAS] 📄 Carregando módulo v4.0...");
+if (window.Log) Log.info("[PARTICIPANTE-RODADAS] 📄 Carregando módulo v4.3...");
 
 // Importar módulo de parciais
 import * as ParciaisModule from "./participante-rodada-parcial.js";
@@ -204,6 +209,10 @@ function criarCardCompacto(numero, rodada, isParcial = false) {
     const jogou = rodada?.jogou || false;
     const pontos = rodada?.meusPontos;
 
+    // ✅ v4.3: Pegar valorFinanceiro corretamente (pode ser null/undefined)
+    const valorFinanceiro = rodada?.valorFinanceiro;
+    const temValorFinanceiro = valorFinanceiro !== null && valorFinanceiro !== undefined;
+
     let classes = ["rodada-card-compacto"];
     let tipoDestaque = null; // 'mito' ou 'mico'
 
@@ -215,6 +224,20 @@ function criarCardCompacto(numero, rodada, isParcial = false) {
         classes.push("futuro");
     } else if (jogou) {
         classes.push("jogou");
+
+        // ✅ v4.3: Cores baseadas no saldo financeiro
+        // Verde = ganhou (valor > 0), Vermelho = perdeu (valor < 0), Neutro = empate/zero
+        if (temValorFinanceiro) {
+            if (valorFinanceiro > 0) {
+                classes.push("saldo-positivo");
+            } else if (valorFinanceiro < 0) {
+                classes.push("saldo-negativo");
+            } else {
+                classes.push("saldo-neutro");
+            }
+        } else {
+            classes.push("saldo-neutro");
+        }
 
         // ✅ v4.1: Corrigir lógica de MITO/MICO
         // Usar posicaoFinanceira do meu time + total de participantes ATIVOS
@@ -857,5 +880,5 @@ function mostrarErro(mensagem) {
 
 if (window.Log)
     Log.info(
-        "[PARTICIPANTE-RODADAS] ✅ Módulo v4.0 carregado (Backend-First Architecture)",
+        "[PARTICIPANTE-RODADAS] ✅ Módulo v4.3 carregado (Cores por Saldo Financeiro)",
     );

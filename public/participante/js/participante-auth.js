@@ -14,6 +14,11 @@ class ParticipanteAuth {
         this.sessionCache = null;
         this.sessionCacheTime = null;
         this.CACHE_DURATION = 60000; // 1 minuto
+
+        // ✅ v2.1: Cache de dados da liga para evitar requisições duplicadas
+        this.ligaDataCache = null;
+        this.ligaDataCacheTime = null;
+        this.LIGA_CACHE_DURATION = 300000; // 5 minutos
     }
 
     async verificarAutenticacao() {
@@ -46,6 +51,16 @@ class ParticipanteAuth {
             if (window.SplashScreen) {
                 window.SplashScreen.show('autenticacao');
             }
+
+            // ✅ v2.1: Emitir evento com dados da liga incluídos
+            window.dispatchEvent(new CustomEvent('participante-auth-ready', {
+                detail: {
+                    participante: this.participante,
+                    ligaId: this.ligaId,
+                    timeId: this.timeId,
+                    ligaData: this.ligaDataCache // Incluir dados da liga
+                }
+            }));
 
             return true;
         }
@@ -98,6 +113,16 @@ class ParticipanteAuth {
             if (window.SplashScreen) {
                 window.SplashScreen.show('autenticacao');
             }
+
+            // ✅ v2.1: Emitir evento com dados da liga incluídos
+            window.dispatchEvent(new CustomEvent('participante-auth-ready', {
+                detail: {
+                    participante: this.participante,
+                    ligaId: this.ligaId,
+                    timeId: this.timeId,
+                    ligaData: this.ligaDataCache // Incluir dados da liga
+                }
+            }));
 
             return true;
         } catch (error) {
@@ -165,18 +190,35 @@ class ParticipanteAuth {
                 if (window.Log) Log.warn('PARTICIPANTE-AUTH', '⚠️ Não foi possível buscar dados atualizados do time');
             }
 
-            // 2. Buscar dados da liga para obter posição e pontos
-            const ligaResponse = await fetch(`/api/ligas/${this.ligaId}`, {
-                credentials: "include",
-            });
+            // 2. Buscar dados da liga (COM CACHE para evitar duplicação)
+            let ligaData = null;
+            const now = Date.now();
 
-            if (!ligaResponse.ok) {
-                throw new Error(
-                    `Erro ao buscar dados da liga ${this.ligaId} (status: ${ligaResponse.status})`,
-                );
+            // Verificar cache da liga
+            if (this.ligaDataCache &&
+                this.ligaDataCacheTime &&
+                now - this.ligaDataCacheTime < this.LIGA_CACHE_DURATION &&
+                this.ligaDataCache._ligaId === this.ligaId) {
+                ligaData = this.ligaDataCache;
+                if (window.Log) Log.debug('PARTICIPANTE-AUTH', '💾 Usando cache da liga');
+            } else {
+                const ligaResponse = await fetch(`/api/ligas/${this.ligaId}`, {
+                    credentials: "include",
+                });
+
+                if (!ligaResponse.ok) {
+                    throw new Error(
+                        `Erro ao buscar dados da liga ${this.ligaId} (status: ${ligaResponse.status})`,
+                    );
+                }
+
+                ligaData = await ligaResponse.json();
+                ligaData._ligaId = this.ligaId; // Marcar para validação do cache
+                this.ligaDataCache = ligaData;
+                this.ligaDataCacheTime = Date.now();
+                if (window.Log) Log.debug('PARTICIPANTE-AUTH', '📥 Liga carregada e cacheada');
             }
 
-            const ligaData = await ligaResponse.json();
             let participanteDataNaLiga = ligaData.participantes?.find(
                 (p) => String(p.time_id) === String(this.timeId),
             );
