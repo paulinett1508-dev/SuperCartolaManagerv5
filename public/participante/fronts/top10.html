@@ -1,632 +1,148 @@
-<!doctype html>
-<html lang="pt-BR">
-    <head>
-        <meta charset="UTF-8" />
-        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-        <title>TOP 10 - Super Cartola Manager</title>
+<!-- PARTICIPANTE TOP10 - Template v2.0 -->
+<!-- Fragmento HTML para inserção via navegação -->
+<link rel="stylesheet" href="/participante/css/top10-destaque.css" />
+<style>
+/* ============================================
+   TOP 10 PARTICIPANTE v4.3 - CSS Inline
+   ============================================ */
+.top10-participante-container { padding: 16px; padding-bottom: 100px; }
+.top10-header-pro { text-align: center; margin-bottom: 20px; }
+.top10-title-row { display: flex; align-items: center; justify-content: center; gap: 12px; }
+.top10-icon { font-size: 32px; color: #eab308; }
+.top10-header-pro h2 { font-family: "Lexend", sans-serif; font-size: 28px; font-weight: 700; color: #eab308; margin: 0; }
+.top10-subtitle { color: #9ca3af; font-size: 14px; margin-top: 8px; }
+.top10-resumo-card { background: linear-gradient(135deg, #1a1a1a 0%, #262626 100%); border-radius: 16px; padding: 16px; margin-top: 20px; border: 1px solid #333; }
+.resumo-header { display: flex; align-items: center; gap: 8px; color: #f97316; font-weight: 600; font-size: 14px; margin-bottom: 16px; }
+.resumo-header .material-symbols-outlined { font-size: 20px; }
+.resumo-content { display: flex; gap: 12px; margin-bottom: 16px; }
+.resumo-stat { flex: 1; background: rgba(0, 0, 0, 0.3); border-radius: 12px; padding: 12px; display: flex; flex-direction: column; gap: 8px; }
+.resumo-stat-icon { width: 36px; height: 36px; border-radius: 10px; display: flex; align-items: center; justify-content: center; }
+.resumo-stat.mito .resumo-stat-icon { background: rgba(234, 179, 8, 0.2); color: #eab308; }
+.resumo-stat.mico .resumo-stat-icon { background: rgba(239, 68, 68, 0.2); color: #ef4444; }
+.resumo-stat-icon .material-symbols-outlined { font-size: 20px; }
+.resumo-stat-info { display: flex; align-items: baseline; gap: 8px; }
+.resumo-stat-label { color: #6b7280; font-size: 11px; font-weight: 600; }
+.resumo-stat-value { color: white; font-size: 24px; font-weight: 700; }
+.resumo-stat-bonus { color: #22c55e; font-size: 14px; font-weight: 600; }
+.resumo-stat-onus { color: #ef4444; font-size: 14px; font-weight: 600; }
+.resumo-total { display: flex; justify-content: space-between; align-items: center; padding: 12px; background: rgba(0, 0, 0, 0.3); border-radius: 12px; }
+.resumo-total-label { color: #9ca3af; font-size: 14px; }
+.top10-resumo-total-value { font-size: 18px; font-weight: 700; color: white; }
+.top10-resumo-total-value.positivo { color: #22c55e; }
+.top10-resumo-total-value.negativo { color: #ef4444; }
+.top10-loading-state { display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 60px 20px; color: #9ca3af; }
+.loading-spinner-top10 { width: 40px; height: 40px; border: 3px solid #333; border-top-color: #eab308; border-radius: 50%; animation: spin-top10 0.8s linear infinite; }
+@keyframes spin-top10 { to { transform: rotate(360deg); } }
+.top10-empty-state { text-align: center; padding: 60px 20px; color: #6b7280; }
+.top10-empty-state .material-symbols-outlined { font-size: 64px; color: #404040; margin-bottom: 16px; display: block; }
+.top10-empty-state h3 { color: #9ca3af; font-size: 18px; margin-bottom: 8px; }
+#top10Grid { display: flex; flex-direction: column; gap: 20px; }
+.top10-tabela-wrapper { background: #1a1a1a; border-radius: 16px; overflow: hidden; border: 1px solid #333; }
+.top10-tabela-header { display: flex; align-items: center; gap: 10px; padding: 14px 16px; font-size: 14px; font-weight: 700; }
+.top10-tabela-header.mitos { background: linear-gradient(135deg, rgba(234, 179, 8, 0.2) 0%, rgba(234, 179, 8, 0.05) 100%); color: #eab308; }
+.top10-tabela-header.micos { background: linear-gradient(135deg, rgba(239, 68, 68, 0.2) 0%, rgba(239, 68, 68, 0.05) 100%); color: #ef4444; }
+.top10-tabela-header .material-symbols-outlined { font-size: 22px; }
+.top10-divisor-inativos { display: flex; align-items: center; gap: 8px; padding: 10px 16px; background: rgba(107, 114, 128, 0.1); color: #6b7280; font-size: 12px; border-top: 1px solid #333; }
+.top10-divisor-inativos .material-symbols-outlined { font-size: 16px; }
+.tabela-top10-pro { width: 100%; border-collapse: collapse; font-size: 13px; }
+.tabela-top10-pro th { padding: 12px 8px; text-align: center; color: #6b7280; font-weight: 600; font-size: 11px; text-transform: uppercase; background: rgba(0, 0, 0, 0.2); border-bottom: 1px solid #333; }
+.tabela-top10-pro td { padding: 12px 8px; text-align: center; border-bottom: 1px solid rgba(255, 255, 255, 0.05); vertical-align: middle; }
+.tabela-top10-pro tr:last-child td { border-bottom: none; }
+.tabela-top10-pro tr.meu-time-row { background: rgba(249, 115, 22, 0.1); }
+.tabela-top10-pro tr.inativo-row { opacity: 0.5; }
+.col-nome { text-align: left !important; }
+.nome-cell-top10 { text-align: left !important; max-width: 100px; }
+.nome-texto { display: block; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; color: white; font-weight: 500; }
+.escudo-cell { width: 32px; }
+.escudo-mini { width: 24px; height: 24px; object-fit: contain; }
+.pontos-valor { font-weight: 700; color: white; }
+.rodada-badge { display: inline-block; background: rgba(255, 255, 255, 0.1); padding: 3px 8px; border-radius: 6px; font-size: 11px; color: #9ca3af; }
+.valor-bonus { color: #22c55e; font-weight: 700; }
+.valor-onus { color: #ef4444; font-weight: 700; }
+.posicao-cell { font-weight: 700; font-size: 14px; }
+.posicao-cell.top3 { color: #eab308; }
+.posicao-cell.bottom3 { color: #ef4444; }
+.btn-ver-time { background: transparent; border: none; color: #6b7280; cursor: pointer; padding: 6px; border-radius: 6px; transition: all 0.2s; display: flex; align-items: center; justify-content: center; }
+.btn-ver-time:hover { background: rgba(255, 255, 255, 0.1); color: white; }
+.btn-ver-time .material-symbols-outlined { font-size: 18px; }
+.modal-top10 { position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0, 0, 0, 0.85); display: flex; align-items: center; justify-content: center; z-index: 1000; padding: 20px; }
+.modal-content-top10 { background: #1a1a1a; border-radius: 20px; width: 100%; max-width: 360px; overflow: hidden; border: 1px solid #333; }
+.modal-header-top10 { display: flex; align-items: center; justify-content: space-between; padding: 16px; background: linear-gradient(135deg, #f97316 0%, #ea580c 100%); }
+.modal-time-nome { color: white; font-size: 18px; font-weight: 700; margin: 0 0 4px 0; }
+.modal-rodada-info { color: rgba(255, 255, 255, 0.8); font-size: 13px; margin: 0; }
+.modal-close-btn { background: rgba(0, 0, 0, 0.2); border: none; color: white; width: 36px; height: 36px; border-radius: 10px; cursor: pointer; display: flex; align-items: center; justify-content: center; transition: background 0.2s; }
+.modal-close-btn:hover { background: rgba(0, 0, 0, 0.3); }
+.modal-close-btn .material-symbols-outlined { font-size: 20px; }
+.modal-body-top10 { padding: 24px; text-align: center; }
+.modal-pontuacao-destaque { margin-bottom: 16px; }
+.modal-pontos-valor { display: block; font-size: 48px; font-weight: 700; color: #f97316; line-height: 1; }
+.modal-pontos-label { display: block; color: #6b7280; font-size: 14px; margin-top: 4px; }
+.modal-info-adicional { color: #6b7280; font-size: 13px; }
+</style>
 
-        <!-- Fonts -->
-        <link rel="preconnect" href="https://fonts.googleapis.com" />
-        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-        <link
-            href="https://fonts.googleapis.com/css2?family=Lexend:wght@100..900&display=swap"
-            rel="stylesheet"
-        />
+<div class="top10-participante-container">
+    <div class="top10-header-pro">
+        <div class="top10-title-row">
+            <span class="material-symbols-outlined top10-icon">emoji_events</span>
+            <h2>Top 10</h2>
+        </div>
+        <p class="top10-subtitle">Melhores e piores pontuações da temporada</p>
+    </div>
 
-        <!-- Material Symbols -->
-        <link
-            rel="stylesheet"
-            href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200"
-        />
+    <div id="top10Loading" class="top10-loading-state">
+        <div class="loading-spinner-top10"></div>
+        <p>Carregando TOP 10...</p>
+    </div>
 
-        <!-- CSS Base -->
-        <link rel="stylesheet" href="/participante/css/participante.css" />
-        <link rel="stylesheet" href="/participante/css/top10-destaque.css" />
+    <div id="top10Empty" class="top10-empty-state" style="display: none">
+        <span class="material-symbols-outlined">emoji_events</span>
+        <h3>Nenhum dado disponível</h3>
+        <p>Os dados do TOP 10 aparecerão quando houver rodadas finalizadas</p>
+    </div>
 
-        <style>
-            * {
-                box-sizing: border-box;
-                margin: 0;
-                padding: 0;
-            }
+    <div id="top10Grid" style="display: none"></div>
 
-            body {
-                font-family: "Lexend", sans-serif;
-                background: #101010;
-                color: #ffffff;
-                min-height: 100vh;
-                -webkit-font-smoothing: antialiased;
-                -moz-osx-font-smoothing: grayscale;
-            }
-
-            .material-symbols-outlined {
-                font-variation-settings:
-                    "FILL" 0,
-                    "wght" 400,
-                    "GRAD" 0,
-                    "opsz" 24;
-                vertical-align: middle;
-            }
-
-            /* ============================================
-               TOP 10 PARTICIPANTE v4.3 - CSS Completo
-               ============================================ */
-
-            .top10-participante-container {
-                padding: 16px;
-                padding-bottom: 100px;
-            }
-
-            .top10-header-pro {
-                text-align: center;
-                margin-bottom: 20px;
-            }
-
-            .top10-title-row {
-                display: flex;
-                align-items: center;
-                justify-content: center;
-                gap: 12px;
-            }
-
-            .top10-icon {
-                font-size: 32px;
-                color: #eab308;
-            }
-
-            .top10-header-pro h2 {
-                font-family: "Lexend", sans-serif;
-                font-size: 28px;
-                font-weight: 700;
-                color: #eab308;
-                margin: 0;
-            }
-
-            .top10-subtitle {
-                color: #9ca3af;
-                font-size: 14px;
-                margin-top: 8px;
-            }
-
-            /* ✅ v4.4: Card movido para o final */
-            .top10-resumo-card {
-                background: linear-gradient(135deg, #1a1a1a 0%, #262626 100%);
-                border-radius: 16px;
-                padding: 16px;
-                margin-top: 20px;
-                border: 1px solid #333;
-            }
-
-            .resumo-header {
-                display: flex;
-                align-items: center;
-                gap: 8px;
-                color: #f97316;
-                font-weight: 600;
-                font-size: 14px;
-                margin-bottom: 16px;
-            }
-
-            .resumo-header .material-symbols-outlined {
-                font-size: 20px;
-            }
-
-            .resumo-content {
-                display: flex;
-                gap: 12px;
-                margin-bottom: 16px;
-            }
-
-            .resumo-stat {
-                flex: 1;
-                background: rgba(0, 0, 0, 0.3);
-                border-radius: 12px;
-                padding: 12px;
-                display: flex;
-                flex-direction: column;
-                gap: 8px;
-            }
-
-            .resumo-stat-icon {
-                width: 36px;
-                height: 36px;
-                border-radius: 10px;
-                display: flex;
-                align-items: center;
-                justify-content: center;
-            }
-
-            .resumo-stat.mito .resumo-stat-icon {
-                background: rgba(234, 179, 8, 0.2);
-                color: #eab308;
-            }
-            .resumo-stat.mico .resumo-stat-icon {
-                background: rgba(239, 68, 68, 0.2);
-                color: #ef4444;
-            }
-            .resumo-stat-icon .material-symbols-outlined {
-                font-size: 20px;
-            }
-            .resumo-stat-info {
-                display: flex;
-                align-items: baseline;
-                gap: 8px;
-            }
-            .resumo-stat-label {
-                color: #6b7280;
-                font-size: 11px;
-                font-weight: 600;
-            }
-            .resumo-stat-value {
-                color: white;
-                font-size: 24px;
-                font-weight: 700;
-            }
-            .resumo-stat-bonus {
-                color: #22c55e;
-                font-size: 14px;
-                font-weight: 600;
-            }
-            .resumo-stat-onus {
-                color: #ef4444;
-                font-size: 14px;
-                font-weight: 600;
-            }
-
-            .resumo-total {
-                display: flex;
-                justify-content: space-between;
-                align-items: center;
-                padding: 12px;
-                background: rgba(0, 0, 0, 0.3);
-                border-radius: 12px;
-            }
-
-            .resumo-total-label {
-                color: #9ca3af;
-                font-size: 14px;
-            }
-            .top10-resumo-total-value {
-                font-size: 18px;
-                font-weight: 700;
-                color: white;
-            }
-            .top10-resumo-total-value.positivo {
-                color: #22c55e;
-            }
-            .top10-resumo-total-value.negativo {
-                color: #ef4444;
-            }
-
-            .top10-loading-state {
-                display: flex;
-                flex-direction: column;
-                align-items: center;
-                justify-content: center;
-                padding: 60px 20px;
-                color: #9ca3af;
-            }
-
-            .loading-spinner-top10 {
-                width: 40px;
-                height: 40px;
-                border: 3px solid #333;
-                border-top-color: #eab308;
-                border-radius: 50%;
-                animation: spin-top10 0.8s linear infinite;
-            }
-
-            @keyframes spin-top10 {
-                to {
-                    transform: rotate(360deg);
-                }
-            }
-
-            .top10-empty-state {
-                text-align: center;
-                padding: 60px 20px;
-                color: #6b7280;
-            }
-
-            .top10-empty-state .material-symbols-outlined {
-                font-size: 64px;
-                color: #404040;
-                margin-bottom: 16px;
-                display: block;
-            }
-            .top10-empty-state h3 {
-                color: #9ca3af;
-                font-size: 18px;
-                margin-bottom: 8px;
-            }
-            .top10-empty-state p {
-                font-size: 14px;
-            }
-
-            #top10Grid {
-                display: flex;
-                flex-direction: column;
-                gap: 20px;
-            }
-
-            .top10-tabela-wrapper {
-                background: #1a1a1a;
-                border-radius: 16px;
-                overflow: hidden;
-                border: 1px solid #333;
-            }
-
-            .top10-tabela-header {
-                display: flex;
-                align-items: center;
-                gap: 10px;
-                padding: 14px 16px;
-                font-size: 14px;
-                font-weight: 700;
-            }
-
-            .top10-tabela-header.mitos {
-                background: linear-gradient(
-                    135deg,
-                    rgba(234, 179, 8, 0.2) 0%,
-                    rgba(234, 179, 8, 0.05) 100%
-                );
-                color: #eab308;
-            }
-
-            .top10-tabela-header.micos {
-                background: linear-gradient(
-                    135deg,
-                    rgba(239, 68, 68, 0.2) 0%,
-                    rgba(239, 68, 68, 0.05) 100%
-                );
-                color: #ef4444;
-            }
-
-            .top10-tabela-header .material-symbols-outlined {
-                font-size: 22px;
-            }
-
-            .top10-divisor-inativos {
-                display: flex;
-                align-items: center;
-                gap: 8px;
-                padding: 10px 16px;
-                background: rgba(107, 114, 128, 0.1);
-                color: #6b7280;
-                font-size: 12px;
-                border-top: 1px solid #333;
-            }
-
-            .top10-divisor-inativos .material-symbols-outlined {
-                font-size: 16px;
-            }
-
-            .tabela-top10-pro {
-                width: 100%;
-                border-collapse: collapse;
-                font-size: 13px;
-            }
-
-            .tabela-top10-pro th {
-                padding: 12px 8px;
-                text-align: center;
-                color: #6b7280;
-                font-weight: 600;
-                font-size: 11px;
-                text-transform: uppercase;
-                background: rgba(0, 0, 0, 0.2);
-                border-bottom: 1px solid #333;
-            }
-
-            .tabela-top10-pro td {
-                padding: 12px 8px;
-                text-align: center;
-                border-bottom: 1px solid rgba(255, 255, 255, 0.05);
-                vertical-align: middle;
-            }
-
-            .tabela-top10-pro tr:last-child td {
-                border-bottom: none;
-            }
-            .tabela-top10-pro tr.meu-time-row {
-                background: rgba(249, 115, 22, 0.1);
-            }
-            .tabela-top10-pro tr.inativo-row {
-                opacity: 0.5;
-            }
-
-            .col-nome {
-                text-align: left !important;
-            }
-            .nome-cell-top10 {
-                text-align: left !important;
-                max-width: 100px;
-            }
-            .nome-texto {
-                display: block;
-                white-space: nowrap;
-                overflow: hidden;
-                text-overflow: ellipsis;
-                color: white;
-                font-weight: 500;
-            }
-            .escudo-cell {
-                width: 32px;
-            }
-            .escudo-mini {
-                width: 24px;
-                height: 24px;
-                object-fit: contain;
-            }
-            .pontos-valor {
-                font-weight: 700;
-                color: white;
-            }
-            .rodada-badge {
-                display: inline-block;
-                background: rgba(255, 255, 255, 0.1);
-                padding: 3px 8px;
-                border-radius: 6px;
-                font-size: 11px;
-                color: #9ca3af;
-            }
-            .valor-bonus {
-                color: #22c55e;
-                font-weight: 700;
-            }
-            .valor-onus {
-                color: #ef4444;
-                font-weight: 700;
-            }
-            .posicao-cell {
-                font-weight: 700;
-                font-size: 14px;
-            }
-            .posicao-cell.top3 {
-                color: #eab308;
-            }
-            .posicao-cell.bottom3 {
-                color: #ef4444;
-            }
-
-            .btn-ver-time {
-                background: transparent;
-                border: none;
-                color: #6b7280;
-                cursor: pointer;
-                padding: 6px;
-                border-radius: 6px;
-                transition: all 0.2s;
-                display: flex;
-                align-items: center;
-                justify-content: center;
-            }
-
-            .btn-ver-time:hover {
-                background: rgba(255, 255, 255, 0.1);
-                color: white;
-            }
-            .btn-ver-time .material-symbols-outlined {
-                font-size: 18px;
-            }
-
-            .modal-top10 {
-                position: fixed;
-                top: 0;
-                left: 0;
-                right: 0;
-                bottom: 0;
-                background: rgba(0, 0, 0, 0.85);
-                display: flex;
-                align-items: center;
-                justify-content: center;
-                z-index: 1000;
-                padding: 20px;
-            }
-
-            .modal-content-top10 {
-                background: #1a1a1a;
-                border-radius: 20px;
-                width: 100%;
-                max-width: 360px;
-                overflow: hidden;
-                border: 1px solid #333;
-            }
-
-            .modal-header-top10 {
-                display: flex;
-                align-items: center;
-                justify-content: space-between;
-                padding: 16px;
-                background: linear-gradient(135deg, #f97316 0%, #ea580c 100%);
-            }
-
-            .modal-time-nome {
-                color: white;
-                font-size: 18px;
-                font-weight: 700;
-                margin: 0 0 4px 0;
-            }
-            .modal-rodada-info {
-                color: rgba(255, 255, 255, 0.8);
-                font-size: 13px;
-                margin: 0;
-            }
-
-            .modal-close-btn {
-                background: rgba(0, 0, 0, 0.2);
-                border: none;
-                color: white;
-                width: 36px;
-                height: 36px;
-                border-radius: 10px;
-                cursor: pointer;
-                display: flex;
-                align-items: center;
-                justify-content: center;
-                transition: background 0.2s;
-            }
-
-            .modal-close-btn:hover {
-                background: rgba(0, 0, 0, 0.3);
-            }
-            .modal-close-btn .material-symbols-outlined {
-                font-size: 20px;
-            }
-
-            .modal-body-top10 {
-                padding: 24px;
-                text-align: center;
-            }
-            .modal-pontuacao-destaque {
-                margin-bottom: 16px;
-            }
-            .modal-pontos-valor {
-                display: block;
-                font-size: 48px;
-                font-weight: 700;
-                color: #f97316;
-                line-height: 1;
-            }
-            .modal-pontos-label {
-                display: block;
-                color: #6b7280;
-                font-size: 14px;
-                margin-top: 4px;
-            }
-            .modal-info-adicional {
-                color: #6b7280;
-                font-size: 13px;
-            }
-        </style>
-    </head>
-    <body class="dark">
-        <div class="top10-participante-container">
-            <div class="top10-header-pro">
-                <div class="top10-title-row">
-                    <span class="material-symbols-outlined top10-icon"
-                        >emoji_events</span
-                    >
-                    <h2>Top 10</h2>
-                </div>
-                <p class="top10-subtitle">
-                    Melhores e piores pontuações da temporada
-                </p>
+    <div id="top10ResumoCard" class="top10-resumo-card" style="display: none">
+        <div class="resumo-header">
+            <span class="material-symbols-outlined">analytics</span>
+            <span>Seu Desempenho no TOP 10</span>
+        </div>
+        <div class="resumo-content">
+            <div class="resumo-stat mito">
+                <div class="resumo-stat-icon"><span class="material-symbols-outlined">emoji_events</span></div>
+                <div class="resumo-stat-info"><span class="resumo-stat-label">MITOS</span><span id="resumoMitosCount" class="resumo-stat-value">0</span></div>
+                <span id="resumoBonusTotal" class="resumo-stat-bonus">+R$ 0,00</span>
             </div>
-
-            <div id="top10Loading" class="top10-loading-state">
-                <div class="loading-spinner-top10"></div>
-                <p>Carregando TOP 10...</p>
-            </div>
-
-            <div
-                id="top10Empty"
-                class="top10-empty-state"
-                style="display: none"
-            >
-                <span class="material-symbols-outlined">emoji_events</span>
-                <h3>Nenhum dado disponível</h3>
-                <p>
-                    Os dados do TOP 10 aparecerão quando houver rodadas
-                    finalizadas
-                </p>
-            </div>
-
-            <div id="top10Grid" style="display: none"></div>
-
-            <!-- ✅ v4.4: Card Resumo movido para o final -->
-            <div
-                id="top10ResumoCard"
-                class="top10-resumo-card"
-                style="display: none"
-            >
-                <div class="resumo-header">
-                    <span class="material-symbols-outlined">analytics</span>
-                    <span>Seu Desempenho no TOP 10</span>
-                </div>
-                <div class="resumo-content">
-                    <div class="resumo-stat mito">
-                        <div class="resumo-stat-icon">
-                            <span class="material-symbols-outlined"
-                                >emoji_events</span
-                            >
-                        </div>
-                        <div class="resumo-stat-info">
-                            <span class="resumo-stat-label">MITOS</span>
-                            <span
-                                id="resumoMitosCount"
-                                class="resumo-stat-value"
-                                >0</span
-                            >
-                        </div>
-                        <span id="resumoBonusTotal" class="resumo-stat-bonus"
-                            >+R$ 0,00</span
-                        >
-                    </div>
-                    <div class="resumo-stat mico">
-                        <div class="resumo-stat-icon">
-                            <span class="material-symbols-outlined"
-                                >sentiment_very_dissatisfied</span
-                            >
-                        </div>
-                        <div class="resumo-stat-info">
-                            <span class="resumo-stat-label">MICOS</span>
-                            <span
-                                id="resumoMicosCount"
-                                class="resumo-stat-value"
-                                >0</span
-                            >
-                        </div>
-                        <span id="resumoOnusTotal" class="resumo-stat-onus"
-                            >-R$ 0,00</span
-                        >
-                    </div>
-                </div>
-                <div class="resumo-total">
-                    <span class="resumo-total-label">Saldo TOP 10</span>
-                    <span id="resumoSaldo" class="top10-resumo-total-value"
-                        >R$ 0,00</span
-                    >
-                </div>
-            </div>
-
-            <div id="modalJogadores" class="modal-top10" style="display: none">
-                <div class="modal-content-top10">
-                    <div class="modal-header-top10">
-                        <div>
-                            <h3 id="modalTimeNome" class="modal-time-nome">
-                                Time
-                            </h3>
-                            <p id="modalRodadaInfo" class="modal-rodada-info">
-                                Rodada
-                            </p>
-                        </div>
-                        <button
-                            onclick="window.fecharModalTop10()"
-                            class="modal-close-btn"
-                        >
-                            <span class="material-symbols-outlined">close</span>
-                        </button>
-                    </div>
-                    <div class="modal-body-top10">
-                        <div class="modal-pontuacao-destaque">
-                            <span id="modalPontuacao" class="modal-pontos-valor"
-                                >0.00</span
-                            >
-                            <span class="modal-pontos-label">pontos</span>
-                        </div>
-                        <p class="modal-info-adicional">
-                            Detalhes dos jogadores em breve...
-                        </p>
-                    </div>
-                </div>
+            <div class="resumo-stat mico">
+                <div class="resumo-stat-icon"><span class="material-symbols-outlined">sentiment_very_dissatisfied</span></div>
+                <div class="resumo-stat-info"><span class="resumo-stat-label">MICOS</span><span id="resumoMicosCount" class="resumo-stat-value">0</span></div>
+                <span id="resumoOnusTotal" class="resumo-stat-onus">-R$ 0,00</span>
             </div>
         </div>
+        <div class="resumo-total">
+            <span class="resumo-total-label">Saldo TOP 10</span>
+            <span id="resumoSaldo" class="top10-resumo-total-value">R$ 0,00</span>
+        </div>
+    </div>
 
-        <script
-            type="module"
-            src="/participante/js/modules/participante-top10.js"
-        ></script>
-    </body>
-</html>
+    <div id="modalJogadores" class="modal-top10" style="display: none">
+        <div class="modal-content-top10">
+            <div class="modal-header-top10">
+                <div>
+                    <h3 id="modalTimeNome" class="modal-time-nome">Time</h3>
+                    <p id="modalRodadaInfo" class="modal-rodada-info">Rodada</p>
+                </div>
+                <button onclick="window.fecharModalTop10()" class="modal-close-btn">
+                    <span class="material-symbols-outlined">close</span>
+                </button>
+            </div>
+            <div class="modal-body-top10">
+                <div class="modal-pontuacao-destaque">
+                    <span id="modalPontuacao" class="modal-pontos-valor">0.00</span>
+                    <span class="modal-pontos-label">pontos</span>
+                </div>
+                <p class="modal-info-adicional">Detalhes dos jogadores em breve...</p>
+            </div>
+        </div>
+    </div>
+</div>
