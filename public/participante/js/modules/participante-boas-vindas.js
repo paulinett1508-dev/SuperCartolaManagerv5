@@ -1,12 +1,14 @@
 // =====================================================================
-// PARTICIPANTE-BOAS-VINDAS.JS - v7.4 (CACHE OTIMIZADO)
+// PARTICIPANTE-BOAS-VINDAS.JS - v8.0 (CACHE-FIRST INSTANTÂNEO)
 // =====================================================================
+// ✅ v8.0: Carregamento INSTANTÂNEO com cache offline (IndexedDB)
+//    - Mostra dados do cache imediatamente
+//    - Atualiza em background sem recarregar
+// ✅ v7.5: FALLBACK - Busca dados do auth se não receber por parâmetro
 // ✅ v7.4: Usa ParticipanteCache para evitar recarregamentos
-// ✅ v7.3: CORREÇÃO - Saldo já inclui campos manuais do backend
-//    NÃO somar extratoData.camposManuais novamente
 
 if (window.Log)
-    Log.info("PARTICIPANTE-BOAS-VINDAS", "🔄 Carregando módulo v7.4...");
+    Log.info("PARTICIPANTE-BOAS-VINDAS", "🔄 Carregando módulo v8.0...");
 
 // =====================================================================
 // FUNÇÃO PRINCIPAL
@@ -25,6 +27,49 @@ export async function inicializarBoasVindasParticipante(params) {
     } else {
         ligaId = params;
         timeId = arguments[1];
+    }
+
+    // ✅ v7.5: FALLBACK - Buscar dados do auth se não recebeu por parâmetro
+    if (!ligaId || !timeId || ligaId === "[object Object]" || timeId === "undefined") {
+        if (window.Log) Log.debug("PARTICIPANTE-BOAS-VINDAS", "🔄 Buscando dados do auth...");
+
+        // Tentar obter do participanteAuth
+        if (window.participanteAuth) {
+            ligaId = ligaId || window.participanteAuth.ligaId;
+            timeId = timeId || window.participanteAuth.timeId;
+            participante = participante || window.participanteAuth.participante?.participante;
+        }
+
+        // Se ainda não tem, aguardar evento (max 3s)
+        if (!ligaId || !timeId) {
+            if (window.Log) Log.debug("PARTICIPANTE-BOAS-VINDAS", "⏳ Aguardando auth-ready...");
+
+            const authData = await new Promise((resolve) => {
+                const timeout = setTimeout(() => resolve(null), 3000);
+
+                // Verificar se já tem dados
+                if (window.participanteAuth?.ligaId && window.participanteAuth?.timeId) {
+                    clearTimeout(timeout);
+                    resolve({
+                        ligaId: window.participanteAuth.ligaId,
+                        timeId: window.participanteAuth.timeId,
+                        participante: window.participanteAuth.participante?.participante
+                    });
+                    return;
+                }
+
+                window.addEventListener('participante-auth-ready', (event) => {
+                    clearTimeout(timeout);
+                    resolve(event.detail);
+                }, { once: true });
+            });
+
+            if (authData) {
+                ligaId = authData.ligaId;
+                timeId = authData.timeId;
+                participante = authData.participante?.participante || authData.participante;
+            }
+        }
     }
 
     ligaId = typeof ligaId === "string" ? ligaId : String(ligaId || "");
@@ -55,196 +100,192 @@ export async function inicializarBoasVindasParticipante(params) {
 window.inicializarBoasVindasParticipante = inicializarBoasVindasParticipante;
 
 // =====================================================================
-// CARREGAR DADOS E RENDERIZAR
+// CARREGAR DADOS E RENDERIZAR - v8.0 CACHE-FIRST
 // =====================================================================
 async function carregarDadosERenderizar(ligaId, timeId, participante) {
     const container = document.getElementById("boas-vindas-container");
     if (!container) return;
 
-    // Loading
-    container.innerHTML = `
-        <div class="flex justify-center items-center min-h-[300px]">
-            <div class="text-center">
-                <div class="w-10 h-10 border-4 border-zinc-700 border-t-primary rounded-full animate-spin mx-auto mb-4"></div>
-                <p class="text-sm text-white/70">Carregando...</p>
+    const cache = window.ParticipanteCache;
+    const meuTimeIdNum = Number(timeId);
+
+    // =========================================================================
+    // FASE 1: CARREGAMENTO INSTANTÂNEO (Cache IndexedDB)
+    // =========================================================================
+
+    // Tentar carregar tudo do cache primeiro
+    let liga = null, ranking = [], rodadas = [], extratoData = null;
+    let usouCache = false;
+
+    if (cache) {
+        // Buscar do cache persistente (IndexedDB) - INSTANTÂNEO
+        [liga, ranking, rodadas, extratoData] = await Promise.all([
+            cache.getLigaAsync ? cache.getLigaAsync(ligaId) : cache.getLiga(ligaId),
+            cache.getRankingAsync ? cache.getRankingAsync(ligaId) : cache.getRanking(ligaId),
+            cache.getRodadasAsync ? cache.getRodadasAsync(ligaId) : cache.getRodadas(ligaId),
+            cache.getExtratoAsync ? cache.getExtratoAsync(ligaId, timeId) : cache.getExtrato(ligaId, timeId)
+        ]);
+
+        if (liga && ranking?.length && rodadas?.length) {
+            usouCache = true;
+            if (window.Log) Log.info("PARTICIPANTE-BOAS-VINDAS", "⚡ INSTANT LOAD - dados do cache!");
+
+            // Renderizar IMEDIATAMENTE com dados do cache
+            const dadosRenderizados = processarDadosParaRender(
+                liga, ranking, rodadas, extratoData, meuTimeIdNum, participante
+            );
+            renderizarBoasVindas(container, dadosRenderizados);
+        }
+    }
+
+    // Se não tem cache, mostrar loading
+    if (!usouCache) {
+        container.innerHTML = `
+            <div class="flex justify-center items-center min-h-[300px]">
+                <div class="text-center">
+                    <div class="w-10 h-10 border-4 border-zinc-700 border-t-primary rounded-full animate-spin mx-auto mb-4"></div>
+                    <p class="text-sm text-white/70">Carregando...</p>
+                </div>
             </div>
-        </div>
-    `;
+        `;
+    }
+
+    // =========================================================================
+    // FASE 2: ATUALIZAÇÃO EM BACKGROUND (Fetch API)
+    // =========================================================================
 
     try {
-        // ✅ v7.4: Usar ParticipanteCache para evitar recarregamentos
-        const cache = window.ParticipanteCache;
+        // Buscar dados frescos da API (mesmo se já mostrou cache)
+        const [ligaFresh, rankingFresh, rodadasFresh] = await Promise.all([
+            fetch(`/api/ligas/${ligaId}`).then(r => r.ok ? r.json() : liga),
+            fetch(`/api/ligas/${ligaId}/ranking`).then(r => r.ok ? r.json() : ranking),
+            fetch(`/api/rodadas/${ligaId}/rodadas?inicio=1&fim=38`).then(r => r.ok ? r.json() : rodadas)
+        ]);
 
-        // Buscar dados com cache (só faz fetch se não tiver cache válido)
-        const liga = await (async () => {
-            const cached = cache?.getLiga(ligaId);
-            if (cached) {
-                if (window.Log) Log.debug("PARTICIPANTE-BOAS-VINDAS", "📦 Liga do cache");
-                return cached;
-            }
-            const res = await fetch(`/api/ligas/${ligaId}`);
-            const data = res.ok ? await res.json() : null;
-            cache?.setLiga(ligaId, data);
-            return data;
-        })();
+        // Atualizar cache com dados frescos
+        if (cache) {
+            cache.setLiga(ligaId, ligaFresh);
+            cache.setRanking(ligaId, rankingFresh);
+            cache.setRodadas(ligaId, rodadasFresh);
+        }
 
-        const ranking = await (async () => {
-            const cached = cache?.getRanking(ligaId);
-            if (cached) {
-                if (window.Log) Log.debug("PARTICIPANTE-BOAS-VINDAS", "📦 Ranking do cache");
-                return cached;
-            }
-            const res = await fetch(`/api/ligas/${ligaId}/ranking`);
-            const data = res.ok ? await res.json() : [];
-            cache?.setRanking(ligaId, data);
-            return data;
-        })();
-
-        const rodadas = await (async () => {
-            const cached = cache?.getRodadas(ligaId);
-            if (cached) {
-                if (window.Log) Log.debug("PARTICIPANTE-BOAS-VINDAS", "📦 Rodadas do cache");
-                return cached;
-            }
-            const res = await fetch(`/api/rodadas/${ligaId}/rodadas?inicio=1&fim=38`);
-            const data = res.ok ? await res.json() : [];
-            cache?.setRodadas(ligaId, data);
-            return data;
-        })();
-
-        // ✅ Determinar rodada atual para buscar extrato com o mesmo endpoint que o módulo Extrato usa
-        const minhasRodadasTemp = rodadas.filter(
-            (r) => Number(r.timeId) === Number(timeId) || Number(r.time_id) === Number(timeId)
+        // Buscar extrato
+        const minhasRodadasTemp = rodadasFresh.filter(
+            (r) => Number(r.timeId) === meuTimeIdNum || Number(r.time_id) === meuTimeIdNum
         );
         const ultimaRodadaNum = minhasRodadasTemp.length > 0
             ? Math.max(...minhasRodadasTemp.map(r => r.rodada))
             : 1;
 
-        // ✅ v7.4: Buscar extrato com cache local
-        let extratoData = cache?.getExtrato(ligaId, timeId);
-        if (extratoData) {
-            if (window.Log) Log.debug("PARTICIPANTE-BOAS-VINDAS", "📦 Extrato do cache");
-        } else {
-            try {
-                const resCache = await fetch(`/api/extrato-cache/${ligaId}/times/${timeId}/cache?rodadaAtual=${ultimaRodadaNum}`);
-                if (resCache.ok) {
-                    const cacheData = await resCache.json();
-                    extratoData = {
-                        saldo_atual: cacheData?.resumo?.saldo_final ?? cacheData?.resumo?.saldo ?? 0,
-                        resumo: cacheData?.resumo || {}
-                    };
-                    cache?.setExtrato(ligaId, timeId, extratoData);
-                }
-            } catch (e) {
-                if (window.Log) Log.warn("PARTICIPANTE-BOAS-VINDAS", "Cache não disponível, usando fallback");
-            }
-
-            // Fallback para endpoint de cálculo se cache não existir
-            if (!extratoData || extratoData.saldo_atual === undefined) {
-                const resFallback = await fetch(`/api/fluxo-financeiro/${ligaId}/extrato/${timeId}`);
-                extratoData = resFallback.ok ? await resFallback.json() : null;
-                if (extratoData) cache?.setExtrato(ligaId, timeId, extratoData);
-            }
-        }
-
-        // ✅ CORREÇÃO: Buscar campos manuais (igual ao Extrato faz)
-        // Esses são valores adicionados manualmente no admin que devem ser somados ao saldo
-        let totalCamposManuais = 0;
+        let extratoFresh = null;
         try {
-            const resCampos = await fetch(`/api/fluxo-financeiro/${ligaId}/times/${timeId}`);
-            if (resCampos.ok) {
-                const camposData = await resCampos.json();
-                if (camposData.success && camposData.campos && Array.isArray(camposData.campos)) {
-                    totalCamposManuais = camposData.campos.reduce((total, campo) => {
-                        return total + (parseFloat(campo.valor) || 0);
-                    }, 0);
-                    if (window.Log && totalCamposManuais !== 0) {
-                        Log.info("PARTICIPANTE-BOAS-VINDAS", `💰 Campos manuais: R$ ${totalCamposManuais.toFixed(2)}`);
-                    }
-                }
+            const resCache = await fetch(`/api/extrato-cache/${ligaId}/times/${timeId}/cache?rodadaAtual=${ultimaRodadaNum}`);
+            if (resCache.ok) {
+                const cacheData = await resCache.json();
+                extratoFresh = {
+                    saldo_atual: cacheData?.resumo?.saldo_final ?? cacheData?.resumo?.saldo ?? 0,
+                    resumo: cacheData?.resumo || {}
+                };
             }
         } catch (e) {
-            if (window.Log) Log.warn("PARTICIPANTE-BOAS-VINDAS", "Não foi possível buscar campos manuais");
+            // Fallback
+            const resFallback = await fetch(`/api/fluxo-financeiro/${ligaId}/extrato/${timeId}`);
+            extratoFresh = resFallback.ok ? await resFallback.json() : null;
         }
 
-        // Adicionar campos manuais ao extratoData se existirem
-        if (extratoData && totalCamposManuais !== 0) {
-            extratoData.camposManuais = totalCamposManuais;
+        if (cache && extratoFresh) {
+            cache.setExtrato(ligaId, timeId, extratoFresh);
         }
 
-        const meuTimeIdNum = Number(timeId);
-        const meuTime = ranking.find((t) => Number(t.timeId) === meuTimeIdNum);
-        const posicao = meuTime ? meuTime.posicao : null;
-        const totalParticipantes = ranking.length;
-
-        const minhasRodadas = rodadas.filter(
-            (r) =>
-                Number(r.timeId) === meuTimeIdNum ||
-                Number(r.time_id) === meuTimeIdNum,
-        );
-
-        const pontosTotal = minhasRodadas.reduce((total, rodada) => {
-            return total + (parseFloat(rodada.pontos) || 0);
-        }, 0);
-
-        const rodadasOrdenadas = [...minhasRodadas].sort(
-            (a, b) => b.rodada - a.rodada,
-        );
-        const ultimaRodada = rodadasOrdenadas[0];
-        const rodadaAtual = ultimaRodada ? ultimaRodada.rodada : 0;
-
-        // Posição anterior
-        let posicaoAnterior = null;
-        if (rodadaAtual > 1 && minhasRodadas.length >= 2) {
-            const rodadasAteAnterior = rodadas.filter(
-                (r) => r.rodada < rodadaAtual,
+        // Se não usou cache antes, renderizar agora
+        // Se usou cache, só re-renderizar se dados mudaram significativamente
+        if (!usouCache) {
+            const dadosRenderizados = processarDadosParaRender(
+                ligaFresh, rankingFresh, rodadasFresh, extratoFresh, meuTimeIdNum, participante
             );
-            const rankingAnterior = calcularRankingManual(rodadasAteAnterior);
-            const meuTimeAnterior = rankingAnterior.find(
-                (t) => Number(t.timeId) === meuTimeIdNum,
+            renderizarBoasVindas(container, dadosRenderizados);
+        } else {
+            // Verificar se precisa atualizar UI
+            const dadosFresh = processarDadosParaRender(
+                ligaFresh, rankingFresh, rodadasFresh, extratoFresh, meuTimeIdNum, participante
             );
-            if (meuTimeAnterior) posicaoAnterior = meuTimeAnterior.posicao;
+            const dadosCache = processarDadosParaRender(
+                liga, ranking, rodadas, extratoData, meuTimeIdNum, participante
+            );
+
+            // Só re-renderiza se algo importante mudou
+            if (dadosFresh.posicao !== dadosCache.posicao ||
+                dadosFresh.pontosTotal !== dadosCache.pontosTotal ||
+                dadosFresh.saldoFinanceiro !== dadosCache.saldoFinanceiro) {
+                if (window.Log) Log.info("PARTICIPANTE-BOAS-VINDAS", "🔄 Atualizando UI com dados frescos");
+                renderizarBoasVindas(container, dadosFresh);
+            }
         }
 
-        // ✅ v7.3: CORREÇÃO - Backend já inclui campos manuais em resumo.saldo_final
-        // NÃO somar extratoData.camposManuais novamente (estava duplicando!)
-        const saldoFinanceiro = extratoData?.saldo_atual ?? extratoData?.resumo?.saldo_final ?? 0;
-        const nomeTime =
-            participante?.nome_time || meuTime?.nome_time || "Seu Time";
-        const nomeCartola =
-            participante?.nome_cartola || meuTime?.nome_cartola || "Cartoleiro";
-        const nomeLiga = liga?.nome || "Liga";
+        if (window.Log) Log.info("PARTICIPANTE-BOAS-VINDAS", "✅ Dados carregados e cacheados");
 
-        if (window.Log)
-            Log.info("PARTICIPANTE-BOAS-VINDAS", "✅ Dados finais:", {
-                nomeTime,
-                nomeCartola,
-                pontosTotais: pontosTotal,
-            });
-
-        renderizarBoasVindas(container, {
-            posicao,
-            totalParticipantes,
-            pontosTotal,
-            ultimaRodada,
-            rodadaAtual,
-            nomeTime,
-            nomeCartola,
-            nomeLiga,
-            saldoFinanceiro,
-            posicaoAnterior,
-            minhasRodadas: rodadasOrdenadas,
-        });
     } catch (error) {
-        if (window.Log)
-            Log.error("PARTICIPANTE-BOAS-VINDAS", "❌ Erro:", error);
-        container.innerHTML = `
-            <div class="text-center py-16 px-5">
-                <span class="material-icons text-5xl text-red-500">error</span>
-                <p class="text-white/70 mt-4">Erro ao carregar dados</p>
-            </div>
-        `;
+        if (window.Log) Log.error("PARTICIPANTE-BOAS-VINDAS", "❌ Erro:", error);
+
+        // Se já mostrou cache, não mostrar erro (dados antigos são melhores que nada)
+        if (!usouCache) {
+            container.innerHTML = `
+                <div class="text-center py-16 px-5">
+                    <span class="material-icons text-5xl text-red-500">error</span>
+                    <p class="text-white/70 mt-4">Erro ao carregar dados</p>
+                </div>
+            `;
+        }
     }
+}
+
+// =====================================================================
+// PROCESSAR DADOS PARA RENDERIZAÇÃO
+// =====================================================================
+function processarDadosParaRender(liga, ranking, rodadas, extratoData, meuTimeIdNum, participante) {
+    const meuTime = ranking?.find((t) => Number(t.timeId) === meuTimeIdNum);
+    const posicao = meuTime ? meuTime.posicao : null;
+    const totalParticipantes = ranking?.length || 0;
+
+    const minhasRodadas = (rodadas || []).filter(
+        (r) => Number(r.timeId) === meuTimeIdNum || Number(r.time_id) === meuTimeIdNum
+    );
+
+    const pontosTotal = minhasRodadas.reduce((total, rodada) => {
+        return total + (parseFloat(rodada.pontos) || 0);
+    }, 0);
+
+    const rodadasOrdenadas = [...minhasRodadas].sort((a, b) => b.rodada - a.rodada);
+    const ultimaRodada = rodadasOrdenadas[0];
+    const rodadaAtual = ultimaRodada ? ultimaRodada.rodada : 0;
+
+    // Posição anterior
+    let posicaoAnterior = null;
+    if (rodadaAtual > 1 && minhasRodadas.length >= 2) {
+        const rodadasAteAnterior = (rodadas || []).filter((r) => r.rodada < rodadaAtual);
+        const rankingAnterior = calcularRankingManual(rodadasAteAnterior);
+        const meuTimeAnterior = rankingAnterior.find((t) => Number(t.timeId) === meuTimeIdNum);
+        if (meuTimeAnterior) posicaoAnterior = meuTimeAnterior.posicao;
+    }
+
+    const saldoFinanceiro = extratoData?.saldo_atual ?? extratoData?.resumo?.saldo_final ?? 0;
+    const nomeTime = participante?.nome_time || meuTime?.nome_time || "Seu Time";
+    const nomeCartola = participante?.nome_cartola || meuTime?.nome_cartola || "Cartoleiro";
+    const nomeLiga = liga?.nome || "Liga";
+
+    return {
+        posicao,
+        totalParticipantes,
+        pontosTotal,
+        ultimaRodada,
+        rodadaAtual,
+        nomeTime,
+        nomeCartola,
+        nomeLiga,
+        saldoFinanceiro,
+        posicaoAnterior,
+        minhasRodadas: rodadasOrdenadas,
+    };
 }
 
 // =====================================================================

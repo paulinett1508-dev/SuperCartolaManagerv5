@@ -469,10 +469,10 @@
     </head>
     <body class="bg-background-dark font-display text-white">
 
-        <!-- ✅ FORCE CACHE CLEAR v6 - Executa após página carregar -->
+        <!-- ✅ FORCE CACHE CLEAR v7 - Executa após página carregar -->
         <script>
             (function() {
-                var FORCE_CLEAR_KEY = 'sw_force_clear_v6';
+                var FORCE_CLEAR_KEY = 'sw_force_clear_v7';
 
                 // Se ainda não limpou nesta versão, agenda limpeza após carregamento
                 if (!localStorage.getItem(FORCE_CLEAR_KEY)) {
@@ -763,7 +763,10 @@
         <!-- ✅ Splash Screen JS -->
         <script src="js/splash-screen.js"></script>
 
-        <!-- ✅ Cache Manager Participante (antes de auth/navigation) -->
+        <!-- ✅ Sistema de Cache Offline (IndexedDB) - ANTES do cache-manager -->
+        <script src="js/participante-offline-cache.js"></script>
+
+        <!-- ✅ Cache Manager Participante (usa OfflineCache) -->
         <script src="js/participante-cache-manager.js"></script>
 
         <!-- Scripts participante -->

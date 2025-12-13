@@ -88,15 +88,45 @@ class ParticipanteNavigation {
             return;
         }
 
-        // ✅ v2.0: Se Auth ainda não terminou, aguardar evento
+        // ✅ v2.3: Se Auth ainda não terminou, aguardar evento com polling de fallback
         return new Promise((resolve, reject) => {
+            // Polling a cada 200ms para verificar se dados chegaram
+            const pollInterval = setInterval(() => {
+                if (window.participanteAuth && window.participanteAuth.participante) {
+                    clearInterval(pollInterval);
+                    clearTimeout(timeout);
+                    this.participanteData = {
+                        timeId: window.participanteAuth.timeId,
+                        ligaId: window.participanteAuth.ligaId,
+                        nomeCartola: window.participanteAuth.participante.participante?.nome_cartola || "Participante",
+                        nomeTime: window.participanteAuth.participante.participante?.nome_time || "Meu Time",
+                    };
+                    if (window.Log) Log.info('PARTICIPANTE-NAV', '✅ Dados obtidos via polling');
+                    resolve();
+                }
+            }, 200);
+
             const timeout = setTimeout(() => {
+                clearInterval(pollInterval);
+                // ✅ ÚLTIMA CHANCE: Verificar se dados chegaram durante o timeout
+                if (window.participanteAuth && window.participanteAuth.participante) {
+                    this.participanteData = {
+                        timeId: window.participanteAuth.timeId,
+                        ligaId: window.participanteAuth.ligaId,
+                        nomeCartola: window.participanteAuth.participante.participante?.nome_cartola || "Participante",
+                        nomeTime: window.participanteAuth.participante.participante?.nome_time || "Meu Time",
+                    };
+                    if (window.Log) Log.info('PARTICIPANTE-NAV', '✅ Dados obtidos no timeout final');
+                    resolve();
+                    return;
+                }
                 if (window.Log) Log.error('PARTICIPANTE-NAV', '❌ Timeout aguardando auth');
                 window.location.href = "/participante-login.html";
                 reject(new Error('Timeout'));
             }, 5000);
 
             window.addEventListener('participante-auth-ready', (event) => {
+                clearInterval(pollInterval);
                 clearTimeout(timeout);
                 const { participante, ligaId, timeId, ligaData } = event.detail;
                 this.participanteData = {

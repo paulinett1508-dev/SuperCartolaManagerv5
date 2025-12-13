@@ -219,15 +219,158 @@ public/
 └── participante/      # App Mobile-First
     ├── js/
     │   ├── modules/
-    │   │   └── participante-extrato-ui.js  # Extrato financeiro (v9.1)
-    │   ├── participante-navigation.js      # Navegação + History API
-    │   ├── participante-cache-manager.js   # Cache local (30min TTL)
-    │   ├── pull-refresh.js                 # Pull-to-refresh + Loading
-    │   └── splash-screen.js                # Splash Screen inicial
+    │   │   ├── participante-extrato-ui.js    # Extrato financeiro (v9.1)
+    │   │   └── participante-boas-vindas.js   # Tela inicial (v8.0 cache-first)
+    │   ├── participante-navigation.js        # Navegação + History API (v2.3)
+    │   ├── participante-offline-cache.js     # IndexedDB persistente (v1.0)
+    │   ├── participante-cache-manager.js     # Cache 2 camadas (v2.0)
+    │   ├── participante-auth.js              # Autenticação (v2.2)
+    │   ├── pull-refresh.js                   # Pull-to-refresh + Loading
+    │   └── splash-screen.js                  # Splash Screen inicial (v4.1)
     ├── css/
     │   └── pull-refresh.css
     └── fronts/        # Templates HTML dos módulos
 ```
+
+---
+
+## Sistema de Cache Offline (IndexedDB) - CRÍTICO
+
+O app mobile utiliza **cache persistente em 2 camadas** para carregamento instantâneo:
+
+### Arquitetura de Cache
+
+```
+┌─────────────────────────────────────────────────────────────┐
+│  L1 - MEMÓRIA (instantâneo, volátil)                        │
+│  ├── TTL: 5 minutos                                         │
+│  └── Gerenciado por: ParticipanteCache.memoryCache          │
+├─────────────────────────────────────────────────────────────┤
+│  L2 - IndexedDB (persistente entre sessões)                 │
+│  ├── TTL: Configurável por tipo de dado                     │
+│  ├── Capacidade: ~50MB (limite do navegador)                │
+│  └── Gerenciado por: OfflineCache (IndexedDB)               │
+└─────────────────────────────────────────────────────────────┘
+```
+
+### Arquivos do Sistema de Cache
+
+| Arquivo | Versão | Responsabilidade |
+|---------|--------|------------------|
+| `participante-offline-cache.js` | v1.0 | Gerenciador IndexedDB (baixo nível) |
+| `participante-cache-manager.js` | v2.0 | Cache 2 camadas (API de alto nível) |
+
+### TTLs Configurados (`OfflineCache.STORES`)
+
+| Store | TTL | Uso |
+|-------|-----|-----|
+| `participante` | 24h | Nome, escudo, liga do usuário |
+| `liga` | 24h | Configurações da liga |
+| `ranking` | 30min | Posições no ranking geral |
+| `rodadas` | 1h | Histórico de rodadas |
+| `extrato` | 30min | Saldo financeiro |
+| `top10` | 1h | Top 10 Mitos/Micos |
+| `pontosCorridos` | 1h | Pontos Corridos |
+| `mataMata` | 1h | Mata-Mata |
+| `config` | 24h | Configurações gerais |
+
+### Estratégia: Cache-First + Stale-While-Revalidate
+
+```
+1ª ABERTURA (sem cache):
+  Login → Auth → Splash → [Loading] → API → Renderiza → Salva IndexedDB
+
+2ª ABERTURA EM DIANTE (instantâneo):
+  Login → Auth → IndexedDB → Renderiza IMEDIATO → API atualiza em background
+```
+
+### API do ParticipanteCache (v2.0)
+
+```javascript
+// Buscar com fallback automático (cache → API)
+const ranking = await ParticipanteCache.getRankingAsync(ligaId, fetchFn, onUpdate);
+
+// Salvar (L1 + L2 automaticamente)
+ParticipanteCache.setRanking(ligaId, dados);
+
+// Verificar se tem dados para carregamento instantâneo
+const hasCache = await ParticipanteCache.hasInstantData(ligaId, timeId);
+
+// Pré-carregar dados essenciais (chamado após login)
+await ParticipanteCache.preloadEssentials(ligaId, timeId);
+```
+
+### API do OfflineCache (v1.0)
+
+```javascript
+// Operações básicas
+await OfflineCache.set('ranking', ligaId, dados);
+const dados = await OfflineCache.get('ranking', ligaId);
+const dados = await OfflineCache.get('ranking', ligaId, true); // ignoreExpiry
+
+// Cache-first com fallback
+const dados = await OfflineCache.getWithFallback('ranking', ligaId, fetchFn, onUpdate);
+
+// Limpeza
+await OfflineCache.clearStore('ranking');
+await OfflineCache.clearAll();
+await OfflineCache.cleanExpired(); // Manutenção automática
+```
+
+### Integração com Módulos
+
+O módulo `participante-boas-vindas.js` (v8.0) implementa o padrão cache-first:
+
+```javascript
+// FASE 1: Carregamento instantâneo do IndexedDB
+const [liga, ranking, rodadas] = await Promise.all([
+    cache.getLigaAsync(ligaId),
+    cache.getRankingAsync(ligaId),
+    cache.getRodadasAsync(ligaId)
+]);
+
+if (liga && ranking?.length) {
+    renderizarBoasVindas(container, dados); // INSTANTÂNEO
+}
+
+// FASE 2: Atualização em background
+const [ligaFresh, rankingFresh] = await Promise.all([...fetches...]);
+cache.setLiga(ligaId, ligaFresh); // Atualiza cache
+
+// Só re-renderiza se dados mudaram
+if (dadosFresh.posicao !== dadosCache.posicao) {
+    renderizarBoasVindas(container, dadosFresh);
+}
+```
+
+### Ordem de Carregamento (index.html)
+
+```html
+<!-- 1. LogManager -->
+<script src="/js/core/log-manager.js"></script>
+<!-- 2. Splash Screen -->
+<script src="js/splash-screen.js"></script>
+<!-- 3. IndexedDB (ANTES do cache-manager) -->
+<script src="js/participante-offline-cache.js"></script>
+<!-- 4. Cache Manager (usa OfflineCache) -->
+<script src="js/participante-cache-manager.js"></script>
+<!-- 5. Auth (salva no cache persistente) -->
+<script src="js/participante-auth.js"></script>
+<!-- 6. Navigation -->
+<script src="js/participante-navigation.js"></script>
+```
+
+### Versionamento de Cache (Service Worker)
+
+O Service Worker (`service-worker.js`) controla cache de assets estáticos:
+
+```javascript
+const CACHE_NAME = "super-cartola-v7"; // Incrementar a cada deploy significativo
+```
+
+Para forçar limpeza de cache em todos os clientes:
+1. Incrementar `CACHE_NAME` no `service-worker.js`
+2. Incrementar `FORCE_CLEAR_KEY` no `index.html` (ex: `sw_force_clear_v7`)
 
 ---
 

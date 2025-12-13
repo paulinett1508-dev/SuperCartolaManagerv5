@@ -41,6 +41,16 @@ class ParticipanteAuth {
             this.timeId = participante.timeId;
             this.participante = participante;
 
+            // ✅ v2.2: Garantir dados no cache persistente
+            if (window.ParticipanteCache) {
+                window.ParticipanteCache.setParticipanteBasico(this.ligaId, this.timeId, {
+                    ligaId: this.ligaId,
+                    timeId: this.timeId,
+                    nome_time: participante.participante?.nome_time,
+                    nome_cartola: participante.participante?.nome_cartola,
+                });
+            }
+
             // Executar operações assíncronas
             await Promise.all([
                 this.atualizarHeader(),
@@ -124,6 +134,22 @@ class ParticipanteAuth {
 
             if (window.Log) Log.info('PARTICIPANTE-AUTH', '✅ Autenticação válida (cache atualizado)');
             this.verificandoAuth = false;
+
+            // ✅ v2.2: Salvar dados do participante no cache persistente
+            if (window.ParticipanteCache) {
+                window.ParticipanteCache.setParticipanteBasico(this.ligaId, this.timeId, {
+                    ligaId: this.ligaId,
+                    timeId: this.timeId,
+                    nome_time: this.participante.participante?.nome_time,
+                    nome_cartola: this.participante.participante?.nome_cartola,
+                    foto_time: this.participante.participante?.foto_time,
+                    clube_id: this.participante.participante?.clube_id,
+                });
+
+                // ✅ Pré-carregar dados essenciais em background (para próxima abertura ser instantânea)
+                window.ParticipanteCache.preloadEssentials(this.ligaId, this.timeId)
+                    .catch(e => { /* Ignorar erros de preload */ });
+            }
 
             // ✅ SPLASH: Mostrar após auth válida
             if (window.SplashScreen) {
