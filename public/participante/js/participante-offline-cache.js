@@ -1,18 +1,20 @@
 // =====================================================================
-// PARTICIPANTE-OFFLINE-CACHE.JS - Sistema de Cache Persistente v2.1
+// PARTICIPANTE-OFFLINE-CACHE.JS - Sistema de Cache Persistente v2.2
 // =====================================================================
+// v2.2: FIX Race condition no init() - reutiliza Promise se já em andamento
 // v2.1: Novos stores para artilheiro, luvaOuro, melhorMes
 // v2.0: Temporada encerrada = Cache PERMANENTE (dados imutáveis)
 // v1.0: Cache offline usando IndexedDB para carregamento instantâneo
 // Estratégia: Stale-While-Revalidate (mostra cache, atualiza em background)
 // =====================================================================
 
-if (window.Log) Log.info('OFFLINE-CACHE', 'Carregando sistema v2.1...');
+if (window.Log) Log.info('OFFLINE-CACHE', 'Carregando sistema v2.2...');
 
 const OfflineCache = {
     DB_NAME: 'SuperCartolaOffline',
     DB_VERSION: 2, // v2.1: Novos stores
     db: null,
+    _initPromise: null, // ✅ v2.2: Evita race condition no init()
 
     // =====================================================================
     // FLAG DE TEMPORADA ENCERRADA - Cache permanente
@@ -48,12 +50,20 @@ const OfflineCache = {
     },
 
     // =========================================================================
-    // INICIALIZAÇÃO
+    // INICIALIZAÇÃO (v2.2: Race condition fix)
     // =========================================================================
     async init() {
+        // ✅ Se já inicializado, retorna imediatamente
         if (this.db) return this.db;
 
-        return new Promise((resolve, reject) => {
+        // ✅ v2.2: Se já há uma inicialização em andamento, reutiliza a Promise
+        // Isso evita race condition quando múltiplas operações chamam init() simultaneamente
+        if (this._initPromise) {
+            return this._initPromise;
+        }
+
+        // ✅ Criar e armazenar a Promise de inicialização
+        this._initPromise = new Promise((resolve, reject) => {
             if (!window.indexedDB) {
                 if (window.Log) Log.warn('OFFLINE-CACHE', 'IndexedDB não suportado');
                 resolve(null);
@@ -64,6 +74,7 @@ const OfflineCache = {
 
             request.onerror = (event) => {
                 if (window.Log) Log.error('OFFLINE-CACHE', 'Erro ao abrir DB:', event.target.error);
+                this._initPromise = null; // Reset para permitir retry
                 resolve(null);
             };
 
@@ -85,6 +96,8 @@ const OfflineCache = {
                 });
             };
         });
+
+        return this._initPromise;
     },
 
     // =========================================================================

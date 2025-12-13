@@ -1,6 +1,7 @@
 // =====================================================================
-// PARTICIPANTE NAVIGATION v3.0 - Sistema de Navegação entre Módulos
+// PARTICIPANTE NAVIGATION v3.1 - Sistema de Navegação entre Módulos
 // =====================================================================
+// v3.1: Feedback visual imediato durante navegação (opacity transition)
 // v3.0: REFATORAÇÃO COMPLETA - Remove flag _navegando que travava
 //       Usa apenas debounce por tempo (mais confiável)
 //       Navegação NUNCA trava, sempre responde a cliques
@@ -13,7 +14,7 @@
 // v2.2: Debounce e controle de navegações duplicadas
 // =====================================================================
 
-if (window.Log) Log.info('PARTICIPANTE-NAV', '🚀 Carregando sistema de navegação v3.0...');
+if (window.Log) Log.info('PARTICIPANTE-NAV', '🚀 Carregando sistema de navegação v3.1...');
 
 class ParticipanteNavigation {
     constructor() {
@@ -523,6 +524,11 @@ class ParticipanteNavigation {
 
         const nomeModulo = this.obterNomeModulo(moduloId);
 
+        // ✅ v3.1: Feedback visual IMEDIATO - aplicar opacity no container
+        // Isso dá feedback instantâneo que algo está acontecendo
+        container.style.transition = 'opacity 0.15s ease-out';
+        container.style.opacity = '0.6';
+
         // ✅ v2.5: Loading inteligente - só mostra se não tem cache recente (24h)
         const cacheKey = `modulo_loaded_${moduloId}`;
         const lastLoaded = localStorage.getItem(cacheKey);
@@ -568,6 +574,9 @@ class ParticipanteNavigation {
             // ✅ v2.5: Salvar timestamp do carregamento para loading inteligente
             localStorage.setItem(`modulo_loaded_${moduloId}`, Date.now().toString());
 
+            // ✅ v3.1: Restaurar opacity após carregamento
+            container.style.opacity = '1';
+
             if (window.Log) Log.info('PARTICIPANTE-NAV', `✅ Módulo ${moduloId} carregado`);
 
             // ✅ SPLASH: Esconder após módulo carregado
@@ -590,6 +599,9 @@ class ParticipanteNavigation {
             clearTimeout(timeoutId);
 
             if (window.Log) Log.error('PARTICIPANTE-NAV', `❌ Erro ao carregar ${moduloId}:`, error);
+
+            // ✅ v3.1: Restaurar opacity mesmo em caso de erro
+            container.style.opacity = '1';
 
             // ✅ SPLASH: Esconder mesmo em caso de erro
             if (window.SplashScreen) {
@@ -752,4 +764,4 @@ if (document.readyState === "loading") {
     participanteNav.inicializar();
 }
 
-if (window.Log) Log.info('PARTICIPANTE-NAV', '✅ Sistema v3.0 pronto (navegação sem travamento)');
+if (window.Log) Log.info('PARTICIPANTE-NAV', '✅ Sistema v3.1 pronto (navegação com feedback visual)');
