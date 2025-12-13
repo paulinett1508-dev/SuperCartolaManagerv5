@@ -1,10 +1,11 @@
 // =====================================================================
-// splash-screen.js - Gerenciador da Splash Screen v4.2
+// splash-screen.js - Gerenciador da Splash Screen v5.0
 // =====================================================================
+// v5.0: Manipulação direta de estilos inline para compatibilidade cross-platform
+//       Revela app manipulando style.display diretamente
 // v4.2: Classe 'app-ready' no body para revelar app após splash
 // v4.1: Usa chave específica 'participante_app_loaded' para distinguir
 //       primeira visita (vindo do login) de reload/pull-refresh
-// v4.0: Lógica de reload movida para index.html (script inline imediato)
 // =====================================================================
 
 const SplashScreen = {
@@ -21,10 +22,14 @@ const SplashScreen = {
 
     // ✅ Inicializar splash screen
     init() {
+        console.log('[SPLASH v5.0] Inicializando...');
+
         this.element = document.getElementById('splashScreen');
 
         if (!this.element) {
-            if (window.Log) Log.warn('SPLASH', 'Elemento #splashScreen não encontrado');
+            console.warn('[SPLASH] Elemento #splashScreen não encontrado');
+            // Revelar app mesmo sem splash
+            this.revelarApp();
             return;
         }
 
@@ -34,10 +39,12 @@ const SplashScreen = {
         // ✅ Verificar se é primeira visita usando chave específica do participante
         const isReload = sessionStorage.getItem(this.STORAGE_KEY);
 
+        console.log('[SPLASH] sessionStorage check:', { isReload: !!isReload, key: this.STORAGE_KEY });
+
         if (!isReload) {
             // Primeira vez na sessão (vindo do login): mostrar splash completa
             this.show('inicial');
-            if (window.Log) Log.info('SPLASH', '✅ Exibindo splash (primeira entrada no app)');
+            console.log('[SPLASH] ✅ Primeira visita - exibindo splash');
 
             // ✅ Marcar que o app foi carregado (para próximos reloads)
             sessionStorage.setItem(this.STORAGE_KEY, 'true');
@@ -46,13 +53,35 @@ const SplashScreen = {
             // Apenas garantir que o estado interno está correto
             this.isVisible = false;
 
-            // ✅ v4.2: Em reload, mostrar app imediatamente
-            document.body.classList.add('app-ready');
+            // ✅ v5.0: Em reload, revelar app imediatamente
+            this.revelarApp();
 
-            if (window.Log) Log.info('SPLASH', '✅ Reload detectado - app-ready ativado imediatamente');
+            console.log('[SPLASH] ✅ Reload detectado - app revelado imediatamente');
         }
 
-        if (window.Log) Log.info('SPLASH', '✅ Sistema v4.1 inicializado');
+        console.log('[SPLASH] ✅ Sistema v5.0 inicializado');
+    },
+
+    // ✅ v5.0: Revelar app manipulando estilos inline diretamente
+    revelarApp() {
+        console.log('[SPLASH] Revelando app...');
+
+        // Adicionar classe app-ready (para CSS que depende dela)
+        document.body.classList.add('app-ready');
+
+        // ✅ v5.0: Manipular estilos inline diretamente (cross-platform)
+        const container = document.querySelector('.participante-container');
+        const bottomNav = document.querySelector('.bottom-nav-modern');
+
+        if (container) {
+            container.style.cssText = 'display:flex !important;flex-direction:column;';
+            console.log('[SPLASH] Container revelado');
+        }
+
+        if (bottomNav) {
+            bottomNav.style.cssText = 'display:flex !important;';
+            console.log('[SPLASH] Bottom nav revelado');
+        }
     },
 
     // ✅ Mostrar splash screen
@@ -62,13 +91,18 @@ const SplashScreen = {
         // PROTEÇÃO: Em reloads, NUNCA mostrar splash (apenas vidro fosco)
         const isReload = sessionStorage.getItem(this.STORAGE_KEY);
         if (isReload && motivo !== 'inatividade-forcada') {
-            if (window.Log) Log.info('SPLASH', `Bloqueado: tentativa de mostrar splash em reload (${motivo})`);
+            console.log('[SPLASH] Bloqueado: tentativa de mostrar splash em reload');
             return;
         }
 
         this.isVisible = true;
         this.showTimestamp = Date.now();
-        this.element.style.display = '';
+
+        // ✅ v5.0: Manipular display diretamente
+        this.element.style.display = 'flex';
+        this.element.style.opacity = '1';
+        this.element.style.visibility = 'visible';
+        this.element.style.pointerEvents = 'all';
 
         // Remover classe hidden e adicionar animate
         this.element.classList.remove('hidden');
@@ -78,30 +112,42 @@ const SplashScreen = {
             this.element.classList.add('animate');
         });
 
-        if (window.Log) Log.info('SPLASH', `Exibindo splash (${motivo})`);
+        console.log('[SPLASH] Exibindo splash:', motivo);
     },
 
     // ✅ Esconder splash screen E o overlay de reload
     hide() {
+        console.log('[SPLASH] hide() chamado');
+
         // Sempre esconder o overlay de reload (se existir)
         this.esconderReloadOverlay();
 
         // Esconder Splash Screen tradicional
-        if (!this.element || !this.isVisible) return;
+        if (!this.element || !this.isVisible) {
+            // Mesmo sem splash visível, garantir que app seja revelado
+            this.revelarApp();
+            return;
+        }
 
         // Garantir tempo mínimo de exibição
         const tempoExibido = Date.now() - (this.showTimestamp || 0);
         const tempoRestante = Math.max(0, this.MIN_DISPLAY_TIME - tempoExibido);
 
         setTimeout(() => {
+            // ✅ v5.0: Manipular display diretamente
+            this.element.style.display = 'none';
+            this.element.style.opacity = '0';
+            this.element.style.visibility = 'hidden';
+            this.element.style.pointerEvents = 'none';
+
             this.element.classList.add('hidden');
             this.element.classList.remove('animate');
             this.isVisible = false;
 
-            // ✅ v4.2: Adicionar classe app-ready para mostrar o app
-            document.body.classList.add('app-ready');
+            // ✅ v5.0: Revelar app
+            this.revelarApp();
 
-            if (window.Log) Log.info('SPLASH', 'Splash ocultada - app-ready ativado');
+            console.log('[SPLASH] Splash ocultada - app revelado');
         }, tempoRestante);
     },
 
@@ -191,4 +237,4 @@ if (document.readyState === 'loading') {
     SplashScreen.init();
 }
 
-if (window.Log) Log.info('SPLASH', '✅ Módulo v4.1 carregado');
+console.log('[SPLASH] ✅ Módulo v5.0 carregado');

@@ -84,98 +84,75 @@
         <!-- ✅ Sistema de Versionamento -->
         <link rel="stylesheet" href="/css/app/app-version.css" />
 
-        <!-- ✅ CSS CRÍTICO INLINE v4 - Splash Hardening Total -->
+        <!-- ✅ CSS CRÍTICO INLINE v7 - Manipulação via JS, CSS é fallback -->
         <style id="critical-splash-fix">
             /* ============================================
-               CAMADA SUPREMA - SPLASH COBRE TUDO
+               SPLASH - CAMADA SUPREMA SOBRE TUDO
                ============================================ */
             #splashScreen {
                 position: fixed !important;
                 top: 0 !important;
                 left: 0 !important;
-                width: 100vw !important;
-                height: 100vh !important;
+                right: 0 !important;
+                bottom: 0 !important;
                 z-index: 999999 !important;
-                background-color: #0a0a0a !important;
+                background: #0a0a0a !important;
+                display: flex;
+                flex-direction: column;
+                align-items: center;
+                justify-content: center;
             }
 
-            /* Splash screen SEMPRE começa oculta */
-            #splashScreen:not(.animate) {
-                opacity: 0 !important;
-                visibility: hidden !important;
-                pointer-events: none !important;
-            }
-
-            /* Quando ativa - tudo visível e sólido */
-            #splashScreen.animate {
-                opacity: 1 !important;
-                visibility: visible !important;
-                pointer-events: all !important;
-            }
-
-            /* Garante que .hidden sempre oculta (prioridade máxima) */
+            /* Estado: ESCONDIDO - quando JS define display:none ou .hidden */
             #splashScreen.hidden {
+                display: none !important;
                 opacity: 0 !important;
                 visibility: hidden !important;
-                pointer-events: none !important;
-                animation: none !important;
             }
 
             /* ============================================
-               ESCONDER APP ATÉ SPLASH TERMINAR
+               ESCUDOS - TAMANHO FIXO (PREVINE FOUC)
                ============================================ */
-            /* Container principal começa INVISÍVEL */
-            .participante-container {
-                opacity: 0;
-                visibility: hidden;
-                transition: opacity 0.3s ease, visibility 0.3s ease;
+            img.escudo-mini-modern,
+            #escudoTime {
+                width: 40px !important;
+                height: 40px !important;
+                max-width: 40px !important;
+                max-height: 40px !important;
+                object-fit: contain;
             }
 
-            /* Quando splash está hidden, mostra o app */
-            body.app-ready .participante-container {
-                opacity: 1;
-                visibility: visible;
-            }
-
-            /* Bottom nav também começa escondida */
-            .bottom-nav-modern {
-                opacity: 0;
-                visibility: hidden;
-                transition: opacity 0.3s ease, visibility 0.3s ease;
-            }
-
-            body.app-ready .bottom-nav-modern {
-                opacity: 1;
-                visibility: visible;
+            img.escudo-coracao-modern,
+            #escudoCoracao {
+                width: 24px !important;
+                height: 24px !important;
+                max-width: 24px !important;
+                max-height: 24px !important;
+                object-fit: contain;
             }
 
             /* ============================================
-               LOGO - SEM DUPLICAÇÃO
+               LOGO SPLASH - SEM DUPLICAÇÃO
                ============================================ */
             .splash-logo-glow {
                 background: #FF4500 !important;
                 background-image: none !important;
-                z-index: 0 !important;
             }
 
-            .splash-logo-container {
-                position: relative !important;
-            }
-
-            .splash-logo-container img,
             .splash-logo-img {
-                position: relative !important;
-                z-index: 1 !important;
                 filter: none !important;
+                width: 180px !important;
+                height: 180px !important;
             }
 
-            /* Bloquear pseudo-elementos */
-            .splash-logo-container::before,
-            .splash-logo-container::after,
-            .splash-logo-img::before,
-            .splash-logo-img::after {
-                display: none !important;
-                content: none !important;
+            /* ============================================
+               iOS SAFE AREA
+               ============================================ */
+            @supports (padding: env(safe-area-inset-top)) {
+                body {
+                    padding-top: env(safe-area-inset-top);
+                    padding-bottom: env(safe-area-inset-bottom);
+                }
             }
         </style>
 
@@ -559,7 +536,7 @@
             </div>
         </div>
 
-        <!-- ✅ SCRIPT IMEDIATO - Detecção Ultra-Rápida de Reload v2 -->
+        <!-- ✅ SCRIPT IMEDIATO - Detecção Ultra-Rápida de Reload v3 -->
         <script>
             (function() {
                 // ✅ CHAVE ESPECÍFICA do app participante (não compartilhada com login)
@@ -568,13 +545,25 @@
                 var glassOverlay = document.getElementById('reload-glass-overlay');
                 var splashScreen = document.getElementById('splashScreen');
 
+                console.log('[RELOAD-DETECT] isReload:', !!isReload);
+
                 if (isReload) {
                     // É RELOAD/PULL-REFRESH: Esconde Splash, mostra Vidro Fosco
-                    if (splashScreen) splashScreen.style.display = 'none';
+                    if (splashScreen) {
+                        splashScreen.style.display = 'none';
+                        splashScreen.classList.add('hidden');
+                        splashScreen.classList.remove('animate');
+                    }
                     if (glassOverlay) glassOverlay.classList.add('is-active');
 
-                    // ✅ v2: Em reload, mostrar app IMEDIATAMENTE
+                    // ✅ v3: Revelar app via estilo inline direto (cross-platform)
                     document.body.classList.add('app-ready');
+                    var container = document.querySelector('.participante-container');
+                    var bottomNav = document.querySelector('.bottom-nav-modern');
+                    if (container) container.style.cssText = 'display:flex !important;flex-direction:column;';
+                    if (bottomNav) bottomNav.style.cssText = 'display:flex !important;';
+
+                    console.log('[RELOAD-DETECT] App revelado (reload)');
 
                     // Remove o overlay assim que o conteúdo carregar
                     window.addEventListener('load', function() {
@@ -582,38 +571,59 @@
                             if (glassOverlay) glassOverlay.classList.remove('is-active');
                         }, 800);
                     });
+                } else {
+                    // ✅ v3: Primeira visita - exibir splash imediatamente
+                    if (splashScreen) {
+                        // Remover .hidden e adicionar .animate para exibir
+                        splashScreen.classList.remove('hidden');
+                        splashScreen.classList.add('animate');
+                        // Também definir estilos inline para garantia
+                        splashScreen.style.display = 'flex';
+                        splashScreen.style.opacity = '1';
+                        splashScreen.style.visibility = 'visible';
+                        splashScreen.style.pointerEvents = 'all';
+                    }
+                    console.log('[RELOAD-DETECT] Primeira visita - splash EXIBIDA');
                 }
-                // NÃO marcar aqui! A marcação acontece APÓS a página carregar completamente
-                // Isso garante que a primeira visita (vindo do login) mostre a Splash
             })();
         </script>
 
-        <!-- ✅ FAILSAFE JS DE EMERGÊNCIA v2 - Força splash esconder após 6s -->
+        <!-- ✅ FAILSAFE JS DE EMERGÊNCIA v3 - Força splash esconder após 6s -->
         <script>
             (function() {
                 // Failsafe: Se após 6 segundos a splash ainda estiver visível, força esconder
                 setTimeout(function() {
                     var splash = document.getElementById('splashScreen');
                     var overlay = document.getElementById('reload-glass-overlay');
+                    var container = document.querySelector('.participante-container');
+                    var bottomNav = document.querySelector('.bottom-nav-modern');
 
+                    console.log('[FAILSAFE] Verificando estado após 6s...');
+
+                    // Esconder splash se ainda visível
                     if (splash && (splash.classList.contains('animate') ||
-                        getComputedStyle(splash).visibility === 'visible')) {
+                        getComputedStyle(splash).display !== 'none')) {
                         console.warn('[FAILSAFE] Forçando splash a esconder após 6s');
+                        splash.style.display = 'none';
+                        splash.style.opacity = '0';
+                        splash.style.visibility = 'hidden';
                         splash.classList.remove('animate');
                         splash.classList.add('hidden');
-                        splash.style.cssText = 'opacity:0!important;visibility:hidden!important;pointer-events:none!important;';
                     }
 
-                    // Também esconder overlay de reload se ainda estiver ativo
+                    // Esconder overlay de reload se ainda estiver ativo
                     if (overlay && overlay.classList.contains('is-active')) {
                         console.warn('[FAILSAFE] Forçando overlay a esconder após 6s');
                         overlay.classList.remove('is-active');
                     }
 
-                    // ✅ v2: Garantir que app-ready está ativado
-                    if (!document.body.classList.contains('app-ready')) {
-                        console.warn('[FAILSAFE] Ativando app-ready forçado');
+                    // ✅ v3: Garantir que app está revelado (estilos inline diretos)
+                    if (!document.body.classList.contains('app-ready') ||
+                        (container && getComputedStyle(container).display === 'none')) {
+                        console.warn('[FAILSAFE] Revelando app forçado');
                         document.body.classList.add('app-ready');
+                        if (container) container.style.cssText = 'display:flex !important;flex-direction:column;';
+                        if (bottomNav) bottomNav.style.cssText = 'display:flex !important;';
                     }
                 }, 6000);
             })();
@@ -681,23 +691,27 @@
         </div>
         <!-- FIM SPLASH SCREEN -->
 
-        <div class="participante-container">
+        <!-- ✅ FALLBACK: Estilos inline garantem que app fique oculto até estar pronto -->
+        <div class="participante-container" style="display:none !important;">
             <!-- HEADER STICKY -->
             <header class="participante-header-modern">
                 <div class="header-main-modern">
                     <div class="header-info-group">
                         <div class="escudos-mini-modern">
+                            <!-- ✅ FALLBACK: Tamanho inline previne escudos gigantes -->
                             <img
                                 id="escudoTime"
                                 class="escudo-mini-modern"
                                 src="/escudos/placeholder.png"
                                 alt="Time"
+                                style="width:40px;height:40px;max-width:40px;max-height:40px;"
                             />
                             <img
                                 id="escudoCoracao"
                                 class="escudo-coracao-modern"
                                 src="/escudos/placeholder.png"
                                 alt="Coração"
+                                style="width:24px;height:24px;max-width:24px;max-height:24px;"
                             />
                         </div>
                         <div class="info-participante-modern">
@@ -780,30 +794,37 @@
             </main>
         </div>
 
-        <!-- ✅ ERROR HANDLER GLOBAL - Captura erros não tratados -->
+        <!-- ✅ ERROR HANDLER GLOBAL v2 - Captura erros e revela app -->
         <script>
-            window.onerror = function(msg, url, line, col, error) {
-                console.error('[GLOBAL ERROR]', msg, url, line, error);
-                // Esconder splash em caso de erro fatal
+            function __emergencyRevealApp() {
+                console.warn('[ERROR-HANDLER] Revelação de emergência do app');
                 var splash = document.getElementById('splashScreen');
                 var overlay = document.getElementById('reload-glass-overlay');
+                var container = document.querySelector('.participante-container');
+                var bottomNav = document.querySelector('.bottom-nav-modern');
+
+                // Esconder splash
                 if (splash) {
+                    splash.style.display = 'none';
                     splash.classList.remove('animate');
                     splash.classList.add('hidden');
                 }
+                // Esconder overlay
                 if (overlay) overlay.classList.remove('is-active');
+                // Revelar app
+                document.body.classList.add('app-ready');
+                if (container) container.style.cssText = 'display:flex !important;flex-direction:column;';
+                if (bottomNav) bottomNav.style.cssText = 'display:flex !important;';
+            }
+
+            window.onerror = function(msg, url, line, col, error) {
+                console.error('[GLOBAL ERROR]', msg, url, line, error);
+                __emergencyRevealApp();
                 return false;
             };
             window.addEventListener('unhandledrejection', function(event) {
                 console.error('[UNHANDLED PROMISE]', event.reason);
-                // Esconder splash em caso de promise rejeitada
-                var splash = document.getElementById('splashScreen');
-                var overlay = document.getElementById('reload-glass-overlay');
-                if (splash) {
-                    splash.classList.remove('animate');
-                    splash.classList.add('hidden');
-                }
-                if (overlay) overlay.classList.remove('is-active');
+                __emergencyRevealApp();
             });
         </script>
 
@@ -837,8 +858,8 @@
         <!-- ✅ Sistema de Versionamento (com PWA) -->
         <script src="/js/app/app-version.js"></script>
 
-        <!-- BOTTOM NAVIGATION FIXO -->
-        <nav class="bottom-nav-modern">
+        <!-- ✅ FALLBACK: Bottom nav oculto até app-ready -->
+        <nav class="bottom-nav-modern" style="display:none !important;">
             <!-- Menu será renderizado dinamicamente -->
         </nav>
     </body>
