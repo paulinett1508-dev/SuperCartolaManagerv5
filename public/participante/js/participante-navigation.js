@@ -1,6 +1,8 @@
 // =====================================================================
-// PARTICIPANTE NAVIGATION v2.5 - Sistema de Navegação entre Módulos
+// PARTICIPANTE NAVIGATION v2.6 - Sistema de Navegação entre Módulos
 // =====================================================================
+// v2.6: Fix primeira navegação - não ignorar se container está vazio
+//       Garante SplashScreen.hide() mesmo quando navegação é ignorada
 // v2.5: Loading inteligente (só primeira vez ou após 24h)
 // v2.4: Integração com RefreshButton (temporada encerrada)
 // v2.3: Polling fallback para auth
@@ -490,9 +492,18 @@ class ParticipanteNavigation {
             return;
         }
 
-        // ✅ v2.2: Se está navegando para o mesmo módulo, ignorar (exceto forçar reload)
-        if (moduloId === this.moduloAtual && !forcarReload) {
+        // ✅ v2.6: Se está navegando para o mesmo módulo, ignorar (exceto forçar reload)
+        // MAS: Na primeira navegação (container vazio), sempre carregar
+        const container = document.getElementById("moduleContainer");
+        const isFirstLoad = !container || !container.innerHTML.trim() ||
+                            container.innerHTML.includes('min-height: 300px') ||
+                            container.querySelector('#initial-loading');
+
+        if (moduloId === this.moduloAtual && !forcarReload && !isFirstLoad) {
             if (window.Log) Log.debug('PARTICIPANTE-NAV', '⏸️ Já está no módulo, ignorando...');
+            // ✅ v2.6: Mesmo ignorando navegação, garantir que splash/overlay sejam escondidos
+            if (window.SplashScreen) window.SplashScreen.hide();
+            if (window.LoadingOverlay) window.LoadingOverlay.hide();
             return;
         }
 
@@ -501,7 +512,7 @@ class ParticipanteNavigation {
 
         if (window.Log) Log.info('PARTICIPANTE-NAV', `🧭 Navegando para: ${moduloId}`);
 
-        const container = document.getElementById("moduleContainer");
+        // container já foi obtido acima para verificar isFirstLoad
         if (!container) {
             if (window.Log) Log.error('PARTICIPANTE-NAV', '❌ Container não encontrado');
             this._navegando = false;
