@@ -1,16 +1,19 @@
 // =====================================================================
-// app-version.js - Sistema de versionamento do App (OTIMIZADO)
-// Destino: /public/js/app/app-version.js
+// app-version.js - Sistema de Versionamento v2.0
+// =====================================================================
+// v2.0: Versionamento separado (Participante vs Admin)
+//       App participante só atualiza quando PARTICIPANTE_VERSION muda
+//       Mudanças no admin NÃO afetam o app do participante
 // =====================================================================
 
 const AppVersion = {
-    LOCAL_KEY: "app_version",
+    LOCAL_KEY: "app_participante_version", // Chave específica para participante
 
     // ✅ Inicializar (sem setInterval)
     async init() {
         // Registrar Service Worker do PWA
         this.registrarServiceWorker();
-        
+
         // Verificar versão apenas na inicialização
         await this.verificarVersao();
     },
@@ -21,7 +24,7 @@ const AppVersion = {
             try {
                 const registration = await navigator.serviceWorker.register('/participante/service-worker.js');
                 if (window.Log) Log.info('APP-VERSION', 'Service Worker registrado');
-                
+
                 // Detectar atualização do SW
                 registration.addEventListener('updatefound', () => {
                     const newWorker = registration.installing;
@@ -37,10 +40,11 @@ const AppVersion = {
         }
     },
 
-    // ✅ Buscar versão do servidor
+    // ✅ Buscar versão do PARTICIPANTE no servidor
     async getVersaoServidor() {
         try {
-            const response = await fetch("/api/app/versao");
+            // Busca versão específica do participante
+            const response = await fetch("/api/app/versao/participante");
             if (!response.ok) throw new Error("Falha ao buscar versão");
             return await response.json();
         } catch (error) {

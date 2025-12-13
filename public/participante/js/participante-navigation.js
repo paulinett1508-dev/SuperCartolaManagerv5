@@ -1,6 +1,5 @@
 // =====================================================================
-// PARTICIPANTE NAVIGATION - Sistema de Navegação entre Módulos v2.4
-// Destino: /participante/js/participante-navigation.js
+// PARTICIPANTE NAVIGATION v2.4 - Sistema de Navegação entre Módulos
 // =====================================================================
 // v2.4: Integração com RefreshButton (temporada encerrada)
 // v2.3: Polling fallback para auth

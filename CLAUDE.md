@@ -372,6 +372,33 @@ Para forçar limpeza de cache em todos os clientes:
 1. Incrementar `CACHE_NAME` no `service-worker.js`
 2. Incrementar `FORCE_CLEAR_KEY` no `index.html` (ex: `sw_force_clear_v7`)
 
+### Versionamento do App (Separado)
+
+O sistema usa **versões independentes** para Participante e Admin:
+
+| Contexto | Arquivo | Tipo | Quando Alterar |
+|----------|---------|------|----------------|
+| **Participante** | `config/appVersion.js` | Manual | Mudanças no app mobile |
+| **Admin** | `config/appVersion.js` | Automática | A cada deploy |
+
+**Endpoints:**
+- `GET /api/app/versao` → Versão do participante (compatibilidade)
+- `GET /api/app/versao/participante` → Versão do app mobile
+- `GET /api/app/versao/admin` → Versão do painel admin
+
+**Para atualizar o app do participante:**
+```javascript
+// config/appVersion.js
+export const PARTICIPANTE_VERSION = {
+    version: "1.0.1",  // Incrementar aqui
+    build: "2",
+    releaseNotes: "Descrição da atualização",
+    updatedAt: "2025-12-13",
+};
+```
+
+**Importante:** Mudanças APENAS no painel admin NÃO devem alterar `PARTICIPANTE_VERSION`.
+
 ---
 
 ## Regras de Código (Backend)
