@@ -5,7 +5,7 @@
 // ✅ v3.0: Força limpeza de caches antigos
 // =====================================================================
 
-const CACHE_NAME = "super-cartola-v4";
+const CACHE_NAME = "super-cartola-v6";
 
 // Arquivos essenciais para cache inicial
 const STATIC_ASSETS = [

@@ -69,10 +69,26 @@ class ParticipanteAuth {
         if (window.Log) Log.info('PARTICIPANTE-AUTH', 'Verificando autenticação...');
 
         try {
-            // Verificar sessão no servidor
-            const response = await fetch("/api/participante/auth/session", {
-                credentials: "include",
-            });
+            // ✅ Verificar sessão no servidor com timeout de 8 segundos
+            let response;
+
+            // Usar AbortController se disponível, senão fazer fetch simples
+            if (typeof AbortController !== 'undefined') {
+                const controller = new AbortController();
+                const timeoutId = setTimeout(() => controller.abort(), 8000);
+
+                response = await fetch("/api/participante/auth/session", {
+                    credentials: "include",
+                    signal: controller.signal
+                });
+
+                clearTimeout(timeoutId);
+            } else {
+                // Fallback para navegadores sem AbortController
+                response = await fetch("/api/participante/auth/session", {
+                    credentials: "include"
+                });
+            }
 
             if (!response.ok) {
                 if (window.Log) Log.warn('PARTICIPANTE-AUTH', 'Sem sessão válida no servidor');
@@ -582,6 +598,14 @@ class ParticipanteAuth {
         // Evitar loop: só redirecionar se NÃO estiver na página de login
         if (window.location.pathname !== "/participante-login.html") {
             if (window.Log) Log.info('PARTICIPANTE-AUTH', 'Redirecionando para login...');
+
+            // ✅ Esconder splash e overlays antes de redirecionar
+            if (window.SplashScreen) {
+                window.SplashScreen.hide();
+            }
+            const overlay = document.getElementById('reload-glass-overlay');
+            if (overlay) overlay.classList.remove('is-active');
+
             window.location.href = "/participante-login.html";
         }
     }

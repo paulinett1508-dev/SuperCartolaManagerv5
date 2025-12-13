@@ -84,25 +84,26 @@
         <!-- ✅ Sistema de Versionamento -->
         <link rel="stylesheet" href="/css/app/app-version.css" />
 
-        <!-- ✅ CSS CRÍTICO INLINE - Previne duplicação de logo (anti-cache) -->
+        <!-- ✅ CSS CRÍTICO INLINE v3 - Corrigido para permitir failsafe -->
         <style id="critical-splash-fix">
             /* Splash screen SEMPRE começa oculta */
-            #splashScreen {
+            #splashScreen:not(.animate) {
                 opacity: 0 !important;
                 visibility: hidden !important;
                 pointer-events: none !important;
             }
-            /* Só mostra quando JS adiciona classe .animate */
+            /* ⚠️ SEM !important aqui - permite failsafe CSS funcionar */
             #splashScreen.animate {
-                opacity: 1 !important;
-                visibility: visible !important;
-                pointer-events: all !important;
+                opacity: 1;
+                visibility: visible;
+                pointer-events: all;
             }
-            /* Garante que .hidden sempre oculta */
+            /* Garante que .hidden sempre oculta (prioridade máxima) */
             #splashScreen.hidden {
                 opacity: 0 !important;
                 visibility: hidden !important;
-                display: none !important;
+                pointer-events: none !important;
+                animation: none !important;
             }
             /* Logo glow é APENAS cor sólida laranja blur, NUNCA imagem */
             .splash-logo-glow {
@@ -118,7 +119,7 @@
             .splash-logo-img {
                 position: relative !important;
                 z-index: 1 !important;
-                filter: none !important; /* Remove drop-shadow problemático */
+                filter: none !important;
             }
             /* Bloquear pseudo-elementos */
             .splash-logo-container::before,
@@ -468,33 +469,34 @@
     </head>
     <body class="bg-background-dark font-display text-white">
 
-        <!-- ✅ FORCE CACHE CLEAR - Limpa TODOS os caches antigos -->
+        <!-- ✅ FORCE CACHE CLEAR v6 - Executa após página carregar -->
         <script>
             (function() {
-                var FORCE_CLEAR_KEY = 'sw_force_clear_v4';
+                var FORCE_CLEAR_KEY = 'sw_force_clear_v6';
 
-                // Se ainda não limpou nesta versão, LIMPA TUDO
-                if (!localStorage.getItem(FORCE_CLEAR_KEY) && 'caches' in window) {
-                    // Deletar TODOS os caches para garantir CSS novo
-                    caches.keys().then(function(names) {
-                        return Promise.all(names.map(function(name) {
-                            console.log('[CACHE] Limpando:', name);
-                            return caches.delete(name);
-                        }));
-                    }).then(function() {
-                        console.log('[CACHE] Todos os caches limpos!');
-                        localStorage.setItem(FORCE_CLEAR_KEY, Date.now().toString());
+                // Se ainda não limpou nesta versão, agenda limpeza após carregamento
+                if (!localStorage.getItem(FORCE_CLEAR_KEY)) {
+                    // Marcar imediatamente para evitar múltiplas execuções
+                    localStorage.setItem(FORCE_CLEAR_KEY, 'pending');
+
+                    // Executar limpeza apenas APÓS página carregar completamente
+                    window.addEventListener('load', function() {
+                        setTimeout(function() {
+                            if ('caches' in window) {
+                                caches.keys().then(function(names) {
+                                    return Promise.all(names.map(function(name) {
+                                        return caches.delete(name);
+                                    }));
+                                }).then(function() {
+                                    localStorage.setItem(FORCE_CLEAR_KEY, Date.now().toString());
+                                }).catch(function() {
+                                    localStorage.setItem(FORCE_CLEAR_KEY, Date.now().toString());
+                                });
+                            } else {
+                                localStorage.setItem(FORCE_CLEAR_KEY, Date.now().toString());
+                            }
+                        }, 2000); // Aguarda 2s após load para não interferir
                     });
-
-                    // Desregistrar Service Workers antigos
-                    if ('serviceWorker' in navigator) {
-                        navigator.serviceWorker.getRegistrations().then(function(registrations) {
-                            registrations.forEach(function(reg) {
-                                console.log('[SW] Desregistrando:', reg.scope);
-                                reg.unregister();
-                            });
-                        });
-                    }
                 }
             })();
         </script>
@@ -532,6 +534,31 @@
                 }
                 // NÃO marcar aqui! A marcação acontece APÓS a página carregar completamente
                 // Isso garante que a primeira visita (vindo do login) mostre a Splash
+            })();
+        </script>
+
+        <!-- ✅ FAILSAFE JS DE EMERGÊNCIA - Força splash esconder após 6s -->
+        <script>
+            (function() {
+                // Failsafe: Se após 6 segundos a splash ainda estiver visível, força esconder
+                setTimeout(function() {
+                    var splash = document.getElementById('splashScreen');
+                    var overlay = document.getElementById('reload-glass-overlay');
+
+                    if (splash && (splash.classList.contains('animate') ||
+                        getComputedStyle(splash).visibility === 'visible')) {
+                        console.warn('[FAILSAFE] Forçando splash a esconder após 6s');
+                        splash.classList.remove('animate');
+                        splash.classList.add('hidden');
+                        splash.style.cssText = 'opacity:0!important;visibility:hidden!important;pointer-events:none!important;';
+                    }
+
+                    // Também esconder overlay de reload se ainda estiver ativo
+                    if (overlay && overlay.classList.contains('is-active')) {
+                        console.warn('[FAILSAFE] Forçando overlay a esconder após 6s');
+                        overlay.classList.remove('is-active');
+                    }
+                }, 6000);
             })();
         </script>
 
@@ -689,9 +716,42 @@
 
             <!-- Container para módulos -->
             <main id="moduleContainer" class="module-container">
-                <!-- Conteúdo carregado dinamicamente -->
+                <!-- ✅ Estado inicial de loading (será substituído pelo módulo) -->
+                <div id="initial-loading" class="flex justify-center items-center min-h-[400px]">
+                    <div class="text-center">
+                        <div class="w-10 h-10 border-4 border-zinc-700 border-t-orange-500 rounded-full animate-spin mx-auto mb-4"></div>
+                        <p class="text-sm text-white/70">Carregando módulo...</p>
+                    </div>
+                </div>
             </main>
         </div>
+
+        <!-- ✅ ERROR HANDLER GLOBAL - Captura erros não tratados -->
+        <script>
+            window.onerror = function(msg, url, line, col, error) {
+                console.error('[GLOBAL ERROR]', msg, url, line, error);
+                // Esconder splash em caso de erro fatal
+                var splash = document.getElementById('splashScreen');
+                var overlay = document.getElementById('reload-glass-overlay');
+                if (splash) {
+                    splash.classList.remove('animate');
+                    splash.classList.add('hidden');
+                }
+                if (overlay) overlay.classList.remove('is-active');
+                return false;
+            };
+            window.addEventListener('unhandledrejection', function(event) {
+                console.error('[UNHANDLED PROMISE]', event.reason);
+                // Esconder splash em caso de promise rejeitada
+                var splash = document.getElementById('splashScreen');
+                var overlay = document.getElementById('reload-glass-overlay');
+                if (splash) {
+                    splash.classList.remove('animate');
+                    splash.classList.add('hidden');
+                }
+                if (overlay) overlay.classList.remove('is-active');
+            });
+        </script>
 
         <!-- ✅ LogManager PRIMEIRO (antes de todos os outros scripts) -->
         <script src="/js/core/log-manager.js"></script>
