@@ -1,18 +1,28 @@
 // =====================================================================
-// PARTICIPANTE-OFFLINE-CACHE.JS - Sistema de Cache Persistente v1.0
+// PARTICIPANTE-OFFLINE-CACHE.JS - Sistema de Cache Persistente v2.0
 // =====================================================================
-// Cache offline usando IndexedDB para carregamento instantâneo
+// v2.0: Temporada encerrada = Cache PERMANENTE (dados imutáveis)
+// v1.0: Cache offline usando IndexedDB para carregamento instantâneo
 // Estratégia: Stale-While-Revalidate (mostra cache, atualiza em background)
 // =====================================================================
 
-if (window.Log) Log.info('OFFLINE-CACHE', 'Carregando sistema v1.0...');
+if (window.Log) Log.info('OFFLINE-CACHE', 'Carregando sistema v2.0...');
 
 const OfflineCache = {
     DB_NAME: 'SuperCartolaOffline',
     DB_VERSION: 1,
     db: null,
 
+    // =====================================================================
+    // FLAG DE TEMPORADA ENCERRADA - Cache permanente
+    // =====================================================================
+    TEMPORADA_ENCERRADA: true, // 2025 - Campeonato finalizado
+
+    // TTL infinito para temporada encerrada (10 anos em ms)
+    TTL_INFINITO: 10 * 365 * 24 * 60 * 60 * 1000,
+
     // Stores e seus TTLs (em milissegundos)
+    // Quando TEMPORADA_ENCERRADA = true, usa TTL_INFINITO
     STORES: {
         participante: { ttl: 24 * 60 * 60 * 1000 },  // 24 horas
         liga: { ttl: 24 * 60 * 60 * 1000 },          // 24 horas
@@ -23,6 +33,14 @@ const OfflineCache = {
         pontosCorridos: { ttl: 60 * 60 * 1000 },     // 1 hora
         mataMata: { ttl: 60 * 60 * 1000 },           // 1 hora
         config: { ttl: 24 * 60 * 60 * 1000 },        // 24 horas
+    },
+
+    // Retorna TTL efetivo (infinito se temporada encerrada)
+    getTTL(store) {
+        if (this.TEMPORADA_ENCERRADA) {
+            return this.TTL_INFINITO;
+        }
+        return this.STORES[store]?.ttl || 30 * 60 * 1000;
     },
 
     // =========================================================================
@@ -88,7 +106,7 @@ const OfflineCache = {
                     key: key,
                     data: data,
                     timestamp: Date.now(),
-                    ttl: this.STORES[store]?.ttl || 30 * 60 * 1000
+                    ttl: this.getTTL(store)
                 };
 
                 const request = objectStore.put(record);
@@ -168,6 +186,14 @@ const OfflineCache = {
     async getWithFallback(store, key, fetchFn, onUpdate = null) {
         // 1. Tentar cache (mesmo expirado para mostrar algo rápido)
         const cached = await this.get(store, key, true);
+
+        // =====================================================================
+        // TEMPORADA ENCERRADA: Cache é definitivo, não precisa atualizar
+        // =====================================================================
+        if (this.TEMPORADA_ENCERRADA && cached) {
+            if (window.Log) Log.debug('OFFLINE-CACHE', `📦 Temporada encerrada - usando cache permanente: ${store}/${key}`);
+            return cached;
+        }
 
         // 2. Verificar se cache está válido
         const validCached = await this.get(store, key, false);
@@ -404,11 +430,19 @@ const OfflineCache = {
 
 // Inicializar automaticamente
 OfflineCache.init().then(() => {
-    // Limpar cache expirado em background
-    setTimeout(() => OfflineCache.cleanExpired(), 5000);
+    // Temporada encerrada: NÃO limpar cache (dados são imutáveis)
+    if (!OfflineCache.TEMPORADA_ENCERRADA) {
+        setTimeout(() => OfflineCache.cleanExpired(), 5000);
+    }
 });
 
 // Expor globalmente
 window.OfflineCache = OfflineCache;
 
-if (window.Log) Log.info('OFFLINE-CACHE', '✅ Sistema pronto');
+if (window.Log) {
+    if (OfflineCache.TEMPORADA_ENCERRADA) {
+        Log.info('OFFLINE-CACHE', '✅ Sistema pronto (MODO ARQUIVO - Cache permanente)');
+    } else {
+        Log.info('OFFLINE-CACHE', '✅ Sistema pronto');
+    }
+}

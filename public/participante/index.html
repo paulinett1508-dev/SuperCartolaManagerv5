@@ -389,6 +389,28 @@
             }
 
             /* ============================================
+               BADGE DE TEMPORADA ENCERRADA
+               ============================================ */
+            .temporada-badge {
+                display: inline-flex;
+                align-items: center;
+                gap: 4px;
+                margin-top: 6px;
+                padding: 4px 10px;
+                background: linear-gradient(135deg, rgba(34, 197, 94, 0.15), rgba(34, 197, 94, 0.08));
+                border: 1px solid rgba(34, 197, 94, 0.3);
+                border-radius: 20px;
+                color: #4ade80;
+                font-size: 10px;
+                font-weight: 500;
+                letter-spacing: 0.3px;
+            }
+            .temporada-badge .material-symbols-outlined {
+                font-size: 12px;
+                color: #22c55e;
+            }
+
+            /* ============================================
                OVERLAY DE RELOAD (Vidro Fosco) - DEFINITIVO
                ============================================ */
             #reload-glass-overlay {
@@ -661,6 +683,11 @@
                                     <span class="material-symbols-outlined swap-icon" style="font-size: 12px;">swap_horiz</span>
                                 </button>
                             </div>
+                            <!-- Badge de Temporada Encerrada -->
+                            <div id="temporadaBadge" class="temporada-badge">
+                                <span class="material-symbols-outlined">verified</span>
+                                <span>Temporada 2025 • Informações Consolidadas</span>
+                            </div>
                         </div>
                     </div>
 
@@ -776,6 +803,9 @@
 
         <!-- ✅ Pull-to-Refresh (Bola Quicando) -->
         <script src="js/pull-refresh.js"></script>
+
+        <!-- ✅ Botão de Atualização Manual (Temporada Encerrada) -->
+        <script src="js/participante-refresh-button.js"></script>
 
         <!-- ✅ Sistema de Versionamento (com PWA) -->
         <script src="/js/app/app-version.js"></script>

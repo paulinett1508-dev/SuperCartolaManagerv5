@@ -1,13 +1,19 @@
 // ================================================
-// PULL-TO-REFRESH v3.1 - Bolinha Sutil
+// PULL-TO-REFRESH v4.0 - Modo Temporada Encerrada
 // ================================================
-// Feedback visual: Bolinha de futebol que desce conforme puxa
+// v4.0: Desabilita pull-to-refresh quando temporada encerrada
+// v3.1: Feedback visual: Bolinha de futebol que desce conforme puxa
 // Ao soltar: Vibração + Vidro Fosco + Reload
 
 (function () {
     "use strict";
 
-    console.log("[PULL-REFRESH] v3.1 Inicializando...");
+    console.log("[PULL-REFRESH] v4.0 Inicializando...");
+
+    // =====================================================================
+    // FLAG DE TEMPORADA ENCERRADA
+    // =====================================================================
+    const TEMPORADA_ENCERRADA = true; // 2025 - Campeonato finalizado
 
     // Configuração
     const CONFIG = {
@@ -261,21 +267,33 @@
 
     // Inicializar
     function init() {
-        createPullIndicator();
+        // Loading Overlay sempre disponível (usado por navegação entre módulos)
         createLoadingOverlay();
+
+        // =====================================================================
+        // TEMPORADA ENCERRADA: Desabilitar pull-to-refresh
+        // =====================================================================
+        if (TEMPORADA_ENCERRADA) {
+            console.log("[PULL-REFRESH] v4.0 ⚠️ Temporada encerrada - Pull-to-refresh DESABILITADO");
+            console.log("[PULL-REFRESH] Use o botão 'Atualizar Dados' em cada módulo para limpar cache");
+            return; // Não registra event listeners de pull
+        }
+
+        createPullIndicator();
 
         // Usar passive: false para poder prevenir scroll
         document.addEventListener("touchstart", onTouchStart, { passive: true });
         document.addEventListener("touchmove", onTouchMove, { passive: false });
         document.addEventListener("touchend", onTouchEnd, { passive: true });
 
-        console.log("[PULL-REFRESH] v3.1 Sistema inicializado (bolinha sutil)");
+        console.log("[PULL-REFRESH] v4.0 Sistema inicializado (bolinha sutil)");
     }
 
     // Expor API global
     window.PullRefresh = {
         refresh: executeRefresh,
         isRefreshing: () => isRefreshing,
+        isTemporadaEncerrada: () => TEMPORADA_ENCERRADA,
     };
 
     // Expor Loading Overlay API globalmente (para navegação entre módulos)

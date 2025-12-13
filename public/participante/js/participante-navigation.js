@@ -1,6 +1,10 @@
 // =====================================================================
-// PARTICIPANTE NAVIGATION - Sistema de Navegação entre Módulos
+// PARTICIPANTE NAVIGATION - Sistema de Navegação entre Módulos v2.4
 // Destino: /participante/js/participante-navigation.js
+// =====================================================================
+// v2.4: Integração com RefreshButton (temporada encerrada)
+// v2.3: Polling fallback para auth
+// v2.2: Debounce e controle de navegações duplicadas
 // =====================================================================
 
 if (window.Log) Log.info('PARTICIPANTE-NAV', '🚀 Carregando sistema de navegação...');
@@ -564,6 +568,11 @@ class ParticipanteNavigation {
             // ✅ LOADING OVERLAY: Esconder também (para pull-to-refresh)
             if (window.LoadingOverlay) {
                 window.LoadingOverlay.hide();
+            }
+
+            // ✅ v2.4: Adicionar botão de atualização manual (temporada encerrada)
+            if (window.RefreshButton?.shouldShow()) {
+                window.RefreshButton.addTo(container, { text: 'Atualizar Dados' });
             }
 
             // ✅ v2.2: Liberar flag de navegação
