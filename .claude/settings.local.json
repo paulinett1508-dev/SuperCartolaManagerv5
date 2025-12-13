@@ -29,7 +29,8 @@
       "Bash(do echo \"Checking $f...\")",
       "Bash(echo:*)",
       "Bash(done)",
-      "Bash(do node --check \"$f\")"
+      "Bash(do node --check \"$f\")",
+      "Bash(for f in public/participante/js/modules/participante-top10.js public/participante/js/modules/participante-pontos-corridos.js public/participante/js/modules/participante-mata-mata.js public/participante/js/modules/participante-artilheiro.js public/participante/js/modules/participante-luva-ouro.js public/participante/js/modules/participante-melhor-mes.js public/participante/js/participante-offline-cache.js)"
     ]
   },
   "enableAllProjectMcpServers": true,
