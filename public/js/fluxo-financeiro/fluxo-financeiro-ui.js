@@ -5,7 +5,8 @@ import {
 } from "./fluxo-financeiro-auditoria.js";
 
 /**
- * FLUXO-FINANCEIRO-UI.JS - v4.5 (Cache em Lote)
+ * FLUXO-FINANCEIRO-UI.JS - v4.6 (Títulos Editáveis)
+ * ✅ v4.6: Títulos dos campos editáveis agora são editáveis em modo Admin
  * ✅ v4.5: Botão "Limpar Cache" + "Recalcular Todos" + auto-popular ao visualizar
  * ✅ v4.4.2: Botão só limpa cache, sem chamar recálculo do backend
  * ✅ v4.4.1: Botão "Limpar Cache" + removido botão duplicado dos campos
@@ -607,11 +608,21 @@ export class FluxoFinanceiroUI {
                         .map(
                             (c) => `
                         <div class="campo-item">
-                            <label class="campo-label-permanente">${c.nome}</label>
+                            ${
+                                readOnly
+                                    ? `<label class="campo-label-permanente">${c.nome}</label>`
+                                    : `<input type="text" value="${c.nome}"
+                                           class="input-titulo-campo"
+                                           data-campo="${c.id}"
+                                           data-time-id="${timeId}"
+                                           onchange="window.salvarNomeCampoEditavel(this)"
+                                           onclick="this.select()"
+                                           placeholder="Nome do campo">`
+                            }
                             ${
                                 readOnly
                                     ? `
-                                <div class="input-modern ${c.valor >= 0 ? "text-success" : "text-danger"}" 
+                                <div class="input-modern ${c.valor >= 0 ? "text-success" : "text-danger"}"
                                      style="background: rgba(255,255,255,0.05); padding: 10px; border-radius: 8px; text-align: center;">
                                     ${c.valor !== 0 ? `R$ ${c.valor.toLocaleString("pt-BR", { minimumFractionDigits: 2 })}` : "-"}
                                 </div>
@@ -919,7 +930,7 @@ window.recalcularTodosCache = async function () {
 };
 
 // =========================================================================
-// FUNÇÃO GLOBAL PARA SALVAR CAMPO EDITÁVEL
+// FUNÇÃO GLOBAL PARA SALVAR CAMPO EDITÁVEL (VALOR)
 // =========================================================================
 window.salvarCampoEditavel = async function (input) {
     const campo = input.dataset.campo;
@@ -932,7 +943,43 @@ window.salvarCampoEditavel = async function (input) {
     else if (valor < 0) input.classList.add("campo-negativo");
 
     // Salvar no backend
-    await FluxoFinanceiroCampos.salvarCampo(timeId, campo, valor);
+    await FluxoFinanceiroCampos.salvarValorCampo(timeId, campo, valor);
+};
+
+// =========================================================================
+// ✅ v4.6: FUNÇÃO GLOBAL PARA SALVAR NOME DO CAMPO EDITÁVEL (TÍTULO)
+// =========================================================================
+window.salvarNomeCampoEditavel = async function (input) {
+    const campo = input.dataset.campo;
+    const timeId = input.dataset.timeId;
+    const nome = input.value.trim();
+
+    if (!nome) {
+        input.value = `Campo ${campo.replace("campo", "")}`;
+        return;
+    }
+
+    try {
+        // Feedback visual durante salvamento
+        input.style.opacity = "0.7";
+        input.disabled = true;
+
+        await FluxoFinanceiroCampos.salvarNomeCampo(timeId, campo, nome);
+
+        console.log(`[FLUXO-UI] ✅ Nome do campo salvo: ${campo} = "${nome}"`);
+
+        // Feedback de sucesso
+        input.style.borderColor = "#22c55e";
+        setTimeout(() => {
+            input.style.borderColor = "";
+        }, 1500);
+    } catch (error) {
+        console.error(`[FLUXO-UI] ❌ Erro ao salvar nome do campo:`, error);
+        alert(`Erro ao salvar nome do campo: ${error.message}`);
+    } finally {
+        input.style.opacity = "1";
+        input.disabled = false;
+    }
 };
 
 // =========================================================================
@@ -1183,4 +1230,4 @@ window.abrirAuditoria = async function (timeId) {
     }
 };
 
-console.log("[FLUXO-UI] ✅ v4.5 carregado (Cache em Lote)");
+console.log("[FLUXO-UI] ✅ v4.6 carregado (Títulos Editáveis)");

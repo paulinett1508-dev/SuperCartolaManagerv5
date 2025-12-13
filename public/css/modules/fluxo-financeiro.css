@@ -1348,3 +1348,52 @@ body {
     color: var(--laranja);
     transform: scale(1.1);
 }
+
+/* ✅ v4.6: Input para edição de títulos dos campos */
+.input-titulo-campo {
+    font-size: 10px;
+    font-weight: 600;
+    color: var(--laranja);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    background: rgba(255, 69, 0, 0.1);
+    border: 1px solid rgba(255, 69, 0, 0.3);
+    border-radius: 4px;
+    padding: 4px 8px;
+    width: 100%;
+    transition: all 0.2s ease;
+}
+
+.input-titulo-campo:focus {
+    outline: none;
+    border-color: var(--laranja);
+    background: rgba(255, 69, 0, 0.15);
+    box-shadow: 0 0 0 2px rgba(255, 69, 0, 0.2);
+}
+
+.input-titulo-campo::placeholder {
+    color: var(--text-muted);
+    font-style: italic;
+}
+
+.input-titulo-campo:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+}
+
+/* Campo de valor editável - melhorias */
+.input-campo-editavel {
+    text-align: center;
+    font-weight: 600;
+    transition: all 0.2s ease;
+}
+
+.input-campo-editavel.campo-positivo {
+    border-color: #22c55e;
+    color: #22c55e;
+}
+
+.input-campo-editavel.campo-negativo {
+    border-color: #ef4444;
+    color: #ef4444;
+}
