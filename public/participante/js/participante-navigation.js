@@ -525,7 +525,6 @@ class ParticipanteNavigation {
         // ✅ v2.5: Loading inteligente - só mostra se não tem cache recente (24h)
         const cacheKey = `modulo_loaded_${moduloId}`;
         const lastLoaded = localStorage.getItem(cacheKey);
-        const agora = Date.now();
         const TTL_24H = 24 * 60 * 60 * 1000;
         const temCacheRecente = lastLoaded && (agora - parseInt(lastLoaded)) < TTL_24H;
 

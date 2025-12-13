@@ -148,11 +148,6 @@ const SplashScreen = {
             this.mostrarReloadOverlay();
 
             try {
-                // Verificar versão (integrado com app-version.js)
-                if (window.AppVersion) {
-                    await window.AppVersion.verificarVersao();
-                }
-
                 // Recarregar módulo atual
                 if (window.participanteNavigation || window.participanteNav) {
                     const nav = window.participanteNavigation || window.participanteNav;

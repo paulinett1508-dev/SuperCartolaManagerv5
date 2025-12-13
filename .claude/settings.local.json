@@ -24,7 +24,12 @@
       "Bash(npm audit:*)",
       "Bash(ls:*)",
       "Bash(export:*)",
-      "mcp__mongo__list_collections"
+      "mcp__mongo__list_collections",
+      "Bash(for f in public/participante/js/*.js)",
+      "Bash(do echo \"Checking $f...\")",
+      "Bash(echo:*)",
+      "Bash(done)",
+      "Bash(do node --check \"$f\")"
     ]
   },
   "enableAllProjectMcpServers": true,
