@@ -1,6 +1,7 @@
 // =====================================================================
-// app-version.js - Sistema de Versionamento v4.0
+// app-version.js - Sistema de Versionamento v4.1
 // =====================================================================
+// v4.1: Otimização - Remove polling de 5min, usa visibilitychange
 // v4.0: Modal de atualização RESTAURADO
 //       - Compara versão local com servidor
 //       - Exibe modal quando há nova versão
@@ -9,7 +10,6 @@
 
 const AppVersion = {
     LOCAL_KEY: "app_version",
-    CHECK_INTERVAL: 5 * 60 * 1000, // Verificar a cada 5 minutos
 
     // ✅ Inicializar
     async init() {
@@ -19,8 +19,12 @@ const AppVersion = {
         // Buscar versão e verificar atualização
         await this.verificarVersao();
 
-        // Verificar periodicamente
-        setInterval(() => this.verificarVersao(), this.CHECK_INTERVAL);
+        // Verificar quando app volta do background
+        document.addEventListener('visibilitychange', () => {
+            if (document.visibilityState === 'visible') {
+                this.verificarVersao();
+            }
+        });
     },
 
     // ✅ Registrar Service Worker
@@ -250,4 +254,4 @@ if (document.readyState === "loading") {
     AppVersion.init();
 }
 
-if (window.Log) Log.info('APP-VERSION', '✅ Sistema de versionamento v4.0 carregado (com modal)');
+if (window.Log) Log.info('APP-VERSION', '✅ Sistema de versionamento v4.1 carregado');
