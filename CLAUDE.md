@@ -749,3 +749,4 @@ Rodadas onde ocorrem confrontos de Mata-Mata (importante para detecção de cach
 **Valores financeiros:** Vitória = +R$10 | Derrota = -R$10
 - to memorize
 - Add to memorize. Git
+- claude.md

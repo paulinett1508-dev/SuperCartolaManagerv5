@@ -33,7 +33,8 @@
       "Bash(for f in public/participante/js/modules/participante-top10.js public/participante/js/modules/participante-pontos-corridos.js public/participante/js/modules/participante-mata-mata.js public/participante/js/modules/participante-artilheiro.js public/participante/js/modules/participante-luva-ouro.js public/participante/js/modules/participante-melhor-mes.js public/participante/js/participante-offline-cache.js)",
       "mcp__mongo__find_documents",
       "mcp__mongo__get_collection_schema",
-      "Bash(timeout 5 node:*)"
+      "Bash(timeout 5 node:*)",
+      "Bash(timeout 10 node:*)"
     ]
   },
   "enableAllProjectMcpServers": true,

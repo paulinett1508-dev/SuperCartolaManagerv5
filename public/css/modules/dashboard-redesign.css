@@ -1,0 +1,1441 @@
+/* DASHBOARD REDESIGN v1.0
+   Arquivo: public/css/modules/dashboard-redesign.css
+   Novo design inspirado no mockup moderno
+   IMPORTANTE: Este arquivo complementa dashboard.css, não substitui
+*/
+
+/* === RESET DO LAYOUT PARA NOVO DESIGN === */
+.dashboard-redesign {
+    background: #121212 !important;
+    min-height: 100vh;
+}
+
+.dashboard-redesign .page-content {
+    background: #121212 !important;
+    padding: 24px 32px !important;
+    min-height: calc(100vh - 60px);
+}
+
+/* === HEADER DA PÁGINA === */
+.dashboard-header {
+    margin-bottom: 32px;
+}
+
+.dashboard-header-content {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+}
+
+@media (min-width: 768px) {
+    .dashboard-header-content {
+        flex-direction: row;
+        align-items: center;
+        justify-content: space-between;
+    }
+}
+
+.dashboard-header-info h2 {
+    font-size: 1.875rem;
+    font-weight: 700;
+    color: #ffffff;
+    margin: 0 0 4px 0;
+    text-shadow: none;
+}
+
+.dashboard-header-info p {
+    font-size: 0.875rem;
+    color: #9ca3af;
+    margin: 0;
+}
+
+.dashboard-header-actions {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.btn-secondary-new {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    background: #1E1E1E;
+    border: 1px solid #333333;
+    color: #e5e7eb;
+    padding: 10px 16px;
+    border-radius: 8px;
+    font-size: 0.875rem;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    text-decoration: none;
+}
+
+.btn-secondary-new:hover {
+    border-color: #FF5500;
+    background: #252525;
+}
+
+.btn-secondary-new .material-icons {
+    font-size: 18px;
+}
+
+.btn-primary-new {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    background: #FF5500;
+    border: none;
+    color: #ffffff;
+    padding: 10px 16px;
+    border-radius: 8px;
+    font-size: 0.875rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    text-decoration: none;
+    box-shadow: 0 4px 14px rgba(255, 85, 0, 0.25);
+}
+
+.btn-primary-new:hover {
+    background: #e04b00;
+    transform: translateY(-1px);
+    box-shadow: 0 6px 20px rgba(255, 85, 0, 0.35);
+}
+
+.btn-primary-new .material-icons {
+    font-size: 18px;
+}
+
+/* === CARDS DE ESTATÍSTICAS REDESIGN === */
+.dashboard-stats-new {
+    display: grid;
+    grid-template-columns: repeat(1, 1fr);
+    gap: 16px;
+    margin-bottom: 32px;
+}
+
+@media (min-width: 640px) {
+    .dashboard-stats-new {
+        grid-template-columns: repeat(2, 1fr);
+    }
+}
+
+@media (min-width: 1024px) {
+    .dashboard-stats-new {
+        grid-template-columns: repeat(4, 1fr);
+    }
+}
+
+.stat-card-new {
+    background: #1E1E1E;
+    padding: 20px;
+    border-radius: 12px;
+    border: 1px solid #333333;
+    position: relative;
+    overflow: hidden;
+    transition: all 0.2s ease;
+}
+
+.stat-card-new:hover {
+    border-color: rgba(255, 85, 0, 0.5);
+}
+
+.stat-card-new::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    right: 0;
+    width: 96px;
+    height: 96px;
+    border-radius: 50%;
+    transform: translate(40px, -40px);
+    transition: transform 0.2s ease;
+}
+
+.stat-card-new:hover::before {
+    transform: translate(40px, -40px) scale(1.1);
+}
+
+.stat-card-new.green::before { background: rgba(34, 197, 94, 0.08); }
+.stat-card-new.blue::before { background: rgba(59, 130, 246, 0.08); }
+.stat-card-new.yellow::before { background: rgba(234, 179, 8, 0.08); }
+.stat-card-new.purple::before { background: rgba(168, 85, 247, 0.08); }
+
+.stat-card-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    margin-bottom: 16px;
+    position: relative;
+    z-index: 1;
+}
+
+.stat-card-content .stat-label-new {
+    font-size: 0.75rem;
+    font-weight: 600;
+    color: #9ca3af;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    margin: 0 0 4px 0;
+}
+
+.stat-card-content .stat-number-new {
+    font-size: 1.875rem;
+    font-weight: 700;
+    color: #ffffff;
+    margin: 0;
+    font-family: 'Inter', sans-serif;
+}
+
+.stat-card-content .stat-number-new.text-lg {
+    font-size: 1.25rem;
+}
+
+.stat-icon-new {
+    width: 40px;
+    height: 40px;
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.stat-icon-new .material-icons {
+    font-size: 24px;
+}
+
+.stat-icon-new.green {
+    background: rgba(34, 197, 94, 0.15);
+    color: #22c55e;
+}
+
+.stat-icon-new.blue {
+    background: rgba(59, 130, 246, 0.15);
+    color: #3b82f6;
+}
+
+.stat-icon-new.yellow {
+    background: rgba(234, 179, 8, 0.15);
+    color: #eab308;
+}
+
+.stat-icon-new.purple {
+    background: rgba(168, 85, 247, 0.15);
+    color: #a855f7;
+}
+
+.stat-card-footer {
+    display: flex;
+    align-items: center;
+    font-size: 0.75rem;
+    color: #9ca3af;
+    position: relative;
+    z-index: 1;
+}
+
+.stat-card-footer .material-icons {
+    font-size: 14px;
+    margin-right: 4px;
+}
+
+.stat-card-footer.positive {
+    color: #22c55e;
+}
+
+.stat-badge {
+    background: #3b82f6;
+    color: #ffffff;
+    font-size: 0.625rem;
+    font-weight: 700;
+    padding: 2px 6px;
+    border-radius: 4px;
+    margin-right: 8px;
+}
+
+/* === SEÇÃO DE BUSCA REDESIGN === */
+.search-section-new {
+    margin-bottom: 32px;
+    position: relative;
+}
+
+.search-section-new .search-icon-new {
+    position: absolute;
+    left: 12px;
+    top: 50%;
+    transform: translateY(-50%);
+    color: #9ca3af;
+    pointer-events: none;
+}
+
+.search-section-new .search-icon-new .material-icons {
+    font-size: 20px;
+}
+
+.search-input-new {
+    width: 100%;
+    padding: 14px 16px 14px 44px;
+    background: #1E1E1E;
+    border: 1px solid #333333;
+    border-radius: 12px;
+    color: #ffffff;
+    font-size: 0.875rem;
+    transition: all 0.2s ease;
+    outline: none;
+}
+
+.search-input-new:focus {
+    border-color: #FF5500;
+    box-shadow: 0 0 0 3px rgba(255, 85, 0, 0.1);
+}
+
+.search-input-new::placeholder {
+    color: #6b7280;
+}
+
+/* === SEÇÃO DE LIGA PRINCIPAL === */
+.liga-section {
+    margin-bottom: 40px;
+}
+
+.liga-section-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 16px;
+}
+
+.liga-section-title {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 1.25rem;
+    font-weight: 700;
+    color: #ffffff;
+    margin: 0;
+}
+
+.liga-section-title .accent-bar {
+    width: 6px;
+    height: 24px;
+    background: #FF5500;
+    border-radius: 3px;
+}
+
+.liga-section-title .accent-bar.gray {
+    background: #6b7280;
+}
+
+.liga-status-badge {
+    padding: 4px 10px;
+    border-radius: 9999px;
+    font-size: 0.75rem;
+    font-weight: 500;
+    border: 1px solid;
+}
+
+.liga-status-badge.active {
+    background: rgba(34, 197, 94, 0.1);
+    color: #22c55e;
+    border-color: rgba(34, 197, 94, 0.3);
+}
+
+.liga-status-badge.finished {
+    background: rgba(107, 114, 128, 0.1);
+    color: #9ca3af;
+    border-color: rgba(107, 114, 128, 0.3);
+}
+
+/* === CARD DE LIGA PRINCIPAL === */
+.liga-card-featured {
+    background: #1E1E1E;
+    border-radius: 12px;
+    border: 1px solid #333333;
+    overflow: hidden;
+    transition: all 0.2s ease;
+}
+
+.liga-card-featured:hover {
+    border-color: rgba(255, 85, 0, 0.5);
+}
+
+.liga-card-featured-content {
+    padding: 24px;
+}
+
+.liga-card-featured-inner {
+    display: flex;
+    flex-direction: column;
+    gap: 24px;
+}
+
+@media (min-width: 768px) {
+    .liga-card-featured-inner {
+        flex-direction: row;
+        align-items: center;
+    }
+}
+
+.liga-icon-large {
+    flex-shrink: 0;
+    width: 64px;
+    height: 64px;
+    background: linear-gradient(135deg, #1f1f1f 0%, #000000 100%);
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border: 1px solid #333333;
+}
+
+.liga-icon-large .material-icons {
+    font-size: 40px;
+    color: #FF5500;
+}
+
+.liga-card-info {
+    flex: 1;
+}
+
+.liga-card-info h4 {
+    font-size: 1.125rem;
+    font-weight: 700;
+    color: #ffffff;
+    margin: 0 0 4px 0;
+}
+
+.liga-card-info p {
+    font-size: 0.875rem;
+    color: #9ca3af;
+    margin: 0 0 12px 0;
+}
+
+.liga-card-tags {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+}
+
+.liga-tag {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    background: #252525;
+    color: #d1d5db;
+    padding: 4px 8px;
+    border-radius: 4px;
+    font-size: 0.875rem;
+}
+
+.liga-tag .material-icons {
+    font-size: 14px;
+    color: #9ca3af;
+}
+
+.liga-card-action {
+    flex-shrink: 0;
+    width: 100%;
+}
+
+@media (min-width: 768px) {
+    .liga-card-action {
+        width: auto;
+        margin-top: 0;
+    }
+}
+
+.btn-liga-details {
+    display: block;
+    width: 100%;
+    text-align: center;
+    background: #FF5500;
+    color: #ffffff;
+    padding: 12px 24px;
+    border-radius: 8px;
+    font-weight: 600;
+    font-size: 0.875rem;
+    text-decoration: none;
+    transition: all 0.2s ease;
+    box-shadow: 0 4px 14px rgba(255, 85, 0, 0.25);
+}
+
+.btn-liga-details:hover {
+    background: #e04b00;
+    transform: translateY(-1px);
+    box-shadow: 0 6px 20px rgba(255, 85, 0, 0.35);
+}
+
+@media (min-width: 768px) {
+    .btn-liga-details {
+        width: auto;
+    }
+}
+
+/* === FOOTER DO CARD PRINCIPAL === */
+.liga-card-featured-footer {
+    background: #18181b;
+    padding: 16px 24px;
+    border-top: 1px solid #333333;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+@media (min-width: 640px) {
+    .liga-card-featured-footer {
+        flex-direction: row;
+        justify-content: space-between;
+        align-items: center;
+    }
+}
+
+.liga-leader-info {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 0.875rem;
+}
+
+.liga-leader-info .label {
+    color: #9ca3af;
+}
+
+.liga-leader-info .leader {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.liga-leader-info .leader .material-icons {
+    color: #eab308;
+    font-size: 18px;
+}
+
+.liga-leader-info .leader-name {
+    font-weight: 700;
+    color: #ffffff;
+}
+
+.liga-leader-info .leader-points {
+    background: rgba(34, 197, 94, 0.15);
+    color: #22c55e;
+    font-size: 0.75rem;
+    font-weight: 600;
+    padding: 2px 6px;
+    border-radius: 4px;
+    margin-left: 4px;
+}
+
+.liga-update-info {
+    font-size: 0.75rem;
+    color: #6b7280;
+}
+
+/* === GRID DE CARDS SECUNDÁRIOS === */
+.ligas-grid-new {
+    display: grid;
+    grid-template-columns: repeat(1, 1fr);
+    gap: 16px;
+}
+
+@media (min-width: 768px) {
+    .ligas-grid-new {
+        grid-template-columns: repeat(2, 1fr);
+    }
+}
+
+@media (min-width: 1024px) {
+    .ligas-grid-new {
+        grid-template-columns: repeat(3, 1fr);
+    }
+}
+
+/* === CARD DE LIGA SECUNDÁRIO === */
+.liga-card-new {
+    background: #1E1E1E;
+    border-radius: 12px;
+    border: 1px solid #333333;
+    padding: 20px;
+    transition: all 0.2s ease;
+    cursor: pointer;
+}
+
+.liga-card-new:hover {
+    border-color: rgba(255, 85, 0, 0.5);
+}
+
+.liga-card-new-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    margin-bottom: 12px;
+}
+
+.liga-card-avatar {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    background: #252525;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #9ca3af;
+    font-weight: 700;
+    font-size: 0.875rem;
+    border: 1px solid #333333;
+}
+
+.liga-card-type-badge {
+    padding: 2px 8px;
+    border-radius: 4px;
+    font-size: 0.625rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+}
+
+.liga-card-type-badge.amistosa {
+    background: #252525;
+    color: #9ca3af;
+}
+
+.liga-card-type-badge.ativa {
+    background: rgba(34, 197, 94, 0.15);
+    color: #22c55e;
+}
+
+.liga-card-new h4 {
+    font-size: 1rem;
+    font-weight: 700;
+    color: #ffffff;
+    margin: 0 0 4px 0;
+    transition: color 0.2s ease;
+}
+
+.liga-card-new:hover h4 {
+    color: #FF5500;
+}
+
+.liga-card-new p {
+    font-size: 0.75rem;
+    color: #9ca3af;
+    margin: 0 0 16px 0;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+}
+
+.liga-card-new-footer {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding-top: 12px;
+    border-top: 1px solid #252525;
+}
+
+.liga-card-avatars {
+    display: flex;
+}
+
+.liga-card-avatars img {
+    width: 24px;
+    height: 24px;
+    border-radius: 50%;
+    border: 2px solid #1E1E1E;
+    margin-left: -8px;
+}
+
+.liga-card-avatars img:first-child {
+    margin-left: 0;
+}
+
+.liga-card-avatars .more-count {
+    width: 24px;
+    height: 24px;
+    border-radius: 50%;
+    background: #333333;
+    border: 2px solid #1E1E1E;
+    margin-left: -8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.5rem;
+    font-weight: 700;
+    color: #9ca3af;
+}
+
+.liga-card-date {
+    display: flex;
+    align-items: center;
+    font-size: 0.75rem;
+    color: #9ca3af;
+}
+
+.liga-card-date .material-icons {
+    font-size: 14px;
+    margin-right: 4px;
+}
+
+.liga-card-link {
+    font-size: 0.75rem;
+    font-weight: 600;
+    color: #FF5500;
+    text-decoration: none;
+    transition: color 0.2s ease;
+}
+
+.liga-card-link:hover {
+    color: #ff7733;
+}
+
+/* === CARD DE CRIAR NOVA LIGA === */
+.liga-card-create {
+    background: rgba(24, 24, 27, 0.5);
+    border: 2px dashed #333333;
+    border-radius: 12px;
+    padding: 20px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    min-height: 180px;
+}
+
+.liga-card-create:hover {
+    border-color: #FF5500;
+    background: #1E1E1E;
+}
+
+.liga-card-create-icon {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    background: #252525;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-bottom: 8px;
+    transition: all 0.2s ease;
+}
+
+.liga-card-create:hover .liga-card-create-icon {
+    transform: scale(1.1);
+}
+
+.liga-card-create-icon .material-icons {
+    font-size: 20px;
+    color: #9ca3af;
+    transition: color 0.2s ease;
+}
+
+.liga-card-create:hover .liga-card-create-icon .material-icons {
+    color: #FF5500;
+}
+
+.liga-card-create h4 {
+    font-size: 0.875rem;
+    font-weight: 700;
+    color: #d1d5db;
+    margin: 0 0 4px 0;
+}
+
+.liga-card-create p {
+    font-size: 0.75rem;
+    color: #6b7280;
+    margin: 0;
+}
+
+/* === ESTADOS DE LOADING E ERRO === */
+.loading-container-new {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 60px 40px;
+    background: #1E1E1E;
+    border-radius: 12px;
+    border: 1px solid #333333;
+    max-width: 400px;
+    margin: 40px auto;
+}
+
+.loading-spinner-new {
+    width: 48px;
+    height: 48px;
+    border: 3px solid rgba(255, 85, 0, 0.2);
+    border-top: 3px solid #FF5500;
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+    margin-bottom: 16px;
+}
+
+.loading-text-new {
+    color: #ffffff;
+    font-size: 1rem;
+    font-weight: 600;
+    margin-bottom: 8px;
+}
+
+.loading-subtitle-new {
+    color: #9ca3af;
+    font-size: 0.875rem;
+    text-align: center;
+}
+
+.error-container-new {
+    background: #1E1E1E;
+    border: 1px solid #ef4444;
+    border-radius: 12px;
+    padding: 32px;
+    text-align: center;
+    margin: 40px auto;
+    max-width: 400px;
+}
+
+.error-icon-new {
+    width: 48px;
+    height: 48px;
+    border-radius: 50%;
+    background: rgba(239, 68, 68, 0.15);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0 auto 16px;
+}
+
+.error-icon-new .material-icons {
+    font-size: 24px;
+    color: #ef4444;
+}
+
+.error-title-new {
+    font-size: 1rem;
+    font-weight: 700;
+    color: #ef4444;
+    margin-bottom: 8px;
+}
+
+.error-message-new {
+    color: #9ca3af;
+    margin-bottom: 16px;
+    font-size: 0.875rem;
+}
+
+.retry-btn-new {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    background: #ef4444;
+    color: #ffffff;
+    padding: 10px 20px;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    font-weight: 600;
+    font-size: 0.875rem;
+    transition: all 0.2s ease;
+}
+
+.retry-btn-new:hover {
+    background: #dc2626;
+}
+
+.retry-btn-new .material-icons {
+    font-size: 18px;
+}
+
+.empty-state-new {
+    text-align: center;
+    padding: 60px 40px;
+    background: #1E1E1E;
+    border-radius: 12px;
+    border: 2px dashed #333333;
+    max-width: 400px;
+    margin: 40px auto;
+}
+
+.empty-icon-new {
+    width: 64px;
+    height: 64px;
+    border-radius: 50%;
+    background: rgba(255, 85, 0, 0.1);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0 auto 16px;
+}
+
+.empty-icon-new .material-icons {
+    font-size: 32px;
+    color: #FF5500;
+}
+
+.empty-title-new {
+    font-size: 1.125rem;
+    font-weight: 700;
+    color: #ffffff;
+    margin-bottom: 8px;
+}
+
+.empty-subtitle-new {
+    color: #9ca3af;
+    margin-bottom: 24px;
+    font-size: 0.875rem;
+    line-height: 1.5;
+}
+
+.empty-action-new {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    background: #FF5500;
+    color: #ffffff;
+    padding: 12px 24px;
+    border: none;
+    border-radius: 8px;
+    font-weight: 700;
+    font-size: 0.875rem;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    text-decoration: none;
+    box-shadow: 0 4px 14px rgba(255, 85, 0, 0.25);
+}
+
+.empty-action-new:hover {
+    background: #e04b00;
+    transform: translateY(-1px);
+}
+
+.empty-action-new .material-icons {
+    font-size: 18px;
+}
+
+/* === ANIMAÇÕES === */
+@keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+
+/* ============================================================
+   SIDEBAR REDESIGN v1.0 - Design Moderno
+   ============================================================ */
+
+/* Override do sidebar antigo */
+.app-sidebar.sidebar-redesign {
+    width: 280px;
+    background: #000000 !important;
+    border-right: 1px solid #1f1f1f !important;
+    display: flex;
+    flex-direction: column;
+    height: 100vh;
+    position: fixed;
+    z-index: 1000;
+    box-shadow: none !important;
+}
+
+/* Logo Section */
+.sidebar-logo-new {
+    padding: 20px 16px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    border-bottom: 1px solid #1f1f1f;
+}
+
+.sidebar-logo-icon {
+    width: 48px;
+    height: 48px;
+    background: #FF5500;
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-bottom: 12px;
+    box-shadow: 0 4px 14px rgba(255, 85, 0, 0.3);
+}
+
+.sidebar-logo-icon .material-icons {
+    font-size: 28px;
+    color: #ffffff;
+}
+
+.sidebar-logo-text {
+    text-align: center;
+}
+
+.sidebar-logo-text h1 {
+    font-size: 1rem;
+    font-weight: 700;
+    color: #FF5500;
+    margin: 0;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+}
+
+.sidebar-logo-text p {
+    font-size: 0.7rem;
+    color: #6b7280;
+    margin: 4px 0 0 0;
+    font-weight: 500;
+    letter-spacing: 0.05em;
+}
+
+/* Navigation */
+.sidebar-nav-new {
+    flex: 1;
+    overflow-y: auto;
+    padding: 16px 0;
+}
+
+.sidebar-section-new {
+    padding: 0 12px;
+    margin-bottom: 24px;
+}
+
+.sidebar-section-title-new {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 0.7rem;
+    font-weight: 600;
+    color: #6b7280;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    padding: 0 12px;
+    margin-bottom: 8px;
+}
+
+.sidebar-section-title-new .material-icons {
+    font-size: 14px;
+}
+
+/* Menu Items */
+.sidebar-menu-new {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+}
+
+.sidebar-menu-new li {
+    margin-bottom: 2px;
+}
+
+.sidebar-menu-item {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 10px 12px;
+    color: #9ca3af;
+    text-decoration: none;
+    border-radius: 8px;
+    transition: all 0.15s ease;
+    font-size: 0.875rem;
+    font-weight: 500;
+}
+
+.sidebar-menu-item:hover {
+    background: #1f1f1f;
+    color: #ffffff;
+}
+
+.sidebar-menu-item.active {
+    background: rgba(255, 85, 0, 0.1);
+    color: #FF5500;
+    border-left: 3px solid #FF5500;
+    margin-left: -3px;
+    padding-left: 15px;
+}
+
+.sidebar-menu-item .material-icons {
+    font-size: 20px;
+    opacity: 0.7;
+}
+
+.sidebar-menu-item:hover .material-icons,
+.sidebar-menu-item.active .material-icons {
+    opacity: 1;
+}
+
+.sidebar-menu-item .item-badge {
+    margin-left: auto;
+    background: #1f1f1f;
+    color: #6b7280;
+    font-size: 0.65rem;
+    font-weight: 600;
+    padding: 2px 6px;
+    border-radius: 4px;
+}
+
+.sidebar-menu-item.active .item-badge {
+    background: rgba(255, 85, 0, 0.2);
+    color: #FF5500;
+}
+
+/* Liga Items */
+.sidebar-liga-item {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 10px 12px;
+    color: #d1d5db;
+    text-decoration: none;
+    border-radius: 8px;
+    transition: all 0.15s ease;
+    font-size: 0.875rem;
+}
+
+.sidebar-liga-item:hover {
+    background: #1f1f1f;
+    color: #ffffff;
+}
+
+.sidebar-liga-item .liga-dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: #6b7280;
+    transition: background 0.15s ease;
+}
+
+.sidebar-liga-item:hover .liga-dot {
+    background: #FF5500;
+}
+
+/* Logo das Ligas no Sidebar */
+.sidebar-liga-item .liga-logo-img {
+    width: 24px;
+    height: 24px;
+    border-radius: 4px;
+    object-fit: contain;
+    flex-shrink: 0;
+    background: rgba(255, 255, 255, 0.05);
+}
+
+.sidebar-liga-item .liga-info-sidebar {
+    flex: 1;
+    min-width: 0;
+}
+
+.sidebar-liga-item .liga-name-sidebar {
+    font-weight: 600;
+    font-size: 0.875rem;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.sidebar-liga-item .liga-count {
+    font-size: 0.7rem;
+    color: #6b7280;
+}
+
+.sidebar-liga-item .liga-badge-count {
+    margin-left: auto;
+    background: #1f1f1f;
+    color: #6b7280;
+    font-size: 0.6rem;
+    font-weight: 600;
+    padding: 2px 6px;
+    border-radius: 4px;
+}
+
+/* User Section */
+.sidebar-user-new {
+    padding: 16px;
+    border-top: 1px solid #1f1f1f;
+}
+
+.sidebar-user-inner {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.sidebar-user-avatar {
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    background: #1f1f1f;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border: 1px solid #333333;
+}
+
+.sidebar-user-avatar .material-icons {
+    font-size: 20px;
+    color: #9ca3af;
+}
+
+.sidebar-user-info {
+    flex: 1;
+    min-width: 0;
+}
+
+.sidebar-user-name {
+    font-size: 0.875rem;
+    font-weight: 600;
+    color: #ffffff;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.sidebar-user-role {
+    font-size: 0.7rem;
+    color: #6b7280;
+}
+
+/* Loading state for ligas */
+.sidebar-ligas-loading {
+    padding: 16px 12px;
+    text-align: center;
+    color: #6b7280;
+    font-size: 0.75rem;
+}
+
+.sidebar-ligas-loading .material-icons {
+    font-size: 18px;
+    animation: spin 1s linear infinite;
+    display: block;
+    margin: 0 auto 8px;
+    color: #FF5500;
+}
+
+.sidebar-ligas-empty {
+    padding: 16px 12px;
+    text-align: center;
+    color: #6b7280;
+    font-size: 0.75rem;
+    background: rgba(255, 85, 0, 0.05);
+    border-radius: 8px;
+    margin: 0 12px;
+}
+
+/* === RESPONSIVIDADE === */
+@media (max-width: 768px) {
+    .dashboard-redesign .page-content {
+        padding: 16px !important;
+    }
+
+    .dashboard-header-info h2 {
+        font-size: 1.5rem;
+    }
+
+    .dashboard-header-actions {
+        width: 100%;
+    }
+
+    .dashboard-header-actions .btn-secondary-new,
+    .dashboard-header-actions .btn-primary-new {
+        flex: 1;
+        justify-content: center;
+    }
+
+    .liga-card-featured-content {
+        padding: 16px;
+    }
+
+    .liga-icon-large {
+        width: 48px;
+        height: 48px;
+    }
+
+    .liga-icon-large .material-icons {
+        font-size: 28px;
+    }
+}
+
+/* ===================================================
+   CARD USUÁRIOS ONLINE v1.0
+   =================================================== */
+
+.stat-card-new.usuarios-online {
+    background: linear-gradient(135deg, #1a2e1a 0%, #1E1E1E 100%);
+    border-color: rgba(16, 185, 129, 0.3);
+    min-height: 200px;
+    display: flex;
+    flex-direction: column;
+}
+
+.stat-icon-new.online {
+    background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+}
+
+/* Indicador de "ao vivo" pulsante */
+.live-indicator {
+    display: inline-block;
+    width: 8px;
+    height: 8px;
+    background: #10b981;
+    border-radius: 50%;
+    margin-right: 6px;
+    animation: pulse-live 2s ease-in-out infinite;
+}
+
+@keyframes pulse-live {
+    0%, 100% { opacity: 1; transform: scale(1); }
+    50% { opacity: 0.5; transform: scale(1.2); }
+}
+
+/* Lista de usuários online */
+.usuarios-online-lista {
+    flex: 1;
+    overflow-y: auto;
+    max-height: 140px;
+    margin: 12px 0;
+    padding-right: 4px;
+}
+
+.usuarios-online-lista::-webkit-scrollbar {
+    width: 4px;
+}
+
+.usuarios-online-lista::-webkit-scrollbar-track {
+    background: rgba(255, 255, 255, 0.05);
+    border-radius: 2px;
+}
+
+.usuarios-online-lista::-webkit-scrollbar-thumb {
+    background: rgba(16, 185, 129, 0.5);
+    border-radius: 2px;
+}
+
+/* Estado vazio */
+.usuarios-online-empty {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    height: 100%;
+    color: #6b7280;
+    gap: 8px;
+    padding: 20px 0;
+}
+
+.usuarios-online-empty .material-icons {
+    font-size: 28px;
+    opacity: 0.5;
+}
+
+.usuarios-online-empty span:last-child {
+    font-size: 0.75rem;
+}
+
+/* Item de usuário online */
+.usuario-online-item {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 8px;
+    border-radius: 8px;
+    background: rgba(255, 255, 255, 0.03);
+    margin-bottom: 6px;
+    transition: background 0.2s ease;
+}
+
+.usuario-online-item:hover {
+    background: rgba(255, 255, 255, 0.06);
+}
+
+.usuario-online-item:last-child {
+    margin-bottom: 0;
+}
+
+/* Avatar do usuário */
+.usuario-avatar {
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    background: #2a2a2a;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+    flex-shrink: 0;
+}
+
+.usuario-avatar img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.usuario-avatar .material-icons {
+    font-size: 18px;
+    color: #6b7280;
+}
+
+/* Info do usuário */
+.usuario-info {
+    flex: 1;
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+}
+
+.usuario-nome {
+    font-size: 0.8rem;
+    font-weight: 500;
+    color: #ffffff;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.usuario-liga {
+    font-size: 0.65rem;
+    color: #9ca3af;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+/* Meta do usuário (módulo e tempo) */
+.usuario-meta {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    gap: 2px;
+    flex-shrink: 0;
+}
+
+.usuario-modulo {
+    font-size: 0.6rem;
+    color: #10b981;
+    background: rgba(16, 185, 129, 0.15);
+    padding: 2px 6px;
+    border-radius: 4px;
+    font-weight: 500;
+}
+
+.usuario-tempo {
+    font-size: 0.6rem;
+    color: #6b7280;
+}
+
+/* Responsividade do card de usuários online */
+@media (max-width: 768px) {
+    .stat-card-new.usuarios-online {
+        min-height: 180px;
+    }
+
+    .usuarios-online-lista {
+        max-height: 120px;
+    }
+
+    .usuario-online-item {
+        padding: 6px;
+        gap: 8px;
+    }
+
+    .usuario-avatar {
+        width: 28px;
+        height: 28px;
+    }
+}

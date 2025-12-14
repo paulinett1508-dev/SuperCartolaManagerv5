@@ -5,77 +5,99 @@
         <meta name="viewport" content="width=device-width, initial-scale=1.0" />
         <title>Super Cartola Manager</title>
         <link rel="stylesheet" href="style.css" />
+        <link rel="stylesheet" href="css/modules/dashboard-redesign.css" />
+        <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
+        <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet" />
     </head>
     <body>
-        <!-- Sidebar -->
-        <nav class="sidebar app-sidebar">
-            <!-- Logo clickável para dashboard -->
-            <div class="sidebar-logo" onclick="goToDashboard()">
-                <div class="logo-container">
-                    <img
-                        id="logoImage"
-                        src="img/logo-supercartola.png"
-                        alt="Super Cartola Logo"
-                        class="logo-image"
-                        onerror="tentarProximoCaminho(this)"
-                        onload="logoCarregada(this)"
-                        style="display: block"
-                    />
-                    <span id="logoFallback" style="display: none">🏆</span>
-                    <div class="logo-text">
-                        <h2>SUPER CARTOLA</h2>
-                        <p>Manager Profissional</p>
+        <!-- Sidebar Redesign -->
+        <nav class="sidebar app-sidebar sidebar-redesign">
+            <!-- Logo -->
+            <div class="sidebar-logo-new" onclick="goToDashboard()" style="cursor: pointer;">
+                <div class="sidebar-logo-icon">
+                    <span class="material-icons">sports_soccer</span>
+                </div>
+                <div class="sidebar-logo-text">
+                    <h1>Super Cartola</h1>
+                    <p>Manager Profissional</p>
+                </div>
+            </div>
+
+            <!-- Navigation -->
+            <nav class="sidebar-nav-new">
+                <!-- Dashboard -->
+                <div class="sidebar-section-new">
+                    <ul class="sidebar-menu-new">
+                        <li>
+                            <a href="painel.html" class="sidebar-menu-item active">
+                                <span class="material-icons">dashboard</span>
+                                <span>Dashboard Principal</span>
+                            </a>
+                        </li>
+                    </ul>
+                </div>
+
+                <!-- Ligas Section -->
+                <div class="sidebar-section-new">
+                    <div class="sidebar-section-title-new">
+                        <span class="material-icons">emoji_events</span>
+                        <span>Ligas</span>
+                    </div>
+                    <div id="ligasList">
+                        <div class="sidebar-ligas-loading">
+                            <span class="material-icons">sync</span>
+                            Carregando ligas...
+                        </div>
                     </div>
                 </div>
-            </div>
 
-            <!-- Seção LIGAS (dinâmica) -->
-            <div class="sidebar-section">
-                <div class="sidebar-section-title">⚽ LIGAS</div>
-                <div id="ligasList">
-                    <div class="ligas-loading">Carregando ligas...</div>
+                <!-- Ferramentas Section -->
+                <div class="sidebar-section-new">
+                    <div class="sidebar-section-title-new">
+                        <span class="material-icons">build</span>
+                        <span>Ferramentas</span>
+                    </div>
+                    <ul class="sidebar-menu-new">
+                        <li>
+                            <a href="ferramentas.html" class="sidebar-menu-item">
+                                <span class="material-icons">settings</span>
+                                <span>Configuracoes</span>
+                            </a>
+                        </li>
+                        <li>
+                            <a href="ferramentas.html" class="sidebar-menu-item">
+                                <span class="material-icons">grid_view</span>
+                                <span>Ver Todas</span>
+                            </a>
+                        </li>
+                    </ul>
                 </div>
-            </div>
+            </nav>
 
-            <!-- Seção FERRAMENTAS -->
-            <div class="sidebar-section">
-                <div class="sidebar-section-title">🔧 FERRAMENTAS</div>
-                <ul class="sidebar-menu">
-                    <li><a href="ferramentas.html">🔧 Ver Todas</a></li>
-                </ul>
+            <!-- User Section -->
+            <div class="sidebar-user-new">
+                <div class="sidebar-user-inner">
+                    <div class="sidebar-user-avatar">
+                        <span class="material-icons">person</span>
+                    </div>
+                    <div class="sidebar-user-info">
+                        <div class="sidebar-user-name" id="userName">Admin</div>
+                        <div class="sidebar-user-role">Administrador</div>
+                    </div>
+                </div>
             </div>
         </nav>
 
-        <!-- Header -->
-        <header class="app-header page-header">
-            <div class="header-content">
-                <button class="menu-toggle" id="menuToggle">
-                    <li><a href="ferramentas.html">🔧 Admin</a></li>
-                    <span></span>
-                    <span></span>
-                    <span></span>
-                </button>
-
-                <div class="header-info">
-                    <h1 id="pageTitle">Super Cartola Manager</h1>
-                    <p id="pageSubtitle">Sistema de Gerenciamento de Ligas</p>
-                </div>
-
-                <div class="header-stats" id="headerStats">
-                    <div class="stat-item">
-                        <div class="stat-number" id="totalLigas">0</div>
-                        <div class="stat-label">Ligas</div>
-                    </div>
-                    <div class="stat-item">
-                        <div class="stat-number" id="totalTimes">0</div>
-                        <div class="stat-label">Times</div>
-                    </div>
-                </div>
-            </div>
-        </header>
-
         <script>
-            // === CARREGAMENTO DIRETO DAS LIGAS (renomeado para evitar conflito) ===
+            // === MAPEAMENTO DE LOGOS DAS LIGAS ===
+            function obterLogoLiga(nomeLiga) {
+                const nome = (nomeLiga || '').toLowerCase();
+                if (nome.includes('super')) return 'img/logo-supercartola.png';
+                if (nome.includes('sobral') || nome.includes('cartoleiros')) return 'img/logo-cartoleirossobral.png';
+                return null; // Sem logo especifica
+            }
+
+            // === CARREGAMENTO DAS LIGAS NO SIDEBAR ===
             async function carregarLigasLayout() {
                 const ligasList = document.getElementById("ligasList");
                 if (!ligasList) return;
@@ -90,57 +112,62 @@
 
                     if (!Array.isArray(ligas) || ligas.length === 0) {
                         ligasList.innerHTML = `
-                        <div class="ligas-empty">
-                            📝 Nenhuma liga criada<br>
-                            <small style="color: #606060; font-size: 10px; margin-top: 4px; display: block;">
-                                Clique em "Nova Liga" para começar
-                            </small>
-                        </div>
-                    `;
+                            <div class="sidebar-ligas-empty">
+                                <span class="material-icons" style="font-size: 24px; margin-bottom: 8px; display: block;">folder_open</span>
+                                Nenhuma liga criada
+                            </div>
+                        `;
                         return;
                     }
 
-                    // Renderizar ligas com destaque para a liga atual
+                    // Renderizar ligas com logos
                     ligasList.innerHTML = ligas
                         .map((liga) => {
                             const ligaId = liga._id || liga.id;
                             const isLigaAtual = ligaId === ligaAtualId;
-                            const activeClass = isLigaAtual
-                                ? "liga-item-active"
-                                : "";
-                            const activeIcon = isLigaAtual ? "👑 " : "";
+                            const timesCount = liga.times?.length || 0;
+                            const logoUrl = obterLogoLiga(liga.nome);
+
+                            // Se tem logo, usa imagem; senao usa dot colorido
+                            const logoHtml = logoUrl
+                                ? `<img src="${logoUrl}" alt="" class="liga-logo-img" onerror="this.style.display='none'; this.nextElementSibling.style.display='block';" /><span class="liga-dot" style="display:none;"></span>`
+                                : `<span class="liga-dot"></span>`;
 
                             return `
-                    <a href="detalhe-liga.html?id=${ligaId}" class="liga-item ${activeClass}">
-                        <div class="liga-info">
-                            <div class="liga-name">${activeIcon}${liga.nome || "Liga sem nome"}</div>
-                            <div class="liga-details">${liga.times?.length || 0} times</div>
-                        </div>
-                    </a>
-                `;
+                                <a href="detalhe-liga.html?id=${ligaId}" class="sidebar-liga-item ${isLigaAtual ? 'active' : ''}">
+                                    ${logoHtml}
+                                    <div class="liga-info-sidebar">
+                                        <div class="liga-name-sidebar">${liga.nome || "Liga sem nome"}</div>
+                                    </div>
+                                    <span class="liga-badge-count">${timesCount}</span>
+                                </a>
+                            `;
                         })
                         .join("");
                 } catch (error) {
                     ligasList.innerHTML = `
-                    <div class="ligas-empty">
-                        ⚠️ Erro ao carregar<br>
-                        <button onclick="carregarLigasLayout()" style="
-                            margin-top: 8px; 
-                            padding: 6px 10px; 
-                            background: #ff4500; 
-                            color: white; 
-                            border: none; 
-                            border-radius: 4px; 
-                            font-size: 10px; 
-                            cursor: pointer;
-                            font-weight: 600;
-                        ">🔄 Tentar Novamente</button>
-                    </div>
-                `;
+                        <div class="sidebar-ligas-empty">
+                            <span class="material-icons" style="color: #ef4444; font-size: 24px; margin-bottom: 8px; display: block;">warning</span>
+                            Erro ao carregar
+                            <button onclick="carregarLigasLayout()" style="
+                                margin-top: 8px;
+                                padding: 6px 12px;
+                                background: #FF5500;
+                                color: white;
+                                border: none;
+                                border-radius: 6px;
+                                font-size: 11px;
+                                cursor: pointer;
+                                font-weight: 600;
+                                display: block;
+                                width: 100%;
+                            ">Tentar Novamente</button>
+                        </div>
+                    `;
                 }
             }
 
-            // === SISTEMA DE NAVEGAÇÃO SIMPLIFICADO ===
+            // === SISTEMA DE NAVEGAÇÃO ===
             class NavigationSystem {
                 constructor() {
                     this.init();
@@ -149,92 +176,31 @@
                 }
 
                 init() {
-                    // Menu toggle para mobile
-                    const menuToggle = document.getElementById("menuToggle");
-                    if (menuToggle) {
-                        menuToggle.addEventListener(
-                            "click",
-                            this.toggleSidebar,
-                        );
-                    }
-
                     // Set page title baseado na URL
                     this.updatePageTitle();
                 }
 
-                // Dashboard como home padrão
-                goToDashboard() {
-                    window.location.href = "painel.html";
-                }
-
-                // Usar função simplificada
                 async loadLigas() {
                     await carregarLigasLayout();
                 }
 
-                // Atualizar estatísticas do header
-                updateHeaderStats(ligas) {
-                    const totalLigasEl = document.getElementById("totalLigas");
-                    const totalTimesEl = document.getElementById("totalTimes");
-
-                    if (totalLigasEl && Array.isArray(ligas)) {
-                        totalLigasEl.textContent = ligas.length;
-                    }
-
-                    if (totalTimesEl && Array.isArray(ligas)) {
-                        const totalTimes = ligas.reduce(
-                            (sum, liga) => sum + (liga.times?.length || 0),
-                            0,
-                        );
-                        totalTimesEl.textContent = totalTimes;
-                    }
-                }
-
-                // Atualizar título da página
                 updatePageTitle() {
                     const pageTitle = document.getElementById("pageTitle");
-                    const pageSubtitle =
-                        document.getElementById("pageSubtitle");
+                    const pageSubtitle = document.getElementById("pageSubtitle");
 
                     if (!pageTitle) return;
 
-                    const currentPage =
-                        window.location.pathname.split("/").pop() ||
-                        "painel.html";
+                    const currentPage = window.location.pathname.split("/").pop() || "painel.html";
 
                     const titles = {
-                        "painel.html": {
-                            title: "📊 Dashboard",
-                            subtitle: "Visão Geral do Sistema",
-                        },
-                        "gerenciar.html": {
-                            title: "⚙️ Gerenciar Ligas",
-                            subtitle: "Ferramentas Administrativas",
-                        },
-                        "preencher-liga.html": {
-                            title: "➕ Nova Liga",
-                            subtitle: "Criar Nova Liga",
-                        },
-                        "buscar-times.html": {
-                            title: "🔍 Buscar Times",
-                            subtitle: "Adicionar Times do Cartola FC",
-                        },
-                        "admin.html": {
-                            title: "🛠️ Admin",
-                            subtitle: "Popular Rodadas",
-                        },
-                        "detalhe-liga.html": {
-                            title: "🏆 Detalhes da Liga",
-                            subtitle: "Visualização Completa",
-                        },
-                        "editar-liga.html": {
-                            title: "✏️ Editar Liga",
-                            subtitle: "Modificar Times da Liga",
-                        },
-                        "parciais.html": {
-                            title: "📊 Resultados Parciais",
-                            subtitle: "Pontuações em Tempo Real",
-                        },
+                        "painel.html": { title: "Dashboard", subtitle: "Visao Geral do Sistema" },
+                        "gerenciar.html": { title: "Gerenciar Ligas", subtitle: "Ferramentas Administrativas" },
+                        "preencher-liga.html": { title: "Nova Liga", subtitle: "Criar Nova Liga" },
+                        "buscar-times.html": { title: "Buscar Times", subtitle: "Adicionar Times do Cartola FC" },
+                        "admin.html": { title: "Admin", subtitle: "Popular Rodadas" },
+                        "detalhe-liga.html": { title: "Detalhes da Liga", subtitle: "Visualizacao Completa" },
+                        "editar-liga.html": { title: "Editar Liga", subtitle: "Modificar Times da Liga" },
+                        "parciais.html": { title: "Resultados Parciais", subtitle: "Pontuacoes em Tempo Real" },
                     };
 
                     const pageInfo = titles[currentPage] || {
@@ -248,33 +214,17 @@
                     }
                 }
 
-                // Destacar navegação ativa
                 setActiveNavigation() {
-                    const currentPage =
-                        window.location.pathname.split("/").pop() ||
-                        "painel.html";
-                    const menuLinks = document.querySelectorAll(
-                        ".sidebar-menu a, .liga-item",
-                    );
+                    const currentPage = window.location.pathname.split("/").pop() || "painel.html";
+                    const menuLinks = document.querySelectorAll(".sidebar-menu-item, .sidebar-liga-item");
 
                     menuLinks.forEach((link) => {
                         link.classList.remove("active");
                         const href = link.getAttribute("href");
-                        if (
-                            href &&
-                            (href === currentPage || href.includes(currentPage))
-                        ) {
+                        if (href && (href === currentPage || href.includes(currentPage))) {
                             link.classList.add("active");
                         }
                     });
-                }
-
-                // Toggle sidebar mobile
-                toggleSidebar() {
-                    const sidebar = document.querySelector(".sidebar");
-                    if (sidebar) {
-                        sidebar.classList.toggle("sidebar-open");
-                    }
                 }
             }
 
@@ -283,57 +233,16 @@
                 window.location.href = "painel.html";
             }
 
-            function retryLoadLigas() {
-                carregarLigasLayout();
-            }
-
-            // === GERENCIAMENTO DA LOGO ===
-            let logoTentativas = [
-                "img/logo-supercartola.png",
-                "../public/img/logo-supercartola.png",
-                "./public/img/logo-supercartola.png",
-                "/public/img/logo-supercartola.png",
-                "public/img/logo-supercartola.png",
-            ];
-            let logoIndiceAtual = 0;
-
-            function tentarProximoCaminho(img) {
-                logoIndiceAtual++;
-                if (logoIndiceAtual < logoTentativas.length) {
-                    img.src = logoTentativas[logoIndiceAtual];
-                } else {
-                    // Todas as tentativas falharam, mostrar emoji
-                    mostrarLogoFallback();
-                }
-            }
-
-            function logoCarregada(img) {
-                document.getElementById("logoFallback").style.display = "none";
-                img.style.display = "block";
-            }
-
-            function mostrarLogoFallback() {
-                document.getElementById("logoImage").style.display = "none";
-                document.getElementById("logoFallback").style.display =
-                    "inline-block";
-            }
-
             // === INICIALIZAÇÃO ===
-            // Carregar imediatamente quando script executar
             if (document.readyState === "loading") {
                 document.addEventListener("DOMContentLoaded", () => {
                     setTimeout(() => {
                         window.navigationSystem = new NavigationSystem();
-                        // Carregar ligas extra após 500ms
-                        setTimeout(carregarLigasLayout, 500);
                     }, 100);
                 });
             } else {
-                // DOM já carregado
                 setTimeout(() => {
                     window.navigationSystem = new NavigationSystem();
-                    // Carregar ligas extra após 500ms
-                    setTimeout(carregarLigasLayout, 500);
                 }, 100);
             }
 
@@ -345,55 +254,34 @@
             });
         </script>
 
-        <!-- 🛡️ PROTEÇÃO CLIENT-SIDE -->
+        <!-- PROTECAO CLIENT-SIDE -->
         <script>
             (function () {
                 "use strict";
-                var isMobile =
-                    /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(
-                        navigator.userAgent,
-                    );
+                var isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
                 if (!isMobile) {
                     document.addEventListener("keydown", function (e) {
                         if (e.key === "F12" || e.keyCode === 123) {
                             e.preventDefault();
                             return false;
                         }
-                        if (
-                            e.ctrlKey &&
-                            e.shiftKey &&
-                            (e.key === "I" || e.key === "i" || e.keyCode === 73)
-                        ) {
+                        if (e.ctrlKey && e.shiftKey && (e.key === "I" || e.key === "i" || e.keyCode === 73)) {
                             e.preventDefault();
                             return false;
                         }
-                        if (
-                            e.ctrlKey &&
-                            e.shiftKey &&
-                            (e.key === "J" || e.key === "j" || e.keyCode === 74)
-                        ) {
+                        if (e.ctrlKey && e.shiftKey && (e.key === "J" || e.key === "j" || e.keyCode === 74)) {
                             e.preventDefault();
                             return false;
                         }
-                        if (
-                            e.ctrlKey &&
-                            e.shiftKey &&
-                            (e.key === "C" || e.key === "c" || e.keyCode === 67)
-                        ) {
+                        if (e.ctrlKey && e.shiftKey && (e.key === "C" || e.key === "c" || e.keyCode === 67)) {
                             e.preventDefault();
                             return false;
                         }
-                        if (
-                            e.ctrlKey &&
-                            (e.key === "U" || e.key === "u" || e.keyCode === 85)
-                        ) {
+                        if (e.ctrlKey && (e.key === "U" || e.key === "u" || e.keyCode === 85)) {
                             e.preventDefault();
                             return false;
                         }
-                        if (
-                            e.ctrlKey &&
-                            (e.key === "S" || e.key === "s" || e.keyCode === 83)
-                        ) {
+                        if (e.ctrlKey && (e.key === "S" || e.key === "s" || e.keyCode === 83)) {
                             e.preventDefault();
                             return false;
                         }

@@ -1,177 +1,903 @@
 <!doctype html>
 <html lang="pt-BR">
-  <head>
-    <meta charset="UTF-8" />
-    <title>Criar Nova Liga</title>
-    <style>
-      body {
-        font-family: Arial, sans-serif;
-        background-color: #f5f5f5;
-        margin: 0;
-        padding: 0;
-      }
-      .container {
-        max-width: 500px;
-        margin: 60px auto;
-        background-color: white;
-        padding: 30px;
-        border-radius: 10px;
-        box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
-      }
-      h2 {
-        text-align: center;
-        margin-bottom: 30px;
-      }
-      input[type="text"] {
-        width: calc(100% - 100px);
-        padding: 10px;
-        font-size: 16px;
-        margin-bottom: 10px;
-      }
-      button {
-        padding: 10px 16px;
-        font-size: 14px;
-        margin-left: 10px;
-        border: none;
-        border-radius: 4px;
-        background-color: #3498db;
-        color: white;
-        cursor: pointer;
-      }
-      .info {
-        margin: 10px 0;
-        font-size: 14px;
-      }
-      .btn-group {
-        display: flex;
-        justify-content: space-between;
-        margin-top: 20px;
-      }
-      .btn-group button {
-        width: 48%;
-      }
-      .dados-time {
-        display: flex;
-        align-items: center;
-        gap: 10px;
-        margin-top: 10px;
-        font-size: 15px;
-      }
-      .dados-time span {
-        display: inline-block;
-        color: #2c3e50;
-      }
-      .dados-time .ok {
-        color: green;
-      }
-    </style>
-  </head>
-  <body>
-    <div class="container">
-      <h2>⚽ Criar Nova Liga</h2>
+    <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <title>Criar Nova Liga - Super Cartola Manager</title>
+        <link rel="stylesheet" href="style.css" />
+        <link rel="stylesheet" href="css/modules/dashboard-redesign.css" />
+        <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
+        <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet" />
+        <style>
+            /* Estilos específicos para criação de liga */
+            .criar-liga-container {
+                max-width: 700px;
+                margin: 0 auto;
+                padding: 24px;
+            }
 
-      <input type="text" id="nomeLiga" placeholder="Nome da Liga" />
+            .form-card {
+                background: linear-gradient(145deg, #1e1e1e 0%, #252525 100%);
+                border: 1px solid #333;
+                border-radius: 16px;
+                padding: 32px;
+                margin-bottom: 24px;
+            }
 
-      <div style="margin-top: 10px">
-        <input type="text" id="idTime" placeholder="ID do Time" />
-        <button onclick="buscarTime()">Buscar</button>
-      </div>
+            .form-card-header {
+                display: flex;
+                align-items: center;
+                gap: 12px;
+                margin-bottom: 24px;
+                padding-bottom: 16px;
+                border-bottom: 1px solid #333;
+            }
 
-      <div class="dados-time" id="dadosTime" style="display: none">
-        ✅ <span id="nomeTime">undefined</span> | 👤
-        <span id="nomeCartoleiro">undefined</span>
-      </div>
+            .form-card-header .material-icons {
+                font-size: 28px;
+                color: #ff4500;
+            }
 
-      <div class="btn-group">
-        <button onclick="adicionarTime()">+ Adicionar Time</button>
-        <button onclick="window.location.href='painel.html'">
-          ⬅ Voltar ao Dashboard
-        </button>
-      </div>
+            .form-card-header h3 {
+                font-size: 1.25rem;
+                font-weight: 600;
+                color: #fff;
+                margin: 0;
+            }
 
-      <div style="margin-top: 10px">
-        <button onclick="criarLiga()">Criar Liga</button>
-      </div>
-    </div>
+            .form-group {
+                margin-bottom: 20px;
+            }
 
-    <script>
-      let times = [];
+            .form-label {
+                display: block;
+                font-size: 0.875rem;
+                font-weight: 500;
+                color: #9ca3af;
+                margin-bottom: 8px;
+            }
 
-      async function buscarTime() {
-        const id = document.getElementById("idTime").value.trim();
-        const nomeSpan = document.getElementById("nomeTime");
-        const cartoleiroSpan = document.getElementById("nomeCartoleiro");
-        const dadosTime = document.getElementById("dadosTime");
+            .form-input {
+                width: 100%;
+                padding: 12px 16px;
+                font-size: 1rem;
+                font-family: 'Inter', sans-serif;
+                background: #2a2a2a;
+                border: 1px solid #444;
+                border-radius: 8px;
+                color: #fff;
+                transition: border-color 0.2s, box-shadow 0.2s;
+            }
 
-        if (!id) return;
+            .form-input:focus {
+                outline: none;
+                border-color: #ff4500;
+                box-shadow: 0 0 0 3px rgba(255, 69, 0, 0.15);
+            }
 
-        try {
-          const res = await fetch(`/api/time/${id}`);
-          const data = await res.json();
+            .form-input::placeholder {
+                color: #6b7280;
+            }
 
-          if (data.nome_time && data.nome_cartoleiro) {
-            nomeSpan.textContent = data.nome_time;
-            cartoleiroSpan.textContent = data.nome_cartoleiro;
-            dadosTime.style.display = "flex";
+            .input-with-button {
+                display: flex;
+                gap: 12px;
+            }
 
-            dadosTime.dataset.id = id;
-            dadosTime.dataset.nome_time = data.nome_time;
-            dadosTime.dataset.nome_cartoleiro = data.nome_cartoleiro;
-          } else {
-            nomeSpan.textContent = "Não encontrado";
-            cartoleiroSpan.textContent = "Não encontrado";
-            dadosTime.style.display = "flex";
-          }
-        } catch (err) {
-          nomeSpan.textContent = "Erro";
-          cartoleiroSpan.textContent = "Erro";
-          dadosTime.style.display = "flex";
-        }
-      }
+            .input-with-button .form-input {
+                flex: 1;
+            }
 
-      function adicionarTime() {
-        const dadosTime = document.getElementById("dadosTime");
+            .btn-search {
+                display: flex;
+                align-items: center;
+                gap: 8px;
+                padding: 12px 20px;
+                font-size: 0.875rem;
+                font-weight: 500;
+                font-family: 'Inter', sans-serif;
+                background: linear-gradient(135deg, #ff4500 0%, #ff6b35 100%);
+                color: white;
+                border: none;
+                border-radius: 8px;
+                cursor: pointer;
+                transition: transform 0.2s, box-shadow 0.2s;
+            }
 
-        if (!dadosTime.dataset.id || !dadosTime.dataset.nome_time) {
-          alert("Busque um time válido antes de adicionar.");
-          return;
-        }
+            .btn-search:hover {
+                transform: translateY(-1px);
+                box-shadow: 0 4px 12px rgba(255, 69, 0, 0.3);
+            }
 
-        const escudo_url = prompt(
-          "Informe a URL do escudo do time (opcional):",
-          "",
-        );
+            .btn-search .material-icons {
+                font-size: 20px;
+            }
 
-        times.push({
-          id: dadosTime.dataset.id,
-          nome_time: dadosTime.dataset.nome_time,
-          nome_cartoleiro: dadosTime.dataset.nome_cartoleiro,
-          escudo_url: escudo_url || "",
-        });
+            /* Preview do time */
+            .time-preview {
+                display: none;
+                align-items: center;
+                gap: 16px;
+                padding: 16px;
+                background: #1a1a1a;
+                border: 1px solid #10b981;
+                border-radius: 12px;
+                margin-top: 16px;
+            }
 
-        alert("✅ Time adicionado!");
-        document.getElementById("idTime").value = "";
-        dadosTime.style.display = "none";
-      }
+            .time-preview.visible {
+                display: flex;
+            }
 
-      async function criarLiga() {
-        const nome = document.getElementById("nomeLiga").value.trim();
+            .time-preview.error {
+                border-color: #ef4444;
+            }
 
-        if (!nome || times.length === 0) {
-          alert("Preencha o nome da liga e adicione ao menos 1 time.");
-          return;
-        }
+            .time-preview-icon {
+                width: 48px;
+                height: 48px;
+                border-radius: 50%;
+                background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+                display: flex;
+                align-items: center;
+                justify-content: center;
+            }
 
-        const res = await fetch("/api/ligas", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ nome, times }),
-        });
+            .time-preview-icon .material-icons {
+                font-size: 24px;
+                color: white;
+            }
 
-        const ligaCriada = await res.json();
-        alert("✅ Liga criada com sucesso!");
-        window.location.href = "painel.html";
-      }
-    </script>
-  </body>
+            .time-preview.error .time-preview-icon {
+                background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
+            }
+
+            .time-preview-info {
+                flex: 1;
+            }
+
+            .time-preview-nome {
+                font-size: 1rem;
+                font-weight: 600;
+                color: #fff;
+                margin-bottom: 4px;
+            }
+
+            .time-preview-cartoleiro {
+                font-size: 0.875rem;
+                color: #9ca3af;
+                display: flex;
+                align-items: center;
+                gap: 6px;
+            }
+
+            .time-preview-cartoleiro .material-icons {
+                font-size: 16px;
+            }
+
+            /* Lista de times adicionados */
+            .times-list {
+                margin-top: 24px;
+            }
+
+            .times-list-header {
+                display: flex;
+                align-items: center;
+                justify-content: space-between;
+                margin-bottom: 16px;
+            }
+
+            .times-list-title {
+                font-size: 1rem;
+                font-weight: 600;
+                color: #fff;
+                display: flex;
+                align-items: center;
+                gap: 8px;
+            }
+
+            .times-list-title .material-icons {
+                font-size: 20px;
+                color: #ff4500;
+            }
+
+            .times-count {
+                font-size: 0.75rem;
+                font-weight: 500;
+                padding: 4px 10px;
+                background: rgba(255, 69, 0, 0.15);
+                color: #ff4500;
+                border-radius: 12px;
+            }
+
+            .times-empty {
+                text-align: center;
+                padding: 32px;
+                color: #6b7280;
+                font-size: 0.875rem;
+            }
+
+            .times-empty .material-icons {
+                font-size: 48px;
+                color: #444;
+                margin-bottom: 12px;
+                display: block;
+            }
+
+            .time-item {
+                display: flex;
+                align-items: center;
+                gap: 12px;
+                padding: 12px 16px;
+                background: #2a2a2a;
+                border-radius: 10px;
+                margin-bottom: 8px;
+                transition: background 0.2s;
+            }
+
+            .time-item:hover {
+                background: #333;
+            }
+
+            .time-item-avatar {
+                width: 40px;
+                height: 40px;
+                border-radius: 50%;
+                background: #444;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                overflow: hidden;
+            }
+
+            .time-item-avatar img {
+                width: 100%;
+                height: 100%;
+                object-fit: cover;
+            }
+
+            .time-item-avatar .material-icons {
+                font-size: 20px;
+                color: #6b7280;
+            }
+
+            .time-item-info {
+                flex: 1;
+            }
+
+            .time-item-nome {
+                font-size: 0.9rem;
+                font-weight: 500;
+                color: #fff;
+            }
+
+            .time-item-cartoleiro {
+                font-size: 0.75rem;
+                color: #9ca3af;
+            }
+
+            .time-item-remove {
+                width: 32px;
+                height: 32px;
+                border-radius: 8px;
+                background: transparent;
+                border: none;
+                color: #6b7280;
+                cursor: pointer;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                transition: background 0.2s, color 0.2s;
+            }
+
+            .time-item-remove:hover {
+                background: rgba(239, 68, 68, 0.15);
+                color: #ef4444;
+            }
+
+            /* Botões de ação */
+            .form-actions {
+                display: flex;
+                gap: 12px;
+                margin-top: 24px;
+            }
+
+            .btn-add {
+                flex: 1;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                gap: 8px;
+                padding: 14px 24px;
+                font-size: 0.9rem;
+                font-weight: 500;
+                font-family: 'Inter', sans-serif;
+                background: #2a2a2a;
+                color: #fff;
+                border: 1px solid #444;
+                border-radius: 10px;
+                cursor: pointer;
+                transition: all 0.2s;
+            }
+
+            .btn-add:hover {
+                background: #333;
+                border-color: #555;
+            }
+
+            .btn-add .material-icons {
+                font-size: 20px;
+                color: #10b981;
+            }
+
+            .btn-criar {
+                flex: 1;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                gap: 8px;
+                padding: 14px 24px;
+                font-size: 0.9rem;
+                font-weight: 600;
+                font-family: 'Inter', sans-serif;
+                background: linear-gradient(135deg, #ff4500 0%, #ff6b35 100%);
+                color: white;
+                border: none;
+                border-radius: 10px;
+                cursor: pointer;
+                transition: all 0.2s;
+            }
+
+            .btn-criar:hover {
+                transform: translateY(-2px);
+                box-shadow: 0 6px 20px rgba(255, 69, 0, 0.35);
+            }
+
+            .btn-criar:disabled {
+                opacity: 0.5;
+                cursor: not-allowed;
+                transform: none;
+                box-shadow: none;
+            }
+
+            .btn-criar .material-icons {
+                font-size: 20px;
+            }
+
+            /* Header da página */
+            .page-header {
+                display: flex;
+                align-items: center;
+                gap: 16px;
+                margin-bottom: 32px;
+            }
+
+            .btn-voltar {
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                width: 44px;
+                height: 44px;
+                background: #2a2a2a;
+                border: 1px solid #444;
+                border-radius: 12px;
+                color: #9ca3af;
+                text-decoration: none;
+                transition: all 0.2s;
+            }
+
+            .btn-voltar:hover {
+                background: #333;
+                color: #fff;
+                border-color: #555;
+            }
+
+            .page-header-info h1 {
+                font-size: 1.5rem;
+                font-weight: 700;
+                color: #fff;
+                margin: 0 0 4px 0;
+            }
+
+            .page-header-info p {
+                font-size: 0.875rem;
+                color: #9ca3af;
+                margin: 0;
+            }
+
+            /* Toast notification */
+            .toast {
+                position: fixed;
+                bottom: 24px;
+                right: 24px;
+                padding: 16px 24px;
+                background: #1e1e1e;
+                border: 1px solid #333;
+                border-radius: 12px;
+                box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4);
+                display: flex;
+                align-items: center;
+                gap: 12px;
+                transform: translateY(100px);
+                opacity: 0;
+                transition: all 0.3s;
+                z-index: 1000;
+            }
+
+            .toast.visible {
+                transform: translateY(0);
+                opacity: 1;
+            }
+
+            .toast.success {
+                border-color: #10b981;
+            }
+
+            .toast.error {
+                border-color: #ef4444;
+            }
+
+            .toast .material-icons {
+                font-size: 24px;
+            }
+
+            .toast.success .material-icons {
+                color: #10b981;
+            }
+
+            .toast.error .material-icons {
+                color: #ef4444;
+            }
+
+            .toast-message {
+                color: #fff;
+                font-size: 0.9rem;
+            }
+
+            /* Modal de escudo */
+            .modal-overlay {
+                display: none;
+                position: fixed;
+                top: 0;
+                left: 0;
+                right: 0;
+                bottom: 0;
+                background: rgba(0, 0, 0, 0.7);
+                backdrop-filter: blur(4px);
+                z-index: 1000;
+                align-items: center;
+                justify-content: center;
+            }
+
+            .modal-overlay.visible {
+                display: flex;
+            }
+
+            .modal-content {
+                background: #1e1e1e;
+                border: 1px solid #333;
+                border-radius: 16px;
+                padding: 24px;
+                width: 100%;
+                max-width: 400px;
+                margin: 24px;
+            }
+
+            .modal-header {
+                display: flex;
+                align-items: center;
+                justify-content: space-between;
+                margin-bottom: 20px;
+            }
+
+            .modal-title {
+                font-size: 1.1rem;
+                font-weight: 600;
+                color: #fff;
+            }
+
+            .modal-close {
+                width: 32px;
+                height: 32px;
+                background: transparent;
+                border: none;
+                color: #6b7280;
+                cursor: pointer;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                border-radius: 8px;
+                transition: all 0.2s;
+            }
+
+            .modal-close:hover {
+                background: #333;
+                color: #fff;
+            }
+
+            .modal-actions {
+                display: flex;
+                gap: 12px;
+                margin-top: 20px;
+            }
+
+            .modal-actions button {
+                flex: 1;
+                padding: 12px;
+                font-size: 0.875rem;
+                font-weight: 500;
+                font-family: 'Inter', sans-serif;
+                border-radius: 8px;
+                cursor: pointer;
+                transition: all 0.2s;
+            }
+
+            .btn-modal-cancel {
+                background: #2a2a2a;
+                border: 1px solid #444;
+                color: #fff;
+            }
+
+            .btn-modal-cancel:hover {
+                background: #333;
+            }
+
+            .btn-modal-confirm {
+                background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+                border: none;
+                color: white;
+            }
+
+            .btn-modal-confirm:hover {
+                transform: translateY(-1px);
+                box-shadow: 0 4px 12px rgba(16, 185, 129, 0.3);
+            }
+        </style>
+    </head>
+    <body>
+        <div class="app-container">
+            <!-- Sidebar será injetado aqui -->
+            <div id="sidebar-placeholder"></div>
+
+            <!-- Conteúdo principal -->
+            <main class="app-main dashboard-redesign">
+                <div class="page-content">
+                    <div class="criar-liga-container">
+                        <!-- Header da página -->
+                        <div class="page-header">
+                            <a href="painel.html" class="btn-voltar">
+                                <span class="material-icons">arrow_back</span>
+                            </a>
+                            <div class="page-header-info">
+                                <h1>Criar Nova Liga</h1>
+                                <p>Configure sua liga e adicione os participantes</p>
+                            </div>
+                        </div>
+
+                        <!-- Card do formulário -->
+                        <div class="form-card">
+                            <div class="form-card-header">
+                                <span class="material-icons">emoji_events</span>
+                                <h3>Informacoes da Liga</h3>
+                            </div>
+
+                            <div class="form-group">
+                                <label class="form-label">Nome da Liga</label>
+                                <input
+                                    type="text"
+                                    id="nomeLiga"
+                                    class="form-input"
+                                    placeholder="Ex: Super Cartola 2025"
+                                />
+                            </div>
+
+                            <div class="form-group">
+                                <label class="form-label">Adicionar Time (ID do Cartola FC)</label>
+                                <div class="input-with-button">
+                                    <input
+                                        type="text"
+                                        id="idTime"
+                                        class="form-input"
+                                        placeholder="Digite o ID do time"
+                                    />
+                                    <button class="btn-search" onclick="buscarTime()">
+                                        <span class="material-icons">search</span>
+                                        Buscar
+                                    </button>
+                                </div>
+                            </div>
+
+                            <!-- Preview do time buscado -->
+                            <div class="time-preview" id="timePreview">
+                                <div class="time-preview-icon">
+                                    <span class="material-icons">check</span>
+                                </div>
+                                <div class="time-preview-info">
+                                    <div class="time-preview-nome" id="previewNome">-</div>
+                                    <div class="time-preview-cartoleiro">
+                                        <span class="material-icons">person</span>
+                                        <span id="previewCartoleiro">-</span>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Botões de ação -->
+                            <div class="form-actions">
+                                <button class="btn-add" onclick="abrirModalEscudo()">
+                                    <span class="material-icons">add_circle</span>
+                                    Adicionar Time
+                                </button>
+                            </div>
+
+                            <!-- Lista de times adicionados -->
+                            <div class="times-list">
+                                <div class="times-list-header">
+                                    <div class="times-list-title">
+                                        <span class="material-icons">groups</span>
+                                        Times Adicionados
+                                    </div>
+                                    <span class="times-count" id="timesCount">0 times</span>
+                                </div>
+                                <div id="timesList">
+                                    <div class="times-empty">
+                                        <span class="material-icons">sports_soccer</span>
+                                        Nenhum time adicionado ainda.<br>
+                                        Busque e adicione times acima.
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Botão de criar liga -->
+                        <button class="btn-criar" id="btnCriar" onclick="criarLiga()" disabled>
+                            <span class="material-icons">rocket_launch</span>
+                            Criar Liga
+                        </button>
+                    </div>
+                </div>
+            </main>
+        </div>
+
+        <!-- Modal de escudo -->
+        <div class="modal-overlay" id="modalEscudo">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <span class="modal-title">URL do Escudo (opcional)</span>
+                    <button class="modal-close" onclick="fecharModal()">
+                        <span class="material-icons">close</span>
+                    </button>
+                </div>
+                <div class="form-group" style="margin-bottom: 0;">
+                    <input
+                        type="text"
+                        id="escudoUrl"
+                        class="form-input"
+                        placeholder="Cole a URL do escudo aqui"
+                    />
+                </div>
+                <div class="modal-actions">
+                    <button class="btn-modal-cancel" onclick="fecharModal()">Cancelar</button>
+                    <button class="btn-modal-confirm" onclick="confirmarAdicao()">Adicionar</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Toast notification -->
+        <div class="toast" id="toast">
+            <span class="material-icons">check_circle</span>
+            <span class="toast-message" id="toastMessage">Mensagem</span>
+        </div>
+
+        <!-- Sidebar script -->
+        <script src="js/sidebar.js"></script>
+
+        <script>
+            let times = [];
+            let timeAtual = null;
+
+            async function buscarTime() {
+                const id = document.getElementById('idTime').value.trim();
+                const preview = document.getElementById('timePreview');
+                const nomeEl = document.getElementById('previewNome');
+                const cartoleiroEl = document.getElementById('previewCartoleiro');
+                const iconEl = preview.querySelector('.time-preview-icon .material-icons');
+
+                if (!id) {
+                    showToast('Digite o ID do time', 'error');
+                    return;
+                }
+
+                // Loading state
+                nomeEl.textContent = 'Buscando...';
+                cartoleiroEl.textContent = '...';
+                preview.classList.remove('error');
+                preview.classList.add('visible');
+                iconEl.textContent = 'hourglass_empty';
+
+                try {
+                    const res = await fetch(`/api/time/${id}`);
+                    const data = await res.json();
+
+                    if (data.nome_time && data.nome_cartoleiro) {
+                        nomeEl.textContent = data.nome_time;
+                        cartoleiroEl.textContent = data.nome_cartoleiro;
+                        iconEl.textContent = 'check';
+                        preview.classList.remove('error');
+
+                        timeAtual = {
+                            id: id,
+                            nome_time: data.nome_time,
+                            nome_cartoleiro: data.nome_cartoleiro,
+                            escudo_url: data.escudo_url || ''
+                        };
+                    } else {
+                        nomeEl.textContent = 'Time nao encontrado';
+                        cartoleiroEl.textContent = 'Verifique o ID';
+                        iconEl.textContent = 'error';
+                        preview.classList.add('error');
+                        timeAtual = null;
+                    }
+                } catch (err) {
+                    nomeEl.textContent = 'Erro na busca';
+                    cartoleiroEl.textContent = 'Tente novamente';
+                    iconEl.textContent = 'error';
+                    preview.classList.add('error');
+                    timeAtual = null;
+                }
+            }
+
+            function abrirModalEscudo() {
+                if (!timeAtual) {
+                    showToast('Busque um time valido primeiro', 'error');
+                    return;
+                }
+                document.getElementById('escudoUrl').value = timeAtual.escudo_url || '';
+                document.getElementById('modalEscudo').classList.add('visible');
+            }
+
+            function fecharModal() {
+                document.getElementById('modalEscudo').classList.remove('visible');
+            }
+
+            function confirmarAdicao() {
+                if (!timeAtual) return;
+
+                const escudoUrl = document.getElementById('escudoUrl').value.trim();
+
+                // Verificar se já existe
+                if (times.some(t => t.id === timeAtual.id)) {
+                    showToast('Este time ja foi adicionado', 'error');
+                    fecharModal();
+                    return;
+                }
+
+                times.push({
+                    ...timeAtual,
+                    escudo_url: escudoUrl
+                });
+
+                renderizarLista();
+                atualizarBotaoCriar();
+                fecharModal();
+                showToast(`${timeAtual.nome_time} adicionado!`, 'success');
+
+                // Limpar campos
+                document.getElementById('idTime').value = '';
+                document.getElementById('timePreview').classList.remove('visible');
+                timeAtual = null;
+            }
+
+            function removerTime(index) {
+                const time = times[index];
+                times.splice(index, 1);
+                renderizarLista();
+                atualizarBotaoCriar();
+                showToast(`${time.nome_time} removido`, 'success');
+            }
+
+            function renderizarLista() {
+                const container = document.getElementById('timesList');
+                const countEl = document.getElementById('timesCount');
+
+                countEl.textContent = `${times.length} time${times.length !== 1 ? 's' : ''}`;
+
+                if (times.length === 0) {
+                    container.innerHTML = `
+                        <div class="times-empty">
+                            <span class="material-icons">sports_soccer</span>
+                            Nenhum time adicionado ainda.<br>
+                            Busque e adicione times acima.
+                        </div>
+                    `;
+                    return;
+                }
+
+                container.innerHTML = times.map((time, index) => `
+                    <div class="time-item">
+                        <div class="time-item-avatar">
+                            ${time.escudo_url
+                                ? `<img src="${time.escudo_url}" alt="" onerror="this.outerHTML='<span class=\\'material-icons\\'>shield</span>'">`
+                                : '<span class="material-icons">shield</span>'
+                            }
+                        </div>
+                        <div class="time-item-info">
+                            <div class="time-item-nome">${time.nome_time}</div>
+                            <div class="time-item-cartoleiro">${time.nome_cartoleiro}</div>
+                        </div>
+                        <button class="time-item-remove" onclick="removerTime(${index})" title="Remover time">
+                            <span class="material-icons">close</span>
+                        </button>
+                    </div>
+                `).join('');
+            }
+
+            function atualizarBotaoCriar() {
+                const btn = document.getElementById('btnCriar');
+                const nomeLiga = document.getElementById('nomeLiga').value.trim();
+                btn.disabled = !nomeLiga || times.length === 0;
+            }
+
+            // Listener para o nome da liga
+            document.getElementById('nomeLiga').addEventListener('input', atualizarBotaoCriar);
+
+            async function criarLiga() {
+                const nome = document.getElementById('nomeLiga').value.trim();
+
+                if (!nome || times.length === 0) {
+                    showToast('Preencha o nome e adicione ao menos 1 time', 'error');
+                    return;
+                }
+
+                const btn = document.getElementById('btnCriar');
+                btn.disabled = true;
+                btn.innerHTML = '<span class="material-icons">hourglass_empty</span> Criando...';
+
+                try {
+                    const res = await fetch('/api/ligas', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ nome, times })
+                    });
+
+                    if (!res.ok) throw new Error('Erro ao criar liga');
+
+                    showToast('Liga criada com sucesso!', 'success');
+
+                    setTimeout(() => {
+                        window.location.href = 'painel.html';
+                    }, 1500);
+                } catch (err) {
+                    showToast('Erro ao criar liga. Tente novamente.', 'error');
+                    btn.disabled = false;
+                    btn.innerHTML = '<span class="material-icons">rocket_launch</span> Criar Liga';
+                }
+            }
+
+            function showToast(message, type = 'success') {
+                const toast = document.getElementById('toast');
+                const messageEl = document.getElementById('toastMessage');
+                const iconEl = toast.querySelector('.material-icons');
+
+                messageEl.textContent = message;
+                toast.className = 'toast ' + type;
+                iconEl.textContent = type === 'success' ? 'check_circle' : 'error';
+
+                toast.classList.add('visible');
+
+                setTimeout(() => {
+                    toast.classList.remove('visible');
+                }, 3000);
+            }
+
+            // Enter para buscar
+            document.getElementById('idTime').addEventListener('keypress', (e) => {
+                if (e.key === 'Enter') buscarTime();
+            });
+
+            // Enter no modal para confirmar
+            document.getElementById('escudoUrl').addEventListener('keypress', (e) => {
+                if (e.key === 'Enter') confirmarAdicao();
+            });
+        </script>
+    </body>
 </html>

@@ -569,6 +569,7 @@ class ParticipanteNavigation {
             await this.carregarModuloJS(moduloId);
 
             this.moduloAtual = moduloId;
+            window.moduloAtualParticipante = moduloId; // Expor globalmente para tracking
             sessionStorage.setItem("participante_modulo_atual", moduloId);
 
             // ✅ v2.5: Salvar timestamp do carregamento para loading inteligente

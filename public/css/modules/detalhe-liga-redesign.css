@@ -1,0 +1,625 @@
+/* ============================================================
+   DETALHE LIGA - REDESIGN PROFISSIONAL v1.0
+   Dark Mode - Material Design Inspirado
+   ============================================================ */
+
+/* === RESET E BASE === */
+.detalhe-liga-redesign {
+    background: #121212 !important;
+    min-height: 100vh;
+}
+
+.detalhe-liga-redesign .page-content {
+    padding: 24px 32px !important;
+    max-width: 1400px;
+    margin: 0 auto;
+}
+
+/* === HEADER DA LIGA (COMPACTO) === */
+.detalhe-liga-redesign .liga-header-new {
+    background: linear-gradient(135deg, #1E1E1E 0%, #242424 100%);
+    border: 1px solid #333333;
+    border-radius: 10px;
+    padding: 14px 20px;
+    margin-bottom: 16px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+}
+
+.detalhe-liga-redesign .liga-header-left {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.detalhe-liga-redesign .liga-logo-container {
+    width: 40px;
+    height: 40px;
+    border-radius: 8px;
+    background: rgba(255, 85, 0, 0.1);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border: 1px solid rgba(255, 85, 0, 0.2);
+}
+
+.detalhe-liga-redesign .liga-logo-img-header {
+    width: 28px;
+    height: 28px;
+    object-fit: contain;
+}
+
+.detalhe-liga-redesign .liga-logo-icon {
+    font-size: 20px;
+    color: #FF5500;
+}
+
+.detalhe-liga-redesign .liga-header-info h1 {
+    font-size: 1.125rem;
+    font-weight: 600;
+    color: #ffffff;
+    margin: 0 0 2px 0;
+}
+
+.detalhe-liga-redesign .liga-header-info p {
+    font-size: 0.75rem;
+    color: #9ca3af;
+    margin: 0;
+}
+
+.detalhe-liga-redesign .liga-header-actions {
+    display: flex;
+    gap: 8px;
+}
+
+.detalhe-liga-redesign .btn-header-action {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    padding: 6px 12px;
+    border-radius: 6px;
+    font-size: 0.75rem;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    border: none;
+    text-decoration: none;
+}
+
+.detalhe-liga-redesign .btn-header-secondary {
+    background: #262626;
+    color: #9ca3af;
+    border: 1px solid #333333;
+}
+
+.detalhe-liga-redesign .btn-header-secondary:hover {
+    background: #333333;
+    color: #ffffff;
+}
+
+.detalhe-liga-redesign .btn-header-secondary .material-icons {
+    font-size: 14px;
+}
+
+/* === BOTÃO VOLTAR (COMPACTO) === */
+.detalhe-liga-redesign .back-button-container {
+    margin-bottom: 12px;
+}
+
+.detalhe-liga-redesign .btn-back-new {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    padding: 6px 12px;
+    background: #1E1E1E;
+    border: 1px solid #333333;
+    border-radius: 6px;
+    color: #9ca3af;
+    font-size: 0.75rem;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    text-decoration: none;
+}
+
+.detalhe-liga-redesign .btn-back-new:hover {
+    background: #262626;
+    color: #ffffff;
+    border-color: #444444;
+}
+
+.detalhe-liga-redesign .btn-back-new .material-icons {
+    font-size: 14px;
+}
+
+/* === GRID DE MÓDULOS (CARDS) === */
+.detalhe-liga-redesign .modules-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+    gap: 12px;
+    margin-bottom: 24px;
+}
+
+/* === CARD DE MÓDULO (COMPACTO) === */
+.detalhe-liga-redesign .module-card {
+    position: relative;
+    background: linear-gradient(135deg, #1E1E1E 0%, #242424 100%);
+    border: 1px solid #333333;
+    border-radius: 10px;
+    padding: 14px 16px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    overflow: hidden;
+}
+
+.detalhe-liga-redesign .module-card::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 3px;
+    height: 100%;
+    background: #FF5500;
+    opacity: 0;
+    transition: opacity 0.2s ease;
+    border-radius: 10px 0 0 10px;
+}
+
+.detalhe-liga-redesign .module-card:hover {
+    border-color: rgba(255, 85, 0, 0.5);
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.25);
+}
+
+.detalhe-liga-redesign .module-card:hover::before {
+    opacity: 1;
+}
+
+.detalhe-liga-redesign .module-card .module-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 8px;
+}
+
+.detalhe-liga-redesign .module-card .module-icon {
+    width: 36px;
+    height: 36px;
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.2s ease;
+}
+
+.detalhe-liga-redesign .module-card .module-icon .material-icons {
+    font-size: 18px;
+}
+
+/* Cores dos ícones por módulo */
+.detalhe-liga-redesign .module-card[data-module="participantes"] .module-icon {
+    background: rgba(59, 130, 246, 0.15);
+    color: #3b82f6;
+}
+
+.detalhe-liga-redesign .module-card[data-module="ranking-geral"] .module-icon {
+    background: rgba(34, 197, 94, 0.15);
+    color: #22c55e;
+}
+
+.detalhe-liga-redesign .module-card[data-module="parciais"] .module-icon {
+    background: rgba(249, 115, 22, 0.15);
+    color: #f97316;
+}
+
+.detalhe-liga-redesign .module-card[data-module="top10"] .module-icon {
+    background: rgba(234, 179, 8, 0.15);
+    color: #eab308;
+}
+
+.detalhe-liga-redesign .module-card[data-module="rodadas"] .module-icon {
+    background: rgba(168, 85, 247, 0.15);
+    color: #a855f7;
+}
+
+.detalhe-liga-redesign .module-card[data-module="melhor-mes"] .module-icon {
+    background: rgba(236, 72, 153, 0.15);
+    color: #ec4899;
+}
+
+.detalhe-liga-redesign .module-card[data-module="mata-mata"] .module-icon {
+    background: rgba(239, 68, 68, 0.15);
+    color: #ef4444;
+}
+
+.detalhe-liga-redesign .module-card[data-module="pontos-corridos"] .module-icon {
+    background: rgba(99, 102, 241, 0.15);
+    color: #6366f1;
+}
+
+.detalhe-liga-redesign .module-card[data-module="luva-de-ouro"] .module-icon {
+    background: rgba(20, 184, 166, 0.15);
+    color: #14b8a6;
+}
+
+.detalhe-liga-redesign .module-card[data-module="artilheiro-campeao"] .module-icon {
+    background: rgba(16, 185, 129, 0.15);
+    color: #10b981;
+}
+
+.detalhe-liga-redesign .module-card[data-module="fluxo-financeiro"] .module-icon {
+    background: rgba(34, 197, 94, 0.15);
+    color: #22c55e;
+}
+
+/* Seta do card */
+.detalhe-liga-redesign .module-card .module-arrow {
+    color: #4b5563;
+    font-size: 18px;
+    transition: all 0.2s ease;
+}
+
+.detalhe-liga-redesign .module-card:hover .module-arrow {
+    color: #FF5500;
+    transform: translateX(2px);
+}
+
+/* Título e descrição do card */
+.detalhe-liga-redesign .module-card .module-title {
+    font-size: 0.8125rem;
+    font-weight: 600;
+    color: #ffffff;
+    margin: 0 0 2px 0;
+}
+
+.detalhe-liga-redesign .module-card .module-description {
+    font-size: 0.6875rem;
+    color: #6b7280;
+    margin: 0;
+    line-height: 1.3;
+    display: -webkit-box;
+    -webkit-line-clamp: 1;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+}
+
+.detalhe-liga-redesign .module-card .module-count {
+    font-size: 0.625rem;
+    color: #9ca3af;
+    margin-top: 4px;
+}
+
+/* === SEÇÃO DE ESTATÍSTICAS RÁPIDAS (COMPACTA) === */
+.detalhe-liga-redesign .quick-stats-section {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 10px;
+    margin-bottom: 20px;
+}
+
+.detalhe-liga-redesign .quick-stat-card {
+    background: #1E1E1E;
+    border: 1px solid #333333;
+    border-radius: 8px;
+    padding: 10px 12px;
+    text-align: center;
+}
+
+.detalhe-liga-redesign .quick-stat-card.highlight {
+    background: rgba(255, 85, 0, 0.08);
+    border-color: rgba(255, 85, 0, 0.3);
+}
+
+.detalhe-liga-redesign .quick-stat-value {
+    font-size: 1.125rem;
+    font-weight: 700;
+    color: #ffffff;
+    margin-bottom: 2px;
+}
+
+.detalhe-liga-redesign .quick-stat-card.highlight .quick-stat-value {
+    color: #FF5500;
+}
+
+.detalhe-liga-redesign .quick-stat-label {
+    font-size: 0.5625rem;
+    color: #6b7280;
+    text-transform: uppercase;
+    letter-spacing: 0.3px;
+    font-weight: 600;
+}
+
+/* === SEÇÕES DE DESTAQUES (MITOS/MICOS) - COMPACTO === */
+.detalhe-liga-redesign .highlights-section {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 12px;
+    margin-bottom: 16px;
+}
+
+.detalhe-liga-redesign .highlight-card {
+    background: #1E1E1E;
+    border: 1px solid #333333;
+    border-radius: 8px;
+    overflow: hidden;
+}
+
+.detalhe-liga-redesign .highlight-card-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 10px 12px;
+    background: rgba(255, 255, 255, 0.02);
+    border-bottom: 1px solid #2a2a2a;
+}
+
+.detalhe-liga-redesign .highlight-card-title {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 0.75rem;
+    font-weight: 600;
+    color: #ffffff;
+}
+
+.detalhe-liga-redesign .highlight-card-title .material-icons {
+    font-size: 16px;
+}
+
+.detalhe-liga-redesign .highlight-card-title.gold .material-icons {
+    color: #fbbf24;
+}
+
+.detalhe-liga-redesign .highlight-card-title.red .material-icons {
+    color: #ef4444;
+}
+
+.detalhe-liga-redesign .highlight-badge {
+    font-size: 0.5625rem;
+    font-weight: 600;
+    padding: 2px 6px;
+    border-radius: 3px;
+    background: rgba(34, 197, 94, 0.15);
+    color: #22c55e;
+}
+
+.detalhe-liga-redesign .highlight-table {
+    width: 100%;
+}
+
+.detalhe-liga-redesign .highlight-table thead {
+    background: rgba(255, 255, 255, 0.02);
+}
+
+.detalhe-liga-redesign .highlight-table th {
+    padding: 6px 10px;
+    font-size: 0.5625rem;
+    font-weight: 600;
+    color: #6b7280;
+    text-transform: uppercase;
+    letter-spacing: 0.3px;
+    text-align: left;
+}
+
+.detalhe-liga-redesign .highlight-table th:last-child {
+    text-align: right;
+}
+
+.detalhe-liga-redesign .highlight-table td {
+    padding: 8px 10px;
+    font-size: 0.75rem;
+    border-top: 1px solid #262626;
+}
+
+.detalhe-liga-redesign .highlight-table tbody tr:hover {
+    background: rgba(255, 255, 255, 0.02);
+}
+
+.detalhe-liga-redesign .highlight-table .pos-cell {
+    font-weight: 600;
+    color: #9ca3af;
+    font-size: 0.6875rem;
+}
+
+.detalhe-liga-redesign .highlight-table .pos-cell.gold {
+    color: #fbbf24;
+}
+
+.detalhe-liga-redesign .highlight-table .pos-cell .material-icons {
+    font-size: 12px;
+    vertical-align: middle;
+    margin-right: 2px;
+}
+
+.detalhe-liga-redesign .highlight-table .team-cell {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.detalhe-liga-redesign .highlight-table .team-avatar {
+    width: 20px;
+    height: 20px;
+    border-radius: 50%;
+    background: #333333;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.5rem;
+    font-weight: 700;
+    color: #9ca3af;
+    flex-shrink: 0;
+}
+
+.detalhe-liga-redesign .highlight-table .team-avatar-img {
+    width: 20px;
+    height: 20px;
+    border-radius: 50%;
+    object-fit: cover;
+    flex-shrink: 0;
+    background: #333333;
+}
+
+.detalhe-liga-redesign .highlight-table .team-name {
+    color: #ffffff;
+    font-weight: 500;
+    font-size: 0.75rem;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    max-width: 140px;
+}
+
+.detalhe-liga-redesign .highlight-table .pts-cell {
+    text-align: right;
+    font-weight: 600;
+    font-size: 0.75rem;
+}
+
+.detalhe-liga-redesign .highlight-table .pts-cell.positive {
+    color: #22c55e;
+}
+
+.detalhe-liga-redesign .highlight-table .pts-cell.negative {
+    color: #ef4444;
+}
+
+/* === TELA SECUNDÁRIA / CONTEÚDO DINÂMICO === */
+.detalhe-liga-redesign .dynamic-content {
+    background: #1E1E1E;
+    border: 1px solid #333333;
+    border-radius: 12px;
+    padding: 24px;
+    min-height: 400px;
+}
+
+/* === OVERLAY DE LOADING === */
+.detalhe-liga-redesign .processing-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.8);
+    display: none;
+    align-items: center;
+    justify-content: center;
+    flex-direction: column;
+    z-index: 9998;
+}
+
+.detalhe-liga-redesign .processing-overlay.show {
+    display: flex;
+}
+
+.detalhe-liga-redesign .spinner {
+    width: 48px;
+    height: 48px;
+    border: 3px solid #333333;
+    border-top-color: #FF5500;
+    border-radius: 50%;
+    animation: spin 0.8s linear infinite;
+}
+
+.detalhe-liga-redesign .processing-text {
+    margin-top: 16px;
+    color: #9ca3af;
+    font-size: 0.875rem;
+}
+
+@keyframes spin {
+    to { transform: rotate(360deg); }
+}
+
+/* === RESPONSIVIDADE === */
+@media (max-width: 1200px) {
+    .detalhe-liga-redesign .highlights-section {
+        grid-template-columns: 1fr;
+    }
+}
+
+@media (max-width: 992px) {
+    .detalhe-liga-redesign .quick-stats-section {
+        grid-template-columns: repeat(2, 1fr);
+    }
+
+    .detalhe-liga-redesign .liga-header-new {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 16px;
+    }
+
+    .detalhe-liga-redesign .liga-header-actions {
+        width: 100%;
+    }
+
+    .detalhe-liga-redesign .btn-header-action {
+        flex: 1;
+        justify-content: center;
+    }
+}
+
+@media (max-width: 768px) {
+    .detalhe-liga-redesign .page-content {
+        padding: 16px !important;
+    }
+
+    .detalhe-liga-redesign .modules-grid {
+        grid-template-columns: repeat(2, 1fr);
+        gap: 8px;
+    }
+
+    .detalhe-liga-redesign .module-card {
+        padding: 12px;
+    }
+
+    .detalhe-liga-redesign .module-card .module-description {
+        display: none;
+    }
+
+    .detalhe-liga-redesign .quick-stats-section {
+        grid-template-columns: repeat(2, 1fr);
+    }
+
+    .detalhe-liga-redesign .liga-header-new {
+        padding: 16px 20px;
+    }
+
+    .detalhe-liga-redesign .liga-header-info h1 {
+        font-size: 1.25rem;
+    }
+}
+
+@media (max-width: 480px) {
+    .detalhe-liga-redesign .modules-grid {
+        grid-template-columns: 1fr 1fr;
+        gap: 6px;
+    }
+
+    .detalhe-liga-redesign .module-card {
+        padding: 10px;
+    }
+
+    .detalhe-liga-redesign .module-card .module-icon {
+        width: 28px;
+        height: 28px;
+    }
+
+    .detalhe-liga-redesign .module-card .module-icon .material-icons {
+        font-size: 14px;
+    }
+
+    .detalhe-liga-redesign .module-card .module-title {
+        font-size: 0.75rem;
+    }
+}
+
+/* === COMPATIBILIDADE COM MODAL EXISTENTE === */
+.modal-cache-mini {
+    z-index: 9999;
+}
+
+.toast-cache-mini {
+    z-index: 10000;
+}

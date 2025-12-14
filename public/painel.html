@@ -6,6 +6,9 @@
         <title>Dashboard - Super Cartola Manager</title>
         <link rel="stylesheet" href="style.css" />
         <link rel="stylesheet" href="css/modules/dashboard.css" />
+        <link rel="stylesheet" href="css/modules/dashboard-redesign.css" />
+        <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
+        <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet" />
     </head>
     <body>
         <div class="app-container">
@@ -13,100 +16,183 @@
             <div id="sidebar-placeholder"></div>
 
             <!-- Conteúdo principal -->
-            <main class="app-main">
+            <main class="app-main dashboard-redesign">
                 <!-- Conteúdo da página -->
                 <div class="page-content">
-                    <!-- Estatísticas Globais -->
-                    <div class="dashboard-stats">
-                        <div class="stat-card primary">
-                            <div class="stat-icon">🏆</div>
-                            <div class="stat-number" id="totalLigas">0</div>
-                            <div class="stat-label">Ligas Ativas</div>
-                        </div>
-
-                        <div class="stat-card success">
-                            <div class="stat-icon">👥</div>
-                            <div class="stat-number" id="totalParticipantes">
-                                0
+                    <!-- Header da Página -->
+                    <header class="dashboard-header">
+                        <div class="dashboard-header-content">
+                            <div class="dashboard-header-info">
+                                <h2>Visao Geral</h2>
+                                <p>Bem-vindo ao painel de controle das suas ligas.</p>
                             </div>
-                            <div class="stat-label">Total Participantes</div>
-                        </div>
-
-                        <div class="stat-card warning">
-                            <div class="stat-icon">⚽</div>
-                            <div class="stat-number" id="clubeMaisPopular">
-                                -
+                            <div class="dashboard-header-actions">
+                                <button class="btn-secondary-new" onclick="carregarDadosLigas()">
+                                    <span class="material-icons">refresh</span>
+                                    Atualizar Dados
+                                </button>
+                                <a href="preencher-liga.html" class="btn-primary-new">
+                                    <span class="material-icons">add</span>
+                                    Nova Liga
+                                </a>
                             </div>
-                            <div class="stat-label">Clube Mais Popular</div>
+                        </div>
+                    </header>
+
+                    <!-- Estatísticas Globais - IDs MANTIDOS para JavaScript -->
+                    <div class="dashboard-stats-new">
+                        <div class="stat-card-new green">
+                            <div class="stat-card-header">
+                                <div class="stat-card-content">
+                                    <p class="stat-label-new">Ligas Ativas</p>
+                                    <h3 class="stat-number-new" id="totalLigas">0</h3>
+                                </div>
+                                <div class="stat-icon-new green">
+                                    <span class="material-icons">emoji_events</span>
+                                </div>
+                            </div>
+                            <div class="stat-card-footer positive">
+                                <span class="material-icons">trending_up</span>
+                                Campeonato ativo
+                            </div>
                         </div>
 
-                        <div class="stat-card danger">
-                            <div class="stat-icon">⚽</div>
-                            <div class="stat-number" id="clubesUnicos">0</div>
-                            <div class="stat-label">Clubes Diferentes</div>
+                        <div class="stat-card-new blue">
+                            <div class="stat-card-header">
+                                <div class="stat-card-content">
+                                    <p class="stat-label-new">Total Participantes</p>
+                                    <h3 class="stat-number-new" id="totalParticipantes">0</h3>
+                                </div>
+                                <div class="stat-icon-new blue">
+                                    <span class="material-icons">groups</span>
+                                </div>
+                            </div>
+                            <div class="stat-card-footer">
+                                <span class="stat-badge">32</span> na principal
+                            </div>
+                        </div>
+
+                        <div class="stat-card-new yellow">
+                            <div class="stat-card-header">
+                                <div class="stat-card-content">
+                                    <p class="stat-label-new">Clube Popular</p>
+                                    <h3 class="stat-number-new text-lg" id="clubeMaisPopular">-</h3>
+                                </div>
+                                <div class="stat-icon-new yellow">
+                                    <span class="material-icons">star</span>
+                                </div>
+                            </div>
+                            <div class="stat-card-footer">
+                                <span class="material-icons">favorite</span>
+                                Mais torcido
+                            </div>
+                        </div>
+
+                        <div class="stat-card-new purple">
+                            <div class="stat-card-header">
+                                <div class="stat-card-content">
+                                    <p class="stat-label-new">Times Diferentes</p>
+                                    <h3 class="stat-number-new" id="clubesUnicos">0</h3>
+                                </div>
+                                <div class="stat-icon-new purple">
+                                    <span class="material-icons">category</span>
+                                </div>
+                            </div>
+                            <div class="stat-card-footer">
+                                Diversidade de clubes
+                            </div>
+                        </div>
+
+                        <!-- Card Usuários Online -->
+                        <div class="stat-card-new usuarios-online" id="cardUsuariosOnline">
+                            <div class="stat-card-header">
+                                <div class="stat-card-content">
+                                    <p class="stat-label-new">
+                                        <span class="live-indicator"></span>
+                                        Usuarios Online
+                                    </p>
+                                    <h3 class="stat-number-new" id="totalUsuariosOnline">0</h3>
+                                </div>
+                                <div class="stat-icon-new online">
+                                    <span class="material-icons">visibility</span>
+                                </div>
+                            </div>
+                            <div class="usuarios-online-lista" id="listaUsuariosOnline">
+                                <div class="usuarios-online-empty">
+                                    <span class="material-icons">hourglass_empty</span>
+                                    <span>Carregando...</span>
+                                </div>
+                            </div>
+                            <div class="stat-card-footer">
+                                <span class="material-icons">schedule</span>
+                                Ultimos 5 minutos
+                            </div>
                         </div>
                     </div>
 
-                    <!-- Seção de Busca -->
-                    <div class="search-section">
-                        <div class="search-container">
-                            <div class="search-icon">🔍</div>
-                            <input
-                                type="text"
-                                id="searchInput"
-                                class="search-input"
-                                placeholder="Buscar liga por nome, ID, participantes ou clube..."
-                                oninput="filtrarLigas()"
-                            />
+                    <!-- Seção de Busca - ID MANTIDO -->
+                    <div class="search-section-new">
+                        <div class="search-icon-new">
+                            <span class="material-icons">search</span>
                         </div>
+                        <input
+                            type="text"
+                            id="searchInput"
+                            class="search-input-new"
+                            placeholder="Pesquisar ligas, times ou cartoleiros..."
+                            oninput="filtrarLigas()"
+                        />
                     </div>
 
-                    <!-- Container de Ligas -->
+                    <!-- Container de Ligas - ID MANTIDO -->
                     <div id="ligasContainer">
-                        <div class="loading-container">
-                            <div class="loading-spinner-pro"></div>
-                            <div class="loading-text">
-                                Carregando suas ligas
-                            </div>
-                            <div class="loading-subtitle">
+                        <div class="loading-container-new">
+                            <div class="loading-spinner-new"></div>
+                            <div class="loading-text-new">Carregando suas ligas</div>
+                            <div class="loading-subtitle-new">
                                 Aguarde enquanto sincronizamos os dados<br />
                                 do Super Cartola Manager...
                             </div>
                         </div>
                     </div>
 
-                    <!-- Estado de erro -->
+                    <!-- Estado de erro - IDs MANTIDOS -->
                     <div
                         id="errorContainer"
-                        class="error-container"
+                        class="error-container-new"
                         style="display: none"
                     >
-                        <div class="error-icon">⚠️</div>
-                        <div class="error-title">Erro ao Carregar Ligas</div>
-                        <div class="error-message" id="errorMessage"></div>
+                        <div class="error-icon-new">
+                            <span class="material-icons">warning</span>
+                        </div>
+                        <div class="error-title-new">Erro ao Carregar Ligas</div>
+                        <div class="error-message-new" id="errorMessage"></div>
                         <button
-                            class="retry-btn"
+                            class="retry-btn-new"
                             onclick="carregarDadosLigas()"
                         >
-                            🔄 Tentar Novamente
+                            <span class="material-icons">refresh</span>
+                            Tentar Novamente
                         </button>
                     </div>
 
-                    <!-- Estado vazio -->
+                    <!-- Estado vazio - ID MANTIDO -->
                     <div
                         id="emptyState"
-                        class="empty-state"
+                        class="empty-state-new"
                         style="display: none"
                     >
-                        <div class="empty-icon">🏆</div>
-                        <div class="empty-title">Nenhuma Liga Encontrada</div>
-                        <div class="empty-subtitle">
-                            Você ainda não criou nenhuma liga.<br />
-                            Comece criando sua primeira liga do Cartola FC e<br />
-                            experimente todas as funcionalidades do sistema!
+                        <div class="empty-icon-new">
+                            <span class="material-icons">emoji_events</span>
                         </div>
-                        <a href="preencher-liga.html" class="empty-action">
-                            ➕ Criar Primeira Liga
+                        <div class="empty-title-new">Nenhuma Liga Encontrada</div>
+                        <div class="empty-subtitle-new">
+                            Voce ainda nao criou nenhuma liga.<br />
+                            Comece criando sua primeira liga do Cartola FC!
+                        </div>
+                        <a href="preencher-liga.html" class="empty-action-new">
+                            <span class="material-icons">add</span>
+                            Criar Primeira Liga
                         </a>
                     </div>
                 </div>
@@ -151,7 +237,15 @@
                 }
             }
 
-            // === CARREGAR LIGAS NO SIDEBAR ===
+            // === MAPEAMENTO DE LOGOS DAS LIGAS ===
+            function obterLogoLiga(nomeLiga) {
+                const nome = (nomeLiga || '').toLowerCase();
+                if (nome.includes('super')) return 'img/logo-supercartola.png';
+                if (nome.includes('sobral') || nome.includes('cartoleiros')) return 'img/logo-cartoleirossobral.png';
+                return null;
+            }
+
+            // === CARREGAR LIGAS NO SIDEBAR (NOVO DESIGN) ===
             async function carregarLigasSidebar() {
                 const ligasList = document.getElementById("ligasList");
                 if (!ligasList) return;
@@ -162,30 +256,39 @@
 
                     if (!Array.isArray(ligas) || ligas.length === 0) {
                         ligasList.innerHTML = `
-                            <div class="ligas-empty">
-                                📂 Nenhuma liga criada
+                            <div class="sidebar-ligas-empty">
+                                <span class="material-icons" style="font-size: 24px; margin-bottom: 8px; display: block;">folder_open</span>
+                                Nenhuma liga criada
                             </div>
                         `;
                         return;
                     }
 
+                    // Renderizar ligas com novo design e logos
                     ligasList.innerHTML = ligas
                         .map((liga) => {
                             const ligaId = liga._id || liga.id;
+                            const timesCount = liga.times?.length || 0;
+                            const logoUrl = obterLogoLiga(liga.nome);
+                            const logoHtml = logoUrl
+                                ? `<img src="${logoUrl}" alt="" class="liga-logo-img" onerror="this.style.display='none'; this.nextElementSibling.style.display='block';" /><span class="liga-dot" style="display:none;"></span>`
+                                : `<span class="liga-dot"></span>`;
                             return `
-                            <a href="detalhe-liga.html?id=${ligaId}" class="liga-item">
-                                <div class="liga-info">
-                                    <div class="liga-name">${liga.nome || "Liga sem nome"}</div>
-                                    <div class="liga-details">${liga.times?.length || 0} times</div>
-                                </div>
-                            </a>
-                        `;
+                                <a href="detalhe-liga.html?id=${ligaId}" class="sidebar-liga-item">
+                                    ${logoHtml}
+                                    <div class="liga-info-sidebar">
+                                        <div class="liga-name-sidebar">${liga.nome || "Liga sem nome"}</div>
+                                    </div>
+                                    <span class="liga-badge-count">${timesCount}</span>
+                                </a>
+                            `;
                         })
                         .join("");
                 } catch (error) {
                     ligasList.innerHTML = `
-                        <div class="ligas-empty">
-                            ⚠️ Erro ao carregar
+                        <div class="sidebar-ligas-empty">
+                            <span class="material-icons" style="color: #ef4444; font-size: 24px; margin-bottom: 8px; display: block;">warning</span>
+                            Erro ao carregar
                         </div>
                     `;
                 }
@@ -223,49 +326,63 @@
                 };
             }
 
-            // === BUSCAR DETALHES DOS TIMES ===
+            // === BUSCAR DETALHES DOS TIMES (OTIMIZADO - BATCH) ===
             async function buscarDetalhesCompletos(ligas) {
-                const timesDetalhados = [];
+                // Coletar todos os IDs de times de todas as ligas
+                const todosTimeIds = [];
+                const timeIdToLiga = new Map();
 
                 for (const liga of ligas) {
                     const times = liga.times || [];
-
-                    for (const timeId of times) {
-                        try {
-                            const res = await fetch(`/api/time/${timeId}`);
-                            if (res.ok) {
-                                const dadosTime = await res.json();
-                                timesDetalhados.push({
-                                    ...dadosTime,
-                                    ligaNome: liga.nome,
-                                    ligaId: liga._id,
-                                });
-                            } else if (res.status === 404) {
-                                timesDetalhados.push({
-                                    id: timeId,
-                                    nome_time: `Time ${timeId}`,
-                                    nome_cartoleiro: "N/D",
-                                    clube_id: null,
-                                    url_escudo_png: "",
-                                    ligaNome: liga.nome,
-                                    ligaId: liga._id,
-                                });
-                            }
-                        } catch (error) {
-                            timesDetalhados.push({
-                                id: timeId,
-                                nome_time: `Time ${timeId}`,
-                                nome_cartoleiro: "N/D",
-                                clube_id: null,
-                                url_escudo_png: "",
-                                ligaNome: liga.nome,
-                                ligaId: liga._id,
-                            });
-                        }
-                    }
+                    times.forEach(timeId => {
+                        todosTimeIds.push(timeId);
+                        timeIdToLiga.set(timeId, { ligaNome: liga.nome, ligaId: liga._id });
+                    });
                 }
 
-                return timesDetalhados;
+                if (todosTimeIds.length === 0) return [];
+
+                try {
+                    // UMA UNICA requisicao batch ao inves de N requisicoes
+                    const res = await fetch('/api/times/batch', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ timeIds: todosTimeIds })
+                    });
+
+                    if (!res.ok) throw new Error('Batch failed');
+
+                    const timesBatch = await res.json();
+                    const timesMap = new Map(timesBatch.map(t => [t.id, t]));
+
+                    // Montar resultado com dados da liga
+                    return todosTimeIds.map(timeId => {
+                        const ligaInfo = timeIdToLiga.get(timeId);
+                        const timeData = timesMap.get(timeId);
+
+                        if (timeData) {
+                            return { ...timeData, ...ligaInfo };
+                        }
+                        return {
+                            id: timeId,
+                            nome_time: `Time ${timeId}`,
+                            nome_cartoleiro: "N/D",
+                            clube_id: null,
+                            url_escudo_png: "",
+                            ...ligaInfo
+                        };
+                    });
+                } catch (error) {
+                    console.warn('Batch fallback - usando dados basicos');
+                    return todosTimeIds.map(timeId => ({
+                        id: timeId,
+                        nome_time: `Time ${timeId}`,
+                        nome_cartoleiro: "N/D",
+                        clube_id: null,
+                        url_escudo_png: "",
+                        ...timeIdToLiga.get(timeId)
+                    }));
+                }
             }
 
             // === CALCULAR ESTATÍSTICAS AVANÇADAS ===
@@ -324,11 +441,11 @@
                     266: "Fluminense",
                     267: "Vasco",
                     275: "Palmeiras",
-                    276: "São Paulo",
+                    276: "Sao Paulo",
                     277: "Santos",
                     283: "Cruzeiro",
-                    292: "Atlético-MG",
-                    344: "Atlético-GO",
+                    292: "Atletico-MG",
+                    344: "Atletico-GO",
                 };
                 return clubes[clubeId] || `Clube ${clubeId}`;
             }
@@ -345,7 +462,7 @@
                     if (todosOsClubes.length === 0) {
                         clubesContainer.innerHTML = `
                             <div class="clube-stat-item vazio">
-                                <span class="clube-nome">Nenhum clube do coração definido ainda</span>
+                                <span class="clube-nome">Nenhum clube do coracao definido ainda</span>
                             </div>
                         `;
                         return;
@@ -355,7 +472,7 @@
                         .map(
                             ([clube, count], index) => `
                         <div class="clube-stat-item">
-                            <span class="clube-posicao">${index + 1}º</span>
+                            <span class="clube-posicao">${index + 1}o</span>
                             <span class="clube-nome">${clube}</span>
                             <span class="clube-count">${count}</span>
                         </div>
@@ -376,10 +493,10 @@
                 emptyState.style.display = "none";
 
                 container.innerHTML = `
-                    <div class="loading-container">
-                        <div class="loading-spinner-pro"></div>
-                        <div class="loading-text">Carregando suas ligas</div>
-                        <div class="loading-subtitle">
+                    <div class="loading-container-new">
+                        <div class="loading-spinner-new"></div>
+                        <div class="loading-text-new">Carregando suas ligas</div>
+                        <div class="loading-subtitle-new">
                             Aguarde enquanto sincronizamos os dados<br>
                             do Super Cartola Manager...
                         </div>
@@ -447,7 +564,7 @@
                 );
             }
 
-            // === RENDERIZAR LIGAS ===
+            // === RENDERIZAR LIGAS (NOVO DESIGN) ===
             function renderizarLigas(ligas) {
                 const container = document.getElementById("ligasContainer");
 
@@ -458,99 +575,188 @@
                     return;
                 }
 
-                const ligasHtml = `
-                    <div class="ligas-grid">
-                        ${ligas
-                            .map((liga) => {
-                                const timesCount =
-                                    liga.times?.length ||
-                                    liga.participantes?.length ||
-                                    0;
-                                const ligaId = liga._id;
+                // Separar liga principal (SuperCartola) das outras
+                const ligaPrincipal = ligas.find(l => l.nome && l.nome.toLowerCase().includes('super'));
+                const outrasLigas = ligas.filter(l => l !== ligaPrincipal);
 
-                                return `
-                                <div class="liga-card" data-liga-id="${ligaId}" data-participantes="${timesCount}">
-                                    <div class="liga-header">
-                                        <div class="liga-info">
-                                            <h3>${liga.nome}</h3>
-                                        </div>
-                                        <div class="liga-badge">
-                                            ${timesCount} times
-                                        </div>
-                                    </div>
+                let html = '';
 
-                                    <div class="liga-meta">
-                                        <div class="meta-item">
-                                            <div class="meta-label">Participantes</div>
-                                            <div class="meta-value">${timesCount}</div>
-                                        </div>
-                                        <div class="meta-item" id="clube-predominante-${ligaId}">
-                                            <div class="meta-label">Clube Top</div>
-                                            <div class="meta-value">...</div>
-                                        </div>
-                                        <div class="meta-item" id="tempo-liga-${ligaId}">
-                                            <div class="meta-label">Criada há</div>
-                                            <div class="meta-value">...</div>
-                                        </div>
-                                    </div>
+                // Renderizar Liga Principal em destaque (se existir)
+                if (ligaPrincipal) {
+                    const timesCount = ligaPrincipal.times?.length || ligaPrincipal.participantes?.length || 0;
+                    const ligaId = ligaPrincipal._id;
 
-                                    <div class="liga-actions">
-                                        <a href="detalhe-liga.html?id=${ligaId}" class="action-btn-card btn-details">
-                                            Ver Liga
-                                        </a>
+                    html += `
+                        <section class="liga-section">
+                            <div class="liga-section-header">
+                                <h3 class="liga-section-title">
+                                    <span class="accent-bar"></span>
+                                    ${ligaPrincipal.nome}
+                                </h3>
+                                <span class="liga-status-badge active">Em andamento</span>
+                            </div>
+                            <div class="liga-card-featured liga-card" data-liga-id="${ligaId}" data-participantes="${timesCount}">
+                                <div class="liga-card-featured-content">
+                                    <div class="liga-card-featured-inner">
+                                        <div class="liga-icon-large">
+                                            <span class="material-icons">emoji_events</span>
+                                        </div>
+                                        <div class="liga-card-info">
+                                            <h4>${ligaPrincipal.nome}</h4>
+                                            <p>A maior competicao da temporada. Premiacao por rodada e campeonato geral.</p>
+                                            <div class="liga-card-tags">
+                                                <span class="liga-tag">
+                                                    <span class="material-icons">groups</span>
+                                                    ${timesCount} Participantes
+                                                </span>
+                                                <span class="liga-tag">
+                                                    <span class="material-icons">payments</span>
+                                                    Sistema Financeiro
+                                                </span>
+                                                <span class="liga-tag">
+                                                    <span class="material-icons">event</span>
+                                                    38 Rodadas
+                                                </span>
+                                            </div>
+                                        </div>
+                                        <div class="liga-card-action">
+                                            <a href="detalhe-liga.html?id=${ligaId}" class="btn-liga-details">
+                                                Ver Detalhes da Liga
+                                            </a>
+                                        </div>
                                     </div>
                                 </div>
-                            `;
-                            })
-                            .join("")}
-                    </div>
-                `;
+                                <div class="liga-card-featured-footer">
+                                    <div class="liga-leader-info">
+                                        <span class="label">Liga principal:</span>
+                                        <div class="leader">
+                                            <span class="material-icons">emoji_events</span>
+                                            <span class="leader-name">${timesCount} times competindo</span>
+                                        </div>
+                                    </div>
+                                    <div class="liga-update-info" id="clube-predominante-${ligaId}">
+                                        <span class="meta-value">Carregando...</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </section>
+                    `;
+                }
 
-                container.innerHTML = ligasHtml;
+                // Renderizar outras ligas se existirem
+                if (outrasLigas.length > 0) {
+                    html += `
+                        <section class="liga-section">
+                            <div class="liga-section-header">
+                                <h3 class="liga-section-title">
+                                    <span class="accent-bar gray"></span>
+                                    Outras Ligas
+                                </h3>
+                            </div>
+                            <div class="ligas-grid ligas-grid-new">
+                    `;
+
+                    outrasLigas.forEach(liga => {
+                        const timesCount = liga.times?.length || liga.participantes?.length || 0;
+                        const ligaId = liga._id;
+                        const iniciais = (liga.nome || 'LG').substring(0, 2).toUpperCase();
+
+                        html += `
+                            <div class="liga-card liga-card-new" data-liga-id="${ligaId}" data-participantes="${timesCount}">
+                                <div class="liga-card-new-header">
+                                    <div class="liga-card-avatar">${iniciais}</div>
+                                    <span class="liga-card-type-badge ativa">Ativa</span>
+                                </div>
+                                <h4>${liga.nome}</h4>
+                                <p>Liga com ${timesCount} participantes competindo.</p>
+                                <div class="liga-card-new-footer">
+                                    <div class="liga-card-date" id="clube-predominante-${ligaId}">
+                                        <span class="material-icons">sports_soccer</span>
+                                        <span class="meta-value">${timesCount} times</span>
+                                    </div>
+                                    <a href="detalhe-liga.html?id=${ligaId}" class="liga-card-link">Acessar &rarr;</a>
+                                </div>
+                            </div>
+                        `;
+                    });
+
+                    // Card para criar nova liga
+                    html += `
+                            <a href="preencher-liga.html" class="liga-card-create">
+                                <div class="liga-card-create-icon">
+                                    <span class="material-icons">add</span>
+                                </div>
+                                <h4>Criar Nova Liga</h4>
+                                <p>Comece uma nova competicao</p>
+                            </a>
+                        </div>
+                    </section>
+                    `;
+                }
+
+                // Se só tem liga principal, adicionar seção de criar liga
+                if (!outrasLigas.length && ligaPrincipal) {
+                    html += `
+                        <section class="liga-section">
+                            <div class="liga-section-header">
+                                <h3 class="liga-section-title">
+                                    <span class="accent-bar gray"></span>
+                                    Outras Ligas
+                                </h3>
+                            </div>
+                            <div class="ligas-grid ligas-grid-new">
+                                <a href="preencher-liga.html" class="liga-card-create">
+                                    <div class="liga-card-create-icon">
+                                        <span class="material-icons">add</span>
+                                    </div>
+                                    <h4>Criar Nova Liga</h4>
+                                    <p>Comece uma nova competicao</p>
+                                </a>
+                            </div>
+                        </section>
+                    `;
+                }
+
+                container.innerHTML = html;
                 carregarDetalhesEspecificosLigas(ligas);
             }
 
-            // === CARREGAR DETALHES ESPECÍFICOS ===
+            // === CARREGAR DETALHES ESPECÍFICOS (OTIMIZADO - USA CACHE) ===
             async function carregarDetalhesEspecificosLigas(ligas) {
+                // Coletar todos os IDs de times
+                const todosTimeIds = [];
+                ligas.forEach(liga => {
+                    (liga.times || []).forEach(id => todosTimeIds.push(id));
+                });
+
+                if (todosTimeIds.length === 0) return;
+
+                // Buscar todos de uma vez via batch
+                let timesMap = new Map();
+                try {
+                    const res = await fetch('/api/times/batch', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ timeIds: todosTimeIds })
+                    });
+                    if (res.ok) {
+                        const timesBatch = await res.json();
+                        timesMap = new Map(timesBatch.map(t => [t.id, t]));
+                    }
+                } catch (e) {
+                    console.warn('Batch error:', e);
+                }
+
+                // Processar cada liga com os dados ja carregados
                 for (const liga of ligas) {
                     const ligaId = liga._id;
                     const times = liga.times || [];
-
                     if (times.length === 0) continue;
 
-                    const timesData = await Promise.all(
-                        times.map(async (timeId) => {
-                            try {
-                                const res = await fetch(`/api/time/${timeId}`);
-                                if (res.ok) {
-                                    return await res.json();
-                                } else if (res.status === 404) {
-                                    return {
-                                        id: timeId,
-                                        nome_time: `Time ${timeId}`,
-                                        nome_cartoleiro: "N/D",
-                                        clube_id: null,
-                                        url_escudo_png: "",
-                                    };
-                                }
-                                return null;
-                            } catch {
-                                return {
-                                    id: timeId,
-                                    nome_time: `Time ${timeId}`,
-                                    nome_cartoleiro: "N/D",
-                                    clube_id: null,
-                                    url_escudo_png: "",
-                                };
-                            }
-                        }),
-                    );
-
-                    const timesValidos = timesData.filter((t) => t !== null);
-
                     const clubesLiga = {};
-                    timesValidos.forEach((time) => {
-                        if (time.clube_id) {
+                    times.forEach(timeId => {
+                        const time = timesMap.get(timeId);
+                        if (time?.clube_id) {
                             const clube = obterNomeClube(time.clube_id);
                             clubesLiga[clube] = (clubesLiga[clube] || 0) + 1;
                         }
@@ -558,51 +764,15 @@
 
                     const clubePredominante =
                         Object.keys(clubesLiga).length > 0
-                            ? Object.entries(clubesLiga).sort(
-                                  (a, b) => b[1] - a[1],
-                              )[0]
+                            ? Object.entries(clubesLiga).sort((a, b) => b[1] - a[1])[0]
                             : null;
 
-                    const temposCadastro = timesValidos
-                        .map((time) => {
-                            const data =
-                                time.cadastrado_em ||
-                                time.created_at ||
-                                time.data_criacao;
-                            return data ? new Date(data) : null;
-                        })
-                        .filter((data) => data !== null);
-
-                    let tempoMedioLiga = "N/D";
-                    if (temposCadastro.length > 0) {
-                        const agora = new Date();
-                        const somaTempos = temposCadastro.reduce(
-                            (soma, data) => {
-                                return soma + (agora - data);
-                            },
-                            0,
-                        );
-                        const mediaMs = somaTempos / temposCadastro.length;
-                        const mediaDias = Math.floor(
-                            mediaMs / (1000 * 60 * 60 * 24),
-                        );
-                        tempoMedioLiga = `${mediaDias}d`;
-                    }
-
-                    const clubeElement = document.getElementById(
-                        `clube-predominante-${ligaId}`,
-                    );
+                    const clubeElement = document.getElementById(`clube-predominante-${ligaId}`);
                     if (clubeElement && clubePredominante) {
-                        clubeElement.querySelector(".meta-value").textContent =
-                            `${clubePredominante[0]} (${clubePredominante[1]})`;
-                    }
-
-                    const tempoElement = document.getElementById(
-                        `tempo-liga-${ligaId}`,
-                    );
-                    if (tempoElement) {
-                        tempoElement.querySelector(".meta-value").textContent =
-                            tempoMedioLiga;
+                        const metaValue = clubeElement.querySelector(".meta-value");
+                        if (metaValue) {
+                            metaValue.textContent = `Clube top: ${clubePredominante[0]} (${clubePredominante[1]})`;
+                        }
                     }
                 }
             }
@@ -616,13 +786,11 @@
                 const ligaCards = document.querySelectorAll(".liga-card");
 
                 ligaCards.forEach((card) => {
-                    const nomeLiga = card
-                        .querySelector("h3")
-                        .textContent.toLowerCase();
+                    const nomeLiga = card.querySelector("h4")?.textContent.toLowerCase() ||
+                                     card.querySelector("h3")?.textContent.toLowerCase() || "";
                     const idLiga = card
-                        .getAttribute("data-liga-id")
-                        .toLowerCase();
-                    const timesCount = card.getAttribute("data-participantes");
+                        .getAttribute("data-liga-id")?.toLowerCase() || "";
+                    const timesCount = card.getAttribute("data-participantes") || "";
                     const clubeTop =
                         card
                             .querySelector(
@@ -636,7 +804,13 @@
                         timesCount.includes(searchTerm) ||
                         clubeTop.includes(searchTerm);
 
-                    card.style.display = isVisible ? "block" : "none";
+                    // Esconder a section inteira se for liga featured
+                    const section = card.closest('.liga-section');
+                    if (card.classList.contains('liga-card-featured')) {
+                        if (section) section.style.display = isVisible ? "block" : "none";
+                    } else {
+                        card.style.display = isVisible ? "block" : "none";
+                    }
                 });
             };
 
@@ -654,10 +828,10 @@
                 switch (estado) {
                     case "loading":
                         container.innerHTML = `
-                            <div class="loading-container">
-                                <div class="loading-spinner-pro"></div>
-                                <div class="loading-text">Carregando suas ligas</div>
-                                <div class="loading-subtitle">
+                            <div class="loading-container-new">
+                                <div class="loading-spinner-new"></div>
+                                <div class="loading-text-new">Carregando suas ligas</div>
+                                <div class="loading-subtitle-new">
                                     Aguarde enquanto sincronizamos os dados<br>
                                     do Super Cartola Manager...
                                 </div>
@@ -680,7 +854,7 @@
             // === VERIFICAR AUTENTICAÇÃO ===
             async function verificarAutenticacao() {
                 try {
-                    console.log("[DASHBOARD] Verificando autenticação...");
+                    console.log("[DASHBOARD] Verificando autenticacao...");
                     const response = await fetch("/api/admin/auth/session", {
                         credentials: "include",
                     });
@@ -692,7 +866,7 @@
 
                     if (!response.ok) {
                         console.log(
-                            "[DASHBOARD] Não autenticado, redirecionando para login",
+                            "[DASHBOARD] Nao autenticado, redirecionando para login",
                         );
                         window.location.href = "/";
                         return false;
@@ -702,7 +876,7 @@
                     console.log("[DASHBOARD] Auth data:", data);
 
                     if (!data.authenticated) {
-                        console.log("[DASHBOARD] Usuário não autenticado");
+                        console.log("[DASHBOARD] Usuario nao autenticado");
                         window.location.href = "/";
                         return false;
                     }
@@ -713,11 +887,11 @@
                             data.admin.nome || "Admin";
                     }
 
-                    console.log("[DASHBOARD] ✅ Autenticação confirmada");
+                    console.log("[DASHBOARD] Autenticacao confirmada");
                     return true;
                 } catch (error) {
                     console.error(
-                        "[DASHBOARD] Erro ao verificar autenticação:",
+                        "[DASHBOARD] Erro ao verificar autenticacao:",
                         error,
                     );
                     window.location.href = "/";
@@ -725,20 +899,91 @@
                 }
             }
 
+            // === CARREGAR USUÁRIOS ONLINE ===
+            let usuariosOnlineInterval = null;
+
+            async function carregarUsuariosOnline() {
+                try {
+                    const response = await fetch('/api/admin/usuarios-online');
+                    if (!response.ok) throw new Error('Erro ao buscar');
+
+                    const data = await response.json();
+                    const totalEl = document.getElementById('totalUsuariosOnline');
+                    const listaEl = document.getElementById('listaUsuariosOnline');
+
+                    if (totalEl) totalEl.textContent = data.total || 0;
+
+                    if (listaEl) {
+                        if (!data.usuarios || data.usuarios.length === 0) {
+                            listaEl.innerHTML = `
+                                <div class="usuarios-online-empty">
+                                    <span class="material-icons">person_off</span>
+                                    <span>Nenhum usuario online</span>
+                                </div>
+                            `;
+                        } else {
+                            listaEl.innerHTML = data.usuarios.slice(0, 5).map(u => `
+                                <div class="usuario-online-item">
+                                    <div class="usuario-avatar">
+                                        ${u.escudo
+                                            ? `<img src="${u.escudo}" alt="" onerror="this.outerHTML='<span class=\\'material-icons\\'>person</span>'" />`
+                                            : '<span class="material-icons">person</span>'
+                                        }
+                                    </div>
+                                    <div class="usuario-info">
+                                        <span class="usuario-nome">${u.nome_time || 'Time'}</span>
+                                        <span class="usuario-liga">${u.liga_nome || ''}</span>
+                                    </div>
+                                    <div class="usuario-meta">
+                                        <span class="usuario-modulo">${formatarModulo(u.modulo_atual)}</span>
+                                        <span class="usuario-tempo">${u.tempo_online}</span>
+                                    </div>
+                                </div>
+                            `).join('');
+                        }
+                    }
+                } catch (error) {
+                    console.error('[UsuariosOnline] Erro:', error);
+                }
+            }
+
+            function formatarModulo(modulo) {
+                const modulos = {
+                    'home': 'Inicio',
+                    'extrato': 'Extrato',
+                    'ranking': 'Ranking',
+                    'rodadas': 'Rodadas',
+                    'top10': 'Top 10',
+                    'mata-mata': 'Mata-Mata',
+                    'pontos-corridos': 'Pontos Corridos',
+                    'artilheiro': 'Artilheiro',
+                    'luva-de-ouro': 'Luva de Ouro',
+                    'melhor-mes': 'Melhor Mes'
+                };
+                return modulos[modulo] || modulo || 'App';
+            }
+
+            function iniciarAtualizacaoUsuariosOnline() {
+                carregarUsuariosOnline();
+                if (usuariosOnlineInterval) clearInterval(usuariosOnlineInterval);
+                usuariosOnlineInterval = setInterval(carregarUsuariosOnline, 30000);
+            }
+
             // === Inicializar quando a página carregar ===
             document.addEventListener("DOMContentLoaded", async () => {
-                console.log("[DASHBOARD] 🚀 Inicializando dashboard...");
+                console.log("[DASHBOARD] Inicializando dashboard...");
 
                 const autenticado = await verificarAutenticacao();
 
                 if (autenticado) {
                     console.log(
-                        "[DASHBOARD] Usuário autenticado, carregando ligas...",
+                        "[DASHBOARD] Usuario autenticado, carregando ligas...",
                     );
                     await loadLayout();
                     await carregarDadosLigas();
+                    iniciarAtualizacaoUsuariosOnline();
                 } else {
-                    console.log("[DASHBOARD] Autenticação falhou");
+                    console.log("[DASHBOARD] Autenticacao falhou");
                 }
             });
 
@@ -746,7 +991,7 @@
             window.carregarDadosLigas = carregarDadosLigas;
         </script>
 
-        <!-- 🛡️ PROTEÇÃO CLIENT-SIDE -->
+        <!-- PROTECAO CLIENT-SIDE -->
         <script>
             (function () {
                 "use strict";

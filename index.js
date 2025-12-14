@@ -80,6 +80,10 @@ import rankingGeralCacheRoutes from "./routes/ranking-geral-cache-routes.js";
 import rankingTurnoRoutes from "./routes/ranking-turno-routes.js";
 import consolidacaoRoutes from "./routes/consolidacao-routes.js";
 
+// 👁️ Monitoramento de usuários online
+import usuariosOnlineRoutes from "./routes/usuarios-online-routes.js";
+import activityTrackerMiddleware from "./middleware/activityTracker.js";
+
 // 🔐 Rotas de autenticação admin
 import adminAuthRoutes from "./routes/admin-auth.js";
 console.log("[DEBUG] adminAuthRoutes type:", typeof adminAuthRoutes);
@@ -236,6 +240,10 @@ console.log("[SERVER] 🔐 Replit Auth ativado");
 app.use("/api/admin/auth", adminAuthRoutes);
 console.log("[DEBUG] Rota /api/admin/auth registrada");
 
+// 👁️ Rota de monitoramento de usuários online (admin)
+app.use("/api/admin/usuarios-online", usuariosOnlineRoutes);
+console.log("[SERVER] 👁️ Rota de usuários online registrada");
+
 // 🔐 Rotas de autenticação participante - ANTES do protegerRotas
 // Aplicar rate limiting específico para login
 app.use("/api/participante/auth/login", authRateLimiter);
@@ -250,6 +258,9 @@ app.get("/api/app/versao", (req, res) => {
 
 // 🛡️ MIDDLEWARE DE PROTEÇÃO DE ROTAS (antes de servir estáticos)
 app.use(protegerRotas);
+
+// 👁️ MIDDLEWARE DE RASTREAMENTO DE ATIVIDADE (participantes)
+app.use(activityTrackerMiddleware);
 
 // Servir arquivos estáticos (Frontend)
 app.use(express.static("public"));
