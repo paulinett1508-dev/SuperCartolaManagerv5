@@ -57,9 +57,10 @@ router.get(
 router.post("/batch", async (req, res) => {
     try {
         const Time = getTimeModel();
-        const { ids } = req.body;
+        // Aceitar tanto 'ids' quanto 'timeIds' para compatibilidade
+        const ids = req.body.ids || req.body.timeIds;
         if (!Array.isArray(ids)) {
-            return res.status(400).json({ erro: "IDs inválidos" });
+            return res.status(400).json({ erro: "IDs inválidos - envie 'ids' ou 'timeIds' como array" });
         }
 
         const timeIds = ids
