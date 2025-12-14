@@ -1,122 +1,458 @@
 <!doctype html>
 <html lang="pt-BR">
-    <head>
-        <meta charset="UTF-8" />
-        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-        <title>Editar Liga - Super Cartola Manager</title>
-        <link rel="shortcut icon" href="favicon.ico" type="image/x-icon" />
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Editar Liga - Super Cartola Manager</title>
+    <link rel="shortcut icon" href="favicon.ico" type="image/x-icon" />
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet" />
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
 
-        <!-- CSS HIERÁRQUICO MODULAR -->
-        <link rel="stylesheet" href="style.css" />
-        <link rel="stylesheet" href="css/base.css" />
-        <link rel="stylesheet" href="css/modules/editar-liga.css" />
-    </head>
-    <body>
-        <div class="app-container">
-            <!-- Sidebar será injetado aqui -->
-            <div id="sidebar-placeholder"></div>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, sans-serif;
+            background: #121212;
+            color: #fff;
+            min-height: 100vh;
+        }
 
-            <!-- Conteúdo principal -->
-            <main class="app-main">
-                <div class="page-content">
-                    <!-- Breadcrumb -->
-                    <nav class="breadcrumb">
-                        <a href="painel.html">Dashboard</a>
-                        <span class="separator">></span>
-                        <a href="ferramentas.html">Ferramentas</a>
-                        <span class="separator">></span>
-                        <a href="gerenciar.html">Gerenciar</a>
-                        <span class="separator">></span>
-                        <span class="current">Editar Liga</span>
-                    </nav>
+        .app-container { display: flex; min-height: 100vh; }
+        .app-main { flex: 1; padding: 16px 20px; overflow-y: auto; }
 
-                    <!-- Header da Liga -->
-                    <div class="liga-header">
-                        <div class="header-actions">
-                            <a href="gerenciar.html" class="btn-voltar">
-                                ← Voltar para Gerenciar
-                            </a>
-                        </div>
-                        <h1 class="liga-titulo" id="tituloLiga">
-                            Editar Times da Liga
-                        </h1>
-                        <p class="liga-info">
-                            Gerencie os times participantes da sua liga
-                        </p>
-                    </div>
+        /* Header Compacto */
+        .page-header {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            margin-bottom: 20px;
+            padding-bottom: 16px;
+            border-bottom: 1px solid #2d2d2d;
+        }
 
-                    <!-- Mensagem de Erro -->
-                    <div
-                        id="errorMessage"
-                        class="alert alert-error"
-                        style="display: none"
-                    >
-                        <!-- Mensagens de erro serão inseridas aqui -->
-                    </div>
+        .btn-voltar {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            padding: 8px 14px;
+            background: #1a1a1a;
+            border: 1px solid #2d2d2d;
+            border-radius: 8px;
+            color: #888;
+            text-decoration: none;
+            font-size: 0.75rem;
+            transition: all 0.2s;
+        }
 
-                    <!-- Mensagem de Sucesso -->
-                    <div
-                        id="successMessage"
-                        class="alert alert-success"
-                        style="display: none"
-                    >
-                        <!-- Mensagens de sucesso serão inseridas aqui -->
-                    </div>
+        .btn-voltar:hover {
+            background: #252525;
+            color: #FF5500;
+            border-color: #FF5500;
+        }
 
-                    <!-- Container da Tabela -->
-                    <div class="editar-container">
-                        <div class="table-wrapper">
-                            <table class="times-table" id="timesTable">
-                                <thead>
-                                    <tr>
-                                        <th class="col-index">#</th>
-                                        <th class="col-id">ID</th>
-                                        <th class="col-cartoleiro">
-                                            Cartoleiro
-                                        </th>
-                                        <th class="col-brasao">Brasão</th>
-                                        <th class="col-clube">
-                                            Time do Coração
-                                        </th>
-                                        <th class="col-escudo">Escudo</th>
-                                        <th class="col-acoes">Ações</th>
-                                    </tr>
-                                </thead>
-                                <tbody id="tabelaTimes">
-                                    <!-- Times serão inseridos aqui -->
-                                </tbody>
-                            </table>
-                        </div>
+        .btn-voltar .material-icons { font-size: 16px; }
 
-                        <!-- Loading State -->
-                        <div id="loadingState" class="loading-state">
-                            <div class="loading-spinner"></div>
-                            <p>Carregando times da liga...</p>
-                        </div>
+        .header-info h1 {
+            font-size: 1.1rem;
+            font-weight: 600;
+            color: #fff;
+        }
 
-                        <!-- Empty State -->
-                        <div
-                            id="emptyState"
-                            class="empty-state"
-                            style="display: none"
-                        >
-                            <div class="empty-icon">📋</div>
-                            <h3>Liga sem times</h3>
-                            <p>Esta liga ainda não possui times cadastrados.</p>
-                        </div>
+        .header-info h1 span {
+            color: #FF5500;
+        }
 
-                        <!-- Botão Salvar Tudo -->
-                        <div class="action-footer">
-                            <button class="btn-save-all" id="salvarTudoBtn">
-                                Salvar Todas as Alterações
-                            </button>
-                        </div>
-                    </div>
+        .header-info p {
+            font-size: 0.7rem;
+            color: #888;
+            margin-top: 2px;
+        }
+
+        /* Alerts */
+        .alert {
+            padding: 10px 14px;
+            border-radius: 8px;
+            margin-bottom: 14px;
+            font-size: 0.75rem;
+            display: none;
+        }
+
+        .alert.active { display: flex; align-items: center; gap: 8px; }
+
+        .alert-success {
+            background: rgba(16, 185, 129, 0.15);
+            border: 1px solid rgba(16, 185, 129, 0.3);
+            color: #10b981;
+        }
+
+        .alert-error {
+            background: rgba(239, 68, 68, 0.15);
+            border: 1px solid rgba(239, 68, 68, 0.3);
+            color: #ef4444;
+        }
+
+        .alert .material-icons { font-size: 18px; }
+
+        /* Container Principal */
+        .editar-container {
+            background: #1a1a1a;
+            border: 1px solid #2d2d2d;
+            border-radius: 12px;
+            overflow: hidden;
+        }
+
+        /* Table Wrapper */
+        .table-wrapper {
+            overflow-x: auto;
+            max-height: 65vh;
+            overflow-y: auto;
+        }
+
+        .table-wrapper::-webkit-scrollbar { width: 6px; height: 6px; }
+        .table-wrapper::-webkit-scrollbar-track { background: #1a1a1a; }
+        .table-wrapper::-webkit-scrollbar-thumb { background: #3d3d3d; border-radius: 3px; }
+
+        /* Table */
+        .times-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 0.75rem;
+        }
+
+        .times-table th {
+            background: #252525;
+            color: #fff;
+            padding: 10px 8px;
+            text-align: center;
+            font-weight: 600;
+            font-size: 0.65rem;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            border-bottom: 2px solid #3d3d3d;
+            position: sticky;
+            top: 0;
+            z-index: 10;
+        }
+
+        .times-table td {
+            padding: 8px 6px;
+            text-align: center;
+            border-bottom: 1px solid #2d2d2d;
+            vertical-align: middle;
+        }
+
+        .times-table tbody tr {
+            transition: all 0.2s;
+        }
+
+        .times-table tbody tr:hover {
+            background: rgba(255, 85, 0, 0.05);
+        }
+
+        /* Column widths */
+        .col-index { width: 35px; font-weight: 700; color: #666; }
+        .col-id { width: 70px; }
+        .col-cartoleiro { min-width: 130px; }
+        .col-brasao { width: 50px; }
+        .col-clube { min-width: 150px; }
+        .col-escudo { width: 50px; }
+        .col-acoes { min-width: 160px; }
+
+        /* Table Inputs */
+        .table-input {
+            width: 100%;
+            padding: 6px 8px;
+            background: #252525;
+            border: 1px solid #3d3d3d;
+            border-radius: 4px;
+            color: #fff;
+            font-size: 0.7rem;
+            transition: all 0.2s;
+        }
+
+        .table-input:focus {
+            border-color: #FF5500;
+            box-shadow: 0 0 0 2px rgba(255, 85, 0, 0.2);
+            outline: none;
+        }
+
+        .table-select {
+            width: 100%;
+            padding: 6px 8px;
+            background: #252525;
+            border: 1px solid #3d3d3d;
+            border-radius: 4px;
+            color: #fff;
+            font-size: 0.7rem;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .table-select:focus {
+            border-color: #FF5500;
+            box-shadow: 0 0 0 2px rgba(255, 85, 0, 0.2);
+            outline: none;
+        }
+
+        /* Images */
+        .escudo-time {
+            width: 28px;
+            height: 28px;
+            object-fit: contain;
+            border-radius: 4px;
+        }
+
+        .escudo-coracao {
+            width: 24px;
+            height: 24px;
+            object-fit: contain;
+            border-radius: 2px;
+        }
+
+        /* Action Buttons */
+        .btn-table {
+            padding: 4px 8px;
+            border: none;
+            border-radius: 4px;
+            font-size: 0.6rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+            margin: 1px;
+            color: white;
+            display: inline-flex;
+            align-items: center;
+            gap: 3px;
+        }
+
+        .btn-table .material-icons { font-size: 12px; }
+
+        .btn-success {
+            background: rgba(16, 185, 129, 0.15);
+            border: 1px solid rgba(16, 185, 129, 0.3);
+            color: #10b981;
+        }
+
+        .btn-success:hover {
+            background: #10b981;
+            color: white;
+        }
+
+        .btn-warning {
+            background: rgba(251, 191, 36, 0.15);
+            border: 1px solid rgba(251, 191, 36, 0.3);
+            color: #fbbf24;
+        }
+
+        .btn-warning:hover {
+            background: #fbbf24;
+            color: #000;
+        }
+
+        .btn-danger {
+            background: rgba(239, 68, 68, 0.1);
+            border: 1px solid rgba(239, 68, 68, 0.3);
+            color: #ef4444;
+        }
+
+        .btn-danger:hover {
+            background: #ef4444;
+            color: white;
+        }
+
+        .btn-add {
+            background: rgba(59, 130, 246, 0.15);
+            border: 1px solid rgba(59, 130, 246, 0.3);
+            color: #3b82f6;
+        }
+
+        .btn-add:hover {
+            background: #3b82f6;
+            color: white;
+        }
+
+        /* New Row */
+        .nova-linha {
+            background: rgba(255, 85, 0, 0.05);
+        }
+
+        .nova-linha td {
+            border-top: 2px dashed rgba(255, 85, 0, 0.3);
+        }
+
+        /* Footer */
+        .action-footer {
+            padding: 16px;
+            background: #252525;
+            border-top: 1px solid #2d2d2d;
+            text-align: center;
+        }
+
+        .btn-save-all {
+            padding: 10px 24px;
+            background: linear-gradient(135deg, #FF5500 0%, #ff6b1a 100%);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 0.75rem;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.2s;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .btn-save-all:hover:not(:disabled) {
+            transform: translateY(-1px);
+            box-shadow: 0 4px 16px rgba(255, 85, 0, 0.4);
+        }
+
+        .btn-save-all:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        .btn-save-all .material-icons { font-size: 18px; }
+
+        /* Loading State */
+        .loading-state {
+            padding: 48px;
+            text-align: center;
+            color: #888;
+        }
+
+        .loading-spinner {
+            width: 32px;
+            height: 32px;
+            border: 3px solid #2d2d2d;
+            border-top: 3px solid #FF5500;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 12px;
+        }
+
+        .loading-state p { font-size: 0.75rem; }
+
+        @keyframes spin {
+            from { transform: rotate(0deg); }
+            to { transform: rotate(360deg); }
+        }
+
+        /* Empty State */
+        .empty-state {
+            padding: 48px;
+            text-align: center;
+            color: #666;
+        }
+
+        .empty-state .material-icons {
+            font-size: 40px;
+            opacity: 0.4;
+            margin-bottom: 12px;
+        }
+
+        .empty-state h3 {
+            color: #888;
+            font-size: 0.9rem;
+            margin: 0 0 4px 0;
+        }
+
+        .empty-state p {
+            margin: 0;
+            font-size: 0.7rem;
+        }
+
+        /* Responsive */
+        @media (max-width: 1024px) {
+            .table-wrapper { max-height: 55vh; }
+            .times-table { font-size: 0.7rem; }
+            .times-table th, .times-table td { padding: 6px 4px; }
+            .col-cartoleiro, .col-clube { min-width: 100px; }
+        }
+
+        @media (max-width: 768px) {
+            .app-main { padding: 12px; }
+            .table-wrapper { max-height: 50vh; }
+            .btn-table { padding: 3px 6px; font-size: 0.55rem; }
+            .btn-table .material-icons { font-size: 10px; }
+            .col-acoes { min-width: 120px; }
+        }
+    </style>
+</head>
+<body>
+    <div class="app-container">
+        <div id="sidebar-placeholder"></div>
+
+        <main class="app-main">
+            <!-- Header -->
+            <div class="page-header">
+                <a href="gerenciar.html" class="btn-voltar">
+                    <span class="material-icons">arrow_back</span>
+                    Voltar
+                </a>
+                <div class="header-info">
+                    <h1 id="tituloLiga">Editar Times da <span>Liga</span></h1>
+                    <p>Gerencie os times participantes</p>
                 </div>
-            </main>
-        </div>
+            </div>
 
-        <!-- Scripts Modulares -->
-        <script type="module" src="js/editar-liga.js"></script>
-    </body>
+            <!-- Alerts -->
+            <div id="errorMessage" class="alert alert-error">
+                <span class="material-icons">error</span>
+                <span id="errorText"></span>
+            </div>
+
+            <div id="successMessage" class="alert alert-success">
+                <span class="material-icons">check_circle</span>
+                <span id="successText"></span>
+            </div>
+
+            <!-- Container Principal -->
+            <div class="editar-container">
+                <div class="table-wrapper">
+                    <table class="times-table" id="timesTable">
+                        <thead>
+                            <tr>
+                                <th class="col-index">#</th>
+                                <th class="col-id">ID</th>
+                                <th class="col-cartoleiro">Cartoleiro</th>
+                                <th class="col-brasao">Brasao</th>
+                                <th class="col-clube">Time do Coracao</th>
+                                <th class="col-escudo">Escudo</th>
+                                <th class="col-acoes">Acoes</th>
+                            </tr>
+                        </thead>
+                        <tbody id="tabelaTimes">
+                            <!-- Times inseridos via JS -->
+                        </tbody>
+                    </table>
+                </div>
+
+                <!-- Loading State -->
+                <div id="loadingState" class="loading-state">
+                    <div class="loading-spinner"></div>
+                    <p>Carregando times da liga...</p>
+                </div>
+
+                <!-- Empty State -->
+                <div id="emptyState" class="empty-state" style="display: none;">
+                    <span class="material-icons">sports_soccer</span>
+                    <h3>Liga sem times</h3>
+                    <p>Esta liga ainda não possui times cadastrados.</p>
+                </div>
+
+                <!-- Footer -->
+                <div class="action-footer">
+                    <button class="btn-save-all" id="salvarTudoBtn">
+                        <span class="material-icons">save</span>
+                        Salvar Todas as Alteracoes
+                    </button>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <script type="module" src="js/editar-liga.js"></script>
+    <script src="js/core/sidebar-menu.js"></script>
+</body>
 </html>

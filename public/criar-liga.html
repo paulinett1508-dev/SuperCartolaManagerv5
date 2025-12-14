@@ -1,206 +1,769 @@
 <!doctype html>
 <html lang="pt-BR">
-    <head>
-        <meta charset="UTF-8" />
-        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-        <title>Criar Nova Liga - Super Cartola Manager</title>
-        <link rel="shortcut icon" href="favicon.ico" type="image/x-icon" />
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Criar Nova Liga - Super Cartola Manager</title>
+    <link rel="shortcut icon" href="favicon.ico" type="image/x-icon" />
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet" />
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
 
-        <!-- CSS HIERÁRQUICO MODULAR -->
-        <link rel="stylesheet" href="style.css" />
-        <link rel="stylesheet" href="css/base.css" />
-        <link rel="stylesheet" href="css/modules/criar-liga.css" />
-    </head>
-    <body>
-        <div class="app-container">
-            <!-- Sidebar será injetado aqui -->
-            <div id="sidebar-placeholder"></div>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, sans-serif;
+            background: #121212;
+            color: #fff;
+            min-height: 100vh;
+        }
 
-            <!-- Conteúdo principal -->
-            <main class="app-main">
-                <div class="page-content">
-                    <!-- Breadcrumb -->
-                    <nav class="breadcrumb">
-                        <a href="painel.html">Dashboard</a>
-                        <span class="separator">></span>
-                        <a href="ferramentas.html">Ferramentas</a>
-                        <span class="separator">></span>
-                        <span class="current">Criar Liga</span>
-                    </nav>
+        .app-container { display: flex; min-height: 100vh; }
+        .app-main { flex: 1; padding: 16px 20px; overflow-y: auto; }
 
-                    <!-- Container Principal -->
-                    <div class="criar-container">
-                        <!-- Progress Steps -->
-                        <div class="progress-steps">
-                            <div class="step active" id="step1">
-                                <div class="step-number">1</div>
-                                <div class="step-label">Adicionar Times</div>
+        /* Header Compacto */
+        .page-header {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            margin-bottom: 20px;
+            padding-bottom: 16px;
+            border-bottom: 1px solid #2d2d2d;
+        }
+
+        .btn-voltar {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            padding: 8px 14px;
+            background: #1a1a1a;
+            border: 1px solid #2d2d2d;
+            border-radius: 8px;
+            color: #888;
+            text-decoration: none;
+            font-size: 0.75rem;
+            transition: all 0.2s;
+        }
+
+        .btn-voltar:hover {
+            background: #252525;
+            color: #FF5500;
+            border-color: #FF5500;
+        }
+
+        .btn-voltar .material-icons { font-size: 16px; }
+
+        .header-info h1 {
+            font-size: 1.1rem;
+            font-weight: 600;
+            color: #fff;
+        }
+
+        .header-info p {
+            font-size: 0.7rem;
+            color: #888;
+            margin-top: 2px;
+        }
+
+        /* Progress Steps Compacto */
+        .progress-steps {
+            display: flex;
+            justify-content: center;
+            gap: 32px;
+            margin-bottom: 20px;
+        }
+
+        .step {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            opacity: 0.4;
+            transition: all 0.3s;
+        }
+
+        .step.active { opacity: 1; }
+
+        .step-number {
+            width: 28px;
+            height: 28px;
+            background: #2d2d2d;
+            border: 2px solid #3d3d3d;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 700;
+            font-size: 0.7rem;
+            color: #666;
+            transition: all 0.3s;
+        }
+
+        .step.active .step-number {
+            background: linear-gradient(135deg, #FF5500 0%, #ff6b1a 100%);
+            border-color: #FF5500;
+            color: white;
+            box-shadow: 0 0 12px rgba(255, 85, 0, 0.4);
+        }
+
+        .step-label {
+            font-size: 0.7rem;
+            color: #666;
+            font-weight: 600;
+        }
+
+        .step.active .step-label { color: #fff; }
+
+        /* Container Principal */
+        .criar-container {
+            max-width: 600px;
+            margin: 0 auto;
+        }
+
+        /* Cards */
+        .form-card {
+            background: #1a1a1a;
+            border: 1px solid #2d2d2d;
+            border-radius: 12px;
+            padding: 16px;
+            margin-bottom: 16px;
+        }
+
+        .card-header {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 14px;
+            padding-bottom: 12px;
+            border-bottom: 1px solid #2d2d2d;
+        }
+
+        .card-icon {
+            width: 32px;
+            height: 32px;
+            background: linear-gradient(135deg, #FF5500 0%, #ff6b1a 100%);
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .card-icon .material-icons {
+            font-size: 18px;
+            color: white;
+        }
+
+        .card-title {
+            font-size: 0.85rem;
+            font-weight: 600;
+            color: #fff;
+        }
+
+        .card-subtitle {
+            font-size: 0.65rem;
+            color: #666;
+            margin-top: 2px;
+        }
+
+        /* Etapas */
+        .etapa { display: none; }
+        .etapa.active { display: block; animation: fadeIn 0.3s ease; }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* Search Form */
+        .search-form {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 14px;
+        }
+
+        .search-input-wrapper {
+            flex: 1;
+            position: relative;
+        }
+
+        .search-input-wrapper .material-icons {
+            position: absolute;
+            left: 12px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: #666;
+            font-size: 18px;
+        }
+
+        .search-input {
+            width: 100%;
+            padding: 10px 12px 10px 40px;
+            background: #252525;
+            border: 1px solid #3d3d3d;
+            border-radius: 8px;
+            color: #fff;
+            font-size: 0.8rem;
+            transition: all 0.2s;
+        }
+
+        .search-input:focus {
+            outline: none;
+            border-color: #FF5500;
+            box-shadow: 0 0 0 2px rgba(255, 85, 0, 0.2);
+        }
+
+        .search-input::placeholder { color: #666; }
+
+        .btn-search {
+            padding: 10px 20px;
+            background: linear-gradient(135deg, #FF5500 0%, #ff6b1a 100%);
+            border: none;
+            border-radius: 8px;
+            color: white;
+            font-size: 0.75rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .btn-search:hover:not(:disabled) {
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px rgba(255, 85, 0, 0.4);
+        }
+
+        .btn-search:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        .btn-search .material-icons { font-size: 16px; }
+
+        /* Search Result */
+        .search-result {
+            background: rgba(255, 85, 0, 0.1);
+            border: 1px solid rgba(255, 85, 0, 0.2);
+            border-radius: 8px;
+            padding: 12px;
+            margin-bottom: 14px;
+            display: none;
+        }
+
+        .search-result.active { display: block; }
+
+        .result-item {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 12px;
+        }
+
+        .result-info {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            flex: 1;
+        }
+
+        .result-escudo {
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            object-fit: cover;
+            border: 2px solid #3d3d3d;
+        }
+
+        .result-nome {
+            font-size: 0.8rem;
+            color: #fff;
+            font-weight: 600;
+        }
+
+        .result-cartoleiro {
+            font-size: 0.65rem;
+            color: #888;
+        }
+
+        .result-id {
+            font-size: 0.6rem;
+            color: #666;
+            font-family: monospace;
+        }
+
+        .btn-add {
+            padding: 6px 12px;
+            background: rgba(16, 185, 129, 0.15);
+            border: 1px solid rgba(16, 185, 129, 0.3);
+            border-radius: 6px;
+            color: #10b981;
+            font-size: 0.7rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            gap: 4px;
+        }
+
+        .btn-add:hover {
+            background: #10b981;
+            color: white;
+        }
+
+        .btn-add:disabled {
+            opacity: 0.4;
+            cursor: not-allowed;
+        }
+
+        .btn-add .material-icons { font-size: 14px; }
+
+        /* Times List */
+        .times-section {
+            background: #252525;
+            border: 1px solid #3d3d3d;
+            border-radius: 8px;
+            padding: 12px;
+        }
+
+        .times-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 10px;
+        }
+
+        .times-title {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            font-size: 0.75rem;
+            color: #fff;
+            font-weight: 600;
+        }
+
+        .times-title .material-icons {
+            font-size: 16px;
+            color: #FF5500;
+        }
+
+        .times-count {
+            background: linear-gradient(135deg, #FF5500 0%, #ff6b1a 100%);
+            color: white;
+            padding: 3px 8px;
+            border-radius: 4px;
+            font-size: 0.65rem;
+            font-weight: 700;
+        }
+
+        .times-list {
+            list-style: none;
+            max-height: 200px;
+            overflow-y: auto;
+        }
+
+        .times-list::-webkit-scrollbar { width: 4px; }
+        .times-list::-webkit-scrollbar-track { background: #1a1a1a; border-radius: 2px; }
+        .times-list::-webkit-scrollbar-thumb { background: #3d3d3d; border-radius: 2px; }
+
+        .time-item {
+            background: #1a1a1a;
+            border: 1px solid #2d2d2d;
+            border-radius: 6px;
+            padding: 8px 10px;
+            margin-bottom: 6px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            transition: all 0.2s;
+        }
+
+        .time-item:hover {
+            border-color: #FF5500;
+        }
+
+        .time-info {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            flex: 1;
+        }
+
+        .time-escudo {
+            width: 24px;
+            height: 24px;
+            border-radius: 50%;
+            object-fit: cover;
+        }
+
+        .time-nome {
+            font-size: 0.7rem;
+            color: #fff;
+            font-weight: 600;
+        }
+
+        .time-cartoleiro {
+            font-size: 0.6rem;
+            color: #888;
+        }
+
+        .btn-remove {
+            background: rgba(239, 68, 68, 0.1);
+            color: #ef4444;
+            border: 1px solid rgba(239, 68, 68, 0.3);
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-size: 0.6rem;
+            cursor: pointer;
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            gap: 3px;
+        }
+
+        .btn-remove:hover {
+            background: #ef4444;
+            color: white;
+        }
+
+        .btn-remove .material-icons { font-size: 12px; }
+
+        /* Empty State */
+        .empty-state {
+            text-align: center;
+            padding: 24px 12px;
+            color: #666;
+        }
+
+        .empty-state .material-icons {
+            font-size: 32px;
+            opacity: 0.4;
+            margin-bottom: 8px;
+        }
+
+        .empty-text {
+            font-size: 0.7rem;
+        }
+
+        /* Form Group */
+        .form-group {
+            margin-bottom: 16px;
+        }
+
+        .form-label {
+            display: block;
+            font-size: 0.65rem;
+            color: #888;
+            margin-bottom: 6px;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .form-input {
+            width: 100%;
+            padding: 10px 14px;
+            font-size: 0.85rem;
+            background: #252525;
+            border: 1px solid #3d3d3d;
+            border-radius: 8px;
+            color: #fff;
+            transition: all 0.2s;
+        }
+
+        .form-input:focus {
+            outline: none;
+            border-color: #FF5500;
+            box-shadow: 0 0 0 2px rgba(255, 85, 0, 0.2);
+        }
+
+        /* Alert */
+        .alert {
+            padding: 10px 14px;
+            border-radius: 8px;
+            margin-bottom: 14px;
+            font-size: 0.75rem;
+            display: none;
+        }
+
+        .alert.active { display: flex; align-items: center; gap: 8px; }
+
+        .alert-success {
+            background: rgba(16, 185, 129, 0.15);
+            border: 1px solid rgba(16, 185, 129, 0.3);
+            color: #10b981;
+        }
+
+        .alert-error {
+            background: rgba(239, 68, 68, 0.15);
+            border: 1px solid rgba(239, 68, 68, 0.3);
+            color: #ef4444;
+        }
+
+        .alert .material-icons { font-size: 18px; }
+
+        /* Navigation Buttons */
+        .navigation-buttons {
+            display: flex;
+            gap: 10px;
+            margin-top: 16px;
+        }
+
+        .btn-secondary {
+            flex: 1;
+            padding: 10px 16px;
+            background: #252525;
+            color: #888;
+            border: 1px solid #3d3d3d;
+            border-radius: 8px;
+            font-size: 0.75rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
+        }
+
+        .btn-secondary:hover {
+            background: #2d2d2d;
+            border-color: #FF5500;
+            color: #FF5500;
+        }
+
+        .btn-secondary .material-icons { font-size: 16px; }
+
+        .btn-primary {
+            flex: 1;
+            padding: 10px 20px;
+            background: linear-gradient(135deg, #FF5500 0%, #ff6b1a 100%);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 0.75rem;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
+        }
+
+        .btn-primary:hover:not(:disabled) {
+            transform: translateY(-1px);
+            box-shadow: 0 4px 16px rgba(255, 85, 0, 0.4);
+        }
+
+        .btn-primary:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        .btn-primary .material-icons { font-size: 16px; }
+
+        /* Loading */
+        .loading {
+            text-align: center;
+            padding: 12px;
+            color: #FF5500;
+            font-size: 0.75rem;
+            display: none;
+        }
+
+        .loading.active {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+        }
+
+        .loading .material-icons {
+            font-size: 18px;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            from { transform: rotate(0deg); }
+            to { transform: rotate(360deg); }
+        }
+
+        /* Responsive */
+        @media (max-width: 600px) {
+            .app-main { padding: 12px; }
+            .search-form { flex-direction: column; }
+            .progress-steps { gap: 16px; }
+            .step-label { display: none; }
+        }
+    </style>
+</head>
+<body>
+    <div class="app-container">
+        <div id="sidebar-placeholder"></div>
+
+        <main class="app-main">
+            <!-- Header -->
+            <div class="page-header">
+                <a href="gerenciar.html" class="btn-voltar">
+                    <span class="material-icons">arrow_back</span>
+                    Voltar
+                </a>
+                <div class="header-info">
+                    <h1>Criar Nova Liga</h1>
+                    <p>Adicione times e finalize sua liga</p>
+                </div>
+            </div>
+
+            <!-- Progress Steps -->
+            <div class="progress-steps">
+                <div class="step active" id="step1">
+                    <div class="step-number">1</div>
+                    <div class="step-label">Adicionar Times</div>
+                </div>
+                <div class="step" id="step2">
+                    <div class="step-number">2</div>
+                    <div class="step-label">Finalizar Liga</div>
+                </div>
+            </div>
+
+            <div class="criar-container">
+                <!-- Alert -->
+                <div id="alertMessage" class="alert"></div>
+
+                <!-- Etapa 1: Buscar Times -->
+                <div class="etapa active" id="etapa1">
+                    <div class="form-card">
+                        <div class="card-header">
+                            <div class="card-icon">
+                                <span class="material-icons">search</span>
                             </div>
-                            <div class="step" id="step2">
-                                <div class="step-number">2</div>
-                                <div class="step-label">Finalizar Liga</div>
+                            <div>
+                                <div class="card-title">Buscar Times</div>
+                                <div class="card-subtitle">Pesquise pelo ID do time no Cartola FC</div>
                             </div>
                         </div>
 
-                        <!-- Mensagens -->
-                        <div id="alertMessage" class="alert"></div>
-
-                        <!-- Etapa 1: Buscar Times -->
-                        <div class="etapa active" id="etapa1">
-                            <div class="search-section">
-                                <div class="search-header">
-                                    <h3 class="search-title">
-                                        Buscar Times do Cartola FC
-                                    </h3>
-                                    <p class="search-subtitle">
-                                        Pesquise pelo ID do time e adicione à
-                                        sua liga
-                                    </p>
-                                </div>
-
-                                <div class="search-form">
-                                    <input
-                                        type="text"
-                                        id="searchInput"
-                                        class="search-input"
-                                        placeholder="Digite o ID do time (apenas números)"
-                                        pattern="[0-9]*"
-                                    />
-                                    <button
-                                        type="button"
-                                        class="btn-search"
-                                        id="searchBtn"
-                                    >
-                                        Buscar
-                                    </button>
-                                </div>
-
-                                <div id="searchResult" class="search-result">
-                                    <!-- Resultado será inserido aqui -->
-                                </div>
-
-                                <div
-                                    id="loadingSearch"
-                                    class="loading"
-                                    style="display: none"
-                                >
-                                    Buscando time...
-                                </div>
-                            </div>
-
-                            <div class="times-section">
-                                <div class="times-header">
-                                    <h4 class="times-title">
-                                        <span class="times-icon"></span>
-                                        Times Selecionados
-                                    </h4>
-                                    <span class="times-count" id="timesCount"
-                                        >0 times</span
-                                    >
-                                </div>
-
-                                <ul id="timesList" class="times-list">
-                                    <!-- Times serão inseridos aqui -->
-                                </ul>
-
-                                <div id="emptyState" class="empty-state">
-                                    <div class="empty-icon"></div>
-                                    <p class="empty-text">
-                                        Nenhum time adicionado ainda
-                                    </p>
-                                </div>
-                            </div>
-
-                            <div class="navigation-buttons">
-                                <button
-                                    type="button"
-                                    class="btn-secondary"
-                                    id="cancelarBtn"
-                                >
-                                    Cancelar
-                                </button>
-                                <button
-                                    type="button"
-                                    class="btn-primary"
-                                    id="btnProxima"
-                                    disabled
-                                >
-                                    Próxima Etapa
-                                </button>
-                            </div>
-                        </div>
-
-                        <!-- Etapa 2: Finalizar Liga -->
-                        <div class="etapa" id="etapa2">
-                            <div class="search-header">
-                                <h3 class="search-title">
-                                    Finalizar Criação da Liga
-                                </h3>
-                                <p class="search-subtitle">
-                                    Escolha um nome para sua liga
-                                </p>
-                            </div>
-
-                            <div class="form-group">
-                                <label for="nomeLiga" class="form-label">
-                                    Nome da Liga
-                                </label>
+                        <div class="search-form">
+                            <div class="search-input-wrapper">
+                                <span class="material-icons">tag</span>
                                 <input
                                     type="text"
-                                    id="nomeLiga"
-                                    class="form-input"
-                                    placeholder="Digite um nome para sua liga"
-                                    required
+                                    id="searchInput"
+                                    class="search-input"
+                                    placeholder="Digite o ID do time (ex: 25835050)"
+                                    pattern="[0-9]*"
                                 />
                             </div>
+                            <button type="button" class="btn-search" id="searchBtn">
+                                <span class="material-icons">search</span>
+                                Buscar
+                            </button>
+                        </div>
 
-                            <div class="times-section">
-                                <div class="times-header">
-                                    <h4 class="times-title">
-                                        <span class="resumo-icon"></span>
-                                        Resumo da Liga
-                                    </h4>
-                                    <span class="times-count" id="resumoCount"
-                                        >0 times</span
-                                    >
+                        <div id="searchResult" class="search-result">
+                            <!-- Resultado inserido via JS -->
+                        </div>
+
+                        <div id="loadingSearch" class="loading">
+                            <span class="material-icons">sync</span>
+                            Buscando time...
+                        </div>
+                    </div>
+
+                    <div class="form-card">
+                        <div class="times-section">
+                            <div class="times-header">
+                                <div class="times-title">
+                                    <span class="material-icons">groups</span>
+                                    Times Selecionados
                                 </div>
-
-                                <ul id="resumoList" class="times-list">
-                                    <!-- Resumo será inserido aqui -->
-                                </ul>
+                                <span class="times-count" id="timesCount">0 times</span>
                             </div>
 
-                            <div class="navigation-buttons">
-                                <button
-                                    type="button"
-                                    class="btn-secondary"
-                                    id="voltarBtn"
-                                >
-                                    Voltar
-                                </button>
-                                <button
-                                    type="button"
-                                    class="btn-primary"
-                                    id="salvarBtn"
-                                >
-                                    Criar Liga
-                                </button>
-                            </div>
+                            <ul id="timesList" class="times-list">
+                                <!-- Times inseridos via JS -->
+                            </ul>
 
-                            <div
-                                id="loadingSave"
-                                class="loading"
-                                style="display: none"
-                            >
-                                Salvando liga...
+                            <div id="emptyState" class="empty-state">
+                                <span class="material-icons">sports_soccer</span>
+                                <p class="empty-text">Nenhum time adicionado ainda</p>
                             </div>
                         </div>
                     </div>
-                </div>
-            </main>
-        </div>
 
-        <!-- Script Modular -->
-        <script type="module" src="js/criar-liga.js"></script>
-    </body>
+                    <div class="navigation-buttons">
+                        <button type="button" class="btn-secondary" id="cancelarBtn">
+                            <span class="material-icons">close</span>
+                            Cancelar
+                        </button>
+                        <button type="button" class="btn-primary" id="btnProxima" disabled>
+                            Próxima Etapa
+                            <span class="material-icons">arrow_forward</span>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Etapa 2: Finalizar Liga -->
+                <div class="etapa" id="etapa2">
+                    <div class="form-card">
+                        <div class="card-header">
+                            <div class="card-icon">
+                                <span class="material-icons">edit</span>
+                            </div>
+                            <div>
+                                <div class="card-title">Finalizar Liga</div>
+                                <div class="card-subtitle">Escolha um nome para sua liga</div>
+                            </div>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="nomeLiga" class="form-label">Nome da Liga</label>
+                            <input
+                                type="text"
+                                id="nomeLiga"
+                                class="form-input"
+                                placeholder="Digite o nome da sua liga"
+                                required
+                            />
+                        </div>
+                    </div>
+
+                    <div class="form-card">
+                        <div class="times-section">
+                            <div class="times-header">
+                                <div class="times-title">
+                                    <span class="material-icons">checklist</span>
+                                    Resumo da Liga
+                                </div>
+                                <span class="times-count" id="resumoCount">0 times</span>
+                            </div>
+
+                            <ul id="resumoList" class="times-list">
+                                <!-- Resumo inserido via JS -->
+                            </ul>
+                        </div>
+                    </div>
+
+                    <div class="navigation-buttons">
+                        <button type="button" class="btn-secondary" id="voltarBtn">
+                            <span class="material-icons">arrow_back</span>
+                            Voltar
+                        </button>
+                        <button type="button" class="btn-primary" id="salvarBtn">
+                            <span class="material-icons">check</span>
+                            Criar Liga
+                        </button>
+                    </div>
+
+                    <div id="loadingSave" class="loading">
+                        <span class="material-icons">sync</span>
+                        Salvando liga...
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <script type="module" src="js/criar-liga.js"></script>
+    <script src="js/core/sidebar-menu.js"></script>
+</body>
 </html>

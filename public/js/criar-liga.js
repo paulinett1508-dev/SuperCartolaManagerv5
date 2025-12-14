@@ -56,7 +56,7 @@ async function buscarTime() {
 
     try {
         if (searchBtn) searchBtn.disabled = true;
-        if (loadingDiv) loadingDiv.style.display = "block";
+        if (loadingDiv) loadingDiv.classList.add("active");
         if (resultDiv) resultDiv.classList.remove("active");
 
         const response = await fetch(`/api/times/${timeId}`);
@@ -76,18 +76,20 @@ async function buscarTime() {
             resultDiv.innerHTML = `
                 <div class="result-item">
                     <div class="result-info">
-                        <img src="${escudo}" 
-                             class="result-escudo" 
+                        <img src="${escudo}"
+                             class="result-escudo"
                              onerror="this.src='/escudos/default.png'"
                              alt="Escudo do time">
                         <div class="result-details">
                             <div class="result-nome">${nomeTime}</div>
                             <div class="result-cartoleiro">${nomeCartoleiro}</div>
+                            <div class="result-id">ID: ${timeId}</div>
                         </div>
                     </div>
-                    <button class="btn-add" ${isAdded ? "disabled" : ""} 
+                    <button class="btn-add" ${isAdded ? "disabled" : ""}
                             onclick="adicionarTime('${timeId}', '${nomeTime}', '${nomeCartoleiro}', '${escudo}')">
-                        ${isAdded ? "Já Adicionado" : "Adicionar"}
+                        <span class="material-icons">${isAdded ? "check" : "add"}</span>
+                        ${isAdded ? "Adicionado" : "Adicionar"}
                     </button>
                 </div>
             `;
@@ -99,7 +101,7 @@ async function buscarTime() {
         showAlert(`Erro: ${error.message}`, "error");
     } finally {
         if (searchBtn) searchBtn.disabled = false;
-        if (loadingDiv) loadingDiv.style.display = "none";
+        if (loadingDiv) loadingDiv.classList.remove("active");
     }
 }
 
@@ -124,7 +126,7 @@ function adicionarTime(id, nome, cartoleiro, escudo) {
     const btnAdd = document.querySelector(".btn-add");
     if (btnAdd) {
         btnAdd.disabled = true;
-        btnAdd.textContent = "Já Adicionado";
+        btnAdd.innerHTML = '<span class="material-icons">check</span>Adicionado';
     }
 }
 
@@ -160,7 +162,7 @@ function atualizarListaTimes() {
                 (time) => `
                 <li class="time-item">
                     <div class="time-info">
-                        <img src="${time.escudo}" class="time-escudo" 
+                        <img src="${time.escudo}" class="time-escudo"
                              onerror="this.src='/escudos/default.png'"
                              alt="Escudo do time">
                         <div class="time-details">
@@ -169,6 +171,7 @@ function atualizarListaTimes() {
                         </div>
                     </div>
                     <button onclick="removerTime(${time.id})" class="btn-remove">
+                        <span class="material-icons">close</span>
                         Remover
                     </button>
                 </li>
@@ -257,7 +260,7 @@ async function salvarLiga() {
 
     try {
         if (salvarBtn) salvarBtn.disabled = true;
-        if (loadingDiv) loadingDiv.style.display = "block";
+        if (loadingDiv) loadingDiv.classList.add("active");
 
         const response = await fetch("/api/ligas", {
             method: "POST",
@@ -283,7 +286,7 @@ async function salvarLiga() {
         showAlert(`Erro: ${error.message}`, "error");
         if (salvarBtn) salvarBtn.disabled = false;
     } finally {
-        if (loadingDiv) loadingDiv.style.display = "none";
+        if (loadingDiv) loadingDiv.classList.remove("active");
     }
 }
 
@@ -292,8 +295,9 @@ function showAlert(message, type) {
     const alert = document.getElementById("alertMessage");
     if (!alert) return;
 
+    const icon = type === "success" ? "check_circle" : "error";
     alert.className = `alert alert-${type} active`;
-    alert.textContent = message;
+    alert.innerHTML = `<span class="material-icons">${icon}</span>${message}`;
 
     setTimeout(() => {
         alert.classList.remove("active");
@@ -314,7 +318,7 @@ document.addEventListener("click", (e) => {
     if (e.target.id === "voltarBtn") voltarEtapa();
     if (e.target.id === "salvarBtn") salvarLiga();
     if (e.target.id === "cancelarBtn")
-        window.location.href = "ferramentas.html";
+        window.location.href = "gerenciar.html";
 });
 
 // Validação de input (apenas números)

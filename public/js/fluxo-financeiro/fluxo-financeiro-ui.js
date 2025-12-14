@@ -5,7 +5,8 @@ import {
 } from "./fluxo-financeiro-auditoria.js";
 
 /**
- * FLUXO-FINANCEIRO-UI.JS - v5.0 (PDF Multi-página)
+ * FLUXO-FINANCEIRO-UI.JS - v5.1 (Relatório Consolidado)
+ * ✅ v5.1: Função renderizarRelatorioConsolidado + botão Voltar
  * ✅ v5.0: PDF multi-página com quebra automática e TOP 10 detalhado
  * ✅ v4.9: Nomes completos: RANKING DE RODADAS, PONTOS CORRIDOS, MATA-MATA
  * ✅ v4.8: PDF compacto 1 página com linha a linha por módulo
@@ -691,7 +692,361 @@ export class FluxoFinanceiroUI {
             console.warn(`[FLUXO-UI] ⚠️ Erro ao popular cache:`, error.message);
         }
     }
+
+    // =========================================================================
+    // ✅ v5.1: RENDERIZAR RELATÓRIO CONSOLIDADO (TODOS OS PARTICIPANTES)
+    // =========================================================================
+    renderizarRelatorioConsolidado(relatorio, rodadaAtual) {
+        const container = document.getElementById(this.containerId);
+        if (!container) return;
+
+        const totalBonus = relatorio.reduce((sum, p) => sum + (p.bonus || 0), 0);
+        const totalOnus = relatorio.reduce((sum, p) => sum + (p.onus || 0), 0);
+        const totalPC = relatorio.reduce((sum, p) => sum + (p.pontosCorridos || 0), 0);
+        const totalMM = relatorio.reduce((sum, p) => sum + (p.mataMata || 0), 0);
+        const totalMelhorMes = relatorio.reduce((sum, p) => sum + (p.melhorMes || 0), 0);
+        const totalAjustes = relatorio.reduce((sum, p) => sum + (p.ajustes || 0), 0);
+        const totalSaldo = relatorio.reduce((sum, p) => sum + (p.saldoFinal || 0), 0);
+
+        container.innerHTML = `
+            <div class="relatorio-consolidado">
+                <div class="relatorio-header">
+                    <h3>
+                        <span class="material-icons">assessment</span>
+                        Relatorio Financeiro Consolidado
+                    </h3>
+                    <span class="relatorio-info">Rodada ${rodadaAtual} | ${relatorio.length} participantes</span>
+                </div>
+
+                <div class="relatorio-resumo">
+                    <div class="resumo-item positivo">
+                        <span class="resumo-label">Total Bonus</span>
+                        <span class="resumo-valor">R$ ${totalBonus.toFixed(2).replace('.', ',')}</span>
+                    </div>
+                    <div class="resumo-item negativo">
+                        <span class="resumo-label">Total Onus</span>
+                        <span class="resumo-valor">R$ ${totalOnus.toFixed(2).replace('.', ',')}</span>
+                    </div>
+                    <div class="resumo-item">
+                        <span class="resumo-label">Pontos Corridos</span>
+                        <span class="resumo-valor">R$ ${totalPC.toFixed(2).replace('.', ',')}</span>
+                    </div>
+                    <div class="resumo-item">
+                        <span class="resumo-label">Mata-Mata</span>
+                        <span class="resumo-valor">R$ ${totalMM.toFixed(2).replace('.', ',')}</span>
+                    </div>
+                </div>
+
+                <div class="relatorio-acoes">
+                    <button onclick="window.exportarRelatorioCSV()" class="btn-fluxo btn-exportar">
+                        <span class="material-icons">download</span>
+                        Exportar CSV
+                    </button>
+                    <button onclick="window.voltarParaLista()" class="btn-fluxo btn-voltar">
+                        <span class="material-icons">arrow_back</span>
+                        Voltar
+                    </button>
+                </div>
+
+                <div class="relatorio-tabela-container">
+                    <table class="relatorio-tabela">
+                        <thead>
+                            <tr>
+                                <th class="col-pos">#</th>
+                                <th class="col-participante">Participante</th>
+                                <th class="col-valor">Bonus</th>
+                                <th class="col-valor">Onus</th>
+                                <th class="col-valor">PC</th>
+                                <th class="col-valor">MM</th>
+                                <th class="col-valor">Mes</th>
+                                <th class="col-valor">Ajustes</th>
+                                <th class="col-saldo">Saldo</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            ${relatorio.map((p, i) => `
+                                <tr class="${p.saldoFinal >= 0 ? 'positivo' : 'negativo'}">
+                                    <td class="col-pos">${i + 1}º</td>
+                                    <td class="col-participante">
+                                        <div class="participante-cell">
+                                            ${p.escudo
+                                                ? `<img src="${p.escudo}" alt="" class="escudo-mini" onerror="this.style.display='none'" />`
+                                                : '<span class="material-icons escudo-placeholder">person</span>'
+                                            }
+                                            <div class="participante-info">
+                                                <span class="nome-time">${p.time || 'Time'}</span>
+                                                <span class="nome-cartola">${p.nome || ''}</span>
+                                            </div>
+                                        </div>
+                                    </td>
+                                    <td class="col-valor positivo">+${(p.bonus || 0).toFixed(0)}</td>
+                                    <td class="col-valor negativo">${(p.onus || 0).toFixed(0)}</td>
+                                    <td class="col-valor">${(p.pontosCorridos || 0).toFixed(0)}</td>
+                                    <td class="col-valor">${(p.mataMata || 0).toFixed(0)}</td>
+                                    <td class="col-valor">${(p.melhorMes || 0).toFixed(0)}</td>
+                                    <td class="col-valor">${(p.ajustes || 0).toFixed(0)}</td>
+                                    <td class="col-saldo ${p.saldoFinal >= 0 ? 'positivo' : 'negativo'}">
+                                        R$ ${p.saldoFinal.toFixed(2).replace('.', ',')}
+                                    </td>
+                                </tr>
+                            `).join('')}
+                        </tbody>
+                        <tfoot>
+                            <tr class="totais">
+                                <td colspan="2"><strong>TOTAIS</strong></td>
+                                <td class="col-valor positivo"><strong>+${totalBonus.toFixed(0)}</strong></td>
+                                <td class="col-valor negativo"><strong>${totalOnus.toFixed(0)}</strong></td>
+                                <td class="col-valor"><strong>${totalPC.toFixed(0)}</strong></td>
+                                <td class="col-valor"><strong>${totalMM.toFixed(0)}</strong></td>
+                                <td class="col-valor"><strong>${totalMelhorMes.toFixed(0)}</strong></td>
+                                <td class="col-valor"><strong>${totalAjustes.toFixed(0)}</strong></td>
+                                <td class="col-saldo"><strong>R$ ${totalSaldo.toFixed(2).replace('.', ',')}</strong></td>
+                            </tr>
+                        </tfoot>
+                    </table>
+                </div>
+            </div>
+
+            <style>
+                .relatorio-consolidado {
+                    background: #1a1a1a;
+                    border-radius: 12px;
+                    padding: 24px;
+                    border: 1px solid rgba(255, 69, 0, 0.2);
+                }
+
+                .relatorio-header {
+                    display: flex;
+                    justify-content: space-between;
+                    align-items: center;
+                    margin-bottom: 20px;
+                    padding-bottom: 16px;
+                    border-bottom: 1px solid #333;
+                }
+
+                .relatorio-header h3 {
+                    display: flex;
+                    align-items: center;
+                    gap: 10px;
+                    color: #fff;
+                    margin: 0;
+                    font-size: 1.25rem;
+                }
+
+                .relatorio-header h3 .material-icons {
+                    color: #ff4500;
+                }
+
+                .relatorio-info {
+                    color: #9ca3af;
+                    font-size: 0.875rem;
+                }
+
+                .relatorio-resumo {
+                    display: grid;
+                    grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+                    gap: 16px;
+                    margin-bottom: 20px;
+                }
+
+                .resumo-item {
+                    background: #252525;
+                    padding: 16px;
+                    border-radius: 8px;
+                    text-align: center;
+                }
+
+                .resumo-item.positivo {
+                    border-left: 3px solid #10b981;
+                }
+
+                .resumo-item.negativo {
+                    border-left: 3px solid #ef4444;
+                }
+
+                .resumo-label {
+                    display: block;
+                    color: #9ca3af;
+                    font-size: 0.75rem;
+                    margin-bottom: 4px;
+                }
+
+                .resumo-valor {
+                    display: block;
+                    color: #fff;
+                    font-size: 1.125rem;
+                    font-weight: 600;
+                }
+
+                .relatorio-acoes {
+                    display: flex;
+                    gap: 12px;
+                    margin-bottom: 20px;
+                }
+
+                .btn-exportar {
+                    background: linear-gradient(135deg, #10b981, #059669) !important;
+                }
+
+                .btn-voltar {
+                    background: #333 !important;
+                }
+
+                .relatorio-tabela-container {
+                    overflow-x: auto;
+                }
+
+                .relatorio-tabela {
+                    width: 100%;
+                    border-collapse: collapse;
+                    font-size: 0.875rem;
+                }
+
+                .relatorio-tabela th,
+                .relatorio-tabela td {
+                    padding: 12px 8px;
+                    text-align: center;
+                    border-bottom: 1px solid #333;
+                }
+
+                .relatorio-tabela th {
+                    background: #252525;
+                    color: #9ca3af;
+                    font-weight: 500;
+                    font-size: 0.75rem;
+                    text-transform: uppercase;
+                }
+
+                .relatorio-tabela tbody tr:hover {
+                    background: rgba(255, 69, 0, 0.05);
+                }
+
+                .col-pos {
+                    width: 50px;
+                    color: #6b7280;
+                }
+
+                .col-participante {
+                    text-align: left !important;
+                    min-width: 200px;
+                }
+
+                .participante-cell {
+                    display: flex;
+                    align-items: center;
+                    gap: 10px;
+                }
+
+                .escudo-mini {
+                    width: 32px;
+                    height: 32px;
+                    border-radius: 50%;
+                    object-fit: cover;
+                }
+
+                .escudo-placeholder {
+                    width: 32px;
+                    height: 32px;
+                    background: #333;
+                    border-radius: 50%;
+                    display: flex;
+                    align-items: center;
+                    justify-content: center;
+                    font-size: 18px;
+                    color: #6b7280;
+                }
+
+                .participante-info {
+                    display: flex;
+                    flex-direction: column;
+                }
+
+                .nome-time {
+                    color: #fff;
+                    font-weight: 500;
+                }
+
+                .nome-cartola {
+                    color: #6b7280;
+                    font-size: 0.75rem;
+                }
+
+                .col-valor {
+                    width: 70px;
+                    color: #9ca3af;
+                }
+
+                .col-valor.positivo {
+                    color: #10b981;
+                }
+
+                .col-valor.negativo {
+                    color: #ef4444;
+                }
+
+                .col-saldo {
+                    width: 100px;
+                    font-weight: 600;
+                }
+
+                .col-saldo.positivo {
+                    color: #10b981;
+                }
+
+                .col-saldo.negativo {
+                    color: #ef4444;
+                }
+
+                .relatorio-tabela tfoot tr {
+                    background: #252525;
+                }
+
+                .relatorio-tabela tfoot td {
+                    border-top: 2px solid #ff4500;
+                    color: #fff;
+                }
+
+                @media (max-width: 768px) {
+                    .relatorio-consolidado {
+                        padding: 16px;
+                    }
+
+                    .relatorio-header {
+                        flex-direction: column;
+                        gap: 10px;
+                        align-items: flex-start;
+                    }
+
+                    .relatorio-tabela {
+                        font-size: 0.75rem;
+                    }
+
+                    .col-participante {
+                        min-width: 150px;
+                    }
+
+                    .escudo-mini {
+                        width: 24px;
+                        height: 24px;
+                    }
+                }
+            </style>
+        `;
+
+        console.log(`[FLUXO-UI] ✅ Relatório consolidado renderizado (${relatorio.length} participantes)`);
+    }
 }
+
+// =========================================================================
+// ✅ v5.1: FUNÇÃO GLOBAL PARA VOLTAR À LISTA DE PARTICIPANTES
+// =========================================================================
+window.voltarParaLista = function() {
+    if (window.inicializarFluxoFinanceiro) {
+        window.inicializarFluxoFinanceiro();
+    } else {
+        location.reload();
+    }
+};
 
 // =========================================================================
 // ✅ v4.4.2: FUNÇÃO GLOBAL PARA LIMPAR CACHE DO PARTICIPANTE
@@ -1568,4 +1923,4 @@ window.exportarExtratoPDF = async function (timeId) {
     }
 };
 
-console.log("[FLUXO-UI] ✅ v5.0 carregado (PDF Multi-página)");
+console.log("[FLUXO-UI] ✅ v5.1 carregado (Relatório Consolidado)");

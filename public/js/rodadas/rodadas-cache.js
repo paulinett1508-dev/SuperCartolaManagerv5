@@ -5,7 +5,7 @@
 const CACHE_CONFIG = {
   maxAge: 5 * 60 * 1000, // 5 minutos
   maxEntries: 100,
-  cleanupInterval: 60 * 1000, // 1 minuto
+  cleanupInterval: 5 * 60 * 1000, // 5 minutos (mesmo do maxAge)
 };
 
 // STORE DE CACHE
@@ -68,9 +68,12 @@ class RodadasCache {
       }
     }
 
-    console.log(
-      `[RODADAS-CACHE] Limpeza automática: ${removed} itens removidos`,
-    );
+    // Só logar se removeu algo
+    if (removed > 0) {
+      console.log(
+        `[RODADAS-CACHE] Limpeza automática: ${removed} itens removidos`,
+      );
+    }
   }
 
   // CONFIGURAR LIMPEZA PERIÓDICA

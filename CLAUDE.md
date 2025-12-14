@@ -750,3 +750,4 @@ Rodadas onde ocorrem confrontos de Mata-Mata (importante para detecção de cach
 - to memorize
 - Add to memorize. Git
 - claude.md
+- to memorize

@@ -4,136 +4,184 @@
         <meta charset="UTF-8" />
         <meta name="viewport" content="width=device-width, initial-scale=1.0" />
         <title>Gerenciar Ligas - Super Cartola Manager</title>
+        <link rel="shortcut icon" href="favicon.ico" type="image/x-icon" />
         <link rel="stylesheet" href="style.css" />
+        <link rel="stylesheet" href="css/modules/dashboard-redesign.css" />
+        <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet" />
         <style>
-            /* Container principal sem padding extra */
-            .page-content {
-                padding: 20px;
+            /* ============================================================
+               GERENCIAR LIGAS - Design Compacto v2.0
+               ============================================================ */
+
+            .gerenciar-page {
+                background: #121212;
+                min-height: 100vh;
             }
 
-            /* Botão voltar adicionado */
-            .voltar-button {
-                margin-bottom: 20px;
+            .gerenciar-content {
+                padding: 20px 16px;
+            }
+
+            /* Header */
+            .gerenciar-header {
+                background: #1a1a1a;
+                border-radius: 10px;
+                padding: 16px 18px;
+                margin-bottom: 16px;
+                border: 1px solid #2d2d2d;
+                display: flex;
+                align-items: center;
+                justify-content: space-between;
+            }
+
+            .gerenciar-header-info h1 {
+                font-size: 1.2rem;
+                font-weight: 700;
+                color: #ffffff;
+                margin: 0 0 4px 0;
+            }
+
+            .gerenciar-header-info p {
+                font-size: 0.75rem;
+                color: #9ca3af;
+                margin: 0;
             }
 
             .btn-voltar {
-                padding: 10px 20px;
-                background: var(--bg-card);
-                color: var(--text-secondary);
-                border: 1px solid var(--border-primary);
-                border-radius: 8px;
-                font-size: 14px;
-                font-weight: 600;
-                cursor: pointer;
-                transition: all 0.3s ease;
-                text-decoration: none;
                 display: inline-flex;
                 align-items: center;
-                gap: 8px;
+                gap: 4px;
+                padding: 8px 14px;
+                background: #252525;
+                color: #9ca3af;
+                border: 1px solid #2d2d2d;
+                border-radius: 6px;
+                font-size: 0.75rem;
+                font-weight: 500;
+                text-decoration: none;
+                transition: all 0.2s ease;
             }
 
             .btn-voltar:hover {
-                background: var(--bg-card-hover);
-                border-color: var(--laranja);
-                color: var(--laranja);
+                background: #2d2d2d;
+                color: #FF5500;
+                border-color: #FF5500;
             }
 
-            /* Título da página */
-            .page-title {
-                font-size: 24px;
-                font-weight: 700;
-                color: var(--text-primary);
-                margin-bottom: 8px;
+            .btn-voltar .material-icons {
+                font-size: 16px;
             }
 
-            .page-subtitle {
-                font-size: 14px;
-                color: var(--text-muted);
-                margin-bottom: 25px;
-            }
-
-            /* Estatísticas compactas */
+            /* Stats Bar */
             .stats-bar {
                 display: flex;
-                gap: 30px;
-                margin-bottom: 20px;
-                padding: 15px 20px;
-                background: rgba(255, 69, 0, 0.05);
-                border-radius: 8px;
-                border: 1px solid rgba(255, 69, 0, 0.2);
+                gap: 12px;
+                margin-bottom: 16px;
             }
 
-            .stat-item {
+            .stat-chip {
                 display: flex;
                 align-items: center;
                 gap: 8px;
+                background: #1a1a1a;
+                border: 1px solid #2d2d2d;
+                border-radius: 8px;
+                padding: 10px 14px;
             }
 
-            .stat-label {
-                font-size: 13px;
-                color: var(--text-muted);
-                font-weight: 500;
+            .stat-chip-icon {
+                width: 28px;
+                height: 28px;
+                border-radius: 50%;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                background: rgba(255, 85, 0, 0.1);
             }
 
-            .stat-value {
-                font-size: 18px;
-                color: var(--laranja);
+            .stat-chip-icon .material-icons {
+                font-size: 14px;
+                color: #FF5500;
+            }
+
+            .stat-chip-content {
+                display: flex;
+                flex-direction: column;
+            }
+
+            .stat-chip-value {
+                font-size: 1.1rem;
                 font-weight: 700;
+                color: #ffffff;
+                line-height: 1;
             }
 
-            /* Busca */
+            .stat-chip-label {
+                font-size: 0.65rem;
+                color: #6b7280;
+                text-transform: uppercase;
+                letter-spacing: 0.03em;
+            }
+
+            /* Search */
             .search-container {
-                max-width: 500px;
-                margin-bottom: 20px;
                 position: relative;
+                margin-bottom: 16px;
             }
 
             .search-input {
                 width: 100%;
-                padding: 12px 20px 12px 45px;
-                background: var(--bg-card);
-                border: 1px solid var(--border-primary);
-                border-radius: 25px;
-                color: var(--text-primary);
-                font-size: 14px;
+                max-width: 320px;
+                padding: 10px 14px 10px 38px;
+                background: #1a1a1a;
+                border: 1px solid #2d2d2d;
+                border-radius: 8px;
+                color: #ffffff;
+                font-size: 0.8rem;
                 outline: none;
-                transition: all 0.3s ease;
+                transition: all 0.2s ease;
             }
 
             .search-input:focus {
-                border-color: var(--laranja);
-                box-shadow: 0 0 0 3px var(--laranja-alpha);
+                border-color: #FF5500;
+                box-shadow: 0 0 0 2px rgba(255, 85, 0, 0.1);
+            }
+
+            .search-input::placeholder {
+                color: #6b7280;
             }
 
             .search-icon {
                 position: absolute;
-                left: 18px;
+                left: 12px;
                 top: 50%;
                 transform: translateY(-50%);
-                font-size: 16px;
-                color: var(--laranja);
+                color: #6b7280;
             }
 
-            /* Lista de ligas */
+            .search-icon .material-icons {
+                font-size: 18px;
+            }
+
+            /* Liga List */
             .liga-list {
-                background: var(--bg-card);
-                border-radius: 12px;
-                border: 1px solid var(--border-primary);
+                background: #1a1a1a;
+                border-radius: 10px;
+                border: 1px solid #2d2d2d;
                 overflow: hidden;
-                box-shadow: var(--shadow-md);
             }
 
             .liga-item {
                 display: flex;
                 align-items: center;
                 justify-content: space-between;
-                padding: 18px 20px;
-                border-bottom: 1px solid var(--border-secondary);
-                transition: all 0.3s ease;
+                padding: 12px 16px;
+                border-bottom: 1px solid #252525;
+                transition: all 0.2s ease;
             }
 
             .liga-item:hover {
-                background: rgba(255, 69, 0, 0.05);
+                background: rgba(255, 85, 0, 0.03);
             }
 
             .liga-item:last-child {
@@ -142,140 +190,225 @@
 
             .liga-info {
                 flex: 1;
+                min-width: 0;
             }
 
             .liga-info h4 {
-                color: var(--text-primary);
-                font-size: 15px;
-                margin: 0 0 4px 0;
+                font-size: 0.9rem;
                 font-weight: 600;
+                color: #ffffff;
+                margin: 0 0 2px 0;
+                white-space: nowrap;
+                overflow: hidden;
+                text-overflow: ellipsis;
             }
 
             .liga-info p {
-                font-size: 12px;
-                color: var(--text-muted);
+                font-size: 0.7rem;
+                color: #6b7280;
                 margin: 0;
             }
 
             .liga-actions {
                 display: flex;
-                gap: 8px;
+                gap: 6px;
+                flex-shrink: 0;
             }
 
             .btn-action {
-                padding: 8px 14px;
-                border-radius: 6px;
-                font-size: 12px;
-                font-weight: 600;
-                cursor: pointer;
-                transition: all 0.3s ease;
-                text-decoration: none;
-                border: none;
                 display: inline-flex;
                 align-items: center;
                 gap: 4px;
+                padding: 6px 10px;
+                border-radius: 5px;
+                font-size: 0.7rem;
+                font-weight: 600;
+                cursor: pointer;
+                transition: all 0.2s ease;
+                text-decoration: none;
+                border: none;
+            }
+
+            .btn-action .material-icons {
+                font-size: 14px;
             }
 
             .btn-edit {
                 background: rgba(59, 130, 246, 0.1);
                 color: #3b82f6;
-                border: 1px solid rgba(59, 130, 246, 0.3);
+                border: 1px solid rgba(59, 130, 246, 0.2);
             }
 
             .btn-edit:hover {
                 background: rgba(59, 130, 246, 0.2);
-                transform: translateY(-1px);
             }
 
-            .btn-rodadas {
-                background: var(--gradient-primary);
-                color: white;
-                box-shadow: 0 2px 8px rgba(255, 69, 0, 0.3);
+            .btn-modules {
+                background: rgba(255, 85, 0, 0.1);
+                color: #FF5500;
+                border: 1px solid rgba(255, 85, 0, 0.2);
             }
 
-            .btn-rodadas:hover {
-                transform: translateY(-1px);
-                box-shadow: 0 4px 12px rgba(255, 69, 0, 0.4);
+            .btn-modules:hover {
+                background: rgba(255, 85, 0, 0.2);
             }
 
             .btn-delete {
                 background: rgba(239, 68, 68, 0.1);
                 color: #ef4444;
-                border: 1px solid rgba(239, 68, 68, 0.3);
+                border: 1px solid rgba(239, 68, 68, 0.2);
             }
 
             .btn-delete:hover {
                 background: rgba(239, 68, 68, 0.2);
-                transform: translateY(-1px);
             }
 
-            .loading {
-                text-align: center;
-                padding: 40px;
-                color: var(--text-muted);
-            }
-
+            /* Empty & Loading States */
+            .loading-state,
             .empty-state {
                 text-align: center;
-                padding: 60px 20px;
-                color: var(--text-muted);
+                padding: 40px 20px;
             }
 
             .empty-icon {
-                font-size: 48px;
-                margin-bottom: 16px;
-                opacity: 0.5;
+                width: 48px;
+                height: 48px;
+                border-radius: 50%;
+                background: #252525;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                margin: 0 auto 12px;
+            }
+
+            .empty-icon .material-icons {
+                font-size: 24px;
+                color: #6b7280;
             }
 
             .empty-title {
-                font-size: 18px;
+                font-size: 0.9rem;
                 font-weight: 600;
-                color: var(--text-secondary);
-                margin-bottom: 8px;
+                color: #9ca3af;
+                margin-bottom: 4px;
+            }
+
+            .empty-subtitle {
+                font-size: 0.75rem;
+                color: #6b7280;
+                margin-bottom: 16px;
+            }
+
+            .btn-criar {
+                display: inline-flex;
+                align-items: center;
+                gap: 6px;
+                padding: 10px 16px;
+                background: linear-gradient(135deg, #FF5500 0%, #ff6b1a 100%);
+                color: #ffffff;
+                border: none;
+                border-radius: 6px;
+                font-size: 0.8rem;
+                font-weight: 600;
+                cursor: pointer;
+                text-decoration: none;
+                transition: all 0.2s ease;
+            }
+
+            .btn-criar:hover {
+                transform: translateY(-1px);
+                box-shadow: 0 4px 12px rgba(255, 85, 0, 0.3);
+            }
+
+            .loading-spinner {
+                width: 32px;
+                height: 32px;
+                border: 3px solid #252525;
+                border-top-color: #FF5500;
+                border-radius: 50%;
+                animation: spin 0.8s linear infinite;
+                margin: 0 auto 12px;
+            }
+
+            @keyframes spin {
+                to { transform: rotate(360deg); }
+            }
+
+            .loading-text {
+                font-size: 0.8rem;
+                color: #6b7280;
+            }
+
+            /* Responsive */
+            @media (max-width: 768px) {
+                .gerenciar-header {
+                    flex-direction: column;
+                    align-items: flex-start;
+                    gap: 12px;
+                }
+
+                .stats-bar {
+                    flex-wrap: wrap;
+                }
+
+                .liga-item {
+                    flex-direction: column;
+                    align-items: flex-start;
+                    gap: 10px;
+                }
+
+                .liga-actions {
+                    width: 100%;
+                    justify-content: flex-start;
+                }
             }
         </style>
     </head>
     <body>
         <div class="app-container">
-            <!-- Sidebar será injetado aqui -->
             <div id="sidebar-placeholder"></div>
 
-            <!-- Conteúdo principal -->
-            <main class="app-main">
-                <!-- Conteúdo da página -->
-                <div class="page-content">
-                    <!-- Botão Voltar -->
-                    <div class="voltar-button">
+            <main class="app-main gerenciar-page">
+                <div class="gerenciar-content">
+                    <!-- Header -->
+                    <header class="gerenciar-header">
+                        <div class="gerenciar-header-info">
+                            <h1>Gerenciar Ligas</h1>
+                            <p>Administre suas ligas do Cartola FC</p>
+                        </div>
                         <a href="ferramentas.html" class="btn-voltar">
-                            ← Voltar para Ferramentas
+                            <span class="material-icons">arrow_back</span>
+                            Voltar
                         </a>
+                    </header>
+
+                    <!-- Stats Bar -->
+                    <div class="stats-bar" id="statsBar" style="display: none;">
+                        <div class="stat-chip">
+                            <div class="stat-chip-icon">
+                                <span class="material-icons">emoji_events</span>
+                            </div>
+                            <div class="stat-chip-content">
+                                <span class="stat-chip-value" id="totalLigas">0</span>
+                                <span class="stat-chip-label">Ligas</span>
+                            </div>
+                        </div>
+                        <div class="stat-chip">
+                            <div class="stat-chip-icon">
+                                <span class="material-icons">people</span>
+                            </div>
+                            <div class="stat-chip-content">
+                                <span class="stat-chip-value" id="totalParticipantes">0</span>
+                                <span class="stat-chip-label">Participantes</span>
+                            </div>
+                        </div>
                     </div>
 
-                    <!-- Título da página -->
-                    <h1 class="page-title">Gerenciar Ligas</h1>
-                    <p class="page-subtitle">
-                        Administre suas ligas do Cartola FC
-                    </p>
-
-                    <!-- Estatísticas -->
-                    <div class="stats-bar" id="statsBar" style="display: none">
-                        <div class="stat-item">
-                            <span class="stat-label">Total de Ligas:</span>
-                            <span class="stat-value" id="totalLigas">0</span>
-                        </div>
-                        <div class="stat-item">
-                            <span class="stat-label"
-                                >Total de Participantes:</span
-                            >
-                            <span class="stat-value" id="totalParticipantes"
-                                >0</span
-                            >
-                        </div>
-                    </div>
-
-                    <!-- Busca -->
+                    <!-- Search -->
                     <div class="search-container">
-                        <span class="search-icon">🔍</span>
+                        <span class="search-icon">
+                            <span class="material-icons">search</span>
+                        </span>
                         <input
                             type="text"
                             id="searchInput"
@@ -284,9 +417,14 @@
                         />
                     </div>
 
-                    <!-- Container de Ligas -->
+                    <!-- Liga List -->
                     <div id="ligasContainer">
-                        <div class="loading">Carregando ligas...</div>
+                        <div class="liga-list">
+                            <div class="loading-state">
+                                <div class="loading-spinner"></div>
+                                <div class="loading-text">Carregando ligas...</div>
+                            </div>
+                        </div>
                     </div>
                 </div>
             </main>
@@ -298,85 +436,81 @@
                 deletarLiga,
             } from "./js/gerenciar-ligas.js";
 
-            // Variável global para armazenar ligas
             window.ligasData = [];
 
-            // === CARREGAR LAYOUT (SEM HEADER) ===
             async function loadLayout() {
                 try {
                     const response = await fetch("layout.html");
                     const layoutHtml = await response.text();
-
                     const parser = new DOMParser();
                     const doc = parser.parseFromString(layoutHtml, "text/html");
 
-                    // Injetar apenas sidebar (sem scripts para evitar conflitos)
                     const sidebar = doc.querySelector(".app-sidebar");
                     if (sidebar) {
-                        document
-                            .getElementById("sidebar-placeholder")
-                            .replaceWith(sidebar);
+                        document.getElementById("sidebar-placeholder").replaceWith(sidebar);
                     }
                 } catch (error) {
                     console.error("Erro ao carregar layout:", error);
                 }
             }
 
-            // === CARREGAR LIGAS ===
             async function carregarListaLigas() {
                 const container = document.getElementById("ligasContainer");
 
                 try {
-                    // Usar função do módulo que tem cache e tratamento de erros
                     const ligas = await carregarLigasAPI();
                     window.ligasData = ligas;
 
-                    console.log(`${ligas.length} ligas carregadas com sucesso`);
-
                     if (!ligas || ligas.length === 0) {
                         container.innerHTML = `
-                            <div class="empty-state">
-                                <div class="empty-icon">📋</div>
-                                <div class="empty-title">Nenhuma liga criada</div>
-                                <a href="criar-liga.html" class="btn-action btn-rodadas" style="margin-top: 20px;">
-                                    ➕ Criar Primeira Liga
-                                </a>
+                            <div class="liga-list">
+                                <div class="empty-state">
+                                    <div class="empty-icon">
+                                        <span class="material-icons">folder_open</span>
+                                    </div>
+                                    <div class="empty-title">Nenhuma liga criada</div>
+                                    <div class="empty-subtitle">Comece criando sua primeira liga</div>
+                                    <a href="criar-liga.html" class="btn-criar">
+                                        <span class="material-icons">add</span>
+                                        Criar Liga
+                                    </a>
+                                </div>
                             </div>
                         `;
-                        document.getElementById("statsBar").style.display =
-                            "none";
+                        document.getElementById("statsBar").style.display = "none";
                         return;
                     }
 
-                    // Atualizar estatísticas usando timesCount já processado
                     const totalParticipantes = ligas.reduce(
                         (sum, liga) => sum + (liga.timesCount || 0),
                         0,
                     );
 
-                    document.getElementById("totalLigas").textContent =
-                        ligas.length;
-                    document.getElementById("totalParticipantes").textContent =
-                        totalParticipantes;
+                    document.getElementById("totalLigas").textContent = ligas.length;
+                    document.getElementById("totalParticipantes").textContent = totalParticipantes;
                     document.getElementById("statsBar").style.display = "flex";
 
-                    // Renderizar ligas
                     renderizarLigas(ligas);
                 } catch (error) {
                     console.error("Erro ao carregar ligas:", error);
                     container.innerHTML = `
-                        <div class="empty-state">
-                            <div class="empty-icon">⚠️</div>
-                            <div class="empty-title">Erro ao carregar ligas</div>
-                            <button onclick="location.reload()" class="btn-action btn-rodadas" style="margin-top: 20px;">
-                                🔄 Tentar Novamente
-                            </button>
+                        <div class="liga-list">
+                            <div class="empty-state">
+                                <div class="empty-icon">
+                                    <span class="material-icons">error_outline</span>
+                                </div>
+                                <div class="empty-title">Erro ao carregar</div>
+                                <div class="empty-subtitle">Não foi possível carregar as ligas</div>
+                                <button onclick="location.reload()" class="btn-criar">
+                                    <span class="material-icons">refresh</span>
+                                    Tentar Novamente
+                                </button>
+                            </div>
                         </div>
                     `;
                 }
             }
 
-            // === RENDERIZAR LIGAS ===
             function renderizarLigas(ligas) {
                 const container = document.getElementById("ligasContainer");
 
@@ -391,21 +525,19 @@
                         <div class="liga-item" data-id="${liga._id}" data-nome="${nomeLiga}">
                             <div class="liga-info">
                                 <h4>${nomeLiga}</h4>
-                                <p>ID: ${idCurto}... • ${timesCount} participantes</p>
+                                <p>ID: ${idCurto}... · ${timesCount} participantes</p>
                             </div>
                             <div class="liga-actions">
                                 <a href="editar-liga.html?id=${liga._id}" class="btn-action btn-edit">
-                                    ✏️ Editar
+                                    <span class="material-icons">edit</span>
+                                    Editar
                                 </a>
-                                <button
-                                    class="btn btn-primary"
-                                    onclick="window.location.href='gerenciar-modulos.html?id=${liga._id}'"
-                                    style="background: var(--gradient-primary);"
-                                >
-                                    ⚙️ Módulos
+                                <button class="btn-action btn-modules" onclick="window.location.href='gerenciar-modulos.html?id=${liga._id}'">
+                                    <span class="material-icons">widgets</span>
+                                    Módulos
                                 </button>
                                 <button class="btn-action btn-delete" onclick="excluirLiga('${liga._id}', '${nomeLiga.replace(/'/g, "\\'")}')">
-                                    🗑️ Excluir
+                                    <span class="material-icons">delete</span>
                                 </button>
                             </div>
                         </div>
@@ -416,28 +548,19 @@
                 container.innerHTML = html;
             }
 
-            // === EXCLUIR LIGA ===
             window.excluirLiga = async function (id, nome) {
-                if (
-                    !confirm(
-                        `Tem certeza que deseja excluir a liga "${nome}"?\n\nEsta ação é irreversível.`,
-                    )
-                ) {
+                if (!confirm(`Excluir a liga "${nome}"?\n\nEsta ação é irreversível.`)) {
                     return;
                 }
 
                 try {
-                    // Usar função do módulo que limpa cache automaticamente
                     await deletarLiga(id);
-
-                    // Recarregar ligas com force refresh para garantir atualização
                     await carregarListaLigas();
                 } catch (error) {
                     alert(`Erro ao excluir liga: ${error.message}`);
                 }
             };
 
-            // === FILTRAR LIGAS ===
             document.addEventListener("input", function (e) {
                 if (e.target.id === "searchInput") {
                     const searchTerm = e.target.value.toLowerCase();
@@ -446,20 +569,18 @@
                     items.forEach((item) => {
                         const nome = item.dataset.nome.toLowerCase();
                         const id = item.dataset.id.toLowerCase();
-                        const visible =
-                            nome.includes(searchTerm) ||
-                            id.includes(searchTerm);
+                        const visible = nome.includes(searchTerm) || id.includes(searchTerm);
                         item.style.display = visible ? "flex" : "none";
                     });
                 }
             });
 
-            // === INICIALIZAÇÃO ===
             document.addEventListener("DOMContentLoaded", async () => {
                 await loadLayout();
-                // Delay para garantir que o layout está carregado
                 setTimeout(() => carregarListaLigas(), 100);
             });
         </script>
+
+        <script src="js/core/sidebar-menu.js"></script>
     </body>
 </html>

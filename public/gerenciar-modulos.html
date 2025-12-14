@@ -1,442 +1,668 @@
-
 <!doctype html>
 <html lang="pt-BR">
-<head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Gerenciar Módulos - Super Cartola Manager</title>
-    <link rel="stylesheet" href="style.css" />
-    <style>
-        .modulos-container {
-            max-width: 900px;
-            margin: 0 auto;
-            padding: 20px;
-        }
+    <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <title>Gerenciar Módulos - Super Cartola Manager</title>
+        <link rel="shortcut icon" href="favicon.ico" type="image/x-icon" />
+        <link rel="stylesheet" href="style.css" />
+        <link rel="stylesheet" href="css/modules/dashboard-redesign.css" />
+        <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet" />
+        <style>
+            /* ============================================================
+               GERENCIAR MÓDULOS - Design Compacto v2.0
+               ============================================================ */
 
-        .liga-info {
-            background: var(--gradient-card);
-            border-radius: 12px;
-            padding: 20px;
-            margin-bottom: 30px;
-            border: 1px solid var(--border-primary);
-        }
+            .modulos-page {
+                background: #121212;
+                min-height: 100vh;
+            }
 
-        .modulos-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
-            gap: 20px;
-            margin-bottom: 30px;
-        }
+            .modulos-content {
+                padding: 20px 16px;
+                max-width: 800px;
+                margin: 0 auto;
+            }
 
-        .modulo-card {
-            background: var(--gradient-card);
-            border-radius: 12px;
-            padding: 20px;
-            border: 2px solid var(--border-primary);
-            transition: all 0.3s ease;
-        }
+            /* Header */
+            .modulos-header {
+                background: #1a1a1a;
+                border-radius: 10px;
+                padding: 16px 18px;
+                margin-bottom: 16px;
+                border: 1px solid #2d2d2d;
+                display: flex;
+                align-items: center;
+                justify-content: space-between;
+            }
 
-        .modulo-card.ativo {
-            border-color: var(--success);
-            box-shadow: 0 0 20px rgba(34, 197, 94, 0.2);
-        }
+            .modulos-header-info h1 {
+                font-size: 1.1rem;
+                font-weight: 700;
+                color: #ffffff;
+                margin: 0 0 4px 0;
+            }
 
-        .modulo-card.inativo {
-            opacity: 0.6;
-            border-color: var(--border-secondary);
-        }
+            .modulos-header-info p {
+                font-size: 0.7rem;
+                color: #6b7280;
+                margin: 0;
+            }
 
-        .modulo-header {
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            margin-bottom: 15px;
-        }
+            .liga-name {
+                color: #FF5500;
+            }
 
-        .modulo-info {
-            display: flex;
-            align-items: center;
-            gap: 12px;
-        }
+            .btn-voltar {
+                display: inline-flex;
+                align-items: center;
+                gap: 4px;
+                padding: 8px 14px;
+                background: #252525;
+                color: #9ca3af;
+                border: 1px solid #2d2d2d;
+                border-radius: 6px;
+                font-size: 0.75rem;
+                font-weight: 500;
+                text-decoration: none;
+                transition: all 0.2s ease;
+            }
 
-        .modulo-icon {
-            font-size: 32px;
-        }
+            .btn-voltar:hover {
+                background: #2d2d2d;
+                color: #FF5500;
+                border-color: #FF5500;
+            }
 
-        .modulo-title {
-            font-size: 16px;
-            font-weight: 700;
-            color: var(--text-primary);
-        }
+            .btn-voltar .material-icons {
+                font-size: 16px;
+            }
 
-        .toggle-switch {
-            position: relative;
-            width: 60px;
-            height: 30px;
-        }
+            /* Status Message */
+            .status-message {
+                padding: 12px 16px;
+                border-radius: 6px;
+                margin-bottom: 16px;
+                font-size: 0.8rem;
+                font-weight: 500;
+                display: none;
+                align-items: center;
+                gap: 8px;
+            }
 
-        .toggle-switch input {
-            opacity: 0;
-            width: 0;
-            height: 0;
-        }
+            .status-message.success {
+                display: flex;
+                background: rgba(16, 185, 129, 0.1);
+                border: 1px solid rgba(16, 185, 129, 0.3);
+                color: #10b981;
+            }
 
-        .toggle-slider {
-            position: absolute;
-            cursor: pointer;
-            top: 0;
-            left: 0;
-            right: 0;
-            bottom: 0;
-            background-color: var(--bg-secondary);
-            transition: 0.4s;
-            border-radius: 30px;
-            border: 2px solid var(--border-primary);
-        }
+            .status-message.error {
+                display: flex;
+                background: rgba(239, 68, 68, 0.1);
+                border: 1px solid rgba(239, 68, 68, 0.3);
+                color: #ef4444;
+            }
 
-        .toggle-slider:before {
-            position: absolute;
-            content: "";
-            height: 22px;
-            width: 22px;
-            left: 2px;
-            bottom: 2px;
-            background-color: white;
-            transition: 0.4s;
-            border-radius: 50%;
-        }
+            /* Section Title */
+            .section-title {
+                display: flex;
+                align-items: center;
+                gap: 8px;
+                margin-bottom: 12px;
+                padding-bottom: 8px;
+                border-bottom: 1px solid #2d2d2d;
+            }
 
-        input:checked + .toggle-slider {
-            background-color: var(--success);
-            border-color: var(--success);
-        }
+            .section-title .material-icons {
+                font-size: 18px;
+                color: #FF5500;
+            }
 
-        input:checked + .toggle-slider:before {
-            transform: translateX(30px);
-        }
+            .section-title h2 {
+                font-size: 0.8rem;
+                font-weight: 600;
+                color: #9ca3af;
+                text-transform: uppercase;
+                letter-spacing: 0.05em;
+                margin: 0;
+            }
 
-        .modulo-descricao {
-            font-size: 13px;
-            color: var(--text-secondary);
-            line-height: 1.5;
-        }
+            .section-title .badge {
+                padding: 2px 6px;
+                background: rgba(255, 85, 0, 0.1);
+                color: #FF5500;
+                font-size: 0.6rem;
+                font-weight: 600;
+                border-radius: 4px;
+                margin-left: auto;
+            }
 
-        .modulo-base {
-            background: rgba(255, 69, 0, 0.05);
-            border-color: var(--laranja) !important;
-        }
+            /* Modules Grid */
+            .modulos-grid {
+                display: grid;
+                grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+                gap: 12px;
+                margin-bottom: 16px;
+            }
 
-        .modulo-base .toggle-switch {
-            opacity: 0.5;
-            pointer-events: none;
-        }
+            /* Module Card */
+            .modulo-card {
+                background: #1a1a1a;
+                border-radius: 8px;
+                padding: 14px;
+                border: 1px solid #2d2d2d;
+                transition: all 0.2s ease;
+            }
 
-        .badge-base {
-            display: inline-block;
-            padding: 4px 8px;
-            background: var(--laranja);
-            color: white;
-            font-size: 10px;
-            font-weight: 700;
-            border-radius: 4px;
-            text-transform: uppercase;
-            margin-left: 8px;
-        }
+            .modulo-card.ativo {
+                border-color: rgba(16, 185, 129, 0.4);
+            }
 
-        .action-buttons {
-            display: flex;
-            gap: 12px;
-            margin-top: 30px;
-        }
+            .modulo-card.inativo {
+                opacity: 0.5;
+            }
 
-        .btn {
-            flex: 1;
-            padding: 14px 24px;
-            border: none;
-            border-radius: 8px;
-            font-size: 14px;
-            font-weight: 700;
-            cursor: pointer;
-            transition: all 0.3s ease;
-        }
+            .modulo-card.base {
+                background: rgba(255, 85, 0, 0.03);
+                border-color: rgba(255, 85, 0, 0.2);
+            }
 
-        .btn-primary {
-            background: var(--gradient-primary);
-            color: white;
-            box-shadow: var(--shadow-orange);
-        }
+            .modulo-card-header {
+                display: flex;
+                align-items: center;
+                justify-content: space-between;
+                margin-bottom: 8px;
+            }
 
-        .btn-primary:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 8px 32px rgba(255, 69, 0, 0.5);
-        }
+            .modulo-card-info {
+                display: flex;
+                align-items: center;
+                gap: 10px;
+            }
 
-        .btn-secondary {
-            background: var(--bg-card);
-            color: var(--text-secondary);
-            border: 1px solid var(--border-primary);
-        }
+            .modulo-icon {
+                width: 32px;
+                height: 32px;
+                border-radius: 6px;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                background: #252525;
+            }
 
-        .status-message {
-            padding: 15px 20px;
-            border-radius: 8px;
-            margin-bottom: 20px;
-            display: none;
-            animation: fadeIn 0.3s ease;
-        }
+            .modulo-icon .material-icons {
+                font-size: 18px;
+                color: #9ca3af;
+            }
 
-        .status-message.success {
-            background: rgba(34, 197, 94, 0.1);
-            border: 1px solid var(--success);
-            color: var(--success);
-            display: block;
-        }
+            .modulo-card.ativo .modulo-icon {
+                background: rgba(16, 185, 129, 0.1);
+            }
 
-        .status-message.error {
-            background: rgba(239, 68, 68, 0.1);
-            border: 1px solid var(--danger);
-            color: var(--danger);
-            display: block;
-        }
-    </style>
-</head>
-<body>
-    <div class="app-container">
-        <div id="sidebar-placeholder"></div>
+            .modulo-card.ativo .modulo-icon .material-icons {
+                color: #10b981;
+            }
 
-        <main class="app-main">
-            <div class="page-content">
-                <nav class="breadcrumb">
-                    <a href="painel.html">Dashboard</a>
-                    <span class="separator">›</span>
-                    <a href="gerenciar.html">Gerenciar Ligas</a>
-                    <span class="separator">›</span>
-                    <span class="current">Gerenciar Módulos</span>
-                </nav>
+            .modulo-card.base .modulo-icon {
+                background: rgba(255, 85, 0, 0.1);
+            }
 
-                <div class="modulos-container">
-                    <div class="liga-info">
-                        <h2 id="ligaNome">Carregando...</h2>
-                        <p id="ligaDescricao" style="color: var(--text-muted); margin: 8px 0 0 0;"></p>
-                    </div>
+            .modulo-card.base .modulo-icon .material-icons {
+                color: #FF5500;
+            }
 
+            .modulo-title {
+                font-size: 0.85rem;
+                font-weight: 600;
+                color: #ffffff;
+            }
+
+            .badge-base {
+                display: inline-block;
+                padding: 2px 5px;
+                background: #FF5500;
+                color: #ffffff;
+                font-size: 0.55rem;
+                font-weight: 700;
+                border-radius: 3px;
+                text-transform: uppercase;
+                margin-left: 6px;
+                vertical-align: middle;
+            }
+
+            .modulo-desc {
+                font-size: 0.7rem;
+                color: #6b7280;
+                line-height: 1.4;
+            }
+
+            /* Toggle Switch */
+            .toggle-switch {
+                position: relative;
+                width: 44px;
+                height: 24px;
+                flex-shrink: 0;
+            }
+
+            .toggle-switch input {
+                opacity: 0;
+                width: 0;
+                height: 0;
+            }
+
+            .toggle-slider {
+                position: absolute;
+                cursor: pointer;
+                top: 0;
+                left: 0;
+                right: 0;
+                bottom: 0;
+                background-color: #333;
+                transition: 0.3s;
+                border-radius: 24px;
+            }
+
+            .toggle-slider:before {
+                position: absolute;
+                content: "";
+                height: 18px;
+                width: 18px;
+                left: 3px;
+                bottom: 3px;
+                background-color: #6b7280;
+                transition: 0.3s;
+                border-radius: 50%;
+            }
+
+            input:checked + .toggle-slider {
+                background-color: rgba(16, 185, 129, 0.3);
+            }
+
+            input:checked + .toggle-slider:before {
+                transform: translateX(20px);
+                background-color: #10b981;
+            }
+
+            .modulo-card.base .toggle-switch {
+                opacity: 0.4;
+                pointer-events: none;
+            }
+
+            /* Action Buttons */
+            .action-buttons {
+                display: flex;
+                gap: 10px;
+                padding-top: 16px;
+                border-top: 1px solid #2d2d2d;
+            }
+
+            .btn-secondary {
+                display: inline-flex;
+                align-items: center;
+                gap: 6px;
+                padding: 10px 16px;
+                background: #252525;
+                color: #9ca3af;
+                border: 1px solid #333;
+                border-radius: 6px;
+                font-size: 0.8rem;
+                font-weight: 600;
+                cursor: pointer;
+                text-decoration: none;
+                transition: all 0.2s ease;
+            }
+
+            .btn-secondary:hover {
+                background: #333;
+                color: #ffffff;
+            }
+
+            .btn-secondary .material-icons {
+                font-size: 16px;
+            }
+
+            .btn-primary {
+                flex: 1;
+                display: inline-flex;
+                align-items: center;
+                justify-content: center;
+                gap: 6px;
+                padding: 10px 16px;
+                background: linear-gradient(135deg, #FF5500 0%, #ff6b1a 100%);
+                color: #ffffff;
+                border: none;
+                border-radius: 6px;
+                font-size: 0.8rem;
+                font-weight: 600;
+                cursor: pointer;
+                transition: all 0.2s ease;
+            }
+
+            .btn-primary:hover:not(:disabled) {
+                box-shadow: 0 4px 12px rgba(255, 85, 0, 0.3);
+            }
+
+            .btn-primary:disabled {
+                opacity: 0.6;
+                cursor: not-allowed;
+            }
+
+            .btn-primary .material-icons {
+                font-size: 16px;
+            }
+
+            /* Loading State */
+            .loading-state {
+                display: flex;
+                flex-direction: column;
+                align-items: center;
+                justify-content: center;
+                padding: 40px 20px;
+                color: #6b7280;
+                font-size: 0.8rem;
+            }
+
+            .loading-spinner {
+                width: 32px;
+                height: 32px;
+                border: 3px solid #252525;
+                border-top-color: #FF5500;
+                border-radius: 50%;
+                animation: spin 0.8s linear infinite;
+                margin-bottom: 12px;
+            }
+
+            @keyframes spin {
+                to { transform: rotate(360deg); }
+            }
+
+            /* Responsive */
+            @media (max-width: 600px) {
+                .modulos-header {
+                    flex-direction: column;
+                    align-items: flex-start;
+                    gap: 12px;
+                }
+
+                .modulos-grid {
+                    grid-template-columns: 1fr;
+                }
+
+                .action-buttons {
+                    flex-direction: column;
+                }
+
+                .btn-secondary {
+                    justify-content: center;
+                }
+            }
+        </style>
+    </head>
+    <body>
+        <div class="app-container">
+            <div id="sidebar-placeholder"></div>
+
+            <main class="app-main modulos-page">
+                <div class="modulos-content">
+                    <!-- Header -->
+                    <header class="modulos-header">
+                        <div class="modulos-header-info">
+                            <h1>Gerenciar Módulos</h1>
+                            <p>Liga: <span class="liga-name" id="ligaNome">Carregando...</span></p>
+                        </div>
+                        <a href="gerenciar.html" class="btn-voltar">
+                            <span class="material-icons">arrow_back</span>
+                            Voltar
+                        </a>
+                    </header>
+
+                    <!-- Status Message -->
                     <div id="statusMessage" class="status-message"></div>
 
-                    <div class="modulos-grid" id="modulosGrid">
-                        <!-- Cards serão injetados aqui -->
+                    <!-- Base Modules Section -->
+                    <div class="section-title">
+                        <span class="material-icons">lock</span>
+                        <h2>Módulos Base</h2>
+                        <span class="badge">Sempre Ativos</span>
                     </div>
+                    <div class="modulos-grid" id="modulosBaseGrid"></div>
 
+                    <!-- Optional Modules Section -->
+                    <div class="section-title">
+                        <span class="material-icons">widgets</span>
+                        <h2>Módulos Opcionais</h2>
+                    </div>
+                    <div class="modulos-grid" id="modulosOpcionaisGrid"></div>
+
+                    <!-- Action Buttons -->
                     <div class="action-buttons">
-                        <button class="btn btn-secondary" onclick="window.location.href='gerenciar.html'">
-                            ← Voltar
-                        </button>
-                        <button class="btn btn-primary" id="salvarBtn">
-                            💾 Salvar Configurações
+                        <a href="gerenciar.html" class="btn-secondary">
+                            <span class="material-icons">arrow_back</span>
+                            Voltar
+                        </a>
+                        <button class="btn-primary" id="salvarBtn">
+                            <span class="material-icons">save</span>
+                            Salvar Configurações
                         </button>
                     </div>
                 </div>
-            </div>
-        </main>
-    </div>
+            </main>
+        </div>
 
-    <script type="module">
-        let ligaId = null;
-        let modulosState = {};
+        <script type="module">
+            let ligaId = null;
+            let modulosState = {};
 
-        const MODULOS_CONFIG = {
-            extrato: {
-                icon: '💰',
-                titulo: 'Extrato Financeiro',
-                descricao: 'Controle de mensalidades e pagamentos',
-                base: true
-            },
-            ranking: {
-                icon: '🏆',
-                titulo: 'Ranking Geral',
-                descricao: 'Classificação geral da liga',
-                base: true
-            },
-            rodadas: {
-                icon: '📅',
-                titulo: 'Por Rodadas',
-                descricao: 'Visualização rodada a rodada',
-                base: true
-            },
-            top10: {
-                icon: '🌟',
-                titulo: 'TOP 10',
-                descricao: 'Melhores times de cada rodada',
-                base: false
-            },
-            melhorMes: {
-                icon: '📈',
-                titulo: 'Melhor Mês',
-                descricao: 'Competição mensal de pontuação',
-                base: false
-            },
-            pontosCorridos: {
-                icon: '⚡',
-                titulo: 'Pontos Corridos',
-                descricao: 'Sistema de pontos corridos',
-                base: false
-            },
-            mataMata: {
-                icon: '⚔️',
-                titulo: 'Mata-Mata',
-                descricao: 'Competição eliminatória',
-                base: false
-            },
-            artilheiro: {
-                icon: '⚽',
-                titulo: 'Artilheiro',
-                descricao: 'Ranking de artilheiros',
-                base: false
-            },
-            luvaOuro: {
-                icon: '🥅',
-                titulo: 'Luva de Ouro',
-                descricao: 'Ranking de goleiros',
-                base: false
-            }
-        };
+            const MODULOS_CONFIG = {
+                extrato: {
+                    icon: 'account_balance_wallet',
+                    titulo: 'Extrato Financeiro',
+                    descricao: 'Controle de mensalidades e pagamentos',
+                    base: true
+                },
+                ranking: {
+                    icon: 'leaderboard',
+                    titulo: 'Ranking Geral',
+                    descricao: 'Classificação geral da liga',
+                    base: true
+                },
+                rodadas: {
+                    icon: 'event',
+                    titulo: 'Por Rodadas',
+                    descricao: 'Visualização rodada a rodada',
+                    base: true
+                },
+                top10: {
+                    icon: 'military_tech',
+                    titulo: 'TOP 10',
+                    descricao: 'Melhores e piores pontuações',
+                    base: false
+                },
+                melhorMes: {
+                    icon: 'calendar_month',
+                    titulo: 'Melhor do Mês',
+                    descricao: 'Competição mensal',
+                    base: false
+                },
+                pontosCorridos: {
+                    icon: 'format_list_numbered',
+                    titulo: 'Pontos Corridos',
+                    descricao: 'Sistema de pontos corridos',
+                    base: false
+                },
+                mataMata: {
+                    icon: 'swords',
+                    titulo: 'Mata-Mata',
+                    descricao: 'Competição eliminatória',
+                    base: false
+                },
+                artilheiro: {
+                    icon: 'sports_soccer',
+                    titulo: 'Artilheiro',
+                    descricao: 'Ranking de artilheiros',
+                    base: false
+                },
+                luvaOuro: {
+                    icon: 'sports_mma',
+                    titulo: 'Luva de Ouro',
+                    descricao: 'Ranking de goleiros',
+                    base: false
+                }
+            };
 
-        async function init() {
-            const urlParams = new URLSearchParams(window.location.search);
-            ligaId = urlParams.get('id');
+            async function init() {
+                const urlParams = new URLSearchParams(window.location.search);
+                ligaId = urlParams.get('id');
 
-            if (!ligaId) {
-                showMessage('ID da liga não fornecido', 'error');
-                return;
-            }
-
-            await loadLayout();
-            await loadLiga();
-            await loadModulos();
-        }
-
-        async function loadLayout() {
-            const response = await fetch('layout.html');
-            const html = await response.text();
-            const parser = new DOMParser();
-            const doc = parser.parseFromString(html, 'text/html');
-            const sidebar = doc.querySelector('.app-sidebar');
-            if (sidebar) {
-                document.getElementById('sidebar-placeholder').replaceWith(sidebar);
-            }
-        }
-
-        async function loadLiga() {
-            try {
-                const response = await fetch(`/api/ligas/${ligaId}`);
-                const liga = await response.json();
-                
-                document.getElementById('ligaNome').textContent = `Módulos da Liga: ${liga.nome}`;
-                document.getElementById('ligaDescricao').textContent = 
-                    `Configure quais módulos estarão disponíveis para os participantes desta liga`;
-            } catch (error) {
-                console.error('Erro ao carregar liga:', error);
-            }
-        }
-
-        async function loadModulos() {
-            try {
-                const response = await fetch(`/api/ligas/${ligaId}/modulos-ativos`);
-                const data = await response.json();
-                modulosState = data.modulos;
-
-                renderModulos();
-            } catch (error) {
-                console.error('Erro ao carregar módulos:', error);
-                showMessage('Erro ao carregar módulos', 'error');
-            }
-        }
-
-        function renderModulos() {
-            const grid = document.getElementById('modulosGrid');
-            grid.innerHTML = '';
-
-            Object.entries(MODULOS_CONFIG).forEach(([key, config]) => {
-                const isAtivo = modulosState[key] !== false;
-                const card = document.createElement('div');
-                card.className = `modulo-card ${isAtivo ? 'ativo' : 'inativo'} ${config.base ? 'modulo-base' : ''}`;
-                
-                card.innerHTML = `
-                    <div class="modulo-header">
-                        <div class="modulo-info">
-                            <div class="modulo-icon">${config.icon}</div>
-                            <div>
-                                <div class="modulo-title">
-                                    ${config.titulo}
-                                    ${config.base ? '<span class="badge-base">Base</span>' : ''}
-                                </div>
-                            </div>
-                        </div>
-                        <label class="toggle-switch">
-                            <input type="checkbox" 
-                                   ${isAtivo ? 'checked' : ''} 
-                                   ${config.base ? 'disabled' : ''}
-                                   data-modulo="${key}">
-                            <span class="toggle-slider"></span>
-                        </label>
-                    </div>
-                    <div class="modulo-descricao">${config.descricao}</div>
-                `;
-
-                if (!config.base) {
-                    const toggle = card.querySelector('input[type="checkbox"]');
-                    toggle.addEventListener('change', (e) => {
-                        modulosState[key] = e.target.checked;
-                        card.className = `modulo-card ${e.target.checked ? 'ativo' : 'inativo'}`;
-                    });
+                if (!ligaId) {
+                    showMessage('ID da liga não fornecido', 'error');
+                    return;
                 }
 
-                grid.appendChild(card);
-            });
-        }
+                await loadLayout();
+                await loadLiga();
+                await loadModulos();
+            }
 
-        async function salvarModulos() {
-            const btn = document.getElementById('salvarBtn');
-            btn.disabled = true;
-            btn.textContent = '⏳ Salvando...';
+            async function loadLayout() {
+                try {
+                    const response = await fetch('layout.html');
+                    const html = await response.text();
+                    const parser = new DOMParser();
+                    const doc = parser.parseFromString(html, 'text/html');
+                    const sidebar = doc.querySelector('.app-sidebar');
+                    if (sidebar) {
+                        document.getElementById('sidebar-placeholder').replaceWith(sidebar);
+                    }
+                } catch (error) {
+                    console.error('Erro ao carregar layout:', error);
+                }
+            }
 
-            try {
-                const response = await fetch(`/api/ligas/${ligaId}/modulos-ativos`, {
-                    method: 'PUT',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ modulos: modulosState })
+            async function loadLiga() {
+                try {
+                    const response = await fetch(`/api/ligas/${ligaId}`);
+                    const liga = await response.json();
+                    document.getElementById('ligaNome').textContent = liga.nome;
+                } catch (error) {
+                    console.error('Erro ao carregar liga:', error);
+                    document.getElementById('ligaNome').textContent = 'Erro ao carregar';
+                }
+            }
+
+            async function loadModulos() {
+                try {
+                    const response = await fetch(`/api/ligas/${ligaId}/modulos-ativos`);
+                    const data = await response.json();
+                    modulosState = data.modulos;
+                    renderModulos();
+                } catch (error) {
+                    console.error('Erro ao carregar módulos:', error);
+                    showMessage('Erro ao carregar módulos', 'error');
+                }
+            }
+
+            function renderModulos() {
+                const baseGrid = document.getElementById('modulosBaseGrid');
+                const opcionaisGrid = document.getElementById('modulosOpcionaisGrid');
+                baseGrid.innerHTML = '';
+                opcionaisGrid.innerHTML = '';
+
+                Object.entries(MODULOS_CONFIG).forEach(([key, config]) => {
+                    const isAtivo = modulosState[key] !== false;
+                    const card = document.createElement('div');
+
+                    let cardClass = 'modulo-card';
+                    if (config.base) cardClass += ' base ativo';
+                    else cardClass += isAtivo ? ' ativo' : ' inativo';
+
+                    card.className = cardClass;
+
+                    card.innerHTML = `
+                        <div class="modulo-card-header">
+                            <div class="modulo-card-info">
+                                <div class="modulo-icon">
+                                    <span class="material-icons">${config.icon}</span>
+                                </div>
+                                <span class="modulo-title">
+                                    ${config.titulo}
+                                    ${config.base ? '<span class="badge-base">Base</span>' : ''}
+                                </span>
+                            </div>
+                            <label class="toggle-switch">
+                                <input type="checkbox"
+                                       ${isAtivo ? 'checked' : ''}
+                                       ${config.base ? 'disabled' : ''}
+                                       data-modulo="${key}">
+                                <span class="toggle-slider"></span>
+                            </label>
+                        </div>
+                        <div class="modulo-desc">${config.descricao}</div>
+                    `;
+
+                    if (!config.base) {
+                        const toggle = card.querySelector('input[type="checkbox"]');
+                        toggle.addEventListener('change', (e) => {
+                            modulosState[key] = e.target.checked;
+                            card.className = `modulo-card ${e.target.checked ? 'ativo' : 'inativo'}`;
+                        });
+                    }
+
+                    if (config.base) {
+                        baseGrid.appendChild(card);
+                    } else {
+                        opcionaisGrid.appendChild(card);
+                    }
                 });
-
-                if (!response.ok) throw new Error('Erro ao salvar');
-
-                showMessage('✅ Configurações salvas com sucesso!', 'success');
-                
-                setTimeout(() => {
-                    window.location.href = `gerenciar.html`;
-                }, 1500);
-
-            } catch (error) {
-                console.error('Erro ao salvar:', error);
-                showMessage('❌ Erro ao salvar configurações', 'error');
-            } finally {
-                btn.disabled = false;
-                btn.textContent = '💾 Salvar Configurações';
             }
-        }
 
-        function showMessage(text, type) {
-            const msg = document.getElementById('statusMessage');
-            msg.textContent = text;
-            msg.className = `status-message ${type}`;
-            
-            if (type === 'success') {
-                setTimeout(() => {
-                    msg.className = 'status-message';
-                }, 3000);
+            async function salvarModulos() {
+                const btn = document.getElementById('salvarBtn');
+                btn.disabled = true;
+                btn.innerHTML = '<span class="material-icons">hourglass_empty</span> Salvando...';
+
+                try {
+                    const response = await fetch(`/api/ligas/${ligaId}/modulos-ativos`, {
+                        method: 'PUT',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ modulos: modulosState })
+                    });
+
+                    if (!response.ok) throw new Error('Erro ao salvar');
+
+                    showMessage('Configurações salvas com sucesso!', 'success');
+
+                    setTimeout(() => {
+                        window.location.href = 'gerenciar.html';
+                    }, 1500);
+
+                } catch (error) {
+                    console.error('Erro ao salvar:', error);
+                    showMessage('Erro ao salvar configurações', 'error');
+                } finally {
+                    btn.disabled = false;
+                    btn.innerHTML = '<span class="material-icons">save</span> Salvar Configurações';
+                }
             }
-        }
 
-        document.getElementById('salvarBtn').addEventListener('click', salvarModulos);
-        document.addEventListener('DOMContentLoaded', init);
-    </script>
-</body>
+            function showMessage(text, type) {
+                const msg = document.getElementById('statusMessage');
+                const icon = type === 'success' ? 'check_circle' : 'error';
+                msg.innerHTML = `<span class="material-icons">${icon}</span> ${text}`;
+                msg.className = `status-message ${type}`;
+
+                if (type === 'success') {
+                    setTimeout(() => {
+                        msg.className = 'status-message';
+                    }, 3000);
+                }
+            }
+
+            document.getElementById('salvarBtn').addEventListener('click', salvarModulos);
+            document.addEventListener('DOMContentLoaded', init);
+        </script>
+
+        <script src="js/core/sidebar-menu.js"></script>
+    </body>
 </html>

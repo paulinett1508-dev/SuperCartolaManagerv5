@@ -1,7 +1,8 @@
-/* DASHBOARD REDESIGN v1.0
+/* DASHBOARD REDESIGN v1.1
    Arquivo: public/css/modules/dashboard-redesign.css
    Novo design inspirado no mockup moderno
    IMPORTANTE: Este arquivo complementa dashboard.css, não substitui
+   v1.1: Fix gap sidebar + Menu dropup perfil
 */
 
 /* === RESET DO LAYOUT PARA NOVO DESIGN === */
@@ -12,7 +13,7 @@
 
 .dashboard-redesign .page-content {
     background: #121212 !important;
-    padding: 24px 32px !important;
+    padding: 24px 20px !important; /* Reduzido de 32px para 20px - menos gap */
     min-height: calc(100vh - 60px);
 }
 
@@ -1147,12 +1148,44 @@
 .sidebar-user-new {
     padding: 16px;
     border-top: 1px solid #1f1f1f;
+    position: relative; /* Para posicionar o dropup */
 }
 
 .sidebar-user-inner {
     display: flex;
     align-items: center;
     gap: 12px;
+    cursor: pointer;
+    padding: 8px 12px;
+    margin: -8px -12px;
+    border-radius: 8px;
+    transition: all 0.2s ease;
+}
+
+.sidebar-user-inner:hover {
+    background: rgba(255, 85, 0, 0.1);
+}
+
+.sidebar-user-inner:hover .sidebar-user-avatar {
+    border-color: #FF5500;
+}
+
+.sidebar-user-inner:hover .sidebar-user-name {
+    color: #FF5500;
+}
+
+/* Seta indicadora de menu */
+.sidebar-user-inner::after {
+    content: 'expand_more';
+    font-family: 'Material Icons';
+    font-size: 18px;
+    color: #6b7280;
+    transition: transform 0.2s ease;
+}
+
+.sidebar-user-new.menu-open .sidebar-user-inner::after {
+    transform: rotate(180deg);
+    color: #FF5500;
 }
 
 .sidebar-user-avatar {
@@ -1163,7 +1196,8 @@
     display: flex;
     align-items: center;
     justify-content: center;
-    border: 1px solid #333333;
+    border: 2px solid #333333;
+    transition: all 0.2s ease;
 }
 
 .sidebar-user-avatar .material-icons {
@@ -1183,11 +1217,95 @@
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
+    transition: color 0.2s ease;
 }
 
 .sidebar-user-role {
     font-size: 0.7rem;
     color: #6b7280;
+}
+
+/* ============================================================
+   MENU DROPUP DO PERFIL - v1.1
+   ============================================================ */
+.sidebar-user-menu {
+    position: absolute;
+    bottom: 100%;
+    left: 12px;
+    right: 12px;
+    background: #1a1a1a;
+    border: 1px solid #333333;
+    border-radius: 10px;
+    margin-bottom: 8px;
+    opacity: 0;
+    visibility: hidden;
+    transform: translateY(10px);
+    transition: all 0.2s ease;
+    box-shadow: 0 -4px 20px rgba(0, 0, 0, 0.5);
+    z-index: 1001;
+    overflow: hidden;
+}
+
+.sidebar-user-new.menu-open .sidebar-user-menu {
+    opacity: 1;
+    visibility: visible;
+    transform: translateY(0);
+}
+
+.sidebar-user-menu-item {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 12px 16px;
+    color: #e5e7eb;
+    font-size: 0.875rem;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.15s ease;
+    border: none;
+    background: transparent;
+    width: 100%;
+    text-align: left;
+}
+
+.sidebar-user-menu-item:hover {
+    background: rgba(255, 85, 0, 0.1);
+    color: #FF5500;
+}
+
+.sidebar-user-menu-item .material-icons {
+    font-size: 20px;
+    color: #6b7280;
+    transition: color 0.15s ease;
+}
+
+.sidebar-user-menu-item:hover .material-icons {
+    color: #FF5500;
+}
+
+/* Separador */
+.sidebar-user-menu-divider {
+    height: 1px;
+    background: #333333;
+    margin: 4px 0;
+}
+
+/* Item de logout (vermelho) */
+.sidebar-user-menu-item.logout {
+    color: #ef4444;
+}
+
+.sidebar-user-menu-item.logout .material-icons {
+    color: #ef4444;
+}
+
+.sidebar-user-menu-item.logout:hover {
+    background: rgba(239, 68, 68, 0.1);
+    color: #f87171;
+}
+
+.sidebar-user-menu-item.logout:hover .material-icons {
+    color: #f87171;
 }
 
 /* Loading state for ligas */

@@ -182,7 +182,7 @@ class EditarLigaManager {
 
             // Atualizar título
             if (this.elements.tituloLiga) {
-                this.elements.tituloLiga.textContent = `Editar Times: ${this.ligaAtual.nome}`;
+                this.elements.tituloLiga.innerHTML = `Editar Times da <span>${this.ligaAtual.nome}</span>`;
             }
 
             const timesIds = this.ligaAtual.times || [];
@@ -291,13 +291,13 @@ class EditarLigaManager {
                 </td>
                 <td class="col-acoes">
                     <button class="btn-table btn-success" title="Alterar">
-                        Alterar
+                        <span class="material-icons">save</span>Salvar
                     </button>
                     <button class="btn-table btn-warning" title="Limpar Campos">
-                        Limpar
+                        <span class="material-icons">clear</span>Limpar
                     </button>
                     <button class="btn-table btn-danger" title="Excluir">
-                        Excluir
+                        <span class="material-icons">delete</span>Excluir
                     </button>
                 </td>
             `;
@@ -354,11 +354,11 @@ class EditarLigaManager {
             </td>
             <td class="col-acoes">
                 <button class="btn-table btn-add" title="Adicionar">
-                    Adicionar
+                    <span class="material-icons">add</span>Adicionar
                 </button>
-                <button class="btn-table btn-warning" title="Limpar Campos" 
+                <button class="btn-table btn-warning" title="Limpar Campos"
                         onclick="editarLiga.limparCampos()">
-                    Limpar
+                    <span class="material-icons">clear</span>Limpar
                 </button>
             </td>
         `;
@@ -628,28 +628,22 @@ class EditarLigaManager {
 
     showError(message) {
         if (this.elements.errorMessage) {
-            this.elements.errorMessage.textContent = message;
+            const textSpan = this.elements.errorMessage.querySelector("#errorText");
+            if (textSpan) textSpan.textContent = message;
             this.elements.errorMessage.classList.add("active");
-            this.elements.errorMessage.style.display = "block";
             setTimeout(() => {
                 this.elements.errorMessage.classList.remove("active");
-                setTimeout(() => {
-                    this.elements.errorMessage.style.display = "none";
-                }, 300);
             }, 5000);
         }
     }
 
     showSuccess(message) {
         if (this.elements.successMessage) {
-            this.elements.successMessage.textContent = message;
+            const textSpan = this.elements.successMessage.querySelector("#successText");
+            if (textSpan) textSpan.textContent = message;
             this.elements.successMessage.classList.add("active");
-            this.elements.successMessage.style.display = "block";
             setTimeout(() => {
                 this.elements.successMessage.classList.remove("active");
-                setTimeout(() => {
-                    this.elements.successMessage.style.display = "none";
-                }, 300);
             }, 3000);
         }
     }

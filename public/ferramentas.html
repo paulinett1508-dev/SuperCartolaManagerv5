@@ -5,49 +5,356 @@
         <meta name="viewport" content="width=device-width, initial-scale=1.0" />
         <title>Ferramentas - Super Cartola Manager</title>
         <link rel="shortcut icon" href="favicon.ico" type="image/x-icon" />
-
-        <!-- CSS HIERÁRQUICO MODULAR -->
         <link rel="stylesheet" href="style.css" />
-        <link rel="stylesheet" href="detalhe-liga.css" />
-        <link rel="stylesheet" href="css/base.css" />
-        <link rel="stylesheet" href="css/modules/ferramentas.css" />
+        <link rel="stylesheet" href="css/modules/dashboard-redesign.css" />
+        <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
+        <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet" />
         <style>
-            .form-group {
-                margin-bottom: 15px;
+            /* ============================================================
+               FERRAMENTAS PAGE - Design Moderno v2.0
+               ============================================================ */
+
+            .ferramentas-page {
+                background: #121212;
+                min-height: 100vh;
             }
-            .form-group label {
-                display: block;
-                margin-bottom: 5px;
-                font-weight: 600;
+
+            .ferramentas-content {
+                padding: 20px 16px;
             }
-            .form-group input, .form-group select {
-                width: 100%;
-                padding: 8px;
-                border: 1px solid #ddd;
-                border-radius: 4px;
+
+            /* Header */
+            .ferramentas-header {
+                background: #1a1a1a;
+                border-radius: 10px;
+                padding: 18px 20px;
+                margin-bottom: 20px;
+                border: 1px solid #2d2d2d;
             }
-            .checkbox-group {
+
+            .ferramentas-header h1 {
+                font-size: 1.35rem;
+                font-weight: 700;
+                color: #ffffff;
+                margin: 0 0 4px 0;
+            }
+
+            .ferramentas-header p {
+                font-size: 0.8rem;
+                color: #9ca3af;
+                margin: 0;
+            }
+
+            /* Cards Grid */
+            .ferramentas-grid {
+                display: grid;
+                grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+                gap: 16px;
+                margin-bottom: 24px;
+            }
+
+            /* Tool Card */
+            .tool-card {
+                background: #1a1a1a;
+                border-radius: 10px;
+                border: 1px solid #2d2d2d;
+                padding: 16px;
+                position: relative;
+                overflow: hidden;
+                cursor: pointer;
+                transition: all 0.3s ease;
+            }
+
+            .tool-card:hover {
+                border-color: #FF5500;
+                box-shadow: 0 8px 32px rgba(255, 85, 0, 0.15);
+                transform: translateY(-2px);
+            }
+
+            /* Background Icon */
+            .tool-card-bg-icon {
+                position: absolute;
+                top: -10px;
+                right: -10px;
+                opacity: 0.05;
+                transition: opacity 0.3s ease;
+            }
+
+            .tool-card:hover .tool-card-bg-icon {
+                opacity: 0.1;
+            }
+
+            .tool-card-bg-icon .material-icons {
+                font-size: 80px;
+                color: #FF5500;
+                transform: rotate(12deg);
+            }
+
+            /* Card Content */
+            .tool-card-content {
+                position: relative;
+                z-index: 1;
+            }
+
+            .tool-card-icon {
+                width: 36px;
+                height: 36px;
+                border-radius: 50%;
+                background: rgba(255, 85, 0, 0.1);
                 display: flex;
                 align-items: center;
-                gap: 8px;
+                justify-content: center;
+                margin-bottom: 10px;
+                transition: all 0.3s ease;
             }
-            .checkbox-group input[type="checkbox"] {
-                width: auto;
+
+            .tool-card:hover .tool-card-icon {
+                background: #FF5500;
             }
-            #popularRodadasLog {
-                margin-top: 15px;
-                padding: 10px;
-                background: #f5f5f5;
-                border-radius: 4px;
-                max-height: 200px;
-                overflow-y: auto;
-                font-family: monospace;
-                font-size: 12px;
-                display: none;
+
+            .tool-card-icon .material-icons {
+                font-size: 18px;
+                color: #FF5500;
+                transition: color 0.3s ease;
             }
-            .loading {
-                opacity: 0.6;
-                pointer-events: none;
+
+            .tool-card:hover .tool-card-icon .material-icons {
+                color: #ffffff;
+            }
+
+            .tool-card h3 {
+                font-size: 0.95rem;
+                font-weight: 700;
+                color: #ffffff;
+                margin: 0 0 6px 0;
+            }
+
+            .tool-card p {
+                font-size: 0.75rem;
+                color: #9ca3af;
+                margin: 0 0 12px 0;
+                line-height: 1.4;
+            }
+
+            .tool-card-link {
+                display: inline-flex;
+                align-items: center;
+                gap: 4px;
+                font-size: 0.75rem;
+                font-weight: 600;
+                color: #FF5500;
+                text-decoration: none;
+                transition: color 0.2s ease;
+            }
+
+            .tool-card-link:hover {
+                color: #ff7733;
+            }
+
+            .tool-card-link .material-icons {
+                font-size: 14px;
+            }
+
+            /* Bottom Section */
+            .ferramentas-bottom {
+                display: grid;
+                grid-template-columns: 2fr 1fr;
+                gap: 16px;
+            }
+
+            @media (max-width: 1024px) {
+                .ferramentas-bottom {
+                    grid-template-columns: 1fr;
+                }
+            }
+
+            /* System Summary */
+            .system-summary {
+                background: #1a1a1a;
+                border-radius: 10px;
+                border: 1px solid #2d2d2d;
+                padding: 16px;
+            }
+
+            .system-summary-header {
+                display: flex;
+                align-items: center;
+                justify-content: space-between;
+                margin-bottom: 14px;
+            }
+
+            .system-summary-header h3 {
+                font-size: 0.95rem;
+                font-weight: 700;
+                color: #ffffff;
+                margin: 0;
+            }
+
+            .system-summary-link {
+                font-size: 0.75rem;
+                font-weight: 500;
+                color: #FF5500;
+                text-decoration: none;
+                cursor: pointer;
+            }
+
+            .system-summary-link:hover {
+                color: #ff7733;
+            }
+
+            .stats-grid {
+                display: grid;
+                grid-template-columns: repeat(3, 1fr);
+                gap: 12px;
+            }
+
+            @media (max-width: 768px) {
+                .stats-grid {
+                    grid-template-columns: 1fr;
+                }
+            }
+
+            .stat-box {
+                background: #252525;
+                border-radius: 6px;
+                padding: 12px;
+            }
+
+            .stat-box-label {
+                font-size: 0.65rem;
+                font-weight: 600;
+                color: #9ca3af;
+                text-transform: uppercase;
+                letter-spacing: 0.05em;
+                margin-bottom: 6px;
+            }
+
+            .stat-box-value {
+                font-size: 1.35rem;
+                font-weight: 700;
+                color: #ffffff;
+                margin-bottom: 2px;
+            }
+
+            .stat-box-change {
+                font-size: 0.65rem;
+                font-weight: 500;
+            }
+
+            .stat-box-change.positive {
+                color: #10b981;
+            }
+
+            .stat-box-change.primary {
+                color: #FF5500;
+            }
+
+            /* Logs Section */
+            .logs-section {
+                background: #1a1a1a;
+                border-radius: 10px;
+                border: 1px solid #2d2d2d;
+                padding: 16px;
+            }
+
+            .logs-section h3 {
+                font-size: 0.95rem;
+                font-weight: 700;
+                color: #ffffff;
+                margin: 0 0 14px 0;
+            }
+
+            .log-item {
+                display: flex;
+                align-items: center;
+                gap: 10px;
+                padding-bottom: 10px;
+                margin-bottom: 10px;
+                border-bottom: 1px solid #2d2d2d;
+            }
+
+            .log-item:last-child {
+                border-bottom: none;
+                margin-bottom: 0;
+                padding-bottom: 0;
+            }
+
+            .log-icon {
+                width: 28px;
+                height: 28px;
+                border-radius: 50%;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                flex-shrink: 0;
+            }
+
+            .log-icon.blue {
+                background: rgba(59, 130, 246, 0.15);
+                color: #3b82f6;
+            }
+
+            .log-icon.green {
+                background: rgba(16, 185, 129, 0.15);
+                color: #10b981;
+            }
+
+            .log-icon.orange {
+                background: rgba(255, 85, 0, 0.15);
+                color: #FF5500;
+            }
+
+            .log-icon .material-icons {
+                font-size: 14px;
+            }
+
+            .log-content h4 {
+                font-size: 0.8rem;
+                font-weight: 500;
+                color: #e5e7eb;
+                margin: 0 0 2px 0;
+            }
+
+            .log-content p {
+                font-size: 0.7rem;
+                color: #6b7280;
+                margin: 0;
+            }
+
+            /* Server Status */
+            .server-status {
+                background: #252525;
+                border-radius: 6px;
+                padding: 12px;
+                margin-top: 14px;
+            }
+
+            .server-status-label {
+                font-size: 0.7rem;
+                font-weight: 500;
+                color: #9ca3af;
+                margin-bottom: 6px;
+            }
+
+            .server-status-value {
+                display: flex;
+                align-items: center;
+                gap: 6px;
+                font-size: 0.8rem;
+                color: #10b981;
+            }
+
+            .server-status-dot {
+                width: 6px;
+                height: 6px;
+                border-radius: 50%;
+                background: #10b981;
+                animation: pulse 2s infinite;
+            }
+
+            @keyframes pulse {
+                0%, 100% { opacity: 1; }
+                50% { opacity: 0.5; }
             }
         </style>
     </head>
@@ -56,92 +363,190 @@
         <div class="app-container">
             <div id="sidebar-placeholder"></div>
 
-            <main class="app-main">
-                <div class="page-content">
-                    <!-- Header Simplificado -->
-                    <div class="liga-header">
-                        <h2 class="liga-titulo">Ferramentas de Gestão</h2>
-                        <p class="liga-info">
-                            Gerencie suas ligas do Cartola FC de forma unificada
-                        </p>
+            <main class="app-main ferramentas-page">
+                <div class="ferramentas-content">
+                    <!-- Header -->
+                    <header class="ferramentas-header">
+                        <h1>Ferramentas de Gestao</h1>
+                        <p>Administre suas ligas, gerencie participantes e configure o sistema.</p>
+                    </header>
+
+                    <!-- Tools Grid -->
+                    <div class="ferramentas-grid">
+                        <!-- Criar Nova Liga -->
+                        <div class="tool-card" onclick="window.location.href='criar-liga.html'">
+                            <div class="tool-card-bg-icon">
+                                <span class="material-icons">add_circle</span>
+                            </div>
+                            <div class="tool-card-content">
+                                <div class="tool-card-icon">
+                                    <span class="material-icons">add_circle_outline</span>
+                                </div>
+                                <h3>Criar Nova Liga</h3>
+                                <p>Inicie uma nova competicao, configure regras de pontuacao e convide participantes.</p>
+                                <span class="tool-card-link">
+                                    Comecar
+                                    <span class="material-icons">arrow_forward</span>
+                                </span>
+                            </div>
+                        </div>
+
+                        <!-- Gerenciar Ligas -->
+                        <div class="tool-card" onclick="window.location.href='gerenciar.html'">
+                            <div class="tool-card-bg-icon">
+                                <span class="material-icons">settings_applications</span>
+                            </div>
+                            <div class="tool-card-content">
+                                <div class="tool-card-icon">
+                                    <span class="material-icons">settings</span>
+                                </div>
+                                <h3>Gerenciar Ligas</h3>
+                                <p>Edite detalhes das ligas existentes, altere configuracoes e modere conteudo.</p>
+                                <span class="tool-card-link">
+                                    Acessar
+                                    <span class="material-icons">arrow_forward</span>
+                                </span>
+                            </div>
+                        </div>
+
+                        <!-- Gerir Senhas -->
+                        <div class="tool-card" onclick="window.location.href='gerir-senhas-participantes.html'">
+                            <div class="tool-card-bg-icon">
+                                <span class="material-icons">lock_reset</span>
+                            </div>
+                            <div class="tool-card-content">
+                                <div class="tool-card-icon">
+                                    <span class="material-icons">vpn_key</span>
+                                </div>
+                                <h3>Gerir Senhas</h3>
+                                <p>Redefinicao de senhas de usuarios, controle de acesso e gestao de participantes.</p>
+                                <span class="tool-card-link">
+                                    Configurar
+                                    <span class="material-icons">arrow_forward</span>
+                                </span>
+                            </div>
+                        </div>
+
+                        <!-- Popular Rodadas -->
+                        <div class="tool-card" onclick="window.location.href='ferramentas-rodadas.html'">
+                            <div class="tool-card-bg-icon">
+                                <span class="material-icons">update</span>
+                            </div>
+                            <div class="tool-card-content">
+                                <div class="tool-card-icon">
+                                    <span class="material-icons">autorenew</span>
+                                </div>
+                                <h3>Popular Rodadas</h3>
+                                <p>Atualize pontuacoes automaticamente via API ou insira resultados manualmente.</p>
+                                <span class="tool-card-link">
+                                    Sincronizar
+                                    <span class="material-icons">arrow_forward</span>
+                                </span>
+                            </div>
+                        </div>
+
+                        <!-- Acesso Participantes -->
+                        <div class="tool-card" onclick="window.location.href='participante-login.html'">
+                            <div class="tool-card-bg-icon">
+                                <span class="material-icons">people</span>
+                            </div>
+                            <div class="tool-card-content">
+                                <div class="tool-card-icon">
+                                    <span class="material-icons">person</span>
+                                </div>
+                                <h3>Area do Participante</h3>
+                                <p>Portal de login para participantes com acesso ao extrato financeiro e rankings.</p>
+                                <span class="tool-card-link">
+                                    Visualizar
+                                    <span class="material-icons">arrow_forward</span>
+                                </span>
+                            </div>
+                        </div>
+
+                        <!-- Gerenciar Módulos -->
+                        <div class="tool-card" onclick="window.location.href='gerenciar-modulos.html'">
+                            <div class="tool-card-bg-icon">
+                                <span class="material-icons">view_module</span>
+                            </div>
+                            <div class="tool-card-content">
+                                <div class="tool-card-icon">
+                                    <span class="material-icons">widgets</span>
+                                </div>
+                                <h3>Gerenciar Modulos</h3>
+                                <p>Ative ou desative modulos como Mata-Mata, Artilheiro e Luva de Ouro por liga.</p>
+                                <span class="tool-card-link">
+                                    Configurar
+                                    <span class="material-icons">arrow_forward</span>
+                                </span>
+                            </div>
+                        </div>
                     </div>
 
-                    <!-- Cards de Ferramentas Consolidados -->
-                    <div class="main-screen">
-                        <div class="modules-grid modules-grid-expanded">
-                            <!-- Card Única: Criar Nova Liga -->
-                            <div
-                                class="module-card"
-                                onclick="window.location.href='criar-liga.html'"
-                            >
-                                <div class="module-header">
-                                    <div class="module-icon">+</div>
-                                    <h3 class="module-title">CRIAR LIGA</h3>
+                    <!-- Bottom Section -->
+                    <div class="ferramentas-bottom">
+                        <!-- System Summary -->
+                        <div class="system-summary">
+                            <div class="system-summary-header">
+                                <h3>Resumo do Sistema</h3>
+                                <a href="painel.html" class="system-summary-link">Ver Dashboard</a>
+                            </div>
+                            <div class="stats-grid">
+                                <div class="stat-box">
+                                    <div class="stat-box-label">Total de Ligas</div>
+                                    <div class="stat-box-value" id="totalLigasStat">-</div>
+                                    <div class="stat-box-change positive">Ativas</div>
                                 </div>
-                                <ul class="module-items">
-                                    <li>Interface completa em etapas</li>
-                                    <li>Busca e validação de times</li>
-                                    <li>Configuração personalizada</li>
-                                </ul>
+                                <div class="stat-box">
+                                    <div class="stat-box-label">Participantes</div>
+                                    <div class="stat-box-value" id="totalParticipantesStat">-</div>
+                                    <div class="stat-box-change positive">Cadastrados</div>
+                                </div>
+                                <div class="stat-box">
+                                    <div class="stat-box-label">Rodada Atual</div>
+                                    <div class="stat-box-value" id="rodadaAtualStat">#38</div>
+                                    <div class="stat-box-change primary">Encerrada</div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Logs Section -->
+                        <div class="logs-section">
+                            <h3>Acesso Rapido</h3>
+                            <div class="log-item" onclick="window.location.href='painel.html'" style="cursor:pointer">
+                                <div class="log-icon blue">
+                                    <span class="material-icons">dashboard</span>
+                                </div>
+                                <div class="log-content">
+                                    <h4>Dashboard Principal</h4>
+                                    <p>Visao geral do sistema</p>
+                                </div>
+                            </div>
+                            <div class="log-item" onclick="window.location.href='detalhe-liga.html'" style="cursor:pointer">
+                                <div class="log-icon green">
+                                    <span class="material-icons">sports_soccer</span>
+                                </div>
+                                <div class="log-content">
+                                    <h4>Detalhe da Liga</h4>
+                                    <p>Modulos e rankings</p>
+                                </div>
+                            </div>
+                            <div class="log-item" onclick="window.open('/participante/', '_blank')" style="cursor:pointer">
+                                <div class="log-icon orange">
+                                    <span class="material-icons">phone_android</span>
+                                </div>
+                                <div class="log-content">
+                                    <h4>App Mobile</h4>
+                                    <p>Testar area do participante</p>
+                                </div>
                             </div>
 
-                            <!-- Card: Gerenciar Ligas Existentes -->
-                            <div
-                                class="module-card"
-                                onclick="window.location.href='gerenciar.html'"
-                            >
-                                <div class="module-header">
-                                    <div class="module-icon">⚙</div>
-                                    <h3 class="module-title">GERENCIAR</h3>
+                            <!-- Server Status -->
+                            <div class="server-status">
+                                <div class="server-status-label">Status do Servidor</div>
+                                <div class="server-status-value">
+                                    <span class="server-status-dot"></span>
+                                    Online
                                 </div>
-                                <ul class="module-items">
-                                    <li>Visão geral das ligas</li>
-                                    <li>Editar times e configurações</li>
-                                    <li>Excluir com confirmação</li>
-                                </ul>
-                            </div>
-
-                            <!-- Card: Acesso Participantes -->
-                            <div
-                                class="module-card"
-                                onclick="window.location.href='gerir-senhas-participantes.html'"
-                            >
-                                <div class="module-icon">🔐</div>
-                                <h3 class="module-title">Gerir Senhas</h3>
-                                <p class="module-description">
-                                    Defina senhas de acesso para os participantes
-                                </p>
-                            </div>
-
-                            <div
-                                class="module-card"
-                                onclick="window.location.href='participante-login.html'"
-                            >
-                                <div class="module-header">
-                                    <div class="module-icon">👤</div>
-                                    <h3 class="module-title">PARTICIPANTES</h3>
-                                </div>
-                                <ul class="module-items">
-                                    <li>Login de participantes</li>
-                                    <li>Acesso ao extrato financeiro</li>
-                                    <li>Interface mobile-friendly</li>
-                                </ul>
-                            </div>
-
-                             <!-- Card: Popular Rodadas -->
-                            <div
-                                class="module-card"
-                                onclick="window.location.href='ferramentas-rodadas.html'"
-                            >
-                                <div class="module-header">
-                                    <div class="module-icon">🎯</div>
-                                    <h3 class="module-title">POPULAR RODADAS</h3>
-                                </div>
-                                <ul class="module-items">
-                                    <li>Preencher dados de rodadas</li>
-                                    <li>Encerradas do Cartola FC</li>
-                                    <li>Interface completa na tela</li>
-                                </ul>
                             </div>
                         </div>
                     </div>
@@ -149,9 +554,9 @@
             </main>
         </div>
 
-        <!-- Scripts simplificados -->
+        <!-- Scripts -->
         <script type="module">
-            // Carregamento básico de layout
+            // Carregamento do layout
             async function loadLayout() {
                 try {
                     const response = await fetch("layout.html");
@@ -161,9 +566,7 @@
 
                     const sidebar = doc.querySelector(".app-sidebar");
                     if (sidebar) {
-                        document
-                            .getElementById("sidebar-placeholder")
-                            ?.replaceWith(sidebar);
+                        document.getElementById("sidebar-placeholder")?.replaceWith(sidebar);
                     }
 
                     const scripts = doc.querySelectorAll("script");
@@ -179,7 +582,33 @@
                 }
             }
 
-            document.addEventListener("DOMContentLoaded", loadLayout);
+            // Carregar estatísticas
+            async function carregarEstatisticas() {
+                try {
+                    const response = await fetch("/api/ligas");
+                    const ligas = await response.json();
+
+                    if (Array.isArray(ligas)) {
+                        document.getElementById("totalLigasStat").textContent = ligas.length;
+
+                        let totalParticipantes = 0;
+                        ligas.forEach(liga => {
+                            totalParticipantes += liga.times?.length || 0;
+                        });
+                        document.getElementById("totalParticipantesStat").textContent = totalParticipantes;
+                    }
+                } catch (error) {
+                    console.error("Erro ao carregar estatísticas:", error);
+                }
+            }
+
+            document.addEventListener("DOMContentLoaded", () => {
+                loadLayout();
+                carregarEstatisticas();
+            });
         </script>
+
+        <!-- Menu do Perfil Admin -->
+        <script src="js/core/sidebar-menu.js"></script>
     </body>
 </html>

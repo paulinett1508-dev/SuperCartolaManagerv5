@@ -5,6 +5,9 @@ import {
     injetarEstilosAuditoria,
 } from "./fluxo-financeiro/fluxo-financeiro-auditoria.js";
 
+// Cache-buster para forçar reload de módulos (incrementar a cada mudança)
+const CACHE_BUSTER = "v5.1";
+
 // VARIÁVEIS GLOBAIS
 let rodadaAtual = 0;
 let ultimaRodadaCompleta = 0;
@@ -87,7 +90,9 @@ async function carregarModulos() {
 
     for (const moduloInfo of modulosParaCarregar) {
         if (!moduloInfo.variavel()) {
-            const modulo = await import(moduloInfo.path);
+            // Cache-buster para forçar reload
+            const pathWithCache = `${moduloInfo.path}?${CACHE_BUSTER}`;
+            const modulo = await import(pathWithCache);
             moduloInfo.setter(modulo);
         }
     }

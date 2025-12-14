@@ -57,33 +57,24 @@ export class FluxoFinanceiroCache {
     }
 
     // ===================================================================
-    // ✅ NOVO v4.1: BUSCAR MÓDULOS ATIVOS DA LIGA
+    // ✅ v4.2: BUSCAR MÓDULOS ATIVOS DA LIGA (endpoint correto)
     // ===================================================================
     async _buscarModulosAtivos() {
         try {
             const response = await fetch(
-                `/api/ligas/${this.ligaId}/configuracoes`,
+                `/api/ligas/${this.ligaId}/modulos-ativos`,
             );
             if (response.ok) {
                 const config = await response.json();
 
-                // Mapear configurações para módulos
-                if (
-                    config.modulos_desativados &&
-                    Array.isArray(config.modulos_desativados)
-                ) {
-                    config.modulos_desativados.forEach((modulo) => {
-                        this.modulosAtivos[modulo] = false;
+                // Formato esperado: { "mata-mata": true, "melhor-mes": false, ... }
+                if (config && typeof config === "object") {
+                    Object.keys(config).forEach((modulo) => {
+                        if (typeof config[modulo] === "boolean") {
+                            this.modulosAtivos[modulo] = config[modulo];
+                        }
                     });
                 }
-
-                // Verificação alternativa por campos específicos
-                if (config.mata_mata_ativo === false)
-                    this.modulosAtivos["mata-mata"] = false;
-                if (config.melhor_mes_ativo === false)
-                    this.modulosAtivos["melhor-mes"] = false;
-                if (config.pontos_corridos_ativo === false)
-                    this.modulosAtivos["pontos-corridos"] = false;
 
                 console.log(
                     "[FLUXO-CACHE] 📋 Módulos ativos:",

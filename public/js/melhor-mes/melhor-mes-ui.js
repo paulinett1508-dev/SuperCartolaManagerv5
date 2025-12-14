@@ -53,7 +53,7 @@ export class MelhorMesUI {
   renderizarMiniCards() {
     const container = document.getElementById(this.containers.select);
     if (!container) {
-      console.warn("[MELHOR-MES-UI] Container de mini-cards não encontrado");
+      // Silencioso: container pode não existir quando módulo é carregado para obter dados
       return;
     }
 

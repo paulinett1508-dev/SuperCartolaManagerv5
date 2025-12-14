@@ -73,15 +73,15 @@
             container.innerHTML = renderLoading(
                 "Selecione uma liga para começar",
             );
-            statsContainer.style.display = "none";
-            document.getElementById("senhaGeralSection").style.display = "none";
-            document.getElementById("buscaSection").style.display = "none";
+            statsContainer.classList.remove("visible");
+            document.getElementById("senhaGeralSection").classList.remove("visible");
+            document.getElementById("buscaSection").classList.remove("visible");
             return;
         }
 
         // Mostrar seções
-        document.getElementById("senhaGeralSection").style.display = "block";
-        document.getElementById("buscaSection").style.display = "block";
+        document.getElementById("senhaGeralSection").classList.add("visible");
+        document.getElementById("buscaSection").classList.add("visible");
 
         container.innerHTML = renderLoading("Carregando participantes...");
 
@@ -93,7 +93,7 @@
                 container.innerHTML = renderLoading(
                     "Nenhum participante encontrado",
                 );
-                statsContainer.style.display = "none";
+                statsContainer.classList.remove("visible");
                 return;
             }
 
@@ -109,13 +109,13 @@
                 container.innerHTML = renderLoading(
                     "Nenhum participante encontrado",
                 );
-                statsContainer.style.display = "none";
+                statsContainer.classList.remove("visible");
                 return;
             }
 
             // Atualizar stats
             atualizarStatsLocais(participantes);
-            statsContainer.style.display = "flex";
+            statsContainer.classList.add("visible");
 
             // Renderizar tabela
             renderizarTabela(participantes, ligaId);
@@ -127,7 +127,7 @@
             container.innerHTML = renderLoading(
                 "Erro ao carregar participantes",
             );
-            statsContainer.style.display = "none";
+            statsContainer.classList.remove("visible");
         }
     }
 
@@ -387,7 +387,7 @@
 
             if (btnAplicar) {
                 btnAplicar.disabled = true;
-                btnAplicar.textContent = "Aplicando...";
+                btnAplicar.innerHTML = '<span class="material-icons">hourglass_empty</span> Aplicando...';
             }
 
             let sucessos = 0;
@@ -429,7 +429,7 @@
         } finally {
             if (btnAplicar) {
                 btnAplicar.disabled = false;
-                btnAplicar.textContent = "Aplicar a Todos";
+                btnAplicar.innerHTML = '<span class="material-icons">done_all</span> Aplicar a Todos';
             }
         }
     }
