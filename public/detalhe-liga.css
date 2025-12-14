@@ -35,11 +35,7 @@
 }
 
 /* === LAYOUT PRINCIPAL === */
-.page-content {
-    background: var(--bg-primary);
-    min-height: calc(100vh - 60px);
-    padding: 24px;
-}
+/* Nota: Estilos de .page-content movidos para detalhe-liga-redesign.css */
 
 /* === HEADER DA LIGA - REDESIGN === */
 .liga-header {
