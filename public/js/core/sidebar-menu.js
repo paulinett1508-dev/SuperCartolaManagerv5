@@ -1,6 +1,6 @@
 /**
- * SIDEBAR MENU - Menu Dropup do Perfil Admin
- * v1.0 - Funcionalidade do menu do usuário
+ * SIDEBAR MENU - Menu Dropup do Perfil Admin + Carregamento de Ligas
+ * v1.1 - Funcionalidade completa do sidebar
  */
 
 (function() {
@@ -9,14 +9,93 @@
     // Aguardar sidebar ser injetada
     function esperarSidebar(callback, tentativas = 20) {
         const userSection = document.getElementById('sidebarUserSection');
-        const userToggle = document.getElementById('userMenuToggle');
+        const ligasList = document.getElementById('ligasList');
 
-        if (userSection && userToggle) {
+        if (userSection && ligasList) {
             callback();
         } else if (tentativas > 0) {
             setTimeout(() => esperarSidebar(callback, tentativas - 1), 100);
         }
     }
+
+    // === MAPEAMENTO DE LOGOS DAS LIGAS ===
+    function obterLogoLiga(nomeLiga) {
+        const nome = (nomeLiga || '').toLowerCase();
+        if (nome.includes('super')) return 'img/logo-supercartola.png';
+        if (nome.includes('sobral') || nome.includes('cartoleiros')) return 'img/logo-cartoleirossobral.png';
+        return null;
+    }
+
+    // === CARREGAMENTO DAS LIGAS NO SIDEBAR ===
+    async function carregarLigasSidebar() {
+        const ligasList = document.getElementById('ligasList');
+        if (!ligasList) return;
+
+        // Obter ID da liga atual da URL
+        const urlParams = new URLSearchParams(window.location.search);
+        const ligaAtualId = urlParams.get('id');
+
+        try {
+            const response = await fetch('/api/ligas');
+            const ligas = await response.json();
+
+            if (!Array.isArray(ligas) || ligas.length === 0) {
+                ligasList.innerHTML = `
+                    <div class="sidebar-ligas-empty">
+                        <span class="material-icons" style="font-size: 24px; margin-bottom: 8px; display: block;">folder_open</span>
+                        Nenhuma liga criada
+                    </div>
+                `;
+                return;
+            }
+
+            // Renderizar ligas com logos
+            ligasList.innerHTML = ligas.map(liga => {
+                const ligaId = liga._id || liga.id;
+                const isLigaAtual = ligaId === ligaAtualId;
+                const timesCount = liga.times?.length || 0;
+                const logoUrl = obterLogoLiga(liga.nome);
+
+                const logoHtml = logoUrl
+                    ? `<img src="${logoUrl}" alt="" class="liga-logo-img" onerror="this.style.display='none'; this.nextElementSibling.style.display='block';" /><span class="liga-dot" style="display:none;"></span>`
+                    : `<span class="liga-dot"></span>`;
+
+                return `
+                    <a href="detalhe-liga.html?id=${ligaId}" class="sidebar-liga-item ${isLigaAtual ? 'active' : ''}">
+                        ${logoHtml}
+                        <div class="liga-info-sidebar">
+                            <div class="liga-name-sidebar">${liga.nome || 'Liga sem nome'}</div>
+                        </div>
+                        <span class="liga-badge-count">${timesCount}</span>
+                    </a>
+                `;
+            }).join('');
+        } catch (error) {
+            console.error('[SIDEBAR-MENU] Erro ao carregar ligas:', error);
+            ligasList.innerHTML = `
+                <div class="sidebar-ligas-empty">
+                    <span class="material-icons" style="color: #ef4444; font-size: 24px; margin-bottom: 8px; display: block;">warning</span>
+                    Erro ao carregar
+                    <button onclick="window.recarregarLigasSidebar()" style="
+                        margin-top: 8px;
+                        padding: 6px 12px;
+                        background: #FF5500;
+                        color: white;
+                        border: none;
+                        border-radius: 6px;
+                        font-size: 11px;
+                        cursor: pointer;
+                        font-weight: 600;
+                        display: block;
+                        width: 100%;
+                    ">Tentar Novamente</button>
+                </div>
+            `;
+        }
+    }
+
+    // Expor função globalmente para retry
+    window.recarregarLigasSidebar = carregarLigasSidebar;
 
     // Inicializar menu do perfil
     function inicializarMenuPerfil() {
@@ -135,6 +214,7 @@
         esperarSidebar(() => {
             inicializarMenuPerfil();
             carregarDadosAdmin();
+            carregarLigasSidebar();
         });
     }
 
@@ -148,7 +228,10 @@
     // Re-inicializar quando voltar para página (cache do navegador)
     window.addEventListener('pageshow', function(event) {
         if (event.persisted) {
-            setTimeout(init, 200);
+            setTimeout(() => {
+                init();
+                carregarLigasSidebar();
+            }, 200);
         }
     });
 
