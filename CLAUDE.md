@@ -523,35 +523,36 @@ Para forçar limpeza de cache em todos os clientes:
 1. Incrementar `CACHE_NAME` no `service-worker.js`
 2. Incrementar `FORCE_CLEAR_KEY` no `index.html` (ex: `sw_force_clear_v7`)
 
-### Versionamento do App (v3.0 - Versões Manuais Separadas)
+### Versionamento do App (v2.0 - Versões Automáticas Separadas)
 
-O sistema usa versões **MANUAIS e SEPARADAS** para Participante e Admin, evitando notificações desnecessárias.
+O sistema usa versões **AUTOMÁTICAS e SEPARADAS** para Participante e Admin, baseadas na última modificação de arquivos em cada área.
 
 **Arquivo de configuração:** `config/appVersion.js`
 
-| Versão | Endpoint | Quando Incrementar |
-|--------|----------|-------------------|
-| **PARTICIPANTE_VERSION** | `GET /api/app/versao` | Mudanças no app mobile |
-| **ADMIN_VERSION** | `GET /api/app/versao/admin` | Mudanças no painel admin |
+| Versão | Endpoint | Área Monitorada |
+|--------|----------|-----------------|
+| **PARTICIPANTE_VERSION** | `GET /api/app/versao` | `public/participante/` |
+| **ADMIN_VERSION** | `GET /api/app/versao/admin` | `public/js/`, `public/fronts/`, `public/css/` |
 
-**Formato:** `YYYY.MM.release` (ex: `2025.12.1`, `2025.12.2`)
+**Formato:** `DD.MM.YY.HHmm` (data + hora de Brasília da última modificação)
 
-**Como incrementar (exemplo):**
+**Como funciona:**
 ```javascript
-// config/appVersion.js
-export const PARTICIPANTE_VERSION = {
-    version: "2025.12.2", // Incrementar de .1 para .2
-    build: "2",
-    releaseNotes: "Nova funcionalidade X",
-};
+// config/appVersion.js v2.0
+// Detecta automaticamente a última modificação de arquivos JS/CSS/HTML em cada área
+// Gera versão baseada na data de modificação mais recente
+
+// Exemplo de saída:
+PARTICIPANTE_VERSION = { version: "13.12.25.1834", ... }  // Última mod em 13/12/25 às 18:34
+ADMIN_VERSION = { version: "14.12.25.1015", ... }        // Última mod em 14/12/25 às 10:15
 ```
 
-**Regra de Ouro (OBRIGATÓRIO para Claude):**
-- Mudou algo no **app do participante** (`public/participante/`)? → Incrementar `PARTICIPANTE_VERSION`
-- Mudou algo **apenas no admin** (`public/js/`, `public/fronts/`)? → Incrementar só `ADMIN_VERSION`
-- O participante **NÃO verá modal** se apenas Admin mudou
+**Benefícios:**
+- Mudanças apenas no Admin **NÃO** disparam modal de atualização no app mobile
+- Mudanças apenas no Participante **NÃO** afetam a versão do Admin
+- Versão é atualizada automaticamente a cada deploy baseado em modificações reais
 
-**⚠️ IMPORTANTE:** Claude DEVE incrementar a versão correta em `config/appVersion.js` automaticamente em todo commit que altere código do participante ou admin. Isso é automático - não perguntar ao usuário.
+**⚠️ IMPORTANTE:** Claude NÃO precisa mais incrementar versões manualmente. O sistema detecta automaticamente baseado na data de modificação dos arquivos em cada área.
 
 ---
 
@@ -746,3 +747,5 @@ Rodadas onde ocorrem confrontos de Mata-Mata (importante para detecção de cach
 | 5ª Edição | R31-R35 | R30 |
 
 **Valores financeiros:** Vitória = +R$10 | Derrota = -R$10
+- to memorize
+- Add to memorize. Git

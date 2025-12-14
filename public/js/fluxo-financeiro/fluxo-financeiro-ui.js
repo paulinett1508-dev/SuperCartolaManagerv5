@@ -5,7 +5,11 @@ import {
 } from "./fluxo-financeiro-auditoria.js";
 
 /**
- * FLUXO-FINANCEIRO-UI.JS - v4.6 (Títulos Editáveis)
+ * FLUXO-FINANCEIRO-UI.JS - v5.0 (PDF Multi-página)
+ * ✅ v5.0: PDF multi-página com quebra automática e TOP 10 detalhado
+ * ✅ v4.9: Nomes completos: RANKING DE RODADAS, PONTOS CORRIDOS, MATA-MATA
+ * ✅ v4.8: PDF compacto 1 página com linha a linha por módulo
+ * ✅ v4.7: Botão "Exportar PDF" do extrato individual
  * ✅ v4.6: Títulos dos campos editáveis agora são editáveis em modo Admin
  * ✅ v4.5: Botão "Limpar Cache" + "Recalcular Todos" + auto-popular ao visualizar
  * ✅ v4.4.2: Botão só limpa cache, sem chamar recálculo do backend
@@ -477,8 +481,11 @@ export class FluxoFinanceiroUI {
                     }
                 </div>
 
-                <!-- ✅ v4.4: Botões Atualizar + Recalcular Cache -->
+                <!-- ✅ v4.7: Botões Atualizar + Limpar Cache + Exportar PDF -->
                 <div style="position: absolute; top: 16px; right: 16px; display: flex; gap: 8px; flex-wrap: wrap; justify-content: flex-end;">
+                    <button onclick="window.exportarExtratoPDF('${timeId}')" class="btn-modern btn-pdf-gradient" title="Exportar extrato em PDF">
+                        <span class="material-icons" style="font-size: 14px;">picture_as_pdf</span> PDF
+                    </button>
                     <button onclick="window.forcarRefreshExtrato('${timeId}')" class="btn-modern btn-secondary-gradient" title="Atualizar dados">
                         <span class="material-icons" style="font-size: 14px;">refresh</span> Atualizar
                     </button>
@@ -1230,4 +1237,335 @@ window.abrirAuditoria = async function (timeId) {
     }
 };
 
-console.log("[FLUXO-UI] ✅ v4.6 carregado (Títulos Editáveis)");
+// =========================================================================
+// ✅ v5.0: FUNÇÃO GLOBAL PARA EXPORTAR EXTRATO EM PDF (Multi-página)
+// =========================================================================
+window.exportarExtratoPDF = async function (timeId) {
+    try {
+        if (typeof window.jspdf === "undefined") {
+            alert("Biblioteca jsPDF não carregada. Atualize a página.");
+            return;
+        }
+
+        const { jsPDF } = window.jspdf;
+        const extrato = window.extratoAtual;
+        const cache = window.fluxoFinanceiroCache;
+
+        if (!extrato || !extrato.rodadas) {
+            alert("Extrato não carregado. Selecione um participante primeiro.");
+            return;
+        }
+
+        const participante = cache?.participantes?.find(
+            (p) => p.time_id === timeId || p.id === timeId,
+        ) || {};
+
+        const nomeCartola = participante.nome_cartola || "Participante";
+        const nomeTime = participante.nome_time || "Time";
+
+        console.log(`[FLUXO-UI] 📄 Gerando PDF para ${nomeCartola}...`);
+
+        // ===== PROCESSAR DADOS LINHA A LINHA =====
+        const ganhos = [];
+        const perdas = [];
+
+        // Processar cada rodada
+        extrato.rodadas.forEach((r) => {
+            const rod = `R${r.rodada}`;
+            const pts = r.pontos ? ` (${r.pontos.toFixed(2)} pts)` : "";
+
+            // RANKING DE RODADAS (Bônus/Ônus)
+            if (r.bonusOnus > 0) {
+                const pos = r.posicao === 1 ? "MITO" : `${r.posicao}º lugar`;
+                ganhos.push({ modulo: "RANKING DE RODADAS", desc: `${rod} - ${pos}${pts}`, valor: r.bonusOnus });
+            } else if (r.bonusOnus < 0) {
+                const pos = r.isMico ? "MICO" : `${r.posicao}º lugar`;
+                perdas.push({ modulo: "RANKING DE RODADAS", desc: `${rod} - ${pos}${pts}`, valor: r.bonusOnus });
+            }
+
+            // Pontos Corridos
+            if (r.pontosCorridos > 0) {
+                ganhos.push({ modulo: "PONTOS CORRIDOS", desc: `${rod} - Vitória no confronto`, valor: r.pontosCorridos });
+            } else if (r.pontosCorridos < 0) {
+                perdas.push({ modulo: "PONTOS CORRIDOS", desc: `${rod} - Derrota no confronto`, valor: r.pontosCorridos });
+            }
+
+            // Mata-Mata
+            if (r.mataMata > 0) {
+                ganhos.push({ modulo: "MATA-MATA", desc: `${rod} - Vitória na fase`, valor: r.mataMata });
+            } else if (r.mataMata < 0) {
+                perdas.push({ modulo: "MATA-MATA", desc: `${rod} - Derrota na fase`, valor: r.mataMata });
+            }
+
+            // TOP 10 - Detalhamento completo
+            if (r.top10 > 0) {
+                const pos = r.top10Posicao || "?";
+                const ptsTop = r.pontos ? ` com ${r.pontos.toFixed(2)} pts` : "";
+                ganhos.push({ modulo: "TOP 10 MITOS", desc: `${pos}º melhor pontuação do campeonato${ptsTop}`, valor: r.top10 });
+            } else if (r.top10 < 0) {
+                const pos = r.top10Posicao || "?";
+                const ptsTop = r.pontos ? ` com ${r.pontos.toFixed(2)} pts` : "";
+                perdas.push({ modulo: "TOP 10 MICOS", desc: `${pos}º pior pontuação do campeonato${ptsTop}`, valor: r.top10 });
+            }
+        });
+
+        // Campos manuais - usar o nome exato do campo
+        const campos = extrato.camposEditaveis || {};
+        ["campo1", "campo2", "campo3", "campo4"].forEach((key) => {
+            const c = campos[key];
+            if (c && c.valor !== 0) {
+                const nomeCampo = c.nome || `Campo ${key.replace("campo", "")}`;
+                if (c.valor > 0) {
+                    ganhos.push({ modulo: nomeCampo.toUpperCase(), desc: "Lançamento manual", valor: c.valor });
+                } else {
+                    perdas.push({ modulo: nomeCampo.toUpperCase(), desc: "Lançamento manual", valor: c.valor });
+                }
+            }
+        });
+
+        // Totais
+        const totalGanhos = ganhos.reduce((s, g) => s + g.valor, 0);
+        const totalPerdas = perdas.reduce((s, p) => s + p.valor, 0);
+        const saldo = parseFloat(extrato.resumo.saldo) || 0;
+
+        // ===== CRIAR PDF =====
+        const doc = new jsPDF({ orientation: "portrait", unit: "mm", format: "a4" });
+        const pw = doc.internal.pageSize.getWidth();
+        const ph = doc.internal.pageSize.getHeight();
+        const m = 10;
+        const lineH = 4.5;
+        const footerHeight = 45; // Espaço reservado para resumo + rodapé
+        let paginaAtual = 1;
+
+        // ===== FUNÇÃO PARA DESENHAR HEADER =====
+        const desenharHeader = (isContinuacao = false) => {
+            doc.setFillColor(26, 26, 26);
+            doc.rect(0, 0, pw, 28, "F");
+            doc.setFillColor(255, 69, 0);
+            doc.rect(0, 0, pw, 3, "F");
+
+            doc.setTextColor(255, 255, 255);
+            doc.setFontSize(16);
+            doc.setFont("helvetica", "bold");
+            const titulo = isContinuacao ? "EXTRATO FINANCEIRO (CONTINUAÇÃO)" : "EXTRATO FINANCEIRO";
+            doc.text(titulo, pw / 2, 12, { align: "center" });
+
+            doc.setFontSize(10);
+            doc.setFont("helvetica", "normal");
+            doc.text(`${nomeCartola} - ${nomeTime}`, pw / 2, 20, { align: "center" });
+
+            doc.setFontSize(7);
+            doc.setTextColor(150, 150, 150);
+            const pagina = isContinuacao ? ` | Página ${paginaAtual}` : "";
+            doc.text(new Date().toLocaleString("pt-BR") + pagina, pw / 2, 26, { align: "center" });
+
+            return 33; // Retorna Y após o header
+        };
+
+        // ===== FUNÇÃO PARA DESENHAR RODAPÉ E RESUMO =====
+        const desenharRodape = () => {
+            const resumoY = ph - 35;
+
+            doc.setFillColor(40, 40, 45);
+            doc.roundedRect(m, resumoY, pw - 2 * m, 18, 2, 2, "F");
+
+            doc.setFontSize(7);
+            doc.setFont("helvetica", "bold");
+            doc.setTextColor(255, 165, 0);
+            doc.text("RESUMO POR MÓDULO", m + 3, resumoY + 5);
+
+            const res = extrato.resumo;
+            const modulos = [
+                { nome: "RANKING", valor: res.bonus + res.onus },
+                { nome: "PONTOS C.", valor: res.pontosCorridos },
+                { nome: "MATA-MATA", valor: res.mataMata },
+                { nome: "TOP 10", valor: res.top10 },
+            ];
+
+            const rw = (pw - 2 * m - 6) / 4;
+            modulos.forEach((mod, i) => {
+                const mx = m + 3 + i * rw;
+                doc.setFontSize(6);
+                doc.setFont("helvetica", "normal");
+                doc.setTextColor(150, 150, 150);
+                doc.text(mod.nome, mx, resumoY + 10);
+
+                doc.setFontSize(8);
+                doc.setFont("helvetica", "bold");
+                const cor = mod.valor > 0 ? [34, 197, 94] : mod.valor < 0 ? [239, 68, 68] : [150, 150, 150];
+                doc.setTextColor(...cor);
+                const sinal = mod.valor > 0 ? "+" : "";
+                doc.text(`${sinal}R$ ${mod.valor.toFixed(2)}`, mx, resumoY + 15);
+            });
+
+            doc.setDrawColor(255, 69, 0);
+            doc.setLineWidth(0.3);
+            doc.line(m, ph - 12, pw - m, ph - 12);
+
+            doc.setFontSize(6);
+            doc.setTextColor(100, 100, 100);
+            doc.setFont("helvetica", "normal");
+            doc.text("Super Cartola Manager - Documento para conferência", m, ph - 7);
+            doc.text(`Página ${paginaAtual} | v5.0`, pw - m, ph - 7, { align: "right" });
+        };
+
+        // ===== PÁGINA 1 - HEADER + SALDO =====
+        let y = desenharHeader(false);
+
+        // Saldo central
+        const corSaldo = saldo >= 0 ? [34, 197, 94] : [239, 68, 68];
+        const txtSaldo = saldo >= 0 ? "SALDO A RECEBER" : "SALDO A PAGAR";
+
+        doc.setFillColor(30, 30, 35);
+        doc.roundedRect(m, y, pw - 2 * m, 18, 2, 2, "F");
+
+        doc.setFontSize(8);
+        doc.setTextColor(150, 150, 150);
+        doc.text(txtSaldo, pw / 2, y + 6, { align: "center" });
+
+        doc.setFontSize(16);
+        doc.setTextColor(...corSaldo);
+        doc.setFont("helvetica", "bold");
+        doc.text(`R$ ${Math.abs(saldo).toLocaleString("pt-BR", { minimumFractionDigits: 2 })}`, pw / 2, y + 14, { align: "center" });
+
+        y += 22;
+
+        // ===== PREPARAR COLUNAS =====
+        const colW = (pw - 3 * m) / 2;
+        const colGanhosX = m;
+        const colPerdasX = m + colW + m;
+
+        // Títulos das colunas
+        doc.setFontSize(10);
+        doc.setFont("helvetica", "bold");
+
+        doc.setFillColor(34, 197, 94);
+        doc.roundedRect(colGanhosX, y, colW, 8, 1, 1, "F");
+        doc.setTextColor(255, 255, 255);
+        doc.text(`GANHOS (+R$ ${totalGanhos.toFixed(2)})`, colGanhosX + colW / 2, y + 5.5, { align: "center" });
+
+        doc.setFillColor(239, 68, 68);
+        doc.roundedRect(colPerdasX, y, colW, 8, 1, 1, "F");
+        doc.text(`PERDAS (-R$ ${Math.abs(totalPerdas).toFixed(2)})`, colPerdasX + colW / 2, y + 5.5, { align: "center" });
+
+        y += 10;
+        const startY = y;
+
+        // ===== AGRUPAR ITENS POR MÓDULO =====
+        const agrupar = (lista) => {
+            const grupos = {};
+            lista.forEach((item) => {
+                if (!grupos[item.modulo]) grupos[item.modulo] = [];
+                grupos[item.modulo].push(item);
+            });
+            return grupos;
+        };
+
+        const gruposGanhos = agrupar(ganhos);
+        const gruposPerdas = agrupar(perdas);
+
+        // Converter para lista linear com headers
+        const linearizar = (grupos) => {
+            const items = [];
+            Object.keys(grupos).forEach((modulo) => {
+                items.push({ tipo: "header", modulo });
+                grupos[modulo].forEach((item) => {
+                    items.push({ tipo: "item", ...item });
+                });
+            });
+            return items;
+        };
+
+        const listaGanhos = linearizar(gruposGanhos);
+        const listaPerdas = linearizar(gruposPerdas);
+
+        // ===== DESENHAR LISTAS COM PAGINAÇÃO =====
+        let lyGanhos = startY;
+        let lyPerdas = startY;
+        let idxGanhos = 0;
+        let idxPerdas = 0;
+        const maxY = ph - footerHeight;
+
+        const desenharItem = (item, x, ly, isGanho) => {
+            const cor = isGanho ? [34, 197, 94] : [239, 68, 68];
+
+            if (item.tipo === "header") {
+                doc.setFontSize(7);
+                doc.setFont("helvetica", "bold");
+                doc.setTextColor(255, 165, 0);
+                doc.text(item.modulo, x + 2, ly + 3);
+            } else {
+                doc.setFontSize(6.5);
+                doc.setFont("helvetica", "normal");
+                doc.setTextColor(0, 0, 0);
+
+                // Truncar descrição se muito longa
+                let desc = item.desc;
+                if (desc.length > 35) desc = desc.substring(0, 32) + "...";
+                doc.text(desc, x + 4, ly + 3);
+
+                doc.setFont("helvetica", "bold");
+                doc.setTextColor(...cor);
+                const sinal = item.valor > 0 ? "+" : "";
+                doc.text(`${sinal}${item.valor.toFixed(2)}`, x + colW - 3, ly + 3, { align: "right" });
+            }
+        };
+
+        // Loop principal de desenho
+        while (idxGanhos < listaGanhos.length || idxPerdas < listaPerdas.length) {
+            // Verificar se precisa nova página
+            if (lyGanhos >= maxY || lyPerdas >= maxY) {
+                paginaAtual++;
+                doc.addPage();
+                y = desenharHeader(true);
+
+                // Redesenhar títulos das colunas
+                doc.setFontSize(10);
+                doc.setFont("helvetica", "bold");
+
+                doc.setFillColor(34, 197, 94);
+                doc.roundedRect(colGanhosX, y, colW, 8, 1, 1, "F");
+                doc.setTextColor(255, 255, 255);
+                doc.text(`GANHOS (cont.)`, colGanhosX + colW / 2, y + 5.5, { align: "center" });
+
+                doc.setFillColor(239, 68, 68);
+                doc.roundedRect(colPerdasX, y, colW, 8, 1, 1, "F");
+                doc.text(`PERDAS (cont.)`, colPerdasX + colW / 2, y + 5.5, { align: "center" });
+
+                y += 10;
+                lyGanhos = y;
+                lyPerdas = y;
+            }
+
+            // Desenhar próximo item de ganhos
+            if (idxGanhos < listaGanhos.length && lyGanhos < maxY) {
+                desenharItem(listaGanhos[idxGanhos], colGanhosX, lyGanhos, true);
+                lyGanhos += lineH;
+                if (listaGanhos[idxGanhos].tipo === "header") lyGanhos += 0.5;
+                idxGanhos++;
+            }
+
+            // Desenhar próximo item de perdas
+            if (idxPerdas < listaPerdas.length && lyPerdas < maxY) {
+                desenharItem(listaPerdas[idxPerdas], colPerdasX, lyPerdas, false);
+                lyPerdas += lineH;
+                if (listaPerdas[idxPerdas].tipo === "header") lyPerdas += 0.5;
+                idxPerdas++;
+            }
+        }
+
+        // ===== DESENHAR RODAPÉ NA ÚLTIMA PÁGINA =====
+        desenharRodape();
+
+        // ===== SALVAR =====
+        const nomeArquivo = `extrato_${nomeCartola.replace(/\s+/g, "_").toLowerCase()}_${new Date().toISOString().split("T")[0]}.pdf`;
+        doc.save(nomeArquivo);
+
+        console.log(`[FLUXO-UI] ✅ PDF gerado (${paginaAtual} página(s)): ${nomeArquivo}`);
+    } catch (error) {
+        console.error("[FLUXO-UI] ❌ Erro ao gerar PDF:", error);
+        alert(`Erro ao gerar PDF: ${error.message}`);
+    }
+};
+
+console.log("[FLUXO-UI] ✅ v5.0 carregado (PDF Multi-página)");
