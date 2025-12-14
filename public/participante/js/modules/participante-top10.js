@@ -1,6 +1,7 @@
 // =====================================================================
-// PARTICIPANTE-TOP10.JS - v4.7 (Cache-First IndexedDB)
+// PARTICIPANTE-TOP10.JS - v4.8 (Padronização Escudos)
 // =====================================================================
+// ✅ v4.8: Padronização de escudos - sempre usa brasão do time do cartoleiro
 // ✅ v4.7: Cache-first com IndexedDB para carregamento instantâneo
 // ✅ v4.6: Fix rodada 38 (CAMPEONATO_ENCERRADO)
 // ✅ v4.5: Destaque visual para os 10 primeiros (verdadeiro TOP 10)
@@ -11,7 +12,7 @@
 // ✅ v4.3: Filtro de times ativos
 // ✅ v4.2: Cache batch
 
-if (window.Log) Log.info("[PARTICIPANTE-TOP10] 🏆 Carregando módulo v4.7...");
+if (window.Log) Log.info("[PARTICIPANTE-TOP10] 🏆 Carregando módulo v4.8...");
 
 // =====================================================================
 // CONFIGURAÇÃO DO CAMPEONATO 2025
@@ -268,8 +269,8 @@ async function calcularMitosMicos(ligaId, rodadaAtual) {
                     nome_cartola: mito.nome_cartola || "N/D",
                     nome_time: mito.nome_time || "N/D",
                     pontos: parseFloat(mito.pontos) || 0,
-                    escudo: mito.escudo_time_do_coracao || mito.escudo || "",
-                    clube_id: mito.clube_id || null,
+                    // ✅ v4.8: Priorizar escudo do time (url_escudo_png), NÃO time do coração
+                    escudo: mito.escudo || mito.url_escudo_png || "",
                     ativo: mito.ativo !== false,
                 });
             }
@@ -282,8 +283,8 @@ async function calcularMitosMicos(ligaId, rodadaAtual) {
                     nome_cartola: mico.nome_cartola || "N/D",
                     nome_time: mico.nome_time || "N/D",
                     pontos: parseFloat(mico.pontos) || 0,
-                    escudo: mico.escudo_time_do_coracao || mico.escudo || "",
-                    clube_id: mico.clube_id || null,
+                    // ✅ v4.8: Priorizar escudo do time (url_escudo_png), NÃO time do coração
+                    escudo: mico.escudo || mico.url_escudo_png || "",
                     ativo: mico.ativo !== false,
                 });
             }
@@ -469,12 +470,11 @@ function gerarLinhaTabela(
     const valorFormatado =
         isInativo || !isTop10 ? "—" : isMitos ? `+${valorAbs}` : `-${valorAbs}`;
 
-    // Escudo
+    // ✅ v4.8: Escudo padronizado - usa apenas o brasão do time do cartoleiro
+    // NÃO usa clube_id (time do coração) como fallback
     let escudoHTML = `<span class="escudo-placeholder"><span class="material-symbols-outlined">shield</span></span>`;
     if (item.escudo && item.escudo.startsWith("http")) {
         escudoHTML = `<img src="${item.escudo}" alt="" class="escudo-top10" onerror="this.parentElement.innerHTML='<span class=\\'material-symbols-outlined\\'>shield</span>'"/>`;
-    } else if (item.clube_id) {
-        escudoHTML = `<img src="/escudos/${item.clube_id}.png" alt="" class="escudo-top10" onerror="this.parentElement.innerHTML='<span class=\\'material-symbols-outlined\\'>shield</span>'"/>`;
     }
 
     return `
@@ -619,5 +619,5 @@ function mostrarEstadoVazio(show) {
 
 if (window.Log)
     Log.info(
-        "[PARTICIPANTE-TOP10] ✅ Módulo v4.7 carregado (Cache-First IndexedDB)",
+        "[PARTICIPANTE-TOP10] ✅ Módulo v4.8 carregado (Escudos Padronizados)",
     );
