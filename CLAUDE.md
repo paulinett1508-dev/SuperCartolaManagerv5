@@ -290,6 +290,58 @@ O sistema distingue **três** tipos de carregamento:
 
 **PROIBIDO:** Usar cores fora da paleta (ex: roxo `#8b5cf6` foi removido do botão "Auditar").
 
+### Admin Redesign - Padrão Visual Compacto (v1.0)
+
+As páginas Admin seguem um padrão visual compacto com dark theme:
+
+**Layout Base:**
+```css
+/* Sidebar fixo */
+.app-sidebar { width: 280px; position: fixed; height: 100vh; }
+
+/* Conteúdo principal - IMPORTANTE: margin-left para compensar sidebar */
+.app-main { margin-left: 280px; background: #121212; }
+
+/* NUNCA usar max-width + margin:auto no .page-content - quebra alinhamento */
+.page-content { padding: 20px 16px; }
+```
+
+**Cores do Dark Theme Admin:**
+| Token | Valor | Uso |
+|-------|-------|-----|
+| Background | `#121212` | Fundo da página |
+| Card | `#1a1a1a` | Fundo de cards/containers |
+| Border | `#2d2d2d` | Bordas sutis |
+| Border Hover | `#333333` | Bordas em hover |
+| Text Primary | `#ffffff` | Texto principal |
+| Text Muted | `#9ca3af` | Texto secundário |
+
+**Padrão de Cards:**
+```css
+.card {
+    background: #1a1a1a;
+    border: 1px solid #2d2d2d;
+    border-radius: 8px;
+    padding: 14px 16px;
+}
+.card:hover {
+    border-color: #333333;
+    /* Opcional: borda laranja em hover */
+    border-color: rgba(255, 85, 0, 0.5);
+}
+```
+
+**Páginas Redesenhadas:**
+- `painel.html` - Dashboard principal
+- `ferramentas.html` - Grid de ferramentas
+- `criar-liga.html` - Wizard 2 etapas (CSS inline)
+- `editar-liga.html` - Tabela de times (CSS inline)
+- `detalhe-liga.html` - Cards de módulos + destaques
+
+**CSS Inline vs Externo:**
+- Páginas simples (criar-liga, editar-liga): CSS inline no `<style>` do HTML
+- Páginas complexas (detalhe-liga, painel): CSS em `/css/modules/*.css`
+
 ---
 
 ## Estrutura de Pastas Relevante
@@ -751,3 +803,4 @@ Rodadas onde ocorrem confrontos de Mata-Mata (importante para detecção de cach
 - Add to memorize. Git
 - claude.md
 - to memorize
+- claude.md
