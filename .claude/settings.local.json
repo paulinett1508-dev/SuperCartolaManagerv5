@@ -34,7 +34,8 @@
       "mcp__mongo__find_documents",
       "mcp__mongo__get_collection_schema",
       "Bash(timeout 5 node:*)",
-      "Bash(timeout 10 node:*)"
+      "Bash(timeout 10 node:*)",
+      "Bash(mkdir:*)"
     ]
   },
   "enableAllProjectMcpServers": true,
