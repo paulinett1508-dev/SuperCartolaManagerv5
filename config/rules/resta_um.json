@@ -1,0 +1,105 @@
+{
+  "id": "resta_um",
+  "nome": "Resta Um",
+  "descricao": "Competição de eliminação progressiva. A cada rodada, o time com menor pontuação é eliminado até restar apenas um campeão.",
+  "tipo": "competicao_eliminatoria",
+  "status": "planejado",
+  "versao": "1.0.0",
+
+  "configuracao": {
+    "ligas_habilitadas": ["684cb1c8af923da7c7df51de"],
+    "modulo_ativo": true,
+    "temporada": 2025,
+    "minimo_participantes": 8
+  },
+
+  "calendario": {
+    "edicoes": [
+      {
+        "id": 1,
+        "nome": "1ª Edição",
+        "rodadaInicial": 1,
+        "rodadaFinal": 19,
+        "status": "pendente"
+      },
+      {
+        "id": 2,
+        "nome": "2ª Edição",
+        "rodadaInicial": 20,
+        "rodadaFinal": 38,
+        "status": "pendente"
+      }
+    ]
+  },
+
+  "regras": {
+    "mecanica": {
+      "tipo": "eliminacao_progressiva",
+      "descricao": "A cada rodada, o participante com menor pontuação é eliminado da competição",
+      "eliminados_por_rodada": 1,
+      "protecao_primeira_rodada": false
+    },
+
+    "eliminacao": {
+      "criterio_principal": "menor_pontuacao_rodada",
+      "desempate": [
+        "menor_pontuacao_acumulada",
+        "mais_vezes_na_zona_de_eliminacao",
+        "pior_posicao_ranking_geral"
+      ],
+      "notificacao": true
+    },
+
+    "sobrevivencia": {
+      "bonus_por_rodada": {
+        "habilitado": true,
+        "valor_base": 2.00,
+        "incremento_progressivo": 0.50,
+        "descricao": "Bônus aumenta conforme avança (R1=2, R2=2.50, R3=3...)"
+      }
+    },
+
+    "premiacao_final": {
+      "campeao": {
+        "posicao": 1,
+        "valor": 100.00,
+        "titulo": "Sobrevivente"
+      },
+      "vice": {
+        "posicao": 2,
+        "valor": 50.00,
+        "descricao": "Último eliminado"
+      },
+      "terceiro": {
+        "posicao": 3,
+        "valor": 25.00,
+        "descricao": "Penúltimo eliminado"
+      }
+    },
+
+    "reentrada": {
+      "permitida": false,
+      "descricao": "Uma vez eliminado, não pode retornar à competição"
+    }
+  },
+
+  "estados_participante": [
+    "ativo",
+    "eliminado",
+    "campeao"
+  ],
+
+  "financeiro": {
+    "impacto_banco": false,
+    "premiacao_separada": true,
+    "bonus_sobrevivencia_acumulativo": true,
+    "moeda": "BRL",
+    "precisao_decimal": 2
+  },
+
+  "metadados": {
+    "criado_em": "2025-12-14",
+    "autor": "Sistema",
+    "fonte": "Novo módulo - Especificação"
+  }
+}

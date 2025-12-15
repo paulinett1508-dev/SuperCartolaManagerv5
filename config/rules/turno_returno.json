@@ -1,0 +1,126 @@
+{
+  "id": "turno_returno",
+  "nome": "Turno e Returno",
+  "descricao": "Divisão do campeonato em dois turnos (1º e 2º) com campeões separados. Permite análise de desempenho por metade da temporada.",
+  "tipo": "ranking_periodico",
+  "status": "ativo",
+  "versao": "2.0.0",
+
+  "configuracao": {
+    "ligas_habilitadas": ["684cb1c8af923da7c7df51de", "684d821cf1a7ae16d1f89572"],
+    "modulo_ativo": true,
+    "temporada": 2025
+  },
+
+  "calendario": {
+    "turnos": {
+      "1": {
+        "nome": "1º Turno",
+        "rodada_inicio": 1,
+        "rodada_fim": 19,
+        "descricao": "Primeira metade do campeonato"
+      },
+      "2": {
+        "nome": "2º Turno",
+        "rodada_inicio": 20,
+        "rodada_fim": 38,
+        "descricao": "Segunda metade do campeonato"
+      },
+      "geral": {
+        "nome": "Geral",
+        "rodada_inicio": 1,
+        "rodada_fim": 38,
+        "descricao": "Temporada completa"
+      }
+    }
+  },
+
+  "regras": {
+    "calculo": {
+      "metodo": "soma_pontuacoes_turno",
+      "fonte_dados": "collection:rodadas",
+      "filtro_rodada_nao_jogada": true
+    },
+
+    "ordenacao": {
+      "criterio_principal": "pontos",
+      "direcao": "DESC"
+    },
+
+    "desempate": {
+      "criterios": [
+        "maior_rodadas_jogadas",
+        "nome_cartola_alfabetico"
+      ]
+    },
+
+    "estados": [
+      {
+        "status": "em_andamento",
+        "descricao": "Turno ainda não terminou"
+      },
+      {
+        "status": "consolidado",
+        "descricao": "Turno encerrado e imutável"
+      }
+    ],
+
+    "imutabilidade": {
+      "turno_consolidado": true,
+      "descricao": "Uma vez que rodadaAtual >= rodada_fim, turno é consolidado"
+    },
+
+    "participantes_inativos": {
+      "separacao": true,
+      "posicao_ativos": "1 a N",
+      "posicao_inativos": "N+1 em diante",
+      "campos_status": ["ativo", "rodada_desistencia", "inativo", "posicao_grupo"]
+    },
+
+    "cache": {
+      "collection": "rankingturnos",
+      "documento_por_turno": true,
+      "invalidar_nao_consolidados": true
+    }
+  },
+
+  "campos_ranking": [
+    "posicao",
+    "posicao_grupo",
+    "timeId",
+    "nome_time",
+    "nome_cartola",
+    "escudo",
+    "clube_id",
+    "pontos",
+    "rodadas_jogadas",
+    "ativo",
+    "rodada_desistencia",
+    "inativo"
+  ],
+
+  "premiacao": {
+    "campeao_turno": {
+      "valor": 30.00,
+      "descricao": "Prêmio por vencer um turno"
+    },
+    "campeao_ambos": {
+      "valor": 50.00,
+      "bonus": true,
+      "descricao": "Bônus extra se vencer os dois turnos"
+    }
+  },
+
+  "financeiro": {
+    "impacto_banco": true,
+    "tipo_transacao": "TURNO",
+    "moeda": "BRL",
+    "precisao_decimal": 2
+  },
+
+  "metadados": {
+    "criado_em": "2025-12-14",
+    "autor": "Sistema",
+    "fonte": "services/rankingTurnoService.js, controllers/rankingTurnoController.js, models/RankingTurno.js"
+  }
+}

@@ -1,0 +1,73 @@
+{
+  "id": "ranking_geral",
+  "nome": "Ranking Geral",
+  "descricao": "Classificação geral acumulada de todos os participantes da liga ao longo da temporada.",
+  "tipo": "ranking_acumulado",
+  "status": "ativo",
+  "versao": "1.0.0",
+
+  "configuracao": {
+    "ligas_habilitadas": ["684cb1c8af923da7c7df51de", "684d821cf1a7ae16d1f89572"],
+    "modulo_ativo": true,
+    "temporada": 2025
+  },
+
+  "regras": {
+    "calculo": {
+      "metodo": "soma_pontuacoes",
+      "fonte_dados": "collection:rodadas",
+      "campo_pontuacao": "pontos",
+      "agregacao": {
+        "tipo": "group_by_time",
+        "operacao": "$sum"
+      }
+    },
+
+    "ordenacao": {
+      "criterio_principal": "pontos_totais",
+      "direcao": "DESC"
+    },
+
+    "desempate": {
+      "criterios": [
+        "maior_pontuacao_rodada_mais_recente",
+        "maior_numero_rodadas_jogadas",
+        "nome_cartola_alfabetico"
+      ]
+    },
+
+    "participantes_inativos": {
+      "incluir_no_ranking": true,
+      "posicao_separada": true,
+      "descricao": "Inativos aparecem após os ativos no ranking"
+    },
+
+    "cache": {
+      "collection": "rankinggeralcaches",
+      "ttl_minutos": 30,
+      "invalidar_ao_consolidar_rodada": true
+    }
+  },
+
+  "campos_retornados": [
+    "timeId",
+    "nome_cartola",
+    "nome_time",
+    "escudo",
+    "clube_id",
+    "pontos_totais",
+    "rodadas_jogadas",
+    "posicao"
+  ],
+
+  "financeiro": {
+    "impacto_direto": false,
+    "descricao": "Ranking informativo, sem impacto financeiro direto"
+  },
+
+  "metadados": {
+    "criado_em": "2025-12-14",
+    "autor": "Sistema",
+    "fonte": "controllers/rankingGeralCacheController.js"
+  }
+}

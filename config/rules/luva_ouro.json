@@ -1,0 +1,115 @@
+{
+  "id": "luva_ouro",
+  "nome": "Luva de Ouro",
+  "descricao": "Competição de defesa/goleiros. Ranking baseado na pontuação acumulada dos goleiros escalados ao longo da temporada.",
+  "tipo": "ranking_estatistico",
+  "status": "ativo",
+  "versao": "1.0.0",
+
+  "configuracao": {
+    "ligas_habilitadas": ["684d821cf1a7ae16d1f89572"],
+    "modulo_ativo": true,
+    "temporada": 2025,
+    "restricao": "Apenas Liga Cartoleiros do Sobral"
+  },
+
+  "regras": {
+    "calculo": {
+      "metodo": "soma_pontuacao_goleiros",
+      "fonte_dados": "collection:goleiros",
+      "campo_pontuacao": "pontos",
+      "filtro_posicao": "goleiro"
+    },
+
+    "coleta": {
+      "fonte": "API Cartola (time/id/{timeId}/{rodada})",
+      "identificacao_goleiro": "posicao_id = 1",
+      "dados_coletados": [
+        "goleiroNome",
+        "goleiroClube",
+        "pontos",
+        "status"
+      ]
+    },
+
+    "ordenacao": {
+      "criterio_principal": "pontos_total",
+      "direcao": "DESC"
+    },
+
+    "desempate": {
+      "criterios": [
+        "maior_media_pontos",
+        "maior_rodadas_com_goleiro",
+        "posicao_ranking_geral"
+      ]
+    },
+
+    "elegibilidade": {
+      "escalacao_sem_goleiro": "0 pontos na rodada",
+      "rodada_nao_jogada": "excluir do cálculo"
+    },
+
+    "cache": {
+      "collection": "goleiros",
+      "persistencia": true,
+      "data_coleta_registrada": true
+    }
+  },
+
+  "campos_ranking": [
+    "posicao",
+    "participanteId",
+    "participanteNome",
+    "totalPontos",
+    "totalRodadas",
+    "mediaPontos",
+    "melhorRodada",
+    "piorRodada",
+    "rodadasComGoleiro"
+  ],
+
+  "estatisticas_participante": {
+    "total_pontos": "soma de todos os pontos de goleiros",
+    "total_rodadas": "rodadas onde goleiro foi escalado",
+    "media_pontos": "total_pontos / total_rodadas",
+    "melhor_rodada": "maior pontuação em uma rodada",
+    "pior_rodada": "menor pontuação em uma rodada"
+  },
+
+  "premiacao": {
+    "campeao": {
+      "posicao": 1,
+      "valor": 30.00,
+      "titulo": "Luva de Ouro"
+    },
+    "vice": {
+      "posicao": 2,
+      "valor": 20.00
+    },
+    "terceiro": {
+      "posicao": 3,
+      "valor": 10.00
+    }
+  },
+
+  "financeiro": {
+    "impacto_banco": true,
+    "tipo_transacao": "LUVA_OURO",
+    "premiacao_fim_temporada": true,
+    "moeda": "BRL",
+    "precisao_decimal": 2
+  },
+
+  "ui": {
+    "icone": "sports_soccer",
+    "cor_tema": "#4ade80",
+    "descricao_participante": "Ranking de Goleiros"
+  },
+
+  "metadados": {
+    "criado_em": "2025-12-14",
+    "autor": "Sistema",
+    "fonte": "controllers/luvaDeOuroController.js, services/goleirosService.js, models/Goleiros.js"
+  }
+}

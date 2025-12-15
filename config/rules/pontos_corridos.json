@@ -1,0 +1,107 @@
+{
+  "id": "pontos_corridos",
+  "nome": "Pontos Corridos",
+  "descricao": "Sistema de confrontos 1x1 em formato de liga, onde cada time enfrenta todos os outros ao longo da temporada.",
+  "tipo": "competicao_confronto",
+  "status": "ativo",
+  "versao": "2.1.0",
+
+  "configuracao": {
+    "ligas_habilitadas": ["684cb1c8af923da7c7df51de"],
+    "modulo_ativo": true,
+    "temporada": 2025,
+    "rodada_inicial": 7,
+    "formato": "round_robin"
+  },
+
+  "regras": {
+    "confrontos": {
+      "metodo": "round_robin_ordenado",
+      "ordenacao_inicial": "nome_cartola_alfabetico",
+      "calculo_oponente": {
+        "formula": "(meuIndex + rodadaLiga) % totalTimes",
+        "descricao": "Cada rodada, o índice do oponente avança ciclicamente"
+      }
+    },
+
+    "resultado": {
+      "criterio_comparacao": "pontuacao_rodada",
+      "tolerancia_empate": 0.3,
+      "limite_goleada": 50.0
+    },
+
+    "pontuacao_tabela": {
+      "vitoria": {
+        "pontos": 3,
+        "financeiro": 5.00
+      },
+      "empate": {
+        "pontos": 1,
+        "financeiro": 3.00,
+        "criterio": "diferenca_absoluta <= 0.3"
+      },
+      "derrota": {
+        "pontos": 0,
+        "financeiro": -5.00
+      },
+      "goleada": {
+        "bonus_pontos": 0,
+        "bonus_financeiro": 2.00,
+        "criterio": "diferenca_absoluta >= 50",
+        "descricao": "Vitória por 50+ pontos = goleada (+R$2 extra)"
+      }
+    },
+
+    "classificacao": {
+      "ordenacao": [
+        { "campo": "pontos", "direcao": "DESC" },
+        { "campo": "saldo_gols", "direcao": "DESC" },
+        { "campo": "vitorias", "direcao": "DESC" }
+      ],
+      "campos_calculados": [
+        "jogos",
+        "vitorias",
+        "empates",
+        "derrotas",
+        "pontos",
+        "gols_pro",
+        "gols_contra",
+        "saldo_gols",
+        "pontosGoleada",
+        "financeiro"
+      ]
+    },
+
+    "participantes_inativos": {
+      "incluir_confrontos": true,
+      "pontuacao_wo": 0,
+      "descricao": "Times inativos aparecem separados no fim da classificação"
+    },
+
+    "cache": {
+      "collection": "pontoscorridoscaches",
+      "ttl_minutos": 60,
+      "dados_armazenados": ["classificacao", "confrontos"]
+    }
+  },
+
+  "financeiro": {
+    "impacto_banco": true,
+    "tipo_transacao": "PONTOS_CORRIDOS",
+    "valores": {
+      "vitoria_simples": 5.00,
+      "vitoria_goleada": 7.00,
+      "empate": 3.00,
+      "derrota_simples": -5.00,
+      "derrota_goleada": -7.00
+    },
+    "moeda": "BRL",
+    "precisao_decimal": 2
+  },
+
+  "metadados": {
+    "criado_em": "2025-12-14",
+    "autor": "Sistema",
+    "fonte": "controllers/pontosCorridosCacheController.js"
+  }
+}

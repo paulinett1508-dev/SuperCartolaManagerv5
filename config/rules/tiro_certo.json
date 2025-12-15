@@ -1,0 +1,180 @@
+{
+  "id": "tiro_certo",
+  "nome": "Tiro Certo",
+  "descricao": "Modo Survival baseado em palpites de resultados reais. Escolha um time que vai VENCER na rodada - se acertar, avança. Errou ou empatou? Eliminado. Último sobrevivente vence.",
+  "tipo": "competicao_survival",
+  "status": "planejado",
+  "versao": "2.0.0",
+
+  "configuracao": {
+    "ligas_habilitadas": ["684cb1c8af923da7c7df51de"],
+    "modulo_ativo": false,
+    "temporada": 2026,
+    "fonte_resultados": "API Brasileirão (placares reais)"
+  },
+
+  "calendario": {
+    "edicoes": [
+      {
+        "id": 1,
+        "nome": "1ª Edição",
+        "rodadaInicial": 7,
+        "rodadaFinal": 15,
+        "rodadaDefinicao": 6,
+        "status": "pendente"
+      },
+      {
+        "id": 2,
+        "nome": "2ª Edição",
+        "rodadaInicial": 18,
+        "rodadaFinal": 26,
+        "rodadaDefinicao": 17,
+        "status": "pendente"
+      },
+      {
+        "id": 3,
+        "nome": "3ª Edição",
+        "rodadaInicial": 29,
+        "rodadaFinal": 37,
+        "rodadaDefinicao": 28,
+        "status": "pendente"
+      }
+    ],
+    "total_edicoes": 3
+  },
+
+  "regras": {
+    "mecanica": {
+      "tipo": "survival_last_man_standing",
+      "descricao": "Escolha um time do Brasileirão que você acredita que VENCERÁ na rodada. Acertou? Avança. Errou ou empatou? Eliminado.",
+      "base_calculo": "placar_real_brasileirao",
+      "nao_usa_pontos_cartola": true
+    },
+
+    "palpite": {
+      "tipo": "escolha_time_vencedor",
+      "quantidade_escolhas": 1,
+      "prazo_limite": "fechamento_mercado_cartola",
+      "times_disponiveis": "todos_serie_a",
+      "descricao": "Usuário escolhe 1 time que acredita que VENCERÁ seu jogo na rodada"
+    },
+
+    "resultado_rodada": {
+      "vitoria_time_escolhido": {
+        "resultado": "AVANCA",
+        "descricao": "Time escolhido venceu → Participante continua vivo"
+      },
+      "empate": {
+        "resultado": "ELIMINADO",
+        "descricao": "Time escolhido empatou → Participante eliminado"
+      },
+      "derrota_time_escolhido": {
+        "resultado": "ELIMINADO",
+        "descricao": "Time escolhido perdeu → Participante eliminado"
+      }
+    },
+
+    "restricao_repeticao": {
+      "ativa": true,
+      "escopo": "por_edicao",
+      "descricao": "NÃO pode escolher o mesmo time duas vezes na mesma edição",
+      "exemplo": "Se escolheu Flamengo na R7, não pode escolher Flamengo novamente até a próxima edição"
+    },
+
+    "wo_automatico": {
+      "ativo": true,
+      "condicao": "mercado_fechou_sem_escolha",
+      "resultado": "ELIMINADO",
+      "descricao": "Se o mercado fechar e o participante 'vivo' não escolheu nenhum time, é eliminado automaticamente"
+    },
+
+    "vencedor": {
+      "criterio": "last_man_standing",
+      "descricao": "O último sobrevivente da edição é o campeão",
+      "empate_final": {
+        "metodo": "divisao_premio",
+        "descricao": "Se mais de um sobreviver até a última rodada, dividem o prêmio"
+      }
+    },
+
+    "estados_participante": [
+      {
+        "status": "vivo",
+        "descricao": "Participante ainda na disputa, pode fazer escolhas"
+      },
+      {
+        "status": "eliminado",
+        "descricao": "Participante perdeu, aguarda próxima edição"
+      },
+      {
+        "status": "campeao",
+        "descricao": "Último sobrevivente da edição"
+      }
+    ]
+  },
+
+  "premiacao": {
+    "campeao": {
+      "posicao": 1,
+      "valor": 100.00,
+      "titulo": "Sobrevivente",
+      "descricao": "Último participante vivo na edição"
+    },
+    "bonus_invicto": {
+      "condicao": "vencer_todas_rodadas_da_edicao",
+      "valor": 50.00,
+      "descricao": "Bônus extra se vencer sem nunca estar em risco"
+    }
+  },
+
+  "financeiro": {
+    "impacto_banco": false,
+    "premiacao_separada": true,
+    "inscricao": {
+      "valor": 0,
+      "descricao": "Participação gratuita (inclusa na liga)"
+    },
+    "moeda": "BRL",
+    "precisao_decimal": 2
+  },
+
+  "interface": {
+    "tela_escolha": {
+      "titulo": "Escolha seu Tiro Certo",
+      "subtitulo": "Qual time vai VENCER nesta rodada?",
+      "exibir_times_ja_usados": true,
+      "exibir_jogos_rodada": true,
+      "countdown_deadline": true
+    },
+    "icones": {
+      "vivo": "ph-fill ph-heart",
+      "eliminado": "ph-fill ph-skull",
+      "campeao": "ph-fill ph-trophy"
+    },
+    "cores": {
+      "vivo": "#22c55e",
+      "eliminado": "#ef4444",
+      "campeao": "#ffd700"
+    }
+  },
+
+  "integracao": {
+    "api_resultados": {
+      "fonte": "API Brasileirão / Globo Esporte",
+      "dados_necessarios": ["placar_final", "status_jogo", "rodada"]
+    },
+    "notificacoes": {
+      "lembrete_escolha": "6h antes do fechamento",
+      "resultado_rodada": "ao final dos jogos",
+      "eliminacao": "imediato"
+    }
+  },
+
+  "metadados": {
+    "criado_em": "2025-12-14",
+    "atualizado_em": "2025-12-15",
+    "autor": "Product Owner",
+    "versao_anterior": "1.0.0 (conceito errado - descartado)",
+    "fonte": "Definição correta: Survival Mode baseado em placares reais"
+  }
+}

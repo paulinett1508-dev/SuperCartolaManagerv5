@@ -1,0 +1,124 @@
+{
+  "id": "ranking_rodada",
+  "nome": "Ranking da Rodada (BANCO)",
+  "descricao": "Classificação por rodada com impacto financeiro baseado na posição. Conhecida como sistema BANCO - bônus para primeiros, ônus para últimos.",
+  "tipo": "ranking_rodada",
+  "status": "ativo",
+  "versao": "1.0.0",
+
+  "configuracao": {
+    "ligas_habilitadas": ["684cb1c8af923da7c7df51de", "684d821cf1a7ae16d1f89572"],
+    "modulo_ativo": true,
+    "temporada": 2025
+  },
+
+  "regras": {
+    "calculo": {
+      "metodo": "ordenacao_por_pontos_rodada",
+      "fonte_dados": "collection:rodadas",
+      "campo_pontuacao": "pontos"
+    },
+
+    "ordenacao": {
+      "criterio_principal": "pontos",
+      "direcao": "DESC"
+    },
+
+    "tabela_financeira": {
+      "super_cartola": {
+        "liga_id": "684cb1c8af923da7c7df51de",
+        "total_times": 32,
+        "zonas": {
+          "ganho": {
+            "descricao": "Posições 1-11 (G1-G11)",
+            "valores": {
+              "1": { "valor": 20.00, "zona": "G1", "titulo": "MITO" },
+              "2": { "valor": 19.00, "zona": "G2" },
+              "3": { "valor": 18.00, "zona": "G3" },
+              "4": { "valor": 17.00, "zona": "G4" },
+              "5": { "valor": 16.00, "zona": "G5" },
+              "6": { "valor": 15.00, "zona": "G6" },
+              "7": { "valor": 14.00, "zona": "G7" },
+              "8": { "valor": 13.00, "zona": "G8" },
+              "9": { "valor": 12.00, "zona": "G9" },
+              "10": { "valor": 11.00, "zona": "G10" },
+              "11": { "valor": 10.00, "zona": "G11" }
+            }
+          },
+          "neutra": {
+            "descricao": "Posições 12-21",
+            "posicoes": [12, 13, 14, 15, 16, 17, 18, 19, 20, 21],
+            "valor": 0
+          },
+          "perda": {
+            "descricao": "Posições 22-32 (Z1-Z10)",
+            "valores": {
+              "22": { "valor": -10.00, "zona": "Z1" },
+              "23": { "valor": -11.00, "zona": "Z2" },
+              "24": { "valor": -12.00, "zona": "Z3" },
+              "25": { "valor": -13.00, "zona": "Z4" },
+              "26": { "valor": -14.00, "zona": "Z5" },
+              "27": { "valor": -15.00, "zona": "Z6" },
+              "28": { "valor": -16.00, "zona": "Z7" },
+              "29": { "valor": -17.00, "zona": "Z8" },
+              "30": { "valor": -18.00, "zona": "Z9" },
+              "31": { "valor": -19.00, "zona": "Z10" },
+              "32": { "valor": -20.00, "zona": "Z11", "titulo": "MICO" }
+            }
+          }
+        }
+      },
+
+      "cartoleiros_sobral": {
+        "liga_id": "684d821cf1a7ae16d1f89572",
+        "fases": {
+          "fase_1": {
+            "descricao": "Rodadas 1-28 (6 times ativos)",
+            "rodada_inicio": 1,
+            "rodada_fim": 28,
+            "total_times": 6,
+            "valores": {
+              "1": { "valor": 7.00 },
+              "2": { "valor": 4.00 },
+              "3": { "valor": 0.00 },
+              "4": { "valor": -2.00 },
+              "5": { "valor": -5.00 },
+              "6": { "valor": -10.00 }
+            }
+          },
+          "fase_2": {
+            "descricao": "Rodadas 29-38 (4 times ativos)",
+            "rodada_inicio": 29,
+            "rodada_fim": 38,
+            "total_times": 4,
+            "valores": {
+              "1": { "valor": 5.00 },
+              "2": { "valor": 0.00 },
+              "3": { "valor": 0.00 },
+              "4": { "valor": -5.00 }
+            }
+          }
+        }
+      }
+    },
+
+    "desempate": {
+      "criterios": [
+        "posicao_ranking_geral"
+      ]
+    }
+  },
+
+  "financeiro": {
+    "impacto_banco": true,
+    "tipo_transacao": ["BONUS", "ONUS"],
+    "moeda": "BRL",
+    "precisao_decimal": 2
+  },
+
+  "metadados": {
+    "criado_em": "2025-12-14",
+    "autor": "Sistema",
+    "fonte": "controllers/fluxoFinanceiroController.js:getBancoPorRodada"
+  }
+}

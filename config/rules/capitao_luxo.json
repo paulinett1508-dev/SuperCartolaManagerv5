@@ -1,0 +1,137 @@
+{
+  "id": "capitao_luxo",
+  "nome": "Capitão de Luxo",
+  "descricao": "Ranking baseado exclusivamente na pontuação do capitão escalado em cada rodada. Premia quem soube escolher os melhores capitães.",
+  "tipo": "ranking_estatistico",
+  "status": "planejado",
+  "versao": "1.0.0",
+
+  "configuracao": {
+    "ligas_habilitadas": ["684cb1c8af923da7c7df51de", "684d821cf1a7ae16d1f89572"],
+    "modulo_ativo": false,
+    "temporada": 2025
+  },
+
+  "regras": {
+    "calculo": {
+      "metodo": "soma_pontuacao_capitao",
+      "fonte_dados": "API Cartola (time/id/{timeId}/{rodada})",
+      "identificacao_capitao": "campo capitao_id na escalação",
+      "pontuacao": "pontuacao_atleta * 2 (já aplicado pela API)"
+    },
+
+    "coleta": {
+      "fonte": "API Cartola",
+      "dados_por_rodada": {
+        "capitao_id": "ID do atleta capitão",
+        "capitao_nome": "Apelido do atleta",
+        "capitao_clube": "Clube do atleta",
+        "pontuacao_base": "Pontuação sem bônus",
+        "pontuacao_capitao": "Pontuação com bônus x2"
+      }
+    },
+
+    "ordenacao": {
+      "criterio_principal": "pontuacao_total_capitaes",
+      "direcao": "DESC"
+    },
+
+    "desempate": {
+      "criterios": [
+        "maior_media_capitaes",
+        "maior_capitao_single",
+        "menor_pior_capitao",
+        "posicao_ranking_geral"
+      ]
+    },
+
+    "estatisticas": {
+      "total_pontos": "soma de todas as pontuações de capitães",
+      "media_pontos": "total / rodadas_jogadas",
+      "melhor_capitao": {
+        "rodada": "número da rodada",
+        "atleta": "nome do capitão",
+        "pontuacao": "valor da pontuação"
+      },
+      "pior_capitao": {
+        "rodada": "número da rodada",
+        "atleta": "nome do capitão",
+        "pontuacao": "valor da pontuação"
+      },
+      "capitaes_distintos": "quantidade de atletas diferentes usados como capitão"
+    },
+
+    "cache": {
+      "collection": "capitaocaches",
+      "persistencia": true
+    }
+  },
+
+  "campos_ranking": [
+    "posicao",
+    "timeId",
+    "nome_cartola",
+    "nome_time",
+    "escudo",
+    "pontuacao_total",
+    "rodadas_jogadas",
+    "media_capitao",
+    "melhor_capitao",
+    "pior_capitao",
+    "capitaes_distintos"
+  ],
+
+  "premiacao": {
+    "campeao": {
+      "posicao": 1,
+      "valor": 25.00,
+      "titulo": "Capitão de Luxo"
+    },
+    "vice": {
+      "posicao": 2,
+      "valor": 15.00
+    },
+    "terceiro": {
+      "posicao": 3,
+      "valor": 10.00
+    }
+  },
+
+  "bonificacao_rodada": {
+    "habilitado": false,
+    "descricao": "Possibilidade futura de bônus para o melhor capitão de cada rodada",
+    "valor": 5.00
+  },
+
+  "financeiro": {
+    "impacto_banco": true,
+    "tipo_transacao": "CAPITAO_LUXO",
+    "premiacao_fim_temporada": true,
+    "moeda": "BRL",
+    "precisao_decimal": 2
+  },
+
+  "ui": {
+    "icone": "military_tech",
+    "cor_tema": "#8b5cf6",
+    "descricao_participante": "Ranking de Capitães"
+  },
+
+  "implementacao": {
+    "status": "pendente",
+    "requisitos": [
+      "Criar model CapitaoCaches",
+      "Criar controller capitaoController.js",
+      "Criar service capitaoService.js",
+      "Adicionar rotas em routes/",
+      "Criar frontend participante-capitao.js"
+    ],
+    "prioridade": "baixa"
+  },
+
+  "metadados": {
+    "criado_em": "2025-12-14",
+    "autor": "Sistema",
+    "fonte": "Novo módulo - Especificação"
+  }
+}

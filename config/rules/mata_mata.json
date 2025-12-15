@@ -1,0 +1,142 @@
+{
+  "id": "mata_mata",
+  "nome": "Mata-Mata",
+  "descricao": "Competição eliminatória em fases. 32 times iniciam, eliminação direta até a final. Chaveamento baseado no ranking da rodada de definição.",
+  "tipo": "competicao_eliminatoria",
+  "status": "ativo",
+  "versao": "1.1.0",
+
+  "configuracao": {
+    "ligas_habilitadas": ["684cb1c8af923da7c7df51de"],
+    "modulo_ativo": true,
+    "temporada": 2025,
+    "total_times": 32,
+    "rodada_final_campeonato": 38,
+    "campeonato_encerrado": true
+  },
+
+  "calendario": {
+    "edicoes": [
+      {
+        "id": 1,
+        "nome": "1ª Edição",
+        "rodadaInicial": 3,
+        "rodadaFinal": 7,
+        "rodadaDefinicao": 2,
+        "fases": {
+          "primeira": 3,
+          "oitavas": 4,
+          "quartas": 5,
+          "semis": 6,
+          "final": 7
+        }
+      },
+      {
+        "id": 2,
+        "nome": "2ª Edição",
+        "rodadaInicial": 10,
+        "rodadaFinal": 14,
+        "rodadaDefinicao": 9,
+        "fases": {
+          "primeira": 10,
+          "oitavas": 11,
+          "quartas": 12,
+          "semis": 13,
+          "final": 14
+        }
+      },
+      {
+        "id": 3,
+        "nome": "3ª Edição",
+        "rodadaInicial": 16,
+        "rodadaFinal": 21,
+        "rodadaDefinicao": 15,
+        "fases": {
+          "primeira": 16,
+          "oitavas": 17,
+          "quartas": 18,
+          "semis": 19,
+          "final": 20
+        }
+      },
+      {
+        "id": 4,
+        "nome": "4ª Edição",
+        "rodadaInicial": 22,
+        "rodadaFinal": 26,
+        "rodadaDefinicao": 21,
+        "fases": {
+          "primeira": 22,
+          "oitavas": 23,
+          "quartas": 24,
+          "semis": 25,
+          "final": 26
+        }
+      },
+      {
+        "id": 5,
+        "nome": "5ª Edição",
+        "rodadaInicial": 31,
+        "rodadaFinal": 35,
+        "rodadaDefinicao": 30,
+        "fases": {
+          "primeira": 31,
+          "oitavas": 32,
+          "quartas": 33,
+          "semis": 34,
+          "final": 35
+        }
+      }
+    ]
+  },
+
+  "regras": {
+    "chaveamento": {
+      "metodo": "ranking_rodada_definicao",
+      "formato_primeira_fase": "1x32, 2x31, 3x30, ..., 16x17",
+      "descricao": "Melhores enfrentam piores baseado no ranking da rodada de definição"
+    },
+
+    "fases": {
+      "primeira": { "jogos": 16, "classificados": 16 },
+      "oitavas": { "jogos": 8, "classificados": 8 },
+      "quartas": { "jogos": 4, "classificados": 4 },
+      "semis": { "jogos": 2, "classificados": 2 },
+      "final": { "jogos": 1, "classificados": 1 }
+    },
+
+    "confronto": {
+      "criterio_vitoria": "maior_pontuacao_rodada",
+      "desempate": {
+        "metodo": "ranking_rodada_definicao",
+        "descricao": "Em caso de empate, vence quem tinha melhor posição na rodada de definição (menor rankR2)"
+      }
+    },
+
+    "cache": {
+      "collection": "matamatacaches",
+      "calculo_historico": true,
+      "descricao": "Resultados calculados retroativamente para todas as edições"
+    }
+  },
+
+  "financeiro": {
+    "impacto_banco": true,
+    "tipo_transacao": "MATA_MATA",
+    "valores_por_fase": {
+      "primeira": { "vitoria": 10.00, "derrota": -10.00 },
+      "oitavas": { "vitoria": 10.00, "derrota": -10.00 },
+      "quartas": { "vitoria": 10.00, "derrota": -10.00 },
+      "semis": { "vitoria": 10.00, "derrota": -10.00 },
+      "final": { "vitoria": 10.00, "derrota": -10.00 }
+    },
+    "moeda": "BRL",
+    "precisao_decimal": 2
+  },
+
+  "metadados": {
+    "criado_em": "2025-12-14",
+    "autor": "Sistema",
+    "fonte": "controllers/mata-mata-backend.js"
+  }
+}

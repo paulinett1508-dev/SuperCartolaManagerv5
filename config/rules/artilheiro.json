@@ -1,0 +1,142 @@
+{
+  "id": "artilheiro",
+  "nome": "Artilheiro Campeão",
+  "descricao": "Competição de ataque. Ranking baseado no saldo de gols (gols marcados - gols contra) pelos jogadores escalados.",
+  "tipo": "ranking_estatistico",
+  "status": "ativo",
+  "versao": "4.4.0",
+
+  "configuracao": {
+    "ligas_habilitadas": ["684d821cf1a7ae16d1f89572"],
+    "modulo_ativo": true,
+    "temporada": 2025,
+    "restricao": "Apenas Liga Cartoleiros do Sobral"
+  },
+
+  "regras": {
+    "calculo": {
+      "metodo": "saldo_gols",
+      "fonte_dados": "collection:golsconsolidados",
+      "formula": "golsPro - golsContra",
+      "scouts_utilizados": ["G", "GC"]
+    },
+
+    "coleta": {
+      "fonte": "API Cartola (time/id/{timeId}/{rodada})",
+      "dados_por_atleta": {
+        "gols": "scout.G",
+        "gols_contra": "scout.GC"
+      },
+      "parciais_tempo_real": {
+        "endpoint": "atletas/pontuados",
+        "habilitado_quando": "mercado_fechado"
+      }
+    },
+
+    "ordenacao": [
+      { "campo": "golsPro", "direcao": "DESC" },
+      { "campo": "saldoGols", "direcao": "DESC" }
+    ],
+
+    "desempate": {
+      "criterios": [
+        "maior_saldo_gols",
+        "maior_gols_pro",
+        "posicao_ranking_geral"
+      ]
+    },
+
+    "participantes_inativos": {
+      "incluir": true,
+      "limitar_rodadas": true,
+      "descricao": "Inativos têm rodadas limitadas até rodada_desistencia - 1"
+    },
+
+    "cache": {
+      "collection": "golsconsolidados",
+      "persistencia": true,
+      "coleta_automatica_faltantes": true
+    },
+
+    "deteccao_mercado": {
+      "status_aberto": 1,
+      "status_fechado": 2,
+      "status_encerrado": [4, 6],
+      "fonte": "api.cartola.globo.com/mercado/status"
+    }
+  },
+
+  "campos_ranking": [
+    "posicao",
+    "timeId",
+    "nome",
+    "nomeTime",
+    "escudo",
+    "clubeId",
+    "golsPro",
+    "golsContra",
+    "saldoGols",
+    "rodadasProcessadas",
+    "ativo",
+    "rodada_desistencia"
+  ],
+
+  "detalhamento": {
+    "por_rodada": true,
+    "jogadores_artilheiros": true,
+    "campos_detalhe": [
+      "rodada",
+      "golsPro",
+      "golsContra",
+      "jogadores",
+      "fonte"
+    ]
+  },
+
+  "premiacao": {
+    "campeao": {
+      "posicao": 1,
+      "valor": 30.00,
+      "titulo": "Artilheiro Campeão"
+    },
+    "vice": {
+      "posicao": 2,
+      "valor": 20.00
+    },
+    "terceiro": {
+      "posicao": 3,
+      "valor": 10.00
+    }
+  },
+
+  "financeiro": {
+    "impacto_banco": true,
+    "tipo_transacao": "ARTILHEIRO",
+    "premiacao_fim_temporada": true,
+    "moeda": "BRL",
+    "precisao_decimal": 2
+  },
+
+  "participantes_hardcoded": {
+    "liga_sobral": [
+      { "timeId": 1926323, "nome": "Daniel Barbosa", "clubeId": 262 },
+      { "timeId": 13935277, "nome": "Paulinett Miranda", "clubeId": 262 },
+      { "timeId": 14747183, "nome": "Carlos Henrique", "clubeId": 276 },
+      { "timeId": 49149009, "nome": "Matheus Coutinho", "clubeId": 262 },
+      { "timeId": 49149388, "nome": "Junior Brasilino", "clubeId": 262 },
+      { "timeId": 50180257, "nome": "Hivisson", "clubeId": 267 }
+    ]
+  },
+
+  "ui": {
+    "icone": "sports_soccer",
+    "cor_tema": "#f59e0b",
+    "descricao_participante": "Ranking de Gols"
+  },
+
+  "metadados": {
+    "criado_em": "2025-12-14",
+    "autor": "Sistema",
+    "fonte": "controllers/artilheiroCampeaoController.js"
+  }
+}

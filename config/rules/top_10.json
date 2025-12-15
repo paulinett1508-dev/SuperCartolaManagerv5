@@ -1,0 +1,132 @@
+{
+  "id": "top_10",
+  "nome": "Top 10 Mitos/Micos",
+  "descricao": "Ranking histórico das 10 maiores (MITOS) e 10 menores (MICOS) pontuações de toda a temporada. Premia destaques positivos e negativos.",
+  "tipo": "ranking_historico",
+  "status": "ativo",
+  "versao": "1.0.0",
+
+  "configuracao": {
+    "ligas_habilitadas": ["684cb1c8af923da7c7df51de", "684d821cf1a7ae16d1f89572"],
+    "modulo_ativo": true,
+    "temporada": 2025
+  },
+
+  "regras": {
+    "calculo": {
+      "metodo": "ranking_extremos_historicos",
+      "fonte_dados": "collection:rodadas",
+      "descricao": "Analisa TODAS as pontuações do campeonato e extrai os 10 maiores e 10 menores"
+    },
+
+    "mitos": {
+      "descricao": "10 maiores pontuações históricas do campeonato",
+      "quantidade": 10,
+      "ordenacao": "DESC",
+      "titulo_primeiro": "MELHOR MITO"
+    },
+
+    "micos": {
+      "descricao": "10 menores pontuações históricas do campeonato",
+      "quantidade": 10,
+      "ordenacao": "ASC",
+      "titulo_primeiro": "PIOR MICO"
+    },
+
+    "elegibilidade": {
+      "participantes_inativos": "incluir_pontuacoes_anteriores",
+      "rodada_nao_jogada": "excluir",
+      "pontuacao_minima": null
+    },
+
+    "cache": {
+      "collection": "top10caches",
+      "ttl_minutos": 60,
+      "calculo_historico": true
+    }
+  },
+
+  "financeiro": {
+    "super_cartola": {
+      "liga_id": "684cb1c8af923da7c7df51de",
+      "mitos": {
+        "1": { "valor": 30.00, "descricao": "1º MELHOR MITO" },
+        "2": { "valor": 28.00, "descricao": "2º MELHOR MITO" },
+        "3": { "valor": 26.00, "descricao": "3º MELHOR MITO" },
+        "4": { "valor": 24.00, "descricao": "4º MELHOR MITO" },
+        "5": { "valor": 22.00, "descricao": "5º MELHOR MITO" },
+        "6": { "valor": 20.00, "descricao": "6º MELHOR MITO" },
+        "7": { "valor": 18.00, "descricao": "7º MELHOR MITO" },
+        "8": { "valor": 16.00, "descricao": "8º MELHOR MITO" },
+        "9": { "valor": 14.00, "descricao": "9º MELHOR MITO" },
+        "10": { "valor": 12.00, "descricao": "10º MELHOR MITO" }
+      },
+      "micos": {
+        "1": { "valor": -30.00, "descricao": "1º PIOR MICO" },
+        "2": { "valor": -28.00, "descricao": "2º PIOR MICO" },
+        "3": { "valor": -26.00, "descricao": "3º PIOR MICO" },
+        "4": { "valor": -24.00, "descricao": "4º PIOR MICO" },
+        "5": { "valor": -22.00, "descricao": "5º PIOR MICO" },
+        "6": { "valor": -20.00, "descricao": "6º PIOR MICO" },
+        "7": { "valor": -18.00, "descricao": "7º PIOR MICO" },
+        "8": { "valor": -16.00, "descricao": "8º PIOR MICO" },
+        "9": { "valor": -14.00, "descricao": "9º PIOR MICO" },
+        "10": { "valor": -12.00, "descricao": "10º PIOR MICO" }
+      }
+    },
+
+    "cartoleiros_sobral": {
+      "liga_id": "684d821cf1a7ae16d1f89572",
+      "mitos": {
+        "1": { "valor": 10.00 },
+        "2": { "valor": 9.00 },
+        "3": { "valor": 8.00 },
+        "4": { "valor": 7.00 },
+        "5": { "valor": 6.00 },
+        "6": { "valor": 5.00 },
+        "7": { "valor": 4.00 },
+        "8": { "valor": 3.00 },
+        "9": { "valor": 2.00 },
+        "10": { "valor": 1.00 }
+      },
+      "micos": {
+        "1": { "valor": -10.00 },
+        "2": { "valor": -9.00 },
+        "3": { "valor": -8.00 },
+        "4": { "valor": -7.00 },
+        "5": { "valor": -6.00 },
+        "6": { "valor": -5.00 },
+        "7": { "valor": -4.00 },
+        "8": { "valor": -3.00 },
+        "9": { "valor": -2.00 },
+        "10": { "valor": -1.00 }
+      }
+    },
+
+    "impacto_banco": true,
+    "tipo_transacao": ["MITO", "MICO"],
+    "moeda": "BRL",
+    "precisao_decimal": 2
+  },
+
+  "ui": {
+    "nomenclatura": {
+      "mito_badge": "Xº MELHOR MITO",
+      "mico_badge": "Xº PIOR MICO"
+    },
+    "icones": {
+      "mito": "emoji_events",
+      "mico": "sentiment_sad"
+    },
+    "cores": {
+      "mito": "#ffd700",
+      "mico": "#ef4444"
+    }
+  },
+
+  "metadados": {
+    "criado_em": "2025-12-14",
+    "autor": "Sistema",
+    "fonte": "controllers/top10CacheController.js, controllers/fluxoFinanceiroController.js"
+  }
+}
