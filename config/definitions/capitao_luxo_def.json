@@ -1,0 +1,145 @@
+{
+  "id": "capitao_luxo",
+  "nome": "Capitão de Luxo",
+  "descricao": "Ranking baseado exclusivamente na pontuação dos capitães. Premia quem soube escolher os melhores capitães ao longo da temporada.",
+  "categoria": "estatistico",
+  "obrigatorio": false,
+  "status": "planejado",
+  "versao": "1.0.0",
+
+  "restricoes": {
+    "min_participantes": 2,
+    "max_participantes": null,
+    "habilitado_por_padrao": false,
+    "avisos": [
+      {
+        "condicao": "participantes < 4",
+        "tipo": "aviso",
+        "mensagem": "Ranking de capitães funciona melhor com pelo menos 4 participantes"
+      }
+    ]
+  },
+
+  "parametros_configuraveis": {
+    "considerar_bonus_capitao": {
+      "tipo": "boolean",
+      "label": "Considerar bônus de capitão (x2)",
+      "descricao": "Usa a pontuação já dobrada do capitão (como no Cartola) ou a pontuação base",
+      "default": true
+    },
+    "premiacao_final": {
+      "tipo": "boolean",
+      "label": "Premiação ao final da temporada",
+      "descricao": "Premia os melhores escolhedores de capitão",
+      "default": true,
+      "impacto_financeiro": true
+    },
+    "quantidade_premiados": {
+      "tipo": "number",
+      "label": "Quantidade de premiados",
+      "descricao": "Quantos primeiros colocados recebem premiação",
+      "default": 3,
+      "min": 1,
+      "max": 5,
+      "dependencia": "premiacao_final === true"
+    },
+    "bonus_melhor_capitao_rodada": {
+      "tipo": "boolean",
+      "label": "Bônus para melhor capitão da rodada",
+      "descricao": "Premiação extra para quem escalou o capitão mais pontuador em cada rodada",
+      "default": false,
+      "impacto_financeiro": true
+    },
+    "exibir_estatisticas_detalhadas": {
+      "tipo": "boolean",
+      "label": "Exibir estatísticas detalhadas",
+      "descricao": "Mostra melhor/pior capitão, média, capitães distintos usados",
+      "default": true
+    },
+    "criterio_desempate": {
+      "tipo": "select",
+      "label": "Critério de desempate",
+      "descricao": "Como desempatar participantes com mesma pontuação total de capitães",
+      "default": "maior_media",
+      "opcoes": [
+        {
+          "value": "maior_media",
+          "label": "Maior média de capitães",
+          "descricao": "Média de pontos por rodada"
+        },
+        {
+          "value": "melhor_capitao_single",
+          "label": "Melhor capitão individual",
+          "descricao": "Quem teve o capitão com maior pontuação em uma rodada"
+        },
+        {
+          "value": "menor_pior_capitao",
+          "label": "Menor pior capitão",
+          "descricao": "Quem teve o pior capitão menos ruim"
+        },
+        {
+          "value": "ranking_geral",
+          "label": "Posição no Ranking Geral",
+          "descricao": "Usa a classificação geral como desempate"
+        }
+      ]
+    }
+  },
+
+  "mecanica": {
+    "calculo": {
+      "metodo": "soma_pontuacao_capitao",
+      "fonte": "API Cartola - campo capitao_id na escalação",
+      "pontuacao": "Pontuação do atleta capitão (com ou sem bônus x2)"
+    },
+    "ordenacao": {
+      "criterio": "pontuacao_total_capitaes",
+      "direcao": "DESC"
+    }
+  },
+
+  "estatisticas_disponiveis": [
+    {
+      "campo": "pontuacao_total",
+      "label": "Total de Pontos",
+      "descricao": "Soma de todas as pontuações de capitães"
+    },
+    {
+      "campo": "media_capitao",
+      "label": "Média por Rodada",
+      "descricao": "Média de pontos dos capitães"
+    },
+    {
+      "campo": "melhor_capitao",
+      "label": "Melhor Capitão",
+      "descricao": "Maior pontuação de capitão em uma rodada"
+    },
+    {
+      "campo": "pior_capitao",
+      "label": "Pior Capitão",
+      "descricao": "Menor pontuação de capitão em uma rodada"
+    },
+    {
+      "campo": "capitaes_distintos",
+      "label": "Capitães Diferentes",
+      "descricao": "Quantidade de atletas diferentes escalados como capitão"
+    }
+  ],
+
+  "campos_exibicao": [
+    "posicao",
+    "nome_time",
+    "escudo",
+    "pontuacao_total",
+    "media_capitao",
+    "melhor_capitao",
+    "pior_capitao",
+    "capitaes_distintos"
+  ],
+
+  "metadados": {
+    "criado_em": "2025-12-15",
+    "autor": "Product Team",
+    "notas": "Requer coleta do campo capitao_id a cada rodada via API Cartola"
+  }
+}

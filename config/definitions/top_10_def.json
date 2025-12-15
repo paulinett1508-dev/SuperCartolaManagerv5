@@ -1,0 +1,157 @@
+{
+  "id": "top_10",
+  "nome": "Top 10 Mitos e Micos",
+  "descricao": "Ranking histórico das 10 maiores (Mitos) e 10 menores (Micos) pontuações da temporada. Momentos extremos eternizados.",
+  "categoria": "estatistico",
+  "obrigatorio": false,
+  "status": "ativo",
+  "versao": "1.0.0",
+
+  "restricoes": {
+    "min_participantes": 10,
+    "max_participantes": null,
+    "habilitado_por_padrao": true,
+    "avisos": [
+      {
+        "condicao": "participantes < 10",
+        "tipo": "aviso",
+        "mensagem": "Com menos de 10 participantes, o ranking pode ter repetições"
+      }
+    ]
+  },
+
+  "parametros_configuraveis": {
+    "quantidade_top": {
+      "tipo": "select",
+      "label": "Quantidade no ranking",
+      "descricao": "Quantas posições em cada ranking (Mitos e Micos)",
+      "default": 10,
+      "opcoes": [
+        { "value": 5, "label": "Top 5", "descricao": "5 melhores e 5 piores" },
+        { "value": 10, "label": "Top 10", "descricao": "10 melhores e 10 piores (padrão)" },
+        { "value": 15, "label": "Top 15", "descricao": "15 melhores e 15 piores" }
+      ]
+    },
+    "permitir_repeticao": {
+      "tipo": "boolean",
+      "label": "Permitir repetição de participante",
+      "descricao": "Um participante pode aparecer múltiplas vezes no mesmo ranking",
+      "default": true
+    },
+    "premiacao_mitos": {
+      "tipo": "boolean",
+      "label": "Premiação para Mitos",
+      "descricao": "Bônus financeiro para quem aparece no Top 10 Mitos",
+      "default": true,
+      "impacto_financeiro": true
+    },
+    "onus_micos": {
+      "tipo": "boolean",
+      "label": "Ônus para Micos",
+      "descricao": "Penalização financeira para quem aparece no Top 10 Micos",
+      "default": true,
+      "impacto_financeiro": true
+    },
+    "escala_valores": {
+      "tipo": "select",
+      "label": "Escala de valores",
+      "descricao": "Como distribuir os valores entre as posições",
+      "default": "decrescente",
+      "opcoes": [
+        {
+          "value": "decrescente",
+          "label": "Decrescente",
+          "descricao": "1º recebe mais, 10º recebe menos"
+        },
+        {
+          "value": "uniforme",
+          "label": "Uniforme",
+          "descricao": "Todos recebem o mesmo valor"
+        },
+        {
+          "value": "apenas_top3",
+          "label": "Apenas Top 3",
+          "descricao": "Só os 3 primeiros recebem premiação"
+        }
+      ],
+      "dependencia": "premiacao_mitos === true || onus_micos === true"
+    },
+    "exibir_rodada_ocorrencia": {
+      "tipo": "boolean",
+      "label": "Exibir rodada de ocorrência",
+      "descricao": "Mostra em qual rodada a pontuação aconteceu",
+      "default": true
+    }
+  },
+
+  "mecanica": {
+    "mitos": {
+      "criterio": "maiores_pontuacoes",
+      "ordenacao": "DESC",
+      "titulo_posicao": "Xº MELHOR MITO",
+      "impacto": "bonus"
+    },
+    "micos": {
+      "criterio": "menores_pontuacoes",
+      "ordenacao": "ASC",
+      "titulo_posicao": "Xº PIOR MICO",
+      "impacto": "onus"
+    },
+    "atualizacao": "tempo_real",
+    "persistencia": "fim_temporada"
+  },
+
+  "tabela_valores_padrao": {
+    "mitos": [
+      { "posicao": 1, "valor": 30.00, "titulo": "1º MELHOR MITO" },
+      { "posicao": 2, "valor": 27.00, "titulo": "2º MELHOR MITO" },
+      { "posicao": 3, "valor": 24.00, "titulo": "3º MELHOR MITO" },
+      { "posicao": 4, "valor": 21.00, "titulo": "4º MELHOR MITO" },
+      { "posicao": 5, "valor": 18.00, "titulo": "5º MELHOR MITO" },
+      { "posicao": 6, "valor": 18.00, "titulo": "6º MELHOR MITO" },
+      { "posicao": 7, "valor": 15.00, "titulo": "7º MELHOR MITO" },
+      { "posicao": 8, "valor": 15.00, "titulo": "8º MELHOR MITO" },
+      { "posicao": 9, "valor": 12.00, "titulo": "9º MELHOR MITO" },
+      { "posicao": 10, "valor": 12.00, "titulo": "10º MELHOR MITO" }
+    ],
+    "micos": [
+      { "posicao": 1, "valor": -30.00, "titulo": "1º PIOR MICO" },
+      { "posicao": 2, "valor": -27.00, "titulo": "2º PIOR MICO" },
+      { "posicao": 3, "valor": -24.00, "titulo": "3º PIOR MICO" },
+      { "posicao": 4, "valor": -21.00, "titulo": "4º PIOR MICO" },
+      { "posicao": 5, "valor": -18.00, "titulo": "5º PIOR MICO" },
+      { "posicao": 6, "valor": -18.00, "titulo": "6º PIOR MICO" },
+      { "posicao": 7, "valor": -15.00, "titulo": "7º PIOR MICO" },
+      { "posicao": 8, "valor": -15.00, "titulo": "8º PIOR MICO" },
+      { "posicao": 9, "valor": -12.00, "titulo": "9º PIOR MICO" },
+      { "posicao": 10, "valor": -12.00, "titulo": "10º PIOR MICO" }
+    ]
+  },
+
+  "campos_exibicao": [
+    "posicao",
+    "tipo",
+    "nome_time",
+    "escudo",
+    "pontuacao",
+    "rodada",
+    "valor_financeiro"
+  ],
+
+  "ui": {
+    "cores": {
+      "mito": "#ffd700",
+      "mico": "#ef4444"
+    },
+    "icones": {
+      "mito": "emoji_events",
+      "mico": "sentiment_very_dissatisfied"
+    }
+  },
+
+  "metadados": {
+    "criado_em": "2025-12-15",
+    "autor": "Product Team",
+    "notas": "IMPORTANTE: Top 10 Mitos/Micos é diferente de Mito/Mico da Rodada. Ver CLAUDE.md seção 6."
+  }
+}

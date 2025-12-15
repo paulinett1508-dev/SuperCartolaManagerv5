@@ -6,7 +6,7 @@ import {
 } from "./fluxo-financeiro/fluxo-financeiro-auditoria.js";
 
 // Cache-buster para forçar reload de módulos (incrementar a cada mudança)
-const CACHE_BUSTER = "v5.1";
+const CACHE_BUSTER = "v5.2"; // v5.2: Acertos Financeiros
 
 // VARIÁVEIS GLOBAIS
 let rodadaAtual = 0;
@@ -572,3 +572,256 @@ window.desfazerCampo = async (timeId, nomeCampo) => {
         alert("Erro ao resetar campo: " + error.message);
     }
 };
+
+// =============================================================================
+// ===== ACERTOS FINANCEIROS (v5.2) =====
+// =============================================================================
+
+/**
+ * Abre modal para registrar acerto financeiro
+ * @param {string} timeId - ID do time
+ * @param {string} nomeTime - Nome do time/participante
+ */
+window.abrirModalAcerto = function (timeId, nomeTime) {
+    // Remover modal existente se houver
+    document.getElementById("modalAcertoFinanceiro")?.remove();
+
+    const ligaId = obterLigaId();
+    if (!ligaId) {
+        alert("Liga não identificada");
+        return;
+    }
+
+    const modalHTML = `
+        <div id="modalAcertoFinanceiro" class="fixed inset-0 z-[10000] flex items-center justify-center bg-black/70 backdrop-blur-sm"
+             onclick="if(event.target === this) this.remove()">
+            <div class="bg-[#1e293b] rounded-xl w-full max-w-md mx-4 shadow-2xl" onclick="event.stopPropagation()">
+                <!-- Header -->
+                <div class="p-4 border-b border-white/10">
+                    <div class="flex justify-between items-center">
+                        <h3 class="text-lg font-bold text-white flex items-center gap-2">
+                            <span class="material-symbols-outlined text-amber-400">payments</span>
+                            Registrar Acerto
+                        </h3>
+                        <button onclick="document.getElementById('modalAcertoFinanceiro').remove()"
+                                class="text-white/50 hover:text-white">
+                            <span class="material-symbols-outlined">close</span>
+                        </button>
+                    </div>
+                    <p class="text-sm text-white/60 mt-1">${nomeTime}</p>
+                </div>
+
+                <!-- Form -->
+                <div class="p-4 space-y-4">
+                    <!-- Tipo -->
+                    <div>
+                        <label class="block text-xs text-white/60 mb-2">Tipo de Acerto</label>
+                        <div class="flex gap-2">
+                            <button type="button" id="btnTipoPagamento" onclick="selecionarTipoAcerto('pagamento')"
+                                    class="flex-1 py-2 px-4 rounded-lg border-2 border-rose-500 bg-rose-500/20 text-rose-400 font-medium text-sm transition-all">
+                                <span class="material-symbols-outlined text-sm align-middle mr-1">arrow_downward</span>
+                                Pagamento
+                            </button>
+                            <button type="button" id="btnTipoRecebimento" onclick="selecionarTipoAcerto('recebimento')"
+                                    class="flex-1 py-2 px-4 rounded-lg border-2 border-white/20 text-white/60 font-medium text-sm transition-all">
+                                <span class="material-symbols-outlined text-sm align-middle mr-1">arrow_upward</span>
+                                Recebimento
+                            </button>
+                        </div>
+                        <input type="hidden" id="tipoAcerto" value="pagamento">
+                    </div>
+
+                    <!-- Valor -->
+                    <div>
+                        <label class="block text-xs text-white/60 mb-2">Valor (R$)</label>
+                        <input type="number" id="valorAcerto" step="0.01" min="0.01" placeholder="0,00"
+                               class="w-full px-4 py-3 bg-white/5 border border-white/20 rounded-lg text-white text-lg font-bold
+                                      focus:border-amber-400 focus:outline-none focus:ring-2 focus:ring-amber-400/20">
+                    </div>
+
+                    <!-- Descrição -->
+                    <div>
+                        <label class="block text-xs text-white/60 mb-2">Descrição</label>
+                        <input type="text" id="descricaoAcerto" placeholder="Ex: PIX recebido, Transferência..."
+                               class="w-full px-4 py-2 bg-white/5 border border-white/20 rounded-lg text-white
+                                      focus:border-amber-400 focus:outline-none focus:ring-2 focus:ring-amber-400/20">
+                    </div>
+
+                    <!-- Método -->
+                    <div>
+                        <label class="block text-xs text-white/60 mb-2">Método</label>
+                        <select id="metodoAcerto"
+                                class="w-full px-4 py-2 bg-white/5 border border-white/20 rounded-lg text-white
+                                       focus:border-amber-400 focus:outline-none">
+                            <option value="pix">PIX</option>
+                            <option value="transferencia">Transferência</option>
+                            <option value="dinheiro">Dinheiro</option>
+                            <option value="outro">Outro</option>
+                        </select>
+                    </div>
+
+                    <!-- Data -->
+                    <div>
+                        <label class="block text-xs text-white/60 mb-2">Data do Acerto</label>
+                        <input type="date" id="dataAcerto"
+                               class="w-full px-4 py-2 bg-white/5 border border-white/20 rounded-lg text-white
+                                      focus:border-amber-400 focus:outline-none"
+                               value="${new Date().toISOString().split('T')[0]}">
+                    </div>
+
+                    <!-- Observações -->
+                    <div>
+                        <label class="block text-xs text-white/60 mb-2">Observações (opcional)</label>
+                        <textarea id="observacoesAcerto" rows="2" placeholder="Observações adicionais..."
+                                  class="w-full px-4 py-2 bg-white/5 border border-white/20 rounded-lg text-white
+                                         focus:border-amber-400 focus:outline-none resize-none"></textarea>
+                    </div>
+                </div>
+
+                <!-- Footer -->
+                <div class="p-4 border-t border-white/10 flex gap-3">
+                    <button onclick="document.getElementById('modalAcertoFinanceiro').remove()"
+                            class="flex-1 py-3 px-4 rounded-lg bg-white/10 text-white/70 font-medium hover:bg-white/20 transition-all">
+                        Cancelar
+                    </button>
+                    <button onclick="confirmarAcertoFinanceiro('${ligaId}', '${timeId}', '${nomeTime}')"
+                            class="flex-1 py-3 px-4 rounded-lg bg-amber-500 text-white font-bold hover:bg-amber-400 transition-all">
+                        <span class="material-symbols-outlined text-sm align-middle mr-1">check</span>
+                        Confirmar
+                    </button>
+                </div>
+            </div>
+        </div>
+    `;
+
+    document.body.insertAdjacentHTML("beforeend", modalHTML);
+
+    // Focus no campo de valor
+    setTimeout(() => {
+        document.getElementById("valorAcerto")?.focus();
+    }, 100);
+};
+
+/**
+ * Seleciona o tipo de acerto (pagamento ou recebimento)
+ */
+window.selecionarTipoAcerto = function (tipo) {
+    const btnPagamento = document.getElementById("btnTipoPagamento");
+    const btnRecebimento = document.getElementById("btnTipoRecebimento");
+    const inputTipo = document.getElementById("tipoAcerto");
+
+    if (tipo === "pagamento") {
+        btnPagamento.className = "flex-1 py-2 px-4 rounded-lg border-2 border-rose-500 bg-rose-500/20 text-rose-400 font-medium text-sm transition-all";
+        btnRecebimento.className = "flex-1 py-2 px-4 rounded-lg border-2 border-white/20 text-white/60 font-medium text-sm transition-all";
+    } else {
+        btnRecebimento.className = "flex-1 py-2 px-4 rounded-lg border-2 border-emerald-500 bg-emerald-500/20 text-emerald-400 font-medium text-sm transition-all";
+        btnPagamento.className = "flex-1 py-2 px-4 rounded-lg border-2 border-white/20 text-white/60 font-medium text-sm transition-all";
+    }
+
+    inputTipo.value = tipo;
+};
+
+/**
+ * Confirma e envia o acerto financeiro para a API
+ */
+window.confirmarAcertoFinanceiro = async function (ligaId, timeId, nomeTime) {
+    const tipo = document.getElementById("tipoAcerto").value;
+    const valor = parseFloat(document.getElementById("valorAcerto").value);
+    const descricao = document.getElementById("descricaoAcerto").value.trim();
+    const metodo = document.getElementById("metodoAcerto").value;
+    const data = document.getElementById("dataAcerto").value;
+    const observacoes = document.getElementById("observacoesAcerto").value.trim();
+
+    // Validações
+    if (!valor || valor <= 0) {
+        alert("Informe um valor válido");
+        document.getElementById("valorAcerto").focus();
+        return;
+    }
+
+    if (!descricao) {
+        alert("Informe uma descrição");
+        document.getElementById("descricaoAcerto").focus();
+        return;
+    }
+
+    try {
+        const response = await fetch(`/api/acertos/${ligaId}/${timeId}`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+                nomeTime,
+                tipo,
+                valor,
+                descricao,
+                metodoPagamento: metodo,
+                dataAcerto: data ? new Date(data).toISOString() : new Date().toISOString(),
+                observacoes: observacoes || null,
+                temporada: "2025",
+                registradoPor: "admin",
+            }),
+        });
+
+        const result = await response.json();
+
+        if (!response.ok || !result.success) {
+            throw new Error(result.error || "Erro ao registrar acerto");
+        }
+
+        // Fechar modal
+        document.getElementById("modalAcertoFinanceiro")?.remove();
+
+        // Mostrar toast de sucesso
+        mostrarToastAcerto(`Acerto de R$ ${valor.toFixed(2).replace(".", ",")} registrado!`, true);
+
+        // Recarregar extrato se estiver visualizando
+        if (window.recarregarExtratoAtual) {
+            await window.recarregarExtratoAtual();
+        }
+
+        console.log("[ACERTOS] ✅ Acerto registrado:", result);
+    } catch (error) {
+        console.error("[ACERTOS] ❌ Erro:", error);
+        mostrarToastAcerto(`Erro: ${error.message}`, false);
+    }
+};
+
+/**
+ * Mostra toast de feedback
+ */
+function mostrarToastAcerto(mensagem, sucesso) {
+    const toast = document.createElement("div");
+    toast.className = `fixed bottom-6 left-1/2 transform -translate-x-1/2 px-6 py-3 rounded-full text-sm font-medium z-[10001] shadow-lg
+                       ${sucesso ? "bg-emerald-500 text-white" : "bg-rose-500 text-white"}`;
+    toast.innerHTML = `
+        <span class="material-symbols-outlined text-sm align-middle mr-2">${sucesso ? "check_circle" : "error"}</span>
+        ${mensagem}
+    `;
+    document.body.appendChild(toast);
+    setTimeout(() => toast.remove(), 4000);
+}
+
+/**
+ * Lista acertos de um participante (para exibição no admin)
+ */
+window.listarAcertosParticipante = async function (ligaId, timeId) {
+    try {
+        const response = await fetch(`/api/acertos/${ligaId}/${timeId}`);
+        const result = await response.json();
+
+        if (!result.success) {
+            console.warn("[ACERTOS] Nenhum acerto encontrado");
+            return { acertos: [], resumo: {} };
+        }
+
+        return {
+            acertos: result.acertos || [],
+            resumo: result.resumo || {},
+        };
+    } catch (error) {
+        console.error("[ACERTOS] Erro ao listar:", error);
+        return { acertos: [], resumo: {} };
+    }
+};
+
+console.log("[FLUXO-ADMIN] ✅ v5.2 carregado (Acertos Financeiros)");

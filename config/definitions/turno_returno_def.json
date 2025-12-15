@@ -1,0 +1,104 @@
+{
+  "id": "turno_returno",
+  "nome": "Turno e Returno",
+  "descricao": "Ranking separado por turno do campeonato. Premia os melhores de cada metade da temporada.",
+  "categoria": "estatistico",
+  "obrigatorio": false,
+  "status": "ativo",
+  "versao": "1.0.0",
+
+  "restricoes": {
+    "min_participantes": 2,
+    "max_participantes": null,
+    "min_rodadas_total": 10,
+    "habilitado_por_padrao": true,
+    "avisos": [
+      {
+        "condicao": "total_rodadas < 10",
+        "mensagem": "Turno e Returno funciona melhor com campeonatos de pelo menos 10 rodadas"
+      },
+      {
+        "condicao": "rodada_corte >= total_rodadas",
+        "tipo": "erro",
+        "mensagem": "A rodada de corte deve ser menor que o total de rodadas"
+      }
+    ]
+  },
+
+  "parametros_configuraveis": {
+    "rodada_corte": {
+      "tipo": "number",
+      "label": "Rodada de corte (fim do 1º turno)",
+      "descricao": "Última rodada do primeiro turno. Padrão: 19 (metade do Brasileirão)",
+      "default": 19,
+      "min": 1,
+      "max": 37,
+      "placeholder": "Ex: 19 para Brasileirão"
+    },
+    "premiacao_por_turno": {
+      "tipo": "boolean",
+      "label": "Premiação por turno",
+      "descricao": "Premia os melhores de cada turno separadamente",
+      "default": true,
+      "impacto_financeiro": true
+    },
+    "quantidade_premiados_turno": {
+      "tipo": "number",
+      "label": "Premiados por turno",
+      "descricao": "Quantos primeiros colocados são premiados em cada turno",
+      "default": 3,
+      "min": 1,
+      "max": 5,
+      "dependencia": "premiacao_por_turno === true"
+    },
+    "exibir_comparativo": {
+      "tipo": "boolean",
+      "label": "Exibir comparativo entre turnos",
+      "descricao": "Mostra a variação de posição do participante entre os turnos",
+      "default": true
+    },
+    "titulo_primeiro_turno": {
+      "tipo": "text",
+      "label": "Nome do 1º Turno",
+      "descricao": "Título exibido para o primeiro turno",
+      "default": "1º Turno",
+      "placeholder": "Ex: Turno de Ida"
+    },
+    "titulo_segundo_turno": {
+      "tipo": "text",
+      "label": "Nome do 2º Turno",
+      "descricao": "Título exibido para o segundo turno",
+      "default": "2º Turno",
+      "placeholder": "Ex: Turno de Volta"
+    }
+  },
+
+  "estrutura": {
+    "primeiro_turno": {
+      "inicio": 1,
+      "fim": "rodada_corte",
+      "titulo": "1º Turno"
+    },
+    "segundo_turno": {
+      "inicio": "rodada_corte + 1",
+      "fim": "ultima_rodada",
+      "titulo": "2º Turno"
+    }
+  },
+
+  "campos_exibicao": [
+    "posicao",
+    "nome_time",
+    "escudo",
+    "pontos_turno",
+    "media_turno",
+    "rodadas_jogadas",
+    "variacao_vs_outro_turno"
+  ],
+
+  "metadados": {
+    "criado_em": "2025-12-15",
+    "autor": "Product Team",
+    "notas": "Brasileirão tem 38 rodadas - corte padrão na R19"
+  }
+}

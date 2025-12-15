@@ -1,0 +1,39 @@
+{
+  "temporada": 2025,
+  "status": "em_andamento",
+  "data_inicio": "2025-04-13",
+  "data_fim": null,
+  "total_rodadas": 38,
+  "rodada_atual": 38,
+  "ligas": [
+    {
+      "id": "684cb1c8af923da7c7df51de",
+      "nome": "SuperCartola",
+      "participantes": 32,
+      "campeao": null
+    },
+    {
+      "id": "684d821cf1a7ae16d1f89572",
+      "nome": "Cartoleiros Sobral",
+      "participantes": 6,
+      "campeao": null
+    }
+  ],
+  "modulos_ativos": [
+    "ranking_geral",
+    "ranking_rodada",
+    "pontos_corridos",
+    "mata_mata",
+    "top10",
+    "artilheiro",
+    "luva_ouro",
+    "melhor_mes"
+  ],
+  "exportacao": {
+    "exportado_em": null,
+    "exportado_por": null,
+    "versao_sistema": "1.0.0",
+    "arquivos_gerados": []
+  },
+  "notas": "Temporada 2025 - Aguardando consolidacao final"
+}

@@ -1,5 +1,8 @@
 /**
- * FLUXO-FINANCEIRO-CONTROLLER v7.3
+ * FLUXO-FINANCEIRO-CONTROLLER v7.4
+ * ✅ v7.4: ACERTOS FINANCEIROS - Pagamentos/recebimentos em tempo real
+ *   - Integra collection AcertoFinanceiro no extrato
+ *   - Mostra saldo separado: temporada vs acertos
  * ✅ v7.3: FIX TABELA BANCO - Valores corretos para SuperCartola
  *   - G1-G11: +R$20 a +R$10 (posições 1-11)
  *   - Neutro: R$0 (posições 12-21)
@@ -24,6 +27,7 @@ import Rodada from "../models/Rodada.js";
 import ExtratoFinanceiroCache from "../models/ExtratoFinanceiroCache.js";
 import FluxoFinanceiroCampos from "../models/FluxoFinanceiroCampos.js";
 import Top10Cache from "../models/Top10Cache.js";
+import AcertoFinanceiro from "../models/AcertoFinanceiro.js";
 import { getResultadosMataMataCompleto } from "./mata-mata-backend.js";
 
 // ============================================================================
@@ -656,16 +660,56 @@ export const getExtratoFinanceiro = async (req, res) => {
             });
         }
 
-        const saldoTotal = cache.saldo_consolidado + saldoCampos;
+        // ✅ v7.4: Buscar acertos financeiros (pagamentos/recebimentos em tempo real)
+        const acertosInfo = await AcertoFinanceiro.calcularSaldoAcertos(ligaId, timeId, "2025");
+        const acertos = await AcertoFinanceiro.buscarPorTime(ligaId, timeId, "2025");
+        let transacoesAcertos = [];
+
+        if (acertos && acertos.length > 0) {
+            transacoesAcertos = acertos.map(a => ({
+                rodada: null,
+                tipo: "ACERTO_FINANCEIRO",
+                subtipo: a.tipo, // 'pagamento' ou 'recebimento'
+                descricao: a.descricao,
+                valor: a.tipo === "pagamento" ? -a.valor : a.valor, // pagamento reduz saldo
+                data: a.dataAcerto,
+                metodoPagamento: a.metodoPagamento,
+            }));
+            console.log(`[FLUXO-CONTROLLER] Acertos financeiros: ${acertos.length} transações`);
+        }
+
+        // Saldo da temporada (sem acertos)
+        const saldoTemporada = cache.saldo_consolidado + saldoCampos;
+
+        // Saldo total (temporada + acertos)
+        // acertosInfo.saldoAcertos: recebido - pago
+        const saldoTotal = saldoTemporada + acertosInfo.saldoAcertos;
+
         const todasTransacoes = [
             ...cache.historico_transacoes,
             ...transacoesCampos,
-        ].sort((a, b) => (b.rodada || 999) - (a.rodada || 999));
+            ...transacoesAcertos,
+        ].sort((a, b) => {
+            // Ordenar por data (mais recente primeiro), rodadas antes de acertos
+            const rodadaA = a.rodada || 0;
+            const rodadaB = b.rodada || 0;
+            if (rodadaA !== rodadaB) return rodadaB - rodadaA;
+            // Se mesma rodada (ou null), ordenar por data
+            const dataA = new Date(a.data || 0).getTime();
+            const dataB = new Date(b.data || 0).getTime();
+            return dataB - dataA;
+        });
 
         res.json({
             success: true,
             saldo_atual: saldoTotal,
+            saldo_temporada: saldoTemporada,
+            saldo_acertos: acertosInfo.saldoAcertos,
             extrato: todasTransacoes,
+            acertos: {
+                lista: transacoesAcertos,
+                resumo: acertosInfo,
+            },
             resumo: {
                 ganhos:
                     (cache.ganhos_consolidados || 0) +
@@ -673,6 +717,8 @@ export const getExtratoFinanceiro = async (req, res) => {
                 perdas:
                     (cache.perdas_consolidadas || 0) +
                     (saldoCampos < 0 ? saldoCampos : 0),
+                saldo_temporada: saldoTemporada,
+                saldo_acertos: acertosInfo.saldoAcertos,
                 saldo_final: saldoTotal,
             },
             metadados: {
@@ -944,4 +990,4 @@ export const getFluxoFinanceiroLiga = async (ligaId, rodadaNumero) => {
     }
 };
 
-console.log("[FLUXO-CONTROLLER] ✅ v7.3 carregado (FIX TABELA BANCO)");
+console.log("[FLUXO-CONTROLLER] ✅ v7.4 carregado (ACERTOS FINANCEIROS)");

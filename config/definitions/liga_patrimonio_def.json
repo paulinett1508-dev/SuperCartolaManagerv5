@@ -1,0 +1,164 @@
+{
+  "id": "liga_patrimonio",
+  "nome": "Liga Patrimônio",
+  "descricao": "Ranking baseado no patrimônio em cartoletas (C$). Premia quem melhor gerenciou suas finanças no Cartola.",
+  "categoria": "estatistico",
+  "obrigatorio": false,
+  "status": "planejado",
+  "versao": "1.0.0",
+
+  "restricoes": {
+    "min_participantes": 2,
+    "max_participantes": null,
+    "habilitado_por_padrao": false,
+    "avisos": [
+      {
+        "condicao": "!api_patrimonio_disponivel",
+        "tipo": "aviso",
+        "mensagem": "Requer coleta do patrimônio via API Cartola a cada rodada"
+      }
+    ]
+  },
+
+  "parametros_configuraveis": {
+    "metodo_ranking": {
+      "tipo": "select",
+      "label": "Método de ranking",
+      "descricao": "Como ordenar os participantes",
+      "default": "patrimonio_atual",
+      "opcoes": [
+        {
+          "value": "patrimonio_atual",
+          "label": "Patrimônio Atual",
+          "descricao": "Valor atual em cartoletas"
+        },
+        {
+          "value": "variacao_temporada",
+          "label": "Variação na Temporada",
+          "descricao": "Quanto cresceu desde o início (patrimônio atual - inicial)"
+        },
+        {
+          "value": "patrimonio_maximo",
+          "label": "Patrimônio Máximo Atingido",
+          "descricao": "Maior valor alcançado durante a temporada"
+        }
+      ]
+    },
+    "patrimonio_inicial": {
+      "tipo": "number",
+      "label": "Patrimônio inicial padrão",
+      "descricao": "Valor inicial em C$ para cálculo de variação (início do Cartola)",
+      "default": 100,
+      "min": 0,
+      "max": 500
+    },
+    "premiacao_final": {
+      "tipo": "boolean",
+      "label": "Premiação ao final da temporada",
+      "descricao": "Premia os maiores patrimônios",
+      "default": true,
+      "impacto_financeiro": true
+    },
+    "quantidade_premiados": {
+      "tipo": "number",
+      "label": "Quantidade de premiados",
+      "descricao": "Quantos primeiros colocados recebem premiação",
+      "default": 3,
+      "min": 1,
+      "max": 5,
+      "dependencia": "premiacao_final === true"
+    },
+    "exibir_historico": {
+      "tipo": "boolean",
+      "label": "Exibir histórico de patrimônio",
+      "descricao": "Mostra gráfico de evolução do patrimônio ao longo das rodadas",
+      "default": true
+    },
+    "criterio_desempate": {
+      "tipo": "select",
+      "label": "Critério de desempate",
+      "descricao": "Como desempatar participantes com mesmo patrimônio",
+      "default": "maior_variacao",
+      "opcoes": [
+        {
+          "value": "maior_variacao",
+          "label": "Maior variação percentual",
+          "descricao": "Quem cresceu mais em percentual"
+        },
+        {
+          "value": "patrimonio_maximo",
+          "label": "Maior patrimônio atingido",
+          "descricao": "Quem chegou ao maior valor"
+        },
+        {
+          "value": "ranking_geral",
+          "label": "Posição no Ranking Geral",
+          "descricao": "Usa a classificação geral como desempate"
+        }
+      ]
+    }
+  },
+
+  "mecanica": {
+    "coleta": {
+      "fonte": "API Cartola",
+      "endpoint": "auth/time/info",
+      "campo": "patrimonio",
+      "frequencia": "a_cada_rodada"
+    },
+    "calculo": {
+      "patrimonio_atual": "Último valor coletado",
+      "variacao": "patrimonio_atual - patrimonio_inicial",
+      "variacao_percentual": "((atual - inicial) / inicial) * 100"
+    }
+  },
+
+  "estatisticas_disponiveis": [
+    {
+      "campo": "patrimonio_atual",
+      "label": "Patrimônio Atual",
+      "descricao": "Valor atual em C$"
+    },
+    {
+      "campo": "patrimonio_inicial",
+      "label": "Patrimônio Inicial",
+      "descricao": "Valor no início da temporada"
+    },
+    {
+      "campo": "variacao",
+      "label": "Variação (C$)",
+      "descricao": "Diferença entre atual e inicial"
+    },
+    {
+      "campo": "variacao_percentual",
+      "label": "Variação (%)",
+      "descricao": "Crescimento percentual"
+    },
+    {
+      "campo": "patrimonio_maximo",
+      "label": "Máximo Atingido",
+      "descricao": "Maior patrimônio durante a temporada"
+    },
+    {
+      "campo": "patrimonio_minimo",
+      "label": "Mínimo Atingido",
+      "descricao": "Menor patrimônio durante a temporada"
+    }
+  ],
+
+  "campos_exibicao": [
+    "posicao",
+    "nome_time",
+    "escudo",
+    "patrimonio_atual",
+    "variacao",
+    "variacao_percentual",
+    "patrimonio_maximo"
+  ],
+
+  "metadados": {
+    "criado_em": "2025-12-15",
+    "autor": "Product Team",
+    "notas": "Módulo de gestão financeira - cartoletas são a moeda virtual do Cartola FC"
+  }
+}

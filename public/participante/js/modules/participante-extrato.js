@@ -1,14 +1,13 @@
 // =====================================================================
-// PARTICIPANTE-EXTRATO.JS - v3.2 (FIX MATA-MATA no Extrato)
+// PARTICIPANTE-EXTRATO.JS - v3.3 (ACERTOS FINANCEIROS)
 // Destino: /participante/js/modules/participante-extrato.js
 // =====================================================================
+// ✅ v3.3: ACERTOS FINANCEIROS - Exibe pagamentos/recebimentos no extrato
 // ✅ v3.2: FIX - Detecta ausência de MATA_MATA mesmo com temporada encerrada
 // ✅ v3.1: CACHE-FIRST - Carregamento instantâneo do IndexedDB
 // ✅ v3.0: TEMPORADA ENCERRADA - dados são perpétuos, sem recálculos
 // ✅ v2.8: Detecta cache incompleto e força recálculo automático
 // ✅ v2.7: Correção URL campos editáveis (/times/ ao invés de /campos/)
-// ✅ v2.6: Busca campos editáveis do endpoint específico para UI
-// ✅ v2.5: Passa ligaId no extratoData para UI classificar zonas corretamente
 // =====================================================================
 
 // ⚽ CONFIGURAÇÃO DO CAMPEONATO 2025
@@ -16,7 +15,7 @@ const RODADA_FINAL_CAMPEONATO = 38;
 const CAMPEONATO_ENCERRADO = true; // ✅ v3.0: Temporada 2025 finalizada
 
 if (window.Log)
-    Log.info("EXTRATO-PARTICIPANTE", `📄 Módulo v3.2 FIX-MATAMATA (Temporada ${CAMPEONATO_ENCERRADO ? 'ENCERRADA' : 'em andamento'})`);
+    Log.info("EXTRATO-PARTICIPANTE", `📄 Módulo v3.3 ACERTOS-FINANCEIROS (Temporada ${CAMPEONATO_ENCERRADO ? 'ENCERRADA' : 'em andamento'})`);
 
 const PARTICIPANTE_IDS = { ligaId: null, timeId: null };
 
@@ -435,14 +434,15 @@ async function carregarExtrato(ligaId, timeId) {
 // TRANSFORMAR DADOS DO CONTROLLER PARA FORMATO UI
 // =====================================================================
 function transformarDadosController(dados) {
-    // O controller retorna { extrato: [...transacoes], saldo_atual, resumo }
+    // O controller retorna { extrato: [...transacoes], saldo_atual, resumo, acertos }
     // Precisamos agrupar por rodada
 
     const transacoes = dados.extrato || [];
     const rodadasMap = {};
 
     transacoes.forEach((t) => {
-        if (t.rodada === null) return; // Ignora ajustes manuais aqui
+        // ✅ v3.3: Ignora ajustes manuais e acertos financeiros aqui (processados separadamente)
+        if (t.rodada === null || t.tipo === "ACERTO_FINANCEIRO") return;
 
         const numRodada = t.rodada;
         if (!rodadasMap[numRodada]) {
@@ -513,6 +513,17 @@ function transformarDadosController(dados) {
             valor: t.valor,
         }));
 
+    // ✅ v3.3: Extrair acertos financeiros
+    const acertosFinanceiros = transacoes
+        .filter((t) => t.tipo === "ACERTO_FINANCEIRO")
+        .map((t) => ({
+            tipo: t.subtipo || "pagamento",
+            descricao: t.descricao,
+            valor: t.valor,
+            data: t.data,
+            metodoPagamento: t.metodoPagamento,
+        }));
+
     // Calcular resumo
     let totalGanhos = 0;
     let totalPerdas = 0;
@@ -527,10 +538,22 @@ function transformarDadosController(dados) {
         resumo: dados.resumo || {
             saldo: dados.saldo_atual || saldoAcumulado,
             saldo_final: dados.saldo_atual || saldoAcumulado,
+            saldo_temporada: dados.saldo_temporada || saldoAcumulado,
+            saldo_acertos: dados.saldo_acertos || 0,
             totalGanhos: totalGanhos,
             totalPerdas: totalPerdas,
         },
         camposManuais: camposManuais,
+        // ✅ v3.3: Incluir acertos financeiros
+        acertos: dados.acertos || {
+            lista: acertosFinanceiros,
+            resumo: {
+                totalPago: 0,
+                totalRecebido: 0,
+                saldoAcertos: dados.saldo_acertos || 0,
+                quantidadeAcertos: acertosFinanceiros.length,
+            },
+        },
         inativo: false,
         extratoTravado: false,
         rodadaTravada: null,
@@ -796,5 +819,5 @@ export function initExtratoParticipante() {
 if (window.Log)
     Log.info(
         "EXTRATO-PARTICIPANTE",
-        "✅ Módulo v3.1 carregado (CACHE-FIRST + Temporada Encerrada)",
+        "✅ Módulo v3.3 carregado (ACERTOS FINANCEIROS)",
     );

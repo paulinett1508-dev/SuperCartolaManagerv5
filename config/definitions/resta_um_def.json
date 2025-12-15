@@ -1,0 +1,162 @@
+{
+  "id": "resta_um",
+  "nome": "Resta Um",
+  "descricao": "Eliminação progressiva baseada em pontuação Cartola. Os piores de cada rodada são eliminados até restar apenas um.",
+  "categoria": "survival",
+  "obrigatorio": false,
+  "status": "planejado",
+  "versao": "1.0.0",
+
+  "restricoes": {
+    "min_participantes": 8,
+    "max_participantes": null,
+    "habilitado_por_padrao": false,
+    "avisos": [
+      {
+        "condicao": "participantes < 8",
+        "tipo": "erro",
+        "mensagem": "Resta Um requer no mínimo 8 participantes"
+      },
+      {
+        "condicao": "eliminados_por_rodada > participantes / 4",
+        "tipo": "aviso",
+        "mensagem": "Muitos eliminados por rodada pode encurtar demais a disputa"
+      },
+      {
+        "condicao": "participantes - (eliminados_por_rodada * rodadas_disponiveis) < 1",
+        "tipo": "erro",
+        "mensagem": "Não há rodadas suficientes para eliminar todos os participantes"
+      }
+    ]
+  },
+
+  "parametros_configuraveis": {
+    "eliminados_por_rodada": {
+      "tipo": "select",
+      "label": "Eliminados por rodada",
+      "descricao": "Quantos participantes são eliminados a cada rodada",
+      "default": 1,
+      "opcoes": [
+        {
+          "value": 1,
+          "label": "1 eliminado",
+          "descricao": "Apenas o último colocado da rodada é eliminado"
+        },
+        {
+          "value": 2,
+          "label": "2 eliminados",
+          "descricao": "Os dois últimos colocados da rodada são eliminados"
+        },
+        {
+          "value": 3,
+          "label": "3 eliminados",
+          "descricao": "Os três últimos colocados da rodada são eliminados (disputa rápida)"
+        }
+      ]
+    },
+    "rodada_inicial": {
+      "tipo": "number",
+      "label": "Rodada inicial",
+      "descricao": "Em qual rodada começa a eliminação",
+      "default": 1,
+      "min": 1,
+      "max": 30
+    },
+    "protecao_primeira_rodada": {
+      "tipo": "boolean",
+      "label": "Proteção na primeira rodada",
+      "descricao": "Ninguém é eliminado na primeira rodada da edição",
+      "default": true
+    },
+    "criterio_eliminacao": {
+      "tipo": "select",
+      "label": "Critério de eliminação",
+      "descricao": "Como definir quem será eliminado",
+      "default": "pior_rodada",
+      "opcoes": [
+        {
+          "value": "pior_rodada",
+          "label": "Pior pontuação da rodada",
+          "descricao": "Os que fizeram menos pontos na rodada atual"
+        },
+        {
+          "value": "pior_acumulado",
+          "label": "Pior acumulado",
+          "descricao": "Os que têm menor soma de pontos desde o início da edição"
+        }
+      ]
+    },
+    "desempate_eliminacao": {
+      "tipo": "select",
+      "label": "Desempate para eliminação",
+      "descricao": "Como desempatar quando há empate na zona de eliminação",
+      "default": "pior_historico",
+      "opcoes": [
+        {
+          "value": "pior_historico",
+          "label": "Pior histórico na temporada",
+          "descricao": "Quem tem menos pontos totais na temporada é eliminado"
+        },
+        {
+          "value": "sorteio",
+          "label": "Sorteio",
+          "descricao": "Sorteio aleatório entre os empatados"
+        },
+        {
+          "value": "ambos_eliminados",
+          "label": "Ambos eliminados",
+          "descricao": "Em caso de empate, todos na zona são eliminados"
+        }
+      ]
+    },
+    "premiacao_sobrevivente": {
+      "tipo": "boolean",
+      "label": "Premiação para o sobrevivente",
+      "descricao": "O último participante restante recebe premiação",
+      "default": true,
+      "impacto_financeiro": true
+    },
+    "quantidade_edicoes": {
+      "tipo": "number",
+      "label": "Quantidade de edições",
+      "descricao": "Quantas vezes o Resta Um será disputado na temporada",
+      "default": 2,
+      "min": 1,
+      "max": 4
+    }
+  },
+
+  "mecanica": {
+    "tipo": "eliminacao_progressiva",
+    "fluxo": [
+      "Todos começam 'vivos'",
+      "A cada rodada, X piores são eliminados",
+      "Eliminados não participam mais da edição",
+      "Último sobrevivente é o campeão"
+    ],
+    "calculo_duracao": "Com N participantes e E eliminados/rodada: Duração = (N-1) / E rodadas"
+  },
+
+  "estados_participante": [
+    { "status": "vivo", "icone": "ph-fill ph-heart", "cor": "#22c55e" },
+    { "status": "zona_perigo", "icone": "ph-fill ph-warning", "cor": "#f59e0b" },
+    { "status": "eliminado", "icone": "ph-fill ph-skull", "cor": "#ef4444" },
+    { "status": "campeao", "icone": "ph-fill ph-trophy", "cor": "#ffd700" }
+  ],
+
+  "campos_exibicao": [
+    "status",
+    "posicao_rodada",
+    "nome_time",
+    "escudo",
+    "pontos_rodada",
+    "pontos_acumulados",
+    "rodadas_sobrevividas"
+  ],
+
+  "metadados": {
+    "criado_em": "2025-12-15",
+    "autor": "Product Team",
+    "notas": "Diferente do Tiro Certo, este modo usa pontuação Cartola pura - sem palpites"
+  }
+}

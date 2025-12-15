@@ -1,0 +1,135 @@
+{
+  "id": "mata_mata",
+  "nome": "Mata-Mata",
+  "descricao": "Confrontos eliminatórios em chaves. Perdeu, está fora. Último sobrevivente é o campeão.",
+  "categoria": "confronto",
+  "obrigatorio": false,
+  "status": "ativo",
+  "versao": "1.0.0",
+
+  "restricoes": {
+    "min_participantes": 4,
+    "max_participantes": 64,
+    "ideal_participantes": [4, 8, 16, 32, 64],
+    "habilitado_por_padrao": true,
+    "avisos": [
+      {
+        "condicao": "participantes not in [4, 8, 16, 32, 64]",
+        "mensagem": "Para chaves balanceadas, use 4, 8, 16, 32 ou 64 participantes. Números diferentes podem gerar byes."
+      },
+      {
+        "condicao": "participantes < 4",
+        "mensagem": "Mata-Mata requer no mínimo 4 participantes"
+      }
+    ]
+  },
+
+  "parametros_configuraveis": {
+    "metodo_sorteio": {
+      "tipo": "select",
+      "label": "Método de sorteio das chaves",
+      "descricao": "Define como os confrontos são definidos",
+      "default": "ranking_anterior",
+      "opcoes": [
+        {
+          "value": "aleatorio",
+          "label": "Aleatório",
+          "descricao": "Sorteio puro - qualquer um pode enfrentar qualquer um"
+        },
+        {
+          "value": "ranking_anterior",
+          "label": "Ranking Anterior",
+          "descricao": "1º vs último, 2º vs penúltimo... Premia quem foi bem no turno"
+        },
+        {
+          "value": "potes",
+          "label": "Sistema de Potes",
+          "descricao": "Divide em potes por desempenho e sorteia entre potes (estilo Champions)"
+        }
+      ]
+    },
+    "jogos_ida_volta": {
+      "tipo": "boolean",
+      "label": "Jogos de ida e volta",
+      "descricao": "Cada confronto tem 2 rodadas (ida e volta) ao invés de jogo único",
+      "default": false
+    },
+    "gol_qualificado": {
+      "tipo": "boolean",
+      "label": "Gol qualificado (fora de casa)",
+      "descricao": "Em caso de empate no agregado, vence quem fez mais gols como visitante",
+      "default": false,
+      "dependencia": "jogos_ida_volta === true"
+    },
+    "criterio_desempate_jogo_unico": {
+      "tipo": "select",
+      "label": "Desempate em jogo único",
+      "descricao": "Como desempatar quando há apenas 1 jogo por fase",
+      "default": "melhor_ranking",
+      "opcoes": [
+        {
+          "value": "melhor_ranking",
+          "label": "Melhor colocado no ranking geral",
+          "descricao": "Quem está melhor posicionado avança"
+        },
+        {
+          "value": "melhor_campanha_mm",
+          "label": "Melhor campanha no Mata-Mata",
+          "descricao": "Soma de pontos nas fases anteriores do MM"
+        },
+        {
+          "value": "prorrogacao",
+          "label": "Prorrogação (pontos parciais)",
+          "descricao": "Usa pontuação parcial da rodada seguinte"
+        }
+      ],
+      "dependencia": "jogos_ida_volta === false"
+    },
+    "quantidade_edicoes": {
+      "tipo": "number",
+      "label": "Quantidade de edições na temporada",
+      "descricao": "Quantas vezes o Mata-Mata será disputado no ano",
+      "default": 3,
+      "min": 1,
+      "max": 5
+    },
+    "premiacao_por_edicao": {
+      "tipo": "boolean",
+      "label": "Premiação por edição",
+      "descricao": "Cada edição tem sua própria premiação",
+      "default": true,
+      "impacto_financeiro": true
+    }
+  },
+
+  "mecanica": {
+    "fases": [
+      { "nome": "Final", "participantes": 2 },
+      { "nome": "Semifinal", "participantes": 4 },
+      { "nome": "Quartas", "participantes": 8 },
+      { "nome": "Oitavas", "participantes": 16 },
+      { "nome": "16 avos", "participantes": 32 },
+      { "nome": "32 avos", "participantes": 64 }
+    ],
+    "resultado": {
+      "vitoria": "+R$10 (configurável)",
+      "derrota": "-R$10 (configurável)"
+    }
+  },
+
+  "campos_exibicao": [
+    "fase",
+    "confronto",
+    "participante_1",
+    "participante_2",
+    "placar_1",
+    "placar_2",
+    "vencedor"
+  ],
+
+  "metadados": {
+    "criado_em": "2025-12-15",
+    "autor": "Product Team",
+    "notas": "Módulo de alta emoção - eliminations são definitivas dentro da edição"
+  }
+}

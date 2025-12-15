@@ -1,0 +1,82 @@
+{
+  "id": "ranking_rodada",
+  "nome": "Ranking da Rodada",
+  "descricao": "Classificação semanal com sistema de zonas de ganho (G) e perda (Z). Impacta o saldo financeiro.",
+  "categoria": "base",
+  "obrigatorio": true,
+  "status": "ativo",
+  "versao": "1.0.0",
+
+  "restricoes": {
+    "min_participantes": 2,
+    "max_participantes": null,
+    "habilitado_por_padrao": true
+  },
+
+  "parametros_configuraveis": {
+    "premiacao_por_rodada": {
+      "tipo": "boolean",
+      "label": "Premiação financeira por rodada",
+      "descricao": "Habilita o sistema de bônus/ônus baseado na posição semanal (tabela BANCO)",
+      "default": true,
+      "impacto_financeiro": true
+    },
+    "tabela_financeira": {
+      "tipo": "select",
+      "label": "Modelo de tabela financeira",
+      "descricao": "Define a estrutura de premiação por posição",
+      "default": "padrao_32",
+      "opcoes": [
+        {
+          "value": "padrao_32",
+          "label": "Padrão 32 times",
+          "descricao": "G1-G11 (bônus) | Neutra 12º-21º | Z1-Z11 (ônus)"
+        },
+        {
+          "value": "compacta_16",
+          "label": "Compacta 16 times",
+          "descricao": "G1-G5 | Neutra 6º-11º | Z1-Z5"
+        },
+        {
+          "value": "mini_8",
+          "label": "Mini 8 times",
+          "descricao": "G1-G3 | Neutra 4º-5º | Z1-Z3"
+        },
+        {
+          "value": "personalizada",
+          "label": "Personalizada",
+          "descricao": "Define manualmente os valores por posição"
+        }
+      ],
+      "dependencia": "premiacao_por_rodada === true"
+    },
+    "destacar_mito_mico": {
+      "tipo": "boolean",
+      "label": "Destacar Mito e Mico da rodada",
+      "descricao": "Aplica badges especiais ao 1º (MITO) e último (MICO) colocados",
+      "default": true
+    }
+  },
+
+  "zonas_financeiras": {
+    "descricao": "Sistema de zonas de ganho e perda baseado em posição",
+    "mito": "1º lugar - Maior bônus",
+    "mico": "Último lugar - Maior ônus",
+    "neutra": "Posições intermediárias - Sem impacto financeiro"
+  },
+
+  "campos_exibicao": [
+    "posicao",
+    "zona",
+    "nome_time",
+    "escudo",
+    "pontos_rodada",
+    "valor_financeiro"
+  ],
+
+  "metadados": {
+    "criado_em": "2025-12-15",
+    "autor": "Product Team",
+    "notas": "O sistema de zonas G/Z é configurável por quantidade de participantes"
+  }
+}

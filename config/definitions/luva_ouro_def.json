@@ -1,0 +1,163 @@
+{
+  "id": "luva_ouro",
+  "nome": "Luva de Ouro",
+  "descricao": "Ranking focado em defesa. Pode usar pontuação do goleiro ou saldo de gols sofridos pela escalação.",
+  "categoria": "estatistico",
+  "obrigatorio": false,
+  "status": "ativo",
+  "versao": "1.0.0",
+
+  "restricoes": {
+    "min_participantes": 2,
+    "max_participantes": null,
+    "habilitado_por_padrao": true,
+    "avisos": [
+      {
+        "condicao": "metodo_pontuacao === 'saldo_gol_geral' && !api_disponivel",
+        "tipo": "aviso",
+        "mensagem": "Saldo de Gol Geral requer dados detalhados de gols sofridos"
+      }
+    ]
+  },
+
+  "parametros_configuraveis": {
+    "metodo_pontuacao": {
+      "tipo": "select",
+      "label": "Método de pontuação",
+      "descricao": "Define como calcular o ranking defensivo",
+      "default": "pontos_goleiro",
+      "opcoes": [
+        {
+          "value": "pontos_goleiro",
+          "label": "Pontos do Goleiro",
+          "descricao": "Soma da pontuação Cartola dos goleiros escalados"
+        },
+        {
+          "value": "saldo_gol_geral",
+          "label": "Saldo de Gol Defensivo",
+          "descricao": "Gols sofridos pela escalação (quanto menos, melhor)"
+        },
+        {
+          "value": "combinado",
+          "label": "Combinado",
+          "descricao": "Pontos do goleiro + bônus por SG (Saldo de Gols positivo)"
+        }
+      ]
+    },
+    "bonus_sem_gol": {
+      "tipo": "boolean",
+      "label": "Bônus por SG (Sem Gol)",
+      "descricao": "Bônus extra quando o goleiro não sofre gol na rodada",
+      "default": true,
+      "dependencia": "metodo_pontuacao !== 'saldo_gol_geral'"
+    },
+    "valor_bonus_sg": {
+      "tipo": "number",
+      "label": "Valor do bônus SG",
+      "descricao": "Pontos extras por partida sem sofrer gol",
+      "default": 5,
+      "min": 1,
+      "max": 20,
+      "dependencia": "bonus_sem_gol === true"
+    },
+    "premiacao_final": {
+      "tipo": "boolean",
+      "label": "Premiação ao final da temporada",
+      "descricao": "Premia os melhores em defesa",
+      "default": true,
+      "impacto_financeiro": true
+    },
+    "quantidade_premiados": {
+      "tipo": "number",
+      "label": "Quantidade de premiados",
+      "descricao": "Quantos primeiros colocados recebem premiação",
+      "default": 3,
+      "min": 1,
+      "max": 5,
+      "dependencia": "premiacao_final === true"
+    },
+    "criterio_desempate": {
+      "tipo": "select",
+      "label": "Critério de desempate",
+      "descricao": "Como desempatar participantes com mesma pontuação",
+      "default": "mais_sgs",
+      "opcoes": [
+        {
+          "value": "mais_sgs",
+          "label": "Mais partidas SG",
+          "descricao": "Quem teve mais rodadas sem sofrer gol"
+        },
+        {
+          "value": "melhor_goleiro_single",
+          "label": "Melhor goleiro individual",
+          "descricao": "Quem teve o goleiro com maior pontuação em uma rodada"
+        },
+        {
+          "value": "ranking_geral",
+          "label": "Posição no Ranking Geral",
+          "descricao": "Usa a classificação geral como desempate"
+        }
+      ]
+    }
+  },
+
+  "mecanica": {
+    "coleta": {
+      "fonte": "API Cartola",
+      "dados_necessarios": [
+        "goleiro_id",
+        "goleiro_pontuacao",
+        "gols_sofridos"
+      ]
+    },
+    "calculo": {
+      "pontos_goleiro": "Soma de pontuação dos goleiros",
+      "saldo_gol_geral": "Total de gols sofridos (invertido - menos é melhor)",
+      "combinado": "Pontos + (SGs * valor_bonus)"
+    }
+  },
+
+  "estatisticas_disponiveis": [
+    {
+      "campo": "pontuacao_total",
+      "label": "Total de Pontos",
+      "descricao": "Soma das pontuações de goleiros"
+    },
+    {
+      "campo": "media_goleiro",
+      "label": "Média por Rodada",
+      "descricao": "Média de pontos dos goleiros"
+    },
+    {
+      "campo": "partidas_sg",
+      "label": "Partidas SG",
+      "descricao": "Quantidade de rodadas sem sofrer gol"
+    },
+    {
+      "campo": "gols_sofridos",
+      "label": "Gols Sofridos",
+      "descricao": "Total de gols sofridos na temporada"
+    },
+    {
+      "campo": "melhor_goleiro",
+      "label": "Melhor Atuação",
+      "descricao": "Maior pontuação de goleiro em uma rodada"
+    }
+  ],
+
+  "campos_exibicao": [
+    "posicao",
+    "nome_time",
+    "escudo",
+    "pontuacao_total",
+    "media_goleiro",
+    "partidas_sg",
+    "melhor_goleiro"
+  ],
+
+  "metadados": {
+    "criado_em": "2025-12-15",
+    "autor": "Product Team",
+    "notas": "Luva de Ouro = prêmio para melhor goleiro do campeonato"
+  }
+}

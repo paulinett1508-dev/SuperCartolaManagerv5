@@ -1,0 +1,131 @@
+{
+  "id": "ligas_mensais",
+  "nome": "Melhor do Mês",
+  "descricao": "Ranking por período/ciclo. O conceito de 'mês' é flexível - pode ser calendário civil ou agrupamento manual de rodadas.",
+  "categoria": "estatistico",
+  "obrigatorio": false,
+  "status": "ativo",
+  "versao": "1.0.0",
+
+  "restricoes": {
+    "min_participantes": 2,
+    "max_participantes": null,
+    "min_rodadas_por_edicao": 4,
+    "habilitado_por_padrao": true,
+    "avisos": [
+      {
+        "condicao": "rodadas_edicao < 4",
+        "tipo": "erro",
+        "mensagem": "Cada ciclo/mês deve ter no mínimo 4 rodadas para ser estatisticamente relevante"
+      },
+      {
+        "condicao": "estrategia === 'calendario_civil' && rodadas_mes < 4",
+        "tipo": "aviso",
+        "mensagem": "Alguns meses podem ter menos de 4 rodadas devido a pausas do campeonato"
+      }
+    ]
+  },
+
+  "parametros_configuraveis": {
+    "estrategia_calendario": {
+      "tipo": "select",
+      "label": "Estratégia de agrupamento",
+      "descricao": "Define como as rodadas são agrupadas em 'meses'",
+      "default": "calendario_civil",
+      "opcoes": [
+        {
+          "value": "calendario_civil",
+          "label": "Calendário Civil",
+          "descricao": "Agrupa rodadas pelo mês em que ocorreram (Abril, Maio, etc.)"
+        },
+        {
+          "value": "agrupamento_manual",
+          "label": "Agrupamento Manual",
+          "descricao": "Admin define manualmente quais rodadas compõem cada ciclo"
+        },
+        {
+          "value": "blocos_fixos",
+          "label": "Blocos de X Rodadas",
+          "descricao": "Divide automaticamente em blocos de N rodadas"
+        }
+      ]
+    },
+    "tamanho_bloco": {
+      "tipo": "number",
+      "label": "Rodadas por bloco",
+      "descricao": "Quantidade de rodadas em cada ciclo (apenas para blocos fixos)",
+      "default": 4,
+      "min": 4,
+      "max": 10,
+      "dependencia": "estrategia_calendario === 'blocos_fixos'"
+    },
+    "premiacao_mensal": {
+      "tipo": "boolean",
+      "label": "Premiação por período",
+      "descricao": "Cada mês/ciclo tem sua própria premiação",
+      "default": true,
+      "impacto_financeiro": true
+    },
+    "quantidade_premiados": {
+      "tipo": "number",
+      "label": "Premiados por período",
+      "descricao": "Quantos primeiros colocados são premiados em cada ciclo",
+      "default": 3,
+      "min": 1,
+      "max": 5,
+      "dependencia": "premiacao_mensal === true"
+    },
+    "criterio_ranking": {
+      "tipo": "select",
+      "label": "Critério de ranking",
+      "descricao": "Como ordenar os participantes no período",
+      "default": "soma_pontos",
+      "opcoes": [
+        {
+          "value": "soma_pontos",
+          "label": "Soma de Pontos",
+          "descricao": "Total de pontos Cartola no período"
+        },
+        {
+          "value": "media_pontos",
+          "label": "Média de Pontos",
+          "descricao": "Média por rodada (beneficia quem jogou menos)"
+        },
+        {
+          "value": "melhor_rodada",
+          "label": "Melhor Rodada",
+          "descricao": "Considera apenas a melhor pontuação do período"
+        }
+      ]
+    }
+  },
+
+  "ciclos_exemplo": {
+    "calendario_civil": [
+      { "id": 1, "nome": "Abril", "rodadas": "R1-R4" },
+      { "id": 2, "nome": "Maio", "rodadas": "R5-R9" },
+      { "id": 3, "nome": "Junho", "rodadas": "R10-R13" }
+    ],
+    "blocos_fixos": [
+      { "id": 1, "nome": "1º Ciclo", "rodadas": "R1-R4" },
+      { "id": 2, "nome": "2º Ciclo", "rodadas": "R5-R8" },
+      { "id": 3, "nome": "3º Ciclo", "rodadas": "R9-R12" }
+    ]
+  },
+
+  "campos_exibicao": [
+    "posicao",
+    "nome_time",
+    "escudo",
+    "pontos_periodo",
+    "media_periodo",
+    "melhor_rodada",
+    "pior_rodada"
+  ],
+
+  "metadados": {
+    "criado_em": "2025-12-15",
+    "autor": "Product Team",
+    "notas": "Flexibilidade é chave - nem todo campeonato segue calendário civil perfeitamente"
+  }
+}

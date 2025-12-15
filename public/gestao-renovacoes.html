@@ -1,0 +1,1066 @@
+<!doctype html>
+<html lang="pt-BR">
+    <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <title>Gestao de Renovacoes 2026 - Super Cartola Manager</title>
+        <link rel="shortcut icon" href="favicon.ico" type="image/x-icon" />
+        <link rel="stylesheet" href="style.css" />
+        <link rel="stylesheet" href="css/modules/dashboard-redesign.css" />
+        <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
+        <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet" />
+        <style>
+            /* ============================================================
+               GESTÃO DE RENOVAÇÕES 2026 - v1.0
+               ============================================================ */
+
+            .renovacoes-page {
+                background: #121212;
+                min-height: 100vh;
+            }
+
+            .renovacoes-content {
+                padding: 20px 16px;
+            }
+
+            /* Header com aviso */
+            .renovacoes-header {
+                background: linear-gradient(135deg, #1a1a1a 0%, #252525 100%);
+                border-radius: 10px;
+                padding: 18px 20px;
+                margin-bottom: 20px;
+                border: 1px solid #f59e0b;
+                position: relative;
+                overflow: hidden;
+            }
+
+            .renovacoes-header::before {
+                content: '';
+                position: absolute;
+                top: 0;
+                left: 0;
+                right: 0;
+                height: 3px;
+                background: linear-gradient(90deg, #f59e0b, #fbbf24, #f59e0b);
+            }
+
+            .header-top {
+                display: flex;
+                align-items: center;
+                justify-content: space-between;
+                margin-bottom: 12px;
+            }
+
+            .header-title {
+                display: flex;
+                align-items: center;
+                gap: 12px;
+            }
+
+            .header-title .material-icons {
+                font-size: 28px;
+                color: #f59e0b;
+            }
+
+            .renovacoes-header h1 {
+                font-size: 1.35rem;
+                font-weight: 700;
+                color: #ffffff;
+                margin: 0;
+            }
+
+            .header-badge {
+                background: rgba(245, 158, 11, 0.15);
+                color: #f59e0b;
+                padding: 4px 12px;
+                border-radius: 20px;
+                font-size: 0.7rem;
+                font-weight: 600;
+                text-transform: uppercase;
+                letter-spacing: 0.05em;
+            }
+
+            .renovacoes-header p {
+                font-size: 0.8rem;
+                color: #9ca3af;
+                margin: 0;
+            }
+
+            /* Aviso de preparação */
+            .aviso-preparacao {
+                background: rgba(245, 158, 11, 0.1);
+                border: 1px solid rgba(245, 158, 11, 0.3);
+                border-radius: 8px;
+                padding: 12px 16px;
+                margin-bottom: 20px;
+                display: flex;
+                align-items: center;
+                gap: 12px;
+            }
+
+            .aviso-preparacao .material-icons {
+                color: #f59e0b;
+                font-size: 20px;
+            }
+
+            .aviso-preparacao p {
+                font-size: 0.8rem;
+                color: #fbbf24;
+                margin: 0;
+            }
+
+            /* Stats Cards */
+            .stats-row {
+                display: grid;
+                grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+                gap: 12px;
+                margin-bottom: 20px;
+            }
+
+            .stat-card {
+                background: #1a1a1a;
+                border-radius: 10px;
+                border: 1px solid #2d2d2d;
+                padding: 14px;
+                text-align: center;
+            }
+
+            .stat-card.highlight-green { border-color: rgba(16, 185, 129, 0.3); }
+            .stat-card.highlight-red { border-color: rgba(239, 68, 68, 0.3); }
+            .stat-card.highlight-amber { border-color: rgba(245, 158, 11, 0.3); }
+            .stat-card.highlight-blue { border-color: rgba(59, 130, 246, 0.3); }
+
+            .stat-card-icon {
+                width: 36px;
+                height: 36px;
+                border-radius: 50%;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                margin: 0 auto 8px;
+            }
+
+            .stat-card-icon.green { background: rgba(16, 185, 129, 0.15); color: #10b981; }
+            .stat-card-icon.red { background: rgba(239, 68, 68, 0.15); color: #ef4444; }
+            .stat-card-icon.amber { background: rgba(245, 158, 11, 0.15); color: #f59e0b; }
+            .stat-card-icon.blue { background: rgba(59, 130, 246, 0.15); color: #3b82f6; }
+            .stat-card-icon.gray { background: rgba(156, 163, 175, 0.15); color: #9ca3af; }
+
+            .stat-card-icon .material-icons { font-size: 18px; }
+
+            .stat-card-value {
+                font-size: 1.5rem;
+                font-weight: 700;
+                color: #ffffff;
+                margin-bottom: 2px;
+            }
+
+            .stat-card-label {
+                font-size: 0.7rem;
+                color: #9ca3af;
+                text-transform: uppercase;
+                letter-spacing: 0.05em;
+            }
+
+            /* Filtros */
+            .filtros-section {
+                background: #1a1a1a;
+                border-radius: 10px;
+                border: 1px solid #2d2d2d;
+                padding: 14px 16px;
+                margin-bottom: 16px;
+                display: flex;
+                flex-wrap: wrap;
+                gap: 12px;
+                align-items: center;
+            }
+
+            .filtro-group {
+                display: flex;
+                align-items: center;
+                gap: 8px;
+            }
+
+            .filtro-group label {
+                font-size: 0.75rem;
+                color: #9ca3af;
+                font-weight: 500;
+            }
+
+            .filtro-group select,
+            .filtro-group input {
+                background: #252525;
+                border: 1px solid #333;
+                border-radius: 6px;
+                padding: 8px 12px;
+                font-size: 0.8rem;
+                color: #ffffff;
+                outline: none;
+            }
+
+            .filtro-group select:focus,
+            .filtro-group input:focus {
+                border-color: #f59e0b;
+            }
+
+            .filtro-group input[type="text"] {
+                width: 180px;
+            }
+
+            .btn-filtrar {
+                background: #f59e0b;
+                color: #000;
+                border: none;
+                border-radius: 6px;
+                padding: 8px 16px;
+                font-size: 0.8rem;
+                font-weight: 600;
+                cursor: pointer;
+                display: flex;
+                align-items: center;
+                gap: 6px;
+                margin-left: auto;
+            }
+
+            .btn-filtrar:hover {
+                background: #fbbf24;
+            }
+
+            .btn-filtrar .material-icons {
+                font-size: 16px;
+            }
+
+            /* Tabela de participantes */
+            .tabela-container {
+                background: #1a1a1a;
+                border-radius: 10px;
+                border: 1px solid #2d2d2d;
+                overflow: hidden;
+            }
+
+            .tabela-header {
+                padding: 14px 16px;
+                border-bottom: 1px solid #2d2d2d;
+                display: flex;
+                align-items: center;
+                justify-content: space-between;
+            }
+
+            .tabela-header h3 {
+                font-size: 0.95rem;
+                font-weight: 700;
+                color: #ffffff;
+                margin: 0;
+            }
+
+            .tabela-header span {
+                font-size: 0.75rem;
+                color: #9ca3af;
+            }
+
+            .tabela-scroll {
+                overflow-x: auto;
+            }
+
+            table {
+                width: 100%;
+                border-collapse: collapse;
+            }
+
+            thead {
+                background: #252525;
+            }
+
+            th {
+                padding: 12px 16px;
+                text-align: left;
+                font-size: 0.7rem;
+                font-weight: 600;
+                color: #9ca3af;
+                text-transform: uppercase;
+                letter-spacing: 0.05em;
+                white-space: nowrap;
+            }
+
+            td {
+                padding: 12px 16px;
+                font-size: 0.85rem;
+                color: #e5e7eb;
+                border-bottom: 1px solid #2d2d2d;
+            }
+
+            tr:last-child td {
+                border-bottom: none;
+            }
+
+            tr:hover {
+                background: rgba(255, 255, 255, 0.02);
+            }
+
+            /* Participante cell */
+            .participante-cell {
+                display: flex;
+                align-items: center;
+                gap: 10px;
+            }
+
+            .participante-escudo {
+                width: 32px;
+                height: 32px;
+                border-radius: 50%;
+                object-fit: cover;
+                background: #333;
+            }
+
+            .participante-info h4 {
+                font-size: 0.85rem;
+                font-weight: 600;
+                color: #ffffff;
+                margin: 0 0 2px 0;
+            }
+
+            .participante-info span {
+                font-size: 0.7rem;
+                color: #6b7280;
+            }
+
+            /* Saldo cell */
+            .saldo-positivo {
+                color: #10b981;
+                font-weight: 600;
+            }
+
+            .saldo-negativo {
+                color: #ef4444;
+                font-weight: 600;
+            }
+
+            .saldo-zero {
+                color: #9ca3af;
+            }
+
+            /* Status badges */
+            .status-badge {
+                display: inline-flex;
+                align-items: center;
+                gap: 4px;
+                padding: 4px 10px;
+                border-radius: 20px;
+                font-size: 0.7rem;
+                font-weight: 600;
+                text-transform: uppercase;
+            }
+
+            .status-badge.pendente {
+                background: rgba(245, 158, 11, 0.15);
+                color: #f59e0b;
+            }
+
+            .status-badge.renovado {
+                background: rgba(16, 185, 129, 0.15);
+                color: #10b981;
+            }
+
+            .status-badge.nao_renovado {
+                background: rgba(239, 68, 68, 0.15);
+                color: #ef4444;
+            }
+
+            .status-badge.inadimplente {
+                background: rgba(239, 68, 68, 0.3);
+                color: #fca5a5;
+            }
+
+            /* Ações */
+            .acoes-cell {
+                display: flex;
+                gap: 6px;
+            }
+
+            .btn-acao {
+                width: 28px;
+                height: 28px;
+                border-radius: 6px;
+                border: none;
+                cursor: pointer;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                transition: all 0.2s ease;
+            }
+
+            .btn-acao .material-icons {
+                font-size: 16px;
+            }
+
+            .btn-acao.aprovar {
+                background: rgba(16, 185, 129, 0.15);
+                color: #10b981;
+            }
+
+            .btn-acao.aprovar:hover {
+                background: #10b981;
+                color: #fff;
+            }
+
+            .btn-acao.rejeitar {
+                background: rgba(239, 68, 68, 0.15);
+                color: #ef4444;
+            }
+
+            .btn-acao.rejeitar:hover {
+                background: #ef4444;
+                color: #fff;
+            }
+
+            .btn-acao.pagamento {
+                background: rgba(59, 130, 246, 0.15);
+                color: #3b82f6;
+            }
+
+            .btn-acao.pagamento:hover {
+                background: #3b82f6;
+                color: #fff;
+            }
+
+            .btn-acao:disabled {
+                opacity: 0.3;
+                cursor: not-allowed;
+            }
+
+            /* Empty state */
+            .empty-state {
+                padding: 60px 20px;
+                text-align: center;
+            }
+
+            .empty-state .material-icons {
+                font-size: 64px;
+                color: #333;
+                margin-bottom: 16px;
+            }
+
+            .empty-state h3 {
+                font-size: 1.1rem;
+                color: #ffffff;
+                margin: 0 0 8px 0;
+            }
+
+            .empty-state p {
+                font-size: 0.85rem;
+                color: #6b7280;
+                margin: 0;
+            }
+
+            /* Modal */
+            .modal-overlay {
+                position: fixed;
+                top: 0;
+                left: 0;
+                right: 0;
+                bottom: 0;
+                background: rgba(0, 0, 0, 0.7);
+                display: none;
+                align-items: center;
+                justify-content: center;
+                z-index: 1000;
+            }
+
+            .modal-overlay.active {
+                display: flex;
+            }
+
+            .modal-content {
+                background: #1a1a1a;
+                border-radius: 12px;
+                border: 1px solid #2d2d2d;
+                width: 90%;
+                max-width: 400px;
+                padding: 24px;
+            }
+
+            .modal-header {
+                display: flex;
+                align-items: center;
+                justify-content: space-between;
+                margin-bottom: 20px;
+            }
+
+            .modal-header h3 {
+                font-size: 1.1rem;
+                font-weight: 700;
+                color: #ffffff;
+                margin: 0;
+            }
+
+            .modal-close {
+                background: none;
+                border: none;
+                color: #6b7280;
+                cursor: pointer;
+                padding: 4px;
+            }
+
+            .modal-close:hover {
+                color: #ffffff;
+            }
+
+            .modal-body {
+                margin-bottom: 20px;
+            }
+
+            .modal-body label {
+                display: block;
+                font-size: 0.8rem;
+                font-weight: 500;
+                color: #9ca3af;
+                margin-bottom: 6px;
+            }
+
+            .modal-body input,
+            .modal-body textarea {
+                width: 100%;
+                background: #252525;
+                border: 1px solid #333;
+                border-radius: 6px;
+                padding: 10px 12px;
+                font-size: 0.85rem;
+                color: #ffffff;
+                outline: none;
+                box-sizing: border-box;
+            }
+
+            .modal-body input:focus,
+            .modal-body textarea:focus {
+                border-color: #f59e0b;
+            }
+
+            .modal-body textarea {
+                resize: vertical;
+                min-height: 80px;
+            }
+
+            .modal-footer {
+                display: flex;
+                gap: 10px;
+                justify-content: flex-end;
+            }
+
+            .btn-modal {
+                padding: 10px 20px;
+                border-radius: 6px;
+                font-size: 0.85rem;
+                font-weight: 600;
+                cursor: pointer;
+                border: none;
+            }
+
+            .btn-modal.cancelar {
+                background: #333;
+                color: #9ca3af;
+            }
+
+            .btn-modal.confirmar {
+                background: #f59e0b;
+                color: #000;
+            }
+
+            .btn-modal:hover {
+                opacity: 0.9;
+            }
+
+            /* Voltar button */
+            .btn-voltar {
+                display: inline-flex;
+                align-items: center;
+                gap: 6px;
+                color: #9ca3af;
+                text-decoration: none;
+                font-size: 0.8rem;
+                margin-bottom: 16px;
+            }
+
+            .btn-voltar:hover {
+                color: #ffffff;
+            }
+
+            .btn-voltar .material-icons {
+                font-size: 18px;
+            }
+        </style>
+    </head>
+
+    <body>
+        <div class="app-container">
+            <div id="sidebar-placeholder"></div>
+
+            <main class="app-main renovacoes-page">
+                <div class="renovacoes-content">
+                    <!-- Voltar -->
+                    <a href="ferramentas.html" class="btn-voltar">
+                        <span class="material-icons">arrow_back</span>
+                        Voltar para Ferramentas
+                    </a>
+
+                    <!-- Header -->
+                    <header class="renovacoes-header">
+                        <div class="header-top">
+                            <div class="header-title">
+                                <span class="material-icons">how_to_reg</span>
+                                <h1>Gestao de Renovacoes</h1>
+                            </div>
+                            <span class="header-badge">Temporada 2026</span>
+                        </div>
+                        <p>Gerencie inscricoes, controle financeiro e status dos participantes para a nova temporada.</p>
+                    </header>
+
+                    <!-- Aviso de preparação -->
+                    <div class="aviso-preparacao">
+                        <span class="material-icons">schedule</span>
+                        <p><strong>Modo Preparacao:</strong> Este modulo sera operacionalizado na abertura da Temporada 2026. Os dados serao populados apos a execucao do script de virada de temporada.</p>
+                    </div>
+
+                    <!-- Stats Row -->
+                    <div class="stats-row">
+                        <div class="stat-card highlight-amber">
+                            <div class="stat-card-icon amber">
+                                <span class="material-icons">hourglass_empty</span>
+                            </div>
+                            <div class="stat-card-value" id="statPendentes">0</div>
+                            <div class="stat-card-label">Pendentes</div>
+                        </div>
+                        <div class="stat-card highlight-green">
+                            <div class="stat-card-icon green">
+                                <span class="material-icons">check_circle</span>
+                            </div>
+                            <div class="stat-card-value" id="statRenovados">0</div>
+                            <div class="stat-card-label">Renovados</div>
+                        </div>
+                        <div class="stat-card highlight-red">
+                            <div class="stat-card-icon red">
+                                <span class="material-icons">cancel</span>
+                            </div>
+                            <div class="stat-card-value" id="statNaoRenovados">0</div>
+                            <div class="stat-card-label">Nao Renovados</div>
+                        </div>
+                        <div class="stat-card highlight-green">
+                            <div class="stat-card-icon green">
+                                <span class="material-icons">trending_up</span>
+                            </div>
+                            <div class="stat-card-value" id="statCredores">R$ 0</div>
+                            <div class="stat-card-label">A Receber</div>
+                        </div>
+                        <div class="stat-card highlight-red">
+                            <div class="stat-card-icon red">
+                                <span class="material-icons">trending_down</span>
+                            </div>
+                            <div class="stat-card-value" id="statDevedores">R$ 0</div>
+                            <div class="stat-card-label">A Pagar</div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-card-icon gray">
+                                <span class="material-icons">done_all</span>
+                            </div>
+                            <div class="stat-card-value" id="statQuitados">0</div>
+                            <div class="stat-card-label">Quitados</div>
+                        </div>
+                    </div>
+
+                    <!-- Filtros -->
+                    <div class="filtros-section">
+                        <div class="filtro-group">
+                            <label>Status:</label>
+                            <select id="filtroStatus">
+                                <option value="">Todos</option>
+                                <option value="pendente">Pendentes</option>
+                                <option value="renovado">Renovados</option>
+                                <option value="nao_renovado">Nao Renovados</option>
+                                <option value="inadimplente">Inadimplentes</option>
+                            </select>
+                        </div>
+                        <div class="filtro-group">
+                            <label>Financeiro:</label>
+                            <select id="filtroFinanceiro">
+                                <option value="">Todos</option>
+                                <option value="credor">Credores (a receber)</option>
+                                <option value="devedor">Devedores (a pagar)</option>
+                                <option value="zerado">Quitados</option>
+                            </select>
+                        </div>
+                        <div class="filtro-group">
+                            <label>Liga:</label>
+                            <select id="filtroLiga">
+                                <option value="">Todas</option>
+                                <option value="SUPERCARTOLA">SuperCartola</option>
+                                <option value="SOBRAL">Cartoleiros Sobral</option>
+                            </select>
+                        </div>
+                        <div class="filtro-group">
+                            <input type="text" id="filtroBusca" placeholder="Buscar participante...">
+                        </div>
+                        <button class="btn-filtrar" onclick="aplicarFiltros()">
+                            <span class="material-icons">filter_list</span>
+                            Filtrar
+                        </button>
+                    </div>
+
+                    <!-- Tabela de participantes -->
+                    <div class="tabela-container">
+                        <div class="tabela-header">
+                            <h3>Participantes</h3>
+                            <span id="totalExibidos">0 participantes</span>
+                        </div>
+                        <div class="tabela-scroll">
+                            <table>
+                                <thead>
+                                    <tr>
+                                        <th>Participante</th>
+                                        <th>Liga</th>
+                                        <th>Posicao 2025</th>
+                                        <th>Saldo</th>
+                                        <th>Status</th>
+                                        <th>Acoes</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="tabelaBody">
+                                    <!-- Preenchido via JS -->
+                                </tbody>
+                            </table>
+                        </div>
+
+                        <!-- Empty State -->
+                        <div class="empty-state" id="emptyState" style="display: none;">
+                            <span class="material-icons">inbox</span>
+                            <h3>Aguardando dados</h3>
+                            <p>Os dados de renovacao serao carregados apos a execucao do script turn_key_2026.js</p>
+                        </div>
+                    </div>
+                </div>
+            </main>
+        </div>
+
+        <!-- Modal de Pagamento -->
+        <div class="modal-overlay" id="modalPagamento">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h3>Registrar Pagamento</h3>
+                    <button class="modal-close" onclick="fecharModal('modalPagamento')">
+                        <span class="material-icons">close</span>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    <div style="margin-bottom: 16px;">
+                        <label>Participante</label>
+                        <input type="text" id="modalParticipanteNome" readonly>
+                    </div>
+                    <div style="margin-bottom: 16px;">
+                        <label>Valor (R$)</label>
+                        <input type="number" id="modalValor" step="0.01" placeholder="0.00">
+                    </div>
+                    <div>
+                        <label>Observacoes</label>
+                        <textarea id="modalObservacoes" placeholder="Ex: PIX recebido em 15/01/2026"></textarea>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button class="btn-modal cancelar" onclick="fecharModal('modalPagamento')">Cancelar</button>
+                    <button class="btn-modal confirmar" onclick="confirmarPagamento()">Registrar</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Scripts -->
+        <script type="module">
+            // Estado global
+            let participantes = [];
+            let participantesFiltrados = [];
+
+            // Carregar layout (sidebar)
+            async function loadLayout() {
+                try {
+                    const response = await fetch("layout.html");
+                    const layoutHtml = await response.text();
+                    const parser = new DOMParser();
+                    const doc = parser.parseFromString(layoutHtml, "text/html");
+
+                    const sidebar = doc.querySelector(".app-sidebar");
+                    if (sidebar) {
+                        document.getElementById("sidebar-placeholder")?.replaceWith(sidebar);
+                    }
+
+                    const scripts = doc.querySelectorAll("script");
+                    scripts.forEach((script) => {
+                        if (script.textContent.trim()) {
+                            const newScript = document.createElement("script");
+                            newScript.textContent = script.textContent;
+                            document.head.appendChild(newScript);
+                        }
+                    });
+                } catch (error) {
+                    console.error("Erro ao carregar layout:", error);
+                }
+            }
+
+            // Carregar dados do registry
+            async function carregarDados() {
+                try {
+                    const response = await fetch('/api/renovacoes/registry');
+
+                    if (!response.ok) {
+                        throw new Error('API não disponível');
+                    }
+
+                    const data = await response.json();
+                    participantes = data.users || [];
+
+                    atualizarEstatisticas();
+                    aplicarFiltros();
+
+                } catch (error) {
+                    console.warn('Dados de renovação não disponíveis:', error.message);
+                    mostrarEmptyState();
+                }
+            }
+
+            // Atualizar estatísticas
+            function atualizarEstatisticas() {
+                let pendentes = 0;
+                let renovados = 0;
+                let naoRenovados = 0;
+                let totalCredores = 0;
+                let totalDevedores = 0;
+                let quitados = 0;
+
+                participantes.forEach(p => {
+                    const status = p.status_renovacao?.temporada_2026?.status || 'pendente';
+                    const saldo = p.situacao_financeira?.saldo_atual || 0;
+
+                    if (status === 'pendente') pendentes++;
+                    else if (status === 'renovado') renovados++;
+                    else if (status === 'nao_renovado') naoRenovados++;
+
+                    if (saldo > 0) totalCredores += saldo;
+                    else if (saldo < 0) totalDevedores += Math.abs(saldo);
+                    else quitados++;
+                });
+
+                document.getElementById('statPendentes').textContent = pendentes;
+                document.getElementById('statRenovados').textContent = renovados;
+                document.getElementById('statNaoRenovados').textContent = naoRenovados;
+                document.getElementById('statCredores').textContent = `R$ ${totalCredores.toFixed(2).replace('.', ',')}`;
+                document.getElementById('statDevedores').textContent = `R$ ${totalDevedores.toFixed(2).replace('.', ',')}`;
+                document.getElementById('statQuitados').textContent = quitados;
+            }
+
+            // Aplicar filtros
+            window.aplicarFiltros = function() {
+                const status = document.getElementById('filtroStatus').value;
+                const financeiro = document.getElementById('filtroFinanceiro').value;
+                const liga = document.getElementById('filtroLiga').value;
+                const busca = document.getElementById('filtroBusca').value.toLowerCase();
+
+                participantesFiltrados = participantes.filter(p => {
+                    // Filtro por status
+                    if (status) {
+                        const pStatus = p.status_renovacao?.temporada_2026?.status || 'pendente';
+                        if (pStatus !== status) return false;
+                    }
+
+                    // Filtro financeiro
+                    if (financeiro) {
+                        const tipo = p.situacao_financeira?.tipo || 'zerado';
+                        if (tipo !== financeiro) return false;
+                    }
+
+                    // Filtro por liga
+                    if (liga) {
+                        const ligaParticipante = p.ligas_participadas?.[0]?.liga_nome || '';
+                        if (!ligaParticipante.toUpperCase().includes(liga)) return false;
+                    }
+
+                    // Busca por nome
+                    if (busca) {
+                        const nome = (p.nome || '').toLowerCase();
+                        if (!nome.includes(busca)) return false;
+                    }
+
+                    return true;
+                });
+
+                renderizarTabela();
+            }
+
+            // Renderizar tabela
+            function renderizarTabela() {
+                const tbody = document.getElementById('tabelaBody');
+                const emptyState = document.getElementById('emptyState');
+                const totalExibidos = document.getElementById('totalExibidos');
+
+                if (participantesFiltrados.length === 0) {
+                    tbody.innerHTML = '';
+                    emptyState.style.display = 'block';
+                    totalExibidos.textContent = '0 participantes';
+                    return;
+                }
+
+                emptyState.style.display = 'none';
+                totalExibidos.textContent = `${participantesFiltrados.length} participante${participantesFiltrados.length > 1 ? 's' : ''}`;
+
+                tbody.innerHTML = participantesFiltrados.map(p => {
+                    const status = p.status_renovacao?.temporada_2026?.status || 'pendente';
+                    const saldo = p.situacao_financeira?.saldo_atual || 0;
+                    const liga = p.ligas_participadas?.[0]?.liga_nome || '-';
+                    const posicao = p.historico?.[0]?.estatisticas?.posicao_final || '-';
+                    const escudo = p.historico?.[0]?.time_escudo || 'data:image/svg+xml,%3Csvg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"%3E%3Ccircle cx="12" cy="12" r="10" fill="%23333"/%3E%3C/svg%3E';
+
+                    // Classe do saldo
+                    let saldoClass = 'saldo-zero';
+                    let saldoTexto = 'R$ 0,00';
+                    if (saldo > 0) {
+                        saldoClass = 'saldo-positivo';
+                        saldoTexto = `+R$ ${saldo.toFixed(2).replace('.', ',')}`;
+                    } else if (saldo < 0) {
+                        saldoClass = 'saldo-negativo';
+                        saldoTexto = `-R$ ${Math.abs(saldo).toFixed(2).replace('.', ',')}`;
+                    }
+
+                    // Status badge
+                    let statusLabel = status.replace('_', ' ');
+
+                    return `
+                        <tr data-id="${p.id}">
+                            <td>
+                                <div class="participante-cell">
+                                    <img src="${escudo}" alt="" class="participante-escudo" onerror="this.src='data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 24 24%22%3E%3Ccircle cx=%2212%22 cy=%2212%22 r=%2210%22 fill=%22%23333%22/%3E%3C/svg%3E'">
+                                    <div class="participante-info">
+                                        <h4>${p.nome || 'Desconhecido'}</h4>
+                                        <span>ID: ${p.id?.substring(0, 8) || '-'}...</span>
+                                    </div>
+                                </div>
+                            </td>
+                            <td>${liga}</td>
+                            <td>${posicao}º</td>
+                            <td class="${saldoClass}">${saldoTexto}</td>
+                            <td><span class="status-badge ${status}">${statusLabel}</span></td>
+                            <td>
+                                <div class="acoes-cell">
+                                    <button class="btn-acao aprovar" title="Aprovar renovacao" onclick="aprovarRenovacao('${p.id}')" ${status === 'renovado' ? 'disabled' : ''}>
+                                        <span class="material-icons">check</span>
+                                    </button>
+                                    <button class="btn-acao rejeitar" title="Rejeitar renovacao" onclick="rejeitarRenovacao('${p.id}')" ${status === 'nao_renovado' ? 'disabled' : ''}>
+                                        <span class="material-icons">close</span>
+                                    </button>
+                                    <button class="btn-acao pagamento" title="Registrar pagamento" onclick="abrirModalPagamento('${p.id}', '${p.nome}')">
+                                        <span class="material-icons">payments</span>
+                                    </button>
+                                </div>
+                            </td>
+                        </tr>
+                    `;
+                }).join('');
+            }
+
+            // Mostrar empty state
+            function mostrarEmptyState() {
+                document.getElementById('tabelaBody').innerHTML = '';
+                document.getElementById('emptyState').style.display = 'block';
+                document.getElementById('totalExibidos').textContent = '0 participantes';
+            }
+
+            // Ações
+            window.aprovarRenovacao = async function(id) {
+                if (!confirm('Confirma a aprovacao da renovacao para 2026?')) return;
+
+                try {
+                    const response = await fetch(`/api/renovacoes/${id}/status`, {
+                        method: 'PUT',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ status: 'renovado' })
+                    });
+
+                    if (response.ok) {
+                        await carregarDados();
+                        alert('Renovacao aprovada com sucesso!');
+                    } else {
+                        throw new Error('Erro ao aprovar');
+                    }
+                } catch (error) {
+                    alert('Erro: ' + error.message);
+                }
+            }
+
+            window.rejeitarRenovacao = async function(id) {
+                if (!confirm('Confirma a rejeicao da renovacao para 2026?')) return;
+
+                try {
+                    const response = await fetch(`/api/renovacoes/${id}/status`, {
+                        method: 'PUT',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ status: 'nao_renovado' })
+                    });
+
+                    if (response.ok) {
+                        await carregarDados();
+                        alert('Renovacao rejeitada.');
+                    } else {
+                        throw new Error('Erro ao rejeitar');
+                    }
+                } catch (error) {
+                    alert('Erro: ' + error.message);
+                }
+            }
+
+            // Modal de pagamento
+            let participanteSelecionado = null;
+
+            window.abrirModalPagamento = function(id, nome) {
+                participanteSelecionado = id;
+                document.getElementById('modalParticipanteNome').value = nome;
+                document.getElementById('modalValor').value = '';
+                document.getElementById('modalObservacoes').value = '';
+                document.getElementById('modalPagamento').classList.add('active');
+            }
+
+            window.fecharModal = function(modalId) {
+                document.getElementById(modalId).classList.remove('active');
+            }
+
+            window.confirmarPagamento = async function() {
+                const valor = parseFloat(document.getElementById('modalValor').value);
+                const observacoes = document.getElementById('modalObservacoes').value;
+
+                if (!valor || isNaN(valor)) {
+                    alert('Informe um valor valido');
+                    return;
+                }
+
+                try {
+                    const response = await fetch(`/api/renovacoes/${participanteSelecionado}/pagamento`, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ valor, observacoes })
+                    });
+
+                    if (response.ok) {
+                        fecharModal('modalPagamento');
+                        await carregarDados();
+                        alert('Pagamento registrado com sucesso!');
+                    } else {
+                        throw new Error('Erro ao registrar pagamento');
+                    }
+                } catch (error) {
+                    alert('Erro: ' + error.message);
+                }
+            }
+
+            // Inicialização
+            document.addEventListener("DOMContentLoaded", () => {
+                loadLayout();
+                carregarDados();
+            });
+        </script>
+
+        <!-- Menu do Perfil Admin -->
+        <script src="js/core/sidebar-menu.js"></script>
+    </body>
+</html>

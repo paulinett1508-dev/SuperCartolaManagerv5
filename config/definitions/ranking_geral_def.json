@@ -1,0 +1,52 @@
+{
+  "id": "ranking_geral",
+  "nome": "Ranking Geral",
+  "descricao": "Classificação acumulada de pontos ao longo de toda a temporada. É a base do campeonato.",
+  "categoria": "base",
+  "obrigatorio": true,
+  "status": "ativo",
+  "versao": "1.0.0",
+
+  "restricoes": {
+    "min_participantes": 2,
+    "max_participantes": null,
+    "habilitado_por_padrao": true
+  },
+
+  "parametros_configuraveis": {
+    "exibir_variacao_posicao": {
+      "tipo": "boolean",
+      "label": "Exibir variação de posição",
+      "descricao": "Mostra setas indicando se o participante subiu ou desceu no ranking",
+      "default": true
+    },
+    "exibir_media_pontos": {
+      "tipo": "boolean",
+      "label": "Exibir média de pontos",
+      "descricao": "Mostra a média de pontos por rodada ao lado do total",
+      "default": true
+    },
+    "destacar_lider": {
+      "tipo": "boolean",
+      "label": "Destacar líder",
+      "descricao": "Aplica destaque visual especial ao primeiro colocado",
+      "default": true
+    }
+  },
+
+  "campos_exibicao": [
+    "posicao",
+    "variacao",
+    "nome_time",
+    "escudo",
+    "pontos_totais",
+    "media_pontos",
+    "rodadas_jogadas"
+  ],
+
+  "metadados": {
+    "criado_em": "2025-12-15",
+    "autor": "Product Team",
+    "notas": "Módulo obrigatório - toda liga precisa de ranking geral"
+  }
+}

@@ -1,0 +1,158 @@
+{
+  "id": "artilheiro",
+  "nome": "Artilheiro Campeão",
+  "descricao": "Ranking focado em ataque. Conta gols e assistências dos atletas escalados.",
+  "categoria": "estatistico",
+  "obrigatorio": false,
+  "status": "ativo",
+  "versao": "1.0.0",
+
+  "restricoes": {
+    "min_participantes": 2,
+    "max_participantes": null,
+    "habilitado_por_padrao": true,
+    "avisos": []
+  },
+
+  "parametros_configuraveis": {
+    "gols_valem_mais": {
+      "tipo": "boolean",
+      "label": "Gols valem mais que assistências",
+      "descricao": "Se ativado, gols têm peso maior. Se desativado, gols e assistências têm peso igual.",
+      "default": true,
+      "destaque": true
+    },
+    "peso_gol": {
+      "tipo": "number",
+      "label": "Peso do gol",
+      "descricao": "Quantos pontos cada gol vale",
+      "default": 3,
+      "min": 1,
+      "max": 10,
+      "dependencia": "gols_valem_mais === true"
+    },
+    "peso_assistencia": {
+      "tipo": "number",
+      "label": "Peso da assistência",
+      "descricao": "Quantos pontos cada assistência vale",
+      "default": 1,
+      "min": 1,
+      "max": 5,
+      "dependencia": "gols_valem_mais === true"
+    },
+    "contar_gols_contra": {
+      "tipo": "boolean",
+      "label": "Contar gols contra (negativos)",
+      "descricao": "Gols contra da escalação subtraem pontos",
+      "default": false
+    },
+    "premiacao_final": {
+      "tipo": "boolean",
+      "label": "Premiação ao final da temporada",
+      "descricao": "Premia os melhores artilheiros",
+      "default": true,
+      "impacto_financeiro": true
+    },
+    "quantidade_premiados": {
+      "tipo": "number",
+      "label": "Quantidade de premiados",
+      "descricao": "Quantos primeiros colocados recebem premiação",
+      "default": 3,
+      "min": 1,
+      "max": 5,
+      "dependencia": "premiacao_final === true"
+    },
+    "criterio_desempate": {
+      "tipo": "select",
+      "label": "Critério de desempate",
+      "descricao": "Como desempatar participantes com mesma pontuação",
+      "default": "mais_gols",
+      "opcoes": [
+        {
+          "value": "mais_gols",
+          "label": "Mais gols",
+          "descricao": "Quem marcou mais gols fica à frente"
+        },
+        {
+          "value": "mais_assistencias",
+          "label": "Mais assistências",
+          "descricao": "Quem deu mais assistências fica à frente"
+        },
+        {
+          "value": "menos_rodadas",
+          "label": "Menos rodadas jogadas",
+          "descricao": "Quem precisou de menos rodadas para atingir a marca"
+        },
+        {
+          "value": "ranking_geral",
+          "label": "Posição no Ranking Geral",
+          "descricao": "Usa a classificação geral como desempate"
+        }
+      ]
+    }
+  },
+
+  "mecanica": {
+    "coleta": {
+      "fonte": "API Cartola",
+      "dados_necessarios": [
+        "gols_marcados",
+        "assistencias",
+        "gols_contra"
+      ]
+    },
+    "calculo": {
+      "com_peso": "(gols * peso_gol) + (assistencias * peso_assistencia)",
+      "sem_peso": "gols + assistencias"
+    }
+  },
+
+  "estatisticas_disponiveis": [
+    {
+      "campo": "pontuacao_total",
+      "label": "Total de Pontos",
+      "descricao": "Pontuação calculada com pesos"
+    },
+    {
+      "campo": "gols",
+      "label": "Gols",
+      "descricao": "Total de gols marcados"
+    },
+    {
+      "campo": "assistencias",
+      "label": "Assistências",
+      "descricao": "Total de assistências"
+    },
+    {
+      "campo": "participacoes_gol",
+      "label": "Participações em Gol",
+      "descricao": "Gols + Assistências (G+A)"
+    },
+    {
+      "campo": "media_por_rodada",
+      "label": "Média por Rodada",
+      "descricao": "Média de participações em gol"
+    },
+    {
+      "campo": "melhor_rodada",
+      "label": "Melhor Rodada",
+      "descricao": "Rodada com mais gols/assistências"
+    }
+  ],
+
+  "campos_exibicao": [
+    "posicao",
+    "nome_time",
+    "escudo",
+    "pontuacao_total",
+    "gols",
+    "assistencias",
+    "media_por_rodada"
+  ],
+
+  "metadados": {
+    "criado_em": "2025-12-15",
+    "autor": "Product Team",
+    "notas": "Artilheiro Campeão = prêmio para quem mais contribuiu com gols"
+  }
+}

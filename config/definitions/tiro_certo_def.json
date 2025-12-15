@@ -1,0 +1,126 @@
+{
+  "id": "tiro_certo",
+  "nome": "Tiro Certo",
+  "descricao": "Modo Survival baseado em palpites de resultados reais. Escolha um time que vai VENCER - acertou, avança. Errou ou empatou, eliminado.",
+  "categoria": "survival",
+  "obrigatorio": false,
+  "status": "planejado",
+  "versao": "1.0.0",
+
+  "restricoes": {
+    "min_participantes": 10,
+    "max_participantes": null,
+    "habilitado_por_padrao": false,
+    "avisos": [
+      {
+        "condicao": "participantes < 10",
+        "tipo": "erro",
+        "mensagem": "Tiro Certo requer no mínimo 10 participantes para funcionar bem"
+      },
+      {
+        "condicao": "usar_placar_real === false",
+        "tipo": "aviso",
+        "mensagem": "Modo simulado usa pontuação Cartola ao invés de placares reais"
+      }
+    ]
+  },
+
+  "parametros_configuraveis": {
+    "quantidade_edicoes": {
+      "tipo": "select",
+      "label": "Quantidade de edições na temporada",
+      "descricao": "Quantas vezes o Tiro Certo será disputado no ano",
+      "default": 3,
+      "opcoes": [
+        {
+          "value": 1,
+          "label": "1 Edição",
+          "descricao": "Uma única disputa na temporada"
+        },
+        {
+          "value": 2,
+          "label": "2 Edições",
+          "descricao": "Duas disputas ao longo do ano"
+        },
+        {
+          "value": 3,
+          "label": "3 Edições",
+          "descricao": "Três disputas (recomendado para Brasileirão)"
+        }
+      ]
+    },
+    "usar_placar_real": {
+      "tipo": "boolean",
+      "label": "Usar placar real do Brasileirão",
+      "descricao": "Usa resultados oficiais dos jogos. Se desativado, usa pontuação Cartola.",
+      "default": true,
+      "destaque": true
+    },
+    "permitir_repeticao_time": {
+      "tipo": "boolean",
+      "label": "Permitir repetir time na mesma edição",
+      "descricao": "Se desativado, participante não pode escolher o mesmo time duas vezes na edição",
+      "default": false
+    },
+    "wo_automatico": {
+      "tipo": "boolean",
+      "label": "Eliminação automática (W.O.)",
+      "descricao": "Elimina automaticamente quem não fizer escolha antes do fechamento do mercado",
+      "default": true
+    },
+    "premiacao_campeao": {
+      "tipo": "boolean",
+      "label": "Premiação para o campeão",
+      "descricao": "O último sobrevivente recebe premiação",
+      "default": true,
+      "impacto_financeiro": true
+    },
+    "bonus_invicto": {
+      "tipo": "boolean",
+      "label": "Bônus para invicto",
+      "descricao": "Premiação extra se vencer todas as rodadas da edição",
+      "default": true,
+      "dependencia": "premiacao_campeao === true",
+      "impacto_financeiro": true
+    }
+  },
+
+  "mecanica": {
+    "tipo": "survival_last_man_standing",
+    "palpite": {
+      "tipo": "escolha_time_vencedor",
+      "quantidade": 1,
+      "prazo": "fechamento_mercado_cartola"
+    },
+    "resultados": {
+      "vitoria_time_escolhido": "AVANÇA",
+      "empate": "ELIMINADO",
+      "derrota_time_escolhido": "ELIMINADO"
+    },
+    "vencedor": {
+      "criterio": "last_man_standing",
+      "empate_final": "divisao_premio"
+    }
+  },
+
+  "estados_participante": [
+    { "status": "vivo", "icone": "ph-fill ph-heart", "cor": "#22c55e" },
+    { "status": "eliminado", "icone": "ph-fill ph-skull", "cor": "#ef4444" },
+    { "status": "campeao", "icone": "ph-fill ph-trophy", "cor": "#ffd700" }
+  ],
+
+  "campos_exibicao": [
+    "status",
+    "nome_time",
+    "escudo",
+    "escolha_atual",
+    "historico_escolhas",
+    "rodadas_sobrevividas"
+  ],
+
+  "metadados": {
+    "criado_em": "2025-12-15",
+    "autor": "Product Team",
+    "notas": "Requer integração com API de resultados do Brasileirão para modo placar real"
+  }
+}

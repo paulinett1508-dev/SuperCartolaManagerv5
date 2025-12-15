@@ -1,0 +1,101 @@
+{
+  "_metadata": {
+    "nome": "Cartório Vitalício - Super Cartola",
+    "descricao": "Registro permanente de todos os participantes e seus históricos através das temporadas",
+    "versao": "2.0.0",
+    "criado_em": "2025-12-15",
+    "ultima_atualizacao": null
+  },
+  "config_renovacao": {
+    "temporada_atual": 2026,
+    "temporada_anterior": 2025,
+    "prazo_renovacao": "2026-03-15T23:59:59-03:00",
+    "prazo_quitacao": "2026-03-31T23:59:59-03:00",
+    "status_possiveis": ["pendente", "renovado", "nao_renovado", "quitado", "inadimplente"]
+  },
+  "users": [
+    {
+      "id": "exemplo_user_id",
+      "nome": "Exemplo - Remover após popular",
+      "email": null,
+      "telefone": null,
+      "primeiro_registro": "2025",
+      "active_seasons": ["2025"],
+      "status_renovacao": {
+        "temporada_2026": {
+          "status": "pendente",
+          "data_decisao": null,
+          "observacoes": null
+        }
+      },
+      "situacao_financeira": {
+        "saldo_atual": 150.00,
+        "tipo": "credor",
+        "detalhamento": {
+          "temporada_2025": {
+            "saldo_final": 150.00,
+            "total_bonus": 320.00,
+            "total_onus": -170.00,
+            "quitado": false,
+            "data_quitacao": null
+          }
+        },
+        "historico_pagamentos": []
+      },
+      "ligas_participadas": [
+        {
+          "liga_id": "684cb1c8af923da7c7df51de",
+          "liga_nome": "SuperCartola",
+          "temporadas": ["2025"]
+        }
+      ],
+      "historico": [
+        {
+          "ano": 2025,
+          "liga_id": "684cb1c8af923da7c7df51de",
+          "liga_nome": "SuperCartola",
+          "time_nome": "Exemplo FC",
+          "time_escudo": null,
+          "estatisticas": {
+            "posicao_final": 1,
+            "pontos_totais": 2500.50,
+            "media_pontos": 65.80,
+            "rodadas_jogadas": 38,
+            "melhor_rodada": { "numero": 15, "pontos": 120.45 },
+            "pior_rodada": { "numero": 3, "pontos": 25.30 }
+          },
+          "financeiro": {
+            "saldo_final": 150.00,
+            "total_bonus": 320.00,
+            "total_onus": -170.00
+          },
+          "conquistas": {
+            "badges": ["campeao_2025", "mito_rodada_15"],
+            "titulos": {
+              "pontos_corridos": 1,
+              "mata_mata": 2,
+              "artilheiro": null,
+              "luva_ouro": null,
+              "melhor_mes": ["maio", "agosto"]
+            },
+            "top10_mitos": [
+              { "posicao": 1, "rodada": 15, "pontos": 120.45 }
+            ],
+            "top10_micos": []
+          }
+        }
+      ],
+      "stats_agregadas": {
+        "total_temporadas": 1,
+        "total_titulos": 3,
+        "melhor_posicao_geral": 1,
+        "total_pontos_historico": 2500.50
+      },
+      "acesso_permitido": {
+        "hall_da_fama": true,
+        "extrato_financeiro": true,
+        "temporada_atual": false
+      }
+    }
+  ]
+}

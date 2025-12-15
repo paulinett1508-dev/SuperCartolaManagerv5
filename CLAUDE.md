@@ -799,8 +799,63 @@ Rodadas onde ocorrem confrontos de Mata-Mata (importante para detecção de cach
 | 5ª Edição | R31-R35 | R30 |
 
 **Valores financeiros:** Vitória = +R$10 | Derrota = -R$10
-- to memorize
-- Add to memorize. Git
-- claude.md
-- to memorize
-- claude.md
+
+---
+
+## Sistema de Acertos Financeiros
+
+Registra pagamentos/recebimentos em tempo real durante a temporada (diferente de Renovações que é só em 2026).
+
+### API: `/api/acertos`
+
+| Método | Endpoint | Descrição |
+|--------|----------|-----------|
+| `GET` | `/:ligaId/:timeId` | Lista acertos do participante |
+| `GET` | `/:ligaId/:timeId/saldo` | Apenas saldo de acertos |
+| `GET` | `/admin/:ligaId` | Todos acertos da liga |
+| `POST` | `/:ligaId/:timeId` | Registra acerto (admin) |
+| `PUT` | `/:id` | Atualiza acerto |
+| `DELETE` | `/:id` | Soft delete |
+
+### Schema (MongoDB)
+
+```javascript
+// models/AcertoFinanceiro.js
+{
+  ligaId: String,
+  timeId: String,
+  nomeTime: String,
+  temporada: String,           // "2025"
+  tipo: "pagamento" | "recebimento",
+  valor: Number,
+  descricao: String,
+  metodoPagamento: "pix" | "transferencia" | "dinheiro" | "outro",
+  dataAcerto: Date,
+  registradoPor: String,
+  ativo: Boolean               // soft delete
+}
+```
+
+### Integração no Extrato
+
+O `fluxoFinanceiroController.js` v7.4 retorna:
+- `saldo_temporada` - Saldo das rodadas (sem acertos)
+- `saldo_acertos` - Soma dos acertos (recebido - pago)
+- `saldo_atual` - Total (temporada + acertos)
+
+### Admin: Registrar Acerto
+
+```javascript
+// Abre modal para registrar pagamento/recebimento
+window.abrirModalAcerto(timeId, nomeTime);
+```
+
+### Arquivos Relacionados (Temporada 2026)
+
+| Arquivo | Descrição |
+|---------|-----------|
+| `config/definitions/*.json` | Definições de módulos (SaaS) |
+| `data/users_registry.json` | Cartório Vitalício |
+| `scripts/turn_key_2026.js` | Script de virada (trava: só após 01/01/2026) |
+| `public/gestao-renovacoes.html` | Tela de renovações |
+| `routes/renovacoes-routes.js` | API do registry |

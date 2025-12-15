@@ -1,0 +1,118 @@
+{
+  "id": "pontos_corridos",
+  "nome": "Pontos Corridos",
+  "descricao": "Confrontos diretos 1x1 onde todos enfrentam todos. Vitória = 3 pts, Empate = 1 pt, Derrota = 0 pts.",
+  "categoria": "confronto",
+  "obrigatorio": false,
+  "status": "ativo",
+  "versao": "1.0.0",
+
+  "restricoes": {
+    "min_participantes": 4,
+    "max_participantes": 64,
+    "habilitado_por_padrao": true,
+    "avisos": [
+      {
+        "condicao": "participantes < 4",
+        "mensagem": "Pontos Corridos requer no mínimo 4 participantes"
+      },
+      {
+        "condicao": "participantes > 20 && turnos === 2",
+        "mensagem": "Com mais de 20 participantes em 2 turnos, o campeonato terá muitas rodadas"
+      }
+    ]
+  },
+
+  "parametros_configuraveis": {
+    "turnos": {
+      "tipo": "select",
+      "label": "Quantidade de turnos",
+      "descricao": "1 turno = todos contra todos uma vez. 2 turnos = ida e volta.",
+      "default": 1,
+      "opcoes": [
+        {
+          "value": 1,
+          "label": "1 Turno (só ida)",
+          "descricao": "Cada participante enfrenta os demais uma única vez"
+        },
+        {
+          "value": 2,
+          "label": "2 Turnos (ida e volta)",
+          "descricao": "Cada participante enfrenta os demais duas vezes"
+        }
+      ]
+    },
+    "criterio_desempate": {
+      "tipo": "select",
+      "label": "Critério de desempate",
+      "descricao": "Define como desempatar participantes com mesma pontuação",
+      "default": "saldo_gols",
+      "opcoes": [
+        {
+          "value": "saldo_gols",
+          "label": "Saldo de Gols",
+          "descricao": "Gols marcados - Gols sofridos (pontos Cartola)"
+        },
+        {
+          "value": "pontos_totais",
+          "label": "Pontos Totais Cartola",
+          "descricao": "Soma de todos os pontos acumulados na temporada"
+        },
+        {
+          "value": "vitorias",
+          "label": "Número de Vitórias",
+          "descricao": "Quem tiver mais vitórias fica à frente"
+        },
+        {
+          "value": "confronto_direto",
+          "label": "Confronto Direto",
+          "descricao": "Resultado do jogo entre os empatados"
+        }
+      ]
+    },
+    "premiacao_final": {
+      "tipo": "boolean",
+      "label": "Premiação ao final",
+      "descricao": "Habilita premiação financeira para os primeiros colocados",
+      "default": true,
+      "impacto_financeiro": true
+    },
+    "quantidade_premiados": {
+      "tipo": "number",
+      "label": "Quantidade de premiados",
+      "descricao": "Quantos primeiros colocados recebem premiação",
+      "default": 3,
+      "min": 1,
+      "max": 10,
+      "dependencia": "premiacao_final === true"
+    }
+  },
+
+  "mecanica": {
+    "pontuacao": {
+      "vitoria": 3,
+      "empate": 1,
+      "derrota": 0
+    },
+    "calculo_rodadas": "Com N participantes e T turnos: Total de rodadas = (N-1) * T",
+    "sorteio": "Tabela gerada automaticamente no início da temporada"
+  },
+
+  "campos_exibicao": [
+    "posicao",
+    "nome_time",
+    "escudo",
+    "pontos",
+    "jogos",
+    "vitorias",
+    "empates",
+    "derrotas",
+    "saldo_gols"
+  ],
+
+  "metadados": {
+    "criado_em": "2025-12-15",
+    "autor": "Product Team",
+    "notas": "Módulo clássico de campeonato - funciona independente do Ranking Geral"
+  }
+}
