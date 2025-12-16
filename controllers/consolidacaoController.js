@@ -1,3 +1,14 @@
+/**
+ * CONSOLIDAÇÃO-CONTROLLER v3.0.0 (SaaS DINÂMICO)
+ * ✅ v3.0.0: MULTI-TENANT - Busca configurações de liga.configuracoes (White Label)
+ *   - Remove hardcoded IDs de ligas
+ *   - getValoresTop10() agora busca de liga.configuracoes.top10
+ *   - Módulos verificados via liga.configuracoes.{modulo}.habilitado
+ * ✅ v2.2: Busca extratos com ObjectId E String para compatibilidade
+ * ✅ v2.1: Fix escala Top10 por liga
+ * ✅ v2.0: Schema versão 2 com ranking_rodada
+ */
+
 import mongoose from 'mongoose';
 import RodadaSnapshot from '../models/RodadaSnapshot.js';
 import RankingGeralCache from '../models/RankingGeralCache.js';
@@ -11,28 +22,55 @@ import { obterConfrontosMataMata } from './mataMataCacheController.js';
 import { calcularConfrontosDaRodada, getRankingArtilheiroCampeao } from '../utils/consolidacaoHelpers.js';
 import { isSeasonFinished, SEASON_CONFIG } from '../utils/seasonGuard.js';
 
-// IDs das ligas conhecidas
-const LIGA_01_ID = "684cb1c8af923da7c7df51de";
-const LIGA_02_ID = "684d821cf1a7ae16d1f89572"; // Luva de Ouro ativa apenas aqui
-
 // ============================================================================
-// 💰 ESCALAS TOP10 POR LIGA (v2.1 - Fix escala Sobral)
+// ✅ v3.0: FUNÇÕES SaaS DINÂMICAS (Multi-Tenant)
 // ============================================================================
 
-function getValoresTop10PorLiga(ligaId) {
-    // Cartoleiros do Sobral: valores 10→1
-    if (String(ligaId) === LIGA_02_ID) {
-        return {
-            mitos: { 1: 10, 2: 9, 3: 8, 4: 7, 5: 6, 6: 5, 7: 4, 8: 3, 9: 2, 10: 1 },
-            micos: { 1: -10, 2: -9, 3: -8, 4: -7, 5: -6, 6: -5, 7: -4, 8: -3, 9: -2, 10: -1 }
-        };
+/**
+ * Obtém configuração de TOP10 (Mitos/Micos) da liga
+ * @param {Object} liga - Documento da liga (com configuracoes)
+ * @returns {Object} { mitos: {pos: valor}, micos: {pos: valor} }
+ */
+function getConfigTop10(liga) {
+    const config = liga?.configuracoes?.top10;
+
+    if (!config) {
+        console.warn(`[CONSOLIDAÇÃO] Liga ${liga?._id} sem configuracoes.top10`);
+        return { mitos: {}, micos: {} };
     }
 
-    // SuperCartola 2025: valores 30→12
     return {
-        mitos: { 1: 30, 2: 28, 3: 26, 4: 24, 5: 22, 6: 20, 7: 18, 8: 16, 9: 14, 10: 12 },
-        micos: { 1: -30, 2: -28, 3: -26, 4: -24, 5: -22, 6: -20, 7: -18, 8: -16, 9: -14, 10: -12 }
+        mitos: config.valores_mito || {},
+        micos: config.valores_mico || {},
+        habilitado: config.habilitado !== false,
     };
+}
+
+/**
+ * Verifica se um módulo está habilitado para a liga
+ * @param {Object} liga - Documento da liga
+ * @param {string} modulo - Nome do módulo (pontos_corridos, mata_mata, top10, luva_ouro, etc.)
+ * @returns {boolean}
+ */
+function isModuloHabilitado(liga, modulo) {
+    // Primeiro verifica em configuracoes.{modulo}.habilitado
+    const configModulo = liga?.configuracoes?.[modulo];
+    if (configModulo?.habilitado !== undefined) {
+        return configModulo.habilitado;
+    }
+
+    // Fallback para modulos_ativos (compatibilidade)
+    const moduloKey = modulo.replace(/_/g, ''); // pontos_corridos -> pontoscorridos
+    const moduloCamel = modulo.replace(/_([a-z])/g, (_, c) => c.toUpperCase()); // pontos_corridos -> pontosCorridos
+
+    if (liga?.modulos_ativos?.[moduloKey] !== undefined) {
+        return liga.modulos_ativos[moduloKey];
+    }
+    if (liga?.modulos_ativos?.[moduloCamel] !== undefined) {
+        return liga.modulos_ativos[moduloCamel];
+    }
+
+    return false;
 }
 
 // ============================================================================
@@ -200,13 +238,13 @@ export const consolidarRodada = async (req, res) => {
             }
         }
         
-        // 6. TOP 10 (Mitos e Micos da RODADA) - v2.1: Escala por liga
+        // 6. TOP 10 (Mitos e Micos da RODADA) - v3.0: Config dinâmica
         console.log(`[CONSOLIDAÇÃO] Calculando Top 10...`);
-        const valoresTop10 = getValoresTop10PorLiga(ligaId);
+        const configTop10 = getConfigTop10(liga);
 
         const mitos = rankingRodada.slice(0, 10).map((t, i) => ({
             ...t,
-            premio: valoresTop10.mitos[i + 1] || 0
+            premio: configTop10.mitos[i + 1] || configTop10.mitos[String(i + 1)] || 0
         }));
 
         const micos = [...rankingRodada]
@@ -215,7 +253,7 @@ export const consolidarRodada = async (req, res) => {
             .map((t, i) => ({
                 ...t,
                 posicao: rankingRodada.length - i,
-                multa: valoresTop10.micos[i + 1] || 0
+                multa: configTop10.micos[i + 1] || configTop10.micos[String(i + 1)] || 0
             }));
         
         // 7. ARTILHEIRO E CAMPEÃO (se módulo ativo)
@@ -241,9 +279,10 @@ export const consolidarRodada = async (req, res) => {
             };
         }
         
-        // 8. LUVA DE OURO (apenas Liga 02)
+        // 8. LUVA DE OURO - v3.0: Usa isModuloHabilitado ao invés de hardcoded ID
         let luvaDeOuro = { ranking: [], melhor_goleiro_rodada: null };
-        if (ligaId === LIGA_02_ID && modulosAtivos.luvaOuro !== false) {
+        const luvaOuroHabilitado = isModuloHabilitado(liga, 'luva_ouro') || modulosAtivos.luvaOuro;
+        if (luvaOuroHabilitado) {
             console.log(`[CONSOLIDAÇÃO] Buscando Luva de Ouro...`);
             try {
                 const { obterRankingGoleiros } = await import('../services/goleirosService.js');
@@ -502,3 +541,5 @@ export const verificarStatusConsolidacao = async (req, res) => {
         res.status(500).json({ error: error.message });
     }
 };
+
+console.log("[CONSOLIDAÇÃO] ✅ v3.0.0 carregado (SaaS Dinâmico)");
