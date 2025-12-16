@@ -6,7 +6,7 @@ import {
 } from "./fluxo-financeiro/fluxo-financeiro-auditoria.js";
 
 // Cache-buster para forçar reload de módulos (incrementar a cada mudança)
-const CACHE_BUSTER = "v5.6"; // v5.6: Botão Deletar no Histórico com confirmação e reversão
+const CACHE_BUSTER = "v5.7"; // v5.7: Troco automático - Pagamento a maior gera saldo positivo
 
 // VARIÁVEIS GLOBAIS
 let rodadaAtual = 0;
@@ -1020,6 +1020,7 @@ window.selecionarTipoAcerto = function (tipo) {
 
 /**
  * Confirma e envia o acerto financeiro para a API
+ * ✅ v5.6: Troco automático - Mostra mensagem quando pagamento > dívida
  * ✅ v5.5: Atualizado para usar campo hidden de valor
  */
 window.confirmarAcertoFinanceiro = async function (ligaId, timeId, nomeTime) {
@@ -1077,8 +1078,13 @@ window.confirmarAcertoFinanceiro = async function (ligaId, timeId, nomeTime) {
         // Fechar modal
         document.getElementById("modalAcertoFinanceiro")?.remove();
 
-        // Mostrar toast de sucesso
-        mostrarToastAcerto(`Acerto de R$ ${valor.toFixed(2).replace(".", ",")} registrado!`, true);
+        // ✅ v5.6: Verificar se houve troco e mostrar modal especial
+        if (result.troco && result.troco.valor > 0) {
+            mostrarModalTroco(result.troco.valor, valor, nomeTime);
+        } else {
+            // Mostrar toast de sucesso normal
+            mostrarToastAcerto(`Acerto de R$ ${valor.toFixed(2).replace(".", ",")} registrado!`, true);
+        }
 
         // Recarregar extrato se estiver visualizando
         if (window.recarregarExtratoAtual) {
@@ -1097,6 +1103,96 @@ window.confirmarAcertoFinanceiro = async function (ligaId, timeId, nomeTime) {
         }
     }
 };
+
+/**
+ * ✅ v5.6: Modal especial para mostrar troco gerado
+ * Exibido quando um pagamento excede a dívida do participante
+ */
+function mostrarModalTroco(valorTroco, valorPagamento, nomeParticipante) {
+    // Remover modal anterior se existir
+    document.getElementById("modalTrocoGerado")?.remove();
+
+    const modal = document.createElement("div");
+    modal.id = "modalTrocoGerado";
+    modal.style.cssText = `
+        position: fixed;
+        inset: 0;
+        z-index: 10002;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background: rgba(0,0,0,0.85);
+        animation: fadeIn 0.3s ease;
+    `;
+    modal.innerHTML = `
+        <div style="background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%); border-radius: 20px; width: 90%; max-width: 400px; padding: 32px; border: 2px solid rgba(52,211,153,0.3); box-shadow: 0 25px 50px rgba(0,0,0,0.5), 0 0 30px rgba(52,211,153,0.2); text-align: center;">
+            <!-- Ícone animado -->
+            <div style="width: 80px; height: 80px; border-radius: 50%; background: linear-gradient(135deg, rgba(52,211,153,0.2), rgba(16,185,129,0.1)); display: flex; align-items: center; justify-content: center; margin: 0 auto 20px; animation: pulse 2s infinite;">
+                <span class="material-icons" style="font-size: 40px; color: #34d399;">savings</span>
+            </div>
+
+            <!-- Título -->
+            <h3 style="margin: 0 0 8px 0; font-size: 22px; font-weight: 700; color: #fff;">Troco Gerado!</h3>
+            <p style="margin: 0 0 24px 0; font-size: 14px; color: rgba(255,255,255,0.6);">
+                ${nomeParticipante}
+            </p>
+
+            <!-- Valor do troco -->
+            <div style="background: rgba(52,211,153,0.1); border-radius: 16px; padding: 20px; margin-bottom: 24px; border: 1px solid rgba(52,211,153,0.2);">
+                <div style="font-size: 12px; color: rgba(255,255,255,0.5); text-transform: uppercase; letter-spacing: 1px; margin-bottom: 8px;">Saldo Positivo Creditado</div>
+                <div style="font-size: 36px; font-weight: 800; color: #34d399;">
+                    R$ ${valorTroco.toLocaleString("pt-BR", { minimumFractionDigits: 2 })}
+                </div>
+            </div>
+
+            <!-- Explicação -->
+            <div style="background: rgba(255,255,255,0.03); border-radius: 12px; padding: 16px; margin-bottom: 24px; text-align: left;">
+                <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 12px;">
+                    <span class="material-icons" style="font-size: 18px; color: #fbbf24;">info</span>
+                    <span style="font-size: 13px; color: rgba(255,255,255,0.7); font-weight: 600;">O que aconteceu?</span>
+                </div>
+                <p style="margin: 0; font-size: 13px; color: rgba(255,255,255,0.5); line-height: 1.6;">
+                    O pagamento de <strong style="color: #f87171;">R$ ${valorPagamento.toLocaleString("pt-BR", { minimumFractionDigits: 2 })}</strong>
+                    excedeu o valor da dívida. O troco de <strong style="color: #34d399;">R$ ${valorTroco.toLocaleString("pt-BR", { minimumFractionDigits: 2 })}</strong>
+                    foi automaticamente creditado como saldo positivo.
+                </p>
+            </div>
+
+            <!-- Botão -->
+            <button onclick="document.getElementById('modalTrocoGerado').remove()"
+                    style="width: 100%; padding: 14px 24px; border-radius: 12px; background: linear-gradient(135deg, #10b981, #059669); color: #fff; font-weight: 700; font-size: 15px; border: none; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 8px; transition: all 0.2s; box-shadow: 0 4px 12px rgba(16,185,129,0.3);"
+                    onmouseover="this.style.transform='scale(1.02)';"
+                    onmouseout="this.style.transform='scale(1)';">
+                <span class="material-icons" style="font-size: 18px;">check_circle</span>
+                Entendi
+            </button>
+        </div>
+
+        <style>
+            @keyframes fadeIn {
+                from { opacity: 0; }
+                to { opacity: 1; }
+            }
+            @keyframes pulse {
+                0%, 100% { transform: scale(1); }
+                50% { transform: scale(1.05); }
+            }
+        </style>
+    `;
+
+    document.body.appendChild(modal);
+
+    // Fechar com ESC ou clique fora
+    modal.addEventListener("click", (e) => {
+        if (e.target === modal) modal.remove();
+    });
+    document.addEventListener("keydown", function escHandler(e) {
+        if (e.key === "Escape") {
+            modal.remove();
+            document.removeEventListener("keydown", escHandler);
+        }
+    });
+}
 
 /**
  * Mostra toast de feedback

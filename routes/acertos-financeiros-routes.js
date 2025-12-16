@@ -4,13 +4,65 @@
  * Endpoints para registrar pagamentos e recebimentos
  * entre participantes e administração (em tempo real).
  *
- * @version 1.0.0
+ * @version 1.1.0
+ * ✅ v1.1.0: TROCO AUTOMÁTICO - Pagamento a maior gera saldo positivo
+ *   - Verifica se pagamento excede a dívida do participante
+ *   - Cria automaticamente um recebimento com o troco
+ *   - Registra no histórico com descrição clara
  */
 
 import express from "express";
 import AcertoFinanceiro from "../models/AcertoFinanceiro.js";
+import ExtratoFinanceiroCache from "../models/ExtratoFinanceiroCache.js";
+import FluxoFinanceiroCampos from "../models/FluxoFinanceiroCampos.js";
 
 const router = express.Router();
+
+// =============================================================================
+// FUNÇÃO AUXILIAR: Calcular saldo total do participante
+// =============================================================================
+
+/**
+ * Calcula o saldo total atual de um participante (temporada + acertos)
+ * @param {string} ligaId - ID da liga
+ * @param {string} timeId - ID do time
+ * @param {string} temporada - Temporada (default "2025")
+ * @returns {Object} { saldoTemporada, saldoAcertos, saldoTotal }
+ */
+async function calcularSaldoTotalParticipante(ligaId, timeId, temporada = "2025") {
+    // 1. Buscar saldo consolidado da temporada (do cache)
+    const cache = await ExtratoFinanceiroCache.findOne({ ligaId, timeId });
+    const saldoConsolidado = cache?.saldo_consolidado || 0;
+
+    // 2. Buscar campos manuais
+    const camposManuais = await FluxoFinanceiroCampos.findOne({ ligaId, timeId });
+    let saldoCampos = 0;
+    if (camposManuais?.campos) {
+        camposManuais.campos.forEach(campo => {
+            saldoCampos += campo.valor || 0;
+        });
+    }
+
+    // 3. Saldo da temporada = consolidado + campos manuais
+    const saldoTemporada = saldoConsolidado + saldoCampos;
+
+    // 4. Buscar saldo de acertos existentes
+    const acertosInfo = await AcertoFinanceiro.calcularSaldoAcertos(ligaId, timeId, temporada);
+
+    // 5. Saldo total = temporada + acertos
+    // Nota: saldoAcertos = totalRecebido - totalPago
+    // Se participante PAGOU, saldoAcertos fica negativo (ele "gastou")
+    // Se participante RECEBEU, saldoAcertos fica positivo (ele "ganhou")
+    const saldoTotal = saldoTemporada + acertosInfo.saldoAcertos;
+
+    return {
+        saldoTemporada: parseFloat(saldoTemporada.toFixed(2)),
+        saldoAcertos: acertosInfo.saldoAcertos,
+        saldoTotal: parseFloat(saldoTotal.toFixed(2)),
+        totalPago: acertosInfo.totalPago,
+        totalRecebido: acertosInfo.totalRecebido,
+    };
+}
 
 // =============================================================================
 // ROTAS DO PARTICIPANTE (Visualização)
@@ -127,6 +179,7 @@ router.get("/admin/:ligaId", async (req, res) => {
 /**
  * POST /api/acertos/:ligaId/:timeId
  * Registra um novo acerto financeiro (admin only)
+ * ✅ v1.1.0: Troco automático quando pagamento > dívida
  */
 router.post("/:ligaId/:timeId", async (req, res) => {
     try {
@@ -166,32 +219,100 @@ router.post("/:ligaId/:timeId", async (req, res) => {
             });
         }
 
+        const valorPagamento = parseFloat(valor);
+        const dataAcertoFinal = dataAcerto ? new Date(dataAcerto) : new Date();
+        let acertoTroco = null;
+        let valorTroco = 0;
+
+        // =========================================================================
+        // ✅ v1.1.0: VERIFICAR TROCO EM PAGAMENTOS
+        // Se é um pagamento e excede a dívida, gerar troco automático
+        // =========================================================================
+        if (tipo === "pagamento") {
+            // Calcular saldo ANTES do novo pagamento
+            const saldoAntes = await calcularSaldoTotalParticipante(ligaId, timeId, temporada);
+
+            // Dívida atual = valor absoluto do saldo negativo (se existir)
+            // Se saldo é -100, dívida = 100
+            // Se saldo é +50 (credor), dívida = 0
+            const dividaAtual = saldoAntes.saldoTotal < 0 ? Math.abs(saldoAntes.saldoTotal) : 0;
+
+            console.log(`[ACERTOS] Verificando troco para ${nomeTime}:`);
+            console.log(`  - Saldo antes: R$ ${saldoAntes.saldoTotal.toFixed(2)}`);
+            console.log(`  - Dívida atual: R$ ${dividaAtual.toFixed(2)}`);
+            console.log(`  - Pagamento: R$ ${valorPagamento.toFixed(2)}`);
+
+            // Se há dívida e o pagamento excede a dívida
+            if (dividaAtual > 0 && valorPagamento > dividaAtual) {
+                valorTroco = parseFloat((valorPagamento - dividaAtual).toFixed(2));
+
+                console.log(`[ACERTOS] ✅ TROCO DETECTADO: R$ ${valorTroco.toFixed(2)}`);
+
+                // Criar registro de troco como RECEBIMENTO (saldo positivo)
+                acertoTroco = new AcertoFinanceiro({
+                    ligaId,
+                    timeId,
+                    nomeTime,
+                    temporada,
+                    tipo: "recebimento",
+                    valor: valorTroco,
+                    descricao: `TROCO - Pagamento a maior (Dívida: R$ ${dividaAtual.toFixed(2)})`,
+                    metodoPagamento: metodoPagamento || "pix",
+                    comprovante: null,
+                    observacoes: `Gerado automaticamente. Pagamento original: R$ ${valorPagamento.toFixed(2)} - ${descricao || "Acerto financeiro"}`,
+                    dataAcerto: dataAcertoFinal,
+                    registradoPor: "sistema_troco",
+                });
+            }
+        }
+
+        // Salvar o acerto principal
         const novoAcerto = new AcertoFinanceiro({
             ligaId,
             timeId,
             nomeTime,
             temporada,
             tipo,
-            valor: parseFloat(valor),
+            valor: valorPagamento,
             descricao: descricao || `Acerto financeiro - ${tipo}`,
             metodoPagamento: metodoPagamento || "pix",
             comprovante: comprovante || null,
             observacoes: observacoes || null,
-            dataAcerto: dataAcerto ? new Date(dataAcerto) : new Date(),
+            dataAcerto: dataAcertoFinal,
             registradoPor,
         });
 
         await novoAcerto.save();
 
-        // Calcular novo saldo
+        // Salvar troco se existir
+        if (acertoTroco) {
+            await acertoTroco.save();
+            console.log(`[ACERTOS] ✅ Troco de R$ ${valorTroco.toFixed(2)} salvo para ${nomeTime}`);
+        }
+
+        // Calcular novo saldo (já incluindo o troco se houver)
         const saldoInfo = await AcertoFinanceiro.calcularSaldoAcertos(ligaId, timeId, temporada);
 
-        res.status(201).json({
+        // Montar resposta
+        const response = {
             success: true,
-            message: `Acerto de R$ ${parseFloat(valor).toFixed(2)} registrado com sucesso`,
+            message: acertoTroco
+                ? `Pagamento de R$ ${valorPagamento.toFixed(2)} registrado. TROCO de R$ ${valorTroco.toFixed(2)} creditado!`
+                : `Acerto de R$ ${valorPagamento.toFixed(2)} registrado com sucesso`,
             acerto: novoAcerto,
             novoSaldo: saldoInfo,
-        });
+        };
+
+        // Adicionar info de troco se existir
+        if (acertoTroco) {
+            response.troco = {
+                valor: valorTroco,
+                acerto: acertoTroco,
+                mensagem: `Pagamento excedeu a dívida. R$ ${valorTroco.toFixed(2)} foram creditados como saldo positivo.`,
+            };
+        }
+
+        res.status(201).json(response);
     } catch (error) {
         console.error("[ACERTOS] Erro ao registrar acerto:", error);
         res.status(500).json({ success: false, error: error.message });
