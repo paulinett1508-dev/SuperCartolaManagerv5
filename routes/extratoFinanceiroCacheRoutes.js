@@ -68,4 +68,8 @@ router.delete("/:ligaId/corrompidos/limpar", limparCachesCorrompidos);
 // DELETE /api/extrato-cache/:ligaId/times/:timeId/limpar
 router.delete("/:ligaId/times/:timeId/limpar", limparCacheTime);
 
+// ✅ Alias: Rota alternativa para compatibilidade com frontend
+// DELETE /api/extrato-cache/:ligaId/times/:timeId/cache
+router.delete("/:ligaId/times/:timeId/cache", limparCacheTime);
+
 export default router;

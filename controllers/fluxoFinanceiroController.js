@@ -1,5 +1,8 @@
 /**
- * FLUXO-FINANCEIRO-CONTROLLER v7.4
+ * FLUXO-FINANCEIRO-CONTROLLER v7.5
+ * ✅ v7.5: CORREÇÃO LÓGICA DE ACERTOS
+ *   - Pagamento AUMENTA saldo (quita dívida)
+ *   - Recebimento DIMINUI saldo (usa crédito)
  * ✅ v7.4: ACERTOS FINANCEIROS - Pagamentos/recebimentos em tempo real
  *   - Integra collection AcertoFinanceiro no extrato
  *   - Mostra saldo separado: temporada vs acertos
@@ -666,12 +669,15 @@ export const getExtratoFinanceiro = async (req, res) => {
         let transacoesAcertos = [];
 
         if (acertos && acertos.length > 0) {
+            // ✅ v7.5: CORREÇÃO - Pagamento AUMENTA saldo (quita dívida)
+            // PAGAMENTO → valor positivo (participante pagou, saldo aumenta)
+            // RECEBIMENTO → valor negativo (participante recebeu, saldo diminui)
             transacoesAcertos = acertos.map(a => ({
                 rodada: null,
                 tipo: "ACERTO_FINANCEIRO",
                 subtipo: a.tipo, // 'pagamento' ou 'recebimento'
                 descricao: a.descricao,
-                valor: a.tipo === "pagamento" ? -a.valor : a.valor, // pagamento reduz saldo
+                valor: a.tipo === "pagamento" ? a.valor : -a.valor,
                 data: a.dataAcerto,
                 metodoPagamento: a.metodoPagamento,
             }));

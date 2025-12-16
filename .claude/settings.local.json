@@ -43,7 +43,12 @@
       "Bash(do)",
       "WebFetch(domain:e1034b6e-dfb9-401a-8e7f-80ffa6030f79-00-2dc692elmitoe.spock.replit.dev)",
       "Bash(xargs:*)",
-      "Skill(league-architect)"
+      "Skill(league-architect)",
+      "Bash(pkill:*)",
+      "Bash(true sleep 2 pgrep -f \"node|nodemon\")",
+      "Bash(kill:*)",
+      "Bash(netstat:*)",
+      "Bash(ss:*)"
     ]
   },
   "enableAllProjectMcpServers": true,

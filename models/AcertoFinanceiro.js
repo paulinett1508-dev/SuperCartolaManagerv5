@@ -115,6 +115,7 @@ AcertoFinanceiroSchema.statics.buscarPorTime = async function (ligaId, timeId, t
 };
 
 // Método estático para calcular saldo de acertos de um time
+// ✅ v1.1.0: Correção da lógica de saldo
 AcertoFinanceiroSchema.statics.calcularSaldoAcertos = async function (ligaId, timeId, temporada = "2025") {
     const acertos = await this.find({
         ligaId,
@@ -134,13 +135,25 @@ AcertoFinanceiroSchema.statics.calcularSaldoAcertos = async function (ligaId, ti
         }
     });
 
-    // Saldo = recebido - pago
-    // Se participante ERA CREDOR (tinha R$100 a receber) e PAGOU R$100, saldo acertos = -100
-    // Somado ao saldo original (+100), fica zerado.
+    // ✅ v1.1.0: CORREÇÃO - Saldo = pago - recebido
+    // PAGAMENTO = participante PAGOU à liga (quita dívida, AUMENTA saldo)
+    // RECEBIMENTO = participante RECEBEU da liga (usa crédito, DIMINUI saldo)
+    //
+    // Exemplo 1 - Devedor quitando:
+    //   - saldoTemporada = -100 (deve R$100)
+    //   - Participante PAGA R$100
+    //   - saldoAcertos = 100 - 0 = +100
+    //   - saldoFinal = -100 + 100 = 0 (quitado!)
+    //
+    // Exemplo 2 - Credor recebendo:
+    //   - saldoTemporada = +100 (tem R$100 a receber)
+    //   - Participante RECEBE R$100 da liga
+    //   - saldoAcertos = 0 - 100 = -100
+    //   - saldoFinal = +100 + (-100) = 0 (recebeu tudo!)
     return {
         totalPago: parseFloat(totalPago.toFixed(2)),
         totalRecebido: parseFloat(totalRecebido.toFixed(2)),
-        saldoAcertos: parseFloat((totalRecebido - totalPago).toFixed(2)),
+        saldoAcertos: parseFloat((totalPago - totalRecebido).toFixed(2)),
         quantidadeAcertos: acertos.length,
     };
 };
