@@ -1,23 +1,18 @@
 /**
- * FLUXO-FINANCEIRO-CONTROLLER v7.5
+ * FLUXO-FINANCEIRO-CONTROLLER v8.0.0 (SaaS DINÂMICO)
+ * ✅ v8.0.0: MULTI-TENANT - Busca configurações de liga.configuracoes (White Label)
+ *   - Remove hardcoded IDs e valores de ligas específicas
+ *   - getBancoPorRodada() agora busca de liga.configuracoes.ranking_rodada
+ *   - getValoresTop10() agora busca de liga.configuracoes.top10
+ *   - Módulos verificados via liga.configuracoes.{modulo}.habilitado
  * ✅ v7.5: CORREÇÃO LÓGICA DE ACERTOS
  *   - Pagamento AUMENTA saldo (quita dívida)
  *   - Recebimento DIMINUI saldo (usa crédito)
  * ✅ v7.4: ACERTOS FINANCEIROS - Pagamentos/recebimentos em tempo real
- *   - Integra collection AcertoFinanceiro no extrato
- *   - Mostra saldo separado: temporada vs acertos
  * ✅ v7.3: FIX TABELA BANCO - Valores corretos para SuperCartola
- *   - G1-G11: +R$20 a +R$10 (posições 1-11)
- *   - Neutro: R$0 (posições 12-21)
- *   - Z1-Z10: -R$10 a -R$20 (posições 22-32)
  * ✅ v7.2: FIX DUPLICAÇÃO - MATA-MATA removido do loop de rodadas
- *   - Estava calculando MM por rodada E histórico (duplicando valores)
- *   - Agora só calcula via getResultadosMataMataCompleto() (histórico)
- * ✅ v7.1: FIX - MATA-MATA histórico calculado fora do loop (mesmo padrão TOP10)
- *   - Transações de MM são adicionadas mesmo que cache já esteja atualizado
+ * ✅ v7.1: FIX - MATA-MATA histórico calculado fora do loop
  * ✅ v7.0: CORREÇÃO CRÍTICA - TOP10 é ranking HISTÓRICO, não por rodada!
- *   - TOP10 agora busca do cache de Top10 (ranking histórico de todo o campeonato)
- *   - BANCO continua por rodada (bônus/ônus por posição)
  * ✅ v6.1: MATA-MATA COMPLETO (todas as fases)
  * ✅ v6.0: Alinhamento completo com frontend
  */
@@ -34,12 +29,96 @@ import AcertoFinanceiro from "../models/AcertoFinanceiro.js";
 import { getResultadosMataMataCompleto } from "./mata-mata-backend.js";
 
 // ============================================================================
-// 🔧 CONSTANTES E CONFIGURAÇÕES
+// 🔧 CONSTANTES DE FALLBACK (usadas apenas se liga.configuracoes não existir)
 // ============================================================================
 
-const ID_SUPERCARTOLA_2025 = "684cb1c8af923da7c7df51de";
-const ID_CARTOLEIROS_SOBRAL = "684d821cf1a7ae16d1f89572";
 const RODADA_INICIAL_PONTOS_CORRIDOS = 7;
+
+// ============================================================================
+// ✅ v8.0: FUNÇÕES SaaS DINÂMICAS (Multi-Tenant)
+// ============================================================================
+
+/**
+ * Obtém configuração de ranking_rodada (BANCO) da liga
+ * @param {Object} liga - Documento da liga
+ * @param {number} rodada - Número da rodada (para configs temporais)
+ * @returns {Object} { valores: {posicao: valor}, temporal: boolean }
+ */
+function getConfigRankingRodada(liga, rodada = 1) {
+    const config = liga?.configuracoes?.ranking_rodada;
+
+    if (!config) {
+        console.warn(`[FLUXO] Liga ${liga?._id} sem configuracoes.ranking_rodada`);
+        return { valores: {}, temporal: false };
+    }
+
+    // Config temporal (ex: Sobral com 2 fases)
+    if (config.temporal) {
+        const rodadaTransicao = config.rodada_transicao || 30;
+        const fase = rodada < rodadaTransicao ? 'fase1' : 'fase2';
+        const faseConfig = config[fase] || {};
+
+        return {
+            valores: faseConfig.valores || {},
+            temporal: true,
+            rodadaTransicao,
+            fase,
+        };
+    }
+
+    // Config simples
+    return {
+        valores: config.valores || {},
+        temporal: false,
+    };
+}
+
+/**
+ * Obtém configuração de TOP10 (Mitos/Micos) da liga
+ * @param {Object} liga - Documento da liga
+ * @returns {Object} { mitos: {pos: valor}, micos: {pos: valor} }
+ */
+function getConfigTop10(liga) {
+    const config = liga?.configuracoes?.top10;
+
+    if (!config) {
+        console.warn(`[FLUXO] Liga ${liga?._id} sem configuracoes.top10`);
+        return { mitos: {}, micos: {} };
+    }
+
+    return {
+        mitos: config.valores_mito || {},
+        micos: config.valores_mico || {},
+        habilitado: config.habilitado !== false,
+    };
+}
+
+/**
+ * Verifica se um módulo está habilitado para a liga
+ * @param {Object} liga - Documento da liga
+ * @param {string} modulo - Nome do módulo (pontos_corridos, mata_mata, top10, etc.)
+ * @returns {boolean}
+ */
+function isModuloHabilitado(liga, modulo) {
+    // Primeiro verifica em configuracoes.{modulo}.habilitado
+    const configModulo = liga?.configuracoes?.[modulo];
+    if (configModulo?.habilitado !== undefined) {
+        return configModulo.habilitado;
+    }
+
+    // Fallback para modulos_ativos (compatibilidade)
+    const moduloKey = modulo.replace(/_/g, ''); // pontos_corridos -> pontoscorridos
+    const moduloCamel = modulo.replace(/_([a-z])/g, (_, c) => c.toUpperCase()); // pontos_corridos -> pontosCorridos
+
+    if (liga?.modulos_ativos?.[moduloKey] !== undefined) {
+        return liga.modulos_ativos[moduloKey];
+    }
+    if (liga?.modulos_ativos?.[moduloCamel] !== undefined) {
+        return liga.modulos_ativos[moduloCamel];
+    }
+
+    return false;
+}
 
 // ============================================================================
 // 🛠️ FUNÇÕES AUXILIARES
@@ -67,59 +146,15 @@ async function getStatusMercadoInterno() {
 // 💰 BANCO (BÔNUS/ÔNUS POR POSIÇÃO NA RODADA)
 // ============================================================================
 
-function getBancoPorRodada(ligaId, rodada) {
-    // Liga Cartoleiros do Sobral - tabela contextual por fase
-    if (String(ligaId) === ID_CARTOLEIROS_SOBRAL) {
-        if (rodada < 29) {
-            // FASE 1 (R1-R28): 6 times ativos
-            return { 1: 7.0, 2: 4.0, 3: 0.0, 4: -2.0, 5: -5.0, 6: -10.0 };
-        } else {
-            // FASE 2 (R29-R38): 4 times ativos
-            return { 1: 5.0, 2: 0.0, 3: 0.0, 4: -5.0 };
-        }
-    }
-
-    // SuperCartola 2025 (32 times) - tabela correta
-    // G1-G11: Zona de ganho (posições 1-11)
-    // 12-21: Zona neutra (sem impacto)
-    // Z1-Z10: Zona de perda (posições 22-32)
-    return {
-        1: 20.0,
-        2: 19.0,
-        3: 18.0,
-        4: 17.0,
-        5: 16.0,
-        6: 15.0,
-        7: 14.0,
-        8: 13.0,
-        9: 12.0,
-        10: 11.0,
-        11: 10.0,
-        12: 0.0,
-        13: 0.0,
-        14: 0.0,
-        15: 0.0,
-        16: 0.0,
-        17: 0.0,
-        18: 0.0,
-        19: 0.0,
-        20: 0.0,
-        21: 0.0,
-        22: -10.0,
-        23: -11.0,
-        24: -12.0,
-        25: -13.0,
-        26: -14.0,
-        27: -15.0,
-        28: -16.0,
-        29: -17.0,
-        30: -18.0,
-        31: -19.0,
-        32: -20.0,
-    };
-}
-
-function calcularBanco(ligaId, timeId, rodadaNumero, pontuacoes) {
+/**
+ * ✅ v8.0: Calcula bônus/ônus de banco usando configuração dinâmica da liga
+ * @param {Object} liga - Documento da liga (com configuracoes)
+ * @param {number} timeId - ID do time
+ * @param {number} rodadaNumero - Número da rodada
+ * @param {Array} pontuacoes - Lista de pontuações da rodada
+ * @returns {Object|null} { valor, descricao, posicao, totalTimes }
+ */
+function calcularBanco(liga, timeId, rodadaNumero, pontuacoes) {
     const ranking = [...pontuacoes].sort((a, b) => b.pontos - a.pontos);
     const posicao =
         ranking.findIndex((p) => String(p.timeId) === String(timeId)) + 1;
@@ -127,10 +162,12 @@ function calcularBanco(ligaId, timeId, rodadaNumero, pontuacoes) {
     if (posicao <= 0) return null;
 
     const totalTimes = ranking.length;
-    const banco = getBancoPorRodada(ligaId, rodadaNumero);
-    const valorBanco = banco[posicao];
 
-    if (valorBanco === undefined || valorBanco === 0) return null;
+    // ✅ v8.0: Buscar valores do banco da configuração da liga
+    const configRanking = getConfigRankingRodada(liga, rodadaNumero);
+    const valorBanco = configRanking.valores[posicao] || configRanking.valores[String(posicao)] || 0;
+
+    if (valorBanco === 0) return null;
 
     return {
         valor: valorBanco,
@@ -144,87 +181,17 @@ function calcularBanco(ligaId, timeId, rodadaNumero, pontuacoes) {
 // 🏆 TOP10 (MITO/MICO)
 // ============================================================================
 
-function getValoresTop10(ligaId) {
-    // Cartoleiros do Sobral: valores 10→1
-    if (String(ligaId) === ID_CARTOLEIROS_SOBRAL) {
-        return {
-            mitos: {
-                1: 10,
-                2: 9,
-                3: 8,
-                4: 7,
-                5: 6,
-                6: 5,
-                7: 4,
-                8: 3,
-                9: 2,
-                10: 1,
-            },
-            micos: {
-                1: -10,
-                2: -9,
-                3: -8,
-                4: -7,
-                5: -6,
-                6: -5,
-                7: -4,
-                8: -3,
-                9: -2,
-                10: -1,
-            },
-        };
-    }
-
-    // SuperCartola 2025: valores 30→12
-    return {
-        mitos: {
-            1: 30,
-            2: 28,
-            3: 26,
-            4: 24,
-            5: 22,
-            6: 20,
-            7: 18,
-            8: 16,
-            9: 14,
-            10: 12,
-        },
-        micos: {
-            1: -30,
-            2: -28,
-            3: -26,
-            4: -24,
-            5: -22,
-            6: -20,
-            7: -18,
-            8: -16,
-            9: -14,
-            10: -12,
-        },
-    };
-}
-
 /**
- * ❌ FUNÇÃO DESATIVADA - Lógica estava ERRADA!
- * Esta função calculava TOP10 POR RODADA, mas o correto é:
- * TOP10 = ranking HISTÓRICO das 10 maiores/menores pontuações do campeonato
- *
- * Usar calcularTop10Historico() no lugar.
- */
-function calcularTop10_DESATIVADA(ligaId, timeId, pontuacoes) {
-    // ❌ DESATIVADA - retorna null sempre
-    // A lógica correta está em calcularTop10Historico()
-    return null;
-}
-
-/**
- * ✅ v7.0: Calcula TOP10 baseado no ranking HISTÓRICO (cache de Top10)
+ * ✅ v8.0: Calcula TOP10 baseado no ranking HISTÓRICO (cache de Top10)
  * - Busca o cache de Top10 que contém os 10 maiores mitos e 10 menores micos
  * - Verifica se o time aparece nesse ranking histórico
  * - Retorna array de transações de TOP10 (pode ter múltiplas aparições)
+ * @param {Object} liga - Documento da liga (com configuracoes)
+ * @param {number} timeId - ID do time
  */
-async function calcularTop10Historico(ligaId, timeId) {
+async function calcularTop10Historico(liga, timeId) {
     try {
+        const ligaId = liga._id;
         const cache = await Top10Cache.findOne({ liga_id: String(ligaId) })
             .sort({ rodada_consolidada: -1 })
             .lean();
@@ -234,7 +201,8 @@ async function calcularTop10Historico(ligaId, timeId) {
             return [];
         }
 
-        const valores = getValoresTop10(ligaId);
+        // ✅ v8.0: Buscar valores do TOP10 da configuração da liga
+        const configTop10 = getConfigTop10(liga);
         const transacoes = [];
 
         // Verificar aparições nos TOP 10 MITOS (10 maiores pontuações históricas)
@@ -242,7 +210,7 @@ async function calcularTop10Historico(ligaId, timeId) {
             const mTimeId = m.timeId || m.time_id;
             if (String(mTimeId) === String(timeId)) {
                 const pos = i + 1;
-                const valor = valores.mitos[pos] || 0;
+                const valor = configTop10.mitos[pos] || configTop10.mitos[String(pos)] || 0;
                 transacoes.push({
                     rodada: m.rodada,
                     tipo: "MITO",
@@ -259,7 +227,7 @@ async function calcularTop10Historico(ligaId, timeId) {
             const mTimeId = m.timeId || m.time_id;
             if (String(mTimeId) === String(timeId)) {
                 const pos = i + 1;
-                const valor = valores.micos[pos] || 0;
+                const valor = configTop10.micos[pos] || configTop10.micos[String(pos)] || 0;
                 transacoes.push({
                     rodada: m.rodada,
                     tipo: "MICO",
@@ -388,9 +356,10 @@ async function calcularFinanceiroDaRodada(
     const meusPontos = minhaPontuacaoObj.pontos;
 
     // 1. BANCO (BÔNUS/ÔNUS)
+    // ✅ v8.0: Verifica via configuracoes ou modulos_ativos
     if (liga.modulos_ativos?.banco !== false) {
         const resultadoBanco = calcularBanco(
-            ligaId,
+            liga, // ✅ v8.0: Passa liga ao invés de ligaId
             timeId,
             rodadaNumero,
             pontuacoes,
@@ -411,13 +380,10 @@ async function calcularFinanceiroDaRodada(
     // 2. TOP10 (MITO/MICO)
     // ✅ v7.0: TOP10 é calculado SEPARADAMENTE (ranking histórico)
     // NÃO calcular por rodada! Ver calcularTop10Historico()
-    // if (liga.modulos_ativos?.top10 !== false) { ... }
 
-    // 3. PONTOS CORRIDOS (apenas SuperCartola)
-    if (
-        liga.modulos_ativos?.pontosCorridos &&
-        String(ligaId) === ID_SUPERCARTOLA_2025
-    ) {
+    // 3. PONTOS CORRIDOS
+    // ✅ v8.0: Usa isModuloHabilitado ao invés de hardcoded ID
+    if (isModuloHabilitado(liga, 'pontos_corridos') || liga.modulos_ativos?.pontosCorridos) {
         const resultadoPC = await calcularConfrontoPontosCorridos(
             liga,
             timeId,
@@ -437,10 +403,9 @@ async function calcularFinanceiroDaRodada(
         }
     }
 
-    // 4. MATA-MATA (apenas SuperCartola)
+    // 4. MATA-MATA
     // ✅ v7.2: MATA-MATA é calculado SEPARADAMENTE (histórico completo)
     // NÃO calcular por rodada! Ver cálculo histórico em getExtratoFinanceiro()
-    // Mesmo padrão aplicado ao TOP10
 
     return { transacoes, saldo: saldoRodada };
 }
@@ -538,8 +503,9 @@ export const getExtratoFinanceiro = async (req, res) => {
             }
         }
 
-        // ✅ v7.0: Calcular TOP10 histórico (separado do loop de rodadas)
-        if (liga.modulos_ativos?.top10 !== false) {
+        // ✅ v8.0: Calcular TOP10 histórico (separado do loop de rodadas)
+        const top10Habilitado = isModuloHabilitado(liga, 'top10') || liga.modulos_ativos?.top10 !== false;
+        if (top10Habilitado) {
             // Verificar se já tem transações de TOP10 no cache
             const temTop10NoCache = cache.historico_transacoes.some(
                 (t) => t.tipo === "MITO" || t.tipo === "MICO"
@@ -551,8 +517,8 @@ export const getExtratoFinanceiro = async (req, res) => {
                     (t) => t.tipo !== "MITO" && t.tipo !== "MICO"
                 );
 
-                // Calcular TOP10 histórico
-                const transacoesTop10 = await calcularTop10Historico(ligaId, timeId);
+                // ✅ v8.0: Passa liga ao invés de ligaId
+                const transacoesTop10 = await calcularTop10Historico(liga, timeId);
                 if (transacoesTop10.length > 0) {
                     novasTransacoes.push(...transacoesTop10);
                     transacoesTop10.forEach((t) => (novoSaldo += t.valor));
@@ -564,9 +530,10 @@ export const getExtratoFinanceiro = async (req, res) => {
             }
         }
 
-        // ✅ v7.1: Calcular MATA-MATA histórico (separado do loop de rodadas)
-        // Fix: Se cache foi populado antes da integração de MM, transações não existem
-        if (liga.modulos_ativos?.mataMata !== false && String(ligaId) === ID_SUPERCARTOLA_2025) {
+        // ✅ v8.0: Calcular MATA-MATA histórico (separado do loop de rodadas)
+        // Usa isModuloHabilitado ao invés de hardcoded ID
+        const mataHabilitado = isModuloHabilitado(liga, 'mata_mata') || liga.modulos_ativos?.mataMata;
+        if (mataHabilitado) {
             const temMataMataNcache = cache.historico_transacoes.some(
                 (t) => t.tipo === "MATA_MATA"
             );
@@ -888,24 +855,26 @@ export const getFluxoFinanceiroLiga = async (ligaId, rodadaNumero) => {
                     }
                 }
 
-                // ✅ v7.0: Calcular TOP10 histórico na consolidação
-                if (liga.modulos_ativos?.top10 !== false) {
+                // ✅ v8.0: Calcular TOP10 histórico na consolidação
+                const top10Habilitado = isModuloHabilitado(liga, 'top10') || liga.modulos_ativos?.top10 !== false;
+                if (top10Habilitado) {
                     // Remover TOP10 antigos
                     cache.historico_transacoes = cache.historico_transacoes.filter(
                         (t) => t.tipo !== "MITO" && t.tipo !== "MICO"
                     );
 
-                    // Calcular TOP10 histórico
-                    const transacoesTop10 = await calcularTop10Historico(ligaId, timeId);
+                    // ✅ v8.0: Passa liga ao invés de ligaId
+                    const transacoesTop10 = await calcularTop10Historico(liga, timeId);
                     if (transacoesTop10.length > 0) {
                         cache.historico_transacoes.push(...transacoesTop10);
                         transacoesTop10.forEach((t) => (cache.saldo_consolidado += t.valor));
                     }
                 }
 
-                // ✅ v7.1: Calcular MATA-MATA histórico na consolidação (mesmo padrão do TOP10)
-                // Fix: Se cache foi populado antes da integração de MM, transações não existem
-                if (liga.modulos_ativos?.mataMata !== false && String(ligaId) === ID_SUPERCARTOLA_2025) {
+                // ✅ v8.0: Calcular MATA-MATA histórico na consolidação
+                // Usa isModuloHabilitado ao invés de hardcoded ID
+                const mataHabilitado = isModuloHabilitado(liga, 'mata_mata') || liga.modulos_ativos?.mataMata;
+                if (mataHabilitado) {
                     // Verificar se já tem transações de MATA_MATA no cache
                     const temMataMataNcache = cache.historico_transacoes.some(
                         (t) => t.tipo === "MATA_MATA"
@@ -996,4 +965,4 @@ export const getFluxoFinanceiroLiga = async (ligaId, rodadaNumero) => {
     }
 };
 
-console.log("[FLUXO-CONTROLLER] ✅ v7.4 carregado (ACERTOS FINANCEIROS)");
+console.log("[FLUXO-CONTROLLER] ✅ v8.0.0 carregado (SaaS Dinâmico)");
